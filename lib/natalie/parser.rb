@@ -61,19 +61,3 @@ module Natalie
     end
   end
 end
-
-require 'minitest/spec'
-require 'minitest/autorun'
-
-describe Natalie::Parser do
-  describe '#ast' do
-    it 'builds an ast' do
-      @parser = Natalie::Parser.new("num = 1\nstr = 'a'\ndef foo\n2\nend")
-      @parser.ast.must_equal [
-        [:assign, 'num', [:number, '1']],
-        [:assign, 'str', [:string, 'a']],
-        [:def, 'foo', [], [[:number, '2']]],
-      ]
-    end
-  end
-end

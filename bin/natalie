@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+
+require_relative '../lib/natalie'
+
+source_path = ARGV.first
+code = File.read(source_path)
+parser = Natalie::Parser.new(code)
+ast = parser.ast
+compiler = Natalie::Compiler.new(ast)
+compiler.compile(source_path.sub(/\.[a-z0-9]+$/, ''))
