@@ -11,18 +11,29 @@ OptionParser.new do |opts|
     options[:debug] = d
   end
 
+  opts.on("-e one-line-script", "Execute one-line script") do |e|
+    options[:execute] = e
+  end
+
   opts.on("--ast", "Show AST rather than compiling") do |ast|
     options[:ast] = ast
   end
 end.parse!
 
-source_path = ARGV.first
-code = File.read(source_path)
+if options[:execute]
+  source_path = "immediate"
+  code = options[:execute].gsub(/\\n/, "\n")
+else
+  source_path = ARGV.shift
+  code = File.read(source_path)
+end
+
 parser = Natalie::Parser.new(code)
 ast = parser.ast
 
 if options[:ast]
-  p ast
+  require 'pp'
+  pp ast
 else
   compiler = Natalie::Compiler.new(ast)
   compiler.compile(source_path.sub(/\.[a-z0-9]+$/, ''))
