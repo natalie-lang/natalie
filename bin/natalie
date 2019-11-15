@@ -1,10 +1,29 @@
 #!/usr/bin/env ruby
 
+require 'optparse'
 require_relative '../lib/natalie'
+
+options = {}
+OptionParser.new do |opts|
+  opts.banner = "Usage: natalie [options] file.nat"
+
+  opts.on("-d", "--debug", "Show debug output") do |d|
+    options[:debug] = d
+  end
+
+  opts.on("--ast", "Show AST rather than compiling") do |ast|
+    options[:ast] = ast
+  end
+end.parse!
 
 source_path = ARGV.first
 code = File.read(source_path)
 parser = Natalie::Parser.new(code)
 ast = parser.ast
-compiler = Natalie::Compiler.new(ast)
-compiler.compile(source_path.sub(/\.[a-z0-9]+$/, ''))
+
+if options[:ast]
+  p ast
+else
+  compiler = Natalie::Compiler.new(ast)
+  compiler.compile(source_path.sub(/\.[a-z0-9]+$/, ''))
+end
