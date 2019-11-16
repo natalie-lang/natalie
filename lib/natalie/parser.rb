@@ -17,7 +17,7 @@ module Natalie
     end
 
     def expr
-      assignment || number || string || method
+      assignment || number || string || method || message
     end
 
     def assignment
@@ -57,6 +57,21 @@ module Natalie
         end
         @scanner.skip(/\s*end/)
         [:def, name, [], body]
+      end
+    end
+
+    def message
+      if (name = @scanner.scan(/[a-z][a-z0-9_]*[\!\?]?/i))
+        args = []
+        if @scanner.check(/[ \t]+[^\s]+/)
+          @scanner.skip(/\s+/)
+          args = []
+          loop do
+            args << expr
+            break unless @scanner.skip(/\s*,\s*/)
+          end
+        end
+        [:send, name, args]
       end
     end
   end

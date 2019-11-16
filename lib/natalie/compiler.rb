@@ -14,9 +14,12 @@ module Natalie
     def compile(out_path)
       write_file
       puts @c_path if ENV['DEBUG']
-      puts "gcc -g -x c -o #{out_path} #{@c_path}"
-      `gcc -g -x c -o #{out_path} #{@c_path}`
-      File.unlink(@c_path) unless ENV['DEBUG']
+      out = `gcc -g -x c -o #{out_path} #{@c_path} 2>&1`
+      if $? == 0
+        File.unlink(@c_path) unless ENV['DEBUG']
+      else
+        puts "There was an error compiling:\n#{out}"
+      end
     end
 
     def write_file

@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'optparse'
+require 'tempfile'
 require_relative '../lib/natalie'
 
 options = {}
@@ -36,5 +37,7 @@ if options[:ast]
   pp ast
 else
   compiler = Natalie::Compiler.new(ast)
-  compiler.compile(source_path.sub(/\.[a-z0-9]+$/, ''))
+  out = Tempfile.create('natalie')
+  compiler.compile(out)
+  puts `#{out}`
 end

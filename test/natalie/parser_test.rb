@@ -10,20 +10,25 @@ describe 'Natalie::Parser' do
     File.expand_path('../../bin/natalie', __dir__)
   end
 
-  describe '#ast' do
+  describe 'AST' do
     it 'builds an ast' do
       out = build_ast(
         "num = 1\n" \
         "str = 'a'\n" \
         "def foo\n" \
           "2\n" \
-        "end"
+        "end\n" \
+        "foo\n" \
+        "puts 'hello'"
       )
+      raise out if out =~ /lib\/natalie.*Error/
       ast = eval(out)
       ast.must_equal [
         [:assign, 'num', [:number, '1']],
         [:assign, 'str', [:string, 'a']],
         [:def, 'foo', [], [[:number, '2']]],
+        [:send, 'foo', []],
+        [:send, 'puts', [[:string, 'hello']]]
       ]
     end
   end
