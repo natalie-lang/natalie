@@ -19,6 +19,11 @@ OptionParser.new do |opts|
   opts.on("--ast", "Show AST rather than compiling") do |ast|
     options[:ast] = ast
   end
+
+  opts.on("-c path", "--compile path", "Compile to binary but do not execute") do |c|
+    options[:compile] = c
+  end
+
 end.parse!
 
 if options[:execute]
@@ -35,10 +40,14 @@ ast = parser.ast
 if options[:ast]
   require 'pp'
   pp ast
+elsif options[:compile]
+  compiler = Natalie::Compiler.new(ast)
+  compiler.compile(options[:compile])
 else
   compiler = Natalie::Compiler.new(ast)
   out = Tempfile.create('natalie')
   compiler.compile(out.path)
   puts out.path if ENV['DEBUG']
   puts `#{out.path}`
+  File.unlink(out.path) unless ENV['DEBUG']
 end
