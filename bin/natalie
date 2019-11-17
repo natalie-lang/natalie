@@ -9,7 +9,7 @@ OptionParser.new do |opts|
   opts.banner = "Usage: natalie [options] file.nat"
 
   opts.on("-d", "--debug", "Show debug output") do |d|
-    options[:debug] = d
+    ENV['DEBUG'] = 'true'
   end
 
   opts.on("-e one-line-script", "Execute one-line script") do |e|
@@ -38,6 +38,7 @@ if options[:ast]
 else
   compiler = Natalie::Compiler.new(ast)
   out = Tempfile.create('natalie')
-  compiler.compile(out)
-  puts `#{out}`
+  compiler.compile(out.path)
+  puts out.path if ENV['DEBUG']
+  puts `#{out.path}`
 end
