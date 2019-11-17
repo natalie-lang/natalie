@@ -2,7 +2,7 @@ require 'tempfile'
 
 module Natalie
   class Compiler
-    BOILERPLATE = File.read(File.expand_path('boilerplate.c', __dir__))
+    BOILERPLATE = File.read(File.expand_path('main.c', __dir__))
 
     def initialize(ast = [])
       @ast = ast
