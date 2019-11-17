@@ -71,7 +71,7 @@ module Natalie
             break unless @scanner.skip(/\s*,\s*/)
           end
         end
-        [:send, name, args]
+        [:send, 'self', name, args]
       end
     end
   end

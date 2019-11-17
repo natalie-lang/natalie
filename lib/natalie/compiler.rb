@@ -30,16 +30,45 @@ module Natalie
     end
 
     def to_c
-      exprs = @ast.map { |e| compile_expr(e) }.join("\n")
-      BOILERPLATE.sub('/*MAIN*/', exprs)
+      top = []
+      decl = []
+      body = []
+      @ast.each do |node|
+        (t, d, b) = compile_expr(node)
+        top << t
+        decl << d
+        body << b
+      end
+      BOILERPLATE
+        .sub('/*TOP*/', top.compact.join("\n"))
+        .sub('/*DECL*/', decl.compact.join("\n"))
+        .sub('/*BODY*/', body.compact.join("\n"))
     end
 
     def compile_expr(expr)
       case expr.first
       when :number
-        "NatObject *#{next_var_name} = nat_number(env, #{expr.last});"
+        var_name = next_var_name
+        [nil, "NatObject *#{var_name} = nat_number(env, #{expr.last});", var_name]
       when :string
-        "NatObject *#{next_var_name} = nat_string(env, #{expr.last.inspect});"
+        var_name = next_var_name
+        [nil, "NatObject *#{var_name} = nat_string(env, #{expr.last.inspect});", var_name]
+      when :send
+        (_, receiver, name, args) = expr
+        top = []
+        decl = []
+        if args.any?
+          args_name = next_var_name('args')
+          decl << "NatObject **#{args_name} = calloc(#{args.size}, sizeof(NatObject));"
+          args.each_with_index do |arg, i|
+            (t, d, b) = compile_expr(arg);
+            top << t; decl << d
+            decl << "#{args_name}[#{i}] = #{b};"
+          end
+        else
+          args_name = "NULL"
+        end
+        [top, decl, "send(env, env_get(env, #{receiver.inspect}), #{name.inspect}, #{args.size}, #{args_name});"]
       else
         raise "unknown AST node: #{expr.inspect}"
       end
@@ -51,9 +80,9 @@ module Natalie
       File.expand_path('.', __dir__)
     end
 
-    def next_var_name
+    def next_var_name(name = "var")
       @var_num += 1
-      "var#{@var_num}"
+      "#{name}#{@var_num}"
     end
   end
 end

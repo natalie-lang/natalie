@@ -3,11 +3,8 @@
  *
  * Hashmap is free software; you can redistribute it and/or modify
  * it under the terms of the MIT license. See LICENSE for details.
- *
- * Updated 2018-02-16 by Tim Morgan to use GC_MALLOC and friends.
  */
 
-//#include <gc.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -197,7 +194,8 @@ static int hashmap_rehash(struct hashmap *map, size_t new_size)
     HASHMAP_ASSERT(new_size >= HASHMAP_SIZE_MIN);
     HASHMAP_ASSERT((new_size & (new_size - 1)) == 0);
 
-    new_table = (struct hashmap_entry *)malloc(new_size * sizeof(struct hashmap_entry));
+    new_table = (struct hashmap_entry *)calloc(new_size,
+        sizeof(struct hashmap_entry));
     if (!new_table) {
         return -ENOMEM;
     }
@@ -282,7 +280,8 @@ int hashmap_init(struct hashmap *map, size_t (*hash_func)(const void *),
     map->table_size_init = initial_size;
     map->table_size = initial_size;
     map->num_entries = 0;
-    map->table = (struct hashmap_entry *)malloc(initial_size * sizeof(struct hashmap_entry));
+    map->table = (struct hashmap_entry *)calloc(initial_size,
+        sizeof(struct hashmap_entry));
     if (!map->table) {
         return -ENOMEM;
     }
