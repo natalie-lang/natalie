@@ -257,16 +257,21 @@ void nat_grow_string_at_least(NatObject *obj, size_t min_capacity) {
     }
 }
 
-void nat_string_append(NatObject *obj, char *str) {
-    assert(obj->type == NAT_VALUE_STRING);
-    size_t new_len = strlen(str);
-    if (new_len == 0)
-        return;
-    size_t total_len = obj->str_len + new_len;
-    nat_grow_string_at_least(obj, total_len);
-    strcat(obj->str, str);
-    obj->str_len = total_len;
-    assert(strlen(obj->str) == obj->str_len);
+void nat_string_append(NatObject *str, char *s) {
+    size_t new_len = strlen(s);
+    if (new_len == 0) return;
+    size_t total_len = str->str_len + new_len;
+    nat_grow_string_at_least(str, total_len);
+    strcat(str->str, s);
+    str->str_len = total_len;
+}
+
+void nat_string_append_char(NatObject *str, char c) {
+    size_t total_len = str->str_len + 1;
+    nat_grow_string_at_least(str, total_len);
+    str->str[total_len - 1] = c;
+    str->str[total_len] = 0;
+    str->str_len = total_len;
 }
 
 NatObject *String_ltlt(NatEnv *env, NatObject *self, size_t argc, NatObject **args) {
@@ -281,18 +286,25 @@ NatObject *String_ltlt(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
         assert(str_obj->type == NAT_VALUE_STRING);
         str = str_obj->str;
     }
-    size_t new_len = strlen(str);
-    if (new_len == 0) return self;
-    size_t total_len = self->str_len + new_len;
-    nat_grow_string_at_least(self, total_len);
-    strcat(self->str, str);
-    self->str_len = total_len;
+    nat_string_append(self, str);
     return self;
 }
 
 NatObject *String_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args) {
     assert(self->type == NAT_VALUE_STRING);
-    return self;
+    NatObject *out = nat_string(env, "\"");
+    for (size_t i=0; i<self->str_len; i++) {
+        // FIXME: iterate over multibyte chars
+        char c = self->str[i];
+        if (c == '"' || c == '\\') {
+            nat_string_append_char(out, '\\');
+            nat_string_append_char(out, c);
+        } else {
+            nat_string_append_char(out, c);
+        }
+    }
+    nat_string_append_char(out, '"');
+    return out;
 }
 
 /*TOP*/
@@ -328,7 +340,7 @@ int main() {
 
     NatObject *String = nat_subclass(Object, "String");
     hashmap_put(&String->methods, "to_s", String_to_s);
-    //hashmap_put(&String->methods, "inspect", String_inspect);
+    hashmap_put(&String->methods, "inspect", String_inspect);
     hashmap_put(&String->methods, "<<", String_ltlt);
     env_set(env, "String", String);
 
