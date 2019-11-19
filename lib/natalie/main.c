@@ -7,8 +7,7 @@
 
 typedef struct NatObject NatObject;
 
-enum NatValueType
-{
+enum NatValueType {
     NAT_VALUE_CLASS,
     NAT_VALUE_ARRAY,
     NAT_VALUE_STRING,
@@ -17,8 +16,7 @@ enum NatValueType
     NAT_VALUE_OTHER
 };
 
-struct NatObject
-{
+struct NatObject {
     enum NatValueType type;
     NatObject *class;
 
@@ -27,32 +25,28 @@ struct NatObject
         struct hashmap hashmap;
 
         // NAT_VALUE_CLASS
-        struct
-        {
+        struct {
             char *name;
             NatObject *superclass;
             struct hashmap methods;
         };
 
         // NAT_VALUE_ARRAY
-        struct
-        {
+        struct {
             size_t ary_len;
             size_t ary_cap;
             NatObject **ary;
         };
 
         // NAT_VALUE_STRING
-        struct
-        {
+        struct {
             size_t str_len;
             size_t str_cap;
             char *str;
         };
 
         // NAT_VALUE_REGEX
-        struct
-        {
+        struct {
             size_t regex_len;
             char *regex;
         };
@@ -70,14 +64,12 @@ struct NatObject
 
 typedef struct NatEnv NatEnv;
 
-struct NatEnv
-{
+struct NatEnv {
     struct hashmap data;
     NatEnv *outer;
 };
 
-NatEnv *build_env(NatEnv *outer)
-{
+NatEnv *build_env(NatEnv *outer) {
     NatEnv *env = malloc(sizeof(NatEnv));
     env->outer = outer;
     hashmap_init(&env->data, hashmap_hash_string, hashmap_compare_string, 100);
@@ -85,30 +77,22 @@ NatEnv *build_env(NatEnv *outer)
     return env;
 }
 
-NatEnv *build_top_env()
-{
+NatEnv *build_top_env() {
     NatEnv *top_env = build_env(NULL);
     return top_env;
 }
 
-NatEnv *env_find(NatEnv *env, char *key)
-{
-    if (hashmap_get(&env->data, key))
-    {
+NatEnv *env_find(NatEnv *env, char *key) {
+    if (hashmap_get(&env->data, key)) {
         return env;
-    }
-    else if (env->outer)
-    {
+    } else if (env->outer) {
         return env_find(env->outer, key);
-    }
-    else
-    {
+    } else {
         return NULL;
     }
 }
 
-NatObject *env_get(NatEnv *env, char *key)
-{
+NatObject *env_get(NatEnv *env, char *key) {
     env = env_find(env, key);
     /*
     if (!env) {
@@ -116,49 +100,41 @@ NatObject *env_get(NatEnv *env, char *key)
     }
     */
     NatObject *val = hashmap_get(&env->data, key);
-    if (val)
-    {
+    if (val) {
         return val;
-    }
-    else
-    {
+    } else {
         //return nat_error(nat_sprintf("'%s' not found", key));
     }
 }
 
-NatObject *env_set(NatEnv *env, char *key, NatObject *val)
-{
+NatObject *env_set(NatEnv *env, char *key, NatObject *val) {
     //if (is_blank_line(val)) return val;
     hashmap_remove(&env->data, key);
     hashmap_put(&env->data, key, val);
     return val;
 }
 
-void env_delete(NatEnv *env, char *key)
-{
+void env_delete(NatEnv *env, char *key) {
     hashmap_remove(&env->data, key);
 }
 
 #define TRUE 1
 #define FALSE 0
 
-char *heap_string(char *str)
-{
+char *heap_string(char *str) {
     size_t len = strlen(str);
     char *copy = malloc(len + 1);
     memcpy(copy, str, len + 1);
     return copy;
 }
 
-NatObject *nat_alloc()
-{
+NatObject *nat_alloc() {
     NatObject *val = malloc(sizeof(NatObject));
     val->type = NAT_VALUE_OTHER;
     return val;
 }
 
-NatObject *nat_subclass(NatObject *superclass, char *name)
-{
+NatObject *nat_subclass(NatObject *superclass, char *name) {
     NatObject *val = nat_alloc();
     val->type = NAT_VALUE_CLASS;
     val->name = heap_string(name);
@@ -168,23 +144,20 @@ NatObject *nat_subclass(NatObject *superclass, char *name)
     return val;
 }
 
-NatObject *nat_new(NatObject *class)
-{
+NatObject *nat_new(NatObject *class) {
     NatObject *val = nat_alloc();
     val->class = class;
     return val;
 }
 
-NatObject *nat_number(NatEnv *env, long long num)
-{
+NatObject *nat_number(NatEnv *env, long long num) {
     NatObject *val = nat_new(env_get(env, "Numeric"));
     val->type = NAT_VALUE_NUMBER;
     val->number = num;
     return val;
 }
 
-NatObject *nat_string(NatEnv *env, char *str)
-{
+NatObject *nat_string(NatEnv *env, char *str) {
     NatObject *val = nat_new(env_get(env, "String"));
     val->type = NAT_VALUE_STRING;
     size_t len = strlen(str);
@@ -195,8 +168,7 @@ NatObject *nat_string(NatEnv *env, char *str)
 }
 
 // note: there is a formula using log10 to calculate a number length, but this works for now
-size_t num_char_len(long long num)
-{
+size_t num_char_len(long long num) {
     if (num < 0) {
         return 1 + num_char_len(llabs(num));
     } else if (num < 10) {
@@ -265,33 +237,6 @@ NatObject *String_to_s(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     return self;
 }
 
-/*
-char *pr_string(MalType *val, int print_readably) {
-    size_t len = val->str_len;
-    char *orig = val->str;
-    MalObject *repr = nat_string("\"");
-    for (size_t i = 0; i < len; i++)
-    {
-        switch (orig[i])
-        {
-        case '\n':
-            nat_string_append(repr, "\\n");
-            break;
-        case '"':
-            nat_string_append(repr, "\\\"");
-            break;
-        case '\\':
-            nat_string_append(repr, "\\\\");
-            break;
-        default:
-            nat_string_append_char(repr, orig[i]);
-        }
-    }
-    nat_string_append_char(repr, '"');
-    return repr->str;
-}
-*/
-
 #define STRING_GROW_FACTOR 2
 
 void nat_grow_string(NatObject *obj, size_t capacity) {
@@ -301,8 +246,7 @@ void nat_grow_string(NatObject *obj, size_t capacity) {
     obj->str_cap = capacity;
 }
 
-void nat_grow_string_at_least(NatObject *obj, size_t min_capacity)
-{
+void nat_grow_string_at_least(NatObject *obj, size_t min_capacity) {
     size_t capacity = obj->str_cap;
     if (capacity >= min_capacity)
         return;
@@ -353,8 +297,7 @@ NatObject *String_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject *
 
 /*TOP*/
 
-int main()
-{
+int main() {
     NatEnv *env = build_top_env();
 
     NatObject *Class = nat_alloc();
