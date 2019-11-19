@@ -11,12 +11,14 @@ module Natalie
 
     attr_accessor :ast
 
-    def compile(out_path)
+    def compile(out_path, shared: false)
       write_file
-      out = `gcc -g -x c -I #{lib_path} -o #{out_path} #{@c_path} #{lib_path}/hashmap.c 2>&1`
+      cmd = "gcc -g -Wall -x c #{shared ? '-fPIC -shared' : ''} -I #{lib_path} -o #{out_path} #{@c_path} #{lib_path}/hashmap.c 2>&1"
+      out = `#{cmd}`
       File.unlink(@c_path) unless ENV['DEBUG']
       if $? != 0
-        puts "There was an error compiling:\n#{out}"
+        $stderr.puts out
+        raise 'There was an error compiling.'
       end
     end
 
@@ -74,7 +76,7 @@ module Natalie
         (t, d, e) = compile_expr(receiver)
         top << t; decl << d
         result_name = next_var_name('result')
-        decl << "NatObject *#{result_name} = send(env, #{e}, #{name.inspect}, #{args.size}, #{args_name});"
+        decl << "NatObject *#{result_name} = nat_send(env, #{e}, #{name.inspect}, #{args.size}, #{args_name});"
         [top, decl, result_name]
       else
         raise "unknown AST node: #{expr.inspect}"

@@ -29,9 +29,13 @@ end.parse!
 if options[:execute]
   source_path = "immediate"
   code = options[:execute].gsub(/\\n/, "\n")
-else
+elsif ARGV.any?
   source_path = ARGV.shift
   code = File.read(source_path)
+else
+  repl = Natalie::Repl.new
+  repl.go
+  exit
 end
 
 parser = Natalie::Parser.new(code)

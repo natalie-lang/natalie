@@ -69,19 +69,6 @@ struct NatEnv {
     NatEnv *outer;
 };
 
-NatEnv *build_env(NatEnv *outer) {
-    NatEnv *env = malloc(sizeof(NatEnv));
-    env->outer = outer;
-    hashmap_init(&env->data, hashmap_hash_string, hashmap_compare_string, 100);
-    hashmap_set_key_alloc_funcs(&env->data, hashmap_alloc_key_string, NULL);
-    return env;
-}
-
-NatEnv *build_top_env() {
-    NatEnv *top_env = build_env(NULL);
-    return top_env;
-}
-
 NatEnv *env_find(NatEnv *env, char *key) {
     if (hashmap_get(&env->data, key)) {
         return env;
@@ -209,7 +196,7 @@ char* long_long_to_string(long long num) {
   }
 }
 
-NatObject *send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, NatObject **args) {
+NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, NatObject **args) {
     // TODO: look up the class inheritance for the method
     NatObject* (*method)(NatEnv*, NatObject*, size_t, NatObject**) = hashmap_get(&receiver->class->methods, sym);
     assert(method != NULL);
@@ -219,7 +206,7 @@ NatObject *send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, NatObj
 NatObject *Object_puts(NatEnv *env, NatObject *self, size_t argc, NatObject **args) {
     NatObject *str;
     for (size_t i=0; i<argc; i++) {
-        str = send(env, args[i], "to_s", 0, NULL);
+        str = nat_send(env, args[i], "to_s", 0, NULL);
         assert(str->type == NAT_VALUE_STRING);
         printf("%s\n", str->str);
     }
@@ -282,7 +269,7 @@ NatObject *String_ltlt(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     if (arg->type == NAT_VALUE_STRING) {
         str = arg->str;
     } else {
-        NatObject *str_obj = send(env, arg, "to_s", 0, NULL);
+        NatObject *str_obj = nat_send(env, arg, "to_s", 0, NULL);
         assert(str_obj->type == NAT_VALUE_STRING);
         str = str_obj->str;
     }
@@ -307,10 +294,16 @@ NatObject *String_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject *
     return out;
 }
 
-/*TOP*/
+NatEnv *build_env(NatEnv *outer) {
+    NatEnv *env = malloc(sizeof(NatEnv));
+    env->outer = outer;
+    hashmap_init(&env->data, hashmap_hash_string, hashmap_compare_string, 100);
+    hashmap_set_key_alloc_funcs(&env->data, hashmap_alloc_key_string, NULL);
+    return env;
+}
 
-int main() {
-    NatEnv *env = build_top_env();
+NatEnv *build_top_env() {
+    NatEnv *env = build_env(NULL);
 
     NatObject *Class = nat_alloc();
     Class->type = NAT_VALUE_CLASS;
@@ -324,8 +317,8 @@ int main() {
     hashmap_put(&Object->methods, "puts", Object_puts);
     env_set(env, "Object", Object);
 
-    NatObject *main = nat_new(Object);
-    env_set(env, "self", main);
+    NatObject *main_obj = nat_new(Object);
+    env_set(env, "self", main_obj);
 
     NatObject *NilClass = nat_subclass(Object, "NilClass");
     env_set(env, "NilClass", NilClass);
@@ -344,8 +337,18 @@ int main() {
     hashmap_put(&String->methods, "<<", String_ltlt);
     env_set(env, "String", String);
 
+    return env;
+}
+
+/*TOP*/
+
+NatObject *EVAL(NatEnv *env) {
     /*DECL*/
     /*BODY*/
+}
 
+int main(void) {
+    NatEnv *env = build_top_env();
+    EVAL(env);
     return 0;
 }
