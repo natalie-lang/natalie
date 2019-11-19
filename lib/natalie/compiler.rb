@@ -34,10 +34,10 @@ module Natalie
       decl = []
       body = []
       @ast.each do |node|
-        (t, d, b) = compile_expr(node)
+        (t, d, e) = compile_expr(node)
         top << t
         decl << d
-        body << b
+        body << "#{e};"
       end
       BOILERPLATE
         .sub('/*TOP*/', top.compact.join("\n"))
@@ -46,6 +46,9 @@ module Natalie
     end
 
     def compile_expr(expr)
+      if expr.is_a?(String)
+        return [nil, nil, "env_get(env, #{expr.inspect})"]
+      end
       case expr.first
       when :number
         var_name = next_var_name
@@ -61,14 +64,18 @@ module Natalie
           args_name = next_var_name('args')
           decl << "NatObject **#{args_name} = calloc(#{args.size}, sizeof(NatObject));"
           args.each_with_index do |arg, i|
-            (t, d, b) = compile_expr(arg);
+            (t, d, e) = compile_expr(arg);
             top << t; decl << d
-            decl << "#{args_name}[#{i}] = #{b};"
+            decl << "#{args_name}[#{i}] = #{e};"
           end
         else
           args_name = "NULL"
         end
-        [top, decl, "send(env, env_get(env, #{receiver.inspect}), #{name.inspect}, #{args.size}, #{args_name});"]
+        (t, d, e) = compile_expr(receiver)
+        top << t; decl << d
+        result_name = next_var_name('result')
+        decl << "NatObject *#{result_name} = send(env, #{e}, #{name.inspect}, #{args.size}, #{args_name});"
+        [top, decl, result_name]
       else
         raise "unknown AST node: #{expr.inspect}"
       end

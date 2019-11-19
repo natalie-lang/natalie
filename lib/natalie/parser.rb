@@ -17,7 +17,7 @@ module Natalie
     end
 
     def expr
-      assignment || number || string || method || message
+      assignment || message || number || string || method
     end
 
     def assignment
@@ -47,7 +47,7 @@ module Natalie
     def method
       if @scanner.scan(/def /)
         @scanner.skip(/\s*/)
-        name = @scanner.scan(/[a-z][a-z0-9_]*/)
+        name = identifier
         raise 'expected method name after def' unless name
         @scanner.skip(/[;\n]*/)
         body = []
@@ -60,18 +60,82 @@ module Natalie
       end
     end
 
+    IDENTIFIER = /[a-z][a-z0-9_]*[\!\?=]?/i
+
+    def identifier
+      @scanner.scan(IDENTIFIER)
+    end
+
+    def bare_word_message
+      if (id = identifier)
+        [:send, 'self', id, []]
+      end
+    end
+
+    OPERATOR = /<<?|>>?|<=>|<=|=>|===?|\!=|=~|\!~|\||\^|&|\+|\-|\*\*?|\/|%/
+
     def message
-      if (name = @scanner.scan(/[a-z][a-z0-9_]*[\!\?]?/i))
-        args = []
-        if @scanner.check(/[ \t]+[^\s]+/)
-          @scanner.skip(/\s+/)
-          args = []
-          loop do
-            args << expr
-            break unless @scanner.skip(/\s*,\s*/)
-          end
+      explicit_message || implicit_message
+    end
+
+    def explicit_message
+      start = @scanner.pos
+      if @explicit_message_recurs
+        receiver = implicit_message || string || number
+      else
+        @explicit_message_recurs = true
+        receiver = expr
+      end
+      @explicit_message_recurs = false
+      if receiver
+        if @scanner.check(/\s*\.?\s*#{OPERATOR}\s*/)
+          @scanner.skip(/\s*\.?\s*/)
+          message = @scanner.scan(OPERATOR)
+          args = args_with_parens || args_without_parens
+          raise 'expected expression after operator' unless args
+          [:send, receiver, message, args]
+        elsif @scanner.check(/\s*\.\s*/)
+          @scanner.skip(/\s*\.\s*/)
+          message = identifier
+          raise 'expected method call after dot' unless message
+          args = args_with_parens || args_without_parens || []
+          [:send, receiver, message, args]
+        else
+          receiver
         end
-        [:send, 'self', name, args]
+      else
+        @scanner.pos = start
+        nil
+      end
+    end
+
+    def args_with_parens
+      if @scanner.check(/[ \t]*\(\s*/)
+        @scanner.skip(/[ \t]*\(\s*/)
+        args = [expr]
+        while @scanner.skip(/[ \t]*,\s*/)
+          args << expr
+        end
+        raise 'expected )' unless @scanner.skip(/\s*\)/)
+        args
+      end
+    end
+
+    def args_without_parens
+      if @scanner.check(/[ \t]+/)
+        @scanner.skip(/[ \t]+/)
+        args = [expr]
+        while @scanner.skip(/[ \t]*,\s*/)
+          args << expr
+        end
+        args
+      end
+    end
+
+    def implicit_message
+      if (id = identifier)
+        args = args_with_parens || args_without_parens || []
+        [:send, 'self', id, args]
       end
     end
   end

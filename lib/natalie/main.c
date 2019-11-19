@@ -112,7 +112,7 @@ NatObject *env_get(NatEnv *env, char *key)
     env = env_find(env, key);
     /*
     if (!env) {
-        return mal_error(mal_sprintf("'%s' not found", key));
+        return nat_error(nat_sprintf("'%s' not found", key));
     }
     */
     NatObject *val = hashmap_get(&env->data, key);
@@ -122,7 +122,7 @@ NatObject *env_get(NatEnv *env, char *key)
     }
     else
     {
-        //return mal_error(mal_sprintf("'%s' not found", key));
+        //return nat_error(nat_sprintf("'%s' not found", key));
     }
 }
 
@@ -265,6 +265,92 @@ NatObject *String_to_s(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     return self;
 }
 
+/*
+char *pr_string(MalType *val, int print_readably) {
+    size_t len = val->str_len;
+    char *orig = val->str;
+    MalObject *repr = nat_string("\"");
+    for (size_t i = 0; i < len; i++)
+    {
+        switch (orig[i])
+        {
+        case '\n':
+            nat_string_append(repr, "\\n");
+            break;
+        case '"':
+            nat_string_append(repr, "\\\"");
+            break;
+        case '\\':
+            nat_string_append(repr, "\\\\");
+            break;
+        default:
+            nat_string_append_char(repr, orig[i]);
+        }
+    }
+    nat_string_append_char(repr, '"');
+    return repr->str;
+}
+*/
+
+#define STRING_GROW_FACTOR 2
+
+void nat_grow_string(NatObject *obj, size_t capacity) {
+    size_t len = strlen(obj->str);
+    assert(capacity >= len);
+    obj->str = realloc(obj->str, capacity + 1);
+    obj->str_cap = capacity;
+}
+
+void nat_grow_string_at_least(NatObject *obj, size_t min_capacity)
+{
+    size_t capacity = obj->str_cap;
+    if (capacity >= min_capacity)
+        return;
+    if (capacity > 0 && min_capacity <= capacity * STRING_GROW_FACTOR) {
+        nat_grow_string(obj, capacity * STRING_GROW_FACTOR);
+    } else {
+        nat_grow_string(obj, min_capacity);
+    }
+}
+
+void nat_string_append(NatObject *obj, char *str) {
+    assert(obj->type == NAT_VALUE_STRING);
+    size_t new_len = strlen(str);
+    if (new_len == 0)
+        return;
+    size_t total_len = obj->str_len + new_len;
+    nat_grow_string_at_least(obj, total_len);
+    strcat(obj->str, str);
+    obj->str_len = total_len;
+    assert(strlen(obj->str) == obj->str_len);
+}
+
+NatObject *String_ltlt(NatEnv *env, NatObject *self, size_t argc, NatObject **args) {
+    assert(self->type == NAT_VALUE_STRING);
+    assert(argc == 1);
+    NatObject *arg = args[0];
+    char *str;
+    if (arg->type == NAT_VALUE_STRING) {
+        str = arg->str;
+    } else {
+        NatObject *str_obj = send(env, arg, "to_s", 0, NULL);
+        assert(str_obj->type == NAT_VALUE_STRING);
+        str = str_obj->str;
+    }
+    size_t new_len = strlen(str);
+    if (new_len == 0) return self;
+    size_t total_len = self->str_len + new_len;
+    nat_grow_string_at_least(self, total_len);
+    strcat(self->str, str);
+    self->str_len = total_len;
+    return self;
+}
+
+NatObject *String_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args) {
+    assert(self->type == NAT_VALUE_STRING);
+    return self;
+}
+
 /*TOP*/
 
 int main()
@@ -294,10 +380,13 @@ int main()
 
     NatObject *Numeric = nat_subclass(Object, "Numeric");
     hashmap_put(&Numeric->methods, "to_s", Numeric_to_s);
+    hashmap_put(&Numeric->methods, "inspect", Numeric_to_s);
     env_set(env, "Numeric", Numeric);
 
     NatObject *String = nat_subclass(Object, "String");
     hashmap_put(&String->methods, "to_s", String_to_s);
+    //hashmap_put(&String->methods, "inspect", String_inspect);
+    hashmap_put(&String->methods, "<<", String_ltlt);
     env_set(env, "String", String);
 
     /*DECL*/
