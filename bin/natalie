@@ -53,5 +53,7 @@ else
   compiler.compile(out.path)
   puts out.path if ENV['DEBUG']
   puts `#{out.path} 2>&1` # FIXME: stderr
+  success = $?.to_i == 0
   File.unlink(out.path) unless ENV['DEBUG']
+  exit(success ? 0 : 1)
 end
