@@ -4,7 +4,7 @@ require 'minitest/autorun'
 describe 'Natalie::Parser' do
   def build_ast(code)
     # Don't hard-depend on the internal implementation, but use it most of the time for speed.
-    if rand(20) == 0
+    if rand(50) == 0
       out = `#{bin} --ast -e #{code.inspect} 2>&1`
       raise out if out =~ /lib\/natalie.*Error/
       eval(out)
@@ -90,9 +90,17 @@ describe 'Natalie::Parser' do
 
     it 'parses method definitions' do
       ast = build_ast("def foo; 'foo'; end")
-      ast.must_equal [[:def, 'foo', [], [[:string, 'foo']]]]
+      ast.must_equal [[:def, 'foo', [], {}, [[:string, 'foo']]]]
       ast = build_ast("def foo \n 'foo'\n 2 \n 'bar'\n end")
       ast.first.first.must_equal :def
+      ast = build_ast("def foo(x); x; end")
+      ast.must_equal [[:def, 'foo', ['x'], {}, [[:send, 'self', 'x', []]]]]
+      ast = build_ast("def foo(x, y); x; end")
+      ast.must_equal [[:def, 'foo', ['x', 'y'], {}, [[:send, 'self', 'x', []]]]]
+      ast = build_ast("def foo x  ; x; end")
+      ast.must_equal [[:def, 'foo', ['x'], {}, [[:send, 'self', 'x', []]]]]
+      ast = build_ast("def foo   x, y; x; end")
+      ast.must_equal [[:def, 'foo', ['x', 'y'], {}, [[:send, 'self', 'x', []]]]]
     end
   end
 end

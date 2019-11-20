@@ -2,4 +2,25 @@ def foo
   'foo'
 end
 
+def double(x)
+  x * 2
+end
+
+def triple x
+  x * 3
+end
+
+def mul1(x, y,
+         z)
+  x * y * z
+end
+
+def mul2 x, y, z
+  x * y * z
+end
+
 puts foo
+puts double(2)
+puts triple 3
+puts mul1(2, 3, 4)
+puts mul2 2, 3, 4

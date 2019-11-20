@@ -52,14 +52,19 @@ module Natalie
         @scanner.skip(/\s*/)
         name = method_name
         expect(name, 'method name after def')
-        @scanner.skip(/[;\n]+\s*/)
+        args = []
+        unless @scanner.skip(/\s*[;\n]+\s*/)
+          args = method_args_with_parens || method_args_without_parens
+          expect(args, 'arguments after method name')
+          @scanner.skip(/[;\s]+/)
+        end
         body = []
         until @scanner.check(/\s*end[;\s]/)
           body << expr
           expect(@scanner.skip(END_OF_EXPRESSION), '; or newline')
         end
         @scanner.skip(/\s*end/)
-        [:def, name, [], {}, body]
+        [:def, name, args, {}, body]
       end
     end
 
@@ -136,6 +141,29 @@ module Natalie
         args = [expr]
         while @scanner.skip(/[ \t]*,\s*/)
           args << expr
+        end
+        args
+      end
+    end
+
+    def method_args_with_parens
+      if @scanner.check(/[ \t]*\(\s*/)
+        @scanner.skip(/[ \t]*\(\s*/)
+        args = [identifier]
+        while @scanner.skip(/[ \t]*,\s*/)
+          args << identifier
+        end
+        expect(@scanner.skip(/\s*\)/), ')')
+        args
+      end
+    end
+
+    def method_args_without_parens
+      if @scanner.check(/[ \t]+/)
+        @scanner.skip(/[ \t]+/)
+        args = [identifier]
+        while @scanner.skip(/[ \t]*,\s*/)
+          args << identifier
         end
         args
       end
