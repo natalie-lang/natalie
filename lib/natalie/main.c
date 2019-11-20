@@ -5,6 +5,8 @@
 #include <string.h>
 #include "hashmap.h"
 
+#define UNUSED(x) (void)(x)
+
 typedef struct NatObject NatObject;
 typedef struct NatEnv NatEnv;
 

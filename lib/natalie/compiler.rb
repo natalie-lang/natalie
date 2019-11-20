@@ -33,11 +33,15 @@ module Natalie
       top = []
       decl = []
       body = []
-      @ast.each do |node|
+      @ast.each_with_index do |node, i|
         (t, d, e) = compile_expr(node)
         top << t
         decl << d
-        body << "#{e};"
+        if i == @ast.size-1 && e
+          body << "return #{e};"
+        elsif e
+          body << "UNUSED(#{e});"
+        end
       end
       out = BOILERPLATE
         .sub('/*TOP*/', top.compact.join("\n"))
@@ -84,11 +88,15 @@ module Natalie
         args.each_with_index do |arg, i|
           func << "    env_set(env, #{arg.inspect}, args[#{i}]);"
         end
-        body.each do |node|
+        body.each_with_index do |node, i|
           (t, d, e) = compile_expr(node)
           top << t
           func << d
-          func << "return #{e};"
+          if i == body.size-1 && e
+            func << "return #{e};"
+          elsif e
+            func << "UNUSED(#{e});"
+          end
         end
         func << "}"
         decl = "hashmap_put(&env_get(env, \"self\")->class->methods, #{name.inspect}, #{func_name});"
