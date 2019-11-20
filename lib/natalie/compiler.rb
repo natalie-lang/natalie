@@ -39,10 +39,24 @@ module Natalie
         decl << d
         body << "#{e};"
       end
-      BOILERPLATE
+      out = BOILERPLATE
         .sub('/*TOP*/', top.compact.join("\n"))
         .sub('/*DECL*/', decl.compact.join("\n"))
         .sub('/*BODY*/', body.compact.join("\n"))
+      reindent(out)
+    end
+
+    private
+
+    def reindent(code)
+      out = []
+      indent = 0
+      code.split("\n").each do |line|
+        indent -= 4 if line =~ /^\s*\}/
+        out << line.sub(/^\s*/, ' ' * indent)
+        indent += 4 if line.end_with?('{')
+      end
+      out.join("\n")
     end
 
     def compile_expr(expr)
@@ -110,8 +124,6 @@ module Natalie
         raise "unknown AST node: #{expr.inspect}"
       end
     end
-
-    private
 
     def lib_path
       File.expand_path('.', __dir__)

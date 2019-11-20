@@ -177,7 +177,8 @@ size_t num_char_len(long long num) {
         return 15;
     } else if (num < 1000000000000000000) {
         return 18;
-    } else { // up to 128 bits
+    } else {
+        // up to 128 bits
         return 40;
     }
 }
