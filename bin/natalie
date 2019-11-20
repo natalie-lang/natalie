@@ -52,6 +52,6 @@ else
   out = Tempfile.create('natalie')
   compiler.compile(out.path)
   puts out.path if ENV['DEBUG']
-  puts `#{out.path}`
+  puts `#{out.path} 2>&1` # FIXME: stderr
   File.unlink(out.path) unless ENV['DEBUG']
 end

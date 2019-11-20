@@ -16,10 +16,8 @@ module Natalie
       cmd = "gcc -g -Wall -x c #{shared ? '-fPIC -shared' : ''} -I #{lib_path} -o #{out_path} #{@c_path} #{lib_path}/hashmap.c 2>&1"
       out = `#{cmd}`
       File.unlink(@c_path) unless ENV['DEBUG']
-      if $? != 0
-        $stderr.puts out
-        raise 'There was an error compiling.'
-      end
+      $stderr.puts out if ENV['DEBUG'] || $? != 0
+      raise 'There was an error compiling.' if $? != 0
     end
 
     def write_file
@@ -52,6 +50,14 @@ module Natalie
         return [nil, nil, "env_get(env, #{expr.inspect})"]
       end
       case expr.first
+      when :assign
+        var_name = next_var_name
+        (_, name, value) = expr
+        (t, d, e) = compile_expr(value)
+        decl = [d]
+        decl << "NatObject *#{var_name} = #{e};"
+        decl << "env_set(env, #{name.inspect}, #{var_name});"
+        [t, decl, var_name]
       when :number
         var_name = next_var_name
         [nil, "NatObject *#{var_name} = nat_number(env, #{expr.last});", var_name]
@@ -64,6 +70,7 @@ module Natalie
         decl = []
         if args.any?
           args_name = next_var_name('args')
+          # TODO: if only 1 argument, just pass address of the arg instead
           decl << "NatObject **#{args_name} = calloc(#{args.size}, sizeof(NatObject));"
           args.each_with_index do |arg, i|
             (t, d, e) = compile_expr(arg);
@@ -76,7 +83,7 @@ module Natalie
         (t, d, e) = compile_expr(receiver)
         top << t; decl << d
         result_name = next_var_name('result')
-        decl << "NatObject *#{result_name} = nat_send(env, #{e}, #{name.inspect}, #{args.size}, #{args_name});"
+        decl << "NatObject *#{result_name} = nat_lookup_or_send(env, #{e}, #{name.inspect}, #{args.size}, #{args_name});"
         [top, decl, result_name]
       else
         raise "unknown AST node: #{expr.inspect}"

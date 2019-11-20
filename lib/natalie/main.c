@@ -81,16 +81,14 @@ NatEnv *env_find(NatEnv *env, char *key) {
 
 NatObject *env_get(NatEnv *env, char *key) {
     env = env_find(env, key);
-    /*
     if (!env) {
-        return nat_error(nat_sprintf("'%s' not found", key));
+        return NULL;
     }
-    */
     NatObject *val = hashmap_get(&env->data, key);
     if (val) {
         return val;
     } else {
-        //return nat_error(nat_sprintf("'%s' not found", key));
+        return NULL;
     }
 }
 
@@ -200,10 +198,23 @@ NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, Na
     // TODO: look up the class inheritance for the method
     NatObject* (*method)(NatEnv*, NatObject*, size_t, NatObject**) = hashmap_get(&receiver->class->methods, sym);
     if (method == NULL) {
-        printf("Error: object has no %s method, cannot call send.\n", sym);
+        fprintf(stderr, "Error: object has no %s method, cannot call send.\n", sym);
         abort();
     }
     return method(env, receiver, argc, args);
+}
+
+NatObject *nat_lookup_or_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, NatObject **args) {
+    if (argc > 0) {
+        return nat_send(env, receiver, sym, argc, args);
+    } else {
+        NatObject *obj = env_get(env, sym);
+        if (obj) {
+            return obj;
+        } else {
+            return nat_send(env, receiver, sym, argc, args);
+        }
+    }
 }
 
 NatObject *NilClass_to_s(NatEnv *env, NatObject *self, size_t argc, NatObject **args) {

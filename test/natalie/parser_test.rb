@@ -24,6 +24,17 @@ describe 'Natalie::Parser' do
       ast.must_equal [[:number, '1']]
     end
 
+    it 'parses multiple expressions' do
+      ast = build_ast("1\n2")
+      ast.must_equal [[:number, '1'], [:number, '2']]
+      ast = build_ast("1 \n 2")
+      ast.must_equal [[:number, '1'], [:number, '2']]
+      ast = build_ast("1;2")
+      ast.must_equal [[:number, '1'], [:number, '2']]
+      ast = build_ast("1 ; 2")
+      ast.must_equal [[:number, '1'], [:number, '2']]
+    end
+
     it 'parses strings' do
       ast = build_ast('"a"')
       ast.must_equal [[:string, 'a']]

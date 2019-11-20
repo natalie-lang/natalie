@@ -11,7 +11,7 @@ module Natalie
       ast = []
       while !@scanner.eos? && (e = expr)
         ast << e
-        raise "expected ; or newline; got: #{@scanner.inspect}" unless @scanner.skip(/;+|\n+/)
+        raise "expected ; or newline; got: #{@scanner.inspect}" unless @scanner.skip(/[ \t]*(;+|\n)+[ \t]*/)
       end
       ast
     end
