@@ -9,6 +9,8 @@ module Natalie
       loop do
         break unless (line = get_line)
         ast = Natalie::Parser.new(line).ast
+        last_node = ast.pop
+        ast << [:send, 'self', 'puts', [[:send, last_node, 'inspect', []]]]
         out = Tempfile.create('natalie.so')
         to_clean_up << out
         Compiler.new(ast).compile(out.path, shared: true)

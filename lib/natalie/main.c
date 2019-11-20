@@ -199,8 +199,23 @@ char* long_long_to_string(long long num) {
 NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, NatObject **args) {
     // TODO: look up the class inheritance for the method
     NatObject* (*method)(NatEnv*, NatObject*, size_t, NatObject**) = hashmap_get(&receiver->class->methods, sym);
-    assert(method != NULL);
+    if (method == NULL) {
+        printf("Error: object has no %s method, cannot call send.\n", sym);
+        abort();
+    }
     return method(env, receiver, argc, args);
+}
+
+NatObject *NilClass_to_s(NatEnv *env, NatObject *self, size_t argc, NatObject **args) {
+    assert(self->type == NAT_VALUE_NIL);
+    NatObject *out = nat_string(env, "");
+    return out;
+}
+
+NatObject *NilClass_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args) {
+    assert(self->type == NAT_VALUE_NIL);
+    NatObject *out = nat_string(env, "nil");
+    return out;
 }
 
 NatObject *Object_puts(NatEnv *env, NatObject *self, size_t argc, NatObject **args) {
@@ -321,7 +336,10 @@ NatEnv *build_top_env() {
     env_set(env, "self", main_obj);
 
     NatObject *NilClass = nat_subclass(Object, "NilClass");
+    hashmap_put(&NilClass->methods, "to_s", NilClass_to_s);
+    hashmap_put(&NilClass->methods, "inspect", NilClass_inspect);
     env_set(env, "NilClass", NilClass);
+
     NatObject *nil = nat_new(NilClass);
     nil->type = NAT_VALUE_NIL;
     env_set(env, "nil", nil);
