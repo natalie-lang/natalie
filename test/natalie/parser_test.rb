@@ -43,6 +43,8 @@ describe 'Natalie::Parser' do
     end
 
     it 'parses operator method calls' do
+      ast = build_ast("x * 2")
+      ast.must_equal [[:send, [:send, 'self', 'x', []], '*', [[:number, '2']]]]
       ast = build_ast("'a' << 'b'")
       ast.must_equal [[:send, [:string, 'a'], '<<', [[:string, 'b']]]]
       ast = build_ast("'a' << 'b' << 'c'")
