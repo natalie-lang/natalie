@@ -85,5 +85,12 @@ describe 'Natalie::Parser' do
       ast = build_ast("message_upcase = 'hi'.upcase")
       ast.must_equal [[:assign, 'message_upcase', [:send, [:string, 'hi'], 'upcase', []]]]
     end
+
+    it 'parses method definitions' do
+      ast = build_ast("def foo; 'foo'; end")
+      ast.must_equal [[:def, 'foo', [], [[:string, 'foo']]]]
+      ast = build_ast("def foo \n 'foo'\n 2 \n 'bar'\n end")
+      ast.first.first.must_equal :def
+    end
   end
 end

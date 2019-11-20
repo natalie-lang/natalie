@@ -7,17 +7,24 @@ module Natalie
       @scanner = StringScanner.new(@code_str)
     end
 
+    END_OF_EXPRESSION = /[ \t]*(;+|\n)+[ \t]*/
+
+    def expect(expected, message)
+      return if expected
+      raise "expected #{message}; got: #{@scanner.inspect}"
+    end
+
     def ast
       ast = []
       while !@scanner.eos? && (e = expr)
         ast << e
-        raise "expected ; or newline; got: #{@scanner.inspect}" unless @scanner.skip(/[ \t]*(;+|\n)+[ \t]*/)
+        expect(@scanner.skip(END_OF_EXPRESSION), '; or newline')
       end
       ast
     end
 
     def expr
-      assignment || message || number || string || method
+      method || assignment || message || number || string
     end
 
     def assignment
@@ -44,12 +51,12 @@ module Natalie
       if @scanner.scan(/def /)
         @scanner.skip(/\s*/)
         name = method_name
-        raise 'expected method name after def' unless name
-        @scanner.skip(/[;\n]*/)
+        expect(name, 'method name after def')
+        @scanner.skip(/[;\n]+\s*/)
         body = []
-        until @scanner.check(/\s*end[;\n\s]/)
+        until @scanner.check(/\s*end[;\s]/)
           body << expr
-          raise 'expected ; or newline' unless @scanner.skip(/;+|\n+/)
+          expect(@scanner.skip(END_OF_EXPRESSION), '; or newline')
         end
         @scanner.skip(/\s*end/)
         [:def, name, [], body]
@@ -94,12 +101,12 @@ module Natalie
           @scanner.skip(/\s*\.?\s*/)
           message = @scanner.scan(OPERATOR)
           args = args_with_parens || args_without_parens
-          raise 'expected expression after operator' unless args
+          expect(args, 'expression after operator')
           [:send, receiver, message, args]
         elsif @scanner.check(/\s*\.\s*/)
           @scanner.skip(/\s*\.\s*/)
           message = method_name
-          raise 'expected method call after dot' unless message
+          expect(message, 'method call after dot')
           args = args_with_parens || args_without_parens || []
           [:send, receiver, message, args]
         else
@@ -118,7 +125,7 @@ module Natalie
         while @scanner.skip(/[ \t]*,\s*/)
           args << expr
         end
-        raise 'expected )' unless @scanner.skip(/\s*\)/)
+        expect(@scanner.skip(/\s*\)/), ')')
         args
       end
     end
