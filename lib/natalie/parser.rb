@@ -21,15 +21,11 @@ module Natalie
     end
 
     def assignment
-      if @scanner.check(/[a-z]+\s*=/)
+      if @scanner.check(/#{IDENTIFIER}\s*=/)
         id = identifier
         @scanner.skip(/\s*=\s*/)
         [:assign, id, expr]
       end
-    end
-
-    def identifier
-      @scanner.scan(/[a-z][a-z0-9_]*/)
     end
 
     def number
@@ -47,7 +43,7 @@ module Natalie
     def method
       if @scanner.scan(/def /)
         @scanner.skip(/\s*/)
-        name = identifier
+        name = method_name
         raise 'expected method name after def' unless name
         @scanner.skip(/[;\n]*/)
         body = []
@@ -60,14 +56,20 @@ module Natalie
       end
     end
 
-    IDENTIFIER = /[a-z][a-z0-9_]*[\!\?=]?/i
+    IDENTIFIER = /[a-z][a-z0-9_]*/i
 
     def identifier
       @scanner.scan(IDENTIFIER)
     end
 
+    METHOD_NAME = /#{IDENTIFIER}[\!\?=]?/
+
+    def method_name
+      @scanner.scan(METHOD_NAME)
+    end
+
     def bare_word_message
-      if (id = identifier)
+      if (id = method_name)
         [:send, 'self', id, []]
       end
     end
@@ -96,7 +98,7 @@ module Natalie
           [:send, receiver, message, args]
         elsif @scanner.check(/\s*\.\s*/)
           @scanner.skip(/\s*\.\s*/)
-          message = identifier
+          message = method_name
           raise 'expected method call after dot' unless message
           args = args_with_parens || args_without_parens || []
           [:send, receiver, message, args]
@@ -133,7 +135,7 @@ module Natalie
     end
 
     def implicit_message
-      if (id = identifier)
+      if (id = method_name)
         args = args_with_parens || args_without_parens || []
         [:send, 'self', id, args]
       end

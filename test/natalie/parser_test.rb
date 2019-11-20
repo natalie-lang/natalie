@@ -65,5 +65,14 @@ describe 'Natalie::Parser' do
       ast = build_ast("foo.upcase")
       ast.must_equal [[:send, [:send, 'self', 'foo', []], 'upcase', []]]
     end
+
+    it 'parses assignments' do
+      ast = build_ast("x = 1")
+      ast.must_equal [[:assign, 'x', [:number, '1']]]
+      ast = build_ast("num=1")
+      ast.must_equal [[:assign, 'num', [:number, '1']]]
+      ast = build_ast("message_upcase = 'hi'.upcase")
+      ast.must_equal [[:assign, 'message_upcase', [:send, [:string, 'hi'], 'upcase', []]]]
+    end
   end
 end
