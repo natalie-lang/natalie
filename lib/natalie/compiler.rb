@@ -2,7 +2,8 @@ require 'tempfile'
 
 module Natalie
   class Compiler
-    BOILERPLATE = File.read(File.expand_path('main.c', __dir__))
+    SRC_PATH = File.expand_path('../../src', __dir__)
+    MAIN = File.read(File.join(SRC_PATH, 'main.c'))
 
     def initialize(ast = [])
       @ast = ast
@@ -13,11 +14,15 @@ module Natalie
 
     def compile(out_path, shared: false)
       write_file
-      cmd = "gcc -g -Wall -x c #{shared ? '-fPIC -shared' : ''} -I #{lib_path} -o #{out_path} #{@c_path} #{lib_path}/hashmap.c 2>&1"
+      cmd = "gcc -g -Wall -x c #{shared ? '-fPIC -shared' : ''} -I #{SRC_PATH} -o #{out_path} #{@c_path} #{c_files_to_compile.join(' ')} 2>&1"
       out = `#{cmd}`
       File.unlink(@c_path) unless ENV['DEBUG']
       $stderr.puts out if ENV['DEBUG'] || $? != 0
       raise 'There was an error compiling.' if $? != 0
+    end
+
+    def c_files_to_compile
+      Dir[File.join(SRC_PATH, '*.c')].grep_v(/main\.c$/)
     end
 
     def write_file
@@ -43,7 +48,7 @@ module Natalie
           body << "UNUSED(#{e});"
         end
       end
-      out = BOILERPLATE
+      out = MAIN
         .sub('/*TOP*/', top.compact.join("\n"))
         .sub('/*DECL*/', decl.compact.join("\n"))
         .sub('/*BODY*/', body.compact.join("\n"))
@@ -131,10 +136,6 @@ module Natalie
       else
         raise "unknown AST node: #{expr.inspect}"
       end
-    end
-
-    def lib_path
-      File.expand_path('.', __dir__)
     end
 
     def next_var_name(name = "var")
