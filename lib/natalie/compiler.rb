@@ -58,6 +58,27 @@ module Natalie
         decl << "NatObject *#{var_name} = #{e};"
         decl << "env_set(env, #{name.inspect}, #{var_name});"
         [t, decl, var_name]
+      when :def
+        (_, name, args, kwargs, body) = expr
+        func_name = next_var_name('func')
+        top = []
+        func = []
+        func << "NatObject* #{func_name}(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs) {"
+        func << "  if (argc != #{args.size}) abort();" # FIXME
+        # TODO: do something with kwargs
+        func << "  env = build_env(env);"
+        args.each_with_index do |arg, i|
+          func << "    env_set(env, #{arg.inspect}, args[#{i}]);"
+        end
+        body.each do |node|
+          (t, d, e) = compile_expr(node)
+          top << t
+          func << d
+          func << "return #{e};"
+        end
+        func << "}"
+        decl = "hashmap_put(&env_get(env, \"self\")->class->methods, #{name.inspect}, #{func_name});"
+        [top + func, decl, nil]
       when :number
         var_name = next_var_name
         [nil, "NatObject *#{var_name} = nat_number(env, #{expr.last});", var_name]

@@ -59,7 +59,7 @@ module Natalie
           expect(@scanner.skip(END_OF_EXPRESSION), '; or newline')
         end
         @scanner.skip(/\s*end/)
-        [:def, name, [], body]
+        [:def, name, [], {}, body]
       end
     end
 

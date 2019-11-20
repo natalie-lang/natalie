@@ -6,6 +6,12 @@
 #include "hashmap.h"
 
 typedef struct NatObject NatObject;
+typedef struct NatEnv NatEnv;
+
+struct NatEnv {
+    struct hashmap data;
+    NatEnv *outer;
+};
 
 enum NatValueType {
     NAT_VALUE_CLASS,
@@ -13,6 +19,7 @@ enum NatValueType {
     NAT_VALUE_STRING,
     NAT_VALUE_NUMBER,
     NAT_VALUE_NIL,
+    NAT_VALUE_PROC,
     NAT_VALUE_OTHER
 };
 
@@ -51,22 +58,16 @@ struct NatObject {
             char *regex;
         };
 
-        // NAT_LAMBDA_TYPE, NAT_CONTINUATION_TYPE
-        //struct {
-        //  NatObject* (*fn)(NatEnv *env, size_t argc, NatObject **args);
-        //  char *function_name;
-        //  NatEnv *env;
-        //  size_t argc;
-        //  NatObject **args;
-        //};
+        // NAT_VALUE_PROC
+        struct {
+            NatObject* (*fn)(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs);
+            char *method_name;
+            NatEnv *env;
+            size_t argc;
+            NatObject **args;
+            struct hashmap kwargs;
+        };
     };
-};
-
-typedef struct NatEnv NatEnv;
-
-struct NatEnv {
-    struct hashmap data;
-    NatEnv *outer;
 };
 
 NatEnv *env_find(NatEnv *env, char *key) {
@@ -217,19 +218,19 @@ NatObject *nat_lookup_or_send(NatEnv *env, NatObject *receiver, char *sym, size_
     }
 }
 
-NatObject *NilClass_to_s(NatEnv *env, NatObject *self, size_t argc, NatObject **args) {
+NatObject *NilClass_to_s(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs) {
     assert(self->type == NAT_VALUE_NIL);
     NatObject *out = nat_string(env, "");
     return out;
 }
 
-NatObject *NilClass_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args) {
+NatObject *NilClass_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs) {
     assert(self->type == NAT_VALUE_NIL);
     NatObject *out = nat_string(env, "nil");
     return out;
 }
 
-NatObject *Object_puts(NatEnv *env, NatObject *self, size_t argc, NatObject **args) {
+NatObject *Object_puts(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs) {
     NatObject *str;
     for (size_t i=0; i<argc; i++) {
         str = nat_send(env, args[i], "to_s", 0, NULL);
@@ -239,13 +240,13 @@ NatObject *Object_puts(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     return env_get(env, "nil");
 }
 
-NatObject *Numeric_to_s(NatEnv *env, NatObject *self, size_t argc, NatObject **args) {
+NatObject *Numeric_to_s(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs) {
     assert(self->type == NAT_VALUE_NUMBER);
     char *str = long_long_to_string(self->number);
     return nat_string(env, str);
 }
 
-NatObject *String_to_s(NatEnv *env, NatObject *self, size_t argc, NatObject **args) {
+NatObject *String_to_s(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs) {
     assert(self->type == NAT_VALUE_STRING);
     return self;
 }
@@ -287,7 +288,7 @@ void nat_string_append_char(NatObject *str, char c) {
     str->str_len = total_len;
 }
 
-NatObject *String_ltlt(NatEnv *env, NatObject *self, size_t argc, NatObject **args) {
+NatObject *String_ltlt(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs) {
     assert(self->type == NAT_VALUE_STRING);
     assert(argc == 1);
     NatObject *arg = args[0];
@@ -303,7 +304,7 @@ NatObject *String_ltlt(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     return self;
 }
 
-NatObject *String_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args) {
+NatObject *String_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs) {
     assert(self->type == NAT_VALUE_STRING);
     NatObject *out = nat_string(env, "\"");
     for (size_t i=0; i<self->str_len; i++) {
