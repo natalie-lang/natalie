@@ -5,6 +5,7 @@ module Natalie
     def initialize(code_str)
       @code_str = code_str.strip + "\n"
       @scanner = StringScanner.new(@code_str)
+      @lr_wrap = {}
     end
 
     END_OF_EXPRESSION = /[ \t]*(;+|\n)+[ \t]*/
@@ -24,7 +25,7 @@ module Natalie
     end
 
     def expr
-      method || assignment || message || number || string
+      method || assignment || explicit_message || implicit_message || number || string
     end
 
     def assignment
@@ -88,38 +89,44 @@ module Natalie
 
     OPERATOR = /<<?|>>?|<=>|<=|=>|===?|\!=|=~|\!~|\||\^|&|\+|\-|\*\*?|\/|%/
 
-    def message
-      explicit_message || implicit_message
+    def self.lr_wrap(name, terminal)
+      define_method(name) do
+        start = @scanner.pos
+        if @lr_wrap[start]
+          @lr_wrap[start] = false
+          return
+        end
+        @lr_wrap[start] = true
+        node = send(terminal)
+        if node
+          loop do
+            node2 = send("#{name}_inner", node)
+            break if node2.nil?
+            node = node2
+          end
+          node
+        else
+          @scanner.pos = start
+          nil
+        end
+      end
     end
 
-    def explicit_message
-      start = @scanner.pos
-      if @explicit_message_recurs
-        receiver = implicit_message || string || number
-      else
-        @explicit_message_recurs = true
-        receiver = expr
-      end
-      @explicit_message_recurs = false
-      if receiver
-        if @scanner.check(/\s*\.?\s*#{OPERATOR}\s*/)
-          @scanner.skip(/\s*\.?\s*/)
-          message = @scanner.scan(OPERATOR)
-          args = args_with_parens || args_without_parens
-          expect(args, 'expression after operator')
-          [:send, receiver, message, args]
-        elsif @scanner.check(/\s*\.\s*/)
-          @scanner.skip(/\s*\.\s*/)
-          message = method_name
-          expect(message, 'method call after dot')
-          args = args_with_parens || args_without_parens || []
-          [:send, receiver, message, args]
-        else
-          receiver
-        end
-      else
-        @scanner.pos = start
-        nil
+    lr_wrap(:explicit_message, :expr)
+
+    def explicit_message_inner(receiver)
+      if @scanner.check(/\s*\.?\s*#{OPERATOR}\s*/)
+        @scanner.skip(/\s*\.?\s*/)
+        message = @scanner.scan(OPERATOR)
+        args = args_with_parens || args_without_parens
+        expect(args, 'expression after operator')
+        [:send, receiver, message, args]
+      elsif @scanner.check(/\s*\.\s*/)
+        @scanner.skip(/\s*\.\s*/)
+        message = method_name
+        expect(message, 'method call after dot')
+        args = args_with_parens || args_without_parens || []
+        [:send, receiver, message, args.compact]
       end
     end
 

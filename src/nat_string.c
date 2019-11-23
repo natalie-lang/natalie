@@ -38,3 +38,20 @@ NatObject *String_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject *
     nat_string_append_char(out, '"');
     return out;
 }
+
+NatObject *String_add(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs) {
+    assert(self->type == NAT_VALUE_STRING);
+    assert(argc == 1);
+    NatObject *arg = args[0];
+    char *str;
+    if (arg->type == NAT_VALUE_STRING) {
+        str = arg->str;
+    } else {
+        NatObject *str_obj = nat_send(env, arg, "to_s", 0, NULL);
+        assert(str_obj->type == NAT_VALUE_STRING);
+        str = str_obj->str;
+    }
+    NatObject *new_str = nat_string(env, self->str);
+    nat_string_append(new_str, str);
+    return new_str;
+}

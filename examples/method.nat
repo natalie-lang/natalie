@@ -1,3 +1,7 @@
+def assert_equal(expected, actual)
+  puts expected.to_s + " should be " + actual.to_s
+end
+
 def foo
   'foo'
 end
@@ -19,8 +23,16 @@ def mul2 x, y, z
   x * y * z
 end
 
-puts foo
-puts double(2)
-puts triple 3
-puts mul1(2, 3, 4)
-puts mul2 2, 3, 4
+assert_equal('foo', foo)
+assert_equal(4, double(2))
+assert_equal(9, triple 3)
+assert_equal(24, mul1(2, 3, 4))
+assert_equal(24, mul1 2, 3, 4)
+
+outside_x = 1
+def scope
+  outside_x
+end
+assert_equal(1, scope)
+outside_x = 2
+assert_equal(2, scope)

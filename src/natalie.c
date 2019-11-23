@@ -134,7 +134,7 @@ NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, Na
     // TODO: look up the class inheritance for the method
     NatObject* (*method)(NatEnv*, NatObject*, size_t, NatObject**) = hashmap_get(&receiver->class->methods, sym);
     if (method == NULL) {
-        fprintf(stderr, "Error: object has no %s method, cannot call send.\n", sym);
+        fprintf(stderr, "Error: %s object has no %s method, cannot call send.\n", receiver->class->name, sym);
         abort();
     }
     return method(env, receiver, argc, args);

@@ -41,6 +41,7 @@ NatEnv *build_top_env() {
     hashmap_put(&String->methods, "to_s", String_to_s);
     hashmap_put(&String->methods, "inspect", String_inspect);
     hashmap_put(&String->methods, "<<", String_ltlt);
+    hashmap_put(&String->methods, "+", String_add);
     env_set(env, "String", String);
 
     return env;
