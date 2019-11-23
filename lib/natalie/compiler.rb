@@ -87,11 +87,11 @@ module Natalie
         top = []
         func = []
         func << "NatObject* #{func_name}(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs) {"
-        func << "  if (argc != #{args.size}) abort();" # FIXME
+        func << "if (argc != #{args.size}) abort();" # FIXME
         # TODO: do something with kwargs
-        func << "  env = build_env(env);"
+        func << "env = build_env(env);"
         args.each_with_index do |arg, i|
-          func << "    env_set(env, #{arg.inspect}, args[#{i}]);"
+          func << "env_set(env, #{arg.inspect}, args[#{i}]);"
         end
         body.each_with_index do |node, i|
           (t, d, e) = compile_expr(node)
