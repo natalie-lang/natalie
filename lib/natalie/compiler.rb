@@ -104,8 +104,11 @@ module Natalie
           end
         end
         func << "}"
-        decl = "hashmap_put(&env_get(env, \"self\")->class->methods, #{name.inspect}, #{func_name});"
-        [top + func, decl, nil]
+        method_name = next_var_name('method')
+        decl = []
+        decl << "hashmap_put(&env_get(env, \"self\")->class->methods, #{name.inspect}, #{func_name});"
+        decl << "NatObject *#{method_name} = nat_string(env, #{name.inspect});"
+        [top + func, decl, method_name]
       when :number
         var_name = next_var_name
         [nil, "NatObject *#{var_name} = nat_number(env, #{expr.last});", var_name]
