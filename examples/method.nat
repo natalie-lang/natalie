@@ -36,3 +36,11 @@ end
 assert_equal(1, scope)
 outside_x = 2
 assert_equal(2, scope)
+
+def scope2
+  x = 1
+end
+x = 0
+assert_equal(0, x)
+scope2
+assert_equal(0, x)
