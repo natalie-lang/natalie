@@ -119,17 +119,20 @@ module Natalie
         (_, receiver, name, args) = expr
         top = []
         decl = []
-        if args.any?
+        if args.empty?
+          args_name = "NULL"
+        elsif args.size == 1
+          (t, d, e) = compile_expr(args.first)
+          top << t; decl << d
+          args_name = "&#{e}"
+        elsif args.any?
           args_name = next_var_name('args')
-          # TODO: if only 1 argument, just pass address of the arg instead
           decl << "NatObject **#{args_name} = calloc(#{args.size}, sizeof(NatObject));"
           args.each_with_index do |arg, i|
             (t, d, e) = compile_expr(arg);
             top << t; decl << d
             decl << "#{args_name}[#{i}] = #{e};"
           end
-        else
-          args_name = "NULL"
         end
         (t, d, e) = compile_expr(receiver)
         top << t; decl << d
