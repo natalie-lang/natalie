@@ -1,0 +1,16 @@
+def assert_equal(expected, actual)
+  puts expected.to_s + " should be " + actual.to_s
+end
+
+class Foo
+  def foo
+    'foo'
+  end
+
+  def double(x)
+    x * 2
+  end
+end
+
+assert_equal('foo', Foo.new.foo)
+assert_equal(8, Foo.new.double 4)

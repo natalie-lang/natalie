@@ -93,6 +93,8 @@ describe 'Natalie::Parser' do
     end
 
     it 'parses method definitions' do
+      ast = build_ast("def foo; end")
+      ast.must_equal [[:def, 'foo', [], {}, []]]
       ast = build_ast("def foo; 'foo'; end")
       ast.must_equal [[:def, 'foo', [], {}, [[:string, 'foo']]]]
       ast = build_ast("def foo \n 'foo'\n 2 \n 'bar'\n end")
@@ -105,6 +107,17 @@ describe 'Natalie::Parser' do
       ast.must_equal [[:def, 'foo', ['x'], {}, [[:send, 'self', 'x', []]]]]
       ast = build_ast("def foo   x, y; x; end")
       ast.must_equal [[:def, 'foo', ['x', 'y'], {}, [[:send, 'self', 'x', []]]]]
+    end
+
+    it 'parses class definitions' do
+      ast = build_ast("class Foo; end")
+      ast.must_equal [[:class, 'Foo', nil, []]]
+      ast = build_ast("class Foo < Bar; end")
+      ast.must_equal [[:class, 'Foo', 'Bar', []]]
+      ast = build_ast("class Foo; def foo; end; end")
+      ast.must_equal [[:class, 'Foo', nil, [[:def, 'foo', [], {}, []]]]]
+      ast = build_ast("class Foo; x = 1; end")
+      ast.must_equal [[:class, 'Foo', nil, [[:assign, 'x', [:number, '1']]]]]
     end
   end
 end

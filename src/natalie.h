@@ -31,9 +31,18 @@ enum NatValueType {
     NAT_VALUE_OTHER
 };
 
+#define NAT_FLAG_MAIN_OBJECT 1
+#define NAT_FLAG_TOP_CLASS 2
+
+#define nat_is_main_object(obj) (((obj)->flags & NAT_FLAG_MAIN_OBJECT) == NAT_FLAG_MAIN_OBJECT)
+#define nat_is_top_class(obj) (((obj)->flags & NAT_FLAG_TOP_CLASS) == NAT_FLAG_TOP_CLASS)
+
 struct NatObject {
     enum NatValueType type;
     NatObject *class;
+    int flags;
+
+    struct hashmap singleton_methods;
 
     union {
         long long number;
@@ -41,7 +50,7 @@ struct NatObject {
 
         // NAT_VALUE_CLASS
         struct {
-            char *name;
+            char *class_name;
             NatObject *superclass;
             struct hashmap methods;
         };
@@ -94,6 +103,7 @@ NatObject *nat_string(NatEnv *env, char *str);
 size_t num_char_len(long long num);
 char* long_long_to_string(long long num);
 
+void nat_define_method(NatObject *obj, char *name, NatObject* (*fn)(NatEnv*, NatObject*, size_t, NatObject**, struct hashmap*));
 NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, NatObject **args);
 NatObject *nat_lookup_or_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, NatObject **args);
 

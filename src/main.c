@@ -1,4 +1,5 @@
 #include "natalie.h"
+#include "nat_class.h"
 #include "nat_nil_class.h"
 #include "nat_numeric.h"
 #include "nat_object.h"
@@ -8,18 +9,23 @@ NatEnv *build_top_env() {
     NatEnv *env = build_env(NULL);
 
     NatObject *Class = nat_alloc();
+    Class->flags = NAT_FLAG_TOP_CLASS;
     Class->type = NAT_VALUE_CLASS;
-    Class->name = heap_string("Class");
+    Class->class_name = heap_string("Class");
     Class->superclass = Class;
     hashmap_init(&Class->methods, hashmap_hash_string, hashmap_compare_string, 100);
     hashmap_set_key_alloc_funcs(&Class->methods, hashmap_alloc_key_string, NULL);
+    hashmap_put(&Class->singleton_methods, "new", Class_new);
     env_set(env, "Class", Class);
 
     NatObject *Object = nat_subclass(Class, "Object");
     hashmap_put(&Object->methods, "puts", Object_puts);
+    hashmap_put(&Object->methods, "inspect", Object_inspect);
+    hashmap_put(&Object->singleton_methods, "new", Object_new);
     env_set(env, "Object", Object);
 
     NatObject *main_obj = nat_new(Object);
+    main_obj->flags = NAT_FLAG_MAIN_OBJECT;
     env_set(env, "self", main_obj);
 
     NatObject *NilClass = nat_subclass(Object, "NilClass");
@@ -50,6 +56,8 @@ NatEnv *build_top_env() {
 /*TOP*/
 
 NatObject *EVAL(NatEnv *env) {
+    NatObject *self = env_get(env, "self");
+    UNUSED(self); // maybe unused
     /*DECL*/
     /*BODY*/
 }

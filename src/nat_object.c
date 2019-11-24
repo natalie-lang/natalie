@@ -10,3 +10,11 @@ NatObject *Object_puts(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     }
     return env_get(env, "nil");
 }
+
+NatObject *Object_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs) {
+    return nat_new(self);
+}
+
+NatObject *Object_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs) {
+    return nat_string(env, "<Object FIXME>");
+}

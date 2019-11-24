@@ -69,6 +69,9 @@ module Natalie
     end
 
     def compile_expr(expr)
+      if expr == 'self'
+        return [nil, nil, 'self']
+      end
       if expr.is_a?(String)
         return [nil, nil, "env_get(env, #{expr.inspect})"]
       end
@@ -81,6 +84,30 @@ module Natalie
         decl << "NatObject *#{var_name} = #{e};"
         decl << "env_set(env, #{name.inspect}, #{var_name});"
         [t, decl, var_name]
+      when :class
+        (_, name, superclass, body) = expr
+        func_name = next_var_name('class_body')
+        top = []
+        func = []
+        func << "NatObject* #{func_name}(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs) {"
+        body.each_with_index do |node, i|
+          (t, d, e) = compile_expr(node)
+          top << t
+          func << d
+          if i == body.size-1 && e
+            func << "return #{e};"
+          elsif e
+            func << "UNUSED(#{e});"
+          end
+        end
+        func << '}'
+        var_name = next_var_name('class')
+        decl = []
+        decl << "NatObject *#{var_name} = nat_subclass(env_get(env, \"Object\"), #{name.inspect});"
+        decl << "env_set(env, #{name.inspect}, #{var_name});"
+        result_name = next_var_name('class_body_result')
+        decl << "NatObject *#{result_name} = #{func_name}(env, #{var_name}, 0, NULL, NULL);"
+        [top + func, decl, result_name]
       when :def
         (_, name, args, kwargs, body) = expr
         func_name = next_var_name('func')
@@ -106,7 +133,7 @@ module Natalie
         func << "}"
         method_name = next_var_name('method')
         decl = []
-        decl << "hashmap_put(&env_get(env, \"self\")->class->methods, #{name.inspect}, #{func_name});"
+        decl << "nat_define_method(self, #{name.inspect}, #{func_name});"
         decl << "NatObject *#{method_name} = nat_string(env, #{name.inspect});"
         [top + func, decl, method_name]
       when :number

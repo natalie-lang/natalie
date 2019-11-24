@@ -10,9 +10,9 @@ module Natalie
 
     END_OF_EXPRESSION = /[ \t]*(;+|\n)+[ \t]*/
 
-    def expect(expected, message)
+    def expect(expected, msg)
       return if expected
-      raise "expected #{message}; got: #{@scanner.inspect}"
+      raise "expected #{msg}; got: #{@scanner.inspect}"
     end
 
     def ast
@@ -25,7 +25,7 @@ module Natalie
     end
 
     def expr
-      method || assignment || explicit_message || implicit_message || number || string
+      klass || method || assignment || explicit_message || implicit_message || number || string
     end
 
     def assignment
@@ -48,11 +48,28 @@ module Natalie
       end
     end
 
+    def klass
+      if (s = @scanner.scan(/class /))
+        @scanner.skip(/\s*/)
+        name = class_name
+        expect(name, 'method name after class keyword')
+        superclass = class_name if @scanner.skip(/\s*<\s*/)
+        @scanner.skip(/\s*[;\n]+\s*/)
+        body = []
+        until @scanner.check(/\s*end[;\s]/)
+          body << expr
+          expect(@scanner.skip(END_OF_EXPRESSION), '; or newline')
+        end
+        @scanner.skip(/\s*end/)
+        [:class, name, superclass, body]
+      end
+    end
+
     def method
       if @scanner.scan(/def /)
         @scanner.skip(/\s*/)
         name = method_name
-        expect(name, 'method name after def')
+        expect(name, 'method name after def keyword')
         args = []
         unless @scanner.skip(/\s*[;\n]+\s*/)
           args = method_args_with_parens || method_args_without_parens
@@ -81,10 +98,8 @@ module Natalie
       @scanner.scan(METHOD_NAME)
     end
 
-    def bare_word_message
-      if (id = method_name)
-        [:send, 'self', id, []]
-      end
+    def class_name
+      @scanner.scan(/[A-Z][a-z0-9_]*/)
     end
 
     OPERATOR = /<<?|>>?|<=>|<=|=>|===?|\!=|=~|\!~|\||\^|&|\+|\-|\*\*?|\/|%/

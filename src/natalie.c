@@ -50,14 +50,17 @@ char *heap_string(char *str) {
 
 NatObject *nat_alloc() {
     NatObject *val = malloc(sizeof(NatObject));
+    val->flags = 0;
     val->type = NAT_VALUE_OTHER;
+    hashmap_init(&val->singleton_methods, hashmap_hash_string, hashmap_compare_string, 100);
+    hashmap_set_key_alloc_funcs(&val->singleton_methods, hashmap_alloc_key_string, NULL);
     return val;
 }
 
 NatObject *nat_subclass(NatObject *superclass, char *name) {
     NatObject *val = nat_alloc();
     val->type = NAT_VALUE_CLASS;
-    val->name = heap_string(name);
+    val->class_name = heap_string(name);
     val->superclass = superclass;
     hashmap_init(&val->methods, hashmap_hash_string, hashmap_compare_string, 100);
     hashmap_set_key_alloc_funcs(&val->methods, hashmap_alloc_key_string, NULL);
@@ -130,14 +133,52 @@ char* long_long_to_string(long long num) {
   }
 }
 
+void nat_define_method(NatObject *obj, char *name, NatObject* (*fn)(NatEnv*, NatObject*, size_t, NatObject**, struct hashmap*)) {
+    if (nat_is_main_object(obj)) {
+        hashmap_put(&obj->class->methods, name, fn);
+    } else {
+        hashmap_put(&obj->methods, name, fn);
+    }
+}
+
 NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, NatObject **args) {
-    // TODO: look up the class inheritance for the method
-    NatObject* (*method)(NatEnv*, NatObject*, size_t, NatObject**) = hashmap_get(&receiver->class->methods, sym);
-    if (method == NULL) {
-        fprintf(stderr, "Error: %s object has no %s method, cannot call send.\n", receiver->class->name, sym);
+    assert(receiver);
+    if (receiver->type == NAT_VALUE_CLASS) {
+        // TODO: instances can have singleton methods too
+        NatObject* (*singleton_method)(NatEnv*, NatObject*, size_t, NatObject**) = hashmap_get(&receiver->singleton_methods, sym);
+        if (singleton_method) {
+            return singleton_method(env, receiver, argc, args);
+        }
+        NatObject *klass = receiver;
+        while (1) {
+            klass = klass->superclass;
+            if (klass == NULL || klass->type != NAT_VALUE_CLASS) break;
+            singleton_method = hashmap_get(&klass->singleton_methods, sym);
+            if (singleton_method) {
+                return singleton_method(env, receiver, argc, args);
+            }
+            if (nat_is_top_class(klass)) break;
+        }
+        fprintf(stderr, "Error: undefined method \"%s\" for %s\n", sym, receiver->class_name);
+        abort();
+    } else {
+        NatObject* (*method)(NatEnv*, NatObject*, size_t, NatObject**) = hashmap_get(&receiver->class->methods, sym);
+        if (method) {
+            return method(env, receiver, argc, args);
+        }
+        NatObject *klass = receiver->class;
+        while (1) {
+            klass = klass->superclass;
+            if (klass == NULL || klass->type != NAT_VALUE_CLASS) break;
+            method = hashmap_get(&klass->singleton_methods, sym);
+            if (method) {
+                return method(env, receiver, argc, args);
+            }
+            if (nat_is_top_class(klass)) break;
+        }
+        fprintf(stderr, "Error: undefined method \"%s\" for %s\n", sym, receiver->class->class_name);
         abort();
     }
-    return method(env, receiver, argc, args);
 }
 
 NatObject *nat_lookup_or_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, NatObject **args) {
