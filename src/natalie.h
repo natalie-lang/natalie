@@ -99,6 +99,7 @@ NatObject *nat_subclass(NatObject *superclass, char *name);
 NatObject *nat_new(NatObject *class);
 NatObject *nat_number(NatEnv *env, long long num);
 NatObject *nat_string(NatEnv *env, char *str);
+NatObject *nat_array(NatEnv *env);
 
 size_t num_char_len(long long num);
 char* long_long_to_string(long long num);
@@ -113,5 +114,11 @@ void nat_grow_string(NatObject *obj, size_t capacity);
 void nat_grow_string_at_least(NatObject *obj, size_t min_capacity);
 void nat_string_append(NatObject *str, char *s);
 void nat_string_append_char(NatObject *str, char c);
+
+#define NAT_ARRAY_INIT_SIZE 10
+#define NAT_ARRAY_GROW_FACTOR 2
+
+NatObject *nat_array(NatEnv *env);
+void nat_array_push(NatObject *array, NatObject *obj);
 
 #endif

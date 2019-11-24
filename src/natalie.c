@@ -74,20 +74,41 @@ NatObject *nat_new(NatObject *class) {
 }
 
 NatObject *nat_number(NatEnv *env, long long num) {
-    NatObject *val = nat_new(env_get(env, "Numeric"));
-    val->type = NAT_VALUE_NUMBER;
-    val->number = num;
-    return val;
+    NatObject *obj = nat_new(env_get(env, "Numeric"));
+    obj->type = NAT_VALUE_NUMBER;
+    obj->number = num;
+    return obj;
 }
 
 NatObject *nat_string(NatEnv *env, char *str) {
-    NatObject *val = nat_new(env_get(env, "String"));
-    val->type = NAT_VALUE_STRING;
+    NatObject *obj = nat_new(env_get(env, "String"));
+    obj->type = NAT_VALUE_STRING;
     size_t len = strlen(str);
-    val->str = heap_string(str);
-    val->str_len = len;
-    val->str_cap = len;
-    return val;
+    obj->str = heap_string(str);
+    obj->str_len = len;
+    obj->str_cap = len;
+    return obj;
+}
+
+NatObject *nat_array(NatEnv *env) {
+    NatObject *obj = nat_new(env_get(env, "Array"));
+    obj->type = NAT_VALUE_ARRAY;
+    obj->ary = calloc(NAT_ARRAY_INIT_SIZE, sizeof(NatObject*));
+    obj->str_len = 0;
+    obj->str_cap = NAT_ARRAY_INIT_SIZE;
+    return obj;
+}
+
+void nat_array_push(NatObject *array, NatObject *obj) {
+  assert(array->type == NAT_VALUE_ARRAY);
+  size_t capacity = array->ary_cap;
+  size_t len = array->ary_len;
+  if (len >= capacity) {
+    array->ary_cap *= NAT_ARRAY_GROW_FACTOR;
+    array->ary = realloc(array->ary, sizeof(NatObject*) * array->ary_cap);
+  }
+  array->ary_len++;
+  array->ary[len] = obj;
 }
 
 // note: there is a formula using log10 to calculate a number length, but this works for now

@@ -137,11 +137,22 @@ module Natalie
         decl << "NatObject *#{method_name} = nat_string(env, #{name.inspect});"
         [top + func, decl, method_name]
       when :number
-        var_name = next_var_name
+        var_name = next_var_name('number')
         [nil, "NatObject *#{var_name} = nat_number(env, #{expr.last});", var_name]
       when :string
-        var_name = next_var_name
+        var_name = next_var_name('string')
         [nil, "NatObject *#{var_name} = nat_string(env, #{expr.last.inspect});", var_name]
+      when :array
+        var_name = next_var_name('array')
+        top = []
+        decl = []
+        decl << "NatObject *#{var_name} = nat_array(env);"
+        expr.last.each do |node|
+          (t, d, e) = compile_expr(node)
+          top << t; decl << d
+          decl << "nat_array_push(#{var_name}, #{e});"
+        end
+        [top, decl, var_name]
       when :send
         (_, receiver, name, args) = expr
         top = []

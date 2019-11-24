@@ -119,5 +119,20 @@ describe 'Natalie::Parser' do
       ast = build_ast("class Foo; x = 1; end")
       ast.must_equal [[:class, 'Foo', nil, [[:assign, 'x', [:number, '1']]]]]
     end
+
+    it 'parses array literals' do
+      ast = build_ast("[]")
+      ast.must_equal [[:array, []]]
+      ast = build_ast("[1]")
+      ast.must_equal [[:array, [[:number, '1']]]]
+      ast = build_ast("[  1  ]")
+      ast.must_equal [[:array, [[:number, '1']]]]
+      ast = build_ast("[  \n1\n  ]")
+      ast.must_equal [[:array, [[:number, '1']]]]
+      ast = build_ast("[  \n1\n,\n2,3,   \n 4  ]")
+      ast.must_equal [[:array, [[:number, '1'], [:number, '2'], [:number, '3'], [:number, '4']]]]
+      ast = build_ast("[  \n1\n,\n2,3,   \n [4]  ]")
+      ast.must_equal [[:array, [[:number, '1'], [:number, '2'], [:number, '3'], [:array, [[:number, '4']]]]]]
+    end
   end
 end

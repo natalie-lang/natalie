@@ -4,6 +4,7 @@
 #include "nat_numeric.h"
 #include "nat_object.h"
 #include "nat_string.h"
+#include "nat_array.h"
 
 NatEnv *build_top_env() {
     NatEnv *env = build_env(NULL);
@@ -49,6 +50,10 @@ NatEnv *build_top_env() {
     hashmap_put(&String->methods, "<<", String_ltlt);
     hashmap_put(&String->methods, "+", String_add);
     env_set(env, "String", String);
+
+    NatObject *Array = nat_subclass(Object, "Array");
+    hashmap_put(&Array->methods, "inspect", Array_inspect);
+    env_set(env, "Array", Array);
 
     return env;
 }

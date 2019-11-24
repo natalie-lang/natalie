@@ -25,7 +25,7 @@ module Natalie
     end
 
     def expr
-      klass || method || assignment || explicit_message || implicit_message || number || string
+      klass || method || assignment || explicit_message || implicit_message || array || number || string
     end
 
     def assignment
@@ -33,6 +33,21 @@ module Natalie
         id = identifier
         @scanner.skip(/\s*=\s*/)
         [:assign, id, expr]
+      end
+    end
+
+    def array
+      if @scanner.scan(/\[/)
+        @scanner.skip(/\s*/)
+        ary = []
+        unless @scanner.skip(/\]/)
+          ary << expr
+          until @scanner.scan(/\s*\]/)
+            @scanner.skip(/\s*,\s*/)
+            ary << expr
+          end
+        end
+        [:array, ary]
       end
     end
 
