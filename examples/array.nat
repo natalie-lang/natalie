@@ -1,5 +1,7 @@
-a = [1, 2, 3]
+a = [1, 2]
 b = ["a", 1, [2]]
 
-puts a.inspect
-puts b.inspect
+a << 3
+c = b + [3, 4]
+
+puts c.inspect

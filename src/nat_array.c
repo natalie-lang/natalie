@@ -15,3 +15,23 @@ NatObject *Array_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **
     nat_string_append_char(out, ']');
     return out;
 }
+
+NatObject *Array_ltlt(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs) {
+    assert(argc == 1);
+    NatObject *arg = args[0];
+    nat_array_push(self, arg);
+    return self;
+}
+
+NatObject *Array_add(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs) {
+    assert(argc == 1);
+    assert(self->type == NAT_VALUE_ARRAY);
+    NatObject *arg = args[0];
+    assert(arg->type == NAT_VALUE_ARRAY);
+    NatObject *new = nat_array(env);
+    nat_grow_array_at_least(new, self->ary_len + arg->ary_len);
+    memcpy(new->ary, self->ary, self->ary_len * sizeof(NatObject*));
+    memcpy(&new->ary[self->ary_len], arg->ary, arg->ary_len * sizeof(NatObject*));
+    new->ary_len = self->ary_len + arg->ary_len;
+    return new;
+}

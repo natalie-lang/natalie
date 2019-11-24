@@ -53,6 +53,8 @@ NatEnv *build_top_env() {
 
     NatObject *Array = nat_subclass(Object, "Array");
     hashmap_put(&Array->methods, "inspect", Array_inspect);
+    hashmap_put(&Array->methods, "<<", Array_ltlt);
+    hashmap_put(&Array->methods, "+", Array_add);
     env_set(env, "Array", Array);
 
     return env;

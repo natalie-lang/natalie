@@ -99,13 +99,28 @@ NatObject *nat_array(NatEnv *env) {
     return obj;
 }
 
+void nat_grow_array(NatObject *obj, size_t capacity) {
+    obj->ary = realloc(obj->ary, sizeof(NatObject*) * capacity);
+    obj->ary_cap = capacity;
+}
+
+void nat_grow_array_at_least(NatObject *obj, size_t min_capacity) {
+    size_t capacity = obj->ary_cap;
+    if (capacity >= min_capacity)
+        return;
+    if (capacity > 0 && min_capacity <= capacity * NAT_ARRAY_GROW_FACTOR) {
+        nat_grow_array(obj, capacity * NAT_ARRAY_GROW_FACTOR);
+    } else {
+        nat_grow_array(obj, min_capacity);
+    }
+}
+
 void nat_array_push(NatObject *array, NatObject *obj) {
   assert(array->type == NAT_VALUE_ARRAY);
   size_t capacity = array->ary_cap;
   size_t len = array->ary_len;
   if (len >= capacity) {
-    array->ary_cap *= NAT_ARRAY_GROW_FACTOR;
-    array->ary = realloc(array->ary, sizeof(NatObject*) * array->ary_cap);
+      nat_grow_array_at_least(array, len + 1);
   }
   array->ary_len++;
   array->ary[len] = obj;
@@ -226,8 +241,8 @@ void nat_grow_string_at_least(NatObject *obj, size_t min_capacity) {
     size_t capacity = obj->str_cap;
     if (capacity >= min_capacity)
         return;
-    if (capacity > 0 && min_capacity <= capacity * STRING_GROW_FACTOR) {
-        nat_grow_string(obj, capacity * STRING_GROW_FACTOR);
+    if (capacity > 0 && min_capacity <= capacity * NAT_STRING_GROW_FACTOR) {
+        nat_grow_string(obj, capacity * NAT_STRING_GROW_FACTOR);
     } else {
         nat_grow_string(obj, min_capacity);
     }
