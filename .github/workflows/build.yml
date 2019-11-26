@@ -1,0 +1,15 @@
+name: Build
+
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v1
+    - name: install dependencies
+      run: sudo apt update && sudo apt install -y -q build-essential libedit-dev libgc-dev libpcre3-dev ruby
+    - name: set environment
+      run: export LC_ALL="C.UTF-8"
+    - name: test
+      run: rake test
