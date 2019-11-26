@@ -13,4 +13,4 @@ class Foo
 end
 
 assert_equal('foo', Foo.new.foo)
-assert_equal(8, Foo.new.double 4)
+assert_equal(8, Foo.new.double(4))
