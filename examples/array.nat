@@ -4,4 +4,4 @@ b = ["a", 1, [2]]
 a << 3
 c = b + [3, 4]
 
-puts c.inspect
+p c
