@@ -57,6 +57,8 @@ NatEnv *build_top_env() {
     hashmap_put(&Array->methods, "<<", Array_ltlt);
     hashmap_put(&Array->methods, "+", Array_add);
     hashmap_put(&Array->methods, "[]", Array_ref);
+    hashmap_put(&Array->methods, "size", Array_size);
+    hashmap_put(&Array->methods, "length", Array_size);
     env_set(env, "Array", Array);
 
     return env;

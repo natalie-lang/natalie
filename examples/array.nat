@@ -14,3 +14,6 @@ d = ["a", "b", "c", "d", "e", "f"]
 assert_equal("b", d[1])
 assert_equal(["c", "d"], d[2,2])
 assert_equal(nil, d[100])
+
+assert_equal(6, d.size)
+assert_equal(6, d.length)

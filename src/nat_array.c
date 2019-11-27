@@ -59,3 +59,9 @@ NatObject *Array_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **args
         return result;
     }
 }
+
+NatObject *Array_size(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs) {
+    assert(self->type == NAT_VALUE_ARRAY);
+    assert(argc == 0);
+    return nat_number(env, self->ary_len);
+}
