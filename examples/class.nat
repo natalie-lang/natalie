@@ -14,3 +14,12 @@ end
 
 assert_equal('foo', Foo.new.foo)
 assert_equal(8, Foo.new.double(4))
+
+class Bar < Foo
+  def foo
+    'bar'
+  end
+end
+
+assert_equal('bar', Bar.new.foo)
+assert_equal(6, Bar.new.double(3))

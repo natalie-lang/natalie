@@ -185,32 +185,32 @@ NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, Na
         if (singleton_method) {
             return singleton_method(env, receiver, argc, args);
         }
-        NatObject *klass = receiver;
+        NatObject *class = receiver;
         while (1) {
-            klass = klass->superclass;
-            if (klass == NULL || klass->type != NAT_VALUE_CLASS) break;
-            singleton_method = hashmap_get(&klass->singleton_methods, sym);
+            class = class->superclass;
+            if (class == NULL || class->type != NAT_VALUE_CLASS) break;
+            singleton_method = hashmap_get(&class->singleton_methods, sym);
             if (singleton_method) {
                 return singleton_method(env, receiver, argc, args);
             }
-            if (nat_is_top_class(klass)) break;
+            if (nat_is_top_class(class)) break;
         }
         fprintf(stderr, "Error: undefined method \"%s\" for %s\n", sym, receiver->class_name);
         abort();
     } else {
-        NatObject* (*method)(NatEnv*, NatObject*, size_t, NatObject**) = hashmap_get(&receiver->class->methods, sym);
+        NatObject *class = receiver->class;
+        NatObject* (*method)(NatEnv*, NatObject*, size_t, NatObject**) = hashmap_get(&class->methods, sym);
         if (method) {
             return method(env, receiver, argc, args);
         }
-        NatObject *klass = receiver->class;
         while (1) {
-            klass = klass->superclass;
-            if (klass == NULL || klass->type != NAT_VALUE_CLASS) break;
-            method = hashmap_get(&klass->singleton_methods, sym);
+            class = class->superclass;
+            if (class == NULL || class->type != NAT_VALUE_CLASS) break;
+            method = hashmap_get(&class->methods, sym);
             if (method) {
                 return method(env, receiver, argc, args);
             }
-            if (nat_is_top_class(klass)) break;
+            if (nat_is_top_class(class)) break;
         }
         fprintf(stderr, "Error: undefined method \"%s\" for %s\n", sym, receiver->class->class_name);
         abort();

@@ -103,7 +103,8 @@ module Natalie
         func << '}'
         var_name = next_var_name('class')
         decl = []
-        decl << "NatObject *#{var_name} = nat_subclass(env_get(env, \"Object\"), #{name.inspect});"
+        superclass ||= 'Object'
+        decl << "NatObject *#{var_name} = nat_subclass(env_get(env, #{superclass.inspect}), #{name.inspect});"
         decl << "env_set(env, #{name.inspect}, #{var_name});"
         result_name = next_var_name('class_body_result')
         decl << "NatObject *#{result_name} = #{func_name}(env, #{var_name}, 0, NULL, NULL);"
