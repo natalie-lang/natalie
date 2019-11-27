@@ -31,6 +31,8 @@ NatObject *String_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject *
         if (c == '"' || c == '\\') {
             nat_string_append_char(out, '\\');
             nat_string_append_char(out, c);
+        } else if (c == '\n') {
+            nat_string_append(out, "\\n");
         } else {
             nat_string_append_char(out, c);
         }
