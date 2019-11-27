@@ -15,6 +15,18 @@ NatObject *Object_puts(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     return env_get(env, "nil");
 }
 
+NatObject *Object_print(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs) {
+    if (argc > 0) {
+        NatObject *str;
+        for (size_t i=0; i<argc; i++) {
+            str = nat_send(env, args[i], "inspect", 0, NULL);
+            assert(str->type == NAT_VALUE_STRING);
+            printf("%s", str->str);
+        }
+    }
+    return env_get(env, "nil");
+}
+
 NatObject *Object_p(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs) {
     if (argc == 0) {
         return env_get(env, "nil");
