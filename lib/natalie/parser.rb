@@ -151,8 +151,11 @@ module Natalie
         args = args_with_parens || args_without_parens
         expect(args, 'expression after operator')
         [:send, receiver, message, args]
-      elsif @scanner.check(/\s*\.\s*/)
-        @scanner.skip(/\s*\.\s*/)
+      elsif @scanner.check(/\[/)
+        subscript = array
+        expect(subscript, 'subscript with terminating ]')
+        [:send, receiver, '[]', subscript.last]
+      elsif @scanner.skip(/\s*\.\s*/)
         message = method_name
         expect(message, 'method call after dot')
         args = args_with_parens || args_without_parens || []

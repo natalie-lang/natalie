@@ -134,5 +134,10 @@ describe 'Natalie::Parser' do
       ast = build_ast("[  \n1\n,\n2,3,   \n [4]  ]")
       ast.must_equal [[:array, [[:number, '1'], [:number, '2'], [:number, '3'], [:array, [[:number, '4']]]]]]
     end
+
+    it 'parses array subscript syntax' do
+      ast = build_ast("foo[0]")
+      ast.must_equal [[:send, [:send, 'self', 'foo', []], '[]', [[:number, '0']]]]
+    end
   end
 end

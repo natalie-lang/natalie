@@ -35,3 +35,27 @@ NatObject *Array_add(NatEnv *env, NatObject *self, size_t argc, NatObject **args
     new->ary_len = self->ary_len + arg->ary_len;
     return new;
 }
+
+NatObject *Array_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs) {
+    assert(argc == 1 || argc == 2);
+    assert(self->type == NAT_VALUE_ARRAY);
+    NatObject *index = args[0];
+    assert(index->type == NAT_VALUE_NUMBER); // TODO: accept a range
+    assert(index->number >= 0); // TODO: accept negative index
+    if (index->number >= self->ary_len) {
+        return env_get(env, "nil");
+    } else if (argc == 1) {
+        return self->ary[index->number];
+    } else {
+        NatObject *size = args[1];
+        assert(size->type == NAT_VALUE_NUMBER);
+        assert(index->number >= 0);
+        size_t end = index->number + size->number;
+        size_t max = end > max ? max : end;
+        NatObject *result = nat_array(env);
+        for (size_t i=index->number; i<max; i++) {
+            nat_array_push(result, self->ary[i]);
+        }
+        return result;
+    }
+}

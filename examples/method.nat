@@ -1,5 +1,5 @@
 def assert_equal(expected, actual)
-  puts expected.to_s + " should be " + actual.to_s
+  puts actual.to_s + " should be " + expected.to_s
 end
 
 def foo
