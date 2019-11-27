@@ -90,15 +90,19 @@ module Natalie
         top = []
         func = []
         func << "NatObject* #{func_name}(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs) {"
-        body.each_with_index do |node, i|
-          (t, d, e) = compile_expr(node)
-          top << t
-          func << d
-          if i == body.size-1 && e
-            func << "return #{e};"
-          elsif e
-            func << "UNUSED(#{e});"
+        if body.any?
+          body.each_with_index do |node, i|
+            (t, d, e) = compile_expr(node)
+            top << t
+            func << d
+            if i == body.size-1 && e
+              func << "return #{e};"
+            elsif e
+              func << "UNUSED(#{e});"
+            end
           end
+        else
+          func << "return env_get(env, \"nil\");"
         end
         func << '}'
         var_name = next_var_name('class')
