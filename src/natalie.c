@@ -199,22 +199,26 @@ NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, Na
         abort();
     } else {
         NatObject *class = receiver->class;
-        NatObject* (*method)(NatEnv*, NatObject*, size_t, NatObject**) = hashmap_get(&class->methods, sym);
-        if (method) {
-            return method(env, receiver, argc, args);
-        }
-        while (1) {
-            class = class->superclass;
-            if (class == NULL || class->type != NAT_VALUE_CLASS) break;
-            method = hashmap_get(&class->methods, sym);
-            if (method) {
-                return method(env, receiver, argc, args);
-            }
-            if (nat_is_top_class(class)) break;
-        }
-        fprintf(stderr, "Error: undefined method \"%s\" for %s\n", sym, receiver->class->class_name);
-        abort();
+        return nat_call_method_on_class(env, class, sym, receiver, argc, args);
     }
+}
+
+NatObject *nat_call_method_on_class(NatEnv *env, NatObject *class, char *method_name, NatObject *self, size_t argc, NatObject **args) {
+    NatObject* (*method)(NatEnv*, NatObject*, size_t, NatObject**) = hashmap_get(&class->methods, method_name);
+    if (method) {
+        return method(env, self, argc, args);
+    }
+    while (1) {
+        class = class->superclass;
+        if (class == NULL || class->type != NAT_VALUE_CLASS) break;
+        method = hashmap_get(&class->methods, method_name);
+        if (method) {
+            return method(env, self, argc, args);
+        }
+        if (nat_is_top_class(class)) break;
+    }
+    fprintf(stderr, "Error: undefined method \"%s\" for %s\n", method_name, class->class_name);
+    abort();
 }
 
 NatObject *nat_lookup_or_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, NatObject **args) {

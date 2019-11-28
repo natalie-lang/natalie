@@ -105,6 +105,7 @@ char* long_long_to_string(long long num);
 void nat_define_method(NatObject *obj, char *name, NatObject* (*fn)(NatEnv*, NatObject*, size_t, NatObject**, struct hashmap*));
 NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, NatObject **args);
 NatObject *nat_lookup_or_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, NatObject **args);
+NatObject *nat_call_method_on_class(NatEnv *env, NatObject *class, char *method_name, NatObject *self, size_t argc, NatObject **args);
 
 #define NAT_STRING_GROW_FACTOR 2
 

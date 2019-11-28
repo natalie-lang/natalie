@@ -122,6 +122,7 @@ module Natalie
         func << "if (argc != #{args.size}) abort();" # FIXME
         # TODO: do something with kwargs
         func << "env = build_env(env);"
+        func << "env_set(env, \"__method__\", nat_string(env, #{name.inspect}));"
         args.each_with_index do |arg, i|
           func << "env_set(env, #{arg.inspect}, args[#{i}]);"
         end
@@ -177,10 +178,14 @@ module Natalie
             decl << "#{args_name}[#{i}] = #{e};"
           end
         end
-        (t, d, e) = compile_expr(receiver)
-        top << t; decl << d
         result_name = next_var_name('result')
-        decl << "NatObject *#{result_name} = nat_lookup_or_send(env, #{e}, #{name.inspect}, #{args.size}, #{args_name});"
+        if receiver == 'self' && name == 'super'
+          decl << "NatObject *#{result_name} = nat_call_method_on_class(env, self->class->superclass, env_get(env, \"__method__\")->str, self, #{args.size}, #{args_name});"
+        else
+          (t, d, e) = compile_expr(receiver)
+          top << t; decl << d
+          decl << "NatObject *#{result_name} = nat_lookup_or_send(env, #{e}, #{name.inspect}, #{args.size}, #{args_name});"
+        end
         [top, decl, result_name]
       else
         raise "unknown AST node: #{expr.inspect}"

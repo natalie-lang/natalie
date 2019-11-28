@@ -23,3 +23,11 @@ end
 
 assert_equal('bar', Bar.new.foo)
 assert_equal(6, Bar.new.double(3))
+
+class Baz < Foo
+  def foo
+    super + ' baz'
+  end
+end
+
+assert_equal('foo baz', Baz.new.foo)
