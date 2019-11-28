@@ -126,15 +126,19 @@ module Natalie
         args.each_with_index do |arg, i|
           func << "env_set(env, #{arg.inspect}, args[#{i}]);"
         end
-        body.each_with_index do |node, i|
-          (t, d, e) = compile_expr(node)
-          top << t
-          func << d
-          if i == body.size-1 && e
-            func << "return #{e};"
-          elsif e
-            func << "UNUSED(#{e});"
+        if body.any?
+          body.each_with_index do |node, i|
+            (t, d, e) = compile_expr(node)
+            top << t
+            func << d
+            if i == body.size-1 && e
+              func << "return #{e};"
+            elsif e
+              func << "UNUSED(#{e});"
+            end
           end
+        else
+          func << "return env_get(env, \"nil\");"
         end
         func << "}"
         method_name = next_var_name('method')
