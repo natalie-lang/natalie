@@ -212,7 +212,7 @@ module Natalie
     def implicit_message
       if (id = method_name)
         args = args_with_parens || args_without_parens || []
-        [:send, 'self', id, args.compact] # FIXME: compact here is a hack to do with operator precedence :-(
+        [:send, nil, id, args.compact] # FIXME: compact here is a hack to do with operator precedence :-(
       end
     end
   end

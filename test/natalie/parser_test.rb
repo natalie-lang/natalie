@@ -44,11 +44,11 @@ describe 'Natalie::Parser' do
 
     it 'parses operator method calls' do
       ast = build_ast("x * 2")
-      ast.must_equal [[:send, [:send, 'self', 'x', []], '*', [[:number, '2']]]]
+      ast.must_equal [[:send, [:send, nil, 'x', []], '*', [[:number, '2']]]]
       ast = build_ast("x.to_s + 'x'")
-      ast.must_equal [[:send, [:send, [:send, 'self', 'x', []], 'to_s', []], '+', [[:string, 'x']]]]
+      ast.must_equal [[:send, [:send, [:send, nil, 'x', []], 'to_s', []], '+', [[:string, 'x']]]]
       ast = build_ast("puts x.to_s + 'x'")
-      ast.must_equal [[:send, 'self', 'puts', [[:send, [:send, [:send, 'self', 'x', []], 'to_s', []], '+', [[:string, 'x']]]]]]
+      ast.must_equal [[:send, nil, 'puts', [[:send, [:send, [:send, nil, 'x', []], 'to_s', []], '+', [[:string, 'x']]]]]]
       ast = build_ast("'a' << 'b'")
       ast.must_equal [[:send, [:string, 'a'], '<<', [[:string, 'b']]]]
       ast = build_ast("'a' << 'b' << 'c'")
@@ -74,13 +74,13 @@ describe 'Natalie::Parser' do
 
     it 'parses method calls without a dot' do
       ast = build_ast("foo")
-      ast.must_equal [[:send, 'self', 'foo', []]]
+      ast.must_equal [[:send, nil, 'foo', []]]
       ast = build_ast("foo 'bar'")
-      ast.must_equal [[:send, 'self', 'foo', [[:string, 'bar']]]]
+      ast.must_equal [[:send, nil, 'foo', [[:string, 'bar']]]]
       ast = build_ast("foo('bar', 'baz')")
-      ast.must_equal [[:send, 'self', 'foo', [[:string, 'bar'], [:string, 'baz']]]]
+      ast.must_equal [[:send, nil, 'foo', [[:string, 'bar'], [:string, 'baz']]]]
       ast = build_ast("foo.upcase")
-      ast.must_equal [[:send, [:send, 'self', 'foo', []], 'upcase', []]]
+      ast.must_equal [[:send, [:send, nil, 'foo', []], 'upcase', []]]
     end
 
     it 'parses assignments' do
@@ -100,13 +100,13 @@ describe 'Natalie::Parser' do
       ast = build_ast("def foo \n 'foo'\n 2 \n 'bar'\n end")
       ast.first.first.must_equal :def
       ast = build_ast("def foo(x); x; end")
-      ast.must_equal [[:def, 'foo', ['x'], {}, [[:send, 'self', 'x', []]]]]
+      ast.must_equal [[:def, 'foo', ['x'], {}, [[:send, nil, 'x', []]]]]
       ast = build_ast("def foo(x, y); x; end")
-      ast.must_equal [[:def, 'foo', ['x', 'y'], {}, [[:send, 'self', 'x', []]]]]
+      ast.must_equal [[:def, 'foo', ['x', 'y'], {}, [[:send, nil, 'x', []]]]]
       ast = build_ast("def foo x  ; x; end")
-      ast.must_equal [[:def, 'foo', ['x'], {}, [[:send, 'self', 'x', []]]]]
+      ast.must_equal [[:def, 'foo', ['x'], {}, [[:send, nil, 'x', []]]]]
       ast = build_ast("def foo   x, y; x; end")
-      ast.must_equal [[:def, 'foo', ['x', 'y'], {}, [[:send, 'self', 'x', []]]]]
+      ast.must_equal [[:def, 'foo', ['x', 'y'], {}, [[:send, nil, 'x', []]]]]
     end
 
     it 'parses class definitions' do
@@ -137,7 +137,7 @@ describe 'Natalie::Parser' do
 
     it 'parses array subscript syntax' do
       ast = build_ast("foo[0]")
-      ast.must_equal [[:send, [:send, 'self', 'foo', []], '[]', [[:number, '0']]]]
+      ast.must_equal [[:send, [:send, nil, 'foo', []], '[]', [[:number, '0']]]]
     end
   end
 end

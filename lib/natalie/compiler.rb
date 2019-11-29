@@ -183,12 +183,12 @@ module Natalie
           end
         end
         result_name = next_var_name('result')
-        if receiver == 'self' && name == 'super'
+        if receiver.nil? && name == 'super'
           decl << "NatObject *#{result_name} = nat_call_method_on_class(env, self->class->superclass, env_get(env, \"__method__\")->str, self, #{args.size}, #{args_name});"
         else
-          (t, d, e) = compile_expr(receiver)
+          (t, d, e) = compile_expr(receiver || 'self')
           top << t; decl << d
-          if receiver == 'self'
+          if receiver.nil?
             decl << "NatObject *#{result_name} = nat_lookup_or_send(env, #{e}, #{name.inspect}, #{args.size}, #{args_name});"
           else
             decl << "NatObject *#{result_name} = nat_send(env, #{e}, #{name.inspect}, #{args.size}, #{args_name});"
