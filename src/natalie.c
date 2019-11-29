@@ -208,6 +208,7 @@ NatObject *nat_call_method_on_class(NatEnv *env, NatObject *class, char *method_
     if (method) {
         return method(env, self, argc, args);
     }
+    NatObject *orig_class = class;
     while (1) {
         class = class->superclass;
         if (class == NULL || class->type != NAT_VALUE_CLASS) break;
@@ -217,7 +218,7 @@ NatObject *nat_call_method_on_class(NatEnv *env, NatObject *class, char *method_
         }
         if (nat_is_top_class(class)) break;
     }
-    fprintf(stderr, "Error: undefined method \"%s\" for %s\n", method_name, class->class_name);
+    fprintf(stderr, "Error: undefined method \"%s\" for %s\n", method_name, orig_class->class_name);
     abort();
 }
 
