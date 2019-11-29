@@ -188,7 +188,11 @@ module Natalie
         else
           (t, d, e) = compile_expr(receiver)
           top << t; decl << d
-          decl << "NatObject *#{result_name} = nat_lookup_or_send(env, #{e}, #{name.inspect}, #{args.size}, #{args_name});"
+          if receiver == 'self'
+            decl << "NatObject *#{result_name} = nat_lookup_or_send(env, #{e}, #{name.inspect}, #{args.size}, #{args_name});"
+          else
+            decl << "NatObject *#{result_name} = nat_send(env, #{e}, #{name.inspect}, #{args.size}, #{args_name});"
+          end
         end
         [top, decl, result_name]
       else
