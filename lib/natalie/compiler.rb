@@ -113,6 +113,34 @@ module Natalie
         result_name = next_var_name('class_body_result')
         decl << "NatObject *#{result_name} = #{func_name}(env, #{var_name}, 0, NULL, NULL);"
         [top + func, decl, result_name]
+      when :module
+        (_, name, body) = expr
+        func_name = next_var_name('module_body')
+        top = []
+        func = []
+        func << "NatObject* #{func_name}(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs) {"
+        if body.any?
+          body.each_with_index do |node, i|
+            (t, d, e) = compile_expr(node)
+            top << t
+            func << d
+            if i == body.size-1 && e
+              func << "return #{e};"
+            elsif e
+              func << "UNUSED(#{e});"
+            end
+          end
+        else
+          func << "return env_get(env, \"nil\");"
+        end
+        func << '}'
+        var_name = next_var_name('module')
+        decl = []
+        decl << "NatObject *#{var_name} = nat_module(env, #{name.inspect});"
+        decl << "env_set(env, #{name.inspect}, #{var_name});"
+        result_name = next_var_name('module_body_result')
+        decl << "NatObject *#{result_name} = #{func_name}(env, #{var_name}, 0, NULL, NULL);"
+        [top + func, decl, result_name]
       when :def
         (_, name, args, kwargs, body) = expr
         func_name = next_var_name('func')
@@ -184,7 +212,7 @@ module Natalie
         end
         result_name = next_var_name('result')
         if receiver.nil? && name == 'super'
-          decl << "NatObject *#{result_name} = nat_call_method_on_class(env, self->class->superclass, env_get(env, \"__method__\")->str, self, #{args.size}, #{args_name});"
+          decl << "NatObject *#{result_name} = nat_call_method_on_class(env, self->class->superclass, self->class->superclass, env_get(env, \"__method__\")->str, self, #{args.size}, #{args_name});"
         else
           (t, d, e) = compile_expr(receiver || 'self')
           top << t; decl << d

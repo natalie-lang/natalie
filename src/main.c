@@ -1,5 +1,6 @@
 #include "natalie.h"
 #include "nat_class.h"
+#include "nat_module.h"
 #include "nat_nil_class.h"
 #include "nat_numeric.h"
 #include "nat_object.h"
@@ -18,6 +19,8 @@ NatEnv *build_top_env() {
     hashmap_set_key_alloc_funcs(&Class->methods, hashmap_alloc_key_string, NULL);
     hashmap_put(&Class->singleton_methods, "new", Class_new);
     hashmap_put(&Class->singleton_methods, "inspect", Class_inspect);
+    hashmap_put(&Class->singleton_methods, "include", Class_include);
+    hashmap_put(&Class->singleton_methods, "included_modules", Class_included_modules);
     env_set(env, "Class", Class);
 
     NatObject *Object = nat_subclass(Class, "Object");
@@ -27,6 +30,10 @@ NatEnv *build_top_env() {
     hashmap_put(&Object->methods, "inspect", Object_inspect);
     hashmap_put(&Object->singleton_methods, "new", Object_new);
     env_set(env, "Object", Object);
+
+    NatObject *Module = nat_subclass(Class, "Module");
+    hashmap_put(&Module->methods, "inspect", Module_inspect);
+    env_set(env, "Module", Module);
 
     NatObject *main_obj = nat_new(Object);
     main_obj->flags = NAT_FLAG_MAIN_OBJECT;

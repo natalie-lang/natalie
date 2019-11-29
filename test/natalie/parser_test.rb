@@ -139,5 +139,10 @@ describe 'Natalie::Parser' do
       ast = build_ast("foo[0]")
       ast.must_equal [[:send, [:send, nil, 'foo', []], '[]', [[:number, '0']]]]
     end
+
+    it 'parses modules' do
+      ast = build_ast('module M; end')
+      ast.must_equal [[:module, 'M', []]]
+    end
   end
 end

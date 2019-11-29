@@ -52,6 +52,8 @@ NatObject *nat_alloc() {
     NatObject *val = malloc(sizeof(NatObject));
     val->flags = 0;
     val->type = NAT_VALUE_OTHER;
+    val->included_modules_count = 0;
+    val->included_modules = NULL;
     hashmap_init(&val->singleton_methods, hashmap_hash_string, hashmap_compare_string, 100);
     hashmap_set_key_alloc_funcs(&val->singleton_methods, hashmap_alloc_key_string, NULL);
     return val;
@@ -65,6 +67,26 @@ NatObject *nat_subclass(NatObject *superclass, char *name) {
     hashmap_init(&val->methods, hashmap_hash_string, hashmap_compare_string, 100);
     hashmap_set_key_alloc_funcs(&val->methods, hashmap_alloc_key_string, NULL);
     return val;
+}
+
+NatObject *nat_module(NatEnv *env, char *name) {
+    NatObject *val = nat_alloc();
+    val->type = NAT_VALUE_MODULE;
+    val->class = env_get(env, "Module");
+    val->class_name = heap_string(name);
+    hashmap_init(&val->methods, hashmap_hash_string, hashmap_compare_string, 100);
+    hashmap_set_key_alloc_funcs(&val->methods, hashmap_alloc_key_string, NULL);
+    return val;
+}
+
+void nat_class_include(NatObject *class, NatObject *module) {
+    class->included_modules_count++;
+    if (class->included_modules_count == 1) {
+        class->included_modules = malloc(sizeof(NatObject*));
+    } else {
+        class->included_modules = realloc(class->included_modules, sizeof(NatObject*) * class->included_modules_count);
+    }
+    class->included_modules[class->included_modules_count - 1] = module;
 }
 
 NatObject *nat_new(NatObject *class) {
@@ -199,27 +221,33 @@ NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, Na
         abort();
     } else {
         NatObject *class = receiver->class;
-        return nat_call_method_on_class(env, class, sym, receiver, argc, args);
+        return nat_call_method_on_class(env, class, class, sym, receiver, argc, args);
     }
 }
 
-NatObject *nat_call_method_on_class(NatEnv *env, NatObject *class, char *method_name, NatObject *self, size_t argc, NatObject **args) {
+NatObject *nat_call_method_on_class(NatEnv *env, NatObject *class, NatObject *instance_class, char *method_name, NatObject *self, size_t argc, NatObject **args) {
+    assert(class != NULL);
+    assert(class->type == NAT_VALUE_CLASS);
+
     NatObject* (*method)(NatEnv*, NatObject*, size_t, NatObject**) = hashmap_get(&class->methods, method_name);
     if (method) {
         return method(env, self, argc, args);
     }
-    NatObject *orig_class = class;
-    while (1) {
-        class = class->superclass;
-        if (class == NULL || class->type != NAT_VALUE_CLASS) break;
-        method = hashmap_get(&class->methods, method_name);
+
+    for (size_t i=0; i<class->included_modules_count; i++) {
+        NatObject *module = class->included_modules[i];
+        method = hashmap_get(&module->methods, method_name);
         if (method) {
             return method(env, self, argc, args);
         }
-        if (nat_is_top_class(class)) break;
     }
-    fprintf(stderr, "Error: undefined method \"%s\" for %s\n", method_name, orig_class->class_name);
-    abort();
+
+    if (nat_is_top_class(class)) {
+        fprintf(stderr, "Error: undefined method \"%s\" for %s\n", method_name, instance_class->class_name);
+        abort();
+    }
+
+    return nat_call_method_on_class(env, class->superclass, instance_class, method_name, self, argc, args);
 }
 
 NatObject *nat_lookup_or_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, NatObject **args) {

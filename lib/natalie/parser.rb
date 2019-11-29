@@ -25,7 +25,7 @@ module Natalie
     end
 
     def expr
-      klass || method || assignment || explicit_message || implicit_message || array || number || string
+      klass || mod || method || assignment || explicit_message || implicit_message || array || number || string
     end
 
     def assignment
@@ -66,9 +66,9 @@ module Natalie
     def klass
       if (s = @scanner.scan(/class /))
         @scanner.skip(/\s*/)
-        name = class_name
-        expect(name, 'method name after class keyword')
-        superclass = class_name if @scanner.skip(/\s*<\s*/)
+        name = constant
+        expect(name, 'class name after class keyword')
+        superclass = constant if @scanner.skip(/\s*<\s*/)
         @scanner.skip(/\s*[;\n]+\s*/)
         body = []
         until @scanner.check(/\s*end[;\s]/)
@@ -77,6 +77,22 @@ module Natalie
         end
         @scanner.skip(/\s*end/)
         [:class, name, superclass, body]
+      end
+    end
+
+    def mod
+      if (s = @scanner.scan(/module /))
+        @scanner.skip(/\s*/)
+        name = constant
+        expect(name, 'module name after module keyword')
+        @scanner.skip(/\s*[;\n]+\s*/)
+        body = []
+        until @scanner.check(/\s*end[;\s]/)
+          body << expr
+          expect(@scanner.skip(END_OF_EXPRESSION), '; or newline')
+        end
+        @scanner.skip(/\s*end/)
+        [:module, name, body]
       end
     end
 
@@ -113,7 +129,7 @@ module Natalie
       @scanner.scan(METHOD_NAME)
     end
 
-    def class_name
+    def constant
       @scanner.scan(/[A-Z][a-z0-9_]*/)
     end
 

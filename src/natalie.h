@@ -23,6 +23,7 @@ struct NatEnv {
 
 enum NatValueType {
     NAT_VALUE_CLASS,
+    NAT_VALUE_MODULE,
     NAT_VALUE_ARRAY,
     NAT_VALUE_STRING,
     NAT_VALUE_NUMBER,
@@ -43,12 +44,15 @@ struct NatObject {
     int flags;
 
     struct hashmap singleton_methods;
+    
+    size_t included_modules_count;
+    NatObject **included_modules;
 
     union {
         long long number;
         struct hashmap hashmap;
 
-        // NAT_VALUE_CLASS
+        // NAT_VALUE_CLASS, NAT_VALUE_MODULE
         struct {
             char *class_name;
             NatObject *superclass;
@@ -96,7 +100,10 @@ char *heap_string(char *str);
 
 NatObject *nat_alloc();
 NatObject *nat_subclass(NatObject *superclass, char *name);
+NatObject *nat_module(NatEnv *env, char *name);
+void nat_class_include(NatObject *class, NatObject *module);
 NatObject *nat_new(NatObject *class);
+
 NatObject *nat_number(NatEnv *env, long long num);
 
 size_t num_char_len(long long num);
@@ -105,7 +112,7 @@ char* long_long_to_string(long long num);
 void nat_define_method(NatObject *obj, char *name, NatObject* (*fn)(NatEnv*, NatObject*, size_t, NatObject**, struct hashmap*));
 NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, NatObject **args);
 NatObject *nat_lookup_or_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, NatObject **args);
-NatObject *nat_call_method_on_class(NatEnv *env, NatObject *class, char *method_name, NatObject *self, size_t argc, NatObject **args);
+NatObject *nat_call_method_on_class(NatEnv *env, NatObject *class, NatObject *instance_class, char *method_name, NatObject *self, size_t argc, NatObject **args);
 
 #define NAT_STRING_GROW_FACTOR 2
 
