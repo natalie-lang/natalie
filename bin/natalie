@@ -50,6 +50,7 @@ elsif options[:compile]
 else
   compiler = Natalie::Compiler.new(ast)
   out = Tempfile.create('natalie')
+  out.close
   compiler.compile(out.path)
   puts out.path if ENV['DEBUG']
   puts `#{out.path} 2>&1` # FIXME: stderr
