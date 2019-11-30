@@ -4,6 +4,6 @@
 
 Natalie is a work-in-progress, compiled, object-oriented language resembling Ruby.
 
-It provies an ahead-of-time compiler using C and gcc/clang as the backend. Also, the language has an REPL that performs incremental compilation.
+It provies an ahead-of-time compiler using C and gcc/clang as the backend. Also, the language has a REPL that performs incremental compilation.
 
 There is much work left to do before this is useful. Please let me know if you want to help!
