@@ -106,6 +106,8 @@ NatObject *nat_new(NatObject *class);
 
 NatObject *nat_number(NatEnv *env, long long num);
 
+char *nat_object_id(NatObject *obj);
+
 size_t num_char_len(long long num);
 char* long_long_to_string(long long num);
 

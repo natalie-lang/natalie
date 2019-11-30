@@ -15,6 +15,7 @@ NatEnv *build_top_env() {
     Class->type = NAT_VALUE_CLASS;
     Class->class_name = heap_string("Class");
     Class->superclass = Class;
+    Class->class = Class;
     hashmap_init(&Class->methods, hashmap_hash_string, hashmap_compare_string, 100);
     hashmap_set_key_alloc_funcs(&Class->methods, hashmap_alloc_key_string, NULL);
     hashmap_put(&Class->singleton_methods, "new", Class_new);
@@ -33,6 +34,7 @@ NatEnv *build_top_env() {
 
     NatObject *Module = nat_subclass(Class, "Module");
     hashmap_put(&Module->methods, "inspect", Module_inspect);
+    hashmap_put(&Module->singleton_methods, "new", Module_new);
     env_set(env, "Module", Module);
 
     NatObject *main_obj = nat_new(Object);

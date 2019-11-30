@@ -62,7 +62,8 @@ NatObject *nat_alloc() {
 NatObject *nat_subclass(NatObject *superclass, char *name) {
     NatObject *val = nat_alloc();
     val->type = NAT_VALUE_CLASS;
-    val->class_name = heap_string(name);
+    val->class = superclass->class;
+    val->class_name = name ? heap_string(name) : NULL;
     val->superclass = superclass;
     hashmap_init(&val->methods, hashmap_hash_string, hashmap_compare_string, 100);
     hashmap_set_key_alloc_funcs(&val->methods, hashmap_alloc_key_string, NULL);
@@ -73,7 +74,7 @@ NatObject *nat_module(NatEnv *env, char *name) {
     NatObject *val = nat_alloc();
     val->type = NAT_VALUE_MODULE;
     val->class = env_get(env, "Module");
-    val->class_name = heap_string(name);
+    val->class_name = name ? heap_string(name) : NULL;
     hashmap_init(&val->methods, hashmap_hash_string, hashmap_compare_string, 100);
     hashmap_set_key_alloc_funcs(&val->methods, hashmap_alloc_key_string, NULL);
     return val;
@@ -261,6 +262,15 @@ NatObject *nat_lookup_or_send(NatEnv *env, NatObject *receiver, char *sym, size_
             return nat_send(env, receiver, sym, argc, args);
         }
     }
+}
+
+// "0x" + up to 16 hex chars + NULL terminator
+#define OBJECT_ID_LEN 2 + 16 + 1
+
+char *nat_object_id(NatObject *obj) {
+    char *id = malloc(OBJECT_ID_LEN);
+    snprintf(id, OBJECT_ID_LEN, "%p", obj);
+    return id;
 }
 
 void nat_grow_string(NatObject *obj, size_t capacity) {
