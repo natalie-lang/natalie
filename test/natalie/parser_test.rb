@@ -146,5 +146,30 @@ describe 'Natalie::Parser' do
       ast = build_ast('module M; def m; "m"; end; end')
       ast.must_equal [[:module, 'M', [[:def, 'm', [], {}, [[:string, 'm']]]]]]
     end
+
+    it 'ignores comments' do
+      ast = build_ast('1 # comment')
+      ast.must_equal [[:number, '1']]
+      ast = build_ast('1; 2 # comment')
+      ast.must_equal [[:number, '1'], [:number, '2']]
+      ast = build_ast('1; 2; # comment')
+      ast.must_equal [[:number, '1'], [:number, '2']]
+      ast = build_ast("1\n2 # comment\n3")
+      ast.must_equal [[:number, '1'], [:number, '2'], [:number, '3']]
+      ast = build_ast("# ignore me\n# ignore me again\n1")
+      ast.must_equal [[:number, '1']]
+      ast = build_ast('# comment')
+      ast.must_equal []
+      ast = build_ast("class Foo; end # comment")
+      ast.must_equal [[:class, 'Foo', nil, []]]
+      ast = build_ast("class Foo\nend # comment")
+      ast.must_equal [[:class, 'Foo', nil, []]]
+      ast = build_ast("class Bar # foo\n end")
+      ast.must_equal [[:class, 'Bar', nil, []]]
+      ast = build_ast("module Bar # foo\n end")
+      ast.must_equal [[:module, 'Bar', []]]
+      ast = build_ast("def bar # foo\n end")
+      ast.must_equal [[:def, 'bar', [], {}, []]]
+    end
   end
 end

@@ -8,7 +8,10 @@ module Natalie
       @lr_wrap = {}
     end
 
-    END_OF_EXPRESSION = /[ \t]*(;+|\n)+[ \t]*/
+    COMMENT = /#[^\n]*/
+    SEMI_END_OF_EXPR = /[ \t]*;+[ \t]*/
+    NEWLINE_END_OF_EXPR = /[ \t]*(#{COMMENT})?\n+[ \t]*/
+    END_OF_EXPRESSION = /#{SEMI_END_OF_EXPR}|#{NEWLINE_END_OF_EXPR}/
 
     def expect(expected, msg)
       return if expected
@@ -25,6 +28,7 @@ module Natalie
     end
 
     def expr
+      @scanner.skip(/\s*#{COMMENT}\s*/)
       klass || mod || method || assignment || explicit_message || implicit_message || array || number || string
     end
 
@@ -69,7 +73,7 @@ module Natalie
         name = constant
         expect(name, 'class name after class keyword')
         superclass = constant if @scanner.skip(/\s*<\s*/)
-        @scanner.skip(/\s*[;\n]+\s*/)
+        @scanner.skip(END_OF_EXPRESSION)
         body = []
         until @scanner.check(/\s*end[;\s]/)
           body << expr
@@ -85,7 +89,7 @@ module Natalie
         @scanner.skip(/\s*/)
         name = constant
         expect(name, 'module name after module keyword')
-        @scanner.skip(/\s*[;\n]+\s*/)
+        @scanner.skip(END_OF_EXPRESSION)
         body = []
         until @scanner.check(/\s*end[;\s]/)
           body << expr
@@ -102,7 +106,7 @@ module Natalie
         name = method_name
         expect(name, 'method name after def keyword')
         args = []
-        unless @scanner.skip(/\s*[;\n]+\s*/)
+        unless @scanner.skip(END_OF_EXPRESSION)
           args = method_args_with_parens || method_args_without_parens
           expect(args, 'arguments after method name')
           @scanner.skip(/[;\s]+/)
