@@ -109,7 +109,6 @@ NatObject *nat_integer(NatEnv *env, int64_t integer);
 
 char *nat_object_id(NatObject *obj);
 
-size_t int_char_len(int64_t num);
 char* int_to_string(int64_t num);
 
 void nat_define_method(NatObject *obj, char *name, NatObject* (*fn)(NatEnv*, NatObject*, size_t, NatObject**, struct hashmap*));

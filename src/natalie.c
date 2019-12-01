@@ -149,32 +149,7 @@ void nat_array_push(NatObject *array, NatObject *obj) {
   array->ary[len] = obj;
 }
 
-// note: there is a formula using log10 to calculate a number length, but this works for now
-size_t int_char_len(int64_t num) {
-    if (num < 0) {
-        return 1 + int_char_len(llabs(num));
-    } else if (num < 10) {
-        return 1;
-    } else if (num < 100) {
-        return 2;
-    } else if (num < 1000) {
-        return 3;
-    } else if (num < 10000) {
-        return 4;
-    } else if (num < 100000) {
-        return 5;
-    } else if (num < 1000000) {
-        return 6;
-    } else if (num < 1000000000) {
-        return 9;
-    } else if (num < 1000000000000) {
-        return 12;
-    } else if (num < 1000000000000000) {
-        return 15;
-    } else {
-        return 20; // up to 64 bits
-    }
-}
+#define INT_64_MAX_CHAR_LEN 21 // 1 for sign, 19 for max digits, and 1 for null terminator
 
 char* int_to_string(int64_t num) {
   char* str;
@@ -182,9 +157,8 @@ char* int_to_string(int64_t num) {
   if (num == 0) {
     return heap_string("0");
   } else {
-    len = int_char_len(num);
-    str = malloc(len + 1);
-    snprintf(str, len + 1, "%lli", num);
+    str = malloc(INT_64_MAX_CHAR_LEN);
+    snprintf(str, INT_64_MAX_CHAR_LEN, "%lli", num);
     return str;
   }
 }
