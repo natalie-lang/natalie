@@ -2,6 +2,7 @@
 #define __NAT__
 
 #include <assert.h>
+#include <inttypes.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -49,7 +50,7 @@ struct NatObject {
     NatObject **included_modules;
 
     union {
-        long long integer;
+        int64_t integer;
         struct hashmap hashmap;
 
         // NAT_VALUE_CLASS, NAT_VALUE_MODULE
@@ -104,12 +105,12 @@ NatObject *nat_module(NatEnv *env, char *name);
 void nat_class_include(NatObject *class, NatObject *module);
 NatObject *nat_new(NatObject *class);
 
-NatObject *nat_integer(NatEnv *env, long long integer);
+NatObject *nat_integer(NatEnv *env, int64_t integer);
 
 char *nat_object_id(NatObject *obj);
 
-size_t num_char_len(long long num);
-char* long_long_to_string(long long num);
+size_t int_char_len(int64_t num);
+char* int_to_string(int64_t num);
 
 void nat_define_method(NatObject *obj, char *name, NatObject* (*fn)(NatEnv*, NatObject*, size_t, NatObject**, struct hashmap*));
 NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, NatObject **args);

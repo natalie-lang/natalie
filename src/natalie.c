@@ -96,7 +96,7 @@ NatObject *nat_new(NatObject *class) {
     return val;
 }
 
-NatObject *nat_integer(NatEnv *env, long long integer) {
+NatObject *nat_integer(NatEnv *env, int64_t integer) {
     NatObject *obj = nat_new(env_get(env, "Integer"));
     obj->type = NAT_VALUE_INTEGER;
     obj->integer = integer;
@@ -150,9 +150,9 @@ void nat_array_push(NatObject *array, NatObject *obj) {
 }
 
 // note: there is a formula using log10 to calculate a number length, but this works for now
-size_t num_char_len(long long num) {
+size_t int_char_len(int64_t num) {
     if (num < 0) {
-        return 1 + num_char_len(llabs(num));
+        return 1 + int_char_len(llabs(num));
     } else if (num < 10) {
         return 1;
     } else if (num < 100) {
@@ -171,21 +171,18 @@ size_t num_char_len(long long num) {
         return 12;
     } else if (num < 1000000000000000) {
         return 15;
-    } else if (num < 1000000000000000000) {
-        return 18;
     } else {
-        // up to 128 bits
-        return 40;
+        return 20; // up to 64 bits
     }
 }
 
-char* long_long_to_string(long long num) {
+char* int_to_string(int64_t num) {
   char* str;
   size_t len;
   if (num == 0) {
     return heap_string("0");
   } else {
-    len = num_char_len(num);
+    len = int_char_len(num);
     str = malloc(len + 1);
     snprintf(str, len + 1, "%lli", num);
     return str;
