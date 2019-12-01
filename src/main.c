@@ -18,23 +18,23 @@ NatEnv *build_top_env() {
     Class->class = Class;
     hashmap_init(&Class->methods, hashmap_hash_string, hashmap_compare_string, 100);
     hashmap_set_key_alloc_funcs(&Class->methods, hashmap_alloc_key_string, NULL);
-    hashmap_put(&Class->singleton_methods, "new", Class_new);
-    hashmap_put(&Class->singleton_methods, "inspect", Class_inspect);
-    hashmap_put(&Class->singleton_methods, "include", Class_include);
-    hashmap_put(&Class->singleton_methods, "included_modules", Class_included_modules);
+    nat_define_singleton_method(Class, "new", Class_new);
+    nat_define_singleton_method(Class, "inspect", Class_inspect);
+    nat_define_singleton_method(Class, "include", Class_include);
+    nat_define_singleton_method(Class, "included_modules", Class_included_modules);
     env_set(env, "Class", Class);
 
     NatObject *Object = nat_subclass(Class, "Object");
-    hashmap_put(&Object->methods, "puts", Object_puts);
-    hashmap_put(&Object->methods, "print", Object_print);
-    hashmap_put(&Object->methods, "p", Object_p);
-    hashmap_put(&Object->methods, "inspect", Object_inspect);
-    hashmap_put(&Object->singleton_methods, "new", Object_new);
+    nat_define_method(Object, "puts", Object_puts);
+    nat_define_method(Object, "print", Object_print);
+    nat_define_method(Object, "p", Object_p);
+    nat_define_method(Object, "inspect", Object_inspect);
+    nat_define_singleton_method(Object, "new", Object_new);
     env_set(env, "Object", Object);
 
     NatObject *Module = nat_subclass(Class, "Module");
-    hashmap_put(&Module->methods, "inspect", Module_inspect);
-    hashmap_put(&Module->singleton_methods, "new", Module_new);
+    nat_define_method(Module, "inspect", Module_inspect);
+    nat_define_singleton_method(Module, "new", Module_new);
     env_set(env, "Module", Module);
 
     NatObject *main_obj = nat_new(Object);
@@ -42,8 +42,8 @@ NatEnv *build_top_env() {
     env_set(env, "self", main_obj);
 
     NatObject *NilClass = nat_subclass(Object, "NilClass");
-    hashmap_put(&NilClass->methods, "to_s", NilClass_to_s);
-    hashmap_put(&NilClass->methods, "inspect", NilClass_inspect);
+    nat_define_method(NilClass, "to_s", NilClass_to_s);
+    nat_define_method(NilClass, "inspect", NilClass_inspect);
     env_set(env, "NilClass", NilClass);
 
     NatObject *nil = nat_new(NilClass);
@@ -54,28 +54,28 @@ NatEnv *build_top_env() {
     env_set(env, "Numeric", Numeric);
 
     NatObject *Integer = nat_subclass(Numeric, "Integer");
-    hashmap_put(&Integer->methods, "to_s", Integer_to_s);
-    hashmap_put(&Integer->methods, "inspect", Integer_to_s);
-    hashmap_put(&Integer->methods, "+", Integer_add);
-    hashmap_put(&Integer->methods, "-", Integer_sub);
-    hashmap_put(&Integer->methods, "*", Integer_mul);
-    hashmap_put(&Integer->methods, "/", Integer_div);
+    nat_define_method(Integer, "to_s", Integer_to_s);
+    nat_define_method(Integer, "inspect", Integer_to_s);
+    nat_define_method(Integer, "+", Integer_add);
+    nat_define_method(Integer, "-", Integer_sub);
+    nat_define_method(Integer, "*", Integer_mul);
+    nat_define_method(Integer, "/", Integer_div);
     env_set(env, "Integer", Integer);
 
     NatObject *String = nat_subclass(Object, "String");
-    hashmap_put(&String->methods, "to_s", String_to_s);
-    hashmap_put(&String->methods, "inspect", String_inspect);
-    hashmap_put(&String->methods, "<<", String_ltlt);
-    hashmap_put(&String->methods, "+", String_add);
+    nat_define_method(String, "to_s", String_to_s);
+    nat_define_method(String, "inspect", String_inspect);
+    nat_define_method(String, "<<", String_ltlt);
+    nat_define_method(String, "+", String_add);
     env_set(env, "String", String);
 
     NatObject *Array = nat_subclass(Object, "Array");
-    hashmap_put(&Array->methods, "inspect", Array_inspect);
-    hashmap_put(&Array->methods, "<<", Array_ltlt);
-    hashmap_put(&Array->methods, "+", Array_add);
-    hashmap_put(&Array->methods, "[]", Array_ref);
-    hashmap_put(&Array->methods, "size", Array_size);
-    hashmap_put(&Array->methods, "length", Array_size);
+    nat_define_method(Array, "inspect", Array_inspect);
+    nat_define_method(Array, "<<", Array_ltlt);
+    nat_define_method(Array, "+", Array_add);
+    nat_define_method(Array, "[]", Array_ref);
+    nat_define_method(Array, "size", Array_size);
+    nat_define_method(Array, "length", Array_size);
     env_set(env, "Array", Array);
 
     return env;

@@ -153,7 +153,6 @@ void nat_array_push(NatObject *array, NatObject *obj) {
 
 char* int_to_string(int64_t num) {
   char* str;
-  size_t len;
   if (num == 0) {
     return heap_string("0");
   } else {
@@ -169,6 +168,10 @@ void nat_define_method(NatObject *obj, char *name, NatObject* (*fn)(NatEnv*, Nat
     } else {
         hashmap_put(&obj->methods, name, fn);
     }
+}
+
+void nat_define_singleton_method(NatObject *obj, char *name, NatObject* (*fn)(NatEnv*, NatObject*, size_t, NatObject**, struct hashmap*)) {
+    hashmap_put(&obj->singleton_methods, name, fn);
 }
 
 NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, NatObject **args) {
