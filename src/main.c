@@ -1,11 +1,12 @@
 #include "natalie.h"
+#include "nat_array.h"
 #include "nat_class.h"
+#include "nat_integer.h"
+#include "nat_kernel.h"
 #include "nat_module.h"
 #include "nat_nil_class.h"
-#include "nat_integer.h"
 #include "nat_object.h"
 #include "nat_string.h"
-#include "nat_array.h"
 
 NatEnv *build_top_env() {
     NatEnv *env = build_env(NULL);
@@ -24,10 +25,13 @@ NatEnv *build_top_env() {
     nat_define_singleton_method(Class, "included_modules", Class_included_modules);
     env_set(env, "Class", Class);
 
+    NatObject *Kernel = nat_module(env, "Kernel");
+    nat_define_method(Kernel, "puts", Kernel_puts);
+    nat_define_method(Kernel, "print", Kernel_print);
+    nat_define_method(Kernel, "p", Kernel_p);
+
     NatObject *Object = nat_subclass(Class, "Object");
-    nat_define_method(Object, "puts", Object_puts);
-    nat_define_method(Object, "print", Object_print);
-    nat_define_method(Object, "p", Object_p);
+    nat_class_include(Object, Kernel);
     nat_define_method(Object, "inspect", Object_inspect);
     nat_define_singleton_method(Object, "new", Object_new);
     env_set(env, "Object", Object);
