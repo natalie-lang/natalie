@@ -40,21 +40,21 @@ NatObject *Array_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **args
     assert(argc == 1 || argc == 2);
     assert(self->type == NAT_VALUE_ARRAY);
     NatObject *index = args[0];
-    assert(index->type == NAT_VALUE_NUMBER); // TODO: accept a range
-    assert(index->number >= 0); // TODO: accept negative index
-    if (index->number >= self->ary_len) {
+    assert(index->type == NAT_VALUE_INTEGER); // TODO: accept a range
+    assert(index->integer >= 0); // TODO: accept negative index
+    if (index->integer >= self->ary_len) {
         return env_get(env, "nil");
     } else if (argc == 1) {
-        return self->ary[index->number];
+        return self->ary[index->integer];
     } else {
         NatObject *size = args[1];
-        assert(size->type == NAT_VALUE_NUMBER);
-        assert(index->number >= 0);
-        size_t end = index->number + size->number;
+        assert(size->type == NAT_VALUE_INTEGER);
+        assert(index->integer >= 0);
+        size_t end = index->integer + size->integer;
         size_t max = self->ary_len-1;
         max = end > max ? max : end;
         NatObject *result = nat_array(env);
-        for (size_t i=index->number; i<max; i++) {
+        for (size_t i=index->integer; i<max; i++) {
             nat_array_push(result, self->ary[i]);
         }
         return result;
@@ -64,5 +64,5 @@ NatObject *Array_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **args
 NatObject *Array_size(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs) {
     assert(self->type == NAT_VALUE_ARRAY);
     assert(argc == 0);
-    return nat_number(env, self->ary_len);
+    return nat_integer(env, self->ary_len);
 }

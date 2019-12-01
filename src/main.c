@@ -2,7 +2,7 @@
 #include "nat_class.h"
 #include "nat_module.h"
 #include "nat_nil_class.h"
-#include "nat_numeric.h"
+#include "nat_integer.h"
 #include "nat_object.h"
 #include "nat_string.h"
 #include "nat_array.h"
@@ -51,10 +51,16 @@ NatEnv *build_top_env() {
     env_set(env, "nil", nil);
 
     NatObject *Numeric = nat_subclass(Object, "Numeric");
-    hashmap_put(&Numeric->methods, "to_s", Numeric_to_s);
-    hashmap_put(&Numeric->methods, "inspect", Numeric_to_s);
-    hashmap_put(&Numeric->methods, "*", Numeric_mul);
     env_set(env, "Numeric", Numeric);
+
+    NatObject *Integer = nat_subclass(Numeric, "Integer");
+    hashmap_put(&Integer->methods, "to_s", Integer_to_s);
+    hashmap_put(&Integer->methods, "inspect", Integer_to_s);
+    hashmap_put(&Integer->methods, "+", Integer_add);
+    hashmap_put(&Integer->methods, "-", Integer_sub);
+    hashmap_put(&Integer->methods, "*", Integer_mul);
+    hashmap_put(&Integer->methods, "/", Integer_div);
+    env_set(env, "Integer", Integer);
 
     NatObject *String = nat_subclass(Object, "String");
     hashmap_put(&String->methods, "to_s", String_to_s);

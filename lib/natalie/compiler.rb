@@ -176,7 +176,7 @@ module Natalie
         [top + func, decl, method_name]
       when :number
         var_name = next_var_name('number')
-        [nil, "NatObject *#{var_name} = nat_number(env, #{expr.last});", var_name]
+        [nil, "NatObject *#{var_name} = nat_integer(env, #{expr.last});", var_name]
       when :string
         var_name = next_var_name('string')
         [nil, "NatObject *#{var_name} = nat_string(env, #{expr.last.inspect});", var_name]

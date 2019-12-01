@@ -26,7 +26,7 @@ enum NatValueType {
     NAT_VALUE_MODULE,
     NAT_VALUE_ARRAY,
     NAT_VALUE_STRING,
-    NAT_VALUE_NUMBER,
+    NAT_VALUE_INTEGER,
     NAT_VALUE_NIL,
     NAT_VALUE_PROC,
     NAT_VALUE_OTHER
@@ -49,7 +49,7 @@ struct NatObject {
     NatObject **included_modules;
 
     union {
-        long long number;
+        long long integer;
         struct hashmap hashmap;
 
         // NAT_VALUE_CLASS, NAT_VALUE_MODULE
@@ -104,7 +104,7 @@ NatObject *nat_module(NatEnv *env, char *name);
 void nat_class_include(NatObject *class, NatObject *module);
 NatObject *nat_new(NatObject *class);
 
-NatObject *nat_number(NatEnv *env, long long num);
+NatObject *nat_integer(NatEnv *env, long long integer);
 
 char *nat_object_id(NatObject *obj);
 

@@ -96,10 +96,10 @@ NatObject *nat_new(NatObject *class) {
     return val;
 }
 
-NatObject *nat_number(NatEnv *env, long long num) {
-    NatObject *obj = nat_new(env_get(env, "Numeric"));
-    obj->type = NAT_VALUE_NUMBER;
-    obj->number = num;
+NatObject *nat_integer(NatEnv *env, long long integer) {
+    NatObject *obj = nat_new(env_get(env, "Integer"));
+    obj->type = NAT_VALUE_INTEGER;
+    obj->integer = integer;
     return obj;
 }
 
