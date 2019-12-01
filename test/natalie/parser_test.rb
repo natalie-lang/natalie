@@ -19,20 +19,32 @@ describe 'Natalie::Parser' do
   end
 
   describe 'AST' do
-    it 'parses numbers' do
+    it 'parses integer' do
       ast = build_ast('1')
-      ast.must_equal [[:number, '1']]
+      ast.must_equal [[:integer, '1']]
+      ast = build_ast('-3')
+      ast.must_equal [[:integer, '-3']]
+      ast = build_ast('2 - 3')
+      ast.must_equal [[:send, [:integer, '2'], '-', [[:integer, '3']]]]
+      ast = build_ast('2-3')
+      ast.must_equal [[:send, [:integer, '2'], '-', [[:integer, '3']]]]
+      ast = build_ast('2 -3')
+      ast.must_equal [[:send, [:integer, '2'], '-', [[:integer, '3']]]]
+      ast = build_ast('2 + -3')
+      ast.must_equal [[:send, [:integer, '2'], '+', [[:integer, '-3']]]]
+      ast = build_ast('9223372036854775807') # max 64-bit signed integer
+      ast.must_equal [[:integer, '9223372036854775807']]
     end
 
     it 'parses multiple expressions' do
       ast = build_ast("1\n2")
-      ast.must_equal [[:number, '1'], [:number, '2']]
+      ast.must_equal [[:integer, '1'], [:integer, '2']]
       ast = build_ast("1 \n 2")
-      ast.must_equal [[:number, '1'], [:number, '2']]
+      ast.must_equal [[:integer, '1'], [:integer, '2']]
       ast = build_ast("1;2")
-      ast.must_equal [[:number, '1'], [:number, '2']]
+      ast.must_equal [[:integer, '1'], [:integer, '2']]
       ast = build_ast("1 ; 2")
-      ast.must_equal [[:number, '1'], [:number, '2']]
+      ast.must_equal [[:integer, '1'], [:integer, '2']]
     end
 
     it 'parses strings' do
@@ -44,7 +56,7 @@ describe 'Natalie::Parser' do
 
     it 'parses operator method calls' do
       ast = build_ast("x * 2")
-      ast.must_equal [[:send, [:send, nil, 'x', []], '*', [[:number, '2']]]]
+      ast.must_equal [[:send, [:send, nil, 'x', []], '*', [[:integer, '2']]]]
       ast = build_ast("x.to_s + 'x'")
       ast.must_equal [[:send, [:send, [:send, nil, 'x', []], 'to_s', []], '+', [[:string, 'x']]]]
       ast = build_ast("puts x.to_s + 'x'")
@@ -85,9 +97,9 @@ describe 'Natalie::Parser' do
 
     it 'parses assignments' do
       ast = build_ast("x = 1")
-      ast.must_equal [[:assign, 'x', [:number, '1']]]
+      ast.must_equal [[:assign, 'x', [:integer, '1']]]
       ast = build_ast("num=1")
-      ast.must_equal [[:assign, 'num', [:number, '1']]]
+      ast.must_equal [[:assign, 'num', [:integer, '1']]]
       ast = build_ast("message_upcase = 'hi'.upcase")
       ast.must_equal [[:assign, 'message_upcase', [:send, [:string, 'hi'], 'upcase', []]]]
     end
@@ -117,27 +129,27 @@ describe 'Natalie::Parser' do
       ast = build_ast("class Foo; def foo; end; end")
       ast.must_equal [[:class, 'Foo', nil, [[:def, 'foo', [], {}, []]]]]
       ast = build_ast("class Foo; x = 1; end")
-      ast.must_equal [[:class, 'Foo', nil, [[:assign, 'x', [:number, '1']]]]]
+      ast.must_equal [[:class, 'Foo', nil, [[:assign, 'x', [:integer, '1']]]]]
     end
 
     it 'parses array literals' do
       ast = build_ast("[]")
       ast.must_equal [[:array, []]]
       ast = build_ast("[1]")
-      ast.must_equal [[:array, [[:number, '1']]]]
+      ast.must_equal [[:array, [[:integer, '1']]]]
       ast = build_ast("[  1  ]")
-      ast.must_equal [[:array, [[:number, '1']]]]
+      ast.must_equal [[:array, [[:integer, '1']]]]
       ast = build_ast("[  \n1\n  ]")
-      ast.must_equal [[:array, [[:number, '1']]]]
+      ast.must_equal [[:array, [[:integer, '1']]]]
       ast = build_ast("[  \n1\n,\n2,3,   \n 4  ]")
-      ast.must_equal [[:array, [[:number, '1'], [:number, '2'], [:number, '3'], [:number, '4']]]]
+      ast.must_equal [[:array, [[:integer, '1'], [:integer, '2'], [:integer, '3'], [:integer, '4']]]]
       ast = build_ast("[  \n1\n,\n2,3,   \n [4]  ]")
-      ast.must_equal [[:array, [[:number, '1'], [:number, '2'], [:number, '3'], [:array, [[:number, '4']]]]]]
+      ast.must_equal [[:array, [[:integer, '1'], [:integer, '2'], [:integer, '3'], [:array, [[:integer, '4']]]]]]
     end
 
     it 'parses array subscript syntax' do
       ast = build_ast("foo[0]")
-      ast.must_equal [[:send, [:send, nil, 'foo', []], '[]', [[:number, '0']]]]
+      ast.must_equal [[:send, [:send, nil, 'foo', []], '[]', [[:integer, '0']]]]
     end
 
     it 'parses modules' do
@@ -149,15 +161,15 @@ describe 'Natalie::Parser' do
 
     it 'ignores comments' do
       ast = build_ast('1 # comment')
-      ast.must_equal [[:number, '1']]
+      ast.must_equal [[:integer, '1']]
       ast = build_ast('1; 2 # comment')
-      ast.must_equal [[:number, '1'], [:number, '2']]
+      ast.must_equal [[:integer, '1'], [:integer, '2']]
       ast = build_ast('1; 2; # comment')
-      ast.must_equal [[:number, '1'], [:number, '2']]
+      ast.must_equal [[:integer, '1'], [:integer, '2']]
       ast = build_ast("1\n2 # comment\n3")
-      ast.must_equal [[:number, '1'], [:number, '2'], [:number, '3']]
+      ast.must_equal [[:integer, '1'], [:integer, '2'], [:integer, '3']]
       ast = build_ast("# ignore me\n# ignore me again\n1")
-      ast.must_equal [[:number, '1']]
+      ast.must_equal [[:integer, '1']]
       ast = build_ast('# comment')
       ast.must_equal []
       ast = build_ast("class Foo; end # comment")

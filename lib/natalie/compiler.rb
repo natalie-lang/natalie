@@ -174,8 +174,8 @@ module Natalie
         decl << "nat_define_method(self, #{name.inspect}, #{func_name});"
         decl << "NatObject *#{method_name} = nat_string(env, #{name.inspect});"
         [top + func, decl, method_name]
-      when :number
-        var_name = next_var_name('number')
+      when :integer
+        var_name = next_var_name('integer')
         [nil, "NatObject *#{var_name} = nat_integer(env, #{expr.last});", var_name]
       when :string
         var_name = next_var_name('string')

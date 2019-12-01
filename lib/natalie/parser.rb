@@ -29,7 +29,7 @@ module Natalie
 
     def expr
       @scanner.skip(/\s*#{COMMENT}\s*/)
-      klass || mod || method || assignment || explicit_message || implicit_message || array || number || string
+      klass || mod || method || assignment || explicit_message || implicit_message || array || integer || string
     end
 
     def assignment
@@ -55,9 +55,9 @@ module Natalie
       end
     end
 
-    def number
-      if (n = @scanner.scan(/\d+/))
-        [:number, n]
+    def integer
+      if (n = @scanner.scan(/\-?\d+/))
+        [:integer, n]
       end
     end
 
@@ -168,7 +168,7 @@ module Natalie
       if @scanner.check(/\s*\.?\s*#{OPERATOR}\s*/)
         @scanner.skip(/\s*\.?\s*/)
         message = @scanner.scan(OPERATOR)
-        args = args_with_parens || args_without_parens
+        args = args_with_parens || args_without_parens || numeric_arg
         expect(args, 'expression after operator')
         [:send, receiver, message, args]
       elsif @scanner.check(/\[/)
@@ -203,6 +203,12 @@ module Natalie
           args << expr
         end
         args
+      end
+    end
+
+    def numeric_arg
+      if (i = integer)
+        [i]
       end
     end
 
