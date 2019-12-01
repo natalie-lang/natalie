@@ -46,9 +46,6 @@ struct NatObject {
 
     struct hashmap singleton_methods;
     
-    size_t included_modules_count;
-    NatObject **included_modules;
-
     union {
         int64_t integer;
         struct hashmap hashmap;
@@ -58,6 +55,8 @@ struct NatObject {
             char *class_name;
             NatObject *superclass;
             struct hashmap methods;
+            size_t included_modules_count;
+            NatObject **included_modules;
         };
 
         // NAT_VALUE_ARRAY
