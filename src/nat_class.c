@@ -2,7 +2,7 @@
 #include "nat_class.h"
 
 NatObject *Class_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs) {
-    return nat_subclass(self, NULL);
+    return nat_subclass(env, self, NULL);
 }
 
 NatObject *Class_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs) {
@@ -14,7 +14,7 @@ NatObject *Class_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **
         assert(self->class);
         nat_string_append(str, Class_inspect(env, self->superclass, 0, NULL, NULL)->str);
         nat_string_append_char(str, ':');
-        nat_string_append(str, nat_object_id(self));
+        nat_string_append(str, nat_object_pointer_id(self));
         nat_string_append_char(str, '>');
         return str;
     }

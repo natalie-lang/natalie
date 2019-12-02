@@ -35,11 +35,14 @@ NatEnv *build_env(NatEnv *outer) {
     env->outer = outer;
     if (outer) {
         env->symbols = outer->symbols;
+        env->next_object_id = outer->next_object_id;
     } else {
         struct hashmap *symbol_table = malloc(sizeof(struct hashmap));
         hashmap_init(symbol_table, hashmap_hash_string, hashmap_compare_string, 100);
         hashmap_set_key_alloc_funcs(symbol_table, hashmap_alloc_key_string, NULL);
         env->symbols = symbol_table;
+        env->next_object_id = malloc(sizeof(uint64_t));
+        *env->next_object_id = 1;
     }
     hashmap_init(&env->data, hashmap_hash_string, hashmap_compare_string, 100);
     hashmap_set_key_alloc_funcs(&env->data, hashmap_alloc_key_string, NULL);
@@ -56,19 +59,20 @@ char *heap_string(char *str) {
     return copy;
 }
 
-NatObject *nat_alloc() {
+NatObject *nat_alloc(NatEnv *env) {
     NatObject *val = malloc(sizeof(NatObject));
     val->flags = 0;
     val->type = NAT_VALUE_OTHER;
     val->included_modules_count = 0;
     val->included_modules = NULL;
+    val->id = nat_next_object_id(env);
     hashmap_init(&val->singleton_methods, hashmap_hash_string, hashmap_compare_string, 100);
     hashmap_set_key_alloc_funcs(&val->singleton_methods, hashmap_alloc_key_string, NULL);
     return val;
 }
 
-NatObject *nat_subclass(NatObject *superclass, char *name) {
-    NatObject *val = nat_alloc();
+NatObject *nat_subclass(NatEnv *env, NatObject *superclass, char *name) {
+    NatObject *val = nat_alloc(env);
     val->type = NAT_VALUE_CLASS;
     val->class = superclass->class;
     val->class_name = name ? heap_string(name) : NULL;
@@ -79,7 +83,7 @@ NatObject *nat_subclass(NatObject *superclass, char *name) {
 }
 
 NatObject *nat_module(NatEnv *env, char *name) {
-    NatObject *val = nat_alloc();
+    NatObject *val = nat_alloc(env);
     val->type = NAT_VALUE_MODULE;
     val->class = env_get(env, "Module");
     val->class_name = name ? heap_string(name) : NULL;
@@ -98,21 +102,21 @@ void nat_class_include(NatObject *class, NatObject *module) {
     class->included_modules[class->included_modules_count - 1] = module;
 }
 
-NatObject *nat_new(NatObject *class) {
-    NatObject *val = nat_alloc();
+NatObject *nat_new(NatEnv *env, NatObject *class) {
+    NatObject *val = nat_alloc(env);
     val->class = class;
     return val;
 }
 
 NatObject *nat_integer(NatEnv *env, int64_t integer) {
-    NatObject *obj = nat_new(env_get(env, "Integer"));
+    NatObject *obj = nat_new(env, env_get(env, "Integer"));
     obj->type = NAT_VALUE_INTEGER;
     obj->integer = integer;
     return obj;
 }
 
 NatObject *nat_string(NatEnv *env, char *str) {
-    NatObject *obj = nat_new(env_get(env, "String"));
+    NatObject *obj = nat_new(env, env_get(env, "String"));
     obj->type = NAT_VALUE_STRING;
     size_t len = strlen(str);
     obj->str = heap_string(str);
@@ -126,7 +130,7 @@ NatObject *nat_symbol(NatEnv *env, char *name) {
     if (symbol) {
         return symbol;
     } else {
-        symbol = nat_new(env_get(env, "Symbol"));
+        symbol = nat_new(env, env_get(env, "Symbol"));
         symbol->type = NAT_VALUE_SYMBOL;
         symbol->symbol = name;
         hashmap_put(env->symbols, name, symbol);
@@ -135,7 +139,7 @@ NatObject *nat_symbol(NatEnv *env, char *name) {
 }
 
 NatObject *nat_array(NatEnv *env) {
-    NatObject *obj = nat_new(env_get(env, "Array"));
+    NatObject *obj = nat_new(env, env_get(env, "Array"));
     obj->type = NAT_VALUE_ARRAY;
     obj->ary = calloc(NAT_ARRAY_INIT_SIZE, sizeof(NatObject*));
     obj->str_len = 0;
@@ -260,12 +264,16 @@ NatObject *nat_lookup_or_send(NatEnv *env, NatObject *receiver, char *sym, size_
 }
 
 // "0x" + up to 16 hex chars + NULL terminator
-#define OBJECT_ID_LEN 2 + 16 + 1
+#define NAT_OBJECT_POINTER_LENGTH 2 + 16 + 1
 
-char *nat_object_id(NatObject *obj) {
-    char *id = malloc(OBJECT_ID_LEN);
-    snprintf(id, OBJECT_ID_LEN, "%p", obj);
-    return id;
+char *nat_object_pointer_id(NatObject *obj) {
+    char *ptr = malloc(NAT_OBJECT_POINTER_LENGTH);
+    snprintf(ptr, NAT_OBJECT_POINTER_LENGTH, "%p", obj);
+    return ptr;
+}
+
+uint64_t nat_next_object_id(NatEnv *env) {
+    return (*env->next_object_id)++;
 }
 
 void nat_grow_string(NatObject *obj, size_t capacity) {

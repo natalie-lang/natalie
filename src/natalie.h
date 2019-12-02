@@ -20,6 +20,7 @@ typedef struct NatEnv NatEnv;
 struct NatEnv {
     struct hashmap data;
     struct hashmap *symbols;
+    uint64_t *next_object_id;
     NatEnv *outer;
 };
 
@@ -45,6 +46,8 @@ struct NatObject {
     enum NatValueType type;
     NatObject *class;
     int flags;
+
+    int64_t id;
 
     struct hashmap singleton_methods;
     
@@ -103,15 +106,16 @@ NatEnv *build_env(NatEnv *outer);
 
 char *heap_string(char *str);
 
-NatObject *nat_alloc();
-NatObject *nat_subclass(NatObject *superclass, char *name);
+NatObject *nat_alloc(NatEnv *env);
+NatObject *nat_subclass(NatEnv *env, NatObject *superclass, char *name);
 NatObject *nat_module(NatEnv *env, char *name);
 void nat_class_include(NatObject *class, NatObject *module);
-NatObject *nat_new(NatObject *class);
+NatObject *nat_new(NatEnv *env, NatObject *class);
 
 NatObject *nat_integer(NatEnv *env, int64_t integer);
 
-char *nat_object_id(NatObject *obj);
+char *nat_object_pointer_id(NatObject *obj);
+uint64_t nat_next_object_id(NatEnv *env);
 
 char* int_to_string(int64_t num);
 
