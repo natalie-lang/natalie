@@ -33,6 +33,14 @@ NatObject *env_set(NatEnv *env, char *key, NatObject *val) {
 NatEnv *build_env(NatEnv *outer) {
     NatEnv *env = malloc(sizeof(NatEnv));
     env->outer = outer;
+    if (outer) {
+        env->symbols = outer->symbols;
+    } else {
+        struct hashmap *symbol_table = malloc(sizeof(struct hashmap));
+        hashmap_init(symbol_table, hashmap_hash_string, hashmap_compare_string, 100);
+        hashmap_set_key_alloc_funcs(symbol_table, hashmap_alloc_key_string, NULL);
+        env->symbols = symbol_table;
+    }
     hashmap_init(&env->data, hashmap_hash_string, hashmap_compare_string, 100);
     hashmap_set_key_alloc_funcs(&env->data, hashmap_alloc_key_string, NULL);
     return env;
@@ -114,16 +122,14 @@ NatObject *nat_string(NatEnv *env, char *str) {
 }
 
 NatObject *nat_symbol(NatEnv *env, char *name) {
-    struct hashmap *symbol_table = hashmap_get(&env->data, "**SYMBOL-TABLE**");
-    assert(symbol_table);
-    NatObject *symbol = hashmap_get(symbol_table, name);
+    NatObject *symbol = hashmap_get(env->symbols, name);
     if (symbol) {
         return symbol;
     } else {
         symbol = nat_new(env_get(env, "Symbol"));
         symbol->type = NAT_VALUE_SYMBOL;
         symbol->symbol = name;
-        hashmap_put(symbol_table, name, symbol);
+        hashmap_put(env->symbols, name, symbol);
         return symbol;
     }
 }

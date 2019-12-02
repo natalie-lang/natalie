@@ -19,6 +19,7 @@ typedef struct NatEnv NatEnv;
 
 struct NatEnv {
     struct hashmap data;
+    struct hashmap *symbols;
     NatEnv *outer;
 };
 
