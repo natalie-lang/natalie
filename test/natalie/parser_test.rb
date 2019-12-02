@@ -191,6 +191,16 @@ describe 'Natalie::Parser' do
       ast.must_equal [[:symbol, 'Bar']]
       ast = build_ast(':foo_bar')
       ast.must_equal [[:symbol, 'foo_bar']]
+      ast = build_ast(':foo!')
+      ast.must_equal [[:symbol, 'foo!']]
+      ast = build_ast(':foo?')
+      ast.must_equal [[:symbol, 'foo?']]
+      ast = build_ast(':==')
+      ast.must_equal [[:symbol, '==']]
+      ast = build_ast(':!=')
+      ast.must_equal [[:symbol, '!=']]
+      ast = build_ast(':"symbols!@#$%^&*()-work-if-quoted"')
+      ast.must_equal [[:symbol, 'symbols!@#$%^&*()-work-if-quoted']]
     end
   end
 end

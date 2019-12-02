@@ -68,8 +68,11 @@ module Natalie
     end
 
     def symbol
-      if (s = @scanner.scan(/:[a-z][a-z0-9_]*/i))
+      if (s = @scanner.scan(/:#{METHOD_NAME_OR_BARE_SYMBOL}/))
         [:symbol, s[1..-1]]
+      elsif @scanner.check(/:["']/)
+        @scanner.skip(/:/)
+        [:symbol, string.last]
       end
     end
 
@@ -133,10 +136,10 @@ module Natalie
       @scanner.scan(IDENTIFIER)
     end
 
-    METHOD_NAME = /#{IDENTIFIER}[\!\?=]?/
+    METHOD_NAME_OR_BARE_SYMBOL = /#{IDENTIFIER}[\!\?=]?|==|\!=/
 
     def method_name
-      @scanner.scan(METHOD_NAME)
+      @scanner.scan(METHOD_NAME_OR_BARE_SYMBOL)
     end
 
     def constant
