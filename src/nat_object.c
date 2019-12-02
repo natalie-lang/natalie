@@ -15,3 +15,7 @@ NatObject *Object_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject *
     nat_string_append_char(str, '>');
     return str;
 }
+
+NatObject *Object_object_id(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs) {
+    return nat_string(env, nat_object_id(self));
+}

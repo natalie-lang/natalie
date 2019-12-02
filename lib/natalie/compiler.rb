@@ -180,6 +180,9 @@ module Natalie
       when :string
         var_name = next_var_name('string')
         [nil, "NatObject *#{var_name} = nat_string(env, #{expr.last.inspect});", var_name]
+      when :symbol
+        var_name = next_var_name('symbol')
+        [nil, "NatObject *#{var_name} = nat_symbol(env, #{expr.last.inspect});", var_name]
       when :array
         var_name = next_var_name('array')
         top = []

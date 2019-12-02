@@ -23,14 +23,15 @@ struct NatEnv {
 };
 
 enum NatValueType {
-    NAT_VALUE_CLASS,
-    NAT_VALUE_MODULE,
     NAT_VALUE_ARRAY,
-    NAT_VALUE_STRING,
+    NAT_VALUE_CLASS,
     NAT_VALUE_INTEGER,
+    NAT_VALUE_MODULE,
     NAT_VALUE_NIL,
+    NAT_VALUE_OTHER,
     NAT_VALUE_PROC,
-    NAT_VALUE_OTHER
+    NAT_VALUE_STRING,
+    NAT_VALUE_SYMBOL
 };
 
 #define NAT_FLAG_MAIN_OBJECT 1
@@ -72,6 +73,9 @@ struct NatObject {
             size_t str_cap;
             char *str;
         };
+
+        // NAT_VALUE_SYMBOL
+        char *symbol;
 
         // NAT_VALUE_REGEX
         struct {
@@ -124,6 +128,8 @@ void nat_grow_string(NatObject *obj, size_t capacity);
 void nat_grow_string_at_least(NatObject *obj, size_t min_capacity);
 void nat_string_append(NatObject *str, char *s);
 void nat_string_append_char(NatObject *str, char c);
+
+NatObject *nat_symbol(NatEnv *env, char *name);
 
 #define NAT_ARRAY_INIT_SIZE 10
 #define NAT_ARRAY_GROW_FACTOR 2

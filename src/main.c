@@ -7,6 +7,7 @@
 #include "nat_nil_class.h"
 #include "nat_object.h"
 #include "nat_string.h"
+#include "nat_symbol.h"
 
 NatEnv *build_top_env() {
     NatEnv *env = build_env(NULL);
@@ -33,8 +34,18 @@ NatEnv *build_top_env() {
     NatObject *Object = nat_subclass(Class, "Object");
     nat_class_include(Object, Kernel);
     nat_define_method(Object, "inspect", Object_inspect);
+    nat_define_method(Object, "object_id", Object_object_id);
     nat_define_singleton_method(Object, "new", Object_new);
     env_set(env, "Object", Object);
+
+    NatObject *Symbol = nat_subclass(Object, "Symbol");
+    nat_define_method(Symbol, "to_s", Symbol_to_s);
+    nat_define_method(Symbol, "inspect", Symbol_inspect);
+    env_set(env, "Symbol", Symbol);
+    struct hashmap *symbol_table = malloc(sizeof(struct hashmap));
+    hashmap_init(symbol_table, hashmap_hash_string, hashmap_compare_string, 100);
+    hashmap_set_key_alloc_funcs(symbol_table, hashmap_alloc_key_string, NULL);
+    hashmap_put(&env->data, "**SYMBOL-TABLE**", symbol_table);
 
     NatObject *Module = nat_subclass(Class, "Module");
     nat_define_method(Module, "inspect", Module_inspect);

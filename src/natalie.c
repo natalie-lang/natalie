@@ -113,6 +113,21 @@ NatObject *nat_string(NatEnv *env, char *str) {
     return obj;
 }
 
+NatObject *nat_symbol(NatEnv *env, char *name) {
+    struct hashmap *symbol_table = hashmap_get(&env->data, "**SYMBOL-TABLE**");
+    assert(symbol_table);
+    NatObject *symbol = hashmap_get(symbol_table, name);
+    if (symbol) {
+        return symbol;
+    } else {
+        symbol = nat_new(env_get(env, "Symbol"));
+        symbol->type = NAT_VALUE_SYMBOL;
+        symbol->symbol = name;
+        hashmap_put(symbol_table, name, symbol);
+        return symbol;
+    }
+}
+
 NatObject *nat_array(NatEnv *env) {
     NatObject *obj = nat_new(env_get(env, "Array"));
     obj->type = NAT_VALUE_ARRAY;

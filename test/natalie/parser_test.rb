@@ -19,7 +19,7 @@ describe 'Natalie::Parser' do
   end
 
   describe 'AST' do
-    it 'parses integer' do
+    it 'parses integers' do
       ast = build_ast('1')
       ast.must_equal [[:integer, '1']]
       ast = build_ast('-3')
@@ -182,6 +182,11 @@ describe 'Natalie::Parser' do
       ast.must_equal [[:module, 'Bar', []]]
       ast = build_ast("def bar # foo\n end")
       ast.must_equal [[:def, 'bar', [], {}, []]]
+    end
+
+    it 'parses symbols' do
+      ast = build_ast(':foo')
+      ast.must_equal [[:symbol, 'foo']]
     end
   end
 end

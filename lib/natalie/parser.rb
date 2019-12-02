@@ -29,7 +29,7 @@ module Natalie
 
     def expr
       @scanner.skip(/\s*#{COMMENT}\s*/)
-      klass || mod || method || assignment || explicit_message || implicit_message || array || integer || string
+      klass || mod || method || assignment || explicit_message || implicit_message || array || integer || string || symbol
     end
 
     def assignment
@@ -64,6 +64,12 @@ module Natalie
     def string
       if (s = @scanner.scan(/'[^']*'|"[^"]*"/))
         [:string, s[1...-1]]
+      end
+    end
+
+    def symbol
+      if (s = @scanner.scan(/:[a-z][a-z0-9]*/))
+        [:symbol, s[1..-1]]
       end
     end
 
