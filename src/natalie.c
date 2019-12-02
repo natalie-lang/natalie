@@ -178,7 +178,7 @@ char* int_to_string(int64_t num) {
     return heap_string("0");
   } else {
     str = malloc(INT_64_MAX_CHAR_LEN);
-    snprintf(str, INT_64_MAX_CHAR_LEN, "%lli", num);
+    snprintf(str, INT_64_MAX_CHAR_LEN, "%" PRId64, num);
     return str;
   }
 }
