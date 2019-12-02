@@ -68,7 +68,7 @@ module Natalie
     end
 
     def symbol
-      if (s = @scanner.scan(/:[a-z][a-z0-9]*/i))
+      if (s = @scanner.scan(/:[a-z][a-z0-9_]*/i))
         [:symbol, s[1..-1]]
       end
     end

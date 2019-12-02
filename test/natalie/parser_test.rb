@@ -189,6 +189,8 @@ describe 'Natalie::Parser' do
       ast.must_equal [[:symbol, 'foo']]
       ast = build_ast(':Bar')
       ast.must_equal [[:symbol, 'Bar']]
+      ast = build_ast(':foo_bar')
+      ast.must_equal [[:symbol, 'foo_bar']]
     end
   end
 end
