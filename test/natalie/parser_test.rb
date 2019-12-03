@@ -57,6 +57,8 @@ describe 'Natalie::Parser' do
     it 'parses operator method calls' do
       ast = build_ast("x * 2")
       ast.must_equal [[:send, [:send, nil, 'x', []], '*', [[:integer, '2']]]]
+      ast = build_ast("x == 2")
+      ast.must_equal [[:send, [:send, nil, 'x', []], '==', [[:integer, '2']]]]
       ast = build_ast("x.to_s + 'x'")
       ast.must_equal [[:send, [:send, [:send, nil, 'x', []], 'to_s', []], '+', [[:string, 'x']]]]
       ast = build_ast("puts x.to_s + 'x'")
@@ -168,6 +170,8 @@ describe 'Natalie::Parser' do
       ast.must_equal [[:integer, '1'], [:integer, '2']]
       ast = build_ast("1\n2 # comment\n3")
       ast.must_equal [[:integer, '1'], [:integer, '2'], [:integer, '3']]
+      ast = build_ast("# ignore me\n1")
+      ast.must_equal [[:integer, '1']]
       ast = build_ast("# ignore me\n# ignore me again\n1")
       ast.must_equal [[:integer, '1']]
       ast = build_ast('# comment')

@@ -19,3 +19,13 @@ NatObject *Object_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject *
 NatObject *Object_object_id(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs) {
     return nat_integer(env, self->id);
 }
+
+NatObject *Object_equal(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs) {
+    assert(argc == 1);
+    NatObject *arg = args[0];
+    if (self == arg) {
+        return env_get(env, "true");
+    } else {
+        return env_get(env, "false");
+    }
+}

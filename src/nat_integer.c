@@ -43,3 +43,14 @@ NatObject *Integer_div(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     int64_t result = self->integer / arg->integer;
     return nat_integer(env, result);
 }
+
+NatObject *Integer_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs) {
+    assert(self->type == NAT_VALUE_INTEGER);
+    assert(argc == 1);
+    NatObject* arg = args[0];
+    if (arg->type == NAT_VALUE_INTEGER && self->integer == arg->integer) {
+        return env_get(env, "true");
+    } else {
+        return env_get(env, "false");
+    }
+}

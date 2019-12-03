@@ -1,0 +1,4 @@
+puts true
+puts false
+p true
+p false

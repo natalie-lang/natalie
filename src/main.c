@@ -1,6 +1,7 @@
 #include "natalie.h"
 #include "nat_array.h"
 #include "nat_class.h"
+#include "nat_false_class.h"
 #include "nat_integer.h"
 #include "nat_kernel.h"
 #include "nat_module.h"
@@ -8,6 +9,7 @@
 #include "nat_object.h"
 #include "nat_string.h"
 #include "nat_symbol.h"
+#include "nat_true_class.h"
 
 NatEnv *build_top_env() {
     NatEnv *env = build_env(NULL);
@@ -35,6 +37,9 @@ NatEnv *build_top_env() {
     nat_class_include(Object, Kernel);
     nat_define_method(Object, "inspect", Object_inspect);
     nat_define_method(Object, "object_id", Object_object_id);
+    nat_define_method(Object, "==", Object_equal);
+    nat_define_method(Object, "eql?", Object_equal);
+    nat_define_method(Object, "equal?", Object_equal);
     nat_define_singleton_method(Object, "new", Object_new);
     env_set(env, "Object", Object);
 
@@ -53,6 +58,7 @@ NatEnv *build_top_env() {
     env_set(env, "self", main_obj);
 
     NatObject *NilClass = nat_subclass(env, Object, "NilClass");
+    nat_define_singleton_method(NilClass, "new", NilClass_new);
     nat_define_method(NilClass, "to_s", NilClass_to_s);
     nat_define_method(NilClass, "inspect", NilClass_inspect);
     env_set(env, "NilClass", NilClass);
@@ -60,6 +66,26 @@ NatEnv *build_top_env() {
     NatObject *nil = nat_new(env, NilClass);
     nil->type = NAT_VALUE_NIL;
     env_set(env, "nil", nil);
+
+    NatObject *TrueClass = nat_subclass(env, Object, "TrueClass");
+    nat_define_singleton_method(TrueClass, "new", TrueClass_new);
+    nat_define_method(TrueClass, "to_s", TrueClass_to_s);
+    nat_define_method(TrueClass, "inspect", TrueClass_to_s);
+    env_set(env, "TrueClass", TrueClass);
+
+    NatObject *true_obj = nat_new(env, TrueClass);
+    true_obj->type = NAT_VALUE_TRUE;
+    env_set(env, "true", true_obj);
+
+    NatObject *FalseClass = nat_subclass(env, Object, "FalseClass");
+    nat_define_singleton_method(FalseClass, "new", FalseClass_new);
+    nat_define_method(FalseClass, "to_s", FalseClass_to_s);
+    nat_define_method(FalseClass, "inspect", FalseClass_to_s);
+    env_set(env, "FalseClass", FalseClass);
+
+    NatObject *false_obj = nat_new(env, FalseClass);
+    false_obj->type = NAT_VALUE_FALSE;
+    env_set(env, "false", false_obj);
 
     NatObject *Numeric = nat_subclass(env, Object, "Numeric");
     env_set(env, "Numeric", Numeric);
@@ -71,6 +97,7 @@ NatEnv *build_top_env() {
     nat_define_method(Integer, "-", Integer_sub);
     nat_define_method(Integer, "*", Integer_mul);
     nat_define_method(Integer, "/", Integer_div);
+    nat_define_method(Integer, "==", Integer_eqeq);
     env_set(env, "Integer", Integer);
 
     NatObject *String = nat_subclass(env, Object, "String");

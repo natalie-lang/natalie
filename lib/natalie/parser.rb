@@ -28,8 +28,12 @@ module Natalie
     end
 
     def expr
-      @scanner.skip(/\s*#{COMMENT}\s*/)
-      klass || mod || method || assignment || explicit_message || implicit_message || array || integer || string || symbol
+      while @scanner.skip(/\s*#{COMMENT}\s*/); end
+      klass || mod || method || explicit_message || assignment || implicit_message || array || integer || string || symbol
+    end
+
+    def message_receiver_expr
+      klass || mod || method || explicit_message || no_arg_message || array || integer || string || symbol
     end
 
     def assignment
@@ -158,12 +162,19 @@ module Natalie
         @lr_wrap[start] = true
         node = send(terminal)
         if node
-          loop do
-            node2 = send("#{name}_inner", node)
-            break if node2.nil?
+          node2 = send("#{name}_inner", node)
+          if node2
             node = node2
+            loop do
+              node2 = send("#{name}_inner", node)
+              break if node2.nil?
+              node = node2
+            end
+            node
+          else
+            @scanner.pos = start
+            nil
           end
-          node
         else
           @scanner.pos = start
           nil
@@ -171,7 +182,7 @@ module Natalie
       end
     end
 
-    lr_wrap(:explicit_message, :expr)
+    lr_wrap(:explicit_message, :message_receiver_expr)
 
     def explicit_message_inner(receiver)
       if @scanner.check(/\s*\.?\s*#{OPERATOR}\s*/)
@@ -248,6 +259,12 @@ module Natalie
       if (id = method_name)
         args = args_with_parens || args_without_parens || []
         [:send, nil, id, args.compact] # FIXME: compact here is a hack to do with operator precedence :-(
+      end
+    end
+
+    def no_arg_message
+      if (id = method_name)
+        [:send, nil, id, []]
       end
     end
   end

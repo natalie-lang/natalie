@@ -1,0 +1,12 @@
+o = Object.new
+p o == o
+p o.eql?(o)
+p o.equal?(o)
+
+o2 = Object.new
+p o == o2
+p o.eql?(o2)
+p o.equal?(o2)
+
+p 1 == 1
+p 1 == 2
