@@ -57,3 +57,14 @@ NatObject *String_add(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
     nat_string_append(new_str, str);
     return new_str;
 }
+
+NatObject *String_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs) {
+    assert(self->type == NAT_VALUE_STRING);
+    assert(argc == 1);
+    NatObject *arg = args[0];
+    if (arg->type == NAT_VALUE_STRING && strcmp(self->str, arg->str) == 0) {
+        return env_get(env, "true");
+    } else {
+        return env_get(env, "false");
+    }
+}

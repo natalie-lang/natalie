@@ -1,12 +1,34 @@
+def assert(expr)
+  puts expr.inspect + " should be true"
+end
+
+def refute(expr)
+  puts expr.inspect + " should be false"
+end
+
 o = Object.new
-p o == o
-p o.eql?(o)
-p o.equal?(o)
+assert(o == o)
+assert(o.eql?(o))
+assert(o.equal?(o))
+assert(1 == 1)
+assert("hi" == "hi")
+assert("" == "")
+assert(:foo == :foo)
+assert(true == true)
+assert(false == false)
+assert([1, 2, 3] == [1, 2, 3])
+assert([] == [])
 
 o2 = Object.new
-p o == o2
-p o.eql?(o2)
-p o.equal?(o2)
-
-p 1 == 1
-p 1 == 2
+refute(o == o2)
+refute(o.eql?(o2))
+refute(o.equal?(o2))
+refute(1 == nil)
+refute(1 == "1")
+refute("hi" == "hi there")
+refute("hi" == nil)
+refute("hi" == 0)
+refute(:foo == :bar)
+refute(true == false)
+refute([1, 2, 3] == [1, 2])
+refute([1, 2, 3] == [1, 2, 3, 4])

@@ -66,3 +66,18 @@ NatObject *Array_size(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
     assert(argc == 0);
     return nat_integer(env, self->ary_len);
 }
+
+NatObject *Array_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs) {
+    assert(self->type == NAT_VALUE_ARRAY);
+    assert(argc == 1);
+    NatObject *arg = args[0];
+    if (arg->type != NAT_VALUE_ARRAY) return env_get(env, "false");
+    if (self->ary_len != arg->ary_len) return env_get(env, "false");
+    if (self->ary_len == 0) return env_get(env, "true");
+    for (size_t i=0; i<self->ary_len; i++) {
+        // TODO: could easily be optimized for strings and numbers
+        NatObject *result = nat_send(env, self->ary[i], "==", 1, &arg->ary[i]);
+        if (result->type == NAT_VALUE_FALSE) return result;
+    }
+    return env_get(env, "true");
+}

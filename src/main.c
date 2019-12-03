@@ -105,6 +105,7 @@ NatEnv *build_top_env() {
     nat_define_method(String, "inspect", String_inspect);
     nat_define_method(String, "<<", String_ltlt);
     nat_define_method(String, "+", String_add);
+    nat_define_method(String, "==", String_eqeq);
     env_set(env, "String", String);
 
     NatObject *Array = nat_subclass(env, Object, "Array");
@@ -114,6 +115,7 @@ NatEnv *build_top_env() {
     nat_define_method(Array, "[]", Array_ref);
     nat_define_method(Array, "size", Array_size);
     nat_define_method(Array, "length", Array_size);
+    nat_define_method(Array, "==", Array_eqeq);
     env_set(env, "Array", Array);
 
     return env;
