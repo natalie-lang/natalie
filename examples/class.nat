@@ -1,5 +1,5 @@
 def assert_equal(expected, actual)
-  puts actual.to_s + " should be " + expected.to_s
+  puts actual.inspect + " should be " + expected.inspect
 end
 
 class Foo
@@ -53,3 +53,14 @@ end
 
 assert_equal('m1', Foo2.new.m1)
 assert_equal('m2', Foo2.new.m2)
+
+p(['Integer.class', Class, Integer.class])
+p(['Class.class', Class, Class.class])
+p(['Class.superclass', Module, Class.superclass])
+p(['Module.class', Class, Module.class])
+p(['Module.superclass', Object, Module.superclass])
+p(['Integer.superclass', Numeric, Integer.superclass])
+p(['Numeric.superclass', Object, Numeric.superclass])
+p(['Object.superclass', BasicObject, Object.superclass])
+p(['BasicObject.class', Class, BasicObject.class])
+p(['BasicObject.superclass', nil, BasicObject.superclass])

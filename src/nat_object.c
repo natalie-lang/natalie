@@ -29,3 +29,7 @@ NatObject *Object_equal(NatEnv *env, NatObject *self, size_t argc, NatObject **a
         return env_get(env, "false");
     }
 }
+
+NatObject *Object_class(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs) {
+    return self->class ? self->class : env_get(env, "nil");
+}
