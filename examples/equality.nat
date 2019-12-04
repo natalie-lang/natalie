@@ -34,6 +34,7 @@ assert(Object === [])
 assert(Integer === 1)
 assert(String === 'foo')
 assert(Array === [])
+assert(1 != 2)
 
 o2 = Object.new
 refute(o == o2)
@@ -61,3 +62,4 @@ refute([1, 2, 3] === [1, 2, 3, 4])
 refute(Integer === [])
 refute(String === 1)
 refute(Array === 'foo')
+refute(1 != 1)

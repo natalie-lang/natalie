@@ -44,7 +44,21 @@ NatObject *Integer_div(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     return nat_integer(env, result);
 }
 
-NatObject *Integer_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs) {
+NatObject *Integer_cmp(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs) {
+    assert(self->type == NAT_VALUE_INTEGER);
+    assert(argc == 1);
+    NatObject* arg = args[0];
+    if (arg->type != NAT_VALUE_INTEGER) return env_get(env, "nil");
+    if (self->integer < arg->integer) {
+        return nat_integer(env, -1);
+    } else if (self->integer == arg->integer) {
+        return nat_integer(env, 0);
+    } else {
+        return nat_integer(env, 1);
+    }
+}
+
+NatObject *Integer_eqeqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs) {
     assert(self->type == NAT_VALUE_INTEGER);
     assert(argc == 1);
     NatObject* arg = args[0];

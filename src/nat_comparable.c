@@ -1,0 +1,23 @@
+#include "natalie.h"
+#include "nat_kernel.h"
+#include "nat_class.h"
+
+// FIXME: this whole module can be written in Natalie rather than in C.
+
+NatObject *Comparable_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs) {
+    NatObject *result = nat_send(env, self, "<=>", argc, args);
+    if (result->type == NAT_VALUE_INTEGER && result->integer == 0) {
+        return env_get(env, "true");
+    } else {
+        return env_get(env, "false");
+    }
+}
+
+NatObject *Comparable_neq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs) {
+    NatObject *result = nat_send(env, self, "<=>", argc, args);
+    if (result->type == NAT_VALUE_INTEGER && result->integer == 0) {
+        return env_get(env, "false");
+    } else {
+        return env_get(env, "true");
+    }
+}

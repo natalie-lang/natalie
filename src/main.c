@@ -1,6 +1,7 @@
 #include "natalie.h"
 #include "nat_array.h"
 #include "nat_class.h"
+#include "nat_comparable.h"
 #include "nat_false_class.h"
 #include "nat_integer.h"
 #include "nat_kernel.h"
@@ -25,12 +26,12 @@ NatEnv *build_top_env() {
     nat_define_singleton_method(Class, "inspect", Class_inspect);
     nat_define_singleton_method(Class, "include", Class_include);
     nat_define_singleton_method(Class, "included_modules", Class_included_modules);
-    nat_define_singleton_method(Class, "==", Object_equal);
-    nat_define_singleton_method(Class, "eql?", Object_equal);
-    nat_define_singleton_method(Class, "equal?", Object_equal);
+    nat_define_singleton_method(Class, "==", Kernel_equal);
+    nat_define_singleton_method(Class, "eql?", Kernel_equal);
+    nat_define_singleton_method(Class, "equal?", Kernel_equal);
     nat_define_singleton_method(Class, "===", Class_eqeqeq);
     nat_define_singleton_method(Class, "ancestors", Class_ancestors);
-    nat_define_singleton_method(Class, "class", Object_class);
+    nat_define_singleton_method(Class, "class", Kernel_class);
     nat_define_singleton_method(Class, "superclass", Class_superclass);
     env_set(env, "Class", Class);
 
@@ -40,16 +41,13 @@ NatEnv *build_top_env() {
     BasicObject->class_name = heap_string("BasicObject");
     BasicObject->class = Class;
     BasicObject->singleton_methods = Class->singleton_methods;
+    hashmap_init(&BasicObject->methods, hashmap_hash_string, hashmap_compare_string, 100);
+    hashmap_set_key_alloc_funcs(&BasicObject->methods, hashmap_alloc_key_string, NULL);
+    nat_define_method(BasicObject, "==", Kernel_equal);
+    nat_define_method(BasicObject, "equal?", Kernel_equal);
     env_set(env, "BasicObject", BasicObject);
 
     NatObject *Object = nat_subclass(env, BasicObject, "Object");
-    nat_define_method(Object, "inspect", Object_inspect);
-    nat_define_method(Object, "object_id", Object_object_id);
-    nat_define_method(Object, "==", Object_equal);
-    nat_define_method(Object, "===", Object_equal);
-    nat_define_method(Object, "eql?", Object_equal);
-    nat_define_method(Object, "equal?", Object_equal);
-    nat_define_method(Object, "class", Object_class);
     nat_define_singleton_method(Object, "new", Object_new);
     env_set(env, "Object", Object);
 
@@ -64,6 +62,15 @@ NatEnv *build_top_env() {
     nat_define_method(Kernel, "puts", Kernel_puts);
     nat_define_method(Kernel, "print", Kernel_print);
     nat_define_method(Kernel, "p", Kernel_p);
+    nat_define_method(Kernel, "inspect", Kernel_inspect);
+    nat_define_method(Kernel, "object_id", Kernel_object_id);
+    nat_define_method(Kernel, "===", Kernel_equal);
+    nat_define_method(Kernel, "eql?", Kernel_equal);
+    nat_define_method(Kernel, "class", Kernel_class);
+
+    NatObject *Comparable = nat_module(env, "Comparable");
+    COMPARABLE_INIT();
+    env_set(env, "Comparable", Comparable);
 
     NatObject *Symbol = nat_subclass(env, Object, "Symbol");
     nat_define_method(Symbol, "to_s", Symbol_to_s);
@@ -105,6 +112,7 @@ NatEnv *build_top_env() {
     env_set(env, "false", false_obj);
 
     NatObject *Numeric = nat_subclass(env, Object, "Numeric");
+    nat_class_include(Numeric, Comparable);
     env_set(env, "Numeric", Numeric);
 
     NatObject *Integer = nat_subclass(env, Numeric, "Integer");
@@ -114,8 +122,8 @@ NatEnv *build_top_env() {
     nat_define_method(Integer, "-", Integer_sub);
     nat_define_method(Integer, "*", Integer_mul);
     nat_define_method(Integer, "/", Integer_div);
-    nat_define_method(Integer, "==", Integer_eqeq);
-    nat_define_method(Integer, "===", Integer_eqeq);
+    nat_define_method(Integer, "<=>", Integer_cmp);
+    nat_define_method(Integer, "===", Integer_eqeqeq);
     env_set(env, "Integer", Integer);
 
     NatObject *String = nat_subclass(env, Object, "String");
