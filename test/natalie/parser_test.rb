@@ -203,8 +203,8 @@ describe 'Natalie::Parser' do
       ast.must_equal [[:symbol, '==']]
       ast = build_ast(':!=')
       ast.must_equal [[:symbol, '!=']]
-      ast = build_ast(':"symbols!@#$%^&*()-work-if-quoted"')
-      ast.must_equal [[:symbol, 'symbols!@#$%^&*()-work-if-quoted']]
+      ast = build_ast(':"symbols!@$%^&*()-work-if-quoted"')
+      ast.must_equal [[:symbol, 'symbols!@$%^&*()-work-if-quoted']]
     end
 
     it 'parses if/else' do
