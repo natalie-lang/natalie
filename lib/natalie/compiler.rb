@@ -226,6 +226,54 @@ module Natalie
           end
         end
         [top, decl, result_name]
+      when :if
+        (_, condition, true_body, false_body) = expr
+        top = []
+        decl = []
+        true_func_name = next_var_name('true_body_func')
+        true_func = []
+        true_func << "NatObject* #{true_func_name}(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs) {"
+        true_func << "env = build_env(env);"
+        if true_body.any?
+          true_body.each_with_index do |node, i|
+            (t, d, e) = compile_expr(node)
+            top << t
+            true_func << d
+            if i == true_body.size-1 && e
+              true_func << "return #{e};"
+            elsif e
+              true_func << "UNUSED(#{e});"
+            end
+          end
+        else
+          true_func << "return env_get(env, \"nil\");"
+        end
+        true_func << "}"
+        false_func_name = next_var_name('false_body_func')
+        false_func = []
+        false_func << "NatObject* #{false_func_name}(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs) {"
+        false_func << "env = build_env(env);"
+        if false_body.any?
+          false_body.each_with_index do |node, i|
+            (t, d, e) = compile_expr(node)
+            top << t
+            false_func << d
+            if i == false_body.size-1 && e
+              false_func << "return #{e};"
+            elsif e
+              false_func << "UNUSED(#{e});"
+            end
+          end
+        else
+          false_func << "return env_get(env, \"nil\");"
+        end
+        false_func << "}"
+        (t, d, e) = compile_expr(condition)
+        top << t
+        decl << d
+        result_name = next_var_name('if_result')
+        decl << "NatObject *#{result_name} = nat_truthy(#{e}) ? #{true_func_name}(env, self, 0, NULL, NULL) : #{false_func_name}(env, self, 0, NULL, NULL);"
+        [top + true_func + false_func, decl, result_name]
       else
         raise "unknown AST node: #{expr.inspect}"
       end

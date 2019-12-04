@@ -106,6 +106,8 @@ NatObject *env_get(NatEnv *env, char *key);
 NatObject *env_set(NatEnv *env, char *key, NatObject *val);
 NatEnv *build_env(NatEnv *outer);
 
+int nat_truthy(NatObject *obj);
+
 char *heap_string(char *str);
 
 NatObject *nat_alloc(NatEnv *env);

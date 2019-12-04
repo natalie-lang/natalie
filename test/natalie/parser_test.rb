@@ -206,5 +206,12 @@ describe 'Natalie::Parser' do
       ast = build_ast(':"symbols!@#$%^&*()-work-if-quoted"')
       ast.must_equal [[:symbol, 'symbols!@#$%^&*()-work-if-quoted']]
     end
+
+    it 'parses if/else' do
+      ast = build_ast("if true\n1\nend")
+      ast.must_equal [[:if, [:send, nil, 'true', []], [[:integer, '1']], []]]
+      ast = build_ast("if true\n1\nelse\n2\nend")
+      ast.must_equal [[:if, [:send, nil, 'true', []], [[:integer, '1']], [[:integer, '2']]]]
+    end
   end
 end

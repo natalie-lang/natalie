@@ -52,6 +52,14 @@ NatEnv *build_env(NatEnv *outer) {
 #define TRUE 1
 #define FALSE 0
 
+int nat_truthy(NatObject *obj) {
+    if (obj->type == NAT_VALUE_FALSE || obj->type == NAT_VALUE_NIL) {
+        return FALSE;
+    } else {
+        return TRUE;
+    }
+}
+
 char *heap_string(char *str) {
     size_t len = strlen(str);
     char *copy = malloc(len + 1);

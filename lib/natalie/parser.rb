@@ -29,7 +29,7 @@ module Natalie
 
     def expr
       while @scanner.skip(/\s*#{COMMENT}\s*/); end
-      klass || mod || method || explicit_message || assignment || implicit_message || array || integer || string || symbol
+      klass || mod || method || if_expr || explicit_message || assignment || implicit_message || array || integer || string || symbol
     end
 
     def message_receiver_expr
@@ -110,6 +110,30 @@ module Natalie
         end
         @scanner.skip(/\s*end/)
         [:module, name, body]
+      end
+    end
+
+    def if_expr
+      if (s = @scanner.scan(/if /))
+        @scanner.skip(/\s*/)
+        condition = expr
+        expect(condition, 'condition after if keyword')
+        @scanner.skip(END_OF_EXPRESSION)
+        true_body = []
+        until @scanner.check(/\s*(else|end)[;\s]+/)
+          true_body << expr
+          expect(@scanner.skip(END_OF_EXPRESSION), '; or newline')
+        end
+        # TODO: parse elif
+        false_body = []
+        if @scanner.skip(/\s*else[;\s]+/)
+          until @scanner.check(/\s*end[;\s]+/)
+            false_body << expr
+            expect(@scanner.skip(END_OF_EXPRESSION), '; or newline')
+          end
+        end
+        @scanner.skip(/\s*end/)
+        [:if, condition, true_body, false_body]
       end
     end
 

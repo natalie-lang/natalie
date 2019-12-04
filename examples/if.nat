@@ -1,0 +1,23 @@
+if true
+  p 1
+end
+
+if true
+  p 2
+else
+  p 3
+end
+
+if false
+  p 2
+else
+  p 3
+end
+
+result = if true
+           4
+         else
+           5
+         end
+
+p result
