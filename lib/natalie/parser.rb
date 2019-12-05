@@ -112,9 +112,10 @@ module Natalie
     end
 
     def if_expr
-      if (s = @scanner.scan(/if /))
-        @scanner.skip(/\s*/)
+      if (keyword = @scanner.scan(/(unless|if)[ ]+/))
+        is_unless = keyword.start_with?('unless')
         condition = expr
+        condition = [:send, condition, '!', []] if is_unless
         expect(condition, 'condition after if keyword')
         @scanner.skip(END_OF_EXPRESSION)
         true_body = []
@@ -124,6 +125,7 @@ module Natalie
         end
         node = [:if, condition, true_body]
         while @scanner.skip(/\s*elsif /)
+          raise 'unexpected keyword elsif' if is_unless
           @scanner.skip(/\s*/)
           condition = expr
           expect(condition, 'condition after elsif keyword')

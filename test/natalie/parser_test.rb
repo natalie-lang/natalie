@@ -231,5 +231,12 @@ describe 'Natalie::Parser' do
       ast = build_ast("! foo 1, 2")
       ast.must_equal [[:send, [:send, nil, 'foo', [[:integer, '1'], [:integer, '2']]], '!', []]]
     end
+
+    it 'parses unless/else' do
+      ast = build_ast("unless true\n1\nend")
+      ast.must_equal [[:if, [:send, [:send, nil, 'true', []], '!', []], [[:integer, '1']]]]
+      ast = build_ast("unless true\n1\nelse\n2\nend")
+      ast.must_equal [[:if, [:send, [:send, nil, 'true', []], '!', []], [[:integer, '1']], :else, [[:integer, '2']]]]
+    end
   end
 end
