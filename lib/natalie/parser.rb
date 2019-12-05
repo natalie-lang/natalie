@@ -81,8 +81,7 @@ module Natalie
     end
 
     def klass
-      if (s = @scanner.scan(/class /))
-        @scanner.skip(/\s*/)
+      if @scanner.scan(/class[ ]+/)
         name = constant
         expect(name, 'class name after class keyword')
         superclass = constant if @scanner.skip(/\s*<\s*/)
@@ -98,8 +97,7 @@ module Natalie
     end
 
     def mod
-      if (s = @scanner.scan(/module /))
-        @scanner.skip(/\s*/)
+      if @scanner.scan(/module[ ]+/)
         name = constant
         expect(name, 'module name after module keyword')
         @scanner.skip(END_OF_EXPRESSION)
@@ -153,11 +151,11 @@ module Natalie
     end
 
     def not_expr
-      if (s = @scanner.scan(/not /))
+      if @scanner.scan(/not[ ]+/)
         e = expr
         expect(e, 'expression after not keyword')
         [:send, e, '!', []]
-      elsif (s = @scanner.check(/\![^=]/))
+      elsif @scanner.check(/\![^=]/)
         @scanner.skip(/\![ ]*/)
         e = expr
         expect(e, 'expression after ! exclamation mark')
@@ -166,8 +164,7 @@ module Natalie
     end
 
     def method
-      if @scanner.scan(/def /)
-        @scanner.skip(/\s*/)
+      if @scanner.scan(/def[ ]+/)
         name = method_name
         expect(name, 'method name after def keyword')
         args = []
