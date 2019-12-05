@@ -29,7 +29,7 @@ module Natalie
 
     def expr
       while @scanner.skip(/\s*#{COMMENT}\s*/); end
-      klass || mod || method || if_expr || explicit_message || assignment || implicit_message || array || integer || string || symbol
+      klass || mod || method || if_expr || postfix_if || explicit_message || assignment || implicit_message || array || integer || string || symbol
     end
 
     def message_receiver_expr
@@ -218,6 +218,16 @@ module Natalie
           @scanner.pos = start
           nil
         end
+      end
+    end
+
+    lr_wrap(:postfix_if, :expr)
+
+    def postfix_if_inner(result_if_true)
+      if @scanner.skip(/[ ]+if /)
+        condition = expr
+        expect(condition, 'condition after if')
+        [:if, condition, [result_if_true], :else, [[:send, nil, 'nil', []]]]
       end
     end
 

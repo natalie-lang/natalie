@@ -215,5 +215,10 @@ describe 'Natalie::Parser' do
       ast = build_ast("if 1\n1\nelsif 2\n2\nelsif 3\n3\nelse\n4\nend")
       ast.must_equal [[:if, [:integer, '1'], [[:integer, '1']], [:integer, '2'], [[:integer, '2']], [:integer, '3'], [[:integer, '3']], :else, [[:integer, '4']]]]
     end
+
+    it 'parses postfix if' do
+      ast = build_ast("'big' if true")
+      ast.must_equal [[:if, [:send, nil, 'true', []], [[:string, 'big']], :else, [[:send, nil, 'nil', []]]]]
+    end
   end
 end
