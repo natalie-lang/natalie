@@ -95,6 +95,10 @@ describe 'Natalie::Parser' do
       ast.must_equal [[:send, nil, 'foo', [[:string, 'bar'], [:string, 'baz']]]]
       ast = build_ast("foo.upcase")
       ast.must_equal [[:send, [:send, nil, 'foo', []], 'upcase', []]]
+      ast = build_ast("foo + bar")
+      ast.must_equal [[:send, [:send, nil, 'foo', []], '+', [[:send, nil, 'bar', []]]]]
+      ast = build_ast("foo(1) + bar(2)")
+      ast.must_equal [[:send, [:send, nil, 'foo', [[:integer, '1']]], '+', [[:send, nil, 'bar', [[:integer, '2']]]]]]
     end
 
     it 'parses assignments' do

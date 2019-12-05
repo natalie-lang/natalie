@@ -33,7 +33,7 @@ module Natalie
     end
 
     def message_receiver_expr
-      klass || mod || method || explicit_message || no_arg_message || array || integer || string || symbol
+      klass || mod || method || explicit_message || no_space_implicit_message || array || integer || string || symbol
     end
 
     def assignment
@@ -323,13 +323,14 @@ module Natalie
     def implicit_message
       if (id = method_name)
         args = args_with_parens || args_without_parens || []
-        [:send, nil, id, args.compact] # FIXME: compact here is a hack to do with operator precedence :-(
+        [:send, nil, id, args.compact]
       end
     end
 
-    def no_arg_message
+    def no_space_implicit_message
       if (id = method_name)
-        [:send, nil, id, []]
+        args = args_with_parens || []
+        [:send, nil, id, args]
       end
     end
   end
