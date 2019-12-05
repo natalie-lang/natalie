@@ -22,7 +22,7 @@ describe 'object_id' do
 
     specify do
       TESTS.values.each_with_index do |output_match, index|
-        @output[index].must_match(output_match)
+        expect(@output[index]).must_match(output_match)
       end
     end
   end
