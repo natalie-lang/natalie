@@ -120,20 +120,35 @@ module Natalie
         expect(condition, 'condition after if keyword')
         @scanner.skip(END_OF_EXPRESSION)
         true_body = []
-        until @scanner.check(/\s*(else|end)[;\s]+/)
+        until @scanner.check(/\s*(elsif|else|end)[;\s]+/)
           true_body << expr
           expect(@scanner.skip(END_OF_EXPRESSION), '; or newline')
         end
-        # TODO: parse elif
-        false_body = []
-        if @scanner.skip(/\s*else[;\s]+/)
-          until @scanner.check(/\s*end[;\s]+/)
-            false_body << expr
+        node = [:if, condition, true_body]
+        while @scanner.skip(/\s*elsif /)
+          @scanner.skip(/\s*/)
+          condition = expr
+          expect(condition, 'condition after elsif keyword')
+          @scanner.skip(END_OF_EXPRESSION)
+          elsif_body = []
+          until @scanner.check(/\s*(elsif|else|end)[;\s]+/)
+            elsif_body << expr
             expect(@scanner.skip(END_OF_EXPRESSION), '; or newline')
           end
+          node << condition
+          node << elsif_body
+        end
+        if @scanner.skip(/\s*else[;\s]+/)
+          else_body = []
+          until @scanner.check(/\s*end[;\s]+/)
+            else_body << expr
+            expect(@scanner.skip(END_OF_EXPRESSION), '; or newline')
+          end
+          node << :else
+          node << else_body
         end
         @scanner.skip(/\s*end/)
-        [:if, condition, true_body, false_body]
+        node
       end
     end
 

@@ -14,10 +14,28 @@ else
   p 3
 end
 
+if false
+  p 3
+elsif true
+  p 4
+else
+  p 5
+end
+
+if false
+  p 3
+elsif nil
+  p 4
+elsif 1
+  p 5
+else
+  p 6
+end
+
 result = if true
-           4
+           6
          else
-           5
+           7
          end
 
 p result
