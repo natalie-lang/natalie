@@ -39,3 +39,15 @@ result = if true
          end
 
 p result
+
+if not true
+  p 6
+else
+  p 7
+end
+
+if !true
+  p 7
+else
+  p 8
+end

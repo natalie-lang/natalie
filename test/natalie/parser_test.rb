@@ -220,5 +220,16 @@ describe 'Natalie::Parser' do
       ast = build_ast("'big' if true")
       ast.must_equal [[:if, [:send, nil, 'true', []], [[:string, 'big']], :else, [[:send, nil, 'nil', []]]]]
     end
+
+    it 'parses not/!' do
+      ast = build_ast("not 1")
+      ast.must_equal [[:send, [:integer, '1'], '!', []]]
+      ast = build_ast("!1")
+      ast.must_equal [[:send, [:integer, '1'], '!', []]]
+      ast = build_ast("!foo()")
+      ast.must_equal [[:send, [:send, nil, 'foo', []], '!', []]]
+      ast = build_ast("! foo 1, 2")
+      ast.must_equal [[:send, [:send, nil, 'foo', [[:integer, '1'], [:integer, '2']]], '!', []]]
+    end
   end
 end

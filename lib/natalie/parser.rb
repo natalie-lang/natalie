@@ -29,7 +29,7 @@ module Natalie
 
     def expr
       while @scanner.skip(/\s*#{COMMENT}\s*/); end
-      klass || mod || method || if_expr || postfix_if || explicit_message || assignment || implicit_message || array || integer || string || symbol
+      klass || mod || method || if_expr || postfix_if || not_expr || explicit_message || assignment || implicit_message || array || integer || string || symbol
     end
 
     def message_receiver_expr
@@ -149,6 +149,19 @@ module Natalie
         end
         @scanner.skip(/\s*end/)
         node
+      end
+    end
+
+    def not_expr
+      if (s = @scanner.scan(/not /))
+        e = expr
+        expect(e, 'expression after not keyword')
+        [:send, e, '!', []]
+      elsif (s = @scanner.check(/\![^=]/))
+        @scanner.skip(/\![ ]*/)
+        e = expr
+        expect(e, 'expression after ! exclamation mark')
+        [:send, e, '!', []]
       end
     end
 
