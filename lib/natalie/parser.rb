@@ -29,7 +29,7 @@ module Natalie
 
     def expr
       while @scanner.skip(/\s*#{COMMENT}\s*/); end
-      klass || mod || method || if_expr || postfix_if || not_expr || explicit_message || assignment || implicit_message || array || integer || string || symbol
+      klass || mod || method || if_expr || postfix_conditional || not_expr || explicit_message || assignment || implicit_message || array || integer || string || symbol
     end
 
     def message_receiver_expr
@@ -233,13 +233,17 @@ module Natalie
       end
     end
 
-    lr_wrap(:postfix_if, :expr)
+    lr_wrap(:postfix_conditional, :expr)
 
-    def postfix_if_inner(result_if_true)
-      if @scanner.skip(/[ ]+if /)
+    def postfix_conditional_inner(result)
+      if @scanner.skip(/[ ]+if[ ]+/)
         condition = expr
-        expect(condition, 'condition after if')
-        [:if, condition, [result_if_true], :else, [[:send, nil, 'nil', []]]]
+        expect(condition, 'condition after if keyword')
+        [:if, condition, [result], :else, [[:send, nil, 'nil', []]]]
+      elsif @scanner.skip(/[ ]+unless[ ]+/)
+        condition = expr
+        expect(condition, 'condition after unless keyword')
+        [:if, [:send, condition, '!', []], [result], :else, [[:send, nil, 'nil', []]]]
       end
     end
 

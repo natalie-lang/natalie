@@ -216,11 +216,6 @@ describe 'Natalie::Parser' do
       ast.must_equal [[:if, [:integer, '1'], [[:integer, '1']], [:integer, '2'], [[:integer, '2']], [:integer, '3'], [[:integer, '3']], :else, [[:integer, '4']]]]
     end
 
-    it 'parses postfix if' do
-      ast = build_ast("'big' if true")
-      ast.must_equal [[:if, [:send, nil, 'true', []], [[:string, 'big']], :else, [[:send, nil, 'nil', []]]]]
-    end
-
     it 'parses not/!' do
       ast = build_ast("not 1")
       ast.must_equal [[:send, [:integer, '1'], '!', []]]
@@ -237,6 +232,16 @@ describe 'Natalie::Parser' do
       ast.must_equal [[:if, [:send, [:send, nil, 'true', []], '!', []], [[:integer, '1']]]]
       ast = build_ast("unless true\n1\nelse\n2\nend")
       ast.must_equal [[:if, [:send, [:send, nil, 'true', []], '!', []], [[:integer, '1']], :else, [[:integer, '2']]]]
+    end
+
+    it 'parses postfix if' do
+      ast = build_ast("'big' if true")
+      ast.must_equal [[:if, [:send, nil, 'true', []], [[:string, 'big']], :else, [[:send, nil, 'nil', []]]]]
+    end
+
+    it 'parses postfix unless' do
+      ast = build_ast("1 unless false")
+      ast.must_equal [[:if, [:send, [:send, nil, 'false', []], '!', []], [[:integer, '1']], :else, [[:send, nil, 'nil', []]]]]
     end
   end
 end

@@ -51,3 +51,28 @@ if !true
 else
   p 8
 end
+
+def assert_equal(expected, actual)
+  puts actual.inspect + " should be " + expected.inspect
+end
+
+x = 8 if nil
+assert_equal(nil, x)
+
+x = 8 if false
+assert_equal(nil, x)
+
+x = 8 if true
+assert_equal(8, x)
+
+y = 9 unless true
+assert_equal(nil, y)
+
+y = 9 unless 1
+assert_equal(nil, y)
+
+y = 9 unless false
+assert_equal(9, y)
+
+y = 9 unless nil
+assert_equal(9, y)
