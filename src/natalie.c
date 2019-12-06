@@ -125,21 +125,24 @@ void nat_class_include(NatObject *class, NatObject *module) {
     class->included_modules[class->included_modules_count - 1] = module;
 }
 
-NatObject *nat_new(NatEnv *env, NatObject *class) {
-    NatObject *val = nat_alloc(env);
-    val->class = class;
-    return val;
+NatObject *nat_new(NatEnv *env, NatObject *class, size_t argc, NatObject **args, struct hashmap *kwargs) {
+    NatObject *obj = nat_alloc(env);
+    obj->class = class;
+    if (hashmap_get(&class->methods, "initialize")) {
+        nat_call_method_on_class(env, class, class, "initialize", obj, argc, args, kwargs);
+    }
+    return obj;
 }
 
 NatObject *nat_integer(NatEnv *env, int64_t integer) {
-    NatObject *obj = nat_new(env, env_get(env, "Integer"));
+    NatObject *obj = nat_new(env, env_get(env, "Integer"), 0, NULL, NULL);
     obj->type = NAT_VALUE_INTEGER;
     obj->integer = integer;
     return obj;
 }
 
 NatObject *nat_string(NatEnv *env, char *str) {
-    NatObject *obj = nat_new(env, env_get(env, "String"));
+    NatObject *obj = nat_new(env, env_get(env, "String"), 0, NULL, NULL);
     obj->type = NAT_VALUE_STRING;
     size_t len = strlen(str);
     obj->str = heap_string(str);
@@ -153,7 +156,7 @@ NatObject *nat_symbol(NatEnv *env, char *name) {
     if (symbol) {
         return symbol;
     } else {
-        symbol = nat_new(env, env_get(env, "Symbol"));
+        symbol = nat_new(env, env_get(env, "Symbol"), 0, NULL, NULL);
         symbol->type = NAT_VALUE_SYMBOL;
         symbol->symbol = name;
         hashmap_put(env->symbols, name, symbol);
@@ -162,7 +165,7 @@ NatObject *nat_symbol(NatEnv *env, char *name) {
 }
 
 NatObject *nat_array(NatEnv *env) {
-    NatObject *obj = nat_new(env, env_get(env, "Array"));
+    NatObject *obj = nat_new(env, env_get(env, "Array"), 0, NULL, NULL);
     obj->type = NAT_VALUE_ARRAY;
     obj->ary = calloc(NAT_ARRAY_INIT_SIZE, sizeof(NatObject*));
     obj->str_len = 0;
@@ -222,7 +225,7 @@ void nat_define_singleton_method(NatObject *obj, char *name, NatObject* (*fn)(Na
     hashmap_put(&obj->singleton_methods, name, fn);
 }
 
-NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, NatObject **args) {
+NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, NatObject **args) { // FIXME: kwargs
     assert(receiver);
     if (receiver->type == NAT_VALUE_CLASS) {
         // TODO: instances can have singleton methods too
@@ -244,11 +247,11 @@ NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, Na
         abort();
     } else {
         NatObject *class = receiver->class;
-        return nat_call_method_on_class(env, class, class, sym, receiver, argc, args);
+        return nat_call_method_on_class(env, class, class, sym, receiver, argc, args, NULL); // FIXME: kwargs
     }
 }
 
-NatObject *nat_call_method_on_class(NatEnv *env, NatObject *class, NatObject *instance_class, char *method_name, NatObject *self, size_t argc, NatObject **args) {
+NatObject *nat_call_method_on_class(NatEnv *env, NatObject *class, NatObject *instance_class, char *method_name, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs) {
     assert(class != NULL);
     assert(class->type == NAT_VALUE_CLASS);
 
@@ -270,7 +273,7 @@ NatObject *nat_call_method_on_class(NatEnv *env, NatObject *class, NatObject *in
         abort();
     }
 
-    return nat_call_method_on_class(env, class->superclass, instance_class, method_name, self, argc, args);
+    return nat_call_method_on_class(env, class->superclass, instance_class, method_name, self, argc, args, kwargs);
 }
 
 NatObject *nat_lookup_or_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, NatObject **args) {

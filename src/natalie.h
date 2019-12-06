@@ -118,7 +118,7 @@ NatObject *nat_alloc(NatEnv *env);
 NatObject *nat_subclass(NatEnv *env, NatObject *superclass, char *name);
 NatObject *nat_module(NatEnv *env, char *name);
 void nat_class_include(NatObject *class, NatObject *module);
-NatObject *nat_new(NatEnv *env, NatObject *class);
+NatObject *nat_new(NatEnv *env, NatObject *class, size_t argc, NatObject **args, struct hashmap *kwargs);
 
 NatObject *nat_integer(NatEnv *env, int64_t integer);
 
@@ -132,7 +132,7 @@ void nat_define_singleton_method(NatObject *obj, char *name, NatObject* (*fn)(Na
 
 NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, NatObject **args);
 NatObject *nat_lookup_or_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, NatObject **args);
-NatObject *nat_call_method_on_class(NatEnv *env, NatObject *class, NatObject *instance_class, char *method_name, NatObject *self, size_t argc, NatObject **args);
+NatObject *nat_call_method_on_class(NatEnv *env, NatObject *class, NatObject *instance_class, char *method_name, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs);
 
 #define NAT_STRING_GROW_FACTOR 2
 

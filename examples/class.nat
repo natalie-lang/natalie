@@ -99,3 +99,27 @@ i.set_x(10)
 assert_equal(10, i.get_x)
 i.set_x(20)
 assert_equal(20, i.get_x)
+
+class InitMethodTest
+  def initialize
+    @x = 1
+  end
+
+  def x
+    @x
+  end
+end
+
+assert_equal(1, InitMethodTest.new.x)
+
+class InitMethodTest2
+  def initialize(x)
+    @x = x
+  end
+
+  def x
+    @x
+  end
+end
+
+assert_equal(2, InitMethodTest2.new(2).x)

@@ -102,7 +102,7 @@ module Natalie
         decl = []
         superclass ||= 'Object'
         decl << "NatObject *#{var_name};"
-        decl << "if (#{var_name} = env_get(env, #{name.inspect})) {"
+        decl << "if ((#{var_name} = env_get(env, #{name.inspect}))) {"
         decl << '} else {'
         decl << "#{var_name} = nat_subclass(env, env_get(env, #{superclass.inspect}), #{name.inspect});"
         decl << "env_set(env, #{name.inspect}, #{var_name});"
@@ -123,7 +123,7 @@ module Natalie
         var_name = next_var_name('module')
         decl = []
         decl << "NatObject *#{var_name};"
-        decl << "if (#{var_name} = env_get(env, #{name.inspect})) {"
+        decl << "if ((#{var_name} = env_get(env, #{name.inspect}))) {"
         decl << '} else {'
         decl << "#{var_name} = nat_module(env, #{name.inspect});"
         decl << "env_set(env, #{name.inspect}, #{var_name});"
@@ -193,7 +193,7 @@ module Natalie
         end
         result_name = next_var_name('result')
         if receiver.nil? && name == 'super'
-          decl << "NatObject *#{result_name} = nat_call_method_on_class(env, self->class->superclass, self->class->superclass, env_get(env, \"__method__\")->str, self, #{args.size}, #{args_name});"
+          decl << "NatObject *#{result_name} = nat_call_method_on_class(env, self->class->superclass, self->class->superclass, env_get(env, \"__method__\")->str, self, #{args.size}, #{args_name}, NULL);"
         else
           (t, d, e) = compile_expr(receiver || 'self')
           top << t; decl << d
