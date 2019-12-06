@@ -195,6 +195,8 @@ describe 'Natalie::Parser' do
     it 'parses symbols' do
       ast = build_ast(':foo')
       expect(ast).must_equal [[:symbol, 'foo']]
+      ast = build_ast(':@foo')
+      expect(ast).must_equal [[:symbol, '@foo']]
       ast = build_ast(':Bar')
       expect(ast).must_equal [[:symbol, 'Bar']]
       ast = build_ast(':foo_bar')

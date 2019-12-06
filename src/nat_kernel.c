@@ -73,3 +73,21 @@ NatObject *Kernel_equal(NatEnv *env, NatObject *self, size_t argc, NatObject **a
 NatObject *Kernel_class(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     return self->class ? self->class : env_get(env, "nil");
 }
+
+NatObject *Kernel_instance_variable_get(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    assert(argc == 1);
+    NatObject *name_obj = args[0];
+    assert(name_obj->type == NAT_VALUE_STRING || name_obj->type == NAT_VALUE_SYMBOL);
+    char *name = name_obj->type == NAT_VALUE_STRING ? name_obj->str : name_obj->symbol;
+    return ivar_get(env, self, name);
+}
+
+NatObject *Kernel_instance_variable_set(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    assert(argc == 2);
+    NatObject *name_obj = args[0];
+    assert(name_obj->type == NAT_VALUE_STRING || name_obj->type == NAT_VALUE_SYMBOL);
+    char *name = name_obj->type == NAT_VALUE_STRING ? name_obj->str : name_obj->symbol;
+    NatObject *val_obj = args[1];
+    ivar_set(env, self, name, val_obj);
+    return val_obj;
+}

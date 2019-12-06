@@ -53,6 +53,8 @@ NatEnv *build_env(NatEnv *outer) {
 }
 
 NatObject *ivar_get(NatEnv *env, NatObject *obj, char *name) {
+    assert(strlen(name) > 0);
+    assert(name[0] == '@');
     NatObject *val = hashmap_get(&obj->ivars, name);
     if (val) {
         return val;
@@ -62,6 +64,8 @@ NatObject *ivar_get(NatEnv *env, NatObject *obj, char *name) {
 }
 
 void ivar_set(NatEnv *env, NatObject *obj, char *name, NatObject *val) {
+    assert(strlen(name) > 0);
+    assert(name[0] == '@');
     hashmap_remove(&obj->ivars, name);
     hashmap_put(&obj->ivars, name, val);
 }

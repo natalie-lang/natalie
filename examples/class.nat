@@ -91,6 +91,14 @@ class IvarTest
   def get_x
     @x
   end
+
+  def set_y(y)
+    instance_variable_set(:@y, y)
+  end
+
+  def get_y
+    instance_variable_get(:@y)
+  end
 end
 
 i = IvarTest.new
@@ -99,6 +107,10 @@ i.set_x(10)
 assert_equal(10, i.get_x)
 i.set_x(20)
 assert_equal(20, i.get_x)
+i.set_y(10)
+assert_equal(10, i.get_y)
+i.set_y(20)
+assert_equal(20, i.get_y)
 
 class InitMethodTest
   def initialize
