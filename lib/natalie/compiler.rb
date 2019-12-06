@@ -220,6 +220,25 @@ module Natalie
           end
         end
         [top, decl + c_if, result_name]
+      when :while
+        (_, condition, body) = expr
+        top = []
+        decl = []
+        func_name = next_var_name('while_body_func')
+        func = []
+        func << "NatObject* #{func_name}(NatEnv *env, NatObject *self) {"
+        (t, f) = compile_func_body(body)
+        top << t
+        func << f
+        func << '}'
+        top << func
+        decl << "while (TRUE) {"
+        (t, d, c) = compile_expr(condition)
+        top << t; decl << d
+        decl << "if (!nat_truthy(#{c})) break;"
+        decl << "#{func_name}(env, self);"
+        decl << '}'
+        [top, decl, "env_get(env, \"nil\")"]
       else
         raise "unknown AST node: #{expr.inspect}"
       end

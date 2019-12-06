@@ -29,7 +29,15 @@ module Natalie
 
     def expr
       while @scanner.skip(/\s*#{COMMENT}\s*/); end
-      klass || mod || method || if_expr || postfix_conditional || not_expr || explicit_message || assignment || implicit_message || array || integer || string || symbol
+      control_structure || non_control_structure
+    end
+
+    def control_structure
+      klass || mod || method || if_expr || while_expr
+    end
+
+    def non_control_structure
+      postfix_conditional || not_expr || explicit_message || assignment || implicit_message || array || integer || string || symbol
     end
 
     def message_receiver_expr
@@ -154,7 +162,7 @@ module Natalie
 
     def not_expr
       if @scanner.scan(/not[ ]+/)
-        e = expr
+        e = non_control_structure
         expect(e, 'expression after not keyword')
         [:send, e, '!', []]
       elsif @scanner.check(/\![^=]/)
@@ -269,8 +277,7 @@ module Natalie
     end
 
     def args_with_parens
-      if @scanner.check(/[ \t]*\(\s*/)
-        @scanner.skip(/[ \t]*\(\s*/)
+      if @scanner.skip(/[ \t]*\(\s*/)
         args = [expr]
         while @scanner.skip(/[ \t]*,\s*/)
           args << expr
@@ -281,8 +288,7 @@ module Natalie
     end
 
     def args_without_parens
-      if @scanner.check(/[ \t]+/)
-        @scanner.skip(/[ \t]+/)
+      if @scanner.skip(/[ \t]+/)
         args = [expr]
         while @scanner.skip(/[ \t]*,\s*/)
           args << expr
@@ -298,8 +304,7 @@ module Natalie
     end
 
     def method_args_with_parens
-      if @scanner.check(/[ \t]*\(\s*/)
-        @scanner.skip(/[ \t]*\(\s*/)
+      if @scanner.skip(/[ \t]*\(\s*/)
         args = [identifier]
         while @scanner.skip(/[ \t]*,\s*/)
           args << identifier
@@ -310,8 +315,7 @@ module Natalie
     end
 
     def method_args_without_parens
-      if @scanner.check(/[ \t]+/)
-        @scanner.skip(/[ \t]+/)
+      if @scanner.skip(/[ \t]+/)
         args = [identifier]
         while @scanner.skip(/[ \t]*,\s*/)
           args << identifier
@@ -331,6 +335,21 @@ module Natalie
       if (id = method_name)
         args = args_with_parens || []
         [:send, nil, id, args]
+      end
+    end
+
+    def while_expr
+      if @scanner.skip(/while[ ]+/)
+        condition = not_expr || explicit_message || assignment || implicit_message || array || integer || string || symbol
+        expect(condition, 'condition after while keyword')
+        @scanner.skip(END_OF_EXPRESSION)
+        body = []
+        until @scanner.check(/\s*end[;\s]+/)
+          body << expr
+          expect(@scanner.skip(END_OF_EXPRESSION), '; or newline')
+        end
+        @scanner.skip(/\s*end/)
+        [:while, condition, body]
       end
     end
   end

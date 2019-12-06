@@ -247,5 +247,10 @@ describe 'Natalie::Parser' do
       ast = build_ast("1 unless false")
       expect(ast).must_equal [[:if, [:send, [:send, nil, 'false', []], '!', []], [[:integer, '1']], :else, [[:send, nil, 'nil', []]]]]
     end
+
+    it 'parses while loop' do
+      ast = build_ast("while true; end")
+      expect(ast).must_equal [[:while, [:send, nil, 'true', []], []]]
+    end
   end
 end

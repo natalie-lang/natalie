@@ -24,7 +24,6 @@ NatObject *env_get(NatEnv *env, char *key) {
 }
 
 NatObject *env_set(NatEnv *env, char *key, NatObject *val) {
-    //if (is_blank_line(val)) return val;
     hashmap_remove(&env->data, key);
     hashmap_put(&env->data, key, val);
     return val;

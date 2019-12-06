@@ -1,9 +1,11 @@
 require 'minitest/spec'
 require 'minitest/autorun'
+require 'time'
 
 describe 'Examples' do
   Dir.chdir File.expand_path('../..', __dir__)
   Dir['examples/*.nat'].each do |path|
+    next if File.read(path) =~ /# skip-test/
     describe path do
       it 'has the same output in ruby and natalie' do
         out_nat = `bin/natalie #{path} 2>&1`
