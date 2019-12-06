@@ -339,8 +339,10 @@ module Natalie
     end
 
     def while_expr
-      if @scanner.skip(/while[ ]+/)
+      if (keyword = @scanner.scan(/(while|until)[ ]+/))
+        is_until = keyword.start_with?('until')
         condition = not_expr || explicit_message || assignment || implicit_message || array || integer || string || symbol
+        condition = [:send, condition, '!', []] if is_until
         expect(condition, 'condition after while keyword')
         @scanner.skip(END_OF_EXPRESSION)
         body = []
