@@ -195,10 +195,20 @@ module Natalie
         # block
         block_name = 'NULL'
         if block
+          (_, block_args, block_body) = block
           block_func_name = next_var_name('block_func')
           func = []
           func << "NatObject* #{block_func_name}(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {"
-          (t, f) = compile_func_body(block)
+          func << "env = build_env(env);"
+          func << "env->block = TRUE;"
+          block_args.each_with_index do |arg, i|
+            func << "if (#{i} < argc) {"
+            func << "env_set(env, #{arg.inspect}, args[#{i}]);"
+            func << "} else {"
+            func << "env_set(env, #{arg.inspect}, env_get(env, \"nil\"));"
+            func << '}'
+          end
+          (t, f) = compile_func_body(block_body)
           top << t
           func << f
           func << '}'

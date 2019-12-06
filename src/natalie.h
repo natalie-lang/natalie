@@ -23,6 +23,7 @@ struct NatEnv {
     struct hashmap *symbols;
     uint64_t *next_object_id;
     NatEnv *outer;
+    int block;
 };
 
 struct NatBlock {

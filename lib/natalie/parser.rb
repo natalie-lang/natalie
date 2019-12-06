@@ -334,6 +334,17 @@ module Natalie
       end
     end
 
+    def block_args
+      if @scanner.skip(/[ \t]*\|\s*/)
+        args = [identifier]
+        while @scanner.skip(/[ \t]*,\s*/)
+          args << identifier
+        end
+        expect(@scanner.skip(/\s*\|\s*/), '|')
+        args
+      end
+    end
+
     def implicit_message
       if (id = method_name)
         args = args_with_parens || args_without_parens || []
@@ -353,14 +364,16 @@ module Natalie
 
     def block
       if @scanner.scan(/[ \t]+do[;\s]+/)
+        args = block_args || []
         body = []
         until @scanner.check(/\s*end[;\s]+/)
           body << expr
           expect(@scanner.skip(END_OF_EXPRESSION), '; or newline')
         end
         @scanner.skip(/\s*end/)
-        body
+        [:block, args, body]
       elsif @scanner.scan(/[ \t]*\{\s*/)
+        args = block_args || []
         body = []
         until @scanner.check(/\s*\}/)
           body << expr
@@ -368,7 +381,7 @@ module Natalie
           expect(@scanner.skip(END_OF_EXPRESSION), '; or newline')
         end
         @scanner.skip(/\s*\}/)
-        body
+        [:block, args, body]
       end
     end
 

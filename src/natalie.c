@@ -12,7 +12,7 @@ NatEnv *env_find(NatEnv *env, char *key) {
 }
 
 NatObject *env_get(NatEnv *env, char *key) {
-    if (strlen(key) > 0 && (isupper(key[0]) || strcmp(key, "nil") == 0 || strcmp(key, "true") == 0 || strcmp(key, "false") == 0)) {
+    if (env->block || (strlen(key) > 0 && (isupper(key[0]) || strcmp(key, "nil") == 0 || strcmp(key, "true") == 0 || strcmp(key, "false") == 0))) {
         env = env_find(env, key);
         if (!env) {
             return NULL;
@@ -34,6 +34,7 @@ NatObject *env_set(NatEnv *env, char *key, NatObject *val) {
 
 NatEnv *build_env(NatEnv *outer) {
     NatEnv *env = malloc(sizeof(NatEnv));
+    env->block = FALSE;
     env->outer = outer;
     if (outer) {
         env->symbols = outer->symbols;

@@ -1,5 +1,5 @@
 def assert_equal(expected, actual)
-  puts actual.to_s + " should be " + expected.to_s
+  puts actual.inspect + " should be " + expected.inspect
 end
 
 def foo
@@ -48,4 +48,27 @@ block_test { p 1 }
 b = 2
 block_test do
   p b
+end
+
+def block_test2
+  yield 1, 2
+end
+
+block_test2 do |b1, b2, b3|
+  assert_equal(1, b1)
+  assert_equal(2, b2)
+  assert_equal(nil, b3)
+end
+
+block_test2 do |b1, b2|
+  assert_equal(1, b1)
+  assert_equal(2, b2)
+end
+
+block_test2 do |b1|
+  assert_equal(1, b1)
+end
+
+block_test2 do
+  puts 'no args'
 end

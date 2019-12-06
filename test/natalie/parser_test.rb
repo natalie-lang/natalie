@@ -273,58 +273,62 @@ describe 'Natalie::Parser' do
 
     it 'parses blocks with do/end' do
       ast = build_ast("foo do\nend")
-      expect(ast).must_equal [[:send, nil, 'foo', [], []]]
+      expect(ast).must_equal [[:send, nil, 'foo', [], [:block, [], []]]]
+      ast = build_ast("foo do |x|\nend")
+      expect(ast).must_equal [[:send, nil, 'foo', [], [:block, ['x'], []]]]
       ast = build_ast("foo do\n1\n2\nend")
-      expect(ast).must_equal [[:send, nil, 'foo', [], [[:integer, '1'], [:integer, '2']]]]
+      expect(ast).must_equal [[:send, nil, 'foo', [], [:block, [], [[:integer, '1'], [:integer, '2']]]]]
       ast = build_ast("foo 'x' do\n1\n2\nend")
-      expect(ast).must_equal [[:send, nil, 'foo', [[:string, 'x']], [[:integer, '1'], [:integer, '2']]]]
+      expect(ast).must_equal [[:send, nil, 'foo', [[:string, 'x']], [:block, [], [[:integer, '1'], [:integer, '2']]]]]
       ast = build_ast("foo 'x', 'y' do\n1\n2\nend")
-      expect(ast).must_equal [[:send, nil, 'foo', [[:string, 'x'], [:string, 'y']], [[:integer, '1'], [:integer, '2']]]]
+      expect(ast).must_equal [[:send, nil, 'foo', [[:string, 'x'], [:string, 'y']], [:block, [], [[:integer, '1'], [:integer, '2']]]]]
       ast = build_ast("foo() do\n1\n2\nend")
-      expect(ast).must_equal [[:send, nil, 'foo', [], [[:integer, '1'], [:integer, '2']]]]
+      expect(ast).must_equal [[:send, nil, 'foo', [], [:block, [], [[:integer, '1'], [:integer, '2']]]]]
       ast = build_ast("foo('x', 'y') do\n1\n2\nend")
-      expect(ast).must_equal [[:send, nil, 'foo', [[:string, 'x'], [:string, 'y']], [[:integer, '1'], [:integer, '2']]]]
+      expect(ast).must_equal [[:send, nil, 'foo', [[:string, 'x'], [:string, 'y']], [:block, [], [[:integer, '1'], [:integer, '2']]]]]
       ast = build_ast("a.foo do\nend")
-      expect(ast).must_equal [[:send, [:send, nil, 'a', []], 'foo', [], []]]
+      expect(ast).must_equal [[:send, [:send, nil, 'a', []], 'foo', [], [:block, [], []]]]
       ast = build_ast("a.foo do\n1\n2\nend")
-      expect(ast).must_equal [[:send, [:send, nil, 'a', []], 'foo', [], [[:integer, '1'], [:integer, '2']]]]
+      expect(ast).must_equal [[:send, [:send, nil, 'a', []], 'foo', [], [:block, [], [[:integer, '1'], [:integer, '2']]]]]
       ast = build_ast("a.foo 'x' do\n1\n2\nend")
-      expect(ast).must_equal [[:send, [:send, nil, 'a', []], 'foo', [[:string, 'x']], [[:integer, '1'], [:integer, '2']]]]
+      expect(ast).must_equal [[:send, [:send, nil, 'a', []], 'foo', [[:string, 'x']], [:block, [], [[:integer, '1'], [:integer, '2']]]]]
       ast = build_ast("a.foo 'x', 'y' do\n1\n2\nend")
-      expect(ast).must_equal [[:send, [:send, nil, 'a', []], 'foo', [[:string, 'x'], [:string, 'y']], [[:integer, '1'], [:integer, '2']]]]
+      expect(ast).must_equal [[:send, [:send, nil, 'a', []], 'foo', [[:string, 'x'], [:string, 'y']], [:block, [], [[:integer, '1'], [:integer, '2']]]]]
       ast = build_ast("a.foo() do\n1\n2\nend")
-      expect(ast).must_equal [[:send, [:send, nil, 'a', []], 'foo', [], [[:integer, '1'], [:integer, '2']]]]
+      expect(ast).must_equal [[:send, [:send, nil, 'a', []], 'foo', [], [:block, [], [[:integer, '1'], [:integer, '2']]]]]
       ast = build_ast("a.foo('x', 'y') do\n1\n2\nend")
-      expect(ast).must_equal [[:send, [:send, nil, 'a', []], 'foo', [[:string, 'x'], [:string, 'y']], [[:integer, '1'], [:integer, '2']]]]
+      expect(ast).must_equal [[:send, [:send, nil, 'a', []], 'foo', [[:string, 'x'], [:string, 'y']], [:block, [], [[:integer, '1'], [:integer, '2']]]]]
     end
 
     it 'parses blocks with { and }' do
       ast = build_ast("foo {}")
-      expect(ast).must_equal [[:send, nil, 'foo', [], []]]
+      expect(ast).must_equal [[:send, nil, 'foo', [], [:block, [], []]]]
+      ast = build_ast("foo { |x| }")
+      expect(ast).must_equal [[:send, nil, 'foo', [], [:block, ['x'], []]]]
       ast = build_ast("foo { 1 }")
-      expect(ast).must_equal [[:send, nil, 'foo', [], [[:integer, '1']]]]
+      expect(ast).must_equal [[:send, nil, 'foo', [], [:block, [], [[:integer, '1']]]]]
       ast = build_ast("foo {\n1\n2\n}")
-      expect(ast).must_equal [[:send, nil, 'foo', [], [[:integer, '1'], [:integer, '2']]]]
+      expect(ast).must_equal [[:send, nil, 'foo', [], [:block, [], [[:integer, '1'], [:integer, '2']]]]]
       ast = build_ast("foo 'x' {\n1\n2\n}")
-      expect(ast).must_equal [[:send, nil, 'foo', [[:string, 'x']], [[:integer, '1'], [:integer, '2']]]]
+      expect(ast).must_equal [[:send, nil, 'foo', [[:string, 'x']], [:block, [], [[:integer, '1'], [:integer, '2']]]]]
       ast = build_ast("foo 'x', 'y' {\n1\n2\n}")
-      expect(ast).must_equal [[:send, nil, 'foo', [[:string, 'x'], [:string, 'y']], [[:integer, '1'], [:integer, '2']]]]
+      expect(ast).must_equal [[:send, nil, 'foo', [[:string, 'x'], [:string, 'y']], [:block, [], [[:integer, '1'], [:integer, '2']]]]]
       ast = build_ast("foo() {\n1\n2\n}")
-      expect(ast).must_equal [[:send, nil, 'foo', [], [[:integer, '1'], [:integer, '2']]]]
+      expect(ast).must_equal [[:send, nil, 'foo', [], [:block, [], [[:integer, '1'], [:integer, '2']]]]]
       ast = build_ast("foo('x', 'y') {\n1\n2\n}")
-      expect(ast).must_equal [[:send, nil, 'foo', [[:string, 'x'], [:string, 'y']], [[:integer, '1'], [:integer, '2']]]]
+      expect(ast).must_equal [[:send, nil, 'foo', [[:string, 'x'], [:string, 'y']], [:block, [], [[:integer, '1'], [:integer, '2']]]]]
       ast = build_ast("a.foo {}")
-      expect(ast).must_equal [[:send, [:send, nil, 'a', []], 'foo', [], []]]
+      expect(ast).must_equal [[:send, [:send, nil, 'a', []], 'foo', [], [:block, [], []]]]
       ast = build_ast("a.foo {\n1\n2\n}")
-      expect(ast).must_equal [[:send, [:send, nil, 'a', []], 'foo', [], [[:integer, '1'], [:integer, '2']]]]
+      expect(ast).must_equal [[:send, [:send, nil, 'a', []], 'foo', [], [:block, [], [[:integer, '1'], [:integer, '2']]]]]
       ast = build_ast("a.foo 'x' {\n1\n2\n}")
-      expect(ast).must_equal [[:send, [:send, nil, 'a', []], 'foo', [[:string, 'x']], [[:integer, '1'], [:integer, '2']]]]
+      expect(ast).must_equal [[:send, [:send, nil, 'a', []], 'foo', [[:string, 'x']], [:block, [], [[:integer, '1'], [:integer, '2']]]]]
       ast = build_ast("a.foo 'x', 'y' {\n1\n2\n}")
-      expect(ast).must_equal [[:send, [:send, nil, 'a', []], 'foo', [[:string, 'x'], [:string, 'y']], [[:integer, '1'], [:integer, '2']]]]
+      expect(ast).must_equal [[:send, [:send, nil, 'a', []], 'foo', [[:string, 'x'], [:string, 'y']], [:block, [], [[:integer, '1'], [:integer, '2']]]]]
       ast = build_ast("a.foo() {\n1\n2\n}")
-      expect(ast).must_equal [[:send, [:send, nil, 'a', []], 'foo', [], [[:integer, '1'], [:integer, '2']]]]
+      expect(ast).must_equal [[:send, [:send, nil, 'a', []], 'foo', [], [:block, [], [[:integer, '1'], [:integer, '2']]]]]
       ast = build_ast("a.foo('x', 'y') {\n1\n2\n}")
-      expect(ast).must_equal [[:send, [:send, nil, 'a', []], 'foo', [[:string, 'x'], [:string, 'y']], [[:integer, '1'], [:integer, '2']]]]
+      expect(ast).must_equal [[:send, [:send, nil, 'a', []], 'foo', [[:string, 'x'], [:string, 'y']], [:block, [], [[:integer, '1'], [:integer, '2']]]]]
     end
   end
 end
