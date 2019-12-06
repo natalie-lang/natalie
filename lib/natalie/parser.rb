@@ -206,7 +206,7 @@ module Natalie
     end
 
     def constant
-      @scanner.scan(/[A-Z][a-z0-9_]*/)
+      @scanner.scan(/[A-Z][A-Za-z0-9_]*/)
     end
 
     OPERATOR = /<<?|>>?|<=>|<=|=>|===?|\!=|=~|\!~|\||\^|&|\+|\-|\*\*?|\/|%/

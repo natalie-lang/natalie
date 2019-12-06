@@ -134,8 +134,8 @@ describe 'Natalie::Parser' do
       expect(ast).must_equal [[:class, 'Foo', 'Bar', []]]
       ast = build_ast("class Foo; def foo; end; end")
       expect(ast).must_equal [[:class, 'Foo', nil, [[:def, 'foo', [], {}, []]]]]
-      ast = build_ast("class Foo; x = 1; end")
-      expect(ast).must_equal [[:class, 'Foo', nil, [[:assign, 'x', [:integer, '1']]]]]
+      ast = build_ast("class FooBar; x = 1; end")
+      expect(ast).must_equal [[:class, 'FooBar', nil, [[:assign, 'x', [:integer, '1']]]]]
     end
 
     it 'parses array literals' do
