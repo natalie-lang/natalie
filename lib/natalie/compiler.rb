@@ -101,8 +101,12 @@ module Natalie
         var_name = next_var_name('class')
         decl = []
         superclass ||= 'Object'
-        decl << "NatObject *#{var_name} = nat_subclass(env, env_get(env, #{superclass.inspect}), #{name.inspect});"
+        decl << "NatObject *#{var_name};"
+        decl << "if (#{var_name} = env_get(env, #{name.inspect})) {"
+        decl << '} else {'
+        decl << "#{var_name} = nat_subclass(env, env_get(env, #{superclass.inspect}), #{name.inspect});"
         decl << "env_set(env, #{name.inspect}, #{var_name});"
+        decl << '}'
         result_name = next_var_name('class_body_result')
         decl << "NatObject *#{result_name} = #{func_name}(env, #{var_name}, 0, NULL, NULL);"
         [top + func, decl, result_name]
@@ -118,8 +122,12 @@ module Natalie
         func << '}'
         var_name = next_var_name('module')
         decl = []
-        decl << "NatObject *#{var_name} = nat_module(env, #{name.inspect});"
+        decl << "NatObject *#{var_name};"
+        decl << "if (#{var_name} = env_get(env, #{name.inspect})) {"
+        decl << '} else {'
+        decl << "#{var_name} = nat_module(env, #{name.inspect});"
         decl << "env_set(env, #{name.inspect}, #{var_name});"
+        decl << '}'
         result_name = next_var_name('module_body_result')
         decl << "NatObject *#{result_name} = #{func_name}(env, #{var_name}, 0, NULL, NULL);"
         [top + func, decl, result_name]

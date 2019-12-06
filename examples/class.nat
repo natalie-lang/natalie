@@ -18,6 +18,16 @@ assert_equal('foo', foo.foo)
 assert_equal('foo', Foo.new.foo)
 assert_equal(8, Foo.new.double(4))
 
+# reopen class
+class Foo
+  def foo2
+    'foo2'
+  end
+end
+
+assert_equal('foo2', Foo.new.foo2)
+assert_equal('foo', Foo.new.foo)
+
 class Bar < Foo
   def foo
     'bar'
@@ -47,11 +57,19 @@ module M2
   end
 end
 
+# reopen module
+module M1
+  def m1b
+    'm1b'
+  end
+end
+
 class Foo2
   include M1, M2
 end
 
 assert_equal('m1', Foo2.new.m1)
+assert_equal('m1b', Foo2.new.m1b)
 assert_equal('m2', Foo2.new.m2)
 
 p(['Integer.class', Class, Integer.class])
