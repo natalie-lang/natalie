@@ -261,5 +261,14 @@ describe 'Natalie::Parser' do
       ast = build_ast("until true; 1; end")
       expect(ast).must_equal [[:while, [:send, [:send, nil, 'true', []], '!', []], [[:integer, '1']]]]
     end
+
+    it 'parses instance variable' do
+      ast = build_ast('@foo')
+      expect(ast).must_equal [[:ivar, '@foo']]
+      ast = build_ast('@FOO')
+      expect(ast).must_equal [[:ivar, '@FOO']]
+      ast = build_ast('@foo = "bar"')
+      expect(ast).must_equal [[:assign, [:ivar, '@foo'], [:string, 'bar']]]
+    end
   end
 end

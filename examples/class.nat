@@ -64,3 +64,20 @@ p(['Numeric.superclass', Object, Numeric.superclass])
 p(['Object.superclass', BasicObject, Object.superclass])
 p(['BasicObject.class', Class, BasicObject.class])
 p(['BasicObject.superclass', nil, BasicObject.superclass])
+
+class IvarTest
+  def set_x(x)
+    @x = x
+  end
+
+  def get_x
+    @x
+  end
+end
+
+i = IvarTest.new
+assert_equal(nil, i.get_x)
+i.set_x(10)
+assert_equal(10, i.get_x)
+i.set_x(20)
+assert_equal(20, i.get_x)

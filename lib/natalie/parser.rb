@@ -37,16 +37,16 @@ module Natalie
     end
 
     def non_control_structure
-      postfix_conditional || not_expr || explicit_message || assignment || implicit_message || array || integer || string || symbol
+      postfix_conditional || not_expr || explicit_message || assignment || implicit_message || array || integer || string || symbol || ivar
     end
 
     def message_receiver_expr
-      klass || mod || method || explicit_message || no_space_implicit_message || array || integer || string || symbol
+      klass || mod || method || explicit_message || no_space_implicit_message || array || integer || string || symbol || ivar
     end
 
     def assignment
-      if @scanner.check(/#{IDENTIFIER}\s*=/)
-        id = identifier
+      if @scanner.check(/@?#{IDENTIFIER}\s*=/)
+        id = ivar || identifier
         @scanner.skip(/\s*=\s*/)
         [:assign, id, expr]
       end
@@ -85,6 +85,12 @@ module Natalie
       elsif @scanner.check(/:["']/)
         @scanner.skip(/:/)
         [:symbol, string.last]
+      end
+    end
+
+    def ivar
+      if (s = @scanner.scan(/@#{IDENTIFIER}/))
+        [:ivar, s]
       end
     end
 

@@ -52,6 +52,7 @@ struct NatObject {
     int64_t id;
 
     struct hashmap singleton_methods;
+    struct hashmap ivars;
     
     union {
         int64_t integer;
@@ -105,6 +106,9 @@ NatEnv *env_find(NatEnv *env, char *key);
 NatObject *env_get(NatEnv *env, char *key);
 NatObject *env_set(NatEnv *env, char *key, NatObject *val);
 NatEnv *build_env(NatEnv *outer);
+
+NatObject *ivar_get(NatEnv *env, NatObject *obj, char *name);
+void ivar_set(NatEnv *env, NatObject *obj, char *name, NatObject *val);
 
 int nat_truthy(NatObject *obj);
 

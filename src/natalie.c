@@ -48,6 +48,20 @@ NatEnv *build_env(NatEnv *outer) {
     return env;
 }
 
+NatObject *ivar_get(NatEnv *env, NatObject *obj, char *name) {
+    NatObject *val = hashmap_get(&obj->ivars, name);
+    if (val) {
+        return val;
+    } else {
+        return env_get(env, "nil");
+    }
+}
+
+void ivar_set(NatEnv *env, NatObject *obj, char *name, NatObject *val) {
+    hashmap_remove(&obj->ivars, name);
+    hashmap_put(&obj->ivars, name, val);
+}
+
 #define TRUE 1
 #define FALSE 0
 
@@ -75,6 +89,8 @@ NatObject *nat_alloc(NatEnv *env) {
     val->id = nat_next_object_id(env);
     hashmap_init(&val->singleton_methods, hashmap_hash_string, hashmap_compare_string, 100);
     hashmap_set_key_alloc_funcs(&val->singleton_methods, hashmap_alloc_key_string, NULL);
+    hashmap_init(&val->ivars, hashmap_hash_string, hashmap_compare_string, 100);
+    hashmap_set_key_alloc_funcs(&val->ivars, hashmap_alloc_key_string, NULL);
     return val;
 }
 

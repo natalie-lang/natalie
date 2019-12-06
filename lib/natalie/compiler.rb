@@ -82,7 +82,11 @@ module Natalie
         (t, d, e) = compile_expr(value)
         decl = [d]
         decl << "NatObject *#{var_name} = #{e};"
-        decl << "env_set(env, #{name.inspect}, #{var_name});"
+        if name.is_a?(Array) && name.first == :ivar
+          decl << "ivar_set(env, self, #{name.last.inspect}, #{var_name});"
+        else
+          decl << "env_set(env, #{name.inspect}, #{var_name});"
+        end
         [t, decl, var_name]
       when :class
         (_, name, superclass, body) = expr
@@ -239,6 +243,9 @@ module Natalie
         decl << "#{func_name}(env, self);"
         decl << '}'
         [top, decl, "env_get(env, \"nil\")"]
+      when :ivar
+        name = expr.last
+        [nil, nil, "ivar_get(env, self, #{name.inspect})"]
       else
         raise "unknown AST node: #{expr.inspect}"
       end
