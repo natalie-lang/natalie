@@ -79,7 +79,7 @@ NatEnv *build_top_env() {
     nat_define_method(Symbol, "inspect", Symbol_inspect);
     env_set(env, "Symbol", Symbol);
 
-    NatObject *main_obj = nat_new(env, Object, 0, NULL, NULL);
+    NatObject *main_obj = nat_new(env, Object, 0, NULL, NULL, NULL);
     main_obj->flags = NAT_FLAG_MAIN_OBJECT;
     env_set(env, "self", main_obj);
 
@@ -89,7 +89,7 @@ NatEnv *build_top_env() {
     nat_define_method(NilClass, "inspect", NilClass_inspect);
     env_set(env, "NilClass", NilClass);
 
-    NatObject *nil = nat_new(env, NilClass, 0, NULL, NULL);
+    NatObject *nil = nat_new(env, NilClass, 0, NULL, NULL, NULL);
     nil->type = NAT_VALUE_NIL;
     env_set(env, "nil", nil);
 
@@ -99,7 +99,7 @@ NatEnv *build_top_env() {
     nat_define_method(TrueClass, "inspect", TrueClass_to_s);
     env_set(env, "TrueClass", TrueClass);
 
-    NatObject *true_obj = nat_new(env, TrueClass, 0, NULL, NULL);
+    NatObject *true_obj = nat_new(env, TrueClass, 0, NULL, NULL, NULL);
     true_obj->type = NAT_VALUE_TRUE;
     env_set(env, "true", true_obj);
 
@@ -109,7 +109,7 @@ NatEnv *build_top_env() {
     nat_define_method(FalseClass, "inspect", FalseClass_to_s);
     env_set(env, "FalseClass", FalseClass);
 
-    NatObject *false_obj = nat_new(env, FalseClass, 0, NULL, NULL);
+    NatObject *false_obj = nat_new(env, FalseClass, 0, NULL, NULL, NULL);
     false_obj->type = NAT_VALUE_FALSE;
     env_set(env, "false", false_obj);
 

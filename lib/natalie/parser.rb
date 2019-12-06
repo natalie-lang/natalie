@@ -278,7 +278,10 @@ module Natalie
         message = method_name
         expect(message, 'method call after dot')
         args = args_with_parens || args_without_parens || []
-        [:send, receiver, message, args.compact]
+        block_node = block
+        [:send, receiver, message, args.compact].tap do |node|
+          node << block_node if block_node
+        end
       end
     end
 
@@ -294,6 +297,7 @@ module Natalie
     end
 
     def args_without_parens
+      return if @scanner.check(/[ \t]+do[;\s]/)
       if @scanner.skip(/[ \t]+/)
         args = [expr]
         while @scanner.skip(/[ \t]*,\s*/)
@@ -333,7 +337,10 @@ module Natalie
     def implicit_message
       if (id = method_name)
         args = args_with_parens || args_without_parens || []
-        [:send, nil, id, args.compact]
+        block_node = block
+        [:send, nil, id, args.compact].tap do |node|
+          node << block_node if block_node
+        end
       end
     end
 
@@ -341,6 +348,27 @@ module Natalie
       if (id = method_name)
         args = args_with_parens || []
         [:send, nil, id, args]
+      end
+    end
+
+    def block
+      if @scanner.scan(/[ \t]+do[;\s]+/)
+        body = []
+        until @scanner.check(/\s*end[;\s]+/)
+          body << expr
+          expect(@scanner.skip(END_OF_EXPRESSION), '; or newline')
+        end
+        @scanner.skip(/\s*end/)
+        body
+      elsif @scanner.scan(/[ \t]*\{\s*/)
+        body = []
+        until @scanner.check(/\s*\}/)
+          body << expr
+          break if @scanner.check(/\s*\}/)
+          expect(@scanner.skip(END_OF_EXPRESSION), '; or newline')
+        end
+        @scanner.skip(/\s*\}/)
+        body
       end
     end
 

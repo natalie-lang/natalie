@@ -38,3 +38,14 @@ x = 0
 assert_equal(0, x)
 scope2
 assert_equal(0, x)
+
+def block_test
+  yield
+end
+
+block_test { p 1 }
+
+b = 2
+block_test do
+  p b
+end

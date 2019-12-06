@@ -270,5 +270,61 @@ describe 'Natalie::Parser' do
       ast = build_ast('@foo = "bar"')
       expect(ast).must_equal [[:assign, [:ivar, '@foo'], [:string, 'bar']]]
     end
+
+    it 'parses blocks with do/end' do
+      ast = build_ast("foo do\nend")
+      expect(ast).must_equal [[:send, nil, 'foo', [], []]]
+      ast = build_ast("foo do\n1\n2\nend")
+      expect(ast).must_equal [[:send, nil, 'foo', [], [[:integer, '1'], [:integer, '2']]]]
+      ast = build_ast("foo 'x' do\n1\n2\nend")
+      expect(ast).must_equal [[:send, nil, 'foo', [[:string, 'x']], [[:integer, '1'], [:integer, '2']]]]
+      ast = build_ast("foo 'x', 'y' do\n1\n2\nend")
+      expect(ast).must_equal [[:send, nil, 'foo', [[:string, 'x'], [:string, 'y']], [[:integer, '1'], [:integer, '2']]]]
+      ast = build_ast("foo() do\n1\n2\nend")
+      expect(ast).must_equal [[:send, nil, 'foo', [], [[:integer, '1'], [:integer, '2']]]]
+      ast = build_ast("foo('x', 'y') do\n1\n2\nend")
+      expect(ast).must_equal [[:send, nil, 'foo', [[:string, 'x'], [:string, 'y']], [[:integer, '1'], [:integer, '2']]]]
+      ast = build_ast("a.foo do\nend")
+      expect(ast).must_equal [[:send, [:send, nil, 'a', []], 'foo', [], []]]
+      ast = build_ast("a.foo do\n1\n2\nend")
+      expect(ast).must_equal [[:send, [:send, nil, 'a', []], 'foo', [], [[:integer, '1'], [:integer, '2']]]]
+      ast = build_ast("a.foo 'x' do\n1\n2\nend")
+      expect(ast).must_equal [[:send, [:send, nil, 'a', []], 'foo', [[:string, 'x']], [[:integer, '1'], [:integer, '2']]]]
+      ast = build_ast("a.foo 'x', 'y' do\n1\n2\nend")
+      expect(ast).must_equal [[:send, [:send, nil, 'a', []], 'foo', [[:string, 'x'], [:string, 'y']], [[:integer, '1'], [:integer, '2']]]]
+      ast = build_ast("a.foo() do\n1\n2\nend")
+      expect(ast).must_equal [[:send, [:send, nil, 'a', []], 'foo', [], [[:integer, '1'], [:integer, '2']]]]
+      ast = build_ast("a.foo('x', 'y') do\n1\n2\nend")
+      expect(ast).must_equal [[:send, [:send, nil, 'a', []], 'foo', [[:string, 'x'], [:string, 'y']], [[:integer, '1'], [:integer, '2']]]]
+    end
+
+    it 'parses blocks with { and }' do
+      ast = build_ast("foo {}")
+      expect(ast).must_equal [[:send, nil, 'foo', [], []]]
+      ast = build_ast("foo { 1 }")
+      expect(ast).must_equal [[:send, nil, 'foo', [], [[:integer, '1']]]]
+      ast = build_ast("foo {\n1\n2\n}")
+      expect(ast).must_equal [[:send, nil, 'foo', [], [[:integer, '1'], [:integer, '2']]]]
+      ast = build_ast("foo 'x' {\n1\n2\n}")
+      expect(ast).must_equal [[:send, nil, 'foo', [[:string, 'x']], [[:integer, '1'], [:integer, '2']]]]
+      ast = build_ast("foo 'x', 'y' {\n1\n2\n}")
+      expect(ast).must_equal [[:send, nil, 'foo', [[:string, 'x'], [:string, 'y']], [[:integer, '1'], [:integer, '2']]]]
+      ast = build_ast("foo() {\n1\n2\n}")
+      expect(ast).must_equal [[:send, nil, 'foo', [], [[:integer, '1'], [:integer, '2']]]]
+      ast = build_ast("foo('x', 'y') {\n1\n2\n}")
+      expect(ast).must_equal [[:send, nil, 'foo', [[:string, 'x'], [:string, 'y']], [[:integer, '1'], [:integer, '2']]]]
+      ast = build_ast("a.foo {}")
+      expect(ast).must_equal [[:send, [:send, nil, 'a', []], 'foo', [], []]]
+      ast = build_ast("a.foo {\n1\n2\n}")
+      expect(ast).must_equal [[:send, [:send, nil, 'a', []], 'foo', [], [[:integer, '1'], [:integer, '2']]]]
+      ast = build_ast("a.foo 'x' {\n1\n2\n}")
+      expect(ast).must_equal [[:send, [:send, nil, 'a', []], 'foo', [[:string, 'x']], [[:integer, '1'], [:integer, '2']]]]
+      ast = build_ast("a.foo 'x', 'y' {\n1\n2\n}")
+      expect(ast).must_equal [[:send, [:send, nil, 'a', []], 'foo', [[:string, 'x'], [:string, 'y']], [[:integer, '1'], [:integer, '2']]]]
+      ast = build_ast("a.foo() {\n1\n2\n}")
+      expect(ast).must_equal [[:send, [:send, nil, 'a', []], 'foo', [], [[:integer, '1'], [:integer, '2']]]]
+      ast = build_ast("a.foo('x', 'y') {\n1\n2\n}")
+      expect(ast).must_equal [[:send, [:send, nil, 'a', []], 'foo', [[:string, 'x'], [:string, 'y']], [[:integer, '1'], [:integer, '2']]]]
+    end
   end
 end

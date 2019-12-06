@@ -93,7 +93,7 @@ module Natalie
         func_name = next_var_name('class_body')
         top = []
         func = []
-        func << "NatObject* #{func_name}(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs) {"
+        func << "NatObject* #{func_name}(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {"
         (t, f) = compile_func_body(body)
         top << t
         func << f
@@ -108,14 +108,14 @@ module Natalie
         decl << "env_set(env, #{name.inspect}, #{var_name});"
         decl << '}'
         result_name = next_var_name('class_body_result')
-        decl << "NatObject *#{result_name} = #{func_name}(env, #{var_name}, 0, NULL, NULL);"
+        decl << "NatObject *#{result_name} = #{func_name}(env, #{var_name}, 0, NULL, NULL, NULL);"
         [top + func, decl, result_name]
       when :module
         (_, name, body) = expr
         func_name = next_var_name('module_body')
         top = []
         func = []
-        func << "NatObject* #{func_name}(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs) {"
+        func << "NatObject* #{func_name}(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {"
         (t, f) = compile_func_body(body)
         top << t
         func << f
@@ -129,14 +129,14 @@ module Natalie
         decl << "env_set(env, #{name.inspect}, #{var_name});"
         decl << '}'
         result_name = next_var_name('module_body_result')
-        decl << "NatObject *#{result_name} = #{func_name}(env, #{var_name}, 0, NULL, NULL);"
+        decl << "NatObject *#{result_name} = #{func_name}(env, #{var_name}, 0, NULL, NULL, NULL);"
         [top + func, decl, result_name]
       when :def
         (_, name, args, kwargs, body) = expr
         func_name = next_var_name('func')
         top = []
         func = []
-        func << "NatObject* #{func_name}(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs) {"
+        func << "NatObject* #{func_name}(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {"
         func << "if (argc != #{args.size}) abort();" # FIXME
         # TODO: do something with kwargs
         func << "env = build_env(env);"
@@ -173,9 +173,10 @@ module Natalie
         end
         [top, decl, var_name]
       when :send
-        (_, receiver, name, args) = expr
+        (_, receiver, name, args, block) = expr
         top = []
         decl = []
+        # args
         if args.empty?
           args_name = "NULL"
         elsif args.size == 1
@@ -191,16 +192,33 @@ module Natalie
             decl << "#{args_name}[#{i}] = #{e};"
           end
         end
+        # block
+        block_name = 'NULL'
+        if block
+          block_func_name = next_var_name('block_func')
+          func = []
+          func << "NatObject* #{block_func_name}(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {"
+          (t, f) = compile_func_body(block)
+          top << t
+          func << f
+          func << '}'
+          top << func
+          block_name = next_var_name('block')
+          decl << "NatBlock *#{block_name} = nat_block(env, #{block_func_name});"
+        end
+        # call
         result_name = next_var_name('result')
         if receiver.nil? && name == 'super'
-          decl << "NatObject *#{result_name} = nat_call_method_on_class(env, self->class->superclass, self->class->superclass, env_get(env, \"__method__\")->str, self, #{args.size}, #{args_name}, NULL);"
+          decl << "NatObject *#{result_name} = nat_call_method_on_class(env, self->class->superclass, self->class->superclass, env_get(env, \"__method__\")->str, self, #{args.size}, #{args_name}, NULL, #{block_name});"
+        elsif receiver.nil? && name == 'yield'
+          decl << "NatObject *#{result_name} = block->fn(block->env, self, #{args.size}, #{args_name}, NULL, NULL);"
         else
           (t, d, e) = compile_expr(receiver || 'self')
           top << t; decl << d
           if receiver.nil?
-            decl << "NatObject *#{result_name} = nat_lookup_or_send(env, #{e}, #{name.inspect}, #{args.size}, #{args_name});"
+            decl << "NatObject *#{result_name} = nat_lookup_or_send(env, #{e}, #{name.inspect}, #{args.size}, #{args_name}, #{block_name});"
           else
-            decl << "NatObject *#{result_name} = nat_send(env, #{e}, #{name.inspect}, #{args.size}, #{args_name});"
+            decl << "NatObject *#{result_name} = nat_send(env, #{e}, #{name.inspect}, #{args.size}, #{args_name}, #{block_name});"
           end
         end
         [top, decl, result_name]
