@@ -6,9 +6,10 @@ module Natalie
     OBJ_PATH = File.expand_path('../../obj', __dir__)
     MAIN = File.read(File.join(SRC_PATH, 'main.c'))
 
-    def initialize(ast = [])
+    def initialize(ast, path)
       @ast = ast
       @var_num = 0
+      @path = path
     end
 
     attr_accessor :ast
@@ -47,6 +48,12 @@ module Natalie
       top = []
       decl = []
       body = []
+      (0...(@ast.size)).reverse_each do |i|
+        node = @ast[i]
+        if macro?(node)
+          @ast[i..i] = run_macro(node)
+        end
+      end
       @ast.each_with_index do |node, i|
         (t, d, e) = compile_expr(node)
         top << t
@@ -75,6 +82,34 @@ module Natalie
         indent += 4 if line.end_with?('{')
       end
       out.join("\n")
+    end
+
+    def macro?(node)
+      return false unless node[0..1] == [:send, nil]
+      %w[require require_relative load].include?(node[2])
+    end
+
+    def run_macro(expr)
+      (_, _, macro, args) = expr
+      send("macro_#{macro}", *args)
+    end
+
+    def macro_require(path)
+      path = path.last
+      code = File.read(path + '.nat')
+      Natalie::Parser.new(code).ast
+    end
+
+    def macro_require_relative(path)
+      path = File.expand_path(path.last, File.dirname(@path))
+      code = File.read(path + '.nat')
+      Natalie::Parser.new(code).ast
+    end
+
+    def macro_load(path)
+      path = path.last
+      code = File.read(path)
+      Natalie::Parser.new(code).ast
     end
 
     def compile_expr(expr)

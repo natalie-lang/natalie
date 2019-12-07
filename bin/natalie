@@ -27,12 +27,13 @@ OptionParser.new do |opts|
 end.parse!
 
 if options[:execute]
-  source_path = "immediate"
+  source_path = '.'
   code = options[:execute].gsub(/\\n/, "\n")
 elsif ARGV.any?
   source_path = ARGV.shift
   code = File.read(source_path)
 else
+  source_path = '.'
   repl = Natalie::Repl.new
   repl.go
   exit
@@ -45,10 +46,10 @@ if options[:ast]
   require 'pp'
   pp ast
 elsif options[:compile]
-  compiler = Natalie::Compiler.new(ast)
+  compiler = Natalie::Compiler.new(ast, source_path)
   compiler.compile(options[:compile])
 else
-  compiler = Natalie::Compiler.new(ast)
+  compiler = Natalie::Compiler.new(ast, source_path)
   out = Tempfile.create('natalie')
   out.close
   compiler.compile(out.path)

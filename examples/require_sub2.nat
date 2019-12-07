@@ -1,0 +1,11 @@
+def foo
+  'foo2'
+end
+
+class Bar
+  def bar
+    'bar2'
+  end
+end
+
+puts 'required sub2'

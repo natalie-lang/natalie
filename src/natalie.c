@@ -168,6 +168,7 @@ NatObject *nat_symbol(NatEnv *env, char *name) {
         symbol = nat_new(env, env_get(env, "Symbol"), 0, NULL, NULL, NULL);
         symbol->type = NAT_VALUE_SYMBOL;
         symbol->symbol = name;
+        hashmap_remove(env->symbols, name);
         hashmap_put(env->symbols, name, symbol);
         return symbol;
     }
@@ -227,8 +228,10 @@ void nat_define_method(NatObject *obj, char *name, NatObject* (*fn)(NatEnv*, Nat
     method->fn = fn;
     method->env = NULL;
     if (nat_is_main_object(obj)) {
+        hashmap_remove(&obj->class->methods, name);
         hashmap_put(&obj->class->methods, name, method);
     } else {
+        hashmap_remove(&obj->methods, name);
         hashmap_put(&obj->methods, name, method);
     }
 }
@@ -238,8 +241,10 @@ void nat_define_method_with_block(NatObject *obj, char *name, NatBlock *block) {
     method->fn = block->fn;
     method->env = block->env;
     if (nat_is_main_object(obj)) {
+        hashmap_remove(&obj->class->methods, name);
         hashmap_put(&obj->class->methods, name, method);
     } else {
+        hashmap_remove(&obj->methods, name);
         hashmap_put(&obj->methods, name, method);
     }
 }
@@ -248,6 +253,7 @@ void nat_define_singleton_method(NatObject *obj, char *name, NatObject* (*fn)(Na
     NatMethod *method = malloc(sizeof(NatMethod));
     method->fn = fn;
     method->env = NULL;
+    hashmap_remove(&obj->singleton_methods, name);
     hashmap_put(&obj->singleton_methods, name, method);
 }
 
