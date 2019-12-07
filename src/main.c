@@ -147,6 +147,7 @@ NatEnv *build_top_env() {
     nat_define_method(Array, "<<", Array_ltlt);
     nat_define_method(Array, "+", Array_add);
     nat_define_method(Array, "[]", Array_ref);
+    nat_define_method(Array, "[]=", Array_refeq);
     nat_define_method(Array, "size", Array_size);
     nat_define_method(Array, "length", Array_size);
     nat_define_method(Array, "==", Array_eqeq);

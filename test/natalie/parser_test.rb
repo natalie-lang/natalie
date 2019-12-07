@@ -162,6 +162,11 @@ describe 'Natalie::Parser' do
       expect(ast).must_equal [[:send, [:send, nil, 'foo', []], '[]', [[:integer, '0']]]]
     end
 
+    it 'parses array subscript assign syntax' do
+      ast = build_ast("foo[0] = 'bar'")
+      expect(ast).must_equal [[:send, [:send, nil, 'foo', []], '[]=', [[:integer, '0'], [:string, 'bar']]]]
+    end
+
     it 'parses modules' do
       ast = build_ast('module M; end')
       expect(ast).must_equal [[:module, 'M', []]]

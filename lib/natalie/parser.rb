@@ -273,7 +273,12 @@ module Natalie
       elsif @scanner.check(/\[/)
         subscript = array
         expect(subscript, 'subscript with terminating ]')
-        [:send, receiver, '[]', subscript.last]
+        if @scanner.scan(/[ \t]*=\s*/)
+          value = expr
+          [:send, receiver, '[]=', subscript.last + [value]]
+        else
+          [:send, receiver, '[]', subscript.last]
+        end
       elsif @scanner.skip(/\s*\.\s*/)
         message = method_name
         expect(message, 'method call after dot')

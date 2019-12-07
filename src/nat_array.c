@@ -61,6 +61,25 @@ NatObject *Array_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **args
     }
 }
 
+NatObject *Array_refeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    assert(argc == 2);
+    assert(self->type == NAT_VALUE_ARRAY);
+    NatObject *index = args[0];
+    assert(index->type == NAT_VALUE_INTEGER); // TODO: accept a range
+    assert(index->integer >= 0); // TODO: accept negative index
+    NatObject *val = args[1];
+    if (index->integer < self->ary_len) {
+        self->ary[index->integer] = val;
+    } else {
+        NatObject *nil = env_get(env, "nil");
+        for (size_t i=self->ary_len; i<index->integer; i++) {
+            nat_array_push(self, nil);
+        }
+        nat_array_push(self, val);
+    }
+    return val;
+}
+
 NatObject *Array_size(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     assert(self->type == NAT_VALUE_ARRAY);
     assert(argc == 0);

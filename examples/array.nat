@@ -15,6 +15,11 @@ assert_equal("b", d[1])
 assert_equal(["c", "d"], d[2,2])
 assert_equal(nil, d[100])
 
+d[1] = "B"
+assert_equal("B", d[1])
+d[7] = "H"
+assert_equal(["a", "B", "c", "d", "e", "f", nil, "H"], d)
+
 assert_equal(6, d.size)
 assert_equal(6, d.length)
 
