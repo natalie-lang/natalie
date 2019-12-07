@@ -288,7 +288,6 @@ module Natalie
           func_name = next_var_name('if_body_func')
           func = []
           func << "NatObject* #{func_name}(NatEnv *env, NatObject *self) {"
-          func << "env = build_env(env);"
           (t, f) = compile_func_body(body)
           top << t
           func << f

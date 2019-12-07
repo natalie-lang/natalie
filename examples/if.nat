@@ -56,6 +56,11 @@ def assert_equal(expected, actual)
   puts actual.inspect + " should be " + expected.inspect
 end
 
+outside = 10
+if true
+  assert_equal(10, outside)
+end
+
 x = 8 if nil
 assert_equal(nil, x)
 

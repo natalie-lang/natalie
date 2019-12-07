@@ -1,5 +1,3 @@
-# skip-test
-
 def fib(n)
   if n == 0
     0
@@ -10,4 +8,4 @@ def fib(n)
   end
 end
 
-puts fib(10)
+puts fib(5)
