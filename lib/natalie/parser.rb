@@ -275,10 +275,16 @@ module Natalie
       elsif @scanner.skip(/\s*\.\s*/)
         message = method_name
         expect(message, 'method call after dot')
-        args = args_with_parens || args_without_parens || []
-        block_node = block
-        [:send, receiver, message, args.compact].tap do |node|
-          node << block_node if block_node
+        if @scanner.skip(/[ \t]*=\s*/)
+          message << '='
+          args = [expr]
+          [:send, receiver, message, args]
+        else
+          args = args_with_parens || args_without_parens || []
+          block_node = block
+          [:send, receiver, message, args.compact].tap do |node|
+            node << block_node if block_node
+          end
         end
       end
     end

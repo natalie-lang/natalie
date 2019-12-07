@@ -75,3 +75,70 @@ NatObject *Class_eqeqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **a
         return env_get(env, "false");
     }
 }
+
+NatObject *Class_define_method(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    assert(argc == 1);
+    NatObject *name_obj = args[0];
+    assert(name_obj->type == NAT_VALUE_STRING || name_obj->type == NAT_VALUE_SYMBOL);
+    assert(block);
+    char *name = name_obj->type == NAT_VALUE_STRING ? name_obj->str : name_obj->symbol;
+    nat_define_method_with_block(self, name, block);
+    return env_get(env, "nil"); // FIXME: this should return a Proc I think
+}
+
+NatObject *Class_attr_reader(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    assert(argc > 0);
+    for (size_t i=0; i<argc; i++) {
+        NatObject *name_obj = args[i];
+        assert(name_obj->type == NAT_VALUE_STRING || name_obj->type == NAT_VALUE_SYMBOL);
+        if (name_obj->type == NAT_VALUE_SYMBOL) name_obj = nat_string(env, name_obj->symbol);
+        NatEnv *block_env = build_env(env);
+        block_env->block = TRUE;
+        env_set(block_env, "name", name_obj);
+        NatBlock *block = nat_block(block_env, Class_attr_reader_block_fn);
+        nat_define_method_with_block(self, name_obj->str, block);
+    }
+    return env_get(env, "nil");
+}
+
+NatObject *Class_attr_reader_block_fn(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NatObject *name_obj = env_get(env, "name");
+    assert(name_obj);
+    NatObject *ivar_name = nat_string(env, "@");
+    nat_string_append(ivar_name, name_obj->str);
+    return ivar_get(env, self, ivar_name->str);
+}
+
+NatObject *Class_attr_writer(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    assert(argc > 0);
+    for (size_t i=0; i<argc; i++) {
+        NatObject *name_obj = args[i];
+        assert(name_obj->type == NAT_VALUE_STRING || name_obj->type == NAT_VALUE_SYMBOL);
+        if (name_obj->type == NAT_VALUE_SYMBOL) name_obj = nat_string(env, name_obj->symbol);
+        NatObject *method_name = nat_string(env, name_obj->str);
+        nat_string_append_char(method_name, '=');
+        NatEnv *block_env = build_env(env);
+        block_env->block = TRUE;
+        env_set(block_env, "name", name_obj);
+        NatBlock *block = nat_block(block_env, Class_attr_writer_block_fn);
+        nat_define_method_with_block(self, method_name->str, block);
+    }
+    return env_get(env, "nil");
+}
+
+NatObject *Class_attr_writer_block_fn(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    assert(argc == 1);
+    NatObject *val = args[0];
+    NatObject *name_obj = env_get(env, "name");
+    assert(name_obj);
+    NatObject *ivar_name = nat_string(env, "@");
+    nat_string_append(ivar_name, name_obj->str);
+    ivar_set(env, self, ivar_name->str, val);
+    return val;
+}
+
+NatObject *Class_attr_accessor(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    Class_attr_reader(env, self, argc, args, kwargs, block);
+    Class_attr_writer(env, self, argc, args, kwargs, block);
+    return env_get(env, "nil");
+}

@@ -17,6 +17,7 @@
 typedef struct NatObject NatObject;
 typedef struct NatEnv NatEnv;
 typedef struct NatBlock NatBlock;
+typedef struct NatMethod NatMethod;
 
 struct NatEnv {
     struct hashmap data;
@@ -29,6 +30,11 @@ struct NatEnv {
 struct NatBlock {
     NatObject* (*fn)(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
     NatEnv *env;
+};
+
+struct NatMethod {
+    NatObject* (*fn)(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+    NatEnv *env; // optional
 };
 
 enum NatValueType {
@@ -55,6 +61,8 @@ struct NatObject {
     enum NatValueType type;
     NatObject *class;
     int flags;
+
+    NatEnv *env;
 
     int64_t id;
 
@@ -96,16 +104,6 @@ struct NatObject {
             size_t regex_len;
             char *regex;
         };
-
-        // NAT_VALUE_PROC
-        struct {
-            NatObject* (*fn)(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
-            char *method_name;
-            NatEnv *env;
-            size_t argc;
-            NatObject **args;
-            struct hashmap kwargs;
-        };
     };
 };
 
@@ -135,6 +133,7 @@ uint64_t nat_next_object_id(NatEnv *env);
 char* int_to_string(int64_t num);
 
 void nat_define_method(NatObject *obj, char *name, NatObject* (*fn)(NatEnv*, NatObject*, size_t, NatObject**, struct hashmap*, NatBlock *block));
+void nat_define_method_with_block(NatObject *obj, char *name, NatBlock *block);
 void nat_define_singleton_method(NatObject *obj, char *name, NatObject* (*fn)(NatEnv*, NatObject*, size_t, NatObject**, struct hashmap*, NatBlock *block));
 
 NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, NatObject **args, NatBlock *block);

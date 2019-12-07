@@ -34,6 +34,9 @@ NatEnv *build_top_env() {
     nat_define_singleton_method(Class, "ancestors", Class_ancestors);
     nat_define_singleton_method(Class, "class", Kernel_class);
     nat_define_singleton_method(Class, "superclass", Class_superclass);
+    nat_define_singleton_method(Class, "attr_reader", Class_attr_reader);
+    nat_define_singleton_method(Class, "attr_writer", Class_attr_writer);
+    nat_define_singleton_method(Class, "attr_accessor", Class_attr_accessor);
     env_set(env, "Class", Class);
 
     NatObject *BasicObject = nat_alloc(env);

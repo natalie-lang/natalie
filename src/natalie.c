@@ -89,17 +89,18 @@ char *heap_string(char *str) {
 }
 
 NatObject *nat_alloc(NatEnv *env) {
-    NatObject *val = malloc(sizeof(NatObject));
-    val->flags = 0;
-    val->type = NAT_VALUE_OTHER;
-    val->included_modules_count = 0;
-    val->included_modules = NULL;
-    val->id = nat_next_object_id(env);
-    hashmap_init(&val->singleton_methods, hashmap_hash_string, hashmap_compare_string, 100);
-    hashmap_set_key_alloc_funcs(&val->singleton_methods, hashmap_alloc_key_string, NULL);
-    hashmap_init(&val->ivars, hashmap_hash_string, hashmap_compare_string, 100);
-    hashmap_set_key_alloc_funcs(&val->ivars, hashmap_alloc_key_string, NULL);
-    return val;
+    NatObject *obj = malloc(sizeof(NatObject));
+    obj->flags = 0;
+    obj->type = NAT_VALUE_OTHER;
+    obj->env = env;
+    obj->included_modules_count = 0;
+    obj->included_modules = NULL;
+    obj->id = nat_next_object_id(env);
+    hashmap_init(&obj->singleton_methods, hashmap_hash_string, hashmap_compare_string, 100);
+    hashmap_set_key_alloc_funcs(&obj->singleton_methods, hashmap_alloc_key_string, NULL);
+    hashmap_init(&obj->ivars, hashmap_hash_string, hashmap_compare_string, 100);
+    hashmap_set_key_alloc_funcs(&obj->ivars, hashmap_alloc_key_string, NULL);
+    return obj;
 }
 
 NatObject *nat_subclass(NatEnv *env, NatObject *superclass, char *name) {
@@ -222,24 +223,39 @@ char* int_to_string(int64_t num) {
 }
 
 void nat_define_method(NatObject *obj, char *name, NatObject* (*fn)(NatEnv*, NatObject*, size_t, NatObject**, struct hashmap*, NatBlock *block)) {
+    NatMethod *method = malloc(sizeof(NatMethod));
+    method->fn = fn;
     if (nat_is_main_object(obj)) {
-        hashmap_put(&obj->class->methods, name, fn);
+        hashmap_put(&obj->class->methods, name, method);
     } else {
-        hashmap_put(&obj->methods, name, fn);
+        hashmap_put(&obj->methods, name, method);
+    }
+}
+
+void nat_define_method_with_block(NatObject *obj, char *name, NatBlock *block) {
+    NatMethod *method = malloc(sizeof(NatMethod));
+    method->fn = block->fn;
+    method->env = block->env;
+    if (nat_is_main_object(obj)) {
+        hashmap_put(&obj->class->methods, name, method);
+    } else {
+        hashmap_put(&obj->methods, name, method);
     }
 }
 
 void nat_define_singleton_method(NatObject *obj, char *name, NatObject* (*fn)(NatEnv*, NatObject*, size_t, NatObject**, struct hashmap*, NatBlock *block)) {
-    hashmap_put(&obj->singleton_methods, name, fn);
+    NatMethod *method = malloc(sizeof(NatMethod));
+    method->fn = fn;
+    hashmap_put(&obj->singleton_methods, name, method);
 }
 
 NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, NatObject **args, NatBlock *block) { // FIXME: kwargs
     assert(receiver);
     if (receiver->type == NAT_VALUE_CLASS) {
         // TODO: instances can have singleton methods too
-        NatObject* (*singleton_method)(NatEnv*, NatObject*, size_t, NatObject**, struct hashmap*, NatBlock *) = hashmap_get(&receiver->singleton_methods, sym);
+        NatMethod *singleton_method = hashmap_get(&receiver->singleton_methods, sym);
         if (singleton_method) {
-            return singleton_method(env, receiver, argc, args, NULL, block);
+            return singleton_method->fn(receiver->env, receiver, argc, args, NULL, block);
         }
         NatObject *class = receiver;
         while (1) {
@@ -247,7 +263,7 @@ NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, Na
             if (class == NULL || class->type != NAT_VALUE_CLASS) break;
             singleton_method = hashmap_get(&class->singleton_methods, sym);
             if (singleton_method) {
-                return singleton_method(env, receiver, argc, args, NULL, block);
+                return singleton_method->fn(receiver->env, receiver, argc, args, NULL, block);
             }
             if (nat_is_top_class(class)) break;
         }
@@ -263,16 +279,18 @@ NatObject *nat_call_method_on_class(NatEnv *env, NatObject *class, NatObject *in
     assert(class != NULL);
     assert(class->type == NAT_VALUE_CLASS);
 
-    NatObject* (*method)(NatEnv*, NatObject*, size_t, NatObject**, struct hashmap*, NatBlock*) = hashmap_get(&class->methods, method_name);
+    NatMethod *method = hashmap_get(&class->methods, method_name);
     if (method) {
-        return method(env, self, argc, args, NULL, block);
+        NatEnv *closure_env = method->env ? method->env : class->env;
+        return method->fn(closure_env, self, argc, args, NULL, block);
     }
 
     for (size_t i=0; i<class->included_modules_count; i++) {
         NatObject *module = class->included_modules[i];
         method = hashmap_get(&module->methods, method_name);
         if (method) {
-            return method(env, self, argc, args, NULL, block);
+            NatEnv *closure_env = method->env ? method->env : module->env;
+            return method->fn(closure_env, self, argc, args, NULL, block);
         }
     }
 

@@ -108,6 +108,8 @@ describe 'Natalie::Parser' do
       expect(ast).must_equal [[:assign, 'num', [:integer, '1']]]
       ast = build_ast("message_upcase = 'hi'.upcase")
       expect(ast).must_equal [[:assign, 'message_upcase', [:send, [:string, 'hi'], 'upcase', []]]]
+      ast = build_ast("x.y = 1")
+      expect(ast).must_equal [[:send, [:send, nil, 'x', []], 'y=', [[:integer, '1']]]]
     end
 
     it 'parses method definitions' do
