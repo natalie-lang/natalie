@@ -3,6 +3,7 @@ require 'tempfile'
 module Natalie
   class Compiler
     SRC_PATH = File.expand_path('../../src', __dir__)
+    OBJ_PATH = File.expand_path('../../obj', __dir__)
     MAIN = File.read(File.join(SRC_PATH, 'main.c'))
 
     def initialize(ast = [])
@@ -13,8 +14,9 @@ module Natalie
     attr_accessor :ast
 
     def compile(out_path, shared: false)
+      check_build
       write_file
-      cmd = "gcc -g -Wall -x c #{shared ? '-fPIC -shared' : ''} -I #{SRC_PATH} -o #{out_path} #{@c_path} #{c_files_to_compile.join(' ')} 2>&1"
+      cmd = "gcc -g -Wall #{shared ? '-fPIC -shared' : ''} -I #{SRC_PATH} -o #{out_path} #{OBJ_PATH}/*.o -x c #{@c_path} 2>&1"
       out = `#{cmd}`
       File.unlink(@c_path) unless ENV['DEBUG']
       $stderr.puts out if ENV['DEBUG'] || $? != 0
@@ -23,6 +25,13 @@ module Natalie
 
     def c_files_to_compile
       Dir[File.join(SRC_PATH, '*.c')].grep_v(/main\.c$/)
+    end
+
+    def check_build
+      if Dir[File.join(OBJ_PATH, '*.o')].none?
+        puts 'please run: make build'
+        exit 1
+      end
     end
 
     def write_file
