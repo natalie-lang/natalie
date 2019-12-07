@@ -101,9 +101,8 @@ module Natalie
         var_name = next_var_name('class')
         decl = []
         superclass ||= 'Object'
-        decl << "NatObject *#{var_name};"
-        decl << "if ((#{var_name} = env_get(env, #{name.inspect}))) {"
-        decl << '} else {'
+        decl << "NatObject *#{var_name} = env_get(env, #{name.inspect});"
+        decl << "if (!#{var_name}) {"
         decl << "#{var_name} = nat_subclass(env, env_get(env, #{superclass.inspect}), #{name.inspect});"
         decl << "env_set(env, #{name.inspect}, #{var_name});"
         decl << '}'
@@ -122,9 +121,8 @@ module Natalie
         func << '}'
         var_name = next_var_name('module')
         decl = []
-        decl << "NatObject *#{var_name};"
-        decl << "if ((#{var_name} = env_get(env, #{name.inspect}))) {"
-        decl << '} else {'
+        decl << "NatObject *#{var_name} = env_get(env, #{name.inspect});"
+        decl << "if (!#{var_name}) {"
         decl << "#{var_name} = nat_module(env, #{name.inspect});"
         decl << "env_set(env, #{name.inspect}, #{var_name});"
         decl << '}'
@@ -132,7 +130,7 @@ module Natalie
         decl << "NatObject *#{result_name} = #{func_name}(env, #{var_name}, 0, NULL, NULL, NULL);"
         [top + func, decl, result_name]
       when :def
-        (_, name, args, kwargs, body) = expr
+        (_, owner, name, args, kwargs, body) = expr
         func_name = next_var_name('func')
         top = []
         func = []
@@ -149,8 +147,13 @@ module Natalie
         func << '}'
         method_name = next_var_name('method')
         decl = []
-        decl << "nat_define_method(self, #{name.inspect}, #{func_name});"
-        decl << "NatObject *#{method_name} = nat_string(env, #{name.inspect});"
+        if owner
+          owner_ref = owner == 'self' ? owner : "env_get(env, #{owner.inspect})"
+          decl << "nat_define_singleton_method(#{owner_ref}, #{name.inspect}, #{func_name});"
+        else
+          decl << "nat_define_method(self, #{name.inspect}, #{func_name});"
+        end
+        decl << "NatObject *#{method_name} = nat_symbol(env, #{name.inspect});"
         [top + func, decl, method_name]
       when :integer
         var_name = next_var_name('integer')

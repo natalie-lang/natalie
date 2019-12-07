@@ -114,19 +114,21 @@ describe 'Natalie::Parser' do
 
     it 'parses method definitions' do
       ast = build_ast("def foo; end")
-      expect(ast).must_equal [[:def, 'foo', [], {}, []]]
+      expect(ast).must_equal [[:def, nil, 'foo', [], {}, []]]
       ast = build_ast("def foo; 'foo'; end")
-      expect(ast).must_equal [[:def, 'foo', [], {}, [[:string, 'foo']]]]
+      expect(ast).must_equal [[:def, nil, 'foo', [], {}, [[:string, 'foo']]]]
       ast = build_ast("def foo \n 'foo'\n 2 \n 'bar'\n end")
       expect(ast.first.first).must_equal :def
       ast = build_ast("def foo(x); x; end")
-      expect(ast).must_equal [[:def, 'foo', ['x'], {}, [[:send, nil, 'x', []]]]]
+      expect(ast).must_equal [[:def, nil, 'foo', ['x'], {}, [[:send, nil, 'x', []]]]]
       ast = build_ast("def foo(x, y); x; end")
-      expect(ast).must_equal [[:def, 'foo', ['x', 'y'], {}, [[:send, nil, 'x', []]]]]
+      expect(ast).must_equal [[:def, nil, 'foo', ['x', 'y'], {}, [[:send, nil, 'x', []]]]]
       ast = build_ast("def foo x  ; x; end")
-      expect(ast).must_equal [[:def, 'foo', ['x'], {}, [[:send, nil, 'x', []]]]]
+      expect(ast).must_equal [[:def, nil, 'foo', ['x'], {}, [[:send, nil, 'x', []]]]]
       ast = build_ast("def foo   x, y; x; end")
-      expect(ast).must_equal [[:def, 'foo', ['x', 'y'], {}, [[:send, nil, 'x', []]]]]
+      expect(ast).must_equal [[:def, nil, 'foo', ['x', 'y'], {}, [[:send, nil, 'x', []]]]]
+      ast = build_ast("def self.foo; end")
+      expect(ast).must_equal [[:def, 'self', 'foo', [], {}, []]]
     end
 
     it 'parses class definitions' do
@@ -135,7 +137,7 @@ describe 'Natalie::Parser' do
       ast = build_ast("class Foo < Bar; end")
       expect(ast).must_equal [[:class, 'Foo', 'Bar', []]]
       ast = build_ast("class Foo; def foo; end; end")
-      expect(ast).must_equal [[:class, 'Foo', nil, [[:def, 'foo', [], {}, []]]]]
+      expect(ast).must_equal [[:class, 'Foo', nil, [[:def, nil, 'foo', [], {}, []]]]]
       ast = build_ast("class FooBar; x = 1; end")
       expect(ast).must_equal [[:class, 'FooBar', nil, [[:assign, 'x', [:integer, '1']]]]]
     end
@@ -164,7 +166,7 @@ describe 'Natalie::Parser' do
       ast = build_ast('module M; end')
       expect(ast).must_equal [[:module, 'M', []]]
       ast = build_ast('module M; def m; "m"; end; end')
-      expect(ast).must_equal [[:module, 'M', [[:def, 'm', [], {}, [[:string, 'm']]]]]]
+      expect(ast).must_equal [[:module, 'M', [[:def, nil, 'm', [], {}, [[:string, 'm']]]]]]
     end
 
     it 'ignores comments' do
@@ -191,7 +193,7 @@ describe 'Natalie::Parser' do
       ast = build_ast("module Bar # foo\n end")
       expect(ast).must_equal [[:module, 'Bar', []]]
       ast = build_ast("def bar # foo\n end")
-      expect(ast).must_equal [[:def, 'bar', [], {}, []]]
+      expect(ast).must_equal [[:def, nil, 'bar', [], {}, []]]
     end
 
     it 'parses symbols' do

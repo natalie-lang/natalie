@@ -72,3 +72,21 @@ end
 block_test2 do
   puts 'no args'
 end
+
+class Foo
+  def foo
+    'instance method foo'
+  end
+
+  def self.foo
+    'class method foo'
+  end
+
+  def Foo.foo2
+    'class method foo2'
+  end
+end
+
+assert_equal('instance method foo', Foo.new.foo)
+assert_equal('class method foo', Foo.foo)
+assert_equal('class method foo2', Foo.foo2)

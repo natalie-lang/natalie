@@ -181,7 +181,9 @@ module Natalie
 
     def method
       if @scanner.scan(/def[ ]+/)
-        name = method_name
+        @scanner.scan(/(#{IDENTIFIER}\.)?(#{IDENTIFIER}[\!\?=]?|==|\!=)/)
+        owner = @scanner[1] && @scanner[1].chop
+        name = @scanner[2]
         expect(name, 'method name after def keyword')
         args = []
         unless @scanner.skip(END_OF_EXPRESSION)
@@ -195,7 +197,7 @@ module Natalie
           expect(@scanner.skip(END_OF_EXPRESSION), '; or newline')
         end
         @scanner.skip(/\s*end/)
-        [:def, name, args, {}, body]
+        [:def, owner, name, args, {}, body]
       end
     end
 
