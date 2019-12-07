@@ -225,6 +225,7 @@ char* int_to_string(int64_t num) {
 void nat_define_method(NatObject *obj, char *name, NatObject* (*fn)(NatEnv*, NatObject*, size_t, NatObject**, struct hashmap*, NatBlock *block)) {
     NatMethod *method = malloc(sizeof(NatMethod));
     method->fn = fn;
+    method->env = NULL;
     if (nat_is_main_object(obj)) {
         hashmap_put(&obj->class->methods, name, method);
     } else {
@@ -246,6 +247,7 @@ void nat_define_method_with_block(NatObject *obj, char *name, NatBlock *block) {
 void nat_define_singleton_method(NatObject *obj, char *name, NatObject* (*fn)(NatEnv*, NatObject*, size_t, NatObject**, struct hashmap*, NatBlock *block)) {
     NatMethod *method = malloc(sizeof(NatMethod));
     method->fn = fn;
+    method->env = NULL;
     hashmap_put(&obj->singleton_methods, name, method);
 }
 
