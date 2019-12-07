@@ -92,7 +92,7 @@ NatObject *nat_alloc(NatEnv *env) {
     NatObject *obj = malloc(sizeof(NatObject));
     obj->flags = 0;
     obj->type = NAT_VALUE_OTHER;
-    obj->env = env;
+    obj->env = NULL;
     obj->included_modules_count = 0;
     obj->included_modules = NULL;
     obj->id = nat_next_object_id(env);
@@ -109,6 +109,7 @@ NatObject *nat_subclass(NatEnv *env, NatObject *superclass, char *name) {
     val->class = superclass->class;
     val->class_name = name ? heap_string(name) : NULL;
     val->superclass = superclass;
+    val->env = build_env(env);
     hashmap_init(&val->methods, hashmap_hash_string, hashmap_compare_string, 100);
     hashmap_set_key_alloc_funcs(&val->methods, hashmap_alloc_key_string, NULL);
     return val;
@@ -119,6 +120,7 @@ NatObject *nat_module(NatEnv *env, char *name) {
     val->type = NAT_VALUE_MODULE;
     val->class = env_get(env, "Module");
     val->class_name = name ? heap_string(name) : NULL;
+    val->env = build_env(env);
     hashmap_init(&val->methods, hashmap_hash_string, hashmap_compare_string, 100);
     hashmap_set_key_alloc_funcs(&val->methods, hashmap_alloc_key_string, NULL);
     return val;

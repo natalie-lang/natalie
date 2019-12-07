@@ -151,7 +151,7 @@ module Natalie
         decl << "env_set(env, #{name.inspect}, #{var_name});"
         decl << '}'
         result_name = next_var_name('class_body_result')
-        decl << "NatObject *#{result_name} = #{func_name}(env, #{var_name}, 0, NULL, NULL, NULL);"
+        decl << "NatObject *#{result_name} = #{func_name}(#{var_name}->env, #{var_name}, 0, NULL, NULL, NULL);"
         [top + func, decl, result_name]
       when :module
         (_, name, body) = expr
@@ -171,7 +171,7 @@ module Natalie
         decl << "env_set(env, #{name.inspect}, #{var_name});"
         decl << '}'
         result_name = next_var_name('module_body_result')
-        decl << "NatObject *#{result_name} = #{func_name}(env, #{var_name}, 0, NULL, NULL, NULL);"
+        decl << "NatObject *#{result_name} = #{func_name}(#{var_name}->env, #{var_name}, 0, NULL, NULL, NULL);"
         [top + func, decl, result_name]
       when :def
         (_, owner, name, args, kwargs, body) = expr

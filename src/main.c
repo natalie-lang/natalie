@@ -21,6 +21,7 @@ NatEnv *build_top_env() {
     Class->type = NAT_VALUE_CLASS;
     Class->class_name = heap_string("Class");
     Class->class = Class;
+    Class->env = build_env(env);
     hashmap_init(&Class->methods, hashmap_hash_string, hashmap_compare_string, 100);
     hashmap_set_key_alloc_funcs(&Class->methods, hashmap_alloc_key_string, NULL);
     nat_define_singleton_method(Class, "new", Class_new);
@@ -45,6 +46,7 @@ NatEnv *build_top_env() {
     BasicObject->class_name = heap_string("BasicObject");
     BasicObject->class = Class;
     BasicObject->singleton_methods = Class->singleton_methods;
+    BasicObject->env = build_env(env);
     hashmap_init(&BasicObject->methods, hashmap_hash_string, hashmap_compare_string, 100);
     hashmap_set_key_alloc_funcs(&BasicObject->methods, hashmap_alloc_key_string, NULL);
     nat_define_method(BasicObject, "!", BasicObject_not);
