@@ -17,3 +17,7 @@ assert_equal(nil, d[100])
 
 assert_equal(6, d.size)
 assert_equal(6, d.length)
+
+[1, "a", :b].each do |i|
+  p i
+end

@@ -81,3 +81,13 @@ NatObject *Array_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
     }
     return env_get(env, "true");
 }
+
+NatObject *Array_each(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    assert(argc == 0);
+    assert(block);
+    for (size_t i=0; i<self->ary_len; i++) {
+        NatObject *obj = self->ary[i];
+        block->fn(block->env, self, 1, &obj, NULL, NULL);
+    }
+    return self;
+}
