@@ -14,7 +14,7 @@ $(OBJ)/%.o: $(SRC)/%.c
 clean:
 	rm -f $(OBJ)/*.o
 
-test:
+test: build
 	ruby test/all.rb
 
 cloc:

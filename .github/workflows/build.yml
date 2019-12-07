@@ -12,4 +12,4 @@ jobs:
     - name: set environment
       run: export LC_ALL="C.UTF-8"
     - name: test
-      run: PATH="/usr/local/bin:/usr/bin:/bin" rake test
+      run: PATH="/usr/local/bin:/usr/bin:/bin" make test
