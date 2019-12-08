@@ -155,6 +155,8 @@ NatEnv *build_top_env() {
     nat_define_method(Array, "==", Array_eqeq);
     nat_define_method(Array, "===", Array_eqeq);
     nat_define_method(Array, "each", Array_each);
+    nat_define_method(Array, "first", Array_first);
+    nat_define_method(Array, "last", Array_last);
     env_set(env, "Array", Array);
 
     return env;

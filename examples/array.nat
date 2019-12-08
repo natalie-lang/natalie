@@ -26,3 +26,9 @@ assert_equal(6, d.length)
 [1, "a", :b].each do |i|
   p i
 end
+
+e = [1, 2, 3]
+assert_equal(1, e.first)
+assert_equal(3, e.last)
+assert_equal(nil, [].first)
+assert_equal(nil, [].last)

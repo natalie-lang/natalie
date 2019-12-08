@@ -110,3 +110,23 @@ NatObject *Array_each(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
     }
     return self;
 }
+
+NatObject *Array_first(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    assert(argc == 0); // TODO: accept integer and return array
+    assert(self->type == NAT_VALUE_ARRAY);
+    if (self->ary_len > 0) {
+        return self->ary[0];
+    } else {
+        return env_get(env, "nil");
+    }
+}
+
+NatObject *Array_last(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    assert(argc == 0); // TODO: accept integer and return array
+    assert(self->type == NAT_VALUE_ARRAY);
+    if (self->ary_len > 0) {
+        return self->ary[self->ary_len - 1];
+    } else {
+        return env_get(env, "nil");
+    }
+}
