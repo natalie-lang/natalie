@@ -6,16 +6,51 @@ NUM = 1
 
 class Foo
   NUM = 2
+
+  def self.num
+    NUM
+  end
+
+  def num
+    NUM
+  end
 end
 
 class Bar < Foo
   NUM = 3
+
+  def self.num
+    NUM
+  end
+
+  def num
+    NUM
+  end
 end
 
 class Baz < Bar
+  def self.num
+    NUM
+  end
+
+  def num
+    NUM
+  end
 end
 
 assert_equal(1, NUM)
+
 assert_equal(2, Foo::NUM)
+assert_equal(2, Foo::num)
+assert_equal(2, Foo.num)
+assert_equal(2, Foo.new.num)
+
 assert_equal(3, Bar::NUM)
+assert_equal(3, Bar::num)
+assert_equal(3, Bar.num)
+assert_equal(3, Bar.new.num)
+
 assert_equal(3, Baz::NUM)
+assert_equal(3, Baz::num)
+assert_equal(3, Baz.num)
+assert_equal(3, Baz.new.num)
