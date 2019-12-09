@@ -272,7 +272,7 @@ module Natalie
         else
           (t, d, e) = compile_expr(receiver || 'self')
           top << t; decl << d
-          if receiver.nil?
+          if receiver.nil? || name =~ /^[A-Z]/
             decl << "NatObject *#{result_name} = nat_lookup_or_send(env, #{e}, #{name.inspect}, #{args.size}, #{args_name}, #{block_name});"
           else
             decl << "NatObject *#{result_name} = nat_send(env, #{e}, #{name.inspect}, #{args.size}, #{args_name}, #{block_name});"

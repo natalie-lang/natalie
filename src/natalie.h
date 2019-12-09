@@ -107,6 +107,9 @@ struct NatObject {
     };
 };
 
+int is_constant_name(char *name);
+int is_special_name(char *name);
+
 NatEnv *env_find(NatEnv *env, char *key);
 NatObject *env_get(NatEnv *env, char *key);
 NatObject *env_set(NatEnv *env, char *key, NatObject *val);

@@ -1,6 +1,14 @@
 #include "natalie.h"
 #include <ctype.h>
 
+int is_constant_name(char *name) {
+    return strlen(name) > 0 && isupper(name[0]);
+}
+
+int is_special_name(char *name) {
+    return strcmp(name, "nil") == 0 || strcmp(name, "true") == 0 || strcmp(name, "false") == 0;
+}
+
 NatEnv *env_find(NatEnv *env, char *key) {
     if (hashmap_get(&env->data, key)) {
         return env;
@@ -12,7 +20,7 @@ NatEnv *env_find(NatEnv *env, char *key) {
 }
 
 NatObject *env_get(NatEnv *env, char *key) {
-    if (env->block || (strlen(key) > 0 && (isupper(key[0]) || strcmp(key, "nil") == 0 || strcmp(key, "true") == 0 || strcmp(key, "false") == 0))) {
+    if (env->block || is_constant_name(key) || is_special_name(key)) {
         env = env_find(env, key);
         if (!env) {
             return NULL;
@@ -109,7 +117,7 @@ NatObject *nat_subclass(NatEnv *env, NatObject *superclass, char *name) {
     val->class = superclass->class;
     val->class_name = name ? heap_string(name) : NULL;
     val->superclass = superclass;
-    val->env = build_env(env);
+    val->env = build_env(superclass->env);
     hashmap_init(&val->methods, hashmap_hash_string, hashmap_compare_string, 100);
     hashmap_set_key_alloc_funcs(&val->methods, hashmap_alloc_key_string, NULL);
     return val;
@@ -316,12 +324,15 @@ NatObject *nat_lookup_or_send(NatEnv *env, NatObject *receiver, char *sym, size_
     if (argc > 0) {
         return nat_send(env, receiver, sym, argc, args, block);
     } else {
-        NatObject *obj = env_get(env, sym);
-        if (obj) {
-            return obj;
+        NatObject *obj;
+        if (receiver->env && is_constant_name(sym)) {
+            obj = env_get(receiver->env, sym);
+            if (obj) return obj;
         } else {
-            return nat_send(env, receiver, sym, argc, args, block);
+            obj = env_get(env, sym);
+            if (obj) return obj;
         }
+        return nat_send(env, receiver, sym, argc, args, block);
     }
 }
 

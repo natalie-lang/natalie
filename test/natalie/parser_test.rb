@@ -341,5 +341,14 @@ describe 'Natalie::Parser' do
       ast = build_ast("a.foo('x', 'y') {\n1\n2\n}")
       expect(ast).must_equal [[:send, [:send, nil, 'a', []], 'foo', [[:string, 'x'], [:string, 'y']], [:block, [], [[:integer, '1'], [:integer, '2']]]]]
     end
+
+    it 'parses namespaced constants' do
+      ast = build_ast('NUM')
+      expect(ast).must_equal [[:send, nil, 'NUM', []]]
+      ast = build_ast('Foo::NUM')
+      expect(ast).must_equal [[:send, [:send, nil, 'Foo', []], 'NUM', []]]
+      ast = build_ast('Foo::num')
+      expect(ast).must_equal [[:send, [:send, nil, 'Foo', []], 'num', []]]
+    end
   end
 end

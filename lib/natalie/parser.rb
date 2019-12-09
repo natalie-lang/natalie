@@ -279,7 +279,7 @@ module Natalie
         else
           [:send, receiver, '[]', subscript.last]
         end
-      elsif @scanner.skip(/\s*\.\s*/)
+      elsif @scanner.skip(/\s*\.\s*|::/)
         message = method_name
         expect(message, 'method call after dot')
         if @scanner.skip(/[ \t]*=\s*/)
