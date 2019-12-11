@@ -1,3 +1,5 @@
+#include <setjmp.h>
+
 #include "natalie.h"
 #include "nat_array.h"
 #include "nat_basic_object.h"
@@ -159,6 +161,15 @@ NatEnv *build_top_env() {
     nat_define_method(Array, "last", Array_last);
     env_set(env, "Array", Array);
 
+    NatObject *Exception = nat_subclass(env, Object, "Exception");
+    env_set(env, "Exception", Exception);
+    NatObject *StandardError = nat_subclass(env, Exception, "StandardError");
+    env_set(env, "StandardError", StandardError);
+    NatObject *NameError = nat_subclass(env, StandardError, "NameError");
+    env_set(env, "NameError", NameError);
+    NatObject *ArgumentError = nat_subclass(env, StandardError, "ArgumentError");
+    env_set(env, "ArgumentError", ArgumentError);
+
     return env;
 }
 
@@ -167,8 +178,16 @@ NatEnv *build_top_env() {
 NatObject *EVAL(NatEnv *env) {
     NatObject *self = env_get(env, "self");
     UNUSED(self); // maybe unused
-    /*DECL*/
-    /*BODY*/
+    if (!setjmp(*env->jump_buf)) {
+        /*DECL*/
+        /*BODY*/
+    } else {
+        NatObject *exception = env->exception;
+        assert(exception);
+        assert(exception->type == NAT_VALUE_EXCEPTION);
+        fprintf(stderr, "%s\n", exception->message);
+        return env_get(env, "nil");
+    }
 }
 
 int main(void) {

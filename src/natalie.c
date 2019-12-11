@@ -1,5 +1,6 @@
 #include "natalie.h"
 #include <ctype.h>
+#include <stdarg.h>
 
 int is_constant_name(char *name) {
     return strlen(name) > 0 && isupper(name[0]);
@@ -47,6 +48,7 @@ NatEnv *build_env(NatEnv *outer) {
     if (outer) {
         env->symbols = outer->symbols;
         env->next_object_id = outer->next_object_id;
+        env->jump_buf = outer->jump_buf;
     } else {
         struct hashmap *symbol_table = malloc(sizeof(struct hashmap));
         hashmap_init(symbol_table, hashmap_hash_string, hashmap_compare_string, 100);
@@ -54,15 +56,32 @@ NatEnv *build_env(NatEnv *outer) {
         env->symbols = symbol_table;
         env->next_object_id = malloc(sizeof(uint64_t));
         *env->next_object_id = 1;
+        env->jump_buf = malloc(sizeof(jmp_buf));
     }
     hashmap_init(&env->data, hashmap_hash_string, hashmap_compare_string, 100);
     hashmap_set_key_alloc_funcs(&env->data, hashmap_alloc_key_string, NULL);
     return env;
 }
 
+void env_set_exception(NatEnv *env, NatObject *exception) {
+    while (env->outer) {
+        env = env->outer;
+    }
+    env->exception = exception;
+}
+
+NatObject* nat_raise(NatEnv *env, NatObject *exception) {
+    env_set_exception(env, exception);
+    longjmp(*env->jump_buf, 1);
+    return exception;
+}
+
 NatObject *ivar_get(NatEnv *env, NatObject *obj, char *name) {
     assert(strlen(name) > 0);
-    assert(name[0] == '@');
+    if(name[0] != '@') {
+        NatObject *message = nat_sprintf(env, "`%s' is not allowed as an instance variable name", name);
+        return nat_raise(env, nat_exception(env, "NameError", message->str));
+    }
     NatObject *val = hashmap_get(&obj->ivars, name);
     if (val) {
         return val;
@@ -73,7 +92,10 @@ NatObject *ivar_get(NatEnv *env, NatObject *obj, char *name) {
 
 void ivar_set(NatEnv *env, NatObject *obj, char *name, NatObject *val) {
     assert(strlen(name) > 0);
-    assert(name[0] == '@');
+    if(name[0] != '@') {
+        NatObject *message = nat_sprintf(env, "`%s' is not allowed as an instance variable name", name);
+        nat_raise(env, nat_exception(env, "NameError", message->str));
+    }
     hashmap_remove(&obj->ivars, name);
     hashmap_put(&obj->ivars, name, val);
 }
@@ -184,6 +206,13 @@ NatObject *nat_symbol(NatEnv *env, char *name) {
     }
 }
 
+NatObject *nat_exception(NatEnv *env, char *klass, char *message) {
+    NatObject *obj = nat_new(env, env_get(env, klass), 0, NULL, NULL, NULL);
+    obj->type = NAT_VALUE_EXCEPTION;
+    obj->message = message;
+    return obj;
+}
+
 NatObject *nat_array(NatEnv *env) {
     NatObject *obj = nat_new(env, env_get(env, "Array"), 0, NULL, NULL, NULL);
     obj->type = NAT_VALUE_ARRAY;
@@ -285,8 +314,8 @@ NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, Na
             }
             if (nat_is_top_class(class)) break;
         }
-        fprintf(stderr, "Error: undefined method \"%s\" for %s\n", sym, receiver->class_name);
-        abort();
+        NatObject *message = nat_sprintf(env, "undefined local variable or method `%s' for %s", sym, receiver->class_name);
+        return nat_raise(env, nat_exception(env, "NameError", message->str));
     } else {
         NatObject *class = receiver->class;
         return nat_call_method_on_class(env, class, class, sym, receiver, argc, args, NULL, block); // FIXME: kwargs
@@ -313,8 +342,8 @@ NatObject *nat_call_method_on_class(NatEnv *env, NatObject *class, NatObject *in
     }
 
     if (nat_is_top_class(class)) {
-        fprintf(stderr, "Error: undefined method \"%s\" for %s\n", method_name, instance_class->class_name);
-        abort();
+        NatObject *message = nat_sprintf(env, "undefined local variable or method `%s' for %s", method_name, instance_class->class_name);
+        return nat_raise(env, nat_exception(env, "NameError", message->str));
     }
 
     return nat_call_method_on_class(env, class->superclass, instance_class, method_name, self, argc, args, kwargs, block);
@@ -389,4 +418,48 @@ void nat_string_append_char(NatObject *str, char c) {
     str->str[total_len - 1] = c;
     str->str[total_len] = 0;
     str->str_len = total_len;
+}
+
+NatObject* nat_sprintf(NatEnv *env, char *format, ...) {
+    NatObject *out = nat_string(env, "");
+    char c, c2;
+    size_t len = strlen(format);
+    va_list ap;
+    va_start(ap, format);
+    va_end(ap);
+    for (size_t i=0; i<len; i++) {
+        c = format[i];
+        if (c == '%') {
+            c2 = format[++i];
+            switch (c2) {
+                case 's':
+                    nat_string_append(out, va_arg(ap, char*));
+                    break;
+                case 'i':
+                case 'd':
+                    nat_string_append(out, int_to_string(va_arg(ap, int)));
+                    break;
+                /*
+                   case 'S':
+                   nat_string_append_nat_string(out, va_arg(ap, NatObject*));
+                   break;
+                case 'z':
+                    mal_string_append(out, pr_str(mal_number(va_arg(ap, size_t)), 1));
+                    break;
+                case 'p':
+                    mal_string_append(out, pr_str(mal_number((size_t)va_arg(ap, NatObject*)), 1));
+                    break;
+                   */
+                case '%':
+                    nat_string_append_char(out, '%');
+                    break;
+                default:
+                    fprintf(stderr, "Unknown format specifier: %%%c", c2);
+                    abort();
+            }
+        } else {
+            nat_string_append_char(out, c);
+        }
+    }
+    return out;
 }

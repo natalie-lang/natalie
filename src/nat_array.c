@@ -17,7 +17,10 @@ NatObject *Array_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **
 }
 
 NatObject *Array_ltlt(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
-    assert(argc == 1);
+    if(argc != 1) {
+        NatObject *message = nat_sprintf(env, "wrong number of arguments (given %d, expected %d)", argc, 1);
+        return nat_raise(env, nat_exception(env, "ArgumentError", message->str));
+    }
     NatObject *arg = args[0];
     nat_array_push(self, arg);
     return self;

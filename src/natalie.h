@@ -3,10 +3,12 @@
 
 #include <assert.h>
 #include <inttypes.h>
+#include <setjmp.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "hashmap.h"
 
 #define UNUSED(x) (void)(x)
@@ -25,6 +27,8 @@ struct NatEnv {
     uint64_t *next_object_id;
     NatEnv *outer;
     int block;
+    jmp_buf *jump_buf;
+    NatObject *exception;
 };
 
 struct NatBlock {
@@ -40,6 +44,7 @@ struct NatMethod {
 enum NatValueType {
     NAT_VALUE_ARRAY,
     NAT_VALUE_CLASS,
+    NAT_VALUE_EXCEPTION,
     NAT_VALUE_FALSE,
     NAT_VALUE_INTEGER,
     NAT_VALUE_MODULE,
@@ -104,6 +109,9 @@ struct NatObject {
             size_t regex_len;
             char *regex;
         };
+
+        // NAT_VALUE_EXCEPTION
+        char *message;
     };
 };
 
@@ -114,6 +122,8 @@ NatEnv *env_find(NatEnv *env, char *key);
 NatObject *env_get(NatEnv *env, char *key);
 NatObject *env_set(NatEnv *env, char *key, NatObject *val);
 NatEnv *build_env(NatEnv *outer);
+void env_set_exception(NatEnv *env, NatObject *exception);
+NatObject* nat_raise(NatEnv *env, NatObject *exception);
 
 NatObject *ivar_get(NatEnv *env, NatObject *obj, char *name);
 void ivar_set(NatEnv *env, NatObject *obj, char *name, NatObject *val);
@@ -151,8 +161,11 @@ void nat_grow_string(NatObject *obj, size_t capacity);
 void nat_grow_string_at_least(NatObject *obj, size_t min_capacity);
 void nat_string_append(NatObject *str, char *s);
 void nat_string_append_char(NatObject *str, char c);
+NatObject* nat_sprintf(NatEnv *env, char *format, ...);
 
 NatObject *nat_symbol(NatEnv *env, char *name);
+
+NatObject *nat_exception(NatEnv *env, char *klass, char *message);
 
 #define NAT_ARRAY_INIT_SIZE 10
 #define NAT_ARRAY_GROW_FACTOR 2
