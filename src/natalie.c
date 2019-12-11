@@ -70,7 +70,12 @@ void env_set_exception(NatEnv *env, NatObject *exception) {
     env->exception = exception;
 }
 
-NatObject* nat_raise(NatEnv *env, NatObject *exception) {
+NatObject* nat_raise(NatEnv *env, char *klass, char *message_format, ...) {
+    va_list args;
+    va_start(args, message_format);
+    NatObject *message = nat_vsprintf(env, message_format, args);
+    va_end(args);
+    NatObject *exception = nat_exception(env, klass, message->str);
     env_set_exception(env, exception);
     longjmp(*env->jump_buf, 1);
     return exception;
@@ -79,8 +84,7 @@ NatObject* nat_raise(NatEnv *env, NatObject *exception) {
 NatObject *ivar_get(NatEnv *env, NatObject *obj, char *name) {
     assert(strlen(name) > 0);
     if(name[0] != '@') {
-        NatObject *message = nat_sprintf(env, "`%s' is not allowed as an instance variable name", name);
-        return nat_raise(env, nat_exception(env, "NameError", message->str));
+        NAT_RAISE(env, "NameError", "`%s' is not allowed as an instance variable name", name);
     }
     NatObject *val = hashmap_get(&obj->ivars, name);
     if (val) {
@@ -93,8 +97,7 @@ NatObject *ivar_get(NatEnv *env, NatObject *obj, char *name) {
 void ivar_set(NatEnv *env, NatObject *obj, char *name, NatObject *val) {
     assert(strlen(name) > 0);
     if(name[0] != '@') {
-        NatObject *message = nat_sprintf(env, "`%s' is not allowed as an instance variable name", name);
-        nat_raise(env, nat_exception(env, "NameError", message->str));
+        NAT_RAISE(env, "NameError", "`%s' is not allowed as an instance variable name", name);
     }
     hashmap_remove(&obj->ivars, name);
     hashmap_put(&obj->ivars, name, val);
@@ -314,8 +317,7 @@ NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, Na
             }
             if (nat_is_top_class(class)) break;
         }
-        NatObject *message = nat_sprintf(env, "undefined local variable or method `%s' for %s", sym, receiver->class_name);
-        return nat_raise(env, nat_exception(env, "NameError", message->str));
+        NAT_RAISE(env, "NameError", "undefined local variable or method `%s' for %s", sym, receiver->class_name);
     } else {
         NatObject *class = receiver->class;
         return nat_call_method_on_class(env, class, class, sym, receiver, argc, args, NULL, block); // FIXME: kwargs
@@ -342,8 +344,7 @@ NatObject *nat_call_method_on_class(NatEnv *env, NatObject *class, NatObject *in
     }
 
     if (nat_is_top_class(class)) {
-        NatObject *message = nat_sprintf(env, "undefined local variable or method `%s' for %s", method_name, instance_class->class_name);
-        return nat_raise(env, nat_exception(env, "NameError", message->str));
+        NAT_RAISE(env, "NameError", "undefined local variable or method `%s' for %s", method_name, instance_class->class_name);
     }
 
     return nat_call_method_on_class(env, class->superclass, instance_class, method_name, self, argc, args, kwargs, block);
@@ -421,33 +422,38 @@ void nat_string_append_char(NatObject *str, char c) {
 }
 
 NatObject* nat_sprintf(NatEnv *env, char *format, ...) {
+    va_list args;
+    va_start(args, format);
+    NatObject *out = nat_vsprintf(env, format, args);
+    va_end(args);
+    return out;
+}
+
+NatObject* nat_vsprintf(NatEnv *env, char *format, va_list args) {
     NatObject *out = nat_string(env, "");
     char c, c2;
     size_t len = strlen(format);
-    va_list ap;
-    va_start(ap, format);
-    va_end(ap);
     for (size_t i=0; i<len; i++) {
         c = format[i];
         if (c == '%') {
             c2 = format[++i];
             switch (c2) {
                 case 's':
-                    nat_string_append(out, va_arg(ap, char*));
+                    nat_string_append(out, va_arg(args, char*));
                     break;
                 case 'i':
                 case 'd':
-                    nat_string_append(out, int_to_string(va_arg(ap, int)));
+                    nat_string_append(out, int_to_string(va_arg(args, int)));
                     break;
                 /*
                    case 'S':
-                   nat_string_append_nat_string(out, va_arg(ap, NatObject*));
+                   nat_string_append_nat_string(out, va_arg(args, NatObject*));
                    break;
                 case 'z':
-                    mal_string_append(out, pr_str(mal_number(va_arg(ap, size_t)), 1));
+                    mal_string_append(out, pr_str(mal_number(va_arg(args, size_t)), 1));
                     break;
                 case 'p':
-                    mal_string_append(out, pr_str(mal_number((size_t)va_arg(ap, NatObject*)), 1));
+                    mal_string_append(out, pr_str(mal_number((size_t)va_arg(args, NatObject*)), 1));
                     break;
                    */
                 case '%':

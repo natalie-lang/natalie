@@ -2,6 +2,7 @@
 #include "nat_array.h"
 
 NatObject *Array_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(0);
     assert(self->type == NAT_VALUE_ARRAY);
     NatObject *out = nat_string(env, "[");
     for (size_t i=0; i<self->ary_len; i++) {
@@ -17,17 +18,14 @@ NatObject *Array_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **
 }
 
 NatObject *Array_ltlt(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
-    if(argc != 1) {
-        NatObject *message = nat_sprintf(env, "wrong number of arguments (given %d, expected %d)", argc, 1);
-        return nat_raise(env, nat_exception(env, "ArgumentError", message->str));
-    }
+    NAT_ASSERT_ARGC(1);
     NatObject *arg = args[0];
     nat_array_push(self, arg);
     return self;
 }
 
 NatObject *Array_add(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
-    assert(argc == 1);
+    NAT_ASSERT_ARGC(1);
     assert(self->type == NAT_VALUE_ARRAY);
     NatObject *arg = args[0];
     assert(arg->type == NAT_VALUE_ARRAY);
@@ -40,7 +38,7 @@ NatObject *Array_add(NatEnv *env, NatObject *self, size_t argc, NatObject **args
 }
 
 NatObject *Array_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
-    assert(argc == 1 || argc == 2);
+    NAT_ASSERT_ARGC(1, 2);
     assert(self->type == NAT_VALUE_ARRAY);
     NatObject *index = args[0];
     assert(index->type == NAT_VALUE_INTEGER); // TODO: accept a range
@@ -65,7 +63,7 @@ NatObject *Array_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **args
 }
 
 NatObject *Array_refeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
-    assert(argc == 2);
+    NAT_ASSERT_ARGC(2);
     assert(self->type == NAT_VALUE_ARRAY);
     NatObject *index = args[0];
     assert(index->type == NAT_VALUE_INTEGER); // TODO: accept a range
@@ -85,13 +83,13 @@ NatObject *Array_refeq(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
 
 NatObject *Array_size(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     assert(self->type == NAT_VALUE_ARRAY);
-    assert(argc == 0);
+    NAT_ASSERT_ARGC(0);
     return nat_integer(env, self->ary_len);
 }
 
 NatObject *Array_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     assert(self->type == NAT_VALUE_ARRAY);
-    assert(argc == 1);
+    NAT_ASSERT_ARGC(1);
     NatObject *arg = args[0];
     if (arg->type != NAT_VALUE_ARRAY) return env_get(env, "false");
     if (self->ary_len != arg->ary_len) return env_get(env, "false");
@@ -105,7 +103,7 @@ NatObject *Array_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
 }
 
 NatObject *Array_each(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
-    assert(argc == 0);
+    NAT_ASSERT_ARGC(0);
     assert(block);
     for (size_t i=0; i<self->ary_len; i++) {
         NatObject *obj = self->ary[i];
@@ -115,7 +113,7 @@ NatObject *Array_each(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
 }
 
 NatObject *Array_first(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
-    assert(argc == 0); // TODO: accept integer and return array
+    NAT_ASSERT_ARGC(0); // TODO: accept integer and return array
     assert(self->type == NAT_VALUE_ARRAY);
     if (self->ary_len > 0) {
         return self->ary[0];
@@ -125,7 +123,7 @@ NatObject *Array_first(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
 }
 
 NatObject *Array_last(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
-    assert(argc == 0); // TODO: accept integer and return array
+    NAT_ASSERT_ARGC(0); // TODO: accept integer and return array
     assert(self->type == NAT_VALUE_ARRAY);
     if (self->ary_len > 0) {
         return self->ary[self->ary_len - 1];

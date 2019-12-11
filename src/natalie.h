@@ -13,6 +13,12 @@
 
 #define UNUSED(x) (void)(x)
 
+#define NAT_RAISE(env, klass, message_format, ...) nat_raise(env, klass, message_format, __VA_ARGS__); abort();
+#define NAT_ASSERT_ARGC1(expected) if(argc != expected) { NAT_RAISE(env, "ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, expected); }
+#define NAT_ASSERT_ARGC2(expected_low, expected_high) if(argc < expected_low || argc > expected_high) { NAT_RAISE(env, "ArgumentError", "wrong number of arguments (given %d, expected %d..%d)", argc, expected_low, expected_high); }
+#define GET_MACRO(_1, _2, NAME, ...) NAME
+#define NAT_ASSERT_ARGC(...) GET_MACRO(__VA_ARGS__, NAT_ASSERT_ARGC2, NAT_ASSERT_ARGC1)(__VA_ARGS__)
+
 #define TRUE 1
 #define FALSE 0
 
@@ -123,7 +129,7 @@ NatObject *env_get(NatEnv *env, char *key);
 NatObject *env_set(NatEnv *env, char *key, NatObject *val);
 NatEnv *build_env(NatEnv *outer);
 void env_set_exception(NatEnv *env, NatObject *exception);
-NatObject* nat_raise(NatEnv *env, NatObject *exception);
+NatObject* nat_raise(NatEnv *env, char *klass, char *message_format, ...);
 
 NatObject *ivar_get(NatEnv *env, NatObject *obj, char *name);
 void ivar_set(NatEnv *env, NatObject *obj, char *name, NatObject *val);
@@ -162,6 +168,7 @@ void nat_grow_string_at_least(NatObject *obj, size_t min_capacity);
 void nat_string_append(NatObject *str, char *s);
 void nat_string_append_char(NatObject *str, char c);
 NatObject* nat_sprintf(NatEnv *env, char *format, ...);
+NatObject* nat_vsprintf(NatEnv *env, char *format, va_list args);
 
 NatObject *nat_symbol(NatEnv *env, char *name);
 
