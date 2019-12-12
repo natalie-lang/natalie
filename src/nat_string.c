@@ -3,12 +3,13 @@
 
 NatObject *String_to_s(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     assert(self->type == NAT_VALUE_STRING);
+    NAT_ASSERT_ARGC(0);
     return self;
 }
 
 NatObject *String_ltlt(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     assert(self->type == NAT_VALUE_STRING);
-    assert(argc == 1);
+    NAT_ASSERT_ARGC(1);
     NatObject *arg = args[0];
     char *str;
     if (arg->type == NAT_VALUE_STRING) {
@@ -24,6 +25,7 @@ NatObject *String_ltlt(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
 
 NatObject *String_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     assert(self->type == NAT_VALUE_STRING);
+    NAT_ASSERT_ARGC(0);
     NatObject *out = nat_string(env, "\"");
     for (size_t i=0; i<self->str_len; i++) {
         // FIXME: iterate over multibyte chars
@@ -43,7 +45,7 @@ NatObject *String_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject *
 
 NatObject *String_add(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     assert(self->type == NAT_VALUE_STRING);
-    assert(argc == 1);
+    NAT_ASSERT_ARGC(1);
     NatObject *arg = args[0];
     char *str;
     if (arg->type == NAT_VALUE_STRING) {
@@ -60,7 +62,7 @@ NatObject *String_add(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
 
 NatObject *String_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     assert(self->type == NAT_VALUE_STRING);
-    assert(argc == 1);
+    NAT_ASSERT_ARGC(1);
     NatObject *arg = args[0];
     if (arg->type == NAT_VALUE_STRING && strcmp(self->str, arg->str) == 0) {
         return env_get(env, "true");

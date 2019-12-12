@@ -7,6 +7,7 @@ NatObject *Class_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args
 
 NatObject *Class_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     assert(self->type == NAT_VALUE_CLASS);
+    NAT_ASSERT_ARGC(0);
     if (self->class_name) {
         return nat_string(env, self->class_name);
     } else {
@@ -22,7 +23,7 @@ NatObject *Class_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **
 
 NatObject *Class_include(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     assert(self->type == NAT_VALUE_CLASS);
-    assert(argc >= 1);
+    NAT_ASSERT_ARGC_AT_LEAST(1);
     for (size_t i=0; i<argc; i++) {
         nat_class_include(self, args[i]);
     }
@@ -31,6 +32,7 @@ NatObject *Class_include(NatEnv *env, NatObject *self, size_t argc, NatObject **
 
 NatObject *Class_included_modules(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     assert(self->type == NAT_VALUE_CLASS);
+    NAT_ASSERT_ARGC(0);
     NatObject *modules = nat_array(env);
     for (size_t i=0; i<self->included_modules_count; i++) {
         nat_array_push(modules, self->included_modules[i]);
@@ -40,7 +42,7 @@ NatObject *Class_included_modules(NatEnv *env, NatObject *self, size_t argc, Nat
 
 NatObject *Class_ancestors(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     assert(self->type == NAT_VALUE_CLASS);
-    assert(argc == 0);
+    NAT_ASSERT_ARGC(0);
     NatObject *ancestors = nat_array(env);
     NatObject *class = self;
     while (1) {
@@ -56,12 +58,13 @@ NatObject *Class_ancestors(NatEnv *env, NatObject *self, size_t argc, NatObject 
 
 NatObject *Class_superclass(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     assert(self->type == NAT_VALUE_CLASS);
+    NAT_ASSERT_ARGC(0);
     return self->superclass ? self->superclass : env_get(env, "nil");
 }
 
 NatObject *Class_eqeqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     assert(self->type == NAT_VALUE_CLASS);
-    assert(argc == 1);
+    NAT_ASSERT_ARGC(1);
     NatObject *arg = args[0];
     if (self == arg) {
         return env_get(env, "true");
@@ -77,7 +80,7 @@ NatObject *Class_eqeqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **a
 }
 
 NatObject *Class_define_method(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
-    assert(argc == 1);
+    NAT_ASSERT_ARGC(1);
     NatObject *name_obj = args[0];
     assert(name_obj->type == NAT_VALUE_STRING || name_obj->type == NAT_VALUE_SYMBOL);
     assert(block);
@@ -87,7 +90,7 @@ NatObject *Class_define_method(NatEnv *env, NatObject *self, size_t argc, NatObj
 }
 
 NatObject *Class_attr_reader(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
-    assert(argc > 0);
+    NAT_ASSERT_ARGC_AT_LEAST(1);
     for (size_t i=0; i<argc; i++) {
         NatObject *name_obj = args[i];
         assert(name_obj->type == NAT_VALUE_STRING || name_obj->type == NAT_VALUE_SYMBOL);
@@ -110,7 +113,7 @@ NatObject *Class_attr_reader_block_fn(NatEnv *env, NatObject *self, size_t argc,
 }
 
 NatObject *Class_attr_writer(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
-    assert(argc > 0);
+    NAT_ASSERT_ARGC_AT_LEAST(1);
     for (size_t i=0; i<argc; i++) {
         NatObject *name_obj = args[i];
         assert(name_obj->type == NAT_VALUE_STRING || name_obj->type == NAT_VALUE_SYMBOL);
@@ -127,7 +130,6 @@ NatObject *Class_attr_writer(NatEnv *env, NatObject *self, size_t argc, NatObjec
 }
 
 NatObject *Class_attr_writer_block_fn(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
-    assert(argc == 1);
     NatObject *val = args[0];
     NatObject *name_obj = env_get(env, "name");
     assert(name_obj);
@@ -138,6 +140,7 @@ NatObject *Class_attr_writer_block_fn(NatEnv *env, NatObject *self, size_t argc,
 }
 
 NatObject *Class_attr_accessor(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC_AT_LEAST(1);
     Class_attr_reader(env, self, argc, args, kwargs, block);
     Class_attr_writer(env, self, argc, args, kwargs, block);
     return env_get(env, "nil");

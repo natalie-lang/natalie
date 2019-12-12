@@ -47,6 +47,7 @@ NatObject *Kernel_p(NatEnv *env, NatObject *self, size_t argc, NatObject **args,
 }
 
 NatObject *Kernel_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(0);
     NatObject *str = nat_string(env, "#<");
     assert(self->class);
     nat_string_append(str, Class_inspect(env, self->class, 0, NULL, NULL, NULL)->str);
@@ -57,11 +58,12 @@ NatObject *Kernel_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject *
 }
 
 NatObject *Kernel_object_id(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(0);
     return nat_integer(env, self->id);
 }
 
 NatObject *Kernel_equal(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
-    assert(argc == 1);
+    NAT_ASSERT_ARGC(1);
     NatObject *arg = args[0];
     if (self == arg) {
         return env_get(env, "true");
@@ -71,11 +73,12 @@ NatObject *Kernel_equal(NatEnv *env, NatObject *self, size_t argc, NatObject **a
 }
 
 NatObject *Kernel_class(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(0);
     return self->class ? self->class : env_get(env, "nil");
 }
 
 NatObject *Kernel_instance_variable_get(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
-    assert(argc == 1);
+    NAT_ASSERT_ARGC(1);
     NatObject *name_obj = args[0];
     assert(name_obj->type == NAT_VALUE_STRING || name_obj->type == NAT_VALUE_SYMBOL);
     char *name = name_obj->type == NAT_VALUE_STRING ? name_obj->str : name_obj->symbol;
@@ -83,7 +86,7 @@ NatObject *Kernel_instance_variable_get(NatEnv *env, NatObject *self, size_t arg
 }
 
 NatObject *Kernel_instance_variable_set(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
-    assert(argc == 2);
+    NAT_ASSERT_ARGC(2);
     NatObject *name_obj = args[0];
     assert(name_obj->type == NAT_VALUE_STRING || name_obj->type == NAT_VALUE_SYMBOL);
     char *name = name_obj->type == NAT_VALUE_STRING ? name_obj->str : name_obj->symbol;
