@@ -187,6 +187,7 @@ NatObject *EVAL(NatEnv *env) {
         NatObject *exception = env->exception;
         assert(exception);
         assert(exception->type == NAT_VALUE_EXCEPTION);
+        fflush(stdout);
         fprintf(stderr, "%s\n", exception->message);
         return env_get(env, "nil");
     }
