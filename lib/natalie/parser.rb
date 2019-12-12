@@ -33,7 +33,7 @@ module Natalie
     end
 
     def control_structure
-      klass || mod || method || if_expr || while_expr
+      klass || mod || method || if_expr || while_expr || begin_expr
     end
 
     def non_control_structure
@@ -410,6 +410,31 @@ module Natalie
         end
         @scanner.skip(/\s*end/)
         [:while, condition, body]
+      end
+    end
+
+    def begin_expr
+      if (keyword = @scanner.scan(/begin[;\s]+/))
+        body = []
+        until @scanner.check(/\s*(rescue|end)[;\s]+/)
+          body << expr
+          expect(@scanner.skip(END_OF_EXPRESSION), '; or newline')
+        end
+        if @scanner.scan(/rescue/)
+          if @scanner.skip(/[ ]+=>[ ]+/)
+            var = identifier
+          else
+            var = nil
+          end
+          expect(@scanner.skip(END_OF_EXPRESSION), '; or newline')
+          rescue_body = []
+          until @scanner.check(/\s*end[;\s]+/)
+            rescue_body << expr
+            expect(@scanner.skip(END_OF_EXPRESSION), '; or newline')
+          end
+        end
+        @scanner.skip(/\s*end/)
+        [:begin, body, :rescue, [], var, rescue_body]
       end
     end
   end

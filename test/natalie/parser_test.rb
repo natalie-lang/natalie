@@ -350,5 +350,14 @@ describe 'Natalie::Parser' do
       ast = build_ast('Foo::num')
       expect(ast).must_equal [[:send, [:send, nil, 'Foo', []], 'num', []]]
     end
+
+    it 'parses begin/rescue' do
+      ast = build_ast("begin\nrescue\nend")
+      expect(ast).must_equal [[:begin, [], :rescue, [], nil, []]]
+      ast = build_ast("begin\n  xx\nrescue\n  p 1\nend")
+      expect(ast).must_equal [[:begin, [[:send, nil, 'xx', []]], :rescue, [], nil, [[:send, nil, 'p', [[:integer, '1']]]]]]
+      ast = build_ast("begin\n  xx\nrescue => e\n  p e\nend")
+      expect(ast).must_equal [[:begin, [[:send, nil, 'xx', []]], :rescue, [], 'e', [[:send, nil, 'p', [[:send, nil, 'e', []]]]]]]
+    end
   end
 end

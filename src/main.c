@@ -5,6 +5,7 @@
 #include "nat_basic_object.h"
 #include "nat_class.h"
 #include "nat_comparable.h"
+#include "nat_exception.h"
 #include "nat_false_class.h"
 #include "nat_integer.h"
 #include "nat_kernel.h"
@@ -163,6 +164,7 @@ NatEnv *build_top_env() {
 
     NatObject *Exception = nat_subclass(env, Object, "Exception");
     env_set(env, "Exception", Exception);
+    nat_define_method(Exception, "inspect", Exception_inspect);
     NatObject *StandardError = nat_subclass(env, Exception, "StandardError");
     env_set(env, "StandardError", StandardError);
     NatObject *NameError = nat_subclass(env, StandardError, "NameError");
@@ -178,7 +180,7 @@ NatEnv *build_top_env() {
 NatObject *EVAL(NatEnv *env) {
     NatObject *self = env_get(env, "self");
     UNUSED(self); // maybe unused
-    if (!setjmp(*env->jump_buf)) {
+    if (!NAT_RESCUE(env)) {
         /*DECL*/
         /*BODY*/
     } else {

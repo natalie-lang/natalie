@@ -13,6 +13,7 @@
 
 #define UNUSED(x) (void)(x)
 
+#define NAT_RESCUE(env) setjmp(*(env->jump_buf = malloc(sizeof(jmp_buf))))
 #define NAT_RAISE(env, klass, message_format, ...) nat_raise(env, klass, message_format, __VA_ARGS__); abort();
 #define NAT_ASSERT_ARGC1(expected) if(argc != expected) { NAT_RAISE(env, "ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, expected); }
 #define NAT_ASSERT_ARGC2(expected_low, expected_high) if(argc < expected_low || argc > expected_high) { NAT_RAISE(env, "ArgumentError", "wrong number of arguments (given %d, expected %d..%d)", argc, expected_low, expected_high); }
@@ -35,6 +36,7 @@ struct NatEnv {
     int block;
     jmp_buf *jump_buf;
     NatObject *exception;
+    NatEnv *caller;
 };
 
 struct NatBlock {
@@ -128,8 +130,9 @@ NatEnv *env_find(NatEnv *env, char *key);
 NatObject *env_get(NatEnv *env, char *key);
 NatObject *env_set(NatEnv *env, char *key, NatObject *val);
 NatEnv *build_env(NatEnv *outer);
-void env_set_exception(NatEnv *env, NatObject *exception);
+
 NatObject* nat_raise(NatEnv *env, char *klass, char *message_format, ...);
+int nat_rescue(NatEnv *env);
 
 NatObject *ivar_get(NatEnv *env, NatObject *obj, char *name);
 void ivar_set(NatEnv *env, NatObject *obj, char *name, NatObject *val);

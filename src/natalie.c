@@ -45,10 +45,11 @@ NatEnv *build_env(NatEnv *outer) {
     NatEnv *env = malloc(sizeof(NatEnv));
     env->block = FALSE;
     env->outer = outer;
+    env->jump_buf = NULL;
+    env->caller = NULL;
     if (outer) {
         env->symbols = outer->symbols;
         env->next_object_id = outer->next_object_id;
-        env->jump_buf = outer->jump_buf;
     } else {
         struct hashmap *symbol_table = malloc(sizeof(struct hashmap));
         hashmap_init(symbol_table, hashmap_hash_string, hashmap_compare_string, 100);
@@ -56,18 +57,10 @@ NatEnv *build_env(NatEnv *outer) {
         env->symbols = symbol_table;
         env->next_object_id = malloc(sizeof(uint64_t));
         *env->next_object_id = 1;
-        env->jump_buf = malloc(sizeof(jmp_buf));
     }
     hashmap_init(&env->data, hashmap_hash_string, hashmap_compare_string, 100);
     hashmap_set_key_alloc_funcs(&env->data, hashmap_alloc_key_string, NULL);
     return env;
-}
-
-void env_set_exception(NatEnv *env, NatObject *exception) {
-    while (env->outer) {
-        env = env->outer;
-    }
-    env->exception = exception;
 }
 
 NatObject* nat_raise(NatEnv *env, char *klass, char *message_format, ...) {
@@ -76,7 +69,14 @@ NatObject* nat_raise(NatEnv *env, char *klass, char *message_format, ...) {
     NatObject *message = nat_vsprintf(env, message_format, args);
     va_end(args);
     NatObject *exception = nat_exception(env, klass, message->str);
-    env_set_exception(env, exception);
+    while (!env->jump_buf) {
+        if (env->caller) {
+            env = env->caller;
+        } else {
+            env = env->outer;
+        }
+    }
+    env->exception = exception;
     longjmp(*env->jump_buf, 1);
     return exception;
 }
@@ -305,6 +305,7 @@ NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, Na
         // TODO: instances can have singleton methods too
         NatMethod *singleton_method = hashmap_get(&receiver->singleton_methods, sym);
         if (singleton_method) {
+            receiver->env->caller = env;
             return singleton_method->fn(receiver->env, receiver, argc, args, NULL, block);
         }
         NatObject *class = receiver;
@@ -313,6 +314,7 @@ NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, Na
             if (class == NULL || class->type != NAT_VALUE_CLASS) break;
             singleton_method = hashmap_get(&class->singleton_methods, sym);
             if (singleton_method) {
+                receiver->env->caller = env;
                 return singleton_method->fn(receiver->env, receiver, argc, args, NULL, block);
             }
             if (nat_is_top_class(class)) break;
@@ -331,6 +333,7 @@ NatObject *nat_call_method_on_class(NatEnv *env, NatObject *class, NatObject *in
     NatMethod *method = hashmap_get(&class->methods, method_name);
     if (method) {
         NatEnv *closure_env = method->env ? method->env : class->env;
+        closure_env->caller = env;
         return method->fn(closure_env, self, argc, args, NULL, block);
     }
 
@@ -339,6 +342,7 @@ NatObject *nat_call_method_on_class(NatEnv *env, NatObject *class, NatObject *in
         method = hashmap_get(&module->methods, method_name);
         if (method) {
             NatEnv *closure_env = method->env ? method->env : module->env;
+            closure_env->caller = env;
             return method->fn(closure_env, self, argc, args, NULL, block);
         }
     }

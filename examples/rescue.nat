@@ -1,0 +1,6 @@
+begin
+  a = []
+  a[1, 2, 3]
+rescue => e
+  p e
+end

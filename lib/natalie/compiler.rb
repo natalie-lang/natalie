@@ -306,6 +306,46 @@ module Natalie
           end
         end
         [top, decl + c_if, result_name]
+      when :begin
+        (_, body, _, _, var, rescue_body) = expr
+        top = []
+        decl = []
+        # begin func
+        func_name = next_var_name('begin_body_func')
+        func = []
+        func << "NatObject* #{func_name}(NatEnv *env, NatObject *self) {"
+        (t, f) = compile_func_body(body)
+        top << t
+        func << f
+        func << '}'
+        top << func
+        # rescue func
+        rescue_func_name = next_var_name('rescue_body_func')
+        rescue_func = []
+        rescue_func << "NatObject* #{rescue_func_name}(NatEnv *env, NatObject *self) {"
+        (t, f) = compile_func_body(rescue_body)
+        top << t
+        rescue_func << f
+        rescue_func << '}'
+        top << rescue_func
+        # wrapper func
+        wrapper_func_name = next_var_name('begin_wrapper_body_func')
+        wrapper_func = []
+        wrapper_func << "NatObject* #{wrapper_func_name}(NatEnv *env, NatObject *self) {"
+        wrapper_func << "env = build_env(env);"
+        wrapper_func << "if (!NAT_RESCUE(env)) {"
+        wrapper_func << "return #{func_name}(env, self);"
+        wrapper_func << '} else {'
+        wrapper_func << 'env->jump_buf = NULL;'
+        wrapper_func << "assert(env->exception);"
+        wrapper_func << "env_set(env, #{var.inspect}, env->exception);" if var
+        wrapper_func << "return #{rescue_func_name}(env, self);"
+        wrapper_func << '}'
+        wrapper_func << '}'
+        top << wrapper_func
+        result_name = next_var_name('begin_result')
+        decl << "NatObject *#{result_name} = #{wrapper_func_name}(env, self);"
+        [top, decl, result_name]
       when :while
         (_, condition, body) = expr
         top = []
