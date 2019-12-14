@@ -4,3 +4,30 @@ begin
 rescue => e
   p e
 end
+
+begin
+  raise "foo"
+rescue => e
+  p e
+end
+
+begin
+  raise StandardError
+rescue => e
+  p e
+end
+
+begin
+  raise StandardError, "foo"
+rescue => e
+  p e
+end
+
+class MyException < StandardError
+end
+
+begin
+  raise MyException, "bar"
+rescue => e
+  p e
+end

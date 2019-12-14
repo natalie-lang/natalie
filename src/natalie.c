@@ -63,7 +63,7 @@ NatEnv *build_env(NatEnv *outer) {
     return env;
 }
 
-NatObject* nat_raise(NatEnv *env, char *klass, char *message_format, ...) {
+NatObject* nat_raise(NatEnv *env, NatObject *klass, char *message_format, ...) {
     va_list args;
     va_start(args, message_format);
     NatObject *message = nat_vsprintf(env, message_format, args);
@@ -84,7 +84,7 @@ NatObject* nat_raise(NatEnv *env, char *klass, char *message_format, ...) {
 NatObject *ivar_get(NatEnv *env, NatObject *obj, char *name) {
     assert(strlen(name) > 0);
     if(name[0] != '@') {
-        NAT_RAISE(env, "NameError", "`%s' is not allowed as an instance variable name", name);
+        NAT_RAISE(env, env_get(env, "NameError"), "`%s' is not allowed as an instance variable name", name);
     }
     NatObject *val = hashmap_get(&obj->ivars, name);
     if (val) {
@@ -97,7 +97,7 @@ NatObject *ivar_get(NatEnv *env, NatObject *obj, char *name) {
 void ivar_set(NatEnv *env, NatObject *obj, char *name, NatObject *val) {
     assert(strlen(name) > 0);
     if(name[0] != '@') {
-        NAT_RAISE(env, "NameError", "`%s' is not allowed as an instance variable name", name);
+        NAT_RAISE(env, env_get(env, "NameError"), "`%s' is not allowed as an instance variable name", name);
     }
     hashmap_remove(&obj->ivars, name);
     hashmap_put(&obj->ivars, name, val);
@@ -209,8 +209,8 @@ NatObject *nat_symbol(NatEnv *env, char *name) {
     }
 }
 
-NatObject *nat_exception(NatEnv *env, char *klass, char *message) {
-    NatObject *obj = nat_new(env, env_get(env, klass), 0, NULL, NULL, NULL);
+NatObject *nat_exception(NatEnv *env, NatObject *klass, char *message) {
+    NatObject *obj = nat_new(env, klass, 0, NULL, NULL, NULL);
     obj->type = NAT_VALUE_EXCEPTION;
     obj->message = message;
     return obj;
@@ -319,7 +319,7 @@ NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, Na
             }
             if (nat_is_top_class(class)) break;
         }
-        NAT_RAISE(env, "NameError", "undefined local variable or method `%s' for %s", sym, receiver->class_name);
+        NAT_RAISE(env, env_get(env, "NameError"), "undefined local variable or method `%s' for %s", sym, receiver->class_name);
     } else {
         NatObject *class = receiver->class;
         return nat_call_method_on_class(env, class, class, sym, receiver, argc, args, NULL, block); // FIXME: kwargs
@@ -348,7 +348,7 @@ NatObject *nat_call_method_on_class(NatEnv *env, NatObject *class, NatObject *in
     }
 
     if (nat_is_top_class(class)) {
-        NAT_RAISE(env, "NameError", "undefined local variable or method `%s' for %s", method_name, instance_class->class_name);
+        NAT_RAISE(env, env_get(env, "NameError"), "undefined local variable or method `%s' for %s", method_name, instance_class->class_name);
     }
 
     return nat_call_method_on_class(env, class->superclass, instance_class, method_name, self, argc, args, kwargs, block);

@@ -79,6 +79,7 @@ NatEnv *build_top_env() {
     nat_define_method(Kernel, "class", Kernel_class);
     nat_define_method(Kernel, "instance_variable_get", Kernel_instance_variable_get);
     nat_define_method(Kernel, "instance_variable_set", Kernel_instance_variable_set);
+    nat_define_method(Kernel, "raise", Kernel_raise);
 
     NatObject *Comparable = nat_module(env, "Comparable");
     COMPARABLE_INIT();
@@ -171,6 +172,8 @@ NatEnv *build_top_env() {
     env_set(env, "NameError", NameError);
     NatObject *ArgumentError = nat_subclass(env, StandardError, "ArgumentError");
     env_set(env, "ArgumentError", ArgumentError);
+    NatObject *RuntimeError = nat_subclass(env, StandardError, "RuntimeError");
+    env_set(env, "RuntimeError", RuntimeError);
 
     return env;
 }

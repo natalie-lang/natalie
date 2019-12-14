@@ -14,10 +14,10 @@
 #define UNUSED(x) (void)(x)
 
 #define NAT_RESCUE(env) setjmp(*(env->jump_buf = malloc(sizeof(jmp_buf))))
-#define NAT_RAISE(env, klass, message_format, ...) nat_raise(env, klass, message_format, __VA_ARGS__); abort();
-#define NAT_ASSERT_ARGC1(expected) if(argc != expected) { NAT_RAISE(env, "ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, expected); }
-#define NAT_ASSERT_ARGC2(expected_low, expected_high) if(argc < expected_low || argc > expected_high) { NAT_RAISE(env, "ArgumentError", "wrong number of arguments (given %d, expected %d..%d)", argc, expected_low, expected_high); }
-#define NAT_ASSERT_ARGC_AT_LEAST(expected) if(argc < expected) { NAT_RAISE(env, "ArgumentError", "wrong number of arguments (given %d, expected %d+)", argc, expected); }
+#define NAT_RAISE(env, klass, message_format, ...) nat_raise(env, klass, message_format, ##__VA_ARGS__); abort();
+#define NAT_ASSERT_ARGC1(expected) if(argc != expected) { NAT_RAISE(env, env_get(env, "ArgumentError"), "wrong number of arguments (given %d, expected %d)", argc, expected); }
+#define NAT_ASSERT_ARGC2(expected_low, expected_high) if(argc < expected_low || argc > expected_high) { NAT_RAISE(env, env_get(env, "ArgumentError"), "wrong number of arguments (given %d, expected %d..%d)", argc, expected_low, expected_high); }
+#define NAT_ASSERT_ARGC_AT_LEAST(expected) if(argc < expected) { NAT_RAISE(env, env_get(env, "ArgumentError"), "wrong number of arguments (given %d, expected %d+)", argc, expected); }
 #define GET_MACRO(_1, _2, NAME, ...) NAME
 #define NAT_ASSERT_ARGC(...) GET_MACRO(__VA_ARGS__, NAT_ASSERT_ARGC2, NAT_ASSERT_ARGC1)(__VA_ARGS__)
 
@@ -132,7 +132,7 @@ NatObject *env_get(NatEnv *env, char *key);
 NatObject *env_set(NatEnv *env, char *key, NatObject *val);
 NatEnv *build_env(NatEnv *outer);
 
-NatObject* nat_raise(NatEnv *env, char *klass, char *message_format, ...);
+NatObject* nat_raise(NatEnv *env, NatObject *klass, char *message_format, ...);
 int nat_rescue(NatEnv *env);
 
 NatObject *ivar_get(NatEnv *env, NatObject *obj, char *name);
@@ -176,7 +176,7 @@ NatObject* nat_vsprintf(NatEnv *env, char *format, va_list args);
 
 NatObject *nat_symbol(NatEnv *env, char *name);
 
-NatObject *nat_exception(NatEnv *env, char *klass, char *message);
+NatObject *nat_exception(NatEnv *env, NatObject *klass, char *message);
 
 #define NAT_ARRAY_INIT_SIZE 10
 #define NAT_ARRAY_GROW_FACTOR 2

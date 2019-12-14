@@ -94,3 +94,26 @@ NatObject *Kernel_instance_variable_set(NatEnv *env, NatObject *self, size_t arg
     ivar_set(env, self, name, val_obj);
     return val_obj;
 }
+
+NatObject *Kernel_raise(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(1, 2);
+    NatObject *klass;
+    NatObject *message;
+    // TODO: support Exception instance, e.g. raise MyException.new('foo')
+    if (argc == 2) {
+        klass = args[0];
+        message = args[1];
+    } else if (argc == 1) {
+        NatObject *arg = args[0];
+        if (arg->type == NAT_VALUE_CLASS) {
+            klass = arg;
+            message = nat_string(env, arg->class_name);
+        } else if (arg->type == NAT_VALUE_STRING) {
+            klass = env_get(env, "RuntimeError");
+            message = arg;
+        } else {
+            NAT_RAISE(env, env_get(env, "TypeError"), "exception class/object expected");
+        }
+    }
+    NAT_RAISE(env, klass, message->str);
+}
