@@ -13,7 +13,7 @@ module Natalie
         ast << [:send, 'self', 'puts', [[:send, last_node, 'inspect', []]]]
         out = Tempfile.create('natalie.so')
         to_clean_up << out
-        Compiler.new(ast).compile(out.path, shared: true)
+        Compiler.new(ast, 'immediate').compile(out.path, shared: true)
         lib = Fiddle.dlopen(out.path)
         env ||= Fiddle::Function.new(lib['build_top_env'], [], Fiddle::TYPE_VOIDP).call
         eval_func = Fiddle::Function.new(lib['EVAL'], [Fiddle::TYPE_VOIDP], Fiddle::TYPE_VOIDP)
