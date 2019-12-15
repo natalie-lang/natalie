@@ -31,6 +31,7 @@ typedef struct NatMethod NatMethod;
 
 struct NatEnv {
     struct hashmap data;
+    struct hashmap *globals;
     struct hashmap *symbols;
     uint64_t *next_object_id;
     NatEnv *outer;
@@ -138,6 +139,9 @@ int nat_rescue(NatEnv *env);
 
 NatObject *ivar_get(NatEnv *env, NatObject *obj, char *name);
 void ivar_set(NatEnv *env, NatObject *obj, char *name, NatObject *val);
+
+NatObject *global_get(NatEnv *env, char *name);
+void global_set(NatEnv *env, char *name, NatObject *val);
 
 int nat_truthy(NatObject *obj);
 

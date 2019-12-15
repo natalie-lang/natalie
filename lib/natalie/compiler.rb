@@ -128,6 +128,8 @@ module Natalie
         decl << "NatObject *#{var_name} = #{e};"
         if name.is_a?(Array) && name.first == :ivar
           decl << "ivar_set(env, self, #{name.last.inspect}, #{var_name});"
+        elsif name.is_a?(Array) && name.first == :global
+          decl << "global_set(env, #{name.last.inspect}, #{var_name});"
         else
           decl << "env_set(env, #{name.inspect}, #{var_name});"
         end
@@ -367,7 +369,12 @@ module Natalie
         [top, decl, "env_get(env, \"nil\")"]
       when :ivar
         name = expr.last
-        [nil, nil, "ivar_get(env, self, #{name.inspect})"]
+        result_name = next_var_name('class_body_result')
+        [nil, "NatObject *#{result_name} = ivar_get(env, self, #{name.inspect});", result_name]
+      when :global
+        name = expr.last
+        result_name = next_var_name('class_body_result')
+        [nil, "NatObject *#{result_name} = global_get(env, #{name.inspect});", result_name]
       else
         raise "unknown AST node: #{expr.inspect}"
       end

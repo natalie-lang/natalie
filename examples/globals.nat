@@ -1,0 +1,21 @@
+$foo = 1
+p $foo
+
+def m
+  p $foo
+end
+
+m
+
+class C
+  def m
+    $foo
+  end
+
+  def self.m
+    $foo
+  end
+end
+
+p C.new.m
+p C.m

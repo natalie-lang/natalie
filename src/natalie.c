@@ -48,9 +48,14 @@ NatEnv *build_env(NatEnv *outer) {
     env->jump_buf = NULL;
     env->caller = NULL;
     if (outer) {
+        env->globals = outer->globals;
         env->symbols = outer->symbols;
         env->next_object_id = outer->next_object_id;
     } else {
+        struct hashmap *global_table = malloc(sizeof(struct hashmap));
+        hashmap_init(global_table, hashmap_hash_string, hashmap_compare_string, 100);
+        hashmap_set_key_alloc_funcs(global_table, hashmap_alloc_key_string, NULL);
+        env->globals = global_table;
         struct hashmap *symbol_table = malloc(sizeof(struct hashmap));
         hashmap_init(symbol_table, hashmap_hash_string, hashmap_compare_string, 100);
         hashmap_set_key_alloc_funcs(symbol_table, hashmap_alloc_key_string, NULL);
@@ -105,6 +110,28 @@ void ivar_set(NatEnv *env, NatObject *obj, char *name, NatObject *val) {
     }
     hashmap_remove(&obj->ivars, name);
     hashmap_put(&obj->ivars, name, val);
+}
+
+NatObject *global_get(NatEnv *env, char *name) {
+    assert(strlen(name) > 0);
+    if(name[0] != '$') {
+        NAT_RAISE(env, env_get(env, "NameError"), "`%s' is not allowed as an global variable name", name);
+    }
+    NatObject *val = hashmap_get(env->globals, name);
+    if (val) {
+        return val;
+    } else {
+        return env_get(env, "nil");
+    }
+}
+
+void global_set(NatEnv *env, char *name, NatObject *val) {
+    assert(strlen(name) > 0);
+    if(name[0] != '$') {
+        NAT_RAISE(env, env_get(env, "NameError"), "`%s' is not allowed as an global variable name", name);
+    }
+    hashmap_remove(env->globals, name);
+    hashmap_put(env->globals, name, val);
 }
 
 #define TRUE 1

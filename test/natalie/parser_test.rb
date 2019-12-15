@@ -359,5 +359,12 @@ describe 'Natalie::Parser' do
       ast = build_ast("begin\n  xx\nrescue => e\n  p e\nend")
       expect(ast).must_equal [[:begin, [[:send, nil, 'xx', []]], :rescue, [], 'e', [[:send, nil, 'p', [[:send, nil, 'e', []]]]]]]
     end
+
+    it 'parses global variables' do
+      ast = build_ast("$foo")
+      expect(ast).must_equal [[:global, "$foo"]]
+      ast = build_ast("$foo = 1")
+      expect(ast).must_equal [[:assign, [:global, "$foo"], [:integer, '1']]]
+    end
   end
 end
