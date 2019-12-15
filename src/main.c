@@ -165,7 +165,9 @@ NatEnv *build_top_env() {
 
     NatObject *Exception = nat_subclass(env, Object, "Exception");
     env_set(env, "Exception", Exception);
+    nat_define_method(Exception, "initialize", Exception_initialize);
     nat_define_method(Exception, "inspect", Exception_inspect);
+    nat_define_singleton_method(Exception, "new", Exception_new);
     NatObject *StandardError = nat_subclass(env, Exception, "StandardError");
     env_set(env, "StandardError", StandardError);
     NatObject *NameError = nat_subclass(env, StandardError, "NameError");
@@ -174,6 +176,8 @@ NatEnv *build_top_env() {
     env_set(env, "ArgumentError", ArgumentError);
     NatObject *RuntimeError = nat_subclass(env, StandardError, "RuntimeError");
     env_set(env, "RuntimeError", RuntimeError);
+    NatObject *TypeError = nat_subclass(env, StandardError, "TypeError");
+    env_set(env, "TypeError", TypeError);
 
     return env;
 }

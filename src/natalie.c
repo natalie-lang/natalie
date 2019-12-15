@@ -69,6 +69,11 @@ NatObject* nat_raise(NatEnv *env, NatObject *klass, char *message_format, ...) {
     NatObject *message = nat_vsprintf(env, message_format, args);
     va_end(args);
     NatObject *exception = nat_exception(env, klass, message->str);
+    nat_raise_exception(env, exception);
+    return exception;
+}
+
+NatObject* nat_raise_exception(NatEnv *env, NatObject *exception) {
     while (!env->jump_buf) {
         if (env->caller) {
             env = env->caller;
@@ -78,7 +83,6 @@ NatObject* nat_raise(NatEnv *env, NatObject *klass, char *message_format, ...) {
     }
     env->exception = exception;
     longjmp(*env->jump_buf, 1);
-    return exception;
 }
 
 NatObject *ivar_get(NatEnv *env, NatObject *obj, char *name) {

@@ -133,6 +133,7 @@ NatObject *env_set(NatEnv *env, char *key, NatObject *val);
 NatEnv *build_env(NatEnv *outer);
 
 NatObject* nat_raise(NatEnv *env, NatObject *klass, char *message_format, ...);
+NatObject* nat_raise_exception(NatEnv *env, NatObject *exception);
 int nat_rescue(NatEnv *env);
 
 NatObject *ivar_get(NatEnv *env, NatObject *obj, char *name);

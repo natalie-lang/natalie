@@ -31,3 +31,9 @@ begin
 rescue => e
   p e
 end
+
+begin
+  raise MyException.new('baz')
+rescue => e
+  p e
+end

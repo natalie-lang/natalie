@@ -99,7 +99,6 @@ NatObject *Kernel_raise(NatEnv *env, NatObject *self, size_t argc, NatObject **a
     NAT_ASSERT_ARGC(1, 2);
     NatObject *klass;
     NatObject *message;
-    // TODO: support Exception instance, e.g. raise MyException.new('foo')
     if (argc == 2) {
         klass = args[0];
         message = args[1];
@@ -111,6 +110,9 @@ NatObject *Kernel_raise(NatEnv *env, NatObject *self, size_t argc, NatObject **a
         } else if (arg->type == NAT_VALUE_STRING) {
             klass = env_get(env, "RuntimeError");
             message = arg;
+        } else if (Class_eqeqeq(env, env_get(env, "Exception"), 1, &arg, NULL, NULL)) {
+            nat_raise_exception(env, arg);
+            abort();
         } else {
             NAT_RAISE(env, env_get(env, "TypeError"), "exception class/object expected");
         }
