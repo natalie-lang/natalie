@@ -172,8 +172,12 @@ void nat_class_include(NatObject *class, NatObject *module) {
 NatObject *nat_new(NatEnv *env, NatObject *class, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NatObject *obj = nat_alloc(env);
     obj->class = class;
-    if (hashmap_get(&class->methods, "initialize")) {
-        nat_call_method_on_class(env, class, class, "initialize", obj, argc, args, kwargs, block);
+    while (1) {
+        if (hashmap_get(&class->methods, "initialize")) {
+            nat_call_method_on_class(env, class, class, "initialize", obj, argc, args, kwargs, block);
+        }
+        if (nat_is_top_class(class)) break;
+        class = class->superclass;
     }
     return obj;
 }
