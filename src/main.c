@@ -12,6 +12,7 @@
 #include "nat_module.h"
 #include "nat_nil_class.h"
 #include "nat_object.h"
+#include "nat_proc.h"
 #include "nat_string.h"
 #include "nat_symbol.h"
 #include "nat_true_class.h"
@@ -140,8 +141,10 @@ NatEnv *build_top_env() {
     env_set(env, "Integer", Integer);
 
     NatObject *String = nat_subclass(env, Object, "String");
+    nat_class_include(String, Comparable);
     nat_define_method(String, "to_s", String_to_s);
     nat_define_method(String, "inspect", String_inspect);
+    nat_define_method(String, "<=>", String_cmp);
     nat_define_method(String, "<<", String_ltlt);
     nat_define_method(String, "+", String_add);
     nat_define_method(String, "==", String_eqeq);
@@ -155,6 +158,7 @@ NatEnv *build_top_env() {
     nat_define_method(Array, "[]", Array_ref);
     nat_define_method(Array, "[]=", Array_refeq);
     nat_define_method(Array, "size", Array_size);
+    nat_define_method(Array, "any?", Array_any);
     nat_define_method(Array, "length", Array_size);
     nat_define_method(Array, "==", Array_eqeq);
     nat_define_method(Array, "===", Array_eqeq);
@@ -163,10 +167,15 @@ NatEnv *build_top_env() {
     nat_define_method(Array, "last", Array_last);
     env_set(env, "Array", Array);
 
+    NatObject *Proc = nat_subclass(env, Object, "Proc");
+    nat_define_method(Proc, "call", Proc_call);
+    env_set(env, "Proc", Proc);
+
     NatObject *Exception = nat_subclass(env, Object, "Exception");
     env_set(env, "Exception", Exception);
     nat_define_method(Exception, "initialize", Exception_initialize);
     nat_define_method(Exception, "inspect", Exception_inspect);
+    nat_define_method(Exception, "message", Exception_message);
     nat_define_singleton_method(Exception, "new", Exception_new);
     NatObject *StandardError = nat_subclass(env, Exception, "StandardError");
     env_set(env, "StandardError", StandardError);

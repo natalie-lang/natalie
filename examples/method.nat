@@ -90,3 +90,13 @@ end
 assert_equal('instance method foo', Foo.new.foo)
 assert_equal('class method foo', Foo.foo)
 assert_equal('class method foo2', Foo.foo2)
+
+def block_arg(a, b, &block)
+  p a
+  p b
+  block.call
+end
+
+block_arg 1, 2 do
+  puts 'hi from the block'
+end

@@ -70,3 +70,12 @@ NatObject *String_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
         return env_get(env, "false");
     }
 }
+
+NatObject *String_cmp(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    assert(self->type == NAT_VALUE_STRING);
+    NAT_ASSERT_ARGC(1);
+    NatObject* arg = args[0];
+    if (arg->type != NAT_VALUE_STRING) return env_get(env, "nil");
+    return nat_integer(env, strcmp(self->str, arg->str));
+}
+

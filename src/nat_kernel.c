@@ -20,7 +20,7 @@ NatObject *Kernel_print(NatEnv *env, NatObject *self, size_t argc, NatObject **a
     if (argc > 0) {
         NatObject *str;
         for (size_t i=0; i<argc; i++) {
-            str = nat_send(env, args[i], "inspect", 0, NULL, NULL);
+            str = nat_send(env, args[i], "to_s", 0, NULL, NULL);
             assert(str->type == NAT_VALUE_STRING);
             printf("%s", str->str);
         }

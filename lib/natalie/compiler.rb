@@ -136,9 +136,11 @@ module Natalie
         [t, decl, var_name]
       when :class
         (_, name, superclass, body) = expr
+        superclass ||= 'Object'
         func_name = next_var_name('class_body')
         top = []
         func = []
+        func << "// class #{name} < #{superclass}"
         func << "NatObject* #{func_name}(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {"
         (t, f) = compile_func_body(body)
         top << t
@@ -146,7 +148,6 @@ module Natalie
         func << '}'
         var_name = next_var_name('class')
         decl = []
-        superclass ||= 'Object'
         decl << "NatObject *#{var_name} = env_get(env, #{name.inspect});"
         decl << "if (!#{var_name}) {"
         decl << "#{var_name} = nat_subclass(env, env_get(env, #{superclass.inspect}), #{name.inspect});"
@@ -180,13 +181,20 @@ module Natalie
         func_name = next_var_name('func')
         top = []
         func = []
+        func << "// def #{name}"
         func << "NatObject* #{func_name}(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {"
-        func << "if (argc != #{args.size}) abort();" # FIXME
+        non_block_args = args.grep_v(/^\&/)
+        func << "NAT_ASSERT_ARGC(#{non_block_args.size});"
         # TODO: do something with kwargs
         func << "env = build_env(env);"
         func << "env_set(env, \"__method__\", nat_string(env, #{name.inspect}));"
         args.each_with_index do |arg, i|
-          func << "env_set(env, #{arg.inspect}, args[#{i}]);"
+          if arg.start_with?('&')
+            raise 'block argument must be last' if i != args.size - 1
+            func << "env_set(env, #{arg[1..-1].inspect}, nat_proc(env, block));"
+          else
+            func << "env_set(env, #{arg.inspect}, args[#{i}]);"
+          end
         end
         (t, f) = compile_func_body(body)
         top << t; func << f
@@ -223,6 +231,7 @@ module Natalie
         [top, decl, var_name]
       when :send
         (_, receiver, name, args, block) = expr
+        return [nil, nil, 'self'] if receiver.nil? && name == 'self'
         top = []
         decl = []
         # args
@@ -263,14 +272,14 @@ module Natalie
           func << '}'
           top << func
           block_name = next_var_name('block')
-          decl << "NatBlock *#{block_name} = nat_block(env, #{block_func_name});"
+          decl << "NatBlock *#{block_name} = nat_block(env, self, #{block_func_name});"
         end
         # call
         result_name = next_var_name('result')
         if receiver.nil? && name == 'super'
           decl << "NatObject *#{result_name} = nat_call_method_on_class(env, self->class->superclass, self->class->superclass, env_get(env, \"__method__\")->str, self, #{args.size}, #{args_name}, NULL, #{block_name});"
         elsif receiver.nil? && name == 'yield'
-          decl << "NatObject *#{result_name} = block->fn(block->env, self, #{args.size}, #{args_name}, NULL, NULL);"
+          decl << "NatObject *#{result_name} = nat_run_block(env, block, #{args.size}, #{args_name}, NULL, NULL);"
         else
           (t, d, e) = compile_expr(receiver || 'self')
           top << t; decl << d
@@ -285,7 +294,7 @@ module Natalie
         top = []
         decl = []
         result_name = next_var_name('if_result')
-        c_if = ["NatObject *#{result_name};"]
+        c_if = ["NatObject *#{result_name} = env_get(env, \"nil\");"]
         expr[1..-1].each_slice(2).each_with_index do |(condition, body), index|
           func_name = next_var_name('if_body_func')
           func = []
@@ -309,7 +318,7 @@ module Natalie
         end
         [top, decl + c_if, result_name]
       when :begin
-        (_, body, _, _, var, rescue_body) = expr
+        (_, body, _, _, var, rescue_body, _, else_body) = expr
         top = []
         decl = []
         # begin func
@@ -330,13 +339,30 @@ module Natalie
         rescue_func << f
         rescue_func << '}'
         top << rescue_func
+        # else func
+        if else_body
+          else_func_name = next_var_name('else_body_func')
+          else_func = []
+          else_func << "NatObject* #{else_func_name}(NatEnv *env, NatObject *self) {"
+          (t, f) = compile_func_body(else_body)
+          top << t
+          else_func << f
+          else_func << '}'
+          top << else_func
+        end
         # wrapper func
         wrapper_func_name = next_var_name('begin_wrapper_body_func')
         wrapper_func = []
         wrapper_func << "NatObject* #{wrapper_func_name}(NatEnv *env, NatObject *self) {"
         wrapper_func << "env = build_env(env);"
+        wrapper_func << "env->block = TRUE;"
         wrapper_func << "if (!NAT_RESCUE(env)) {"
-        wrapper_func << "return #{func_name}(env, self);"
+        if else_func_name
+          wrapper_func << "#{func_name}(env, self);"
+          wrapper_func << "return #{else_func_name}(env, self);"
+        else
+          wrapper_func << "return #{func_name}(env, self);"
+        end
         wrapper_func << '} else {'
         wrapper_func << 'env->jump_buf = NULL;'
         wrapper_func << "assert(env->exception);"
@@ -369,11 +395,11 @@ module Natalie
         [top, decl, "env_get(env, \"nil\")"]
       when :ivar
         name = expr.last
-        result_name = next_var_name('class_body_result')
+        result_name = next_var_name('ivar_result')
         [nil, "NatObject *#{result_name} = ivar_get(env, self, #{name.inspect});", result_name]
       when :global
         name = expr.last
-        result_name = next_var_name('class_body_result')
+        result_name = next_var_name('global_var_result')
         [nil, "NatObject *#{result_name} = global_get(env, #{name.inspect});", result_name]
       else
         raise "unknown AST node: #{expr.inspect}"

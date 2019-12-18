@@ -87,6 +87,12 @@ NatObject *Array_size(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
     return nat_integer(env, self->ary_len);
 }
 
+NatObject *Array_any(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    assert(self->type == NAT_VALUE_ARRAY);
+    NAT_ASSERT_ARGC(0);
+    return self->ary_len > 0 ? env_get(env, "true") : env_get(env, "false");
+}
+
 NatObject *Array_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     assert(self->type == NAT_VALUE_ARRAY);
     NAT_ASSERT_ARGC(1);
@@ -107,7 +113,7 @@ NatObject *Array_each(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
     assert(block);
     for (size_t i=0; i<self->ary_len; i++) {
         NatObject *obj = self->ary[i];
-        block->fn(block->env, self, 1, &obj, NULL, NULL);
+        nat_run_block(env, block, 1, &obj, NULL, NULL);
     }
     return self;
 }

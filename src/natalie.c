@@ -10,24 +10,12 @@ int is_special_name(char *name) {
     return strcmp(name, "nil") == 0 || strcmp(name, "true") == 0 || strcmp(name, "false") == 0;
 }
 
-NatEnv *env_find(NatEnv *env, char *key) {
-    if (hashmap_get(&env->data, key)) {
-        return env;
-    } else if (env->outer) {
-        return env_find(env->outer, key);
-    } else {
-        return NULL;
-    }
-}
-
 NatObject *env_get(NatEnv *env, char *key) {
-    if (env->block || is_constant_name(key) || is_special_name(key)) {
-        env = env_find(env, key);
-        if (!env) {
-            return NULL;
-        }
+    NatObject *val;
+    int is_special = is_constant_name(key) || is_special_name(key);
+    while (!(val = hashmap_get(&env->data, key)) && env->outer && (env->block || is_special)) {
+        env = env->outer;
     }
-    NatObject *val = hashmap_get(&env->data, key);
     if (val) {
         return val;
     } else {
@@ -405,11 +393,24 @@ NatObject *nat_lookup_or_send(NatEnv *env, NatObject *receiver, char *sym, size_
     }
 }
 
-NatBlock *nat_block(NatEnv *env, NatObject* (*fn)(NatEnv*, NatObject*, size_t, NatObject**, struct hashmap*, NatBlock*)) {
+NatBlock *nat_block(NatEnv *env, NatObject *self, NatObject* (*fn)(NatEnv*, NatObject*, size_t, NatObject**, struct hashmap*, NatBlock*)) {
     NatBlock *block = malloc(sizeof(NatBlock));
     block->env = env;
+    block->self = self;
     block->fn = fn;
     return block;
+}
+
+NatObject *nat_run_block(NatEnv *env, NatBlock *the_block, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    the_block->env->caller = env;
+    return the_block->fn(the_block->env, the_block->self, argc, args, kwargs, block);
+}
+
+NatObject *nat_proc(NatEnv *env, NatBlock *block) {
+    NatObject *obj = nat_new(env, env_get(env, "Proc"), 0, NULL, NULL, NULL);
+    obj->type = NAT_VALUE_PROC;
+    obj->block = block;
+    return obj;
 }
 
 // "0x" + up to 16 hex chars + NULL terminator

@@ -44,6 +44,7 @@ struct NatEnv {
 struct NatBlock {
     NatObject* (*fn)(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
     NatEnv *env;
+    NatObject *self;
 };
 
 struct NatMethod {
@@ -122,13 +123,15 @@ struct NatObject {
 
         // NAT_VALUE_EXCEPTION
         char *message;
+
+        // NAT_VALUE_PROC
+        NatBlock *block;
     };
 };
 
 int is_constant_name(char *name);
 int is_special_name(char *name);
 
-NatEnv *env_find(NatEnv *env, char *key);
 NatObject *env_get(NatEnv *env, char *key);
 NatObject *env_set(NatEnv *env, char *key, NatObject *val);
 NatEnv *build_env(NatEnv *outer);
@@ -167,7 +170,10 @@ void nat_define_singleton_method(NatObject *obj, char *name, NatObject* (*fn)(Na
 NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, NatObject **args, NatBlock *block);
 NatObject *nat_lookup_or_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, NatObject **args, NatBlock *block);
 NatObject *nat_call_method_on_class(NatEnv *env, NatObject *class, NatObject *instance_class, char *method_name, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
-NatBlock *nat_block(NatEnv *env, NatObject* (*fn)(NatEnv*, NatObject*, size_t, NatObject**, struct hashmap*, NatBlock*));
+
+NatBlock *nat_block(NatEnv *env, NatObject *self, NatObject* (*fn)(NatEnv*, NatObject*, size_t, NatObject**, struct hashmap*, NatBlock*));
+NatObject *nat_run_block(NatEnv *env, NatBlock *the_block, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+NatObject *nat_proc(NatEnv *env, NatBlock *block);
 
 #define NAT_STRING_GROW_FACTOR 2
 

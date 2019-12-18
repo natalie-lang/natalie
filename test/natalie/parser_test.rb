@@ -123,6 +123,8 @@ describe 'Natalie::Parser' do
       expect(ast).must_equal [[:def, nil, 'foo', ['x'], {}, [[:send, nil, 'x', []]]]]
       ast = build_ast("def foo(x, y); x; end")
       expect(ast).must_equal [[:def, nil, 'foo', ['x', 'y'], {}, [[:send, nil, 'x', []]]]]
+      ast = build_ast("def foo(x, y, &z); z; end")
+      expect(ast).must_equal [[:def, nil, 'foo', ['x', 'y', '&z'], {}, [[:send, nil, 'z', []]]]]
       ast = build_ast("def foo x  ; x; end")
       expect(ast).must_equal [[:def, nil, 'foo', ['x'], {}, [[:send, nil, 'x', []]]]]
       ast = build_ast("def foo   x, y; x; end")
@@ -358,6 +360,8 @@ describe 'Natalie::Parser' do
       expect(ast).must_equal [[:begin, [[:send, nil, 'xx', []]], :rescue, [], nil, [[:send, nil, 'p', [[:integer, '1']]]]]]
       ast = build_ast("begin\n  xx\nrescue => e\n  p e\nend")
       expect(ast).must_equal [[:begin, [[:send, nil, 'xx', []]], :rescue, [], 'e', [[:send, nil, 'p', [[:send, nil, 'e', []]]]]]]
+      ast = build_ast("begin\n1\nrescue\n2\nelse\n3\nend")
+      expect(ast).must_equal [[:begin, [[:integer, '1']], :rescue, [], nil, [[:integer, '2']], :else, [[:integer, '3']]]]
     end
 
     it 'parses global variables' do

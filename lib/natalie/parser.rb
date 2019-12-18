@@ -330,11 +330,19 @@ module Natalie
       end
     end
 
+    def method_arg
+      if @scanner.scan(/\&/)
+        '&' + identifier
+      else
+        identifier
+      end
+    end
+
     def method_args_with_parens
       if @scanner.skip(/[ \t]*\(\s*/)
-        args = [identifier]
+        args = [method_arg]
         while @scanner.skip(/[ \t]*,\s*/)
-          args << identifier
+          args << method_arg
         end
         expect(@scanner.skip(/\s*\)/), ')')
         args
@@ -343,9 +351,9 @@ module Natalie
 
     def method_args_without_parens
       if @scanner.skip(/[ \t]+/)
-        args = [identifier]
+        args = [method_arg]
         while @scanner.skip(/[ \t]*,\s*/)
-          args << identifier
+          args << method_arg
         end
         args
       end
@@ -422,7 +430,7 @@ module Natalie
     def begin_expr
       if (keyword = @scanner.scan(/begin[;\s]+/))
         body = []
-        until @scanner.check(/\s*(rescue|end)[;\s]+/)
+        until @scanner.check(/\s*(rescue|else|end)[;\s]+/)
           body << expr
           expect(@scanner.skip(END_OF_EXPRESSION), '; or newline')
         end
@@ -434,13 +442,23 @@ module Natalie
           end
           expect(@scanner.skip(END_OF_EXPRESSION), '; or newline')
           rescue_body = []
-          until @scanner.check(/\s*end[;\s]+/)
+          until @scanner.check(/\s*(else|end)[;\s]+/)
             rescue_body << expr
             expect(@scanner.skip(END_OF_EXPRESSION), '; or newline')
           end
         end
+        node = [:begin, body, :rescue, [], var, rescue_body]
+        if @scanner.scan(/else/)
+          expect(@scanner.skip(END_OF_EXPRESSION), '; or newline')
+          else_body = []
+          until @scanner.check(/\s*end[;\s]+/)
+            else_body << expr
+            expect(@scanner.skip(END_OF_EXPRESSION), '; or newline')
+          end
+          node += [:else, else_body]
+        end
         @scanner.skip(/\s*end/)
-        [:begin, body, :rescue, [], var, rescue_body]
+        node
       end
     end
   end

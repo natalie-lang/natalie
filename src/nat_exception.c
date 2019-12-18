@@ -35,3 +35,9 @@ NatObject *Exception_inspect(NatEnv *env, NatObject *self, size_t argc, NatObjec
     nat_string_append_char(str, '>');
     return str;
 }
+
+NatObject *Exception_message(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(0);
+    assert(self->type == NAT_VALUE_EXCEPTION);
+    return nat_string(env, self->message);
+}

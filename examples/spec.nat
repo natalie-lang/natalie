@@ -1,0 +1,65 @@
+class SpecFailedException < StandardError; end
+
+@specs = []
+
+def describe(description)
+  @describe = description
+  yield
+end
+
+def it(test, &block)
+  @specs << [@describe, test, block]
+end
+
+class Object
+  def must_equal(other)
+    if self != other
+      raise SpecFailedException, self.inspect + ' is not equal to ' + other.inspect
+    end
+  end
+end
+
+def run_specs
+  @failures = []
+
+  @specs.each do |test|
+    fn = test.last
+    begin
+      fn.call
+    rescue => e
+      print 'F'
+      @failures << e.message
+    else
+      print '.'
+    end
+  end
+
+  if @failures.any?
+    puts
+    puts
+    puts 'Failed specs:'
+    @failures.each do |failure|
+      puts failure
+    end
+  else
+    puts 'All specs passed.'
+  end
+end
+
+describe 'symbol' do
+  it 'works' do
+    :foo.inspect.must_equal ":foo"
+  end
+end
+
+describe 'failing spec' do
+  it 'shows an error' do
+    2.must_equal 1
+  end
+
+  it 'shows an error again' do
+    3.must_equal 1
+  end
+end
+
+run_specs
