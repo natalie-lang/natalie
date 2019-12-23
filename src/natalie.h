@@ -135,6 +135,7 @@ int is_special_name(char *name);
 NatObject *env_get(NatEnv *env, char *key);
 NatObject *env_set(NatEnv *env, char *key, NatObject *val);
 NatEnv *build_env(NatEnv *outer);
+NatEnv *build_block_env(NatEnv *outer, NatEnv *calling_env);
 
 NatObject* nat_raise(NatEnv *env, NatObject *klass, char *message_format, ...);
 NatObject* nat_raise_exception(NatEnv *env, NatObject *exception);
