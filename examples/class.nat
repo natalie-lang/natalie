@@ -1,6 +1,4 @@
-def assert_equal(expected, actual)
-  puts actual.inspect + " should be " + expected.inspect
-end
+require_relative './spec'
 
 class Foo
   def foo
@@ -12,11 +10,16 @@ class Foo
   end
 end
 
-foo = Foo.new
-assert_equal('foo', foo.foo)
-
-assert_equal('foo', Foo.new.foo)
-assert_equal(8, Foo.new.double(4))
+describe 'class' do
+  describe 'instance methods' do
+    it 'calls the method and returns the result' do
+      foo = Foo.new
+      foo.foo.must_equal 'foo'
+      Foo.new.foo.must_equal 'foo'
+      Foo.new.double(4).must_equal 8
+    end
+  end
+end
 
 # reopen class
 class Foo
@@ -25,8 +28,14 @@ class Foo
   end
 end
 
-assert_equal('foo2', Foo.new.foo2)
-assert_equal('foo', Foo.new.foo)
+describe 'class' do
+  describe 'reopen class' do
+    it 'has both old and new methods' do
+      Foo.new.foo2.must_equal 'foo2'
+      Foo.new.foo.must_equal 'foo'
+    end
+  end
+end
 
 class Bar < Foo
   def foo
@@ -34,8 +43,14 @@ class Bar < Foo
   end
 end
 
-assert_equal('bar', Bar.new.foo)
-assert_equal(6, Bar.new.double(3))
+describe 'class' do
+  describe 'inheritance' do
+    it 'has its own methods and those of its superclass' do
+      Bar.new.foo.must_equal 'bar'
+      Bar.new.double(3).must_equal 6
+    end
+  end
+end
 
 class Baz < Foo
   def foo
@@ -43,7 +58,13 @@ class Baz < Foo
   end
 end
 
-assert_equal('foo baz', Baz.new.foo)
+describe 'class' do
+  describe 'super' do
+    it 'calls the same method on the superclass' do
+      Baz.new.foo.must_equal 'foo baz'
+    end
+  end
+end
 
 module M1
   def m1
@@ -68,20 +89,15 @@ class Foo2
   include M1, M2
 end
 
-assert_equal('m1', Foo2.new.m1)
-assert_equal('m1b', Foo2.new.m1b)
-assert_equal('m2', Foo2.new.m2)
-
-p(['Integer.class', Class, Integer.class])
-p(['Class.class', Class, Class.class])
-p(['Class.superclass', Module, Class.superclass])
-p(['Module.class', Class, Module.class])
-p(['Module.superclass', Object, Module.superclass])
-p(['Integer.superclass', Numeric, Integer.superclass])
-p(['Numeric.superclass', Object, Numeric.superclass])
-p(['Object.superclass', BasicObject, Object.superclass])
-p(['BasicObject.class', Class, BasicObject.class])
-p(['BasicObject.superclass', nil, BasicObject.superclass])
+describe 'class' do
+  describe 'include' do
+    it 'includes methods from a module' do
+      Foo2.new.m1.must_equal 'm1'
+      Foo2.new.m1b.must_equal 'm1b'
+      Foo2.new.m2.must_equal 'm2'
+    end
+  end
+end
 
 class IvarTest
   def set_x(x)
@@ -109,23 +125,29 @@ class IvarTest
   attr_accessor :zz
 end
 
-i = IvarTest.new
-assert_equal(nil, i.get_x)
-i.set_x(10)
-assert_equal(10, i.get_x)
-i.set_x(20)
-assert_equal(20, i.get_x)
-i.set_y(10)
-assert_equal(10, i.get_y)
-i.set_y(20)
-assert_equal(20, i.get_y)
-assert_equal(nil, i.z)
-i.z = 10
-assert_equal(10, i.z)
-i.z = 20
-assert_equal(20, i.z)
-i.zz = 30
-assert_equal(30, i.zz)
+describe 'class' do
+  describe 'instance variables' do
+    it 'can be set and returned' do
+      i = IvarTest.new
+      i.get_x.must_equal nil
+      i.set_x(10)
+      i.get_x.must_equal 10
+      i.set_x(20)
+      i.get_x.must_equal 20
+      i.set_y(10)
+      i.get_y.must_equal 10
+      i.set_y(20)
+      i.get_y.must_equal 20
+      i.z.must_equal nil
+      i.z = 10
+      i.z.must_equal 10
+      i.z = 20
+      i.z.must_equal 20
+      i.zz = 30
+      i.zz.must_equal 30
+    end
+  end
+end
 
 class InitMethodTest
   def initialize
@@ -137,8 +159,6 @@ class InitMethodTest
   end
 end
 
-assert_equal(1, InitMethodTest.new.x)
-
 class InitMethodTest2
   def initialize(x)
     @x = x
@@ -149,12 +169,41 @@ class InitMethodTest2
   end
 end
 
-assert_equal(2, InitMethodTest2.new(2).x)
-
 class InitMethodTest3 < InitMethodTest2
   def x
     @x
   end
 end
 
-assert_equal(3, InitMethodTest3.new(3).x)
+describe 'class' do
+  describe 'initialize method' do
+    it 'is called when the object is created' do
+      InitMethodTest.new.x.must_equal 1
+    end
+
+    it 'is passed arguments' do
+      InitMethodTest2.new(2).x.must_equal 2
+    end
+
+    it 'is called on superclass if not present' do
+      InitMethodTest3.new(3).x.must_equal 3
+    end
+  end
+end
+
+describe 'built-in class/object hierarchy' do
+  it 'matches ruby' do
+    Integer.class.inspect.must_equal 'Class'
+    Class.class.inspect.must_equal 'Class'
+    Class.superclass.inspect.must_equal 'Module'
+    Module.class.inspect.must_equal 'Class'
+    Module.superclass.inspect.must_equal 'Object'
+    Integer.superclass.inspect.must_equal 'Numeric'
+    Numeric.superclass.inspect.must_equal 'Object'
+    Object.superclass.inspect.must_equal 'BasicObject'
+    BasicObject.class.inspect.must_equal 'Class'
+    BasicObject.superclass.inspect.must_equal 'nil'
+  end
+end
+
+run_specs

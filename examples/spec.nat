@@ -49,6 +49,6 @@ def run_specs
     end
   else
     puts
-    puts 'All specs passed.'
+    puts @specs.size.to_s + ' spec(s) passed.'
   end
 end
