@@ -52,10 +52,10 @@ NatObject *Array_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **args
         assert(size->type == NAT_VALUE_INTEGER);
         assert(index->integer >= 0);
         size_t end = index->integer + size->integer;
-        size_t max = self->ary_len-1;
-        max = end > max ? max : end;
+        size_t max = self->ary_len;
+        end = end > max ? max : end;
         NatObject *result = nat_array(env);
-        for (size_t i=index->integer; i<max; i++) {
+        for (size_t i=index->integer; i<end; i++) {
             nat_array_push(result, self->ary[i]);
         }
         return result;
