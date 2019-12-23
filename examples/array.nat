@@ -1,34 +1,89 @@
-def assert_equal(expected, actual)
-  puts actual.inspect + " should be " + expected.inspect
+require_relative './spec'
+
+describe 'array' do
+  describe '<<' do
+    it 'appends an item to the array' do
+      a = [1, 2]
+      a << 3
+      a.must_equal [1, 2, 3]
+    end
+  end
+
+  describe '+' do
+    it 'concatenates an array to this array' do
+      a = [1, 2] + [3, 4]
+      a.must_equal [1, 2, 3, 4]
+    end
+  end
+
+  describe 'indexing' do
+    it 'retrieves an item from the given index' do
+      a = [1, 2, 3, 4]
+      a[0].must_equal 1
+      a[3].must_equal 4
+    end
+
+    it 'returns nil for invalid index' do
+      a = [1, 2, 3, 4]
+      a[10].must_equal nil
+    end
+
+    it 'returns a slice given an index and a size' do
+      a = [1, 2, 3, 4]
+      a[2, 2].must_equal [3, 4]
+    end
+
+    it 'assigns a value at the given index' do
+      a = [1, 2, 3, 4]
+      a[2] = :three
+      a.must_equal [1, 2, :three, 4]
+      a[5] = :six
+      a.must_equal [1, 2, :three, 4, nil, :six]
+    end
+  end
+
+  describe 'size and length' do
+    it 'returns the number of items' do
+      a = [1, 2, 3, 4]
+      a.size.must_equal 4
+      a.length.must_equal 4
+    end
+  end
+
+  describe 'each' do
+    it 'iterates over the item in order' do
+      a2 = []
+      a = [1, 2, 3, 4]
+      a.each do |i|
+        a2 << i
+      end
+      a2.size.must_equal 4
+    end
+  end
+
+  describe 'first' do
+    it 'returns the first item' do
+      a = [1, 2, 3, 4]
+      a.first.must_equal 1
+    end
+
+    it 'returns nil if the array is empty' do
+      a = []
+      a.first.must_equal nil
+    end
+  end
+
+  describe 'last' do
+    it 'returns the last item' do
+      a = [1, 2, 3, 4]
+      a.last.must_equal 4
+    end
+
+    it 'returns nil if the array is empty' do
+      a = []
+      a.last.must_equal nil
+    end
+  end
 end
 
-a = [1, 2]
-a << 3
-assert_equal([1, 2, 3], a)
-
-b = ["a", 1, [2]]
-c = b + [3, 4]
-assert_equal(["a", 1, [2], 3, 4], c)
-
-d = ["a", "b", "c", "d", "e", "f"]
-assert_equal("b", d[1])
-assert_equal(["c", "d"], d[2,2])
-assert_equal(nil, d[100])
-
-d[1] = "B"
-assert_equal("B", d[1])
-d[7] = "H"
-assert_equal(["a", "B", "c", "d", "e", "f", nil, "H"], d)
-
-assert_equal(6, d.size)
-assert_equal(6, d.length)
-
-[1, "a", :b].each do |i|
-  p i
-end
-
-e = [1, 2, 3]
-assert_equal(1, e.first)
-assert_equal(3, e.last)
-assert_equal(nil, [].first)
-assert_equal(nil, [].last)
+run_specs
