@@ -1,4 +1,25 @@
-puts true
-puts false
-p true
-p false
+require_relative './spec'
+
+describe 'booleans' do
+  describe 'equality' do
+    it 'is equal to other booleans' do
+      r = true == true
+      r.must_equal true
+      r = false == false
+      r.must_equal true
+      r = true == false
+      r.must_equal false
+      r = false == true
+      r.must_equal false
+    end
+  end
+
+  describe 'inspect' do
+    it 'returns its name' do
+      true.inspect.must_equal 'true'
+      false.inspect.must_equal 'false'
+    end
+  end
+end
+
+run_specs

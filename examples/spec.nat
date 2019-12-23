@@ -46,6 +46,7 @@ def run_specs
       puts '    ' + failure[2]
     end
   else
+    puts
     puts 'All specs passed.'
   end
 end
