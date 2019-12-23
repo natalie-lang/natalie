@@ -1,3 +1,5 @@
+# skip-test
+
 class SpecFailedException < StandardError; end
 
 @specs = []

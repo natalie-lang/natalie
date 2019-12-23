@@ -13,7 +13,7 @@ describe 'Examples' do
         puts out_nat unless $?.to_i == 0
         expect($?.to_i).must_equal 0
         unless code =~ /# skip-ruby-test/
-          out_ruby = `ruby #{path} 2>&1`
+          out_ruby = `ruby -r./lib/ruby_require_patch #{path} 2>&1`
           puts out_ruby unless $?.to_i == 0
           expect($?.to_i).must_equal 0
           expect(out_nat).must_equal(out_ruby)
