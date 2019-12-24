@@ -2,7 +2,7 @@ require 'minitest/spec'
 require 'minitest/autorun'
 require 'time'
 
-describe 'Examples' do
+describe 'Natalie tests' do
   Dir.chdir File.expand_path('../..', __dir__)
   Dir['test/natalie/*_test.nat'].each do |path|
     code = File.read(path)
