@@ -1,4 +1,4 @@
-require_relative './spec'
+require 'spec'
 
 describe 'booleans' do
   describe 'equality' do

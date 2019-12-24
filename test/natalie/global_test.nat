@@ -1,4 +1,4 @@
-require_relative './spec'
+require 'spec'
 
 $foo = 1
 

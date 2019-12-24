@@ -14,6 +14,8 @@ module Natalie
 
     attr_accessor :ast
 
+    attr_writer :load_path
+
     def compile(out_path, shared: false)
       check_build
       write_file
@@ -71,6 +73,10 @@ module Natalie
       reindent(out)
     end
 
+    def load_path
+      Array(@load_path)
+    end
+
     private
 
     def reindent(code)
@@ -94,22 +100,29 @@ module Natalie
       send("macro_#{macro}", *args)
     end
 
-    def macro_require(path)
-      path = path.last
-      code = File.read(path + '.nat')
-      Natalie::Parser.new(code).ast
+    def macro_require(node)
+      path = node[1] + '.nat'
+      macro_load([nil, path])
     end
 
-    def macro_require_relative(path)
-      path = File.expand_path(path.last, File.dirname(@path))
-      code = File.read(path + '.nat')
-      Natalie::Parser.new(code).ast
+    def macro_require_relative(node)
+      path = File.expand_path(node[1] + '.nat', File.dirname(@path))
+      macro_load([nil, path])
     end
 
-    def macro_load(path)
-      path = path.last
-      code = File.read(path)
-      Natalie::Parser.new(code).ast
+    def macro_load(node)
+      path = node.last
+      full_path = if path.start_with?('/')
+                    path
+                  else
+                    load_path.map { |d| File.join(d, path) }.detect { |p| File.exist?(p) }
+                  end
+      if full_path
+        code = File.read(full_path)
+        Natalie::Parser.new(code).ast
+      else
+        raise LoadError, "cannot load such file -- #{path}"
+      end
     end
 
     def compile_expr(expr)
