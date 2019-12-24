@@ -1,0 +1,118 @@
+require 'spec'
+
+describe 'equality' do
+  it 'works for every object' do
+    o = Object.new
+    r = o == o
+    r.must_equal true
+    r = o === o
+    r.must_equal true
+    r = o.eql?(o)
+    r.must_equal true
+    r = o.equal?(o)
+    r.must_equal true
+    r = 1 == 1
+    r.must_equal true
+    r = 1 === 1
+    r.must_equal true
+    r = "hi" == "hi"
+    r.must_equal true
+    r = "hi" === "hi"
+    r.must_equal true
+    r = "" == ""
+    r.must_equal true
+    r = "" === ""
+    r.must_equal true
+    r = :foo == :foo
+    r.must_equal true
+    r = :foo === :foo
+    r.must_equal true
+    r = true == true
+    r.must_equal true
+    r = true === true
+    r.must_equal true
+    r = false == false
+    r.must_equal true
+    r = false === false
+    r.must_equal true
+    r = [1, 2, 3] == [1, 2, 3]
+    r.must_equal true
+    r = [1, 2, 3] === [1, 2, 3]
+    r.must_equal true
+    r = [] == []
+    r.must_equal true
+    r = [] === []
+    r.must_equal true
+    r = Object === Object.new
+    r.must_equal true
+    r = Object === 1
+    r.must_equal true
+    r = Object === 'foo'
+    r.must_equal true
+    r = Object === []
+    r.must_equal true
+    r = Integer === 1
+    r.must_equal true
+    r = String === 'foo'
+    r.must_equal true
+    r = Array === []
+    r.must_equal true
+    r = 1 != 2
+    r.must_equal true
+    o2 = Object.new
+    r = o == o2
+    r.must_equal false
+    r = o === o2
+    r.must_equal false
+    r = o.eql?(o2)
+    r.must_equal false
+    r = o.equal?(o2)
+    r.must_equal false
+    r = 1 == nil
+    r.must_equal false
+    r = 1 === nil
+    r.must_equal false
+    r = 1 == "1"
+    r.must_equal false
+    r = 1 === "1"
+    r.must_equal false
+    r = "hi" == "hi there"
+    r.must_equal false
+    r = "hi" === "hi there"
+    r.must_equal false
+    r = "hi" == nil
+    r.must_equal false
+    r = "hi" === nil
+    r.must_equal false
+    r = "hi" == 0
+    r.must_equal false
+    r = "hi" === 0
+    r.must_equal false
+    r = :foo == :bar
+    r.must_equal false
+    r = :foo === :bar
+    r.must_equal false
+    r = true == false
+    r.must_equal false
+    r = true === false
+    r.must_equal false
+    r = [1, 2, 3] == [1, 2]
+    r.must_equal false
+    r = [1, 2, 3] === [1, 2]
+    r.must_equal false
+    r = [1, 2, 3] == [1, 2, 3, 4]
+    r.must_equal false
+    r = [1, 2, 3] === [1, 2, 3, 4]
+    r.must_equal false
+    r = Integer === []
+    r.must_equal false
+    r = String === 1
+    r.must_equal false
+    r = Array === 'foo'
+    r.must_equal false
+    r = 1 != 1
+    r.must_equal false
+  end
+end
+
+run_specs
