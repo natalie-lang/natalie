@@ -119,3 +119,16 @@ NatObject *Kernel_raise(NatEnv *env, NatObject *self, size_t argc, NatObject **a
     }
     NAT_RAISE(env, klass, message->str);
 }
+
+NatObject *Kernel_exit(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(0, 1);
+    NatObject *status;
+    if (argc == 1) {
+        status = args[0];
+        assert(status->type == NAT_VALUE_INTEGER);
+    } else {
+        status = nat_integer(env, 0);
+    }
+    exit(status->integer);
+    return env_get(env, "nil");
+}
