@@ -199,18 +199,22 @@ NatObject *EVAL(NatEnv *env) {
     if (!NAT_RESCUE(env)) {
         /*DECL*/
         /*BODY*/
+        return env_get(env, "nil");
     } else {
         NatObject *exception = env->exception;
         assert(exception);
         assert(exception->type == NAT_VALUE_EXCEPTION);
         fflush(stdout);
         fprintf(stderr, "%s\n", exception->message);
-        return env_get(env, "nil");
+        return NULL;
     }
 }
 
 int main(void) {
     NatEnv *env = build_top_env();
-    EVAL(env);
-    return 0;
+    if (EVAL(env)) {
+        return 0;
+    } else {
+        return 1;
+    }
 }
