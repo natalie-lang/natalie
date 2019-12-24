@@ -1,0 +1,94 @@
+require 'spec'
+
+def foo
+  'foo'
+end
+
+def double(x)
+  x * 2
+end
+
+def mul(x, y,
+         z)
+  x * y * z
+end
+
+def block_test
+  yield
+end
+
+def block_with_args_test
+  yield 1, 2, 3
+end
+
+def block_with_args_test2
+  yield 4, 5
+end
+
+def block_arg_test(a, b, &block)
+  [a, b, block.call]
+end
+
+class Foo
+  def foo
+    'instance method foo'
+  end
+
+  def self.foo
+    'class method foo'
+  end
+
+  def Foo.foo2
+    'class method foo2'
+  end
+end
+
+describe 'method' do
+  it 'can be called' do
+    foo.must_equal 'foo'
+  end
+
+  it 'can receive arguments' do
+    double(3).must_equal 6
+    mul(1, 2, 3).must_equal 6
+  end
+
+  it 'can receive and yield to a block' do
+    r = block_test { 1 }
+    r.must_equal 1
+    x = 2
+    r = block_test do
+      x
+    end
+    r.must_equal 2
+  end
+
+  it 'can receive a block as an Proc argument' do
+    r = block_arg_test(1, 2) { 3 }
+    r.must_equal [1, 2, 3]
+  end
+
+  it 'can yield args to a block' do
+    r = block_with_args_test { |x, y, z| [x, y, z] }
+    r.must_equal [1, 2, 3]
+    r = block_with_args_test2 do |x, y, z|
+      [x, y, z]
+    end
+    r.must_equal [4, 5, nil]
+    r = block_with_args_test2 do |x|
+      [x]
+    end
+    r.must_equal [4]
+  end
+
+  it 'can be an instance method' do
+    Foo.new.foo.must_equal 'instance method foo'
+  end
+
+  it 'can be a class method' do
+    Foo.foo.must_equal 'class method foo'
+    Foo.foo2.must_equal 'class method foo2'
+  end
+end
+
+run_specs

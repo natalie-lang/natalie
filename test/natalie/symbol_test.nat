@@ -1,0 +1,11 @@
+require 'spec'
+
+describe 'symbol' do
+  it 'works' do
+    s = :foo
+    s.inspect.must_equal ':foo'
+    s.to_s.must_equal 'foo'
+  end
+end
+
+run_specs

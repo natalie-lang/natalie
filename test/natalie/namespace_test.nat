@@ -1,0 +1,61 @@
+require 'spec'
+
+NUM = 1
+
+class Foo
+  NUM = 2
+
+  def self.num
+    NUM
+  end
+
+  def num
+    NUM
+  end
+end
+
+class Bar < Foo
+  NUM = 3
+
+  def self.num
+    NUM
+  end
+
+  def num
+    NUM
+  end
+end
+
+class Baz < Bar
+  def self.num
+    NUM
+  end
+
+  def num
+    NUM
+  end
+end
+
+describe 'namespace' do
+  it 'resolves top-level constants' do
+    NUM.must_equal 1
+  end
+
+  it 'resolves constants on a class' do
+    Foo::NUM.must_equal 2
+    Foo::num.must_equal 2
+    Foo.num.must_equal 2
+    Foo.new.num.must_equal 2
+    Bar::NUM.must_equal 3
+    Bar::num.must_equal 3
+    Bar.num.must_equal 3
+    Bar.new.num.must_equal 3
+    Baz::NUM.must_equal 3
+    Baz::num.must_equal 3
+    Baz.num.must_equal 3
+    Baz.new.num.must_equal 3
+  end
+end
+
+run_specs
+

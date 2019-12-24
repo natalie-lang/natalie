@@ -1,6 +1,0 @@
-x = 10
-while x != 0
-  p x
-  x = x - 1
-end
-p x

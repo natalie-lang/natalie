@@ -1,6 +1,0 @@
-@b = 1
-p @b
-
-[1].each do |i|
-  p @b
-end

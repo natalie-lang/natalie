@@ -120,6 +120,14 @@ class IvarTest
     @z = z
   end
 
+  def block_test
+    result = []
+    [1].each do |i|
+      result << @z
+    end
+    result
+  end
+
   attr_reader :z
   attr_writer :z
   attr_accessor :zz
@@ -145,6 +153,7 @@ describe 'class' do
       i.z.must_equal 20
       i.zz = 30
       i.zz.must_equal 30
+      i.block_test.must_equal [20]
     end
   end
 end

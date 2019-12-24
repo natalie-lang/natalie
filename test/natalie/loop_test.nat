@@ -1,0 +1,15 @@
+require 'spec'
+
+describe 'while' do
+  it 'works' do
+    r = []
+    x = 10
+    while x != 0
+      r << x
+      x = x - 1
+    end
+    r.must_equal [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+  end
+end
+
+run_specs
