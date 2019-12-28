@@ -65,7 +65,7 @@ else
     Thread.new do
       begin
         while (line = stderr.gets)
-          puts line
+          $stderr.puts line
         end
       rescue IOError
       end
