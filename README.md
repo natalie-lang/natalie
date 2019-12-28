@@ -11,6 +11,8 @@ There is much work left to do before this is useful. Please let me know if you w
 ## Building
 
 ```sh
+gem install bundler
+bundle install
 make build
 ```
 
