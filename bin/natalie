@@ -63,13 +63,19 @@ else
   Open3.popen3(out.path) do |stdin, stdout, stderr, wait_thread|
     stdin.close_write
     Thread.new do
-      while (line = stderr.gets)
-        puts line
+      begin
+        while (line = stderr.gets)
+          puts line
+        end
+      rescue IOError
       end
     end
     Thread.new do
-      while (line = stdout.gets)
-        puts line
+      begin
+        while (line = stdout.gets)
+          puts line
+        end
+      rescue IOError
       end
     end
     wait_thread.join
