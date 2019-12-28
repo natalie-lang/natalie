@@ -1,0 +1,16 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    ruby_parser (3.14.1)
+      sexp_processor (~> 4.9)
+    sexp_processor (4.13.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  ruby_parser
+  sexp_processor
+
+BUNDLED WITH
+   2.0.1

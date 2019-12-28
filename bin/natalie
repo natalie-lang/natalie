@@ -1,30 +1,31 @@
 #!/usr/bin/env ruby
 
+require 'open3'
 require 'optparse'
 require 'tempfile'
 require_relative '../lib/natalie'
 
 options = { load_path: [] }
 OptionParser.new do |opts|
-  opts.banner = "Usage: natalie [options] file.nat"
+  opts.banner = 'Usage: natalie [options] file.nat'
 
-  opts.on("-d", "--debug", "Show debug output") do |d|
+  opts.on('-d', '--debug', 'Show debug output') do |_d|
     ENV['DEBUG'] = 'true'
   end
 
-  opts.on("-e one-line-script", "Execute one-line script") do |e|
+  opts.on('-e one-line-script', 'Execute one-line script') do |e|
     options[:execute] = e
   end
 
-  opts.on("--ast", "Show AST rather than compiling") do |ast|
+  opts.on('--ast', 'Show AST rather than compiling') do |ast|
     options[:ast] = ast
   end
 
-  opts.on("-c path", "--compile path", "Compile to binary but do not execute") do |c|
+  opts.on('-c path', '--compile path', 'Compile to binary but do not execute') do |c|
     options[:compile] = c
   end
 
-  opts.on("-I path", "Specify $LOAD_PATH directory (may be used more than once)") do |p|
+  opts.on('-I path', 'Specify $LOAD_PATH directory (may be used more than once)') do |p|
     options[:load_path].unshift(p)
   end
 end.parse!
@@ -59,9 +60,21 @@ else
   out.close
   compiler.compile(out.path)
   puts out.path if ENV['DEBUG']
-  result = `#{out.path} 2>&1` # FIXME: stderr
-  puts result unless result == ''
+  Open3.popen3(out.path) do |stdin, stdout, stderr, wait_thread|
+    stdin.close_write
+    Thread.new do
+      while (line = stderr.gets)
+        puts line
+      end
+    end
+    Thread.new do
+      while (line = stdout.gets)
+        puts line
+      end
+    end
+    wait_thread.join
+  end
   File.unlink(out.path) unless ENV['DEBUG']
-  success = $?.to_i == 0
+  success = $CHILD_STATUS.to_i == 0
   exit(success ? 0 : 1)
 end

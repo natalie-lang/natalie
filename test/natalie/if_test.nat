@@ -53,6 +53,7 @@ describe 'if' do
   end
 
   it 'can be expressed as postfix' do
+    x = nil # FIXME: should not be necessary if we have proper variable scoping
     x = 1 if nil
     x.must_equal nil
     x = 1 if false
@@ -111,6 +112,7 @@ describe 'unless' do
   end
 
   it 'can be expressed as postfix' do
+    x = nil # FIXME: should not be necessary if we have proper variable scoping
     x = 1 unless true
     x.must_equal nil
     x = 1 unless 1

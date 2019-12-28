@@ -43,17 +43,7 @@ NatObject *Class_included_modules(NatEnv *env, NatObject *self, size_t argc, Nat
 NatObject *Class_ancestors(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     assert(self->type == NAT_VALUE_CLASS);
     NAT_ASSERT_ARGC(0);
-    NatObject *ancestors = nat_array(env);
-    NatObject *class = self;
-    while (1) {
-        nat_array_push(ancestors, class);
-        for (size_t i=0; i<class->included_modules_count; i++) {
-            nat_array_push(ancestors, class->included_modules[i]);
-        }
-        if (nat_is_top_class(class)) break;
-        class = class->superclass;
-    }
-    return ancestors;
+    return nat_class_ancestors(env, self);
 }
 
 NatObject *Class_superclass(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
@@ -66,15 +56,9 @@ NatObject *Class_eqeqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **a
     assert(self->type == NAT_VALUE_CLASS);
     NAT_ASSERT_ARGC(1);
     NatObject *arg = args[0];
-    if (self == arg) {
+    if (nat_is_a(env, arg, self)) {
         return env_get(env, "true");
     } else {
-        NatObject *ancestors = Class_ancestors(env, arg->class, 0, NULL, NULL, NULL);
-        for (size_t i=0; i<ancestors->ary_len; i++) {
-            if (self == ancestors->ary[i]) {
-                return env_get(env, "true");
-            }
-        }
         return env_get(env, "false");
     }
 }

@@ -332,6 +332,34 @@ void nat_define_singleton_method(NatObject *obj, char *name, NatObject* (*fn)(Na
     hashmap_put(&obj->singleton_methods, name, method);
 }
 
+NatObject *nat_class_ancestors(NatEnv *env, NatObject *klass) {
+    assert(klass->type == NAT_VALUE_CLASS);
+    NatObject *ancestors = nat_array(env);
+    while (1) {
+        nat_array_push(ancestors, klass);
+        for (size_t i=0; i<klass->included_modules_count; i++) {
+            nat_array_push(ancestors, klass->included_modules[i]);
+        }
+        if (nat_is_top_class(klass)) break;
+        klass = klass->superclass;
+    }
+    return ancestors;
+}
+
+int nat_is_a(NatEnv *env, NatObject *obj, NatObject *klass_or_module) {
+    if (obj == klass_or_module) {
+        return TRUE;
+    } else {
+        NatObject *ancestors = nat_class_ancestors(env, obj->class);
+        for (size_t i=0; i<ancestors->ary_len; i++) {
+            if (klass_or_module == ancestors->ary[i]) {
+                return TRUE;
+            }
+        }
+        return FALSE;
+    }
+}
+
 NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, NatObject **args, NatBlock *block) { // FIXME: kwargs
     assert(receiver);
     if (receiver->type == NAT_VALUE_CLASS) {
@@ -400,6 +428,15 @@ NatObject *nat_lookup_or_send(NatEnv *env, NatObject *receiver, char *sym, size_
             if (obj) return obj;
         }
         return nat_send(env, receiver, sym, argc, args, block);
+    }
+}
+
+NatObject *nat_lookup(NatEnv *env, char *name) {
+    NatObject *obj = env_get(env, name);
+    if (obj) {
+        return obj;
+    } else {
+        NAT_RAISE(env, env_get(env, "NameError"), "undefined local variable or method `%s'", name);
     }
 }
 

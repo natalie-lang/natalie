@@ -198,20 +198,19 @@ NatObject *EVAL(NatEnv *env) {
     NatObject *self = env_get(env, "self");
     UNUSED(self); // maybe unused
     if (!NAT_RESCUE(env)) {
-        /*DECL*/
         /*BODY*/
-        return env_get(env, "nil");
+        return env_get(env, "nil"); // just in case there's no return value
     } else {
         NatObject *exception = env->exception;
         assert(exception);
         assert(exception->type == NAT_VALUE_EXCEPTION);
-        fflush(stdout);
         fprintf(stderr, "%s\n", exception->message);
         return NULL;
     }
 }
 
 int main(void) {
+    setvbuf(stdout, NULL, _IOLBF, 1024);
     NatEnv *env = build_top_env();
     if (EVAL(env)) {
         return 0;

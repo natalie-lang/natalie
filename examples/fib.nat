@@ -8,4 +8,4 @@ def fib(n)
   end
 end
 
-puts fib(5)
+puts fib(7)
