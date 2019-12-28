@@ -60,6 +60,7 @@ else
   out.close
   compiler.compile(out.path)
   puts out.path if ENV['DEBUG']
+  status = nil
   Open3.popen3(out.path) do |stdin, stdout, stderr, wait_thread|
     stdin.close_write
     Thread.new do
@@ -78,9 +79,8 @@ else
       rescue IOError
       end
     end
-    wait_thread.join
+    status = wait_thread.value.to_i
+    File.unlink(out.path) unless ENV['DEBUG']
   end
-  File.unlink(out.path) unless ENV['DEBUG']
-  success = $CHILD_STATUS.to_i == 0
-  exit(success ? 0 : 1)
+  exit(status == 0 ? 0 : 1)
 end
