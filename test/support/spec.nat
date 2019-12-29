@@ -9,6 +9,10 @@ def describe(description)
   yield
 end
 
+def xit(test, &block)
+  @specs << [@describe, test, nil]
+end
+
 def it(test, &block)
   @specs << [@describe, test, block]
 end
@@ -25,16 +29,21 @@ end
 
 def run_specs
   @failures = []
+  @skipped = 0
 
   @specs.each do |test|
     fn = test.last
-    begin
-      fn.call
-    rescue => e
-      print 'F'
-      @failures << [test[0], test[1], e.message]
+    if fn
+      begin
+        fn.call
+      rescue => e
+        print 'F'
+        @failures << [test[0], test[1], e.message]
+      else
+        print '.'
+      end
     else
-      print '.'
+      print '*'
     end
   end
 
@@ -51,5 +60,6 @@ def run_specs
   else
     puts
     puts @specs.size.to_s + ' spec(s) passed.'
+    puts @skipped.size.to_s + ' spec(s) skipped.' if @skipped.any?
   end
 end
