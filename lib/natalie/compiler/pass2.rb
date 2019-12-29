@@ -51,17 +51,25 @@ module Natalie
         (_, *args) = exp
         case args.size
         when 0
-          'NULL'
+          'NULL:0'
         when 1
-          '&' + p(args.first)
+          "&#{p args.first}:1"
         else
           args_name = temp('args')
           decl "NatObject **#{args_name} = calloc(#{args.size}, sizeof(NatObject));"
           args.each_with_index do |arg, i|
             decl "#{args_name}[#{i}] = #{p arg};"
           end
-          args_name
+          "#{args_name}:#{args.size}"
         end
+      end
+
+      def process_args_array(exp)
+        (_, args) = exp
+        array = p(args)
+        name = temp('args_array')
+        decl "NatObject *#{name} = #{array};"
+        "#{name}->ary:#{name}->ary_len"
       end
 
       def process_block(exp)
@@ -204,14 +212,19 @@ module Natalie
 
       def process_method_args(exp)
         (_, *args) = exp
-        args.each_with_index.map do |arg, index|
+        args.each_with_index do |arg, index|
           if arg.to_s.start_with?('&')
-            arg = arg[1..-1]
-            val = 'nat_proc(env, block)'
+            decl "env_set(env, #{arg.to_s[1..-1].inspect}, nat_proc(env, block));"
+          elsif arg.to_s.start_with?('*')
+            var = temp('args')
+            decl "NatObject *#{var} = nat_array(env);"
+            decl "for (size_t i=#{index}; i<argc; i++) {"
+            decl "nat_array_push(#{var}, args[i]);"
+            decl '}'
+            decl "env_set(env, #{arg.to_s[1..-1].inspect}, #{var});"
           else
-            val = "args[#{index}]"
+            decl "env_set(env, #{arg.to_s.inspect}, args[#{index}]);"
           end
-          decl "env_set(env, #{arg.to_s.inspect}, #{val});"
         end
         ''
       end
@@ -231,9 +244,9 @@ module Natalie
       def process_nat_lookup_or_send(exp)
         (fn, receiver, method, args, block) = exp
         receiver_name = p(receiver)
-        args_name = p(args)
+        args_name, args_count = p(args).split(':')
         result_name = temp('call_result')
-        decl "NatObject *#{result_name} = #{fn}(env, #{receiver_name}, #{method.to_s.inspect}, #{args.size - 1}, #{args_name}, #{block || 'NULL'});"
+        decl "NatObject *#{result_name} = #{fn}(env, #{receiver_name}, #{method.to_s.inspect}, #{args_count}, #{args_name}, #{block || 'NULL'});"
         result_name
       end
 

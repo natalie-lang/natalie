@@ -10,12 +10,19 @@ module Natalie
       attr_accessor :var_num
 
       def rewrite_array(exp)
-        return exp if context.first == :resbody
+        return exp if %i[resbody splat].include?(context.first)
         (_, *items) = exp
         arr = temp('arr')
+        items = items.map do |item|
+          if item.sexp_type == :splat
+            s(:nat_array_push_splat, :env, arr, item.last)
+          else
+            s(:nat_array_push, arr, rewrite(item))
+          end
+        end
         s(:block,
           s(:declare, arr, s(:nat_array, :env)),
-          *items.map { |i| s(:nat_array_push, arr, rewrite(i)) },
+          *items.compact,
           arr)
       end
 
@@ -26,11 +33,16 @@ module Natalie
 
       def rewrite_call(exp)
         (_, receiver, method, *args) = exp
+        if args.any? { |a| a.sexp_type == :splat }
+          args = s(:args_array, rewrite(s(:array, *args)))
+        else
+          args = s(:args, *args)
+        end
         if receiver
-          s(:nat_send, receiver, method, s(:args, *args.map { |a| rewrite(a) }))
+          s(:nat_send, receiver, method, args)
         else
           receiver = receiver ? rewrite(receiver) : :self
-          s(:nat_lookup_or_send, receiver, method, s(:args, *args.map { |a| rewrite(a) }))
+          s(:nat_lookup_or_send, receiver, method, args)
         end
       end
 
@@ -72,10 +84,16 @@ module Natalie
         name = name.to_s
         fn = temp('fn')
         non_block_args = args.grep_v(/^\&/)
+        splat_arg_index = args.index { |a| a =~ /^\*/ }
+        argc_assert = if splat_arg_index
+                        s(:NAT_ASSERT_ARGC_AT_LEAST, splat_arg_index)
+                      else
+                        s(:NAT_ASSERT_ARGC, non_block_args.size)
+                      end
         s(:block,
           s(:fn, fn,
             s(:block,
-              s(:NAT_ASSERT_ARGC, non_block_args.size),
+              argc_assert,
               s(:env_set, :env, s(:s, '__method__'), s(:nat_string, :env, s(:s, name))),
               s(:method_args, *args),
               rewrite(s(:block, *body)))),

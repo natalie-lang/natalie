@@ -285,6 +285,20 @@ void nat_array_push(NatObject *array, NatObject *obj) {
   array->ary[len] = obj;
 }
 
+void nat_array_push_splat(NatEnv *env, NatObject *array, NatObject *obj) {
+  assert(array->type == NAT_VALUE_ARRAY);
+  if (obj->type != NAT_VALUE_ARRAY && nat_respond_to(obj, "to_a")) {
+      obj = nat_send(env, obj, "to_a", 0, NULL, NULL);
+  }
+  if (obj->type == NAT_VALUE_ARRAY) {
+      for (size_t i=0; i<obj->ary_len; i++) {
+          nat_array_push(array, obj->ary[i]);
+      }
+  } else {
+      nat_array_push(array, obj);
+  }
+}
+
 #define INT_64_MAX_CHAR_LEN 21 // 1 for sign, 19 for max digits, and 1 for null terminator
 
 char* int_to_string(int64_t num) {
@@ -437,6 +451,14 @@ NatObject *nat_lookup(NatEnv *env, char *name) {
         return obj;
     } else {
         NAT_RAISE(env, env_get(env, "NameError"), "undefined local variable or method `%s'", name);
+    }
+}
+
+int nat_respond_to(NatObject *obj, char *name) {
+    if (hashmap_get(&obj->class->methods, name)) {
+        return TRUE;
+    } else {
+        return FALSE;
     }
 }
 

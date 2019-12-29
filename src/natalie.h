@@ -175,6 +175,7 @@ NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, Na
 NatObject *nat_lookup_or_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, NatObject **args, NatBlock *block);
 NatObject *nat_lookup(NatEnv *env, char *name);
 NatObject *nat_call_method_on_class(NatEnv *env, NatObject *class, NatObject *instance_class, char *method_name, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+int nat_respond_to(NatObject *obj, char *name);
 
 NatBlock *nat_block(NatEnv *env, NatObject *self, NatObject* (*fn)(NatEnv*, NatObject*, size_t, NatObject**, struct hashmap*, NatBlock*));
 NatObject *nat_run_block(NatEnv *env, NatBlock *the_block, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
@@ -201,5 +202,6 @@ NatObject *nat_array(NatEnv *env);
 void nat_grow_array(NatObject *obj, size_t capacity);
 void nat_grow_array_at_least(NatObject *obj, size_t min_capacity);
 void nat_array_push(NatObject *array, NatObject *obj);
+void nat_array_push_splat(NatEnv *env, NatObject *array, NatObject *obj);
 
 #endif

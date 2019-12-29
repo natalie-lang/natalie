@@ -82,6 +82,7 @@ NatEnv *build_top_env() {
     nat_define_method(Kernel, "instance_variable_set", Kernel_instance_variable_set);
     nat_define_method(Kernel, "raise", Kernel_raise);
     nat_define_method(Kernel, "exit", Kernel_exit);
+    nat_define_method(Kernel, "respond_to?", Kernel_respond_to);
 
     NatObject *Comparable = nat_module(env, "Comparable");
     COMPARABLE_INIT();
@@ -99,6 +100,7 @@ NatEnv *build_top_env() {
     NatObject *NilClass = nat_subclass(env, Object, "NilClass");
     nat_define_singleton_method(NilClass, "new", NilClass_new);
     nat_define_method(NilClass, "to_s", NilClass_to_s);
+    nat_define_method(NilClass, "to_a", NilClass_to_a);
     nat_define_method(NilClass, "inspect", NilClass_inspect);
     env_set(env, "NilClass", NilClass);
 

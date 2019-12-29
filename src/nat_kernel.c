@@ -132,3 +132,21 @@ NatObject *Kernel_exit(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     exit(status->integer);
     return env_get(env, "nil");
 }
+
+NatObject *Kernel_respond_to(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(1);
+    NatObject *symbol = args[0];
+    char *name;
+    if (symbol->type == NAT_VALUE_SYMBOL) {
+        name = symbol->symbol;
+    } else if (symbol->type == NAT_VALUE_STRING) {
+        name = symbol->str;
+    } else {
+        return env_get(env, "false");
+    }
+    if (nat_respond_to(self, name)) {
+        return env_get(env, "true");
+    } else {
+        return env_get(env, "false");
+    }
+}
