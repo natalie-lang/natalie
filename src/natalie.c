@@ -530,6 +530,14 @@ void nat_string_append_char(NatObject *str, char c) {
     str->str_len = total_len;
 }
 
+void nat_string_append_nat_string(NatObject *str, NatObject *str2) {
+    if (str2->str_len == 0) return;
+    size_t total_len = str->str_len + str2->str_len;
+    nat_grow_string_at_least(str, total_len);
+    strcat(str->str, str2->str);
+    str->str_len = total_len;
+}
+
 NatObject* nat_sprintf(NatEnv *env, char *format, ...) {
     va_list args;
     va_start(args, format);

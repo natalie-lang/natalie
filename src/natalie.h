@@ -188,6 +188,7 @@ void nat_grow_string(NatObject *obj, size_t capacity);
 void nat_grow_string_at_least(NatObject *obj, size_t min_capacity);
 void nat_string_append(NatObject *str, char *s);
 void nat_string_append_char(NatObject *str, char c);
+void nat_string_append_nat_string(NatObject *str, NatObject *str2);
 NatObject* nat_sprintf(NatEnv *env, char *format, ...);
 NatObject* nat_vsprintf(NatEnv *env, char *format, va_list args);
 

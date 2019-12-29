@@ -23,6 +23,8 @@ module Natalie
         NAT_ASSERT_ARGC
         nat_define_method
         nat_raise_exception
+        nat_string_append
+        nat_string_append_nat_string
       ]
 
       NAT_FUNCTIONS = /^nat_|^NAT_|^env_|^ivar_|^global_/

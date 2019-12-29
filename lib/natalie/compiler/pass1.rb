@@ -117,6 +117,25 @@ module Natalie
           s(:nat_symbol, :env, s(:s, name)))
       end
 
+      def rewrite_dstr(exp)
+        (_, start, *rest) = exp
+        string = temp('string')
+        segments = rest.map do |segment|
+          case segment.sexp_type
+          when :evstr
+            s(:nat_string_append_nat_string, string, rewrite(s(:call, segment.last, :to_s)))
+          when :nat_string
+            s(:nat_string_append, string, segment.last)
+          else
+            raise "unknown dstr segment: #{segment.inspect}"
+          end
+        end
+        s(:block,
+          s(:declare, string, s(:nat_string, :env, s(:s, start))),
+          *segments,
+          string)
+      end
+
       def rewrite_gasgn(exp)
         (_, name, value) = exp
         s(:global_set, :env, s(:s, name), rewrite(value))
