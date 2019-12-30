@@ -20,6 +20,7 @@
 #define NAT_ASSERT_ARGC_AT_LEAST(expected) if(argc < expected) { NAT_RAISE(env, env_get(env, "ArgumentError"), "wrong number of arguments (given %d, expected %d+)", argc, expected); }
 #define GET_MACRO(_1, _2, NAME, ...) NAME
 #define NAT_ASSERT_ARGC(...) GET_MACRO(__VA_ARGS__, NAT_ASSERT_ARGC2, NAT_ASSERT_ARGC1)(__VA_ARGS__)
+#define NAT_UNREACHABLE() fprintf(stderr, "panic: unreachable\n"); abort();
 
 #define TRUE 1
 #define FALSE 0
@@ -204,5 +205,8 @@ void nat_grow_array(NatObject *obj, size_t capacity);
 void nat_grow_array_at_least(NatObject *obj, size_t min_capacity);
 void nat_array_push(NatObject *array, NatObject *obj);
 void nat_array_push_splat(NatEnv *env, NatObject *array, NatObject *obj);
+void nat_array_expand_with_nil(NatEnv *env, NatObject *array, size_t size);
+
+NatObject *nat_dup(NatEnv *env, NatObject *obj);
 
 #endif

@@ -63,21 +63,53 @@ NatObject *Array_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **args
 }
 
 NatObject *Array_refeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
-    NAT_ASSERT_ARGC(2);
+    NAT_ASSERT_ARGC(2, 3);
     assert(self->type == NAT_VALUE_ARRAY);
-    NatObject *index = args[0];
-    assert(index->type == NAT_VALUE_INTEGER); // TODO: accept a range
-    assert(index->integer >= 0); // TODO: accept negative index
-    NatObject *val = args[1];
-    if (index->integer < self->ary_len) {
-        self->ary[index->integer] = val;
-    } else {
-        NatObject *nil = env_get(env, "nil");
-        for (size_t i=self->ary_len; i<index->integer; i++) {
-            nat_array_push(self, nil);
+    NatObject *index_obj = args[0];
+    assert(index_obj->type == NAT_VALUE_INTEGER); // TODO: accept a range
+    assert(index_obj->integer >= 0); // TODO: accept negative index
+    size_t index = index_obj->integer;
+    NatObject *val;
+    if (argc == 2) {
+        val = args[1];
+        if (index < self->ary_len) {
+            self->ary[index] = val;
+        } else {
+            nat_array_expand_with_nil(env, self, index);
+            nat_array_push(self, val);
         }
-        nat_array_push(self, val);
+        return val;
     }
+    NatObject *len_obj = args[1];
+    assert(len_obj->type == NAT_VALUE_INTEGER);
+    size_t length = len_obj->integer;
+    assert(length >= 0);
+    val = args[2];
+    // PERF: inefficient for large arrays where changes are being made to only the right side
+    NatObject *ary2 = nat_array(env);
+    // stuff before the new entry/entries
+    for (size_t i=0; i<index; i++) {
+        if (i >= self->ary_len) break;
+        nat_array_push(ary2, self->ary[i]);
+    }
+    // extra nils if needed
+    nat_array_expand_with_nil(env, ary2, index);
+    // the new entry/entries
+    if (val->type == NAT_VALUE_ARRAY) {
+        for (size_t i=0; i<val->ary_len; i++) {
+            nat_array_push(ary2, val->ary[i]);
+        }
+    } else {
+        nat_array_push(ary2, val);
+    }
+    // stuff after the new entry/entries
+    for (size_t i=index+length; i<self->ary_len; i++) {
+        nat_array_push(ary2, self->ary[i]);
+    }
+    // FIXME: copying like this is a possible GC bug depending on our GC implementation later
+    self->ary = ary2->ary;
+    self->ary_len = ary2->ary_len;
+    self->ary_cap = ary2->ary_cap;
     return val;
 }
 

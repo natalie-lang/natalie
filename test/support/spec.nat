@@ -25,11 +25,25 @@ class Object
       raise SpecFailedException, self.inspect + ' is not equal to ' + other.inspect
     end
   end
+
+  def must_not_equal(other)
+    if self == other
+      raise SpecFailedException, self.inspect + ' is equal to ' + other.inspect
+    end
+  end
+
+  def must_be_a(klass)
+    if klass === self
+      nil
+    else
+      raise SpecFailedException, self.inspect + ' is not a ' + klass.inspect
+    end
+  end
 end
 
 def run_specs
   @failures = []
-  @skipped = 0
+  @skipped = []
 
   @specs.each do |test|
     fn = test.last
@@ -43,6 +57,7 @@ def run_specs
         print '.'
       end
     else
+      @skipped << [test[0], test[1]]
       print '*'
     end
   end
@@ -56,6 +71,10 @@ def run_specs
       puts '  ' + failure[1]
       puts '    ' + failure[2]
     end
+    puts
+    puts (@specs.size - @failures.size).to_s + ' spec(s) passed.'
+    puts @failures.size.to_s + ' spec(s) failed.'
+    puts @skipped.size.to_s + ' spec(s) skipped.' if @skipped.any?
     exit 1
   else
     puts

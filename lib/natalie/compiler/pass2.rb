@@ -274,6 +274,14 @@ module Natalie
         ''
       end
 
+      def process_nat_run_block(exp)
+        (fn, args) = exp
+        args_name, args_count = p(args).split(':')
+        result_name = temp('block_result')
+        decl "NatObject *#{result_name} = nat_run_block(env, block, #{args_count}, #{args_name}, NULL, NULL);"
+        result_name
+      end
+
       alias process_nat_send process_nat_lookup_or_send
 
       def process_nat_truthy(exp)
@@ -319,7 +327,7 @@ module Natalie
 
       def process_sexp(exp, name = nil, type = 'NatObject')
         (fn, *args) = exp
-        raise RewriteError, "#{exp.inspect} not rewritten in pass 1" if fn !~ NAT_FUNCTIONS
+        raise RewriteError, "#{exp.inspect} not rewritten in pass 1 (context: #{@context.inspect})" if fn !~ NAT_FUNCTIONS
         if VOID_FUNCTIONS.include?(fn)
           decl "#{fn}(#{args.map { |a| p(a) }.join(', ')});"
           ''

@@ -83,6 +83,7 @@ NatEnv *build_top_env() {
     nat_define_method(Kernel, "raise", Kernel_raise);
     nat_define_method(Kernel, "exit", Kernel_exit);
     nat_define_method(Kernel, "respond_to?", Kernel_respond_to);
+    nat_define_method(Kernel, "dup", Kernel_dup);
 
     NatObject *Comparable = nat_module(env, "Comparable");
     COMPARABLE_INIT();

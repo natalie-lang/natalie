@@ -150,3 +150,8 @@ NatObject *Kernel_respond_to(NatEnv *env, NatObject *self, size_t argc, NatObjec
         return env_get(env, "false");
     }
 }
+
+NatObject *Kernel_dup(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(0);
+    return nat_dup(env, self);
+}

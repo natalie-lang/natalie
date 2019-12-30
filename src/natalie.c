@@ -275,41 +275,49 @@ void nat_grow_array_at_least(NatObject *obj, size_t min_capacity) {
 }
 
 void nat_array_push(NatObject *array, NatObject *obj) {
-  assert(array->type == NAT_VALUE_ARRAY);
-  size_t capacity = array->ary_cap;
-  size_t len = array->ary_len;
-  if (len >= capacity) {
-      nat_grow_array_at_least(array, len + 1);
-  }
-  array->ary_len++;
-  array->ary[len] = obj;
+    assert(array->type == NAT_VALUE_ARRAY);
+    size_t capacity = array->ary_cap;
+    size_t len = array->ary_len;
+    if (len >= capacity) {
+        nat_grow_array_at_least(array, len + 1);
+    }
+    array->ary_len++;
+    array->ary[len] = obj;
 }
 
 void nat_array_push_splat(NatEnv *env, NatObject *array, NatObject *obj) {
-  assert(array->type == NAT_VALUE_ARRAY);
-  if (obj->type != NAT_VALUE_ARRAY && nat_respond_to(obj, "to_a")) {
-      obj = nat_send(env, obj, "to_a", 0, NULL, NULL);
-  }
-  if (obj->type == NAT_VALUE_ARRAY) {
-      for (size_t i=0; i<obj->ary_len; i++) {
-          nat_array_push(array, obj->ary[i]);
-      }
-  } else {
-      nat_array_push(array, obj);
-  }
+    assert(array->type == NAT_VALUE_ARRAY);
+    if (obj->type != NAT_VALUE_ARRAY && nat_respond_to(obj, "to_a")) {
+        obj = nat_send(env, obj, "to_a", 0, NULL, NULL);
+    }
+    if (obj->type == NAT_VALUE_ARRAY) {
+        for (size_t i=0; i<obj->ary_len; i++) {
+            nat_array_push(array, obj->ary[i]);
+        }
+    } else {
+        nat_array_push(array, obj);
+    }
+}
+
+void nat_array_expand_with_nil(NatEnv *env, NatObject *array, size_t size) {
+    assert(array->type == NAT_VALUE_ARRAY);
+    NatObject *nil = env_get(env, "nil");
+    for (size_t i=array->ary_len; i<size; i++) {
+        nat_array_push(array, nil);
+    }
 }
 
 #define INT_64_MAX_CHAR_LEN 21 // 1 for sign, 19 for max digits, and 1 for null terminator
 
 char* int_to_string(int64_t num) {
-  char* str;
-  if (num == 0) {
-    return heap_string("0");
-  } else {
-    str = malloc(INT_64_MAX_CHAR_LEN);
-    snprintf(str, INT_64_MAX_CHAR_LEN, "%" PRId64, num);
-    return str;
-  }
+    char* str;
+    if (num == 0) {
+        return heap_string("0");
+    } else {
+        str = malloc(INT_64_MAX_CHAR_LEN);
+        snprintf(str, INT_64_MAX_CHAR_LEN, "%" PRId64, num);
+        return str;
+    }
 }
 
 void nat_define_method(NatObject *obj, char *name, NatObject* (*fn)(NatEnv*, NatObject*, size_t, NatObject**, struct hashmap*, NatBlock *block)) {
@@ -585,4 +593,34 @@ NatObject* nat_vsprintf(NatEnv *env, char *format, va_list args) {
         }
     }
     return out;
+}
+
+NatObject *nat_dup(NatEnv *env, NatObject *obj) {
+    NatObject *copy;
+    switch (obj->type) {
+        case NAT_VALUE_ARRAY:
+            copy = nat_array(env);
+            for (size_t i=0; i<obj->ary_len; i++) {
+                nat_array_push(copy, obj->ary[i]);
+            }
+            return copy;
+        case NAT_VALUE_STRING:
+            return nat_string(env, obj->str);
+        case NAT_VALUE_SYMBOL:
+            return nat_symbol(env, obj->symbol);
+        case NAT_VALUE_CLASS:
+        case NAT_VALUE_EXCEPTION:
+        case NAT_VALUE_FALSE:
+        case NAT_VALUE_INTEGER:
+        case NAT_VALUE_MODULE:
+        case NAT_VALUE_NIL:
+        case NAT_VALUE_OTHER:
+        case NAT_VALUE_PROC:
+        case NAT_VALUE_TRUE:
+            memcpy(copy, obj, sizeof(NatObject));
+            return copy;
+        default:
+            fprintf(stderr, "I don't know how to dup this kind of copyect.\n");
+            abort();
+    }
 }

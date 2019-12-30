@@ -28,7 +28,12 @@ module Natalie
 
       def rewrite_attrasgn(exp)
         (_, receiver, method, *args) = exp
-        s(:nat_lookup_or_send, receiver, method, s(:args, *args.map { |a| rewrite(a) }))
+        if args.any? { |a| a.sexp_type == :splat }
+          args = s(:args_array, rewrite(s(:array, *args)))
+        else
+          args = s(:args, *args)
+        end
+        s(:nat_lookup_or_send, receiver, method, args)
       end
 
       def rewrite_call(exp)
@@ -266,7 +271,12 @@ module Natalie
 
       def rewrite_yield(exp)
         (_, *args) = exp
-        s(:nat_run_block, :env, :block, args.size, s(:args, *args.map { |a| rewrite(a) }), :NULL, :NULL)
+        if args.any? { |a| a.sexp_type == :splat }
+          args = s(:args_array, rewrite(s(:array, *args)))
+        else
+          args = s(:args, *args)
+        end
+        s(:nat_run_block, args)
       end
 
       def rewrite_zsuper(_)
