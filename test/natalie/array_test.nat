@@ -160,14 +160,15 @@ describe "The unpacking splat operator (*)" do
   end
 
   it "when applied to a non-Array value attempts to coerce it to Array if the object respond_to?(:to_a)" do
-    obj = mock("pseudo-array")
-    obj.should_receive(:to_a).and_return([2, 3, 4])
+    obj = Object.new
+    def obj.to_a
+      [2, 3, 4]
+    end
     [1, *obj].must_equal [1, 2, 3, 4]
   end
 
   it "when applied to a non-Array value uses it unchanged if it does not respond_to?(:to_a)" do
     obj = Object.new
-    obj.should_not respond_to(:to_a)
     [1, *obj].must_equal [1, obj]
   end
 

@@ -158,8 +158,7 @@ NatObject *nat_alloc(NatEnv *env) {
     obj->included_modules_count = 0;
     obj->included_modules = NULL;
     obj->id = nat_next_object_id(env);
-    hashmap_init(&obj->singleton_methods, hashmap_hash_string, hashmap_compare_string, 100);
-    hashmap_set_key_alloc_funcs(&obj->singleton_methods, hashmap_alloc_key_string, NULL);
+    obj->singleton_class = NULL;
     hashmap_init(&obj->ivars, hashmap_hash_string, hashmap_compare_string, 100);
     hashmap_set_key_alloc_funcs(&obj->ivars, hashmap_alloc_key_string, NULL);
     return obj;
@@ -169,6 +168,9 @@ NatObject *nat_subclass(NatEnv *env, NatObject *superclass, char *name) {
     NatObject *val = nat_alloc(env);
     val->type = NAT_VALUE_CLASS;
     val->class = superclass->class;
+    if (superclass->singleton_class) {
+        val->singleton_class = nat_subclass(env, superclass->singleton_class, NULL);
+    }
     val->class_name = name ? heap_string(name) : NULL;
     val->superclass = superclass;
     val->env = build_env(superclass->env);
@@ -209,6 +211,30 @@ NatObject *nat_new(NatEnv *env, NatObject *class, size_t argc, NatObject **args,
         class = class->superclass;
     }
     return obj;
+}
+
+NatObject *nat_singleton_class(NatEnv *env, NatObject *obj) {
+    if (!obj->singleton_class) {
+		/*
+		Kernel.singleton_class.ancestors
+		[#<Class:Kernel>, Module, Object, Kernel, BasicObject]
+		Object.singleton_class.ancestors
+		[#<Class:Object>, #<Class:BasicObject>, Class, Module, Object, Kernel, BasicObject]
+		Object.new.singleton_class.ancestors
+		[#<Class:#<Object:0x00007fa6a7065568>>, Object, Kernel, BasicObject]
+		*/
+        NatObject *ancestor;
+		if (obj->type == NAT_VALUE_MODULE) {
+            ancestor = env_get(env, "Module");
+        } else if (obj->type == NAT_VALUE_CLASS) {
+            ancestor = env_get(env, "Class");
+        } else {
+            ancestor = env_get(env, "Object");
+        }
+        assert(ancestor);
+        obj->singleton_class = nat_subclass(env, ancestor, NULL);
+    }
+    return obj->singleton_class;
 }
 
 NatObject *nat_integer(NatEnv *env, int64_t integer) {
@@ -346,23 +372,24 @@ void nat_define_method_with_block(NatObject *obj, char *name, NatBlock *block) {
     }
 }
 
-void nat_define_singleton_method(NatObject *obj, char *name, NatObject* (*fn)(NatEnv*, NatObject*, size_t, NatObject**, struct hashmap*, NatBlock *block)) {
+void nat_define_singleton_method(NatEnv *env, NatObject *obj, char *name, NatObject* (*fn)(NatEnv*, NatObject*, size_t, NatObject**, struct hashmap*, NatBlock *block)) {
     NatMethod *method = malloc(sizeof(NatMethod));
     method->fn = fn;
     method->env = NULL;
-    hashmap_remove(&obj->singleton_methods, name);
-    hashmap_put(&obj->singleton_methods, name, method);
+    NatObject *klass = nat_singleton_class(env, obj);
+    hashmap_remove(&klass->methods, name);
+    hashmap_put(&klass->methods, name, method);
 }
 
 NatObject *nat_class_ancestors(NatEnv *env, NatObject *klass) {
-    assert(klass->type == NAT_VALUE_CLASS);
+    assert(klass->type == NAT_VALUE_CLASS || klass->type == NAT_VALUE_MODULE);
     NatObject *ancestors = nat_array(env);
     while (1) {
         nat_array_push(ancestors, klass);
         for (size_t i=0; i<klass->included_modules_count; i++) {
             nat_array_push(ancestors, klass->included_modules[i]);
         }
-        if (nat_is_top_class(klass)) break;
+        if (!klass->superclass) break;
         klass = klass->superclass;
     }
     return ancestors;
@@ -384,28 +411,55 @@ int nat_is_a(NatEnv *env, NatObject *obj, NatObject *klass_or_module) {
 
 NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, NatObject **args, NatBlock *block) { // FIXME: kwargs
     assert(receiver);
-    if (receiver->type == NAT_VALUE_CLASS) {
-        // TODO: instances can have singleton methods too
-        NatMethod *singleton_method = hashmap_get(&receiver->singleton_methods, sym);
-        if (singleton_method) {
-            NatEnv *e = build_block_env(receiver->env, env);
-            return singleton_method->fn(e, receiver, argc, args, NULL, block);
-        }
-        NatObject *class = receiver;
-        while (1) {
-            class = class->superclass;
-            if (class == NULL || class->type != NAT_VALUE_CLASS) break;
-            singleton_method = hashmap_get(&class->singleton_methods, sym);
-            if (singleton_method) {
-                NatEnv *e = build_block_env(receiver->env, env);
-                return singleton_method->fn(e, receiver, argc, args, NULL, block);
+    NatObject *klass = receiver->singleton_class;
+    if (klass) {
+        NatObject *matching_class_or_module;
+        NatMethod *method = nat_find_method(klass, sym, &matching_class_or_module);
+        if (method) {
+#ifdef DEBUG_METHOD_RESOLUTION
+            if (strcmp(sym, "inspect") != 0) {
+                if (matching_class_or_module == klass) {
+                    fprintf(stderr, "Method %s found on the singleton class of %s\n", sym, nat_send(env, receiver, "inspect", 0, NULL, NULL)->str);
+                } else {
+                    fprintf(stderr, "Method %s found on %s, which is an ancestor of the singleton class of %s\n", sym, matching_class_or_module->class_name, nat_send(env, receiver, "inspect", 0, NULL, NULL)->str);
+                }
             }
-            if (nat_is_top_class(class)) break;
+#endif
+            return nat_call_method_on_class(env, klass, receiver->class, sym, receiver, argc, args, NULL, block);
         }
-        NAT_RAISE(env, env_get(env, "NameError"), "undefined local variable or method `%s' for %s", sym, receiver->class_name);
+    }
+    klass = receiver->class;
+#ifdef DEBUG_METHOD_RESOLUTION
+    if (strcmp(sym, "inspect") != 0) {
+        fprintf(stderr, "Looking for method %s in the class hierarchy of %s\n", sym, nat_send(env, receiver, "inspect", 0, NULL, NULL)->str);
+    }
+#endif
+    return nat_call_method_on_class(env, klass, klass, sym, receiver, argc, args, NULL, block);
+}
+
+// returns the method and sets matching_class_or_module to where the method was found
+NatMethod *nat_find_method(NatObject *class, char *method_name, NatObject **matching_class_or_module) {
+    assert(class->type == NAT_VALUE_CLASS);
+
+    NatMethod *method = hashmap_get(&class->methods, method_name);
+    if (method) {
+        *matching_class_or_module = class;
+        return method;
+    }
+
+    for (size_t i=0; i<class->included_modules_count; i++) {
+        NatObject *module = class->included_modules[i];
+        method = hashmap_get(&module->methods, method_name);
+        if (method) {
+            *matching_class_or_module = module;
+            return method;
+        }
+    }
+
+    if (class->superclass) {
+        return nat_find_method(class->superclass, method_name, matching_class_or_module);
     } else {
-        NatObject *class = receiver->class;
-        return nat_call_method_on_class(env, class, class, sym, receiver, argc, args, NULL, block); // FIXME: kwargs
+        return NULL;
     }
 }
 
@@ -413,28 +467,28 @@ NatObject *nat_call_method_on_class(NatEnv *env, NatObject *class, NatObject *in
     assert(class != NULL);
     assert(class->type == NAT_VALUE_CLASS);
 
-    NatMethod *method = hashmap_get(&class->methods, method_name);
+    NatObject *matching_class_or_module;
+    NatMethod *method = nat_find_method(class, method_name, &matching_class_or_module);
     if (method) {
-        NatEnv *closure_env = method->env ? method->env : class->env;
+#ifdef DEBUG_METHOD_RESOLUTION
+        if (strcmp(method_name, "inspect") != 0) {
+            fprintf(stderr, "Calling method %s from %s\n", method_name, matching_class_or_module->class_name);
+        }
+#endif
+        NatEnv *closure_env;
+        if (method->env) {
+            closure_env = method->env;
+        } else if (self->type == NAT_VALUE_CLASS) {
+            // FIXME: not sure if this is proper, but it works
+            closure_env = self->env;
+        } else {
+            closure_env = matching_class_or_module->env;
+        }
         NatEnv *e = build_block_env(closure_env, env);
         return method->fn(e, self, argc, args, NULL, block);
-    }
-
-    for (size_t i=0; i<class->included_modules_count; i++) {
-        NatObject *module = class->included_modules[i];
-        method = hashmap_get(&module->methods, method_name);
-        if (method) {
-            NatEnv *closure_env = method->env ? method->env : module->env;
-            NatEnv *e = build_block_env(closure_env, env);
-            return method->fn(e, self, argc, args, NULL, block);
-        }
-    }
-
-    if (nat_is_top_class(class)) {
+    } else {
         NAT_RAISE(env, env_get(env, "NameError"), "undefined local variable or method `%s' for %s", method_name, instance_class->class_name);
     }
-
-    return nat_call_method_on_class(env, class->superclass, instance_class, method_name, self, argc, args, kwargs, block);
 }
 
 NatObject *nat_lookup_or_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, NatObject **args, NatBlock *block) {
@@ -463,7 +517,10 @@ NatObject *nat_lookup(NatEnv *env, char *name) {
 }
 
 int nat_respond_to(NatObject *obj, char *name) {
-    if (hashmap_get(&obj->class->methods, name)) {
+    NatObject *matching_class_or_module;
+    if (obj->singleton_class && nat_find_method(obj->singleton_class, name, &matching_class_or_module)) {
+        return TRUE;
+    } else if (nat_find_method(obj->class, name, &matching_class_or_module)) {
         return TRUE;
     } else {
         return FALSE;
@@ -620,7 +677,7 @@ NatObject *nat_dup(NatEnv *env, NatObject *obj) {
             memcpy(copy, obj, sizeof(NatObject));
             return copy;
         default:
-            fprintf(stderr, "I don't know how to dup this kind of copyect.\n");
+            fprintf(stderr, "I don't know how to dup this kind of object.\n");
             abort();
     }
 }

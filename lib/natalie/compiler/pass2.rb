@@ -309,9 +309,9 @@ module Natalie
 
       def process_super(exp)
         (_, args, block) = exp
-        args_name = p(args)
+        args_name, args_count = p(args).split(':')
         result_name = temp('call_result')
-        decl "NatObject *#{result_name} = nat_call_method_on_class(env, self->class->superclass, self->class->superclass, env_get(env, \"__method__\")->str, self, #{args.size - 1}, #{args_name}, NULL, #{block || 'NULL'});"
+        decl "NatObject *#{result_name} = nat_call_method_on_class(env, self->class->superclass, self->class->superclass, env_get(env, \"__method__\")->str, self, #{args_count}, #{args_name}, NULL, #{block || 'NULL'});"
         result_name
       end
 

@@ -44,6 +44,7 @@ describe 'equality' do
     r = [] === []
     r.must_equal true
     r = Object === Object.new
+    p r
     r.must_equal true
     r = Object === 1
     r.must_equal true

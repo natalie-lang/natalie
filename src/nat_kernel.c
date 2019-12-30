@@ -1,6 +1,6 @@
 #include "natalie.h"
 #include "nat_kernel.h"
-#include "nat_class.h"
+#include "nat_module.h"
 
 NatObject *Kernel_puts(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     if (argc == 0) {
@@ -48,13 +48,17 @@ NatObject *Kernel_p(NatEnv *env, NatObject *self, size_t argc, NatObject **args,
 
 NatObject *Kernel_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
-    NatObject *str = nat_string(env, "#<");
-    assert(self->class);
-    nat_string_append(str, Class_inspect(env, self->class, 0, NULL, NULL, NULL)->str);
-    nat_string_append_char(str, ':');
-    nat_string_append(str, nat_object_pointer_id(self));
-    nat_string_append_char(str, '>');
-    return str;
+    if ((self->type == NAT_VALUE_CLASS || self->type == NAT_VALUE_MODULE) && self->class_name) {
+        return nat_string(env, self->class_name);
+    } else {
+        NatObject *str = nat_string(env, "#<");
+        assert(self->class);
+        nat_string_append(str, Module_inspect(env, self->class, 0, NULL, NULL, NULL)->str);
+        nat_string_append_char(str, ':');
+        nat_string_append(str, nat_object_pointer_id(self));
+        nat_string_append_char(str, '>');
+        return str;
+    }
 }
 
 NatObject *Kernel_object_id(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
@@ -75,6 +79,11 @@ NatObject *Kernel_equal(NatEnv *env, NatObject *self, size_t argc, NatObject **a
 NatObject *Kernel_class(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     return self->class ? self->class : env_get(env, "nil");
+}
+
+NatObject *Kernel_singleton_class(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(0);
+    return nat_singleton_class(env, self);
 }
 
 NatObject *Kernel_instance_variable_get(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
@@ -110,7 +119,7 @@ NatObject *Kernel_raise(NatEnv *env, NatObject *self, size_t argc, NatObject **a
         } else if (arg->type == NAT_VALUE_STRING) {
             klass = env_get(env, "RuntimeError");
             message = arg;
-        } else if (Class_eqeqeq(env, env_get(env, "Exception"), 1, &arg, NULL, NULL)) {
+        } else if (nat_is_a(env, arg, env_get(env, "Exception"))) {
             nat_raise_exception(env, arg);
             abort();
         } else {

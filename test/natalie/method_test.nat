@@ -43,6 +43,12 @@ class Foo
   end
 end
 
+class Bar
+  define_method :bar do
+    'bar'
+  end
+end
+
 describe 'method' do
   it 'can be called' do
     foo.must_equal 'foo'
@@ -88,6 +94,10 @@ describe 'method' do
   it 'can be a class method' do
     Foo.foo.must_equal 'class method foo'
     Foo.foo2.must_equal 'class method foo2'
+  end
+
+  it 'can define a method dynamically' do
+    Bar.new.bar.must_equal 'bar'
   end
 end
 

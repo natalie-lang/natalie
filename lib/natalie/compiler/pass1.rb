@@ -118,7 +118,7 @@ module Natalie
               s(:env_set, :env, s(:s, '__method__'), s(:nat_string, :env, s(:s, name))),
               s(:method_args, *args),
               rewrite(s(:block, *body)))),
-          s(:nat_define_singleton_method, owner, s(:s, name), fn),
+          s(:nat_define_singleton_method, :env, owner, s(:s, name), fn),
           s(:nat_symbol, :env, s(:s, name)))
       end
 

@@ -28,20 +28,7 @@ NatEnv *build_top_env() {
     Class->env = build_env(env);
     hashmap_init(&Class->methods, hashmap_hash_string, hashmap_compare_string, 100);
     hashmap_set_key_alloc_funcs(&Class->methods, hashmap_alloc_key_string, NULL);
-    nat_define_singleton_method(Class, "new", Class_new);
-    nat_define_singleton_method(Class, "inspect", Class_inspect);
-    nat_define_singleton_method(Class, "include", Class_include);
-    nat_define_singleton_method(Class, "included_modules", Class_included_modules);
-    nat_define_singleton_method(Class, "==", Kernel_equal);
-    nat_define_singleton_method(Class, "eql?", Kernel_equal);
-    nat_define_singleton_method(Class, "equal?", Kernel_equal);
-    nat_define_singleton_method(Class, "===", Class_eqeqeq);
-    nat_define_singleton_method(Class, "ancestors", Class_ancestors);
-    nat_define_singleton_method(Class, "class", Kernel_class);
-    nat_define_singleton_method(Class, "superclass", Class_superclass);
-    nat_define_singleton_method(Class, "attr_reader", Class_attr_reader);
-    nat_define_singleton_method(Class, "attr_writer", Class_attr_writer);
-    nat_define_singleton_method(Class, "attr_accessor", Class_attr_accessor);
+    nat_define_method(Class, "superclass", Class_superclass);
     env_set(env, "Class", Class);
 
     NatObject *BasicObject = nat_alloc(env);
@@ -49,8 +36,8 @@ NatEnv *build_top_env() {
     BasicObject->type = NAT_VALUE_CLASS;
     BasicObject->class_name = heap_string("BasicObject");
     BasicObject->class = Class;
-    BasicObject->singleton_methods = Class->singleton_methods;
     BasicObject->env = build_env(env);
+    BasicObject->superclass = NULL;
     hashmap_init(&BasicObject->methods, hashmap_hash_string, hashmap_compare_string, 100);
     hashmap_set_key_alloc_funcs(&BasicObject->methods, hashmap_alloc_key_string, NULL);
     nat_define_method(BasicObject, "!", BasicObject_not);
@@ -59,13 +46,26 @@ NatEnv *build_top_env() {
     env_set(env, "BasicObject", BasicObject);
 
     NatObject *Object = nat_subclass(env, BasicObject, "Object");
-    nat_define_singleton_method(Object, "new", Object_new);
     env_set(env, "Object", Object);
+    nat_define_singleton_method(env, Object, "new", Object_new);
+
+    // these must be defined after Object exists
+    nat_define_singleton_method(env, Class, "new", Class_new);
+    BasicObject->singleton_class = Class->singleton_class;
 
     NatObject *Module = nat_subclass(env, Object, "Module");
     Class->superclass = Module;
     nat_define_method(Module, "inspect", Module_inspect);
-    nat_define_singleton_method(Module, "new", Module_new);
+    nat_define_singleton_method(env, Module, "new", Module_new);
+    nat_define_method(Module, "name", Module_name);
+    nat_define_method(Module, "===", Module_eqeqeq);
+    nat_define_method(Module, "ancestors", Module_ancestors);
+    nat_define_method(Module, "attr_reader", Module_attr_reader);
+    nat_define_method(Module, "attr_writer", Module_attr_writer);
+    nat_define_method(Module, "attr_accessor", Module_attr_accessor);
+    nat_define_method(Module, "include", Module_include);
+    nat_define_method(Module, "included_modules", Module_included_modules);
+    nat_define_method(Module, "define_method", Module_define_method);
     env_set(env, "Module", Module);
 
     NatObject *Kernel = nat_module(env, "Kernel");
@@ -78,6 +78,7 @@ NatEnv *build_top_env() {
     nat_define_method(Kernel, "===", Kernel_equal);
     nat_define_method(Kernel, "eql?", Kernel_equal);
     nat_define_method(Kernel, "class", Kernel_class);
+    nat_define_method(Kernel, "singleton_class", Kernel_singleton_class);
     nat_define_method(Kernel, "instance_variable_get", Kernel_instance_variable_get);
     nat_define_method(Kernel, "instance_variable_set", Kernel_instance_variable_set);
     nat_define_method(Kernel, "raise", Kernel_raise);
@@ -99,7 +100,7 @@ NatEnv *build_top_env() {
     env_set(env, "self", main_obj);
 
     NatObject *NilClass = nat_subclass(env, Object, "NilClass");
-    nat_define_singleton_method(NilClass, "new", NilClass_new);
+    nat_define_singleton_method(env, NilClass, "new", NilClass_new);
     nat_define_method(NilClass, "to_s", NilClass_to_s);
     nat_define_method(NilClass, "to_a", NilClass_to_a);
     nat_define_method(NilClass, "inspect", NilClass_inspect);
@@ -110,7 +111,7 @@ NatEnv *build_top_env() {
     env_set(env, "nil", nil);
 
     NatObject *TrueClass = nat_subclass(env, Object, "TrueClass");
-    nat_define_singleton_method(TrueClass, "new", TrueClass_new);
+    nat_define_singleton_method(env, TrueClass, "new", TrueClass_new);
     nat_define_method(TrueClass, "to_s", TrueClass_to_s);
     nat_define_method(TrueClass, "inspect", TrueClass_to_s);
     env_set(env, "TrueClass", TrueClass);
@@ -120,7 +121,7 @@ NatEnv *build_top_env() {
     env_set(env, "true", true_obj);
 
     NatObject *FalseClass = nat_subclass(env, Object, "FalseClass");
-    nat_define_singleton_method(FalseClass, "new", FalseClass_new);
+    nat_define_singleton_method(env, FalseClass, "new", FalseClass_new);
     nat_define_method(FalseClass, "to_s", FalseClass_to_s);
     nat_define_method(FalseClass, "inspect", FalseClass_to_s);
     env_set(env, "FalseClass", FalseClass);
@@ -180,7 +181,7 @@ NatEnv *build_top_env() {
     nat_define_method(Exception, "initialize", Exception_initialize);
     nat_define_method(Exception, "inspect", Exception_inspect);
     nat_define_method(Exception, "message", Exception_message);
-    nat_define_singleton_method(Exception, "new", Exception_new);
+    nat_define_singleton_method(env, Exception, "new", Exception_new);
     NatObject *StandardError = nat_subclass(env, Exception, "StandardError");
     env_set(env, "StandardError", StandardError);
     NatObject *NameError = nat_subclass(env, StandardError, "NameError");

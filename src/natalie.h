@@ -13,6 +13,8 @@
 
 #define UNUSED(x) (void)(x)
 
+#define xDEBUG_METHOD_RESOLUTION
+
 #define NAT_RESCUE(env) setjmp(*(env->jump_buf = malloc(sizeof(jmp_buf))))
 #define NAT_RAISE(env, klass, message_format, ...) nat_raise(env, klass, message_format, ##__VA_ARGS__); abort();
 #define NAT_ASSERT_ARGC1(expected) if(argc != expected) { NAT_RAISE(env, env_get(env, "ArgumentError"), "wrong number of arguments (given %d, expected %d)", argc, expected); }
@@ -77,13 +79,13 @@ enum NatValueType {
 struct NatObject {
     enum NatValueType type;
     NatObject *class;
+    NatObject *singleton_class;
     int flags;
 
     NatEnv *env;
 
     int64_t id;
 
-    struct hashmap singleton_methods;
     struct hashmap ivars;
     
     union {
@@ -158,6 +160,8 @@ NatObject *nat_module(NatEnv *env, char *name);
 void nat_class_include(NatObject *class, NatObject *module);
 NatObject *nat_new(NatEnv *env, NatObject *class, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 
+NatObject *nat_singleton_class(NatEnv *env, NatObject *obj);
+
 NatObject *nat_integer(NatEnv *env, int64_t integer);
 
 char *nat_object_pointer_id(NatObject *obj);
@@ -167,7 +171,7 @@ char* int_to_string(int64_t num);
 
 void nat_define_method(NatObject *obj, char *name, NatObject* (*fn)(NatEnv*, NatObject*, size_t, NatObject**, struct hashmap*, NatBlock *block));
 void nat_define_method_with_block(NatObject *obj, char *name, NatBlock *block);
-void nat_define_singleton_method(NatObject *obj, char *name, NatObject* (*fn)(NatEnv*, NatObject*, size_t, NatObject**, struct hashmap*, NatBlock *block));
+void nat_define_singleton_method(NatEnv *env, NatObject *obj, char *name, NatObject* (*fn)(NatEnv*, NatObject*, size_t, NatObject**, struct hashmap*, NatBlock *block));
 
 NatObject *nat_class_ancestors(NatEnv *env, NatObject *klass);
 int nat_is_a(NatEnv *env, NatObject *obj, NatObject *klass_or_module);
@@ -175,6 +179,7 @@ int nat_is_a(NatEnv *env, NatObject *obj, NatObject *klass_or_module);
 NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, NatObject **args, NatBlock *block);
 NatObject *nat_lookup_or_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, NatObject **args, NatBlock *block);
 NatObject *nat_lookup(NatEnv *env, char *name);
+NatMethod *nat_find_method(NatObject *class, char *method_name, NatObject **matching_class_or_module);
 NatObject *nat_call_method_on_class(NatEnv *env, NatObject *class, NatObject *instance_class, char *method_name, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 int nat_respond_to(NatObject *obj, char *name);
 
