@@ -1,6 +1,17 @@
 require 'fiddle'
 require 'tempfile'
 
+begin
+  require 'readline'
+rescue LoadError
+  class Readline
+    def self.readline(prompt, _)
+      print prompt
+      gets
+    end
+  end
+end
+
 module Natalie
   class Repl
     def go
@@ -25,8 +36,7 @@ module Natalie
     private
 
     def get_line
-      print 'nat> '
-      line = gets
+      line = Readline.readline('nat> ', true)
       if line
         line
       else
