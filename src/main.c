@@ -154,6 +154,7 @@ NatEnv *build_top_env() {
     nat_define_method(String, "<=>", String_cmp);
     nat_define_method(String, "<<", String_ltlt);
     nat_define_method(String, "+", String_add);
+    nat_define_method(String, "*", String_mul);
     nat_define_method(String, "==", String_eqeq);
     nat_define_method(String, "===", String_eqeq);
     env_set(env, "String", String);
