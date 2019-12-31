@@ -170,6 +170,7 @@ NatEnv *build_top_env() {
     nat_define_method(Array, "each", Array_each);
     nat_define_method(Array, "first", Array_first);
     nat_define_method(Array, "last", Array_last);
+    nat_define_method(Array, "to_ary", Array_to_ary);
     env_set(env, "Array", Array);
 
     NatObject *Proc = nat_subclass(env, Object, "Proc");

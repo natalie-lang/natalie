@@ -9,8 +9,13 @@ module Natalie
 
       attr_accessor :var_num
 
+      def rewrite_and(exp)
+        (_, lhs, rhs) = exp
+        s(:c_if, s(:nat_truthy, lhs), rhs, lhs)
+      end
+
       def rewrite_array(exp)
-        return exp if %i[resbody splat].include?(context.first)
+        return exp if %i[resbody splat masgn].include?(context.first)
         (_, *items) = exp
         arr = temp('arr')
         items = items.map do |item|
@@ -189,6 +194,7 @@ module Natalie
       end
 
       def rewrite_lasgn(exp)
+        return exp if context[0..1] == [:array, :masgn]
         (_, name, val) = exp
         s(:env_set, :env, s(:s, name), rewrite(val))
       end
@@ -210,6 +216,20 @@ module Natalie
         s(:nat_lookup, :env, s(:s, name))
       end
       
+      def rewrite_masgn(exp)
+        (_, array, val) = exp
+        raise 'expected s(:array, ...) for masgn target' if array.sexp_type != :array
+        vars = array[1..-1].map do |var|
+          if %i[lasgn iasgn].include?(var.sexp_type)
+            s(:masgn_str, var[1])
+          else
+            raise 'expected iasgn or lasgn'
+          end
+        end
+        raise 'expected s(:to_ary, ...) for masign source' if val.sexp_type != :to_ary
+        s(:nat_multi_assign, s(:masgn_array, *vars), rewrite(val[1]))
+      end
+
       def rewrite_module(exp)
         (_, name, *body) = exp
         fn = temp('module_body')
