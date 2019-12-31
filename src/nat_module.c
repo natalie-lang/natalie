@@ -129,3 +129,10 @@ NatObject *Module_define_method(NatEnv *env, NatObject *self, size_t argc, NatOb
     return nat_symbol(env, name);
 }
 
+NatObject *Module_class_eval(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    assert(self->type == NAT_VALUE_MODULE || self->type == NAT_VALUE_CLASS);
+    NAT_ASSERT_ARGC(0);
+    assert(block);
+    NatEnv *e = build_block_env(block->env, env);
+    return block->fn(e, self, 0, NULL, NULL, NULL);
+}

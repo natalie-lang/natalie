@@ -45,6 +45,7 @@ NatEnv *build_top_env() {
     nat_define_method(BasicObject, "==", BasicObject_eqeq);
     nat_define_method(BasicObject, "!=", BasicObject_neq);
     nat_define_method(BasicObject, "equal?", Kernel_equal);
+    nat_define_method(BasicObject, "instance_eval", BasicObject_instance_eval);
     env_set(env, "BasicObject", BasicObject);
 
     NatObject *Object = nat_subclass(env, BasicObject, "Object");
@@ -68,6 +69,7 @@ NatEnv *build_top_env() {
     nat_define_method(Module, "include", Module_include);
     nat_define_method(Module, "included_modules", Module_included_modules);
     nat_define_method(Module, "define_method", Module_define_method);
+    nat_define_method(Module, "class_eval", Module_class_eval);
     env_set(env, "Module", Module);
 
     NatObject *Kernel = nat_module(env, "Kernel");
