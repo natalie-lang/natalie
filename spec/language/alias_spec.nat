@@ -187,8 +187,7 @@ describe "The alias keyword" do
     @obj.test(1,2,3,4,5).should == 4
   end
 
-  # TODO: allow block passed to Class.new
-  xit "operates on methods with splat arguments defined in a superclass" do
+  it "operates on methods with splat arguments defined in a superclass" do
     alias_class = Class.new
     alias_class.class_eval do
       def test(*args)

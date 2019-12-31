@@ -217,6 +217,7 @@ def run_specs
     exit 1
   else
     puts
+    puts
     puts @specs.size.to_s + ' spec(s) passed.'
     puts @skipped.size.to_s + ' spec(s) skipped.' if @skipped.any?
   end
