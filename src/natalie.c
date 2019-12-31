@@ -24,6 +24,9 @@ NatObject *env_get(NatEnv *env, char *key) {
 }
 
 NatObject *env_set(NatEnv *env, char *key, NatObject *val) {
+    if (env->block && env_get(env->outer, key)) {
+        env = env->outer;
+    }
     hashmap_remove(&env->data, key);
     hashmap_put(&env->data, key, val);
     return val;

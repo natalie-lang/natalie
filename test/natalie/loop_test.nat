@@ -12,4 +12,14 @@ describe 'while' do
   end
 end
 
+describe 'each' do
+  it 'can set variables outside the block' do
+    x = 0
+    [1, 2, 3].each do |i|
+      x = i
+    end
+    x.must_equal 3
+  end
+end
+
 run_specs
