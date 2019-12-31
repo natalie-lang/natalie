@@ -550,6 +550,12 @@ NatObject *nat_proc(NatEnv *env, NatBlock *block) {
     return obj;
 }
 
+NatObject *nat_lambda(NatEnv *env, NatBlock *block) {
+    NatObject *lambda = nat_proc(env, block);
+    lambda->lambda = TRUE;
+    return lambda;
+}
+
 // "0x" + up to 16 hex chars + NULL terminator
 #define NAT_OBJECT_POINTER_LENGTH 2 + 16 + 1
 

@@ -193,6 +193,10 @@ module Natalie
         s(:ivar_get, :env, :self, s(:s, name))
       end
 
+      def rewrite_lambda(exp)
+        s(:nat_lambda, :env) # note: the block gets added by rewrite_iter later
+      end
+
       def rewrite_lasgn(exp)
         return exp if context[0..1] == [:array, :masgn]
         (_, name, val) = exp

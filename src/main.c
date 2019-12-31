@@ -177,6 +177,7 @@ NatEnv *build_top_env() {
 
     NatObject *Proc = nat_subclass(env, Object, "Proc");
     nat_define_method(Proc, "call", Proc_call);
+    nat_define_method(Proc, "lambda?", Proc_lambda);
     env_set(env, "Proc", Proc);
 
     NatObject *Exception = nat_subclass(env, Object, "Exception");

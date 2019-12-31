@@ -128,7 +128,10 @@ struct NatObject {
         char *message;
 
         // NAT_VALUE_PROC
-        NatBlock *block;
+        struct {
+          NatBlock *block;
+          int lambda;
+        };
     };
 };
 
@@ -186,6 +189,7 @@ int nat_respond_to(NatObject *obj, char *name);
 NatBlock *nat_block(NatEnv *env, NatObject *self, NatObject* (*fn)(NatEnv*, NatObject*, size_t, NatObject**, struct hashmap*, NatBlock*));
 NatObject *nat_run_block(NatEnv *env, NatBlock *the_block, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *nat_proc(NatEnv *env, NatBlock *block);
+NatObject *nat_lambda(NatEnv *env, NatBlock *block);
 
 #define NAT_STRING_GROW_FACTOR 2
 
