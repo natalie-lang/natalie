@@ -681,3 +681,11 @@ NatObject *nat_dup(NatEnv *env, NatObject *obj) {
             abort();
     }
 }
+
+NatObject *nat_not(NatEnv *env, NatObject *val) {
+    if (nat_truthy(val)) {
+        return env_get(env, "false");
+    } else {
+        return env_get(env, "true");
+    }
+}

@@ -213,5 +213,6 @@ void nat_array_push_splat(NatEnv *env, NatObject *array, NatObject *obj);
 void nat_array_expand_with_nil(NatEnv *env, NatObject *array, size_t size);
 
 NatObject *nat_dup(NatEnv *env, NatObject *obj);
+NatObject *nat_not(NatEnv *env, NatObject *val);
 
 #endif
