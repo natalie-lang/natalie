@@ -8,7 +8,9 @@ module Natalie
 
     def ast
       node = RubyParser.new.parse(@code_str)
-      if node.first == :block
+      if node.nil?
+        s(:block)
+      elsif node.first == :block
         node
       else
         s(:block, node)

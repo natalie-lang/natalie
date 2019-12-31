@@ -76,12 +76,14 @@ module Natalie
 
       def process_block(exp)
         (_, *body) = exp
-        return 'env_get(env, "nil")' if body.empty?
         body[0..-2].each do |node|
           result = p(node)
-          #decl result unless result.empty?
         end
-        result = p(body.last)
+        result = if body.empty?
+                   'env_get(env, "nil")'
+                 else
+                   p(body.last)
+                 end
         if context.size == 1
           result.empty? ? "return #{result};" : ''
         else
