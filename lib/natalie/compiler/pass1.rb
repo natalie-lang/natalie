@@ -246,10 +246,10 @@ module Natalie
 
       def rewrite_rescue(exp)
         (_, *rest) = exp
+        else_body = rest.pop if rest.last.sexp_type != :resbody
         (body, resbodies) = rest.partition { |n| n.first != :resbody }
         begin_fn = temp('begin_fn')
         rescue_fn = begin_fn.sub(/begin/, 'rescue')
-        else_fn = begin_fn.sub(/begin/, 'else')
         rescue_block = s(:cond)
         resbodies.each_with_index do |(_, (_, *match), *resbody), index|
           lasgn = match.pop if match.last&.first == :env_set
@@ -261,6 +261,10 @@ module Natalie
         end
         rescue_block << s(:else)
         rescue_block << s(:block, s(:nat_raise_exception, :env, 'env->exception'))
+        if else_body
+          body << s(:clear_jump_buf)
+          body << else_body
+        end
         body = body.empty? ? [s(:nil)] : body
         s(:block,
           s(:fn2, begin_fn,

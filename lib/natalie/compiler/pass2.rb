@@ -144,31 +144,37 @@ module Natalie
         ''
       end
 
+      def process_clear_jump_buf(_)
+        decl 'env->jump_buf = NULL;'
+        ''
+      end
+
       def process_cond(exp)
         c = []
+        count = 0
         in_decl_context do
           exp[1..-1].each_slice(2).each_with_index do |(cond, body), index|
             if cond == s(:else)
               in_decl_context do
-                c << '} else {'
                 result = p(body)
                 c += @decl
                 c << "return #{result};" unless result.empty?
               end
             else
-              keyword = index.zero? ? 'if' : '} else if'
+              count += 1
               cond = p(cond)
               c += @decl
               @decl = []
               in_decl_context do
-                c << "#{keyword} (#{cond}) {"
+                c << "if (#{cond}) {"
                 result = p(body)
                 c += @decl
                 c << "return #{result};" unless result.empty?
+                c << '} else {'
               end
             end
           end
-          c << '}'
+          count.times { c << '}' }
         end
         decl c
         ''
