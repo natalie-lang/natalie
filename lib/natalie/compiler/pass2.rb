@@ -17,8 +17,7 @@ module Natalie
       attr_accessor :var_num
 
       VOID_FUNCTIONS = %i[
-        global_set
-        ivar_set
+        nat_alias
         nat_array_push
         NAT_ASSERT_ARGC
         nat_define_method
@@ -381,6 +380,17 @@ module Natalie
         result_name = temp('if_result')
         decl "NatObject *#{result_name} = nat_truthy(#{p condition}) ? #{true_body}(env, self) : #{false_body}(env, self);"
         result_name
+      end
+
+      def process_with_self(exp)
+        (_, new_self, body) = exp
+        self_was = temp('self_was')
+        decl "NatObject *#{self_was} = self;"
+        decl "self = #{p new_self};"
+        result = temp('sclass_result')
+        decl "NatObject *#{result} = #{p body};"
+        decl "self = #{self_was};"
+        result
       end
 
       def temp(name)

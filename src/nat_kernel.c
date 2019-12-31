@@ -164,3 +164,14 @@ NatObject *Kernel_dup(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
     NAT_ASSERT_ARGC(0);
     return nat_dup(env, self);
 }
+
+NatObject *Kernel_methods(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(0); // for now
+    NatObject *array = nat_array(env);
+    if (self->singleton_class) {
+        nat_methods(env, array, self->singleton_class);
+    } else {
+        nat_methods(env, array, self->class);
+    }
+    return array;
+}

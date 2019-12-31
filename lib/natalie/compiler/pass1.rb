@@ -9,6 +9,13 @@ module Natalie
 
       attr_accessor :var_num
 
+      def rewrite_alias(exp)
+        (_, (_, new_name), (_, old_name)) = exp
+        s(:block,
+          s(:nat_alias, :env, :self, s(:s, new_name), s(:s, old_name)),
+          s(:nil))
+      end
+
       def rewrite_and(exp)
         (_, lhs, rhs) = exp
         s(:c_if, s(:nat_truthy, lhs), rhs, lhs)
@@ -204,6 +211,7 @@ module Natalie
       end
 
       def rewrite_lit(exp)
+        return exp if context.first == :alias
         lit = exp.last
         case lit
         when Integer
@@ -278,6 +286,12 @@ module Natalie
                 s(:block, *body),
                 rescue_block))),
           s(:nat_call, begin_fn, :env, :self))
+      end
+
+      def rewrite_sclass(exp)
+        (_, obj, *body) = exp
+        s(:with_self, s(:nat_singleton_class, :env, rewrite(obj)),
+          s(:block, *body))
       end
 
       def rewrite_str(exp)

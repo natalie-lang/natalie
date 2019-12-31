@@ -148,10 +148,10 @@ NatObject* nat_raise_exception(NatEnv *env, NatObject *exception);
 int nat_rescue(NatEnv *env);
 
 NatObject *ivar_get(NatEnv *env, NatObject *obj, char *name);
-void ivar_set(NatEnv *env, NatObject *obj, char *name, NatObject *val);
+NatObject *ivar_set(NatEnv *env, NatObject *obj, char *name, NatObject *val);
 
 NatObject *global_get(NatEnv *env, char *name);
-void global_set(NatEnv *env, char *name, NatObject *val);
+NatObject *global_set(NatEnv *env, char *name, NatObject *val);
 
 int nat_truthy(NatObject *obj);
 
@@ -182,6 +182,7 @@ int nat_is_a(NatEnv *env, NatObject *obj, NatObject *klass_or_module);
 NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, NatObject **args, NatBlock *block);
 NatObject *nat_lookup_or_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, NatObject **args, NatBlock *block);
 NatObject *nat_lookup(NatEnv *env, char *name);
+void nat_methods(NatEnv *env, NatObject *array, NatObject *klass);
 NatMethod *nat_find_method(NatObject *class, char *method_name, NatObject **matching_class_or_module);
 NatObject *nat_call_method_on_class(NatEnv *env, NatObject *class, NatObject *instance_class, char *method_name, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 int nat_respond_to(NatObject *obj, char *name);
@@ -218,5 +219,7 @@ void nat_array_expand_with_nil(NatEnv *env, NatObject *array, size_t size);
 
 NatObject *nat_dup(NatEnv *env, NatObject *obj);
 NatObject *nat_not(NatEnv *env, NatObject *val);
+
+void nat_alias(NatEnv *env, NatObject *self, char *new_name, char *old_name);
 
 #endif

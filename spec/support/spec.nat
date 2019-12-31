@@ -1,18 +1,42 @@
 class SpecFailedException < StandardError; end
 
+@context = []
 @specs = []
 
+class Context
+  def initialize(description)
+    @description = description
+    @before_each = []
+  end
+
+  attr_reader :description, :before_each
+
+  def add_before_each(block)
+    @before_each << block
+  end
+
+  def to_s
+    @description
+  end
+end
+
 def describe(description)
-  @describe = description
+  @context << Context.new(description)
   yield
+  @context.pop
 end
 
 def xit(test, &block)
-  @specs << [@describe, test, nil]
+  @specs << [@context.dup, test, nil]
 end
 
 def it(test, &block)
-  @specs << [@describe, test, block]
+  @specs << [@context.dup, test, block]
+end
+
+def before(type, &block)
+  raise 'I only know how to do before(:each)' unless type == :each
+  @context.last.add_before_each(block)
 end
 
 class Matcher
@@ -90,6 +114,32 @@ class EqualExpectation
   end
 end
 
+class RaiseErrorExpectation
+  def initialize(klass)
+    @klass = klass
+  end
+
+  def match(subject)
+    begin
+      subject.call
+    rescue @klass
+      nil # good
+    rescue => e
+      raise SpecFailedException, subject.inspect + ' should have raised ' + @klass.inspect + ', but instead raised ' + e.inspect
+    else
+      raise SpecFailedException, subject.inspect + ' should have raised ' + @klass.inspect + ', but instead raised nothing'
+    end
+  end
+
+  def inverted_match(subject)
+    begin
+      subject.call
+    rescue @klass
+      raise SpecFailedException, subject.inspect + ' should not have raised ' + @klass.inspect
+    end
+  end
+end
+
 class Object
   def should(*args)
     Matcher.new(self, false, args)
@@ -110,6 +160,10 @@ class Object
   def equal(other)
     EqualExpectation.new(other)
   end
+
+  def raise_error(klass)
+    RaiseErrorExpectation.new(klass)
+  end
 end
 
 def run_specs
@@ -117,18 +171,23 @@ def run_specs
   @skipped = []
 
   @specs.each do |test|
-    fn = test.last
+    (context, test, fn) = test
     if fn
+      context.each do |con|
+        con.before_each.each do |b|
+          b.call
+        end
+      end
       begin
         fn.call
       rescue SpecFailedException => e
         print 'F'
-        @failures << [test[0], test[1], e.message]
+        @failures << [context, test, e.message]
       else
         print '.'
       end
     else
-      @skipped << [test[0], test[1]]
+      @skipped << [context, test]
       print '*'
     end
   end
@@ -138,9 +197,18 @@ def run_specs
     puts
     puts 'Failed specs:'
     @failures.each do |failure|
-      puts failure[0]
-      puts '  ' + failure[1]
-      puts '    ' + failure[2]
+      (context, test, message) = failure
+      indent = 0
+      context.each do |con|
+        print ' ' * indent
+        puts con.to_s
+        indent += 2
+      end
+      print ' ' * indent
+      puts test
+      indent += 2
+      print ' ' * indent
+      puts message
     end
     puts
     puts (@specs.size - @failures.size).to_s + ' spec(s) passed.'

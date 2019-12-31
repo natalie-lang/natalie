@@ -9,6 +9,7 @@
 #include "nat_false_class.h"
 #include "nat_integer.h"
 #include "nat_kernel.h"
+#include "nat_main_obj.h"
 #include "nat_module.h"
 #include "nat_nil_class.h"
 #include "nat_object.h"
@@ -63,6 +64,7 @@ NatEnv *build_top_env() {
     nat_define_method(Module, "name", Module_name);
     nat_define_method(Module, "===", Module_eqeqeq);
     nat_define_method(Module, "ancestors", Module_ancestors);
+    nat_define_method(Module, "attr", Module_attr_reader);
     nat_define_method(Module, "attr_reader", Module_attr_reader);
     nat_define_method(Module, "attr_writer", Module_attr_writer);
     nat_define_method(Module, "attr_accessor", Module_attr_accessor);
@@ -89,6 +91,8 @@ NatEnv *build_top_env() {
     nat_define_method(Kernel, "exit", Kernel_exit);
     nat_define_method(Kernel, "respond_to?", Kernel_respond_to);
     nat_define_method(Kernel, "dup", Kernel_dup);
+    nat_define_method(Kernel, "methods", Kernel_methods);
+    nat_define_method(Kernel, "public_methods", Kernel_methods); // TODO
 
     NatObject *Comparable = nat_module(env, "Comparable");
     COMPARABLE_INIT();
@@ -101,6 +105,7 @@ NatEnv *build_top_env() {
 
     NatObject *main_obj = nat_new(env, Object, 0, NULL, NULL, NULL);
     main_obj->flags = NAT_FLAG_MAIN_OBJECT;
+    nat_define_singleton_method(env, main_obj, "inspect", main_obj_inspect);
     env_set(env, "self", main_obj);
 
     NatObject *NilClass = nat_subclass(env, Object, "NilClass");
@@ -196,6 +201,8 @@ NatEnv *build_top_env() {
     env_set(env, "StandardError", StandardError);
     NatObject *NameError = nat_subclass(env, StandardError, "NameError");
     env_set(env, "NameError", NameError);
+    NatObject *NoMethodError = nat_subclass(env, NameError, "NoMethodError");
+    env_set(env, "NoMethodError", NoMethodError);
     NatObject *ArgumentError = nat_subclass(env, StandardError, "ArgumentError");
     env_set(env, "ArgumentError", ArgumentError);
     NatObject *RuntimeError = nat_subclass(env, StandardError, "RuntimeError");
