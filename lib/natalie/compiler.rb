@@ -65,12 +65,7 @@ module Natalie
     end
 
     def to_c
-      (0...(@ast.size)).reverse_each do |i|
-        node = @ast[i]
-        if macro?(node)
-          @ast[i,1] = run_macro(node)
-        end
-      end
+      @ast = expand_macros(@ast, @path)
       (top, body) = transform(@ast)
       out = MAIN
         .sub('/*TOP*/', top)
@@ -84,27 +79,37 @@ module Natalie
 
     private
 
+    def expand_macros(ast, path)
+      (0...(ast.size)).reverse_each do |i|
+        node = ast[i]
+        if macro?(node)
+          ast[i,1] = run_macro(node, path)
+        end
+      end
+      ast
+    end
+
     def macro?(node)
       return false unless node[0..1] == s(:call, nil)
       %i[require require_relative load].include?(node[2])
     end
 
-    def run_macro(expr)
+    def run_macro(expr, path)
       (_, _, macro, *args) = expr
-      send("macro_#{macro}", *args)
+      send("macro_#{macro}", *args, path)
     end
 
-    def macro_require(node)
+    def macro_require(node, current_path)
       path = node[1] + '.nat'
-      macro_load([nil, path])
+      macro_load([nil, path], current_path)
     end
 
-    def macro_require_relative(node)
-      path = File.expand_path(node[1] + '.nat', File.dirname(@path))
-      macro_load([nil, path])
+    def macro_require_relative(node, current_path)
+      path = File.expand_path(node[1] + '.nat', File.dirname(current_path))
+      macro_load([nil, path], current_path)
     end
 
-    def macro_load(node)
+    def macro_load(node, _)
       path = node.last
       full_path = if path.start_with?('/')
                     path
@@ -113,7 +118,8 @@ module Natalie
                   end
       if full_path
         code = File.read(full_path)
-        Natalie::Parser.new(code).ast
+        file_ast = Natalie::Parser.new(code).ast
+        expand_macros(file_ast, full_path)
       else
         raise LoadError, "cannot load such file -- #{path}"
       end
