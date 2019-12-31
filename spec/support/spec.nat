@@ -1,0 +1,155 @@
+class SpecFailedException < StandardError; end
+
+@specs = []
+
+def describe(description)
+  @describe = description
+  yield
+end
+
+def xit(test, &block)
+  @specs << [@describe, test, nil]
+end
+
+def it(test, &block)
+  @specs << [@describe, test, block]
+end
+
+class Matcher
+  def initialize(subject, inverted, args)
+    @subject = subject
+    @inverted = inverted
+    @args = args
+    if @args.any?
+      match_expectation(@args.first)
+    end
+  end
+
+  def ==(other)
+    if @subject != other
+      raise SpecFailedException, @subject.inspect + ' should be == to ' + other.inspect
+    end
+  end
+
+  def match_expectation(expectation)
+    if @inverted
+      expectation.inverted_match(@subject)
+    else
+      expectation.match(@subject)
+    end
+  end
+end
+
+class BeNilExpectation
+  def match(subject)
+    if subject != nil
+      raise SpecFailedException, subject.inspect + ' should be nil'
+    end
+  end
+
+  def inverted_match(subject)
+    if subject == nil
+      raise SpecFailedException, subject.inspect + ' should not be nil'
+    end
+  end
+end
+
+class BeKindOfExpectation
+  def initialize(klass)
+    @klass = klass
+  end
+
+  def match(subject)
+    if !(@klass === subject)
+      raise SpecFailedException, subject.inspect + ' should be a kind of ' + @klass.inspect
+    end
+  end
+
+  def inverted_match(subject)
+    if @klass === subject
+      raise SpecFailedException, subject.inspect + ' should not be a kind of ' + @klass.inspect
+    end
+  end
+end
+
+class EqualExpectation
+  def initialize(other)
+    @other = other
+  end
+
+  def match(subject)
+    if !subject.equal?(@other)
+      raise SpecFailedException, subject.inspect + ' should be equal to ' + @other.inspect
+    end
+  end
+
+  def inverted_match(subject)
+    if subject.equal?(@other)
+      raise SpecFailedException, subject.inspect + ' should not be equal to ' + @other.inspect
+    end
+  end
+end
+
+class Object
+  def should(*args)
+    Matcher.new(self, false, args)
+  end
+
+  def should_not(*args)
+    Matcher.new(self, true, args)
+  end
+
+  def be_nil
+    BeNilExpectation.new
+  end
+
+  def be_kind_of(klass)
+    BeKindOfExpectation.new(klass)
+  end
+
+  def equal(other)
+    EqualExpectation.new(other)
+  end
+end
+
+def run_specs
+  @failures = []
+  @skipped = []
+
+  @specs.each do |test|
+    fn = test.last
+    if fn
+      begin
+        fn.call
+      rescue SpecFailedException => e
+        print 'F'
+        @failures << [test[0], test[1], e.message]
+      else
+        print '.'
+      end
+    else
+      @skipped << [test[0], test[1]]
+      print '*'
+    end
+  end
+
+  if @failures.any?
+    puts
+    puts
+    puts 'Failed specs:'
+    @failures.each do |failure|
+      puts failure[0]
+      puts '  ' + failure[1]
+      puts '    ' + failure[2]
+    end
+    puts
+    puts (@specs.size - @failures.size).to_s + ' spec(s) passed.'
+    puts @failures.size.to_s + ' spec(s) failed.'
+    puts @skipped.size.to_s + ' spec(s) skipped.' if @skipped.any?
+    exit 1
+  else
+    puts
+    puts @specs.size.to_s + ' spec(s) passed.'
+    puts @skipped.size.to_s + ' spec(s) skipped.' if @skipped.any?
+  end
+end
