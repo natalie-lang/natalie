@@ -10,6 +10,8 @@ There is much work left to do before this is useful. Please let me know if you w
 
 ## Building
 
+The compiler and REPL currently require Ruby. I've only tested on Ruby 2.6.x.
+
 ```sh
 gem install bundler
 bundle install
