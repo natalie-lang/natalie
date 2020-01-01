@@ -50,16 +50,20 @@ module Natalie
 
       def rewrite_call(exp)
         (_, receiver, method, *args) = exp
+        (_, block_pass) = args.pop if args.last&.sexp_type == :block_pass
         if args.any? { |a| a.sexp_type == :splat }
           args = s(:args_array, rewrite(s(:array, *args)))
         else
           args = s(:args, *args)
         end
-        if receiver
-          s(:nat_send, receiver, method, args)
+        proc_name = temp('proc_to_block')
+        sexp_type = receiver ? :nat_send : :nat_lookup_or_send
+        if block_pass
+          s(:block,
+            s(:declare, proc_name, block_pass),
+            s(sexp_type, receiver || :self, method, args, "#{proc_name}->block"))
         else
-          receiver = receiver ? rewrite(receiver) : :self
-          s(:nat_lookup_or_send, receiver, method, args)
+          s(sexp_type, receiver || :self, method, args, 'NULL')
         end
       end
 
@@ -188,14 +192,11 @@ module Natalie
         (_, call, (_, *args), *body) = exp
         block_fn = temp('block_fn')
         block = block_fn.sub(/_fn/, '')
-        args = args.each_with_index.map do |arg, i|
-          s(:env_set, :env, s(:s, arg), s(:block_arg, i))
-        end
-        call << block
+        call[call.size-1] = block
         s(:block,
           s(:fn, block_fn,
             s(:block,
-              *args,
+              s(:block_args, *args),
               rewrite(s(:block, *body)))),
           s(:declare_block, block, s(:nat_block, :env, :self, block_fn)),
           call)
@@ -207,7 +208,7 @@ module Natalie
       end
 
       def rewrite_lambda(exp)
-        s(:nat_lambda, :env) # note: the block gets added by rewrite_iter later
+        s(:nat_lambda, :env, 'NULL') # note: the block gets overwritten by rewrite_iter later
       end
 
       def rewrite_lasgn(exp)
@@ -236,6 +237,7 @@ module Natalie
       end
       
       def rewrite_masgn(exp)
+        return exp if %i[args masgn block_args].include?(context.first)
         (_, array, val) = exp
         raise 'expected s(:array, ...) for masgn target' if array.sexp_type != :array
         vars = array[1..-1].map do |var|

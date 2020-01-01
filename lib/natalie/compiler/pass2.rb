@@ -90,9 +90,20 @@ module Natalie
         end
       end
 
-      def process_block_arg(exp)
-        (_, index) = exp
-        "(#{index} < argc) ? args[#{index}] : env_get(env, \"nil\")"
+      def process_block_args(exp, argc_name: 'argc', args_name: 'args')
+        (_, *args) = exp
+        args.each_with_index do |arg, index|
+          if arg.is_a?(Sexp)
+            if arg.sexp_type == :masgn
+              process_block_args(arg, argc_name: "#{args_name}[#{index}]->ary_len", args_name: "#{args_name}[#{index}]->ary")
+            else
+              puts "warning: ignoring a new type of block arg: #{arg.inspect}"
+            end
+          else
+            decl "env_set(env, #{arg.to_s.inspect}, (#{index} < #{argc_name}) ? #{args_name}[#{index}] : env_get(env, \"nil\"));"
+          end
+        end
+        ''
       end
 
       def process_break(_)
