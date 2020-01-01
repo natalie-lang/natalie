@@ -158,7 +158,7 @@ module Natalie
                   end
       if full_path
         code = File.read(full_path)
-        file_ast = Natalie::Parser.new(code).ast
+        file_ast = Natalie::Parser.new(code, full_path).ast
         expand_macros(file_ast, full_path)
       else
         raise LoadError, "cannot load such file -- #{path}"

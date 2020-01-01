@@ -48,7 +48,7 @@ else
   exit
 end
 
-parser = Natalie::Parser.new(code)
+parser = Natalie::Parser.new(code, source_path)
 ast = parser.ast
 
 if options[:ast]

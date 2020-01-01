@@ -368,7 +368,9 @@ module Natalie
 
       def process_sexp(exp, name = nil, type = 'NatObject')
         (fn, *args) = exp
-        raise RewriteError, "#{exp.inspect} not rewritten in pass 1 (context: #{@context.inspect})" if fn !~ NAT_FUNCTIONS
+        if fn !~ NAT_FUNCTIONS
+          raise RewriteError, "#{exp.inspect} not rewritten in pass 1 (#{exp&.file}##{exp&.line}, context: #{@context.inspect})"
+        end
         if VOID_FUNCTIONS.include?(fn)
           decl "#{fn}(#{args.map { |a| p(a) }.join(', ')});"
           ''
