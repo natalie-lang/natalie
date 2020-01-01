@@ -221,3 +221,20 @@ NatObject *Array_pop(NatEnv *env, NatObject *self, size_t argc, NatObject **args
         return val;
     }
 }
+
+NatObject *Array_include(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    assert(self->type == NAT_VALUE_ARRAY);
+    NAT_ASSERT_ARGC(1);
+    NatObject *item = args[0];
+    if (self->ary_len == 0) {
+        return env_get(env, "false");
+    } else {
+        for (size_t i=0; i<self->ary_len; i++) {
+            NatObject *compare_item = self->ary[i];
+            if (nat_truthy(nat_send(env, item, "==", 1, &compare_item, NULL))) {
+                return env_get(env, "true");
+            }
+        }
+        return env_get(env, "false");
+    }
+}

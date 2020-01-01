@@ -7,12 +7,17 @@ class Context
   def initialize(description)
     @description = description
     @before_each = []
+    @before_all = []
   end
 
-  attr_reader :description, :before_each
+  attr_reader :description, :before_each, :before_all
 
   def add_before_each(block)
     @before_each << block
+  end
+
+  def add_before_all(block)
+    @before_all << block
   end
 
   def to_s
@@ -26,6 +31,8 @@ def describe(description)
   @context.pop
 end
 
+alias context describe
+
 def xit(test, &block)
   @specs << [@context.dup, test, nil]
 end
@@ -34,9 +41,18 @@ def it(test, &block)
   @specs << [@context.dup, test, block]
 end
 
+def ruby_version_is(_)
+  yield # TODO
+end
+
 def before(type, &block)
-  raise 'I only know how to do before(:each)' unless type == :each
-  @context.last.add_before_each(block)
+  if type == :each
+    @context.last.add_before_each(block)
+  elsif type == :all
+    @context.last.add_before_all(block)
+  else
+    raise "I don't know how to do before(#{type.inspect})"
+  end
 end
 
 class Matcher
@@ -170,9 +186,18 @@ def run_specs
   @failures = []
   @skipped = []
 
+  before_all_done = []
   @specs.each do |test|
     (context, test, fn) = test
     if fn
+      context.each do |con|
+        con.before_all.each do |b|
+          unless before_all_done.include?(b)
+            b.call
+            before_all_done << b
+          end
+        end
+      end
       context.each do |con|
         con.before_each.each do |b|
           b.call
@@ -211,14 +236,14 @@ def run_specs
       puts message
     end
     puts
-    puts (@specs.size - @failures.size).to_s + ' spec(s) passed.'
+    puts (@specs.size - @failures.size - @skipped.size).to_s + ' spec(s) passed.'
     puts @failures.size.to_s + ' spec(s) failed.'
     puts @skipped.size.to_s + ' spec(s) skipped.' if @skipped.any?
     exit 1
   else
     puts
     puts
-    puts @specs.size.to_s + ' spec(s) passed.'
+    puts (@specs.size - @skipped.size).to_s + ' spec(s) passed.'
     puts @skipped.size.to_s + ' spec(s) skipped.' if @skipped.any?
   end
 end
