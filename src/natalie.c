@@ -87,13 +87,14 @@ NatObject* nat_raise(NatEnv *env, NatObject *klass, char *message_format, ...) {
     va_end(args);
     NatObject *exception = nat_exception(env, klass, message->str);
     NatObject *bt = exception->backtrace = nat_array(env);
+    NatEnv *bt_env = env;
     while (1) {
-        if (env->file) {
-            char *method_name = nat_find_method_name(env);
+        if (bt_env->file) {
+            char *method_name = nat_find_method_name(bt_env);
             nat_array_push(bt, nat_sprintf(env, "%s:%d:in `%s'", env->file, env->line, method_name));
         }
-        if (!env->caller) break;
-        env = env->caller;
+        if (!bt_env->caller) break;
+        bt_env = bt_env->caller;
     }
     nat_raise_exception(env, exception);
     return exception;

@@ -253,7 +253,7 @@ NatObject *EVAL(NatEnv *env) {
                 for (int i=exception->backtrace->ary_len-1; i>0; i--) {
                     NatObject *line = exception->backtrace->ary[i];
                     assert(line->type == NAT_VALUE_STRING);
-                    fprintf(stderr, "        %zu: from %s\n", i, line->str);
+                    fprintf(stderr, "        %d: from %s\n", i, line->str);
                 }
                 fprintf(stderr, "%s: ", exception->backtrace->ary[0]->str);
             }
