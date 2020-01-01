@@ -64,9 +64,10 @@ module Natalie
 
     def transform(ast)
       p1 = Pass1.new
-      p1.var_num = start_var_num
+      p1.var_prefix = var_prefix
       r1 = p1.rewrite(ast)
       p2 = Pass2.new
+      p2.var_prefix = var_prefix
       p2.var_num = p1.var_num
       result = p2.process(r1)
       [
@@ -90,15 +91,6 @@ module Natalie
 
     private
 
-    def start_var_num
-      # FIXME: this is an ugly hack -- need to prefix var nums for each object file????
-      if compile_to_object_file
-        10_000
-      else
-        0
-      end
-    end
-
     def compiler_command
       if compile_to_object_file
         "gcc -I #{SRC_PATH} -x c -c #{@c_path} -o #{out_path} 2>&1"
@@ -107,10 +99,21 @@ module Natalie
       end
     end
 
+    def var_prefix
+      if compile_to_object_file
+        "#{obj_name}_"
+      else
+        ''
+      end
+    end
+
+    def obj_name
+      out_path.sub(/.*obj\//, '').sub(/\.o$/, '').tr('/', '_')
+    end
+
     def template
       if compile_to_object_file
-        name = out_path.sub(/.*obj\//, '').sub(/\.o$/, '').tr('/', '_')
-        OBJ_TEMPLATE % { name: name }
+        OBJ_TEMPLATE % { name: obj_name }
       else
         MAIN_TEMPLATE
       end

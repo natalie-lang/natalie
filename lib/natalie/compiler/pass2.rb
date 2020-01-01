@@ -14,7 +14,7 @@ module Natalie
         @var_num = 0
       end
 
-      attr_accessor :var_num
+      attr_accessor :var_num, :var_prefix
 
       VOID_FUNCTIONS = %i[
         nat_alias
@@ -399,7 +399,7 @@ module Natalie
 
       def temp(name)
         @var_num += 1
-        "#{name}#{@var_num}"
+        "#{var_prefix}#{name}#{@var_num}"
       end
 
       def top(code = nil)
