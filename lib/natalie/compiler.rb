@@ -64,6 +64,7 @@ module Natalie
 
     def transform(ast)
       p1 = Pass1.new
+      p1.var_num = start_var_num
       r1 = p1.rewrite(ast)
       p2 = Pass2.new
       p2.var_num = p1.var_num
@@ -88,6 +89,15 @@ module Natalie
     end
 
     private
+
+    def start_var_num
+      # FIXME: this is an ugly hack -- need to prefix var nums for each object file????
+      if compile_to_object_file
+        10_000
+      else
+        0
+      end
+    end
 
     def compiler_command
       if compile_to_object_file

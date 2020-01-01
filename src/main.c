@@ -18,6 +18,8 @@
 #include "nat_symbol.h"
 #include "nat_true_class.h"
 
+NatObject *obj_language_exceptions(NatEnv *env, NatObject *self);
+
 NatEnv *build_top_env() {
     NatEnv *env = build_env(NULL);
 
