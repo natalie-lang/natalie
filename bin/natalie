@@ -92,7 +92,8 @@ else
   end
   if status.nil?
     puts 'segfault'
+    exit 1
   else
-    exit(status)
+    exit status
   end
 end
