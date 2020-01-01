@@ -21,8 +21,13 @@ OptionParser.new do |opts|
     options[:ast] = ast
   end
 
-  opts.on('-c path', '--compile path', 'Compile to binary but do not execute') do |c|
-    options[:compile] = c
+  opts.on('-c path', '--compile path', 'Compile to binary but do not execute') do |path|
+    options[:compile] = path
+  end
+
+  opts.on('--compile-obj path', 'Compile to object file') do |path|
+    options[:compile] = path
+    options[:compile_obj] = true
   end
 
   opts.on('-I path', 'Specify $LOAD_PATH directory (may be used more than once)') do |p|
@@ -52,13 +57,16 @@ if options[:ast]
 elsif options[:compile]
   compiler = Natalie::Compiler.new(ast, source_path)
   compiler.load_path = options[:load_path]
-  compiler.compile(options[:compile])
+  compiler.compile_to_object_file = options[:compile_obj]
+  compiler.out_path = options[:compile]
+  compiler.compile
 else
   compiler = Natalie::Compiler.new(ast, source_path)
   compiler.load_path = options[:load_path]
   out = Tempfile.create('natalie')
   out.close
-  compiler.compile(out.path)
+  compiler.out_path = out.path
+  compiler.compile
   puts out.path if ENV['DEBUG']
   status = nil
   Open3.popen3(out.path) do |stdin, stdout, stderr, wait_thread|
@@ -79,8 +87,8 @@ else
       rescue IOError
       end
     end
-    status = wait_thread.value.to_i
+    status = wait_thread.value.exitstatus
     File.unlink(out.path) unless ENV['DEBUG']
   end
-  exit(status == 0 ? 0 : 1)
+  exit(status)
 end

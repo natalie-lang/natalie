@@ -299,6 +299,11 @@ module Natalie
         s(:nat_string, :env, s(:s, str))
       end
 
+      def rewrite_super(exp)
+        (_, *args) = exp
+        s(:nat_super, s(:args, *args))
+      end
+
       def rewrite_while(exp)
         (_, condition, body, unknown) = exp
         raise 'check this out' if unknown != true # FIXME: I don't know what this is; it always seems to be true
@@ -322,7 +327,7 @@ module Natalie
       end
 
       def rewrite_zsuper(_)
-        s(:super, s(:args))
+        s(:nat_super, s(:args))
       end
 
       def temp(name)

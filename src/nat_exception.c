@@ -4,7 +4,6 @@
 #include "nat_object.h"
 
 NatObject *Exception_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
-    NAT_ASSERT_ARGC(0, 1);
     NatObject *exception = Object_new(env, self, argc, args, kwargs, block);
     exception->type = NAT_VALUE_EXCEPTION;
     if (exception->message == NULL) exception->message = self->class_name;

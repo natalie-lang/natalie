@@ -129,19 +129,6 @@ NatObject *Kernel_raise(NatEnv *env, NatObject *self, size_t argc, NatObject **a
     NAT_RAISE(env, klass, message->str);
 }
 
-NatObject *Kernel_exit(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
-    NAT_ASSERT_ARGC(0, 1);
-    NatObject *status;
-    if (argc == 1) {
-        status = args[0];
-        assert(status->type == NAT_VALUE_INTEGER);
-    } else {
-        status = nat_integer(env, 0);
-    }
-    exit(status->integer);
-    return env_get(env, "nil");
-}
-
 NatObject *Kernel_respond_to(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
     NatObject *symbol = args[0];
@@ -174,4 +161,30 @@ NatObject *Kernel_methods(NatEnv *env, NatObject *self, size_t argc, NatObject *
         nat_methods(env, array, self->class);
     }
     return array;
+}
+
+NatObject *Kernel_exit(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(0, 1);
+    NatObject *status;
+    if (argc == 1) {
+        status = args[0];
+        assert(status->type == NAT_VALUE_INTEGER);
+    } else {
+        status = nat_integer(env, 0);
+    }
+    NatObject *exception = nat_exception(env, env_get(env, "SystemExit"), "exit");
+    ivar_set(env, exception, "@status", status);
+    nat_raise_exception(env, exception);
+    return env_get(env, "nil");
+}
+
+NatObject *Kernel_is_a(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(1);
+    NatObject *klass_or_module = args[0];
+    assert(klass_or_module->type == NAT_VALUE_CLASS || klass_or_module->type == NAT_VALUE_MODULE);
+    if (nat_is_a(env, self, klass_or_module)) {
+        return env_get(env, "true");
+    } else {
+        return env_get(env, "false");
+    }
 }

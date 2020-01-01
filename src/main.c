@@ -93,6 +93,7 @@ NatEnv *build_top_env() {
     nat_define_method(Kernel, "dup", Kernel_dup);
     nat_define_method(Kernel, "methods", Kernel_methods);
     nat_define_method(Kernel, "public_methods", Kernel_methods); // TODO
+    nat_define_method(Kernel, "is_a?", Kernel_is_a);
 
     NatObject *Comparable = nat_module(env, "Comparable");
     COMPARABLE_INIT();
@@ -106,7 +107,8 @@ NatEnv *build_top_env() {
     NatObject *main_obj = nat_new(env, Object, 0, NULL, NULL, NULL);
     main_obj->flags = NAT_FLAG_MAIN_OBJECT;
     nat_define_singleton_method(env, main_obj, "inspect", main_obj_inspect);
-    env_set(env, "self", main_obj);
+    NatObject *self = main_obj;
+    env_set(env, "self", self);
 
     NatObject *NilClass = nat_subclass(env, Object, "NilClass");
     nat_define_singleton_method(env, NilClass, "new", NilClass_new);
@@ -210,6 +212,8 @@ NatEnv *build_top_env() {
     NatObject *TypeError = nat_subclass(env, StandardError, "TypeError");
     env_set(env, "TypeError", TypeError);
 
+    obj_language_exceptions(env, self);
+
     return env;
 }
 
@@ -225,8 +229,17 @@ NatObject *EVAL(NatEnv *env) {
         NatObject *exception = env->exception;
         assert(exception);
         assert(exception->type == NAT_VALUE_EXCEPTION);
-        fprintf(stderr, "%s\n", exception->message);
-        return NULL;
+        if (nat_is_a(env, exception, env_get(env, "SystemExit"))) {
+            NatObject *status_obj = ivar_get(env, exception, "@status");
+            if (status_obj->type == NAT_VALUE_INTEGER && status_obj->integer >= 0 && status_obj->integer <= 255) {
+                exit(status_obj->integer);
+            } else {
+                exit(1);
+            }
+        } else {
+            fprintf(stderr, "%s\n", exception->message);
+            return NULL;
+        }
     }
 }
 

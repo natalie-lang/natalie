@@ -8,7 +8,17 @@ module Natalie
   class Compiler
     SRC_PATH = File.expand_path('../../src', __dir__)
     OBJ_PATH = File.expand_path('../../obj', __dir__)
-    MAIN = File.read(File.join(SRC_PATH, 'main.c'))
+    MAIN_TEMPLATE = File.read(File.join(SRC_PATH, 'main.c'))
+    OBJ_TEMPLATE = <<-EOF
+      #{MAIN_TEMPLATE.scan(/^#include.*/).join("\n")}
+
+      /*TOP*/
+
+      NatObject *obj_%{name}(NatEnv *env, NatObject *self) {
+        /*BODY*/
+        return env_get(env, "nil");
+      }
+    EOF
 
     class RewriteError < StandardError; end
 
@@ -18,14 +28,14 @@ module Natalie
       @path = path
     end
 
-    attr_accessor :ast
+    attr_accessor :ast, :compile_to_object_file, :shared, :out_path
 
     attr_writer :load_path
 
-    def compile(out_path, shared: false)
+    def compile
       check_build
       write_file
-      cmd = "gcc -g -Wall #{shared ? '-fPIC -shared' : ''} -I #{SRC_PATH} -o #{out_path} #{OBJ_PATH}/*.o -x c #{@c_path} 2>&1"
+      cmd = compiler_command
       out = `#{cmd}`
       File.unlink(@c_path) unless ENV['DEBUG']
       $stderr.puts out if ENV['DEBUG'] || $? != 0
@@ -67,7 +77,7 @@ module Natalie
     def to_c
       @ast = expand_macros(@ast, @path)
       (top, body) = transform(@ast)
-      out = MAIN
+      out = template
         .sub('/*TOP*/', top)
         .sub('/*BODY*/', body)
       reindent(out)
@@ -78,6 +88,23 @@ module Natalie
     end
 
     private
+
+    def compiler_command
+      if compile_to_object_file
+        "gcc -I #{SRC_PATH} -x c -c #{@c_path} -o #{out_path} 2>&1"
+      else
+        "gcc -g -Wall #{shared ? '-fPIC -shared' : ''} -I #{SRC_PATH} -o #{out_path} #{OBJ_PATH}/*.o #{OBJ_PATH}/language/*.o -x c #{@c_path} 2>&1"
+      end
+    end
+
+    def template
+      if compile_to_object_file
+        name = out_path.sub(/.*obj\//, '').sub(/\.o$/, '').tr('/', '_')
+        OBJ_TEMPLATE % { name: name }
+      else
+        MAIN_TEMPLATE
+      end
+    end
 
     def expand_macros(ast, path)
       (0...(ast.size)).reverse_each do |i|

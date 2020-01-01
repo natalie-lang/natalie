@@ -321,6 +321,18 @@ module Natalie
 
       alias process_nat_send process_nat_lookup_or_send
 
+      def process_nat_super(exp)
+        (_, args, block) = exp
+        result_name = temp('call_result')
+        if args
+          args_name, args_count = p(args).split(':')
+          decl "NatObject *#{result_name} = nat_call_method_on_class(env, self->class->superclass, self->class->superclass, env_get(env, \"__method__\")->str, self, #{args_count}, #{args_name}, NULL, #{block || 'NULL'});"
+        else
+          decl "NatObject *#{result_name} = nat_call_method_on_class(env, self->class->superclass, self->class->superclass, env_get(env, \"__method__\")->str, self, 0, NULL, NULL, #{block || 'NULL'});"
+        end
+        result_name
+      end
+
       def process_nat_truthy(exp)
         (_, cond) = exp
         "nat_truthy(#{p cond})"
@@ -342,14 +354,6 @@ module Natalie
 
       def process_self(_)
         'self'
-      end
-
-      def process_super(exp)
-        (_, args, block) = exp
-        args_name, args_count = p(args).split(':')
-        result_name = temp('call_result')
-        decl "NatObject *#{result_name} = nat_call_method_on_class(env, self->class->superclass, self->class->superclass, env_get(env, \"__method__\")->str, self, #{args_count}, #{args_name}, NULL, #{block || 'NULL'});"
-        result_name
       end
 
       def process_true(_)
