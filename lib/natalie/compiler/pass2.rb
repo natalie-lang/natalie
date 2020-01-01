@@ -209,7 +209,6 @@ module Natalie
         when :const, :lvar
           decl "NatObject *#{result} = nat_defined_obj(env, self, #{name.last.to_s.inspect});"
         when :call
-          # s(:call, nil, :y)
           (_, receiver, name) = name
           receiver ||= 'self'
           decl "NatObject *#{result} = nat_defined_obj(env, #{p receiver}, #{name.to_s.inspect});"
@@ -469,7 +468,8 @@ module Natalie
 
       def debug_info(exp)
         return unless exp.file
-        decl "env->file = heap_string(#{exp.file.inspect}); env->line = #{exp.line || 0};" if exp.file
+        line = "env->file = heap_string(#{exp.file.inspect}); env->line = #{exp.line || 0};"
+        decl line unless @decl.last == line
       end
     end
   end
