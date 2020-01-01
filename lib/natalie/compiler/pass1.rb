@@ -49,6 +49,7 @@ module Natalie
       end
 
       def rewrite_call(exp)
+        return exp if context.first == :defined
         (_, receiver, method, *args) = exp
         (_, block_pass) = args.pop if args.last&.sexp_type == :block_pass
         if args.any? { |a| a.sexp_type == :splat }
@@ -96,6 +97,7 @@ module Natalie
       end
 
       def rewrite_const(exp)
+        return exp if context.first == :defined
         (_, name) = exp
         s(:nat_lookup, :env, s(:s, name))
       end
@@ -169,6 +171,7 @@ module Natalie
       end
 
       def rewrite_gvar(exp)
+        return exp if context.first == :defined
         (_, name) = exp
         s(:global_get, :env, s(:s, name))
       end
@@ -203,6 +206,7 @@ module Natalie
       end
 
       def rewrite_ivar(exp)
+        return exp if context.first == :defined
         (_, name) = exp
         s(:ivar_get, :env, :self, s(:s, name))
       end
@@ -232,6 +236,7 @@ module Natalie
       end
 
       def rewrite_lvar(exp)
+        return exp if context.first == :defined
         (_, name) = exp
         s(:nat_lookup, :env, s(:s, name))
       end

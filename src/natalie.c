@@ -397,6 +397,33 @@ int nat_is_a(NatEnv *env, NatObject *obj, NatObject *klass_or_module) {
     }
 }
 
+char *nat_defined(NatEnv *env, NatObject *receiver, char *name) {
+    NatObject *obj;
+    if (receiver->env && is_constant_name(name)) {
+        obj = env_get(receiver->env, name);
+        if (obj) return "constant";
+    } else if (is_constant_name(name)) {
+        obj = env_get(env, name);
+        if (obj) return "constant";
+    } else {
+        obj = env_get(env, name);
+        if (obj) return "local-variable";
+        if (nat_respond_to(receiver, name)) {
+            return "method";
+        }
+    }
+    return NULL;
+}
+
+NatObject *nat_defined_obj(NatEnv *env, NatObject *receiver, char *name) {
+    char *result = nat_defined(env, receiver, name);
+    if (result) {
+        return nat_string(env, result);
+    } else {
+        return env_get(env, "nil");
+    }
+}
+
 NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, NatObject **args, NatBlock *block) { // FIXME: kwargs
     assert(receiver);
     NatObject *klass = receiver->singleton_class;

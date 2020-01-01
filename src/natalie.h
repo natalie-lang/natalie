@@ -179,6 +179,9 @@ void nat_define_singleton_method(NatEnv *env, NatObject *obj, char *name, NatObj
 NatObject *nat_class_ancestors(NatEnv *env, NatObject *klass);
 int nat_is_a(NatEnv *env, NatObject *obj, NatObject *klass_or_module);
 
+char *nat_defined(NatEnv *env, NatObject *receiver, char *name);
+NatObject *nat_defined_obj(NatEnv *env, NatObject *receiver, char *name);
+
 NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, NatObject **args, NatBlock *block);
 NatObject *nat_lookup_or_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, NatObject **args, NatBlock *block);
 NatObject *nat_lookup(NatEnv *env, char *name);

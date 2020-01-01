@@ -202,6 +202,23 @@ module Natalie
         name
       end
 
+      def process_defined(exp)
+        (_, name) = exp
+        result = temp('defined_result')
+        case name.sexp_type
+        when :const, :lvar
+          decl "NatObject *#{result} = nat_defined_obj(env, self, #{name.last.to_s.inspect});"
+        when :call
+          # s(:call, nil, :y)
+          (_, receiver, name) = name
+          receiver ||= 'self'
+          decl "NatObject *#{result} = nat_defined_obj(env, #{p receiver}, #{name.to_s.inspect});"
+        else
+          raise "unknown defined type: #{exp.inspect}"
+        end
+        result
+      end
+
       def process_false(_)
         process_sexp(s(:env_get, :env, s(:s, 'false')), temp('false'))
       end
