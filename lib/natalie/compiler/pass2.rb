@@ -226,7 +226,6 @@ module Natalie
         when :const, :lvar
           decl "NatObject *#{result} = nat_defined_obj(env, self, #{name.last.to_s.inspect});"
         when :call
-          # s(:call, nil, :y)
           (_, receiver, name) = name
           receiver ||= 'self'
           decl "NatObject *#{result} = nat_defined_obj(env, #{p receiver}, #{name.to_s.inspect});"
@@ -377,7 +376,7 @@ module Natalie
         debug_info(exp)
         (fn, *args) = exp
         if fn !~ NAT_FUNCTIONS
-          raise RewriteError, "#{exp.inspect} not rewritten in pass 1 (#{exp&.file}##{exp&.line}, context: #{@context.inspect})"
+          raise CompileError, "#{exp.inspect} not rewritten in pass 1 (#{exp&.file}##{exp&.line}, context: #{@context.inspect})"
         end
         if VOID_FUNCTIONS.include?(fn)
           decl "#{fn}(#{args.map { |a| p(a) }.join(', ')});"
@@ -441,7 +440,8 @@ module Natalie
 
       def debug_info(exp)
         return unless exp.file
-        decl "env->file = heap_string(#{exp.file.inspect}); env->line = #{exp.line || 0};" if exp.file
+        line = "env->file = heap_string(#{exp.file.inspect}); env->line = #{exp.line || 0};"
+        decl line unless @decl.last == line
       end
     end
   end

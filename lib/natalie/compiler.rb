@@ -20,7 +20,7 @@ module Natalie
       }
     EOF
 
-    class RewriteError < StandardError; end
+    class CompileError < StandardError; end
 
     def initialize(ast, path)
       @ast = ast
@@ -65,7 +65,7 @@ module Natalie
     def transform(ast)
       p1 = Pass1.new
       p1.var_prefix = var_prefix
-      r1 = p1.rewrite(ast)
+      r1 = p1.process(ast)
       if ENV['DEBUG_PASS1']
         pp r1
         exit

@@ -1,35 +1,37 @@
 module Natalie
   class Compiler
-    # Rewrite S-expressions from Ruby to C
+    # process S-expressions from Ruby to C
     class Pass1 < SexpProcessor
       def initialize
         super
+        self.require_empty = false
         @var_num = 0
       end
 
       attr_accessor :var_num, :var_prefix
 
-      def rewrite_alias(exp)
+      def process_alias(exp)
         (_, (_, new_name), (_, old_name)) = exp
         exp.new(:block,
           s(:nat_alias, :env, :self, s(:s, new_name), s(:s, old_name)),
           s(:nil))
       end
 
-      def rewrite_and(exp)
+      def process_and(exp)
         (_, lhs, rhs) = exp
+        lhs = process(lhs)
+        rhs = process(rhs)
         exp.new(:c_if, s(:nat_truthy, lhs), rhs, lhs)
       end
 
-      def rewrite_array(exp)
-        return exp if %i[resbody splat masgn].include?(context.first)
+      def process_array(exp)
         (_, *items) = exp
         arr = temp('arr')
         items = items.map do |item|
           if item.sexp_type == :splat
-            s(:nat_array_push_splat, :env, arr, item.last)
+            s(:nat_array_push_splat, :env, arr, process(item.last))
           else
-            s(:nat_array_push, arr, rewrite(item))
+            s(:nat_array_push, arr, process(item))
           end
         end
         exp.new(:block,
@@ -38,71 +40,80 @@ module Natalie
           arr)
       end
 
-      def rewrite_attrasgn(exp)
+      def process_attrasgn(exp)
         (_, receiver, method, *args) = exp
         if args.any? { |a| a.sexp_type == :splat }
-          args = s(:args_array, rewrite(s(:array, *args)))
+          args = s(:args_array, process(s(:array, *args.map { |n| process(n) })))
         else
-          args = s(:args, *args)
+          args = s(:args, *args.map { |n| process(n) })
         end
-        exp.new(:nat_lookup_or_send, receiver, method, args)
+        exp.new(:nat_lookup_or_send, process(receiver), method, args)
       end
 
-      def rewrite_call(exp)
-        return exp if context.first == :defined
+      def process_block(exp)
+        (_, *parts) = exp
+        exp.new(:block, *parts.map { |p| p.is_a?(Sexp) ? process(p) : p })
+      end
+
+      def process_call(exp)
         (_, receiver, method, *args) = exp
         (_, block_pass) = args.pop if args.last&.sexp_type == :block_pass
         if args.any? { |a| a.sexp_type == :splat }
-          args = s(:args_array, rewrite(s(:array, *args)))
+          args = s(:args_array, process(s(:array, *args.map { |n| process(n) })))
         else
-          args = s(:args, *args)
+          args = s(:args, *args.map { |a| process(a) })
         end
         proc_name = temp('proc_to_block')
         sexp_type = receiver ? :nat_send : :nat_lookup_or_send
+        receiver = receiver ? process(receiver) : :self
         if block_pass
           exp.new(:block,
-            s(:declare, proc_name, block_pass),
-            s(sexp_type, receiver || :self, method, args, "#{proc_name}->block"))
+            s(:declare, proc_name, process(block_pass)),
+            s(sexp_type, receiver, method, args, "#{proc_name}->block"))
         else
-          exp.new(sexp_type, receiver || :self, method, args, 'NULL')
+          exp.new(sexp_type, receiver, method, args, 'NULL')
         end
       end
 
-      def rewrite_cdecl(exp)
+      def process_cdecl(exp)
         (_, name, value) = exp
-        exp.new(:env_set, :env, s(:s, name), rewrite(value))
+        exp.new(:env_set, :env, s(:s, name), process(value))
       end
 
-      def rewrite_class(exp)
+      def process_class(exp)
         (_, name, superclass, *body) = exp
         superclass ||= s(:const, 'Object')
         fn = temp('class_body')
         klass = temp('class')
         exp.new(:block,
-          s(:fn2, fn, rewrite(s(:block, *body))),
+          s(:fn2, fn, process(s(:block, *body))),
           s(:declare, klass, s(:env_get, :env, s(:s, name))),
           s(:c_if, s(:not, klass),
             s(:block,
-              s(:set, klass, s(:nat_subclass, :env, rewrite(superclass), s(:s, name))),
+              s(:set, klass, s(:nat_subclass, :env, process(superclass), s(:s, name))),
               s(:env_set, :env, s(:s, name), klass))),
           s(:nat_call, fn, "#{klass}->env", klass))
       end
 
-      def rewrite_colon2(exp)
+      def process_colon2(exp)
         (_, parent, name) = exp
         parent_name = temp('parent')
         exp.new(:block,
-          s(:declare, parent_name, rewrite(parent)),
+          s(:declare, parent_name, process(parent)),
           s(:env_get, "#{parent_name}->env", s(:s, name)))
       end
 
-      def rewrite_const(exp)
-        return exp if context.first == :defined
+      def process_const(exp)
         (_, name) = exp
         exp.new(:nat_lookup, :env, s(:s, name))
       end
 
-      def rewrite_defn_internal(exp)
+      def process_defined(exp)
+        (_, name) = exp
+        exp.new(:defined, name)
+      end
+
+      def process_defn_internal(exp)
         (_, name, (_, *args), *body) = exp
         name = name.to_s
         fn_name = temp('fn')
@@ -110,9 +121,9 @@ module Natalie
           block_arg = exp.new(:env_set, :env, s(:s, args.pop.to_s[1..-1]), s(:nat_proc, :env, 'block'))
         end
         assign_args = if args_use_simple_mode?(args)
-                        rewrite(s(:masgn_in_args_simple, *args))
+                        process(s(:masgn_in_args_simple, *args))
                       else
-                        s(:nat_multi_assign_args, :env, :self, rewrite(s(:masgn_in_args_full, *args)), :argc, :args)
+                        s(:nat_multi_assign_args, :env, :self, process(s(:masgn_in_args_full, *args)), :argc, :args)
                       end
         exp.new(:fn, fn_name,
           s(:block,
@@ -120,36 +131,36 @@ module Natalie
             s(:env_set_method_name, name),
             assign_args,
             block_arg || s(:block),
-            rewrite(s(:block, *body))))
+            process(s(:block, *body))))
       end
 
-      def rewrite_defn(exp)
+      def process_defn(exp)
         (_, name, args, *body) = exp
-        fn = rewrite_defn_internal(exp)
+        fn = process_defn_internal(exp)
         exp.new(:block,
           fn,
           s(:nat_define_method, :self, s(:s, name), fn[1]),
           s(:nat_symbol, :env, s(:s, name)))
       end
 
-      def rewrite_defs(exp)
+      def process_defs(exp)
         (_, owner, name, args, *body) = exp
-        fn = rewrite_defn_internal(exp.new(:defs, name, args, *body))
+        fn = process_defn_internal(exp.new(:defs, name, args, *body))
         exp.new(:block,
           fn,
-          s(:nat_define_singleton_method, :env, owner, s(:s, name), fn[1]),
+          s(:nat_define_singleton_method, :env, process(owner), s(:s, name), fn[1]),
           s(:nat_symbol, :env, s(:s, name)))
       end
 
-      def rewrite_dstr(exp)
+      def process_dstr(exp)
         (_, start, *rest) = exp
         string = temp('string')
         segments = rest.map do |segment|
           case segment.sexp_type
           when :evstr
-            s(:nat_string_append_nat_string, string, rewrite(s(:call, segment.last, :to_s)))
-          when :nat_string
-            s(:nat_string_append, string, segment.last)
+            s(:nat_string_append_nat_string, string, process(s(:call, segment.last, :to_s)))
+          when :str
+            s(:nat_string_append, string, s(:s, segment.last))
           else
             raise "unknown dstr segment: #{segment.inspect}"
           end
@@ -160,22 +171,21 @@ module Natalie
           string)
       end
 
-      def rewrite_gasgn(exp)
+      def process_gasgn(exp)
         (_, name, value) = exp
-        exp.new(:global_set, :env, s(:s, name), rewrite(value))
+        exp.new(:global_set, :env, s(:s, name), process(value))
       end
 
-      def rewrite_gvar(exp)
-        return exp if context.first == :defined
+      def process_gvar(exp)
         (_, name) = exp
         exp.new(:global_get, :env, s(:s, name))
       end
 
-      def rewrite_hash(exp)
+      def process_hash(exp)
         (_, *pairs) = exp
         hash = temp('hash')
         inserts = pairs.each_slice(2).map do |(key, val)|
-          s(:nat_hash_put, :env, hash, key, val)
+          s(:nat_hash_put, :env, hash, process(key), process(val))
         end
         exp.new(:block,
           s(:declare, hash, s(:nat_hash, :env)),
@@ -183,60 +193,57 @@ module Natalie
           hash)
       end
 
-      def rewrite_if(exp)
+      def process_if(exp)
         (_, condition, true_body, false_body) = exp
         true_fn = temp('if_result_true')
         false_fn = true_fn.sub(/true/, 'false')
         exp.new(:block,
-          s(:fn2, true_fn, rewrite(true_body || s(:nil))),
-          s(:fn2, false_fn, rewrite(false_body || s(:nil))),
-          s(:tern, rewrite(condition), true_fn, false_fn))
+          s(:fn2, true_fn, process(true_body || s(:nil))),
+          s(:fn2, false_fn, process(false_body || s(:nil))),
+          s(:tern, process(condition), true_fn, false_fn))
       end
 
-      def rewrite_iasgn(exp)
+      def process_iasgn(exp)
         (_, name, value) = exp
-        exp.new(:ivar_set, :env, :self, s(:s, name), rewrite(value))
+        exp.new(:ivar_set, :env, :self, s(:s, name), process(value))
       end
 
-      def rewrite_iter(exp)
+      def process_iter(exp)
         (_, call, (_, *args), *body) = exp
         block_fn = temp('block_fn')
         block = block_fn.sub(/_fn/, '')
+        call = process(call)
         call[call.size-1] = block
         assign_args = if args_use_simple_mode?(args)
-                        rewrite(s(:masgn_in_args_simple, *args))
+                        process(s(:masgn_in_args_simple, *args))
                       else
-                        s(:nat_multi_assign_args, :env, :self, rewrite(s(:masgn_in_args_full, *args)), :argc, :args)
+                        s(:nat_multi_assign_args, :env, :self, process(s(:masgn_in_args_full, *args)), :argc, :args)
                       end
         exp.new(:block,
           s(:fn, block_fn,
             s(:block,
               s(:env_set_method_name, '<block>'),
               assign_args,
-              rewrite(s(:block, *body)))),
+              process(s(:block, *body)))),
           s(:declare_block, block, s(:nat_block, :env, :self, block_fn)),
           call)
       end
 
-      def rewrite_ivar(exp)
-        return exp if context.first == :defined
+      def process_ivar(exp)
         (_, name) = exp
         exp.new(:ivar_get, :env, :self, s(:s, name))
       end
 
-      def rewrite_lambda(exp)
-        exp.new(:nat_lambda, :env, 'NULL') # note: the block gets overwritten by rewrite_iter later
+      def process_lambda(exp)
+        exp.new(:nat_lambda, :env, 'NULL') # note: the block gets overwritten by process_iter later
       end
 
-      def rewrite_lasgn(exp)
-        return exp if context[0..1] == [:array, :masgn]
-        return exp if %i[args block_args].include?(context.first)
+      def process_lasgn(exp)
         (_, name, val) = exp
-        exp.new(:env_set, :env, s(:s, name), rewrite(val))
+        exp.new(:env_set, :env, s(:s, name), process(val))
       end
 
-      def rewrite_lit(exp)
-        return exp if context.first == :alias
+      def process_lit(exp)
         lit = exp.last
         case lit
         when Integer
@@ -248,15 +255,14 @@ module Natalie
         end
       end
 
-      def rewrite_lvar(exp)
-        return exp if context.first == :defined
+      def process_lvar(exp)
         (_, name) = exp
         exp.new(:nat_lookup, :env, s(:s, name))
       end
       
-      def rewrite_masgn(exp)
-        if context.detect { |c| c != :masgn } == :args
-          return exp.new(:masgn_in_args_full, *exp[1..-1])
+      def process_masgn(exp)
+        if context[0..2] == [:masgn, :array, :masgn_in_args_full]
+          return process(exp.new(:masgn_in_args_full, *exp[1..-1]))
         end
         (_, names, vals) = exp
         vars = []
@@ -272,17 +278,17 @@ module Natalie
         end
         vars = exp.new(:array, *vars)
         context.push(:nat_masgn)
-        vars = rewrite(vars)
+        vars = process(vars)
         context.pop
         if vals
           raise "unknown masgn val type: #{vals.sexp_type}" unless vals.sexp_type == :to_ary
-          exp.new(:nat_multi_assign, :env, :self, vars, vals.last)
+          exp.new(:nat_multi_assign, :env, :self, vars, process(vals.last))
         else
           vars
         end
       end
 
-      def rewrite_masgn_in_args_full(exp)
+      def process_masgn_in_args_full(exp)
         (_, *names) = exp
         args = []
         names.each do |name|
@@ -294,10 +300,10 @@ module Natalie
             case name.sexp_type
             when :shadow
               puts "warning: unhandled arg type: #{name.inspect}"
-            when :env_set
-              (_, _, n, v) = name
-              args << s(:nat_symbol, :env, n)
-              args << v
+            when :lasgn, :iasgn
+              (_, n, v) = name
+              args << s(:nat_symbol, :env, s(:s, n))
+              args << process(v)
             else
               args << name
               args << s(:NULL)
@@ -312,12 +318,12 @@ module Natalie
         end
         args = exp.new(:array, *args)
         context.push(:nat_masgn_in_args)
-        args = rewrite(args)
+        args = process(args)
         context.pop
         args
       end
 
-      def rewrite_masgn_in_args_simple(exp)
+      def process_masgn_in_args_simple(exp)
         (_, *names) = exp
         args = names.each_with_index.map do |name, index|
           case name
@@ -331,9 +337,11 @@ module Natalie
             case name.sexp_type
             when :shadow
               puts "warning: unhandled arg type: #{name.inspect}"
-            when :env_set
-              (_, _, (_, name), default) = name
-              s(:env_set, :env, s(:s, name), s(:block_arg, index, :single, default))
+            when :lasgn, :iasgn
+              (_, name, default) = name
+              s(:env_set, :env, s(:s, name), s(:block_arg, index, :single, process(default)))
+            else
+              raise "unknown arg type: #{name.inspect}"
             end
           when nil
             nil
@@ -344,12 +352,12 @@ module Natalie
         s(:block_args, *args)
       end
 
-      def rewrite_module(exp)
+      def process_module(exp)
         (_, name, *body) = exp
         fn = temp('module_body')
         mod = temp('module')
         exp.new(:block,
-          s(:fn2, fn, rewrite(s(:block, *body))),
+          s(:fn2, fn, process(s(:block, *body))),
           s(:declare, mod, s(:env_get, :env, s(:s, name))),
           s(:c_if, s(:not, mod),
             s(:block,
@@ -358,12 +366,14 @@ module Natalie
           s(:nat_call, fn, "#{mod}->env", mod))
       end
 
-      def rewrite_or(exp)
+      def process_or(exp)
         (_, lhs, rhs) = exp
+        lhs = process(lhs)
+        rhs = process(rhs)
         exp.new(:c_if, s(:not, s(:nat_truthy, lhs)), rhs, lhs)
       end
 
-      def rewrite_rescue(exp)
+      def process_rescue(exp)
         (_, *rest) = exp
         else_body = rest.pop if rest.last.sexp_type != :resbody
         (body, resbodies) = rest.partition { |n| n.first != :resbody }
@@ -371,12 +381,12 @@ module Natalie
         rescue_fn = begin_fn.sub(/begin/, 'rescue')
         rescue_block = s(:cond)
         resbodies.each_with_index do |(_, (_, *match), *resbody), index|
-          lasgn = match.pop if match.last&.first == :env_set
-          match << rewrite(s(:const, 'StandardError')) if match.empty?
-          condition = s(:is_a, 'env->exception', *match)
+          lasgn = match.pop if match.last&.sexp_type == :lasgn
+          match << s(:const, 'StandardError') if match.empty?
+          condition = s(:is_a, 'env->exception', *match.map { |n| process(n) })
           rescue_block << condition
-          resbody = resbody == [nil] ? [s(:nil)] : resbody
-          rescue_block << (lasgn ? s(:block, lasgn, *resbody) : s(:block, *resbody))
+          resbody = resbody == [nil] ? [s(:nil)] : resbody.map { |n| process(n) }
+          rescue_block << (lasgn ? s(:block, process(lasgn), *resbody) : s(:block, *resbody))
         end
         rescue_block << s(:else)
         rescue_block << s(:block, s(:nat_raise_exception, :env, 'env->exception'))
@@ -390,50 +400,50 @@ module Natalie
             s(:block,
               s(:build_block_env),
               s(:nat_rescue,
-                s(:block, *body),
+                s(:block, *body.map { |n| process(n) }),
                 rescue_block))),
           s(:nat_call, begin_fn, :env, :self))
       end
 
-      def rewrite_sclass(exp)
+      def process_sclass(exp)
         (_, obj, *body) = exp
-        exp.new(:with_self, s(:nat_singleton_class, :env, rewrite(obj)),
+        exp.new(:with_self, s(:nat_singleton_class, :env, process(obj)),
           s(:block, *body))
       end
 
-      def rewrite_str(exp)
+      def process_str(exp)
         (_, str) = exp
         exp.new(:nat_string, :env, s(:s, str))
       end
 
-      def rewrite_super(exp)
+      def process_super(exp)
         (_, *args) = exp
-        exp.new(:nat_super, s(:args, *args))
+        exp.new(:nat_super, s(:args, *args.map { |n| process(n) }))
       end
 
-      def rewrite_while(exp)
+      def process_while(exp)
         (_, condition, body, unknown) = exp
         raise 'check this out' if unknown != true # FIXME: I don't know what this is; it always seems to be true
         body ||= s(:nil)
         exp.new(:block,
           s(:c_while, 'TRUE',
             s(:block,
-              s(:c_if, s(:not, s(:nat_truthy, rewrite(condition))), s(:break)),
-              body)),
+              s(:c_if, s(:not, s(:nat_truthy, process(condition))), s(:break)),
+              process(body))),
           s(:nil))
       end
 
-      def rewrite_yield(exp)
+      def process_yield(exp)
         (_, *args) = exp
         if args.any? { |a| a.sexp_type == :splat }
-          args = s(:args_array, rewrite(s(:array, *args)))
+          args = s(:args_array, process(s(:array, *args.map { |n| process(n) })))
         else
-          args = s(:args, *args)
+          args = s(:args, *args.map { |n| process(n) })
         end
         exp.new(:nat_run_block, args)
       end
 
-      def rewrite_zsuper(exp)
+      def process_zsuper(exp)
         exp.new(:nat_super, s(:args))
       end
 
