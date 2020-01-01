@@ -90,5 +90,5 @@ else
     status = wait_thread.value.exitstatus
     File.unlink(out.path) unless ENV['DEBUG']
   end
-  exit(status)
+  exit(status || 1)
 end

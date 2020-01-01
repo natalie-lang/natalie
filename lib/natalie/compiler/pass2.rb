@@ -232,7 +232,7 @@ module Natalie
             decl '}'
             decl "env_set(env, #{arg.to_s[1..-1].inspect}, #{var});"
           else
-            decl "env_set(env, #{arg.to_s.inspect}, args[#{index}]);"
+            decl "if (#{index} < argc) env_set(env, #{arg.to_s.inspect}, args[#{index}]);"
           end
         end
         ''

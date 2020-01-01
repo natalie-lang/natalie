@@ -100,19 +100,25 @@ module Natalie
         (_, name, (_, *args), *body) = exp
         name = name.to_s
         fn = temp('fn')
-        non_block_args = args.grep_v(/^\&/)
-        splat_arg_index = args.index { |a| a =~ /^\*/ }
+        arg_names = args.map { |a| a.is_a?(Sexp) ? a[1] : a }
+        arg_defaults = args.select { |a| a.is_a?(Sexp) && a.sexp_type == :lasgn }
+        non_block_arg_count = arg_names.grep_v(/^\&/).size
+        regular_arg_count = non_block_arg_count - arg_defaults.size
+        splat_arg_index = arg_names.index { |a| a =~ /^\*/ }
         argc_assert = if splat_arg_index
-                        s(:NAT_ASSERT_ARGC_AT_LEAST, splat_arg_index)
+                        s(:NAT_ASSERT_ARGC_AT_LEAST, splat_arg_index - arg_defaults.size)
+                      elsif regular_arg_count == non_block_arg_count
+                        s(:NAT_ASSERT_ARGC, regular_arg_count)
                       else
-                        s(:NAT_ASSERT_ARGC, non_block_args.size)
+                        s(:NAT_ASSERT_ARGC, regular_arg_count, regular_arg_count + arg_defaults.size)
                       end
         s(:block,
           s(:fn, fn,
             s(:block,
               argc_assert,
               s(:env_set, :env, s(:s, '__method__'), s(:nat_string, :env, s(:s, name))),
-              s(:method_args, *args),
+              s(:block, *arg_defaults.map { |a| rewrite(a) }),
+              s(:method_args, *arg_names),
               rewrite(s(:block, *body)))),
           s(:nat_define_method, :self, s(:s, name), fn),
           s(:nat_symbol, :env, s(:s, name)))
@@ -206,6 +212,7 @@ module Natalie
 
       def rewrite_lasgn(exp)
         return exp if context[0..1] == [:array, :masgn]
+        return exp if context.first == :args
         (_, name, val) = exp
         s(:env_set, :env, s(:s, name), rewrite(val))
       end

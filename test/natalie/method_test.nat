@@ -29,6 +29,26 @@ def block_arg_test(a, b, &block)
   [a, b, block.call]
 end
 
+def default(x = 1)
+  x
+end
+
+def default_calling_another_method(x = default)
+  x
+end
+
+def default_calling_another_method2(x = default(2))
+  x
+end
+
+def default_after_regular(x, y = 2)
+  [x, y]
+end
+
+def default_with_splat(x, y = 2, *rest)
+  [x, y, rest]
+end
+
 class Foo
   def foo
     'instance method foo'
@@ -98,6 +118,17 @@ describe 'method' do
 
   it 'can define a method dynamically' do
     Bar.new.bar.must_equal 'bar'
+  end
+
+  it 'can have default arguments' do
+    default.must_equal 1
+    default(2).must_equal 2
+    default_after_regular(1).must_equal [1, 2]
+    default_after_regular(2).must_equal [2, 2]
+    default_after_regular(2, 3).must_equal [2, 3]
+    default_with_splat(2).must_equal [2, 2, []]
+    default_calling_another_method.must_equal 1
+    default_calling_another_method2.must_equal 2
   end
 end
 
