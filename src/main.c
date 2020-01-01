@@ -22,6 +22,7 @@ NatObject *obj_language_exceptions(NatEnv *env, NatObject *self);
 
 NatEnv *build_top_env() {
     NatEnv *env = build_env(NULL);
+    env->method_name = heap_string("<main>");
 
     NatObject *Class = nat_alloc(env);
     Class->flags = NAT_FLAG_TOP_CLASS;
@@ -202,6 +203,7 @@ NatEnv *build_top_env() {
     nat_define_method(Exception, "initialize", Exception_initialize);
     nat_define_method(Exception, "inspect", Exception_inspect);
     nat_define_method(Exception, "message", Exception_message);
+    nat_define_method(Exception, "backtrace", Exception_backtrace);
     nat_define_singleton_method(env, Exception, "new", Exception_new);
     NatObject *StandardError = nat_subclass(env, Exception, "StandardError");
     env_set(env, "StandardError", StandardError);
@@ -246,7 +248,16 @@ NatObject *EVAL(NatEnv *env) {
                 exit(1);
             }
         } else {
-            fprintf(stderr, "%s\n", exception->message);
+            if (exception->backtrace->ary_len > 0) {
+                fprintf(stderr, "Traceback:\n");
+                for (size_t i=0; i<exception->backtrace->ary_len; i++) {
+                    NatObject *line = exception->backtrace->ary[i];
+                    assert(line->type == NAT_VALUE_STRING);
+                    fprintf(stderr, "        %zu: %s\n", i+1, line->str);
+                }
+                fprintf(stderr, "%s: ", exception->backtrace->ary[0]->str);
+            }
+            fprintf(stderr, "%s (%s)\n", exception->message, exception->class->class_name);
             return NULL;
         }
     }

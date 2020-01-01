@@ -38,6 +38,9 @@ NatEnv *build_env(NatEnv *outer) {
     env->outer = outer;
     env->jump_buf = NULL;
     env->caller = NULL;
+    env->file = "(unknown)";
+    env->line = 0;
+    env->method_name = NULL;
     if (outer) {
         env->globals = outer->globals;
         env->symbols = outer->symbols;
@@ -66,12 +69,27 @@ NatEnv *build_block_env(NatEnv *outer, NatEnv *calling_env) {
     return env;
 }
 
+char *nat_find_method_name(NatEnv *env) {
+    while (1) {
+        if (env->method_name) {
+            return env->method_name;
+        }
+        if (!env->outer) break;
+        env = env->outer;
+    }
+    return heap_string("(unknown)");
+}
+
 NatObject* nat_raise(NatEnv *env, NatObject *klass, char *message_format, ...) {
     va_list args;
     va_start(args, message_format);
     NatObject *message = nat_vsprintf(env, message_format, args);
     va_end(args);
     NatObject *exception = nat_exception(env, klass, message->str);
+    NatObject *bt = exception->backtrace = nat_array(env);
+    char *method_name = nat_find_method_name(env);
+    nat_array_push(bt, nat_sprintf(env, "%s:%d:in `%s'", env->file, env->line, method_name));
+    // TODO: gather more backtrace from outer envs
     nat_raise_exception(env, exception);
     return exception;
 }

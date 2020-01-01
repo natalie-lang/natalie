@@ -42,6 +42,9 @@ struct NatEnv {
     jmp_buf *jump_buf;
     NatObject *exception;
     NatEnv *caller;
+    char *file;
+    size_t line;
+    char *method_name;
 };
 
 struct NatBlock {
@@ -125,7 +128,10 @@ struct NatObject {
         };
 
         // NAT_VALUE_EXCEPTION
-        char *message;
+        struct {
+            char *message;
+            NatObject *backtrace; // array
+        };
 
         // NAT_VALUE_PROC
         struct {

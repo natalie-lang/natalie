@@ -11,14 +11,14 @@ module Natalie
 
       def rewrite_alias(exp)
         (_, (_, new_name), (_, old_name)) = exp
-        s(:block,
+        exp.new(:block,
           s(:nat_alias, :env, :self, s(:s, new_name), s(:s, old_name)),
           s(:nil))
       end
 
       def rewrite_and(exp)
         (_, lhs, rhs) = exp
-        s(:c_if, s(:nat_truthy, lhs), rhs, lhs)
+        exp.new(:c_if, s(:nat_truthy, lhs), rhs, lhs)
       end
 
       def rewrite_array(exp)
@@ -32,7 +32,7 @@ module Natalie
             s(:nat_array_push, arr, rewrite(item))
           end
         end
-        s(:block,
+        exp.new(:block,
           s(:declare, arr, s(:nat_array, :env)),
           *items.compact,
           arr)
@@ -45,7 +45,7 @@ module Natalie
         else
           args = s(:args, *args)
         end
-        s(:nat_lookup_or_send, receiver, method, args)
+        exp.new(:nat_lookup_or_send, receiver, method, args)
       end
 
       def rewrite_call(exp)
@@ -60,17 +60,17 @@ module Natalie
         proc_name = temp('proc_to_block')
         sexp_type = receiver ? :nat_send : :nat_lookup_or_send
         if block_pass
-          s(:block,
+          exp.new(:block,
             s(:declare, proc_name, block_pass),
             s(sexp_type, receiver || :self, method, args, "#{proc_name}->block"))
         else
-          s(sexp_type, receiver || :self, method, args, 'NULL')
+          exp.new(sexp_type, receiver || :self, method, args, 'NULL')
         end
       end
 
       def rewrite_cdecl(exp)
         (_, name, value) = exp
-        s(:env_set, :env, s(:s, name), rewrite(value))
+        exp.new(:env_set, :env, s(:s, name), rewrite(value))
       end
 
       def rewrite_class(exp)
@@ -78,7 +78,7 @@ module Natalie
         superclass ||= s(:const, 'Object')
         fn = temp('class_body')
         klass = temp('class')
-        s(:block,
+        exp.new(:block,
           s(:fn2, fn, rewrite(s(:block, *body))),
           s(:declare, klass, s(:env_get, :env, s(:s, name))),
           s(:c_if, s(:not, klass),
@@ -91,7 +91,7 @@ module Natalie
       def rewrite_colon2(exp)
         (_, parent, name) = exp
         parent_name = temp('parent')
-        s(:block,
+        exp.new(:block,
           s(:declare, parent_name, rewrite(parent)),
           s(:env_get, "#{parent_name}->env", s(:s, name)))
       end
@@ -99,7 +99,7 @@ module Natalie
       def rewrite_const(exp)
         return exp if context.first == :defined
         (_, name) = exp
-        s(:nat_lookup, :env, s(:s, name))
+        exp.new(:nat_lookup, :env, s(:s, name))
       end
 
       def rewrite_defn(exp)
@@ -118,11 +118,12 @@ module Natalie
                       else
                         s(:NAT_ASSERT_ARGC, regular_arg_count, regular_arg_count + arg_defaults.size)
                       end
-        s(:block,
+        exp.new(:block,
           s(:fn, fn,
             s(:block,
               argc_assert,
               s(:env_set, :env, s(:s, '__method__'), s(:nat_string, :env, s(:s, name))),
+              s(:env_set_method_name, name),
               s(:block, *arg_defaults.map { |a| rewrite(a) }),
               s(:method_args, *arg_names),
               rewrite(s(:block, *body)))),
@@ -135,7 +136,7 @@ module Natalie
         name = name.to_s
         fn = temp('fn')
         non_block_args = args.grep_v(/^\&/)
-        s(:block,
+        exp.new(:block,
           s(:fn, fn,
             s(:block,
               s(:NAT_ASSERT_ARGC, non_block_args.size),
@@ -159,7 +160,7 @@ module Natalie
             raise "unknown dstr segment: #{segment.inspect}"
           end
         end
-        s(:block,
+        exp.new(:block,
           s(:declare, string, s(:nat_string, :env, s(:s, start))),
           *segments,
           string)
@@ -167,20 +168,20 @@ module Natalie
 
       def rewrite_gasgn(exp)
         (_, name, value) = exp
-        s(:global_set, :env, s(:s, name), rewrite(value))
+        exp.new(:global_set, :env, s(:s, name), rewrite(value))
       end
 
       def rewrite_gvar(exp)
         return exp if context.first == :defined
         (_, name) = exp
-        s(:global_get, :env, s(:s, name))
+        exp.new(:global_get, :env, s(:s, name))
       end
 
       def rewrite_if(exp)
         (_, condition, true_body, false_body) = exp
         true_fn = temp('if_result_true')
         false_fn = true_fn.sub(/true/, 'false')
-        s(:block,
+        exp.new(:block,
           s(:fn2, true_fn, rewrite(true_body || s(:nil))),
           s(:fn2, false_fn, rewrite(false_body || s(:nil))),
           s(:tern, rewrite(condition), true_fn, false_fn))
@@ -188,7 +189,7 @@ module Natalie
 
       def rewrite_iasgn(exp)
         (_, name, value) = exp
-        s(:ivar_set, :env, :self, s(:s, name), rewrite(value))
+        exp.new(:ivar_set, :env, :self, s(:s, name), rewrite(value))
       end
 
       def rewrite_iter(exp)
@@ -196,7 +197,7 @@ module Natalie
         block_fn = temp('block_fn')
         block = block_fn.sub(/_fn/, '')
         call[call.size-1] = block
-        s(:block,
+        exp.new(:block,
           s(:fn, block_fn,
             s(:block,
               s(:block_args, *args),
@@ -208,18 +209,18 @@ module Natalie
       def rewrite_ivar(exp)
         return exp if context.first == :defined
         (_, name) = exp
-        s(:ivar_get, :env, :self, s(:s, name))
+        exp.new(:ivar_get, :env, :self, s(:s, name))
       end
 
       def rewrite_lambda(exp)
-        s(:nat_lambda, :env, 'NULL') # note: the block gets overwritten by rewrite_iter later
+        exp.new(:nat_lambda, :env, 'NULL') # note: the block gets overwritten by rewrite_iter later
       end
 
       def rewrite_lasgn(exp)
         return exp if context[0..1] == [:array, :masgn]
         return exp if context.first == :args
         (_, name, val) = exp
-        s(:env_set, :env, s(:s, name), rewrite(val))
+        exp.new(:env_set, :env, s(:s, name), rewrite(val))
       end
 
       def rewrite_lit(exp)
@@ -227,9 +228,9 @@ module Natalie
         lit = exp.last
         case lit
         when Integer
-          s(:nat_integer, :env, lit)
+          exp.new(:nat_integer, :env, lit)
         when Symbol
-          s(:nat_symbol, :env, s(:s, lit))
+          exp.new(:nat_symbol, :env, s(:s, lit))
         else
           raise "unknown lit: #{exp.inspect}"
         end
@@ -238,7 +239,7 @@ module Natalie
       def rewrite_lvar(exp)
         return exp if context.first == :defined
         (_, name) = exp
-        s(:nat_lookup, :env, s(:s, name))
+        exp.new(:nat_lookup, :env, s(:s, name))
       end
       
       def rewrite_masgn(exp)
@@ -252,15 +253,15 @@ module Natalie
             raise 'expected iasgn or lasgn'
           end
         end
-        raise 'expected s(:to_ary, ...) for masign source' if val.sexp_type != :to_ary
-        s(:nat_multi_assign, s(:masgn_array, *vars), rewrite(val[1]))
+        raise 'expected s(:to_ary, ...) for masgn source' if val.sexp_type != :to_ary
+        exp.new(:nat_multi_assign, s(:masgn_array, *vars), rewrite(val[1]))
       end
 
       def rewrite_module(exp)
         (_, name, *body) = exp
         fn = temp('module_body')
         mod = temp('module')
-        s(:block,
+        exp.new(:block,
           s(:fn2, fn, rewrite(s(:block, *body))),
           s(:declare, mod, s(:env_get, :env, s(:s, name))),
           s(:c_if, s(:not, mod),
@@ -292,7 +293,7 @@ module Natalie
           body << else_body
         end
         body = body.empty? ? [s(:nil)] : body
-        s(:block,
+        exp.new(:block,
           s(:fn2, begin_fn,
             s(:block,
               s(:build_block_env),
@@ -304,25 +305,25 @@ module Natalie
 
       def rewrite_sclass(exp)
         (_, obj, *body) = exp
-        s(:with_self, s(:nat_singleton_class, :env, rewrite(obj)),
+        exp.new(:with_self, s(:nat_singleton_class, :env, rewrite(obj)),
           s(:block, *body))
       end
 
       def rewrite_str(exp)
         (_, str) = exp
-        s(:nat_string, :env, s(:s, str))
+        exp.new(:nat_string, :env, s(:s, str))
       end
 
       def rewrite_super(exp)
         (_, *args) = exp
-        s(:nat_super, s(:args, *args))
+        exp.new(:nat_super, s(:args, *args))
       end
 
       def rewrite_while(exp)
         (_, condition, body, unknown) = exp
         raise 'check this out' if unknown != true # FIXME: I don't know what this is; it always seems to be true
         body ||= s(:nil)
-        s(:block,
+        exp.new(:block,
           s(:c_while, 'TRUE',
             s(:block,
               s(:c_if, s(:not, s(:nat_truthy, rewrite(condition))), s(:break)),
@@ -337,11 +338,11 @@ module Natalie
         else
           args = s(:args, *args)
         end
-        s(:nat_run_block, args)
+        exp.new(:nat_run_block, args)
       end
 
-      def rewrite_zsuper(_)
-        s(:nat_super, s(:args))
+      def rewrite_zsuper(exp)
+        exp.new(:nat_super, s(:args))
       end
 
       def temp(name)

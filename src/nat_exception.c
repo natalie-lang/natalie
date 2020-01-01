@@ -40,3 +40,9 @@ NatObject *Exception_message(NatEnv *env, NatObject *self, size_t argc, NatObjec
     assert(self->type == NAT_VALUE_EXCEPTION);
     return nat_string(env, self->message);
 }
+
+NatObject *Exception_backtrace(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(0);
+    assert(self->type == NAT_VALUE_EXCEPTION);
+    return self->backtrace;
+}

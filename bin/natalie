@@ -36,7 +36,7 @@ OptionParser.new do |opts|
 end.parse!
 
 if options[:execute]
-  source_path = '.'
+  source_path = '-e'
   code = options[:execute].gsub(/\\n/, "\n")
 elsif ARGV.any?
   source_path = ARGV.shift

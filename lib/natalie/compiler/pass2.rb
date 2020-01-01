@@ -219,6 +219,12 @@ module Natalie
         result
       end
 
+      def process_env_set_method_name(exp)
+        (_, name) = exp
+        decl "env->method_name = heap_string(#{name.inspect});"
+        ''
+      end
+
       def process_false(_)
         process_sexp(s(:env_get, :env, s(:s, 'false')), temp('false'))
       end
@@ -279,6 +285,7 @@ module Natalie
       end
 
       def process_nat_lookup_or_send(exp)
+        debug_info(exp)
         (fn, receiver, method, args, block) = exp
         receiver_name = p(receiver)
         args_name, args_count = p(args).split(':')
@@ -395,6 +402,7 @@ module Natalie
       end
 
       def process_sexp(exp, name = nil, type = 'NatObject')
+        debug_info(exp)
         (fn, *args) = exp
         if fn !~ NAT_FUNCTIONS
           raise RewriteError, "#{exp.inspect} not rewritten in pass 1 (#{exp&.file}##{exp&.line}, context: #{@context.inspect})"
@@ -457,6 +465,11 @@ module Natalie
         @decl = []
         yield
         @decl = decl_was
+      end
+
+      def debug_info(exp)
+        return unless exp.file
+        decl "env->file = heap_string(#{exp.file.inspect}); env->line = #{exp.line || 0};" if exp.file
       end
     end
   end
