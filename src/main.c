@@ -91,6 +91,7 @@ NatEnv *build_top_env() {
     nat_define_method(Kernel, "instance_variable_set", Kernel_instance_variable_set);
     nat_define_method(Kernel, "raise", Kernel_raise);
     nat_define_method(Kernel, "exit", Kernel_exit);
+    nat_define_method(Kernel, "at_exit", Kernel_at_exit);
     nat_define_method(Kernel, "respond_to?", Kernel_respond_to);
     nat_define_method(Kernel, "dup", Kernel_dup);
     nat_define_method(Kernel, "methods", Kernel_methods);
@@ -214,6 +215,8 @@ NatEnv *build_top_env() {
     NatObject *TypeError = nat_subclass(env, StandardError, "TypeError");
     env_set(env, "TypeError", TypeError);
 
+    global_set(env, "$NAT_at_exit_handlers", nat_array(env));
+
     obj_language_exceptions(env, self);
 
     return env;
@@ -226,13 +229,16 @@ NatObject *EVAL(NatEnv *env) {
     UNUSED(self); // maybe unused
     if (!NAT_RESCUE(env)) {
         /*BODY*/
+        nat_run_at_exit_handlers(env);
         return env_get(env, "nil"); // just in case there's no return value
     } else {
         NatObject *exception = env->exception;
         assert(exception);
         assert(exception->type == NAT_VALUE_EXCEPTION);
+        env->jump_buf = NULL;
         if (nat_is_a(env, exception, env_get(env, "SystemExit"))) {
             NatObject *status_obj = ivar_get(env, exception, "@status");
+            nat_run_at_exit_handlers(env);
             if (status_obj->type == NAT_VALUE_INTEGER && status_obj->integer >= 0 && status_obj->integer <= 255) {
                 exit(status_obj->integer);
             } else {

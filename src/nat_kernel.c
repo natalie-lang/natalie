@@ -178,6 +178,15 @@ NatObject *Kernel_exit(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     return env_get(env, "nil");
 }
 
+NatObject *Kernel_at_exit(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NatObject *at_exit_handlers = global_get(env, "$NAT_at_exit_handlers");
+    assert(at_exit_handlers);
+    assert(block);
+    NatObject *proc = nat_proc(env, block);
+    nat_array_push(at_exit_handlers, proc);
+    return proc;
+}
+
 NatObject *Kernel_is_a(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
     NatObject *klass_or_module = args[0];

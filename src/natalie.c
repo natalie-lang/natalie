@@ -725,3 +725,14 @@ void nat_alias(NatEnv *env, NatObject *self, char *new_name, char *old_name) {
     hashmap_remove(&klass->methods, new_name);
     hashmap_put(&klass->methods, new_name, method);
 }
+
+void nat_run_at_exit_handlers(NatEnv *env) {
+    NatObject *at_exit_handlers = global_get(env, "$NAT_at_exit_handlers");
+    assert(at_exit_handlers);
+    for (int i=at_exit_handlers->ary_len-1; i>=0; i--) {
+        NatObject *proc = at_exit_handlers->ary[i];
+        assert(proc);
+        assert(proc->type == NAT_VALUE_PROC);
+        nat_run_block(env, proc->block, 0, NULL, NULL, NULL);
+    }
+}

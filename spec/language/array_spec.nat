@@ -173,5 +173,3 @@ end
 describe "The packing splat operator (*)" do
 
 end
-
-run_specs # TODO: implement Kernel#at_exit so we won't need this

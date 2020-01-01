@@ -262,5 +262,3 @@ describe "The alias keyword" do
     #ruby_exe(code).should == "[1, 1]\n[3, 3]\n"
   end
 end
-
-run_specs # TODO: implement Kernel#at_exit so we won't need this

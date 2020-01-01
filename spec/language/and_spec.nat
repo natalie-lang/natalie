@@ -82,5 +82,3 @@ describe "The 'and' statement" do
   end
 
 end
-
-run_specs # TODO: implement Kernel#at_exit so we won't need this

@@ -222,3 +222,7 @@ def run_specs
     puts @skipped.size.to_s + ' spec(s) skipped.' if @skipped.any?
   end
 end
+
+at_exit do
+  run_specs
+end

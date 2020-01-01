@@ -90,5 +90,9 @@ else
     status = wait_thread.value.exitstatus
     File.unlink(out.path) unless ENV['DEBUG']
   end
-  exit(status || 1)
+  if status.nil?
+    puts 'segfault'
+  else
+    exit(status)
+  end
 end
