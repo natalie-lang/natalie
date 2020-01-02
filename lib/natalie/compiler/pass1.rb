@@ -187,6 +187,18 @@ module Natalie
         exp.new(:global_get, :env, s(:s, name))
       end
 
+      def process_hash(exp)
+        (_, *pairs) = exp
+        hash = temp('hash')
+        inserts = pairs.each_slice(2).map do |(key, val)|
+          s(:nat_hash_put, :env, hash, process(key), process(val))
+        end
+        exp.new(:block,
+          s(:declare, hash, s(:nat_hash, :env)),
+          s(:block, *inserts),
+          hash)
+      end
+
       def process_if(exp)
         (_, condition, true_body, false_body) = exp
         true_fn = temp('if_result_true')

@@ -197,3 +197,10 @@ NatObject *Kernel_is_a(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
         return env_get(env, "false");
     }
 }
+
+NatObject *Kernel_hash(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(0);
+    NatObject *inspected = nat_send(env, self, "inspect", 0, NULL, NULL);
+    size_t hash_value = hashmap_hash_string(inspected->str);
+    return nat_integer(env, hash_value);
+}

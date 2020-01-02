@@ -7,6 +7,7 @@
 #include "nat_comparable.h"
 #include "nat_exception.h"
 #include "nat_false_class.h"
+#include "nat_hash.h"
 #include "nat_integer.h"
 #include "nat_kernel.h"
 #include "nat_main_obj.h"
@@ -98,6 +99,7 @@ NatEnv *build_top_env() {
     nat_define_method(Kernel, "methods", Kernel_methods);
     nat_define_method(Kernel, "public_methods", Kernel_methods); // TODO
     nat_define_method(Kernel, "is_a?", Kernel_is_a);
+    nat_define_method(Kernel, "hash", Kernel_hash);
 
     NatObject *Comparable = nat_module(env, "Comparable");
     COMPARABLE_INIT();
@@ -192,6 +194,16 @@ NatEnv *build_top_env() {
     nat_define_method(Array, "pop", Array_pop);
     nat_define_method(Array, "include?", Array_include);
     env_set(env, "Array", Array);
+
+    NatObject *Hash = nat_subclass(env, Object, "Hash");
+    nat_define_method(Hash, "inspect", Hash_inspect);
+    // nat_define_method(Hash, "[]", Hash_ref);
+    // nat_define_method(Hash, "[]=", Hash_refeq);
+    // nat_define_method(Hash, "size", Hash_size);
+    // nat_define_method(Hash, "==", Hash_eqeq);
+    // nat_define_method(Hash, "===", Hash_eqeq);
+    // nat_define_method(Hash, "each", Hash_each);
+    env_set(env, "Hash", Hash);
 
     NatObject *Proc = nat_subclass(env, Object, "Proc");
     nat_define_method(Proc, "call", Proc_call);

@@ -345,6 +345,48 @@ void nat_array_expand_with_nil(NatEnv *env, NatObject *array, size_t size) {
     }
 }
 
+// this is used by the hashmap library and assumes that obj->env has been set
+size_t nat_hashmap_hash(const void *obj) {
+    assert(((NatObject*)obj)->env);
+    NatObject *hash_obj = nat_send(((NatObject*)obj)->env, (NatObject*)obj, "hash", 0, NULL, NULL);
+    assert(hash_obj->type == NAT_VALUE_INTEGER);
+    return hash_obj->integer;
+}
+
+// this is used by the hashmap library to compare keys
+int nat_hashmap_compare(const void *a, const void *b) {
+    NatObject *a_hash = nat_send(((NatObject*)a)->env, (NatObject*)a, "hash", 0, NULL, NULL);
+    NatObject *b_hash = nat_send(((NatObject*)b)->env, (NatObject*)b, "hash", 0, NULL, NULL);
+    assert(a_hash->type == NAT_VALUE_INTEGER);
+    assert(b_hash->type == NAT_VALUE_INTEGER);
+    return a_hash->integer - b_hash->integer;
+}
+
+NatObject *nat_hash(NatEnv *env) {
+    NatObject *obj = nat_new(env, env_get(env, "Hash"), 0, NULL, NULL, NULL);
+    obj->type = NAT_VALUE_HASH;
+    hashmap_init(&obj->hashmap, nat_hashmap_hash, nat_hashmap_compare, 256);
+    return obj;
+}
+
+NatObject *nat_hash_get(NatEnv *env, NatObject *map, NatObject *key) {
+    assert(map->type = NAT_VALUE_HASH);
+    return hashmap_get(&map->hashmap, key);
+}
+
+void nat_hash_put(NatEnv *env, NatObject *map, NatObject *key, NatObject *val) {
+    assert(map->type = NAT_VALUE_HASH);
+    // nat_hashmap_hash and nat_hashmap_compare use key->env because we cannot pass it in as an argument
+    if (!key->env) key->env = env;
+    hashmap_remove(&map->hashmap, key);
+    hashmap_put(&map->hashmap, key, val);
+}
+
+void nat_hash_delete(NatEnv *env, NatObject *map, NatObject *key) {
+    assert(map->type = NAT_VALUE_HASH);
+    hashmap_remove(&map->hashmap, key);
+}
+
 #define INT_64_MAX_CHAR_LEN 21 // 1 for sign, 19 for max digits, and 1 for null terminator
 
 char* int_to_string(int64_t num) {

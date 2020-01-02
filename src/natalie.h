@@ -63,6 +63,7 @@ enum NatValueType {
     NAT_VALUE_CLASS,
     NAT_VALUE_EXCEPTION,
     NAT_VALUE_FALSE,
+    NAT_VALUE_HASH,
     NAT_VALUE_INTEGER,
     NAT_VALUE_MODULE,
     NAT_VALUE_NIL,
@@ -93,7 +94,6 @@ struct NatObject {
     
     union {
         int64_t integer;
-        struct hashmap hashmap;
 
         // NAT_VALUE_CLASS, NAT_VALUE_MODULE
         struct {
@@ -138,6 +138,9 @@ struct NatObject {
           NatBlock *block;
           int lambda;
         };
+
+        // NAT_VALUE_HASHMAP
+        struct hashmap hashmap;
     };
 };
 
@@ -225,6 +228,13 @@ void nat_grow_array_at_least(NatObject *obj, size_t min_capacity);
 void nat_array_push(NatObject *array, NatObject *obj);
 void nat_array_push_splat(NatEnv *env, NatObject *array, NatObject *obj);
 void nat_array_expand_with_nil(NatEnv *env, NatObject *array, size_t size);
+
+size_t nat_hashmap_hash(const void *obj);
+int nat_hashmap_compare(const void *a, const void *b);
+NatObject *nat_hash(NatEnv *env);
+NatObject *nat_hash_get(NatEnv *env, NatObject *map, NatObject *key);
+void nat_hash_put(NatEnv *env, NatObject *map, NatObject *key, NatObject *val);
+void nat_hash_delete(NatEnv *env, NatObject *map, NatObject *key);
 
 NatObject *nat_dup(NatEnv *env, NatObject *obj);
 NatObject *nat_not(NatEnv *env, NatObject *val);
