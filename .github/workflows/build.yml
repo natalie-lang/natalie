@@ -18,7 +18,8 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y -q build-essential libedit-dev libgc-dev libpcre3-dev
         gem install bundler
-        bundle install --deployment
+        bundle config set deployment 'true'
+        bundle install
     - name: set environment
       run: export LC_ALL="C.UTF-8"
     - name: test
