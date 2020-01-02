@@ -72,7 +72,11 @@ NatEnv *build_block_env(NatEnv *outer, NatEnv *calling_env) {
 char *nat_find_method_name(NatEnv *env) {
     while (1) {
         if (env->method_name) {
-            return env->method_name;
+            if (strcmp(env->method_name, "<block>") == 0) {
+                return nat_sprintf(env, "block in %s", nat_find_method_name(env->outer))->str;
+            } else {
+                return env->method_name;
+            }
         }
         if (!env->outer) break;
         env = env->outer;
@@ -86,21 +90,21 @@ NatObject* nat_raise(NatEnv *env, NatObject *klass, char *message_format, ...) {
     NatObject *message = nat_vsprintf(env, message_format, args);
     va_end(args);
     NatObject *exception = nat_exception(env, klass, message->str);
-    NatObject *bt = exception->backtrace = nat_array(env);
-    NatEnv *bt_env = env;
-    while (1) {
-        if (bt_env->file) {
-            char *method_name = nat_find_method_name(bt_env);
-            nat_array_push(bt, nat_sprintf(env, "%s:%d:in `%s'", env->file, env->line, method_name));
-        }
-        if (!bt_env->caller) break;
-        bt_env = bt_env->caller;
-    }
     nat_raise_exception(env, exception);
     return exception;
 }
 
 NatObject* nat_raise_exception(NatEnv *env, NatObject *exception) {
+    NatObject *bt = exception->backtrace = nat_array(env);
+    NatEnv *bt_env = env;
+    while (1) {
+        if (bt_env->file) {
+            char *method_name = nat_find_method_name(bt_env);
+            nat_array_push(bt, nat_sprintf(env, "%s:%d:in `%s'", bt_env->file, bt_env->line, method_name));
+        }
+        if (!bt_env->caller) break;
+        bt_env = bt_env->caller;
+    }
     int counter = 0;
     while (!env->jump_buf) {
         assert(++counter < 10000); // serious problem
@@ -587,6 +591,9 @@ NatObject *nat_call_method_on_class(NatEnv *env, NatObject *class, NatObject *in
             closure_env = matching_class_or_module->env;
         }
         NatEnv *e = build_block_env(closure_env, env);
+        e->file = env->file;
+        e->line = env->line;
+        e->method_name = method_name;
         return method->fn(e, self, argc, args, NULL, block);
     } else {
         NAT_RAISE(env, env_get(env, "NoMethodError"), "undefined method `%s' for %s", method_name, nat_send(env, instance_class, "inspect", 0, NULL, NULL)->str);

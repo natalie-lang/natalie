@@ -65,7 +65,7 @@ module Natalie
     def transform(ast)
       p1 = Pass1.new
       p1.var_prefix = var_prefix
-      r1 = p1.process(ast)
+      r1 = p1.rewrite(ast)
       p2 = Pass2.new
       p2.var_prefix = var_prefix
       p2.var_num = p1.var_num
