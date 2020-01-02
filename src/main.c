@@ -26,7 +26,6 @@ NatEnv *build_top_env() {
     env->method_name = heap_string("<main>");
 
     NatObject *Class = nat_alloc(env);
-    Class->flags = NAT_FLAG_TOP_CLASS;
     Class->type = NAT_VALUE_CLASS;
     Class->class_name = heap_string("Class");
     Class->class = Class;
@@ -37,7 +36,6 @@ NatEnv *build_top_env() {
     env_set(env, "Class", Class);
 
     NatObject *BasicObject = nat_alloc(env);
-    BasicObject->flags = NAT_FLAG_TOP_CLASS;
     BasicObject->type = NAT_VALUE_CLASS;
     BasicObject->class_name = heap_string("BasicObject");
     BasicObject->class = Class;

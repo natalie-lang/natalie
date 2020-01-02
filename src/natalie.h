@@ -75,10 +75,8 @@ enum NatValueType {
 };
 
 #define NAT_FLAG_MAIN_OBJECT 1
-#define NAT_FLAG_TOP_CLASS 2
 
 #define nat_is_main_object(obj) (((obj)->flags & NAT_FLAG_MAIN_OBJECT) == NAT_FLAG_MAIN_OBJECT)
-#define nat_is_top_class(obj) (((obj)->flags & NAT_FLAG_TOP_CLASS) == NAT_FLAG_TOP_CLASS)
 
 struct NatObject {
     enum NatValueType type;

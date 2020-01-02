@@ -236,7 +236,7 @@ NatObject *nat_new(NatEnv *env, NatObject *class, size_t argc, NatObject **args,
         if (hashmap_get(&class->methods, "initialize")) {
             nat_call_method_on_class(env, class, class, "initialize", obj, argc, args, kwargs, block);
         }
-        if (nat_is_top_class(class)) break;
+        if (!class->superclass) break;
         class = class->superclass;
     }
     return obj;
