@@ -19,14 +19,14 @@ module Natalie
       env = nil
       loop do
         break unless (line = get_line)
-        ast = Natalie::Parser.new(line).ast
+        ast = Natalie::Parser.new(line, '(repl)').ast
         last_node = ast.pop
-        ast << s(:call, nil, 'puts', s(:call, s(:lasgn, :_, last_node), 'inspect'))
+        ast << last_node.new(:call, nil, 'puts', s(:call, s(:lasgn, :_, last_node), 'inspect'))
         out = Tempfile.create('natalie.so')
         to_clean_up << out
-        compiler = Compiler.new(ast, 'immediate')
+        compiler = Compiler.new(ast, '(repl)')
         compiler.shared = true
-        comiler.out_path = out.path
+        compiler.out_path = out.path
         compiler.compile
         lib = Fiddle.dlopen(out.path)
         env ||= Fiddle::Function.new(lib['build_top_env'], [], Fiddle::TYPE_VOIDP).call
