@@ -258,16 +258,7 @@ NatObject *EVAL(NatEnv *env) {
                 exit(1);
             }
         } else {
-            if (exception->backtrace->ary_len > 0) {
-                fprintf(stderr, "Traceback (most recent call last):\n");
-                for (int i=exception->backtrace->ary_len-1; i>0; i--) {
-                    NatObject *line = exception->backtrace->ary[i];
-                    assert(line->type == NAT_VALUE_STRING);
-                    fprintf(stderr, "        %d: from %s\n", i, line->str);
-                }
-                fprintf(stderr, "%s: ", exception->backtrace->ary[0]->str);
-            }
-            fprintf(stderr, "%s (%s)\n", exception->message, exception->class->class_name);
+            nat_print_exception_with_backtrace(env, exception);
             return NULL;
         }
     }

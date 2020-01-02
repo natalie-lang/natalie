@@ -829,3 +829,17 @@ void nat_run_at_exit_handlers(NatEnv *env) {
         nat_run_block(env, proc->block, 0, NULL, NULL, NULL);
     }
 }
+
+void nat_print_exception_with_backtrace(NatEnv *env, NatObject *exception) {
+    assert(exception->type == NAT_VALUE_EXCEPTION);
+    if (exception->backtrace->ary_len > 0) {
+        fprintf(stderr, "Traceback (most recent call last):\n");
+        for (int i=exception->backtrace->ary_len-1; i>0; i--) {
+            NatObject *line = exception->backtrace->ary[i];
+            assert(line->type == NAT_VALUE_STRING);
+            fprintf(stderr, "        %d: from %s\n", i, line->str);
+        }
+        fprintf(stderr, "%s: ", exception->backtrace->ary[0]->str);
+    }
+    fprintf(stderr, "%s (%s)\n", exception->message, exception->class->class_name);
+}
