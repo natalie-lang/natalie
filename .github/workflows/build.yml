@@ -5,22 +5,21 @@ on: push
 jobs:
   build:
     runs-on: ubuntu-18.04
-    env:
-      PATH: /home/runner/local/rubies/2.6.5/bin:/usr/local/bin:/usr/bin:/bin
     steps:
     - uses: actions/checkout@v1
-    - uses: clupprich/ruby-build-action@master
-      id: ruby
-      with:
-        ruby-version: 2.6.5
     - name: install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y -q build-essential libedit-dev libgc-dev libpcre3-dev
-        gem install bundler
+        sudo apt-get install -y -q build-essential libedit-dev libgc-dev libpcre3-dev software-properties-common
+        sudo apt-add-repository ppa:brightbox/ruby-ng
+        sudo apt-get update
+        sudo apt-get install -y -q ruby2.6 ruby2.6-dev ruby-switch
+        ruby-switch --list
+        sudo ruby-switch --set ruby2.6
+        sudo gem install bundler minitest
         bundle config set deployment 'true'
         bundle install
     - name: set environment
       run: export LC_ALL="C.UTF-8"
     - name: test
-      run: PATH="/home/runner/local/rubies/2.6.5/bin:/usr/local/bin:/usr/bin:/bin" make test
+      run: PATH="/usr/local/bin:/usr/bin:/bin" make test
