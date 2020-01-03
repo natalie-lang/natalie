@@ -31,6 +31,8 @@ typedef struct NatObject NatObject;
 typedef struct NatEnv NatEnv;
 typedef struct NatBlock NatBlock;
 typedef struct NatMethod NatMethod;
+typedef struct NatHashKeyListNode NatHashKeyListNode;
+typedef struct NatHashIter NatHashIter;
 
 struct NatEnv {
     struct hashmap data;
@@ -56,6 +58,18 @@ struct NatBlock {
 struct NatMethod {
     NatObject* (*fn)(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
     NatEnv *env; // optional
+};
+
+struct NatHashKeyListNode {
+    NatHashKeyListNode *prev;
+    NatHashKeyListNode *next;
+    NatObject *key;
+};
+
+struct NatHashIter {
+    NatHashKeyListNode *node;
+    NatObject *key;
+    NatObject *val;
 };
 
 enum NatValueType {
@@ -133,12 +147,15 @@ struct NatObject {
 
         // NAT_VALUE_PROC
         struct {
-          NatBlock *block;
-          int lambda;
+            NatBlock *block;
+            int lambda;
         };
 
         // NAT_VALUE_HASHMAP
-        struct hashmap hashmap;
+        struct {
+            NatHashKeyListNode *key_list; // a double-ended queue
+            struct hashmap hashmap;
+        };
     };
 };
 
@@ -227,12 +244,17 @@ void nat_array_push(NatObject *array, NatObject *obj);
 void nat_array_push_splat(NatEnv *env, NatObject *array, NatObject *obj);
 void nat_array_expand_with_nil(NatEnv *env, NatObject *array, size_t size);
 
+void nat_hash_key_list_append(NatObject *hash, NatObject *key);
+void nat_hash_key_list_remove_node(NatObject *hash, NatHashKeyListNode *node);
+NatHashIter nat_hash_iter(NatEnv *env, NatObject *hash);
+NatHashIter nat_hash_iter_prev(NatEnv *env, NatObject *hash, NatHashIter iter);
+NatHashIter nat_hash_iter_next(NatEnv *env, NatObject *hash, NatHashIter iter);
 size_t nat_hashmap_hash(const void *obj);
 int nat_hashmap_compare(const void *a, const void *b);
 NatObject *nat_hash(NatEnv *env);
-NatObject *nat_hash_get(NatEnv *env, NatObject *map, NatObject *key);
-void nat_hash_put(NatEnv *env, NatObject *map, NatObject *key, NatObject *val);
-void nat_hash_delete(NatEnv *env, NatObject *map, NatObject *key);
+NatObject *nat_hash_get(NatEnv *env, NatObject *hash, NatObject *key);
+void nat_hash_put(NatEnv *env, NatObject *hash, NatObject *key, NatObject *val);
+NatObject* nat_hash_delete(NatEnv *env, NatObject *hash, NatObject *key);
 
 NatObject *nat_dup(NatEnv *env, NatObject *obj);
 NatObject *nat_not(NatEnv *env, NatObject *val);

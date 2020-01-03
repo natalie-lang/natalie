@@ -366,29 +366,144 @@ int nat_hashmap_compare(const void *a, const void *b) {
     return a_hash->integer - b_hash->integer;
 }
 
+void nat_hash_key_list_append(NatObject *hash, NatObject *key) {
+    if (hash->key_list) {
+        NatHashKeyListNode *first = hash->key_list;
+        NatHashKeyListNode *last = hash->key_list->prev;
+        NatHashKeyListNode *new_last = malloc(sizeof(NatHashKeyListNode));
+        new_last->key = key;
+        // <first> ... <last> <new_last> -|
+        // ^______________________________|
+        new_last->prev = last;
+        new_last->next = first;
+        first->prev = new_last;
+        last->next = new_last;
+    } else {
+        NatHashKeyListNode *node = malloc(sizeof(NatHashKeyListNode));
+        node->key = key;
+        node->prev = node;
+        node->next = node;
+        hash->key_list = node;
+    }
+}
+
+void nat_hash_key_list_remove_node(NatObject *hash, NatHashKeyListNode *node) {
+    NatHashKeyListNode *prev = node->prev;
+    NatHashKeyListNode *next = node->next;
+    // <prev> <-> <node> <-> <next>
+    if (node == next) {
+        // <node> -|
+        // ^_______|
+        hash->key_list = NULL;
+        return;
+    } else if (hash->key_list == node) {
+        // starting point is the node to be removed, so shift them forward by one
+        hash->key_list = node->next;
+    }
+    // remove the node
+    prev->next = next;
+    next->prev = prev;
+}
+
+NatHashIter nat_hash_iter(NatEnv *env, NatObject *hash) {
+    if (hash->key_list) {
+        NatHashKeyListNode *node = hash->key_list;
+        NatObject *key = node->key;
+        NatObject *val;
+        do {
+            val = nat_hash_get(env, hash, key);
+            if (!val) {
+                nat_hash_key_list_remove_node(hash, node);
+                node = node->next;
+                key = node->key;
+            }
+        } while (!val);
+        return (NatHashIter){node, key, val};
+    } else {
+        return (NatHashIter){NULL, NULL, NULL};
+    }
+}
+
+NatHashIter nat_hash_iter_prev(NatEnv *env, NatObject *hash, NatHashIter iter) {
+    if (iter.node->prev == NULL || iter.node == hash->key_list) {
+        // finished
+        return (NatHashIter){NULL, NULL, NULL};
+    }
+    NatHashKeyListNode *node = iter.node->prev;
+    NatObject *key = node->key;
+    NatObject *val;
+    do {
+        val = nat_hash_get(env, hash, key);
+        if (!val) {
+            nat_hash_key_list_remove_node(hash, node);
+            node = node->prev;
+            key = node->key;
+        }
+        if (node == hash->key_list->prev) {
+            return (NatHashIter){NULL, NULL, NULL};
+        }
+    } while (!val);
+    return (NatHashIter){node, key, val};
+}
+
+NatHashIter nat_hash_iter_next(NatEnv *env, NatObject *hash, NatHashIter iter) {
+    if (iter.node->next == NULL || iter.node->next == hash->key_list) {
+        // finished
+        return (NatHashIter){NULL, NULL, NULL};
+    }
+    NatHashKeyListNode *node = iter.node->next;
+    NatObject *key = node->key;
+    NatObject *val;
+    do {
+        val = nat_hash_get(env, hash, key);
+        if (!val) {
+            nat_hash_key_list_remove_node(hash, node);
+            node = node->next;
+            key = node->key;
+        }
+        if (node == hash->key_list) {
+            return (NatHashIter){NULL, NULL, NULL};
+        }
+    } while (!val);
+    return (NatHashIter){node, key, val};
+}
+
 NatObject *nat_hash(NatEnv *env) {
     NatObject *obj = nat_new(env, env_get(env, "Hash"), 0, NULL, NULL, NULL);
     obj->type = NAT_VALUE_HASH;
+    obj->key_list = NULL;
     hashmap_init(&obj->hashmap, nat_hashmap_hash, nat_hashmap_compare, 256);
     return obj;
 }
 
-NatObject *nat_hash_get(NatEnv *env, NatObject *map, NatObject *key) {
-    assert(map->type = NAT_VALUE_HASH);
-    return hashmap_get(&map->hashmap, key);
+NatObject *nat_hash_get(NatEnv *env, NatObject *hash, NatObject *key) {
+    assert(hash->type = NAT_VALUE_HASH);
+    if (!key->env) key->env = env;
+    return hashmap_get(&hash->hashmap, key);
 }
 
-void nat_hash_put(NatEnv *env, NatObject *map, NatObject *key, NatObject *val) {
-    assert(map->type = NAT_VALUE_HASH);
+void nat_hash_put(NatEnv *env, NatObject *hash, NatObject *key, NatObject *val) {
+    assert(hash->type = NAT_VALUE_HASH);
     // nat_hashmap_hash and nat_hashmap_compare use key->env because we cannot pass it in as an argument
     if (!key->env) key->env = env;
-    hashmap_remove(&map->hashmap, key);
-    hashmap_put(&map->hashmap, key, val);
+    if (!hashmap_remove(&hash->hashmap, key)) {
+        nat_hash_key_list_append(hash, key);
+    }
+    hashmap_put(&hash->hashmap, key, val);
 }
 
-void nat_hash_delete(NatEnv *env, NatObject *map, NatObject *key) {
-    assert(map->type = NAT_VALUE_HASH);
-    hashmap_remove(&map->hashmap, key);
+NatObject* nat_hash_delete(NatEnv *env, NatObject *hash, NatObject *key) {
+    assert(hash->type = NAT_VALUE_HASH);
+    if (!key->env) key->env = env;
+    NatObject *val = hashmap_remove(&hash->hashmap, key);
+    if (hash->hashmap.num_entries == 0) {
+        hash->key_list->prev = NULL;
+        hash->key_list->next = NULL;
+        hash->key_list = NULL;
+    }
+    return val;
+    // We don't remove the key from the key_list here because finding it would be slow.
+    // Instead, we remove the key during iteration.
 }
 
 #define INT_64_MAX_CHAR_LEN 21 // 1 for sign, 19 for max digits, and 1 for null terminator

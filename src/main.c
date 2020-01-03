@@ -195,12 +195,15 @@ NatEnv *build_top_env() {
 
     NatObject *Hash = nat_subclass(env, Object, "Hash");
     nat_define_method(Hash, "inspect", Hash_inspect);
-    // nat_define_method(Hash, "[]", Hash_ref);
-    // nat_define_method(Hash, "[]=", Hash_refeq);
-    // nat_define_method(Hash, "size", Hash_size);
-    // nat_define_method(Hash, "==", Hash_eqeq);
-    // nat_define_method(Hash, "===", Hash_eqeq);
-    // nat_define_method(Hash, "each", Hash_each);
+    nat_define_method(Hash, "[]", Hash_ref);
+    nat_define_method(Hash, "[]=", Hash_refeq);
+    nat_define_method(Hash, "delete", Hash_delete);
+    nat_define_method(Hash, "size", Hash_size);
+    nat_define_method(Hash, "==", Hash_eqeq);
+    nat_define_method(Hash, "===", Hash_eqeq);
+    nat_define_method(Hash, "each", Hash_each);
+    nat_define_method(Hash, "keys", Hash_keys);
+    nat_define_method(Hash, "values", Hash_values);
     env_set(env, "Hash", Hash);
 
     NatObject *Proc = nat_subclass(env, Object, "Proc");
