@@ -257,6 +257,8 @@ describe 'Parser' do
       Parser.parse("foo(:a, :b)").should == s(:block, s(:call, nil, :foo, s(:lit, :a), s(:lit, :b)))
       Parser.parse("foo(a, *b, c)").should == s(:block, s(:call, nil, :foo, s(:call, nil, :a), s(:splat, s(:call, nil, :b)), s(:call, nil, :c)))
       Parser.parse("b=1; foo(a, *b, c)").should == s(:block, s(:lasgn, :b, s(:lit, 1)), s(:call, nil, :foo, s(:call, nil, :a), s(:splat, s(:lvar, :b)), s(:call, nil, :c)))
+      Parser.parse("foo.()").should == s(:block, s(:call, s(:call, nil, :foo), :call))
+      Parser.parse("foo.(1, 2)").should == s(:block, s(:call, s(:call, nil, :foo), :call, s(:lit, 1), s(:lit, 2)))
       if (RUBY_ENGINE == 'natalie')
         -> { Parser.parse("foo(") }.should raise_error(SyntaxError, "(string)#1: syntax error, unexpected end-of-input (expected: 'expression')")
       else

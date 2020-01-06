@@ -1241,6 +1241,22 @@ Node *Parser::parse_op_assign_expression(Env *env, Node *left, LocalsVectorPtr l
     }
 }
 
+Node *Parser::parse_proc_call_expression(Env *env, Node *left, LocalsVectorPtr locals) {
+    auto token = current_token();
+    advance();
+    advance();
+    auto call_node = new CallNode {
+        token,
+        left,
+        GC_STRDUP("call"),
+    };
+    if (!current_token().is_rparen())
+        parse_call_args(env, call_node, locals);
+    expect(env, Token::Type::RParen, "proc call right paren");
+    advance();
+    return call_node;
+}
+
 Node *Parser::parse_range_expression(Env *env, Node *left, LocalsVectorPtr locals) {
     auto token = current_token();
     advance();
@@ -1506,7 +1522,11 @@ Parser::parse_left_fn Parser::left_denotation(Token token, Node *left) {
     case Type::SafeNavigation:
         return &Parser::parse_safe_send_expression;
     case Type::Dot:
-        return &Parser::parse_send_expression;
+        if (peek_token().is_lparen()) {
+            return &Parser::parse_proc_call_expression;
+        } else {
+            return &Parser::parse_send_expression;
+        }
     case Type::TernaryQuestion:
         return &Parser::parse_ternary_expression;
     default:

@@ -211,10 +211,11 @@ private:
     void parse_call_args(Env *, NodeWithArgs *, LocalsVectorPtr);
     Node *parse_constant_resolution_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_infix_expression(Env *, Node *, LocalsVectorPtr);
-    Node *parse_modifier_expression(Env *, Node *, LocalsVectorPtr);
+    Node *parse_proc_call_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_iter_expression(Env *, Node *, LocalsVectorPtr);
     Vector<Node *> *parse_iter_args(Env *, LocalsVectorPtr);
     Node *parse_logical_expression(Env *, Node *, LocalsVectorPtr);
+    Node *parse_modifier_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_not_match_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_op_assign_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_range_expression(Env *, Node *, LocalsVectorPtr);
