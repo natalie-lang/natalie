@@ -292,6 +292,7 @@ describe 'Parser' do
     it 'parses ternary expressions' do
       Parser.parse("1 ? 2 : 3").should == s(:block, s(:if, s(:lit, 1), s(:lit, 2), s(:lit, 3)))
       Parser.parse("foo ?\nbar + baz\n :\n buz / 2").should == s(:block, s(:if, s(:call, nil, :foo), s(:call, s(:call, nil, :bar), :+, s(:call, nil, :baz)), s(:call, s(:call, nil, :buz), :/, s(:lit, 2))))
+      Parser.parse("1 ? 2 : map { |n| n }").should == s(:block, s(:if, s(:lit, 1), s(:lit, 2), s(:iter, s(:call, nil, :map), s(:args, :n), s(:lvar, :n))))
     end
 
     it 'parses if/elsif/else' do

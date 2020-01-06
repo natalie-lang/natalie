@@ -29,9 +29,9 @@ struct Parser : public gc {
         CALLARGS, // foo a, b
         COMPOSITION, // and/or
         ASSIGNMENT, // = += -= *= **= /= %= |= &= ^= >>= <<= ||= &&=
-        ITER, // do/end {}
         RANGE, // ..
         TERNARY, // ? :
+        ITER, // do/end {}
         LOGICALNOT, // not
         LOGICALOR, // ||
         LOGICALAND, // &&

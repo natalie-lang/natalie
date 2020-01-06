@@ -1044,7 +1044,7 @@ Node *Parser::parse_iter_expression(Env *env, Node *left, LocalsVectorPtr locals
         args = static_cast<StabbyProcNode *>(left)->args();
         break;
     default:
-        raise_unexpected(env, "call");
+        raise_unexpected(env, "call for left side of iter");
     }
     auto end_token_type = curly_brace ? Token::Type::RCurlyBrace : Token::Type::EndKeyword;
     auto body = parse_body(env, locals, LOWEST, end_token_type);
