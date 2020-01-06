@@ -48,6 +48,7 @@ struct Node : public gc {
         NilSexp,
         Not,
         OpAssign,
+        OpAssignAccessor,
         OpAssignAnd,
         OpAssignOr,
         Range,
@@ -95,6 +96,8 @@ struct NodeWithArgs : Node {
     void add_arg(Node *arg) {
         m_args.push(arg);
     }
+
+    Vector<Node *> *args() { return &m_args; }
 
 protected:
     Vector<Node *> m_args {};
@@ -332,6 +335,8 @@ struct CallNode : NodeWithArgs {
     virtual Value *to_ruby(Env *) override;
 
     virtual bool is_callable() override { return true; }
+
+    Node *receiver() { return m_receiver; }
 
     const char *message() { return m_message; }
     void set_message(const char *message) { m_message = message; }
@@ -864,6 +869,30 @@ struct OpAssignNode : Node {
 protected:
     const char *m_op { nullptr };
     IdentifierNode *m_name { nullptr };
+    Node *m_value { nullptr };
+};
+
+struct OpAssignAccessorNode : NodeWithArgs {
+    OpAssignAccessorNode(Token token, const char *op, Node *receiver, const char *message, Node *value)
+        : NodeWithArgs { token }
+        , m_op { op }
+        , m_receiver { receiver }
+        , m_message { message }
+        , m_value { value } {
+        assert(m_op);
+        assert(m_receiver);
+        assert(m_message);
+        assert(m_value);
+    }
+
+    virtual Value *to_ruby(Env *) override;
+
+    virtual Type type() override { return Type::OpAssignAccessor; }
+
+private:
+    const char *m_op { nullptr };
+    Node *m_receiver { nullptr };
+    const char *m_message { nullptr };
     Node *m_value { nullptr };
 };
 

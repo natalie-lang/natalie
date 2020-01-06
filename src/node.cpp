@@ -590,6 +590,45 @@ Value *OpAssignNode::to_ruby(Env *env) {
     return sexp;
 }
 
+Value *OpAssignAccessorNode::to_ruby(Env *env) {
+    if (strcmp(m_message, "[]=") == 0) {
+        auto arg_list = new SexpValue {
+            env,
+            this,
+            {
+                SymbolValue::intern(env, "arglist"),
+            }
+        };
+        for (auto arg : m_args) {
+            arg_list->push(arg->to_ruby(env));
+        }
+        return new SexpValue {
+            env,
+            this,
+            {
+                SymbolValue::intern(env, "op_asgn1"),
+                m_receiver->to_ruby(env),
+                arg_list,
+                SymbolValue::intern(env, m_op),
+                m_value->to_ruby(env),
+            }
+        };
+    } else {
+        assert(m_args.is_empty());
+        return new SexpValue {
+            env,
+            this,
+            {
+                SymbolValue::intern(env, "op_asgn2"),
+                m_receiver->to_ruby(env),
+                SymbolValue::intern(env, m_message),
+                SymbolValue::intern(env, m_op),
+                m_value->to_ruby(env),
+            }
+        };
+    }
+}
+
 Value *OpAssignAndNode::to_ruby(Env *env) {
     return new SexpValue {
         env,

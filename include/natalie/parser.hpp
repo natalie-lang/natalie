@@ -220,6 +220,7 @@ private:
     Node *parse_modifier_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_not_match_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_op_assign_expression(Env *, Node *, LocalsVectorPtr);
+    Node *parse_op_attr_assign_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_range_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_ref_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_safe_send_expression(Env *, Node *, LocalsVectorPtr);

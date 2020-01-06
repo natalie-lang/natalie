@@ -1210,6 +1210,8 @@ Node *Parser::parse_not_match_expression(Env *env, Node *left, LocalsVectorPtr l
 }
 
 Node *Parser::parse_op_assign_expression(Env *env, Node *left, LocalsVectorPtr locals) {
+    if (left->type() == Node::Type::Call)
+        return parse_op_attr_assign_expression(env, left, locals);
     if (left->type() != Node::Type::Identifier)
         raise_unexpected(env, "identifier");
     auto left_identifier = static_cast<IdentifierNode *>(left);
@@ -1239,6 +1241,22 @@ Node *Parser::parse_op_assign_expression(Env *env, Node *left, LocalsVectorPtr l
     default:
         NAT_UNREACHABLE();
     }
+}
+
+Node *Parser::parse_op_attr_assign_expression(Env *env, Node *left, LocalsVectorPtr locals) {
+    if (left->type() != Node::Type::Call)
+        raise_unexpected(env, "call");
+    auto left_call = static_cast<CallNode *>(left);
+    auto token = current_token();
+    advance();
+    auto op = std::string(token.type_value(env));
+    op.resize(op.size() - 1);
+    auto message = std::string(left_call->message()) + '=';
+    auto node = new OpAssignAccessorNode { token, GC_STRDUP(op.c_str()), left_call->receiver(), GC_STRDUP(message.c_str()), parse_expression(env, OPASSIGNMENT, locals) };
+    for (auto arg : *left_call->args()) {
+        node->add_arg(arg);
+    }
+    return node;
 }
 
 Node *Parser::parse_proc_call_expression(Env *env, Node *left, LocalsVectorPtr locals) {
