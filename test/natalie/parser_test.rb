@@ -86,6 +86,7 @@ describe 'Parser' do
       Parser.parse('x &= 1').should == s(:block, s(:lasgn, :x, s(:call, s(:lvar, :x), :&, s(:lit, 1))))
       Parser.parse('x >>= 1').should == s(:block, s(:lasgn, :x, s(:call, s(:lvar, :x), :>>, s(:lit, 1))))
       Parser.parse('x <<= 1').should == s(:block, s(:lasgn, :x, s(:call, s(:lvar, :x), :<<, s(:lit, 1))))
+      Parser.parse('n = x += 1').should == s(:block, s(:lasgn, :n, s(:lasgn, :x, s(:call, s(:lvar, :x), :+, s(:lit, 1)))))
       Parser.parse('foo&.bar').should == s(:block, s(:safe_call, s(:call, nil, :foo), :bar))
       Parser.parse('foo&.bar 1').should == s(:block, s(:safe_call, s(:call, nil, :foo), :bar, s(:lit, 1)))
       Parser.parse('foo&.bar x').should == s(:block, s(:safe_call, s(:call, nil, :foo), :bar, s(:call, nil, :x)))

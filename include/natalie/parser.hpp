@@ -28,7 +28,8 @@ struct Parser : public gc {
         SPLAT, // *args
         CALLARGS, // foo a, b
         COMPOSITION, // and/or
-        ASSIGNMENT, // = += -= *= **= /= %= |= &= ^= >>= <<= ||= &&=
+        ASSIGNMENT, // =
+        OPASSIGNMENT, // += -= *= **= /= %= |= &= ^= >>= <<= ||= &&=
         RANGE, // ..
         TERNARY, // ? :
         ITER, // do/end {}
@@ -65,12 +66,13 @@ private:
             if (current_token().has_sign())
                 return SUM;
             break;
+        case Token::Type::Equal:
+            return ASSIGNMENT;
         case Token::Type::AndEqual:
         case Token::Type::BitwiseAndEqual:
         case Token::Type::BitwiseOrEqual:
         case Token::Type::BitwiseXorEqual:
         case Token::Type::DivideEqual:
-        case Token::Type::Equal:
         case Token::Type::ExponentEqual:
         case Token::Type::LeftShiftEqual:
         case Token::Type::MinusEqual:
@@ -79,7 +81,7 @@ private:
         case Token::Type::OrEqual:
         case Token::Type::PlusEqual:
         case Token::Type::RightShiftEqual:
-            return ASSIGNMENT;
+            return OPASSIGNMENT;
         case Token::Type::BitwiseAnd:
             return BITWISEAND;
         case Token::Type::BitwiseOr:
