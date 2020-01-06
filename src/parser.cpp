@@ -15,7 +15,7 @@ Node *Parser::parse_expression(Env *env, Parser::Precedence precedence, LocalsVe
 
     Node *left = (this->*null_fn)(env, locals);
 
-    while (current_token().is_valid() && get_precedence(current_token(), left) > precedence) {
+    while (current_token().is_valid() && higher_precedence(current_token(), left, precedence)) {
 #ifdef NAT_DEBUG_PARSER
         printf("while loop: current token = %s\n", current_token().to_ruby(env)->inspect_str(env));
 #endif

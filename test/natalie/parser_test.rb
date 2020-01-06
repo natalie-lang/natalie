@@ -165,6 +165,8 @@ describe 'Parser' do
       Parser.parse("_, a, *b = [1, 2, 3, 4]").should == s(:block, s(:masgn, s(:array, s(:lasgn, :_), s(:lasgn, :a), s(:splat, s(:lasgn, :b))), s(:to_ary, s(:array, s(:lit, 1), s(:lit, 2), s(:lit, 3), s(:lit, 4)))))
       Parser.parse("(_, a, *b) = [1, 2, 3, 4]").should == s(:block, s(:masgn, s(:array, s(:lasgn, :_), s(:lasgn, :a), s(:splat, s(:lasgn, :b))), s(:to_ary, s(:array, s(:lit, 1), s(:lit, 2), s(:lit, 3), s(:lit, 4)))))
       Parser.parse("x = foo.bar").should == s(:block, s(:lasgn, :x, s(:call, s(:call, nil, :foo), :bar)))
+      Parser.parse("x = y = 2").should == s(:block, s(:lasgn, :x, s(:lasgn, :y, s(:lit, 2))))
+      Parser.parse("x = y = z = 2").should == s(:block, s(:lasgn, :x, s(:lasgn, :y, s(:lasgn, :z, s(:lit, 2)))))
     end
 
     it 'parses attr assignment' do

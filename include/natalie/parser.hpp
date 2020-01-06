@@ -56,6 +56,14 @@ struct Parser : public gc {
     Node *tree(Env *);
 
 private:
+    bool higher_precedence(Token token, Node *left, Precedence current_precedence) {
+        auto next_precedence = get_precedence(token, left);
+        // trick to make chained assignment right-to-left
+        if (current_precedence == ASSIGNMENT && next_precedence == ASSIGNMENT)
+            return true;
+        return next_precedence > current_precedence;
+    }
+
     Precedence get_precedence(Token token, Node *left = nullptr) {
         switch (token.type()) {
         case Token::Type::Plus:
