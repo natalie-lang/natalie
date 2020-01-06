@@ -507,9 +507,13 @@ Value *ModuleNode::to_ruby(Env *env) {
 Value *MultipleAssignmentNode::to_ruby(Env *env) {
     auto sexp = new SexpValue { env, this, { SymbolValue::intern(env, "masgn") } };
     for (auto node : m_nodes) {
-        if (node->type() == Node::Type::Arg) {
-            sexp->push(static_cast<ArgNode *>(node)->to_ruby(env));
-        } else {
+        switch (node->type()) {
+        case Node::Type::Arg:
+        case Node::Type::MultipleAssignment:
+            sexp->push(node->to_ruby(env));
+            break;
+        default:
+            printf("node = %s\n", node->to_ruby(env)->inspect_str(env));
             NAT_NOT_YET_IMPLEMENTED(); // maybe not needed?
         }
     }
