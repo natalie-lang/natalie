@@ -32,7 +32,8 @@ typedef struct NatEnv NatEnv;
 typedef struct NatBlock NatBlock;
 typedef struct NatMethod NatMethod;
 typedef struct NatHashKeyListNode NatHashKeyListNode;
-typedef struct NatHashIter NatHashIter;
+typedef struct NatHashKeyListNode NatHashIter;
+typedef struct NatHashValueContainer NatHashValueContainer;
 
 struct NatEnv {
     struct hashmap data;
@@ -64,11 +65,12 @@ struct NatHashKeyListNode {
     NatHashKeyListNode *prev;
     NatHashKeyListNode *next;
     NatObject *key;
+    NatObject *val;
+    int removed;
 };
 
-struct NatHashIter {
-    NatHashKeyListNode *node;
-    NatObject *key;
+struct NatHashValueContainer {
+    NatHashKeyListNode *key_list_node;
     NatObject *val;
 };
 
@@ -244,11 +246,11 @@ void nat_array_push(NatObject *array, NatObject *obj);
 void nat_array_push_splat(NatEnv *env, NatObject *array, NatObject *obj);
 void nat_array_expand_with_nil(NatEnv *env, NatObject *array, size_t size);
 
-void nat_hash_key_list_append(NatObject *hash, NatObject *key);
+NatHashKeyListNode *nat_hash_key_list_append(NatObject *hash, NatObject *key, NatObject *val);
 void nat_hash_key_list_remove_node(NatObject *hash, NatHashKeyListNode *node);
-NatHashIter nat_hash_iter(NatEnv *env, NatObject *hash);
-NatHashIter nat_hash_iter_prev(NatEnv *env, NatObject *hash, NatHashIter iter);
-NatHashIter nat_hash_iter_next(NatEnv *env, NatObject *hash, NatHashIter iter);
+NatHashIter *nat_hash_iter(NatEnv *env, NatObject *hash);
+NatHashIter *nat_hash_iter_prev(NatEnv *env, NatObject *hash, NatHashIter *iter);
+NatHashIter *nat_hash_iter_next(NatEnv *env, NatObject *hash, NatHashIter *iter);
 size_t nat_hashmap_hash(const void *obj);
 int nat_hashmap_compare(const void *a, const void *b);
 NatObject *nat_hash(NatEnv *env);
