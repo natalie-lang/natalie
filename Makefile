@@ -10,7 +10,7 @@ OBJECTS := $(patsubst $(SRC)/%.c, $(OBJ)/%.o, $(SOURCES))
 build: $(OBJECTS) $(OBJ)/language/exceptions.o
 
 $(OBJ)/%.o: $(SRC)/%.c
-	$(CC) -I$(SRC) -c $< -o $@
+	$(CC) -g -I$(SRC) -c $< -o $@
 
 $(OBJ)/language/exceptions.o: $(LIB)/language/exceptions.nat
 	bin/natalie --compile-obj $@ $<
