@@ -251,6 +251,7 @@ NatObject *EVAL(NatEnv *env) {
         return env_get(env, "nil"); // just in case there's no return value
     } else {
         nat_handle_top_level_exception(env, run_exit_handlers);
+        return env_get(env, "nil");
     }
 }
 
