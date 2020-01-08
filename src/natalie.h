@@ -265,7 +265,7 @@ NatObject *nat_not(NatEnv *env, NatObject *val);
 void nat_alias(NatEnv *env, NatObject *self, char *new_name, char *old_name);
 
 void nat_run_at_exit_handlers(NatEnv *env);
-
 void nat_print_exception_with_backtrace(NatEnv *env, NatObject *exception);
+void nat_handle_top_level_exception(NatEnv *env, int run_exit_handlers);
 
 #endif

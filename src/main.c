@@ -243,27 +243,14 @@ NatEnv *build_top_env() {
 NatObject *EVAL(NatEnv *env) {
     NatObject *self = env_get(env, "self");
     UNUSED(self); // maybe unused
+    int run_exit_handlers = TRUE;
     if (!NAT_RESCUE(env)) {
         /*BODY*/
+        run_exit_handlers = FALSE;
         nat_run_at_exit_handlers(env);
         return env_get(env, "nil"); // just in case there's no return value
     } else {
-        NatObject *exception = env->exception;
-        assert(exception);
-        assert(exception->type == NAT_VALUE_EXCEPTION);
-        env->jump_buf = NULL;
-        if (nat_is_a(env, exception, env_get(env, "SystemExit"))) {
-            NatObject *status_obj = ivar_get(env, exception, "@status");
-            nat_run_at_exit_handlers(env);
-            if (status_obj->type == NAT_VALUE_INTEGER && status_obj->integer >= 0 && status_obj->integer <= 255) {
-                exit(status_obj->integer);
-            } else {
-                exit(1);
-            }
-        } else {
-            nat_print_exception_with_backtrace(env, exception);
-            return NULL;
-        }
+        nat_handle_top_level_exception(env, run_exit_handlers);
     }
 }
 

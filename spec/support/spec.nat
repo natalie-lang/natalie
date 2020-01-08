@@ -244,7 +244,7 @@ def run_specs
     puts @failures.size.to_s + ' spec(s) failed.'
     puts @errors.size.to_s + ' spec(s) errored.'
     puts @skipped.size.to_s + ' spec(s) skipped.' if @skipped.any?
-    #exit 1 # FIXME, this causes at_exit to run, which causes a segfault
+    exit 1
   else
     puts
     puts

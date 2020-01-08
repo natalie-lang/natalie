@@ -964,3 +964,21 @@ void nat_print_exception_with_backtrace(NatEnv *env, NatObject *exception) {
     }
     fprintf(stderr, "%s (%s)\n", exception->message, exception->class->class_name);
 }
+
+void nat_handle_top_level_exception(NatEnv *env, int run_exit_handlers) {
+    NatObject *exception = env->exception;
+    assert(exception);
+    assert(exception->type == NAT_VALUE_EXCEPTION);
+    env->jump_buf = NULL;
+    if (nat_is_a(env, exception, env_get(env, "SystemExit"))) {
+        NatObject *status_obj = ivar_get(env, exception, "@status");
+        if (run_exit_handlers) nat_run_at_exit_handlers(env);
+        if (status_obj->type == NAT_VALUE_INTEGER && status_obj->integer >= 0 && status_obj->integer <= 255) {
+            exit(status_obj->integer);
+        } else {
+            exit(1);
+        }
+    } else {
+        nat_print_exception_with_backtrace(env, exception);
+    }
+}
