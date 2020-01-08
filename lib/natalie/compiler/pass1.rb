@@ -256,18 +256,33 @@ module Natalie
       end
       
       def rewrite_masgn(exp)
-        return exp if %i[args masgn block_args].include?(context.first)
-        (_, array, val) = exp
-        raise 'expected s(:array, ...) for masgn target' if array.sexp_type != :array
-        vars = array[1..-1].map do |var|
-          if %i[lasgn iasgn].include?(var.sexp_type)
-            s(:masgn_str, var[1])
+        #return exp if %i[args masgn block_args array].include?(context.first)
+        (_, names, vals) = exp
+        if names.is_a?(Symbol) || vals.is_a?(Symbol)
+          # TODO: not sure what this is but it comes from block_spec.nat
+          # s(:masgn, :a, :b)
+          # s(:masgn, :b, s(:nil))
+          # s(:masgn, s(:nil), :d)
+          return s(:nil)
+        end
+        names = names[1..-1].map do |e|
+          case e.sexp_type
+          when :lasgn, :iasgn
+            s(:nat_symbol, :env, s(:s, e.last))
           else
-            raise 'expected iasgn or lasgn'
+            e
           end
         end
-        raise 'expected s(:to_ary, ...) for masgn source' if val.sexp_type != :to_ary
-        exp.new(:nat_multi_assign, s(:masgn_array, *vars), rewrite(val[1]))
+        names = exp.new(:array, *names)
+        context.push(:nat_masgn)
+        names = rewrite(names)
+        context.pop
+        if vals
+          raise "unknown masgn val type: #{vals.sexp_type}" unless vals.sexp_type == :to_ary
+          exp.new(:nat_multi_assign, :env, :self, names, vals.last)
+        else
+          names
+        end
       end
 
       def rewrite_module(exp)

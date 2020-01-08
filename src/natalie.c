@@ -986,3 +986,44 @@ void nat_handle_top_level_exception(NatEnv *env, int run_exit_handlers) {
         nat_print_exception_with_backtrace(env, exception);
     }
 }
+
+NatObject *nat_multi_assign(NatEnv *env, NatObject *self, NatObject *names, NatObject *vals) {
+    assert(names->type == NAT_VALUE_ARRAY);
+    if (nat_respond_to(vals, "to_ary")) {
+        NatObject *vals_array = nat_send(env, vals, "to_ary", 0, NULL, NULL);
+        assert(vals_array->type == NAT_VALUE_ARRAY);
+        for (size_t i=0; i<names->ary_len; i++) {
+            NatObject *name = names->ary[i];
+            if (name->type == NAT_VALUE_SYMBOL) {
+                if (name->symbol[0] == '@') {
+                    ivar_set(env, self, name->symbol, i < vals_array->ary_len ? vals_array->ary[i] : env_get(env, "nil"));
+                } else {
+                    env_set(env, name->symbol, i < vals_array->ary_len ? vals_array->ary[i] : env_get(env, "nil"));
+                }
+            } else if (name->type == NAT_VALUE_ARRAY) {
+                nat_multi_assign(env, self, name, i < vals_array->ary_len ? vals_array->ary[i] : env_get(env, "nil"));
+            } else {
+                printf("unknown multi assign kind: %d\n", name->type);
+                abort();
+            }
+        }
+    } else {
+        for (size_t i=0; i<names->ary_len; i++) {
+            NatObject *name = names->ary[i];
+            NatObject *value = (i == 0) ? vals : env_get(env, "nil");
+            if (name->type == NAT_VALUE_SYMBOL) {
+                if (name->symbol[0] == '@') {
+                    ivar_set(env, self, name->symbol, value);
+                } else {
+                    env_set(env, name->symbol, value);
+                }
+            } else if (name->type == NAT_VALUE_ARRAY) {
+                nat_multi_assign(env, self, name, value);
+            } else {
+                printf("unknown multi assign kind: %d\n", name->type);
+                abort();
+            }
+        }
+    }
+    return vals;
+}

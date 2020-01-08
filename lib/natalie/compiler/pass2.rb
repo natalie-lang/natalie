@@ -344,36 +344,6 @@ module Natalie
         result_name
       end
 
-      def process_nat_multi_assign(exp)
-        (fn, (_, *names), values) = exp
-        values = p(values)
-        decl "if (nat_respond_to(#{values}, \"to_ary\")) {"
-        decl "NatObject *#{values}_array = nat_send(env, #{values}, \"to_ary\", 0, NULL, NULL);"
-        decl "assert(#{values}_array->type == NAT_VALUE_ARRAY);"
-        names.each_with_index do |name, index|
-          raise "expected masgn_str for name, but got #{name}" unless name.sexp_type == :masgn_str
-          name = name.last.to_s
-          if name.start_with?('@')
-            decl "ivar_set(env, self, #{name.inspect}, #{values}_array->ary[#{index}]);"
-          else
-            decl "env_set(env, #{name.inspect}, #{values}_array->ary[#{index}]);"
-          end
-        end
-        decl "} else {"
-        names.each_with_index do |name, index|
-          raise "expected masgn_str for name, but got #{name}" unless name.sexp_type == :masgn_str
-          name = name.last.to_s
-          value = index == 0 ? values : 'env_get(env, "nil")'
-          if name.start_with?('@')
-            decl "ivar_set(env, self, #{name.inspect}, #{value});"
-          else
-            decl "env_set(env, #{name.inspect}, #{value});"
-          end
-        end
-        decl '}'
-        values
-      end
-
       def process_nat_rescue(exp)
         (_, top, bottom) = exp
         c = []

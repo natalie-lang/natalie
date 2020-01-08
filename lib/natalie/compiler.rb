@@ -66,6 +66,10 @@ module Natalie
       p1 = Pass1.new
       p1.var_prefix = var_prefix
       r1 = p1.rewrite(ast)
+      if ENV['DEBUG_PASS1']
+        pp r1
+        exit
+      end
       p2 = Pass2.new
       p2.var_prefix = var_prefix
       p2.var_num = p1.var_num
