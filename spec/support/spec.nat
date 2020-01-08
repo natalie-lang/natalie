@@ -184,6 +184,7 @@ end
 
 def run_specs
   @failures = []
+  @errors = []
   @skipped = []
 
   before_all_done = []
@@ -208,6 +209,9 @@ def run_specs
       rescue SpecFailedException => e
         print 'F'
         @failures << [context, test, e.message]
+      rescue => e
+        print 'E'
+        @errors << [context, test, e.message]
       else
         print '.'
       end
@@ -217,11 +221,11 @@ def run_specs
     end
   end
 
-  if @failures.any?
+  if @failures.any? || @errors.any?
     puts
     puts
     puts 'Failed specs:'
-    @failures.each do |failure|
+    (@failures + @errors).each do |failure|
       (context, test, message) = failure
       indent = 0
       context.each do |con|
@@ -238,8 +242,9 @@ def run_specs
     puts
     puts (@specs.size - @failures.size - @skipped.size).to_s + ' spec(s) passed.'
     puts @failures.size.to_s + ' spec(s) failed.'
+    puts @errors.size.to_s + ' spec(s) errored.'
     puts @skipped.size.to_s + ' spec(s) skipped.' if @skipped.any?
-    exit 1
+    #exit 1 # FIXME, this causes at_exit to run, which causes a segfault
   else
     puts
     puts

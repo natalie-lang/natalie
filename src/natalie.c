@@ -106,7 +106,7 @@ NatObject* nat_raise_exception(NatEnv *env, NatObject *exception) {
         bt_env = bt_env->caller;
     }
     int counter = 0;
-    while (!env->jump_buf) {
+    while (env && !env->jump_buf) {
         assert(++counter < 10000); // serious problem
 
         if (env->caller) {
@@ -115,6 +115,7 @@ NatObject* nat_raise_exception(NatEnv *env, NatObject *exception) {
             env = env->outer;
         }
     }
+    assert(env);
     env->exception = exception;
     longjmp(*env->jump_buf, 1);
 }
@@ -327,14 +328,20 @@ void nat_array_push(NatObject *array, NatObject *obj) {
     array->ary[len] = obj;
 }
 
-NatObject *nat_array_splat_from_args(NatEnv *env, size_t argc, NatObject **args, size_t starting_index) {
-    NatObject *array = nat_array(env);
-    if (starting_index < argc) {
-        for (size_t i=starting_index; i<argc; i++) {
-            nat_array_push(array, args[i]);
+void nat_assign_arg(NatEnv *env, char *name, size_t argc, NatObject **args, size_t index) {
+    if (strlen(name) > 0 && name[0] == '*') {
+        NatObject *array = nat_array(env);
+        if (index < argc) {
+            for (size_t i=index; i<argc; i++) {
+                nat_array_push(array, args[i]);
+            }
         }
+        env_set(env, name + 1, array);
+    } else if (index < argc) {
+        env_set(env, name, args[index]);
+    } else {
+        env_set(env, name, env_get(env, "nil"));
     }
-    return array;
 }
 
 void nat_array_push_splat(NatEnv *env, NatObject *array, NatObject *obj) {

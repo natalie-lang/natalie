@@ -284,6 +284,11 @@ module Natalie
           s(:nat_call, fn, "#{mod}->env", mod))
       end
 
+      def rewrite_or(exp)
+        (_, lhs, rhs) = exp
+        exp.new(:c_if, s(:not, s(:nat_truthy, lhs)), rhs, lhs)
+      end
+
       def rewrite_rescue(exp)
         (_, *rest) = exp
         else_body = rest.pop if rest.last.sexp_type != :resbody

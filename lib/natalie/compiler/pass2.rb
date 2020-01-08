@@ -90,20 +90,24 @@ module Natalie
         end
       end
 
-      def process_block_args(exp, argc_name: 'argc', args_name: 'args')
+      def process_block_args(exp)
         (_, *args) = exp
-        args.each_with_index do |arg, index|
-          if arg.is_a?(Sexp)
-            if arg.sexp_type == :masgn
-              process_block_args(arg, argc_name: "#{args_name}[#{index}]->ary_len", args_name: "#{args_name}[#{index}]->ary")
-            else
-              puts "warning: ignoring a new type of block arg: #{arg.inspect}"
-            end
-          elsif arg.to_s.start_with?('*')
-            decl "env_set(env, #{arg.to_s[1..-1].inspect}, nat_array_splat_from_args(env, #{argc_name}, #{args_name}, #{index}));"
-          else
-            decl "env_set(env, #{arg.to_s.inspect}, (#{index} < #{argc_name}) ? #{args_name}[#{index}] : env_get(env, \"nil\"));"
+        if args.size == 1
+          # DON'T attempt to spread array across args
+          args.each_with_index do |arg, index|
+            decl "nat_assign_arg(env, #{arg.to_s.inspect}, argc, args, #{index});"
           end
+        else
+          # DO attempt to spread array across args
+          decl "if (argc > 0 && args[0]->type == NAT_VALUE_ARRAY) {"
+          args.each_with_index do |arg, index|
+            decl "nat_assign_arg(env, #{arg.to_s.inspect}, args[0]->ary_len, args[0]->ary, #{index});"
+          end
+          decl '} else {'
+          args.each_with_index do |arg, index|
+            decl "nat_assign_arg(env, #{arg.to_s.inspect}, argc, args, #{index});"
+          end
+          decl '}'
         end
         ''
       end

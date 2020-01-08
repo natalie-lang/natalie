@@ -28,7 +28,7 @@ describe "A block yielded a single" do
       m([1, 2]) { |a, | a }.should == 1
     end
 
-    xit "assigns elements to required arguments" do
+    it "assigns elements to required arguments" do
       m([1, 2, 3]) { |a, b| [a, b] }.should == [1, 2]
     end
 
