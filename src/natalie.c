@@ -327,6 +327,16 @@ void nat_array_push(NatObject *array, NatObject *obj) {
     array->ary[len] = obj;
 }
 
+NatObject *nat_array_splat_from_args(NatEnv *env, size_t argc, NatObject **args, size_t starting_index) {
+    NatObject *array = nat_array(env);
+    if (starting_index < argc) {
+        for (size_t i=starting_index; i<argc; i++) {
+            nat_array_push(array, args[i]);
+        }
+    }
+    return array;
+}
+
 void nat_array_push_splat(NatEnv *env, NatObject *array, NatObject *obj) {
     assert(array->type == NAT_VALUE_ARRAY);
     if (obj->type != NAT_VALUE_ARRAY && nat_respond_to(obj, "to_a")) {

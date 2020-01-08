@@ -20,7 +20,7 @@ describe "A block yielded a single" do
       m(ary) { |a| a }.should equal(ary)
     end
 
-    xit "assigns the Array to a single rest argument" do
+    it "assigns the Array to a single rest argument" do
       m([1, 2, 3]) { |*a| a }.should == [[1, 2, 3]]
     end
 

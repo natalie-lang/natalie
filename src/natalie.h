@@ -243,6 +243,7 @@ NatObject *nat_array(NatEnv *env);
 void nat_grow_array(NatObject *obj, size_t capacity);
 void nat_grow_array_at_least(NatObject *obj, size_t min_capacity);
 void nat_array_push(NatObject *array, NatObject *obj);
+NatObject *nat_array_splat_from_args(NatEnv *env, size_t argc, NatObject **args, size_t starting_index);
 void nat_array_push_splat(NatEnv *env, NatObject *array, NatObject *obj);
 void nat_array_expand_with_nil(NatEnv *env, NatObject *array, size_t size);
 

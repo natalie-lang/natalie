@@ -99,6 +99,8 @@ module Natalie
             else
               puts "warning: ignoring a new type of block arg: #{arg.inspect}"
             end
+          elsif arg.to_s.start_with?('*')
+            decl "env_set(env, #{arg.to_s[1..-1].inspect}, nat_array_splat_from_args(env, #{argc_name}, #{args_name}, #{index}));"
           else
             decl "env_set(env, #{arg.to_s.inspect}, (#{index} < #{argc_name}) ? #{args_name}[#{index}] : env_get(env, \"nil\"));"
           end
