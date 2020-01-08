@@ -95,13 +95,25 @@ module Natalie
         if args.size == 1
           # DON'T attempt to spread array across args
           args.each_with_index do |arg, index|
-            decl "nat_assign_arg(env, #{arg.to_s.inspect}, argc, args, #{index});"
+            if arg.to_s.start_with?('*')
+              decl "nat_assign_rest_arg(env, #{arg.to_s[1..-1].inspect}, argc, args, #{index}, 1);"
+            else
+              decl "nat_assign_arg(env, #{arg.to_s.inspect}, argc, args, #{index});"
+            end
           end
         else
           # DO attempt to spread array across args
           decl "if (argc > 0 && args[0]->type == NAT_VALUE_ARRAY) {"
+          after_rest = false
           args.each_with_index do |arg, index|
-            decl "nat_assign_arg(env, #{arg.to_s.inspect}, args[0]->ary_len, args[0]->ary, #{index});"
+            if arg.to_s.start_with?('*')
+              after_rest = true
+              decl "nat_assign_rest_arg(env, #{arg.to_s[1..-1].inspect}, args[0]->ary_len, args[0]->ary, #{index}, args[0]->ary_len - #{args.size - 1});"
+            elsif after_rest
+              decl "nat_assign_arg(env, #{arg.to_s.inspect}, args[0]->ary_len, args[0]->ary, NAT_MAX(args[0]->ary_len - #{args.size} + #{index}, #{index - 1}));"
+            else
+              decl "nat_assign_arg(env, #{arg.to_s.inspect}, args[0]->ary_len, args[0]->ary, #{index});"
+            end
           end
           decl '} else {'
           args.each_with_index do |arg, index|

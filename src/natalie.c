@@ -329,19 +329,21 @@ void nat_array_push(NatObject *array, NatObject *obj) {
 }
 
 void nat_assign_arg(NatEnv *env, char *name, size_t argc, NatObject **args, size_t index) {
-    if (strlen(name) > 0 && name[0] == '*') {
-        NatObject *array = nat_array(env);
-        if (index < argc) {
-            for (size_t i=index; i<argc; i++) {
-                nat_array_push(array, args[i]);
-            }
-        }
-        env_set(env, name + 1, array);
-    } else if (index < argc) {
+    if (index < argc) {
         env_set(env, name, args[index]);
     } else {
         env_set(env, name, env_get(env, "nil"));
     }
+}
+
+void nat_assign_rest_arg(NatEnv *env, char *name, size_t argc, NatObject **args, size_t index, size_t count) {
+    NatObject *array = nat_array(env);
+    if (index < argc) {
+        for (size_t i=index; i<index+count; i++) {
+            nat_array_push(array, args[i]);
+        }
+    }
+    env_set(env, name, array);
 }
 
 void nat_array_push_splat(NatEnv *env, NatObject *array, NatObject *obj) {
