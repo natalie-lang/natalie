@@ -204,3 +204,9 @@ NatObject *Kernel_hash(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     size_t hash_value = hashmap_hash_string(inspected->str);
     return nat_integer(env, hash_value);
 }
+
+NatObject *Kernel_proc(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(0);
+    assert(block);
+    return nat_proc(env, block);
+}

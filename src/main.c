@@ -98,6 +98,7 @@ NatEnv *build_top_env() {
     nat_define_method(Kernel, "public_methods", Kernel_methods); // TODO
     nat_define_method(Kernel, "is_a?", Kernel_is_a);
     nat_define_method(Kernel, "hash", Kernel_hash);
+    nat_define_method(Kernel, "proc", Kernel_proc);
 
     NatObject *Comparable = nat_module(env, "Comparable");
     COMPARABLE_INIT();
