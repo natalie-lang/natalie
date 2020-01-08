@@ -328,9 +328,11 @@ void nat_array_push(NatObject *array, NatObject *obj) {
     array->ary[len] = obj;
 }
 
-void nat_assign_arg(NatEnv *env, char *name, size_t argc, NatObject **args, size_t index) {
+void nat_assign_arg(NatEnv *env, char *name, int argc, NatObject **args, int index, NatObject *default_value) {
     if (index < argc) {
         env_set(env, name, args[index]);
+    } else if (default_value) {
+        env_set(env, name, default_value);
     } else {
         env_set(env, name, env_get(env, "nil"));
     }

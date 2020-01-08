@@ -231,7 +231,7 @@ module Natalie
 
       def rewrite_lasgn(exp)
         return exp if context[0..1] == [:array, :masgn]
-        return exp if context.first == :args
+        return exp if %i[args block_args].include?(context.first)
         (_, name, val) = exp
         exp.new(:env_set, :env, s(:s, name), rewrite(val))
       end

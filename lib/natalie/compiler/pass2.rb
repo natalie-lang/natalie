@@ -90,34 +90,66 @@ module Natalie
         end
       end
 
+      def process_block_arg(arg)
+        if arg.is_a?(Sexp)
+          case arg.sexp_type
+          when :lasgn
+            default_value = p(arg[2])
+            arg = arg[1].to_s
+            [arg, default_value]
+          else
+            puts "warning: unknown arg sexp type: #{arg.inspect}"
+            ['dummy', nil]
+          end
+        else
+          [arg.to_s, nil]
+        end
+      end
+
+      # OMG: This is insane!
       def process_block_args(exp)
         (_, *args) = exp
         if args.size == 1
           # DON'T attempt to spread array across args
           args.each_with_index do |arg, index|
-            if arg.to_s.start_with?('*')
-              decl "nat_assign_rest_arg(env, #{arg.to_s[1..-1].inspect}, argc, args, #{index}, 1);"
+            arg, default_value = process_block_arg(arg)
+            if arg.start_with?('*')
+              decl "nat_assign_rest_arg(env, #{arg[1..-1].inspect}, argc, args, #{index}, 1);"
             else
-              decl "nat_assign_arg(env, #{arg.to_s.inspect}, argc, args, #{index});"
+              decl "nat_assign_arg(env, #{arg.inspect}, argc, args, #{index}, #{default_value || 'NULL'});"
             end
           end
         else
           # DO attempt to spread array across args
+          args = args.map { |a| process_block_arg(a) }
           decl "if (argc > 0 && args[0]->type == NAT_VALUE_ARRAY) {"
           after_rest = false
-          args.each_with_index do |arg, index|
-            if arg.to_s.start_with?('*')
+          (defaulted_args, required_args) = args.partition { |a, d| d }
+          decl "int left_over = args[0]->ary_len - #{required_args.size};"
+          decl "UNUSED(left_over); // maybe"
+          required_args.each_with_index do |(arg, _), index|
+            if arg.start_with?('*')
               after_rest = true
-              decl "nat_assign_rest_arg(env, #{arg.to_s[1..-1].inspect}, args[0]->ary_len, args[0]->ary, #{index}, args[0]->ary_len - #{args.size - 1});"
+              decl "nat_assign_rest_arg(env, #{arg[1..-1].inspect}, args[0]->ary_len, args[0]->ary, #{index} + NAT_MAX(0, left_over), args[0]->ary_len - #{args.size - 1});"
             elsif after_rest
-              decl "nat_assign_arg(env, #{arg.to_s.inspect}, args[0]->ary_len, args[0]->ary, NAT_MAX(args[0]->ary_len - #{args.size} + #{index}, #{index - 1}));"
+              decl "nat_assign_arg(env, #{arg.inspect}, args[0]->ary_len, args[0]->ary, NAT_MAX(args[0]->ary_len - #{args.size} + #{index} + NAT_MAX(0, left_over), #{index - 1}), NULL);"
             else
-              decl "nat_assign_arg(env, #{arg.to_s.inspect}, args[0]->ary_len, args[0]->ary, #{index});"
+              decl "nat_assign_arg(env, #{arg.inspect}, args[0]->ary_len, args[0]->ary, #{index} + NAT_MIN(#{defaulted_args.size}, NAT_MAX(0, left_over)), NULL);"
             end
           end
+          defaulted_args.each_with_index do |(arg, default_value), index|
+           if arg.start_with?('*')
+             after_rest = true
+             decl "nat_assign_rest_arg(env, #{arg[1..-1].inspect}, args[0]->ary_len, args[0]->ary, #{index}, args[0]->ary_len - #{args.size - 1});"
+           elsif after_rest
+             decl "nat_assign_arg(env, #{arg.inspect}, args[0]->ary_len, args[0]->ary, NAT_MAX(args[0]->ary_len - #{args.size} + #{index}, #{index - 1}), #{default_value});"
+           else
+             decl "nat_assign_arg(env, #{arg.inspect}, left_over, args[0]->ary, #{index}, #{default_value});"
+           end
+          end
           decl '} else {'
-          args.each_with_index do |arg, index|
-            decl "nat_assign_arg(env, #{arg.to_s.inspect}, argc, args, #{index});"
+          args.each_with_index do |(arg, default_value), index|
+            decl "nat_assign_arg(env, #{arg.inspect}, argc, args, #{index}, #{default_value || 'NULL'});"
           end
           decl '}'
         end
