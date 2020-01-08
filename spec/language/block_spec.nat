@@ -36,11 +36,11 @@ describe "A block yielded a single" do
       m([1, 2]) { |a, *b, c, d| [a, b, c, d] }.should == [1, [], 2, nil]
     end
 
-    it "assigns elements to optional arguments" do
+    xit "assigns elements to optional arguments" do
       m([1, 2]) { |a=5, b=4, c=3| [a, b, c] }.should == [1, 2, 3]
     end
 
-    it "assigns elements to post arguments" do
+    xit "assigns elements to post arguments" do
       m([1, 2]) { |a=5, b, c, d| [a, b, c, d] }.should == [5, 1, 2, nil]
     end
 

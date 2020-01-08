@@ -213,7 +213,7 @@ module Natalie
           s(:fn, block_fn,
             s(:block,
               s(:env_set_method_name, '<block>'),
-              s(:block_args, *args),
+              s(:nat_multi_assign_args, :env, :self, rewrite(s(:masgn_in_args, *args)), s(:nat_args_to_array, :env, :argc, :args)),
               rewrite(s(:block, *body)))),
           s(:declare_block, block, s(:nat_block, :env, :self, block_fn)),
           call)
@@ -256,15 +256,10 @@ module Natalie
       end
       
       def rewrite_masgn(exp)
-        #return exp if %i[args masgn block_args array].include?(context.first)
-        (_, names, vals) = exp
-        if names.is_a?(Symbol) || vals.is_a?(Symbol)
-          # TODO: not sure what this is but it comes from block_spec.nat
-          # s(:masgn, :a, :b)
-          # s(:masgn, :b, s(:nil))
-          # s(:masgn, s(:nil), :d)
-          return s(:nil)
+        if context.detect { |c| c != :masgn } == :args
+          return exp.new(:masgn_in_args, *exp[1..-1])
         end
+        (_, names, vals) = exp
         names = names[1..-1].map do |e|
           case e.sexp_type
           when :lasgn, :iasgn
@@ -283,6 +278,36 @@ module Natalie
         else
           names
         end
+      end
+
+      def rewrite_masgn_in_args(exp)
+        (_, *names) = exp
+        names = names.map do |name|
+          case name
+          when Symbol
+            s(:nat_symbol, :env, s(:s, name))
+          when Sexp
+            case name.sexp_type
+            when :shadow
+              puts "warning: unhandled arg type: #{name.inspect}"
+              s(:nil)
+            when :env_set
+              n = name[2]
+              s(:block, name, s(:nat_symbol, :env, n))
+            else
+              name
+            end
+          when nil
+            s(:nil)
+          else
+            raise "unknown arg type: #{name.expect}"
+          end
+        end
+        names = exp.new(:array, *names)
+        context.push(:nat_masgn_in_args)
+        names = rewrite(names)
+        context.pop
+        names
       end
 
       def rewrite_module(exp)

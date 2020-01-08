@@ -9,8 +9,9 @@ describe 'ruby/spec' do
     describe path do
       it 'passes all specs' do
         out_nat = `bin/natalie #{path} 2>&1`
-        puts out_nat unless $?.to_i == 0
+        puts out_nat if $?.to_i != 0 || out_nat =~ /^0 spec\(s\) passed/
         expect($?.to_i).must_equal 0
+        expect(out_nat).wont_match(/^0 spec\(s\) passed/)
       end
     end
   end

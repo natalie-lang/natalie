@@ -60,6 +60,10 @@ describe 'assignment' do
     a.must_equal 1
     b.must_equal 2
     c.must_equal 3
+    (a, b, c) = [[4, 5], 6, 7]
+    a.must_equal [4, 5]
+    b.must_equal 6
+    c.must_equal 7
   end
 end
 
