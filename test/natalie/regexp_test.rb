@@ -132,6 +132,13 @@ describe 'regexp' do
       result = 'foo' =~ /foo/
       result.should == 0
     end
+
+    it 'works with escaped characters' do
+      result = '*name' =~ /^\*(.+)/
+      result.should == 0
+      result = 'n' =~ /^\*(.+)/
+      result.should be_nil
+    end
   end
 
   describe '#match on String' do
