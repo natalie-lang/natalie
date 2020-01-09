@@ -55,22 +55,20 @@ struct StringValue : Value {
     Encoding encoding() const { return m_encoding; }
 
     void set_str(const char *str) {
-        GC_FREE(m_str);
         assert(str);
         m_str = GC_STRDUP(str);
         m_length = strlen(str);
         m_capacity = m_length;
     }
 
-    // FIXME: this is memory inefficient if you are slicing a tiny string from a really huge one :-(
     void set_str(const char *str, size_t length) {
-        GC_FREE(m_str);
         assert(str);
-        m_str = GC_STRDUP(str);
+        m_str = new char[length + 1];
+        assert(strlen(str) >= length);
+        strncpy(m_str, str, length);
         m_str[length] = 0;
         m_length = length;
-        m_capacity = strlen(str);
-        assert(m_length <= m_capacity);
+        m_capacity = length;
     }
 
     void set_encoding(Encoding encoding) { m_encoding = encoding; }
