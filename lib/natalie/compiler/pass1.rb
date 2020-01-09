@@ -260,54 +260,62 @@ module Natalie
           return exp.new(:masgn_in_args, *exp[1..-1])
         end
         (_, names, vals) = exp
-        names = names[1..-1].map do |e|
+        vars = []
+        names[1..-1].each do |e|
           case e.sexp_type
           when :lasgn, :iasgn
-            s(:nat_symbol, :env, s(:s, e.last))
+            vars << s(:nat_symbol, :env, s(:s, e.last))
+            vars << s(:nil)
           else
-            e
+            vars << e
+            vars << s(:nil)
           end
         end
-        names = exp.new(:array, *names)
+        vars = exp.new(:array, *vars)
         context.push(:nat_masgn)
-        names = rewrite(names)
+        vars = rewrite(vars)
         context.pop
         if vals
           raise "unknown masgn val type: #{vals.sexp_type}" unless vals.sexp_type == :to_ary
-          exp.new(:nat_multi_assign, :env, :self, names, vals.last)
+          exp.new(:nat_multi_assign, :env, :self, vars, vals.last)
         else
-          names
+          vars
         end
       end
 
       def rewrite_masgn_in_args(exp)
         (_, *names) = exp
-        names = names.map do |name|
+        args = []
+        names.each do |name|
           case name
           when Symbol
-            s(:nat_symbol, :env, s(:s, name))
+            args << s(:nat_symbol, :env, s(:s, name))
+            args << s(:nil)
           when Sexp
             case name.sexp_type
             when :shadow
               puts "warning: unhandled arg type: #{name.inspect}"
-              s(:nil)
             when :env_set
-              n = name[2]
-              s(:block, name, s(:nat_symbol, :env, n))
+              (_, _, n, v) = name
+              args << s(:nat_symbol, :env, n)
+              args << v
             else
-              name
+              args << name
+              args << s(:nil)
             end
           when nil
-            s(:nil)
+            # we need this so nat_multi_assign_args knows to spread the values out
+            args << s(:nil)
+            args << s(:nil)
           else
             raise "unknown arg type: #{name.expect}"
           end
         end
-        names = exp.new(:array, *names)
+        args = exp.new(:array, *args)
         context.push(:nat_masgn_in_args)
-        names = rewrite(names)
+        args = rewrite(args)
         context.pop
-        names
+        args
       end
 
       def rewrite_module(exp)

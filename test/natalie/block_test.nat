@@ -1,0 +1,33 @@
+require 'spec'
+
+class ArrayLike
+  def initialize(*values)
+    @values = values
+  end
+
+  def to_ary
+    @values
+  end
+end
+
+describe 'block' do
+  describe 'arguments' do
+    it 'can assign any number of arguments' do
+      proc { |a| a }.call().must_equal nil
+      proc { |a| a }.call(1).must_equal 1
+      proc { |a| a }.call(1, 2).must_equal 1
+      proc { |a, b| [a, b] }.call().must_equal [nil, nil]
+      proc { |a, b| [a, b] }.call(1).must_equal [1, nil]
+      proc { |a, b| [a, b] }.call(1, 2).must_equal [1, 2]
+      proc { |a, b| [a, b] }.call(1, 2, 3).must_equal [1, 2]
+      proc { |a, | a }.call(1, 2).must_equal 1
+      proc { |a, | a }.call([3, 4]).must_equal 3
+    end
+
+    it 'can assign with argument defaults' do
+      proc { |a=1| a }.call().must_equal 1
+    end
+  end
+end
+
+run_specs

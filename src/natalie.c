@@ -987,18 +987,29 @@ void nat_handle_top_level_exception(NatEnv *env, int run_exit_handlers) {
     }
 }
 
+// names is an array of arg name followed by the arg default value, e.g. [:a, 'default', :b, nil, ...]
+// vals is the array of values of the assignment or passed to a block 
 NatObject *nat_multi_assign(NatEnv *env, NatObject *self, NatObject *names, NatObject *vals) {
     assert(names->type == NAT_VALUE_ARRAY);
     if (vals->type != NAT_VALUE_ARRAY && nat_respond_to(vals, "to_ary")) {
         vals = nat_send(env, vals, "to_ary", 0, NULL, NULL);
     }
+    size_t required_args_count = 0;
+    for (size_t i=0; i<names->ary_len; i+=2) {
+        if (names->ary[i + 1]->type == NAT_VALUE_NIL) {
+            required_args_count++;
+        }
+    }
     if (vals->type == NAT_VALUE_ARRAY) {
+        int left_over = NAT_MAX(0, vals->ary_len - required_args_count);
         int after_rest = FALSE;
-        for (size_t i=0; i<names->ary_len; i++) {
-            NatObject *name = names->ary[i];
+        for (size_t i=0; i<names->ary_len/2; i++) {
+            size_t name_index = i * 2;
+            NatObject *name = names->ary[name_index];
+            NatObject *default_value = names->ary[name_index + 1];
             if (name->type == NAT_VALUE_SYMBOL) {
                 if (name->symbol[0] == '@') {
-                    ivar_set(env, self, name->symbol, i < vals->ary_len ? vals->ary[i] : env_get(env, "nil"));
+                    ivar_set(env, self, name->symbol, i < vals->ary_len ? vals->ary[i] : default_value);
                 } else if (name->symbol[0] == '*') {
                     after_rest = TRUE;
                     NatObject *val = nat_array(env);
@@ -1007,13 +1018,13 @@ NatObject *nat_multi_assign(NatEnv *env, NatObject *self, NatObject *names, NatO
                     }
                     env_set(env, name->symbol+1, val);
                 } else if (after_rest) {
-                    size_t ii = NAT_MAX(vals->ary_len - names->ary_len + i, i - 1);
-                    env_set(env, name->symbol, ii < vals->ary_len ? vals->ary[ii] : env_get(env, "nil"));
+                    size_t ii = NAT_MAX(vals->ary_len - (names->ary_len/2) + i, i - 1);
+                    env_set(env, name->symbol, ii < vals->ary_len ? vals->ary[ii] : default_value);
                 } else {
-                    env_set(env, name->symbol, i < vals->ary_len ? vals->ary[i] : env_get(env, "nil"));
+                    env_set(env, name->symbol, i < vals->ary_len ? vals->ary[i] : default_value);
                 }
             } else if (name->type == NAT_VALUE_ARRAY) {
-                nat_multi_assign(env, self, name, i < vals->ary_len ? vals->ary[i] : env_get(env, "nil"));
+                nat_multi_assign(env, self, name, i < vals->ary_len ? vals->ary[i] : default_value);
             } else if (name->type == NAT_VALUE_NIL) {
                 // do nothing
             } else {
@@ -1022,9 +1033,11 @@ NatObject *nat_multi_assign(NatEnv *env, NatObject *self, NatObject *names, NatO
             }
         }
     } else {
-        for (size_t i=0; i<names->ary_len; i++) {
-            NatObject *name = names->ary[i];
-            NatObject *value = (i == 0) ? vals : env_get(env, "nil");
+        for (size_t i=0; i<names->ary_len/2; i++) {
+            size_t name_index = i * 2;
+            NatObject *name = names->ary[name_index];
+            NatObject *default_value = names->ary[name_index + 1];
+            NatObject *value = (i == 0) ? vals : default_value;
             if (name->type == NAT_VALUE_SYMBOL) {
                 if (name->symbol[0] == '@') {
                     ivar_set(env, self, name->symbol, value);
@@ -1049,7 +1062,8 @@ NatObject *nat_multi_assign_args(NatEnv *env, NatObject *self, NatObject *names,
     if (vals->type != NAT_VALUE_ARRAY && nat_respond_to(vals, "to_ary")) {
         vals = nat_send(env, vals, "to_ary", 0, NULL, NULL);
     }
-    if (vals->type == NAT_VALUE_ARRAY && vals->ary_len == 1 && names->ary_len > 1) {
+    size_t one_arg = 2; // because it's a pair of name and default value
+    if (vals->type == NAT_VALUE_ARRAY && vals->ary_len == 1 && names->ary_len > one_arg) {
         return nat_multi_assign(env, self, names, vals->ary[0]);
     } else {
         return nat_multi_assign(env, self, names, vals);
