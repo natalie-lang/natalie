@@ -86,7 +86,7 @@ struct Node : public gc {
 
     Token *token() { return m_token; }
 
-private:
+protected:
     Token *m_token { nullptr };
 };
 
@@ -186,7 +186,7 @@ struct BlockPassNode : Node {
 
     virtual Value *to_ruby(Env *) override;
 
-private:
+protected:
     Node *m_node { nullptr };
 };
 
@@ -199,7 +199,7 @@ struct BreakNode : NodeWithArgs {
 
     virtual Type type() override { return Type::Break; }
 
-private:
+protected:
     Node *m_arg { nullptr };
 };
 
@@ -218,7 +218,7 @@ struct AssignmentNode : Node {
 
     virtual Value *to_ruby(Env *) override;
 
-private:
+protected:
     Node *m_identifier { nullptr };
     Node *m_value { nullptr };
 };
@@ -246,7 +246,7 @@ struct BeginNode : Node {
 
     BlockNode *body() { return m_body; }
 
-private:
+protected:
     BlockNode *m_body { nullptr };
     BlockNode *m_else_body { nullptr };
     BlockNode *m_ensure_body { nullptr };
@@ -273,7 +273,7 @@ struct BeginRescueNode : Node {
 
     Node *name_to_node();
 
-private:
+protected:
     IdentifierNode *m_name { nullptr };
     Vector<Node *> m_exceptions {};
     BlockNode *m_body { nullptr };
@@ -309,7 +309,7 @@ struct BlockNode : Node {
             return this;
     }
 
-private:
+protected:
     Vector<Node *> m_nodes {};
 };
 
@@ -366,7 +366,7 @@ struct CaseNode : Node {
         m_else_node = node;
     }
 
-private:
+protected:
     Node *m_subject { nullptr };
     Vector<Node *> m_when_nodes {};
     BlockNode *m_else_node { nullptr };
@@ -385,7 +385,7 @@ struct CaseWhenNode : Node {
 
     virtual Value *to_ruby(Env *) override;
 
-private:
+protected:
     Node *m_condition { nullptr };
     BlockNode *m_body { nullptr };
 };
@@ -427,7 +427,7 @@ struct ClassNode : Node {
 
     virtual Value *to_ruby(Env *) override;
 
-private:
+protected:
     ConstantNode *m_name { nullptr };
     Node *m_superclass { nullptr };
     BlockNode *m_body { nullptr };
@@ -446,8 +446,7 @@ struct Colon2Node : Node {
 
     virtual Value *to_ruby(Env *) override;
 
-private:
-    Token *m_token { nullptr };
+protected:
     Node *m_left { nullptr };
     const char *m_name { nullptr };
 };
@@ -463,24 +462,19 @@ struct Colon3Node : Node {
 
     virtual Value *to_ruby(Env *) override;
 
-private:
-    Token *m_token { nullptr };
+protected:
     const char *m_name { nullptr };
 };
 
 struct ConstantNode : Node {
     ConstantNode(Token *token)
-        : Node { token }
-        , m_token { token } { }
+        : Node { token } { }
 
     virtual Type type() override { return Type::Constant; }
 
     virtual Value *to_ruby(Env *) override;
 
     const char *name() { return m_token->literal(); }
-
-private:
-    Token *m_token { nullptr };
 };
 
 struct LiteralNode : Node {
@@ -497,7 +491,7 @@ struct LiteralNode : Node {
     Value *value() { return m_value; }
     Value::Type value_type() { return m_value->type(); }
 
-private:
+protected:
     Value *m_value { nullptr };
 };
 
@@ -512,7 +506,7 @@ struct DefinedNode : Node {
 
     virtual Value *to_ruby(Env *) override;
 
-private:
+protected:
     Node *m_arg { nullptr };
 };
 
@@ -534,7 +528,7 @@ struct DefNode : Node {
 
     virtual Value *to_ruby(Env *) override;
 
-private:
+protected:
     SexpValue *build_args_sexp(Env *);
 
     Node *m_self_node { nullptr };
@@ -552,7 +546,7 @@ struct EvaluateToStringNode : Node {
 
     virtual Type type() override { return Type::EvaluateToString; }
 
-private:
+protected:
     Node *m_node { nullptr };
 };
 
@@ -577,14 +571,13 @@ struct HashNode : Node {
         m_nodes.push(node);
     }
 
-private:
+protected:
     Vector<Node *> m_nodes {};
 };
 
 struct IdentifierNode : Node {
     IdentifierNode(Token *token, bool is_lvar)
         : Node { token }
-        , m_token { token }
         , m_is_lvar { is_lvar } { }
 
     virtual Type type() override { return Type::Identifier; }
@@ -661,8 +654,7 @@ struct IdentifierNode : Node {
             locals->push(to_symbol(env));
     }
 
-private:
-    Token *m_token { nullptr };
+protected:
     bool m_is_lvar { false };
 };
 
@@ -681,7 +673,7 @@ struct IfNode : Node {
 
     virtual Value *to_ruby(Env *) override;
 
-private:
+protected:
     Node *m_condition { nullptr };
     Node *m_true_expr { nullptr };
     Node *m_false_expr { nullptr };
@@ -702,7 +694,7 @@ struct IterNode : Node {
 
     virtual Value *to_ruby(Env *) override;
 
-private:
+protected:
     SexpValue *build_args_sexp(Env *);
 
     Node *m_call { nullptr };
@@ -772,7 +764,7 @@ struct LogicalAndNode : Node {
     Node *left() { return m_left; }
     Node *right() { return m_right; }
 
-private:
+protected:
     Node *m_left { nullptr };
     Node *m_right { nullptr };
 };
@@ -793,7 +785,7 @@ struct LogicalOrNode : Node {
     Node *left() { return m_left; }
     Node *right() { return m_right; }
 
-private:
+protected:
     Node *m_left { nullptr };
     Node *m_right { nullptr };
 };
@@ -811,7 +803,7 @@ struct MatchNode : Node {
 
     virtual Value *to_ruby(Env *) override;
 
-private:
+protected:
     RegexpNode *m_regexp { nullptr };
     Node *m_arg { nullptr };
     bool m_regexp_on_left { false };
@@ -827,7 +819,7 @@ struct ModuleNode : Node {
 
     virtual Value *to_ruby(Env *) override;
 
-private:
+protected:
     ConstantNode *m_name { nullptr };
     BlockNode *m_body { nullptr };
 };
@@ -853,7 +845,7 @@ struct NextNode : Node {
 
     virtual Type type() override { return Type::Next; }
 
-private:
+protected:
     Node *m_arg { nullptr };
 };
 
@@ -877,7 +869,7 @@ struct NotNode : Node {
 
     virtual Type type() override { return Type::Not; }
 
-private:
+protected:
     Node *m_expression { nullptr };
 };
 
@@ -936,7 +928,7 @@ struct OpAssignAccessorNode : NodeWithArgs {
 
     virtual Type type() override { return Type::OpAssignAccessor; }
 
-private:
+protected:
     const char *m_op { nullptr };
     Node *m_receiver { nullptr };
     const char *m_message { nullptr };
@@ -975,7 +967,7 @@ struct RangeNode : Node {
 
     virtual Value *to_ruby(Env *) override;
 
-private:
+protected:
     Node *m_first { nullptr };
     Node *m_last { nullptr };
     bool m_exclude_end { false };
@@ -994,7 +986,7 @@ struct RegexpNode : Node {
 
     Value *value() { return m_value; }
 
-private:
+protected:
     Value *m_value { nullptr };
 };
 
@@ -1007,7 +999,7 @@ struct ReturnNode : Node {
 
     virtual Value *to_ruby(Env *) override;
 
-private:
+protected:
     Node *m_arg { nullptr };
 };
 
@@ -1033,7 +1025,7 @@ struct ShellNode : Node {
 
     Value *value() { return m_value; }
 
-private:
+protected:
     Value *m_value { nullptr };
 };
 
@@ -1053,7 +1045,7 @@ struct SplatAssignmentNode : Node {
 
     IdentifierNode *node() { return m_node; }
 
-private:
+protected:
     IdentifierNode *m_node { nullptr };
 };
 
@@ -1073,7 +1065,7 @@ struct SplatNode : Node {
 
     Node *node() { return m_node; }
 
-private:
+protected:
     Node *m_node { nullptr };
 };
 
@@ -1090,7 +1082,7 @@ struct StabbyProcNode : Node {
 
     Vector<Node *> *args() { return m_args; };
 
-private:
+protected:
     Vector<Node *> *m_args { nullptr };
 };
 
@@ -1107,7 +1099,7 @@ struct StringNode : Node {
 
     Value *value() { return m_value; }
 
-private:
+protected:
     Value *m_value { nullptr };
 };
 
@@ -1122,7 +1114,7 @@ struct SymbolNode : Node {
 
     virtual Value *to_ruby(Env *) override;
 
-private:
+protected:
     Value *m_value { nullptr };
 };
 
@@ -1148,7 +1140,7 @@ struct SuperNode : NodeWithArgs {
 
     bool empty_parens() { return m_parens && m_args.is_empty(); }
 
-private:
+protected:
     bool m_parens { false };
 };
 
@@ -1166,7 +1158,7 @@ struct WhileNode : Node {
 
     virtual Type type() override { return Type::While; }
 
-private:
+protected:
     Node *m_condition { nullptr };
     BlockNode *m_body { nullptr };
     bool m_pre { false };
