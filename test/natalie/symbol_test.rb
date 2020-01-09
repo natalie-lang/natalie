@@ -76,6 +76,7 @@ describe 'symbol' do
       :foo_bar[1..-2].should == 'oo_ba'
       :foo_bar[0].should == 'f'
       :foo_bar[-1].should == 'r'
+      :n[1..-1].should == ''
     end
   end
 end

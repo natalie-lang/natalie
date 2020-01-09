@@ -122,7 +122,7 @@ describe 'string' do
     end
   end
 
-  describe '[]' do
+  describe '#[]' do
     it 'returns the character at the given index' do
       s = "😉”ăa"
       s[0].should == "😉"
@@ -153,9 +153,13 @@ describe 'string' do
       it 'returns a substring' do
         s = "😉”ăa"
         s[1..-1].should == "”ăa"
+        s = 'hello'
+        s[1..-1].should == 'ello'
+        s = 'n'
+        s[1..-1].should == ''
       end
 
-      it 'returns nil for a range out of bounds' do
+      it 'returns proper result for a range out of bounds' do
         s = "hello"
         s[-2..0].should == ""
         s[2..100].should == "llo"

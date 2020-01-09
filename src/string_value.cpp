@@ -542,7 +542,7 @@ Value *StringValue::ref(Env *env, Value *index_obj) {
         if (begin < 0 || end < 0) return env->nil_obj();
         size_t u_begin = static_cast<size_t>(begin);
         size_t u_end = static_cast<size_t>(end);
-        if (u_begin >= chars->size()) return env->nil_obj();
+        if (u_begin > chars->size()) return env->nil_obj();
 
         if (!range->exclude_end()) u_end++;
 
