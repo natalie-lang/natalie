@@ -1057,13 +1057,14 @@ NatObject *nat_multi_assign(NatEnv *env, NatObject *self, NatObject *names, NatO
     return vals;
 }
 
+#define NAT_ONE_ARG 2 // because it's a pair of name and default value
+
 NatObject *nat_multi_assign_args(NatEnv *env, NatObject *self, NatObject *names, NatObject *vals) {
     assert(names->type == NAT_VALUE_ARRAY);
     if (vals->type != NAT_VALUE_ARRAY && nat_respond_to(vals, "to_ary")) {
         vals = nat_send(env, vals, "to_ary", 0, NULL, NULL);
     }
-    size_t one_arg = 2; // because it's a pair of name and default value
-    if (vals->type == NAT_VALUE_ARRAY && vals->ary_len == 1 && names->ary_len > one_arg) {
+    if (vals->type == NAT_VALUE_ARRAY && vals->ary_len == 1 && names->ary_len > NAT_ONE_ARG) {
         return nat_multi_assign(env, self, names, vals->ary[0]);
     } else {
         return nat_multi_assign(env, self, names, vals);
