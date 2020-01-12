@@ -1031,6 +1031,9 @@ NatObject *nat_multi_assign(NatEnv *env, NatObject *self, NatObject *names, NatO
     int arg_count = names->ary_len / 2;
     int first_required = 0, req_arg_count = 0;
     for (int i=0; i<names->ary_len; i+=2) {
+        if (names->ary[i]->type == NAT_VALUE_SYMBOL && names->ary[i]->symbol[0] == '*') {
+            continue;
+        }
         if (names->ary[i+1] == NULL) {
             req_arg_count++;
             if (req_arg_count == 1) first_required = i/2;

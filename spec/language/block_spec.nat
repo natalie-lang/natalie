@@ -821,13 +821,13 @@ describe "Post-args" do
 
   describe "with required args" do
 
-    xit "gathers remaining args in the splat" do
+    it "gathers remaining args in the splat" do
       proc do |a, *b, c|
         [a, b, c]
       end.call(1, 2, 3).should == [1, [2], 3]
     end
 
-    xit "has an empty splat when there are no remaining args" do
+    it "has an empty splat when there are no remaining args" do
       proc do |a, b, *c, d|
         [a, b, c, d]
       end.call(1, 2, 3).should == [1, 2, [], 3]
@@ -840,13 +840,13 @@ describe "Post-args" do
 
   describe "with optional args" do
 
-    xit "gathers remaining args in the splat" do
+    it "gathers remaining args in the splat" do
       proc do |a=5, *b, c|
         [a, b, c]
       end.call(1, 2, 3).should == [1, [2], 3]
     end
 
-    xit "overrides the optional arg before gathering in the splat" do
+    it "overrides the optional arg before gathering in the splat" do
       proc do |a=5, *b, c|
         [a, b, c]
       end.call(2, 3).should == [2, [], 3]
@@ -860,7 +860,7 @@ describe "Post-args" do
       end.call(1, 2, 3).should == [1, [], 2, 3]
     end
 
-    xit "uses the required arg before the optional and the splat" do
+    it "uses the required arg before the optional and the splat" do
       proc do |a=5, *b, c|
         [a, b, c]
       end.call(3).should == [5, [], 3]
@@ -874,7 +874,7 @@ describe "Post-args" do
       end.call(2, 3).should == [5, [], 2, 3]
     end
 
-    xit "overrides the optional args from left to right before gathering the splat" do
+    it "overrides the optional args from left to right before gathering the splat" do
       proc do |a=5, b=6, *c, d|
         [a, b, c, d]
       end.call(2, 3).should == [2, 6, [], 3]
