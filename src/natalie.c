@@ -125,6 +125,10 @@ NatObject *ivar_get(NatEnv *env, NatObject *obj, char *name) {
     if(name[0] != '@') {
         NAT_RAISE(env, env_get(env, "NameError"), "`%s' is not allowed as an instance variable name", name);
     }
+    if (obj->ivars.table == NULL) {
+        hashmap_init(&obj->ivars, hashmap_hash_string, hashmap_compare_string, 100);
+        hashmap_set_key_alloc_funcs(&obj->ivars, hashmap_alloc_key_string, NULL);
+    }
     NatObject *val = hashmap_get(&obj->ivars, name);
     if (val) {
         return val;
@@ -137,6 +141,10 @@ NatObject *ivar_set(NatEnv *env, NatObject *obj, char *name, NatObject *val) {
     assert(strlen(name) > 0);
     if(name[0] != '@') {
         NAT_RAISE(env, env_get(env, "NameError"), "`%s' is not allowed as an instance variable name", name);
+    }
+    if (obj->ivars.table == NULL) {
+        hashmap_init(&obj->ivars, hashmap_hash_string, hashmap_compare_string, 100);
+        hashmap_set_key_alloc_funcs(&obj->ivars, hashmap_alloc_key_string, NULL);
     }
     hashmap_remove(&obj->ivars, name);
     hashmap_put(&obj->ivars, name, val);
@@ -193,8 +201,6 @@ NatObject *nat_alloc(NatEnv *env) {
     obj->included_modules = NULL;
     obj->id = nat_next_object_id(env);
     obj->singleton_class = NULL;
-    hashmap_init(&obj->ivars, hashmap_hash_string, hashmap_compare_string, 100);
-    hashmap_set_key_alloc_funcs(&obj->ivars, hashmap_alloc_key_string, NULL);
     return obj;
 }
 
