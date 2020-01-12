@@ -1086,11 +1086,10 @@ NatObject *nat_multi_assign(NatEnv *env, NatObject *self, NatObject *names, NatO
 
 #define NAT_ONE_ARG 2 // because it's a pair of name and default value
 
-NatObject *nat_multi_assign_args(NatEnv *env, NatObject *self, NatObject *names, NatObject *vals) {
+NatObject *nat_multi_assign_args(NatEnv *env, NatObject *self, NatObject *names, size_t argc, NatObject **args) {
     assert(names->type == NAT_VALUE_ARRAY);
-    assert(vals->type == NAT_VALUE_ARRAY);
-    if (vals->ary_len == 1 && names->ary_len > NAT_ONE_ARG) {
-        NatObject *first = vals->ary[0];
+    if (argc == 1 && names->ary_len > NAT_ONE_ARG) {
+        NatObject *first = args[0];
         if (first->type == NAT_VALUE_ARRAY) {
             return nat_multi_assign(env, self, names, first);
         } else if (nat_respond_to(first, "to_ary")) {
@@ -1098,13 +1097,8 @@ NatObject *nat_multi_assign_args(NatEnv *env, NatObject *self, NatObject *names,
             return nat_multi_assign(env, self, names, first);
         }
     }
-    return nat_multi_assign(env, self, names, vals);
-}
-
-NatObject *nat_args_to_array(NatEnv *env, size_t argc, NatObject **args) {
-    NatObject *array = nat_array(env);
-    // FIXME: GC might not like this:
-    array->ary_len = argc;
-    array->ary = args;
-    return array;
+    NatObject *args_array = nat_array(env);
+    args_array->ary_len = argc;
+    args_array->ary = args;
+    return nat_multi_assign(env, self, names, args_array);
 }

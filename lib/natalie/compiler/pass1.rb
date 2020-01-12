@@ -212,7 +212,7 @@ module Natalie
         assign_args = if args_use_simple_mode?(args)
                         rewrite(s(:masgn_in_args_simple, *args))
                       else
-                        s(:nat_multi_assign_args, :env, :self, rewrite(s(:masgn_in_args_full, *args)), s(:nat_args_to_array, :env, :argc, :args))
+                        s(:nat_multi_assign_args, :env, :self, rewrite(s(:masgn_in_args_full, *args)), :argc, :args)
                       end
         exp.new(:block,
           s(:fn, block_fn,
