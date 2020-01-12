@@ -1047,8 +1047,9 @@ NatObject *nat_multi_assign(NatEnv *env, NatObject *self, NatObject *names, NatO
         if (args_available == 0 || vals_available == 0) break;
         if (arg_index >= names->ary_len/2) {
             arg_index = 0;
+            val_index = 0;
         }
-        if (val_index >= arg_count) {
+        if (val_index >= vals->ary_len) {
             val_index = 0;
         }
         NatObject *name = names->ary[arg_index*2];

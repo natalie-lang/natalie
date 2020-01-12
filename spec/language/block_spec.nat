@@ -907,13 +907,13 @@ describe "Post-args" do
   end
 
   describe "with pattern matching" do
-    xit "extracts matched blocks with post arguments" do
+    it "extracts matched blocks with post arguments" do
       proc do |(a, *b, c), d, e|
         [a, b, c, d, e]
       end.call([1, 2, 3, 4], 5, 6).should == [1, [2, 3], 4, 5, 6]
     end
 
-    xit "allows empty splats" do
+    it "allows empty splats" do
       proc do |a, (*), b|
         [a, b]
       end.call([1, 2, 3]).should == [1, 3]
