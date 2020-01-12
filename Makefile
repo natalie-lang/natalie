@@ -22,4 +22,4 @@ test: build
 	ruby test/all.rb
 
 cloc:
-	cloc --not-match-f=hashmap.* .
+	cloc --not-match-f=hashmap.* --exclude-dir=.cquery_cache .
