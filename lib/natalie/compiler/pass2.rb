@@ -90,20 +90,34 @@ module Natalie
         end
       end
 
-      def process_block_arg(arg)
-        if arg.is_a?(Sexp)
-          case arg.sexp_type
-          when :lasgn
-            default_value = p(arg[2])
-            arg = arg[1].to_s
-            [arg, default_value]
-          else
-            puts "warning: unknown arg sexp type: #{arg.inspect}"
-            ['dummy', nil]
-          end
+      def process_block_arg(exp, argc_name = 'argc', args_name = 'args')
+        (_, name, index, default) = exp
+        default ||= s(:nil)
+        if name.to_s.start_with?('*')
+          rest = temp('rest')
+          decl "NatObject *#{rest} = nat_array(env);"
+          decl "for (size_t i=#{index}; i<#{argc_name}; i++) {"
+          decl "nat_array_push(#{rest}, #{args_name}[i]);"
+          decl '}'
+          decl "env_set(env, #{name.to_s[1..-1].inspect}, #{rest});"
         else
-          [arg.to_s, nil]
+          decl "env_set(env, #{name.to_s.inspect}, #{index} < #{argc_name} ? #{args_name}[#{index}] : #{p(default)});"
         end
+        ''
+      end
+
+      def process_block_args(exp)
+        (_, *args) = exp
+        if args.size > 1
+          decl 'if (argc == 1 && args[0]->type == NAT_VALUE_ARRAY) {'
+          args.compact.each { |a| process_block_arg(a, 'args[0]->ary_len', 'args[0]->ary') }
+          decl '} else {'
+          args.compact.each { |a| p(a) }
+          decl '}'
+        else
+          args.compact.each { |a| p(a) }
+        end
+        ''
       end
 
       def process_break(_)
@@ -350,6 +364,10 @@ module Natalie
       def process_not(exp)
         (_, cond) = exp
         "!#{p cond}"
+      end
+
+      def process_NULL(_)
+        'NULL'
       end
 
       def process_s(exp)

@@ -209,11 +209,16 @@ module Natalie
         block_fn = temp('block_fn')
         block = block_fn.sub(/_fn/, '')
         call[call.size-1] = block
+        assign_args = if args_use_simple_mode?(args)
+                        rewrite(s(:masgn_in_args_simple, *args))
+                      else
+                        s(:nat_multi_assign_args, :env, :self, rewrite(s(:masgn_in_args_full, *args)), s(:nat_args_to_array, :env, :argc, :args))
+                      end
         exp.new(:block,
           s(:fn, block_fn,
             s(:block,
               s(:env_set_method_name, '<block>'),
-              s(:nat_multi_assign_args, :env, :self, rewrite(s(:masgn_in_args, *args)), s(:nat_args_to_array, :env, :argc, :args)),
+              assign_args,
               rewrite(s(:block, *body)))),
           s(:declare_block, block, s(:nat_block, :env, :self, block_fn)),
           call)
@@ -257,7 +262,7 @@ module Natalie
       
       def rewrite_masgn(exp)
         if context.detect { |c| c != :masgn } == :args
-          return exp.new(:masgn_in_args, *exp[1..-1])
+          return exp.new(:masgn_in_args_full, *exp[1..-1])
         end
         (_, names, vals) = exp
         vars = []
@@ -283,14 +288,14 @@ module Natalie
         end
       end
 
-      def rewrite_masgn_in_args(exp)
+      def rewrite_masgn_in_args_full(exp)
         (_, *names) = exp
         args = []
         names.each do |name|
           case name
           when Symbol
             args << s(:nat_symbol, :env, s(:s, name))
-            args << s(:nil)
+            args << s(:NULL)
           when Sexp
             case name.sexp_type
             when :shadow
@@ -301,14 +306,14 @@ module Natalie
               args << v
             else
               args << name
-              args << s(:nil)
+              args << s(:NULL)
             end
           when nil
             # we need this so nat_multi_assign_args knows to spread the values out
-            args << s(:nil)
-            args << s(:nil)
+            args << s(:NULL)
+            args << s(:NULL)
           else
-            raise "unknown arg type: #{name.expect}"
+            raise "unknown arg type: #{name.inspect}"
           end
         end
         args = exp.new(:array, *args)
@@ -316,6 +321,29 @@ module Natalie
         args = rewrite(args)
         context.pop
         args
+      end
+
+      def rewrite_masgn_in_args_simple(exp)
+        (_, *names) = exp
+        args = names.each_with_index.map do |name, index|
+          case name
+          when Symbol
+            s(:block_arg, name, index)
+          when Sexp
+            case name.sexp_type
+            when :shadow
+              puts "warning: unhandled arg type: #{name.inspect}"
+            when :env_set
+              (_, _, (_, name), default) = name
+              s(:block_arg, name, index, default)
+            end
+          when nil
+            nil
+          else
+            raise "unknown arg type: #{name.inspect}"
+          end
+        end
+        s(:block_args, *args)
       end
 
       def rewrite_module(exp)
@@ -414,6 +442,31 @@ module Natalie
       def temp(name)
         @var_num += 1
         "#{var_prefix}#{name}#{@var_num}"
+      end
+
+      def args_use_simple_mode?(names)
+        by_type = names.map do |name|
+          case name
+          when Symbol
+            if name.to_s.start_with?('*')
+              '*'
+            elsif name.to_s.start_with?('&')
+              '' # block arg is always last and can be ignored
+            else
+              'R'
+            end
+          when Sexp
+            case name.sexp_type
+            when :lasgn, :env_set
+              'D'
+            else
+              return false
+            end
+          end
+        end.join
+        return false if by_type =~ /\*./ # rest must be last
+        return false if by_type =~ /DR/  # defaulted must come after required
+        true
       end
     end
   end

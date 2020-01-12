@@ -987,72 +987,99 @@ void nat_handle_top_level_exception(NatEnv *env, int run_exit_handlers) {
     }
 }
 
-// names is an array of arg name followed by the arg default value, e.g. [:a, 'default', :b, nil, ...]
-// vals is the array of values of the assignment or passed to a block 
+void nat_multi_assign_defaults(NatEnv *env, NatObject *self, NatObject *names) {
+    for (int i=0; i<names->ary_len; i+=2) {
+        NatObject *name = names->ary[i];
+        NatObject *default_value = names->ary[i+1];
+        if (name->type == NAT_VALUE_SYMBOL) {
+            size_t name_len = strlen(name->symbol);
+            if (name->symbol[0] == '@') {
+                ivar_set(env, self, name->symbol, default_value ? default_value : env_get(env, "nil"));
+            } else if (name->symbol[0] == '*' && name_len >= 2 && name->symbol[1] == '@') {
+                ivar_set(env, self, name->symbol+1, default_value ? default_value : nat_array(env));
+            } else if (name->symbol[0] == '*') {
+                if (name_len == 1) continue; // empty splat ignored
+                env_set(env, name->symbol+1, default_value ? default_value : nat_array(env));
+            } else {
+                env_set(env, name->symbol, default_value ? default_value : env_get(env, "nil"));
+            }
+        } else if (name->type == NAT_VALUE_ARRAY) {
+            nat_multi_assign_defaults(env, self, name);
+        } else {
+            printf("don't yet know how to multi assign default for kind: %d\n", name->type);
+            abort();
+        }
+    }
+}
+
 NatObject *nat_multi_assign(NatEnv *env, NatObject *self, NatObject *names, NatObject *vals) {
     assert(names->type == NAT_VALUE_ARRAY);
     if (vals->type != NAT_VALUE_ARRAY && nat_respond_to(vals, "to_ary")) {
         vals = nat_send(env, vals, "to_ary", 0, NULL, NULL);
     }
-    size_t required_args_count = 0;
-    for (size_t i=0; i<names->ary_len; i+=2) {
-        if (names->ary[i + 1]->type == NAT_VALUE_NIL) {
-            required_args_count++;
+    if (vals->type != NAT_VALUE_ARRAY) {
+        NatObject *new_vals = nat_array(env);
+        nat_array_push(new_vals, vals);
+        vals = new_vals;
+    }
+    int arg_count = names->ary_len / 2;
+    int first_required = 0, req_arg_count = 0;
+    for (int i=0; i<names->ary_len; i+=2) {
+        if (names->ary[i+1] == NULL) {
+            req_arg_count++;
+            if (req_arg_count == 1) first_required = i/2;
         }
     }
-    if (vals->type == NAT_VALUE_ARRAY) {
-        int left_over = NAT_MAX(0, vals->ary_len - required_args_count);
-        int after_rest = FALSE;
-        for (size_t i=0; i<names->ary_len/2; i++) {
-            size_t name_index = i * 2;
-            NatObject *name = names->ary[name_index];
-            NatObject *default_value = names->ary[name_index + 1];
-            if (name->type == NAT_VALUE_SYMBOL) {
-                if (name->symbol[0] == '@') {
-                    ivar_set(env, self, name->symbol, i < vals->ary_len ? vals->ary[i] : default_value);
-                } else if (name->symbol[0] == '*') {
-                    after_rest = TRUE;
-                    NatObject *val = nat_array(env);
-                    for (size_t j=i; j<vals->ary_len-i; j++) {
-                        nat_array_push(val, vals->ary[j]);
-                    }
-                    env_set(env, name->symbol+1, val);
-                } else if (after_rest) {
-                    size_t ii = NAT_MAX(vals->ary_len - (names->ary_len/2) + i, i - 1);
-                    env_set(env, name->symbol, ii < vals->ary_len ? vals->ary[ii] : default_value);
-                } else {
-                    env_set(env, name->symbol, i < vals->ary_len ? vals->ary[i] : default_value);
-                }
-            } else if (name->type == NAT_VALUE_ARRAY) {
-                nat_multi_assign(env, self, name, i < vals->ary_len ? vals->ary[i] : default_value);
-            } else if (name->type == NAT_VALUE_NIL) {
-                // do nothing
-            } else {
-                printf("unknown multi assign kind: %d\n", name->type);
-                abort();
-            }
+    int arg_index = first_required;
+    int val_index = NAT_MIN(arg_index, NAT_MAX(0, (int)vals->ary_len - req_arg_count));
+    int args_available = names->ary_len / 2;
+    int vals_available = vals->ary_len;
+    // set defaults
+    nat_multi_assign_defaults(env, self, names);
+    // set arguments
+    while (1) {
+        if (args_available == 0 || vals_available == 0) break;
+        if (arg_index >= names->ary_len/2) {
+            arg_index = 0;
         }
-    } else {
-        for (size_t i=0; i<names->ary_len/2; i++) {
-            size_t name_index = i * 2;
-            NatObject *name = names->ary[name_index];
-            NatObject *default_value = names->ary[name_index + 1];
-            NatObject *value = (i == 0) ? vals : default_value;
-            if (name->type == NAT_VALUE_SYMBOL) {
-                if (name->symbol[0] == '@') {
-                    ivar_set(env, self, name->symbol, value);
-                } else {
-                    env_set(env, name->symbol, value);
-                }
-            } else if (name->type == NAT_VALUE_ARRAY) {
-                nat_multi_assign(env, self, name, value);
-            } else if (name->type == NAT_VALUE_NIL) {
-                // do nothing
-            } else {
-                printf("unknown multi assign kind: %d\n", name->type);
-                abort();
-            }
+        if (val_index >= arg_count) {
+            val_index = 0;
         }
+        NatObject *name = names->ary[arg_index*2];
+        args_available--;
+        if (name->type == NAT_VALUE_SYMBOL) {
+            size_t name_len = strlen(name->symbol);
+            if (name->symbol[0] == '@') {
+                ivar_set(env, self, name->symbol, vals->ary[val_index]);
+                val_index++;
+                vals_available--;
+            } else if (name->symbol[0] == '*') {
+                if (name_len == 1) continue; // empty splat ignored
+                NatObject *array = nat_array(env);
+                if (name->symbol[1] == '@') {
+                    ivar_set(env, self, name->symbol+1, array);
+                } else {
+                    env_set(env, name->symbol+1, array);
+                }
+                while (args_available < vals_available) {
+                    nat_array_push(array, vals->ary[val_index]);
+                    val_index++;
+                    vals_available--;
+                }
+            } else {
+                env_set(env, name->symbol, vals->ary[val_index]);
+                val_index++;
+                vals_available--;
+            }
+        } else if (name->type == NAT_VALUE_ARRAY) {
+            nat_multi_assign(env, self, name, vals->ary[val_index]);
+            val_index++;
+            vals_available--;
+        } else {
+            printf("don't yet know how to multi assign kind: %d\n", name->type);
+            abort();
+        }
+        arg_index++;
     }
     return vals;
 }
@@ -1061,14 +1088,17 @@ NatObject *nat_multi_assign(NatEnv *env, NatObject *self, NatObject *names, NatO
 
 NatObject *nat_multi_assign_args(NatEnv *env, NatObject *self, NatObject *names, NatObject *vals) {
     assert(names->type == NAT_VALUE_ARRAY);
-    if (vals->type != NAT_VALUE_ARRAY && nat_respond_to(vals, "to_ary")) {
-        vals = nat_send(env, vals, "to_ary", 0, NULL, NULL);
+    assert(vals->type == NAT_VALUE_ARRAY);
+    if (vals->ary_len == 1 && names->ary_len > NAT_ONE_ARG) {
+        NatObject *first = vals->ary[0];
+        if (first->type == NAT_VALUE_ARRAY) {
+            return nat_multi_assign(env, self, names, first);
+        } else if (nat_respond_to(first, "to_ary")) {
+            first = nat_send(env, first, "to_ary", 0, NULL, NULL);
+            return nat_multi_assign(env, self, names, first);
+        }
     }
-    if (vals->type == NAT_VALUE_ARRAY && vals->ary_len == 1 && names->ary_len > NAT_ONE_ARG) {
-        return nat_multi_assign(env, self, names, vals->ary[0]);
-    } else {
-        return nat_multi_assign(env, self, names, vals);
-    }
+    return nat_multi_assign(env, self, names, vals);
 }
 
 NatObject *nat_args_to_array(NatEnv *env, size_t argc, NatObject **args) {
