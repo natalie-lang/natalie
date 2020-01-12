@@ -57,7 +57,7 @@ NatEnv *build_env(NatEnv *outer) {
         env->next_object_id = malloc(sizeof(uint64_t));
         *env->next_object_id = 1;
     }
-    hashmap_init(&env->data, hashmap_hash_string, hashmap_compare_string, 100);
+    hashmap_init(&env->data, hashmap_hash_string, hashmap_compare_string, 10);
     hashmap_set_key_alloc_funcs(&env->data, hashmap_alloc_key_string, NULL);
     return env;
 }
