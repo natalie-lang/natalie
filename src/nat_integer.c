@@ -69,3 +69,16 @@ NatObject *Integer_eqeqeq(NatEnv *env, NatObject *self, size_t argc, NatObject *
         return env_get(env, "false");
     }
 }
+
+NatObject *Integer_times(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    assert(self->type == NAT_VALUE_INTEGER);
+    NAT_ASSERT_ARGC(0);
+    assert(self->integer >= 0);
+    assert(block);
+    NatObject *num;
+    for (size_t i=0; i<self->integer; i++) {
+        num = nat_integer(env, i);
+        nat_run_block(env, block, 1, &num, NULL, NULL);
+    }
+    return self;
+}
