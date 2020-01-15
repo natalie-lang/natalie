@@ -42,20 +42,20 @@ NatEnv *build_env(NatEnv *outer) {
     env->line = 0;
     env->method_name = NULL;
     if (outer) {
-        env->globals = outer->globals;
-        env->symbols = outer->symbols;
-        env->next_object_id = outer->next_object_id;
+        env->global_env = outer->global_env;
     } else {
+        NatGlobalEnv *global_env = malloc(sizeof(NatGlobalEnv));
         struct hashmap *global_table = malloc(sizeof(struct hashmap));
         hashmap_init(global_table, hashmap_hash_string, hashmap_compare_string, 100);
         hashmap_set_key_alloc_funcs(global_table, hashmap_alloc_key_string, NULL);
-        env->globals = global_table;
+        global_env->globals = global_table;
         struct hashmap *symbol_table = malloc(sizeof(struct hashmap));
         hashmap_init(symbol_table, hashmap_hash_string, hashmap_compare_string, 100);
         hashmap_set_key_alloc_funcs(symbol_table, hashmap_alloc_key_string, NULL);
-        env->symbols = symbol_table;
-        env->next_object_id = malloc(sizeof(uint64_t));
-        *env->next_object_id = 1;
+        global_env->symbols = symbol_table;
+        global_env->next_object_id = malloc(sizeof(uint64_t));
+        *global_env->next_object_id = 1;
+        env->global_env = global_env;
     }
     hashmap_init(&env->data, hashmap_hash_string, hashmap_compare_string, 10);
     hashmap_set_key_alloc_funcs(&env->data, hashmap_alloc_key_string, NULL);
@@ -156,7 +156,7 @@ NatObject *global_get(NatEnv *env, char *name) {
     if(name[0] != '$') {
         NAT_RAISE(env, env_get(env, "NameError"), "`%s' is not allowed as an global variable name", name);
     }
-    NatObject *val = hashmap_get(env->globals, name);
+    NatObject *val = hashmap_get(env->global_env->globals, name);
     if (val) {
         return val;
     } else {
@@ -169,8 +169,8 @@ NatObject *global_set(NatEnv *env, char *name, NatObject *val) {
     if(name[0] != '$') {
         NAT_RAISE(env, env_get(env, "NameError"), "`%s' is not allowed as an global variable name", name);
     }
-    hashmap_remove(env->globals, name);
-    hashmap_put(env->globals, name, val);
+    hashmap_remove(env->global_env->globals, name);
+    hashmap_put(env->global_env->globals, name, val);
     return val;
 }
 
@@ -278,15 +278,15 @@ NatObject *nat_string(NatEnv *env, char *str) {
 }
 
 NatObject *nat_symbol(NatEnv *env, char *name) {
-    NatObject *symbol = hashmap_get(env->symbols, name);
+    NatObject *symbol = hashmap_get(env->global_env->symbols, name);
     if (symbol) {
         return symbol;
     } else {
         symbol = nat_new(env, env_get(env, "Symbol"), 0, NULL, NULL, NULL);
         symbol->type = NAT_VALUE_SYMBOL;
         symbol->symbol = name;
-        hashmap_remove(env->symbols, name);
-        hashmap_put(env->symbols, name, symbol);
+        hashmap_remove(env->global_env->symbols, name);
+        hashmap_put(env->global_env->symbols, name, symbol);
         return symbol;
     }
 }
@@ -797,7 +797,7 @@ char *nat_object_pointer_id(NatObject *obj) {
 }
 
 uint64_t nat_next_object_id(NatEnv *env) {
-    return (*env->next_object_id)++;
+    return (*env->global_env->next_object_id)++;
 }
 
 void nat_grow_string(NatObject *obj, size_t capacity) {

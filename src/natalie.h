@@ -30,6 +30,7 @@
 #define FALSE 0
 
 typedef struct NatObject NatObject;
+typedef struct NatGlobalEnv NatGlobalEnv;
 typedef struct NatEnv NatEnv;
 typedef struct NatBlock NatBlock;
 typedef struct NatMethod NatMethod;
@@ -37,11 +38,15 @@ typedef struct NatHashKeyListNode NatHashKeyListNode;
 typedef struct NatHashKeyListNode NatHashIter;
 typedef struct NatHashValueContainer NatHashValueContainer;
 
-struct NatEnv {
-    struct hashmap data;
+struct NatGlobalEnv {
     struct hashmap *globals;
     struct hashmap *symbols;
     uint64_t *next_object_id;
+};
+
+struct NatEnv {
+    NatGlobalEnv *global_env;
+    struct hashmap data;
     NatEnv *outer;
     int block;
     jmp_buf *jump_buf;
