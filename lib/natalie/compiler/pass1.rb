@@ -102,48 +102,42 @@ module Natalie
         exp.new(:nat_lookup, :env, s(:s, name))
       end
 
-      def rewrite_defn(exp)
+      def rewrite_defn_internal(exp)
         (_, name, (_, *args), *body) = exp
         name = name.to_s
-        fn = temp('fn')
-        arg_names = args.map { |a| a.is_a?(Sexp) ? a[1] : a }
-        arg_defaults = args.select { |a| a.is_a?(Sexp) && a.sexp_type == :lasgn }
-        non_block_arg_count = arg_names.grep_v(/^\&/).size
-        regular_arg_count = non_block_arg_count - arg_defaults.size
-        splat_arg_index = arg_names.index { |a| a =~ /^\*/ }
-        argc_assert = if splat_arg_index
-                        s(:NAT_ASSERT_ARGC_AT_LEAST, splat_arg_index - arg_defaults.size)
-                      elsif regular_arg_count == non_block_arg_count
-                        s(:NAT_ASSERT_ARGC, regular_arg_count)
+        fn_name = temp('fn')
+        if args.last&.to_s&.start_with?('&')
+          block_arg = exp.new(:env_set, :env, s(:s, args.pop.to_s[1..-1]), s(:nat_proc, :env, 'block'))
+        end
+        assign_args = if args_use_simple_mode?(args)
+                        rewrite(s(:masgn_in_args_simple, *args))
                       else
-                        s(:NAT_ASSERT_ARGC, regular_arg_count, regular_arg_count + arg_defaults.size)
+                        s(:nat_multi_assign_args, :env, :self, rewrite(s(:masgn_in_args_full, *args)), :argc, :args)
                       end
+        exp.new(:fn, fn_name,
+          s(:block,
+            s(:env_set, :env, s(:s, '__method__'), s(:nat_string, :env, s(:s, name))),
+            s(:env_set_method_name, name),
+            assign_args,
+            block_arg || s(:block),
+            rewrite(s(:block, *body))))
+      end
+
+      def rewrite_defn(exp)
+        (_, name, args, *body) = exp
+        fn = rewrite_defn_internal(exp)
         exp.new(:block,
-          s(:fn, fn,
-            s(:block,
-              argc_assert,
-              s(:env_set, :env, s(:s, '__method__'), s(:nat_string, :env, s(:s, name))),
-              s(:env_set_method_name, name),
-              s(:block, *arg_defaults.map { |a| rewrite(a) }),
-              s(:method_args, *arg_names),
-              rewrite(s(:block, *body)))),
-          s(:nat_define_method, :self, s(:s, name), fn),
+          fn,
+          s(:nat_define_method, :self, s(:s, name), fn[1]),
           s(:nat_symbol, :env, s(:s, name)))
       end
 
       def rewrite_defs(exp)
-        (_, owner, name, (_, *args), *body) = exp
-        name = name.to_s
-        fn = temp('fn')
-        non_block_args = args.grep_v(/^\&/)
+        (_, owner, name, args, *body) = exp
+        fn = rewrite_defn_internal(exp.new(:defs, name, args, *body))
         exp.new(:block,
-          s(:fn, fn,
-            s(:block,
-              s(:NAT_ASSERT_ARGC, non_block_args.size),
-              s(:env_set, :env, s(:s, '__method__'), s(:nat_string, :env, s(:s, name))),
-              s(:method_args, *args),
-              rewrite(s(:block, *body)))),
-          s(:nat_define_singleton_method, :env, owner, s(:s, name), fn),
+          fn,
+          s(:nat_define_singleton_method, :env, owner, s(:s, name), fn[1]),
           s(:nat_symbol, :env, s(:s, name)))
       end
 

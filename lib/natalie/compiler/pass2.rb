@@ -267,25 +267,6 @@ module Natalie
         process_fn(exp, 2)
       end
 
-      def process_method_args(exp)
-        (_, *args) = exp
-        args.each_with_index do |arg, index|
-          if arg.to_s.start_with?('&')
-            decl "env_set(env, #{arg.to_s[1..-1].inspect}, nat_proc(env, block));"
-          elsif arg.to_s.start_with?('*')
-            var = temp('args')
-            decl "NatObject *#{var} = nat_array(env);"
-            decl "for (size_t i=#{index}; i<argc; i++) {"
-            decl "nat_array_push(#{var}, args[i]);"
-            decl '}'
-            decl "env_set(env, #{arg.to_s[1..-1].inspect}, #{var});"
-          else
-            decl "if (#{index} < argc) env_set(env, #{arg.to_s.inspect}, args[#{index}]);"
-          end
-        end
-        ''
-      end
-
       def process_nat_call(exp)
         (_, fn, *args) = exp
         if VOID_FUNCTIONS.include?(fn)
