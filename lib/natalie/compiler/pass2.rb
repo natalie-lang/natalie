@@ -91,26 +91,29 @@ module Natalie
       end
 
       def process_block_arg(exp, argc_name = 'argc', args_name = 'args')
-        (_, name, index, default) = exp
+        (_, index, type, default) = exp
         default ||= s(:nil)
-        if name.to_s.start_with?('*')
+        if type == :rest
           rest = temp('rest')
           decl "NatObject *#{rest} = nat_array(env);"
           decl "for (size_t i=#{index}; i<#{argc_name}; i++) {"
           decl "nat_array_push(#{rest}, #{args_name}[i]);"
           decl '}'
-          decl "env_set(env, #{name.to_s[1..-1].inspect}, #{rest});"
+          rest
         else
-          decl "env_set(env, #{name.to_s.inspect}, #{index} < #{argc_name} ? #{args_name}[#{index}] : #{p(default)});"
+          "#{index} < #{argc_name} ? #{args_name}[#{index}] : #{p(default)}"
         end
-        ''
       end
 
       def process_block_args(exp)
         (_, *args) = exp
         if args.size > 1
           decl 'if (argc == 1 && args[0]->type == NAT_VALUE_ARRAY) {'
-          args.compact.each { |a| process_block_arg(a, 'args[0]->ary_len', 'args[0]->ary') }
+          args.compact.each do |arg|
+            arg = arg.dup
+            arg_value = process_block_arg(arg.pop, 'args[0]->ary_len', 'args[0]->ary')
+            p(arg << arg_value)
+          end
           decl '} else {'
           args.compact.each { |a| p(a) }
           decl '}'

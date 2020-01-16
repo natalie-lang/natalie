@@ -322,14 +322,18 @@ module Natalie
         args = names.each_with_index.map do |name, index|
           case name
           when Symbol
-            s(:block_arg, name, index)
+            if name.to_s.start_with?('*')
+              s(:env_set, :env, s(:s, name.to_s[1..-1]), s(:block_arg, index, :rest))
+            else
+              s(:env_set, :env, s(:s, name), s(:block_arg, index, :single))
+            end
           when Sexp
             case name.sexp_type
             when :shadow
               puts "warning: unhandled arg type: #{name.inspect}"
             when :env_set
               (_, _, (_, name), default) = name
-              s(:block_arg, name, index, default)
+              s(:env_set, :env, s(:s, name), s(:block_arg, index, :single, default))
             end
           when nil
             nil
