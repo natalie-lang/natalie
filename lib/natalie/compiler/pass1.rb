@@ -121,9 +121,9 @@ module Natalie
           block_arg = exp.new(:env_set, :env, s(:s, args.pop.to_s[1..-1]), s(:nat_proc, :env, 'block'))
         end
         assign_args = if args_use_simple_mode?(args)
-                        process(s(:masgn_in_args_simple, *args))
+                        exp.new(:assign_args, *prepare_masgn_simple(args))
                       else
-                        s(:nat_multi_assign_args, :env, :self, process(s(:masgn_in_args_full, *args)), :argc, :args)
+                        raise "We do not yet support complicated args like this, sorry! #{args.inspect}"
                       end
         exp.new(:fn, fn_name,
           s(:block,
@@ -215,9 +215,9 @@ module Natalie
         call = process(call)
         call[call.size-1] = block
         assign_args = if args_use_simple_mode?(args)
-                        process(s(:masgn_in_args_simple, *args))
+                        exp.new(:assign_args, *prepare_masgn_simple(args))
                       else
-                        s(:nat_multi_assign_args, :env, :self, process(s(:masgn_in_args_full, *args)), :argc, :args)
+                        raise "We do not yet support complicated args like this, sorry! #{args.inspect}"
                       end
         exp.new(:block,
           s(:fn, block_fn,
@@ -261,77 +261,25 @@ module Natalie
       end
       
       def process_masgn(exp)
-        if context[0..2] == [:masgn, :array, :masgn_in_args_full]
-          return process(exp.new(:masgn_in_args_full, *exp[1..-1]))
-        end
-        (_, names, vals) = exp
-        vars = []
-        names[1..-1].each do |e|
-          case e.sexp_type
-          when :lasgn, :iasgn
-            vars << s(:nat_symbol, :env, s(:s, e.last))
-            vars << s(:nil)
-          else
-            vars << e
-            vars << s(:nil)
-          end
-        end
-        vars = exp.new(:array, *vars)
-        context.push(:nat_masgn)
-        vars = process(vars)
-        context.pop
-        if vals
-          raise "unknown masgn val type: #{vals.sexp_type}" unless vals.sexp_type == :to_ary
-          exp.new(:nat_multi_assign, :env, :self, vars, process(vals.last))
+        (_, names, val) = exp
+        names = names[1..-1]
+        val = val.last if val.sexp_type == :to_ary
+        val_name = temp('assign_val')
+        if args_use_simple_mode?(names)
+          s(:assign, process(val), *prepare_masgn_simple(names))
         else
-          vars
+          raise "We do not yet support complicated args like this, sorry! #{names.inspect}"
         end
       end
 
-      def process_masgn_in_args_full(exp)
-        (_, *names) = exp
-        args = []
-        names.each do |name|
-          case name
-          when Symbol
-            args << s(:nat_symbol, :env, s(:s, name))
-            args << s(:NULL)
-          when Sexp
-            case name.sexp_type
-            when :shadow
-              puts "warning: unhandled arg type: #{name.inspect}"
-            when :lasgn, :iasgn
-              (_, n, v) = name
-              args << s(:nat_symbol, :env, s(:s, n))
-              args << process(v)
-            else
-              args << name
-              args << s(:NULL)
-            end
-          when nil
-            # we need this so nat_multi_assign_args knows to spread the values out
-            args << s(:NULL)
-            args << s(:NULL)
-          else
-            raise "unknown arg type: #{name.inspect}"
-          end
-        end
-        args = exp.new(:array, *args)
-        context.push(:nat_masgn_in_args)
-        args = process(args)
-        context.pop
-        args
-      end
-
-      def process_masgn_in_args_simple(exp)
-        (_, *names) = exp
+      def prepare_masgn_simple(names)
         args = names.each_with_index.map do |name, index|
           case name
           when Symbol
             if name.to_s.start_with?('*')
-              s(:env_set, :env, s(:s, name.to_s[1..-1]), s(:block_arg, index, :rest))
+              s(:env_set, :env, s(:s, name.to_s[1..-1]), s(:assign_val, index, :rest))
             else
-              s(:env_set, :env, s(:s, name), s(:block_arg, index, :single))
+              s(:env_set, :env, s(:s, name), s(:assign_val, index, :single))
             end
           when Sexp
             case name.sexp_type
@@ -339,7 +287,10 @@ module Natalie
               puts "warning: unhandled arg type: #{name.inspect}"
             when :lasgn, :iasgn
               (_, name, default) = name
-              s(:env_set, :env, s(:s, name), s(:block_arg, index, :single, process(default)))
+              s(:env_set, :env, s(:s, name), s(:assign_val, index, :single, process(default)))
+            when :splat
+              (_, (_, name)) = name
+              s(:env_set, :env, s(:s, name), s(:assign_val, index, :rest, process(default)))
             else
               raise "unknown arg type: #{name.inspect}"
             end
@@ -349,7 +300,7 @@ module Natalie
             raise "unknown arg type: #{name.inspect}"
           end
         end
-        s(:block_args, *args)
+        args
       end
 
       def process_module(exp)

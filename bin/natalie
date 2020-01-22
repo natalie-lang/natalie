@@ -9,8 +9,13 @@ options = { load_path: [] }
 OptionParser.new do |opts|
   opts.banner = 'Usage: natalie [options] file.nat'
 
-  opts.on('-d', '--debug', 'Show debug output') do |_d|
-    ENV['DEBUG'] = 'true'
+  opts.on('-d [level]', '--debug [level]', 'Show debug output') do |level|
+    case level
+    when 'p1'
+      ENV['DEBUG_PASS1'] = 'true'
+    else
+      ENV['DEBUG'] = 'true'
+    end
   end
 
   opts.on('-e one-line-script', 'Execute one-line script') do |e|

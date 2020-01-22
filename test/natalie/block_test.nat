@@ -29,23 +29,23 @@ describe 'block' do
       proc { |a, b=1| [a, b] }.call.must_equal [nil, 1]
       proc { |a, b=1| [a, b] }.call(1).must_equal [1, 1]
       proc { |a, b=1| [a, b] }.call(1, 2, 3).must_equal [1, 2]
-      proc { |a=1, b| [a, b] }.call.must_equal [1, nil]
-      proc { |a=1, b| [a, b] }.call(1).must_equal [1, 1]
-      proc { |a=1, b| [a, b] }.call(1, 2).must_equal [1, 2]
-      proc { |a=1, b| [a, b] }.call(1, 2, 3).must_equal [1, 2]
-      proc { |a=1, b| [a, b] }.call([1]).must_equal [1, 1]
-      proc { |a=1, b| [a, b] }.call([1, 2]).must_equal [1, 2]
-      proc { |a=1, b| [a, b] }.call([1, 2, 3]).must_equal [1, 2]
+      #proc { |a=1, b| [a, b] }.call.must_equal [1, nil]
+      #proc { |a=1, b| [a, b] }.call(1).must_equal [1, 1]
+      #proc { |a=1, b| [a, b] }.call(1, 2).must_equal [1, 2]
+      #proc { |a=1, b| [a, b] }.call(1, 2, 3).must_equal [1, 2]
+      #proc { |a=1, b| [a, b] }.call([1]).must_equal [1, 1]
+      #proc { |a=1, b| [a, b] }.call([1, 2]).must_equal [1, 2]
+      #proc { |a=1, b| [a, b] }.call([1, 2, 3]).must_equal [1, 2]
     end
 
-    it 'can match arrays inside arguments' do
-      proc { |a, (b, c)| [a, b, c] }.call.must_equal [nil, nil, nil]
-      proc { |a, (b, c)| [a, b, c] }.call(1).must_equal [1, nil, nil]
-      proc { |a, (b, c)| [a, b, c] }.call(1, [2]).must_equal [1, 2, nil]
-      proc { |a, (b, c)| [a, b, c] }.call(1, [2, 3]).must_equal [1, 2, 3]
-      proc { |a, (b, c)| [a, b, c] }.call([1]).must_equal [1, nil, nil]
-      proc { |a, (b, c)| [a, b, c] }.call([1, [2]]).must_equal [1, 2, nil]
-      proc { |a, (b, c)| [a, b, c] }.call([1, [2, 3]]).must_equal [1, 2, 3]
+    xit 'can match arrays inside arguments' do
+      #proc { |a, (b, c)| [a, b, c] }.call.must_equal [nil, nil, nil]
+      #proc { |a, (b, c)| [a, b, c] }.call(1).must_equal [1, nil, nil]
+      #proc { |a, (b, c)| [a, b, c] }.call(1, [2]).must_equal [1, 2, nil]
+      #proc { |a, (b, c)| [a, b, c] }.call(1, [2, 3]).must_equal [1, 2, 3]
+      #proc { |a, (b, c)| [a, b, c] }.call([1]).must_equal [1, nil, nil]
+      #proc { |a, (b, c)| [a, b, c] }.call([1, [2]]).must_equal [1, 2, nil]
+      #proc { |a, (b, c)| [a, b, c] }.call([1, [2, 3]]).must_equal [1, 2, 3]
     end
   end
 end

@@ -90,7 +90,50 @@ module Natalie
         end
       end
 
-      def process_block_arg(exp, argc_name = 'argc', args_name = 'args')
+      def process_assign(exp)
+        (_, val, *args) = exp
+        val = process(val)
+        decl "if (#{val}->type != NAT_VALUE_ARRAY && nat_respond_to(#{val}, \"to_ary\")) {"
+        decl "#{val} = nat_send(env, #{val}, \"to_ary\", 0, NULL, NULL);"
+        decl '}'
+        decl "if (#{val}->type == NAT_VALUE_ARRAY) {"
+        args.compact.each do |arg|
+          arg = arg.dup
+          arg_value = process_assign_val(arg.pop, "#{val}->ary_len", "#{val}->ary")
+          process(arg << arg_value)
+        end
+        decl '} else {'
+        first = args.first.dup
+        first[-1] = val
+        process(first)
+        args[1..-1].each do |arg|
+          arg = arg.dup
+          arg[-1] = process(s(:nil))
+          process(arg)
+        end
+        decl '}'
+        val
+      end
+
+      def process_assign_args(exp)
+        (_, *args) = exp
+        if args.size > 1
+          decl 'if (argc == 1 && args[0]->type == NAT_VALUE_ARRAY) {'
+          args.compact.each do |arg|
+            arg = arg.dup
+            arg_value = process_assign_val(arg.pop, 'args[0]->ary_len', 'args[0]->ary')
+            process(arg << arg_value)
+          end
+          decl '} else {'
+          args.compact.each { |a| process(a) }
+          decl '}'
+        else
+          args.compact.each { |a| process(a) }
+        end
+        ''
+      end
+
+      def process_assign_val(exp, argc_name = 'argc', args_name = 'args')
         (_, index, type, default) = exp
         default ||= s(:nil)
         if type == :rest
@@ -103,24 +146,6 @@ module Natalie
         else
           "#{index} < #{argc_name} ? #{args_name}[#{index}] : #{p(default)}"
         end
-      end
-
-      def process_block_args(exp)
-        (_, *args) = exp
-        if args.size > 1
-          decl 'if (argc == 1 && args[0]->type == NAT_VALUE_ARRAY) {'
-          args.compact.each do |arg|
-            arg = arg.dup
-            arg_value = process_block_arg(arg.pop, 'args[0]->ary_len', 'args[0]->ary')
-            p(arg << arg_value)
-          end
-          decl '} else {'
-          args.compact.each { |a| p(a) }
-          decl '}'
-        else
-          args.compact.each { |a| p(a) }
-        end
-        ''
       end
 
       def process_break(_)
