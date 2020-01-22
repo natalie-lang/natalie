@@ -24,16 +24,16 @@ NatObject *Module_eqeqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **
     NAT_ASSERT_ARGC(1);
     NatObject *arg = args[0];
     if (nat_is_a(env, arg, self)) {
-        return nat_var_get(env, "true");
+        return true_obj;
     } else {
-        return nat_var_get(env, "false");
+        return false_obj;
     }
 }
 
 NatObject *Module_name(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     assert(self->type == NAT_VALUE_MODULE || self->type == NAT_VALUE_CLASS);
     NAT_ASSERT_ARGC(0);
-    return self->class_name ? nat_string(env, self->class_name) : nat_var_get(env, "nil");
+    return self->class_name ? nat_string(env, self->class_name) : nil;
 }
 
 NatObject *Module_ancestors(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
@@ -54,7 +54,7 @@ NatObject *Module_attr_reader(NatEnv *env, NatObject *self, size_t argc, NatObje
         NatBlock *block = nat_block(block_env, self, Module_attr_reader_block_fn);
         nat_define_method_with_block(self, name_obj->str, block);
     }
-    return nat_var_get(env, "nil");
+    return nil;
 }
 
 NatObject *Module_attr_reader_block_fn(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
@@ -79,7 +79,7 @@ NatObject *Module_attr_writer(NatEnv *env, NatObject *self, size_t argc, NatObje
         NatBlock *block = nat_block(block_env, self, Module_attr_writer_block_fn);
         nat_define_method_with_block(self, method_name->str, block);
     }
-    return nat_var_get(env, "nil");
+    return nil;
 }
 
 NatObject *Module_attr_writer_block_fn(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
@@ -96,7 +96,7 @@ NatObject *Module_attr_accessor(NatEnv *env, NatObject *self, size_t argc, NatOb
     NAT_ASSERT_ARGC_AT_LEAST(1);
     Module_attr_reader(env, self, argc, args, kwargs, block);
     Module_attr_writer(env, self, argc, args, kwargs, block);
-    return nat_var_get(env, "nil");
+    return nil;
 }
 
 NatObject *Module_include(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {

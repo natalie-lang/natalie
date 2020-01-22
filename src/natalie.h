@@ -17,9 +17,9 @@
 
 #define NAT_RESCUE(env) setjmp(*(env->jump_buf = malloc(sizeof(jmp_buf))))
 #define NAT_RAISE(env, klass, message_format, ...) nat_raise(env, klass, message_format, ##__VA_ARGS__); abort();
-#define NAT_ASSERT_ARGC1(expected) if(argc != expected) { NAT_RAISE(env, nat_var_get(env, "ArgumentError"), "wrong number of arguments (given %d, expected %d)", argc, expected); }
-#define NAT_ASSERT_ARGC2(expected_low, expected_high) if(argc < expected_low || argc > expected_high) { NAT_RAISE(env, nat_var_get(env, "ArgumentError"), "wrong number of arguments (given %d, expected %d..%d)", argc, expected_low, expected_high); }
-#define NAT_ASSERT_ARGC_AT_LEAST(expected) if(argc < expected) { NAT_RAISE(env, nat_var_get(env, "ArgumentError"), "wrong number of arguments (given %d, expected %d+)", argc, expected); }
+#define NAT_ASSERT_ARGC1(expected) if(argc != expected) { NAT_RAISE(env, ArgumentError, "wrong number of arguments (given %d, expected %d)", argc, expected); }
+#define NAT_ASSERT_ARGC2(expected_low, expected_high) if(argc < expected_low || argc > expected_high) { NAT_RAISE(env, ArgumentError, "wrong number of arguments (given %d, expected %d..%d)", argc, expected_low, expected_high); }
+#define NAT_ASSERT_ARGC_AT_LEAST(expected) if(argc < expected) { NAT_RAISE(env, ArgumentError, "wrong number of arguments (given %d, expected %d+)", argc, expected); }
 #define GET_MACRO(_1, _2, NAME, ...) NAME
 #define NAT_ASSERT_ARGC(...) GET_MACRO(__VA_ARGS__, NAT_ASSERT_ARGC2, NAT_ASSERT_ARGC1)(__VA_ARGS__)
 #define NAT_UNREACHABLE() fprintf(stderr, "panic: unreachable\n"); abort();
@@ -167,6 +167,35 @@ struct NatObject {
         };
     };
 };
+
+// built-in constants
+NatObject *ArgumentError,
+          *Array,
+          *BasicObject,
+          *Class,
+          *Comparable,
+          *Exception,
+          *FalseClass,
+          *Hash,
+          *Integer,
+          *Kernel,
+          *Module,
+          *NameError,
+          *NilClass,
+          *NoMethodError,
+          *Numeric,
+          *Object,
+          *Proc,
+          *RuntimeError,
+          *StandardError,
+          *String,
+          *SystemExit,
+          *Symbol,
+          *TrueClass,
+          *TypeError,
+          *false_obj,
+          *nil,
+          *true_obj;
 
 int nat_is_constant_name(char *name);
 int nat_is_special_name(char *name);

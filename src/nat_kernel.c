@@ -13,7 +13,7 @@ NatObject *Kernel_puts(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
             printf("%s\n", str->str);
         }
     }
-    return nat_var_get(env, "nil");
+    return nil;
 }
 
 NatObject *Kernel_print(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
@@ -25,12 +25,12 @@ NatObject *Kernel_print(NatEnv *env, NatObject *self, size_t argc, NatObject **a
             printf("%s", str->str);
         }
     }
-    return nat_var_get(env, "nil");
+    return nil;
 }
 
 NatObject *Kernel_p(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     if (argc == 0) {
-        return nat_var_get(env, "nil");
+        return nil;
     } else if (argc == 1) {
         NatObject *arg = nat_send(env, args[0], "inspect", 0, NULL, NULL);
         Kernel_puts(env, self, 1, &arg, NULL, NULL);
@@ -70,15 +70,15 @@ NatObject *Kernel_equal(NatEnv *env, NatObject *self, size_t argc, NatObject **a
     NAT_ASSERT_ARGC(1);
     NatObject *arg = args[0];
     if (self == arg) {
-        return nat_var_get(env, "true");
+        return true_obj;
     } else {
-        return nat_var_get(env, "false");
+        return false_obj;
     }
 }
 
 NatObject *Kernel_class(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
-    return self->klass ? self->klass : nat_var_get(env, "nil");
+    return self->klass ? self->klass : nil;
 }
 
 NatObject *Kernel_singleton_class(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
@@ -117,13 +117,13 @@ NatObject *Kernel_raise(NatEnv *env, NatObject *self, size_t argc, NatObject **a
             klass = arg;
             message = nat_string(env, arg->class_name);
         } else if (arg->type == NAT_VALUE_STRING) {
-            klass = nat_var_get(env, "RuntimeError");
+            klass = RuntimeError;
             message = arg;
-        } else if (nat_is_a(env, arg, nat_var_get(env, "Exception"))) {
+        } else if (nat_is_a(env, arg, Exception)) {
             nat_raise_exception(env, arg);
             abort();
         } else {
-            NAT_RAISE(env, nat_var_get(env, "TypeError"), "exception klass/object expected");
+            NAT_RAISE(env, TypeError, "exception klass/object expected");
         }
     }
     NAT_RAISE(env, klass, message->str);
@@ -138,12 +138,12 @@ NatObject *Kernel_respond_to(NatEnv *env, NatObject *self, size_t argc, NatObjec
     } else if (symbol->type == NAT_VALUE_STRING) {
         name = symbol->str;
     } else {
-        return nat_var_get(env, "false");
+        return false_obj;
     }
     if (nat_respond_to(self, name)) {
-        return nat_var_get(env, "true");
+        return true_obj;
     } else {
-        return nat_var_get(env, "false");
+        return false_obj;
     }
 }
 
@@ -172,10 +172,10 @@ NatObject *Kernel_exit(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     } else {
         status = nat_integer(env, 0);
     }
-    NatObject *exception = nat_exception(env, nat_var_get(env, "SystemExit"), "exit");
+    NatObject *exception = nat_exception(env, SystemExit, "exit");
     nat_ivar_set(env, exception, "@status", status);
     nat_raise_exception(env, exception);
-    return nat_var_get(env, "nil");
+    return nil;
 }
 
 NatObject *Kernel_at_exit(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
@@ -192,9 +192,9 @@ NatObject *Kernel_is_a(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     NatObject *klass_or_module = args[0];
     assert(klass_or_module->type == NAT_VALUE_CLASS || klass_or_module->type == NAT_VALUE_MODULE);
     if (nat_is_a(env, self, klass_or_module)) {
-        return nat_var_get(env, "true");
+        return true_obj;
     } else {
-        return nat_var_get(env, "false");
+        return false_obj;
     }
 }
 

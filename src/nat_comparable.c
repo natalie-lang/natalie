@@ -8,9 +8,9 @@ NatObject *Comparable_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject 
     NAT_ASSERT_ARGC(1);
     NatObject *result = nat_send(env, self, "<=>", argc, args, NULL);
     if (result->type == NAT_VALUE_INTEGER && result->integer == 0) {
-        return nat_var_get(env, "true");
+        return true_obj;
     } else {
-        return nat_var_get(env, "false");
+        return false_obj;
     }
 }
 
@@ -18,9 +18,9 @@ NatObject *Comparable_neq(NatEnv *env, NatObject *self, size_t argc, NatObject *
     NAT_ASSERT_ARGC(1);
     NatObject *result = nat_send(env, self, "<=>", argc, args, NULL);
     if (result->type == NAT_VALUE_INTEGER && result->integer == 0) {
-        return nat_var_get(env, "false");
+        return false_obj;
     } else {
-        return nat_var_get(env, "true");
+        return true_obj;
     }
 }
 
@@ -28,9 +28,9 @@ NatObject *Comparable_lt(NatEnv *env, NatObject *self, size_t argc, NatObject **
     NAT_ASSERT_ARGC(1);
     NatObject *result = nat_send(env, self, "<=>", argc, args, NULL);
     if (result->type == NAT_VALUE_INTEGER && result->integer < 0) {
-        return nat_var_get(env, "true");
+        return true_obj;
     } else {
-        return nat_var_get(env, "false");
+        return false_obj;
     }
 }
 
@@ -38,8 +38,8 @@ NatObject *Comparable_gt(NatEnv *env, NatObject *self, size_t argc, NatObject **
     NAT_ASSERT_ARGC(1);
     NatObject *result = nat_send(env, self, "<=>", argc, args, NULL);
     if (result->type == NAT_VALUE_INTEGER && result->integer > 0) {
-        return nat_var_get(env, "true");
+        return true_obj;
     } else {
-        return nat_var_get(env, "false");
+        return false_obj;
     }
 }

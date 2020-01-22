@@ -14,7 +14,7 @@ module Natalie
         @var_num = 0
       end
 
-      attr_accessor :var_num, :var_prefix
+      attr_accessor :var_num, :var_prefix, :built_in_constants
 
       VOID_FUNCTIONS = %i[
         nat_alias
@@ -79,7 +79,7 @@ module Natalie
           result = p(node)
         end
         result = if body.empty?
-                   'nat_var_get(env, "nil")'
+                   'nil'
                  else
                    p(body.last)
                  end
@@ -234,7 +234,7 @@ module Natalie
 
       def process_declare(exp)
         (_, name, value) = exp
-        process_sexp(value, name)
+        decl "NatObject *#{name} = #{p value};"
         name
       end
 
@@ -267,7 +267,7 @@ module Natalie
       end
 
       def process_false(_)
-        process_sexp(s(:nat_var_get, :env, s(:s, 'false')), temp('false'))
+        'false_obj'
       end
 
       def process_fn(exp, arg_list = 6)
@@ -365,8 +365,17 @@ module Natalie
         "nat_truthy(#{p cond})"
       end
 
+      def process_nat_var_get(exp)
+        (_, env, (_, name)) = exp
+        if built_in_constants.include?(name.to_s)
+          name.to_s
+        else
+          process_sexp(exp)
+        end
+      end
+
       def process_nil(_)
-        process_sexp(s(:nat_var_get, :env, s(:s, 'nil')), temp('nil'))
+        'nil'
       end
 
       def process_not(exp)
@@ -388,7 +397,7 @@ module Natalie
       end
 
       def process_true(_)
-        process_sexp(s(:nat_var_get, :env, s(:s, 'true')), temp('true'))
+        'true_obj'
       end
 
       def process_set(exp)

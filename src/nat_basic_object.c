@@ -9,9 +9,9 @@ NatObject *BasicObject_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject
     NAT_ASSERT_ARGC(1);
     NatObject *arg = args[0];
     if (self == arg) {
-        return nat_var_get(env, "true");
+        return true_obj;
     } else {
-        return nat_var_get(env, "false");
+        return false_obj;
     }
 }
 

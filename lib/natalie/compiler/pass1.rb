@@ -47,7 +47,7 @@ module Natalie
         else
           args = s(:args, *args.map { |n| process(n) })
         end
-        exp.new(:nat_lookup_or_send, process(receiver), method, args)
+        exp.new(:nat_send, process(receiver), method, args)
       end
 
       def process_block(exp)
@@ -64,14 +64,13 @@ module Natalie
           args = s(:args, *args.map { |a| process(a) })
         end
         proc_name = temp('proc_to_block')
-        sexp_type = receiver ? :nat_send : :nat_lookup_or_send
         receiver = receiver ? process(receiver) : :self
         if block_pass
           exp.new(:block,
             s(:declare, proc_name, process(block_pass)),
-            s(sexp_type, receiver, method, args, "#{proc_name}->block"))
+            s(:nat_send, receiver, method, args, "#{proc_name}->block"))
         else
-          exp.new(sexp_type, receiver, method, args, 'NULL')
+          exp.new(:nat_send, receiver, method, args, 'NULL')
         end
       end
 
@@ -105,7 +104,7 @@ module Natalie
 
       def process_const(exp)
         (_, name) = exp
-        exp.new(:nat_lookup, :env, s(:s, name))
+        exp.new(:nat_var_get, :env, s(:s, name))
       end
 
       def process_defined(exp)
@@ -257,7 +256,7 @@ module Natalie
 
       def process_lvar(exp)
         (_, name) = exp
-        exp.new(:nat_lookup, :env, s(:s, name))
+        exp.new(:nat_var_get, :env, s(:s, name))
       end
       
       def process_masgn(exp)

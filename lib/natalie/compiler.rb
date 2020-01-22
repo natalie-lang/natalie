@@ -10,13 +10,13 @@ module Natalie
     OBJ_PATH = File.expand_path('../../obj', __dir__)
     MAIN_TEMPLATE = File.read(File.join(SRC_PATH, 'main.c'))
     OBJ_TEMPLATE = <<-EOF
-      #{MAIN_TEMPLATE.scan(/^#include.*/).join("\n")}
+      #{MAIN_TEMPLATE.split(/\/\* end of front matter \*\//).first}
 
       /*TOP*/
 
       NatObject *obj_%{name}(NatEnv *env, NatObject *self) {
         /*BODY*/
-        return nat_var_get(env, "nil");
+        return nil;
       }
     EOF
 
@@ -73,6 +73,7 @@ module Natalie
       p2 = Pass2.new
       p2.var_prefix = var_prefix
       p2.var_num = p1.var_num
+      p2.built_in_constants = built_in_constants
       result = p2.process(r1)
       [
         Pass3.new(p2.top).process,
@@ -94,6 +95,10 @@ module Natalie
     end
 
     private
+
+    def built_in_constants
+      template.match(/\/\/ built-in constants(.+?)\n\n/m)[1].scan(/[A-Z]\w+/)
+    end
 
     def compiler_command
       if compile_to_object_file
