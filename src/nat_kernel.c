@@ -91,7 +91,7 @@ NatObject *Kernel_instance_variable_get(NatEnv *env, NatObject *self, size_t arg
     NatObject *name_obj = args[0];
     assert(name_obj->type == NAT_VALUE_STRING || name_obj->type == NAT_VALUE_SYMBOL);
     char *name = name_obj->type == NAT_VALUE_STRING ? name_obj->str : name_obj->symbol;
-    return ivar_get(env, self, name);
+    return nat_ivar_get(env, self, name);
 }
 
 NatObject *Kernel_instance_variable_set(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
@@ -100,7 +100,7 @@ NatObject *Kernel_instance_variable_set(NatEnv *env, NatObject *self, size_t arg
     assert(name_obj->type == NAT_VALUE_STRING || name_obj->type == NAT_VALUE_SYMBOL);
     char *name = name_obj->type == NAT_VALUE_STRING ? name_obj->str : name_obj->symbol;
     NatObject *val_obj = args[1];
-    ivar_set(env, self, name, val_obj);
+    nat_ivar_set(env, self, name, val_obj);
     return val_obj;
 }
 
@@ -173,7 +173,7 @@ NatObject *Kernel_exit(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
         status = nat_integer(env, 0);
     }
     NatObject *exception = nat_exception(env, nat_var_get(env, "SystemExit"), "exit");
-    ivar_set(env, exception, "@status", status);
+    nat_ivar_set(env, exception, "@status", status);
     nat_raise_exception(env, exception);
     return nat_var_get(env, "nil");
 }

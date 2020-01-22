@@ -62,7 +62,7 @@ NatObject *Module_attr_reader_block_fn(NatEnv *env, NatObject *self, size_t argc
     assert(name_obj);
     NatObject *ivar_name = nat_string(env, "@");
     nat_string_append(ivar_name, name_obj->str);
-    return ivar_get(env, self, ivar_name->str);
+    return nat_ivar_get(env, self, ivar_name->str);
 }
 
 NatObject *Module_attr_writer(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
@@ -88,7 +88,7 @@ NatObject *Module_attr_writer_block_fn(NatEnv *env, NatObject *self, size_t argc
     assert(name_obj);
     NatObject *ivar_name = nat_string(env, "@");
     nat_string_append(ivar_name, name_obj->str);
-    ivar_set(env, self, ivar_name->str, val);
+    nat_ivar_set(env, self, ivar_name->str, val);
     return val;
 }
 

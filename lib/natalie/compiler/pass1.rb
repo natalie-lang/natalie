@@ -205,7 +205,7 @@ module Natalie
 
       def process_iasgn(exp)
         (_, name, value) = exp
-        exp.new(:ivar_set, :env, :self, s(:s, name), process(value))
+        exp.new(:nat_ivar_set, :env, :self, s(:s, name), process(value))
       end
 
       def process_iter(exp)
@@ -231,7 +231,7 @@ module Natalie
 
       def process_ivar(exp)
         (_, name) = exp
-        exp.new(:ivar_get, :env, :self, s(:s, name))
+        exp.new(:nat_ivar_get, :env, :self, s(:s, name))
       end
 
       def process_lambda(exp)

@@ -26,7 +26,7 @@ module Natalie
         nat_string_append_nat_string
       ]
 
-      NAT_FUNCTIONS = /^nat_|^NAT_|^ivar_|^global_/
+      NAT_FUNCTIONS = /^nat_|^NAT_|^global_/
 
       def p(exp)
         case exp

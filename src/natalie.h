@@ -180,8 +180,8 @@ NatObject* nat_raise(NatEnv *env, NatObject *klass, char *message_format, ...);
 NatObject* nat_raise_exception(NatEnv *env, NatObject *exception);
 int nat_rescue(NatEnv *env);
 
-NatObject *ivar_get(NatEnv *env, NatObject *obj, char *name);
-NatObject *ivar_set(NatEnv *env, NatObject *obj, char *name, NatObject *val);
+NatObject *nat_ivar_get(NatEnv *env, NatObject *obj, char *name);
+NatObject *nat_ivar_set(NatEnv *env, NatObject *obj, char *name, NatObject *val);
 
 NatObject *global_get(NatEnv *env, char *name);
 NatObject *global_set(NatEnv *env, char *name, NatObject *val);

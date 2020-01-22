@@ -120,7 +120,7 @@ NatObject* nat_raise_exception(NatEnv *env, NatObject *exception) {
     longjmp(*env->jump_buf, 1);
 }
 
-NatObject *ivar_get(NatEnv *env, NatObject *obj, char *name) {
+NatObject *nat_ivar_get(NatEnv *env, NatObject *obj, char *name) {
     assert(strlen(name) > 0);
     if(name[0] != '@') {
         NAT_RAISE(env, nat_var_get(env, "NameError"), "`%s' is not allowed as an instance variable name", name);
@@ -137,7 +137,7 @@ NatObject *ivar_get(NatEnv *env, NatObject *obj, char *name) {
     }
 }
 
-NatObject *ivar_set(NatEnv *env, NatObject *obj, char *name, NatObject *val) {
+NatObject *nat_ivar_set(NatEnv *env, NatObject *obj, char *name, NatObject *val) {
     assert(strlen(name) > 0);
     if(name[0] != '@') {
         NAT_RAISE(env, nat_var_get(env, "NameError"), "`%s' is not allowed as an instance variable name", name);
@@ -981,7 +981,7 @@ void nat_handle_top_level_exception(NatEnv *env, int run_exit_handlers) {
     assert(exception->type == NAT_VALUE_EXCEPTION);
     env->jump_buf = NULL;
     if (nat_is_a(env, exception, nat_var_get(env, "SystemExit"))) {
-        NatObject *status_obj = ivar_get(env, exception, "@status");
+        NatObject *status_obj = nat_ivar_get(env, exception, "@status");
         if (run_exit_handlers) nat_run_at_exit_handlers(env);
         if (status_obj->type == NAT_VALUE_INTEGER && status_obj->integer >= 0 && status_obj->integer <= 255) {
             exit(status_obj->integer);
