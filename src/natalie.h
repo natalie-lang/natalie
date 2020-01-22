@@ -103,7 +103,7 @@ enum NatValueType {
 
 struct NatObject {
     enum NatValueType type;
-    NatObject *class;
+    NatObject *klass;
     NatObject *singleton_class;
     int flags;
 
@@ -193,8 +193,8 @@ char *heap_string(char *str);
 NatObject *nat_alloc(NatEnv *env);
 NatObject *nat_subclass(NatEnv *env, NatObject *superclass, char *name);
 NatObject *nat_module(NatEnv *env, char *name);
-void nat_class_include(NatObject *class, NatObject *module);
-NatObject *nat_new(NatEnv *env, NatObject *class, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+void nat_class_include(NatObject *klass, NatObject *module);
+NatObject *nat_new(NatEnv *env, NatObject *klass, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 
 NatObject *nat_singleton_class(NatEnv *env, NatObject *obj);
 
@@ -219,8 +219,8 @@ NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, Na
 NatObject *nat_lookup_or_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, NatObject **args, NatBlock *block);
 NatObject *nat_lookup(NatEnv *env, char *name);
 void nat_methods(NatEnv *env, NatObject *array, NatObject *klass);
-NatMethod *nat_find_method(NatObject *class, char *method_name, NatObject **matching_class_or_module);
-NatObject *nat_call_method_on_class(NatEnv *env, NatObject *class, NatObject *instance_class, char *method_name, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+NatMethod *nat_find_method(NatObject *klass, char *method_name, NatObject **matching_class_or_module);
+NatObject *nat_call_method_on_class(NatEnv *env, NatObject *klass, NatObject *instance_class, char *method_name, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 int nat_respond_to(NatObject *obj, char *name);
 
 NatBlock *nat_block(NatEnv *env, NatObject *self, NatObject* (*fn)(NatEnv*, NatObject*, size_t, NatObject**, struct hashmap*, NatBlock*));

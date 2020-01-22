@@ -52,8 +52,8 @@ NatObject *Kernel_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject *
         return nat_string(env, self->class_name);
     } else {
         NatObject *str = nat_string(env, "#<");
-        assert(self->class);
-        nat_string_append(str, Module_inspect(env, self->class, 0, NULL, NULL, NULL)->str);
+        assert(self->klass);
+        nat_string_append(str, Module_inspect(env, self->klass, 0, NULL, NULL, NULL)->str);
         nat_string_append_char(str, ':');
         nat_string_append(str, nat_object_pointer_id(self));
         nat_string_append_char(str, '>');
@@ -78,7 +78,7 @@ NatObject *Kernel_equal(NatEnv *env, NatObject *self, size_t argc, NatObject **a
 
 NatObject *Kernel_class(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
-    return self->class ? self->class : nat_var_get(env, "nil");
+    return self->klass ? self->klass : nat_var_get(env, "nil");
 }
 
 NatObject *Kernel_singleton_class(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
@@ -123,7 +123,7 @@ NatObject *Kernel_raise(NatEnv *env, NatObject *self, size_t argc, NatObject **a
             nat_raise_exception(env, arg);
             abort();
         } else {
-            NAT_RAISE(env, nat_var_get(env, "TypeError"), "exception class/object expected");
+            NAT_RAISE(env, nat_var_get(env, "TypeError"), "exception klass/object expected");
         }
     }
     NAT_RAISE(env, klass, message->str);
@@ -158,7 +158,7 @@ NatObject *Kernel_methods(NatEnv *env, NatObject *self, size_t argc, NatObject *
     if (self->singleton_class) {
         nat_methods(env, array, self->singleton_class);
     } else {
-        nat_methods(env, array, self->class);
+        nat_methods(env, array, self->klass);
     }
     return array;
 }
