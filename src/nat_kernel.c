@@ -179,7 +179,7 @@ NatObject *Kernel_exit(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
 }
 
 NatObject *Kernel_at_exit(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
-    NatObject *at_exit_handlers = global_get(env, "$NAT_at_exit_handlers");
+    NatObject *at_exit_handlers = nat_global_get(env, "$NAT_at_exit_handlers");
     assert(at_exit_handlers);
     assert(block);
     NatObject *proc = nat_proc(env, block);

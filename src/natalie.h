@@ -168,13 +168,13 @@ struct NatObject {
     };
 };
 
-int is_constant_name(char *name);
-int is_special_name(char *name);
+int nat_is_constant_name(char *name);
+int nat_is_special_name(char *name);
 
 NatObject *nat_var_get(NatEnv *env, char *key);
 NatObject *nat_var_set(NatEnv *env, char *key, NatObject *val);
-NatEnv *build_env(NatEnv *outer);
-NatEnv *build_block_env(NatEnv *outer, NatEnv *calling_env);
+NatEnv *nat_build_env(NatEnv *outer);
+NatEnv *nat_build_block_env(NatEnv *outer, NatEnv *calling_env);
 
 NatObject* nat_raise(NatEnv *env, NatObject *klass, char *message_format, ...);
 NatObject* nat_raise_exception(NatEnv *env, NatObject *exception);
@@ -183,8 +183,8 @@ int nat_rescue(NatEnv *env);
 NatObject *nat_ivar_get(NatEnv *env, NatObject *obj, char *name);
 NatObject *nat_ivar_set(NatEnv *env, NatObject *obj, char *name, NatObject *val);
 
-NatObject *global_get(NatEnv *env, char *name);
-NatObject *global_set(NatEnv *env, char *name, NatObject *val);
+NatObject *nat_global_get(NatEnv *env, char *name);
+NatObject *nat_global_set(NatEnv *env, char *name, NatObject *val);
 
 int nat_truthy(NatObject *obj);
 

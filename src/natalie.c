@@ -2,17 +2,17 @@
 #include <ctype.h>
 #include <stdarg.h>
 
-int is_constant_name(char *name) {
+int nat_is_constant_name(char *name) {
     return strlen(name) > 0 && isupper(name[0]);
 }
 
-int is_special_name(char *name) {
+int nat_is_special_name(char *name) {
     return strcmp(name, "nil") == 0 || strcmp(name, "true") == 0 || strcmp(name, "false") == 0;
 }
 
 NatObject *nat_var_get(NatEnv *env, char *key) {
     NatObject *val;
-    int is_special = is_constant_name(key) || is_special_name(key);
+    int is_special = nat_is_constant_name(key) || nat_is_special_name(key);
     while (!(val = hashmap_get(&env->data, key)) && env->outer && (env->block || is_special)) {
         env = env->outer;
     }
@@ -32,7 +32,7 @@ NatObject *nat_var_set(NatEnv *env, char *key, NatObject *val) {
     return val;
 }
 
-NatEnv *build_env(NatEnv *outer) {
+NatEnv *nat_build_env(NatEnv *outer) {
     NatEnv *env = malloc(sizeof(NatEnv));
     env->block = FALSE;
     env->outer = outer;
@@ -62,8 +62,8 @@ NatEnv *build_env(NatEnv *outer) {
     return env;
 }
 
-NatEnv *build_block_env(NatEnv *outer, NatEnv *calling_env) {
-    NatEnv *env = build_env(outer);
+NatEnv *nat_build_block_env(NatEnv *outer, NatEnv *calling_env) {
+    NatEnv *env = nat_build_env(outer);
     env->block = TRUE;
     env->caller = calling_env;
     return env;
@@ -151,7 +151,7 @@ NatObject *nat_ivar_set(NatEnv *env, NatObject *obj, char *name, NatObject *val)
     return val;
 }
 
-NatObject *global_get(NatEnv *env, char *name) {
+NatObject *nat_global_get(NatEnv *env, char *name) {
     assert(strlen(name) > 0);
     if(name[0] != '$') {
         NAT_RAISE(env, nat_var_get(env, "NameError"), "`%s' is not allowed as an global variable name", name);
@@ -164,7 +164,7 @@ NatObject *global_get(NatEnv *env, char *name) {
     }
 }
 
-NatObject *global_set(NatEnv *env, char *name, NatObject *val) {
+NatObject *nat_global_set(NatEnv *env, char *name, NatObject *val) {
     assert(strlen(name) > 0);
     if(name[0] != '$') {
         NAT_RAISE(env, nat_var_get(env, "NameError"), "`%s' is not allowed as an global variable name", name);
@@ -213,7 +213,7 @@ NatObject *nat_subclass(NatEnv *env, NatObject *superclass, char *name) {
     }
     val->class_name = name ? heap_string(name) : NULL;
     val->superclass = superclass;
-    val->env = build_env(superclass->env);
+    val->env = nat_build_env(superclass->env);
     hashmap_init(&val->methods, hashmap_hash_string, hashmap_compare_string, 100);
     hashmap_set_key_alloc_funcs(&val->methods, hashmap_alloc_key_string, NULL);
     return val;
@@ -224,7 +224,7 @@ NatObject *nat_module(NatEnv *env, char *name) {
     val->type = NAT_VALUE_MODULE;
     val->class = nat_var_get(env, "Module");
     val->class_name = name ? heap_string(name) : NULL;
-    val->env = build_env(env);
+    val->env = nat_build_env(env);
     hashmap_init(&val->methods, hashmap_hash_string, hashmap_compare_string, 100);
     hashmap_set_key_alloc_funcs(&val->methods, hashmap_alloc_key_string, NULL);
     return val;
@@ -593,10 +593,10 @@ int nat_is_a(NatEnv *env, NatObject *obj, NatObject *klass_or_module) {
 
 char *nat_defined(NatEnv *env, NatObject *receiver, char *name) {
     NatObject *obj;
-    if (receiver->env && is_constant_name(name)) {
+    if (receiver->env && nat_is_constant_name(name)) {
         obj = nat_var_get(receiver->env, name);
         if (obj) return "constant";
-    } else if (is_constant_name(name)) {
+    } else if (nat_is_constant_name(name)) {
         obj = nat_var_get(env, name);
         if (obj) return "constant";
     } else {
@@ -714,7 +714,7 @@ NatObject *nat_call_method_on_class(NatEnv *env, NatObject *class, NatObject *in
         } else {
             closure_env = matching_class_or_module->env;
         }
-        NatEnv *e = build_block_env(closure_env, env);
+        NatEnv *e = nat_build_block_env(closure_env, env);
         e->file = env->file;
         e->line = env->line;
         e->method_name = method_name;
@@ -729,7 +729,7 @@ NatObject *nat_lookup_or_send(NatEnv *env, NatObject *receiver, char *sym, size_
         return nat_send(env, receiver, sym, argc, args, block);
     } else {
         NatObject *obj;
-        if (receiver->env && is_constant_name(sym)) {
+        if (receiver->env && nat_is_constant_name(sym)) {
             obj = nat_var_get(receiver->env, sym);
             if (obj) return obj;
         } else {
@@ -770,7 +770,7 @@ NatBlock *nat_block(NatEnv *env, NatObject *self, NatObject* (*fn)(NatEnv*, NatO
 }
 
 NatObject *nat_run_block(NatEnv *env, NatBlock *the_block, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
-    NatEnv *e = build_block_env(the_block->env, env);
+    NatEnv *e = nat_build_block_env(the_block->env, env);
     return the_block->fn(e, the_block->self, argc, args, kwargs, block);
 }
 
@@ -951,7 +951,7 @@ void nat_alias(NatEnv *env, NatObject *self, char *new_name, char *old_name) {
 }
 
 void nat_run_at_exit_handlers(NatEnv *env) {
-    NatObject *at_exit_handlers = global_get(env, "$NAT_at_exit_handlers");
+    NatObject *at_exit_handlers = nat_global_get(env, "$NAT_at_exit_handlers");
     assert(at_exit_handlers);
     for (int i=at_exit_handlers->ary_len-1; i>=0; i--) {
         NatObject *proc = at_exit_handlers->ary[i];

@@ -48,7 +48,7 @@ NatObject *Module_attr_reader(NatEnv *env, NatObject *self, size_t argc, NatObje
         NatObject *name_obj = args[i];
         assert(name_obj->type == NAT_VALUE_STRING || name_obj->type == NAT_VALUE_SYMBOL);
         if (name_obj->type == NAT_VALUE_SYMBOL) name_obj = nat_string(env, name_obj->symbol);
-        NatEnv *block_env = build_env(env);
+        NatEnv *block_env = nat_build_env(env);
         block_env->block = TRUE;
         nat_var_set(block_env, "name", name_obj);
         NatBlock *block = nat_block(block_env, self, Module_attr_reader_block_fn);
@@ -73,7 +73,7 @@ NatObject *Module_attr_writer(NatEnv *env, NatObject *self, size_t argc, NatObje
         if (name_obj->type == NAT_VALUE_SYMBOL) name_obj = nat_string(env, name_obj->symbol);
         NatObject *method_name = nat_string(env, name_obj->str);
         nat_string_append_char(method_name, '=');
-        NatEnv *block_env = build_env(env);
+        NatEnv *block_env = nat_build_env(env);
         block_env->block = TRUE;
         nat_var_set(block_env, "name", name_obj);
         NatBlock *block = nat_block(block_env, self, Module_attr_writer_block_fn);
@@ -133,6 +133,6 @@ NatObject *Module_class_eval(NatEnv *env, NatObject *self, size_t argc, NatObjec
     assert(self->type == NAT_VALUE_MODULE || self->type == NAT_VALUE_CLASS);
     NAT_ASSERT_ARGC(0);
     assert(block);
-    NatEnv *e = build_block_env(block->env, env);
+    NatEnv *e = nat_build_block_env(block->env, env);
     return block->fn(e, self, 0, NULL, NULL, NULL);
 }

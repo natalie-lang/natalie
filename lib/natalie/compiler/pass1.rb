@@ -173,12 +173,12 @@ module Natalie
 
       def process_gasgn(exp)
         (_, name, value) = exp
-        exp.new(:global_set, :env, s(:s, name), process(value))
+        exp.new(:nat_global_set, :env, s(:s, name), process(value))
       end
 
       def process_gvar(exp)
         (_, name) = exp
-        exp.new(:global_get, :env, s(:s, name))
+        exp.new(:nat_global_get, :env, s(:s, name))
       end
 
       def process_hash(exp)
@@ -349,7 +349,7 @@ module Natalie
         exp.new(:block,
           s(:fn2, begin_fn,
             s(:block,
-              s(:build_block_env),
+              s(:nat_build_block_env),
               s(:nat_rescue,
                 s(:block, *body.map { |n| process(n) }),
                 rescue_block))),

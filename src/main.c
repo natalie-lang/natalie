@@ -22,14 +22,14 @@
 NatObject *obj_language_exceptions(NatEnv *env, NatObject *self);
 
 NatEnv *build_top_env() {
-    NatEnv *env = build_env(NULL);
+    NatEnv *env = nat_build_env(NULL);
     env->method_name = heap_string("<main>");
 
     NatObject *Class = nat_alloc(env);
     Class->type = NAT_VALUE_CLASS;
     Class->class_name = heap_string("Class");
     Class->class = Class;
-    Class->env = build_env(env);
+    Class->env = nat_build_env(env);
     hashmap_init(&Class->methods, hashmap_hash_string, hashmap_compare_string, 100);
     hashmap_set_key_alloc_funcs(&Class->methods, hashmap_alloc_key_string, NULL);
     nat_define_method(Class, "superclass", Class_superclass);
@@ -39,7 +39,7 @@ NatEnv *build_top_env() {
     BasicObject->type = NAT_VALUE_CLASS;
     BasicObject->class_name = heap_string("BasicObject");
     BasicObject->class = Class;
-    BasicObject->env = build_env(env);
+    BasicObject->env = nat_build_env(env);
     BasicObject->superclass = NULL;
     hashmap_init(&BasicObject->methods, hashmap_hash_string, hashmap_compare_string, 100);
     hashmap_set_key_alloc_funcs(&BasicObject->methods, hashmap_alloc_key_string, NULL);
@@ -233,7 +233,7 @@ NatEnv *build_top_env() {
     NatObject *TypeError = nat_subclass(env, StandardError, "TypeError");
     nat_var_set(env, "TypeError", TypeError);
 
-    global_set(env, "$NAT_at_exit_handlers", nat_array(env));
+    nat_global_set(env, "$NAT_at_exit_handlers", nat_array(env));
 
     obj_language_exceptions(env, self);
 

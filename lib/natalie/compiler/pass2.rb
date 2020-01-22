@@ -26,7 +26,7 @@ module Natalie
         nat_string_append_nat_string
       ]
 
-      NAT_FUNCTIONS = /^nat_|^NAT_|^global_/
+      NAT_FUNCTIONS = /^nat_/i
 
       def p(exp)
         case exp
@@ -153,8 +153,8 @@ module Natalie
         ''
       end
 
-      def process_build_block_env(_)
-        decl "env = build_block_env(env, env);"
+      def process_nat_build_block_env(_)
+        decl "env = nat_build_block_env(env, env);"
         ''
       end
 
@@ -325,7 +325,7 @@ module Natalie
           c += @decl
           c << "return #{result};" unless result.empty?
           c << '} else {'
-          c << 'global_set(env, "$!", env->exception);'
+          c << 'nat_global_set(env, "$!", env->exception);'
           c << 'env->jump_buf = NULL;'
           @decl = []
           result = p(bottom)
