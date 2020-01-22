@@ -77,9 +77,9 @@ NatObject *String_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     NAT_ASSERT_ARGC(1);
     NatObject *arg = args[0];
     if (arg->type == NAT_VALUE_STRING && strcmp(self->str, arg->str) == 0) {
-        return env_get(env, "true");
+        return nat_var_get(env, "true");
     } else {
-        return env_get(env, "false");
+        return nat_var_get(env, "false");
     }
 }
 
@@ -87,7 +87,7 @@ NatObject *String_cmp(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
     assert(self->type == NAT_VALUE_STRING);
     NAT_ASSERT_ARGC(1);
     NatObject* arg = args[0];
-    if (arg->type != NAT_VALUE_STRING) return env_get(env, "nil");
+    if (arg->type != NAT_VALUE_STRING) return nat_var_get(env, "nil");
     return nat_integer(env, strcmp(self->str, arg->str));
 }
 

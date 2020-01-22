@@ -26,7 +26,7 @@ module Natalie
         nat_string_append_nat_string
       ]
 
-      NAT_FUNCTIONS = /^nat_|^NAT_|^env_|^ivar_|^global_/
+      NAT_FUNCTIONS = /^nat_|^NAT_|^ivar_|^global_/
 
       def p(exp)
         case exp
@@ -79,7 +79,7 @@ module Natalie
           result = p(node)
         end
         result = if body.empty?
-                   'env_get(env, "nil")'
+                   'nat_var_get(env, "nil")'
                  else
                    p(body.last)
                  end
@@ -260,14 +260,14 @@ module Natalie
         result
       end
 
-      def process_env_set_method_name(exp)
+      def process_nat_var_set_method_name(exp)
         (_, name) = exp
         decl "env->method_name = heap_string(#{name.inspect});"
         ''
       end
 
       def process_false(_)
-        process_sexp(s(:env_get, :env, s(:s, 'false')), temp('false'))
+        process_sexp(s(:nat_var_get, :env, s(:s, 'false')), temp('false'))
       end
 
       def process_fn(exp, arg_list = 6)
@@ -353,9 +353,9 @@ module Natalie
         result_name = temp('call_result')
         if args
           args_name, args_count = p(args).split(':')
-          decl "NatObject *#{result_name} = nat_call_method_on_class(env, self->class->superclass, self->class->superclass, env_get(env, \"__method__\")->str, self, #{args_count}, #{args_name}, NULL, #{block || 'NULL'});"
+          decl "NatObject *#{result_name} = nat_call_method_on_class(env, self->class->superclass, self->class->superclass, nat_var_get(env, \"__method__\")->str, self, #{args_count}, #{args_name}, NULL, #{block || 'NULL'});"
         else
-          decl "NatObject *#{result_name} = nat_call_method_on_class(env, self->class->superclass, self->class->superclass, env_get(env, \"__method__\")->str, self, 0, NULL, NULL, #{block || 'NULL'});"
+          decl "NatObject *#{result_name} = nat_call_method_on_class(env, self->class->superclass, self->class->superclass, nat_var_get(env, \"__method__\")->str, self, 0, NULL, NULL, #{block || 'NULL'});"
         end
         result_name
       end
@@ -366,7 +366,7 @@ module Natalie
       end
 
       def process_nil(_)
-        process_sexp(s(:env_get, :env, s(:s, 'nil')), temp('nil'))
+        process_sexp(s(:nat_var_get, :env, s(:s, 'nil')), temp('nil'))
       end
 
       def process_not(exp)
@@ -388,7 +388,7 @@ module Natalie
       end
 
       def process_true(_)
-        process_sexp(s(:env_get, :env, s(:s, 'true')), temp('true'))
+        process_sexp(s(:nat_var_get, :env, s(:s, 'true')), temp('true'))
       end
 
       def process_set(exp)

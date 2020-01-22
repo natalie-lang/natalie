@@ -77,7 +77,7 @@ module Natalie
 
       def process_cdecl(exp)
         (_, name, value) = exp
-        exp.new(:env_set, :env, s(:s, name), process(value))
+        exp.new(:nat_var_set, :env, s(:s, name), process(value))
       end
 
       def process_class(exp)
@@ -87,11 +87,11 @@ module Natalie
         klass = temp('class')
         exp.new(:block,
           s(:fn2, fn, process(s(:block, *body))),
-          s(:declare, klass, s(:env_get, :env, s(:s, name))),
+          s(:declare, klass, s(:nat_var_get, :env, s(:s, name))),
           s(:c_if, s(:not, klass),
             s(:block,
               s(:set, klass, s(:nat_subclass, :env, process(superclass), s(:s, name))),
-              s(:env_set, :env, s(:s, name), klass))),
+              s(:nat_var_set, :env, s(:s, name), klass))),
           s(:nat_call, fn, "#{klass}->env", klass))
       end
 
@@ -100,7 +100,7 @@ module Natalie
         parent_name = temp('parent')
         exp.new(:block,
           s(:declare, parent_name, process(parent)),
-          s(:env_get, "#{parent_name}->env", s(:s, name)))
+          s(:nat_var_get, "#{parent_name}->env", s(:s, name)))
       end
 
       def process_const(exp)
@@ -118,7 +118,7 @@ module Natalie
         name = name.to_s
         fn_name = temp('fn')
         if args.last&.to_s&.start_with?('&')
-          block_arg = exp.new(:env_set, :env, s(:s, args.pop.to_s[1..-1]), s(:nat_proc, :env, 'block'))
+          block_arg = exp.new(:nat_var_set, :env, s(:s, args.pop.to_s[1..-1]), s(:nat_proc, :env, 'block'))
         end
         assign_args = if args_use_simple_mode?(args)
                         exp.new(:assign_args, *prepare_masgn_simple(args))
@@ -127,8 +127,8 @@ module Natalie
                       end
         exp.new(:fn, fn_name,
           s(:block,
-            s(:env_set, :env, s(:s, '__method__'), s(:nat_string, :env, s(:s, name))),
-            s(:env_set_method_name, name),
+            s(:nat_var_set, :env, s(:s, '__method__'), s(:nat_string, :env, s(:s, name))),
+            s(:nat_var_set_method_name, name),
             assign_args,
             block_arg || s(:block),
             process(s(:block, *body))))
@@ -222,7 +222,7 @@ module Natalie
         exp.new(:block,
           s(:fn, block_fn,
             s(:block,
-              s(:env_set_method_name, '<block>'),
+              s(:nat_var_set_method_name, '<block>'),
               assign_args,
               process(s(:block, *body)))),
           s(:declare_block, block, s(:nat_block, :env, :self, block_fn)),
@@ -240,7 +240,7 @@ module Natalie
 
       def process_lasgn(exp)
         (_, name, val) = exp
-        exp.new(:env_set, :env, s(:s, name), process(val))
+        exp.new(:nat_var_set, :env, s(:s, name), process(val))
       end
 
       def process_lit(exp)
@@ -277,9 +277,9 @@ module Natalie
           case name
           when Symbol
             if name.to_s.start_with?('*')
-              s(:env_set, :env, s(:s, name.to_s[1..-1]), s(:assign_val, index, :rest))
+              s(:nat_var_set, :env, s(:s, name.to_s[1..-1]), s(:assign_val, index, :rest))
             else
-              s(:env_set, :env, s(:s, name), s(:assign_val, index, :single))
+              s(:nat_var_set, :env, s(:s, name), s(:assign_val, index, :single))
             end
           when Sexp
             case name.sexp_type
@@ -287,10 +287,10 @@ module Natalie
               puts "warning: unhandled arg type: #{name.inspect}"
             when :lasgn, :iasgn
               (_, name, default) = name
-              s(:env_set, :env, s(:s, name), s(:assign_val, index, :single, process(default)))
+              s(:nat_var_set, :env, s(:s, name), s(:assign_val, index, :single, process(default)))
             when :splat
               (_, (_, name)) = name
-              s(:env_set, :env, s(:s, name), s(:assign_val, index, :rest, process(default)))
+              s(:nat_var_set, :env, s(:s, name), s(:assign_val, index, :rest, process(default)))
             else
               raise "unknown arg type: #{name.inspect}"
             end
@@ -309,11 +309,11 @@ module Natalie
         mod = temp('module')
         exp.new(:block,
           s(:fn2, fn, process(s(:block, *body))),
-          s(:declare, mod, s(:env_get, :env, s(:s, name))),
+          s(:declare, mod, s(:nat_var_get, :env, s(:s, name))),
           s(:c_if, s(:not, mod),
             s(:block,
               s(:set, mod, s(:nat_module, :env, s(:s, name))),
-              s(:env_set, :env, s(:s, name), mod))),
+              s(:nat_var_set, :env, s(:s, name), mod))),
           s(:nat_call, fn, "#{mod}->env", mod))
       end
 
@@ -416,7 +416,7 @@ module Natalie
             end
           when Sexp
             case name.sexp_type
-            when :lasgn, :env_set
+            when :lasgn, :nat_var_set
               'D'
             else
               return false

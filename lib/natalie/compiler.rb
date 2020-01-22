@@ -16,7 +16,7 @@ module Natalie
 
       NatObject *obj_%{name}(NatEnv *env, NatObject *self) {
         /*BODY*/
-        return env_get(env, "nil");
+        return nat_var_get(env, "nil");
       }
     EOF
 
