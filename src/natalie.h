@@ -245,7 +245,6 @@ char *nat_defined(NatEnv *env, NatObject *receiver, char *name);
 NatObject *nat_defined_obj(NatEnv *env, NatObject *receiver, char *name);
 
 NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, NatObject **args, NatBlock *block);
-NatObject *nat_lookup(NatEnv *env, char *name);
 void nat_methods(NatEnv *env, NatObject *array, NatObject *klass);
 NatMethod *nat_find_method(NatObject *klass, char *method_name, NatObject **matching_class_or_module);
 NatObject *nat_call_method_on_class(NatEnv *env, NatObject *klass, NatObject *instance_class, char *method_name, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);

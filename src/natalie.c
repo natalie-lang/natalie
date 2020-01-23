@@ -723,15 +723,6 @@ NatObject *nat_call_method_on_class(NatEnv *env, NatObject *klass, NatObject *in
     }
 }
 
-NatObject *nat_lookup(NatEnv *env, char *name) {
-    NatObject *obj = nat_var_get(env, name);
-    if (obj) {
-        return obj;
-    } else {
-        NAT_RAISE(env, NameError, "undefined local variable or method `%s'", name);
-    }
-}
-
 int nat_respond_to(NatObject *obj, char *name) {
     NatObject *matching_class_or_module;
     // FIXME: I don't think we need to check both singleton_class and klass since singleton_class inherits from the klass
