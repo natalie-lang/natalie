@@ -723,22 +723,6 @@ NatObject *nat_call_method_on_class(NatEnv *env, NatObject *klass, NatObject *in
     }
 }
 
-NatObject *nat_lookup_or_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, NatObject **args, NatBlock *block) {
-    if (argc > 0) {
-        return nat_send(env, receiver, sym, argc, args, block);
-    } else {
-        NatObject *obj;
-        if (receiver->env && nat_is_constant_name(sym)) {
-            obj = nat_var_get(receiver->env, sym);
-            if (obj) return obj;
-        } else {
-            obj = nat_var_get(env, sym);
-            if (obj) return obj;
-        }
-        return nat_send(env, receiver, sym, argc, args, block);
-    }
-}
-
 NatObject *nat_lookup(NatEnv *env, char *name) {
     NatObject *obj = nat_var_get(env, name);
     if (obj) {

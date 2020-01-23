@@ -306,7 +306,7 @@ module Natalie
         end
       end
 
-      def process_nat_lookup_or_send(exp)
+      def process_nat_send(exp)
         debug_info(exp)
         (fn, receiver, method, args, block) = exp
         receiver_name = p(receiver)
@@ -345,8 +345,6 @@ module Natalie
         decl "NatObject *#{result_name} = nat_run_block(env, block, #{args_count}, #{args_name}, NULL, NULL);"
         result_name
       end
-
-      alias process_nat_send process_nat_lookup_or_send
 
       def process_nat_super(exp)
         (_, args, block) = exp
