@@ -10,6 +10,39 @@ int nat_is_special_name(char *name) {
     return strcmp(name, "nil") == 0 || strcmp(name, "true") == 0 || strcmp(name, "false") == 0;
 }
 
+NatObject *nat_const_get(NatEnv *env, NatObject *klass, char *name) {
+    NatObject *val = nat_const_get_or_null(env, klass, name);
+    if (val) {
+        return val;
+    } else {
+        NAT_RAISE(env, nat_const_get(env, Object, "NameError"), "uninitialized constant %s", name);
+    }
+}
+
+NatObject *nat_const_get_or_null(NatEnv *env, NatObject *klass, char *name) {
+    if (klass->type != NAT_VALUE_CLASS) {
+        klass = klass->klass;
+    }
+    NatObject *val;
+    while (!(val = hashmap_get(&klass->constants, name)) && klass->superclass) {
+        klass = klass->superclass;
+    }
+    if (val) {
+        return val;
+    } else {
+        return NULL;
+    }
+}
+
+NatObject *nat_const_set(NatEnv *env, NatObject *klass, char *name, NatObject *val) {
+    if (klass->type != NAT_VALUE_CLASS) {
+        klass = klass->klass;
+    }
+    hashmap_remove(&klass->constants, name);
+    hashmap_put(&klass->constants, name, val);
+    return val;
+}
+
 NatObject *nat_var_get(NatEnv *env, char *key) {
     NatObject *val;
     int is_special = nat_is_constant_name(key) || nat_is_special_name(key);
@@ -23,6 +56,14 @@ NatObject *nat_var_get(NatEnv *env, char *key) {
     }
 }
 
+NatObject *nat_var_get2(NatEnv *env, char *key, size_t index) {
+    if (index >= env->var_count) {
+        printf("Trying to get variable `%s' at index %zu which is not set (env->vars = %p, env->var_count = %zu).\n", key, index, env->vars, env->var_count);
+        abort();
+    }
+    return env->vars[index];
+}
+
 NatObject *nat_var_set(NatEnv *env, char *key, NatObject *val) {
     if (env->block && nat_var_get(env->outer, key)) {
         env = env->outer;
@@ -32,8 +73,24 @@ NatObject *nat_var_set(NatEnv *env, char *key, NatObject *val) {
     return val;
 }
 
+NatObject *nat_var_set2(NatEnv *env, char *key, size_t index, NatObject *val) {
+    nat_var_set(env, key, val);
+    // TODO: move this in to the compiler
+    if (env->var_count == 0) {
+        env->vars = calloc(index + 1, sizeof(NatObject*));
+        env->var_count = index + 1;
+    } else if (index >= env->var_count) {
+        env->vars = realloc(env->vars, sizeof(NatObject*) * index + 1);
+        env->var_count = index + 1;
+    }
+    env->vars[index] = val;
+    return val;
+}
+
 NatEnv *nat_build_env(NatEnv *outer) {
     NatEnv *env = malloc(sizeof(NatEnv));
+    env->var_count = 0;
+    env->vars = NULL;
     env->block = FALSE;
     env->outer = outer;
     env->jump_buf = NULL;
@@ -123,7 +180,7 @@ NatObject* nat_raise_exception(NatEnv *env, NatObject *exception) {
 NatObject *nat_ivar_get(NatEnv *env, NatObject *obj, char *name) {
     assert(strlen(name) > 0);
     if(name[0] != '@') {
-        NAT_RAISE(env, NameError, "`%s' is not allowed as an instance variable name", name);
+        NAT_RAISE(env, nat_const_get(env, Object, "NameError"), "`%s' is not allowed as an instance variable name", name);
     }
     if (obj->ivars.table == NULL) {
         hashmap_init(&obj->ivars, hashmap_hash_string, hashmap_compare_string, 100);
@@ -140,7 +197,7 @@ NatObject *nat_ivar_get(NatEnv *env, NatObject *obj, char *name) {
 NatObject *nat_ivar_set(NatEnv *env, NatObject *obj, char *name, NatObject *val) {
     assert(strlen(name) > 0);
     if(name[0] != '@') {
-        NAT_RAISE(env, NameError, "`%s' is not allowed as an instance variable name", name);
+        NAT_RAISE(env, nat_const_get(env, Object, "NameError"), "`%s' is not allowed as an instance variable name", name);
     }
     if (obj->ivars.table == NULL) {
         hashmap_init(&obj->ivars, hashmap_hash_string, hashmap_compare_string, 100);
@@ -154,7 +211,7 @@ NatObject *nat_ivar_set(NatEnv *env, NatObject *obj, char *name, NatObject *val)
 NatObject *nat_global_get(NatEnv *env, char *name) {
     assert(strlen(name) > 0);
     if(name[0] != '$') {
-        NAT_RAISE(env, NameError, "`%s' is not allowed as an global variable name", name);
+        NAT_RAISE(env, nat_const_get(env, Object, "NameError"), "`%s' is not allowed as an global variable name", name);
     }
     NatObject *val = hashmap_get(env->global_env->globals, name);
     if (val) {
@@ -167,7 +224,7 @@ NatObject *nat_global_get(NatEnv *env, char *name) {
 NatObject *nat_global_set(NatEnv *env, char *name, NatObject *val) {
     assert(strlen(name) > 0);
     if(name[0] != '$') {
-        NAT_RAISE(env, NameError, "`%s' is not allowed as an global variable name", name);
+        NAT_RAISE(env, nat_const_get(env, Object, "NameError"), "`%s' is not allowed as an global variable name", name);
     }
     hashmap_remove(env->global_env->globals, name);
     hashmap_put(env->global_env->globals, name, val);
@@ -205,24 +262,26 @@ NatObject *nat_alloc(NatEnv *env) {
 }
 
 NatObject *nat_subclass(NatEnv *env, NatObject *superclass, char *name) {
-    NatObject *val = nat_alloc(env);
-    val->type = NAT_VALUE_CLASS;
-    val->klass = superclass->klass;
+    NatObject *klass = nat_alloc(env);
+    klass->type = NAT_VALUE_CLASS;
+    klass->klass = superclass->klass;
     if (superclass->singleton_class) {
-        val->singleton_class = nat_subclass(env, superclass->singleton_class, NULL);
+        klass->singleton_class = nat_subclass(env, superclass->singleton_class, NULL);
     }
-    val->class_name = name ? heap_string(name) : NULL;
-    val->superclass = superclass;
-    val->env = nat_build_env(superclass->env);
-    hashmap_init(&val->methods, hashmap_hash_string, hashmap_compare_string, 100);
-    hashmap_set_key_alloc_funcs(&val->methods, hashmap_alloc_key_string, NULL);
-    return val;
+    klass->class_name = name ? heap_string(name) : NULL;
+    klass->superclass = superclass;
+    klass->env = nat_build_env(superclass->env);
+    hashmap_init(&klass->methods, hashmap_hash_string, hashmap_compare_string, 10);
+    hashmap_set_key_alloc_funcs(&klass->methods, hashmap_alloc_key_string, NULL);
+    hashmap_init(&klass->constants, hashmap_hash_string, hashmap_compare_string, 10);
+    hashmap_set_key_alloc_funcs(&klass->constants, hashmap_alloc_key_string, NULL);
+    return klass;
 }
 
 NatObject *nat_module(NatEnv *env, char *name) {
     NatObject *val = nat_alloc(env);
     val->type = NAT_VALUE_MODULE;
-    val->klass = Module;
+    val->klass = nat_const_get(env, Object, "Module");
     val->class_name = name ? heap_string(name) : NULL;
     val->env = nat_build_env(env);
     hashmap_init(&val->methods, hashmap_hash_string, hashmap_compare_string, 100);
@@ -261,14 +320,14 @@ NatObject *nat_singleton_class(NatEnv *env, NatObject *obj) {
 }
 
 NatObject *nat_integer(NatEnv *env, int64_t integer) {
-    NatObject *obj = nat_new(env, Integer, 0, NULL, NULL, NULL);
+    NatObject *obj = nat_new(env, nat_const_get(env, Object, "Integer"), 0, NULL, NULL, NULL);
     obj->type = NAT_VALUE_INTEGER;
     obj->integer = integer;
     return obj;
 }
 
 NatObject *nat_string(NatEnv *env, char *str) {
-    NatObject *obj = nat_new(env, String, 0, NULL, NULL, NULL);
+    NatObject *obj = nat_new(env, nat_const_get(env, Object, "String"), 0, NULL, NULL, NULL);
     obj->type = NAT_VALUE_STRING;
     size_t len = strlen(str);
     obj->str = heap_string(str);
@@ -282,7 +341,7 @@ NatObject *nat_symbol(NatEnv *env, char *name) {
     if (symbol) {
         return symbol;
     } else {
-        symbol = nat_new(env, Symbol, 0, NULL, NULL, NULL);
+        symbol = nat_new(env, nat_const_get(env, Object, "Symbol"), 0, NULL, NULL, NULL);
         symbol->type = NAT_VALUE_SYMBOL;
         symbol->symbol = name;
         hashmap_remove(env->global_env->symbols, name);
@@ -299,7 +358,7 @@ NatObject *nat_exception(NatEnv *env, NatObject *klass, char *message) {
 }
 
 NatObject *nat_array(NatEnv *env) {
-    NatObject *obj = nat_new(env, Array, 0, NULL, NULL, NULL);
+    NatObject *obj = nat_new(env, nat_const_get(env, Object, "Array"), 0, NULL, NULL, NULL);
     obj->type = NAT_VALUE_ARRAY;
     obj->ary = calloc(NAT_ARRAY_INIT_SIZE, sizeof(NatObject*));
     obj->str_len = 0;
@@ -468,7 +527,7 @@ NatHashIter *nat_hash_iter_next(NatEnv *env, NatObject *hash, NatHashIter *iter)
 }
 
 NatObject *nat_hash(NatEnv *env) {
-    NatObject *obj = nat_new(env, Hash, 0, NULL, NULL, NULL);
+    NatObject *obj = nat_new(env, nat_const_get(env, Object, "Hash"), 0, NULL, NULL, NULL);
     obj->type = NAT_VALUE_HASH;
     obj->key_list = NULL;
     hashmap_init(&obj->hashmap, nat_hashmap_hash, nat_hashmap_compare, 256);
@@ -719,7 +778,7 @@ NatObject *nat_call_method_on_class(NatEnv *env, NatObject *klass, NatObject *in
         e->method_name = method_name;
         return method->fn(e, self, argc, args, NULL, block);
     } else {
-        NAT_RAISE(env, NoMethodError, "undefined method `%s' for %s", method_name, nat_send(env, instance_class, "inspect", 0, NULL, NULL)->str);
+        NAT_RAISE(env, nat_const_get(env, Object, "NoMethodError"), "undefined method `%s' for %s", method_name, nat_send(env, instance_class, "inspect", 0, NULL, NULL)->str);
     }
 }
 
@@ -749,7 +808,7 @@ NatObject *nat_run_block(NatEnv *env, NatBlock *the_block, size_t argc, NatObjec
 }
 
 NatObject *nat_proc(NatEnv *env, NatBlock *block) {
-    NatObject *obj = nat_new(env, Proc, 0, NULL, NULL, NULL);
+    NatObject *obj = nat_new(env, nat_const_get(env, Object, "Proc"), 0, NULL, NULL, NULL);
     obj->type = NAT_VALUE_PROC;
     obj->block = block;
     return obj;
@@ -906,7 +965,7 @@ NatObject *nat_not(NatEnv *env, NatObject *val) {
 
 void nat_alias(NatEnv *env, NatObject *self, char *new_name, char *old_name) {
     if (self->type == NAT_VALUE_INTEGER || self->type == NAT_VALUE_SYMBOL) {
-        NAT_RAISE(env, TypeError, "no klass to make alias");
+        NAT_RAISE(env, nat_const_get(env, Object, "TypeError"), "no klass to make alias");
     }
     if (nat_is_main_object(self)) {
         self = self->klass;
@@ -918,7 +977,7 @@ void nat_alias(NatEnv *env, NatObject *self, char *new_name, char *old_name) {
     NatObject *matching_class_or_module;
     NatMethod *method = nat_find_method(klass, old_name, &matching_class_or_module);
     if (!method) {
-        NAT_RAISE(env, NameError, "undefined method `%s' for klass `%s'", old_name, nat_send(env, klass, "inspect", 0, NULL, NULL)->str);
+        NAT_RAISE(env, nat_const_get(env, Object, "NameError"), "undefined method `%s' for klass `%s'", old_name, nat_send(env, klass, "inspect", 0, NULL, NULL)->str);
     }
     hashmap_remove(&klass->methods, new_name);
     hashmap_put(&klass->methods, new_name, method);
@@ -954,7 +1013,7 @@ void nat_handle_top_level_exception(NatEnv *env, int run_exit_handlers) {
     assert(exception);
     assert(exception->type == NAT_VALUE_EXCEPTION);
     env->jump_buf = NULL;
-    if (nat_is_a(env, exception, SystemExit)) {
+    if (nat_is_a(env, exception, nat_const_get(env, Object, "SystemExit"))) {
         NatObject *status_obj = nat_ivar_get(env, exception, "@status");
         if (run_exit_handlers) nat_run_at_exit_handlers(env);
         if (status_obj->type == NAT_VALUE_INTEGER && status_obj->integer >= 0 && status_obj->integer <= 255) {

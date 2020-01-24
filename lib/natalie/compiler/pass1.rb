@@ -76,7 +76,7 @@ module Natalie
 
       def process_cdecl(exp)
         (_, name, value) = exp
-        exp.new(:nat_var_set, :env, s(:s, name), process(value))
+        exp.new(:nat_const_set, :env, :self, s(:s, name), process(value))
       end
 
       def process_class(exp)
@@ -85,12 +85,12 @@ module Natalie
         fn = temp('class_body')
         klass = temp('class')
         exp.new(:block,
-          s(:fn2, fn, process(s(:block, *body))),
-          s(:declare, klass, s(:nat_var_get, :env, s(:s, name))),
+          s(:class_fn, fn, process(s(:block, *body))),
+          s(:declare, klass, s(:nat_const_get_or_null, :env, :self, s(:s, name))),
           s(:c_if, s(:not, klass),
             s(:block,
               s(:set, klass, s(:nat_subclass, :env, process(superclass), s(:s, name))),
-              s(:nat_var_set, :env, s(:s, name), klass))),
+              s(:nat_const_set, :env, :self, s(:s, name), klass))),
           s(:nat_call, fn, "#{klass}->env", klass))
       end
 
@@ -99,12 +99,12 @@ module Natalie
         parent_name = temp('parent')
         exp.new(:block,
           s(:declare, parent_name, process(parent)),
-          s(:nat_var_get, "#{parent_name}->env", s(:s, name)))
+          s(:nat_const_get, :env, parent_name, s(:s, name)))
       end
 
       def process_const(exp)
         (_, name) = exp
-        exp.new(:nat_var_get, :env, s(:s, name))
+        exp.new(:nat_const_get, :env, :self, s(:s, name))
       end
 
       def process_defined(exp)
@@ -124,7 +124,7 @@ module Natalie
                       else
                         raise "We do not yet support complicated args like this, sorry! #{args.inspect}"
                       end
-        exp.new(:fn, fn_name,
+        exp.new(:def_fn, fn_name,
           s(:block,
             s(:nat_var_set, :env, s(:s, '__method__'), s(:nat_string, :env, s(:s, name))),
             s(:nat_var_set_method_name, name),
@@ -219,7 +219,7 @@ module Natalie
                         raise "We do not yet support complicated args like this, sorry! #{args.inspect}"
                       end
         exp.new(:block,
-          s(:fn, block_fn,
+          s(:block_fn, block_fn,
             s(:block,
               s(:nat_var_set_method_name, '<block>'),
               assign_args,
@@ -307,12 +307,12 @@ module Natalie
         fn = temp('module_body')
         mod = temp('module')
         exp.new(:block,
-          s(:fn2, fn, process(s(:block, *body))),
-          s(:declare, mod, s(:nat_var_get, :env, s(:s, name))),
+          s(:module_fn, fn, process(s(:block, *body))),
+          s(:declare, mod, s(:nat_const_get_or_null, :env, :self, s(:s, name))),
           s(:c_if, s(:not, mod),
             s(:block,
               s(:set, mod, s(:nat_module, :env, s(:s, name))),
-              s(:nat_var_set, :env, s(:s, name), mod))),
+              s(:nat_const_set, :env, :self, s(:s, name), mod))),
           s(:nat_call, fn, "#{mod}->env", mod))
       end
 
@@ -346,7 +346,7 @@ module Natalie
         end
         body = body.empty? ? [s(:nil)] : body
         exp.new(:block,
-          s(:fn2, begin_fn,
+          s(:begin_fn, begin_fn,
             s(:block,
               s(:nat_build_block_env),
               s(:nat_rescue,

@@ -117,13 +117,13 @@ NatObject *Kernel_raise(NatEnv *env, NatObject *self, size_t argc, NatObject **a
             klass = arg;
             message = nat_string(env, arg->class_name);
         } else if (arg->type == NAT_VALUE_STRING) {
-            klass = RuntimeError;
+            klass = nat_const_get(env, Object, "RuntimeError");
             message = arg;
-        } else if (nat_is_a(env, arg, Exception)) {
+        } else if (nat_is_a(env, arg, nat_const_get(env, Object, "Exception"))) {
             nat_raise_exception(env, arg);
             abort();
         } else {
-            NAT_RAISE(env, TypeError, "exception klass/object expected");
+            NAT_RAISE(env, nat_const_get(env, Object, "TypeError"), "exception klass/object expected");
         }
     }
     NAT_RAISE(env, klass, message->str);
@@ -172,7 +172,7 @@ NatObject *Kernel_exit(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     } else {
         status = nat_integer(env, 0);
     }
-    NatObject *exception = nat_exception(env, SystemExit, "exit");
+    NatObject *exception = nat_exception(env, nat_const_get(env, Object, "SystemExit"), "exit");
     nat_ivar_set(env, exception, "@status", status);
     nat_raise_exception(env, exception);
     return nil;

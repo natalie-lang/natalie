@@ -3,6 +3,7 @@ require 'sexp_processor'
 require_relative './compiler/pass1'
 require_relative './compiler/pass2'
 require_relative './compiler/pass3'
+require_relative './compiler/pass4'
 
 module Natalie
   class Compiler
@@ -71,13 +72,20 @@ module Natalie
         exit
       end
       p2 = Pass2.new
-      p2.var_prefix = var_prefix
-      p2.var_num = p1.var_num
       p2.built_in_constants = built_in_constants
-      result = p2.process(r1)
+      r2 = p2.process(r1)
+      if ENV['DEBUG_PASS2']
+        pp r2
+        exit
+      end
+      p3 = Pass3.new
+      p3.var_prefix = var_prefix
+      p3.var_num = p1.var_num
+      p3.built_in_constants = built_in_constants
+      r3 = p3.process(r2)
       [
-        Pass3.new(p2.top).process,
-        Pass3.new(p2.decl + "\n" + result).process,
+        Pass4.new(p3.top).process,
+        Pass4.new(p3.decl + "\n" + r3).process,
       ]
     end
 

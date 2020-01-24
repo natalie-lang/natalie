@@ -13,6 +13,8 @@ OptionParser.new do |opts|
     case level
     when 'p1'
       ENV['DEBUG_PASS1'] = 'true'
+    when 'p2'
+      ENV['DEBUG_PASS2'] = 'true'
     else
       ENV['DEBUG'] = 'true'
     end

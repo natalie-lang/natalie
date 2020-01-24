@@ -17,10 +17,6 @@ def it(test, &block)
   @specs << [@describe, test, block]
 end
 
-def mock(name)
-  Mock.new
-end
-
 class Object
   def must_equal(other)
     if self == other
