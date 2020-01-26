@@ -15,6 +15,7 @@
 
 #define xDEBUG_METHOD_RESOLUTION
 
+#define NAT_TYPE(obj) (obj->type)
 #define NAT_RESCUE(env) setjmp(*(env->jump_buf = malloc(sizeof(jmp_buf))))
 #define NAT_RAISE(env, klass, message_format, ...) nat_raise(env, klass, message_format, ##__VA_ARGS__); abort();
 #define NAT_ASSERT_ARGC1(expected) if(argc != expected) { NAT_RAISE(env, nat_const_get(env, Object, "ArgumentError"), "wrong number of arguments (given %d, expected %d)", argc, expected); }

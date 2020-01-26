@@ -3,7 +3,7 @@
 
 NatObject *Hash_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
-    assert(self->type == NAT_VALUE_HASH);
+    assert(NAT_TYPE(self) == NAT_VALUE_HASH);
     NatObject *out = nat_string(env, "{");
     NatHashIter *iter;
     size_t last_index = self->hashmap.num_entries - 1;
@@ -24,7 +24,7 @@ NatObject *Hash_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **a
 
 NatObject *Hash_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
-    assert(self->type == NAT_VALUE_HASH);
+    assert(NAT_TYPE(self) == NAT_VALUE_HASH);
     NatObject *key = args[0];
     NatObject *val = nat_hash_get(env, self, key);
     if (val) {
@@ -36,7 +36,7 @@ NatObject *Hash_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **args,
 
 NatObject *Hash_refeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(2);
-    assert(self->type == NAT_VALUE_HASH);
+    assert(NAT_TYPE(self) == NAT_VALUE_HASH);
     NatObject *key = args[0];
     NatObject *val = args[1];
     nat_hash_put(env, self, key, val);
@@ -45,7 +45,7 @@ NatObject *Hash_refeq(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
 
 NatObject *Hash_delete(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
-    assert(self->type == NAT_VALUE_HASH);
+    assert(NAT_TYPE(self) == NAT_VALUE_HASH);
     NatObject *key = args[0];
     NatObject *val = nat_hash_delete(env, self, key);
     if (val) {
@@ -57,15 +57,15 @@ NatObject *Hash_delete(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
 
 NatObject *Hash_size(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
-    assert(self->type == NAT_VALUE_HASH);
+    assert(NAT_TYPE(self) == NAT_VALUE_HASH);
     return nat_integer(env, self->hashmap.num_entries);
 }
 
 NatObject *Hash_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
-    assert(self->type == NAT_VALUE_HASH);
+    assert(NAT_TYPE(self) == NAT_VALUE_HASH);
     NatObject *other = args[0];
-    if (other->type != NAT_VALUE_HASH) {
+    if (NAT_TYPE(other) != NAT_VALUE_HASH) {
         return false_obj;
     }
     if (self->hashmap.num_entries != other->hashmap.num_entries) {
@@ -84,7 +84,7 @@ NatObject *Hash_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args
 
 NatObject *Hash_each(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
-    assert(self->type == NAT_VALUE_HASH);
+    assert(NAT_TYPE(self) == NAT_VALUE_HASH);
     assert(block);
     NatHashIter *iter;
     NatObject **block_args = calloc(2, sizeof(NatObject));
@@ -98,7 +98,7 @@ NatObject *Hash_each(NatEnv *env, NatObject *self, size_t argc, NatObject **args
 
 NatObject *Hash_keys(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
-    assert(self->type == NAT_VALUE_HASH);
+    assert(NAT_TYPE(self) == NAT_VALUE_HASH);
     NatObject *array = nat_array(env);
     NatHashIter *iter;
     NatObject **block_args = calloc(2, sizeof(NatObject));
@@ -110,7 +110,7 @@ NatObject *Hash_keys(NatEnv *env, NatObject *self, size_t argc, NatObject **args
 
 NatObject *Hash_values(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
-    assert(self->type == NAT_VALUE_HASH);
+    assert(NAT_TYPE(self) == NAT_VALUE_HASH);
     NatObject *array = nat_array(env);
     NatHashIter *iter;
     NatObject **block_args = calloc(2, sizeof(NatObject));

@@ -8,11 +8,11 @@ NatObject *Module_new(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
 }
 
 NatObject *Module_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
-    assert(self->type == NAT_VALUE_MODULE || self->type == NAT_VALUE_CLASS);
+    assert(NAT_TYPE(self) == NAT_VALUE_MODULE || NAT_TYPE(self) == NAT_VALUE_CLASS);
     NAT_ASSERT_ARGC(0);
     if (self->class_name) {
         return nat_string(env, self->class_name);
-    } else if (self->type == NAT_VALUE_CLASS) {
+    } else if (NAT_TYPE(self) == NAT_VALUE_CLASS) {
         return nat_sprintf(env, "#<Class:%s>", nat_object_pointer_id(self));
     } else {
         return Kernel_inspect(env, self, argc, args, kwargs, block);
@@ -20,7 +20,7 @@ NatObject *Module_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject *
 }
 
 NatObject *Module_eqeqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
-    assert(self->type == NAT_VALUE_MODULE || self->type == NAT_VALUE_CLASS);
+    assert(NAT_TYPE(self) == NAT_VALUE_MODULE || NAT_TYPE(self) == NAT_VALUE_CLASS);
     NAT_ASSERT_ARGC(1);
     NatObject *arg = args[0];
     if (nat_is_a(env, arg, self)) {
@@ -31,13 +31,13 @@ NatObject *Module_eqeqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **
 }
 
 NatObject *Module_name(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
-    assert(self->type == NAT_VALUE_MODULE || self->type == NAT_VALUE_CLASS);
+    assert(NAT_TYPE(self) == NAT_VALUE_MODULE || NAT_TYPE(self) == NAT_VALUE_CLASS);
     NAT_ASSERT_ARGC(0);
     return self->class_name ? nat_string(env, self->class_name) : nil;
 }
 
 NatObject *Module_ancestors(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
-    assert(self->type == NAT_VALUE_MODULE || self->type == NAT_VALUE_CLASS);
+    assert(NAT_TYPE(self) == NAT_VALUE_MODULE || NAT_TYPE(self) == NAT_VALUE_CLASS);
     NAT_ASSERT_ARGC(0);
     return nat_class_ancestors(env, self);
 }
@@ -46,8 +46,8 @@ NatObject *Module_attr_reader(NatEnv *env, NatObject *self, size_t argc, NatObje
     NAT_ASSERT_ARGC_AT_LEAST(1);
     for (size_t i=0; i<argc; i++) {
         NatObject *name_obj = args[i];
-        assert(name_obj->type == NAT_VALUE_STRING || name_obj->type == NAT_VALUE_SYMBOL);
-        if (name_obj->type == NAT_VALUE_SYMBOL) name_obj = nat_string(env, name_obj->symbol);
+        assert(NAT_TYPE(name_obj) == NAT_VALUE_STRING || NAT_TYPE(name_obj) == NAT_VALUE_SYMBOL);
+        if (NAT_TYPE(name_obj) == NAT_VALUE_SYMBOL) name_obj = nat_string(env, name_obj->symbol);
         NatEnv *block_env = nat_build_env(env);
         block_env->block = TRUE;
         nat_var_set2(block_env, "name", 0, name_obj);
@@ -69,8 +69,8 @@ NatObject *Module_attr_writer(NatEnv *env, NatObject *self, size_t argc, NatObje
     NAT_ASSERT_ARGC_AT_LEAST(1);
     for (size_t i=0; i<argc; i++) {
         NatObject *name_obj = args[i];
-        assert(name_obj->type == NAT_VALUE_STRING || name_obj->type == NAT_VALUE_SYMBOL);
-        if (name_obj->type == NAT_VALUE_SYMBOL) name_obj = nat_string(env, name_obj->symbol);
+        assert(NAT_TYPE(name_obj) == NAT_VALUE_STRING || NAT_TYPE(name_obj) == NAT_VALUE_SYMBOL);
+        if (NAT_TYPE(name_obj) == NAT_VALUE_SYMBOL) name_obj = nat_string(env, name_obj->symbol);
         NatObject *method_name = nat_string(env, name_obj->str);
         nat_string_append_char(method_name, '=');
         NatEnv *block_env = nat_build_env(env);
@@ -100,7 +100,7 @@ NatObject *Module_attr_accessor(NatEnv *env, NatObject *self, size_t argc, NatOb
 }
 
 NatObject *Module_include(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
-    assert(self->type == NAT_VALUE_MODULE || self->type == NAT_VALUE_CLASS);
+    assert(NAT_TYPE(self) == NAT_VALUE_MODULE || NAT_TYPE(self) == NAT_VALUE_CLASS);
     NAT_ASSERT_ARGC_AT_LEAST(1);
     for (size_t i=0; i<argc; i++) {
         nat_class_include(self, args[i]);
@@ -109,7 +109,7 @@ NatObject *Module_include(NatEnv *env, NatObject *self, size_t argc, NatObject *
 }
 
 NatObject *Module_included_modules(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
-    assert(self->type == NAT_VALUE_MODULE || self->type == NAT_VALUE_CLASS);
+    assert(NAT_TYPE(self) == NAT_VALUE_MODULE || NAT_TYPE(self) == NAT_VALUE_CLASS);
     NAT_ASSERT_ARGC(0);
     NatObject *modules = nat_array(env);
     for (size_t i=0; i<self->included_modules_count; i++) {
@@ -119,18 +119,18 @@ NatObject *Module_included_modules(NatEnv *env, NatObject *self, size_t argc, Na
 }
 
 NatObject *Module_define_method(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
-    assert(self->type == NAT_VALUE_MODULE || self->type == NAT_VALUE_CLASS);
+    assert(NAT_TYPE(self) == NAT_VALUE_MODULE || NAT_TYPE(self) == NAT_VALUE_CLASS);
     NAT_ASSERT_ARGC(1);
     NatObject *name_obj = args[0];
-    assert(name_obj->type == NAT_VALUE_STRING || name_obj->type == NAT_VALUE_SYMBOL);
+    assert(NAT_TYPE(name_obj) == NAT_VALUE_STRING || NAT_TYPE(name_obj) == NAT_VALUE_SYMBOL);
     assert(block);
-    char *name = name_obj->type == NAT_VALUE_STRING ? name_obj->str : name_obj->symbol;
+    char *name = NAT_TYPE(name_obj) == NAT_VALUE_STRING ? name_obj->str : name_obj->symbol;
     nat_define_method_with_block(self, name, block);
     return nat_symbol(env, name);
 }
 
 NatObject *Module_class_eval(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
-    assert(self->type == NAT_VALUE_MODULE || self->type == NAT_VALUE_CLASS);
+    assert(NAT_TYPE(self) == NAT_VALUE_MODULE || NAT_TYPE(self) == NAT_VALUE_CLASS);
     NAT_ASSERT_ARGC(0);
     assert(block);
     NatEnv *e = nat_build_block_env(block->env, env);

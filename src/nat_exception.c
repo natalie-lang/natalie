@@ -15,7 +15,7 @@ NatObject *Exception_initialize(NatEnv *env, NatObject *self, size_t argc, NatOb
         self->message = self->class_name;
     } else if (argc == 1) {
         NatObject *message = args[0];
-        if (message->type != NAT_VALUE_STRING) {
+        if (NAT_TYPE(message) != NAT_VALUE_STRING) {
             message = nat_send(env, message, "inspect", 0, NULL, NULL);
         }
         self->message = message->str;
@@ -25,7 +25,7 @@ NatObject *Exception_initialize(NatEnv *env, NatObject *self, size_t argc, NatOb
 
 NatObject *Exception_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
-    assert(self->type == NAT_VALUE_EXCEPTION);
+    assert(NAT_TYPE(self) == NAT_VALUE_EXCEPTION);
     NatObject *str = nat_string(env, "#<");
     assert(self->klass);
     nat_string_append(str, Module_inspect(env, self->klass, 0, NULL, NULL, NULL)->str);
@@ -37,12 +37,12 @@ NatObject *Exception_inspect(NatEnv *env, NatObject *self, size_t argc, NatObjec
 
 NatObject *Exception_message(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
-    assert(self->type == NAT_VALUE_EXCEPTION);
+    assert(NAT_TYPE(self) == NAT_VALUE_EXCEPTION);
     return nat_string(env, self->message);
 }
 
 NatObject *Exception_backtrace(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
-    assert(self->type == NAT_VALUE_EXCEPTION);
+    assert(NAT_TYPE(self) == NAT_VALUE_EXCEPTION);
     return self->backtrace;
 }

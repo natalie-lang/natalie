@@ -9,7 +9,7 @@ NatObject *Kernel_puts(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
         NatObject *str;
         for (size_t i=0; i<argc; i++) {
             str = nat_send(env, args[i], "to_s", 0, NULL, NULL);
-            assert(str->type == NAT_VALUE_STRING);
+            assert(NAT_TYPE(str) == NAT_VALUE_STRING);
             printf("%s\n", str->str);
         }
     }
@@ -21,7 +21,7 @@ NatObject *Kernel_print(NatEnv *env, NatObject *self, size_t argc, NatObject **a
         NatObject *str;
         for (size_t i=0; i<argc; i++) {
             str = nat_send(env, args[i], "to_s", 0, NULL, NULL);
-            assert(str->type == NAT_VALUE_STRING);
+            assert(NAT_TYPE(str) == NAT_VALUE_STRING);
             printf("%s", str->str);
         }
     }
@@ -48,7 +48,7 @@ NatObject *Kernel_p(NatEnv *env, NatObject *self, size_t argc, NatObject **args,
 
 NatObject *Kernel_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
-    if ((self->type == NAT_VALUE_CLASS || self->type == NAT_VALUE_MODULE) && self->class_name) {
+    if ((NAT_TYPE(self) == NAT_VALUE_CLASS || NAT_TYPE(self) == NAT_VALUE_MODULE) && self->class_name) {
         return nat_string(env, self->class_name);
     } else {
         NatObject *str = nat_string(env, "#<");
@@ -89,16 +89,16 @@ NatObject *Kernel_singleton_class(NatEnv *env, NatObject *self, size_t argc, Nat
 NatObject *Kernel_instance_variable_get(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
     NatObject *name_obj = args[0];
-    assert(name_obj->type == NAT_VALUE_STRING || name_obj->type == NAT_VALUE_SYMBOL);
-    char *name = name_obj->type == NAT_VALUE_STRING ? name_obj->str : name_obj->symbol;
+    assert(NAT_TYPE(name_obj) == NAT_VALUE_STRING || NAT_TYPE(name_obj) == NAT_VALUE_SYMBOL);
+    char *name = NAT_TYPE(name_obj) == NAT_VALUE_STRING ? name_obj->str : name_obj->symbol;
     return nat_ivar_get(env, self, name);
 }
 
 NatObject *Kernel_instance_variable_set(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(2);
     NatObject *name_obj = args[0];
-    assert(name_obj->type == NAT_VALUE_STRING || name_obj->type == NAT_VALUE_SYMBOL);
-    char *name = name_obj->type == NAT_VALUE_STRING ? name_obj->str : name_obj->symbol;
+    assert(NAT_TYPE(name_obj) == NAT_VALUE_STRING || NAT_TYPE(name_obj) == NAT_VALUE_SYMBOL);
+    char *name = NAT_TYPE(name_obj) == NAT_VALUE_STRING ? name_obj->str : name_obj->symbol;
     NatObject *val_obj = args[1];
     nat_ivar_set(env, self, name, val_obj);
     return val_obj;
@@ -113,10 +113,10 @@ NatObject *Kernel_raise(NatEnv *env, NatObject *self, size_t argc, NatObject **a
         message = args[1];
     } else if (argc == 1) {
         NatObject *arg = args[0];
-        if (arg->type == NAT_VALUE_CLASS) {
+        if (NAT_TYPE(arg) == NAT_VALUE_CLASS) {
             klass = arg;
             message = nat_string(env, arg->class_name);
-        } else if (arg->type == NAT_VALUE_STRING) {
+        } else if (NAT_TYPE(arg) == NAT_VALUE_STRING) {
             klass = nat_const_get(env, Object, "RuntimeError");
             message = arg;
         } else if (nat_is_a(env, arg, nat_const_get(env, Object, "Exception"))) {
@@ -133,9 +133,9 @@ NatObject *Kernel_respond_to(NatEnv *env, NatObject *self, size_t argc, NatObjec
     NAT_ASSERT_ARGC(1);
     NatObject *symbol = args[0];
     char *name;
-    if (symbol->type == NAT_VALUE_SYMBOL) {
+    if (NAT_TYPE(symbol) == NAT_VALUE_SYMBOL) {
         name = symbol->symbol;
-    } else if (symbol->type == NAT_VALUE_STRING) {
+    } else if (NAT_TYPE(symbol) == NAT_VALUE_STRING) {
         name = symbol->str;
     } else {
         return false_obj;
@@ -168,7 +168,7 @@ NatObject *Kernel_exit(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     NatObject *status;
     if (argc == 1) {
         status = args[0];
-        assert(status->type == NAT_VALUE_INTEGER);
+        assert(NAT_TYPE(status) == NAT_VALUE_INTEGER);
     } else {
         status = nat_integer(env, 0);
     }
@@ -190,7 +190,7 @@ NatObject *Kernel_at_exit(NatEnv *env, NatObject *self, size_t argc, NatObject *
 NatObject *Kernel_is_a(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
     NatObject *klass_or_module = args[0];
-    assert(klass_or_module->type == NAT_VALUE_CLASS || klass_or_module->type == NAT_VALUE_MODULE);
+    assert(NAT_TYPE(klass_or_module) == NAT_VALUE_CLASS || NAT_TYPE(klass_or_module) == NAT_VALUE_MODULE);
     if (nat_is_a(env, self, klass_or_module)) {
         return true_obj;
     } else {

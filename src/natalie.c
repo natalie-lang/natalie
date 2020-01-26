@@ -20,7 +20,7 @@ NatObject *nat_const_get(NatEnv *env, NatObject *klass, char *name) {
 }
 
 NatObject *nat_const_get_or_null(NatEnv *env, NatObject *klass, char *name) {
-    if (klass->type != NAT_VALUE_CLASS) {
+    if (NAT_TYPE(klass) != NAT_VALUE_CLASS) {
         klass = klass->klass;
     }
     NatObject *val;
@@ -35,7 +35,7 @@ NatObject *nat_const_get_or_null(NatEnv *env, NatObject *klass, char *name) {
 }
 
 NatObject *nat_const_set(NatEnv *env, NatObject *klass, char *name, NatObject *val) {
-    if (klass->type != NAT_VALUE_CLASS) {
+    if (NAT_TYPE(klass) != NAT_VALUE_CLASS) {
         klass = klass->klass;
     }
     hashmap_remove(&klass->constants, name);
@@ -218,7 +218,7 @@ NatObject *nat_global_set(NatEnv *env, char *name, NatObject *val) {
 #define FALSE 0
 
 int nat_truthy(NatObject *obj) {
-    if (obj->type == NAT_VALUE_FALSE || obj->type == NAT_VALUE_NIL) {
+    if (NAT_TYPE(obj) == NAT_VALUE_FALSE || NAT_TYPE(obj) == NAT_VALUE_NIL) {
         return FALSE;
     } else {
         return TRUE;
@@ -366,7 +366,7 @@ void nat_grow_array_at_least(NatObject *obj, size_t min_capacity) {
 }
 
 void nat_array_push(NatObject *array, NatObject *obj) {
-    assert(array->type == NAT_VALUE_ARRAY);
+    assert(NAT_TYPE(array) == NAT_VALUE_ARRAY);
     size_t capacity = array->ary_cap;
     size_t len = array->ary_len;
     if (len >= capacity) {
@@ -377,11 +377,11 @@ void nat_array_push(NatObject *array, NatObject *obj) {
 }
 
 void nat_array_push_splat(NatEnv *env, NatObject *array, NatObject *obj) {
-    assert(array->type == NAT_VALUE_ARRAY);
-    if (obj->type != NAT_VALUE_ARRAY && nat_respond_to(obj, "to_a")) {
+    assert(NAT_TYPE(array) == NAT_VALUE_ARRAY);
+    if (NAT_TYPE(obj) != NAT_VALUE_ARRAY && nat_respond_to(obj, "to_a")) {
         obj = nat_send(env, obj, "to_a", 0, NULL, NULL);
     }
-    if (obj->type == NAT_VALUE_ARRAY) {
+    if (NAT_TYPE(obj) == NAT_VALUE_ARRAY) {
         for (size_t i=0; i<obj->ary_len; i++) {
             nat_array_push(array, obj->ary[i]);
         }
@@ -391,7 +391,7 @@ void nat_array_push_splat(NatEnv *env, NatObject *array, NatObject *obj) {
 }
 
 void nat_array_expand_with_nil(NatEnv *env, NatObject *array, size_t size) {
-    assert(array->type == NAT_VALUE_ARRAY);
+    assert(NAT_TYPE(array) == NAT_VALUE_ARRAY);
     for (size_t i=array->ary_len; i<size; i++) {
         nat_array_push(array, nil);
     }
@@ -401,7 +401,7 @@ void nat_array_expand_with_nil(NatEnv *env, NatObject *array, size_t size) {
 size_t nat_hashmap_hash(const void *obj) {
     assert(((NatObject*)obj)->env);
     NatObject *hash_obj = nat_send(((NatObject*)obj)->env, (NatObject*)obj, "hash", 0, NULL, NULL);
-    assert(hash_obj->type == NAT_VALUE_INTEGER);
+    assert(NAT_TYPE(hash_obj) == NAT_VALUE_INTEGER);
     return hash_obj->integer;
 }
 
@@ -409,8 +409,8 @@ size_t nat_hashmap_hash(const void *obj) {
 int nat_hashmap_compare(const void *a, const void *b) {
     NatObject *a_hash = nat_send(((NatObject*)a)->env, (NatObject*)a, "hash", 0, NULL, NULL);
     NatObject *b_hash = nat_send(((NatObject*)b)->env, (NatObject*)b, "hash", 0, NULL, NULL);
-    assert(a_hash->type == NAT_VALUE_INTEGER);
-    assert(b_hash->type == NAT_VALUE_INTEGER);
+    assert(NAT_TYPE(a_hash) == NAT_VALUE_INTEGER);
+    assert(NAT_TYPE(b_hash) == NAT_VALUE_INTEGER);
     return a_hash->integer - b_hash->integer;
 }
 
@@ -498,7 +498,7 @@ NatObject *nat_hash(NatEnv *env) {
 }
 
 NatObject *nat_hash_get(NatEnv *env, NatObject *hash, NatObject *key) {
-    assert(hash->type = NAT_VALUE_HASH);
+    assert(NAT_TYPE(hash) == NAT_VALUE_HASH);
     if (!key->env) key->env = env;
     NatHashValueContainer *container = hashmap_get(&hash->hashmap, key);
     if (container) {
@@ -509,7 +509,7 @@ NatObject *nat_hash_get(NatEnv *env, NatObject *hash, NatObject *key) {
 }
 
 void nat_hash_put(NatEnv *env, NatObject *hash, NatObject *key, NatObject *val) {
-    assert(hash->type = NAT_VALUE_HASH);
+    assert(NAT_TYPE(hash) == NAT_VALUE_HASH);
     // nat_hashmap_hash and nat_hashmap_compare use key->env because we cannot pass it in as an argument
     if (!key->env) key->env = env;
     NatHashValueContainer *container = hashmap_get(&hash->hashmap, key);
@@ -585,7 +585,7 @@ void nat_define_singleton_method(NatEnv *env, NatObject *obj, char *name, NatObj
 }
 
 NatObject *nat_class_ancestors(NatEnv *env, NatObject *klass) {
-    assert(klass->type == NAT_VALUE_CLASS || klass->type == NAT_VALUE_MODULE);
+    assert(NAT_TYPE(klass) == NAT_VALUE_CLASS || NAT_TYPE(klass) == NAT_VALUE_MODULE);
     NatObject *ancestors = nat_array(env);
     while (1) {
         nat_array_push(ancestors, klass);
@@ -686,7 +686,7 @@ void nat_methods(NatEnv *env, NatObject *array, NatObject *klass) {
 
 // returns the method and sets matching_class_or_module to where the method was found
 NatMethod *nat_find_method(NatObject *klass, char *method_name, NatObject **matching_class_or_module) {
-    assert(klass->type == NAT_VALUE_CLASS);
+    assert(NAT_TYPE(klass) == NAT_VALUE_CLASS);
 
     NatMethod *method = hashmap_get(&klass->methods, method_name);
     if (method) {
@@ -712,7 +712,7 @@ NatMethod *nat_find_method(NatObject *klass, char *method_name, NatObject **matc
 
 NatObject *nat_call_method_on_class(NatEnv *env, NatObject *klass, NatObject *instance_class, char *method_name, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     assert(klass != NULL);
-    assert(klass->type == NAT_VALUE_CLASS);
+    assert(NAT_TYPE(klass) == NAT_VALUE_CLASS);
 
     NatObject *matching_class_or_module;
     NatMethod *method = nat_find_method(klass, method_name, &matching_class_or_module);
@@ -725,7 +725,7 @@ NatObject *nat_call_method_on_class(NatEnv *env, NatObject *klass, NatObject *in
         NatEnv *closure_env;
         if (method->env) {
             closure_env = method->env;
-        } else if (self->type == NAT_VALUE_CLASS) {
+        } else if (NAT_TYPE(self) == NAT_VALUE_CLASS) {
             // FIXME: not sure if this is proper, but it works
             closure_env = self->env;
         } else {
@@ -886,7 +886,7 @@ NatObject* nat_vsprintf(NatEnv *env, char *format, va_list args) {
 
 NatObject *nat_dup(NatEnv *env, NatObject *obj) {
     NatObject *copy;
-    switch (obj->type) {
+    switch (NAT_TYPE(obj)) {
         case NAT_VALUE_ARRAY:
             copy = nat_array(env);
             for (size_t i=0; i<obj->ary_len; i++) {
@@ -923,14 +923,14 @@ NatObject *nat_not(NatEnv *env, NatObject *val) {
 }
 
 void nat_alias(NatEnv *env, NatObject *self, char *new_name, char *old_name) {
-    if (self->type == NAT_VALUE_INTEGER || self->type == NAT_VALUE_SYMBOL) {
+    if (NAT_TYPE(self) == NAT_VALUE_INTEGER || NAT_TYPE(self) == NAT_VALUE_SYMBOL) {
         NAT_RAISE(env, nat_const_get(env, Object, "TypeError"), "no klass to make alias");
     }
     if (nat_is_main_object(self)) {
         self = self->klass;
     }
     NatObject *klass = self;
-    if (self->type != NAT_VALUE_CLASS && self->type != NAT_VALUE_MODULE) {
+    if (NAT_TYPE(self) != NAT_VALUE_CLASS && NAT_TYPE(self) != NAT_VALUE_MODULE) {
         klass = nat_singleton_class(env, self);
     }
     NatObject *matching_class_or_module;
@@ -948,18 +948,18 @@ void nat_run_at_exit_handlers(NatEnv *env) {
     for (int i=at_exit_handlers->ary_len-1; i>=0; i--) {
         NatObject *proc = at_exit_handlers->ary[i];
         assert(proc);
-        assert(proc->type == NAT_VALUE_PROC);
+        assert(NAT_TYPE(proc) == NAT_VALUE_PROC);
         nat_run_block(env, proc->block, 0, NULL, NULL, NULL);
     }
 }
 
 void nat_print_exception_with_backtrace(NatEnv *env, NatObject *exception) {
-    assert(exception->type == NAT_VALUE_EXCEPTION);
+    assert(NAT_TYPE(exception) == NAT_VALUE_EXCEPTION);
     if (exception->backtrace->ary_len > 0) {
         fprintf(stderr, "Traceback (most recent call last):\n");
         for (int i=exception->backtrace->ary_len-1; i>0; i--) {
             NatObject *line = exception->backtrace->ary[i];
-            assert(line->type == NAT_VALUE_STRING);
+            assert(NAT_TYPE(line) == NAT_VALUE_STRING);
             fprintf(stderr, "        %d: from %s\n", i, line->str);
         }
         fprintf(stderr, "%s: ", exception->backtrace->ary[0]->str);
@@ -970,12 +970,12 @@ void nat_print_exception_with_backtrace(NatEnv *env, NatObject *exception) {
 void nat_handle_top_level_exception(NatEnv *env, int run_exit_handlers) {
     NatObject *exception = env->exception;
     assert(exception);
-    assert(exception->type == NAT_VALUE_EXCEPTION);
+    assert(NAT_TYPE(exception) == NAT_VALUE_EXCEPTION);
     env->jump_buf = NULL;
     if (nat_is_a(env, exception, nat_const_get(env, Object, "SystemExit"))) {
         NatObject *status_obj = nat_ivar_get(env, exception, "@status");
         if (run_exit_handlers) nat_run_at_exit_handlers(env);
-        if (status_obj->type == NAT_VALUE_INTEGER && status_obj->integer >= 0 && status_obj->integer <= 255) {
+        if (NAT_TYPE(status_obj) == NAT_VALUE_INTEGER && status_obj->integer >= 0 && status_obj->integer <= 255) {
             exit(status_obj->integer);
         } else {
             exit(1);
