@@ -656,12 +656,8 @@ char *nat_defined(NatEnv *env, NatObject *receiver, char *name) {
     } else if (nat_is_global_name(name)) {
         obj = nat_global_get(env, name);
         if (obj != nil) return "global-variable";
-    } else {
-        obj = nat_var_get(env, name);
-        if (obj) return "local-variable";
-        if (nat_respond_to(receiver, name)) {
-            return "method";
-        }
+    } else if (nat_respond_to(receiver, name)) {
+        return "method";
     }
     return NULL;
 }
