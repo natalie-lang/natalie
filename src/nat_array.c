@@ -65,20 +65,20 @@ NatObject *Array_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **args
     assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);
     NatObject *index = args[0];
     assert(NAT_TYPE(index) == NAT_VALUE_INTEGER); // TODO: accept a range
-    assert(index->integer >= 0); // TODO: accept negative index
-    if (index->integer >= self->ary_len) {
+    assert(NAT_INT_VALUE(index) >= 0); // TODO: accept negative index
+    if (NAT_INT_VALUE(index) >= self->ary_len) {
         return nil;
     } else if (argc == 1) {
-        return self->ary[index->integer];
+        return self->ary[NAT_INT_VALUE(index)];
     } else {
         NatObject *size = args[1];
         assert(NAT_TYPE(size) == NAT_VALUE_INTEGER);
-        assert(index->integer >= 0);
-        size_t end = index->integer + size->integer;
+        assert(NAT_INT_VALUE(index) >= 0);
+        size_t end = NAT_INT_VALUE(index) + NAT_INT_VALUE(size);
         size_t max = self->ary_len;
         end = end > max ? max : end;
         NatObject *result = nat_array(env);
-        for (size_t i=index->integer; i<end; i++) {
+        for (size_t i=NAT_INT_VALUE(index); i<end; i++) {
             nat_array_push(result, self->ary[i]);
         }
         return result;
@@ -90,8 +90,8 @@ NatObject *Array_refeq(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);
     NatObject *index_obj = args[0];
     assert(NAT_TYPE(index_obj) == NAT_VALUE_INTEGER); // TODO: accept a range
-    assert(index_obj->integer >= 0); // TODO: accept negative index
-    size_t index = index_obj->integer;
+    assert(NAT_INT_VALUE(index_obj) >= 0); // TODO: accept negative index
+    size_t index = NAT_INT_VALUE(index_obj);
     NatObject *val;
     if (argc == 2) {
         val = args[1];
@@ -105,7 +105,7 @@ NatObject *Array_refeq(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     }
     NatObject *len_obj = args[1];
     assert(NAT_TYPE(len_obj) == NAT_VALUE_INTEGER);
-    size_t length = len_obj->integer;
+    size_t length = NAT_INT_VALUE(len_obj);
     assert(length >= 0);
     val = args[2];
     // PERF: inefficient for large arrays where changes are being made to only the right side

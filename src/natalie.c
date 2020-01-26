@@ -1,6 +1,7 @@
 #include "natalie.h"
 #include <ctype.h>
 #include <stdarg.h>
+#include <math.h>
 
 int nat_is_constant_name(char *name) {
     return strlen(name) > 0 && isupper(name[0]);
@@ -21,7 +22,7 @@ NatObject *nat_const_get(NatEnv *env, NatObject *klass, char *name) {
 
 NatObject *nat_const_get_or_null(NatEnv *env, NatObject *klass, char *name) {
     if (NAT_TYPE(klass) != NAT_VALUE_CLASS) {
-        klass = klass->klass;
+        klass = NAT_OBJ_CLASS(klass);
     }
     NatObject *val;
     while (!(val = hashmap_get(&klass->constants, name)) && klass->superclass) {
@@ -303,10 +304,9 @@ NatObject *nat_singleton_class(NatEnv *env, NatObject *obj) {
 }
 
 NatObject *nat_integer(NatEnv *env, int64_t integer) {
-    NatObject *obj = nat_new(env, nat_const_get(env, Object, "Integer"), 0, NULL, NULL, NULL);
-    obj->type = NAT_VALUE_INTEGER;
-    obj->integer = integer;
-    return obj;
+    assert(integer >= NAT_MIN_INT);
+    assert(integer <= NAT_MAX_INT);
+    return (NatObject*)(integer << 1 | 1);
 }
 
 NatObject *nat_string(NatEnv *env, char *str) {
@@ -378,7 +378,7 @@ void nat_array_push(NatObject *array, NatObject *obj) {
 
 void nat_array_push_splat(NatEnv *env, NatObject *array, NatObject *obj) {
     assert(NAT_TYPE(array) == NAT_VALUE_ARRAY);
-    if (NAT_TYPE(obj) != NAT_VALUE_ARRAY && nat_respond_to(obj, "to_a")) {
+    if (NAT_TYPE(obj) != NAT_VALUE_ARRAY && nat_respond_to(env, obj, "to_a")) {
         obj = nat_send(env, obj, "to_a", 0, NULL, NULL);
     }
     if (NAT_TYPE(obj) == NAT_VALUE_ARRAY) {
@@ -402,7 +402,7 @@ size_t nat_hashmap_hash(const void *obj) {
     assert(((NatObject*)obj)->env);
     NatObject *hash_obj = nat_send(((NatObject*)obj)->env, (NatObject*)obj, "hash", 0, NULL, NULL);
     assert(NAT_TYPE(hash_obj) == NAT_VALUE_INTEGER);
-    return hash_obj->integer;
+    return NAT_INT_VALUE(hash_obj);
 }
 
 // this is used by the hashmap library to compare keys
@@ -411,7 +411,7 @@ int nat_hashmap_compare(const void *a, const void *b) {
     NatObject *b_hash = nat_send(((NatObject*)b)->env, (NatObject*)b, "hash", 0, NULL, NULL);
     assert(NAT_TYPE(a_hash) == NAT_VALUE_INTEGER);
     assert(NAT_TYPE(b_hash) == NAT_VALUE_INTEGER);
-    return a_hash->integer - b_hash->integer;
+    return NAT_INT_VALUE(a_hash) - NAT_INT_VALUE(b_hash);
 }
 
 NatHashKeyListNode *nat_hash_key_list_append(NatObject *hash, NatObject *key, NatObject *val) {
@@ -497,8 +497,22 @@ NatObject *nat_hash(NatEnv *env) {
     return obj;
 }
 
+// We need an "actual" Integer object to store the env for hashmap keys.
+// FIXME: this stinks, rethink this
+NatObject *nat_convert_to_real_object(NatEnv *env, NatObject *obj) {
+    if (((int64_t)obj & 1)) {
+        NatObject *real_obj = nat_new(env, nat_const_get(env, Object, "Integer"), 0, NULL, NULL, NULL);
+        real_obj->type = NAT_VALUE_INTEGER;
+        real_obj->integer = NAT_INT_VALUE(obj);
+        return real_obj;
+    } else {
+        return obj;
+    }
+}
+
 NatObject *nat_hash_get(NatEnv *env, NatObject *hash, NatObject *key) {
     assert(NAT_TYPE(hash) == NAT_VALUE_HASH);
+    key = nat_convert_to_real_object(env, key);
     if (!key->env) key->env = env;
     NatHashValueContainer *container = hashmap_get(&hash->hashmap, key);
     if (container) {
@@ -510,6 +524,7 @@ NatObject *nat_hash_get(NatEnv *env, NatObject *hash, NatObject *key) {
 
 void nat_hash_put(NatEnv *env, NatObject *hash, NatObject *key, NatObject *val) {
     assert(NAT_TYPE(hash) == NAT_VALUE_HASH);
+    key = nat_convert_to_real_object(env, key);
     // nat_hashmap_hash and nat_hashmap_compare use key->env because we cannot pass it in as an argument
     if (!key->env) key->env = env;
     NatHashValueContainer *container = hashmap_get(&hash->hashmap, key);
@@ -526,6 +541,7 @@ void nat_hash_put(NatEnv *env, NatObject *hash, NatObject *key, NatObject *val) 
 
 NatObject* nat_hash_delete(NatEnv *env, NatObject *hash, NatObject *key) {
     assert(hash->type = NAT_VALUE_HASH);
+    key = nat_convert_to_real_object(env, key);
     if (!key->env) key->env = env;
     NatHashValueContainer *container = hashmap_remove(&hash->hashmap, key);
     if (container) {
@@ -602,7 +618,7 @@ int nat_is_a(NatEnv *env, NatObject *obj, NatObject *klass_or_module) {
     if (obj == klass_or_module) {
         return TRUE;
     } else {
-        NatObject *ancestors = nat_class_ancestors(env, obj->klass);
+        NatObject *ancestors = nat_class_ancestors(env, NAT_OBJ_CLASS(obj));
         for (size_t i=0; i<ancestors->ary_len; i++) {
             if (klass_or_module == ancestors->ary[i]) {
                 return TRUE;
@@ -620,7 +636,7 @@ char *nat_defined(NatEnv *env, NatObject *receiver, char *name) {
     } else if (nat_is_global_name(name)) {
         obj = nat_global_get(env, name);
         if (obj != nil) return "global-variable";
-    } else if (nat_respond_to(receiver, name)) {
+    } else if (nat_respond_to(env, receiver, name)) {
         return "method";
     }
     return NULL;
@@ -637,24 +653,29 @@ NatObject *nat_defined_obj(NatEnv *env, NatObject *receiver, char *name) {
 
 NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, NatObject **args, NatBlock *block) { // FIXME: kwargs
     assert(receiver);
-    NatObject *klass = receiver->singleton_class;
-    if (klass) {
-        NatObject *matching_class_or_module;
-        NatMethod *method = nat_find_method(klass, sym, &matching_class_or_module);
-        if (method) {
+    NatObject *klass;
+    if (NAT_TYPE(receiver) == NAT_VALUE_INTEGER) {
+        klass = nat_const_get(env, Object, "Integer");
+    } else {
+        klass = receiver->singleton_class;
+        if (klass) {
+            NatObject *matching_class_or_module;
+            NatMethod *method = nat_find_method(klass, sym, &matching_class_or_module);
+            if (method) {
 #ifdef DEBUG_METHOD_RESOLUTION
-            if (strcmp(sym, "inspect") != 0) {
-                if (matching_class_or_module == klass) {
-                    fprintf(stderr, "Method %s found on the singleton klass of %s\n", sym, nat_send(env, receiver, "inspect", 0, NULL, NULL)->str);
-                } else {
-                    fprintf(stderr, "Method %s found on %s, which is an ancestor of the singleton klass of %s\n", sym, matching_class_or_module->class_name, nat_send(env, receiver, "inspect", 0, NULL, NULL)->str);
+                if (strcmp(sym, "inspect") != 0) {
+                    if (matching_class_or_module == klass) {
+                        fprintf(stderr, "Method %s found on the singleton klass of %s\n", sym, nat_send(env, receiver, "inspect", 0, NULL, NULL)->str);
+                    } else {
+                        fprintf(stderr, "Method %s found on %s, which is an ancestor of the singleton klass of %s\n", sym, matching_class_or_module->class_name, nat_send(env, receiver, "inspect", 0, NULL, NULL)->str);
+                    }
                 }
-            }
 #endif
-            return nat_call_method_on_class(env, klass, receiver->klass, sym, receiver, argc, args, NULL, block);
+                return nat_call_method_on_class(env, klass, receiver->klass, sym, receiver, argc, args, NULL, block);
+            }
         }
+        klass = receiver->klass;
     }
-    klass = receiver->klass;
 #ifdef DEBUG_METHOD_RESOLUTION
     if (strcmp(sym, "inspect") != 0) {
         fprintf(stderr, "Looking for method %s in the klass hierarchy of %s\n", sym, nat_send(env, receiver, "inspect", 0, NULL, NULL)->str);
@@ -741,10 +762,17 @@ NatObject *nat_call_method_on_class(NatEnv *env, NatObject *klass, NatObject *in
     }
 }
 
-int nat_respond_to(NatObject *obj, char *name) {
+int nat_respond_to(NatEnv *env, NatObject *obj, char *name) {
     NatObject *matching_class_or_module;
     // FIXME: I don't think we need to check both singleton_class and klass since singleton_class inherits from the klass
-    if (obj->singleton_class && nat_find_method(obj->singleton_class, name, &matching_class_or_module)) {
+    if (NAT_TYPE(obj) == NAT_VALUE_INTEGER) {
+        NatObject *klass = nat_const_get(env, Object, "Integer");
+        if (nat_find_method(klass, name, &matching_class_or_module)) {
+            return TRUE;
+        } else {
+            return FALSE;
+        }
+    } else if (obj->singleton_class && nat_find_method(obj->singleton_class, name, &matching_class_or_module)) {
         return TRUE;
     } else if (nat_find_method(obj->klass, name, &matching_class_or_module)) {
         return TRUE;
@@ -975,8 +1003,13 @@ void nat_handle_top_level_exception(NatEnv *env, int run_exit_handlers) {
     if (nat_is_a(env, exception, nat_const_get(env, Object, "SystemExit"))) {
         NatObject *status_obj = nat_ivar_get(env, exception, "@status");
         if (run_exit_handlers) nat_run_at_exit_handlers(env);
-        if (NAT_TYPE(status_obj) == NAT_VALUE_INTEGER && status_obj->integer >= 0 && status_obj->integer <= 255) {
-            exit(status_obj->integer);
+        if (NAT_TYPE(status_obj) == NAT_VALUE_INTEGER) {
+            int64_t val = NAT_INT_VALUE(status_obj);
+            if (val >= 0 && val <= 255) {
+                exit(val);
+            } else {
+                exit(1);
+            }
         } else {
             exit(1);
         }

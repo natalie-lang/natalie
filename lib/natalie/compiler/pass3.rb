@@ -98,7 +98,7 @@ module Natalie
       def process_assign(exp)
         (_, val, *args) = exp
         val = process(val)
-        decl "if (NAT_TYPE(#{val}) != NAT_VALUE_ARRAY && nat_respond_to(#{val}, \"to_ary\")) {"
+        decl "if (NAT_TYPE(#{val}) != NAT_VALUE_ARRAY && nat_respond_to(env, #{val}, \"to_ary\")) {"
         decl "#{val} = nat_send(env, #{val}, \"to_ary\", 0, NULL, NULL);"
         decl '}'
         decl "if (NAT_TYPE(#{val}) == NAT_VALUE_ARRAY) {"

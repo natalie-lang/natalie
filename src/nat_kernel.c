@@ -140,7 +140,7 @@ NatObject *Kernel_respond_to(NatEnv *env, NatObject *self, size_t argc, NatObjec
     } else {
         return false_obj;
     }
-    if (nat_respond_to(self, name)) {
+    if (nat_respond_to(env, self, name)) {
         return true_obj;
     } else {
         return false_obj;
@@ -201,7 +201,7 @@ NatObject *Kernel_is_a(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
 NatObject *Kernel_hash(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     NatObject *inspected = nat_send(env, self, "inspect", 0, NULL, NULL);
-    size_t hash_value = hashmap_hash_string(inspected->str);
+    int32_t hash_value = hashmap_hash_string(inspected->str);
     return nat_integer(env, hash_value);
 }
 

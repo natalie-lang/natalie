@@ -15,7 +15,8 @@
 
 #define xDEBUG_METHOD_RESOLUTION
 
-#define NAT_TYPE(obj) (obj->type)
+#define NAT_TYPE(obj) (((int64_t)obj & 1) ? NAT_VALUE_INTEGER : obj->type)
+#define NAT_OBJ_CLASS(obj) (((int64_t)obj & 1) ? nat_const_get(env, Object, "Integer") : obj->klass)
 #define NAT_RESCUE(env) setjmp(*(env->jump_buf = malloc(sizeof(jmp_buf))))
 #define NAT_RAISE(env, klass, message_format, ...) nat_raise(env, klass, message_format, ##__VA_ARGS__); abort();
 #define NAT_ASSERT_ARGC1(expected) if(argc != expected) { NAT_RAISE(env, nat_const_get(env, Object, "ArgumentError"), "wrong number of arguments (given %d, expected %d)", argc, expected); }
@@ -29,6 +30,12 @@
 
 #define TRUE 1
 #define FALSE 0
+
+// only 63-bit numbers for now
+#define NAT_MIN_INT INT64_MIN >> 1
+#define NAT_MAX_INT INT64_MAX >> 1
+
+#define NAT_INT_VALUE(obj) (((int64_t)obj & 1) ? ((int64_t)obj) >> 1 : obj->integer)
 
 typedef struct NatObject NatObject;
 typedef struct NatGlobalEnv NatGlobalEnv;
@@ -234,7 +241,7 @@ NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, Na
 void nat_methods(NatEnv *env, NatObject *array, NatObject *klass);
 NatMethod *nat_find_method(NatObject *klass, char *method_name, NatObject **matching_class_or_module);
 NatObject *nat_call_method_on_class(NatEnv *env, NatObject *klass, NatObject *instance_class, char *method_name, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
-int nat_respond_to(NatObject *obj, char *name);
+int nat_respond_to(NatEnv *env, NatObject *obj, char *name);
 
 NatBlock *nat_block(NatEnv *env, NatObject *self, NatObject* (*fn)(NatEnv*, NatObject*, size_t, NatObject**, struct hashmap*, NatBlock*));
 NatObject *nat_run_block(NatEnv *env, NatBlock *the_block, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);

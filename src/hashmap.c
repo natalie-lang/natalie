@@ -598,7 +598,8 @@ int hashmap_foreach(const struct hashmap *map,
 size_t hashmap_hash_string(const void *key)
 {
     const char *key_str = (const char *)key;
-    size_t hash = 0;
+    // FIXME: is this ok being a 32-bit number? more collisions?
+    int32_t hash = 0;
 
     for (; *key_str; ++key_str) {
         hash += *key_str;
