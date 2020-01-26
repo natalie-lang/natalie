@@ -442,7 +442,9 @@ module Natalie
       end
 
       def process_var_alloc(exp)
-        '' # TODO
+        count = exp.last
+        decl "env->vars = calloc(#{count}, sizeof(NatObject*));"
+        ''
       end
 
       def process_with_self(exp)

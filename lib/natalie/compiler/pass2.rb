@@ -20,11 +20,15 @@ module Natalie
         body = process_sexp(body)
         var_count = @env[:vars].size
         @env = @env[:parent]
-        exp.new(sexp_type,
-          name,
-          exp.new(:block,
-            s(:var_alloc, var_count),
-            body))
+        if is_block
+          exp.new(sexp_type, name, body)
+        else
+          exp.new(sexp_type,
+            name,
+            exp.new(:block,
+              s(:var_alloc, var_count),
+              body))
+        end
       end
       alias process_begin_fn process_block_fn
       alias process_class_fn process_block_fn

@@ -53,7 +53,6 @@ NatObject *nat_var_get2(NatEnv *env, char *key, size_t index) {
 }
 
 NatObject *nat_var_set2(NatEnv *env, char *key, size_t index, NatObject *val) {
-    // TODO: move this in to the compiler
     if (env->var_count == 0) {
         env->vars = calloc(index + 1, sizeof(NatObject*));
         env->var_count = index + 1;
