@@ -63,39 +63,38 @@ module Natalie
       @c_path = temp_c.path
     end
 
+    def build_context
+      {
+        var_prefix: var_prefix,
+        var_num: 0,
+        built_in_constants: built_in_constants,
+        template: template
+      }
+    end
+
     def transform(ast)
-      p1 = Pass1.new
-      p1.var_prefix = var_prefix
-      r1 = p1.process(ast)
+      context = build_context
+
+      ast = Pass1.new(context).go(ast)
       if ENV['DEBUG_PASS1']
-        pp r1
+        pp ast
         exit
       end
-      p2 = Pass2.new
-      p2.built_in_constants = built_in_constants
-      r2 = p2.process(r1)
+
+      ast = Pass2.new(context).go(ast)
       if ENV['DEBUG_PASS2']
-        pp r2
+        pp ast
         exit
       end
-      p3 = Pass3.new
-      p3.var_prefix = var_prefix
-      p3.var_num = p1.var_num
-      p3.built_in_constants = built_in_constants
-      r3 = p3.process(r2)
-      [
-        Pass4.new(p3.top).process,
-        Pass4.new(p3.decl + "\n" + r3).process,
-      ]
+
+      ast = Pass3.new(context).go(ast)
+
+      Pass4.new(context, ast).go
     end
 
     def to_c
       @ast = expand_macros(@ast, @path)
-      (top, body) = transform(@ast)
-      out = template
-        .sub('/*TOP*/', top)
-        .sub('/*BODY*/', body)
-      reindent(out)
+      reindent(transform(@ast))
     end
 
     def load_path

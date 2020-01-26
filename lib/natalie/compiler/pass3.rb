@@ -2,19 +2,17 @@ module Natalie
   class Compiler
     # Generate a C code from pseudo-C S-expressions
     class Pass3 < SexpProcessor
-      def initialize
-        super
+      def initialize(compiler_context)
+        super()
         self.default_method = :process_sexp
         self.warn_on_default = false
         self.require_empty = false
         self.strict = true
         self.expected = String
+        @compiler_context = compiler_context
         @top = []
         @decl = []
-        @var_num = 0
       end
-
-      attr_accessor :var_num, :var_prefix, :built_in_constants
 
       VOID_FUNCTIONS = %i[
         nat_alias
@@ -27,6 +25,13 @@ module Natalie
       ]
 
       NAT_FUNCTIONS = /^nat_/i
+
+      def go(ast)
+        result = process(ast)
+        @compiler_context[:template]
+          .sub('/*TOP*/', @top.join("\n"))
+          .sub('/*BODY*/', @decl.join("\n") + "\n" + result)
+      end
 
       def p(exp)
         case exp
@@ -459,27 +464,19 @@ module Natalie
       end
 
       def temp(name)
-        @var_num += 1
-        "#{var_prefix}#{name}#{@var_num}"
+        n = @compiler_context[:var_num] += 1
+        "#{@compiler_context[:var_prefix]}#{name}#{n}"
       end
 
-      def top(code = nil)
-        if code
-          Array(code).each do |line|
-            @top << line
-          end
-        else
-          @top.join("\n")
+      def top(code)
+        Array(code).each do |line|
+          @top << line
         end
       end
 
-      def decl(code = nil)
-        if code
-          Array(code).each do |line|
-            @decl << line
-          end
-        else
-          @decl.join("\n")
+      def decl(code)
+        Array(code).each do |line|
+          @decl << line
         end
       end
 

@@ -2,16 +2,19 @@ module Natalie
   class Compiler
     # Convert named variables to variable indices
     class Pass2 < SexpProcessor
-      def initialize
-        super
+      def initialize(compiler_context)
+        super()
         self.default_method = :process_sexp
         self.warn_on_default = false
         self.require_empty = false
         self.strict = true
+        @compiler_context = compiler_context
         @env = { vars: {} }
       end
 
-      attr_accessor :built_in_constants
+      def go(ast)
+        process(ast)
+      end
 
       def process_block_fn(exp)
         (sexp_type, name, body) = exp
@@ -48,7 +51,7 @@ module Natalie
         (_, _, name) = exp
         raise "bad name: #{name.inspect}" unless name.is_a?(Sexp) && name.sexp_type == :s
         name = name.last.to_s
-        if built_in_constants.include?(name)
+        if @compiler_context[:built_in_constants].include?(name)
           exp.new(:built_in_const, name)
         else
           (env_name, index) = find_var(name)
@@ -66,7 +69,7 @@ module Natalie
         raise "bad name: #{name.inspect}" unless name.is_a?(Sexp) && name.sexp_type == :s
         name = name.last.to_s
         bare_name = name.sub(/^[\*\&]/, '')
-        if built_in_constants.include?(name)
+        if @compiler_context[:built_in_constants].include?(name)
           exp.new(:built_in_const, name)
         else
           (env_name, index) = find_var(bare_name)

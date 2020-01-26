@@ -2,11 +2,12 @@ module Natalie
   class Compiler
     # Remove unused variables from generated C code
     class Pass4
-      def initialize(code)
-        @code = code.dup
+      def initialize(compiler_context, code)
+        @compiler_context = compiler_context
+        @code = code
       end
 
-      def process
+      def go
         return @code if ENV['DISABLE_PASS3']
         unused_if_vars.each do |var|
           @code.gsub!(/NatObject \*#{var};\n/, '')

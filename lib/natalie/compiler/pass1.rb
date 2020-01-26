@@ -2,13 +2,15 @@ module Natalie
   class Compiler
     # process S-expressions from Ruby to C
     class Pass1 < SexpProcessor
-      def initialize
-        super
+      def initialize(compiler_context)
+        super()
         self.require_empty = false
-        @var_num = 0
+        @compiler_context = compiler_context
       end
 
-      attr_accessor :var_num, :var_prefix
+      def go(ast)
+        process(ast)
+      end
 
       def process_alias(exp)
         (_, (_, new_name), (_, old_name)) = exp
@@ -399,8 +401,8 @@ module Natalie
       end
 
       def temp(name)
-        @var_num += 1
-        "#{var_prefix}#{name}#{@var_num}"
+        n = @compiler_context[:var_num] += 1
+        "#{@compiler_context[:var_prefix]}#{name}#{n}"
       end
 
       def args_use_simple_mode?(names)
