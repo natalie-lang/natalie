@@ -50,7 +50,7 @@ NatObject *Module_attr_reader(NatEnv *env, NatObject *self, size_t argc, NatObje
         if (name_obj->type == NAT_VALUE_SYMBOL) name_obj = nat_string(env, name_obj->symbol);
         NatEnv *block_env = nat_build_env(env);
         block_env->block = TRUE;
-        nat_var_set(block_env, "name", name_obj);
+        nat_var_set2(block_env, "name", 0, name_obj);
         NatBlock *block = nat_block(block_env, self, Module_attr_reader_block_fn);
         nat_define_method_with_block(self, name_obj->str, block);
     }
@@ -58,7 +58,7 @@ NatObject *Module_attr_reader(NatEnv *env, NatObject *self, size_t argc, NatObje
 }
 
 NatObject *Module_attr_reader_block_fn(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
-    NatObject *name_obj = nat_var_get(env, "name");
+    NatObject *name_obj = nat_var_get2(env->outer, "name", 0);
     assert(name_obj);
     NatObject *ivar_name = nat_string(env, "@");
     nat_string_append(ivar_name, name_obj->str);
@@ -75,7 +75,7 @@ NatObject *Module_attr_writer(NatEnv *env, NatObject *self, size_t argc, NatObje
         nat_string_append_char(method_name, '=');
         NatEnv *block_env = nat_build_env(env);
         block_env->block = TRUE;
-        nat_var_set(block_env, "name", name_obj);
+        nat_var_set2(block_env, "name", 0, name_obj);
         NatBlock *block = nat_block(block_env, self, Module_attr_writer_block_fn);
         nat_define_method_with_block(self, method_name->str, block);
     }
@@ -84,7 +84,7 @@ NatObject *Module_attr_writer(NatEnv *env, NatObject *self, size_t argc, NatObje
 
 NatObject *Module_attr_writer_block_fn(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NatObject *val = args[0];
-    NatObject *name_obj = nat_var_get(env, "name");
+    NatObject *name_obj = nat_var_get2(env->outer, "name", 0);
     assert(name_obj);
     NatObject *ivar_name = nat_string(env, "@");
     nat_string_append(ivar_name, name_obj->str);

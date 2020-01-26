@@ -129,8 +129,11 @@ class IvarTest
   end
 
   attr_reader :z
+  attr_reader :z2
   attr_writer :z
+  attr_writer :z2
   attr_accessor :zz
+  attr_accessor :zz2
 end
 
 describe 'class' do
@@ -150,9 +153,13 @@ describe 'class' do
       i.z = 10
       i.z.must_equal 10
       i.z = 20
+      i.z2 = 200
       i.z.must_equal 20
+      i.z2.must_equal 200
       i.zz = 30
+      i.zz2 = 300
       i.zz.must_equal 30
+      i.zz2.must_equal 300
       i.block_test.must_equal [20]
     end
   end
