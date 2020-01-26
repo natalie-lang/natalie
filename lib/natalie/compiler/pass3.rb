@@ -257,12 +257,16 @@ module Natalie
         (_, name) = exp
         result = temp('defined_result')
         case name.sexp_type
-        when :const, :lvar
+        when :const, :gvar
           decl "NatObject *#{result} = nat_defined_obj(env, self, #{name.last.to_s.inspect});"
-        when :call
+        when :nat_send
           (_, receiver, name) = name
           receiver ||= 'self'
           decl "NatObject *#{result} = nat_defined_obj(env, #{p receiver}, #{name.to_s.inspect});"
+        when :lit, :str
+          decl "NatObject *#{result} = nat_string(env, \"expression\");"
+        when :nil
+          decl "NatObject *#{result} = nat_string(env, \"nil\");"
         else
           raise "unknown defined type: #{exp.inspect}"
         end

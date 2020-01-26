@@ -1,0 +1,48 @@
+require 'spec'
+
+NUM = 1
+
+$global = 2
+
+class Foo
+end
+
+def foo
+end
+
+describe 'defined?' do
+  it 'recognizes constants' do
+    defined?(NUM).must_equal 'constant'
+    defined?(Foo).must_equal 'constant'
+    defined?(NonExistent).must_equal nil
+  end
+
+  it 'recognizes variables' do
+    x = 1
+    defined?(x).must_equal 'local-variable'
+    defined?(not_a_variable).must_equal nil
+  end
+
+  it 'recognizes global variables' do
+    defined?($global).must_equal 'global-variable'
+    defined?($not_a_global).must_equal nil
+  end
+
+  it 'recognizes methods' do
+    defined?(foo).must_equal 'method'
+    defined?([].any?).must_equal 'method'
+    defined?(1 + 1).must_equal 'method'
+    defined?(not_a_method).must_equal nil
+  end
+
+  it 'recognizes expressions' do
+    defined?(1).must_equal 'expression'
+    defined?('hi').must_equal 'expression'
+  end
+
+  it 'recognizes nil' do
+    defined?(nil).must_equal 'nil'
+  end
+end
+
+run_specs

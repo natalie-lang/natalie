@@ -6,8 +6,8 @@ int nat_is_constant_name(char *name) {
     return strlen(name) > 0 && isupper(name[0]);
 }
 
-int nat_is_special_name(char *name) {
-    return strcmp(name, "nil") == 0 || strcmp(name, "true") == 0 || strcmp(name, "false") == 0;
+int nat_is_global_name(char *name) {
+    return strlen(name) > 0 && name[0] == '$';
 }
 
 NatObject *nat_const_get(NatEnv *env, NatObject *klass, char *name) {
@@ -45,8 +45,7 @@ NatObject *nat_const_set(NatEnv *env, NatObject *klass, char *name, NatObject *v
 
 NatObject *nat_var_get(NatEnv *env, char *key) {
     NatObject *val;
-    int is_special = nat_is_constant_name(key) || nat_is_special_name(key);
-    while (!(val = hashmap_get(&env->data, key)) && env->outer && (env->block || is_special)) {
+    while (!(val = hashmap_get(&env->data, key)) && env->outer && env->block) {
         env = env->outer;
     }
     if (val) {
@@ -651,12 +650,12 @@ int nat_is_a(NatEnv *env, NatObject *obj, NatObject *klass_or_module) {
 
 char *nat_defined(NatEnv *env, NatObject *receiver, char *name) {
     NatObject *obj;
-    if (receiver->env && nat_is_constant_name(name)) {
-        obj = nat_var_get(receiver->env, name);
+    if (nat_is_constant_name(name)) {
+        obj = nat_const_get_or_null(env, receiver, name);
         if (obj) return "constant";
-    } else if (nat_is_constant_name(name)) {
-        obj = nat_var_get(env, name);
-        if (obj) return "constant";
+    } else if (nat_is_global_name(name)) {
+        obj = nat_global_get(env, name);
+        if (obj != nil) return "global-variable";
     } else {
         obj = nat_var_get(env, name);
         if (obj) return "local-variable";

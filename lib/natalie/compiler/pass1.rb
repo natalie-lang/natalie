@@ -109,6 +109,7 @@ module Natalie
 
       def process_defined(exp)
         (_, name) = exp
+        name = process(name) if name.sexp_type == :call
         exp.new(:defined, name)
       end
 

@@ -31,6 +31,15 @@ module Natalie
       alias process_def_fn process_block_fn
       alias process_module_fn process_block_fn
 
+      def process_defined(exp)
+        (_, name) = exp
+        if name.sexp_type == :lvar && find_var(name.last.to_s)
+          exp.new(:nat_string, :env, s(:s, 'local-variable'))
+        else
+          exp
+        end
+      end
+
       def process_nat_var_get(exp)
         (_, _, name) = exp
         raise "bad name: #{name.inspect}" unless name.is_a?(Sexp) && name.sexp_type == :s
