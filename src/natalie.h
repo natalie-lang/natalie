@@ -48,7 +48,6 @@ struct NatEnv {
     NatGlobalEnv *global_env;
     size_t var_count;
     NatObject **vars;
-    struct hashmap data;
     NatEnv *outer;
     int block;
     jmp_buf *jump_buf;

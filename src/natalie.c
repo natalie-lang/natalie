@@ -91,8 +91,6 @@ NatEnv *nat_build_env(NatEnv *outer) {
         *global_env->next_object_id = 1;
         env->global_env = global_env;
     }
-    hashmap_init(&env->data, hashmap_hash_string, hashmap_compare_string, 10);
-    hashmap_set_key_alloc_funcs(&env->data, hashmap_alloc_key_string, NULL);
     return env;
 }
 
