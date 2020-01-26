@@ -183,12 +183,13 @@ NatObject *nat_const_get(NatEnv *env, NatObject *klass, char *name);
 NatObject *nat_const_get_or_null(NatEnv *env, NatObject *klass, char *name);
 NatObject *nat_const_set(NatEnv *env, NatObject *klass, char *name, NatObject *val);
 
-NatObject *nat_var_get(NatEnv *env, char *key);
 NatObject *nat_var_get2(NatEnv *env, char *key, size_t index);
-NatObject *nat_var_set(NatEnv *env, char *key, NatObject *val);
 NatObject *nat_var_set2(NatEnv *env, char *key, size_t index, NatObject *val);
 NatEnv *nat_build_env(NatEnv *outer);
 NatEnv *nat_build_block_env(NatEnv *outer, NatEnv *calling_env);
+
+char *nat_find_current_method_name(NatEnv *env);
+char *nat_find_method_name(NatEnv *env);
 
 NatObject* nat_raise(NatEnv *env, NatObject *klass, char *message_format, ...);
 NatObject* nat_raise_exception(NatEnv *env, NatObject *exception);

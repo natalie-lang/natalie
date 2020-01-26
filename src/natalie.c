@@ -43,18 +43,6 @@ NatObject *nat_const_set(NatEnv *env, NatObject *klass, char *name, NatObject *v
     return val;
 }
 
-NatObject *nat_var_get(NatEnv *env, char *key) {
-    NatObject *val;
-    while (!(val = hashmap_get(&env->data, key)) && env->outer && env->block) {
-        env = env->outer;
-    }
-    if (val) {
-        return val;
-    } else {
-        return NULL;
-    }
-}
-
 NatObject *nat_var_get2(NatEnv *env, char *key, size_t index) {
     if (index >= env->var_count) {
         printf("Trying to get variable `%s' at index %zu which is not set (env->vars = %p, env->var_count = %zu).\n", key, index, env->vars, env->var_count);
@@ -63,17 +51,7 @@ NatObject *nat_var_get2(NatEnv *env, char *key, size_t index) {
     return env->vars[index];
 }
 
-NatObject *nat_var_set(NatEnv *env, char *key, NatObject *val) {
-    if (env->block && nat_var_get(env->outer, key)) {
-        env = env->outer;
-    }
-    hashmap_remove(&env->data, key);
-    hashmap_put(&env->data, key, val);
-    return val;
-}
-
 NatObject *nat_var_set2(NatEnv *env, char *key, size_t index, NatObject *val) {
-    nat_var_set(env, key, val);
     // TODO: move this in to the compiler
     if (env->var_count == 0) {
         env->vars = calloc(index + 1, sizeof(NatObject*));
@@ -123,6 +101,14 @@ NatEnv *nat_build_block_env(NatEnv *outer, NatEnv *calling_env) {
     env->block = TRUE;
     env->caller = calling_env;
     return env;
+}
+
+char *nat_find_current_method_name(NatEnv *env) {
+    while ((!env->method_name || strcmp(env->method_name, "<block>") == 0) && env->outer) {
+        env = env->outer;
+    }
+    return env->method_name;
+    return NULL;
 }
 
 char *nat_find_method_name(NatEnv *env) {
@@ -390,26 +376,6 @@ void nat_array_push(NatObject *array, NatObject *obj) {
     }
     array->ary_len++;
     array->ary[len] = obj;
-}
-
-void nat_assign_arg(NatEnv *env, char *name, int argc, NatObject **args, int index, NatObject *default_value) {
-    if (index < argc) {
-        nat_var_set(env, name, args[index]);
-    } else if (default_value) {
-        nat_var_set(env, name, default_value);
-    } else {
-        nat_var_set(env, name, nil);
-    }
-}
-
-void nat_assign_rest_arg(NatEnv *env, char *name, size_t argc, NatObject **args, size_t index, size_t count) {
-    NatObject *array = nat_array(env);
-    if (index < argc) {
-        for (size_t i=index; i<index+count; i++) {
-            nat_array_push(array, args[i]);
-        }
-    }
-    nat_var_set(env, name, array);
 }
 
 void nat_array_push_splat(NatEnv *env, NatObject *array, NatObject *obj) {

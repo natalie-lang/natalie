@@ -128,7 +128,7 @@ module Natalie
         exp.new(:def_fn, fn_name,
           s(:block,
             s(:nat_var_set, :env, s(:s, '__method__'), s(:nat_string, :env, s(:s, name))),
-            s(:nat_var_set_method_name, name),
+            s(:nat_env_set_method_name, name),
             assign_args,
             block_arg || s(:block),
             process(s(:block, *body))))
@@ -222,7 +222,7 @@ module Natalie
         exp.new(:block,
           s(:block_fn, block_fn,
             s(:block,
-              s(:nat_var_set_method_name, '<block>'),
+              s(:nat_env_set_method_name, '<block>'),
               assign_args,
               process(s(:block, *body)))),
           s(:declare_block, block, s(:nat_block, :env, :self, block_fn)),

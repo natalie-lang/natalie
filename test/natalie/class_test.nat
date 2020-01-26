@@ -54,7 +54,9 @@ end
 
 class Baz < Foo
   def foo
-    super + ' baz'
+    if true
+      super + ' baz'
+    end
   end
 end
 

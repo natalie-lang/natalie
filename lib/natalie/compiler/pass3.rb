@@ -278,7 +278,7 @@ module Natalie
         result
       end
 
-      def process_nat_var_set_method_name(exp)
+      def process_nat_env_set_method_name(exp)
         (_, name) = exp
         decl "env->method_name = heap_string(#{name.inspect});"
         ''
@@ -374,9 +374,9 @@ module Natalie
         result_name = temp('call_result')
         if args
           args_name, args_count = p(args).split(':')
-          decl "NatObject *#{result_name} = nat_call_method_on_class(env, self->klass->superclass, self->klass->superclass, nat_var_get(env, \"__method__\")->str, self, #{args_count}, #{args_name}, NULL, #{block || 'NULL'});"
+          decl "NatObject *#{result_name} = nat_call_method_on_class(env, self->klass->superclass, self->klass->superclass, nat_find_current_method_name(env), self, #{args_count}, #{args_name}, NULL, #{block || 'NULL'});"
         else
-          decl "NatObject *#{result_name} = nat_call_method_on_class(env, self->klass->superclass, self->klass->superclass, nat_var_get(env, \"__method__\")->str, self, 0, NULL, NULL, #{block || 'NULL'});"
+          decl "NatObject *#{result_name} = nat_call_method_on_class(env, self->klass->superclass, self->klass->superclass, nat_find_current_method_name(env), self, 0, NULL, NULL, #{block || 'NULL'});"
         end
         result_name
       end
