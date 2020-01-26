@@ -262,7 +262,12 @@ module Natalie
         when :nat_send
           (_, receiver, name) = name
           receiver ||= 'self'
-          decl "NatObject *#{result} = nat_defined_obj(env, #{p receiver}, #{name.to_s.inspect});"
+          decl "NatObject *#{result};"
+          decl "if (!NAT_RESCUE(env)) {"
+          decl "#{result} = nat_defined_obj(env, #{p receiver}, #{name.to_s.inspect});"
+          decl '} else {'
+          decl "#{result} = nil;"
+          decl '}'
         when :lit, :str
           decl "NatObject *#{result} = nat_string(env, \"expression\");"
         when :nil

@@ -43,6 +43,11 @@ describe 'defined?' do
   it 'recognizes nil' do
     defined?(nil).must_equal 'nil'
   end
+
+  it 'does not raise an error' do
+    defined?(x.y).must_equal nil
+    defined?(x.y.z).must_equal nil
+  end
 end
 
 run_specs
