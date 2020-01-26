@@ -234,7 +234,7 @@ int hashmap_foreach(const struct hashmap *map,
  * This is an implementation of the well-documented Jenkins one-at-a-time
  * hash function.
  */
-size_t hashmap_hash_string(const void *key);
+unsigned long hashmap_hash_string(const void *str);
 
 /*
  * Default key comparator function for string keys.
