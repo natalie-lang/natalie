@@ -72,7 +72,6 @@ NatEnv *nat_build_env(NatEnv *outer) {
     env->outer = outer;
     env->jump_buf = NULL;
     env->caller = NULL;
-    env->file = "(unknown)";
     env->line = 0;
     env->method_name = NULL;
     if (outer) {
