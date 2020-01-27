@@ -11,6 +11,7 @@ module Natalie
         self.expected = String
         @compiler_context = compiler_context
         @source_files = {}
+        @source_methods = {}
         @top = []
         @decl = []
       end
@@ -30,8 +31,16 @@ module Natalie
       def go(ast)
         result = process(ast)
         @compiler_context[:template]
-          .sub('/*TOP*/', source_files_to_c + "\n\n" + @top.join("\n"))
+          .sub('/*TOP*/', top_matter)
           .sub('/*BODY*/', @decl.join("\n") + "\n" + result)
+      end
+
+      def top_matter
+        [
+          source_files_to_c,
+          source_methods_to_c,
+          @top.join("\n")
+        ].join("\n\n")
       end
 
       def p(exp)
@@ -286,7 +295,9 @@ module Natalie
 
       def process_nat_env_set_method_name(exp)
         (_, name) = exp
-        decl "env->method_name = heap_string(#{name.inspect});"
+        methods = "nat_#{@compiler_context[:var_prefix]}source_methods"
+        index = @source_methods[name] ||= @source_methods.size
+        decl "env->method_name = #{methods}[#{index}];"
         ''
       end
 
@@ -499,6 +510,11 @@ module Natalie
       def source_files_to_c
         files = "nat_#{@compiler_context[:var_prefix]}source_files"
         "char *#{files}[#{@source_files.size}] = { #{@source_files.keys.map(&:inspect).join(', ')} };"
+      end
+
+      def source_methods_to_c
+        methods = "nat_#{@compiler_context[:var_prefix]}source_methods"
+        "char *#{methods}[#{@source_methods.size}] = { #{@source_methods.keys.map(&:inspect).join(', ')} };"
       end
     end
   end

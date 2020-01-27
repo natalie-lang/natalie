@@ -129,7 +129,6 @@ module Natalie
                       end
         exp.new(:def_fn, fn_name,
           s(:block,
-            s(:nat_var_set, :env, s(:s, '__method__'), s(:nat_string, :env, s(:s, name))),
             s(:nat_env_set_method_name, name),
             assign_args,
             block_arg || s(:block),

@@ -210,3 +210,13 @@ NatObject *Kernel_proc(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     assert(block);
     return nat_proc(env, block);
 }
+
+NatObject *Kernel_method(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(0);
+    char *name = nat_find_current_method_name(env->caller);
+    if (name) {
+        return nat_string(env, name);
+    } else {
+        return nil;
+    }
+}

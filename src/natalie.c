@@ -105,8 +105,8 @@ char *nat_find_current_method_name(NatEnv *env) {
     while ((!env->method_name || strcmp(env->method_name, "<block>") == 0) && env->outer) {
         env = env->outer;
     }
+    if (strcmp(env->method_name, "<main>") == 0) return NULL;
     return env->method_name;
-    return NULL;
 }
 
 char *nat_find_method_name(NatEnv *env) {
