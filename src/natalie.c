@@ -500,7 +500,7 @@ NatObject *nat_hash(NatEnv *env) {
 // FIXME: this stinks, rethink this
 NatObject *nat_convert_to_real_object(NatEnv *env, NatObject *obj) {
     if (((int64_t)obj & 1)) {
-        NatObject *real_obj = nat_new(env, nat_const_get(env, Object, "Integer"), 0, NULL, NULL, NULL);
+        NatObject *real_obj = nat_new(env, Integer, 0, NULL, NULL, NULL);
         real_obj->type = NAT_VALUE_INTEGER;
         real_obj->integer = NAT_INT_VALUE(obj);
         return real_obj;
@@ -654,7 +654,7 @@ NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, Na
     assert(receiver);
     NatObject *klass;
     if (NAT_TYPE(receiver) == NAT_VALUE_INTEGER) {
-        klass = nat_const_get(env, Object, "Integer");
+        klass = Integer;
     } else {
         klass = receiver->singleton_class;
         if (klass) {
@@ -765,7 +765,7 @@ int nat_respond_to(NatEnv *env, NatObject *obj, char *name) {
     NatObject *matching_class_or_module;
     // FIXME: I don't think we need to check both singleton_class and klass since singleton_class inherits from the klass
     if (NAT_TYPE(obj) == NAT_VALUE_INTEGER) {
-        NatObject *klass = nat_const_get(env, Object, "Integer");
+        NatObject *klass = Integer;
         if (nat_find_method(klass, name, &matching_class_or_module)) {
             return TRUE;
         } else {

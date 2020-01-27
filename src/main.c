@@ -21,6 +21,7 @@
 
 // built-in constants
 NatObject *Object,
+          *Integer,
           *nil,
           *true_obj,
           *false_obj;
@@ -155,7 +156,7 @@ NatEnv *build_top_env() {
     nat_const_set(env, Object, "Numeric", Numeric);
     nat_class_include(Numeric, Comparable);
 
-    NatObject *Integer = nat_subclass(env, Numeric, "Integer");
+    Integer = nat_subclass(env, Numeric, "Integer");
     nat_const_set(env, Object, "Integer", Integer);
     nat_define_method(Integer, "to_s", Integer_to_s);
     nat_define_method(Integer, "inspect", Integer_to_s);

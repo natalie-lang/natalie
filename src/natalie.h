@@ -16,7 +16,7 @@
 #define xDEBUG_METHOD_RESOLUTION
 
 #define NAT_TYPE(obj) (((int64_t)obj & 1) ? NAT_VALUE_INTEGER : obj->type)
-#define NAT_OBJ_CLASS(obj) (((int64_t)obj & 1) ? nat_const_get(env, Object, "Integer") : obj->klass)
+#define NAT_OBJ_CLASS(obj) (((int64_t)obj & 1) ? Integer : obj->klass)
 #define NAT_RESCUE(env) setjmp(*(env->jump_buf = malloc(sizeof(jmp_buf))))
 #define NAT_RAISE(env, klass, message_format, ...) nat_raise(env, klass, message_format, ##__VA_ARGS__); abort();
 #define NAT_ASSERT_ARGC1(expected) if(argc != expected) { NAT_RAISE(env, nat_const_get(env, Object, "ArgumentError"), "wrong number of arguments (given %d, expected %d)", argc, expected); }
@@ -179,6 +179,7 @@ struct NatObject {
 };
 
 NatObject *Object,
+          *Integer,
           *nil,
           *true_obj,
           *false_obj;
