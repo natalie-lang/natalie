@@ -10,6 +10,7 @@ module Natalie
         self.strict = true
         self.expected = String
         @compiler_context = compiler_context
+        @source_files = {}
         @top = []
         @decl = []
       end
@@ -29,7 +30,7 @@ module Natalie
       def go(ast)
         result = process(ast)
         @compiler_context[:template]
-          .sub('/*TOP*/', @top.join("\n"))
+          .sub('/*TOP*/', source_files_to_c + "\n\n" + @top.join("\n"))
           .sub('/*BODY*/', @decl.join("\n") + "\n" + result)
       end
 
@@ -489,8 +490,15 @@ module Natalie
 
       def debug_info(exp)
         return unless exp.file
-        line = "env->file = heap_string(#{exp.file.inspect}); env->line = #{exp.line || 0};"
+        files = "nat_#{@compiler_context[:var_prefix]}source_files"
+        index = @source_files[exp.file] ||= @source_files.size
+        line = "env->file = #{files}[#{index}]; env->line = #{exp.line || 0};"
         decl line unless @decl.last == line
+      end
+
+      def source_files_to_c
+        files = "nat_#{@compiler_context[:var_prefix]}source_files"
+        "char *#{files}[#{@source_files.size}] = { #{@source_files.keys.map(&:inspect).join(', ')} };"
       end
     end
   end
