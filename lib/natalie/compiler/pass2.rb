@@ -51,17 +51,13 @@ module Natalie
         (_, _, name) = exp
         raise "bad name: #{name.inspect}" unless name.is_a?(Sexp) && name.sexp_type == :s
         name = name.last.to_s
-        if @compiler_context[:built_in_constants].include?(name)
-          exp.new(:built_in_const, name)
-        else
-          (env_name, index) = find_var(name)
-          unless index
-            puts "Compile Error: undefined local variable `#{name}'"
-            puts "#{exp.file}##{exp.line}"
-            exit 1
-          end
-          exp.new(:nat_var_get2, env_name, s(:s, name), index)
+        (env_name, index) = find_var(name)
+        unless index
+          puts "Compile Error: undefined local variable `#{name}'"
+          puts "#{exp.file}##{exp.line}"
+          exit 1
         end
+        exp.new(:nat_var_get2, env_name, s(:s, name), index)
       end
 
       def process_nat_var_get_or_set(exp)
@@ -69,15 +65,11 @@ module Natalie
         raise "bad name: #{name.inspect}" unless name.is_a?(Sexp) && name.sexp_type == :s
         name = name.last.to_s
         bare_name = name.sub(/^[\*\&]/, '')
-        if @compiler_context[:built_in_constants].include?(name)
-          exp.new(:built_in_const, name)
+        (env_name, index) = find_var(bare_name)
+        if index
+          exp.new(:nat_var_get2, env_name, s(:s, name), index)
         else
-          (env_name, index) = find_var(bare_name)
-          if index
-            exp.new(:nat_var_get2, env_name, s(:s, name), index)
-          else
-            process_nat_var_set(exp.new(:nat_var_set, :env, s(:s, name), body))
-          end
+          process_nat_var_set(exp.new(:nat_var_set, :env, s(:s, name), body))
         end
       end
 
@@ -105,14 +97,10 @@ module Natalie
 
       private
 
-      def constant?(name)
-        name.start_with?(/[A-Z]/)
-      end
-
       def find_var(name, env_name: 'env', env: @env)
         if (index = env[:vars][name])
           [env_name, index]
-        elsif env[:parent] && (env[:block] || constant?(name))
+        elsif env[:parent] && env[:block]
           find_var(name, env_name: "#{env_name}->outer", env: env[:parent])
         end
       end
