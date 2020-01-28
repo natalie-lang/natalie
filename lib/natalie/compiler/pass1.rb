@@ -198,10 +198,11 @@ module Natalie
         (_, condition, true_body, false_body) = exp
         true_fn = temp('if_result_true')
         false_fn = true_fn.sub(/true/, 'false')
-        exp.new(:block,
-          s(:fn2, true_fn, process(true_body || s(:nil))),
-          s(:fn2, false_fn, process(false_body || s(:nil))),
-          s(:tern, process(condition), true_fn, false_fn))
+        condition = exp.new(:nat_truthy, process(condition))
+        exp.new(:c_if,
+          condition,
+          process(true_body || s(:nil)),
+          process(false_body || s(:nil)))
       end
 
       def process_iasgn(exp)

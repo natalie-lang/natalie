@@ -451,13 +451,6 @@ module Natalie
         end
       end
 
-      def process_tern(exp)
-        (_, condition, true_body, false_body) = exp
-        result_name = temp('if_result')
-        decl "NatObject *#{result_name} = nat_truthy(#{p condition}) ? #{true_body}(env, self) : #{false_body}(env, self);"
-        result_name
-      end
-
       def process_var_alloc(exp)
         count = exp.last
         decl "env->vars = calloc(#{count}, sizeof(NatObject*));"
