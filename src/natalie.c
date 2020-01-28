@@ -44,7 +44,7 @@ NatObject *nat_const_set(NatEnv *env, NatObject *klass, char *name, NatObject *v
     return val;
 }
 
-NatObject *nat_var_get2(NatEnv *env, char *key, size_t index) {
+NatObject *nat_var_get(NatEnv *env, char *key, size_t index) {
     if (index >= env->var_count) {
         printf("Trying to get variable `%s' at index %zu which is not set (env->vars = %p, env->var_count = %zu).\n", key, index, env->vars, env->var_count);
         abort();
@@ -52,7 +52,7 @@ NatObject *nat_var_get2(NatEnv *env, char *key, size_t index) {
     return env->vars[index];
 }
 
-NatObject *nat_var_set2(NatEnv *env, char *key, size_t index, NatObject *val) {
+NatObject *nat_var_set(NatEnv *env, char *key, size_t index, NatObject *val) {
     if (env->var_count == 0) {
         env->vars = calloc(index + 1, sizeof(NatObject*));
         env->var_count = index + 1;

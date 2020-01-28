@@ -57,7 +57,7 @@ module Natalie
           puts "#{exp.file}##{exp.line}"
           exit 1
         end
-        exp.new(:nat_var_get2, env_name, s(:s, name), index)
+        exp.new(:nat_var_get, env_name, s(:s, name), index)
       end
 
       def process_nat_var_get_or_set(exp)
@@ -67,7 +67,7 @@ module Natalie
         bare_name = name.sub(/^[\*\&]/, '')
         (env_name, index) = find_var(bare_name)
         if index
-          exp.new(:nat_var_get2, env_name, s(:s, name), index)
+          exp.new(:nat_var_get, env_name, s(:s, name), index)
         else
           process_nat_var_set(exp.new(:nat_var_set, :env, s(:s, name), body))
         end
@@ -84,9 +84,9 @@ module Natalie
           env_name = 'env'
         end
         if value
-          exp.new(:nat_var_set2, env_name, s(:s, name), index, process_arg(value))
+          exp.new(:nat_var_set, env_name, s(:s, name), index, process_arg(value))
         else
-          exp.new(:nat_var_set2, env_name, s(:s, name), index)
+          exp.new(:nat_var_set, env_name, s(:s, name), index)
         end
       end
 
