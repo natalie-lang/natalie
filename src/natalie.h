@@ -193,6 +193,7 @@ NatObject *nat_const_set(NatEnv *env, NatObject *klass, char *name, NatObject *v
 
 NatObject *nat_var_get(NatEnv *env, char *key, size_t index);
 NatObject *nat_var_set(NatEnv *env, char *key, size_t index, NatObject *val);
+NatGlobalEnv *nat_build_global_env();
 NatEnv *nat_build_env(NatEnv *outer);
 NatEnv *nat_build_block_env(NatEnv *outer, NatEnv *calling_env);
 

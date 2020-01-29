@@ -64,6 +64,21 @@ NatObject *nat_var_set(NatEnv *env, char *key, size_t index, NatObject *val) {
     return val;
 }
 
+NatGlobalEnv *nat_build_global_env() {
+    NatGlobalEnv *global_env = malloc(sizeof(NatGlobalEnv));
+    struct hashmap *global_table = malloc(sizeof(struct hashmap));
+    hashmap_init(global_table, hashmap_hash_string, hashmap_compare_string, 100);
+    hashmap_set_key_alloc_funcs(global_table, hashmap_alloc_key_string, NULL);
+    global_env->globals = global_table;
+    struct hashmap *symbol_table = malloc(sizeof(struct hashmap));
+    hashmap_init(symbol_table, hashmap_hash_string, hashmap_compare_string, 100);
+    hashmap_set_key_alloc_funcs(symbol_table, hashmap_alloc_key_string, NULL);
+    global_env->symbols = symbol_table;
+    global_env->next_object_id = malloc(sizeof(uint64_t));
+    *global_env->next_object_id = 1;
+    return global_env;
+}
+
 NatEnv *nat_build_env(NatEnv *outer) {
     NatEnv *env = malloc(sizeof(NatEnv));
     env->var_count = 0;
@@ -77,18 +92,7 @@ NatEnv *nat_build_env(NatEnv *outer) {
     if (outer) {
         env->global_env = outer->global_env;
     } else {
-        NatGlobalEnv *global_env = malloc(sizeof(NatGlobalEnv));
-        struct hashmap *global_table = malloc(sizeof(struct hashmap));
-        hashmap_init(global_table, hashmap_hash_string, hashmap_compare_string, 100);
-        hashmap_set_key_alloc_funcs(global_table, hashmap_alloc_key_string, NULL);
-        global_env->globals = global_table;
-        struct hashmap *symbol_table = malloc(sizeof(struct hashmap));
-        hashmap_init(symbol_table, hashmap_hash_string, hashmap_compare_string, 100);
-        hashmap_set_key_alloc_funcs(symbol_table, hashmap_alloc_key_string, NULL);
-        global_env->symbols = symbol_table;
-        global_env->next_object_id = malloc(sizeof(uint64_t));
-        *global_env->next_object_id = 1;
-        env->global_env = global_env;
+        env->global_env = nat_build_global_env();
     }
     return env;
 }
