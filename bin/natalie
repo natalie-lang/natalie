@@ -15,6 +15,8 @@ OptionParser.new do |opts|
       ENV['DEBUG_PASS1'] = 'true'
     when 'p2'
       ENV['DEBUG_PASS2'] = 'true'
+    when 'p3'
+      ENV['DEBUG_PASS3'] = 'true'
     else
       ENV['DEBUG'] = 'true'
     end

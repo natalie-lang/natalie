@@ -9,7 +9,10 @@ module Natalie
       end
 
       def go(ast)
-        process(ast)
+        name = temp('eval')
+        ast.new(:block,
+          ast.new(:block_fn, name, process(ast)),
+          ast.new(name.to_sym, :env, :self, 0, :NULL, :NULL, :NULL))
       end
 
       def process_alias(exp)
@@ -279,7 +282,11 @@ module Natalie
           case name
           when Symbol
             if name.to_s.start_with?('*')
-              s(:nat_var_set, :env, s(:s, name.to_s[1..-1]), s(:assign_val, index, :rest))
+              if name.size == 1
+                s(:block) # noop
+              else
+                s(:nat_var_set, :env, s(:s, name.to_s[1..-1]), s(:assign_val, index, :rest))
+              end
             else
               s(:nat_var_set, :env, s(:s, name), s(:assign_val, index, :single))
             end

@@ -1,6 +1,6 @@
 module Natalie
   class Compiler
-    # Convert named variables to variable indices
+    # Compute captured vs local-only variables and write pseudo C for variable get and set
     class Pass2 < SexpProcessor
       def initialize(compiler_context)
         super()
@@ -21,17 +21,15 @@ module Natalie
         is_block = %i[block_fn begin_fn].include?(sexp_type)
         @env = { parent: @env, vars: {}, block: is_block }
         body = process_sexp(body)
-        var_count = @env[:vars].size
+        var_count = @env[:vars].values.count { |v| v[:captured] }
+        to_declare = @env[:vars].values.select { |v| !v[:captured] }
         @env = @env[:parent]
-        if is_block
-          exp.new(sexp_type, name, body)
-        else
-          exp.new(sexp_type,
-            name,
-            exp.new(:block,
-              s(:var_alloc, var_count),
-              body))
-        end
+        exp.new(sexp_type,
+          name,
+          exp.new(:block,
+            is_block ? s(:block) : s(:var_alloc, var_count),
+            *to_declare.map { |v| s(:declare, "#{@compiler_context[:var_prefix]}#{v[:name]}#{v[:var_num]}") },
+            body))
       end
       alias process_begin_fn process_block_fn
       alias process_class_fn process_block_fn
@@ -51,13 +49,13 @@ module Natalie
         (_, _, name) = exp
         raise "bad name: #{name.inspect}" unless name.is_a?(Sexp) && name.sexp_type == :s
         name = name.last.to_s
-        (env_name, index) = find_var(name)
-        unless index
+        (env_name, var) = find_var(name)
+        unless var
           puts "Compile Error: undefined local variable `#{name}'"
           puts "#{exp.file}##{exp.line}"
           exit 1
         end
-        exp.new(:nat_var_get, env_name, s(:s, name), index)
+        exp.new(:nat_var_get, env_name, var)
       end
 
       def process_nat_var_get_or_set(exp)
@@ -65,9 +63,9 @@ module Natalie
         raise "bad name: #{name.inspect}" unless name.is_a?(Sexp) && name.sexp_type == :s
         name = name.last.to_s
         bare_name = name.sub(/^[\*\&]/, '')
-        (env_name, index) = find_var(bare_name)
-        if index
-          exp.new(:nat_var_get, env_name, s(:s, name), index)
+        (env_name, var) = find_var(bare_name)
+        if var
+          exp.new(:nat_var_get, env_name, var)
         else
           process_nat_var_set(exp.new(:nat_var_set, :env, s(:s, name), body))
         end
@@ -78,15 +76,16 @@ module Natalie
         raise "bad name: #{name.inspect}" unless name.is_a?(Sexp) && name.sexp_type == :s
         name = name.last.to_s
         bare_name = name.sub(/^[\*\&]/, '')
-        (env_name, index) = find_var(bare_name)
-        unless index
-          index = @env[:vars][bare_name] = @env[:vars].size
+        (env_name, var) = find_var(bare_name)
+        unless var
+          var_num = @compiler_context[:var_num] += 1
+          var = @env[:vars][bare_name] = { name: bare_name, index: @env[:vars].size, var_num: var_num }
           env_name = 'env'
         end
         if value
-          exp.new(:nat_var_set, env_name, s(:s, name), index, process_arg(value))
+          exp.new(:nat_var_set, env_name, var, process_arg(value))
         else
-          exp.new(:nat_var_set, env_name, s(:s, name), index)
+          exp.new(:nat_var_set, env_name, var)
         end
       end
 
@@ -97,11 +96,12 @@ module Natalie
 
       private
 
-      def find_var(name, env_name: 'env', env: @env)
-        if (index = env[:vars][name])
-          [env_name, index]
+      def find_var(name, env_name: 'env', env: @env, capture: false)
+        if (var = env[:vars][name])
+          var[:captured] = true if capture
+          [env_name, var]
         elsif env[:parent] && env[:block]
-          find_var(name, env_name: "#{env_name}->outer", env: env[:parent])
+          find_var(name, env_name: "#{env_name}->outer", env: env[:parent], capture: true)
         end
       end
 
@@ -115,7 +115,6 @@ module Natalie
           raise "unknown node type: #{exp.inspect}"
         end
       end
-
     end
   end
 end
