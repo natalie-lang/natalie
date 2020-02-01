@@ -44,6 +44,13 @@ OptionParser.new do |opts|
   end
 end.parse!
 
+build_type_path = File.expand_path('../.build', __dir__)
+if File.exist?(build_type_path)
+  ENV['BUILD'] = File.read(build_type_path).strip
+else
+  ENV['BUILD'] = 'debug'
+end
+
 if options[:execute]
   source_path = '-e'
   code = options[:execute].gsub(/\\n/, "\n")

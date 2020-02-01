@@ -38,6 +38,7 @@ module Natalie
       check_build
       write_file
       cmd = compiler_command
+      puts cmd if ENV['DEBUG_COMPILER_COMMAND']
       out = `#{cmd}`
       File.unlink(@c_path) unless ENV['DEBUG']
       $stderr.puts out if ENV['DEBUG'] || $? != 0
@@ -116,9 +117,17 @@ module Natalie
 
     def compiler_command
       if compile_to_object_file
-        "gcc -I #{SRC_PATH} -x c -c #{@c_path} -o #{out_path} 2>&1"
+        "gcc #{build_flags} -I #{SRC_PATH} -x c -c #{@c_path} -o #{out_path} 2>&1"
       else
-        "gcc -g -Wall #{shared ? '-fPIC -shared' : ''} -I #{SRC_PATH} -o #{out_path} #{OBJ_PATH}/*.o #{OBJ_PATH}/language/*.o -x c #{@c_path} 2>&1"
+        "gcc #{build_flags} -Wall #{shared ? '-fPIC -shared' : ''} -I #{SRC_PATH} -o #{out_path} #{OBJ_PATH}/*.o #{OBJ_PATH}/language/*.o -x c #{@c_path} 2>&1"
+      end
+    end
+
+    def build_flags
+      if ENV['BUILD'] == 'release'
+        '-O3'
+      else
+        '-g'
       end
     end
 

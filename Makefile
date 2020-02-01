@@ -1,16 +1,25 @@
-.PHONY: test cloc
+.PHONY: test cloc debug write_build_type
 
 SRC := src
 LIB := lib/natalie
 OBJ := obj
 
+BUILD := debug
+
+cflags.debug := -g
+cflags.release := -O3
+CFLAGS := ${cflags.${BUILD}}
+
 SOURCES := $(filter-out $(SRC)/main.c, $(wildcard $(SRC)/*.c))
 OBJECTS := $(patsubst $(SRC)/%.c, $(OBJ)/%.o, $(SOURCES))
 
-build: $(OBJECTS) $(OBJ)/language/exceptions.o
+build: write_build_type $(OBJECTS) $(OBJ)/language/exceptions.o
+
+write_build_type:
+	@echo $(BUILD) > .build
 
 $(OBJ)/%.o: $(SRC)/%.c
-	$(CC) -g -I$(SRC) -c $< -o $@
+	$(CC) $(CFLAGS) -I$(SRC) -c $< -o $@
 
 $(OBJ)/language/exceptions.o: $(LIB)/language/exceptions.nat
 	bin/natalie --compile-obj $@ $<
