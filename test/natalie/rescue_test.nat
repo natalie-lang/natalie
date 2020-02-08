@@ -1,4 +1,4 @@
-require 'spec'
+require_relative '../spec_helper'
 
 class MyException < StandardError
 end
@@ -11,13 +11,13 @@ describe 'begin/rescue' do
         rescue => e
           e
         end
-    r.message.must_equal "wrong number of arguments (given 3, expected 1..2)"
+    r.message.should == "wrong number of arguments (given 3, expected 1..2)"
     r = begin
           raise "foo"
         rescue => e
           e
         end
-    r.message.must_equal "foo"
+    r.message.should == "foo"
   end
 end
 
@@ -28,7 +28,7 @@ describe 'raise' do
         rescue => e
           e
         end
-    r.message.must_equal 'StandardError'
+    r.message.should == 'StandardError'
   end
 
   it 'can raise a built-in exception class with a custom messsage string' do
@@ -37,7 +37,7 @@ describe 'raise' do
         rescue => e
           e
         end
-    r.message.must_equal 'foo'
+    r.message.should == 'foo'
   end
 
   it 'can raise a custom exception class with a custom messsage string' do
@@ -46,7 +46,7 @@ describe 'raise' do
         rescue => e
           e
         end
-    r.message.must_equal 'foo'
+    r.message.should == 'foo'
   end
 
   it 'can raise a custom exception instance' do
@@ -55,8 +55,6 @@ describe 'raise' do
         rescue => e
           e
         end
-    r.message.must_equal 'foo'
+    r.message.should == 'foo'
   end
 end
-
-run_specs

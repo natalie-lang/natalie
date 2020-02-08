@@ -1,53 +1,53 @@
-require 'spec'
+require_relative '../spec_helper'
 
 describe 'hash' do
   it 'can use any object as a key' do
-    { 1 => 'val' }[1].must_equal 'val'
-    { :sym => 'val' }[:sym].must_equal 'val'
-    { 'str' => 'val' }['str'].must_equal 'val'
+    { 1 => 'val' }[1].should == 'val'
+    { :sym => 'val' }[:sym].should == 'val'
+    { 'str' => 'val' }['str'].should == 'val'
     key = Object.new
-    { key => 'val' }[key].must_equal 'val'
+    { key => 'val' }[key].should == 'val'
   end
 
   it 'maintains insertion order' do
     hash = { 1 => 1, 2 => 2, 3 => 3, 'four' => 4, five: 5 }
-    hash.inspect.must_equal '{1=>1, 2=>2, 3=>3, "four"=>4, :five=>5}'
+    hash.inspect.should == '{1=>1, 2=>2, 3=>3, "four"=>4, :five=>5}'
     hash['six'] = 6
-    hash.inspect.must_equal '{1=>1, 2=>2, 3=>3, "four"=>4, :five=>5, "six"=>6}'
+    hash.inspect.should == '{1=>1, 2=>2, 3=>3, "four"=>4, :five=>5, "six"=>6}'
     hash[2] = 'two'
-    hash.inspect.must_equal '{1=>1, 2=>"two", 3=>3, "four"=>4, :five=>5, "six"=>6}'
+    hash.inspect.should == '{1=>1, 2=>"two", 3=>3, "four"=>4, :five=>5, "six"=>6}'
     hash[2] = nil
-    hash.inspect.must_equal '{1=>1, 2=>nil, 3=>3, "four"=>4, :five=>5, "six"=>6}'
+    hash.inspect.should == '{1=>1, 2=>nil, 3=>3, "four"=>4, :five=>5, "six"=>6}'
     hash[2] = 'two'
-    hash.inspect.must_equal '{1=>1, 2=>"two", 3=>3, "four"=>4, :five=>5, "six"=>6}'
+    hash.inspect.should == '{1=>1, 2=>"two", 3=>3, "four"=>4, :five=>5, "six"=>6}'
     hash.delete(2)
-    hash.inspect.must_equal '{1=>1, 3=>3, "four"=>4, :five=>5, "six"=>6}'
+    hash.inspect.should == '{1=>1, 3=>3, "four"=>4, :five=>5, "six"=>6}'
     hash[2] = 2
-    hash.inspect.must_equal '{1=>1, 3=>3, "four"=>4, :five=>5, "six"=>6, 2=>2}'
+    hash.inspect.should == '{1=>1, 3=>3, "four"=>4, :five=>5, "six"=>6, 2=>2}'
   end
 
   it 'allows deletion of the last key' do
     hash = {}
-    hash.inspect.must_equal '{}'
-    hash.size.must_equal 0
+    hash.inspect.should == '{}'
+    hash.size.should == 0
     hash[1] = 1
-    hash.inspect.must_equal '{1=>1}'
-    hash.size.must_equal 1
+    hash.inspect.should == '{1=>1}'
+    hash.size.should == 1
     hash.delete(1)
-    hash.inspect.must_equal '{}'
-    hash.size.must_equal 0
+    hash.inspect.should == '{}'
+    hash.size.should == 0
   end
 
   it 'can be compared for equality' do
-    {}.must_equal({})
-    { 1 => 1 }.must_equal({ 1 => 1 })
+    {}.should == {}
+    { 1 => 1 }.should == { 1 => 1 }
     hash = { 1 => 'one', two: 2, 'three' => 3 }
-    hash.must_equal(hash)
-    hash.must_equal({ 1 => 'one', two: 2, 'three' => 3 })
+    hash.should == hash
+    hash.should == { 1 => 'one', two: 2, 'three' => 3 }
     hash.delete(1)
     hash.delete(:two)
     hash.delete('three')
-    hash.must_equal({})
+    hash.should == {}
   end
 
   it 'can be iterated over' do
@@ -58,9 +58,9 @@ describe 'hash' do
       keys << key
       vals << val
     end
-    keys.must_equal([1, 2, 3])
-    vals.must_equal(['one', 'two', 'three'])
-    r.must_equal(hash)
+    keys.should == [1, 2, 3]
+    vals.should == ['one', 'two', 'three']
+    r.should == hash
   end
 
   it 'an entry can be modified during iteration' do
@@ -70,9 +70,9 @@ describe 'hash' do
       hash[1] = 'ONE'
       vals << val
     end
-    vals.must_equal ['one']
-    hash.must_equal({ 1 => 'ONE' })
-    hash.size.must_equal 1
+    vals.should == ['one']
+    hash.should == { 1 => 'ONE' }
+    hash.size.should == 1
   end
 
   it 'the only key can be deleted during iteration' do
@@ -82,9 +82,9 @@ describe 'hash' do
       hash.delete(1)
       vals << val
     end
-    vals.must_equal ['one']
-    hash.must_equal({})
-    hash.size.must_equal 0
+    vals.should == ['one']
+    hash.should == {}
+    hash.size.should == 0
   end
 
   it 'the current key can be deleted during iteration' do
@@ -94,9 +94,9 @@ describe 'hash' do
       hash.delete(1)
       vals << val
     end
-    vals.must_equal ['one', 'two', 'three']
-    hash.must_equal({ 2 => 'two', 3 => 'three' })
-    hash.size.must_equal 2
+    vals.should == ['one', 'two', 'three']
+    hash.should == { 2 => 'two', 3 => 'three' }
+    hash.size.should == 2
   end
 
   it 'a future key can be deleted during iteration' do
@@ -106,9 +106,9 @@ describe 'hash' do
       hash.delete(2)
       vals << val
     end
-    vals.must_equal ['one', 'three']
-    hash.must_equal({ 1 => 'one', 3 => 'three' })
-    hash.size.must_equal 2
+    vals.should == ['one', 'three']
+    hash.should == { 1 => 'one', 3 => 'three' }
+    hash.size.should == 2
   end
 
   it 'all keys can be deleted during iteration' do
@@ -120,20 +120,18 @@ describe 'hash' do
       hash.delete(3)
       vals << val
     end
-    vals.must_equal ['one']
-    hash.must_equal({})
-    hash.size.must_equal 0
+    vals.should == ['one']
+    hash.should == {}
+    hash.size.should == 0
   end
 
   it 'can return its keys' do
     hash = { 1 => 'one', 2 => 'two', 3 => 'three' }
-    hash.keys.must_equal [1, 2, 3]
+    hash.keys.should == [1, 2, 3]
   end
 
   it 'can return its values' do
     hash = { 1 => 'one', 2 => 'two', 3 => 'three' }
-    hash.values.must_equal ['one', 'two', 'three']
+    hash.values.should == ['one', 'two', 'three']
   end
 end
-
-run_specs

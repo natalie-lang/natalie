@@ -1,4 +1,4 @@
-require 'spec'
+require_relative '../spec_helper'
 
 describe 'while' do
   it 'works' do
@@ -8,7 +8,7 @@ describe 'while' do
       r << x
       x = x - 1
     end
-    r.must_equal [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+    r.should == [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
   end
 end
 
@@ -18,8 +18,6 @@ describe 'each' do
     [1, 2, 3].each do |i|
       x = i
     end
-    x.must_equal 3
+    x.should == 3
   end
 end
-
-run_specs

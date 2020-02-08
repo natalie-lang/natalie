@@ -1,4 +1,4 @@
-require 'spec'
+require_relative '../spec_helper'
 
 class Foo
   def foo
@@ -14,9 +14,9 @@ describe 'class' do
   describe 'instance methods' do
     it 'calls the method and returns the result' do
       foo = Foo.new
-      foo.foo.must_equal 'foo'
-      Foo.new.foo.must_equal 'foo'
-      Foo.new.double(4).must_equal 8
+      foo.foo.should == 'foo'
+      Foo.new.foo.should == 'foo'
+      Foo.new.double(4).should == 8
     end
   end
 end
@@ -31,8 +31,8 @@ end
 describe 'class' do
   describe 'reopen class' do
     it 'has both old and new methods' do
-      Foo.new.foo2.must_equal 'foo2'
-      Foo.new.foo.must_equal 'foo'
+      Foo.new.foo2.should == 'foo2'
+      Foo.new.foo.should == 'foo'
     end
   end
 end
@@ -46,8 +46,8 @@ end
 describe 'class' do
   describe 'inheritance' do
     it 'has its own methods and those of its superclass' do
-      Bar.new.foo.must_equal 'bar'
-      Bar.new.double(3).must_equal 6
+      Bar.new.foo.should == 'bar'
+      Bar.new.double(3).should == 6
     end
   end
 end
@@ -63,7 +63,7 @@ end
 describe 'class' do
   describe 'super' do
     it 'calls the same method on the superclass' do
-      Baz.new.foo.must_equal 'foo baz'
+      Baz.new.foo.should == 'foo baz'
     end
   end
 end
@@ -94,9 +94,9 @@ end
 describe 'class' do
   describe 'include' do
     it 'includes methods from a module' do
-      Foo2.new.m1.must_equal 'm1'
-      Foo2.new.m1b.must_equal 'm1b'
-      Foo2.new.m2.must_equal 'm2'
+      Foo2.new.m1.should == 'm1'
+      Foo2.new.m1b.should == 'm1b'
+      Foo2.new.m2.should == 'm2'
     end
   end
 end
@@ -142,27 +142,27 @@ describe 'class' do
   describe 'instance variables' do
     it 'can be set and returned' do
       i = IvarTest.new
-      i.get_x.must_equal nil
+      i.get_x.should == nil
       i.set_x(10)
-      i.get_x.must_equal 10
+      i.get_x.should == 10
       i.set_x(20)
-      i.get_x.must_equal 20
+      i.get_x.should == 20
       i.set_y(10)
-      i.get_y.must_equal 10
+      i.get_y.should == 10
       i.set_y(20)
-      i.get_y.must_equal 20
-      i.z.must_equal nil
+      i.get_y.should == 20
+      i.z.should == nil
       i.z = 10
-      i.z.must_equal 10
+      i.z.should == 10
       i.z = 20
       i.z2 = 200
-      i.z.must_equal 20
-      i.z2.must_equal 200
+      i.z.should == 20
+      i.z2.should == 200
       i.zz = 30
       i.zz2 = 300
-      i.zz.must_equal 30
-      i.zz2.must_equal 300
-      i.block_test.must_equal [20]
+      i.zz.should == 30
+      i.zz2.should == 300
+      i.block_test.should == [20]
     end
   end
 end
@@ -196,32 +196,30 @@ end
 describe 'class' do
   describe 'initialize method' do
     it 'is called when the object is created' do
-      InitMethodTest.new.x.must_equal 1
+      InitMethodTest.new.x.should == 1
     end
 
     it 'is passed arguments' do
-      InitMethodTest2.new(2).x.must_equal 2
+      InitMethodTest2.new(2).x.should == 2
     end
 
     it 'is called on superclass if not present' do
-      InitMethodTest3.new(3).x.must_equal 3
+      InitMethodTest3.new(3).x.should == 3
     end
   end
 end
 
 describe 'built-in class/object hierarchy' do
   it 'matches ruby' do
-    Integer.class.inspect.must_equal 'Class'
-    Class.class.inspect.must_equal 'Class'
-    Class.superclass.inspect.must_equal 'Module'
-    Module.class.inspect.must_equal 'Class'
-    Module.superclass.inspect.must_equal 'Object'
-    Integer.superclass.inspect.must_equal 'Numeric'
-    Numeric.superclass.inspect.must_equal 'Object'
-    Object.superclass.inspect.must_equal 'BasicObject'
-    BasicObject.class.inspect.must_equal 'Class'
-    BasicObject.superclass.inspect.must_equal 'nil'
+    Integer.class.inspect.should == 'Class'
+    Class.class.inspect.should == 'Class'
+    Class.superclass.inspect.should == 'Module'
+    Module.class.inspect.should == 'Class'
+    Module.superclass.inspect.should == 'Object'
+    Integer.superclass.inspect.should == 'Numeric'
+    Numeric.superclass.inspect.should == 'Object'
+    Object.superclass.inspect.should == 'BasicObject'
+    BasicObject.class.inspect.should == 'Class'
+    BasicObject.superclass.inspect.should == 'nil'
   end
 end
-
-run_specs

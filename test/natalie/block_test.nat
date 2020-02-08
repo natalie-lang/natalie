@@ -1,4 +1,4 @@
-require 'spec'
+require_relative '../spec_helper'
 
 class ArrayLike
   def initialize(*values)
@@ -13,41 +13,39 @@ end
 describe 'block' do
   describe 'arguments' do
     it 'can assign any number of arguments' do
-      proc { |a| a }.call.must_equal nil
-      proc { |a| a }.call(1).must_equal 1
-      proc { |a| a }.call(1, 2).must_equal 1
-      proc { |a, b| [a, b] }.call.must_equal [nil, nil]
-      proc { |a, b| [a, b] }.call(1).must_equal [1, nil]
-      proc { |a, b| [a, b] }.call(1, 2).must_equal [1, 2]
-      proc { |a, b| [a, b] }.call(1, 2, 3).must_equal [1, 2]
-      proc { |a, | a }.call(1, 2).must_equal 1
-      proc { |a, | a }.call([3, 4]).must_equal 3
+      proc { |a| a }.call.should == nil
+      proc { |a| a }.call(1).should == 1
+      proc { |a| a }.call(1, 2).should == 1
+      proc { |a, b| [a, b] }.call.should == [nil, nil]
+      proc { |a, b| [a, b] }.call(1).should == [1, nil]
+      proc { |a, b| [a, b] }.call(1, 2).should == [1, 2]
+      proc { |a, b| [a, b] }.call(1, 2, 3).should == [1, 2]
+      proc { |a, | a }.call(1, 2).should == 1
+      proc { |a, | a }.call([3, 4]).should == 3
     end
 
     it 'can assign with argument defaults' do
-      proc { |a=1| a }.call().must_equal 1
-      proc { |a, b=1| [a, b] }.call.must_equal [nil, 1]
-      proc { |a, b=1| [a, b] }.call(1).must_equal [1, 1]
-      proc { |a, b=1| [a, b] }.call(1, 2, 3).must_equal [1, 2]
-      #proc { |a=1, b| [a, b] }.call.must_equal [1, nil]
-      #proc { |a=1, b| [a, b] }.call(1).must_equal [1, 1]
-      #proc { |a=1, b| [a, b] }.call(1, 2).must_equal [1, 2]
-      #proc { |a=1, b| [a, b] }.call(1, 2, 3).must_equal [1, 2]
-      #proc { |a=1, b| [a, b] }.call([1]).must_equal [1, 1]
-      #proc { |a=1, b| [a, b] }.call([1, 2]).must_equal [1, 2]
-      #proc { |a=1, b| [a, b] }.call([1, 2, 3]).must_equal [1, 2]
+      proc { |a=1| a }.call().should == 1
+      proc { |a, b=1| [a, b] }.call.should == [nil, 1]
+      proc { |a, b=1| [a, b] }.call(1).should == [1, 1]
+      proc { |a, b=1| [a, b] }.call(1, 2, 3).should == [1, 2]
+      #proc { |a=1, b| [a, b] }.call.should == [1, nil]
+      #proc { |a=1, b| [a, b] }.call(1).should == [1, 1]
+      #proc { |a=1, b| [a, b] }.call(1, 2).should == [1, 2]
+      #proc { |a=1, b| [a, b] }.call(1, 2, 3).should == [1, 2]
+      #proc { |a=1, b| [a, b] }.call([1]).should == [1, 1]
+      #proc { |a=1, b| [a, b] }.call([1, 2]).should == [1, 2]
+      #proc { |a=1, b| [a, b] }.call([1, 2, 3]).should == [1, 2]
     end
 
     xit 'can match arrays inside arguments' do
-      #proc { |a, (b, c)| [a, b, c] }.call.must_equal [nil, nil, nil]
-      #proc { |a, (b, c)| [a, b, c] }.call(1).must_equal [1, nil, nil]
-      #proc { |a, (b, c)| [a, b, c] }.call(1, [2]).must_equal [1, 2, nil]
-      #proc { |a, (b, c)| [a, b, c] }.call(1, [2, 3]).must_equal [1, 2, 3]
-      #proc { |a, (b, c)| [a, b, c] }.call([1]).must_equal [1, nil, nil]
-      #proc { |a, (b, c)| [a, b, c] }.call([1, [2]]).must_equal [1, 2, nil]
-      #proc { |a, (b, c)| [a, b, c] }.call([1, [2, 3]]).must_equal [1, 2, 3]
+      #proc { |a, (b, c)| [a, b, c] }.call.should == [nil, nil, nil]
+      #proc { |a, (b, c)| [a, b, c] }.call(1).should == [1, nil, nil]
+      #proc { |a, (b, c)| [a, b, c] }.call(1, [2]).should == [1, 2, nil]
+      #proc { |a, (b, c)| [a, b, c] }.call(1, [2, 3]).should == [1, 2, 3]
+      #proc { |a, (b, c)| [a, b, c] }.call([1]).should == [1, nil, nil]
+      #proc { |a, (b, c)| [a, b, c] }.call([1, [2]]).should == [1, 2, nil]
+      #proc { |a, (b, c)| [a, b, c] }.call([1, [2, 3]]).should == [1, 2, 3]
     end
   end
 end
-
-run_specs

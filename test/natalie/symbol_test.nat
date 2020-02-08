@@ -1,11 +1,9 @@
-require 'spec'
+require_relative '../spec_helper'
 
 describe 'symbol' do
   it 'works' do
     s = :foo
-    s.inspect.must_equal ':foo'
-    s.to_s.must_equal 'foo'
+    s.inspect.should == ':foo'
+    s.to_s.should == 'foo'
   end
 end
-
-run_specs

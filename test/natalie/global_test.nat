@@ -1,4 +1,4 @@
-require 'spec'
+require_relative '../spec_helper'
 
 $foo = 1
 
@@ -19,11 +19,9 @@ end
 describe 'globals' do
   it 'can be set and returned' do
     r = $foo
-    r.must_equal 1
-    m.must_equal 1
-    C.new.m.must_equal 1
-    C.m.must_equal 1
+    r.should == 1
+    m.should == 1
+    C.new.m.should == 1
+    C.m.should == 1
   end
 end
-
-run_specs

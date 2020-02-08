@@ -1,4 +1,4 @@
-require 'spec'
+require_relative '../spec_helper'
 
 NUM = 1
 
@@ -38,24 +38,21 @@ end
 
 describe 'namespace' do
   it 'resolves top-level constants' do
-    NUM.must_equal 1
+    NUM.should == 1
   end
 
   it 'resolves constants on a class' do
-    Foo::NUM.must_equal 2
-    Foo::num.must_equal 2
-    Foo.num.must_equal 2
-    Foo.new.num.must_equal 2
-    Bar::NUM.must_equal 3
-    Bar::num.must_equal 3
-    Bar.num.must_equal 3
-    Bar.new.num.must_equal 3
-    Baz::NUM.must_equal 3
-    Baz::num.must_equal 3
-    Baz.num.must_equal 3
-    Baz.new.num.must_equal 3
+    Foo::NUM.should == 2
+    Foo::num.should == 2
+    Foo.num.should == 2
+    Foo.new.num.should == 2
+    Bar::NUM.should == 3
+    Bar::num.should == 3
+    Bar.num.should == 3
+    Bar.new.num.should == 3
+    Baz::NUM.should == 3
+    Baz::num.should == 3
+    Baz.num.should == 3
+    Baz.new.num.should == 3
   end
 end
-
-run_specs
-

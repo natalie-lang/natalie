@@ -1,4 +1,4 @@
-require 'spec'
+require_relative '../spec_helper'
 
 class ArrayLike
   def initialize(*values)
@@ -13,58 +13,56 @@ end
 describe 'assignment' do
   it 'does single assignment' do
     a = 1
-    a.must_equal 1
+    a.should == 1
   end
 
   it 'does multiple assignment from an array' do
     (a, b) = [1, 2]
-    a.must_equal 1
-    b.must_equal 2
+    a.should == 1
+    b.should == 2
     a, b = [3, 4]
-    a.must_equal 3
-    b.must_equal 4
+    a.should == 3
+    b.should == 4
     a, b = [5, 6, 7]
-    a.must_equal 5
-    b.must_equal 6
+    a.should == 5
+    b.should == 6
     a, b, c = [8, 9]
-    a.must_equal 8
-    b.must_equal 9
-    c.must_equal nil
+    a.should == 8
+    b.should == 9
+    c.should == nil
   end
 
   it 'does multiple assignment from an array-like object' do
     (a, b) = ArrayLike.new(1, 2)
-    a.must_equal 1
-    b.must_equal 2
+    a.should == 1
+    b.should == 2
     a, b = ArrayLike.new(3, 4)
-    a.must_equal 3
-    b.must_equal 4
+    a.should == 3
+    b.should == 4
     a, b = ArrayLike.new(5, 6, 7)
-    a.must_equal 5
-    b.must_equal 6
+    a.should == 5
+    b.should == 6
     a, b, c = ArrayLike.new(8, 9)
-    a.must_equal 8
-    b.must_equal 9
-    c.must_equal nil
+    a.should == 8
+    b.should == 9
+    c.should == nil
   end
 
   it 'fills in extra variables with nil when the value is not array-like' do
     o = Object.new
     (a, b) = o
-    a.must_equal o
-    b.must_equal nil
+    a.should == o
+    b.should == nil
   end
 
   xit 'does nested multiple assignment from an array' do
     #((a, b), c) = [[1, 2], 3]
-    #a.must_equal 1
-    #b.must_equal 2
-    #c.must_equal 3
+    #a.should == 1
+    #b.should == 2
+    #c.should == 3
     #(a, b, c) = [[4, 5], 6, 7]
-    #a.must_equal [4, 5]
-    #b.must_equal 6
-    #c.must_equal 7
+    #a.should == [4, 5]
+    #b.should == 6
+    #c.should == 7
   end
 end
-
-run_specs

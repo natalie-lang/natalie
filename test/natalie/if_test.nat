@@ -1,17 +1,17 @@
-require 'spec'
+require_relative '../spec_helper'
 
 describe 'if' do
   it 'handles the true case' do
     r = if true
           1
         end
-    r.must_equal 1
+    r.should == 1
     r = if true
           1
         else
           2
         end
-    r.must_equal 1
+    r.should == 1
   end
 
   it 'handles the else case' do
@@ -20,7 +20,7 @@ describe 'if' do
         else
           2
         end
-    r.must_equal 2
+    r.should == 2
   end
 
   it 'handles the elsif case' do
@@ -31,7 +31,7 @@ describe 'if' do
         else
           3
         end
-    r.must_equal 2
+    r.should == 2
     r = if false
           1
         elsif nil
@@ -41,7 +41,7 @@ describe 'if' do
         else
           4
         end
-    r.must_equal 3
+    r.should == 3
   end
 
   it 'can see variables outside of it' do
@@ -49,17 +49,17 @@ describe 'if' do
     r = if true
           outside
         end
-    r.must_equal 10
+    r.should == 10
   end
 
   it 'can be expressed as postfix' do
     x = nil # FIXME: should not be necessary if we have proper variable scoping
     x = 1 if nil
-    x.must_equal nil
+    x.should == nil
     x = 1 if false
-    x.must_equal nil
+    x.should == nil
     x = 1 if true
-    x.must_equal 1
+    x.should == 1
   end
 
   describe 'not' do
@@ -69,13 +69,13 @@ describe 'if' do
           else
             2
           end
-      r.must_equal 2
+      r.should == 2
       r = if !true
             3
           else
             4
           end
-      r.must_equal 4
+      r.should == 4
     end
   end
 end
@@ -85,13 +85,13 @@ describe 'unless' do
     r = unless false
           1
         end
-    r.must_equal 1
+    r.should == 1
     r = unless false
           1
         else
           2
         end
-    r.must_equal 1
+    r.should == 1
   end
 
   it 'handles the else case' do
@@ -100,7 +100,7 @@ describe 'unless' do
         else
           2
         end
-    r.must_equal 2
+    r.should == 2
   end
 
   it 'can see variables outside of it' do
@@ -108,17 +108,17 @@ describe 'unless' do
     r = unless false
           outside
         end
-    r.must_equal 10
+    r.should == 10
   end
 
   it 'can be expressed as postfix' do
     x = nil # FIXME: should not be necessary if we have proper variable scoping
     x = 1 unless true
-    x.must_equal nil
+    x.should == nil
     x = 1 unless 1
-    x.must_equal nil
+    x.should == nil
     x = 1 unless false
-    x.must_equal 1
+    x.should == 1
   end
 
   describe 'not' do
@@ -128,15 +128,13 @@ describe 'unless' do
           else
             2
           end
-      r.must_equal 2
+      r.should == 2
       r = unless !false
             3
           else
             4
           end
-      r.must_equal 4
+      r.should == 4
     end
   end
 end
-
-run_specs

@@ -1,25 +1,23 @@
-require 'spec'
+require_relative '../spec_helper'
 
 describe 'booleans' do
   describe 'equality' do
     it 'is equal to other booleans' do
       r = true == true
-      r.must_equal true
+      r.should == true
       r = false == false
-      r.must_equal true
+      r.should == true
       r = true == false
-      r.must_equal false
+      r.should == false
       r = false == true
-      r.must_equal false
+      r.should == false
     end
   end
 
   describe 'inspect' do
     it 'returns its name' do
-      true.inspect.must_equal 'true'
-      false.inspect.must_equal 'false'
+      true.inspect.should == 'true'
+      false.inspect.should == 'false'
     end
   end
 end
-
-run_specs

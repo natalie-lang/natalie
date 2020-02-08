@@ -1,4 +1,4 @@
-require 'spec'
+require_relative '../spec_helper'
 
 NUM = 1
 
@@ -12,42 +12,40 @@ end
 
 describe 'defined?' do
   it 'recognizes constants' do
-    defined?(NUM).must_equal 'constant'
-    defined?(Foo).must_equal 'constant'
-    defined?(NonExistent).must_equal nil
+    defined?(NUM).should == 'constant'
+    defined?(Foo).should == 'constant'
+    defined?(NonExistent).should == nil
   end
 
   it 'recognizes variables' do
     x = 1
-    defined?(x).must_equal 'local-variable'
-    defined?(not_a_variable).must_equal nil
+    defined?(x).should == 'local-variable'
+    defined?(not_a_variable).should == nil
   end
 
   it 'recognizes global variables' do
-    defined?($global).must_equal 'global-variable'
-    defined?($not_a_global).must_equal nil
+    defined?($global).should == 'global-variable'
+    defined?($not_a_global).should == nil
   end
 
   it 'recognizes methods' do
-    defined?(foo).must_equal 'method'
-    defined?([].any?).must_equal 'method'
-    defined?(1 + 1).must_equal 'method'
-    defined?(not_a_method).must_equal nil
+    defined?(foo).should == 'method'
+    defined?([].any?).should == 'method'
+    defined?(1 + 1).should == 'method'
+    defined?(not_a_method).should == nil
   end
 
   it 'recognizes expressions' do
-    defined?(1).must_equal 'expression'
-    defined?('hi').must_equal 'expression'
+    defined?(1).should == 'expression'
+    defined?('hi').should == 'expression'
   end
 
   it 'recognizes nil' do
-    defined?(nil).must_equal 'nil'
+    defined?(nil).should == 'nil'
   end
 
   it 'does not raise an error' do
-    defined?(x.y).must_equal nil
-    defined?(x.y.z).must_equal nil
+    defined?(x.y).should == nil
+    defined?(x.y.z).should == nil
   end
 end
-
-run_specs

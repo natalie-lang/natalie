@@ -1,119 +1,117 @@
-require 'spec'
+require_relative '../spec_helper'
 
 describe 'equality' do
   it 'works for every object' do
     o = Object.new
     r = o == o
-    r.must_equal true
+    r.should == true
     r = o === o
-    r.must_equal true
+    r.should == true
     r = o.eql?(o)
-    r.must_equal true
+    r.should == true
     r = o.equal?(o)
-    r.must_equal true
+    r.should == true
     r = 1 == 1
-    r.must_equal true
+    r.should == true
     r = 1 === 1
-    r.must_equal true
+    r.should == true
     r = "hi" == "hi"
-    r.must_equal true
+    r.should == true
     r = "hi" === "hi"
-    r.must_equal true
+    r.should == true
     r = "" == ""
-    r.must_equal true
+    r.should == true
     r = "" === ""
-    r.must_equal true
+    r.should == true
     r = :foo == :foo
-    r.must_equal true
+    r.should == true
     r = :foo === :foo
-    r.must_equal true
+    r.should == true
     r = true == true
-    r.must_equal true
+    r.should == true
     r = true === true
-    r.must_equal true
+    r.should == true
     r = false == false
-    r.must_equal true
+    r.should == true
     r = false === false
-    r.must_equal true
+    r.should == true
     r = [1, 2, 3] == [1, 2, 3]
-    r.must_equal true
+    r.should == true
     r = [1, 2, 3] === [1, 2, 3]
-    r.must_equal true
+    r.should == true
     r = [] == []
-    r.must_equal true
+    r.should == true
     r = [] === []
-    r.must_equal true
+    r.should == true
     r = Object === Object.new
     p r
-    r.must_equal true
+    r.should == true
     r = Object === 1
-    r.must_equal true
+    r.should == true
     r = Object === 'foo'
-    r.must_equal true
+    r.should == true
     r = Object === []
-    r.must_equal true
+    r.should == true
     r = Integer === 1
-    r.must_equal true
+    r.should == true
     r = String === 'foo'
-    r.must_equal true
+    r.should == true
     r = Array === []
-    r.must_equal true
+    r.should == true
     r = 1 != 2
-    r.must_equal true
+    r.should == true
     o2 = Object.new
     r = o == o2
-    r.must_equal false
+    r.should == false
     r = o === o2
-    r.must_equal false
+    r.should == false
     r = o.eql?(o2)
-    r.must_equal false
+    r.should == false
     r = o.equal?(o2)
-    r.must_equal false
+    r.should == false
     r = 1 == nil
-    r.must_equal false
+    r.should == false
     r = 1 === nil
-    r.must_equal false
+    r.should == false
     r = 1 == "1"
-    r.must_equal false
+    r.should == false
     r = 1 === "1"
-    r.must_equal false
+    r.should == false
     r = "hi" == "hi there"
-    r.must_equal false
+    r.should == false
     r = "hi" === "hi there"
-    r.must_equal false
+    r.should == false
     r = "hi" == nil
-    r.must_equal false
+    r.should == false
     r = "hi" === nil
-    r.must_equal false
+    r.should == false
     r = "hi" == 0
-    r.must_equal false
+    r.should == false
     r = "hi" === 0
-    r.must_equal false
+    r.should == false
     r = :foo == :bar
-    r.must_equal false
+    r.should == false
     r = :foo === :bar
-    r.must_equal false
+    r.should == false
     r = true == false
-    r.must_equal false
+    r.should == false
     r = true === false
-    r.must_equal false
+    r.should == false
     r = [1, 2, 3] == [1, 2]
-    r.must_equal false
+    r.should == false
     r = [1, 2, 3] === [1, 2]
-    r.must_equal false
+    r.should == false
     r = [1, 2, 3] == [1, 2, 3, 4]
-    r.must_equal false
+    r.should == false
     r = [1, 2, 3] === [1, 2, 3, 4]
-    r.must_equal false
+    r.should == false
     r = Integer === []
-    r.must_equal false
+    r.should == false
     r = String === 1
-    r.must_equal false
+    r.should == false
     r = Array === 'foo'
-    r.must_equal false
+    r.should == false
     r = 1 != 1
-    r.must_equal false
+    r.should == false
   end
 end
-
-run_specs
