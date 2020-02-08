@@ -6,6 +6,12 @@ describe 'File' do
     f.should be_kind_of(IO)
   end
 
+  it 'raises ENOENT when opening a file that does not exist' do
+    -> {
+      File.new('file_does_not_exist.txt')
+    }.should raise_error(Errno::ENOENT)
+  end
+
   describe '#read' do
     it 'can read the entire file' do
       f = File.new('test/support/file.txt')

@@ -252,6 +252,12 @@ NatEnv *build_top_env() {
     nat_const_set(env, Object, "TypeError", TypeError);
     NatObject *SystemExit = nat_subclass(env, StandardError, "SystemExit");
     nat_const_set(env, Object, "SystemExit", SystemExit);
+    NatObject *SystemCallError = nat_subclass(env, StandardError, "SystemCallError");
+    nat_const_set(env, Object, "SystemCallError", SystemCallError);
+    NatObject *Errno = nat_module(env, "Errno");
+    nat_const_set(env, Object, "Errno", Errno);
+    NatObject *nat_ENOENT = nat_subclass(env, SystemCallError, "ENOENT");
+    nat_const_set(env, Errno, "ENOENT", nat_ENOENT);
 
     nat_global_set(env, "$NAT_at_exit_handlers", nat_array(env));
 
