@@ -97,6 +97,7 @@ enum NatValueType {
     NAT_VALUE_FALSE,
     NAT_VALUE_HASH,
     NAT_VALUE_INTEGER,
+    NAT_VALUE_IO,
     NAT_VALUE_MODULE,
     NAT_VALUE_NIL,
     NAT_VALUE_OTHER,
@@ -126,6 +127,13 @@ struct NatObject {
     union {
         int64_t integer;
 
+        // NAT_VALUE_ARRAY
+        struct {
+            size_t ary_len;
+            size_t ary_cap;
+            NatObject **ary;
+        };
+
         // NAT_VALUE_CLASS, NAT_VALUE_MODULE
         struct {
             char *class_name;
@@ -135,11 +143,31 @@ struct NatObject {
             NatObject **included_modules;
         };
 
-        // NAT_VALUE_ARRAY
+        // NAT_VALUE_EXCEPTION
         struct {
-            size_t ary_len;
-            size_t ary_cap;
-            NatObject **ary;
+            char *message;
+            NatObject *backtrace; // array
+        };
+
+        // NAT_VALUE_HASHMAP
+        struct {
+            NatHashKeyListNode *key_list; // a double-ended queue
+            struct hashmap hashmap;
+        };
+
+        // NAT_VALUE_IO
+        int fileno;
+
+        // NAT_VALUE_PROC
+        struct {
+            NatBlock *block;
+            int lambda;
+        };
+
+        // NAT_VALUE_REGEX
+        struct {
+            size_t regex_len;
+            char *regex;
         };
 
         // NAT_VALUE_STRING
@@ -151,30 +179,6 @@ struct NatObject {
 
         // NAT_VALUE_SYMBOL
         char *symbol;
-
-        // NAT_VALUE_REGEX
-        struct {
-            size_t regex_len;
-            char *regex;
-        };
-
-        // NAT_VALUE_EXCEPTION
-        struct {
-            char *message;
-            NatObject *backtrace; // array
-        };
-
-        // NAT_VALUE_PROC
-        struct {
-            NatBlock *block;
-            int lambda;
-        };
-
-        // NAT_VALUE_HASHMAP
-        struct {
-            NatHashKeyListNode *key_list; // a double-ended queue
-            struct hashmap hashmap;
-        };
     };
 };
 

@@ -1,0 +1,33 @@
+require 'spec'
+
+describe 'File' do
+  it 'is an IO object' do
+    f = File.new('test/support/file.txt')
+    f.must_be_a(IO)
+  end
+
+  describe '#read' do
+    it 'can read the entire file' do
+      f = File.new('test/support/file.txt')
+      f.read.must_equal("foo bar baz\n")
+      f.read.must_equal('')
+    end
+
+    it 'can read specified number of bytes' do
+      f = File.new('test/support/file.txt')
+      f.read(4).must_equal('foo ')
+      f.read(4).must_equal('bar ')
+      f.read(10).must_equal("baz\n")
+      f.read(4).must_equal(nil)
+    end
+  end
+
+  describe '#fileno' do
+    it 'returns the file descriptor number' do
+      f = File.new('test/support/file.txt')
+      f.fileno.must_be_a(Integer)
+    end
+  end
+end
+
+run_specs

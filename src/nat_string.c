@@ -35,6 +35,8 @@ NatObject *String_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject *
             nat_string_append_char(out, c);
         } else if (c == '\n') {
             nat_string_append(out, "\\n");
+        } else if (c == '\t') {
+            nat_string_append(out, "\\t");
         } else {
             nat_string_append_char(out, c);
         }

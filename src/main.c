@@ -7,8 +7,10 @@
 #include "nat_comparable.h"
 #include "nat_exception.h"
 #include "nat_false_class.h"
+#include "nat_file.h"
 #include "nat_hash.h"
 #include "nat_integer.h"
+#include "nat_io.h"
 #include "nat_kernel.h"
 #include "nat_main_obj.h"
 #include "nat_module.h"
@@ -218,6 +220,16 @@ NatEnv *build_top_env() {
     nat_const_set(env, Object, "Proc", Proc);
     nat_define_method(Proc, "call", Proc_call);
     nat_define_method(Proc, "lambda?", Proc_lambda);
+
+    NatObject *IO = nat_subclass(env, Object, "IO");
+    nat_const_set(env, Object, "IO", IO);
+    nat_define_singleton_method(env, IO, "new", IO_new);
+    nat_define_method(IO, "initialize", IO_initialize);
+    nat_define_method(IO, "fileno", IO_fileno);
+    nat_define_method(IO, "read", IO_read);
+    NatObject *File = nat_subclass(env, IO, "File");
+    nat_const_set(env, Object, "File", File);
+    nat_define_method(File, "initialize", File_initialize);
 
     NatObject *Exception = nat_subclass(env, Object, "Exception");
     nat_const_set(env, Object, "Exception", Exception);
