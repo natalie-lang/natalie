@@ -86,3 +86,40 @@ NatObject *IO_close(NatEnv *env, NatObject *self, size_t argc, NatObject **args,
         return nil;
     }
 }
+
+NatObject *IO_seek(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC2(1, 2);
+    NatObject *amount_obj = args[0];
+    assert(NAT_TYPE(amount_obj) == NAT_VALUE_INTEGER);
+    int amount = NAT_INT_VALUE(amount_obj);
+    int whence = 0;
+    if (argc > 1) {
+        NatObject *whence_obj = args[1];
+        switch (NAT_TYPE(whence_obj)) {
+            case NAT_VALUE_INTEGER:
+                whence = NAT_INT_VALUE(whence_obj);
+                break;
+            case NAT_VALUE_SYMBOL:
+                if (strcmp(whence_obj->symbol, "SET") == 0) {
+                    whence = 0;
+                } else if (strcmp(whence_obj->symbol, "CUR") == 0) {
+                    whence = 1;
+                } else if (strcmp(whence_obj->symbol, "END") == 0) {
+                    whence = 2;
+                } else {
+                    NAT_RAISE(env, nat_const_get(env, Object, "TypeError"), "no implicit conversion of Symbol into Integer");
+                }
+                break;
+            default:
+                NAT_RAISE(env, nat_const_get(env, Object, "TypeError"), "no implicit conversion of %s into Integer", whence_obj->klass->class_name);
+        }
+    }
+    int result = lseek(self->fileno, amount, whence);
+    if (result == -1) {
+        NatObject *error_number = nat_integer(env, errno);
+        NatObject *error = nat_send(env, nat_const_get(env, Object, "SystemCallError"), "exception", 1, &error_number, NULL);
+        nat_raise_exception(env, error);
+    } else {
+        return nat_integer(env, 0);
+    }
+}

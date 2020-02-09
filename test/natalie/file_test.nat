@@ -57,6 +57,37 @@ describe 'File' do
     end
   end
 
+  describe '#seek' do
+    it 'seeks too an absolute position' do
+      f = File.new('test/support/file.txt')
+      f.seek(4)
+      f.seek(4).should == 0
+      f.read(3).should == 'bar'
+      f.seek(8, :SET)
+      f.read(3).should == 'baz'
+      f.seek(4, IO::SEEK_SET)
+      f.read(3).should == 'bar'
+    end
+
+    it 'seeks too an offset position from current' do
+      f = File.new('test/support/file.txt')
+      f.seek(4)
+      f.seek(4, :CUR).should == 0
+      f.read(3).should == 'baz'
+      f.seek(4)
+      f.seek(-4, IO::SEEK_CUR)
+      f.read(3).should == 'foo'
+    end
+
+    it 'seeks too an offset position from end' do
+      f = File.new('test/support/file.txt')
+      f.seek(-4, :END).should == 0
+      f.read(3).should == 'baz'
+      f.seek(-8, IO::SEEK_END)
+      f.read(3).should == 'bar'
+    end
+  end
+
   describe '#fileno' do
     it 'returns the file descriptor number' do
       f = File.new('test/support/file.txt')

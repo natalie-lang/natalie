@@ -32,6 +32,7 @@ NatObject *Object,
 
 NatObject *obj_language_exceptions(NatEnv *env, NatObject *self);
 NatObject *obj_language_errno(NatEnv *env, NatObject *self);
+NatObject *obj_language_file(NatEnv *env, NatObject *self);
 
 NatEnv *build_top_env() {
     NatEnv *env = nat_build_env(NULL);
@@ -232,6 +233,10 @@ NatEnv *build_top_env() {
     nat_define_method(IO, "read", IO_read);
     nat_define_method(IO, "write", IO_write);
     nat_define_method(IO, "close", IO_close);
+    nat_define_method(IO, "seek", IO_seek);
+    nat_const_set(env, IO, "SEEK_SET", nat_integer(env, 0));
+    nat_const_set(env, IO, "SEEK_CUR", nat_integer(env, 1));
+    nat_const_set(env, IO, "SEEK_END", nat_integer(env, 2));
     NatObject *File = nat_subclass(env, IO, "File");
     nat_const_set(env, Object, "File", File);
     nat_define_method(File, "initialize", File_initialize);
