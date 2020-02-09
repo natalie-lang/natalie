@@ -31,6 +31,7 @@ NatObject *Object,
 /* end of front matter */
 
 NatObject *obj_language_exceptions(NatEnv *env, NatObject *self);
+NatObject *obj_language_errno(NatEnv *env, NatObject *self);
 
 NatEnv *build_top_env() {
     NatEnv *env = nat_build_env(NULL);
@@ -252,12 +253,6 @@ NatEnv *build_top_env() {
     nat_const_set(env, Object, "TypeError", TypeError);
     NatObject *SystemExit = nat_subclass(env, StandardError, "SystemExit");
     nat_const_set(env, Object, "SystemExit", SystemExit);
-    NatObject *SystemCallError = nat_subclass(env, StandardError, "SystemCallError");
-    nat_const_set(env, Object, "SystemCallError", SystemCallError);
-    NatObject *Errno = nat_module(env, "Errno");
-    nat_const_set(env, Object, "Errno", Errno);
-    NatObject *nat_ENOENT = nat_subclass(env, SystemCallError, "ENOENT");
-    nat_const_set(env, Errno, "ENOENT", nat_ENOENT);
 
     nat_global_set(env, "$NAT_at_exit_handlers", nat_array(env));
 
@@ -271,6 +266,7 @@ NatObject *EVAL(NatEnv *env) {
     self->flags = NAT_FLAG_MAIN_OBJECT;
     nat_define_singleton_method(env, self, "inspect", main_obj_inspect);
     obj_language_exceptions(env, self);
+    obj_language_errno(env, self);
     int run_exit_handlers = TRUE;
     if (!NAT_RESCUE(env)) {
         /*BODY*/
