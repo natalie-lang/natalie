@@ -9,7 +9,7 @@ NatObject *File_initialize(NatEnv *env, NatObject *self, size_t argc, NatObject 
     NAT_ASSERT_ARGC2(1, 2); // TODO: Ruby accepts 3 args??
     NatObject *filename = args[0];
     assert(NAT_TYPE(filename) == NAT_VALUE_STRING);
-    int flags = 0;
+    int flags = O_RDONLY;
     if (argc > 1) {
         NatObject *flags_obj = args[1];
         switch (NAT_TYPE(flags_obj)) {
@@ -18,12 +18,19 @@ NatObject *File_initialize(NatEnv *env, NatObject *self, size_t argc, NatObject 
                 break;
             case NAT_VALUE_STRING:
                 if (strcmp(flags_obj->str, "r") == 0) {
-                    flags = 0;
+                    flags = O_RDONLY;
+                } else if (strcmp(flags_obj->str, "r+") == 0) {
+                    flags = O_RDWR;
                 } else if (strcmp(flags_obj->str, "w") == 0) {
-                    flags = O_CREAT|O_WRONLY|O_TRUNC;
+                    flags = O_WRONLY|O_CREAT|O_TRUNC;
+                } else if (strcmp(flags_obj->str, "w+") == 0) {
+                    flags = O_RDWR|O_CREAT|O_TRUNC;
+                } else if (strcmp(flags_obj->str, "a") == 0) {
+                    flags = O_WRONLY|O_CREAT|O_APPEND;
+                } else if (strcmp(flags_obj->str, "a+") == 0) {
+                    flags = O_RDWR|O_CREAT|O_APPEND;
                 } else {
-                    printf("Don't know this file mode yet: %s", flags_obj->str);
-                    abort();
+                    NAT_RAISE(env, nat_const_get(env, Object, "ArgumentError"), "invalid access mode %s", flags_obj->str);
                 }
                 break;
             default:

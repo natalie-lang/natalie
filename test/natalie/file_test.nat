@@ -34,19 +34,25 @@ describe 'File' do
   describe '#write' do
     it 'writes to the file using an integer mode' do
       f = File.new('tmp/file_write_test.txt', File::CREAT|File::WRONLY|File::TRUNC)
-      f.write('hello world')
+      f.write('write ')
+      f.close
+      f = File.new('tmp/file_write_test.txt', File::CREAT|File::WRONLY|File::APPEND)
+      f.write('append')
       f.close
       f = File.new('tmp/file_write_test.txt')
-      f.read.should == 'hello world'
+      f.read.should == 'write append'
       f.close
     end
 
     it 'writes to the file using a string mode' do
       f = File.new('tmp/file_write_test.txt', 'w')
-      f.write('hello world')
+      f.write('write ')
+      f.close
+      f = File.new('tmp/file_write_test.txt', 'a')
+      f.write('append')
       f.close
       f = File.new('tmp/file_write_test.txt')
-      f.read.should == 'hello world'
+      f.read.should == 'write append'
       f.close
     end
   end
