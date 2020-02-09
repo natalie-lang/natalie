@@ -170,6 +170,8 @@ NatEnv *build_top_env() {
     nat_define_method(Integer, "<=>", Integer_cmp);
     nat_define_method(Integer, "===", Integer_eqeqeq);
     nat_define_method(Integer, "times", Integer_times);
+    nat_define_method(Integer, "&", Integer_bitwise_and);
+    nat_define_method(Integer, "|", Integer_bitwise_or);
 
     NatObject *String = nat_subclass(env, Object, "String");
     nat_const_set(env, Object, "String", String);

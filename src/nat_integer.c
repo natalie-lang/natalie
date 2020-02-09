@@ -85,3 +85,19 @@ NatObject *Integer_times(NatEnv *env, NatObject *self, size_t argc, NatObject **
     }
     return self;
 }
+
+NatObject *Integer_bitwise_and(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    assert(NAT_TYPE(self) == NAT_VALUE_INTEGER);
+    NAT_ASSERT_ARGC(1);
+    NatObject* arg = args[0];
+    assert(NAT_TYPE(arg) == NAT_VALUE_INTEGER);
+    return nat_integer(env, NAT_INT_VALUE(self) & NAT_INT_VALUE(arg));
+}
+
+NatObject *Integer_bitwise_or(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    assert(NAT_TYPE(self) == NAT_VALUE_INTEGER);
+    NAT_ASSERT_ARGC(1);
+    NatObject* arg = args[0];
+    assert(NAT_TYPE(arg) == NAT_VALUE_INTEGER);
+    return nat_integer(env, NAT_INT_VALUE(self) | NAT_INT_VALUE(arg));
+}
