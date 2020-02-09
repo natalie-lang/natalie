@@ -269,6 +269,7 @@ NatObject *EVAL(NatEnv *env) {
     nat_define_singleton_method(env, self, "inspect", main_obj_inspect);
     obj_language_exceptions(env, self);
     obj_language_errno(env, self);
+    obj_language_file(env, self);
     int run_exit_handlers = TRUE;
     if (!NAT_RESCUE(env)) {
         /*BODY*/

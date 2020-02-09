@@ -13,7 +13,10 @@ CFLAGS := ${cflags.${BUILD}}
 SOURCES := $(filter-out $(SRC)/main.c, $(wildcard $(SRC)/*.c))
 OBJECTS := $(patsubst $(SRC)/%.c, $(OBJ)/%.o, $(SOURCES))
 
-build: write_build_type $(OBJECTS) $(OBJ)/language/exceptions.o $(OBJ)/language/errno.o
+NAT_SOURCES := $(wildcard $(LIB)/language/*.nat)
+NAT_OBJECTS := $(patsubst $(LIB)/language/%.nat, $(OBJ)/language/%.o, $(NAT_SOURCES))
+
+build: write_build_type $(OBJECTS) $(NAT_OBJECTS)
 
 write_build_type:
 	@echo $(BUILD) > .build
@@ -21,10 +24,7 @@ write_build_type:
 $(OBJ)/%.o: $(SRC)/%.c
 	$(CC) $(CFLAGS) -I$(SRC) -c $< -o $@
 
-$(OBJ)/language/exceptions.o: $(LIB)/language/exceptions.nat
-	bin/natalie --compile-obj $@ $<
-
-$(OBJ)/language/errno.o: $(LIB)/language/errno.nat
+$(OBJ)/language/%.o: $(LIB)/language/%.nat
 	bin/natalie --compile-obj $@ $<
 
 clean:
