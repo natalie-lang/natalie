@@ -88,6 +88,15 @@ describe 'File' do
     end
   end
 
+  describe '#rewind' do
+    it 'seeks to the beginning' do
+      f = File.new('test/support/file.txt')
+      f.read.should == "foo bar baz\n"
+      f.rewind
+      f.read.should == "foo bar baz\n"
+    end
+  end
+
   describe '#fileno' do
     it 'returns the file descriptor number' do
       f = File.new('test/support/file.txt')
