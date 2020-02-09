@@ -1,2 +1,4 @@
 obj/**/*.o
 .build
+tmp/*
+!tmp/.gitkeep

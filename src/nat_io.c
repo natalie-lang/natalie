@@ -1,4 +1,5 @@
 #include <unistd.h>
+#include <errno.h>
 
 #include "natalie.h"
 #include "nat_object.h"
@@ -48,5 +49,40 @@ NatObject *IO_read(NatEnv *env, NatObject *self, size_t argc, NatObject **args, 
             }
             return str;
         }
+    }
+}
+
+NatObject *IO_write(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC_AT_LEAST(1);
+    int bytes_written = 0;
+    for (size_t i=0; i<argc; i++) {
+        char *buf;
+        size_t len;
+        NatObject *obj = args[i];
+        if (NAT_TYPE(obj) != NAT_VALUE_STRING) {
+            obj = nat_send(env, obj, "to_s", 0, NULL, NULL);
+        }
+        assert(NAT_TYPE(obj) == NAT_VALUE_STRING);
+        ssize_t result = write(self->fileno, obj->str, obj->str_len);
+        if (result == -1) {
+            NatObject *error_number = nat_integer(env, errno);
+            NatObject *error = nat_send(env, nat_const_get(env, Object, "SystemCallError"), "exception", 1, &error_number, NULL);
+            nat_raise_exception(env, error);
+        } else {
+            bytes_written += result;
+        }
+    }
+    return nat_integer(env, bytes_written);
+}
+
+NatObject *IO_close(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(0);
+    int result = close(self->fileno);
+    if (result == -1) {
+        NatObject *error_number = nat_integer(env, errno);
+        NatObject *error = nat_send(env, nat_const_get(env, Object, "SystemCallError"), "exception", 1, &error_number, NULL);
+        nat_raise_exception(env, error);
+    } else {
+        return nil;
     }
 }

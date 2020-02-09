@@ -4,6 +4,7 @@ describe 'File' do
   it 'is an IO object' do
     f = File.new('test/support/file.txt')
     f.should be_kind_of(IO)
+    f.close
   end
 
   it 'raises ENOENT when opening a file that does not exist' do
@@ -13,18 +14,40 @@ describe 'File' do
   end
 
   describe '#read' do
-    it 'can read the entire file' do
+    it 'reads the entire file' do
       f = File.new('test/support/file.txt')
       f.read.should == "foo bar baz\n"
       f.read.should == ''
+      f.close
     end
 
-    it 'can read specified number of bytes' do
+    it 'reads specified number of bytes' do
       f = File.new('test/support/file.txt')
       f.read(4).should == 'foo '
       f.read(4).should == 'bar '
       f.read(10).should == "baz\n"
       f.read(4).should be_nil
+      f.close
+    end
+  end
+
+  describe '#write' do
+    it 'writes to the file using an integer mode' do
+      f = File.new('tmp/file_write_test.txt', File::CREAT|File::WRONLY|File::TRUNC)
+      f.write('hello world')
+      f.close
+      f = File.new('tmp/file_write_test.txt')
+      f.read.should == 'hello world'
+      f.close
+    end
+
+    it 'writes to the file using a string mode' do
+      f = File.new('tmp/file_write_test.txt', 'w')
+      f.write('hello world')
+      f.close
+      f = File.new('tmp/file_write_test.txt')
+      f.read.should == 'hello world'
+      f.close
     end
   end
 
@@ -32,6 +55,7 @@ describe 'File' do
     it 'returns the file descriptor number' do
       f = File.new('test/support/file.txt')
       f.fileno.should be_kind_of(Integer)
+      f.close
     end
   end
 end

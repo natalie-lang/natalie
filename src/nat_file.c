@@ -1,5 +1,6 @@
 #include <fcntl.h>
 #include <errno.h>
+#include <sys/stat.h>
 
 #include "natalie.h"
 #include "nat_io.h"
@@ -8,7 +9,29 @@ NatObject *File_initialize(NatEnv *env, NatObject *self, size_t argc, NatObject 
     NAT_ASSERT_ARGC2(1, 2); // TODO: Ruby accepts 3 args??
     NatObject *filename = args[0];
     assert(NAT_TYPE(filename) == NAT_VALUE_STRING);
-    int fileno = open(filename->str, 0);
+    int flags = 0;
+    if (argc > 1) {
+        NatObject *flags_obj = args[1];
+        switch (NAT_TYPE(flags_obj)) {
+            case NAT_VALUE_INTEGER:
+                flags = NAT_INT_VALUE(flags_obj);
+                break;
+            case NAT_VALUE_STRING:
+                if (strcmp(flags_obj->str, "r") == 0) {
+                    flags = 0;
+                } else if (strcmp(flags_obj->str, "w") == 0) {
+                    flags = O_CREAT|O_WRONLY|O_TRUNC;
+                } else {
+                    printf("Don't know this file mode yet: %s", flags_obj->str);
+                    abort();
+                }
+                break;
+            default:
+                NAT_RAISE(env, nat_const_get(env, Object, "TypeError"), "no implicit conversion of %s into String", flags_obj->klass->class_name);
+        }
+    }
+    int mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
+    int fileno = open(filename->str, flags, mode);
     if (fileno == -1) {
         NatObject **exception_args = calloc(2, sizeof(NatObject*));
         exception_args[0] = filename;

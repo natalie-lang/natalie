@@ -230,6 +230,8 @@ NatEnv *build_top_env() {
     nat_define_method(IO, "initialize", IO_initialize);
     nat_define_method(IO, "fileno", IO_fileno);
     nat_define_method(IO, "read", IO_read);
+    nat_define_method(IO, "write", IO_write);
+    nat_define_method(IO, "close", IO_close);
     NatObject *File = nat_subclass(env, IO, "File");
     nat_const_set(env, Object, "File", File);
     nat_define_method(File, "initialize", File_initialize);
