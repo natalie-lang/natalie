@@ -77,7 +77,7 @@ module Natalie
           "&#{p args.first}:1"
         else
           args_name = temp('args')
-          decl "NatObject **#{args_name} = calloc(#{args.size}, sizeof(NatObject));"
+          decl "NatObject **#{args_name} = calloc(#{args.size}, sizeof(NatObject*));"
           args.each_with_index do |arg, i|
             decl "#{args_name}[#{i}] = #{p arg};"
           end
