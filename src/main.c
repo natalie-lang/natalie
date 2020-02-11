@@ -12,10 +12,10 @@ NatObject *Object,
 
 /* end of front matter */
 
-NatObject *obj_language_errno(NatEnv *env, NatObject *self);
-NatObject *obj_language_exceptions(NatEnv *env, NatObject *self);
-NatObject *obj_language_file(NatEnv *env, NatObject *self);
-NatObject *obj_language_io(NatEnv *env, NatObject *self);
+NatObject *obj_nat_errno(NatEnv *env, NatObject *self);
+NatObject *obj_nat_exception(NatEnv *env, NatObject *self);
+NatObject *obj_nat_file(NatEnv *env, NatObject *self);
+NatObject *obj_nat_io(NatEnv *env, NatObject *self);
 
 NatEnv *build_top_env() {
     NatEnv *env = nat_build_env(NULL);
@@ -254,10 +254,10 @@ NatObject *EVAL(NatEnv *env) {
     NatObject *self = nat_new(env, Object, 0, NULL, NULL, NULL);
     self->flags = NAT_FLAG_MAIN_OBJECT;
     nat_define_singleton_method(env, self, "inspect", main_obj_inspect);
-    obj_language_errno(env, self);
-    obj_language_exceptions(env, self);
-    obj_language_file(env, self);
-    obj_language_io(env, self);
+    obj_nat_errno(env, self);
+    obj_nat_exception(env, self);
+    obj_nat_file(env, self);
+    obj_nat_io(env, self);
     int run_exit_handlers = TRUE;
     if (!NAT_RESCUE(env)) {
         /*BODY*/

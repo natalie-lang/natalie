@@ -13,8 +13,8 @@ CFLAGS := ${cflags.${BUILD}}
 SOURCES := $(filter-out $(SRC)/main.c, $(wildcard $(SRC)/*.c))
 OBJECTS := $(patsubst $(SRC)/%.c, $(OBJ)/%.o, $(SOURCES))
 
-NAT_SOURCES := $(wildcard $(LIB)/language/*.nat)
-NAT_OBJECTS := $(patsubst $(LIB)/language/%.nat, $(OBJ)/language/%.o, $(NAT_SOURCES))
+NAT_SOURCES := $(wildcard $(SRC)/*.nat)
+NAT_OBJECTS := $(patsubst $(SRC)/%.nat, $(OBJ)/nat/%.o, $(NAT_SOURCES))
 
 build: write_build_type $(OBJECTS) $(NAT_OBJECTS)
 
@@ -24,11 +24,11 @@ write_build_type:
 $(OBJ)/%.o: $(SRC)/%.c
 	$(CC) $(CFLAGS) -I$(SRC) -c $< -o $@
 
-$(OBJ)/language/%.o: $(LIB)/language/%.nat
+$(OBJ)/nat/%.o: $(SRC)/%.nat
 	bin/natalie --compile-obj $@ $<
 
 clean:
-	rm -f $(OBJ)/*.o $(OBJ)/language/*.o
+	rm -f $(OBJ)/*.o $(OBJ)/nat/*.o
 
 test: build
 	ruby test/all.rb
