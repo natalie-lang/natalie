@@ -1,6 +1,5 @@
 #include "natalie.h"
-#include "nat_kernel.h"
-#include "nat_module.h"
+#include "builtin.h"
 
 NatObject *Kernel_puts(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     if (argc == 0) {

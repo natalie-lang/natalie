@@ -1,5 +1,5 @@
 #include "natalie.h"
-#include "nat_integer.h"
+#include "builtin.h"
 
 NatObject *Integer_to_s(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_INTEGER);

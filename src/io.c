@@ -2,7 +2,7 @@
 #include <errno.h>
 
 #include "natalie.h"
-#include "nat_object.h"
+#include "builtin.h"
 
 NatObject *IO_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NatObject *obj = Object_new(env, self, argc, args, kwargs, block);

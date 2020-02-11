@@ -1,25 +1,7 @@
 #include <setjmp.h>
 
 #include "natalie.h"
-#include "nat_array.h"
-#include "nat_basic_object.h"
-#include "nat_class.h"
-#include "nat_comparable.h"
-#include "nat_exception.h"
-#include "nat_false_class.h"
-#include "nat_file.h"
-#include "nat_hash.h"
-#include "nat_integer.h"
-#include "nat_io.h"
-#include "nat_kernel.h"
-#include "nat_main_obj.h"
-#include "nat_module.h"
-#include "nat_nil_class.h"
-#include "nat_object.h"
-#include "nat_proc.h"
-#include "nat_string.h"
-#include "nat_symbol.h"
-#include "nat_true_class.h"
+#include "builtin.h"
 
 // built-in constants
 NatObject *Object,

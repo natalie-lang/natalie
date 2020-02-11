@@ -1,6 +1,5 @@
 #include "natalie.h"
-#include "nat_kernel.h"
-#include "nat_class.h"
+#include "builtin.h"
 
 // FIXME: this whole module can be written in Natalie rather than in C.
 

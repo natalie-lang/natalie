@@ -3,7 +3,7 @@
 #include <sys/stat.h>
 
 #include "natalie.h"
-#include "nat_io.h"
+#include "builtin.h"
 
 NatObject *File_initialize(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC2(1, 2); // TODO: Ruby accepts 3 args??

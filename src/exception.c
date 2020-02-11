@@ -1,7 +1,5 @@
 #include "natalie.h"
-#include "nat_exception.h"
-#include "nat_module.h"
-#include "nat_object.h"
+#include "builtin.h"
 
 NatObject *Exception_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NatObject *exception = Object_new(env, self, argc, args, kwargs, block);

@@ -1,5 +1,5 @@
 #include "natalie.h"
-#include "nat_hash.h"
+#include "builtin.h"
 
 NatObject *Hash_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
