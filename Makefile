@@ -22,7 +22,7 @@ write_build_type:
 	@echo $(BUILD) > .build
 
 $(OBJ)/%.o: $(SRC)/%.c
-	$(CC) $(CFLAGS) -I$(SRC) -c $< -o $@
+	$(CC) $(CFLAGS) -I$(SRC) -fPIC -c $< -o $@
 
 $(OBJ)/nat/%.o: $(SRC)/%.nat
 	bin/natalie --compile-obj $@ $<
