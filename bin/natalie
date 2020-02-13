@@ -85,7 +85,7 @@ else
   compiler.compile
   puts out.path if ENV['DEBUG']
   status = nil
-  Open3.popen3(out.path) do |stdin, stdout, stderr, wait_thread|
+  Open3.popen3(out.path, *ARGV) do |stdin, stdout, stderr, wait_thread|
     stdin.close_write
     Thread.new do
       begin

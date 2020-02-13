@@ -266,9 +266,15 @@ NatObject *EVAL(NatEnv *env) {
     }
 }
 
-int main(void) {
+int main(int argc, char *argv[]) {
     setvbuf(stdout, NULL, _IOLBF, 1024);
     NatEnv *env = build_top_env();
+    NatObject *ARGV = nat_array(env);
+    nat_const_set(env, NAT_OBJECT, "ARGV", ARGV);
+    assert(argc > 0);
+    for (int i=1; i<argc; i++) {
+        nat_array_push(ARGV, nat_string(env, argv[i]));
+    }
     if (EVAL(env)) {
         return 0;
     } else {
