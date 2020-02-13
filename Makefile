@@ -33,5 +33,9 @@ clean:
 test: build
 	ruby test/all.rb
 
+test_in_ubuntu:
+	docker build -t natalie .
+	docker run -i --rm --entrypoint make natalie test
+
 cloc:
 	cloc --not-match-f=hashmap.* --exclude-dir=.cquery_cache .
