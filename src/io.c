@@ -49,6 +49,9 @@ NatObject *IO_read(NatEnv *env, NatObject *self, size_t argc, NatObject **args, 
             }
             return str;
         }
+    } else {
+        printf("TODO: 3 args passed to IO#read\n");
+        abort();
     }
 }
 
@@ -68,6 +71,7 @@ NatObject *IO_write(NatEnv *env, NatObject *self, size_t argc, NatObject **args,
             NatObject *error_number = nat_integer(env, errno);
             NatObject *error = nat_send(env, nat_const_get(env, Object, "SystemCallError"), "exception", 1, &error_number, NULL);
             nat_raise_exception(env, error);
+            abort();
         } else {
             bytes_written += result;
         }
@@ -82,6 +86,7 @@ NatObject *IO_close(NatEnv *env, NatObject *self, size_t argc, NatObject **args,
         NatObject *error_number = nat_integer(env, errno);
         NatObject *error = nat_send(env, nat_const_get(env, Object, "SystemCallError"), "exception", 1, &error_number, NULL);
         nat_raise_exception(env, error);
+        abort();
     } else {
         return nil;
     }
@@ -119,6 +124,7 @@ NatObject *IO_seek(NatEnv *env, NatObject *self, size_t argc, NatObject **args, 
         NatObject *error_number = nat_integer(env, errno);
         NatObject *error = nat_send(env, nat_const_get(env, Object, "SystemCallError"), "exception", 1, &error_number, NULL);
         nat_raise_exception(env, error);
+        abort();
     } else {
         return nat_integer(env, 0);
     }

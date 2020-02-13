@@ -45,6 +45,7 @@ NatObject *File_initialize(NatEnv *env, NatObject *self, size_t argc, NatObject 
         exception_args[1] = nat_integer(env, errno);
         NatObject *error = nat_send(env, nat_const_get(env, Object, "SystemCallError"), "exception", 2, exception_args, NULL);
         nat_raise_exception(env, error);
+        abort();
     } else {
         self->fileno = fileno;
         return self;
