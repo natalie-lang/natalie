@@ -11,6 +11,3 @@ PLATFORMS
 DEPENDENCIES
   ruby_parser
   sexp_processor
-
-BUNDLED WITH
-   2.0.1

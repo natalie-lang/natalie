@@ -38,3 +38,13 @@ bin/natalie examples/hello.nat
 bin/natalie examples/hello.nat -c hello
 ./hello
 ```
+
+## Using With Docker
+
+```
+docker build -t natalie .                                               # build image
+docker run -it --rm natalie                                             # repl
+docker run -it --rm natalie -e "p 2 * 3"                                # immediate
+docker run -it --rm -v$(pwd)/myfile.nat:/myfile.nat natalie /myfile.nat # execute a local nat file
+docker run -it --rm --entrypoint bash natalie                           # bash prompt
+```
