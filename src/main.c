@@ -7,7 +7,6 @@
 
 NatObject *obj_nat_errno(NatEnv *env, NatObject *self);
 NatObject *obj_nat_exception(NatEnv *env, NatObject *self);
-NatObject *obj_nat_file(NatEnv *env, NatObject *self);
 NatObject *obj_nat_io(NatEnv *env, NatObject *self);
 
 NatEnv *build_top_env() {
@@ -213,6 +212,7 @@ NatEnv *build_top_env() {
     NatObject *File = nat_subclass(env, IO, "File");
     nat_const_set(env, Object, "File", File);
     nat_define_method(File, "initialize", File_initialize);
+    FILE_INIT();
 
     NatObject *Exception = nat_subclass(env, Object, "Exception");
     nat_const_set(env, Object, "Exception", Exception);
@@ -245,7 +245,6 @@ NatEnv *build_top_env() {
 
     obj_nat_errno(env, self);
     obj_nat_exception(env, self);
-    obj_nat_file(env, self);
     obj_nat_io(env, self);
 
     return env;
