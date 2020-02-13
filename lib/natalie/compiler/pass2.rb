@@ -9,27 +9,36 @@ module Natalie
         self.require_empty = false
         self.strict = true
         @compiler_context = compiler_context
-        @env = { vars: {} }
+        @env = {
+          # pre-existing vars from the REPL are passed in here
+          vars: @compiler_context[:vars]
+        }
       end
 
       def go(ast)
-        process(ast)
+        process_and_build_vars(ast).tap do
+          # the variable info is needed by the REPL
+          @compiler_context[:vars] = @env[:vars]
+        end
+      end
+
+      def process_and_build_vars(exp, is_block: false)
+        body = process_sexp(exp)
+        var_count = @env[:vars].values.count { |v| v[:captured] }
+        to_declare = @env[:vars].values.select { |v| !v[:captured] }
+        exp.new(:block,
+          is_block || repl? ? s(:block) : s(:var_alloc, var_count),
+          *to_declare.map { |v| s(:declare, "#{@compiler_context[:var_prefix]}#{v[:name]}#{v[:var_num]}") },
+          body)
       end
 
       def process_block_fn(exp)
         (sexp_type, name, body) = exp
         is_block = %i[block_fn begin_fn].include?(sexp_type)
         @env = { parent: @env, vars: {}, block: is_block }
-        body = process_sexp(body)
-        var_count = @env[:vars].values.count { |v| v[:captured] }
-        to_declare = @env[:vars].values.select { |v| !v[:captured] }
+        result = process_and_build_vars(body, is_block: is_block)
         @env = @env[:parent]
-        exp.new(sexp_type,
-          name,
-          exp.new(:block,
-            is_block ? s(:block) : s(:var_alloc, var_count),
-            *to_declare.map { |v| s(:declare, "#{@compiler_context[:var_prefix]}#{v[:name]}#{v[:var_num]}") },
-            body))
+        exp.new(sexp_type, name, result)
       end
       alias process_begin_fn process_block_fn
       alias process_class_fn process_block_fn
@@ -42,6 +51,18 @@ module Natalie
           exp.new(:nat_string, :env, s(:s, 'local-variable'))
         else
           exp
+        end
+      end
+
+      # when using a REPL, variables are mistaken for method calls
+      def process_nat_send(exp)
+        return process_sexp(exp) unless repl?
+        (_, receiver, name, *args) = exp
+        return process_sexp(exp) unless receiver == :self && args.last == 'NULL'
+        if find_var(name.to_s)
+          process_nat_var_get(exp.new(:nat_var_get, :env, s(:s, name)))
+        else
+          process_sexp(exp)
         end
       end
 
@@ -80,6 +101,7 @@ module Natalie
         unless var
           var_num = @compiler_context[:var_num] += 1
           var = @env[:vars][bare_name] = { name: bare_name, index: @env[:vars].size, var_num: var_num }
+          var[:captured] = true if repl?
           env_name = 'env'
         end
         if value
@@ -114,6 +136,10 @@ module Natalie
         else
           raise "unknown node type: #{exp.inspect}"
         end
+      end
+
+      def repl?
+        !!@compiler_context[:repl]
       end
     end
   end

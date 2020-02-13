@@ -67,7 +67,7 @@ NatObject *Array_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **args
     assert(NAT_TYPE(index) == NAT_VALUE_INTEGER); // TODO: accept a range
     assert(NAT_INT_VALUE(index) >= 0); // TODO: accept negative index
     if (NAT_INT_VALUE(index) >= self->ary_len) {
-        return nil;
+        return NAT_NIL;
     } else if (argc == 1) {
         return self->ary[NAT_INT_VALUE(index)];
     } else {
@@ -145,22 +145,22 @@ NatObject *Array_size(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
 NatObject *Array_any(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);
     NAT_ASSERT_ARGC(0);
-    return self->ary_len > 0 ? true_obj : false_obj;
+    return self->ary_len > 0 ? NAT_TRUE : NAT_FALSE;
 }
 
 NatObject *Array_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);
     NAT_ASSERT_ARGC(1);
     NatObject *arg = args[0];
-    if (NAT_TYPE(arg) != NAT_VALUE_ARRAY) return false_obj;
-    if (self->ary_len != arg->ary_len) return false_obj;
-    if (self->ary_len == 0) return true_obj;
+    if (NAT_TYPE(arg) != NAT_VALUE_ARRAY) return NAT_FALSE;
+    if (self->ary_len != arg->ary_len) return NAT_FALSE;
+    if (self->ary_len == 0) return NAT_TRUE;
     for (size_t i=0; i<self->ary_len; i++) {
         // TODO: could easily be optimized for strings and numbers
         NatObject *result = nat_send(env, self->ary[i], "==", 1, &arg->ary[i], NULL);
         if (NAT_TYPE(result) == NAT_VALUE_FALSE) return result;
     }
-    return true_obj;
+    return NAT_TRUE;
 }
 
 NatObject *Array_each(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
@@ -191,7 +191,7 @@ NatObject *Array_first(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     if (self->ary_len > 0) {
         return self->ary[0];
     } else {
-        return nil;
+        return NAT_NIL;
     }
 }
 
@@ -201,7 +201,7 @@ NatObject *Array_last(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
     if (self->ary_len > 0) {
         return self->ary[self->ary_len - 1];
     } else {
-        return nil;
+        return NAT_NIL;
     }
 }
 
@@ -214,7 +214,7 @@ NatObject *Array_pop(NatEnv *env, NatObject *self, size_t argc, NatObject **args
     assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);
     NAT_ASSERT_ARGC(0);
     if (self->ary_len == 0) {
-        return nil;
+        return NAT_NIL;
     } else {
         NatObject *val = self->ary[self->ary_len - 1];
         self->ary_len--;
@@ -227,14 +227,14 @@ NatObject *Array_include(NatEnv *env, NatObject *self, size_t argc, NatObject **
     NAT_ASSERT_ARGC(1);
     NatObject *item = args[0];
     if (self->ary_len == 0) {
-        return false_obj;
+        return NAT_FALSE;
     } else {
         for (size_t i=0; i<self->ary_len; i++) {
             NatObject *compare_item = self->ary[i];
             if (nat_truthy(nat_send(env, item, "==", 1, &compare_item, NULL))) {
-                return true_obj;
+                return NAT_TRUE;
             }
         }
-        return false_obj;
+        return NAT_FALSE;
     }
 }

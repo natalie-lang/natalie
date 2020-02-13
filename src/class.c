@@ -8,7 +8,7 @@ NatObject *Class_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args
         superclass = args[0];
         assert(NAT_TYPE(superclass) == NAT_VALUE_CLASS);
     } else {
-        superclass = Object;
+        superclass = NAT_OBJECT;
     }
     NatObject *klass = nat_subclass(env, superclass, NULL);
     if (block) {
@@ -21,5 +21,5 @@ NatObject *Class_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args
 NatObject *Class_superclass(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_CLASS);
     NAT_ASSERT_ARGC(0);
-    return self->superclass ? self->superclass : nil;
+    return self->superclass ? self->superclass : NAT_NIL;
 }

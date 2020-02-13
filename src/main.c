@@ -3,13 +3,6 @@
 #include "natalie.h"
 #include "builtin.h"
 
-// built-in constants
-NatObject *Object,
-          *Integer,
-          *nil,
-          *true_obj,
-          *false_obj;
-
 /* end of front matter */
 
 NatObject *obj_nat_errno(NatEnv *env, NatObject *self);
@@ -49,7 +42,7 @@ NatEnv *build_top_env() {
     nat_define_method(BasicObject, "equal?", Kernel_equal);
     nat_define_method(BasicObject, "instance_eval", BasicObject_instance_eval);
 
-    Object = nat_subclass(env, BasicObject, "Object");
+    NatObject *Object = NAT_OBJECT = nat_subclass(env, BasicObject, "Object");
     nat_define_singleton_method(env, Object, "new", Object_new);
 
     // these must be defined after Object exists
@@ -118,7 +111,7 @@ NatEnv *build_top_env() {
     nat_define_method(NilClass, "to_a", NilClass_to_a);
     nat_define_method(NilClass, "inspect", NilClass_inspect);
 
-    nil = nat_new(env, NilClass, 0, NULL, NULL, NULL);
+    NatObject *nil = NAT_NIL = nat_new(env, NilClass, 0, NULL, NULL, NULL);
     nil->type = NAT_VALUE_NIL;
 
     NatObject *TrueClass = nat_subclass(env, Object, "TrueClass");
@@ -127,7 +120,7 @@ NatEnv *build_top_env() {
     nat_define_method(TrueClass, "to_s", TrueClass_to_s);
     nat_define_method(TrueClass, "inspect", TrueClass_to_s);
 
-    true_obj = nat_new(env, TrueClass, 0, NULL, NULL, NULL);
+    NatObject *true_obj = NAT_TRUE = nat_new(env, TrueClass, 0, NULL, NULL, NULL);
     true_obj->type = NAT_VALUE_TRUE;
 
     NatObject *FalseClass = nat_subclass(env, Object, "FalseClass");
@@ -136,14 +129,14 @@ NatEnv *build_top_env() {
     nat_define_method(FalseClass, "to_s", FalseClass_to_s);
     nat_define_method(FalseClass, "inspect", FalseClass_to_s);
 
-    false_obj = nat_new(env, FalseClass, 0, NULL, NULL, NULL);
+    NatObject *false_obj = NAT_FALSE = nat_new(env, FalseClass, 0, NULL, NULL, NULL);
     false_obj->type = NAT_VALUE_FALSE;
 
     NatObject *Numeric = nat_subclass(env, Object, "Numeric");
     nat_const_set(env, Object, "Numeric", Numeric);
     nat_class_include(Numeric, Comparable);
 
-    Integer = nat_subclass(env, Numeric, "Integer");
+    NatObject *Integer = NAT_INTEGER = nat_subclass(env, Numeric, "Integer");
     nat_const_set(env, Object, "Integer", Integer);
     nat_define_method(Integer, "to_s", Integer_to_s);
     nat_define_method(Integer, "inspect", Integer_to_s);
@@ -245,28 +238,32 @@ NatEnv *build_top_env() {
 
     nat_global_set(env, "$NAT_at_exit_handlers", nat_array(env));
 
+    NatObject *self = nat_new(env, NAT_OBJECT, 0, NULL, NULL, NULL);
+    self->flags = NAT_FLAG_MAIN_OBJECT;
+    nat_define_singleton_method(env, self, "inspect", main_obj_inspect);
+    nat_global_set(env, "$NAT_main_object", self);
+
+    obj_nat_errno(env, self);
+    obj_nat_exception(env, self);
+    obj_nat_file(env, self);
+    obj_nat_io(env, self);
+
     return env;
 }
 
 /*TOP*/
 
 NatObject *EVAL(NatEnv *env) {
-    NatObject *self = nat_new(env, Object, 0, NULL, NULL, NULL);
-    self->flags = NAT_FLAG_MAIN_OBJECT;
-    nat_define_singleton_method(env, self, "inspect", main_obj_inspect);
-    obj_nat_errno(env, self);
-    obj_nat_exception(env, self);
-    obj_nat_file(env, self);
-    obj_nat_io(env, self);
+    NatObject *self = nat_global_get(env, "$NAT_main_object");
     int run_exit_handlers = TRUE;
     if (!NAT_RESCUE(env)) {
         /*BODY*/
         run_exit_handlers = FALSE;
         nat_run_at_exit_handlers(env);
-        return nil; // just in case there's no return value
+        return NAT_NIL; // just in case there's no return value
     } else {
         nat_handle_top_level_exception(env, run_exit_handlers);
-        return nil;
+        return NAT_NIL;
     }
 }
 

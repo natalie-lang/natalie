@@ -49,7 +49,7 @@ NatObject *Integer_cmp(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     assert(NAT_TYPE(self) == NAT_VALUE_INTEGER);
     NAT_ASSERT_ARGC(1);
     NatObject* arg = args[0];
-    if (NAT_TYPE(arg) != NAT_VALUE_INTEGER) return nil;
+    if (NAT_TYPE(arg) != NAT_VALUE_INTEGER) return NAT_NIL;
     int64_t i1 = NAT_INT_VALUE(self);
     int64_t i2 = NAT_INT_VALUE(arg);
     if (i1 < i2) {
@@ -66,9 +66,9 @@ NatObject *Integer_eqeqeq(NatEnv *env, NatObject *self, size_t argc, NatObject *
     NAT_ASSERT_ARGC(1);
     NatObject* arg = args[0];
     if (NAT_TYPE(arg) == NAT_VALUE_INTEGER && NAT_INT_VALUE(self) == NAT_INT_VALUE(arg)) {
-        return true_obj;
+        return NAT_TRUE;
     } else {
-        return false_obj;
+        return NAT_FALSE;
     }
 }
 

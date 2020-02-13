@@ -99,7 +99,7 @@ module Natalie
           result = p(node)
         end
         result = if body.empty?
-                   'nil'
+                   process(s(:nil))
                  else
                    p(body.last)
                  end
@@ -291,7 +291,7 @@ module Natalie
           decl "if (!NAT_RESCUE(env)) {"
           decl "#{result} = nat_defined_obj(env, #{p receiver}, #{name.to_s.inspect});"
           decl '} else {'
-          decl "#{result} = nil;"
+          decl "#{result} = #{p s(:nil)};"
           decl '}'
         when :lit, :str
           decl "NatObject *#{result} = nat_string(env, \"expression\");"
@@ -317,7 +317,7 @@ module Natalie
       end
 
       def process_false(_)
-        'false_obj'
+        'NAT_FALSE'
       end
 
       def process_fn(exp, arg_list = 6)
@@ -419,7 +419,7 @@ module Natalie
       end
 
       def process_nil(_)
-        'nil'
+        'NAT_NIL'
       end
 
       def process_not(exp)
@@ -441,7 +441,7 @@ module Natalie
       end
 
       def process_true(_)
-        'true_obj'
+        'NAT_TRUE'
       end
 
       def process_set(exp)

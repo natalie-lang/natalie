@@ -10,8 +10,8 @@ NatObject *Proc_lambda(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     NAT_ASSERT_ARGC(0);
     assert(NAT_TYPE(self) == NAT_VALUE_PROC);
     if (self->lambda) {
-        return true_obj;
+        return NAT_TRUE;
     } else {
-        return false_obj;
+        return NAT_FALSE;
     }
 }

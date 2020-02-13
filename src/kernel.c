@@ -12,7 +12,7 @@ NatObject *Kernel_puts(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
             printf("%s\n", str->str);
         }
     }
-    return nil;
+    return NAT_NIL;
 }
 
 NatObject *Kernel_print(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
@@ -24,12 +24,12 @@ NatObject *Kernel_print(NatEnv *env, NatObject *self, size_t argc, NatObject **a
             printf("%s", str->str);
         }
     }
-    return nil;
+    return NAT_NIL;
 }
 
 NatObject *Kernel_p(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     if (argc == 0) {
-        return nil;
+        return NAT_NIL;
     } else if (argc == 1) {
         NatObject *arg = nat_send(env, args[0], "inspect", 0, NULL, NULL);
         Kernel_puts(env, self, 1, &arg, NULL, NULL);
@@ -69,15 +69,15 @@ NatObject *Kernel_equal(NatEnv *env, NatObject *self, size_t argc, NatObject **a
     NAT_ASSERT_ARGC(1);
     NatObject *arg = args[0];
     if (self == arg) {
-        return true_obj;
+        return NAT_TRUE;
     } else {
-        return false_obj;
+        return NAT_FALSE;
     }
 }
 
 NatObject *Kernel_class(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
-    return self->klass ? self->klass : nil;
+    return self->klass ? self->klass : NAT_NIL;
 }
 
 NatObject *Kernel_singleton_class(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
@@ -116,13 +116,13 @@ NatObject *Kernel_raise(NatEnv *env, NatObject *self, size_t argc, NatObject **a
             klass = arg;
             message = nat_string(env, arg->class_name);
         } else if (NAT_TYPE(arg) == NAT_VALUE_STRING) {
-            klass = nat_const_get(env, Object, "RuntimeError");
+            klass = nat_const_get(env, NAT_OBJECT, "RuntimeError");
             message = arg;
-        } else if (nat_is_a(env, arg, nat_const_get(env, Object, "Exception"))) {
+        } else if (nat_is_a(env, arg, nat_const_get(env, NAT_OBJECT, "Exception"))) {
             nat_raise_exception(env, arg);
             abort();
         } else {
-            NAT_RAISE(env, nat_const_get(env, Object, "TypeError"), "exception klass/object expected");
+            NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "TypeError"), "exception klass/object expected");
         }
     }
     NAT_RAISE(env, klass, message->str);
@@ -137,12 +137,12 @@ NatObject *Kernel_respond_to(NatEnv *env, NatObject *self, size_t argc, NatObjec
     } else if (NAT_TYPE(symbol) == NAT_VALUE_STRING) {
         name = symbol->str;
     } else {
-        return false_obj;
+        return NAT_FALSE;
     }
     if (nat_respond_to(env, self, name)) {
-        return true_obj;
+        return NAT_TRUE;
     } else {
-        return false_obj;
+        return NAT_FALSE;
     }
 }
 
@@ -171,10 +171,10 @@ NatObject *Kernel_exit(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     } else {
         status = nat_integer(env, 0);
     }
-    NatObject *exception = nat_exception(env, nat_const_get(env, Object, "SystemExit"), "exit");
+    NatObject *exception = nat_exception(env, nat_const_get(env, NAT_OBJECT, "SystemExit"), "exit");
     nat_ivar_set(env, exception, "@status", status);
     nat_raise_exception(env, exception);
-    return nil;
+    return NAT_NIL;
 }
 
 NatObject *Kernel_at_exit(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
@@ -191,9 +191,9 @@ NatObject *Kernel_is_a(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     NatObject *klass_or_module = args[0];
     assert(NAT_TYPE(klass_or_module) == NAT_VALUE_CLASS || NAT_TYPE(klass_or_module) == NAT_VALUE_MODULE);
     if (nat_is_a(env, self, klass_or_module)) {
-        return true_obj;
+        return NAT_TRUE;
     } else {
-        return false_obj;
+        return NAT_FALSE;
     }
 }
 
@@ -216,6 +216,6 @@ NatObject *Kernel_method(NatEnv *env, NatObject *self, size_t argc, NatObject **
     if (name) {
         return nat_string(env, name);
     } else {
-        return nil;
+        return NAT_NIL;
     }
 }

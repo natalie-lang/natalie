@@ -9,10 +9,7 @@ module Natalie
       end
 
       def go(ast)
-        name = temp('eval')
-        ast.new(:block,
-          ast.new(:block_fn, name, process(ast)),
-          ast.new(name.to_sym, :env, :self, 0, :NULL, :NULL, :NULL))
+        process(ast)
       end
 
       def process_alias(exp)

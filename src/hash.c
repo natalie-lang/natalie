@@ -30,7 +30,7 @@ NatObject *Hash_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **args,
     if (val) {
         return val;
     } else {
-        return nil;
+        return NAT_NIL;
     }
 }
 
@@ -51,7 +51,7 @@ NatObject *Hash_delete(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     if (val) {
         return val;
     } else {
-        return nil;
+        return NAT_NIL;
     }
 }
 
@@ -66,20 +66,20 @@ NatObject *Hash_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args
     assert(NAT_TYPE(self) == NAT_VALUE_HASH);
     NatObject *other = args[0];
     if (NAT_TYPE(other) != NAT_VALUE_HASH) {
-        return false_obj;
+        return NAT_FALSE;
     }
     if (self->hashmap.num_entries != other->hashmap.num_entries) {
-        return false_obj;
+        return NAT_FALSE;
     }
     NatHashIter *iter;
     NatObject *other_val;
     for (iter = nat_hash_iter(env, self); iter; iter = nat_hash_iter_next(env, self, iter)) {
         other_val = nat_hash_get(env, other, iter->key);
         if (!nat_truthy(nat_send(env, iter->val, "==", 1, &other_val, NULL))) {
-            return false_obj;
+            return NAT_FALSE;
         }
     }
-    return true_obj;
+    return NAT_TRUE;
 }
 
 NatObject *Hash_each(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {

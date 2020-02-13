@@ -18,7 +18,7 @@ module Natalie
 
       NatObject *obj_%{name}(NatEnv *env, NatObject *self) {
         /*BODY*/
-        return nil;
+        return NAT_NIL;
       }
     EOF
 
@@ -30,7 +30,7 @@ module Natalie
       @path = path
     end
 
-    attr_accessor :ast, :compile_to_object_file, :shared, :out_path
+    attr_accessor :ast, :compile_to_object_file, :repl, :out_path, :context, :vars
 
     attr_writer :load_path
 
@@ -69,35 +69,36 @@ module Natalie
       {
         var_prefix: var_prefix,
         var_num: 0,
-        built_in_constants: built_in_constants,
-        template: template
+        template: template,
+        repl: repl,
+        vars: vars || {}
       }
     end
 
     def transform(ast)
-      context = build_context
+      @context = build_context
 
-      ast = Pass1.new(context).go(ast)
+      ast = Pass1.new(@context).go(ast)
       if ENV['DEBUG_PASS1']
         pp ast
         exit
       end
 
-      ast = Pass2.new(context).go(ast)
+      ast = Pass2.new(@context).go(ast)
       if ENV['DEBUG_PASS2']
         pp ast
         exit
       end
 
-      ast = Pass3.new(context).go(ast)
+      ast = Pass3.new(@context).go(ast)
       if ENV['DEBUG_PASS3']
         pp ast
         exit
       end
 
-      ast = Pass4.new(context).go(ast)
+      ast = Pass4.new(@context).go(ast)
 
-      Pass5.new(context, ast).go
+      Pass5.new(@context, ast).go
     end
 
     def to_c
@@ -111,16 +112,16 @@ module Natalie
 
     private
 
-    def built_in_constants
-      template.match(/\/\/ built-in constants(.+?)\n\n/m)[1].scan(/[A-Z]\w+/)
-    end
-
     def compiler_command
       if compile_to_object_file
         "gcc #{build_flags} -I #{SRC_PATH} -x c -c #{@c_path} -o #{out_path} 2>&1"
       else
-        "gcc #{build_flags} -Wall #{shared ? '-fPIC -shared' : ''} -I #{SRC_PATH} -o #{out_path} #{OBJ_PATH}/*.o #{OBJ_PATH}/nat/*.o -x c #{@c_path} 2>&1"
+        "gcc #{build_flags} -Wall #{shared? ? '-fPIC -shared' : ''} -I #{SRC_PATH} -o #{out_path} #{OBJ_PATH}/*.o #{OBJ_PATH}/nat/*.o -x c #{@c_path} 2>&1"
       end
+    end
+
+    def shared?
+      !!repl
     end
 
     def build_flags

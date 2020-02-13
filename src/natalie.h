@@ -16,17 +16,24 @@
 #define xDEBUG_METHOD_RESOLUTION
 
 #define NAT_TYPE(obj) (((int64_t)obj & 1) ? NAT_VALUE_INTEGER : obj->type)
-#define NAT_OBJ_CLASS(obj) (((int64_t)obj & 1) ? Integer : obj->klass)
+#define NAT_OBJ_CLASS(obj) (((int64_t)obj & 1) ? NAT_INTEGER : obj->klass)
 #define NAT_RESCUE(env) setjmp(*(env->jump_buf = malloc(sizeof(jmp_buf))))
 #define NAT_RAISE(env, klass, message_format, ...) nat_raise(env, klass, message_format, ##__VA_ARGS__); abort();
-#define NAT_ASSERT_ARGC1(expected) if(argc != expected) { NAT_RAISE(env, nat_const_get(env, Object, "ArgumentError"), "wrong number of arguments (given %d, expected %d)", argc, expected); }
-#define NAT_ASSERT_ARGC2(expected_low, expected_high) if(argc < expected_low || argc > expected_high) { NAT_RAISE(env, nat_const_get(env, Object, "ArgumentError"), "wrong number of arguments (given %d, expected %d..%d)", argc, expected_low, expected_high); }
-#define NAT_ASSERT_ARGC_AT_LEAST(expected) if(argc < expected) { NAT_RAISE(env, nat_const_get(env, Object, "ArgumentError"), "wrong number of arguments (given %d, expected %d+)", argc, expected); }
+#define NAT_ASSERT_ARGC1(expected) if(argc != expected) { NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "ArgumentError"), "wrong number of arguments (given %d, expected %d)", argc, expected); }
+#define NAT_ASSERT_ARGC2(expected_low, expected_high) if(argc < expected_low || argc > expected_high) { NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "ArgumentError"), "wrong number of arguments (given %d, expected %d..%d)", argc, expected_low, expected_high); }
+#define NAT_ASSERT_ARGC_AT_LEAST(expected) if(argc < expected) { NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "ArgumentError"), "wrong number of arguments (given %d, expected %d+)", argc, expected); }
 #define GET_MACRO(_1, _2, NAME, ...) NAME
 #define NAT_ASSERT_ARGC(...) GET_MACRO(__VA_ARGS__, NAT_ASSERT_ARGC2, NAT_ASSERT_ARGC1)(__VA_ARGS__)
 #define NAT_UNREACHABLE() fprintf(stderr, "panic: unreachable\n"); abort();
 #define NAT_MIN(a, b) ((a < b) ? a : b)
 #define NAT_MAX(a, b) ((a > b) ? a : b)
+
+// ahem, "globals"
+#define NAT_OBJECT env->global_env->Object
+#define NAT_INTEGER env->global_env->Integer
+#define NAT_NIL env->global_env->nil
+#define NAT_TRUE env->global_env->true_obj
+#define NAT_FALSE env->global_env->false_obj
 
 #define TRUE 1
 #define FALSE 0
@@ -50,6 +57,11 @@ struct NatGlobalEnv {
     struct hashmap *globals;
     struct hashmap *symbols;
     uint64_t *next_object_id;
+    NatObject *Object,
+              *Integer,
+              *nil,
+              *true_obj,
+              *false_obj;
 };
 
 struct NatEnv {
@@ -181,12 +193,6 @@ struct NatObject {
         char *symbol;
     };
 };
-
-NatObject *Object,
-          *Integer,
-          *nil,
-          *true_obj,
-          *false_obj;
 
 int nat_is_constant_name(char *name);
 int nat_is_special_name(char *name);
