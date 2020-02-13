@@ -1,4 +1,3 @@
 obj/**/*.o
 .build
-tmp/*
-!tmp/.gitkeep
+test/tmp
