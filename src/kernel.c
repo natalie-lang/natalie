@@ -219,3 +219,9 @@ NatObject *Kernel_method(NatEnv *env, NatObject *self, size_t argc, NatObject **
         return NAT_NIL;
     }
 }
+
+NatObject *Kernel_freeze(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(0);
+    nat_freeze_object(self);
+    return self;
+}

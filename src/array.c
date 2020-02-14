@@ -19,6 +19,7 @@ NatObject *Array_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **
 
 NatObject *Array_ltlt(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
+    NAT_ASSERT_NOT_FROZEN(self);
     NatObject *arg = args[0];
     nat_array_push(self, arg);
     return self;
@@ -87,6 +88,7 @@ NatObject *Array_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **args
 
 NatObject *Array_refeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(2, 3);
+    NAT_ASSERT_NOT_FROZEN(self);
     assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);
     NatObject *index_obj = args[0];
     assert(NAT_TYPE(index_obj) == NAT_VALUE_INTEGER); // TODO: accept a range
@@ -213,6 +215,7 @@ NatObject *Array_to_ary(NatEnv *env, NatObject *self, size_t argc, NatObject **a
 NatObject *Array_pop(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);
     NAT_ASSERT_ARGC(0);
+    NAT_ASSERT_NOT_FROZEN(self);
     if (self->ary_len == 0) {
         return NAT_NIL;
     } else {

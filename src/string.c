@@ -10,6 +10,7 @@ NatObject *String_to_s(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
 NatObject *String_ltlt(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_STRING);
     NAT_ASSERT_ARGC(1);
+    NAT_ASSERT_NOT_FROZEN(self);
     NatObject *arg = args[0];
     char *str;
     if (NAT_TYPE(arg) == NAT_VALUE_STRING) {

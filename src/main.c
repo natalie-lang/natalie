@@ -91,6 +91,7 @@ NatEnv *build_top_env() {
     nat_define_method(Kernel, "hash", Kernel_hash);
     nat_define_method(Kernel, "proc", Kernel_proc);
     nat_define_method(Kernel, "__method__", Kernel_method);
+    nat_define_method(Kernel, "freeze", Kernel_freeze);
 
     NatObject *Comparable = nat_module(env, "Comparable");
     nat_const_set(env, Object, "Comparable", Comparable);
@@ -233,6 +234,8 @@ NatEnv *build_top_env() {
     nat_const_set(env, Object, "TypeError", TypeError);
     NatObject *SystemExit = nat_subclass(env, StandardError, "SystemExit");
     nat_const_set(env, Object, "SystemExit", SystemExit);
+    NatObject *FrozenError = nat_subclass(env, RuntimeError, "FrozenError");
+    nat_const_set(env, Object, "FrozenError", FrozenError);
 
     nat_global_set(env, "$NAT_at_exit_handlers", nat_array(env));
 

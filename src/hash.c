@@ -37,6 +37,7 @@ NatObject *Hash_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **args,
 NatObject *Hash_refeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(2);
     assert(NAT_TYPE(self) == NAT_VALUE_HASH);
+    NAT_ASSERT_NOT_FROZEN(self);
     NatObject *key = args[0];
     NatObject *val = args[1];
     nat_hash_put(env, self, key, val);
@@ -46,6 +47,7 @@ NatObject *Hash_refeq(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
 NatObject *Hash_delete(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
     assert(NAT_TYPE(self) == NAT_VALUE_HASH);
+    NAT_ASSERT_NOT_FROZEN(self);
     NatObject *key = args[0];
     NatObject *val = nat_hash_delete(env, self, key);
     if (val) {

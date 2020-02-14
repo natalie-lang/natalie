@@ -20,6 +20,7 @@ module Natalie
         nat_alias
         nat_array_push
         NAT_ASSERT_ARGC
+        NAT_ASSERT_NOT_FROZEN
         nat_define_method
         nat_raise_exception
         nat_string_append

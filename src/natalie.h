@@ -25,6 +25,7 @@
 #define GET_MACRO(_1, _2, NAME, ...) NAME
 #define NAT_ASSERT_ARGC(...) GET_MACRO(__VA_ARGS__, NAT_ASSERT_ARGC2, NAT_ASSERT_ARGC1)(__VA_ARGS__)
 #define NAT_UNREACHABLE() fprintf(stderr, "panic: unreachable\n"); abort();
+#define NAT_ASSERT_NOT_FROZEN(obj) if (nat_is_frozen(obj)) { NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "FrozenError"), "can't modify frozen %s", obj->klass->class_name); }
 #define NAT_MIN(a, b) ((a < b) ? a : b)
 #define NAT_MAX(a, b) ((a > b) ? a : b)
 
@@ -120,8 +121,10 @@ enum NatValueType {
 };
 
 #define NAT_FLAG_MAIN_OBJECT 1
+#define NAT_FLAG_FROZEN 2
 
 #define nat_is_main_object(obj) (((obj)->flags & NAT_FLAG_MAIN_OBJECT) == NAT_FLAG_MAIN_OBJECT)
+#define nat_is_frozen(obj) (((obj)->flags & NAT_FLAG_FROZEN) == NAT_FLAG_FROZEN)
 
 struct NatObject {
     enum NatValueType type;
@@ -307,5 +310,7 @@ void nat_alias(NatEnv *env, NatObject *self, char *new_name, char *old_name);
 void nat_run_at_exit_handlers(NatEnv *env);
 void nat_print_exception_with_backtrace(NatEnv *env, NatObject *exception);
 void nat_handle_top_level_exception(NatEnv *env, int run_exit_handlers);
+
+void nat_freeze_object(NatObject *obj);
 
 #endif
