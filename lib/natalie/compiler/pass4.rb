@@ -31,6 +31,8 @@ module Natalie
       def go(ast)
         result = process(ast)
         @compiler_context[:template]
+          .sub('/*OBJ_NAT*/', obj_nat_declarations.join("\n"))
+          .sub('/*OBJ_NAT_INIT*/', obj_nat_init_lines.join("\n"))
           .sub('/*TOP*/', top_matter)
           .sub('/*BODY*/', @decl.join("\n") + "\n" + result)
       end
@@ -525,6 +527,24 @@ module Natalie
       def source_methods_to_c
         methods = "nat_#{@compiler_context[:var_prefix]}source_methods"
         "char *#{methods}[#{@source_methods.size}] = { #{@source_methods.keys.map(&:inspect).join(', ')} };"
+      end
+
+      def obj_nat_files
+        Dir[File.expand_path('../../../src/*.nat', __dir__)].sort.map do |path|
+          File.split(path).last.split('.').first
+        end
+      end
+
+      def obj_nat_declarations
+        obj_nat_files.map do |name|
+          "NatObject *obj_nat_#{name}(NatEnv *env, NatObject *self);"
+        end
+      end
+
+      def obj_nat_init_lines
+        obj_nat_files.map do |name|
+          "obj_nat_#{name}(env, self);"
+        end
       end
     end
   end

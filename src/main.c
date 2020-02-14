@@ -5,9 +5,7 @@
 
 /* end of front matter */
 
-NatObject *obj_nat_errno(NatEnv *env, NatObject *self);
-NatObject *obj_nat_exception(NatEnv *env, NatObject *self);
-NatObject *obj_nat_io(NatEnv *env, NatObject *self);
+/*OBJ_NAT*/
 
 NatEnv *build_top_env() {
     NatEnv *env = nat_build_env(NULL);
@@ -243,9 +241,7 @@ NatEnv *build_top_env() {
     nat_define_singleton_method(env, self, "inspect", main_obj_inspect);
     nat_global_set(env, "$NAT_main_object", self);
 
-    obj_nat_errno(env, self);
-    obj_nat_exception(env, self);
-    obj_nat_io(env, self);
+    /*OBJ_NAT_INIT*/
 
     return env;
 }
