@@ -79,7 +79,12 @@ elsif options[:compile]
 else
   compiler = Natalie::Compiler.new(ast, source_path)
   compiler.load_path = options[:load_path]
-  out = Tempfile.create('natalie')
+  extension = if RUBY_PLATFORM =~ /msys/
+                '.exe'
+              else
+                ''
+              end
+  out = Tempfile.create("natalie#{extension}")
   out.close
   compiler.out_path = out.path
   compiler.compile
