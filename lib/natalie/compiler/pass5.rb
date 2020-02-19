@@ -9,12 +9,17 @@ module Natalie
 
       def go
         return @code if ENV['DISABLE_PASS3']
-        unused_if_vars.each do |var|
-          @code.gsub!(/NatObject \*#{var};\n/, '')
-          @code.gsub!(/#{var} = .+\n/, '')
-        end
-        unused_vars.each do |var|
-          @code.gsub!(/NatObject \*#{var} = /, '')
+        loop do
+          uiv = unused_if_vars
+          uv = unused_vars
+          break if uiv.empty? && uv.empty?
+          uiv.each do |var|
+            @code.gsub!(/NatObject \*#{var};\n/, '')
+            @code.gsub!(/#{var} = .+\n/, '')
+          end
+          uv.each do |var|
+            @code.gsub!(/NatObject \*#{var} = /, '')
+          end
         end
         @code
       end
@@ -26,9 +31,9 @@ module Natalie
       end
 
       def unused_if_vars
-        declarations = @code.scan(/NatObject \*(if\d+);/).map(&:first)
-        sets = @code.scan(/(if\d+) = /).map(&:first)
-        all = @code.scan(/if\d+/)
+        declarations = @code.scan(/NatObject \*((nat_[a-z]+_)?if\d+);/).map(&:first)
+        sets = @code.scan(/((nat_[a-z]+_)?if\d+) = /).map(&:first)
+        all = @code.scan(/((nat_[a-z]+_)?if\d+)/).map(&:first)
         all.uniq.select do |var|
           all.count(var) - declarations.count(var) - sets.count(var) == 0
         end
