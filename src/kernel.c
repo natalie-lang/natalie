@@ -110,7 +110,7 @@ NatObject *Kernel_raise(NatEnv *env, NatObject *self, size_t argc, NatObject **a
     if (argc == 2) {
         klass = args[0];
         message = args[1];
-    } else if (argc == 1) {
+    } else {
         NatObject *arg = args[0];
         if (NAT_TYPE(arg) == NAT_VALUE_CLASS) {
             klass = arg;

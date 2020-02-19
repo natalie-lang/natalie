@@ -67,7 +67,7 @@ NatObject *Array_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **args
     NatObject *index = args[0];
     assert(NAT_TYPE(index) == NAT_VALUE_INTEGER); // TODO: accept a range
     assert(NAT_INT_VALUE(index) >= 0); // TODO: accept negative index
-    if (NAT_INT_VALUE(index) >= self->ary_len) {
+    if (NAT_INT_VALUE(index) >= (long long)self->ary_len) {
         return NAT_NIL;
     } else if (argc == 1) {
         return self->ary[NAT_INT_VALUE(index)];

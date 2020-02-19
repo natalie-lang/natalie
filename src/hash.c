@@ -103,7 +103,6 @@ NatObject *Hash_keys(NatEnv *env, NatObject *self, size_t argc, NatObject **args
     assert(NAT_TYPE(self) == NAT_VALUE_HASH);
     NatObject *array = nat_array(env);
     NatHashIter *iter;
-    NatObject **block_args = calloc(2, sizeof(NatObject*));
     for (iter = nat_hash_iter(env, self); iter; iter = nat_hash_iter_next(env, self, iter)) {
         nat_array_push(array, iter->key);
     }
@@ -115,7 +114,6 @@ NatObject *Hash_values(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     assert(NAT_TYPE(self) == NAT_VALUE_HASH);
     NatObject *array = nat_array(env);
     NatHashIter *iter;
-    NatObject **block_args = calloc(2, sizeof(NatObject*));
     for (iter = nat_hash_iter(env, self); iter; iter = nat_hash_iter_next(env, self, iter)) {
         nat_array_push(array, iter->val);
     }

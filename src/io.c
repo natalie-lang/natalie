@@ -59,8 +59,6 @@ NatObject *IO_write(NatEnv *env, NatObject *self, size_t argc, NatObject **args,
     NAT_ASSERT_ARGC_AT_LEAST(1);
     int bytes_written = 0;
     for (size_t i=0; i<argc; i++) {
-        char *buf;
-        size_t len;
         NatObject *obj = args[i];
         if (NAT_TYPE(obj) != NAT_VALUE_STRING) {
             obj = nat_send(env, obj, "to_s", 0, NULL, NULL);

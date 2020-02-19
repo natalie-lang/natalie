@@ -6,7 +6,7 @@ OBJ := obj
 
 BUILD := debug
 
-cflags.debug := -g
+cflags.debug := -g -Wall -Wextra -Werror -Wno-unused-parameter
 cflags.release := -O3
 CFLAGS := ${cflags.${BUILD}}
 

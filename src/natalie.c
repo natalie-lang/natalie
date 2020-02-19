@@ -921,7 +921,7 @@ NatObject* nat_vsprintf(NatEnv *env, char *format, va_list args) {
 }
 
 NatObject *nat_dup(NatEnv *env, NatObject *obj) {
-    NatObject *copy;
+    NatObject *copy = NULL;
     switch (NAT_TYPE(obj)) {
         case NAT_VALUE_ARRAY:
             copy = nat_array(env);

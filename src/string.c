@@ -69,7 +69,7 @@ NatObject *String_mul(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
     NatObject *arg = args[0];
     assert(NAT_TYPE(arg) == NAT_VALUE_INTEGER);
     NatObject *new_str = nat_string(env, "");
-    for (size_t i=0; i<NAT_INT_VALUE(arg); i++) {
+    for (long long i=0; i<NAT_INT_VALUE(arg); i++) {
         nat_string_append_nat_string(new_str, self);
     }
     return new_str;
