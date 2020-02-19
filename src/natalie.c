@@ -991,16 +991,18 @@ void nat_run_at_exit_handlers(NatEnv *env) {
 
 void nat_print_exception_with_backtrace(NatEnv *env, NatObject *exception) {
     assert(NAT_TYPE(exception) == NAT_VALUE_EXCEPTION);
+    NatObject *nat_stderr = nat_global_get(env, "$stderr");
+    int fd = nat_stderr->fileno;
     if (exception->backtrace->ary_len > 0) {
-        fprintf(stderr, "Traceback (most recent call last):\n");
+        dprintf(fd, "Traceback (most recent call last):\n");
         for (int i=exception->backtrace->ary_len-1; i>0; i--) {
             NatObject *line = exception->backtrace->ary[i];
             assert(NAT_TYPE(line) == NAT_VALUE_STRING);
-            fprintf(stderr, "        %d: from %s\n", i, line->str);
+            dprintf(fd, "        %d: from %s\n", i, line->str);
         }
-        fprintf(stderr, "%s: ", exception->backtrace->ary[0]->str);
+        dprintf(fd, "%s: ", exception->backtrace->ary[0]->str);
     }
-    fprintf(stderr, "%s (%s)\n", exception->message, exception->klass->class_name);
+    dprintf(fd, "%s (%s)\n", exception->message, exception->klass->class_name);
 }
 
 void nat_handle_top_level_exception(NatEnv *env, int run_exit_handlers) {

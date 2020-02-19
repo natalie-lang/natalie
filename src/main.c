@@ -244,6 +244,21 @@ NatEnv *build_top_env() {
     nat_define_singleton_method(env, self, "inspect", main_obj_inspect);
     nat_global_set(env, "$NAT_main_object", self);
 
+    NatObject *stdin_fileno = nat_integer(env, STDIN_FILENO);
+    NatObject *nat_stdin = nat_new(env, IO, 1, &stdin_fileno, NULL, NULL);
+    nat_global_set(env, "$stdin", nat_stdin);
+    nat_const_set(env, Object, "STDIN", nat_stdin);
+
+    NatObject *stdout_fileno = nat_integer(env, STDOUT_FILENO);
+    NatObject *nat_stdout = nat_new(env, IO, 1, &stdout_fileno, NULL, NULL);
+    nat_global_set(env, "$stdout", nat_stdout);
+    nat_const_set(env, Object, "STDOUT", nat_stdout);
+
+    NatObject *stderr_fileno = nat_integer(env, STDERR_FILENO);
+    NatObject *nat_stderr = nat_new(env, IO, 1, &stderr_fileno, NULL, NULL);
+    nat_global_set(env, "$stderr", nat_stderr);
+    nat_const_set(env, Object, "STDERR", nat_stderr);
+
     /*OBJ_NAT_INIT*/
 
     return env;
@@ -253,6 +268,7 @@ NatEnv *build_top_env() {
 
 NatObject *EVAL(NatEnv *env) {
     NatObject *self = nat_global_get(env, "$NAT_main_object");
+    UNUSED(self); // not really
     int run_exit_handlers = TRUE;
     if (!NAT_RESCUE(env)) {
         /*BODY*/

@@ -22,13 +22,15 @@ NatObject *IO_fileno(NatEnv *env, NatObject *self, size_t argc, NatObject **args
     return nat_integer(env, self->fileno);
 }
 
+#define NAT_READ_BYTES 1024
+
 NatObject *IO_read(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC2(0, 1); // TODO: ruby accepts 0..2
     ssize_t bytes_read;
     if (argc == 1) {
         assert(NAT_TYPE(args[0]) == NAT_VALUE_INTEGER);
         int count = NAT_INT_VALUE(args[0]);
-        char *buf = malloc(count * sizeof(char));
+        char *buf = malloc((count + 1) * sizeof(char));
         bytes_read = read(self->fileno, buf, count);
         if (bytes_read == 0) {
             return NAT_NIL;
@@ -36,14 +38,14 @@ NatObject *IO_read(NatEnv *env, NatObject *self, size_t argc, NatObject **args, 
             return nat_string(env, buf);
         }
     } else if (argc == 0) {
-        char *buf = malloc(1024 * sizeof(char));
-        bytes_read = read(self->fileno, buf, 1024);
+        char *buf = malloc((NAT_READ_BYTES + 1) * sizeof(char));
+        bytes_read = read(self->fileno, buf, NAT_READ_BYTES);
         if (bytes_read == 0) {
             return nat_string(env, "");
         } else {
             NatObject *str = nat_string(env, buf);
             while (1) {
-                bytes_read = read(self->fileno, buf, 1024);
+                bytes_read = read(self->fileno, buf, NAT_READ_BYTES);
                 if (bytes_read == 0) break;
                 nat_string_append(str, buf);
             }

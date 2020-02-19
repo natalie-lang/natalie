@@ -91,19 +91,28 @@ else
   puts out.path if ENV['DEBUG']
   status = nil
   Open3.popen3(out.path, *ARGV) do |stdin, stdout, stderr, wait_thread|
-    stdin.close_write
     Thread.new do
       begin
-        while (line = stderr.gets)
-          $stderr.puts line
+        while !$stdin.closed? && (line = $stdin.gets)
+          stdin.puts line
         end
       rescue IOError
+      ensure
+        stdin.close_write
       end
     end
     Thread.new do
       begin
         while (line = stdout.gets)
           puts line
+        end
+      rescue IOError
+      end
+    end
+    Thread.new do
+      begin
+        while (line = stderr.gets)
+          $stderr.puts line
         end
       rescue IOError
       end
