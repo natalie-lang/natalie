@@ -128,7 +128,7 @@ module Natalie
       if ENV['BUILD'] == 'release'
         '-O3'
       else
-        '-g'
+        '-g -Wall -Wextra -Werror -Wno-unused-parameter'
       end
     end
 

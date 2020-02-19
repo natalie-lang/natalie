@@ -31,7 +31,7 @@ NatObject *String_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject *
     for (size_t i=0; i<self->str_len; i++) {
         // FIXME: iterate over multibyte chars
         char c = self->str[i];
-        if (c == '"' || c == '\\') {
+        if (c == '"' || c == '\\' || c == '#') {
             nat_string_append_char(out, '\\');
             nat_string_append_char(out, c);
         } else if (c == '\n') {

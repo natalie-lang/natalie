@@ -437,6 +437,7 @@ module Natalie
       def process_s(exp)
         (_, string) = exp
         string.to_s.inspect
+          .gsub(/\\#/, '#') # don't output \# like Ruby does -- C doesn't understand that
       end
 
       def process_self(_)
