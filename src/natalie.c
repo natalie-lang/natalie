@@ -548,7 +548,7 @@ void nat_hash_put(NatEnv *env, NatObject *hash, NatObject *key, NatObject *val) 
 }
 
 NatObject* nat_hash_delete(NatEnv *env, NatObject *hash, NatObject *key) {
-    assert(hash->type = NAT_VALUE_HASH);
+    assert(hash->type == NAT_VALUE_HASH);
     key = nat_convert_to_real_object(env, key);
     if (!key->env) key->env = env;
     NatHashValueContainer *container = hashmap_remove(&hash->hashmap, key);

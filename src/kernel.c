@@ -167,7 +167,7 @@ NatObject *Kernel_methods(NatEnv *env, NatObject *self, size_t argc, NatObject *
 }
 
 NatObject *Kernel_exit(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
-    NAT_ASSERT_ARGC(0, 1);
+    NAT_ASSERT_ARGC_AT_MOST(1);
     NatObject *status;
     if (argc == 1) {
         status = args[0];

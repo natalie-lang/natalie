@@ -107,7 +107,7 @@ NatObject *Array_refeq(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     }
     NatObject *len_obj = args[1];
     assert(NAT_TYPE(len_obj) == NAT_VALUE_INTEGER);
-    size_t length = NAT_INT_VALUE(len_obj);
+    int length = NAT_INT_VALUE(len_obj);
     assert(length >= 0);
     val = args[2];
     // PERF: inefficient for large arrays where changes are being made to only the right side

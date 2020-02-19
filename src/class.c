@@ -2,7 +2,7 @@
 #include "builtin.h"
 
 NatObject *Class_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
-    NAT_ASSERT_ARGC(0, 1);
+    NAT_ASSERT_ARGC_AT_MOST(1);
     NatObject *superclass;
     if (argc == 1) {
         superclass = args[0];
