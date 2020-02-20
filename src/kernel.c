@@ -3,32 +3,12 @@
 
 NatObject *Kernel_puts(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NatObject *nat_stdout = nat_global_get(env, "$stdout");
-    int fd = nat_stdout->fileno;
-    if (argc == 0) {
-        dprintf(fd, "\n");
-    } else {
-        NatObject *str;
-        for (size_t i=0; i<argc; i++) {
-            str = nat_send(env, args[i], "to_s", 0, NULL, NULL);
-            assert(NAT_TYPE(str) == NAT_VALUE_STRING);
-            dprintf(fd, "%s\n", str->str);
-        }
-    }
-    return NAT_NIL;
+    return IO_puts(env, nat_stdout, argc, args, kwargs, block);
 }
 
 NatObject *Kernel_print(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NatObject *nat_stdout = nat_global_get(env, "$stdout");
-    int fd = nat_stdout->fileno;
-    if (argc > 0) {
-        NatObject *str;
-        for (size_t i=0; i<argc; i++) {
-            str = nat_send(env, args[i], "to_s", 0, NULL, NULL);
-            assert(NAT_TYPE(str) == NAT_VALUE_STRING);
-            dprintf(fd, "%s", str->str);
-        }
-    }
-    return NAT_NIL;
+    return IO_print(env, nat_stdout, argc, args, kwargs, block);
 }
 
 NatObject *Kernel_p(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {

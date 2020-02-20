@@ -206,6 +206,8 @@ NatEnv *build_top_env() {
     nat_define_method(IO, "fileno", IO_fileno);
     nat_define_method(IO, "read", IO_read);
     nat_define_method(IO, "write", IO_write);
+    nat_define_method(IO, "puts", IO_puts);
+    nat_define_method(IO, "print", IO_print);
     nat_define_method(IO, "close", IO_close);
     nat_define_method(IO, "seek", IO_seek);
     NatObject *File = nat_subclass(env, IO, "File");
