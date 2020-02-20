@@ -94,7 +94,7 @@ else
     Thread.new do
       begin
         while !$stdin.closed? && (line = $stdin.gets)
-          stdin.puts line
+          stdin.write line
         end
       rescue IOError
       ensure
@@ -104,7 +104,7 @@ else
     Thread.new do
       begin
         while (line = stdout.gets)
-          puts line
+          $stdout.write line
         end
       rescue IOError
       end
@@ -112,7 +112,7 @@ else
     Thread.new do
       begin
         while (line = stderr.gets)
-          $stderr.puts line
+          $stderr.write line
         end
       rescue IOError
       end

@@ -5,6 +5,8 @@ describe 'Streams' do
   it '$stdin can be read from' do
     out = `echo "hi" | bin/natalie -e "print \\$stdin.read"`
     expect(out).must_equal("hi\n")
+    out = `bash -c 'echo -n "hi" | bin/natalie -e "p \\$stdin.read"'`
+    expect(out).must_equal("\"hi\"\n")
   end
 
   it '$stdout can be reassigned' do
