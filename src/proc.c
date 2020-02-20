@@ -1,6 +1,10 @@
 #include "natalie.h"
 #include "builtin.h"
 
+NatObject *Proc_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    return nat_proc(env, block);
+}
+
 NatObject *Proc_call(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_PROC);
     return nat_run_block(env, self->block, argc, args, kwargs, block);

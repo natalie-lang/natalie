@@ -196,6 +196,7 @@ NatEnv *build_top_env() {
 
     NatObject *Proc = nat_subclass(env, Object, "Proc");
     nat_const_set(env, Object, "Proc", Proc);
+    nat_define_singleton_method(env, Proc, "new", Proc_new);
     nat_define_method(Proc, "call", Proc_call);
     nat_define_method(Proc, "lambda?", Proc_lambda);
 
