@@ -138,15 +138,17 @@ NatObject* nat_raise(NatEnv *env, NatObject *klass, char *message_format, ...) {
 }
 
 NatObject* nat_raise_exception(NatEnv *env, NatObject *exception) {
-    NatObject *bt = exception->backtrace = nat_array(env);
-    NatEnv *bt_env = env;
-    while (1) {
-        if (bt_env->file) {
-            char *method_name = nat_find_method_name(bt_env);
-            nat_array_push(bt, nat_sprintf(env, "%s:%d:in `%s'", bt_env->file, bt_env->line, method_name));
+    if (!exception->backtrace) {
+        NatObject *bt = exception->backtrace = nat_array(env);
+        NatEnv *bt_env = env;
+        while (1) {
+            if (bt_env->file) {
+                char *method_name = nat_find_method_name(bt_env);
+                nat_array_push(bt, nat_sprintf(env, "%s:%d:in `%s'", bt_env->file, bt_env->line, method_name));
+            }
+            if (!bt_env->caller) break;
+            bt_env = bt_env->caller;
         }
-        if (!bt_env->caller) break;
-        bt_env = bt_env->caller;
     }
     int counter = 0;
     while (env && !env->jump_buf) {
@@ -161,6 +163,13 @@ NatObject* nat_raise_exception(NatEnv *env, NatObject *exception) {
     assert(env);
     env->exception = exception;
     longjmp(*env->jump_buf, 1);
+}
+
+NatObject* nat_raise_local_jump_error(NatEnv *env, NatObject *exit_value) {
+    NatObject *exception = nat_exception(env, nat_const_get(env, NAT_OBJECT, "LocalJumpError"), "unexpected return");
+    nat_ivar_set(env, exception, "@exit_value", exit_value);
+    nat_raise_exception(env, exception);
+    return exception;
 }
 
 NatObject *nat_ivar_get(NatEnv *env, NatObject *obj, char *name) {

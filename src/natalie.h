@@ -217,7 +217,7 @@ char *nat_find_method_name(NatEnv *env);
 
 NatObject* nat_raise(NatEnv *env, NatObject *klass, char *message_format, ...);
 NatObject* nat_raise_exception(NatEnv *env, NatObject *exception);
-int nat_rescue(NatEnv *env);
+NatObject* nat_raise_local_jump_error(NatEnv *env, NatObject *exit_value);
 
 NatObject *nat_ivar_get(NatEnv *env, NatObject *obj, char *name);
 NatObject *nat_ivar_set(NatEnv *env, NatObject *obj, char *name, NatObject *val);

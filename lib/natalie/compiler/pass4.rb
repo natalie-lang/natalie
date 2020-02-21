@@ -215,6 +215,12 @@ module Natalie
         result_name
       end
 
+      def process_c_return(exp)
+        (_, value) = exp
+        decl "return #{p(value)};"
+        ''
+      end
+
       def process_c_while(exp)
         (_, condition, body) = exp
         condition = p(condition)

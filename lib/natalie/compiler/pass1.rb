@@ -132,7 +132,13 @@ module Natalie
             s(:nat_env_set_method_name, name),
             assign_args,
             block_arg || s(:block),
-            process(s(:block, *body))))
+            s(:nat_rescue,
+              process(s(:block, *body)),
+              s(:cond,
+                s(:is_a, 'env->exception', process(s(:const, :LocalJumpError))),
+                process(s(:call, s(:l, 'env->exception'), :exit_value)),
+                s(:else),
+                s(:nat_raise_exception, :env, 'env->exception')))))
       end
 
       def process_defn(exp)
@@ -360,6 +366,16 @@ module Natalie
                 s(:block, *body.map { |n| process(n) }),
                 rescue_block))),
           s(:nat_call, begin_fn, :env, :self))
+      end
+
+      def process_return(exp)
+        (_, value) = exp
+        enclosing = context.detect { |n| %i[defn defs iter].include?(n) }
+        if enclosing == :iter
+          exp.new(:nat_raise_local_jump_error, :env, process(value))
+        else
+          exp.new(:c_return, process(value))
+        end
       end
 
       def process_sclass(exp)

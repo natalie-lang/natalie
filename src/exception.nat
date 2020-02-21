@@ -25,3 +25,7 @@ class SystemExit < Exception
 
   attr_reader :status
 end
+
+class LocalJumpError < StandardError
+  attr_reader :exit_value
+end
