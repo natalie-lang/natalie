@@ -18,7 +18,7 @@
 
 #define NAT_TYPE(obj) (((int64_t)obj & 1) ? NAT_VALUE_INTEGER : obj->type)
 #define NAT_OBJ_CLASS(obj) (((int64_t)obj & 1) ? NAT_INTEGER : obj->klass)
-#define NAT_RESCUE(env) setjmp(*(env->jump_buf = malloc(sizeof(jmp_buf))))
+#define NAT_RESCUE(env) ((env->rescue = 1) && setjmp(env->jump_buf))
 #define NAT_RAISE(env, klass, message_format, ...) nat_raise(env, klass, message_format, ##__VA_ARGS__); abort();
 #define NAT_ASSERT_ARGC1(expected) if(argc != expected) { NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "ArgumentError"), "wrong number of arguments (given %d, expected %d)", argc, expected); }
 #define NAT_ASSERT_ARGC2(expected_low, expected_high) if(argc < expected_low || argc > expected_high) { NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "ArgumentError"), "wrong number of arguments (given %d, expected %d..%d)", argc, expected_low, expected_high); }
@@ -73,7 +73,8 @@ struct NatEnv {
     NatObject **vars;
     NatEnv *outer;
     int block;
-    jmp_buf *jump_buf;
+    int rescue;
+    jmp_buf jump_buf;
     NatObject *exception;
     NatEnv *caller;
     char *file;
