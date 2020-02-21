@@ -31,10 +31,12 @@ describe 'return' do
     foo(1).should == 1
   end
 
-  it 'raises an error if returning from a Proc' do
+  # FIXME: this works in Natalie but not in Ruby (confused)
+  xit 'raises an error if returning from a Proc' do
     -> { Proc.new { return 1 }.call }.should raise_error(LocalJumpError)
   end
 
+  # TODO: we don't have lambdas yet
   xit 'returns from a lambda' do
     lambda { return 1 }.call.should == 1
   end
