@@ -85,7 +85,7 @@ NatEnv *nat_build_env(NatEnv *outer) {
     env->vars = NULL;
     env->block = FALSE;
     env->outer = outer;
-    env->rescue = 0;
+    env->rescue = FALSE;
     env->caller = NULL;
     env->line = 0;
     env->method_name = NULL;
@@ -1018,7 +1018,7 @@ void nat_handle_top_level_exception(NatEnv *env, int run_exit_handlers) {
     NatObject *exception = env->exception;
     assert(exception);
     assert(NAT_TYPE(exception) == NAT_VALUE_EXCEPTION);
-    env->rescue = 0;
+    env->rescue = FALSE;
     if (nat_is_a(env, exception, nat_const_get(env, NAT_OBJECT, "SystemExit"))) {
         NatObject *status_obj = nat_ivar_get(env, exception, "@status");
         if (run_exit_handlers) nat_run_at_exit_handlers(env);
