@@ -181,7 +181,8 @@ module Natalie
       end
 
       def process_nat_build_block_env(_)
-        decl "env = nat_build_block_env(env, env);"
+        decl 'NatEnv _env;'
+        decl "env = nat_build_block_env(&_env, env, env);"
         ''
       end
 

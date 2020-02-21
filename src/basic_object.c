@@ -24,12 +24,13 @@ NatObject *BasicObject_neq(NatEnv *env, NatObject *self, size_t argc, NatObject 
 NatObject *BasicObject_instance_eval(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     assert(block);
-    NatEnv *e = nat_build_block_env(block->env, env);
+    NatEnv e;
+    nat_build_block_env(&e, &block->env, env);
     NatObject *self_for_eval = self;
     // I *think* this is right... instance_eval, when called on a class/module,
     // evals with self set to the singleton class
     if (NAT_TYPE(self) == NAT_VALUE_CLASS || NAT_TYPE(self) == NAT_VALUE_MODULE) {
         self_for_eval = nat_singleton_class(env, self);
     }
-    return block->fn(e, self_for_eval, 0, NULL, NULL, NULL);
+    return block->fn(&e, self_for_eval, 0, NULL, NULL, NULL);
 }

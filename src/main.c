@@ -7,15 +7,16 @@
 
 /*OBJ_NAT*/
 
-NatEnv *build_top_env() {
-    NatEnv *env = nat_build_env(NULL);
+NatEnv build_top_env() {
+    NatEnv _env;
+    NatEnv *env = nat_build_env(&_env, NULL);
     env->method_name = heap_string("<main>");
 
     NatObject *Class = nat_alloc(env);
     Class->type = NAT_VALUE_CLASS;
     Class->class_name = heap_string("Class");
     Class->klass = Class;
-    Class->env = nat_build_env(env);
+    nat_build_env(&Class->env, env);
     hashmap_init(&Class->methods, hashmap_hash_string, hashmap_compare_string, 100);
     hashmap_set_key_alloc_funcs(&Class->methods, hashmap_alloc_key_string, NULL);
     hashmap_init(&Class->constants, hashmap_hash_string, hashmap_compare_string, 10);
@@ -26,7 +27,7 @@ NatEnv *build_top_env() {
     BasicObject->type = NAT_VALUE_CLASS;
     BasicObject->class_name = heap_string("BasicObject");
     BasicObject->klass = Class;
-    BasicObject->env = nat_build_env(env);
+    nat_build_env(&BasicObject->env, env);
     BasicObject->superclass = NULL;
     hashmap_init(&BasicObject->methods, hashmap_hash_string, hashmap_compare_string, 100);
     hashmap_set_key_alloc_funcs(&BasicObject->methods, hashmap_alloc_key_string, NULL);
@@ -264,7 +265,7 @@ NatEnv *build_top_env() {
 
     /*OBJ_NAT_INIT*/
 
-    return env;
+    return _env;
 }
 
 /*TOP*/
@@ -286,7 +287,8 @@ NatObject *EVAL(NatEnv *env) {
 
 int main(int argc, char *argv[]) {
     setvbuf(stdout, NULL, _IOLBF, 1024);
-    NatEnv *env = build_top_env();
+    NatEnv _env = build_top_env();
+    NatEnv *env = &_env;
     NatObject *ARGV = nat_array(env);
     nat_const_set(env, NAT_OBJECT, "ARGV", ARGV);
     assert(argc > 0);

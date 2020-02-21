@@ -47,10 +47,11 @@ NatObject *Module_attr_reader(NatEnv *env, NatObject *self, size_t argc, NatObje
         NatObject *name_obj = args[i];
         assert(NAT_TYPE(name_obj) == NAT_VALUE_STRING || NAT_TYPE(name_obj) == NAT_VALUE_SYMBOL);
         if (NAT_TYPE(name_obj) == NAT_VALUE_SYMBOL) name_obj = nat_string(env, name_obj->symbol);
-        NatEnv *block_env = nat_build_env(env);
-        block_env->block = TRUE;
-        nat_var_set(block_env, "name", 0, name_obj);
-        NatBlock *block = nat_block(block_env, self, Module_attr_reader_block_fn);
+        NatEnv block_env;
+        nat_build_env(&block_env, env);
+        block_env.block = TRUE;
+        nat_var_set(&block_env, "name", 0, name_obj);
+        NatBlock *block = nat_block(&block_env, self, Module_attr_reader_block_fn);
         nat_define_method_with_block(self, name_obj->str, block);
     }
     return NAT_NIL;
@@ -72,10 +73,11 @@ NatObject *Module_attr_writer(NatEnv *env, NatObject *self, size_t argc, NatObje
         if (NAT_TYPE(name_obj) == NAT_VALUE_SYMBOL) name_obj = nat_string(env, name_obj->symbol);
         NatObject *method_name = nat_string(env, name_obj->str);
         nat_string_append_char(method_name, '=');
-        NatEnv *block_env = nat_build_env(env);
-        block_env->block = TRUE;
-        nat_var_set(block_env, "name", 0, name_obj);
-        NatBlock *block = nat_block(block_env, self, Module_attr_writer_block_fn);
+        NatEnv block_env;
+        nat_build_env(&block_env, env);
+        block_env.block = TRUE;
+        nat_var_set(&block_env, "name", 0, name_obj);
+        NatBlock *block = nat_block(&block_env, self, Module_attr_writer_block_fn);
         nat_define_method_with_block(self, method_name->str, block);
     }
     return NAT_NIL;
@@ -132,6 +134,7 @@ NatObject *Module_class_eval(NatEnv *env, NatObject *self, size_t argc, NatObjec
     assert(NAT_TYPE(self) == NAT_VALUE_MODULE || NAT_TYPE(self) == NAT_VALUE_CLASS);
     NAT_ASSERT_ARGC(0);
     assert(block);
-    NatEnv *e = nat_build_block_env(block->env, env);
-    return block->fn(e, self, 0, NULL, NULL, NULL);
+    NatEnv e;
+    nat_build_block_env(&e, &block->env, env);
+    return block->fn(&e, self, 0, NULL, NULL, NULL);
 }

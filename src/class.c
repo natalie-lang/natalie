@@ -12,8 +12,9 @@ NatObject *Class_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args
     }
     NatObject *klass = nat_subclass(env, superclass, NULL);
     if (block) {
-        NatEnv *e = nat_build_block_env(block->env, env);
-        block->fn(e, klass, 0, NULL, NULL, NULL);
+        NatEnv e;
+        nat_build_block_env(&e, &block->env, env);
+        block->fn(&e, klass, 0, NULL, NULL, NULL);
     }
     return klass;
 }

@@ -93,7 +93,7 @@ module Natalie
             s(:block,
               s(:set, klass, s(:nat_subclass, :env, process(superclass), s(:s, name))),
               s(:nat_const_set, :env, :self, s(:s, name), klass))),
-          s(:nat_call, fn, "#{klass}->env", klass))
+          s(:nat_call, fn, "&#{klass}->env", klass))
       end
 
       def process_colon2(exp)
@@ -326,7 +326,7 @@ module Natalie
             s(:block,
               s(:set, mod, s(:nat_module, :env, s(:s, name))),
               s(:nat_const_set, :env, :self, s(:s, name), mod))),
-          s(:nat_call, fn, "#{mod}->env", mod))
+          s(:nat_call, fn, "&#{mod}->env", mod))
       end
 
       def process_or(exp)
