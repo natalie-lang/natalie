@@ -244,13 +244,15 @@ module Natalie
       def process_cond(exp)
         c = []
         count = 0
+        result_name = temp('cond_result')
         in_decl_context do
+          decl "NatObject *#{result_name} = NULL;"
           exp[1..-1].each_slice(2).each_with_index do |(cond, body), index|
             if cond == s(:else)
               in_decl_context do
                 result = p(body)
                 c += @decl
-                c << "return #{result};" unless result.empty?
+                c << "#{result_name} = #{result};" unless result.empty?
               end
             else
               count += 1
@@ -261,7 +263,7 @@ module Natalie
                 c << "if (#{cond}) {"
                 result = p(body)
                 c += @decl
-                c << "return #{result};" unless result.empty?
+                c << "#{result_name} = #{result};" unless result.empty?
                 c << '} else {'
               end
             end
@@ -269,7 +271,7 @@ module Natalie
           count.times { c << '}' }
         end
         decl c
-        ''
+        result_name
       end
 
       def process_declare(exp)
@@ -396,7 +398,6 @@ module Natalie
           result = p(bottom)
           c += @decl
           c << "return #{result};" unless result.empty?
-          c << "abort(); // not reached"
           c << '}'
         end
         decl c
