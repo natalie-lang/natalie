@@ -66,11 +66,6 @@ module Natalie
         end.join(' || ')
       end
 
-      def process_alloc_vars(exp)
-        # TODO
-        ''
-      end
-
       def process_args(exp)
         (_, *args) = exp
         case args.size
