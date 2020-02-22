@@ -7,9 +7,9 @@
 
 /*OBJ_NAT*/
 
-NatEnv build_top_env() {
-    NatEnv _env;
-    NatEnv *env = nat_build_env(&_env, NULL);
+NatEnv *build_top_env() {
+    NatEnv *env = malloc(sizeof(NatEnv));
+    nat_build_env(env, NULL);
     env->method_name = heap_string("<main>");
 
     NatObject *Class = nat_alloc(env);
@@ -265,7 +265,7 @@ NatEnv build_top_env() {
 
     /*OBJ_NAT_INIT*/
 
-    return _env;
+    return env;
 }
 
 /*TOP*/
@@ -287,8 +287,7 @@ NatObject *EVAL(NatEnv *env) {
 
 int main(int argc, char *argv[]) {
     setvbuf(stdout, NULL, _IOLBF, 1024);
-    NatEnv _env = build_top_env();
-    NatEnv *env = &_env;
+    NatEnv *env = build_top_env();
     NatObject *ARGV = nat_array(env);
     nat_const_set(env, NAT_OBJECT, "ARGV", ARGV);
     assert(argc > 0);
