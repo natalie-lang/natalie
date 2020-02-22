@@ -76,6 +76,25 @@ module Natalie
         end
       end
 
+      def process_case(exp)
+        (_, value, *whens, else_body) = exp
+        value_name = temp('case_value')
+        cond = s(:cond)
+        whens.each do |when_exp|
+          (_, (_, *matchers), *when_body) = when_exp
+          when_body = when_body.map { |w| process(w) }
+          matchers.each do |matcher|
+            cond << s(:nat_truthy, s(:nat_send, process(matcher), '===', s(:args, value_name), 'NULL'))
+            cond << s(:block, *when_body)
+          end
+        end
+        cond << s(:else)
+        cond << s(:nil)
+        exp.new(:block,
+          s(:declare, value_name, process(value)),
+          cond)
+      end
+
       def process_cdecl(exp)
         (_, name, value) = exp
         exp.new(:nat_const_set, :env, :self, s(:s, name), process(value))
