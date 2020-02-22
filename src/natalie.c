@@ -254,6 +254,7 @@ NatObject *nat_alloc(NatEnv *env) {
     obj->singleton_class = NULL;
     obj->constants.table = NULL;
     obj->ivars.table = NULL;
+    obj->env.outer = NULL;
     return obj;
 }
 
@@ -414,7 +415,7 @@ void nat_array_expand_with_nil(NatEnv *env, NatObject *array, size_t size) {
 
 // this is used by the hashmap library and assumes that obj->env has been set
 size_t nat_hashmap_hash(const void *obj) {
-    //assert(((NatObject*)obj)->env);
+    assert(((NatObject*)obj)->env.outer);
     NatObject *hash_obj = nat_send(&((NatObject*)obj)->env, (NatObject*)obj, "hash", 0, NULL, NULL);
     assert(NAT_TYPE(hash_obj) == NAT_VALUE_INTEGER);
     return NAT_INT_VALUE(hash_obj);
