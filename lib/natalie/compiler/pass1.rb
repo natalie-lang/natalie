@@ -57,6 +57,16 @@ module Natalie
         exp.new(:block, *parts.map { |p| p.is_a?(Sexp) ? process(p) : p })
       end
 
+      def process_break(exp)
+        (_, value) = exp
+        value ||= s(:nil)
+        break_name = temp('break_value')
+        exp.new(:block,
+          s(:declare, break_name, process(value)),
+          s(:nat_flag_break, break_name),
+          s(:c_return, break_name))
+      end
+
       def process_call(exp)
         (_, receiver, method, *args) = exp
         (_, block_pass) = args.pop if args.last&.sexp_type == :block_pass
@@ -420,7 +430,7 @@ module Natalie
         exp.new(:block,
           s(:c_while, 'TRUE',
             s(:block,
-              s(:c_if, s(:not, s(:nat_truthy, process(condition))), s(:break)),
+              s(:c_if, s(:not, s(:nat_truthy, process(condition))), s(:c_break)),
               process(body))),
           s(:nil))
       end

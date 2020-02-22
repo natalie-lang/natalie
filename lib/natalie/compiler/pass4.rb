@@ -166,11 +166,6 @@ module Natalie
         end
       end
 
-      def process_break(_)
-        decl 'break;'
-        ''
-      end
-
       def process_built_in_const(exp)
         exp.last
       end
@@ -185,6 +180,11 @@ module Natalie
         (_, name, value) = exp
         decl "#{name} = #{p value};"
         name
+      end
+
+      def process_c_break(_)
+        decl 'break;'
+        ''
       end
 
       def process_c_if(exp)

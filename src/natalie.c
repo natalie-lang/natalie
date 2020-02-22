@@ -1036,7 +1036,3 @@ void nat_handle_top_level_exception(NatEnv *env, int run_exit_handlers) {
         nat_print_exception_with_backtrace(env, exception);
     }
 }
-
-void nat_freeze_object(NatObject *obj) {
-    obj->flags = obj->flags | NAT_FLAG_FROZEN;
-}

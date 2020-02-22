@@ -1,0 +1,25 @@
+require_relative '../spec_helper'
+
+describe 'break' do
+  it 'break from a block' do
+    result = [1, 2, 3].each { break }
+    result.should == nil
+    result = [1, 2, 3].map { break }
+    result.should == nil
+    result = { 1 => 1, 2 => 2 }.each { break }
+    result.should == nil
+    result = 10.times { break }
+    result.should == nil
+  end
+
+  it 'return the value given' do
+    result = [1, 2, 3].each { break 1 }
+    result.should == 1
+    result = [1, 2, 3].map { break 2, 3 }
+    result.should == [2, 3]
+    result = { 1 => 1, 2 => 2 }.each { break nil }
+    result.should == nil
+    result = 10.times { break 'foo' }
+    result.should == 'foo'
+  end
+end

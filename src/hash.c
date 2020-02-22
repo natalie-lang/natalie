@@ -93,7 +93,8 @@ NatObject *Hash_each(NatEnv *env, NatObject *self, size_t argc, NatObject **args
     for (iter = nat_hash_iter(env, self); iter; iter = nat_hash_iter_next(env, self, iter)) {
         block_args[0] = iter->key;
         block_args[1] = iter->val;
-        nat_run_block(env, block, 2, block_args, NULL, NULL);
+        NatObject *result = nat_run_block(env, block, 2, block_args, NULL, NULL);
+        nat_return_if_break(env, result);
     }
     return self;
 }

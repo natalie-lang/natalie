@@ -16,8 +16,9 @@
 
 #define xDEBUG_METHOD_RESOLUTION
 
-#define NAT_TYPE(obj) (((int64_t)obj & 1) ? NAT_VALUE_INTEGER : obj->type)
-#define NAT_OBJ_CLASS(obj) (((int64_t)obj & 1) ? NAT_INTEGER : obj->klass)
+#define NAT_IS_TAGGED_INT(obj) ((int64_t)obj & 1)
+#define NAT_TYPE(obj) (NAT_IS_TAGGED_INT(obj) ? NAT_VALUE_INTEGER : obj->type)
+#define NAT_OBJ_CLASS(obj) (NAT_IS_TAGGED_INT(obj) ? NAT_INTEGER : obj->klass)
 #define NAT_RESCUE(env) ((env->rescue = 1) && setjmp(env->jump_buf))
 #define NAT_RAISE(env, klass, message_format, ...) nat_raise(env, klass, message_format, ##__VA_ARGS__); abort();
 #define NAT_ASSERT_ARGC1(expected) if(argc != expected) { NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "ArgumentError"), "wrong number of arguments (given %d, expected %d)", argc, expected); }
@@ -125,9 +126,17 @@ enum NatValueType {
 
 #define NAT_FLAG_MAIN_OBJECT 1
 #define NAT_FLAG_FROZEN 2
+#define NAT_FLAG_BREAK 4
 
-#define nat_is_main_object(obj) (((obj)->flags & NAT_FLAG_MAIN_OBJECT) == NAT_FLAG_MAIN_OBJECT)
-#define nat_is_frozen(obj) (((obj)->flags & NAT_FLAG_FROZEN) == NAT_FLAG_FROZEN)
+#define nat_is_main_object(obj) ((!NAT_IS_TAGGED_INT(obj) && ((obj)->flags & NAT_FLAG_MAIN_OBJECT) == NAT_FLAG_MAIN_OBJECT))
+
+#define nat_is_frozen(obj) ((!NAT_IS_TAGGED_INT(obj) && ((obj)->flags & NAT_FLAG_FROZEN) == NAT_FLAG_FROZEN))
+#define nat_freeze_object(obj) obj->flags = obj->flags | NAT_FLAG_FROZEN;
+
+#define nat_flag_break(obj) obj = nat_convert_to_real_object(env, obj); obj->flags = obj->flags | NAT_FLAG_BREAK;
+#define nat_is_break(obj) ((!NAT_IS_TAGGED_INT(obj) && ((obj)->flags & NAT_FLAG_BREAK) == NAT_FLAG_BREAK))
+#define nat_remove_break(obj) ((obj)->flags = (obj)->flags & ~NAT_FLAG_BREAK)
+#define nat_return_if_break(env, result) if (nat_is_break(result)) { nat_remove_break(result); return result; }
 
 struct NatObject {
     enum NatValueType type;
@@ -293,6 +302,8 @@ void nat_assign_rest_arg(NatEnv *env, char *name, size_t argc, NatObject **args,
 void nat_array_push_splat(NatEnv *env, NatObject *array, NatObject *obj);
 void nat_array_expand_with_nil(NatEnv *env, NatObject *array, size_t size);
 
+NatObject *nat_convert_to_real_object(NatEnv *env, NatObject *obj);
+
 NatHashKeyListNode *nat_hash_key_list_append(NatObject *hash, NatObject *key, NatObject *val);
 void nat_hash_key_list_remove_node(NatObject *hash, NatHashKeyListNode *node);
 NatHashIter *nat_hash_iter(NatEnv *env, NatObject *hash);
@@ -313,7 +324,5 @@ void nat_alias(NatEnv *env, NatObject *self, char *new_name, char *old_name);
 void nat_run_at_exit_handlers(NatEnv *env);
 void nat_print_exception_with_backtrace(NatEnv *env, NatObject *exception);
 void nat_handle_top_level_exception(NatEnv *env, int run_exit_handlers);
-
-void nat_freeze_object(NatObject *obj);
 
 #endif

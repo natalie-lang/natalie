@@ -170,7 +170,8 @@ NatObject *Array_each(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
     assert(block);
     for (size_t i=0; i<self->ary_len; i++) {
         NatObject *obj = self->ary[i];
-        nat_run_block(env, block, 1, &obj, NULL, NULL);
+        NatObject *result = nat_run_block(env, block, 1, &obj, NULL, NULL);
+        nat_return_if_break(env, result);
     }
     return self;
 }
@@ -182,6 +183,7 @@ NatObject *Array_map(NatEnv *env, NatObject *self, size_t argc, NatObject **args
     for (size_t i=0; i<self->ary_len; i++) {
         NatObject *item = self->ary[i];
         NatObject *result = nat_run_block(env, block, 1, &item, NULL, NULL);
+        nat_return_if_break(env, result);
         nat_array_push(new, result);
     }
     return new;
