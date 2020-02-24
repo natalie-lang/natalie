@@ -1,4 +1,4 @@
-.PHONY: test cloc debug write_build_type
+.PHONY: test cloc debug write_build_type clean clean_nat
 
 SRC := src
 LIB := lib/natalie
@@ -16,7 +16,7 @@ OBJECTS := $(patsubst $(SRC)/%.c, $(OBJ)/%.o, $(SOURCES))
 NAT_SOURCES := $(wildcard $(SRC)/*.nat)
 NAT_OBJECTS := $(patsubst $(SRC)/%.nat, $(OBJ)/nat/%.o, $(NAT_SOURCES))
 
-build: write_build_type $(OBJECTS) $(NAT_OBJECTS)
+build: write_build_type $(OBJECTS) $(NAT_OBJECTS) ext/onigmo/.libs/libonigmo.a
 
 write_build_type:
 	@echo $(BUILD) > .build
@@ -27,8 +27,14 @@ $(OBJ)/%.o: $(SRC)/%.c
 $(OBJ)/nat/%.o: $(SRC)/%.nat
 	bin/natalie --compile-obj $@ $<
 
-clean:
+ext/onigmo/.libs/libonigmo.a:
+	cd ext/onigmo && ./autogen.sh && ./configure && make
+
+clean_nat:
 	rm -f $(OBJ)/*.o $(OBJ)/nat/*.o
+
+clean: clean_nat
+	cd ext/onigmo && make clean
 
 test: build
 	ruby test/all.rb

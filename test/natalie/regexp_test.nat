@@ -1,0 +1,29 @@
+require_relative '../spec_helper'
+
+describe 'regexp' do
+  it 'can be created' do
+    r = /foo/
+    r.should be_kind_of(Regexp)
+  end
+
+  describe '#inspect' do
+    it 'returns a string representation' do
+      r = /foo/
+      r.inspect.should == "/foo/"
+    end
+  end
+
+  describe '=~' do
+    it 'return an integer for match' do
+      result = /foo/ =~ 'foo'
+      result.should == 0
+      result = /bar/ =~ 'foo bar'
+      result.should == 4
+    end
+
+    it 'return nil for no match' do
+      result = /foo/ =~ 'bar'
+      result.should == nil
+    end
+  end
+end

@@ -195,6 +195,12 @@ NatEnv *build_top_env() {
     nat_define_method(Hash, "keys", Hash_keys);
     nat_define_method(Hash, "values", Hash_values);
 
+    NatObject *Regexp = nat_subclass(env, Object, "Regexp");
+    nat_const_set(env, Object, "Regexp", Regexp);
+    nat_define_singleton_method(env, Regexp, "new", Regexp_new);
+    nat_define_method(Regexp, "inspect", Regexp_inspect);
+    nat_define_method(Regexp, "=~", Regexp_eqtilde);
+
     NatObject *Proc = nat_subclass(env, Object, "Proc");
     nat_const_set(env, Object, "Proc", Proc);
     nat_define_singleton_method(env, Proc, "new", Proc_new);
@@ -224,6 +230,10 @@ NatEnv *build_top_env() {
     nat_define_method(Exception, "message", Exception_message);
     nat_define_method(Exception, "backtrace", Exception_backtrace);
     nat_define_singleton_method(env, Exception, "new", Exception_new);
+    NatObject *ScriptError = nat_subclass(env, Exception, "ScriptError");
+    nat_const_set(env, Object, "ScriptError", ScriptError);
+    NatObject *SyntaxError = nat_subclass(env, ScriptError, "SyntaxError");
+    nat_const_set(env, Object, "SyntaxError", SyntaxError);
     NatObject *StandardError = nat_subclass(env, Exception, "StandardError");
     nat_const_set(env, Object, "StandardError", StandardError);
     NatObject *NameError = nat_subclass(env, StandardError, "NameError");

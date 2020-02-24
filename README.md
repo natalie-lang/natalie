@@ -13,6 +13,7 @@ There is much work left to do before this is useful. Please let me know if you w
 The compiler and REPL currently (but hopefully not for long!) require Ruby. I've only tested on Ruby 2.6.x.
 
 ```sh
+git submodule update --init
 gem install bundler
 bundle install
 make build

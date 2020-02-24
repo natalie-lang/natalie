@@ -10,6 +10,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "onigmo.h"
 #include "hashmap.h"
 
 #define UNUSED(x) (void)(x)
@@ -119,6 +120,7 @@ enum NatValueType {
     NAT_VALUE_NIL,
     NAT_VALUE_OTHER,
     NAT_VALUE_PROC,
+    NAT_VALUE_REGEXP,
     NAT_VALUE_STRING,
     NAT_VALUE_SYMBOL,
     NAT_VALUE_TRUE
@@ -191,10 +193,10 @@ struct NatObject {
             int lambda;
         };
 
-        // NAT_VALUE_REGEX
+        // NAT_VALUE_REGEXP
         struct {
-            size_t regex_len;
-            char *regex;
+            regex_t* regexp;
+            char* regexp_str;
         };
 
         // NAT_VALUE_STRING
@@ -315,6 +317,8 @@ NatObject *nat_hash(NatEnv *env);
 NatObject *nat_hash_get(NatEnv *env, NatObject *hash, NatObject *key);
 void nat_hash_put(NatEnv *env, NatObject *hash, NatObject *key, NatObject *val);
 NatObject* nat_hash_delete(NatEnv *env, NatObject *hash, NatObject *key);
+
+NatObject *nat_regexp(NatEnv *env, char *pattern);
 
 NatObject *nat_dup(NatEnv *env, NatObject *obj);
 NatObject *nat_not(NatEnv *env, NatObject *val);

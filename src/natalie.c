@@ -568,6 +568,24 @@ NatObject* nat_hash_delete(NatEnv *env, NatObject *hash, NatObject *key) {
     }
 }
 
+NatObject *nat_regexp(NatEnv *env, char *pattern) {
+    regex_t* regexp;
+    OnigErrorInfo einfo;
+    UChar *pat = (UChar*)pattern;
+    int result = onig_new(&regexp, pat, pat + strlen((char*)pat),
+                    ONIG_OPTION_DEFAULT, ONIG_ENCODING_ASCII, ONIG_SYNTAX_DEFAULT, &einfo);
+    if (result != ONIG_NORMAL) {
+        OnigUChar s[ONIG_MAX_ERROR_MESSAGE_LEN];
+        onig_error_code_to_str(s, result, &einfo);
+        NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "SyntaxError"), (char*)s);
+    }
+    NatObject *obj = nat_new(env, nat_const_get(env, NAT_OBJECT, "Regexp"), 0, NULL, NULL, NULL);
+    obj->type = NAT_VALUE_REGEXP;
+    obj->regexp = regexp;
+    obj->regexp_str = pattern;
+    return obj;
+}
+
 #define INT_64_MAX_CHAR_LEN 21 // 1 for sign, 19 for max digits, and 1 for null terminator
 
 char* int_to_string(int64_t num) {

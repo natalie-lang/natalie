@@ -10,6 +10,8 @@ module Natalie
   class Compiler
     SRC_PATH = File.expand_path('../../src', __dir__)
     OBJ_PATH = File.expand_path('../../obj', __dir__)
+    ONIGMO_PATH = File.expand_path('../../ext/onigmo/.libs', __dir__)
+
     MAIN_TEMPLATE = File.read(File.join(SRC_PATH, 'main.c'))
     OBJ_TEMPLATE = <<-EOF
       #{MAIN_TEMPLATE.split(/\/\* end of front matter \*\//).first}
@@ -116,7 +118,7 @@ module Natalie
       if compile_to_object_file
         "gcc #{build_flags} -I #{SRC_PATH} -fPIC -x c -c #{@c_path} -o #{out_path} 2>&1"
       else
-        "gcc #{build_flags} -Wall #{shared? ? '-fPIC -shared' : ''} -I #{SRC_PATH} -o #{out_path} #{OBJ_PATH}/*.o #{OBJ_PATH}/nat/*.o -x c #{@c_path} 2>&1"
+        "gcc #{build_flags} -Wall #{shared? ? '-fPIC -shared' : ''} -I #{SRC_PATH} -o #{out_path} #{OBJ_PATH}/*.o #{OBJ_PATH}/nat/*.o -x c #{@c_path} -L #{ONIGMO_PATH} -l onigmo 2>&1"
       end
     end
 

@@ -287,6 +287,8 @@ module Natalie
           exp.new(:nat_integer, :env, lit)
         when Symbol
           exp.new(:nat_symbol, :env, s(:s, lit))
+        when Regexp
+          exp.new(:nat_regexp, :env, s(:s, lit.inspect[1...-1]))
         else
           raise "unknown lit: #{exp.inspect}"
         end
@@ -342,6 +344,16 @@ module Natalie
           end
         end
         args
+      end
+
+      def process_match2(exp)
+        (_, regexp, string) = exp
+        s(:nat_send, process(regexp), "=~", s(:args, process(string)))
+      end
+
+      def process_match3(exp)
+        (_, string, regexp) = exp
+        s(:nat_send, process(regexp), "=~", s(:args, process(string)))
       end
 
       def process_module(exp)

@@ -1,0 +1,3 @@
+[submodule "ext/onigmo"]
+	path = ext/onigmo
+	url = https://github.com/k-takata/Onigmo.git
