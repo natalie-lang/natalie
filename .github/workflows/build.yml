@@ -9,8 +9,9 @@ jobs:
     - uses: actions/checkout@v1
     - name: install dependencies
       run: |
+        git submodule update --init
         sudo apt-get update
-        sudo apt-get install -y -q build-essential libedit-dev libgc-dev libpcre3-dev software-properties-common
+        sudo apt-get install -y -q build-essential libedit-dev libgc-dev libpcre3-dev software-properties-common cmake
         sudo apt-add-repository ppa:brightbox/ruby-ng
         sudo apt-get update
         sudo apt-get install -y -q ruby2.6 ruby2.6-dev ruby-switch
