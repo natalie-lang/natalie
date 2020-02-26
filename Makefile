@@ -3,6 +3,7 @@
 SRC := src
 LIB := lib/natalie
 OBJ := obj
+ONIGMO := ext/onigmo
 
 BUILD := debug
 
@@ -16,13 +17,13 @@ OBJECTS := $(patsubst $(SRC)/%.c, $(OBJ)/%.o, $(SOURCES))
 NAT_SOURCES := $(wildcard $(SRC)/*.nat)
 NAT_OBJECTS := $(patsubst $(SRC)/%.nat, $(OBJ)/nat/%.o, $(NAT_SOURCES))
 
-build: write_build_type $(OBJECTS) $(NAT_OBJECTS) ext/onigmo/.libs/libonigmo.a
+build: write_build_type ext/onigmo/.libs/libonigmo.a $(OBJECTS) $(NAT_OBJECTS)
 
 write_build_type:
 	@echo $(BUILD) > .build
 
 $(OBJ)/%.o: $(SRC)/%.c
-	$(CC) $(CFLAGS) -I$(SRC) -fPIC -c $< -o $@
+	$(CC) $(CFLAGS) -I$(SRC) -I$(ONIGMO) -fPIC -c $< -o $@
 
 $(OBJ)/nat/%.o: $(SRC)/%.nat
 	bin/natalie --compile-obj $@ $<
