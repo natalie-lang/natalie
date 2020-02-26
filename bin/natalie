@@ -5,6 +5,8 @@ require 'optparse'
 require 'tempfile'
 require_relative '../lib/natalie'
 
+orig_args = ARGV.dup
+
 options = { load_path: [] }
 OptionParser.new do |opts|
   opts.banner = 'Usage: natalie [options] file.nat'
@@ -59,9 +61,14 @@ elsif ARGV.any?
   code = File.read(source_path)
 else
   source_path = '.'
-  repl = Natalie::Repl.new
-  repl.go
-  exit
+  if ENV['LD_LIBRARY_PATH'].to_s.include?(Natalie::Compiler.ld_library_path)
+    repl = Natalie::Repl.new
+    repl.go
+    exit
+  else
+    ENV['LD_LIBRARY_PATH'] = "#{Natalie::Compiler.ld_library_path}:#{ENV['LD_LIBRARY_PATH']}"
+    exec __FILE__, *orig_args
+  end
 end
 
 parser = Natalie::Parser.new(code, source_path)

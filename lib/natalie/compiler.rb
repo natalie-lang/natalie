@@ -113,13 +113,21 @@ module Natalie
       Array(@load_path)
     end
 
+    def ld_library_path
+      self.class.ld_library_path
+    end
+
+    def self.ld_library_path
+      ONIGMO_LIB_PATH
+    end
+
     private
 
     def compiler_command
       if compile_to_object_file
         "gcc #{build_flags} -I #{SRC_PATH} -I #{ONIGMO_SRC_PATH} -fPIC -x c -c #{@c_path} -o #{out_path} 2>&1"
       else
-        "gcc #{build_flags} -Wall #{shared? ? '-fPIC -shared' : ''} -I #{SRC_PATH} -I #{ONIGMO_SRC_PATH} -o #{out_path} #{OBJ_PATH}/*.o #{OBJ_PATH}/nat/*.o -x c #{@c_path} -L #{ONIGMO_LIB_PATH} -l:libonigmo.a 2>&1"
+        "gcc #{build_flags} -Wall #{shared? ? '-fPIC -shared' : ''} -I #{SRC_PATH} -I #{ONIGMO_SRC_PATH} -o #{out_path} #{OBJ_PATH}/*.o #{OBJ_PATH}/nat/*.o -x c #{@c_path} -L #{ld_library_path} #{shared? ? '-lonigmo' : '-l:libonigmo.a'} 2>&1"
       end
     end
 
