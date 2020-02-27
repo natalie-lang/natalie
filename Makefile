@@ -35,7 +35,7 @@ clean_nat:
 	rm -f $(OBJ)/*.o $(OBJ)/nat/*.o
 
 clean: clean_nat
-	cd ext/onigmo && make clean | true
+	cd ext/onigmo && make clean || true
 
 test: build
 	ruby test/all.rb
