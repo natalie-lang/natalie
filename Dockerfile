@@ -1,6 +1,6 @@
 FROM ubuntu:focal
 
-RUN apt-get update && apt-get install -y -q ruby ruby-dev build-essential
+RUN apt-get update && apt-get install -y -q ruby ruby-dev build-essential cmake autoconf libtool
 RUN gem update --system
 RUN gem install bundler --no-doc
 
@@ -11,6 +11,6 @@ RUN bundle install
 
 COPY . /natalie
 RUN mkdir -p obj/nat
-RUN make build
+RUN make clean build
 
 ENTRYPOINT ["/natalie/bin/natalie"]

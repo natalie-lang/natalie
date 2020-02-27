@@ -29,13 +29,13 @@ $(OBJ)/nat/%.o: $(SRC)/%.nat
 	bin/natalie --compile-obj $@ $<
 
 ext/onigmo/.libs/libonigmo.a:
-	cd ext/onigmo && ./autogen.sh && ./configure && make
+	cd ext/onigmo && ./autogen.sh && ./configure --with-pic && make
 
 clean_nat:
 	rm -f $(OBJ)/*.o $(OBJ)/nat/*.o
 
 clean: clean_nat
-	cd ext/onigmo && make clean
+	cd ext/onigmo && make clean | true
 
 test: build
 	ruby test/all.rb
