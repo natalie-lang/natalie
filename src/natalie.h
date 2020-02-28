@@ -116,6 +116,7 @@ enum NatValueType {
     NAT_VALUE_HASH,
     NAT_VALUE_INTEGER,
     NAT_VALUE_IO,
+    NAT_VALUE_MATCHDATA,
     NAT_VALUE_MODULE,
     NAT_VALUE_NIL,
     NAT_VALUE_OTHER,
@@ -186,6 +187,12 @@ struct NatObject {
 
         // NAT_VALUE_IO
         int fileno;
+
+        // NAT_VALUE_MATCHDATA
+        struct {
+            OnigRegion *matchdata_region;
+            char *matchdata_str;
+        };
 
         // NAT_VALUE_PROC
         struct {
@@ -319,6 +326,7 @@ void nat_hash_put(NatEnv *env, NatObject *hash, NatObject *key, NatObject *val);
 NatObject* nat_hash_delete(NatEnv *env, NatObject *hash, NatObject *key);
 
 NatObject *nat_regexp(NatEnv *env, char *pattern);
+NatObject *nat_matchdata(NatEnv *env, OnigRegion *region, NatObject *str_obj);
 
 NatObject *nat_dup(NatEnv *env, NatObject *obj);
 NatObject *nat_not(NatEnv *env, NatObject *val);

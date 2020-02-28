@@ -20,7 +20,21 @@ NatObject *Regexp_eqtilde(NatEnv *env, NatObject *self, size_t argc, NatObject *
     NAT_ASSERT_ARGC(1);
     assert(NAT_TYPE(self) == NAT_VALUE_REGEXP);
     assert(NAT_TYPE(args[0]) == NAT_VALUE_STRING);
-    unsigned char *str = (unsigned char*)args[0]->str;
+    NatObject *matchdata = Regexp_match(env, self, argc, args, kwargs, block);
+    if (NAT_TYPE(matchdata) == NAT_VALUE_NIL) {
+        return matchdata;
+    } else {
+        assert(matchdata->matchdata_region->num_regs > 0);
+        return nat_integer(env, matchdata->matchdata_region->beg[0]);
+    }
+}
+
+NatObject *Regexp_match(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(1);
+    assert(NAT_TYPE(self) == NAT_VALUE_REGEXP);
+    assert(NAT_TYPE(args[0]) == NAT_VALUE_STRING);
+    NatObject *str_obj = args[0];
+    unsigned char *str = (unsigned char*)str_obj->str;
     int result;
     OnigRegion *region = onig_region_new();
     unsigned char *end = str + strlen((char*)str);
@@ -28,7 +42,7 @@ NatObject *Regexp_eqtilde(NatEnv *env, NatObject *self, size_t argc, NatObject *
     unsigned char *range = end;
     result = onig_search(self->regexp, str, end, start, range, region, ONIG_OPTION_NONE);
     if (result >= 0) {
-        return nat_integer(env, result);
+        return nat_matchdata(env, region, str_obj);
     } else if (result == ONIG_MISMATCH) {
         return NAT_NIL;
     } else {

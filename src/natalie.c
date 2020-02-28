@@ -586,6 +586,15 @@ NatObject *nat_regexp(NatEnv *env, char *pattern) {
     return obj;
 }
 
+NatObject *nat_matchdata(NatEnv *env, OnigRegion *region, NatObject *str_obj) {
+    NatObject *obj = nat_new(env, nat_const_get(env, NAT_OBJECT, "MatchData"), 0, NULL, NULL, NULL);
+    obj->type = NAT_VALUE_MATCHDATA;
+    obj->matchdata_region = region;
+    assert(NAT_TYPE(str_obj) == NAT_VALUE_STRING);
+    obj->matchdata_str = heap_string(str_obj->str);
+    return obj;
+}
+
 #define INT_64_MAX_CHAR_LEN 21 // 1 for sign, 19 for max digits, and 1 for null terminator
 
 char* int_to_string(int64_t num) {

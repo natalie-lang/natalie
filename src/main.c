@@ -200,6 +200,14 @@ NatEnv *build_top_env() {
     nat_define_singleton_method(env, Regexp, "new", Regexp_new);
     nat_define_method(Regexp, "inspect", Regexp_inspect);
     nat_define_method(Regexp, "=~", Regexp_eqtilde);
+    nat_define_method(Regexp, "match", Regexp_match);
+
+    NatObject *MatchData = nat_subclass(env, Object, "MatchData");
+    nat_const_set(env, Object, "MatchData", MatchData);
+    nat_define_method(MatchData, "size", MatchData_size);
+    nat_define_method(MatchData, "length", MatchData_size);
+    nat_define_method(MatchData, "to_s", MatchData_to_s);
+    nat_define_method(MatchData, "[]", MatchData_ref);
 
     NatObject *Proc = nat_subclass(env, Object, "Proc");
     nat_const_set(env, Object, "Proc", Proc);
