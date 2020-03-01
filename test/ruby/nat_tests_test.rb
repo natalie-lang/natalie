@@ -12,7 +12,6 @@ describe 'Natalie tests' do
     describe path do
       it 'has the same output in ruby and natalie' do
         out_nat = `bin/natalie -I test/support #{path} 2>&1`
-        out_nat = `bin/natalie -I test/support #{path} 2>&1` if out_nat == '' # FIXME: ugly hack for GitHub actions
         puts out_nat unless $?.to_i == 0
         expect($?.to_i).must_equal 0
         unless code =~ /# skip-ruby-test/
