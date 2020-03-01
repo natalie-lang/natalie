@@ -151,6 +151,7 @@ NatEnv *build_top_env() {
 
     NatObject *String = nat_subclass(env, Object, "String");
     nat_const_set(env, Object, "String", String);
+    nat_define_singleton_method(env, String, "new", String_new);
     nat_class_include(String, Comparable);
     nat_define_method(String, "to_s", String_to_s);
     nat_define_method(String, "inspect", String_inspect);

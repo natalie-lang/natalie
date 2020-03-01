@@ -1,6 +1,16 @@
 #include "natalie.h"
 #include "builtin.h"
 
+NatObject *String_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC_AT_MOST(1);
+    if (argc == 1) {
+        NAT_ASSERT_TYPE(args[0], NAT_VALUE_STRING, "String");
+        return nat_string(env, args[0]->str);
+    } else {
+        return nat_string(env, "");
+    }
+}
+
 NatObject *String_to_s(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_STRING);
     NAT_ASSERT_ARGC(0);
