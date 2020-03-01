@@ -66,8 +66,30 @@ class Matcher
   end
 
   def ==(other)
+    if @inverted
+      neq(other)
+    else
+      eq(other)
+    end
+  end
+
+  def eq(other)
     if @subject != other
       raise SpecFailedException, @subject.inspect + ' should be == to ' + other.inspect
+    end
+  end
+
+  def !=(other)
+    if @inverted
+      eq(other)
+    else
+      neq(other)
+    end
+  end
+
+  def neq(other)
+    if @subject == other
+      raise SpecFailedException, @subject.inspect + ' should not (!) be == to ' + other.inspect
     end
   end
 
