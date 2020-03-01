@@ -2,6 +2,8 @@ require 'minitest/spec'
 require 'minitest/autorun'
 
 describe 'ARGV' do
+  parallelize_me!
+
   it 'is an empty array if there are no args' do
     expect(%x(bin/natalie -e "p ARGV").strip).must_equal '[]'
   end

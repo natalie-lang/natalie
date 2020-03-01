@@ -2,6 +2,8 @@ require 'minitest/spec'
 require 'minitest/autorun'
 
 describe 'friendly backtrace' do
+  parallelize_me!
+
   it 'works with -e' do
     out = `bin/natalie -e "def bar; xxx; end; def foo; bar; end; foo" 2>&1`
     expect(out).must_equal <<-EOF

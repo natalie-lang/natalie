@@ -3,6 +3,8 @@ require 'minitest/autorun'
 require 'time'
 
 describe 'Natalie tests' do
+  parallelize_me!
+
   Dir.chdir File.expand_path('../..', __dir__)
   Dir['test/natalie/*_test.nat'].each do |path|
     code = File.read(path)

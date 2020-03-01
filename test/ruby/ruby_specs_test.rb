@@ -3,6 +3,8 @@ require 'minitest/autorun'
 require 'time'
 
 describe 'ruby/spec' do
+  parallelize_me!
+
   Dir.chdir File.expand_path('../..', __dir__)
   Dir['spec/**/*_spec.nat'].each do |path|
     code = File.read(path)

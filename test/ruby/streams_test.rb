@@ -2,6 +2,8 @@ require 'minitest/spec'
 require 'minitest/autorun'
 
 describe 'Streams' do
+  parallelize_me!
+
   describe '$stdin' do
     it 'can be read from' do
       out = `echo "hi" | bin/natalie -e "print \\$stdin.read"`
