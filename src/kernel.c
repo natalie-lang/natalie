@@ -46,7 +46,7 @@ NatObject *Kernel_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject *
 
 NatObject *Kernel_object_id(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
-    return nat_integer(env, self->id);
+    return nat_integer(env, nat_object_id(env, self));
 }
 
 NatObject *Kernel_equal(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {

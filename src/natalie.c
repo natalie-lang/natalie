@@ -74,8 +74,6 @@ NatGlobalEnv *nat_build_global_env() {
     hashmap_init(symbol_table, hashmap_hash_string, hashmap_compare_string, 100);
     hashmap_set_key_alloc_funcs(symbol_table, hashmap_alloc_key_string, NULL);
     global_env->symbols = symbol_table;
-    global_env->next_object_id = malloc(sizeof(uint64_t));
-    *global_env->next_object_id = 1;
     return global_env;
 }
 
@@ -249,7 +247,6 @@ NatObject *nat_alloc(NatEnv *env) {
     obj->type = NAT_VALUE_OTHER;
     obj->included_modules_count = 0;
     obj->included_modules = NULL;
-    obj->id = nat_next_object_id(env);
     obj->klass = NULL;
     obj->singleton_class = NULL;
     obj->constants.table = NULL;
@@ -860,10 +857,6 @@ char *nat_object_pointer_id(NatObject *obj) {
     return ptr;
 }
 
-uint64_t nat_next_object_id(NatEnv *env) {
-    return (*env->global_env->next_object_id)++;
-}
-
 void nat_grow_string(NatObject *obj, size_t capacity) {
     size_t len = strlen(obj->str);
     assert(capacity >= len);
@@ -1061,5 +1054,13 @@ void nat_handle_top_level_exception(NatEnv *env, int run_exit_handlers) {
         }
     } else {
         nat_print_exception_with_backtrace(env, exception);
+    }
+}
+
+int64_t nat_object_id(NatEnv *env, NatObject *obj) {
+    if (NAT_TYPE(obj) == NAT_VALUE_INTEGER) {
+        return (int64_t)obj;
+    } else {
+        return (int64_t)obj/2;
     }
 }

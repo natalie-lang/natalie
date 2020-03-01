@@ -61,7 +61,6 @@ typedef struct NatHashValueContainer NatHashValueContainer;
 struct NatGlobalEnv {
     struct hashmap *globals;
     struct hashmap *symbols;
-    uint64_t *next_object_id;
     NatObject *Object,
               *Integer,
               *nil,
@@ -148,8 +147,6 @@ struct NatObject {
     int flags;
 
     NatEnv env;
-
-    int64_t id;
 
     struct hashmap constants;
     struct hashmap ivars;
@@ -259,7 +256,6 @@ NatObject *nat_singleton_class(NatEnv *env, NatObject *obj);
 NatObject *nat_integer(NatEnv *env, int64_t integer);
 
 char *nat_object_pointer_id(NatObject *obj);
-uint64_t nat_next_object_id(NatEnv *env);
 
 char* int_to_string(int64_t num);
 
@@ -336,5 +332,7 @@ void nat_alias(NatEnv *env, NatObject *self, char *new_name, char *old_name);
 void nat_run_at_exit_handlers(NatEnv *env);
 void nat_print_exception_with_backtrace(NatEnv *env, NatObject *exception);
 void nat_handle_top_level_exception(NatEnv *env, int run_exit_handlers);
+
+int64_t nat_object_id(NatEnv *env, NatObject *obj);
 
 #endif
