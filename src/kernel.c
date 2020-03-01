@@ -178,7 +178,7 @@ NatObject *Kernel_exit(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
 NatObject *Kernel_at_exit(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NatObject *at_exit_handlers = nat_global_get(env, "$NAT_at_exit_handlers");
     assert(at_exit_handlers);
-    assert(block);
+    NAT_ASSERT_BLOCK();
     NatObject *proc = nat_proc(env, block);
     nat_array_push(at_exit_handlers, proc);
     return proc;
@@ -206,8 +206,11 @@ NatObject *Kernel_hash(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
 
 NatObject *Kernel_proc(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
-    assert(block);
-    return nat_proc(env, block);
+    if (block) {
+        return nat_proc(env, block);
+    } else {
+        NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "ArgumentError"), "tried to create Proc object without a block");
+    }
 }
 
 NatObject *Kernel_method(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {

@@ -136,7 +136,9 @@ NatObject *Module_define_method(NatEnv *env, NatObject *self, size_t argc, NatOb
     if (NAT_TYPE(name_obj) != NAT_VALUE_STRING && NAT_TYPE(name_obj) != NAT_VALUE_SYMBOL) {
         NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "TypeError"), "%s is not a symbol nor a string", nat_send(env, name_obj, "inspect", 0, NULL, NULL));
     }
-    assert(block);
+    if (!block) {
+        NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "ArgumentError"), "tried to create Proc object without a block");
+    }
     char *name = NAT_TYPE(name_obj) == NAT_VALUE_STRING ? name_obj->str : name_obj->symbol;
     nat_define_method_with_block(self, name, block);
     return nat_symbol(env, name);
@@ -144,8 +146,9 @@ NatObject *Module_define_method(NatEnv *env, NatObject *self, size_t argc, NatOb
 
 NatObject *Module_class_eval(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_MODULE || NAT_TYPE(self) == NAT_VALUE_CLASS);
-    NAT_ASSERT_ARGC(0);
-    assert(block);
+    if (argc > 0 || !block) {
+        NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "ArgumentError"), "Natalie only supports class_eval with a block");
+    }
     NatEnv e;
     nat_build_block_env(&e, &block->env, env);
     return block->fn(&e, self, 0, NULL, NULL, NULL);

@@ -77,7 +77,7 @@ NatObject *Integer_times(NatEnv *env, NatObject *self, size_t argc, NatObject **
     NAT_ASSERT_ARGC(0);
     int64_t val = NAT_INT_VALUE(self);
     assert(val >= 0);
-    assert(block);
+    NAT_ASSERT_BLOCK(); // TODO: return Enumerator when no block given
     NatObject *num;
     for (long long i=0; i<val; i++) {
         num = nat_integer(env, i);

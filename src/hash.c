@@ -87,7 +87,7 @@ NatObject *Hash_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args
 NatObject *Hash_each(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     assert(NAT_TYPE(self) == NAT_VALUE_HASH);
-    assert(block);
+    NAT_ASSERT_BLOCK(); // TODO: return Enumerator when no block given
     NatHashIter *iter;
     NatObject **block_args = calloc(2, sizeof(NatObject*));
     for (iter = nat_hash_iter(env, self); iter; iter = nat_hash_iter_next(env, self, iter)) {

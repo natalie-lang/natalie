@@ -31,6 +31,7 @@
 #define NAT_ASSERT_ARGC(...) GET_MACRO(__VA_ARGS__, NAT_ASSERT_ARGC2, NAT_ASSERT_ARGC1)(__VA_ARGS__)
 #define NAT_UNREACHABLE() fprintf(stderr, "panic: unreachable\n"); abort();
 #define NAT_ASSERT_NOT_FROZEN(obj) if (nat_is_frozen(obj)) { NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "FrozenError"), "can't modify frozen %s", obj->klass->class_name); }
+#define NAT_ASSERT_BLOCK() if (!block) { NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "ArgumentError"), "called without a block"); }
 #define NAT_MIN(a, b) ((a < b) ? a : b)
 #define NAT_MAX(a, b) ((a > b) ? a : b)
 #define NAT_NOT_YET_IMPLEMENTED(description) fprintf(stderr, "NOT YET IMPLEMENTED: %s", description); abort();
