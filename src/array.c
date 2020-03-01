@@ -29,7 +29,7 @@ NatObject *Array_add(NatEnv *env, NatObject *self, size_t argc, NatObject **args
     NAT_ASSERT_ARGC(1);
     assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);
     NatObject *arg = args[0];
-    assert(NAT_TYPE(arg) == NAT_VALUE_ARRAY);
+    NAT_ASSERT_TYPE(arg, NAT_VALUE_ARRAY, "Array");
     NatObject *new = nat_array(env);
     nat_grow_array_at_least(new, self->ary_len + arg->ary_len);
     memcpy(new->ary, self->ary, self->ary_len * sizeof(NatObject*));
@@ -42,7 +42,7 @@ NatObject *Array_sub(NatEnv *env, NatObject *self, size_t argc, NatObject **args
     NAT_ASSERT_ARGC(1);
     assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);
     NatObject *arg = args[0];
-    assert(NAT_TYPE(arg) == NAT_VALUE_ARRAY);
+    NAT_ASSERT_TYPE(arg, NAT_VALUE_ARRAY, "Array");
     NatObject *new = nat_array(env);
     for (size_t i=0; i<self->ary_len; i++) {
         NatObject *item = self->ary[i];
@@ -65,7 +65,7 @@ NatObject *Array_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **args
     NAT_ASSERT_ARGC(1, 2);
     assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);
     NatObject *index = args[0];
-    assert(NAT_TYPE(index) == NAT_VALUE_INTEGER); // TODO: accept a range
+    NAT_ASSERT_TYPE(index, NAT_VALUE_INTEGER, "Integer"); // TODO: accept a range
     assert(NAT_INT_VALUE(index) >= 0); // TODO: accept negative index
     if (NAT_INT_VALUE(index) >= (long long)self->ary_len) {
         return NAT_NIL;
@@ -73,7 +73,7 @@ NatObject *Array_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **args
         return self->ary[NAT_INT_VALUE(index)];
     } else {
         NatObject *size = args[1];
-        assert(NAT_TYPE(size) == NAT_VALUE_INTEGER);
+        NAT_ASSERT_TYPE(size, NAT_VALUE_INTEGER, "Integer");
         assert(NAT_INT_VALUE(index) >= 0);
         size_t end = NAT_INT_VALUE(index) + NAT_INT_VALUE(size);
         size_t max = self->ary_len;
@@ -91,7 +91,7 @@ NatObject *Array_refeq(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     NAT_ASSERT_NOT_FROZEN(self);
     assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);
     NatObject *index_obj = args[0];
-    assert(NAT_TYPE(index_obj) == NAT_VALUE_INTEGER); // TODO: accept a range
+    NAT_ASSERT_TYPE(index_obj, NAT_VALUE_INTEGER, "Integer"); // TODO: accept a range
     assert(NAT_INT_VALUE(index_obj) >= 0); // TODO: accept negative index
     size_t index = NAT_INT_VALUE(index_obj);
     NatObject *val;
@@ -106,7 +106,7 @@ NatObject *Array_refeq(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
         return val;
     }
     NatObject *len_obj = args[1];
-    assert(NAT_TYPE(len_obj) == NAT_VALUE_INTEGER);
+    NAT_ASSERT_TYPE(len_obj, NAT_VALUE_INTEGER, "Integer");
     int length = NAT_INT_VALUE(len_obj);
     assert(length >= 0);
     val = args[2];

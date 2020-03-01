@@ -12,7 +12,7 @@ NatObject *Integer_add(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     assert(NAT_TYPE(self) == NAT_VALUE_INTEGER);
     NAT_ASSERT_ARGC(1);
     NatObject* arg = args[0];
-    assert(NAT_TYPE(arg) == NAT_VALUE_INTEGER);
+    NAT_ASSERT_TYPE(arg, NAT_VALUE_INTEGER, "Integer");
     int64_t result = NAT_INT_VALUE(self) + NAT_INT_VALUE(arg);
     return nat_integer(env, result);
 }
@@ -21,7 +21,7 @@ NatObject *Integer_sub(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     assert(NAT_TYPE(self) == NAT_VALUE_INTEGER);
     NAT_ASSERT_ARGC(1);
     NatObject* arg = args[0];
-    assert(NAT_TYPE(arg) == NAT_VALUE_INTEGER);
+    NAT_ASSERT_TYPE(arg, NAT_VALUE_INTEGER, "Integer");
     int64_t result = NAT_INT_VALUE(self) - NAT_INT_VALUE(arg);
     return nat_integer(env, result);
 }
@@ -30,7 +30,7 @@ NatObject *Integer_mul(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     assert(NAT_TYPE(self) == NAT_VALUE_INTEGER);
     NAT_ASSERT_ARGC(1);
     NatObject* arg = args[0];
-    assert(NAT_TYPE(arg) == NAT_VALUE_INTEGER);
+    NAT_ASSERT_TYPE(arg, NAT_VALUE_INTEGER, "Integer");
     int64_t result = NAT_INT_VALUE(self) * NAT_INT_VALUE(arg);
     return nat_integer(env, result);
 }
@@ -39,7 +39,7 @@ NatObject *Integer_div(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     assert(NAT_TYPE(self) == NAT_VALUE_INTEGER);
     NAT_ASSERT_ARGC(1);
     NatObject* arg = args[0];
-    assert(NAT_TYPE(arg) == NAT_VALUE_INTEGER);
+    NAT_ASSERT_TYPE(arg, NAT_VALUE_INTEGER, "Integer");
     // FIXME: raise ZeroDivisionError if arg is zero
     int64_t result = NAT_INT_VALUE(self) / NAT_INT_VALUE(arg);
     return nat_integer(env, result);
@@ -91,7 +91,7 @@ NatObject *Integer_bitwise_and(NatEnv *env, NatObject *self, size_t argc, NatObj
     assert(NAT_TYPE(self) == NAT_VALUE_INTEGER);
     NAT_ASSERT_ARGC(1);
     NatObject* arg = args[0];
-    assert(NAT_TYPE(arg) == NAT_VALUE_INTEGER);
+    NAT_ASSERT_TYPE(arg, NAT_VALUE_INTEGER, "Integer");
     return nat_integer(env, NAT_INT_VALUE(self) & NAT_INT_VALUE(arg));
 }
 
@@ -99,6 +99,6 @@ NatObject *Integer_bitwise_or(NatEnv *env, NatObject *self, size_t argc, NatObje
     assert(NAT_TYPE(self) == NAT_VALUE_INTEGER);
     NAT_ASSERT_ARGC(1);
     NatObject* arg = args[0];
-    assert(NAT_TYPE(arg) == NAT_VALUE_INTEGER);
+    NAT_ASSERT_TYPE(arg, NAT_VALUE_INTEGER, "Integer");
     return nat_integer(env, NAT_INT_VALUE(self) | NAT_INT_VALUE(arg));
 }

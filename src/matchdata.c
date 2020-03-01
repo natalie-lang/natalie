@@ -22,7 +22,10 @@ NatObject *MatchData_to_s(NatEnv *env, NatObject *self, size_t argc, NatObject *
 NatObject *MatchData_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
     assert(NAT_TYPE(self) == NAT_VALUE_MATCHDATA);
-    assert(NAT_TYPE(args[0]) == NAT_VALUE_INTEGER);
+    if (NAT_TYPE(args[0]) == NAT_VALUE_STRING || NAT_TYPE(args[0]) == NAT_VALUE_SYMBOL) {
+        NAT_NOT_YET_IMPLEMENTED("group name support in Regexp MatchData#[]");
+    }
+    NAT_ASSERT_TYPE(args[0], NAT_VALUE_INTEGER, "Integer");
     int64_t index = NAT_INT_VALUE(args[0]);
     assert(index >= 0); // TODO: accept negative indices
     if (index == 0) {

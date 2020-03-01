@@ -8,7 +8,7 @@
 NatObject *File_initialize(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC2(1, 2); // TODO: Ruby accepts 3 args??
     NatObject *filename = args[0];
-    assert(NAT_TYPE(filename) == NAT_VALUE_STRING);
+    NAT_ASSERT_TYPE(filename, NAT_VALUE_STRING, "String");
     int flags = O_RDONLY;
     if (argc > 1) {
         NatObject *flags_obj = args[1];

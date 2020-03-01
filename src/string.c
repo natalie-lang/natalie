@@ -17,7 +17,7 @@ NatObject *String_ltlt(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
         str = arg->str;
     } else {
         NatObject *str_obj = nat_send(env, arg, "to_s", 0, NULL, NULL);
-        assert(NAT_TYPE(str_obj) == NAT_VALUE_STRING);
+        NAT_ASSERT_TYPE(str_obj, NAT_VALUE_STRING, "String");
         str = str_obj->str;
     }
     nat_string_append(self, str);
@@ -55,7 +55,7 @@ NatObject *String_add(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
         str = arg->str;
     } else {
         NatObject *str_obj = nat_send(env, arg, "to_s", 0, NULL, NULL);
-        assert(NAT_TYPE(str_obj) == NAT_VALUE_STRING);
+        NAT_ASSERT_TYPE(str_obj, NAT_VALUE_STRING, "String");
         str = str_obj->str;
     }
     NatObject *new_str = nat_string(env, self->str);
@@ -67,7 +67,7 @@ NatObject *String_mul(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
     assert(NAT_TYPE(self) == NAT_VALUE_STRING);
     NAT_ASSERT_ARGC(1);
     NatObject *arg = args[0];
-    assert(NAT_TYPE(arg) == NAT_VALUE_INTEGER);
+    NAT_ASSERT_TYPE(arg, NAT_VALUE_INTEGER, "Integer");
     NatObject *new_str = nat_string(env, "");
     for (long long i=0; i<NAT_INT_VALUE(arg); i++) {
         nat_string_append_nat_string(new_str, self);

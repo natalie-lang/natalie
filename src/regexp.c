@@ -34,7 +34,7 @@ NatObject *Regexp_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject *
 NatObject *Regexp_eqtilde(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
     assert(NAT_TYPE(self) == NAT_VALUE_REGEXP);
-    assert(NAT_TYPE(args[0]) == NAT_VALUE_STRING);
+    NAT_ASSERT_TYPE(args[0], NAT_VALUE_STRING, "String");
     NatObject *matchdata = Regexp_match(env, self, argc, args, kwargs, block);
     if (NAT_TYPE(matchdata) == NAT_VALUE_NIL) {
         return matchdata;
@@ -47,7 +47,7 @@ NatObject *Regexp_eqtilde(NatEnv *env, NatObject *self, size_t argc, NatObject *
 NatObject *Regexp_match(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
     assert(NAT_TYPE(self) == NAT_VALUE_REGEXP);
-    assert(NAT_TYPE(args[0]) == NAT_VALUE_STRING);
+    NAT_ASSERT_TYPE(args[0], NAT_VALUE_STRING, "String");
     NatObject *str_obj = args[0];
     unsigned char *str = (unsigned char*)str_obj->str;
     int result;

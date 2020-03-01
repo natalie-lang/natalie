@@ -33,6 +33,7 @@
 #define NAT_ASSERT_NOT_FROZEN(obj) if (nat_is_frozen(obj)) { NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "FrozenError"), "can't modify frozen %s", obj->klass->class_name); }
 #define NAT_MIN(a, b) ((a < b) ? a : b)
 #define NAT_MAX(a, b) ((a > b) ? a : b)
+#define NAT_NOT_YET_IMPLEMENTED(description) fprintf(stderr, "NOT YET IMPLEMENTED: %s", description); abort();
 
 // ahem, "globals"
 #define NAT_OBJECT env->global_env->Object

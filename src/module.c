@@ -45,8 +45,13 @@ NatObject *Module_attr_reader(NatEnv *env, NatObject *self, size_t argc, NatObje
     NAT_ASSERT_ARGC_AT_LEAST(1);
     for (size_t i=0; i<argc; i++) {
         NatObject *name_obj = args[i];
-        assert(NAT_TYPE(name_obj) == NAT_VALUE_STRING || NAT_TYPE(name_obj) == NAT_VALUE_SYMBOL);
-        if (NAT_TYPE(name_obj) == NAT_VALUE_SYMBOL) name_obj = nat_string(env, name_obj->symbol);
+        if (NAT_TYPE(name_obj) == NAT_VALUE_STRING) {
+            // we're good!
+        } else if (NAT_TYPE(name_obj) == NAT_VALUE_SYMBOL) {
+            name_obj = nat_string(env, name_obj->symbol);
+        } else {
+            NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "TypeError"), "%s is not a symbol nor a string", nat_send(env, name_obj, "inspect", 0, NULL, NULL));
+        }
         NatEnv block_env;
         nat_build_env(&block_env, env);
         block_env.block = TRUE;
@@ -69,8 +74,13 @@ NatObject *Module_attr_writer(NatEnv *env, NatObject *self, size_t argc, NatObje
     NAT_ASSERT_ARGC_AT_LEAST(1);
     for (size_t i=0; i<argc; i++) {
         NatObject *name_obj = args[i];
-        assert(NAT_TYPE(name_obj) == NAT_VALUE_STRING || NAT_TYPE(name_obj) == NAT_VALUE_SYMBOL);
-        if (NAT_TYPE(name_obj) == NAT_VALUE_SYMBOL) name_obj = nat_string(env, name_obj->symbol);
+        if (NAT_TYPE(name_obj) == NAT_VALUE_STRING) {
+            // we're good!
+        } else if (NAT_TYPE(name_obj) == NAT_VALUE_SYMBOL) {
+            name_obj = nat_string(env, name_obj->symbol);
+        } else {
+            NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "TypeError"), "%s is not a symbol nor a string", nat_send(env, name_obj, "inspect", 0, NULL, NULL));
+        }
         NatObject *method_name = nat_string(env, name_obj->str);
         nat_string_append_char(method_name, '=');
         NatEnv block_env;
@@ -123,7 +133,9 @@ NatObject *Module_define_method(NatEnv *env, NatObject *self, size_t argc, NatOb
     assert(NAT_TYPE(self) == NAT_VALUE_MODULE || NAT_TYPE(self) == NAT_VALUE_CLASS);
     NAT_ASSERT_ARGC(1);
     NatObject *name_obj = args[0];
-    assert(NAT_TYPE(name_obj) == NAT_VALUE_STRING || NAT_TYPE(name_obj) == NAT_VALUE_SYMBOL);
+    if (NAT_TYPE(name_obj) != NAT_VALUE_STRING && NAT_TYPE(name_obj) != NAT_VALUE_SYMBOL) {
+        NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "TypeError"), "%s is not a symbol nor a string", nat_send(env, name_obj, "inspect", 0, NULL, NULL));
+    }
     assert(block);
     char *name = NAT_TYPE(name_obj) == NAT_VALUE_STRING ? name_obj->str : name_obj->symbol;
     nat_define_method_with_block(self, name, block);

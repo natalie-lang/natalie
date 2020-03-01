@@ -6,7 +6,9 @@ NatObject *Class_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args
     NatObject *superclass;
     if (argc == 1) {
         superclass = args[0];
-        assert(NAT_TYPE(superclass) == NAT_VALUE_CLASS);
+        if (NAT_TYPE(superclass) != NAT_VALUE_CLASS) {
+            NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "TypeError"), "superclass must be a Class (%s given)", superclass->klass->class_name);
+        }
     } else {
         superclass = NAT_OBJECT;
     }

@@ -12,7 +12,7 @@ NatObject *IO_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, s
 
 NatObject *IO_initialize(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(1); // TODO: ruby accepts 1..2
-    assert(NAT_TYPE(args[0]) == NAT_VALUE_INTEGER);
+    NAT_ASSERT_TYPE(args[0], NAT_VALUE_INTEGER, "Integer");
     self->fileno = NAT_INT_VALUE(args[0]);
     return self;
 }
@@ -28,7 +28,7 @@ NatObject *IO_read(NatEnv *env, NatObject *self, size_t argc, NatObject **args, 
     NAT_ASSERT_ARGC_AT_MOST(1); // TODO: ruby accepts 0..2
     ssize_t bytes_read;
     if (argc == 1) {
-        assert(NAT_TYPE(args[0]) == NAT_VALUE_INTEGER);
+        NAT_ASSERT_TYPE(args[0], NAT_VALUE_INTEGER, "Integer");
         int count = NAT_INT_VALUE(args[0]);
         char *buf = malloc((count + 1) * sizeof(char));
         bytes_read = read(self->fileno, buf, count);
@@ -65,7 +65,7 @@ NatObject *IO_write(NatEnv *env, NatObject *self, size_t argc, NatObject **args,
         if (NAT_TYPE(obj) != NAT_VALUE_STRING) {
             obj = nat_send(env, obj, "to_s", 0, NULL, NULL);
         }
-        assert(NAT_TYPE(obj) == NAT_VALUE_STRING);
+        NAT_ASSERT_TYPE(obj, NAT_VALUE_STRING, "String");
         ssize_t result = write(self->fileno, obj->str, obj->str_len);
         if (result == -1) {
             NatObject *error_number = nat_integer(env, errno);
@@ -87,7 +87,7 @@ NatObject *IO_puts(NatEnv *env, NatObject *self, size_t argc, NatObject **args, 
         NatObject *str;
         for (size_t i=0; i<argc; i++) {
             str = nat_send(env, args[i], "to_s", 0, NULL, NULL);
-            assert(NAT_TYPE(str) == NAT_VALUE_STRING);
+            NAT_ASSERT_TYPE(str, NAT_VALUE_STRING, "String");
             dprintf(fd, "%s\n", str->str);
         }
     }
@@ -100,7 +100,7 @@ NatObject *IO_print(NatEnv *env, NatObject *self, size_t argc, NatObject **args,
         NatObject *str;
         for (size_t i=0; i<argc; i++) {
             str = nat_send(env, args[i], "to_s", 0, NULL, NULL);
-            assert(NAT_TYPE(str) == NAT_VALUE_STRING);
+            NAT_ASSERT_TYPE(str, NAT_VALUE_STRING, "String");
             dprintf(fd, "%s", str->str);
         }
     }
@@ -123,7 +123,7 @@ NatObject *IO_close(NatEnv *env, NatObject *self, size_t argc, NatObject **args,
 NatObject *IO_seek(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC2(1, 2);
     NatObject *amount_obj = args[0];
-    assert(NAT_TYPE(amount_obj) == NAT_VALUE_INTEGER);
+    NAT_ASSERT_TYPE(amount_obj, NAT_VALUE_INTEGER, "Integer");
     int amount = NAT_INT_VALUE(amount_obj);
     int whence = 0;
     if (argc > 1) {
