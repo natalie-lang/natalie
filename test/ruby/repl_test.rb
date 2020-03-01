@@ -37,6 +37,7 @@ describe 'REPL' do
     @repl.execute('@z = "z"')
     @repl.execute('x')
     @repl.execute('[y, @z]')
+    @repl.execute('self')
     @repl.quit
     expect(@repl.out).must_equal dedent(<<-EOF)
       nat> x = 100
@@ -49,6 +50,8 @@ describe 'REPL' do
       100
       nat> [y, @z]
       [12, "z"]
+      nat> self
+      main
       nat> 
     EOF
   end
