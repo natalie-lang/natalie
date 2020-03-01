@@ -92,41 +92,8 @@ else
   compiler.compile
   puts out.path if ENV['DEBUG']
   status = nil
-  Open3.popen3(out.path, *ARGV) do |stdin, stdout, stderr, wait_thread|
-    Thread.new do
-      begin
-        while !$stdin.closed? && (line = $stdin.gets)
-          stdin.write line
-        end
-      rescue IOError
-      ensure
-        stdin.close_write
-      end
-    end
-    Thread.new do
-      begin
-        while (line = stdout.gets)
-          $stdout.write line
-        end
-      rescue IOError
-      end
-    end
-    Thread.new do
-      begin
-        while (line = stderr.gets)
-          $stderr.write line
-        end
-      rescue IOError
-      end
-    end
-    status = wait_thread.value.exitstatus
-    nil until stdout.eof? && stderr.eof? # give those threads some time to finish reading stdout/stderr
-    File.unlink(out.path) unless ENV['DEBUG']
-  end
-  if status.nil?
-    puts 'segfault'
-    exit 1
-  else
-    exit status
-  end
+  pid = spawn(out.path, *ARGV)
+  Process.wait(pid)
+  status = $?
+  exit status.to_i
 end
