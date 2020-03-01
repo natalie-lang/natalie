@@ -634,6 +634,7 @@ void nat_define_method_with_block(NatObject *obj, char *name, NatBlock *block) {
 void nat_define_singleton_method(NatEnv *env, NatObject *obj, char *name, NatObject* (*fn)(NatEnv*, NatObject*, size_t, NatObject**, struct hashmap*, NatBlock *block)) {
     NatMethod *method = malloc(sizeof(NatMethod));
     method->fn = fn;
+    method->env.outer = NULL;
     NatObject *klass = nat_singleton_class(env, obj);
     hashmap_remove(&klass->methods, name);
     hashmap_put(&klass->methods, name, method);
