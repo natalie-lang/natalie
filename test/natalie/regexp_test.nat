@@ -1,9 +1,29 @@
 require_relative '../spec_helper'
 
 describe 'regexp' do
-  it 'can be created' do
+  it 'can be created with syntax' do
     r = /foo/
     r.should be_kind_of(Regexp)
+  end
+
+  describe '.new' do
+    it 'can be created with a string or another regexp' do
+      r1 = Regexp.new('foo.*bar')
+      r1.should be_kind_of(Regexp)
+      r2 = Regexp.new(r1)
+      r2.should be_kind_of(Regexp)
+      r1.should == r2
+    end
+  end
+
+  describe '#==' do
+    it 'returns true if the regexp source is the same' do
+      /foo/.should == /foo/
+    end
+
+    it 'returns false if the regexp source is different' do
+      /foo/.should != /food/
+    end
   end
 
   describe '#inspect' do

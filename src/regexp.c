@@ -3,8 +3,23 @@
 
 NatObject *Regexp_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
-    assert(NAT_TYPE(args[0]) == NAT_VALUE_STRING);
-    return nat_regexp(env, args[0]->str);
+    if (NAT_TYPE(args[0]) == NAT_VALUE_REGEXP) {
+        return nat_regexp(env, args[0]->regexp_str);
+    } else {
+        NAT_ASSERT_TYPE(args[0], NAT_VALUE_STRING, "String");
+        return nat_regexp(env, args[0]->str);
+    }
+}
+
+NatObject *Regexp_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    assert(NAT_TYPE(self) == NAT_VALUE_REGEXP);
+    NAT_ASSERT_ARGC(1);
+    NatObject *arg = args[0];
+    if (NAT_TYPE(arg) == NAT_VALUE_REGEXP && strcmp(self->regexp_str, arg->regexp_str) == 0) {
+        return NAT_TRUE;
+    } else {
+        return NAT_FALSE;
+    }
 }
 
 NatObject *Regexp_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
