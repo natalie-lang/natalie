@@ -53,12 +53,13 @@ NatObject *nat_var_get(NatEnv *env, char *key, size_t index) {
 }
 
 NatObject *nat_var_set(NatEnv *env, char *key, size_t index, NatObject *val) {
+    size_t needed = index + 1;
     if (env->var_count == 0) {
-        env->vars = calloc(index + 1, sizeof(NatObject*));
-        env->var_count = index + 1;
-    } else if (index >= env->var_count) {
-        env->vars = realloc(env->vars, sizeof(NatObject*) * index + 1);
-        env->var_count = index + 1;
+        env->vars = calloc(needed, sizeof(NatObject*));
+        env->var_count = needed;
+    } else if (needed > env->var_count) {
+        env->vars = realloc(env->vars, sizeof(NatObject*) * needed);
+        env->var_count = needed;
     }
     env->vars[index] = val;
     return val;
