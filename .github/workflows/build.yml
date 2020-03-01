@@ -11,7 +11,7 @@ jobs:
       run: |
         git submodule update --init
         sudo apt-get update
-        sudo apt-get install -y -q build-essential libedit-dev libgc-dev libpcre3-dev software-properties-common cmake clang
+        sudo apt-get install -y -q build-essential libedit-dev libgc-dev libpcre3-dev software-properties-common cmake clang valgrind
         sudo apt-add-repository ppa:brightbox/ruby-ng
         sudo apt-get update
         sudo apt-get install -y -q ruby2.6 ruby2.6-dev ruby-switch
@@ -26,3 +26,7 @@ jobs:
       run: PATH="/usr/local/bin:/usr/bin:/bin" make clean test
     - name: test with clang
       run: PATH="/usr/local/bin:/usr/bin:/bin" CC="/usr/bin/clang" make clean test
+    - name: test with valgrind
+      run: |
+        PATH="/usr/local/bin:/usr/bin:/bin" bin/natalie -c assign_test test/natalie/assign_test.nat
+        valgrind --leak-check=no --error-exitcode=1 ./assign_test
