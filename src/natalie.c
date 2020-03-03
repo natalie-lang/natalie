@@ -951,6 +951,15 @@ NatObject* nat_vsprintf(NatEnv *env, char *format, va_list args) {
     return out;
 }
 
+NatObject *nat_range(NatEnv *env, NatObject *begin, NatObject *end, int exclude_end) {
+    NatObject *obj = nat_new(env, nat_const_get(env, NAT_OBJECT, "Range"), 0, NULL, NULL, NULL);
+    obj->type = NAT_VALUE_RANGE;
+    obj->range_begin = begin;
+    obj->range_end = end;
+    obj->range_exclude_end = exclude_end;
+    return obj;
+}
+
 NatObject *nat_dup(NatEnv *env, NatObject *obj) {
     NatObject *copy = NULL;
     switch (NAT_TYPE(obj)) {

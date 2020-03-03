@@ -285,10 +285,12 @@ module Natalie
         case lit
         when Integer
           exp.new(:nat_integer, :env, lit)
-        when Symbol
-          exp.new(:nat_symbol, :env, s(:s, lit))
+        when Range
+          exp.new(:nat_range, :env, process_lit(s(:lit, lit.first)), process_lit(s(:lit, lit.last)), lit.exclude_end? ? 1 : 0)
         when Regexp
           exp.new(:nat_regexp, :env, s(:s, lit.inspect[1...-1]))
+        when Symbol
+          exp.new(:nat_symbol, :env, s(:s, lit))
         else
           raise "unknown lit: #{exp.inspect}"
         end

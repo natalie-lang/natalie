@@ -1,0 +1,77 @@
+require_relative '../spec_helper'
+
+describe 'range' do
+  it 'can be created with .. syntax' do
+    r = 1..10
+    r.should be_kind_of(Range)
+    r.begin.should == 1
+    r.end.should == 10
+    r.exclude_end?.should == false
+  end
+
+  it 'can be created with ... syntax' do
+    r = 1...10
+    r.should be_kind_of(Range)
+    r.begin.should == 1
+    r.end.should == 10
+    r.exclude_end?.should == true
+  end
+
+  it 'can be created with Range#new' do
+    r = Range.new(1, 10)
+    r.should be_kind_of(Range)
+    r.begin.should == 1
+    r.end.should == 10
+    r.exclude_end?.should == false
+    r = Range.new(1, 10, true)
+    r.should be_kind_of(Range)
+    r.begin.should == 1
+    r.end.should == 10
+    r.exclude_end?.should == true
+  end
+
+  describe '#begin' do
+    it 'returns the beginning' do
+      r = 1..10
+      r.begin.should == 1
+    end
+  end
+
+  describe '#end' do
+    it 'returns the ending' do
+      r = 1..10
+      r.end.should == 10
+      r = 1...10
+      r.end.should == 10
+    end
+  end
+
+  describe '#exclude_end?' do
+    it 'returns true if the ending is excluded' do
+      r = 1...10
+      r.exclude_end?.should == true
+      r = Range.new(1, 10, true)
+      r.exclude_end?.should == true
+      r = Range.new(1, 10, Object.new)
+      r.exclude_end?.should == true
+    end
+
+    it 'returns false if the ending is not excluded' do
+      r = 1..10
+      r.exclude_end?.should == false
+      r = Range.new(1, 10)
+      r.exclude_end?.should == false
+      r = Range.new(1, 10, false)
+      r.exclude_end?.should == false
+    end
+  end
+
+  describe '#to_a' do
+    it 'returns the range expaneded to an array' do
+      r = 1..10
+      r.to_a.should == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+      r = 1...10
+      r.to_a.should == [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    end
+  end
+end

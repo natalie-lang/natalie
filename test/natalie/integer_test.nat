@@ -1,0 +1,35 @@
+require_relative '../spec_helper'
+
+describe 'integer' do
+  describe '#succ' do
+    it 'returns the next successive integer' do
+      -1.succ.should == 0
+      1.succ.should == 2
+      100.succ.should == 101
+    end
+  end
+
+  describe '#<=' do
+    it 'returns true if we are less than or equal to the given integer' do
+      (1 <= 10).should == true
+      (1 <= 1).should == true
+    end
+
+    it 'returns false if we are more than the given integer' do
+      (11 <= 10).should == false
+      (2 <= 1).should == false
+    end
+  end
+
+  describe '#>=' do
+    it 'returns true if we are greater than or equal to the given integer' do
+      (10 >= 1).should == true
+      (1 >= 1).should == true
+    end
+
+    it 'returns false if we are less than the given integer' do
+      (10 >= 11).should == false
+      (1 >= 2).should == false
+    end
+  end
+end

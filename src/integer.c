@@ -102,3 +102,9 @@ NatObject *Integer_bitwise_or(NatEnv *env, NatObject *self, size_t argc, NatObje
     NAT_ASSERT_TYPE(arg, NAT_VALUE_INTEGER, "Integer");
     return nat_integer(env, NAT_INT_VALUE(self) | NAT_INT_VALUE(arg));
 }
+
+NatObject *Integer_succ(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    assert(NAT_TYPE(self) == NAT_VALUE_INTEGER);
+    NAT_ASSERT_ARGC(0);
+    return nat_integer(env, NAT_INT_VALUE(self) + 1);
+}

@@ -111,7 +111,7 @@ struct NatHashValueContainer {
 };
 
 enum NatValueType {
-    NAT_VALUE_ARRAY,
+    NAT_VALUE_ARRAY, /// 0
     NAT_VALUE_CLASS,
     NAT_VALUE_EXCEPTION,
     NAT_VALUE_FALSE,
@@ -123,6 +123,7 @@ enum NatValueType {
     NAT_VALUE_NIL,
     NAT_VALUE_OTHER,
     NAT_VALUE_PROC,
+    NAT_VALUE_RANGE,
     NAT_VALUE_REGEXP,
     NAT_VALUE_STRING,
     NAT_VALUE_SYMBOL,
@@ -198,6 +199,13 @@ struct NatObject {
         struct {
             NatBlock *block;
             int lambda;
+        };
+
+        // NAT_VALUE_RANGE
+        struct {
+            NatObject *range_begin;
+            NatObject *range_end;
+            int range_exclude_end;
         };
 
         // NAT_VALUE_REGEXP
@@ -326,6 +334,8 @@ NatObject* nat_hash_delete(NatEnv *env, NatObject *hash, NatObject *key);
 
 NatObject *nat_regexp(NatEnv *env, char *pattern);
 NatObject *nat_matchdata(NatEnv *env, OnigRegion *region, NatObject *str_obj);
+
+NatObject *nat_range(NatEnv *env, NatObject *begin, NatObject *end, int exclude_end);
 
 NatObject *nat_dup(NatEnv *env, NatObject *obj);
 NatObject *nat_not(NatEnv *env, NatObject *val);
