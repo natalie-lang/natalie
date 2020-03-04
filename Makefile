@@ -45,4 +45,4 @@ test_in_ubuntu:
 	docker run -i -t --rm --entrypoint make natalie test
 
 cloc:
-	cloc --not-match-f=hashmap.* --exclude-dir=.cquery_cache .
+	cloc --not-match-f=hashmap.\* --not-match-f=compile_commands.json --exclude-dir=.cquery_cache,.github,ext .
