@@ -193,6 +193,20 @@ class InitMethodTest3 < InitMethodTest2
   end
 end
 
+module InitMethodModule
+  def initialize(x)
+    @x = x
+  end
+end
+
+class InitMethodTest4
+  include InitMethodModule
+
+  def x
+    @x
+  end
+end
+
 describe 'class' do
   describe 'initialize method' do
     it 'is called when the object is created' do
@@ -205,6 +219,10 @@ describe 'class' do
 
     it 'is called on superclass if not present' do
       InitMethodTest3.new(3).x.should == 3
+    end
+
+    it 'is called on a module' do
+      InitMethodTest4.new(4).x.should == 4
     end
   end
 end

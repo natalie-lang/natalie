@@ -298,9 +298,9 @@ NatObject *nat_new(NatEnv *env, NatObject *klass, size_t argc, NatObject **args,
     NatObject *obj = nat_alloc(env);
     obj->klass = klass;
     while (1) {
-        // FIXME: This doesn't work if initialize is defined on a module.
-        //        Need to use nat_find_method()
-        if (hashmap_get(&klass->methods, "initialize")) {
+        NatObject *matching_class_or_module;
+        NatMethod *method = nat_find_method(klass, "initialize", &matching_class_or_module);
+        if (method) {
             nat_call_method_on_class(env, klass, klass, "initialize", obj, argc, args, kwargs, block);
             break;
         }
