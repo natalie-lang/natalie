@@ -831,7 +831,6 @@ int nat_respond_to(NatEnv *env, NatObject *obj, char *name) {
         } else {
             return FALSE;
         }
-    // FIXME: I don't think we need to check both singleton_class and klass since singleton_class inherits from the klass
     } else if (obj->singleton_class && nat_find_method_without_undefined(obj->singleton_class, name, &matching_class_or_module)) {
         return TRUE;
     } else if (nat_find_method_without_undefined(obj->klass, name, &matching_class_or_module)) {

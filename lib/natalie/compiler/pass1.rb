@@ -437,7 +437,7 @@ module Natalie
 
       def process_while(exp)
         (_, condition, body, unknown) = exp
-        raise 'check this out' if unknown != true # FIXME: I don't know what this is; it always seems to be true
+        raise 'check this out' if unknown != true # NOTE: I don't know what this is; it always seems to be true
         body ||= s(:nil)
         exp.new(:block,
           s(:c_while, 'TRUE',
