@@ -9,7 +9,22 @@ describe 'integer' do
     end
   end
 
-  describe '#<=' do
+  describe 'divide' do
+    it 'works for whole quotients' do
+      (6 / 2).should == 3
+    end
+
+    it 'returns quotient of integer division rounded down' do
+      (3 / 2).should == 1
+      (11 / 6).should == 1
+    end
+
+    it 'raises ZeroDivisionError when dividing by zero' do
+      -> { 2 / 0 }.should raise_error(ZeroDivisionError)
+    end
+  end
+
+  describe '<=' do
     it 'returns true if we are less than or equal to the given integer' do
       (1 <= 10).should == true
       (1 <= 1).should == true
@@ -21,7 +36,7 @@ describe 'integer' do
     end
   end
 
-  describe '#>=' do
+  describe '>=' do
     it 'returns true if we are greater than or equal to the given integer' do
       (10 >= 1).should == true
       (1 >= 1).should == true

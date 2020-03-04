@@ -267,6 +267,8 @@ NatEnv *build_top_env() {
     nat_const_set(env, Object, "TypeError", TypeError);
     NatObject *SystemExit = nat_subclass(env, StandardError, "SystemExit");
     nat_const_set(env, Object, "SystemExit", SystemExit);
+    NatObject *ZeroDivisionError = nat_subclass(env, StandardError, "ZeroDivisionError");
+    nat_const_set(env, Object, "ZeroDivisionError", ZeroDivisionError);
     NatObject *FrozenError = nat_subclass(env, RuntimeError, "FrozenError");
     nat_const_set(env, Object, "FrozenError", FrozenError);
 

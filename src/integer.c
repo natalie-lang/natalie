@@ -40,8 +40,13 @@ NatObject *Integer_div(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     NAT_ASSERT_ARGC(1);
     NatObject* arg = args[0];
     NAT_ASSERT_TYPE(arg, NAT_VALUE_INTEGER, "Integer");
-    // FIXME: raise ZeroDivisionError if arg is zero
-    int64_t result = NAT_INT_VALUE(self) / NAT_INT_VALUE(arg);
+
+    int64_t dividend = NAT_INT_VALUE(self);
+    int64_t divisor = NAT_INT_VALUE(arg);
+    if (divisor == 0) {
+        NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "ZeroDivisionError"), "divided by 0");
+    }
+    int64_t result = dividend / divisor;
     return nat_integer(env, result);
 }
 
