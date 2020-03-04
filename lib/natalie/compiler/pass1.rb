@@ -231,8 +231,6 @@ module Natalie
 
       def process_if(exp)
         (_, condition, true_body, false_body) = exp
-        true_fn = temp('if_result_true')
-        false_fn = true_fn.sub(/true/, 'false')
         condition = exp.new(:nat_truthy, process(condition))
         exp.new(:c_if,
           condition,
