@@ -28,7 +28,7 @@ module Natalie
         to_declare = @env[:vars].values.select { |v| !v[:captured] }
         exp.new(:block,
           is_block || repl? ? s(:block) : s(:var_alloc, var_count),
-          *to_declare.map { |v| s(:declare, "#{@compiler_context[:var_prefix]}#{v[:name]}#{v[:var_num]}") },
+          *to_declare.map { |v| s(:declare, "#{@compiler_context[:var_prefix]}#{v[:name]}#{v[:var_num]}", s(:nil)) },
           body)
       end
 

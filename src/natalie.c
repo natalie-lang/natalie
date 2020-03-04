@@ -49,7 +49,12 @@ NatObject *nat_var_get(NatEnv *env, char *key, size_t index) {
         printf("Trying to get variable `%s' at index %zu which is not set (env->vars = %p, env->var_count = %zu).\n", key, index, env->vars, env->var_count);
         abort();
     }
-    return env->vars[index];
+    NatObject *val = env->vars[index];
+    if (val) {
+        return val;
+    } else {
+        return NAT_NIL;
+    }
 }
 
 NatObject *nat_var_set(NatEnv *env, char *key, size_t index, NatObject *val) {
