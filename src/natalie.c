@@ -714,7 +714,7 @@ NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, Na
             NatObject *matching_class_or_module;
             NatMethod *method = nat_find_method(klass, sym, &matching_class_or_module);
             if (method) {
-#ifdef DEBUG_METHOD_RESOLUTION
+#ifdef NAT_DEBUG_METHOD_RESOLUTION
                 if (strcmp(sym, "inspect") != 0) {
                     if (method->undefined) {
                         fprintf(stderr, "Method %s found on %s and is marked undefined\n", sym, matching_class_or_module->class_name);
@@ -733,7 +733,7 @@ NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, Na
         }
         klass = receiver->klass;
     }
-#ifdef DEBUG_METHOD_RESOLUTION
+#ifdef NAT_DEBUG_METHOD_RESOLUTION
     if (strcmp(sym, "inspect") != 0) {
         fprintf(stderr, "Looking for method %s in the klass hierarchy of %s\n", sym, nat_send(env, receiver, "inspect", 0, NULL, NULL)->str);
     }
@@ -795,7 +795,7 @@ NatObject *nat_call_method_on_class(NatEnv *env, NatObject *klass, NatObject *in
     NatObject *matching_class_or_module;
     NatMethod *method = nat_find_method(klass, method_name, &matching_class_or_module);
     if (method && !method->undefined) {
-#ifdef DEBUG_METHOD_RESOLUTION
+#ifdef NAT_DEBUG_METHOD_RESOLUTION
         if (strcmp(method_name, "inspect") != 0) {
             fprintf(stderr, "Calling method %s from %s\n", method_name, matching_class_or_module->class_name);
         }

@@ -13,7 +13,7 @@
 #include "onigmo.h"
 #include "hashmap.h"
 
-#define xDEBUG_METHOD_RESOLUTION
+//#define NAT_DEBUG_METHOD_RESOLUTION
 
 #define NAT_IS_TAGGED_INT(obj) ((int64_t)obj & 1)
 #define NAT_TYPE(obj) (NAT_IS_TAGGED_INT(obj) ? NAT_VALUE_INTEGER : obj->type)
