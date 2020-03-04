@@ -301,7 +301,7 @@ NatEnv *build_top_env() {
 
 NatObject *EVAL(NatEnv *env) {
     NatObject *self = nat_global_get(env, "$NAT_main_object");
-    UNUSED(self); // not really
+    (void)self; // don't warn about unused var
     int run_exit_handlers = TRUE;
     if (!NAT_RESCUE(env)) {
         /*BODY*/

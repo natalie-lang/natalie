@@ -13,8 +13,6 @@
 #include "onigmo.h"
 #include "hashmap.h"
 
-#define UNUSED(x) (void)(x)
-
 #define xDEBUG_METHOD_RESOLUTION
 
 #define NAT_IS_TAGGED_INT(obj) ((int64_t)obj & 1)
