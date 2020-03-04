@@ -8,7 +8,7 @@ module Natalie
       end
 
       def go
-        return @code if ENV['DISABLE_PASS3']
+        return @code if ENV['DISABLE_VARIABLE_ELIMINATION']
         loop do
           uiv = unused_if_vars
           uv = unused_vars
