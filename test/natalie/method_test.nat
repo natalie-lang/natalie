@@ -130,4 +130,23 @@ describe 'method' do
     default_calling_another_method.should == 1
     default_calling_another_method2.should == 2
   end
+
+  describe '#respond_to?' do
+    it 'works for class methods' do
+      Foo.respond_to?('foo').should == true
+      Foo.respond_to?('foo2').should == true
+      Foo.respond_to?('xxx').should == false
+    end
+
+    it 'works for instance methods' do
+      Foo.new.respond_to?('foo').should == true
+      Foo.new.respond_to?('xxx').should == false
+      Bar.new.respond_to?('bar').should == true
+      Bar.new.respond_to?('xxx').should == false
+    end
+
+    it 'returns false for undefined methods' do
+      NilClass.respond_to?('new').should == false
+    end
+  end
 end

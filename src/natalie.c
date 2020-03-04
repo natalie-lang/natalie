@@ -784,6 +784,15 @@ NatMethod *nat_find_method(NatObject *klass, char *method_name, NatObject **matc
     }
 }
 
+NatMethod *nat_find_method_without_undefined(NatObject *klass, char *method_name, NatObject **matching_class_or_module) {
+    NatMethod *method = nat_find_method(klass, method_name, matching_class_or_module);
+    if (method && method->undefined) {
+        return NULL;
+    } else {
+        return method;
+    }
+}
+
 NatObject *nat_call_method_on_class(NatEnv *env, NatObject *klass, NatObject *instance_class, char *method_name, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     assert(klass != NULL);
     assert(NAT_TYPE(klass) == NAT_VALUE_CLASS);
@@ -815,17 +824,17 @@ NatObject *nat_call_method_on_class(NatEnv *env, NatObject *klass, NatObject *in
 
 int nat_respond_to(NatEnv *env, NatObject *obj, char *name) {
     NatObject *matching_class_or_module;
-    // FIXME: I don't think we need to check both singleton_class and klass since singleton_class inherits from the klass
     if (NAT_TYPE(obj) == NAT_VALUE_INTEGER) {
         NatObject *klass = NAT_INTEGER;
-        if (nat_find_method(klass, name, &matching_class_or_module)) {
+        if (nat_find_method_without_undefined(klass, name, &matching_class_or_module)) {
             return TRUE;
         } else {
             return FALSE;
         }
-    } else if (obj->singleton_class && nat_find_method(obj->singleton_class, name, &matching_class_or_module)) {
+    // FIXME: I don't think we need to check both singleton_class and klass since singleton_class inherits from the klass
+    } else if (obj->singleton_class && nat_find_method_without_undefined(obj->singleton_class, name, &matching_class_or_module)) {
         return TRUE;
-    } else if (nat_find_method(obj->klass, name, &matching_class_or_module)) {
+    } else if (nat_find_method_without_undefined(obj->klass, name, &matching_class_or_module)) {
         return TRUE;
     } else {
         return FALSE;
