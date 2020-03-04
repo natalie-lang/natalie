@@ -412,52 +412,59 @@ void nat_array_expand_with_nil(NatEnv *env, NatObject *array, size_t size) {
 }
 
 // this is used by the hashmap library and assumes that obj->env has been set
-size_t nat_hashmap_hash(const void *obj) {
-    assert(((NatObject*)obj)->env.outer);
-    NatObject *hash_obj = nat_send(&((NatObject*)obj)->env, (NatObject*)obj, "hash", 0, NULL, NULL);
+size_t nat_hashmap_hash(const void *key) {
+    NatHashKey *key_p = (NatHashKey*)key;
+    assert(key_p->env);
+    NatObject *hash_obj = nat_send(key_p->env, key_p->key, "hash", 0, NULL, NULL);
     assert(NAT_TYPE(hash_obj) == NAT_VALUE_INTEGER);
     return NAT_INT_VALUE(hash_obj);
 }
 
 // this is used by the hashmap library to compare keys
 int nat_hashmap_compare(const void *a, const void *b) {
-    NatObject *a_hash = nat_send(&((NatObject*)a)->env, (NatObject*)a, "hash", 0, NULL, NULL);
-    NatObject *b_hash = nat_send(&((NatObject*)b)->env, (NatObject*)b, "hash", 0, NULL, NULL);
+    NatHashKey *a_p = (NatHashKey*)a;
+    NatHashKey *b_p = (NatHashKey*)b;
+    assert(a_p->env);
+    assert(b_p->env);
+    NatObject *a_hash = nat_send(a_p->env, a_p->key, "hash", 0, NULL, NULL);
+    NatObject *b_hash = nat_send(b_p->env, b_p->key, "hash", 0, NULL, NULL);
     assert(NAT_TYPE(a_hash) == NAT_VALUE_INTEGER);
     assert(NAT_TYPE(b_hash) == NAT_VALUE_INTEGER);
     return NAT_INT_VALUE(a_hash) - NAT_INT_VALUE(b_hash);
 }
 
-NatHashKeyListNode *nat_hash_key_list_append(NatObject *hash, NatObject *key, NatObject *val) {
+NatHashKey *nat_hash_key_list_append(NatEnv *env, NatObject *hash, NatObject *key, NatObject *val) {
     if (hash->key_list) {
-        NatHashKeyListNode *first = hash->key_list;
-        NatHashKeyListNode *last = hash->key_list->prev;
-        NatHashKeyListNode *new_last = malloc(sizeof(NatHashKeyListNode));
+        NatHashKey *first = hash->key_list;
+        NatHashKey *last = hash->key_list->prev;
+        NatHashKey *new_last = malloc(sizeof(NatHashKey));
         new_last->key = key;
         new_last->val = val;
         // <first> ... <last> <new_last> -|
         // ^______________________________|
         new_last->prev = last;
         new_last->next = first;
+        new_last->env = env;
         new_last->removed = FALSE;
         first->prev = new_last;
         last->next = new_last;
         return new_last;
     } else {
-        NatHashKeyListNode *node = malloc(sizeof(NatHashKeyListNode));
+        NatHashKey *node = malloc(sizeof(NatHashKey));
         node->key = key;
         node->val = val;
         node->prev = node;
         node->next = node;
+        node->env = env;
         node->removed = FALSE;
         hash->key_list = node;
         return node;
     }
 }
 
-void nat_hash_key_list_remove_node(NatObject *hash, NatHashKeyListNode *node) {
-    NatHashKeyListNode *prev = node->prev;
-    NatHashKeyListNode *next = node->next;
+void nat_hash_key_list_remove_node(NatObject *hash, NatHashKey *node) {
+    NatHashKey *prev = node->prev;
+    NatHashKey *next = node->next;
     // <prev> <-> <node> <-> <next>
     if (node == next) {
         // <node> -|
@@ -511,24 +518,12 @@ NatObject *nat_hash(NatEnv *env) {
     return obj;
 }
 
-// We need an "actual" NAT_INTEGER object to store the env for hashmap keys.
-// FIXME: this stinks, rethink this
-NatObject *nat_convert_to_real_object(NatEnv *env, NatObject *obj) {
-    if (((int64_t)obj & 1)) {
-        NatObject *real_obj = nat_new(env, NAT_INTEGER, 0, NULL, NULL, NULL);
-        real_obj->type = NAT_VALUE_INTEGER;
-        real_obj->integer = NAT_INT_VALUE(obj);
-        return real_obj;
-    } else {
-        return obj;
-    }
-}
-
 NatObject *nat_hash_get(NatEnv *env, NatObject *hash, NatObject *key) {
     assert(NAT_TYPE(hash) == NAT_VALUE_HASH);
-    key = nat_convert_to_real_object(env, key);
-    key->env = *env;
-    NatHashValueContainer *container = hashmap_get(&hash->hashmap, key);
+    NatHashKey key_container;
+    key_container.key = key;
+    key_container.env = env;
+    NatHashVal *container = hashmap_get(&hash->hashmap, &key_container);
     if (container) {
         return container->val;
     } else {
@@ -538,28 +533,29 @@ NatObject *nat_hash_get(NatEnv *env, NatObject *hash, NatObject *key) {
 
 void nat_hash_put(NatEnv *env, NatObject *hash, NatObject *key, NatObject *val) {
     assert(NAT_TYPE(hash) == NAT_VALUE_HASH);
-    key = nat_convert_to_real_object(env, key);
-    // nat_hashmap_hash and nat_hashmap_compare use key->env because we cannot pass it in as an argument
-    key->env = *env;
-    NatHashValueContainer *container = hashmap_get(&hash->hashmap, key);
+    NatHashKey key_container;
+    key_container.key = key;
+    key_container.env = env;
+    NatHashVal *container = hashmap_get(&hash->hashmap, &key_container);
     if (container) {
-        container->key_list_node->val = val;
+        container->key->val = val;
         container->val = val;
     } else {
-        container = malloc(sizeof(NatHashValueContainer));
-        container->key_list_node = nat_hash_key_list_append(hash, key, val);
+        container = malloc(sizeof(NatHashVal));
+        container->key = nat_hash_key_list_append(env, hash, key, val);
         container->val = val;
-        hashmap_put(&hash->hashmap, key, container);
+        hashmap_put(&hash->hashmap, container->key, container);
     }
 }
 
 NatObject* nat_hash_delete(NatEnv *env, NatObject *hash, NatObject *key) {
     assert(hash->type == NAT_VALUE_HASH);
-    key = nat_convert_to_real_object(env, key);
-    key->env = *env;
-    NatHashValueContainer *container = hashmap_remove(&hash->hashmap, key);
+    NatHashKey key_container;
+    key_container.key = key;
+    key_container.env = env;
+    NatHashVal *container = hashmap_remove(&hash->hashmap, &key_container);
     if (container) {
-        nat_hash_key_list_remove_node(hash, container->key_list_node);
+        nat_hash_key_list_remove_node(hash, container->key);
         return container->val;
     } else {
         return NULL;
@@ -1089,5 +1085,16 @@ int64_t nat_object_id(NatEnv *env, NatObject *obj) {
         return (int64_t)obj;
     } else {
         return (int64_t)obj/2;
+    }
+}
+
+NatObject *nat_convert_to_real_object(NatEnv *env, NatObject *obj) {
+    if (((int64_t)obj & 1)) {
+        NatObject *real_obj = nat_new(env, NAT_INTEGER, 0, NULL, NULL, NULL);
+        real_obj->type = NAT_VALUE_INTEGER;
+        real_obj->integer = NAT_INT_VALUE(obj);
+        return real_obj;
+    } else {
+        return obj;
     }
 }

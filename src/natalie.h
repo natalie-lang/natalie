@@ -55,9 +55,9 @@ typedef struct NatGlobalEnv NatGlobalEnv;
 typedef struct NatEnv NatEnv;
 typedef struct NatBlock NatBlock;
 typedef struct NatMethod NatMethod;
-typedef struct NatHashKeyListNode NatHashKeyListNode;
-typedef struct NatHashKeyListNode NatHashIter;
-typedef struct NatHashValueContainer NatHashValueContainer;
+typedef struct NatHashKey NatHashKey;
+typedef struct NatHashKey NatHashIter;
+typedef struct NatHashVal NatHashVal;
 
 struct NatGlobalEnv {
     struct hashmap *globals;
@@ -96,16 +96,17 @@ struct NatMethod {
     int undefined;
 };
 
-struct NatHashKeyListNode {
-    NatHashKeyListNode *prev;
-    NatHashKeyListNode *next;
+struct NatHashKey {
+    NatHashKey *prev;
+    NatHashKey *next;
     NatObject *key;
     NatObject *val;
+    NatEnv *env;
     int removed;
 };
 
-struct NatHashValueContainer {
-    NatHashKeyListNode *key_list_node;
+struct NatHashVal {
+    NatHashKey *key;
     NatObject *val;
 };
 
@@ -181,7 +182,7 @@ struct NatObject {
 
         // NAT_VALUE_HASHMAP
         struct {
-            NatHashKeyListNode *key_list; // a double-ended queue
+            NatHashKey *key_list; // a double-ended queue
             struct hashmap hashmap;
         };
 
@@ -319,10 +320,8 @@ void nat_assign_rest_arg(NatEnv *env, char *name, size_t argc, NatObject **args,
 void nat_array_push_splat(NatEnv *env, NatObject *array, NatObject *obj);
 void nat_array_expand_with_nil(NatEnv *env, NatObject *array, size_t size);
 
-NatObject *nat_convert_to_real_object(NatEnv *env, NatObject *obj);
-
-NatHashKeyListNode *nat_hash_key_list_append(NatObject *hash, NatObject *key, NatObject *val);
-void nat_hash_key_list_remove_node(NatObject *hash, NatHashKeyListNode *node);
+NatHashKey *nat_hash_key_list_append(NatEnv *env, NatObject *hash, NatObject *key, NatObject *val);
+void nat_hash_key_list_remove_node(NatObject *hash, NatHashKey *node);
 NatHashIter *nat_hash_iter(NatEnv *env, NatObject *hash);
 NatHashIter *nat_hash_iter_prev(NatEnv *env, NatObject *hash, NatHashIter *iter);
 NatHashIter *nat_hash_iter_next(NatEnv *env, NatObject *hash, NatHashIter *iter);
@@ -348,5 +347,7 @@ void nat_print_exception_with_backtrace(NatEnv *env, NatObject *exception);
 void nat_handle_top_level_exception(NatEnv *env, int run_exit_handlers);
 
 int64_t nat_object_id(NatEnv *env, NatObject *obj);
+
+NatObject *nat_convert_to_real_object(NatEnv *env, NatObject *obj);
 
 #endif
