@@ -93,6 +93,7 @@ struct NatBlock {
 struct NatMethod {
     NatObject* (*fn)(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
     NatEnv env;
+    int undefined;
 };
 
 struct NatHashKeyListNode {
@@ -271,6 +272,8 @@ char* int_to_string(int64_t num);
 void nat_define_method(NatObject *obj, char *name, NatObject* (*fn)(NatEnv*, NatObject*, size_t, NatObject**, struct hashmap*, NatBlock *block));
 void nat_define_method_with_block(NatObject *obj, char *name, NatBlock *block);
 void nat_define_singleton_method(NatEnv *env, NatObject *obj, char *name, NatObject* (*fn)(NatEnv*, NatObject*, size_t, NatObject**, struct hashmap*, NatBlock *block));
+void nat_undefine_method(NatObject *obj, char *name);
+void nat_undefine_singleton_method(NatEnv *env, NatObject *obj, char *name);
 
 NatObject *nat_class_ancestors(NatEnv *env, NatObject *klass);
 int nat_is_a(NatEnv *env, NatObject *obj, NatObject *klass_or_module);

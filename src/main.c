@@ -105,7 +105,7 @@ NatEnv *build_top_env() {
 
     NatObject *NilClass = nat_subclass(env, Object, "NilClass");
     nat_const_set(env, Object, "NilClass", NilClass);
-    nat_define_singleton_method(env, NilClass, "new", NilClass_new);
+    nat_undefine_singleton_method(env, NilClass, "new");
     nat_define_method(NilClass, "to_s", NilClass_to_s);
     nat_define_method(NilClass, "to_a", NilClass_to_a);
     nat_define_method(NilClass, "inspect", NilClass_inspect);
@@ -115,7 +115,7 @@ NatEnv *build_top_env() {
 
     NatObject *TrueClass = nat_subclass(env, Object, "TrueClass");
     nat_const_set(env, Object, "TrueClass", TrueClass);
-    nat_define_singleton_method(env, TrueClass, "new", TrueClass_new);
+    nat_undefine_singleton_method(env, TrueClass, "new");
     nat_define_method(TrueClass, "to_s", TrueClass_to_s);
     nat_define_method(TrueClass, "inspect", TrueClass_to_s);
 
@@ -124,7 +124,7 @@ NatEnv *build_top_env() {
 
     NatObject *FalseClass = nat_subclass(env, Object, "FalseClass");
     nat_const_set(env, Object, "FalseClass", FalseClass);
-    nat_define_singleton_method(env, FalseClass, "new", FalseClass_new);
+    nat_undefine_singleton_method(env, FalseClass, "new");
     nat_define_method(FalseClass, "to_s", FalseClass_to_s);
     nat_define_method(FalseClass, "inspect", FalseClass_to_s);
 

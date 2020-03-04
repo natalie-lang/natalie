@@ -610,6 +610,7 @@ void nat_define_method(NatObject *obj, char *name, NatObject* (*fn)(NatEnv*, Nat
     NatMethod *method = malloc(sizeof(NatMethod));
     method->fn = fn;
     method->env.outer = NULL;
+    method->undefined = fn ? FALSE : TRUE;
     if (nat_is_main_object(obj)) {
         hashmap_remove(&obj->klass->methods, name);
         hashmap_put(&obj->klass->methods, name, method);
@@ -623,6 +624,7 @@ void nat_define_method_with_block(NatObject *obj, char *name, NatBlock *block) {
     NatMethod *method = malloc(sizeof(NatMethod));
     method->fn = block->fn;
     method->env = block->env;
+    method->undefined = FALSE;
     if (nat_is_main_object(obj)) {
         hashmap_remove(&obj->klass->methods, name);
         hashmap_put(&obj->klass->methods, name, method);
@@ -636,9 +638,18 @@ void nat_define_singleton_method(NatEnv *env, NatObject *obj, char *name, NatObj
     NatMethod *method = malloc(sizeof(NatMethod));
     method->fn = fn;
     method->env.outer = NULL;
+    method->undefined = fn ? FALSE : TRUE;
     NatObject *klass = nat_singleton_class(env, obj);
     hashmap_remove(&klass->methods, name);
     hashmap_put(&klass->methods, name, method);
+}
+
+void nat_undefine_method(NatObject *obj, char *name) {
+    nat_define_method(obj, name, NULL);
+}
+
+void nat_undefine_singleton_method(NatEnv *env, NatObject *obj, char *name) {
+    nat_define_singleton_method(env, obj, name, NULL);
 }
 
 NatObject *nat_class_ancestors(NatEnv *env, NatObject *klass) {
@@ -705,13 +716,18 @@ NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, Na
             if (method) {
 #ifdef DEBUG_METHOD_RESOLUTION
                 if (strcmp(sym, "inspect") != 0) {
-                    if (matching_class_or_module == klass) {
+                    if (method->undefined) {
+                        fprintf(stderr, "Method %s found on %s and is marked undefined\n", sym, matching_class_or_module->class_name);
+                    } else if (matching_class_or_module == klass) {
                         fprintf(stderr, "Method %s found on the singleton klass of %s\n", sym, nat_send(env, receiver, "inspect", 0, NULL, NULL)->str);
                     } else {
                         fprintf(stderr, "Method %s found on %s, which is an ancestor of the singleton klass of %s\n", sym, matching_class_or_module->class_name, nat_send(env, receiver, "inspect", 0, NULL, NULL)->str);
                     }
                 }
 #endif
+                if (method->undefined) {
+                    NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "NoMethodError"), "undefined method `%s' for %s:Class", sym, receiver->class_name);
+                }
                 return nat_call_method_on_class(env, klass, receiver->klass, sym, receiver, argc, args, NULL, block);
             }
         }
@@ -778,7 +794,7 @@ NatObject *nat_call_method_on_class(NatEnv *env, NatObject *klass, NatObject *in
 
     NatObject *matching_class_or_module;
     NatMethod *method = nat_find_method(klass, method_name, &matching_class_or_module);
-    if (method) {
+    if (method && !method->undefined) {
 #ifdef DEBUG_METHOD_RESOLUTION
         if (strcmp(method_name, "inspect") != 0) {
             fprintf(stderr, "Calling method %s from %s\n", method_name, matching_class_or_module->class_name);

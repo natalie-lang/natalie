@@ -1,6 +1,11 @@
 require_relative '../spec_helper'
 
 describe 'booleans' do
+  it 'cannot be created with .new' do
+    -> { TrueClass.new }.should raise_error(NoMethodError)
+    -> { FalseClass.new }.should raise_error(NoMethodError)
+  end
+
   describe 'equality' do
     it 'is equal to other booleans' do
       r = true == true
