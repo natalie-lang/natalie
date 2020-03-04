@@ -92,6 +92,13 @@ describe 'regexp' do
     end
   end
 
+  describe '=~ on String' do
+    it 'works' do
+      result = 'foo' =~ /foo/
+      result.should == 0
+    end
+  end
+
   describe '#match on String' do
     it 'works' do
       match = 'foo'.match(/foo/)
