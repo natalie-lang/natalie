@@ -799,9 +799,6 @@ NatObject *nat_call_method_on_class(NatEnv *env, NatObject *klass, NatObject *in
         NatEnv *closure_env;
         if (method->env.outer) {
             closure_env = &method->env;
-        } else if (NAT_TYPE(self) == NAT_VALUE_CLASS) {
-            // FIXME: not sure if this is proper, but it works
-            closure_env = &self->env;
         } else {
             closure_env = &matching_class_or_module->env;
         }
