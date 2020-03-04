@@ -104,3 +104,9 @@ NatObject *String_cmp(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
     return nat_integer(env, strcmp(self->str, arg->str));
 }
 
+NatObject *String_match(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(1);
+    assert(NAT_TYPE(self) == NAT_VALUE_STRING);
+    NAT_ASSERT_TYPE(args[0], NAT_VALUE_REGEXP, "Regexp");
+    return Regexp_match(env, args[0], 1, &self, NULL, block);
+}

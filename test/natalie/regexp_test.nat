@@ -91,4 +91,12 @@ describe 'regexp' do
       end
     end
   end
+
+  describe '#match on String' do
+    it 'works' do
+      match = 'foo'.match(/foo/)
+      match.should be_kind_of(MatchData)
+      match[0].should == 'foo'
+    end
+  end
 end

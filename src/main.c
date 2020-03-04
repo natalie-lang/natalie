@@ -162,6 +162,7 @@ NatEnv *build_top_env() {
     nat_define_method(String, "*", String_mul);
     nat_define_method(String, "==", String_eqeq);
     nat_define_method(String, "===", String_eqeq);
+    nat_define_method(String, "match", String_match);
 
     NatObject *Array = nat_subclass(env, Object, "Array");
     nat_const_set(env, Object, "Array", Array);
