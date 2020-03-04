@@ -8,6 +8,7 @@ ONIGMO := ext/onigmo
 BUILD := debug
 
 cflags.debug := -g -Wall -Wextra -Werror -Wno-unused-parameter
+cflags.coverage := ${cflags.debug} -fprofile-arcs -ftest-coverage
 cflags.release := -O3
 CFLAGS := ${cflags.${BUILD}}
 

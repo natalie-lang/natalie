@@ -43,7 +43,7 @@ module Natalie
       cmd = compiler_command
       puts cmd if ENV['DEBUG_COMPILER_COMMAND']
       out = `#{cmd}`
-      File.unlink(@c_path) unless ENV['DEBUG']
+      File.unlink(@c_path) unless ENV['DEBUG'] || ENV['BUILD'] == 'coverage'
       $stderr.puts out if ENV['DEBUG'] || $? != 0
       raise 'There was an error compiling.' if $? != 0
     end
@@ -127,7 +127,7 @@ module Natalie
       if compile_to_object_file
         "#{cc} #{build_flags} -I #{SRC_PATH} -I #{ONIGMO_SRC_PATH} -fPIC -x c -c #{@c_path} -o #{out_path} 2>&1"
       else
-        "#{cc} #{build_flags} -Wall #{shared? ? '-fPIC -shared' : ''} -I #{SRC_PATH} -I #{ONIGMO_SRC_PATH} -o #{out_path} -L #{ld_library_path} #{OBJ_PATH}/*.o #{OBJ_PATH}/nat/*.o #{ONIGMO_LIB_PATH}/libonigmo.a -x c #{@c_path} 2>&1"
+        "#{cc} #{build_flags} #{shared? ? '-fPIC -shared' : ''} -I #{SRC_PATH} -I #{ONIGMO_SRC_PATH} -o #{out_path} -L #{ld_library_path} #{OBJ_PATH}/*.o #{OBJ_PATH}/nat/*.o #{ONIGMO_LIB_PATH}/libonigmo.a -x c #{@c_path} 2>&1"
       end
     end
 
@@ -139,12 +139,20 @@ module Natalie
       !!repl
     end
 
+    RELEASE_FLAGS = '-O3'
+    DEBUG_FLAGS = '-g -Wall -Wextra -Wno-unused-parameter'
+    COVERAGE_FLAGS = '-fprofile-arcs -ftest-coverage'
+
     def build_flags
-      if ENV['BUILD'] == 'release'
-        '-O3'
+      case ENV['BUILD']
+      when 'release'
+        RELEASE_FLAGS
+      when 'debug', nil
+        DEBUG_FLAGS
+      when 'coverage'
+        DEBUG_FLAGS + ' ' + COVERAGE_FLAGS
       else
-        #'-g -Wall -Wextra -Werror -Wno-unused-parameter' # FIXME: some unused vars are slipping through
-        '-g -Wall -Wextra -Wno-unused-parameter'
+        raise "unknown build mode: #{ENV['BUILD'].inspect}"
       end
     end
 

@@ -11,7 +11,7 @@ jobs:
       run: |
         git submodule update --init
         sudo apt-get update
-        sudo apt-get install -y -q build-essential libedit-dev libgc-dev libpcre3-dev software-properties-common cmake clang valgrind
+        sudo apt-get install -y -q build-essential libedit-dev libgc-dev libpcre3-dev software-properties-common cmake clang valgrind lcov
         sudo apt-add-repository ppa:brightbox/ruby-ng
         sudo apt-get update
         sudo apt-get install -y -q ruby2.6 ruby2.6-dev ruby-switch
@@ -30,3 +30,12 @@ jobs:
       run: |
         PATH="/usr/local/bin:/usr/bin:/bin" bin/natalie -c assign_test test/natalie/assign_test.nat
         valgrind --leak-check=no --error-exitcode=1 ./assign_test
+    - name: coverage report
+      run: |
+        PATH="/usr/local/bin:/usr/bin:/bin" make BUILD=coverage clean test || :
+        lcov -c --directory . --output-file coverage.info
+        genhtml coverage.info --output-directory coverage-report
+    - uses: actions/upload-artifact@v1
+      with:
+        name: coverage-report
+        path: coverage-report
