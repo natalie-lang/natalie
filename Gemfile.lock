@@ -1,6 +1,7 @@
 GEM
   remote: https://rubygems.org/
   specs:
+    minitest (5.14.0)
     ruby_parser (3.14.1)
       sexp_processor (~> 4.9)
     sexp_processor (4.13.0)
@@ -9,5 +10,9 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  minitest
   ruby_parser
   sexp_processor
+
+BUNDLED WITH
+   2.1.4
