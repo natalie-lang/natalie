@@ -164,6 +164,7 @@ NatEnv *build_top_env() {
     nat_define_method(String, "===", String_eqeq);
     nat_define_method(String, "=~", String_eqtilde);
     nat_define_method(String, "match", String_match);
+    nat_define_method(String, "succ", String_succ);
 
     NatObject *Array = nat_subclass(env, Object, "Array");
     nat_const_set(env, Object, "Array", Array);
@@ -211,9 +212,13 @@ NatEnv *build_top_env() {
     nat_const_set(env, Object, "Range", Range);
     nat_define_singleton_method(env, Range, "new", Range_new);
     nat_define_method(Range, "begin", Range_begin);
+    nat_define_method(Range, "first", Range_begin);
     nat_define_method(Range, "end", Range_end);
+    nat_define_method(Range, "last", Range_end);
     nat_define_method(Range, "exclude_end?", Range_exclude_end);
     nat_define_method(Range, "to_a", Range_to_a);
+    nat_define_method(Range, "each", Range_each);
+    nat_define_method(Range, "inspect", Range_inspect);
 
     NatObject *MatchData = nat_subclass(env, Object, "MatchData");
     nat_const_set(env, Object, "MatchData", MatchData);

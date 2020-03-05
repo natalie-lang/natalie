@@ -117,3 +117,35 @@ NatObject *String_match(NatEnv *env, NatObject *self, size_t argc, NatObject **a
     NAT_ASSERT_TYPE(args[0], NAT_VALUE_REGEXP, "Regexp");
     return Regexp_match(env, args[0], 1, &self, NULL, block);
 }
+
+static void nat_succ_string(NatObject *string, char append_char, char begin_char, char end_char) {
+    ssize_t index = string->str_len - 1;
+    char last_char = string->str[index];
+    while (last_char == end_char) {
+        string->str[index] = begin_char;
+        last_char = string->str[--index];
+    }
+    if (index == -1) {
+        nat_string_append_char(string, append_char);
+    } else {
+        string->str[index]++;
+    }
+}
+
+NatObject *String_succ(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(0);
+    assert(NAT_TYPE(self) == NAT_VALUE_STRING);
+    NatObject *result = nat_string(env, self->str);
+    ssize_t index = self->str_len - 1;
+    char last_char = self->str[index];
+    if (last_char == 'z') {
+        nat_succ_string(result, 'a', 'a', 'z');
+    } else if (last_char == 'Z') {
+        nat_succ_string(result, 'A', 'A', 'Z');
+    } else if (last_char == '9') {
+        nat_succ_string(result, '0', '1', '9');
+    } else {
+        result->str[index]++;
+    }
+    return result;
+}

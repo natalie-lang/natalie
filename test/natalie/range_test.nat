@@ -7,6 +7,11 @@ describe 'range' do
     r.begin.should == 1
     r.end.should == 10
     r.exclude_end?.should == false
+    r = 'a'..'z'
+    r.should be_kind_of(Range)
+    r.begin.should == 'a'
+    r.end.should == 'z'
+    r.exclude_end?.should == false
   end
 
   it 'can be created with ... syntax' do
@@ -14,6 +19,11 @@ describe 'range' do
     r.should be_kind_of(Range)
     r.begin.should == 1
     r.end.should == 10
+    r.exclude_end?.should == true
+    r = 'a'...'z'
+    r.should be_kind_of(Range)
+    r.begin.should == 'a'
+    r.end.should == 'z'
     r.exclude_end?.should == true
   end
 
@@ -28,6 +38,10 @@ describe 'range' do
     r.begin.should == 1
     r.end.should == 10
     r.exclude_end?.should == true
+    r = Range.new('a', 'z')
+    r.should be_kind_of(Range)
+    r.begin.should == 'a'
+    r.end.should == 'z'
   end
 
   describe '#begin' do
@@ -37,12 +51,24 @@ describe 'range' do
     end
   end
 
+  describe '#first' do
+    it 'returns the beginning' do
+      r = 1..10
+      r.first.should == 1
+    end
+  end
+
   describe '#end' do
     it 'returns the ending' do
       r = 1..10
       r.end.should == 10
-      r = 1...10
-      r.end.should == 10
+    end
+  end
+
+  describe '#last' do
+    it 'returns the ending' do
+      r = 1..10
+      r.last.should == 10
     end
   end
 
@@ -72,6 +98,33 @@ describe 'range' do
       r.to_a.should == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
       r = 1...10
       r.to_a.should == [1, 2, 3, 4, 5, 6, 7, 8, 9]
+      r = 'a'..'d'
+      r.to_a.should == ['a', 'b', 'c', 'd']
+      r = 'a'...'d'
+      r.to_a.should == ['a', 'b', 'c']
+    end
+  end
+
+  describe '#each' do
+    it 'calls the block for each item in the range' do
+      items = []
+      (1..10).each { |i| items << i }
+      items.should == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+      items = []
+      (1...10).each { |i| items << i }
+      items.should == [1, 2, 3, 4, 5, 6, 7, 8, 9]
+      items = []
+      ('a'..'d').each { |i| items << i }
+      items.should == ['a', 'b', 'c', 'd']
+    end
+  end
+
+  describe '#inspect' do
+    it 'returns range syntax' do
+      (1..10).inspect.should == '1..10'
+      (1...10).inspect.should == '1...10'
+      ('a'..'z').inspect.should == '"a".."z"'
+      ('a'...'z').inspect.should == '"a"..."z"'
     end
   end
 end

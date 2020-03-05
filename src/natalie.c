@@ -936,6 +936,7 @@ NatObject* nat_vsprintf(NatEnv *env, char *format, va_list args) {
     NatObject *out = nat_string(env, "");
     char c, c2;
     size_t len = strlen(format);
+    NatObject *inspected;
     for (size_t i=0; i<len; i++) {
         c = format[i];
         if (c == '%') {
@@ -948,17 +949,11 @@ NatObject* nat_vsprintf(NatEnv *env, char *format, va_list args) {
                 case 'd':
                     nat_string_append(out, int_to_string(va_arg(args, int)));
                     break;
-                /*
-                   case 'S':
-                   nat_string_append_nat_string(out, va_arg(args, NatObject*));
-                   break;
-                case 'z':
-                    mal_string_append(out, pr_str(mal_number(va_arg(args, size_t)), 1));
+                case 'v':
+                    inspected = nat_send(env, va_arg(args, NatObject*), "inspect", 0, NULL, NULL);
+                    assert(NAT_TYPE(inspected) == NAT_VALUE_STRING);
+                    nat_string_append(out, inspected->str);
                     break;
-                case 'p':
-                    mal_string_append(out, pr_str(mal_number((size_t)va_arg(args, NatObject*)), 1));
-                    break;
-                   */
                 case '%':
                     nat_string_append_char(out, '%');
                     break;

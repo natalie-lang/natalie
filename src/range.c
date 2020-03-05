@@ -40,3 +40,27 @@ NatObject *Range_to_a(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
     }
     return ary;
 }
+
+NatObject *Range_each(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(0);
+    assert(NAT_TYPE(self) == NAT_VALUE_RANGE);
+    NatObject *item = self->range_begin;
+    char *operator = self->range_exclude_end ? "<" : "<=";
+    while (nat_truthy(nat_send(env, item, operator, 1, &self->range_end, NULL))) {
+        NatObject *result = nat_run_block(env, block, 1, &item, NULL, NULL);
+        nat_return_if_break(env, result);
+        item = nat_send(env, item, "succ", 0, NULL, NULL);
+    }
+    return self;
+}
+
+NatObject *Range_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(0);
+    assert(NAT_TYPE(self) == NAT_VALUE_RANGE);
+    if (self->range_exclude_end) {
+        return nat_sprintf(env, "%v...%v", self->range_begin, self->range_end);
+    } else {
+        return nat_sprintf(env, "%v..%v", self->range_begin, self->range_end);
+    }
+}
+

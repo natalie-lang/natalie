@@ -1,0 +1,43 @@
+require_relative '../spec_helper'
+
+describe 'string' do
+  describe '#succ' do
+    context 'given a single character' do
+      it 'returns the next character' do
+        'a'.succ.should == 'b'
+        'm'.succ.should == 'n'
+        'A'.succ.should == 'B'
+        'M'.succ.should == 'N'
+        '0'.succ.should == '1'
+      end
+
+      it 'loops on z' do
+        'z'.succ.should == 'aa'
+      end
+
+      it 'loops on Z' do
+        'Z'.succ.should == 'AA'
+      end
+
+      it 'loops on 9' do
+        '9'.succ.should == '10'
+      end
+    end
+
+    context 'given multiple characters' do
+      it 'loops on z' do
+        'az'.succ.should == 'ba'
+        'aaz'.succ.should == 'aba'
+        'zzz'.succ.should == 'aaaa'
+      end
+    end
+
+    # TODO: handle mixed case, e.g. 'Az' and 'Zz'
+
+    context 'given a character outside alphanumeric range' do
+      it 'returns the next character' do
+        '👍'.succ.should == '👎'
+      end
+    end
+  end
+end

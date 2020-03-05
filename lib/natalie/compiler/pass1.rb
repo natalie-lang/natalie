@@ -188,6 +188,16 @@ module Natalie
           s(:nat_symbol, :env, s(:s, name)))
       end
 
+      def process_dot2(exp)
+        (_, beginning, ending) = exp
+        exp.new(:nat_range, :env, process(beginning), process(ending), 0)
+      end
+
+      def process_dot3(exp)
+        (_, beginning, ending) = exp
+        exp.new(:nat_range, :env, process(beginning), process(ending), 1)
+      end
+
       def process_dstr(exp)
         (_, start, *rest) = exp
         string = temp('string')
