@@ -35,6 +35,7 @@ NatObject *IO_read(NatEnv *env, NatObject *self, size_t argc, NatObject **args, 
         if (bytes_read == 0) {
             return NAT_NIL;
         } else {
+            buf[bytes_read] = 0;
             return nat_string(env, buf);
         }
     } else if (argc == 0) {
@@ -43,10 +44,12 @@ NatObject *IO_read(NatEnv *env, NatObject *self, size_t argc, NatObject **args, 
         if (bytes_read == 0) {
             return nat_string(env, "");
         } else {
+            buf[bytes_read] = 0;
             NatObject *str = nat_string(env, buf);
             while (1) {
                 bytes_read = read(self->fileno, buf, NAT_READ_BYTES);
                 if (bytes_read == 0) break;
+                buf[bytes_read] = 0;
                 nat_string_append(str, buf);
             }
             return str;
