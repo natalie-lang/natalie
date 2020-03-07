@@ -220,6 +220,12 @@ NatEnv *build_top_env() {
     nat_define_method(Range, "each", Range_each);
     nat_define_method(Range, "inspect", Range_inspect);
 
+    NatObject *Thread = nat_subclass(env, Object, "Thread");
+    nat_const_set(env, Object, "Thread", Thread);
+    nat_define_singleton_method(env, Thread, "new", Thread_new);
+    nat_define_method(Thread, "join", Thread_join);
+    nat_define_method(Thread, "value", Thread_value);
+
     NatObject *MatchData = nat_subclass(env, Object, "MatchData");
     nat_const_set(env, Object, "MatchData", MatchData);
     nat_define_method(MatchData, "size", MatchData_size);
@@ -276,6 +282,8 @@ NatEnv *build_top_env() {
     nat_const_set(env, Object, "SystemExit", SystemExit);
     NatObject *ZeroDivisionError = nat_subclass(env, StandardError, "ZeroDivisionError");
     nat_const_set(env, Object, "ZeroDivisionError", ZeroDivisionError);
+    NatObject *ThreadError = nat_subclass(env, StandardError, "ThreadError");
+    nat_const_set(env, Object, "ThreadError", ThreadError);
     NatObject *FrozenError = nat_subclass(env, RuntimeError, "FrozenError");
     nat_const_set(env, Object, "FrozenError", FrozenError);
 

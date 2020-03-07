@@ -2,7 +2,9 @@
 #define __NAT__
 
 #include <assert.h>
+#include <errno.h>
 #include <inttypes.h>
+#include <pthread.h>
 #include <setjmp.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -127,6 +129,7 @@ enum NatValueType {
     NAT_VALUE_REGEXP,
     NAT_VALUE_STRING,
     NAT_VALUE_SYMBOL,
+    NAT_VALUE_THREAD,
     NAT_VALUE_TRUE
 };
 
@@ -199,6 +202,12 @@ struct NatObject {
         struct {
             NatBlock *block;
             int lambda;
+        };
+
+        // NAT_VALUE_THREAD
+        struct {
+            pthread_t thread_id;
+            NatObject *thread_value;
         };
 
         // NAT_VALUE_RANGE
@@ -337,6 +346,10 @@ NatObject *nat_regexp(NatEnv *env, char *pattern);
 NatObject *nat_matchdata(NatEnv *env, OnigRegion *region, NatObject *str_obj);
 
 NatObject *nat_range(NatEnv *env, NatObject *begin, NatObject *end, int exclude_end);
+
+NatObject *nat_thread(NatEnv *env, NatBlock *block);
+NatObject *nat_thread_join(NatEnv *env, NatObject *thread);
+void* nat_create_thread(void* data);
 
 NatObject *nat_dup(NatEnv *env, NatObject *obj);
 NatObject *nat_not(NatEnv *env, NatObject *val);

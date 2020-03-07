@@ -977,6 +977,34 @@ NatObject *nat_range(NatEnv *env, NatObject *begin, NatObject *end, int exclude_
     return obj;
 }
 
+NatObject *nat_thread(NatEnv *env, NatBlock *block) {
+    NatObject *obj = nat_new(env, nat_const_get(env, NAT_OBJECT, "Thread"), 0, NULL, NULL, NULL);
+    obj->type = NAT_VALUE_THREAD;
+    obj->env = *env;
+    pthread_create(&obj->thread_id, NULL, nat_create_thread, (void*)block);
+    return obj;
+}
+
+NatObject *nat_thread_join(NatEnv *env, NatObject *thread) {
+    void *value = NULL;
+    int err = pthread_join(thread->thread_id, &value);
+    if (err == ESRCH) { // thread not found (alread joined?)
+        return thread->thread_value;
+    } else if (err) {
+        NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "ThreadError"), "There was an error joining the thread %d", err);
+        printf("could not join thread\n");
+        abort(); // FIXME
+    } else {
+        thread->thread_value = (NatObject*)value;
+        return thread->thread_value;
+    }
+}
+
+void* nat_create_thread(void* data) {
+    NatBlock *block = (NatBlock*)data;
+    return (void*)nat_run_block(&block->env, block, 0, NULL, NULL, NULL);
+}
+
 NatObject *nat_dup(NatEnv *env, NatObject *obj) {
     NatObject *copy = NULL;
     switch (NAT_TYPE(obj)) {

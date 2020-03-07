@@ -7,9 +7,9 @@ ONIGMO := ext/onigmo
 
 BUILD := debug
 
-cflags.debug := -g -Wall -Wextra -Werror -Wno-unused-parameter
-cflags.coverage := ${cflags.debug} -fprofile-arcs -ftest-coverage
-cflags.release := -O3
+cflags.debug := -g -Wall -Wextra -Werror -Wno-unused-parameter -pthread
+cflags.coverage := ${cflags.debug} -fprofile-arcs -ftest-coverage -pthread
+cflags.release := -O3 -pthread
 CFLAGS := ${cflags.${BUILD}}
 
 SOURCES := $(filter-out $(SRC)/main.c, $(wildcard $(SRC)/*.c))

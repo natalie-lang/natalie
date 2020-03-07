@@ -139,8 +139,8 @@ module Natalie
       !!repl
     end
 
-    RELEASE_FLAGS = '-O3'
-    DEBUG_FLAGS = '-g -Wall -Wextra -Wno-unused-parameter'
+    RELEASE_FLAGS = '-O3 -pthread'
+    DEBUG_FLAGS = '-g -Wall -Wextra -Wno-unused-parameter -pthread'
     COVERAGE_FLAGS = '-fprofile-arcs -ftest-coverage'
 
     def build_flags
