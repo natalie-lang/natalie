@@ -91,6 +91,7 @@ NatEnv *build_top_env() {
     nat_define_method(Kernel, "is_a?", Kernel_is_a);
     nat_define_method(Kernel, "hash", Kernel_hash);
     nat_define_method(Kernel, "proc", Kernel_proc);
+    nat_define_method(Kernel, "lambda", Kernel_lambda);
     nat_define_method(Kernel, "__method__", Kernel_method);
     nat_define_method(Kernel, "freeze", Kernel_freeze);
 
