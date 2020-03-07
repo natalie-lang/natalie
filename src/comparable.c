@@ -1,8 +1,6 @@
 #include "natalie.h"
 #include "builtin.h"
 
-// FIXME: this whole module can be written in Natalie rather than in C.
-
 NatObject *Comparable_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
     NatObject *result = nat_send(env, self, "<=>", argc, args, NULL);

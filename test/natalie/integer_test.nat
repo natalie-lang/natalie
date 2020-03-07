@@ -24,6 +24,18 @@ describe 'integer' do
     end
   end
 
+  describe '<' do
+    it 'returns true if we are less than the given integer' do
+      (1 < 10).should == true
+    end
+
+    it 'returns false if we are more than or equal to the given integer' do
+      (1 < 1).should == false
+      (11 < 10).should == false
+      (2 < 1).should == false
+    end
+  end
+
   describe '<=' do
     it 'returns true if we are less than or equal to the given integer' do
       (1 <= 10).should == true
@@ -33,6 +45,18 @@ describe 'integer' do
     it 'returns false if we are more than the given integer' do
       (11 <= 10).should == false
       (2 <= 1).should == false
+    end
+  end
+
+  describe '>' do
+    it 'returns true if we are greater than the given integer' do
+      (10 > 1).should == true
+    end
+
+    it 'returns false if we are less than or equal to the given integer' do
+      (1 > 1).should == false
+      (10 > 11).should == false
+      (1 > 2).should == false
     end
   end
 
