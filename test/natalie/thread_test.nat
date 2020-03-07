@@ -13,4 +13,25 @@ describe 'thread' do
       result.should == 1000
     end
   end
+
+  describe 'thread safe hash' do
+    it 'works' do
+      hash = {}
+      threads = []
+      10.times do |i|
+        threads << Thread.new do
+          hash[i/2] = 'hello'
+        end
+      end
+      threads.each { |t| t.join }
+      hash.should == {
+        0 => 'hello',
+        1 => 'hello',
+        2 => 'hello',
+        3 => 'hello',
+        4 => 'hello'
+      }
+      #hash.keys.should == (0..4).to_a
+    end
+  end
 end

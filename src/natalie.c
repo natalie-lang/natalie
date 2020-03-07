@@ -258,6 +258,11 @@ NatObject *nat_alloc(NatEnv *env) {
     obj->constants.table = NULL;
     obj->ivars.table = NULL;
     obj->env.outer = NULL;
+    int err = pthread_mutex_init(&obj->mutex, NULL);
+    if (err) {
+        fprintf(stderr, "Could not initialize mutex: %d\n", err);
+        abort();
+    }
     return obj;
 }
 
@@ -540,6 +545,11 @@ NatObject *nat_hash_get(NatEnv *env, NatObject *hash, NatObject *key) {
 
 void nat_hash_put(NatEnv *env, NatObject *hash, NatObject *key, NatObject *val) {
     assert(NAT_TYPE(hash) == NAT_VALUE_HASH);
+    int err = pthread_mutex_lock(&hash->mutex);
+    if (err) {
+        fprintf(stderr, "Could not lock mutex for %p\n", hash);
+        abort();
+    }
     NatHashKey key_container;
     key_container.key = key;
     key_container.env = env;
@@ -552,6 +562,11 @@ void nat_hash_put(NatEnv *env, NatObject *hash, NatObject *key, NatObject *val) 
         container->key = nat_hash_key_list_append(env, hash, key, val);
         container->val = val;
         hashmap_put(&hash->hashmap, container->key, container);
+    }
+    err = pthread_mutex_unlock(&hash->mutex);
+    if (err) {
+        fprintf(stderr, "Could not unlock mutex on %p\n", hash);
+        abort();
     }
 }
 

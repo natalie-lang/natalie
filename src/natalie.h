@@ -157,6 +157,8 @@ struct NatObject {
 
     struct hashmap constants;
     struct hashmap ivars;
+
+    pthread_mutex_t mutex;
     
     union {
         int64_t integer;
