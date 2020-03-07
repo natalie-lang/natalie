@@ -8,6 +8,24 @@ It provies an ahead-of-time compiler using C and gcc/clang as the backend. Also,
 
 There is much work left to do before this is useful. Please let me know if you want to help!
 
+## Current Status
+
+Natalie is able to compile and run **very simple Ruby** scripts at the moment. We have the foundations in place, like classes, modules, methods, blocks and the various types of variables. We have the basic data objects in place, e.g. true, false, nil, Integer, Symbol, String, Array, Hash, Range.
+But there are still some yet unimplemented, like Float. Further, only a small number of methods are implemented on the objects that are present in the language.
+
+For example, you can do basic stuff with strings like concatenate and match with a Regexp, but methods like `upcase` and `strip` are not yet implemented. *Want to help?*
+As another example, basic Integer support is present, but we don't have Bignum support and methods like `even?` and `between?` are not yet implemented. *You can help!*
+
+The current driving force is to make Natalie complete enough to be able to compile itself. Since the Natalie compiler is written in Ruby, theoretically at some point, we should be able to run the Ruby code through Natalie to produce a compiled version of compiler. That day will be glorious!
+
+A more lofty goal would be the ability to compile a larger project like Sinatra. But that's probably a year away at this point.
+
+## Helping Out
+
+Contributions are welcome! You can learn more about how I work on Natalie via the [hacking session videos on YouTube](https://www.youtube.com/playlist?list=PLWUx_XkUoGTq-nkbhnk6PN4m109ISo5BX).
+
+The easiest way to get started right now would be to find a method on an object that is not yet implemented and make it yourself!
+
 ## Building
 
 The compiler and REPL currently (but hopefully not for long!) require Ruby. I've only tested on Ruby 2.6.x.
