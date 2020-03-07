@@ -169,6 +169,7 @@ NatEnv *build_top_env() {
     NatObject *Array = nat_subclass(env, Object, "Array");
     nat_const_set(env, Object, "Array", Array);
     nat_define_method(Array, "inspect", Array_inspect);
+    nat_define_method(Array, "to_s", Array_inspect);
     nat_define_method(Array, "<<", Array_ltlt);
     nat_define_method(Array, "+", Array_add);
     nat_define_method(Array, "-", Array_sub);

@@ -1,0 +1,164 @@
+require_relative '../spec_helper'
+
+describe 'array' do
+  describe '#inspect' do
+    it 'returns the syntax representation' do
+      [1, 2, 3].inspect.should == "[1, 2, 3]"
+    end
+  end
+
+  describe '#to_s' do
+    it 'returns the syntax representation' do
+      [1, 2, 3].to_s.should == "[1, 2, 3]"
+    end
+  end
+
+  describe '<<' do
+    it 'appends an item to the array' do
+      a = [1, 2, 3]
+      a << 4
+      a.should == [1, 2, 3, 4]
+    end
+  end
+
+  describe '+' do
+    it 'returns a new copy of the given arrays' do
+      a = [1, 2, 3] + [4, 5, 6]
+      a.should == [1, 2, 3, 4, 5, 6]
+    end
+  end
+
+  describe '-' do
+    it 'returns a new copy of the array with elements removed' do
+      a = [1, 2, 3, 4, 5, 6] - [1, 4, 5]
+      a.should == [2, 3, 6]
+      a = [1, 2, 3, 4, 5, 6] - []
+      a.should == [1, 2, 3, 4, 5, 6]
+    end
+  end
+
+  describe '[]' do
+    it 'returns the item at the given index' do
+      a = [1, 2, 3, 4, 5, 6]
+      a[1].should == 2
+    end
+
+    it 'returns nil when the index is out of range' do
+      a = [1, 2, 3, 4, 5, 6]
+      a[10].should == nil
+    end
+  end
+
+  describe '[]' do
+    it 'replaces the item at the given index' do
+      a = [1, 2, 3, 4, 5, 6]
+      a[1] = 'two'
+      a.should == [1, 'two', 3, 4, 5, 6]
+    end
+
+    it 'fills the array with nils when the index is larger than array' do
+      a = [1, 2, 3, 4, 5, 6]
+      a[10] = 11
+      a.should == [1, 2, 3, 4, 5, 6, nil, nil, nil, nil, 11]
+    end
+  end
+
+  describe '#size' do
+    it 'returns the array size' do
+      [].size.should == 0
+      [1, 2, 3, 4, 5, 6].size.should == 6
+    end
+  end
+
+  describe '#length' do
+    it 'returns the array size' do
+      [].length.should == 0
+      [1, 2, 3, 4, 5, 6].length.should == 6
+    end
+  end
+
+  describe '#any?' do
+    context 'given no args' do
+      it 'returns true if the array has any items' do
+        [].any?.should == false
+        [1, 2, 3, 4, 5, 6].any?.should == true
+      end
+    end
+  end
+
+  describe '==' do
+    it 'returns true if the two arrays are equal' do
+      ([] == [1]).should == false
+      ([] == []).should == true
+      ([1, 2, 3] == [1, 2, 3]).should == true
+      ([1, 2, 3] == [3, 2, 1]).should == false
+    end
+  end
+
+  describe '#each' do
+    it 'evaluates the block for each item in the array' do
+      result = []
+      [1, 2, 3].each do |i|
+        result << i * 2
+      end
+      result.should == [2, 4, 6]
+    end
+  end
+
+  describe '#map' do
+    it 'returns a new array of the result of evaluating the block for each item in the array' do
+      result = [1, 2, 3].map do |i|
+        i * 2
+      end
+      result.should == [2, 4, 6]
+    end
+  end
+
+  describe '#first' do
+    it 'returns the first item in the array' do
+      [1, 2, 3].first.should == 1
+    end
+
+    it 'returns nil if the array is empty' do
+      [].first.should == nil
+    end
+  end
+
+  describe '#last' do
+    it 'returns the last item in the array' do
+      [1, 2, 3].last.should == 3
+    end
+
+    it 'returns nil if the array is empty' do
+      [].last.should == nil
+    end
+  end
+
+  describe '#to_ary' do
+    it 'returns itself' do
+      [1, 2, 3].to_ary.should == [1, 2, 3]
+    end
+  end
+
+  describe '#pop' do
+    it 'removes the last item and returns it' do
+      a = [1, 2, 3]
+      a.pop.should == 3
+      a.should == [1, 2]
+    end
+
+    it 'returns nil if the array is empty' do
+      a = []
+      a.pop.should == nil
+      a.should == []
+    end
+  end
+
+  describe '#include?' do
+    it 'returns true if the given item is present in the array' do
+      [1, 2, 3].include?(3).should == true
+      [1, 2, 3].include?(4).should == false
+      [].include?(4).should == false
+    end
+  end
+end
