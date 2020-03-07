@@ -449,7 +449,8 @@ NatHashKey *nat_hash_key_list_append(NatEnv *env, NatObject *hash, NatObject *ke
         // ^______________________________|
         new_last->prev = last;
         new_last->next = first;
-        new_last->env = env;
+        new_last->env = malloc(sizeof(NatEnv));
+        nat_build_env(new_last->env, env);
         new_last->removed = FALSE;
         first->prev = new_last;
         last->next = new_last;
@@ -460,7 +461,8 @@ NatHashKey *nat_hash_key_list_append(NatEnv *env, NatObject *hash, NatObject *ke
         node->val = val;
         node->prev = node;
         node->next = node;
-        node->env = env;
+        node->env = malloc(sizeof(NatEnv));
+        nat_build_env(node->env, env);
         node->removed = FALSE;
         hash->key_list = node;
         return node;
