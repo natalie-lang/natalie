@@ -31,7 +31,7 @@ describe 'thread' do
         3 => 'hello',
         4 => 'hello'
       }
-      #hash.keys.should == (0..4).to_a
+      hash.keys.sort.should == (0..4).to_a
     end
   end
 end
