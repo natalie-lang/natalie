@@ -575,11 +575,15 @@ NatObject* nat_hash_delete(NatEnv *env, NatObject *hash, NatObject *key) {
     NatHashKey key_container;
     key_container.key = key;
     key_container.env = env;
+    NAT_LOCK(hash)
     NatHashVal *container = hashmap_remove(&hash->hashmap, &key_container);
     if (container) {
         nat_hash_key_list_remove_node(hash, container->key);
-        return container->val;
+        NatObject *val = container->val;
+        NAT_UNLOCK(hash);
+        return val;
     } else {
+        NAT_UNLOCK(hash);
         return NULL;
     }
 }
