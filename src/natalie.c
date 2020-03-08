@@ -368,8 +368,7 @@ NatObject *nat_array(NatEnv *env) {
     NatObject *obj = nat_new(env, nat_const_get(env, NAT_OBJECT, "Array"), 0, NULL, NULL, NULL);
     obj->type = NAT_VALUE_ARRAY;
     obj->ary = calloc(NAT_ARRAY_INIT_SIZE, sizeof(NatObject*));
-    obj->str_len = 0;
-    obj->str_cap = NAT_ARRAY_INIT_SIZE;
+    obj->ary_len = 0;
     return obj;
 }
 
