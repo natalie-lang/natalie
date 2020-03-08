@@ -369,6 +369,7 @@ NatObject *nat_array(NatEnv *env) {
     obj->type = NAT_VALUE_ARRAY;
     obj->ary = calloc(NAT_ARRAY_INIT_SIZE, sizeof(NatObject*));
     obj->ary_len = 0;
+    obj->ary_cap = NAT_ARRAY_INIT_SIZE;
     return obj;
 }
 
@@ -379,6 +380,7 @@ NatObject *nat_array_copy(NatEnv *env, NatObject *source) {
     obj->ary = calloc(source->ary_len, sizeof(NatObject*));
     memcpy(obj->ary, source->ary, source->ary_len * sizeof(NatObject*));
     obj->ary_len = source->ary_len;
+    obj->ary_cap = source->ary_len;
     return obj;
 }
 
