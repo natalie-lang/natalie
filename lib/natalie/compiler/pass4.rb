@@ -439,8 +439,29 @@ module Natalie
 
       def process_s(exp)
         (_, string) = exp
-        string.to_s.inspect
-          .gsub(/\\#/, '#') # don't output \# like Ruby does -- C doesn't understand that
+        c_chars = string.to_s.bytes.map do |byte|
+          case byte
+          when 9
+            "\\t"
+          when 10
+            "\\n"
+          when 13
+            "\\r"
+          when 27
+            "\\e"
+          when 34
+            "\\\""
+          when 92
+            "\\\\"
+          when 127
+            "\\#{byte}"
+          when 32..255
+            byte.chr
+          else
+            "\\#{byte}"
+          end
+        end
+        '"' + c_chars.join + '"'
       end
 
       def process_self(_)
