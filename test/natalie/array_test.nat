@@ -161,4 +161,14 @@ describe 'array' do
       [].include?(4).should == false
     end
   end
+
+  describe '#sort' do
+    it 'returns a sorted copy of the array' do
+      a = [5, 3, 2, 1, 7, 9]
+      a2 = a.sort
+      a2.should == [1, 2, 3, 5, 7, 9]
+      a.should == [5, 3, 2, 1, 7, 9]
+      ['a', 'z', 'c', 'foo', 'bar'].sort.should == ['a', 'bar', 'c', 'foo', 'z']
+    end
+  end
 end

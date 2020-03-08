@@ -36,6 +36,22 @@
 #define NAT_MAX(a, b) ((a > b) ? a : b)
 #define NAT_NOT_YET_IMPLEMENTED(description) fprintf(stderr, "NOT YET IMPLEMENTED: %s", description); abort();
 
+#define NAT_LOCK(obj) { \
+    int lock_err = pthread_mutex_lock(&obj->mutex); \
+    if (lock_err) { \
+        fprintf(stderr, "Could not lock mutex: %d\n", lock_err); \
+        abort(); \
+    } \
+}
+
+#define NAT_UNLOCK(obj) { \
+    int unlock_err = pthread_mutex_unlock(&obj->mutex); \
+    if (unlock_err) { \
+        fprintf(stderr, "Could not unlock mutex: %d\n", unlock_err); \
+        abort(); \
+    } \
+}
+
 // ahem, "globals"
 #define NAT_OBJECT env->global_env->Object
 #define NAT_INTEGER env->global_env->Integer
@@ -324,6 +340,7 @@ NatObject *nat_exception(NatEnv *env, NatObject *klass, char *message);
 #define NAT_ARRAY_GROW_FACTOR 2
 
 NatObject *nat_array(NatEnv *env);
+NatObject *nat_array_copy(NatEnv *env, NatObject *source);
 void nat_grow_array(NatObject *obj, size_t capacity);
 void nat_grow_array_at_least(NatObject *obj, size_t min_capacity);
 void nat_array_push(NatObject *array, NatObject *obj);
@@ -365,5 +382,8 @@ void nat_handle_top_level_exception(NatEnv *env, int run_exit_handlers);
 int64_t nat_object_id(NatEnv *env, NatObject *obj);
 
 NatObject *nat_convert_to_real_object(NatEnv *env, NatObject *obj);
+
+int nat_quicksort_partition(NatEnv *env, NatObject* ary[], int start, int end);
+void nat_quicksort(NatEnv *env, NatObject* ary[], int start, int end);
 
 #endif

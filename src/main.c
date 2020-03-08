@@ -188,6 +188,7 @@ NatEnv *build_top_env() {
     nat_define_method(Array, "to_ary", Array_to_ary);
     nat_define_method(Array, "pop", Array_pop);
     nat_define_method(Array, "include?", Array_include);
+    nat_define_method(Array, "sort", Array_sort);
 
     NatObject *Hash = nat_subclass(env, Object, "Hash");
     nat_const_set(env, Object, "Hash", Hash);

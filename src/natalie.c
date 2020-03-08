@@ -372,6 +372,16 @@ NatObject *nat_array(NatEnv *env) {
     return obj;
 }
 
+NatObject *nat_array_copy(NatEnv *env, NatObject *source) {
+    assert(NAT_TYPE(source) == NAT_VALUE_ARRAY);
+    NatObject *obj = nat_new(env, nat_const_get(env, NAT_OBJECT, "Array"), 0, NULL, NULL, NULL);
+    obj->type = NAT_VALUE_ARRAY;
+    obj->ary = calloc(source->ary_len, sizeof(NatObject*));
+    memcpy(obj->ary, source->ary, source->ary_len * sizeof(NatObject*));
+    obj->ary_len = source->ary_len;
+    return obj;
+}
+
 void nat_grow_array(NatObject *obj, size_t capacity) {
     obj->ary = realloc(obj->ary, sizeof(NatObject*) * capacity);
     obj->ary_cap = capacity;
@@ -1136,5 +1146,33 @@ NatObject *nat_convert_to_real_object(NatEnv *env, NatObject *obj) {
         return real_obj;
     } else {
         return obj;
+    }
+}
+
+int nat_quicksort_partition(NatEnv *env, NatObject* ary[], int start, int end) {
+    NatObject *pivot = ary[end];
+    int pIndex = start;
+    NatObject *temp;
+
+    for (int i=start; i<end; i++) {
+        NatObject *compare = nat_send(env, ary[i], "<=", 1, &pivot, NULL);
+        if (nat_truthy(compare)) {
+            temp = ary[i];
+            ary[i] = ary[pIndex];
+            ary[pIndex] = temp;
+            pIndex++;
+        }
+    }
+    temp = ary[end];
+    ary[end] = ary[pIndex];
+    ary[pIndex] = temp;
+    return pIndex;
+}
+
+void nat_quicksort(NatEnv *env, NatObject* ary[], int start, int end) {
+    if (start < end) {
+        int pIndex = nat_quicksort_partition(env, ary, start, end);
+        nat_quicksort(env, ary, start, pIndex - 1);
+        nat_quicksort(env, ary, pIndex + 1, end);
     }
 }

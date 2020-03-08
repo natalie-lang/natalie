@@ -243,3 +243,11 @@ NatObject *Array_include(NatEnv *env, NatObject *self, size_t argc, NatObject **
         return NAT_FALSE;
     }
 }
+
+NatObject *Array_sort(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);
+    NAT_ASSERT_ARGC(0);
+    NatObject *copy = nat_array_copy(env, self);
+	nat_quicksort(env, copy->ary, 0, copy->ary_len - 1);
+    return copy;
+}
