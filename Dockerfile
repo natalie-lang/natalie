@@ -1,6 +1,6 @@
 FROM ubuntu:focal
 
-RUN apt-get update && apt-get install -y -q ruby ruby-dev build-essential cmake autoconf libtool
+RUN apt-get update && apt-get install -y -q ruby ruby-dev build-essential cmake autoconf libtool valgrind
 RUN gem update --system
 RUN gem install bundler --no-doc
 
