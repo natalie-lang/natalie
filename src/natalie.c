@@ -534,24 +534,19 @@ NatObject *nat_hash_get(NatEnv *env, NatObject *hash, NatObject *key) {
     NatHashKey key_container;
     key_container.key = key;
     key_container.env = env;
+    NAT_LOCK(hash)
     NatHashVal *container = hashmap_get(&hash->hashmap, &key_container);
-    if (container) {
-        return container->val;
-    } else {
-        return NULL;
-    }
+    NatObject *val = container ? container->val : NULL;
+    NAT_UNLOCK(hash);
+    return val;
 }
 
 void nat_hash_put(NatEnv *env, NatObject *hash, NatObject *key, NatObject *val) {
     assert(NAT_TYPE(hash) == NAT_VALUE_HASH);
-    int err = pthread_mutex_lock(&hash->mutex);
-    if (err) {
-        fprintf(stderr, "Could not lock mutex for %p\n", hash);
-        abort();
-    }
     NatHashKey key_container;
     key_container.key = key;
     key_container.env = env;
+    NAT_LOCK(hash)
     NatHashVal *container = hashmap_get(&hash->hashmap, &key_container);
     if (container) {
         container->key->val = val;
@@ -562,11 +557,7 @@ void nat_hash_put(NatEnv *env, NatObject *hash, NatObject *key, NatObject *val) 
         container->val = val;
         hashmap_put(&hash->hashmap, container->key, container);
     }
-    err = pthread_mutex_unlock(&hash->mutex);
-    if (err) {
-        fprintf(stderr, "Could not unlock mutex on %p\n", hash);
-        abort();
-    }
+    NAT_UNLOCK(hash);
 }
 
 NatObject* nat_hash_delete(NatEnv *env, NatObject *hash, NatObject *key) {
