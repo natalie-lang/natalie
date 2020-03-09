@@ -7,34 +7,18 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v1
-    - name: install dependencies
-      run: |
-        git submodule update --init
-        sudo apt-get update
-        sudo apt-get install -y -q build-essential libedit-dev libgc-dev libpcre3-dev software-properties-common cmake clang valgrind lcov
-        sudo apt-add-repository ppa:brightbox/ruby-ng
-        sudo apt-get update
-        sudo apt-get install -y -q ruby2.6 ruby2.6-dev ruby-switch
-        ruby-switch --list
-        sudo ruby-switch --set ruby2.6
-        sudo gem install bundler minitest
-        bundle config set deployment 'true'
-        bundle install
-    - name: set environment
-      run: export LC_ALL="C.UTF-8"
+    - name: checkout submodules
+      run: git submodule update --init --recursive
+    - name: build image
+      run: docker build -t natalie .
     - name: test with gcc
-      run: PATH="/usr/local/bin:/usr/bin:/bin" make clean test
+      run: make docker_test
     - name: test with clang
-      run: PATH="/usr/local/bin:/usr/bin:/bin" CC="/usr/bin/clang" make clean test
+      run: make docker_test_clang
     - name: test with valgrind
-      run: |
-        PATH="/usr/local/bin:/usr/bin:/bin" bin/natalie -c assign_test test/natalie/assign_test.nat
-        valgrind --leak-check=no --error-exitcode=1 ./assign_test
+      run: make docker_test_valgrind
     - name: coverage report
-      run: |
-        PATH="/usr/local/bin:/usr/bin:/bin" make BUILD=coverage clean test || :
-        lcov -c --directory . --output-file coverage.info
-        genhtml coverage.info --output-directory coverage-report
+      run: make docker_coverage_report
     - uses: actions/upload-artifact@v1
       with:
         name: coverage-report

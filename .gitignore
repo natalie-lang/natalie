@@ -1,3 +1,4 @@
 obj/**/*.o
 .build
 test/tmp
+coverage-report
