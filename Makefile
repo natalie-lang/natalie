@@ -5,7 +5,8 @@ LIB := lib/natalie
 OBJ := obj
 ONIGMO := ext/onigmo
 
-BUILD := debug # or: coverage, release
+# debug, coverage, or release
+BUILD := debug
 
 cflags.debug := -g -Wall -Wextra -Werror -Wno-unused-parameter -pthread
 cflags.coverage := ${cflags.debug} -fprofile-arcs -ftest-coverage -pthread
