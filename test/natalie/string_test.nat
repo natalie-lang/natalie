@@ -6,14 +6,17 @@ describe 'string' do
   describe "#<=>" do
     it "should return -1 if lhs is less than rhs" do
       ('a' <=> 'b').should == -1
+      ('a' <=> 'z').should == -1
     end
 
     it "should return 1 if lhs is greater than rhs" do
       ('b' <=> 'a').should == 1
+      ('z' <=> 'a').should == 1
     end
 
     it "should return 0 if both sides are equal" do
       ('a' <=> 'a').should == 0
+      ('z' <=> 'z').should == 0
     end
   end
 
