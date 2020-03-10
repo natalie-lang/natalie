@@ -3,11 +3,11 @@
 #include <stdarg.h>
 #include <math.h>
 
-int nat_is_constant_name(char *name) {
+bool nat_is_constant_name(char *name) {
     return strlen(name) > 0 && isupper(name[0]);
 }
 
-int nat_is_global_name(char *name) {
+bool nat_is_global_name(char *name) {
     return strlen(name) > 0 && name[0] == '$';
 }
 
@@ -86,9 +86,9 @@ NatGlobalEnv *nat_build_global_env() {
 NatEnv *nat_build_env(NatEnv *env, NatEnv *outer) {
     env->var_count = 0;
     env->vars = NULL;
-    env->block = FALSE;
+    env->block = false;
     env->outer = outer;
-    env->rescue = FALSE;
+    env->rescue = false;
     env->caller = NULL;
     env->line = 0;
     env->method_name = NULL;
@@ -102,7 +102,7 @@ NatEnv *nat_build_env(NatEnv *env, NatEnv *outer) {
 
 NatEnv *nat_build_block_env(NatEnv *env, NatEnv *outer, NatEnv *calling_env) {
     nat_build_env(env,  outer);
-    env->block = TRUE;
+    env->block = true;
     env->caller = calling_env;
     return env;
 }
@@ -229,14 +229,11 @@ NatObject *nat_global_set(NatEnv *env, char *name, NatObject *val) {
     return val;
 }
 
-#define TRUE 1
-#define FALSE 0
-
-int nat_truthy(NatObject *obj) {
+bool nat_truthy(NatObject *obj) {
     if (NAT_TYPE(obj) == NAT_VALUE_FALSE || NAT_TYPE(obj) == NAT_VALUE_NIL) {
-        return FALSE;
+        return false;
     } else {
-        return TRUE;
+        return true;
     }
 }
 
@@ -467,7 +464,7 @@ NatHashKey *nat_hash_key_list_append(NatEnv *env, NatObject *hash, NatObject *ke
         new_last->next = first;
         new_last->env = malloc(sizeof(NatEnv));
         nat_build_env(new_last->env, env);
-        new_last->removed = FALSE;
+        new_last->removed = false;
         first->prev = new_last;
         last->next = new_last;
         return new_last;
@@ -479,7 +476,7 @@ NatHashKey *nat_hash_key_list_append(NatEnv *env, NatObject *hash, NatObject *ke
         node->next = node;
         node->env = malloc(sizeof(NatEnv));
         nat_build_env(node->env, env);
-        node->removed = FALSE;
+        node->removed = false;
         hash->key_list = node;
         return node;
     }
@@ -494,7 +491,7 @@ void nat_hash_key_list_remove_node(NatObject *hash, NatHashKey *node) {
         // ^_______|
         node->prev = NULL;
         node->next = NULL;
-        node->removed = TRUE;
+        node->removed = true;
         hash->key_list = NULL;
         return;
     } else if (hash->key_list == node) {
@@ -502,7 +499,7 @@ void nat_hash_key_list_remove_node(NatObject *hash, NatHashKey *node) {
         hash->key_list = next;
     }
     // remove the node
-    node->removed = TRUE;
+    node->removed = true;
     prev->next = next;
     next->prev = prev;
 }
@@ -634,7 +631,7 @@ void nat_define_method(NatObject *obj, char *name, NatObject* (*fn)(NatEnv*, Nat
     NatMethod *method = malloc(sizeof(NatMethod));
     method->fn = fn;
     method->env.outer = NULL;
-    method->undefined = fn ? FALSE : TRUE;
+    method->undefined = fn ? false : true;
     if (nat_is_main_object(obj)) {
         hashmap_remove(&obj->klass->methods, name);
         hashmap_put(&obj->klass->methods, name, method);
@@ -648,7 +645,7 @@ void nat_define_method_with_block(NatObject *obj, char *name, NatBlock *block) {
     NatMethod *method = malloc(sizeof(NatMethod));
     method->fn = block->fn;
     method->env = block->env;
-    method->undefined = FALSE;
+    method->undefined = false;
     if (nat_is_main_object(obj)) {
         hashmap_remove(&obj->klass->methods, name);
         hashmap_put(&obj->klass->methods, name, method);
@@ -662,7 +659,7 @@ void nat_define_singleton_method(NatEnv *env, NatObject *obj, char *name, NatObj
     NatMethod *method = malloc(sizeof(NatMethod));
     method->fn = fn;
     method->env.outer = NULL;
-    method->undefined = fn ? FALSE : TRUE;
+    method->undefined = fn ? false : true;
     NatObject *klass = nat_singleton_class(env, obj);
     hashmap_remove(&klass->methods, name);
     hashmap_put(&klass->methods, name, method);
@@ -690,17 +687,17 @@ NatObject *nat_class_ancestors(NatEnv *env, NatObject *klass) {
     return ancestors;
 }
 
-int nat_is_a(NatEnv *env, NatObject *obj, NatObject *klass_or_module) {
+bool nat_is_a(NatEnv *env, NatObject *obj, NatObject *klass_or_module) {
     if (obj == klass_or_module) {
-        return TRUE;
+        return true;
     } else {
         NatObject *ancestors = nat_class_ancestors(env, NAT_OBJ_CLASS(obj));
         for (size_t i=0; i<ancestors->ary_len; i++) {
             if (klass_or_module == ancestors->ary[i]) {
-                return TRUE;
+                return true;
             }
         }
-        return FALSE;
+        return false;
     }
 }
 
@@ -850,21 +847,21 @@ NatObject *nat_call_method_on_class(NatEnv *env, NatObject *klass, NatObject *in
     }
 }
 
-int nat_respond_to(NatEnv *env, NatObject *obj, char *name) {
+bool nat_respond_to(NatEnv *env, NatObject *obj, char *name) {
     NatObject *matching_class_or_module;
     if (NAT_TYPE(obj) == NAT_VALUE_INTEGER) {
         NatObject *klass = NAT_INTEGER;
         if (nat_find_method_without_undefined(klass, name, &matching_class_or_module)) {
-            return TRUE;
+            return true;
         } else {
-            return FALSE;
+            return false;
         }
     } else if (obj->singleton_class && nat_find_method_without_undefined(obj->singleton_class, name, &matching_class_or_module)) {
-        return TRUE;
+        return true;
     } else if (nat_find_method_without_undefined(obj->klass, name, &matching_class_or_module)) {
-        return TRUE;
+        return true;
     } else {
-        return FALSE;
+        return false;
     }
 }
 
@@ -891,7 +888,7 @@ NatObject *nat_proc(NatEnv *env, NatBlock *block) {
 
 NatObject *nat_lambda(NatEnv *env, NatBlock *block) {
     NatObject *lambda = nat_proc(env, block);
-    lambda->lambda = TRUE;
+    lambda->lambda = true;
     return lambda;
 }
 
@@ -991,7 +988,7 @@ NatObject* nat_vsprintf(NatEnv *env, char *format, va_list args) {
     return out;
 }
 
-NatObject *nat_range(NatEnv *env, NatObject *begin, NatObject *end, int exclude_end) {
+NatObject *nat_range(NatEnv *env, NatObject *begin, NatObject *end, bool exclude_end) {
     NatObject *obj = nat_new(env, nat_const_get(env, NAT_OBJECT, "Range"), 0, NULL, NULL, NULL);
     obj->type = NAT_VALUE_RANGE;
     obj->range_begin = begin;
@@ -1113,11 +1110,11 @@ void nat_print_exception_with_backtrace(NatEnv *env, NatObject *exception) {
     dprintf(fd, "%s (%s)\n", exception->message, exception->klass->class_name);
 }
 
-void nat_handle_top_level_exception(NatEnv *env, int run_exit_handlers) {
+void nat_handle_top_level_exception(NatEnv *env, bool run_exit_handlers) {
     NatObject *exception = env->exception;
     assert(exception);
     assert(NAT_TYPE(exception) == NAT_VALUE_EXCEPTION);
-    env->rescue = FALSE;
+    env->rescue = false;
     if (nat_is_a(env, exception, nat_const_get(env, NAT_OBJECT, "SystemExit"))) {
         NatObject *status_obj = nat_ivar_get(env, exception, "@status");
         if (run_exit_handlers) nat_run_at_exit_handlers(env);

@@ -232,7 +232,7 @@ module Natalie
       end
 
       def process_clear_jump_buf(_)
-        decl 'env->rescue = FALSE;'
+        decl 'env->rescue = false;'
         ''
       end
 
@@ -388,7 +388,7 @@ module Natalie
           c << "return #{result};" unless result.empty?
           c << '} else {'
           c << 'nat_global_set(env, "$!", env->exception);'
-          c << 'env->rescue = FALSE;'
+          c << 'env->rescue = false;'
           @decl = []
           result = p(bottom)
           c += @decl

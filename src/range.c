@@ -3,7 +3,7 @@
 
 NatObject *Range_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(2, 3);
-    int exclude_end = FALSE;
+    bool exclude_end = false;
     if (argc == 3) {
         exclude_end = nat_truthy(args[2]);
     }

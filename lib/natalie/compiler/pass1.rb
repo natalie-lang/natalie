@@ -450,7 +450,7 @@ module Natalie
         raise 'check this out' if unknown != true # NOTE: I don't know what this is; it always seems to be true
         body ||= s(:nil)
         exp.new(:block,
-          s(:c_while, 'TRUE',
+          s(:c_while, 'true',
             s(:block,
               s(:c_if, s(:not, s(:nat_truthy, process(condition))), s(:c_break)),
               process(body))),

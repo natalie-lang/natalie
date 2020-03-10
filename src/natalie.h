@@ -6,6 +6,7 @@
 #include <inttypes.h>
 #include <pthread.h>
 #include <setjmp.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -59,9 +60,6 @@
 #define NAT_TRUE env->global_env->true_obj
 #define NAT_FALSE env->global_env->false_obj
 
-#define TRUE 1
-#define FALSE 0
-
 // only 63-bit numbers for now
 #define NAT_MIN_INT INT64_MIN >> 1
 #define NAT_MAX_INT INT64_MAX >> 1
@@ -92,8 +90,8 @@ struct NatEnv {
     size_t var_count;
     NatObject **vars;
     NatEnv *outer;
-    int block;
-    int rescue;
+    bool block;
+    bool rescue;
     jmp_buf jump_buf;
     NatObject *exception;
     NatEnv *caller;
@@ -111,7 +109,7 @@ struct NatBlock {
 struct NatMethod {
     NatObject* (*fn)(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
     NatEnv env;
-    int undefined;
+    bool undefined;
 };
 
 struct NatHashKey {
@@ -120,7 +118,7 @@ struct NatHashKey {
     NatObject *key;
     NatObject *val;
     NatEnv *env;
-    int removed;
+    bool removed;
 };
 
 struct NatHashVal {
@@ -175,7 +173,7 @@ struct NatObject {
     struct hashmap ivars;
 
     pthread_mutex_t mutex;
-    
+
     union {
         int64_t integer;
 
@@ -219,7 +217,7 @@ struct NatObject {
         // NAT_VALUE_PROC
         struct {
             NatBlock *block;
-            int lambda;
+            bool lambda;
         };
 
         // NAT_VALUE_THREAD
@@ -232,7 +230,7 @@ struct NatObject {
         struct {
             NatObject *range_begin;
             NatObject *range_end;
-            int range_exclude_end;
+            bool range_exclude_end;
         };
 
         // NAT_VALUE_REGEXP
@@ -253,8 +251,8 @@ struct NatObject {
     };
 };
 
-int nat_is_constant_name(char *name);
-int nat_is_special_name(char *name);
+bool nat_is_constant_name(char *name);
+bool nat_is_special_name(char *name);
 
 NatObject *nat_const_get(NatEnv *env, NatObject *klass, char *name);
 NatObject *nat_const_get_or_null(NatEnv *env, NatObject *klass, char *name);
@@ -279,7 +277,7 @@ NatObject *nat_ivar_set(NatEnv *env, NatObject *obj, char *name, NatObject *val)
 NatObject *nat_global_get(NatEnv *env, char *name);
 NatObject *nat_global_set(NatEnv *env, char *name, NatObject *val);
 
-int nat_truthy(NatObject *obj);
+bool nat_truthy(NatObject *obj);
 
 char *heap_string(char *str);
 
@@ -304,7 +302,7 @@ void nat_undefine_method(NatObject *obj, char *name);
 void nat_undefine_singleton_method(NatEnv *env, NatObject *obj, char *name);
 
 NatObject *nat_class_ancestors(NatEnv *env, NatObject *klass);
-int nat_is_a(NatEnv *env, NatObject *obj, NatObject *klass_or_module);
+bool nat_is_a(NatEnv *env, NatObject *obj, NatObject *klass_or_module);
 
 char *nat_defined(NatEnv *env, NatObject *receiver, char *name);
 NatObject *nat_defined_obj(NatEnv *env, NatObject *receiver, char *name);
@@ -314,7 +312,7 @@ void nat_methods(NatEnv *env, NatObject *array, NatObject *klass);
 NatMethod *nat_find_method(NatObject *klass, char *method_name, NatObject **matching_class_or_module);
 NatMethod *nat_find_method_without_undefined(NatObject *klass, char *method_name, NatObject **matching_class_or_module);
 NatObject *nat_call_method_on_class(NatEnv *env, NatObject *klass, NatObject *instance_class, char *method_name, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
-int nat_respond_to(NatEnv *env, NatObject *obj, char *name);
+bool nat_respond_to(NatEnv *env, NatObject *obj, char *name);
 
 NatBlock *nat_block(NatEnv *env, NatObject *self, NatObject* (*fn)(NatEnv*, NatObject*, size_t, NatObject**, struct hashmap*, NatBlock*));
 NatObject *nat_run_block(NatEnv *env, NatBlock *the_block, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
@@ -364,7 +362,7 @@ NatObject* nat_hash_delete(NatEnv *env, NatObject *hash, NatObject *key);
 NatObject *nat_regexp(NatEnv *env, char *pattern);
 NatObject *nat_matchdata(NatEnv *env, OnigRegion *region, NatObject *str_obj);
 
-NatObject *nat_range(NatEnv *env, NatObject *begin, NatObject *end, int exclude_end);
+NatObject *nat_range(NatEnv *env, NatObject *begin, NatObject *end, bool exclude_end);
 
 NatObject *nat_thread(NatEnv *env, NatBlock *block);
 NatObject *nat_thread_join(NatEnv *env, NatObject *thread);
@@ -377,7 +375,7 @@ void nat_alias(NatEnv *env, NatObject *self, char *new_name, char *old_name);
 
 void nat_run_at_exit_handlers(NatEnv *env);
 void nat_print_exception_with_backtrace(NatEnv *env, NatObject *exception);
-void nat_handle_top_level_exception(NatEnv *env, int run_exit_handlers);
+void nat_handle_top_level_exception(NatEnv *env, bool run_exit_handlers);
 
 int64_t nat_object_id(NatEnv *env, NatObject *obj);
 
