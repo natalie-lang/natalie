@@ -617,11 +617,10 @@ NatObject *nat_matchdata(NatEnv *env, OnigRegion *region, NatObject *str_obj) {
 #define INT_64_MAX_CHAR_LEN 21 // 1 for sign, 19 for max digits, and 1 for null terminator
 
 char* int_to_string(int64_t num) {
-    char* str;
     if (num == 0) {
         return heap_string("0");
     } else {
-        str = malloc(INT_64_MAX_CHAR_LEN);
+        char *str = malloc(INT_64_MAX_CHAR_LEN);
         snprintf(str, INT_64_MAX_CHAR_LEN, "%" PRId64, num);
         return str;
     }
@@ -954,13 +953,12 @@ NatObject* nat_sprintf(NatEnv *env, char *format, ...) {
 
 NatObject* nat_vsprintf(NatEnv *env, char *format, va_list args) {
     NatObject *out = nat_string(env, "");
-    char c, c2;
     size_t len = strlen(format);
     NatObject *inspected;
     for (size_t i=0; i<len; i++) {
-        c = format[i];
+        char c = format[i];
         if (c == '%') {
-            c2 = format[++i];
+            char c2 = format[++i];
             switch (c2) {
                 case 's':
                     nat_string_append(out, va_arg(args, char*));
@@ -1012,8 +1010,6 @@ NatObject *nat_thread_join(NatEnv *env, NatObject *thread) {
         return thread->thread_value;
     } else if (err) {
         NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "ThreadError"), "There was an error joining the thread %d", err);
-        printf("could not join thread\n");
-        abort(); // FIXME
     } else {
         thread->thread_value = (NatObject*)value;
         return thread->thread_value;

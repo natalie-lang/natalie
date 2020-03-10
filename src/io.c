@@ -87,9 +87,8 @@ NatObject *IO_puts(NatEnv *env, NatObject *self, size_t argc, NatObject **args, 
     if (argc == 0) {
         dprintf(fd, "\n");
     } else {
-        NatObject *str;
         for (size_t i=0; i<argc; i++) {
-            str = nat_send(env, args[i], "to_s", 0, NULL, NULL);
+            NatObject *str = nat_send(env, args[i], "to_s", 0, NULL, NULL);
             NAT_ASSERT_TYPE(str, NAT_VALUE_STRING, "String");
             dprintf(fd, "%s\n", str->str);
         }
@@ -100,9 +99,8 @@ NatObject *IO_puts(NatEnv *env, NatObject *self, size_t argc, NatObject **args, 
 NatObject *IO_print(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     int fd = self->fileno;
     if (argc > 0) {
-        NatObject *str;
         for (size_t i=0; i<argc; i++) {
-            str = nat_send(env, args[i], "to_s", 0, NULL, NULL);
+            NatObject *str = nat_send(env, args[i], "to_s", 0, NULL, NULL);
             NAT_ASSERT_TYPE(str, NAT_VALUE_STRING, "String");
             dprintf(fd, "%s", str->str);
         }
