@@ -3,6 +3,20 @@
 require_relative '../spec_helper'
 
 describe 'string' do
+  describe "#<=>" do
+    it "should return -1 if lhs is less than rhs" do
+      ('a' <=> 'b').should == -1
+    end
+
+    it "should return 1 if lhs is greater than rhs" do
+      ('b' <=> 'a').should == 1
+    end
+
+    it "should return 0 if both sides are equal" do
+      ('a' <=> 'a').should == 0
+    end
+  end
+
   describe '#succ' do
     context 'given a single character' do
       it 'returns the next character' do

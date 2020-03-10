@@ -101,7 +101,16 @@ NatObject *String_cmp(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
     NAT_ASSERT_ARGC(1);
     NatObject* arg = args[0];
     if (NAT_TYPE(arg) != NAT_VALUE_STRING) return NAT_NIL;
-    return nat_integer(env, strcmp(self->str, arg->str));
+    int diff = strcmp(self->str, arg->str);
+    int result;
+    if (diff < 0) {
+        result = -1;
+    } else if (diff > 0) {
+        result = 1;
+    } else {
+        result = 0;
+    }
+    return nat_integer(env, result);
 }
 
 NatObject *String_eqtilde(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
