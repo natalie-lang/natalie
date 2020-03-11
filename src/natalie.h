@@ -60,11 +60,18 @@
 #define NAT_TRUE env->global_env->true_obj
 #define NAT_FALSE env->global_env->false_obj
 
-// only 63-bit numbers for now
-#define NAT_MIN_INT INT64_MIN >> 1
-#define NAT_MAX_INT INT64_MAX >> 1
+// FIXME: Either use Autoconf or find another way to define this
+#ifdef PORTABLE_RSHIFT
+#define RSHIFT(x, y) (((x)<0) ? ~((~(x))>>y) : (x)>>y)
+#else
+#define RSHIFT(x, y) ((x)>>(int)y)
+#endif
 
-#define NAT_INT_VALUE(obj) (((int64_t)obj & 1) ? ((int64_t)obj) >> 1 : obj->integer)
+// only 63-bit numbers for now
+#define NAT_MIN_INT RSHIFT(INT64_MIN, 1)
+#define NAT_MAX_INT RSHIFT(INT64_MAX, 1)
+
+#define NAT_INT_VALUE(obj) (((int64_t)obj & 1) ? RSHIFT((int64_t)obj, 1) : obj->integer)
 
 typedef struct NatObject NatObject;
 typedef struct NatGlobalEnv NatGlobalEnv;
