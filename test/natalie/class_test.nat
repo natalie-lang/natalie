@@ -102,6 +102,11 @@ describe 'class' do
 end
 
 class IvarTest
+  def add_w(w)
+    @w ||= []
+    @w << w
+  end
+
   def set_x(x)
     @x = x
   end
@@ -130,6 +135,7 @@ class IvarTest
     result
   end
 
+  attr_reader :w
   attr_reader :z
   attr_reader :z2
   attr_writer :z
@@ -142,6 +148,11 @@ describe 'class' do
   describe 'instance variables' do
     it 'can be set and returned' do
       i = IvarTest.new
+      i.w.should == nil
+      i.add_w 1
+      i.w.should == [1]
+      i.add_w 2
+      i.w.should == [1, 2]
       i.get_x.should == nil
       i.set_x(10)
       i.get_x.should == 10
