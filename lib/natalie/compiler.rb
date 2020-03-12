@@ -196,30 +196,60 @@ module Natalie
       send("macro_#{macro}", *args, path)
     end
 
+    REQUIRE_EXTENSIONS = %w[nat rb]
+
     def macro_require(node, current_path)
-      path = node[1] + '.nat'
-      macro_load([nil, path], current_path)
+      name = node[1]
+      REQUIRE_EXTENSIONS.each do |extension|
+        path = "#{name}.#{extension}"
+        next unless full_path = find_full_path(path, base: Dir.pwd, search: true)
+        return load_file(full_path)
+      end
+      raise LoadError, "cannot load such file -- #{name}.{#{REQUIRE_EXTENSIONS.join(',')}}"
     end
 
     def macro_require_relative(node, current_path)
-      path = File.expand_path(node[1] + '.nat', File.dirname(current_path))
-      macro_load([nil, path], current_path)
+      name = node[1]
+      REQUIRE_EXTENSIONS.each do |extension|
+        path = "#{name}.#{extension}"
+        next unless full_path = find_full_path(path, base: File.dirname(current_path), search: false)
+        return load_file(full_path)
+      end
+      raise LoadError, "cannot load such file -- #{name}.{#{REQUIRE_EXTENSIONS.join(',')}}"
     end
 
     def macro_load(node, _)
       path = node.last
-      full_path = if path.start_with?('/')
-                    path
-                  else
-                    load_path.map { |d| File.join(d, path) }.detect { |p| File.exist?(p) }
-                  end
+      full_path = find_full_path(path, base: Dir.pwd, search: true)
       if full_path
-        code = File.read(full_path)
-        file_ast = Natalie::Parser.new(code, full_path).ast
-        expand_macros(file_ast, full_path)
+        load_file(full_path)
       else
         raise LoadError, "cannot load such file -- #{path}"
       end
+    end
+
+    def load_file(path)
+      code = File.read(path)
+      file_ast = Natalie::Parser.new(code, path).ast
+      expand_macros(file_ast, path)
+    end
+
+    def find_full_path(path, base:, search:)
+      if path.start_with?(File::SEPARATOR)
+        path if File.exist?(path)
+      elsif path.start_with?('.' + File::SEPARATOR)
+        path = File.expand_path(path, base)
+        path if File.exist?(path)
+      elsif search
+        find_file_in_load_path(path)
+      else
+        path = File.expand_path(path, base)
+        path if File.exist?(path)
+      end
+    end
+
+    def find_file_in_load_path(path)
+      load_path.map { |d| File.join(d, path) }.detect { |p| File.exist?(p) }
     end
 
     def reindent(code)
