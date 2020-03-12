@@ -949,6 +949,9 @@ NatBlock *nat_block(NatEnv *env, NatObject *self, NatObject* (*fn)(NatEnv*, NatO
 }
 
 NatObject *nat_run_block(NatEnv *env, NatBlock *the_block, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    if (!the_block) {
+        NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "LocalJumpError"), "no block given");
+    }
     NatEnv e;
     nat_build_block_env(&e, &the_block->env, env);
     return the_block->fn(&e, the_block->self, argc, args, kwargs, block);
