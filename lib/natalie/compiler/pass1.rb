@@ -67,7 +67,7 @@ module Natalie
           s(:c_return, break_name))
       end
 
-      def process_call(exp)
+      def process_call(exp, is_super: false)
         (_, receiver, method, *args) = exp
         (_, block_pass) = args.pop if args.last&.sexp_type == :block_pass
         if args.any? { |a| a.sexp_type == :splat }
@@ -75,14 +75,21 @@ module Natalie
         else
           args = s(:args, *args.map { |a| process(a) })
         end
-        proc_name = temp('proc_to_block')
         receiver = receiver ? process(receiver) : :self
+        call = if is_super
+                 exp.new(:nat_super, args)
+               else
+                 exp.new(:nat_send, receiver, method, args)
+               end
         if block_pass
+          proc_name = temp('proc_to_block')
+          call << "#{proc_name}->block"
           exp.new(:block,
             s(:declare, proc_name, process(block_pass)),
-            s(:nat_send, receiver, method, args, "#{proc_name}->block"))
+            call)
         else
-          exp.new(:nat_send, receiver, method, args, 'NULL')
+          call << 'NULL'
+          call
         end
       end
 
@@ -474,8 +481,7 @@ module Natalie
       end
 
       def process_super(exp)
-        (_, *args) = exp
-        exp.new(:nat_super, s(:args, *args.map { |n| process(n) }))
+        process_call(exp, is_super: true)
       end
 
       def process_while(exp)

@@ -69,6 +69,18 @@ class Bar
   end
 end
 
+class YieldToBlock
+  def yield_to_block
+    yield
+  end
+end
+
+class BlockPassTest < YieldToBlock
+  def yield_to_block(&b)
+    super(&b)
+  end
+end
+
 describe 'method' do
   it 'can be called' do
     foo.should == 'foo'
@@ -89,9 +101,23 @@ describe 'method' do
     r.should == 2
   end
 
-  it 'can receive a block as an Proc argument' do
+  it 'can receive a block as a Proc argument' do
     r = block_arg_test(1, 2) { 3 }
     r.should == [1, 2, 3]
+  end
+
+  # FIXME: doesn't actually bubble up because LocalJumpError is trapped by the method
+  xit 'raises an error when trying to yield without a block' do
+    -> { YieldToBlock.new.yield_to_block }.should raise_error(LocalJumpError)
+  end
+
+  xit 'can call super with a block arg' do
+    t = BlockPassTest.new
+    it_worked = false
+    t.yield_to_block do
+      it_worked = true
+    end
+    it_worked.should == true
   end
 
   it 'can yield args to a block' do
