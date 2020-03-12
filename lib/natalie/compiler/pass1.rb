@@ -138,6 +138,16 @@ module Natalie
         exp.new(:nat_const_get, :env, :self, s(:s, name))
       end
 
+      def process_cvasgn(exp)
+        (_, name, value) = exp
+        exp.new(:nat_cvar_set, :env, :self, s(:s, name), process(value))
+      end
+
+      def process_cvar(exp)
+        (_, name) = exp
+        exp.new(:nat_cvar_get, :env, :self, s(:s, name))
+      end
+
       def process_defined(exp)
         (_, name) = exp
         name = process(name) if name.sexp_type == :call

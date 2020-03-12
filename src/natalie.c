@@ -206,6 +206,68 @@ NatObject *nat_ivar_set(NatEnv *env, NatObject *obj, char *name, NatObject *val)
     return val;
 }
 
+NatObject *nat_cvar_get(NatEnv *env, NatObject *obj, char *name) {
+    assert(strlen(name) > 1);
+    if(name[0] != '@' || name[1] != '@') {
+        NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "NameError"), "`%s' is not allowed as a class variable name", name);
+    }
+
+    if (NAT_TYPE(obj) != NAT_VALUE_CLASS && NAT_TYPE(obj) != NAT_VALUE_MODULE) {
+        obj = obj->klass;
+    }
+    assert(NAT_TYPE(obj) == NAT_VALUE_CLASS || NAT_TYPE(obj) == NAT_VALUE_MODULE);
+
+    NatObject *val = NULL;
+    while (1) {
+        if (obj->cvars.table) {
+            val = hashmap_get(&obj->cvars, name);
+            if (val) {
+                return val;
+            }
+        }
+        if (!obj->superclass) {
+            NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "NameError"), "uninitialized class variable %s in Foo", name);
+        }
+        obj = obj->superclass;
+    }
+}
+
+NatObject *nat_cvar_set(NatEnv *env, NatObject *obj, char *name, NatObject *val) {
+    assert(strlen(name) > 1);
+    if(name[0] != '@' || name[1] != '@') {
+        NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "NameError"), "`%s' is not allowed as a class variable name", name);
+    }
+
+    if (NAT_TYPE(obj) != NAT_VALUE_CLASS && NAT_TYPE(obj) != NAT_VALUE_MODULE) {
+        obj = obj->klass;
+    }
+    assert(NAT_TYPE(obj) == NAT_VALUE_CLASS || NAT_TYPE(obj) == NAT_VALUE_MODULE);
+
+    NatObject *current = obj;
+
+    NatObject *exists = NULL;
+    while (1) {
+        if (current->cvars.table) {
+            exists = hashmap_get(&current->cvars, name);
+            if (exists) {
+                hashmap_remove(&current->cvars, name);
+                hashmap_put(&current->cvars, name, val);
+                return val;
+            }
+        }
+        if (!current->superclass) {
+            if (obj->cvars.table == NULL) {
+                hashmap_init(&obj->cvars, hashmap_hash_string, hashmap_compare_string, 10);
+                hashmap_set_key_alloc_funcs(&obj->cvars, hashmap_alloc_key_string, NULL);
+            }
+            hashmap_remove(&obj->cvars, name);
+            hashmap_put(&obj->cvars, name, val);
+            return val;
+        }
+        current = current->superclass;
+    }
+}
+
 NatObject *nat_global_get(NatEnv *env, char *name) {
     assert(strlen(name) > 0);
     if(name[0] != '$') {
@@ -277,6 +339,7 @@ NatObject *nat_subclass(NatEnv *env, NatObject *superclass, char *name) {
     hashmap_set_key_alloc_funcs(&klass->methods, hashmap_alloc_key_string, NULL);
     hashmap_init(&klass->constants, hashmap_hash_string, hashmap_compare_string, 10);
     hashmap_set_key_alloc_funcs(&klass->constants, hashmap_alloc_key_string, NULL);
+    klass->cvars.table = NULL;
     return klass;
 }
 

@@ -29,6 +29,7 @@ NatEnv *build_top_env() {
     BasicObject->klass = Class;
     nat_build_env(&BasicObject->env, env);
     BasicObject->superclass = NULL;
+    BasicObject->cvars.table = NULL;
     hashmap_init(&BasicObject->methods, hashmap_hash_string, hashmap_compare_string, 100);
     hashmap_set_key_alloc_funcs(&BasicObject->methods, hashmap_alloc_key_string, NULL);
     hashmap_init(&BasicObject->constants, hashmap_hash_string, hashmap_compare_string, 10);
