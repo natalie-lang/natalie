@@ -52,6 +52,14 @@ class CvarTest5
   end
 end
 
+class CvarTest6
+  @@foo = 100
+
+  def self.foo
+    @@foo
+  end
+end
+
 describe 'class variable' do
   it 'can bet set and retrieved on class methods' do
     CvarTest1.set_foo(1)
@@ -86,5 +94,9 @@ describe 'class variable' do
 
   it 'raises an exception when attempting to retreive a class variable not set' do
     -> { CvarTest5.foo }.should raise_error(NameError)
+  end
+
+  it 'can bet set in the class body' do
+    CvarTest6.foo.should == 100
   end
 end
