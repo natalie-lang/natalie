@@ -410,6 +410,11 @@ module Natalie
           exp.new(:block,
             s(:declare, result_name, s(:nat_cvar_get_or_null, :env, :self, s(:s, name))),
             s(:c_if, s(:nat_truthy, result_name), result_name, process(value)))
+        when :gvar
+          result_name = temp('gvar')
+          exp.new(:block,
+            s(:declare, result_name, s(:nat_global_get, :env, s(:s, name))),
+            s(:c_if, s(:nat_truthy, result_name), result_name, process(value)))
         when :ivar
           result_name = temp('ivar')
           exp.new(:block,
