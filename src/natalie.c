@@ -207,6 +207,19 @@ NatObject *nat_ivar_set(NatEnv *env, NatObject *obj, char *name, NatObject *val)
 }
 
 NatObject *nat_cvar_get(NatEnv *env, NatObject *obj, char *name) {
+    NatObject *val = nat_cvar_get_or_null(env, obj, name);
+    if (val) {
+        return val;
+    } else {
+        NatObject *klass_or_module = obj;
+        if (NAT_TYPE(klass_or_module) != NAT_VALUE_CLASS && NAT_TYPE(klass_or_module) != NAT_VALUE_MODULE) {
+            klass_or_module = klass_or_module->klass;
+        }
+        NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "NameError"), "uninitialized class variable %s in %s", name, klass_or_module->class_name);
+    }
+}
+
+NatObject *nat_cvar_get_or_null(NatEnv *env, NatObject *obj, char *name) {
     assert(strlen(name) > 1);
     if(name[0] != '@' || name[1] != '@') {
         NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "NameError"), "`%s' is not allowed as a class variable name", name);
@@ -226,7 +239,7 @@ NatObject *nat_cvar_get(NatEnv *env, NatObject *obj, char *name) {
             }
         }
         if (!obj->superclass) {
-            NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "NameError"), "uninitialized class variable %s in Foo", name);
+            return NULL;
         }
         obj = obj->superclass;
     }
@@ -271,7 +284,7 @@ NatObject *nat_cvar_set(NatEnv *env, NatObject *obj, char *name, NatObject *val)
 NatObject *nat_global_get(NatEnv *env, char *name) {
     assert(strlen(name) > 0);
     if(name[0] != '$') {
-        NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "NameError"), "`%s' is not allowed as an global variable name", name);
+        NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "NameError"), "`%s' is not allowed as a global variable name", name);
     }
     NatObject *val = hashmap_get(env->global_env->globals, name);
     if (val) {
@@ -292,7 +305,7 @@ NatObject *nat_global_set(NatEnv *env, char *name, NatObject *val) {
 }
 
 bool nat_truthy(NatObject *obj) {
-    if (NAT_TYPE(obj) == NAT_VALUE_FALSE || NAT_TYPE(obj) == NAT_VALUE_NIL) {
+    if (obj == NULL || NAT_TYPE(obj) == NAT_VALUE_FALSE || NAT_TYPE(obj) == NAT_VALUE_NIL) {
         return false;
     } else {
         return true;

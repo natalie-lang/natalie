@@ -60,6 +60,21 @@ class CvarTest6
   end
 end
 
+class CvarTest7
+  def self.add_foo(x)
+    @@foo ||= []
+    @@foo << x
+  end
+
+  def self.set_foo(val)
+    @@foo = val
+  end
+
+  def self.foo
+    @@foo
+  end
+end
+
 describe 'class variable' do
   it 'can bet set and retrieved on class methods' do
     CvarTest1.set_foo(1)
@@ -98,5 +113,20 @@ describe 'class variable' do
 
   it 'can bet set in the class body' do
     CvarTest6.foo.should == 100
+  end
+
+  it 'can be set with an op_asgn_or' do
+    CvarTest7.add_foo 1000
+    CvarTest7.foo.should == [1000]
+    CvarTest7.add_foo 2000
+    CvarTest7.foo.should == [1000, 2000]
+    CvarTest7.set_foo nil
+    CvarTest7.add_foo 1000
+    CvarTest7.foo.should == [1000]
+    CvarTest7.set_foo false
+    CvarTest7.add_foo 1000
+    CvarTest7.foo.should == [1000]
+    CvarTest7.set_foo 'x'
+    CvarTest7.foo.should == 'x'
   end
 end

@@ -395,6 +395,19 @@ module Natalie
           s(:nat_call, fn, "&#{mod}->env", mod))
       end
 
+      def process_op_asgn_or(exp)
+        (_, (var_type, name), value) = exp
+        case var_type
+        when :cvar
+          result_name = temp('cvar')
+          exp.new(:block,
+            s(:declare, result_name, s(:nat_cvar_get_or_null, :env, :self, s(:s, name))),
+            s(:c_if, s(:nat_truthy, result_name), result_name, process(value)))
+        else
+          raise "unknown op_asgn_or type: #{var_type.inspect}"
+        end
+      end
+
       def process_or(exp)
         (_, lhs, rhs) = exp
         lhs = process(lhs)

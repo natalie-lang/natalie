@@ -283,6 +283,7 @@ NatObject *nat_ivar_get(NatEnv *env, NatObject *obj, char *name);
 NatObject *nat_ivar_set(NatEnv *env, NatObject *obj, char *name, NatObject *val);
 
 NatObject *nat_cvar_get(NatEnv *env, NatObject *obj, char *name);
+NatObject *nat_cvar_get_or_null(NatEnv *env, NatObject *obj, char *name);
 NatObject *nat_cvar_set(NatEnv *env, NatObject *obj, char *name, NatObject *val);
 
 NatObject *nat_global_get(NatEnv *env, char *name);
