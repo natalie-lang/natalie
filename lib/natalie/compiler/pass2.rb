@@ -66,6 +66,19 @@ module Natalie
         end
       end
 
+      def process_nat_var_declare(exp)
+        (_, _, name) = exp
+        raise "bad name: #{name.inspect}" unless name.is_a?(Sexp) && name.sexp_type == :s
+        name = name.last.to_s
+        (env_name, var) = find_var(name)
+        if var
+          exp.new(:nat_var_get, env_name, var)
+        else
+          (env_name, var) = declare_var(name)
+          exp.new(:nat_var_set, env_name, var, s(:nil))
+        end
+      end
+
       def process_nat_var_get(exp)
         (_, _, name) = exp
         raise "bad name: #{name.inspect}" unless name.is_a?(Sexp) && name.sexp_type == :s
@@ -79,31 +92,12 @@ module Natalie
         exp.new(:nat_var_get, env_name, var)
       end
 
-      def process_nat_var_get_or_set(exp)
-        (_, _, name, body) = exp
-        raise "bad name: #{name.inspect}" unless name.is_a?(Sexp) && name.sexp_type == :s
-        name = name.last.to_s
-        bare_name = name.sub(/^[\*\&]/, '')
-        (env_name, var) = find_var(bare_name)
-        if var
-          exp.new(:nat_var_get, env_name, var)
-        else
-          process_nat_var_set(exp.new(:nat_var_set, :env, s(:s, name), body))
-        end
-      end
-
       def process_nat_var_set(exp)
         (_, _, name, value) = exp
         raise "bad name: #{name.inspect}" unless name.is_a?(Sexp) && name.sexp_type == :s
         name = name.last.to_s
         bare_name = name.sub(/^[\*\&]/, '')
-        (env_name, var) = find_var(bare_name)
-        unless var
-          var_num = @compiler_context[:var_num] += 1
-          var = @env[:vars][bare_name] = { name: bare_name, index: @env[:vars].size, var_num: var_num }
-          var[:captured] = true if repl?
-          env_name = 'env'
-        end
+        (env_name, var) = find_var(bare_name) || declare_var(bare_name)
         if value
           exp.new(:nat_var_set, env_name, var, process_arg(value))
         else
@@ -125,6 +119,13 @@ module Natalie
         elsif env[:parent] && env[:block]
           find_var(name, env_name: "#{env_name}->outer", env: env[:parent], capture: true)
         end
+      end
+
+      def declare_var(name)
+        var_num = @compiler_context[:var_num] += 1
+        var = @env[:vars][name] = { name: name, index: @env[:vars].size, var_num: var_num }
+        var[:captured] = true if repl?
+        ['env', var]
       end
 
       def process_arg(exp)

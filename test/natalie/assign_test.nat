@@ -55,6 +55,20 @@ describe 'assignment' do
     b.should == nil
   end
 
+  it 'can optionally assign a variable' do
+    a ||= 1
+    a.should == 1
+    b = nil
+    b ||= 2
+    b.should == 2
+    c = false
+    c ||= 3
+    c.should == 3
+    d = true
+    d ||= 4
+    d.should == true
+  end
+
   xit 'does nested multiple assignment from an array' do
     #((a, b), c) = [[1, 2], 3]
     #a.should == 1

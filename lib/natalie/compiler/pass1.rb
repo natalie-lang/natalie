@@ -420,6 +420,14 @@ module Natalie
           exp.new(:block,
             s(:declare, result_name, s(:nat_ivar_get, :env, :self, s(:s, name))),
             s(:c_if, s(:nat_truthy, result_name), result_name, process(value)))
+        when :lvar
+          var = process(s(:lvar, name))
+          exp.new(:block,
+            s(:nat_var_declare, :env, s(:s, name)),
+            s(:c_if, s(:defined, s(:lvar, name)),
+              s(:c_if, s(:nat_truthy, var),
+                var,
+                process(value))))
         else
           raise "unknown op_asgn_or type: #{var_type.inspect}"
         end
