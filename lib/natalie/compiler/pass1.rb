@@ -541,8 +541,10 @@ module Natalie
             end
           when Sexp
             case name.sexp_type
-            when :lasgn, :nat_var_set
+            when :iasgn, :lasgn, :nat_var_set
               'D'
+            when :splat
+              '*'
             else
               return false
             end
