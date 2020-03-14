@@ -106,7 +106,7 @@ module Natalie
           end
         end
         cond << s(:else)
-        cond << s(:nil)
+        cond << process(else_body || s(:nil))
         exp.new(:block,
           s(:declare, value_name, process(value)),
           cond)

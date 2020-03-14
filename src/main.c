@@ -208,6 +208,7 @@ NatEnv *build_top_env() {
     nat_const_set(env, Object, "Regexp", Regexp);
     nat_define_singleton_method(env, Regexp, "new", Regexp_new);
     nat_define_method(Regexp, "==", Regexp_eqeq);
+    nat_define_method(Regexp, "===", Regexp_match);
     nat_define_method(Regexp, "inspect", Regexp_inspect);
     nat_define_method(Regexp, "=~", Regexp_eqtilde);
     nat_define_method(Regexp, "match", Regexp_match);

@@ -27,12 +27,21 @@ describe 'case/when' do
     result.should == 'three'
   end
 
-  it 'returns nil if not match' do
+  it 'returns nil if no match' do
     result = case 100
              when 1 then 'one'
              when 2 then 'two'
              end
     result.should == nil
+  end
+
+  it 'returns else if no match' do
+    result = case 100
+             when 1 then 'one'
+             when 2 then 'two'
+             else 'other'
+             end
+    result.should == 'other'
   end
 
   it 'matches on multiple values' do
@@ -83,5 +92,16 @@ describe 'case/when' do
              else 'unknown'
              end
     result.should == 'NilClass'
+  end
+
+  it 'matches based on Regexp' do
+    result = case 'tim'
+             when /ti/ then 'matched'
+             end
+    result.should == 'matched'
+    result = case 'tim'
+             when /xi/ then 'matched'
+             end
+    result.should == nil
   end
 end
