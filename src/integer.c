@@ -86,8 +86,7 @@ NatObject *Integer_times(NatEnv *env, NatObject *self, size_t argc, NatObject **
     NatObject *num;
     for (long long i=0; i<val; i++) {
         num = nat_integer(env, i);
-        NatObject* result = nat_run_block(env, block, 1, &num, NULL, NULL);
-        nat_return_if_break(env, result);
+        NAT_RUN_BLOCK(env, block, 1, &num, NULL, NULL);
     }
     return self;
 }

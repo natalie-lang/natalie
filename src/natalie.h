@@ -165,7 +165,15 @@ enum NatValueType {
 #define nat_flag_break(obj) obj = nat_convert_to_real_object(env, obj); obj->flags = obj->flags | NAT_FLAG_BREAK;
 #define nat_is_break(obj) ((!NAT_IS_TAGGED_INT(obj) && ((obj)->flags & NAT_FLAG_BREAK) == NAT_FLAG_BREAK))
 #define nat_remove_break(obj) ((obj)->flags = (obj)->flags & ~NAT_FLAG_BREAK)
-#define nat_return_if_break(env, result) if (nat_is_break(result)) { nat_remove_break(result); return result; }
+
+#define NAT_RUN_BLOCK(env, the_block, argc, args, kwargs, block) ({ \
+    NatObject *_result = nat_run_block(env, the_block, argc, args, kwargs, block); \
+    if (nat_is_break(_result)) { \
+        nat_remove_break(_result); \
+        return _result; \
+    } \
+    _result; \
+})
 
 struct NatObject {
     enum NatValueType type;
