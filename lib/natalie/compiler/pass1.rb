@@ -360,7 +360,16 @@ module Natalie
             case name.sexp_type
             when :shadow
               puts "warning: unhandled arg type: #{name.inspect}"
-            when :lasgn, :iasgn
+            when :cdecl
+              (_, name, default) = name
+              s(:nat_const_set, :env, :self, s(:s, name), s(:assign_val, index, :single, process(default)))
+            when :gasgn
+              (_, name, default) = name
+              s(:nat_global_set, :env, s(:s, name), s(:assign_val, index, :single, process(default)))
+            when :iasgn
+              (_, name, default) = name
+              s(:nat_ivar_set, :env, :self, s(:s, name), s(:assign_val, index, :single, process(default)))
+            when :lasgn
               (_, name, default) = name
               s(:nat_var_set, :env, s(:s, name), s(:assign_val, index, :single, process(default)))
             when :splat
@@ -541,7 +550,7 @@ module Natalie
             end
           when Sexp
             case name.sexp_type
-            when :iasgn, :lasgn, :nat_var_set
+            when :cdecl, :gasgn, :iasgn, :lasgn, :nat_var_set
               'D'
             when :splat
               '*'

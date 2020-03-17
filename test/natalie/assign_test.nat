@@ -69,6 +69,24 @@ describe 'assignment' do
     d.should == true
   end
 
+  it 'assigns instance variables' do
+    @a, b = 1, 2
+    @a.should == 1
+    b.should == 2
+  end
+
+  it 'assigns global variables' do
+    a, $b = 1, 2
+    a.should == 1
+    $b.should == 2
+  end
+
+  it 'assigns constants' do
+    a, Foo = 1, 2
+    a.should == 1
+    Foo.should == 2
+  end
+
   xit 'does nested multiple assignment from an array' do
     #((a, b), c) = [[1, 2], 3]
     #a.should == 1
