@@ -1,5 +1,4 @@
-#ifndef __NAT_BUILTIN__
-#define __NAT_BUILTIN__
+#pragma once
 
 #include <fcntl.h>
 
@@ -206,5 +205,3 @@ NatObject *Symbol_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject *
 
 NatObject *TrueClass_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *TrueClass_to_s(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
-
-#endif

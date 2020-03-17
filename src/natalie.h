@@ -1,5 +1,4 @@
-#ifndef __NAT__
-#define __NAT__
+#pragma once
 
 #include <assert.h>
 #include <errno.h>
@@ -395,5 +394,3 @@ NatObject *nat_convert_to_real_object(NatEnv *env, NatObject *obj);
 
 int nat_quicksort_partition(NatEnv *env, NatObject* ary[], int start, int end);
 void nat_quicksort(NatEnv *env, NatObject* ary[], int start, int end);
-
-#endif
