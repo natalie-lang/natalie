@@ -21,7 +21,7 @@ NatObject *Kernel_p(NatEnv *env, NatObject *self, size_t argc, NatObject **args,
     } else {
         NatObject *result = nat_array(env);
         for (size_t i=0; i<argc; i++) {
-            nat_array_push(result, args[i]);
+            nat_array_push(env, result, args[i]);
             args[i] = nat_send(env, args[i], "inspect", 0, NULL, NULL);
         }
         Kernel_puts(env, self, argc, args, kwargs, NULL);
@@ -36,10 +36,10 @@ NatObject *Kernel_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject *
     } else {
         NatObject *str = nat_string(env, "#<");
         assert(self->klass);
-        nat_string_append(str, Module_inspect(env, self->klass, 0, NULL, NULL, NULL)->str);
-        nat_string_append_char(str, ':');
-        nat_string_append(str, nat_object_pointer_id(self));
-        nat_string_append_char(str, '>');
+        nat_string_append(env, str, Module_inspect(env, self->klass, 0, NULL, NULL, NULL)->str);
+        nat_string_append_char(env, str, ':');
+        nat_string_append(env, str, nat_object_pointer_id(env, self));
+        nat_string_append_char(env, str, '>');
         return str;
     }
 }
@@ -180,7 +180,7 @@ NatObject *Kernel_at_exit(NatEnv *env, NatObject *self, size_t argc, NatObject *
     assert(at_exit_handlers);
     NAT_ASSERT_BLOCK();
     NatObject *proc = nat_proc(env, block);
-    nat_array_push(at_exit_handlers, proc);
+    nat_array_push(env, at_exit_handlers, proc);
     return proc;
 }
 

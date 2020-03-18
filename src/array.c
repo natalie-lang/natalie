@@ -8,12 +8,12 @@ NatObject *Array_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **
     for (size_t i=0; i<self->ary_len; i++) {
         NatObject *obj = self->ary[i];
         NatObject *repr = nat_send(env, obj, "inspect", 0, NULL, NULL);
-        nat_string_append(out, repr->str);
+        nat_string_append(env, out, repr->str);
         if (i < self->ary_len-1) {
-            nat_string_append(out, ", ");
+            nat_string_append(env, out, ", ");
         }
     }
-    nat_string_append_char(out, ']');
+    nat_string_append_char(env, out, ']');
     return out;
 }
 
@@ -21,7 +21,7 @@ NatObject *Array_ltlt(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
     NAT_ASSERT_ARGC(1);
     NAT_ASSERT_NOT_FROZEN(self);
     NatObject *arg = args[0];
-    nat_array_push(self, arg);
+    nat_array_push(env, self, arg);
     return self;
 }
 
@@ -31,7 +31,7 @@ NatObject *Array_add(NatEnv *env, NatObject *self, size_t argc, NatObject **args
     NatObject *arg = args[0];
     NAT_ASSERT_TYPE(arg, NAT_VALUE_ARRAY, "Array");
     NatObject *new = nat_array(env);
-    nat_grow_array_at_least(new, self->ary_len + arg->ary_len);
+    nat_grow_array_at_least(env, new, self->ary_len + arg->ary_len);
     memcpy(new->ary, self->ary, self->ary_len * sizeof(NatObject*));
     memcpy(&new->ary[self->ary_len], arg->ary, arg->ary_len * sizeof(NatObject*));
     new->ary_len = self->ary_len + arg->ary_len;
@@ -55,7 +55,7 @@ NatObject *Array_sub(NatEnv *env, NatObject *self, size_t argc, NatObject **args
             }
         }
         if (!found) {
-            nat_array_push(new, item);
+            nat_array_push(env, new, item);
         }
     }
     return new;
@@ -80,7 +80,7 @@ NatObject *Array_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **args
         end = end > max ? max : end;
         NatObject *result = nat_array(env);
         for (size_t i=NAT_INT_VALUE(index); i<end; i++) {
-            nat_array_push(result, self->ary[i]);
+            nat_array_push(env, result, self->ary[i]);
         }
         return result;
     }
@@ -101,7 +101,7 @@ NatObject *Array_refeq(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
             self->ary[index] = val;
         } else {
             nat_array_expand_with_nil(env, self, index);
-            nat_array_push(self, val);
+            nat_array_push(env, self, val);
         }
         return val;
     }
@@ -115,21 +115,21 @@ NatObject *Array_refeq(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     // stuff before the new entry/entries
     for (size_t i=0; i<index; i++) {
         if (i >= self->ary_len) break;
-        nat_array_push(ary2, self->ary[i]);
+        nat_array_push(env, ary2, self->ary[i]);
     }
     // extra nils if needed
     nat_array_expand_with_nil(env, ary2, index);
     // the new entry/entries
     if (NAT_TYPE(val) == NAT_VALUE_ARRAY) {
         for (size_t i=0; i<val->ary_len; i++) {
-            nat_array_push(ary2, val->ary[i]);
+            nat_array_push(env, ary2, val->ary[i]);
         }
     } else {
-        nat_array_push(ary2, val);
+        nat_array_push(env, ary2, val);
     }
     // stuff after the new entry/entries
     for (size_t i=index+length; i<self->ary_len; i++) {
-        nat_array_push(ary2, self->ary[i]);
+        nat_array_push(env, ary2, self->ary[i]);
     }
     // FIXME: copying like this is a possible GC bug depending on our GC implementation later
     self->ary = ary2->ary;
@@ -182,7 +182,7 @@ NatObject *Array_map(NatEnv *env, NatObject *self, size_t argc, NatObject **args
     for (size_t i=0; i<self->ary_len; i++) {
         NatObject *item = self->ary[i];
         NatObject *result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, NULL, NULL);
-        nat_array_push(new, result);
+        nat_array_push(env, new, result);
     }
     return new;
 }

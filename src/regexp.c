@@ -26,8 +26,8 @@ NatObject *Regexp_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject *
     NAT_ASSERT_ARGC(0);
     assert(NAT_TYPE(self) == NAT_VALUE_REGEXP);
     NatObject *out = nat_string(env, "/");
-    nat_string_append(out, self->regexp_str);
-    nat_string_append_char(out, '/');
+    nat_string_append(env, out, self->regexp_str);
+    nat_string_append_char(env, out, '/');
     return out;
 }
 

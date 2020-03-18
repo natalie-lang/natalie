@@ -35,7 +35,7 @@ NatObject *Range_to_a(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
     NatObject *item = self->range_begin;
     char *operator = self->range_exclude_end ? "<" : "<=";
     while (nat_truthy(nat_send(env, item, operator, 1, &self->range_end, NULL))) {
-        nat_array_push(ary, item);
+        nat_array_push(env, ary, item);
         item = nat_send(env, item, "succ", 0, NULL, NULL);
     }
     return ary;

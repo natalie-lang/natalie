@@ -346,7 +346,7 @@ int main(int argc, char *argv[]) {
     nat_const_set(env, NAT_OBJECT, "ARGV", ARGV);
     assert(argc > 0);
     for (int i=1; i<argc; i++) {
-        nat_array_push(ARGV, nat_string(env, argv[i]));
+        nat_array_push(env, ARGV, nat_string(env, argv[i]));
     }
     if (EVAL(env)) {
         return 0;

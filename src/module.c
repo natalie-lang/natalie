@@ -12,7 +12,7 @@ NatObject *Module_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject *
     if (self->class_name) {
         return nat_string(env, self->class_name);
     } else if (NAT_TYPE(self) == NAT_VALUE_CLASS) {
-        return nat_sprintf(env, "#<Class:%s>", nat_object_pointer_id(self));
+        return nat_sprintf(env, "#<Class:%s>", nat_object_pointer_id(env, self));
     } else {
         return Kernel_inspect(env, self, argc, args, kwargs, block);
     }
@@ -66,7 +66,7 @@ NatObject *Module_attr_reader_block_fn(NatEnv *env, NatObject *self, size_t argc
     NatObject *name_obj = nat_var_get(env->outer, "name", 0);
     assert(name_obj);
     NatObject *ivar_name = nat_string(env, "@");
-    nat_string_append(ivar_name, name_obj->str);
+    nat_string_append(env, ivar_name, name_obj->str);
     return nat_ivar_get(env, self, ivar_name->str);
 }
 
@@ -82,7 +82,7 @@ NatObject *Module_attr_writer(NatEnv *env, NatObject *self, size_t argc, NatObje
             NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "TypeError"), "%s is not a symbol nor a string", nat_send(env, name_obj, "inspect", 0, NULL, NULL));
         }
         NatObject *method_name = nat_string(env, name_obj->str);
-        nat_string_append_char(method_name, '=');
+        nat_string_append_char(env, method_name, '=');
         NatEnv block_env;
         nat_build_env(&block_env, env);
         block_env.block = true;
@@ -98,7 +98,7 @@ NatObject *Module_attr_writer_block_fn(NatEnv *env, NatObject *self, size_t argc
     NatObject *name_obj = nat_var_get(env->outer, "name", 0);
     assert(name_obj);
     NatObject *ivar_name = nat_string(env, "@");
-    nat_string_append(ivar_name, name_obj->str);
+    nat_string_append(env, ivar_name, name_obj->str);
     nat_ivar_set(env, self, ivar_name->str, val);
     return val;
 }
@@ -124,7 +124,7 @@ NatObject *Module_included_modules(NatEnv *env, NatObject *self, size_t argc, Na
     NAT_ASSERT_ARGC(0);
     NatObject *modules = nat_array(env);
     for (size_t i=0; i<self->included_modules_count; i++) {
-        nat_array_push(modules, self->included_modules[i]);
+        nat_array_push(env, modules, self->included_modules[i]);
     }
     return modules;
 }

@@ -30,7 +30,7 @@ NatObject *String_ltlt(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
         NAT_ASSERT_TYPE(str_obj, NAT_VALUE_STRING, "String");
         str = str_obj->str;
     }
-    nat_string_append(self, str);
+    nat_string_append(env, self, str);
     return self;
 }
 
@@ -42,17 +42,17 @@ NatObject *String_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject *
         // FIXME: iterate over multibyte chars
         char c = self->str[i];
         if (c == '"' || c == '\\' || c == '#') {
-            nat_string_append_char(out, '\\');
-            nat_string_append_char(out, c);
+            nat_string_append_char(env, out, '\\');
+            nat_string_append_char(env, out, c);
         } else if (c == '\n') {
-            nat_string_append(out, "\\n");
+            nat_string_append(env, out, "\\n");
         } else if (c == '\t') {
-            nat_string_append(out, "\\t");
+            nat_string_append(env, out, "\\t");
         } else {
-            nat_string_append_char(out, c);
+            nat_string_append_char(env, out, c);
         }
     }
-    nat_string_append_char(out, '"');
+    nat_string_append_char(env, out, '"');
     return out;
 }
 
@@ -69,7 +69,7 @@ NatObject *String_add(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
         str = str_obj->str;
     }
     NatObject *new_str = nat_string(env, self->str);
-    nat_string_append(new_str, str);
+    nat_string_append(env, new_str, str);
     return new_str;
 }
 
@@ -80,7 +80,7 @@ NatObject *String_mul(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
     NAT_ASSERT_TYPE(arg, NAT_VALUE_INTEGER, "Integer");
     NatObject *new_str = nat_string(env, "");
     for (long long i=0; i<NAT_INT_VALUE(arg); i++) {
-        nat_string_append_nat_string(new_str, self);
+        nat_string_append_nat_string(env, new_str, self);
     }
     return new_str;
 }
@@ -127,7 +127,7 @@ NatObject *String_match(NatEnv *env, NatObject *self, size_t argc, NatObject **a
     return Regexp_match(env, args[0], 1, &self, NULL, block);
 }
 
-static void nat_succ_string(NatObject *string, char append_char, char begin_char, char end_char) {
+static void nat_succ_string(NatEnv *env, NatObject *string, char append_char, char begin_char, char end_char) {
     ssize_t index = string->str_len - 1;
     char last_char = string->str[index];
     while (last_char == end_char) {
@@ -135,7 +135,7 @@ static void nat_succ_string(NatObject *string, char append_char, char begin_char
         last_char = string->str[--index];
     }
     if (index == -1) {
-        nat_string_append_char(string, append_char);
+        nat_string_append_char(env, string, append_char);
     } else {
         string->str[index]++;
     }
@@ -148,11 +148,11 @@ NatObject *String_succ(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     ssize_t index = self->str_len - 1;
     char last_char = self->str[index];
     if (last_char == 'z') {
-        nat_succ_string(result, 'a', 'a', 'z');
+        nat_succ_string(env, result, 'a', 'a', 'z');
     } else if (last_char == 'Z') {
-        nat_succ_string(result, 'A', 'A', 'Z');
+        nat_succ_string(env, result, 'A', 'A', 'Z');
     } else if (last_char == '9') {
-        nat_succ_string(result, '0', '1', '9');
+        nat_succ_string(env, result, '0', '1', '9');
     } else {
         result->str[index]++;
     }

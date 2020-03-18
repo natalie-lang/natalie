@@ -33,7 +33,7 @@ module Natalie
           if item.sexp_type == :splat
             s(:nat_array_push_splat, :env, arr, process(item.last))
           else
-            s(:nat_array_push, arr, process(item))
+            s(:nat_array_push, :env, arr, process(item))
           end
         end
         exp.new(:block,
@@ -231,9 +231,9 @@ module Natalie
         segments = rest.map do |segment|
           case segment.sexp_type
           when :evstr
-            s(:nat_string_append_nat_string, string, process(s(:call, segment.last, :to_s)))
+            s(:nat_string_append_nat_string, :env, string, process(s(:call, segment.last, :to_s)))
           when :str
-            s(:nat_string_append, string, s(:s, segment.last))
+            s(:nat_string_append, :env, string, s(:s, segment.last))
           else
             raise "unknown dstr segment: #{segment.inspect}"
           end

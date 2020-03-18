@@ -320,8 +320,6 @@ NatObject *nat_singleton_class(NatEnv *env, NatObject *obj);
 
 NatObject *nat_integer(NatEnv *env, int64_t integer);
 
-char *nat_object_pointer_id(NatObject *obj);
-
 char* int_to_string(NatEnv *env, int64_t num);
 
 void nat_define_method(NatEnv *env, NatObject *obj, char *name, NatObject* (*fn)(NatEnv*, NatObject*, size_t, NatObject**, struct hashmap*, NatBlock *block));
@@ -351,11 +349,11 @@ NatObject *nat_lambda(NatEnv *env, NatBlock *block);
 #define NAT_STRING_GROW_FACTOR 2
 
 NatObject *nat_string(NatEnv *env, char *str);
-void nat_grow_string(NatObject *obj, size_t capacity);
-void nat_grow_string_at_least(NatObject *obj, size_t min_capacity);
-void nat_string_append(NatObject *str, char *s);
-void nat_string_append_char(NatObject *str, char c);
-void nat_string_append_nat_string(NatObject *str, NatObject *str2);
+void nat_grow_string(NatEnv *env, NatObject *obj, size_t capacity);
+void nat_grow_string_at_least(NatEnv *env, NatObject *obj, size_t min_capacity);
+void nat_string_append(NatEnv *env, NatObject *str, char *s);
+void nat_string_append_char(NatEnv *env, NatObject *str, char c);
+void nat_string_append_nat_string(NatEnv *env, NatObject *str, NatObject *str2);
 NatObject* nat_sprintf(NatEnv *env, char *format, ...);
 NatObject* nat_vsprintf(NatEnv *env, char *format, va_list args);
 
@@ -368,9 +366,9 @@ NatObject *nat_exception(NatEnv *env, NatObject *klass, char *message);
 
 NatObject *nat_array(NatEnv *env);
 NatObject *nat_array_copy(NatEnv *env, NatObject *source);
-void nat_grow_array(NatObject *obj, size_t capacity);
-void nat_grow_array_at_least(NatObject *obj, size_t min_capacity);
-void nat_array_push(NatObject *array, NatObject *obj);
+void nat_grow_array(NatEnv *env, NatObject *obj, size_t capacity);
+void nat_grow_array_at_least(NatEnv *env, NatObject *obj, size_t min_capacity);
+void nat_array_push(NatEnv *env, NatObject *array, NatObject *obj);
 void nat_assign_arg(NatEnv *env, char *name, int argc, NatObject **args, int index, NatObject* default_value);
 void nat_assign_rest_arg(NatEnv *env, char *name, size_t argc, NatObject **args, size_t index, size_t count);
 void nat_array_push_splat(NatEnv *env, NatObject *array, NatObject *obj);
@@ -406,6 +404,7 @@ void nat_run_at_exit_handlers(NatEnv *env);
 void nat_print_exception_with_backtrace(NatEnv *env, NatObject *exception);
 void nat_handle_top_level_exception(NatEnv *env, bool run_exit_handlers);
 
+char *nat_object_pointer_id(NatEnv *env, NatObject *obj);
 int64_t nat_object_id(NatEnv *env, NatObject *obj);
 
 NatObject *nat_convert_to_real_object(NatEnv *env, NatObject *obj);

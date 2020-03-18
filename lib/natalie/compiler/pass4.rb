@@ -158,7 +158,7 @@ module Natalie
           rest = temp('rest')
           decl "NatObject *#{rest} = nat_array(env);"
           decl "for (size_t i=#{index}; i<#{argc_name}; i++) {"
-          decl "nat_array_push(#{rest}, #{args_name}[i]);"
+          decl "nat_array_push(env, #{rest}, #{args_name}[i]);"
           decl '}'
           rest
         else

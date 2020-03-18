@@ -1,5 +1,6 @@
-#include "natalie.h"
 #include "builtin.h"
+#include "gc.h"
+#include "natalie.h"
 
 NatObject *Hash_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
@@ -10,15 +11,15 @@ NatObject *Hash_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **a
     size_t index;
     for (iter = nat_hash_iter(env, self), index = 0; iter; iter = nat_hash_iter_next(env, self, iter), index++) {
         NatObject *key_repr = nat_send(env, iter->key, "inspect", 0, NULL, NULL);
-        nat_string_append(out, key_repr->str);
-        nat_string_append(out, "=>");
+        nat_string_append(env, out, key_repr->str);
+        nat_string_append(env, out, "=>");
         NatObject *val_repr = nat_send(env, iter->val, "inspect", 0, NULL, NULL);
-        nat_string_append(out, val_repr->str);
+        nat_string_append(env, out, val_repr->str);
         if (index < last_index) {
-            nat_string_append(out, ", ");
+            nat_string_append(env, out, ", ");
         }
     }
-    nat_string_append_char(out, '}');
+    nat_string_append_char(env, out, '}');
     return out;
 }
 
@@ -99,7 +100,7 @@ NatObject *Hash_each(NatEnv *env, NatObject *self, size_t argc, NatObject **args
     assert(NAT_TYPE(self) == NAT_VALUE_HASH);
     NAT_ASSERT_BLOCK(); // TODO: return Enumerator when no block given
     NatHashIter *iter;
-    NatObject **block_args = calloc(2, sizeof(NatObject*));
+    NatObject **block_args = nat_calloc(env, 2, sizeof(NatObject*));
     for (iter = nat_hash_iter(env, self); iter; iter = nat_hash_iter_next(env, self, iter)) {
         block_args[0] = iter->key;
         block_args[1] = iter->val;
@@ -114,7 +115,7 @@ NatObject *Hash_keys(NatEnv *env, NatObject *self, size_t argc, NatObject **args
     NatObject *array = nat_array(env);
     NatHashIter *iter;
     for (iter = nat_hash_iter(env, self); iter; iter = nat_hash_iter_next(env, self, iter)) {
-        nat_array_push(array, iter->key);
+        nat_array_push(env, array, iter->key);
     }
     return array;
 }
@@ -125,7 +126,7 @@ NatObject *Hash_values(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     NatObject *array = nat_array(env);
     NatHashIter *iter;
     for (iter = nat_hash_iter(env, self); iter; iter = nat_hash_iter_next(env, self, iter)) {
-        nat_array_push(array, iter->val);
+        nat_array_push(env, array, iter->val);
     }
     return array;
 }
