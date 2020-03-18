@@ -581,12 +581,18 @@ void nat_hash_key_list_remove_node(NatObject *hash, NatHashKey *node) {
 }
 
 NatHashIter *nat_hash_iter(NatEnv *env, NatObject *hash) {
-    return hash->key_list;
+    if (!hash->key_list) {
+        return NULL;
+    } else {
+        hash->hash_is_iterating = true;
+        return hash->key_list;
+    }
 }
 
 NatHashIter *nat_hash_iter_prev(NatEnv *env, NatObject *hash, NatHashIter *iter) {
     if (iter->prev == NULL || iter == hash->key_list) {
         // finished
+        hash->hash_is_iterating = false;
         return NULL;
     } else if (iter->prev->removed) {
         return nat_hash_iter_prev(env, hash, iter->prev);
@@ -598,6 +604,7 @@ NatHashIter *nat_hash_iter_prev(NatEnv *env, NatObject *hash, NatHashIter *iter)
 NatHashIter *nat_hash_iter_next(NatEnv *env, NatObject *hash, NatHashIter *iter) {
     if (iter->next == NULL || (!iter->removed && iter->next == hash->key_list)) {
         // finished
+        hash->hash_is_iterating = false;
         return NULL;
     } else if (iter->next->removed) {
         return nat_hash_iter_next(env, hash, iter->next);
@@ -637,6 +644,9 @@ void nat_hash_put(NatEnv *env, NatObject *hash, NatObject *key, NatObject *val) 
         container->key->val = val;
         container->val = val;
     } else {
+        if (hash->hash_is_iterating) {
+            NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "RuntimeError"), "can't add a new key into hash during iteration");
+        }
         container = malloc(sizeof(NatHashVal));
         container->key = nat_hash_key_list_append(env, hash, key, val);
         container->val = val;

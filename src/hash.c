@@ -84,6 +84,16 @@ NatObject *Hash_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args
     return NAT_TRUE;
 }
 
+#define NAT_RUN_BLOCK_AND_POSSIBLY_BREAK_WHILE_ITERATING_HASH(env, the_block, argc, args, kwargs, block, hash) ({ \
+    NatObject *_result = _nat_run_block_internal(env, the_block, argc, args, kwargs, block); \
+    if (nat_is_break(_result)) { \
+        nat_remove_break(_result); \
+        hash->hash_is_iterating = false; \
+        return _result; \
+    } \
+    _result; \
+})
+
 NatObject *Hash_each(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     assert(NAT_TYPE(self) == NAT_VALUE_HASH);
@@ -93,7 +103,7 @@ NatObject *Hash_each(NatEnv *env, NatObject *self, size_t argc, NatObject **args
     for (iter = nat_hash_iter(env, self); iter; iter = nat_hash_iter_next(env, self, iter)) {
         block_args[0] = iter->key;
         block_args[1] = iter->val;
-        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 2, block_args, NULL, NULL);
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK_WHILE_ITERATING_HASH(env, block, 2, block_args, NULL, NULL, self);
     }
     return self;
 }

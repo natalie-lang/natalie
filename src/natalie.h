@@ -224,10 +224,11 @@ struct NatObject {
             NatObject *backtrace; // array
         };
 
-        // NAT_VALUE_HASHMAP
+        // NAT_VALUE_HASH
         struct {
             NatHashKey *key_list; // a double-ended queue
             struct hashmap hashmap;
+            bool hash_is_iterating;
         };
 
         // NAT_VALUE_IO

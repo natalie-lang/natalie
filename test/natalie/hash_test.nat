@@ -26,7 +26,7 @@ describe 'hash' do
     hash.inspect.should == '{1=>1, 3=>3, "four"=>4, :five=>5, "six"=>6, 2=>2}'
   end
 
-  it 'allows deletion of the last key' do
+  it 'can delete the last key' do
     hash = {}
     hash.inspect.should == '{}'
     hash.size.should == 0
@@ -61,6 +61,15 @@ describe 'hash' do
     keys.should == [1, 2, 3]
     vals.should == ['one', 'two', 'three']
     r.should == hash
+  end
+
+  it 'raises an error when adding a new key while iterating' do
+    hash = { 1 => 'one', 2 => 'two', 3 => 'three' }
+    -> {
+      hash.each do |key, val|
+        hash[4] = 'four'
+      end
+    }.should raise_error(RuntimeError, "can't add a new key into hash during iteration")
   end
 
   it 'an entry can be modified during iteration' do
