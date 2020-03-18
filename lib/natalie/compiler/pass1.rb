@@ -178,18 +178,23 @@ module Natalie
                       else
                         raise "We do not yet support complicated args like this, sorry! #{args.inspect}"
                       end
+        method_body = process(s(:block, *body))
+        if raises_local_jump_error?(method_body)
+          # We only need to wrap method body in a rescue for LocalJumpError if there is a `return` inside a block.
+          method_body = s(:nat_rescue,
+            method_body,
+            s(:cond,
+              s(:is_a, 'env->exception', process(s(:const, :LocalJumpError))),
+              process(s(:call, s(:l, 'env->exception'), :exit_value)),
+              s(:else),
+              s(:nat_raise_exception, :env, 'env->exception')))
+        end
         exp.new(:def_fn, fn_name,
           s(:block,
             s(:nat_env_set_method_name, name),
             assign_args,
             block_arg || s(:block),
-            s(:nat_rescue,
-              process(s(:block, *body)),
-              s(:cond,
-                s(:is_a, 'env->exception', process(s(:const, :LocalJumpError))),
-                process(s(:call, s(:l, 'env->exception'), :exit_value)),
-                s(:else),
-                s(:nat_raise_exception, :env, 'env->exception')))))
+            method_body))
       end
 
       def process_defn(exp)
@@ -562,6 +567,22 @@ module Natalie
         return false if by_type =~ /\*./ # rest must be last
         return false if by_type =~ /DR/  # defaulted must come after required
         true
+      end
+
+      def raises_local_jump_error?(exp, my_context: [])
+        if exp.is_a?(Sexp)
+          case exp.sexp_type
+          when :nat_raise_local_jump_error
+            return true if my_context.include?(:block_fn)
+          when :def_fn # method within a method (unusual, but allowed!)
+            return false
+          else
+            my_context << exp.sexp_type
+            return true if exp[1..-1].any? { |e| raises_local_jump_error?(e, my_context: my_context) }
+            my_context.pop
+          end
+        end
+        return false
       end
     end
   end
