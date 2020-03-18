@@ -490,7 +490,7 @@ module Natalie
         (_, value) = exp
         enclosing = context.detect { |n| %i[defn defs iter].include?(n) }
         if enclosing == :iter
-          exp.new(:nat_raise_local_jump_error, :env, process(value))
+          exp.new(:nat_raise_local_jump_error, :env, process(value), s(:s, "unexpected return"))
         else
           exp.new(:c_return, process(value))
         end
@@ -530,7 +530,7 @@ module Natalie
         else
           args = s(:args, *args.map { |n| process(n) })
         end
-        exp.new(:nat_run_block, args)
+        exp.new(:NAT_RUN_BLOCK_AND_POSSIBLY_BREAK, args)
       end
 
       def process_zsuper(exp)

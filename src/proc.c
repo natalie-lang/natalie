@@ -7,7 +7,7 @@ NatObject *Proc_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args,
 
 NatObject *Proc_call(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_PROC);
-    return nat_run_block(env, self->block, argc, args, kwargs, block);
+    return NAT_RUN_BLOCK_WITHOUT_BREAK(env, self->block, argc, args, kwargs, block);
 }
 
 NatObject *Proc_lambda(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {

@@ -170,7 +170,7 @@ NatObject *Array_each(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
     NAT_ASSERT_BLOCK(); // TODO: return Enumerator when no block given
     for (size_t i=0; i<self->ary_len; i++) {
         NatObject *obj = self->ary[i];
-        NAT_RUN_BLOCK(env, block, 1, &obj, NULL, NULL);
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &obj, NULL, NULL);
     }
     return self;
 }
@@ -181,7 +181,7 @@ NatObject *Array_map(NatEnv *env, NatObject *self, size_t argc, NatObject **args
     NatObject *new = nat_array(env);
     for (size_t i=0; i<self->ary_len; i++) {
         NatObject *item = self->ary[i];
-        NatObject *result = NAT_RUN_BLOCK(env, block, 1, &item, NULL, NULL);
+        NatObject *result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, NULL, NULL);
         nat_array_push(new, result);
     }
     return new;

@@ -168,8 +168,8 @@ NatObject* nat_raise_exception(NatEnv *env, NatObject *exception) {
     longjmp(env->jump_buf, 1);
 }
 
-NatObject* nat_raise_local_jump_error(NatEnv *env, NatObject *exit_value) {
-    NatObject *exception = nat_exception(env, nat_const_get(env, NAT_OBJECT, "LocalJumpError"), "unexpected return");
+NatObject* nat_raise_local_jump_error(NatEnv *env, NatObject *exit_value, char *message) {
+    NatObject *exception = nat_exception(env, nat_const_get(env, NAT_OBJECT, "LocalJumpError"), message);
     nat_ivar_set(env, exception, "@exit_value", exit_value);
     nat_raise_exception(env, exception);
     return exception;
@@ -948,7 +948,7 @@ NatBlock *nat_block(NatEnv *env, NatObject *self, NatObject* (*fn)(NatEnv*, NatO
     return block;
 }
 
-NatObject *nat_run_block(NatEnv *env, NatBlock *the_block, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *_nat_run_block_internal(NatEnv *env, NatBlock *the_block, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     if (!the_block) {
         NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "LocalJumpError"), "no block given");
     }
@@ -1097,7 +1097,7 @@ NatObject *nat_thread_join(NatEnv *env, NatObject *thread) {
 
 void* nat_create_thread(void* data) {
     NatBlock *block = (NatBlock*)data;
-    return (void*)nat_run_block(&block->env, block, 0, NULL, NULL, NULL);
+    return (void*)NAT_RUN_BLOCK_WITHOUT_BREAK(&block->env, block, 0, NULL, NULL, NULL);
 }
 
 NatObject *nat_dup(NatEnv *env, NatObject *obj) {
@@ -1165,7 +1165,7 @@ void nat_run_at_exit_handlers(NatEnv *env) {
         NatObject *proc = at_exit_handlers->ary[i];
         assert(proc);
         assert(NAT_TYPE(proc) == NAT_VALUE_PROC);
-        nat_run_block(env, proc->block, 0, NULL, NULL, NULL);
+        NAT_RUN_BLOCK_WITHOUT_BREAK(env, proc->block, 0, NULL, NULL, NULL);
     }
 }
 

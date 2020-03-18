@@ -47,7 +47,7 @@ NatObject *Range_each(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
     NatObject *item = self->range_begin;
     char *operator = self->range_exclude_end ? "<" : "<=";
     while (nat_truthy(nat_send(env, item, operator, 1, &self->range_end, NULL))) {
-        NAT_RUN_BLOCK(env, block, 1, &item, NULL, NULL);
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, NULL, NULL);
         item = nat_send(env, item, "succ", 0, NULL, NULL);
     }
     return self;
