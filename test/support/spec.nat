@@ -153,19 +153,26 @@ class EqualExpectation
 end
 
 class RaiseErrorExpectation
-  def initialize(klass)
+  def initialize(klass, message = nil)
     @klass = klass
+    @message = message
   end
 
   def match(subject)
     begin
       subject.call
-    rescue @klass
-      nil # good
+    rescue @klass => e
+      if @message.nil?
+        nil # good
+      elsif @message == e.message
+        nil # good
+      else
+        raise SpecFailedException, "#{subject.inspect} should have raised #{@klass.inspect} with message #{@message.inspect}, but the message was #{e.message.inspect}"
+      end
     rescue => e
-      raise SpecFailedException, subject.inspect + ' should have raised ' + @klass.inspect + ', but instead raised ' + e.inspect
+      raise SpecFailedException, "#{subject.inspect} should have raised #{@klass.inspect}, but instead raised #{e.inspect}"
     else
-      raise SpecFailedException, subject.inspect + ' should have raised ' + @klass.inspect + ', but instead raised nothing'
+      raise SpecFailedException, "#{subject.inspect} should have raised #{@klass.inspect}, but instead raised nothing"
     end
   end
 
@@ -199,8 +206,8 @@ class Object
     EqualExpectation.new(other)
   end
 
-  def raise_error(klass)
-    RaiseErrorExpectation.new(klass)
+  def raise_error(klass, message = nil)
+    RaiseErrorExpectation.new(klass, message)
   end
 end
 
