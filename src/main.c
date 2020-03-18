@@ -95,6 +95,7 @@ NatEnv *build_top_env() {
     nat_define_method(Kernel, "lambda", Kernel_lambda);
     nat_define_method(Kernel, "__method__", Kernel_method);
     nat_define_method(Kernel, "freeze", Kernel_freeze);
+    nat_define_method(Kernel, "nil?", Kernel_is_nil);
 
     NatObject *Comparable = nat_module(env, "Comparable");
     nat_const_set(env, Object, "Comparable", Comparable);
@@ -111,6 +112,7 @@ NatEnv *build_top_env() {
     nat_define_method(NilClass, "to_s", NilClass_to_s);
     nat_define_method(NilClass, "to_a", NilClass_to_a);
     nat_define_method(NilClass, "inspect", NilClass_inspect);
+    nat_define_method(NilClass, "nil?", NilClass_is_nil);
 
     NatObject *nil = NAT_NIL = nat_new(env, NilClass, 0, NULL, NULL, NULL);
     nil->type = NAT_VALUE_NIL;

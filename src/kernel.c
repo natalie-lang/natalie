@@ -237,3 +237,8 @@ NatObject *Kernel_freeze(NatEnv *env, NatObject *self, size_t argc, NatObject **
     nat_freeze_object(self);
     return self;
 }
+
+NatObject *Kernel_is_nil(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(0);
+    return NAT_FALSE;
+}

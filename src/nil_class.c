@@ -20,3 +20,9 @@ NatObject *NilClass_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject
     NatObject *out = nat_string(env, "nil");
     return out;
 }
+
+NatObject *NilClass_is_nil(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    assert(NAT_TYPE(self) == NAT_VALUE_NIL);
+    NAT_ASSERT_ARGC(0);
+    return NAT_TRUE;
+}
