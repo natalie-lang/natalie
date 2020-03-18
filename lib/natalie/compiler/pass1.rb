@@ -202,7 +202,7 @@ module Natalie
         fn = process_defn_internal(exp)
         exp.new(:block,
           fn,
-          s(:nat_define_method, :self, s(:s, name), fn[1]),
+          s(:nat_define_method, :env, :self, s(:s, name), fn[1]),
           s(:nat_symbol, :env, s(:s, name)))
       end
 

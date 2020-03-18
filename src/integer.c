@@ -4,7 +4,7 @@
 NatObject *Integer_to_s(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_INTEGER);
     NAT_ASSERT_ARGC(0);
-    char *str = int_to_string(NAT_INT_VALUE(self));
+    char *str = int_to_string(env, NAT_INT_VALUE(self));
     return nat_string(env, str);
 }
 

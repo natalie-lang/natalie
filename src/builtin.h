@@ -31,12 +31,12 @@ NatObject *Class_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args
 NatObject *Class_superclass(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 
 #define COMPARABLE_INIT() \
-    nat_define_method(Comparable, "==", Comparable_eqeq); \
-    nat_define_method(Comparable, "!=", Comparable_neq); \
-    nat_define_method(Comparable, "<", Comparable_lt); \
-    nat_define_method(Comparable, "<=", Comparable_lte); \
-    nat_define_method(Comparable, ">", Comparable_gt); \
-    nat_define_method(Comparable, ">=", Comparable_gte);
+    nat_define_method(env, Comparable, "==", Comparable_eqeq); \
+    nat_define_method(env, Comparable, "!=", Comparable_neq); \
+    nat_define_method(env, Comparable, "<", Comparable_lt); \
+    nat_define_method(env, Comparable, "<=", Comparable_lte); \
+    nat_define_method(env, Comparable, ">", Comparable_gt); \
+    nat_define_method(env, Comparable, ">=", Comparable_gte);
  
 NatObject *Comparable_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Comparable_neq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);

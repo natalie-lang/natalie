@@ -57,7 +57,7 @@ NatObject *Module_attr_reader(NatEnv *env, NatObject *self, size_t argc, NatObje
         block_env.block = true;
         nat_var_set(&block_env, "name", 0, name_obj);
         NatBlock *attr_block = nat_block(&block_env, self, Module_attr_reader_block_fn);
-        nat_define_method_with_block(self, name_obj->str, attr_block);
+        nat_define_method_with_block(env, self, name_obj->str, attr_block);
     }
     return NAT_NIL;
 }
@@ -88,7 +88,7 @@ NatObject *Module_attr_writer(NatEnv *env, NatObject *self, size_t argc, NatObje
         block_env.block = true;
         nat_var_set(&block_env, "name", 0, name_obj);
         NatBlock *attr_block = nat_block(&block_env, self, Module_attr_writer_block_fn);
-        nat_define_method_with_block(self, method_name->str, attr_block);
+        nat_define_method_with_block(env, self, method_name->str, attr_block);
     }
     return NAT_NIL;
 }
@@ -114,7 +114,7 @@ NatObject *Module_include(NatEnv *env, NatObject *self, size_t argc, NatObject *
     assert(NAT_TYPE(self) == NAT_VALUE_MODULE || NAT_TYPE(self) == NAT_VALUE_CLASS);
     NAT_ASSERT_ARGC_AT_LEAST(1);
     for (size_t i=0; i<argc; i++) {
-        nat_class_include(self, args[i]);
+        nat_class_include(env, self, args[i]);
     }
     return self;
 }
@@ -140,7 +140,7 @@ NatObject *Module_define_method(NatEnv *env, NatObject *self, size_t argc, NatOb
         NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "ArgumentError"), "tried to create Proc object without a block");
     }
     char *name = NAT_TYPE(name_obj) == NAT_VALUE_STRING ? name_obj->str : name_obj->symbol;
-    nat_define_method_with_block(self, name, block);
+    nat_define_method_with_block(env, self, name, block);
     return nat_symbol(env, name);
 }
 

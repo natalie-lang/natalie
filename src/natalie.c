@@ -1,3 +1,4 @@
+#include "gc.h"
 #include "natalie.h"
 #include <ctype.h>
 #include <stdarg.h>
@@ -127,7 +128,7 @@ char *nat_find_method_name(NatEnv *env) {
         if (!env->outer) break;
         env = env->outer;
     }
-    return heap_string("(unknown)");
+    return heap_string(env, "(unknown)");
 }
 
 NatObject* nat_raise(NatEnv *env, NatObject *klass, char *message_format, ...) {
@@ -312,30 +313,11 @@ bool nat_truthy(NatObject *obj) {
     }
 }
 
-char *heap_string(char *str) {
+char *heap_string(NatEnv *env, char *str) {
     size_t len = strlen(str);
     char *copy = malloc(len + 1);
     memcpy(copy, str, len + 1);
     return copy;
-}
-
-NatObject *nat_alloc(NatEnv *env) {
-    NatObject *obj = malloc(sizeof(NatObject));
-    obj->flags = 0;
-    obj->type = NAT_VALUE_OTHER;
-    obj->included_modules_count = 0;
-    obj->included_modules = NULL;
-    obj->klass = NULL;
-    obj->singleton_class = NULL;
-    obj->constants.table = NULL;
-    obj->ivars.table = NULL;
-    obj->env.outer = NULL;
-    int err = pthread_mutex_init(&obj->mutex, NULL);
-    if (err) {
-        fprintf(stderr, "Could not initialize mutex: %d\n", err);
-        abort();
-    }
-    return obj;
 }
 
 NatObject *nat_subclass(NatEnv *env, NatObject *superclass, char *name) {
@@ -345,7 +327,7 @@ NatObject *nat_subclass(NatEnv *env, NatObject *superclass, char *name) {
     if (superclass->singleton_class) {
         klass->singleton_class = nat_subclass(env, superclass->singleton_class, NULL);
     }
-    klass->class_name = name ? heap_string(name) : NULL;
+    klass->class_name = name ? heap_string(env, name) : NULL;
     klass->superclass = superclass;
     nat_build_env(&klass->env, &superclass->env);
     hashmap_init(&klass->methods, hashmap_hash_string, hashmap_compare_string, 10);
@@ -360,14 +342,14 @@ NatObject *nat_module(NatEnv *env, char *name) {
     NatObject *val = nat_alloc(env);
     val->type = NAT_VALUE_MODULE;
     val->klass = nat_const_get(env, NAT_OBJECT, "Module");
-    val->class_name = name ? heap_string(name) : NULL;
+    val->class_name = name ? heap_string(env, name) : NULL;
     nat_build_env(&val->env, env);
     hashmap_init(&val->methods, hashmap_hash_string, hashmap_compare_string, 100);
     hashmap_set_key_alloc_funcs(&val->methods, hashmap_alloc_key_string, NULL);
     return val;
 }
 
-void nat_class_include(NatObject *klass, NatObject *module) {
+void nat_class_include(NatEnv *env, NatObject *klass, NatObject *module) {
     klass->included_modules_count++;
     if (klass->included_modules_count == 1) {
         klass->included_modules = malloc(sizeof(NatObject*));
@@ -410,7 +392,7 @@ NatObject *nat_string(NatEnv *env, char *str) {
     NatObject *obj = nat_new(env, nat_const_get(env, NAT_OBJECT, "String"), 0, NULL, NULL, NULL);
     obj->type = NAT_VALUE_STRING;
     size_t len = strlen(str);
-    obj->str = heap_string(str);
+    obj->str = heap_string(env, str);
     obj->str_len = len;
     obj->str_cap = len;
     return obj;
@@ -696,15 +678,15 @@ NatObject *nat_matchdata(NatEnv *env, OnigRegion *region, NatObject *str_obj) {
     obj->type = NAT_VALUE_MATCHDATA;
     obj->matchdata_region = region;
     assert(NAT_TYPE(str_obj) == NAT_VALUE_STRING);
-    obj->matchdata_str = heap_string(str_obj->str);
+    obj->matchdata_str = heap_string(env, str_obj->str);
     return obj;
 }
 
 #define INT_64_MAX_CHAR_LEN 21 // 1 for sign, 19 for max digits, and 1 for null terminator
 
-char* int_to_string(int64_t num) {
+char* int_to_string(NatEnv *env, int64_t num) {
     if (num == 0) {
-        return heap_string("0");
+        return heap_string(env, "0");
     } else {
         char *str = malloc(INT_64_MAX_CHAR_LEN);
         snprintf(str, INT_64_MAX_CHAR_LEN, "%" PRId64, num);
@@ -712,7 +694,7 @@ char* int_to_string(int64_t num) {
     }
 }
 
-void nat_define_method(NatObject *obj, char *name, NatObject* (*fn)(NatEnv*, NatObject*, size_t, NatObject**, struct hashmap*, NatBlock *block)) {
+void nat_define_method(NatEnv *env, NatObject *obj, char *name, NatObject* (*fn)(NatEnv*, NatObject*, size_t, NatObject**, struct hashmap*, NatBlock *block)) {
     NatMethod *method = malloc(sizeof(NatMethod));
     method->fn = fn;
     method->env.outer = NULL;
@@ -726,7 +708,7 @@ void nat_define_method(NatObject *obj, char *name, NatObject* (*fn)(NatEnv*, Nat
     }
 }
 
-void nat_define_method_with_block(NatObject *obj, char *name, NatBlock *block) {
+void nat_define_method_with_block(NatEnv *env, NatObject *obj, char *name, NatBlock *block) {
     NatMethod *method = malloc(sizeof(NatMethod));
     method->fn = block->fn;
     method->env = block->env;
@@ -750,8 +732,8 @@ void nat_define_singleton_method(NatEnv *env, NatObject *obj, char *name, NatObj
     hashmap_put(&klass->methods, name, method);
 }
 
-void nat_undefine_method(NatObject *obj, char *name) {
-    nat_define_method(obj, name, NULL);
+void nat_undefine_method(NatEnv *env, NatObject *obj, char *name) {
+    nat_define_method(env, obj, name, NULL);
 }
 
 void nat_undefine_singleton_method(NatEnv *env, NatObject *obj, char *name) {
@@ -1054,7 +1036,7 @@ NatObject* nat_vsprintf(NatEnv *env, char *format, va_list args) {
                     break;
                 case 'i':
                 case 'd':
-                    nat_string_append(out, int_to_string(va_arg(args, int)));
+                    nat_string_append(out, int_to_string(env, va_arg(args, int)));
                     break;
                 case 'v':
                     inspected = nat_send(env, va_arg(args, NatObject*), "inspect", 0, NULL, NULL);

@@ -309,12 +309,11 @@ NatObject *nat_global_set(NatEnv *env, char *name, NatObject *val);
 
 bool nat_truthy(NatObject *obj);
 
-char *heap_string(char *str);
+char *heap_string(NatEnv *env, char *str);
 
-NatObject *nat_alloc(NatEnv *env);
 NatObject *nat_subclass(NatEnv *env, NatObject *superclass, char *name);
 NatObject *nat_module(NatEnv *env, char *name);
-void nat_class_include(NatObject *klass, NatObject *module);
+void nat_class_include(NatEnv *env, NatObject *klass, NatObject *module);
 NatObject *nat_new(NatEnv *env, NatObject *klass, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 
 NatObject *nat_singleton_class(NatEnv *env, NatObject *obj);
@@ -323,12 +322,12 @@ NatObject *nat_integer(NatEnv *env, int64_t integer);
 
 char *nat_object_pointer_id(NatObject *obj);
 
-char* int_to_string(int64_t num);
+char* int_to_string(NatEnv *env, int64_t num);
 
-void nat_define_method(NatObject *obj, char *name, NatObject* (*fn)(NatEnv*, NatObject*, size_t, NatObject**, struct hashmap*, NatBlock *block));
-void nat_define_method_with_block(NatObject *obj, char *name, NatBlock *block);
+void nat_define_method(NatEnv *env, NatObject *obj, char *name, NatObject* (*fn)(NatEnv*, NatObject*, size_t, NatObject**, struct hashmap*, NatBlock *block));
+void nat_define_method_with_block(NatEnv *env, NatObject *obj, char *name, NatBlock *block);
 void nat_define_singleton_method(NatEnv *env, NatObject *obj, char *name, NatObject* (*fn)(NatEnv*, NatObject*, size_t, NatObject**, struct hashmap*, NatBlock *block));
-void nat_undefine_method(NatObject *obj, char *name);
+void nat_undefine_method(NatEnv *env, NatObject *obj, char *name);
 void nat_undefine_singleton_method(NatEnv *env, NatObject *obj, char *name);
 
 NatObject *nat_class_ancestors(NatEnv *env, NatObject *klass);
