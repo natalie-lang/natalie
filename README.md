@@ -19,17 +19,18 @@ true, false, nil, Integer, Symbol, String, Array, Hash, Range.  But there are
 still some yet unimplemented, like Float, and probably 90% of convenience
 methods on all the various objects.
 
-Here is a rough to do list (not in any specific order):
+This is **not** comprehensive, but here is a rough to do list, as I think of
+things that are missing ;-) (not in any specific order):
 
 - encoding support for string and regex (just UTF-8 would be great!)
 - Keyword arguments and a bunch of other method argument handling
 - Float
 - Bignum support
-- A garbage collector (I'm debating on whether to pull in the
-  [Boehm](https://www.hboehm.info/gc/) collector or to roll our own)
+- A garbage collector
+- Date and Time
 - Lots and lots of convenience methods on built-in objects
-- A standard library (Hopefully we can pull most of it in from MRI once the
-  core is more complete)
+- The entire Ruby standard library (Hopefully we can pull most of it in from
+  MRI once the core is more complete)
 - MRI C-extension compatibility
 - Probably lots more I just haven't thought of yet!
 
