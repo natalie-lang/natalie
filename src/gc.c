@@ -2,7 +2,7 @@
 #include "natalie.h"
 
 NatObject *nat_alloc(NatEnv *env) {
-    NatObject *obj = nat_malloc(env, sizeof(NatObject));
+    NatObject *obj = malloc(sizeof(NatObject));
     obj->flags = 0;
     obj->type = NAT_VALUE_OTHER;
     obj->included_modules_count = 0;
@@ -18,16 +18,4 @@ NatObject *nat_alloc(NatEnv *env) {
         abort();
     }
     return obj;
-}
-
-void *nat_malloc(NatEnv *env, size_t size) {
-    return malloc(size);
-}
-
-void *nat_calloc(NatEnv *env, size_t count, size_t size) {
-    return calloc(count, size);
-}
-
-void *nat_realloc(NatEnv *env, void *ptr, size_t size) {
-    return realloc(ptr, size);
 }

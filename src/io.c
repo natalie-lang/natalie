@@ -31,7 +31,7 @@ NatObject *IO_read(NatEnv *env, NatObject *self, size_t argc, NatObject **args, 
     if (argc == 1) {
         NAT_ASSERT_TYPE(args[0], NAT_VALUE_INTEGER, "Integer");
         int count = NAT_INT_VALUE(args[0]);
-        char *buf = nat_malloc(env, (count + 1) * sizeof(char));
+        char *buf = malloc((count + 1) * sizeof(char));
         bytes_read = read(self->fileno, buf, count);
         if (bytes_read == 0) {
             return NAT_NIL;
@@ -40,7 +40,7 @@ NatObject *IO_read(NatEnv *env, NatObject *self, size_t argc, NatObject **args, 
             return nat_string(env, buf);
         }
     } else if (argc == 0) {
-        char *buf = nat_malloc(env, (NAT_READ_BYTES + 1) * sizeof(char));
+        char *buf = malloc((NAT_READ_BYTES + 1) * sizeof(char));
         bytes_read = read(self->fileno, buf, NAT_READ_BYTES);
         if (bytes_read == 0) {
             return nat_string(env, "");

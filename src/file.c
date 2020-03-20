@@ -41,7 +41,7 @@ NatObject *File_initialize(NatEnv *env, NatObject *self, size_t argc, NatObject 
     int mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
     int fileno = open(filename->str, flags, mode);
     if (fileno == -1) {
-        NatObject **exception_args = nat_calloc(env, 2, sizeof(NatObject*));
+        NatObject **exception_args = calloc(2, sizeof(NatObject*));
         exception_args[0] = filename;
         exception_args[1] = nat_integer(env, errno);
         NatObject *error = nat_send(env, nat_const_get(env, NAT_OBJECT, "SystemCallError"), "exception", 2, exception_args, NULL);
