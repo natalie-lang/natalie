@@ -314,7 +314,8 @@ char *heap_string(NatEnv *env, char *str);
 NatObject *nat_subclass(NatEnv *env, NatObject *superclass, char *name);
 NatObject *nat_module(NatEnv *env, char *name);
 void nat_class_include(NatEnv *env, NatObject *klass, NatObject *module);
-NatObject *nat_new(NatEnv *env, NatObject *klass, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+
+NatObject *nat_initialize(NatEnv *env, NatObject *obj, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 
 NatObject *nat_singleton_class(NatEnv *env, NatObject *obj);
 

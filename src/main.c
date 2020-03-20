@@ -13,8 +13,7 @@ NatEnv *build_top_env() {
     nat_build_env(env, NULL);
     env->method_name = heap_string(env, "<main>");
 
-    NatObject *Class = nat_alloc(env);
-    Class->type = NAT_VALUE_CLASS;
+    NatObject *Class = nat_alloc(env, NULL, NAT_VALUE_CLASS);
     Class->class_name = heap_string(env, "Class");
     Class->klass = Class;
     nat_build_env(&Class->env, env);
@@ -24,10 +23,9 @@ NatEnv *build_top_env() {
     hashmap_set_key_alloc_funcs(&Class->constants, hashmap_alloc_key_string, NULL);
     nat_define_method(env, Class, "superclass", Class_superclass);
 
-    NatObject *BasicObject = nat_alloc(env);
-    BasicObject->type = NAT_VALUE_CLASS;
+    NatObject *BasicObject = nat_alloc(env, Class, NAT_VALUE_CLASS);
+    assert(BasicObject->klass);
     BasicObject->class_name = heap_string(env, "BasicObject");
-    BasicObject->klass = Class;
     nat_build_env(&BasicObject->env, env);
     BasicObject->superclass = NULL;
     BasicObject->cvars.table = NULL;
@@ -41,6 +39,7 @@ NatEnv *build_top_env() {
     nat_define_method(env, BasicObject, "!=", BasicObject_neq);
     nat_define_method(env, BasicObject, "equal?", Kernel_equal);
     nat_define_method(env, BasicObject, "instance_eval", BasicObject_instance_eval);
+    assert(BasicObject->klass);
 
     NatObject *Object = NAT_OBJECT = nat_subclass(env, BasicObject, "Object");
     nat_define_singleton_method(env, Object, "new", Object_new);
@@ -115,8 +114,7 @@ NatEnv *build_top_env() {
     nat_define_method(env, NilClass, "inspect", NilClass_inspect);
     nat_define_method(env, NilClass, "nil?", NilClass_is_nil);
 
-    NatObject *nil = NAT_NIL = nat_new(env, NilClass, 0, NULL, NULL, NULL);
-    nil->type = NAT_VALUE_NIL;
+    NAT_NIL = nat_alloc(env, NilClass, NAT_VALUE_NIL);
 
     NatObject *TrueClass = nat_subclass(env, Object, "TrueClass");
     nat_const_set(env, Object, "TrueClass", TrueClass);
@@ -124,8 +122,7 @@ NatEnv *build_top_env() {
     nat_define_method(env, TrueClass, "to_s", TrueClass_to_s);
     nat_define_method(env, TrueClass, "inspect", TrueClass_to_s);
 
-    NatObject *true_obj = NAT_TRUE = nat_new(env, TrueClass, 0, NULL, NULL, NULL);
-    true_obj->type = NAT_VALUE_TRUE;
+    NAT_TRUE = nat_alloc(env, TrueClass, NAT_VALUE_TRUE);
 
     NatObject *FalseClass = nat_subclass(env, Object, "FalseClass");
     nat_const_set(env, Object, "FalseClass", FalseClass);
@@ -133,8 +130,7 @@ NatEnv *build_top_env() {
     nat_define_method(env, FalseClass, "to_s", FalseClass_to_s);
     nat_define_method(env, FalseClass, "inspect", FalseClass_to_s);
 
-    NatObject *false_obj = NAT_FALSE = nat_new(env, FalseClass, 0, NULL, NULL, NULL);
-    false_obj->type = NAT_VALUE_FALSE;
+    NAT_FALSE = nat_alloc(env, FalseClass, NAT_VALUE_FALSE);
 
     NatObject *Numeric = nat_subclass(env, Object, "Numeric");
     nat_const_set(env, Object, "Numeric", Numeric);
@@ -297,23 +293,26 @@ NatEnv *build_top_env() {
 
     nat_global_set(env, "$NAT_at_exit_handlers", nat_array(env));
 
-    NatObject *self = nat_new(env, NAT_OBJECT, 0, NULL, NULL, NULL);
+    NatObject *self = nat_alloc(env, NAT_OBJECT, NAT_VALUE_OTHER);
     self->flags = NAT_FLAG_MAIN_OBJECT;
     nat_define_singleton_method(env, self, "inspect", main_obj_inspect);
     nat_global_set(env, "$NAT_main_object", self);
 
     NatObject *stdin_fileno = nat_integer(env, STDIN_FILENO);
-    NatObject *nat_stdin = nat_new(env, IO, 1, &stdin_fileno, NULL, NULL);
+    NatObject *nat_stdin = nat_alloc(env, IO, NAT_VALUE_IO);
+    nat_initialize(env, nat_stdin, 1, &stdin_fileno, NULL, NULL);
     nat_global_set(env, "$stdin", nat_stdin);
     nat_const_set(env, Object, "STDIN", nat_stdin);
 
     NatObject *stdout_fileno = nat_integer(env, STDOUT_FILENO);
-    NatObject *nat_stdout = nat_new(env, IO, 1, &stdout_fileno, NULL, NULL);
+    NatObject *nat_stdout = nat_alloc(env, IO, NAT_VALUE_IO);
+    nat_initialize(env, nat_stdout, 1, &stdout_fileno, NULL, NULL);
     nat_global_set(env, "$stdout", nat_stdout);
     nat_const_set(env, Object, "STDOUT", nat_stdout);
 
     NatObject *stderr_fileno = nat_integer(env, STDERR_FILENO);
-    NatObject *nat_stderr = nat_new(env, IO, 1, &stderr_fileno, NULL, NULL);
+    NatObject *nat_stderr = nat_alloc(env, IO, NAT_VALUE_IO);
+    nat_initialize(env, nat_stderr, 1, &stderr_fileno, NULL, NULL);
     nat_global_set(env, "$stderr", nat_stderr);
     nat_const_set(env, Object, "STDERR", nat_stderr);
 

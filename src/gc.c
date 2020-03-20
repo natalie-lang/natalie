@@ -1,13 +1,13 @@
 #include "gc.h"
 #include "natalie.h"
 
-NatObject *nat_alloc(NatEnv *env) {
+NatObject *nat_alloc(NatEnv *env, NatObject *klass, enum NatValueType type) {
     NatObject *obj = malloc(sizeof(NatObject));
+    obj->klass = klass;
+    obj->type = type;
     obj->flags = 0;
-    obj->type = NAT_VALUE_OTHER;
     obj->included_modules_count = 0;
     obj->included_modules = NULL;
-    obj->klass = NULL;
     obj->singleton_class = NULL;
     obj->constants.table = NULL;
     obj->ivars.table = NULL;

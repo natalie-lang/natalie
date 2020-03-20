@@ -4,4 +4,4 @@
 
 #define NAT_BLOCK_SIZE 16384 // 16 KiB
 
-NatObject *nat_alloc(NatEnv *env);
+NatObject *nat_alloc(NatEnv *env, NatObject *klass, enum NatValueType type);
