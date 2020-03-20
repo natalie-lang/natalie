@@ -77,3 +77,6 @@ docker_coverage_report: docker_build
 
 cloc:
 	cloc --not-match-f=hashmap.\* --not-match-f=compile_commands.json --exclude-dir=.cquery_cache,.github,ext .
+
+ctags:
+	ctags -R --exclude=.cquery_cache --exclude=ext --append=no .
