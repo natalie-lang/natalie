@@ -12,7 +12,7 @@ jobs:
     - name: build image
       run: docker build -t natalie .
     - name: test with gcc
-      run: make docker_test
+      run: make docker_test_gcc
     - name: test with clang
       run: make docker_test_clang
     - name: test with valgrind

@@ -61,7 +61,9 @@ coverage_report:
 docker_build:
 	docker build -t natalie .
 
-docker_test: docker_build
+docker_test: docker_test_gcc docker_test_clang docker_test_valgrind
+
+docker_test_gcc: docker_build
 	docker run $(DOCKER_FLAGS) --rm --entrypoint make natalie test
 
 docker_test_clang: docker_build
