@@ -55,7 +55,8 @@ NatObject *FalseClass_new(NatEnv *env, NatObject *self, size_t argc, NatObject *
 NatObject *FalseClass_to_s(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 
 #define FILE_INIT() \
-    NatObject *Constants = nat_subclass(env, File, "Constants"); \
+    NatObject *Constants = nat_module(env, "Constants"); \
+    nat_const_set(env, File, "Constants", Constants); \
     nat_const_set(env, File, "APPEND", nat_integer(env, O_APPEND)); \
     nat_const_set(env, Constants, "APPEND", nat_integer(env, O_APPEND)); \
     nat_const_set(env, File, "RDONLY", nat_integer(env, O_RDONLY)); \
