@@ -81,9 +81,10 @@ NatGlobalEnv *nat_build_global_env() {
     hashmap_init(symbol_table, hashmap_hash_string, hashmap_compare_string, 100);
     hashmap_set_key_alloc_funcs(symbol_table, hashmap_alloc_key_string, NULL);
     global_env->symbols = symbol_table;
-    nat_gc_alloc_heap_block(global_env);
+    global_env->heap = NULL;
     global_env->max_ptr = 0;
     global_env->min_ptr = (void*)UINTPTR_MAX;
+    nat_gc_alloc_heap_block(global_env);
     return global_env;
 }
 
@@ -105,9 +106,17 @@ NatEnv *nat_build_env(NatEnv *env, NatEnv *outer) {
 }
 
 NatEnv *nat_build_block_env(NatEnv *env, NatEnv *outer, NatEnv *calling_env) {
-    nat_build_env(env,  outer);
+    nat_build_env(env, outer);
     env->block = true;
     env->caller = calling_env;
+    return env;
+}
+
+NatEnv *nat_build_detatched_block_env(NatEnv* outer) {
+    NatEnv *env = malloc(sizeof(NatEnv));
+    nat_build_env(env, outer);
+    env->block = true;
+    env->outer = NULL;
     return env;
 }
 
@@ -333,6 +342,7 @@ NatObject *nat_subclass(NatEnv *env, NatObject *superclass, char *name) {
     klass->class_name = name ? heap_string(env, name) : NULL;
     klass->superclass = superclass;
     nat_build_env(&klass->env, &superclass->env);
+    klass->env.outer = NULL;
     hashmap_init(&klass->methods, hashmap_hash_string, hashmap_compare_string, 10);
     hashmap_set_key_alloc_funcs(&klass->methods, hashmap_alloc_key_string, NULL);
     hashmap_init(&klass->constants, hashmap_hash_string, hashmap_compare_string, 10);
@@ -342,12 +352,13 @@ NatObject *nat_subclass(NatEnv *env, NatObject *superclass, char *name) {
 }
 
 NatObject *nat_module(NatEnv *env, char *name) {
-    NatObject *val = nat_alloc(env, nat_const_get(env, NAT_OBJECT, "Module"), NAT_VALUE_MODULE);
-    val->class_name = name ? heap_string(env, name) : NULL;
-    nat_build_env(&val->env, env);
-    hashmap_init(&val->methods, hashmap_hash_string, hashmap_compare_string, 100);
-    hashmap_set_key_alloc_funcs(&val->methods, hashmap_alloc_key_string, NULL);
-    return val;
+    NatObject *module = nat_alloc(env, nat_const_get(env, NAT_OBJECT, "Module"), NAT_VALUE_MODULE);
+    module->class_name = name ? heap_string(env, name) : NULL;
+    nat_build_env(&module->env, env);
+    module->env.outer = NULL;
+    hashmap_init(&module->methods, hashmap_hash_string, hashmap_compare_string, 100);
+    hashmap_set_key_alloc_funcs(&module->methods, hashmap_alloc_key_string, NULL);
+    return module;
 }
 
 void nat_class_include(NatEnv *env, NatObject *klass, NatObject *module) {
@@ -522,8 +533,7 @@ NatHashKey *nat_hash_key_list_append(NatEnv *env, NatObject *hash, NatObject *ke
         // ^______________________________|
         new_last->prev = last;
         new_last->next = first;
-        new_last->env = malloc(sizeof(NatEnv));
-        nat_build_env(new_last->env, env);
+        new_last->env = nat_build_detatched_block_env(env);
         new_last->removed = false;
         first->prev = new_last;
         last->next = new_last;
@@ -534,8 +544,7 @@ NatHashKey *nat_hash_key_list_append(NatEnv *env, NatObject *hash, NatObject *ke
         node->val = val;
         node->prev = node;
         node->next = node;
-        node->env = malloc(sizeof(NatEnv));
-        nat_build_env(node->env, env);
+        node->env = nat_build_detatched_block_env(env);
         node->removed = false;
         hash->key_list = node;
         return node;
@@ -900,7 +909,7 @@ NatObject *nat_call_method_on_class(NatEnv *env, NatObject *klass, NatObject *in
         }
 #endif
         NatEnv *closure_env;
-        if (method->env.outer) {
+        if (NAT_OBJ_HAS_ENV(method)) {
             closure_env = &method->env;
         } else {
             closure_env = &matching_class_or_module->env;

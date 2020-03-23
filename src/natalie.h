@@ -35,6 +35,7 @@
 #define NAT_MIN(a, b) ((a < b) ? a : b)
 #define NAT_MAX(a, b) ((a > b) ? a : b)
 #define NAT_NOT_YET_IMPLEMENTED(description) fprintf(stderr, "NOT YET IMPLEMENTED: %s", description); abort();
+#define NAT_OBJ_HAS_ENV(obj) ((obj)->env.global_env == env->global_env)
 
 #define NAT_LOCK(obj) { \
     int lock_err = pthread_mutex_lock(&obj->mutex); \
@@ -151,14 +152,14 @@ enum NatValueType {
     NAT_VALUE_IO,        // 7
     NAT_VALUE_MATCHDATA, // 8
     NAT_VALUE_MODULE,    // 9
-    NAT_VALUE_OTHER,     // 11
-    NAT_VALUE_PROC,      // 12
-    NAT_VALUE_RANGE,     // 13
-    NAT_VALUE_REGEXP,    // 14
-    NAT_VALUE_STRING,    // 15
-    NAT_VALUE_SYMBOL,    // 16
-    NAT_VALUE_THREAD,    // 17
-    NAT_VALUE_TRUE       // 18
+    NAT_VALUE_OTHER,     // 10
+    NAT_VALUE_PROC,      // 11
+    NAT_VALUE_RANGE,     // 12
+    NAT_VALUE_REGEXP,    // 13
+    NAT_VALUE_STRING,    // 14
+    NAT_VALUE_SYMBOL,    // 15
+    NAT_VALUE_THREAD,    // 16
+    NAT_VALUE_TRUE       // 17
 };
 
 #define NAT_FLAG_MAIN_OBJECT 1
@@ -302,6 +303,7 @@ NatObject *nat_var_set(NatEnv *env, char *key, size_t index, NatObject *val);
 NatGlobalEnv *nat_build_global_env();
 NatEnv *nat_build_env(NatEnv *env, NatEnv *outer);
 NatEnv *nat_build_block_env(NatEnv *env, NatEnv *outer, NatEnv *calling_env);
+NatEnv *nat_build_detatched_block_env(NatEnv* outer);
 
 char *nat_find_current_method_name(NatEnv *env);
 char *nat_find_method_name(NatEnv *env);
