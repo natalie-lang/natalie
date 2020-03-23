@@ -97,6 +97,7 @@ NatEnv *nat_build_env(NatEnv *env, NatEnv *outer) {
     env->caller = NULL;
     env->line = 0;
     env->method_name = NULL;
+    env->exception = NULL;
     if (outer) {
         env->global_env = outer->global_env;
     } else {
