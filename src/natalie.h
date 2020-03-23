@@ -80,6 +80,9 @@ typedef struct NatMethod NatMethod;
 typedef struct NatHashKey NatHashKey;
 typedef struct NatHashKey NatHashIter;
 typedef struct NatHashVal NatHashVal;
+typedef struct NatHeapBlock NatHeapBlock;
+
+struct NatHeapBlock;
 
 struct NatGlobalEnv {
     struct hashmap *globals;
@@ -89,6 +92,10 @@ struct NatGlobalEnv {
               *nil,
               *true_obj,
               *false_obj;
+    NatHeapBlock *heap;
+    void *bottom_of_stack;
+    NatObject *min_ptr;
+    NatObject *max_ptr;
 };
 
 struct NatEnv {
@@ -133,24 +140,25 @@ struct NatHashVal {
 };
 
 enum NatValueType {
-    NAT_VALUE_ARRAY,     // 0
-    NAT_VALUE_CLASS,     // 1
-    NAT_VALUE_EXCEPTION, // 2
-    NAT_VALUE_FALSE,     // 3
-    NAT_VALUE_HASH,      // 4
-    NAT_VALUE_INTEGER,   // 5
-    NAT_VALUE_IO,        // 6
-    NAT_VALUE_MATCHDATA, // 7
-    NAT_VALUE_MODULE,    // 8
-    NAT_VALUE_NIL,       // 9
-    NAT_VALUE_OTHER,     // 10
-    NAT_VALUE_PROC,      // 11
-    NAT_VALUE_RANGE,     // 12
-    NAT_VALUE_REGEXP,    // 13
-    NAT_VALUE_STRING,    // 14
-    NAT_VALUE_SYMBOL,    // 15
-    NAT_VALUE_THREAD,    // 16
-    NAT_VALUE_TRUE       // 17
+    NAT_VALUE_NIL,       // 0
+
+    NAT_VALUE_ARRAY,     // 1
+    NAT_VALUE_CLASS,     // 2
+    NAT_VALUE_EXCEPTION, // 3
+    NAT_VALUE_FALSE,     // 4
+    NAT_VALUE_HASH,      // 5
+    NAT_VALUE_INTEGER,   // 6
+    NAT_VALUE_IO,        // 7
+    NAT_VALUE_MATCHDATA, // 8
+    NAT_VALUE_MODULE,    // 9
+    NAT_VALUE_OTHER,     // 11
+    NAT_VALUE_PROC,      // 12
+    NAT_VALUE_RANGE,     // 13
+    NAT_VALUE_REGEXP,    // 14
+    NAT_VALUE_STRING,    // 15
+    NAT_VALUE_SYMBOL,    // 16
+    NAT_VALUE_THREAD,    // 17
+    NAT_VALUE_TRUE       // 18
 };
 
 #define NAT_FLAG_MAIN_OBJECT 1
@@ -274,7 +282,12 @@ struct NatObject {
 
         // NAT_VALUE_SYMBOL
         char *symbol;
+
+        // when sitting in the heap block free_list
+        NatObject *next_free_object;
     };
+
+    bool marked;
 };
 
 bool nat_is_constant_name(char *name);

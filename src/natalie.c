@@ -81,6 +81,9 @@ NatGlobalEnv *nat_build_global_env() {
     hashmap_init(symbol_table, hashmap_hash_string, hashmap_compare_string, 100);
     hashmap_set_key_alloc_funcs(symbol_table, hashmap_alloc_key_string, NULL);
     global_env->symbols = symbol_table;
+    nat_gc_alloc_heap_block(global_env);
+    global_env->max_ptr = 0;
+    global_env->min_ptr = (void*)UINTPTR_MAX;
     return global_env;
 }
 
@@ -455,6 +458,7 @@ void nat_grow_array_at_least(NatEnv *env, NatObject *obj, size_t min_capacity) {
 
 void nat_array_push(NatEnv *env, NatObject *array, NatObject *obj) {
     assert(NAT_TYPE(array) == NAT_VALUE_ARRAY);
+    assert(obj);
     size_t capacity = array->ary_cap;
     size_t len = array->ary_len;
     if (len >= capacity) {

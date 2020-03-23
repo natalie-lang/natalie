@@ -329,6 +329,7 @@ NatObject *EVAL(NatEnv *env) {
     int run_exit_handlers = true;
     if (!NAT_RESCUE(env)) {
         /*BODY*/
+        nat_gc_collect(env);
         run_exit_handlers = false;
         nat_run_at_exit_handlers(env);
         return NAT_NIL; // just in case there's no return value
@@ -341,6 +342,7 @@ NatObject *EVAL(NatEnv *env) {
 int main(int argc, char *argv[]) {
     setvbuf(stdout, NULL, _IOLBF, 1024);
     NatEnv *env = build_top_env();
+    nat_gc_init(env, &argc);
     NatObject *ARGV = nat_array(env);
     nat_const_set(env, NAT_OBJECT, "ARGV", ARGV);
     assert(argc > 0);
