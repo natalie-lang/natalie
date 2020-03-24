@@ -82,8 +82,7 @@ NatObject *nat_gc_gather_roots(NatEnv *env) {
     nat_gc_push_object(env, roots, global_env->true_obj);
     nat_gc_push_object(env, roots, global_env->false_obj);
     struct hashmap_iter *iter;
-    for (iter = hashmap_iter(global_env->globals); iter; iter = hashmap_iter_next(global_env->globals, iter))
-    {
+    for (iter = hashmap_iter(global_env->globals); iter; iter = hashmap_iter_next(global_env->globals, iter)) {
         NatObject *obj = (NatObject *)hashmap_iter_get_data(iter);
         nat_gc_push_object(env, roots, obj);
     }
@@ -114,15 +113,13 @@ NatObject *nat_gc_mark_live_objects(NatEnv *env) {
         if (obj->singleton_class) nat_gc_push_object(env, objects, obj->singleton_class);
         struct hashmap_iter *iter;
         if (obj->constants.table) {
-            for (iter = hashmap_iter(&obj->constants); iter; iter = hashmap_iter_next(&obj->constants, iter))
-            {
+            for (iter = hashmap_iter(&obj->constants); iter; iter = hashmap_iter_next(&obj->constants, iter)) {
                 NatObject *o = (NatObject *)hashmap_iter_get_data(iter);
                 nat_gc_push_object(env, objects, o);
             }
         }
         if (obj->ivars.table) {
-            for (iter = hashmap_iter(&obj->ivars); iter; iter = hashmap_iter_next(&obj->ivars, iter))
-            {
+            for (iter = hashmap_iter(&obj->ivars); iter; iter = hashmap_iter_next(&obj->ivars, iter)) {
                 NatObject *o = (NatObject *)hashmap_iter_get_data(iter);
                 nat_gc_push_object(env, objects, o);
             }
@@ -145,8 +142,7 @@ NatObject *nat_gc_mark_live_objects(NatEnv *env) {
                     nat_gc_push_object(env, objects, obj->included_modules[i]);
                 }
                 if (obj->methods.table) {
-                    for (iter = hashmap_iter(&obj->methods); iter; iter = hashmap_iter_next(&obj->methods, iter))
-                    {
+                    for (iter = hashmap_iter(&obj->methods); iter; iter = hashmap_iter_next(&obj->methods, iter)) {
                         NatMethod *method = (NatMethod *)hashmap_iter_get_data(iter);
                         if (NAT_OBJ_HAS_ENV(method)) nat_gc_gather_from_env(objects, &method->env);
                     }
@@ -173,8 +169,7 @@ NatObject *nat_gc_mark_live_objects(NatEnv *env) {
                 break;
             case NAT_VALUE_MODULE:
                 if (obj->methods.table) {
-                    for (iter = hashmap_iter(&obj->methods); iter; iter = hashmap_iter_next(&obj->methods, iter))
-                    {
+                    for (iter = hashmap_iter(&obj->methods); iter; iter = hashmap_iter_next(&obj->methods, iter)) {
                         NatMethod *method = (NatMethod *)hashmap_iter_get_data(iter);
                         if (NAT_OBJ_HAS_ENV(method)) nat_gc_gather_from_env(objects, &method->env);
                     }
