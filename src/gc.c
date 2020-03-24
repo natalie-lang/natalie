@@ -68,7 +68,7 @@ NatObject *nat_gc_gather_roots(NatEnv *env) {
     }
     NatObject *min_ptr = global_env->min_ptr;
     NatObject *max_ptr = global_env->max_ptr;
-    for (void *p = global_env->bottom_of_stack; p >= top_of_stack; p--) {
+    for (void *p = global_env->bottom_of_stack; p >= top_of_stack; p-=sizeof(void*)) {
         NatObject *ptr = *((NatObject**)p);
         if (ptr != roots && ptr >= min_ptr && ptr <= max_ptr) {
             nat_gc_push_object(env, roots, ptr);
@@ -205,13 +205,28 @@ NatObject *nat_gc_mark_live_objects(NatEnv *env) {
     return objects;
 }
 
+static void nat_gc_collect_object(NatEnv *env, NatObject *obj) {
+    NatHeapBlock *block = env->global_env->heap;
+    do {
+        if ((NatObject*)block < obj && (!block->next || (NatObject*)block->next > obj)) {
+            obj->type = NAT_VALUE_NIL;
+            obj->klass = NAT_NIL->klass;
+            NatObject *next_object = block->free_list;
+            block->free_list = obj;
+            obj->next_free_object = next_object;
+            break;
+        }
+        block = block->next;
+    } while (block);
+}
+
 static void nat_gc_collect_dead_objects(NatEnv *env) {
     NatHeapBlock *block = env->global_env->heap;
     do {
         for (size_t i=0; i<NAT_HEAP_OBJECT_COUNT; i++) {
             NatObject *obj = &block->storage[i];
             if (obj->type && !obj->marked && NAT_TYPE(obj) != NAT_VALUE_SYMBOL) {
-                // TODO: collect it!
+                nat_gc_collect_object(env, obj);
             }
         }
         block = block->next;
