@@ -171,6 +171,8 @@ module Natalie
     def template
       if compile_to_object_file
         OBJ_TEMPLATE % { name: obj_name }
+      elsif repl
+        MAIN_TEMPLATE.sub(/nat_gc_collect\(env\);\n/, '')
       else
         MAIN_TEMPLATE
       end
