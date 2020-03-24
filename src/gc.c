@@ -202,7 +202,80 @@ NatObject *nat_gc_mark_live_objects(NatEnv *env) {
     return objects;
 }
 
-static void nat_gc_put_object_back_on_heap_block(NatEnv *env, NatHeapBlock *block, NatObject *obj) {
+static void nat_gc_collect_object(NatEnv *env, NatHeapBlock *block, NatObject *obj) {
+    if (obj->constants.table) hashmap_destroy(&obj->constants);
+    if (obj->ivars.table) hashmap_destroy(&obj->ivars);
+    pthread_mutex_destroy(&obj->mutex);
+    NatHashKey *key;
+    struct hashmap_iter *iter;
+    switch (obj->type) {
+        case NAT_VALUE_ARRAY:
+            free(obj->ary);
+            break;
+        case NAT_VALUE_CLASS:
+            free(obj->class_name);
+            hashmap_destroy(&obj->methods);
+            hashmap_destroy(&obj->cvars);
+            free(obj->included_modules);
+            break;
+        case NAT_VALUE_EXCEPTION:
+            free(obj->message);
+            break;
+        case NAT_VALUE_FALSE:
+            break;
+        case NAT_VALUE_HASH:
+            key = obj->key_list;
+            if (key) {
+                do {
+                    NatHashKey *next_key = key->next;
+                    free(key);
+                    key = next_key;
+                } while (key != obj->key_list);
+            }
+            for (iter = hashmap_iter(&obj->hashmap); iter; iter = hashmap_iter_next(&obj->hashmap, iter)) {
+                free((NatHashVal *)hashmap_iter_get_data(iter));
+            }
+            free(obj->key_list);
+            hashmap_destroy(&obj->hashmap);
+            break;
+        case NAT_VALUE_INTEGER:
+            break;
+        case NAT_VALUE_IO:
+            break;
+        case NAT_VALUE_MATCHDATA:
+            onig_region_free(obj->matchdata_region, true);
+            free(obj->matchdata_str);
+            break;
+        case NAT_VALUE_MODULE:
+            free(obj->class_name);
+            hashmap_destroy(&obj->methods);
+            if (obj->cvars.table) hashmap_destroy(&obj->cvars);
+            free(obj->included_modules);
+            break;
+        case NAT_VALUE_NIL:
+            break;
+        case NAT_VALUE_OTHER:
+            break;
+        case NAT_VALUE_PROC:
+            free(obj->block);
+            break;
+        case NAT_VALUE_RANGE:
+            break;
+        case NAT_VALUE_REGEXP:
+            onig_free(obj->regexp);
+            free(obj->regexp_str);
+            break;
+        case NAT_VALUE_STRING:
+            free(obj->str);
+            break;
+        case NAT_VALUE_SYMBOL:
+            break;
+            free(obj->symbol);
+        case NAT_VALUE_THREAD:
+            break;
+        case NAT_VALUE_TRUE:
+            break;
+    }
     obj->type = NAT_VALUE_NIL;
     obj->klass = NAT_NIL->klass;
     NatObject *next_object = block->free_list;
@@ -216,7 +289,7 @@ static void nat_gc_collect_dead_objects(NatEnv *env) {
         for (size_t i=0; i<NAT_HEAP_OBJECT_COUNT; i++) {
             NatObject *obj = &block->storage[i];
             if (obj->type && !obj->marked && NAT_TYPE(obj) != NAT_VALUE_SYMBOL) {
-                nat_gc_put_object_back_on_heap_block(env, block, obj);
+                nat_gc_collect_object(env, block, obj);
             }
         }
         block = block->next;
@@ -224,12 +297,16 @@ static void nat_gc_collect_dead_objects(NatEnv *env) {
 }
 
 void nat_gc_collect(NatEnv *env) {
+    if (!env->global_env->gc_enabled) return; // FIXME: use a mutex :-)
+    env->global_env->gc_enabled = false;
     nat_gc_unmark_all_objects(env);
     nat_gc_mark_live_objects(env);
     nat_gc_collect_dead_objects(env);
+    env->global_env->gc_enabled = true;
 }
 
 NatObject *nat_alloc(NatEnv *env, NatObject *klass, enum NatValueType type) {
+    //nat_gc_collect(env);
     NatObject *obj = nat_gc_malloc(env);
     obj->klass = klass;
     obj->type = type;

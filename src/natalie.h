@@ -98,6 +98,7 @@ struct NatGlobalEnv {
     void *bottom_of_stack;
     NatObject *min_ptr;
     NatObject *max_ptr;
+    bool gc_enabled;
 };
 
 struct NatEnv {

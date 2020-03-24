@@ -37,6 +37,7 @@ NatObject *nat_const_get_or_null(NatEnv *env, NatObject *klass, char *name) {
 }
 
 NatObject *nat_const_set(NatEnv *env, NatObject *klass, char *name, NatObject *val) {
+    // FIXME: can set constants on modules, yeah?
     if (NAT_TYPE(klass) != NAT_VALUE_CLASS) {
         klass = klass->klass;
     }
@@ -85,6 +86,7 @@ NatGlobalEnv *nat_build_global_env() {
     global_env->max_ptr = 0;
     global_env->min_ptr = (void*)UINTPTR_MAX;
     nat_gc_alloc_heap_block(global_env);
+    global_env->gc_enabled = false;
     return global_env;
 }
 
@@ -333,6 +335,14 @@ char *heap_string(NatEnv *env, char *str) {
     return copy;
 }
 
+static void nat_init_class_or_module_data(NatEnv *env, NatObject *klass_or_module) {
+    hashmap_init(&klass_or_module->methods, hashmap_hash_string, hashmap_compare_string, 10);
+    hashmap_set_key_alloc_funcs(&klass_or_module->methods, hashmap_alloc_key_string, NULL);
+    hashmap_init(&klass_or_module->constants, hashmap_hash_string, hashmap_compare_string, 10);
+    hashmap_set_key_alloc_funcs(&klass_or_module->constants, hashmap_alloc_key_string, NULL);
+    klass_or_module->cvars.table = NULL;
+}
+
 NatObject *nat_subclass(NatEnv *env, NatObject *superclass, char *name) {
     assert(superclass);
     assert(superclass->klass);
@@ -344,11 +354,7 @@ NatObject *nat_subclass(NatEnv *env, NatObject *superclass, char *name) {
     klass->superclass = superclass;
     nat_build_env(&klass->env, &superclass->env);
     klass->env.outer = NULL;
-    hashmap_init(&klass->methods, hashmap_hash_string, hashmap_compare_string, 10);
-    hashmap_set_key_alloc_funcs(&klass->methods, hashmap_alloc_key_string, NULL);
-    hashmap_init(&klass->constants, hashmap_hash_string, hashmap_compare_string, 10);
-    hashmap_set_key_alloc_funcs(&klass->constants, hashmap_alloc_key_string, NULL);
-    klass->cvars.table = NULL;
+    nat_init_class_or_module_data(env, klass);
     return klass;
 }
 
@@ -357,8 +363,7 @@ NatObject *nat_module(NatEnv *env, char *name) {
     module->class_name = name ? heap_string(env, name) : NULL;
     nat_build_env(&module->env, env);
     module->env.outer = NULL;
-    hashmap_init(&module->methods, hashmap_hash_string, hashmap_compare_string, 100);
-    hashmap_set_key_alloc_funcs(&module->methods, hashmap_alloc_key_string, NULL);
+    nat_init_class_or_module_data(env, module);
     return module;
 }
 

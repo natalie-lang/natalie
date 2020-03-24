@@ -318,6 +318,8 @@ NatEnv *build_top_env() {
 
     /*OBJ_NAT_INIT*/
 
+    env->global_env->gc_enabled = true;
+
     return env;
 }
 
