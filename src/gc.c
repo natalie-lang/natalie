@@ -43,6 +43,10 @@ NatObject *nat_gc_malloc(NatEnv *env) {
 
 static void nat_gc_push_object(NatEnv *env, NatObject *objects, NatObject *obj) {
     if (obj && !NAT_IS_TAGGED_INT(obj)) {
+        // TODO: compile these checks out in release build
+        assert(obj >= env->global_env->min_ptr && obj <= env->global_env->max_ptr);
+        assert(obj->klass >= env->global_env->min_ptr && obj->klass <= env->global_env->max_ptr);
+
         nat_array_push(env, objects, obj);
     }
 }
@@ -66,11 +70,9 @@ NatObject *nat_gc_gather_roots(NatEnv *env) {
         fprintf(stderr, "Unsupported platform\n");
         abort();
     }
-    NatObject *min_ptr = global_env->min_ptr;
-    NatObject *max_ptr = global_env->max_ptr;
     for (void *p = global_env->bottom_of_stack; p >= top_of_stack; p-=sizeof(void*)) {
         NatObject *ptr = *((NatObject**)p);
-        if (ptr != roots && ptr >= min_ptr && ptr <= max_ptr) {
+        if (NAT_IS_HEAP_OBJECT(env, ptr)) {
             nat_gc_push_object(env, roots, ptr);
         }
     }
@@ -109,20 +111,20 @@ NatObject *nat_gc_mark_live_objects(NatEnv *env) {
         obj->marked = true;
 
         nat_gc_push_object(env, objects, obj->klass);
-        nat_gc_push_object(env, objects, obj->singleton_class);
+        if (obj->singleton_class) nat_gc_push_object(env, objects, obj->singleton_class);
         struct hashmap_iter *iter;
         if (obj->constants.table) {
             for (iter = hashmap_iter(&obj->constants); iter; iter = hashmap_iter_next(&obj->constants, iter))
             {
-                NatObject *obj = (NatObject *)hashmap_iter_get_data(iter);
-                nat_gc_push_object(env, objects, obj);
+                NatObject *o = (NatObject *)hashmap_iter_get_data(iter);
+                nat_gc_push_object(env, objects, o);
             }
         }
         if (obj->ivars.table) {
             for (iter = hashmap_iter(&obj->ivars); iter; iter = hashmap_iter_next(&obj->ivars, iter))
             {
-                NatObject *obj = (NatObject *)hashmap_iter_get_data(iter);
-                nat_gc_push_object(env, objects, obj);
+                NatObject *o = (NatObject *)hashmap_iter_get_data(iter);
+                nat_gc_push_object(env, objects, o);
             }
         }
 
@@ -205,19 +207,12 @@ NatObject *nat_gc_mark_live_objects(NatEnv *env) {
     return objects;
 }
 
-static void nat_gc_collect_object(NatEnv *env, NatObject *obj) {
-    NatHeapBlock *block = env->global_env->heap;
-    do {
-        if ((NatObject*)block < obj && (!block->next || (NatObject*)block->next > obj)) {
-            obj->type = NAT_VALUE_NIL;
-            obj->klass = NAT_NIL->klass;
-            NatObject *next_object = block->free_list;
-            block->free_list = obj;
-            obj->next_free_object = next_object;
-            break;
-        }
-        block = block->next;
-    } while (block);
+static void nat_gc_put_object_back_on_heap_block(NatEnv *env, NatHeapBlock *block, NatObject *obj) {
+    obj->type = NAT_VALUE_NIL;
+    obj->klass = NAT_NIL->klass;
+    NatObject *next_object = block->free_list;
+    block->free_list = obj;
+    obj->next_free_object = next_object;
 }
 
 static void nat_gc_collect_dead_objects(NatEnv *env) {
@@ -226,7 +221,7 @@ static void nat_gc_collect_dead_objects(NatEnv *env) {
         for (size_t i=0; i<NAT_HEAP_OBJECT_COUNT; i++) {
             NatObject *obj = &block->storage[i];
             if (obj->type && !obj->marked && NAT_TYPE(obj) != NAT_VALUE_SYMBOL) {
-                nat_gc_collect_object(env, obj);
+                nat_gc_put_object_back_on_heap_block(env, block, obj);
             }
         }
         block = block->next;

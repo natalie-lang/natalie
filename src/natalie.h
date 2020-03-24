@@ -36,6 +36,7 @@
 #define NAT_MAX(a, b) ((a > b) ? a : b)
 #define NAT_NOT_YET_IMPLEMENTED(description) fprintf(stderr, "NOT YET IMPLEMENTED: %s", description); abort();
 #define NAT_OBJ_HAS_ENV(obj) ((obj)->env.global_env == env->global_env)
+#define NAT_INSPECT(obj) nat_send(env, obj, "inspect", 0, NULL, NULL)
 
 #define NAT_LOCK(obj) { \
     int lock_err = pthread_mutex_lock(&obj->mutex); \
@@ -140,26 +141,30 @@ struct NatHashVal {
     NatObject *val;
 };
 
-enum NatValueType {
-    NAT_VALUE_NIL,       // 0
+// we use this to determine if a ptr is a real NatObject
+#define NAT_MAGIC_TAG 12372309127493480000U
+#define NAT_IS_HEAP_OBJECT(env, ptr) (ptr && !NAT_IS_TAGGED_INT(ptr) && ptr >= env->global_env->min_ptr && ptr <= env->global_env->max_ptr && (*(uint64_t*)ptr & NAT_MAGIC_TAG) == NAT_MAGIC_TAG)
 
-    NAT_VALUE_ARRAY,     // 1
-    NAT_VALUE_CLASS,     // 2
-    NAT_VALUE_EXCEPTION, // 3
-    NAT_VALUE_FALSE,     // 4
-    NAT_VALUE_HASH,      // 5
-    NAT_VALUE_INTEGER,   // 6
-    NAT_VALUE_IO,        // 7
-    NAT_VALUE_MATCHDATA, // 8
-    NAT_VALUE_MODULE,    // 9
-    NAT_VALUE_OTHER,     // 10
-    NAT_VALUE_PROC,      // 11
-    NAT_VALUE_RANGE,     // 12
-    NAT_VALUE_REGEXP,    // 13
-    NAT_VALUE_STRING,    // 14
-    NAT_VALUE_SYMBOL,    // 15
-    NAT_VALUE_THREAD,    // 16
-    NAT_VALUE_TRUE       // 17
+enum NatValueType {
+    NAT_VALUE_NIL       = 0,
+
+    NAT_VALUE_ARRAY     = NAT_MAGIC_TAG | 1,
+    NAT_VALUE_CLASS     = NAT_MAGIC_TAG | 2,
+    NAT_VALUE_EXCEPTION = NAT_MAGIC_TAG | 3,
+    NAT_VALUE_FALSE     = NAT_MAGIC_TAG | 4,
+    NAT_VALUE_HASH      = NAT_MAGIC_TAG | 5,
+    NAT_VALUE_INTEGER   = NAT_MAGIC_TAG | 6,
+    NAT_VALUE_IO        = NAT_MAGIC_TAG | 7,
+    NAT_VALUE_MATCHDATA = NAT_MAGIC_TAG | 8,
+    NAT_VALUE_MODULE    = NAT_MAGIC_TAG | 9,
+    NAT_VALUE_OTHER     = NAT_MAGIC_TAG | 10,
+    NAT_VALUE_PROC      = NAT_MAGIC_TAG | 11,
+    NAT_VALUE_RANGE     = NAT_MAGIC_TAG | 12,
+    NAT_VALUE_REGEXP    = NAT_MAGIC_TAG | 13,
+    NAT_VALUE_STRING    = NAT_MAGIC_TAG | 14,
+    NAT_VALUE_SYMBOL    = NAT_MAGIC_TAG | 15,
+    NAT_VALUE_THREAD    = NAT_MAGIC_TAG | 16,
+    NAT_VALUE_TRUE      = NAT_MAGIC_TAG | 17,
 };
 
 #define NAT_FLAG_MAIN_OBJECT 1
