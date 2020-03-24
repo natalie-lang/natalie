@@ -269,8 +269,8 @@ static void nat_gc_collect_object(NatEnv *env, NatHeapBlock *block, NatObject *o
             free(obj->str);
             break;
         case NAT_VALUE_SYMBOL:
-            break;
             free(obj->symbol);
+            break;
         case NAT_VALUE_THREAD:
             break;
         case NAT_VALUE_TRUE:
