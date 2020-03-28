@@ -234,13 +234,13 @@ static void nat_gc_collect_object(NatEnv *env, NatHeapBlock *block, NatObject *o
             free(obj->ary);
             break;
         case NAT_VALUE_CLASS:
-            if (obj->class_name) free(obj->class_name);
+            free(obj->class_name);
             hashmap_destroy(&obj->methods);
             if (obj->cvars.table) hashmap_destroy(&obj->cvars);
-            if (obj->included_modules) free(obj->included_modules);
+            free(obj->included_modules);
             break;
         case NAT_VALUE_EXCEPTION:
-            if (obj->message) free(obj->message);
+            free(obj->message);
             break;
         case NAT_VALUE_FALSE:
             break;
@@ -260,10 +260,10 @@ static void nat_gc_collect_object(NatEnv *env, NatHeapBlock *block, NatObject *o
             free(obj->matchdata_str);
             break;
         case NAT_VALUE_MODULE:
-            if (obj->class_name) free(obj->class_name);
+            free(obj->class_name);
             hashmap_destroy(&obj->methods);
             if (obj->cvars.table) hashmap_destroy(&obj->cvars);
-            if (obj->included_modules) free(obj->included_modules);
+            free(obj->included_modules);
             break;
         case NAT_VALUE_NIL:
             break;
