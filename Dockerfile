@@ -4,13 +4,27 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y -q ruby 
 RUN gem update --system -q --silent
 RUN gem install bundler --no-doc
 
+ENV LC_ALL C.UTF-8
+
 WORKDIR '/natalie'
 COPY Gemfile /natalie/Gemfile
 COPY Gemfile.lock /natalie/Gemfile.lock
 RUN bundle install
 
-COPY . /natalie
+ARG CC=gcc
+ENV CC=$CC
+
+COPY ext /natalie/ext
+COPY Makefile /natalie/Makefile
+RUN make ext/onigmo/.libs/libonigmo.a
+
+COPY bin /natalie/bin
+COPY examples /natalie/examples
+COPY lib /natalie/lib
+COPY src /natalie/src
+COPY spec /natalie/spec
+COPY test /natalie/test
 RUN mkdir -p obj/nat
-RUN make clean build
+RUN make build
 
 ENTRYPOINT ["/natalie/bin/natalie"]

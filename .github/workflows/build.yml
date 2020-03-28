@@ -9,8 +9,6 @@ jobs:
     - uses: actions/checkout@v1
     - name: checkout submodules
       run: git submodule update --init --recursive
-    - name: build image
-      run: docker build -t natalie .
     - name: test with gcc
       run: make docker_test_gcc
     - name: test with clang

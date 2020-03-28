@@ -61,13 +61,16 @@ coverage_report:
 docker_build:
 	docker build -t natalie .
 
+docker_build_clang:
+	docker build -t natalie_clang --build-arg CC=clang .
+
 docker_test: docker_test_gcc docker_test_clang docker_test_valgrind
 
 docker_test_gcc: docker_build
 	docker run $(DOCKER_FLAGS) --rm --entrypoint make natalie test
 
-docker_test_clang: docker_build
-	docker run $(DOCKER_FLAGS) -e "CC=/usr/bin/clang" --rm --entrypoint make natalie clean test
+docker_test_clang: docker_build_clang
+	docker run $(DOCKER_FLAGS) --rm --entrypoint make natalie_clang test
 
 docker_test_valgrind: docker_build
 	docker run $(DOCKER_FLAGS) --rm --entrypoint make natalie test_valgrind
