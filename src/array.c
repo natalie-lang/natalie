@@ -131,10 +131,10 @@ NatObject *Array_refeq(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     for (size_t i=index+length; i<self->ary_len; i++) {
         nat_array_push(env, ary2, self->ary[i]);
     }
-    // FIXME: copying like this is a possible GC bug depending on our GC implementation later
     self->ary = ary2->ary;
     self->ary_len = ary2->ary_len;
     self->ary_cap = ary2->ary_cap;
+    ary2->type = NAT_VALUE_NIL; // don't GC our memory plz :-)
     return val;
 }
 

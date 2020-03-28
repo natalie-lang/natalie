@@ -172,7 +172,7 @@ module Natalie
       if compile_to_object_file
         OBJ_TEMPLATE % { name: obj_name }
       elsif repl
-        MAIN_TEMPLATE.sub(/nat_gc_collect\(env\);\n/, '')
+        MAIN_TEMPLATE.sub(/env->global_env->gc_enabled = true;/, '')
       else
         MAIN_TEMPLATE
       end

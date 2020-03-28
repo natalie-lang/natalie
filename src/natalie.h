@@ -143,8 +143,9 @@ struct NatHashVal {
 };
 
 // we use this to determine if a ptr is a real NatObject
-#define NAT_MAGIC_TAG 12372309127493480000U
-#define NAT_IS_HEAP_OBJECT(env, ptr) (ptr && !NAT_IS_TAGGED_INT(ptr) && ptr >= env->global_env->min_ptr && ptr <= env->global_env->max_ptr && (*(uint64_t*)ptr & NAT_MAGIC_TAG) == NAT_MAGIC_TAG)
+#define NAT_MAGIC_TAG 0b1010101110110011010001011001100110100011100100100110111001000000U
+#define NAT_MAGIC_TAG_MASK 0b1111111111111111111111111111111111111111111111111111111111000000
+#define NAT_IS_HEAP_OBJECT(env, ptr) (ptr && !NAT_IS_TAGGED_INT(ptr) && ptr >= env->global_env->min_ptr && ptr <= env->global_env->max_ptr && (*(uint64_t*)ptr & NAT_MAGIC_TAG_MASK) == NAT_MAGIC_TAG)
 
 enum NatValueType {
     NAT_VALUE_NIL       = 0,
@@ -289,10 +290,10 @@ struct NatObject {
 
         // NAT_VALUE_SYMBOL
         char *symbol;
-
-        // when sitting in the heap block free_list
-        NatObject *next_free_object;
     };
+
+    // TODO: move this into the above union once all the memory bugs are worked out :-/
+    NatObject *next_free_object;
 
     bool marked;
 };

@@ -348,6 +348,7 @@ NatObject *nat_subclass(NatEnv *env, NatObject *superclass, char *name) {
     assert(superclass->klass);
     NatObject *klass = nat_alloc(env, superclass->klass, NAT_VALUE_CLASS);
     if (superclass->singleton_class) {
+        // TODO: what happens if the superclass gets a singleton_class later?
         klass->singleton_class = nat_subclass(env, superclass->singleton_class, NULL);
     }
     klass->class_name = name ? heap_string(env, name) : NULL;
@@ -431,7 +432,7 @@ NatObject *nat_symbol(NatEnv *env, char *name) {
 
 NatObject *nat_exception(NatEnv *env, NatObject *klass, char *message) {
     NatObject *obj = nat_alloc(env, klass, NAT_VALUE_EXCEPTION);
-    obj->message = message;
+    obj->message = heap_string(env, message);
     // FIXME: pass message as object to initialize
     nat_initialize(env, obj, 0, NULL, NULL, NULL);
     return obj;
@@ -685,7 +686,7 @@ NatObject *nat_regexp(NatEnv *env, char *pattern) {
     }
     NatObject *obj = nat_alloc(env, nat_const_get(env, NAT_OBJECT, "Regexp"), NAT_VALUE_REGEXP);
     obj->regexp = regexp;
-    obj->regexp_str = pattern;
+    obj->regexp_str = heap_string(env, pattern);
     nat_initialize(env, obj, 0, NULL, NULL, NULL);
     return obj;
 }
@@ -714,7 +715,7 @@ char* int_to_string(NatEnv *env, int64_t num) {
 void nat_define_method(NatEnv *env, NatObject *obj, char *name, NatObject* (*fn)(NatEnv*, NatObject*, size_t, NatObject**, struct hashmap*, NatBlock *block)) {
     NatMethod *method = malloc(sizeof(NatMethod));
     method->fn = fn;
-    method->env.outer = NULL;
+    method->env.global_env = NULL;
     method->undefined = fn ? false : true;
     if (nat_is_main_object(obj)) {
         hashmap_remove(&obj->klass->methods, name);
@@ -742,7 +743,7 @@ void nat_define_method_with_block(NatEnv *env, NatObject *obj, char *name, NatBl
 void nat_define_singleton_method(NatEnv *env, NatObject *obj, char *name, NatObject* (*fn)(NatEnv*, NatObject*, size_t, NatObject**, struct hashmap*, NatBlock *block)) {
     NatMethod *method = malloc(sizeof(NatMethod));
     method->fn = fn;
-    method->env.outer = NULL;
+    method->env.global_env = NULL;
     method->undefined = fn ? false : true;
     NatObject *klass = nat_singleton_class(env, obj);
     hashmap_remove(&klass->methods, name);
@@ -1116,19 +1117,12 @@ NatObject *nat_dup(NatEnv *env, NatObject *obj) {
             return nat_string(env, obj->str);
         case NAT_VALUE_SYMBOL:
             return nat_symbol(env, obj->symbol);
-        case NAT_VALUE_CLASS:
-        case NAT_VALUE_EXCEPTION:
         case NAT_VALUE_FALSE:
-        case NAT_VALUE_INTEGER:
-        case NAT_VALUE_MODULE:
         case NAT_VALUE_NIL:
-        case NAT_VALUE_OTHER:
-        case NAT_VALUE_PROC:
         case NAT_VALUE_TRUE:
-            memcpy(copy, obj, sizeof(NatObject));
-            return copy;
+            return obj;
         default:
-            fprintf(stderr, "I don't know how to dup this kind of object.\n");
+            fprintf(stderr, "I don't know how to dup this kind of object yet %zu.\n", obj->type);
             abort();
     }
 }

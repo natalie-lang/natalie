@@ -14,6 +14,7 @@ NatEnv *build_top_env() {
     env->method_name = heap_string(env, "<main>");
 
     NatObject *Class = nat_alloc(env, NULL, NAT_VALUE_CLASS);
+    Class->superclass = NULL;
     Class->class_name = heap_string(env, "Class");
     Class->klass = Class;
     nat_build_env(&Class->env, env);
