@@ -218,7 +218,6 @@ static void nat_destroy_hash_key_list(NatObject *obj) {
         do {
             NatHashKey *next_key = key->next;
             free(key);
-            // TODO: destroy NatEnv also
             key = next_key;
         } while (key != obj->key_list);
     }

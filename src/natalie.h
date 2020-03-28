@@ -36,6 +36,7 @@
 #define NAT_MAX(a, b) ((a > b) ? a : b)
 #define NAT_NOT_YET_IMPLEMENTED(description) fprintf(stderr, "NOT YET IMPLEMENTED: %s", description); abort();
 #define NAT_OBJ_HAS_ENV(obj) ((obj)->env.global_env == env->global_env)
+#define NAT_HAS_ENV(obj) ((obj)->env.global_env)
 #define NAT_INSPECT(obj) nat_send(env, obj, "inspect", 0, NULL, NULL)
 
 #define NAT_LOCK(obj) { \
@@ -133,7 +134,7 @@ struct NatHashKey {
     NatHashKey *next;
     NatObject *key;
     NatObject *val;
-    NatEnv *env;
+    NatEnv env;
     bool removed;
 };
 
@@ -310,7 +311,7 @@ NatObject *nat_var_set(NatEnv *env, char *key, size_t index, NatObject *val);
 NatGlobalEnv *nat_build_global_env();
 NatEnv *nat_build_env(NatEnv *env, NatEnv *outer);
 NatEnv *nat_build_block_env(NatEnv *env, NatEnv *outer, NatEnv *calling_env);
-NatEnv *nat_build_detatched_block_env(NatEnv* outer);
+NatEnv *nat_build_detached_block_env(NatEnv *env, NatEnv* outer);
 
 char *nat_find_current_method_name(NatEnv *env);
 char *nat_find_method_name(NatEnv *env);

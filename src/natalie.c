@@ -115,8 +115,7 @@ NatEnv *nat_build_block_env(NatEnv *env, NatEnv *outer, NatEnv *calling_env) {
     return env;
 }
 
-NatEnv *nat_build_detatched_block_env(NatEnv* outer) {
-    NatEnv *env = malloc(sizeof(NatEnv));
+NatEnv *nat_build_detached_block_env(NatEnv *env, NatEnv* outer) {
     nat_build_env(env, outer);
     env->block = true;
     env->outer = NULL;
@@ -510,8 +509,8 @@ void nat_array_expand_with_nil(NatEnv *env, NatObject *array, size_t size) {
 // this is used by the hashmap library and assumes that obj->env has been set
 size_t nat_hashmap_hash(const void *key) {
     NatHashKey *key_p = (NatHashKey*)key;
-    assert(key_p->env);
-    NatObject *hash_obj = nat_send(key_p->env, key_p->key, "hash", 0, NULL, NULL);
+    assert(NAT_HAS_ENV(key_p));
+    NatObject *hash_obj = nat_send(&key_p->env, key_p->key, "hash", 0, NULL, NULL);
     assert(NAT_TYPE(hash_obj) == NAT_VALUE_INTEGER);
     return NAT_INT_VALUE(hash_obj);
 }
@@ -520,10 +519,10 @@ size_t nat_hashmap_hash(const void *key) {
 int nat_hashmap_compare(const void *a, const void *b) {
     NatHashKey *a_p = (NatHashKey*)a;
     NatHashKey *b_p = (NatHashKey*)b;
-    assert(a_p->env);
-    assert(b_p->env);
-    NatObject *a_hash = nat_send(a_p->env, a_p->key, "hash", 0, NULL, NULL);
-    NatObject *b_hash = nat_send(b_p->env, b_p->key, "hash", 0, NULL, NULL);
+    assert(NAT_HAS_ENV(a_p));
+    assert(NAT_HAS_ENV(b_p));
+    NatObject *a_hash = nat_send(&a_p->env, a_p->key, "hash", 0, NULL, NULL);
+    NatObject *b_hash = nat_send(&b_p->env, b_p->key, "hash", 0, NULL, NULL);
     assert(NAT_TYPE(a_hash) == NAT_VALUE_INTEGER);
     assert(NAT_TYPE(b_hash) == NAT_VALUE_INTEGER);
     return NAT_INT_VALUE(a_hash) - NAT_INT_VALUE(b_hash);
@@ -540,7 +539,7 @@ NatHashKey *nat_hash_key_list_append(NatEnv *env, NatObject *hash, NatObject *ke
         // ^______________________________|
         new_last->prev = last;
         new_last->next = first;
-        new_last->env = nat_build_detatched_block_env(env);
+        nat_build_detached_block_env(&new_last->env, env);
         new_last->removed = false;
         first->prev = new_last;
         last->next = new_last;
@@ -551,7 +550,7 @@ NatHashKey *nat_hash_key_list_append(NatEnv *env, NatObject *hash, NatObject *ke
         node->val = val;
         node->prev = node;
         node->next = node;
-        node->env = nat_build_detatched_block_env(env);
+        nat_build_detached_block_env(&node->env, env);
         node->removed = false;
         hash->key_list = node;
         return node;
@@ -625,7 +624,7 @@ NatObject *nat_hash_get(NatEnv *env, NatObject *hash, NatObject *key) {
     assert(NAT_TYPE(hash) == NAT_VALUE_HASH);
     NatHashKey key_container;
     key_container.key = key;
-    key_container.env = env;
+    key_container.env = *env;
     NAT_LOCK(hash)
     NatHashVal *container = hashmap_get(&hash->hashmap, &key_container);
     NatObject *val = container ? container->val : NULL;
@@ -637,7 +636,7 @@ void nat_hash_put(NatEnv *env, NatObject *hash, NatObject *key, NatObject *val) 
     assert(NAT_TYPE(hash) == NAT_VALUE_HASH);
     NatHashKey key_container;
     key_container.key = key;
-    key_container.env = env;
+    key_container.env = *env;
     NAT_LOCK(hash)
     NatHashVal *container = hashmap_get(&hash->hashmap, &key_container);
     if (container) {
@@ -659,7 +658,7 @@ NatObject* nat_hash_delete(NatEnv *env, NatObject *hash, NatObject *key) {
     assert(hash->type == NAT_VALUE_HASH);
     NatHashKey key_container;
     key_container.key = key;
-    key_container.env = env;
+    key_container.env = *env;
     NAT_LOCK(hash)
     NatHashVal *container = hashmap_remove(&hash->hashmap, &key_container);
     if (container) {
