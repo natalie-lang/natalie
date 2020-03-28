@@ -1,6 +1,6 @@
 FROM ubuntu:focal
 
-RUN apt-get update && apt-get install -y -q ruby ruby-dev build-essential cmake autoconf libtool valgrind clang lcov
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y -q ruby ruby-dev build-essential cmake autoconf libtool valgrind clang lcov
 RUN gem update --system -q --silent
 RUN gem install bundler --no-doc
 
