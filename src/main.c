@@ -19,9 +19,9 @@ NatEnv *build_top_env() {
     Class->klass = Class;
     nat_build_env(&Class->env, env);
     hashmap_init(&Class->methods, hashmap_hash_string, hashmap_compare_string, 100);
-    hashmap_set_key_alloc_funcs(&Class->methods, hashmap_alloc_key_string, NULL);
+    hashmap_set_key_alloc_funcs(&Class->methods, hashmap_alloc_key_string, free);
     hashmap_init(&Class->constants, hashmap_hash_string, hashmap_compare_string, 10);
-    hashmap_set_key_alloc_funcs(&Class->constants, hashmap_alloc_key_string, NULL);
+    hashmap_set_key_alloc_funcs(&Class->constants, hashmap_alloc_key_string, free);
     nat_define_method(env, Class, "superclass", Class_superclass);
 
     NatObject *BasicObject = nat_alloc(env, Class, NAT_VALUE_CLASS);
@@ -31,10 +31,9 @@ NatEnv *build_top_env() {
     BasicObject->superclass = NULL;
     BasicObject->cvars.table = NULL;
     hashmap_init(&BasicObject->methods, hashmap_hash_string, hashmap_compare_string, 100);
-    hashmap_set_key_alloc_funcs(&BasicObject->methods, hashmap_alloc_key_string, NULL);
+    hashmap_set_key_alloc_funcs(&BasicObject->methods, hashmap_alloc_key_string, free);
     hashmap_init(&BasicObject->constants, hashmap_hash_string, hashmap_compare_string, 10);
-    hashmap_set_key_alloc_funcs(&BasicObject->constants, hashmap_alloc_key_string, NULL);
-    nat_define_method(env, BasicObject, "!", BasicObject_not);
+    hashmap_set_key_alloc_funcs(&BasicObject->constants, hashmap_alloc_key_string, free);
     nat_define_method(env, BasicObject, "!", BasicObject_not);
     nat_define_method(env, BasicObject, "==", BasicObject_eqeq);
     nat_define_method(env, BasicObject, "!=", BasicObject_neq);
@@ -352,7 +351,9 @@ int main(int argc, char *argv[]) {
     for (int i=1; i<argc; i++) {
         nat_array_push(env, ARGV, nat_string(env, argv[i]));
     }
-    if (EVAL(env)) {
+    NatObject *result = EVAL(env);
+    nat_gc_collect_all(env);
+    if (result) {
         return 0;
     } else {
         return 1;

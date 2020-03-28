@@ -1,0 +1,21 @@
+{
+   <gc_scan_stack>
+   Memcheck:Addr8
+   ...
+   fun:nat_gc_collect
+   ...
+}
+{
+   <gc_scan_stack>
+   Memcheck:Value8
+   ...
+   fun:nat_gc_collect
+   ...
+}
+{
+   <gc_scan_stack>
+   Memcheck:Cond
+   ...
+   fun:nat_gc_collect
+   ...
+}

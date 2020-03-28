@@ -76,11 +76,11 @@ NatGlobalEnv *nat_build_global_env() {
     NatGlobalEnv *global_env = malloc(sizeof(NatGlobalEnv));
     struct hashmap *global_table = malloc(sizeof(struct hashmap));
     hashmap_init(global_table, hashmap_hash_string, hashmap_compare_string, 100);
-    hashmap_set_key_alloc_funcs(global_table, hashmap_alloc_key_string, NULL);
+    hashmap_set_key_alloc_funcs(global_table, hashmap_alloc_key_string, free);
     global_env->globals = global_table;
     struct hashmap *symbol_table = malloc(sizeof(struct hashmap));
     hashmap_init(symbol_table, hashmap_hash_string, hashmap_compare_string, 100);
-    hashmap_set_key_alloc_funcs(symbol_table, hashmap_alloc_key_string, NULL);
+    hashmap_set_key_alloc_funcs(symbol_table, hashmap_alloc_key_string, free);
     global_env->symbols = symbol_table;
     global_env->heap = NULL;
     global_env->max_ptr = 0;
@@ -197,7 +197,7 @@ NatObject *nat_ivar_get(NatEnv *env, NatObject *obj, char *name) {
     }
     if (obj->ivars.table == NULL) {
         hashmap_init(&obj->ivars, hashmap_hash_string, hashmap_compare_string, 100);
-        hashmap_set_key_alloc_funcs(&obj->ivars, hashmap_alloc_key_string, NULL);
+        hashmap_set_key_alloc_funcs(&obj->ivars, hashmap_alloc_key_string, free);
     }
     NatObject *val = hashmap_get(&obj->ivars, name);
     if (val) {
@@ -214,7 +214,7 @@ NatObject *nat_ivar_set(NatEnv *env, NatObject *obj, char *name, NatObject *val)
     }
     if (obj->ivars.table == NULL) {
         hashmap_init(&obj->ivars, hashmap_hash_string, hashmap_compare_string, 100);
-        hashmap_set_key_alloc_funcs(&obj->ivars, hashmap_alloc_key_string, NULL);
+        hashmap_set_key_alloc_funcs(&obj->ivars, hashmap_alloc_key_string, free);
     }
     hashmap_remove(&obj->ivars, name);
     hashmap_put(&obj->ivars, name, val);
@@ -286,7 +286,7 @@ NatObject *nat_cvar_set(NatEnv *env, NatObject *obj, char *name, NatObject *val)
         if (!current->superclass) {
             if (obj->cvars.table == NULL) {
                 hashmap_init(&obj->cvars, hashmap_hash_string, hashmap_compare_string, 10);
-                hashmap_set_key_alloc_funcs(&obj->cvars, hashmap_alloc_key_string, NULL);
+                hashmap_set_key_alloc_funcs(&obj->cvars, hashmap_alloc_key_string, free);
             }
             hashmap_remove(&obj->cvars, name);
             hashmap_put(&obj->cvars, name, val);
@@ -336,9 +336,9 @@ char *heap_string(NatEnv *env, char *str) {
 
 static void nat_init_class_or_module_data(NatEnv *env, NatObject *klass_or_module) {
     hashmap_init(&klass_or_module->methods, hashmap_hash_string, hashmap_compare_string, 10);
-    hashmap_set_key_alloc_funcs(&klass_or_module->methods, hashmap_alloc_key_string, NULL);
+    hashmap_set_key_alloc_funcs(&klass_or_module->methods, hashmap_alloc_key_string, free);
     hashmap_init(&klass_or_module->constants, hashmap_hash_string, hashmap_compare_string, 10);
-    hashmap_set_key_alloc_funcs(&klass_or_module->constants, hashmap_alloc_key_string, NULL);
+    hashmap_set_key_alloc_funcs(&klass_or_module->constants, hashmap_alloc_key_string, free);
     klass_or_module->cvars.table = NULL;
 }
 
@@ -664,6 +664,7 @@ NatObject* nat_hash_delete(NatEnv *env, NatObject *hash, NatObject *key) {
     if (container) {
         nat_hash_key_list_remove_node(hash, container->key);
         NatObject *val = container->val;
+        free(container);
         NAT_UNLOCK(hash);
         return val;
     } else {
@@ -717,10 +718,10 @@ void nat_define_method(NatEnv *env, NatObject *obj, char *name, NatObject* (*fn)
     method->env.global_env = NULL;
     method->undefined = fn ? false : true;
     if (nat_is_main_object(obj)) {
-        hashmap_remove(&obj->klass->methods, name);
+        free(hashmap_remove(&obj->klass->methods, name));
         hashmap_put(&obj->klass->methods, name, method);
     } else {
-        hashmap_remove(&obj->methods, name);
+        free(hashmap_remove(&obj->methods, name));
         hashmap_put(&obj->methods, name, method);
     }
 }
@@ -731,10 +732,10 @@ void nat_define_method_with_block(NatEnv *env, NatObject *obj, char *name, NatBl
     method->env = block->env;
     method->undefined = false;
     if (nat_is_main_object(obj)) {
-        hashmap_remove(&obj->klass->methods, name);
+        free(hashmap_remove(&obj->klass->methods, name));
         hashmap_put(&obj->klass->methods, name, method);
     } else {
-        hashmap_remove(&obj->methods, name);
+        free(hashmap_remove(&obj->methods, name));
         hashmap_put(&obj->methods, name, method);
     }
 }
@@ -745,7 +746,7 @@ void nat_define_singleton_method(NatEnv *env, NatObject *obj, char *name, NatObj
     method->env.global_env = NULL;
     method->undefined = fn ? false : true;
     NatObject *klass = nat_singleton_class(env, obj);
-    hashmap_remove(&klass->methods, name);
+    free(hashmap_remove(&klass->methods, name));
     hashmap_put(&klass->methods, name, method);
 }
 
@@ -1150,8 +1151,10 @@ void nat_alias(NatEnv *env, NatObject *self, char *new_name, char *old_name) {
     if (!method) {
         NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "NameError"), "undefined method `%s' for `%v'", old_name, klass);
     }
-    hashmap_remove(&klass->methods, new_name);
-    hashmap_put(&klass->methods, new_name, method);
+    free(hashmap_remove(&klass->methods, new_name));
+    NatMethod *method_copy = malloc(sizeof(NatMethod));
+    memcpy(method_copy, method, sizeof(NatMethod));
+    hashmap_put(&klass->methods, new_name, method_copy);
 }
 
 void nat_run_at_exit_handlers(NatEnv *env) {

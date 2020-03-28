@@ -17,4 +17,5 @@ NatObject *nat_gc_gather_roots(NatEnv *env);
 void nat_gc_unmark_all_objects(NatEnv *env);
 NatObject *nat_gc_mark_live_objects(NatEnv *env);
 void nat_gc_collect(NatEnv *env);
+void nat_gc_collect_all(NatEnv *env);
 NatObject *nat_alloc(NatEnv *env, NatObject *klass, enum NatValueType type);

@@ -52,7 +52,7 @@ test: build
 
 test_valgrind: build
 	bin/natalie -c assign_test test/natalie/assign_test.nat
-	valgrind --leak-check=no --error-exitcode=1 ./assign_test
+	valgrind --leak-check=no --suppressions=test/valgrind-suppressions --error-exitcode=1 ./assign_test
 
 coverage_report:
 	lcov -c --directory . --output-file coverage.info

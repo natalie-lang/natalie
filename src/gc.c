@@ -234,7 +234,13 @@ static void nat_gc_collect_object(NatEnv *env, NatHeapBlock *block, NatObject *o
             break;
         case NAT_VALUE_CLASS:
             free(obj->class_name);
-            hashmap_destroy(&obj->methods);
+            if (obj->methods.table) {
+                for (iter = hashmap_iter(&obj->methods); iter; iter = hashmap_iter_next(&obj->methods, iter)) {
+                    NatMethod *method = (NatMethod *)hashmap_iter_get_data(iter);
+                    free(method);
+                }
+                hashmap_destroy(&obj->methods);
+            }
             if (obj->cvars.table) hashmap_destroy(&obj->cvars);
             free(obj->included_modules);
             break;
@@ -260,7 +266,13 @@ static void nat_gc_collect_object(NatEnv *env, NatHeapBlock *block, NatObject *o
             break;
         case NAT_VALUE_MODULE:
             free(obj->class_name);
-            hashmap_destroy(&obj->methods);
+            if (obj->methods.table) {
+                for (iter = hashmap_iter(&obj->methods); iter; iter = hashmap_iter_next(&obj->methods, iter)) {
+                    NatMethod *method = (NatMethod *)hashmap_iter_get_data(iter);
+                    free(method);
+                }
+                hashmap_destroy(&obj->methods);
+            }
             if (obj->cvars.table) hashmap_destroy(&obj->cvars);
             free(obj->included_modules);
             break;
@@ -309,15 +321,17 @@ static void nat_gc_collect_dead_objects(NatEnv *env) {
 }
 
 void nat_gc_collect(NatEnv *env) {
-    assert(env);
-    assert(env->global_env);
     if (!env->global_env->gc_enabled) return; // FIXME: use a mutex :-)
     env->global_env->gc_enabled = false;
     nat_gc_unmark_all_objects(env);
-    assert(env->global_env);
     nat_gc_mark_live_objects(env);
     nat_gc_collect_dead_objects(env);
     env->global_env->gc_enabled = true;
+}
+
+void nat_gc_collect_all(NatEnv *env) {
+    nat_gc_unmark_all_objects(env);
+    nat_gc_collect_dead_objects(env);
 }
 
 NatObject *nat_alloc(NatEnv *env, NatObject *klass, enum NatValueType type) {
