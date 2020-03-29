@@ -421,9 +421,8 @@ NatObject *nat_symbol(NatEnv *env, char *name) {
         return symbol;
     } else {
         symbol = nat_alloc(env, nat_const_get(env, NAT_OBJECT, "Symbol"), NAT_VALUE_SYMBOL);
-        symbol->symbol = name;
+        symbol->symbol = heap_string(env, name);
         nat_initialize(env, symbol, 0, NULL, NULL, NULL);
-        hashmap_remove(env->global_env->symbols, name);
         hashmap_put(env->global_env->symbols, name, symbol);
         return symbol;
     }
