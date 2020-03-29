@@ -22,9 +22,10 @@ COPY bin /natalie/bin
 COPY examples /natalie/examples
 COPY lib /natalie/lib
 COPY src /natalie/src
-COPY spec /natalie/spec
-COPY test /natalie/test
 RUN mkdir -p obj/nat
 RUN make build
+
+COPY spec /natalie/spec
+COPY test /natalie/test
 
 ENTRYPOINT ["/natalie/bin/natalie"]
