@@ -12,12 +12,12 @@ describe 'Natalie tests' do
     describe path do
       it 'has the same output in ruby and natalie' do
         out_nat = `bin/natalie -I test/support #{path} 2>&1`
-        puts out_nat unless $?.to_i == 0
-        expect($?.to_i).must_equal 0
+        puts out_nat unless $?.success?
+        expect($?).must_be :success?
         unless code =~ /# skip-ruby-test/
           out_ruby = `ruby -r./test/support/ruby_require_patch -I test/support #{path} 2>&1`
           puts out_ruby unless $?.to_i == 0
-          expect($?.to_i).must_equal 0
+          expect($?).must_be :success?
           expect(out_nat).must_equal(out_ruby)
         end
       end

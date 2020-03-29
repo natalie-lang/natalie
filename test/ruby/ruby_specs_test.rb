@@ -10,10 +10,9 @@ describe 'ruby/spec' do
     code = File.read(path)
     describe path do
       it 'passes all specs' do
-        out_nat = `bin/natalie #{path} 2>&1`
-        puts out_nat if $?.to_i != 0 || out_nat =~ /^0 spec\(s\) passed/
-        expect($?.to_i).must_equal 0
-        expect(out_nat).wont_match(/^0 spec\(s\) passed/)
+        out_nat = `bin/natalie #{path} 2>&1`.force_encoding("US-ASCII").encode("utf-8", replace: nil)
+        puts out_nat unless $?.success?
+        expect($?).must_be :success?
       end
     end
   end
