@@ -54,7 +54,9 @@ NatObject *Module_attr_reader(NatEnv *env, NatObject *self, size_t argc, NatObje
         }
         NatEnv block_env;
         nat_build_detached_block_env(&block_env, env);
-        nat_var_set(&block_env, "name", 0, name_obj);
+        block_env.var_count = 1;
+        block_env.vars = calloc(1, sizeof(NatObject*));
+        block_env.vars[0] = name_obj;
         NatBlock *attr_block = nat_block(&block_env, self, Module_attr_reader_block_fn);
         nat_define_method_with_block(env, self, name_obj->str, attr_block);
     }
@@ -64,8 +66,7 @@ NatObject *Module_attr_reader(NatEnv *env, NatObject *self, size_t argc, NatObje
 NatObject *Module_attr_reader_block_fn(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NatObject *name_obj = nat_var_get(env->outer, "name", 0);
     assert(name_obj);
-    NatObject *ivar_name = nat_string(env, "@");
-    nat_string_append(env, ivar_name, name_obj->str);
+    NatObject *ivar_name = nat_sprintf(env, "@%S", name_obj);
     return nat_ivar_get(env, self, ivar_name->str);
 }
 
@@ -84,7 +85,9 @@ NatObject *Module_attr_writer(NatEnv *env, NatObject *self, size_t argc, NatObje
         nat_string_append_char(env, method_name, '=');
         NatEnv block_env;
         nat_build_detached_block_env(&block_env, env);
-        nat_var_set(&block_env, "name", 0, name_obj);
+        block_env.var_count = 1;
+        block_env.vars = calloc(1, sizeof(NatObject*));
+        block_env.vars[0] = name_obj;
         NatBlock *attr_block = nat_block(&block_env, self, Module_attr_writer_block_fn);
         nat_define_method_with_block(env, self, method_name->str, attr_block);
     }
@@ -95,8 +98,7 @@ NatObject *Module_attr_writer_block_fn(NatEnv *env, NatObject *self, size_t argc
     NatObject *val = args[0];
     NatObject *name_obj = nat_var_get(env->outer, "name", 0);
     assert(name_obj);
-    NatObject *ivar_name = nat_string(env, "@");
-    nat_string_append(env, ivar_name, name_obj->str);
+    NatObject *ivar_name = nat_sprintf(env, "@%S", name_obj);
     nat_ivar_set(env, self, ivar_name->str, val);
     return val;
 }
