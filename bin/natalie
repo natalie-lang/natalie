@@ -95,5 +95,5 @@ else
   pid = spawn(out.path, *ARGV)
   Process.wait(pid)
   status = $?
-  exit status.exitstatus
+  exit status.exitstatus || 1
 end
