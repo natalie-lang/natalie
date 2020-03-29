@@ -24,6 +24,7 @@ things that are missing ;-) (not in any specific order):
 
 - encoding support for string and regex (just UTF-8 would be great!)
 - Keyword arguments and a bunch of other method argument handling
+- method visibility
 - Float
 - Bignum support
 - A garbage collector
