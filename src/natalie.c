@@ -713,6 +713,16 @@ char* int_to_string(NatEnv *env, int64_t num) {
     }
 }
 
+char* int_to_hex_string(NatEnv *env, int64_t num) {
+    if (num == 0) {
+        return heap_string(env, "0x0");
+    } else {
+        char *str = malloc(INT_64_MAX_CHAR_LEN);
+        snprintf(str, INT_64_MAX_CHAR_LEN, "0x%" PRIx64, num);
+        return str;
+    }
+}
+
 void nat_define_method(NatEnv *env, NatObject *obj, char *name, NatObject* (*fn)(NatEnv*, NatObject*, size_t, NatObject**, struct hashmap*, NatBlock *block)) {
     NatMethod *method = malloc(sizeof(NatMethod));
     method->fn = fn;
@@ -1058,7 +1068,10 @@ NatObject* nat_vsprintf(NatEnv *env, char *format, va_list args) {
                     break;
                 case 'i':
                 case 'd':
-                    nat_string_append(env, out, int_to_string(env, va_arg(args, int)));
+                    nat_string_append(env, out, int_to_string(env, va_arg(args, int64_t)));
+                    break;
+                case 'x':
+                    nat_string_append(env, out, int_to_hex_string(env, va_arg(args, int64_t)));
                     break;
                 case 'v':
                     inspected = nat_send(env, va_arg(args, NatObject*), "inspect", 0, NULL, NULL);
@@ -1088,18 +1101,27 @@ NatObject *nat_range(NatEnv *env, NatObject *begin, NatObject *end, bool exclude
     return obj;
 }
 
+NatObject *nat_current_thread(NatEnv *env) {
+    NatObject *obj = nat_alloc(env, nat_const_get(env, NAT_OBJECT, "Thread"), NAT_VALUE_THREAD);
+    obj->env = *env;
+    obj->thread_id = pthread_self();
+    nat_initialize(env, obj, 0, NULL, NULL, NULL);
+    return obj;
+}
+
 NatObject *nat_thread(NatEnv *env, NatBlock *block) {
     NatObject *obj = nat_alloc(env, nat_const_get(env, NAT_OBJECT, "Thread"), NAT_VALUE_THREAD);
     obj->env = *env;
-    pthread_create(&obj->thread_id, NULL, nat_create_thread, (void*)block);
+    obj->thread_block = block;
     nat_initialize(env, obj, 0, NULL, NULL, NULL);
+    pthread_create(&obj->thread_id, NULL, nat_create_thread, (void*)obj);
     return obj;
 }
 
 NatObject *nat_thread_join(NatEnv *env, NatObject *thread) {
     void *value = NULL;
     int err = pthread_join(thread->thread_id, &value);
-    if (err == ESRCH) { // thread not found (alread joined?)
+    if (err == ESRCH) { // thread not found (already joined?)
         return thread->thread_value;
     } else if (err) {
         NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "ThreadError"), "There was an error joining the thread %d", err);
@@ -1110,7 +1132,9 @@ NatObject *nat_thread_join(NatEnv *env, NatObject *thread) {
 }
 
 void* nat_create_thread(void* data) {
-    NatBlock *block = (NatBlock*)data;
+    NatObject *thread = (NatObject*)data;
+    NatBlock *block = thread->thread_block;
+    assert(block);
     return (void*)NAT_RUN_BLOCK_WITHOUT_BREAK(&block->env, block, 0, NULL, NULL, NULL);
 }
 

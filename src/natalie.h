@@ -267,7 +267,9 @@ struct NatObject {
         // NAT_VALUE_THREAD
         struct {
             pthread_t thread_id;
+            NatBlock *thread_block;
             NatObject *thread_value;
+            bool thread_sleep;
         };
 
         // NAT_VALUE_RANGE
@@ -346,6 +348,7 @@ NatObject *nat_singleton_class(NatEnv *env, NatObject *obj);
 NatObject *nat_integer(NatEnv *env, int64_t integer);
 
 char* int_to_string(NatEnv *env, int64_t num);
+char* int_to_hex_string(NatEnv *env, int64_t num);
 
 void nat_define_method(NatEnv *env, NatObject *obj, char *name, NatObject* (*fn)(NatEnv*, NatObject*, size_t, NatObject**, struct hashmap*, NatBlock *block));
 void nat_define_method_with_block(NatEnv *env, NatObject *obj, char *name, NatBlock *block);
@@ -417,6 +420,7 @@ NatObject *nat_matchdata(NatEnv *env, OnigRegion *region, NatObject *str_obj);
 
 NatObject *nat_range(NatEnv *env, NatObject *begin, NatObject *end, bool exclude_end);
 
+NatObject *nat_current_thread(NatEnv *env);
 NatObject *nat_thread(NatEnv *env, NatBlock *block);
 NatObject *nat_thread_join(NatEnv *env, NatObject *thread);
 void* nat_create_thread(void* data);

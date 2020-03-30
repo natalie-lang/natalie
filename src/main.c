@@ -227,8 +227,10 @@ NatEnv *build_top_env() {
     NatObject *Thread = nat_subclass(env, Object, "Thread");
     nat_const_set(env, Object, "Thread", Thread);
     nat_define_singleton_method(env, Thread, "new", Thread_new);
+    nat_define_singleton_method(env, Thread, "current", Thread_current);
     nat_define_method(env, Thread, "join", Thread_join);
     nat_define_method(env, Thread, "value", Thread_value);
+    nat_define_method(env, Thread, "inspect", Thread_inspect);
 
     NatObject *MatchData = nat_subclass(env, Object, "MatchData");
     nat_const_set(env, Object, "MatchData", MatchData);
