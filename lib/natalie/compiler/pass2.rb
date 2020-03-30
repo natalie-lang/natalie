@@ -24,10 +24,10 @@ module Natalie
 
       def process_and_build_vars(exp, is_block: false)
         body = process_sexp(exp)
-        var_count = @env[:vars].values.count { |v| v[:captured] }
+        var_count = @env[:vars].size # FIXME: this is overkill -- there are variables not captured in this count, i.e. "holes" in the array :-(
         to_declare = @env[:vars].values.select { |v| !v[:captured] }
         exp.new(:block,
-          is_block || repl? ? s(:block) : s(:var_alloc, var_count),
+          repl? ? s(:block) : s(:var_alloc, var_count),
           *to_declare.map { |v| s(:declare, "#{@compiler_context[:var_prefix]}#{v[:name]}#{v[:var_num]}", s(:nil)) },
           body)
       end
@@ -75,7 +75,7 @@ module Natalie
           exp.new(:nat_var_get, env_name, var)
         else
           (env_name, var) = declare_var(name)
-          exp.new(:nat_var_set, env_name, var, s(:nil))
+          exp.new(:nat_var_set, env_name, var, repl?, s(:nil))
         end
       end
 
@@ -99,9 +99,9 @@ module Natalie
         bare_name = name.sub(/^[\*\&]/, '')
         (env_name, var) = find_var(bare_name) || declare_var(bare_name)
         if value
-          exp.new(:nat_var_set, env_name, var, process_arg(value))
+          exp.new(:nat_var_set, env_name, var, repl?, process_arg(value))
         else
-          exp.new(:nat_var_set, env_name, var)
+          exp.new(:nat_var_set, env_name, var, repl?, s(:nil))
         end
       end
 

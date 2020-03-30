@@ -52,7 +52,7 @@ module Natalie
           process(exp)
         when String
           exp
-        when Symbol, Integer
+        when Symbol, Integer, true, false
           exp.to_s
         else
           raise "unknown node type: #{exp.inspect}"
@@ -498,6 +498,7 @@ module Natalie
         count = exp.last
         if count > 0
           decl "env->vars = calloc(#{count}, sizeof(NatObject*));"
+          decl "env->var_count = #{count};"
         end
         ''
       end

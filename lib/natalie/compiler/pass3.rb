@@ -26,9 +26,9 @@ module Natalie
       end
 
       def process_nat_var_set(exp)
-        (_, env, var, value) = exp
+        (_, env, var, allocate, value) = exp
         if var[:captured]
-          exp.new(:nat_var_set, env, s(:s, var[:name]), var[:index], process(value))
+          exp.new(:nat_var_set, env, s(:s, var[:name]), var[:index], allocate, process(value))
         else
           exp.new(:c_assign, "#{@compiler_context[:var_prefix]}#{var[:name]}#{var[:var_num]}", process(value))
         end

@@ -307,7 +307,7 @@ NatObject *nat_const_get_or_null(NatEnv *env, NatObject *klass, char *name);
 NatObject *nat_const_set(NatEnv *env, NatObject *klass, char *name, NatObject *val);
 
 NatObject *nat_var_get(NatEnv *env, char *key, size_t index);
-NatObject *nat_var_set(NatEnv *env, char *key, size_t index, NatObject *val);
+NatObject *nat_var_set(NatEnv *env, char *name, size_t index, bool allocate, NatObject *val);
 NatGlobalEnv *nat_build_global_env();
 NatEnv *nat_build_env(NatEnv *env, NatEnv *outer);
 NatEnv *nat_build_block_env(NatEnv *env, NatEnv *outer, NatEnv *calling_env);
@@ -362,6 +362,7 @@ NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, Na
 void nat_methods(NatEnv *env, NatObject *array, NatObject *klass);
 NatMethod *nat_find_method(NatObject *klass, char *method_name, NatObject **matching_class_or_module);
 NatMethod *nat_find_method_without_undefined(NatObject *klass, char *method_name, NatObject **matching_class_or_module);
+NatObject *nat_call_begin(NatEnv *env, NatObject *self, NatObject* (*block_fn)(NatEnv*, NatObject*));
 NatObject *nat_call_method_on_class(NatEnv *env, NatObject *klass, NatObject *instance_class, char *method_name, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 bool nat_respond_to(NatEnv *env, NatObject *obj, char *name);
 

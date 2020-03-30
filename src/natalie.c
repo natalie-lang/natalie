@@ -59,14 +59,16 @@ NatObject *nat_var_get(NatEnv *env, char *key, size_t index) {
     }
 }
 
-NatObject *nat_var_set(NatEnv *env, char *key, size_t index, NatObject *val) {
+NatObject *nat_var_set(NatEnv *env, char *name, size_t index, bool allocate, NatObject *val) {
     size_t needed = index + 1;
-    if (env->var_count == 0) {
-        env->vars = calloc(needed, sizeof(NatObject*));
-        env->var_count = needed;
-    } else if (needed > env->var_count) {
-        env->vars = realloc(env->vars, sizeof(NatObject*) * needed);
-        env->var_count = needed;
+    if (needed > env->var_count && allocate) {
+        if (env->var_count == 0) {
+            env->vars = calloc(needed, sizeof(NatObject*));
+            env->var_count = needed;
+        } else {
+            env->vars = realloc(env->vars, sizeof(NatObject*) * needed);
+            env->var_count = needed;
+        }
     }
     env->vars[index] = val;
     return val;
@@ -931,6 +933,12 @@ NatObject *nat_call_method_on_class(NatEnv *env, NatObject *klass, NatObject *in
     }
 }
 
+NatObject *nat_call_begin(NatEnv *env, NatObject *self, NatObject* (*block_fn)(NatEnv*, NatObject*)) {
+    NatEnv e;
+    env = nat_build_block_env(&e, env, env);
+    return block_fn(&e, self);
+}
+
 bool nat_respond_to(NatEnv *env, NatObject *obj, char *name) {
     NatObject *matching_class_or_module;
     if (NAT_TYPE(obj) == NAT_VALUE_INTEGER) {
@@ -1044,6 +1052,9 @@ NatObject* nat_vsprintf(NatEnv *env, char *format, va_list args) {
             switch (c2) {
                 case 's':
                     nat_string_append(env, out, va_arg(args, char*));
+                    break;
+                case 'S':
+                    nat_string_append_nat_string(env, out, va_arg(args, NatObject*));
                     break;
                 case 'i':
                 case 'd':

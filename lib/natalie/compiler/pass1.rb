@@ -479,11 +479,10 @@ module Natalie
         exp.new(:block,
           s(:begin_fn, begin_fn,
             s(:block,
-              s(:nat_build_block_env),
               s(:nat_rescue,
                 s(:block, *body.map { |n| process(n) }),
                 rescue_block))),
-          s(:nat_call, begin_fn, :env, :self))
+          s(:nat_call_begin, :env, :self, begin_fn))
       end
 
       def process_return(exp)
