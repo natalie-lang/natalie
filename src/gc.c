@@ -3,6 +3,7 @@
 
 void nat_gc_init(NatEnv *env, void *bottom_of_stack) {
     env->global_env->bottom_of_stack = bottom_of_stack;
+    env->global_env->main_thread = pthread_self();
 }
 
 NatHeapBlock *nat_gc_alloc_heap_block(NatGlobalEnv *global_env) {
@@ -321,6 +322,7 @@ static void nat_gc_collect_dead_objects(NatEnv *env) {
 }
 
 void nat_gc_collect(NatEnv *env) {
+    if (pthread_self() != env->global_env->main_thread) return;
     if (!env->global_env->gc_enabled) return; // FIXME: use a mutex :-)
     env->global_env->gc_enabled = false;
     nat_gc_unmark_all_objects(env);

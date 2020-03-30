@@ -100,6 +100,7 @@ struct NatGlobalEnv {
     NatObject *min_ptr;
     NatObject *max_ptr;
     bool gc_enabled;
+    pthread_t main_thread;
 };
 
 struct NatEnv {
