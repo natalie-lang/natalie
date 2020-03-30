@@ -54,9 +54,7 @@ NatObject *Module_attr_reader(NatEnv *env, NatObject *self, size_t argc, NatObje
         }
         NatEnv block_env;
         nat_build_detached_block_env(&block_env, env);
-        block_env.var_count = 1;
-        block_env.vars = calloc(1, sizeof(NatObject*));
-        block_env.vars[0] = name_obj;
+        nat_var_set(&block_env, "name", 0, true, name_obj);
         NatBlock *attr_block = nat_block(&block_env, self, Module_attr_reader_block_fn);
         nat_define_method_with_block(env, self, name_obj->str, attr_block);
     }
@@ -85,9 +83,7 @@ NatObject *Module_attr_writer(NatEnv *env, NatObject *self, size_t argc, NatObje
         nat_string_append_char(env, method_name, '=');
         NatEnv block_env;
         nat_build_detached_block_env(&block_env, env);
-        block_env.var_count = 1;
-        block_env.vars = calloc(1, sizeof(NatObject*));
-        block_env.vars[0] = name_obj;
+        nat_var_set(&block_env, "name", 0, true, name_obj);
         NatBlock *attr_block = nat_block(&block_env, self, Module_attr_writer_block_fn);
         nat_define_method_with_block(env, self, method_name->str, attr_block);
     }
