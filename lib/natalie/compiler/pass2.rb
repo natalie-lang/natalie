@@ -16,10 +16,7 @@ module Natalie
       end
 
       def go(ast)
-        process_and_build_vars(ast).tap do
-          # the variable info is needed by the REPL
-          @compiler_context[:vars] = @env[:vars]
-        end
+        process_and_build_vars(ast)
       end
 
       def process_and_build_vars(exp, is_block: false)
