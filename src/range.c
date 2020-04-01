@@ -63,3 +63,42 @@ NatObject *Range_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **
     }
 }
 
+NatObject *Range_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(1);
+    assert(NAT_TYPE(self) == NAT_VALUE_RANGE);
+    NatObject *arg = args[0];
+    if (NAT_TYPE(arg) == NAT_VALUE_RANGE &&
+        nat_truthy(nat_send(env, self->range_begin, "==", 1, &arg->range_begin, NULL)) &&
+        nat_truthy(nat_send(env, self->range_end, "==", 1, &arg->range_end, NULL)) &&
+        self->range_exclude_end == arg->range_exclude_end) {
+        return NAT_TRUE;
+    } else {
+        return NAT_FALSE;
+    }
+}
+
+NatObject *Range_eqeqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(1);
+    assert(NAT_TYPE(self) == NAT_VALUE_RANGE);
+    NatObject *arg = args[0];
+    if (NAT_TYPE(self->range_begin) == NAT_VALUE_INTEGER && NAT_TYPE(arg) == NAT_VALUE_INTEGER) {
+        // optimized path for integer ranges
+        if (NAT_INT_VALUE(self->range_begin) <= NAT_INT_VALUE(arg) &&
+            ((self->range_exclude_end && NAT_INT_VALUE(arg) < NAT_INT_VALUE(self->range_end)) ||
+             (!self->range_exclude_end && NAT_INT_VALUE(arg) <= NAT_INT_VALUE(self->range_end)))) {
+            return NAT_TRUE;
+        }
+    } else {
+        // slower method that should work for any type of range
+        NatObject *item = self->range_begin;
+        char *operator = self->range_exclude_end ? "<" : "<=";
+        while (nat_truthy(nat_send(env, item, operator, 1, &self->range_end, NULL))) {
+            if (nat_truthy(nat_send(env, item, "==", 1, &arg, NULL))) {
+                return NAT_TRUE;
+            }
+            item = nat_send(env, item, "succ", 0, NULL, NULL);
+        }
+    }
+    return NAT_FALSE;
+}
+

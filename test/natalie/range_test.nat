@@ -127,4 +127,37 @@ describe 'range' do
       ('a'...'z').inspect.should == '"a"..."z"'
     end
   end
+
+  describe '#==' do
+    it 'returns true if the ranges are equal' do
+      (('a'..'d') == ('a'..'d')).should == true
+      ((1..10) == (1..10)).should == true
+      ((1...10) == (1...10)).should == true
+      x = 10
+      y = 20
+      ((10..20) == (x..y)).should == true
+    end
+
+    it 'returns false if the ranges are not equal' do
+      (('a'..'d') == ('a'..'e')).should == false
+      (('a'..'d') == ('a'...'d')).should == false
+      ((1..10) == (1..9)).should == false
+      ((1..10) == (1...10)).should == false
+      ((1...10) == (1..10)).should == false
+    end
+  end
+
+  describe '#===' do
+    it 'returns true if the argument is in the range' do
+      ((1..10) === 1).should == true
+      ((1..10) === 5).should == true
+      ((1..10) === 10).should == true
+    end
+
+    it 'returns false if the argument is not in the range' do
+      ((1..10) === 0).should == false
+      ((1..10) === 11).should == false
+      ((1...10) === 10).should == false
+    end
+  end
 end

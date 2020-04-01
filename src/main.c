@@ -223,6 +223,8 @@ NatEnv *build_top_env() {
     nat_define_method(env, Range, "to_a", Range_to_a);
     nat_define_method(env, Range, "each", Range_each);
     nat_define_method(env, Range, "inspect", Range_inspect);
+    nat_define_method(env, Range, "==", Range_eqeq);
+    nat_define_method(env, Range, "===", Range_eqeqeq);
 
     NatObject *Thread = nat_subclass(env, Object, "Thread");
     nat_const_set(env, Object, "Thread", Thread);
