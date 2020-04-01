@@ -100,6 +100,7 @@ module Natalie
         whens.each do |when_exp|
           (_, (_, *matchers), *when_body) = when_exp
           when_body = when_body.map { |w| process(w) }
+          when_body = [s(:nil)] if when_body == [nil]
           matchers.each do |matcher|
             cond << s(:nat_truthy, s(:nat_send, process(matcher), '===', s(:args, value_name), 'NULL'))
             cond << s(:block, *when_body)

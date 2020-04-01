@@ -35,6 +35,21 @@ describe 'case/when' do
     result.should == nil
   end
 
+  it 'can have an empty when body' do
+    result = case 1
+             when 1
+             when 2
+               'two'
+             end
+    result.should == nil
+    result = case 2
+             when 1
+             when 2
+               'two'
+             end
+    result.should == 'two'
+  end
+
   it 'returns else if no match' do
     result = case 100
              when 1 then 'one'
