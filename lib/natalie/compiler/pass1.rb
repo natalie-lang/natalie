@@ -416,6 +416,12 @@ module Natalie
           s(:nat_call, fn, "&#{mod}->env", mod))
       end
 
+      def process_next(exp)
+        (_, value) = exp
+        value ||= s(:nil)
+        s(:c_return, process(value))
+      end
+
       def process_op_asgn_or(exp)
         (_, (var_type, name), value) = exp
         case var_type
