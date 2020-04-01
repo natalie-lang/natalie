@@ -88,6 +88,11 @@ NatGlobalEnv *nat_build_global_env() {
     global_env->max_ptr = 0;
     global_env->min_ptr = (void*)UINTPTR_MAX;
     nat_gc_alloc_heap_block(global_env);
+    int err = pthread_mutex_init(&global_env->alloc_mutex, NULL);
+    if (err) {
+        fprintf(stderr, "Could not initialize allocation mutex: %d\n", err);
+        abort();
+    }
     global_env->gc_enabled = false;
     return global_env;
 }

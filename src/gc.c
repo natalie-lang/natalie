@@ -28,17 +28,20 @@ NatHeapBlock *nat_gc_alloc_heap_block(NatGlobalEnv *global_env) {
 }
 
 NatObject *nat_gc_malloc(NatEnv *env) {
+    NAT_LOCK_ALLOC(env);
     NatHeapBlock *block = env->global_env->heap;
     NatObject *cell;
     do {
         cell = block->free_list;
         if (cell) {
             block->free_list = cell->next_free_object;
+            NAT_UNLOCK_ALLOC(env);
             return cell;
         }
         block = block->next;
     } while (block);
     nat_gc_alloc_heap_block(env->global_env);
+    NAT_UNLOCK_ALLOC(env);
     return nat_gc_malloc(env);
 }
 

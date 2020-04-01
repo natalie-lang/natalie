@@ -4,6 +4,22 @@
 
 #define NAT_HEAP_OBJECT_COUNT 26
 
+#define NAT_LOCK_ALLOC(env) { \
+    int lock_err = pthread_mutex_lock(&env->global_env->alloc_mutex); \
+    if (lock_err) { \
+        fprintf(stderr, "Could not lock allocation mutex: %d\n", lock_err); \
+        abort(); \
+    } \
+}
+
+#define NAT_UNLOCK_ALLOC(env) { \
+    int unlock_err = pthread_mutex_unlock(&env->global_env->alloc_mutex); \
+    if (unlock_err) { \
+        fprintf(stderr, "Could not unlock allocation mutex: %d\n", unlock_err); \
+        abort(); \
+    } \
+}
+
 struct NatHeapBlock {
     NatHeapBlock *next;
     NatObject storage[NAT_HEAP_OBJECT_COUNT];
