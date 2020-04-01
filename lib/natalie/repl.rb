@@ -18,9 +18,21 @@ module Natalie
       to_clean_up = []
       env = nil
       vars = {}
+      multi_line_expr = []
       loop do
         break unless (line = get_line)
-        ast = Natalie::Parser.new(line, '(repl)').ast
+        begin
+          multi_line_expr << line
+          ast = Natalie::Parser.new(multi_line_expr.join("\n"), '(repl)').ast
+        rescue Racc::ParseError => e
+          if e.message =~ /\$end/
+            next
+          else
+            raise
+          end
+        else
+          multi_line_expr = []
+        end
         last_node = ast.pop
         ast << last_node.new(:call, nil, 'puts', s(:call, s(:lasgn, :_, last_node), 'inspect'))
         out = Tempfile.create('natalie.so')
