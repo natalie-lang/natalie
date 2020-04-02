@@ -14,6 +14,9 @@ describe 'assignment' do
   it 'does single assignment' do
     a = 1
     a.should == 1
+    [1].each do |b|
+      b.should == 1
+    end
   end
 
   it 'does multiple assignment from an array' do
@@ -30,6 +33,15 @@ describe 'assignment' do
     a.should == 8
     b.should == 9
     c.should == nil
+    [[1, 2]].each do |a, b|
+      a.should == 1
+      b.should == 2
+    end
+    [[3, 4]].each do |a, b, c|
+      a.should == 3
+      b.should == 4
+      c.should == nil
+    end
   end
 
   it 'does multiple assignment from an array-like object' do
@@ -46,6 +58,15 @@ describe 'assignment' do
     a.should == 8
     b.should == 9
     c.should == nil
+    [ArrayLike.new(1, 2)].each do |a, b|
+      a.should == 1
+      b.should == 2
+    end
+    [ArrayLike.new(3, 4)].each do |a, b, c|
+      a.should == 3
+      b.should == 4
+      c.should == nil
+    end
   end
 
   it 'fills in extra variables with nil when the value is not array-like' do

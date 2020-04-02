@@ -112,7 +112,7 @@ module Natalie
         (_, val, *args) = exp
         val = process(val)
         decl "if (NAT_TYPE(#{val}) != NAT_VALUE_ARRAY && nat_respond_to(env, #{val}, \"to_ary\")) {"
-        decl "#{val} = nat_send(env, #{val}, \"to_ary\", 0, NULL, NULL);"
+        decl "  #{val} = nat_send(env, #{val}, \"to_ary\", 0, NULL, NULL);"
         decl '}'
         decl "if (NAT_TYPE(#{val}) == NAT_VALUE_ARRAY) {"
         args.compact.each do |arg|
@@ -136,7 +136,10 @@ module Natalie
       def process_assign_args(exp)
         (_, *args) = exp
         if args.size > 1
-          decl 'if (argc == 1 && NAT_TYPE(args[0]) == NAT_VALUE_ARRAY) {'
+          decl 'if (argc == 1) {'
+          decl 'if (NAT_TYPE(args[0]) != NAT_VALUE_ARRAY && nat_respond_to(env, args[0], "to_ary")) {'
+          decl "  args[0] = nat_send(env, args[0], \"to_ary\", 0, NULL, NULL);"
+          decl '}'
           args.compact.each do |arg|
             arg = arg.dup
             arg_value = process_assign_val(arg.pop, 'args[0]->ary_len', 'args[0]->ary')
