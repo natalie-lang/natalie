@@ -111,38 +111,25 @@ module Natalie
       def process_assign(exp)
         (_, val, *args) = exp
         val = process(val)
-        decl "if (NAT_TYPE(#{val}) != NAT_VALUE_ARRAY && nat_respond_to(env, #{val}, \"to_ary\")) {"
-        decl "  #{val} = nat_send(env, #{val}, \"to_ary\", 0, NULL, NULL);"
-        decl '}'
-        decl "if (NAT_TYPE(#{val}) == NAT_VALUE_ARRAY) {"
+        array_val = temp('array_val')
+        decl "NatObject *#{array_val} = nat_to_ary(env, #{val});"
         args.compact.each do |arg|
           arg = arg.dup
-          arg_value = process_assign_val(arg.pop, "#{val}->ary_len", "#{val}->ary")
+          arg_value = process_assign_val(arg.pop, "#{array_val}->ary_len", "#{array_val}->ary")
           process(arg << arg_value)
         end
-        decl '} else {'
-        first = args.first.dup
-        first[-1] = val
-        process(first)
-        args[1..-1].each do |arg|
-          arg = arg.dup
-          arg[-1] = process(s(:nil))
-          process(arg)
-        end
-        decl '}'
         val
       end
 
       def process_assign_args(exp)
         (_, *args) = exp
         if args.size > 1
+          array_arg = temp('array_arg')
           decl 'if (argc == 1) {'
-          decl 'if (NAT_TYPE(args[0]) != NAT_VALUE_ARRAY && nat_respond_to(env, args[0], "to_ary")) {'
-          decl "  args[0] = nat_send(env, args[0], \"to_ary\", 0, NULL, NULL);"
-          decl '}'
+          decl "  NatObject *#{array_arg} = nat_to_ary(env, args[0]);"
           args.compact.each do |arg|
             arg = arg.dup
-            arg_value = process_assign_val(arg.pop, 'args[0]->ary_len', 'args[0]->ary')
+            arg_value = process_assign_val(arg.pop, "#{array_arg}->ary_len", "#{array_arg}->ary")
             process(arg << arg_value)
           end
           decl '} else {'

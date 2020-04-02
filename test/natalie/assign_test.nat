@@ -5,8 +5,20 @@ class ArrayLike
     @values = values
   end
 
+  attr_reader :values
+
   def to_ary
     @values
+  end
+
+  def ==(other)
+    other.is_a?(ArrayLike) && @values == other.values
+  end
+end
+
+class BadArrayLike < ArrayLike
+  def to_ary
+    nil
   end
 end
 
@@ -65,6 +77,18 @@ describe 'assignment' do
     [ArrayLike.new(3, 4)].each do |a, b, c|
       a.should == 3
       b.should == 4
+      c.should == nil
+    end
+  end
+
+  it 'does not error when an object responds to to_ary but returns something else' do
+    bal = BadArrayLike.new(1, 2)
+    (a, b) = bal
+    a.should == bal
+    b.should == nil
+    [bal].each do |a, b, c|
+      a.should == bal
+      b.should == nil
       c.should == nil
     end
   end

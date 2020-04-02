@@ -442,3 +442,5 @@ NatObject *nat_convert_to_real_object(NatEnv *env, NatObject *obj);
 
 int nat_quicksort_partition(NatEnv *env, NatObject* ary[], int start, int end);
 void nat_quicksort(NatEnv *env, NatObject* ary[], int start, int end);
+
+NatObject *nat_to_ary(NatEnv *env, NatObject* obj);

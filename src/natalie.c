@@ -1298,3 +1298,21 @@ void nat_quicksort(NatEnv *env, NatObject* ary[], int start, int end) {
         nat_quicksort(env, ary, pIndex + 1, end);
     }
 }
+
+NatObject *nat_to_ary(NatEnv *env, NatObject* obj) {
+    NatObject *orig_obj = obj;
+    if (NAT_TYPE(obj) == NAT_VALUE_ARRAY) {
+        return obj;
+    } else {
+        if (nat_respond_to(env, obj, "to_ary")) {
+            obj = nat_send(env, obj, "to_ary", 0, NULL, NULL);
+        }
+        if (NAT_TYPE(obj) == NAT_VALUE_ARRAY) {
+            return obj;
+        } else {
+            NatObject *ary = nat_array(env);
+            nat_array_push(env, ary, orig_obj);
+            return ary;
+        }
+    }
+}
