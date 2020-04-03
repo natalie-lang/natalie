@@ -1,5 +1,5 @@
-#include "natalie.h"
 #include "builtin.h"
+#include "natalie.h"
 
 NatObject *Module_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
@@ -43,7 +43,7 @@ NatObject *Module_ancestors(NatEnv *env, NatObject *self, size_t argc, NatObject
 
 NatObject *Module_attr_reader(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC_AT_LEAST(1);
-    for (size_t i=0; i<argc; i++) {
+    for (size_t i = 0; i < argc; i++) {
         NatObject *name_obj = args[i];
         if (NAT_TYPE(name_obj) == NAT_VALUE_STRING) {
             // we're good!
@@ -70,7 +70,7 @@ NatObject *Module_attr_reader_block_fn(NatEnv *env, NatObject *self, size_t argc
 
 NatObject *Module_attr_writer(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC_AT_LEAST(1);
-    for (size_t i=0; i<argc; i++) {
+    for (size_t i = 0; i < argc; i++) {
         NatObject *name_obj = args[i];
         if (NAT_TYPE(name_obj) == NAT_VALUE_STRING) {
             // we're good!
@@ -109,7 +109,7 @@ NatObject *Module_attr_accessor(NatEnv *env, NatObject *self, size_t argc, NatOb
 NatObject *Module_include(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_MODULE || NAT_TYPE(self) == NAT_VALUE_CLASS);
     NAT_ASSERT_ARGC_AT_LEAST(1);
-    for (size_t i=0; i<argc; i++) {
+    for (size_t i = 0; i < argc; i++) {
         nat_class_include(env, self, args[i]);
     }
     return self;
@@ -119,7 +119,7 @@ NatObject *Module_included_modules(NatEnv *env, NatObject *self, size_t argc, Na
     assert(NAT_TYPE(self) == NAT_VALUE_MODULE || NAT_TYPE(self) == NAT_VALUE_CLASS);
     NAT_ASSERT_ARGC(0);
     NatObject *modules = nat_array(env);
-    for (size_t i=0; i<self->included_modules_count; i++) {
+    for (size_t i = 0; i < self->included_modules_count; i++) {
         nat_array_push(env, modules, self->included_modules[i]);
     }
     return modules;

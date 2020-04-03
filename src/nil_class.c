@@ -1,5 +1,5 @@
-#include "natalie.h"
 #include "builtin.h"
+#include "natalie.h"
 
 NatObject *NilClass_to_s(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_NIL);

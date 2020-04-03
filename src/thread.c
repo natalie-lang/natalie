@@ -1,5 +1,5 @@
-#include "natalie.h"
 #include "builtin.h"
+#include "natalie.h"
 
 NatObject *Thread_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
@@ -26,9 +26,9 @@ NatObject *Thread_value(NatEnv *env, NatObject *self, size_t argc, NatObject **a
 }
 
 static NatObject *thread_id_to_nat_string(NatEnv *env, pthread_t tid) {
-    unsigned char *ptc = (unsigned char*)(void*)(&tid);
+    unsigned char *ptc = (unsigned char *)(void *)(&tid);
     NatObject *str = nat_string(env, "0x");
-    for (size_t i=0; i<sizeof(tid); i++) {
+    for (size_t i = 0; i < sizeof(tid); i++) {
         char buf[3];
         snprintf(buf, 3, "%02x", (unsigned)(ptc[i]));
         nat_string_append(env, str, buf);

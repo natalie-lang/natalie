@@ -30,14 +30,14 @@ NatObject *BasicObject_instance_eval(NatEnv *env, NatObject *self, size_t argc, 
 NatObject *Class_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Class_superclass(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 
-#define COMPARABLE_INIT() \
+#define COMPARABLE_INIT()                                      \
     nat_define_method(env, Comparable, "==", Comparable_eqeq); \
-    nat_define_method(env, Comparable, "!=", Comparable_neq); \
-    nat_define_method(env, Comparable, "<", Comparable_lt); \
-    nat_define_method(env, Comparable, "<=", Comparable_lte); \
-    nat_define_method(env, Comparable, ">", Comparable_gt); \
+    nat_define_method(env, Comparable, "!=", Comparable_neq);  \
+    nat_define_method(env, Comparable, "<", Comparable_lt);    \
+    nat_define_method(env, Comparable, "<=", Comparable_lte);  \
+    nat_define_method(env, Comparable, ">", Comparable_gt);    \
     nat_define_method(env, Comparable, ">=", Comparable_gte);
- 
+
 NatObject *Comparable_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Comparable_neq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Comparable_lt(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
@@ -54,33 +54,33 @@ NatObject *Exception_backtrace(NatEnv *env, NatObject *self, size_t argc, NatObj
 NatObject *FalseClass_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *FalseClass_to_s(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 
-#define FILE_INIT() \
-    NatObject *Constants = nat_module(env, "Constants"); \
-    nat_const_set(env, File, "Constants", Constants); \
-    nat_const_set(env, File, "APPEND", nat_integer(env, O_APPEND)); \
-    nat_const_set(env, Constants, "APPEND", nat_integer(env, O_APPEND)); \
-    nat_const_set(env, File, "RDONLY", nat_integer(env, O_RDONLY)); \
-    nat_const_set(env, Constants, "RDONLY", nat_integer(env, O_RDONLY)); \
-    nat_const_set(env, File, "WRONLY", nat_integer(env, O_WRONLY)); \
-    nat_const_set(env, Constants, "WRONLY", nat_integer(env, O_WRONLY)); \
-    nat_const_set(env, File, "TRUNC", nat_integer(env, O_TRUNC)); \
-    nat_const_set(env, Constants, "TRUNC", nat_integer(env, O_TRUNC)); \
-    nat_const_set(env, File, "CREAT", nat_integer(env, O_CREAT)); \
-    nat_const_set(env, Constants, "CREAT", nat_integer(env, O_CREAT)); \
-    nat_const_set(env, File, "DSYNC", nat_integer(env, O_DSYNC)); \
-    nat_const_set(env, Constants, "DSYNC", nat_integer(env, O_DSYNC)); \
-    nat_const_set(env, File, "EXCL", nat_integer(env, O_EXCL)); \
-    nat_const_set(env, Constants, "EXCL", nat_integer(env, O_EXCL)); \
-    nat_const_set(env, File, "NOCTTY", nat_integer(env, O_NOCTTY)); \
-    nat_const_set(env, Constants, "NOCTTY", nat_integer(env, O_NOCTTY)); \
-    nat_const_set(env, File, "NOFOLLOW", nat_integer(env, O_NOFOLLOW)); \
+#define FILE_INIT()                                                          \
+    NatObject *Constants = nat_module(env, "Constants");                     \
+    nat_const_set(env, File, "Constants", Constants);                        \
+    nat_const_set(env, File, "APPEND", nat_integer(env, O_APPEND));          \
+    nat_const_set(env, Constants, "APPEND", nat_integer(env, O_APPEND));     \
+    nat_const_set(env, File, "RDONLY", nat_integer(env, O_RDONLY));          \
+    nat_const_set(env, Constants, "RDONLY", nat_integer(env, O_RDONLY));     \
+    nat_const_set(env, File, "WRONLY", nat_integer(env, O_WRONLY));          \
+    nat_const_set(env, Constants, "WRONLY", nat_integer(env, O_WRONLY));     \
+    nat_const_set(env, File, "TRUNC", nat_integer(env, O_TRUNC));            \
+    nat_const_set(env, Constants, "TRUNC", nat_integer(env, O_TRUNC));       \
+    nat_const_set(env, File, "CREAT", nat_integer(env, O_CREAT));            \
+    nat_const_set(env, Constants, "CREAT", nat_integer(env, O_CREAT));       \
+    nat_const_set(env, File, "DSYNC", nat_integer(env, O_DSYNC));            \
+    nat_const_set(env, Constants, "DSYNC", nat_integer(env, O_DSYNC));       \
+    nat_const_set(env, File, "EXCL", nat_integer(env, O_EXCL));              \
+    nat_const_set(env, Constants, "EXCL", nat_integer(env, O_EXCL));         \
+    nat_const_set(env, File, "NOCTTY", nat_integer(env, O_NOCTTY));          \
+    nat_const_set(env, Constants, "NOCTTY", nat_integer(env, O_NOCTTY));     \
+    nat_const_set(env, File, "NOFOLLOW", nat_integer(env, O_NOFOLLOW));      \
     nat_const_set(env, Constants, "NOFOLLOW", nat_integer(env, O_NOFOLLOW)); \
-    nat_const_set(env, File, "NONBLOCK", nat_integer(env, O_NONBLOCK)); \
+    nat_const_set(env, File, "NONBLOCK", nat_integer(env, O_NONBLOCK));      \
     nat_const_set(env, Constants, "NONBLOCK", nat_integer(env, O_NONBLOCK)); \
-    nat_const_set(env, File, "RDWR", nat_integer(env, O_RDWR)); \
-    nat_const_set(env, Constants, "RDWR", nat_integer(env, O_RDWR)); \
-    nat_const_set(env, File, "SYNC", nat_integer(env, O_SYNC)); \
-    nat_const_set(env, Constants, "SYNC", nat_integer(env, O_SYNC)); \
+    nat_const_set(env, File, "RDWR", nat_integer(env, O_RDWR));              \
+    nat_const_set(env, Constants, "RDWR", nat_integer(env, O_RDWR));         \
+    nat_const_set(env, File, "SYNC", nat_integer(env, O_SYNC));              \
+    nat_const_set(env, Constants, "SYNC", nat_integer(env, O_SYNC));
 
 NatObject *File_initialize(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 

@@ -1,5 +1,5 @@
-#include "natalie.h"
 #include "builtin.h"
+#include "natalie.h"
 
 NatObject *String_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC_AT_MOST(1);
@@ -38,7 +38,7 @@ NatObject *String_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject *
     assert(NAT_TYPE(self) == NAT_VALUE_STRING);
     NAT_ASSERT_ARGC(0);
     NatObject *out = nat_string(env, "\"");
-    for (size_t i=0; i<self->str_len; i++) {
+    for (size_t i = 0; i < self->str_len; i++) {
         // FIXME: iterate over multibyte chars
         char c = self->str[i];
         if (c == '"' || c == '\\' || c == '#') {
@@ -79,7 +79,7 @@ NatObject *String_mul(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
     NatObject *arg = args[0];
     NAT_ASSERT_TYPE(arg, NAT_VALUE_INTEGER, "Integer");
     NatObject *new_str = nat_string(env, "");
-    for (long long i=0; i<NAT_INT_VALUE(arg); i++) {
+    for (long long i = 0; i < NAT_INT_VALUE(arg); i++) {
         nat_string_append_nat_string(env, new_str, self);
     }
     return new_str;
@@ -99,7 +99,7 @@ NatObject *String_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
 NatObject *String_cmp(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_STRING);
     NAT_ASSERT_ARGC(1);
-    NatObject* arg = args[0];
+    NatObject *arg = args[0];
     if (NAT_TYPE(arg) != NAT_VALUE_STRING) return NAT_NIL;
     int diff = strcmp(self->str, arg->str);
     int result;

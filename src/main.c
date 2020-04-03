@@ -1,8 +1,8 @@
 #include <setjmp.h>
 
+#include "builtin.h"
 #include "gc.h"
 #include "natalie.h"
-#include "builtin.h"
 
 /* end of front matter */
 
@@ -352,7 +352,7 @@ int main(int argc, char *argv[]) {
     NatObject *ARGV = nat_array(env);
     nat_const_set(env, NAT_OBJECT, "ARGV", ARGV);
     assert(argc > 0);
-    for (int i=1; i<argc; i++) {
+    for (int i = 1; i < argc; i++) {
         nat_array_push(env, ARGV, nat_string(env, argv[i]));
     }
     NatObject *result = EVAL(env);

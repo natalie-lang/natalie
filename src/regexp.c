@@ -1,5 +1,5 @@
-#include "natalie.h"
 #include "builtin.h"
+#include "natalie.h"
 
 NatObject *Regexp_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
@@ -49,10 +49,10 @@ NatObject *Regexp_match(NatEnv *env, NatObject *self, size_t argc, NatObject **a
     assert(NAT_TYPE(self) == NAT_VALUE_REGEXP);
     NAT_ASSERT_TYPE(args[0], NAT_VALUE_STRING, "String");
     NatObject *str_obj = args[0];
-    unsigned char *str = (unsigned char*)str_obj->str;
+    unsigned char *str = (unsigned char *)str_obj->str;
     int result;
     OnigRegion *region = onig_region_new();
-    unsigned char *end = str + strlen((char*)str);
+    unsigned char *end = str + strlen((char *)str);
     unsigned char *start = str;
     unsigned char *range = end;
     result = onig_search(self->regexp, str, end, start, range, region, ONIG_OPTION_NONE);
@@ -63,6 +63,6 @@ NatObject *Regexp_match(NatEnv *env, NatObject *self, size_t argc, NatObject **a
     } else {
         OnigUChar s[ONIG_MAX_ERROR_MESSAGE_LEN];
         onig_error_code_to_str(s, result);
-        NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "RuntimeError"), (char*)s);
+        NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "RuntimeError"), (char *)s);
     }
 }

@@ -1,6 +1,6 @@
+#include "builtin.h"
 #include "gc.h"
 #include "natalie.h"
-#include "builtin.h"
 
 // TODO: move to BasicObject
 NatObject *Object_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {

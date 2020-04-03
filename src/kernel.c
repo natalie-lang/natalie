@@ -1,5 +1,5 @@
-#include "natalie.h"
 #include "builtin.h"
+#include "natalie.h"
 
 NatObject *Kernel_puts(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NatObject *nat_stdout = nat_global_get(env, "$stdout");
@@ -20,7 +20,7 @@ NatObject *Kernel_p(NatEnv *env, NatObject *self, size_t argc, NatObject **args,
         return arg;
     } else {
         NatObject *result = nat_array(env);
-        for (size_t i=0; i<argc; i++) {
+        for (size_t i = 0; i < argc; i++) {
             nat_array_push(env, result, args[i]);
             args[i] = nat_send(env, args[i], "inspect", 0, NULL, NULL);
         }

@@ -1,9 +1,9 @@
-#include <unistd.h>
 #include <errno.h>
+#include <unistd.h>
 
+#include "builtin.h"
 #include "gc.h"
 #include "natalie.h"
-#include "builtin.h"
 
 NatObject *IO_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NatObject *obj = Object_new(env, self, argc, args, kwargs, block);
@@ -64,7 +64,7 @@ NatObject *IO_read(NatEnv *env, NatObject *self, size_t argc, NatObject **args, 
 NatObject *IO_write(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC_AT_LEAST(1);
     int bytes_written = 0;
-    for (size_t i=0; i<argc; i++) {
+    for (size_t i = 0; i < argc; i++) {
         NatObject *obj = args[i];
         if (NAT_TYPE(obj) != NAT_VALUE_STRING) {
             obj = nat_send(env, obj, "to_s", 0, NULL, NULL);
@@ -88,7 +88,7 @@ NatObject *IO_puts(NatEnv *env, NatObject *self, size_t argc, NatObject **args, 
     if (argc == 0) {
         dprintf(fd, "\n");
     } else {
-        for (size_t i=0; i<argc; i++) {
+        for (size_t i = 0; i < argc; i++) {
             NatObject *str = nat_send(env, args[i], "to_s", 0, NULL, NULL);
             NAT_ASSERT_TYPE(str, NAT_VALUE_STRING, "String");
             dprintf(fd, "%s\n", str->str);
@@ -100,7 +100,7 @@ NatObject *IO_puts(NatEnv *env, NatObject *self, size_t argc, NatObject **args, 
 NatObject *IO_print(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     int fd = self->fileno;
     if (argc > 0) {
-        for (size_t i=0; i<argc; i++) {
+        for (size_t i = 0; i < argc; i++) {
             NatObject *str = nat_send(env, args[i], "to_s", 0, NULL, NULL);
             NAT_ASSERT_TYPE(str, NAT_VALUE_STRING, "String");
             dprintf(fd, "%s", str->str);
@@ -131,22 +131,22 @@ NatObject *IO_seek(NatEnv *env, NatObject *self, size_t argc, NatObject **args, 
     if (argc > 1) {
         NatObject *whence_obj = args[1];
         switch (NAT_TYPE(whence_obj)) {
-            case NAT_VALUE_INTEGER:
-                whence = NAT_INT_VALUE(whence_obj);
-                break;
-            case NAT_VALUE_SYMBOL:
-                if (strcmp(whence_obj->symbol, "SET") == 0) {
-                    whence = 0;
-                } else if (strcmp(whence_obj->symbol, "CUR") == 0) {
-                    whence = 1;
-                } else if (strcmp(whence_obj->symbol, "END") == 0) {
-                    whence = 2;
-                } else {
-                    NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "TypeError"), "no implicit conversion of Symbol into NAT_INTEGER");
-                }
-                break;
-            default:
-                NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "TypeError"), "no implicit conversion of %s into NAT_INTEGER", whence_obj->klass->class_name);
+        case NAT_VALUE_INTEGER:
+            whence = NAT_INT_VALUE(whence_obj);
+            break;
+        case NAT_VALUE_SYMBOL:
+            if (strcmp(whence_obj->symbol, "SET") == 0) {
+                whence = 0;
+            } else if (strcmp(whence_obj->symbol, "CUR") == 0) {
+                whence = 1;
+            } else if (strcmp(whence_obj->symbol, "END") == 0) {
+                whence = 2;
+            } else {
+                NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "TypeError"), "no implicit conversion of Symbol into NAT_INTEGER");
+            }
+            break;
+        default:
+            NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "TypeError"), "no implicit conversion of %s into NAT_INTEGER", whence_obj->klass->class_name);
         }
     }
     int result = lseek(self->fileno, amount, whence);
