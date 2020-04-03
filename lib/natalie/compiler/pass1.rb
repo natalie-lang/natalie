@@ -346,27 +346,40 @@ module Natalie
         else
           value_name = temp('masgn_value')
           s(:block,
-            s(:declare, value_name, process(val)),
+            s(:declare, value_name, s(:nat_to_ary, :env, process(val))),
             *prepare_masgn_full(exp, value_name))
         end
       end
 
       def prepare_masgn_full(exp, value_name)
-        prepare_masgn_paths(exp).map do |name, path|
+        prepare_masgn_paths(exp).map do |name, path_details|
+          path = path_details[:path]
           if name.is_a?(Sexp)
-            case name.sexp_type
-            when :gasgn
-              s(:nat_global_set, :env, s(:s, name.last), s(:nat_value_by_path, :env, value_name, s(:nil), path.size, *path))
-            when :iasgn
-              s(:nat_ivar_set, :env, :self, s(:s, name.last), s(:nat_value_by_path, :env, value_name, s(:nil), path.size, *path))
-            when :lasgn
-              s(:nat_var_set, :env, s(:s, name.last), s(:nat_value_by_path, :env, value_name, s(:nil), path.size, *path))
+            if name.sexp_type == :splat
+              value = s(:nat_value_by_path, :env, value_name, s(:nil), s(:l, :true), path_details[:offset_from_end], path.size, *path)
+              prepare_masgn_set(name.last, value)
             else
-              raise "unknown masgn type: #{name.inspect}"
+              value = s(:nat_value_by_path, :env, value_name, s(:nil), s(:l, :false), 0, path.size, *path)
+              prepare_masgn_set(name, value)
             end
           else
             raise "unknown masgn type: #{name.inspect}"
           end
+        end
+      end
+
+      def prepare_masgn_set(exp, value)
+        case exp.sexp_type
+        when :cdecl
+          s(:nat_const_set, :env, :self, s(:s, exp.last), value)
+        when :gasgn
+          s(:nat_global_set, :env, s(:s, exp.last), value)
+        when :iasgn
+          s(:nat_ivar_set, :env, :self, s(:s, exp.last), value)
+        when :lasgn
+          s(:nat_var_set, :env, s(:s, exp.last), value)
+        else
+          raise "unknown masgn type: #{exp.inspect}"
         end
       end
 
@@ -376,12 +389,18 @@ module Natalie
 
       def prepare_masgn_paths(exp, prefix = [])
         (_, (_, *names)) = exp
+        splatted = false
         names.each_with_index.each_with_object({}) do |(e, index), hash|
           raise 'destructuring assignment is too big' if index > MAX_MASGN_PATH_INDEX
           if e.is_a?(Sexp) && e.sexp_type == :masgn
             hash.merge!(prepare_masgn_paths(e, prefix + [index]))
+          elsif e.sexp_type == :splat
+            splatted = true
+            hash[e] = { path: prefix + [index], offset_from_end: names.size - index - 1 }
+          elsif splatted
+            hash[e] = { path: prefix + [(names.size - index) * -1] }
           else
-            hash[e] = prefix + [index]
+            hash[e] = { path: prefix + [index] }
           end
         end
       end

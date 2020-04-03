@@ -1315,24 +1315,49 @@ NatObject *nat_to_ary(NatEnv *env, NatObject *obj) {
     }
 }
 
-NatObject *nat_value_by_path(NatEnv *env, NatObject *value, NatObject *default_value, size_t path_size, ...) {
+static NatObject *nat_splat_value(NatEnv *env, NatObject *value, size_t index, size_t offset_from_end) {
+    NatObject *splat = nat_array(env);
+    if (NAT_TYPE(value) == NAT_VALUE_ARRAY) {
+        if (index < value->ary_len - offset_from_end) {
+            for (size_t s = index; s < value->ary_len - offset_from_end; s++) {
+                nat_array_push(env, splat, value->ary[s]);
+            }
+        } else {
+            nat_array_push(env, splat, NAT_NIL);
+        }
+    } else {
+        nat_array_push(env, splat, value);
+    }
+    return splat;
+}
+
+NatObject *nat_value_by_path(NatEnv *env, NatObject *value, NatObject *default_value, bool splat, size_t offset_from_end, size_t path_size, ...) {
     va_list args;
     va_start(args, path_size);
     NatObject *return_value = value;
     for (size_t i = 0; i < path_size; i++) {
-        size_t index = va_arg(args, int);
-        if (NAT_TYPE(return_value) == NAT_VALUE_ARRAY) {
-            if (index < return_value->ary_len) {
-                return_value = return_value->ary[index];
+        int index = va_arg(args, int);
+        if (splat && i == path_size - 1) {
+            return nat_splat_value(env, return_value, index, offset_from_end);
+        } else {
+            if (NAT_TYPE(return_value) == NAT_VALUE_ARRAY) {
+                if (index < 0) {
+                    index = return_value->ary_len + index;
+                }
+                if (index < 0) {
+                    return_value = NAT_NIL;
+                } else if ((size_t)index < return_value->ary_len) {
+                    return_value = return_value->ary[index];
+                } else {
+                    return_value = NAT_NIL;
+                }
+            } else if (index == 0) {
+                // (a, b) = 1
+                //   --> a = 1    <-- same object, no change to return_value
+                //   --> b = nil
             } else {
                 return_value = NAT_NIL;
             }
-        } else if (index == 0) {
-            // (a, b) = 1
-            //   --> 1 = 1    <-- same object, no change to return_value
-            //   --> b = nil
-        } else {
-            return_value = NAT_NIL;
         }
     }
     va_end(args);

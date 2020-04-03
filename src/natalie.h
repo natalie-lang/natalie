@@ -495,4 +495,4 @@ void nat_quicksort(NatEnv *env, NatObject *ary[], int start, int end);
 
 NatObject *nat_to_ary(NatEnv *env, NatObject *obj);
 
-NatObject *nat_value_by_path(NatEnv *env, NatObject *value, NatObject *default_value, size_t path_size, ...);
+NatObject *nat_value_by_path(NatEnv *env, NatObject *value, NatObject *default_value, bool splat, size_t offset_from_end, size_t path_size, ...);
