@@ -370,9 +370,14 @@ module Natalie
         end
       end
 
+      # Ruby blows the stack at around this number, so let's limit Natalie as well.
+      # Anything over a few dozen is pretty crazy, actually.
+      MAX_MASGN_PATH_INDEX = 131_044
+
       def prepare_masgn_paths(exp, prefix = [])
         (_, (_, *names)) = exp
         names.each_with_index.each_with_object({}) do |(e, index), hash|
+          raise 'destructuring assignment is too big' if index > MAX_MASGN_PATH_INDEX
           if e.is_a?(Sexp) && e.sexp_type == :masgn
             hash.merge!(prepare_masgn_paths(e, prefix + [index]))
           else
