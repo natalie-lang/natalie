@@ -1314,3 +1314,27 @@ NatObject *nat_to_ary(NatEnv *env, NatObject *obj) {
         }
     }
 }
+
+NatObject *nat_value_by_path(NatEnv *env, NatObject *value, NatObject *default_value, size_t path_size, ...) {
+    va_list args;
+    va_start(args, path_size);
+    NatObject *return_value = value;
+    for (size_t i = 0; i < path_size; i++) {
+        size_t index = va_arg(args, int);
+        if (NAT_TYPE(return_value) == NAT_VALUE_ARRAY) {
+            if (index < return_value->ary_len) {
+                return_value = return_value->ary[index];
+            } else {
+                return_value = NAT_NIL;
+            }
+        } else if (index == 0) {
+            // (a, b) = 1
+            //   --> 1 = 1    <-- same object, no change to return_value
+            //   --> b = nil
+        } else {
+            return_value = NAT_NIL;
+        }
+    }
+    va_end(args);
+    return return_value;
+}

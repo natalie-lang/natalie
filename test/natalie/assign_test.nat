@@ -132,14 +132,29 @@ describe 'assignment' do
     Foo.should == 2
   end
 
-  xit 'does nested multiple assignment from an array' do
-    #((a, b), c) = [[1, 2], 3]
-    #a.should == 1
-    #b.should == 2
-    #c.should == 3
-    #(a, b, c) = [[4, 5], 6, 7]
-    #a.should == [4, 5]
-    #b.should == 6
-    #c.should == 7
+  it 'does nested multiple assignment from an array' do
+    ((s, t), u) = [[1, 2], 3]
+    s.should == 1
+    t.should == 2
+    u.should == 3
+    ((a, (b, c)), d, (e, (f, g))) = [[10, 20], 30, [[40, 50], 60]]
+    a.should == 10
+    b.should == 20
+    c.should == nil
+    d.should == 30
+    e.should == [40, 50]
+    f.should == 60
+    g.should == nil
+    (x, y, z) = [[4, 5], 6, 7]
+    x.should == [4, 5]
+    y.should == 6
+    z.should == 7
+  end
+
+  it 'does nested multiple assignment of other types of variables' do
+    ((s, @t), $u) = [[1, 2], 3]
+    s.should == 1
+    @t.should == 2
+    $u.should == 3
   end
 end

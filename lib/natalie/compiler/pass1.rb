@@ -341,11 +341,43 @@ module Natalie
         (_, names, val) = exp
         names = names[1..-1]
         val = val.last if val.sexp_type == :to_ary
-        val_name = temp('assign_val')
         if args_use_simple_mode?(names)
           s(:assign, process(val), *prepare_masgn_simple(names))
         else
-          raise "We do not yet support complicated args like this, sorry! #{names.inspect}"
+          value_name = temp('masgn_value')
+          s(:block,
+            s(:declare, value_name, process(val)),
+            *prepare_masgn_full(exp, value_name))
+        end
+      end
+
+      def prepare_masgn_full(exp, value_name)
+        prepare_masgn_paths(exp).map do |name, path|
+          if name.is_a?(Sexp)
+            case name.sexp_type
+            when :gasgn
+              s(:nat_global_set, :env, s(:s, name.last), s(:nat_value_by_path, :env, value_name, s(:nil), path.size, *path))
+            when :iasgn
+              s(:nat_ivar_set, :env, :self, s(:s, name.last), s(:nat_value_by_path, :env, value_name, s(:nil), path.size, *path))
+            when :lasgn
+              s(:nat_var_set, :env, s(:s, name.last), s(:nat_value_by_path, :env, value_name, s(:nil), path.size, *path))
+            else
+              raise "unknown masgn type: #{name.inspect}"
+            end
+          else
+            raise "unknown masgn type: #{name.inspect}"
+          end
+        end
+      end
+
+      def prepare_masgn_paths(exp, prefix = [])
+        (_, (_, *names)) = exp
+        names.each_with_index.each_with_object({}) do |(e, index), hash|
+          if e.is_a?(Sexp) && e.sexp_type == :masgn
+            hash.merge!(prepare_masgn_paths(e, prefix + [index]))
+          else
+            hash[e] = prefix + [index]
+          end
         end
       end
 

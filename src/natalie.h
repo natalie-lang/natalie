@@ -494,3 +494,5 @@ int nat_quicksort_partition(NatEnv *env, NatObject *ary[], int start, int end);
 void nat_quicksort(NatEnv *env, NatObject *ary[], int start, int end);
 
 NatObject *nat_to_ary(NatEnv *env, NatObject *obj);
+
+NatObject *nat_value_by_path(NatEnv *env, NatObject *value, NatObject *default_value, size_t path_size, ...);
