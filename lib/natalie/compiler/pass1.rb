@@ -293,7 +293,10 @@ module Natalie
         assign_args = if args_use_simple_mode?(args)
                         exp.new(:assign_args, *prepare_masgn_simple(args))
                       else
-                        raise "We do not yet support complicated args like this, sorry! #{args.inspect}"
+                        args_name = temp('args_as_array')
+                        s(:block,
+                          s(:declare, args_name, s(:nat_block_args_to_array, :env, s(:l, 'argc'), s(:l, 'args'))),
+                          *prepare_args_full(args, args_name))
                       end
         exp.new(:block,
           s(:block_fn, block_fn,

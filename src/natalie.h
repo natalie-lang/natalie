@@ -26,8 +26,9 @@
     nat_raise(env, klass, message_format, ##__VA_ARGS__); \
     abort();
 
-#define NAT_ASSERT_ARGC(...) NAT_GET_MACRO(__VA_ARGS__, NAT_ASSERT_ARGC2, NAT_ASSERT_ARGC1) \
-(__VA_ARGS__)
+#define NAT_ASSERT_ARGC(...)                                       \
+    NAT_GET_MACRO(__VA_ARGS__, NAT_ASSERT_ARGC2, NAT_ASSERT_ARGC1) \
+    (__VA_ARGS__)
 
 #define NAT_ASSERT_ARGC1(expected)                                                                                                            \
     if (argc != expected) {                                                                                                                   \
@@ -499,3 +500,4 @@ NatObject *nat_arg_value_by_path(NatEnv *env, NatObject *value, NatObject *defau
 NatObject *nat_array_value_by_path(NatEnv *env, NatObject *value, NatObject *default_value, bool splat, int offset_from_end, size_t path_size, ...);
 
 NatObject *nat_args_to_array(NatEnv *env, size_t argc, NatObject **args);
+NatObject *nat_block_args_to_array(NatEnv *env, size_t argc, NatObject **args);

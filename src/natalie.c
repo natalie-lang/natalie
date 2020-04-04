@@ -1332,6 +1332,7 @@ NatObject *nat_arg_value_by_path(NatEnv *env, NatObject *value, NatObject *defau
     NatObject *return_value = value;
     for (size_t i = 0; i < path_size; i++) {
         int index = va_arg(args, int);
+
         if (splat && i == path_size - 1) {
             return nat_splat_value(env, return_value, index, offset_from_end);
         } else {
@@ -1339,42 +1340,43 @@ NatObject *nat_arg_value_by_path(NatEnv *env, NatObject *value, NatObject *defau
 
                 int64_t ary_len = (int64_t)return_value->ary_len;
 
-                // this is an arg with a default value;
-                // not enough values to fill all the required args and this one
                 if (has_default && ary_len - defaults_before - required_after <= 0) {
+                    // this is an arg with a default value;
+                    // not enough values to fill all the required args and this one
                     return default_value;
                 }
 
-                // shift index left until all required args would be filled (but only at the top level of the path)
-                if (i == 0) {
+                if (i == 0 && i == path_size - 1) {
+                    // shift index left until all required args would be filled
+                    // (but only at the top level of the path)
                     index = NAT_MIN(index, ary_len - required_after - 1);
                 }
 
-                // negative offset index
                 if (index < 0) {
+                    // negative offset index should go from the right
                     index = ary_len + index;
                 }
 
-                // not enough values in the array
                 if (index < 0) {
-                    return_value = NAT_NIL;
+                    // not enough values in the array, so use default
+                    return_value = default_value;
 
-                // value available, yay!
                 } else if (index < ary_len) {
+                    // value available, yay!
                     return_value = return_value->ary[index];
 
-                // index past the end of the array
                 } else {
-                    return_value = NAT_NIL;
+                    // index past the end of the array, so use default
+                    return_value = default_value;
                 }
 
-            // not an array, so nothing to do (the object itself is returned)
             } else if (index == 0) {
+                // not an array, so nothing to do (the object itself is returned)
                 // no-op
 
-            // not an array, and index isn't zero
             } else {
-                return_value = NAT_NIL;
+                // not an array, and index isn't zero
+                return_value = default_value;
             }
         }
     }
@@ -1395,31 +1397,31 @@ NatObject *nat_array_value_by_path(NatEnv *env, NatObject *value, NatObject *def
 
                 int64_t ary_len = (int64_t)return_value->ary_len;
 
-                // negative offset index
                 if (index < 0) {
+                    // negative offset index should go from the right
                     index = ary_len + index;
                 }
 
-                // not enough values in the array
                 if (index < 0) {
-                    return_value = NAT_NIL;
+                    // not enough values in the array, so use default
+                    return_value = default_value;
 
-                // value available, yay!
                 } else if (index < ary_len) {
+                    // value available, yay!
                     return_value = return_value->ary[index];
 
-                // index past the end of the array
                 } else {
-                    return_value = NAT_NIL;
+                    // index past the end of the array, so use default
+                    return_value = default_value;
                 }
 
-            // not an array, so nothing to do (the object itself is returned)
             } else if (index == 0) {
+                // not an array, so nothing to do (the object itself is returned)
                 // no-op
 
-            // not an array, and index isn't zero
             } else {
-                return_value = NAT_NIL;
+                // not an array, and index isn't zero
+                return_value = default_value;
             }
         }
     }
@@ -1433,4 +1435,18 @@ NatObject *nat_args_to_array(NatEnv *env, size_t argc, NatObject **args) {
         nat_array_push(env, ary, args[i]);
     }
     return ary;
+}
+
+// much like nat_args_to_array above, but when a block is given a single arg
+// and that arg is an array, use the array as the arg array
+NatObject *nat_block_args_to_array(NatEnv *env, size_t argc, NatObject **args) {
+    if (argc == 1 && NAT_TYPE(args[0]) == NAT_VALUE_ARRAY) {
+        return args[0];
+    } else {
+        NatObject *ary = nat_array(env);
+        for (size_t i = 0; i < argc; i++) {
+            nat_array_push(env, ary, args[i]);
+        }
+        return ary;
+    }
 }
