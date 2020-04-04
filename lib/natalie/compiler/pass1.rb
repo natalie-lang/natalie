@@ -177,7 +177,10 @@ module Natalie
         assign_args = if args_use_simple_mode?(args)
                         exp.new(:assign_args, *prepare_masgn_simple(args))
                       else
-                        raise "We do not yet support complicated args like this, sorry! #{args.inspect}"
+                        args_name = temp('args_as_array')
+                        s(:block,
+                          s(:declare, args_name, s(:nat_args_to_array, :env, s(:l, 'argc'), s(:l, 'args'))),
+                          *prepare_args_full(args, args_name))
                       end
         method_body = process(s(:block, *body))
         if raises_local_jump_error?(method_body)
@@ -356,14 +359,65 @@ module Natalie
           path = path_details[:path]
           if name.is_a?(Sexp)
             if name.sexp_type == :splat
-              value = s(:nat_value_by_path, :env, value_name, s(:nil), s(:l, :true), path_details[:offset_from_end], path.size, *path)
+              value = s(:nat_array_value_by_path, :env, value_name, s(:nil), s(:l, :true), path_details[:offset_from_end], path.size, *path)
               prepare_masgn_set(name.last, value)
             else
-              value = s(:nat_value_by_path, :env, value_name, s(:nil), s(:l, :false), 0, path.size, *path)
+              default_value = name.size == 3 ? process(name.pop) : s(:nil)
+              value = s(:nat_array_value_by_path, :env, value_name, default_value, s(:l, :false), 0, path.size, *path)
               prepare_masgn_set(name, value)
             end
           else
             raise "unknown masgn type: #{name.inspect}"
+          end
+        end
+      end
+
+      def prepare_args_full(names, value_name)
+        names = prepare_arg_names(names)
+        prepare_masgn_paths(s(:masgn, s(:array, *names))).map do |name, path_details|
+          path = path_details[:path]
+          if name.is_a?(Sexp)
+            if name.sexp_type == :splat
+              value = s(:nat_arg_value_by_path, :env, value_name, s(:nil), s(:l, :true), path_details[:defaults_before], path_details[:required_after], path_details[:offset_from_end], path.size, *path)
+              prepare_masgn_set(name.last, value)
+            else
+              default_value = name.size == 3 ? process(name.pop) : s(:nil)
+              value = s(:nat_arg_value_by_path, :env, value_name, default_value, s(:l, :false), path_details[:defaults_before], path_details[:required_after], 0, path.size, *path)
+              prepare_masgn_set(name, value)
+            end
+          else
+            raise "unknown masgn type: #{name.inspect}"
+          end
+        end
+      end
+
+      def prepare_arg_names(names)
+        names.map do |name|
+          case name
+          when Symbol
+            case name.to_s
+            when /^\*@(.+)/
+              s(:splat, s(:iasgn, name[1..-1].to_sym))
+            when /^\*(.+)/
+              s(:splat, s(:lasgn, name[1..-1].to_sym))
+            when /^\*/
+              s(:splat, s(:lasgn, :_))
+            when /^@/
+              s(:iasgn, name)
+            else
+              s(:lasgn, name)
+            end
+          when Sexp
+            case name.sexp_type
+            when :lasgn
+              name
+            when :masgn
+              s(:masgn, s(:array, *prepare_arg_names(name[1..-1])))
+            else
+              raise "unknown arg type: #{name.inspect}"
+            end
+          else
+            raise "unknown arg type: #{name.inspect}"
           end
         end
       end
@@ -390,18 +444,23 @@ module Natalie
       def prepare_masgn_paths(exp, prefix = [])
         (_, (_, *names)) = exp
         splatted = false
+        defaults_before = 0
+        required_after = names.count { |e| %i[iasgn lasgn].include?(e.sexp_type) && e.size == 2 }
         names.each_with_index.each_with_object({}) do |(e, index), hash|
           raise 'destructuring assignment is too big' if index > MAX_MASGN_PATH_INDEX
+          has_default = %i[iasgn lasgn].include?(e.sexp_type) && e.size == 3
+          required_after -= 1 if !has_default
           if e.is_a?(Sexp) && e.sexp_type == :masgn
             hash.merge!(prepare_masgn_paths(e, prefix + [index]))
           elsif e.sexp_type == :splat
             splatted = true
-            hash[e] = { path: prefix + [index], offset_from_end: names.size - index - 1 }
+            hash[e] = { path: prefix + [index], offset_from_end: names.size - index - 1, defaults_before: defaults_before, required_after: required_after }
           elsif splatted
-            hash[e] = { path: prefix + [(names.size - index) * -1] }
+            hash[e] = { path: prefix + [(names.size - index) * -1], defaults_before: defaults_before, required_after: required_after }
           else
-            hash[e] = { path: prefix + [index] }
+            hash[e] = { path: prefix + [index], defaults_before: defaults_before, required_after: required_after }
           end
+          defaults_before += 1 if has_default
         end
       end
 
