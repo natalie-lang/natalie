@@ -147,7 +147,16 @@ NatObject *Array_size(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
 NatObject *Array_any(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);
     NAT_ASSERT_ARGC(0);
-    return self->ary_len > 0 ? NAT_TRUE : NAT_FALSE;
+    if (block) {
+        for (size_t i = 0; i < self->ary_len; i++) {
+            NatObject *obj = self->ary[i];
+            NatObject *result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &obj, NULL, NULL);
+            if (nat_truthy(result)) return NAT_TRUE;
+        }
+    } else if (self->ary_len > 0) {
+        return NAT_TRUE;
+    }
+    return NAT_FALSE;
 }
 
 NatObject *Array_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {

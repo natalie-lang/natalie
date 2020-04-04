@@ -33,12 +33,16 @@ end
 
 alias context describe
 
-def xit(test, &block)
-  @specs << [@context.dup, test, nil]
-end
-
 def it(test, &block)
   @specs << [@context.dup, test, block]
+end
+
+def fit(test, &block)
+  @specs << [@context.dup, test, block, :focus]
+end
+
+def xit(test, &block)
+  @specs << [@context.dup, test, nil]
 end
 
 def ruby_version_is(_)
@@ -217,8 +221,11 @@ def run_specs
   @skipped = []
 
   before_all_done = []
+  any_focused = @specs.any? { |_, _, _, focus| focus }
+
   @specs.each do |test|
-    (context, test, fn) = test
+    (context, test, fn, focus) = test
+    next if any_focused && !focus
     if fn
       context.each do |con|
         con.before_all.each do |b|
