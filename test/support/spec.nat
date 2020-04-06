@@ -219,6 +219,7 @@ def run_specs
   @failures = []
   @errors = []
   @skipped = []
+  @tested = 0
 
   before_all_done = []
   any_focused = @specs.any? { |_, _, _, focus| focus }
@@ -227,6 +228,7 @@ def run_specs
     (context, test, fn, focus) = test
     next if any_focused && !focus
     if fn
+      @tested += 1
       context.each do |con|
         con.before_all.each do |b|
           unless before_all_done.include?(b)
@@ -276,7 +278,7 @@ def run_specs
       puts message
     end
     puts
-    puts (@specs.size - @failures.size - @skipped.size).to_s + ' spec(s) passed.'
+    puts (@tested - @failures.size - @skipped.size).to_s + ' spec(s) passed.'
     puts @failures.size.to_s + ' spec(s) failed.'
     puts @errors.size.to_s + ' spec(s) errored.'
     puts @skipped.size.to_s + ' spec(s) skipped.' if @skipped.any?
@@ -284,7 +286,7 @@ def run_specs
   else
     puts
     puts
-    puts (@specs.size - @skipped.size).to_s + ' spec(s) passed.'
+    puts (@tested - @skipped.size).to_s + ' spec(s) passed.'
     puts @skipped.size.to_s + ' spec(s) skipped.' if @skipped.any?
   end
 end
