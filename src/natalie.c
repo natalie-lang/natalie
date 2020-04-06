@@ -1325,10 +1325,12 @@ static NatObject *nat_splat_value(NatEnv *env, NatObject *value, size_t index, s
     return splat;
 }
 
-NatObject *nat_arg_value_by_path(NatEnv *env, NatObject *value, NatObject *default_value, bool splat, int defaults_before, int required_after, int offset_from_end, size_t path_size, ...) {
+NatObject *nat_arg_value_by_path(NatEnv *env, NatObject *value, NatObject *default_value, bool splat, int total_count, int default_count, bool defaults_on_right, int offset_from_end, size_t path_size, ...) {
     va_list args;
     va_start(args, path_size);
     bool has_default = default_value != NAT_NIL;
+    bool defaults_on_left = !defaults_on_right;
+    int required_count = total_count - default_count;
     NatObject *return_value = value;
     for (size_t i = 0; i < path_size; i++) {
         int index = va_arg(args, int);
@@ -1340,16 +1342,23 @@ NatObject *nat_arg_value_by_path(NatEnv *env, NatObject *value, NatObject *defau
 
                 int64_t ary_len = (int64_t)return_value->ary_len;
 
-                if (has_default && ary_len - defaults_before - required_after <= 0) {
+                int first_required = default_count;
+                int remain = ary_len - required_count;
+
+                if (has_default && index >= remain && index < first_required && defaults_on_left) {
                     // this is an arg with a default value;
                     // not enough values to fill all the required args and this one
                     return default_value;
                 }
 
-                if (i == 0 && i == path_size - 1) {
-                    // shift index left until all required args would be filled
-                    // (but only at the top level of the path)
-                    index = NAT_MIN(index, ary_len - required_after - 1);
+                if (i == 0 && path_size == 1) {
+                    // shift index left if needed
+                    int extra_count = ary_len - required_count;
+                    if (defaults_on_left && extra_count > 0 && default_count >= extra_count && index >= extra_count) {
+                        index -= (default_count - extra_count);
+                    } else if (ary_len <= required_count && defaults_on_left) {
+                        index -= (default_count);
+                    }
                 }
 
                 if (index < 0) {
@@ -1437,16 +1446,11 @@ NatObject *nat_args_to_array(NatEnv *env, size_t argc, NatObject **args) {
     return ary;
 }
 
-// much like nat_args_to_array above, but when a block is given a single arg
-// and that arg is an array, use the array as the arg array
-NatObject *nat_block_args_to_array(NatEnv *env, size_t argc, NatObject **args) {
-    if (argc == 1 && NAT_TYPE(args[0]) == NAT_VALUE_ARRAY) {
-        return args[0];
-    } else {
-        NatObject *ary = nat_array(env);
-        for (size_t i = 0; i < argc; i++) {
-            nat_array_push(env, ary, args[i]);
-        }
-        return ary;
+// much like nat_args_to_array above, but when a block is given a single arg,
+// and the block wants multiple args, call nat_to_ary on the first arg and return that
+NatObject *nat_block_args_to_array(NatEnv *env, size_t signature_size, size_t argc, NatObject **args) {
+    if (argc == 1 && signature_size > 1) {
+        return nat_to_ary(env, args[0]);
     }
+    return nat_args_to_array(env, argc, args);
 }
