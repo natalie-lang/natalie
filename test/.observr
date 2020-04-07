@@ -2,24 +2,28 @@
 # observr test/.observr
 
 def sh(cmd)
-  io = IO.popen("#{cmd} 2>&1")
-  $stdout.write(io.getc) until io.eof?
+  pid = spawn(cmd)
+  Process.wait(pid)
 end
 
-def run_tests(test = nil, force = false)
+def run_tests(test = nil)
   test = @last_test if @last_test && test.nil?
   if (ft = focused_tests).any?
     puts "Running focused test(s)..."
     test = ft.join(' ')
   end
-  if force || File.exist?(test)
+  if test && File.exist?(test)
     @last_test = test
     puts "-" * 80
-    cmd = "ruby -r ./test/support/ruby_require_patch.rb #{test} && make && bin/natalie #{test}"
-    puts test
+    cmd = "ruby -r ./test/support/ruby_require_patch.rb #{test}"
+    puts cmd
+    sh cmd
+    puts
+    cmd = "make && bin/natalie #{test}"
+    puts cmd
     sh cmd
   else
-    puts "#{test} does not exist."
+    run_suite
   end
 end
 
@@ -32,8 +36,8 @@ def focused_tests
 end
 
 watch('^test/.*_test\.nat') { |m| run_tests(m.to_s) }
-watch('^test/.*_test\.rb' ) { |m| run_suite }
-watch('^src/(.*)\.c'      ) { |m| run_suite }
-watch('^lib/(.*)\.rb'     ) { |m| run_suite }
+watch('^test/.*_test\.rb' ) { |m| run_tests }
+watch('^src/(.*)\.c'      ) { |m| run_tests }
+watch('^lib/(.*)\.rb'     ) { |m| run_tests }
 
 Signal.trap('QUIT') { run_suite } # Ctrl-\
