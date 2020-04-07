@@ -177,7 +177,7 @@ module Natalie
         args_name = temp('args_as_array')
         assign_args = s(:block,
                         s(:declare, args_name, s(:nat_args_to_array, :env, s(:l, 'argc'), s(:l, 'args'))),
-                        *prepare_args_full(args, args_name))
+                        *prepare_args(args, args_name))
         method_body = process(s(:block, *body))
         if raises_local_jump_error?(method_body)
           # We only need to wrap method body in a rescue for LocalJumpError if there is a `return` inside a block.
@@ -289,7 +289,7 @@ module Natalie
         args_name = temp('args_as_array')
         assign_args = s(:block,
                         s(:declare, args_name, s(:nat_block_args_to_array, :env, args.size, s(:l, 'argc'), s(:l, 'args'))),
-                        *prepare_args_full(args, args_name))
+                        *prepare_args(args, args_name))
         exp.new(:block,
           s(:block_fn, block_fn,
             s(:block,
@@ -339,17 +339,13 @@ module Natalie
         (_, names, val) = exp
         names = names[1..-1]
         val = val.last if val.sexp_type == :to_ary
-        if args_use_simple_mode?(names)
-          s(:assign, process(val), *prepare_masgn_simple(names))
-        else
-          value_name = temp('masgn_value')
-          s(:block,
-            s(:declare, value_name, s(:nat_to_ary, :env, process(val))),
-            *prepare_masgn_full(exp, value_name))
-        end
+        value_name = temp('masgn_value')
+        s(:block,
+          s(:declare, value_name, s(:nat_to_ary, :env, process(val))),
+          *prepare_masgn(exp, value_name))
       end
 
-      def prepare_masgn_full(exp, value_name)
+      def prepare_masgn(exp, value_name)
         prepare_masgn_paths(exp).map do |name, path_details|
           path = path_details[:path]
           if name.is_a?(Sexp)
@@ -367,7 +363,7 @@ module Natalie
         end
       end
 
-      def prepare_args_full(names, value_name)
+      def prepare_args(names, value_name)
         names = prepare_arg_names(names)
         args_have_default = names.map { |e| %i[iasgn lasgn].include?(e.sexp_type) && e.size == 3 }
         defaults = args_have_default.select { |d| d }
@@ -458,50 +454,6 @@ module Natalie
             hash[e] = { path: prefix + [index] }
           end
         end
-      end
-
-      def prepare_masgn_simple(names)
-        args = names.each_with_index.map do |name, index|
-          case name
-          when Symbol
-            if name.to_s.start_with?('*')
-              if name.size == 1
-                s(:block) # noop
-              else
-                s(:nat_var_set, :env, s(:s, name.to_s[1..-1]), s(:assign_val, index, :rest))
-              end
-            else
-              s(:nat_var_set, :env, s(:s, name), s(:assign_val, index, :single))
-            end
-          when Sexp
-            case name.sexp_type
-            when :shadow
-              puts "warning: unhandled arg type: #{name.inspect}"
-            when :cdecl
-              (_, name, default) = name
-              s(:nat_const_set, :env, :self, s(:s, name), s(:assign_val, index, :single, process(default)))
-            when :gasgn
-              (_, name, default) = name
-              s(:nat_global_set, :env, s(:s, name), s(:assign_val, index, :single, process(default)))
-            when :iasgn
-              (_, name, default) = name
-              s(:nat_ivar_set, :env, :self, s(:s, name), s(:assign_val, index, :single, process(default)))
-            when :lasgn
-              (_, name, default) = name
-              s(:nat_var_set, :env, s(:s, name), s(:assign_val, index, :single, process(default)))
-            when :splat
-              (_, (_, name)) = name
-              s(:nat_var_set, :env, s(:s, name), s(:assign_val, index, :rest, process(default)))
-            else
-              raise "unknown arg type: #{name.inspect}"
-            end
-          when nil
-            nil
-          else
-            raise "unknown arg type: #{name.inspect}"
-          end
-        end
-        args
       end
 
       def process_match2(exp)
@@ -657,33 +609,6 @@ module Natalie
       def temp(name)
         n = @compiler_context[:var_num] += 1
         "#{@compiler_context[:var_prefix]}#{name}#{n}"
-      end
-
-      def args_use_simple_mode?(names)
-        by_type = names.map do |name|
-          case name
-          when Symbol
-            if name.to_s.start_with?('*')
-              '*'
-            elsif name.to_s.start_with?('&')
-              '' # block arg is always last and can be ignored
-            else
-              'R'
-            end
-          when Sexp
-            case name.sexp_type
-            when :cdecl, :gasgn, :iasgn, :lasgn, :nat_var_set
-              'D'
-            when :splat
-              '*'
-            else
-              return false
-            end
-          end
-        end.join
-        return false if by_type =~ /\*./ # rest must be last
-        return false if by_type =~ /DR/  # defaulted must come after required
-        true
       end
 
       def raises_local_jump_error?(exp, my_context: [])
