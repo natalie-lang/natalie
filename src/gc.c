@@ -136,6 +136,12 @@ NatObject *nat_gc_mark_live_objects(NatEnv *env) {
                 nat_gc_push_object(env, objects, o);
             }
         }
+        if (obj->cvars.table) {
+            for (iter = hashmap_iter(&obj->cvars); iter; iter = hashmap_iter_next(&obj->cvars, iter)) {
+                NatObject *o = (NatObject *)hashmap_iter_get_data(iter);
+                nat_gc_push_object(env, objects, o);
+            }
+        }
 
         if (NAT_OBJ_HAS_ENV(obj)) {
             nat_gc_gather_from_env(objects, &obj->env);
