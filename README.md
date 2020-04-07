@@ -23,11 +23,10 @@ This is **not** comprehensive, but here is a rough to do list, as I think of
 things that are missing ;-) (not in any specific order):
 
 - encoding support for string and regex (just UTF-8 would be great!)
-- Keyword arguments and a bunch of other method argument handling
+- Keyword arguments
 - method visibility
 - Float
 - Bignum support
-- A garbage collector
 - Date and Time
 - Lots and lots of convenience methods on built-in objects
 - The entire Ruby standard library (Hopefully we can pull most of it in from
