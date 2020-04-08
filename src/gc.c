@@ -84,6 +84,14 @@ NatObject *nat_gc_gather_roots(NatEnv *env) {
     for (void *p = global_env->bottom_of_stack; p >= top_of_stack; p--) {
         NatObject *ptr = *((NatObject **)p);
         if (NAT_IS_HEAP_OBJECT(env, ptr)) {
+            if (!NAT_IS_HEAP_OBJECT(env, ptr->klass)) {
+                // FIXME: This is a false positive.
+                // I believe this happens because our NAT_MAGIC_TAG number is on the stack in various places...
+                // Anytime we check the type of an object in the normal course of things, the 64-bit number
+                // is mistaken for a NatObject. Of course, this could also happen if the user happens to write
+                // a program using our magic number.
+                continue;
+            }
             nat_gc_push_object(env, roots, ptr);
         }
     }
