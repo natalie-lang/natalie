@@ -278,15 +278,15 @@ def run_specs
       puts message
     end
     puts
-    puts (@tested - @failures.size - @skipped.size).to_s + ' spec(s) passed.'
-    puts @failures.size.to_s + ' spec(s) failed.'
-    puts @errors.size.to_s + ' spec(s) errored.'
-    puts @skipped.size.to_s + ' spec(s) skipped.' if @skipped.any?
+    puts "#{@tested - @failures.size} spec(s) passed."
+    puts "#{@failures.size} spec(s) failed."
+    puts "#{@errors.size} spec(s) errored."
+    puts "#{@skipped.size} spec(s) skipped." if @skipped.any?
     exit 1
   else
     puts
     puts
-    puts (@tested - @skipped.size).to_s + ' spec(s) passed.'
+    puts "#{@tested} spec(s) passed."
     puts @skipped.size.to_s + ' spec(s) skipped.' if @skipped.any?
   end
 end
