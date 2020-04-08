@@ -206,7 +206,8 @@ NatObject *IO_seek(NatEnv *env, NatObject *self, size_t argc, NatObject **args, 
     nat_define_method(env, module, "lambda", Kernel_lambda);                               \
     nat_define_method(env, module, "__method__", Kernel_method);                           \
     nat_define_method(env, module, "freeze", Kernel_freeze);                               \
-    nat_define_method(env, module, "nil?", Kernel_is_nil);
+    nat_define_method(env, module, "nil?", Kernel_is_nil);                                 \
+    nat_define_method(env, module, "sleep", Kernel_sleep);
 
 NatObject *Kernel_puts(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Kernel_print(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
@@ -231,6 +232,7 @@ NatObject *Kernel_lambda(NatEnv *env, NatObject *self, size_t argc, NatObject **
 NatObject *Kernel_method(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Kernel_freeze(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Kernel_is_nil(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+NatObject *Kernel_sleep(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 
 NatObject *main_obj_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 

@@ -242,3 +242,18 @@ NatObject *Kernel_is_nil(NatEnv *env, NatObject *self, size_t argc, NatObject **
     NAT_ASSERT_ARGC(0);
     return NAT_FALSE;
 }
+
+NatObject *Kernel_sleep(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC_AT_MOST(1);
+    if (argc == 0) {
+        while (true) {
+            sleep(1000);
+        }
+        abort(); // not reached
+    } else {
+        NatObject *length = args[0];
+        NAT_ASSERT_TYPE(length, NAT_VALUE_INTEGER, "Integer"); // TODO: float supported also
+        sleep(NAT_INT_VALUE(length));
+        return length;
+    }
+}
