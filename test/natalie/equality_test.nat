@@ -44,7 +44,6 @@ describe 'equality' do
     r = [] === []
     r.should == true
     r = Object === Object.new
-    p r
     r.should == true
     r = Object === 1
     r.should == true
