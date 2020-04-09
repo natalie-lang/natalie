@@ -213,6 +213,12 @@ class Object
   def raise_error(klass, message = nil)
     RaiseErrorExpectation.new(klass, message)
   end
+
+  def should_not_receive(method)
+    define_singleton_method(method) do
+      raise SpecFailedException, "#{method} should not have been called on #{inspect}"
+    end
+  end
 end
 
 def run_specs
