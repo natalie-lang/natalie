@@ -1311,21 +1311,25 @@ void nat_quicksort(NatEnv *env, NatObject *ary[], int start, int end) {
     }
 }
 
-NatObject *nat_to_ary(NatEnv *env, NatObject *obj) {
-    NatObject *orig_obj = obj;
+NatObject *nat_to_ary(NatEnv *env, NatObject *obj, bool raise_for_non_array) {
     if (NAT_TYPE(obj) == NAT_VALUE_ARRAY) {
         return obj;
-    } else {
-        if (nat_respond_to(env, obj, "to_ary")) {
-            obj = nat_send(env, obj, "to_ary", 0, NULL, NULL);
-        }
-        if (NAT_TYPE(obj) == NAT_VALUE_ARRAY) {
-            return obj;
-        } else {
-            NatObject *ary = nat_array(env);
-            nat_array_push(env, ary, orig_obj);
+    } else if (nat_respond_to(env, obj, "to_ary")) {
+        NatObject *ary = nat_send(env, obj, "to_ary", 0, NULL, NULL);
+        if (NAT_TYPE(ary) == NAT_VALUE_ARRAY) {
             return ary;
+        } else if (NAT_TYPE(ary) == NAT_VALUE_NIL || !raise_for_non_array) {
+            ary = nat_array(env);
+            nat_array_push(env, ary, obj);
+            return ary;
+        } else {
+            char *class_name = NAT_OBJ_CLASS(obj)->class_name;
+            NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "TypeError"), "can't convert %s to Array (%s#to_ary gives %s)", class_name, class_name, NAT_OBJ_CLASS(ary)->class_name);
         }
+    } else {
+        NatObject *ary = nat_array(env);
+        nat_array_push(env, ary, obj);
+        return ary;
     }
 }
 
@@ -1464,7 +1468,7 @@ NatObject *nat_args_to_array(NatEnv *env, size_t argc, NatObject **args) {
 // and the block wants multiple args, call nat_to_ary on the first arg and return that
 NatObject *nat_block_args_to_array(NatEnv *env, size_t signature_size, size_t argc, NatObject **args) {
     if (argc == 1 && signature_size > 1) {
-        return nat_to_ary(env, args[0]);
+        return nat_to_ary(env, args[0], true);
     }
     return nat_args_to_array(env, argc, args);
 }

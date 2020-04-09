@@ -112,7 +112,7 @@ module Natalie
         (_, val, *args) = exp
         val = process(val)
         array_val = temp('array_val')
-        decl "NatObject *#{array_val} = nat_to_ary(env, #{val});"
+        decl "NatObject *#{array_val} = nat_to_ary(env, #{val}, false);"
         args.compact.each do |arg|
           arg = arg.dup
           arg_value = process_assign_val(arg.pop, "#{array_val}->ary_len", "#{array_val}->ary")
@@ -126,7 +126,7 @@ module Natalie
         if args.size > 1
           array_arg = temp('array_arg')
           decl 'if (argc == 1) {'
-          decl "  NatObject *#{array_arg} = nat_to_ary(env, args[0]);"
+          decl "  NatObject *#{array_arg} = nat_to_ary(env, args[0], true);"
           args.compact.each do |arg|
             arg = arg.dup
             arg_value = process_assign_val(arg.pop, "#{array_arg}->ary_len", "#{array_arg}->ary")

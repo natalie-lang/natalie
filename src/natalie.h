@@ -495,7 +495,7 @@ NatObject *nat_convert_to_real_object(NatEnv *env, NatObject *obj);
 int nat_quicksort_partition(NatEnv *env, NatObject *ary[], int start, int end);
 void nat_quicksort(NatEnv *env, NatObject *ary[], int start, int end);
 
-NatObject *nat_to_ary(NatEnv *env, NatObject *obj);
+NatObject *nat_to_ary(NatEnv *env, NatObject *obj, bool raise_for_non_array);
 
 NatObject *nat_arg_value_by_path(NatEnv *env, NatObject *value, NatObject *default_value, bool splat, int total_count, int default_count, bool defaults_on_right, int offset_from_end, size_t path_size, ...);
 NatObject *nat_array_value_by_path(NatEnv *env, NatObject *value, NatObject *default_value, bool splat, int offset_from_end, size_t path_size, ...);

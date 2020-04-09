@@ -341,7 +341,7 @@ module Natalie
         val = val.last if val.sexp_type == :to_ary
         value_name = temp('masgn_value')
         s(:block,
-          s(:declare, value_name, s(:nat_to_ary, :env, process(val))),
+          s(:declare, value_name, s(:nat_to_ary, :env, process(val), s(:l, :false))),
           *prepare_masgn(exp, value_name))
       end
 
