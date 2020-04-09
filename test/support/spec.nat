@@ -3,6 +3,8 @@ class SpecFailedException < StandardError; end
 @context = []
 @specs = []
 
+$expectations = []
+
 class Context
   def initialize(description)
     @description = description
@@ -189,6 +191,29 @@ class RaiseErrorExpectation
   end
 end
 
+class ShouldReceiveExpectation
+  def initialize(subject, message)
+    @subject = subject
+    @message = message
+    @pass = false
+    $expectations << self
+  end
+
+  def and_return(result)
+    should_receive_expectation_passed = -> { @pass = true }
+    @subject.define_singleton_method(@message) do
+      should_receive_expectation_passed.()
+      result
+    end
+  end
+
+  def validate!
+    unless @pass
+      raise SpecFailedException, "#{@subject.inspect} should have received #{@message}"
+    end
+  end
+end
+
 class Object
   def should(*args)
     Matcher.new(self, false, args)
@@ -214,9 +239,21 @@ class Object
     RaiseErrorExpectation.new(klass, message)
   end
 
-  def should_not_receive(method)
-    define_singleton_method(method) do
-      raise SpecFailedException, "#{method} should not have been called on #{inspect}"
+  def should_receive(message)
+    ShouldReceiveExpectation.new(self, message)
+  end
+
+  def should_not_receive(message)
+    define_singleton_method(message) do
+      raise SpecFailedException, "#{message} should not have been sent to #{inspect}"
+    end
+  end
+end
+
+def mock(name)
+  Object.new.tap do |obj|
+    obj.define_singleton_method(:inspect) do
+      "<mock: #{name}>"
     end
   end
 end
@@ -250,6 +287,9 @@ def run_specs
       end
       begin
         fn.call
+        $expectations.each do |expectation|
+          expectation.validate!
+        end
       rescue SpecFailedException => e
         print 'F'
         @failures << [context, test, e.message]
@@ -257,6 +297,7 @@ def run_specs
         print 'E'
         @errors << [context, test, e.message]
       else
+        $expectations = []
         print '.'
       end
     else
