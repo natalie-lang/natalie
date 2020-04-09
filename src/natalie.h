@@ -405,6 +405,7 @@ char *int_to_hex_string(NatEnv *env, int64_t num);
 void nat_define_method(NatEnv *env, NatObject *obj, char *name, NatObject *(*fn)(NatEnv *, NatObject *, size_t, NatObject **, struct hashmap *, NatBlock *block));
 void nat_define_method_with_block(NatEnv *env, NatObject *obj, char *name, NatBlock *block);
 void nat_define_singleton_method(NatEnv *env, NatObject *obj, char *name, NatObject *(*fn)(NatEnv *, NatObject *, size_t, NatObject **, struct hashmap *, NatBlock *block));
+void nat_define_singleton_method_with_block(NatEnv *env, NatObject *obj, char *name, NatBlock *block);
 void nat_undefine_method(NatEnv *env, NatObject *obj, char *name);
 void nat_undefine_singleton_method(NatEnv *env, NatObject *obj, char *name);
 

@@ -728,11 +728,24 @@ char *int_to_hex_string(NatEnv *env, int64_t num) {
     }
 }
 
-void nat_define_method(NatEnv *env, NatObject *obj, char *name, NatObject *(*fn)(NatEnv *, NatObject *, size_t, NatObject **, struct hashmap *, NatBlock *block)) {
+static NatMethod *nat_method_from_fn(NatObject *(*fn)(NatEnv *, NatObject *, size_t, NatObject **, struct hashmap *, NatBlock *block)) {
     NatMethod *method = malloc(sizeof(NatMethod));
     method->fn = fn;
     method->env.global_env = NULL;
     method->undefined = fn ? false : true;
+    return method;
+}
+
+static NatMethod *nat_method_from_block(NatBlock *block) {
+    NatMethod *method = malloc(sizeof(NatMethod));
+    method->fn = block->fn;
+    method->env = block->env;
+    method->undefined = false;
+    return method;
+}
+
+void nat_define_method(NatEnv *env, NatObject *obj, char *name, NatObject *(*fn)(NatEnv *, NatObject *, size_t, NatObject **, struct hashmap *, NatBlock *block)) {
+    NatMethod *method = nat_method_from_fn(fn);
     if (nat_is_main_object(obj)) {
         free(hashmap_remove(&obj->klass->methods, name));
         hashmap_put(&obj->klass->methods, name, method);
@@ -743,10 +756,7 @@ void nat_define_method(NatEnv *env, NatObject *obj, char *name, NatObject *(*fn)
 }
 
 void nat_define_method_with_block(NatEnv *env, NatObject *obj, char *name, NatBlock *block) {
-    NatMethod *method = malloc(sizeof(NatMethod));
-    method->fn = block->fn;
-    method->env = block->env;
-    method->undefined = false;
+    NatMethod *method = nat_method_from_block(block);
     if (nat_is_main_object(obj)) {
         free(hashmap_remove(&obj->klass->methods, name));
         hashmap_put(&obj->klass->methods, name, method);
@@ -757,10 +767,14 @@ void nat_define_method_with_block(NatEnv *env, NatObject *obj, char *name, NatBl
 }
 
 void nat_define_singleton_method(NatEnv *env, NatObject *obj, char *name, NatObject *(*fn)(NatEnv *, NatObject *, size_t, NatObject **, struct hashmap *, NatBlock *block)) {
-    NatMethod *method = malloc(sizeof(NatMethod));
-    method->fn = fn;
-    method->env.global_env = NULL;
-    method->undefined = fn ? false : true;
+    NatMethod *method = nat_method_from_fn(fn);
+    NatObject *klass = nat_singleton_class(env, obj);
+    free(hashmap_remove(&klass->methods, name));
+    hashmap_put(&klass->methods, name, method);
+}
+
+void nat_define_singleton_method_with_block(NatEnv *env, NatObject *obj, char *name, NatBlock *block) {
+    NatMethod *method = nat_method_from_block(block);
     NatObject *klass = nat_singleton_class(env, obj);
     free(hashmap_remove(&klass->methods, name));
     hashmap_put(&klass->methods, name, method);

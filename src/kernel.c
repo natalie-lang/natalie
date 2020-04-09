@@ -257,3 +257,21 @@ NatObject *Kernel_sleep(NatEnv *env, NatObject *self, size_t argc, NatObject **a
         return length;
     }
 }
+
+NatObject *Kernel_define_singleton_method(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(1);
+    NAT_ASSERT_BLOCK();
+    NatObject *name_obj = args[0];
+    if (NAT_TYPE(name_obj) == NAT_VALUE_SYMBOL) {
+        // we're good!
+    } else if (NAT_TYPE(name_obj) == NAT_VALUE_STRING) {
+        name_obj = nat_symbol(env, name_obj->str);
+    } else {
+        NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "TypeError"), "%s is not a symbol nor a string", nat_send(env, name_obj, "inspect", 0, NULL, NULL));
+    }
+    NatEnv block_env;
+    nat_build_detached_block_env(&block_env, env);
+    NatBlock *method_block = block;
+    nat_define_singleton_method_with_block(env, self, name_obj->symbol, method_block);
+    return name_obj;
+}
