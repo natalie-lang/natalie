@@ -275,3 +275,8 @@ NatObject *Kernel_define_singleton_method(NatEnv *env, NatObject *self, size_t a
     nat_define_singleton_method_with_block(env, self, name_obj->symbol, method_block);
     return name_obj;
 }
+
+NatObject *Kernel_tap(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &self, NULL, NULL);
+    return self;
+}

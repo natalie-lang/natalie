@@ -181,34 +181,35 @@ NatObject *IO_print(NatEnv *env, NatObject *self, size_t argc, NatObject **args,
 NatObject *IO_close(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *IO_seek(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 
-#define NAT_KERNEL_INIT(module)                                                            \
-    nat_define_method(env, module, "puts", Kernel_puts);                                   \
-    nat_define_method(env, module, "print", Kernel_print);                                 \
-    nat_define_method(env, module, "p", Kernel_p);                                         \
-    nat_define_method(env, module, "inspect", Kernel_inspect);                             \
-    nat_define_method(env, module, "object_id", Kernel_object_id);                         \
-    nat_define_method(env, module, "===", Kernel_equal);                                   \
-    nat_define_method(env, module, "eql?", Kernel_equal);                                  \
-    nat_define_method(env, module, "class", Kernel_class);                                 \
-    nat_define_method(env, module, "singleton_class", Kernel_singleton_class);             \
-    nat_define_method(env, module, "instance_variable_get", Kernel_instance_variable_get); \
-    nat_define_method(env, module, "instance_variable_set", Kernel_instance_variable_set); \
-    nat_define_method(env, module, "raise", Kernel_raise);                                 \
-    nat_define_method(env, module, "exit", Kernel_exit);                                   \
-    nat_define_method(env, module, "at_exit", Kernel_at_exit);                             \
-    nat_define_method(env, module, "respond_to?", Kernel_respond_to);                      \
-    nat_define_method(env, module, "dup", Kernel_dup);                                     \
-    nat_define_method(env, module, "methods", Kernel_methods);                             \
-    nat_define_method(env, module, "public_methods", Kernel_methods);                      \
-    nat_define_method(env, module, "is_a?", Kernel_is_a);                                  \
-    nat_define_method(env, module, "hash", Kernel_hash);                                   \
-    nat_define_method(env, module, "proc", Kernel_proc);                                   \
-    nat_define_method(env, module, "lambda", Kernel_lambda);                               \
-    nat_define_method(env, module, "__method__", Kernel_method);                           \
-    nat_define_method(env, module, "freeze", Kernel_freeze);                               \
-    nat_define_method(env, module, "nil?", Kernel_is_nil);                                 \
-    nat_define_method(env, module, "sleep", Kernel_sleep);                                 \
-    nat_define_method(env, module, "define_singleton_method", Kernel_define_singleton_method);
+#define NAT_KERNEL_INIT(module)                                                                \
+    nat_define_method(env, module, "puts", Kernel_puts);                                       \
+    nat_define_method(env, module, "print", Kernel_print);                                     \
+    nat_define_method(env, module, "p", Kernel_p);                                             \
+    nat_define_method(env, module, "inspect", Kernel_inspect);                                 \
+    nat_define_method(env, module, "object_id", Kernel_object_id);                             \
+    nat_define_method(env, module, "===", Kernel_equal);                                       \
+    nat_define_method(env, module, "eql?", Kernel_equal);                                      \
+    nat_define_method(env, module, "class", Kernel_class);                                     \
+    nat_define_method(env, module, "singleton_class", Kernel_singleton_class);                 \
+    nat_define_method(env, module, "instance_variable_get", Kernel_instance_variable_get);     \
+    nat_define_method(env, module, "instance_variable_set", Kernel_instance_variable_set);     \
+    nat_define_method(env, module, "raise", Kernel_raise);                                     \
+    nat_define_method(env, module, "exit", Kernel_exit);                                       \
+    nat_define_method(env, module, "at_exit", Kernel_at_exit);                                 \
+    nat_define_method(env, module, "respond_to?", Kernel_respond_to);                          \
+    nat_define_method(env, module, "dup", Kernel_dup);                                         \
+    nat_define_method(env, module, "methods", Kernel_methods);                                 \
+    nat_define_method(env, module, "public_methods", Kernel_methods);                          \
+    nat_define_method(env, module, "is_a?", Kernel_is_a);                                      \
+    nat_define_method(env, module, "hash", Kernel_hash);                                       \
+    nat_define_method(env, module, "proc", Kernel_proc);                                       \
+    nat_define_method(env, module, "lambda", Kernel_lambda);                                   \
+    nat_define_method(env, module, "__method__", Kernel_method);                               \
+    nat_define_method(env, module, "freeze", Kernel_freeze);                                   \
+    nat_define_method(env, module, "nil?", Kernel_is_nil);                                     \
+    nat_define_method(env, module, "sleep", Kernel_sleep);                                     \
+    nat_define_method(env, module, "define_singleton_method", Kernel_define_singleton_method); \
+    nat_define_method(env, module, "tap", Kernel_tap);
 
 NatObject *Kernel_puts(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Kernel_print(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
@@ -235,6 +236,7 @@ NatObject *Kernel_freeze(NatEnv *env, NatObject *self, size_t argc, NatObject **
 NatObject *Kernel_is_nil(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Kernel_sleep(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Kernel_define_singleton_method(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+NatObject *Kernel_tap(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 
 NatObject *main_obj_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 
