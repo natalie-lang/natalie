@@ -36,6 +36,7 @@ def focused_tests
 end
 
 watch('^test/.*_test\.nat') { |m| run_tests(m.to_s) }
+watch('^spec/.*\.nat'     ) { |m| run_tests(m.to_s) }
 watch('^test/.*_test\.rb' ) { |m| run_tests }
 watch('^src/(.*)\.c'      ) { |m| run_tests }
 watch('^lib/(.*)\.rb'     ) { |m| run_tests }

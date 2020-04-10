@@ -1382,7 +1382,13 @@ NatObject *nat_arg_value_by_path(NatEnv *env, NatObject *value, NatObject *defau
 
                 if (index < 0) {
                     // negative offset index should go from the right
-                    index = ary_len + index;
+                    if (ary_len >= total_count) {
+                        index = ary_len + index;
+                    } else {
+                        // not enough values to fill from the right
+                        // also, assume there is a splat prior to this index
+                        index = total_count - 1 + index;
+                    }
                 }
 
                 if (index < 0) {

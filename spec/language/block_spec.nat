@@ -32,12 +32,12 @@ describe "A block yielded a single" do
       m([1, 2, 3]) { |a, b| [a, b] }.should == [1, 2]
     end
 
-    xit "assigns nil to unassigned required arguments" do
-      #m([1, 2]) { |a, *b, c, d| [a, b, c, d] }.should == [1, [], 2, nil]
+    it "assigns nil to unassigned required arguments" do
+      m([1, 2]) { |a, *b, c, d| [a, b, c, d] }.should == [1, [], 2, nil]
     end
 
     it "assigns elements to optional arguments" do
-      #m([1, 2]) { |a=5, b=4, c=3| [a, b, c] }.should == [1, 2, 3]
+      m([1, 2]) { |a=5, b=4, c=3| [a, b, c] }.should == [1, 2, 3]
     end
 
     it "assigns elements to post arguments" do
