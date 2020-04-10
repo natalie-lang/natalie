@@ -10,7 +10,7 @@ describe 'ENV' do
 
   describe '[]' do
     it 'returns an environment variable by name' do
-      ENV['USER'].should_not be_nil
+      ENV['PATH'].should_not be_nil
     end
 
     it 'returns nil when the environment variable does not exist' do
