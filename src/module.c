@@ -10,7 +10,11 @@ NatObject *Module_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject *
     assert(NAT_TYPE(self) == NAT_VALUE_MODULE || NAT_TYPE(self) == NAT_VALUE_CLASS);
     NAT_ASSERT_ARGC(0);
     if (self->class_name) {
-        return nat_string(env, self->class_name);
+        if (self->owner && self->owner != NAT_OBJECT) {
+            return nat_sprintf(env, "%S::%s", Module_inspect(env, self->owner, 0, NULL, NULL, NULL), self->class_name);
+        } else {
+            return nat_string(env, self->class_name);
+        }
     } else if (NAT_TYPE(self) == NAT_VALUE_CLASS) {
         return nat_sprintf(env, "#<Class:%s>", nat_object_pointer_id(env, self));
     } else {

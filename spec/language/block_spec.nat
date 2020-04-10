@@ -210,12 +210,12 @@ describe "A block" do
     @y = BlockSpecs::Yielder.new
   end
 
-  xit "captures locals from the surrounding scope" do
+  it "captures locals from the surrounding scope" do
     var = 1
     @y.z { var }.should == 1
   end
 
-  xit "allows for a leading space before the arguments" do
+  it "allows for a leading space before the arguments" do
     res = @y.s (:a){ 1 }
     res.should == 1
   end

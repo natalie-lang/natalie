@@ -19,6 +19,7 @@
 
 #define NAT_IS_TAGGED_INT(obj) ((int64_t)obj & 1)
 #define NAT_TYPE(obj) (NAT_IS_TAGGED_INT(obj) ? NAT_VALUE_INTEGER : obj->type)
+#define NAT_IS_MODULE_OR_CLASS(obj) (NAT_TYPE(obj) == NAT_VALUE_MODULE || NAT_TYPE(obj) == NAT_VALUE_CLASS)
 #define NAT_OBJ_CLASS(obj) (NAT_IS_TAGGED_INT(obj) ? NAT_INTEGER : obj->klass)
 #define NAT_RESCUE(env) ((env->rescue = 1) && setjmp(env->jump_buf))
 
@@ -259,6 +260,7 @@ struct NatObject {
     enum NatValueType type;
     NatObject *klass;
     NatObject *singleton_class;
+    NatObject *owner; // for contants, either a module or a class
     int flags;
 
     NatEnv env;

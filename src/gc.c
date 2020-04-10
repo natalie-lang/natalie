@@ -130,6 +130,7 @@ NatObject *nat_gc_mark_live_objects(NatEnv *env) {
         obj->marked = true;
 
         nat_gc_push_object(env, objects, obj->klass);
+        nat_gc_push_object(env, objects, obj->owner);
         if (obj->singleton_class) nat_gc_push_object(env, objects, obj->singleton_class);
         struct hashmap_iter *iter;
         if (obj->constants.table) {

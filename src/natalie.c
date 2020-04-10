@@ -12,8 +12,8 @@ bool nat_is_global_name(char *name) {
     return strlen(name) > 0 && name[0] == '$';
 }
 
-NatObject *nat_const_get(NatEnv *env, NatObject *klass, char *name) {
-    NatObject *val = nat_const_get_or_null(env, klass, name);
+NatObject *nat_const_get(NatEnv *env, NatObject *parent, char *name) {
+    NatObject *val = nat_const_get_or_null(env, parent, name);
     if (val) {
         return val;
     } else {
@@ -21,28 +21,37 @@ NatObject *nat_const_get(NatEnv *env, NatObject *klass, char *name) {
     }
 }
 
-NatObject *nat_const_get_or_null(NatEnv *env, NatObject *klass, char *name) {
-    if (NAT_TYPE(klass) != NAT_VALUE_CLASS) {
-        klass = NAT_OBJ_CLASS(klass);
+NatObject *nat_const_get_or_null(NatEnv *env, NatObject *parent, char *name) {
+    if (!NAT_IS_MODULE_OR_CLASS(parent)) {
+        parent = NAT_OBJ_CLASS(parent);
+        assert(parent);
     }
+    NatObject *search_parent = parent;
+    //printf("klass->class_name = %s\n", klass->class_name);
     NatObject *val;
-    while (!(val = hashmap_get(&klass->constants, name)) && klass->superclass) {
-        klass = klass->superclass;
+    while (!(val = hashmap_get(&search_parent->constants, name)) && search_parent->superclass) {
+        search_parent = search_parent->superclass;
     }
     if (val) {
         return val;
+    } else if (parent->owner && parent->owner != parent) {
+        return nat_const_get_or_null(env, parent->owner, name);
     } else {
+        //printf("could not find %s\n", name);
         return NULL;
     }
 }
 
-NatObject *nat_const_set(NatEnv *env, NatObject *klass, char *name, NatObject *val) {
-    // FIXME: can set constants on modules, yeah?
-    if (NAT_TYPE(klass) != NAT_VALUE_CLASS) {
-        klass = klass->klass;
+NatObject *nat_const_set(NatEnv *env, NatObject *parent, char *name, NatObject *val) {
+    if (!NAT_IS_MODULE_OR_CLASS(parent)) {
+        parent = parent->klass;
+        assert(parent);
     }
-    hashmap_remove(&klass->constants, name);
-    hashmap_put(&klass->constants, name, val);
+    hashmap_remove(&parent->constants, name);
+    hashmap_put(&parent->constants, name, val);
+    if (NAT_IS_MODULE_OR_CLASS(val) && !val->owner) {
+        val->owner = parent;
+    }
     return val;
 }
 
