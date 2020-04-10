@@ -373,11 +373,11 @@ module Natalie
           if name.is_a?(Sexp)
             if name.sexp_type == :splat
               value = s(:nat_arg_value_by_path, :env, value_name, s(:nil), s(:l, :true), names.size, defaults.size, defaults_on_right ? s(:l, :true) : s(:l, :false), path_details[:offset_from_end], path.size, *path)
-              prepare_masgn_set(name.last, value)
+              prepare_masgn_set(name.last, value, arg: true)
             else
               default_value = name.size == 3 ? process(name.pop) : s(:nil)
               value = s(:nat_arg_value_by_path, :env, value_name, default_value, s(:l, :false), names.size, defaults.size, defaults_on_right ? s(:l, :true) : s(:l, :false), 0, path.size, *path)
-              prepare_masgn_set(name, value)
+              prepare_masgn_set(name, value, arg: true)
             end
           else
             raise "unknown masgn type: #{name.inspect}"
@@ -418,7 +418,7 @@ module Natalie
         end
       end
 
-      def prepare_masgn_set(exp, value)
+      def prepare_masgn_set(exp, value, arg: false)
         case exp.sexp_type
         when :cdecl
           s(:nat_const_set, :env, :self, s(:s, exp.last), value)
@@ -427,7 +427,11 @@ module Natalie
         when :iasgn
           s(:nat_ivar_set, :env, :self, s(:s, exp.last), value)
         when :lasgn
-          s(:nat_var_set, :env, s(:s, exp.last), value)
+          if arg
+            s(:nat_arg_set, :env, s(:s, exp.last), value)
+          else
+            s(:nat_var_set, :env, s(:s, exp.last), value)
+          end
         else
           raise "unknown masgn type: #{exp.inspect}"
         end

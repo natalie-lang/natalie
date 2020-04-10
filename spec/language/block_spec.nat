@@ -225,7 +225,7 @@ describe "A block" do
     o.z { 1 }.should == 1
   end
 
-  xit "does not capture a local when an argument has the same name" do
+  it "does not capture a local when an argument has the same name" do
     var = 1
     @y.s(2) { |var| var }.should == 2
     var.should == 1

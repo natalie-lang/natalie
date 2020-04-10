@@ -51,6 +51,16 @@ module Natalie
         end
       end
 
+      def process_nat_arg_set(exp)
+        (_, _, name, value) = exp
+        raise "bad name: #{name.inspect}" unless name.is_a?(Sexp) && name.sexp_type == :s
+        name = name.last.to_s
+        bare_name = name.sub(/^[\*\&]/, '')
+        (env_name, var) = declare_var(bare_name)
+        value = value ? process_arg(value) : s(:nil)
+        exp.new(:nat_var_set, env_name, var, repl?, value)
+      end
+
       # when using a REPL, variables are mistaken for method calls
       def process_nat_send(exp)
         return process_sexp(exp) unless repl?
@@ -95,11 +105,8 @@ module Natalie
         name = name.last.to_s
         bare_name = name.sub(/^[\*\&]/, '')
         (env_name, var) = find_var(bare_name) || declare_var(bare_name)
-        if value
-          exp.new(:nat_var_set, env_name, var, repl?, process_arg(value))
-        else
-          exp.new(:nat_var_set, env_name, var, repl?, s(:nil))
-        end
+        value = value ? process_arg(value) : s(:nil)
+        exp.new(:nat_var_set, env_name, var, repl?, value)
       end
 
       def process_sexp(exp)
