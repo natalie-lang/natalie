@@ -282,6 +282,7 @@ module Natalie
 
       def process_iter(exp)
         (_, call, (_, *args), *body) = exp
+        args = fix_unnecessary_nesting(args)
         if args.last&.to_s&.start_with?('&')
           block_arg = exp.new(:nat_arg_set, :env, s(:s, args.pop.to_s[1..-1]), s(:nat_proc, :env, 'block'))
         end
@@ -302,6 +303,15 @@ module Natalie
               process(s(:block, *body)))),
           s(:declare_block, block, s(:nat_block, :env, :self, block_fn)),
           call)
+      end
+
+      # |(a, b)| should be treated as |a, b|
+      def fix_unnecessary_nesting(args)
+        if args.size == 1 && args.first.is_a?(Sexp) && args.first.sexp_type == :masgn
+          args.first[1..-1]
+        else
+          args
+        end
       end
 
       def process_ivar(exp)

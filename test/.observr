@@ -6,7 +6,12 @@ def sh(cmd)
   Process.wait(pid)
 end
 
+def clear
+  puts "\e[H\e[2J"
+end
+
 def run_tests(test = nil)
+  clear
   test = @last_test if @last_test && test.nil?
   if (ft = focused_tests).any?
     puts "Running focused test(s)..."
@@ -14,7 +19,6 @@ def run_tests(test = nil)
   end
   if test && File.exist?(test)
     @last_test = test
-    puts "-" * 80
     cmd = "ruby -r ./test/support/ruby_require_patch.rb #{test}"
     puts cmd
     sh cmd
@@ -28,6 +32,7 @@ def run_tests(test = nil)
 end
 
 def run_suite
+  clear
   sh "make test"
 end
 
