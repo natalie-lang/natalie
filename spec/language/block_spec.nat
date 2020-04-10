@@ -231,7 +231,7 @@ describe "A block" do
     var.should == 1
   end
 
-  xit "does not capture a local when the block argument has the same name" do
+  it "does not capture a local when the block argument has the same name" do
     var = 1
     proc { |&var|
       var.call(2)

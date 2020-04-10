@@ -282,6 +282,9 @@ module Natalie
 
       def process_iter(exp)
         (_, call, (_, *args), *body) = exp
+        if args.last&.to_s&.start_with?('&')
+          block_arg = exp.new(:nat_arg_set, :env, s(:s, args.pop.to_s[1..-1]), s(:nat_proc, :env, 'block'))
+        end
         block_fn = temp('block_fn')
         block = block_fn.sub(/_fn/, '')
         call = process(call)
@@ -295,6 +298,7 @@ module Natalie
             s(:block,
               s(:nat_env_set_method_name, '<block>'),
               assign_args,
+              block_arg || s(:block),
               process(s(:block, *body)))),
           s(:declare_block, block, s(:nat_block, :env, :self, block_fn)),
           call)
