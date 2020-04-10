@@ -1183,7 +1183,7 @@ NatObject *nat_dup(NatEnv *env, NatObject *obj) {
     case NAT_VALUE_TRUE:
         return obj;
     default:
-        fprintf(stderr, "I don't know how to dup this kind of object yet %zu.\n", obj->type);
+        fprintf(stderr, "I don't know how to dup this kind of object yet %d.\n", obj->type);
         abort();
     }
 }

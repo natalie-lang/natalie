@@ -143,6 +143,8 @@ struct NatGlobalEnv {
         *true_obj,
         *false_obj;
     NatHeapBlock *heap;
+    int cells_total;
+    int cells_available;
     void *bottom_of_stack;
     NatObject *min_ptr;
     NatObject *max_ptr;
@@ -192,31 +194,25 @@ struct NatHashVal {
     NatObject *val;
 };
 
-// we use this to determine if a ptr is a real NatObject
-#define NAT_MAGIC_TAG 0b1010101110110011010001011001100110100011100100100110111001000000U
-#define NAT_MAGIC_TAG_MASK 0b1111111111111111111111111111111111111111111111111111111111000000
-#define NAT_IS_HEAP_OBJECT(env, ptr) (ptr && !NAT_IS_TAGGED_INT(ptr) && ptr >= env->global_env->min_ptr && ptr <= env->global_env->max_ptr && (*(uint64_t *)ptr & NAT_MAGIC_TAG_MASK) == NAT_MAGIC_TAG)
-
 enum NatValueType {
     NAT_VALUE_NIL = 0,
-
-    NAT_VALUE_ARRAY = NAT_MAGIC_TAG | 1,
-    NAT_VALUE_CLASS = NAT_MAGIC_TAG | 2,
-    NAT_VALUE_EXCEPTION = NAT_MAGIC_TAG | 3,
-    NAT_VALUE_FALSE = NAT_MAGIC_TAG | 4,
-    NAT_VALUE_HASH = NAT_MAGIC_TAG | 5,
-    NAT_VALUE_INTEGER = NAT_MAGIC_TAG | 6,
-    NAT_VALUE_IO = NAT_MAGIC_TAG | 7,
-    NAT_VALUE_MATCHDATA = NAT_MAGIC_TAG | 8,
-    NAT_VALUE_MODULE = NAT_MAGIC_TAG | 9,
-    NAT_VALUE_OTHER = NAT_MAGIC_TAG | 10,
-    NAT_VALUE_PROC = NAT_MAGIC_TAG | 11,
-    NAT_VALUE_RANGE = NAT_MAGIC_TAG | 12,
-    NAT_VALUE_REGEXP = NAT_MAGIC_TAG | 13,
-    NAT_VALUE_STRING = NAT_MAGIC_TAG | 14,
-    NAT_VALUE_SYMBOL = NAT_MAGIC_TAG | 15,
-    NAT_VALUE_THREAD = NAT_MAGIC_TAG | 16,
-    NAT_VALUE_TRUE = NAT_MAGIC_TAG | 17,
+    NAT_VALUE_ARRAY = 1,
+    NAT_VALUE_CLASS = 2,
+    NAT_VALUE_EXCEPTION = 3,
+    NAT_VALUE_FALSE = 4,
+    NAT_VALUE_HASH = 5,
+    NAT_VALUE_INTEGER = 6,
+    NAT_VALUE_IO = 7,
+    NAT_VALUE_MATCHDATA = 8,
+    NAT_VALUE_MODULE = 9,
+    NAT_VALUE_OTHER = 10,
+    NAT_VALUE_PROC = 11,
+    NAT_VALUE_RANGE = 12,
+    NAT_VALUE_REGEXP = 13,
+    NAT_VALUE_STRING = 14,
+    NAT_VALUE_SYMBOL = 15,
+    NAT_VALUE_THREAD = 16,
+    NAT_VALUE_TRUE = 17,
 };
 
 #define NAT_FLAG_MAIN_OBJECT 1
