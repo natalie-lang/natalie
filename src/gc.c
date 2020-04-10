@@ -332,10 +332,10 @@ static void nat_gc_collect_object(NatEnv *env, NatHeapBlock *block, NatObject *o
     }
     obj->type = NAT_VALUE_NIL;
     obj->klass = NAT_NIL->klass;
+    NAT_LOCK_ALLOC(env);
     NatObject *next_object = block->free_list;
     block->free_list = obj;
     obj->next_free_object = next_object;
-    NAT_LOCK_ALLOC(env);
     env->global_env->cells_available++;
     NAT_UNLOCK_ALLOC(env);
 }
