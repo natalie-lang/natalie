@@ -78,7 +78,7 @@ NatObject *Kernel_instance_variable_get(NatEnv *env, NatObject *self, size_t arg
     } else if (NAT_TYPE(name_obj) == NAT_VALUE_SYMBOL) {
         name = name_obj->symbol;
     } else {
-        NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "TypeError"), "%s is not a symbol nor a string", nat_send(env, name_obj, "inspect", 0, NULL, NULL));
+        NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", nat_send(env, name_obj, "inspect", 0, NULL, NULL));
     }
     return nat_ivar_get(env, self, name);
 }
@@ -92,7 +92,7 @@ NatObject *Kernel_instance_variable_set(NatEnv *env, NatObject *self, size_t arg
     } else if (NAT_TYPE(name_obj) == NAT_VALUE_SYMBOL) {
         name = name_obj->symbol;
     } else {
-        NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "TypeError"), "%s is not a symbol nor a string", nat_send(env, name_obj, "inspect", 0, NULL, NULL));
+        NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", nat_send(env, name_obj, "inspect", 0, NULL, NULL));
     }
     NatObject *val_obj = args[1];
     nat_ivar_set(env, self, name, val_obj);
@@ -112,16 +112,17 @@ NatObject *Kernel_raise(NatEnv *env, NatObject *self, size_t argc, NatObject **a
             klass = arg;
             message = nat_string(env, arg->class_name);
         } else if (NAT_TYPE(arg) == NAT_VALUE_STRING) {
-            klass = nat_const_get(env, NAT_OBJECT, "RuntimeError");
+            klass = nat_const_get(env, NAT_OBJECT, "RuntimeError", true);
             message = arg;
-        } else if (nat_is_a(env, arg, nat_const_get(env, NAT_OBJECT, "Exception"))) {
+        } else if (nat_is_a(env, arg, nat_const_get(env, NAT_OBJECT, "Exception", true))) {
             nat_raise_exception(env, arg);
             abort();
         } else {
-            NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "TypeError"), "exception klass/object expected");
+            NAT_RAISE(env, "TypeError", "exception klass/object expected");
         }
     }
-    NAT_RAISE(env, klass, message->str);
+    nat_raise(env, klass, message->str);
+    abort();
 }
 
 NatObject *Kernel_respond_to(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
@@ -169,7 +170,7 @@ NatObject *Kernel_exit(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     } else {
         status = nat_integer(env, 0);
     }
-    NatObject *exception = nat_exception(env, nat_const_get(env, NAT_OBJECT, "SystemExit"), "exit");
+    NatObject *exception = nat_exception(env, nat_const_get(env, NAT_OBJECT, "SystemExit", true), "exit");
     nat_ivar_set(env, exception, "@status", status);
     nat_raise_exception(env, exception);
     return NAT_NIL;
@@ -188,7 +189,7 @@ NatObject *Kernel_is_a(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     NAT_ASSERT_ARGC(1);
     NatObject *klass_or_module = args[0];
     if (NAT_TYPE(klass_or_module) != NAT_VALUE_CLASS && NAT_TYPE(klass_or_module) != NAT_VALUE_MODULE) {
-        NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "TypeError"), "class or module required");
+        NAT_RAISE(env, "TypeError", "class or module required");
     }
     if (nat_is_a(env, self, klass_or_module)) {
         return NAT_TRUE;
@@ -209,7 +210,7 @@ NatObject *Kernel_proc(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     if (block) {
         return nat_proc(env, block);
     } else {
-        NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "ArgumentError"), "tried to create Proc object without a block");
+        NAT_RAISE(env, "ArgumentError", "tried to create Proc object without a block");
     }
 }
 
@@ -218,7 +219,7 @@ NatObject *Kernel_lambda(NatEnv *env, NatObject *self, size_t argc, NatObject **
     if (block) {
         return nat_lambda(env, block);
     } else {
-        NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "ArgumentError"), "tried to create Proc object without a block");
+        NAT_RAISE(env, "ArgumentError", "tried to create Proc object without a block");
     }
 }
 
@@ -267,7 +268,7 @@ NatObject *Kernel_define_singleton_method(NatEnv *env, NatObject *self, size_t a
     } else if (NAT_TYPE(name_obj) == NAT_VALUE_STRING) {
         name_obj = nat_symbol(env, name_obj->str);
     } else {
-        NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "TypeError"), "%s is not a symbol nor a string", nat_send(env, name_obj, "inspect", 0, NULL, NULL));
+        NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", nat_send(env, name_obj, "inspect", 0, NULL, NULL));
     }
     nat_define_singleton_method_with_block(env, self, name_obj->symbol, block);
     return name_obj;

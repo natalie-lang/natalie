@@ -54,7 +54,7 @@ NatObject *Module_attr_reader(NatEnv *env, NatObject *self, size_t argc, NatObje
         } else if (NAT_TYPE(name_obj) == NAT_VALUE_SYMBOL) {
             name_obj = nat_string(env, name_obj->symbol);
         } else {
-            NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "TypeError"), "%s is not a symbol nor a string", nat_send(env, name_obj, "inspect", 0, NULL, NULL));
+            NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", nat_send(env, name_obj, "inspect", 0, NULL, NULL));
         }
         NatEnv block_env;
         nat_build_detached_block_env(&block_env, env);
@@ -81,7 +81,7 @@ NatObject *Module_attr_writer(NatEnv *env, NatObject *self, size_t argc, NatObje
         } else if (NAT_TYPE(name_obj) == NAT_VALUE_SYMBOL) {
             name_obj = nat_string(env, name_obj->symbol);
         } else {
-            NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "TypeError"), "%s is not a symbol nor a string", nat_send(env, name_obj, "inspect", 0, NULL, NULL));
+            NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", nat_send(env, name_obj, "inspect", 0, NULL, NULL));
         }
         NatObject *method_name = nat_string(env, name_obj->str);
         nat_string_append_char(env, method_name, '=');
@@ -134,10 +134,10 @@ NatObject *Module_define_method(NatEnv *env, NatObject *self, size_t argc, NatOb
     NAT_ASSERT_ARGC(1);
     NatObject *name_obj = args[0];
     if (NAT_TYPE(name_obj) != NAT_VALUE_STRING && NAT_TYPE(name_obj) != NAT_VALUE_SYMBOL) {
-        NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "TypeError"), "%s is not a symbol nor a string", nat_send(env, name_obj, "inspect", 0, NULL, NULL));
+        NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", nat_send(env, name_obj, "inspect", 0, NULL, NULL));
     }
     if (!block) {
-        NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "ArgumentError"), "tried to create Proc object without a block");
+        NAT_RAISE(env, "ArgumentError", "tried to create Proc object without a block");
     }
     char *name = NAT_TYPE(name_obj) == NAT_VALUE_STRING ? name_obj->str : name_obj->symbol;
     nat_define_method_with_block(env, self, name, block);
@@ -147,7 +147,7 @@ NatObject *Module_define_method(NatEnv *env, NatObject *self, size_t argc, NatOb
 NatObject *Module_class_eval(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_MODULE || NAT_TYPE(self) == NAT_VALUE_CLASS);
     if (argc > 0 || !block) {
-        NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "ArgumentError"), "Natalie only supports class_eval with a block");
+        NAT_RAISE(env, "ArgumentError", "Natalie only supports class_eval with a block");
     }
     NatEnv e;
     nat_build_block_env(&e, &block->env, env);

@@ -73,7 +73,7 @@ NatObject *IO_write(NatEnv *env, NatObject *self, size_t argc, NatObject **args,
         ssize_t result = write(self->fileno, obj->str, obj->str_len);
         if (result == -1) {
             NatObject *error_number = nat_integer(env, errno);
-            NatObject *error = nat_send(env, nat_const_get(env, NAT_OBJECT, "SystemCallError"), "exception", 1, &error_number, NULL);
+            NatObject *error = nat_send(env, nat_const_get(env, NAT_OBJECT, "SystemCallError", true), "exception", 1, &error_number, NULL);
             nat_raise_exception(env, error);
             abort();
         } else {
@@ -114,7 +114,7 @@ NatObject *IO_close(NatEnv *env, NatObject *self, size_t argc, NatObject **args,
     int result = close(self->fileno);
     if (result == -1) {
         NatObject *error_number = nat_integer(env, errno);
-        NatObject *error = nat_send(env, nat_const_get(env, NAT_OBJECT, "SystemCallError"), "exception", 1, &error_number, NULL);
+        NatObject *error = nat_send(env, nat_const_get(env, NAT_OBJECT, "SystemCallError", true), "exception", 1, &error_number, NULL);
         nat_raise_exception(env, error);
         abort();
     } else {
@@ -142,17 +142,17 @@ NatObject *IO_seek(NatEnv *env, NatObject *self, size_t argc, NatObject **args, 
             } else if (strcmp(whence_obj->symbol, "END") == 0) {
                 whence = 2;
             } else {
-                NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "TypeError"), "no implicit conversion of Symbol into NAT_INTEGER");
+                NAT_RAISE(env, "TypeError", "no implicit conversion of Symbol into NAT_INTEGER");
             }
             break;
         default:
-            NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "TypeError"), "no implicit conversion of %s into NAT_INTEGER", whence_obj->klass->class_name);
+            NAT_RAISE(env, "TypeError", "no implicit conversion of %s into NAT_INTEGER", whence_obj->klass->class_name);
         }
     }
     int result = lseek(self->fileno, amount, whence);
     if (result == -1) {
         NatObject *error_number = nat_integer(env, errno);
-        NatObject *error = nat_send(env, nat_const_get(env, NAT_OBJECT, "SystemCallError"), "exception", 1, &error_number, NULL);
+        NatObject *error = nat_send(env, nat_const_get(env, NAT_OBJECT, "SystemCallError", true), "exception", 1, &error_number, NULL);
         nat_raise_exception(env, error);
         abort();
     } else {

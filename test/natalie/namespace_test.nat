@@ -50,6 +50,30 @@ module Mod
   end
 end
 
+module PrecedenceTest
+  VAL = 1
+
+  class A
+    VAL = 2
+
+    def self.val
+      VAL
+    end
+  end
+
+  class B < A
+    def self.val
+      VAL
+    end
+  end
+
+  class C
+    def self.val
+      VAL
+    end
+  end
+end
+
 describe 'namespace' do
   it 'resolves top-level constants' do
     NUM.should == 1
@@ -79,5 +103,13 @@ describe 'namespace' do
     Mod::C1::C1a.inspect.should == 'Mod::C1::C1a'
     Mod::C2.inspect.should == 'Mod::C2'
     Mod::C2::Copy.inspect.should == 'Mod::C1'
+  end
+
+  it 'looks for constants with proper precedence' do
+    PrecedenceTest::A::VAL.should == 2
+    PrecedenceTest::A.val.should == 2
+    PrecedenceTest::B::VAL.should == 2
+    PrecedenceTest::B.val.should == 1
+    PrecedenceTest::C.val.should == 1
   end
 end

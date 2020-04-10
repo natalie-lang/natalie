@@ -23,7 +23,7 @@ NatObject *BasicObject_neq(NatEnv *env, NatObject *self, size_t argc, NatObject 
 
 NatObject *BasicObject_instance_eval(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     if (argc > 0 || !block) {
-        NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "ArgumentError"), "Natalie only supports instance_eval with a block");
+        NAT_RAISE(env, "ArgumentError", "Natalie only supports instance_eval with a block");
     }
     NatEnv e;
     nat_build_block_env(&e, &block->env, env);

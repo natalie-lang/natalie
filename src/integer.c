@@ -44,7 +44,7 @@ NatObject *Integer_div(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     int64_t dividend = NAT_INT_VALUE(self);
     int64_t divisor = NAT_INT_VALUE(arg);
     if (divisor == 0) {
-        NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "ZeroDivisionError"), "divided by 0");
+        NAT_RAISE(env, "ZeroDivisionError", "divided by 0");
     }
     int64_t result = dividend / divisor;
     return nat_integer(env, result);

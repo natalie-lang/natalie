@@ -125,7 +125,7 @@ module Natalie
         klass = temp('class')
         exp.new(:block,
           s(:class_fn, fn, process(s(:block, *body))),
-          s(:declare, klass, s(:nat_const_get_or_null, :env, :self, s(:s, name))),
+          s(:declare, klass, s(:nat_const_get_or_null, :env, :self, s(:s, name), s(:l, :false))),
           s(:c_if, s(:not, klass),
             s(:block,
               s(:set, klass, s(:nat_subclass, :env, process(superclass), s(:s, name))),
@@ -138,12 +138,12 @@ module Natalie
         parent_name = temp('parent')
         exp.new(:block,
           s(:declare, parent_name, process(parent)),
-          s(:nat_const_get, :env, parent_name, s(:s, name)))
+          s(:nat_const_get, :env, parent_name, s(:s, name), s(:l, :true)))
       end
 
       def process_const(exp)
         (_, name) = exp
-        exp.new(:nat_const_get, :env, :self, s(:s, name))
+        exp.new(:nat_const_get, :env, :self, s(:s, name), s(:l, :false))
       end
 
       def process_cvdecl(exp)
@@ -490,7 +490,7 @@ module Natalie
         mod = temp('module')
         exp.new(:block,
           s(:module_fn, fn, process(s(:block, *body))),
-          s(:declare, mod, s(:nat_const_get_or_null, :env, :self, s(:s, name))),
+          s(:declare, mod, s(:nat_const_get_or_null, :env, :self, s(:s, name), s(:l, :false))),
           s(:c_if, s(:not, mod),
             s(:block,
               s(:set, mod, s(:nat_module, :env, s(:s, name))),

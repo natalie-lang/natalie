@@ -63,6 +63,6 @@ NatObject *Regexp_match(NatEnv *env, NatObject *self, size_t argc, NatObject **a
     } else {
         OnigUChar s[ONIG_MAX_ERROR_MESSAGE_LEN];
         onig_error_code_to_str(s, result);
-        NAT_RAISE(env, nat_const_get(env, NAT_OBJECT, "RuntimeError"), (char *)s);
+        NAT_RAISE(env, "RuntimeError", (char *)s);
     }
 }
