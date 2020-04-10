@@ -192,6 +192,10 @@ NatEnv *build_top_env() {
     nat_global_set(env, "$stderr", nat_stderr);
     nat_const_set(env, Object, "STDERR", nat_stderr);
 
+    NatObject *ENV = nat_alloc(env, NAT_OBJECT, NAT_VALUE_OTHER);
+    nat_const_set(env, Object, "ENV", ENV);
+    NAT_ENV_INIT(ENV);
+
     /*OBJ_NAT_INIT*/
 
     env->global_env->gc_enabled = true;
