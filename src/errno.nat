@@ -8,7 +8,7 @@ class SystemCallError < StandardError
       num = args.first
     else
       # TODO: Ruby accepts 3 args??
-      raise ArgumentError, "wrong number of arguments (given #{args.size}, excpected 1..2)"
+      raise ArgumentError, "wrong number of arguments (given #{args.size}, expected 1..2)"
     end
     (klass, message) = {
       0 => [Errno::NOERROR, "Success"],
