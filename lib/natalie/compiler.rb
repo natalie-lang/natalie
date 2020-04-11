@@ -27,13 +27,14 @@ module Natalie
 
     class CompileError < StandardError; end
 
-    def initialize(ast, path)
+    def initialize(ast, path, options = {})
       @ast = ast
       @var_num = 0
       @path = path
+      @options = options
     end
 
-    attr_accessor :ast, :compile_to_object_file, :repl, :out_path, :context, :vars
+    attr_accessor :ast, :compile_to_object_file, :repl, :out_path, :context, :vars, :options
 
     attr_writer :load_path
 
@@ -41,10 +42,10 @@ module Natalie
       check_build
       write_file
       cmd = compiler_command
-      puts cmd if ENV['DEBUG_COMPILER_COMMAND']
+      puts cmd if debug == 'compiler-command'
       out = `#{cmd}`
-      File.unlink(@c_path) unless ENV['DEBUG'] || ENV['BUILD'] == 'coverage'
-      $stderr.puts out if ENV['DEBUG'] || $? != 0
+      File.unlink(@c_path) unless debug || build == 'coverage'
+      $stderr.puts out if debug || $? != 0
       raise 'There was an error compiling.' if $? != 0
     end
 
@@ -61,7 +62,7 @@ module Natalie
 
     def write_file
       c = to_c
-      puts c if ENV['DEBUG']
+      puts c if debug
       temp_c = Tempfile.create('natalie.c')
       temp_c.write(c)
       temp_c.close
@@ -82,19 +83,19 @@ module Natalie
       @context = build_context
 
       ast = Pass1.new(@context).go(ast)
-      if ENV['DEBUG_PASS1']
+      if debug == 'p1'
         pp ast
         exit
       end
 
       ast = Pass2.new(@context).go(ast)
-      if ENV['DEBUG_PASS2']
+      if debug == 'p2'
         pp ast
         exit
       end
 
       ast = Pass3.new(@context).go(ast)
-      if ENV['DEBUG_PASS3']
+      if debug == 'p3'
         pp ast
         exit
       end
@@ -121,6 +122,14 @@ module Natalie
       ONIGMO_LIB_PATH
     end
 
+    def debug
+      options[:debug]
+    end
+
+    def build
+      options[:build]
+    end
+
     private
 
     def compiler_command
@@ -145,7 +154,7 @@ module Natalie
     NOGC_FLAGS = '-DNAT_DISABLE_GC'
 
     def build_flags
-      case ENV['BUILD']
+      case build
       when 'release'
         RELEASE_FLAGS
       when 'debug', nil
@@ -155,7 +164,7 @@ module Natalie
       when 'nogc'
         DEBUG_FLAGS + ' ' + NOGC_FLAGS
       else
-        raise "unknown build mode: #{ENV['BUILD'].inspect}"
+        raise "unknown build mode: #{build.inspect}"
       end
     end
 

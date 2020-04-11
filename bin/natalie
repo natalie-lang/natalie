@@ -13,17 +13,10 @@ OptionParser.new do |opts|
 
   opts.on('-d [level]', '--debug [level]', 'Show debug output') do |level|
     case level
-    when 'p1'
-      ENV['DEBUG_PASS1'] = 'true'
-    when 'p2'
-      ENV['DEBUG_PASS2'] = 'true'
-    when 'p3'
-      ENV['DEBUG_PASS3'] = 'true'
-    when 'gdb'
-      ENV['DEBUG'] = 'true'
-      options[:debug_with_gdb] = true
+    when 'p1', 'p2', 'p3', 'gdb', 'lldb', 'compiler-command'
+      options[:debug] = level
     else
-      ENV['DEBUG'] = 'true'
+      options[:debug] = true
     end
   end
 
@@ -51,9 +44,9 @@ end.parse!
 
 build_type_path = File.expand_path('../.build', __dir__)
 if File.exist?(build_type_path)
-  ENV['BUILD'] = File.read(build_type_path).strip
+  options[:build] = File.read(build_type_path).strip
 else
-  ENV['BUILD'] = 'debug'
+  options[:build] = 'debug'
 end
 
 if options[:execute]
@@ -76,13 +69,13 @@ if options[:ast]
   require 'pp'
   pp ast
 elsif options[:compile]
-  compiler = Natalie::Compiler.new(ast, source_path)
+  compiler = Natalie::Compiler.new(ast, source_path, options)
   compiler.load_path = options[:load_path]
   compiler.compile_to_object_file = options[:compile_obj]
   compiler.out_path = options[:compile]
   compiler.compile
 else
-  compiler = Natalie::Compiler.new(ast, source_path)
+  compiler = Natalie::Compiler.new(ast, source_path, options)
   compiler.load_path = options[:load_path]
   extension = if RUBY_PLATFORM =~ /msys/
                 '.exe'
@@ -93,12 +86,13 @@ else
   out.close
   compiler.out_path = out.path
   compiler.compile
-  puts out.path if ENV['DEBUG']
+  puts out.path if options[:debug]
   status = nil
   pid = spawn(out.path, *ARGV)
   Process.wait(pid)
-  if options[:debug_with_gdb]
-    exec('gdb', out.path)
+  case options[:debug]
+  when 'gdb', 'lldb'
+    exec(options[:debug], out.path)
   else
     status = $?
     exit status.exitstatus || 1
