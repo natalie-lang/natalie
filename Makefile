@@ -51,10 +51,11 @@ clean: clean_nat
 test: build
 	ruby test/all.rb
 
-test_valgrind:
-	make BUILD=nogc clean_nat build
+test_valgrind: build
 	bin/natalie -c assign_test test/natalie/assign_test.nat
 	valgrind --leak-check=no --suppressions=test/valgrind-suppressions --error-exitcode=1 ./assign_test
+	bin/natalie -c block_spec spec/language/block_spec.nat
+	valgrind --leak-check=no --suppressions=test/valgrind-suppressions --error-exitcode=1 ./block_spec
 
 coverage_report:
 	lcov -c --directory . --output-file coverage.info
