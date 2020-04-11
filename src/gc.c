@@ -354,6 +354,9 @@ static void nat_gc_collect_dead_objects(NatEnv *env) {
 }
 
 void nat_gc_collect(NatEnv *env) {
+#ifdef NAT_GC_DISABLE
+    return;
+#endif
     if (pthread_self() != env->global_env->main_thread) return;
     if (!env->global_env->gc_enabled) return; // FIXME: use a mutex :-)
     env->global_env->gc_enabled = false;

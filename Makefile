@@ -10,6 +10,7 @@ BUILD := debug
 
 cflags.debug := -g -Wall -Wextra -Werror -Wno-unused-parameter -pthread
 cflags.coverage := ${cflags.debug} -fprofile-arcs -ftest-coverage -pthread
+cflags.nogc := ${cflags.debug} -DNAT_DISABLE_GC
 cflags.release := -O3 -pthread
 CFLAGS := ${cflags.${BUILD}}
 
@@ -50,7 +51,8 @@ clean: clean_nat
 test: build
 	ruby test/all.rb
 
-test_valgrind: build
+test_valgrind:
+	make BUILD=nogc clean_nat build
 	bin/natalie -c assign_test test/natalie/assign_test.nat
 	valgrind --leak-check=no --suppressions=test/valgrind-suppressions --error-exitcode=1 ./assign_test
 

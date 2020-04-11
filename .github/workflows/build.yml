@@ -13,8 +13,8 @@ jobs:
       run: make docker_test_gcc
     - name: test with clang
       run: make docker_test_clang
-    #- name: test with valgrind
-    #  run: make docker_test_valgrind
+    - name: test with valgrind
+      run: make docker_test_valgrind
     - name: coverage report
       run: make docker_coverage_report
     - uses: actions/upload-artifact@v1

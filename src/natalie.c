@@ -110,6 +110,7 @@ NatGlobalEnv *nat_build_global_env() {
     global_env->heap = NULL;
     global_env->max_ptr = 0;
     global_env->min_ptr = (void *)UINTPTR_MAX;
+    global_env->cells_available = global_env->cells_total = 0;
     nat_gc_alloc_heap_block(global_env);
     int err = pthread_mutex_init(&global_env->alloc_mutex, NULL);
     if (err) {
