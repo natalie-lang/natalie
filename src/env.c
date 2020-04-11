@@ -16,7 +16,7 @@ NatObject *ENV_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
         name->str[index] = 0;
         name->str_len = index;
         nat_hash_put(env, hash, name, nat_string(env, getenv(name->str)));
-        pair = *(environ+i);
+        pair = *(environ + i);
     }
     return Hash_inspect(env, hash, 0, NULL, NULL, NULL);
 }

@@ -23,7 +23,7 @@
 #define NAT_OBJ_CLASS(obj) (NAT_IS_TAGGED_INT(obj) ? NAT_INTEGER : obj->klass)
 #define NAT_RESCUE(env) ((env->rescue = 1) && setjmp(env->jump_buf))
 
-#define NAT_RAISE(env, class_name, message_format, ...)        \
+#define NAT_RAISE(env, class_name, message_format, ...)                                              \
     nat_raise(env, nat_const_get(env, NAT_OBJECT, class_name, true), message_format, ##__VA_ARGS__); \
     abort();
 
@@ -31,28 +31,28 @@
     NAT_GET_MACRO(__VA_ARGS__, NAT_ASSERT_ARGC2, NAT_ASSERT_ARGC1) \
     (__VA_ARGS__)
 
-#define NAT_ASSERT_ARGC1(expected)                                                                                                            \
-    if (argc != expected) {                                                                                                                   \
+#define NAT_ASSERT_ARGC1(expected)                                                                            \
+    if (argc != expected) {                                                                                   \
         NAT_RAISE(env, "ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, expected); \
     }
 
-#define NAT_ASSERT_ARGC2(expected_low, expected_high)                                                                                                                \
-    if (argc < expected_low || argc > expected_high) {                                                                                                               \
+#define NAT_ASSERT_ARGC2(expected_low, expected_high)                                                                                \
+    if (argc < expected_low || argc > expected_high) {                                                                               \
         NAT_RAISE(env, "ArgumentError", "wrong number of arguments (given %d, expected %d..%d)", argc, expected_low, expected_high); \
     }
 
-#define NAT_ASSERT_ARGC_AT_LEAST(expected)                                                                                                     \
-    if (argc < expected) {                                                                                                                     \
+#define NAT_ASSERT_ARGC_AT_LEAST(expected)                                                                     \
+    if (argc < expected) {                                                                                     \
         NAT_RAISE(env, "ArgumentError", "wrong number of arguments (given %d, expected %d+)", argc, expected); \
     }
 
-#define NAT_ASSERT_ARGC_AT_MOST(expected)                                                                                                        \
-    if (argc > expected) {                                                                                                                       \
+#define NAT_ASSERT_ARGC_AT_MOST(expected)                                                                        \
+    if (argc > expected) {                                                                                       \
         NAT_RAISE(env, "ArgumentError", "wrong number of arguments (given %d, expected 0..%d)", argc, expected); \
     }
 
-#define NAT_ASSERT_TYPE(obj, expected_type, expected_class_name)                                                                                          \
-    if (NAT_TYPE(obj) != expected_type) {                                                                                                                 \
+#define NAT_ASSERT_TYPE(obj, expected_type, expected_class_name)                                                          \
+    if (NAT_TYPE(obj) != expected_type) {                                                                                 \
         NAT_RAISE(env, "TypeError", "no implicit conversion of %s into %s", obj->klass->class_name, expected_class_name); \
     }
 
@@ -62,13 +62,13 @@
     fprintf(stderr, "panic: unreachable\n"); \
     abort();
 
-#define NAT_ASSERT_NOT_FROZEN(obj)                                                                                       \
-    if (nat_is_frozen(obj)) {                                                                                            \
+#define NAT_ASSERT_NOT_FROZEN(obj)                                                       \
+    if (nat_is_frozen(obj)) {                                                            \
         NAT_RAISE(env, "FrozenError", "can't modify frozen %s", obj->klass->class_name); \
     }
 
-#define NAT_ASSERT_BLOCK()                                                                         \
-    if (!block) {                                                                                  \
+#define NAT_ASSERT_BLOCK()                                         \
+    if (!block) {                                                  \
         NAT_RAISE(env, "ArgumentError", "called without a block"); \
     }
 
