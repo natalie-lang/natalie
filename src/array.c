@@ -1,6 +1,21 @@
 #include "builtin.h"
 #include "natalie.h"
 
+NatObject *Array_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC_AT_MOST(2);
+    NatObject *ary = nat_array(env);
+    if (argc == 0) {
+        return ary;
+    }
+    NatObject *size = args[0];
+    NAT_ASSERT_TYPE(size, NAT_VALUE_INTEGER, "Integer");
+    NatObject *value = argc == 2 ? args[1] : NAT_NIL;
+    for (int64_t i = 0; i < NAT_INT_VALUE(size); i++) {
+        nat_array_push(env, ary, value);
+    }
+    return ary;
+}
+
 NatObject *Array_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);

@@ -1,6 +1,20 @@
 require_relative '../spec_helper'
 
 describe 'array' do
+  describe '.new' do
+    it 'returns an empty array given no args' do
+      Array.new.should == []
+    end
+
+    it 'returns an array of nils given a single integer arg' do
+      Array.new(5).should == [nil, nil, nil, nil, nil]
+    end
+
+    it 'returns an array filled with the given value and given length' do
+      Array.new(5, :foo).should == [:foo, :foo, :foo, :foo, :foo]
+    end
+  end
+
   describe '#inspect' do
     it 'returns the syntax representation' do
       [1, 2, 3].inspect.should == "[1, 2, 3]"
