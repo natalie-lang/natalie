@@ -4,15 +4,15 @@ SRC := src
 LIB := lib/natalie
 OBJ := obj
 ONIGMO := ext/onigmo
+NAT_FLAGS ?=
 
 # debug, coverage, or release
 BUILD := debug
 
 cflags.debug := -g -Wall -Wextra -Werror -Wno-unused-parameter -pthread
 cflags.coverage := ${cflags.debug} -fprofile-arcs -ftest-coverage -pthread
-cflags.nogc := ${cflags.debug} -DNAT_DISABLE_GC
 cflags.release := -O3 -pthread
-CFLAGS := ${cflags.${BUILD}}
+CFLAGS := ${cflags.${BUILD}} ${NAT_FLAGS}
 
 HAS_TTY := $(shell test -t 1 && echo yes || echo no)
 ifeq ($(HAS_TTY),yes)
@@ -57,6 +57,9 @@ test_valgrind: build
 	bin/natalie -c block_spec spec/language/block_spec.nat
 	valgrind --leak-check=no --suppressions=test/valgrind-suppressions --error-exitcode=1 ./block_spec
 
+test_garbage_collector:
+	NAT_FLAGS="-D'NAT_GC_COLLECT_DEBUG=true'" make clean_nat test
+
 coverage_report:
 	lcov -c --directory . --output-file coverage.info
 	genhtml coverage.info --output-directory coverage-report
@@ -77,6 +80,9 @@ docker_test_clang: docker_build_clang
 
 docker_test_valgrind: docker_build
 	docker run $(DOCKER_FLAGS) --rm --entrypoint make natalie test_valgrind
+
+docker_test_garbage_collector: docker_build
+	docker run $(DOCKER_FLAGS) --rm --entrypoint make natalie test_garbage_collector
 
 docker_coverage_report: docker_build
 	rm -rf coverage-report

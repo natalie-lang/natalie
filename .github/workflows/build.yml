@@ -15,6 +15,8 @@ jobs:
       run: make docker_test_clang
     - name: test with valgrind
       run: make docker_test_valgrind
+    - name: test with aggressive garbage collection
+      run: make docker_test_garbage_collector
     - name: coverage report
       run: make docker_coverage_report
     - uses: actions/upload-artifact@v1

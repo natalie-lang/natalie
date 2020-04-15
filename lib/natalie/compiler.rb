@@ -151,7 +151,6 @@ module Natalie
     RELEASE_FLAGS = '-O3 -pthread'
     DEBUG_FLAGS = '-g -Wall -Wextra -Wno-unused-parameter -pthread'
     COVERAGE_FLAGS = '-fprofile-arcs -ftest-coverage'
-    NOGC_FLAGS = '-DNAT_DISABLE_GC'
 
     def build_flags
       case build
@@ -161,8 +160,6 @@ module Natalie
         DEBUG_FLAGS
       when 'coverage'
         DEBUG_FLAGS + ' ' + COVERAGE_FLAGS
-      when 'nogc'
-        DEBUG_FLAGS + ' ' + NOGC_FLAGS
       else
         raise "unknown build mode: #{build.inspect}"
       end

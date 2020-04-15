@@ -383,9 +383,13 @@ double nat_gc_cells_available_ratio(NatEnv *env) {
 }
 
 NatObject *nat_alloc(NatEnv *env, NatObject *klass, enum NatValueType type) {
+#ifdef NAT_GC_COLLECT_DEBUG
+    nat_gc_collect(env);
+#else
     if (nat_gc_cells_available_ratio(env) < NAT_HEAP_MIN_AVAIL_RATIO) {
         nat_gc_collect(env);
     }
+#endif
     NatObject *obj = nat_gc_malloc(env);
     memset(obj, 0, sizeof(NatObject));
     obj->klass = klass;
