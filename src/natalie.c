@@ -540,7 +540,7 @@ void nat_array_expand_with_nil(NatEnv *env, NatObject *array, size_t size) {
 // this is used by the hashmap library and assumes that obj->env has been set
 size_t nat_hashmap_hash(const void *key) {
     NatHashKey *key_p = (NatHashKey *)key;
-    assert(NAT_HAS_ENV(key_p));
+    assert(NAT_OBJ_HAS_ENV2(key_p));
     NatObject *hash_obj = nat_send(&key_p->env, key_p->key, "hash", 0, NULL, NULL);
     assert(NAT_TYPE(hash_obj) == NAT_VALUE_INTEGER);
     return NAT_INT_VALUE(hash_obj);
@@ -550,8 +550,8 @@ size_t nat_hashmap_hash(const void *key) {
 int nat_hashmap_compare(const void *a, const void *b) {
     NatHashKey *a_p = (NatHashKey *)a;
     NatHashKey *b_p = (NatHashKey *)b;
-    assert(NAT_HAS_ENV(a_p));
-    assert(NAT_HAS_ENV(b_p));
+    assert(NAT_OBJ_HAS_ENV2(a_p));
+    assert(NAT_OBJ_HAS_ENV2(b_p));
     NatObject *a_hash = nat_send(&a_p->env, a_p->key, "hash", 0, NULL, NULL);
     NatObject *b_hash = nat_send(&b_p->env, b_p->key, "hash", 0, NULL, NULL);
     assert(NAT_TYPE(a_hash) == NAT_VALUE_INTEGER);

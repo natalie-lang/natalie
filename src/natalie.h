@@ -79,8 +79,8 @@
     fprintf(stderr, "NOT YET IMPLEMENTED: %s", description); \
     abort();
 
-#define NAT_OBJ_HAS_ENV(obj) ((obj)->env.global_env == env->global_env)
-#define NAT_HAS_ENV(obj) ((obj)->env.global_env)
+#define NAT_OBJ_HAS_ENV(obj) ((obj)->env.global_env == env->global_env) // prefered check
+#define NAT_OBJ_HAS_ENV2(obj) ((obj)->env.global_env) // limited check used when there is no current env, i.e. nat_hashmap_hash and nat_hashmap_compare
 
 #define NAT_INSPECT(obj) nat_send(env, obj, "inspect", 0, NULL, NULL)
 
