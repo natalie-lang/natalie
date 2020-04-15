@@ -6,6 +6,10 @@ describe 'array' do
       Array.new.should == []
     end
 
+    it 'returns the array when given an array' do
+      Array.new([1, 2, 3]).should == [1, 2, 3]
+    end
+
     it 'returns an array of nils given a single integer arg' do
       Array.new(5).should == [nil, nil, nil, nil, nil]
     end

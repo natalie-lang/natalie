@@ -8,6 +8,10 @@ NatObject *Array_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args
         return ary;
     }
     NatObject *size = args[0];
+    if (NAT_TYPE(size) == NAT_VALUE_ARRAY) {
+        // given an array, just return it
+        return size;
+    }
     NAT_ASSERT_TYPE(size, NAT_VALUE_INTEGER, "Integer");
     NatObject *value = argc == 2 ? args[1] : NAT_NIL;
     for (int64_t i = 0; i < NAT_INT_VALUE(size); i++) {
