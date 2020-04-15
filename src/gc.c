@@ -201,6 +201,7 @@ NatObject *nat_gc_mark_live_objects(NatEnv *env) {
                 } while (key != obj->key_list);
             }
             nat_gc_push_object(env, objects, obj->hash_default_value);
+            if (obj->hash_default_block && NAT_OBJ_HAS_ENV(obj->hash_default_block)) nat_gc_gather_from_env(objects, &obj->hash_default_block->env);
             break;
         case NAT_VALUE_INTEGER:
             break;
