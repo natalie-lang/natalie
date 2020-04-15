@@ -297,6 +297,8 @@ struct NatObject {
             NatHashKey *key_list; // a double-ended queue
             struct hashmap hashmap;
             bool hash_is_iterating;
+            NatObject *hash_default_value;
+            NatBlock *hash_default_block;
         };
 
         // NAT_VALUE_IO
@@ -463,6 +465,7 @@ size_t nat_hashmap_hash(const void *obj);
 int nat_hashmap_compare(const void *a, const void *b);
 NatObject *nat_hash(NatEnv *env);
 NatObject *nat_hash_get(NatEnv *env, NatObject *hash, NatObject *key);
+NatObject *nat_hash_get_default(NatEnv *env, NatObject *hash, NatObject *key);
 void nat_hash_put(NatEnv *env, NatObject *hash, NatObject *key, NatObject *val);
 NatObject *nat_hash_delete(NatEnv *env, NatObject *hash, NatObject *key);
 

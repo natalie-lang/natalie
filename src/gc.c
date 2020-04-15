@@ -200,6 +200,7 @@ NatObject *nat_gc_mark_live_objects(NatEnv *env) {
                     key = key->next;
                 } while (key != obj->key_list);
             }
+            nat_gc_push_object(env, objects, obj->hash_default_value);
             break;
         case NAT_VALUE_INTEGER:
             break;
@@ -285,6 +286,7 @@ static void nat_gc_collect_object(NatEnv *env, NatHeapBlock *block, NatObject *o
             free((NatHashVal *)hashmap_iter_get_data(iter));
         }
         hashmap_destroy(&obj->hashmap);
+        free(obj->hash_default_block);
         break;
     case NAT_VALUE_INTEGER:
         break;

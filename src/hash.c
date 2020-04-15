@@ -2,6 +2,18 @@
 #include "gc.h"
 #include "natalie.h"
 
+NatObject *Hash_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC_AT_MOST(1);
+    NatObject *hash = nat_hash(env);
+    if (block) {
+        NAT_ASSERT_ARGC(0);
+        hash->hash_default_block = block;
+    } else if (argc == 1) {
+        hash->hash_default_value = args[0];
+    }
+    return hash;
+}
+
 NatObject *Hash_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     assert(NAT_TYPE(self) == NAT_VALUE_HASH);
@@ -31,7 +43,7 @@ NatObject *Hash_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **args,
     if (val) {
         return val;
     } else {
-        return NAT_NIL;
+        return nat_hash_get_default(env, self, key);
     }
 }
 

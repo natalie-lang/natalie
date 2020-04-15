@@ -646,8 +646,9 @@ NatHashIter *nat_hash_iter_next(NatEnv *env, NatObject *hash, NatHashIter *iter)
 NatObject *nat_hash(NatEnv *env) {
     NatObject *obj = nat_alloc(env, nat_const_get(env, NAT_OBJECT, "Hash", true), NAT_VALUE_HASH);
     obj->key_list = NULL;
+    obj->hash_default_value = NAT_NIL;
+    obj->hash_default_block = NULL;
     hashmap_init(&obj->hashmap, nat_hashmap_hash, nat_hashmap_compare, 256);
-    nat_initialize(env, obj, 0, NULL, NULL, NULL);
     return obj;
 }
 
@@ -661,6 +662,17 @@ NatObject *nat_hash_get(NatEnv *env, NatObject *hash, NatObject *key) {
     NatObject *val = container ? container->val : NULL;
     NAT_UNLOCK(hash);
     return val;
+}
+
+NatObject *nat_hash_get_default(NatEnv *env, NatObject *hash, NatObject *key) {
+    if (hash->hash_default_block) {
+        NatObject **args = calloc(2, sizeof(NatObject *));
+        args[0] = hash;
+        args[1] = key;
+        return NAT_RUN_BLOCK_WITHOUT_BREAK(env, hash->hash_default_block, 2, args, NULL, NULL);
+    } else {
+        return hash->hash_default_value;
+    }
 }
 
 void nat_hash_put(NatEnv *env, NatObject *hash, NatObject *key, NatObject *val) {

@@ -1,6 +1,41 @@
 require_relative '../spec_helper'
 
 describe 'hash' do
+  describe '.new' do
+    it 'builds an empty hash' do
+      Hash.new.should == {}
+    end
+
+    it 'builds a hash with a default value' do
+      h = Hash.new(:bar)
+      h[:foo].should == :bar
+      h[:foo] = :baz
+      h[:foo].should == :baz
+    end
+
+    it 'builds a hash with a default value block' do
+      h = Hash.new { :buz }
+      h[:foo].should == :buz
+      h[:foo] = :baz
+      h[:foo].should == :baz
+    end
+
+    it 'can persist default value via block' do
+      h = Hash.new { |hash, key| hash[key] = 'rocks' }
+      h.should == {}
+      h[:foo].should == 'rocks'
+      h.should == { foo: 'rocks' }
+    end
+
+    it 'does not duplicate the default value before returning' do
+      default = { 1 => 2 }
+      h = Hash.new(default)
+      h[:foo].should == { 1 => 2 }
+      h[:foo][3] = 4
+      h[:foo].should == { 1 => 2, 3 => 4 }
+    end
+  end
+
   it 'can use any object as a key' do
     { 1 => 'val' }[1].should == 'val'
     { :sym => 'val' }[:sym].should == 'val'
