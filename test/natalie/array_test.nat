@@ -171,4 +171,21 @@ describe 'array' do
       ['a', 'z', 'c', 'foo', 'bar'].sort.should == ['a', 'bar', 'c', 'foo', 'z']
     end
   end
+
+  describe '#join' do
+    it 'returns an empty string for an empty array' do
+      [].join(',').should == ''
+    end
+
+    it 'returns the only element in a 1-element array' do
+      ['foo'].join(',').should == 'foo'
+      [1].join(',').should == '1'
+    end
+
+    it 'returns the items joined together in a string' do
+      ['foo', 'bar'].join('').should == 'foobar'
+      ['foo', 'bar'].join(',').should == 'foo,bar'
+      [:foo, 2, 'bar', {baz: :buz}].join(',').should == 'foo,2,bar,{:baz=>:buz}'
+    end
+  end
 end

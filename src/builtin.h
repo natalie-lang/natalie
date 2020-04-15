@@ -24,7 +24,8 @@
     nat_define_method(env, klass, "to_ary", Array_to_ary);    \
     nat_define_method(env, klass, "pop", Array_pop);          \
     nat_define_method(env, klass, "include?", Array_include); \
-    nat_define_method(env, klass, "sort", Array_sort);
+    nat_define_method(env, klass, "sort", Array_sort);        \
+    nat_define_method(env, klass, "join", Array_join);
 
 NatObject *Array_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Array_ltlt(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
@@ -43,6 +44,7 @@ NatObject *Array_to_ary(NatEnv *env, NatObject *self, size_t argc, NatObject **a
 NatObject *Array_pop(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Array_include(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Array_sort(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+NatObject *Array_join(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 
 NatObject *BasicObject_not(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *BasicObject_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
@@ -123,6 +125,7 @@ NatObject *File_initialize(NatEnv *env, NatObject *self, size_t argc, NatObject 
 
 #define NAT_HASH_INIT(klass)                                \
     nat_define_method(env, klass, "inspect", Hash_inspect); \
+    nat_define_method(env, klass, "to_s", Hash_inspect);    \
     nat_define_method(env, klass, "[]", Hash_ref);          \
     nat_define_method(env, klass, "[]=", Hash_refeq);       \
     nat_define_method(env, klass, "delete", Hash_delete);   \

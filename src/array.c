@@ -258,3 +258,22 @@ NatObject *Array_sort(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
     nat_quicksort(env, copy->ary, 0, copy->ary_len - 1);
     return copy;
 }
+
+NatObject *Array_join(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);
+    NAT_ASSERT_ARGC(1);
+    if (self->ary_len == 0) {
+        return nat_string(env, "");
+    } else if (self->ary_len == 1) {
+        return nat_send(env, self->ary[0], "to_s", 0, NULL, NULL);
+    } else {
+        NatObject *joiner = args[0];
+        NAT_ASSERT_TYPE(joiner, NAT_VALUE_STRING, "String");
+        NatObject *out = nat_send(env, self->ary[0], "to_s", 0, NULL, NULL);
+        for (size_t i = 1; i < self->ary_len; i++) {
+            nat_string_append_nat_string(env, out, joiner);
+            nat_string_append_nat_string(env, out, nat_send(env, self->ary[i], "to_s", 0, NULL, NULL));
+        }
+        return out;
+    }
+}
