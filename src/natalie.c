@@ -666,9 +666,7 @@ NatObject *nat_hash_get(NatEnv *env, NatObject *hash, NatObject *key) {
 
 NatObject *nat_hash_get_default(NatEnv *env, NatObject *hash, NatObject *key) {
     if (hash->hash_default_block) {
-        NatObject **args = calloc(2, sizeof(NatObject *));
-        args[0] = hash;
-        args[1] = key;
+        NatObject *args[2] = { hash, key };
         return NAT_RUN_BLOCK_WITHOUT_BREAK(env, hash->hash_default_block, 2, args, NULL, NULL);
     } else {
         return hash->hash_default_value;

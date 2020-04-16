@@ -149,7 +149,7 @@ NatObject *Hash_each(NatEnv *env, NatObject *self, size_t argc, NatObject **args
     assert(NAT_TYPE(self) == NAT_VALUE_HASH);
     NAT_ASSERT_BLOCK(); // TODO: return Enumerator when no block given
     NatHashIter *iter;
-    NatObject **block_args = calloc(2, sizeof(NatObject *));
+    NatObject *block_args[2];
     for (iter = nat_hash_iter(env, self); iter; iter = nat_hash_iter_next(env, self, iter)) {
         block_args[0] = iter->key;
         block_args[1] = iter->val;
