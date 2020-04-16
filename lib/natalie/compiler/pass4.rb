@@ -439,7 +439,7 @@ module Natalie
           when 34
             "\\\""
           when 92
-            "\\\\"
+            "\\\\\\\\" # I'm in escape sequence hell
           when 127
             "\\#{byte}"
           when 32..255

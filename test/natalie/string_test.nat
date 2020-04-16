@@ -3,6 +3,17 @@
 require_relative '../spec_helper'
 
 describe 'string' do
+  it 'processes backslashes properly' do
+    "foo\\bar".should == "foo" + "\\" + "bar"
+  end
+
+  describe '#inspect' do
+    it 'returns a code representation of the string' do
+      'foo'.inspect.should == '"foo"'
+      "foo\nbar".inspect.should == "\"foo\\nbar\""
+    end
+  end
+
   describe "#<=>" do
     it "should return -1 if lhs is less than rhs" do
       ('a' <=> 'b').should == -1
