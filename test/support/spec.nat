@@ -305,9 +305,9 @@ def run_specs
         print 'E'
         @errors << [context, test, e.message]
       else
-        $expectations = []
         print '.'
       end
+      $expectations = []
     else
       @skipped << [context, test]
       print '*'
