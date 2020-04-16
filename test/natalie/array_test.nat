@@ -31,6 +31,14 @@ describe 'array' do
     end
   end
 
+  describe '.[]' do
+    it 'returns a new array populated with the given objects' do
+      Array[].should == []
+      Array.[](1, 'a', /^A/).should == [1, 'a', /^A/]
+      Array[2, 'b', /^B/].should == [2, 'b', /^B/]
+    end
+  end
+
   describe '.new' do
     it 'returns an empty array given no args' do
       Array.new.should == []

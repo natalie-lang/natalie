@@ -20,6 +20,15 @@ NatObject *Array_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args
     return ary;
 }
 
+// Array[]
+NatObject *Array_square_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NatObject *ary = nat_array(env);
+    for (size_t i = 0; i < argc; i++) {
+        nat_array_push(env, ary, args[i]);
+    }
+    return ary;
+}
+
 NatObject *Array_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);
