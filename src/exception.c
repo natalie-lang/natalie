@@ -4,19 +4,19 @@
 NatObject *Exception_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NatObject *exception = Object_new(env, self, argc, args, kwargs, block);
     exception->type = NAT_VALUE_EXCEPTION;
-    if (exception->message == NULL) exception->message = heap_string(env, self->class_name);
+    if (exception->message == NULL) exception->message = heap_string(self->class_name);
     return exception;
 }
 
 NatObject *Exception_initialize(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     if (argc == 0) {
-        self->message = heap_string(env, self->class_name);
+        self->message = heap_string(self->class_name);
     } else if (argc == 1) {
         NatObject *message = args[0];
         if (NAT_TYPE(message) != NAT_VALUE_STRING) {
             message = nat_send(env, message, "inspect", 0, NULL, NULL);
         }
-        self->message = heap_string(env, message->str);
+        self->message = heap_string(message->str);
     }
     return self;
 }

@@ -11,11 +11,11 @@
 NatEnv *build_top_env() {
     NatEnv *env = malloc(sizeof(NatEnv));
     nat_build_env(env, NULL);
-    env->method_name = heap_string(env, "<main>");
+    env->method_name = heap_string("<main>");
 
     NatObject *Class = nat_alloc(env, NULL, NAT_VALUE_CLASS);
     Class->superclass = NULL;
-    Class->class_name = heap_string(env, "Class");
+    Class->class_name = heap_string("Class");
     Class->klass = Class;
     nat_build_env(&Class->env, env);
     hashmap_init(&Class->methods, hashmap_hash_string, hashmap_compare_string, 100);
@@ -25,7 +25,7 @@ NatEnv *build_top_env() {
     nat_define_method(env, Class, "superclass", Class_superclass);
 
     NatObject *BasicObject = nat_alloc(env, Class, NAT_VALUE_CLASS);
-    BasicObject->class_name = heap_string(env, "BasicObject");
+    BasicObject->class_name = heap_string("BasicObject");
     nat_build_env(&BasicObject->env, env);
     BasicObject->superclass = NULL;
     BasicObject->cvars.table = NULL;

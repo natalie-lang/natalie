@@ -174,7 +174,7 @@ char *nat_find_method_name(NatEnv *env) {
         if (!env->outer) break;
         env = env->outer;
     }
-    return heap_string(env, "(unknown)");
+    return heap_string("(unknown)");
 }
 
 NatObject *nat_raise(NatEnv *env, NatObject *klass, char *message_format, ...) {
@@ -359,7 +359,7 @@ bool nat_truthy(NatObject *obj) {
     }
 }
 
-char *heap_string(NatEnv *env, char *str) {
+char *heap_string(char *str) {
     size_t len = strlen(str);
     char *copy = malloc(len + 1);
     memcpy(copy, str, len + 1);
@@ -382,7 +382,7 @@ NatObject *nat_subclass(NatEnv *env, NatObject *superclass, char *name) {
         // TODO: what happens if the superclass gets a singleton_class later?
         klass->singleton_class = nat_subclass(env, superclass->singleton_class, NULL);
     }
-    klass->class_name = name ? heap_string(env, name) : NULL;
+    klass->class_name = name ? heap_string(name) : NULL;
     klass->superclass = superclass;
     nat_build_env(&klass->env, &superclass->env);
     klass->env.outer = NULL;
@@ -392,7 +392,7 @@ NatObject *nat_subclass(NatEnv *env, NatObject *superclass, char *name) {
 
 NatObject *nat_module(NatEnv *env, char *name) {
     NatObject *module = nat_alloc(env, nat_const_get(env, NAT_OBJECT, "Module", true), NAT_VALUE_MODULE);
-    module->class_name = name ? heap_string(env, name) : NULL;
+    module->class_name = name ? heap_string(name) : NULL;
     nat_build_env(&module->env, env);
     module->env.outer = NULL;
     nat_init_class_or_module_data(env, module);
@@ -440,7 +440,7 @@ NatObject *nat_integer(NatEnv *env, int64_t integer) {
 NatObject *nat_string(NatEnv *env, char *str) {
     NatObject *obj = nat_alloc(env, nat_const_get(env, NAT_OBJECT, "String", true), NAT_VALUE_STRING);
     size_t len = strlen(str);
-    obj->str = heap_string(env, str);
+    obj->str = heap_string(str);
     obj->str_len = len;
     obj->str_cap = len;
     nat_initialize(env, obj, 0, NULL, NULL, NULL);
@@ -453,7 +453,7 @@ NatObject *nat_symbol(NatEnv *env, char *name) {
         return symbol;
     } else {
         symbol = nat_alloc(env, nat_const_get(env, NAT_OBJECT, "Symbol", true), NAT_VALUE_SYMBOL);
-        symbol->symbol = heap_string(env, name);
+        symbol->symbol = heap_string(name);
         nat_initialize(env, symbol, 0, NULL, NULL, NULL);
         hashmap_put(env->global_env->symbols, name, symbol);
         return symbol;
@@ -462,7 +462,7 @@ NatObject *nat_symbol(NatEnv *env, char *name) {
 
 NatObject *nat_exception(NatEnv *env, NatObject *klass, char *message) {
     NatObject *obj = nat_alloc(env, klass, NAT_VALUE_EXCEPTION);
-    obj->message = heap_string(env, message);
+    obj->message = heap_string(message);
     // FIXME: pass message as object to initialize
     nat_initialize(env, obj, 0, NULL, NULL, NULL);
     return obj;
@@ -727,7 +727,7 @@ NatObject *nat_regexp(NatEnv *env, char *pattern) {
     }
     NatObject *obj = nat_alloc(env, nat_const_get(env, NAT_OBJECT, "Regexp", true), NAT_VALUE_REGEXP);
     obj->regexp = regexp;
-    obj->regexp_str = heap_string(env, pattern);
+    obj->regexp_str = heap_string(pattern);
     nat_initialize(env, obj, 0, NULL, NULL, NULL);
     return obj;
 }
@@ -736,7 +736,7 @@ NatObject *nat_matchdata(NatEnv *env, OnigRegion *region, NatObject *str_obj) {
     NatObject *obj = nat_alloc(env, nat_const_get(env, NAT_OBJECT, "MatchData", true), NAT_VALUE_MATCHDATA);
     obj->matchdata_region = region;
     assert(NAT_TYPE(str_obj) == NAT_VALUE_STRING);
-    obj->matchdata_str = heap_string(env, str_obj->str);
+    obj->matchdata_str = heap_string(str_obj->str);
     nat_initialize(env, obj, 0, NULL, NULL, NULL);
     return obj;
 }
@@ -745,7 +745,7 @@ NatObject *nat_matchdata(NatEnv *env, OnigRegion *region, NatObject *str_obj) {
 
 char *int_to_string(NatEnv *env, int64_t num) {
     if (num == 0) {
-        return heap_string(env, "0");
+        return heap_string("0");
     } else {
         char *str = malloc(INT_64_MAX_CHAR_LEN);
         snprintf(str, INT_64_MAX_CHAR_LEN, "%" PRId64, num);
@@ -755,7 +755,7 @@ char *int_to_string(NatEnv *env, int64_t num) {
 
 char *int_to_hex_string(NatEnv *env, int64_t num) {
     if (num == 0) {
-        return heap_string(env, "0x0");
+        return heap_string("0x0");
     } else {
         char *str = malloc(INT_64_MAX_CHAR_LEN);
         snprintf(str, INT_64_MAX_CHAR_LEN, "0x%" PRIx64, num);

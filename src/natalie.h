@@ -387,7 +387,7 @@ NatObject *nat_global_set(NatEnv *env, char *name, NatObject *val);
 
 bool nat_truthy(NatObject *obj);
 
-char *heap_string(NatEnv *env, char *str);
+char *heap_string(char *str);
 
 NatObject *nat_subclass(NatEnv *env, NatObject *superclass, char *name);
 NatObject *nat_module(NatEnv *env, char *name);
