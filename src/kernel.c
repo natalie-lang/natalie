@@ -278,3 +278,19 @@ NatObject *Kernel_tap(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
     NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &self, NULL, NULL);
     return self;
 }
+
+NatObject *Kernel_Array(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(1);
+    NatObject *value = args[0];
+    if (NAT_TYPE(value) == NAT_VALUE_ARRAY) {
+        return value;
+    } else if (nat_respond_to(env, value, "to_ary")) {
+        return nat_send(env, value, "to_ary", 0, NULL, NULL);
+    } else if (value == NAT_NIL) {
+        return nat_array(env);
+    } else {
+        NatObject *ary = nat_array(env);
+        nat_array_push(env, ary, value);
+        return ary;
+    }
+}

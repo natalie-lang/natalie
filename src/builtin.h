@@ -225,7 +225,8 @@ NatObject *IO_seek(NatEnv *env, NatObject *self, size_t argc, NatObject **args, 
     nat_define_method(env, module, "nil?", Kernel_is_nil);                                     \
     nat_define_method(env, module, "sleep", Kernel_sleep);                                     \
     nat_define_method(env, module, "define_singleton_method", Kernel_define_singleton_method); \
-    nat_define_method(env, module, "tap", Kernel_tap);
+    nat_define_method(env, module, "tap", Kernel_tap);                                         \
+    nat_define_method(env, module, "Array", Kernel_Array);
 
 NatObject *Kernel_puts(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Kernel_print(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
@@ -253,6 +254,7 @@ NatObject *Kernel_is_nil(NatEnv *env, NatObject *self, size_t argc, NatObject **
 NatObject *Kernel_sleep(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Kernel_define_singleton_method(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Kernel_tap(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+NatObject *Kernel_Array(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 
 NatObject *main_obj_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 
