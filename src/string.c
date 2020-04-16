@@ -214,6 +214,7 @@ NatObject *String_encoding(NatEnv *env, NatObject *self, size_t argc, NatObject 
     case NAT_ENCODING_UTF_8:
         return nat_const_get(env, Encoding, "UTF_8", true);
     }
+    NAT_UNREACHABLE();
 }
 
 static char *lcase_string(char *str) {
