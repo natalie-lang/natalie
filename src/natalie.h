@@ -23,9 +23,17 @@
 #define NAT_OBJ_CLASS(obj) (NAT_IS_TAGGED_INT(obj) ? NAT_INTEGER : obj->klass)
 #define NAT_RESCUE(env) ((env->rescue = 1) && setjmp(env->jump_buf))
 
-#define NAT_RAISE(env, class_name, message_format, ...)                                              \
-    nat_raise(env, nat_const_get(env, NAT_OBJECT, class_name, true), message_format, ##__VA_ARGS__); \
-    abort();
+#define NAT_RAISE(env, class_name, message_format, ...)                                                  \
+    {                                                                                                    \
+        nat_raise(env, nat_const_get(env, NAT_OBJECT, class_name, true), message_format, ##__VA_ARGS__); \
+        abort();                                                                                         \
+    }
+
+#define NAT_RAISE2(env, constant, message_format, ...)           \
+    {                                                            \
+        nat_raise(env, constant, message_format, ##__VA_ARGS__); \
+        abort();                                                 \
+    }
 
 #define NAT_ASSERT_ARGC(...)                                       \
     NAT_GET_MACRO(__VA_ARGS__, NAT_ASSERT_ARGC2, NAT_ASSERT_ARGC1) \
@@ -58,9 +66,11 @@
 
 #define NAT_GET_MACRO(_1, _2, NAME, ...) NAME
 
-#define NAT_UNREACHABLE()                    \
-    fprintf(stderr, "panic: unreachable\n"); \
-    abort();
+#define NAT_UNREACHABLE()                        \
+    {                                            \
+        fprintf(stderr, "panic: unreachable\n"); \
+        abort();                                 \
+    }
 
 #define NAT_ASSERT_NOT_FROZEN(obj)                                                               \
     if (nat_is_frozen(obj)) {                                                                    \
@@ -75,9 +85,11 @@
 #define NAT_MIN(a, b) ((a < b) ? a : b)
 #define NAT_MAX(a, b) ((a > b) ? a : b)
 
-#define NAT_NOT_YET_IMPLEMENTED(description)                 \
-    fprintf(stderr, "NOT YET IMPLEMENTED: %s", description); \
-    abort();
+#define NAT_NOT_YET_IMPLEMENTED(description)                     \
+    {                                                            \
+        fprintf(stderr, "NOT YET IMPLEMENTED: %s", description); \
+        abort();                                                 \
+    }
 
 #define NAT_OBJ_HAS_ENV(obj) ((obj)->env.global_env == env->global_env) // prefered check
 #define NAT_OBJ_HAS_ENV2(obj) ((obj)->env.global_env) // limited check used when there is no current env, i.e. nat_hashmap_hash and nat_hashmap_compare
