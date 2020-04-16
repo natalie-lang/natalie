@@ -399,9 +399,9 @@ module Natalie
         result_name = temp('call_result')
         if args
           args_name, args_count = p(args).split(':')
-          decl "NatObject *#{result_name} = nat_call_method_on_class(env, self->klass->superclass, self->klass->superclass, nat_find_current_method_name(env), self, #{args_count}, #{args_name}, NULL, #{block || 'NULL'});"
+          decl "NatObject *#{result_name} = nat_call_method_on_class(env, NAT_OBJ_CLASS(self)->superclass, NAT_OBJ_CLASS(self)->superclass, nat_find_current_method_name(env), self, #{args_count}, #{args_name}, NULL, #{block || 'NULL'});"
         else
-          decl "NatObject *#{result_name} = nat_call_method_on_class(env, self->klass->superclass, self->klass->superclass, nat_find_current_method_name(env), self, 0, NULL, NULL, #{block || 'NULL'});"
+          decl "NatObject *#{result_name} = nat_call_method_on_class(env, NAT_OBJ_CLASS(self)->superclass, NAT_OBJ_CLASS(self)->superclass, nat_find_current_method_name(env), self, 0, NULL, NULL, #{block || 'NULL'});"
         end
         result_name
       end

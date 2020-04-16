@@ -25,8 +25,8 @@ NatObject *Exception_inspect(NatEnv *env, NatObject *self, size_t argc, NatObjec
     NAT_ASSERT_ARGC(0);
     assert(NAT_TYPE(self) == NAT_VALUE_EXCEPTION);
     NatObject *str = nat_string(env, "#<");
-    assert(self->klass);
-    nat_string_append(env, str, Module_inspect(env, self->klass, 0, NULL, NULL, NULL)->str);
+    assert(NAT_OBJ_CLASS(self));
+    nat_string_append(env, str, Module_inspect(env, NAT_OBJ_CLASS(self), 0, NULL, NULL, NULL)->str);
     nat_string_append(env, str, ": ");
     nat_string_append(env, str, self->message);
     nat_string_append_char(env, str, '>');

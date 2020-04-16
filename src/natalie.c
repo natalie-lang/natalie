@@ -58,7 +58,7 @@ NatObject *nat_const_get_or_null(NatEnv *env, NatObject *parent, char *name, boo
 
 NatObject *nat_const_set(NatEnv *env, NatObject *parent, char *name, NatObject *val) {
     if (!NAT_IS_MODULE_OR_CLASS(parent)) {
-        parent = parent->klass;
+        parent = NAT_OBJ_CLASS(parent);
         assert(parent);
     }
     hashmap_remove(&parent->constants, name);
@@ -260,7 +260,7 @@ NatObject *nat_cvar_get(NatEnv *env, NatObject *obj, char *name) {
     } else {
         NatObject *klass_or_module = obj;
         if (NAT_TYPE(klass_or_module) != NAT_VALUE_CLASS && NAT_TYPE(klass_or_module) != NAT_VALUE_MODULE) {
-            klass_or_module = klass_or_module->klass;
+            klass_or_module = NAT_OBJ_CLASS(klass_or_module);
         }
         NAT_RAISE(env, "NameError", "uninitialized class variable %s in %s", name, klass_or_module->class_name);
     }
@@ -273,7 +273,7 @@ NatObject *nat_cvar_get_or_null(NatEnv *env, NatObject *obj, char *name) {
     }
 
     if (NAT_TYPE(obj) != NAT_VALUE_CLASS && NAT_TYPE(obj) != NAT_VALUE_MODULE) {
-        obj = obj->klass;
+        obj = NAT_OBJ_CLASS(obj);
     }
     assert(NAT_TYPE(obj) == NAT_VALUE_CLASS || NAT_TYPE(obj) == NAT_VALUE_MODULE);
 
@@ -299,7 +299,7 @@ NatObject *nat_cvar_set(NatEnv *env, NatObject *obj, char *name, NatObject *val)
     }
 
     if (NAT_TYPE(obj) != NAT_VALUE_CLASS && NAT_TYPE(obj) != NAT_VALUE_MODULE) {
-        obj = obj->klass;
+        obj = NAT_OBJ_CLASS(obj);
     }
     assert(NAT_TYPE(obj) == NAT_VALUE_CLASS || NAT_TYPE(obj) == NAT_VALUE_MODULE);
 
@@ -376,8 +376,8 @@ static void nat_init_class_or_module_data(NatEnv *env, NatObject *klass_or_modul
 
 NatObject *nat_subclass(NatEnv *env, NatObject *superclass, char *name) {
     assert(superclass);
-    assert(superclass->klass);
-    NatObject *klass = nat_alloc(env, superclass->klass, NAT_VALUE_CLASS);
+    assert(NAT_OBJ_CLASS(superclass));
+    NatObject *klass = nat_alloc(env, NAT_OBJ_CLASS(superclass), NAT_VALUE_CLASS);
     if (superclass->singleton_class) {
         // TODO: what happens if the superclass gets a singleton_class later?
         klass->singleton_class = nat_subclass(env, superclass->singleton_class, NULL);
@@ -410,7 +410,7 @@ void nat_class_include(NatEnv *env, NatObject *klass, NatObject *module) {
 }
 
 NatObject *nat_initialize(NatEnv *env, NatObject *obj, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
-    NatObject *klass = obj->klass;
+    NatObject *klass = NAT_OBJ_CLASS(obj);
     while (1) {
         NatObject *matching_class_or_module;
         NatMethod *method = nat_find_method(klass, "initialize", &matching_class_or_module);
@@ -426,7 +426,7 @@ NatObject *nat_initialize(NatEnv *env, NatObject *obj, size_t argc, NatObject **
 
 NatObject *nat_singleton_class(NatEnv *env, NatObject *obj) {
     if (!obj->singleton_class) {
-        obj->singleton_class = nat_subclass(env, obj->klass, NULL);
+        obj->singleton_class = nat_subclass(env, NAT_OBJ_CLASS(obj), NULL);
     }
     return obj->singleton_class;
 }
@@ -782,8 +782,8 @@ static NatMethod *nat_method_from_block(NatBlock *block) {
 void nat_define_method(NatEnv *env, NatObject *obj, char *name, NatObject *(*fn)(NatEnv *, NatObject *, size_t, NatObject **, struct hashmap *, NatBlock *block)) {
     NatMethod *method = nat_method_from_fn(fn);
     if (nat_is_main_object(obj)) {
-        free(hashmap_remove(&obj->klass->methods, name));
-        hashmap_put(&obj->klass->methods, name, method);
+        free(hashmap_remove(&NAT_OBJ_CLASS(obj)->methods, name));
+        hashmap_put(&NAT_OBJ_CLASS(obj)->methods, name, method);
     } else {
         free(hashmap_remove(&obj->methods, name));
         hashmap_put(&obj->methods, name, method);
@@ -793,8 +793,8 @@ void nat_define_method(NatEnv *env, NatObject *obj, char *name, NatObject *(*fn)
 void nat_define_method_with_block(NatEnv *env, NatObject *obj, char *name, NatBlock *block) {
     NatMethod *method = nat_method_from_block(block);
     if (nat_is_main_object(obj)) {
-        free(hashmap_remove(&obj->klass->methods, name));
-        hashmap_put(&obj->klass->methods, name, method);
+        free(hashmap_remove(&NAT_OBJ_CLASS(obj)->methods, name));
+        hashmap_put(&NAT_OBJ_CLASS(obj)->methods, name, method);
     } else {
         free(hashmap_remove(&obj->methods, name));
         hashmap_put(&obj->methods, name, method);
@@ -899,10 +899,10 @@ NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, Na
                 if (method->undefined) {
                     NAT_RAISE(env, "NoMethodError", "undefined method `%s' for %s:Class", sym, receiver->class_name);
                 }
-                return nat_call_method_on_class(env, klass, receiver->klass, sym, receiver, argc, args, NULL, block);
+                return nat_call_method_on_class(env, klass, NAT_OBJ_CLASS(receiver), sym, receiver, argc, args, NULL, block);
             }
         }
-        klass = receiver->klass;
+        klass = NAT_OBJ_CLASS(receiver);
     }
 #ifdef NAT_DEBUG_METHOD_RESOLUTION
     if (strcmp(sym, "inspect") != 0) {
@@ -1012,7 +1012,7 @@ bool nat_respond_to(NatEnv *env, NatObject *obj, char *name) {
         }
     } else if (obj->singleton_class && nat_find_method_without_undefined(obj->singleton_class, name, &matching_class_or_module)) {
         return true;
-    } else if (nat_find_method_without_undefined(obj->klass, name, &matching_class_or_module)) {
+    } else if (nat_find_method_without_undefined(NAT_OBJ_CLASS(obj), name, &matching_class_or_module)) {
         return true;
     } else {
         return false;
@@ -1226,7 +1226,7 @@ void nat_alias(NatEnv *env, NatObject *self, char *new_name, char *old_name) {
         NAT_RAISE(env, "TypeError", "no klass to make alias");
     }
     if (nat_is_main_object(self)) {
-        self = self->klass;
+        self = NAT_OBJ_CLASS(self);
     }
     NatObject *klass = self;
     if (NAT_TYPE(self) != NAT_VALUE_CLASS && NAT_TYPE(self) != NAT_VALUE_MODULE) {
@@ -1267,7 +1267,7 @@ void nat_print_exception_with_backtrace(NatEnv *env, NatObject *exception) {
         }
         dprintf(fd, "%s: ", exception->backtrace->ary[0]->str);
     }
-    dprintf(fd, "%s (%s)\n", exception->message, exception->klass->class_name);
+    dprintf(fd, "%s (%s)\n", exception->message, NAT_OBJ_CLASS(exception)->class_name);
 }
 
 void nat_handle_top_level_exception(NatEnv *env, bool run_exit_handlers) {

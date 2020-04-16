@@ -25,7 +25,6 @@ NatEnv *build_top_env() {
     nat_define_method(env, Class, "superclass", Class_superclass);
 
     NatObject *BasicObject = nat_alloc(env, Class, NAT_VALUE_CLASS);
-    assert(BasicObject->klass);
     BasicObject->class_name = heap_string(env, "BasicObject");
     nat_build_env(&BasicObject->env, env);
     BasicObject->superclass = NULL;
@@ -39,7 +38,6 @@ NatEnv *build_top_env() {
     nat_define_method(env, BasicObject, "!=", BasicObject_neq);
     nat_define_method(env, BasicObject, "equal?", Kernel_equal);
     nat_define_method(env, BasicObject, "instance_eval", BasicObject_instance_eval);
-    assert(BasicObject->klass);
 
     NatObject *Object = NAT_OBJECT = nat_subclass(env, BasicObject, "Object");
     nat_define_singleton_method(env, Object, "new", Object_new);

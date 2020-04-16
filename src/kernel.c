@@ -35,8 +35,8 @@ NatObject *Kernel_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject *
         return nat_string(env, self->class_name);
     } else {
         NatObject *str = nat_string(env, "#<");
-        assert(self->klass);
-        nat_string_append(env, str, Module_inspect(env, self->klass, 0, NULL, NULL, NULL)->str);
+        assert(NAT_OBJ_CLASS(self));
+        nat_string_append(env, str, Module_inspect(env, NAT_OBJ_CLASS(self), 0, NULL, NULL, NULL)->str);
         nat_string_append_char(env, str, ':');
         nat_string_append(env, str, nat_object_pointer_id(env, self));
         nat_string_append_char(env, str, '>');
@@ -61,7 +61,7 @@ NatObject *Kernel_equal(NatEnv *env, NatObject *self, size_t argc, NatObject **a
 
 NatObject *Kernel_class(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
-    return self->klass ? self->klass : NAT_NIL;
+    return NAT_OBJ_CLASS(self) ? NAT_OBJ_CLASS(self) : NAT_NIL;
 }
 
 NatObject *Kernel_singleton_class(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
@@ -154,7 +154,7 @@ NatObject *Kernel_methods(NatEnv *env, NatObject *self, size_t argc, NatObject *
     if (self->singleton_class) {
         nat_methods(env, array, self->singleton_class);
     } else {
-        nat_methods(env, array, self->klass);
+        nat_methods(env, array, NAT_OBJ_CLASS(self));
     }
     return array;
 }

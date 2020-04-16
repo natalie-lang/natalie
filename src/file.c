@@ -35,7 +35,7 @@ NatObject *File_initialize(NatEnv *env, NatObject *self, size_t argc, NatObject 
             }
             break;
         default:
-            NAT_RAISE(env, "TypeError", "no implicit conversion of %s into String", flags_obj->klass->class_name);
+            NAT_RAISE(env, "TypeError", "no implicit conversion of %s into String", NAT_OBJ_CLASS(flags_obj)->class_name);
         }
     }
     int mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
