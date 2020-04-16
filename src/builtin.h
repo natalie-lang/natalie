@@ -125,21 +125,23 @@ NatObject *FalseClass_to_s(NatEnv *env, NatObject *self, size_t argc, NatObject 
 
 NatObject *File_initialize(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 
-#define NAT_HASH_INIT(klass)                                  \
-    nat_define_singleton_method(env, klass, "new", Hash_new); \
-    nat_define_method(env, klass, "inspect", Hash_inspect);   \
-    nat_define_method(env, klass, "to_s", Hash_inspect);      \
-    nat_define_method(env, klass, "[]", Hash_ref);            \
-    nat_define_method(env, klass, "[]=", Hash_refeq);         \
-    nat_define_method(env, klass, "delete", Hash_delete);     \
-    nat_define_method(env, klass, "size", Hash_size);         \
-    nat_define_method(env, klass, "==", Hash_eqeq);           \
-    nat_define_method(env, klass, "===", Hash_eqeq);          \
-    nat_define_method(env, klass, "each", Hash_each);         \
-    nat_define_method(env, klass, "keys", Hash_keys);         \
+#define NAT_HASH_INIT(klass)                                        \
+    nat_define_singleton_method(env, klass, "new", Hash_new);       \
+    nat_define_singleton_method(env, klass, "[]", Hash_square_new); \
+    nat_define_method(env, klass, "inspect", Hash_inspect);         \
+    nat_define_method(env, klass, "to_s", Hash_inspect);            \
+    nat_define_method(env, klass, "[]", Hash_ref);                  \
+    nat_define_method(env, klass, "[]=", Hash_refeq);               \
+    nat_define_method(env, klass, "delete", Hash_delete);           \
+    nat_define_method(env, klass, "size", Hash_size);               \
+    nat_define_method(env, klass, "==", Hash_eqeq);                 \
+    nat_define_method(env, klass, "===", Hash_eqeq);                \
+    nat_define_method(env, klass, "each", Hash_each);               \
+    nat_define_method(env, klass, "keys", Hash_keys);               \
     nat_define_method(env, klass, "values", Hash_values);
 
 NatObject *Hash_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+NatObject *Hash_square_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Hash_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Hash_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Hash_refeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);

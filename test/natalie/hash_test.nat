@@ -36,6 +36,36 @@ describe 'hash' do
     end
   end
 
+  describe '.[]' do
+    it 'returns an empty hash if given no args' do
+      Hash[].should == {}
+    end
+
+    it 'returns a new hash if given sequential pairs' do
+      h = Hash[1, 2, 3, 4]
+      h.should == { 1 => 2, 3 => 4 }
+    end
+
+    it 'returns a hash if given an array of pairs' do
+      h = Hash[ [ ['a', 100], ['b', 200], ['c'] ] ]
+      h.should == { 'a' => 100, 'b' => 200, 'c' => nil }
+    end
+
+    it 'raises an error if given an array of pairs where a pair has the wrong number of items' do
+      -> { Hash[ [ [] ] ] }.should raise_error(ArgumentError, 'invalid number of elements (0 for 1..2)')
+      -> { Hash[ [ [1, 2, 3] ] ] }.should raise_error(ArgumentError, 'invalid number of elements (3 for 1..2)')
+    end
+
+    it 'raises an error if given an odd number of arguments' do
+      -> { Hash[1] }.should raise_error(ArgumentError, 'odd number of arguments for Hash')
+    end
+
+    it 'returns the hash if given a hash' do
+      h = Hash['a' => 100, 'b' => 200]
+      h.should == { 'a' => 100, 'b' => 200 }
+    end
+  end
+
   it 'can use any object as a key' do
     { 1 => 'val' }[1].should == 'val'
     { :sym => 'val' }[:sym].should == 'val'

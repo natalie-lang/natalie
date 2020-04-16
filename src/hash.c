@@ -14,6 +14,43 @@ NatObject *Hash_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args,
     return hash;
 }
 
+// Hash[]
+NatObject *Hash_square_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    if (argc == 0) {
+        return nat_hash(env);
+    } else if (argc == 1) {
+        NatObject *value = args[0];
+        if (NAT_TYPE(value) == NAT_VALUE_HASH) {
+            return value;
+        } else if (NAT_TYPE(value) == NAT_VALUE_ARRAY) {
+            NatObject *hash = nat_hash(env);
+            for (size_t i = 0; i < value->ary_len; i++) {
+                NatObject *pair = value->ary[i];
+                if (NAT_TYPE(pair) != NAT_VALUE_ARRAY) {
+                    NAT_RAISE(env, "ArgumentError", "wrong element in array to Hash[]");
+                }
+                if (pair->ary_len < 1 || pair->ary_len > 2) {
+                    NAT_RAISE(env, "ArgumentError", "invalid number of elements (%d for 1..2)", pair->ary_len);
+                }
+                NatObject *key = pair->ary[0];
+                NatObject *value = pair->ary_len == 1 ? NAT_NIL : pair->ary[1];
+                nat_hash_put(env, hash, key, value);
+            }
+            return hash;
+        }
+    }
+    if (argc % 2 != 0) {
+        NAT_RAISE(env, "ArgumentError", "odd number of arguments for Hash");
+    }
+    NatObject *hash = nat_hash(env);
+    for (size_t i = 0; i < argc; i += 2) {
+        NatObject *key = args[i];
+        NatObject *value = args[i + 1];
+        nat_hash_put(env, hash, key, value);
+    }
+    return hash;
+}
+
 NatObject *Hash_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     assert(NAT_TYPE(self) == NAT_VALUE_HASH);
