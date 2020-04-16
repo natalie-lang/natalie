@@ -73,6 +73,15 @@ NatObject *Comparable_lte(NatEnv *env, NatObject *self, size_t argc, NatObject *
 NatObject *Comparable_gt(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Comparable_gte(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 
+#define NAT_ENCODING_INIT(klass)                                    \
+    nat_define_singleton_method(env, klass, "list", Encoding_list); \
+    nat_define_method(env, klass, "name", Encoding_name);           \
+    nat_define_method(env, klass, "names", Encoding_names);
+
+NatObject *Encoding_list(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+NatObject *Encoding_name(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+NatObject *Encoding_names(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+
 NatObject *ENV_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *ENV_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *ENV_refeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
@@ -376,7 +385,12 @@ NatObject *Regexp_match(NatEnv *env, NatObject *self, size_t argc, NatObject **a
     nat_define_method(env, klass, "===", String_eqeq);          \
     nat_define_method(env, klass, "=~", String_eqtilde);        \
     nat_define_method(env, klass, "match", String_match);       \
-    nat_define_method(env, klass, "succ", String_succ);
+    nat_define_method(env, klass, "succ", String_succ);         \
+    nat_define_method(env, klass, "ord", String_ord);           \
+    nat_define_method(env, klass, "bytes", String_bytes);       \
+    nat_define_method(env, klass, "chars", String_chars);       \
+    nat_define_method(env, klass, "encoding", String_encoding); \
+    nat_define_method(env, klass, "force_encoding", String_force_encoding);
 
 NatObject *String_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *String_to_s(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
@@ -389,6 +403,11 @@ NatObject *String_cmp(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
 NatObject *String_eqtilde(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *String_match(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *String_succ(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+NatObject *String_ord(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+NatObject *String_bytes(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+NatObject *String_chars(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+NatObject *String_encoding(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+NatObject *String_force_encoding(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 
 #define NAT_SYMBOL_INIT(klass)                          \
     nat_define_method(env, klass, "to_s", Symbol_to_s); \

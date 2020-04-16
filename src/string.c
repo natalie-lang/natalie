@@ -1,5 +1,6 @@
 #include "builtin.h"
 #include "natalie.h"
+#include <ctype.h>
 
 NatObject *String_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC_AT_MOST(1);
@@ -39,7 +40,6 @@ NatObject *String_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject *
     NAT_ASSERT_ARGC(0);
     NatObject *out = nat_string(env, "\"");
     for (size_t i = 0; i < self->str_len; i++) {
-        // FIXME: iterate over multibyte chars
         char c = self->str[i];
         if (c == '"' || c == '\\' || c == '#') {
             nat_string_append_char(env, out, '\\');
@@ -157,4 +157,106 @@ NatObject *String_succ(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
         result->str[index]++;
     }
     return result;
+}
+
+NatObject *String_ord(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NatObject *chars = nat_string_chars(env, self);
+    if (chars->ary_len == 0) {
+        NAT_RAISE(env, "ArgumentError", "empty string");
+    }
+    NatObject *c = chars->ary[0];
+    assert(NAT_TYPE(c) == NAT_VALUE_STRING);
+    assert(c->str_len > 0);
+    unsigned int code;
+    switch (c->str_len) {
+    case 0:
+        NAT_UNREACHABLE();
+    case 1:
+        code = (unsigned char)c->str[0];
+        return nat_integer(env, code);
+    case 2:
+        code = (((unsigned char)c->str[0] ^ 0xC0) << 6) + (((unsigned char)c->str[1] ^ 0x80) << 0);
+        return nat_integer(env, code);
+    case 3:
+        code = (((unsigned char)c->str[0] ^ 0xE0) << 12) + (((unsigned char)c->str[1] ^ 0x80) << 6) + (((unsigned char)c->str[2] ^ 0x80) << 0);
+        return nat_integer(env, code);
+    case 4:
+        code = (((unsigned char)c->str[0] ^ 0xF0) << 18) + (((unsigned char)c->str[1] ^ 0x80) << 12) + (((unsigned char)c->str[2] ^ 0x80) << 6) + (((unsigned char)c->str[3] ^ 0x80) << 0);
+        return nat_integer(env, code);
+    default:
+        NAT_UNREACHABLE();
+    }
+}
+
+NatObject *String_bytes(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(0);
+    assert(NAT_TYPE(self) == NAT_VALUE_STRING);
+    NatObject *ary = nat_array(env);
+    for (size_t i = 0; i < self->str_len; i++) {
+        nat_array_push(env, ary, nat_integer(env, self->str[i]));
+    }
+    return ary;
+}
+
+NatObject *String_chars(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(0);
+    assert(NAT_TYPE(self) == NAT_VALUE_STRING);
+    return nat_string_chars(env, self);
+}
+
+NatObject *String_encoding(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(0);
+    assert(NAT_TYPE(self) == NAT_VALUE_STRING);
+    NatObject *Encoding = nat_const_get(env, NAT_OBJECT, "Encoding", true);
+    switch (self->encoding) {
+    case NAT_ENCODING_ASCII_8BIT:
+        return nat_const_get(env, Encoding, "ASCII_8BIT", true);
+    case NAT_ENCODING_UTF_8:
+        return nat_const_get(env, Encoding, "UTF_8", true);
+    }
+}
+
+static char *lcase_string(char *str) {
+    char *lcase_str = heap_string(str);
+    for (int i = 0; lcase_str[i]; i++) {
+        lcase_str[i] = tolower(lcase_str[i]);
+    }
+    return lcase_str;
+}
+
+static NatObject *find_encoding_by_name(NatEnv *env, char *name) {
+    char *lcase_name = lcase_string(name);
+    NatObject *list = Encoding_list(env, nat_const_get(env, NAT_OBJECT, "Encoding", true), 0, NULL, NULL, NULL);
+    for (size_t i = 0; i < list->ary_len; i++) {
+        NatObject *encoding = list->ary[i];
+        NatObject *names = encoding->encoding_names;
+        for (size_t n = 0; n < names->ary_len; n++) {
+            char *name = lcase_string(names->ary[n]->str);
+            if (strcmp(name, lcase_name) == 0) {
+                free(name);
+                free(lcase_name);
+                return encoding;
+            }
+            free(name);
+        }
+    }
+    free(lcase_name);
+    NAT_RAISE(env, "ArgumentError", "unknown encoding name - %s", name);
+}
+
+NatObject *String_force_encoding(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(1);
+    assert(NAT_TYPE(self) == NAT_VALUE_STRING);
+    NatObject *encoding = args[0];
+    switch (NAT_TYPE(encoding)) {
+    case NAT_VALUE_ENCODING:
+        self->encoding = encoding->encoding_num;
+        break;
+    case NAT_VALUE_STRING:
+        self->encoding = find_encoding_by_name(env, encoding->str)->encoding_num;
+        break;
+    default:
+        NAT_RAISE(env, "TypeError", "no implicit conversion of %s into %s", NAT_OBJ_CLASS(encoding)->class_name, "String");
+    }
+    return self;
 }

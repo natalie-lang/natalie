@@ -186,6 +186,9 @@ NatObject *nat_gc_mark_live_objects(NatEnv *env) {
                 }
             }
             break;
+        case NAT_VALUE_ENCODING:
+            nat_gc_push_object(env, objects, obj->encoding_names);
+            break;
         case NAT_VALUE_EXCEPTION:
             nat_gc_push_object(env, objects, obj->backtrace);
             break;
@@ -275,6 +278,8 @@ static void nat_gc_collect_object(NatEnv *env, NatHeapBlock *block, NatObject *o
         }
         if (obj->cvars.table) hashmap_destroy(&obj->cvars);
         free(obj->included_modules);
+        break;
+    case NAT_VALUE_ENCODING:
         break;
     case NAT_VALUE_EXCEPTION:
         free(obj->message);

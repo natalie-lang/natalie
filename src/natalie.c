@@ -437,16 +437,6 @@ NatObject *nat_integer(NatEnv *env, int64_t integer) {
     return (NatObject *)(integer << 1 | 1);
 }
 
-NatObject *nat_string(NatEnv *env, char *str) {
-    NatObject *obj = nat_alloc(env, nat_const_get(env, NAT_OBJECT, "String", true), NAT_VALUE_STRING);
-    size_t len = strlen(str);
-    obj->str = heap_string(str);
-    obj->str_len = len;
-    obj->str_cap = len;
-    nat_initialize(env, obj, 0, NULL, NULL, NULL);
-    return obj;
-}
-
 NatObject *nat_symbol(NatEnv *env, char *name) {
     NatObject *symbol = hashmap_get(env->global_env->symbols, name);
     if (symbol) {
@@ -475,6 +465,17 @@ NatObject *nat_array(NatEnv *env) {
     obj->ary_cap = NAT_ARRAY_INIT_SIZE;
     nat_initialize(env, obj, 0, NULL, NULL, NULL);
     return obj;
+}
+
+NatObject *nat_array_with_vals(NatEnv *env, size_t count, ...) {
+    va_list args;
+    va_start(args, count);
+    NatObject *ary = nat_array(env);
+    for (size_t i = 0; i < count; i++) {
+        nat_array_push(env, ary, va_arg(args, NatObject *));
+    }
+    va_end(args);
+    return ary;
 }
 
 NatObject *nat_array_copy(NatEnv *env, NatObject *source) {
@@ -1049,6 +1050,17 @@ NatObject *nat_lambda(NatEnv *env, NatBlock *block) {
     return lambda;
 }
 
+NatObject *nat_string(NatEnv *env, char *str) {
+    NatObject *obj = nat_alloc(env, nat_const_get(env, NAT_OBJECT, "String", true), NAT_VALUE_STRING);
+    size_t len = strlen(str);
+    obj->str = heap_string(str);
+    obj->str_len = len;
+    obj->str_cap = len;
+    obj->encoding = NAT_ENCODING_UTF_8; // TODO: inherit from encoding of file?
+    nat_initialize(env, obj, 0, NULL, NULL, NULL);
+    return obj;
+}
+
 // "0x" + up to 16 hex chars + NULL terminator
 #define NAT_OBJECT_POINTER_LENGTH 2 + 16 + 1
 
@@ -1093,6 +1105,57 @@ void nat_string_append_nat_string(NatEnv *env, NatObject *str, NatObject *str2) 
     nat_grow_string_at_least(env, str, total_len);
     strcat(str->str, str2->str);
     str->str_len = total_len;
+}
+
+#define NAT_RAISE_ENCODING_INVALID_BYTE_SEQUENCE_ERROR(env, message_format, ...)                              \
+    {                                                                                                         \
+        NatObject *Encoding = nat_const_get(env, NAT_OBJECT, "Encoding", true);                               \
+        NatObject *InvalidByteSequenceError = nat_const_get(env, Encoding, "InvalidByteSequenceError", true); \
+        nat_raise(env, InvalidByteSequenceError, message_format, ##__VA_ARGS__);                              \
+    }
+
+NatObject *nat_string_chars(NatEnv *env, NatObject *str) {
+    NatObject *ary = nat_array(env);
+    NatObject *c;
+    char buffer[5];
+    switch (str->encoding) {
+    case NAT_ENCODING_UTF_8:
+        for (size_t i = 0; i < str->str_len; i++) {
+            buffer[0] = str->str[i];
+            if (((unsigned char)buffer[0] >> 3) == 30) { // 11110xxx, 4 bytes
+                if (i + 3 >= str->str_len) abort(); //NAT_RAISE_ENCODING_INVALID_BYTE_SEQUENCE_ERROR(env, "invalid byte sequence at index %i in string %S (string not long enough)", i, nat_send(env, str, "inspect", 0, NULL, NULL));
+                buffer[1] = str->str[++i];
+                buffer[2] = str->str[++i];
+                buffer[3] = str->str[++i];
+                buffer[4] = 0;
+            } else if (((unsigned char)buffer[0] >> 4) == 14) { // 1110xxxx, 3 bytes
+                if (i + 2 >= str->str_len) abort(); //NAT_RAISE_ENCODING_INVALID_BYTE_SEQUENCE_ERROR(env, "invalid byte sequence at index %i in string %S (string not long enough)", i, nat_send(env, str, "inspect", 0, NULL, NULL));
+                buffer[1] = str->str[++i];
+                buffer[2] = str->str[++i];
+                buffer[3] = 0;
+            } else if (((unsigned char)buffer[0] >> 5) == 6) { // 110xxxxx, 2 bytes
+                if (i + 1 >= str->str_len) abort(); //NAT_RAISE_ENCODING_INVALID_BYTE_SEQUENCE_ERROR(env, "invalid byte sequence at index %i in string %S (string not long enough)", i, nat_send(env, str, "inspect", 0, NULL, NULL));
+                buffer[1] = str->str[++i];
+                buffer[2] = 0;
+            } else {
+                buffer[1] = 0;
+            }
+            c = nat_string(env, buffer);
+            c->encoding = NAT_ENCODING_UTF_8;
+            nat_array_push(env, ary, c);
+        }
+        break;
+    case NAT_ENCODING_ASCII_8BIT:
+        for (size_t i = 0; i < str->str_len; i++) {
+            buffer[0] = str->str[i];
+            buffer[1] = 0;
+            c = nat_string(env, buffer);
+            c->encoding = NAT_ENCODING_ASCII_8BIT;
+            nat_array_push(env, ary, c);
+        }
+        break;
+    }
+    return ary;
 }
 
 NatObject *nat_sprintf(NatEnv *env, char *format, ...) {
@@ -1512,4 +1575,12 @@ NatObject *nat_block_args_to_array(NatEnv *env, size_t signature_size, size_t ar
         return nat_to_ary(env, args[0], true);
     }
     return nat_args_to_array(env, argc, args);
+}
+
+NatObject *nat_encoding(NatEnv *env, int num, NatObject *names) {
+    NatObject *encoding = nat_alloc(env, nat_const_get(env, NAT_OBJECT, "Encoding", true), NAT_VALUE_ENCODING);
+    encoding->encoding_num = num;
+    encoding->encoding_names = names;
+    nat_freeze_object(names);
+    return encoding;
 }

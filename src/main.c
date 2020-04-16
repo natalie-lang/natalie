@@ -165,6 +165,20 @@ NatEnv *build_top_env() {
     NatObject *FrozenError = nat_subclass(env, RuntimeError, "FrozenError");
     nat_const_set(env, Object, "FrozenError", FrozenError);
 
+    NatObject *EncodingError = nat_subclass(env, StandardError, "EncodingError");
+    nat_const_set(env, Object, "EncodingError", EncodingError);
+    NatObject *Encoding = nat_subclass(env, NAT_OBJECT, "Encoding");
+    NatObject *InvalidByteSequenceError = nat_subclass(env, EncodingError, "InvalidByteSequenceError");
+    nat_const_set(env, Encoding, "InvalidByteSequenceError", InvalidByteSequenceError);
+    nat_const_set(env, Object, "Encoding", Encoding);
+    NAT_ENCODING_INIT(Encoding);
+
+    NatObject *EncodingAscii8Bit = nat_encoding(env, NAT_ENCODING_ASCII_8BIT, nat_array_with_vals(env, 2, nat_string(env, "ASCII-8BIT"), nat_string(env, "BINARY")));
+    nat_const_set(env, Encoding, "ASCII_8BIT", EncodingAscii8Bit);
+
+    NatObject *EncodingUTF8 = nat_encoding(env, NAT_ENCODING_UTF_8, nat_array_with_vals(env, 2, nat_string(env, "ASCII-8BIT"), nat_string(env, "BINARY")));
+    nat_const_set(env, Encoding, "UTF_8", EncodingUTF8);
+
     nat_global_set(env, "$NAT_at_exit_handlers", nat_array(env));
 
     NatObject *self = nat_alloc(env, NAT_OBJECT, NAT_VALUE_OTHER);
