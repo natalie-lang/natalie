@@ -1,9 +1,19 @@
 require_relative '../spec_helper'
 
 describe 'symbol' do
-  it 'works' do
-    s = :foo
-    s.inspect.should == ':foo'
-    s.to_s.should == 'foo'
+  describe '#inspect' do
+    it 'returns a code representation of the symbol' do
+      :foo.inspect.should == ':foo'
+      :"foo bar".inspect.should == ':"foo bar"'
+      :"foo\nbar".inspect.should == ":\"foo\\nbar\""
+    end
+  end
+
+  describe '#to_s' do
+    it 'returns the symbol as a string' do
+      :foo.to_s.should == 'foo'
+      :"foo bar".to_s.should == 'foo bar'
+      :"foo\nbar".to_s.should == "foo\nbar"
+    end
   end
 end
