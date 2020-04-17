@@ -140,4 +140,37 @@ describe 'string' do
       end
     end
   end
+
+  describe '#index' do
+    it 'returns the index of the substring' do
+      s = 'tim is ok'
+      s.index('tim').should == 0
+      s.index('is').should == 4
+      s.index('ok').should == 7
+    end
+
+    it 'returns nil if the substring cannot be found' do
+      s = 'tim is ok'
+      s.index('rocks').should == nil
+    end
+  end
+
+  describe '#sub' do
+    it 'replaces the matching string' do
+      s = 'tim is ok'
+      s.sub('is ok', 'rocks').should == 'tim rocks'
+      s.should == 'tim is ok'
+      s.sub(' is ok', '').should == 'tim'
+      s.sub('bogus', '').should == 'tim is ok'
+    end
+
+    it 'replaces the matching regex' do
+      s = 'tim is ok'
+      s.sub(/is ok/, 'rocks').should == 'tim rocks'
+      s.should == 'tim is ok'
+      s.sub(/ is ok/, '').should == 'tim'
+      s.sub(/is.*/, 'rocks').should == 'tim rocks'
+      s.sub(/bogus/, '').should == 'tim is ok'
+    end
+  end
 end

@@ -283,3 +283,51 @@ NatObject *String_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
     }
     return chars->ary[index];
 }
+
+// FIXME: this is dirty quick solution, a slow algorithm and doesn't account for string encoding
+NatObject *String_index(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(1);
+    assert(NAT_TYPE(self) == NAT_VALUE_STRING);
+    NatObject *find = args[0];
+    NAT_ASSERT_TYPE(find, NAT_VALUE_STRING, "String");
+    for (size_t i = 0; i < self->str_len; i++) {
+        if (strncmp(&self->str[i], find->str, find->str_len) == 0) {
+            return nat_integer(env, i);
+        }
+    }
+    return NAT_NIL;
+}
+
+NatObject *String_sub(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(2);
+    assert(NAT_TYPE(self) == NAT_VALUE_STRING);
+    NatObject *sub = args[0];
+    NatObject *repl = args[1];
+    NAT_ASSERT_TYPE(repl, NAT_VALUE_STRING, "String");
+    if (NAT_TYPE(sub) == NAT_VALUE_STRING) {
+        NatObject *index_obj = String_index(env, self, 1, &sub, NULL, NULL);
+        if (index_obj == NAT_NIL) {
+            return self;
+        }
+        int64_t index = NAT_INT_VALUE(index_obj);
+        NatObject *out = nat_string(env, self->str);
+        out->str[index] = 0;
+        out->str_len = index;
+        nat_string_append_nat_string(env, out, repl);
+        nat_string_append(env, out, &self->str[index + sub->str_len]);
+        return out;
+    } else {
+        NatObject *match = Regexp_match(env, sub, 1, &self, NULL, NULL);
+        if (match == NAT_NIL) {
+            return self;
+        }
+        NatObject *match_str = MatchData_to_s(env, match, 0, NULL, NULL, NULL);
+        int64_t index = match->matchdata_region->beg[0];
+        NatObject *out = nat_string(env, self->str);
+        out->str[index] = 0;
+        out->str_len = index;
+        nat_string_append_nat_string(env, out, repl);
+        nat_string_append(env, out, &self->str[index + match_str->str_len]);
+        return out;
+    }
+}
