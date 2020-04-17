@@ -307,7 +307,7 @@ NatObject *String_sub(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
     if (NAT_TYPE(sub) == NAT_VALUE_STRING) {
         NatObject *index_obj = String_index(env, self, 1, &sub, NULL, NULL);
         if (index_obj == NAT_NIL) {
-            return self;
+            return nat_dup(env, self);
         }
         int64_t index = NAT_INT_VALUE(index_obj);
         NatObject *out = nat_string(env, self->str);
@@ -319,7 +319,7 @@ NatObject *String_sub(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
     } else if (NAT_TYPE(sub) == NAT_VALUE_REGEXP) {
         NatObject *match = Regexp_match(env, sub, 1, &self, NULL, NULL);
         if (match == NAT_NIL) {
-            return self;
+            return nat_dup(env, self);
         }
         NatObject *match_str = MatchData_to_s(env, match, 0, NULL, NULL, NULL);
         int64_t index = match->matchdata_region->beg[0];

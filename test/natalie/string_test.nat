@@ -156,6 +156,12 @@ describe 'string' do
   end
 
   describe '#sub' do
+    it 'returns a duped string if no substitution was made' do
+      s = 'tim is ok'
+      s.sub('is cool', '').object_id.should != s.object_id
+      s.sub(/is cool/, '').object_id.should != s.object_id
+    end
+
     it 'replaces the matching string' do
       s = 'tim is ok'
       s.sub('is ok', 'rocks').should == 'tim rocks'
