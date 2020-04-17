@@ -73,6 +73,34 @@ describe 'string' do
     end
   end
 
+  describe '[]' do
+    it 'returns the character at the given index' do
+      s = "😉”ăa"
+      s[0].should == "😉"
+      s[1].should == "”"
+      s[2].should == "ă"
+      s[3].should == "a"
+    end
+
+    it 'returns nil if the index is past the end' do
+      s = "😉”ăa"
+      s[4].should == nil
+    end
+
+    it 'returns the character from the end given a negative index' do
+      s = "😉”ăa"
+      s[-1].should == "a"
+      s[-2].should == "ă"
+      s[-3].should == "”"
+      s[-4].should == "😉"
+    end
+
+    it 'returns nil if the negative index is too small' do
+      s = "😉”ăa"
+      s[-5].should == nil
+    end
+  end
+
   describe '#succ' do
     context 'given a single character' do
       it 'returns the next character' do

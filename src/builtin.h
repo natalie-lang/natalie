@@ -372,25 +372,26 @@ NatObject *Regexp_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject *
 NatObject *Regexp_eqtilde(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Regexp_match(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 
-#define NAT_STRING_INIT(klass)                                  \
-    nat_define_singleton_method(env, klass, "new", String_new); \
-    nat_class_include(env, klass, Comparable);                  \
-    nat_define_method(env, klass, "to_s", String_to_s);         \
-    nat_define_method(env, klass, "inspect", String_inspect);   \
-    nat_define_method(env, klass, "<=>", String_cmp);           \
-    nat_define_method(env, klass, "<<", String_ltlt);           \
-    nat_define_method(env, klass, "+", String_add);             \
-    nat_define_method(env, klass, "*", String_mul);             \
-    nat_define_method(env, klass, "==", String_eqeq);           \
-    nat_define_method(env, klass, "===", String_eqeq);          \
-    nat_define_method(env, klass, "=~", String_eqtilde);        \
-    nat_define_method(env, klass, "match", String_match);       \
-    nat_define_method(env, klass, "succ", String_succ);         \
-    nat_define_method(env, klass, "ord", String_ord);           \
-    nat_define_method(env, klass, "bytes", String_bytes);       \
-    nat_define_method(env, klass, "chars", String_chars);       \
-    nat_define_method(env, klass, "encoding", String_encoding); \
-    nat_define_method(env, klass, "force_encoding", String_force_encoding);
+#define NAT_STRING_INIT(klass)                                              \
+    nat_define_singleton_method(env, klass, "new", String_new);             \
+    nat_class_include(env, klass, Comparable);                              \
+    nat_define_method(env, klass, "to_s", String_to_s);                     \
+    nat_define_method(env, klass, "inspect", String_inspect);               \
+    nat_define_method(env, klass, "<=>", String_cmp);                       \
+    nat_define_method(env, klass, "<<", String_ltlt);                       \
+    nat_define_method(env, klass, "+", String_add);                         \
+    nat_define_method(env, klass, "*", String_mul);                         \
+    nat_define_method(env, klass, "==", String_eqeq);                       \
+    nat_define_method(env, klass, "===", String_eqeq);                      \
+    nat_define_method(env, klass, "=~", String_eqtilde);                    \
+    nat_define_method(env, klass, "match", String_match);                   \
+    nat_define_method(env, klass, "succ", String_succ);                     \
+    nat_define_method(env, klass, "ord", String_ord);                       \
+    nat_define_method(env, klass, "bytes", String_bytes);                   \
+    nat_define_method(env, klass, "chars", String_chars);                   \
+    nat_define_method(env, klass, "encoding", String_encoding);             \
+    nat_define_method(env, klass, "force_encoding", String_force_encoding); \
+    nat_define_method(env, klass, "[]", String_ref);
 
 NatObject *String_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *String_to_s(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
@@ -408,6 +409,7 @@ NatObject *String_bytes(NatEnv *env, NatObject *self, size_t argc, NatObject **a
 NatObject *String_chars(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *String_encoding(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *String_force_encoding(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+NatObject *String_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 
 #define NAT_SYMBOL_INIT(klass)                          \
     nat_define_method(env, klass, "to_s", Symbol_to_s); \

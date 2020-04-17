@@ -261,3 +261,25 @@ NatObject *String_force_encoding(NatEnv *env, NatObject *self, size_t argc, NatO
     }
     return self;
 }
+
+NatObject *String_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(1);
+    assert(NAT_TYPE(self) == NAT_VALUE_STRING);
+    NatObject *index_obj = args[0];
+    NAT_ASSERT_TYPE(index_obj, NAT_VALUE_INTEGER, "Integer");
+    int64_t index = NAT_INT_VALUE(index_obj);
+
+    // not sure how we'd handle that given a 64-bit signed int for an index,
+    // not to mention that a string that long would be insane to index into
+    assert(self->str_len < INT64_MAX);
+
+    NatObject *chars = nat_string_chars(env, self);
+    if (index < 0) {
+        index = chars->ary_len + index;
+    }
+
+    if (index < 0 || index >= (int64_t)chars->ary_len) {
+        return NAT_NIL;
+    }
+    return chars->ary[index];
+}
