@@ -316,7 +316,7 @@ NatObject *String_sub(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
         nat_string_append_nat_string(env, out, repl);
         nat_string_append(env, out, &self->str[index + sub->str_len]);
         return out;
-    } else {
+    } else if (NAT_TYPE(sub) == NAT_VALUE_REGEXP) {
         NatObject *match = Regexp_match(env, sub, 1, &self, NULL, NULL);
         if (match == NAT_NIL) {
             return self;
@@ -329,5 +329,7 @@ NatObject *String_sub(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
         nat_string_append_nat_string(env, out, repl);
         nat_string_append(env, out, &self->str[index + match_str->str_len]);
         return out;
+    } else {
+        NAT_RAISE(env, "TypeError", "wrong argument type %s (expected Regexp)", NAT_OBJ_CLASS(sub)->class_name);
     }
 }
