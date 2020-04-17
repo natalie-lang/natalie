@@ -69,8 +69,26 @@ NatObject *Kernel_singleton_class(NatEnv *env, NatObject *self, size_t argc, Nat
     return nat_singleton_class(env, self);
 }
 
+NatObject *Kernel_instance_variables(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NatObject *ary = nat_array(env);
+    if (NAT_TYPE(self) == NAT_VALUE_INTEGER) {
+        return ary;
+    }
+    struct hashmap_iter *iter;
+    if (self->ivars.table) {
+        for (iter = hashmap_iter(&self->ivars); iter; iter = hashmap_iter_next(&self->ivars, iter)) {
+            char *name = (char *)hashmap_iter_get_key(iter);
+            nat_array_push(env, ary, nat_symbol(env, name));
+        }
+    }
+    return ary;
+}
+
 NatObject *Kernel_instance_variable_get(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
+    if (NAT_TYPE(self) == NAT_VALUE_INTEGER) {
+        return NAT_NIL;
+    }
     NatObject *name_obj = args[0];
     char *name = NULL;
     if (NAT_TYPE(name_obj) == NAT_VALUE_STRING) {
@@ -85,6 +103,7 @@ NatObject *Kernel_instance_variable_get(NatEnv *env, NatObject *self, size_t arg
 
 NatObject *Kernel_instance_variable_set(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(2);
+    NAT_ASSERT_NOT_FROZEN(self);
     NatObject *name_obj = args[0];
     char *name = NULL;
     if (NAT_TYPE(name_obj) == NAT_VALUE_STRING) {

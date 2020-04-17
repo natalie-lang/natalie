@@ -239,7 +239,7 @@ enum NatEncoding {
 
 #define nat_is_main_object(obj) ((!NAT_IS_TAGGED_INT(obj) && ((obj)->flags & NAT_FLAG_MAIN_OBJECT) == NAT_FLAG_MAIN_OBJECT))
 
-#define nat_is_frozen(obj) ((!NAT_IS_TAGGED_INT(obj) && ((obj)->flags & NAT_FLAG_FROZEN) == NAT_FLAG_FROZEN))
+#define nat_is_frozen(obj) ((NAT_IS_TAGGED_INT(obj) || ((obj)->flags & NAT_FLAG_FROZEN) == NAT_FLAG_FROZEN))
 
 #define nat_freeze_object(obj) obj->flags = obj->flags | NAT_FLAG_FROZEN;
 

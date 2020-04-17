@@ -220,6 +220,7 @@ NatObject *IO_seek(NatEnv *env, NatObject *self, size_t argc, NatObject **args, 
     nat_define_method(env, module, "eql?", Kernel_equal);                                      \
     nat_define_method(env, module, "class", Kernel_class);                                     \
     nat_define_method(env, module, "singleton_class", Kernel_singleton_class);                 \
+    nat_define_method(env, module, "instance_variables", Kernel_instance_variables);           \
     nat_define_method(env, module, "instance_variable_get", Kernel_instance_variable_get);     \
     nat_define_method(env, module, "instance_variable_set", Kernel_instance_variable_set);     \
     nat_define_method(env, module, "raise", Kernel_raise);                                     \
@@ -249,6 +250,7 @@ NatObject *Kernel_object_id(NatEnv *env, NatObject *self, size_t argc, NatObject
 NatObject *Kernel_equal(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Kernel_class(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Kernel_singleton_class(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+NatObject *Kernel_instance_variables(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Kernel_instance_variable_get(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Kernel_instance_variable_set(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Kernel_raise(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
