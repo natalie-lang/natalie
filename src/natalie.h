@@ -307,7 +307,7 @@ struct NatObject {
         // NAT_VALUE_ENCODING
         struct {
             NatObject *encoding_names; // array
-            int encoding_num; // should match NatEncoding enum above
+            enum NatEncoding encoding_num; // should match NatEncoding enum above
         };
 
         // NAT_VALUE_EXCEPTION
