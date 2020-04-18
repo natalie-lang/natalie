@@ -75,10 +75,12 @@ NatObject *Comparable_gte(NatEnv *env, NatObject *self, size_t argc, NatObject *
 
 #define NAT_ENCODING_INIT(klass)                                    \
     nat_define_singleton_method(env, klass, "list", Encoding_list); \
+    nat_define_method(env, klass, "inspect", Encoding_inspect);     \
     nat_define_method(env, klass, "name", Encoding_name);           \
     nat_define_method(env, klass, "names", Encoding_names);
 
 NatObject *Encoding_list(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+NatObject *Encoding_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Encoding_name(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Encoding_names(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 

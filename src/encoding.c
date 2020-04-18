@@ -8,6 +8,12 @@ NatObject *Encoding_list(NatEnv *env, NatObject *self, size_t argc, NatObject **
     return ary;
 }
 
+NatObject *Encoding_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(0);
+    assert(NAT_TYPE(self) == NAT_VALUE_ENCODING);
+    return nat_sprintf(env, "#<Encoding:%S>", self->encoding_names->ary[0]);
+}
+
 NatObject *Encoding_name(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     assert(NAT_TYPE(self) == NAT_VALUE_ENCODING);
