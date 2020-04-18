@@ -176,7 +176,7 @@ NatEnv *build_top_env() {
     NatObject *EncodingAscii8Bit = nat_encoding(env, NAT_ENCODING_ASCII_8BIT, nat_array_with_vals(env, 2, nat_string(env, "ASCII-8BIT"), nat_string(env, "BINARY")));
     nat_const_set(env, Encoding, "ASCII_8BIT", EncodingAscii8Bit);
 
-    NatObject *EncodingUTF8 = nat_encoding(env, NAT_ENCODING_UTF_8, nat_array_with_vals(env, 2, nat_string(env, "ASCII-8BIT"), nat_string(env, "BINARY")));
+    NatObject *EncodingUTF8 = nat_encoding(env, NAT_ENCODING_UTF_8, nat_array_with_vals(env, 2, nat_string(env, "UTF-8")));
     nat_const_set(env, Encoding, "UTF_8", EncodingUTF8);
 
     nat_global_set(env, "$NAT_at_exit_handlers", nat_array(env));
