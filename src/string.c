@@ -245,6 +245,38 @@ static NatObject *find_encoding_by_name(NatEnv *env, char *name) {
     NAT_RAISE(env, "ArgumentError", "unknown encoding name - %s", name);
 }
 
+NatObject *String_encode(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(1);
+    assert(NAT_TYPE(self) == NAT_VALUE_STRING);
+    enum NatEncoding orig_encoding = self->encoding;
+    NatObject *copy = nat_dup(env, self);
+    String_force_encoding(env, copy, argc, args, NULL, NULL);
+    NatObject *Encoding = nat_const_get(env, NAT_OBJECT, "Encoding", true);
+    if (orig_encoding == copy->encoding) {
+        return copy;
+    } else if (orig_encoding == NAT_ENCODING_UTF_8 && copy->encoding == NAT_ENCODING_ASCII_8BIT) {
+        NatObject *chars = nat_string_chars(env, self);
+        for (size_t i = 0; i < chars->ary_len; i++) {
+            NatObject *char_obj = chars->ary[i];
+            assert(NAT_TYPE(char_obj) == NAT_VALUE_STRING);
+            if (char_obj->str_len > 1) {
+                NatObject *ord = String_ord(env, char_obj, 0, NULL, NULL, NULL);
+                NatObject *message = nat_sprintf(env, "U+%X from UTF-8 to ASCII-8BIT", NAT_INT_VALUE(ord));
+                NatObject *sub_args[2] = { nat_string(env, "0X"), nat_string(env, "") };
+                message = String_sub(env, message, 2, sub_args, NULL, NULL);
+                nat_raise(env, nat_const_get(env, Encoding, "UndefinedConversionError", true), message->str);
+                abort();
+            }
+        }
+        return copy;
+    } else if (orig_encoding == NAT_ENCODING_ASCII_8BIT && copy->encoding == NAT_ENCODING_UTF_8) {
+        return copy;
+    } else {
+        nat_raise(env, nat_const_get(env, Encoding, "ConverterNotFoundError", true), "code converter not found");
+        abort();
+    }
+}
+
 NatObject *String_force_encoding(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
     assert(NAT_TYPE(self) == NAT_VALUE_STRING);

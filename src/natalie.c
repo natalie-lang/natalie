@@ -754,12 +754,16 @@ char *int_to_string(NatEnv *env, int64_t num) {
     }
 }
 
-char *int_to_hex_string(NatEnv *env, int64_t num) {
+char *int_to_hex_string(NatEnv *env, int64_t num, bool capitalize) {
     if (num == 0) {
-        return heap_string("0x0");
+        return heap_string("0");
     } else {
         char *str = malloc(INT_64_MAX_CHAR_LEN);
-        snprintf(str, INT_64_MAX_CHAR_LEN, "0x%" PRIx64, num);
+        if (capitalize) {
+            snprintf(str, INT_64_MAX_CHAR_LEN, "0X%" PRIX64, num);
+        } else {
+            snprintf(str, INT_64_MAX_CHAR_LEN, "0x%" PRIx64, num);
+        }
         return str;
     }
 }
@@ -1186,7 +1190,10 @@ NatObject *nat_vsprintf(NatEnv *env, char *format, va_list args) {
                 nat_string_append(env, out, int_to_string(env, va_arg(args, int64_t)));
                 break;
             case 'x':
-                nat_string_append(env, out, int_to_hex_string(env, va_arg(args, int64_t)));
+                nat_string_append(env, out, int_to_hex_string(env, va_arg(args, int64_t), false));
+                break;
+            case 'X':
+                nat_string_append(env, out, int_to_hex_string(env, va_arg(args, int64_t), true));
                 break;
             case 'v':
                 inspected = nat_send(env, va_arg(args, NatObject *), "inspect", 0, NULL, NULL);

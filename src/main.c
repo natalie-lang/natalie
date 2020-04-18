@@ -170,6 +170,10 @@ NatEnv *build_top_env() {
     NatObject *Encoding = nat_subclass(env, NAT_OBJECT, "Encoding");
     NatObject *InvalidByteSequenceError = nat_subclass(env, EncodingError, "InvalidByteSequenceError");
     nat_const_set(env, Encoding, "InvalidByteSequenceError", InvalidByteSequenceError);
+    NatObject *UndefinedConversionError = nat_subclass(env, EncodingError, "UndefinedConversionError");
+    nat_const_set(env, Encoding, "UndefinedConversionError", UndefinedConversionError);
+    NatObject *ConverterNotFoundError = nat_subclass(env, EncodingError, "ConverterNotFoundError");
+    nat_const_set(env, Encoding, "ConverterNotFoundError", ConverterNotFoundError);
     nat_const_set(env, Object, "Encoding", Encoding);
     NAT_ENCODING_INIT(Encoding);
 

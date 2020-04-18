@@ -425,7 +425,7 @@ NatObject *nat_singleton_class(NatEnv *env, NatObject *obj);
 NatObject *nat_integer(NatEnv *env, int64_t integer);
 
 char *int_to_string(NatEnv *env, int64_t num);
-char *int_to_hex_string(NatEnv *env, int64_t num);
+char *int_to_hex_string(NatEnv *env, int64_t num, bool capitalize);
 
 void nat_define_method(NatEnv *env, NatObject *obj, char *name, NatObject *(*fn)(NatEnv *, NatObject *, size_t, NatObject **, struct hashmap *, NatBlock *block));
 void nat_define_method_with_block(NatEnv *env, NatObject *obj, char *name, NatBlock *block);

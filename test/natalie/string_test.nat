@@ -54,6 +54,33 @@ describe 'string' do
     end
   end
 
+  describe '#encode' do
+    it 'changes the encoding while reinterpreting the characters' do
+      s = 'abc123'
+      s.encoding.should == Encoding::UTF_8
+      s2 = s.encode 'ascii-8bit'
+      s2.encoding.should == Encoding::ASCII_8BIT
+      s2.should == 'abc123'
+      s3 = s2.encode 'utf-8'
+      s3.encoding.should == Encoding::UTF_8
+      s3.should == 'abc123'
+    end
+
+    it 'raises an error if a character cannot be converted to the new encoding' do
+      s = 'abc 😢'
+      s.encoding.should == Encoding::UTF_8
+      -> { s.encode 'ascii-8bit' }.should raise_error(Encoding::UndefinedConversionError, 'U+1F622 from UTF-8 to ASCII-8BIT')
+      s = 'xyz 🥺'
+      s.encoding.should == Encoding::UTF_8
+      -> { s.encode 'ascii-8bit' }.should raise_error(Encoding::UndefinedConversionError, 'U+1F97A from UTF-8 to ASCII-8BIT')
+    end
+
+    it 'raises an error if the encoding converter does not exist' do
+      s = 'abc 😢'
+      -> { s.encode 'bogus-fake-encoding' }.should raise_error(StandardError) # TODO: not actually the right error ;-)
+    end
+  end
+
   describe '#force_encoding' do
     it 'changes the encoding without reinterpreting the characters' do
       s = ''
