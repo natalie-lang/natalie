@@ -204,6 +204,13 @@ NatObject *String_chars(NatEnv *env, NatObject *self, size_t argc, NatObject **a
     return nat_string_chars(env, self);
 }
 
+NatObject *String_size(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(0);
+    assert(NAT_TYPE(self) == NAT_VALUE_STRING);
+    NatObject *chars = nat_string_chars(env, self);
+    return nat_integer(env, chars->ary_len);
+}
+
 NatObject *String_encoding(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     assert(NAT_TYPE(self) == NAT_VALUE_STRING);

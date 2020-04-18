@@ -393,6 +393,7 @@ NatObject *Regexp_match(NatEnv *env, NatObject *self, size_t argc, NatObject **a
     nat_define_method(env, klass, "ord", String_ord);                       \
     nat_define_method(env, klass, "bytes", String_bytes);                   \
     nat_define_method(env, klass, "chars", String_chars);                   \
+    nat_define_method(env, klass, "size", String_size);                     \
     nat_define_method(env, klass, "encoding", String_encoding);             \
     nat_define_method(env, klass, "encode", String_encode);                 \
     nat_define_method(env, klass, "force_encoding", String_force_encoding); \
@@ -414,6 +415,7 @@ NatObject *String_succ(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
 NatObject *String_ord(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *String_bytes(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *String_chars(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+NatObject *String_size(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *String_encoding(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *String_encode(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *String_force_encoding(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
