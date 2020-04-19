@@ -31,6 +31,32 @@ describe 'array' do
     end
   end
 
+  describe '<=>' do
+    it 'returns -1, 0, or 1 depending on array elements' do
+      ([] <=> []).should == 0
+      ([1] <=> []).should == 1
+      ([] <=> [1]).should == -1
+      ([1] <=> [1]).should == 0
+      ([1] <=> [2]).should == -1
+      ([2] <=> [1]).should == 1
+      ([1, 2] <=> [1]).should == 1
+      ([1] <=> [1, 2]).should == -1
+      (['a', 'b', 'c'] <=> ['a', 'b', 'c']).should == 0
+      (['a', 'b'] <=> ['a', 'b', 'c']).should == -1
+      (['a', 'b', 'c'] <=> ['a', 'b']).should == 1
+      (['a', 'b', 'C'] <=> ['a', 'b', 'c']).should == -1
+    end
+  end
+
+  describe '#to_a' do
+    it 'returns self' do
+      a = [1, 2, 3]
+      a2 = a.to_a
+      a2.object_id.should == a.object_id
+      a2.should == a
+    end
+  end
+
   describe '.[]' do
     it 'returns a new array populated with the given objects' do
       Array[].should == []

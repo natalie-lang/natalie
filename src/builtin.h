@@ -27,7 +27,9 @@
     nat_define_method(env, klass, "pop", Array_pop);                 \
     nat_define_method(env, klass, "include?", Array_include);        \
     nat_define_method(env, klass, "sort", Array_sort);               \
-    nat_define_method(env, klass, "join", Array_join);
+    nat_define_method(env, klass, "join", Array_join);               \
+    nat_define_method(env, klass, "<=>", Array_cmp);                 \
+    nat_define_method(env, klass, "to_a", Array_to_a);
 
 NatObject *Array_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Array_square_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
@@ -49,6 +51,8 @@ NatObject *Array_pop(NatEnv *env, NatObject *self, size_t argc, NatObject **args
 NatObject *Array_include(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Array_sort(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Array_join(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+NatObject *Array_cmp(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+NatObject *Array_to_a(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 
 NatObject *BasicObject_not(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *BasicObject_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);

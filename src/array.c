@@ -324,3 +324,28 @@ NatObject *Array_join(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
         return out;
     }
 }
+
+NatObject *Array_cmp(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);
+    NAT_ASSERT_ARGC(1);
+    NatObject *other = args[0];
+    NAT_ASSERT_TYPE(other, NAT_VALUE_ARRAY, "Array");
+    for (size_t i = 0; i < self->ary_len; i++) {
+        if (i >= other->ary_len) {
+            return nat_integer(env, 1);
+        }
+        NatObject *cmp_obj = nat_send(env, self->ary[i], "<=>", 1, &other->ary[i], NULL);
+        assert(NAT_TYPE(cmp_obj) == NAT_VALUE_INTEGER);
+        int64_t cmp = NAT_INT_VALUE(cmp_obj);
+        if (cmp < 0) return nat_integer(env, -1);
+        if (cmp > 0) return nat_integer(env, 1);
+    }
+    if (other->ary_len > self->ary_len) {
+        return nat_integer(env, -1);
+    }
+    return nat_integer(env, 0);
+}
+
+NatObject *Array_to_a(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    return self;
+}
