@@ -134,12 +134,20 @@ describe 'array' do
   describe '[]' do
     it 'returns the item at the given index' do
       a = [1, 2, 3, 4, 5, 6]
+      a[0].should == 1
       a[1].should == 2
+    end
+
+    it 'returns the item offset from the end when given a negative index' do
+      a = [1, 2, 3, 4, 5, 6]
+      a[-1].should == 6
+      a[-2].should == 5
     end
 
     it 'returns nil when the index is out of range' do
       a = [1, 2, 3, 4, 5, 6]
       a[10].should == nil
+      a[-10].should == nil
     end
 
     it 'returns a sub-array when given a range' do
@@ -149,7 +157,18 @@ describe 'array' do
       a[1..1].should == [2]
       a[1..5].should == [2, 3, 4, 5, 6]
       a[1..6].should == [2, 3, 4, 5, 6]
+      a[1..10].should == [2, 3, 4, 5, 6]
       a[6..10].should == []
+      a[6..10].should == []
+      a[-2..-1].should == [5, 6]
+      a[-1..-1].should == [6]
+      a[-6..-1].should == [1, 2, 3, 4, 5, 6]
+      a[-1..-6].should == []
+      a[-10..-9].should == nil
+      a[1..-1].should == [2, 3, 4, 5, 6]
+      a[1...-1].should == [2, 3, 4, 5]
+      a[1...1].should == []
+      a[-1...-1].should == []
     end
   end
 
