@@ -212,4 +212,40 @@ describe 'string' do
       -> { 'foo'.sub('foo', :bar) }.should raise_error(TypeError, 'no implicit conversion of Symbol into String')
     end
   end
+
+  describe '#to_i' do
+    it 'returns an Integer by recognizing digits in the string' do
+      '12345'.to_i.should == 12345
+      ' 12345'.to_i.should == 12345
+      ' 123 45'.to_i.should == 123
+      '99 red balloons'.to_i.should == 99
+      '0a'.to_i.should == 0
+      '0a'.to_i(16).should == 10
+      '0A'.to_i(16).should == 10
+      'hello'.to_i.should == 0
+      '1100101'.to_i(2).should == 101
+      '1100101'.to_i(8).should == 294977
+      '1100101'.to_i(10).should == 1100101
+      '1100101'.to_i(16).should == 17826049
+    end
+  end
+
+  describe '#split' do
+    it 'splits a string into an array of smaller strings using a string match' do
+      ''.split(',').should == []
+      ' '.split(',').should == [' ']
+      'tim'.split(',').should == ['tim']
+      'tim,morgan,rocks'.split(',').should == ['tim', 'morgan', 'rocks']
+      'tim morgan rocks'.split(' morgan ').should == ['tim', 'rocks']
+    end
+
+    it 'splits a string into an array of smaller strings using a regexp match' do
+      ''.split(/,/).should == []
+      ' '.split(/,/).should == [' ']
+      'tim'.split(/,/).should == ['tim']
+      'tim,morgan,rocks'.split(/,/).should == ['tim', 'morgan', 'rocks']
+      'tim     morgan rocks'.split(/\s+/).should == ['tim', 'morgan', 'rocks']
+      'tim morgan rocks'.split(/ mo[a-z]+ /).should == ['tim', 'rocks']
+    end
+  end
 end

@@ -1054,15 +1054,21 @@ NatObject *nat_lambda(NatEnv *env, NatBlock *block) {
     return lambda;
 }
 
-NatObject *nat_string(NatEnv *env, char *str) {
+NatObject *nat_string_n(NatEnv *env, char *str, size_t len) {
     NatObject *obj = nat_alloc(env, nat_const_get(env, NAT_OBJECT, "String", true), NAT_VALUE_STRING);
-    size_t len = strlen(str);
-    obj->str = heap_string(str);
+    char *copy = malloc(len + 1);
+    memcpy(copy, str, len);
+    obj->str = copy;
+    obj->str[len] = 0;
     obj->str_len = len;
     obj->str_cap = len;
     obj->encoding = NAT_ENCODING_UTF_8; // TODO: inherit from encoding of file?
-    nat_initialize(env, obj, 0, NULL, NULL, NULL);
     return obj;
+}
+
+NatObject *nat_string(NatEnv *env, char *str) {
+    size_t len = strlen(str);
+    return nat_string_n(env, str, len);
 }
 
 // "0x" + up to 16 hex chars + NULL terminator

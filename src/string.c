@@ -324,17 +324,25 @@ NatObject *String_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
 }
 
 // FIXME: this is dirty quick solution, a slow algorithm and doesn't account for string encoding
+static ssize_t str_index(NatObject *str, NatObject *find, ssize_t start) {
+    for (size_t i = start; i < str->str_len; i++) {
+        if (strncmp(&str->str[i], find->str, find->str_len) == 0) {
+            return i;
+        }
+    }
+    return -1;
+}
+
 NatObject *String_index(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
     assert(NAT_TYPE(self) == NAT_VALUE_STRING);
     NatObject *find = args[0];
     NAT_ASSERT_TYPE(find, NAT_VALUE_STRING, "String");
-    for (size_t i = 0; i < self->str_len; i++) {
-        if (strncmp(&self->str[i], find->str, find->str_len) == 0) {
-            return nat_integer(env, i);
-        }
+    ssize_t index = str_index(self, find, 0);
+    if (index == -1) {
+        return NAT_NIL;
     }
-    return NAT_NIL;
+    return nat_integer(env, index);
 }
 
 NatObject *String_sub(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
@@ -370,5 +378,86 @@ NatObject *String_sub(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
         return out;
     } else {
         NAT_RAISE(env, "TypeError", "wrong argument type %s (expected Regexp)", NAT_OBJ_CLASS(sub)->class_name);
+    }
+}
+
+static uint64_t str_to_i(char *str, int base) {
+    int64_t number = 0;
+    for (; *str; str++) {
+        char digit;
+        if (*str >= 'a' && *str <= 'f') {
+            digit = *str - 'a' + 10;
+        } else if (*str >= 'A' && *str <= 'F') {
+            digit = *str - 'A' + 10;
+        } else {
+            digit = *str - '0';
+        }
+        if (digit >= 0 && digit < base) {
+            number = (number * base) + digit;
+        } else if (number != 0) {
+            break;
+        }
+    }
+    return number;
+}
+
+NatObject *String_to_i(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC_AT_MOST(1);
+    assert(NAT_TYPE(self) == NAT_VALUE_STRING);
+    int base = 10;
+    if (argc == 1) {
+        NAT_ASSERT_TYPE(args[0], NAT_VALUE_INTEGER, "Integer");
+        base = NAT_INT_VALUE(args[0]);
+    }
+    long long number = str_to_i(self->str, base);
+    return nat_integer(env, number);
+}
+
+NatObject *String_split(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(1);
+    assert(NAT_TYPE(self) == NAT_VALUE_STRING);
+    NatObject *splitter = args[0];
+    NatObject *ary = nat_array(env);
+    if (self->str_len == 0) {
+        return ary;
+    } else if (NAT_TYPE(splitter) == NAT_VALUE_REGEXP) {
+        ssize_t last_index = 0;
+        ssize_t index, len;
+        OnigRegion *region = onig_region_new();
+        unsigned char *str = (unsigned char *)self->str;
+        unsigned char *end = str + self->str_len;
+        unsigned char *start = str;
+        unsigned char *range = end;
+        int result = onig_search(splitter->regexp, str, end, start, range, region, ONIG_OPTION_NONE);
+        if (result == ONIG_MISMATCH) {
+            nat_array_push(env, ary, nat_dup(env, self));
+        } else {
+            do {
+                index = region->beg[0];
+                len = region->end[0] - region->beg[0];
+                nat_array_push(env, ary, nat_string_n(env, &self->str[last_index], index - last_index));
+                last_index = index + len;
+                result = onig_search(splitter->regexp, str, end, start + last_index, range, region, ONIG_OPTION_NONE);
+            } while (result != ONIG_MISMATCH);
+            nat_array_push(env, ary, nat_string(env, &self->str[last_index]));
+        }
+        onig_region_free(region, true);
+        return ary;
+    } else if (NAT_TYPE(splitter) == NAT_VALUE_STRING) {
+        ssize_t last_index = 0;
+        ssize_t index = str_index(self, splitter, 0);
+        if (index == -1) {
+            nat_array_push(env, ary, nat_dup(env, self));
+        } else {
+            do {
+                nat_array_push(env, ary, nat_string_n(env, &self->str[last_index], index - last_index));
+                last_index = index + splitter->str_len;
+                index = str_index(self, splitter, last_index);
+            } while (index != -1);
+            nat_array_push(env, ary, nat_string(env, &self->str[last_index]));
+        }
+        return ary;
+    } else {
+        NAT_RAISE(env, "TypeError", "wrong argument type %s (expected Regexp))", NAT_OBJ_CLASS(splitter)->class_name);
     }
 }

@@ -455,6 +455,7 @@ NatObject *nat_lambda(NatEnv *env, NatBlock *block);
 
 #define NAT_STRING_GROW_FACTOR 2
 
+NatObject *nat_string_n(NatEnv *env, char *str, size_t len);
 NatObject *nat_string(NatEnv *env, char *str);
 void nat_grow_string(NatEnv *env, NatObject *obj, size_t capacity);
 void nat_grow_string_at_least(NatEnv *env, NatObject *obj, size_t min_capacity);

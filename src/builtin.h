@@ -405,7 +405,9 @@ NatObject *Regexp_match(NatEnv *env, NatObject *self, size_t argc, NatObject **a
     nat_define_method(env, klass, "force_encoding", String_force_encoding); \
     nat_define_method(env, klass, "[]", String_ref);                        \
     nat_define_method(env, klass, "index", String_index);                   \
-    nat_define_method(env, klass, "sub", String_sub);
+    nat_define_method(env, klass, "sub", String_sub);                       \
+    nat_define_method(env, klass, "to_i", String_to_i);                     \
+    nat_define_method(env, klass, "split", String_split);
 
 NatObject *String_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *String_to_s(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
@@ -428,6 +430,8 @@ NatObject *String_force_encoding(NatEnv *env, NatObject *self, size_t argc, NatO
 NatObject *String_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *String_index(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *String_sub(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+NatObject *String_to_i(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+NatObject *String_split(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 
 #define NAT_SYMBOL_INIT(klass)                          \
     nat_define_method(env, klass, "to_s", Symbol_to_s); \
