@@ -1394,8 +1394,8 @@ int nat_quicksort_partition(NatEnv *env, NatObject *ary[], int start, int end) {
     NatObject *temp;
 
     for (int i = start; i < end; i++) {
-        NatObject *compare = nat_send(env, ary[i], "<=", 1, &pivot, NULL);
-        if (nat_truthy(compare)) {
+        NatObject *compare = nat_send(env, ary[i], "<=>", 1, &pivot, NULL);
+        if (NAT_INT_VALUE(compare) < 0) {
             temp = ary[i];
             ary[i] = ary[pIndex];
             ary[pIndex] = temp;

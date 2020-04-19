@@ -66,6 +66,13 @@ describe 'hash' do
     end
   end
 
+  describe '#sort' do
+    it 'returns a sorted array of pairs' do
+      h = { 2 => 3, 1 => 2 }
+      h.sort.should == [[1, 2], [2, 3]]
+    end
+  end
+
   it 'can use any object as a key' do
     { 1 => 'val' }[1].should == 'val'
     { :sym => 'val' }[:sym].should == 'val'

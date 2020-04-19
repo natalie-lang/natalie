@@ -179,3 +179,15 @@ NatObject *Hash_values(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     }
     return array;
 }
+
+NatObject *Hash_sort(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NatHashIter *iter;
+    NatObject *ary = nat_array(env);
+    for (iter = nat_hash_iter(env, self); iter; iter = nat_hash_iter_next(env, self, iter)) {
+        NatObject *pair = nat_array(env);
+        nat_array_push(env, pair, iter->key);
+        nat_array_push(env, pair, iter->val);
+        nat_array_push(env, ary, pair);
+    }
+    return Array_sort(env, ary, 0, NULL, NULL, NULL);
+}

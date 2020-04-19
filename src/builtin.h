@@ -155,7 +155,8 @@ NatObject *File_initialize(NatEnv *env, NatObject *self, size_t argc, NatObject 
     nat_define_method(env, klass, "===", Hash_eqeq);                \
     nat_define_method(env, klass, "each", Hash_each);               \
     nat_define_method(env, klass, "keys", Hash_keys);               \
-    nat_define_method(env, klass, "values", Hash_values);
+    nat_define_method(env, klass, "values", Hash_values);           \
+    nat_define_method(env, klass, "sort", Hash_sort);
 
 NatObject *Hash_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Hash_square_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
@@ -168,6 +169,7 @@ NatObject *Hash_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args
 NatObject *Hash_each(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Hash_keys(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Hash_values(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+NatObject *Hash_sort(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 
 #define NAT_INTEGER_INIT(klass)                              \
     nat_define_method(env, klass, "to_s", Integer_to_s);     \
