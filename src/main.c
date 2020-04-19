@@ -242,6 +242,7 @@ int main(int argc, char *argv[]) {
     NatEnv *env = build_top_env();
     nat_gc_init(env, &argc);
     NatObject *ARGV = nat_array(env);
+    /*INIT*/
     nat_const_set(env, NAT_OBJECT, "ARGV", ARGV);
     assert(argc > 0);
     for (int i = 1; i < argc; i++) {

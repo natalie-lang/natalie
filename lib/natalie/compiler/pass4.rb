@@ -35,6 +35,7 @@ module Natalie
           .sub('/*OBJ_NAT*/', obj_nat_declarations.join("\n"))
           .sub('/*OBJ_NAT_INIT*/', obj_nat_init_lines.join("\n"))
           .sub('/*TOP*/', top_matter)
+          .sub('/*INIT*/', init_matter)
           .sub('/*BODY*/', @decl.join("\n") + "\n" + result)
       end
 
@@ -44,6 +45,11 @@ module Natalie
           source_methods_to_c,
           @top.join("\n")
         ].join("\n\n")
+      end
+
+      def init_matter
+        return if @source_files.empty?
+        "nat_global_set(env, \"$0\", nat_string(env, nat_source_files[0]));"
       end
 
       def p(exp)
