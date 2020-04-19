@@ -130,8 +130,8 @@ NatObject *Array_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **args
             return NAT_NIL;
         }
         if (!index_obj->range_exclude_end) end++;
-        size_t max = self->ary_len;
-        end = (size_t)end > max ? max : end;
+        ssize_t max = self->ary_len;
+        end = end > max ? max : end;
         NatObject *result = nat_array(env);
         for (int64_t i = begin; i < end; i++) {
             nat_array_push(env, result, self->ary[i]);
