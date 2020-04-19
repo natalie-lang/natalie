@@ -93,13 +93,13 @@ NatObject *Array_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **args
     NAT_ASSERT_ARGC(1, 2);
     assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);
     NatObject *index = args[0];
-    NAT_ASSERT_TYPE(index, NAT_VALUE_INTEGER, "Integer"); // TODO: accept a range
-    assert(NAT_INT_VALUE(index) >= 0); // TODO: accept negative index
-    if (NAT_INT_VALUE(index) >= (long long)self->ary_len) {
-        return NAT_NIL;
-    } else if (argc == 1) {
-        return self->ary[NAT_INT_VALUE(index)];
-    } else {
+    if (NAT_TYPE(index) == NAT_VALUE_INTEGER) {
+        assert(NAT_INT_VALUE(index) >= 0); // TODO: accept negative index
+        if (NAT_INT_VALUE(index) >= (long long)self->ary_len) {
+            return NAT_NIL;
+        } else if (argc == 1) {
+            return self->ary[NAT_INT_VALUE(index)];
+        }
         NatObject *size = args[1];
         NAT_ASSERT_TYPE(size, NAT_VALUE_INTEGER, "Integer");
         assert(NAT_INT_VALUE(index) >= 0);
@@ -111,6 +111,25 @@ NatObject *Array_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **args
             nat_array_push(env, result, self->ary[i]);
         }
         return result;
+    } else if (NAT_TYPE(index) == NAT_VALUE_RANGE) {
+        NatObject *begin_obj = index->range_begin;
+        NatObject *end_obj = index->range_end;
+        NAT_ASSERT_TYPE(begin_obj, NAT_VALUE_INTEGER, "Integer");
+        NAT_ASSERT_TYPE(end_obj, NAT_VALUE_INTEGER, "Integer");
+        int64_t begin = NAT_INT_VALUE(begin_obj);
+        int64_t end = NAT_INT_VALUE(end_obj);
+        assert(begin >= 0); // TODO: accept negative indices
+        assert(end >= 0);
+        if (!index->range_exclude_end) end++;
+        size_t max = self->ary_len;
+        end = (size_t)end > max ? max : end;
+        NatObject *result = nat_array(env);
+        for (int64_t i = begin; i < end; i++) {
+            nat_array_push(env, result, self->ary[i]);
+        }
+        return result;
+    } else {
+        NAT_RAISE(env, "TypeError", "no implicit conversion of %s into Integer", NAT_OBJ_CLASS(index)->class_name);
     }
 }
 
