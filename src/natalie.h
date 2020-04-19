@@ -72,9 +72,9 @@
         abort();                                 \
     }
 
-#define NAT_ASSERT_NOT_FROZEN(obj)                                                               \
-    if (nat_is_frozen(obj)) {                                                                    \
-        NAT_RAISE(env, "FrozenError", "can't modify frozen %s", NAT_OBJ_CLASS(obj)->class_name); \
+#define NAT_ASSERT_NOT_FROZEN(obj)                                                                                     \
+    if (nat_is_frozen(obj)) {                                                                                          \
+        NAT_RAISE(env, "FrozenError", "can't modify frozen %s: %S", NAT_OBJ_CLASS(obj)->class_name, NAT_INSPECT(obj)); \
     }
 
 #define NAT_ASSERT_BLOCK()                                         \

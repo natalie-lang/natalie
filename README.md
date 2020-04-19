@@ -53,7 +53,7 @@ that is not yet implemented and make it yourself!
 ## Building
 
 The compiler and REPL currently (but hopefully not for long!) require Ruby.
-I've only tested on Ruby 2.6.x.
+I only test with Ruby 2.7.x currently.
 
 ```sh
 git submodule update --init

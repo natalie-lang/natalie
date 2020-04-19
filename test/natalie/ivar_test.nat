@@ -39,14 +39,14 @@ describe 'instance variables' do
     end
 
     it 'raises an error when the object is an integer' do
-      -> { 1.instance_variable_set(:@x, 20) }.should raise_error(FrozenError, "can't modify frozen Integer")
+      -> { 1.instance_variable_set(:@x, 20) }.should raise_error(FrozenError, "can't modify frozen Integer: 1")
     end
 
     it 'raises an error when the object is a frozen' do
       o = Object.new
       o.instance_variable_set(:@x, 10)
       o.freeze
-      -> { o.instance_variable_set(:@x, 20) }.should raise_error(FrozenError, "can't modify frozen Object")
+      -> { o.instance_variable_set(:@x, 20) }.should raise_error(FrozenError, "can't modify frozen Object: #{o.inspect}")
     end
   end
 end
