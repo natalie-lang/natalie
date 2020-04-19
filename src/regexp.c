@@ -59,8 +59,10 @@ NatObject *Regexp_match(NatEnv *env, NatObject *self, size_t argc, NatObject **a
     if (result >= 0) {
         return nat_matchdata(env, region, str_obj);
     } else if (result == ONIG_MISMATCH) {
+        onig_region_free(region, true);
         return NAT_NIL;
     } else {
+        onig_region_free(region, true);
         OnigUChar s[ONIG_MAX_ERROR_MESSAGE_LEN];
         onig_error_code_to_str(s, result);
         NAT_RAISE(env, "RuntimeError", (char *)s);
