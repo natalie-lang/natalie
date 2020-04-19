@@ -240,6 +240,16 @@ NatObject *Array_each(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
     return self;
 }
 
+NatObject *Array_each_with_index(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(0);
+    NAT_ASSERT_BLOCK(); // TODO: return Enumerator when no block given
+    for (size_t i = 0; i < self->ary_len; i++) {
+        NatObject *args[2] = { self->ary[i], nat_integer(env, i) };
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 2, args, NULL, NULL);
+    }
+    return self;
+}
+
 NatObject *Array_map(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     NAT_ASSERT_BLOCK(); // TODO: return Enumerator when no block given

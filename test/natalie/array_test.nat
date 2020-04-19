@@ -228,6 +228,16 @@ describe 'array' do
     end
   end
 
+  describe '#each_with_index' do
+    it 'evaluates the block for each item in the array, passing along an index too' do
+      result = []
+      ['a', 'b', 'c'].each_with_index do |c, i|
+        result << [c, i]
+      end
+      result.should == [['a', 0], ['b', 1], ['c', 2]]
+    end
+  end
+
   describe '#map' do
     it 'returns a new array of the result of evaluating the block for each item in the array' do
       result = [1, 2, 3].map do |i|

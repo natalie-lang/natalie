@@ -4,31 +4,32 @@
 
 #include "natalie.h"
 
-#define NAT_ARRAY_INIT(klass)                                        \
-    nat_define_singleton_method(env, klass, "new", Array_new);       \
-    nat_define_singleton_method(env, klass, "[]", Array_square_new); \
-    nat_define_method(env, klass, "inspect", Array_inspect);         \
-    nat_define_method(env, klass, "to_s", Array_inspect);            \
-    nat_define_method(env, klass, "<<", Array_ltlt);                 \
-    nat_define_method(env, klass, "+", Array_add);                   \
-    nat_define_method(env, klass, "-", Array_sub);                   \
-    nat_define_method(env, klass, "[]", Array_ref);                  \
-    nat_define_method(env, klass, "[]=", Array_refeq);               \
-    nat_define_method(env, klass, "size", Array_size);               \
-    nat_define_method(env, klass, "any?", Array_any);                \
-    nat_define_method(env, klass, "length", Array_size);             \
-    nat_define_method(env, klass, "==", Array_eqeq);                 \
-    nat_define_method(env, klass, "===", Array_eqeq);                \
-    nat_define_method(env, klass, "each", Array_each);               \
-    nat_define_method(env, klass, "map", Array_map);                 \
-    nat_define_method(env, klass, "first", Array_first);             \
-    nat_define_method(env, klass, "last", Array_last);               \
-    nat_define_method(env, klass, "to_ary", Array_to_ary);           \
-    nat_define_method(env, klass, "pop", Array_pop);                 \
-    nat_define_method(env, klass, "include?", Array_include);        \
-    nat_define_method(env, klass, "sort", Array_sort);               \
-    nat_define_method(env, klass, "join", Array_join);               \
-    nat_define_method(env, klass, "<=>", Array_cmp);                 \
+#define NAT_ARRAY_INIT(klass)                                                \
+    nat_define_singleton_method(env, klass, "new", Array_new);               \
+    nat_define_singleton_method(env, klass, "[]", Array_square_new);         \
+    nat_define_method(env, klass, "inspect", Array_inspect);                 \
+    nat_define_method(env, klass, "to_s", Array_inspect);                    \
+    nat_define_method(env, klass, "<<", Array_ltlt);                         \
+    nat_define_method(env, klass, "+", Array_add);                           \
+    nat_define_method(env, klass, "-", Array_sub);                           \
+    nat_define_method(env, klass, "[]", Array_ref);                          \
+    nat_define_method(env, klass, "[]=", Array_refeq);                       \
+    nat_define_method(env, klass, "size", Array_size);                       \
+    nat_define_method(env, klass, "any?", Array_any);                        \
+    nat_define_method(env, klass, "length", Array_size);                     \
+    nat_define_method(env, klass, "==", Array_eqeq);                         \
+    nat_define_method(env, klass, "===", Array_eqeq);                        \
+    nat_define_method(env, klass, "each", Array_each);                       \
+    nat_define_method(env, klass, "each_with_index", Array_each_with_index); \
+    nat_define_method(env, klass, "map", Array_map);                         \
+    nat_define_method(env, klass, "first", Array_first);                     \
+    nat_define_method(env, klass, "last", Array_last);                       \
+    nat_define_method(env, klass, "to_ary", Array_to_ary);                   \
+    nat_define_method(env, klass, "pop", Array_pop);                         \
+    nat_define_method(env, klass, "include?", Array_include);                \
+    nat_define_method(env, klass, "sort", Array_sort);                       \
+    nat_define_method(env, klass, "join", Array_join);                       \
+    nat_define_method(env, klass, "<=>", Array_cmp);                         \
     nat_define_method(env, klass, "to_a", Array_to_a);
 
 NatObject *Array_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
@@ -43,6 +44,7 @@ NatObject *Array_size(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
 NatObject *Array_any(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Array_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Array_each(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+NatObject *Array_each_with_index(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Array_map(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Array_first(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Array_last(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
