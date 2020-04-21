@@ -52,7 +52,7 @@ module Natalie
         "nat_global_set(env, \"$0\", nat_string(env, nat_source_files[0]));"
       end
 
-      def p(exp)
+      def process_atom(exp)
         case exp
         when Sexp
           process(exp)
@@ -68,7 +68,7 @@ module Natalie
       def process_is_a(exp)
         (_, target, *list) = exp
         list.map do |klass|
-          "nat_is_a(env, #{p target}, #{p klass})"
+          "nat_is_a(env, #{process_atom target}, #{process_atom klass})"
         end.join(' || ')
       end
 
@@ -78,17 +78,17 @@ module Natalie
         when 0
           'NULL:0'
         when 1
-          "&#{p args.first}:1"
+          "&#{process_atom args.first}:1"
         else
           args_name = temp('args')
-          decl "NatObject *#{args_name}[#{args.size}] = { #{args.map { |arg| p(arg) }.join(', ')} };"
+          decl "NatObject *#{args_name}[#{args.size}] = { #{args.map { |arg| process_atom(arg) }.join(', ')} };"
           "#{args_name}:#{args.size}"
         end
       end
 
       def process_args_array(exp)
         (_, args) = exp
-        array = p(args)
+        array = process_atom(args)
         name = temp('args_array')
         decl "NatObject *#{name} = #{array};"
         "#{name}->ary:#{name}->ary_len"
@@ -97,12 +97,12 @@ module Natalie
       def process_block(exp)
         (_, *body) = exp
         body[0..-2].each do |node|
-          result = p(node)
+          result = process_atom(node)
         end
         result = if body.empty?
                    process(s(:nil))
                  else
-                   p(body.last)
+                   process_atom(body.last)
                  end
         if context.size == 1
           result.empty? ? "return #{result};" : ''
@@ -155,7 +155,7 @@ module Natalie
           decl '}'
           rest
         else
-          "#{index} < #{argc_name} ? #{args_name}[#{index}] : #{p(default)}"
+          "#{index} < #{argc_name} ? #{args_name}[#{index}] : #{process_atom(default)}"
         end
       end
 
@@ -165,7 +165,7 @@ module Natalie
 
       def process_c_assign(exp)
         (_, name, value) = exp
-        decl "#{name} = #{p value};"
+        decl "#{name} = #{process_atom value};"
         name
       end
 
@@ -182,13 +182,13 @@ module Natalie
         c << "NatObject *#{result_name};"
         in_decl_context do
           c << "if (#{condition}) {"
-          result = p(true_body)
+          result = process_atom(true_body)
           c += @decl
           @decl = []
           c << "#{result_name} = #{result};" unless result.empty?
           if false_body
             c << '} else {'
-            result = p(false_body)
+            result = process_atom(false_body)
             c += @decl
             c << "#{result_name} = #{result};" unless result.empty?
           end
@@ -200,17 +200,17 @@ module Natalie
 
       def process_c_return(exp)
         (_, value) = exp
-        decl "return #{p(value)};"
+        decl "return #{process_atom(value)};"
         ''
       end
 
       def process_c_while(exp)
         (_, condition, body) = exp
-        condition = p(condition)
+        condition = process_atom(condition)
         c = []
         in_decl_context do
           c << "while (#{condition}) {"
-          result = p(body)
+          result = process_atom(body)
           c += @decl
           c << '}'
         end
@@ -232,18 +232,18 @@ module Natalie
           exp[1..-1].each_slice(2).each_with_index do |(cond, body), index|
             if cond == s(:else)
               in_decl_context do
-                result = p(body)
+                result = process_atom(body)
                 c += @decl
                 c << "#{result_name} = #{result};" unless result.empty?
               end
             else
               count += 1
-              cond = p(cond)
+              cond = process_atom(cond)
               c += @decl
               @decl = []
               in_decl_context do
                 c << "if (#{cond}) {"
-                result = p(body)
+                result = process_atom(body)
                 c += @decl
                 c << "#{result_name} = #{result};" unless result.empty?
                 c << '} else {'
@@ -259,7 +259,7 @@ module Natalie
       def process_declare(exp)
         (_, name, value) = exp
         if value
-          decl "NatObject *#{name} = #{p value};"
+          decl "NatObject *#{name} = #{process_atom value};"
         else
           decl "NatObject *#{name};"
         end
@@ -283,9 +283,9 @@ module Natalie
           receiver ||= 'self'
           decl "NatObject *#{result};"
           decl "if (!NAT_RESCUE(env)) {"
-          decl "#{result} = nat_defined_obj(env, #{p receiver}, #{name.to_s.inspect});"
+          decl "#{result} = nat_defined_obj(env, #{process_atom receiver}, #{name.to_s.inspect});"
           decl '} else {'
-          decl "#{result} = #{p s(:nil)};"
+          decl "#{result} = #{process_atom s(:nil)};"
           decl '}'
         when :lit, :str
           decl "NatObject *#{result} = nat_string(env, \"expression\");"
@@ -317,7 +317,7 @@ module Natalie
       def process_fn(exp, arg_list = 6)
         (_, name, body) = exp
         in_decl_context do
-          result = p(body)
+          result = process_atom(body)
           fn = []
           if arg_list == 6
             fn << "NatObject *#{name}(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {"
@@ -346,11 +346,11 @@ module Natalie
       def process_nat_call(exp)
         (_, fn, *args) = exp
         if VOID_FUNCTIONS.include?(fn)
-          decl "#{fn}(#{args.map { |a| p(a) }.join(', ')});"
+          decl "#{fn}(#{args.map { |a| process_atom(a) }.join(', ')});"
           ''
         else
           result_name = temp(fn)
-          decl "NatObject *#{result_name} = #{fn}(#{args.map { |a| p(a) }.join(', ')});"
+          decl "NatObject *#{result_name} = #{fn}(#{args.map { |a| process_atom(a) }.join(', ')});"
           result_name
         end
       end
@@ -358,8 +358,8 @@ module Natalie
       def process_nat_send(exp)
         debug_info(exp)
         (fn, receiver, method, args, block) = exp
-        receiver_name = p(receiver)
-        args_name, args_count = p(args).split(':')
+        receiver_name = process_atom(receiver)
+        args_name, args_count = process_atom(args).split(':')
         result_name = temp('call_result')
         decl "NatObject *#{result_name} = #{fn}(env, #{receiver_name}, #{method.to_s.inspect}, #{args_count}, #{args_name}, #{block || 'NULL'});"
         result_name
@@ -370,14 +370,14 @@ module Natalie
         c = []
         in_decl_context do
           c << "if (!NAT_RESCUE(env)) {"
-          result = p(top)
+          result = process_atom(top)
           c += @decl
           c << "return #{result};" unless result.empty?
           c << '} else {'
           c << 'nat_global_set(env, "$!", env->exception);'
           c << 'env->rescue = false;'
           @decl = []
-          result = p(bottom)
+          result = process_atom(bottom)
           c += @decl
           c << "return #{result};" unless result.empty?
           c << '}'
@@ -388,7 +388,7 @@ module Natalie
 
       def process_NAT_RUN_BLOCK_FROM_ENV(exp)
         (fn, args) = exp
-        args_name, args_count = p(args).split(':')
+        args_name, args_count = process_atom(args).split(':')
         result_name = temp('block_result')
         decl "NatObject *#{result_name} = NAT_RUN_BLOCK_FROM_ENV(env, #{args_count}, #{args_name}, NULL, block);"
         result_name
@@ -398,7 +398,7 @@ module Natalie
         (_, args, block) = exp
         result_name = temp('call_result')
         if args
-          args_name, args_count = p(args).split(':')
+          args_name, args_count = process_atom(args).split(':')
           decl "NatObject *#{result_name} = nat_call_method_on_class(env, NAT_OBJ_CLASS(self)->superclass, NAT_OBJ_CLASS(self)->superclass, nat_find_current_method_name(env), self, #{args_count}, #{args_name}, NULL, #{block || 'NULL'});"
         else
           decl "NatObject *#{result_name} = nat_call_method_on_class(env, NAT_OBJ_CLASS(self)->superclass, NAT_OBJ_CLASS(self)->superclass, nat_find_current_method_name(env), self, 0, NULL, NULL, #{block || 'NULL'});"
@@ -408,7 +408,7 @@ module Natalie
 
       def process_nat_truthy(exp)
         (_, cond) = exp
-        "nat_truthy(#{p cond})"
+        "nat_truthy(#{process_atom cond})"
       end
 
       def process_nil(_)
@@ -417,7 +417,7 @@ module Natalie
 
       def process_not(exp)
         (_, cond) = exp
-        "!#{p cond}"
+        "!#{process_atom cond}"
       end
 
       def process_NULL(_)
@@ -461,7 +461,7 @@ module Natalie
 
       def process_set(exp)
         (fn, name, value) = exp
-        decl "#{name} = #{p value};"
+        decl "#{name} = #{process_atom value};"
         ''
       end
 
@@ -472,11 +472,11 @@ module Natalie
           raise CompileError, "#{exp.inspect} not rewritten in pass 1 (#{exp&.file}##{exp&.line}, context: #{@context.inspect})"
         end
         if VOID_FUNCTIONS.include?(fn)
-          decl "#{fn}(#{args.map { |a| p(a) }.join(', ')});"
+          decl "#{fn}(#{args.map { |a| process_atom(a) }.join(', ')});"
           ''
         else
           result_name = name || temp(fn)
-          decl "#{type} *#{result_name} = #{fn}(#{args.map { |a| p(a) }.join(', ')});"
+          decl "#{type} *#{result_name} = #{fn}(#{args.map { |a| process_atom(a) }.join(', ')});"
           result_name
         end
       end
@@ -494,9 +494,9 @@ module Natalie
         (_, new_self, body) = exp
         self_was = temp('self_was')
         decl "NatObject *#{self_was} = self;"
-        decl "self = #{p new_self};"
+        decl "self = #{process_atom new_self};"
         result = temp('sclass_result')
-        decl "NatObject *#{result} = #{p body};"
+        decl "NatObject *#{result} = #{process_atom body};"
         decl "self = #{self_was};"
         result
       end

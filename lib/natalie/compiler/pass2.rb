@@ -57,7 +57,7 @@ module Natalie
         name = name.last.to_s
         bare_name = name.sub(/^[\*\&]/, '')
         (env_name, var) = declare_var(bare_name)
-        value = value ? process_arg(value) : s(:nil)
+        value = value ? process_atom(value) : s(:nil)
         exp.new(:nat_var_set, env_name, var, repl?, value)
       end
 
@@ -105,13 +105,13 @@ module Natalie
         name = name.last.to_s
         bare_name = name.sub(/^[\*\&]/, '')
         (env_name, var) = find_var(bare_name) || declare_var(bare_name)
-        value = value ? process_arg(value) : s(:nil)
+        value = value ? process_atom(value) : s(:nil)
         exp.new(:nat_var_set, env_name, var, repl?, value)
       end
 
       def process_sexp(exp)
         (name, *args) = exp
-        exp.new(name, *args.map { |a| process_arg(a) })
+        exp.new(name, *args.map { |a| process_atom(a) })
       end
 
       private
@@ -132,7 +132,7 @@ module Natalie
         ['env', var]
       end
 
-      def process_arg(exp)
+      def process_atom(exp)
         case exp
         when Sexp
           process(exp)

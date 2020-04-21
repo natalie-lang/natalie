@@ -36,12 +36,12 @@ module Natalie
 
       def process_sexp(exp)
         (name, *args) = exp
-        exp.new(name, *args.map { |a| process_arg(a) })
+        exp.new(name, *args.map { |a| process_atom(a) })
       end
 
       private
 
-      def process_arg(exp)
+      def process_atom(exp)
         case exp
         when Sexp
           process(exp)
