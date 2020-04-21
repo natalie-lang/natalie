@@ -2,6 +2,26 @@ require 'minitest/spec'
 require 'minitest/autorun'
 require 'time'
 
+def run_nat(path, *args)
+  out_nat = `bin/natalie -I test/support #{path} #{args.join(' ')} 2>&1`
+  puts out_nat unless $?.success?
+  expect($?).must_be :success?
+  out_nat
+end
+
+def run_ruby(path, *args)
+  out_ruby = `ruby -r./test/support/ruby_require_patch -I test/support #{path} #{args.join(' ')} 2>&1`
+  puts out_ruby unless $?.to_i == 0
+  expect($?).must_be :success?
+  out_ruby
+end
+
+def run_both_and_compare(path, *args)
+  out_nat = run_nat(path, *args)
+  out_ruby = run_ruby(path, *args)
+  expect(out_nat).must_equal(out_ruby)
+end
+
 describe 'Natalie tests' do
   parallelize_me!
 
@@ -11,16 +31,20 @@ describe 'Natalie tests' do
     next if code =~ /# skip-test/
     describe path do
       it 'has the same output in ruby and natalie' do
-        out_nat = `bin/natalie -I test/support #{path} 2>&1`
-        puts out_nat unless $?.success?
-        expect($?).must_be :success?
-        unless code =~ /# skip-ruby-test/
-          out_ruby = `ruby -r./test/support/ruby_require_patch -I test/support #{path} 2>&1`
-          puts out_ruby unless $?.to_i == 0
-          expect($?).must_be :success?
-          expect(out_nat).must_equal(out_ruby)
-        end
+        run_both_and_compare(path)
       end
+    end
+  end
+
+  describe 'examples/fib.nat' do
+    it 'computes the Nth fibonacci number' do
+      run_both_and_compare('examples/fib.nat', 5)
+    end
+  end
+
+  describe 'examples/boardslam.nat' do
+    it 'prints solutions to a 6x6 boardslam game card' do
+      run_both_and_compare('examples/boardslam.nat', 1, 2, 3)
     end
   end
 end

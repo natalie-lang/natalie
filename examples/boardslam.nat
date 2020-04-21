@@ -60,7 +60,7 @@ class BoardSlam
   end
 
   def expand(num)
-    return num if num.is_a?(Fixnum)
+    return num if num.is_a?(Integer)
     num, exp = num.split('^').map { |n| n.to_i }
     num ** exp
   end

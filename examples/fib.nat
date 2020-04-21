@@ -8,4 +8,5 @@ def fib(n)
   end
 end
 
-puts fib(25)
+num = ARGV.first
+puts fib(num ? num.to_i : 25)
