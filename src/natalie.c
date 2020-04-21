@@ -154,18 +154,21 @@ char *nat_find_current_method_name(NatEnv *env) {
     return env->method_name;
 }
 
-char *nat_find_method_name(NatEnv *env) {
-    while (1) {
+// note: returns a heap pointer that the caller must free
+char *nat_build_code_location_name(NatEnv *env) {
+    do {
         if (env->method_name) {
             if (strcmp(env->method_name, "<block>") == 0) {
-                return nat_sprintf(env, "block in %s", nat_find_method_name(env->outer))->str;
+                char *outer_name = nat_build_code_location_name(env->outer);
+                char *name = heap_string(nat_sprintf(env, "block in %s", outer_name)->str);
+                free(outer_name);
+                return name;
             } else {
-                return env->method_name;
+                return heap_string(env->method_name);
             }
         }
-        if (!env->outer) break;
         env = env->outer;
-    }
+    } while (env);
     return heap_string("(unknown)");
 }
 
@@ -185,8 +188,9 @@ NatObject *nat_raise_exception(NatEnv *env, NatObject *exception) {
         NatEnv *bt_env = env;
         do {
             if (bt_env->file) {
-                char *method_name = nat_find_method_name(bt_env);
+                char *method_name = nat_build_code_location_name(bt_env);
                 nat_array_push(env, bt, nat_sprintf(env, "%s:%d:in `%s'", bt_env->file, bt_env->line, method_name));
+                free(method_name);
             }
             bt_env = bt_env->caller;
         } while (bt_env);
