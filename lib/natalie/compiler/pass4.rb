@@ -163,12 +163,6 @@ module Natalie
         exp.last
       end
 
-      def process_nat_build_block_env(_)
-        decl 'NatEnv _env;'
-        decl "env = nat_build_block_env(&_env, env, env);"
-        ''
-      end
-
       def process_c_assign(exp)
         (_, name, value) = exp
         decl "#{name} = #{p value};"
