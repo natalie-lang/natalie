@@ -9,6 +9,23 @@ describe 'integer' do
     end
   end
 
+  describe 'modulo' do
+    it 'returns the modulo result' do
+      (6 % 2).should == 0
+      (6 % 3).should == 0
+      (6 % 4).should == 2
+      (6 % 5).should == 1
+    end
+  end
+
+  describe '** (exponentiation)' do
+    it 'raises the number to the given power' do
+      (2 ** 2).should == 4
+      (2 ** 3).should == 8
+      (2 ** 4).should == 16
+    end
+  end
+
   describe 'divide' do
     it 'works for whole quotients' do
       (6 / 2).should == 3

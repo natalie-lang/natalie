@@ -136,7 +136,8 @@ module Natalie
       if compile_to_object_file
         "#{cc} #{build_flags} -I #{SRC_PATH} -I #{ONIGMO_SRC_PATH} -fPIC -x c -c #{@c_path} -o #{out_path} 2>&1"
       else
-        "#{cc} #{build_flags} #{shared? ? '-fPIC -shared' : ''} -I #{SRC_PATH} -I #{ONIGMO_SRC_PATH} -o #{out_path} -L #{ld_library_path} #{OBJ_PATH}/*.o #{OBJ_PATH}/nat/*.o #{ONIGMO_LIB_PATH}/libonigmo.a -x c #{@c_path} 2>&1"
+        libs = '-lm'
+        "#{cc} #{build_flags} #{shared? ? '-fPIC -shared' : ''} -I #{SRC_PATH} -I #{ONIGMO_SRC_PATH} -o #{out_path} -L #{ld_library_path} #{OBJ_PATH}/*.o #{OBJ_PATH}/nat/*.o #{ONIGMO_LIB_PATH}/libonigmo.a -x c #{@c_path} #{libs} 2>&1"
       end
     end
 

@@ -1,5 +1,6 @@
 #include "builtin.h"
 #include "natalie.h"
+#include <math.h>
 
 NatObject *Integer_to_s(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_INTEGER);
@@ -47,6 +48,24 @@ NatObject *Integer_div(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
         NAT_RAISE(env, "ZeroDivisionError", "divided by 0");
     }
     int64_t result = dividend / divisor;
+    return nat_integer(env, result);
+}
+
+NatObject *Integer_mod(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    assert(NAT_TYPE(self) == NAT_VALUE_INTEGER);
+    NAT_ASSERT_ARGC(1);
+    NatObject *arg = args[0];
+    NAT_ASSERT_TYPE(arg, NAT_VALUE_INTEGER, "Integer");
+    int64_t result = NAT_INT_VALUE(self) % NAT_INT_VALUE(arg);
+    return nat_integer(env, result);
+}
+
+NatObject *Integer_pow(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    assert(NAT_TYPE(self) == NAT_VALUE_INTEGER);
+    NAT_ASSERT_ARGC(1);
+    NatObject *arg = args[0];
+    NAT_ASSERT_TYPE(arg, NAT_VALUE_INTEGER, "Integer");
+    int64_t result = pow(NAT_INT_VALUE(self), NAT_INT_VALUE(arg));
     return nat_integer(env, result);
 }
 

@@ -182,6 +182,8 @@ NatObject *Hash_is_key(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     nat_define_method(env, klass, "-", Integer_sub);         \
     nat_define_method(env, klass, "*", Integer_mul);         \
     nat_define_method(env, klass, "/", Integer_div);         \
+    nat_define_method(env, klass, "%", Integer_mod);         \
+    nat_define_method(env, klass, "**", Integer_pow);        \
     nat_define_method(env, klass, "<=>", Integer_cmp);       \
     nat_define_method(env, klass, "===", Integer_eqeqeq);    \
     nat_define_method(env, klass, "times", Integer_times);   \
@@ -194,6 +196,8 @@ NatObject *Integer_add(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
 NatObject *Integer_sub(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Integer_mul(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Integer_div(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+NatObject *Integer_mod(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+NatObject *Integer_pow(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Integer_cmp(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Integer_eqeqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Integer_times(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
