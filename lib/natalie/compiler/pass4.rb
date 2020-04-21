@@ -397,11 +397,11 @@ module Natalie
       def process_nat_super(exp)
         (_, args, block) = exp
         result_name = temp('call_result')
-        if args
+        if args.size > 1
           args_name, args_count = process_atom(args).split(':')
           decl "NatObject *#{result_name} = nat_call_method_on_class(env, NAT_OBJ_CLASS(self)->superclass, NAT_OBJ_CLASS(self)->superclass, nat_find_current_method_name(env), self, #{args_count}, #{args_name}, NULL, #{block || 'NULL'});"
         else
-          decl "NatObject *#{result_name} = nat_call_method_on_class(env, NAT_OBJ_CLASS(self)->superclass, NAT_OBJ_CLASS(self)->superclass, nat_find_current_method_name(env), self, 0, NULL, NULL, #{block || 'NULL'});"
+          decl "NatObject *#{result_name} = nat_call_method_on_class(env, NAT_OBJ_CLASS(self)->superclass, NAT_OBJ_CLASS(self)->superclass, nat_find_current_method_name(env), self, argc, args, kwargs, #{block || 'NULL'});"
         end
         result_name
       end

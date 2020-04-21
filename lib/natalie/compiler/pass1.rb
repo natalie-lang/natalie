@@ -77,7 +77,11 @@ module Natalie
         end
         receiver = receiver ? process(receiver) : :self
         call = if is_super
-                 exp.new(:nat_super, args)
+                 if args.any?
+                   exp.new(:nat_super, args)
+                 else
+                   exp.new(:nat_super, nil)
+                 end
                else
                  exp.new(:nat_send, receiver, method, args)
                end
@@ -595,7 +599,8 @@ module Natalie
       end
 
       def process_super(exp)
-        process_call(exp, is_super: true)
+        (_, *args) = exp
+        process_call(exp.new(:call, nil, :super, *args), is_super: true)
       end
 
       def process_while(exp)
