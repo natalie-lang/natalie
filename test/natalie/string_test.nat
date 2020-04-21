@@ -248,4 +248,24 @@ describe 'string' do
       'tim morgan rocks'.split(/ mo[a-z]+ /).should == ['tim', 'rocks']
     end
   end
+
+  describe '#ljust' do
+    it 'returns a padded copy using spaces to reach the desired length' do
+      s = 'tim'
+      s.ljust(10).should == 'tim       '
+    end
+
+    it 'returns a padded copy using the given padstr to reach the desired length' do
+      s = 'tim'
+      s.ljust(10, 'x').should == 'timxxxxxxx'
+      s.ljust(10, 'xy').should == 'timxyxyxyx'
+    end
+
+    it 'returns an unmodified copy if the string length is already the desired length' do
+      s = 'tim morgan'
+      s.ljust(10).should == 'tim morgan'
+      s.ljust(5).should == 'tim morgan'
+      s.ljust(5, 'x').should == 'tim morgan'
+    end
+  end
 end

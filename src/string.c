@@ -461,3 +461,28 @@ NatObject *String_split(NatEnv *env, NatObject *self, size_t argc, NatObject **a
         NAT_RAISE(env, "TypeError", "wrong argument type %s (expected Regexp))", NAT_OBJ_CLASS(splitter)->class_name);
     }
 }
+
+NatObject *String_ljust(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(1, 2);
+    assert(NAT_TYPE(self) == NAT_VALUE_STRING);
+    NatObject *length_obj = args[0];
+    NAT_ASSERT_TYPE(length_obj, NAT_VALUE_INTEGER, "Integer");
+    size_t length = NAT_INT_VALUE(length_obj) < 0 ? 0 : NAT_INT_VALUE(length_obj);
+    NatObject *padstr;
+    if (argc > 1) {
+        padstr = args[1];
+        NAT_ASSERT_TYPE(padstr, NAT_VALUE_STRING, "String");
+    } else {
+        padstr = nat_string(env, " ");
+    }
+    NatObject *copy = nat_dup(env, self);
+    while (copy->str_len < length) {
+        bool truncate = copy->str_len + padstr->str_len > length;
+        nat_string_append_nat_string(env, copy, padstr);
+        if (truncate) {
+            copy->str[length] = 0;
+            copy->str_len = length;
+        }
+    }
+    return copy;
+}
