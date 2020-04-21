@@ -189,27 +189,19 @@ NatObject *nat_raise(NatEnv *env, NatObject *klass, char *message_format, ...) {
 }
 
 NatObject *nat_raise_exception(NatEnv *env, NatObject *exception) {
-    if (!exception->backtrace) {
+    if (!exception->backtrace) { // only build a backtrace the first time the exception is raised (not on a re-raise)
         NatObject *bt = exception->backtrace = nat_array(env);
         NatEnv *bt_env = env;
-        while (1) {
+        do {
             if (bt_env->file) {
                 char *method_name = nat_find_method_name(bt_env);
                 nat_array_push(env, bt, nat_sprintf(env, "%s:%d:in `%s'", bt_env->file, bt_env->line, method_name));
             }
-            if (!bt_env->caller) break;
             bt_env = bt_env->caller;
-        }
+        } while (bt_env);
     }
-    int counter = 0;
     while (env && !env->rescue) {
-        assert(++counter < 10000); // serious problem
-
-        if (env->caller) {
-            env = env->caller;
-        } else {
-            env = env->outer;
-        }
+        env = env->caller;
     }
     assert(env);
     env->exception = exception;
