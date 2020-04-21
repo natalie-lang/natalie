@@ -34,7 +34,7 @@ NatObject *Range_to_a(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
     NatObject *ary = nat_array(env);
     NatObject *item = self->range_begin;
     char *operator= self->range_exclude_end ? "<" : "<=";
-    while (nat_truthy(nat_send(env, item, operator, 1, &self->range_end, NULL))) {
+    while (nat_truthy(nat_send(env, item, operator, 1, & self->range_end, NULL))) {
         nat_array_push(env, ary, item);
         item = nat_send(env, item, "succ", 0, NULL, NULL);
     }
@@ -46,7 +46,7 @@ NatObject *Range_each(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
     assert(NAT_TYPE(self) == NAT_VALUE_RANGE);
     NatObject *item = self->range_begin;
     char *operator= self->range_exclude_end ? "<" : "<=";
-    while (nat_truthy(nat_send(env, item, operator, 1, &self->range_end, NULL))) {
+    while (nat_truthy(nat_send(env, item, operator, 1, & self->range_end, NULL))) {
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, NULL, NULL);
         item = nat_send(env, item, "succ", 0, NULL, NULL);
     }
@@ -87,7 +87,7 @@ NatObject *Range_eqeqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **a
         // slower method that should work for any type of range
         NatObject *item = self->range_begin;
         char *operator= self->range_exclude_end ? "<" : "<=";
-        while (nat_truthy(nat_send(env, item, operator, 1, &self->range_end, NULL))) {
+        while (nat_truthy(nat_send(env, item, operator, 1, & self->range_end, NULL))) {
             if (nat_truthy(nat_send(env, item, "==", 1, &arg, NULL))) {
                 return NAT_TRUE;
             }

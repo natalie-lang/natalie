@@ -122,17 +122,8 @@ NatGlobalEnv *nat_build_global_env() {
 }
 
 NatEnv *nat_build_env(NatEnv *outer) {
-    NatEnv *env = malloc(sizeof(NatEnv));
-    env->var_count = 0;
-    env->vars = NULL;
-    env->block = false;
+    NatEnv *env = calloc(1, sizeof(NatEnv));
     env->outer = outer;
-    env->rescue = false;
-    env->caller = NULL;
-    env->file = NULL;
-    env->line = 0;
-    env->method_name = NULL;
-    env->exception = NULL;
     if (outer) {
         env->global_env = outer->global_env;
     } else {
@@ -143,14 +134,14 @@ NatEnv *nat_build_env(NatEnv *outer) {
 
 NatEnv *nat_build_block_env(NatEnv *outer, NatEnv *calling_env) {
     NatEnv *env = nat_build_env(outer);
-    env->block = true;
+    env->block_env = true;
     env->caller = calling_env;
     return env;
 }
 
 NatEnv *nat_build_detached_block_env(NatEnv *outer) {
     NatEnv *env = nat_build_env(outer);
-    env->block = true;
+    env->block_env = true;
     env->outer = NULL;
     return env;
 }
@@ -986,6 +977,7 @@ NatObject *nat_call_method_on_class(NatEnv *env, NatObject *klass, NatObject *in
         e->file = env->file;
         e->line = env->line;
         e->method_name = method_name;
+        e->block = block;
         return method->fn(e, self, argc, args, NULL, block);
     } else {
         NAT_RAISE(env, "NoMethodError", "undefined method `%s' for %v", method_name, instance_class);

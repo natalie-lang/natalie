@@ -617,7 +617,7 @@ module Natalie
         else
           args = s(:args, *args.map { |n| process(n) })
         end
-        exp.new(:NAT_RUN_BLOCK_AND_POSSIBLY_BREAK, args)
+        exp.new(:NAT_RUN_BLOCK_FROM_ENV, args)
       end
 
       def process_zsuper(exp)

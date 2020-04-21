@@ -169,7 +169,8 @@ struct NatEnv {
     size_t var_count;
     NatObject **vars;
     NatEnv *outer;
-    bool block;
+    NatBlock *block;
+    bool block_env;
     bool rescue;
     jmp_buf jump_buf;
     NatObject *exception;
@@ -249,6 +250,19 @@ enum NatEncoding {
 #define nat_is_break(obj) ((!NAT_IS_TAGGED_INT(obj) && ((obj)->flags & NAT_FLAG_BREAK) == NAT_FLAG_BREAK))
 
 #define nat_remove_break(obj) ((obj)->flags = (obj)->flags & ~NAT_FLAG_BREAK)
+
+#define NAT_RUN_BLOCK_FROM_ENV(env, argc, args, kwargs, block) ({                                        \
+    NatEnv *env_with_block = env;                                                                        \
+    while (!env_with_block->block && env_with_block->outer) {                                            \
+        env_with_block = env_with_block->outer;                                                          \
+    }                                                                                                    \
+    NatObject *_result = _nat_run_block_internal(env, env_with_block->block, argc, args, kwargs, block); \
+    if (nat_is_break(_result)) {                                                                         \
+        nat_remove_break(_result);                                                                       \
+        return _result;                                                                                  \
+    }                                                                                                    \
+    _result;                                                                                             \
+})
 
 #define NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, the_block, argc, args, kwargs, block) ({       \
     NatObject *_result = _nat_run_block_internal(env, the_block, argc, args, kwargs, block); \

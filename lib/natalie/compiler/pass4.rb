@@ -386,11 +386,11 @@ module Natalie
         ''
       end
 
-      def process_NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(exp)
+      def process_NAT_RUN_BLOCK_FROM_ENV(exp)
         (fn, args) = exp
         args_name, args_count = p(args).split(':')
         result_name = temp('block_result')
-        decl "NatObject *#{result_name} = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, #{args_count}, #{args_name}, NULL, NULL);"
+        decl "NatObject *#{result_name} = NAT_RUN_BLOCK_FROM_ENV(env, #{args_count}, #{args_name}, NULL, block);"
         result_name
       end
 
