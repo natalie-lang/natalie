@@ -191,3 +191,15 @@ NatObject *Hash_sort(NatEnv *env, NatObject *self, size_t argc, NatObject **args
     }
     return Array_sort(env, ary, 0, NULL, NULL, NULL);
 }
+
+NatObject *Hash_is_key(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(1);
+    assert(NAT_TYPE(self) == NAT_VALUE_HASH);
+    NatObject *key = args[0];
+    NatObject *val = nat_hash_get(env, self, key);
+    if (val) {
+        return NAT_TRUE;
+    } else {
+        return NAT_FALSE;
+    }
+}

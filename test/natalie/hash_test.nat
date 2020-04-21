@@ -215,4 +215,25 @@ describe 'hash' do
     hash = { 1 => 'one', 2 => 'two', 3 => 'three' }
     hash.values.should == ['one', 'two', 'three']
   end
+
+  describe '#key?' do
+    it 'returns true if the key exists' do
+      h = { 1 => 1 }
+      h.key?(1).should == true
+    end
+
+    it 'returns false if the key does not exist' do
+      h = { 1 => 1 }
+      h.key?(2).should == false
+    end
+
+    it 'returns false if the key does not exist, even if there is a default hash value' do
+      h = Hash.new(2)
+      h[1].should == 2
+      h.key?(1).should == false
+      h = Hash.new { 2 }
+      h[1].should == 2
+      h.key?(1).should == false
+    end
+  end
 end
