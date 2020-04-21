@@ -74,6 +74,9 @@ static void nat_gc_gather_from_env(NatObject *objects, NatEnv *env) {
     if (env->outer) {
         nat_gc_gather_from_env(objects, env->outer);
     }
+    if (env->caller) {
+        nat_gc_gather_from_env(objects, env->caller);
+    }
 }
 
 bool nat_gc_is_heap_ptr(NatEnv *env, NatObject *ptr) {
