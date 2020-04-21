@@ -61,7 +61,7 @@ class BoardSlam
 
   def expand(num)
     return num if num.is_a?(Integer)
-    num, exp = num.split('^').map { |n| n.to_i }
+    num, exp = num.split('^').map(&:to_i)
     num ** exp
   end
 
@@ -120,7 +120,7 @@ if $0 == __FILE__
     puts 'usage: bin/natalie examples/boardslam.nat 3 5 1'
     exit
   end
-  board = BoardSlam.new(*ARGV.map { |a| a.to_i })
+  board = BoardSlam.new(*ARGV.map(&:to_i))
   board.results.sort.each do |result, equation|
     puts equation.ljust(15) + ' = ' + result.to_s
   end

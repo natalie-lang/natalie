@@ -68,4 +68,8 @@ describe 'block' do
       proc { |a, (b, c)| [a, b, c] }.call([1, [2, 3]]).should == [1, 2, 3]
     end
   end
+
+  describe 'passing a symbol as a block' do
+    ['2'].map(&:to_i).should == [2]
+  end
 end

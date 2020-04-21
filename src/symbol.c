@@ -22,3 +22,20 @@ NatObject *Symbol_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject *
     nat_string_append(env, str, self->symbol);
     return str;
 }
+
+NatObject *Symbol_to_proc(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    assert(NAT_TYPE(self) == NAT_VALUE_SYMBOL);
+    NAT_ASSERT_ARGC(0);
+    NatEnv *block_env = nat_build_detached_block_env(env);
+    nat_var_set(block_env, "name", 0, true, self);
+    NatBlock *proc_block = nat_block(block_env, self, Symbol_to_proc_block_fn);
+    return nat_proc(env, proc_block);
+}
+
+NatObject *Symbol_to_proc_block_fn(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(1);
+    NatObject *name_obj = nat_var_get(env->outer, "name", 0);
+    assert(name_obj);
+    char *name = name_obj->symbol;
+    return nat_send(env, args[0], name, 0, NULL, NULL);
+}

@@ -16,4 +16,10 @@ describe 'symbol' do
       :"foo\nbar".to_s.should == "foo\nbar"
     end
   end
+
+  describe '#to_proc' do
+    it 'returns a proc that calls a method on its given argument' do
+      :to_i.to_proc.call('2').should == 2
+    end
+  end
 end

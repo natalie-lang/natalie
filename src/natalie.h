@@ -464,6 +464,7 @@ bool nat_respond_to(NatEnv *env, NatObject *obj, char *name);
 NatBlock *nat_block(NatEnv *env, NatObject *self, NatObject *(*fn)(NatEnv *, NatObject *, size_t, NatObject **, struct hashmap *, NatBlock *));
 NatObject *_nat_run_block_internal(NatEnv *env, NatBlock *the_block, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *nat_proc(NatEnv *env, NatBlock *block);
+NatObject *nat_to_proc(NatEnv *env, NatObject *obj);
 NatObject *nat_lambda(NatEnv *env, NatBlock *block);
 
 #define NAT_STRING_GROW_FACTOR 2

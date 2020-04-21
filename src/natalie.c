@@ -1030,6 +1030,16 @@ NatObject *nat_proc(NatEnv *env, NatBlock *block) {
     return obj;
 }
 
+NatObject *nat_to_proc(NatEnv *env, NatObject *obj) {
+    if (NAT_TYPE(obj) == NAT_VALUE_PROC) {
+        return obj;
+    } else if (nat_respond_to(env, obj, "to_proc")) {
+        return nat_send(env, obj, "to_proc", 0, NULL, NULL);
+    } else {
+        NAT_RAISE(env, "TypeError", "wrong argument type %s (expected Proc)", NAT_OBJ_CLASS(obj)->class_name);
+    }
+}
+
 NatObject *nat_lambda(NatEnv *env, NatBlock *block) {
     NatObject *lambda = nat_proc(env, block);
     lambda->lambda = true;

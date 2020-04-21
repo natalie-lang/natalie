@@ -446,12 +446,15 @@ NatObject *String_to_i(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
 NatObject *String_split(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *String_ljust(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 
-#define NAT_SYMBOL_INIT(klass)                          \
-    nat_define_method(env, klass, "to_s", Symbol_to_s); \
-    nat_define_method(env, klass, "inspect", Symbol_inspect);
+#define NAT_SYMBOL_INIT(klass)                                \
+    nat_define_method(env, klass, "to_s", Symbol_to_s);       \
+    nat_define_method(env, klass, "inspect", Symbol_inspect); \
+    nat_define_method(env, klass, "to_proc", Symbol_to_proc);
 
 NatObject *Symbol_to_s(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Symbol_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+NatObject *Symbol_to_proc(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+NatObject *Symbol_to_proc_block_fn(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 
 #define NAT_THREAD_INIT(klass)                                          \
     nat_define_singleton_method(env, klass, "new", Thread_new);         \
