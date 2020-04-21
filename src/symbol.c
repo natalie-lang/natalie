@@ -14,7 +14,7 @@ NatObject *Symbol_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject *
     size_t len = strlen(self->symbol);
     for (size_t i = 0; i < len; i++) {
         char c = self->symbol[i];
-        if (!((c >= 65 && c <= 90) || (c >= 97 && c <= 122))) {
+        if (!((c >= 65 && c <= 90) || (c >= 97 && c <= 122) || c == '_')) {
             nat_string_append_nat_string(env, str, nat_send(env, nat_string(env, self->symbol), "inspect", 0, NULL, NULL));
             return str;
         }

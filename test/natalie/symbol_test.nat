@@ -4,6 +4,7 @@ describe 'symbol' do
   describe '#inspect' do
     it 'returns a code representation of the symbol' do
       :foo.inspect.should == ':foo'
+      :foo_bar.inspect.should == ':foo_bar'
       :"foo bar".inspect.should == ':"foo bar"'
       :"foo\nbar".inspect.should == ":\"foo\\nbar\""
     end
