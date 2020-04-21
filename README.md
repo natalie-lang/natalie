@@ -22,8 +22,9 @@ methods on all the various objects.
 This is **not** comprehensive, but here is a rough to do list, as I think of
 things that are missing ;-) (not in any specific order):
 
-- encoding support for string and regex (just UTF-8 would be great!)
-- Keyword arguments
+- &:symbol syntax for blocks
+- raise error when wrong number of args are passed to a method
+- keyword arguments
 - method visibility
 - Float
 - Bignum support
