@@ -229,6 +229,26 @@ describe 'method' do
     blank_splat_middle(1, 2, 3, 4).should == [1, 4]
   end
 
+  def method_name
+    __method__
+  end
+
+  def method_name_via_send
+    send(:__method__)
+  end
+
+  def method_name_from_block
+    [1].map do
+      __method__
+    end
+  end
+
+  it 'knows its own name' do
+    method_name.should == :method_name
+    method_name_via_send.should == :method_name_via_send
+    method_name_from_block.should == [:method_name_from_block]
+  end
+
   describe '#respond_to?' do
     it 'works for class methods' do
       Foo.respond_to?('foo').should == true

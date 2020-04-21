@@ -246,7 +246,7 @@ NatObject *Kernel_method(NatEnv *env, NatObject *self, size_t argc, NatObject **
     NAT_ASSERT_ARGC(0);
     char *name = nat_find_current_method_name(env->caller);
     if (name) {
-        return nat_string(env, name);
+        return nat_symbol(env, name);
     } else {
         return NAT_NIL;
     }
@@ -325,5 +325,5 @@ NatObject *Kernel_send(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     } else {
         NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", nat_send(env, name_obj, "inspect", 0, NULL, NULL));
     }
-    return nat_send(env, self, name, argc - 1, args + 1, block);
+    return nat_send(env->caller, self, name, argc - 1, args + 1, block);
 }
