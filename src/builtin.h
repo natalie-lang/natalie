@@ -396,6 +396,7 @@ NatObject *Regexp_match(NatEnv *env, NatObject *self, size_t argc, NatObject **a
 #define NAT_STRING_INIT(klass)                                              \
     nat_define_singleton_method(env, klass, "new", String_new);             \
     nat_class_include(env, klass, Comparable);                              \
+    nat_define_method(env, klass, "initialize", String_initialize);         \
     nat_define_method(env, klass, "to_s", String_to_s);                     \
     nat_define_method(env, klass, "inspect", String_inspect);               \
     nat_define_method(env, klass, "<=>", String_cmp);                       \
@@ -422,6 +423,7 @@ NatObject *Regexp_match(NatEnv *env, NatObject *self, size_t argc, NatObject **a
     nat_define_method(env, klass, "ljust", String_ljust);
 
 NatObject *String_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+NatObject *String_initialize(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *String_to_s(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *String_ltlt(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *String_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);

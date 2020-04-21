@@ -1,15 +1,26 @@
 #include "builtin.h"
+#include "gc.h"
 #include "natalie.h"
 #include <ctype.h>
 
 NatObject *String_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NatObject *obj = nat_alloc(env, self, NAT_VALUE_STRING);
+    nat_send(env, obj, "initialize", argc, args, block);
+    return obj;
+}
+
+NatObject *String_initialize(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     NAT_ASSERT_ARGC_AT_MOST(1);
     if (argc == 1) {
         NAT_ASSERT_TYPE(args[0], NAT_VALUE_STRING, "String");
-        return nat_string(env, args[0]->str);
-    } else {
-        return nat_string(env, "");
+        NAT_LOCK(self);
+        free(self->str);
+        self->str = heap_string(args[0]->str);
+        self->str_len = args[0]->str_len;
+        self->str_cap = args[0]->str_cap;
+        NAT_UNLOCK(self);
     }
+    return self;
 }
 
 NatObject *String_to_s(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {

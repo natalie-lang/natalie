@@ -268,4 +268,20 @@ describe 'string' do
       s.ljust(5, 'x').should == 'tim morgan'
     end
   end
+
+  describe 'subclass' do
+    class NegativeString < String
+      def initialize(s)
+        super('not ' + s)
+        @bar = 'bar'
+      end
+      attr_reader :bar
+    end
+
+    it 'works' do
+      s = NegativeString.new('foo')
+      s.should == 'not foo'
+      s.bar.should == 'bar'
+    end
+  end
 end
