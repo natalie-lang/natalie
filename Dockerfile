@@ -16,7 +16,6 @@ ENV CC=$CC
 
 COPY ext /natalie/ext
 COPY Makefile /natalie/Makefile
-RUN rm -f ext/onigmo/.libs/libonigmo.a
 RUN make ext/onigmo/.libs/libonigmo.a
 
 COPY bin /natalie/bin
