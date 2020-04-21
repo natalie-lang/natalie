@@ -450,6 +450,8 @@ NatObject *nat_array(NatEnv *env) {
     obj->ary = calloc(NAT_ARRAY_INIT_SIZE, sizeof(NatObject *));
     obj->ary_len = 0;
     obj->ary_cap = NAT_ARRAY_INIT_SIZE;
+    // FIXME: this isn't quite right, but removing it causes GC bugs (confused)
+    nat_initialize(env, obj, 0, NULL, NULL, NULL);
     return obj;
 }
 
