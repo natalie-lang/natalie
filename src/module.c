@@ -56,10 +56,9 @@ NatObject *Module_attr_reader(NatEnv *env, NatObject *self, size_t argc, NatObje
         } else {
             NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", nat_send(env, name_obj, "inspect", 0, NULL, NULL));
         }
-        NatEnv block_env;
-        nat_build_detached_block_env(&block_env, env);
-        nat_var_set(&block_env, "name", 0, true, name_obj);
-        NatBlock *attr_block = nat_block(&block_env, self, Module_attr_reader_block_fn);
+        NatEnv *block_env = nat_build_detached_block_env(env);
+        nat_var_set(block_env, "name", 0, true, name_obj);
+        NatBlock *attr_block = nat_block(block_env, self, Module_attr_reader_block_fn);
         nat_define_method_with_block(env, self, name_obj->str, attr_block);
     }
     return NAT_NIL;
@@ -85,10 +84,9 @@ NatObject *Module_attr_writer(NatEnv *env, NatObject *self, size_t argc, NatObje
         }
         NatObject *method_name = nat_string(env, name_obj->str);
         nat_string_append_char(env, method_name, '=');
-        NatEnv block_env;
-        nat_build_detached_block_env(&block_env, env);
-        nat_var_set(&block_env, "name", 0, true, name_obj);
-        NatBlock *attr_block = nat_block(&block_env, self, Module_attr_writer_block_fn);
+        NatEnv *block_env = nat_build_detached_block_env(env);
+        nat_var_set(block_env, "name", 0, true, name_obj);
+        NatBlock *attr_block = nat_block(block_env, self, Module_attr_writer_block_fn);
         nat_define_method_with_block(env, self, method_name->str, attr_block);
     }
     return NAT_NIL;
@@ -149,7 +147,6 @@ NatObject *Module_class_eval(NatEnv *env, NatObject *self, size_t argc, NatObjec
     if (argc > 0 || !block) {
         NAT_RAISE(env, "ArgumentError", "Natalie only supports class_eval with a block");
     }
-    NatEnv e;
-    nat_build_block_env(&e, &block->env, env);
-    return block->fn(&e, self, 0, NULL, NULL, NULL);
+    NatEnv *e = nat_build_block_env(block->env, env);
+    return block->fn(e, self, 0, NULL, NULL, NULL);
 }

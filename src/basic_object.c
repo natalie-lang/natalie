@@ -25,13 +25,12 @@ NatObject *BasicObject_instance_eval(NatEnv *env, NatObject *self, size_t argc, 
     if (argc > 0 || !block) {
         NAT_RAISE(env, "ArgumentError", "Natalie only supports instance_eval with a block");
     }
-    NatEnv e;
-    nat_build_block_env(&e, &block->env, env);
+    NatEnv *e = nat_build_block_env(block->env, env);
     NatObject *self_for_eval = self;
     // I *think* this is right... instance_eval, when called on a class/module,
     // evals with self set to the singleton class
     if (NAT_TYPE(self) == NAT_VALUE_CLASS || NAT_TYPE(self) == NAT_VALUE_MODULE) {
         self_for_eval = nat_singleton_class(env, self);
     }
-    return block->fn(&e, self_for_eval, 0, NULL, NULL, NULL);
+    return block->fn(e, self_for_eval, 0, NULL, NULL, NULL);
 }

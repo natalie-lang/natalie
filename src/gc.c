@@ -167,7 +167,7 @@ NatObject *nat_gc_mark_live_objects(NatEnv *env) {
         }
 
         if (NAT_OBJ_HAS_ENV(obj)) {
-            nat_gc_gather_from_env(objects, &obj->env);
+            nat_gc_gather_from_env(objects, obj->env);
         }
 
         NatHashKey *key;
@@ -185,7 +185,7 @@ NatObject *nat_gc_mark_live_objects(NatEnv *env) {
             if (obj->methods.table) {
                 for (iter = hashmap_iter(&obj->methods); iter; iter = hashmap_iter_next(&obj->methods, iter)) {
                     NatMethod *method = (NatMethod *)hashmap_iter_get_data(iter);
-                    if (NAT_OBJ_HAS_ENV(method)) nat_gc_gather_from_env(objects, &method->env);
+                    if (NAT_OBJ_HAS_ENV(method)) nat_gc_gather_from_env(objects, method->env);
                 }
             }
             break;
@@ -207,7 +207,7 @@ NatObject *nat_gc_mark_live_objects(NatEnv *env) {
                 } while (key != obj->key_list);
             }
             nat_gc_push_object(env, objects, obj->hash_default_value);
-            if (obj->hash_default_block && NAT_OBJ_HAS_ENV(obj->hash_default_block)) nat_gc_gather_from_env(objects, &obj->hash_default_block->env);
+            if (obj->hash_default_block && NAT_OBJ_HAS_ENV(obj->hash_default_block)) nat_gc_gather_from_env(objects, obj->hash_default_block->env);
             break;
         case NAT_VALUE_INTEGER:
             break;
@@ -219,7 +219,7 @@ NatObject *nat_gc_mark_live_objects(NatEnv *env) {
             if (obj->methods.table) {
                 for (iter = hashmap_iter(&obj->methods); iter; iter = hashmap_iter_next(&obj->methods, iter)) {
                     NatMethod *method = (NatMethod *)hashmap_iter_get_data(iter);
-                    if (NAT_OBJ_HAS_ENV(method)) nat_gc_gather_from_env(objects, &method->env);
+                    if (NAT_OBJ_HAS_ENV(method)) nat_gc_gather_from_env(objects, method->env);
                 }
             }
             break;
@@ -228,7 +228,7 @@ NatObject *nat_gc_mark_live_objects(NatEnv *env) {
         case NAT_VALUE_OTHER:
             break;
         case NAT_VALUE_PROC:
-            nat_gc_gather_from_env(objects, &obj->block->env);
+            nat_gc_gather_from_env(objects, obj->block->env);
             break;
         case NAT_VALUE_RANGE:
             nat_gc_push_object(env, objects, obj->range_begin);
