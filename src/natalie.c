@@ -432,7 +432,6 @@ NatObject *nat_symbol(NatEnv *env, char *name) {
     } else {
         symbol = nat_alloc(env, nat_const_get(env, NAT_OBJECT, "Symbol", true), NAT_VALUE_SYMBOL);
         symbol->symbol = heap_string(name);
-        nat_initialize(env, symbol, 0, NULL, NULL, NULL);
         hashmap_put(env->global_env->symbols, name, symbol);
         return symbol;
     }
@@ -440,9 +439,9 @@ NatObject *nat_symbol(NatEnv *env, char *name) {
 
 NatObject *nat_exception(NatEnv *env, NatObject *klass, char *message) {
     NatObject *obj = nat_alloc(env, klass, NAT_VALUE_EXCEPTION);
-    obj->message = heap_string(message);
-    // FIXME: pass message as object to initialize
-    nat_initialize(env, obj, 0, NULL, NULL, NULL);
+    assert(message);
+    NatObject *message_obj = nat_string(env, message);
+    nat_initialize(env, obj, 1, &message_obj, NULL, NULL);
     return obj;
 }
 
@@ -451,7 +450,6 @@ NatObject *nat_array(NatEnv *env) {
     obj->ary = calloc(NAT_ARRAY_INIT_SIZE, sizeof(NatObject *));
     obj->ary_len = 0;
     obj->ary_cap = NAT_ARRAY_INIT_SIZE;
-    nat_initialize(env, obj, 0, NULL, NULL, NULL);
     return obj;
 }
 
@@ -473,7 +471,6 @@ NatObject *nat_array_copy(NatEnv *env, NatObject *source) {
     memcpy(obj->ary, source->ary, source->ary_len * sizeof(NatObject *));
     obj->ary_len = source->ary_len;
     obj->ary_cap = source->ary_len;
-    nat_initialize(env, obj, 0, NULL, NULL, NULL);
     return obj;
 }
 
@@ -717,7 +714,6 @@ NatObject *nat_regexp(NatEnv *env, char *pattern) {
     NatObject *obj = nat_alloc(env, nat_const_get(env, NAT_OBJECT, "Regexp", true), NAT_VALUE_REGEXP);
     obj->regexp = regexp;
     obj->regexp_str = heap_string(pattern);
-    nat_initialize(env, obj, 0, NULL, NULL, NULL);
     return obj;
 }
 
@@ -726,7 +722,6 @@ NatObject *nat_matchdata(NatEnv *env, OnigRegion *region, NatObject *str_obj) {
     obj->matchdata_region = region;
     assert(NAT_TYPE(str_obj) == NAT_VALUE_STRING);
     obj->matchdata_str = heap_string(str_obj->str);
-    nat_initialize(env, obj, 0, NULL, NULL, NULL);
     return obj;
 }
 
@@ -1030,7 +1025,6 @@ NatObject *_nat_run_block_internal(NatEnv *env, NatBlock *the_block, size_t argc
 NatObject *nat_proc(NatEnv *env, NatBlock *block) {
     NatObject *obj = nat_alloc(env, nat_const_get(env, NAT_OBJECT, "Proc", true), NAT_VALUE_PROC);
     obj->block = block;
-    nat_initialize(env, obj, 0, NULL, NULL, NULL);
     return obj;
 }
 
@@ -1221,7 +1215,6 @@ NatObject *nat_range(NatEnv *env, NatObject *begin, NatObject *end, bool exclude
     obj->range_begin = begin;
     obj->range_end = end;
     obj->range_exclude_end = exclude_end;
-    nat_initialize(env, obj, 0, NULL, NULL, NULL);
     return obj;
 }
 
@@ -1229,7 +1222,6 @@ NatObject *nat_current_thread(NatEnv *env) {
     NatObject *obj = nat_alloc(env, nat_const_get(env, NAT_OBJECT, "Thread", true), NAT_VALUE_THREAD);
     obj->env = env;
     obj->thread_id = pthread_self();
-    nat_initialize(env, obj, 0, NULL, NULL, NULL);
     return obj;
 }
 
@@ -1237,7 +1229,6 @@ NatObject *nat_thread(NatEnv *env, NatBlock *block) {
     NatObject *obj = nat_alloc(env, nat_const_get(env, NAT_OBJECT, "Thread", true), NAT_VALUE_THREAD);
     obj->env = env;
     obj->thread_block = block;
-    nat_initialize(env, obj, 0, NULL, NULL, NULL);
     pthread_create(&obj->thread_id, NULL, nat_create_thread, (void *)obj);
     return obj;
 }
@@ -1383,7 +1374,6 @@ NatObject *nat_convert_to_real_object(NatEnv *env, NatObject *obj) {
     if (((int64_t)obj & 1)) {
         NatObject *real_obj = nat_alloc(env, NAT_INTEGER, NAT_VALUE_INTEGER);
         real_obj->integer = NAT_INT_VALUE(obj);
-        nat_initialize(env, real_obj, 0, NULL, NULL, NULL);
         return real_obj;
     } else {
         return obj;
