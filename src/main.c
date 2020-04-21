@@ -90,6 +90,7 @@ NatEnv *build_top_env() {
 
     NatObject *Integer = NAT_INTEGER = nat_subclass(env, Numeric, "Integer");
     nat_const_set(env, Object, "Integer", Integer);
+    nat_const_set(env, Object, "Fixnum", Integer);
     NAT_INTEGER_INIT(Integer);
 
     NatObject *String = nat_subclass(env, Object, "String");
