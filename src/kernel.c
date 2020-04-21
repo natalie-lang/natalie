@@ -313,3 +313,17 @@ NatObject *Kernel_Array(NatEnv *env, NatObject *self, size_t argc, NatObject **a
         return ary;
     }
 }
+
+NatObject *Kernel_send(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC_AT_LEAST(1);
+    NatObject *name_obj = args[0];
+    char *name;
+    if (NAT_TYPE(name_obj) == NAT_VALUE_SYMBOL) {
+        name = name_obj->symbol;
+    } else if (NAT_TYPE(name_obj) == NAT_VALUE_STRING) {
+        name = name_obj->str;
+    } else {
+        NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", nat_send(env, name_obj, "inspect", 0, NULL, NULL));
+    }
+    return nat_send(env, self, name, argc - 1, args + 1, block);
+}
