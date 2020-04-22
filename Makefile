@@ -7,9 +7,9 @@ ONIGMO := ext/onigmo
 NAT_FLAGS ?=
 
 # debug, coverage, or release
-BUILD := debug
+BUILD ?= debug
 
-cflags.debug := -g -Wall -Wextra -Werror -Wno-unused-parameter -pthread
+cflags.debug := -g -Wall -Wextra -Werror -Wno-unused-parameter -pthread -D"NAT_GC_COLLECT_DEBUG=true"
 cflags.coverage := ${cflags.debug} -fprofile-arcs -ftest-coverage -pthread
 cflags.release := -O3 -pthread
 CFLAGS := ${cflags.${BUILD}} ${NAT_FLAGS}
@@ -57,8 +57,8 @@ test_valgrind: build
 	bin/natalie -c block_spec spec/language/block_spec.nat
 	valgrind --leak-check=no --suppressions=test/valgrind-suppressions --error-exitcode=1 ./block_spec
 
-test_garbage_collector:
-	NAT_FLAGS="-D'NAT_GC_COLLECT_DEBUG=true'" make clean_nat test
+test_release:
+	BUILD="release" make clean_nat test
 
 coverage_report:
 	lcov -c --directory . --output-file coverage.info
@@ -70,7 +70,7 @@ docker_build:
 docker_build_clang:
 	docker build -t natalie_clang --build-arg CC=clang .
 
-docker_test: docker_test_gcc docker_test_clang docker_test_valgrind docker_test_garbage_collector
+docker_test: docker_test_gcc docker_test_clang docker_test_valgrind docker_test_release
 
 docker_test_gcc: docker_build
 	docker run $(DOCKER_FLAGS) --rm --entrypoint make natalie test
@@ -81,8 +81,8 @@ docker_test_clang: docker_build_clang
 docker_test_valgrind: docker_build
 	docker run $(DOCKER_FLAGS) --rm --entrypoint make natalie test_valgrind
 
-docker_test_garbage_collector: docker_build
-	docker run $(DOCKER_FLAGS) --rm --entrypoint make natalie test_garbage_collector
+docker_test_release: docker_build
+	docker run $(DOCKER_FLAGS) --rm --entrypoint make natalie test_release
 
 docker_coverage_report: docker_build
 	rm -rf coverage-report

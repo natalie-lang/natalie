@@ -63,6 +63,9 @@ bundle install
 make build
 ```
 
+**NOTE:** Currently, the default build is the "debug" build, which enables
+aggressive garbage collection and is extremely slow.
+
 ## Usage
 
 **REPL:**
