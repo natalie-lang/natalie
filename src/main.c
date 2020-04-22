@@ -67,22 +67,28 @@ NatEnv *build_top_env() {
     NAT_SYMBOL_INIT(Symbol);
 
     NatObject *NilClass = nat_subclass(env, Object, "NilClass");
+    nat_undefine_singleton_method(env, NilClass, "new");
     nat_const_set(env, Object, "NilClass", NilClass);
     NAT_NIL_CLASS_INIT(NilClass);
 
     NAT_NIL = nat_alloc(env, NilClass, NAT_VALUE_NIL);
+    NAT_NIL->singleton_class = NilClass;
 
     NatObject *TrueClass = nat_subclass(env, Object, "TrueClass");
+    nat_undefine_singleton_method(env, TrueClass, "new");
     nat_const_set(env, Object, "TrueClass", TrueClass);
     NAT_TRUE_CLASS_INIT(TrueClass);
 
     NAT_TRUE = nat_alloc(env, TrueClass, NAT_VALUE_TRUE);
+    NAT_TRUE->singleton_class = TrueClass;
 
     NatObject *FalseClass = nat_subclass(env, Object, "FalseClass");
+    nat_undefine_singleton_method(env, FalseClass, "new");
     nat_const_set(env, Object, "FalseClass", FalseClass);
     NAT_FALSE_CLASS_INIT(FalseClass);
 
     NAT_FALSE = nat_alloc(env, FalseClass, NAT_VALUE_FALSE);
+    NAT_FALSE->singleton_class = FalseClass;
 
     NatObject *Numeric = nat_subclass(env, Object, "Numeric");
     nat_const_set(env, Object, "Numeric", Numeric);
