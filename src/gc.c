@@ -50,7 +50,7 @@ NatObject *nat_gc_malloc(NatEnv *env) {
 }
 
 static void nat_gc_push_object(NatEnv *env, NatObject *objects, NatObject *obj) {
-    if (obj && !NAT_IS_TAGGED_INT(obj)) {
+    if (obj && !NAT_IS_TAGGED_INT(obj) && obj->type) {
 
         // TODO: remove these checks later :-)
         if (obj < env->global_env->min_ptr || obj > env->global_env->max_ptr) {
