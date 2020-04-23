@@ -159,3 +159,8 @@ NatObject *Module_class_eval(NatEnv *env, NatObject *self, size_t argc, NatObjec
     NatEnv *e = nat_build_block_env(block->env, env);
     return block->fn(e, self, 0, NULL, NULL, NULL);
 }
+
+NatObject *Module_private(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    printf("TODO: class private\n");
+    return NAT_NIL;
+}
