@@ -547,3 +547,5 @@ NatObject *nat_args_to_array(NatEnv *env, size_t argc, NatObject **args);
 NatObject *nat_block_args_to_array(NatEnv *env, size_t signature_size, size_t argc, NatObject **args);
 
 NatObject *nat_encoding(NatEnv *env, int num, NatObject *names);
+
+NatObject *nat_eval_class_or_module_body(NatEnv *env, NatObject *class_or_module, NatObject *(*fn)(NatEnv *, NatObject *));

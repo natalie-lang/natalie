@@ -1585,3 +1585,9 @@ NatObject *nat_encoding(NatEnv *env, int num, NatObject *names) {
     nat_freeze_object(names);
     return encoding;
 }
+
+NatObject *nat_eval_class_or_module_body(NatEnv *env, NatObject *class_or_module, NatObject *(*fn)(NatEnv *, NatObject *)) {
+    NatEnv *body_env = nat_build_env(env);
+    body_env->caller = env;
+    return fn(body_env, class_or_module);
+}

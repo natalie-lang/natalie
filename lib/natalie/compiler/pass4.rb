@@ -343,18 +343,6 @@ module Natalie
       alias process_class_fn process_fn2
       alias process_module_fn process_fn2
 
-      def process_nat_call(exp)
-        (_, fn, *args) = exp
-        if VOID_FUNCTIONS.include?(fn)
-          decl "#{fn}(#{args.map { |a| process_atom(a) }.join(', ')});"
-          ''
-        else
-          result_name = temp(fn)
-          decl "NatObject *#{result_name} = #{fn}(#{args.map { |a| process_atom(a) }.join(', ')});"
-          result_name
-        end
-      end
-
       def process_nat_send(exp)
         debug_info(exp)
         (fn, receiver, method, args, block) = exp
