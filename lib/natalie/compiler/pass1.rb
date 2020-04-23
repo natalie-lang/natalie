@@ -349,7 +349,7 @@ module Natalie
         when Symbol
           exp.new(:nat_symbol, :env, s(:s, lit))
         else
-          raise "unknown lit: #{exp.inspect}"
+          raise "unknown lit: #{exp.inspect} (#{exp.file}\##{exp.line})"
         end
       end
 
@@ -381,7 +381,7 @@ module Natalie
               prepare_masgn_set(name, value)
             end
           else
-            raise "unknown masgn type: #{name.inspect}"
+            raise "unknown masgn type: #{name.inspect} (#{exp.file}\##{exp.line})"
           end
         end
       end
@@ -403,7 +403,7 @@ module Natalie
               prepare_masgn_set(name, value, arg: true)
             end
           else
-            raise "unknown masgn type: #{name.inspect}"
+            raise "unknown masgn type: #{name.inspect} (#{exp.file}\##{exp.line})"
           end
         end
       end
@@ -456,7 +456,7 @@ module Natalie
             s(:nat_var_set, :env, s(:s, exp.last), value)
           end
         else
-          raise "unknown masgn type: #{exp.inspect}"
+          raise "unknown masgn type: #{exp.inspect} (#{exp.file}\##{exp.line})"
         end
       end
 
