@@ -252,3 +252,18 @@ describe 'built-in class/object hierarchy' do
     BasicObject.superclass.inspect.should == 'nil'
   end
 end
+
+class SingletonAccess
+  class << self
+    def foo
+      'foo'
+    end
+  end
+end
+
+describe 'class << self' do
+  it 'changes self to the singleton class' do
+    SingletonAccess.foo.should == 'foo'
+    -> { SingletonAccess.new.foo }.should raise_error(NoMethodError)
+  end
+end
