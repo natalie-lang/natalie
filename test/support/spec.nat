@@ -300,10 +300,10 @@ def run_specs
         end
       rescue SpecFailedException => e
         print 'F'
-        @failures << [context, test, e.message]
+        @failures << [context, test, e]
       rescue => e
         print 'E'
-        @errors << [context, test, e.message, e]
+        @errors << [context, test, e]
       else
         print '.'
       end
@@ -319,7 +319,7 @@ def run_specs
     puts
     puts 'Failed specs:'
     (@failures + @errors).each do |failure|
-      (context, test, message, error) = failure
+      (context, test, error) = failure
       indent = 0
       context.each do |con|
         print ' ' * indent
@@ -330,15 +330,22 @@ def run_specs
       puts test
       indent += 2
       print ' ' * indent
-      if error
-        puts "#{message} (#{error.class.name})"
+      if error.is_a?(SpecFailedException)
+        line_num = nil
+        error.backtrace.each do |line|
+          if line !~ /spec\.nat/
+            line_num = line.split(':')[1]
+            break
+          end
+        end
+        puts "#{error.message} (line #{line_num})"
+      else
+        puts "#{error.message} (#{error.class.name})"
         indent += 2
         error.backtrace.each do |line|
           print ' ' * indent
           puts line
         end
-      else
-        puts message
       end
     end
     puts
