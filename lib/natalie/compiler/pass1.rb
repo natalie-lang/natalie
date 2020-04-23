@@ -129,7 +129,7 @@ module Natalie
         klass = temp('class')
         exp.new(:block,
           s(:class_fn, fn, process(s(:block, *body))),
-          s(:declare, klass, s(:nat_const_get_or_null, :env, :self, s(:s, name), s(:l, :false))),
+          s(:declare, klass, s(:nat_const_get_or_null, :env, :self, s(:s, name), s(:l, :true), s(:l, :true))),
           s(:c_if, s(:not, klass),
             s(:block,
               s(:set, klass, s(:nat_subclass, :env, process(superclass), s(:s, name))),
@@ -494,7 +494,7 @@ module Natalie
         mod = temp('module')
         exp.new(:block,
           s(:module_fn, fn, process(s(:block, *body))),
-          s(:declare, mod, s(:nat_const_get_or_null, :env, :self, s(:s, name), s(:l, :false))),
+          s(:declare, mod, s(:nat_const_get_or_null, :env, :self, s(:s, name), s(:l, :true), s(:l, :true))),
           s(:c_if, s(:not, mod),
             s(:block,
               s(:set, mod, s(:nat_module, :env, s(:s, name))),

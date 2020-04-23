@@ -74,6 +74,44 @@ module PrecedenceTest
   end
 end
 
+class Colon3
+  class Foo
+    NUM = 100
+  end
+
+  def self.my_foo
+    Foo
+  end
+
+  def my_foo
+    Foo
+  end
+
+  def self.top_foo
+    ::Foo
+  end
+
+  def top_foo
+    ::Foo
+  end
+
+  def self.my_foo_num
+    Foo::NUM
+  end
+
+  def my_foo_num
+    Foo::NUM
+  end
+
+  def self.top_foo_num
+    ::Foo::NUM
+  end
+
+  def top_foo_num
+    ::Foo::NUM
+  end
+end
+
 describe 'namespace' do
   it 'resolves top-level constants' do
     NUM.should == 1
@@ -111,5 +149,10 @@ describe 'namespace' do
     PrecedenceTest::B::VAL.should == 2
     PrecedenceTest::B.val.should == 1
     PrecedenceTest::C.val.should == 1
+  end
+
+  it 'looks in the current namespace unless prefixed with ::' do
+    Colon3.my_foo.should == Colon3::Foo
+    Colon3.new.my_foo.should == Colon3::Foo
   end
 end

@@ -13,7 +13,7 @@ bool nat_is_global_name(char *name) {
 }
 
 NatObject *nat_const_get(NatEnv *env, NatObject *parent, char *name, bool strict) {
-    NatObject *val = nat_const_get_or_null(env, parent, name, strict);
+    NatObject *val = nat_const_get_or_null(env, parent, name, strict, false);
     if (val) {
         return val;
     } else if (strict) {
@@ -23,7 +23,7 @@ NatObject *nat_const_get(NatEnv *env, NatObject *parent, char *name, bool strict
     }
 }
 
-NatObject *nat_const_get_or_null(NatEnv *env, NatObject *parent, char *name, bool strict) {
+NatObject *nat_const_get_or_null(NatEnv *env, NatObject *parent, char *name, bool strict, bool define) {
     if (!NAT_IS_MODULE_OR_CLASS(parent)) {
         parent = NAT_OBJ_CLASS(parent);
         assert(parent);
@@ -40,12 +40,18 @@ NatObject *nat_const_get_or_null(NatEnv *env, NatObject *parent, char *name, boo
         if (val) return val;
     }
 
-    // then search in superclass hierarchy
-    search_parent = parent;
-    while (!(val = hashmap_get(&search_parent->constants, name)) && search_parent->superclass) {
-        search_parent = search_parent->superclass;
+    if (define) {
+        // don't search superclasses
+        val = hashmap_get(&parent->constants, name);
+        if (val) return val;
+    } else {
+        // search in superclass hierarchy
+        search_parent = parent;
+        while (!(val = hashmap_get(&search_parent->constants, name)) && search_parent->superclass) {
+            search_parent = search_parent->superclass;
+        }
+        if (val) return val;
     }
-    if (val) return val;
 
     if (!strict) {
         // lastly, search on the global, i.e. Object namespace
@@ -863,7 +869,7 @@ bool nat_is_a(NatEnv *env, NatObject *obj, NatObject *klass_or_module) {
 char *nat_defined(NatEnv *env, NatObject *receiver, char *name) {
     NatObject *obj;
     if (nat_is_constant_name(name)) {
-        obj = nat_const_get_or_null(env, receiver, name, false);
+        obj = nat_const_get_or_null(env, receiver, name, false, false);
         if (obj) return "constant";
     } else if (nat_is_global_name(name)) {
         obj = nat_global_get(env, name);

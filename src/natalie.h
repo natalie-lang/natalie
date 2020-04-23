@@ -396,7 +396,7 @@ bool nat_is_constant_name(char *name);
 bool nat_is_special_name(char *name);
 
 NatObject *nat_const_get(NatEnv *env, NatObject *klass, char *name, bool strict);
-NatObject *nat_const_get_or_null(NatEnv *env, NatObject *klass, char *name, bool strict);
+NatObject *nat_const_get_or_null(NatEnv *env, NatObject *klass, char *name, bool strict, bool define);
 NatObject *nat_const_set(NatEnv *env, NatObject *klass, char *name, NatObject *val);
 
 NatObject *nat_var_get(NatEnv *env, char *key, size_t index);
