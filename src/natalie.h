@@ -430,6 +430,7 @@ char *heap_string(char *str);
 NatObject *nat_subclass(NatEnv *env, NatObject *superclass, char *name);
 NatObject *nat_module(NatEnv *env, char *name);
 void nat_class_include(NatEnv *env, NatObject *klass, NatObject *module);
+void nat_class_prepend(NatEnv *env, NatObject *klass, NatObject *module);
 
 NatObject *nat_initialize(NatEnv *env, NatObject *obj, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 

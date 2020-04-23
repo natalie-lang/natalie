@@ -87,16 +87,46 @@ module M1
   end
 end
 
-class Foo2
+class IncludeTest
   include M1, M2
+end
+
+class IncludeTestOverride
+  include M1
+
+  def m1
+    'my m1'
+  end
+end
+
+class PrependTest
+  prepend M1, M2
+end
+
+class PrependTestOverride
+  prepend M1
+
+  def m1
+    'my m1'
+  end
 end
 
 describe 'class' do
   describe 'include' do
     it 'includes methods from a module' do
-      Foo2.new.m1.should == 'm1'
-      Foo2.new.m1b.should == 'm1b'
-      Foo2.new.m2.should == 'm2'
+      IncludeTest.ancestors.should == [IncludeTest, M1, M2, Object, Kernel, BasicObject]
+      IncludeTest.new.m1.should == 'm1'
+      IncludeTest.new.m1b.should == 'm1b'
+      IncludeTestOverride.new.m1.should == 'my m1'
+    end
+  end
+
+  describe 'prepend' do
+    it 'prepends modules in the lookup chain' do
+      PrependTest.ancestors.should == [M1, M2, PrependTest, Object, Kernel, BasicObject]
+      PrependTest.new.m1.should == 'm1'
+      PrependTest.new.m1b.should == 'm1b'
+      PrependTestOverride.new.m1.should == 'm1'
     end
   end
 end

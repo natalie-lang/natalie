@@ -390,11 +390,28 @@ NatObject *nat_module(NatEnv *env, char *name) {
 void nat_class_include(NatEnv *env, NatObject *klass, NatObject *module) {
     klass->included_modules_count++;
     if (klass->included_modules_count == 1) {
-        klass->included_modules = malloc(sizeof(NatObject *));
+        klass->included_modules_count++;
+        klass->included_modules = calloc(2, sizeof(NatObject *));
+        klass->included_modules[0] = klass;
     } else {
         klass->included_modules = realloc(klass->included_modules, sizeof(NatObject *) * klass->included_modules_count);
     }
     klass->included_modules[klass->included_modules_count - 1] = module;
+}
+
+void nat_class_prepend(NatEnv *env, NatObject *klass, NatObject *module) {
+    klass->included_modules_count++;
+    if (klass->included_modules_count == 1) {
+        klass->included_modules_count++;
+        klass->included_modules = calloc(2, sizeof(NatObject *));
+        klass->included_modules[1] = klass;
+    } else {
+        klass->included_modules = realloc(klass->included_modules, sizeof(NatObject *) * klass->included_modules_count);
+        for (size_t i = klass->included_modules_count - 1; i > 0; i--) {
+            klass->included_modules[i] = klass->included_modules[i - 1];
+        }
+    }
+    klass->included_modules[0] = module;
 }
 
 NatObject *nat_initialize(NatEnv *env, NatObject *obj, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
@@ -816,14 +833,16 @@ void nat_undefine_singleton_method(NatEnv *env, NatObject *obj, char *name) {
 NatObject *nat_class_ancestors(NatEnv *env, NatObject *klass) {
     assert(NAT_TYPE(klass) == NAT_VALUE_CLASS || NAT_TYPE(klass) == NAT_VALUE_MODULE);
     NatObject *ancestors = nat_array(env);
-    while (1) {
-        nat_array_push(env, ancestors, klass);
+    do {
+        if (klass->included_modules_count == 0) {
+            // note: if there are included modules, then they will include this klass
+            nat_array_push(env, ancestors, klass);
+        }
         for (size_t i = 0; i < klass->included_modules_count; i++) {
             nat_array_push(env, ancestors, klass->included_modules[i]);
         }
-        if (!klass->superclass) break;
         klass = klass->superclass;
-    }
+    } while (klass);
     return ancestors;
 }
 
@@ -925,10 +944,15 @@ void nat_methods(NatEnv *env, NatObject *array, NatObject *klass) {
 NatMethod *nat_find_method(NatObject *klass, char *method_name, NatObject **matching_class_or_module) {
     assert(NAT_TYPE(klass) == NAT_VALUE_CLASS);
 
-    NatMethod *method = hashmap_get(&klass->methods, method_name);
-    if (method) {
-        *matching_class_or_module = klass;
-        return method;
+    NatMethod *method;
+    if (klass->included_modules_count == 0) {
+        // no included modules, just search the class/module
+        // note: if there are included modules, then the module chain will include this class/module
+        method = hashmap_get(&klass->methods, method_name);
+        if (method) {
+            *matching_class_or_module = klass;
+            return method;
+        }
     }
 
     for (size_t i = 0; i < klass->included_modules_count; i++) {

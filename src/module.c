@@ -117,6 +117,15 @@ NatObject *Module_include(NatEnv *env, NatObject *self, size_t argc, NatObject *
     return self;
 }
 
+NatObject *Module_prepend(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    assert(NAT_TYPE(self) == NAT_VALUE_MODULE || NAT_TYPE(self) == NAT_VALUE_CLASS);
+    NAT_ASSERT_ARGC_AT_LEAST(1);
+    for (int i = argc - 1; i >= 0; i--) {
+        nat_class_prepend(env, self, args[i]);
+    }
+    return self;
+}
+
 NatObject *Module_included_modules(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_MODULE || NAT_TYPE(self) == NAT_VALUE_CLASS);
     NAT_ASSERT_ARGC(0);

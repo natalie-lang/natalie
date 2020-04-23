@@ -312,6 +312,7 @@ NatObject *MatchData_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **
     nat_define_method(env, klass, "attr_writer", Module_attr_writer);           \
     nat_define_method(env, klass, "attr_accessor", Module_attr_accessor);       \
     nat_define_method(env, klass, "include", Module_include);                   \
+    nat_define_method(env, klass, "prepend", Module_prepend);                   \
     nat_define_method(env, klass, "included_modules", Module_included_modules); \
     nat_define_method(env, klass, "define_method", Module_define_method);       \
     nat_define_method(env, klass, "class_eval", Module_class_eval);
@@ -327,6 +328,7 @@ NatObject *Module_attr_writer(NatEnv *env, NatObject *self, size_t argc, NatObje
 NatObject *Module_attr_writer_block_fn(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Module_attr_accessor(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Module_include(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+NatObject *Module_prepend(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Module_included_modules(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Module_define_method(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Module_class_eval(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
