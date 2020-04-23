@@ -35,7 +35,7 @@ module Natalie
           .sub('/*OBJ_NAT*/', obj_nat_declarations.join("\n"))
           .sub('/*OBJ_NAT_INIT*/', obj_nat_init_lines.join("\n"))
           .sub('/*TOP*/', top_matter)
-          .sub('/*INIT*/', init_matter)
+          .sub('/*INIT*/', init_matter.to_s)
           .sub('/*BODY*/', @decl.join("\n") + "\n" + result)
       end
 
