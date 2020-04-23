@@ -154,5 +154,11 @@ describe 'namespace' do
   it 'looks in the current namespace unless prefixed with ::' do
     Colon3.my_foo.should == Colon3::Foo
     Colon3.new.my_foo.should == Colon3::Foo
+    Colon3.my_foo_num.should == 100
+    Colon3.new.my_foo_num.should == 100
+    Colon3.top_foo.should == Foo
+    Colon3.new.top_foo.should == Foo
+    Colon3.top_foo_num.should == 2
+    Colon3.new.top_foo_num.should == 2
   end
 end
