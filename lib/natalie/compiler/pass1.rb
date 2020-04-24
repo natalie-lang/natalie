@@ -513,6 +513,26 @@ module Natalie
         s(:c_return, process(value))
       end
 
+      def process_op_asgn1(exp)
+        (_, obj, (_, *key_args), op, *val_args) = exp
+        val = temp('val')
+        obj_name = temp('obj')
+        if op == :"||"
+          exp.new(:block,
+            s(:declare, obj_name, process(obj)),
+            s(:declare, val, s(:nat_send, obj_name, :[], s(:args, *key_args.map { |a| process(a) }), 'NULL')),
+            s(:c_if, s(:nat_truthy, val),
+              val,
+              s(:nat_send, obj_name, :[]=,
+                s(:args,
+                  *key_args.map { |a| process(a) },
+                  *val_args.map { |a| process(a) }),
+                'NULL')))
+        else
+          raise "unknown op #{op.inspect}"
+        end
+      end
+
       def process_op_asgn_or(exp)
         (_, (var_type, name), value) = exp
         case var_type

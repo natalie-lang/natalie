@@ -119,15 +119,32 @@ describe 'assignment' do
   it 'can optionally assign a variable' do
     a ||= 1
     a.should == 1
+    a ||= 2
+    a.should == 1
+
     b = nil
     b ||= 2
     b.should == 2
+    b ||= 3
+    b.should == 2
+
     c = false
     c ||= 3
     c.should == 3
+    c ||= 4
+    c.should == 3
+
     d = true
     d ||= 4
     d.should == true
+    d ||= 5
+    d.should == true
+
+    h = {}
+    h[:e] ||= 5
+    h[:e].should == 5
+    h[:e] ||= 6
+    h[:e].should == 5
   end
 
   it 'assigns instance variables' do
