@@ -29,10 +29,16 @@ describe 'defined?' do
   end
 
   it 'recognizes methods' do
+    defined?(p).should == 'method'
     defined?(foo).should == 'method'
+    ary = []
+    defined?(ary.any?).should == 'method'
     defined?([].any?).should == 'method'
     defined?(1 + 1).should == 'method'
     defined?(not_a_method).should == nil
+    hash = {}
+    defined?(hash[]).should == 'method'
+    defined?(hash[1]).should == 'method'
   end
 
   it 'recognizes expressions' do

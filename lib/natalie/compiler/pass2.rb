@@ -46,6 +46,9 @@ module Natalie
         (_, name) = exp
         if name.sexp_type == :lvar && find_var(name.last.to_s)
           exp.new(:nat_string, :env, s(:s, 'local-variable'))
+        elsif name.sexp_type == :nat_send
+          (sexp, obj, sym, (_, *args), block) = exp
+          exp.new(sexp, process(obj), sym, s(:args, *args.map { |a| process(a) }), block)
         else
           exp
         end
