@@ -620,7 +620,7 @@ module Natalie
         if enclosing == :iter
           exp.new(:nat_raise_local_jump_error, :env, process(value), s(:s, "unexpected return"))
         else
-          exp.new(:c_return, process(value))
+          exp.new(:c_return, process(value) || s(:nil))
         end
       end
 
