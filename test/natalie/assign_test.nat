@@ -121,18 +121,24 @@ describe 'assignment' do
     a.should == 1
     a ||= 2
     a.should == 1
+    a += 1
+    a.should == 2
 
     b = nil
     b ||= 2
     b.should == 2
     b ||= 3
     b.should == 2
+    b -= 1
+    b.should == 1
 
     c = false
     c ||= 3
     c.should == 3
     c ||= 4
     c.should == 3
+    c *= 2
+    c.should == 6
 
     d = true
     d ||= 4
@@ -144,6 +150,10 @@ describe 'assignment' do
     h[:e] ||= 5
     h[:e].should == 5
     h[:e] ||= 6
+    h[:e].should == 5
+    h[:e] += 1
+    h[:e].should == 6
+    h[:e] -= 1
     h[:e].should == 5
   end
 

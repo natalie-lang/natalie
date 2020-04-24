@@ -529,7 +529,19 @@ module Natalie
                   *val_args.map { |a| process(a) }),
                 'NULL')))
         else
-          raise "unknown op #{op.inspect}"
+          exp.new(:block,
+            s(:declare, obj_name, process(obj)),
+            s(:declare, val,
+              s(:nat_send,
+                s(:nat_send, obj_name, :[], s(:args, *key_args.map { |a| process(a) }), 'NULL'),
+                op,
+                s(:args, *val_args.map { |a| process(a) }),
+                'NULL')),
+            s(:nat_send, obj_name, :[]=,
+              s(:args,
+                *key_args.map { |a| process(a) },
+                val),
+              'NULL'))
         end
       end
 
