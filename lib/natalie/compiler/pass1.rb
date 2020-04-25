@@ -253,6 +253,13 @@ module Natalie
           string)
       end
 
+      def process_dsym(exp)
+        str_node = process_dstr(exp)
+        str = str_node.pop
+        str_node << exp.new(:nat_symbol, :env, s(:l, "#{str}->str"))
+        str_node
+      end
+
       def process_gasgn(exp)
         (_, name, value) = exp
         exp.new(:nat_global_set, :env, s(:s, name), process(value))

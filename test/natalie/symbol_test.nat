@@ -1,6 +1,10 @@
 require_relative '../spec_helper'
 
 describe 'symbol' do
+  it 'can be built dynamically' do
+    :"foo #{1 + 1}".should == :"foo 2"
+  end
+
   describe '#inspect' do
     it 'returns a code representation of the symbol' do
       :foo.inspect.should == ':foo'
