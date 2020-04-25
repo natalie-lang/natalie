@@ -260,6 +260,18 @@ module Natalie
         str_node
       end
 
+      def process_ensure(exp)
+        (_, body, ensure_body) = exp
+        process(
+          exp.new(:block,
+            s(:rescue,
+              body,
+              s(:resbody, s(:array),
+                ensure_body,
+                s(:nat_raise_exception, :env, s(:l, 'env->exception')))),
+          ensure_body))
+      end
+
       def process_gasgn(exp)
         (_, name, value) = exp
         exp.new(:nat_global_set, :env, s(:s, name), process(value))

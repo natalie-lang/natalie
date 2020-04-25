@@ -58,3 +58,29 @@ describe 'raise' do
     r.message.should == 'foo'
   end
 end
+
+describe 'ensure' do
+  it 'always runs, even if there is a caught exception' do
+    x = 1
+    begin
+      raise 'error'
+    rescue
+    ensure
+      x = 2
+    end
+    x.should == 2
+  end
+
+  it 'always runs, even if there is an uncaught exception' do
+    x = 1
+    begin
+      begin
+        raise 'error'
+      ensure
+        x = 2
+      end
+    rescue
+    end
+    x.should == 2
+  end
+end
