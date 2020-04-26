@@ -252,17 +252,17 @@ enum NatEncoding {
 
 #define nat_remove_break(obj) ((obj)->flags = (obj)->flags & ~NAT_FLAG_BREAK)
 
-#define NAT_RUN_BLOCK_FROM_ENV(env, argc, args, kwargs, block) ({                                        \
-    NatEnv *env_with_block = env;                                                                        \
-    while (!env_with_block->block && env_with_block->outer) {                                            \
-        env_with_block = env_with_block->outer;                                                          \
-    }                                                                                                    \
-    NatObject *_result = _nat_run_block_internal(env, env_with_block->block, argc, args, kwargs, block); \
-    if (nat_is_break(_result)) {                                                                         \
-        nat_remove_break(_result);                                                                       \
-        return _result;                                                                                  \
-    }                                                                                                    \
-    _result;                                                                                             \
+#define NAT_RUN_BLOCK_FROM_ENV(env, argc, args, kwargs) ({                                              \
+    NatEnv *env_with_block = env;                                                                       \
+    while (!env_with_block->block && env_with_block->outer) {                                           \
+        env_with_block = env_with_block->outer;                                                         \
+    }                                                                                                   \
+    NatObject *_result = _nat_run_block_internal(env, env_with_block->block, argc, args, kwargs, NULL); \
+    if (nat_is_break(_result)) {                                                                        \
+        nat_remove_break(_result);                                                                      \
+        return _result;                                                                                 \
+    }                                                                                                   \
+    _result;                                                                                            \
 })
 
 #define NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, the_block, argc, args, kwargs, block) ({       \
