@@ -750,6 +750,14 @@ NatObject *nat_matchdata(NatEnv *env, OnigRegion *region, NatObject *str_obj) {
     return obj;
 }
 
+NatObject *nat_last_match(NatEnv *env) {
+    if (env->match) {
+        return env->match;
+    } else {
+        return NAT_NIL;
+    }
+}
+
 #define INT_64_MAX_CHAR_LEN 21 // 1 for sign, 19 for max digits, and 1 for null terminator
 
 char *int_to_string(NatEnv *env, int64_t num) {

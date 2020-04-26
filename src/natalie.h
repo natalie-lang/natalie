@@ -178,6 +178,7 @@ struct NatEnv {
     char *file;
     size_t line;
     char *method_name;
+    NatObject *match;
 };
 
 struct NatBlock {
@@ -514,6 +515,7 @@ NatObject *nat_hash_delete(NatEnv *env, NatObject *hash, NatObject *key);
 
 NatObject *nat_regexp(NatEnv *env, char *pattern);
 NatObject *nat_matchdata(NatEnv *env, OnigRegion *region, NatObject *str_obj);
+NatObject *nat_last_match(NatEnv *env);
 
 NatObject *nat_range(NatEnv *env, NatObject *begin, NatObject *end, bool exclude_end);
 

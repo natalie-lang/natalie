@@ -286,7 +286,11 @@ module Natalie
 
       def process_gvar(exp)
         (_, name) = exp
-        exp.new(:nat_global_get, :env, s(:s, name))
+        if name == :$~
+          exp.new(:nat_last_match, :env)
+        else
+          exp.new(:nat_global_get, :env, s(:s, name))
+        end
       end
 
       def process_hash(exp)
@@ -537,6 +541,14 @@ module Natalie
         (_, value) = exp
         value ||= s(:nil)
         s(:c_return, process(value))
+      end
+
+      def process_nth_ref(exp)
+        (_, num) = exp
+        match = temp('match')
+        exp.new(:block,
+          s(:declare, match, s(:nat_last_match, :env)),
+          s(:c_if, s(:nat_truthy, match), s(:nat_send, match, :[], s(:args, s(:nat_integer, :env, num))), s(:nil)))
       end
 
       def process_op_asgn1(exp)
