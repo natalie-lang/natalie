@@ -164,3 +164,21 @@ NatObject *Module_private(NatEnv *env, NatObject *self, size_t argc, NatObject *
     printf("TODO: class private\n");
     return NAT_NIL;
 }
+
+NatObject *Module_const_defined(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    assert(NAT_TYPE(self) == NAT_VALUE_MODULE || NAT_TYPE(self) == NAT_VALUE_CLASS);
+    NAT_ASSERT_ARGC(1);
+    NatObject *name_obj = args[0];
+    if (NAT_TYPE(name_obj) == NAT_VALUE_STRING) {
+        // we're good!
+    } else if (NAT_TYPE(name_obj) == NAT_VALUE_SYMBOL) {
+        name_obj = nat_string(env, name_obj->symbol);
+    } else {
+        NAT_RAISE(env, "TypeError", "no implicit conversion of %s to String", nat_send(env, name_obj->klass, "inspect", 0, NULL, NULL));
+    }
+    if (nat_const_get_or_null(env, self, name_obj->str, false, false)) {
+        return NAT_TRUE;
+    } else {
+        return NAT_FALSE;
+    }
+}
