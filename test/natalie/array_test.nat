@@ -1,6 +1,11 @@
 require_relative '../spec_helper'
 
 describe 'array' do
+  it 'can be assigned from a splat' do
+    a = *[1, 2, 3]
+    a.should == [1, 2, 3]
+  end
+
   describe 'Array()' do
     it 'returns an empty array given nil' do
       Array(nil).should == []
