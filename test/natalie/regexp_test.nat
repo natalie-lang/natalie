@@ -6,6 +6,12 @@ describe 'regexp' do
     r.should be_kind_of(Regexp)
   end
 
+  it 'can be created dynamically' do
+    r = /foo #{1 + 1}/
+    r.should be_kind_of(Regexp)
+    r.inspect.should == '/foo 2/'
+  end
+
   describe '.new' do
     it 'can be created with a string or another regexp' do
       r1 = Regexp.new('foo.*bar')

@@ -234,6 +234,13 @@ module Natalie
         exp.new(:nat_range, :env, process(beginning), process(ending), 1)
       end
 
+      def process_dregx(exp)
+        str_node = process_dstr(exp)
+        str = str_node.pop
+        str_node << exp.new(:nat_regexp, :env, s(:l, "#{str}->str"))
+        str_node
+      end
+
       def process_dstr(exp)
         (_, start, *rest) = exp
         string = temp('string')
