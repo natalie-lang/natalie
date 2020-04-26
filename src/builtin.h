@@ -379,6 +379,11 @@ NatObject *Proc_lambda(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     nat_define_method(env, klass, "===", Range_eqeqeq);               \
     nat_define_method(env, klass, "include?", Range_eqeqeq);
 
+#define NAT_PROCESS_INIT(module) \
+    nat_define_singleton_method(env, module, "pid", Process_pid);
+
+NatObject *Process_pid(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+
 NatObject *Range_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Range_begin(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Range_end(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);

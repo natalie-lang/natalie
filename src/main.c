@@ -183,6 +183,10 @@ NatEnv *build_top_env() {
     nat_const_set(env, Object, "Encoding", Encoding);
     NAT_ENCODING_INIT(Encoding);
 
+    NatObject *Process = nat_module(env, "Process");
+    nat_const_set(env, Object, "Process", Process);
+    NAT_PROCESS_INIT(Process);
+
     NatObject *EncodingAscii8Bit = nat_encoding(env, NAT_ENCODING_ASCII_8BIT, nat_array_with_vals(env, 2, nat_string(env, "ASCII-8BIT"), nat_string(env, "BINARY")));
     nat_const_set(env, Encoding, "ASCII_8BIT", EncodingAscii8Bit);
 
