@@ -165,6 +165,11 @@ NatObject *Module_private(NatEnv *env, NatObject *self, size_t argc, NatObject *
     return NAT_NIL;
 }
 
+NatObject *Module_protected(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    printf("TODO: class protected\n");
+    return NAT_NIL;
+}
+
 NatObject *Module_const_defined(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_MODULE || NAT_TYPE(self) == NAT_VALUE_CLASS);
     NAT_ASSERT_ARGC(1);
