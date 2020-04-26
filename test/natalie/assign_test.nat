@@ -116,7 +116,7 @@ describe 'assignment' do
     b.should == nil
   end
 
-  it 'can optionally assign a variable' do
+  it 'can optionally assign a variable with ||=' do
     a ||= 1
     a.should == 1
     a ||= 2
@@ -155,6 +155,15 @@ describe 'assignment' do
     h[:e].should == 6
     h[:e] -= 1
     h[:e].should == 5
+  end
+
+  it 'can optionally override a variable with &&=' do
+    a &&= 1
+    a.should == nil
+
+    b = 1
+    b &&= 2
+    b.should == 2
   end
 
   it 'assigns instance variables' do

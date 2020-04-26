@@ -564,30 +564,38 @@ module Natalie
         end
       end
 
+      def process_op_asgn_and(exp)
+        process_op_asgn_bool(exp, condition: ->(result_name) { s(:not, s(:nat_truthy, result_name)) })
+      end
+
       def process_op_asgn_or(exp)
+        process_op_asgn_bool(exp, condition: ->(result_name) { s(:nat_truthy, result_name) })
+      end
+
+      def process_op_asgn_bool(exp, condition:)
         (_, (var_type, name), value) = exp
         case var_type
         when :cvar
           result_name = temp('cvar')
           exp.new(:block,
             s(:declare, result_name, s(:nat_cvar_get_or_null, :env, :self, s(:s, name))),
-            s(:c_if, s(:nat_truthy, result_name), result_name, process(value)))
+            s(:c_if, condition.(result_name), result_name, process(value)))
         when :gvar
           result_name = temp('gvar')
           exp.new(:block,
             s(:declare, result_name, s(:nat_global_get, :env, s(:s, name))),
-            s(:c_if, s(:nat_truthy, result_name), result_name, process(value)))
+            s(:c_if, condition.(result_name), result_name, process(value)))
         when :ivar
           result_name = temp('ivar')
           exp.new(:block,
             s(:declare, result_name, s(:nat_ivar_get, :env, :self, s(:s, name))),
-            s(:c_if, s(:nat_truthy, result_name), result_name, process(value)))
+            s(:c_if, condition.(result_name), result_name, process(value)))
         when :lvar
           var = process(s(:lvar, name))
           exp.new(:block,
             s(:nat_var_declare, :env, s(:s, name)),
             s(:c_if, s(:defined, s(:lvar, name)),
-              s(:c_if, s(:nat_truthy, var),
+              s(:c_if, condition.(var),
                 var,
                 process(value))))
         else
