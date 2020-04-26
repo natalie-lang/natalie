@@ -19,7 +19,7 @@ module Natalie
         process_and_build_vars(ast)
       end
 
-      def process_and_build_vars(exp, is_block: false)
+      def process_and_build_vars(exp)
         body = process_sexp(exp)
         var_count = @env[:vars].size # FIXME: this is overkill -- there are variables not captured in this count, i.e. "holes" in the array :-(
         to_declare = @env[:vars].values.select { |v| !v[:captured] }
@@ -32,8 +32,9 @@ module Natalie
       def process_block_fn(exp)
         (sexp_type, name, body) = exp
         is_block = %i[block_fn begin_fn].include?(sexp_type)
-        @env = { parent: @env, vars: {}, block: is_block }
-        result = process_and_build_vars(body, is_block: is_block)
+        should_hoist = sexp_type == :begin_fn
+        @env = { parent: @env, vars: {}, block: is_block, hoist: should_hoist }
+        result = process_and_build_vars(body)
         @env = @env[:parent]
         exp.new(sexp_type, name, result)
       end
@@ -130,9 +131,20 @@ module Natalie
 
       def declare_var(name)
         var_num = @compiler_context[:var_num] += 1
-        var = @env[:vars][name] = { name: name, index: @env[:vars].size, var_num: var_num }
-        var[:captured] = true if repl?
-        ['env', var]
+        if @env[:hoist]
+          env = @env[:parent]
+          env_name = 'env->outer'
+          while env[:hoist]
+            env = env[:parent]
+            env_name = "#{env_name}->outer"
+          end
+          var = env[:vars][name] = { name: name, index: env[:vars].size, var_num: var_num, captured: true }
+          [env_name, var]
+        else
+          var = @env[:vars][name] = { name: name, index: @env[:vars].size, var_num: var_num }
+          var[:captured] = true if repl?
+          ['env', var]
+        end
       end
 
       def process_atom(exp)
