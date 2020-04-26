@@ -17,15 +17,34 @@ module Natalie
       end
 
       VOID_FUNCTIONS = %i[
-        nat_alias
-        nat_array_push
         NAT_ASSERT_ARGC
         NAT_ASSERT_NOT_FROZEN
+        nat_alias
+        nat_array_expand_with_nil
+        nat_array_push
+        nat_array_push_splat
+        nat_class_include
+        nat_class_prepend
         nat_define_method
+        nat_define_method_with_block
         nat_define_singleton_method
-        nat_raise_exception
+        nat_define_singleton_method_with_block
+        nat_grow_array
+        nat_grow_array_at_least
+        nat_grow_string
+        nat_grow_string_at_least
+        nat_handle_top_level_exception
+        nat_hash_key_list_remove_node
+        nat_hash_put
+        nat_methods
+        nat_print_exception_with_backtrace
+        nat_quicksort
+        nat_run_at_exit_handlers
         nat_string_append
+        nat_string_append_char
         nat_string_append_nat_string
+        nat_undefine_method
+        nat_undefine_singleton_method
       ]
 
       NAT_FUNCTIONS = /^nat_|eval\d+$/i
