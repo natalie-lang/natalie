@@ -182,3 +182,26 @@ NatObject *Module_const_defined(NatEnv *env, NatObject *self, size_t argc, NatOb
         return NAT_FALSE;
     }
 }
+
+NatObject *Module_alias_method(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    assert(NAT_TYPE(self) == NAT_VALUE_MODULE || NAT_TYPE(self) == NAT_VALUE_CLASS);
+    NAT_ASSERT_ARGC(2);
+    NatObject *new_name = args[0];
+    if (NAT_TYPE(new_name) == NAT_VALUE_STRING) {
+        // we're good!
+    } else if (NAT_TYPE(new_name) == NAT_VALUE_SYMBOL) {
+        new_name = nat_string(env, new_name->symbol);
+    } else {
+        NAT_RAISE(env, "TypeError", "%s is not a symbol", nat_send(env, new_name, "inspect", 0, NULL, NULL));
+    }
+    NatObject *old_name = args[1];
+    if (NAT_TYPE(old_name) == NAT_VALUE_STRING) {
+        // we're good!
+    } else if (NAT_TYPE(old_name) == NAT_VALUE_SYMBOL) {
+        old_name = nat_string(env, old_name->symbol);
+    } else {
+        NAT_RAISE(env, "TypeError", "%s is not a symbol", nat_send(env, old_name, "inspect", 0, NULL, NULL));
+    }
+    nat_alias(env, self, new_name->str, old_name->str);
+    return self;
+}

@@ -317,7 +317,8 @@ NatObject *MatchData_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **
     nat_define_method(env, klass, "define_method", Module_define_method);       \
     nat_define_method(env, klass, "class_eval", Module_class_eval);             \
     nat_define_method(env, klass, "private", Module_private);                   \
-    nat_define_method(env, klass, "const_defined?", Module_const_defined);
+    nat_define_method(env, klass, "const_defined?", Module_const_defined);      \
+    nat_define_method(env, klass, "alias_method", Module_alias_method);
 
 NatObject *Module_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Module_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
@@ -336,6 +337,7 @@ NatObject *Module_define_method(NatEnv *env, NatObject *self, size_t argc, NatOb
 NatObject *Module_class_eval(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Module_private(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Module_const_defined(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+NatObject *Module_alias_method(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 
 #define NAT_NIL_CLASS_INIT(klass)                               \
     nat_undefine_singleton_method(env, klass, "new");           \

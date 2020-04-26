@@ -297,3 +297,17 @@ describe 'class << self' do
     -> { SingletonAccess.new.foo }.should raise_error(NoMethodError)
   end
 end
+
+class AliasTest
+  def foo
+    'foo'
+  end
+
+  alias bar foo
+end
+
+describe 'alias' do
+  AliasTest.new.bar.should == 'foo'
+  AliasTest.alias_method :baz, :foo
+  AliasTest.new.baz.should == 'foo'
+end
