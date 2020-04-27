@@ -99,6 +99,34 @@ class Matcher
     end
   end
 
+  def =~(pattern)
+    if @inverted
+      not_regex_match(pattern)
+    else
+      regex_match(pattern)
+    end
+  end
+
+  def regex_match(pattern)
+    if @subject !~ pattern
+      raise SpecFailedException, @subject.inspect + ' should match ' + pattern.inspect
+    end
+  end
+
+  def !~(pattern)
+    if @inverted
+      regex_match(pattern)
+    else
+      not_regex_match(pattern)
+    end
+  end
+
+  def not_regex_match(pattern)
+    if @subject =~ pattern
+      raise SpecFailedException, @subject.inspect + ' should not (!) match ' + pattern.inspect
+    end
+  end
+
   def match_expectation(expectation)
     if @inverted
       expectation.inverted_match(@subject)

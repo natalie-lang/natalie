@@ -113,36 +113,38 @@ NatObject *Exception_backtrace(NatEnv *env, NatObject *self, size_t argc, NatObj
 NatObject *FalseClass_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *FalseClass_to_s(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 
-#define NAT_FILE_INIT(klass)                                                 \
-    NatObject *Constants = nat_module(env, "Constants");                     \
-    nat_define_method(env, klass, "initialize", File_initialize);            \
-    nat_const_set(env, klass, "Constants", Constants);                       \
-    nat_const_set(env, klass, "APPEND", nat_integer(env, O_APPEND));         \
-    nat_const_set(env, Constants, "APPEND", nat_integer(env, O_APPEND));     \
-    nat_const_set(env, klass, "RDONLY", nat_integer(env, O_RDONLY));         \
-    nat_const_set(env, Constants, "RDONLY", nat_integer(env, O_RDONLY));     \
-    nat_const_set(env, klass, "WRONLY", nat_integer(env, O_WRONLY));         \
-    nat_const_set(env, Constants, "WRONLY", nat_integer(env, O_WRONLY));     \
-    nat_const_set(env, klass, "TRUNC", nat_integer(env, O_TRUNC));           \
-    nat_const_set(env, Constants, "TRUNC", nat_integer(env, O_TRUNC));       \
-    nat_const_set(env, klass, "CREAT", nat_integer(env, O_CREAT));           \
-    nat_const_set(env, Constants, "CREAT", nat_integer(env, O_CREAT));       \
-    nat_const_set(env, klass, "DSYNC", nat_integer(env, O_DSYNC));           \
-    nat_const_set(env, Constants, "DSYNC", nat_integer(env, O_DSYNC));       \
-    nat_const_set(env, klass, "EXCL", nat_integer(env, O_EXCL));             \
-    nat_const_set(env, Constants, "EXCL", nat_integer(env, O_EXCL));         \
-    nat_const_set(env, klass, "NOCTTY", nat_integer(env, O_NOCTTY));         \
-    nat_const_set(env, Constants, "NOCTTY", nat_integer(env, O_NOCTTY));     \
-    nat_const_set(env, klass, "NOFOLLOW", nat_integer(env, O_NOFOLLOW));     \
-    nat_const_set(env, Constants, "NOFOLLOW", nat_integer(env, O_NOFOLLOW)); \
-    nat_const_set(env, klass, "NONBLOCK", nat_integer(env, O_NONBLOCK));     \
-    nat_const_set(env, Constants, "NONBLOCK", nat_integer(env, O_NONBLOCK)); \
-    nat_const_set(env, klass, "RDWR", nat_integer(env, O_RDWR));             \
-    nat_const_set(env, Constants, "RDWR", nat_integer(env, O_RDWR));         \
-    nat_const_set(env, klass, "SYNC", nat_integer(env, O_SYNC));             \
+#define NAT_FILE_INIT(klass)                                                  \
+    NatObject *Constants = nat_module(env, "Constants");                      \
+    nat_define_method(env, klass, "initialize", File_initialize);             \
+    nat_define_singleton_method(env, klass, "expand_path", File_expand_path); \
+    nat_const_set(env, klass, "Constants", Constants);                        \
+    nat_const_set(env, klass, "APPEND", nat_integer(env, O_APPEND));          \
+    nat_const_set(env, Constants, "APPEND", nat_integer(env, O_APPEND));      \
+    nat_const_set(env, klass, "RDONLY", nat_integer(env, O_RDONLY));          \
+    nat_const_set(env, Constants, "RDONLY", nat_integer(env, O_RDONLY));      \
+    nat_const_set(env, klass, "WRONLY", nat_integer(env, O_WRONLY));          \
+    nat_const_set(env, Constants, "WRONLY", nat_integer(env, O_WRONLY));      \
+    nat_const_set(env, klass, "TRUNC", nat_integer(env, O_TRUNC));            \
+    nat_const_set(env, Constants, "TRUNC", nat_integer(env, O_TRUNC));        \
+    nat_const_set(env, klass, "CREAT", nat_integer(env, O_CREAT));            \
+    nat_const_set(env, Constants, "CREAT", nat_integer(env, O_CREAT));        \
+    nat_const_set(env, klass, "DSYNC", nat_integer(env, O_DSYNC));            \
+    nat_const_set(env, Constants, "DSYNC", nat_integer(env, O_DSYNC));        \
+    nat_const_set(env, klass, "EXCL", nat_integer(env, O_EXCL));              \
+    nat_const_set(env, Constants, "EXCL", nat_integer(env, O_EXCL));          \
+    nat_const_set(env, klass, "NOCTTY", nat_integer(env, O_NOCTTY));          \
+    nat_const_set(env, Constants, "NOCTTY", nat_integer(env, O_NOCTTY));      \
+    nat_const_set(env, klass, "NOFOLLOW", nat_integer(env, O_NOFOLLOW));      \
+    nat_const_set(env, Constants, "NOFOLLOW", nat_integer(env, O_NOFOLLOW));  \
+    nat_const_set(env, klass, "NONBLOCK", nat_integer(env, O_NONBLOCK));      \
+    nat_const_set(env, Constants, "NONBLOCK", nat_integer(env, O_NONBLOCK));  \
+    nat_const_set(env, klass, "RDWR", nat_integer(env, O_RDWR));              \
+    nat_const_set(env, Constants, "RDWR", nat_integer(env, O_RDWR));          \
+    nat_const_set(env, klass, "SYNC", nat_integer(env, O_SYNC));              \
     nat_const_set(env, Constants, "SYNC", nat_integer(env, O_SYNC));
 
 NatObject *File_initialize(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+NatObject *File_expand_path(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 
 #define NAT_HASH_INIT(klass)                                        \
     nat_define_singleton_method(env, klass, "new", Hash_new);       \
@@ -257,7 +259,8 @@ NatObject *IO_seek(NatEnv *env, NatObject *self, size_t argc, NatObject **args, 
     nat_define_method(env, module, "define_singleton_method", Kernel_define_singleton_method); \
     nat_define_method(env, module, "tap", Kernel_tap);                                         \
     nat_define_method(env, module, "Array", Kernel_Array);                                     \
-    nat_define_method(env, module, "send", Kernel_send);
+    nat_define_method(env, module, "send", Kernel_send);                                       \
+    nat_define_method(env, module, "__dir__", Kernel_cur_dir);
 
 NatObject *Kernel_puts(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Kernel_print(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
@@ -288,6 +291,7 @@ NatObject *Kernel_define_singleton_method(NatEnv *env, NatObject *self, size_t a
 NatObject *Kernel_tap(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Kernel_Array(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 NatObject *Kernel_send(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+NatObject *Kernel_cur_dir(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 
 NatObject *main_obj_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
 

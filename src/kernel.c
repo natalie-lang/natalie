@@ -327,3 +327,28 @@ NatObject *Kernel_send(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     }
     return nat_send(env->caller, self, name, argc - 1, args + 1, block);
 }
+
+NatObject *Kernel_cur_dir(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+    NAT_ASSERT_ARGC(0);
+    if (env->file == NULL) {
+        NAT_RAISE(env, "RuntimeError", "could not get current directory");
+    } else if (strcmp(env->file, "-e") == 0) {
+        return nat_string(env, ".");
+    } else {
+        NatObject *relative = nat_string(env, env->file);
+        NatObject *absolute = File_expand_path(env, nat_const_get(env, NAT_OBJECT, "File", true), 1, &relative, NULL, NULL);
+        size_t last_slash = 0;
+        bool found = false;
+        for (size_t i = 0; i < absolute->str_len; i++) {
+            if (absolute->str[i] == '/') {
+                found = true;
+                last_slash = i;
+            }
+        }
+        if (found) {
+            absolute->str[last_slash] = 0;
+            absolute->str_len = last_slash;
+        }
+        return absolute;
+    }
+}
