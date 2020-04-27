@@ -222,6 +222,9 @@ NatEnv *build_top_env() {
     nat_const_set(env, Object, "ENV", ENV);
     NAT_ENV_INIT(ENV);
 
+    NatObject *RUBY_VERSION = nat_string(env, "2.7.1");
+    nat_const_set(env, Object, "RUBY_VERSION", RUBY_VERSION);
+
     /*OBJ_NAT_INIT*/
 
     env->global_env->gc_enabled = true;
