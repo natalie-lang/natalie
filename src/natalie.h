@@ -500,6 +500,8 @@ void nat_assign_rest_arg(NatEnv *env, char *name, size_t argc, NatObject **args,
 void nat_array_push_splat(NatEnv *env, NatObject *array, NatObject *obj);
 void nat_array_expand_with_nil(NatEnv *env, NatObject *array, size_t size);
 
+NatObject *nat_splat(NatEnv *env, NatObject *obj);
+
 NatHashKey *nat_hash_key_list_append(NatEnv *env, NatObject *hash, NatObject *key, NatObject *val);
 void nat_hash_key_list_remove_node(NatObject *hash, NatHashKey *node);
 NatHashIter *nat_hash_iter(NatEnv *env, NatObject *hash);

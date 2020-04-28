@@ -1,9 +1,17 @@
 require_relative '../spec_helper'
 
 describe 'array' do
-  it 'can be assigned from a splat' do
+  it 'can be assigned from a splat (makes a copy)' do
     a = *[1, 2, 3]
-    a.should == [1, 2, 3]
+    b = *a
+    b.should == a
+    b.object_id.should != a.object_id
+  end
+
+  it 'can be assigned from a splat of a single item' do
+    a = 1
+    b = *a
+    b.should == [1]
   end
 
   describe 'Array()' do

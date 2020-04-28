@@ -548,6 +548,14 @@ void nat_array_expand_with_nil(NatEnv *env, NatObject *array, size_t size) {
     }
 }
 
+NatObject *nat_splat(NatEnv *env, NatObject *obj) {
+    if (NAT_TYPE(obj) == NAT_VALUE_ARRAY) {
+        return nat_array_copy(env, obj);
+    } else {
+        return nat_to_ary(env, obj, false);
+    }
+}
+
 // this is used by the hashmap library and assumes that obj->env has been set
 size_t nat_hashmap_hash(const void *key) {
     NatHashKey *key_p = (NatHashKey *)key;

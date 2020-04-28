@@ -686,11 +686,10 @@ module Natalie
         process_call(exp.new(:call, nil, :super, *args), is_super: true)
       end
 
-      # I don't know why this parser gives us an svalue + splat here. Is it possible to another type of svalue?
       def process_svalue(exp)
         (_, (type, value)) = exp
         raise "Unknown svalue type #{type.inspect}" unless type == :splat
-        process(value)
+        exp.new(:nat_splat, :env, process(value))
       end
 
       def process_while(exp)
