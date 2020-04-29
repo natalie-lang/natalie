@@ -194,6 +194,20 @@ module Natalie
         ''
       end
 
+      def process_c_define_method(exp)
+        (_, (_, name), (_, c)) = exp
+        fn = temp('fn')
+        top "NatObject *#{fn}(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {\n#{c}\n}"
+        process(s(:nat_define_method, :env, :self, s(:s, name), fn))
+        "nat_symbol(env, #{name.inspect})"
+      end
+
+      def process_c_eval(exp)
+        (_, (_, c)) = exp
+        decl c
+        ''
+      end
+
       def process_c_if(exp)
         (_, condition, true_body, false_body) = exp
         condition = process(condition)
@@ -218,9 +232,25 @@ module Natalie
         result_name
       end
 
+      def process_c_include(exp)
+        (_, (_, lib)) = exp
+        if lib.start_with?('<')
+          top "#include #{lib}"
+        else
+          top "#include #{lib.inspect}"
+        end
+        ''
+      end
+
       def process_c_return(exp)
         (_, value) = exp
         decl "return #{process_atom(value)};"
+        ''
+      end
+
+      def process_c_top_eval(exp)
+        (_, (_, c)) = exp
+        top c
         ''
       end
 

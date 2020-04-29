@@ -6,7 +6,7 @@ def m
   $foo
 end
 
-class C
+class Foo
   def m
     $foo
   end
@@ -21,7 +21,7 @@ describe 'globals' do
     r = $foo
     r.should == 1
     m.should == 1
-    C.new.m.should == 1
-    C.m.should == 1
+    Foo.new.m.should == 1
+    Foo.m.should == 1
   end
 end

@@ -137,7 +137,7 @@ module Natalie
         "#{cc} #{build_flags} -I #{SRC_PATH} -I #{ONIGMO_SRC_PATH} -fPIC -x c -c #{@c_path} -o #{out_path} 2>&1"
       else
         libs = '-lm'
-        "#{cc} #{build_flags} #{shared? ? '-fPIC -shared' : ''} -I #{SRC_PATH} -I #{ONIGMO_SRC_PATH} -o #{out_path} -L #{ld_library_path} #{OBJ_PATH}/*.o #{OBJ_PATH}/nat/*.o #{ONIGMO_LIB_PATH}/libonigmo.a -x c #{@c_path} #{libs} 2>&1"
+        "#{cc} #{build_flags} #{shared? ? '-fPIC -shared' : ''} -I #{SRC_PATH} -I #{ONIGMO_SRC_PATH} -o #{out_path} -L #{ld_library_path} #{OBJ_PATH}/*.o #{OBJ_PATH}/nat/*.o #{ONIGMO_LIB_PATH}/libonigmo.a -x c #{@c_path} #{libs} #{extra_build_flags} 2>&1"
       end
     end
 
@@ -164,6 +164,11 @@ module Natalie
       else
         raise "unknown build mode: #{build.inspect}"
       end
+    end
+
+    # TODO: add way to specify these from the user program
+    def extra_build_flags
+      ENV['EXTRA_BUILD_FLAGS']
     end
 
     def var_prefix
@@ -269,6 +274,7 @@ module Natalie
       indent = 0
       code.split("\n").each do |line|
         indent -= 4 if line =~ /^\s*\}/
+        indent = [0, indent].max
         out << line.sub(/^\s*/, ' ' * indent)
         indent += 4 if line.end_with?('{')
       end

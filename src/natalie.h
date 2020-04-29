@@ -59,9 +59,9 @@
         NAT_RAISE(env, "ArgumentError", "wrong number of arguments (given %d, expected 0..%d)", argc, expected); \
     }
 
-#define NAT_ASSERT_TYPE(obj, expected_type, expected_class_name)                                                                  \
-    if (NAT_TYPE(obj) != expected_type) {                                                                                         \
-        NAT_RAISE(env, "TypeError", "no implicit conversion of %s into %s", NAT_OBJ_CLASS(obj)->class_name, expected_class_name); \
+#define NAT_ASSERT_TYPE(obj, expected_type, expected_class_name)                                                                    \
+    if (NAT_TYPE((obj)) != expected_type) {                                                                                         \
+        NAT_RAISE(env, "TypeError", "no implicit conversion of %s into %s", NAT_OBJ_CLASS((obj))->class_name, expected_class_name); \
     }
 
 #define NAT_GET_MACRO(_1, _2, NAME, ...) NAME
@@ -554,3 +554,5 @@ NatObject *nat_block_args_to_array(NatEnv *env, size_t signature_size, size_t ar
 NatObject *nat_encoding(NatEnv *env, int num, NatObject *names);
 
 NatObject *nat_eval_class_or_module_body(NatEnv *env, NatObject *class_or_module, NatObject *(*fn)(NatEnv *, NatObject *));
+
+void nat_arg_spread(NatEnv *env, size_t argc, NatObject **args, char *arrangement, ...);

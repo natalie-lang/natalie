@@ -1637,3 +1637,61 @@ NatObject *nat_eval_class_or_module_body(NatEnv *env, NatObject *class_or_module
     body_env->caller = env;
     return fn(body_env, class_or_module);
 }
+
+void nat_arg_spread(NatEnv *env, size_t argc, NatObject **args, char *arrangement, ...) {
+    va_list va_args;
+    va_start(va_args, arrangement);
+    size_t len = strlen(arrangement);
+    size_t arg_index = 0;
+    NatObject *obj;
+    bool *bool_ptr;
+    int *int_ptr;
+    char **str_ptr;
+    void **void_ptr;
+    NatObject **obj_ptr;
+    for (size_t i = 0; i < len; i++) {
+        char c = arrangement[i];
+        switch (c) {
+        case 'o':
+            obj_ptr = va_arg(va_args, NatObject **);
+            if (arg_index >= argc) NAT_RAISE(env, "ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, arg_index + 1);
+            obj = args[arg_index++];
+            *obj_ptr = obj;
+            break;
+        case 'i':
+            int_ptr = va_arg(va_args, int *);
+            if (arg_index >= argc) NAT_RAISE(env, "ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, arg_index + 1);
+            obj = args[arg_index++];
+            NAT_ASSERT_TYPE(obj, NAT_VALUE_INTEGER, "Integer");
+            *int_ptr = NAT_INT_VALUE(obj);
+            break;
+        case 's':
+            str_ptr = va_arg(va_args, char **);
+            if (arg_index >= argc) NAT_RAISE(env, "ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, arg_index + 1);
+            obj = args[arg_index++];
+            if (obj == NAT_NIL) {
+                *str_ptr = NULL;
+            } else {
+                NAT_ASSERT_TYPE(obj, NAT_VALUE_STRING, "String");
+            }
+            *str_ptr = obj->str;
+            break;
+        case 'b':
+            bool_ptr = va_arg(va_args, bool *);
+            if (arg_index >= argc) NAT_RAISE(env, "ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, arg_index + 1);
+            obj = args[arg_index++];
+            *bool_ptr = nat_truthy(obj);
+            break;
+        case 'v':
+            void_ptr = va_arg(va_args, void **);
+            if (arg_index >= argc) NAT_RAISE(env, "ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, arg_index + 1);
+            obj = args[arg_index++];
+            *void_ptr = (void *)nat_ivar_get(env, obj, "@_ptr");
+            break;
+        default:
+            fprintf(stderr, "Unknown arg spread arrangement specifier: %%%c", c);
+            abort();
+        }
+    }
+    va_end(va_args);
+}
