@@ -33,6 +33,7 @@ module Natalie
         else
           multi_line_expr = []
         end
+        next if ast == s(:block)
         last_node = ast.pop
         ast << last_node.new(:call, nil, 'puts', s(:call, s(:lasgn, :_, last_node), 'inspect'))
         out = Tempfile.create('natalie.so')
