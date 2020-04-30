@@ -2,14 +2,14 @@
 #include "natalie.h"
 #include <math.h>
 
-NatObject *Integer_to_s(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Integer_to_s(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_INTEGER);
     NAT_ASSERT_ARGC(0);
     char *str = int_to_string(env, NAT_INT_VALUE(self));
     return nat_string(env, str);
 }
 
-NatObject *Integer_add(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Integer_add(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_INTEGER);
     NAT_ASSERT_ARGC(1);
     NatObject *arg = args[0];
@@ -18,7 +18,7 @@ NatObject *Integer_add(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     return nat_integer(env, result);
 }
 
-NatObject *Integer_sub(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Integer_sub(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_INTEGER);
     NAT_ASSERT_ARGC(1);
     NatObject *arg = args[0];
@@ -27,7 +27,7 @@ NatObject *Integer_sub(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     return nat_integer(env, result);
 }
 
-NatObject *Integer_mul(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Integer_mul(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_INTEGER);
     NAT_ASSERT_ARGC(1);
     NatObject *arg = args[0];
@@ -36,7 +36,7 @@ NatObject *Integer_mul(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     return nat_integer(env, result);
 }
 
-NatObject *Integer_div(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Integer_div(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_INTEGER);
     NAT_ASSERT_ARGC(1);
     NatObject *arg = args[0];
@@ -51,7 +51,7 @@ NatObject *Integer_div(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     return nat_integer(env, result);
 }
 
-NatObject *Integer_mod(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Integer_mod(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_INTEGER);
     NAT_ASSERT_ARGC(1);
     NatObject *arg = args[0];
@@ -60,7 +60,7 @@ NatObject *Integer_mod(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     return nat_integer(env, result);
 }
 
-NatObject *Integer_pow(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Integer_pow(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_INTEGER);
     NAT_ASSERT_ARGC(1);
     NatObject *arg = args[0];
@@ -69,7 +69,7 @@ NatObject *Integer_pow(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     return nat_integer(env, result);
 }
 
-NatObject *Integer_cmp(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Integer_cmp(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_INTEGER);
     NAT_ASSERT_ARGC(1);
     NatObject *arg = args[0];
@@ -85,7 +85,7 @@ NatObject *Integer_cmp(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     }
 }
 
-NatObject *Integer_eqeqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Integer_eqeqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_INTEGER);
     NAT_ASSERT_ARGC(1);
     NatObject *arg = args[0];
@@ -96,7 +96,7 @@ NatObject *Integer_eqeqeq(NatEnv *env, NatObject *self, size_t argc, NatObject *
     }
 }
 
-NatObject *Integer_times(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Integer_times(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_INTEGER);
     NAT_ASSERT_ARGC(0);
     int64_t val = NAT_INT_VALUE(self);
@@ -105,12 +105,12 @@ NatObject *Integer_times(NatEnv *env, NatObject *self, size_t argc, NatObject **
     NatObject *num;
     for (long long i = 0; i < val; i++) {
         num = nat_integer(env, i);
-        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &num, NULL, NULL);
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &num, NULL);
     }
     return self;
 }
 
-NatObject *Integer_bitwise_and(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Integer_bitwise_and(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_INTEGER);
     NAT_ASSERT_ARGC(1);
     NatObject *arg = args[0];
@@ -118,7 +118,7 @@ NatObject *Integer_bitwise_and(NatEnv *env, NatObject *self, size_t argc, NatObj
     return nat_integer(env, NAT_INT_VALUE(self) & NAT_INT_VALUE(arg));
 }
 
-NatObject *Integer_bitwise_or(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Integer_bitwise_or(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_INTEGER);
     NAT_ASSERT_ARGC(1);
     NatObject *arg = args[0];
@@ -126,7 +126,7 @@ NatObject *Integer_bitwise_or(NatEnv *env, NatObject *self, size_t argc, NatObje
     return nat_integer(env, NAT_INT_VALUE(self) | NAT_INT_VALUE(arg));
 }
 
-NatObject *Integer_succ(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Integer_succ(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_INTEGER);
     NAT_ASSERT_ARGC(0);
     return nat_integer(env, NAT_INT_VALUE(self) + 1);

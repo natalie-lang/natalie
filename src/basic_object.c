@@ -1,11 +1,11 @@
 #include "builtin.h"
 #include "natalie.h"
 
-NatObject *BasicObject_not(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *BasicObject_not(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     return nat_not(env, self);
 }
 
-NatObject *BasicObject_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *BasicObject_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
     NatObject *arg = args[0];
     if (self == arg) {
@@ -15,13 +15,13 @@ NatObject *BasicObject_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject
     }
 }
 
-NatObject *BasicObject_neq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *BasicObject_neq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
     NatObject *arg = args[0];
-    return BasicObject_not(env, nat_send(env, self, "==", 1, &arg, NULL), 0, NULL, NULL, NULL);
+    return BasicObject_not(env, nat_send(env, self, "==", 1, &arg, NULL), 0, NULL, NULL);
 }
 
-NatObject *BasicObject_instance_eval(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *BasicObject_instance_eval(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     if (argc > 0 || !block) {
         NAT_RAISE(env, "ArgumentError", "Natalie only supports instance_eval with a block");
     }
@@ -32,5 +32,5 @@ NatObject *BasicObject_instance_eval(NatEnv *env, NatObject *self, size_t argc, 
     if (NAT_TYPE(self) == NAT_VALUE_CLASS || NAT_TYPE(self) == NAT_VALUE_MODULE) {
         self_for_eval = nat_singleton_class(env, self);
     }
-    return block->fn(e, self_for_eval, 0, NULL, NULL, NULL);
+    return block->fn(e, self_for_eval, 0, NULL, NULL);
 }

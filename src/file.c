@@ -6,7 +6,7 @@
 #include "gc.h"
 #include "natalie.h"
 
-NatObject *File_initialize(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *File_initialize(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC2(1, 2); // TODO: Ruby accepts 3 args??
     NatObject *filename = args[0];
     NAT_ASSERT_TYPE(filename, NAT_VALUE_STRING, "String");
@@ -51,7 +51,7 @@ NatObject *File_initialize(NatEnv *env, NatObject *self, size_t argc, NatObject 
     }
 }
 
-NatObject *File_expand_path(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *File_expand_path(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC2(1, 2);
     NatObject *path = args[0];
     NAT_ASSERT_TYPE(path, NAT_VALUE_STRING, "String");
@@ -60,7 +60,7 @@ NatObject *File_expand_path(NatEnv *env, NatObject *self, size_t argc, NatObject
     }
     NatObject *merged;
     if (argc == 2) {
-        NatObject *root = File_expand_path(env, self, 1, args + 1, NULL, NULL);
+        NatObject *root = File_expand_path(env, self, 1, args + 1, NULL);
         merged = nat_sprintf(env, "%S/%S", root, path);
     } else {
         char root[4096];
@@ -72,9 +72,9 @@ NatObject *File_expand_path(NatEnv *env, NatObject *self, size_t argc, NatObject
     }
     NatObject *dotdot = nat_regexp(env, "[^/]*/\\.\\./");
     NatObject *empty_string = nat_string(env, "");
-    while (nat_truthy(Regexp_match(env, dotdot, 1, &merged, NULL, NULL))) {
+    while (nat_truthy(Regexp_match(env, dotdot, 1, &merged, NULL))) {
         NatObject *args[2] = { dotdot, empty_string };
-        merged = String_sub(env, merged, 2, args, NULL, NULL);
+        merged = String_sub(env, merged, 2, args, NULL);
     }
     return merged;
 }

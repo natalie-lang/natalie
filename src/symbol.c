@@ -1,13 +1,13 @@
 #include "builtin.h"
 #include "natalie.h"
 
-NatObject *Symbol_to_s(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Symbol_to_s(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_SYMBOL);
     NAT_ASSERT_ARGC(0);
     return nat_string(env, self->symbol);
 }
 
-NatObject *Symbol_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Symbol_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_SYMBOL);
     NAT_ASSERT_ARGC(0);
     NatObject *str = nat_string(env, ":");
@@ -23,7 +23,7 @@ NatObject *Symbol_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject *
     return str;
 }
 
-NatObject *Symbol_to_proc(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Symbol_to_proc(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_SYMBOL);
     NAT_ASSERT_ARGC(0);
     NatEnv *block_env = nat_build_detached_block_env(env);
@@ -32,7 +32,7 @@ NatObject *Symbol_to_proc(NatEnv *env, NatObject *self, size_t argc, NatObject *
     return nat_proc(env, proc_block);
 }
 
-NatObject *Symbol_to_proc_block_fn(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Symbol_to_proc_block_fn(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
     NatObject *name_obj = nat_var_get(env->outer, "name", 0);
     assert(name_obj);

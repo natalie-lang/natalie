@@ -1,7 +1,7 @@
 #include "builtin.h"
 #include "natalie.h"
 
-NatObject *Array_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Array_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC_AT_MOST(2);
     NatObject *ary = nat_array(env);
     if (argc == 0) {
@@ -21,7 +21,7 @@ NatObject *Array_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args
 }
 
 // Array[]
-NatObject *Array_square_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Array_square_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NatObject *ary = nat_array(env);
     for (size_t i = 0; i < argc; i++) {
         nat_array_push(env, ary, args[i]);
@@ -29,7 +29,7 @@ NatObject *Array_square_new(NatEnv *env, NatObject *self, size_t argc, NatObject
     return ary;
 }
 
-NatObject *Array_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Array_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);
     NatObject *out = nat_string(env, "[");
@@ -45,7 +45,7 @@ NatObject *Array_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **
     return out;
 }
 
-NatObject *Array_ltlt(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Array_ltlt(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
     NAT_ASSERT_NOT_FROZEN(self);
     NatObject *arg = args[0];
@@ -53,7 +53,7 @@ NatObject *Array_ltlt(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
     return self;
 }
 
-NatObject *Array_add(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Array_add(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
     assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);
     NatObject *arg = args[0];
@@ -66,7 +66,7 @@ NatObject *Array_add(NatEnv *env, NatObject *self, size_t argc, NatObject **args
     return new;
 }
 
-NatObject *Array_sub(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Array_sub(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
     assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);
     NatObject *arg = args[0];
@@ -89,7 +89,7 @@ NatObject *Array_sub(NatEnv *env, NatObject *self, size_t argc, NatObject **args
     return new;
 }
 
-NatObject *Array_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Array_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(1, 2);
     assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);
     NatObject *index_obj = args[0];
@@ -142,7 +142,7 @@ NatObject *Array_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **args
     }
 }
 
-NatObject *Array_refeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Array_refeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(2, 3);
     NAT_ASSERT_NOT_FROZEN(self);
     assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);
@@ -194,19 +194,19 @@ NatObject *Array_refeq(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     return val;
 }
 
-NatObject *Array_size(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Array_size(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);
     NAT_ASSERT_ARGC(0);
     return nat_integer(env, self->ary_len);
 }
 
-NatObject *Array_any(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Array_any(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);
     NAT_ASSERT_ARGC(0);
     if (block) {
         for (size_t i = 0; i < self->ary_len; i++) {
             NatObject *obj = self->ary[i];
-            NatObject *result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &obj, NULL, NULL);
+            NatObject *result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &obj, NULL);
             if (nat_truthy(result)) return NAT_TRUE;
         }
     } else if (self->ary_len > 0) {
@@ -215,7 +215,7 @@ NatObject *Array_any(NatEnv *env, NatObject *self, size_t argc, NatObject **args
     return NAT_FALSE;
 }
 
-NatObject *Array_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Array_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);
     NAT_ASSERT_ARGC(1);
     NatObject *arg = args[0];
@@ -230,39 +230,39 @@ NatObject *Array_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
     return NAT_TRUE;
 }
 
-NatObject *Array_each(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Array_each(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     NAT_ASSERT_BLOCK(); // TODO: return Enumerator when no block given
     for (size_t i = 0; i < self->ary_len; i++) {
         NatObject *obj = self->ary[i];
-        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &obj, NULL, NULL);
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &obj, NULL);
     }
     return self;
 }
 
-NatObject *Array_each_with_index(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Array_each_with_index(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     NAT_ASSERT_BLOCK(); // TODO: return Enumerator when no block given
     for (size_t i = 0; i < self->ary_len; i++) {
         NatObject *args[2] = { self->ary[i], nat_integer(env, i) };
-        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 2, args, NULL, NULL);
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 2, args, NULL);
     }
     return self;
 }
 
-NatObject *Array_map(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Array_map(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     NAT_ASSERT_BLOCK(); // TODO: return Enumerator when no block given
     NatObject *new = nat_array(env);
     for (size_t i = 0; i < self->ary_len; i++) {
         NatObject *item = self->ary[i];
-        NatObject *result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, NULL, NULL);
+        NatObject *result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, NULL);
         nat_array_push(env, new, result);
     }
     return new;
 }
 
-NatObject *Array_first(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Array_first(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0); // TODO: accept integer and return array
     assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);
     if (self->ary_len > 0) {
@@ -272,7 +272,7 @@ NatObject *Array_first(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     }
 }
 
-NatObject *Array_last(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Array_last(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0); // TODO: accept integer and return array
     assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);
     if (self->ary_len > 0) {
@@ -282,12 +282,12 @@ NatObject *Array_last(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
     }
 }
 
-NatObject *Array_to_ary(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Array_to_ary(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     return self;
 }
 
-NatObject *Array_pop(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Array_pop(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);
     NAT_ASSERT_ARGC(0);
     NAT_ASSERT_NOT_FROZEN(self);
@@ -300,7 +300,7 @@ NatObject *Array_pop(NatEnv *env, NatObject *self, size_t argc, NatObject **args
     }
 }
 
-NatObject *Array_include(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Array_include(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);
     NAT_ASSERT_ARGC(1);
     NatObject *item = args[0];
@@ -317,7 +317,7 @@ NatObject *Array_include(NatEnv *env, NatObject *self, size_t argc, NatObject **
     }
 }
 
-NatObject *Array_sort(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Array_sort(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);
     NAT_ASSERT_ARGC(0);
     NatObject *copy = nat_array_copy(env, self);
@@ -325,7 +325,7 @@ NatObject *Array_sort(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
     return copy;
 }
 
-NatObject *Array_join(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Array_join(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);
     NAT_ASSERT_ARGC(1);
     if (self->ary_len == 0) {
@@ -344,7 +344,7 @@ NatObject *Array_join(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
     }
 }
 
-NatObject *Array_cmp(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Array_cmp(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);
     NAT_ASSERT_ARGC(1);
     NatObject *other = args[0];
@@ -365,6 +365,6 @@ NatObject *Array_cmp(NatEnv *env, NatObject *self, size_t argc, NatObject **args
     return nat_integer(env, 0);
 }
 
-NatObject *Array_to_a(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Array_to_a(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     return self;
 }

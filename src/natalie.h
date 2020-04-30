@@ -182,13 +182,13 @@ struct NatEnv {
 };
 
 struct NatBlock {
-    NatObject *(*fn)(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+    NatObject *(*fn)(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block);
     NatEnv *env;
     NatObject *self;
 };
 
 struct NatMethod {
-    NatObject *(*fn)(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+    NatObject *(*fn)(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block);
     NatEnv *env;
     bool undefined;
 };
@@ -252,36 +252,36 @@ enum NatEncoding {
 
 #define nat_remove_break(obj) ((obj)->flags = (obj)->flags & ~NAT_FLAG_BREAK)
 
-#define NAT_RUN_BLOCK_FROM_ENV(env, argc, args, kwargs) ({                                              \
-    NatEnv *env_with_block = env;                                                                       \
-    while (!env_with_block->block && env_with_block->outer) {                                           \
-        env_with_block = env_with_block->outer;                                                         \
-    }                                                                                                   \
-    NatObject *_result = _nat_run_block_internal(env, env_with_block->block, argc, args, kwargs, NULL); \
-    if (nat_is_break(_result)) {                                                                        \
-        nat_remove_break(_result);                                                                      \
-        return _result;                                                                                 \
-    }                                                                                                   \
-    _result;                                                                                            \
+#define NAT_RUN_BLOCK_FROM_ENV(env, argc, args) ({                                              \
+    NatEnv *env_with_block = env;                                                               \
+    while (!env_with_block->block && env_with_block->outer) {                                   \
+        env_with_block = env_with_block->outer;                                                 \
+    }                                                                                           \
+    NatObject *_result = _nat_run_block_internal(env, env_with_block->block, argc, args, NULL); \
+    if (nat_is_break(_result)) {                                                                \
+        nat_remove_break(_result);                                                              \
+        return _result;                                                                         \
+    }                                                                                           \
+    _result;                                                                                    \
 })
 
-#define NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, the_block, argc, args, kwargs, block) ({       \
-    NatObject *_result = _nat_run_block_internal(env, the_block, argc, args, kwargs, block); \
-    if (nat_is_break(_result)) {                                                             \
-        nat_remove_break(_result);                                                           \
-        return _result;                                                                      \
-    }                                                                                        \
-    _result;                                                                                 \
+#define NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, the_block, argc, args, block) ({       \
+    NatObject *_result = _nat_run_block_internal(env, the_block, argc, args, block); \
+    if (nat_is_break(_result)) {                                                     \
+        nat_remove_break(_result);                                                   \
+        return _result;                                                              \
+    }                                                                                \
+    _result;                                                                         \
 })
 
-#define NAT_RUN_BLOCK_WITHOUT_BREAK(env, the_block, argc, args, kwargs, block) ({            \
-    NatObject *_result = _nat_run_block_internal(env, the_block, argc, args, kwargs, block); \
-    if (nat_is_break(_result)) {                                                             \
-        nat_remove_break(_result);                                                           \
-        nat_raise_local_jump_error(env, _result, "break from proc-closure");                 \
-        abort();                                                                             \
-    }                                                                                        \
-    _result;                                                                                 \
+#define NAT_RUN_BLOCK_WITHOUT_BREAK(env, the_block, argc, args, block) ({            \
+    NatObject *_result = _nat_run_block_internal(env, the_block, argc, args, block); \
+    if (nat_is_break(_result)) {                                                     \
+        nat_remove_break(_result);                                                   \
+        nat_raise_local_jump_error(env, _result, "break from proc-closure");         \
+        abort();                                                                     \
+    }                                                                                \
+    _result;                                                                         \
 })
 
 struct NatObject {
@@ -433,7 +433,7 @@ NatObject *nat_module(NatEnv *env, char *name);
 void nat_class_include(NatEnv *env, NatObject *klass, NatObject *module);
 void nat_class_prepend(NatEnv *env, NatObject *klass, NatObject *module);
 
-NatObject *nat_initialize(NatEnv *env, NatObject *obj, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+NatObject *nat_initialize(NatEnv *env, NatObject *obj, size_t argc, NatObject **args, NatBlock *block);
 
 NatObject *nat_singleton_class(NatEnv *env, NatObject *obj);
 
@@ -442,9 +442,9 @@ NatObject *nat_integer(NatEnv *env, int64_t integer);
 char *int_to_string(NatEnv *env, int64_t num);
 char *int_to_hex_string(NatEnv *env, int64_t num, bool capitalize);
 
-void nat_define_method(NatEnv *env, NatObject *obj, char *name, NatObject *(*fn)(NatEnv *, NatObject *, size_t, NatObject **, struct hashmap *, NatBlock *block));
+void nat_define_method(NatEnv *env, NatObject *obj, char *name, NatObject *(*fn)(NatEnv *, NatObject *, size_t, NatObject **, NatBlock *block));
 void nat_define_method_with_block(NatEnv *env, NatObject *obj, char *name, NatBlock *block);
-void nat_define_singleton_method(NatEnv *env, NatObject *obj, char *name, NatObject *(*fn)(NatEnv *, NatObject *, size_t, NatObject **, struct hashmap *, NatBlock *block));
+void nat_define_singleton_method(NatEnv *env, NatObject *obj, char *name, NatObject *(*fn)(NatEnv *, NatObject *, size_t, NatObject **, NatBlock *block));
 void nat_define_singleton_method_with_block(NatEnv *env, NatObject *obj, char *name, NatBlock *block);
 void nat_undefine_method(NatEnv *env, NatObject *obj, char *name);
 void nat_undefine_singleton_method(NatEnv *env, NatObject *obj, char *name);
@@ -460,11 +460,11 @@ void nat_methods(NatEnv *env, NatObject *array, NatObject *klass);
 NatMethod *nat_find_method(NatObject *klass, char *method_name, NatObject **matching_class_or_module);
 NatMethod *nat_find_method_without_undefined(NatObject *klass, char *method_name, NatObject **matching_class_or_module);
 NatObject *nat_call_begin(NatEnv *env, NatObject *self, NatObject *(*block_fn)(NatEnv *, NatObject *));
-NatObject *nat_call_method_on_class(NatEnv *env, NatObject *klass, NatObject *instance_class, char *method_name, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+NatObject *nat_call_method_on_class(NatEnv *env, NatObject *klass, NatObject *instance_class, char *method_name, NatObject *self, size_t argc, NatObject **args, NatBlock *block);
 bool nat_respond_to(NatEnv *env, NatObject *obj, char *name);
 
-NatBlock *nat_block(NatEnv *env, NatObject *self, NatObject *(*fn)(NatEnv *, NatObject *, size_t, NatObject **, struct hashmap *, NatBlock *));
-NatObject *_nat_run_block_internal(NatEnv *env, NatBlock *the_block, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block);
+NatBlock *nat_block(NatEnv *env, NatObject *self, NatObject *(*fn)(NatEnv *, NatObject *, size_t, NatObject **, NatBlock *));
+NatObject *_nat_run_block_internal(NatEnv *env, NatBlock *the_block, size_t argc, NatObject **args, NatBlock *block);
 NatObject *nat_proc(NatEnv *env, NatBlock *block);
 NatObject *nat_to_proc(NatEnv *env, NatObject *obj);
 NatObject *nat_lambda(NatEnv *env, NatBlock *block);

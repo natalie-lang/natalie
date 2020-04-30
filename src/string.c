@@ -3,13 +3,13 @@
 #include "natalie.h"
 #include <ctype.h>
 
-NatObject *String_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *String_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NatObject *obj = nat_alloc(env, self, NAT_VALUE_STRING);
     nat_send(env, obj, "initialize", argc, args, block);
     return obj;
 }
 
-NatObject *String_initialize(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *String_initialize(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC_AT_MOST(1);
     if (argc == 1) {
         NAT_ASSERT_TYPE(args[0], NAT_VALUE_STRING, "String");
@@ -23,13 +23,13 @@ NatObject *String_initialize(NatEnv *env, NatObject *self, size_t argc, NatObjec
     return self;
 }
 
-NatObject *String_to_s(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *String_to_s(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_STRING);
     NAT_ASSERT_ARGC(0);
     return self;
 }
 
-NatObject *String_ltlt(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *String_ltlt(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_STRING);
     NAT_ASSERT_ARGC(1);
     NAT_ASSERT_NOT_FROZEN(self);
@@ -46,7 +46,7 @@ NatObject *String_ltlt(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     return self;
 }
 
-NatObject *String_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *String_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_STRING);
     NAT_ASSERT_ARGC(0);
     NatObject *out = nat_string(env, "\"");
@@ -67,7 +67,7 @@ NatObject *String_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject *
     return out;
 }
 
-NatObject *String_add(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *String_add(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_STRING);
     NAT_ASSERT_ARGC(1);
     NatObject *arg = args[0];
@@ -84,7 +84,7 @@ NatObject *String_add(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
     return new_str;
 }
 
-NatObject *String_mul(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *String_mul(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_STRING);
     NAT_ASSERT_ARGC(1);
     NatObject *arg = args[0];
@@ -96,7 +96,7 @@ NatObject *String_mul(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
     return new_str;
 }
 
-NatObject *String_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *String_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_STRING);
     NAT_ASSERT_ARGC(1);
     NatObject *arg = args[0];
@@ -107,7 +107,7 @@ NatObject *String_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     }
 }
 
-NatObject *String_cmp(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *String_cmp(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_STRING);
     NAT_ASSERT_ARGC(1);
     NatObject *arg = args[0];
@@ -124,18 +124,18 @@ NatObject *String_cmp(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
     return nat_integer(env, result);
 }
 
-NatObject *String_eqtilde(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *String_eqtilde(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
     assert(NAT_TYPE(self) == NAT_VALUE_STRING);
     NAT_ASSERT_TYPE(args[0], NAT_VALUE_REGEXP, "Regexp");
-    return Regexp_eqtilde(env, args[0], 1, &self, NULL, block);
+    return Regexp_eqtilde(env, args[0], 1, &self, block);
 }
 
-NatObject *String_match(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *String_match(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
     assert(NAT_TYPE(self) == NAT_VALUE_STRING);
     NAT_ASSERT_TYPE(args[0], NAT_VALUE_REGEXP, "Regexp");
-    return Regexp_match(env, args[0], 1, &self, NULL, block);
+    return Regexp_match(env, args[0], 1, &self, block);
 }
 
 static void nat_succ_string(NatEnv *env, NatObject *string, char append_char, char begin_char, char end_char) {
@@ -152,7 +152,7 @@ static void nat_succ_string(NatEnv *env, NatObject *string, char append_char, ch
     }
 }
 
-NatObject *String_succ(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *String_succ(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     assert(NAT_TYPE(self) == NAT_VALUE_STRING);
     NatObject *result = nat_string(env, self->str);
@@ -170,7 +170,7 @@ NatObject *String_succ(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     return result;
 }
 
-NatObject *String_ord(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *String_ord(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NatObject *chars = nat_string_chars(env, self);
     if (chars->ary_len == 0) {
         NAT_RAISE(env, "ArgumentError", "empty string");
@@ -199,7 +199,7 @@ NatObject *String_ord(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
     }
 }
 
-NatObject *String_bytes(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *String_bytes(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     assert(NAT_TYPE(self) == NAT_VALUE_STRING);
     NatObject *ary = nat_array(env);
@@ -209,20 +209,20 @@ NatObject *String_bytes(NatEnv *env, NatObject *self, size_t argc, NatObject **a
     return ary;
 }
 
-NatObject *String_chars(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *String_chars(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     assert(NAT_TYPE(self) == NAT_VALUE_STRING);
     return nat_string_chars(env, self);
 }
 
-NatObject *String_size(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *String_size(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     assert(NAT_TYPE(self) == NAT_VALUE_STRING);
     NatObject *chars = nat_string_chars(env, self);
     return nat_integer(env, chars->ary_len);
 }
 
-NatObject *String_encoding(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *String_encoding(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     assert(NAT_TYPE(self) == NAT_VALUE_STRING);
     NatObject *Encoding = nat_const_get(env, NAT_OBJECT, "Encoding", true);
@@ -245,7 +245,7 @@ static char *lcase_string(char *str) {
 
 static NatObject *find_encoding_by_name(NatEnv *env, char *name) {
     char *lcase_name = lcase_string(name);
-    NatObject *list = Encoding_list(env, nat_const_get(env, NAT_OBJECT, "Encoding", true), 0, NULL, NULL, NULL);
+    NatObject *list = Encoding_list(env, nat_const_get(env, NAT_OBJECT, "Encoding", true), 0, NULL, NULL);
     for (size_t i = 0; i < list->ary_len; i++) {
         NatObject *encoding = list->ary[i];
         NatObject *names = encoding->encoding_names;
@@ -263,12 +263,12 @@ static NatObject *find_encoding_by_name(NatEnv *env, char *name) {
     NAT_RAISE(env, "ArgumentError", "unknown encoding name - %s", name);
 }
 
-NatObject *String_encode(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *String_encode(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
     assert(NAT_TYPE(self) == NAT_VALUE_STRING);
     enum NatEncoding orig_encoding = self->encoding;
     NatObject *copy = nat_dup(env, self);
-    String_force_encoding(env, copy, argc, args, NULL, NULL);
+    String_force_encoding(env, copy, argc, args, NULL);
     NatObject *Encoding = nat_const_get(env, NAT_OBJECT, "Encoding", true);
     if (orig_encoding == copy->encoding) {
         return copy;
@@ -278,10 +278,10 @@ NatObject *String_encode(NatEnv *env, NatObject *self, size_t argc, NatObject **
             NatObject *char_obj = chars->ary[i];
             assert(NAT_TYPE(char_obj) == NAT_VALUE_STRING);
             if (char_obj->str_len > 1) {
-                NatObject *ord = String_ord(env, char_obj, 0, NULL, NULL, NULL);
+                NatObject *ord = String_ord(env, char_obj, 0, NULL, NULL);
                 NatObject *message = nat_sprintf(env, "U+%X from UTF-8 to ASCII-8BIT", NAT_INT_VALUE(ord));
                 NatObject *sub_args[2] = { nat_string(env, "0X"), nat_string(env, "") };
-                message = String_sub(env, message, 2, sub_args, NULL, NULL);
+                message = String_sub(env, message, 2, sub_args, NULL);
                 nat_raise(env, nat_const_get(env, Encoding, "UndefinedConversionError", true), message->str);
                 abort();
             }
@@ -295,7 +295,7 @@ NatObject *String_encode(NatEnv *env, NatObject *self, size_t argc, NatObject **
     }
 }
 
-NatObject *String_force_encoding(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *String_force_encoding(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
     assert(NAT_TYPE(self) == NAT_VALUE_STRING);
     NatObject *encoding = args[0];
@@ -312,7 +312,7 @@ NatObject *String_force_encoding(NatEnv *env, NatObject *self, size_t argc, NatO
     return self;
 }
 
-NatObject *String_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *String_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
     assert(NAT_TYPE(self) == NAT_VALUE_STRING);
     NatObject *index_obj = args[0];
@@ -344,7 +344,7 @@ static ssize_t str_index(NatObject *str, NatObject *find, ssize_t start) {
     return -1;
 }
 
-NatObject *String_index(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *String_index(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
     assert(NAT_TYPE(self) == NAT_VALUE_STRING);
     NatObject *find = args[0];
@@ -356,14 +356,14 @@ NatObject *String_index(NatEnv *env, NatObject *self, size_t argc, NatObject **a
     return nat_integer(env, index);
 }
 
-NatObject *String_sub(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *String_sub(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(2);
     assert(NAT_TYPE(self) == NAT_VALUE_STRING);
     NatObject *sub = args[0];
     NatObject *repl = args[1];
     NAT_ASSERT_TYPE(repl, NAT_VALUE_STRING, "String");
     if (NAT_TYPE(sub) == NAT_VALUE_STRING) {
-        NatObject *index_obj = String_index(env, self, 1, &sub, NULL, NULL);
+        NatObject *index_obj = String_index(env, self, 1, &sub, NULL);
         if (index_obj == NAT_NIL) {
             return nat_dup(env, self);
         }
@@ -375,11 +375,11 @@ NatObject *String_sub(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
         nat_string_append(env, out, &self->str[index + sub->str_len]);
         return out;
     } else if (NAT_TYPE(sub) == NAT_VALUE_REGEXP) {
-        NatObject *match = Regexp_match(env, sub, 1, &self, NULL, NULL);
+        NatObject *match = Regexp_match(env, sub, 1, &self, NULL);
         if (match == NAT_NIL) {
             return nat_dup(env, self);
         }
-        NatObject *match_str = MatchData_to_s(env, match, 0, NULL, NULL, NULL);
+        NatObject *match_str = MatchData_to_s(env, match, 0, NULL, NULL);
         int64_t index = match->matchdata_region->beg[0];
         NatObject *out = nat_string(env, self->str);
         out->str[index] = 0;
@@ -412,7 +412,7 @@ static uint64_t str_to_i(char *str, int base) {
     return number;
 }
 
-NatObject *String_to_i(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *String_to_i(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC_AT_MOST(1);
     assert(NAT_TYPE(self) == NAT_VALUE_STRING);
     int base = 10;
@@ -424,7 +424,7 @@ NatObject *String_to_i(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     return nat_integer(env, number);
 }
 
-NatObject *String_split(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *String_split(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
     assert(NAT_TYPE(self) == NAT_VALUE_STRING);
     NatObject *splitter = args[0];
@@ -473,7 +473,7 @@ NatObject *String_split(NatEnv *env, NatObject *self, size_t argc, NatObject **a
     }
 }
 
-NatObject *String_ljust(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *String_ljust(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(1, 2);
     assert(NAT_TYPE(self) == NAT_VALUE_STRING);
     NatObject *length_obj = args[0];

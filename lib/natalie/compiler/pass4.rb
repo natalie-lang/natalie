@@ -197,7 +197,7 @@ module Natalie
       def process_c_define_method(exp)
         (_, (_, name), (_, c)) = exp
         fn = temp('fn')
-        top "NatObject *#{fn}(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {\n#{c}\n}"
+        top "NatObject *#{fn}(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {\n#{c}\n}"
         process(s(:nat_define_method, :env, :self, s(:s, name), fn))
         "nat_symbol(env, #{name.inspect})"
       end
@@ -370,7 +370,7 @@ module Natalie
           result = process_atom(body)
           fn = []
           if arg_list == 6
-            fn << "NatObject *#{name}(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {"
+            fn << "NatObject *#{name}(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {"
           elsif arg_list == 2
             fn << "NatObject *#{name}(NatEnv *env, NatObject *self) {"
           else
@@ -428,7 +428,7 @@ module Natalie
         (fn, args) = exp
         args_name, args_count = process_atom(args).split(':')
         result_name = temp('block_result')
-        decl "NatObject *#{result_name} = NAT_RUN_BLOCK_FROM_ENV(env, #{args_count}, #{args_name}, NULL);"
+        decl "NatObject *#{result_name} = NAT_RUN_BLOCK_FROM_ENV(env, #{args_count}, #{args_name});"
         result_name
       end
 
@@ -437,9 +437,9 @@ module Natalie
         result_name = temp('call_result')
         if args.size > 1
           args_name, args_count = process_atom(args).split(':')
-          decl "NatObject *#{result_name} = nat_call_method_on_class(env, NAT_OBJ_CLASS(self)->superclass, NAT_OBJ_CLASS(self)->superclass, nat_find_current_method_name(env), self, #{args_count}, #{args_name}, NULL, #{block || 'NULL'});"
+          decl "NatObject *#{result_name} = nat_call_method_on_class(env, NAT_OBJ_CLASS(self)->superclass, NAT_OBJ_CLASS(self)->superclass, nat_find_current_method_name(env), self, #{args_count}, #{args_name}, #{block || 'NULL'});"
         else
-          decl "NatObject *#{result_name} = nat_call_method_on_class(env, NAT_OBJ_CLASS(self)->superclass, NAT_OBJ_CLASS(self)->superclass, nat_find_current_method_name(env), self, argc, args, kwargs, #{block || 'NULL'});"
+          decl "NatObject *#{result_name} = nat_call_method_on_class(env, NAT_OBJ_CLASS(self)->superclass, NAT_OBJ_CLASS(self)->superclass, nat_find_current_method_name(env), self, argc, args, #{block || 'NULL'});"
         end
         result_name
       end

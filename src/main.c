@@ -202,19 +202,19 @@ NatEnv *build_top_env() {
 
     NatObject *stdin_fileno = nat_integer(env, STDIN_FILENO);
     NatObject *nat_stdin = nat_alloc(env, IO, NAT_VALUE_IO);
-    nat_initialize(env, nat_stdin, 1, &stdin_fileno, NULL, NULL);
+    nat_initialize(env, nat_stdin, 1, &stdin_fileno, NULL);
     nat_global_set(env, "$stdin", nat_stdin);
     nat_const_set(env, Object, "STDIN", nat_stdin);
 
     NatObject *stdout_fileno = nat_integer(env, STDOUT_FILENO);
     NatObject *nat_stdout = nat_alloc(env, IO, NAT_VALUE_IO);
-    nat_initialize(env, nat_stdout, 1, &stdout_fileno, NULL, NULL);
+    nat_initialize(env, nat_stdout, 1, &stdout_fileno, NULL);
     nat_global_set(env, "$stdout", nat_stdout);
     nat_const_set(env, Object, "STDOUT", nat_stdout);
 
     NatObject *stderr_fileno = nat_integer(env, STDERR_FILENO);
     NatObject *nat_stderr = nat_alloc(env, IO, NAT_VALUE_IO);
-    nat_initialize(env, nat_stderr, 1, &stderr_fileno, NULL, NULL);
+    nat_initialize(env, nat_stderr, 1, &stderr_fileno, NULL);
     nat_global_set(env, "$stderr", nat_stderr);
     nat_const_set(env, Object, "STDERR", nat_stderr);
 

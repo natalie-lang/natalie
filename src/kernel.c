@@ -1,22 +1,22 @@
 #include "builtin.h"
 #include "natalie.h"
 
-NatObject *Kernel_puts(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Kernel_puts(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NatObject *nat_stdout = nat_global_get(env, "$stdout");
-    return IO_puts(env, nat_stdout, argc, args, kwargs, block);
+    return IO_puts(env, nat_stdout, argc, args, block);
 }
 
-NatObject *Kernel_print(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Kernel_print(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NatObject *nat_stdout = nat_global_get(env, "$stdout");
-    return IO_print(env, nat_stdout, argc, args, kwargs, block);
+    return IO_print(env, nat_stdout, argc, args, block);
 }
 
-NatObject *Kernel_p(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Kernel_p(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     if (argc == 0) {
         return NAT_NIL;
     } else if (argc == 1) {
         NatObject *arg = nat_send(env, args[0], "inspect", 0, NULL, NULL);
-        Kernel_puts(env, self, 1, &arg, NULL, NULL);
+        Kernel_puts(env, self, 1, &arg, NULL);
         return arg;
     } else {
         NatObject *result = nat_array(env);
@@ -24,19 +24,19 @@ NatObject *Kernel_p(NatEnv *env, NatObject *self, size_t argc, NatObject **args,
             nat_array_push(env, result, args[i]);
             args[i] = nat_send(env, args[i], "inspect", 0, NULL, NULL);
         }
-        Kernel_puts(env, self, argc, args, kwargs, NULL);
+        Kernel_puts(env, self, argc, args, NULL);
         return result;
     }
 }
 
-NatObject *Kernel_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Kernel_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     if ((NAT_TYPE(self) == NAT_VALUE_CLASS || NAT_TYPE(self) == NAT_VALUE_MODULE) && self->class_name) {
         return nat_string(env, self->class_name);
     } else {
         NatObject *str = nat_string(env, "#<");
         assert(NAT_OBJ_CLASS(self));
-        nat_string_append(env, str, Module_inspect(env, NAT_OBJ_CLASS(self), 0, NULL, NULL, NULL)->str);
+        nat_string_append(env, str, Module_inspect(env, NAT_OBJ_CLASS(self), 0, NULL, NULL)->str);
         nat_string_append_char(env, str, ':');
         nat_string_append(env, str, nat_object_pointer_id(env, self));
         nat_string_append_char(env, str, '>');
@@ -44,12 +44,12 @@ NatObject *Kernel_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject *
     }
 }
 
-NatObject *Kernel_object_id(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Kernel_object_id(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     return nat_integer(env, nat_object_id(env, self));
 }
 
-NatObject *Kernel_equal(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Kernel_equal(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
     NatObject *arg = args[0];
     if (self == arg) {
@@ -59,17 +59,17 @@ NatObject *Kernel_equal(NatEnv *env, NatObject *self, size_t argc, NatObject **a
     }
 }
 
-NatObject *Kernel_class(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Kernel_class(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     return NAT_OBJ_CLASS(self) ? NAT_OBJ_CLASS(self) : NAT_NIL;
 }
 
-NatObject *Kernel_singleton_class(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Kernel_singleton_class(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     return nat_singleton_class(env, self);
 }
 
-NatObject *Kernel_instance_variables(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Kernel_instance_variables(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NatObject *ary = nat_array(env);
     if (NAT_TYPE(self) == NAT_VALUE_INTEGER) {
         return ary;
@@ -84,7 +84,7 @@ NatObject *Kernel_instance_variables(NatEnv *env, NatObject *self, size_t argc, 
     return ary;
 }
 
-NatObject *Kernel_instance_variable_get(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Kernel_instance_variable_get(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
     if (NAT_TYPE(self) == NAT_VALUE_INTEGER) {
         return NAT_NIL;
@@ -101,7 +101,7 @@ NatObject *Kernel_instance_variable_get(NatEnv *env, NatObject *self, size_t arg
     return nat_ivar_get(env, self, name);
 }
 
-NatObject *Kernel_instance_variable_set(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Kernel_instance_variable_set(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(2);
     NAT_ASSERT_NOT_FROZEN(self);
     NatObject *name_obj = args[0];
@@ -118,7 +118,7 @@ NatObject *Kernel_instance_variable_set(NatEnv *env, NatObject *self, size_t arg
     return val_obj;
 }
 
-NatObject *Kernel_raise(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Kernel_raise(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(1, 2);
     NatObject *klass;
     NatObject *message;
@@ -144,7 +144,7 @@ NatObject *Kernel_raise(NatEnv *env, NatObject *self, size_t argc, NatObject **a
     abort();
 }
 
-NatObject *Kernel_respond_to(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Kernel_respond_to(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
     NatObject *symbol = args[0];
     char *name;
@@ -162,12 +162,12 @@ NatObject *Kernel_respond_to(NatEnv *env, NatObject *self, size_t argc, NatObjec
     }
 }
 
-NatObject *Kernel_dup(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Kernel_dup(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     return nat_dup(env, self);
 }
 
-NatObject *Kernel_methods(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Kernel_methods(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0); // for now
     NatObject *array = nat_array(env);
     if (self->singleton_class) {
@@ -178,7 +178,7 @@ NatObject *Kernel_methods(NatEnv *env, NatObject *self, size_t argc, NatObject *
     return array;
 }
 
-NatObject *Kernel_exit(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Kernel_exit(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC_AT_MOST(1);
     NatObject *status;
     if (argc == 1) {
@@ -195,7 +195,7 @@ NatObject *Kernel_exit(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     return NAT_NIL;
 }
 
-NatObject *Kernel_at_exit(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Kernel_at_exit(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NatObject *at_exit_handlers = nat_global_get(env, "$NAT_at_exit_handlers");
     assert(at_exit_handlers);
     NAT_ASSERT_BLOCK();
@@ -204,7 +204,7 @@ NatObject *Kernel_at_exit(NatEnv *env, NatObject *self, size_t argc, NatObject *
     return proc;
 }
 
-NatObject *Kernel_is_a(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Kernel_is_a(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
     NatObject *klass_or_module = args[0];
     if (NAT_TYPE(klass_or_module) != NAT_VALUE_CLASS && NAT_TYPE(klass_or_module) != NAT_VALUE_MODULE) {
@@ -217,14 +217,14 @@ NatObject *Kernel_is_a(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     }
 }
 
-NatObject *Kernel_hash(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Kernel_hash(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     NatObject *inspected = nat_send(env, self, "inspect", 0, NULL, NULL);
     int32_t hash_value = hashmap_hash_string(inspected->str);
     return nat_integer(env, hash_value);
 }
 
-NatObject *Kernel_proc(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Kernel_proc(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     if (block) {
         return nat_proc(env, block);
@@ -233,7 +233,7 @@ NatObject *Kernel_proc(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     }
 }
 
-NatObject *Kernel_lambda(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Kernel_lambda(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     if (block) {
         return nat_lambda(env, block);
@@ -242,7 +242,7 @@ NatObject *Kernel_lambda(NatEnv *env, NatObject *self, size_t argc, NatObject **
     }
 }
 
-NatObject *Kernel_method(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Kernel_method(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     char *name = nat_find_current_method_name(env->caller);
     if (name) {
@@ -252,18 +252,18 @@ NatObject *Kernel_method(NatEnv *env, NatObject *self, size_t argc, NatObject **
     }
 }
 
-NatObject *Kernel_freeze(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Kernel_freeze(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     nat_freeze_object(self);
     return self;
 }
 
-NatObject *Kernel_is_nil(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Kernel_is_nil(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     return NAT_FALSE;
 }
 
-NatObject *Kernel_sleep(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Kernel_sleep(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC_AT_MOST(1);
     if (argc == 0) {
         while (true) {
@@ -278,7 +278,7 @@ NatObject *Kernel_sleep(NatEnv *env, NatObject *self, size_t argc, NatObject **a
     }
 }
 
-NatObject *Kernel_define_singleton_method(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Kernel_define_singleton_method(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
     NAT_ASSERT_BLOCK();
     NatObject *name_obj = args[0];
@@ -293,12 +293,12 @@ NatObject *Kernel_define_singleton_method(NatEnv *env, NatObject *self, size_t a
     return name_obj;
 }
 
-NatObject *Kernel_tap(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
-    NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &self, NULL, NULL);
+NatObject *Kernel_tap(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+    NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &self, NULL);
     return self;
 }
 
-NatObject *Kernel_Array(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Kernel_Array(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
     NatObject *value = args[0];
     if (NAT_TYPE(value) == NAT_VALUE_ARRAY) {
@@ -314,7 +314,7 @@ NatObject *Kernel_Array(NatEnv *env, NatObject *self, size_t argc, NatObject **a
     }
 }
 
-NatObject *Kernel_send(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Kernel_send(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC_AT_LEAST(1);
     NatObject *name_obj = args[0];
     char *name;
@@ -328,7 +328,7 @@ NatObject *Kernel_send(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     return nat_send(env->caller, self, name, argc - 1, args + 1, block);
 }
 
-NatObject *Kernel_cur_dir(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *Kernel_cur_dir(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     if (env->file == NULL) {
         NAT_RAISE(env, "RuntimeError", "could not get current directory");
@@ -336,7 +336,7 @@ NatObject *Kernel_cur_dir(NatEnv *env, NatObject *self, size_t argc, NatObject *
         return nat_string(env, ".");
     } else {
         NatObject *relative = nat_string(env, env->file);
-        NatObject *absolute = File_expand_path(env, nat_const_get(env, NAT_OBJECT, "File", true), 1, &relative, NULL, NULL);
+        NatObject *absolute = File_expand_path(env, nat_const_get(env, NAT_OBJECT, "File", true), 1, &relative, NULL);
         size_t last_slash = 0;
         bool found = false;
         for (size_t i = 0; i < absolute->str_len; i++) {

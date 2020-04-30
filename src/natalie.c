@@ -420,13 +420,13 @@ void nat_class_prepend(NatEnv *env, NatObject *klass, NatObject *module) {
     klass->included_modules[0] = module;
 }
 
-NatObject *nat_initialize(NatEnv *env, NatObject *obj, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *nat_initialize(NatEnv *env, NatObject *obj, size_t argc, NatObject **args, NatBlock *block) {
     NatObject *klass = NAT_OBJ_CLASS(obj);
     while (1) {
         NatObject *matching_class_or_module;
         NatMethod *method = nat_find_method(klass, "initialize", &matching_class_or_module);
         if (method) {
-            nat_call_method_on_class(env, klass, klass, "initialize", obj, argc, args, kwargs, block);
+            nat_call_method_on_class(env, klass, klass, "initialize", obj, argc, args, block);
             break;
         }
         if (!klass->superclass) break;
@@ -464,7 +464,7 @@ NatObject *nat_exception(NatEnv *env, NatObject *klass, char *message) {
     NatObject *obj = nat_alloc(env, klass, NAT_VALUE_EXCEPTION);
     assert(message);
     NatObject *message_obj = nat_string(env, message);
-    nat_initialize(env, obj, 1, &message_obj, NULL, NULL);
+    nat_initialize(env, obj, 1, &message_obj, NULL);
     return obj;
 }
 
@@ -474,7 +474,7 @@ NatObject *nat_array(NatEnv *env) {
     obj->ary_len = 0;
     obj->ary_cap = NAT_ARRAY_INIT_SIZE;
     // FIXME: this isn't quite right, but removing it causes GC bugs (confused)
-    nat_initialize(env, obj, 0, NULL, NULL, NULL);
+    nat_initialize(env, obj, 0, NULL, NULL);
     return obj;
 }
 
@@ -686,7 +686,7 @@ NatObject *nat_hash_get(NatEnv *env, NatObject *hash, NatObject *key) {
 NatObject *nat_hash_get_default(NatEnv *env, NatObject *hash, NatObject *key) {
     if (hash->hash_default_block) {
         NatObject *args[2] = { hash, key };
-        return NAT_RUN_BLOCK_WITHOUT_BREAK(env, hash->hash_default_block, 2, args, NULL, NULL);
+        return NAT_RUN_BLOCK_WITHOUT_BREAK(env, hash->hash_default_block, 2, args, NULL);
     } else {
         return hash->hash_default_value;
     }
@@ -792,7 +792,7 @@ char *int_to_hex_string(NatEnv *env, int64_t num, bool capitalize) {
     }
 }
 
-static NatMethod *nat_method_from_fn(NatObject *(*fn)(NatEnv *, NatObject *, size_t, NatObject **, struct hashmap *, NatBlock *block)) {
+static NatMethod *nat_method_from_fn(NatObject *(*fn)(NatEnv *, NatObject *, size_t, NatObject **, NatBlock *block)) {
     NatMethod *method = malloc(sizeof(NatMethod));
     method->fn = fn;
     method->env = NULL;
@@ -808,7 +808,7 @@ static NatMethod *nat_method_from_block(NatBlock *block) {
     return method;
 }
 
-void nat_define_method(NatEnv *env, NatObject *obj, char *name, NatObject *(*fn)(NatEnv *, NatObject *, size_t, NatObject **, struct hashmap *, NatBlock *block)) {
+void nat_define_method(NatEnv *env, NatObject *obj, char *name, NatObject *(*fn)(NatEnv *, NatObject *, size_t, NatObject **, NatBlock *block)) {
     NatMethod *method = nat_method_from_fn(fn);
     if (nat_is_main_object(obj)) {
         free(hashmap_remove(&NAT_OBJ_CLASS(obj)->methods, name));
@@ -830,7 +830,7 @@ void nat_define_method_with_block(NatEnv *env, NatObject *obj, char *name, NatBl
     }
 }
 
-void nat_define_singleton_method(NatEnv *env, NatObject *obj, char *name, NatObject *(*fn)(NatEnv *, NatObject *, size_t, NatObject **, struct hashmap *, NatBlock *block)) {
+void nat_define_singleton_method(NatEnv *env, NatObject *obj, char *name, NatObject *(*fn)(NatEnv *, NatObject *, size_t, NatObject **, NatBlock *block)) {
     NatMethod *method = nat_method_from_fn(fn);
     NatObject *klass = nat_singleton_class(env, obj);
     free(hashmap_remove(&klass->methods, name));
@@ -905,7 +905,7 @@ NatObject *nat_defined_obj(NatEnv *env, NatObject *receiver, char *name) {
     }
 }
 
-NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, NatObject **args, NatBlock *block) { // FIXME: kwargs
+NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, NatObject **args, NatBlock *block) {
     assert(receiver);
     NatObject *klass;
     if (NAT_TYPE(receiver) == NAT_VALUE_INTEGER) {
@@ -930,7 +930,7 @@ NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, Na
                 if (method->undefined) {
                     NAT_RAISE(env, "NoMethodError", "undefined method `%s' for %s:Class", sym, receiver->class_name);
                 }
-                return nat_call_method_on_class(env, klass, NAT_OBJ_CLASS(receiver), sym, receiver, argc, args, NULL, block);
+                return nat_call_method_on_class(env, klass, NAT_OBJ_CLASS(receiver), sym, receiver, argc, args, block);
             }
         }
         klass = NAT_OBJ_CLASS(receiver);
@@ -940,7 +940,7 @@ NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, size_t argc, Na
         fprintf(stderr, "Looking for method %s in the klass hierarchy of %s\n", sym, nat_send(env, receiver, "inspect", 0, NULL, NULL)->str);
     }
 #endif
-    return nat_call_method_on_class(env, klass, klass, sym, receiver, argc, args, NULL, block);
+    return nat_call_method_on_class(env, klass, klass, sym, receiver, argc, args, block);
 }
 
 // supply an empty array and it will be populated with the method names as symbols
@@ -1002,7 +1002,7 @@ NatMethod *nat_find_method_without_undefined(NatObject *klass, char *method_name
     }
 }
 
-NatObject *nat_call_method_on_class(NatEnv *env, NatObject *klass, NatObject *instance_class, char *method_name, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *nat_call_method_on_class(NatEnv *env, NatObject *klass, NatObject *instance_class, char *method_name, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     assert(klass != NULL);
     assert(NAT_TYPE(klass) == NAT_VALUE_CLASS);
 
@@ -1025,7 +1025,7 @@ NatObject *nat_call_method_on_class(NatEnv *env, NatObject *klass, NatObject *in
         e->line = env->line;
         e->method_name = method_name;
         e->block = block;
-        return method->fn(e, self, argc, args, NULL, block);
+        return method->fn(e, self, argc, args, block);
     } else {
         NAT_RAISE(env, "NoMethodError", "undefined method `%s' for %v", method_name, instance_class);
     }
@@ -1054,7 +1054,7 @@ bool nat_respond_to(NatEnv *env, NatObject *obj, char *name) {
     }
 }
 
-NatBlock *nat_block(NatEnv *env, NatObject *self, NatObject *(*fn)(NatEnv *, NatObject *, size_t, NatObject **, struct hashmap *, NatBlock *)) {
+NatBlock *nat_block(NatEnv *env, NatObject *self, NatObject *(*fn)(NatEnv *, NatObject *, size_t, NatObject **, NatBlock *)) {
     NatBlock *block = malloc(sizeof(NatBlock));
     block->env = env;
     block->self = self;
@@ -1062,12 +1062,12 @@ NatBlock *nat_block(NatEnv *env, NatObject *self, NatObject *(*fn)(NatEnv *, Nat
     return block;
 }
 
-NatObject *_nat_run_block_internal(NatEnv *env, NatBlock *the_block, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *_nat_run_block_internal(NatEnv *env, NatBlock *the_block, size_t argc, NatObject **args, NatBlock *block) {
     if (!the_block) {
         NAT_RAISE(env, "LocalJumpError", "no block given");
     }
     NatEnv *e = nat_build_block_env(the_block->env, env);
-    return the_block->fn(e, the_block->self, argc, args, kwargs, block);
+    return the_block->fn(e, the_block->self, argc, args, block);
 }
 
 NatObject *nat_proc(NatEnv *env, NatBlock *block) {
@@ -1298,7 +1298,7 @@ void *nat_create_thread(void *data) {
     NatObject *thread = (NatObject *)data;
     NatBlock *block = thread->thread_block;
     assert(block);
-    return (void *)NAT_RUN_BLOCK_WITHOUT_BREAK(block->env, block, 0, NULL, NULL, NULL);
+    return (void *)NAT_RUN_BLOCK_WITHOUT_BREAK(block->env, block, 0, NULL, NULL);
 }
 
 NatObject *nat_dup(NatEnv *env, NatObject *obj) {
@@ -1361,7 +1361,7 @@ void nat_run_at_exit_handlers(NatEnv *env) {
         NatObject *proc = at_exit_handlers->ary[i];
         assert(proc);
         assert(NAT_TYPE(proc) == NAT_VALUE_PROC);
-        NAT_RUN_BLOCK_WITHOUT_BREAK(env, proc->block, 0, NULL, NULL, NULL);
+        NAT_RUN_BLOCK_WITHOUT_BREAK(env, proc->block, 0, NULL, NULL);
     }
 }
 

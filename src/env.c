@@ -3,7 +3,7 @@
 
 extern char **environ;
 
-NatObject *ENV_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *ENV_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     NatObject *hash = nat_hash(env);
     int i = 1;
@@ -18,10 +18,10 @@ NatObject *ENV_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
         nat_hash_put(env, hash, name, nat_string(env, getenv(name->str)));
         pair = *(environ + i);
     }
-    return Hash_inspect(env, hash, 0, NULL, NULL, NULL);
+    return Hash_inspect(env, hash, 0, NULL, NULL);
 }
 
-NatObject *ENV_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *ENV_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
     NatObject *name = args[0];
     NAT_ASSERT_TYPE(name, NAT_VALUE_STRING, "String");
@@ -33,7 +33,7 @@ NatObject *ENV_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **args, 
     }
 }
 
-NatObject *ENV_refeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, struct hashmap *kwargs, NatBlock *block) {
+NatObject *ENV_refeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(2);
     NatObject *name = args[0];
     NatObject *value = args[1];
