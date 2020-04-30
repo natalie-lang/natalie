@@ -449,9 +449,14 @@ module Natalie
         prepare_masgn_paths(s(:masgn, s(:array, *names))).map do |name, path_details|
           path = path_details[:path]
           if name.is_a?(Sexp)
-            if name.sexp_type == :splat
+            case name.sexp_type
+            when :splat
               value = s(:nat_arg_value_by_path, :env, value_name, s(:nil), s(:l, :true), names.size, defaults.size, defaults_on_right ? s(:l, :true) : s(:l, :false), path_details[:offset_from_end], path.size, *path)
               prepare_masgn_set(name.last, value, arg: true)
+            when :kwarg
+              default_value = name[2] ? process(name[2]) : 'NULL'
+              value = s(:nat_kwarg_value_by_name, :env, value_name, s(:s, name[1]), default_value)
+              prepare_masgn_set(name, value, arg: true)
             else
               default_value = name.size == 3 ? process(name.pop) : s(:nil)
               value = s(:nat_arg_value_by_path, :env, value_name, default_value, s(:l, :false), names.size, defaults.size, defaults_on_right ? s(:l, :true) : s(:l, :false), 0, path.size, *path)
@@ -481,7 +486,7 @@ module Natalie
             end
           when Sexp
             case name.sexp_type
-            when :lasgn
+            when :lasgn, :kwarg
               name
             when :masgn
               s(:masgn, s(:array, *prepare_arg_names(name[1..-1])))
@@ -504,11 +509,11 @@ module Natalie
           s(:nat_global_set, :env, s(:s, exp.last), value)
         when :iasgn
           s(:nat_ivar_set, :env, :self, s(:s, exp.last), value)
-        when :lasgn
+        when :lasgn, :kwarg
           if arg
-            s(:nat_arg_set, :env, s(:s, exp.last), value)
+            s(:nat_arg_set, :env, s(:s, exp[1]), value)
           else
-            s(:nat_var_set, :env, s(:s, exp.last), value)
+            s(:nat_var_set, :env, s(:s, exp[1]), value)
           end
         else
           raise "unknown masgn type: #{exp.inspect} (#{exp.file}\##{exp.line})"

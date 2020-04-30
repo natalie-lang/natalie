@@ -1607,6 +1607,28 @@ NatObject *nat_array_value_by_path(NatEnv *env, NatObject *value, NatObject *def
     return return_value;
 }
 
+NatObject *nat_kwarg_value_by_name(NatEnv *env, NatObject *args, char *name, NatObject *default_value) {
+    assert(NAT_TYPE(args) == NAT_VALUE_ARRAY);
+    NatObject *hash;
+    if (args->ary_len == 0) {
+        hash = nat_hash(env);
+    } else {
+        hash = args->ary[args->ary_len - 1];
+        if (NAT_TYPE(hash) != NAT_VALUE_HASH) {
+            hash = nat_hash(env);
+        }
+    }
+    NatObject *value = nat_hash_get(env, hash, nat_symbol(env, name));
+    if (!value) {
+        if (default_value) {
+            return default_value;
+        } else {
+            NAT_RAISE(env, "ArgumentError", "missing keyword: :%s", name);
+        }
+    }
+    return value;
+}
+
 NatObject *nat_args_to_array(NatEnv *env, size_t argc, NatObject **args) {
     NatObject *ary = nat_array(env);
     for (size_t i = 0; i < argc; i++) {

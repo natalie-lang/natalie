@@ -268,3 +268,59 @@ describe 'method' do
     end
   end
 end
+
+def method_with_kwargs1(a, b:)
+  [a, b]
+end
+
+def method_with_kwargs2(a, b:, c:)
+  [a, b, c]
+end
+
+def method_with_kwargs3(a, b:, c: 'c')
+  [a, b, c]
+end
+
+def method_with_kwargs4(a, b: 'b', c:)
+  [a, b, c]
+end
+
+def method_with_kwargs5(a, b: 'b')
+  [a, b]
+end
+
+def method_with_kwargs6(a: 'a', b: 'b')
+  [a, b]
+end
+
+def method_with_kwargs7(a:)
+  [a]
+end
+
+def method_with_kwargs8(a:, b: nil)
+  [a, b]
+end
+
+describe 'method with keyword args' do
+  it 'accepts keywords args' do
+    method_with_kwargs1(1, b: 2).should == [1, 2]
+    method_with_kwargs2(1, b: 2, c: 3).should == [1, 2, 3]
+    method_with_kwargs3(1, b: 2, c: 3).should == [1, 2, 3]
+    method_with_kwargs3(1, b: 2).should == [1, 2, 'c']
+    method_with_kwargs4(1, b: 2, c: 3).should == [1, 2, 3]
+    method_with_kwargs4(1, c: 3).should == [1, 'b', 3]
+    method_with_kwargs5({ z: 1 }).should == [{ z: 1 }, 'b']
+    method_with_kwargs6.should == ['a', 'b']
+    method_with_kwargs6(a: 1).should == [1, 'b']
+    method_with_kwargs6(a: 1, b: 2).should == [1, 2]
+    method_with_kwargs8(a: 1).should == [1, nil]
+  end
+
+  it 'raises an error when a required keyword argument is not supplied' do
+    -> { method_with_kwargs7 }.should raise_error(ArgumentError, "missing keyword: :a")
+  end
+
+  xit 'raises an error when an extra keyword argument is supplied' do
+    -> { method_with_kwargs6(a: 1, b: 2, c: 3) }.should raise_error(ArgumentError, "unknown keyword: :c")
+  end
+end

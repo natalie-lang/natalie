@@ -547,6 +547,7 @@ NatObject *nat_to_ary(NatEnv *env, NatObject *obj, bool raise_for_non_array);
 
 NatObject *nat_arg_value_by_path(NatEnv *env, NatObject *value, NatObject *default_value, bool splat, int total_count, int default_count, bool defaults_on_right, int offset_from_end, size_t path_size, ...);
 NatObject *nat_array_value_by_path(NatEnv *env, NatObject *value, NatObject *default_value, bool splat, int offset_from_end, size_t path_size, ...);
+NatObject *nat_kwarg_value_by_name(NatEnv *env, NatObject *args, char *name, NatObject *default_value);
 
 NatObject *nat_args_to_array(NatEnv *env, size_t argc, NatObject **args);
 NatObject *nat_block_args_to_array(NatEnv *env, size_t signature_size, size_t argc, NatObject **args);
