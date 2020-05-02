@@ -18,7 +18,11 @@ module Natalie
 
       VOID_FUNCTIONS = %i[
         NAT_ASSERT_ARGC
+        NAT_ASSERT_ARGC_AT_LEAST
+        NAT_ASSERT_ARGC_AT_MOST
+        NAT_ASSERT_TYPE
         NAT_ASSERT_NOT_FROZEN
+        NAT_UNREACHABLE
         nat_alias
         nat_array_expand_with_nil
         nat_array_push

@@ -4,7 +4,6 @@ require_relative './compiler/pass1'
 require_relative './compiler/pass2'
 require_relative './compiler/pass3'
 require_relative './compiler/pass4'
-require_relative './compiler/pass5'
 
 module Natalie
   class Compiler
@@ -100,9 +99,7 @@ module Natalie
         exit
       end
 
-      ast = Pass4.new(@context).go(ast)
-
-      Pass5.new(@context, ast).go
+      Pass4.new(@context).go(ast)
     end
 
     def to_c
