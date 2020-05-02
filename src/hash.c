@@ -3,7 +3,7 @@
 #include "natalie.h"
 
 NatObject *Hash_new(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
-    NAT_ASSERT_ARGC_AT_MOST(1);
+    NAT_ASSERT_ARGC(0, 1);
     NatObject *hash = nat_hash(env);
     if (block) {
         NAT_ASSERT_ARGC(0);

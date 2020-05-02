@@ -10,7 +10,7 @@ NatObject *String_new(NatEnv *env, NatObject *self, ssize_t argc, NatObject **ar
 }
 
 NatObject *String_initialize(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
-    NAT_ASSERT_ARGC_AT_MOST(1);
+    NAT_ASSERT_ARGC(0, 1);
     if (argc == 1) {
         NAT_ASSERT_TYPE(args[0], NAT_VALUE_STRING, "String");
         NAT_LOCK(self);
@@ -413,7 +413,7 @@ static uint64_t str_to_i(char *str, int base) {
 }
 
 NatObject *String_to_i(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
-    NAT_ASSERT_ARGC_AT_MOST(1);
+    NAT_ASSERT_ARGC(0, 1);
     assert(NAT_TYPE(self) == NAT_VALUE_STRING);
     int base = 10;
     if (argc == 1) {

@@ -2,7 +2,7 @@
 #include "natalie.h"
 
 NatObject *Array_new(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
-    NAT_ASSERT_ARGC_AT_MOST(2);
+    NAT_ASSERT_ARGC(0, 2);
     NatObject *ary = nat_array(env);
     if (argc == 0) {
         return ary;

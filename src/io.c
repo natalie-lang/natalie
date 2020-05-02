@@ -26,7 +26,7 @@ NatObject *IO_fileno(NatEnv *env, NatObject *self, ssize_t argc, NatObject **arg
 #define NAT_READ_BYTES 1024
 
 NatObject *IO_read(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
-    NAT_ASSERT_ARGC_AT_MOST(1); // TODO: ruby accepts 0..2
+    NAT_ASSERT_ARGC(0, 1); // TODO: ruby accepts 0..2
     ssize_t bytes_read;
     if (argc == 1) {
         NAT_ASSERT_TYPE(args[0], NAT_VALUE_INTEGER, "Integer");

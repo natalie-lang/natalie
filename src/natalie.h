@@ -54,11 +54,6 @@
         NAT_RAISE(env, "ArgumentError", "wrong number of arguments (given %d, expected %d+)", argc, expected); \
     }
 
-#define NAT_ASSERT_ARGC_AT_MOST(expected)                                                                        \
-    if (argc > expected) {                                                                                       \
-        NAT_RAISE(env, "ArgumentError", "wrong number of arguments (given %d, expected 0..%d)", argc, expected); \
-    }
-
 #define NAT_ASSERT_TYPE(obj, expected_type, expected_class_name)                                                                    \
     if (NAT_TYPE((obj)) != expected_type) {                                                                                         \
         NAT_RAISE(env, "TypeError", "no implicit conversion of %s into %s", NAT_OBJ_CLASS((obj))->class_name, expected_class_name); \
