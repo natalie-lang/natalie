@@ -147,7 +147,7 @@ module Natalie
     end
 
     RELEASE_FLAGS = '-O3 -pthread'
-    DEBUG_FLAGS = '-g -Wall -Wextra -Wno-unused-parameter -pthread -D"NAT_GC_COLLECT_DEBUG=true"'
+    DEBUG_FLAGS = '-g -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable -Wno-unused-but-set-variable -pthread -D"NAT_GC_COLLECT_DEBUG=true"'
     COVERAGE_FLAGS = '-fprofile-arcs -ftest-coverage'
 
     def build_flags
