@@ -1,25 +1,25 @@
 #include "builtin.h"
 #include "natalie.h"
 
-NatObject *Thread_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *Thread_new(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     NAT_ASSERT_BLOCK();
     return nat_thread(env, block);
 }
 
-NatObject *Thread_current(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *Thread_current(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     return nat_current_thread(env);
 }
 
-NatObject *Thread_join(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *Thread_join(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_THREAD);
     NAT_ASSERT_ARGC(0);
     nat_thread_join(env, self);
     return self;
 }
 
-NatObject *Thread_value(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *Thread_value(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_THREAD);
     NAT_ASSERT_ARGC(0);
     return nat_thread_join(env, self);
@@ -36,7 +36,7 @@ static NatObject *thread_id_to_nat_string(NatEnv *env, pthread_t tid) {
     return str;
 }
 
-NatObject *Thread_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *Thread_inspect(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_THREAD);
     NAT_ASSERT_ARGC(0);
     return nat_sprintf(env, "#<Thread:%S run>", thread_id_to_nat_string(env, self->thread_id));

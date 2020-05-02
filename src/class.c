@@ -1,7 +1,7 @@
 #include "builtin.h"
 #include "natalie.h"
 
-NatObject *Class_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *Class_new(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC_AT_MOST(1);
     NatObject *superclass;
     if (argc == 1) {
@@ -20,7 +20,7 @@ NatObject *Class_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args
     return klass;
 }
 
-NatObject *Class_superclass(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *Class_superclass(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_CLASS);
     NAT_ASSERT_ARGC(0);
     return self->superclass ? self->superclass : NAT_NIL;

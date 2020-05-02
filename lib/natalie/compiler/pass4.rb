@@ -174,7 +174,7 @@ module Natalie
         if type == :rest
           rest = temp('rest')
           decl "NatObject *#{rest} = nat_array(env);"
-          decl "for (size_t i=#{index}; i<#{argc_name}; i++) {"
+          decl "for (ssize_t i=#{index}; i<#{argc_name}; i++) {"
           decl "nat_array_push(env, #{rest}, #{args_name}[i]);"
           decl '}'
           rest
@@ -201,7 +201,7 @@ module Natalie
       def process_c_define_method(exp)
         (_, (_, name), (_, c)) = exp
         fn = temp('fn')
-        top "NatObject *#{fn}(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {\n#{c}\n}"
+        top "NatObject *#{fn}(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {\n#{c}\n}"
         process(s(:nat_define_method, :env, :self, s(:s, name), fn))
         "nat_symbol(env, #{name.inspect})"
       end
@@ -374,7 +374,7 @@ module Natalie
           result = process_atom(body)
           fn = []
           if arg_list == 6
-            fn << "NatObject *#{name}(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {"
+            fn << "NatObject *#{name}(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {"
           elsif arg_list == 2
             fn << "NatObject *#{name}(NatEnv *env, NatObject *self) {"
           else

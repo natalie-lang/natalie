@@ -1,14 +1,14 @@
 #include "builtin.h"
 #include "natalie.h"
 
-NatObject *MatchData_size(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *MatchData_size(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     assert(NAT_TYPE(self) == NAT_VALUE_MATCHDATA);
     assert(self->matchdata_region->num_regs > 0);
     return nat_integer(env, self->matchdata_region->num_regs);
 }
 
-NatObject *MatchData_to_s(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *MatchData_to_s(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     assert(NAT_TYPE(self) == NAT_VALUE_MATCHDATA);
     assert(self->matchdata_region->num_regs > 0);
@@ -19,7 +19,7 @@ NatObject *MatchData_to_s(NatEnv *env, NatObject *self, size_t argc, NatObject *
     return str_obj;
 }
 
-NatObject *MatchData_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *MatchData_ref(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
     assert(NAT_TYPE(self) == NAT_VALUE_MATCHDATA);
     if (NAT_TYPE(args[0]) == NAT_VALUE_STRING || NAT_TYPE(args[0]) == NAT_VALUE_SYMBOL) {

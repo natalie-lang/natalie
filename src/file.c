@@ -6,7 +6,7 @@
 #include "gc.h"
 #include "natalie.h"
 
-NatObject *File_initialize(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *File_initialize(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC2(1, 2); // TODO: Ruby accepts 3 args??
     NatObject *filename = args[0];
     NAT_ASSERT_TYPE(filename, NAT_VALUE_STRING, "String");
@@ -51,7 +51,7 @@ NatObject *File_initialize(NatEnv *env, NatObject *self, size_t argc, NatObject 
     }
 }
 
-NatObject *File_expand_path(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *File_expand_path(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC2(1, 2);
     NatObject *path = args[0];
     NAT_ASSERT_TYPE(path, NAT_VALUE_STRING, "String");

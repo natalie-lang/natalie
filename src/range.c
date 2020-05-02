@@ -1,7 +1,7 @@
 #include "builtin.h"
 #include "natalie.h"
 
-NatObject *Range_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *Range_new(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(2, 3);
     bool exclude_end = false;
     if (argc == 3) {
@@ -10,25 +10,25 @@ NatObject *Range_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args
     return nat_range(env, args[0], args[1], exclude_end);
 }
 
-NatObject *Range_begin(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *Range_begin(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     assert(NAT_TYPE(self) == NAT_VALUE_RANGE);
     return self->range_begin;
 }
 
-NatObject *Range_end(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *Range_end(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     assert(NAT_TYPE(self) == NAT_VALUE_RANGE);
     return self->range_end;
 }
 
-NatObject *Range_exclude_end(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *Range_exclude_end(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     assert(NAT_TYPE(self) == NAT_VALUE_RANGE);
     return self->range_exclude_end ? NAT_TRUE : NAT_FALSE;
 }
 
-NatObject *Range_to_a(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *Range_to_a(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     assert(NAT_TYPE(self) == NAT_VALUE_RANGE);
     NatObject *ary = nat_array(env);
@@ -41,7 +41,7 @@ NatObject *Range_to_a(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
     return ary;
 }
 
-NatObject *Range_each(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *Range_each(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     assert(NAT_TYPE(self) == NAT_VALUE_RANGE);
     NatObject *item = self->range_begin;
@@ -53,7 +53,7 @@ NatObject *Range_each(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
     return self;
 }
 
-NatObject *Range_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *Range_inspect(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     assert(NAT_TYPE(self) == NAT_VALUE_RANGE);
     if (self->range_exclude_end) {
@@ -63,7 +63,7 @@ NatObject *Range_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **
     }
 }
 
-NatObject *Range_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *Range_eqeq(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
     assert(NAT_TYPE(self) == NAT_VALUE_RANGE);
     NatObject *arg = args[0];
@@ -74,7 +74,7 @@ NatObject *Range_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
     }
 }
 
-NatObject *Range_eqeqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *Range_eqeqeq(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
     assert(NAT_TYPE(self) == NAT_VALUE_RANGE);
     NatObject *arg = args[0];

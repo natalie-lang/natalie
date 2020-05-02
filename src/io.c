@@ -5,27 +5,27 @@
 #include "gc.h"
 #include "natalie.h"
 
-NatObject *IO_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *IO_new(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NatObject *obj = Object_new(env, self, argc, args, block);
     obj->type = NAT_VALUE_IO;
     return obj;
 }
 
-NatObject *IO_initialize(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *IO_initialize(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(1); // TODO: ruby accepts 1..2
     NAT_ASSERT_TYPE(args[0], NAT_VALUE_INTEGER, "Integer");
     self->fileno = NAT_INT_VALUE(args[0]);
     return self;
 }
 
-NatObject *IO_fileno(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *IO_fileno(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     return nat_integer(env, self->fileno);
 }
 
 #define NAT_READ_BYTES 1024
 
-NatObject *IO_read(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *IO_read(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC_AT_MOST(1); // TODO: ruby accepts 0..2
     ssize_t bytes_read;
     if (argc == 1) {
@@ -61,10 +61,10 @@ NatObject *IO_read(NatEnv *env, NatObject *self, size_t argc, NatObject **args, 
     }
 }
 
-NatObject *IO_write(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *IO_write(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC_AT_LEAST(1);
     int bytes_written = 0;
-    for (size_t i = 0; i < argc; i++) {
+    for (ssize_t i = 0; i < argc; i++) {
         NatObject *obj = args[i];
         if (NAT_TYPE(obj) != NAT_VALUE_STRING) {
             obj = nat_send(env, obj, "to_s", 0, NULL, NULL);
@@ -83,12 +83,12 @@ NatObject *IO_write(NatEnv *env, NatObject *self, size_t argc, NatObject **args,
     return nat_integer(env, bytes_written);
 }
 
-NatObject *IO_puts(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *IO_puts(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     int fd = self->fileno;
     if (argc == 0) {
         dprintf(fd, "\n");
     } else {
-        for (size_t i = 0; i < argc; i++) {
+        for (ssize_t i = 0; i < argc; i++) {
             NatObject *str = nat_send(env, args[i], "to_s", 0, NULL, NULL);
             NAT_ASSERT_TYPE(str, NAT_VALUE_STRING, "String");
             dprintf(fd, "%s\n", str->str);
@@ -97,10 +97,10 @@ NatObject *IO_puts(NatEnv *env, NatObject *self, size_t argc, NatObject **args, 
     return NAT_NIL;
 }
 
-NatObject *IO_print(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *IO_print(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     int fd = self->fileno;
     if (argc > 0) {
-        for (size_t i = 0; i < argc; i++) {
+        for (ssize_t i = 0; i < argc; i++) {
             NatObject *str = nat_send(env, args[i], "to_s", 0, NULL, NULL);
             NAT_ASSERT_TYPE(str, NAT_VALUE_STRING, "String");
             dprintf(fd, "%s", str->str);
@@ -109,7 +109,7 @@ NatObject *IO_print(NatEnv *env, NatObject *self, size_t argc, NatObject **args,
     return NAT_NIL;
 }
 
-NatObject *IO_close(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *IO_close(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     int result = close(self->fileno);
     if (result == -1) {
@@ -122,7 +122,7 @@ NatObject *IO_close(NatEnv *env, NatObject *self, size_t argc, NatObject **args,
     }
 }
 
-NatObject *IO_seek(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *IO_seek(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC2(1, 2);
     NatObject *amount_obj = args[0];
     NAT_ASSERT_TYPE(amount_obj, NAT_VALUE_INTEGER, "Integer");

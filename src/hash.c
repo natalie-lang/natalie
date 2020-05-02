@@ -2,7 +2,7 @@
 #include "gc.h"
 #include "natalie.h"
 
-NatObject *Hash_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *Hash_new(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC_AT_MOST(1);
     NatObject *hash = nat_hash(env);
     if (block) {
@@ -15,7 +15,7 @@ NatObject *Hash_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args,
 }
 
 // Hash[]
-NatObject *Hash_square_new(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *Hash_square_new(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     if (argc == 0) {
         return nat_hash(env);
     } else if (argc == 1) {
@@ -24,7 +24,7 @@ NatObject *Hash_square_new(NatEnv *env, NatObject *self, size_t argc, NatObject 
             return value;
         } else if (NAT_TYPE(value) == NAT_VALUE_ARRAY) {
             NatObject *hash = nat_hash(env);
-            for (size_t i = 0; i < value->ary_len; i++) {
+            for (ssize_t i = 0; i < value->ary_len; i++) {
                 NatObject *pair = value->ary[i];
                 if (NAT_TYPE(pair) != NAT_VALUE_ARRAY) {
                     NAT_RAISE(env, "ArgumentError", "wrong element in array to Hash[]");
@@ -43,7 +43,7 @@ NatObject *Hash_square_new(NatEnv *env, NatObject *self, size_t argc, NatObject 
         NAT_RAISE(env, "ArgumentError", "odd number of arguments for Hash");
     }
     NatObject *hash = nat_hash(env);
-    for (size_t i = 0; i < argc; i += 2) {
+    for (ssize_t i = 0; i < argc; i += 2) {
         NatObject *key = args[i];
         NatObject *value = args[i + 1];
         nat_hash_put(env, hash, key, value);
@@ -51,13 +51,13 @@ NatObject *Hash_square_new(NatEnv *env, NatObject *self, size_t argc, NatObject 
     return hash;
 }
 
-NatObject *Hash_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *Hash_inspect(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     assert(NAT_TYPE(self) == NAT_VALUE_HASH);
     NatObject *out = nat_string(env, "{");
     NatHashIter *iter;
-    size_t last_index = self->hashmap.num_entries - 1;
-    size_t index;
+    ssize_t last_index = self->hashmap.num_entries - 1;
+    ssize_t index;
     for (iter = nat_hash_iter(env, self), index = 0; iter; iter = nat_hash_iter_next(env, self, iter), index++) {
         NatObject *key_repr = nat_send(env, iter->key, "inspect", 0, NULL, NULL);
         nat_string_append(env, out, key_repr->str);
@@ -72,7 +72,7 @@ NatObject *Hash_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **a
     return out;
 }
 
-NatObject *Hash_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *Hash_ref(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
     assert(NAT_TYPE(self) == NAT_VALUE_HASH);
     NatObject *key = args[0];
@@ -84,7 +84,7 @@ NatObject *Hash_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **args,
     }
 }
 
-NatObject *Hash_refeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *Hash_refeq(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(2);
     assert(NAT_TYPE(self) == NAT_VALUE_HASH);
     NAT_ASSERT_NOT_FROZEN(self);
@@ -94,7 +94,7 @@ NatObject *Hash_refeq(NatEnv *env, NatObject *self, size_t argc, NatObject **arg
     return val;
 }
 
-NatObject *Hash_delete(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *Hash_delete(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
     assert(NAT_TYPE(self) == NAT_VALUE_HASH);
     NAT_ASSERT_NOT_FROZEN(self);
@@ -107,13 +107,13 @@ NatObject *Hash_delete(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     }
 }
 
-NatObject *Hash_size(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *Hash_size(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     assert(NAT_TYPE(self) == NAT_VALUE_HASH);
     return nat_integer(env, self->hashmap.num_entries);
 }
 
-NatObject *Hash_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *Hash_eqeq(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
     assert(NAT_TYPE(self) == NAT_VALUE_HASH);
     NatObject *other = args[0];
@@ -144,7 +144,7 @@ NatObject *Hash_eqeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args
     _result;                                                                                              \
 })
 
-NatObject *Hash_each(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *Hash_each(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     assert(NAT_TYPE(self) == NAT_VALUE_HASH);
     NAT_ASSERT_BLOCK(); // TODO: return Enumerator when no block given
@@ -158,7 +158,7 @@ NatObject *Hash_each(NatEnv *env, NatObject *self, size_t argc, NatObject **args
     return self;
 }
 
-NatObject *Hash_keys(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *Hash_keys(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     assert(NAT_TYPE(self) == NAT_VALUE_HASH);
     NatObject *array = nat_array(env);
@@ -169,7 +169,7 @@ NatObject *Hash_keys(NatEnv *env, NatObject *self, size_t argc, NatObject **args
     return array;
 }
 
-NatObject *Hash_values(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *Hash_values(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     assert(NAT_TYPE(self) == NAT_VALUE_HASH);
     NatObject *array = nat_array(env);
@@ -180,7 +180,7 @@ NatObject *Hash_values(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     return array;
 }
 
-NatObject *Hash_sort(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *Hash_sort(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NatHashIter *iter;
     NatObject *ary = nat_array(env);
     for (iter = nat_hash_iter(env, self); iter; iter = nat_hash_iter_next(env, self, iter)) {
@@ -192,7 +192,7 @@ NatObject *Hash_sort(NatEnv *env, NatObject *self, size_t argc, NatObject **args
     return Array_sort(env, ary, 0, NULL, NULL);
 }
 
-NatObject *Hash_is_key(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *Hash_is_key(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
     assert(NAT_TYPE(self) == NAT_VALUE_HASH);
     NatObject *key = args[0];

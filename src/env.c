@@ -3,7 +3,7 @@
 
 extern char **environ;
 
-NatObject *ENV_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *ENV_inspect(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     NatObject *hash = nat_hash(env);
     int i = 1;
@@ -11,7 +11,7 @@ NatObject *ENV_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     for (; pair; i++) {
         char *eq = strchr(pair, '=');
         assert(eq);
-        size_t index = eq - pair;
+        ssize_t index = eq - pair;
         NatObject *name = nat_string(env, pair);
         name->str[index] = 0;
         name->str_len = index;
@@ -21,7 +21,7 @@ NatObject *ENV_inspect(NatEnv *env, NatObject *self, size_t argc, NatObject **ar
     return Hash_inspect(env, hash, 0, NULL, NULL);
 }
 
-NatObject *ENV_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *ENV_ref(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
     NatObject *name = args[0];
     NAT_ASSERT_TYPE(name, NAT_VALUE_STRING, "String");
@@ -33,7 +33,7 @@ NatObject *ENV_ref(NatEnv *env, NatObject *self, size_t argc, NatObject **args, 
     }
 }
 
-NatObject *ENV_refeq(NatEnv *env, NatObject *self, size_t argc, NatObject **args, NatBlock *block) {
+NatObject *ENV_refeq(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(2);
     NatObject *name = args[0];
     NatObject *value = args[1];
