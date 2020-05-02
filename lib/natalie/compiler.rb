@@ -44,7 +44,7 @@ module Natalie
       puts cmd if debug == 'compiler-command'
       out = `#{cmd}`
       File.unlink(@c_path) unless debug || build == 'coverage'
-      $stderr.puts out if debug || $? != 0
+      $stderr.puts out if build == 'debug' && out.strip != ''
       raise 'There was an error compiling.' if $? != 0
     end
 
