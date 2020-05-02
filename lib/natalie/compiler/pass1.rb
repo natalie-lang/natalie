@@ -462,7 +462,11 @@ module Natalie
           end
         end
         if max == :unlimited
-          s(:NAT_ASSERT_ARGC_AT_LEAST, min)
+          if min.zero?
+            s(:block)
+          else
+            s(:NAT_ASSERT_ARGC_AT_LEAST, min)
+          end
         elsif min == max
           s(:NAT_ASSERT_ARGC, min)
         else
