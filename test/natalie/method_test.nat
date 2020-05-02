@@ -91,6 +91,16 @@ describe 'method' do
     mul(1, 2, 3).should == 6
   end
 
+  it 'raises an error when there are not enough arguments' do
+    -> { double }.should raise_error(ArgumentError, 'wrong number of arguments (given 0, expected 1)')
+    -> { default_after_regular }.should raise_error(ArgumentError, 'wrong number of arguments (given 0, expected 1..2)')
+  end
+
+  it 'raises an error when there are too many arguments' do
+    -> { double(1, 2) }.should raise_error(ArgumentError, 'wrong number of arguments (given 2, expected 1)')
+    -> { default_after_regular(1, 2, 3) }.should raise_error(ArgumentError, 'wrong number of arguments (given 3, expected 1..2)')
+  end
+
   it 'can receive and yield to a block' do
     r = block_test { 1 }
     r.should == 1
@@ -314,6 +324,10 @@ describe 'method with keyword args' do
     method_with_kwargs6(a: 1).should == [1, 'b']
     method_with_kwargs6(a: 1, b: 2).should == [1, 2]
     method_with_kwargs8(a: 1).should == [1, nil]
+  end
+
+  xit 'raises an error when there are too many positional arguments' do
+    -> { method_with_kwargs1(1, 2, b: 3) }.should raise_error(ArgumentError, 'wrong number of arguments (given 2, expected 1; required keyword: b)')
   end
 
   it 'raises an error when a required keyword argument is not supplied' do

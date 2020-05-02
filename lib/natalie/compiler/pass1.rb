@@ -202,6 +202,7 @@ module Natalie
         exp.new(:def_fn, fn_name,
           s(:block,
             s(:nat_env_set_method_name, name),
+            prepare_argc_assertion(args),
             assign_args,
             block_arg || s(:block),
             method_body))
@@ -438,6 +439,34 @@ module Natalie
           else
             raise "unknown masgn type: #{name.inspect} (#{exp.file}\##{exp.line})"
           end
+        end
+      end
+
+      def prepare_argc_assertion(args)
+        min = 0
+        max = 0
+        has_kwargs = false
+        args.each do |arg|
+          if arg.is_a?(Symbol)
+            if arg.start_with?('*')
+              max = :unlimited
+            else
+              min += 1
+              max += 1 if max != :unlimited
+            end
+          elsif arg.sexp_type == :kwarg
+            max += 1 unless has_kwargs # FIXME: incrementing max here is wrong; it produces the wrong error message
+            has_kwargs = true
+          else
+            max += 1 if max != :unlimited
+          end
+        end
+        if max == :unlimited
+          s(:NAT_ASSERT_ARGC_AT_LEAST, min)
+        elsif min == max
+          s(:NAT_ASSERT_ARGC, min)
+        else
+          s(:NAT_ASSERT_ARGC, min, max)
         end
       end
 
