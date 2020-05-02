@@ -1708,7 +1708,9 @@ void nat_arg_spread(NatEnv *env, size_t argc, NatObject **args, char *arrangemen
             void_ptr = va_arg(va_args, void **);
             if (arg_index >= argc) NAT_RAISE(env, "ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, arg_index + 1);
             obj = args[arg_index++];
-            *void_ptr = (void *)nat_ivar_get(env, obj, "@_ptr");
+            obj = nat_ivar_get(env, obj, "@_ptr");
+            assert(obj->type == NAT_VALUE_VOIDP);
+            *void_ptr = obj->void_ptr;
             break;
         default:
             fprintf(stderr, "Unknown arg spread arrangement specifier: %%%c", c);
@@ -1716,4 +1718,10 @@ void nat_arg_spread(NatEnv *env, size_t argc, NatObject **args, char *arrangemen
         }
     }
     va_end(va_args);
+}
+
+NatObject *nat_void_ptr(NatEnv *env, void *ptr) {
+      NatObject *obj = nat_alloc(env, NAT_OBJECT, NAT_VALUE_VOIDP);
+      obj->void_ptr = ptr;
+      return obj;
 }

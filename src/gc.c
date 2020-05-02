@@ -245,6 +245,8 @@ NatObject *nat_gc_mark_live_objects(NatEnv *env) {
             break;
         case NAT_VALUE_TRUE:
             break;
+        case NAT_VALUE_VOIDP:
+            break;
         }
     }
     return objects;
@@ -339,6 +341,8 @@ static void nat_gc_collect_object(NatEnv *env, NatHeapBlock *block, NatObject *o
     case NAT_VALUE_THREAD:
         break;
     case NAT_VALUE_TRUE:
+        break;
+    case NAT_VALUE_VOIDP:
         break;
     }
     obj->type = NAT_VALUE_NIL;

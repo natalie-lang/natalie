@@ -3,7 +3,7 @@ C.include '<gtk/gtk.h>'
 C.top_eval <<-END
   void gtk3_signal_callback(GtkWidget *widget, gpointer data) {
     NatObject *callback = (NatObject*)data;
-    _nat_run_block_internal(callback->block->env, callback->block, 0, NULL, NULL, NULL);
+    nat_send(callback->block->env, callback, "call", 0, NULL, NULL);
   }
 END
 
@@ -95,7 +95,8 @@ module Gtk3
       GtkWidget *gtk_window = gtk_window_new(type);
       NatObject *Window = nat_const_get(env, self, "Window", true);
       NatObject *window_wrapper = nat_alloc(env, Window, NAT_VALUE_OTHER);
-      nat_ivar_set(env, window_wrapper, "@_ptr", (NatObject*)gtk_window);
+      NatObject *ptr = nat_void_ptr(env, gtk_window);
+      nat_ivar_set(env, window_wrapper, "@_ptr", ptr);
       return window_wrapper;
     END
 
@@ -123,7 +124,8 @@ module Gtk3
       GtkWidget *gtk_box = gtk_box_new(orientation, spacing);
       NatObject *Box = nat_const_get(env, self, "Box", true);
       NatObject *box_wrapper = nat_alloc(env, Box, NAT_VALUE_OTHER);
-      nat_ivar_set(env, box_wrapper, "@_ptr", (NatObject*)gtk_box);
+      NatObject *ptr = nat_void_ptr(env, gtk_box);
+      nat_ivar_set(env, box_wrapper, "@_ptr", ptr);
       return box_wrapper;
     END
 
@@ -142,7 +144,8 @@ module Gtk3
       GtkWidget *gtk_image = gtk_image_new_from_file(filename);
       NatObject *Image = nat_const_get(env, self, "Image", true);
       NatObject *image_wrapper = nat_alloc(env, Image, NAT_VALUE_OTHER);
-      nat_ivar_set(env, image_wrapper, "@_ptr", (NatObject*)gtk_image);
+      NatObject *ptr = nat_void_ptr(env, gtk_image);
+      nat_ivar_set(env, image_wrapper, "@_ptr", ptr);
       return image_wrapper;
     END
 
@@ -181,7 +184,8 @@ module Gtk3
       GtkWidget *gtk_label = gtk_label_new(text);
       NatObject *Label = nat_const_get(env, self, "Label", true);
       NatObject *label_wrapper = nat_alloc(env, Label, NAT_VALUE_OTHER);
-      nat_ivar_set(env, label_wrapper, "@_ptr", (NatObject*)gtk_label);
+      NatObject *ptr = nat_void_ptr(env, gtk_label);
+      nat_ivar_set(env, label_wrapper, "@_ptr", ptr);
       return label_wrapper;
     END
 
@@ -201,7 +205,8 @@ module Gtk3
       GtkWidget *gtk_button = gtk_button_new_with_label(label);
       NatObject *Button = nat_const_get(env, self, "Button", true);
       NatObject *button_wrapper = nat_alloc(env, Button, NAT_VALUE_OTHER);
-      nat_ivar_set(env, button_wrapper, "@_ptr", (NatObject*)gtk_button);
+      NatObject *ptr = nat_void_ptr(env, gtk_button);
+      nat_ivar_set(env, button_wrapper, "@_ptr", ptr);
       return button_wrapper;
     END
 

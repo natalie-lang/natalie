@@ -227,6 +227,7 @@ enum NatValueType {
     NAT_VALUE_SYMBOL = 16,
     NAT_VALUE_THREAD = 17,
     NAT_VALUE_TRUE = 18,
+    NAT_VALUE_VOIDP = 19,
 };
 
 enum NatEncoding {
@@ -385,6 +386,9 @@ struct NatObject {
 
         // NAT_VALUE_SYMBOL
         char *symbol;
+
+        // NAT_VALUE_VOIDP
+        void *void_ptr;
     };
 
     // TODO: move this into the above union once all the memory bugs are worked out :-/
@@ -557,3 +561,5 @@ NatObject *nat_encoding(NatEnv *env, int num, NatObject *names);
 NatObject *nat_eval_class_or_module_body(NatEnv *env, NatObject *class_or_module, NatObject *(*fn)(NatEnv *, NatObject *));
 
 void nat_arg_spread(NatEnv *env, size_t argc, NatObject **args, char *arrangement, ...);
+
+NatObject *nat_void_ptr(NatEnv *env, void *ptr);
