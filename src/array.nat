@@ -1,5 +1,5 @@
 class Array
-  def permutation(size) # TODO: use size
+  def permutation(len = size) # TODO: use len
     perm = ->(ary) {
       if ary.size > 1
         all = []
