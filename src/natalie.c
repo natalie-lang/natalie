@@ -127,6 +127,19 @@ NatGlobalEnv *nat_build_global_env() {
     return global_env;
 }
 
+void nat_free_global_env(NatGlobalEnv *global_env) {
+    hashmap_destroy(global_env->globals);
+    hashmap_destroy(global_env->symbols);
+    NatHeapBlock *block = global_env->heap;
+    while (block) {
+        NatHeapBlock *next_block = block->next;
+        free(block);
+        block = next_block;
+    }
+    pthread_mutex_destroy(&global_env->alloc_mutex);
+    free(global_env);
+}
+
 NatEnv *nat_build_env(NatEnv *env, NatEnv *outer) {
     memset(env, 0, sizeof(NatEnv));
     env->outer = outer;

@@ -402,7 +402,10 @@ NatObject *nat_const_set(NatEnv *env, NatObject *klass, char *name, NatObject *v
 
 NatObject *nat_var_get(NatEnv *env, char *key, ssize_t index);
 NatObject *nat_var_set(NatEnv *env, char *name, ssize_t index, bool allocate, NatObject *val);
+
 NatGlobalEnv *nat_build_global_env();
+void nat_free_global_env(NatGlobalEnv *global_env);
+
 NatEnv *nat_build_env(NatEnv *env, NatEnv *outer);
 NatEnv *nat_build_block_env(NatEnv *env, NatEnv *outer, NatEnv *calling_env);
 NatEnv *nat_build_detached_block_env(NatEnv *env, NatEnv *outer);

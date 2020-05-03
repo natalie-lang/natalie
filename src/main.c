@@ -264,6 +264,8 @@ int main(int argc, char *argv[]) {
     }
     NatObject *result = EVAL(env);
     nat_gc_collect_all(env);
+    nat_free_global_env(env->global_env);
+    free(env);
     if (result) {
         return 0;
     } else {
