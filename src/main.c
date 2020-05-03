@@ -238,15 +238,14 @@ NatEnv *build_top_env() {
 NatObject *EVAL(NatEnv *env) {
     NatObject *self = nat_global_get(env, "$NAT_main_object");
     (void)self; // don't warn about unused var
-    bool *run_exit_handlers = malloc(sizeof(bool));
-    *run_exit_handlers = true;
+    volatile bool run_exit_handlers = true;
     if (!NAT_RESCUE(env)) {
         /*BODY*/
-        *run_exit_handlers = false;
+        run_exit_handlers = false;
         nat_run_at_exit_handlers(env);
         return NAT_NIL; // just in case there's no return value
     } else {
-        nat_handle_top_level_exception(env, *run_exit_handlers);
+        nat_handle_top_level_exception(env, run_exit_handlers);
         return NAT_NIL;
     }
 }
