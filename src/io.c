@@ -34,13 +34,16 @@ NatObject *IO_read(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args,
         char *buf = malloc((count + 1) * sizeof(char));
         bytes_read = read(self->fileno, buf, count);
         if (bytes_read == 0) {
+            free(buf);
             return NAT_NIL;
         } else {
             buf[bytes_read] = 0;
-            return nat_string(env, buf);
+            NatObject *result = nat_string(env, buf);
+            free(buf);
+            return result;
         }
     } else if (argc == 0) {
-        char *buf = malloc((NAT_READ_BYTES + 1) * sizeof(char));
+        char buf[NAT_READ_BYTES + 1];
         bytes_read = read(self->fileno, buf, NAT_READ_BYTES);
         if (bytes_read == 0) {
             return nat_string(env, "");
