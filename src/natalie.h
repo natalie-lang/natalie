@@ -129,6 +129,11 @@
 
 #define NAT_INT_VALUE(obj) (((int64_t)obj & 1) ? RSHIFT((int64_t)obj, 1) : obj->integer)
 
+#define NAT_INT_64_MAX_BUF_LEN 21 // 1 for sign, 19 for max digits, and 1 for null terminator
+
+// "0x" + up to 16 hex chars + NULL terminator
+#define NAT_OBJECT_POINTER_BUF_LENGTH 2 + 16 + 1
+
 typedef struct NatObject NatObject;
 typedef struct NatGlobalEnv NatGlobalEnv;
 typedef struct NatEnv NatEnv;
@@ -442,8 +447,8 @@ NatObject *nat_singleton_class(NatEnv *env, NatObject *obj);
 
 NatObject *nat_integer(NatEnv *env, int64_t integer);
 
-char *int_to_string(NatEnv *env, int64_t num);
-char *int_to_hex_string(NatEnv *env, int64_t num, bool capitalize);
+void int_to_string(int64_t num, char *buf);
+void int_to_hex_string(int64_t num, char *buf, bool capitalize);
 
 void nat_define_method(NatEnv *env, NatObject *obj, char *name, NatObject *(*fn)(NatEnv *, NatObject *, ssize_t, NatObject **, NatBlock *block));
 void nat_define_method_with_block(NatEnv *env, NatObject *obj, char *name, NatBlock *block);
@@ -538,7 +543,7 @@ void nat_run_at_exit_handlers(NatEnv *env);
 void nat_print_exception_with_backtrace(NatEnv *env, NatObject *exception);
 void nat_handle_top_level_exception(NatEnv *env, bool run_exit_handlers);
 
-char *nat_object_pointer_id(NatEnv *env, NatObject *obj);
+void nat_object_pointer_id(NatObject *obj, char *buf);
 int64_t nat_object_id(NatEnv *env, NatObject *obj);
 
 NatObject *nat_convert_to_real_object(NatEnv *env, NatObject *obj);

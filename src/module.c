@@ -16,7 +16,9 @@ NatObject *Module_inspect(NatEnv *env, NatObject *self, ssize_t argc, NatObject 
             return nat_string(env, self->class_name);
         }
     } else if (NAT_TYPE(self) == NAT_VALUE_CLASS) {
-        return nat_sprintf(env, "#<Class:%s>", nat_object_pointer_id(env, self));
+        char buf[NAT_OBJECT_POINTER_BUF_LENGTH];
+        nat_object_pointer_id(self, buf);
+        return nat_sprintf(env, "#<Class:%s>", buf);
     } else {
         return Kernel_inspect(env, self, argc, args, block);
     }

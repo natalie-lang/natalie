@@ -38,7 +38,9 @@ NatObject *Kernel_inspect(NatEnv *env, NatObject *self, ssize_t argc, NatObject 
         assert(NAT_OBJ_CLASS(self));
         nat_string_append(env, str, Module_inspect(env, NAT_OBJ_CLASS(self), 0, NULL, NULL)->str);
         nat_string_append_char(env, str, ':');
-        nat_string_append(env, str, nat_object_pointer_id(env, self));
+        char buf[NAT_OBJECT_POINTER_BUF_LENGTH];
+        nat_object_pointer_id(self, buf);
+        nat_string_append(env, str, buf);
         nat_string_append_char(env, str, '>');
         return str;
     }

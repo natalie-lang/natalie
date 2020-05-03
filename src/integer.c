@@ -5,8 +5,9 @@
 NatObject *Integer_to_s(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_INTEGER);
     NAT_ASSERT_ARGC(0);
-    char *str = int_to_string(env, NAT_INT_VALUE(self));
-    return nat_string(env, str);
+    char buf[NAT_INT_64_MAX_BUF_LEN];
+    int_to_string(NAT_INT_VALUE(self), buf);
+    return nat_string(env, buf);
 }
 
 NatObject *Integer_add(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {

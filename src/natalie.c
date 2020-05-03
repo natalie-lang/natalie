@@ -782,29 +782,25 @@ NatObject *nat_last_match(NatEnv *env) {
     }
 }
 
-#define INT_64_MAX_CHAR_LEN 21 // 1 for sign, 19 for max digits, and 1 for null terminator
-
-char *int_to_string(NatEnv *env, int64_t num) {
+void int_to_string(int64_t num, char *buf) {
     if (num == 0) {
-        return heap_string("0");
+        buf[0] = '0';
+        buf[1] = 0;
     } else {
-        char *str = malloc(INT_64_MAX_CHAR_LEN);
-        snprintf(str, INT_64_MAX_CHAR_LEN, "%" PRId64, num);
-        return str;
+        snprintf(buf, NAT_INT_64_MAX_BUF_LEN, "%" PRId64, num);
     }
 }
 
-char *int_to_hex_string(NatEnv *env, int64_t num, bool capitalize) {
+void int_to_hex_string(int64_t num, char *buf, bool capitalize) {
     if (num == 0) {
-        return heap_string("0");
+        buf[0] = '0';
+        buf[1] = 0;
     } else {
-        char *str = malloc(INT_64_MAX_CHAR_LEN);
         if (capitalize) {
-            snprintf(str, INT_64_MAX_CHAR_LEN, "0X%" PRIX64, num);
+            snprintf(buf, NAT_INT_64_MAX_BUF_LEN, "0X%" PRIX64, num);
         } else {
-            snprintf(str, INT_64_MAX_CHAR_LEN, "0x%" PRIx64, num);
+            snprintf(buf, NAT_INT_64_MAX_BUF_LEN, "0x%" PRIx64, num);
         }
-        return str;
     }
 }
 
@@ -1131,9 +1127,6 @@ NatObject *nat_string(NatEnv *env, char *str) {
     return nat_string_n(env, str, len);
 }
 
-// "0x" + up to 16 hex chars + NULL terminator
-#define NAT_OBJECT_POINTER_LENGTH 2 + 16 + 1
-
 void nat_grow_string(NatEnv *env, NatObject *obj, ssize_t capacity) {
     ssize_t len = strlen(obj->str);
     assert(capacity >= len);
@@ -1240,6 +1233,7 @@ NatObject *nat_vsprintf(NatEnv *env, char *format, va_list args) {
     NatObject *out = nat_string(env, "");
     ssize_t len = strlen(format);
     NatObject *inspected;
+    char buf[NAT_INT_64_MAX_BUF_LEN];
     for (ssize_t i = 0; i < len; i++) {
         char c = format[i];
         if (c == '%') {
@@ -1253,13 +1247,16 @@ NatObject *nat_vsprintf(NatEnv *env, char *format, va_list args) {
                 break;
             case 'i':
             case 'd':
-                nat_string_append(env, out, int_to_string(env, va_arg(args, int64_t)));
+                int_to_string(va_arg(args, int64_t), buf);
+                nat_string_append(env, out, buf);
                 break;
             case 'x':
-                nat_string_append(env, out, int_to_hex_string(env, va_arg(args, int64_t), false));
+                int_to_hex_string(va_arg(args, int64_t), buf, false);
+                nat_string_append(env, out, buf);
                 break;
             case 'X':
-                nat_string_append(env, out, int_to_hex_string(env, va_arg(args, int64_t), true));
+                int_to_hex_string(va_arg(args, int64_t), buf, true);
+                nat_string_append(env, out, buf);
                 break;
             case 'v':
                 inspected = nat_send(env, va_arg(args, NatObject *), "inspect", 0, NULL, NULL);
@@ -1428,10 +1425,8 @@ void nat_handle_top_level_exception(NatEnv *env, bool run_exit_handlers) {
     }
 }
 
-char *nat_object_pointer_id(NatEnv *env, NatObject *obj) {
-    char *ptr = malloc(NAT_OBJECT_POINTER_LENGTH);
-    snprintf(ptr, NAT_OBJECT_POINTER_LENGTH, "%p", obj);
-    return ptr;
+void nat_object_pointer_id(NatObject *obj, char *buf) {
+    snprintf(buf, NAT_OBJECT_POINTER_BUF_LENGTH, "%p", obj);
 }
 
 int64_t nat_object_id(NatEnv *env, NatObject *obj) {
