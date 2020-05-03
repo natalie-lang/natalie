@@ -1,19 +1,26 @@
 class Array
-  def permutation(len = size) # TODO: use len
-    perm = ->(ary) {
+  def permutation(len = size)
+    if len == 0
+      return [[]]
+    elsif len > size
+      return []
+    end
+    perm = ->(ary, depth) {
       if ary.size > 1
         all = []
-        index = 0
-        ary.each do |start| # TODO: use each_with_index when it's implemented
+        ary.each_with_index do |start, index|
           rest = ary[0...index] + ary[index+1..-1]
-          all += perm.(rest).map { |rest| [start] + rest }
-          index += 1
+          if depth + 1 >= len
+            all << [start]
+          else
+            all += perm.(rest, depth + 1).map { |rest| [start] + rest }
+          end
         end
         all
       else
         [ary]
       end
     }
-    perm.(self)
+    perm.(self, 0)
   end
 end

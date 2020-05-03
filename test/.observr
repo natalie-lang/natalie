@@ -44,6 +44,7 @@ watch('^test/.*_test\.nat') { |m| run_tests(m.to_s) }
 watch('^spec/.*\.nat'     ) { |m| run_tests(m.to_s) }
 watch('^test/.*_test\.rb' ) { |m| run_tests }
 watch('^src/(.*)\.c'      ) { |m| run_tests }
+watch('^src/(.*)\.nat'    ) { |m| run_tests }
 watch('^lib/(.*)\.rb'     ) { |m| run_tests }
 
 Signal.trap('QUIT') { run_suite } # Ctrl-\
