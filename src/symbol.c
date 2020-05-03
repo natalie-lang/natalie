@@ -26,9 +26,10 @@ NatObject *Symbol_inspect(NatEnv *env, NatObject *self, ssize_t argc, NatObject 
 NatObject *Symbol_to_proc(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_SYMBOL);
     NAT_ASSERT_ARGC(0);
-    NatEnv *block_env = nat_build_detached_block_env(env);
-    nat_var_set(block_env, "name", 0, true, self);
-    NatBlock *proc_block = nat_block(block_env, self, Symbol_to_proc_block_fn);
+    NatEnv block_env;
+    nat_build_detached_block_env(&block_env, env);
+    nat_var_set(&block_env, "name", 0, true, self);
+    NatBlock *proc_block = nat_block(&block_env, self, Symbol_to_proc_block_fn);
     return nat_proc(env, proc_block);
 }
 

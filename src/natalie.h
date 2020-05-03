@@ -86,7 +86,8 @@
         abort();                                                 \
     }
 
-#define NAT_OBJ_HAS_ENV(obj) ((obj)->env) // prefered check
+#define NAT_OBJ_HAS_ENV(obj) ((obj)->env.global_env == env->global_env) // prefered check
+#define NAT_OBJ_HAS_ENV2(obj) ((obj)->env.global_env) // limited check used when there is no current env, i.e. nat_hashmap_hash and nat_hashmap_compare
 
 #define NAT_INSPECT(obj) nat_send(env, obj, "inspect", 0, NULL, NULL)
 
@@ -178,13 +179,13 @@ struct NatEnv {
 
 struct NatBlock {
     NatObject *(*fn)(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block);
-    NatEnv *env;
+    NatEnv env;
     NatObject *self;
 };
 
 struct NatMethod {
     NatObject *(*fn)(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block);
-    NatEnv *env;
+    NatEnv env;
     bool undefined;
 };
 
@@ -193,7 +194,7 @@ struct NatHashKey {
     NatHashKey *next;
     NatObject *key;
     NatObject *val;
-    NatEnv *env;
+    NatEnv env;
     bool removed;
 };
 
@@ -287,7 +288,7 @@ struct NatObject {
     NatObject *owner; // for contants, either a module or a class
     int flags;
 
-    NatEnv *env;
+    NatEnv env;
 
     struct hashmap constants;
     struct hashmap ivars;
@@ -402,9 +403,9 @@ NatObject *nat_const_set(NatEnv *env, NatObject *klass, char *name, NatObject *v
 NatObject *nat_var_get(NatEnv *env, char *key, ssize_t index);
 NatObject *nat_var_set(NatEnv *env, char *name, ssize_t index, bool allocate, NatObject *val);
 NatGlobalEnv *nat_build_global_env();
-NatEnv *nat_build_env(NatEnv *outer);
-NatEnv *nat_build_block_env(NatEnv *outer, NatEnv *calling_env);
-NatEnv *nat_build_detached_block_env(NatEnv *outer);
+NatEnv *nat_build_env(NatEnv *env, NatEnv *outer);
+NatEnv *nat_build_block_env(NatEnv *env, NatEnv *outer, NatEnv *calling_env);
+NatEnv *nat_build_detached_block_env(NatEnv *env, NatEnv *outer);
 
 char *nat_find_current_method_name(NatEnv *env);
 char *nat_find_method_name(NatEnv *env);
