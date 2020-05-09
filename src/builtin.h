@@ -477,19 +477,6 @@ NatObject *Symbol_inspect(NatEnv *env, NatObject *self, ssize_t argc, NatObject 
 NatObject *Symbol_to_proc(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block);
 NatObject *Symbol_to_proc_block_fn(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block);
 
-#define NAT_THREAD_INIT(klass)                                          \
-    nat_define_singleton_method(env, klass, "new", Thread_new);         \
-    nat_define_singleton_method(env, klass, "current", Thread_current); \
-    nat_define_method(env, klass, "join", Thread_join);                 \
-    nat_define_method(env, klass, "value", Thread_value);               \
-    nat_define_method(env, klass, "inspect", Thread_inspect);
-
-NatObject *Thread_new(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block);
-NatObject *Thread_current(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block);
-NatObject *Thread_join(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block);
-NatObject *Thread_value(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block);
-NatObject *Thread_inspect(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block);
-
 #define NAT_TRUE_CLASS_INIT(klass)                         \
     nat_undefine_singleton_method(env, klass, "new");      \
     nat_define_method(env, klass, "to_s", TrueClass_to_s); \

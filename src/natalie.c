@@ -118,11 +118,6 @@ NatGlobalEnv *nat_build_global_env() {
     global_env->min_ptr = (void *)UINTPTR_MAX;
     global_env->cells_available = global_env->cells_total = 0;
     nat_gc_alloc_heap_block(global_env);
-    int err = pthread_mutex_init(&global_env->alloc_mutex, NULL);
-    if (err) {
-        fprintf(stderr, "Could not initialize allocation mutex: %d\n", err);
-        abort();
-    }
     global_env->gc_enabled = false;
     return global_env;
 }
@@ -136,7 +131,6 @@ void nat_free_global_env(NatGlobalEnv *global_env) {
         free(block);
         block = next_block;
     }
-    pthread_mutex_destroy(&global_env->alloc_mutex);
     free(global_env);
 }
 
@@ -683,10 +677,8 @@ NatObject *nat_hash_get(NatEnv *env, NatObject *hash, NatObject *key) {
     key_container.key = key;
     key_container.env = *env;
     key_container.env.caller = NULL;
-    NAT_LOCK(hash)
     NatHashVal *container = hashmap_get(&hash->hashmap, &key_container);
     NatObject *val = container ? container->val : NULL;
-    NAT_UNLOCK(hash);
     return val;
 }
 
@@ -705,7 +697,6 @@ void nat_hash_put(NatEnv *env, NatObject *hash, NatObject *key, NatObject *val) 
     key_container.key = key;
     key_container.env = *env;
     key_container.env.caller = NULL;
-    NAT_LOCK(hash)
     NatHashVal *container = hashmap_get(&hash->hashmap, &key_container);
     if (container) {
         container->key->val = val;
@@ -719,7 +710,6 @@ void nat_hash_put(NatEnv *env, NatObject *hash, NatObject *key, NatObject *val) 
         container->val = val;
         hashmap_put(&hash->hashmap, container->key, container);
     }
-    NAT_UNLOCK(hash);
 }
 
 NatObject *nat_hash_delete(NatEnv *env, NatObject *hash, NatObject *key) {
@@ -728,16 +718,13 @@ NatObject *nat_hash_delete(NatEnv *env, NatObject *hash, NatObject *key) {
     key_container.key = key;
     key_container.env = *env;
     key_container.env.caller = NULL;
-    NAT_LOCK(hash)
     NatHashVal *container = hashmap_remove(&hash->hashmap, &key_container);
     if (container) {
         nat_hash_key_list_remove_node(hash, container->key);
         NatObject *val = container->val;
         free(container);
-        NAT_UNLOCK(hash);
         return val;
     } else {
-        NAT_UNLOCK(hash);
         return NULL;
     }
 }
@@ -1276,43 +1263,6 @@ NatObject *nat_range(NatEnv *env, NatObject *begin, NatObject *end, bool exclude
     obj->range_end = end;
     obj->range_exclude_end = exclude_end;
     return obj;
-}
-
-NatObject *nat_current_thread(NatEnv *env) {
-    NatObject *obj = nat_alloc(env, nat_const_get(env, NAT_OBJECT, "Thread", true), NAT_VALUE_THREAD);
-    obj->env = *env;
-    obj->env.caller = NULL;
-    obj->thread_id = pthread_self();
-    return obj;
-}
-
-NatObject *nat_thread(NatEnv *env, NatBlock *block) {
-    NatObject *obj = nat_alloc(env, nat_const_get(env, NAT_OBJECT, "Thread", true), NAT_VALUE_THREAD);
-    obj->env = *env;
-    obj->env.caller = NULL;
-    obj->thread_block = block;
-    pthread_create(&obj->thread_id, NULL, nat_create_thread, (void *)obj);
-    return obj;
-}
-
-NatObject *nat_thread_join(NatEnv *env, NatObject *thread) {
-    void *value = NULL;
-    int err = pthread_join(thread->thread_id, &value);
-    if (err == ESRCH) { // thread not found (already joined?)
-        return thread->thread_value;
-    } else if (err) {
-        NAT_RAISE(env, "ThreadError", "There was an error joining the thread %d", err);
-    } else {
-        thread->thread_value = (NatObject *)value;
-        return thread->thread_value;
-    }
-}
-
-void *nat_create_thread(void *data) {
-    NatObject *thread = (NatObject *)data;
-    NatBlock *block = thread->thread_block;
-    assert(block);
-    return (void *)NAT_RUN_BLOCK_WITHOUT_BREAK(&block->env, block, 0, NULL, NULL);
 }
 
 NatObject *nat_dup(NatEnv *env, NatObject *obj) {

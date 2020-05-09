@@ -120,10 +120,6 @@ NatEnv *build_top_env() {
     nat_const_set(env, Object, "Range", Range);
     NAT_RANGE_INIT(Range);
 
-    NatObject *Thread = nat_subclass(env, Object, "Thread");
-    nat_const_set(env, Object, "Thread", Thread);
-    NAT_THREAD_INIT(Thread);
-
     NatObject *MatchData = nat_subclass(env, Object, "MatchData");
     nat_const_set(env, Object, "MatchData", MatchData);
     NAT_MATCH_DATA_INIT(MatchData);
@@ -167,8 +163,6 @@ NatEnv *build_top_env() {
     nat_const_set(env, Object, "SystemExit", SystemExit);
     NatObject *ZeroDivisionError = nat_subclass(env, StandardError, "ZeroDivisionError");
     nat_const_set(env, Object, "ZeroDivisionError", ZeroDivisionError);
-    NatObject *ThreadError = nat_subclass(env, StandardError, "ThreadError");
-    nat_const_set(env, Object, "ThreadError", ThreadError);
     NatObject *FrozenError = nat_subclass(env, RuntimeError, "FrozenError");
     nat_const_set(env, Object, "FrozenError", FrozenError);
 

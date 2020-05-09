@@ -3,7 +3,6 @@
 
 void nat_gc_init(NatEnv *env, void *bottom_of_stack) {
     env->global_env->bottom_of_stack = bottom_of_stack;
-    env->global_env->main_thread = pthread_self();
     env->global_env->gc_enabled = true;
 }
 
@@ -32,7 +31,6 @@ NatHeapBlock *nat_gc_alloc_heap_block(NatGlobalEnv *global_env) {
 }
 
 NatObject *nat_gc_malloc(NatEnv *env) {
-    NAT_LOCK_ALLOC(env);
     NatHeapBlock *block = env->global_env->heap;
     NatObject *cell;
     do {
@@ -40,13 +38,11 @@ NatObject *nat_gc_malloc(NatEnv *env) {
         if (cell) {
             block->free_list = cell->next_free_object;
             env->global_env->cells_available--;
-            NAT_UNLOCK_ALLOC(env);
             return cell;
         }
         block = block->next;
     } while (block);
     nat_gc_alloc_heap_block(env->global_env);
-    NAT_UNLOCK_ALLOC(env);
     return nat_gc_malloc(env);
 }
 
@@ -243,9 +239,6 @@ NatObject *nat_gc_mark_live_objects(NatEnv *env) {
             break;
         case NAT_VALUE_SYMBOL:
             break;
-        case NAT_VALUE_THREAD:
-            nat_gc_push_object(env, objects, obj->thread_value);
-            break;
         case NAT_VALUE_TRUE:
             break;
         case NAT_VALUE_VOIDP:
@@ -269,7 +262,6 @@ static void nat_destroy_hash_key_list(NatObject *obj) {
 static void nat_gc_collect_object(NatEnv *env, NatHeapBlock *block, NatObject *obj) {
     if (obj->constants.table) hashmap_destroy(&obj->constants);
     if (obj->ivars.table) hashmap_destroy(&obj->ivars);
-    pthread_mutex_destroy(&obj->mutex);
     struct hashmap_iter *iter;
     switch (obj->type) {
     case NAT_VALUE_ARRAY:
@@ -341,8 +333,6 @@ static void nat_gc_collect_object(NatEnv *env, NatHeapBlock *block, NatObject *o
     case NAT_VALUE_SYMBOL:
         free(obj->symbol);
         break;
-    case NAT_VALUE_THREAD:
-        break;
     case NAT_VALUE_TRUE:
         break;
     case NAT_VALUE_VOIDP:
@@ -350,12 +340,10 @@ static void nat_gc_collect_object(NatEnv *env, NatHeapBlock *block, NatObject *o
     }
     obj->type = NAT_VALUE_NIL;
     obj->klass = NAT_NIL->klass;
-    NAT_LOCK_ALLOC(env);
     NatObject *next_object = block->free_list;
     block->free_list = obj;
     obj->next_free_object = next_object;
     env->global_env->cells_available++;
-    NAT_UNLOCK_ALLOC(env);
 }
 
 static void nat_gc_collect_dead_objects(NatEnv *env) {
@@ -375,8 +363,7 @@ void nat_gc_collect(NatEnv *env) {
 #ifdef NAT_GC_DISABLE
     return;
 #endif
-    if (pthread_self() != env->global_env->main_thread) return;
-    if (!env->global_env->gc_enabled) return; // FIXME: use a mutex :-)
+    if (!env->global_env->gc_enabled) return;
     env->global_env->gc_enabled = false;
     nat_gc_unmark_all_objects(env);
     nat_gc_mark_live_objects(env);
@@ -409,10 +396,5 @@ NatObject *nat_alloc(NatEnv *env, NatObject *klass, enum NatValueType type) {
     memset(obj, 0, sizeof(NatObject));
     obj->klass = klass;
     obj->type = type;
-    int err = pthread_mutex_init(&obj->mutex, NULL);
-    if (err) {
-        fprintf(stderr, "Could not initialize mutex: %d\n", err);
-        abort();
-    }
     return obj;
 }

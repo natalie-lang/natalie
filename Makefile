@@ -9,9 +9,9 @@ NAT_FLAGS ?=
 # debug, coverage, or release
 BUILD ?= debug
 
-cflags.debug := -g -Wall -Wextra -Werror -Wno-unused-parameter -pthread -D"NAT_GC_COLLECT_DEBUG=true"
-cflags.coverage := ${cflags.debug} -fprofile-arcs -ftest-coverage -pthread
-cflags.release := -O3 -pthread
+cflags.debug := -g -Wall -Wextra -Werror -Wno-unused-parameter -D"NAT_GC_COLLECT_DEBUG=true"
+cflags.coverage := ${cflags.debug} -fprofile-arcs -ftest-coverage
+cflags.release := -O3
 CFLAGS := ${cflags.${BUILD}} ${NAT_FLAGS}
 
 HAS_TTY := $(shell test -t 1 && echo yes || echo no)

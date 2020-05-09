@@ -6,24 +6,6 @@
 #define NAT_HEAP_MIN_AVAIL_RATIO 0.1
 #define NAT_HEAP_MIN_AVAIL_AFTER_COLLECTION_RATIO 0.2
 
-#define NAT_LOCK_ALLOC(env)                                                     \
-    {                                                                           \
-        int lock_err = pthread_mutex_lock(&env->global_env->alloc_mutex);       \
-        if (lock_err) {                                                         \
-            fprintf(stderr, "Could not lock allocation mutex: %d\n", lock_err); \
-            abort();                                                            \
-        }                                                                       \
-    }
-
-#define NAT_UNLOCK_ALLOC(env)                                                       \
-    {                                                                               \
-        int unlock_err = pthread_mutex_unlock(&env->global_env->alloc_mutex);       \
-        if (unlock_err) {                                                           \
-            fprintf(stderr, "Could not unlock allocation mutex: %d\n", unlock_err); \
-            abort();                                                                \
-        }                                                                           \
-    }
-
 struct NatHeapBlock {
     NatHeapBlock *next;
     NatObject storage[NAT_HEAP_BLOCK_CELL_COUNT];

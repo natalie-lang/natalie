@@ -13,12 +13,10 @@ NatObject *String_initialize(NatEnv *env, NatObject *self, ssize_t argc, NatObje
     NAT_ASSERT_ARGC(0, 1);
     if (argc == 1) {
         NAT_ASSERT_TYPE(args[0], NAT_VALUE_STRING, "String");
-        NAT_LOCK(self);
         free(self->str);
         self->str = heap_string(args[0]->str);
         self->str_len = args[0]->str_len;
         self->str_cap = args[0]->str_cap;
-        NAT_UNLOCK(self);
     }
     return self;
 }

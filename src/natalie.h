@@ -3,7 +3,6 @@
 #include <assert.h>
 #include <errno.h>
 #include <inttypes.h>
-#include <pthread.h>
 #include <setjmp.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -91,24 +90,6 @@
 
 #define NAT_INSPECT(obj) nat_send(env, obj, "inspect", 0, NULL, NULL)
 
-#define NAT_LOCK(obj)                                                \
-    {                                                                \
-        int lock_err = pthread_mutex_lock(&obj->mutex);              \
-        if (lock_err) {                                              \
-            fprintf(stderr, "Could not lock mutex: %d\n", lock_err); \
-            abort();                                                 \
-        }                                                            \
-    }
-
-#define NAT_UNLOCK(obj)                                                  \
-    {                                                                    \
-        int unlock_err = pthread_mutex_unlock(&obj->mutex);              \
-        if (unlock_err) {                                                \
-            fprintf(stderr, "Could not unlock mutex: %d\n", unlock_err); \
-            abort();                                                     \
-        }                                                                \
-    }
-
 // ahem, "globals"
 #define NAT_OBJECT env->global_env->Object
 #define NAT_INTEGER env->global_env->Integer
@@ -161,8 +142,6 @@ struct NatGlobalEnv {
     NatObject *min_ptr;
     NatObject *max_ptr;
     bool gc_enabled;
-    pthread_mutex_t alloc_mutex;
-    pthread_t main_thread;
 };
 
 struct NatEnv {
@@ -226,9 +205,8 @@ enum NatValueType {
     NAT_VALUE_REGEXP = 14,
     NAT_VALUE_STRING = 15,
     NAT_VALUE_SYMBOL = 16,
-    NAT_VALUE_THREAD = 17,
-    NAT_VALUE_TRUE = 18,
-    NAT_VALUE_VOIDP = 19,
+    NAT_VALUE_TRUE = 17,
+    NAT_VALUE_VOIDP = 18,
 };
 
 enum NatEncoding {
@@ -298,8 +276,6 @@ struct NatObject {
     struct hashmap constants;
     struct hashmap ivars;
 
-    pthread_mutex_t mutex;
-
     union {
         int64_t integer;
 
@@ -354,14 +330,6 @@ struct NatObject {
         struct {
             NatBlock *block;
             bool lambda;
-        };
-
-        // NAT_VALUE_THREAD
-        struct {
-            pthread_t thread_id;
-            NatBlock *thread_block;
-            NatObject *thread_value;
-            bool thread_sleep;
         };
 
         // NAT_VALUE_RANGE
@@ -528,11 +496,6 @@ NatObject *nat_matchdata(NatEnv *env, OnigRegion *region, NatObject *str_obj);
 NatObject *nat_last_match(NatEnv *env);
 
 NatObject *nat_range(NatEnv *env, NatObject *begin, NatObject *end, bool exclude_end);
-
-NatObject *nat_current_thread(NatEnv *env);
-NatObject *nat_thread(NatEnv *env, NatBlock *block);
-NatObject *nat_thread_join(NatEnv *env, NatObject *thread);
-void *nat_create_thread(void *data);
 
 NatObject *nat_dup(NatEnv *env, NatObject *obj);
 NatObject *nat_not(NatEnv *env, NatObject *val);
