@@ -435,15 +435,10 @@ void nat_class_prepend(NatEnv *env, NatObject *klass, NatObject *module) {
 
 NatObject *nat_initialize(NatEnv *env, NatObject *obj, ssize_t argc, NatObject **args, NatBlock *block) {
     NatObject *klass = NAT_OBJ_CLASS(obj);
-    while (1) {
-        NatObject *matching_class_or_module;
-        NatMethod *method = nat_find_method(klass, "initialize", &matching_class_or_module);
-        if (method) {
-            nat_call_method_on_class(env, klass, klass, "initialize", obj, argc, args, block);
-            break;
-        }
-        if (!klass->superclass) break;
-        klass = klass->superclass;
+    NatObject *matching_class_or_module;
+    NatMethod *method = nat_find_method(klass, "initialize", &matching_class_or_module);
+    if (method) {
+        nat_call_method_on_class(env, klass, klass, "initialize", obj, argc, args, block);
     }
     return obj;
 }
