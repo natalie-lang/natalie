@@ -4,6 +4,7 @@
 void nat_gc_init(NatEnv *env, void *bottom_of_stack) {
     env->global_env->bottom_of_stack = bottom_of_stack;
     env->global_env->main_thread = pthread_self();
+    env->global_env->gc_enabled = true;
 }
 
 NatHeapBlock *nat_gc_alloc_heap_block(NatGlobalEnv *global_env) {

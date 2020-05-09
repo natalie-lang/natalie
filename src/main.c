@@ -228,8 +228,6 @@ NatEnv *build_top_env() {
 
     /*OBJ_NAT_INIT*/
 
-    env->global_env->gc_enabled = true;
-
     return env;
 }
 
@@ -253,7 +251,6 @@ NatObject *EVAL(NatEnv *env) {
 int main(int argc, char *argv[]) {
     setvbuf(stdout, NULL, _IOLBF, 1024);
     NatEnv *env = build_top_env();
-    nat_gc_init(env, &argc);
     NatObject *ARGV = nat_array(env);
     /*INIT*/
     nat_const_set(env, NAT_OBJECT, "ARGV", ARGV);
@@ -261,6 +258,7 @@ int main(int argc, char *argv[]) {
     for (int i = 1; i < argc; i++) {
         nat_array_push(env, ARGV, nat_string(env, argv[i]));
     }
+    nat_gc_init(env, &argc);
     NatObject *result = EVAL(env);
     nat_gc_collect_all(env);
     nat_free_global_env(env->global_env);
