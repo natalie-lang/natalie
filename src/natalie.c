@@ -190,7 +190,7 @@ NatObject *nat_raise(NatEnv *env, NatObject *klass, char *message_format, ...) {
     va_start(args, message_format);
     NatObject *message = nat_vsprintf(env, message_format, args);
     va_end(args);
-    NatObject *exception = nat_exception(env, klass, message->str);
+    NatObject *exception = nat_exception(env, klass, heap_string(message->str));
     nat_raise_exception(env, exception);
     return exception;
 }
@@ -1146,7 +1146,7 @@ void nat_string_append_nat_string(NatEnv *env, NatObject *str, NatObject *str2) 
     if (str2->str_len == 0) return;
     ssize_t total_len = str->str_len + str2->str_len;
     nat_grow_string_at_least(env, str, total_len);
-    strcat(str->str, str2->str);
+    strncat(str->str, str2->str, str2->str_len);
     str->str_len = total_len;
 }
 

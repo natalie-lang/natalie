@@ -36,7 +36,7 @@ NatObject *Array_inspect(NatEnv *env, NatObject *self, ssize_t argc, NatObject *
     for (ssize_t i = 0; i < self->ary_len; i++) {
         NatObject *obj = self->ary[i];
         NatObject *repr = nat_send(env, obj, "inspect", 0, NULL, NULL);
-        nat_string_append(env, out, repr->str);
+        nat_string_append_nat_string(env, out, repr);
         if (i < self->ary_len - 1) {
             nat_string_append(env, out, ", ");
         }

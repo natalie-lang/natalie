@@ -32,15 +32,13 @@ NatObject *String_ltlt(NatEnv *env, NatObject *self, ssize_t argc, NatObject **a
     NAT_ASSERT_ARGC(1);
     NAT_ASSERT_NOT_FROZEN(self);
     NatObject *arg = args[0];
-    char *str;
     if (NAT_TYPE(arg) == NAT_VALUE_STRING) {
-        str = arg->str;
+        nat_string_append_nat_string(env, self, arg);
     } else {
         NatObject *str_obj = nat_send(env, arg, "to_s", 0, NULL, NULL);
         NAT_ASSERT_TYPE(str_obj, NAT_VALUE_STRING, "String");
-        str = str_obj->str;
+        nat_string_append_nat_string(env, self, str_obj);
     }
-    nat_string_append(env, self, str);
     return self;
 }
 
