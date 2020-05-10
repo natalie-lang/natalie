@@ -94,6 +94,8 @@ bool nat_gc_is_heap_ptr(NatEnv *env, NatObject *ptr) {
 
 NatObject *nat_gc_gather_roots(NatEnv *env) {
     NatGlobalEnv *global_env = env->global_env;
+    jmp_buf jump_buf;
+    setjmp(jump_buf);
     void *dummy;
     void *top_of_stack = &dummy;
     NatObject *roots = nat_array(env);
