@@ -146,7 +146,7 @@ module Natalie
       !!repl
     end
 
-    RELEASE_FLAGS = '-O3'
+    RELEASE_FLAGS = '-O1'
     DEBUG_FLAGS = '-g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unknown-warning-option -D"NAT_GC_COLLECT_DEBUG=true"'
     COVERAGE_FLAGS = '-fprofile-arcs -ftest-coverage'
 

@@ -11,7 +11,7 @@ BUILD ?= debug
 
 cflags.debug := -g -Wall -Wextra -Werror -Wno-unused-parameter -D"NAT_GC_COLLECT_DEBUG=true"
 cflags.coverage := ${cflags.debug} -fprofile-arcs -ftest-coverage
-cflags.release := -O3
+cflags.release := -O1
 CFLAGS := ${cflags.${BUILD}} ${NAT_FLAGS}
 
 HAS_TTY := $(shell test -t 1 && echo yes || echo no)
