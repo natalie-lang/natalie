@@ -16,7 +16,7 @@ OptionParser.new do |opts|
     when 'p1', 'p2', 'p3', 'gdb', 'lldb', 'c', 'edit', 'cc-cmd'
       options[:debug] = level
     else
-      options[:debug] = true
+      options[:debug] = 'c'
     end
   end
 
@@ -59,15 +59,20 @@ class Runner
   def run
     load_code
     if @repl
-      run_repl
+      repl = Natalie::Repl.new
+      repl.go
     elsif options[:ast]
-      show_ast
+      require 'pp'
+      pp ast
     elsif options[:compile]
-      compile_with_filename(options[:compile])
+      compiler.out_path = options[:compile]
+      compiler.compile
     elsif options[:debug] == 'cc-cmd'
       puts compiler.compiler_command
     elsif options[:debug] == 'c'
       compiler.write_file
+      puts File.read(compiler.c_path)
+      puts '-' * 80
       puts compiler.c_path
     elsif options[:debug] == 'edit'
       edit_compile_run_loop
@@ -78,22 +83,11 @@ class Runner
 
   private
 
-  def run_repl
-    repl = Natalie::Repl.new
-    repl.go
-  end
-
-  def show_ast
-    require 'pp'
-    pp ast
-  end
-
   def compile_and_run
     out = Tempfile.create("natalie#{extension}")
     out.close
     compiler.out_path = out.path
     compiler.compile
-    puts out.path if options[:debug]
     case options[:debug]
     when 'gdb', 'lldb'
       exec(options[:debug], out.path)
@@ -123,11 +117,6 @@ class Runner
       response = gets.strip.downcase
       break if response == 'n'
     end
-  end
-
-  def compile_with_filename(filename)
-    compiler.out_path = filename
-    compiler.compile
   end
 
   def load_code
