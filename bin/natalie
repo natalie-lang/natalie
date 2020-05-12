@@ -13,7 +13,7 @@ OptionParser.new do |opts|
 
   opts.on('-d [level]', '--debug [level]', 'Show debug output') do |level|
     case level
-    when 'p1', 'p2', 'p3', 'gdb', 'lldb', 'compiler-command'
+    when 'p1', 'p2', 'p3', 'gdb', 'lldb', 'edit', 'compiler-command'
       options[:debug] = level
     else
       options[:debug] = true
@@ -49,52 +49,119 @@ else
   options[:build] = 'debug'
 end
 
-if options[:execute]
-  source_path = '-e'
-  code = options[:execute].gsub(/\\n/, "\n")
-elsif ARGV.any?
-  source_path = ARGV.shift
-  code = File.read(source_path)
-else
-  source_path = '.'
-  repl = Natalie::Repl.new
-  repl.go
-  exit
-end
+class Runner
+  def initialize(options)
+    @options = options
+  end
 
-parser = Natalie::Parser.new(code, source_path)
-ast = parser.ast
+  attr_reader :options, :source_path, :code
 
-if options[:ast]
-  require 'pp'
-  pp ast
-elsif options[:compile]
-  compiler = Natalie::Compiler.new(ast, source_path, options)
-  compiler.load_path = options[:load_path]
-  compiler.compile_to_object_file = options[:compile_obj]
-  compiler.out_path = options[:compile]
-  compiler.compile
-else
-  compiler = Natalie::Compiler.new(ast, source_path, options)
-  compiler.load_path = options[:load_path]
-  extension = if RUBY_PLATFORM =~ /msys/
-                '.exe'
-              else
-                ''
-              end
-  out = Tempfile.create("natalie#{extension}")
-  out.close
-  compiler.out_path = out.path
-  compiler.compile
-  puts out.path if options[:debug]
-  status = nil
-  pid = spawn(out.path, *ARGV)
-  Process.wait(pid)
-  case options[:debug]
-  when 'gdb', 'lldb'
-    exec(options[:debug], out.path)
-  else
-    status = $?
-    exit status.exitstatus || 1
+  def run
+    load_code
+    if @repl
+      run_repl
+    elsif options[:ast]
+      show_ast
+    elsif options[:compile]
+      compile_with_filename(options[:compile])
+    elsif options[:debug] == 'compiler-command'
+      puts compiler.compiler_command
+    elsif options[:debug] == 'edit'
+      edit_compile_run_loop
+    else
+      compile_and_run
+    end
+  end
+
+  private
+
+  def run_repl
+    repl = Natalie::Repl.new
+    repl.go
+  end
+
+  def show_ast
+    require 'pp'
+    pp ast
+  end
+
+  def compile_and_run
+    out = Tempfile.create("natalie#{extension}")
+    out.close
+    compiler.out_path = out.path
+    compiler.compile
+    puts out.path if options[:debug]
+    case options[:debug]
+    when 'gdb', 'lldb'
+      exec(options[:debug], out.path)
+    else
+      pid = spawn(out.path, *ARGV)
+      Process.wait(pid)
+      exit $?.exitstatus || 1
+    end
+  end
+
+  def edit_compile_run_loop
+    compiler.write_file
+    loop do
+      system(ENV['EDITOR'] || 'vim', compiler.c_path)
+      out = Tempfile.create("natalie#{extension}")
+      out.close
+      compiler.out_path = out.path
+      begin
+        compiler.compile_c_to_binary
+      rescue Natalie::Compiler::CompileError => e
+        puts e
+      else
+        pid = spawn(out.path, *ARGV)
+        Process.wait(pid)
+      end
+      print 'Edit again? [Yn] '
+      response = gets.strip.downcase
+      break if response == 'n'
+    end
+  end
+
+  def compile_with_filename(filename)
+    compiler.out_path = filename
+    compiler.compile
+  end
+
+  def load_code
+    if options[:execute]
+      @source_path = '-e'
+      @code = options[:execute].gsub(/\\n/, "\n")
+    elsif ARGV.any?
+      @source_path = ARGV.shift
+      @code = File.read(source_path)
+    else
+      @repl = true
+      @source_path = '.'
+    end
+  end
+
+  def extension
+    if RUBY_PLATFORM =~ /msys/
+      '.exe'
+    else
+      ''
+    end
+  end
+
+  def compiler
+    @compiler ||= Natalie::Compiler.new(ast, source_path, options).tap do |c|
+      c.load_path = options[:load_path]
+      c.compile_to_object_file = options[:compile_obj]
+    end
+  end
+
+  def parser
+    @parser ||= Natalie::Parser.new(code, source_path)
+  end
+
+  def ast
+    @ast ||= parser.ast
   end
 end
+
+Runner.new(options).run

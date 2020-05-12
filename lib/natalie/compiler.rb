@@ -33,19 +33,22 @@ module Natalie
       @options = options
     end
 
-    attr_accessor :ast, :compile_to_object_file, :repl, :out_path, :context, :vars, :options
+    attr_accessor :ast, :compile_to_object_file, :repl, :out_path, :context, :vars, :options, :c_path
 
     attr_writer :load_path
 
     def compile
       check_build
       write_file
+      compile_c_to_binary
+    end
+
+    def compile_c_to_binary
       cmd = compiler_command
-      puts cmd if debug == 'compiler-command'
-      out = `#{cmd}`
+      out = `#{cmd} 2>&1`
       File.unlink(@c_path) unless debug || build == 'coverage'
-      $stderr.puts out if build == 'debug' && out.strip != ''
-      raise 'There was an error compiling.' if $? != 0
+      $stderr.puts out if out.strip != ''
+      raise CompileError.new('There was an error compiling.') if $? != 0
     end
 
     def c_files_to_compile
@@ -61,7 +64,6 @@ module Natalie
 
     def write_file
       c = to_c
-      puts c if debug
       temp_c = Tempfile.create('natalie.c')
       temp_c.write(c)
       temp_c.close
@@ -127,16 +129,16 @@ module Natalie
       options[:build]
     end
 
-    private
-
     def compiler_command
       if compile_to_object_file
-        "#{cc} #{build_flags} -I #{SRC_PATH} -I #{ONIGMO_SRC_PATH} -fPIC -x c -c #{@c_path} -o #{out_path} 2>&1"
+        "#{cc} #{build_flags} -I #{SRC_PATH} -I #{ONIGMO_SRC_PATH} -fPIC -x c -c #{@c_path} -o #{out_path}"
       else
         libs = '-lm'
-        "#{cc} #{build_flags} #{shared? ? '-fPIC -shared' : ''} -I #{SRC_PATH} -I #{ONIGMO_SRC_PATH} -o #{out_path} -L #{ld_library_path} #{OBJ_PATH}/*.o #{OBJ_PATH}/nat/*.o #{ONIGMO_LIB_PATH}/libonigmo.a -x c #{@c_path} #{libs} #{extra_build_flags} 2>&1"
+        "#{cc} #{build_flags} #{shared? ? '-fPIC -shared' : ''} -I #{SRC_PATH} -I #{ONIGMO_SRC_PATH} -o #{out_path} -L #{ld_library_path} #{OBJ_PATH}/*.o #{OBJ_PATH}/nat/*.o #{ONIGMO_LIB_PATH}/libonigmo.a -x c #{@c_path || 'code.c'} #{libs} #{extra_build_flags}"
       end
     end
+
+    private
 
     def cc
       ENV['CC'] || 'cc'
