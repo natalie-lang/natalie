@@ -58,7 +58,7 @@ test_valgrind: build
 	valgrind --leak-check=no --suppressions=test/valgrind-suppressions --error-exitcode=1 ./block_spec
 
 test_release:
-	BUILD="release" make clean_nat test
+	BUILD="release" NAT_FLAGS="-D\"NAT_GC_COLLECT_DEBUG=true\"" make clean_nat test
 
 coverage_report:
 	lcov -c --directory . --output-file coverage.info
