@@ -13,7 +13,7 @@ OptionParser.new do |opts|
 
   opts.on('-d [level]', '--debug [level]', 'Show debug output') do |level|
     case level
-    when 'p1', 'p2', 'p3', 'gdb', 'lldb', 'c', 'edit', 'cc-cmd'
+    when 'p1', 'p2', 'p3', 'gdb', 'lldb', 'c', 'S', 'edit', 'cc-cmd'
       options[:debug] = level
     else
       options[:debug] = 'c'
@@ -74,6 +74,8 @@ class Runner
       puts File.read(compiler.c_path)
       puts '-' * 80
       puts compiler.c_path
+    elsif options[:debug] == 'S'
+      show_assembly
     elsif options[:debug] == 'edit'
       edit_compile_run_loop
     else
@@ -117,6 +119,13 @@ class Runner
       response = gets.strip.downcase
       break if response == 'n'
     end
+  end
+
+  def show_assembly
+    compiler.write_file
+    compiler.out_path = '-'
+    cmd = compiler.compiler_command.gsub(/-L [^ ]+|[^ ]+\.[ao]/, '')
+    puts `#{cmd} -S 2>&1`
   end
 
   def load_code
