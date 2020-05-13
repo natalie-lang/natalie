@@ -1,6 +1,7 @@
 .PHONY: test cloc debug write_build_type clean clean_nat
 
 SRC := src
+INC := include
 LIB := lib/natalie
 OBJ := obj
 ONIGMO := ext/onigmo
@@ -34,7 +35,7 @@ write_build_type:
 	@echo $(BUILD) > .build
 
 $(OBJ)/%.o: $(SRC)/%.c
-	$(CC) $(CFLAGS) -I$(SRC) -I$(ONIGMO) -fPIC -c $< -o $@
+	$(CC) $(CFLAGS) -I$(INC) -I$(ONIGMO) -fPIC -c $< -o $@
 
 $(OBJ)/nat/%.o: $(SRC)/%.nat
 	bin/natalie --compile-obj $@ $<

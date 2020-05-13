@@ -8,6 +8,7 @@ require_relative './compiler/pass4'
 module Natalie
   class Compiler
     SRC_PATH = File.expand_path('../../src', __dir__)
+    INC_PATH = File.expand_path('../../include', __dir__)
     OBJ_PATH = File.expand_path('../../obj', __dir__)
     ONIGMO_SRC_PATH = File.expand_path('../../ext/onigmo', __dir__)
     ONIGMO_LIB_PATH = File.expand_path('../../ext/onigmo/.libs', __dir__)
@@ -131,10 +132,10 @@ module Natalie
 
     def compiler_command
       if compile_to_object_file
-        "#{cc} #{build_flags} -I #{SRC_PATH} -I #{ONIGMO_SRC_PATH} -fPIC -x c -c #{@c_path} -o #{out_path}"
+        "#{cc} #{build_flags} -I #{INC_PATH} -I #{ONIGMO_SRC_PATH} -fPIC -x c -c #{@c_path} -o #{out_path}"
       else
         libs = '-lm'
-        "#{cc} #{build_flags} #{shared? ? '-fPIC -shared' : ''} -I #{SRC_PATH} -I #{ONIGMO_SRC_PATH} -o #{out_path} -L #{ld_library_path} #{OBJ_PATH}/*.o #{OBJ_PATH}/nat/*.o #{ONIGMO_LIB_PATH}/libonigmo.a -x c #{@c_path || 'code.c'} #{libs} #{extra_build_flags}"
+        "#{cc} #{build_flags} #{shared? ? '-fPIC -shared' : ''} -I #{INC_PATH} -I #{ONIGMO_SRC_PATH} -o #{out_path} -L #{ld_library_path} #{OBJ_PATH}/*.o #{OBJ_PATH}/nat/*.o #{ONIGMO_LIB_PATH}/libonigmo.a -x c #{@c_path || 'code.c'} #{libs} #{extra_build_flags}"
       end
     end
 
