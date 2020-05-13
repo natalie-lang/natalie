@@ -58,6 +58,9 @@ test_valgrind: build
 	valgrind --leak-check=no --suppressions=test/valgrind-suppressions --error-exitcode=1 ./block_spec
 
 test_release:
+	BUILD="release" make clean_nat test
+
+test_release_slow:
 	BUILD="release" NAT_FLAGS="-D\"NAT_GC_COLLECT_DEBUG=true\"" make clean_nat test
 
 coverage_report:
@@ -70,7 +73,7 @@ docker_build:
 docker_build_clang:
 	docker build -t natalie_clang --build-arg CC=clang .
 
-docker_test: docker_test_gcc docker_test_clang docker_test_valgrind docker_test_release
+docker_test: docker_test_gcc docker_test_clang docker_test_valgrind docker_test_release docker_test_release_slow
 
 docker_test_gcc: docker_build
 	docker run $(DOCKER_FLAGS) --rm --entrypoint make natalie test
@@ -83,6 +86,9 @@ docker_test_valgrind: docker_build
 
 docker_test_release: docker_build
 	docker run $(DOCKER_FLAGS) --rm --entrypoint make natalie test_release
+
+docker_test_release_slow: docker_build
+	docker run $(DOCKER_FLAGS) --rm --entrypoint make natalie test_release_slow
 
 docker_coverage_report: docker_build
 	rm -rf coverage-report
