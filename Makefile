@@ -112,5 +112,5 @@ ctags:
 	ctags -R --exclude=.cquery_cache --exclude=ext --append=no .
 
 format:
-	find src -type f -name '*.h' -exec clang-format -i --style=file {} +
+	find include -type f -name '*.h' -exec clang-format -i --style=file {} +
 	find src -type f -name '*.c' -exec clang-format -i --style=file {} +
