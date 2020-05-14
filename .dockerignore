@@ -1,2 +1,3 @@
 obj
-lib/onigmo/.libs
+ext/onigmo/.libs
+ext/hashmap/build

@@ -1,9 +1,10 @@
-.PHONY: test cloc debug write_build_type clean clean_nat
+.PHONY: test cloc debug write_build_type
 
 SRC := src
 INC := include
 LIB := lib/natalie
 OBJ := obj
+HASHMAP := ext/hashmap/include
 ONIGMO := ext/onigmo
 NAT_FLAGS ?=
 
@@ -29,24 +30,32 @@ NAT_OBJECTS := $(patsubst $(SRC)/%.nat, $(OBJ)/nat/%.o, $(NAT_SOURCES))
 mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
 current_dir := $(notdir $(patsubst %/,%,$(dir $(mkfile_path))))
 
-build: write_build_type ext/onigmo/.libs/libonigmo.a $(OBJECTS) $(NAT_OBJECTS)
+build: write_build_type ext/hashmap/build/libhashmap.a ext/onigmo/.libs/libonigmo.a $(OBJECTS) $(NAT_OBJECTS)
 
 write_build_type:
 	@echo $(BUILD) > .build
 
 $(OBJ)/%.o: $(SRC)/%.c
-	$(CC) $(CFLAGS) -I$(INC) -I$(ONIGMO) -fPIC -c $< -o $@
+	$(CC) $(CFLAGS) -I$(INC) -I$(HASHMAP) -I$(ONIGMO) -fPIC -c $< -o $@
 
 $(OBJ)/nat/%.o: $(SRC)/%.nat
 	bin/natalie --compile-obj $@ $<
 
+ext/hashmap/build/libhashmap.a:
+	mkdir ext/hashmap/build && cd ext/hashmap/build && CMAKE_POSITION_INDEPENDENT_CODE=true cmake .. && make
+
 ext/onigmo/.libs/libonigmo.a:
 	cd ext/onigmo && ./autogen.sh && ./configure --with-pic && make
 
-clean_nat:
+clean:
 	rm -f $(OBJ)/*.o $(OBJ)/nat/*.o
 
-clean: clean_nat
+cleanall: clean clean_hashmap clean_onigmo
+
+clean_hashmap:
+	cd ext/hashmap && rm -rf build || true
+
+clean_onigmo:
 	cd ext/onigmo && make clean || true
 
 test: build
@@ -59,10 +68,10 @@ test_valgrind: build
 	valgrind --leak-check=no --suppressions=test/valgrind-suppressions --error-exitcode=1 ./block_spec
 
 test_release:
-	BUILD="release" make clean_nat test
+	BUILD="release" make clean test
 
 test_release_slow:
-	BUILD="release" NAT_FLAGS="-D\"NAT_GC_COLLECT_DEBUG=true\"" make clean_nat test
+	BUILD="release" NAT_FLAGS="-D\"NAT_GC_COLLECT_DEBUG=true\"" make clean test
 
 coverage_report:
 	lcov -c --directory . --output-file coverage.info
@@ -94,7 +103,7 @@ docker_test_release_slow: docker_build
 docker_coverage_report: docker_build
 	rm -rf coverage-report
 	mkdir coverage-report
-	docker run $(DOCKER_FLAGS) -v $(CURDIR)/coverage-report:/natalie/coverage-report --rm --entrypoint bash natalie -c "make BUILD=coverage clean_nat test; make coverage_report"
+	docker run $(DOCKER_FLAGS) -v $(CURDIR)/coverage-report:/natalie/coverage-report --rm --entrypoint bash natalie -c "make BUILD=coverage clean test; make coverage_report"
 
 cloc:
 	cloc --not-match-f=hashmap.\* --not-match-f=compile_commands.json --exclude-dir=.cquery_cache,.github,ext .
