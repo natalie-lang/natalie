@@ -115,6 +115,12 @@
 // "0x" + up to 16 hex chars + NULL terminator
 #define NAT_OBJECT_POINTER_BUF_LENGTH 2 + 16 + 1
 
+#define NAT_LIST_PREPEND(list, item) { \
+    void *next_item = list; \
+    list = item; \
+    item->next = next_item; \
+}
+
 typedef struct NatObject NatObject;
 typedef struct NatGlobalEnv NatGlobalEnv;
 typedef struct NatEnv NatEnv;
@@ -124,8 +130,10 @@ typedef struct NatHashKey NatHashKey;
 typedef struct NatHashKey NatHashIter;
 typedef struct NatHashVal NatHashVal;
 typedef struct NatHeapBlock NatHeapBlock;
+typedef struct NatHeapCell NatHeapCell;
 
 struct NatHeapBlock;
+struct NatHeapCell;
 
 struct NatGlobalEnv {
     struct hashmap *globals;
@@ -136,8 +144,8 @@ struct NatGlobalEnv {
         *true_obj,
         *false_obj;
     NatHeapBlock *heap;
-    int cells_total;
-    int cells_available;
+    int bytes_total;
+    int bytes_available;
     void *bottom_of_stack;
     NatObject *min_ptr;
     NatObject *max_ptr;
@@ -359,11 +367,6 @@ struct NatObject {
         // NAT_VALUE_VOIDP
         void *void_ptr;
     };
-
-    // TODO: move this into the above union once all the memory bugs are worked out :-/
-    NatObject *next_free_object;
-
-    bool marked;
 };
 
 bool nat_is_constant_name(char *name);
