@@ -132,10 +132,10 @@ module Natalie
 
     def compiler_command
       if compile_to_object_file
-        "#{cc} #{build_flags} #{inc_paths} -fPIC -x c -c #{@c_path} -o #{out_path}"
+        "#{cc} #{build_flags} #{extra_cflags} #{inc_paths} -fPIC -x c -c #{@c_path} -o #{out_path}"
       else
         libs = '-lm'
-        "#{cc} #{build_flags} #{shared? ? '-fPIC -shared' : ''} #{inc_paths} -o #{out_path} #{OBJ_PATH}/*.o #{OBJ_PATH}/nat/*.o #{HASHMAP_LIB_PATH}/libhashmap.a #{ONIGMO_LIB_PATH}/libonigmo.a -x c #{@c_path || 'code.c'} #{libs} #{extra_build_flags}"
+        "#{cc} #{build_flags} #{extra_cflags} #{shared? ? '-fPIC -shared' : ''} #{inc_paths} -o #{out_path} #{OBJ_PATH}/*.o #{OBJ_PATH}/nat/*.o #{HASHMAP_LIB_PATH}/libhashmap.a #{ONIGMO_LIB_PATH}/libonigmo.a -x c #{@c_path || 'code.c'} #{libs}"
       end
     end
 
@@ -166,9 +166,8 @@ module Natalie
       end
     end
 
-    # TODO: add way to specify these from the user program
-    def extra_build_flags
-      ENV['EXTRA_BUILD_FLAGS']
+    def extra_cflags
+      ENV['NAT_CFLAGS']
     end
 
     def var_prefix

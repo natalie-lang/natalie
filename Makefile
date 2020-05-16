@@ -6,7 +6,7 @@ LIB := lib/natalie
 OBJ := obj
 HASHMAP := ext/hashmap/include
 ONIGMO := ext/onigmo
-NAT_FLAGS ?=
+NAT_CFLAGS ?=
 
 # debug, coverage, or release
 BUILD ?= debug
@@ -14,7 +14,7 @@ BUILD ?= debug
 cflags.debug := -g -Wall -Wextra -Werror -Wno-unused-parameter -D"NAT_GC_COLLECT_DEBUG=true"
 cflags.coverage := ${cflags.debug} -fprofile-arcs -ftest-coverage
 cflags.release := -O1
-CFLAGS := ${cflags.${BUILD}} ${NAT_FLAGS}
+CFLAGS := ${cflags.${BUILD}} ${NAT_CFLAGS}
 
 HAS_TTY := $(shell test -t 1 && echo yes || echo no)
 ifeq ($(HAS_TTY),yes)
@@ -71,7 +71,7 @@ test_release:
 	BUILD="release" make clean test
 
 test_release_slow:
-	BUILD="release" NAT_FLAGS="-D\"NAT_GC_COLLECT_DEBUG=true\"" make clean test
+	BUILD="release" NAT_CFLAGS="-D\"NAT_GC_COLLECT_DEBUG=true\"" make clean test
 
 coverage_report:
 	lcov -c --directory . --output-file coverage.info
