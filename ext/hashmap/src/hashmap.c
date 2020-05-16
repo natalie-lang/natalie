@@ -12,7 +12,7 @@
 #include <ctype.h>
 #include <errno.h>
 
-#include "hashmap.h"
+#include <hashmap.h>
 
 #ifndef HASHMAP_NOASSERT
 #include <assert.h>
@@ -265,7 +265,7 @@ static void hashmap_free_keys(struct hashmap *map)
  *
  * Returns 0 on success and -errno on failure.
  */
-int hashmap_init(struct hashmap *map, unsigned long (*hash_func)(const void *),
+int hashmap_init(struct hashmap *map, size_t (*hash_func)(const void *),
     int (*key_compare_func)(const void *, const void *),
     size_t initial_size)
 {
@@ -591,17 +591,23 @@ int hashmap_foreach(const struct hashmap *map,
 }
 
 /*
- * djb2 hash function
- * http://www.cse.yorku.ca/~oz/hash.html
+ * Default hash function for string keys.
+ * This is an implementation of the well-documented Jenkins one-at-a-time
+ * hash function.
  */
-unsigned long hashmap_hash_string(const void *str) {
-    const char *str_c = (char *)str;
-    unsigned long hash = 5381;
-    int c;
+size_t hashmap_hash_string(const void *key)
+{
+    const char *key_str = (const char *)key;
+    size_t hash = 0;
 
-    while ((c = *str_c++))
-        hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
-
+    for (; *key_str; ++key_str) {
+        hash += *key_str;
+        hash += (hash << 10);
+        hash ^= (hash >> 6);
+    }
+    hash += (hash << 3);
+    hash ^= (hash >> 11);
+    hash += (hash << 15);
     return hash;
 }
 

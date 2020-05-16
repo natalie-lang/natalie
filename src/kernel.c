@@ -222,8 +222,9 @@ NatObject *Kernel_is_a(NatEnv *env, NatObject *self, ssize_t argc, NatObject **a
 NatObject *Kernel_hash(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     NatObject *inspected = nat_send(env, self, "inspect", 0, NULL, NULL);
-    int32_t hash_value = hashmap_hash_string(inspected->str);
-    return nat_integer(env, hash_value);
+    ssize_t hash_value = hashmap_hash_string(inspected->str);
+    ssize_t truncated_hash_value = RSHIFT(hash_value, 1); // shift right to fit in our int size (without need for BigNum)
+    return nat_integer(env, truncated_hash_value);
 }
 
 NatObject *Kernel_proc(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
