@@ -40,3 +40,20 @@ NatObject *Symbol_to_proc_block_fn(NatEnv *env, NatObject *self, ssize_t argc, N
     char *name = name_obj->symbol;
     return nat_send(env, args[0], name, 0, NULL, NULL);
 }
+
+NatObject *Symbol_cmp(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
+    assert(NAT_TYPE(self) == NAT_VALUE_SYMBOL);
+    NAT_ASSERT_ARGC(1);
+    NatObject *arg = args[0];
+    if (NAT_TYPE(arg) != NAT_VALUE_SYMBOL) return NAT_NIL;
+    int diff = strcmp(self->symbol, arg->symbol);
+    int result;
+    if (diff < 0) {
+        result = -1;
+    } else if (diff > 0) {
+        result = 1;
+    } else {
+        result = 0;
+    }
+    return nat_integer(env, result);
+}

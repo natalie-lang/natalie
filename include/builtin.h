@@ -470,12 +470,14 @@ NatObject *String_ljust(NatEnv *env, NatObject *self, ssize_t argc, NatObject **
 #define NAT_SYMBOL_INIT(klass)                                \
     nat_define_method(env, klass, "to_s", Symbol_to_s);       \
     nat_define_method(env, klass, "inspect", Symbol_inspect); \
-    nat_define_method(env, klass, "to_proc", Symbol_to_proc);
+    nat_define_method(env, klass, "to_proc", Symbol_to_proc); \
+    nat_define_method(env, klass, "<=>", Symbol_cmp);
 
 NatObject *Symbol_to_s(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block);
 NatObject *Symbol_inspect(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block);
 NatObject *Symbol_to_proc(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block);
 NatObject *Symbol_to_proc_block_fn(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block);
+NatObject *Symbol_cmp(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block);
 
 #define NAT_TRUE_CLASS_INIT(klass)                         \
     nat_undefine_singleton_method(env, klass, "new");      \
