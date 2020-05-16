@@ -42,7 +42,7 @@ $(OBJ)/nat/%.o: $(SRC)/%.nat
 	bin/natalie --compile-obj $@ $<
 
 ext/hashmap/build/libhashmap.a:
-	mkdir ext/hashmap/build && cd ext/hashmap/build && CMAKE_POSITION_INDEPENDENT_CODE=true cmake .. && make
+	mkdir ext/hashmap/build && cd ext/hashmap/build && CFLAGS="-fPIC" cmake .. && make
 
 ext/onigmo/.libs/libonigmo.a:
 	cd ext/onigmo && ./autogen.sh && ./configure --with-pic && make

@@ -1,3 +1,6 @@
 [submodule "ext/onigmo"]
 	path = ext/onigmo
 	url = https://github.com/k-takata/Onigmo.git
+[submodule "ext/hashmap"]
+	path = ext/hashmap
+	url = https://github.com/DavidLeeds/hashmap.git
