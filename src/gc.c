@@ -78,6 +78,9 @@ static void nat_gc_gather_from_env(NatObject *objects, NatEnv *env) {
 }
 
 bool nat_gc_is_heap_ptr(NatEnv *env, NatObject *ptr) {
+    if (ptr < env->global_env->min_ptr || ptr > env->global_env->max_ptr) {
+        return false;
+    }
     NatHeapBlock *block = env->global_env->heap;
     do {
         if (ptr >= &block->storage[0] && ptr <= &block->storage[NAT_HEAP_BLOCK_CELL_COUNT - 1]) {
