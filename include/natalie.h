@@ -144,6 +144,7 @@ struct NatGlobalEnv {
         *true_obj,
         *false_obj;
     NatHeapBlock *heap;
+    struct hashmap *heap_cells;
     int bytes_total;
     int bytes_available;
     void *bottom_of_stack;

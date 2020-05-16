@@ -10,6 +10,7 @@ NatHeapBlock *nat_gc_alloc_heap_block(NatGlobalEnv *global_env) {
     NatHeapBlock *block = calloc(1, NAT_HEAP_BLOCK_SIZE);
     NatHeapCell *cell = NAT_HEAP_BLOCK_FIRST_CELL(block);
     cell->size = NAT_HEAP_BLOCK_SIZE - NAT_HEAP_BLOCK_HEADER_SIZE - NAT_HEAP_CELL_HEADER_SIZE;
+    hashmap_put(global_env->heap_cells, cell, block);
     block->free_list = cell;
     NAT_LIST_PREPEND(global_env->heap, block);
     NatObject *max = (NatObject*)((char*)block + NAT_HEAP_BLOCK_SIZE);
@@ -39,6 +40,7 @@ NatObject *nat_gc_malloc(NatEnv *env) {
                     NatHeapCell *new_cell = (NatHeapCell*)((char*)cell + NAT_HEAP_CELL_HEADER_SIZE + size);
                     new_cell->next = cell->next;
                     new_cell->size = remaining;
+                    hashmap_put(env->global_env->heap_cells, new_cell, block);
                     cell->size = size;
                     if (prev_cell) {
                         prev_cell->next = new_cell;
@@ -102,23 +104,12 @@ bool nat_gc_is_heap_ptr(NatEnv *env, NatObject *ptr) {
     if (ptr < env->global_env->min_ptr || ptr > env->global_env->max_ptr) {
         return false;
     }
-    NatHeapBlock *block = env->global_env->heap;
-    do {
-        NatObject *min = (NatObject*)((char*)block + NAT_HEAP_BLOCK_HEADER_SIZE);
-        NatObject *max = (NatObject*)((char*)block + NAT_HEAP_BLOCK_SIZE);
-        if (ptr > min && ptr < max) {
-            NatHeapCell *cell = block->used_list;
-            while (cell) {
-                if (NAT_HEAP_OBJ_FROM_CELL(cell) == ptr) {
-                    return true;
-                }
-                cell = cell->next;
-            }
-            return false;
-        }
-        block = block->next;
-    } while (block);
-    return false;
+    NatHeapCell *cell = NAT_HEAP_CELL_FROM_OBJ(ptr);
+    if (hashmap_get(env->global_env->heap_cells, cell)) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 NatObject *nat_gc_gather_roots(NatEnv *env) {

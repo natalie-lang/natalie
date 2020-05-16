@@ -103,6 +103,14 @@ NatObject *nat_var_set(NatEnv *env, char *name, ssize_t index, bool allocate, Na
     return val;
 }
 
+static size_t hashmap_hash_identity(const void *key) {
+    return (size_t)key;
+}
+
+static int hashmap_compare_identity(const void *a, const void *b) {
+    return (size_t)a - (size_t)b;
+}
+
 NatGlobalEnv *nat_build_global_env() {
     NatGlobalEnv *global_env = malloc(sizeof(NatGlobalEnv));
     struct hashmap *global_table = malloc(sizeof(struct hashmap));
@@ -113,6 +121,10 @@ NatGlobalEnv *nat_build_global_env() {
     hashmap_init(symbol_table, hashmap_hash_string, hashmap_compare_string, 100);
     hashmap_set_key_alloc_funcs(symbol_table, hashmap_alloc_key_string, free);
     global_env->symbols = symbol_table;
+    struct hashmap *heap_cells = malloc(sizeof(struct hashmap));
+    hashmap_init(heap_cells, hashmap_hash_identity, hashmap_compare_identity, 100);
+    hashmap_set_key_alloc_funcs(heap_cells, NULL, NULL);
+    global_env->heap_cells = heap_cells;
     global_env->heap = NULL;
     global_env->max_ptr = 0;
     global_env->min_ptr = (void *)UINTPTR_MAX;
