@@ -104,10 +104,13 @@ bool nat_gc_is_heap_ptr(NatEnv *env, NatObject *ptr) {
     if (ptr < env->global_env->min_ptr || ptr > env->global_env->max_ptr) {
         return false;
     }
-    if (!ptr->type) return false;
     NatHeapCell *cell = NAT_HEAP_CELL_FROM_OBJ(ptr);
     if (hashmap_get(env->global_env->heap_cells, cell)) {
-        return true;
+        if (ptr->type) {
+            return true;
+        } else {
+            return false;
+        }
     } else {
         return false;
     }
