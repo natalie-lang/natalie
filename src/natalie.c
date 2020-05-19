@@ -76,11 +76,11 @@ NatObject *nat_const_set(NatEnv *env, NatObject *parent, char *name, NatObject *
 }
 
 NatObject *nat_var_get(NatEnv *env, char *key, ssize_t index) {
-    if (index >= env->var_count) {
-        printf("Trying to get variable `%s' at index %zu which is not set (env->vars = %p, env->var_count = %zu).\n", key, index, env->vars, env->var_count);
+    if (index >= nat_vector_size(env->vars)) {
+        printf("Trying to get variable `%s' at index %zu which is not set.\n", key, index);
         abort();
     }
-    NatObject *val = env->vars[index];
+    NatObject *val = nat_vector_get(env->vars, index);
     if (val) {
         return val;
     } else {
@@ -89,17 +89,22 @@ NatObject *nat_var_get(NatEnv *env, char *key, ssize_t index) {
 }
 
 NatObject *nat_var_set(NatEnv *env, char *name, ssize_t index, bool allocate, NatObject *val) {
-    ssize_t needed = index + 1;
-    if (needed > env->var_count && allocate) {
-        if (env->var_count == 0) {
-            env->vars = calloc(needed, sizeof(NatObject *));
-            env->var_count = needed;
+    size_t needed = index + 1;
+    size_t current_size = nat_vector_size(env->vars);
+    if (needed > current_size) {
+        if (allocate) {
+            if (!env->vars) {
+                env->vars = nat_vector(needed);
+                nat_vector_set(env->vars, index, val);
+            } else {
+                nat_vector_push(env->vars, val);
+            }
         } else {
-            env->vars = realloc(env->vars, sizeof(NatObject *) * needed);
-            env->var_count = needed;
+            abort();
         }
+    } else {
+        nat_vector_set(env->vars, index, val);
     }
-    env->vars[index] = val;
     return val;
 }
 
@@ -482,6 +487,12 @@ NatObject *nat_exception(NatEnv *env, NatObject *klass, char *message) {
     return obj;
 }
 
+NatVector *nat_vector(ssize_t size) {
+    NatVector *vec = malloc(sizeof(NatVector));
+    nat_vector_init(vec, size);
+    return vec;
+}
+
 void nat_vector_init(NatVector *vec, ssize_t size) {
     vec->size = size;
     vec->capacity = size;
@@ -493,6 +504,7 @@ void nat_vector_init(NatVector *vec, ssize_t size) {
 }
 
 inline ssize_t nat_vector_size(NatVector *vec) {
+    if (!vec) return 0;
     return vec->size;
 }
 
@@ -505,6 +517,7 @@ inline void *nat_vector_get(NatVector *vec, ssize_t index) {
 }
 
 inline void nat_vector_set(NatVector *vec, ssize_t index, void *item) {
+    assert(index < vec->size);
     vec->data[index] = item;
 }
 

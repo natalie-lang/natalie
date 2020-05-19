@@ -87,9 +87,8 @@ static void nat_gc_push_object(NatEnv *env, NatObject *objects, NatObject *obj) 
 }
 
 static void nat_gc_gather_from_env(NatObject *objects, NatEnv *env) {
-    assert(env->var_count < 10000); // just a sanity check :-)
-    for (ssize_t i = 0; i < env->var_count; i++) {
-        nat_gc_push_object(env, objects, env->vars[i]);
+    for (ssize_t i = 0; i < nat_vector_size(env->vars); i++) {
+        nat_gc_push_object(env, objects, nat_vector_get(env->vars, i));
     }
     if (env->exception) nat_gc_push_object(env, objects, env->exception);
     if (env->outer) {

@@ -156,8 +156,7 @@ struct NatGlobalEnv {
 
 struct NatEnv {
     NatGlobalEnv *global_env;
-    ssize_t var_count;
-    NatObject **vars;
+    NatVector *vars;
     NatEnv *outer;
     NatBlock *block;
     bool block_env;
@@ -472,6 +471,7 @@ NatObject *nat_exception(NatEnv *env, NatObject *klass, char *message);
 #define NAT_VECTOR_INIT_SIZE 10
 #define NAT_VECTOR_GROW_FACTOR 2
 
+NatVector *nat_vector(ssize_t size);
 void nat_vector_init(NatVector *vec, ssize_t size);
 ssize_t nat_vector_size(NatVector *vec);
 void **nat_vector_data(NatVector *vec);

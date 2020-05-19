@@ -532,8 +532,7 @@ module Natalie
       def process_var_alloc(exp)
         count = exp.last
         if count > 0
-          decl "env->vars = calloc(#{count}, sizeof(NatObject*));"
-          decl "env->var_count = #{count};"
+          decl "env->vars = nat_vector(#{count});"
         end
         ''
       end
