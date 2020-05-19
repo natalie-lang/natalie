@@ -120,7 +120,7 @@ module Natalie
         array = process_atom(args)
         name = temp('args_array')
         decl "NatObject *#{name} = #{array};"
-        "#{name}->ary:#{name}->ary_len"
+        "(NatObject**)nat_vector_data(&#{name}->ary):nat_vector_size(&#{name}->ary)"
       end
 
       def process_block(exp)
@@ -147,7 +147,7 @@ module Natalie
         decl "NatObject *#{array_val} = nat_to_ary(env, #{val}, false);"
         args.compact.each do |arg|
           arg = arg.dup
-          arg_value = process_assign_val(arg.pop, "#{array_val}->ary_len", "#{array_val}->ary")
+          arg_value = process_assign_val(arg.pop, "nat_vector_size(&#{array_val}->ary)", "(NatObject**)nat_vector_data(&#{array_val}->ary)")
           process(arg << arg_value)
         end
         val
@@ -161,7 +161,7 @@ module Natalie
           decl "  NatObject *#{array_arg} = nat_to_ary(env, args[0], true);"
           args.compact.each do |arg|
             arg = arg.dup
-            arg_value = process_assign_val(arg.pop, "#{array_arg}->ary_len", "#{array_arg}->ary")
+            arg_value = process_assign_val(arg.pop, "nat_vector_size(&#{array_arg}->ary)", "(NatObject**)nat_vector_data(&#{array_arg}->ary)")
             process(arg << arg_value)
           end
           decl '} else {'

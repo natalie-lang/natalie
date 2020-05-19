@@ -482,11 +482,78 @@ NatObject *nat_exception(NatEnv *env, NatObject *klass, char *message) {
     return obj;
 }
 
+void nat_vector_init(NatVector *vec, ssize_t size) {
+    vec->size = size;
+    vec->capacity = size;
+    if (size > 0) {
+        vec->data = calloc(size, sizeof(void*));
+    } else {
+        vec->data = NULL;
+    }
+}
+
+inline ssize_t nat_vector_size(NatVector *vec) {
+    return vec->size;
+}
+
+inline void **nat_vector_data(NatVector *vec) {
+    return vec->data;
+}
+
+inline void *nat_vector_get(NatVector *vec, ssize_t index) {
+    return vec->data[index];
+}
+
+inline void nat_vector_set(NatVector *vec, ssize_t index, void *item) {
+    vec->data[index] = item;
+}
+
+inline void nat_vector_free(NatVector *vec) {
+    free(vec->data);
+}
+
+void nat_vector_copy(NatVector *dest, NatVector *source) {
+    nat_vector_init(dest, source->capacity);
+    dest->size = source->size;
+    memcpy(dest->data, source->data, source->size * sizeof(void *));
+}
+
+static void nat_vector_grow(NatVector *vec, ssize_t capacity) {
+    vec->data = realloc(vec->data, sizeof(void *) * capacity);
+    vec->capacity = capacity;
+}
+
+static void nat_vector_grow_at_least(NatVector *vec, ssize_t min_capacity) {
+    ssize_t capacity = vec->capacity;
+    if (capacity >= min_capacity) {
+        return;
+    }
+    if (capacity > 0 && min_capacity <= capacity * NAT_VECTOR_GROW_FACTOR) {
+        nat_vector_grow(vec, capacity * NAT_VECTOR_GROW_FACTOR);
+    } else {
+        nat_vector_grow(vec, min_capacity);
+    }
+}
+
+void nat_vector_push(NatVector *vec, void *item) {
+    ssize_t len = vec->size;
+    if (vec->size >= vec->capacity) {
+        nat_vector_grow_at_least(vec, len + 1);
+    }
+    vec->size++;
+    vec->data[len] = item;
+}
+
+void nat_vector_add(NatVector *new_vec, NatVector *vec1, NatVector *vec2) {
+    nat_vector_grow_at_least(new_vec, vec1->size + vec2->size);
+    memcpy(new_vec->data, vec1->data, vec1->size * sizeof(void *));
+    memcpy(new_vec->data + vec1->size, vec2->data, vec2->size * sizeof(void *));
+    new_vec->size = vec1->size + vec2->size;
+}
+
 NatObject *nat_array(NatEnv *env) {
     NatObject *obj = nat_alloc(env, nat_const_get(env, NAT_OBJECT, "Array", true), NAT_VALUE_ARRAY);
-    obj->ary = calloc(NAT_ARRAY_INIT_SIZE, sizeof(NatObject *));
-    obj->ary_len = 0;
-    obj->ary_cap = NAT_ARRAY_INIT_SIZE;
+    nat_vector_init(&obj->ary, 0);
     return obj;
 }
 
@@ -504,39 +571,14 @@ NatObject *nat_array_with_vals(NatEnv *env, ssize_t count, ...) {
 NatObject *nat_array_copy(NatEnv *env, NatObject *source) {
     assert(NAT_TYPE(source) == NAT_VALUE_ARRAY);
     NatObject *obj = nat_alloc(env, nat_const_get(env, NAT_OBJECT, "Array", true), NAT_VALUE_ARRAY);
-    obj->ary = calloc(source->ary_len, sizeof(NatObject *));
-    memcpy(obj->ary, source->ary, source->ary_len * sizeof(NatObject *));
-    obj->ary_len = source->ary_len;
-    obj->ary_cap = source->ary_len;
+    nat_vector_copy(&obj->ary, &source->ary);
     return obj;
-}
-
-void nat_grow_array(NatEnv *env, NatObject *obj, ssize_t capacity) {
-    obj->ary = realloc(obj->ary, sizeof(NatObject *) * capacity);
-    obj->ary_cap = capacity;
-}
-
-void nat_grow_array_at_least(NatEnv *env, NatObject *obj, ssize_t min_capacity) {
-    ssize_t capacity = obj->ary_cap;
-    if (capacity >= min_capacity)
-        return;
-    if (capacity > 0 && min_capacity <= capacity * NAT_ARRAY_GROW_FACTOR) {
-        nat_grow_array(env, obj, capacity * NAT_ARRAY_GROW_FACTOR);
-    } else {
-        nat_grow_array(env, obj, min_capacity);
-    }
 }
 
 void nat_array_push(NatEnv *env, NatObject *array, NatObject *obj) {
     assert(NAT_TYPE(array) == NAT_VALUE_ARRAY);
     assert(obj);
-    ssize_t capacity = array->ary_cap;
-    ssize_t len = array->ary_len;
-    if (len >= capacity) {
-        nat_grow_array_at_least(env, array, len + 1);
-    }
-    array->ary_len++;
-    array->ary[len] = obj;
+    nat_vector_push(&array->ary, obj);
 }
 
 void nat_array_push_splat(NatEnv *env, NatObject *array, NatObject *obj) {
@@ -545,8 +587,8 @@ void nat_array_push_splat(NatEnv *env, NatObject *array, NatObject *obj) {
         obj = nat_send(env, obj, "to_a", 0, NULL, NULL);
     }
     if (NAT_TYPE(obj) == NAT_VALUE_ARRAY) {
-        for (ssize_t i = 0; i < obj->ary_len; i++) {
-            nat_array_push(env, array, obj->ary[i]);
+        for (ssize_t i = 0; i < nat_vector_size(&obj->ary); i++) {
+            nat_vector_push(&array->ary, nat_vector_get(&obj->ary, i));
         }
     } else {
         nat_array_push(env, array, obj);
@@ -555,7 +597,7 @@ void nat_array_push_splat(NatEnv *env, NatObject *array, NatObject *obj) {
 
 void nat_array_expand_with_nil(NatEnv *env, NatObject *array, ssize_t size) {
     assert(NAT_TYPE(array) == NAT_VALUE_ARRAY);
-    for (ssize_t i = array->ary_len; i < size; i++) {
+    for (ssize_t i = nat_vector_size(&array->ary); i < size; i++) {
         nat_array_push(env, array, NAT_NIL);
     }
 }
@@ -878,8 +920,8 @@ bool nat_is_a(NatEnv *env, NatObject *obj, NatObject *klass_or_module) {
         return true;
     } else {
         NatObject *ancestors = nat_class_ancestors(env, NAT_OBJ_CLASS(obj));
-        for (ssize_t i = 0; i < ancestors->ary_len; i++) {
-            if (klass_or_module == ancestors->ary[i]) {
+        for (ssize_t i = 0; i < nat_vector_size(&ancestors->ary); i++) {
+            if (klass_or_module == nat_vector_get(&ancestors->ary, i)) {
                 return true;
             }
         }
@@ -1282,8 +1324,8 @@ NatObject *nat_dup(NatEnv *env, NatObject *obj) {
     switch (NAT_TYPE(obj)) {
     case NAT_VALUE_ARRAY:
         copy = nat_array(env);
-        for (ssize_t i = 0; i < obj->ary_len; i++) {
-            nat_array_push(env, copy, obj->ary[i]);
+        for (ssize_t i = 0; i < nat_vector_size(&obj->ary); i++) {
+            nat_array_push(env, copy, nat_vector_get(&obj->ary, i));
         }
         return copy;
     case NAT_VALUE_STRING:
@@ -1333,8 +1375,8 @@ void nat_alias(NatEnv *env, NatObject *self, char *new_name, char *old_name) {
 void nat_run_at_exit_handlers(NatEnv *env) {
     NatObject *at_exit_handlers = nat_global_get(env, "$NAT_at_exit_handlers");
     assert(at_exit_handlers);
-    for (int i = at_exit_handlers->ary_len - 1; i >= 0; i--) {
-        NatObject *proc = at_exit_handlers->ary[i];
+    for (int i = nat_vector_size(&at_exit_handlers->ary) - 1; i >= 0; i--) {
+        NatObject *proc = nat_vector_get(&at_exit_handlers->ary, i);
         assert(proc);
         assert(NAT_TYPE(proc) == NAT_VALUE_PROC);
         NAT_RUN_BLOCK_WITHOUT_BREAK(env, proc->block, 0, NULL, NULL);
@@ -1345,14 +1387,15 @@ void nat_print_exception_with_backtrace(NatEnv *env, NatObject *exception) {
     assert(NAT_TYPE(exception) == NAT_VALUE_EXCEPTION);
     NatObject *nat_stderr = nat_global_get(env, "$stderr");
     int fd = nat_stderr->fileno;
-    if (exception->backtrace->ary_len > 0) {
+    if (nat_vector_size(&exception->backtrace->ary) > 0) {
         dprintf(fd, "Traceback (most recent call last):\n");
-        for (int i = exception->backtrace->ary_len - 1; i > 0; i--) {
-            NatObject *line = exception->backtrace->ary[i];
+        for (int i = nat_vector_size(&exception->backtrace->ary) - 1; i > 0; i--) {
+            NatObject *line = nat_vector_get(&exception->backtrace->ary, i);
             assert(NAT_TYPE(line) == NAT_VALUE_STRING);
             dprintf(fd, "        %d: from %s\n", i, line->str);
         }
-        dprintf(fd, "%s: ", exception->backtrace->ary[0]->str);
+        NatObject *line = nat_vector_get(&exception->backtrace->ary, 0);
+        dprintf(fd, "%s: ", line->str);
     }
     dprintf(fd, "%s (%s)\n", exception->message, NAT_OBJ_CLASS(exception)->class_name);
 }
@@ -1454,9 +1497,9 @@ NatObject *nat_to_ary(NatEnv *env, NatObject *obj, bool raise_for_non_array) {
 
 static NatObject *nat_splat_value(NatEnv *env, NatObject *value, ssize_t index, ssize_t offset_from_end) {
     NatObject *splat = nat_array(env);
-    if (NAT_TYPE(value) == NAT_VALUE_ARRAY && index < value->ary_len - offset_from_end) {
-        for (ssize_t s = index; s < value->ary_len - offset_from_end; s++) {
-            nat_array_push(env, splat, value->ary[s]);
+    if (NAT_TYPE(value) == NAT_VALUE_ARRAY && index < nat_vector_size(&value->ary) - offset_from_end) {
+        for (ssize_t s = index; s < nat_vector_size(&value->ary) - offset_from_end; s++) {
+            nat_array_push(env, splat, nat_vector_get(&value->ary, s));
         }
     }
     return splat;
@@ -1477,7 +1520,7 @@ NatObject *nat_arg_value_by_path(NatEnv *env, NatObject *value, NatObject *defau
         } else {
             if (NAT_TYPE(return_value) == NAT_VALUE_ARRAY) {
 
-                int64_t ary_len = (int64_t)return_value->ary_len;
+                int64_t ary_len = (int64_t)nat_vector_size(&return_value->ary);
 
                 int first_required = default_count;
                 int remain = ary_len - required_count;
@@ -1515,7 +1558,7 @@ NatObject *nat_arg_value_by_path(NatEnv *env, NatObject *value, NatObject *defau
 
                 } else if (index < ary_len) {
                     // value available, yay!
-                    return_value = return_value->ary[index];
+                    return_value = nat_vector_get(&return_value->ary, index);
 
                 } else {
                     // index past the end of the array, so use default
@@ -1547,7 +1590,7 @@ NatObject *nat_array_value_by_path(NatEnv *env, NatObject *value, NatObject *def
         } else {
             if (NAT_TYPE(return_value) == NAT_VALUE_ARRAY) {
 
-                int64_t ary_len = (int64_t)return_value->ary_len;
+                int64_t ary_len = (int64_t)nat_vector_size(&return_value->ary);
 
                 if (index < 0) {
                     // negative offset index should go from the right
@@ -1560,7 +1603,7 @@ NatObject *nat_array_value_by_path(NatEnv *env, NatObject *value, NatObject *def
 
                 } else if (index < ary_len) {
                     // value available, yay!
-                    return_value = return_value->ary[index];
+                    return_value = nat_vector_get(&return_value->ary, index);
 
                 } else {
                     // index past the end of the array, so use default
@@ -1584,10 +1627,10 @@ NatObject *nat_array_value_by_path(NatEnv *env, NatObject *value, NatObject *def
 NatObject *nat_kwarg_value_by_name(NatEnv *env, NatObject *args, char *name, NatObject *default_value) {
     assert(NAT_TYPE(args) == NAT_VALUE_ARRAY);
     NatObject *hash;
-    if (args->ary_len == 0) {
+    if (nat_vector_size(&args->ary) == 0) {
         hash = nat_hash(env);
     } else {
-        hash = args->ary[args->ary_len - 1];
+        hash = nat_vector_get(&args->ary, nat_vector_size(&args->ary) - 1);
         if (NAT_TYPE(hash) != NAT_VALUE_HASH) {
             hash = nat_hash(env);
         }

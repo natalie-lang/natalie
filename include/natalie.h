@@ -129,6 +129,7 @@ typedef struct NatMethod NatMethod;
 typedef struct NatHashKey NatHashKey;
 typedef struct NatHashKey NatHashIter;
 typedef struct NatHashVal NatHashVal;
+typedef struct NatVector NatVector;
 typedef struct NatHeapBlock NatHeapBlock;
 typedef struct NatHeapCell NatHeapCell;
 
@@ -194,6 +195,12 @@ struct NatHashKey {
 struct NatHashVal {
     NatHashKey *key;
     NatObject *val;
+};
+
+struct NatVector {
+    ssize_t size;
+    ssize_t capacity;
+    void **data;
 };
 
 enum NatValueType {
@@ -289,11 +296,7 @@ struct NatObject {
         int64_t integer;
 
         // NAT_VALUE_ARRAY
-        struct {
-            ssize_t ary_len;
-            ssize_t ary_cap;
-            NatObject **ary;
-        };
+        NatVector ary;
 
         // NAT_VALUE_CLASS, NAT_VALUE_MODULE
         struct {
@@ -466,8 +469,18 @@ NatObject *nat_symbol(NatEnv *env, char *name);
 
 NatObject *nat_exception(NatEnv *env, NatObject *klass, char *message);
 
-#define NAT_ARRAY_INIT_SIZE 10
-#define NAT_ARRAY_GROW_FACTOR 2
+#define NAT_VECTOR_INIT_SIZE 10
+#define NAT_VECTOR_GROW_FACTOR 2
+
+void nat_vector_init(NatVector *vec, ssize_t size);
+ssize_t nat_vector_size(NatVector *vec);
+void **nat_vector_data(NatVector *vec);
+void *nat_vector_get(NatVector *vec, ssize_t index);
+void nat_vector_set(NatVector *vec, ssize_t index, void *item);
+void nat_vector_free(NatVector *vec);
+void nat_vector_copy(NatVector *dest, NatVector *source);
+void nat_vector_push(NatVector *vec, void *item);
+void nat_vector_add(NatVector *new_vec, NatVector *vec1, NatVector *vec2);
 
 NatObject *nat_array(NatEnv *env);
 NatObject *nat_array_with_vals(NatEnv *env, ssize_t count, ...);

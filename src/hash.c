@@ -24,16 +24,16 @@ NatObject *Hash_square_new(NatEnv *env, NatObject *self, ssize_t argc, NatObject
             return value;
         } else if (NAT_TYPE(value) == NAT_VALUE_ARRAY) {
             NatObject *hash = nat_hash(env);
-            for (ssize_t i = 0; i < value->ary_len; i++) {
-                NatObject *pair = value->ary[i];
+            for (ssize_t i = 0; i < nat_vector_size(&value->ary); i++) {
+                NatObject *pair = nat_vector_get(&value->ary, i);
                 if (NAT_TYPE(pair) != NAT_VALUE_ARRAY) {
                     NAT_RAISE(env, "ArgumentError", "wrong element in array to Hash[]");
                 }
-                if (pair->ary_len < 1 || pair->ary_len > 2) {
-                    NAT_RAISE(env, "ArgumentError", "invalid number of elements (%d for 1..2)", pair->ary_len);
+                if (nat_vector_size(&pair->ary) < 1 || nat_vector_size(&pair->ary) > 2) {
+                    NAT_RAISE(env, "ArgumentError", "invalid number of elements (%d for 1..2)", nat_vector_size(&pair->ary));
                 }
-                NatObject *key = pair->ary[0];
-                NatObject *value = pair->ary_len == 1 ? NAT_NIL : pair->ary[1];
+                NatObject *key = nat_vector_get(&pair->ary, 0);
+                NatObject *value = nat_vector_size(&pair->ary) == 1 ? NAT_NIL : nat_vector_get(&pair->ary, 1);
                 nat_hash_put(env, hash, key, value);
             }
             return hash;

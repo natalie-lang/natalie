@@ -162,8 +162,9 @@ void nat_gc_unmark_all_objects(NatEnv *env) {
 NatObject *nat_gc_mark_live_objects(NatEnv *env) {
     NatObject *objects = nat_gc_gather_roots(env);
 
-    for (ssize_t o = 0; o < objects->ary_len; o++) {
-        NatObject *obj = objects->ary[o];
+    for (ssize_t o = 0; o < nat_vector_size(&objects->ary); o++) {
+        NatObject *obj = nat_vector_get(&objects->ary, o);
+
         if (obj == objects) continue;
 
         NatHeapCell *cell = NAT_HEAP_CELL_FROM_OBJ(obj);
@@ -202,8 +203,8 @@ NatObject *nat_gc_mark_live_objects(NatEnv *env) {
         NatHashKey *key;
         switch (obj->type) {
         case NAT_VALUE_ARRAY:
-            for (ssize_t i = 0; i < obj->ary_len; i++) {
-                nat_gc_push_object(env, objects, obj->ary[i]);
+            for (ssize_t i = 0; i < nat_vector_size(&obj->ary); i++) {
+                nat_gc_push_object(env, objects, nat_vector_get(&obj->ary, i));
             }
             break;
         case NAT_VALUE_CLASS:
@@ -295,7 +296,7 @@ static void nat_free_object(NatEnv *env, NatObject *obj) {
     struct hashmap_iter *iter;
     switch (obj->type) {
     case NAT_VALUE_ARRAY:
-        free(obj->ary);
+        nat_vector_free(&obj->ary);
         break;
     case NAT_VALUE_CLASS:
         free(obj->class_name);

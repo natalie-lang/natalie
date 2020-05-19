@@ -33,11 +33,11 @@ NatObject *Array_inspect(NatEnv *env, NatObject *self, ssize_t argc, NatObject *
     NAT_ASSERT_ARGC(0);
     assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);
     NatObject *out = nat_string(env, "[");
-    for (ssize_t i = 0; i < self->ary_len; i++) {
-        NatObject *obj = self->ary[i];
+    for (ssize_t i = 0; i < nat_vector_size(&self->ary); i++) {
+        NatObject *obj = nat_vector_get(&self->ary, i);
         NatObject *repr = nat_send(env, obj, "inspect", 0, NULL, NULL);
         nat_string_append_nat_string(env, out, repr);
-        if (i < self->ary_len - 1) {
+        if (i < nat_vector_size(&self->ary) - 1) {
             nat_string_append(env, out, ", ");
         }
     }
@@ -58,12 +58,9 @@ NatObject *Array_add(NatEnv *env, NatObject *self, ssize_t argc, NatObject **arg
     assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);
     NatObject *arg = args[0];
     NAT_ASSERT_TYPE(arg, NAT_VALUE_ARRAY, "Array");
-    NatObject *new = nat_array(env);
-    nat_grow_array_at_least(env, new, self->ary_len + arg->ary_len);
-    memcpy(new->ary, self->ary, self->ary_len * sizeof(NatObject *));
-    memcpy(&new->ary[self->ary_len], arg->ary, arg->ary_len * sizeof(NatObject *));
-    new->ary_len = self->ary_len + arg->ary_len;
-    return new;
+    NatObject *new_array = nat_array(env);
+    nat_vector_add(&new_array->ary, &self->ary, &arg->ary);
+    return new_array;
 }
 
 NatObject *Array_sub(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
@@ -72,11 +69,11 @@ NatObject *Array_sub(NatEnv *env, NatObject *self, ssize_t argc, NatObject **arg
     NatObject *arg = args[0];
     NAT_ASSERT_TYPE(arg, NAT_VALUE_ARRAY, "Array");
     NatObject *new = nat_array(env);
-    for (ssize_t i = 0; i < self->ary_len; i++) {
-        NatObject *item = self->ary[i];
+    for (ssize_t i = 0; i < nat_vector_size(&self->ary); i++) {
+        NatObject *item = nat_vector_get(&self->ary, i);
         int found = 0;
-        for (ssize_t j = 0; j < arg->ary_len; j++) {
-            NatObject *compare_item = arg->ary[j];
+        for (ssize_t j = 0; j < nat_vector_size(&arg->ary); j++) {
+            NatObject *compare_item = nat_vector_get(&arg->ary, j);
             if (nat_truthy(nat_send(env, item, "==", 1, &compare_item, NULL))) {
                 found = 1;
                 break;
@@ -96,21 +93,21 @@ NatObject *Array_ref(NatEnv *env, NatObject *self, ssize_t argc, NatObject **arg
     if (NAT_TYPE(index_obj) == NAT_VALUE_INTEGER) {
         ssize_t index = NAT_INT_VALUE(index_obj);
         if (index < 0) {
-            index = self->ary_len + index;
+            index = nat_vector_size(&self->ary) + index;
         }
-        if (index < 0 || index >= (long long)self->ary_len) {
+        if (index < 0 || index >= nat_vector_size(&self->ary)) {
             return NAT_NIL;
         } else if (argc == 1) {
-            return self->ary[index];
+            return nat_vector_get(&self->ary, index);
         }
         NatObject *size = args[1];
         NAT_ASSERT_TYPE(size, NAT_VALUE_INTEGER, "Integer");
         ssize_t end = index + NAT_INT_VALUE(size);
-        ssize_t max = self->ary_len;
+        ssize_t max = nat_vector_size(&self->ary);
         end = end > max ? max : end;
         NatObject *result = nat_array(env);
         for (ssize_t i = index; i < end; i++) {
-            nat_array_push(env, result, self->ary[i]);
+            nat_array_push(env, result, nat_vector_get(&self->ary, i));
         }
         return result;
     } else if (NAT_TYPE(index_obj) == NAT_VALUE_RANGE) {
@@ -121,20 +118,20 @@ NatObject *Array_ref(NatEnv *env, NatObject *self, ssize_t argc, NatObject **arg
         int64_t begin = NAT_INT_VALUE(begin_obj);
         int64_t end = NAT_INT_VALUE(end_obj);
         if (begin < 0) {
-            begin = self->ary_len + begin;
+            begin = nat_vector_size(&self->ary) + begin;
         }
         if (end < 0) {
-            end = self->ary_len + end;
+            end = nat_vector_size(&self->ary) + end;
         }
         if (begin < 0 || end < 0) {
             return NAT_NIL;
         }
         if (!index_obj->range_exclude_end) end++;
-        ssize_t max = self->ary_len;
+        ssize_t max = nat_vector_size(&self->ary);
         end = end > max ? max : end;
         NatObject *result = nat_array(env);
         for (int64_t i = begin; i < end; i++) {
-            nat_array_push(env, result, self->ary[i]);
+            nat_array_push(env, result, nat_vector_get(&self->ary, i));
         }
         return result;
     } else {
@@ -153,8 +150,8 @@ NatObject *Array_refeq(NatEnv *env, NatObject *self, ssize_t argc, NatObject **a
     NatObject *val;
     if (argc == 2) {
         val = args[1];
-        if (index < self->ary_len) {
-            self->ary[index] = val;
+        if (index < nat_vector_size(&self->ary)) {
+            nat_vector_set(&self->ary, index, val);
         } else {
             nat_array_expand_with_nil(env, self, index);
             nat_array_push(env, self, val);
@@ -170,46 +167,43 @@ NatObject *Array_refeq(NatEnv *env, NatObject *self, ssize_t argc, NatObject **a
     NatObject *ary2 = nat_array(env);
     // stuff before the new entry/entries
     for (ssize_t i = 0; i < index; i++) {
-        if (i >= self->ary_len) break;
-        nat_array_push(env, ary2, self->ary[i]);
+        if (i >= nat_vector_size(&self->ary)) break;
+        nat_array_push(env, ary2, nat_vector_get(&self->ary, i));
     }
     // extra nils if needed
     nat_array_expand_with_nil(env, ary2, index);
     // the new entry/entries
     if (NAT_TYPE(val) == NAT_VALUE_ARRAY) {
-        for (ssize_t i = 0; i < val->ary_len; i++) {
-            nat_array_push(env, ary2, val->ary[i]);
+        for (ssize_t i = 0; i < nat_vector_size(&val->ary); i++) {
+            nat_array_push(env, ary2, nat_vector_get(&val->ary, i));
         }
     } else {
         nat_array_push(env, ary2, val);
     }
     // stuff after the new entry/entries
-    for (ssize_t i = index + length; i < self->ary_len; i++) {
-        nat_array_push(env, ary2, self->ary[i]);
+    for (ssize_t i = index + length; i < nat_vector_size(&self->ary); i++) {
+        nat_array_push(env, ary2, nat_vector_get(&self->ary, i));
     }
-    self->ary = ary2->ary;
-    self->ary_len = ary2->ary_len;
-    self->ary_cap = ary2->ary_cap;
-    ary2->type = NAT_VALUE_NIL; // don't GC our memory plz :-)
+    nat_vector_copy(&self->ary, &ary2->ary);
     return val;
 }
 
 NatObject *Array_size(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);
     NAT_ASSERT_ARGC(0);
-    return nat_integer(env, self->ary_len);
+    return nat_integer(env, nat_vector_size(&self->ary));
 }
 
 NatObject *Array_any(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);
     NAT_ASSERT_ARGC(0);
     if (block) {
-        for (ssize_t i = 0; i < self->ary_len; i++) {
-            NatObject *obj = self->ary[i];
+        for (ssize_t i = 0; i < nat_vector_size(&self->ary); i++) {
+            NatObject *obj = nat_vector_get(&self->ary, i);
             NatObject *result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &obj, NULL);
             if (nat_truthy(result)) return NAT_TRUE;
         }
-    } else if (self->ary_len > 0) {
+    } else if (nat_vector_size(&self->ary) > 0) {
         return NAT_TRUE;
     }
     return NAT_FALSE;
@@ -220,11 +214,12 @@ NatObject *Array_eqeq(NatEnv *env, NatObject *self, ssize_t argc, NatObject **ar
     NAT_ASSERT_ARGC(1);
     NatObject *arg = args[0];
     if (NAT_TYPE(arg) != NAT_VALUE_ARRAY) return NAT_FALSE;
-    if (self->ary_len != arg->ary_len) return NAT_FALSE;
-    if (self->ary_len == 0) return NAT_TRUE;
-    for (ssize_t i = 0; i < self->ary_len; i++) {
+    if (nat_vector_size(&self->ary) != nat_vector_size(&arg->ary)) return NAT_FALSE;
+    if (nat_vector_size(&self->ary) == 0) return NAT_TRUE;
+    for (ssize_t i = 0; i < nat_vector_size(&self->ary); i++) {
         // TODO: could easily be optimized for strings and numbers
-        NatObject *result = nat_send(env, self->ary[i], "==", 1, &arg->ary[i], NULL);
+        NatObject *item = nat_vector_get(&arg->ary, i);
+        NatObject *result = nat_send(env, nat_vector_get(&self->ary, i), "==", 1, &item, NULL);
         if (NAT_TYPE(result) == NAT_VALUE_FALSE) return result;
     }
     return NAT_TRUE;
@@ -233,8 +228,8 @@ NatObject *Array_eqeq(NatEnv *env, NatObject *self, ssize_t argc, NatObject **ar
 NatObject *Array_each(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     NAT_ASSERT_BLOCK(); // TODO: return Enumerator when no block given
-    for (ssize_t i = 0; i < self->ary_len; i++) {
-        NatObject *obj = self->ary[i];
+    for (ssize_t i = 0; i < nat_vector_size(&self->ary); i++) {
+        NatObject *obj = nat_vector_get(&self->ary, i);
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &obj, NULL);
     }
     return self;
@@ -243,8 +238,8 @@ NatObject *Array_each(NatEnv *env, NatObject *self, ssize_t argc, NatObject **ar
 NatObject *Array_each_with_index(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     NAT_ASSERT_BLOCK(); // TODO: return Enumerator when no block given
-    for (ssize_t i = 0; i < self->ary_len; i++) {
-        NatObject *args[2] = { self->ary[i], nat_integer(env, i) };
+    for (ssize_t i = 0; i < nat_vector_size(&self->ary); i++) {
+        NatObject *args[2] = { nat_vector_get(&self->ary, i), nat_integer(env, i) };
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 2, args, NULL);
     }
     return self;
@@ -254,8 +249,8 @@ NatObject *Array_map(NatEnv *env, NatObject *self, ssize_t argc, NatObject **arg
     NAT_ASSERT_ARGC(0);
     NAT_ASSERT_BLOCK(); // TODO: return Enumerator when no block given
     NatObject *new = nat_array(env);
-    for (ssize_t i = 0; i < self->ary_len; i++) {
-        NatObject *item = self->ary[i];
+    for (ssize_t i = 0; i < nat_vector_size(&self->ary); i++) {
+        NatObject *item = nat_vector_get(&self->ary, i);
         NatObject *result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, NULL);
         nat_array_push(env, new, result);
     }
@@ -265,8 +260,8 @@ NatObject *Array_map(NatEnv *env, NatObject *self, ssize_t argc, NatObject **arg
 NatObject *Array_first(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0); // TODO: accept integer and return array
     assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);
-    if (self->ary_len > 0) {
-        return self->ary[0];
+    if (nat_vector_size(&self->ary) > 0) {
+        return nat_vector_get(&self->ary, 0);
     } else {
         return NAT_NIL;
     }
@@ -275,8 +270,8 @@ NatObject *Array_first(NatEnv *env, NatObject *self, ssize_t argc, NatObject **a
 NatObject *Array_last(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0); // TODO: accept integer and return array
     assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);
-    if (self->ary_len > 0) {
-        return self->ary[self->ary_len - 1];
+    if (nat_vector_size(&self->ary) > 0) {
+        return nat_vector_get(&self->ary, nat_vector_size(&self->ary) - 1);
     } else {
         return NAT_NIL;
     }
@@ -291,11 +286,11 @@ NatObject *Array_pop(NatEnv *env, NatObject *self, ssize_t argc, NatObject **arg
     assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);
     NAT_ASSERT_ARGC(0);
     NAT_ASSERT_NOT_FROZEN(self);
-    if (self->ary_len == 0) {
+    if (nat_vector_size(&self->ary) == 0) {
         return NAT_NIL;
     } else {
-        NatObject *val = self->ary[self->ary_len - 1];
-        self->ary_len--;
+        NatObject *val = nat_vector_get(&self->ary, nat_vector_size(&self->ary) - 1);
+        self->ary.size--;
         return val;
     }
 }
@@ -304,11 +299,11 @@ NatObject *Array_include(NatEnv *env, NatObject *self, ssize_t argc, NatObject *
     assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);
     NAT_ASSERT_ARGC(1);
     NatObject *item = args[0];
-    if (self->ary_len == 0) {
+    if (nat_vector_size(&self->ary) == 0) {
         return NAT_FALSE;
     } else {
-        for (ssize_t i = 0; i < self->ary_len; i++) {
-            NatObject *compare_item = self->ary[i];
+        for (ssize_t i = 0; i < nat_vector_size(&self->ary); i++) {
+            NatObject *compare_item = nat_vector_get(&self->ary, i);
             if (nat_truthy(nat_send(env, item, "==", 1, &compare_item, NULL))) {
                 return NAT_TRUE;
             }
@@ -321,24 +316,24 @@ NatObject *Array_sort(NatEnv *env, NatObject *self, ssize_t argc, NatObject **ar
     assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);
     NAT_ASSERT_ARGC(0);
     NatObject *copy = nat_array_copy(env, self);
-    nat_quicksort(env, copy->ary, 0, copy->ary_len - 1);
+    nat_quicksort(env, (NatObject**)copy->ary.data, 0, nat_vector_size(&copy->ary) - 1);
     return copy;
 }
 
 NatObject *Array_join(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);
     NAT_ASSERT_ARGC(1);
-    if (self->ary_len == 0) {
+    if (nat_vector_size(&self->ary) == 0) {
         return nat_string(env, "");
-    } else if (self->ary_len == 1) {
-        return nat_send(env, self->ary[0], "to_s", 0, NULL, NULL);
+    } else if (nat_vector_size(&self->ary) == 1) {
+        return nat_send(env, nat_vector_get(&self->ary, 0), "to_s", 0, NULL, NULL);
     } else {
         NatObject *joiner = args[0];
         NAT_ASSERT_TYPE(joiner, NAT_VALUE_STRING, "String");
-        NatObject *out = nat_send(env, self->ary[0], "to_s", 0, NULL, NULL);
-        for (ssize_t i = 1; i < self->ary_len; i++) {
+        NatObject *out = nat_send(env, nat_vector_get(&self->ary, 0), "to_s", 0, NULL, NULL);
+        for (ssize_t i = 1; i < nat_vector_size(&self->ary); i++) {
             nat_string_append_nat_string(env, out, joiner);
-            nat_string_append_nat_string(env, out, nat_send(env, self->ary[i], "to_s", 0, NULL, NULL));
+            nat_string_append_nat_string(env, out, nat_send(env, nat_vector_get(&self->ary, i), "to_s", 0, NULL, NULL));
         }
         return out;
     }
@@ -349,17 +344,18 @@ NatObject *Array_cmp(NatEnv *env, NatObject *self, ssize_t argc, NatObject **arg
     NAT_ASSERT_ARGC(1);
     NatObject *other = args[0];
     NAT_ASSERT_TYPE(other, NAT_VALUE_ARRAY, "Array");
-    for (ssize_t i = 0; i < self->ary_len; i++) {
-        if (i >= other->ary_len) {
+    for (ssize_t i = 0; i < nat_vector_size(&self->ary); i++) {
+        if (i >= nat_vector_size(&other->ary)) {
             return nat_integer(env, 1);
         }
-        NatObject *cmp_obj = nat_send(env, self->ary[i], "<=>", 1, &other->ary[i], NULL);
+        NatObject *item = nat_vector_get(&other->ary, i);
+        NatObject *cmp_obj = nat_send(env, nat_vector_get(&self->ary, i), "<=>", 1, &item, NULL);
         assert(NAT_TYPE(cmp_obj) == NAT_VALUE_INTEGER);
         int64_t cmp = NAT_INT_VALUE(cmp_obj);
         if (cmp < 0) return nat_integer(env, -1);
         if (cmp > 0) return nat_integer(env, 1);
     }
-    if (other->ary_len > self->ary_len) {
+    if (nat_vector_size(&other->ary) > nat_vector_size(&self->ary)) {
         return nat_integer(env, -1);
     }
     return nat_integer(env, 0);

@@ -11,13 +11,13 @@ NatObject *Encoding_list(NatEnv *env, NatObject *self, ssize_t argc, NatObject *
 NatObject *Encoding_inspect(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     assert(NAT_TYPE(self) == NAT_VALUE_ENCODING);
-    return nat_sprintf(env, "#<Encoding:%S>", self->encoding_names->ary[0]);
+    return nat_sprintf(env, "#<Encoding:%S>", nat_vector_get(&self->encoding_names->ary, 0));
 }
 
 NatObject *Encoding_name(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     assert(NAT_TYPE(self) == NAT_VALUE_ENCODING);
-    return self->encoding_names->ary[0];
+    return nat_vector_get(&self->encoding_names->ary, 0);
 }
 
 NatObject *Encoding_names(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {

@@ -168,10 +168,10 @@ NatObject *String_succ(NatEnv *env, NatObject *self, ssize_t argc, NatObject **a
 
 NatObject *String_ord(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NatObject *chars = nat_string_chars(env, self);
-    if (chars->ary_len == 0) {
+    if (nat_vector_size(&chars->ary) == 0) {
         NAT_RAISE(env, "ArgumentError", "empty string");
     }
-    NatObject *c = chars->ary[0];
+    NatObject *c = nat_vector_get(&chars->ary, 0);
     assert(NAT_TYPE(c) == NAT_VALUE_STRING);
     assert(c->str_len > 0);
     unsigned int code;
@@ -215,7 +215,7 @@ NatObject *String_size(NatEnv *env, NatObject *self, ssize_t argc, NatObject **a
     NAT_ASSERT_ARGC(0);
     assert(NAT_TYPE(self) == NAT_VALUE_STRING);
     NatObject *chars = nat_string_chars(env, self);
-    return nat_integer(env, chars->ary_len);
+    return nat_integer(env, nat_vector_size(&chars->ary));
 }
 
 NatObject *String_encoding(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
@@ -242,11 +242,12 @@ static char *lcase_string(char *str) {
 static NatObject *find_encoding_by_name(NatEnv *env, char *name) {
     char *lcase_name = lcase_string(name);
     NatObject *list = Encoding_list(env, nat_const_get(env, NAT_OBJECT, "Encoding", true), 0, NULL, NULL);
-    for (ssize_t i = 0; i < list->ary_len; i++) {
-        NatObject *encoding = list->ary[i];
+    for (ssize_t i = 0; i < nat_vector_size(&list->ary); i++) {
+        NatObject *encoding = nat_vector_get(&list->ary, i);
         NatObject *names = encoding->encoding_names;
-        for (ssize_t n = 0; n < names->ary_len; n++) {
-            char *name = lcase_string(names->ary[n]->str);
+        for (ssize_t n = 0; n < nat_vector_size(&names->ary); n++) {
+            NatObject *name_obj = nat_vector_get(&names->ary, n);
+            char *name = lcase_string(name_obj->str);
             if (strcmp(name, lcase_name) == 0) {
                 free(name);
                 free(lcase_name);
@@ -270,8 +271,8 @@ NatObject *String_encode(NatEnv *env, NatObject *self, ssize_t argc, NatObject *
         return copy;
     } else if (orig_encoding == NAT_ENCODING_UTF_8 && copy->encoding == NAT_ENCODING_ASCII_8BIT) {
         NatObject *chars = nat_string_chars(env, self);
-        for (ssize_t i = 0; i < chars->ary_len; i++) {
-            NatObject *char_obj = chars->ary[i];
+        for (ssize_t i = 0; i < nat_vector_size(&chars->ary); i++) {
+            NatObject *char_obj = nat_vector_get(&chars->ary, i);
             assert(NAT_TYPE(char_obj) == NAT_VALUE_STRING);
             if (char_obj->str_len > 1) {
                 NatObject *ord = String_ord(env, char_obj, 0, NULL, NULL);
@@ -321,13 +322,13 @@ NatObject *String_ref(NatEnv *env, NatObject *self, ssize_t argc, NatObject **ar
 
     NatObject *chars = nat_string_chars(env, self);
     if (index < 0) {
-        index = chars->ary_len + index;
+        index = nat_vector_size(&chars->ary) + index;
     }
 
-    if (index < 0 || index >= (int64_t)chars->ary_len) {
+    if (index < 0 || index >= (int64_t)nat_vector_size(&chars->ary)) {
         return NAT_NIL;
     }
-    return chars->ary[index];
+    return nat_vector_get(&chars->ary, index);
 }
 
 // FIXME: this is dirty quick solution, a slow algorithm and doesn't account for string encoding
