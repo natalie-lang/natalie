@@ -152,6 +152,7 @@ struct NatGlobalEnv {
     NatObject *min_ptr;
     NatObject *max_ptr;
     bool gc_enabled;
+    NatEnv *top_env;
 };
 
 struct NatEnv {

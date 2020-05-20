@@ -86,6 +86,19 @@ static void nat_gc_push_object(NatEnv *env, NatObject *objects, NatObject *obj) 
     }
 }
 
+void verify_env_is_valid(NatEnv *env) {
+    NatEnv *e = env;
+    int depth = 0;
+    while (e->caller) {
+        depth++;
+        e = e->caller;
+    }
+    if (e != env->global_env->top_env) {
+        printf("env->caller at depth %i chain not valid!\n", depth);
+        abort();
+    }
+}
+
 static void nat_gc_gather_from_env(NatObject *objects, NatEnv *env) {
     for (ssize_t i = 0; i < nat_vector_size(env->vars); i++) {
         nat_gc_push_object(env, objects, nat_vector_get(env->vars, i));
@@ -142,6 +155,7 @@ NatObject *nat_gc_gather_roots(NatEnv *env) {
         NatObject *obj = (NatObject *)hashmap_iter_get_data(iter);
         nat_gc_push_object(env, roots, obj);
     }
+    verify_env_is_valid(env);
     nat_gc_gather_from_env(roots, env);
     return roots;
 }
