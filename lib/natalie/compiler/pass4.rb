@@ -50,12 +50,6 @@ module Natalie
         nat_undefine_singleton_method
       ]
 
-      # must be marked volatile so the optimizer doesn't eliminate the result,
-      # which breaks our garbage collector
-      VOLATILE_FUNCTIONS = %i[
-        nat_var_set
-      ]
-
       NAT_FUNCTIONS = /^nat_|eval\d+$/i
 
       def go(ast)
@@ -523,8 +517,7 @@ module Natalie
           ''
         else
           result_name = name || temp(fn)
-          volatile = VOLATILE_FUNCTIONS.include?(fn)
-          decl "#{type} *#{volatile ? ' volatile ' : ''}#{result_name} = #{fn}(#{args.map { |a| process_atom(a) }.join(', ')});"
+          decl "#{type} *#{result_name} = #{fn}(#{args.map { |a| process_atom(a) }.join(', ')});"
           result_name
         end
       end
