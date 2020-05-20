@@ -749,7 +749,13 @@ NatObject *nat_hash_get(NatEnv *env, NatObject *hash, NatObject *key) {
     key_container.key = key;
     key_container.env = *env;
     key_container.env.caller = NULL;
+    // FIXME: ugly hack to fix GC collecting stuff it shouldn't
+    // The problem is our idea that we can attach an orphaned NatEnv to an object like this
+    // and expect calling NatEnvs's vars to not get collected. I'm kinda dumb sometimes.
+    bool gc_was_enabled = env->global_env->gc_enabled;
+    env->global_env->gc_enabled = false;
     NatHashVal *container = hashmap_get(&hash->hashmap, &key_container);
+    env->global_env->gc_enabled = gc_was_enabled;
     NatObject *val = container ? container->val : NULL;
     return val;
 }
@@ -769,6 +775,11 @@ void nat_hash_put(NatEnv *env, NatObject *hash, NatObject *key, NatObject *val) 
     key_container.key = key;
     key_container.env = *env;
     key_container.env.caller = NULL;
+    // FIXME: ugly hack to fix GC collecting stuff it shouldn't
+    // The problem is our idea that we can attach an orphaned NatEnv to an object like this
+    // and expect calling NatEnvs's vars to not get collected. I'm kinda dumb sometimes.
+    bool gc_was_enabled = env->global_env->gc_enabled;
+    env->global_env->gc_enabled = false;
     NatHashVal *container = hashmap_get(&hash->hashmap, &key_container);
     if (container) {
         container->key->val = val;
@@ -782,6 +793,7 @@ void nat_hash_put(NatEnv *env, NatObject *hash, NatObject *key, NatObject *val) 
         container->val = val;
         hashmap_put(&hash->hashmap, container->key, container);
     }
+    env->global_env->gc_enabled = gc_was_enabled;
 }
 
 NatObject *nat_hash_delete(NatEnv *env, NatObject *hash, NatObject *key) {
@@ -790,7 +802,13 @@ NatObject *nat_hash_delete(NatEnv *env, NatObject *hash, NatObject *key) {
     key_container.key = key;
     key_container.env = *env;
     key_container.env.caller = NULL;
+    // FIXME: ugly hack to fix GC collecting stuff it shouldn't
+    // The problem is our idea that we can attach an orphaned NatEnv to an object like this
+    // and expect calling NatEnvs's vars to not get collected. I'm kinda dumb sometimes.
+    bool gc_was_enabled = env->global_env->gc_enabled;
+    env->global_env->gc_enabled = false;
     NatHashVal *container = hashmap_remove(&hash->hashmap, &key_container);
+    env->global_env->gc_enabled = gc_was_enabled;
     if (container) {
         nat_hash_key_list_remove_node(hash, container->key);
         NatObject *val = container->val;
