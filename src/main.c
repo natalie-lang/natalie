@@ -8,6 +8,8 @@
 
 /*OBJ_NAT*/
 
+NatObject *gc_abort_if_collected = NULL;
+
 NatEnv *build_top_env() {
     NatEnv *env = malloc(sizeof(NatEnv));
     nat_build_env(env, NULL);

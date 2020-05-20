@@ -113,7 +113,9 @@ module Natalie
         (_, args) = exp
         array = process_atom(args)
         name = temp('args_array')
-        decl "NatObject *#{name} = #{array};"
+        # NOTE: this array must be marked volatile or the GC might collect it :-(
+        # I wish I knew 1) why/how GCC optimizes this pointer away, and 2) how a big GC like Boehm doesn't fall for tricks like that. :-/
+        decl "NatObject * volatile #{name} = #{array};"
         "(NatObject**)nat_vector_data(&#{name}->ary):nat_vector_size(&#{name}->ary)"
       end
 

@@ -1,6 +1,8 @@
 #include "gc.h"
 #include "natalie.h"
 
+extern NatObject *gc_abort_if_collected;
+
 void nat_gc_init(NatEnv *env, void *bottom_of_stack) {
     env->global_env->bottom_of_stack = bottom_of_stack;
     env->global_env->gc_enabled = true;
@@ -398,6 +400,10 @@ static NatHeapCell *find_sibling_heap_cell(NatHeapCell *first_cell, NatHeapCell 
 }
 
 static void nat_gc_collect_object(NatEnv *env, NatHeapBlock *block, NatObject *obj) {
+    if (obj == gc_abort_if_collected) {
+        printf("%p was collected!\n", obj);
+        abort();
+    }
     NatHeapCell *cell = NAT_HEAP_CELL_FROM_OBJ(obj);
 
     nat_free_object(env, obj);
