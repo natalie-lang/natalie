@@ -18,6 +18,7 @@ describe 'object_id' do
 
     before do 
       @output = `bin/natalie -e #{TESTS.keys.join(';').inspect}`.strip.split(/\n/)
+      expect($?).must_be :success?
     end
 
     specify do
