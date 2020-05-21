@@ -632,6 +632,7 @@ NatObject *nat_splat(NatEnv *env, NatObject *obj) {
 size_t nat_hashmap_hash(const void *key) {
     NatHashKey *key_p = (NatHashKey *)key;
     assert(NAT_OBJ_HAS_ENV2(key_p));
+    assert(key_p->env.caller);
     NatObject *hash_obj = nat_send(&key_p->env, key_p->key, "hash", 0, NULL, NULL);
     assert(NAT_TYPE(hash_obj) == NAT_VALUE_INTEGER);
     return NAT_INT_VALUE(hash_obj);
@@ -641,10 +642,14 @@ size_t nat_hashmap_hash(const void *key) {
 int nat_hashmap_compare(const void *a, const void *b) {
     NatHashKey *a_p = (NatHashKey *)a;
     NatHashKey *b_p = (NatHashKey *)b;
-    assert(NAT_OBJ_HAS_ENV2(a_p));
-    assert(NAT_OBJ_HAS_ENV2(b_p));
-    NatObject *a_hash = nat_send(&a_p->env, a_p->key, "hash", 0, NULL, NULL);
-    NatObject *b_hash = nat_send(&b_p->env, b_p->key, "hash", 0, NULL, NULL);
+    // NOTE: Only one of the keys will have a relevant NatEnv, i.e. the one with a non-null caller.
+    // This is a bit of a hack to get around the fact that we can't pass any extra args to hashmap_* functions.
+    // TODO: Write our own hashmap implementation that passes NatEnv around. :^)
+    NatEnv *env = a_p->env.caller ? &a_p->env : &b_p->env;
+    assert(env);
+    assert(env->caller);
+    NatObject *a_hash = nat_send(env, a_p->key, "hash", 0, NULL, NULL);
+    NatObject *b_hash = nat_send(env, b_p->key, "hash", 0, NULL, NULL);
     assert(NAT_TYPE(a_hash) == NAT_VALUE_INTEGER);
     assert(NAT_TYPE(b_hash) == NAT_VALUE_INTEGER);
     return NAT_INT_VALUE(a_hash) - NAT_INT_VALUE(b_hash);
@@ -662,6 +667,7 @@ NatHashKey *nat_hash_key_list_append(NatEnv *env, NatObject *hash, NatObject *ke
         new_last->prev = last;
         new_last->next = first;
         nat_build_detached_block_env(&new_last->env, env);
+        new_last->env.caller = env;
         new_last->removed = false;
         first->prev = new_last;
         last->next = new_last;
@@ -673,6 +679,7 @@ NatHashKey *nat_hash_key_list_append(NatEnv *env, NatObject *hash, NatObject *ke
         node->prev = node;
         node->next = node;
         nat_build_detached_block_env(&node->env, env);
+        node->env.caller = env;
         node->removed = false;
         hash->key_list = node;
         return node;
@@ -748,14 +755,7 @@ NatObject *nat_hash_get(NatEnv *env, NatObject *hash, NatObject *key) {
     NatHashKey key_container;
     key_container.key = key;
     key_container.env = *env;
-    key_container.env.caller = NULL;
-    // FIXME: ugly hack to fix GC collecting stuff it shouldn't
-    // The problem is our idea that we can attach an orphaned NatEnv to an object like this
-    // and expect calling NatEnvs's vars to not get collected. I'm kinda dumb sometimes.
-    bool gc_was_enabled = env->global_env->gc_enabled;
-    env->global_env->gc_enabled = false;
     NatHashVal *container = hashmap_get(&hash->hashmap, &key_container);
-    env->global_env->gc_enabled = gc_was_enabled;
     NatObject *val = container ? container->val : NULL;
     return val;
 }
@@ -774,12 +774,6 @@ void nat_hash_put(NatEnv *env, NatObject *hash, NatObject *key, NatObject *val) 
     NatHashKey key_container;
     key_container.key = key;
     key_container.env = *env;
-    key_container.env.caller = NULL;
-    // FIXME: ugly hack to fix GC collecting stuff it shouldn't
-    // The problem is our idea that we can attach an orphaned NatEnv to an object like this
-    // and expect calling NatEnvs's vars to not get collected. I'm kinda dumb sometimes.
-    bool gc_was_enabled = env->global_env->gc_enabled;
-    env->global_env->gc_enabled = false;
     NatHashVal *container = hashmap_get(&hash->hashmap, &key_container);
     if (container) {
         container->key->val = val;
@@ -792,8 +786,10 @@ void nat_hash_put(NatEnv *env, NatObject *hash, NatObject *key, NatObject *val) 
         container->key = nat_hash_key_list_append(env, hash, key, val);
         container->val = val;
         hashmap_put(&hash->hashmap, container->key, container);
+        // NOTE: caller must be current and relevant at all times
+        // See note on nat_hashmap_compare for more details
+        container->key->env.caller = NULL;
     }
-    env->global_env->gc_enabled = gc_was_enabled;
 }
 
 NatObject *nat_hash_delete(NatEnv *env, NatObject *hash, NatObject *key) {
@@ -801,14 +797,7 @@ NatObject *nat_hash_delete(NatEnv *env, NatObject *hash, NatObject *key) {
     NatHashKey key_container;
     key_container.key = key;
     key_container.env = *env;
-    key_container.env.caller = NULL;
-    // FIXME: ugly hack to fix GC collecting stuff it shouldn't
-    // The problem is our idea that we can attach an orphaned NatEnv to an object like this
-    // and expect calling NatEnvs's vars to not get collected. I'm kinda dumb sometimes.
-    bool gc_was_enabled = env->global_env->gc_enabled;
-    env->global_env->gc_enabled = false;
     NatHashVal *container = hashmap_remove(&hash->hashmap, &key_container);
-    env->global_env->gc_enabled = gc_was_enabled;
     if (container) {
         nat_hash_key_list_remove_node(hash, container->key);
         NatObject *val = container->val;
