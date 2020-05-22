@@ -279,7 +279,7 @@ NatObject *String_encode(NatEnv *env, NatObject *self, ssize_t argc, NatObject *
                 NatObject *message = nat_sprintf(env, "U+%X from UTF-8 to ASCII-8BIT", NAT_INT_VALUE(ord));
                 NatObject *sub_args[2] = { nat_string(env, "0X"), nat_string(env, "") };
                 message = String_sub(env, message, 2, sub_args, NULL);
-                nat_raise(env, nat_const_get(env, Encoding, "UndefinedConversionError", true), message->str);
+                nat_raise(env, nat_const_get(env, Encoding, "UndefinedConversionError", true), "%S", message);
                 abort();
             }
         }
