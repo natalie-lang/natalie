@@ -150,8 +150,8 @@ struct NatGlobalEnv {
     int bytes_total;
     int bytes_available;
     void *bottom_of_stack;
-    NatObject *min_ptr;
-    NatObject *max_ptr;
+    NatHeapCell *min_ptr;
+    NatHeapCell *max_ptr;
     bool gc_enabled;
     NatEnv *top_env;
 };
