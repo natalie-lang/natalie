@@ -1,7 +1,7 @@
 #include "gc.h"
 #include "natalie.h"
 
-extern NatObject *gc_abort_if_collected;
+extern NatObject *nat_gc_abort_if_collected;
 
 static void push_object(NatEnv *env, NatObject *objects, NatObject *obj) {
     if (obj && !NAT_IS_TAGGED_INT(obj)) {
@@ -333,7 +333,7 @@ static NatHeapCell *find_sibling_heap_cell(NatHeapCell *first_cell, NatHeapCell 
 }
 
 static void collect_object(NatEnv *env, NatHeapBlock *block, NatObject *obj) {
-    if (obj == gc_abort_if_collected) {
+    if (obj == nat_gc_abort_if_collected) {
         printf("%p was collected!\n", obj);
         abort();
     }
