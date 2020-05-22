@@ -316,7 +316,7 @@ NatObject *Array_sort(NatEnv *env, NatObject *self, ssize_t argc, NatObject **ar
     assert(NAT_TYPE(self) == NAT_VALUE_ARRAY);
     NAT_ASSERT_ARGC(0);
     NatObject *copy = nat_array_copy(env, self);
-    nat_quicksort(env, (NatObject**)copy->ary.data, 0, nat_vector_size(&copy->ary) - 1);
+    nat_quicksort(env, (NatObject **)copy->ary.data, 0, nat_vector_size(&copy->ary) - 1);
     return copy;
 }
 

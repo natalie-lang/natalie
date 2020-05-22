@@ -10,11 +10,11 @@
 #define NAT_HEAP_BLOCK_HEADER_SIZE sizeof(NatHeapBlock)
 #define NAT_HEAP_CELL_HEADER_SIZE sizeof(NatHeapCell)
 
-#define NAT_HEAP_BLOCK_FIRST_CELL(block) (NatHeapCell*)((char*)block + NAT_HEAP_BLOCK_HEADER_SIZE)
-#define NAT_HEAP_CELL_START_USABLE(cell) (void*)((char*)cell + NAT_HEAP_CELL_HEADER_SIZE)
+#define NAT_HEAP_BLOCK_FIRST_CELL(block) (NatHeapCell *)((char *)block + NAT_HEAP_BLOCK_HEADER_SIZE)
+#define NAT_HEAP_CELL_START_USABLE(cell) (void *)((char *)cell + NAT_HEAP_CELL_HEADER_SIZE)
 
-#define NAT_HEAP_CELL_FROM_OBJ(obj) (NatHeapCell*)((char*)obj - NAT_HEAP_CELL_HEADER_SIZE)
-#define NAT_HEAP_OBJ_FROM_CELL(cell) (NatObject*)((char*)cell + NAT_HEAP_CELL_HEADER_SIZE)
+#define NAT_HEAP_CELL_FROM_OBJ(obj) (NatHeapCell *)((char *)obj - NAT_HEAP_CELL_HEADER_SIZE)
+#define NAT_HEAP_OBJ_FROM_CELL(cell) (NatObject *)((char *)cell + NAT_HEAP_CELL_HEADER_SIZE)
 
 struct NatHeapBlock {
     NatHeapBlock *next;

@@ -115,11 +115,12 @@
 // "0x" + up to 16 hex chars + NULL terminator
 #define NAT_OBJECT_POINTER_BUF_LENGTH 2 + 16 + 1
 
-#define NAT_LIST_PREPEND(list, item) { \
-    void *next_item = list; \
-    list = item; \
-    item->next = next_item; \
-}
+#define NAT_LIST_PREPEND(list, item) \
+    {                                \
+        void *next_item = list;      \
+        list = item;                 \
+        item->next = next_item;      \
+    }
 
 typedef struct NatObject NatObject;
 typedef struct NatGlobalEnv NatGlobalEnv;

@@ -502,7 +502,7 @@ void nat_vector_init(NatVector *vec, ssize_t size) {
     vec->size = size;
     vec->capacity = size;
     if (size > 0) {
-        vec->data = calloc(size, sizeof(void*));
+        vec->data = calloc(size, sizeof(void *));
     } else {
         vec->data = NULL;
     }
