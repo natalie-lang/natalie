@@ -87,6 +87,7 @@ static void nat_gc_push_object(NatEnv *env, NatObject *objects, NatObject *obj) 
     }
 }
 
+// TODO: remove this check later :-)
 void verify_env_is_valid(NatEnv *env) {
     NatEnv *e = env;
     int depth = 0;
