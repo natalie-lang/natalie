@@ -36,7 +36,7 @@ NatObject *nat_gc_malloc(NatEnv *env) {
         NatHeapCell *cell = block->free_list;
         NatHeapCell *prev_cell = NULL;
         while (cell) {
-            if (cell && cell->size >= size) {
+            if (cell->size >= size) {
                 ssize_t remaining = cell->size - size - NAT_HEAP_CELL_HEADER_SIZE;
                 if (remaining > NAT_HEAP_MIN_CELL_SIZE) {
                     NatHeapCell *new_cell = (NatHeapCell*)((char*)cell + NAT_HEAP_CELL_HEADER_SIZE + size);
@@ -60,7 +60,6 @@ NatObject *nat_gc_malloc(NatEnv *env) {
                 }
                 NAT_LIST_PREPEND(block->used_list, cell);
                 return NAT_HEAP_CELL_START_USABLE(cell);
-            } else {
             }
             prev_cell = cell;
             cell = cell->next;
