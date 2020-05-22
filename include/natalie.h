@@ -473,9 +473,10 @@ NatObject *nat_exception(NatEnv *env, NatObject *klass, char *message);
 #define NAT_VECTOR_INIT_SIZE 10
 #define NAT_VECTOR_GROW_FACTOR 2
 
-NatVector *nat_vector(ssize_t size);
-void nat_vector_init(NatVector *vec, ssize_t size);
+NatVector *nat_vector(ssize_t capacity);
+void nat_vector_init(NatVector *vec, ssize_t capacity);
 ssize_t nat_vector_size(NatVector *vec);
+ssize_t nat_vector_capacity(NatVector *vec);
 void **nat_vector_data(NatVector *vec);
 void *nat_vector_get(NatVector *vec, ssize_t index);
 void nat_vector_set(NatVector *vec, ssize_t index, void *item);

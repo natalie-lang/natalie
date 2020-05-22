@@ -244,7 +244,7 @@ static void free_object(NatEnv *env, NatObject *obj) {
     struct hashmap_iter *iter;
     switch (obj->type) {
     case NAT_VALUE_ARRAY:
-        nat_vector_free(&obj->ary);
+        free(obj->ary.data);
         break;
     case NAT_VALUE_CLASS:
         free(obj->class_name);

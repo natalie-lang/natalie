@@ -90,7 +90,7 @@ NatObject *nat_var_get(NatEnv *env, char *key, ssize_t index) {
 
 NatObject *nat_var_set(NatEnv *env, char *name, ssize_t index, bool allocate, NatObject *val) {
     size_t needed = index + 1;
-    size_t current_size = nat_vector_size(env->vars);
+    size_t current_size = nat_vector_capacity(env->vars);
     if (needed > current_size) {
         if (allocate) {
             if (!env->vars) {
@@ -100,6 +100,7 @@ NatObject *nat_var_set(NatEnv *env, char *name, ssize_t index, bool allocate, Na
                 nat_vector_push(env->vars, val);
             }
         } else {
+            printf("Tried to set a variable without first allocating space for it.\n");
             abort();
         }
     } else {
@@ -492,17 +493,17 @@ NatObject *nat_exception(NatEnv *env, NatObject *klass, char *message) {
     return obj;
 }
 
-NatVector *nat_vector(ssize_t size) {
+NatVector *nat_vector(ssize_t capacity) {
     NatVector *vec = malloc(sizeof(NatVector));
-    nat_vector_init(vec, size);
+    nat_vector_init(vec, capacity);
     return vec;
 }
 
-void nat_vector_init(NatVector *vec, ssize_t size) {
-    vec->size = size;
-    vec->capacity = size;
-    if (size > 0) {
-        vec->data = calloc(size, sizeof(void *));
+void nat_vector_init(NatVector *vec, ssize_t capacity) {
+    vec->size = 0;
+    vec->capacity = capacity;
+    if (capacity > 0) {
+        vec->data = calloc(capacity, sizeof(void *));
     } else {
         vec->data = NULL;
     }
@@ -511,6 +512,11 @@ void nat_vector_init(NatVector *vec, ssize_t size) {
 inline ssize_t nat_vector_size(NatVector *vec) {
     if (!vec) return 0;
     return vec->size;
+}
+
+inline ssize_t nat_vector_capacity(NatVector *vec) {
+    if (!vec) return 0;
+    return vec->capacity;
 }
 
 inline void **nat_vector_data(NatVector *vec) {
@@ -522,12 +528,14 @@ inline void *nat_vector_get(NatVector *vec, ssize_t index) {
 }
 
 inline void nat_vector_set(NatVector *vec, ssize_t index, void *item) {
-    assert(index < vec->size);
+    assert(index < vec->capacity);
+    vec->size = NAT_MAX(vec->size, index + 1);
     vec->data[index] = item;
 }
 
 inline void nat_vector_free(NatVector *vec) {
     free(vec->data);
+    free(vec);
 }
 
 void nat_vector_copy(NatVector *dest, NatVector *source) {
