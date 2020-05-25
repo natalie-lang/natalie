@@ -1,6 +1,8 @@
 #include "builtin.hpp"
 #include "natalie.hpp"
 
+namespace Natalie {
+
 NatObject *Class_new(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0, 1);
     NatObject *superclass;
@@ -25,4 +27,6 @@ NatObject *Class_superclass(NatEnv *env, NatObject *self, ssize_t argc, NatObjec
     assert(NAT_TYPE(self) == NAT_VALUE_CLASS);
     NAT_ASSERT_ARGC(0);
     return self->superclass ? self->superclass : NAT_NIL;
+}
+
 }

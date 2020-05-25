@@ -11,6 +11,8 @@
 #include <string.h>
 #include <unistd.h>
 
+namespace Natalie {
+
 extern "C" {
 #include "hashmap.h"
 #include "onigmo.h"
@@ -548,4 +550,6 @@ void nat_list_prepend(T* list, T item) {
     T next_item = *list;
     *list = item;
     item->next = next_item;
+}
+
 }

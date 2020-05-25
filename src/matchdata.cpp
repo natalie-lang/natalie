@@ -1,6 +1,8 @@
 #include "builtin.hpp"
 #include "natalie.hpp"
 
+namespace Natalie {
+
 NatObject *MatchData_size(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     assert(NAT_TYPE(self) == NAT_VALUE_MATCHDATA);
@@ -39,4 +41,6 @@ NatObject *MatchData_ref(NatEnv *env, NatObject *self, ssize_t argc, NatObject *
         str_obj->str[str_obj->str_len] = 0;
         return str_obj;
     }
+}
+
 }

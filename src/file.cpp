@@ -6,6 +6,8 @@
 #include "gc.hpp"
 #include "natalie.hpp"
 
+namespace Natalie {
+
 NatObject *File_initialize(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC2(1, 2); // TODO: Ruby accepts 3 args??
     NatObject *filename = args[0];
@@ -77,4 +79,6 @@ NatObject *File_expand_path(NatEnv *env, NatObject *self, ssize_t argc, NatObjec
         merged = String_sub(env, merged, 2, args, NULL);
     }
     return merged;
+}
+
 }

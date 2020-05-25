@@ -1,6 +1,8 @@
 #include "builtin.hpp"
 #include "natalie.hpp"
 
+namespace Natalie {
+
 NatObject *Array_new(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0, 2);
     NatObject *ary = nat_array(env);
@@ -363,4 +365,6 @@ NatObject *Array_cmp(NatEnv *env, NatObject *self, ssize_t argc, NatObject **arg
 
 NatObject *Array_to_a(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     return self;
+}
+
 }

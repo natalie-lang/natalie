@@ -1,6 +1,8 @@
 #include "builtin.hpp"
 #include "natalie.hpp"
 
+namespace Natalie {
+
 NatObject *Regexp_new(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
     if (NAT_TYPE(args[0]) == NAT_VALUE_REGEXP) {
@@ -70,4 +72,6 @@ NatObject *Regexp_match(NatEnv *env, NatObject *self, ssize_t argc, NatObject **
         onig_error_code_to_str(s, result);
         NAT_RAISE(env, "RuntimeError", (char *)s);
     }
+}
+
 }

@@ -1,6 +1,8 @@
 #include "builtin.hpp"
 #include "natalie.hpp"
 
+namespace Natalie {
+
 NatObject *Symbol_to_s(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_SYMBOL);
     NAT_ASSERT_ARGC(0);
@@ -56,4 +58,6 @@ NatObject *Symbol_cmp(NatEnv *env, NatObject *self, ssize_t argc, NatObject **ar
         result = 0;
     }
     return nat_integer(env, result);
+}
+
 }

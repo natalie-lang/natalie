@@ -1,6 +1,8 @@
 #include "builtin.hpp"
 #include "natalie.hpp"
 
+namespace Natalie {
+
 NatObject *BasicObject_not(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     return nat_not(env, self);
 }
@@ -34,4 +36,6 @@ NatObject *BasicObject_instance_eval(NatEnv *env, NatObject *self, ssize_t argc,
         self_for_eval = nat_singleton_class(env, self);
     }
     return block->fn(&e, self_for_eval, 0, NULL, NULL);
+}
+
 }

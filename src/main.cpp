@@ -4,11 +4,11 @@
 #include "gc.hpp"
 #include "natalie.hpp"
 
+using namespace Natalie;
+
 /* end of front matter */
 
 /*OBJ_NAT*/
-
-void *nat_gc_abort_if_collected = NULL;
 
 extern "C" NatEnv *build_top_env() {
     NatEnv *env = static_cast<NatEnv *>(malloc(sizeof(NatEnv)));

@@ -1,6 +1,8 @@
 #include "builtin.hpp"
 #include "natalie.hpp"
 
+namespace Natalie {
+
 NatObject *Proc_new(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     return nat_proc(env, block);
 }
@@ -18,4 +20,6 @@ NatObject *Proc_lambda(NatEnv *env, NatObject *self, ssize_t argc, NatObject **a
     } else {
         return NAT_FALSE;
     }
+}
+
 }

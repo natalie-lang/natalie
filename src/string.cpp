@@ -3,6 +3,8 @@
 #include "natalie.hpp"
 #include <ctype.h>
 
+namespace Natalie {
+
 NatObject *String_new(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NatObject *obj = nat_alloc(env, self, NAT_VALUE_STRING);
     nat_send(env, obj, "initialize", argc, args, block);
@@ -493,4 +495,6 @@ NatObject *String_ljust(NatEnv *env, NatObject *self, ssize_t argc, NatObject **
         }
     }
     return copy;
+}
+
 }

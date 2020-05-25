@@ -4,6 +4,8 @@
 
 #include "natalie.hpp"
 
+namespace Natalie {
+
 #define NAT_ARRAY_INIT(klass)                                                \
     nat_define_singleton_method(env, klass, "new", Array_new);               \
     nat_define_singleton_method(env, klass, "[]", Array_square_new);         \
@@ -486,3 +488,5 @@ NatObject *Symbol_cmp(NatEnv *env, NatObject *self, ssize_t argc, NatObject **ar
 
 NatObject *TrueClass_new(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block);
 NatObject *TrueClass_to_s(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block);
+
+}

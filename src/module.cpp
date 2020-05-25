@@ -1,6 +1,8 @@
 #include "builtin.hpp"
 #include "natalie.hpp"
 
+namespace Natalie {
+
 NatObject *Module_new(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     return nat_module(env, NULL);
@@ -214,4 +216,6 @@ NatObject *Module_alias_method(NatEnv *env, NatObject *self, ssize_t argc, NatOb
     }
     nat_alias(env, self, new_name->str, old_name->str);
     return self;
+}
+
 }

@@ -1,7 +1,9 @@
 #include "gc.hpp"
 #include "natalie.hpp"
 
-extern void *nat_gc_abort_if_collected;
+namespace Natalie {
+
+void *nat_gc_abort_if_collected = NULL;
 
 static void push_cell(NatEnv *env, NatVector *cells, NatHeapCell *cell) {
     if (!cell) return;
@@ -485,4 +487,6 @@ NatObject *nat_alloc(NatEnv *env, NatObject *klass, enum NatValueType type) {
     obj->klass = klass;
     obj->type = type;
     return obj;
+}
+
 }

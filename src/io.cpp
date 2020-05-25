@@ -5,6 +5,8 @@
 #include "gc.hpp"
 #include "natalie.hpp"
 
+namespace Natalie {
+
 NatObject *IO_new(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NatObject *obj = Object_new(env, self, argc, args, block);
     obj->type = NAT_VALUE_IO;
@@ -161,4 +163,6 @@ NatObject *IO_seek(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args,
     } else {
         return nat_integer(env, 0);
     }
+}
+
 }

@@ -2,6 +2,8 @@
 
 #include "natalie.hpp"
 
+namespace Natalie {
+
 #define NAT_HEAP_BLOCK_SIZE 262144 // 2 ^ 18
 #define NAT_HEAP_MIN_AVAIL_RATIO 0.1
 #define NAT_HEAP_MIN_AVAIL_AFTER_COLLECTION_RATIO 0.2
@@ -35,3 +37,7 @@ void nat_gc_collect(NatEnv *env);
 void nat_gc_collect_all(NatEnv *env);
 double nat_gc_bytes_available_ratio(NatEnv *env);
 NatObject *nat_alloc(NatEnv *env, NatObject *klass, enum NatValueType type);
+
+extern void *nat_gc_abort_if_collected;
+
+}

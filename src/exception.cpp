@@ -1,6 +1,8 @@
 #include "builtin.hpp"
 #include "natalie.hpp"
 
+namespace Natalie {
+
 NatObject *Exception_new(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NatObject *exception = Object_new(env, self, argc, args, block);
     exception->type = NAT_VALUE_EXCEPTION;
@@ -43,4 +45,6 @@ NatObject *Exception_backtrace(NatEnv *env, NatObject *self, ssize_t argc, NatOb
     NAT_ASSERT_ARGC(0);
     assert(NAT_TYPE(self) == NAT_VALUE_EXCEPTION);
     return self->backtrace;
+}
+
 }

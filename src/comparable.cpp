@@ -1,6 +1,8 @@
 #include "builtin.hpp"
 #include "natalie.hpp"
 
+namespace Natalie {
+
 NatObject *Comparable_eqeq(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
     NatObject *result = nat_send(env, self, "<=>", argc, args, NULL);
@@ -59,4 +61,6 @@ NatObject *Comparable_gte(NatEnv *env, NatObject *self, ssize_t argc, NatObject 
     } else {
         return NAT_FALSE;
     }
+}
+
 }

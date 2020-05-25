@@ -1,6 +1,8 @@
 #include "builtin.hpp"
 #include "natalie.hpp"
 
+namespace Natalie {
+
 NatObject *Range_new(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(2, 3);
     bool exclude_end = false;
@@ -95,4 +97,6 @@ NatObject *Range_eqeqeq(NatEnv *env, NatObject *self, ssize_t argc, NatObject **
         }
     }
     return NAT_FALSE;
+}
+
 }

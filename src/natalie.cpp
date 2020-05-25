@@ -4,6 +4,8 @@
 #include <math.h>
 #include <stdarg.h>
 
+namespace Natalie {
+
 bool nat_is_constant_name(const char *name) {
     return strlen(name) > 0 && isupper(name[0]);
 }
@@ -1774,4 +1776,6 @@ NatObject *nat_void_ptr(NatEnv *env, void *ptr) {
     NatObject *obj = nat_alloc(env, NAT_OBJECT, NAT_VALUE_VOIDP);
     obj->void_ptr = ptr;
     return obj;
+}
+
 }

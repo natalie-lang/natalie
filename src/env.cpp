@@ -3,6 +3,8 @@
 
 extern char **environ;
 
+namespace Natalie {
+
 NatObject *ENV_inspect(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     NatObject *hash = nat_hash(env);
@@ -41,4 +43,6 @@ NatObject *ENV_refeq(NatEnv *env, NatObject *self, ssize_t argc, NatObject **arg
     NAT_ASSERT_TYPE(value, NAT_VALUE_STRING, "String");
     setenv(name->str, value->str, 1);
     return value;
+}
+
 }

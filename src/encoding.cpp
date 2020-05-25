@@ -1,6 +1,8 @@
 #include "builtin.hpp"
 #include "natalie.hpp"
 
+namespace Natalie {
+
 NatObject *Encoding_list(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NatObject *ary = nat_array(env);
     nat_array_push(env, ary, nat_const_get(env, self, "ASCII_8BIT", true));
@@ -24,4 +26,6 @@ NatObject *Encoding_names(NatEnv *env, NatObject *self, ssize_t argc, NatObject 
     NAT_ASSERT_ARGC(0);
     assert(NAT_TYPE(self) == NAT_VALUE_ENCODING);
     return self->encoding_names;
+}
+
 }

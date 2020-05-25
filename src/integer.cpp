@@ -2,6 +2,8 @@
 #include "natalie.hpp"
 #include <math.h>
 
+namespace Natalie {
+
 NatObject *Integer_to_s(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_INTEGER);
     NAT_ASSERT_ARGC(0);
@@ -131,4 +133,6 @@ NatObject *Integer_succ(NatEnv *env, NatObject *self, ssize_t argc, NatObject **
     assert(NAT_TYPE(self) == NAT_VALUE_INTEGER);
     NAT_ASSERT_ARGC(0);
     return nat_integer(env, NAT_INT_VALUE(self) + 1);
+}
+
 }

@@ -1,6 +1,8 @@
 #include "builtin.hpp"
 #include "natalie.hpp"
 
+namespace Natalie {
+
 NatObject *Kernel_puts(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NatObject *nat_stdout = nat_global_get(env, "$stdout");
     return IO_puts(env, nat_stdout, argc, args, block);
@@ -354,4 +356,6 @@ NatObject *Kernel_cur_dir(NatEnv *env, NatObject *self, ssize_t argc, NatObject 
         }
         return absolute;
     }
+}
+
 }

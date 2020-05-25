@@ -1,6 +1,8 @@
 #include "builtin.hpp"
 #include "natalie.hpp"
 
+namespace Natalie {
+
 NatObject *NilClass_to_s(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_NIL);
     NAT_ASSERT_ARGC(0);
@@ -25,4 +27,6 @@ NatObject *NilClass_is_nil(NatEnv *env, NatObject *self, ssize_t argc, NatObject
     assert(NAT_TYPE(self) == NAT_VALUE_NIL);
     NAT_ASSERT_ARGC(0);
     return NAT_TRUE;
+}
+
 }
