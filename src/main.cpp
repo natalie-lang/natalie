@@ -15,7 +15,7 @@ extern "C" Env *build_top_env() {
     build_env(env, NULL);
     env->method_name = heap_string("<main>");
 
-    Value *Class = alloc(env, NULL, NAT_VALUE_CLASS);
+    Value *Class = alloc(env, NULL, ValueType::Class);
     Class->superclass = NULL;
     Class->class_name = heap_string("Class");
     Class->klass = Class;
@@ -26,7 +26,7 @@ extern "C" Env *build_top_env() {
     hashmap_set_key_alloc_funcs(&Class->constants, hashmap_alloc_key_string, free);
     define_method(env, Class, "superclass", Class_superclass);
 
-    Value *BasicObject = alloc(env, Class, NAT_VALUE_CLASS);
+    Value *BasicObject = alloc(env, Class, ValueType::Class);
     BasicObject->class_name = heap_string("BasicObject");
     build_env(&BasicObject->env, env);
     BasicObject->superclass = NULL;
@@ -74,7 +74,7 @@ extern "C" Env *build_top_env() {
     const_set(env, Object, "NilClass", NilClass);
     NAT_NIL_CLASS_INIT(NilClass);
 
-    NAT_NIL = alloc(env, NilClass, NAT_VALUE_NIL);
+    NAT_NIL = alloc(env, NilClass, ValueType::Nil);
     NAT_NIL->singleton_class = NilClass;
 
     Value *TrueClass = subclass(env, Object, "TrueClass");
@@ -82,7 +82,7 @@ extern "C" Env *build_top_env() {
     const_set(env, Object, "TrueClass", TrueClass);
     NAT_TRUE_CLASS_INIT(TrueClass);
 
-    NAT_TRUE = alloc(env, TrueClass, NAT_VALUE_TRUE);
+    NAT_TRUE = alloc(env, TrueClass, ValueType::True);
     NAT_TRUE->singleton_class = TrueClass;
 
     Value *FalseClass = subclass(env, Object, "FalseClass");
@@ -90,7 +90,7 @@ extern "C" Env *build_top_env() {
     const_set(env, Object, "FalseClass", FalseClass);
     NAT_FALSE_CLASS_INIT(FalseClass);
 
-    NAT_FALSE = alloc(env, FalseClass, NAT_VALUE_FALSE);
+    NAT_FALSE = alloc(env, FalseClass, ValueType::False);
     NAT_FALSE->singleton_class = FalseClass;
 
     Value *Numeric = subclass(env, Object, "Numeric");
@@ -184,38 +184,38 @@ extern "C" Env *build_top_env() {
     const_set(env, Object, "Process", Process);
     NAT_PROCESS_INIT(Process);
 
-    Value *EncodingAscii8Bit = encoding(env, NAT_ENCODING_ASCII_8BIT, array_with_vals(env, 2, string(env, "ASCII-8BIT"), string(env, "BINARY")));
+    Value *EncodingAscii8Bit = encoding(env, Encoding::ASCII_8BIT, array_with_vals(env, 2, string(env, "ASCII-8BIT"), string(env, "BINARY")));
     const_set(env, Encoding, "ASCII_8BIT", EncodingAscii8Bit);
 
-    Value *EncodingUTF8 = encoding(env, NAT_ENCODING_UTF_8, array_with_vals(env, 1, string(env, "UTF-8")));
+    Value *EncodingUTF8 = encoding(env, Encoding::UTF_8, array_with_vals(env, 1, string(env, "UTF-8")));
     const_set(env, Encoding, "UTF_8", EncodingUTF8);
 
     global_set(env, "$NAT_at_exit_handlers", array_new(env));
 
-    Value *self = alloc(env, NAT_OBJECT, NAT_VALUE_OTHER);
+    Value *self = alloc(env, NAT_OBJECT, ValueType::Other);
     self->flags = NAT_FLAG_MAIN_OBJECT;
     define_singleton_method(env, self, "inspect", main_obj_inspect);
     global_set(env, "$NAT_main_object", self);
 
     Value *stdin_fileno = integer(env, STDIN_FILENO);
-    Value *stdin = alloc(env, IO, NAT_VALUE_IO);
+    Value *stdin = alloc(env, IO, ValueType::Io);
     initialize(env, stdin, 1, &stdin_fileno, NULL);
     global_set(env, "$stdin", stdin);
     const_set(env, Object, "STDIN", stdin);
 
     Value *stdout_fileno = integer(env, STDOUT_FILENO);
-    Value *stdout = alloc(env, IO, NAT_VALUE_IO);
+    Value *stdout = alloc(env, IO, ValueType::Io);
     initialize(env, stdout, 1, &stdout_fileno, NULL);
     global_set(env, "$stdout", stdout);
     const_set(env, Object, "STDOUT", stdout);
 
     Value *stderr_fileno = integer(env, STDERR_FILENO);
-    Value *stderr = alloc(env, IO, NAT_VALUE_IO);
+    Value *stderr = alloc(env, IO, ValueType::Io);
     initialize(env, stderr, 1, &stderr_fileno, NULL);
     global_set(env, "$stderr", stderr);
     const_set(env, Object, "STDERR", stderr);
 
-    Value *ENV = alloc(env, NAT_OBJECT, NAT_VALUE_OTHER);
+    Value *ENV = alloc(env, NAT_OBJECT, ValueType::Other);
     const_set(env, Object, "ENV", ENV);
     NAT_ENV_INIT(ENV);
 

@@ -8,7 +8,7 @@ Value *Class_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block
     Value *superclass;
     if (argc == 1) {
         superclass = args[0];
-        if (NAT_TYPE(superclass) != NAT_VALUE_CLASS) {
+        if (NAT_TYPE(superclass) != ValueType::Class) {
             NAT_RAISE(env, "TypeError", "superclass must be a Class (%s given)", NAT_OBJ_CLASS(superclass)->class_name);
         }
     } else {
@@ -24,7 +24,7 @@ Value *Class_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block
 }
 
 Value *Class_superclass(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
-    assert(NAT_TYPE(self) == NAT_VALUE_CLASS);
+    assert(NAT_TYPE(self) == ValueType::Class);
     NAT_ASSERT_ARGC(0);
     return self->superclass ? self->superclass : NAT_NIL;
 }

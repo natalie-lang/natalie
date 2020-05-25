@@ -181,7 +181,7 @@ Env *build_detached_block_env(Env *env, Env *outer) {
 }
 
 Value *exception_new(Env *env, Value *klass, const char *message) {
-    Value *obj = alloc(env, klass, NAT_VALUE_EXCEPTION);
+    Value *obj = alloc(env, klass, ValueType::Exception);
     assert(message);
     Value *message_obj = string(env, message);
     initialize(env, obj, 1, &message_obj, NULL);
@@ -293,7 +293,7 @@ Value *cvar_get(Env *env, Value *obj, const char *name) {
         return val;
     } else {
         Value *klass_or_module = obj;
-        if (NAT_TYPE(klass_or_module) != NAT_VALUE_CLASS && NAT_TYPE(klass_or_module) != NAT_VALUE_MODULE) {
+        if (NAT_TYPE(klass_or_module) != ValueType::Class && NAT_TYPE(klass_or_module) != ValueType::Module) {
             klass_or_module = NAT_OBJ_CLASS(klass_or_module);
         }
         NAT_RAISE(env, "NameError", "uninitialized class variable %s in %s", name, klass_or_module->class_name);
@@ -306,10 +306,10 @@ Value *cvar_get_or_null(Env *env, Value *obj, const char *name) {
         NAT_RAISE(env, "NameError", "`%s' is not allowed as a class variable name", name);
     }
 
-    if (NAT_TYPE(obj) != NAT_VALUE_CLASS && NAT_TYPE(obj) != NAT_VALUE_MODULE) {
+    if (NAT_TYPE(obj) != ValueType::Class && NAT_TYPE(obj) != ValueType::Module) {
         obj = NAT_OBJ_CLASS(obj);
     }
-    assert(NAT_TYPE(obj) == NAT_VALUE_CLASS || NAT_TYPE(obj) == NAT_VALUE_MODULE);
+    assert(NAT_TYPE(obj) == ValueType::Class || NAT_TYPE(obj) == ValueType::Module);
 
     Value *val = NULL;
     while (1) {
@@ -332,10 +332,10 @@ Value *cvar_set(Env *env, Value *obj, const char *name, Value *val) {
         NAT_RAISE(env, "NameError", "`%s' is not allowed as a class variable name", name);
     }
 
-    if (NAT_TYPE(obj) != NAT_VALUE_CLASS && NAT_TYPE(obj) != NAT_VALUE_MODULE) {
+    if (NAT_TYPE(obj) != ValueType::Class && NAT_TYPE(obj) != ValueType::Module) {
         obj = NAT_OBJ_CLASS(obj);
     }
-    assert(NAT_TYPE(obj) == NAT_VALUE_CLASS || NAT_TYPE(obj) == NAT_VALUE_MODULE);
+    assert(NAT_TYPE(obj) == ValueType::Class || NAT_TYPE(obj) == ValueType::Module);
 
     Value *current = obj;
 
@@ -386,7 +386,7 @@ Value *global_set(Env *env, const char *name, Value *val) {
 }
 
 bool truthy(Value *obj) {
-    if (obj == NULL || NAT_TYPE(obj) == NAT_VALUE_FALSE || NAT_TYPE(obj) == NAT_VALUE_NIL) {
+    if (obj == NULL || NAT_TYPE(obj) == ValueType::False || NAT_TYPE(obj) == ValueType::Nil) {
         return false;
     } else {
         return true;
@@ -408,7 +408,7 @@ static void init_class_or_module_data(Env *env, Value *klass_or_module) {
 Value *subclass(Env *env, Value *superclass, const char *name) {
     assert(superclass);
     assert(NAT_OBJ_CLASS(superclass));
-    Value *klass = alloc(env, NAT_OBJ_CLASS(superclass), NAT_VALUE_CLASS);
+    Value *klass = alloc(env, NAT_OBJ_CLASS(superclass), ValueType::Class);
     if (superclass->singleton_class) {
         // TODO: what happens if the superclass gets a singleton_class later?
         klass->singleton_class = subclass(env, superclass->singleton_class, NULL);
@@ -422,7 +422,7 @@ Value *subclass(Env *env, Value *superclass, const char *name) {
 }
 
 Value *module(Env *env, const char *name) {
-    Value *module = alloc(env, const_get(env, NAT_OBJECT, "Module", true), NAT_VALUE_MODULE);
+    Value *module = alloc(env, const_get(env, NAT_OBJECT, "Module", true), ValueType::Module);
     module->class_name = name ? heap_string(name) : NULL;
     build_env(&module->env, env);
     module->env.outer = NULL;
@@ -485,7 +485,7 @@ Value *symbol(Env *env, const char *name) {
     if (symbol) {
         return symbol;
     } else {
-        symbol = alloc(env, const_get(env, NAT_OBJECT, "Symbol", true), NAT_VALUE_SYMBOL);
+        symbol = alloc(env, const_get(env, NAT_OBJECT, "Symbol", true), ValueType::Symbol);
         symbol->symbol = heap_string(name);
         hashmap_put(env->global_env->symbols, name, symbol);
         return symbol;
@@ -577,7 +577,7 @@ void vector_add(Vector *new_vec, Vector *vec1, Vector *vec2) {
 }
 
 Value *array_new(Env *env) {
-    Value *obj = alloc(env, const_get(env, NAT_OBJECT, "Array", true), NAT_VALUE_ARRAY);
+    Value *obj = alloc(env, const_get(env, NAT_OBJECT, "Array", true), ValueType::Array);
     vector_init(&obj->ary, 0);
     return obj;
 }
@@ -594,24 +594,24 @@ Value *array_with_vals(Env *env, ssize_t count, ...) {
 }
 
 Value *array_copy(Env *env, Value *source) {
-    assert(NAT_TYPE(source) == NAT_VALUE_ARRAY);
-    Value *obj = alloc(env, const_get(env, NAT_OBJECT, "Array", true), NAT_VALUE_ARRAY);
+    assert(NAT_TYPE(source) == ValueType::Array);
+    Value *obj = alloc(env, const_get(env, NAT_OBJECT, "Array", true), ValueType::Array);
     vector_copy(&obj->ary, &source->ary);
     return obj;
 }
 
 void array_push(Env *env, Value *array, Value *obj) {
-    assert(NAT_TYPE(array) == NAT_VALUE_ARRAY);
+    assert(NAT_TYPE(array) == ValueType::Array);
     assert(obj);
     vector_push(&array->ary, obj);
 }
 
 void array_push_splat(Env *env, Value *array, Value *obj) {
-    assert(NAT_TYPE(array) == NAT_VALUE_ARRAY);
-    if (NAT_TYPE(obj) != NAT_VALUE_ARRAY && respond_to(env, obj, "to_a")) {
+    assert(NAT_TYPE(array) == ValueType::Array);
+    if (NAT_TYPE(obj) != ValueType::Array && respond_to(env, obj, "to_a")) {
         obj = send(env, obj, "to_a", 0, NULL, NULL);
     }
-    if (NAT_TYPE(obj) == NAT_VALUE_ARRAY) {
+    if (NAT_TYPE(obj) == ValueType::Array) {
         for (ssize_t i = 0; i < vector_size(&obj->ary); i++) {
             vector_push(&array->ary, vector_get(&obj->ary, i));
         }
@@ -621,14 +621,14 @@ void array_push_splat(Env *env, Value *array, Value *obj) {
 }
 
 void array_expand_with_nil(Env *env, Value *array, ssize_t size) {
-    assert(NAT_TYPE(array) == NAT_VALUE_ARRAY);
+    assert(NAT_TYPE(array) == ValueType::Array);
     for (ssize_t i = vector_size(&array->ary); i < size; i++) {
         array_push(env, array, NAT_NIL);
     }
 }
 
 Value *splat(Env *env, Value *obj) {
-    if (NAT_TYPE(obj) == NAT_VALUE_ARRAY) {
+    if (NAT_TYPE(obj) == ValueType::Array) {
         return array_copy(env, obj);
     } else {
         return to_ary(env, obj, false);
@@ -641,7 +641,7 @@ size_t hashmap_hash(const void *key) {
     assert(NAT_OBJ_HAS_ENV2(key_p));
     assert(key_p->env.caller);
     Value *hash_obj = send(&key_p->env, key_p->key, "hash", 0, NULL, NULL);
-    assert(NAT_TYPE(hash_obj) == NAT_VALUE_INTEGER);
+    assert(NAT_TYPE(hash_obj) == ValueType::Integer);
     return NAT_INT_VALUE(hash_obj);
 }
 
@@ -657,8 +657,8 @@ int hashmap_compare(const void *a, const void *b) {
     assert(env->caller);
     Value *a_hash = send(env, a_p->key, "hash", 0, NULL, NULL);
     Value *b_hash = send(env, b_p->key, "hash", 0, NULL, NULL);
-    assert(NAT_TYPE(a_hash) == NAT_VALUE_INTEGER);
-    assert(NAT_TYPE(b_hash) == NAT_VALUE_INTEGER);
+    assert(NAT_TYPE(a_hash) == ValueType::Integer);
+    assert(NAT_TYPE(b_hash) == ValueType::Integer);
     return NAT_INT_VALUE(a_hash) - NAT_INT_VALUE(b_hash);
 }
 
@@ -749,7 +749,7 @@ HashIter *hash_iter_next(Env *env, Value *hash, HashIter *iter) {
 }
 
 Value *hash_new(Env *env) {
-    Value *obj = alloc(env, const_get(env, NAT_OBJECT, "Hash", true), NAT_VALUE_HASH);
+    Value *obj = alloc(env, const_get(env, NAT_OBJECT, "Hash", true), ValueType::Hash);
     obj->key_list = NULL;
     obj->hash_default_value = NAT_NIL;
     obj->hash_default_block = NULL;
@@ -758,7 +758,7 @@ Value *hash_new(Env *env) {
 }
 
 Value *hash_get(Env *env, Value *hash, Value *key) {
-    assert(NAT_TYPE(hash) == NAT_VALUE_HASH);
+    assert(NAT_TYPE(hash) == ValueType::Hash);
     HashKey key_container;
     key_container.key = key;
     key_container.env = *env;
@@ -777,7 +777,7 @@ Value *hash_get_default(Env *env, Value *hash, Value *key) {
 }
 
 void hash_put(Env *env, Value *hash, Value *key, Value *val) {
-    assert(NAT_TYPE(hash) == NAT_VALUE_HASH);
+    assert(NAT_TYPE(hash) == ValueType::Hash);
     HashKey key_container;
     key_container.key = key;
     key_container.env = *env;
@@ -800,7 +800,7 @@ void hash_put(Env *env, Value *hash, Value *key, Value *val) {
 }
 
 Value *hash_delete(Env *env, Value *hash, Value *key) {
-    assert(hash->type == NAT_VALUE_HASH);
+    assert(hash->type == ValueType::Hash);
     HashKey key_container;
     key_container.key = key;
     key_container.env = *env;
@@ -826,16 +826,16 @@ Value *regexp(Env *env, const char *pattern) {
         onig_error_code_to_str(s, result, &einfo);
         NAT_RAISE(env, "SyntaxError", (char *)s);
     }
-    Value *obj = alloc(env, const_get(env, NAT_OBJECT, "Regexp", true), NAT_VALUE_REGEXP);
+    Value *obj = alloc(env, const_get(env, NAT_OBJECT, "Regexp", true), ValueType::Regexp);
     obj->regexp = regexp;
     obj->regexp_str = heap_string(pattern);
     return obj;
 }
 
 Value *matchdata(Env *env, OnigRegion *region, Value *str_obj) {
-    Value *obj = alloc(env, const_get(env, NAT_OBJECT, "MatchData", true), NAT_VALUE_MATCHDATA);
+    Value *obj = alloc(env, const_get(env, NAT_OBJECT, "MatchData", true), ValueType::MatchData);
     obj->matchdata_region = region;
-    assert(NAT_TYPE(str_obj) == NAT_VALUE_STRING);
+    assert(NAT_TYPE(str_obj) == ValueType::String);
     obj->matchdata_str = heap_string(str_obj->str);
     return obj;
 }
@@ -932,7 +932,7 @@ void undefine_singleton_method(Env *env, Value *obj, const char *name) {
 }
 
 Value *class_ancestors(Env *env, Value *klass) {
-    assert(NAT_TYPE(klass) == NAT_VALUE_CLASS || NAT_TYPE(klass) == NAT_VALUE_MODULE);
+    assert(NAT_TYPE(klass) == ValueType::Class || NAT_TYPE(klass) == ValueType::Module);
     Value *ancestors = array_new(env);
     do {
         if (klass->included_modules_count == 0) {
@@ -987,7 +987,7 @@ Value *defined_obj(Env *env, Value *receiver, const char *name) {
 Value *send(Env *env, Value *receiver, const char *sym, ssize_t argc, Value **args, Block *block) {
     assert(receiver);
     Value *klass;
-    if (NAT_TYPE(receiver) == NAT_VALUE_INTEGER) {
+    if (NAT_TYPE(receiver) == ValueType::Integer) {
         klass = NAT_INTEGER;
     } else {
         klass = receiver->singleton_class;
@@ -1043,7 +1043,7 @@ void methods(Env *env, Value *array, Value *klass) {
 
 // returns the method and sets matching_class_or_module to where the method was found
 Method *find_method(Value *klass, const char *method_name, Value **matching_class_or_module) {
-    assert(NAT_TYPE(klass) == NAT_VALUE_CLASS);
+    assert(NAT_TYPE(klass) == ValueType::Class);
 
     Method *method;
     if (klass->included_modules_count == 0) {
@@ -1083,7 +1083,7 @@ Method *find_method_without_undefined(Value *klass, const char *method_name, Val
 
 Value *call_method_on_class(Env *env, Value *klass, Value *instance_class, const char *method_name, Value *self, ssize_t argc, Value **args, Block *block) {
     assert(klass != NULL);
-    assert(NAT_TYPE(klass) == NAT_VALUE_CLASS);
+    assert(NAT_TYPE(klass) == ValueType::Class);
 
     Value *matching_class_or_module;
     Method *method = find_method(klass, method_name, &matching_class_or_module);
@@ -1119,7 +1119,7 @@ Value *call_begin(Env *env, Value *self, Value *(*block_fn)(Env *, Value *)) {
 
 bool respond_to(Env *env, Value *obj, const char *name) {
     Value *matching_class_or_module;
-    if (NAT_TYPE(obj) == NAT_VALUE_INTEGER) {
+    if (NAT_TYPE(obj) == ValueType::Integer) {
         Value *klass = NAT_INTEGER;
         if (find_method_without_undefined(klass, name, &matching_class_or_module)) {
             return true;
@@ -1155,13 +1155,13 @@ Value *_run_block_internal(Env *env, Block *the_block, ssize_t argc, Value **arg
 }
 
 Value *proc_new(Env *env, Block *block) {
-    Value *obj = alloc(env, const_get(env, NAT_OBJECT, "Proc", true), NAT_VALUE_PROC);
+    Value *obj = alloc(env, const_get(env, NAT_OBJECT, "Proc", true), ValueType::Proc);
     obj->block = block;
     return obj;
 }
 
 Value *to_proc(Env *env, Value *obj) {
-    if (NAT_TYPE(obj) == NAT_VALUE_PROC) {
+    if (NAT_TYPE(obj) == ValueType::Proc) {
         return obj;
     } else if (respond_to(env, obj, "to_proc")) {
         return send(env, obj, "to_proc", 0, NULL, NULL);
@@ -1177,14 +1177,14 @@ Value *lambda(Env *env, Block *block) {
 }
 
 Value *string_n(Env *env, const char *str, ssize_t len) {
-    Value *obj = alloc(env, const_get(env, NAT_OBJECT, "String", true), NAT_VALUE_STRING);
+    Value *obj = alloc(env, const_get(env, NAT_OBJECT, "String", true), ValueType::String);
     char *copy = static_cast<char *>(malloc(len + 1));
     memcpy(copy, str, len);
     obj->str = copy;
     obj->str[len] = 0;
     obj->str_len = len;
     obj->str_cap = len;
-    obj->encoding = NAT_ENCODING_UTF_8; // TODO: inherit from encoding of file?
+    obj->encoding = Encoding::UTF_8; // TODO: inherit from encoding of file?
     return obj;
 }
 
@@ -1236,11 +1236,11 @@ void string_append_string(Env *env, Value *str, Value *str2) {
     str->str_len = total_len;
 }
 
-#define NAT_RAISE_ENCODING_INVALID_BYTE_SEQUENCE_ERROR(env, message_format, ...)                          \
-    {                                                                                                     \
+#define NAT_RAISE_ENCODING_INVALID_BYTE_SEQUENCE_ERROR(env, message_format, ...)                      \
+    {                                                                                                 \
         Value *Encoding = const_get(env, NAT_OBJECT, "Encoding", true);                               \
         Value *InvalidByteSequenceError = const_get(env, Encoding, "InvalidByteSequenceError", true); \
-        raise(env, InvalidByteSequenceError, message_format, ##__VA_ARGS__);                              \
+        raise(env, InvalidByteSequenceError, message_format, ##__VA_ARGS__);                          \
     }
 
 Value *string_chars(Env *env, Value *str) {
@@ -1248,7 +1248,7 @@ Value *string_chars(Env *env, Value *str) {
     Value *c;
     char buffer[5];
     switch (str->encoding) {
-    case NAT_ENCODING_UTF_8:
+    case Encoding::UTF_8:
         for (ssize_t i = 0; i < str->str_len; i++) {
             buffer[0] = str->str[i];
             if (((unsigned char)buffer[0] >> 3) == 30) { // 11110xxx, 4 bytes
@@ -1270,16 +1270,16 @@ Value *string_chars(Env *env, Value *str) {
                 buffer[1] = 0;
             }
             c = string(env, buffer);
-            c->encoding = NAT_ENCODING_UTF_8;
+            c->encoding = Encoding::UTF_8;
             array_push(env, ary, c);
         }
         break;
-    case NAT_ENCODING_ASCII_8BIT:
+    case Encoding::ASCII_8BIT:
         for (ssize_t i = 0; i < str->str_len; i++) {
             buffer[0] = str->str[i];
             buffer[1] = 0;
             c = string(env, buffer);
-            c->encoding = NAT_ENCODING_ASCII_8BIT;
+            c->encoding = Encoding::ASCII_8BIT;
             array_push(env, ary, c);
         }
         break;
@@ -1326,7 +1326,7 @@ Value *vsprintf(Env *env, const char *format, va_list args) {
                 break;
             case 'v':
                 inspected = send(env, va_arg(args, Value *), "inspect", 0, NULL, NULL);
-                assert(NAT_TYPE(inspected) == NAT_VALUE_STRING);
+                assert(NAT_TYPE(inspected) == ValueType::String);
                 string_append(env, out, inspected->str);
                 break;
             case '%':
@@ -1344,7 +1344,7 @@ Value *vsprintf(Env *env, const char *format, va_list args) {
 }
 
 Value *range(Env *env, Value *begin, Value *end, bool exclude_end) {
-    Value *obj = alloc(env, const_get(env, NAT_OBJECT, "Range", true), NAT_VALUE_RANGE);
+    Value *obj = alloc(env, const_get(env, NAT_OBJECT, "Range", true), ValueType::Range);
     obj->range_begin = begin;
     obj->range_end = end;
     obj->range_exclude_end = exclude_end;
@@ -1354,22 +1354,22 @@ Value *range(Env *env, Value *begin, Value *end, bool exclude_end) {
 Value *dup(Env *env, Value *obj) {
     Value *copy = NULL;
     switch (NAT_TYPE(obj)) {
-    case NAT_VALUE_ARRAY:
+    case ValueType::Array:
         copy = array_new(env);
         for (ssize_t i = 0; i < vector_size(&obj->ary); i++) {
             array_push(env, copy, static_cast<Value *>(vector_get(&obj->ary, i)));
         }
         return copy;
-    case NAT_VALUE_STRING:
+    case ValueType::String:
         return string(env, obj->str);
-    case NAT_VALUE_SYMBOL:
+    case ValueType::Symbol:
         return symbol(env, obj->symbol);
-    case NAT_VALUE_FALSE:
-    case NAT_VALUE_NIL:
-    case NAT_VALUE_TRUE:
+    case ValueType::False:
+    case ValueType::Nil:
+    case ValueType::True:
         return obj;
     default:
-        fprintf(stderr, "I don't know how to dup this kind of object yet %d.\n", obj->type);
+        fprintf(stderr, "I don't know how to dup this kind of object yet %d.\n", static_cast<int>(obj->type));
         abort();
     }
 }
@@ -1383,14 +1383,14 @@ Value *bool_not(Env *env, Value *val) {
 }
 
 void alias(Env *env, Value *self, const char *new_name, const char *old_name) {
-    if (NAT_TYPE(self) == NAT_VALUE_INTEGER || NAT_TYPE(self) == NAT_VALUE_SYMBOL) {
+    if (NAT_TYPE(self) == ValueType::Integer || NAT_TYPE(self) == ValueType::Symbol) {
         NAT_RAISE(env, "TypeError", "no klass to make alias");
     }
     if (is_main_object(self)) {
         self = NAT_OBJ_CLASS(self);
     }
     Value *klass = self;
-    if (NAT_TYPE(self) != NAT_VALUE_CLASS && NAT_TYPE(self) != NAT_VALUE_MODULE) {
+    if (NAT_TYPE(self) != ValueType::Class && NAT_TYPE(self) != ValueType::Module) {
         klass = singleton_class(env, self);
     }
     Value *matching_class_or_module;
@@ -1410,20 +1410,20 @@ void run_at_exit_handlers(Env *env) {
     for (int i = vector_size(&at_exit_handlers->ary) - 1; i >= 0; i--) {
         Value *proc = static_cast<Value *>(vector_get(&at_exit_handlers->ary, i));
         assert(proc);
-        assert(NAT_TYPE(proc) == NAT_VALUE_PROC);
+        assert(NAT_TYPE(proc) == ValueType::Proc);
         NAT_RUN_BLOCK_WITHOUT_BREAK(env, proc->block, 0, NULL, NULL);
     }
 }
 
 void print_exception_with_backtrace(Env *env, Value *exception) {
-    assert(NAT_TYPE(exception) == NAT_VALUE_EXCEPTION);
+    assert(NAT_TYPE(exception) == ValueType::Exception);
     Value *stderr = global_get(env, "$stderr");
     int fd = stderr->fileno;
     if (vector_size(&exception->backtrace->ary) > 0) {
         dprintf(fd, "Traceback (most recent call last):\n");
         for (int i = vector_size(&exception->backtrace->ary) - 1; i > 0; i--) {
             Value *line = static_cast<Value *>(vector_get(&exception->backtrace->ary, i));
-            assert(NAT_TYPE(line) == NAT_VALUE_STRING);
+            assert(NAT_TYPE(line) == ValueType::String);
             dprintf(fd, "        %d: from %s\n", i, line->str);
         }
         Value *line = static_cast<Value *>(vector_get(&exception->backtrace->ary, 0));
@@ -1435,12 +1435,12 @@ void print_exception_with_backtrace(Env *env, Value *exception) {
 void handle_top_level_exception(Env *env, bool run_exit_handlers) {
     Value *exception = env->exception;
     assert(exception);
-    assert(NAT_TYPE(exception) == NAT_VALUE_EXCEPTION);
+    assert(NAT_TYPE(exception) == ValueType::Exception);
     env->rescue = false;
     if (is_a(env, exception, const_get(env, NAT_OBJECT, "SystemExit", true))) {
         Value *status_obj = ivar_get(env, exception, "@status");
         if (run_exit_handlers) run_at_exit_handlers(env);
-        if (NAT_TYPE(status_obj) == NAT_VALUE_INTEGER) {
+        if (NAT_TYPE(status_obj) == ValueType::Integer) {
             int64_t val = NAT_INT_VALUE(status_obj);
             if (val >= 0 && val <= 255) {
                 exit(val);
@@ -1460,7 +1460,7 @@ void object_pointer_id(Value *obj, char *buf) {
 }
 
 int64_t object_id(Env *env, Value *obj) {
-    if (NAT_TYPE(obj) == NAT_VALUE_INTEGER) {
+    if (NAT_TYPE(obj) == ValueType::Integer) {
         return (int64_t)obj;
     } else {
         return (int64_t)obj / 2;
@@ -1469,7 +1469,7 @@ int64_t object_id(Env *env, Value *obj) {
 
 Value *convert_to_real_object(Env *env, Value *obj) {
     if (((int64_t)obj & 1)) {
-        Value *real_obj = alloc(env, NAT_INTEGER, NAT_VALUE_INTEGER);
+        Value *real_obj = alloc(env, NAT_INTEGER, ValueType::Integer);
         real_obj->integer = NAT_INT_VALUE(obj);
         return real_obj;
     } else {
@@ -1506,13 +1506,13 @@ void quicksort(Env *env, Value *ary[], int start, int end) {
 }
 
 Value *to_ary(Env *env, Value *obj, bool raise_for_non_array) {
-    if (NAT_TYPE(obj) == NAT_VALUE_ARRAY) {
+    if (NAT_TYPE(obj) == ValueType::Array) {
         return obj;
     } else if (respond_to(env, obj, "to_ary")) {
         Value *ary = send(env, obj, "to_ary", 0, NULL, NULL);
-        if (NAT_TYPE(ary) == NAT_VALUE_ARRAY) {
+        if (NAT_TYPE(ary) == ValueType::Array) {
             return ary;
-        } else if (NAT_TYPE(ary) == NAT_VALUE_NIL || !raise_for_non_array) {
+        } else if (NAT_TYPE(ary) == ValueType::Nil || !raise_for_non_array) {
             ary = array_new(env);
             array_push(env, ary, obj);
             return ary;
@@ -1529,7 +1529,7 @@ Value *to_ary(Env *env, Value *obj, bool raise_for_non_array) {
 
 static Value *splat_value(Env *env, Value *value, ssize_t index, ssize_t offset_from_end) {
     Value *splat = array_new(env);
-    if (NAT_TYPE(value) == NAT_VALUE_ARRAY && index < vector_size(&value->ary) - offset_from_end) {
+    if (NAT_TYPE(value) == ValueType::Array && index < vector_size(&value->ary) - offset_from_end) {
         for (ssize_t s = index; s < vector_size(&value->ary) - offset_from_end; s++) {
             array_push(env, splat, static_cast<Value *>(vector_get(&value->ary, s)));
         }
@@ -1550,7 +1550,7 @@ Value *arg_value_by_path(Env *env, Value *value, Value *default_value, bool spla
         if (splat && i == path_size - 1) {
             return splat_value(env, return_value, index, offset_from_end);
         } else {
-            if (NAT_TYPE(return_value) == NAT_VALUE_ARRAY) {
+            if (NAT_TYPE(return_value) == ValueType::Array) {
 
                 int64_t ary_len = (int64_t)vector_size(&return_value->ary);
 
@@ -1620,7 +1620,7 @@ Value *array_value_by_path(Env *env, Value *value, Value *default_value, bool sp
         if (splat && i == path_size - 1) {
             return splat_value(env, return_value, index, offset_from_end);
         } else {
-            if (NAT_TYPE(return_value) == NAT_VALUE_ARRAY) {
+            if (NAT_TYPE(return_value) == ValueType::Array) {
 
                 int64_t ary_len = (int64_t)vector_size(&return_value->ary);
 
@@ -1657,13 +1657,13 @@ Value *array_value_by_path(Env *env, Value *value, Value *default_value, bool sp
 }
 
 Value *kwarg_value_by_name(Env *env, Value *args, const char *name, Value *default_value) {
-    assert(NAT_TYPE(args) == NAT_VALUE_ARRAY);
+    assert(NAT_TYPE(args) == ValueType::Array);
     Value *hash;
     if (vector_size(&args->ary) == 0) {
         hash = hash_new(env);
     } else {
         hash = static_cast<Value *>(vector_get(&args->ary, vector_size(&args->ary) - 1));
-        if (NAT_TYPE(hash) != NAT_VALUE_HASH) {
+        if (NAT_TYPE(hash) != ValueType::Hash) {
             hash = hash_new(env);
         }
     }
@@ -1695,8 +1695,8 @@ Value *block_args_to_array(Env *env, ssize_t signature_size, ssize_t argc, Value
     return args_to_array(env, argc, args);
 }
 
-Value *encoding(Env *env, enum NatEncoding num, Value *names) {
-    Value *encoding = alloc(env, const_get(env, NAT_OBJECT, "Encoding", true), NAT_VALUE_ENCODING);
+Value *encoding(Env *env, Encoding num, Value *names) {
+    Value *encoding = alloc(env, const_get(env, NAT_OBJECT, "Encoding", true), ValueType::Encoding);
     encoding->encoding_num = num;
     encoding->encoding_names = names;
     freeze_object(names);
@@ -1736,7 +1736,7 @@ void arg_spread(Env *env, ssize_t argc, Value **args, char *arrangement, ...) {
             int_ptr = va_arg(va_args, int *);
             if (arg_index >= argc) NAT_RAISE(env, "ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, arg_index + 1);
             obj = args[arg_index++];
-            NAT_ASSERT_TYPE(obj, NAT_VALUE_INTEGER, "Integer");
+            NAT_ASSERT_TYPE(obj, ValueType::Integer, "Integer");
             *int_ptr = NAT_INT_VALUE(obj);
             break;
         case 's':
@@ -1746,7 +1746,7 @@ void arg_spread(Env *env, ssize_t argc, Value **args, char *arrangement, ...) {
             if (obj == NAT_NIL) {
                 *str_ptr = NULL;
             } else {
-                NAT_ASSERT_TYPE(obj, NAT_VALUE_STRING, "String");
+                NAT_ASSERT_TYPE(obj, ValueType::String, "String");
             }
             *str_ptr = obj->str;
             break;
@@ -1761,7 +1761,7 @@ void arg_spread(Env *env, ssize_t argc, Value **args, char *arrangement, ...) {
             if (arg_index >= argc) NAT_RAISE(env, "ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, arg_index + 1);
             obj = args[arg_index++];
             obj = ivar_get(env, obj, "@_ptr");
-            assert(obj->type == NAT_VALUE_VOIDP);
+            assert(obj->type == ValueType::VoidP);
             *void_ptr = obj->void_ptr;
             break;
         default:
@@ -1773,7 +1773,7 @@ void arg_spread(Env *env, ssize_t argc, Value **args, char *arrangement, ...) {
 }
 
 Value *void_ptr(Env *env, void *ptr) {
-    Value *obj = alloc(env, NAT_OBJECT, NAT_VALUE_VOIDP);
+    Value *obj = alloc(env, NAT_OBJECT, ValueType::VoidP);
     obj->void_ptr = ptr;
     return obj;
 }

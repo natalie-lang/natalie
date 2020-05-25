@@ -26,7 +26,7 @@ Value *ENV_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *blo
 Value *ENV_ref(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     Value *name = args[0];
-    NAT_ASSERT_TYPE(name, NAT_VALUE_STRING, "String");
+    NAT_ASSERT_TYPE(name, ValueType::String, "String");
     char *value = getenv(name->str);
     if (value) {
         return string(env, value);
@@ -39,8 +39,8 @@ Value *ENV_refeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block
     NAT_ASSERT_ARGC(2);
     Value *name = args[0];
     Value *value = args[1];
-    NAT_ASSERT_TYPE(name, NAT_VALUE_STRING, "String");
-    NAT_ASSERT_TYPE(value, NAT_VALUE_STRING, "String");
+    NAT_ASSERT_TYPE(name, ValueType::String, "String");
+    NAT_ASSERT_TYPE(value, ValueType::String, "String");
     setenv(name->str, value->str, 1);
     return value;
 }

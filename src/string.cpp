@@ -6,7 +6,7 @@
 namespace Natalie {
 
 Value *String_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
-    Value *obj = alloc(env, self, NAT_VALUE_STRING);
+    Value *obj = alloc(env, self, ValueType::String);
     send(env, obj, "initialize", argc, args, block);
     return obj;
 }
@@ -14,7 +14,7 @@ Value *String_new(Env *env, Value *self, ssize_t argc, Value **args, Block *bloc
 Value *String_initialize(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0, 1);
     if (argc == 1) {
-        NAT_ASSERT_TYPE(args[0], NAT_VALUE_STRING, "String");
+        NAT_ASSERT_TYPE(args[0], ValueType::String, "String");
         free(self->str);
         self->str = heap_string(args[0]->str);
         self->str_len = args[0]->str_len;
@@ -24,28 +24,28 @@ Value *String_initialize(Env *env, Value *self, ssize_t argc, Value **args, Bloc
 }
 
 Value *String_to_s(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
-    assert(NAT_TYPE(self) == NAT_VALUE_STRING);
+    assert(NAT_TYPE(self) == ValueType::String);
     NAT_ASSERT_ARGC(0);
     return self;
 }
 
 Value *String_ltlt(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
-    assert(NAT_TYPE(self) == NAT_VALUE_STRING);
+    assert(NAT_TYPE(self) == ValueType::String);
     NAT_ASSERT_ARGC(1);
     NAT_ASSERT_NOT_FROZEN(self);
     Value *arg = args[0];
-    if (NAT_TYPE(arg) == NAT_VALUE_STRING) {
+    if (NAT_TYPE(arg) == ValueType::String) {
         string_append_string(env, self, arg);
     } else {
         Value *str_obj = send(env, arg, "to_s", 0, NULL, NULL);
-        NAT_ASSERT_TYPE(str_obj, NAT_VALUE_STRING, "String");
+        NAT_ASSERT_TYPE(str_obj, ValueType::String, "String");
         string_append_string(env, self, str_obj);
     }
     return self;
 }
 
 Value *String_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
-    assert(NAT_TYPE(self) == NAT_VALUE_STRING);
+    assert(NAT_TYPE(self) == ValueType::String);
     NAT_ASSERT_ARGC(0);
     Value *out = string(env, "\"");
     for (ssize_t i = 0; i < self->str_len; i++) {
@@ -66,15 +66,15 @@ Value *String_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *
 }
 
 Value *String_add(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
-    assert(NAT_TYPE(self) == NAT_VALUE_STRING);
+    assert(NAT_TYPE(self) == ValueType::String);
     NAT_ASSERT_ARGC(1);
     Value *arg = args[0];
     char *str;
-    if (NAT_TYPE(arg) == NAT_VALUE_STRING) {
+    if (NAT_TYPE(arg) == ValueType::String) {
         str = arg->str;
     } else {
         Value *str_obj = send(env, arg, "to_s", 0, NULL, NULL);
-        NAT_ASSERT_TYPE(str_obj, NAT_VALUE_STRING, "String");
+        NAT_ASSERT_TYPE(str_obj, ValueType::String, "String");
         str = str_obj->str;
     }
     Value *new_str = string(env, self->str);
@@ -83,10 +83,10 @@ Value *String_add(Env *env, Value *self, ssize_t argc, Value **args, Block *bloc
 }
 
 Value *String_mul(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
-    assert(NAT_TYPE(self) == NAT_VALUE_STRING);
+    assert(NAT_TYPE(self) == ValueType::String);
     NAT_ASSERT_ARGC(1);
     Value *arg = args[0];
-    NAT_ASSERT_TYPE(arg, NAT_VALUE_INTEGER, "Integer");
+    NAT_ASSERT_TYPE(arg, ValueType::Integer, "Integer");
     Value *new_str = string(env, "");
     for (long long i = 0; i < NAT_INT_VALUE(arg); i++) {
         string_append_string(env, new_str, self);
@@ -95,10 +95,10 @@ Value *String_mul(Env *env, Value *self, ssize_t argc, Value **args, Block *bloc
 }
 
 Value *String_eqeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
-    assert(NAT_TYPE(self) == NAT_VALUE_STRING);
+    assert(NAT_TYPE(self) == ValueType::String);
     NAT_ASSERT_ARGC(1);
     Value *arg = args[0];
-    if (NAT_TYPE(arg) == NAT_VALUE_STRING && strcmp(self->str, arg->str) == 0) {
+    if (NAT_TYPE(arg) == ValueType::String && strcmp(self->str, arg->str) == 0) {
         return NAT_TRUE;
     } else {
         return NAT_FALSE;
@@ -106,10 +106,10 @@ Value *String_eqeq(Env *env, Value *self, ssize_t argc, Value **args, Block *blo
 }
 
 Value *String_cmp(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
-    assert(NAT_TYPE(self) == NAT_VALUE_STRING);
+    assert(NAT_TYPE(self) == ValueType::String);
     NAT_ASSERT_ARGC(1);
     Value *arg = args[0];
-    if (NAT_TYPE(arg) != NAT_VALUE_STRING) return NAT_NIL;
+    if (NAT_TYPE(arg) != ValueType::String) return NAT_NIL;
     int diff = strcmp(self->str, arg->str);
     int result;
     if (diff < 0) {
@@ -124,15 +124,15 @@ Value *String_cmp(Env *env, Value *self, ssize_t argc, Value **args, Block *bloc
 
 Value *String_eqtilde(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
-    assert(NAT_TYPE(self) == NAT_VALUE_STRING);
-    NAT_ASSERT_TYPE(args[0], NAT_VALUE_REGEXP, "Regexp");
+    assert(NAT_TYPE(self) == ValueType::String);
+    NAT_ASSERT_TYPE(args[0], ValueType::Regexp, "Regexp");
     return Regexp_eqtilde(env, args[0], 1, &self, block);
 }
 
 Value *String_match(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
-    assert(NAT_TYPE(self) == NAT_VALUE_STRING);
-    NAT_ASSERT_TYPE(args[0], NAT_VALUE_REGEXP, "Regexp");
+    assert(NAT_TYPE(self) == ValueType::String);
+    NAT_ASSERT_TYPE(args[0], ValueType::Regexp, "Regexp");
     return Regexp_match(env, args[0], 1, &self, block);
 }
 
@@ -152,7 +152,7 @@ static void succ_string(Env *env, Value *string, char append_char, char begin_ch
 
 Value *String_succ(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
-    assert(NAT_TYPE(self) == NAT_VALUE_STRING);
+    assert(NAT_TYPE(self) == ValueType::String);
     Value *result = string(env, self->str);
     ssize_t index = self->str_len - 1;
     char last_char = self->str[index];
@@ -174,7 +174,7 @@ Value *String_ord(Env *env, Value *self, ssize_t argc, Value **args, Block *bloc
         NAT_RAISE(env, "ArgumentError", "empty string");
     }
     Value *c = static_cast<Value *>(vector_get(&chars->ary, 0));
-    assert(NAT_TYPE(c) == NAT_VALUE_STRING);
+    assert(NAT_TYPE(c) == ValueType::String);
     assert(c->str_len > 0);
     unsigned int code;
     switch (c->str_len) {
@@ -199,7 +199,7 @@ Value *String_ord(Env *env, Value *self, ssize_t argc, Value **args, Block *bloc
 
 Value *String_bytes(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
-    assert(NAT_TYPE(self) == NAT_VALUE_STRING);
+    assert(NAT_TYPE(self) == ValueType::String);
     Value *ary = array_new(env);
     for (ssize_t i = 0; i < self->str_len; i++) {
         array_push(env, ary, integer(env, self->str[i]));
@@ -209,25 +209,25 @@ Value *String_bytes(Env *env, Value *self, ssize_t argc, Value **args, Block *bl
 
 Value *String_chars(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
-    assert(NAT_TYPE(self) == NAT_VALUE_STRING);
+    assert(NAT_TYPE(self) == ValueType::String);
     return string_chars(env, self);
 }
 
 Value *String_size(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
-    assert(NAT_TYPE(self) == NAT_VALUE_STRING);
+    assert(NAT_TYPE(self) == ValueType::String);
     Value *chars = string_chars(env, self);
     return integer(env, vector_size(&chars->ary));
 }
 
 Value *String_encoding(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
-    assert(NAT_TYPE(self) == NAT_VALUE_STRING);
+    assert(NAT_TYPE(self) == ValueType::String);
     Value *Encoding = const_get(env, NAT_OBJECT, "Encoding", true);
     switch (self->encoding) {
-    case NAT_ENCODING_ASCII_8BIT:
+    case Encoding::ASCII_8BIT:
         return const_get(env, Encoding, "ASCII_8BIT", true);
-    case NAT_ENCODING_UTF_8:
+    case Encoding::UTF_8:
         return const_get(env, Encoding, "UTF_8", true);
     }
     NAT_UNREACHABLE();
@@ -264,18 +264,18 @@ static Value *find_encoding_by_name(Env *env, char *name) {
 
 Value *String_encode(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
-    assert(NAT_TYPE(self) == NAT_VALUE_STRING);
-    enum NatEncoding orig_encoding = self->encoding;
+    assert(NAT_TYPE(self) == ValueType::String);
+    Encoding orig_encoding = self->encoding;
     Value *copy = dup(env, self);
     String_force_encoding(env, copy, argc, args, NULL);
     Value *Encoding = const_get(env, NAT_OBJECT, "Encoding", true);
     if (orig_encoding == copy->encoding) {
         return copy;
-    } else if (orig_encoding == NAT_ENCODING_UTF_8 && copy->encoding == NAT_ENCODING_ASCII_8BIT) {
+    } else if (orig_encoding == Encoding::UTF_8 && copy->encoding == Encoding::ASCII_8BIT) {
         Value *chars = string_chars(env, self);
         for (ssize_t i = 0; i < vector_size(&chars->ary); i++) {
             Value *char_obj = static_cast<Value *>(vector_get(&chars->ary, i));
-            assert(NAT_TYPE(char_obj) == NAT_VALUE_STRING);
+            assert(NAT_TYPE(char_obj) == ValueType::String);
             if (char_obj->str_len > 1) {
                 Value *ord = String_ord(env, char_obj, 0, NULL, NULL);
                 Value *message = sprintf(env, "U+%X from UTF-8 to ASCII-8BIT", NAT_INT_VALUE(ord));
@@ -286,7 +286,7 @@ Value *String_encode(Env *env, Value *self, ssize_t argc, Value **args, Block *b
             }
         }
         return copy;
-    } else if (orig_encoding == NAT_ENCODING_ASCII_8BIT && copy->encoding == NAT_ENCODING_UTF_8) {
+    } else if (orig_encoding == Encoding::ASCII_8BIT && copy->encoding == Encoding::UTF_8) {
         return copy;
     } else {
         raise(env, const_get(env, Encoding, "ConverterNotFoundError", true), "code converter not found");
@@ -296,13 +296,13 @@ Value *String_encode(Env *env, Value *self, ssize_t argc, Value **args, Block *b
 
 Value *String_force_encoding(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
-    assert(NAT_TYPE(self) == NAT_VALUE_STRING);
+    assert(NAT_TYPE(self) == ValueType::String);
     Value *encoding = args[0];
     switch (NAT_TYPE(encoding)) {
-    case NAT_VALUE_ENCODING:
+    case ValueType::Encoding:
         self->encoding = encoding->encoding_num;
         break;
-    case NAT_VALUE_STRING:
+    case ValueType::String:
         self->encoding = find_encoding_by_name(env, encoding->str)->encoding_num;
         break;
     default:
@@ -313,9 +313,9 @@ Value *String_force_encoding(Env *env, Value *self, ssize_t argc, Value **args, 
 
 Value *String_ref(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
-    assert(NAT_TYPE(self) == NAT_VALUE_STRING);
+    assert(NAT_TYPE(self) == ValueType::String);
     Value *index_obj = args[0];
-    NAT_ASSERT_TYPE(index_obj, NAT_VALUE_INTEGER, "Integer");
+    NAT_ASSERT_TYPE(index_obj, ValueType::Integer, "Integer");
     int64_t index = NAT_INT_VALUE(index_obj);
 
     // not sure how we'd handle that given a 64-bit signed int for an index,
@@ -345,9 +345,9 @@ static ssize_t str_index(Value *str, Value *find, ssize_t start) {
 
 Value *String_index(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
-    assert(NAT_TYPE(self) == NAT_VALUE_STRING);
+    assert(NAT_TYPE(self) == ValueType::String);
     Value *find = args[0];
-    NAT_ASSERT_TYPE(find, NAT_VALUE_STRING, "String");
+    NAT_ASSERT_TYPE(find, ValueType::String, "String");
     ssize_t index = str_index(self, find, 0);
     if (index == -1) {
         return NAT_NIL;
@@ -357,11 +357,11 @@ Value *String_index(Env *env, Value *self, ssize_t argc, Value **args, Block *bl
 
 Value *String_sub(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(2);
-    assert(NAT_TYPE(self) == NAT_VALUE_STRING);
+    assert(NAT_TYPE(self) == ValueType::String);
     Value *sub = args[0];
     Value *repl = args[1];
-    NAT_ASSERT_TYPE(repl, NAT_VALUE_STRING, "String");
-    if (NAT_TYPE(sub) == NAT_VALUE_STRING) {
+    NAT_ASSERT_TYPE(repl, ValueType::String, "String");
+    if (NAT_TYPE(sub) == ValueType::String) {
         Value *index_obj = String_index(env, self, 1, &sub, NULL);
         if (index_obj == NAT_NIL) {
             return dup(env, self);
@@ -373,7 +373,7 @@ Value *String_sub(Env *env, Value *self, ssize_t argc, Value **args, Block *bloc
         string_append_string(env, out, repl);
         string_append(env, out, &self->str[index + sub->str_len]);
         return out;
-    } else if (NAT_TYPE(sub) == NAT_VALUE_REGEXP) {
+    } else if (NAT_TYPE(sub) == ValueType::Regexp) {
         Value *match = Regexp_match(env, sub, 1, &self, NULL);
         if (match == NAT_NIL) {
             return dup(env, self);
@@ -413,10 +413,10 @@ static uint64_t str_to_i(char *str, int base) {
 
 Value *String_to_i(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0, 1);
-    assert(NAT_TYPE(self) == NAT_VALUE_STRING);
+    assert(NAT_TYPE(self) == ValueType::String);
     int base = 10;
     if (argc == 1) {
-        NAT_ASSERT_TYPE(args[0], NAT_VALUE_INTEGER, "Integer");
+        NAT_ASSERT_TYPE(args[0], ValueType::Integer, "Integer");
         base = NAT_INT_VALUE(args[0]);
     }
     long long number = str_to_i(self->str, base);
@@ -425,12 +425,12 @@ Value *String_to_i(Env *env, Value *self, ssize_t argc, Value **args, Block *blo
 
 Value *String_split(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
-    assert(NAT_TYPE(self) == NAT_VALUE_STRING);
+    assert(NAT_TYPE(self) == ValueType::String);
     Value *splitter = args[0];
     Value *ary = array_new(env);
     if (self->str_len == 0) {
         return ary;
-    } else if (NAT_TYPE(splitter) == NAT_VALUE_REGEXP) {
+    } else if (NAT_TYPE(splitter) == ValueType::Regexp) {
         ssize_t last_index = 0;
         ssize_t index, len;
         OnigRegion *region = onig_region_new();
@@ -453,7 +453,7 @@ Value *String_split(Env *env, Value *self, ssize_t argc, Value **args, Block *bl
         }
         onig_region_free(region, true);
         return ary;
-    } else if (NAT_TYPE(splitter) == NAT_VALUE_STRING) {
+    } else if (NAT_TYPE(splitter) == ValueType::String) {
         ssize_t last_index = 0;
         ssize_t index = str_index(self, splitter, 0);
         if (index == -1) {
@@ -474,14 +474,14 @@ Value *String_split(Env *env, Value *self, ssize_t argc, Value **args, Block *bl
 
 Value *String_ljust(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1, 2);
-    assert(NAT_TYPE(self) == NAT_VALUE_STRING);
+    assert(NAT_TYPE(self) == ValueType::String);
     Value *length_obj = args[0];
-    NAT_ASSERT_TYPE(length_obj, NAT_VALUE_INTEGER, "Integer");
+    NAT_ASSERT_TYPE(length_obj, ValueType::Integer, "Integer");
     ssize_t length = NAT_INT_VALUE(length_obj) < 0 ? 0 : NAT_INT_VALUE(length_obj);
     Value *padstr;
     if (argc > 1) {
         padstr = args[1];
-        NAT_ASSERT_TYPE(padstr, NAT_VALUE_STRING, "String");
+        NAT_ASSERT_TYPE(padstr, ValueType::String, "String");
     } else {
         padstr = string(env, " ");
     }

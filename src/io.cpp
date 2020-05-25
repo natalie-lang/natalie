@@ -9,13 +9,13 @@ namespace Natalie {
 
 Value *IO_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     Value *obj = Object_new(env, self, argc, args, block);
-    obj->type = NAT_VALUE_IO;
+    obj->type = ValueType::Io;
     return obj;
 }
 
 Value *IO_initialize(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1); // TODO: ruby accepts 1..2
-    NAT_ASSERT_TYPE(args[0], NAT_VALUE_INTEGER, "Integer");
+    NAT_ASSERT_TYPE(args[0], ValueType::Integer, "Integer");
     self->fileno = NAT_INT_VALUE(args[0]);
     return self;
 }
@@ -31,7 +31,7 @@ Value *IO_read(Env *env, Value *self, ssize_t argc, Value **args, Block *block) 
     NAT_ASSERT_ARGC(0, 1); // TODO: ruby accepts 0..2
     ssize_t bytes_read;
     if (argc == 1) {
-        NAT_ASSERT_TYPE(args[0], NAT_VALUE_INTEGER, "Integer");
+        NAT_ASSERT_TYPE(args[0], ValueType::Integer, "Integer");
         int count = NAT_INT_VALUE(args[0]);
         char *buf = static_cast<char *>(malloc((count + 1) * sizeof(char)));
         bytes_read = read(self->fileno, buf, count);
@@ -71,10 +71,10 @@ Value *IO_write(Env *env, Value *self, ssize_t argc, Value **args, Block *block)
     int bytes_written = 0;
     for (ssize_t i = 0; i < argc; i++) {
         Value *obj = args[i];
-        if (NAT_TYPE(obj) != NAT_VALUE_STRING) {
+        if (NAT_TYPE(obj) != ValueType::String) {
             obj = send(env, obj, "to_s", 0, NULL, NULL);
         }
-        NAT_ASSERT_TYPE(obj, NAT_VALUE_STRING, "String");
+        NAT_ASSERT_TYPE(obj, ValueType::String, "String");
         ssize_t result = write(self->fileno, obj->str, obj->str_len);
         if (result == -1) {
             Value *error_number = integer(env, errno);
@@ -95,7 +95,7 @@ Value *IO_puts(Env *env, Value *self, ssize_t argc, Value **args, Block *block) 
     } else {
         for (ssize_t i = 0; i < argc; i++) {
             Value *str = send(env, args[i], "to_s", 0, NULL, NULL);
-            NAT_ASSERT_TYPE(str, NAT_VALUE_STRING, "String");
+            NAT_ASSERT_TYPE(str, ValueType::String, "String");
             dprintf(fd, "%s\n", str->str);
         }
     }
@@ -107,7 +107,7 @@ Value *IO_print(Env *env, Value *self, ssize_t argc, Value **args, Block *block)
     if (argc > 0) {
         for (ssize_t i = 0; i < argc; i++) {
             Value *str = send(env, args[i], "to_s", 0, NULL, NULL);
-            NAT_ASSERT_TYPE(str, NAT_VALUE_STRING, "String");
+            NAT_ASSERT_TYPE(str, ValueType::String, "String");
             dprintf(fd, "%s", str->str);
         }
     }
@@ -130,16 +130,16 @@ Value *IO_close(Env *env, Value *self, ssize_t argc, Value **args, Block *block)
 Value *IO_seek(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC2(1, 2);
     Value *amount_obj = args[0];
-    NAT_ASSERT_TYPE(amount_obj, NAT_VALUE_INTEGER, "Integer");
+    NAT_ASSERT_TYPE(amount_obj, ValueType::Integer, "Integer");
     int amount = NAT_INT_VALUE(amount_obj);
     int whence = 0;
     if (argc > 1) {
         Value *whence_obj = args[1];
         switch (NAT_TYPE(whence_obj)) {
-        case NAT_VALUE_INTEGER:
+        case ValueType::Integer:
             whence = NAT_INT_VALUE(whence_obj);
             break;
-        case NAT_VALUE_SYMBOL:
+        case ValueType::Symbol:
             if (strcmp(whence_obj->symbol, "SET") == 0) {
                 whence = 0;
             } else if (strcmp(whence_obj->symbol, "CUR") == 0) {

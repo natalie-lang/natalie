@@ -33,7 +33,7 @@ Value *Kernel_p(Env *env, Value *self, ssize_t argc, Value **args, Block *block)
 
 Value *Kernel_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
-    if ((NAT_TYPE(self) == NAT_VALUE_CLASS || NAT_TYPE(self) == NAT_VALUE_MODULE) && self->class_name) {
+    if ((NAT_TYPE(self) == ValueType::Class || NAT_TYPE(self) == ValueType::Module) && self->class_name) {
         return string(env, self->class_name);
     } else {
         Value *str = string(env, "#<");
@@ -75,7 +75,7 @@ Value *Kernel_singleton_class(Env *env, Value *self, ssize_t argc, Value **args,
 
 Value *Kernel_instance_variables(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     Value *ary = array_new(env);
-    if (NAT_TYPE(self) == NAT_VALUE_INTEGER) {
+    if (NAT_TYPE(self) == ValueType::Integer) {
         return ary;
     }
     struct hashmap_iter *iter;
@@ -90,14 +90,14 @@ Value *Kernel_instance_variables(Env *env, Value *self, ssize_t argc, Value **ar
 
 Value *Kernel_instance_variable_get(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
-    if (NAT_TYPE(self) == NAT_VALUE_INTEGER) {
+    if (NAT_TYPE(self) == ValueType::Integer) {
         return NAT_NIL;
     }
     Value *name_obj = args[0];
     const char *name = NULL;
-    if (NAT_TYPE(name_obj) == NAT_VALUE_STRING) {
+    if (NAT_TYPE(name_obj) == ValueType::String) {
         name = name_obj->str;
-    } else if (NAT_TYPE(name_obj) == NAT_VALUE_SYMBOL) {
+    } else if (NAT_TYPE(name_obj) == ValueType::Symbol) {
         name = name_obj->symbol;
     } else {
         NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", send(env, name_obj, "inspect", 0, NULL, NULL));
@@ -110,9 +110,9 @@ Value *Kernel_instance_variable_set(Env *env, Value *self, ssize_t argc, Value *
     NAT_ASSERT_NOT_FROZEN(self);
     Value *name_obj = args[0];
     const char *name = NULL;
-    if (NAT_TYPE(name_obj) == NAT_VALUE_STRING) {
+    if (NAT_TYPE(name_obj) == ValueType::String) {
         name = name_obj->str;
-    } else if (NAT_TYPE(name_obj) == NAT_VALUE_SYMBOL) {
+    } else if (NAT_TYPE(name_obj) == ValueType::Symbol) {
         name = name_obj->symbol;
     } else {
         NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", send(env, name_obj, "inspect", 0, NULL, NULL));
@@ -131,10 +131,10 @@ Value *Kernel_raise(Env *env, Value *self, ssize_t argc, Value **args, Block *bl
         message = args[1];
     } else {
         Value *arg = args[0];
-        if (NAT_TYPE(arg) == NAT_VALUE_CLASS) {
+        if (NAT_TYPE(arg) == ValueType::Class) {
             klass = arg;
             message = string(env, arg->class_name);
-        } else if (NAT_TYPE(arg) == NAT_VALUE_STRING) {
+        } else if (NAT_TYPE(arg) == ValueType::String) {
             klass = const_get(env, NAT_OBJECT, "RuntimeError", true);
             message = arg;
         } else if (is_a(env, arg, const_get(env, NAT_OBJECT, "Exception", true))) {
@@ -152,9 +152,9 @@ Value *Kernel_respond_to(Env *env, Value *self, ssize_t argc, Value **args, Bloc
     NAT_ASSERT_ARGC(1);
     Value *symbol = args[0];
     const char *name;
-    if (NAT_TYPE(symbol) == NAT_VALUE_SYMBOL) {
+    if (NAT_TYPE(symbol) == ValueType::Symbol) {
         name = symbol->symbol;
-    } else if (NAT_TYPE(symbol) == NAT_VALUE_STRING) {
+    } else if (NAT_TYPE(symbol) == ValueType::String) {
         name = symbol->str;
     } else {
         return NAT_FALSE;
@@ -187,7 +187,7 @@ Value *Kernel_exit(Env *env, Value *self, ssize_t argc, Value **args, Block *blo
     Value *status;
     if (argc == 1) {
         status = args[0];
-        if (NAT_TYPE(status) != NAT_VALUE_INTEGER) {
+        if (NAT_TYPE(status) != ValueType::Integer) {
             status = integer(env, 0);
         }
     } else {
@@ -211,7 +211,7 @@ Value *Kernel_at_exit(Env *env, Value *self, ssize_t argc, Value **args, Block *
 Value *Kernel_is_a(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     Value *klass_or_module = args[0];
-    if (NAT_TYPE(klass_or_module) != NAT_VALUE_CLASS && NAT_TYPE(klass_or_module) != NAT_VALUE_MODULE) {
+    if (NAT_TYPE(klass_or_module) != ValueType::Class && NAT_TYPE(klass_or_module) != ValueType::Module) {
         NAT_RAISE(env, "TypeError", "class or module required");
     }
     if (is_a(env, self, klass_or_module)) {
@@ -277,7 +277,7 @@ Value *Kernel_sleep(Env *env, Value *self, ssize_t argc, Value **args, Block *bl
         abort(); // not reached
     } else {
         Value *length = args[0];
-        NAT_ASSERT_TYPE(length, NAT_VALUE_INTEGER, "Integer"); // TODO: float supported also
+        NAT_ASSERT_TYPE(length, ValueType::Integer, "Integer"); // TODO: float supported also
         sleep(NAT_INT_VALUE(length));
         return length;
     }
@@ -287,9 +287,9 @@ Value *Kernel_define_singleton_method(Env *env, Value *self, ssize_t argc, Value
     NAT_ASSERT_ARGC(1);
     NAT_ASSERT_BLOCK();
     Value *name_obj = args[0];
-    if (NAT_TYPE(name_obj) == NAT_VALUE_SYMBOL) {
+    if (NAT_TYPE(name_obj) == ValueType::Symbol) {
         // we're good!
-    } else if (NAT_TYPE(name_obj) == NAT_VALUE_STRING) {
+    } else if (NAT_TYPE(name_obj) == ValueType::String) {
         name_obj = symbol(env, name_obj->str);
     } else {
         NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", send(env, name_obj, "inspect", 0, NULL, NULL));
@@ -306,7 +306,7 @@ Value *Kernel_tap(Env *env, Value *self, ssize_t argc, Value **args, Block *bloc
 Value *Kernel_Array(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     Value *value = args[0];
-    if (NAT_TYPE(value) == NAT_VALUE_ARRAY) {
+    if (NAT_TYPE(value) == ValueType::Array) {
         return value;
     } else if (respond_to(env, value, "to_ary")) {
         return send(env, value, "to_ary", 0, NULL, NULL);
@@ -323,9 +323,9 @@ Value *Kernel_send(Env *env, Value *self, ssize_t argc, Value **args, Block *blo
     NAT_ASSERT_ARGC_AT_LEAST(1);
     Value *name_obj = args[0];
     const char *name;
-    if (NAT_TYPE(name_obj) == NAT_VALUE_SYMBOL) {
+    if (NAT_TYPE(name_obj) == ValueType::Symbol) {
         name = name_obj->symbol;
-    } else if (NAT_TYPE(name_obj) == NAT_VALUE_STRING) {
+    } else if (NAT_TYPE(name_obj) == ValueType::String) {
         name = name_obj->str;
     } else {
         NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", send(env, name_obj, "inspect", 0, NULL, NULL));

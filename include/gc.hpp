@@ -36,7 +36,7 @@ Value *gc_malloc(Env *env);
 void gc_collect(Env *env);
 void gc_collect_all(Env *env);
 double gc_bytes_available_ratio(Env *env);
-Value *alloc(Env *env, Value *klass, enum NatValueType type);
+Value *alloc(Env *env, Value *klass, ValueType type);
 
 extern void *gc_abort_if_collected;
 

@@ -5,7 +5,7 @@ namespace Natalie {
 
 Value *Exception_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     Value *exception = Object_new(env, self, argc, args, block);
-    exception->type = NAT_VALUE_EXCEPTION;
+    exception->type = ValueType::Exception;
     if (exception->message == NULL) exception->message = heap_string(self->class_name);
     return exception;
 }
@@ -15,7 +15,7 @@ Value *Exception_initialize(Env *env, Value *self, ssize_t argc, Value **args, B
         self->message = heap_string(self->class_name);
     } else if (argc == 1) {
         Value *message = args[0];
-        if (NAT_TYPE(message) != NAT_VALUE_STRING) {
+        if (NAT_TYPE(message) != ValueType::String) {
             message = send(env, message, "inspect", 0, NULL, NULL);
         }
         self->message = heap_string(message->str);
@@ -25,7 +25,7 @@ Value *Exception_initialize(Env *env, Value *self, ssize_t argc, Value **args, B
 
 Value *Exception_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
-    assert(NAT_TYPE(self) == NAT_VALUE_EXCEPTION);
+    assert(NAT_TYPE(self) == ValueType::Exception);
     Value *str = string(env, "#<");
     assert(NAT_OBJ_CLASS(self));
     string_append(env, str, Module_inspect(env, NAT_OBJ_CLASS(self), 0, NULL, NULL)->str);
@@ -37,13 +37,13 @@ Value *Exception_inspect(Env *env, Value *self, ssize_t argc, Value **args, Bloc
 
 Value *Exception_message(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
-    assert(NAT_TYPE(self) == NAT_VALUE_EXCEPTION);
+    assert(NAT_TYPE(self) == ValueType::Exception);
     return string(env, self->message);
 }
 
 Value *Exception_backtrace(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
-    assert(NAT_TYPE(self) == NAT_VALUE_EXCEPTION);
+    assert(NAT_TYPE(self) == ValueType::Exception);
     return self->backtrace;
 }
 

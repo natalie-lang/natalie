@@ -4,13 +4,13 @@
 namespace Natalie {
 
 Value *Symbol_to_s(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
-    assert(NAT_TYPE(self) == NAT_VALUE_SYMBOL);
+    assert(NAT_TYPE(self) == ValueType::Symbol);
     NAT_ASSERT_ARGC(0);
     return string(env, self->symbol);
 }
 
 Value *Symbol_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
-    assert(NAT_TYPE(self) == NAT_VALUE_SYMBOL);
+    assert(NAT_TYPE(self) == ValueType::Symbol);
     NAT_ASSERT_ARGC(0);
     Value *str = string(env, ":");
     ssize_t len = strlen(self->symbol);
@@ -26,7 +26,7 @@ Value *Symbol_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *
 }
 
 Value *Symbol_to_proc(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
-    assert(NAT_TYPE(self) == NAT_VALUE_SYMBOL);
+    assert(NAT_TYPE(self) == ValueType::Symbol);
     NAT_ASSERT_ARGC(0);
     Env block_env;
     build_detached_block_env(&block_env, env);
@@ -44,10 +44,10 @@ Value *Symbol_to_proc_block_fn(Env *env, Value *self, ssize_t argc, Value **args
 }
 
 Value *Symbol_cmp(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
-    assert(NAT_TYPE(self) == NAT_VALUE_SYMBOL);
+    assert(NAT_TYPE(self) == ValueType::Symbol);
     NAT_ASSERT_ARGC(1);
     Value *arg = args[0];
-    if (NAT_TYPE(arg) != NAT_VALUE_SYMBOL) return NAT_NIL;
+    if (NAT_TYPE(arg) != ValueType::Symbol) return NAT_NIL;
     int diff = strcmp(self->symbol, arg->symbol);
     int result;
     if (diff < 0) {

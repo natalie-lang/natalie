@@ -21,8 +21,8 @@ extern "C" {
 //#define NAT_DEBUG_METHOD_RESOLUTION
 
 #define NAT_IS_TAGGED_INT(obj) ((int64_t)obj & 1)
-#define NAT_TYPE(obj) (NAT_IS_TAGGED_INT(obj) ? NAT_VALUE_INTEGER : obj->type)
-#define NAT_IS_MODULE_OR_CLASS(obj) (NAT_TYPE(obj) == NAT_VALUE_MODULE || NAT_TYPE(obj) == NAT_VALUE_CLASS)
+#define NAT_TYPE(obj) (NAT_IS_TAGGED_INT(obj) ? ValueType::Integer : obj->type)
+#define NAT_IS_MODULE_OR_CLASS(obj) (NAT_TYPE(obj) == ValueType::Module || NAT_TYPE(obj) == ValueType::Class)
 #define NAT_OBJ_CLASS(obj) (NAT_IS_TAGGED_INT(obj) ? NAT_INTEGER : obj->klass)
 #define NAT_RESCUE(env) ((env->rescue = 1) && setjmp(env->jump_buf))
 
@@ -201,31 +201,31 @@ struct Vector {
     void **data;
 };
 
-enum NatValueType {
-    NAT_VALUE_NIL = 0,
-    NAT_VALUE_ARRAY = 1,
-    NAT_VALUE_CLASS = 2,
-    NAT_VALUE_ENCODING = 3,
-    NAT_VALUE_EXCEPTION = 4,
-    NAT_VALUE_FALSE = 5,
-    NAT_VALUE_HASH = 6,
-    NAT_VALUE_INTEGER = 7,
-    NAT_VALUE_IO = 8,
-    NAT_VALUE_MATCHDATA = 9,
-    NAT_VALUE_MODULE = 10,
-    NAT_VALUE_OTHER = 11,
-    NAT_VALUE_PROC = 12,
-    NAT_VALUE_RANGE = 13,
-    NAT_VALUE_REGEXP = 14,
-    NAT_VALUE_STRING = 15,
-    NAT_VALUE_SYMBOL = 16,
-    NAT_VALUE_TRUE = 17,
-    NAT_VALUE_VOIDP = 18,
+enum class ValueType {
+    Nil = 0,
+    Array = 1,
+    Class = 2,
+    Encoding = 3,
+    Exception = 4,
+    False = 5,
+    Hash = 6,
+    Integer = 7,
+    Io = 8,
+    MatchData = 9,
+    Module = 10,
+    Other = 11,
+    Proc = 12,
+    Range = 13,
+    Regexp = 14,
+    String = 15,
+    Symbol = 16,
+    True = 17,
+    VoidP = 18,
 };
 
-enum NatEncoding {
-    NAT_ENCODING_ASCII_8BIT = 1,
-    NAT_ENCODING_UTF_8 = 2,
+enum class Encoding {
+    ASCII_8BIT = 1,
+    UTF_8 = 2,
 };
 
 #define NAT_FLAG_MAIN_OBJECT 1
@@ -279,7 +279,7 @@ enum NatEncoding {
 })
 
 struct Value {
-    enum NatValueType type;
+    ValueType type;
     Value *klass;
     Value *singleton_class;
     Value *owner; // for contants, either a module or a class
@@ -293,10 +293,10 @@ struct Value {
     union {
         int64_t integer;
 
-        // NAT_VALUE_ARRAY
+        // ValueType::Array
         Vector ary;
 
-        // NAT_VALUE_CLASS, NAT_VALUE_MODULE
+        // ValueType::Class, ValueType::Module
         struct {
             char *class_name;
             Value *superclass;
@@ -306,19 +306,19 @@ struct Value {
             Value **included_modules;
         };
 
-        // NAT_VALUE_ENCODING
+        // ValueType::Encoding
         struct {
             Value *encoding_names; // array
-            enum NatEncoding encoding_num; // should match NatEncoding enum above
+            Encoding encoding_num;
         };
 
-        // NAT_VALUE_EXCEPTION
+        // ValueType::Exception
         struct {
             char *message;
             Value *backtrace; // array
         };
 
-        // NAT_VALUE_HASH
+        // ValueType::Hash
         struct {
             HashKey *key_list; // a double-ended queue
             struct hashmap hashmap;
@@ -327,46 +327,46 @@ struct Value {
             Block *hash_default_block;
         };
 
-        // NAT_VALUE_IO
+        // ValueType::Io
         int fileno;
 
-        // NAT_VALUE_MATCHDATA
+        // ValueType::MatchData
         struct {
             OnigRegion *matchdata_region;
             char *matchdata_str;
         };
 
-        // NAT_VALUE_PROC
+        // ValueType::Proc
         struct {
             Block *block;
             bool lambda;
         };
 
-        // NAT_VALUE_RANGE
+        // ValueType::Range
         struct {
             Value *range_begin;
             Value *range_end;
             bool range_exclude_end;
         };
 
-        // NAT_VALUE_REGEXP
+        // ValueType::Regexp
         struct {
             regex_t *regexp;
             char *regexp_str;
         };
 
-        // NAT_VALUE_STRING
+        // ValueType::String
         struct {
             ssize_t str_len;
             ssize_t str_cap;
             char *str;
-            enum NatEncoding encoding;
+            Encoding encoding;
         };
 
-        // NAT_VALUE_SYMBOL
+        // ValueType::Symbol
         char *symbol;
 
-        // NAT_VALUE_VOIDP
+        // ValueType::VoidP
         void *void_ptr;
     };
 };
@@ -537,7 +537,7 @@ Value *kwarg_value_by_name(Env *env, Value *args, const char *name, Value *defau
 Value *args_to_array(Env *env, ssize_t argc, Value **args);
 Value *block_args_to_array(Env *env, ssize_t signature_size, ssize_t argc, Value **args);
 
-Value *encoding(Env *env, enum NatEncoding num, Value *names);
+Value *encoding(Env *env, Encoding num, Value *names);
 
 Value *eval_class_or_module_body(Env *env, Value *class_or_module, Value *(*fn)(Env *, Value *));
 

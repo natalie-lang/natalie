@@ -11,15 +11,15 @@ namespace Natalie {
 Value *File_initialize(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC2(1, 2); // TODO: Ruby accepts 3 args??
     Value *filename = args[0];
-    NAT_ASSERT_TYPE(filename, NAT_VALUE_STRING, "String");
+    NAT_ASSERT_TYPE(filename, ValueType::String, "String");
     int flags = O_RDONLY;
     if (argc > 1) {
         Value *flags_obj = args[1];
         switch (NAT_TYPE(flags_obj)) {
-        case NAT_VALUE_INTEGER:
+        case ValueType::Integer:
             flags = NAT_INT_VALUE(flags_obj);
             break;
-        case NAT_VALUE_STRING:
+        case ValueType::String:
             if (strcmp(flags_obj->str, "r") == 0) {
                 flags = O_RDONLY;
             } else if (strcmp(flags_obj->str, "r+") == 0) {
@@ -56,7 +56,7 @@ Value *File_initialize(Env *env, Value *self, ssize_t argc, Value **args, Block 
 Value *File_expand_path(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC2(1, 2);
     Value *path = args[0];
-    NAT_ASSERT_TYPE(path, NAT_VALUE_STRING, "String");
+    NAT_ASSERT_TYPE(path, ValueType::String, "String");
     if (path->str_len > 0 && path->str[0] == '/') {
         return path;
     }

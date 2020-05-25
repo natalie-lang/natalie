@@ -14,25 +14,25 @@ Value *Range_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block
 
 Value *Range_begin(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
-    assert(NAT_TYPE(self) == NAT_VALUE_RANGE);
+    assert(NAT_TYPE(self) == ValueType::Range);
     return self->range_begin;
 }
 
 Value *Range_end(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
-    assert(NAT_TYPE(self) == NAT_VALUE_RANGE);
+    assert(NAT_TYPE(self) == ValueType::Range);
     return self->range_end;
 }
 
 Value *Range_exclude_end(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
-    assert(NAT_TYPE(self) == NAT_VALUE_RANGE);
+    assert(NAT_TYPE(self) == ValueType::Range);
     return self->range_exclude_end ? NAT_TRUE : NAT_FALSE;
 }
 
 Value *Range_to_a(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
-    assert(NAT_TYPE(self) == NAT_VALUE_RANGE);
+    assert(NAT_TYPE(self) == ValueType::Range);
     Value *ary = array_new(env);
     Value *item = self->range_begin;
     const char *op = self->range_exclude_end ? "<" : "<=";
@@ -45,7 +45,7 @@ Value *Range_to_a(Env *env, Value *self, ssize_t argc, Value **args, Block *bloc
 
 Value *Range_each(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
-    assert(NAT_TYPE(self) == NAT_VALUE_RANGE);
+    assert(NAT_TYPE(self) == ValueType::Range);
     Value *item = self->range_begin;
     const char *op = self->range_exclude_end ? "<" : "<=";
     while (truthy(send(env, item, op, 1, &self->range_end, NULL))) {
@@ -57,7 +57,7 @@ Value *Range_each(Env *env, Value *self, ssize_t argc, Value **args, Block *bloc
 
 Value *Range_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
-    assert(NAT_TYPE(self) == NAT_VALUE_RANGE);
+    assert(NAT_TYPE(self) == ValueType::Range);
     if (self->range_exclude_end) {
         return sprintf(env, "%v...%v", self->range_begin, self->range_end);
     } else {
@@ -67,9 +67,9 @@ Value *Range_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *b
 
 Value *Range_eqeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
-    assert(NAT_TYPE(self) == NAT_VALUE_RANGE);
+    assert(NAT_TYPE(self) == ValueType::Range);
     Value *arg = args[0];
-    if (NAT_TYPE(arg) == NAT_VALUE_RANGE && truthy(send(env, self->range_begin, "==", 1, &arg->range_begin, NULL)) && truthy(send(env, self->range_end, "==", 1, &arg->range_end, NULL)) && self->range_exclude_end == arg->range_exclude_end) {
+    if (NAT_TYPE(arg) == ValueType::Range && truthy(send(env, self->range_begin, "==", 1, &arg->range_begin, NULL)) && truthy(send(env, self->range_end, "==", 1, &arg->range_end, NULL)) && self->range_exclude_end == arg->range_exclude_end) {
         return NAT_TRUE;
     } else {
         return NAT_FALSE;
@@ -78,9 +78,9 @@ Value *Range_eqeq(Env *env, Value *self, ssize_t argc, Value **args, Block *bloc
 
 Value *Range_eqeqeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
-    assert(NAT_TYPE(self) == NAT_VALUE_RANGE);
+    assert(NAT_TYPE(self) == ValueType::Range);
     Value *arg = args[0];
-    if (NAT_TYPE(self->range_begin) == NAT_VALUE_INTEGER && NAT_TYPE(arg) == NAT_VALUE_INTEGER) {
+    if (NAT_TYPE(self->range_begin) == ValueType::Integer && NAT_TYPE(arg) == ValueType::Integer) {
         // optimized path for integer ranges
         if (NAT_INT_VALUE(self->range_begin) <= NAT_INT_VALUE(arg) && ((self->range_exclude_end && NAT_INT_VALUE(arg) < NAT_INT_VALUE(self->range_end)) || (!self->range_exclude_end && NAT_INT_VALUE(arg) <= NAT_INT_VALUE(self->range_end)))) {
             return NAT_TRUE;

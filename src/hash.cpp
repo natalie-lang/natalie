@@ -22,13 +22,13 @@ Value *Hash_square_new(Env *env, Value *self, ssize_t argc, Value **args, Block 
         return hash_new(env);
     } else if (argc == 1) {
         Value *value = args[0];
-        if (NAT_TYPE(value) == NAT_VALUE_HASH) {
+        if (NAT_TYPE(value) == ValueType::Hash) {
             return value;
-        } else if (NAT_TYPE(value) == NAT_VALUE_ARRAY) {
+        } else if (NAT_TYPE(value) == ValueType::Array) {
             Value *hash = hash_new(env);
             for (ssize_t i = 0; i < vector_size(&value->ary); i++) {
                 Value *pair = static_cast<Value *>(vector_get(&value->ary, i));
-                if (NAT_TYPE(pair) != NAT_VALUE_ARRAY) {
+                if (NAT_TYPE(pair) != ValueType::Array) {
                     NAT_RAISE(env, "ArgumentError", "wrong element in array to Hash[]");
                 }
                 if (vector_size(&pair->ary) < 1 || vector_size(&pair->ary) > 2) {
@@ -55,7 +55,7 @@ Value *Hash_square_new(Env *env, Value *self, ssize_t argc, Value **args, Block 
 
 Value *Hash_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
-    assert(NAT_TYPE(self) == NAT_VALUE_HASH);
+    assert(NAT_TYPE(self) == ValueType::Hash);
     Value *out = string(env, "{");
     HashIter *iter;
     ssize_t last_index = self->hashmap.num_entries - 1;
@@ -76,7 +76,7 @@ Value *Hash_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *bl
 
 Value *Hash_ref(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
-    assert(NAT_TYPE(self) == NAT_VALUE_HASH);
+    assert(NAT_TYPE(self) == ValueType::Hash);
     Value *key = args[0];
     Value *val = hash_get(env, self, key);
     if (val) {
@@ -88,7 +88,7 @@ Value *Hash_ref(Env *env, Value *self, ssize_t argc, Value **args, Block *block)
 
 Value *Hash_refeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(2);
-    assert(NAT_TYPE(self) == NAT_VALUE_HASH);
+    assert(NAT_TYPE(self) == ValueType::Hash);
     NAT_ASSERT_NOT_FROZEN(self);
     Value *key = args[0];
     Value *val = args[1];
@@ -98,7 +98,7 @@ Value *Hash_refeq(Env *env, Value *self, ssize_t argc, Value **args, Block *bloc
 
 Value *Hash_delete(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
-    assert(NAT_TYPE(self) == NAT_VALUE_HASH);
+    assert(NAT_TYPE(self) == ValueType::Hash);
     NAT_ASSERT_NOT_FROZEN(self);
     Value *key = args[0];
     Value *val = hash_delete(env, self, key);
@@ -111,15 +111,15 @@ Value *Hash_delete(Env *env, Value *self, ssize_t argc, Value **args, Block *blo
 
 Value *Hash_size(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
-    assert(NAT_TYPE(self) == NAT_VALUE_HASH);
+    assert(NAT_TYPE(self) == ValueType::Hash);
     return integer(env, self->hashmap.num_entries);
 }
 
 Value *Hash_eqeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
-    assert(NAT_TYPE(self) == NAT_VALUE_HASH);
+    assert(NAT_TYPE(self) == ValueType::Hash);
     Value *other = args[0];
-    if (NAT_TYPE(other) != NAT_VALUE_HASH) {
+    if (NAT_TYPE(other) != ValueType::Hash) {
         return NAT_FALSE;
     }
     if (self->hashmap.num_entries != other->hashmap.num_entries) {
@@ -148,7 +148,7 @@ Value *Hash_eqeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block
 
 Value *Hash_each(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
-    assert(NAT_TYPE(self) == NAT_VALUE_HASH);
+    assert(NAT_TYPE(self) == ValueType::Hash);
     NAT_ASSERT_BLOCK(); // TODO: return Enumerator when no block given
     HashIter *iter;
     Value *block_args[2];
@@ -162,7 +162,7 @@ Value *Hash_each(Env *env, Value *self, ssize_t argc, Value **args, Block *block
 
 Value *Hash_keys(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
-    assert(NAT_TYPE(self) == NAT_VALUE_HASH);
+    assert(NAT_TYPE(self) == ValueType::Hash);
     Value *array = array_new(env);
     HashIter *iter;
     for (iter = hash_iter(env, self); iter; iter = hash_iter_next(env, self, iter)) {
@@ -173,7 +173,7 @@ Value *Hash_keys(Env *env, Value *self, ssize_t argc, Value **args, Block *block
 
 Value *Hash_values(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
-    assert(NAT_TYPE(self) == NAT_VALUE_HASH);
+    assert(NAT_TYPE(self) == ValueType::Hash);
     Value *array = array_new(env);
     HashIter *iter;
     for (iter = hash_iter(env, self); iter; iter = hash_iter_next(env, self, iter)) {
@@ -196,7 +196,7 @@ Value *Hash_sort(Env *env, Value *self, ssize_t argc, Value **args, Block *block
 
 Value *Hash_is_key(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
-    assert(NAT_TYPE(self) == NAT_VALUE_HASH);
+    assert(NAT_TYPE(self) == ValueType::Hash);
     Value *key = args[0];
     Value *val = hash_get(env, self, key);
     if (val) {

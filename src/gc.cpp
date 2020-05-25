@@ -56,7 +56,7 @@ static bool is_heap_ptr(Env *env, Value *ptr) {
     }
     HeapCell *cell = NAT_HEAP_CELL_FROM_OBJ(ptr);
     if (hashmap_get(env->global_env->heap_cells, cell)) {
-        if (ptr->type) {
+        if (static_cast<int>(ptr->type)) {
             return true;
         } else {
             return false;
@@ -141,12 +141,12 @@ static void trace_object(Env *env, Vector *cells, Value *obj) {
 
     HashKey *key;
     switch (obj->type) {
-    case NAT_VALUE_ARRAY:
+    case ValueType::Array:
         for (ssize_t i = 0; i < vector_size(&obj->ary); i++) {
             push_object(env, cells, static_cast<Value *>(vector_get(&obj->ary, i)));
         }
         break;
-    case NAT_VALUE_CLASS:
+    case ValueType::Class:
         push_object(env, cells, obj->superclass);
         for (ssize_t i = 0; i < obj->included_modules_count; i++) {
             push_object(env, cells, obj->included_modules[i]);
@@ -158,15 +158,15 @@ static void trace_object(Env *env, Vector *cells, Value *obj) {
             }
         }
         break;
-    case NAT_VALUE_ENCODING:
+    case ValueType::Encoding:
         push_object(env, cells, obj->encoding_names);
         break;
-    case NAT_VALUE_EXCEPTION:
+    case ValueType::Exception:
         push_object(env, cells, obj->backtrace);
         break;
-    case NAT_VALUE_FALSE:
+    case ValueType::False:
         break;
-    case NAT_VALUE_HASH:
+    case ValueType::Hash:
         if (obj->key_list) {
             key = obj->key_list;
             do {
@@ -178,13 +178,13 @@ static void trace_object(Env *env, Vector *cells, Value *obj) {
         push_object(env, cells, obj->hash_default_value);
         if (obj->hash_default_block && NAT_OBJ_HAS_ENV(obj->hash_default_block)) gather_from_env(cells, &obj->hash_default_block->env);
         break;
-    case NAT_VALUE_INTEGER:
+    case ValueType::Integer:
         break;
-    case NAT_VALUE_IO:
+    case ValueType::Io:
         break;
-    case NAT_VALUE_MATCHDATA:
+    case ValueType::MatchData:
         break;
-    case NAT_VALUE_MODULE:
+    case ValueType::Module:
         if (obj->methods.table) {
             for (iter = hashmap_iter(&obj->methods); iter; iter = hashmap_iter_next(&obj->methods, iter)) {
                 Method *method = (Method *)hashmap_iter_get_data(iter);
@@ -192,26 +192,26 @@ static void trace_object(Env *env, Vector *cells, Value *obj) {
             }
         }
         break;
-    case NAT_VALUE_NIL:
+    case ValueType::Nil:
         break;
-    case NAT_VALUE_OTHER:
+    case ValueType::Other:
         break;
-    case NAT_VALUE_PROC:
+    case ValueType::Proc:
         gather_from_env(cells, &obj->block->env);
         break;
-    case NAT_VALUE_RANGE:
+    case ValueType::Range:
         push_object(env, cells, obj->range_begin);
         push_object(env, cells, obj->range_end);
         break;
-    case NAT_VALUE_REGEXP:
+    case ValueType::Regexp:
         break;
-    case NAT_VALUE_STRING:
+    case ValueType::String:
         break;
-    case NAT_VALUE_SYMBOL:
+    case ValueType::Symbol:
         break;
-    case NAT_VALUE_TRUE:
+    case ValueType::True:
         break;
-    case NAT_VALUE_VOIDP:
+    case ValueType::VoidP:
         break;
     }
 }
@@ -245,16 +245,16 @@ static void destroy_hash_key_list(Value *obj) {
 }
 
 static bool free_object(Env *env, Value *obj) {
-    if (NAT_TYPE(obj) == NAT_VALUE_SYMBOL) return false;
+    if (NAT_TYPE(obj) == ValueType::Symbol) return false;
 
     if (obj->constants.table) hashmap_destroy(&obj->constants);
     if (obj->ivars.table) hashmap_destroy(&obj->ivars);
     struct hashmap_iter *iter;
     switch (obj->type) {
-    case NAT_VALUE_ARRAY:
+    case ValueType::Array:
         free(obj->ary.data);
         break;
-    case NAT_VALUE_CLASS:
+    case ValueType::Class:
         free(obj->class_name);
         if (obj->methods.table) {
             for (iter = hashmap_iter(&obj->methods); iter; iter = hashmap_iter_next(&obj->methods, iter)) {
@@ -266,14 +266,14 @@ static bool free_object(Env *env, Value *obj) {
         if (obj->cvars.table) hashmap_destroy(&obj->cvars);
         free(obj->included_modules);
         break;
-    case NAT_VALUE_ENCODING:
+    case ValueType::Encoding:
         break;
-    case NAT_VALUE_EXCEPTION:
+    case ValueType::Exception:
         free(obj->message);
         break;
-    case NAT_VALUE_FALSE:
+    case ValueType::False:
         break;
-    case NAT_VALUE_HASH:
+    case ValueType::Hash:
         destroy_hash_key_list(obj);
         for (iter = hashmap_iter(&obj->hashmap); iter; iter = hashmap_iter_next(&obj->hashmap, iter)) {
             free((HashVal *)hashmap_iter_get_data(iter));
@@ -281,15 +281,15 @@ static bool free_object(Env *env, Value *obj) {
         hashmap_destroy(&obj->hashmap);
         free(obj->hash_default_block);
         break;
-    case NAT_VALUE_INTEGER:
+    case ValueType::Integer:
         break;
-    case NAT_VALUE_IO:
+    case ValueType::Io:
         break;
-    case NAT_VALUE_MATCHDATA:
+    case ValueType::MatchData:
         onig_region_free(obj->matchdata_region, true);
         free(obj->matchdata_str);
         break;
-    case NAT_VALUE_MODULE:
+    case ValueType::Module:
         free(obj->class_name);
         if (obj->methods.table) {
             for (iter = hashmap_iter(&obj->methods); iter; iter = hashmap_iter_next(&obj->methods, iter)) {
@@ -301,31 +301,31 @@ static bool free_object(Env *env, Value *obj) {
         if (obj->cvars.table) hashmap_destroy(&obj->cvars);
         free(obj->included_modules);
         break;
-    case NAT_VALUE_NIL:
+    case ValueType::Nil:
         break;
-    case NAT_VALUE_OTHER:
+    case ValueType::Other:
         break;
-    case NAT_VALUE_PROC:
+    case ValueType::Proc:
         free(obj->block);
         break;
-    case NAT_VALUE_RANGE:
+    case ValueType::Range:
         break;
-    case NAT_VALUE_REGEXP:
+    case ValueType::Regexp:
         onig_free(obj->regexp);
         free(obj->regexp_str);
         break;
-    case NAT_VALUE_STRING:
+    case ValueType::String:
         free(obj->str);
         break;
-    case NAT_VALUE_SYMBOL:
+    case ValueType::Symbol:
         free(obj->symbol);
         break;
-    case NAT_VALUE_TRUE:
+    case ValueType::True:
         break;
-    case NAT_VALUE_VOIDP:
+    case ValueType::VoidP:
         break;
     }
-    obj->type = NAT_VALUE_NIL;
+    obj->type = ValueType::Nil;
     obj->klass = NAT_NIL->klass;
 
     return true;
@@ -474,7 +474,7 @@ double gc_bytes_available_ratio(Env *env) {
     return (double)env->global_env->bytes_available / (double)env->global_env->bytes_total;
 }
 
-Value *alloc(Env *env, Value *klass, enum NatValueType type) {
+Value *alloc(Env *env, Value *klass, ValueType type) {
 #ifdef NAT_GC_COLLECT_DEBUG
     gc_collect(env);
 #else

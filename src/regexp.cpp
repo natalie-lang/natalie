@@ -5,19 +5,19 @@ namespace Natalie {
 
 Value *Regexp_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
-    if (NAT_TYPE(args[0]) == NAT_VALUE_REGEXP) {
+    if (NAT_TYPE(args[0]) == ValueType::Regexp) {
         return regexp(env, args[0]->regexp_str);
     } else {
-        NAT_ASSERT_TYPE(args[0], NAT_VALUE_STRING, "String");
+        NAT_ASSERT_TYPE(args[0], ValueType::String, "String");
         return regexp(env, args[0]->str);
     }
 }
 
 Value *Regexp_eqeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
-    assert(NAT_TYPE(self) == NAT_VALUE_REGEXP);
+    assert(NAT_TYPE(self) == ValueType::Regexp);
     NAT_ASSERT_ARGC(1);
     Value *arg = args[0];
-    if (NAT_TYPE(arg) == NAT_VALUE_REGEXP && strcmp(self->regexp_str, arg->regexp_str) == 0) {
+    if (NAT_TYPE(arg) == ValueType::Regexp && strcmp(self->regexp_str, arg->regexp_str) == 0) {
         return NAT_TRUE;
     } else {
         return NAT_FALSE;
@@ -26,7 +26,7 @@ Value *Regexp_eqeq(Env *env, Value *self, ssize_t argc, Value **args, Block *blo
 
 Value *Regexp_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
-    assert(NAT_TYPE(self) == NAT_VALUE_REGEXP);
+    assert(NAT_TYPE(self) == ValueType::Regexp);
     Value *out = string(env, "/");
     string_append(env, out, self->regexp_str);
     string_append_char(env, out, '/');
@@ -35,10 +35,10 @@ Value *Regexp_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *
 
 Value *Regexp_eqtilde(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
-    assert(NAT_TYPE(self) == NAT_VALUE_REGEXP);
-    NAT_ASSERT_TYPE(args[0], NAT_VALUE_STRING, "String");
+    assert(NAT_TYPE(self) == ValueType::Regexp);
+    NAT_ASSERT_TYPE(args[0], ValueType::String, "String");
     Value *matchdata = Regexp_match(env, self, argc, args, block);
-    if (NAT_TYPE(matchdata) == NAT_VALUE_NIL) {
+    if (NAT_TYPE(matchdata) == ValueType::Nil) {
         return matchdata;
     } else {
         assert(matchdata->matchdata_region->num_regs > 0);
@@ -48,8 +48,8 @@ Value *Regexp_eqtilde(Env *env, Value *self, ssize_t argc, Value **args, Block *
 
 Value *Regexp_match(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
-    assert(NAT_TYPE(self) == NAT_VALUE_REGEXP);
-    NAT_ASSERT_TYPE(args[0], NAT_VALUE_STRING, "String");
+    assert(NAT_TYPE(self) == ValueType::Regexp);
+    NAT_ASSERT_TYPE(args[0], ValueType::String, "String");
     Value *str_obj = args[0];
     unsigned char *str = (unsigned char *)str_obj->str;
     int result;
