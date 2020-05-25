@@ -3,27 +3,27 @@
 
 namespace Natalie {
 
-NatObject *NilClass_to_s(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
+NatObject *NilClass_to_s(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_NIL);
     NAT_ASSERT_ARGC(0);
-    NatObject *out = nat_string(env, "");
+    NatObject *out = string(env, "");
     return out;
 }
 
-NatObject *NilClass_to_a(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
+NatObject *NilClass_to_a(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_NIL);
     NAT_ASSERT_ARGC(0);
-    return nat_array(env);
+    return array_new(env);
 }
 
-NatObject *NilClass_inspect(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
+NatObject *NilClass_inspect(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_NIL);
     NAT_ASSERT_ARGC(0);
-    NatObject *out = nat_string(env, "nil");
+    NatObject *out = string(env, "nil");
     return out;
 }
 
-NatObject *NilClass_is_nil(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
+NatObject *NilClass_is_nil(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_NIL);
     NAT_ASSERT_ARGC(0);
     return NAT_TRUE;

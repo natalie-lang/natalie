@@ -16,19 +16,19 @@ module Natalie
         process(ast)
       end
 
-      def process_nat_var_get(exp)
+      def process_var_get(exp)
         (_, env, var) = exp
         if var[:captured]
-          exp.new(:nat_var_get, env, s(:s, var[:name]), var[:index])
+          exp.new(:var_get, env, s(:s, var[:name]), var[:index])
         else
           exp.new(:l, "#{@compiler_context[:var_prefix]}#{var[:name]}#{var[:var_num]}")
         end
       end
 
-      def process_nat_var_set(exp)
+      def process_var_set(exp)
         (_, env, var, allocate, value) = exp
         if var[:captured]
-          exp.new(:nat_var_set, env, s(:s, var[:name]), var[:index], allocate, process(value))
+          exp.new(:var_set, env, s(:s, var[:name]), var[:index], allocate, process(value))
         else
           exp.new(:c_assign, "#{@compiler_context[:var_prefix]}#{var[:name]}#{var[:var_num]}", process(value))
         end

@@ -15,7 +15,7 @@ module Natalie
       def process_alias(exp)
         (_, (_, new_name), (_, old_name)) = exp
         exp.new(:block,
-          s(:nat_alias, :env, :self, s(:s, new_name), s(:s, old_name)),
+          s(:alias, :env, :self, s(:s, new_name), s(:s, old_name)),
           s(:nil))
       end
 
@@ -23,7 +23,7 @@ module Natalie
         (_, lhs, rhs) = exp
         lhs = process(lhs)
         rhs = process(rhs)
-        exp.new(:c_if, s(:nat_truthy, lhs), rhs, lhs)
+        exp.new(:c_if, s(:truthy, lhs), rhs, lhs)
       end
 
       def process_array(exp)
@@ -31,13 +31,13 @@ module Natalie
         arr = temp('arr')
         items = items.map do |item|
           if item.sexp_type == :splat
-            s(:nat_array_push_splat, :env, arr, process(item.last))
+            s(:array_push_splat, :env, arr, process(item.last))
           else
-            s(:nat_array_push, :env, arr, process(item))
+            s(:array_push, :env, arr, process(item))
           end
         end
         exp.new(:block,
-          s(:declare, arr, s(:nat_array, :env)),
+          s(:declare, arr, s(:array_new, :env)),
           *items.compact,
           arr)
       end
@@ -49,7 +49,7 @@ module Natalie
         else
           args = s(:args, *args.map { |n| process(n) })
         end
-        exp.new(:nat_send, process(receiver), method, args)
+        exp.new(:send, process(receiver), method, args)
       end
 
       def process_block(exp)
@@ -63,7 +63,7 @@ module Natalie
         break_name = temp('break_value')
         exp.new(:block,
           s(:declare, break_name, process(value)),
-          s(:nat_flag_break, break_name),
+          s(:flag_break, break_name),
           s(:c_return, break_name))
       end
 
@@ -79,18 +79,18 @@ module Natalie
         receiver = receiver ? process(receiver) : :self
         call = if is_super
                  if args.any?
-                   exp.new(:nat_super, args)
+                   exp.new(:super, args)
                  else
-                   exp.new(:nat_super, nil)
+                   exp.new(:super, nil)
                  end
                else
-                 exp.new(:nat_send, receiver, method, args)
+                 exp.new(:send, receiver, method, args)
                end
         if block_pass
           proc_name = temp('proc_to_block')
           call << "#{proc_name}->block"
           exp.new(:block,
-            s(:declare, proc_name, s(:nat_to_proc, :env, process(block_pass))),
+            s(:declare, proc_name, s(:to_proc, :env, process(block_pass))),
             call)
         else
           call << 'NULL'
@@ -107,7 +107,7 @@ module Natalie
           when_body = when_body.map { |w| process(w) }
           when_body = [s(:nil)] if when_body == [nil]
           matchers.each do |matcher|
-            cond << s(:nat_truthy, s(:nat_send, process(matcher), '===', s(:args, value_name), 'NULL'))
+            cond << s(:truthy, s(:send, process(matcher), '===', s(:args, value_name), 'NULL'))
             cond << s(:block, *when_body)
           end
         end
@@ -120,7 +120,7 @@ module Natalie
 
       def process_cdecl(exp)
         (_, name, value) = exp
-        exp.new(:nat_const_set, :env, :self, s(:s, name), process(value))
+        exp.new(:const_set, :env, :self, s(:s, name), process(value))
       end
 
       def process_class(exp)
@@ -130,12 +130,12 @@ module Natalie
         klass = temp('class')
         exp.new(:block,
           s(:class_fn, fn, process(s(:block, *body))),
-          s(:declare, klass, s(:nat_const_get_or_null, :env, :self, s(:s, name), s(:l, :true), s(:l, :true))),
+          s(:declare, klass, s(:const_get_or_null, :env, :self, s(:s, name), s(:l, :true), s(:l, :true))),
           s(:c_if, s(:not, klass),
             s(:block,
-              s(:set, klass, s(:nat_subclass, :env, process(superclass), s(:s, name))),
-              s(:nat_const_set, :env, :self, s(:s, name), klass))),
-          s(:nat_eval_class_or_module_body, :env, klass, fn))
+              s(:set, klass, s(:subclass, :env, process(superclass), s(:s, name))),
+              s(:const_set, :env, :self, s(:s, name), klass))),
+          s(:eval_class_or_module_body, :env, klass, fn))
       end
 
       def process_colon2(exp)
@@ -143,32 +143,32 @@ module Natalie
         parent_name = temp('parent')
         exp.new(:block,
           s(:declare, parent_name, process(parent)),
-          s(:nat_const_get, :env, parent_name, s(:s, name), s(:l, :true)))
+          s(:const_get, :env, parent_name, s(:s, name), s(:l, :true)))
       end
 
       def process_colon3(exp)
         (_, name) = exp
-        s(:nat_const_get, :env, s(:l, :NAT_OBJECT), s(:s, name), s(:l, :true))
+        s(:const_get, :env, s(:l, :NAT_OBJECT), s(:s, name), s(:l, :true))
       end
 
       def process_const(exp)
         (_, name) = exp
-        exp.new(:nat_const_get, :env, :self, s(:s, name), s(:l, :false))
+        exp.new(:const_get, :env, :self, s(:s, name), s(:l, :false))
       end
 
       def process_cvdecl(exp)
         (_, name, value) = exp
-        exp.new(:nat_cvar_set, :env, :self, s(:s, name), process(value))
+        exp.new(:cvar_set, :env, :self, s(:s, name), process(value))
       end
 
       def process_cvasgn(exp)
         (_, name, value) = exp
-        exp.new(:nat_cvar_set, :env, :self, s(:s, name), process(value))
+        exp.new(:cvar_set, :env, :self, s(:s, name), process(value))
       end
 
       def process_cvar(exp)
         (_, name) = exp
-        exp.new(:nat_cvar_get, :env, :self, s(:s, name))
+        exp.new(:cvar_get, :env, :self, s(:s, name))
       end
 
       def process_defined(exp)
@@ -182,26 +182,26 @@ module Natalie
         name = name.to_s
         fn_name = temp('fn')
         if args.last&.to_s&.start_with?('&')
-          block_arg = exp.new(:nat_var_set, :env, s(:s, args.pop.to_s[1..-1]), s(:nat_proc, :env, 'block'))
+          block_arg = exp.new(:var_set, :env, s(:s, args.pop.to_s[1..-1]), s(:proc_new, :env, 'block'))
         end
         args_name = temp('args_as_array')
         assign_args = s(:block,
-                        s(:declare, args_name, s(:nat_args_to_array, :env, s(:l, 'argc'), s(:l, 'args'))),
+                        s(:declare, args_name, s(:args_to_array, :env, s(:l, 'argc'), s(:l, 'args'))),
                         *prepare_args(args, args_name))
         method_body = process(s(:block, *body))
         if raises_local_jump_error?(method_body)
           # We only need to wrap method body in a rescue for LocalJumpError if there is a `return` inside a block.
-          method_body = s(:nat_rescue,
+          method_body = s(:rescue,
             method_body,
             s(:cond,
               s(:is_a, 'env->exception', process(s(:const, :LocalJumpError))),
               process(s(:call, s(:l, 'env->exception'), :exit_value)),
               s(:else),
-              s(:nat_raise_exception, :env, 'env->exception')))
+              s(:raise_exception, :env, 'env->exception')))
         end
         exp.new(:def_fn, fn_name,
           s(:block,
-            s(:nat_env_set_method_name, name),
+            s(:env_set_method_name, name),
             prepare_argc_assertion(args),
             assign_args,
             block_arg || s(:block),
@@ -213,8 +213,8 @@ module Natalie
         fn = process_defn_internal(exp)
         exp.new(:block,
           fn,
-          s(:nat_define_method, :env, :self, s(:s, name), fn[1]),
-          s(:nat_symbol, :env, s(:s, name)))
+          s(:define_method, :env, :self, s(:s, name), fn[1]),
+          s(:symbol, :env, s(:s, name)))
       end
 
       def process_defs(exp)
@@ -222,24 +222,24 @@ module Natalie
         fn = process_defn_internal(exp.new(:defs, name, args, *body))
         exp.new(:block,
           fn,
-          s(:nat_define_singleton_method, :env, process(owner), s(:s, name), fn[1]),
-          s(:nat_symbol, :env, s(:s, name)))
+          s(:define_singleton_method, :env, process(owner), s(:s, name), fn[1]),
+          s(:symbol, :env, s(:s, name)))
       end
 
       def process_dot2(exp)
         (_, beginning, ending) = exp
-        exp.new(:nat_range, :env, process(beginning), process(ending), 0)
+        exp.new(:range, :env, process(beginning), process(ending), 0)
       end
 
       def process_dot3(exp)
         (_, beginning, ending) = exp
-        exp.new(:nat_range, :env, process(beginning), process(ending), 1)
+        exp.new(:range, :env, process(beginning), process(ending), 1)
       end
 
       def process_dregx(exp)
         str_node = process_dstr(exp)
         str = str_node.pop
-        str_node << exp.new(:nat_regexp, :env, s(:l, "#{str}->str"))
+        str_node << exp.new(:regexp, :env, s(:l, "#{str}->str"))
         str_node
       end
 
@@ -249,15 +249,15 @@ module Natalie
         segments = rest.map do |segment|
           case segment.sexp_type
           when :evstr
-            s(:nat_string_append_nat_string, :env, string, process(s(:call, segment.last, :to_s)))
+            s(:string_append_string, :env, string, process(s(:call, segment.last, :to_s)))
           when :str
-            s(:nat_string_append, :env, string, s(:s, segment.last))
+            s(:string_append, :env, string, s(:s, segment.last))
           else
             raise "unknown dstr segment: #{segment.inspect}"
           end
         end
         exp.new(:block,
-          s(:declare, string, s(:nat_string, :env, s(:s, start))),
+          s(:declare, string, s(:string, :env, s(:s, start))),
           *segments,
           string)
       end
@@ -265,7 +265,7 @@ module Natalie
       def process_dsym(exp)
         str_node = process_dstr(exp)
         str = str_node.pop
-        str_node << exp.new(:nat_symbol, :env, s(:l, "#{str}->str"))
+        str_node << exp.new(:symbol, :env, s(:l, "#{str}->str"))
         str_node
       end
 
@@ -277,21 +277,21 @@ module Natalie
               body,
               s(:resbody, s(:array),
                 ensure_body,
-                s(:nat_raise_exception, :env, s(:l, 'env->exception')))),
+                s(:raise_exception, :env, s(:l, 'env->exception')))),
           ensure_body))
       end
 
       def process_gasgn(exp)
         (_, name, value) = exp
-        exp.new(:nat_global_set, :env, s(:s, name), process(value))
+        exp.new(:global_set, :env, s(:s, name), process(value))
       end
 
       def process_gvar(exp)
         (_, name) = exp
         if name == :$~
-          exp.new(:nat_last_match, :env)
+          exp.new(:last_match, :env)
         else
-          exp.new(:nat_global_get, :env, s(:s, name))
+          exp.new(:global_get, :env, s(:s, name))
         end
       end
 
@@ -299,17 +299,17 @@ module Natalie
         (_, *pairs) = exp
         hash = temp('hash')
         inserts = pairs.each_slice(2).map do |(key, val)|
-          s(:nat_hash_put, :env, hash, process(key), process(val))
+          s(:hash_put, :env, hash, process(key), process(val))
         end
         exp.new(:block,
-          s(:declare, hash, s(:nat_hash, :env)),
+          s(:declare, hash, s(:hash_new, :env)),
           s(:block, *inserts),
           hash)
       end
 
       def process_if(exp)
         (_, condition, true_body, false_body) = exp
-        condition = exp.new(:nat_truthy, process(condition))
+        condition = exp.new(:truthy, process(condition))
         exp.new(:c_if,
           condition,
           process(true_body || s(:nil)),
@@ -318,7 +318,7 @@ module Natalie
 
       def process_iasgn(exp)
         (_, name, value) = exp
-        exp.new(:nat_ivar_set, :env, :self, s(:s, name), process(value))
+        exp.new(:ivar_set, :env, :self, s(:s, name), process(value))
       end
 
       def process_inline_c(exp)
@@ -349,7 +349,7 @@ module Natalie
         (_, call, (_, *args), *body) = exp
         args = fix_unnecessary_nesting(args)
         if args.last&.to_s&.start_with?('&')
-          block_arg = exp.new(:nat_arg_set, :env, s(:s, args.pop.to_s[1..-1]), s(:nat_proc, :env, 'block'))
+          block_arg = exp.new(:arg_set, :env, s(:s, args.pop.to_s[1..-1]), s(:proc_new, :env, 'block'))
         end
         block_fn = temp('block_fn')
         block = block_fn.sub(/_fn/, '')
@@ -357,16 +357,16 @@ module Natalie
         call[call.size-1] = block
         args_name = temp('args_as_array')
         assign_args = s(:block,
-                        s(:declare, args_name, s(:nat_block_args_to_array, :env, args.size, s(:l, 'argc'), s(:l, 'args'))),
+                        s(:declare, args_name, s(:block_args_to_array, :env, args.size, s(:l, 'argc'), s(:l, 'args'))),
                         *prepare_args(args, args_name))
         exp.new(:block,
           s(:block_fn, block_fn,
             s(:block,
-              s(:nat_env_set_method_name, '<block>'),
+              s(:env_set_method_name, '<block>'),
               assign_args,
               block_arg || s(:block),
               process(s(:block, *body)))),
-          s(:declare_block, block, s(:nat_block, :env, :self, block_fn)),
+          s(:declare_block, block, s(:block_new, :env, :self, block_fn)),
           call)
       end
 
@@ -381,29 +381,29 @@ module Natalie
 
       def process_ivar(exp)
         (_, name) = exp
-        exp.new(:nat_ivar_get, :env, :self, s(:s, name))
+        exp.new(:ivar_get, :env, :self, s(:s, name))
       end
 
       def process_lambda(exp)
-        exp.new(:nat_lambda, :env, 'NULL') # note: the block gets overwritten by process_iter later
+        exp.new(:lambda, :env, 'NULL') # note: the block gets overwritten by process_iter later
       end
 
       def process_lasgn(exp)
         (_, name, val) = exp
-        exp.new(:nat_var_set, :env, s(:s, name), process(val))
+        exp.new(:var_set, :env, s(:s, name), process(val))
       end
 
       def process_lit(exp)
         lit = exp.last
         case lit
         when Integer
-          exp.new(:nat_integer, :env, lit)
+          exp.new(:integer, :env, lit)
         when Range
-          exp.new(:nat_range, :env, process_lit(s(:lit, lit.first)), process_lit(s(:lit, lit.last)), lit.exclude_end? ? 1 : 0)
+          exp.new(:range, :env, process_lit(s(:lit, lit.first)), process_lit(s(:lit, lit.last)), lit.exclude_end? ? 1 : 0)
         when Regexp
-          exp.new(:nat_regexp, :env, s(:s, lit.inspect[1...-1]))
+          exp.new(:regexp, :env, s(:s, lit.inspect[1...-1]))
         when Symbol
-          exp.new(:nat_symbol, :env, s(:s, lit))
+          exp.new(:symbol, :env, s(:s, lit))
         else
           raise "unknown lit: #{exp.inspect} (#{exp.file}\##{exp.line})"
         end
@@ -411,7 +411,7 @@ module Natalie
 
       def process_lvar(exp)
         (_, name) = exp
-        exp.new(:nat_var_get, :env, s(:s, name))
+        exp.new(:var_get, :env, s(:s, name))
       end
       
       def process_masgn(exp)
@@ -420,7 +420,7 @@ module Natalie
         val = val.last if val.sexp_type == :to_ary
         value_name = temp('masgn_value')
         s(:block,
-          s(:declare, value_name, s(:nat_to_ary, :env, process(val), s(:l, :false))),
+          s(:declare, value_name, s(:to_ary, :env, process(val), s(:l, :false))),
           *prepare_masgn(exp, value_name))
       end
 
@@ -429,11 +429,11 @@ module Natalie
           path = path_details[:path]
           if name.is_a?(Sexp)
             if name.sexp_type == :splat
-              value = s(:nat_array_value_by_path, :env, value_name, s(:nil), s(:l, :true), path_details[:offset_from_end], path.size, *path)
+              value = s(:array_value_by_path, :env, value_name, s(:nil), s(:l, :true), path_details[:offset_from_end], path.size, *path)
               prepare_masgn_set(name.last, value)
             else
               default_value = name.size == 3 ? process(name.pop) : s(:nil)
-              value = s(:nat_array_value_by_path, :env, value_name, default_value, s(:l, :false), 0, path.size, *path)
+              value = s(:array_value_by_path, :env, value_name, default_value, s(:l, :false), 0, path.size, *path)
               prepare_masgn_set(name, value)
             end
           else
@@ -484,15 +484,15 @@ module Natalie
           if name.is_a?(Sexp)
             case name.sexp_type
             when :splat
-              value = s(:nat_arg_value_by_path, :env, value_name, s(:nil), s(:l, :true), names.size, defaults.size, defaults_on_right ? s(:l, :true) : s(:l, :false), path_details[:offset_from_end], path.size, *path)
+              value = s(:arg_value_by_path, :env, value_name, s(:nil), s(:l, :true), names.size, defaults.size, defaults_on_right ? s(:l, :true) : s(:l, :false), path_details[:offset_from_end], path.size, *path)
               prepare_masgn_set(name.last, value, arg: true)
             when :kwarg
               default_value = name[2] ? process(name[2]) : 'NULL'
-              value = s(:nat_kwarg_value_by_name, :env, value_name, s(:s, name[1]), default_value)
+              value = s(:kwarg_value_by_name, :env, value_name, s(:s, name[1]), default_value)
               prepare_masgn_set(name, value, arg: true)
             else
               default_value = name.size == 3 ? process(name.pop) : s(:nil)
-              value = s(:nat_arg_value_by_path, :env, value_name, default_value, s(:l, :false), names.size, defaults.size, defaults_on_right ? s(:l, :true) : s(:l, :false), 0, path.size, *path)
+              value = s(:arg_value_by_path, :env, value_name, default_value, s(:l, :false), names.size, defaults.size, defaults_on_right ? s(:l, :true) : s(:l, :false), 0, path.size, *path)
               prepare_masgn_set(name, value, arg: true)
             end
           else
@@ -537,16 +537,16 @@ module Natalie
       def prepare_masgn_set(exp, value, arg: false)
         case exp.sexp_type
         when :cdecl
-          s(:nat_const_set, :env, :self, s(:s, exp.last), value)
+          s(:const_set, :env, :self, s(:s, exp.last), value)
         when :gasgn
-          s(:nat_global_set, :env, s(:s, exp.last), value)
+          s(:global_set, :env, s(:s, exp.last), value)
         when :iasgn
-          s(:nat_ivar_set, :env, :self, s(:s, exp.last), value)
+          s(:ivar_set, :env, :self, s(:s, exp.last), value)
         when :lasgn, :kwarg
           if arg
-            s(:nat_arg_set, :env, s(:s, exp[1]), value)
+            s(:arg_set, :env, s(:s, exp[1]), value)
           else
-            s(:nat_var_set, :env, s(:s, exp[1]), value)
+            s(:var_set, :env, s(:s, exp[1]), value)
           end
         else
           raise "unknown masgn type: #{exp.inspect} (#{exp.file}\##{exp.line})"
@@ -578,12 +578,12 @@ module Natalie
 
       def process_match2(exp)
         (_, regexp, string) = exp
-        s(:nat_send, process(regexp), "=~", s(:args, process(string)))
+        s(:send, process(regexp), "=~", s(:args, process(string)))
       end
 
       def process_match3(exp)
         (_, string, regexp) = exp
-        s(:nat_send, process(regexp), "=~", s(:args, process(string)))
+        s(:send, process(regexp), "=~", s(:args, process(string)))
       end
 
       def process_module(exp)
@@ -592,12 +592,12 @@ module Natalie
         mod = temp('module')
         exp.new(:block,
           s(:module_fn, fn, process(s(:block, *body))),
-          s(:declare, mod, s(:nat_const_get_or_null, :env, :self, s(:s, name), s(:l, :true), s(:l, :true))),
+          s(:declare, mod, s(:const_get_or_null, :env, :self, s(:s, name), s(:l, :true), s(:l, :true))),
           s(:c_if, s(:not, mod),
             s(:block,
-              s(:set, mod, s(:nat_module, :env, s(:s, name))),
-              s(:nat_const_set, :env, :self, s(:s, name), mod))),
-          s(:nat_eval_class_or_module_body, :env, mod, fn))
+              s(:set, mod, s(:module, :env, s(:s, name))),
+              s(:const_set, :env, :self, s(:s, name), mod))),
+          s(:eval_class_or_module_body, :env, mod, fn))
       end
 
       def process_next(exp)
@@ -610,8 +610,8 @@ module Natalie
         (_, num) = exp
         match = temp('match')
         exp.new(:block,
-          s(:declare, match, s(:nat_last_match, :env)),
-          s(:c_if, s(:nat_truthy, match), s(:nat_send, match, :[], s(:args, s(:nat_integer, :env, num))), s(:nil)))
+          s(:declare, match, s(:last_match, :env)),
+          s(:c_if, s(:truthy, match), s(:send, match, :[], s(:args, s(:integer, :env, num))), s(:nil)))
       end
 
       def process_op_asgn1(exp)
@@ -621,10 +621,10 @@ module Natalie
         if op == :"||"
           exp.new(:block,
             s(:declare, obj_name, process(obj)),
-            s(:declare, val, s(:nat_send, obj_name, :[], s(:args, *key_args.map { |a| process(a) }), 'NULL')),
-            s(:c_if, s(:nat_truthy, val),
+            s(:declare, val, s(:send, obj_name, :[], s(:args, *key_args.map { |a| process(a) }), 'NULL')),
+            s(:c_if, s(:truthy, val),
               val,
-              s(:nat_send, obj_name, :[]=,
+              s(:send, obj_name, :[]=,
                 s(:args,
                   *key_args.map { |a| process(a) },
                   *val_args.map { |a| process(a) }),
@@ -633,12 +633,12 @@ module Natalie
           exp.new(:block,
             s(:declare, obj_name, process(obj)),
             s(:declare, val,
-              s(:nat_send,
-                s(:nat_send, obj_name, :[], s(:args, *key_args.map { |a| process(a) }), 'NULL'),
+              s(:send,
+                s(:send, obj_name, :[], s(:args, *key_args.map { |a| process(a) }), 'NULL'),
                 op,
                 s(:args, *val_args.map { |a| process(a) }),
                 'NULL')),
-            s(:nat_send, obj_name, :[]=,
+            s(:send, obj_name, :[]=,
               s(:args,
                 *key_args.map { |a| process(a) },
                 val),
@@ -647,11 +647,11 @@ module Natalie
       end
 
       def process_op_asgn_and(exp)
-        process_op_asgn_bool(exp, condition: ->(result_name) { s(:not, s(:nat_truthy, result_name)) })
+        process_op_asgn_bool(exp, condition: ->(result_name) { s(:not, s(:truthy, result_name)) })
       end
 
       def process_op_asgn_or(exp)
-        process_op_asgn_bool(exp, condition: ->(result_name) { s(:nat_truthy, result_name) })
+        process_op_asgn_bool(exp, condition: ->(result_name) { s(:truthy, result_name) })
       end
 
       def process_op_asgn_bool(exp, condition:)
@@ -660,22 +660,22 @@ module Natalie
         when :cvar
           result_name = temp('cvar')
           exp.new(:block,
-            s(:declare, result_name, s(:nat_cvar_get_or_null, :env, :self, s(:s, name))),
+            s(:declare, result_name, s(:cvar_get_or_null, :env, :self, s(:s, name))),
             s(:c_if, condition.(result_name), result_name, process(value)))
         when :gvar
           result_name = temp('gvar')
           exp.new(:block,
-            s(:declare, result_name, s(:nat_global_get, :env, s(:s, name))),
+            s(:declare, result_name, s(:global_get, :env, s(:s, name))),
             s(:c_if, condition.(result_name), result_name, process(value)))
         when :ivar
           result_name = temp('ivar')
           exp.new(:block,
-            s(:declare, result_name, s(:nat_ivar_get, :env, :self, s(:s, name))),
+            s(:declare, result_name, s(:ivar_get, :env, :self, s(:s, name))),
             s(:c_if, condition.(result_name), result_name, process(value)))
         when :lvar
           var = process(s(:lvar, name))
           exp.new(:block,
-            s(:nat_var_declare, :env, s(:s, name)),
+            s(:var_declare, :env, s(:s, name)),
             s(:c_if, s(:defined, s(:lvar, name)),
               s(:c_if, condition.(var),
                 var,
@@ -689,7 +689,7 @@ module Natalie
         (_, lhs, rhs) = exp
         lhs = process(lhs)
         rhs = process(rhs)
-        exp.new(:c_if, s(:not, s(:nat_truthy, lhs)), rhs, lhs)
+        exp.new(:c_if, s(:not, s(:truthy, lhs)), rhs, lhs)
       end
 
       def process_rescue(exp)
@@ -708,7 +708,7 @@ module Natalie
           rescue_block << (lasgn ? s(:block, process(lasgn), *resbody) : s(:block, *resbody))
         end
         rescue_block << s(:else)
-        rescue_block << s(:block, s(:nat_raise_exception, :env, 'env->exception'))
+        rescue_block << s(:block, s(:raise_exception, :env, 'env->exception'))
         if else_body
           body << s(:clear_jump_buf)
           body << else_body
@@ -717,17 +717,17 @@ module Natalie
         exp.new(:block,
           s(:begin_fn, begin_fn,
             s(:block,
-              s(:nat_rescue,
+              s(:rescue,
                 s(:block, *body.map { |n| process(n) }),
                 rescue_block))),
-          s(:nat_call_begin, :env, :self, begin_fn))
+          s(:call_begin, :env, :self, begin_fn))
       end
 
       def process_return(exp)
         (_, value) = exp
         enclosing = context.detect { |n| %i[defn defs iter].include?(n) }
         if enclosing == :iter
-          exp.new(:nat_raise_local_jump_error, :env, process(value), s(:s, "unexpected return"))
+          exp.new(:raise_local_jump_error, :env, process(value), s(:s, "unexpected return"))
         else
           exp.new(:c_return, process(value) || s(:nil))
         end
@@ -735,13 +735,13 @@ module Natalie
 
       def process_sclass(exp)
         (_, obj, *body) = exp
-        exp.new(:with_self, s(:nat_singleton_class, :env, process(obj)),
+        exp.new(:with_self, s(:singleton_class, :env, process(obj)),
           s(:block, *body.map { |n| process(n) }))
       end
 
       def process_str(exp)
         (_, str) = exp
-        exp.new(:nat_string, :env, s(:s, str))
+        exp.new(:string, :env, s(:s, str))
       end
 
       def process_super(exp)
@@ -752,7 +752,7 @@ module Natalie
       def process_svalue(exp)
         (_, (type, value)) = exp
         raise "Unknown svalue type #{type.inspect}" unless type == :splat
-        exp.new(:nat_splat, :env, process(value))
+        exp.new(:splat, :env, process(value))
       end
 
       def process_while(exp)
@@ -762,7 +762,7 @@ module Natalie
         exp.new(:block,
           s(:c_while, 'true',
             s(:block,
-              s(:c_if, s(:not, s(:nat_truthy, process(condition))), s(:c_break)),
+              s(:c_if, s(:not, s(:truthy, process(condition))), s(:c_break)),
               process(body))),
           s(:nil))
       end
@@ -778,7 +778,7 @@ module Natalie
       end
 
       def process_zsuper(exp)
-        exp.new(:nat_super, s(:args))
+        exp.new(:super, s(:args))
       end
 
       def temp(name)
@@ -789,7 +789,7 @@ module Natalie
       def raises_local_jump_error?(exp, my_context: [])
         if exp.is_a?(Sexp)
           case exp.sexp_type
-          when :nat_raise_local_jump_error
+          when :raise_local_jump_error
             return true if my_context.include?(:block_fn)
           when :def_fn # method within a method (unusual, but allowed!)
             return false

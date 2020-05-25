@@ -3,9 +3,9 @@
 
 namespace Natalie {
 
-void *nat_gc_abort_if_collected = NULL;
+void *gc_abort_if_collected = NULL;
 
-static void push_cell(NatEnv *env, NatVector *cells, NatHeapCell *cell) {
+static void push_cell(Env *env, Vector *cells, HeapCell *cell) {
     if (!cell) return;
 
     // TODO: remove this check later :-)
@@ -14,12 +14,12 @@ static void push_cell(NatEnv *env, NatVector *cells, NatHeapCell *cell) {
         abort();
     }
 
-    nat_vector_push(cells, cell);
+    vector_push(cells, cell);
 }
 
 // TODO: remove this check later :-)
-static void verify_env_is_valid(NatEnv *env) {
-    NatEnv *e = env;
+static void verify_env_is_valid(Env *env) {
+    Env *e = env;
     int depth = 0;
     while (e->caller) {
         depth++;
@@ -31,17 +31,17 @@ static void verify_env_is_valid(NatEnv *env) {
     }
 }
 
-static void push_nat_object(NatEnv *env, NatVector *cells, NatObject *obj) {
+static void push_object(Env *env, Vector *cells, NatObject *obj) {
     if (!obj) return;
     if (NAT_IS_TAGGED_INT(obj)) return;
     push_cell(env, cells, NAT_HEAP_CELL_FROM_OBJ(obj));
 }
 
-static void gather_from_env(NatVector *cells, NatEnv *env) {
-    for (ssize_t i = 0; i < nat_vector_size(env->vars); i++) {
-        push_nat_object(env, cells, static_cast<NatObject *>(nat_vector_get(env->vars, i)));
+static void gather_from_env(Vector *cells, Env *env) {
+    for (ssize_t i = 0; i < vector_size(env->vars); i++) {
+        push_object(env, cells, static_cast<NatObject *>(vector_get(env->vars, i)));
     }
-    push_nat_object(env, cells, env->exception);
+    push_object(env, cells, env->exception);
     if (env->outer) {
         gather_from_env(cells, env->outer);
     }
@@ -50,11 +50,11 @@ static void gather_from_env(NatVector *cells, NatEnv *env) {
     }
 }
 
-static bool is_heap_ptr(NatEnv *env, NatObject *ptr) {
-    if ((NatHeapCell *)ptr < env->global_env->min_ptr || (NatHeapCell *)ptr > env->global_env->max_ptr) {
+static bool is_heap_ptr(Env *env, NatObject *ptr) {
+    if ((HeapCell *)ptr < env->global_env->min_ptr || (HeapCell *)ptr > env->global_env->max_ptr) {
         return false;
     }
-    NatHeapCell *cell = NAT_HEAP_CELL_FROM_OBJ(ptr);
+    HeapCell *cell = NAT_HEAP_CELL_FROM_OBJ(ptr);
     if (hashmap_get(env->global_env->heap_cells, cell)) {
         if (ptr->type) {
             return true;
@@ -66,13 +66,13 @@ static bool is_heap_ptr(NatEnv *env, NatObject *ptr) {
     }
 }
 
-static NatVector *gather_roots(NatEnv *env) {
-    NatGlobalEnv *global_env = env->global_env;
+static Vector *gather_roots(Env *env) {
+    GlobalEnv *global_env = env->global_env;
     jmp_buf jump_buf;
     setjmp(jump_buf);
     void *dummy;
     void *top_of_stack = &dummy;
-    NatVector *roots = nat_vector(10);
+    Vector *roots = vector(10);
     if (global_env->bottom_of_stack < top_of_stack) {
         fprintf(stderr, "Unsupported platform\n");
         abort();
@@ -83,25 +83,25 @@ static NatVector *gather_roots(NatEnv *env) {
             push_cell(env, roots, NAT_HEAP_CELL_FROM_OBJ(ptr));
         }
     }
-    push_nat_object(env, roots, global_env->Object);
-    push_nat_object(env, roots, global_env->Integer);
-    push_nat_object(env, roots, global_env->nil);
-    push_nat_object(env, roots, global_env->true_obj);
-    push_nat_object(env, roots, global_env->false_obj);
+    push_object(env, roots, global_env->Object);
+    push_object(env, roots, global_env->Integer);
+    push_object(env, roots, global_env->nil);
+    push_object(env, roots, global_env->true_obj);
+    push_object(env, roots, global_env->false_obj);
     struct hashmap_iter *iter;
     for (iter = hashmap_iter(global_env->globals); iter; iter = hashmap_iter_next(global_env->globals, iter)) {
         NatObject *obj = (NatObject *)hashmap_iter_get_data(iter);
-        push_nat_object(env, roots, obj);
+        push_object(env, roots, obj);
     }
     verify_env_is_valid(env);
     gather_from_env(roots, env);
     return roots;
 }
 
-static void unmark_all_cells(NatEnv *env) {
-    NatHeapBlock *block = env->global_env->heap;
+static void unmark_all_cells(Env *env) {
+    HeapBlock *block = env->global_env->heap;
     do {
-        NatHeapCell *cell = block->used_list;
+        HeapCell *cell = block->used_list;
         while (cell) {
             cell->mark = false;
             cell = cell->next;
@@ -110,59 +110,59 @@ static void unmark_all_cells(NatEnv *env) {
     } while (block);
 }
 
-static void trace_nat_object(NatEnv *env, NatVector *cells, NatObject *obj) {
-    push_nat_object(env, cells, NAT_OBJ_CLASS(obj));
-    push_nat_object(env, cells, obj->owner);
-    push_nat_object(env, cells, obj->singleton_class);
+static void trace_object(Env *env, Vector *cells, NatObject *obj) {
+    push_object(env, cells, NAT_OBJ_CLASS(obj));
+    push_object(env, cells, obj->owner);
+    push_object(env, cells, obj->singleton_class);
     struct hashmap_iter *iter;
     if (obj->constants.table) {
         for (iter = hashmap_iter(&obj->constants); iter; iter = hashmap_iter_next(&obj->constants, iter)) {
             NatObject *o = (NatObject *)hashmap_iter_get_data(iter);
-            push_nat_object(env, cells, o);
+            push_object(env, cells, o);
         }
     }
     if (obj->ivars.table) {
         for (iter = hashmap_iter(&obj->ivars); iter; iter = hashmap_iter_next(&obj->ivars, iter)) {
             NatObject *o = (NatObject *)hashmap_iter_get_data(iter);
-            push_nat_object(env, cells, o);
+            push_object(env, cells, o);
         }
     }
     if (obj->cvars.table) {
         for (iter = hashmap_iter(&obj->cvars); iter; iter = hashmap_iter_next(&obj->cvars, iter)) {
             NatObject *o = (NatObject *)hashmap_iter_get_data(iter);
-            push_nat_object(env, cells, o);
+            push_object(env, cells, o);
         }
     }
 
     if (NAT_OBJ_HAS_ENV(obj)) {
-        assert(!obj->env.caller); // NatEnv caller should never exist on an object!
+        assert(!obj->env.caller); // Env caller should never exist on an object!
         gather_from_env(cells, &obj->env);
     }
 
-    NatHashKey *key;
+    HashKey *key;
     switch (obj->type) {
     case NAT_VALUE_ARRAY:
-        for (ssize_t i = 0; i < nat_vector_size(&obj->ary); i++) {
-            push_nat_object(env, cells, static_cast<NatObject *>(nat_vector_get(&obj->ary, i)));
+        for (ssize_t i = 0; i < vector_size(&obj->ary); i++) {
+            push_object(env, cells, static_cast<NatObject *>(vector_get(&obj->ary, i)));
         }
         break;
     case NAT_VALUE_CLASS:
-        push_nat_object(env, cells, obj->superclass);
+        push_object(env, cells, obj->superclass);
         for (ssize_t i = 0; i < obj->included_modules_count; i++) {
-            push_nat_object(env, cells, obj->included_modules[i]);
+            push_object(env, cells, obj->included_modules[i]);
         }
         if (obj->methods.table) {
             for (iter = hashmap_iter(&obj->methods); iter; iter = hashmap_iter_next(&obj->methods, iter)) {
-                NatMethod *method = (NatMethod *)hashmap_iter_get_data(iter);
+                Method *method = (Method *)hashmap_iter_get_data(iter);
                 if (NAT_OBJ_HAS_ENV(method)) gather_from_env(cells, &method->env);
             }
         }
         break;
     case NAT_VALUE_ENCODING:
-        push_nat_object(env, cells, obj->encoding_names);
+        push_object(env, cells, obj->encoding_names);
         break;
     case NAT_VALUE_EXCEPTION:
-        push_nat_object(env, cells, obj->backtrace);
+        push_object(env, cells, obj->backtrace);
         break;
     case NAT_VALUE_FALSE:
         break;
@@ -170,12 +170,12 @@ static void trace_nat_object(NatEnv *env, NatVector *cells, NatObject *obj) {
         if (obj->key_list) {
             key = obj->key_list;
             do {
-                push_nat_object(env, cells, key->key);
-                push_nat_object(env, cells, key->val);
+                push_object(env, cells, key->key);
+                push_object(env, cells, key->val);
                 key = key->next;
             } while (key != obj->key_list);
         }
-        push_nat_object(env, cells, obj->hash_default_value);
+        push_object(env, cells, obj->hash_default_value);
         if (obj->hash_default_block && NAT_OBJ_HAS_ENV(obj->hash_default_block)) gather_from_env(cells, &obj->hash_default_block->env);
         break;
     case NAT_VALUE_INTEGER:
@@ -187,7 +187,7 @@ static void trace_nat_object(NatEnv *env, NatVector *cells, NatObject *obj) {
     case NAT_VALUE_MODULE:
         if (obj->methods.table) {
             for (iter = hashmap_iter(&obj->methods); iter; iter = hashmap_iter_next(&obj->methods, iter)) {
-                NatMethod *method = (NatMethod *)hashmap_iter_get_data(iter);
+                Method *method = (Method *)hashmap_iter_get_data(iter);
                 if (NAT_OBJ_HAS_ENV(method)) gather_from_env(cells, &method->env);
             }
         }
@@ -200,8 +200,8 @@ static void trace_nat_object(NatEnv *env, NatVector *cells, NatObject *obj) {
         gather_from_env(cells, &obj->block->env);
         break;
     case NAT_VALUE_RANGE:
-        push_nat_object(env, cells, obj->range_begin);
-        push_nat_object(env, cells, obj->range_end);
+        push_object(env, cells, obj->range_begin);
+        push_object(env, cells, obj->range_end);
         break;
     case NAT_VALUE_REGEXP:
         break;
@@ -216,35 +216,35 @@ static void trace_nat_object(NatEnv *env, NatVector *cells, NatObject *obj) {
     }
 }
 
-static void mark_live_cells(NatEnv *env) {
-    NatVector *cells = gather_roots(env);
+static void mark_live_cells(Env *env) {
+    Vector *cells = gather_roots(env);
 
-    for (ssize_t o = 0; o < nat_vector_size(cells); o++) {
-        NatHeapCell *cell = static_cast<NatHeapCell *>(nat_vector_get(cells, o));
+    for (ssize_t o = 0; o < vector_size(cells); o++) {
+        HeapCell *cell = static_cast<HeapCell *>(vector_get(cells, o));
 
         if (cell->mark) continue;
 
         cell->mark = true;
 
         // TODO: branch based on type somehow
-        trace_nat_object(env, cells, static_cast<NatObject *>(NAT_HEAP_OBJ_FROM_CELL(cell)));
+        trace_object(env, cells, static_cast<NatObject *>(NAT_HEAP_OBJ_FROM_CELL(cell)));
     }
 
-    nat_vector_free(cells);
+    vector_free(cells);
 }
 
 static void destroy_hash_key_list(NatObject *obj) {
     if (obj->key_list) {
-        NatHashKey *key = obj->key_list;
+        HashKey *key = obj->key_list;
         do {
-            NatHashKey *next_key = key->next;
+            HashKey *next_key = key->next;
             free(key);
             key = next_key;
         } while (key != obj->key_list);
     }
 }
 
-static bool free_nat_object(NatEnv *env, NatObject *obj) {
+static bool free_object(Env *env, NatObject *obj) {
     if (NAT_TYPE(obj) == NAT_VALUE_SYMBOL) return false;
 
     if (obj->constants.table) hashmap_destroy(&obj->constants);
@@ -258,7 +258,7 @@ static bool free_nat_object(NatEnv *env, NatObject *obj) {
         free(obj->class_name);
         if (obj->methods.table) {
             for (iter = hashmap_iter(&obj->methods); iter; iter = hashmap_iter_next(&obj->methods, iter)) {
-                NatMethod *method = (NatMethod *)hashmap_iter_get_data(iter);
+                Method *method = (Method *)hashmap_iter_get_data(iter);
                 free(method);
             }
             hashmap_destroy(&obj->methods);
@@ -276,7 +276,7 @@ static bool free_nat_object(NatEnv *env, NatObject *obj) {
     case NAT_VALUE_HASH:
         destroy_hash_key_list(obj);
         for (iter = hashmap_iter(&obj->hashmap); iter; iter = hashmap_iter_next(&obj->hashmap, iter)) {
-            free((NatHashVal *)hashmap_iter_get_data(iter));
+            free((HashVal *)hashmap_iter_get_data(iter));
         }
         hashmap_destroy(&obj->hashmap);
         free(obj->hash_default_block);
@@ -293,7 +293,7 @@ static bool free_nat_object(NatEnv *env, NatObject *obj) {
         free(obj->class_name);
         if (obj->methods.table) {
             for (iter = hashmap_iter(&obj->methods); iter; iter = hashmap_iter_next(&obj->methods, iter)) {
-                NatMethod *method = (NatMethod *)hashmap_iter_get_data(iter);
+                Method *method = (Method *)hashmap_iter_get_data(iter);
                 free(method);
             }
             hashmap_destroy(&obj->methods);
@@ -331,8 +331,8 @@ static bool free_nat_object(NatEnv *env, NatObject *obj) {
     return true;
 }
 
-static NatHeapCell *find_sibling_heap_cell(NatHeapCell *first_cell, NatHeapCell *cell) {
-    NatHeapCell *sibling_cell = first_cell;
+static HeapCell *find_sibling_heap_cell(HeapCell *first_cell, HeapCell *cell) {
+    HeapCell *sibling_cell = first_cell;
     while (sibling_cell) {
         if (sibling_cell->next == cell) {
             return sibling_cell;
@@ -342,37 +342,37 @@ static NatHeapCell *find_sibling_heap_cell(NatHeapCell *first_cell, NatHeapCell 
     return NULL;
 }
 
-static void collect_cell(NatEnv *env, NatHeapBlock *block, NatHeapCell *cell) {
+static void collect_cell(Env *env, HeapBlock *block, HeapCell *cell) {
     void *obj = NAT_HEAP_OBJ_FROM_CELL(cell);
 
-    if (obj == nat_gc_abort_if_collected) {
+    if (obj == gc_abort_if_collected) {
         printf("%p was collected!\n", obj);
         abort();
     }
 
     // TODO: branch based on type somehow
-    if (!free_nat_object(env, static_cast<NatObject *>(obj))) return;
+    if (!free_object(env, static_cast<NatObject *>(obj))) return;
     memset(obj, 0, cell->size);
 
     if (cell == block->used_list) { // first cell in list
         block->used_list = cell->next;
     } else {
-        NatHeapCell *sibling_cell = find_sibling_heap_cell(block->used_list, cell);
+        HeapCell *sibling_cell = find_sibling_heap_cell(block->used_list, cell);
         assert(sibling_cell);
         sibling_cell->next = cell->next;
     }
 
-    nat_list_prepend(&block->free_list, cell); // TODO: merge with adjacent cells if possible
+    list_prepend(&block->free_list, cell); // TODO: merge with adjacent cells if possible
 
     env->global_env->bytes_available += cell->size;
 }
 
-static void collect_dead_cells(NatEnv *env) {
-    NatHeapBlock *block = env->global_env->heap;
+static void collect_dead_cells(Env *env) {
+    HeapBlock *block = env->global_env->heap;
     while (block) {
-        NatHeapCell *cell = block->used_list;
+        HeapCell *cell = block->used_list;
         while (cell) {
-            NatHeapCell *next_cell = cell->next;
+            HeapCell *next_cell = cell->next;
             if (!cell->mark) {
                 collect_cell(env, block, cell);
             }
@@ -382,23 +382,23 @@ static void collect_dead_cells(NatEnv *env) {
     }
 }
 
-void nat_gc_init(NatEnv *env, void *bottom_of_stack) {
+void gc_init(Env *env, void *bottom_of_stack) {
     env->global_env->bottom_of_stack = bottom_of_stack;
     env->global_env->gc_enabled = true;
 }
 
-NatHeapBlock *nat_gc_alloc_heap_block(NatGlobalEnv *global_env) {
-    NatHeapBlock *block = static_cast<NatHeapBlock *>(calloc(1, NAT_HEAP_BLOCK_SIZE));
-    NatHeapCell *cell = NAT_HEAP_BLOCK_FIRST_CELL(block);
+HeapBlock *gc_alloc_heap_block(GlobalEnv *global_env) {
+    HeapBlock *block = static_cast<HeapBlock *>(calloc(1, NAT_HEAP_BLOCK_SIZE));
+    HeapCell *cell = NAT_HEAP_BLOCK_FIRST_CELL(block);
     cell->size = NAT_HEAP_BLOCK_SIZE - NAT_HEAP_BLOCK_HEADER_SIZE - NAT_HEAP_CELL_HEADER_SIZE;
     hashmap_put(global_env->heap_cells, cell, block);
     block->free_list = cell;
-    nat_list_prepend(&global_env->heap, block);
-    NatHeapCell *max = (NatHeapCell *)((char *)block + NAT_HEAP_BLOCK_SIZE);
+    list_prepend(&global_env->heap, block);
+    HeapCell *max = (HeapCell *)((char *)block + NAT_HEAP_BLOCK_SIZE);
     if (max > global_env->max_ptr) {
         global_env->max_ptr = max;
     }
-    NatHeapCell *min = (NatHeapCell *)((char *)block + NAT_HEAP_BLOCK_HEADER_SIZE);
+    HeapCell *min = (HeapCell *)((char *)block + NAT_HEAP_BLOCK_HEADER_SIZE);
     if (min < global_env->min_ptr) {
         global_env->min_ptr = min;
     }
@@ -408,17 +408,17 @@ NatHeapBlock *nat_gc_alloc_heap_block(NatGlobalEnv *global_env) {
     return block;
 }
 
-NatObject *nat_gc_malloc(NatEnv *env) {
+NatObject *gc_malloc(Env *env) {
     ssize_t size = sizeof(NatObject);
-    NatHeapBlock *block = env->global_env->heap;
+    HeapBlock *block = env->global_env->heap;
     do {
-        NatHeapCell *cell = block->free_list;
-        NatHeapCell *prev_cell = NULL;
+        HeapCell *cell = block->free_list;
+        HeapCell *prev_cell = NULL;
         while (cell) {
             if (cell->size >= size) {
                 ssize_t remaining = cell->size - size - NAT_HEAP_CELL_HEADER_SIZE;
                 if (remaining > NAT_HEAP_MIN_CELL_SIZE) {
-                    NatHeapCell *new_cell = (NatHeapCell *)((char *)cell + NAT_HEAP_CELL_HEADER_SIZE + size);
+                    HeapCell *new_cell = (HeapCell *)((char *)cell + NAT_HEAP_CELL_HEADER_SIZE + size);
                     new_cell->next = cell->next;
                     new_cell->size = remaining;
                     hashmap_put(env->global_env->heap_cells, new_cell, block);
@@ -437,7 +437,7 @@ NatObject *nat_gc_malloc(NatEnv *env) {
                     }
                     env->global_env->bytes_available -= cell->size;
                 }
-                nat_list_prepend(&block->used_list, cell);
+                list_prepend(&block->used_list, cell);
                 return static_cast<NatObject *>(NAT_HEAP_CELL_START_USABLE(cell));
             }
             prev_cell = cell;
@@ -445,11 +445,11 @@ NatObject *nat_gc_malloc(NatEnv *env) {
         }
         block = block->next;
     } while (block);
-    nat_gc_alloc_heap_block(env->global_env);
-    return nat_gc_malloc(env);
+    gc_alloc_heap_block(env->global_env);
+    return gc_malloc(env);
 }
 
-void nat_gc_collect(NatEnv *env) {
+void gc_collect(Env *env) {
 #ifdef NAT_GC_DISABLE
     return;
 #endif
@@ -458,31 +458,31 @@ void nat_gc_collect(NatEnv *env) {
     unmark_all_cells(env);
     mark_live_cells(env);
     collect_dead_cells(env);
-    while (nat_gc_bytes_available_ratio(env) < NAT_HEAP_MIN_AVAIL_AFTER_COLLECTION_RATIO) {
+    while (gc_bytes_available_ratio(env) < NAT_HEAP_MIN_AVAIL_AFTER_COLLECTION_RATIO) {
         // still not enough, even after a collection
-        nat_gc_alloc_heap_block(env->global_env);
+        gc_alloc_heap_block(env->global_env);
     }
     env->global_env->gc_enabled = true;
 }
 
-void nat_gc_collect_all(NatEnv *env) {
+void gc_collect_all(Env *env) {
     unmark_all_cells(env);
     collect_dead_cells(env);
 }
 
-double nat_gc_bytes_available_ratio(NatEnv *env) {
+double gc_bytes_available_ratio(Env *env) {
     return (double)env->global_env->bytes_available / (double)env->global_env->bytes_total;
 }
 
-NatObject *nat_alloc(NatEnv *env, NatObject *klass, enum NatValueType type) {
+NatObject *alloc(Env *env, NatObject *klass, enum NatValueType type) {
 #ifdef NAT_GC_COLLECT_DEBUG
-    nat_gc_collect(env);
+    gc_collect(env);
 #else
-    if (nat_gc_bytes_available_ratio(env) < NAT_HEAP_MIN_AVAIL_RATIO) {
-        nat_gc_collect(env);
+    if (gc_bytes_available_ratio(env) < NAT_HEAP_MIN_AVAIL_RATIO) {
+        gc_collect(env);
     }
 #endif
-    NatObject *obj = nat_gc_malloc(env);
+    NatObject *obj = gc_malloc(env);
     memset(obj, 0, sizeof(NatObject));
     obj->klass = klass;
     obj->type = type;

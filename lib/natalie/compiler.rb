@@ -23,7 +23,7 @@ module Natalie
 
       /*TOP*/
 
-      NatObject *obj_%{name}(NatEnv *env, NatObject *self) {
+      NatObject *obj_%{name}(Env *env, NatObject *self) {
         /*BODY*/
         return NAT_NIL;
       }
@@ -175,7 +175,7 @@ module Natalie
     end
 
     def obj_name
-      out_path.sub(/.*obj\//, '').sub(/\.o$/, '').tr('/', '_')
+      out_path.sub(/.*obj\//, '').sub(/\.o$/, '').tr('/', '_').sub(/^nat_/, '')
     end
 
     def template

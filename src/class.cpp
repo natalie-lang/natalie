@@ -3,7 +3,7 @@
 
 namespace Natalie {
 
-NatObject *Class_new(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
+NatObject *Class_new(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
     NAT_ASSERT_ARGC(0, 1);
     NatObject *superclass;
     if (argc == 1) {
@@ -14,16 +14,16 @@ NatObject *Class_new(NatEnv *env, NatObject *self, ssize_t argc, NatObject **arg
     } else {
         superclass = NAT_OBJECT;
     }
-    NatObject *klass = nat_subclass(env, superclass, NULL);
+    NatObject *klass = subclass(env, superclass, NULL);
     if (block) {
-        NatEnv e;
-        nat_build_block_env(&e, &block->env, env);
+        Env e;
+        build_block_env(&e, &block->env, env);
         block->fn(&e, klass, 0, NULL, NULL);
     }
     return klass;
 }
 
-NatObject *Class_superclass(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
+NatObject *Class_superclass(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_CLASS);
     NAT_ASSERT_ARGC(0);
     return self->superclass ? self->superclass : NAT_NIL;

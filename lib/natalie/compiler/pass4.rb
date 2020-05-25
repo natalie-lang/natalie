@@ -22,41 +22,39 @@ module Natalie
         NAT_ASSERT_TYPE
         NAT_ASSERT_NOT_FROZEN
         NAT_UNREACHABLE
-        nat_alias
-        nat_array_expand_with_nil
-        nat_array_push
-        nat_array_push_splat
-        nat_class_include
-        nat_class_prepend
-        nat_define_method
-        nat_define_method_with_block
-        nat_define_singleton_method
-        nat_define_singleton_method_with_block
-        nat_grow_array
-        nat_grow_array_at_least
-        nat_grow_string
-        nat_grow_string_at_least
-        nat_handle_top_level_exception
-        nat_hash_key_list_remove_node
-        nat_hash_put
-        nat_methods
-        nat_print_exception_with_backtrace
-        nat_quicksort
-        nat_run_at_exit_handlers
-        nat_string_append
-        nat_string_append_char
-        nat_string_append_nat_string
-        nat_undefine_method
-        nat_undefine_singleton_method
+        alias
+        array_expand_with_nil
+        array_push
+        array_push_splat
+        class_include
+        class_prepend
+        define_method
+        define_method_with_block
+        define_singleton_method
+        define_singleton_method_with_block
+        grow_array
+        grow_array_at_least
+        grow_string
+        grow_string_at_least
+        handle_top_level_exception
+        hash_key_list_remove_node
+        hash_put
+        methods
+        print_exception_with_backtrace
+        quicksort
+        run_at_exit_handlers
+        string_append
+        string_append_char
+        string_append_string
+        undefine_method
+        undefine_singleton_method
       ]
-
-      NAT_FUNCTIONS = /^nat_|eval\d+$/i
 
       def go(ast)
         result = process(ast)
         @compiler_context[:template]
-          .sub('/*OBJ_NAT*/', obj_nat_declarations.join("\n"))
-          .sub('/*OBJ_NAT_INIT*/', obj_nat_init_lines.join("\n"))
+          .sub('/*OBJ_NAT*/', obj_declarations.join("\n"))
+          .sub('/*OBJ_NAT_INIT*/', obj_init_lines.join("\n"))
           .sub('/*TOP*/', top_matter)
           .sub('/*INIT*/', init_matter.to_s)
           .sub('/*BODY*/', @decl.join("\n") + "\n" + result)
@@ -72,7 +70,7 @@ module Natalie
 
       def init_matter
         return if @source_files.empty?
-        "nat_global_set(env, \"$0\", nat_string(env, nat_source_files[0]));"
+        "global_set(env, \"$0\", string(env, source_files[0]));"
       end
 
       def process_atom(exp)
@@ -91,7 +89,7 @@ module Natalie
       def process_is_a(exp)
         (_, target, *list) = exp
         list.map do |klass|
-          "nat_is_a(env, #{process_atom target}, #{process_atom klass})"
+          "is_a(env, #{process_atom target}, #{process_atom klass})"
         end.join(' || ')
       end
 
@@ -116,7 +114,7 @@ module Natalie
         # NOTE: this array must be marked volatile or the GC might collect it :-(
         # I wish I knew 1) why/how GCC optimizes this pointer away, and 2) how a big GC like Boehm doesn't fall for tricks like that. :-/
         decl "NatObject * volatile #{name} = #{array};"
-        "(NatObject**)nat_vector_data(&#{name}->ary):nat_vector_size(&#{name}->ary)"
+        "(NatObject**)vector_data(&#{name}->ary):vector_size(&#{name}->ary)"
       end
 
       def process_block(exp)
@@ -140,10 +138,10 @@ module Natalie
         (_, val, *args) = exp
         val = process(val)
         array_val = temp('array_val')
-        decl "NatObject *#{array_val} = nat_to_ary(env, #{val}, false);"
+        decl "NatObject *#{array_val} = to_ary(env, #{val}, false);"
         args.compact.each do |arg|
           arg = arg.dup
-          arg_value = process_assign_val(arg.pop, "nat_vector_size(&#{array_val}->ary)", "(NatObject**)nat_vector_data(&#{array_val}->ary)")
+          arg_value = process_assign_val(arg.pop, "vector_size(&#{array_val}->ary)", "(NatObject**)vector_data(&#{array_val}->ary)")
           process(arg << arg_value)
         end
         val
@@ -154,10 +152,10 @@ module Natalie
         if args.size > 1
           array_arg = temp('array_arg')
           decl 'if (argc == 1) {'
-          decl "  NatObject *#{array_arg} = nat_to_ary(env, args[0], true);"
+          decl "  NatObject *#{array_arg} = to_ary(env, args[0], true);"
           args.compact.each do |arg|
             arg = arg.dup
-            arg_value = process_assign_val(arg.pop, "nat_vector_size(&#{array_arg}->ary)", "(NatObject**)nat_vector_data(&#{array_arg}->ary)")
+            arg_value = process_assign_val(arg.pop, "vector_size(&#{array_arg}->ary)", "(NatObject**)vector_data(&#{array_arg}->ary)")
             process(arg << arg_value)
           end
           decl '} else {'
@@ -174,9 +172,9 @@ module Natalie
         default ||= s(:nil)
         if type == :rest
           rest = temp('rest')
-          decl "NatObject *#{rest} = nat_array(env);"
+          decl "NatObject *#{rest} = array_new(env);"
           decl "for (ssize_t i=#{index}; i<#{argc_name}; i++) {"
-          decl "nat_array_push(env, #{rest}, #{args_name}[i]);"
+          decl "array_push(env, #{rest}, #{args_name}[i]);"
           decl '}'
           rest
         else
@@ -202,9 +200,9 @@ module Natalie
       def process_c_define_method(exp)
         (_, (_, name), (_, c)) = exp
         fn = temp('fn')
-        top "NatObject *#{fn}(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {\n#{c}\n}"
-        process(s(:nat_define_method, :env, :self, s(:s, name), fn))
-        "nat_symbol(env, #{name.inspect})"
+        top "NatObject *#{fn}(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {\n#{c}\n}"
+        process(s(:define_method, :env, :self, s(:s, name), fn))
+        "symbol(env, #{name.inspect})"
       end
 
       def process_c_eval(exp)
@@ -323,7 +321,7 @@ module Natalie
 
       def process_declare_block(exp)
         (_, name, value) = exp
-        process_sexp(value, name, 'NatBlock')
+        process_sexp(value, name, 'Block')
         name
       end
 
@@ -332,20 +330,20 @@ module Natalie
         result = temp('defined_result')
         case name.sexp_type
         when :const, :gvar
-          decl "NatObject *#{result} = nat_defined_obj(env, self, #{name.last.to_s.inspect});"
-        when :nat_send
+          decl "NatObject *#{result} = defined_obj(env, self, #{name.last.to_s.inspect});"
+        when :send
           (_, receiver, name) = name
           receiver ||= 'self'
           decl "NatObject *#{result};"
           decl "if (!NAT_RESCUE(env)) {"
-          decl "#{result} = nat_defined_obj(env, #{process_atom receiver}, #{name.to_s.inspect});"
+          decl "#{result} = defined_obj(env, #{process_atom receiver}, #{name.to_s.inspect});"
           decl '} else {'
           decl "#{result} = #{process_atom s(:nil)};"
           decl '}'
         when :lit, :str
-          decl "NatObject *#{result} = nat_string(env, \"expression\");"
+          decl "NatObject *#{result} = string(env, \"expression\");"
         when :nil
-          decl "NatObject *#{result} = nat_string(env, \"nil\");"
+          decl "NatObject *#{result} = string(env, \"nil\");"
         else
           raise "unknown defined type: #{exp.inspect}"
         end
@@ -357,9 +355,9 @@ module Natalie
         lit.to_s
       end
 
-      def process_nat_env_set_method_name(exp)
+      def process_env_set_method_name(exp)
         (_, name) = exp
-        methods = "nat_#{@compiler_context[:var_prefix]}source_methods"
+        methods = "#{@compiler_context[:var_prefix]}source_methods"
         index = @source_methods[name] ||= @source_methods.size
         decl "env->method_name = #{methods}[#{index}];"
         ''
@@ -375,9 +373,9 @@ module Natalie
           result = process_atom(body)
           fn = []
           if arg_list == 6
-            fn << "NatObject *#{name}(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {"
+            fn << "NatObject *#{name}(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {"
           elsif arg_list == 2
-            fn << "NatObject *#{name}(NatEnv *env, NatObject *self) {"
+            fn << "NatObject *#{name}(Env *env, NatObject *self) {"
           else
             raise "unknown arg_list #{arg_list.inspect}"
           end
@@ -398,7 +396,7 @@ module Natalie
       alias process_class_fn process_fn2
       alias process_module_fn process_fn2
 
-      def process_nat_send(exp)
+      def process_send(exp)
         debug_info(exp)
         (fn, receiver, method, args, block) = exp
         receiver_name = process_atom(receiver)
@@ -408,7 +406,7 @@ module Natalie
         result_name
       end
 
-      def process_nat_rescue(exp)
+      def process_rescue(exp)
         (_, top, bottom) = exp
         c = []
         in_decl_context do
@@ -417,7 +415,7 @@ module Natalie
           c += @decl
           c << "return #{result};" unless result.empty?
           c << '} else {'
-          c << 'nat_global_set(env, "$!", env->exception);'
+          c << 'global_set(env, "$!", env->exception);'
           c << 'env->rescue = false;'
           @decl = []
           result = process_atom(bottom)
@@ -437,21 +435,21 @@ module Natalie
         result_name
       end
 
-      def process_nat_super(exp)
+      def process_super(exp)
         (_, args, block) = exp
         result_name = temp('call_result')
         if args.size > 1
           args_name, args_count = process_atom(args).split(':')
-          decl "NatObject *#{result_name} = nat_call_method_on_class(env, NAT_OBJ_CLASS(self)->superclass, NAT_OBJ_CLASS(self)->superclass, nat_find_current_method_name(env), self, #{args_count}, #{args_name}, #{block || 'NULL'});"
+          decl "NatObject *#{result_name} = call_method_on_class(env, NAT_OBJ_CLASS(self)->superclass, NAT_OBJ_CLASS(self)->superclass, find_current_method_name(env), self, #{args_count}, #{args_name}, #{block || 'NULL'});"
         else
-          decl "NatObject *#{result_name} = nat_call_method_on_class(env, NAT_OBJ_CLASS(self)->superclass, NAT_OBJ_CLASS(self)->superclass, nat_find_current_method_name(env), self, argc, args, #{block || 'NULL'});"
+          decl "NatObject *#{result_name} = call_method_on_class(env, NAT_OBJ_CLASS(self)->superclass, NAT_OBJ_CLASS(self)->superclass, find_current_method_name(env), self, argc, args, #{block || 'NULL'});"
         end
         result_name
       end
 
-      def process_nat_truthy(exp)
+      def process_truthy(exp)
         (_, cond) = exp
-        "nat_truthy(#{process_atom cond})"
+        "truthy(#{process_atom cond})"
       end
 
       def process_nil(_)
@@ -511,9 +509,6 @@ module Natalie
       def process_sexp(exp, name = nil, type = 'NatObject')
         debug_info(exp)
         (fn, *args) = exp
-        if fn !~ NAT_FUNCTIONS
-          raise CompileError, "#{exp.inspect} not rewritten in pass 1 (#{exp&.file}##{exp&.line}, context: #{@context.inspect})"
-        end
         if VOID_FUNCTIONS.include?(fn)
           decl "#{fn}(#{args.map { |a| process_atom(a) }.join(', ')});"
           ''
@@ -527,7 +522,7 @@ module Natalie
       def process_var_alloc(exp)
         count = exp.last
         if count > 0
-          decl "env->vars = nat_vector(#{count});"
+          decl "env->vars = vector(#{count});"
         end
         ''
       end
@@ -569,37 +564,37 @@ module Natalie
 
       def debug_info(exp)
         return unless exp.file
-        files = "nat_#{@compiler_context[:var_prefix]}source_files"
+        files = "#{@compiler_context[:var_prefix]}source_files"
         index = @source_files[exp.file] ||= @source_files.size
         line = "env->file = #{files}[#{index}]; env->line = #{exp.line || 0};"
         decl line unless @decl.last == line
       end
 
       def source_files_to_c
-        files = "nat_#{@compiler_context[:var_prefix]}source_files"
+        files = "#{@compiler_context[:var_prefix]}source_files"
         "const char *#{files}[#{@source_files.size}] = { #{@source_files.keys.map(&:inspect).join(', ')} };"
       end
 
       def source_methods_to_c
-        methods = "nat_#{@compiler_context[:var_prefix]}source_methods"
+        methods = "#{@compiler_context[:var_prefix]}source_methods"
         "const char *#{methods}[#{@source_methods.size}] = { #{@source_methods.keys.map(&:inspect).join(', ')} };"
       end
 
-      def obj_nat_files
+      def obj_files
         Dir[File.expand_path('../../../src/*.nat', __dir__)].sort.map do |path|
           File.split(path).last.split('.').first
         end
       end
 
-      def obj_nat_declarations
-        obj_nat_files.map do |name|
-          "NatObject *obj_nat_#{name}(NatEnv *env, NatObject *self);"
+      def obj_declarations
+        obj_files.map do |name|
+          "NatObject *obj_#{name}(Env *env, NatObject *self);"
         end
       end
 
-      def obj_nat_init_lines
-        obj_nat_files.map do |name|
-          "obj_nat_#{name}(env, self);"
+      def obj_init_lines
+        obj_files.map do |name|
+          "obj_#{name}(env, self);"
         end
       end
     end

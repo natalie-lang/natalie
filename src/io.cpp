@@ -7,27 +7,27 @@
 
 namespace Natalie {
 
-NatObject *IO_new(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
+NatObject *IO_new(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
     NatObject *obj = Object_new(env, self, argc, args, block);
     obj->type = NAT_VALUE_IO;
     return obj;
 }
 
-NatObject *IO_initialize(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
+NatObject *IO_initialize(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
     NAT_ASSERT_ARGC(1); // TODO: ruby accepts 1..2
     NAT_ASSERT_TYPE(args[0], NAT_VALUE_INTEGER, "Integer");
     self->fileno = NAT_INT_VALUE(args[0]);
     return self;
 }
 
-NatObject *IO_fileno(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
+NatObject *IO_fileno(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
     NAT_ASSERT_ARGC(0);
-    return nat_integer(env, self->fileno);
+    return integer(env, self->fileno);
 }
 
 #define NAT_READ_BYTES 1024
 
-NatObject *IO_read(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
+NatObject *IO_read(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
     NAT_ASSERT_ARGC(0, 1); // TODO: ruby accepts 0..2
     ssize_t bytes_read;
     if (argc == 1) {
@@ -40,7 +40,7 @@ NatObject *IO_read(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args,
             return NAT_NIL;
         } else {
             buf[bytes_read] = 0;
-            NatObject *result = nat_string(env, buf);
+            NatObject *result = string(env, buf);
             free(buf);
             return result;
         }
@@ -48,15 +48,15 @@ NatObject *IO_read(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args,
         char buf[NAT_READ_BYTES + 1];
         bytes_read = read(self->fileno, buf, NAT_READ_BYTES);
         if (bytes_read == 0) {
-            return nat_string(env, "");
+            return string(env, "");
         } else {
             buf[bytes_read] = 0;
-            NatObject *str = nat_string(env, buf);
+            NatObject *str = string(env, buf);
             while (1) {
                 bytes_read = read(self->fileno, buf, NAT_READ_BYTES);
                 if (bytes_read == 0) break;
                 buf[bytes_read] = 0;
-                nat_string_append(env, str, buf);
+                string_append(env, str, buf);
             }
             return str;
         }
@@ -66,35 +66,35 @@ NatObject *IO_read(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args,
     }
 }
 
-NatObject *IO_write(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
+NatObject *IO_write(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
     NAT_ASSERT_ARGC_AT_LEAST(1);
     int bytes_written = 0;
     for (ssize_t i = 0; i < argc; i++) {
         NatObject *obj = args[i];
         if (NAT_TYPE(obj) != NAT_VALUE_STRING) {
-            obj = nat_send(env, obj, "to_s", 0, NULL, NULL);
+            obj = send(env, obj, "to_s", 0, NULL, NULL);
         }
         NAT_ASSERT_TYPE(obj, NAT_VALUE_STRING, "String");
         ssize_t result = write(self->fileno, obj->str, obj->str_len);
         if (result == -1) {
-            NatObject *error_number = nat_integer(env, errno);
-            NatObject *error = nat_send(env, nat_const_get(env, NAT_OBJECT, "SystemCallError", true), "exception", 1, &error_number, NULL);
-            nat_raise_exception(env, error);
+            NatObject *error_number = integer(env, errno);
+            NatObject *error = send(env, const_get(env, NAT_OBJECT, "SystemCallError", true), "exception", 1, &error_number, NULL);
+            raise_exception(env, error);
             abort();
         } else {
             bytes_written += result;
         }
     }
-    return nat_integer(env, bytes_written);
+    return integer(env, bytes_written);
 }
 
-NatObject *IO_puts(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
+NatObject *IO_puts(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
     int fd = self->fileno;
     if (argc == 0) {
         dprintf(fd, "\n");
     } else {
         for (ssize_t i = 0; i < argc; i++) {
-            NatObject *str = nat_send(env, args[i], "to_s", 0, NULL, NULL);
+            NatObject *str = send(env, args[i], "to_s", 0, NULL, NULL);
             NAT_ASSERT_TYPE(str, NAT_VALUE_STRING, "String");
             dprintf(fd, "%s\n", str->str);
         }
@@ -102,11 +102,11 @@ NatObject *IO_puts(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args,
     return NAT_NIL;
 }
 
-NatObject *IO_print(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
+NatObject *IO_print(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
     int fd = self->fileno;
     if (argc > 0) {
         for (ssize_t i = 0; i < argc; i++) {
-            NatObject *str = nat_send(env, args[i], "to_s", 0, NULL, NULL);
+            NatObject *str = send(env, args[i], "to_s", 0, NULL, NULL);
             NAT_ASSERT_TYPE(str, NAT_VALUE_STRING, "String");
             dprintf(fd, "%s", str->str);
         }
@@ -114,20 +114,20 @@ NatObject *IO_print(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args
     return NAT_NIL;
 }
 
-NatObject *IO_close(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
+NatObject *IO_close(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     int result = close(self->fileno);
     if (result == -1) {
-        NatObject *error_number = nat_integer(env, errno);
-        NatObject *error = nat_send(env, nat_const_get(env, NAT_OBJECT, "SystemCallError", true), "exception", 1, &error_number, NULL);
-        nat_raise_exception(env, error);
+        NatObject *error_number = integer(env, errno);
+        NatObject *error = send(env, const_get(env, NAT_OBJECT, "SystemCallError", true), "exception", 1, &error_number, NULL);
+        raise_exception(env, error);
         abort();
     } else {
         return NAT_NIL;
     }
 }
 
-NatObject *IO_seek(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
+NatObject *IO_seek(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
     NAT_ASSERT_ARGC2(1, 2);
     NatObject *amount_obj = args[0];
     NAT_ASSERT_TYPE(amount_obj, NAT_VALUE_INTEGER, "Integer");
@@ -156,12 +156,12 @@ NatObject *IO_seek(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args,
     }
     int result = lseek(self->fileno, amount, whence);
     if (result == -1) {
-        NatObject *error_number = nat_integer(env, errno);
-        NatObject *error = nat_send(env, nat_const_get(env, NAT_OBJECT, "SystemCallError", true), "exception", 1, &error_number, NULL);
-        nat_raise_exception(env, error);
+        NatObject *error_number = integer(env, errno);
+        NatObject *error = send(env, const_get(env, NAT_OBJECT, "SystemCallError", true), "exception", 1, &error_number, NULL);
+        raise_exception(env, error);
         abort();
     } else {
-        return nat_integer(env, 0);
+        return integer(env, 0);
     }
 }
 

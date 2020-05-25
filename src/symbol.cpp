@@ -3,47 +3,47 @@
 
 namespace Natalie {
 
-NatObject *Symbol_to_s(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
+NatObject *Symbol_to_s(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_SYMBOL);
     NAT_ASSERT_ARGC(0);
-    return nat_string(env, self->symbol);
+    return string(env, self->symbol);
 }
 
-NatObject *Symbol_inspect(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
+NatObject *Symbol_inspect(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_SYMBOL);
     NAT_ASSERT_ARGC(0);
-    NatObject *str = nat_string(env, ":");
+    NatObject *str = string(env, ":");
     ssize_t len = strlen(self->symbol);
     for (ssize_t i = 0; i < len; i++) {
         char c = self->symbol[i];
         if (!((c >= 65 && c <= 90) || (c >= 97 && c <= 122) || c == '_')) {
-            nat_string_append_nat_string(env, str, nat_send(env, nat_string(env, self->symbol), "inspect", 0, NULL, NULL));
+            string_append_string(env, str, send(env, string(env, self->symbol), "inspect", 0, NULL, NULL));
             return str;
         }
     };
-    nat_string_append(env, str, self->symbol);
+    string_append(env, str, self->symbol);
     return str;
 }
 
-NatObject *Symbol_to_proc(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
+NatObject *Symbol_to_proc(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_SYMBOL);
     NAT_ASSERT_ARGC(0);
-    NatEnv block_env;
-    nat_build_detached_block_env(&block_env, env);
-    nat_var_set(&block_env, "name", 0, true, self);
-    NatBlock *proc_block = nat_block(&block_env, self, Symbol_to_proc_block_fn);
-    return nat_proc(env, proc_block);
+    Env block_env;
+    build_detached_block_env(&block_env, env);
+    var_set(&block_env, "name", 0, true, self);
+    Block *proc_block = block_new(&block_env, self, Symbol_to_proc_block_fn);
+    return proc_new(env, proc_block);
 }
 
-NatObject *Symbol_to_proc_block_fn(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
+NatObject *Symbol_to_proc_block_fn(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
     NAT_ASSERT_ARGC(1);
-    NatObject *name_obj = nat_var_get(env->outer, "name", 0);
+    NatObject *name_obj = var_get(env->outer, "name", 0);
     assert(name_obj);
     const char *name = name_obj->symbol;
-    return nat_send(env, args[0], name, 0, NULL, NULL);
+    return send(env, args[0], name, 0, NULL, NULL);
 }
 
-NatObject *Symbol_cmp(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
+NatObject *Symbol_cmp(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_SYMBOL);
     NAT_ASSERT_ARGC(1);
     NatObject *arg = args[0];
@@ -57,7 +57,7 @@ NatObject *Symbol_cmp(NatEnv *env, NatObject *self, ssize_t argc, NatObject **ar
     } else {
         result = 0;
     }
-    return nat_integer(env, result);
+    return integer(env, result);
 }
 
 }

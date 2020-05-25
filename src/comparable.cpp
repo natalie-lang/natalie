@@ -3,9 +3,9 @@
 
 namespace Natalie {
 
-NatObject *Comparable_eqeq(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
+NatObject *Comparable_eqeq(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
     NAT_ASSERT_ARGC(1);
-    NatObject *result = nat_send(env, self, "<=>", argc, args, NULL);
+    NatObject *result = send(env, self, "<=>", argc, args, NULL);
     if (NAT_TYPE(result) == NAT_VALUE_INTEGER && NAT_INT_VALUE(result) == 0) {
         return NAT_TRUE;
     } else {
@@ -13,9 +13,9 @@ NatObject *Comparable_eqeq(NatEnv *env, NatObject *self, ssize_t argc, NatObject
     }
 }
 
-NatObject *Comparable_neq(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
+NatObject *Comparable_neq(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
     NAT_ASSERT_ARGC(1);
-    NatObject *result = nat_send(env, self, "<=>", argc, args, NULL);
+    NatObject *result = send(env, self, "<=>", argc, args, NULL);
     if (NAT_TYPE(result) == NAT_VALUE_INTEGER && NAT_INT_VALUE(result) == 0) {
         return NAT_FALSE;
     } else {
@@ -23,9 +23,9 @@ NatObject *Comparable_neq(NatEnv *env, NatObject *self, ssize_t argc, NatObject 
     }
 }
 
-NatObject *Comparable_lt(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
+NatObject *Comparable_lt(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
     NAT_ASSERT_ARGC(1);
-    NatObject *result = nat_send(env, self, "<=>", argc, args, NULL);
+    NatObject *result = send(env, self, "<=>", argc, args, NULL);
     if (NAT_TYPE(result) == NAT_VALUE_INTEGER && NAT_INT_VALUE(result) < 0) {
         return NAT_TRUE;
     } else {
@@ -33,9 +33,9 @@ NatObject *Comparable_lt(NatEnv *env, NatObject *self, ssize_t argc, NatObject *
     }
 }
 
-NatObject *Comparable_lte(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
+NatObject *Comparable_lte(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
     NAT_ASSERT_ARGC(1);
-    NatObject *result = nat_send(env, self, "<=>", argc, args, NULL);
+    NatObject *result = send(env, self, "<=>", argc, args, NULL);
     if (NAT_TYPE(result) == NAT_VALUE_INTEGER && NAT_INT_VALUE(result) <= 0) {
         return NAT_TRUE;
     } else {
@@ -43,9 +43,9 @@ NatObject *Comparable_lte(NatEnv *env, NatObject *self, ssize_t argc, NatObject 
     }
 }
 
-NatObject *Comparable_gt(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
+NatObject *Comparable_gt(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
     NAT_ASSERT_ARGC(1);
-    NatObject *result = nat_send(env, self, "<=>", argc, args, NULL);
+    NatObject *result = send(env, self, "<=>", argc, args, NULL);
     if (NAT_TYPE(result) == NAT_VALUE_INTEGER && NAT_INT_VALUE(result) > 0) {
         return NAT_TRUE;
     } else {
@@ -53,9 +53,9 @@ NatObject *Comparable_gt(NatEnv *env, NatObject *self, ssize_t argc, NatObject *
     }
 }
 
-NatObject *Comparable_gte(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
+NatObject *Comparable_gte(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
     NAT_ASSERT_ARGC(1);
-    NatObject *result = nat_send(env, self, "<=>", argc, args, NULL);
+    NatObject *result = send(env, self, "<=>", argc, args, NULL);
     if (NAT_TYPE(result) == NAT_VALUE_INTEGER && NAT_INT_VALUE(result) >= 0) {
         return NAT_TRUE;
     } else {
