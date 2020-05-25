@@ -1,5 +1,5 @@
-#include "builtin.h"
-#include "natalie.h"
+#include "builtin.hpp"
+#include "natalie.hpp"
 
 NatObject *Encoding_list(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NatObject *ary = nat_array(env);
@@ -17,7 +17,7 @@ NatObject *Encoding_inspect(NatEnv *env, NatObject *self, ssize_t argc, NatObjec
 NatObject *Encoding_name(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
     assert(NAT_TYPE(self) == NAT_VALUE_ENCODING);
-    return nat_vector_get(&self->encoding_names->ary, 0);
+    return static_cast<NatObject *>(nat_vector_get(&self->encoding_names->ary, 0));
 }
 
 NatObject *Encoding_names(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {

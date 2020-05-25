@@ -1,5 +1,5 @@
-#include "builtin.h"
-#include "natalie.h"
+#include "builtin.hpp"
+#include "natalie.hpp"
 
 extern char **environ;
 

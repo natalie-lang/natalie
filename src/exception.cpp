@@ -1,5 +1,5 @@
-#include "builtin.h"
-#include "natalie.h"
+#include "builtin.hpp"
+#include "natalie.hpp"
 
 NatObject *Exception_new(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NatObject *exception = Object_new(env, self, argc, args, block);

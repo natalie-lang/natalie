@@ -1,5 +1,5 @@
-#include "builtin.h"
-#include "natalie.h"
+#include "builtin.hpp"
+#include "natalie.hpp"
 
 NatObject *Symbol_to_s(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_SYMBOL);
@@ -37,7 +37,7 @@ NatObject *Symbol_to_proc_block_fn(NatEnv *env, NatObject *self, ssize_t argc, N
     NAT_ASSERT_ARGC(1);
     NatObject *name_obj = nat_var_get(env->outer, "name", 0);
     assert(name_obj);
-    char *name = name_obj->symbol;
+    const char *name = name_obj->symbol;
     return nat_send(env, args[0], name, 0, NULL, NULL);
 }
 

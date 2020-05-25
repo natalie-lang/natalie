@@ -1,6 +1,6 @@
-#include "builtin.h"
-#include "gc.h"
-#include "natalie.h"
+#include "builtin.hpp"
+#include "gc.hpp"
+#include "natalie.hpp"
 
 NatObject *Hash_new(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0, 1);
@@ -25,15 +25,15 @@ NatObject *Hash_square_new(NatEnv *env, NatObject *self, ssize_t argc, NatObject
         } else if (NAT_TYPE(value) == NAT_VALUE_ARRAY) {
             NatObject *hash = nat_hash(env);
             for (ssize_t i = 0; i < nat_vector_size(&value->ary); i++) {
-                NatObject *pair = nat_vector_get(&value->ary, i);
+                NatObject *pair = static_cast<NatObject *>(nat_vector_get(&value->ary, i));
                 if (NAT_TYPE(pair) != NAT_VALUE_ARRAY) {
                     NAT_RAISE(env, "ArgumentError", "wrong element in array to Hash[]");
                 }
                 if (nat_vector_size(&pair->ary) < 1 || nat_vector_size(&pair->ary) > 2) {
                     NAT_RAISE(env, "ArgumentError", "invalid number of elements (%d for 1..2)", nat_vector_size(&pair->ary));
                 }
-                NatObject *key = nat_vector_get(&pair->ary, 0);
-                NatObject *value = nat_vector_size(&pair->ary) == 1 ? NAT_NIL : nat_vector_get(&pair->ary, 1);
+                NatObject *key = static_cast<NatObject *>(nat_vector_get(&pair->ary, 0));
+                NatObject *value = nat_vector_size(&pair->ary) == 1 ? NAT_NIL : static_cast<NatObject *>(nat_vector_get(&pair->ary, 1));
                 nat_hash_put(env, hash, key, value);
             }
             return hash;

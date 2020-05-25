@@ -1,5 +1,5 @@
-#include "builtin.h"
-#include "natalie.h"
+#include "builtin.hpp"
+#include "natalie.hpp"
 
 NatObject *FalseClass_to_s(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_FALSE);

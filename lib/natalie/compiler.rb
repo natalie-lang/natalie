@@ -17,7 +17,7 @@ module Natalie
     HASHMAP_LIB_PATH = File.expand_path('../../ext/hashmap/build', __dir__)
     ONIGMO_LIB_PATH = File.expand_path('../../ext/onigmo/.libs', __dir__)
 
-    MAIN_TEMPLATE = File.read(File.join(SRC_PATH, 'main.c'))
+    MAIN_TEMPLATE = File.read(File.join(SRC_PATH, 'main.cpp'))
     OBJ_TEMPLATE = <<-EOF
       #{MAIN_TEMPLATE.split(/\/\* end of front matter \*\//).first}
 
@@ -56,10 +56,6 @@ module Natalie
       raise CompileError.new('There was an error compiling.') if $? != 0
     end
 
-    def c_files_to_compile
-      Dir[File.join(SRC_PATH, '*.c')].grep_v(/main\.c$/)
-    end
-
     def check_build
       if Dir[File.join(OBJ_PATH, '*.o')].none?
         puts 'please run: make build'
@@ -69,7 +65,7 @@ module Natalie
 
     def write_file
       c = to_c
-      temp_c = Tempfile.create('natalie.c')
+      temp_c = Tempfile.create('natalie.cpp')
       temp_c.write(c)
       temp_c.close
       @c_path = temp_c.path
@@ -132,10 +128,10 @@ module Natalie
 
     def compiler_command
       if compile_to_object_file
-        "#{cc} #{build_flags} #{extra_cflags} #{inc_paths} -fPIC -x c -c #{@c_path} -o #{out_path}"
+        "#{cc} #{build_flags} #{extra_cflags} #{inc_paths} -fPIC -x c++ -std=c++17 -c #{@c_path} -o #{out_path}"
       else
         libs = '-lm'
-        "#{cc} #{build_flags} #{extra_cflags} #{shared? ? '-fPIC -shared' : ''} #{inc_paths} -o #{out_path} #{OBJ_PATH}/*.o #{OBJ_PATH}/nat/*.o #{HASHMAP_LIB_PATH}/libhashmap.a #{ONIGMO_LIB_PATH}/libonigmo.a -x c #{@c_path || 'code.c'} #{libs}"
+        "#{cc} #{build_flags} #{extra_cflags} #{shared? ? '-fPIC -shared' : ''} #{inc_paths} -o #{out_path} #{OBJ_PATH}/*.o #{OBJ_PATH}/nat/*.o #{HASHMAP_LIB_PATH}/libhashmap.a #{ONIGMO_LIB_PATH}/libonigmo.a -x c++ -std=c++17 #{@c_path || 'code.cpp'} #{libs}"
       end
     end
 

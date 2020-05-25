@@ -1,5 +1,5 @@
-#include "gc.h"
-#include "natalie.h"
+#include "gc.hpp"
+#include "natalie.hpp"
 
 extern void *nat_gc_abort_if_collected;
 
@@ -37,7 +37,7 @@ static void push_nat_object(NatEnv *env, NatVector *cells, NatObject *obj) {
 
 static void gather_from_env(NatVector *cells, NatEnv *env) {
     for (ssize_t i = 0; i < nat_vector_size(env->vars); i++) {
-        push_nat_object(env, cells, nat_vector_get(env->vars, i));
+        push_nat_object(env, cells, static_cast<NatObject *>(nat_vector_get(env->vars, i)));
     }
     push_nat_object(env, cells, env->exception);
     if (env->outer) {
@@ -75,7 +75,7 @@ static NatVector *gather_roots(NatEnv *env) {
         fprintf(stderr, "Unsupported platform\n");
         abort();
     }
-    for (void *p = global_env->bottom_of_stack; p >= top_of_stack; p -= 4) {
+    for (char *p = static_cast<char *>(global_env->bottom_of_stack); p >= top_of_stack; p -= 4) {
         NatObject *ptr = *((NatObject **)p);
         if (is_heap_ptr(env, ptr)) {
             push_cell(env, roots, NAT_HEAP_CELL_FROM_OBJ(ptr));
@@ -141,7 +141,7 @@ static void trace_nat_object(NatEnv *env, NatVector *cells, NatObject *obj) {
     switch (obj->type) {
     case NAT_VALUE_ARRAY:
         for (ssize_t i = 0; i < nat_vector_size(&obj->ary); i++) {
-            push_nat_object(env, cells, nat_vector_get(&obj->ary, i));
+            push_nat_object(env, cells, static_cast<NatObject *>(nat_vector_get(&obj->ary, i)));
         }
         break;
     case NAT_VALUE_CLASS:
@@ -218,14 +218,14 @@ static void mark_live_cells(NatEnv *env) {
     NatVector *cells = gather_roots(env);
 
     for (ssize_t o = 0; o < nat_vector_size(cells); o++) {
-        NatHeapCell *cell = nat_vector_get(cells, o);
+        NatHeapCell *cell = static_cast<NatHeapCell *>(nat_vector_get(cells, o));
 
         if (cell->mark) continue;
 
         cell->mark = true;
 
         // TODO: branch based on type somehow
-        trace_nat_object(env, cells, NAT_HEAP_OBJ_FROM_CELL(cell));
+        trace_nat_object(env, cells, static_cast<NatObject *>(NAT_HEAP_OBJ_FROM_CELL(cell)));
     }
 
     nat_vector_free(cells);
@@ -349,7 +349,7 @@ static void collect_cell(NatEnv *env, NatHeapBlock *block, NatHeapCell *cell) {
     }
 
     // TODO: branch based on type somehow
-    if (!free_nat_object(env, obj)) return;
+    if (!free_nat_object(env, static_cast<NatObject *>(obj))) return;
     memset(obj, 0, cell->size);
 
     if (cell == block->used_list) { // first cell in list
@@ -360,7 +360,7 @@ static void collect_cell(NatEnv *env, NatHeapBlock *block, NatHeapCell *cell) {
         sibling_cell->next = cell->next;
     }
 
-    NAT_LIST_PREPEND(block->free_list, cell); // TODO: merge with adjacent cells if possible
+    nat_list_prepend(&block->free_list, cell); // TODO: merge with adjacent cells if possible
 
     env->global_env->bytes_available += cell->size;
 }
@@ -386,12 +386,12 @@ void nat_gc_init(NatEnv *env, void *bottom_of_stack) {
 }
 
 NatHeapBlock *nat_gc_alloc_heap_block(NatGlobalEnv *global_env) {
-    NatHeapBlock *block = calloc(1, NAT_HEAP_BLOCK_SIZE);
+    NatHeapBlock *block = static_cast<NatHeapBlock *>(calloc(1, NAT_HEAP_BLOCK_SIZE));
     NatHeapCell *cell = NAT_HEAP_BLOCK_FIRST_CELL(block);
     cell->size = NAT_HEAP_BLOCK_SIZE - NAT_HEAP_BLOCK_HEADER_SIZE - NAT_HEAP_CELL_HEADER_SIZE;
     hashmap_put(global_env->heap_cells, cell, block);
     block->free_list = cell;
-    NAT_LIST_PREPEND(global_env->heap, block);
+    nat_list_prepend(&global_env->heap, block);
     NatHeapCell *max = (NatHeapCell *)((char *)block + NAT_HEAP_BLOCK_SIZE);
     if (max > global_env->max_ptr) {
         global_env->max_ptr = max;
@@ -435,8 +435,8 @@ NatObject *nat_gc_malloc(NatEnv *env) {
                     }
                     env->global_env->bytes_available -= cell->size;
                 }
-                NAT_LIST_PREPEND(block->used_list, cell);
-                return NAT_HEAP_CELL_START_USABLE(cell);
+                nat_list_prepend(&block->used_list, cell);
+                return static_cast<NatObject *>(NAT_HEAP_CELL_START_USABLE(cell));
             }
             prev_cell = cell;
             cell = cell->next;

@@ -2,20 +2,20 @@
    <gc_scan_stack>
    Memcheck:Addr8
    ...
-   fun:nat_gc_collect
+   fun:_Z14nat_gc_collectP6NatEnv
    ...
 }
 {
    <gc_scan_stack>
    Memcheck:Value8
    ...
-   fun:nat_gc_collect
+   fun:_Z14nat_gc_collectP6NatEnv
    ...
 }
 {
    <gc_scan_stack>
    Memcheck:Cond
    ...
-   fun:nat_gc_collect
+   fun:_Z14nat_gc_collectP6NatEnv
    ...
 }

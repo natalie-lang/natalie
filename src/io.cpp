@@ -1,9 +1,9 @@
 #include <errno.h>
 #include <unistd.h>
 
-#include "builtin.h"
-#include "gc.h"
-#include "natalie.h"
+#include "builtin.hpp"
+#include "gc.hpp"
+#include "natalie.hpp"
 
 NatObject *IO_new(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NatObject *obj = Object_new(env, self, argc, args, block);
@@ -31,7 +31,7 @@ NatObject *IO_read(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args,
     if (argc == 1) {
         NAT_ASSERT_TYPE(args[0], NAT_VALUE_INTEGER, "Integer");
         int count = NAT_INT_VALUE(args[0]);
-        char *buf = malloc((count + 1) * sizeof(char));
+        char *buf = static_cast<char *>(malloc((count + 1) * sizeof(char)));
         bytes_read = read(self->fileno, buf, count);
         if (bytes_read == 0) {
             free(buf);

@@ -577,12 +577,12 @@ module Natalie
 
       def source_files_to_c
         files = "nat_#{@compiler_context[:var_prefix]}source_files"
-        "char *#{files}[#{@source_files.size}] = { #{@source_files.keys.map(&:inspect).join(', ')} };"
+        "const char *#{files}[#{@source_files.size}] = { #{@source_files.keys.map(&:inspect).join(', ')} };"
       end
 
       def source_methods_to_c
         methods = "nat_#{@compiler_context[:var_prefix]}source_methods"
-        "char *#{methods}[#{@source_methods.size}] = { #{@source_methods.keys.map(&:inspect).join(', ')} };"
+        "const char *#{methods}[#{@source_methods.size}] = { #{@source_methods.keys.map(&:inspect).join(', ')} };"
       end
 
       def obj_nat_files

@@ -1,5 +1,5 @@
-#include "builtin.h"
-#include "natalie.h"
+#include "builtin.hpp"
+#include "natalie.hpp"
 
 NatObject *Proc_new(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     return nat_proc(env, block);

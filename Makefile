@@ -21,8 +21,8 @@ ifeq ($(HAS_TTY),yes)
   DOCKER_FLAGS := -i -t
 endif
 
-SOURCES := $(filter-out $(SRC)/main.c, $(wildcard $(SRC)/*.c))
-OBJECTS := $(patsubst $(SRC)/%.c, $(OBJ)/%.o, $(SOURCES))
+SOURCES := $(filter-out $(SRC)/main.cpp, $(wildcard $(SRC)/*.cpp))
+OBJECTS := $(patsubst $(SRC)/%.cpp, $(OBJ)/%.o, $(SOURCES))
 
 NAT_SOURCES := $(wildcard $(SRC)/*.nat)
 NAT_OBJECTS := $(patsubst $(SRC)/%.nat, $(OBJ)/nat/%.o, $(NAT_SOURCES))
@@ -35,8 +35,8 @@ build: write_build_type ext/hashmap/build/libhashmap.a ext/onigmo/.libs/libonigm
 write_build_type:
 	@echo $(BUILD) > .build
 
-$(OBJ)/%.o: $(SRC)/%.c
-	$(CC) $(CFLAGS) -I$(INC) -I$(HASHMAP) -I$(ONIGMO) -fPIC -c $< -o $@
+$(OBJ)/%.o: $(SRC)/%.cpp
+	$(CC) -std=c++17 $(CFLAGS) -I$(INC) -I$(HASHMAP) -I$(ONIGMO) -fPIC -c $< -o $@
 
 $(OBJ)/nat/%.o: $(SRC)/%.nat
 	bin/natalie --compile-obj $@ $<
@@ -113,4 +113,4 @@ ctags:
 
 format:
 	find include -type f -name '*.h' -exec clang-format -i --style=file {} +
-	find src -type f -name '*.c' -exec clang-format -i --style=file {} +
+	find src -type f -name '*.cpp' -exec clang-format -i --style=file {} +

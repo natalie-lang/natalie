@@ -1,6 +1,6 @@
 #pragma once
 
-#include "natalie.h"
+#include "natalie.hpp"
 
 #define NAT_HEAP_BLOCK_SIZE 262144 // 2 ^ 18
 #define NAT_HEAP_MIN_AVAIL_RATIO 0.1

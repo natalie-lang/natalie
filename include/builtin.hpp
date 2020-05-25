@@ -2,7 +2,7 @@
 
 #include <fcntl.h>
 
-#include "natalie.h"
+#include "natalie.hpp"
 
 #define NAT_ARRAY_INIT(klass)                                                \
     nat_define_singleton_method(env, klass, "new", Array_new);               \

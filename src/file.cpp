@@ -2,9 +2,9 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
-#include "builtin.h"
-#include "gc.h"
-#include "natalie.h"
+#include "builtin.hpp"
+#include "gc.hpp"
+#include "natalie.hpp"
 
 NatObject *File_initialize(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC2(1, 2); // TODO: Ruby accepts 3 args??

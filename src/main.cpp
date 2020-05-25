@@ -1,8 +1,8 @@
 #include <setjmp.h>
 
-#include "builtin.h"
-#include "gc.h"
-#include "natalie.h"
+#include "builtin.hpp"
+#include "gc.hpp"
+#include "natalie.hpp"
 
 /* end of front matter */
 
@@ -10,8 +10,8 @@
 
 void *nat_gc_abort_if_collected = NULL;
 
-NatEnv *build_top_env() {
-    NatEnv *env = malloc(sizeof(NatEnv));
+extern "C" NatEnv *build_top_env() {
+    NatEnv *env = static_cast<NatEnv *>(malloc(sizeof(NatEnv)));
     nat_build_env(env, NULL);
     env->method_name = heap_string("<main>");
 
@@ -229,7 +229,7 @@ NatEnv *build_top_env() {
 
 /*TOP*/
 
-NatObject *EVAL(NatEnv *env) {
+extern "C" NatObject *EVAL(NatEnv *env) {
     NatObject *self = nat_global_get(env, "$NAT_main_object");
     (void)self; // don't warn about unused var
     volatile bool run_exit_handlers = true;

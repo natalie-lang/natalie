@@ -11,8 +11,10 @@
 #include <string.h>
 #include <unistd.h>
 
+extern "C" {
 #include "hashmap.h"
 #include "onigmo.h"
+}
 
 //#define NAT_DEBUG_METHOD_RESOLUTION
 
@@ -115,13 +117,6 @@
 // "0x" + up to 16 hex chars + NULL terminator
 #define NAT_OBJECT_POINTER_BUF_LENGTH 2 + 16 + 1
 
-#define NAT_LIST_PREPEND(list, item) \
-    {                                \
-        void *next_item = list;      \
-        list = item;                 \
-        item->next = next_item;      \
-    }
-
 typedef struct NatObject NatObject;
 typedef struct NatGlobalEnv NatGlobalEnv;
 typedef struct NatEnv NatEnv;
@@ -166,9 +161,9 @@ struct NatEnv {
     jmp_buf jump_buf;
     NatObject *exception;
     NatEnv *caller;
-    char *file;
+    const char *file;
     ssize_t line;
-    char *method_name;
+    const char *method_name;
     NatObject *match;
 };
 
@@ -374,15 +369,15 @@ struct NatObject {
     };
 };
 
-bool nat_is_constant_name(char *name);
-bool nat_is_special_name(char *name);
+bool nat_is_constant_name(const char *name);
+bool nat_is_special_name(const char *name);
 
-NatObject *nat_const_get(NatEnv *env, NatObject *klass, char *name, bool strict);
-NatObject *nat_const_get_or_null(NatEnv *env, NatObject *klass, char *name, bool strict, bool define);
-NatObject *nat_const_set(NatEnv *env, NatObject *klass, char *name, NatObject *val);
+NatObject *nat_const_get(NatEnv *env, NatObject *klass, const char *name, bool strict);
+NatObject *nat_const_get_or_null(NatEnv *env, NatObject *klass, const char *name, bool strict, bool define);
+NatObject *nat_const_set(NatEnv *env, NatObject *klass, const char *name, NatObject *val);
 
-NatObject *nat_var_get(NatEnv *env, char *key, ssize_t index);
-NatObject *nat_var_set(NatEnv *env, char *name, ssize_t index, bool allocate, NatObject *val);
+NatObject *nat_var_get(NatEnv *env, const char *key, ssize_t index);
+NatObject *nat_var_set(NatEnv *env, const char *name, ssize_t index, bool allocate, NatObject *val);
 
 NatGlobalEnv *nat_build_global_env();
 void nat_free_global_env(NatGlobalEnv *global_env);
@@ -391,29 +386,28 @@ NatEnv *nat_build_env(NatEnv *env, NatEnv *outer);
 NatEnv *nat_build_block_env(NatEnv *env, NatEnv *outer, NatEnv *calling_env);
 NatEnv *nat_build_detached_block_env(NatEnv *env, NatEnv *outer);
 
-char *nat_find_current_method_name(NatEnv *env);
-char *nat_find_method_name(NatEnv *env);
+const char *nat_find_current_method_name(NatEnv *env);
 
-NatObject *nat_raise(NatEnv *env, NatObject *klass, char *message_format, ...);
+NatObject *nat_raise(NatEnv *env, NatObject *klass, const char *message_format, ...);
 NatObject *nat_raise_exception(NatEnv *env, NatObject *exception);
-NatObject *nat_raise_local_jump_error(NatEnv *env, NatObject *exit_value, char *message);
+NatObject *nat_raise_local_jump_error(NatEnv *env, NatObject *exit_value, const char *message);
 
-NatObject *nat_ivar_get(NatEnv *env, NatObject *obj, char *name);
-NatObject *nat_ivar_set(NatEnv *env, NatObject *obj, char *name, NatObject *val);
+NatObject *nat_ivar_get(NatEnv *env, NatObject *obj, const char *name);
+NatObject *nat_ivar_set(NatEnv *env, NatObject *obj, const char *name, NatObject *val);
 
-NatObject *nat_cvar_get(NatEnv *env, NatObject *obj, char *name);
-NatObject *nat_cvar_get_or_null(NatEnv *env, NatObject *obj, char *name);
-NatObject *nat_cvar_set(NatEnv *env, NatObject *obj, char *name, NatObject *val);
+NatObject *nat_cvar_get(NatEnv *env, NatObject *obj, const char *name);
+NatObject *nat_cvar_get_or_null(NatEnv *env, NatObject *obj, const char *name);
+NatObject *nat_cvar_set(NatEnv *env, NatObject *obj, const char *name, NatObject *val);
 
-NatObject *nat_global_get(NatEnv *env, char *name);
-NatObject *nat_global_set(NatEnv *env, char *name, NatObject *val);
+NatObject *nat_global_get(NatEnv *env, const char *name);
+NatObject *nat_global_set(NatEnv *env, const char *name, NatObject *val);
 
 bool nat_truthy(NatObject *obj);
 
-char *heap_string(char *str);
+char *heap_string(const char *str);
 
-NatObject *nat_subclass(NatEnv *env, NatObject *superclass, char *name);
-NatObject *nat_module(NatEnv *env, char *name);
+NatObject *nat_subclass(NatEnv *env, NatObject *superclass, const char *name);
+NatObject *nat_module(NatEnv *env, const char *name);
 void nat_class_include(NatEnv *env, NatObject *klass, NatObject *module);
 void nat_class_prepend(NatEnv *env, NatObject *klass, NatObject *module);
 
@@ -426,26 +420,26 @@ NatObject *nat_integer(NatEnv *env, int64_t integer);
 void int_to_string(int64_t num, char *buf);
 void int_to_hex_string(int64_t num, char *buf, bool capitalize);
 
-void nat_define_method(NatEnv *env, NatObject *obj, char *name, NatObject *(*fn)(NatEnv *, NatObject *, ssize_t, NatObject **, NatBlock *block));
-void nat_define_method_with_block(NatEnv *env, NatObject *obj, char *name, NatBlock *block);
-void nat_define_singleton_method(NatEnv *env, NatObject *obj, char *name, NatObject *(*fn)(NatEnv *, NatObject *, ssize_t, NatObject **, NatBlock *block));
-void nat_define_singleton_method_with_block(NatEnv *env, NatObject *obj, char *name, NatBlock *block);
-void nat_undefine_method(NatEnv *env, NatObject *obj, char *name);
-void nat_undefine_singleton_method(NatEnv *env, NatObject *obj, char *name);
+void nat_define_method(NatEnv *env, NatObject *obj, const char *name, NatObject *(*fn)(NatEnv *, NatObject *, ssize_t, NatObject **, NatBlock *block));
+void nat_define_method_with_block(NatEnv *env, NatObject *obj, const char *name, NatBlock *block);
+void nat_define_singleton_method(NatEnv *env, NatObject *obj, const char *name, NatObject *(*fn)(NatEnv *, NatObject *, ssize_t, NatObject **, NatBlock *block));
+void nat_define_singleton_method_with_block(NatEnv *env, NatObject *obj, const char *name, NatBlock *block);
+void nat_undefine_method(NatEnv *env, NatObject *obj, const char *name);
+void nat_undefine_singleton_method(NatEnv *env, NatObject *obj, const char *name);
 
 NatObject *nat_class_ancestors(NatEnv *env, NatObject *klass);
 bool nat_is_a(NatEnv *env, NatObject *obj, NatObject *klass_or_module);
 
-char *nat_defined(NatEnv *env, NatObject *receiver, char *name);
-NatObject *nat_defined_obj(NatEnv *env, NatObject *receiver, char *name);
+const char *nat_defined(NatEnv *env, NatObject *receiver, const char *name);
+NatObject *nat_defined_obj(NatEnv *env, NatObject *receiver, const char *name);
 
-NatObject *nat_send(NatEnv *env, NatObject *receiver, char *sym, ssize_t argc, NatObject **args, NatBlock *block);
+NatObject *nat_send(NatEnv *env, NatObject *receiver, const char *sym, ssize_t argc, NatObject **args, NatBlock *block);
 void nat_methods(NatEnv *env, NatObject *array, NatObject *klass);
-NatMethod *nat_find_method(NatObject *klass, char *method_name, NatObject **matching_class_or_module);
-NatMethod *nat_find_method_without_undefined(NatObject *klass, char *method_name, NatObject **matching_class_or_module);
+NatMethod *nat_find_method(NatObject *klass, const char *method_name, NatObject **matching_class_or_module);
+NatMethod *nat_find_method_without_undefined(NatObject *klass, const char *method_name, NatObject **matching_class_or_module);
 NatObject *nat_call_begin(NatEnv *env, NatObject *self, NatObject *(*block_fn)(NatEnv *, NatObject *));
-NatObject *nat_call_method_on_class(NatEnv *env, NatObject *klass, NatObject *instance_class, char *method_name, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block);
-bool nat_respond_to(NatEnv *env, NatObject *obj, char *name);
+NatObject *nat_call_method_on_class(NatEnv *env, NatObject *klass, NatObject *instance_class, const char *method_name, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block);
+bool nat_respond_to(NatEnv *env, NatObject *obj, const char *name);
 
 NatBlock *nat_block(NatEnv *env, NatObject *self, NatObject *(*fn)(NatEnv *, NatObject *, ssize_t, NatObject **, NatBlock *));
 NatObject *_nat_run_block_internal(NatEnv *env, NatBlock *the_block, ssize_t argc, NatObject **args, NatBlock *block);
@@ -455,20 +449,20 @@ NatObject *nat_lambda(NatEnv *env, NatBlock *block);
 
 #define NAT_STRING_GROW_FACTOR 2
 
-NatObject *nat_string_n(NatEnv *env, char *str, ssize_t len);
-NatObject *nat_string(NatEnv *env, char *str);
+NatObject *nat_string_n(NatEnv *env, const char *str, ssize_t len);
+NatObject *nat_string(NatEnv *env, const char *str);
 void nat_grow_string(NatEnv *env, NatObject *obj, ssize_t capacity);
 void nat_grow_string_at_least(NatEnv *env, NatObject *obj, ssize_t min_capacity);
-void nat_string_append(NatEnv *env, NatObject *str, char *s);
+void nat_string_append(NatEnv *env, NatObject *str, const char *s);
 void nat_string_append_char(NatEnv *env, NatObject *str, char c);
 void nat_string_append_nat_string(NatEnv *env, NatObject *str, NatObject *str2);
 NatObject *nat_string_chars(NatEnv *env, NatObject *str);
-NatObject *nat_sprintf(NatEnv *env, char *format, ...);
-NatObject *nat_vsprintf(NatEnv *env, char *format, va_list args);
+NatObject *nat_sprintf(NatEnv *env, const char *format, ...);
+NatObject *nat_vsprintf(NatEnv *env, const char *format, va_list args);
 
-NatObject *nat_symbol(NatEnv *env, char *name);
+NatObject *nat_symbol(NatEnv *env, const char *name);
 
-NatObject *nat_exception(NatEnv *env, NatObject *klass, char *message);
+NatObject *nat_exception(NatEnv *env, NatObject *klass, const char *message);
 
 #define NAT_VECTOR_INIT_SIZE 10
 #define NAT_VECTOR_GROW_FACTOR 2
@@ -491,8 +485,6 @@ NatObject *nat_array_copy(NatEnv *env, NatObject *source);
 void nat_grow_array(NatEnv *env, NatObject *obj, ssize_t capacity);
 void nat_grow_array_at_least(NatEnv *env, NatObject *obj, ssize_t min_capacity);
 void nat_array_push(NatEnv *env, NatObject *array, NatObject *obj);
-void nat_assign_arg(NatEnv *env, char *name, int argc, NatObject **args, int index, NatObject *default_value);
-void nat_assign_rest_arg(NatEnv *env, char *name, ssize_t argc, NatObject **args, ssize_t index, ssize_t count);
 void nat_array_push_splat(NatEnv *env, NatObject *array, NatObject *obj);
 void nat_array_expand_with_nil(NatEnv *env, NatObject *array, ssize_t size);
 
@@ -511,7 +503,7 @@ NatObject *nat_hash_get_default(NatEnv *env, NatObject *hash, NatObject *key);
 void nat_hash_put(NatEnv *env, NatObject *hash, NatObject *key, NatObject *val);
 NatObject *nat_hash_delete(NatEnv *env, NatObject *hash, NatObject *key);
 
-NatObject *nat_regexp(NatEnv *env, char *pattern);
+NatObject *nat_regexp(NatEnv *env, const char *pattern);
 NatObject *nat_matchdata(NatEnv *env, OnigRegion *region, NatObject *str_obj);
 NatObject *nat_last_match(NatEnv *env);
 
@@ -520,7 +512,7 @@ NatObject *nat_range(NatEnv *env, NatObject *begin, NatObject *end, bool exclude
 NatObject *nat_dup(NatEnv *env, NatObject *obj);
 NatObject *nat_not(NatEnv *env, NatObject *val);
 
-void nat_alias(NatEnv *env, NatObject *self, char *new_name, char *old_name);
+void nat_alias(NatEnv *env, NatObject *self, const char *new_name, const char *old_name);
 
 void nat_run_at_exit_handlers(NatEnv *env);
 void nat_print_exception_with_backtrace(NatEnv *env, NatObject *exception);
@@ -538,15 +530,22 @@ NatObject *nat_to_ary(NatEnv *env, NatObject *obj, bool raise_for_non_array);
 
 NatObject *nat_arg_value_by_path(NatEnv *env, NatObject *value, NatObject *default_value, bool splat, int total_count, int default_count, bool defaults_on_right, int offset_from_end, ssize_t path_size, ...);
 NatObject *nat_array_value_by_path(NatEnv *env, NatObject *value, NatObject *default_value, bool splat, int offset_from_end, ssize_t path_size, ...);
-NatObject *nat_kwarg_value_by_name(NatEnv *env, NatObject *args, char *name, NatObject *default_value);
+NatObject *nat_kwarg_value_by_name(NatEnv *env, NatObject *args, const char *name, NatObject *default_value);
 
 NatObject *nat_args_to_array(NatEnv *env, ssize_t argc, NatObject **args);
 NatObject *nat_block_args_to_array(NatEnv *env, ssize_t signature_size, ssize_t argc, NatObject **args);
 
-NatObject *nat_encoding(NatEnv *env, int num, NatObject *names);
+NatObject *nat_encoding(NatEnv *env, enum NatEncoding num, NatObject *names);
 
 NatObject *nat_eval_class_or_module_body(NatEnv *env, NatObject *class_or_module, NatObject *(*fn)(NatEnv *, NatObject *));
 
-void nat_arg_spread(NatEnv *env, ssize_t argc, NatObject **args, char *arrangement, ...);
+void nat_arg_spread(NatEnv *env, ssize_t argc, NatObject **args, const char *arrangement, ...);
 
 NatObject *nat_void_ptr(NatEnv *env, void *ptr);
+
+template <typename T>
+void nat_list_prepend(T* list, T item) {
+    T next_item = *list;
+    *list = item;
+    item->next = next_item;
+}

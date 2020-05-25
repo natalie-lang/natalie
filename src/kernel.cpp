@@ -1,5 +1,5 @@
-#include "builtin.h"
-#include "natalie.h"
+#include "builtin.hpp"
+#include "natalie.hpp"
 
 NatObject *Kernel_puts(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NatObject *nat_stdout = nat_global_get(env, "$stdout");
@@ -92,7 +92,7 @@ NatObject *Kernel_instance_variable_get(NatEnv *env, NatObject *self, ssize_t ar
         return NAT_NIL;
     }
     NatObject *name_obj = args[0];
-    char *name = NULL;
+    const char *name = NULL;
     if (NAT_TYPE(name_obj) == NAT_VALUE_STRING) {
         name = name_obj->str;
     } else if (NAT_TYPE(name_obj) == NAT_VALUE_SYMBOL) {
@@ -107,7 +107,7 @@ NatObject *Kernel_instance_variable_set(NatEnv *env, NatObject *self, ssize_t ar
     NAT_ASSERT_ARGC(2);
     NAT_ASSERT_NOT_FROZEN(self);
     NatObject *name_obj = args[0];
-    char *name = NULL;
+    const char *name = NULL;
     if (NAT_TYPE(name_obj) == NAT_VALUE_STRING) {
         name = name_obj->str;
     } else if (NAT_TYPE(name_obj) == NAT_VALUE_SYMBOL) {
@@ -149,7 +149,7 @@ NatObject *Kernel_raise(NatEnv *env, NatObject *self, ssize_t argc, NatObject **
 NatObject *Kernel_respond_to(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(1);
     NatObject *symbol = args[0];
-    char *name;
+    const char *name;
     if (NAT_TYPE(symbol) == NAT_VALUE_SYMBOL) {
         name = symbol->symbol;
     } else if (NAT_TYPE(symbol) == NAT_VALUE_STRING) {
@@ -247,7 +247,7 @@ NatObject *Kernel_lambda(NatEnv *env, NatObject *self, ssize_t argc, NatObject *
 
 NatObject *Kernel_method(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC(0);
-    char *name = nat_find_current_method_name(env->caller);
+    const char *name = nat_find_current_method_name(env->caller);
     if (name) {
         return nat_symbol(env, name);
     } else {
@@ -320,7 +320,7 @@ NatObject *Kernel_Array(NatEnv *env, NatObject *self, ssize_t argc, NatObject **
 NatObject *Kernel_send(NatEnv *env, NatObject *self, ssize_t argc, NatObject **args, NatBlock *block) {
     NAT_ASSERT_ARGC_AT_LEAST(1);
     NatObject *name_obj = args[0];
-    char *name;
+    const char *name;
     if (NAT_TYPE(name_obj) == NAT_VALUE_SYMBOL) {
         name = name_obj->symbol;
     } else if (NAT_TYPE(name_obj) == NAT_VALUE_STRING) {
