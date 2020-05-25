@@ -3,25 +3,25 @@
 
 namespace Natalie {
 
-NatObject *Kernel_puts(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
-    NatObject *stdout = global_get(env, "$stdout");
+Value *Kernel_puts(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
+    Value *stdout = global_get(env, "$stdout");
     return IO_puts(env, stdout, argc, args, block);
 }
 
-NatObject *Kernel_print(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
-    NatObject *stdout = global_get(env, "$stdout");
+Value *Kernel_print(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
+    Value *stdout = global_get(env, "$stdout");
     return IO_print(env, stdout, argc, args, block);
 }
 
-NatObject *Kernel_p(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Kernel_p(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     if (argc == 0) {
         return NAT_NIL;
     } else if (argc == 1) {
-        NatObject *arg = send(env, args[0], "inspect", 0, NULL, NULL);
+        Value *arg = send(env, args[0], "inspect", 0, NULL, NULL);
         Kernel_puts(env, self, 1, &arg, NULL);
         return arg;
     } else {
-        NatObject *result = array_new(env);
+        Value *result = array_new(env);
         for (ssize_t i = 0; i < argc; i++) {
             array_push(env, result, args[i]);
             args[i] = send(env, args[i], "inspect", 0, NULL, NULL);
@@ -31,12 +31,12 @@ NatObject *Kernel_p(Env *env, NatObject *self, ssize_t argc, NatObject **args, B
     }
 }
 
-NatObject *Kernel_inspect(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Kernel_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     if ((NAT_TYPE(self) == NAT_VALUE_CLASS || NAT_TYPE(self) == NAT_VALUE_MODULE) && self->class_name) {
         return string(env, self->class_name);
     } else {
-        NatObject *str = string(env, "#<");
+        Value *str = string(env, "#<");
         assert(NAT_OBJ_CLASS(self));
         string_append(env, str, Module_inspect(env, NAT_OBJ_CLASS(self), 0, NULL, NULL)->str);
         string_append_char(env, str, ':');
@@ -48,14 +48,14 @@ NatObject *Kernel_inspect(Env *env, NatObject *self, ssize_t argc, NatObject **a
     }
 }
 
-NatObject *Kernel_object_id(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Kernel_object_id(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     return integer(env, object_id(env, self));
 }
 
-NatObject *Kernel_equal(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Kernel_equal(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
-    NatObject *arg = args[0];
+    Value *arg = args[0];
     if (self == arg) {
         return NAT_TRUE;
     } else {
@@ -63,18 +63,18 @@ NatObject *Kernel_equal(Env *env, NatObject *self, ssize_t argc, NatObject **arg
     }
 }
 
-NatObject *Kernel_class(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Kernel_class(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     return NAT_OBJ_CLASS(self) ? NAT_OBJ_CLASS(self) : NAT_NIL;
 }
 
-NatObject *Kernel_singleton_class(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Kernel_singleton_class(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     return singleton_class(env, self);
 }
 
-NatObject *Kernel_instance_variables(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
-    NatObject *ary = array_new(env);
+Value *Kernel_instance_variables(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
+    Value *ary = array_new(env);
     if (NAT_TYPE(self) == NAT_VALUE_INTEGER) {
         return ary;
     }
@@ -88,12 +88,12 @@ NatObject *Kernel_instance_variables(Env *env, NatObject *self, ssize_t argc, Na
     return ary;
 }
 
-NatObject *Kernel_instance_variable_get(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Kernel_instance_variable_get(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     if (NAT_TYPE(self) == NAT_VALUE_INTEGER) {
         return NAT_NIL;
     }
-    NatObject *name_obj = args[0];
+    Value *name_obj = args[0];
     const char *name = NULL;
     if (NAT_TYPE(name_obj) == NAT_VALUE_STRING) {
         name = name_obj->str;
@@ -105,10 +105,10 @@ NatObject *Kernel_instance_variable_get(Env *env, NatObject *self, ssize_t argc,
     return ivar_get(env, self, name);
 }
 
-NatObject *Kernel_instance_variable_set(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Kernel_instance_variable_set(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(2);
     NAT_ASSERT_NOT_FROZEN(self);
-    NatObject *name_obj = args[0];
+    Value *name_obj = args[0];
     const char *name = NULL;
     if (NAT_TYPE(name_obj) == NAT_VALUE_STRING) {
         name = name_obj->str;
@@ -117,20 +117,20 @@ NatObject *Kernel_instance_variable_set(Env *env, NatObject *self, ssize_t argc,
     } else {
         NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", send(env, name_obj, "inspect", 0, NULL, NULL));
     }
-    NatObject *val_obj = args[1];
+    Value *val_obj = args[1];
     ivar_set(env, self, name, val_obj);
     return val_obj;
 }
 
-NatObject *Kernel_raise(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Kernel_raise(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1, 2);
-    NatObject *klass;
-    NatObject *message;
+    Value *klass;
+    Value *message;
     if (argc == 2) {
         klass = args[0];
         message = args[1];
     } else {
-        NatObject *arg = args[0];
+        Value *arg = args[0];
         if (NAT_TYPE(arg) == NAT_VALUE_CLASS) {
             klass = arg;
             message = string(env, arg->class_name);
@@ -148,9 +148,9 @@ NatObject *Kernel_raise(Env *env, NatObject *self, ssize_t argc, NatObject **arg
     abort();
 }
 
-NatObject *Kernel_respond_to(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Kernel_respond_to(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
-    NatObject *symbol = args[0];
+    Value *symbol = args[0];
     const char *name;
     if (NAT_TYPE(symbol) == NAT_VALUE_SYMBOL) {
         name = symbol->symbol;
@@ -166,14 +166,14 @@ NatObject *Kernel_respond_to(Env *env, NatObject *self, ssize_t argc, NatObject 
     }
 }
 
-NatObject *Kernel_dup(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Kernel_dup(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     return dup(env, self);
 }
 
-NatObject *Kernel_methods(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Kernel_methods(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0); // for now
-    NatObject *array = array_new(env);
+    Value *array = array_new(env);
     if (self->singleton_class) {
         methods(env, array, self->singleton_class);
     } else {
@@ -182,9 +182,9 @@ NatObject *Kernel_methods(Env *env, NatObject *self, ssize_t argc, NatObject **a
     return array;
 }
 
-NatObject *Kernel_exit(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Kernel_exit(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0, 1);
-    NatObject *status;
+    Value *status;
     if (argc == 1) {
         status = args[0];
         if (NAT_TYPE(status) != NAT_VALUE_INTEGER) {
@@ -193,24 +193,24 @@ NatObject *Kernel_exit(Env *env, NatObject *self, ssize_t argc, NatObject **args
     } else {
         status = integer(env, 0);
     }
-    NatObject *exception = exception_new(env, const_get(env, NAT_OBJECT, "SystemExit", true), "exit");
+    Value *exception = exception_new(env, const_get(env, NAT_OBJECT, "SystemExit", true), "exit");
     ivar_set(env, exception, "@status", status);
     raise_exception(env, exception);
     return NAT_NIL;
 }
 
-NatObject *Kernel_at_exit(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
-    NatObject *at_exit_handlers = global_get(env, "$NAT_at_exit_handlers");
+Value *Kernel_at_exit(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
+    Value *at_exit_handlers = global_get(env, "$NAT_at_exit_handlers");
     assert(at_exit_handlers);
     NAT_ASSERT_BLOCK();
-    NatObject *proc = proc_new(env, block);
+    Value *proc = proc_new(env, block);
     array_push(env, at_exit_handlers, proc);
     return proc;
 }
 
-NatObject *Kernel_is_a(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Kernel_is_a(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
-    NatObject *klass_or_module = args[0];
+    Value *klass_or_module = args[0];
     if (NAT_TYPE(klass_or_module) != NAT_VALUE_CLASS && NAT_TYPE(klass_or_module) != NAT_VALUE_MODULE) {
         NAT_RAISE(env, "TypeError", "class or module required");
     }
@@ -221,15 +221,15 @@ NatObject *Kernel_is_a(Env *env, NatObject *self, ssize_t argc, NatObject **args
     }
 }
 
-NatObject *Kernel_hash(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Kernel_hash(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
-    NatObject *inspected = send(env, self, "inspect", 0, NULL, NULL);
+    Value *inspected = send(env, self, "inspect", 0, NULL, NULL);
     ssize_t hash_value = hashmap_hash_string(inspected->str);
     ssize_t truncated_hash_value = RSHIFT(hash_value, 1); // shift right to fit in our int size (without need for BigNum)
     return integer(env, truncated_hash_value);
 }
 
-NatObject *Kernel_proc(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Kernel_proc(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     if (block) {
         return proc_new(env, block);
@@ -238,7 +238,7 @@ NatObject *Kernel_proc(Env *env, NatObject *self, ssize_t argc, NatObject **args
     }
 }
 
-NatObject *Kernel_lambda(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Kernel_lambda(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     if (block) {
         return lambda(env, block);
@@ -247,7 +247,7 @@ NatObject *Kernel_lambda(Env *env, NatObject *self, ssize_t argc, NatObject **ar
     }
 }
 
-NatObject *Kernel_method(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Kernel_method(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     const char *name = find_current_method_name(env->caller);
     if (name) {
@@ -257,18 +257,18 @@ NatObject *Kernel_method(Env *env, NatObject *self, ssize_t argc, NatObject **ar
     }
 }
 
-NatObject *Kernel_freeze(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Kernel_freeze(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     freeze_object(self);
     return self;
 }
 
-NatObject *Kernel_is_nil(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Kernel_is_nil(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     return NAT_FALSE;
 }
 
-NatObject *Kernel_sleep(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Kernel_sleep(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0, 1);
     if (argc == 0) {
         while (true) {
@@ -276,17 +276,17 @@ NatObject *Kernel_sleep(Env *env, NatObject *self, ssize_t argc, NatObject **arg
         }
         abort(); // not reached
     } else {
-        NatObject *length = args[0];
+        Value *length = args[0];
         NAT_ASSERT_TYPE(length, NAT_VALUE_INTEGER, "Integer"); // TODO: float supported also
         sleep(NAT_INT_VALUE(length));
         return length;
     }
 }
 
-NatObject *Kernel_define_singleton_method(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Kernel_define_singleton_method(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     NAT_ASSERT_BLOCK();
-    NatObject *name_obj = args[0];
+    Value *name_obj = args[0];
     if (NAT_TYPE(name_obj) == NAT_VALUE_SYMBOL) {
         // we're good!
     } else if (NAT_TYPE(name_obj) == NAT_VALUE_STRING) {
@@ -298,14 +298,14 @@ NatObject *Kernel_define_singleton_method(Env *env, NatObject *self, ssize_t arg
     return name_obj;
 }
 
-NatObject *Kernel_tap(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Kernel_tap(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &self, NULL);
     return self;
 }
 
-NatObject *Kernel_Array(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Kernel_Array(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
-    NatObject *value = args[0];
+    Value *value = args[0];
     if (NAT_TYPE(value) == NAT_VALUE_ARRAY) {
         return value;
     } else if (respond_to(env, value, "to_ary")) {
@@ -313,15 +313,15 @@ NatObject *Kernel_Array(Env *env, NatObject *self, ssize_t argc, NatObject **arg
     } else if (value == NAT_NIL) {
         return array_new(env);
     } else {
-        NatObject *ary = array_new(env);
+        Value *ary = array_new(env);
         array_push(env, ary, value);
         return ary;
     }
 }
 
-NatObject *Kernel_send(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Kernel_send(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC_AT_LEAST(1);
-    NatObject *name_obj = args[0];
+    Value *name_obj = args[0];
     const char *name;
     if (NAT_TYPE(name_obj) == NAT_VALUE_SYMBOL) {
         name = name_obj->symbol;
@@ -333,15 +333,15 @@ NatObject *Kernel_send(Env *env, NatObject *self, ssize_t argc, NatObject **args
     return send(env->caller, self, name, argc - 1, args + 1, block);
 }
 
-NatObject *Kernel_cur_dir(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Kernel_cur_dir(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     if (env->file == NULL) {
         NAT_RAISE(env, "RuntimeError", "could not get current directory");
     } else if (strcmp(env->file, "-e") == 0) {
         return string(env, ".");
     } else {
-        NatObject *relative = string(env, env->file);
-        NatObject *absolute = File_expand_path(env, const_get(env, NAT_OBJECT, "File", true), 1, &relative, NULL);
+        Value *relative = string(env, env->file);
+        Value *absolute = File_expand_path(env, const_get(env, NAT_OBJECT, "File", true), 1, &relative, NULL);
         ssize_t last_slash = 0;
         bool found = false;
         for (ssize_t i = 0; i < absolute->str_len; i++) {

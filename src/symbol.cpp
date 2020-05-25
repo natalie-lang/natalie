@@ -3,16 +3,16 @@
 
 namespace Natalie {
 
-NatObject *Symbol_to_s(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Symbol_to_s(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_SYMBOL);
     NAT_ASSERT_ARGC(0);
     return string(env, self->symbol);
 }
 
-NatObject *Symbol_inspect(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Symbol_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_SYMBOL);
     NAT_ASSERT_ARGC(0);
-    NatObject *str = string(env, ":");
+    Value *str = string(env, ":");
     ssize_t len = strlen(self->symbol);
     for (ssize_t i = 0; i < len; i++) {
         char c = self->symbol[i];
@@ -25,7 +25,7 @@ NatObject *Symbol_inspect(Env *env, NatObject *self, ssize_t argc, NatObject **a
     return str;
 }
 
-NatObject *Symbol_to_proc(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Symbol_to_proc(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_SYMBOL);
     NAT_ASSERT_ARGC(0);
     Env block_env;
@@ -35,18 +35,18 @@ NatObject *Symbol_to_proc(Env *env, NatObject *self, ssize_t argc, NatObject **a
     return proc_new(env, proc_block);
 }
 
-NatObject *Symbol_to_proc_block_fn(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Symbol_to_proc_block_fn(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
-    NatObject *name_obj = var_get(env->outer, "name", 0);
+    Value *name_obj = var_get(env->outer, "name", 0);
     assert(name_obj);
     const char *name = name_obj->symbol;
     return send(env, args[0], name, 0, NULL, NULL);
 }
 
-NatObject *Symbol_cmp(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Symbol_cmp(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_SYMBOL);
     NAT_ASSERT_ARGC(1);
-    NatObject *arg = args[0];
+    Value *arg = args[0];
     if (NAT_TYPE(arg) != NAT_VALUE_SYMBOL) return NAT_NIL;
     int diff = strcmp(self->symbol, arg->symbol);
     int result;

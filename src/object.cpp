@@ -4,8 +4,8 @@
 
 namespace Natalie {
 
-NatObject *Object_new(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
-    NatObject *obj = alloc(env, self, NAT_VALUE_OTHER);
+Value *Object_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
+    Value *obj = alloc(env, self, NAT_VALUE_OTHER);
     return initialize(env, obj, argc, args, block);
 }
 

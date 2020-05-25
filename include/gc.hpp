@@ -32,11 +32,11 @@ struct HeapCell {
 
 void gc_init(Env *env, void *bottom_of_stack);
 HeapBlock *gc_alloc_heap_block(GlobalEnv *global_env);
-NatObject *gc_malloc(Env *env);
+Value *gc_malloc(Env *env);
 void gc_collect(Env *env);
 void gc_collect_all(Env *env);
 double gc_bytes_available_ratio(Env *env);
-NatObject *alloc(Env *env, NatObject *klass, enum NatValueType type);
+Value *alloc(Env *env, Value *klass, enum NatValueType type);
 
 extern void *gc_abort_if_collected;
 

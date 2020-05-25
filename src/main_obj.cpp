@@ -3,7 +3,7 @@
 
 namespace Natalie {
 
-NatObject *main_obj_inspect(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *main_obj_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     return string(env, "main");
 }
 

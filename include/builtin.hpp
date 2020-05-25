@@ -6,7 +6,7 @@
 
 namespace Natalie {
 
-#define NAT_ARRAY_INIT(klass)                                                \
+#define NAT_ARRAY_INIT(klass)                                            \
     define_singleton_method(env, klass, "new", Array_new);               \
     define_singleton_method(env, klass, "[]", Array_square_new);         \
     define_method(env, klass, "inspect", Array_inspect);                 \
@@ -34,39 +34,39 @@ namespace Natalie {
     define_method(env, klass, "<=>", Array_cmp);                         \
     define_method(env, klass, "to_a", Array_to_a);
 
-NatObject *Array_new(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Array_square_new(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Array_inspect(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Array_ltlt(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Array_add(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Array_sub(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Array_ref(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Array_refeq(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Array_size(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Array_any(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Array_eqeq(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Array_each(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Array_each_with_index(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Array_map(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Array_first(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Array_last(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Array_to_ary(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Array_pop(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Array_include(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Array_sort(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Array_join(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Array_cmp(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Array_to_a(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
+Value *Array_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Array_square_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Array_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Array_ltlt(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Array_add(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Array_sub(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Array_ref(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Array_refeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Array_size(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Array_any(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Array_eqeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Array_each(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Array_each_with_index(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Array_map(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Array_first(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Array_last(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Array_to_ary(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Array_pop(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Array_include(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Array_sort(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Array_join(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Array_cmp(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Array_to_a(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
-NatObject *BasicObject_not(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *BasicObject_eqeq(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *BasicObject_neq(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *BasicObject_instance_eval(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
+Value *BasicObject_not(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *BasicObject_eqeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *BasicObject_neq(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *BasicObject_instance_eval(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
-NatObject *Class_new(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Class_superclass(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
+Value *Class_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Class_superclass(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
-#define NAT_COMPARABLE_INIT(module)                        \
+#define NAT_COMPARABLE_INIT(module)                    \
     define_method(env, module, "==", Comparable_eqeq); \
     define_method(env, module, "!=", Comparable_neq);  \
     define_method(env, module, "<", Comparable_lt);    \
@@ -74,81 +74,81 @@ NatObject *Class_superclass(Env *env, NatObject *self, ssize_t argc, NatObject *
     define_method(env, module, ">", Comparable_gt);    \
     define_method(env, module, ">=", Comparable_gte);
 
-NatObject *Comparable_eqeq(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Comparable_neq(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Comparable_lt(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Comparable_lte(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Comparable_gt(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Comparable_gte(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
+Value *Comparable_eqeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Comparable_neq(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Comparable_lt(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Comparable_lte(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Comparable_gt(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Comparable_gte(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
-#define NAT_ENCODING_INIT(klass)                                    \
+#define NAT_ENCODING_INIT(klass)                                \
     define_singleton_method(env, klass, "list", Encoding_list); \
     define_method(env, klass, "inspect", Encoding_inspect);     \
     define_method(env, klass, "name", Encoding_name);           \
     define_method(env, klass, "names", Encoding_names);
 
-NatObject *Encoding_list(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Encoding_inspect(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Encoding_name(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Encoding_names(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
+Value *Encoding_list(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Encoding_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Encoding_name(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Encoding_names(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
-NatObject *ENV_inspect(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *ENV_ref(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *ENV_refeq(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
+Value *ENV_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *ENV_ref(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *ENV_refeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
-#define NAT_ENV_INIT(obj)                                          \
+#define NAT_ENV_INIT(obj)                                      \
     define_singleton_method(env, obj, "inspect", ENV_inspect); \
     define_singleton_method(env, obj, "[]", ENV_ref);          \
     define_singleton_method(env, obj, "[]=", ENV_refeq);
 
-NatObject *Exception_new(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Exception_initialize(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Exception_inspect(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Exception_message(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Exception_backtrace(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
+Value *Exception_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Exception_initialize(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Exception_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Exception_message(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Exception_backtrace(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
-#define NAT_FALSE_CLASS_INIT(klass)                         \
+#define NAT_FALSE_CLASS_INIT(klass)                     \
     undefine_singleton_method(env, klass, "new");       \
     define_method(env, klass, "to_s", FalseClass_to_s); \
     define_method(env, klass, "inspect", FalseClass_to_s);
 
-NatObject *FalseClass_new(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *FalseClass_to_s(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
+Value *FalseClass_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *FalseClass_to_s(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
-#define NAT_FILE_INIT(klass)                                                  \
-    NatObject *Constants = module(env, "Constants");                      \
+#define NAT_FILE_INIT(klass)                                              \
+    Value *Constants = module(env, "Constants");                          \
     define_method(env, klass, "initialize", File_initialize);             \
     define_singleton_method(env, klass, "expand_path", File_expand_path); \
     const_set(env, klass, "Constants", Constants);                        \
-    const_set(env, klass, "APPEND", integer(env, O_APPEND));          \
-    const_set(env, Constants, "APPEND", integer(env, O_APPEND));      \
-    const_set(env, klass, "RDONLY", integer(env, O_RDONLY));          \
-    const_set(env, Constants, "RDONLY", integer(env, O_RDONLY));      \
-    const_set(env, klass, "WRONLY", integer(env, O_WRONLY));          \
-    const_set(env, Constants, "WRONLY", integer(env, O_WRONLY));      \
-    const_set(env, klass, "TRUNC", integer(env, O_TRUNC));            \
-    const_set(env, Constants, "TRUNC", integer(env, O_TRUNC));        \
-    const_set(env, klass, "CREAT", integer(env, O_CREAT));            \
-    const_set(env, Constants, "CREAT", integer(env, O_CREAT));        \
-    const_set(env, klass, "DSYNC", integer(env, O_DSYNC));            \
-    const_set(env, Constants, "DSYNC", integer(env, O_DSYNC));        \
-    const_set(env, klass, "EXCL", integer(env, O_EXCL));              \
-    const_set(env, Constants, "EXCL", integer(env, O_EXCL));          \
-    const_set(env, klass, "NOCTTY", integer(env, O_NOCTTY));          \
-    const_set(env, Constants, "NOCTTY", integer(env, O_NOCTTY));      \
-    const_set(env, klass, "NOFOLLOW", integer(env, O_NOFOLLOW));      \
-    const_set(env, Constants, "NOFOLLOW", integer(env, O_NOFOLLOW));  \
-    const_set(env, klass, "NONBLOCK", integer(env, O_NONBLOCK));      \
-    const_set(env, Constants, "NONBLOCK", integer(env, O_NONBLOCK));  \
-    const_set(env, klass, "RDWR", integer(env, O_RDWR));              \
-    const_set(env, Constants, "RDWR", integer(env, O_RDWR));          \
-    const_set(env, klass, "SYNC", integer(env, O_SYNC));              \
+    const_set(env, klass, "APPEND", integer(env, O_APPEND));              \
+    const_set(env, Constants, "APPEND", integer(env, O_APPEND));          \
+    const_set(env, klass, "RDONLY", integer(env, O_RDONLY));              \
+    const_set(env, Constants, "RDONLY", integer(env, O_RDONLY));          \
+    const_set(env, klass, "WRONLY", integer(env, O_WRONLY));              \
+    const_set(env, Constants, "WRONLY", integer(env, O_WRONLY));          \
+    const_set(env, klass, "TRUNC", integer(env, O_TRUNC));                \
+    const_set(env, Constants, "TRUNC", integer(env, O_TRUNC));            \
+    const_set(env, klass, "CREAT", integer(env, O_CREAT));                \
+    const_set(env, Constants, "CREAT", integer(env, O_CREAT));            \
+    const_set(env, klass, "DSYNC", integer(env, O_DSYNC));                \
+    const_set(env, Constants, "DSYNC", integer(env, O_DSYNC));            \
+    const_set(env, klass, "EXCL", integer(env, O_EXCL));                  \
+    const_set(env, Constants, "EXCL", integer(env, O_EXCL));              \
+    const_set(env, klass, "NOCTTY", integer(env, O_NOCTTY));              \
+    const_set(env, Constants, "NOCTTY", integer(env, O_NOCTTY));          \
+    const_set(env, klass, "NOFOLLOW", integer(env, O_NOFOLLOW));          \
+    const_set(env, Constants, "NOFOLLOW", integer(env, O_NOFOLLOW));      \
+    const_set(env, klass, "NONBLOCK", integer(env, O_NONBLOCK));          \
+    const_set(env, Constants, "NONBLOCK", integer(env, O_NONBLOCK));      \
+    const_set(env, klass, "RDWR", integer(env, O_RDWR));                  \
+    const_set(env, Constants, "RDWR", integer(env, O_RDWR));              \
+    const_set(env, klass, "SYNC", integer(env, O_SYNC));                  \
     const_set(env, Constants, "SYNC", integer(env, O_SYNC));
 
-NatObject *File_initialize(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *File_expand_path(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
+Value *File_initialize(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *File_expand_path(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
-#define NAT_HASH_INIT(klass)                                        \
+#define NAT_HASH_INIT(klass)                                    \
     define_singleton_method(env, klass, "new", Hash_new);       \
     define_singleton_method(env, klass, "[]", Hash_square_new); \
     define_method(env, klass, "inspect", Hash_inspect);         \
@@ -165,21 +165,21 @@ NatObject *File_expand_path(Env *env, NatObject *self, ssize_t argc, NatObject *
     define_method(env, klass, "sort", Hash_sort);               \
     define_method(env, klass, "key?", Hash_is_key);
 
-NatObject *Hash_new(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Hash_square_new(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Hash_inspect(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Hash_ref(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Hash_refeq(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Hash_delete(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Hash_size(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Hash_eqeq(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Hash_each(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Hash_keys(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Hash_values(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Hash_sort(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Hash_is_key(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
+Value *Hash_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Hash_square_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Hash_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Hash_ref(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Hash_refeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Hash_delete(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Hash_size(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Hash_eqeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Hash_each(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Hash_keys(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Hash_values(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Hash_sort(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Hash_is_key(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
-#define NAT_INTEGER_INIT(klass)                              \
+#define NAT_INTEGER_INIT(klass)                          \
     define_method(env, klass, "to_s", Integer_to_s);     \
     define_method(env, klass, "inspect", Integer_to_s);  \
     define_method(env, klass, "+", Integer_add);         \
@@ -195,21 +195,21 @@ NatObject *Hash_is_key(Env *env, NatObject *self, ssize_t argc, NatObject **args
     define_method(env, klass, "|", Integer_bitwise_or);  \
     define_method(env, klass, "succ", Integer_succ);
 
-NatObject *Integer_to_s(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Integer_add(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Integer_sub(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Integer_mul(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Integer_div(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Integer_mod(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Integer_pow(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Integer_cmp(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Integer_eqeqeq(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Integer_times(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Integer_bitwise_and(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Integer_bitwise_or(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Integer_succ(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
+Value *Integer_to_s(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Integer_add(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Integer_sub(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Integer_mul(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Integer_div(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Integer_mod(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Integer_pow(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Integer_cmp(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Integer_eqeqeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Integer_times(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Integer_bitwise_and(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Integer_bitwise_or(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Integer_succ(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
-#define NAT_IO_INIT(klass)                                      \
+#define NAT_IO_INIT(klass)                                  \
     define_singleton_method(env, klass, "new", IO_new);     \
     define_method(env, klass, "initialize", IO_initialize); \
     define_method(env, klass, "fileno", IO_fileno);         \
@@ -220,17 +220,17 @@ NatObject *Integer_succ(Env *env, NatObject *self, ssize_t argc, NatObject **arg
     define_method(env, klass, "close", IO_close);           \
     define_method(env, klass, "seek", IO_seek);
 
-NatObject *IO_new(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *IO_initialize(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *IO_fileno(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *IO_read(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *IO_write(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *IO_puts(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *IO_print(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *IO_close(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *IO_seek(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
+Value *IO_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *IO_initialize(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *IO_fileno(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *IO_read(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *IO_write(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *IO_puts(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *IO_print(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *IO_close(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *IO_seek(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
-#define NAT_KERNEL_INIT(module)                                                                \
+#define NAT_KERNEL_INIT(module)                                                            \
     define_method(env, module, "puts", Kernel_puts);                                       \
     define_method(env, module, "print", Kernel_print);                                     \
     define_method(env, module, "p", Kernel_p);                                             \
@@ -264,50 +264,50 @@ NatObject *IO_seek(Env *env, NatObject *self, ssize_t argc, NatObject **args, Bl
     define_method(env, module, "send", Kernel_send);                                       \
     define_method(env, module, "__dir__", Kernel_cur_dir);
 
-NatObject *Kernel_puts(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Kernel_print(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Kernel_p(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Kernel_inspect(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Kernel_object_id(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Kernel_equal(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Kernel_class(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Kernel_singleton_class(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Kernel_instance_variables(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Kernel_instance_variable_get(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Kernel_instance_variable_set(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Kernel_raise(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Kernel_respond_to(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Kernel_dup(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Kernel_methods(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Kernel_exit(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Kernel_at_exit(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Kernel_is_a(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Kernel_hash(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Kernel_proc(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Kernel_lambda(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Kernel_method(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Kernel_freeze(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Kernel_is_nil(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Kernel_sleep(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Kernel_define_singleton_method(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Kernel_tap(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Kernel_Array(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Kernel_send(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Kernel_cur_dir(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
+Value *Kernel_puts(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Kernel_print(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Kernel_p(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Kernel_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Kernel_object_id(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Kernel_equal(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Kernel_class(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Kernel_singleton_class(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Kernel_instance_variables(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Kernel_instance_variable_get(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Kernel_instance_variable_set(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Kernel_raise(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Kernel_respond_to(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Kernel_dup(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Kernel_methods(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Kernel_exit(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Kernel_at_exit(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Kernel_is_a(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Kernel_hash(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Kernel_proc(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Kernel_lambda(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Kernel_method(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Kernel_freeze(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Kernel_is_nil(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Kernel_sleep(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Kernel_define_singleton_method(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Kernel_tap(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Kernel_Array(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Kernel_send(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Kernel_cur_dir(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
-NatObject *main_obj_inspect(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
+Value *main_obj_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
-#define NAT_MATCH_DATA_INIT(klass)                           \
+#define NAT_MATCH_DATA_INIT(klass)                       \
     define_method(env, klass, "size", MatchData_size);   \
     define_method(env, klass, "length", MatchData_size); \
     define_method(env, klass, "to_s", MatchData_to_s);   \
     define_method(env, klass, "[]", MatchData_ref);
 
-NatObject *MatchData_size(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *MatchData_to_s(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *MatchData_ref(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
+Value *MatchData_size(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *MatchData_to_s(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *MatchData_ref(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
-#define NAT_MODULE_INIT(klass)                                                  \
+#define NAT_MODULE_INIT(klass)                                              \
     define_singleton_method(env, klass, "new", Module_new);                 \
     define_method(env, klass, "inspect", Module_inspect);                   \
     define_method(env, klass, "name", Module_name);                         \
@@ -327,51 +327,51 @@ NatObject *MatchData_ref(Env *env, NatObject *self, ssize_t argc, NatObject **ar
     define_method(env, klass, "const_defined?", Module_const_defined);      \
     define_method(env, klass, "alias_method", Module_alias_method);
 
-NatObject *Module_new(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Module_inspect(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Module_eqeqeq(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Module_name(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Module_ancestors(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Module_attr_reader(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Module_attr_reader_block_fn(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Module_attr_writer(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Module_attr_writer_block_fn(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Module_attr_accessor(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Module_include(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Module_prepend(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Module_included_modules(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Module_define_method(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Module_class_eval(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Module_private(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Module_protected(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Module_const_defined(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Module_alias_method(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
+Value *Module_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Module_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Module_eqeqeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Module_name(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Module_ancestors(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Module_attr_reader(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Module_attr_reader_block_fn(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Module_attr_writer(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Module_attr_writer_block_fn(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Module_attr_accessor(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Module_include(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Module_prepend(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Module_included_modules(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Module_define_method(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Module_class_eval(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Module_private(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Module_protected(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Module_const_defined(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Module_alias_method(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
-#define NAT_NIL_CLASS_INIT(klass)                               \
+#define NAT_NIL_CLASS_INIT(klass)                           \
     undefine_singleton_method(env, klass, "new");           \
     define_method(env, klass, "to_s", NilClass_to_s);       \
     define_method(env, klass, "to_a", NilClass_to_a);       \
     define_method(env, klass, "inspect", NilClass_inspect); \
     define_method(env, klass, "nil?", NilClass_is_nil);
 
-NatObject *NilClass_new(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *NilClass_to_s(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *NilClass_to_a(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *NilClass_inspect(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *NilClass_is_nil(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
+Value *NilClass_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *NilClass_to_s(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *NilClass_to_a(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *NilClass_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *NilClass_is_nil(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
-NatObject *Object_new(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
+Value *Object_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
-#define NAT_PROC_INIT(klass)                                  \
+#define NAT_PROC_INIT(klass)                              \
     define_singleton_method(env, klass, "new", Proc_new); \
     define_method(env, klass, "call", Proc_call);         \
     define_method(env, klass, "lambda?", Proc_lambda);
 
-NatObject *Proc_new(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Proc_call(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Proc_lambda(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
+Value *Proc_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Proc_call(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Proc_lambda(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
-#define NAT_RANGE_INIT(klass)                                         \
+#define NAT_RANGE_INIT(klass)                                     \
     define_singleton_method(env, klass, "new", Range_new);        \
     define_method(env, klass, "begin", Range_begin);              \
     define_method(env, klass, "first", Range_begin);              \
@@ -388,19 +388,19 @@ NatObject *Proc_lambda(Env *env, NatObject *self, ssize_t argc, NatObject **args
 #define NAT_PROCESS_INIT(module) \
     define_singleton_method(env, module, "pid", Process_pid);
 
-NatObject *Process_pid(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
+Value *Process_pid(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
-NatObject *Range_new(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Range_begin(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Range_end(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Range_exclude_end(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Range_to_a(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Range_each(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Range_inspect(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Range_eqeq(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Range_eqeqeq(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
+Value *Range_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Range_begin(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Range_end(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Range_exclude_end(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Range_to_a(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Range_each(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Range_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Range_eqeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Range_eqeqeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
-#define NAT_REGEXP_INIT(klass)                                  \
+#define NAT_REGEXP_INIT(klass)                              \
     define_singleton_method(env, klass, "new", Regexp_new); \
     define_method(env, klass, "==", Regexp_eqeq);           \
     define_method(env, klass, "===", Regexp_match);         \
@@ -408,13 +408,13 @@ NatObject *Range_eqeqeq(Env *env, NatObject *self, ssize_t argc, NatObject **arg
     define_method(env, klass, "=~", Regexp_eqtilde);        \
     define_method(env, klass, "match", Regexp_match);
 
-NatObject *Regexp_new(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Regexp_eqeq(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Regexp_inspect(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Regexp_eqtilde(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Regexp_match(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
+Value *Regexp_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Regexp_eqeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Regexp_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Regexp_eqtilde(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Regexp_match(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
-#define NAT_STRING_INIT(klass)                                              \
+#define NAT_STRING_INIT(klass)                                          \
     define_singleton_method(env, klass, "new", String_new);             \
     class_include(env, klass, Comparable);                              \
     define_method(env, klass, "initialize", String_initialize);         \
@@ -443,50 +443,50 @@ NatObject *Regexp_match(Env *env, NatObject *self, ssize_t argc, NatObject **arg
     define_method(env, klass, "split", String_split);                   \
     define_method(env, klass, "ljust", String_ljust);
 
-NatObject *String_new(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *String_initialize(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *String_to_s(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *String_ltlt(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *String_inspect(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *String_add(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *String_mul(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *String_eqeq(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *String_cmp(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *String_eqtilde(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *String_match(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *String_succ(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *String_ord(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *String_bytes(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *String_chars(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *String_size(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *String_encoding(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *String_encode(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *String_force_encoding(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *String_ref(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *String_index(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *String_sub(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *String_to_i(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *String_split(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *String_ljust(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
+Value *String_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *String_initialize(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *String_to_s(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *String_ltlt(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *String_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *String_add(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *String_mul(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *String_eqeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *String_cmp(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *String_eqtilde(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *String_match(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *String_succ(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *String_ord(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *String_bytes(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *String_chars(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *String_size(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *String_encoding(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *String_encode(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *String_force_encoding(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *String_ref(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *String_index(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *String_sub(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *String_to_i(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *String_split(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *String_ljust(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
-#define NAT_SYMBOL_INIT(klass)                                \
+#define NAT_SYMBOL_INIT(klass)                            \
     define_method(env, klass, "to_s", Symbol_to_s);       \
     define_method(env, klass, "inspect", Symbol_inspect); \
     define_method(env, klass, "to_proc", Symbol_to_proc); \
     define_method(env, klass, "<=>", Symbol_cmp);
 
-NatObject *Symbol_to_s(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Symbol_inspect(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Symbol_to_proc(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Symbol_to_proc_block_fn(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *Symbol_cmp(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
+Value *Symbol_to_s(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Symbol_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Symbol_to_proc(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Symbol_to_proc_block_fn(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Symbol_cmp(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
-#define NAT_TRUE_CLASS_INIT(klass)                         \
+#define NAT_TRUE_CLASS_INIT(klass)                     \
     undefine_singleton_method(env, klass, "new");      \
     define_method(env, klass, "to_s", TrueClass_to_s); \
     define_method(env, klass, "inspect", TrueClass_to_s);
 
-NatObject *TrueClass_new(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-NatObject *TrueClass_to_s(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
+Value *TrueClass_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *TrueClass_to_s(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
 }

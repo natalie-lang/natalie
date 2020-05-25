@@ -23,7 +23,7 @@ module Natalie
 
       /*TOP*/
 
-      NatObject *obj_%{name}(Env *env, NatObject *self) {
+      Value *obj_%{name}(Env *env, Value *self) {
         /*BODY*/
         return NAT_NIL;
       }

@@ -3,12 +3,12 @@
 
 namespace Natalie {
 
-NatObject *Module_new(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Module_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     return module(env, NULL);
 }
 
-NatObject *Module_inspect(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Module_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_MODULE || NAT_TYPE(self) == NAT_VALUE_CLASS);
     NAT_ASSERT_ARGC(0);
     if (self->class_name) {
@@ -26,10 +26,10 @@ NatObject *Module_inspect(Env *env, NatObject *self, ssize_t argc, NatObject **a
     }
 }
 
-NatObject *Module_eqeqeq(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Module_eqeqeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_MODULE || NAT_TYPE(self) == NAT_VALUE_CLASS);
     NAT_ASSERT_ARGC(1);
-    NatObject *arg = args[0];
+    Value *arg = args[0];
     if (is_a(env, arg, self)) {
         return NAT_TRUE;
     } else {
@@ -37,22 +37,22 @@ NatObject *Module_eqeqeq(Env *env, NatObject *self, ssize_t argc, NatObject **ar
     }
 }
 
-NatObject *Module_name(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Module_name(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_MODULE || NAT_TYPE(self) == NAT_VALUE_CLASS);
     NAT_ASSERT_ARGC(0);
     return self->class_name ? string(env, self->class_name) : NAT_NIL;
 }
 
-NatObject *Module_ancestors(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Module_ancestors(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_MODULE || NAT_TYPE(self) == NAT_VALUE_CLASS);
     NAT_ASSERT_ARGC(0);
     return class_ancestors(env, self);
 }
 
-NatObject *Module_attr_reader(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Module_attr_reader(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC_AT_LEAST(1);
     for (ssize_t i = 0; i < argc; i++) {
-        NatObject *name_obj = args[i];
+        Value *name_obj = args[i];
         if (NAT_TYPE(name_obj) == NAT_VALUE_STRING) {
             // we're good!
         } else if (NAT_TYPE(name_obj) == NAT_VALUE_SYMBOL) {
@@ -69,17 +69,17 @@ NatObject *Module_attr_reader(Env *env, NatObject *self, ssize_t argc, NatObject
     return NAT_NIL;
 }
 
-NatObject *Module_attr_reader_block_fn(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
-    NatObject *name_obj = var_get(env->outer, "name", 0);
+Value *Module_attr_reader_block_fn(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
+    Value *name_obj = var_get(env->outer, "name", 0);
     assert(name_obj);
-    NatObject *ivar_name = sprintf(env, "@%S", name_obj);
+    Value *ivar_name = sprintf(env, "@%S", name_obj);
     return ivar_get(env, self, ivar_name->str);
 }
 
-NatObject *Module_attr_writer(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Module_attr_writer(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC_AT_LEAST(1);
     for (ssize_t i = 0; i < argc; i++) {
-        NatObject *name_obj = args[i];
+        Value *name_obj = args[i];
         if (NAT_TYPE(name_obj) == NAT_VALUE_STRING) {
             // we're good!
         } else if (NAT_TYPE(name_obj) == NAT_VALUE_SYMBOL) {
@@ -87,7 +87,7 @@ NatObject *Module_attr_writer(Env *env, NatObject *self, ssize_t argc, NatObject
         } else {
             NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", send(env, name_obj, "inspect", 0, NULL, NULL));
         }
-        NatObject *method_name = string(env, name_obj->str);
+        Value *method_name = string(env, name_obj->str);
         string_append_char(env, method_name, '=');
         Env block_env;
         build_detached_block_env(&block_env, env);
@@ -98,23 +98,23 @@ NatObject *Module_attr_writer(Env *env, NatObject *self, ssize_t argc, NatObject
     return NAT_NIL;
 }
 
-NatObject *Module_attr_writer_block_fn(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
-    NatObject *val = args[0];
-    NatObject *name_obj = var_get(env->outer, "name", 0);
+Value *Module_attr_writer_block_fn(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
+    Value *val = args[0];
+    Value *name_obj = var_get(env->outer, "name", 0);
     assert(name_obj);
-    NatObject *ivar_name = sprintf(env, "@%S", name_obj);
+    Value *ivar_name = sprintf(env, "@%S", name_obj);
     ivar_set(env, self, ivar_name->str, val);
     return val;
 }
 
-NatObject *Module_attr_accessor(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Module_attr_accessor(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC_AT_LEAST(1);
     Module_attr_reader(env, self, argc, args, block);
     Module_attr_writer(env, self, argc, args, block);
     return NAT_NIL;
 }
 
-NatObject *Module_include(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Module_include(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_MODULE || NAT_TYPE(self) == NAT_VALUE_CLASS);
     NAT_ASSERT_ARGC_AT_LEAST(1);
     for (ssize_t i = 0; i < argc; i++) {
@@ -123,7 +123,7 @@ NatObject *Module_include(Env *env, NatObject *self, ssize_t argc, NatObject **a
     return self;
 }
 
-NatObject *Module_prepend(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Module_prepend(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_MODULE || NAT_TYPE(self) == NAT_VALUE_CLASS);
     NAT_ASSERT_ARGC_AT_LEAST(1);
     for (int i = argc - 1; i >= 0; i--) {
@@ -132,20 +132,20 @@ NatObject *Module_prepend(Env *env, NatObject *self, ssize_t argc, NatObject **a
     return self;
 }
 
-NatObject *Module_included_modules(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Module_included_modules(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_MODULE || NAT_TYPE(self) == NAT_VALUE_CLASS);
     NAT_ASSERT_ARGC(0);
-    NatObject *modules = array_new(env);
+    Value *modules = array_new(env);
     for (ssize_t i = 0; i < self->included_modules_count; i++) {
         array_push(env, modules, self->included_modules[i]);
     }
     return modules;
 }
 
-NatObject *Module_define_method(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Module_define_method(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_MODULE || NAT_TYPE(self) == NAT_VALUE_CLASS);
     NAT_ASSERT_ARGC(1);
-    NatObject *name_obj = args[0];
+    Value *name_obj = args[0];
     if (NAT_TYPE(name_obj) != NAT_VALUE_STRING && NAT_TYPE(name_obj) != NAT_VALUE_SYMBOL) {
         NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", send(env, name_obj, "inspect", 0, NULL, NULL));
     }
@@ -157,7 +157,7 @@ NatObject *Module_define_method(Env *env, NatObject *self, ssize_t argc, NatObje
     return symbol(env, name);
 }
 
-NatObject *Module_class_eval(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Module_class_eval(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_MODULE || NAT_TYPE(self) == NAT_VALUE_CLASS);
     if (argc > 0 || !block) {
         NAT_RAISE(env, "ArgumentError", "Natalie only supports class_eval with a block");
@@ -167,20 +167,20 @@ NatObject *Module_class_eval(Env *env, NatObject *self, ssize_t argc, NatObject 
     return block->fn(&e, self, 0, NULL, NULL);
 }
 
-NatObject *Module_private(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Module_private(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     printf("TODO: class private\n");
     return NAT_NIL;
 }
 
-NatObject *Module_protected(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Module_protected(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     printf("TODO: class protected\n");
     return NAT_NIL;
 }
 
-NatObject *Module_const_defined(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Module_const_defined(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_MODULE || NAT_TYPE(self) == NAT_VALUE_CLASS);
     NAT_ASSERT_ARGC(1);
-    NatObject *name_obj = args[0];
+    Value *name_obj = args[0];
     if (NAT_TYPE(name_obj) == NAT_VALUE_STRING) {
         // we're good!
     } else if (NAT_TYPE(name_obj) == NAT_VALUE_SYMBOL) {
@@ -195,10 +195,10 @@ NatObject *Module_const_defined(Env *env, NatObject *self, ssize_t argc, NatObje
     }
 }
 
-NatObject *Module_alias_method(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Module_alias_method(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_MODULE || NAT_TYPE(self) == NAT_VALUE_CLASS);
     NAT_ASSERT_ARGC(2);
-    NatObject *new_name = args[0];
+    Value *new_name = args[0];
     if (NAT_TYPE(new_name) == NAT_VALUE_STRING) {
         // we're good!
     } else if (NAT_TYPE(new_name) == NAT_VALUE_SYMBOL) {
@@ -206,7 +206,7 @@ NatObject *Module_alias_method(Env *env, NatObject *self, ssize_t argc, NatObjec
     } else {
         NAT_RAISE(env, "TypeError", "%s is not a symbol", send(env, new_name, "inspect", 0, NULL, NULL));
     }
-    NatObject *old_name = args[1];
+    Value *old_name = args[1];
     if (NAT_TYPE(old_name) == NAT_VALUE_STRING) {
         // we're good!
     } else if (NAT_TYPE(old_name) == NAT_VALUE_SYMBOL) {

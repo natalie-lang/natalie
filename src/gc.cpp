@@ -31,7 +31,7 @@ static void verify_env_is_valid(Env *env) {
     }
 }
 
-static void push_object(Env *env, Vector *cells, NatObject *obj) {
+static void push_object(Env *env, Vector *cells, Value *obj) {
     if (!obj) return;
     if (NAT_IS_TAGGED_INT(obj)) return;
     push_cell(env, cells, NAT_HEAP_CELL_FROM_OBJ(obj));
@@ -39,7 +39,7 @@ static void push_object(Env *env, Vector *cells, NatObject *obj) {
 
 static void gather_from_env(Vector *cells, Env *env) {
     for (ssize_t i = 0; i < vector_size(env->vars); i++) {
-        push_object(env, cells, static_cast<NatObject *>(vector_get(env->vars, i)));
+        push_object(env, cells, static_cast<Value *>(vector_get(env->vars, i)));
     }
     push_object(env, cells, env->exception);
     if (env->outer) {
@@ -50,7 +50,7 @@ static void gather_from_env(Vector *cells, Env *env) {
     }
 }
 
-static bool is_heap_ptr(Env *env, NatObject *ptr) {
+static bool is_heap_ptr(Env *env, Value *ptr) {
     if ((HeapCell *)ptr < env->global_env->min_ptr || (HeapCell *)ptr > env->global_env->max_ptr) {
         return false;
     }
@@ -78,7 +78,7 @@ static Vector *gather_roots(Env *env) {
         abort();
     }
     for (char *p = static_cast<char *>(global_env->bottom_of_stack); p >= top_of_stack; p -= 4) {
-        NatObject *ptr = *((NatObject **)p);
+        Value *ptr = *((Value **)p);
         if (is_heap_ptr(env, ptr)) {
             push_cell(env, roots, NAT_HEAP_CELL_FROM_OBJ(ptr));
         }
@@ -90,7 +90,7 @@ static Vector *gather_roots(Env *env) {
     push_object(env, roots, global_env->false_obj);
     struct hashmap_iter *iter;
     for (iter = hashmap_iter(global_env->globals); iter; iter = hashmap_iter_next(global_env->globals, iter)) {
-        NatObject *obj = (NatObject *)hashmap_iter_get_data(iter);
+        Value *obj = (Value *)hashmap_iter_get_data(iter);
         push_object(env, roots, obj);
     }
     verify_env_is_valid(env);
@@ -110,26 +110,26 @@ static void unmark_all_cells(Env *env) {
     } while (block);
 }
 
-static void trace_object(Env *env, Vector *cells, NatObject *obj) {
+static void trace_object(Env *env, Vector *cells, Value *obj) {
     push_object(env, cells, NAT_OBJ_CLASS(obj));
     push_object(env, cells, obj->owner);
     push_object(env, cells, obj->singleton_class);
     struct hashmap_iter *iter;
     if (obj->constants.table) {
         for (iter = hashmap_iter(&obj->constants); iter; iter = hashmap_iter_next(&obj->constants, iter)) {
-            NatObject *o = (NatObject *)hashmap_iter_get_data(iter);
+            Value *o = (Value *)hashmap_iter_get_data(iter);
             push_object(env, cells, o);
         }
     }
     if (obj->ivars.table) {
         for (iter = hashmap_iter(&obj->ivars); iter; iter = hashmap_iter_next(&obj->ivars, iter)) {
-            NatObject *o = (NatObject *)hashmap_iter_get_data(iter);
+            Value *o = (Value *)hashmap_iter_get_data(iter);
             push_object(env, cells, o);
         }
     }
     if (obj->cvars.table) {
         for (iter = hashmap_iter(&obj->cvars); iter; iter = hashmap_iter_next(&obj->cvars, iter)) {
-            NatObject *o = (NatObject *)hashmap_iter_get_data(iter);
+            Value *o = (Value *)hashmap_iter_get_data(iter);
             push_object(env, cells, o);
         }
     }
@@ -143,7 +143,7 @@ static void trace_object(Env *env, Vector *cells, NatObject *obj) {
     switch (obj->type) {
     case NAT_VALUE_ARRAY:
         for (ssize_t i = 0; i < vector_size(&obj->ary); i++) {
-            push_object(env, cells, static_cast<NatObject *>(vector_get(&obj->ary, i)));
+            push_object(env, cells, static_cast<Value *>(vector_get(&obj->ary, i)));
         }
         break;
     case NAT_VALUE_CLASS:
@@ -227,13 +227,13 @@ static void mark_live_cells(Env *env) {
         cell->mark = true;
 
         // TODO: branch based on type somehow
-        trace_object(env, cells, static_cast<NatObject *>(NAT_HEAP_OBJ_FROM_CELL(cell)));
+        trace_object(env, cells, static_cast<Value *>(NAT_HEAP_OBJ_FROM_CELL(cell)));
     }
 
     vector_free(cells);
 }
 
-static void destroy_hash_key_list(NatObject *obj) {
+static void destroy_hash_key_list(Value *obj) {
     if (obj->key_list) {
         HashKey *key = obj->key_list;
         do {
@@ -244,7 +244,7 @@ static void destroy_hash_key_list(NatObject *obj) {
     }
 }
 
-static bool free_object(Env *env, NatObject *obj) {
+static bool free_object(Env *env, Value *obj) {
     if (NAT_TYPE(obj) == NAT_VALUE_SYMBOL) return false;
 
     if (obj->constants.table) hashmap_destroy(&obj->constants);
@@ -351,7 +351,7 @@ static void collect_cell(Env *env, HeapBlock *block, HeapCell *cell) {
     }
 
     // TODO: branch based on type somehow
-    if (!free_object(env, static_cast<NatObject *>(obj))) return;
+    if (!free_object(env, static_cast<Value *>(obj))) return;
     memset(obj, 0, cell->size);
 
     if (cell == block->used_list) { // first cell in list
@@ -408,8 +408,8 @@ HeapBlock *gc_alloc_heap_block(GlobalEnv *global_env) {
     return block;
 }
 
-NatObject *gc_malloc(Env *env) {
-    ssize_t size = sizeof(NatObject);
+Value *gc_malloc(Env *env) {
+    ssize_t size = sizeof(Value);
     HeapBlock *block = env->global_env->heap;
     do {
         HeapCell *cell = block->free_list;
@@ -438,7 +438,7 @@ NatObject *gc_malloc(Env *env) {
                     env->global_env->bytes_available -= cell->size;
                 }
                 list_prepend(&block->used_list, cell);
-                return static_cast<NatObject *>(NAT_HEAP_CELL_START_USABLE(cell));
+                return static_cast<Value *>(NAT_HEAP_CELL_START_USABLE(cell));
             }
             prev_cell = cell;
             cell = cell->next;
@@ -474,7 +474,7 @@ double gc_bytes_available_ratio(Env *env) {
     return (double)env->global_env->bytes_available / (double)env->global_env->bytes_total;
 }
 
-NatObject *alloc(Env *env, NatObject *klass, enum NatValueType type) {
+Value *alloc(Env *env, Value *klass, enum NatValueType type) {
 #ifdef NAT_GC_COLLECT_DEBUG
     gc_collect(env);
 #else
@@ -482,8 +482,8 @@ NatObject *alloc(Env *env, NatObject *klass, enum NatValueType type) {
         gc_collect(env);
     }
 #endif
-    NatObject *obj = gc_malloc(env);
-    memset(obj, 0, sizeof(NatObject));
+    Value *obj = gc_malloc(env);
+    memset(obj, 0, sizeof(Value));
     obj->klass = klass;
     obj->type = type;
     return obj;

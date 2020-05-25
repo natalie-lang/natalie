@@ -3,7 +3,7 @@
 
 namespace Natalie {
 
-NatObject *Regexp_new(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Regexp_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     if (NAT_TYPE(args[0]) == NAT_VALUE_REGEXP) {
         return regexp(env, args[0]->regexp_str);
@@ -13,10 +13,10 @@ NatObject *Regexp_new(Env *env, NatObject *self, ssize_t argc, NatObject **args,
     }
 }
 
-NatObject *Regexp_eqeq(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Regexp_eqeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     assert(NAT_TYPE(self) == NAT_VALUE_REGEXP);
     NAT_ASSERT_ARGC(1);
-    NatObject *arg = args[0];
+    Value *arg = args[0];
     if (NAT_TYPE(arg) == NAT_VALUE_REGEXP && strcmp(self->regexp_str, arg->regexp_str) == 0) {
         return NAT_TRUE;
     } else {
@@ -24,20 +24,20 @@ NatObject *Regexp_eqeq(Env *env, NatObject *self, ssize_t argc, NatObject **args
     }
 }
 
-NatObject *Regexp_inspect(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Regexp_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     assert(NAT_TYPE(self) == NAT_VALUE_REGEXP);
-    NatObject *out = string(env, "/");
+    Value *out = string(env, "/");
     string_append(env, out, self->regexp_str);
     string_append_char(env, out, '/');
     return out;
 }
 
-NatObject *Regexp_eqtilde(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Regexp_eqtilde(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     assert(NAT_TYPE(self) == NAT_VALUE_REGEXP);
     NAT_ASSERT_TYPE(args[0], NAT_VALUE_STRING, "String");
-    NatObject *matchdata = Regexp_match(env, self, argc, args, block);
+    Value *matchdata = Regexp_match(env, self, argc, args, block);
     if (NAT_TYPE(matchdata) == NAT_VALUE_NIL) {
         return matchdata;
     } else {
@@ -46,11 +46,11 @@ NatObject *Regexp_eqtilde(Env *env, NatObject *self, ssize_t argc, NatObject **a
     }
 }
 
-NatObject *Regexp_match(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {
+Value *Regexp_match(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     assert(NAT_TYPE(self) == NAT_VALUE_REGEXP);
     NAT_ASSERT_TYPE(args[0], NAT_VALUE_STRING, "String");
-    NatObject *str_obj = args[0];
+    Value *str_obj = args[0];
     unsigned char *str = (unsigned char *)str_obj->str;
     int result;
     OnigRegion *region = onig_region_new();

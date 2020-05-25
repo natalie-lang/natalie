@@ -26,16 +26,16 @@ extern "C" {
 #define NAT_OBJ_CLASS(obj) (NAT_IS_TAGGED_INT(obj) ? NAT_INTEGER : obj->klass)
 #define NAT_RESCUE(env) ((env->rescue = 1) && setjmp(env->jump_buf))
 
-#define NAT_RAISE(env, class_name, message_format, ...)                                                  \
-    {                                                                                                    \
+#define NAT_RAISE(env, class_name, message_format, ...)                                          \
+    {                                                                                            \
         raise(env, const_get(env, NAT_OBJECT, class_name, true), message_format, ##__VA_ARGS__); \
-        abort();                                                                                         \
+        abort();                                                                                 \
     }
 
-#define NAT_RAISE2(env, constant, message_format, ...)           \
-    {                                                            \
+#define NAT_RAISE2(env, constant, message_format, ...)       \
+    {                                                        \
         raise(env, constant, message_format, ##__VA_ARGS__); \
-        abort();                                                 \
+        abort();                                             \
     }
 
 #define NAT_ASSERT_ARGC(...)                                       \
@@ -71,7 +71,7 @@ extern "C" {
     }
 
 #define NAT_ASSERT_NOT_FROZEN(obj)                                                                                     \
-    if (is_frozen(obj)) {                                                                                          \
+    if (is_frozen(obj)) {                                                                                              \
         NAT_RAISE(env, "FrozenError", "can't modify frozen %s: %S", NAT_OBJ_CLASS(obj)->class_name, NAT_INSPECT(obj)); \
     }
 
@@ -119,7 +119,7 @@ extern "C" {
 // "0x" + up to 16 hex chars + NULL terminator
 #define NAT_OBJECT_POINTER_BUF_LENGTH 2 + 16 + 1
 
-typedef struct NatObject NatObject;
+typedef struct Value Value;
 typedef struct GlobalEnv GlobalEnv;
 typedef struct Env Env;
 typedef struct Block Block;
@@ -137,7 +137,7 @@ struct HeapCell;
 struct GlobalEnv {
     struct hashmap *globals;
     struct hashmap *symbols;
-    NatObject *Object,
+    Value *Object,
         *Integer,
         *nil,
         *true_obj,
@@ -161,22 +161,22 @@ struct Env {
     bool block_env;
     bool rescue;
     jmp_buf jump_buf;
-    NatObject *exception;
+    Value *exception;
     Env *caller;
     const char *file;
     ssize_t line;
     const char *method_name;
-    NatObject *match;
+    Value *match;
 };
 
 struct Block {
-    NatObject *(*fn)(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
+    Value *(*fn)(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
     Env env;
-    NatObject *self;
+    Value *self;
 };
 
 struct Method {
-    NatObject *(*fn)(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block);
+    Value *(*fn)(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
     Env env;
     bool undefined;
 };
@@ -184,15 +184,15 @@ struct Method {
 struct HashKey {
     HashKey *prev;
     HashKey *next;
-    NatObject *key;
-    NatObject *val;
+    Value *key;
+    Value *val;
     Env env;
     bool removed;
 };
 
 struct HashVal {
     HashKey *key;
-    NatObject *val;
+    Value *val;
 };
 
 struct Vector {
@@ -251,7 +251,7 @@ enum NatEncoding {
     while (!env_with_block->block && env_with_block->outer) {                                   \
         env_with_block = env_with_block->outer;                                                 \
     }                                                                                           \
-    NatObject *_result = _run_block_internal(env, env_with_block->block, argc, args, NULL); \
+    Value *_result = _run_block_internal(env, env_with_block->block, argc, args, NULL); \
     if (is_break(_result)) {                                                                \
         remove_break(_result);                                                              \
         return _result;                                                                         \
@@ -260,7 +260,7 @@ enum NatEncoding {
 })
 
 #define NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, the_block, argc, args, block) ({       \
-    NatObject *_result = _run_block_internal(env, the_block, argc, args, block); \
+    Value *_result = _run_block_internal(env, the_block, argc, args, block); \
     if (is_break(_result)) {                                                     \
         remove_break(_result);                                                   \
         return _result;                                                              \
@@ -269,7 +269,7 @@ enum NatEncoding {
 })
 
 #define NAT_RUN_BLOCK_WITHOUT_BREAK(env, the_block, argc, args, block) ({            \
-    NatObject *_result = _run_block_internal(env, the_block, argc, args, block); \
+    Value *_result = _run_block_internal(env, the_block, argc, args, block); \
     if (is_break(_result)) {                                                     \
         remove_break(_result);                                                   \
         raise_local_jump_error(env, _result, "break from proc-closure");         \
@@ -278,11 +278,11 @@ enum NatEncoding {
     _result;                                                                         \
 })
 
-struct NatObject {
+struct Value {
     enum NatValueType type;
-    NatObject *klass;
-    NatObject *singleton_class;
-    NatObject *owner; // for contants, either a module or a class
+    Value *klass;
+    Value *singleton_class;
+    Value *owner; // for contants, either a module or a class
     int flags;
 
     Env env;
@@ -299,23 +299,23 @@ struct NatObject {
         // NAT_VALUE_CLASS, NAT_VALUE_MODULE
         struct {
             char *class_name;
-            NatObject *superclass;
+            Value *superclass;
             struct hashmap methods;
             struct hashmap cvars;
             ssize_t included_modules_count;
-            NatObject **included_modules;
+            Value **included_modules;
         };
 
         // NAT_VALUE_ENCODING
         struct {
-            NatObject *encoding_names; // array
+            Value *encoding_names; // array
             enum NatEncoding encoding_num; // should match NatEncoding enum above
         };
 
         // NAT_VALUE_EXCEPTION
         struct {
             char *message;
-            NatObject *backtrace; // array
+            Value *backtrace; // array
         };
 
         // NAT_VALUE_HASH
@@ -323,7 +323,7 @@ struct NatObject {
             HashKey *key_list; // a double-ended queue
             struct hashmap hashmap;
             bool hash_is_iterating;
-            NatObject *hash_default_value;
+            Value *hash_default_value;
             Block *hash_default_block;
         };
 
@@ -344,8 +344,8 @@ struct NatObject {
 
         // NAT_VALUE_RANGE
         struct {
-            NatObject *range_begin;
-            NatObject *range_end;
+            Value *range_begin;
+            Value *range_end;
             bool range_exclude_end;
         };
 
@@ -374,12 +374,12 @@ struct NatObject {
 bool is_constant_name(const char *name);
 bool is_special_name(const char *name);
 
-NatObject *const_get(Env *env, NatObject *klass, const char *name, bool strict);
-NatObject *const_get_or_null(Env *env, NatObject *klass, const char *name, bool strict, bool define);
-NatObject *const_set(Env *env, NatObject *klass, const char *name, NatObject *val);
+Value *const_get(Env *env, Value *klass, const char *name, bool strict);
+Value *const_get_or_null(Env *env, Value *klass, const char *name, bool strict, bool define);
+Value *const_set(Env *env, Value *klass, const char *name, Value *val);
 
-NatObject *var_get(Env *env, const char *key, ssize_t index);
-NatObject *var_set(Env *env, const char *name, ssize_t index, bool allocate, NatObject *val);
+Value *var_get(Env *env, const char *key, ssize_t index);
+Value *var_set(Env *env, const char *name, ssize_t index, bool allocate, Value *val);
 
 GlobalEnv *build_global_env();
 void free_global_env(GlobalEnv *global_env);
@@ -390,81 +390,81 @@ Env *build_detached_block_env(Env *env, Env *outer);
 
 const char *find_current_method_name(Env *env);
 
-NatObject *exception_new(Env *env, NatObject *klass, const char *message);
+Value *exception_new(Env *env, Value *klass, const char *message);
 
-NatObject *raise(Env *env, NatObject *klass, const char *message_format, ...);
-NatObject *raise_exception(Env *env, NatObject *exception);
-NatObject *raise_local_jump_error(Env *env, NatObject *exit_value, const char *message);
+Value *raise(Env *env, Value *klass, const char *message_format, ...);
+Value *raise_exception(Env *env, Value *exception);
+Value *raise_local_jump_error(Env *env, Value *exit_value, const char *message);
 
-NatObject *ivar_get(Env *env, NatObject *obj, const char *name);
-NatObject *ivar_set(Env *env, NatObject *obj, const char *name, NatObject *val);
+Value *ivar_get(Env *env, Value *obj, const char *name);
+Value *ivar_set(Env *env, Value *obj, const char *name, Value *val);
 
-NatObject *cvar_get(Env *env, NatObject *obj, const char *name);
-NatObject *cvar_get_or_null(Env *env, NatObject *obj, const char *name);
-NatObject *cvar_set(Env *env, NatObject *obj, const char *name, NatObject *val);
+Value *cvar_get(Env *env, Value *obj, const char *name);
+Value *cvar_get_or_null(Env *env, Value *obj, const char *name);
+Value *cvar_set(Env *env, Value *obj, const char *name, Value *val);
 
-NatObject *global_get(Env *env, const char *name);
-NatObject *global_set(Env *env, const char *name, NatObject *val);
+Value *global_get(Env *env, const char *name);
+Value *global_set(Env *env, const char *name, Value *val);
 
-bool truthy(NatObject *obj);
+bool truthy(Value *obj);
 
 char *heap_string(const char *str);
 
-NatObject *subclass(Env *env, NatObject *superclass, const char *name);
-NatObject *module(Env *env, const char *name);
-void class_include(Env *env, NatObject *klass, NatObject *module);
-void class_prepend(Env *env, NatObject *klass, NatObject *module);
+Value *subclass(Env *env, Value *superclass, const char *name);
+Value *module(Env *env, const char *name);
+void class_include(Env *env, Value *klass, Value *module);
+void class_prepend(Env *env, Value *klass, Value *module);
 
-NatObject *initialize(Env *env, NatObject *obj, ssize_t argc, NatObject **args, Block *block);
+Value *initialize(Env *env, Value *obj, ssize_t argc, Value **args, Block *block);
 
-NatObject *singleton_class(Env *env, NatObject *obj);
+Value *singleton_class(Env *env, Value *obj);
 
-NatObject *integer(Env *env, int64_t integer);
+Value *integer(Env *env, int64_t integer);
 
 void int_to_string(int64_t num, char *buf);
 void int_to_hex_string(int64_t num, char *buf, bool capitalize);
 
-void define_method(Env *env, NatObject *obj, const char *name, NatObject *(*fn)(Env *, NatObject *, ssize_t, NatObject **, Block *block));
-void define_method_with_block(Env *env, NatObject *obj, const char *name, Block *block);
-void define_singleton_method(Env *env, NatObject *obj, const char *name, NatObject *(*fn)(Env *, NatObject *, ssize_t, NatObject **, Block *block));
-void define_singleton_method_with_block(Env *env, NatObject *obj, const char *name, Block *block);
-void undefine_method(Env *env, NatObject *obj, const char *name);
-void undefine_singleton_method(Env *env, NatObject *obj, const char *name);
+void define_method(Env *env, Value *obj, const char *name, Value *(*fn)(Env *, Value *, ssize_t, Value **, Block *block));
+void define_method_with_block(Env *env, Value *obj, const char *name, Block *block);
+void define_singleton_method(Env *env, Value *obj, const char *name, Value *(*fn)(Env *, Value *, ssize_t, Value **, Block *block));
+void define_singleton_method_with_block(Env *env, Value *obj, const char *name, Block *block);
+void undefine_method(Env *env, Value *obj, const char *name);
+void undefine_singleton_method(Env *env, Value *obj, const char *name);
 
-NatObject *class_ancestors(Env *env, NatObject *klass);
-bool is_a(Env *env, NatObject *obj, NatObject *klass_or_module);
+Value *class_ancestors(Env *env, Value *klass);
+bool is_a(Env *env, Value *obj, Value *klass_or_module);
 
-const char *defined(Env *env, NatObject *receiver, const char *name);
-NatObject *defined_obj(Env *env, NatObject *receiver, const char *name);
+const char *defined(Env *env, Value *receiver, const char *name);
+Value *defined_obj(Env *env, Value *receiver, const char *name);
 
-NatObject *send(Env *env, NatObject *receiver, const char *sym, ssize_t argc, NatObject **args, Block *block);
-void methods(Env *env, NatObject *array, NatObject *klass);
-Method *find_method(NatObject *klass, const char *method_name, NatObject **matching_class_or_module);
-Method *find_method_without_undefined(NatObject *klass, const char *method_name, NatObject **matching_class_or_module);
-NatObject *call_begin(Env *env, NatObject *self, NatObject *(*block_fn)(Env *, NatObject *));
-NatObject *call_method_on_class(Env *env, NatObject *klass, NatObject *instance_class, const char *method_name, NatObject *self, ssize_t argc, NatObject **args, Block *block);
-bool respond_to(Env *env, NatObject *obj, const char *name);
+Value *send(Env *env, Value *receiver, const char *sym, ssize_t argc, Value **args, Block *block);
+void methods(Env *env, Value *array, Value *klass);
+Method *find_method(Value *klass, const char *method_name, Value **matching_class_or_module);
+Method *find_method_without_undefined(Value *klass, const char *method_name, Value **matching_class_or_module);
+Value *call_begin(Env *env, Value *self, Value *(*block_fn)(Env *, Value *));
+Value *call_method_on_class(Env *env, Value *klass, Value *instance_class, const char *method_name, Value *self, ssize_t argc, Value **args, Block *block);
+bool respond_to(Env *env, Value *obj, const char *name);
 
-Block *block_new(Env *env, NatObject *self, NatObject *(*fn)(Env *, NatObject *, ssize_t, NatObject **, Block *));
-NatObject *_run_block_internal(Env *env, Block *the_block, ssize_t argc, NatObject **args, Block *block);
-NatObject *proc_new(Env *env, Block *block);
-NatObject *to_proc(Env *env, NatObject *obj);
-NatObject *lambda(Env *env, Block *block);
+Block *block_new(Env *env, Value *self, Value *(*fn)(Env *, Value *, ssize_t, Value **, Block *));
+Value *_run_block_internal(Env *env, Block *the_block, ssize_t argc, Value **args, Block *block);
+Value *proc_new(Env *env, Block *block);
+Value *to_proc(Env *env, Value *obj);
+Value *lambda(Env *env, Block *block);
 
 #define NAT_STRING_GROW_FACTOR 2
 
-NatObject *string_n(Env *env, const char *str, ssize_t len);
-NatObject *string(Env *env, const char *str);
-void grow_string(Env *env, NatObject *obj, ssize_t capacity);
-void grow_string_at_least(Env *env, NatObject *obj, ssize_t min_capacity);
-void string_append(Env *env, NatObject *str, const char *s);
-void string_append_char(Env *env, NatObject *str, char c);
-void string_append_string(Env *env, NatObject *str, NatObject *str2);
-NatObject *string_chars(Env *env, NatObject *str);
-NatObject *sprintf(Env *env, const char *format, ...);
-NatObject *vsprintf(Env *env, const char *format, va_list args);
+Value *string_n(Env *env, const char *str, ssize_t len);
+Value *string(Env *env, const char *str);
+void grow_string(Env *env, Value *obj, ssize_t capacity);
+void grow_string_at_least(Env *env, Value *obj, ssize_t min_capacity);
+void string_append(Env *env, Value *str, const char *s);
+void string_append_char(Env *env, Value *str, char c);
+void string_append_string(Env *env, Value *str, Value *str2);
+Value *string_chars(Env *env, Value *str);
+Value *sprintf(Env *env, const char *format, ...);
+Value *vsprintf(Env *env, const char *format, va_list args);
 
-NatObject *symbol(Env *env, const char *name);
+Value *symbol(Env *env, const char *name);
 
 #define NAT_VECTOR_INIT_SIZE 10
 #define NAT_VECTOR_GROW_FACTOR 2
@@ -481,69 +481,69 @@ void vector_copy(Vector *dest, Vector *source);
 void vector_push(Vector *vec, void *item);
 void vector_add(Vector *new_vec, Vector *vec1, Vector *vec2);
 
-NatObject *array_new(Env *env);
-NatObject *array_with_vals(Env *env, ssize_t count, ...);
-NatObject *array_copy(Env *env, NatObject *source);
-void grow_array(Env *env, NatObject *obj, ssize_t capacity);
-void grow_array_at_least(Env *env, NatObject *obj, ssize_t min_capacity);
-void array_push(Env *env, NatObject *array, NatObject *obj);
-void array_push_splat(Env *env, NatObject *array, NatObject *obj);
-void array_expand_with_nil(Env *env, NatObject *array, ssize_t size);
+Value *array_new(Env *env);
+Value *array_with_vals(Env *env, ssize_t count, ...);
+Value *array_copy(Env *env, Value *source);
+void grow_array(Env *env, Value *obj, ssize_t capacity);
+void grow_array_at_least(Env *env, Value *obj, ssize_t min_capacity);
+void array_push(Env *env, Value *array, Value *obj);
+void array_push_splat(Env *env, Value *array, Value *obj);
+void array_expand_with_nil(Env *env, Value *array, ssize_t size);
 
-NatObject *splat(Env *env, NatObject *obj);
+Value *splat(Env *env, Value *obj);
 
-HashKey *hash_key_list_append(Env *env, NatObject *hash, NatObject *key, NatObject *val);
-void hash_key_list_remove_node(NatObject *hash, HashKey *node);
-HashIter *hash_iter(Env *env, NatObject *hash);
-HashIter *hash_iter_prev(Env *env, NatObject *hash, HashIter *iter);
-HashIter *hash_iter_next(Env *env, NatObject *hash, HashIter *iter);
+HashKey *hash_key_list_append(Env *env, Value *hash, Value *key, Value *val);
+void hash_key_list_remove_node(Value *hash, HashKey *node);
+HashIter *hash_iter(Env *env, Value *hash);
+HashIter *hash_iter_prev(Env *env, Value *hash, HashIter *iter);
+HashIter *hash_iter_next(Env *env, Value *hash, HashIter *iter);
 size_t hashmap_hash(const void *obj);
 int hashmap_compare(const void *a, const void *b);
-NatObject *hash_new(Env *env);
-NatObject *hash_get(Env *env, NatObject *hash, NatObject *key);
-NatObject *hash_get_default(Env *env, NatObject *hash, NatObject *key);
-void hash_put(Env *env, NatObject *hash, NatObject *key, NatObject *val);
-NatObject *hash_delete(Env *env, NatObject *hash, NatObject *key);
+Value *hash_new(Env *env);
+Value *hash_get(Env *env, Value *hash, Value *key);
+Value *hash_get_default(Env *env, Value *hash, Value *key);
+void hash_put(Env *env, Value *hash, Value *key, Value *val);
+Value *hash_delete(Env *env, Value *hash, Value *key);
 
-NatObject *regexp(Env *env, const char *pattern);
-NatObject *matchdata(Env *env, OnigRegion *region, NatObject *str_obj);
-NatObject *last_match(Env *env);
+Value *regexp(Env *env, const char *pattern);
+Value *matchdata(Env *env, OnigRegion *region, Value *str_obj);
+Value *last_match(Env *env);
 
-NatObject *range(Env *env, NatObject *begin, NatObject *end, bool exclude_end);
+Value *range(Env *env, Value *begin, Value *end, bool exclude_end);
 
-NatObject *dup(Env *env, NatObject *obj);
-NatObject *bool_not(Env *env, NatObject *val);
+Value *dup(Env *env, Value *obj);
+Value *bool_not(Env *env, Value *val);
 
-void alias(Env *env, NatObject *self, const char *new_name, const char *old_name);
+void alias(Env *env, Value *self, const char *new_name, const char *old_name);
 
 void run_at_exit_handlers(Env *env);
-void print_exception_with_backtrace(Env *env, NatObject *exception);
+void print_exception_with_backtrace(Env *env, Value *exception);
 void handle_top_level_exception(Env *env, bool run_exit_handlers);
 
-void object_pointer_id(NatObject *obj, char *buf);
-int64_t object_id(Env *env, NatObject *obj);
+void object_pointer_id(Value *obj, char *buf);
+int64_t object_id(Env *env, Value *obj);
 
-NatObject *convert_to_real_object(Env *env, NatObject *obj);
+Value *convert_to_real_object(Env *env, Value *obj);
 
-int quicksort_partition(Env *env, NatObject *ary[], int start, int end);
-void quicksort(Env *env, NatObject *ary[], int start, int end);
+int quicksort_partition(Env *env, Value *ary[], int start, int end);
+void quicksort(Env *env, Value *ary[], int start, int end);
 
-NatObject *to_ary(Env *env, NatObject *obj, bool raise_for_non_array);
+Value *to_ary(Env *env, Value *obj, bool raise_for_non_array);
 
-NatObject *arg_value_by_path(Env *env, NatObject *value, NatObject *default_value, bool splat, int total_count, int default_count, bool defaults_on_right, int offset_from_end, ssize_t path_size, ...);
-NatObject *array_value_by_path(Env *env, NatObject *value, NatObject *default_value, bool splat, int offset_from_end, ssize_t path_size, ...);
-NatObject *kwarg_value_by_name(Env *env, NatObject *args, const char *name, NatObject *default_value);
+Value *arg_value_by_path(Env *env, Value *value, Value *default_value, bool splat, int total_count, int default_count, bool defaults_on_right, int offset_from_end, ssize_t path_size, ...);
+Value *array_value_by_path(Env *env, Value *value, Value *default_value, bool splat, int offset_from_end, ssize_t path_size, ...);
+Value *kwarg_value_by_name(Env *env, Value *args, const char *name, Value *default_value);
 
-NatObject *args_to_array(Env *env, ssize_t argc, NatObject **args);
-NatObject *block_args_to_array(Env *env, ssize_t signature_size, ssize_t argc, NatObject **args);
+Value *args_to_array(Env *env, ssize_t argc, Value **args);
+Value *block_args_to_array(Env *env, ssize_t signature_size, ssize_t argc, Value **args);
 
-NatObject *encoding(Env *env, enum NatEncoding num, NatObject *names);
+Value *encoding(Env *env, enum NatEncoding num, Value *names);
 
-NatObject *eval_class_or_module_body(Env *env, NatObject *class_or_module, NatObject *(*fn)(Env *, NatObject *));
+Value *eval_class_or_module_body(Env *env, Value *class_or_module, Value *(*fn)(Env *, Value *));
 
-void arg_spread(Env *env, ssize_t argc, NatObject **args, const char *arrangement, ...);
+void arg_spread(Env *env, ssize_t argc, Value **args, const char *arrangement, ...);
 
-NatObject *void_ptr(Env *env, void *ptr);
+Value *void_ptr(Env *env, void *ptr);
 
 template <typename T>
 void list_prepend(T* list, T item) {

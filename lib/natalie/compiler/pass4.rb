@@ -102,7 +102,7 @@ module Natalie
           "&#{process_atom args.first}:1"
         else
           args_name = temp('args')
-          decl "NatObject *#{args_name}[#{args.size}] = { #{args.map { |arg| process_atom(arg) }.join(', ')} };"
+          decl "Value *#{args_name}[#{args.size}] = { #{args.map { |arg| process_atom(arg) }.join(', ')} };"
           "#{args_name}:#{args.size}"
         end
       end
@@ -113,8 +113,8 @@ module Natalie
         name = temp('args_array')
         # NOTE: this array must be marked volatile or the GC might collect it :-(
         # I wish I knew 1) why/how GCC optimizes this pointer away, and 2) how a big GC like Boehm doesn't fall for tricks like that. :-/
-        decl "NatObject * volatile #{name} = #{array};"
-        "(NatObject**)vector_data(&#{name}->ary):vector_size(&#{name}->ary)"
+        decl "Value * volatile #{name} = #{array};"
+        "(Value**)vector_data(&#{name}->ary):vector_size(&#{name}->ary)"
       end
 
       def process_block(exp)
@@ -138,10 +138,10 @@ module Natalie
         (_, val, *args) = exp
         val = process(val)
         array_val = temp('array_val')
-        decl "NatObject *#{array_val} = to_ary(env, #{val}, false);"
+        decl "Value *#{array_val} = to_ary(env, #{val}, false);"
         args.compact.each do |arg|
           arg = arg.dup
-          arg_value = process_assign_val(arg.pop, "vector_size(&#{array_val}->ary)", "(NatObject**)vector_data(&#{array_val}->ary)")
+          arg_value = process_assign_val(arg.pop, "vector_size(&#{array_val}->ary)", "(Value**)vector_data(&#{array_val}->ary)")
           process(arg << arg_value)
         end
         val
@@ -152,10 +152,10 @@ module Natalie
         if args.size > 1
           array_arg = temp('array_arg')
           decl 'if (argc == 1) {'
-          decl "  NatObject *#{array_arg} = to_ary(env, args[0], true);"
+          decl "  Value *#{array_arg} = to_ary(env, args[0], true);"
           args.compact.each do |arg|
             arg = arg.dup
-            arg_value = process_assign_val(arg.pop, "vector_size(&#{array_arg}->ary)", "(NatObject**)vector_data(&#{array_arg}->ary)")
+            arg_value = process_assign_val(arg.pop, "vector_size(&#{array_arg}->ary)", "(Value**)vector_data(&#{array_arg}->ary)")
             process(arg << arg_value)
           end
           decl '} else {'
@@ -172,7 +172,7 @@ module Natalie
         default ||= s(:nil)
         if type == :rest
           rest = temp('rest')
-          decl "NatObject *#{rest} = array_new(env);"
+          decl "Value *#{rest} = array_new(env);"
           decl "for (ssize_t i=#{index}; i<#{argc_name}; i++) {"
           decl "array_push(env, #{rest}, #{args_name}[i]);"
           decl '}'
@@ -200,7 +200,7 @@ module Natalie
       def process_c_define_method(exp)
         (_, (_, name), (_, c)) = exp
         fn = temp('fn')
-        top "NatObject *#{fn}(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {\n#{c}\n}"
+        top "Value *#{fn}(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {\n#{c}\n}"
         process(s(:define_method, :env, :self, s(:s, name), fn))
         "symbol(env, #{name.inspect})"
       end
@@ -216,7 +216,7 @@ module Natalie
         condition = process(condition)
         c = []
         result_name = temp('if')
-        c << "NatObject *#{result_name};"
+        c << "Value *#{result_name};"
         in_decl_context do
           c << "if (#{condition}) {"
           result = process_atom(true_body)
@@ -281,7 +281,7 @@ module Natalie
         count = 0
         result_name = temp('cond_result')
         in_decl_context do
-          decl "NatObject *#{result_name} = NULL;"
+          decl "Value *#{result_name} = NULL;"
           exp[1..-1].each_slice(2).each_with_index do |(cond, body), index|
             if cond == s(:else)
               in_decl_context do
@@ -312,9 +312,9 @@ module Natalie
       def process_declare(exp)
         (_, name, value) = exp
         if value
-          decl "NatObject *#{name} = #{process_atom value};"
+          decl "Value *#{name} = #{process_atom value};"
         else
-          decl "NatObject *#{name};"
+          decl "Value *#{name};"
         end
         name
       end
@@ -330,20 +330,20 @@ module Natalie
         result = temp('defined_result')
         case name.sexp_type
         when :const, :gvar
-          decl "NatObject *#{result} = defined_obj(env, self, #{name.last.to_s.inspect});"
+          decl "Value *#{result} = defined_obj(env, self, #{name.last.to_s.inspect});"
         when :send
           (_, receiver, name) = name
           receiver ||= 'self'
-          decl "NatObject *#{result};"
+          decl "Value *#{result};"
           decl "if (!NAT_RESCUE(env)) {"
           decl "#{result} = defined_obj(env, #{process_atom receiver}, #{name.to_s.inspect});"
           decl '} else {'
           decl "#{result} = #{process_atom s(:nil)};"
           decl '}'
         when :lit, :str
-          decl "NatObject *#{result} = string(env, \"expression\");"
+          decl "Value *#{result} = string(env, \"expression\");"
         when :nil
-          decl "NatObject *#{result} = string(env, \"nil\");"
+          decl "Value *#{result} = string(env, \"nil\");"
         else
           raise "unknown defined type: #{exp.inspect}"
         end
@@ -373,9 +373,9 @@ module Natalie
           result = process_atom(body)
           fn = []
           if arg_list == 6
-            fn << "NatObject *#{name}(Env *env, NatObject *self, ssize_t argc, NatObject **args, Block *block) {"
+            fn << "Value *#{name}(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {"
           elsif arg_list == 2
-            fn << "NatObject *#{name}(Env *env, NatObject *self) {"
+            fn << "Value *#{name}(Env *env, Value *self) {"
           else
             raise "unknown arg_list #{arg_list.inspect}"
           end
@@ -402,7 +402,7 @@ module Natalie
         receiver_name = process_atom(receiver)
         args_name, args_count = process_atom(args).split(':')
         result_name = temp('call_result')
-        decl "NatObject *#{result_name} = #{fn}(env, #{receiver_name}, #{method.to_s.inspect}, #{args_count}, #{args_name}, #{block || 'NULL'});"
+        decl "Value *#{result_name} = #{fn}(env, #{receiver_name}, #{method.to_s.inspect}, #{args_count}, #{args_name}, #{block || 'NULL'});"
         result_name
       end
 
@@ -431,7 +431,7 @@ module Natalie
         (fn, args) = exp
         args_name, args_count = process_atom(args).split(':')
         result_name = temp('block_result')
-        decl "NatObject *#{result_name} = NAT_RUN_BLOCK_FROM_ENV(env, #{args_count}, #{args_name});"
+        decl "Value *#{result_name} = NAT_RUN_BLOCK_FROM_ENV(env, #{args_count}, #{args_name});"
         result_name
       end
 
@@ -440,9 +440,9 @@ module Natalie
         result_name = temp('call_result')
         if args.size > 1
           args_name, args_count = process_atom(args).split(':')
-          decl "NatObject *#{result_name} = call_method_on_class(env, NAT_OBJ_CLASS(self)->superclass, NAT_OBJ_CLASS(self)->superclass, find_current_method_name(env), self, #{args_count}, #{args_name}, #{block || 'NULL'});"
+          decl "Value *#{result_name} = call_method_on_class(env, NAT_OBJ_CLASS(self)->superclass, NAT_OBJ_CLASS(self)->superclass, find_current_method_name(env), self, #{args_count}, #{args_name}, #{block || 'NULL'});"
         else
-          decl "NatObject *#{result_name} = call_method_on_class(env, NAT_OBJ_CLASS(self)->superclass, NAT_OBJ_CLASS(self)->superclass, find_current_method_name(env), self, argc, args, #{block || 'NULL'});"
+          decl "Value *#{result_name} = call_method_on_class(env, NAT_OBJ_CLASS(self)->superclass, NAT_OBJ_CLASS(self)->superclass, find_current_method_name(env), self, argc, args, #{block || 'NULL'});"
         end
         result_name
       end
@@ -506,7 +506,7 @@ module Natalie
         ''
       end
 
-      def process_sexp(exp, name = nil, type = 'NatObject')
+      def process_sexp(exp, name = nil, type = 'Value')
         debug_info(exp)
         (fn, *args) = exp
         if VOID_FUNCTIONS.include?(fn)
@@ -530,10 +530,10 @@ module Natalie
       def process_with_self(exp)
         (_, new_self, body) = exp
         self_was = temp('self_was')
-        decl "NatObject *#{self_was} = self;"
+        decl "Value *#{self_was} = self;"
         decl "self = #{process_atom new_self};"
         result = temp('sclass_result')
-        decl "NatObject *#{result} = #{process_atom body};"
+        decl "Value *#{result} = #{process_atom body};"
         decl "self = #{self_was};"
         result
       end
@@ -588,7 +588,7 @@ module Natalie
 
       def obj_declarations
         obj_files.map do |name|
-          "NatObject *obj_#{name}(Env *env, NatObject *self);"
+          "Value *obj_#{name}(Env *env, Value *self);"
         end
       end
 
