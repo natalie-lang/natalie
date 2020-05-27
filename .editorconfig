@@ -6,8 +6,5 @@ insert_final_newline = true
 indent_style = space
 indent_size = 2
 
-[*.c]
-indent_size = 4
-
-[*.h]
+[*.{c,cpp,h,hpp}]
 indent_size = 4
