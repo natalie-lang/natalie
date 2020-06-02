@@ -3,18 +3,18 @@
 
 namespace Natalie {
 
-Value *Array_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
+Value *Array_new(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0, 2);
     Value *ary = array_new(env);
     if (argc == 0) {
         return ary;
     }
     Value *size = args[0];
-    if (NAT_TYPE(size) == ValueType::Array) {
+    if (NAT_TYPE(size) == Value::Type::Array) {
         // given an array, just return it
         return size;
     }
-    NAT_ASSERT_TYPE(size, ValueType::Integer, "Integer");
+    NAT_ASSERT_TYPE(size, Value::Type::Integer, "Integer");
     Value *value = argc == 2 ? args[1] : NAT_NIL;
     for (int64_t i = 0; i < NAT_INT_VALUE(size); i++) {
         array_push(env, ary, value);
@@ -23,7 +23,7 @@ Value *Array_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block
 }
 
 // Array[]
-Value *Array_square_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
+Value *Array_square_new(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     Value *ary = array_new(env);
     for (ssize_t i = 0; i < argc; i++) {
         array_push(env, ary, args[i]);
@@ -31,13 +31,13 @@ Value *Array_square_new(Env *env, Value *self, ssize_t argc, Value **args, Block
     return ary;
 }
 
-Value *Array_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
+Value *Array_inspect(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
-    assert(NAT_TYPE(self) == ValueType::Array);
-    Value *out = string(env, "[");
+    ArrayValue *self = self_value->as_array();
+    StringValue *out = string(env, "[");
     for (ssize_t i = 0; i < vector_size(&self->ary); i++) {
         Value *obj = static_cast<Value *>(vector_get(&self->ary, i));
-        Value *repr = send(env, obj, "inspect", 0, NULL, NULL);
+        StringValue *repr = send(env, obj, "inspect", 0, NULL, NULL)->as_string();
         string_append_string(env, out, repr);
         if (i < vector_size(&self->ary) - 1) {
             string_append(env, out, ", ");
@@ -47,29 +47,30 @@ Value *Array_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *b
     return out;
 }
 
-Value *Array_ltlt(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
+Value *Array_ltlt(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
+    ArrayValue *self = self_value->as_array();
     NAT_ASSERT_NOT_FROZEN(self);
     Value *arg = args[0];
     array_push(env, self, arg);
     return self;
 }
 
-Value *Array_add(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
+Value *Array_add(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
-    assert(NAT_TYPE(self) == ValueType::Array);
-    Value *arg = args[0];
-    NAT_ASSERT_TYPE(arg, ValueType::Array, "Array");
-    Value *new_array = array_new(env);
+    ArrayValue *self = self_value->as_array();
+    NAT_ASSERT_TYPE(args[0], Value::Type::Array, "Array");
+    ArrayValue *arg = args[0]->as_array();
+    ArrayValue *new_array = array_new(env);
     vector_add(&new_array->ary, &self->ary, &arg->ary);
     return new_array;
 }
 
-Value *Array_sub(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
+Value *Array_sub(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
-    assert(NAT_TYPE(self) == ValueType::Array);
-    Value *arg = args[0];
-    NAT_ASSERT_TYPE(arg, ValueType::Array, "Array");
+    ArrayValue *self = self_value->as_array();
+    NAT_ASSERT_TYPE(args[0], Value::Type::Array, "Array");
+    ArrayValue *arg = args[0]->as_array();
     Value *new_array = array_new(env);
     for (ssize_t i = 0; i < vector_size(&self->ary); i++) {
         Value *item = static_cast<Value *>(vector_get(&self->ary, i));
@@ -88,11 +89,11 @@ Value *Array_sub(Env *env, Value *self, ssize_t argc, Value **args, Block *block
     return new_array;
 }
 
-Value *Array_ref(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
+Value *Array_ref(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1, 2);
-    assert(NAT_TYPE(self) == ValueType::Array);
+    ArrayValue *self = self_value->as_array();
     Value *index_obj = args[0];
-    if (NAT_TYPE(index_obj) == ValueType::Integer) {
+    if (NAT_TYPE(index_obj) == Value::Type::Integer) {
         ssize_t index = NAT_INT_VALUE(index_obj);
         if (index < 0) {
             index = vector_size(&self->ary) + index;
@@ -103,7 +104,7 @@ Value *Array_ref(Env *env, Value *self, ssize_t argc, Value **args, Block *block
             return static_cast<Value *>(vector_get(&self->ary, index));
         }
         Value *size = args[1];
-        NAT_ASSERT_TYPE(size, ValueType::Integer, "Integer");
+        NAT_ASSERT_TYPE(size, Value::Type::Integer, "Integer");
         ssize_t end = index + NAT_INT_VALUE(size);
         ssize_t max = vector_size(&self->ary);
         end = end > max ? max : end;
@@ -112,11 +113,12 @@ Value *Array_ref(Env *env, Value *self, ssize_t argc, Value **args, Block *block
             array_push(env, result, static_cast<Value *>(vector_get(&self->ary, i)));
         }
         return result;
-    } else if (NAT_TYPE(index_obj) == ValueType::Range) {
-        Value *begin_obj = index_obj->range_begin;
-        Value *end_obj = index_obj->range_end;
-        NAT_ASSERT_TYPE(begin_obj, ValueType::Integer, "Integer");
-        NAT_ASSERT_TYPE(end_obj, ValueType::Integer, "Integer");
+    } else if (index_obj->is_range()) {
+        RangeValue *range = index_obj->as_range();
+        Value *begin_obj = range->range_begin;
+        Value *end_obj = range->range_end;
+        NAT_ASSERT_TYPE(begin_obj, Value::Type::Integer, "Integer");
+        NAT_ASSERT_TYPE(end_obj, Value::Type::Integer, "Integer");
         int64_t begin = NAT_INT_VALUE(begin_obj);
         int64_t end = NAT_INT_VALUE(end_obj);
         if (begin < 0) {
@@ -128,7 +130,7 @@ Value *Array_ref(Env *env, Value *self, ssize_t argc, Value **args, Block *block
         if (begin < 0 || end < 0) {
             return NAT_NIL;
         }
-        if (!index_obj->range_exclude_end) end++;
+        if (!range->range_exclude_end) end++;
         ssize_t max = vector_size(&self->ary);
         end = end > max ? max : end;
         Value *result = array_new(env);
@@ -141,12 +143,12 @@ Value *Array_ref(Env *env, Value *self, ssize_t argc, Value **args, Block *block
     }
 }
 
-Value *Array_refeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
+Value *Array_refeq(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(2, 3);
+    ArrayValue *self = self_value->as_array();
     NAT_ASSERT_NOT_FROZEN(self);
-    assert(NAT_TYPE(self) == ValueType::Array);
     Value *index_obj = args[0];
-    NAT_ASSERT_TYPE(index_obj, ValueType::Integer, "Integer"); // TODO: accept a range
+    NAT_ASSERT_TYPE(index_obj, Value::Type::Integer, "Integer"); // TODO: accept a range
     assert(NAT_INT_VALUE(index_obj) >= 0); // TODO: accept negative index
     ssize_t index = NAT_INT_VALUE(index_obj);
     Value *val;
@@ -161,12 +163,12 @@ Value *Array_refeq(Env *env, Value *self, ssize_t argc, Value **args, Block *blo
         return val;
     }
     Value *len_obj = args[1];
-    NAT_ASSERT_TYPE(len_obj, ValueType::Integer, "Integer");
+    NAT_ASSERT_TYPE(len_obj, Value::Type::Integer, "Integer");
     int length = NAT_INT_VALUE(len_obj);
     assert(length >= 0);
     val = args[2];
     // PERF: inefficient for large arrays where changes are being made to only the right side
-    Value *ary2 = array_new(env);
+    ArrayValue *ary2 = array_new(env);
     // stuff before the new entry/entries
     for (ssize_t i = 0; i < index; i++) {
         if (i >= vector_size(&self->ary)) break;
@@ -175,9 +177,9 @@ Value *Array_refeq(Env *env, Value *self, ssize_t argc, Value **args, Block *blo
     // extra nils if needed
     array_expand_with_nil(env, ary2, index);
     // the new entry/entries
-    if (NAT_TYPE(val) == ValueType::Array) {
-        for (ssize_t i = 0; i < vector_size(&val->ary); i++) {
-            array_push(env, ary2, static_cast<Value *>(vector_get(&val->ary, i)));
+    if (val->is_array()) {
+        for (ssize_t i = 0; i < vector_size(&val->as_array()->ary); i++) {
+            array_push(env, ary2, static_cast<Value *>(vector_get(&val->as_array()->ary, i)));
         }
     } else {
         array_push(env, ary2, val);
@@ -190,14 +192,14 @@ Value *Array_refeq(Env *env, Value *self, ssize_t argc, Value **args, Block *blo
     return val;
 }
 
-Value *Array_size(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
-    assert(NAT_TYPE(self) == ValueType::Array);
+Value *Array_size(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    ArrayValue *self = self_value->as_array();
     NAT_ASSERT_ARGC(0);
     return integer(env, vector_size(&self->ary));
 }
 
-Value *Array_any(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
-    assert(NAT_TYPE(self) == ValueType::Array);
+Value *Array_any(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    ArrayValue *self = self_value->as_array();
     NAT_ASSERT_ARGC(0);
     if (block) {
         for (ssize_t i = 0; i < vector_size(&self->ary); i++) {
@@ -211,23 +213,24 @@ Value *Array_any(Env *env, Value *self, ssize_t argc, Value **args, Block *block
     return NAT_FALSE;
 }
 
-Value *Array_eqeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
-    assert(NAT_TYPE(self) == ValueType::Array);
+Value *Array_eqeq(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    ArrayValue *self = self_value->as_array();
     NAT_ASSERT_ARGC(1);
-    Value *arg = args[0];
-    if (NAT_TYPE(arg) != ValueType::Array) return NAT_FALSE;
+    if (!args[0]->is_array()) return NAT_FALSE;
+    ArrayValue *arg = args[0]->as_array();
     if (vector_size(&self->ary) != vector_size(&arg->ary)) return NAT_FALSE;
     if (vector_size(&self->ary) == 0) return NAT_TRUE;
     for (ssize_t i = 0; i < vector_size(&self->ary); i++) {
         // TODO: could easily be optimized for strings and numbers
         Value *item = static_cast<Value *>(vector_get(&arg->ary, i));
         Value *result = send(env, static_cast<Value *>(vector_get(&self->ary, i)), "==", 1, &item, NULL);
-        if (NAT_TYPE(result) == ValueType::False) return result;
+        if (NAT_TYPE(result) == Value::Type::False) return result;
     }
     return NAT_TRUE;
 }
 
-Value *Array_each(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
+Value *Array_each(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    ArrayValue *self = self_value->as_array();
     NAT_ASSERT_ARGC(0);
     NAT_ASSERT_BLOCK(); // TODO: return Enumerator when no block given
     for (ssize_t i = 0; i < vector_size(&self->ary); i++) {
@@ -237,7 +240,8 @@ Value *Array_each(Env *env, Value *self, ssize_t argc, Value **args, Block *bloc
     return self;
 }
 
-Value *Array_each_with_index(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
+Value *Array_each_with_index(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    ArrayValue *self = self_value->as_array();
     NAT_ASSERT_ARGC(0);
     NAT_ASSERT_BLOCK(); // TODO: return Enumerator when no block given
     for (ssize_t i = 0; i < vector_size(&self->ary); i++) {
@@ -247,7 +251,8 @@ Value *Array_each_with_index(Env *env, Value *self, ssize_t argc, Value **args, 
     return self;
 }
 
-Value *Array_map(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
+Value *Array_map(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    ArrayValue *self = self_value->as_array();
     NAT_ASSERT_ARGC(0);
     NAT_ASSERT_BLOCK(); // TODO: return Enumerator when no block given
     Value *new_array = array_new(env);
@@ -259,9 +264,9 @@ Value *Array_map(Env *env, Value *self, ssize_t argc, Value **args, Block *block
     return new_array;
 }
 
-Value *Array_first(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
+Value *Array_first(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    ArrayValue *self = self_value->as_array();
     NAT_ASSERT_ARGC(0); // TODO: accept integer and return array
-    assert(NAT_TYPE(self) == ValueType::Array);
     if (vector_size(&self->ary) > 0) {
         return static_cast<Value *>(vector_get(&self->ary, 0));
     } else {
@@ -269,9 +274,9 @@ Value *Array_first(Env *env, Value *self, ssize_t argc, Value **args, Block *blo
     }
 }
 
-Value *Array_last(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
+Value *Array_last(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    ArrayValue *self = self_value->as_array();
     NAT_ASSERT_ARGC(0); // TODO: accept integer and return array
-    assert(NAT_TYPE(self) == ValueType::Array);
     if (vector_size(&self->ary) > 0) {
         return static_cast<Value *>(vector_get(&self->ary, vector_size(&self->ary) - 1));
     } else {
@@ -279,13 +284,13 @@ Value *Array_last(Env *env, Value *self, ssize_t argc, Value **args, Block *bloc
     }
 }
 
-Value *Array_to_ary(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
+Value *Array_to_ary(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
-    return self;
+    return self_value;
 }
 
-Value *Array_pop(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
-    assert(NAT_TYPE(self) == ValueType::Array);
+Value *Array_pop(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    ArrayValue *self = self_value->as_array();
     NAT_ASSERT_ARGC(0);
     NAT_ASSERT_NOT_FROZEN(self);
     if (vector_size(&self->ary) == 0) {
@@ -297,8 +302,8 @@ Value *Array_pop(Env *env, Value *self, ssize_t argc, Value **args, Block *block
     }
 }
 
-Value *Array_include(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
-    assert(NAT_TYPE(self) == ValueType::Array);
+Value *Array_include(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    ArrayValue *self = self_value->as_array();
     NAT_ASSERT_ARGC(1);
     Value *item = args[0];
     if (vector_size(&self->ary) == 0) {
@@ -314,16 +319,16 @@ Value *Array_include(Env *env, Value *self, ssize_t argc, Value **args, Block *b
     }
 }
 
-Value *Array_sort(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
-    assert(NAT_TYPE(self) == ValueType::Array);
+Value *Array_sort(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    ArrayValue *self = self_value->as_array();
     NAT_ASSERT_ARGC(0);
-    Value *copy = array_copy(env, self);
+    ArrayValue *copy = array_copy(env, self);
     quicksort(env, (Value **)copy->ary.data, 0, vector_size(&copy->ary) - 1);
     return copy;
 }
 
-Value *Array_join(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
-    assert(NAT_TYPE(self) == ValueType::Array);
+Value *Array_join(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    ArrayValue *self = self_value->as_array();
     NAT_ASSERT_ARGC(1);
     if (vector_size(&self->ary) == 0) {
         return string(env, "");
@@ -331,28 +336,28 @@ Value *Array_join(Env *env, Value *self, ssize_t argc, Value **args, Block *bloc
         return send(env, static_cast<Value *>(vector_get(&self->ary, 0)), "to_s", 0, NULL, NULL);
     } else {
         Value *joiner = args[0];
-        NAT_ASSERT_TYPE(joiner, ValueType::String, "String");
-        Value *out = send(env, static_cast<Value *>(vector_get(&self->ary, 0)), "to_s", 0, NULL, NULL);
+        NAT_ASSERT_TYPE(joiner, Value::Type::String, "String");
+        StringValue *out = send(env, static_cast<Value *>(vector_get(&self->ary, 0)), "to_s", 0, NULL, NULL)->as_string();
         for (ssize_t i = 1; i < vector_size(&self->ary); i++) {
-            string_append_string(env, out, joiner);
-            string_append_string(env, out, send(env, static_cast<Value *>(vector_get(&self->ary, i)), "to_s", 0, NULL, NULL));
+            string_append_string(env, out, joiner->as_string());
+            string_append_string(env, out, send(env, static_cast<Value *>(vector_get(&self->ary, i)), "to_s", 0, NULL, NULL)->as_string());
         }
         return out;
     }
 }
 
-Value *Array_cmp(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
-    assert(NAT_TYPE(self) == ValueType::Array);
+Value *Array_cmp(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    ArrayValue *self = self_value->as_array();
     NAT_ASSERT_ARGC(1);
-    Value *other = args[0];
-    NAT_ASSERT_TYPE(other, ValueType::Array, "Array");
+    NAT_ASSERT_TYPE(args[0], Value::Type::Array, "Array");
+    ArrayValue *other = args[0]->as_array();
     for (ssize_t i = 0; i < vector_size(&self->ary); i++) {
         if (i >= vector_size(&other->ary)) {
             return integer(env, 1);
         }
         Value *item = static_cast<Value *>(vector_get(&other->ary, i));
         Value *cmp_obj = send(env, static_cast<Value *>(vector_get(&self->ary, i)), "<=>", 1, &item, NULL);
-        assert(NAT_TYPE(cmp_obj) == ValueType::Integer);
+        assert(NAT_TYPE(cmp_obj) == Value::Type::Integer);
         int64_t cmp = NAT_INT_VALUE(cmp_obj);
         if (cmp < 0) return integer(env, -1);
         if (cmp > 0) return integer(env, 1);
@@ -363,8 +368,8 @@ Value *Array_cmp(Env *env, Value *self, ssize_t argc, Value **args, Block *block
     return integer(env, 0);
 }
 
-Value *Array_to_a(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
-    return self;
+Value *Array_to_a(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    return self_value;
 }
 
 }

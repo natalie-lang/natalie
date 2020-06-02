@@ -3,48 +3,50 @@
 #include <sys/stat.h>
 
 #include "builtin.hpp"
-#include "gc.hpp"
 #include "natalie.hpp"
 
 namespace Natalie {
 
-Value *File_initialize(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
+Value *File_initialize(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    IoValue *self = self_value->as_io();
     NAT_ASSERT_ARGC2(1, 2); // TODO: Ruby accepts 3 args??
     Value *filename = args[0];
-    NAT_ASSERT_TYPE(filename, ValueType::String, "String");
+    NAT_ASSERT_TYPE(filename, Value::Type::String, "String");
     int flags = O_RDONLY;
     if (argc > 1) {
         Value *flags_obj = args[1];
         switch (NAT_TYPE(flags_obj)) {
-        case ValueType::Integer:
+        case Value::Type::Integer:
             flags = NAT_INT_VALUE(flags_obj);
             break;
-        case ValueType::String:
-            if (strcmp(flags_obj->str, "r") == 0) {
+        case Value::Type::String: {
+            const char *flags_str = flags_obj->as_string()->str;
+            if (strcmp(flags_str, "r") == 0) {
                 flags = O_RDONLY;
-            } else if (strcmp(flags_obj->str, "r+") == 0) {
+            } else if (strcmp(flags_str, "r+") == 0) {
                 flags = O_RDWR;
-            } else if (strcmp(flags_obj->str, "w") == 0) {
+            } else if (strcmp(flags_str, "w") == 0) {
                 flags = O_WRONLY | O_CREAT | O_TRUNC;
-            } else if (strcmp(flags_obj->str, "w+") == 0) {
+            } else if (strcmp(flags_str, "w+") == 0) {
                 flags = O_RDWR | O_CREAT | O_TRUNC;
-            } else if (strcmp(flags_obj->str, "a") == 0) {
+            } else if (strcmp(flags_str, "a") == 0) {
                 flags = O_WRONLY | O_CREAT | O_APPEND;
-            } else if (strcmp(flags_obj->str, "a+") == 0) {
+            } else if (strcmp(flags_str, "a+") == 0) {
                 flags = O_RDWR | O_CREAT | O_APPEND;
             } else {
-                NAT_RAISE(env, "ArgumentError", "invalid access mode %s", flags_obj->str);
+                NAT_RAISE(env, "ArgumentError", "invalid access mode %s", flags_str);
             }
             break;
+        }
         default:
             NAT_RAISE(env, "TypeError", "no implicit conversion of %s into String", NAT_OBJ_CLASS(flags_obj)->class_name);
         }
     }
     int mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
-    int fileno = open(filename->str, flags, mode);
+    int fileno = open(filename->as_string()->str, flags, mode);
     if (fileno == -1) {
         Value *exception_args[2] = { filename, integer(env, errno) };
-        Value *error = send(env, const_get(env, NAT_OBJECT, "SystemCallError", true), "exception", 2, exception_args, NULL);
+        ExceptionValue *error = send(env, const_get(env, NAT_OBJECT, "SystemCallError", true), "exception", 2, exception_args, NULL)->as_exception();
         raise_exception(env, error);
         abort();
     } else {
@@ -56,8 +58,8 @@ Value *File_initialize(Env *env, Value *self, ssize_t argc, Value **args, Block 
 Value *File_expand_path(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC2(1, 2);
     Value *path = args[0];
-    NAT_ASSERT_TYPE(path, ValueType::String, "String");
-    if (path->str_len > 0 && path->str[0] == '/') {
+    NAT_ASSERT_TYPE(path, Value::Type::String, "String");
+    if (path->as_string()->str_len > 0 && path->as_string()->str[0] == '/') {
         return path;
     }
     Value *merged;
@@ -72,7 +74,7 @@ Value *File_expand_path(Env *env, Value *self, ssize_t argc, Value **args, Block
             NAT_RAISE(env, "RuntimeError", "could not get current directory");
         }
     }
-    Value *dotdot = regexp(env, "[^/]*/\\.\\./");
+    RegexpValue *dotdot = regexp_new(env, "[^/]*/\\.\\./");
     Value *empty_string = string(env, "");
     while (truthy(Regexp_match(env, dotdot, 1, &merged, NULL))) {
         Value *args[2] = { dotdot, empty_string };

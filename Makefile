@@ -1,5 +1,6 @@
 .PHONY: test cloc debug write_build_type
 
+CXX := c++
 SRC := src
 INC := include
 LIB := lib/natalie
@@ -36,7 +37,7 @@ write_build_type:
 	@echo $(BUILD) > .build
 
 $(OBJ)/%.o: $(SRC)/%.cpp
-	$(CC) -std=c++17 $(CFLAGS) -I$(INC) -I$(HASHMAP) -I$(ONIGMO) -fPIC -c $< -o $@
+	$(CXX) -std=c++17 $(CFLAGS) -I$(INC) -I$(HASHMAP) -I$(ONIGMO) -fPIC -c $< -o $@
 
 $(OBJ)/nat/%.o: $(SRC)/%.nat
 	bin/natalie --compile-obj $@ $<
@@ -81,7 +82,7 @@ docker_build:
 	docker build -t natalie .
 
 docker_build_clang:
-	docker build -t natalie_clang --build-arg CC=clang .
+	docker build -t natalie_clang --build-arg CXX=clang .
 
 docker_test: docker_test_gcc docker_test_clang docker_test_valgrind docker_test_release docker_test_release_slow
 

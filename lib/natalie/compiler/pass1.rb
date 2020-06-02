@@ -88,7 +88,7 @@ module Natalie
                end
         if block_pass
           proc_name = temp('proc_to_block')
-          call << "#{proc_name}->block"
+          call << "#{proc_name}->as_proc()->block"
           exp.new(:block,
             s(:declare, proc_name, s(:to_proc, :env, process(block_pass))),
             call)
@@ -228,18 +228,18 @@ module Natalie
 
       def process_dot2(exp)
         (_, beginning, ending) = exp
-        exp.new(:range, :env, process(beginning), process(ending), 0)
+        exp.new(:range_new, :env, process(beginning), process(ending), 0)
       end
 
       def process_dot3(exp)
         (_, beginning, ending) = exp
-        exp.new(:range, :env, process(beginning), process(ending), 1)
+        exp.new(:range_new, :env, process(beginning), process(ending), 1)
       end
 
       def process_dregx(exp)
         str_node = process_dstr(exp)
         str = str_node.pop
-        str_node << exp.new(:regexp, :env, s(:l, "#{str}->str"))
+        str_node << exp.new(:regexp_new, :env, s(:l, "#{str}->as_string()->str"))
         str_node
       end
 
@@ -265,7 +265,7 @@ module Natalie
       def process_dsym(exp)
         str_node = process_dstr(exp)
         str = str_node.pop
-        str_node << exp.new(:symbol, :env, s(:l, "#{str}->str"))
+        str_node << exp.new(:symbol, :env, s(:l, "#{str}->as_string()->str"))
         str_node
       end
 
@@ -399,9 +399,9 @@ module Natalie
         when Integer
           exp.new(:integer, :env, lit)
         when Range
-          exp.new(:range, :env, process_lit(s(:lit, lit.first)), process_lit(s(:lit, lit.last)), lit.exclude_end? ? 1 : 0)
+          exp.new(:range_new, :env, process_lit(s(:lit, lit.first)), process_lit(s(:lit, lit.last)), lit.exclude_end? ? 1 : 0)
         when Regexp
-          exp.new(:regexp, :env, s(:s, lit.inspect[1...-1]))
+          exp.new(:regexp_new, :env, s(:s, lit.inspect[1...-1]))
         when Symbol
           exp.new(:symbol, :env, s(:s, lit))
         else

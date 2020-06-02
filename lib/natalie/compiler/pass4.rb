@@ -32,6 +32,7 @@ module Natalie
         define_method_with_block
         define_singleton_method
         define_singleton_method_with_block
+        flag_break
         grow_array
         grow_array_at_least
         grow_string
@@ -95,11 +96,8 @@ module Natalie
 
       def process_args(exp)
         (_, *args) = exp
-        case args.size
-        when 0
+        if args.size.zero?
           'NULL:0'
-        when 1
-          "&#{process_atom args.first}:1"
         else
           args_name = temp('args')
           decl "Value *#{args_name}[#{args.size}] = { #{args.map { |arg| process_atom(arg) }.join(', ')} };"
@@ -114,7 +112,7 @@ module Natalie
         # NOTE: this array must be marked volatile or the GC might collect it :-(
         # I wish I knew 1) why/how GCC optimizes this pointer away, and 2) how a big GC like Boehm doesn't fall for tricks like that. :-/
         decl "Value * volatile #{name} = #{array};"
-        "(Value**)vector_data(&#{name}->ary):vector_size(&#{name}->ary)"
+        "(Value**)vector_data(&#{name}->as_array()->ary):vector_size(&#{name}->as_array()->ary)"
       end
 
       def process_block(exp)

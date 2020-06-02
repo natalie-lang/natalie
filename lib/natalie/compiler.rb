@@ -138,7 +138,7 @@ module Natalie
     private
 
     def cc
-      ENV['CC'] || 'cc'
+      ENV['CXX'] || 'c++'
     end
 
     def shared?
