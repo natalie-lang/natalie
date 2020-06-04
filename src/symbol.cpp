@@ -28,8 +28,7 @@ Value *Symbol_inspect(Env *env, Value *self_value, ssize_t argc, Value **args, B
 Value *Symbol_to_proc(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     SymbolValue *self = self_value->as_symbol();
     NAT_ASSERT_ARGC(0);
-    Env block_env;
-    build_detached_block_env(&block_env, env);
+    Env block_env = Env::new_detatched_block_env(env);
     var_set(&block_env, "name", 0, true, self);
     Block *proc_block = block_new(&block_env, self, Symbol_to_proc_block_fn);
     return proc_new(env, proc_block);

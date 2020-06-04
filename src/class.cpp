@@ -16,8 +16,7 @@ Value *Class_new(Env *env, Value *self_value, ssize_t argc, Value **args, Block 
     }
     Value *klass = subclass(env, superclass, NULL);
     if (block) {
-        Env e;
-        build_block_env(&e, &block->env, env);
+        Env e = Env::new_block_env(&block->env, env);
         block->fn(&e, klass, 0, NULL, NULL);
     }
     return klass;

@@ -10,8 +10,7 @@ using namespace Natalie;
 /*OBJ_NAT*/
 
 extern "C" Env *build_top_env() {
-    Env *env = static_cast<Env *>(malloc(sizeof(Env)));
-    build_env(env, NULL);
+    Env *env = new Env { new GlobalEnv };
     env->method_name = heap_string("<main>");
 
     // TODO: find a better way to boostrap Class
@@ -20,7 +19,7 @@ extern "C" Env *build_top_env() {
 
     Class->superclass = NULL;
     Class->class_name = heap_string("Class");
-    build_env(&Class->env, env);
+    Class->env = new Env { env };
     hashmap_init(&Class->methods, hashmap_hash_string, hashmap_compare_string, 100);
     hashmap_set_key_alloc_funcs(&Class->methods, hashmap_alloc_key_string, free);
     hashmap_init(&Class->constants, hashmap_hash_string, hashmap_compare_string, 10);
@@ -29,7 +28,7 @@ extern "C" Env *build_top_env() {
 
     ClassValue *BasicObject = new ClassValue { env, Class };
     BasicObject->class_name = heap_string("BasicObject");
-    build_env(&BasicObject->env, env);
+    BasicObject->env = new Env { env };
     BasicObject->superclass = NULL;
     BasicObject->cvars.table = NULL;
     hashmap_init(&BasicObject->methods, hashmap_hash_string, hashmap_compare_string, 100);
@@ -256,8 +255,8 @@ int main(int argc, char *argv[]) {
         array_push(env, ARGV, string(env, argv[i]));
     }
     Value *result = EVAL(env);
-    free_global_env(env->global_env);
-    free(env);
+    delete env->global_env;
+    delete env;
     if (result) {
         return 0;
     } else {

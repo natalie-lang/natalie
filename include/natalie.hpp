@@ -129,6 +129,7 @@ typedef struct HashKey HashIter;
 typedef struct HashVal HashVal;
 typedef struct Vector Vector;
 
+// TODO: move to forward header
 struct NilValue;
 struct TrueValue;
 struct FalseValue;
@@ -149,29 +150,67 @@ struct SymbolValue;
 struct VoidPValue;
 
 struct GlobalEnv {
-    struct hashmap *globals;
-    struct hashmap *symbols;
-    ClassValue *Object;
-    ClassValue *Integer;
-    NilValue *nil;
-    TrueValue *true_obj;
-    FalseValue *false_obj;
+    GlobalEnv() {
+        globals = static_cast<struct hashmap *>(malloc(sizeof(struct hashmap)));
+        hashmap_init(globals, hashmap_hash_string, hashmap_compare_string, 100);
+        hashmap_set_key_alloc_funcs(globals, hashmap_alloc_key_string, free);
+        symbols = static_cast<struct hashmap *>(malloc(sizeof(struct hashmap)));
+        hashmap_init(symbols, hashmap_hash_string, hashmap_compare_string, 100);
+        hashmap_set_key_alloc_funcs(symbols, hashmap_alloc_key_string, free);
+    }
+
+    ~GlobalEnv() {
+        hashmap_destroy(globals);
+        hashmap_destroy(symbols);
+    }
+
+    struct hashmap *globals { nullptr };
+    struct hashmap *symbols { nullptr };
+    ClassValue *Object { nullptr };
+    ClassValue *Integer { nullptr };
+    NilValue *nil { nullptr };
+    TrueValue *true_obj { nullptr };
+    FalseValue *false_obj { nullptr };
 };
 
 struct Env {
-    GlobalEnv *global_env;
-    Vector *vars;
-    Env *outer;
-    Block *block;
-    bool block_env;
-    bool rescue;
+    Env() { }
+
+    Env(Env *outer)
+        : outer { outer } {
+        global_env = outer->global_env;
+    }
+
+    Env(GlobalEnv *global_env)
+        : global_env { global_env } { }
+
+    static Env new_block_env(Env *outer, Env *calling_env) {
+        Env env(outer);
+        env.block_env = true;
+        env.caller = calling_env;
+        return env;
+    }
+
+    static Env new_detatched_block_env(Env *outer) {
+        Env env;
+        env.global_env = outer->global_env;
+        env.block_env = true;
+        return env;
+    }
+
+    GlobalEnv *global_env { nullptr };
+    Vector *vars { nullptr };
+    Env *outer { nullptr };
+    Block *block { nullptr };
+    bool block_env { false };
+    bool rescue { false };
     jmp_buf jump_buf;
-    Value *exception;
-    Env *caller;
-    const char *file;
-    ssize_t line;
-    const char *method_name;
-    Value *match;
+    Value *exception { nullptr };
+    Env *caller { nullptr };
+    const char *file { nullptr };
+    ssize_t line { 0 };
+    const char *method_name { nullptr };
+    Value *match { nullptr };
 };
 
 struct Block {
@@ -183,7 +222,7 @@ struct Block {
 struct Method {
     Value *(*fn)(Env *env, Value *self, ssize_t argc, Value **args, Block *block) { nullptr };
     Env env;
-    bool undefined { nullptr };
+    bool undefined { false };
 };
 
 struct HashKey {
@@ -587,13 +626,6 @@ Value *const_set(Env *env, Value *klass, const char *name, Value *val);
 
 Value *var_get(Env *env, const char *key, ssize_t index);
 Value *var_set(Env *env, const char *name, ssize_t index, bool allocate, Value *val);
-
-GlobalEnv *build_global_env();
-void free_global_env(GlobalEnv *global_env);
-
-Env *build_env(Env *env, Env *outer);
-Env *build_block_env(Env *env, Env *outer, Env *calling_env);
-Env *build_detached_block_env(Env *env, Env *outer);
 
 const char *find_current_method_name(Env *env);
 

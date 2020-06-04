@@ -224,50 +224,6 @@ Value *var_set(Env *env, const char *name, ssize_t index, bool allocate, Value *
     return val;
 }
 
-GlobalEnv *build_global_env() {
-    GlobalEnv *global_env = static_cast<GlobalEnv *>(malloc(sizeof(GlobalEnv)));
-    struct hashmap *global_table = static_cast<struct hashmap *>(malloc(sizeof(struct hashmap)));
-    hashmap_init(global_table, hashmap_hash_string, hashmap_compare_string, 100);
-    hashmap_set_key_alloc_funcs(global_table, hashmap_alloc_key_string, free);
-    global_env->globals = global_table;
-    struct hashmap *symbol_table = static_cast<struct hashmap *>(malloc(sizeof(struct hashmap)));
-    hashmap_init(symbol_table, hashmap_hash_string, hashmap_compare_string, 100);
-    hashmap_set_key_alloc_funcs(symbol_table, hashmap_alloc_key_string, free);
-    global_env->symbols = symbol_table;
-    return global_env;
-}
-
-void free_global_env(GlobalEnv *global_env) {
-    hashmap_destroy(global_env->globals);
-    hashmap_destroy(global_env->symbols);
-    free(global_env);
-}
-
-Env *build_env(Env *env, Env *outer) {
-    memset(env, 0, sizeof(Env));
-    env->outer = outer;
-    if (outer) {
-        env->global_env = outer->global_env;
-    } else {
-        env->global_env = build_global_env();
-    }
-    return env;
-}
-
-Env *build_block_env(Env *env, Env *outer, Env *calling_env) {
-    build_env(env, outer);
-    env->block_env = true;
-    env->caller = calling_env;
-    return env;
-}
-
-Env *build_detached_block_env(Env *env, Env *outer) {
-    build_env(env, outer);
-    env->block_env = true;
-    env->outer = NULL;
-    return env;
-}
-
 ExceptionValue *exception_new(Env *env, ClassValue *klass, const char *message) {
     ExceptionValue *obj = new ExceptionValue { env, klass };
     assert(message);
@@ -516,7 +472,7 @@ ClassValue *subclass(Env *env, ClassValue *superclass, const char *name) {
     }
     klass->class_name = name ? heap_string(name) : NULL;
     klass->superclass = superclass;
-    build_env(&klass->env, &superclass->env);
+    klass->env = new Env { &superclass->env };
     klass->env.outer = NULL;
     init_class_or_module_data(env, klass);
     return klass;
@@ -525,7 +481,7 @@ ClassValue *subclass(Env *env, ClassValue *superclass, const char *name) {
 ModuleValue *module(Env *env, const char *name) {
     ModuleValue *module = new ModuleValue { env };
     module->class_name = name ? heap_string(name) : NULL;
-    build_env(&module->env, env);
+    module->env = new Env { env };
     module->env.outer = NULL;
     init_class_or_module_data(env, module);
     return module;
@@ -778,7 +734,7 @@ HashKey *hash_key_list_append(Env *env, HashValue *hash, Value *key, Value *val)
         // ^______________________________|
         new_last->prev = last;
         new_last->next = first;
-        build_detached_block_env(&new_last->env, env);
+        new_last->env = Env::new_detatched_block_env(env);
         new_last->env.caller = env;
         new_last->removed = false;
         first->prev = new_last;
@@ -790,7 +746,7 @@ HashKey *hash_key_list_append(Env *env, HashValue *hash, Value *key, Value *val)
         node->val = val;
         node->prev = node;
         node->next = node;
-        build_detached_block_env(&node->env, env);
+        node->env = Env::new_detatched_block_env(env);
         node->env.caller = env;
         node->removed = false;
         hash->key_list = node;
@@ -1213,8 +1169,7 @@ Value *call_method_on_class(Env *env, ClassValue *klass, Value *instance_class, 
         } else {
             closure_env = &matching_class_or_module->env;
         }
-        Env e;
-        build_block_env(&e, closure_env, env);
+        Env e = Env::new_block_env(closure_env, env);
         e.file = env->file;
         e.line = env->line;
         e.method_name = method_name;
@@ -1226,8 +1181,7 @@ Value *call_method_on_class(Env *env, ClassValue *klass, Value *instance_class, 
 }
 
 Value *call_begin(Env *env, Value *self, Value *(*block_fn)(Env *, Value *)) {
-    Env e;
-    build_block_env(&e, env, env);
+    Env e = Env::new_block_env(env, env);
     return block_fn(&e, self);
 }
 
@@ -1263,8 +1217,7 @@ Value *_run_block_internal(Env *env, Block *the_block, ssize_t argc, Value **arg
         abort();
         NAT_RAISE(env, "LocalJumpError", "no block given");
     }
-    Env e;
-    build_block_env(&e, &the_block->env, env);
+    Env e = Env::new_block_env(&the_block->env, env);
     return the_block->fn(&e, the_block->self, argc, args, block);
 }
 
@@ -1812,8 +1765,7 @@ EncodingValue *encoding(Env *env, Encoding num, ArrayValue *names) {
 }
 
 Value *eval_class_or_module_body(Env *env, Value *class_or_module, Value *(*fn)(Env *, Value *)) {
-    Env body_env;
-    build_env(&body_env, env);
+    Env body_env = new Env { env };
     body_env.caller = env;
     Value *result = fn(&body_env, class_or_module);
     body_env.caller = NULL;

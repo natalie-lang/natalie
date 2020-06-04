@@ -65,8 +65,7 @@ Value *Module_attr_reader(Env *env, Value *self_value, ssize_t argc, Value **arg
         } else {
             NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", send(env, name_obj, "inspect", 0, NULL, NULL));
         }
-        Env block_env;
-        build_detached_block_env(&block_env, env);
+        Env block_env = Env::new_detatched_block_env(env);
         var_set(&block_env, "name", 0, true, name_obj);
         Block *attr_block = block_new(&block_env, self, Module_attr_reader_block_fn);
         define_method_with_block(env, self, name_obj->as_string()->str, attr_block);
@@ -95,8 +94,7 @@ Value *Module_attr_writer(Env *env, Value *self_value, ssize_t argc, Value **arg
         }
         StringValue *method_name = string(env, name_obj->as_string()->str);
         string_append_char(env, method_name, '=');
-        Env block_env;
-        build_detached_block_env(&block_env, env);
+        Env block_env = Env::new_detatched_block_env(env);
         var_set(&block_env, "name", 0, true, name_obj);
         Block *attr_block = block_new(&block_env, self, Module_attr_writer_block_fn);
         define_method_with_block(env, self, method_name->str, attr_block);
@@ -170,8 +168,7 @@ Value *Module_class_eval(Env *env, Value *self_value, ssize_t argc, Value **args
     if (argc > 0 || !block) {
         NAT_RAISE(env, "ArgumentError", "Natalie only supports class_eval with a block");
     }
-    Env e;
-    build_block_env(&e, &block->env, env);
+    Env e = Env::new_block_env(&block->env, env);
     return block->fn(&e, self, 0, NULL, NULL);
 }
 

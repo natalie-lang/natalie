@@ -27,8 +27,7 @@ Value *BasicObject_instance_eval(Env *env, Value *self, ssize_t argc, Value **ar
     if (argc > 0 || !block) {
         NAT_RAISE(env, "ArgumentError", "Natalie only supports instance_eval with a block");
     }
-    Env e;
-    build_block_env(&e, &block->env, env);
+    Env e = Env::new_block_env(&block->env, env);
     Value *self_for_eval = self;
     // I *think* this is right... instance_eval, when called on a class/module,
     // evals with self set to the singleton class
