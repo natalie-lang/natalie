@@ -15,8 +15,8 @@ module Natalie
       def process_alias(exp)
         (_, (_, new_name), (_, old_name)) = exp
         exp.new(:block,
-          s(:alias, :env, :self, s(:s, new_name), s(:s, old_name)),
-          s(:nil))
+                s(:alias, :env, :self, s(:s, new_name), s(:s, old_name)),
+                s(:nil))
       end
 
       def process_and(exp)
@@ -37,9 +37,9 @@ module Natalie
           end
         end
         exp.new(:block,
-          s(:declare, arr, s(:array_new, :env)),
-          *items.compact,
-          arr)
+                s(:declare, arr, s(:array_new, :env)),
+                *items.compact,
+                arr)
       end
 
       def process_attrasgn(exp)
@@ -62,9 +62,9 @@ module Natalie
         value ||= s(:nil)
         break_name = temp('break_value')
         exp.new(:block,
-          s(:declare, break_name, process(value)),
-          s(:flag_break, break_name),
-          s(:c_return, break_name))
+                s(:declare, break_name, process(value)),
+                s(:flag_break, break_name),
+                s(:c_return, break_name))
       end
 
       def process_call(exp, is_super: false)
@@ -90,8 +90,8 @@ module Natalie
           proc_name = temp('proc_to_block')
           call << "#{proc_name}->as_proc()->block"
           exp.new(:block,
-            s(:declare, proc_name, s(:to_proc, :env, process(block_pass))),
-            call)
+                  s(:declare, proc_name, s(:to_proc, :env, process(block_pass))),
+                  call)
         else
           call << 'NULL'
           call
@@ -114,8 +114,8 @@ module Natalie
         cond << s(:else)
         cond << process(else_body || s(:nil))
         exp.new(:block,
-          s(:declare, value_name, process(value)),
-          cond)
+                s(:declare, value_name, process(value)),
+                cond)
       end
 
       def process_cdecl(exp)
@@ -129,21 +129,21 @@ module Natalie
         fn = temp('class_body')
         klass = temp('class')
         exp.new(:block,
-          s(:class_fn, fn, process(s(:block, *body))),
-          s(:declare, klass, s(:const_get_or_null, :env, :self, s(:s, name), s(:l, :true), s(:l, :true))),
-          s(:c_if, s(:not, klass),
-            s(:block,
-              s(:set, klass, s(:subclass, :env, process(superclass), s(:s, name))),
-              s(:const_set, :env, :self, s(:s, name), klass))),
-          s(:eval_class_or_module_body, :env, klass, fn))
+                s(:class_fn, fn, process(s(:block, *body))),
+                s(:declare, klass, s(:const_get_or_null, :env, :self, s(:s, name), s(:l, :true), s(:l, :true))),
+                s(:c_if, s(:not, klass),
+                  s(:block,
+                    s(:set, klass, s(:subclass, :env, process(superclass), s(:s, name))),
+                    s(:const_set, :env, :self, s(:s, name), klass))),
+        s(:eval_class_or_module_body, :env, klass, fn))
       end
 
       def process_colon2(exp)
         (_, parent, name) = exp
         parent_name = temp('parent')
         exp.new(:block,
-          s(:declare, parent_name, process(parent)),
-          s(:const_get, :env, parent_name, s(:s, name), s(:l, :true)))
+                s(:declare, parent_name, process(parent)),
+                s(:const_get, :env, parent_name, s(:s, name), s(:l, :true)))
       end
 
       def process_colon3(exp)
@@ -192,38 +192,38 @@ module Natalie
         if raises_local_jump_error?(method_body)
           # We only need to wrap method body in a rescue for LocalJumpError if there is a `return` inside a block.
           method_body = s(:rescue,
-            method_body,
-            s(:cond,
-              s(:is_a, 'env->exception', process(s(:const, :LocalJumpError))),
-              process(s(:call, s(:l, 'env->exception'), :exit_value)),
-              s(:else),
-              s(:raise_exception, :env, 'env->exception')))
+                          method_body,
+                          s(:cond,
+                            s(:is_a, 'env->exception', process(s(:const, :LocalJumpError))),
+                            process(s(:call, s(:l, 'env->exception'), :exit_value)),
+                            s(:else),
+                            s(:raise_exception, :env, 'env->exception')))
         end
         exp.new(:def_fn, fn_name,
-          s(:block,
-            s(:env_set_method_name, name),
-            prepare_argc_assertion(args),
-            assign_args,
-            block_arg || s(:block),
-            method_body))
+                s(:block,
+                  s(:env_set_method_name, name),
+                  prepare_argc_assertion(args),
+                  assign_args,
+                  block_arg || s(:block),
+                  method_body))
       end
 
       def process_defn(exp)
         (_, name, args, *body) = exp
         fn = process_defn_internal(exp)
         exp.new(:block,
-          fn,
-          s(:define_method, :env, :self, s(:s, name), fn[1]),
-          s(:symbol, :env, s(:s, name)))
+                fn,
+                s(:define_method, :env, :self, s(:s, name), fn[1]),
+                s(:symbol, :env, s(:s, name)))
       end
 
       def process_defs(exp)
         (_, owner, name, args, *body) = exp
         fn = process_defn_internal(exp.new(:defs, name, args, *body))
         exp.new(:block,
-          fn,
-          s(:define_singleton_method, :env, process(owner), s(:s, name), fn[1]),
-          s(:symbol, :env, s(:s, name)))
+                fn,
+                s(:define_singleton_method, :env, process(owner), s(:s, name), fn[1]),
+                s(:symbol, :env, s(:s, name)))
       end
 
       def process_dot2(exp)
@@ -257,9 +257,9 @@ module Natalie
           end
         end
         exp.new(:block,
-          s(:declare, string, s(:string, :env, s(:s, start))),
-          *segments,
-          string)
+                s(:declare, string, s(:string, :env, s(:s, start))),
+                *segments,
+                string)
       end
 
       def process_dsym(exp)
@@ -273,12 +273,12 @@ module Natalie
         (_, body, ensure_body) = exp
         process(
           exp.new(:block,
-            s(:rescue,
-              body,
-              s(:resbody, s(:array),
-                ensure_body,
-                s(:raise_exception, :env, s(:l, 'env->exception')))),
-          ensure_body))
+                  s(:rescue,
+                    body,
+                    s(:resbody, s(:array),
+                      ensure_body,
+                      s(:raise_exception, :env, s(:l, 'env->exception')))),
+        ensure_body))
       end
 
       def process_gasgn(exp)
@@ -302,18 +302,18 @@ module Natalie
           s(:hash_put, :env, hash, process(key), process(val))
         end
         exp.new(:block,
-          s(:declare, hash, s(:hash_new, :env)),
-          s(:block, *inserts),
-          hash)
+                s(:declare, hash, s(:hash_new, :env)),
+                s(:block, *inserts),
+                hash)
       end
 
       def process_if(exp)
         (_, condition, true_body, false_body) = exp
         condition = exp.new(:truthy, process(condition))
         exp.new(:c_if,
-          condition,
-          process(true_body || s(:nil)),
-          process(false_body || s(:nil)))
+                condition,
+                process(true_body || s(:nil)),
+                process(false_body || s(:nil)))
       end
 
       def process_iasgn(exp)
@@ -360,14 +360,14 @@ module Natalie
                         s(:declare, args_name, s(:block_args_to_array, :env, args.size, s(:l, 'argc'), s(:l, 'args'))),
                         *prepare_args(args, args_name))
         exp.new(:block,
-          s(:block_fn, block_fn,
-            s(:block,
-              s(:env_set_method_name, '<block>'),
-              assign_args,
-              block_arg || s(:block),
-              process(s(:block, *body)))),
-          s(:declare_block, block, s(:block_new, :env, :self, block_fn)),
-          call)
+                s(:block_fn, block_fn,
+                  s(:block,
+                    s(:env_set_method_name, '<block>'),
+                    assign_args,
+                    block_arg || s(:block),
+                    process(s(:block, *body)))),
+        s(:declare_block, block, s(:block_new, :env, :self, block_fn)),
+        call)
       end
 
       # |(a, b)| should be treated as |a, b|
@@ -413,7 +413,7 @@ module Natalie
         (_, name) = exp
         exp.new(:var_get, :env, s(:s, name))
       end
-      
+
       def process_masgn(exp)
         (_, names, val) = exp
         names = names[1..-1]
@@ -591,13 +591,13 @@ module Natalie
         fn = temp('module_body')
         mod = temp('module')
         exp.new(:block,
-          s(:module_fn, fn, process(s(:block, *body))),
-          s(:declare, mod, s(:const_get_or_null, :env, :self, s(:s, name), s(:l, :true), s(:l, :true))),
-          s(:c_if, s(:not, mod),
-            s(:block,
-              s(:set, mod, s(:module, :env, s(:s, name))),
-              s(:const_set, :env, :self, s(:s, name), mod))),
-          s(:eval_class_or_module_body, :env, mod, fn))
+                s(:module_fn, fn, process(s(:block, *body))),
+                s(:declare, mod, s(:const_get_or_null, :env, :self, s(:s, name), s(:l, :true), s(:l, :true))),
+                s(:c_if, s(:not, mod),
+                  s(:block,
+                    s(:set, mod, s(:module, :env, s(:s, name))),
+                    s(:const_set, :env, :self, s(:s, name), mod))),
+        s(:eval_class_or_module_body, :env, mod, fn))
       end
 
       def process_next(exp)
@@ -610,8 +610,8 @@ module Natalie
         (_, num) = exp
         match = temp('match')
         exp.new(:block,
-          s(:declare, match, s(:last_match, :env)),
-          s(:c_if, s(:truthy, match), s(:send, match, :[], s(:args, s(:integer, :env, num))), s(:nil)))
+                s(:declare, match, s(:last_match, :env)),
+                s(:c_if, s(:truthy, match), s(:send, match, :[], s(:args, s(:integer, :env, num))), s(:nil)))
       end
 
       def process_op_asgn1(exp)
@@ -620,29 +620,29 @@ module Natalie
         obj_name = temp('obj')
         if op == :"||"
           exp.new(:block,
-            s(:declare, obj_name, process(obj)),
-            s(:declare, val, s(:send, obj_name, :[], s(:args, *key_args.map { |a| process(a) }), 'NULL')),
-            s(:c_if, s(:truthy, val),
-              val,
-              s(:send, obj_name, :[]=,
-                s(:args,
-                  *key_args.map { |a| process(a) },
-                  *val_args.map { |a| process(a) }),
-                'NULL')))
+                  s(:declare, obj_name, process(obj)),
+                  s(:declare, val, s(:send, obj_name, :[], s(:args, *key_args.map { |a| process(a) }), 'NULL')),
+                  s(:c_if, s(:truthy, val),
+                    val,
+                    s(:send, obj_name, :[]=,
+                      s(:args,
+                        *key_args.map { |a| process(a) },
+                        *val_args.map { |a| process(a) }),
+          'NULL')))
         else
           exp.new(:block,
-            s(:declare, obj_name, process(obj)),
-            s(:declare, val,
-              s(:send,
-                s(:send, obj_name, :[], s(:args, *key_args.map { |a| process(a) }), 'NULL'),
-                op,
-                s(:args, *val_args.map { |a| process(a) }),
-                'NULL')),
-            s(:send, obj_name, :[]=,
-              s(:args,
-                *key_args.map { |a| process(a) },
-                val),
-              'NULL'))
+                  s(:declare, obj_name, process(obj)),
+                  s(:declare, val,
+                    s(:send,
+                      s(:send, obj_name, :[], s(:args, *key_args.map { |a| process(a) }), 'NULL'),
+                      op,
+                      s(:args, *val_args.map { |a| process(a) }),
+                      'NULL')),
+                     s(:send, obj_name, :[]=,
+                       s(:args,
+                         *key_args.map { |a| process(a) },
+                         val),
+                         'NULL'))
         end
       end
 
@@ -660,26 +660,26 @@ module Natalie
         when :cvar
           result_name = temp('cvar')
           exp.new(:block,
-            s(:declare, result_name, s(:cvar_get_or_null, :env, :self, s(:s, name))),
-            s(:c_if, condition.(result_name), result_name, process(value)))
+                  s(:declare, result_name, s(:cvar_get_or_null, :env, :self, s(:s, name))),
+                  s(:c_if, condition.(result_name), result_name, process(value)))
         when :gvar
           result_name = temp('gvar')
           exp.new(:block,
-            s(:declare, result_name, s(:global_get, :env, s(:s, name))),
-            s(:c_if, condition.(result_name), result_name, process(value)))
+                  s(:declare, result_name, s(:global_get, :env, s(:s, name))),
+                  s(:c_if, condition.(result_name), result_name, process(value)))
         when :ivar
           result_name = temp('ivar')
           exp.new(:block,
-            s(:declare, result_name, s(:ivar_get, :env, :self, s(:s, name))),
-            s(:c_if, condition.(result_name), result_name, process(value)))
+                  s(:declare, result_name, s(:ivar_get, :env, :self, s(:s, name))),
+                  s(:c_if, condition.(result_name), result_name, process(value)))
         when :lvar
           var = process(s(:lvar, name))
           exp.new(:block,
-            s(:var_declare, :env, s(:s, name)),
-            s(:c_if, s(:defined, s(:lvar, name)),
-              s(:c_if, condition.(var),
-                var,
-                process(value))))
+                  s(:var_declare, :env, s(:s, name)),
+                  s(:c_if, s(:defined, s(:lvar, name)),
+                    s(:c_if, condition.(var),
+                      var,
+                      process(value))))
         else
           raise "unknown op_asgn_or type: #{var_type.inspect}"
         end
@@ -715,12 +715,12 @@ module Natalie
         end
         body = body.empty? ? [s(:nil)] : body
         exp.new(:block,
-          s(:begin_fn, begin_fn,
-            s(:block,
-              s(:rescue,
-                s(:block, *body.map { |n| process(n) }),
-                rescue_block))),
-          s(:call_begin, :env, :self, begin_fn))
+                s(:begin_fn, begin_fn,
+                  s(:block,
+                    s(:rescue,
+                      s(:block, *body.map { |n| process(n) }),
+                      rescue_block))),
+                     s(:call_begin, :env, :self, begin_fn))
       end
 
       def process_return(exp)
@@ -736,7 +736,7 @@ module Natalie
       def process_sclass(exp)
         (_, obj, *body) = exp
         exp.new(:with_self, s(:singleton_class, :env, process(obj)),
-          s(:block, *body.map { |n| process(n) }))
+                s(:block, *body.map { |n| process(n) }))
       end
 
       def process_str(exp)
@@ -760,11 +760,11 @@ module Natalie
         raise 'check this out' if unknown != true # NOTE: I don't know what this is; it always seems to be true
         body ||= s(:nil)
         exp.new(:block,
-          s(:c_while, 'true',
-            s(:block,
-              s(:c_if, s(:not, s(:truthy, process(condition))), s(:c_break)),
-              process(body))),
-          s(:nil))
+                s(:c_while, 'true',
+                  s(:block,
+                    s(:c_if, s(:not, s(:truthy, process(condition))), s(:c_break)),
+                    process(body))),
+        s(:nil))
       end
 
       def process_yield(exp)

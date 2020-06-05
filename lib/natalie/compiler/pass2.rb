@@ -24,9 +24,9 @@ module Natalie
         var_count = @env[:vars].size # FIXME: this is overkill -- there are variables not captured in this count, i.e. "holes" in the array :-(
         to_declare = @env[:vars].values.select { |v| !v[:captured] }
         exp.new(:block,
-          repl? ? s(:block) : s(:var_alloc, var_count),
-          *to_declare.map { |v| s(:declare, "#{@compiler_context[:var_prefix]}#{v[:name]}#{v[:var_num]}", s(:nil)) },
-          body)
+                repl? ? s(:block) : s(:var_alloc, var_count),
+                *to_declare.map { |v| s(:declare, "#{@compiler_context[:var_prefix]}#{v[:name]}#{v[:var_num]}", s(:nil)) },
+                body)
       end
 
       def process_block_fn(exp)
