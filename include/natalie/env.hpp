@@ -18,19 +18,11 @@ struct Env {
     Env(GlobalEnv *global_env)
         : global_env { global_env } { }
 
-    static Env new_block_env(Env *outer, Env *calling_env) {
-        Env env(outer);
-        env.block_env = true;
-        env.caller = calling_env;
-        return env;
-    }
+    static Env new_block_env(Env *, Env *);
+    static Env new_detatched_block_env(Env *);
 
-    static Env new_detatched_block_env(Env *outer) {
-        Env env;
-        env.global_env = outer->global_env;
-        env.block_env = true;
-        return env;
-    }
+    const char *find_current_method_name();
+    char *build_code_location_name(Env *location_env);
 
     Value *var_get(const char *, ssize_t);
     Value *var_set(const char *, ssize_t, bool, Value *);

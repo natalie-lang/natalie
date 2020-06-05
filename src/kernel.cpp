@@ -230,7 +230,7 @@ Value *Kernel_lambda(Env *env, Value *self, ssize_t argc, Value **args, Block *b
 
 Value *Kernel_method(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
-    const char *name = find_current_method_name(env->caller);
+    const char *name = env->caller->find_current_method_name();
     if (name) {
         return symbol(env, name);
     } else {

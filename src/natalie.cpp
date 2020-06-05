@@ -13,36 +13,6 @@ bool is_global_name(const char *name) {
     return strlen(name) > 0 && name[0] == '$';
 }
 
-const char *find_current_method_name(Env *env) {
-    while ((!env->method_name || strcmp(env->method_name, "<block>") == 0) && env->outer) {
-        env = env->outer;
-    }
-    if (strcmp(env->method_name, "<main>") == 0) return NULL;
-    return env->method_name;
-}
-
-// note: returns a heap pointer that the caller must free
-static char *build_code_location_name(Env *env, Env *location_env) {
-    do {
-        if (location_env->method_name) {
-            if (strcmp(location_env->method_name, "<block>") == 0) {
-                if (location_env->outer) {
-                    char *outer_name = build_code_location_name(env, location_env->outer);
-                    char *name = heap_string(sprintf(env, "block in %s", outer_name)->str);
-                    free(outer_name);
-                    return name;
-                } else {
-                    return heap_string("block");
-                }
-            } else {
-                return heap_string(location_env->method_name);
-            }
-        }
-        location_env = location_env->outer;
-    } while (location_env);
-    return heap_string("(unknown)");
-}
-
 Value *raise(Env *env, ClassValue *klass, const char *message_format, ...) {
     va_list args;
     va_start(args, message_format);
@@ -59,7 +29,7 @@ Value *raise_exception(Env *env, ExceptionValue *exception) {
         Env *bt_env = env;
         do {
             if (bt_env->file) {
-                char *method_name = build_code_location_name(env, bt_env);
+                char *method_name = env->build_code_location_name(bt_env);
                 array_push(env, bt, sprintf(env, "%s:%d:in `%s'", bt_env->file, bt_env->line, method_name));
                 free(method_name);
             }
