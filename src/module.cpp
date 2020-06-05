@@ -1,5 +1,5 @@
-#include "natalie/builtin.hpp"
 #include "natalie.hpp"
+#include "natalie/builtin.hpp"
 
 namespace Natalie {
 
@@ -151,14 +151,10 @@ Value *Module_define_method(Env *env, Value *self_value, ssize_t argc, Value **a
     ModuleValue *self = self_value->as_module();
     NAT_ASSERT_ARGC(1);
     Value *name_obj = args[0];
-    if (NAT_TYPE(name_obj) != Value::Type::String && NAT_TYPE(name_obj) != Value::Type::Symbol) {
-        NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", send(env, name_obj, "inspect", 0, NULL, NULL));
-    }
+    const char *name = name_obj->identifier_str(env, Value::Conversion::Strict);
     if (!block) {
         NAT_RAISE(env, "ArgumentError", "tried to create Proc object without a block");
     }
-    const char *name = name_obj->symbol_or_string_to_str();
-    assert(name);
     define_method_with_block(env, self, name, block);
     return symbol(env, name);
 }
@@ -185,7 +181,7 @@ Value *Module_protected(Env *env, Value *self_value, ssize_t argc, Value **args,
 Value *Module_const_defined(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     ModuleValue *self = self_value->as_module();
     NAT_ASSERT_ARGC(1);
-    const char *name = args[0]->symbol_or_string_to_str();
+    const char *name = args[0]->identifier_str(env, Value::Conversion::NullAllowed);
     if (!name) {
         NAT_RAISE(env, "TypeError", "no implicit conversion of %s to String", send(env, args[0], "inspect", 0, NULL, NULL));
     }
@@ -199,11 +195,11 @@ Value *Module_const_defined(Env *env, Value *self_value, ssize_t argc, Value **a
 Value *Module_alias_method(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     ModuleValue *self = self_value->as_module();
     NAT_ASSERT_ARGC(2);
-    const char *new_name = args[0]->symbol_or_string_to_str();
+    const char *new_name = args[0]->identifier_str(env, Value::Conversion::NullAllowed);
     if (!new_name) {
         NAT_RAISE(env, "TypeError", "%s is not a symbol", send(env, args[0], "inspect", 0, NULL, NULL));
     }
-    const char *old_name = args[1]->symbol_or_string_to_str();
+    const char *old_name = args[1]->identifier_str(env, Value::Conversion::NullAllowed);
     if (!old_name) {
         NAT_RAISE(env, "TypeError", "%s is not a symbol", send(env, args[1], "inspect", 0, NULL, NULL));
     }

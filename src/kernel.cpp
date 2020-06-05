@@ -1,5 +1,5 @@
-#include "natalie/builtin.hpp"
 #include "natalie.hpp"
+#include "natalie/builtin.hpp"
 
 namespace Natalie {
 
@@ -98,27 +98,17 @@ Value *Kernel_instance_variable_get(Env *env, Value *self, ssize_t argc, Value *
     if (NAT_TYPE(self) == Value::Type::Integer) {
         return NAT_NIL;
     }
-    Value *name_obj = args[0];
-    const char *name = args[0]->symbol_or_string_to_str();
-    if (name) {
-        return ivar_get(env, self, name);
-    } else {
-        NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", send(env, name_obj, "inspect", 0, NULL, NULL));
-    }
+    const char *name = args[0]->identifier_str(env, Value::Conversion::Strict);
+    return ivar_get(env, self, name);
 }
 
 Value *Kernel_instance_variable_set(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(2);
     NAT_ASSERT_NOT_FROZEN(self);
-    Value *name_obj = args[0];
-    const char *name = args[0]->symbol_or_string_to_str();
-    if (name) {
-        Value *val_obj = args[1];
-        ivar_set(env, self, name, val_obj);
-        return val_obj;
-    } else {
-        NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", send(env, name_obj, "inspect", 0, NULL, NULL));
-    }
+    const char *name = args[0]->identifier_str(env, Value::Conversion::Strict);
+    Value *val_obj = args[1];
+    ivar_set(env, self, name, val_obj);
+    return val_obj;
 }
 
 Value *Kernel_raise(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
@@ -149,7 +139,7 @@ Value *Kernel_raise(Env *env, Value *self, ssize_t argc, Value **args, Block *bl
 
 Value *Kernel_respond_to(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
-    const char *name = args[0]->symbol_or_string_to_str();
+    const char *name = args[0]->identifier_str(env, Value::Conversion::NullAllowed);
     if (name && respond_to(env, self, name)) {
         return NAT_TRUE;
     } else {
@@ -305,13 +295,8 @@ Value *Kernel_Array(Env *env, Value *self, ssize_t argc, Value **args, Block *bl
 
 Value *Kernel_send(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC_AT_LEAST(1);
-    Value *name_obj = args[0];
-    const char *name = args[0]->symbol_or_string_to_str();
-    if (name) {
-        return send(env->caller, self, name, argc - 1, args + 1, block);
-    } else {
-        NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", send(env, name_obj, "inspect", 0, NULL, NULL));
-    }
+    const char *name = args[0]->identifier_str(env, Value::Conversion::Strict);
+    return send(env->caller, self, name, argc - 1, args + 1, block);
 }
 
 Value *Kernel_cur_dir(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {

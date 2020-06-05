@@ -85,13 +85,15 @@ VoidPValue *Value::as_void_p() {
     return static_cast<VoidPValue *>(this);
 }
 
-const char *Value::symbol_or_string_to_str() {
+const char *Value::identifier_str(Env *env, Conversion conversion) {
     if (is_symbol()) {
         return as_symbol()->symbol;
     } else if (is_string()) {
         return as_string()->str;
+    } else if (conversion == Conversion::NullAllowed) {
+        return nullptr;
     } else {
-        return NULL;
+        NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", send(env, this, "inspect", 0, NULL, NULL));
     }
 }
 
@@ -101,7 +103,7 @@ SymbolValue *Value::to_symbol(Env *env, Conversion conversion) {
     } else if (is_string()) {
         return as_string()->to_symbol(env);
     } else if (conversion == Conversion::NullAllowed) {
-        return NULL;
+        return nullptr;
     } else {
         NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", send(env, this, "inspect", 0, NULL, NULL));
     }

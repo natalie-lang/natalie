@@ -327,6 +327,8 @@ struct Value {
         : type { type }
         , klass { klass } { assert(klass); }
 
+    virtual ~Value() { }
+
     bool is_nil() { return type == Type::Nil; }
     bool is_true() { return type == Type::True; }
     bool is_false() { return type == Type::False; }
@@ -367,9 +369,7 @@ struct Value {
 
     SymbolValue *to_symbol(Env *, Conversion);
 
-    const char *symbol_or_string_to_str();
-
-    virtual ~Value() { }
+    const char *identifier_str(Env *, Conversion);
 };
 
 struct ModuleValue : Value {
