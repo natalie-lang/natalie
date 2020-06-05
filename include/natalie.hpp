@@ -501,7 +501,7 @@ struct HashValue : Value {
 
     HashKey *key_list { nullptr };
     struct hashmap hashmap EMPTY_HASHMAP;
-    bool hash_is_iterating;
+    bool hash_is_iterating { false };
     Value *hash_default_value { nullptr };
     Block *hash_default_block { nullptr };
 };
