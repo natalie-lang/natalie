@@ -11,6 +11,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "natalie/forward.hpp"
+
 namespace Natalie {
 
 extern "C" {
@@ -118,36 +120,6 @@ extern "C" {
 
 // "0x" + up to 16 hex chars + NULL terminator
 #define NAT_OBJECT_POINTER_BUF_LENGTH 2 + 16 + 1
-
-typedef struct Value Value;
-typedef struct GlobalEnv GlobalEnv;
-typedef struct Env Env;
-typedef struct Block Block;
-typedef struct Method Method;
-typedef struct HashKey HashKey;
-typedef struct HashKey HashIter;
-typedef struct HashVal HashVal;
-typedef struct Vector Vector;
-
-// TODO: move to forward header
-struct NilValue;
-struct TrueValue;
-struct FalseValue;
-struct ArrayValue;
-struct ModuleValue;
-struct ClassValue;
-struct EncodingValue;
-struct ExceptionValue;
-struct HashValue;
-struct IntegerValue;
-struct IoValue;
-struct MatchDataValue;
-struct ProcValue;
-struct RangeValue;
-struct RegexpValue;
-struct StringValue;
-struct SymbolValue;
-struct VoidPValue;
 
 struct GlobalEnv {
     GlobalEnv() {

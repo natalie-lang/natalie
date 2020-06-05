@@ -1,7 +1,7 @@
 #include <errno.h>
 #include <unistd.h>
 
-#include "builtin.hpp"
+#include "natalie/builtin.hpp"
 #include "natalie.hpp"
 
 namespace Natalie {

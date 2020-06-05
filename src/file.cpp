@@ -2,7 +2,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
-#include "builtin.hpp"
+#include "natalie/builtin.hpp"
 #include "natalie.hpp"
 
 namespace Natalie {
