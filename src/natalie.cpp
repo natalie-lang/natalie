@@ -53,10 +53,6 @@ Value *raise(Env *env, ClassValue *klass, const char *message_format, ...) {
     return exception;
 }
 
-Value *raise_exception(Env *env, Value *exception) {
-    return raise_exception(env, exception->as_exception());
-}
-
 Value *raise_exception(Env *env, ExceptionValue *exception) {
     if (!exception->backtrace) { // only build a backtrace the first time the exception is raised (not on a re-raise)
         Value *bt = exception->backtrace = array_new(env);

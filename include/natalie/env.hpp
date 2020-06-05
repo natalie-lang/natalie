@@ -42,7 +42,7 @@ struct Env {
     bool block_env { false };
     bool rescue { false };
     jmp_buf jump_buf;
-    Value *exception { nullptr };
+    ExceptionValue *exception { nullptr };
     Env *caller { nullptr };
     const char *file { nullptr };
     ssize_t line { 0 };
