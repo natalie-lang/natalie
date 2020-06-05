@@ -1,7 +1,7 @@
 #include <setjmp.h>
 
-#include "natalie/builtin.hpp"
 #include "natalie.hpp"
+#include "natalie/builtin.hpp"
 
 using namespace Natalie;
 
@@ -14,7 +14,7 @@ extern "C" Env *build_top_env() {
     env->method_name = heap_string("<main>");
 
     // TODO: find a better way to boostrap Class
-    ClassValue *Class = new ClassValue { env, reinterpret_cast<ClassValue *>(1) };
+    ClassValue *Class = ClassValue::bootstrap_the_first_class(env, nullptr);
     Class->klass = Class;
 
     Class->superclass = NULL;
@@ -26,7 +26,7 @@ extern "C" Env *build_top_env() {
     hashmap_set_key_alloc_funcs(&Class->constants, hashmap_alloc_key_string, free);
     define_method(env, Class, "superclass", Class_superclass);
 
-    ClassValue *BasicObject = new ClassValue { env, Class };
+    ClassValue *BasicObject = ClassValue::bootstrap_the_first_class(env, Class);
     BasicObject->class_name = heap_string("BasicObject");
     BasicObject->env = new Env { env };
     BasicObject->superclass = NULL;
@@ -41,7 +41,7 @@ extern "C" Env *build_top_env() {
     define_method(env, BasicObject, "equal?", Kernel_equal);
     define_method(env, BasicObject, "instance_eval", BasicObject_instance_eval);
 
-    ClassValue *Object = NAT_OBJECT = subclass(env, BasicObject, "Object");
+    ClassValue *Object = NAT_OBJECT = BasicObject->subclass(env, "Object");
     define_singleton_method(env, Object, "new", Object_new);
 
     // these must be defined after Object exists
@@ -51,25 +51,25 @@ extern "C" Env *build_top_env() {
     const_set(env, Object, "BasicObject", BasicObject);
     const_set(env, Object, "Object", Object);
 
-    ClassValue *Module = subclass(env, Object, "Module");
+    ClassValue *Module = Object->subclass(env, "Module");
     const_set(env, Object, "Module", Module);
     Class->superclass = Module;
     NAT_MODULE_INIT(Module);
 
-    ModuleValue *Kernel = module(env, "Kernel");
+    ModuleValue *Kernel = new ModuleValue { env, "Kernel" };
     const_set(env, Object, "Kernel", Kernel);
     class_include(env, Object, Kernel);
     NAT_KERNEL_INIT(Kernel);
 
-    ModuleValue *Comparable = module(env, "Comparable");
+    ModuleValue *Comparable = new ModuleValue { env, "Comparable" };
     const_set(env, Object, "Comparable", Comparable);
     NAT_COMPARABLE_INIT(Comparable);
 
-    Value *Symbol = subclass(env, Object, "Symbol");
+    Value *Symbol = Object->subclass(env, "Symbol");
     const_set(env, Object, "Symbol", Symbol);
     NAT_SYMBOL_INIT(Symbol);
 
-    ClassValue *NilClass = subclass(env, Object, "NilClass");
+    ClassValue *NilClass = Object->subclass(env, "NilClass");
     undefine_singleton_method(env, NilClass, "new");
     const_set(env, Object, "NilClass", NilClass);
     NAT_NIL_CLASS_INIT(NilClass);
@@ -77,7 +77,7 @@ extern "C" Env *build_top_env() {
     NAT_NIL = NilValue::instance(env);
     NAT_NIL->singleton_class = NilClass;
 
-    ClassValue *TrueClass = subclass(env, Object, "TrueClass");
+    ClassValue *TrueClass = Object->subclass(env, "TrueClass");
     undefine_singleton_method(env, TrueClass, "new");
     const_set(env, Object, "TrueClass", TrueClass);
     NAT_TRUE_CLASS_INIT(TrueClass);
@@ -85,7 +85,7 @@ extern "C" Env *build_top_env() {
     NAT_TRUE = TrueValue::instance(env);
     NAT_TRUE->singleton_class = TrueClass;
 
-    ClassValue *FalseClass = subclass(env, Object, "FalseClass");
+    ClassValue *FalseClass = Object->subclass(env, "FalseClass");
     undefine_singleton_method(env, FalseClass, "new");
     const_set(env, Object, "FalseClass", FalseClass);
     NAT_FALSE_CLASS_INIT(FalseClass);
@@ -93,94 +93,94 @@ extern "C" Env *build_top_env() {
     NAT_FALSE = FalseValue::instance(env);
     NAT_FALSE->singleton_class = FalseClass;
 
-    ClassValue *Numeric = subclass(env, Object, "Numeric");
+    ClassValue *Numeric = Object->subclass(env, "Numeric");
     const_set(env, Object, "Numeric", Numeric);
     class_include(env, Numeric, Comparable);
 
-    Value *Integer = NAT_INTEGER = subclass(env, Numeric, "Integer");
+    Value *Integer = NAT_INTEGER = Numeric->subclass(env, "Integer");
     const_set(env, Object, "Integer", Integer);
     const_set(env, Object, "Fixnum", Integer);
     NAT_INTEGER_INIT(Integer);
 
-    ClassValue *String = subclass(env, Object, "String");
+    ClassValue *String = Object->subclass(env, "String");
     const_set(env, Object, "String", String);
     NAT_STRING_INIT(String);
 
-    ClassValue *Array = subclass(env, Object, "Array");
+    ClassValue *Array = Object->subclass(env, "Array");
     const_set(env, Object, "Array", Array);
     NAT_ARRAY_INIT(Array);
 
-    ClassValue *Hash = subclass(env, Object, "Hash");
+    ClassValue *Hash = Object->subclass(env, "Hash");
     const_set(env, Object, "Hash", Hash);
     NAT_HASH_INIT(Hash);
 
-    ClassValue *Regexp = subclass(env, Object, "Regexp");
+    ClassValue *Regexp = Object->subclass(env, "Regexp");
     const_set(env, Object, "Regexp", Regexp);
     NAT_REGEXP_INIT(Regexp);
 
-    ClassValue *Range = subclass(env, Object, "Range");
+    ClassValue *Range = Object->subclass(env, "Range");
     const_set(env, Object, "Range", Range);
     NAT_RANGE_INIT(Range);
 
-    ClassValue *MatchData = subclass(env, Object, "MatchData");
+    ClassValue *MatchData = Object->subclass(env, "MatchData");
     const_set(env, Object, "MatchData", MatchData);
     NAT_MATCH_DATA_INIT(MatchData);
 
-    ClassValue *Proc = subclass(env, Object, "Proc");
+    ClassValue *Proc = Object->subclass(env, "Proc");
     const_set(env, Object, "Proc", Proc);
     NAT_PROC_INIT(Proc);
 
-    ClassValue *IO = subclass(env, Object, "IO");
+    ClassValue *IO = Object->subclass(env, "IO");
     const_set(env, Object, "IO", IO);
     NAT_IO_INIT(IO);
 
-    ClassValue *File = subclass(env, IO, "File");
+    ClassValue *File = IO->subclass(env, "File");
     const_set(env, Object, "File", File);
     NAT_FILE_INIT(File);
 
-    Value *Exception = subclass(env, Object, "Exception");
+    ClassValue *Exception = Object->subclass(env, "Exception");
     const_set(env, Object, "Exception", Exception);
     define_method(env, Exception, "initialize", Exception_initialize);
     define_method(env, Exception, "inspect", Exception_inspect);
     define_method(env, Exception, "message", Exception_message);
     define_method(env, Exception, "backtrace", Exception_backtrace);
     define_singleton_method(env, Exception, "new", Exception_new);
-    Value *ScriptError = subclass(env, Exception, "ScriptError");
+    ClassValue *ScriptError = Exception->subclass(env, "ScriptError");
     const_set(env, Object, "ScriptError", ScriptError);
-    Value *SyntaxError = subclass(env, ScriptError, "SyntaxError");
+    Value *SyntaxError = ScriptError->subclass(env, "SyntaxError");
     const_set(env, Object, "SyntaxError", SyntaxError);
-    Value *StandardError = subclass(env, Exception, "StandardError");
+    ClassValue *StandardError = Exception->subclass(env, "StandardError");
     const_set(env, Object, "StandardError", StandardError);
-    Value *NameError = subclass(env, StandardError, "NameError");
+    ClassValue *NameError = StandardError->subclass(env, "NameError");
     const_set(env, Object, "NameError", NameError);
-    Value *NoMethodError = subclass(env, NameError, "NoMethodError");
+    ClassValue *NoMethodError = NameError->subclass(env, "NoMethodError");
     const_set(env, Object, "NoMethodError", NoMethodError);
-    Value *ArgumentError = subclass(env, StandardError, "ArgumentError");
+    ClassValue *ArgumentError = StandardError->subclass(env, "ArgumentError");
     const_set(env, Object, "ArgumentError", ArgumentError);
-    Value *RuntimeError = subclass(env, StandardError, "RuntimeError");
+    ClassValue *RuntimeError = StandardError->subclass(env, "RuntimeError");
     const_set(env, Object, "RuntimeError", RuntimeError);
-    Value *TypeError = subclass(env, StandardError, "TypeError");
+    ClassValue *TypeError = StandardError->subclass(env, "TypeError");
     const_set(env, Object, "TypeError", TypeError);
-    Value *SystemExit = subclass(env, StandardError, "SystemExit");
+    ClassValue *SystemExit = StandardError->subclass(env, "SystemExit");
     const_set(env, Object, "SystemExit", SystemExit);
-    Value *ZeroDivisionError = subclass(env, StandardError, "ZeroDivisionError");
+    ClassValue *ZeroDivisionError = StandardError->subclass(env, "ZeroDivisionError");
     const_set(env, Object, "ZeroDivisionError", ZeroDivisionError);
-    Value *FrozenError = subclass(env, RuntimeError, "FrozenError");
+    ClassValue *FrozenError = RuntimeError->subclass(env, "FrozenError");
     const_set(env, Object, "FrozenError", FrozenError);
 
-    Value *EncodingError = subclass(env, StandardError, "EncodingError");
+    ClassValue *EncodingError = StandardError->subclass(env, "EncodingError");
     const_set(env, Object, "EncodingError", EncodingError);
-    Value *Encoding = subclass(env, NAT_OBJECT, "Encoding");
-    Value *InvalidByteSequenceError = subclass(env, EncodingError, "InvalidByteSequenceError");
+    Value *Encoding = NAT_OBJECT->subclass(env, "Encoding");
+    Value *InvalidByteSequenceError = EncodingError->subclass(env, "InvalidByteSequenceError");
     const_set(env, Encoding, "InvalidByteSequenceError", InvalidByteSequenceError);
-    Value *UndefinedConversionError = subclass(env, EncodingError, "UndefinedConversionError");
+    Value *UndefinedConversionError = EncodingError->subclass(env, "UndefinedConversionError");
     const_set(env, Encoding, "UndefinedConversionError", UndefinedConversionError);
-    Value *ConverterNotFoundError = subclass(env, EncodingError, "ConverterNotFoundError");
+    Value *ConverterNotFoundError = EncodingError->subclass(env, "ConverterNotFoundError");
     const_set(env, Encoding, "ConverterNotFoundError", ConverterNotFoundError);
     const_set(env, Object, "Encoding", Encoding);
     NAT_ENCODING_INIT(Encoding);
 
-    Value *Process = module(env, "Process");
+    Value *Process = new ModuleValue { env, "Process" };
     const_set(env, Object, "Process", Process);
     NAT_PROCESS_INIT(Process);
 

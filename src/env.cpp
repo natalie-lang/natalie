@@ -1,9 +1,44 @@
-#include "natalie/builtin.hpp"
 #include "natalie.hpp"
+#include "natalie/builtin.hpp"
 
 extern char **environ;
 
 namespace Natalie {
+
+Value *Env::var_get(const char *key, ssize_t index) {
+    if (index >= vector_size(this->vars)) {
+        printf("Trying to get variable `%s' at index %zu which is not set.\n", key, index);
+        abort();
+    }
+    Value *val = static_cast<Value *>(vector_get(this->vars, index));
+    if (val) {
+        return val;
+    } else {
+        Env *env = this;
+        return NAT_NIL;
+    }
+}
+
+Value *Env::var_set(const char *name, ssize_t index, bool allocate, Value *val) {
+    size_t needed = index + 1;
+    size_t current_size = vector_capacity(this->vars);
+    if (needed > current_size) {
+        if (allocate) {
+            if (!this->vars) {
+                this->vars = vector(needed);
+                vector_set(this->vars, index, val);
+            } else {
+                vector_push(this->vars, val);
+            }
+        } else {
+            printf("Tried to set a variable without first allocating space for it.\n");
+            abort();
+        }
+    } else {
+        vector_set(this->vars, index, val);
+    }
+    return val;
+}
 
 Value *ENV_inspect(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);

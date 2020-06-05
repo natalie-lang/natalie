@@ -5,233 +5,12 @@
 
 namespace Natalie {
 
-NilValue *Value::as_nil() {
-    assert(is_nil());
-    return static_cast<NilValue *>(this);
-}
-
-ArrayValue *Value::as_array() {
-    assert(is_array());
-    return static_cast<ArrayValue *>(this);
-}
-
-ModuleValue *Value::as_module() {
-    assert(is_module() || is_class());
-    return static_cast<ModuleValue *>(this);
-}
-
-ClassValue *Value::as_class() {
-    assert(is_class());
-    return static_cast<ClassValue *>(this);
-}
-
-EncodingValue *Value::as_encoding() {
-    assert(is_encoding());
-    return static_cast<EncodingValue *>(this);
-}
-
-ExceptionValue *Value::as_exception() {
-    assert(is_exception());
-    return static_cast<ExceptionValue *>(this);
-}
-
-HashValue *Value::as_hash() {
-    assert(is_hash());
-    return static_cast<HashValue *>(this);
-}
-
-IntegerValue *Value::as_integer() {
-    assert(is_integer());
-    return static_cast<IntegerValue *>(this);
-}
-
-IoValue *Value::as_io() {
-    assert(is_io());
-    return static_cast<IoValue *>(this);
-}
-
-MatchDataValue *Value::as_match_data() {
-    assert(is_match_data());
-    return static_cast<MatchDataValue *>(this);
-}
-
-ProcValue *Value::as_proc() {
-    assert(is_proc());
-    return static_cast<ProcValue *>(this);
-}
-
-RangeValue *Value::as_range() {
-    assert(is_range());
-    return static_cast<RangeValue *>(this);
-}
-
-RegexpValue *Value::as_regexp() {
-    assert(is_regexp());
-    return static_cast<RegexpValue *>(this);
-}
-
-StringValue *Value::as_string() {
-    assert(is_string());
-    return static_cast<StringValue *>(this);
-}
-
-SymbolValue *Value::as_symbol() {
-    assert(is_symbol());
-    return static_cast<SymbolValue *>(this);
-}
-
-VoidPValue *Value::as_void_p() {
-    assert(is_void_p());
-    return static_cast<VoidPValue *>(this);
-}
-
-const char *Value::identifier_str(Env *env, Conversion conversion) {
-    if (is_symbol()) {
-        return as_symbol()->symbol;
-    } else if (is_string()) {
-        return as_string()->str;
-    } else if (conversion == Conversion::NullAllowed) {
-        return nullptr;
-    } else {
-        NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", send(env, this, "inspect", 0, NULL, NULL));
-    }
-}
-
-SymbolValue *Value::to_symbol(Env *env, Conversion conversion) {
-    if (is_symbol()) {
-        return as_symbol();
-    } else if (is_string()) {
-        return as_string()->to_symbol(env);
-    } else if (conversion == Conversion::NullAllowed) {
-        return nullptr;
-    } else {
-        NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", send(env, this, "inspect", 0, NULL, NULL));
-    }
-}
-
-ModuleValue::ModuleValue(Env *env)
-    : Value { env, Value::Type::Module, const_get(env, NAT_OBJECT, "Module", true)->as_class() } { }
-
-SymbolValue *StringValue::to_symbol(Env *env) {
-    return symbol(env, str);
-}
-
-ArrayValue::ArrayValue(Env *env)
-    : Value { env, Value::Type::Array, const_get(env, NAT_OBJECT, "Array", true)->as_class() } {
-    vector_init(&ary, 0);
-}
-
 bool is_constant_name(const char *name) {
     return strlen(name) > 0 && isupper(name[0]);
 }
 
 bool is_global_name(const char *name) {
     return strlen(name) > 0 && name[0] == '$';
-}
-Value *const_get(Env *env, Value *parent, const char *name, bool strict) {
-    Value *val = const_get_or_null(env, parent, name, strict, false);
-    if (val) {
-        return val;
-    } else if (strict) {
-        NAT_RAISE(env, "NameError", "uninitialized constant %S::%s", send(env, parent, "inspect", 0, NULL, NULL), name);
-    } else {
-        NAT_RAISE(env, "NameError", "uninitialized constant %s", name);
-    }
-}
-
-Value *const_get_or_null(Env *env, Value *parent, const char *name, bool strict, bool define) {
-    if (!parent->is_module()) {
-        parent = parent->klass;
-        assert(parent);
-    }
-
-    ModuleValue *search_parent;
-    Value *val;
-
-    if (!strict) {
-        // first search in parent namespaces (not including global, i.e. Object namespace)
-        search_parent = parent->as_module();
-        while (!(val = static_cast<Value *>(hashmap_get(&search_parent->constants, name))) && search_parent->owner && search_parent->owner != NAT_OBJECT) {
-            search_parent = search_parent->owner;
-        }
-        if (val) return val;
-    }
-
-    if (define) {
-        // don't search superclasses
-        val = static_cast<Value *>(hashmap_get(&parent->constants, name));
-        if (val) return val;
-    } else {
-        // search in superclass hierarchy
-        search_parent = parent->as_module();
-        while (!(val = static_cast<Value *>(hashmap_get(&search_parent->constants, name))) && search_parent->superclass) {
-            search_parent = search_parent->superclass;
-        }
-        if (val) return val;
-    }
-
-    if (!strict) {
-        // lastly, search on the global, i.e. Object namespace
-        val = static_cast<Value *>(hashmap_get(&NAT_OBJECT->constants, name));
-        if (val) return val;
-    }
-
-    return NULL;
-}
-
-Value *const_set(Env *env, Value *parent, const char *name, Value *val) {
-    if (!NAT_IS_MODULE_OR_CLASS(parent)) {
-        parent = NAT_OBJ_CLASS(parent);
-        assert(parent);
-    }
-    hashmap_remove(&parent->constants, name);
-    hashmap_put(&parent->constants, name, val);
-    if (val->is_module() && !val->owner) {
-        val->owner = parent->as_module();
-    }
-    return val;
-}
-
-Value *var_get(Env *env, const char *key, ssize_t index) {
-    if (index >= vector_size(env->vars)) {
-        printf("Trying to get variable `%s' at index %zu which is not set.\n", key, index);
-        abort();
-    }
-    Value *val = static_cast<Value *>(vector_get(env->vars, index));
-    if (val) {
-        return val;
-    } else {
-        return NAT_NIL;
-    }
-}
-
-Value *var_set(Env *env, const char *name, ssize_t index, bool allocate, Value *val) {
-    size_t needed = index + 1;
-    size_t current_size = vector_capacity(env->vars);
-    if (needed > current_size) {
-        if (allocate) {
-            if (!env->vars) {
-                env->vars = vector(needed);
-                vector_set(env->vars, index, val);
-            } else {
-                vector_push(env->vars, val);
-            }
-        } else {
-            printf("Tried to set a variable without first allocating space for it.\n");
-            abort();
-        }
-    } else {
-        vector_set(env->vars, index, val);
-    }
-    return val;
-}
-
-ExceptionValue *exception_new(Env *env, ClassValue *klass, const char *message) {
-    ExceptionValue *obj = new ExceptionValue { env, klass };
-    assert(message);
-    Value *message_obj = string(env, message);
-    initialize(env, obj, 1, &message_obj, NULL);
-    return obj;
 }
 
 const char *find_current_method_name(Env *env) {
@@ -269,7 +48,7 @@ Value *raise(Env *env, ClassValue *klass, const char *message_format, ...) {
     va_start(args, message_format);
     StringValue *message = vsprintf(env, message_format, args);
     va_end(args);
-    ExceptionValue *exception = exception_new(env, klass, heap_string(message->str));
+    ExceptionValue *exception = new ExceptionValue { env, klass, heap_string(message->str) };
     raise_exception(env, exception);
     return exception;
 }
@@ -300,7 +79,7 @@ Value *raise_exception(Env *env, ExceptionValue *exception) {
 }
 
 Value *raise_local_jump_error(Env *env, Value *exit_value, const char *message) {
-    ExceptionValue *exception = exception_new(env, const_get(env, NAT_OBJECT, "LocalJumpError", true)->as_class(), message);
+    ExceptionValue *exception = new ExceptionValue { env, const_get(env, NAT_OBJECT, "LocalJumpError", true)->as_class(), message };
     ivar_set(env, exception, "@exit_value", exit_value);
     raise_exception(env, exception);
     return exception;
@@ -453,42 +232,6 @@ char *heap_string(const char *str) {
     return strdup(str);
 }
 
-static void init_class_or_module_data(Env *env, ModuleValue *module) {
-    hashmap_init(&module->methods, hashmap_hash_string, hashmap_compare_string, 10);
-    hashmap_set_key_alloc_funcs(&module->methods, hashmap_alloc_key_string, free);
-    hashmap_init(&module->constants, hashmap_hash_string, hashmap_compare_string, 10);
-    hashmap_set_key_alloc_funcs(&module->constants, hashmap_alloc_key_string, free);
-    module->cvars.table = NULL;
-}
-
-ClassValue *subclass(Env *env, Value *superclass, const char *name) {
-    return subclass(env, superclass->as_class(), name);
-}
-
-ClassValue *subclass(Env *env, ClassValue *superclass, const char *name) {
-    assert(superclass);
-    ClassValue *klass = new ClassValue { env, Value::Type::Class, superclass->klass };
-    if (superclass->singleton_class) {
-        // TODO: what happens if the superclass gets a singleton_class later?
-        klass->singleton_class = subclass(env, superclass->singleton_class, NULL);
-    }
-    klass->class_name = name ? heap_string(name) : NULL;
-    klass->superclass = superclass;
-    klass->env = new Env { &superclass->env };
-    klass->env.outer = NULL;
-    init_class_or_module_data(env, klass);
-    return klass;
-}
-
-ModuleValue *module(Env *env, const char *name) {
-    ModuleValue *module = new ModuleValue { env };
-    module->class_name = name ? heap_string(name) : NULL;
-    module->env = new Env { env };
-    module->env.outer = NULL;
-    init_class_or_module_data(env, module);
-    return module;
-}
-
 void class_include(Env *env, ModuleValue *klass, ModuleValue *module) {
     klass->included_modules_count++;
     if (klass->included_modules_count == 1) {
@@ -528,7 +271,7 @@ Value *initialize(Env *env, Value *obj, ssize_t argc, Value **args, Block *block
 
 ClassValue *singleton_class(Env *env, Value *obj) {
     if (!obj->singleton_class) {
-        obj->singleton_class = subclass(env, NAT_OBJ_CLASS(obj), NULL);
+        obj->singleton_class = obj->klass->subclass(env, nullptr);
     }
     return obj->singleton_class;
 }
@@ -546,90 +289,6 @@ SymbolValue *symbol(Env *env, const char *name) {
         hashmap_put(env->global_env->symbols, name, symbol);
         return symbol;
     }
-}
-
-Vector *vector(ssize_t capacity) {
-    Vector *vec = static_cast<Vector *>(malloc(sizeof(Vector)));
-    vector_init(vec, capacity);
-    return vec;
-}
-
-void vector_init(Vector *vec, ssize_t capacity) {
-    vec->size = 0;
-    vec->capacity = capacity;
-    if (capacity > 0) {
-        vec->data = static_cast<void **>(calloc(capacity, sizeof(void *)));
-    } else {
-        vec->data = NULL;
-    }
-}
-
-ssize_t vector_size(Vector *vec) {
-    if (!vec) return 0;
-    return vec->size;
-}
-
-ssize_t vector_capacity(Vector *vec) {
-    if (!vec) return 0;
-    return vec->capacity;
-}
-
-void **vector_data(Vector *vec) {
-    return vec->data;
-}
-
-void *vector_get(Vector *vec, ssize_t index) {
-    return vec->data[index];
-}
-
-void vector_set(Vector *vec, ssize_t index, void *item) {
-    assert(index < vec->capacity);
-    vec->size = NAT_MAX(vec->size, index + 1);
-    vec->data[index] = item;
-}
-
-void vector_free(Vector *vec) {
-    free(vec->data);
-    free(vec);
-}
-
-void vector_copy(Vector *dest, Vector *source) {
-    vector_init(dest, source->capacity);
-    dest->size = source->size;
-    memcpy(dest->data, source->data, source->size * sizeof(void *));
-}
-
-static void vector_grow(Vector *vec, ssize_t capacity) {
-    vec->data = static_cast<void **>(realloc(vec->data, sizeof(void *) * capacity));
-    vec->capacity = capacity;
-}
-
-static void vector_grow_at_least(Vector *vec, ssize_t min_capacity) {
-    ssize_t capacity = vec->capacity;
-    if (capacity >= min_capacity) {
-        return;
-    }
-    if (capacity > 0 && min_capacity <= capacity * NAT_VECTOR_GROW_FACTOR) {
-        vector_grow(vec, capacity * NAT_VECTOR_GROW_FACTOR);
-    } else {
-        vector_grow(vec, min_capacity);
-    }
-}
-
-void vector_push(Vector *vec, void *item) {
-    ssize_t len = vec->size;
-    if (vec->size >= vec->capacity) {
-        vector_grow_at_least(vec, len + 1);
-    }
-    vec->size++;
-    vec->data[len] = item;
-}
-
-void vector_add(Vector *new_vec, Vector *vec1, Vector *vec2) {
-    vector_grow_at_least(new_vec, vec1->size + vec2->size);
-    memcpy(new_vec->data, vec1->data, vec1->size * sizeof(void *));
-    memcpy(new_vec->data + vec1->size, vec2->data, vec2->size * sizeof(void *));
-    new_vec->size = vec1->size + vec2->size;
 }
 
 ArrayValue *array_new(Env *env) {
@@ -1756,14 +1415,6 @@ ArrayValue *block_args_to_array(Env *env, ssize_t signature_size, ssize_t argc, 
         return to_ary(env, args[0], true);
     }
     return args_to_array(env, argc, args);
-}
-
-EncodingValue *encoding(Env *env, Encoding num, ArrayValue *names) {
-    EncodingValue *encoding = new EncodingValue { env };
-    encoding->encoding_num = num;
-    encoding->encoding_names = names;
-    freeze_object(names);
-    return encoding;
 }
 
 Value *eval_class_or_module_body(Env *env, Value *class_or_module, Value *(*fn)(Env *, Value *)) {

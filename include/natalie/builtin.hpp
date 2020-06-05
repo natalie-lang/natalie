@@ -116,7 +116,7 @@ Value *FalseClass_new(Env *env, Value *self, ssize_t argc, Value **args, Block *
 Value *FalseClass_to_s(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
 #define NAT_FILE_INIT(klass)                                              \
-    Value *Constants = module(env, "Constants");                          \
+    Value *Constants = new ModuleValue { env, "Constants" };              \
     define_method(env, klass, "initialize", File_initialize);             \
     define_singleton_method(env, klass, "expand_path", File_expand_path); \
     const_set(env, klass, "Constants", Constants);                        \

@@ -1,5 +1,5 @@
-#include "natalie/builtin.hpp"
 #include "natalie.hpp"
+#include "natalie/builtin.hpp"
 
 namespace Natalie {
 
@@ -14,7 +14,7 @@ Value *Class_new(Env *env, Value *self_value, ssize_t argc, Value **args, Block 
     } else {
         superclass = NAT_OBJECT;
     }
-    Value *klass = subclass(env, superclass, NULL);
+    Value *klass = superclass->subclass(env, nullptr);
     if (block) {
         Env e = Env::new_block_env(&block->env, env);
         block->fn(&e, klass, 0, NULL, NULL);

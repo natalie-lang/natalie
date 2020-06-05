@@ -51,6 +51,17 @@ module Natalie
         undefine_singleton_method
       ]
 
+      TYPES = {
+        as_class: 'ClassValue'
+      }
+
+      METHODS = %i[
+        as_class
+        subclass
+        var_get
+        var_set
+      ]
+
       def go(ast)
         result = process(ast)
         @compiler_context[:template]
@@ -504,15 +515,31 @@ module Natalie
         ''
       end
 
+      def process_new(exp)
+        (_, klass, *args) = exp
+        "new #{klass} { #{args.map { |a| process_atom(a) }.join(', ') } }"
+      end
+
       def process_sexp(exp, name = nil, type = 'Value')
         debug_info(exp)
         (fn, *args) = exp
         if VOID_FUNCTIONS.include?(fn)
-          decl "#{fn}(#{args.map { |a| process_atom(a) }.join(', ')});"
+          if METHODS.include?(fn)
+            (obj, *args) = args
+            decl "#{process_atom obj}->#{fn}(#{args.map { |a| process_atom(a) }.join(', ')});"
+          else
+            decl "#{fn}(#{args.map { |a| process_atom(a) }.join(', ')});"
+          end
           ''
         else
           result_name = name || temp(fn)
-          decl "#{type} *#{result_name} = #{fn}(#{args.map { |a| process_atom(a) }.join(', ')});"
+          if METHODS.include?(fn)
+            (obj, *args) = args
+            type = TYPES[fn] || 'Value'
+            decl "#{type} *#{result_name} = #{process_atom obj}->#{fn}(#{args.map { |a| process_atom(a) }.join(', ')});"
+          else
+            decl "#{type} *#{result_name} = #{fn}(#{args.map { |a| process_atom(a) }.join(', ')});"
+          end
           result_name
         end
       end

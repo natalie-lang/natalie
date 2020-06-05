@@ -174,7 +174,7 @@ Value *Kernel_exit(Env *env, Value *self, ssize_t argc, Value **args, Block *blo
     } else {
         status = integer(env, 0);
     }
-    ExceptionValue *exception = exception_new(env, const_get(env, NAT_OBJECT, "SystemExit", true)->as_class(), "exit");
+    ExceptionValue *exception = new ExceptionValue { env, const_get(env, NAT_OBJECT, "SystemExit", true)->as_class(), "exit" };
     ivar_set(env, exception, "@status", status);
     raise_exception(env, exception);
     return NAT_NIL;

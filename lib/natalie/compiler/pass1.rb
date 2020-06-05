@@ -133,7 +133,7 @@ module Natalie
                 s(:declare, klass, s(:const_get_or_null, :env, :self, s(:s, name), s(:l, :true), s(:l, :true))),
                 s(:c_if, s(:not, klass),
                   s(:block,
-                    s(:set, klass, s(:subclass, :env, process(superclass), s(:s, name))),
+                    s(:set, klass, s(:subclass, s(:as_class, process(superclass)), :env, s(:s, name))),
                     s(:const_set, :env, :self, s(:s, name), klass))),
         s(:eval_class_or_module_body, :env, klass, fn))
       end
@@ -595,7 +595,7 @@ module Natalie
                 s(:declare, mod, s(:const_get_or_null, :env, :self, s(:s, name), s(:l, :true), s(:l, :true))),
                 s(:c_if, s(:not, mod),
                   s(:block,
-                    s(:set, mod, s(:module, :env, s(:s, name))),
+                    s(:set, mod, s(:new, :ModuleValue, :env, s(:s, name))),
                     s(:const_set, :env, :self, s(:s, name), mod))),
         s(:eval_class_or_module_body, :env, mod, fn))
       end

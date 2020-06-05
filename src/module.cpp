@@ -5,7 +5,7 @@ namespace Natalie {
 
 Value *Module_new(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
-    return module(env, NULL);
+    return new ModuleValue { env };
 }
 
 Value *Module_inspect(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
@@ -66,7 +66,7 @@ Value *Module_attr_reader(Env *env, Value *self_value, ssize_t argc, Value **arg
             NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", send(env, name_obj, "inspect", 0, NULL, NULL));
         }
         Env block_env = Env::new_detatched_block_env(env);
-        var_set(&block_env, "name", 0, true, name_obj);
+        block_env.var_set("name", 0, true, name_obj);
         Block *attr_block = block_new(&block_env, self, Module_attr_reader_block_fn);
         define_method_with_block(env, self, name_obj->as_string()->str, attr_block);
     }
@@ -74,7 +74,7 @@ Value *Module_attr_reader(Env *env, Value *self_value, ssize_t argc, Value **arg
 }
 
 Value *Module_attr_reader_block_fn(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
-    Value *name_obj = var_get(env->outer, "name", 0);
+    Value *name_obj = env->outer->var_get("name", 0);
     assert(name_obj);
     StringValue *ivar_name = sprintf(env, "@%S", name_obj);
     return ivar_get(env, self, ivar_name->str);
@@ -95,7 +95,7 @@ Value *Module_attr_writer(Env *env, Value *self_value, ssize_t argc, Value **arg
         StringValue *method_name = string(env, name_obj->as_string()->str);
         string_append_char(env, method_name, '=');
         Env block_env = Env::new_detatched_block_env(env);
-        var_set(&block_env, "name", 0, true, name_obj);
+        block_env.var_set("name", 0, true, name_obj);
         Block *attr_block = block_new(&block_env, self, Module_attr_writer_block_fn);
         define_method_with_block(env, self, method_name->str, attr_block);
     }
@@ -104,7 +104,7 @@ Value *Module_attr_writer(Env *env, Value *self_value, ssize_t argc, Value **arg
 
 Value *Module_attr_writer_block_fn(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     Value *val = args[0];
-    Value *name_obj = var_get(env->outer, "name", 0);
+    Value *name_obj = env->outer->var_get("name", 0);
     assert(name_obj);
     StringValue *ivar_name = sprintf(env, "@%S", name_obj);
     ivar_set(env, self, ivar_name->str, val);

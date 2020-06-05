@@ -1,5 +1,5 @@
-#include "natalie/builtin.hpp"
 #include "natalie.hpp"
+#include "natalie/builtin.hpp"
 
 namespace Natalie {
 
@@ -29,14 +29,14 @@ Value *Symbol_to_proc(Env *env, Value *self_value, ssize_t argc, Value **args, B
     SymbolValue *self = self_value->as_symbol();
     NAT_ASSERT_ARGC(0);
     Env block_env = Env::new_detatched_block_env(env);
-    var_set(&block_env, "name", 0, true, self);
+    block_env.var_set("name", 0, true, self);
     Block *proc_block = block_new(&block_env, self, Symbol_to_proc_block_fn);
     return proc_new(env, proc_block);
 }
 
 Value *Symbol_to_proc_block_fn(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
-    SymbolValue *name_obj = var_get(env->outer, "name", 0)->as_symbol();
+    SymbolValue *name_obj = env->outer->var_get("name", 0)->as_symbol();
     assert(name_obj);
     const char *name = name_obj->symbol;
     return send(env, args[0], name, 0, NULL, NULL);
