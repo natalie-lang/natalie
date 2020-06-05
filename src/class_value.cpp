@@ -17,21 +17,24 @@ ClassValue *ClassValue::subclass(Env *env, const char *name) {
     return subclass;
 }
 
-/* A note about bootstrapping...
- * The Value constructor has an invariant that all values must have a class (klass).
- * This works for all objects, except for the very first objects, Ruby's `Class` class
- * and `BasicObject` class. The following static method and private constructor are only
- * used during the bootstrap process, when our Ruby implementation is coming up, to build
- * these two classes. This method should not be used anywhere else!
- */
-
-ClassValue *ClassValue::bootstrap_the_first_class(Env *env, ClassValue *klass) {
-    ClassValue *new_class = new ClassValue {
+ClassValue *ClassValue::bootstrap_class_class(Env *env) {
+    ClassValue *Class = new ClassValue {
         env,
-        klass ? klass : reinterpret_cast<ClassValue *>(-1)
+        reinterpret_cast<ClassValue *>(-1)
     };
-    if (klass == nullptr) new_class->klass = new_class;
-    return new_class;
+    Class->klass = Class;
+    Class->class_name = strdup("Class");
+    return Class;
+}
+
+ClassValue *ClassValue::bootstrap_basic_object(Env *env, ClassValue *Class) {
+    ClassValue *BasicObject = new ClassValue {
+        env,
+        reinterpret_cast<ClassValue *>(-1)
+    };
+    BasicObject->klass = Class;
+    BasicObject->class_name = strdup("BasicObject");
+    return BasicObject;
 }
 
 ClassValue::ClassValue(Env *env, ClassValue *klass)

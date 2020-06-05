@@ -18,7 +18,8 @@ struct ClassValue : ModuleValue {
 
     ClassValue *subclass(Env *, const char *);
 
-    static ClassValue *bootstrap_the_first_class(Env *, ClassValue *);
+    static ClassValue *bootstrap_class_class(Env *);
+    static ClassValue *bootstrap_basic_object(Env *, ClassValue *);
 
 private:
     ClassValue(Env *, ClassValue *);

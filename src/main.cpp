@@ -13,28 +13,10 @@ extern "C" Env *build_top_env() {
     Env *env = new Env { new GlobalEnv };
     env->method_name = heap_string("<main>");
 
-    // TODO: find a better way to boostrap Class
-    ClassValue *Class = ClassValue::bootstrap_the_first_class(env, nullptr);
-    Class->klass = Class;
-
-    Class->superclass = NULL;
-    Class->class_name = heap_string("Class");
-    Class->env = new Env { env };
-    hashmap_init(&Class->methods, hashmap_hash_string, hashmap_compare_string, 100);
-    hashmap_set_key_alloc_funcs(&Class->methods, hashmap_alloc_key_string, free);
-    hashmap_init(&Class->constants, hashmap_hash_string, hashmap_compare_string, 10);
-    hashmap_set_key_alloc_funcs(&Class->constants, hashmap_alloc_key_string, free);
+    ClassValue *Class = ClassValue::bootstrap_class_class(env);
     define_method(env, Class, "superclass", Class_superclass);
 
-    ClassValue *BasicObject = ClassValue::bootstrap_the_first_class(env, Class);
-    BasicObject->class_name = heap_string("BasicObject");
-    BasicObject->env = new Env { env };
-    BasicObject->superclass = NULL;
-    BasicObject->cvars.table = NULL;
-    hashmap_init(&BasicObject->methods, hashmap_hash_string, hashmap_compare_string, 100);
-    hashmap_set_key_alloc_funcs(&BasicObject->methods, hashmap_alloc_key_string, free);
-    hashmap_init(&BasicObject->constants, hashmap_hash_string, hashmap_compare_string, 10);
-    hashmap_set_key_alloc_funcs(&BasicObject->constants, hashmap_alloc_key_string, free);
+    ClassValue *BasicObject = ClassValue::bootstrap_basic_object(env, Class);
     define_method(env, BasicObject, "!", BasicObject_not);
     define_method(env, BasicObject, "==", BasicObject_eqeq);
     define_method(env, BasicObject, "!=", BasicObject_neq);
