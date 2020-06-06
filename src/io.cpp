@@ -1,8 +1,8 @@
 #include <errno.h>
 #include <unistd.h>
 
-#include "natalie/builtin.hpp"
 #include "natalie.hpp"
+#include "natalie/builtin.hpp"
 
 namespace Natalie {
 
@@ -83,7 +83,7 @@ Value *IO_write(Env *env, Value *self_value, ssize_t argc, Value **args, Block *
         if (result == -1) {
             Value *error_number = integer(env, errno);
             ExceptionValue *error = send(env, const_get(env, NAT_OBJECT, "SystemCallError", true), "exception", 1, &error_number, NULL)->as_exception();
-            raise_exception(env, error);
+            env->raise_exception(error);
             abort();
         } else {
             bytes_written += result;
@@ -127,7 +127,7 @@ Value *IO_close(Env *env, Value *self_value, ssize_t argc, Value **args, Block *
     if (result == -1) {
         Value *error_number = integer(env, errno);
         ExceptionValue *error = send(env, const_get(env, NAT_OBJECT, "SystemCallError", true), "exception", 1, &error_number, NULL)->as_exception();
-        raise_exception(env, error);
+        env->raise_exception(error);
         abort();
     } else {
         return NAT_NIL;
@@ -168,7 +168,7 @@ Value *IO_seek(Env *env, Value *self_value, ssize_t argc, Value **args, Block *b
     if (result == -1) {
         Value *error_number = integer(env, errno);
         ExceptionValue *error = send(env, const_get(env, NAT_OBJECT, "SystemCallError", true), "exception", 1, &error_number, NULL)->as_exception();
-        raise_exception(env, error);
+        env->raise_exception(error);
         abort();
     } else {
         return integer(env, 0);

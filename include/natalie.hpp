@@ -71,10 +71,6 @@ bool is_constant_name(const char *name);
 
 const char *find_current_method_name(Env *env);
 
-Value *raise(Env *env, ClassValue *klass, const char *message_format, ...);
-Value *raise_exception(Env *env, ExceptionValue *exception);
-Value *raise_local_jump_error(Env *env, Value *exit_value, const char *message);
-
 Value *ivar_get(Env *env, Value *obj, const char *name);
 Value *ivar_set(Env *env, Value *obj, const char *name, Value *val);
 

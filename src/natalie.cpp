@@ -13,44 +13,6 @@ bool is_global_name(const char *name) {
     return strlen(name) > 0 && name[0] == '$';
 }
 
-Value *raise(Env *env, ClassValue *klass, const char *message_format, ...) {
-    va_list args;
-    va_start(args, message_format);
-    StringValue *message = vsprintf(env, message_format, args);
-    va_end(args);
-    ExceptionValue *exception = new ExceptionValue { env, klass, heap_string(message->str) };
-    raise_exception(env, exception);
-    return exception;
-}
-
-Value *raise_exception(Env *env, ExceptionValue *exception) {
-    if (!exception->backtrace) { // only build a backtrace the first time the exception is raised (not on a re-raise)
-        Value *bt = exception->backtrace = array_new(env);
-        Env *bt_env = env;
-        do {
-            if (bt_env->file) {
-                char *method_name = env->build_code_location_name(bt_env);
-                array_push(env, bt, sprintf(env, "%s:%d:in `%s'", bt_env->file, bt_env->line, method_name));
-                free(method_name);
-            }
-            bt_env = bt_env->caller;
-        } while (bt_env);
-    }
-    while (env && !env->rescue) {
-        env = env->caller;
-    }
-    assert(env);
-    env->exception = exception;
-    longjmp(env->jump_buf, 1);
-}
-
-Value *raise_local_jump_error(Env *env, Value *exit_value, const char *message) {
-    ExceptionValue *exception = new ExceptionValue { env, const_get(env, NAT_OBJECT, "LocalJumpError", true)->as_class(), message };
-    ivar_set(env, exception, "@exit_value", exit_value);
-    raise_exception(env, exception);
-    return exception;
-}
-
 Value *ivar_get(Env *env, Value *obj, const char *name) {
     assert(strlen(name) > 0);
     if (name[0] != '@') {

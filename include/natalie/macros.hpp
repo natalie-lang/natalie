@@ -8,13 +8,13 @@
 
 #define NAT_RAISE(env, class_name, message_format, ...)                                                      \
     {                                                                                                        \
-        raise(env, const_get(env, NAT_OBJECT, class_name, true)->as_class(), message_format, ##__VA_ARGS__); \
+        env->raise(const_get(env, NAT_OBJECT, class_name, true)->as_class(), message_format, ##__VA_ARGS__); \
         abort();                                                                                             \
     }
 
 #define NAT_RAISE2(env, constant, message_format, ...)       \
     {                                                        \
-        raise(env, constant, message_format, ##__VA_ARGS__); \
+        env->raise(constant, message_format, ##__VA_ARGS__); \
         abort();                                             \
     }
 
@@ -142,7 +142,7 @@
     Value *_result = _run_block_internal(env, the_block, argc, args, block); \
     if (is_break(_result)) {                                                 \
         remove_break(_result);                                               \
-        raise_local_jump_error(env, _result, "break from proc-closure");     \
+        env->raise_local_jump_error(_result, "break from proc-closure");     \
         abort();                                                             \
     }                                                                        \
     _result;                                                                 \

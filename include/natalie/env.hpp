@@ -27,6 +27,10 @@ struct Env {
     Value *var_get(const char *, ssize_t);
     Value *var_set(const char *, ssize_t, bool, Value *);
 
+    Value *raise(ClassValue *, const char *, ...);
+    Value *raise_exception(ExceptionValue *);
+    Value *raise_local_jump_error(Value *, const char *);
+
     GlobalEnv *global_env { nullptr };
     Vector *vars { nullptr };
     Env *outer { nullptr };

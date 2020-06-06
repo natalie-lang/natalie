@@ -127,13 +127,13 @@ Value *Kernel_raise(Env *env, Value *self, ssize_t argc, Value **args, Block *bl
             klass = const_get(env, NAT_OBJECT, "RuntimeError", true)->as_class();
             message = arg;
         } else if (arg->is_exception()) {
-            raise_exception(env, arg->as_exception());
+            env->raise_exception(arg->as_exception());
             abort();
         } else {
             NAT_RAISE(env, "TypeError", "exception klass/object expected");
         }
     }
-    raise(env, klass, message->as_string()->str);
+    env->raise(klass, message->as_string()->str);
     abort();
 }
 
@@ -176,7 +176,7 @@ Value *Kernel_exit(Env *env, Value *self, ssize_t argc, Value **args, Block *blo
     }
     ExceptionValue *exception = new ExceptionValue { env, const_get(env, NAT_OBJECT, "SystemExit", true)->as_class(), "exit" };
     ivar_set(env, exception, "@status", status);
-    raise_exception(env, exception);
+    env->raise_exception(exception);
     return NAT_NIL;
 }
 

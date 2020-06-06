@@ -2,8 +2,8 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
-#include "natalie/builtin.hpp"
 #include "natalie.hpp"
+#include "natalie/builtin.hpp"
 
 namespace Natalie {
 
@@ -47,7 +47,7 @@ Value *File_initialize(Env *env, Value *self_value, ssize_t argc, Value **args, 
     if (fileno == -1) {
         Value *exception_args[2] = { filename, integer(env, errno) };
         ExceptionValue *error = send(env, const_get(env, NAT_OBJECT, "SystemCallError", true), "exception", 2, exception_args, NULL)->as_exception();
-        raise_exception(env, error);
+        env->raise_exception(error);
         abort();
     } else {
         self->fileno = fileno;

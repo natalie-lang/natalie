@@ -1,5 +1,5 @@
-#include "natalie/builtin.hpp"
 #include "natalie.hpp"
+#include "natalie/builtin.hpp"
 #include <ctype.h>
 
 namespace Natalie {
@@ -277,7 +277,7 @@ Value *String_encode(Env *env, Value *self_value, ssize_t argc, Value **args, Bl
                 Value *message = sprintf(env, "U+%X from UTF-8 to ASCII-8BIT", NAT_INT_VALUE(ord));
                 Value *sub_args[2] = { string(env, "0X"), string(env, "") };
                 message = String_sub(env, message, 2, sub_args, NULL);
-                raise(env, const_get(env, Encoding, "UndefinedConversionError", true)->as_class(), "%S", message);
+                env->raise(const_get(env, Encoding, "UndefinedConversionError", true)->as_class(), "%S", message);
                 abort();
             }
         }
@@ -285,7 +285,7 @@ Value *String_encode(Env *env, Value *self_value, ssize_t argc, Value **args, Bl
     } else if (orig_encoding == Encoding::ASCII_8BIT && copy->encoding == Encoding::UTF_8) {
         return copy;
     } else {
-        raise(env, const_get(env, Encoding, "ConverterNotFoundError", true)->as_class(), "code converter not found");
+        env->raise(const_get(env, Encoding, "ConverterNotFoundError", true)->as_class(), "code converter not found");
         abort();
     }
 }
