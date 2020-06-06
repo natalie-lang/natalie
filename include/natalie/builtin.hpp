@@ -416,7 +416,7 @@ Value *Regexp_match(Env *env, Value *self, ssize_t argc, Value **args, Block *bl
 
 #define NAT_STRING_INIT(klass)                                          \
     define_singleton_method(env, klass, "new", String_new);             \
-    class_include(env, klass, Comparable);                              \
+    klass->include(env, Comparable);                                    \
     define_method(env, klass, "initialize", String_initialize);         \
     define_method(env, klass, "to_s", String_to_s);                     \
     define_method(env, klass, "inspect", String_inspect);               \

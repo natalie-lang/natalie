@@ -76,9 +76,6 @@ Value *global_set(Env *env, const char *name, Value *val);
 
 char *heap_string(const char *str);
 
-void class_include(Env *env, ModuleValue *klass, ModuleValue *module);
-void class_prepend(Env *env, ModuleValue *klass, ModuleValue *module);
-
 Value *initialize(Env *env, Value *obj, ssize_t argc, Value **args, Block *block);
 
 ClassValue *singleton_class(Env *env, Value *obj);

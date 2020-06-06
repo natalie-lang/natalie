@@ -15,6 +15,9 @@ struct ModuleValue : Value {
     ModuleValue(Env *, const char *);
     ModuleValue(Env *, Type, ClassValue *);
 
+    void include(Env *, ModuleValue *);
+    void prepend(Env *, ModuleValue *);
+
     char *class_name { nullptr };
     ClassValue *superclass { nullptr };
     struct hashmap methods EMPTY_HASHMAP;

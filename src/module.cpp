@@ -123,7 +123,7 @@ Value *Module_include(Env *env, Value *self_value, ssize_t argc, Value **args, B
     ModuleValue *self = self_value->as_module();
     NAT_ASSERT_ARGC_AT_LEAST(1);
     for (ssize_t i = 0; i < argc; i++) {
-        class_include(env, self, args[i]->as_module());
+        self->include(env, args[i]->as_module());
     }
     return self;
 }
@@ -132,7 +132,7 @@ Value *Module_prepend(Env *env, Value *self_value, ssize_t argc, Value **args, B
     ModuleValue *self = self_value->as_module();
     NAT_ASSERT_ARGC_AT_LEAST(1);
     for (int i = argc - 1; i >= 0; i--) {
-        class_prepend(env, self, args[i]->as_module());
+        self->prepend(env, args[i]->as_module());
     }
     return self;
 }

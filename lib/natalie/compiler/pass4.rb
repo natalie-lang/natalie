@@ -26,8 +26,6 @@ module Natalie
         array_expand_with_nil
         array_push
         array_push_splat
-        class_include
-        class_prepend
         define_method
         define_method_with_block
         define_singleton_method
@@ -40,7 +38,9 @@ module Natalie
         handle_top_level_exception
         hash_key_list_remove_node
         hash_put
+        include
         methods
+        prepend
         print_exception_with_backtrace
         quicksort
         run_at_exit_handlers
@@ -60,8 +60,10 @@ module Natalie
         cvar_get
         cvar_get_or_null
         cvar_set
+        include
         ivar_get
         ivar_set
+        prepend
         raise
         raise_exception
         raise_local_jump_error

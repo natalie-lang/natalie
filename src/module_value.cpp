@@ -20,4 +20,31 @@ ModuleValue::ModuleValue(Env *env, Type type, ClassValue *klass)
     this->cvars.table = nullptr;
 }
 
+void ModuleValue::include(Env *env, ModuleValue *module) {
+    this->included_modules_count++;
+    if (this->included_modules_count == 1) {
+        this->included_modules_count++;
+        this->included_modules = static_cast<ModuleValue **>(calloc(2, sizeof(Value *)));
+        this->included_modules[0] = this;
+    } else {
+        this->included_modules = static_cast<ModuleValue **>(realloc(this->included_modules, sizeof(Value *) * this->included_modules_count));
+    }
+    this->included_modules[this->included_modules_count - 1] = module;
+}
+
+void ModuleValue::prepend(Env *env, ModuleValue *module) {
+    this->included_modules_count++;
+    if (this->included_modules_count == 1) {
+        this->included_modules_count++;
+        this->included_modules = static_cast<ModuleValue **>(calloc(2, sizeof(Value *)));
+        this->included_modules[1] = this;
+    } else {
+        this->included_modules = static_cast<ModuleValue **>(realloc(this->included_modules, sizeof(Value *) * this->included_modules_count));
+        for (ssize_t i = this->included_modules_count - 1; i > 0; i--) {
+            this->included_modules[i] = this->included_modules[i - 1];
+        }
+    }
+    this->included_modules[0] = module;
+}
+
 }

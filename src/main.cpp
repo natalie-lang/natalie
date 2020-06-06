@@ -40,7 +40,7 @@ extern "C" Env *build_top_env() {
 
     ModuleValue *Kernel = new ModuleValue { env, "Kernel" };
     const_set(env, Object, "Kernel", Kernel);
-    class_include(env, Object, Kernel);
+    Object->include(env, Kernel);
     NAT_KERNEL_INIT(Kernel);
 
     ModuleValue *Comparable = new ModuleValue { env, "Comparable" };
@@ -77,7 +77,7 @@ extern "C" Env *build_top_env() {
 
     ClassValue *Numeric = Object->subclass(env, "Numeric");
     const_set(env, Object, "Numeric", Numeric);
-    class_include(env, Numeric, Comparable);
+    Numeric->include(env, Comparable);
 
     Value *Integer = NAT_INTEGER = Numeric->subclass(env, "Integer");
     const_set(env, Object, "Integer", Integer);

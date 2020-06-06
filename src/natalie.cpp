@@ -40,33 +40,6 @@ char *heap_string(const char *str) {
     return strdup(str);
 }
 
-void class_include(Env *env, ModuleValue *klass, ModuleValue *module) {
-    klass->included_modules_count++;
-    if (klass->included_modules_count == 1) {
-        klass->included_modules_count++;
-        klass->included_modules = static_cast<ModuleValue **>(calloc(2, sizeof(Value *)));
-        klass->included_modules[0] = klass;
-    } else {
-        klass->included_modules = static_cast<ModuleValue **>(realloc(klass->included_modules, sizeof(Value *) * klass->included_modules_count));
-    }
-    klass->included_modules[klass->included_modules_count - 1] = module;
-}
-
-void class_prepend(Env *env, ModuleValue *klass, ModuleValue *module) {
-    klass->included_modules_count++;
-    if (klass->included_modules_count == 1) {
-        klass->included_modules_count++;
-        klass->included_modules = static_cast<ModuleValue **>(calloc(2, sizeof(Value *)));
-        klass->included_modules[1] = klass;
-    } else {
-        klass->included_modules = static_cast<ModuleValue **>(realloc(klass->included_modules, sizeof(Value *) * klass->included_modules_count));
-        for (ssize_t i = klass->included_modules_count - 1; i > 0; i--) {
-            klass->included_modules[i] = klass->included_modules[i - 1];
-        }
-    }
-    klass->included_modules[0] = module;
-}
-
 Value *initialize(Env *env, Value *obj, ssize_t argc, Value **args, Block *block) {
     ClassValue *klass = NAT_OBJ_CLASS(obj);
     ModuleValue *matching_class_or_module;
