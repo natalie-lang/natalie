@@ -76,7 +76,7 @@ Value *File_expand_path(Env *env, Value *self, ssize_t argc, Value **args, Block
     }
     RegexpValue *dotdot = regexp_new(env, "[^/]*/\\.\\./");
     Value *empty_string = string(env, "");
-    while (truthy(Regexp_match(env, dotdot, 1, &merged, NULL))) {
+    while (Regexp_match(env, dotdot, 1, &merged, nullptr)->is_truthy()) {
         Value *args[2] = { dotdot, empty_string };
         merged = String_sub(env, merged, 2, args, NULL);
     }

@@ -36,14 +36,6 @@ Value *global_set(Env *env, const char *name, Value *val) {
     return val;
 }
 
-bool truthy(Value *obj) {
-    if (obj == NULL || NAT_TYPE(obj) == Value::Type::False || NAT_TYPE(obj) == Value::Type::Nil) {
-        return false;
-    } else {
-        return true;
-    }
-}
-
 char *heap_string(const char *str) {
     return strdup(str);
 }
@@ -921,7 +913,7 @@ Value *dup(Env *env, Value *obj) {
 }
 
 Value *bool_not(Env *env, Value *val) {
-    if (truthy(val)) {
+    if (val->is_truthy()) {
         return NAT_FALSE;
     } else {
         return NAT_TRUE;
@@ -1283,7 +1275,7 @@ void arg_spread(Env *env, ssize_t argc, Value **args, char *arrangement, ...) {
             bool_ptr = va_arg(va_args, bool *);
             if (arg_index >= argc) NAT_RAISE(env, "ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, arg_index + 1);
             obj = args[arg_index++];
-            *bool_ptr = truthy(obj);
+            *bool_ptr = obj->is_truthy();
             break;
         case 'v':
             void_ptr = va_arg(va_args, void **);

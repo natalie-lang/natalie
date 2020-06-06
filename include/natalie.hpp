@@ -74,8 +74,6 @@ const char *find_current_method_name(Env *env);
 Value *global_get(Env *env, const char *name);
 Value *global_set(Env *env, const char *name, Value *val);
 
-bool truthy(Value *obj);
-
 char *heap_string(const char *str);
 
 void class_include(Env *env, ModuleValue *klass, ModuleValue *module);

@@ -1,5 +1,5 @@
-#include "natalie/builtin.hpp"
 #include "natalie.hpp"
+#include "natalie/builtin.hpp"
 
 namespace Natalie {
 
@@ -77,7 +77,7 @@ Value *Array_sub(Env *env, Value *self_value, ssize_t argc, Value **args, Block 
         int found = 0;
         for (ssize_t j = 0; j < vector_size(&arg->ary); j++) {
             Value *compare_item = static_cast<Value *>(vector_get(&arg->ary, j));
-            if (truthy(send(env, item, "==", 1, &compare_item, NULL))) {
+            if (send(env, item, "==", 1, &compare_item, nullptr)->is_truthy()) {
                 found = 1;
                 break;
             }
@@ -205,7 +205,7 @@ Value *Array_any(Env *env, Value *self_value, ssize_t argc, Value **args, Block 
         for (ssize_t i = 0; i < vector_size(&self->ary); i++) {
             Value *obj = static_cast<Value *>(vector_get(&self->ary, i));
             Value *result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &obj, NULL);
-            if (truthy(result)) return NAT_TRUE;
+            if (result->is_truthy()) return NAT_TRUE;
         }
     } else if (vector_size(&self->ary) > 0) {
         return NAT_TRUE;
@@ -311,7 +311,7 @@ Value *Array_include(Env *env, Value *self_value, ssize_t argc, Value **args, Bl
     } else {
         for (ssize_t i = 0; i < vector_size(&self->ary); i++) {
             Value *compare_item = static_cast<Value *>(vector_get(&self->ary, i));
-            if (truthy(send(env, item, "==", 1, &compare_item, NULL))) {
+            if (send(env, item, "==", 1, &compare_item, nullptr)->is_truthy()) {
                 return NAT_TRUE;
             }
         }

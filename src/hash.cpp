@@ -1,5 +1,5 @@
-#include "natalie/builtin.hpp"
 #include "natalie.hpp"
+#include "natalie/builtin.hpp"
 
 namespace Natalie {
 
@@ -129,7 +129,7 @@ Value *Hash_eqeq(Env *env, Value *self_value, ssize_t argc, Value **args, Block 
     Value *other_val;
     for (iter = hash_iter(env, self); iter; iter = hash_iter_next(env, self, iter)) {
         other_val = hash_get(env, other, iter->key);
-        if (!truthy(send(env, iter->val, "==", 1, &other_val, NULL))) {
+        if (!send(env, iter->val, "==", 1, &other_val, nullptr)->is_truthy()) {
             return NAT_FALSE;
         }
     }

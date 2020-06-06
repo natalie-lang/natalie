@@ -23,7 +23,7 @@ module Natalie
         (_, lhs, rhs) = exp
         lhs = process(lhs)
         rhs = process(rhs)
-        exp.new(:c_if, s(:truthy, lhs), rhs, lhs)
+        exp.new(:c_if, s(:is_truthy, lhs), rhs, lhs)
       end
 
       def process_array(exp)
@@ -107,7 +107,7 @@ module Natalie
           when_body = when_body.map { |w| process(w) }
           when_body = [s(:nil)] if when_body == [nil]
           matchers.each do |matcher|
-            cond << s(:truthy, s(:send, process(matcher), '===', s(:args, value_name), 'NULL'))
+            cond << s(:is_truthy, s(:send, process(matcher), '===', s(:args, value_name), 'NULL'))
             cond << s(:block, *when_body)
           end
         end
@@ -309,7 +309,7 @@ module Natalie
 
       def process_if(exp)
         (_, condition, true_body, false_body) = exp
-        condition = exp.new(:truthy, process(condition))
+        condition = exp.new(:is_truthy, process(condition))
         exp.new(:c_if,
                 condition,
                 process(true_body || s(:nil)),
@@ -611,7 +611,7 @@ module Natalie
         match = temp('match')
         exp.new(:block,
                 s(:declare, match, s(:last_match, :env)),
-                s(:c_if, s(:truthy, match), s(:send, match, :[], s(:args, s(:integer, :env, num))), s(:nil)))
+                s(:c_if, s(:is_truthy, match), s(:send, match, :[], s(:args, s(:integer, :env, num))), s(:nil)))
       end
 
       def process_op_asgn1(exp)
@@ -622,7 +622,7 @@ module Natalie
           exp.new(:block,
                   s(:declare, obj_name, process(obj)),
                   s(:declare, val, s(:send, obj_name, :[], s(:args, *key_args.map { |a| process(a) }), 'NULL')),
-                  s(:c_if, s(:truthy, val),
+                  s(:c_if, s(:is_truthy, val),
                     val,
                     s(:send, obj_name, :[]=,
                       s(:args,
@@ -647,11 +647,11 @@ module Natalie
       end
 
       def process_op_asgn_and(exp)
-        process_op_asgn_bool(exp, condition: ->(result_name) { s(:not, s(:truthy, result_name)) })
+        process_op_asgn_bool(exp, condition: ->(result_name) { s(:not, s(:is_truthy, result_name)) })
       end
 
       def process_op_asgn_or(exp)
-        process_op_asgn_bool(exp, condition: ->(result_name) { s(:truthy, result_name) })
+        process_op_asgn_bool(exp, condition: ->(result_name) { s(:is_truthy, result_name) })
       end
 
       def process_op_asgn_bool(exp, condition:)
@@ -661,7 +661,7 @@ module Natalie
           result_name = temp('cvar')
           exp.new(:block,
                   s(:declare, result_name, s(:cvar_get_or_null, :self, :env, s(:s, name))),
-                  s(:c_if, condition.(result_name), result_name, process(value)))
+                  s(:c_if, s(:and, s(:l, result_name), condition.(result_name)), result_name, process(value)))
         when :gvar
           result_name = temp('gvar')
           exp.new(:block,
@@ -689,7 +689,7 @@ module Natalie
         (_, lhs, rhs) = exp
         lhs = process(lhs)
         rhs = process(rhs)
-        exp.new(:c_if, s(:not, s(:truthy, lhs)), rhs, lhs)
+        exp.new(:c_if, s(:not, s(:is_truthy, lhs)), rhs, lhs)
       end
 
       def process_rescue(exp)
@@ -762,7 +762,7 @@ module Natalie
         exp.new(:block,
                 s(:c_while, 'true',
                   s(:block,
-                    s(:c_if, s(:not, s(:truthy, process(condition))), s(:c_break)),
+                    s(:c_if, s(:not, s(:is_truthy, process(condition))), s(:c_break)),
                     process(body))),
         s(:nil))
       end

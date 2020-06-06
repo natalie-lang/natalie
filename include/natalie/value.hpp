@@ -86,6 +86,8 @@ struct Value {
     bool is_string() { return type == Type::String; }
     bool is_void_p() { return type == Type::VoidP; }
 
+    bool is_truthy() { return !this->is_false() && !this->is_nil(); }
+
     NilValue *as_nil();
     TrueValue *as_true();
     FalseValue *as_false();

@@ -151,6 +151,11 @@ module Natalie
         end
       end
 
+      def process_and(exp)
+        (_, left, right) = exp
+        "#{process left} && #{process right}"
+      end
+
       def process_assign(exp)
         (_, val, *args) = exp
         val = process(val)
@@ -464,9 +469,9 @@ module Natalie
         result_name
       end
 
-      def process_truthy(exp)
+      def process_is_truthy(exp)
         (_, cond) = exp
-        "truthy(#{process_atom cond})"
+        "#{process_atom cond}->is_truthy()"
       end
 
       def process_nil(_)
