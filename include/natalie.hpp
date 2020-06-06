@@ -71,10 +71,6 @@ bool is_constant_name(const char *name);
 
 const char *find_current_method_name(Env *env);
 
-Value *cvar_get(Env *env, Value *obj, const char *name);
-Value *cvar_get_or_null(Env *env, Value *obj, const char *name);
-Value *cvar_set(Env *env, Value *obj, const char *name, Value *val);
-
 Value *global_get(Env *env, const char *name);
 Value *global_set(Env *env, const char *name, Value *val);
 

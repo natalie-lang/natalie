@@ -57,6 +57,9 @@ module Natalie
 
       METHODS = %i[
         as_class
+        cvar_get
+        cvar_get_or_null
+        cvar_set
         ivar_get
         ivar_set
         raise

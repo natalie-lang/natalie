@@ -109,9 +109,15 @@ struct Value {
 
     const char *identifier_str(Env *, Conversion);
 
-    void init_ivars();
     Value *ivar_get(Env *, const char *);
     Value *ivar_set(Env *, const char *, Value *);
+
+    Value *cvar_get(Env *, const char *);
+    Value *cvar_get_or_null(Env *, const char *);
+    Value *cvar_set(Env *, const char *, Value *);
+
+private:
+    void init_ivars();
 };
 
 Value *const_get(Env *env, Value *klass, const char *name, bool strict);

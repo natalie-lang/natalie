@@ -91,7 +91,7 @@ const char *Value::identifier_str(Env *env, Conversion conversion) {
     } else if (conversion == Conversion::NullAllowed) {
         return nullptr;
     } else {
-        NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", send(env, this, "inspect", 0, NULL, NULL));
+        NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", send(env, this, "inspect", 0, nullptr, nullptr));
     }
 }
 
@@ -103,7 +103,7 @@ SymbolValue *Value::to_symbol(Env *env, Conversion conversion) {
     } else if (conversion == Conversion::NullAllowed) {
         return nullptr;
     } else {
-        NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", send(env, this, "inspect", 0, NULL, NULL));
+        NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", send(env, this, "inspect", 0, nullptr, nullptr));
     }
 }
 
@@ -112,7 +112,7 @@ Value *const_get(Env *env, Value *parent, const char *name, bool strict) {
     if (val) {
         return val;
     } else if (strict) {
-        NAT_RAISE(env, "NameError", "uninitialized constant %S::%s", send(env, parent, "inspect", 0, NULL, NULL), name);
+        NAT_RAISE(env, "NameError", "uninitialized constant %S::%s", send(env, parent, "inspect", 0, nullptr, nullptr), name);
     } else {
         NAT_RAISE(env, "NameError", "uninitialized constant %s", name);
     }
@@ -155,7 +155,7 @@ Value *const_get_or_null(Env *env, Value *parent, const char *name, bool strict,
         if (val) return val;
     }
 
-    return NULL;
+    return nullptr;
 }
 
 Value *const_set(Env *env, Value *parent, const char *name, Value *val) {
@@ -200,6 +200,87 @@ void Value::init_ivars() {
     if (this->ivars.table) return;
     hashmap_init(&this->ivars, hashmap_hash_string, hashmap_compare_string, 100);
     hashmap_set_key_alloc_funcs(&this->ivars, hashmap_alloc_key_string, free);
+}
+
+Value *Value::cvar_get(Env *env, const char *name) {
+    Value *val = this->cvar_get_or_null(env, name);
+    if (val) {
+        return val;
+    } else {
+        ModuleValue *module;
+        if (this->is_module()) {
+            module = this->as_module();
+        } else {
+            module = this->klass;
+        }
+        NAT_RAISE(env, "NameError", "uninitialized class variable %s in %s", name, module->class_name);
+    }
+}
+
+Value *Value::cvar_get_or_null(Env *env, const char *name) {
+    assert(strlen(name) > 1);
+    if (name[0] != '@' || name[1] != '@') {
+        NAT_RAISE(env, "NameError", "`%s' is not allowed as a class variable name", name);
+    }
+
+    ModuleValue *module;
+    if (this->is_module()) {
+        module = this->as_module();
+    } else {
+        module = this->klass;
+    }
+
+    Value *val = nullptr;
+    while (1) {
+        if (module->cvars.table) {
+            val = static_cast<Value *>(hashmap_get(&module->cvars, name));
+            if (val) {
+                return val;
+            }
+        }
+        if (!module->superclass) {
+            return nullptr;
+        }
+        module = module->superclass;
+    }
+}
+
+Value *Value::cvar_set(Env *env, const char *name, Value *val) {
+    assert(strlen(name) > 1);
+    if (name[0] != '@' || name[1] != '@') {
+        NAT_RAISE(env, "NameError", "`%s' is not allowed as a class variable name", name);
+    }
+
+    ModuleValue *module;
+    if (this->is_module()) {
+        module = this->as_module();
+    } else {
+        module = this->klass;
+    }
+
+    ModuleValue *current = module;
+
+    Value *exists = nullptr;
+    while (1) {
+        if (current->cvars.table) {
+            exists = static_cast<Value *>(hashmap_get(&current->cvars, name));
+            if (exists) {
+                hashmap_remove(&current->cvars, name);
+                hashmap_put(&current->cvars, name, val);
+                return val;
+            }
+        }
+        if (!current->superclass) {
+            if (module->cvars.table == nullptr) {
+                hashmap_init(&module->cvars, hashmap_hash_string, hashmap_compare_string, 10);
+                hashmap_set_key_alloc_funcs(&module->cvars, hashmap_alloc_key_string, free);
+            }
+            hashmap_remove(&module->cvars, name);
+            hashmap_put(&module->cvars, name, val);
+            return val;
+        }
+        current = current->superclass;
+    }
 }
 
 }
