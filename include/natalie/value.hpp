@@ -108,6 +108,10 @@ struct Value {
     SymbolValue *to_symbol(Env *, Conversion);
 
     const char *identifier_str(Env *, Conversion);
+
+    void init_ivars();
+    Value *ivar_get(Env *, const char *);
+    Value *ivar_set(Env *, const char *, Value *);
 };
 
 Value *const_get(Env *env, Value *klass, const char *name, bool strict);

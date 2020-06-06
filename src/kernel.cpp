@@ -99,7 +99,7 @@ Value *Kernel_instance_variable_get(Env *env, Value *self, ssize_t argc, Value *
         return NAT_NIL;
     }
     const char *name = args[0]->identifier_str(env, Value::Conversion::Strict);
-    return ivar_get(env, self, name);
+    return self->ivar_get(env, name);
 }
 
 Value *Kernel_instance_variable_set(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
@@ -107,7 +107,7 @@ Value *Kernel_instance_variable_set(Env *env, Value *self, ssize_t argc, Value *
     NAT_ASSERT_NOT_FROZEN(self);
     const char *name = args[0]->identifier_str(env, Value::Conversion::Strict);
     Value *val_obj = args[1];
-    ivar_set(env, self, name, val_obj);
+    self->ivar_set(env, name, val_obj);
     return val_obj;
 }
 
@@ -175,7 +175,7 @@ Value *Kernel_exit(Env *env, Value *self, ssize_t argc, Value **args, Block *blo
         status = integer(env, 0);
     }
     ExceptionValue *exception = new ExceptionValue { env, const_get(env, NAT_OBJECT, "SystemExit", true)->as_class(), "exit" };
-    ivar_set(env, exception, "@status", status);
+    exception->ivar_set(env, "@status", status);
     env->raise_exception(exception);
     return NAT_NIL;
 }

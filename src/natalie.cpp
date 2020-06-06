@@ -13,37 +13,6 @@ bool is_global_name(const char *name) {
     return strlen(name) > 0 && name[0] == '$';
 }
 
-Value *ivar_get(Env *env, Value *obj, const char *name) {
-    assert(strlen(name) > 0);
-    if (name[0] != '@') {
-        NAT_RAISE(env, "NameError", "`%s' is not allowed as an instance variable name", name);
-    }
-    if (obj->ivars.table == NULL) {
-        hashmap_init(&obj->ivars, hashmap_hash_string, hashmap_compare_string, 100);
-        hashmap_set_key_alloc_funcs(&obj->ivars, hashmap_alloc_key_string, free);
-    }
-    Value *val = static_cast<Value *>(hashmap_get(&obj->ivars, name));
-    if (val) {
-        return val;
-    } else {
-        return NAT_NIL;
-    }
-}
-
-Value *ivar_set(Env *env, Value *obj, const char *name, Value *val) {
-    assert(strlen(name) > 0);
-    if (name[0] != '@') {
-        NAT_RAISE(env, "NameError", "`%s' is not allowed as an instance variable name", name);
-    }
-    if (obj->ivars.table == NULL) {
-        hashmap_init(&obj->ivars, hashmap_hash_string, hashmap_compare_string, 100);
-        hashmap_set_key_alloc_funcs(&obj->ivars, hashmap_alloc_key_string, free);
-    }
-    hashmap_remove(&obj->ivars, name);
-    hashmap_put(&obj->ivars, name, val);
-    return val;
-}
-
 Value *cvar_get(Env *env, Value *obj, const char *name) {
     Value *val = cvar_get_or_null(env, obj, name);
     if (val) {
@@ -1095,7 +1064,7 @@ void handle_top_level_exception(Env *env, bool run_exit_handlers) {
     ExceptionValue *exception = env->exception->as_exception();
     env->rescue = false;
     if (is_a(env, exception, const_get(env, NAT_OBJECT, "SystemExit", true)->as_class())) {
-        Value *status_obj = ivar_get(env, exception, "@status");
+        Value *status_obj = exception->ivar_get(env, "@status");
         if (run_exit_handlers) run_at_exit_handlers(env);
         if (NAT_TYPE(status_obj) == Value::Type::Integer) {
             int64_t val = NAT_INT_VALUE(status_obj);
@@ -1401,7 +1370,7 @@ void arg_spread(Env *env, ssize_t argc, Value **args, char *arrangement, ...) {
             void_ptr = va_arg(va_args, void **);
             if (arg_index >= argc) NAT_RAISE(env, "ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, arg_index + 1);
             obj = args[arg_index++];
-            obj = ivar_get(env, obj, "@_ptr");
+            obj = obj->ivar_get(env, "@_ptr");
             assert(obj->type == Value::Type::VoidP);
             *void_ptr = obj->as_void_p()->void_ptr;
             break;

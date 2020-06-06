@@ -77,7 +77,7 @@ Value *Module_attr_reader_block_fn(Env *env, Value *self, ssize_t argc, Value **
     Value *name_obj = env->outer->var_get("name", 0);
     assert(name_obj);
     StringValue *ivar_name = sprintf(env, "@%S", name_obj);
-    return ivar_get(env, self, ivar_name->str);
+    return self->ivar_get(env, ivar_name->str);
 }
 
 Value *Module_attr_writer(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
@@ -107,7 +107,7 @@ Value *Module_attr_writer_block_fn(Env *env, Value *self, ssize_t argc, Value **
     Value *name_obj = env->outer->var_get("name", 0);
     assert(name_obj);
     StringValue *ivar_name = sprintf(env, "@%S", name_obj);
-    ivar_set(env, self, ivar_name->str, val);
+    self->ivar_set(env, ivar_name->str, val);
     return val;
 }
 

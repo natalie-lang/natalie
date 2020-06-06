@@ -318,7 +318,7 @@ module Natalie
 
       def process_iasgn(exp)
         (_, name, value) = exp
-        exp.new(:ivar_set, :env, :self, s(:s, name), process(value))
+        exp.new(:ivar_set, :self, :env, s(:s, name), process(value))
       end
 
       def process_inline_c(exp)
@@ -381,7 +381,7 @@ module Natalie
 
       def process_ivar(exp)
         (_, name) = exp
-        exp.new(:ivar_get, :env, :self, s(:s, name))
+        exp.new(:ivar_get, :self, :env, s(:s, name))
       end
 
       def process_lambda(exp)
@@ -541,7 +541,7 @@ module Natalie
         when :gasgn
           s(:global_set, :env, s(:s, exp.last), value)
         when :iasgn
-          s(:ivar_set, :env, :self, s(:s, exp.last), value)
+          s(:ivar_set, :self, :env, s(:s, exp.last), value)
         when :lasgn, :kwarg
           if arg
             s(:arg_set, :env, s(:s, exp[1]), value)
@@ -670,7 +670,7 @@ module Natalie
         when :ivar
           result_name = temp('ivar')
           exp.new(:block,
-                  s(:declare, result_name, s(:ivar_get, :env, :self, s(:s, name))),
+                  s(:declare, result_name, s(:ivar_get, :self, :env, s(:s, name))),
                   s(:c_if, condition.(result_name), result_name, process(value)))
         when :lvar
           var = process(s(:lvar, name))

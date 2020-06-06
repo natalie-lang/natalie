@@ -57,6 +57,8 @@ module Natalie
 
       METHODS = %i[
         as_class
+        ivar_get
+        ivar_set
         raise
         raise_exception
         raise_local_jump_error

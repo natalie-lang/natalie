@@ -171,4 +171,35 @@ Value *const_set(Env *env, Value *parent, const char *name, Value *val) {
     return val;
 }
 
+Value *Value::ivar_get(Env *env, const char *name) {
+    assert(strlen(name) > 0);
+    if (name[0] != '@') {
+        NAT_RAISE(env, "NameError", "`%s' is not allowed as an instance variable name", name);
+    }
+    init_ivars();
+    Value *val = static_cast<Value *>(hashmap_get(&this->ivars, name));
+    if (val) {
+        return val;
+    } else {
+        return NAT_NIL;
+    }
+}
+
+Value *Value::ivar_set(Env *env, const char *name, Value *val) {
+    assert(strlen(name) > 0);
+    if (name[0] != '@') {
+        NAT_RAISE(env, "NameError", "`%s' is not allowed as an instance variable name", name);
+    }
+    init_ivars();
+    hashmap_remove(&this->ivars, name);
+    hashmap_put(&this->ivars, name, val);
+    return val;
+}
+
+void Value::init_ivars() {
+    if (this->ivars.table) return;
+    hashmap_init(&this->ivars, hashmap_hash_string, hashmap_compare_string, 100);
+    hashmap_set_key_alloc_funcs(&this->ivars, hashmap_alloc_key_string, free);
+}
+
 }
