@@ -15,7 +15,7 @@ struct StringValue : Value {
     using Value::Value;
 
     StringValue(Env *env)
-        : Value { env, Value::Type::String, const_get(env, NAT_OBJECT, "String", true)->as_class() } { }
+        : Value { env, Value::Type::String, NAT_OBJECT->const_get(env, "String", true)->as_class() } { }
 
     StringValue(Env *env, ClassValue *klass)
         : Value { env, Value::Type::String, klass } { }

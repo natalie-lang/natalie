@@ -219,12 +219,12 @@ Value *String_size(Env *env, Value *self_value, ssize_t argc, Value **args, Bloc
 Value *String_encoding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     StringValue *self = self_value->as_string();
-    ClassValue *Encoding = const_get(env, NAT_OBJECT, "Encoding", true)->as_class();
+    ClassValue *Encoding = NAT_OBJECT->const_get(env, "Encoding", true)->as_class();
     switch (self->encoding) {
     case Encoding::ASCII_8BIT:
-        return const_get(env, Encoding, "ASCII_8BIT", true);
+        return Encoding->const_get(env, "ASCII_8BIT", true);
     case Encoding::UTF_8:
-        return const_get(env, Encoding, "UTF_8", true);
+        return Encoding->const_get(env, "UTF_8", true);
     }
     NAT_UNREACHABLE();
 }
@@ -239,7 +239,7 @@ static char *lcase_string(char *str) {
 
 static EncodingValue *find_encoding_by_name(Env *env, char *name) {
     char *lcase_name = lcase_string(name);
-    ArrayValue *list = Encoding_list(env, const_get(env, NAT_OBJECT, "Encoding", true), 0, NULL, NULL)->as_array();
+    ArrayValue *list = Encoding_list(env, NAT_OBJECT->const_get(env, "Encoding", true), 0, NULL, NULL)->as_array();
     for (ssize_t i = 0; i < vector_size(&list->ary); i++) {
         EncodingValue *encoding = static_cast<EncodingValue *>(vector_get(&list->ary, i));
         ArrayValue *names = encoding->encoding_names;
@@ -264,7 +264,7 @@ Value *String_encode(Env *env, Value *self_value, ssize_t argc, Value **args, Bl
     Encoding orig_encoding = self->encoding;
     StringValue *copy = dup(env, self)->as_string();
     String_force_encoding(env, copy, argc, args, NULL);
-    ClassValue *Encoding = const_get(env, NAT_OBJECT, "Encoding", true)->as_class();
+    ClassValue *Encoding = NAT_OBJECT->const_get(env, "Encoding", true)->as_class();
     if (orig_encoding == copy->encoding) {
         return copy;
     } else if (orig_encoding == Encoding::UTF_8 && copy->encoding == Encoding::ASCII_8BIT) {
@@ -276,7 +276,7 @@ Value *String_encode(Env *env, Value *self_value, ssize_t argc, Value **args, Bl
                 Value *message = sprintf(env, "U+%X from UTF-8 to ASCII-8BIT", NAT_INT_VALUE(ord));
                 Value *sub_args[2] = { string(env, "0X"), string(env, "") };
                 message = String_sub(env, message, 2, sub_args, NULL);
-                env->raise(const_get(env, Encoding, "UndefinedConversionError", true)->as_class(), "%S", message);
+                env->raise(Encoding->const_get(env, "UndefinedConversionError", true)->as_class(), "%S", message);
                 abort();
             }
         }
@@ -284,7 +284,7 @@ Value *String_encode(Env *env, Value *self_value, ssize_t argc, Value **args, Bl
     } else if (orig_encoding == Encoding::ASCII_8BIT && copy->encoding == Encoding::UTF_8) {
         return copy;
     } else {
-        env->raise(const_get(env, Encoding, "ConverterNotFoundError", true)->as_class(), "code converter not found");
+        env->raise(Encoding->const_get(env, "ConverterNotFoundError", true)->as_class(), "code converter not found");
         abort();
     }
 }

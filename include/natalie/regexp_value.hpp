@@ -14,7 +14,7 @@ struct RegexpValue : Value {
     using Value::Value;
 
     RegexpValue(Env *env)
-        : Value { env, Value::Type::Regexp, const_get(env, NAT_OBJECT, "Regexp", true)->as_class() } { }
+        : Value { env, Value::Type::Regexp, NAT_OBJECT->const_get(env, "Regexp", true)->as_class() } { }
 
     regex_t *regexp { nullptr };
     char *regexp_str { nullptr };

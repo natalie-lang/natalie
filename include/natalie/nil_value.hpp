@@ -20,7 +20,7 @@ private:
     using Value::Value;
 
     NilValue(Env *env)
-        : Value { env, Value::Type::Nil, const_get(env, NAT_OBJECT, "NilClass", true)->as_class() } { }
+        : Value { env, Value::Type::Nil, NAT_OBJECT->const_get(env, "NilClass", true)->as_class() } { }
 };
 
 }

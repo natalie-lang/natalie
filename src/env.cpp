@@ -84,7 +84,7 @@ Value *Env::raise_exception(ExceptionValue *exception) {
 
 Value *Env::raise_local_jump_error(Value *exit_value, const char *message) {
     Env *env = this;
-    ExceptionValue *exception = new ExceptionValue { this, const_get(this, NAT_OBJECT, "LocalJumpError", true)->as_class(), message };
+    ExceptionValue *exception = new ExceptionValue { this, NAT_OBJECT->const_get(this, "LocalJumpError", true)->as_class(), message };
     exception->ivar_set(this, "@exit_value", exit_value);
     this->raise_exception(exception);
     return exception;

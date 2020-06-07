@@ -14,10 +14,10 @@ struct SymbolValue : Value {
     using Value::Value;
 
     SymbolValue(Env *env)
-        : Value { env, Value::Type::Symbol, const_get(env, NAT_OBJECT, "Symbol", true)->as_class() } { }
+        : Value { env, Value::Type::Symbol, NAT_OBJECT->const_get(env, "Symbol", true)->as_class() } { }
 
     SymbolValue(Env *env, const char *symbol)
-        : Value { env, Value::Type::Symbol, const_get(env, NAT_OBJECT, "Symbol", true)->as_class() }
+        : Value { env, Value::Type::Symbol, NAT_OBJECT->const_get(env, "Symbol", true)->as_class() }
         , symbol { symbol } { }
 
     const char *symbol { nullptr };

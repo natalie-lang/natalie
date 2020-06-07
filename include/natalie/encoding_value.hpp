@@ -20,7 +20,7 @@ struct EncodingValue : Value {
     using Value::Value;
 
     EncodingValue(Env *env)
-        : Value { env, Value::Type::Encoding, const_get(env, NAT_OBJECT, "Encoding", true)->as_class() } { }
+        : Value { env, Value::Type::Encoding, NAT_OBJECT->const_get(env, "Encoding", true)->as_class() } { }
 
     ArrayValue *encoding_names { nullptr };
     Encoding encoding_num;

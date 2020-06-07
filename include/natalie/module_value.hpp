@@ -18,6 +18,10 @@ struct ModuleValue : Value {
     void include(Env *, ModuleValue *);
     void prepend(Env *, ModuleValue *);
 
+    virtual Value *const_get(Env *, const char *, bool) override;
+    virtual Value *const_get_or_null(Env *, const char *, bool, bool) override;
+    virtual Value *const_set(Env *, const char *, Value *) override;
+
     struct hashmap constants EMPTY_HASHMAP;
     char *class_name { nullptr };
     ClassValue *superclass { nullptr };

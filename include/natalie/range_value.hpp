@@ -14,7 +14,7 @@ struct RangeValue : Value {
     using Value::Value;
 
     RangeValue(Env *env)
-        : Value { env, Value::Type::Range, const_get(env, NAT_OBJECT, "Range", true)->as_class() } { }
+        : Value { env, Value::Type::Range, NAT_OBJECT->const_get(env, "Range", true)->as_class() } { }
 
     Value *range_begin { nullptr };
     Value *range_end { nullptr };

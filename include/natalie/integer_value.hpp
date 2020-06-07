@@ -14,10 +14,10 @@ struct IntegerValue : Value {
     using Value::Value;
 
     IntegerValue(Env *env)
-        : Value { env, Value::Type::Integer, const_get(env, NAT_OBJECT, "Integer", true)->as_class() } { }
+        : Value { env, Value::Type::Integer, NAT_OBJECT->const_get(env, "Integer", true)->as_class() } { }
 
     IntegerValue(Env *env, int64_t integer)
-        : Value { env, Value::Type::Integer, const_get(env, NAT_OBJECT, "Integer", true)->as_class() }
+        : Value { env, Value::Type::Integer, NAT_OBJECT->const_get(env, "Integer", true)->as_class() }
         , integer { integer } { }
 
     int64_t integer { 0 };

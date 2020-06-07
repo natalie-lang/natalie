@@ -8,7 +8,7 @@
 
 #define NAT_RAISE(env, class_name, message_format, ...)                                                      \
     {                                                                                                        \
-        env->raise(const_get(env, NAT_OBJECT, class_name, true)->as_class(), message_format, ##__VA_ARGS__); \
+        env->raise(NAT_OBJECT->const_get(env, class_name, true)->as_class(), message_format, ##__VA_ARGS__); \
         abort();                                                                                             \
     }
 

@@ -14,7 +14,7 @@ struct ExceptionValue : Value {
     using Value::Value;
 
     ExceptionValue(Env *env)
-        : Value { env, Value::Type::Exception, const_get(env, NAT_OBJECT, "Exception", true)->as_class() } { }
+        : Value { env, Value::Type::Exception, NAT_OBJECT->const_get(env, "Exception", true)->as_class() } { }
 
     ExceptionValue(Env *env, ClassValue *klass)
         : Value { env, Value::Type::Exception, klass } { }

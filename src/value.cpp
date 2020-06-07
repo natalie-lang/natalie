@@ -117,69 +117,16 @@ SymbolValue *Value::to_symbol(Env *env, Conversion conversion) {
     }
 }
 
-Value *const_get(Env *env, Value *parent, const char *name, bool strict) {
-    Value *val = const_get_or_null(env, parent, name, strict, false);
-    if (val) {
-        return val;
-    } else if (strict) {
-        NAT_RAISE(env, "NameError", "uninitialized constant %S::%s", send(env, parent, "inspect", 0, nullptr, nullptr), name);
-    } else {
-        NAT_RAISE(env, "NameError", "uninitialized constant %s", name);
-    }
+Value *Value::const_get(Env *env, const char *name, bool strict) {
+    return this->klass->const_get(env, name, strict);
 }
 
-Value *const_get_or_null(Env *env, Value *parent, const char *name, bool strict, bool define) {
-    if (!parent->is_module()) {
-        parent = parent->klass;
-        assert(parent);
-    }
-
-    ModuleValue *search_parent;
-    Value *val;
-
-    if (!strict) {
-        // first search in parent namespaces (not including global, i.e. Object namespace)
-        search_parent = parent->as_module();
-        while (!(val = static_cast<Value *>(hashmap_get(&search_parent->constants, name))) && search_parent->owner && search_parent->owner != NAT_OBJECT) {
-            search_parent = search_parent->owner;
-        }
-        if (val) return val;
-    }
-
-    if (define) {
-        // don't search superclasses
-        val = static_cast<Value *>(hashmap_get(&parent->as_module()->constants, name));
-        if (val) return val;
-    } else {
-        // search in superclass hierarchy
-        search_parent = parent->as_module();
-        while (!(val = static_cast<Value *>(hashmap_get(&search_parent->constants, name))) && search_parent->superclass) {
-            search_parent = search_parent->superclass;
-        }
-        if (val) return val;
-    }
-
-    if (!strict) {
-        // lastly, search on the global, i.e. Object namespace
-        val = static_cast<Value *>(hashmap_get(&NAT_OBJECT->constants, name));
-        if (val) return val;
-    }
-
-    return nullptr;
+Value *Value::const_get_or_null(Env *env, const char *name, bool strict, bool define) {
+    return this->klass->const_get_or_null(env, name, strict, define);
 }
 
-Value *const_set(Env *env, Value *parent, const char *name, Value *val) {
-    if (!NAT_IS_MODULE_OR_CLASS(parent)) {
-        parent = NAT_OBJ_CLASS(parent);
-        assert(parent);
-    }
-    ModuleValue *parent_module = parent->as_module();
-    hashmap_remove(&parent_module->constants, name);
-    hashmap_put(&parent_module->constants, name, val);
-    if (val->is_module() && !val->owner) {
-        val->owner = parent->as_module();
-    }
-    return val;
+Value *Value::const_set(Env *env, const char *name, Value *val) {
+    return this->klass->const_set(env, name, val);
 }
 
 Value *Value::ivar_get(Env *env, const char *name) {

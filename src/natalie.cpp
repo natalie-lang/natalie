@@ -462,7 +462,7 @@ bool is_a(Env *env, Value *obj, ModuleValue *klass_or_module) {
 const char *defined(Env *env, Value *receiver, const char *name) {
     Value *obj;
     if (is_constant_name(name)) {
-        obj = const_get_or_null(env, receiver, name, false, false);
+        obj = receiver->const_get_or_null(env, name, false, false);
         if (obj) return "constant";
     } else if (is_global_name(name)) {
         obj = global_get(env, name);
@@ -741,8 +741,8 @@ void string_append_string(Env *env, StringValue *str, StringValue *str2) {
 
 #define NAT_RAISE_ENCODING_INVALID_BYTE_SEQUENCE_ERROR(env, message_format, ...)                      \
     {                                                                                                 \
-        Value *Encoding = const_get(env, NAT_OBJECT, "Encoding", true);                               \
-        Value *InvalidByteSequenceError = const_get(env, Encoding, "InvalidByteSequenceError", true); \
+        Value *Encoding = NAT_OBJECT->const_get(env, "Encoding", true);                               \
+        Value *InvalidByteSequenceError = Encoding->const_get(env, "InvalidByteSequenceError", true); \
         raise(env, InvalidByteSequenceError, message_format, ##__VA_ARGS__);                          \
     }
 
@@ -933,7 +933,7 @@ void print_exception_with_backtrace(Env *env, ExceptionValue *exception) {
 void handle_top_level_exception(Env *env, bool run_exit_handlers) {
     ExceptionValue *exception = env->exception->as_exception();
     env->rescue = false;
-    if (is_a(env, exception, const_get(env, NAT_OBJECT, "SystemExit", true)->as_class())) {
+    if (is_a(env, exception, NAT_OBJECT->const_get(env, "SystemExit", true)->as_class())) {
         Value *status_obj = exception->ivar_get(env, "@status");
         if (run_exit_handlers) run_at_exit_handlers(env);
         if (NAT_TYPE(status_obj) == Value::Type::Integer) {

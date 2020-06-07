@@ -3,7 +3,7 @@
 namespace Natalie {
 
 ClassValue::ClassValue(Env *env)
-    : ClassValue { env, const_get(env, NAT_OBJECT, "Class", true)->as_class() } { }
+    : ClassValue { env, NAT_OBJECT->const_get(env, "Class", true)->as_class() } { }
 
 ClassValue *ClassValue::subclass(Env *env, const char *name) {
     ClassValue *subclass = new ClassValue { env, Value::Type::Class, this->klass };

@@ -14,7 +14,7 @@ struct HashValue : Value {
     using Value::Value;
 
     HashValue(Env *env)
-        : Value { env, Value::Type::Hash, const_get(env, NAT_OBJECT, "Hash", true)->as_class() } { }
+        : Value { env, Value::Type::Hash, NAT_OBJECT->const_get(env, "Hash", true)->as_class() } { }
 
     HashKey *key_list { nullptr };
     struct hashmap hashmap EMPTY_HASHMAP;

@@ -185,7 +185,7 @@ Value *Module_const_defined(Env *env, Value *self_value, ssize_t argc, Value **a
     if (!name) {
         NAT_RAISE(env, "TypeError", "no implicit conversion of %s to String", send(env, args[0], "inspect", 0, NULL, NULL));
     }
-    if (const_get_or_null(env, self, name, false, false)) {
+    if (self->const_get_or_null(env, name, false, false)) {
         return NAT_TRUE;
     } else {
         return NAT_FALSE;

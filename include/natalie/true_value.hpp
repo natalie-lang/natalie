@@ -20,7 +20,7 @@ private:
     using Value::Value;
 
     TrueValue(Env *env)
-        : Value { env, Value::Type::True, const_get(env, NAT_OBJECT, "TrueClass", true)->as_class() } { }
+        : Value { env, Value::Type::True, NAT_OBJECT->const_get(env, "TrueClass", true)->as_class() } { }
 };
 
 }

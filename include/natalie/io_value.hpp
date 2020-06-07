@@ -14,7 +14,7 @@ struct IoValue : Value {
     using Value::Value;
 
     IoValue(Env *env)
-        : Value { env, Value::Type::Io, const_get(env, NAT_OBJECT, "IO", true)->as_class() } { }
+        : Value { env, Value::Type::Io, NAT_OBJECT->const_get(env, "IO", true)->as_class() } { }
 
     IoValue(Env *env, ClassValue *klass)
         : Value { env, Value::Type::Io, klass } { }

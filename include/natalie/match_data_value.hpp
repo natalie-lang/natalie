@@ -14,7 +14,7 @@ struct MatchDataValue : Value {
     using Value::Value;
 
     MatchDataValue(Env *env)
-        : Value { env, Value::Type::MatchData, const_get(env, NAT_OBJECT, "MatchData", true)->as_class() } { }
+        : Value { env, Value::Type::MatchData, NAT_OBJECT->const_get(env, "MatchData", true)->as_class() } { }
 
     OnigRegion *matchdata_region;
     char *matchdata_str { nullptr };

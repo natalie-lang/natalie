@@ -1,13 +1,13 @@
-#include "natalie/builtin.hpp"
 #include "natalie.hpp"
+#include "natalie/builtin.hpp"
 
 namespace Natalie {
 
 Value *Encoding_list(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     ArrayValue *ary = array_new(env);
     ClassValue *self = self_value->as_class();
-    array_push(env, ary, const_get(env, self, "ASCII_8BIT", true));
-    array_push(env, ary, const_get(env, self, "UTF_8", true));
+    array_push(env, ary, self->const_get(env, "ASCII_8BIT", true));
+    array_push(env, ary, self->const_get(env, "UTF_8", true));
     return ary;
 }
 

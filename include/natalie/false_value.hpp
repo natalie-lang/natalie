@@ -20,7 +20,7 @@ private:
     using Value::Value;
 
     FalseValue(Env *env)
-        : Value { env, Value::Type::False, const_get(env, NAT_OBJECT, "FalseClass", true)->as_class() } { }
+        : Value { env, Value::Type::False, NAT_OBJECT->const_get(env, "FalseClass", true)->as_class() } { }
 };
 
 }

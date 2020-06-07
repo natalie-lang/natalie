@@ -72,9 +72,6 @@ struct Value {
 
     Value *initialize(Env *, ssize_t, Value **, Block *);
 
-    virtual ~Value() {
-    }
-
     bool is_nil() { return type == Type::Nil; }
     bool is_true() { return type == Type::True; }
     bool is_false() { return type == Type::False; }
@@ -126,12 +123,12 @@ struct Value {
     Value *cvar_get_or_null(Env *, const char *);
     Value *cvar_set(Env *, const char *, Value *);
 
+    virtual Value *const_get(Env *, const char *, bool);
+    virtual Value *const_get_or_null(Env *, const char *, bool, bool);
+    virtual Value *const_set(Env *, const char *, Value *);
+
 private:
     void init_ivars();
 };
-
-Value *const_get(Env *env, Value *klass, const char *name, bool strict);
-Value *const_get_or_null(Env *env, Value *klass, const char *name, bool strict, bool define);
-Value *const_set(Env *env, Value *klass, const char *name, Value *val);
 
 }

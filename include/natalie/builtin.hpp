@@ -119,31 +119,31 @@ Value *FalseClass_to_s(Env *env, Value *self, ssize_t argc, Value **args, Block 
     Value *Constants = new ModuleValue { env, "Constants" };              \
     define_method(env, klass, "initialize", File_initialize);             \
     define_singleton_method(env, klass, "expand_path", File_expand_path); \
-    const_set(env, klass, "Constants", Constants);                        \
-    const_set(env, klass, "APPEND", integer(env, O_APPEND));              \
-    const_set(env, Constants, "APPEND", integer(env, O_APPEND));          \
-    const_set(env, klass, "RDONLY", integer(env, O_RDONLY));              \
-    const_set(env, Constants, "RDONLY", integer(env, O_RDONLY));          \
-    const_set(env, klass, "WRONLY", integer(env, O_WRONLY));              \
-    const_set(env, Constants, "WRONLY", integer(env, O_WRONLY));          \
-    const_set(env, klass, "TRUNC", integer(env, O_TRUNC));                \
-    const_set(env, Constants, "TRUNC", integer(env, O_TRUNC));            \
-    const_set(env, klass, "CREAT", integer(env, O_CREAT));                \
-    const_set(env, Constants, "CREAT", integer(env, O_CREAT));            \
-    const_set(env, klass, "DSYNC", integer(env, O_DSYNC));                \
-    const_set(env, Constants, "DSYNC", integer(env, O_DSYNC));            \
-    const_set(env, klass, "EXCL", integer(env, O_EXCL));                  \
-    const_set(env, Constants, "EXCL", integer(env, O_EXCL));              \
-    const_set(env, klass, "NOCTTY", integer(env, O_NOCTTY));              \
-    const_set(env, Constants, "NOCTTY", integer(env, O_NOCTTY));          \
-    const_set(env, klass, "NOFOLLOW", integer(env, O_NOFOLLOW));          \
-    const_set(env, Constants, "NOFOLLOW", integer(env, O_NOFOLLOW));      \
-    const_set(env, klass, "NONBLOCK", integer(env, O_NONBLOCK));          \
-    const_set(env, Constants, "NONBLOCK", integer(env, O_NONBLOCK));      \
-    const_set(env, klass, "RDWR", integer(env, O_RDWR));                  \
-    const_set(env, Constants, "RDWR", integer(env, O_RDWR));              \
-    const_set(env, klass, "SYNC", integer(env, O_SYNC));                  \
-    const_set(env, Constants, "SYNC", integer(env, O_SYNC));
+    klass->const_set(env, "Constants", Constants);                        \
+    klass->const_set(env, "APPEND", integer(env, O_APPEND));              \
+    Constants->const_set(env, "APPEND", integer(env, O_APPEND));          \
+    klass->const_set(env, "RDONLY", integer(env, O_RDONLY));              \
+    Constants->const_set(env, "RDONLY", integer(env, O_RDONLY));          \
+    klass->const_set(env, "WRONLY", integer(env, O_WRONLY));              \
+    Constants->const_set(env, "WRONLY", integer(env, O_WRONLY));          \
+    klass->const_set(env, "TRUNC", integer(env, O_TRUNC));                \
+    Constants->const_set(env, "TRUNC", integer(env, O_TRUNC));            \
+    klass->const_set(env, "CREAT", integer(env, O_CREAT));                \
+    Constants->const_set(env, "CREAT", integer(env, O_CREAT));            \
+    klass->const_set(env, "DSYNC", integer(env, O_DSYNC));                \
+    Constants->const_set(env, "DSYNC", integer(env, O_DSYNC));            \
+    klass->const_set(env, "EXCL", integer(env, O_EXCL));                  \
+    Constants->const_set(env, "EXCL", integer(env, O_EXCL));              \
+    klass->const_set(env, "NOCTTY", integer(env, O_NOCTTY));              \
+    Constants->const_set(env, "NOCTTY", integer(env, O_NOCTTY));          \
+    klass->const_set(env, "NOFOLLOW", integer(env, O_NOFOLLOW));          \
+    Constants->const_set(env, "NOFOLLOW", integer(env, O_NOFOLLOW));      \
+    klass->const_set(env, "NONBLOCK", integer(env, O_NONBLOCK));          \
+    Constants->const_set(env, "NONBLOCK", integer(env, O_NONBLOCK));      \
+    klass->const_set(env, "RDWR", integer(env, O_RDWR));                  \
+    Constants->const_set(env, "RDWR", integer(env, O_RDWR));              \
+    klass->const_set(env, "SYNC", integer(env, O_SYNC));                  \
+    Constants->const_set(env, "SYNC", integer(env, O_SYNC));
 
 Value *File_initialize(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *File_expand_path(Env *env, Value *self, ssize_t argc, Value **args, Block *block);

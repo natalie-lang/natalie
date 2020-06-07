@@ -57,6 +57,9 @@ module Natalie
 
       METHODS = %i[
         as_class
+        const_get
+        const_get_or_null
+        const_set
         cvar_get
         cvar_get_or_null
         cvar_set
