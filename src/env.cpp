@@ -35,19 +35,19 @@ char *Env::build_code_location_name(Env *location_env) {
             if (strcmp(location_env->method_name, "<block>") == 0) {
                 if (location_env->outer) {
                     char *outer_name = build_code_location_name(location_env->outer);
-                    char *name = heap_string(sprintf(this, "block in %s", outer_name)->str);
+                    char *name = strdup(sprintf(this, "block in %s", outer_name)->str);
                     free(outer_name);
                     return name;
                 } else {
-                    return heap_string("block");
+                    return strdup("block");
                 }
             } else {
-                return heap_string(location_env->method_name);
+                return strdup(location_env->method_name);
             }
         }
         location_env = location_env->outer;
     } while (location_env);
-    return heap_string("(unknown)");
+    return strdup("(unknown)");
 }
 
 Value *Env::raise(ClassValue *klass, const char *message_format, ...) {
@@ -55,7 +55,7 @@ Value *Env::raise(ClassValue *klass, const char *message_format, ...) {
     va_start(args, message_format);
     StringValue *message = vsprintf(this, message_format, args);
     va_end(args);
-    ExceptionValue *exception = new ExceptionValue { this, klass, heap_string(message->str) };
+    ExceptionValue *exception = new ExceptionValue { this, klass, strdup(message->str) };
     this->raise_exception(exception);
     return exception;
 }

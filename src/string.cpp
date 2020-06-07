@@ -16,7 +16,7 @@ Value *String_initialize(Env *env, Value *self_value, ssize_t argc, Value **args
         NAT_ASSERT_TYPE(args[0], Value::Type::String, "String");
         StringValue *arg = args[0]->as_string();
         free(self->str);
-        self->str = heap_string(arg->str);
+        self->str = strdup(arg->str);
         self->str_len = arg->str_len;
         self->str_cap = arg->str_cap;
     }
@@ -230,7 +230,7 @@ Value *String_encoding(Env *env, Value *self_value, ssize_t argc, Value **args, 
 }
 
 static char *lcase_string(char *str) {
-    char *lcase_str = heap_string(str);
+    char *lcase_str = strdup(str);
     for (int i = 0; lcase_str[i]; i++) {
         lcase_str[i] = tolower(lcase_str[i]);
     }

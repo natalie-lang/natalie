@@ -11,7 +11,7 @@ using namespace Natalie;
 
 extern "C" Env *build_top_env() {
     Env *env = new Env { new GlobalEnv };
-    env->method_name = heap_string("<main>");
+    env->method_name = strdup("<main>");
 
     ClassValue *Class = ClassValue::bootstrap_class_class(env);
     define_method(env, Class, "superclass", Class_superclass);

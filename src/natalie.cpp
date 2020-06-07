@@ -36,10 +36,6 @@ Value *global_set(Env *env, const char *name, Value *val) {
     return val;
 }
 
-char *heap_string(const char *str) {
-    return strdup(str);
-}
-
 ClassValue *singleton_class(Env *env, Value *obj) {
     if (!obj->singleton_class) {
         obj->singleton_class = obj->klass->subclass(env, nullptr);
@@ -328,14 +324,14 @@ RegexpValue *regexp_new(Env *env, const char *pattern) {
     }
     RegexpValue *obj = new RegexpValue { env };
     obj->regexp = regexp;
-    obj->regexp_str = heap_string(pattern);
+    obj->regexp_str = strdup(pattern);
     return obj;
 }
 
 MatchDataValue *matchdata_new(Env *env, OnigRegion *region, StringValue *str_obj) {
     MatchDataValue *obj = new MatchDataValue { env };
     obj->matchdata_region = region;
-    obj->matchdata_str = heap_string(str_obj->str);
+    obj->matchdata_str = strdup(str_obj->str);
     return obj;
 }
 
