@@ -181,19 +181,19 @@ extern "C" Env *build_top_env() {
 
     Value *stdin_fileno = integer(env, STDIN_FILENO);
     Value *stdin = new IoValue { env };
-    initialize(env, stdin, 1, &stdin_fileno, NULL);
+    stdin->initialize(env, 1, &stdin_fileno, nullptr);
     global_set(env, "$stdin", stdin);
     const_set(env, Object, "STDIN", stdin);
 
     Value *stdout_fileno = integer(env, STDOUT_FILENO);
     Value *stdout = new IoValue { env };
-    initialize(env, stdout, 1, &stdout_fileno, NULL);
+    stdout->initialize(env, 1, &stdout_fileno, nullptr);
     global_set(env, "$stdout", stdout);
     const_set(env, Object, "STDOUT", stdout);
 
     Value *stderr_fileno = integer(env, STDERR_FILENO);
     Value *stderr = new IoValue { env };
-    initialize(env, stderr, 1, &stderr_fileno, NULL);
+    stderr->initialize(env, 1, &stderr_fileno, nullptr);
     global_set(env, "$stderr", stderr);
     const_set(env, Object, "STDERR", stderr);
 

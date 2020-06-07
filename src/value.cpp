@@ -3,6 +3,16 @@
 
 namespace Natalie {
 
+Value *Value::initialize(Env *env, ssize_t argc, Value **args, Block *block) {
+    ClassValue *klass = this->klass;
+    ModuleValue *matching_class_or_module;
+    Method *method = find_method(klass, "initialize", &matching_class_or_module);
+    if (method) {
+        call_method_on_class(env, klass, klass, "initialize", this, argc, args, block);
+    }
+    return this;
+}
+
 NilValue *Value::as_nil() {
     assert(is_nil());
     return static_cast<NilValue *>(this);

@@ -76,8 +76,6 @@ Value *global_set(Env *env, const char *name, Value *val);
 
 char *heap_string(const char *str);
 
-Value *initialize(Env *env, Value *obj, ssize_t argc, Value **args, Block *block);
-
 ClassValue *singleton_class(Env *env, Value *obj);
 
 IntegerValue *integer(Env *env, int64_t integer);

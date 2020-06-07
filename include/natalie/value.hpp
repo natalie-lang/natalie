@@ -56,14 +56,22 @@ struct Value {
     struct hashmap ivars EMPTY_HASHMAP;
 
     Value(Env *env)
-        : klass { NAT_OBJECT } { assert(klass); }
+        : klass { NAT_OBJECT } {
+        assert(klass);
+    }
 
     Value(Env *env, ClassValue *klass)
-        : klass { klass } { assert(klass); }
+        : klass { klass } {
+        assert(klass);
+    }
 
     Value(Env *env, Type type, ClassValue *klass)
         : type { type }
-        , klass { klass } { assert(klass); }
+        , klass { klass } {
+        assert(klass);
+    }
+
+    Value *initialize(Env *, ssize_t, Value **, Block *);
 
     virtual ~Value() { }
 

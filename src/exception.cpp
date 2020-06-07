@@ -1,11 +1,11 @@
-#include "natalie/builtin.hpp"
 #include "natalie.hpp"
+#include "natalie/builtin.hpp"
 
 namespace Natalie {
 
 Value *Exception_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     ExceptionValue *exception = new ExceptionValue { env, self->as_class() };
-    send(env, exception, "initialize", argc, args, block);
+    exception->initialize(env, argc, args, block);
     if (exception->message == NULL) exception->message = heap_string(self->as_class()->class_name);
     return exception;
 }

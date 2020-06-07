@@ -40,16 +40,6 @@ char *heap_string(const char *str) {
     return strdup(str);
 }
 
-Value *initialize(Env *env, Value *obj, ssize_t argc, Value **args, Block *block) {
-    ClassValue *klass = NAT_OBJ_CLASS(obj);
-    ModuleValue *matching_class_or_module;
-    Method *method = find_method(klass, "initialize", &matching_class_or_module);
-    if (method) {
-        call_method_on_class(env, klass, klass, "initialize", obj, argc, args, block);
-    }
-    return obj;
-}
-
 ClassValue *singleton_class(Env *env, Value *obj) {
     if (!obj->singleton_class) {
         obj->singleton_class = obj->klass->subclass(env, nullptr);

@@ -8,8 +8,7 @@ namespace Natalie {
 
 Value *IO_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     Value *obj = new IoValue { env, self->as_class() };
-    send(env, obj, "initialize", argc, args, block);
-    return obj;
+    return obj->initialize(env, argc, args, block);
 }
 
 Value *IO_initialize(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
