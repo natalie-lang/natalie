@@ -71,9 +71,6 @@ bool is_constant_name(const char *name);
 
 const char *find_current_method_name(Env *env);
 
-Value *global_get(Env *env, const char *name);
-Value *global_set(Env *env, const char *name, Value *val);
-
 ClassValue *singleton_class(Env *env, Value *obj);
 
 IntegerValue *integer(Env *env, int64_t integer);

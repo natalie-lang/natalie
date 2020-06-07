@@ -4,12 +4,12 @@
 namespace Natalie {
 
 Value *Kernel_puts(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
-    Value *stdout = global_get(env, "$stdout");
+    Value *stdout = env->global_get("$stdout");
     return IO_puts(env, stdout, argc, args, block);
 }
 
 Value *Kernel_print(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
-    Value *stdout = global_get(env, "$stdout");
+    Value *stdout = env->global_get("$stdout");
     return IO_print(env, stdout, argc, args, block);
 }
 
@@ -181,7 +181,7 @@ Value *Kernel_exit(Env *env, Value *self, ssize_t argc, Value **args, Block *blo
 }
 
 Value *Kernel_at_exit(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
-    Value *at_exit_handlers = global_get(env, "$NAT_at_exit_handlers");
+    Value *at_exit_handlers = env->global_get("$NAT_at_exit_handlers");
     assert(at_exit_handlers);
     NAT_ASSERT_BLOCK();
     Value *proc = proc_new(env, block);

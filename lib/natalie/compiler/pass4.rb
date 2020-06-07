@@ -63,6 +63,8 @@ module Natalie
         cvar_get
         cvar_get_or_null
         cvar_set
+        global_get
+        global_set
         include
         ivar_get
         ivar_set
@@ -95,7 +97,7 @@ module Natalie
 
       def init_matter
         return if @source_files.empty?
-        "global_set(env, \"$0\", string(env, source_files[0]));"
+        "env->global_set(\"$0\", string(env, source_files[0]));"
       end
 
       def process_atom(exp)
@@ -442,7 +444,7 @@ module Natalie
           c += @decl
           c << "return #{result};" unless result.empty?
           c << '} else {'
-          c << 'global_set(env, "$!", env->exception);'
+          c << 'env->global_set("$!", env->exception);'
           c << 'env->rescue = false;'
           @decl = []
           result = process_atom(bottom)

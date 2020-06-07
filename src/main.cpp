@@ -172,29 +172,29 @@ extern "C" Env *build_top_env() {
     Value *EncodingUTF8 = encoding(env, Encoding::UTF_8, array_with_vals(env, 1, string(env, "UTF-8")));
     Encoding->const_set(env, "UTF_8", EncodingUTF8);
 
-    global_set(env, "$NAT_at_exit_handlers", array_new(env));
+    env->global_set("$NAT_at_exit_handlers", array_new(env));
 
     Value *self = new Value { env };
     self->flags = NAT_FLAG_MAIN_OBJECT;
     define_singleton_method(env, self, "inspect", main_obj_inspect);
-    global_set(env, "$NAT_main_object", self);
+    env->global_set("$NAT_main_object", self);
 
     Value *stdin_fileno = integer(env, STDIN_FILENO);
     Value *stdin = new IoValue { env };
     stdin->initialize(env, 1, &stdin_fileno, nullptr);
-    global_set(env, "$stdin", stdin);
+    env->global_set("$stdin", stdin);
     Object->const_set(env, "STDIN", stdin);
 
     Value *stdout_fileno = integer(env, STDOUT_FILENO);
     Value *stdout = new IoValue { env };
     stdout->initialize(env, 1, &stdout_fileno, nullptr);
-    global_set(env, "$stdout", stdout);
+    env->global_set("$stdout", stdout);
     Object->const_set(env, "STDOUT", stdout);
 
     Value *stderr_fileno = integer(env, STDERR_FILENO);
     Value *stderr = new IoValue { env };
     stderr->initialize(env, 1, &stderr_fileno, nullptr);
-    global_set(env, "$stderr", stderr);
+    env->global_set("$stderr", stderr);
     Object->const_set(env, "STDERR", stderr);
 
     Value *ENV = new Value { env };
@@ -212,7 +212,7 @@ extern "C" Env *build_top_env() {
 /*TOP*/
 
 extern "C" Value *EVAL(Env *env) {
-    Value *self = global_get(env, "$NAT_main_object");
+    Value *self = env->global_get("$NAT_main_object");
     (void)self; // don't warn about unused var
     volatile bool run_exit_handlers = true;
     if (!NAT_RESCUE(env)) {

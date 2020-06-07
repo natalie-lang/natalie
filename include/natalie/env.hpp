@@ -21,8 +21,11 @@ struct Env {
     static Env new_block_env(Env *, Env *);
     static Env new_detatched_block_env(Env *);
 
+    Value *global_get(const char *);
+    Value *global_set(const char *, Value *);
+
     const char *find_current_method_name();
-    char *build_code_location_name(Env *location_env);
+    char *build_code_location_name(Env *);
 
     Value *var_get(const char *, ssize_t);
     Value *var_set(const char *, ssize_t, bool, Value *);

@@ -13,29 +13,6 @@ bool is_global_name(const char *name) {
     return strlen(name) > 0 && name[0] == '$';
 }
 
-Value *global_get(Env *env, const char *name) {
-    assert(strlen(name) > 0);
-    if (name[0] != '$') {
-        NAT_RAISE(env, "NameError", "`%s' is not allowed as a global variable name", name);
-    }
-    Value *val = static_cast<Value *>(hashmap_get(env->global_env->globals, name));
-    if (val) {
-        return val;
-    } else {
-        return NAT_NIL;
-    }
-}
-
-Value *global_set(Env *env, const char *name, Value *val) {
-    assert(strlen(name) > 0);
-    if (name[0] != '$') {
-        NAT_RAISE(env, "NameError", "`%s' is not allowed as an global variable name", name);
-    }
-    hashmap_remove(env->global_env->globals, name);
-    hashmap_put(env->global_env->globals, name, val);
-    return val;
-}
-
 ClassValue *singleton_class(Env *env, Value *obj) {
     if (!obj->singleton_class) {
         obj->singleton_class = obj->klass->subclass(env, nullptr);
@@ -465,7 +442,7 @@ const char *defined(Env *env, Value *receiver, const char *name) {
         obj = receiver->const_get_or_null(env, name, false, false);
         if (obj) return "constant";
     } else if (is_global_name(name)) {
-        obj = global_get(env, name);
+        obj = env->global_get(name);
         if (obj != NAT_NIL) return "global-variable";
     } else if (respond_to(env, receiver, name)) {
         return "method";
@@ -904,7 +881,7 @@ void alias(Env *env, Value *self, const char *new_name, const char *old_name) {
 }
 
 void run_at_exit_handlers(Env *env) {
-    ArrayValue *at_exit_handlers = global_get(env, "$NAT_at_exit_handlers")->as_array();
+    ArrayValue *at_exit_handlers = env->global_get("$NAT_at_exit_handlers")->as_array();
     assert(at_exit_handlers);
     for (int i = vector_size(&at_exit_handlers->ary) - 1; i >= 0; i--) {
         Value *proc = static_cast<Value *>(vector_get(&at_exit_handlers->ary, i));
@@ -915,7 +892,7 @@ void run_at_exit_handlers(Env *env) {
 }
 
 void print_exception_with_backtrace(Env *env, ExceptionValue *exception) {
-    IoValue *stderr = global_get(env, "$stderr")->as_io();
+    IoValue *stderr = env->global_get("$stderr")->as_io();
     int fd = stderr->fileno;
     if (vector_size(&exception->backtrace->ary) > 0) {
         dprintf(fd, "Traceback (most recent call last):\n");
