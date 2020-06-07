@@ -148,7 +148,7 @@ Value *const_get_or_null(Env *env, Value *parent, const char *name, bool strict,
 
     if (define) {
         // don't search superclasses
-        val = static_cast<Value *>(hashmap_get(&parent->constants, name));
+        val = static_cast<Value *>(hashmap_get(&parent->as_module()->constants, name));
         if (val) return val;
     } else {
         // search in superclass hierarchy
@@ -173,8 +173,9 @@ Value *const_set(Env *env, Value *parent, const char *name, Value *val) {
         parent = NAT_OBJ_CLASS(parent);
         assert(parent);
     }
-    hashmap_remove(&parent->constants, name);
-    hashmap_put(&parent->constants, name, val);
+    ModuleValue *parent_module = parent->as_module();
+    hashmap_remove(&parent_module->constants, name);
+    hashmap_put(&parent_module->constants, name, val);
     if (val->is_module() && !val->owner) {
         val->owner = parent->as_module();
     }

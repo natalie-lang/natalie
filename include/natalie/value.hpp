@@ -42,19 +42,6 @@ struct Value {
         NullAllowed,
     };
 
-    Type type { Type::Object };
-    ClassValue *klass { nullptr };
-
-    ClassValue *singleton_class { nullptr };
-
-    ModuleValue *owner { nullptr };
-    int flags { 0 };
-
-    Env env;
-
-    struct hashmap constants EMPTY_HASHMAP; // TODO: can any ol' object have constants???
-    struct hashmap ivars EMPTY_HASHMAP;
-
     Value(Env *env)
         : klass { NAT_OBJECT } {
         assert(klass);
@@ -71,9 +58,22 @@ struct Value {
         assert(klass);
     }
 
+    Type type { Type::Object };
+    ClassValue *klass { nullptr };
+
+    ClassValue *singleton_class { nullptr };
+
+    ModuleValue *owner { nullptr };
+    int flags { 0 };
+
+    Env env;
+
+    struct hashmap ivars EMPTY_HASHMAP;
+
     Value *initialize(Env *, ssize_t, Value **, Block *);
 
-    virtual ~Value() { }
+    virtual ~Value() {
+    }
 
     bool is_nil() { return type == Type::Nil; }
     bool is_true() { return type == Type::True; }
