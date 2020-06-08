@@ -20,7 +20,7 @@ Value *File_initialize(Env *env, Value *self_value, ssize_t argc, Value **args, 
             flags = NAT_INT_VALUE(flags_obj);
             break;
         case Value::Type::String: {
-            const char *flags_str = flags_obj->as_string()->str;
+            const char *flags_str = flags_obj->as_string()->c_str();
             if (strcmp(flags_str, "r") == 0) {
                 flags = O_RDONLY;
             } else if (strcmp(flags_str, "r+") == 0) {
@@ -43,7 +43,7 @@ Value *File_initialize(Env *env, Value *self_value, ssize_t argc, Value **args, 
         }
     }
     int mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
-    int fileno = open(filename->as_string()->str, flags, mode);
+    int fileno = open(filename->as_string()->c_str(), flags, mode);
     if (fileno == -1) {
         Value *exception_args[2] = { filename, integer(env, errno) };
         ExceptionValue *error = send(env, NAT_OBJECT->const_get(env, "SystemCallError", true), "exception", 2, exception_args, NULL)->as_exception();
@@ -59,23 +59,23 @@ Value *File_expand_path(Env *env, Value *self, ssize_t argc, Value **args, Block
     NAT_ASSERT_ARGC2(1, 2);
     Value *path = args[0];
     NAT_ASSERT_TYPE(path, Value::Type::String, "String");
-    if (path->as_string()->str_len > 0 && path->as_string()->str[0] == '/') {
+    if (path->as_string()->length() > 0 && path->as_string()->c_str()[0] == '/') {
         return path;
     }
     Value *merged;
     if (argc == 2) {
         Value *root = File_expand_path(env, self, 1, args + 1, NULL);
-        merged = sprintf(env, "%S/%S", root, path);
+        merged = StringValue::sprintf(env, "%S/%S", root, path);
     } else {
         char root[4096];
         if (getcwd(root, 4096)) {
-            merged = sprintf(env, "%s/%S", root, path);
+            merged = StringValue::sprintf(env, "%s/%S", root, path);
         } else {
             NAT_RAISE(env, "RuntimeError", "could not get current directory");
         }
     }
     RegexpValue *dotdot = regexp_new(env, "[^/]*/\\.\\./");
-    Value *empty_string = string(env, "");
+    Value *empty_string = new StringValue { env, "" };
     while (Regexp_match(env, dotdot, 1, &merged, nullptr)->is_truthy()) {
         Value *args[2] = { dotdot, empty_string };
         merged = String_sub(env, merged, 2, args, NULL);

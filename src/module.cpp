@@ -13,14 +13,14 @@ Value *Module_inspect(Env *env, Value *self_value, ssize_t argc, Value **args, B
     NAT_ASSERT_ARGC(0);
     if (self->class_name) {
         if (self->owner && self->owner != NAT_OBJECT) {
-            return sprintf(env, "%S::%s", Module_inspect(env, self->owner, 0, NULL, NULL), self->class_name);
+            return StringValue::sprintf(env, "%S::%s", Module_inspect(env, self->owner, 0, NULL, NULL), self->class_name);
         } else {
-            return string(env, self->class_name);
+            return new StringValue { env, self->class_name };
         }
     } else if (NAT_TYPE(self) == Value::Type::Class) {
         char buf[NAT_OBJECT_POINTER_BUF_LENGTH];
         object_pointer_id(self, buf);
-        return sprintf(env, "#<Class:%s>", buf);
+        return StringValue::sprintf(env, "#<Class:%s>", buf);
     } else {
         return Kernel_inspect(env, self, argc, args, block);
     }
@@ -41,7 +41,7 @@ Value *Module_name(Env *env, Value *self_value, ssize_t argc, Value **args, Bloc
     ModuleValue *self = self_value->as_module();
     NAT_ASSERT_ARGC(0);
     if (self->class_name) {
-        return string(env, self->class_name);
+        return new StringValue { env, self->class_name };
     } else {
         return NAT_NIL;
     }
@@ -61,14 +61,14 @@ Value *Module_attr_reader(Env *env, Value *self_value, ssize_t argc, Value **arg
         if (NAT_TYPE(name_obj) == Value::Type::String) {
             // we're good!
         } else if (NAT_TYPE(name_obj) == Value::Type::Symbol) {
-            name_obj = string(env, name_obj->as_symbol()->symbol);
+            name_obj = name_obj->as_symbol()->to_s(env);
         } else {
             NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", send(env, name_obj, "inspect", 0, NULL, NULL));
         }
         Env block_env = Env::new_detatched_block_env(env);
         block_env.var_set("name", 0, true, name_obj);
         Block *attr_block = block_new(&block_env, self, Module_attr_reader_block_fn);
-        define_method_with_block(env, self, name_obj->as_string()->str, attr_block);
+        define_method_with_block(env, self, name_obj->as_string()->c_str(), attr_block);
     }
     return NAT_NIL;
 }
@@ -76,8 +76,8 @@ Value *Module_attr_reader(Env *env, Value *self_value, ssize_t argc, Value **arg
 Value *Module_attr_reader_block_fn(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     Value *name_obj = env->outer->var_get("name", 0);
     assert(name_obj);
-    StringValue *ivar_name = sprintf(env, "@%S", name_obj);
-    return self->ivar_get(env, ivar_name->str);
+    StringValue *ivar_name = StringValue::sprintf(env, "@%S", name_obj);
+    return self->ivar_get(env, ivar_name->c_str());
 }
 
 Value *Module_attr_writer(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
@@ -88,16 +88,16 @@ Value *Module_attr_writer(Env *env, Value *self_value, ssize_t argc, Value **arg
         if (NAT_TYPE(name_obj) == Value::Type::String) {
             // we're good!
         } else if (NAT_TYPE(name_obj) == Value::Type::Symbol) {
-            name_obj = string(env, name_obj->as_symbol()->symbol);
+            name_obj = name_obj->as_symbol()->to_s(env);
         } else {
             NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", send(env, name_obj, "inspect", 0, NULL, NULL));
         }
-        StringValue *method_name = string(env, name_obj->as_string()->str);
-        string_append_char(env, method_name, '=');
+        StringValue *method_name = new StringValue { env, name_obj->as_string()->c_str() };
+        method_name->append_char(env, '=');
         Env block_env = Env::new_detatched_block_env(env);
         block_env.var_set("name", 0, true, name_obj);
         Block *attr_block = block_new(&block_env, self, Module_attr_writer_block_fn);
-        define_method_with_block(env, self, method_name->str, attr_block);
+        define_method_with_block(env, self, method_name->c_str(), attr_block);
     }
     return NAT_NIL;
 }
@@ -106,8 +106,8 @@ Value *Module_attr_writer_block_fn(Env *env, Value *self, ssize_t argc, Value **
     Value *val = args[0];
     Value *name_obj = env->outer->var_get("name", 0);
     assert(name_obj);
-    StringValue *ivar_name = sprintf(env, "@%S", name_obj);
-    self->ivar_set(env, ivar_name->str, val);
+    StringValue *ivar_name = StringValue::sprintf(env, "@%S", name_obj);
+    self->ivar_set(env, ivar_name->c_str(), val);
     return val;
 }
 
@@ -156,7 +156,7 @@ Value *Module_define_method(Env *env, Value *self_value, ssize_t argc, Value **a
         NAT_RAISE(env, "ArgumentError", "tried to create Proc object without a block");
     }
     define_method_with_block(env, self, name, block);
-    return symbol(env, name);
+    return SymbolValue::intern(env, name);
 }
 
 Value *Module_class_eval(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {

@@ -42,7 +42,7 @@ Value *IO_read(Env *env, Value *self_value, ssize_t argc, Value **args, Block *b
             return NAT_NIL;
         } else {
             buf[bytes_read] = 0;
-            Value *result = string(env, buf);
+            Value *result = new StringValue { env, buf };
             free(buf);
             return result;
         }
@@ -50,15 +50,15 @@ Value *IO_read(Env *env, Value *self_value, ssize_t argc, Value **args, Block *b
         char buf[NAT_READ_BYTES + 1];
         bytes_read = read(self->fileno, buf, NAT_READ_BYTES);
         if (bytes_read == 0) {
-            return string(env, "");
+            return new StringValue { env, "" };
         } else {
             buf[bytes_read] = 0;
-            StringValue *str = string(env, buf);
+            StringValue *str = new StringValue { env, buf };
             while (1) {
                 bytes_read = read(self->fileno, buf, NAT_READ_BYTES);
                 if (bytes_read == 0) break;
                 buf[bytes_read] = 0;
-                string_append(env, str, buf);
+                str->append(env, buf);
             }
             return str;
         }
@@ -78,7 +78,7 @@ Value *IO_write(Env *env, Value *self_value, ssize_t argc, Value **args, Block *
             obj = send(env, obj, "to_s", 0, NULL, NULL);
         }
         NAT_ASSERT_TYPE(obj, Value::Type::String, "String");
-        ssize_t result = write(self->fileno, obj->as_string()->str, obj->as_string()->str_len);
+        ssize_t result = write(self->fileno, obj->as_string()->c_str(), obj->as_string()->length());
         if (result == -1) {
             Value *error_number = integer(env, errno);
             ExceptionValue *error = send(env, NAT_OBJECT->const_get(env, "SystemCallError", true), "exception", 1, &error_number, NULL)->as_exception();
@@ -100,7 +100,7 @@ Value *IO_puts(Env *env, Value *self_value, ssize_t argc, Value **args, Block *b
         for (ssize_t i = 0; i < argc; i++) {
             Value *str = send(env, args[i], "to_s", 0, NULL, NULL);
             NAT_ASSERT_TYPE(str, Value::Type::String, "String");
-            dprintf(fd, "%s\n", str->as_string()->str);
+            dprintf(fd, "%s\n", str->as_string()->c_str());
         }
     }
     return NAT_NIL;
@@ -113,7 +113,7 @@ Value *IO_print(Env *env, Value *self_value, ssize_t argc, Value **args, Block *
         for (ssize_t i = 0; i < argc; i++) {
             Value *str = send(env, args[i], "to_s", 0, NULL, NULL);
             NAT_ASSERT_TYPE(str, Value::Type::String, "String");
-            dprintf(fd, "%s", str->as_string()->str);
+            dprintf(fd, "%s", str->as_string()->c_str());
         }
     }
     return NAT_NIL;
@@ -148,11 +148,11 @@ Value *IO_seek(Env *env, Value *self_value, ssize_t argc, Value **args, Block *b
             break;
         case Value::Type::Symbol: {
             SymbolValue *whence_sym = whence_obj->as_symbol();
-            if (strcmp(whence_sym->symbol, "SET") == 0) {
+            if (strcmp(whence_sym->c_str(), "SET") == 0) {
                 whence = 0;
-            } else if (strcmp(whence_sym->symbol, "CUR") == 0) {
+            } else if (strcmp(whence_sym->c_str(), "CUR") == 0) {
                 whence = 1;
-            } else if (strcmp(whence_sym->symbol, "END") == 0) {
+            } else if (strcmp(whence_sym->c_str(), "END") == 0) {
                 whence = 2;
             } else {
                 NAT_RAISE(env, "TypeError", "no implicit conversion of Symbol into NAT_INTEGER");

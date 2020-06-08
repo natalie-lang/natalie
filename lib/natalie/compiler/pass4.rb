@@ -23,6 +23,8 @@ module Natalie
         NAT_ASSERT_NOT_FROZEN
         NAT_UNREACHABLE
         alias
+        append
+        append_string
         array_expand_with_nil
         array_push
         array_push_splat
@@ -52,11 +54,15 @@ module Natalie
       ]
 
       TYPES = {
-        as_class: 'ClassValue'
+        as_class: 'ClassValue',
+        as_string: 'StringValue',
       }
 
       METHODS = %i[
+        append
+        append_string
         as_class
+        as_string
         const_get
         const_get_or_null
         const_set
@@ -97,7 +103,7 @@ module Natalie
 
       def init_matter
         return if @source_files.empty?
-        "env->global_set(\"$0\", string(env, source_files[0]));"
+        "env->global_set(\"$0\", new StringValue { env, source_files[0] });"
       end
 
       def process_atom(exp)
@@ -370,9 +376,9 @@ module Natalie
           decl "#{result} = #{process_atom s(:nil)};"
           decl '}'
         when :lit, :str
-          decl "Value *#{result} = string(env, \"expression\");"
+          decl "Value *#{result} = new StringValue { env, \"expression\" };"
         when :nil
-          decl "Value *#{result} = string(env, \"nil\");"
+          decl "Value *#{result} = new StringValue { env, \"nil\" };"
         else
           raise "unknown defined type: #{exp.inspect}"
         end
@@ -537,7 +543,9 @@ module Natalie
 
       def process_new(exp)
         (_, klass, *args) = exp
-        "new #{klass} { #{args.map { |a| process_atom(a) }.join(', ') } }"
+        name = temp('new')
+        decl "Value *#{name} = new #{klass} { #{args.map { |a| process_atom(a) }.join(', ') } };"
+        name
       end
 
       def process_sexp(exp, name = nil, type = 'Value')
@@ -584,6 +592,7 @@ module Natalie
       end
 
       def temp(name)
+        name = name.to_s.gsub(/[^a-zA-Z]/, '')
         n = @compiler_context[:var_num] += 1
         "#{@compiler_context[:var_prefix]}#{name}#{n}"
       end

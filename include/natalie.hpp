@@ -106,23 +106,6 @@ ProcValue *proc_new(Env *env, Block *block);
 ProcValue *to_proc(Env *env, Value *obj);
 ProcValue *lambda(Env *env, Block *block);
 
-#define NAT_STRING_GROW_FACTOR 2
-
-StringValue *string_n(Env *env, const char *str, ssize_t len);
-StringValue *string(Env *env, const char *str);
-void grow_string(Env *env, StringValue *obj, ssize_t capacity);
-void grow_string_at_least(Env *env, StringValue *obj, ssize_t min_capacity);
-void string_append(Env *env, Value *val, const char *s);
-void string_append(Env *env, StringValue *str, const char *s);
-void string_append_char(Env *env, StringValue *str, char c);
-void string_append_string(Env *env, Value *val, Value *val2);
-void string_append_string(Env *env, StringValue *str, StringValue *str2);
-ArrayValue *string_chars(Env *env, StringValue *str);
-StringValue *sprintf(Env *env, const char *format, ...);
-StringValue *vsprintf(Env *env, const char *format, va_list args);
-
-SymbolValue *symbol(Env *env, const char *name);
-
 ArrayValue *array_new(Env *env);
 ArrayValue *array_with_vals(Env *env, ssize_t count, ...);
 ArrayValue *array_copy(Env *env, ArrayValue *source);

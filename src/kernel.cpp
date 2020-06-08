@@ -34,17 +34,17 @@ Value *Kernel_p(Env *env, Value *self, ssize_t argc, Value **args, Block *block)
 Value *Kernel_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     if (self->is_module() && self->as_module()->class_name) {
-        return string(env, self->as_module()->class_name);
+        return new StringValue { env, self->as_module()->class_name };
     } else {
-        StringValue *str = string(env, "#<");
+        StringValue *str = new StringValue { env, "#<" };
         assert(NAT_OBJ_CLASS(self));
         StringValue *inspected = static_cast<StringValue *>(Module_inspect(env, NAT_OBJ_CLASS(self), 0, NULL, NULL));
-        string_append(env, str, inspected->str);
-        string_append_char(env, str, ':');
+        str->append_string(env, inspected);
+        str->append_char(env, ':');
         char buf[NAT_OBJECT_POINTER_BUF_LENGTH];
         object_pointer_id(self, buf);
-        string_append(env, str, buf);
-        string_append_char(env, str, '>');
+        str->append(env, buf);
+        str->append_char(env, '>');
         return str;
     }
 }
@@ -87,7 +87,7 @@ Value *Kernel_instance_variables(Env *env, Value *self, ssize_t argc, Value **ar
     if (self->ivars.table) {
         for (iter = hashmap_iter(&self->ivars); iter; iter = hashmap_iter_next(&self->ivars, iter)) {
             char *name = (char *)hashmap_iter_get_key(iter);
-            array_push(env, ary, symbol(env, name));
+            array_push(env, ary, SymbolValue::intern(env, name));
         }
     }
     return ary;
@@ -122,7 +122,7 @@ Value *Kernel_raise(Env *env, Value *self, ssize_t argc, Value **args, Block *bl
         Value *arg = args[0];
         if (arg->is_class()) {
             klass = arg->as_class();
-            message = string(env, arg->as_class()->class_name);
+            message = new StringValue { env, arg->as_class()->class_name };
         } else if (arg->is_string()) {
             klass = NAT_OBJECT->const_get(env, "RuntimeError", true)->as_class();
             message = arg;
@@ -133,7 +133,7 @@ Value *Kernel_raise(Env *env, Value *self, ssize_t argc, Value **args, Block *bl
             NAT_RAISE(env, "TypeError", "exception klass/object expected");
         }
     }
-    env->raise(klass, message->as_string()->str);
+    env->raise(klass, message->as_string()->c_str());
     abort();
 }
 
@@ -205,7 +205,7 @@ Value *Kernel_is_a(Env *env, Value *self, ssize_t argc, Value **args, Block *blo
 Value *Kernel_hash(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     StringValue *inspected = send(env, self, "inspect", 0, NULL, NULL)->as_string();
-    ssize_t hash_value = hashmap_hash_string(inspected->str);
+    ssize_t hash_value = hashmap_hash_string(inspected->c_str());
     ssize_t truncated_hash_value = RSHIFT(hash_value, 1); // shift right to fit in our int size (without need for BigNum)
     return integer(env, truncated_hash_value);
 }
@@ -232,7 +232,7 @@ Value *Kernel_method(Env *env, Value *self, ssize_t argc, Value **args, Block *b
     NAT_ASSERT_ARGC(0);
     const char *name = env->caller->find_current_method_name();
     if (name) {
-        return symbol(env, name);
+        return SymbolValue::intern(env, name);
     } else {
         return NAT_NIL;
     }
@@ -268,7 +268,7 @@ Value *Kernel_define_singleton_method(Env *env, Value *self, ssize_t argc, Value
     NAT_ASSERT_ARGC(1);
     NAT_ASSERT_BLOCK();
     SymbolValue *name_obj = args[0]->to_symbol(env, Value::Conversion::Strict);
-    define_singleton_method_with_block(env, self, name_obj->symbol, block);
+    define_singleton_method_with_block(env, self, name_obj->c_str(), block);
     return name_obj;
 }
 
@@ -304,21 +304,20 @@ Value *Kernel_cur_dir(Env *env, Value *self, ssize_t argc, Value **args, Block *
     if (env->file == NULL) {
         NAT_RAISE(env, "RuntimeError", "could not get current directory");
     } else if (strcmp(env->file, "-e") == 0) {
-        return string(env, ".");
+        return new StringValue { env, "." };
     } else {
-        Value *relative = string(env, env->file);
+        Value *relative = new StringValue { env, env->file };
         StringValue *absolute = static_cast<StringValue *>(File_expand_path(env, NAT_OBJECT->const_get(env, "File", true), 1, &relative, NULL));
         ssize_t last_slash = 0;
         bool found = false;
-        for (ssize_t i = 0; i < absolute->str_len; i++) {
-            if (absolute->str[i] == '/') {
+        for (ssize_t i = 0; i < absolute->length(); i++) {
+            if (absolute->c_str()[i] == '/') {
                 found = true;
                 last_slash = i;
             }
         }
         if (found) {
-            absolute->str[last_slash] = 0;
-            absolute->str_len = last_slash;
+            absolute->truncate(last_slash);
         }
         return absolute;
     }

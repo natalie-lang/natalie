@@ -9,7 +9,7 @@ Value *Integer_to_s(Env *env, Value *self_value, ssize_t argc, Value **args, Blo
     NAT_ASSERT_ARGC(0);
     char buf[NAT_INT_64_MAX_BUF_LEN];
     int_to_string(NAT_INT_VALUE(self), buf);
-    return string(env, buf);
+    return new StringValue { env, buf };
 }
 
 Value *Integer_add(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {

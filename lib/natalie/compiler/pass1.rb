@@ -214,7 +214,7 @@ module Natalie
         exp.new(:block,
                 fn,
                 s(:define_method, :env, :self, s(:s, name), fn[1]),
-                s(:symbol, :env, s(:s, name)))
+                s(:"SymbolValue::intern", :env, s(:s, name)))
       end
 
       def process_defs(exp)
@@ -223,7 +223,7 @@ module Natalie
         exp.new(:block,
                 fn,
                 s(:define_singleton_method, :env, process(owner), s(:s, name), fn[1]),
-                s(:symbol, :env, s(:s, name)))
+                s(:"SymbolValue::intern", :env, s(:s, name)))
       end
 
       def process_dot2(exp)
@@ -239,7 +239,7 @@ module Natalie
       def process_dregx(exp)
         str_node = process_dstr(exp)
         str = str_node.pop
-        str_node << exp.new(:regexp_new, :env, s(:l, "#{str}->as_string()->str"))
+        str_node << exp.new(:regexp_new, :env, s(:l, "#{str}->as_string()->c_str()"))
         str_node
       end
 
@@ -249,15 +249,15 @@ module Natalie
         segments = rest.map do |segment|
           case segment.sexp_type
           when :evstr
-            s(:string_append_string, :env, string, process(s(:call, segment.last, :to_s)))
+            s(:append_string, s(:as_string, string), :env, process(s(:call, segment.last, :to_s)))
           when :str
-            s(:string_append, :env, string, s(:s, segment.last))
+            s(:append, s(:as_string, string), :env, s(:s, segment.last))
           else
             raise "unknown dstr segment: #{segment.inspect}"
           end
         end
         exp.new(:block,
-                s(:declare, string, s(:string, :env, s(:s, start))),
+                s(:declare, string, s(:new, :StringValue, :env, s(:s, start))),
                 *segments,
                 string)
       end
@@ -265,7 +265,7 @@ module Natalie
       def process_dsym(exp)
         str_node = process_dstr(exp)
         str = str_node.pop
-        str_node << exp.new(:symbol, :env, s(:l, "#{str}->as_string()->str"))
+        str_node << exp.new(:l, "#{str}->as_string()->to_symbol(env)")
         str_node
       end
 
@@ -403,7 +403,7 @@ module Natalie
         when Regexp
           exp.new(:regexp_new, :env, s(:s, lit.inspect[1...-1]))
         when Symbol
-          exp.new(:symbol, :env, s(:s, lit))
+          exp.new(:"SymbolValue::intern", :env, s(:s, lit))
         else
           raise "unknown lit: #{exp.inspect} (#{exp.file}\##{exp.line})"
         end
@@ -741,7 +741,7 @@ module Natalie
 
       def process_str(exp)
         (_, str) = exp
-        exp.new(:string, :env, s(:s, str))
+        exp.new(:new, :StringValue, :env, s(:s, str))
       end
 
       def process_super(exp)

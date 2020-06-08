@@ -63,9 +63,9 @@ Value *Range_inspect(Env *env, Value *self_value, ssize_t argc, Value **args, Bl
     NAT_ASSERT_ARGC(0);
     RangeValue *self = self_value->as_range();
     if (self->range_exclude_end) {
-        return sprintf(env, "%v...%v", self->range_begin, self->range_end);
+        return StringValue::sprintf(env, "%v...%v", self->range_begin, self->range_end);
     } else {
-        return sprintf(env, "%v..%v", self->range_begin, self->range_end);
+        return StringValue::sprintf(env, "%v..%v", self->range_begin, self->range_end);
     }
 }
 

@@ -95,9 +95,9 @@ VoidPValue *Value::as_void_p() {
 
 const char *Value::identifier_str(Env *env, Conversion conversion) {
     if (is_symbol()) {
-        return as_symbol()->symbol;
+        return as_symbol()->c_str();
     } else if (is_string()) {
-        return as_string()->str;
+        return as_string()->c_str();
     } else if (conversion == Conversion::NullAllowed) {
         return nullptr;
     } else {

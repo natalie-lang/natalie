@@ -47,11 +47,13 @@ struct Value {
         assert(klass);
     }
 
+    // TODO: don't need env here
     Value(Env *env, ClassValue *klass)
         : klass { klass } {
         assert(klass);
     }
 
+    // TODO: don't need env here
     Value(Env *env, Type type, ClassValue *klass)
         : type { type }
         , klass { klass } {
@@ -72,26 +74,26 @@ struct Value {
 
     Value *initialize(Env *, ssize_t, Value **, Block *);
 
-    bool is_nil() { return type == Type::Nil; }
-    bool is_true() { return type == Type::True; }
-    bool is_false() { return type == Type::False; }
-    bool is_array() { return type == Type::Array; }
-    bool is_module() { return type == Type::Module || type == Type::Class; }
-    bool is_class() { return type == Type::Class; }
-    bool is_encoding() { return type == Type::Encoding; }
-    bool is_exception() { return type == Type::Exception; }
-    bool is_hash() { return type == Type::Hash; }
-    bool is_integer() { return type == Type::Integer; }
-    bool is_io() { return type == Type::Io; }
-    bool is_match_data() { return type == Type::MatchData; }
-    bool is_proc() { return type == Type::Proc; }
-    bool is_range() { return type == Type::Range; }
-    bool is_regexp() { return type == Type::Regexp; }
-    bool is_symbol() { return type == Type::Symbol; }
-    bool is_string() { return type == Type::String; }
-    bool is_void_p() { return type == Type::VoidP; }
+    bool is_nil() const { return type == Type::Nil; }
+    bool is_true() const { return type == Type::True; }
+    bool is_false() const { return type == Type::False; }
+    bool is_array() const { return type == Type::Array; }
+    bool is_module() const { return type == Type::Module || type == Type::Class; }
+    bool is_class() const { return type == Type::Class; }
+    bool is_encoding() const { return type == Type::Encoding; }
+    bool is_exception() const { return type == Type::Exception; }
+    bool is_hash() const { return type == Type::Hash; }
+    bool is_integer() const { return type == Type::Integer; }
+    bool is_io() const { return type == Type::Io; }
+    bool is_match_data() const { return type == Type::MatchData; }
+    bool is_proc() const { return type == Type::Proc; }
+    bool is_range() const { return type == Type::Range; }
+    bool is_regexp() const { return type == Type::Regexp; }
+    bool is_symbol() const { return type == Type::Symbol; }
+    bool is_string() const { return type == Type::String; }
+    bool is_void_p() const { return type == Type::VoidP; }
 
-    bool is_truthy() { return !this->is_false() && !this->is_nil(); }
+    bool is_truthy() const { return !this->is_false() && !this->is_nil(); }
 
     NilValue *as_nil();
     TrueValue *as_true();

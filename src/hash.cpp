@@ -55,21 +55,21 @@ Value *Hash_square_new(Env *env, Value *self_value, ssize_t argc, Value **args, 
 Value *Hash_inspect(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     HashValue *self = self_value->as_hash();
-    StringValue *out = string(env, "{");
+    StringValue *out = new StringValue { env, "{" };
     HashIter *iter;
     ssize_t last_index = self->hashmap.num_entries - 1;
     ssize_t index;
     for (iter = hash_iter(env, self), index = 0; iter; iter = hash_iter_next(env, self, iter), index++) {
         StringValue *key_repr = send(env, iter->key, "inspect", 0, NULL, NULL)->as_string();
-        string_append(env, out, key_repr->str);
-        string_append(env, out, "=>");
+        out->append(env, key_repr->c_str());
+        out->append(env, "=>");
         StringValue *val_repr = send(env, iter->val, "inspect", 0, NULL, NULL)->as_string();
-        string_append(env, out, val_repr->str);
+        out->append(env, val_repr->c_str());
         if (index < last_index) {
-            string_append(env, out, ", ");
+            out->append(env, ", ");
         }
     }
-    string_append_char(env, out, '}');
+    out->append_char(env, '}');
     return out;
 }
 

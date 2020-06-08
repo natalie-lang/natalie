@@ -34,16 +34,16 @@ Value *Array_square_new(Env *env, Value *self_value, ssize_t argc, Value **args,
 Value *Array_inspect(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     ArrayValue *self = self_value->as_array();
-    StringValue *out = string(env, "[");
+    StringValue *out = new StringValue { env, "[" };
     for (ssize_t i = 0; i < vector_size(&self->ary); i++) {
         Value *obj = static_cast<Value *>(vector_get(&self->ary, i));
         StringValue *repr = send(env, obj, "inspect", 0, NULL, NULL)->as_string();
-        string_append_string(env, out, repr);
+        out->append_string(env, repr);
         if (i < vector_size(&self->ary) - 1) {
-            string_append(env, out, ", ");
+            out->append(env, ", ");
         }
     }
-    string_append_char(env, out, ']');
+    out->append_char(env, ']');
     return out;
 }
 
@@ -331,7 +331,7 @@ Value *Array_join(Env *env, Value *self_value, ssize_t argc, Value **args, Block
     ArrayValue *self = self_value->as_array();
     NAT_ASSERT_ARGC(1);
     if (vector_size(&self->ary) == 0) {
-        return string(env, "");
+        return new StringValue { env };
     } else if (vector_size(&self->ary) == 1) {
         return send(env, static_cast<Value *>(vector_get(&self->ary, 0)), "to_s", 0, NULL, NULL);
     } else {
@@ -339,8 +339,8 @@ Value *Array_join(Env *env, Value *self_value, ssize_t argc, Value **args, Block
         NAT_ASSERT_TYPE(joiner, Value::Type::String, "String");
         StringValue *out = send(env, static_cast<Value *>(vector_get(&self->ary, 0)), "to_s", 0, NULL, NULL)->as_string();
         for (ssize_t i = 1; i < vector_size(&self->ary); i++) {
-            string_append_string(env, out, joiner->as_string());
-            string_append_string(env, out, send(env, static_cast<Value *>(vector_get(&self->ary, i)), "to_s", 0, NULL, NULL)->as_string());
+            out->append_string(env, joiner->as_string());
+            out->append_string(env, send(env, static_cast<Value *>(vector_get(&self->ary, i)), "to_s", 0, NULL, NULL)->as_string());
         }
         return out;
     }

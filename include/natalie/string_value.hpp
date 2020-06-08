@@ -1,6 +1,8 @@
 #pragma once
 
 #include <assert.h>
+#include <stdarg.h>
+#include <string.h>
 
 #include "natalie/class_value.hpp"
 #include "natalie/encoding_value.hpp"
@@ -12,20 +14,87 @@
 namespace Natalie {
 
 struct StringValue : Value {
-    using Value::Value;
-
-    StringValue(Env *env)
-        : Value { env, Value::Type::String, NAT_OBJECT->const_get(env, "String", true)->as_class() } { }
+    const int STRING_GROW_FACTOR = 2;
 
     StringValue(Env *env, ClassValue *klass)
-        : Value { env, Value::Type::String, klass } { }
+        : Value { env, Value::Type::String, klass } {
+        m_str = strdup("");
+    }
 
-    ssize_t str_len { 0 };
-    ssize_t str_cap { 0 };
-    char *str { nullptr };
-    Encoding encoding;
+    StringValue(Env *env)
+        : StringValue { env, "" } { }
 
-    SymbolValue *to_symbol(Env *env);
+    StringValue(Env *env, const char *str)
+        : Value { env, Value::Type::String, NAT_OBJECT->const_get(env, "String", true)->as_class() } {
+        set_str(str);
+    }
+
+    StringValue(Env *env, const char *str, ssize_t length)
+        : Value { env, Value::Type::String, NAT_OBJECT->const_get(env, "String", true)->as_class() } {
+        set_str(str, length);
+    }
+
+    static StringValue *sprintf(Env *, const char *, ...);
+    static StringValue *vsprintf(Env *, const char *, va_list);
+
+    const char *c_str() const { return m_str; }
+    ssize_t length() const { return m_length; }
+    ssize_t capcity() const { return m_capacity; }
+    Encoding encoding() const { return m_encoding; }
+
+    void set_str(const char *str) {
+        free(m_str);
+        assert(str);
+        m_str = strdup(str);
+        m_length = strlen(str);
+        m_capacity = m_length;
+    }
+
+    void set_str(const char *str, ssize_t length) {
+        free(m_str);
+        assert(str);
+        m_str = strdup(str);
+        m_str[length] = 0;
+        m_length = length;
+        m_capacity = strlen(str);
+        assert(m_length <= m_capacity);
+    }
+
+    void set_encoding(Encoding encoding) { m_encoding = encoding; }
+
+    void append(Env *, const char *);
+    void append_char(Env *, char);
+    void append_string(Env *, Value *);
+    void append_string(Env *, StringValue *);
+    ArrayValue *chars(Env *);
+
+    SymbolValue *to_symbol(Env *);
+    StringValue *inspect(Env *);
+
+    bool operator==(const Value &) const;
+
+    StringValue *successive(Env *);
+
+    ssize_t index(Env *, StringValue *);
+    ssize_t index(Env *, StringValue *, ssize_t start);
+
+    void truncate(ssize_t length) {
+        assert(length <= m_length);
+        m_str[length] = 0;
+        m_length = length;
+    }
+
+private:
+    using Value::Value;
+
+    void grow(Env *, ssize_t);
+    void grow_at_least(Env *, ssize_t);
+
+    void increment_successive_char(Env *, char, char, char);
+
+    char *m_str { nullptr };
+    ssize_t m_length { 0 };
+    ssize_t m_capacity { 0 };
+    Encoding m_encoding { Encoding::UTF_8 };
 };
-
 }

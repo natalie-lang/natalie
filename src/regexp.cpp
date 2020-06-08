@@ -9,7 +9,7 @@ Value *Regexp_new(Env *env, Value *self_value, ssize_t argc, Value **args, Block
         return regexp_new(env, args[0]->as_regexp()->regexp_str);
     } else {
         NAT_ASSERT_TYPE(args[0], Value::Type::String, "String");
-        return regexp_new(env, args[0]->as_string()->str);
+        return regexp_new(env, args[0]->as_string()->c_str());
     }
 }
 
@@ -27,9 +27,9 @@ Value *Regexp_eqeq(Env *env, Value *self_value, ssize_t argc, Value **args, Bloc
 Value *Regexp_inspect(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     RegexpValue *self = self_value->as_regexp();
     NAT_ASSERT_ARGC(0);
-    StringValue *out = string(env, "/");
-    string_append(env, out, self->regexp_str);
-    string_append_char(env, out, '/');
+    StringValue *out = new StringValue { env, "/" };
+    out->append(env, self->regexp_str);
+    out->append_char(env, '/');
     return out;
 }
 
@@ -52,7 +52,7 @@ Value *Regexp_match(Env *env, Value *self_value, ssize_t argc, Value **args, Blo
     NAT_ASSERT_ARGC(1);
     NAT_ASSERT_TYPE(args[0], Value::Type::String, "String");
     StringValue *str_obj = args[0]->as_string();
-    unsigned char *str = (unsigned char *)str_obj->str;
+    unsigned char *str = (unsigned char *)str_obj->c_str();
     int result;
     OnigRegion *region = onig_region_new();
     unsigned char *end = str + strlen((char *)str);

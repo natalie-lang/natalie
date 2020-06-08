@@ -14,7 +14,7 @@ Value *Encoding_list(Env *env, Value *self_value, ssize_t argc, Value **args, Bl
 Value *Encoding_inspect(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     EncodingValue *self = self_value->as_encoding();
-    return sprintf(env, "#<Encoding:%S>", vector_get(&self->encoding_names->ary, 0));
+    return StringValue::sprintf(env, "#<Encoding:%S>", vector_get(&self->encoding_names->ary, 0));
 }
 
 Value *Encoding_name(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {

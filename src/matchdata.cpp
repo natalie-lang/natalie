@@ -15,10 +15,8 @@ Value *MatchData_to_s(Env *env, Value *self_value, ssize_t argc, Value **args, B
     MatchDataValue *self = self_value->as_match_data();
     assert(self->matchdata_region->num_regs > 0);
     const char *str = &self->matchdata_str[self->matchdata_region->beg[0]];
-    StringValue *str_obj = string(env, str);
-    str_obj->str_len = self->matchdata_region->end[0] - self->matchdata_region->beg[0];
-    str_obj->str[str_obj->str_len] = 0;
-    return str_obj;
+    ssize_t length = self->matchdata_region->end[0] - self->matchdata_region->beg[0];
+    return new StringValue { env, str, length };
 }
 
 Value *MatchData_ref(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
@@ -36,10 +34,8 @@ Value *MatchData_ref(Env *env, Value *self_value, ssize_t argc, Value **args, Bl
         return NAT_NIL;
     } else {
         const char *str = &self->matchdata_str[self->matchdata_region->beg[index]];
-        StringValue *str_obj = string(env, str);
-        str_obj->str_len = self->matchdata_region->end[index] - self->matchdata_region->beg[index];
-        str_obj->str[str_obj->str_len] = 0;
-        return str_obj;
+        ssize_t length = self->matchdata_region->end[index] - self->matchdata_region->beg[index];
+        return new StringValue { env, str, length };
     }
 }
 

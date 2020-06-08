@@ -19,7 +19,7 @@ Value *Exception_initialize(Env *env, Value *self_value, ssize_t argc, Value **a
         if (!message->is_string()) {
             message = send(env, message, "inspect", 0, NULL, NULL);
         }
-        self->message = strdup(message->as_string()->str);
+        self->message = strdup(message->as_string()->c_str());
     }
     return self;
 }
@@ -27,19 +27,19 @@ Value *Exception_initialize(Env *env, Value *self_value, ssize_t argc, Value **a
 Value *Exception_inspect(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     ExceptionValue *self = self_value->as_exception();
-    StringValue *str = string(env, "#<");
+    StringValue *out = new StringValue { env, "#<" };
     assert(NAT_OBJ_CLASS(self));
-    string_append(env, str, Module_inspect(env, NAT_OBJ_CLASS(self), 0, NULL, NULL)->as_string()->str);
-    string_append(env, str, ": ");
-    string_append(env, str, self->message);
-    string_append_char(env, str, '>');
-    return str;
+    out->append(env, Module_inspect(env, NAT_OBJ_CLASS(self), 0, NULL, NULL)->as_string()->c_str());
+    out->append(env, ": ");
+    out->append(env, self->message);
+    out->append_char(env, '>');
+    return out;
 }
 
 Value *Exception_message(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     ExceptionValue *self = self_value->as_exception();
-    return string(env, self->message);
+    return new StringValue { env, self->message };
 }
 
 Value *Exception_backtrace(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {

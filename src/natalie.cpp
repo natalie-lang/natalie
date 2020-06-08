@@ -24,17 +24,6 @@ IntegerValue *integer(Env *env, int64_t integer) {
     return new IntegerValue { env, integer };
 }
 
-SymbolValue *symbol(Env *env, const char *name) {
-    SymbolValue *symbol = static_cast<SymbolValue *>(hashmap_get(env->global_env->symbols, name));
-    if (symbol) {
-        return symbol;
-    } else {
-        symbol = new SymbolValue { env, name };
-        hashmap_put(env->global_env->symbols, name, symbol);
-        return symbol;
-    }
-}
-
 ArrayValue *array_new(Env *env) {
     ArrayValue *obj = new ArrayValue { env };
     return obj;
@@ -308,7 +297,7 @@ RegexpValue *regexp_new(Env *env, const char *pattern) {
 MatchDataValue *matchdata_new(Env *env, OnigRegion *region, StringValue *str_obj) {
     MatchDataValue *obj = new MatchDataValue { env };
     obj->matchdata_region = region;
-    obj->matchdata_str = strdup(str_obj->str);
+    obj->matchdata_str = strdup(str_obj->c_str());
     return obj;
 }
 
@@ -453,7 +442,7 @@ const char *defined(Env *env, Value *receiver, const char *name) {
 Value *defined_obj(Env *env, Value *receiver, const char *name) {
     const char *result = defined(env, receiver, name);
     if (result) {
-        return string(env, result);
+        return new StringValue { env, result };
     } else {
         return NAT_NIL;
     }
@@ -502,13 +491,13 @@ void methods(Env *env, ArrayValue *array, ModuleValue *klass) {
     struct hashmap_iter *iter;
     for (iter = hashmap_iter(&klass->methods); iter; iter = hashmap_iter_next(&klass->methods, iter)) {
         const char *name = (char *)hashmap_iter_get_key(iter);
-        array_push(env, array, symbol(env, name));
+        array_push(env, array, SymbolValue::intern(env, name));
     }
     for (ssize_t i = 0; i < klass->included_modules_count; i++) {
         ModuleValue *module = klass->included_modules[i];
         for (iter = hashmap_iter(&module->methods); iter; iter = hashmap_iter_next(&module->methods, iter)) {
             const char *name = (char *)hashmap_iter_get_key(iter);
-            array_push(env, array, symbol(env, name));
+            array_push(env, array, SymbolValue::intern(env, name));
         }
     }
     if (klass->superclass) {
@@ -648,180 +637,6 @@ ProcValue *lambda(Env *env, Block *block) {
     return lambda;
 }
 
-StringValue *string_n(Env *env, const char *str, ssize_t len) {
-    StringValue *obj = new StringValue { env };
-    char *copy = static_cast<char *>(malloc(len + 1));
-    memcpy(copy, str, len);
-    obj->str = copy;
-    obj->str[len] = 0;
-    obj->str_len = len;
-    obj->str_cap = len;
-    obj->encoding = Encoding::UTF_8; // TODO: inherit from encoding of file?
-    return obj;
-}
-
-StringValue *string(Env *env, const char *str) {
-    ssize_t len = strlen(str);
-    return string_n(env, str, len);
-}
-
-void grow_string(Env *env, StringValue *obj, ssize_t capacity) {
-    ssize_t len = strlen(obj->str);
-    assert(capacity >= len);
-    obj->str = static_cast<char *>(realloc(obj->str, capacity + 1));
-    obj->str_cap = capacity;
-}
-
-void grow_string_at_least(Env *env, StringValue *obj, ssize_t min_capacity) {
-    ssize_t capacity = obj->str_cap;
-    if (capacity >= min_capacity)
-        return;
-    if (capacity > 0 && min_capacity <= capacity * NAT_STRING_GROW_FACTOR) {
-        grow_string(env, obj, capacity * NAT_STRING_GROW_FACTOR);
-    } else {
-        grow_string(env, obj, min_capacity);
-    }
-}
-
-void string_append(Env *env, Value *val, const char *s) {
-    string_append(env, val->as_string(), s);
-}
-
-void string_append(Env *env, StringValue *str, const char *s) {
-    ssize_t new_len = strlen(s);
-    if (new_len == 0) return;
-    ssize_t total_len = str->str_len + new_len;
-    grow_string_at_least(env, str, total_len);
-    strcat(str->str, s);
-    str->str_len = total_len;
-}
-
-void string_append_char(Env *env, StringValue *str, char c) {
-    ssize_t total_len = str->str_len + 1;
-    grow_string_at_least(env, str, total_len);
-    str->str[total_len - 1] = c;
-    str->str[total_len] = 0;
-    str->str_len = total_len;
-}
-
-void string_append_string(Env *env, Value *val, Value *val2) {
-    string_append_string(env, val->as_string(), val2->as_string());
-}
-
-void string_append_string(Env *env, StringValue *str, StringValue *str2) {
-    if (str2->str_len == 0) return;
-    ssize_t total_len = str->str_len + str2->str_len;
-    grow_string_at_least(env, str, total_len);
-    strncat(str->str, str2->str, str2->str_len);
-    str->str_len = total_len;
-}
-
-#define NAT_RAISE_ENCODING_INVALID_BYTE_SEQUENCE_ERROR(env, message_format, ...)                      \
-    {                                                                                                 \
-        Value *Encoding = NAT_OBJECT->const_get(env, "Encoding", true);                               \
-        Value *InvalidByteSequenceError = Encoding->const_get(env, "InvalidByteSequenceError", true); \
-        raise(env, InvalidByteSequenceError, message_format, ##__VA_ARGS__);                          \
-    }
-
-ArrayValue *string_chars(Env *env, StringValue *str) {
-    ArrayValue *ary = array_new(env);
-    StringValue *c;
-    char buffer[5];
-    switch (str->encoding) {
-    case Encoding::UTF_8:
-        for (ssize_t i = 0; i < str->str_len; i++) {
-            buffer[0] = str->str[i];
-            if (((unsigned char)buffer[0] >> 3) == 30) { // 11110xxx, 4 bytes
-                if (i + 3 >= str->str_len) abort(); //NAT_RAISE_ENCODING_INVALID_BYTE_SEQUENCE_ERROR(env, "invalid byte sequence at index %i in string %S (string not long enough)", i, send(env, str, "inspect", 0, NULL, NULL));
-                buffer[1] = str->str[++i];
-                buffer[2] = str->str[++i];
-                buffer[3] = str->str[++i];
-                buffer[4] = 0;
-            } else if (((unsigned char)buffer[0] >> 4) == 14) { // 1110xxxx, 3 bytes
-                if (i + 2 >= str->str_len) abort(); //NAT_RAISE_ENCODING_INVALID_BYTE_SEQUENCE_ERROR(env, "invalid byte sequence at index %i in string %S (string not long enough)", i, send(env, str, "inspect", 0, NULL, NULL));
-                buffer[1] = str->str[++i];
-                buffer[2] = str->str[++i];
-                buffer[3] = 0;
-            } else if (((unsigned char)buffer[0] >> 5) == 6) { // 110xxxxx, 2 bytes
-                if (i + 1 >= str->str_len) abort(); //NAT_RAISE_ENCODING_INVALID_BYTE_SEQUENCE_ERROR(env, "invalid byte sequence at index %i in string %S (string not long enough)", i, send(env, str, "inspect", 0, NULL, NULL));
-                buffer[1] = str->str[++i];
-                buffer[2] = 0;
-            } else {
-                buffer[1] = 0;
-            }
-            c = string(env, buffer);
-            c->encoding = Encoding::UTF_8;
-            array_push(env, ary, c);
-        }
-        break;
-    case Encoding::ASCII_8BIT:
-        for (ssize_t i = 0; i < str->str_len; i++) {
-            buffer[0] = str->str[i];
-            buffer[1] = 0;
-            c = string(env, buffer);
-            c->encoding = Encoding::ASCII_8BIT;
-            array_push(env, ary, c);
-        }
-        break;
-    }
-    return ary;
-}
-
-StringValue *sprintf(Env *env, const char *format, ...) {
-    va_list args;
-    va_start(args, format);
-    StringValue *out = vsprintf(env, format, args);
-    va_end(args);
-    return out;
-}
-
-StringValue *vsprintf(Env *env, const char *format, va_list args) {
-    StringValue *out = string(env, "");
-    ssize_t len = strlen(format);
-    StringValue *inspected;
-    char buf[NAT_INT_64_MAX_BUF_LEN];
-    for (ssize_t i = 0; i < len; i++) {
-        char c = format[i];
-        if (c == '%') {
-            char c2 = format[++i];
-            switch (c2) {
-            case 's':
-                string_append(env, out, va_arg(args, char *));
-                break;
-            case 'S':
-                string_append_string(env, out, va_arg(args, StringValue *));
-                break;
-            case 'i':
-            case 'd':
-                int_to_string(va_arg(args, int64_t), buf);
-                string_append(env, out, buf);
-                break;
-            case 'x':
-                int_to_hex_string(va_arg(args, int64_t), buf, false);
-                string_append(env, out, buf);
-                break;
-            case 'X':
-                int_to_hex_string(va_arg(args, int64_t), buf, true);
-                string_append(env, out, buf);
-                break;
-            case 'v':
-                inspected = send(env, va_arg(args, Value *), "inspect", 0, NULL, NULL)->as_string();
-                string_append(env, out, inspected->str);
-                break;
-            case '%':
-                string_append_char(env, out, '%');
-                break;
-            default:
-                fprintf(stderr, "Unknown format specifier: %%%c", c2);
-                abort();
-            }
-        } else {
-            string_append_char(env, out, c);
-        }
-    }
-    return out;
-}
-
 RangeValue *range_new(Env *env, Value *begin, Value *end, bool exclude_end) {
     RangeValue *obj = new RangeValue { env };
     obj->range_begin = begin;
@@ -835,9 +650,9 @@ Value *dup(Env *env, Value *obj) {
     case Value::Type::Array:
         return array_copy(env, obj->as_array());
     case Value::Type::String:
-        return string(env, obj->as_string()->str);
+        return new StringValue { env, obj->as_string()->c_str() };
     case Value::Type::Symbol:
-        return symbol(env, obj->as_symbol()->symbol);
+        return new StringValue { env, obj->as_symbol()->c_str() };
     case Value::Type::False:
     case Value::Type::Nil:
     case Value::Type::True:
@@ -899,10 +714,10 @@ void print_exception_with_backtrace(Env *env, ExceptionValue *exception) {
         for (int i = vector_size(&exception->backtrace->ary) - 1; i > 0; i--) {
             StringValue *line = static_cast<StringValue *>(vector_get(&exception->backtrace->ary, i));
             assert(NAT_TYPE(line) == Value::Type::String);
-            dprintf(fd, "        %d: from %s\n", i, line->str);
+            dprintf(fd, "        %d: from %s\n", i, line->c_str());
         }
         StringValue *line = static_cast<StringValue *>(vector_get(&exception->backtrace->ary, 0));
-        dprintf(fd, "%s: ", line->str);
+        dprintf(fd, "%s: ", line->c_str());
     }
     dprintf(fd, "%s (%s)\n", exception->message, NAT_OBJ_CLASS(exception)->class_name);
 }
@@ -1133,7 +948,7 @@ Value *kwarg_value_by_name(Env *env, ArrayValue *args, const char *name, Value *
             hash = hash_new(env);
         }
     }
-    Value *value = hash_get(env, hash, symbol(env, name));
+    Value *value = hash_get(env, hash, SymbolValue::intern(env, name));
     if (!value) {
         if (default_value) {
             return default_value;
@@ -1177,7 +992,7 @@ void arg_spread(Env *env, ssize_t argc, Value **args, char *arrangement, ...) {
     Value *obj;
     bool *bool_ptr;
     int *int_ptr;
-    char **str_ptr;
+    const char **str_ptr;
     void **void_ptr;
     Value **obj_ptr;
     for (ssize_t i = 0; i < len; i++) {
@@ -1197,7 +1012,7 @@ void arg_spread(Env *env, ssize_t argc, Value **args, char *arrangement, ...) {
             *int_ptr = NAT_INT_VALUE(obj);
             break;
         case 's':
-            str_ptr = va_arg(va_args, char **);
+            str_ptr = va_arg(va_args, const char **);
             if (arg_index >= argc) NAT_RAISE(env, "ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, arg_index + 1);
             obj = args[arg_index++];
             if (obj == NAT_NIL) {
@@ -1205,7 +1020,7 @@ void arg_spread(Env *env, ssize_t argc, Value **args, char *arrangement, ...) {
             } else {
                 NAT_ASSERT_TYPE(obj, Value::Type::String, "String");
             }
-            *str_ptr = obj->as_string()->str;
+            *str_ptr = obj->as_string()->c_str();
             break;
         case 'b':
             bool_ptr = va_arg(va_args, bool *);

@@ -60,7 +60,7 @@ char *Env::build_code_location_name(Env *location_env) {
             if (strcmp(location_env->method_name, "<block>") == 0) {
                 if (location_env->outer) {
                     char *outer_name = build_code_location_name(location_env->outer);
-                    char *name = strdup(sprintf(this, "block in %s", outer_name)->str);
+                    char *name = strdup(StringValue::sprintf(this, "block in %s", outer_name)->c_str());
                     free(outer_name);
                     return name;
                 } else {
@@ -78,9 +78,9 @@ char *Env::build_code_location_name(Env *location_env) {
 Value *Env::raise(ClassValue *klass, const char *message_format, ...) {
     va_list args;
     va_start(args, message_format);
-    StringValue *message = vsprintf(this, message_format, args);
+    StringValue *message = StringValue::vsprintf(this, message_format, args);
     va_end(args);
-    ExceptionValue *exception = new ExceptionValue { this, klass, strdup(message->str) };
+    ExceptionValue *exception = new ExceptionValue { this, klass, strdup(message->c_str()) };
     this->raise_exception(exception);
     return exception;
 }
@@ -92,7 +92,7 @@ Value *Env::raise_exception(ExceptionValue *exception) {
         do {
             if (bt_env->file) {
                 char *method_name = this->build_code_location_name(bt_env);
-                array_push(this, bt, sprintf(this, "%s:%d:in `%s'", bt_env->file, bt_env->line, method_name));
+                array_push(this, bt, StringValue::sprintf(this, "%s:%d:in `%s'", bt_env->file, bt_env->line, method_name));
                 free(method_name);
             }
             bt_env = bt_env->caller;
