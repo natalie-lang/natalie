@@ -78,6 +78,7 @@ module Natalie
         raise
         raise_exception
         raise_local_jump_error
+        singleton_class
         subclass
         var_get
         var_set

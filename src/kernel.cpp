@@ -75,7 +75,7 @@ Value *Kernel_class(Env *env, Value *self, ssize_t argc, Value **args, Block *bl
 
 Value *Kernel_singleton_class(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
-    return singleton_class(env, self);
+    return self->singleton_class(env);
 }
 
 Value *Kernel_instance_variables(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
@@ -155,8 +155,8 @@ Value *Kernel_dup(Env *env, Value *self, ssize_t argc, Value **args, Block *bloc
 Value *Kernel_methods(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0); // for now
     ArrayValue *array = array_new(env);
-    if (self->singleton_class) {
-        methods(env, array, self->singleton_class);
+    if (self->singleton_class(env)) {
+        methods(env, array, self->singleton_class(env));
     } else {
         methods(env, array, NAT_OBJ_CLASS(self));
     }

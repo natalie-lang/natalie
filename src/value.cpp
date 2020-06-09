@@ -117,6 +117,13 @@ SymbolValue *Value::to_symbol(Env *env, Conversion conversion) {
     }
 }
 
+ClassValue *Value::singleton_class(Env *env) {
+    if (m_singleton_class == nullptr) {
+        m_singleton_class = klass->subclass(env, nullptr);
+    }
+    return m_singleton_class;
+}
+
 Value *Value::const_get(Env *env, const char *name, bool strict) {
     return this->klass->const_get(env, name, strict);
 }

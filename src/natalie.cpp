@@ -13,13 +13,6 @@ bool is_global_name(const char *name) {
     return strlen(name) > 0 && name[0] == '$';
 }
 
-ClassValue *singleton_class(Env *env, Value *obj) {
-    if (!obj->singleton_class) {
-        obj->singleton_class = obj->klass->subclass(env, nullptr);
-    }
-    return obj->singleton_class;
-}
-
 IntegerValue *integer(Env *env, int64_t integer) {
     return new IntegerValue { env, integer };
 }
@@ -372,14 +365,14 @@ void define_method_with_block(Env *env, Value *obj, const char *name, Block *blo
 
 void define_singleton_method(Env *env, Value *obj, const char *name, Value *(*fn)(Env *, Value *, ssize_t, Value **, Block *block)) {
     Method *method = method_from_fn(fn);
-    ClassValue *klass = singleton_class(env, obj);
+    ClassValue *klass = obj->singleton_class(env);
     free(hashmap_remove(&klass->methods, name));
     hashmap_put(&klass->methods, name, method);
 }
 
 void define_singleton_method_with_block(Env *env, Value *obj, const char *name, Block *block) {
     Method *method = method_from_block(block);
-    ClassValue *klass = singleton_class(env, obj);
+    ClassValue *klass = obj->singleton_class(env);
     free(hashmap_remove(&klass->methods, name));
     hashmap_put(&klass->methods, name, method);
 }
@@ -454,7 +447,7 @@ Value *send(Env *env, Value *receiver, const char *sym, ssize_t argc, Value **ar
     if (NAT_TYPE(receiver) == Value::Type::Integer) {
         klass = NAT_INTEGER;
     } else {
-        klass = receiver->singleton_class;
+        klass = receiver->singleton_class(env);
         if (klass) {
             ModuleValue *matching_class_or_module;
             Method *method = find_method(klass, sym, &matching_class_or_module);
@@ -588,7 +581,7 @@ bool respond_to(Env *env, Value *obj, const char *name) {
         } else {
             return false;
         }
-    } else if (obj->singleton_class && find_method_without_undefined(obj->singleton_class, name, &matching_class_or_module)) {
+    } else if (obj->singleton_class(env) && find_method_without_undefined(obj->singleton_class(env), name, &matching_class_or_module)) {
         return true;
     } else if (find_method_without_undefined(NAT_OBJ_CLASS(obj), name, &matching_class_or_module)) {
         return true;
@@ -682,7 +675,7 @@ void alias(Env *env, Value *self, const char *new_name, const char *old_name) {
     if (self->is_module()) {
         klass = self->as_module();
     } else {
-        klass = singleton_class(env, self);
+        klass = self->singleton_class(env);
     }
     ModuleValue *matching_class_or_module;
     Method *method = find_method(klass->as_module(), old_name, &matching_class_or_module);

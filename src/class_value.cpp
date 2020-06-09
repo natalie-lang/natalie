@@ -8,9 +8,9 @@ ClassValue::ClassValue(Env *env)
 ClassValue *ClassValue::subclass(Env *env, const char *name) {
     ClassValue *subclass = new ClassValue { env, Value::Type::Class, this->klass };
     subclass->env = Env::new_detatched_block_env(&this->env);
-    if (this->singleton_class) {
+    if (m_singleton_class) {
         // TODO: what happens if the superclass gets a singleton_class later?
-        subclass->singleton_class = this->singleton_class->subclass(env, nullptr);
+        subclass->set_singleton_class(m_singleton_class->subclass(env, nullptr));
     }
     subclass->class_name = name ? strdup(name) : nullptr;
     subclass->superclass = this;

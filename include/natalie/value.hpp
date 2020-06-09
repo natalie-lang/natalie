@@ -63,7 +63,7 @@ struct Value {
     Type type { Type::Object };
     ClassValue *klass { nullptr };
 
-    ClassValue *singleton_class { nullptr };
+    ClassValue *m_singleton_class { nullptr };
 
     ModuleValue *owner { nullptr };
     int flags { 0 };
@@ -118,16 +118,20 @@ struct Value {
 
     const char *identifier_str(Env *, Conversion);
 
+    ClassValue *singleton_class(Env *);
+
+    void set_singleton_class(ClassValue *c) { m_singleton_class = c; }
+
+    virtual Value *const_get(Env *, const char *, bool);
+    virtual Value *const_get_or_null(Env *, const char *, bool, bool);
+    virtual Value *const_set(Env *, const char *, Value *);
+
     Value *ivar_get(Env *, const char *);
     Value *ivar_set(Env *, const char *, Value *);
 
     Value *cvar_get(Env *, const char *);
     Value *cvar_get_or_null(Env *, const char *);
     Value *cvar_set(Env *, const char *, Value *);
-
-    virtual Value *const_get(Env *, const char *, bool);
-    virtual Value *const_get_or_null(Env *, const char *, bool, bool);
-    virtual Value *const_set(Env *, const char *, Value *);
 
 private:
     void init_ivars();

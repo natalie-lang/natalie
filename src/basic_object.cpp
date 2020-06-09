@@ -32,7 +32,7 @@ Value *BasicObject_instance_eval(Env *env, Value *self, ssize_t argc, Value **ar
     // I *think* this is right... instance_eval, when called on a class/module,
     // evals with self set to the singleton class
     if (NAT_TYPE(self) == Value::Type::Class || NAT_TYPE(self) == Value::Type::Module) {
-        self_for_eval = singleton_class(env, self);
+        self_for_eval = self->singleton_class(env);
     }
     return block->fn(&e, self_for_eval, 0, NULL, NULL);
 }

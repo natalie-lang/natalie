@@ -28,7 +28,7 @@ extern "C" Env *build_top_env() {
 
     // these must be defined after Object exists
     define_singleton_method(env, Class, "new", Class_new);
-    BasicObject->singleton_class = Class->singleton_class;
+    BasicObject->set_singleton_class(Class->singleton_class(env));
     Object->const_set(env, "Class", Class);
     Object->const_set(env, "BasicObject", BasicObject);
     Object->const_set(env, "Object", Object);
@@ -57,7 +57,7 @@ extern "C" Env *build_top_env() {
     NAT_NIL_CLASS_INIT(NilClass);
 
     NAT_NIL = NilValue::instance(env);
-    NAT_NIL->singleton_class = NilClass;
+    NAT_NIL->set_singleton_class(NilClass);
 
     ClassValue *TrueClass = Object->subclass(env, "TrueClass");
     undefine_singleton_method(env, TrueClass, "new");
@@ -65,7 +65,7 @@ extern "C" Env *build_top_env() {
     NAT_TRUE_CLASS_INIT(TrueClass);
 
     NAT_TRUE = TrueValue::instance(env);
-    NAT_TRUE->singleton_class = TrueClass;
+    NAT_TRUE->set_singleton_class(TrueClass);
 
     ClassValue *FalseClass = Object->subclass(env, "FalseClass");
     undefine_singleton_method(env, FalseClass, "new");
@@ -73,7 +73,7 @@ extern "C" Env *build_top_env() {
     NAT_FALSE_CLASS_INIT(FalseClass);
 
     NAT_FALSE = FalseValue::instance(env);
-    NAT_FALSE->singleton_class = FalseClass;
+    NAT_FALSE->set_singleton_class(FalseClass);
 
     ClassValue *Numeric = Object->subclass(env, "Numeric");
     Object->const_set(env, "Numeric", Numeric);

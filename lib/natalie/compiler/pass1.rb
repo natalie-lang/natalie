@@ -735,7 +735,7 @@ module Natalie
 
       def process_sclass(exp)
         (_, obj, *body) = exp
-        exp.new(:with_self, s(:singleton_class, :env, process(obj)),
+        exp.new(:with_self, s(:singleton_class, process(obj), :env),
                 s(:block, *body.map { |n| process(n) }))
       end
 
