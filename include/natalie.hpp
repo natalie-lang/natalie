@@ -71,8 +71,6 @@ bool is_constant_name(const char *name);
 
 const char *find_current_method_name(Env *env);
 
-IntegerValue *integer(Env *env, int64_t integer);
-
 void int_to_string(int64_t num, char *buf);
 void int_to_hex_string(int64_t num, char *buf, bool capitalize);
 

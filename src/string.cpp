@@ -99,7 +99,7 @@ Value *String_cmp(Env *env, Value *self_value, ssize_t argc, Value **args, Block
     } else {
         result = 0;
     }
-    return integer(env, result);
+    return new IntegerValue { env, result };
 }
 
 Value *String_eqtilde(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
@@ -133,19 +133,20 @@ Value *String_ord(Env *env, Value *self, ssize_t argc, Value **args, Block *bloc
         NAT_UNREACHABLE();
     case 1:
         code = (unsigned char)str[0];
-        return integer(env, code);
+        break;
     case 2:
         code = (((unsigned char)str[0] ^ 0xC0) << 6) + (((unsigned char)str[1] ^ 0x80) << 0);
-        return integer(env, code);
+        break;
     case 3:
         code = (((unsigned char)str[0] ^ 0xE0) << 12) + (((unsigned char)str[1] ^ 0x80) << 6) + (((unsigned char)str[2] ^ 0x80) << 0);
-        return integer(env, code);
+        break;
     case 4:
         code = (((unsigned char)str[0] ^ 0xF0) << 18) + (((unsigned char)str[1] ^ 0x80) << 12) + (((unsigned char)str[2] ^ 0x80) << 6) + (((unsigned char)str[3] ^ 0x80) << 0);
-        return integer(env, code);
+        break;
     default:
         NAT_UNREACHABLE();
     }
+    return new IntegerValue { env, code };
 }
 
 Value *String_bytes(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
@@ -155,7 +156,7 @@ Value *String_bytes(Env *env, Value *self_value, ssize_t argc, Value **args, Blo
     ssize_t length = self->length();
     const char *str = self->c_str();
     for (ssize_t i = 0; i < length; i++) {
-        array_push(env, ary, integer(env, str[i]));
+        array_push(env, ary, new IntegerValue { env, str[i] });
     }
     return ary;
 }
@@ -168,7 +169,7 @@ Value *String_chars(Env *env, Value *self, ssize_t argc, Value **args, Block *bl
 Value *String_size(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     ArrayValue *chars = self->as_string()->chars(env);
-    return integer(env, vector_size(&chars->ary));
+    return new IntegerValue { env, vector_size(&chars->ary) };
 }
 
 Value *String_encoding(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
@@ -227,7 +228,7 @@ Value *String_encode(Env *env, Value *self_value, ssize_t argc, Value **args, Bl
             StringValue *char_obj = static_cast<StringValue *>(vector_get(&chars->ary, i));
             if (char_obj->length() > 1) {
                 Value *ord = String_ord(env, char_obj, 0, NULL, NULL);
-                Value *message = StringValue::sprintf(env, "U+%X from UTF-8 to ASCII-8BIT", NAT_INT_VALUE(ord));
+                Value *message = StringValue::sprintf(env, "U+%X from UTF-8 to ASCII-8BIT", ord->as_integer()->to_int64_t());
                 StringValue zero_x { env, "0X" };
                 StringValue blank { env, "" };
                 Value *sub_args[2] = { &zero_x, &blank };
@@ -267,7 +268,7 @@ Value *String_ref(Env *env, Value *self_value, ssize_t argc, Value **args, Block
     StringValue *self = self_value->as_string();
     Value *index_obj = args[0];
     NAT_ASSERT_TYPE(index_obj, Value::Type::Integer, "Integer");
-    int64_t index = NAT_INT_VALUE(index_obj);
+    int64_t index = index_obj->as_integer()->to_int64_t();
 
     // not sure how we'd handle that given a 64-bit signed int for an index,
     // not to mention that a string that long would be insane to index into
@@ -292,7 +293,7 @@ Value *String_index(Env *env, Value *self, ssize_t argc, Value **args, Block *bl
     if (index == -1) {
         return NAT_NIL;
     }
-    return integer(env, index);
+    return new IntegerValue { env, index };
 }
 
 Value *String_sub(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
@@ -332,10 +333,10 @@ Value *String_to_i(Env *env, Value *self_value, ssize_t argc, Value **args, Bloc
     int base = 10;
     if (argc == 1) {
         NAT_ASSERT_TYPE(args[0], Value::Type::Integer, "Integer");
-        base = NAT_INT_VALUE(args[0]);
+        base = args[0]->as_integer()->to_int64_t();
     }
     int64_t number = strtoll(self->c_str(), nullptr, base);
-    return integer(env, number);
+    return new IntegerValue { env, number };
 }
 
 Value *String_split(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
@@ -392,7 +393,7 @@ Value *String_ljust(Env *env, Value *self_value, ssize_t argc, Value **args, Blo
     StringValue *self = self_value->as_string();
     Value *length_obj = args[0];
     NAT_ASSERT_TYPE(length_obj, Value::Type::Integer, "Integer");
-    ssize_t length = NAT_INT_VALUE(length_obj) < 0 ? 0 : NAT_INT_VALUE(length_obj);
+    ssize_t length = length_obj->as_integer()->to_int64_t() < 0 ? 0 : length_obj->as_integer()->to_int64_t();
     StringValue *padstr;
     if (argc > 1) {
         NAT_ASSERT_TYPE(args[1], Value::Type::String, "String");

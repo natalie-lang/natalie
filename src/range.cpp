@@ -89,7 +89,10 @@ Value *Range_eqeqeq(Env *env, Value *self_value, ssize_t argc, Value **args, Blo
     Value *arg = args[0];
     if (NAT_TYPE(self->range_begin) == Value::Type::Integer && NAT_TYPE(arg) == Value::Type::Integer) {
         // optimized path for integer ranges
-        if (NAT_INT_VALUE(self->range_begin) <= NAT_INT_VALUE(arg) && ((self->range_exclude_end && NAT_INT_VALUE(arg) < NAT_INT_VALUE(self->range_end)) || (!self->range_exclude_end && NAT_INT_VALUE(arg) <= NAT_INT_VALUE(self->range_end)))) {
+        int64_t begin = self->range_begin->as_integer()->to_int64_t();
+        int64_t end = self->range_end->as_integer()->to_int64_t();
+        int64_t val = arg->as_integer()->to_int64_t();
+        if (begin <= val && ((self->range_exclude_end && val < end) || (!self->range_exclude_end && val <= end))) {
             return NAT_TRUE;
         }
     } else {

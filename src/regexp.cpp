@@ -43,7 +43,7 @@ Value *Regexp_eqtilde(Env *env, Value *self_value, ssize_t argc, Value **args, B
     } else {
         MatchDataValue *matchdata = match->as_match_data();
         assert(matchdata->matchdata_region->num_regs > 0);
-        return integer(env, matchdata->matchdata_region->beg[0]);
+        return new IntegerValue { env, matchdata->matchdata_region->beg[0] };
     }
 }
 

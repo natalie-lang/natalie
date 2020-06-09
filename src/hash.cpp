@@ -111,7 +111,8 @@ Value *Hash_delete(Env *env, Value *self_value, ssize_t argc, Value **args, Bloc
 Value *Hash_size(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     HashValue *self = self_value->as_hash();
-    return integer(env, self->hashmap.num_entries);
+    assert(self->hashmap.num_entries <= NAT_MAX_INT);
+    return new IntegerValue { env, static_cast<int64_t>(self->hashmap.num_entries) };
 }
 
 Value *Hash_eqeq(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {

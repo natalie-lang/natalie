@@ -51,7 +51,7 @@ Value *Kernel_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *
 
 Value *Kernel_object_id(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
-    return integer(env, object_id(env, self));
+    return new IntegerValue { env, object_id(env, self) };
 }
 
 Value *Kernel_equal(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
@@ -169,10 +169,10 @@ Value *Kernel_exit(Env *env, Value *self, ssize_t argc, Value **args, Block *blo
     if (argc == 1) {
         status = args[0];
         if (NAT_TYPE(status) != Value::Type::Integer) {
-            status = integer(env, 0);
+            status = new IntegerValue { env, 0 };
         }
     } else {
-        status = integer(env, 0);
+        status = new IntegerValue { env, 0 };
     }
     ExceptionValue *exception = new ExceptionValue { env, NAT_OBJECT->const_get(env, "SystemExit", true)->as_class(), "exit" };
     exception->ivar_set(env, "@status", status);
@@ -207,7 +207,7 @@ Value *Kernel_hash(Env *env, Value *self, ssize_t argc, Value **args, Block *blo
     StringValue *inspected = send(env, self, "inspect", 0, NULL, NULL)->as_string();
     ssize_t hash_value = hashmap_hash_string(inspected->c_str());
     ssize_t truncated_hash_value = RSHIFT(hash_value, 1); // shift right to fit in our int size (without need for BigNum)
-    return integer(env, truncated_hash_value);
+    return new IntegerValue { env, truncated_hash_value };
 }
 
 Value *Kernel_proc(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
@@ -259,7 +259,7 @@ Value *Kernel_sleep(Env *env, Value *self, ssize_t argc, Value **args, Block *bl
     } else {
         Value *length = args[0];
         NAT_ASSERT_TYPE(length, Value::Type::Integer, "Integer"); // TODO: float supported also
-        sleep(NAT_INT_VALUE(length));
+        sleep(length->as_integer()->to_int64_t());
         return length;
     }
 }

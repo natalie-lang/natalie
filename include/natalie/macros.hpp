@@ -92,8 +92,6 @@
 #define NAT_MIN_INT RSHIFT(INT64_MIN, 1)
 #define NAT_MAX_INT RSHIFT(INT64_MAX, 1)
 
-#define NAT_INT_VALUE(obj) (((int64_t)obj & 1) ? RSHIFT((int64_t)obj, 1) : obj->as_integer()->to_int64_t())
-
 #define NAT_INT_64_MAX_BUF_LEN 21 // 1 for sign, 19 for max digits, and 1 for null terminator
 
 // "0x" + up to 16 hex chars + NULL terminator

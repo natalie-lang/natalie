@@ -13,10 +13,6 @@ bool is_global_name(const char *name) {
     return strlen(name) > 0 && name[0] == '$';
 }
 
-IntegerValue *integer(Env *env, int64_t integer) {
-    return new IntegerValue { env, integer };
-}
-
 ArrayValue *array_new(Env *env) {
     ArrayValue *obj = new ArrayValue { env };
     return obj;
@@ -90,7 +86,7 @@ size_t hashmap_hash(const void *key) {
     assert(key_p->env.caller);
     Value *hash_obj = send(&key_p->env, key_p->key, "hash", 0, NULL, NULL);
     assert(NAT_TYPE(hash_obj) == Value::Type::Integer);
-    return NAT_INT_VALUE(hash_obj);
+    return hash_obj->as_integer()->to_int64_t();
 }
 
 // this is used by the hashmap library to compare keys
@@ -107,7 +103,7 @@ int hashmap_compare(const void *a, const void *b) {
     Value *b_hash = send(env, b_p->key, "hash", 0, NULL, NULL);
     assert(NAT_TYPE(a_hash) == Value::Type::Integer);
     assert(NAT_TYPE(b_hash) == Value::Type::Integer);
-    return NAT_INT_VALUE(a_hash) - NAT_INT_VALUE(b_hash);
+    return a_hash->as_integer()->to_int64_t() - b_hash->as_integer()->to_int64_t();
 }
 
 HashKey *hash_key_list_append(Env *env, HashValue *hash, Value *key, Value *val) {
@@ -722,7 +718,7 @@ void handle_top_level_exception(Env *env, bool run_exit_handlers) {
         Value *status_obj = exception->ivar_get(env, "@status");
         if (run_exit_handlers) run_at_exit_handlers(env);
         if (NAT_TYPE(status_obj) == Value::Type::Integer) {
-            int64_t val = NAT_INT_VALUE(status_obj);
+            int64_t val = status_obj->as_integer()->to_int64_t();
             if (val >= 0 && val <= 255) {
                 exit(val);
             } else {
@@ -755,7 +751,7 @@ int quicksort_partition(Env *env, Value *ary[], int start, int end) {
 
     for (int i = start; i < end; i++) {
         Value *compare = send(env, ary[i], "<=>", 1, &pivot, NULL);
-        if (NAT_INT_VALUE(compare) < 0) {
+        if (compare->as_integer()->to_int64_t() < 0) {
             temp = ary[i];
             ary[i] = ary[pIndex];
             ary[pIndex] = temp;
@@ -1002,7 +998,7 @@ void arg_spread(Env *env, ssize_t argc, Value **args, char *arrangement, ...) {
             if (arg_index >= argc) NAT_RAISE(env, "ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, arg_index + 1);
             obj = args[arg_index++];
             NAT_ASSERT_TYPE(obj, Value::Type::Integer, "Integer");
-            *int_ptr = NAT_INT_VALUE(obj);
+            *int_ptr = obj->as_integer()->to_int64_t();
             break;
         case 's':
             str_ptr = va_arg(va_args, const char **);

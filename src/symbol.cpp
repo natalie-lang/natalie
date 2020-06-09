@@ -44,7 +44,7 @@ Value *Symbol_cmp(Env *env, Value *self_value, ssize_t argc, Value **args, Block
     } else {
         result = 0;
     }
-    return integer(env, result);
+    return new IntegerValue { env, result };
 }
 
 }

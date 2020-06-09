@@ -7,7 +7,7 @@ Value *MatchData_size(Env *env, Value *self_value, ssize_t argc, Value **args, B
     NAT_ASSERT_ARGC(0);
     MatchDataValue *self = self_value->as_match_data();
     assert(self->matchdata_region->num_regs > 0);
-    return integer(env, self->matchdata_region->num_regs);
+    return new IntegerValue { env, self->matchdata_region->num_regs };
 }
 
 Value *MatchData_to_s(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
@@ -26,7 +26,7 @@ Value *MatchData_ref(Env *env, Value *self_value, ssize_t argc, Value **args, Bl
         NAT_NOT_YET_IMPLEMENTED("group name support in Regexp MatchData#[]");
     }
     NAT_ASSERT_TYPE(args[0], Value::Type::Integer, "Integer");
-    int64_t index = NAT_INT_VALUE(args[0]);
+    int64_t index = args[0]->as_integer()->to_int64_t();
     assert(index >= 0); // TODO: accept negative indices
     if (index == 0) {
         return MatchData_to_s(env, self, 0, NULL, NULL);

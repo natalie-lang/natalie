@@ -11,24 +11,20 @@
 namespace Natalie {
 
 struct IntegerValue : Value {
-    using Value::Value;
-
-    IntegerValue(Env *env)
-        : Value { env, Value::Type::Integer, NAT_OBJECT->const_get(env, "Integer", true)->as_class() } { }
-
     IntegerValue(Env *env, int64_t integer)
         : Value { env, Value::Type::Integer, NAT_OBJECT->const_get(env, "Integer", true)->as_class() }
-        , integer { integer } { }
-
-    int64_t integer { 0 };
+        , m_integer { integer } { }
 
     int64_t to_int64_t() {
-        return integer;
+        return m_integer;
     }
 
     bool is_zero() {
-        return integer == 0;
+        return m_integer == 0;
     }
+
+private:
+    int64_t m_integer { 0 };
 };
 
 }

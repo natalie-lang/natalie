@@ -397,7 +397,7 @@ module Natalie
         lit = exp.last
         case lit
         when Integer
-          exp.new(:integer, :env, lit)
+          exp.new(:new, :IntegerValue, :env, lit)
         when Range
           exp.new(:range_new, :env, process_lit(s(:lit, lit.first)), process_lit(s(:lit, lit.last)), lit.exclude_end? ? 1 : 0)
         when Regexp
@@ -611,7 +611,7 @@ module Natalie
         match = temp('match')
         exp.new(:block,
                 s(:declare, match, s(:last_match, :env)),
-                s(:c_if, s(:is_truthy, match), s(:send, match, :[], s(:args, s(:integer, :env, num))), s(:nil)))
+                s(:c_if, s(:is_truthy, match), s(:send, match, :[], s(:args, s(:new, :IntegerValue, :env, num))), s(:nil)))
       end
 
       def process_op_asgn1(exp)

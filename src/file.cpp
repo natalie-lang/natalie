@@ -17,7 +17,7 @@ Value *File_initialize(Env *env, Value *self_value, ssize_t argc, Value **args, 
         Value *flags_obj = args[1];
         switch (NAT_TYPE(flags_obj)) {
         case Value::Type::Integer:
-            flags = NAT_INT_VALUE(flags_obj);
+            flags = flags_obj->as_integer()->to_int64_t();
             break;
         case Value::Type::String: {
             const char *flags_str = flags_obj->as_string()->c_str();
@@ -45,7 +45,7 @@ Value *File_initialize(Env *env, Value *self_value, ssize_t argc, Value **args, 
     int mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
     int fileno = open(filename->as_string()->c_str(), flags, mode);
     if (fileno == -1) {
-        Value *exception_args[2] = { filename, integer(env, errno) };
+        Value *exception_args[2] = { filename, new IntegerValue { env, errno } };
         ExceptionValue *error = send(env, NAT_OBJECT->const_get(env, "SystemCallError", true), "exception", 2, exception_args, NULL)->as_exception();
         env->raise_exception(error);
         abort();

@@ -16,14 +16,14 @@ Value *IO_initialize(Env *env, Value *self_value, ssize_t argc, Value **args, Bl
     assert(args[0]->type == Value::Type::Integer);
     //NAT_ASSERT_TYPE(args[0], Value::Type::Integer, "Integer");
     IoValue *self = self_value->as_io();
-    self->fileno = NAT_INT_VALUE(args[0]);
+    self->fileno = args[0]->as_integer()->to_int64_t();
     return self;
 }
 
 Value *IO_fileno(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     IoValue *self = self_value->as_io();
-    return integer(env, self->fileno);
+    return new IntegerValue { env, self->fileno };
 }
 
 #define NAT_READ_BYTES 1024
@@ -34,7 +34,7 @@ Value *IO_read(Env *env, Value *self_value, ssize_t argc, Value **args, Block *b
     ssize_t bytes_read;
     if (argc == 1) {
         NAT_ASSERT_TYPE(args[0], Value::Type::Integer, "Integer");
-        int count = NAT_INT_VALUE(args[0]);
+        int count = args[0]->as_integer()->to_int64_t();
         char *buf = static_cast<char *>(malloc((count + 1) * sizeof(char)));
         bytes_read = read(self->fileno, buf, count);
         if (bytes_read == 0) {
@@ -80,7 +80,7 @@ Value *IO_write(Env *env, Value *self_value, ssize_t argc, Value **args, Block *
         NAT_ASSERT_TYPE(obj, Value::Type::String, "String");
         ssize_t result = write(self->fileno, obj->as_string()->c_str(), obj->as_string()->length());
         if (result == -1) {
-            Value *error_number = integer(env, errno);
+            Value *error_number = new IntegerValue { env, errno };
             ExceptionValue *error = send(env, NAT_OBJECT->const_get(env, "SystemCallError", true), "exception", 1, &error_number, NULL)->as_exception();
             env->raise_exception(error);
             abort();
@@ -88,7 +88,7 @@ Value *IO_write(Env *env, Value *self_value, ssize_t argc, Value **args, Block *
             bytes_written += result;
         }
     }
-    return integer(env, bytes_written);
+    return new IntegerValue { env, bytes_written };
 }
 
 Value *IO_puts(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
@@ -124,7 +124,7 @@ Value *IO_close(Env *env, Value *self_value, ssize_t argc, Value **args, Block *
     IoValue *self = self_value->as_io();
     int result = close(self->fileno);
     if (result == -1) {
-        Value *error_number = integer(env, errno);
+        Value *error_number = new IntegerValue { env, errno };
         ExceptionValue *error = send(env, NAT_OBJECT->const_get(env, "SystemCallError", true), "exception", 1, &error_number, NULL)->as_exception();
         env->raise_exception(error);
         abort();
@@ -138,13 +138,13 @@ Value *IO_seek(Env *env, Value *self_value, ssize_t argc, Value **args, Block *b
     IoValue *self = self_value->as_io();
     Value *amount_obj = args[0];
     NAT_ASSERT_TYPE(amount_obj, Value::Type::Integer, "Integer");
-    int amount = NAT_INT_VALUE(amount_obj);
+    int amount = amount_obj->as_integer()->to_int64_t();
     int whence = 0;
     if (argc > 1) {
         Value *whence_obj = args[1];
         switch (NAT_TYPE(whence_obj)) {
         case Value::Type::Integer:
-            whence = NAT_INT_VALUE(whence_obj);
+            whence = whence_obj->as_integer()->to_int64_t();
             break;
         case Value::Type::Symbol: {
             SymbolValue *whence_sym = whence_obj->as_symbol();
@@ -165,12 +165,12 @@ Value *IO_seek(Env *env, Value *self_value, ssize_t argc, Value **args, Block *b
     }
     int result = lseek(self->fileno, amount, whence);
     if (result == -1) {
-        Value *error_number = integer(env, errno);
+        Value *error_number = new IntegerValue { env, errno };
         ExceptionValue *error = send(env, NAT_OBJECT->const_get(env, "SystemCallError", true), "exception", 1, &error_number, NULL)->as_exception();
         env->raise_exception(error);
         abort();
     } else {
-        return integer(env, 0);
+        return new IntegerValue { env, 0 };
     }
 }
 
