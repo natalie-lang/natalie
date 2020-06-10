@@ -87,12 +87,12 @@ Value *Env::raise(ClassValue *klass, const char *message_format, ...) {
 
 Value *Env::raise_exception(ExceptionValue *exception) {
     if (!exception->backtrace) { // only build a backtrace the first time the exception is raised (not on a re-raise)
-        Value *bt = exception->backtrace = new ArrayValue { this };
+        ArrayValue *bt = exception->backtrace = new ArrayValue { this };
         Env *bt_env = this;
         do {
             if (bt_env->file) {
                 char *method_name = this->build_code_location_name(bt_env);
-                array_push(this, bt, StringValue::sprintf(this, "%s:%d:in `%s'", bt_env->file, bt_env->line, method_name));
+                bt->push(StringValue::sprintf(this, "%s:%d:in `%s'", bt_env->file, bt_env->line, method_name));
                 free(method_name);
             }
             bt_env = bt_env->caller;

@@ -31,13 +31,13 @@ module Natalie
         arr = temp('arr')
         items = items.map do |item|
           if item.sexp_type == :splat
-            s(:array_push_splat, :env, arr, process(item.last))
+            s(:push_splat, s(:l, "#{arr}->as_array()"), :env, process(item.last))
           else
-            s(:array_push, :env, arr, process(item))
+            s(:push, s(:l, "#{arr}->as_array()"), process(item))
           end
         end
         exp.new(:block,
-                s(:declare, arr, s(:array_new, :env)),
+                s(:declare, arr, s(:new, :ArrayValue, :env)),
                 *items.compact,
                 arr)
       end

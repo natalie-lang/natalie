@@ -26,8 +26,6 @@ module Natalie
         append
         append_string
         array_expand_with_nil
-        array_push
-        array_push_splat
         define_method
         define_method_with_block
         define_singleton_method
@@ -43,8 +41,9 @@ module Natalie
         include
         methods
         prepend
+        push
+        push_splat
         print_exception_with_backtrace
-        quicksort
         run_at_exit_handlers
         string_append
         string_append_char
@@ -75,6 +74,8 @@ module Natalie
         ivar_get
         ivar_set
         prepend
+        push
+        push_splat
         raise
         raise_exception
         raise_local_jump_error
@@ -145,7 +146,7 @@ module Natalie
         # NOTE: this array must be marked volatile or the GC might collect it :-(
         # I wish I knew 1) why/how GCC optimizes this pointer away, and 2) how a big GC like Boehm doesn't fall for tricks like that. :-/
         decl "Value * volatile #{name} = #{array};"
-        "(Value**)vector_data(&#{name}->as_array()->ary):vector_size(&#{name}->as_array()->ary)"
+        "#{name}->as_array()->data():#{name}->as_array()->size()"
       end
 
       def process_block(exp)
@@ -177,7 +178,7 @@ module Natalie
         decl "Value *#{array_val} = to_ary(env, #{val}, false);"
         args.compact.each do |arg|
           arg = arg.dup
-          arg_value = process_assign_val(arg.pop, "vector_size(&#{array_val}->ary)", "(Value**)vector_data(&#{array_val}->ary)")
+          arg_value = process_assign_val(arg.pop, "#{array_val}->size()", "#{array_val}->data()")
           process(arg << arg_value)
         end
         val
@@ -191,7 +192,7 @@ module Natalie
           decl "  Value *#{array_arg} = to_ary(env, args[0], true);"
           args.compact.each do |arg|
             arg = arg.dup
-            arg_value = process_assign_val(arg.pop, "vector_size(&#{array_arg}->ary)", "(Value**)vector_data(&#{array_arg}->ary)")
+            arg_value = process_assign_val(arg.pop, "#{array_arg}->size()", "#{array_arg}->data()")
             process(arg << arg_value)
           end
           decl '} else {'
@@ -208,9 +209,9 @@ module Natalie
         default ||= s(:nil)
         if type == :rest
           rest = temp('rest')
-          decl "Value *#{rest} = array_new(env);"
+          decl "ArrayValue *#{rest} = new ArrayValue { env };"
           decl "for (ssize_t i=#{index}; i<#{argc_name}; i++) {"
-          decl "array_push(env, #{rest}, #{args_name}[i]);"
+          decl "#{rest}->push(#{args_name}[i]);"
           decl '}'
           rest
         else

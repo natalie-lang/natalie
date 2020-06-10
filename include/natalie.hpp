@@ -102,18 +102,6 @@ ProcValue *proc_new(Env *env, Block *block);
 ProcValue *to_proc(Env *env, Value *obj);
 ProcValue *lambda(Env *env, Block *block);
 
-ArrayValue *array_new(Env *env);
-ArrayValue *array_with_vals(Env *env, ssize_t count, ...);
-ArrayValue *array_copy(Env *env, ArrayValue *source);
-void grow_array(Env *env, Value *obj, ssize_t capacity);
-void grow_array_at_least(Env *env, Value *obj, ssize_t min_capacity);
-void array_push(Env *env, Value *array, Value *obj);
-void array_push(Env *env, ArrayValue *array, Value *obj);
-void array_push_splat(Env *env, Value *array, Value *obj);
-void array_push_splat(Env *env, ArrayValue *array, Value *obj);
-void array_expand_with_nil(Env *env, Value *array, ssize_t size);
-void array_expand_with_nil(Env *env, ArrayValue *array, ssize_t size);
-
 Value *splat(Env *env, Value *obj);
 
 HashKey *hash_key_list_append(Env *env, Value *hash, Value *key, Value *val);
@@ -148,9 +136,6 @@ void handle_top_level_exception(Env *env, bool run_exit_handlers);
 
 void object_pointer_id(Value *obj, char *buf);
 int64_t object_id(Env *env, Value *obj);
-
-int quicksort_partition(Env *env, Value *ary[], int start, int end);
-void quicksort(Env *env, Value *ary[], int start, int end);
 
 ArrayValue *to_ary(Env *env, Value *obj, bool raise_for_non_array);
 

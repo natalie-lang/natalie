@@ -10,7 +10,7 @@ Value *NilClass_to_s(Env *env, Value *self, ssize_t argc, Value **args, Block *b
 
 Value *NilClass_to_a(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
-    return array_new(env);
+    return new ArrayValue { env };
 }
 
 Value *NilClass_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {

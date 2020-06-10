@@ -166,13 +166,13 @@ extern "C" Env *build_top_env() {
     Object->const_set(env, "Process", Process);
     NAT_PROCESS_INIT(Process);
 
-    Value *EncodingAscii8Bit = encoding(env, Encoding::ASCII_8BIT, array_with_vals(env, 2, new StringValue { env, "ASCII-8BIT" }, new StringValue { env, "BINARY" }));
+    Value *EncodingAscii8Bit = encoding(env, Encoding::ASCII_8BIT, new ArrayValue { env, std::initializer_list<Value *>({ new StringValue { env, "ASCII-8BIT" }, new StringValue { env, "BINARY" } }) });
     Encoding->const_set(env, "ASCII_8BIT", EncodingAscii8Bit);
 
-    Value *EncodingUTF8 = encoding(env, Encoding::UTF_8, array_with_vals(env, 1, new StringValue { env, "UTF-8" }));
+    Value *EncodingUTF8 = encoding(env, Encoding::UTF_8, new ArrayValue { env, std::initializer_list<Value *>({ new StringValue { env, "UTF-8" } }) });
     Encoding->const_set(env, "UTF_8", EncodingUTF8);
 
-    env->global_set("$NAT_at_exit_handlers", array_new(env));
+    env->global_set("$NAT_at_exit_handlers", new ArrayValue { env });
 
     Value *self = new Value { env };
     self->flags = NAT_FLAG_MAIN_OBJECT;
@@ -229,12 +229,12 @@ extern "C" Value *EVAL(Env *env) {
 int main(int argc, char *argv[]) {
     setvbuf(stdout, NULL, _IOLBF, 1024);
     Env *env = build_top_env();
-    Value *ARGV = array_new(env);
+    ArrayValue *ARGV = new ArrayValue { env };
     /*INIT*/
     NAT_OBJECT->const_set(env, "ARGV", ARGV);
     assert(argc > 0);
     for (int i = 1; i < argc; i++) {
-        array_push(env, ARGV, new StringValue { env, argv[i] });
+        ARGV->push(new StringValue { env, argv[i] });
     }
     Value *result = EVAL(env);
     delete env->global_env;

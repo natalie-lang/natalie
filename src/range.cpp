@@ -37,11 +37,11 @@ Value *Range_exclude_end(Env *env, Value *self_value, ssize_t argc, Value **args
 Value *Range_to_a(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     RangeValue *self = self_value->as_range();
-    Value *ary = array_new(env);
+    ArrayValue *ary = new ArrayValue { env };
     Value *item = self->range_begin;
     const char *op = self->range_exclude_end ? "<" : "<=";
     while (send(env, item, op, 1, &self->range_end, nullptr)->is_truthy()) {
-        array_push(env, ary, item);
+        ary->push(item);
         item = send(env, item, "succ", 0, NULL, NULL);
     }
     return ary;

@@ -21,9 +21,9 @@ Value *Kernel_p(Env *env, Value *self, ssize_t argc, Value **args, Block *block)
         Kernel_puts(env, self, 1, &arg, NULL);
         return arg;
     } else {
-        Value *result = array_new(env);
+        ArrayValue *result = new ArrayValue { env };
         for (ssize_t i = 0; i < argc; i++) {
-            array_push(env, result, args[i]);
+            result->push(args[i]);
             args[i] = send(env, args[i], "inspect", 0, NULL, NULL);
         }
         Kernel_puts(env, self, argc, args, NULL);
@@ -79,7 +79,7 @@ Value *Kernel_singleton_class(Env *env, Value *self, ssize_t argc, Value **args,
 }
 
 Value *Kernel_instance_variables(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
-    Value *ary = array_new(env);
+    ArrayValue *ary = new ArrayValue { env };
     if (NAT_TYPE(self) == Value::Type::Integer) {
         return ary;
     }
@@ -87,7 +87,7 @@ Value *Kernel_instance_variables(Env *env, Value *self, ssize_t argc, Value **ar
     if (self->ivars.table) {
         for (iter = hashmap_iter(&self->ivars); iter; iter = hashmap_iter_next(&self->ivars, iter)) {
             char *name = (char *)hashmap_iter_get_key(iter);
-            array_push(env, ary, SymbolValue::intern(env, name));
+            ary->push(SymbolValue::intern(env, name));
         }
     }
     return ary;
@@ -154,7 +154,7 @@ Value *Kernel_dup(Env *env, Value *self, ssize_t argc, Value **args, Block *bloc
 
 Value *Kernel_methods(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0); // for now
-    ArrayValue *array = array_new(env);
+    ArrayValue *array = new ArrayValue { env };
     if (self->singleton_class(env)) {
         methods(env, array, self->singleton_class(env));
     } else {
@@ -181,11 +181,10 @@ Value *Kernel_exit(Env *env, Value *self, ssize_t argc, Value **args, Block *blo
 }
 
 Value *Kernel_at_exit(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
-    Value *at_exit_handlers = env->global_get("$NAT_at_exit_handlers");
-    assert(at_exit_handlers);
+    ArrayValue *at_exit_handlers = env->global_get("$NAT_at_exit_handlers")->as_array();
     NAT_ASSERT_BLOCK();
     Value *proc = proc_new(env, block);
-    array_push(env, at_exit_handlers, proc);
+    at_exit_handlers->push(proc);
     return proc;
 }
 
@@ -285,10 +284,10 @@ Value *Kernel_Array(Env *env, Value *self, ssize_t argc, Value **args, Block *bl
     } else if (respond_to(env, value, "to_ary")) {
         return send(env, value, "to_ary", 0, NULL, NULL);
     } else if (value == NAT_NIL) {
-        return array_new(env);
+        return new ArrayValue { env };
     } else {
-        Value *ary = array_new(env);
-        array_push(env, ary, value);
+        ArrayValue *ary = new ArrayValue { env };
+        ary->push(value);
         return ary;
     }
 }

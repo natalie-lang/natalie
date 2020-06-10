@@ -13,67 +13,9 @@ bool is_global_name(const char *name) {
     return strlen(name) > 0 && name[0] == '$';
 }
 
-ArrayValue *array_new(Env *env) {
-    ArrayValue *obj = new ArrayValue { env };
-    return obj;
-}
-
-ArrayValue *array_with_vals(Env *env, ssize_t count, ...) {
-    va_list args;
-    va_start(args, count);
-    ArrayValue *ary = array_new(env);
-    for (ssize_t i = 0; i < count; i++) {
-        array_push(env, ary, va_arg(args, Value *));
-    }
-    va_end(args);
-    return ary;
-}
-
-ArrayValue *array_copy(Env *env, ArrayValue *source) {
-    ArrayValue *obj = new ArrayValue { env };
-    vector_copy(&obj->ary, &source->ary);
-    return obj;
-}
-
-void array_push(Env *env, Value *array, Value *obj) {
-    array_push(env, array->as_array(), obj);
-}
-
-void array_push(Env *env, ArrayValue *array, Value *obj) {
-    assert(obj);
-    vector_push(&array->ary, obj);
-}
-
-void array_push_splat(Env *env, Value *array, Value *obj) {
-    array_push_splat(env, array->as_array(), obj);
-}
-
-void array_push_splat(Env *env, ArrayValue *array, Value *obj) {
-    if (!obj->is_array() && respond_to(env, obj, "to_a")) {
-        obj = send(env, obj, "to_a", 0, NULL, NULL);
-    }
-    if (obj->is_array()) {
-        for (ssize_t i = 0; i < vector_size(&obj->as_array()->ary); i++) {
-            vector_push(&array->ary, vector_get(&obj->as_array()->ary, i));
-        }
-    } else {
-        array_push(env, array, obj);
-    }
-}
-
-void array_expand_with_nil(Env *env, Value *array, ssize_t size) {
-    array_expand_with_nil(env, array->as_array(), size);
-}
-
-void array_expand_with_nil(Env *env, ArrayValue *array, ssize_t size) {
-    for (ssize_t i = vector_size(&array->ary); i < size; i++) {
-        array_push(env, array, NAT_NIL);
-    }
-}
-
 Value *splat(Env *env, Value *obj) {
     if (obj->is_array()) {
-        return array_copy(env, obj->as_array());
+        return ArrayValue::copy(env, *obj->as_array());
     } else {
         return to_ary(env, obj, false);
     }
@@ -382,14 +324,14 @@ void undefine_singleton_method(Env *env, Value *obj, const char *name) {
 }
 
 ArrayValue *class_ancestors(Env *env, ModuleValue *klass) {
-    ArrayValue *ancestors = array_new(env);
+    ArrayValue *ancestors = new ArrayValue { env };
     do {
         if (klass->included_modules_count == 0) {
             // note: if there are included modules, then they will include this klass
-            array_push(env, ancestors, klass);
+            ancestors->push(klass);
         }
         for (ssize_t i = 0; i < klass->included_modules_count; i++) {
-            array_push(env, ancestors, klass->included_modules[i]);
+            ancestors->push(klass->included_modules[i]);
         }
         klass = klass->superclass;
     } while (klass);
@@ -405,8 +347,8 @@ bool is_a(Env *env, Value *obj, ModuleValue *klass_or_module) {
         return true;
     } else {
         ArrayValue *ancestors = class_ancestors(env, NAT_OBJ_CLASS(obj));
-        for (ssize_t i = 0; i < vector_size(&ancestors->ary); i++) {
-            if (klass_or_module == vector_get(&ancestors->ary, i)) {
+        for (ssize_t i = 0; i < ancestors->size(); i++) {
+            if (klass_or_module == (*ancestors)[i]) {
                 return true;
             }
         }
@@ -480,13 +422,13 @@ void methods(Env *env, ArrayValue *array, ModuleValue *klass) {
     struct hashmap_iter *iter;
     for (iter = hashmap_iter(&klass->methods); iter; iter = hashmap_iter_next(&klass->methods, iter)) {
         const char *name = (char *)hashmap_iter_get_key(iter);
-        array_push(env, array, SymbolValue::intern(env, name));
+        array->push(SymbolValue::intern(env, name));
     }
     for (ssize_t i = 0; i < klass->included_modules_count; i++) {
         ModuleValue *module = klass->included_modules[i];
         for (iter = hashmap_iter(&module->methods); iter; iter = hashmap_iter_next(&module->methods, iter)) {
             const char *name = (char *)hashmap_iter_get_key(iter);
-            array_push(env, array, SymbolValue::intern(env, name));
+            array->push(SymbolValue::intern(env, name));
         }
     }
     if (klass->superclass) {
@@ -637,7 +579,7 @@ RangeValue *range_new(Env *env, Value *begin, Value *end, bool exclude_end) {
 Value *dup(Env *env, Value *obj) {
     switch (NAT_TYPE(obj)) {
     case Value::Type::Array:
-        return array_copy(env, obj->as_array());
+        return ArrayValue::copy(env, *obj->as_array());
     case Value::Type::String:
         return new StringValue { env, obj->as_string()->c_str() };
     case Value::Type::Symbol:
@@ -687,8 +629,8 @@ void alias(Env *env, Value *self, const char *new_name, const char *old_name) {
 void run_at_exit_handlers(Env *env) {
     ArrayValue *at_exit_handlers = env->global_get("$NAT_at_exit_handlers")->as_array();
     assert(at_exit_handlers);
-    for (int i = vector_size(&at_exit_handlers->ary) - 1; i >= 0; i--) {
-        Value *proc = static_cast<Value *>(vector_get(&at_exit_handlers->ary, i));
+    for (int i = at_exit_handlers->size() - 1; i >= 0; i--) {
+        Value *proc = (*at_exit_handlers)[i];
         assert(proc);
         assert(proc->is_proc());
         NAT_RUN_BLOCK_WITHOUT_BREAK(env, proc->as_proc()->block, 0, NULL, NULL);
@@ -698,14 +640,14 @@ void run_at_exit_handlers(Env *env) {
 void print_exception_with_backtrace(Env *env, ExceptionValue *exception) {
     IoValue *stderr = env->global_get("$stderr")->as_io();
     int fd = stderr->fileno;
-    if (vector_size(&exception->backtrace->ary) > 0) {
+    if (exception->backtrace->size() > 0) {
         dprintf(fd, "Traceback (most recent call last):\n");
-        for (int i = vector_size(&exception->backtrace->ary) - 1; i > 0; i--) {
-            StringValue *line = static_cast<StringValue *>(vector_get(&exception->backtrace->ary, i));
+        for (int i = exception->backtrace->size() - 1; i > 0; i--) {
+            StringValue *line = (*exception->backtrace)[i]->as_string();
             assert(NAT_TYPE(line) == Value::Type::String);
             dprintf(fd, "        %d: from %s\n", i, line->c_str());
         }
-        StringValue *line = static_cast<StringValue *>(vector_get(&exception->backtrace->ary, 0));
+        StringValue *line = (*exception->backtrace)[0]->as_string();
         dprintf(fd, "%s: ", line->c_str());
     }
     dprintf(fd, "%s (%s)\n", exception->message, NAT_OBJ_CLASS(exception)->class_name);
@@ -744,34 +686,6 @@ int64_t object_id(Env *env, Value *obj) {
     }
 }
 
-int quicksort_partition(Env *env, Value *ary[], int start, int end) {
-    Value *pivot = ary[end];
-    int pIndex = start;
-    Value *temp;
-
-    for (int i = start; i < end; i++) {
-        Value *compare = send(env, ary[i], "<=>", 1, &pivot, NULL);
-        if (compare->as_integer()->to_int64_t() < 0) {
-            temp = ary[i];
-            ary[i] = ary[pIndex];
-            ary[pIndex] = temp;
-            pIndex++;
-        }
-    }
-    temp = ary[end];
-    ary[end] = ary[pIndex];
-    ary[pIndex] = temp;
-    return pIndex;
-}
-
-void quicksort(Env *env, Value *ary[], int start, int end) {
-    if (start < end) {
-        int pIndex = quicksort_partition(env, ary, start, end);
-        quicksort(env, ary, start, pIndex - 1);
-        quicksort(env, ary, pIndex + 1, end);
-    }
-}
-
 ArrayValue *to_ary(Env *env, Value *obj, bool raise_for_non_array) {
     if (obj->is_array()) {
         return obj->as_array();
@@ -780,25 +694,25 @@ ArrayValue *to_ary(Env *env, Value *obj, bool raise_for_non_array) {
         if (ary->is_array()) {
             return ary->as_array();
         } else if (ary->is_nil() || !raise_for_non_array) {
-            ary = array_new(env);
-            array_push(env, ary, obj);
+            ary = new ArrayValue { env };
+            ary->as_array()->push(obj);
             return ary->as_array();
         } else {
             const char *class_name = NAT_OBJ_CLASS(obj)->class_name;
             NAT_RAISE(env, "TypeError", "can't convert %s to Array (%s#to_ary gives %s)", class_name, class_name, NAT_OBJ_CLASS(ary)->class_name);
         }
     } else {
-        ArrayValue *ary = array_new(env);
-        array_push(env, ary, obj);
+        ArrayValue *ary = new ArrayValue { env };
+        ary->push(obj);
         return ary;
     }
 }
 
 static Value *splat_value(Env *env, Value *value, ssize_t index, ssize_t offset_from_end) {
-    Value *splat = array_new(env);
-    if (value->is_array() && index < vector_size(&value->as_array()->ary) - offset_from_end) {
-        for (ssize_t s = index; s < vector_size(&value->as_array()->ary) - offset_from_end; s++) {
-            array_push(env, splat, static_cast<Value *>(vector_get(&value->as_array()->ary, s)));
+    ArrayValue *splat = new ArrayValue { env };
+    if (value->is_array() && index < value->as_array()->size() - offset_from_end) {
+        for (ssize_t s = index; s < value->as_array()->size() - offset_from_end; s++) {
+            splat->push((*value->as_array())[s]);
         }
     }
     return splat;
@@ -819,7 +733,8 @@ Value *arg_value_by_path(Env *env, Value *value, Value *default_value, bool spla
         } else {
             if (return_value->is_array()) {
 
-                int64_t ary_len = (int64_t)vector_size(&return_value->as_array()->ary);
+                assert(return_value->as_array()->size() <= NAT_MAX_INT);
+                int64_t ary_len = return_value->as_array()->size();
 
                 int first_required = default_count;
                 int remain = ary_len - required_count;
@@ -857,7 +772,7 @@ Value *arg_value_by_path(Env *env, Value *value, Value *default_value, bool spla
 
                 } else if (index < ary_len) {
                     // value available, yay!
-                    return_value = static_cast<Value *>(vector_get(&return_value->as_array()->ary, index));
+                    return_value = (*return_value->as_array())[index];
 
                 } else {
                     // index past the end of the array, so use default
@@ -889,7 +804,8 @@ Value *array_value_by_path(Env *env, Value *value, Value *default_value, bool sp
         } else {
             if (return_value->is_array()) {
 
-                int64_t ary_len = (int64_t)vector_size(&return_value->as_array()->ary);
+                assert(return_value->as_array()->size() <= NAT_MAX_INT);
+                int64_t ary_len = return_value->as_array()->size();
 
                 if (index < 0) {
                     // negative offset index should go from the right
@@ -902,7 +818,7 @@ Value *array_value_by_path(Env *env, Value *value, Value *default_value, bool sp
 
                 } else if (index < ary_len) {
                     // value available, yay!
-                    return_value = static_cast<Value *>(vector_get(&return_value->as_array()->ary, index));
+                    return_value = (*return_value->as_array())[index];
 
                 } else {
                     // index past the end of the array, so use default
@@ -929,10 +845,10 @@ Value *kwarg_value_by_name(Env *env, Value *args, const char *name, Value *defau
 
 Value *kwarg_value_by_name(Env *env, ArrayValue *args, const char *name, Value *default_value) {
     Value *hash;
-    if (vector_size(&args->ary) == 0) {
+    if (args->size() == 0) {
         hash = hash_new(env);
     } else {
-        hash = static_cast<Value *>(vector_get(&args->ary, vector_size(&args->ary) - 1));
+        hash = (*args)[args->size() - 1];
         if (NAT_TYPE(hash) != Value::Type::Hash) {
             hash = hash_new(env);
         }
@@ -949,9 +865,9 @@ Value *kwarg_value_by_name(Env *env, ArrayValue *args, const char *name, Value *
 }
 
 ArrayValue *args_to_array(Env *env, ssize_t argc, Value **args) {
-    ArrayValue *ary = array_new(env);
+    ArrayValue *ary = new ArrayValue { env };
     for (ssize_t i = 0; i < argc; i++) {
-        array_push(env, ary, args[i]);
+        ary->push(args[i]);
     }
     return ary;
 }

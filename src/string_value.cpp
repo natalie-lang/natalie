@@ -56,7 +56,7 @@ void StringValue::append_string(Env *env, StringValue *string2) {
     }
 
 ArrayValue *StringValue::chars(Env *env) {
-    ArrayValue *ary = array_new(env);
+    ArrayValue *ary = new ArrayValue { env };
     StringValue *c;
     char buffer[5];
     switch (m_encoding) {
@@ -83,7 +83,7 @@ ArrayValue *StringValue::chars(Env *env) {
             }
             c = new StringValue { env, buffer };
             c->set_encoding(Encoding::UTF_8);
-            array_push(env, ary, c);
+            ary->push(c);
         }
         break;
     case Encoding::ASCII_8BIT:
@@ -92,7 +92,7 @@ ArrayValue *StringValue::chars(Env *env) {
             buffer[1] = 0;
             c = new StringValue { env, buffer };
             c->set_encoding(Encoding::ASCII_8BIT);
-            array_push(env, ary, c);
+            ary->push(c);
         }
         break;
     }

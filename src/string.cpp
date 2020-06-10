@@ -121,10 +121,10 @@ Value *String_succ(Env *env, Value *self, ssize_t argc, Value **args, Block *blo
 
 Value *String_ord(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     ArrayValue *chars = self->as_string()->chars(env);
-    if (vector_size(&chars->ary) == 0) {
+    if (chars->size() == 0) {
         NAT_RAISE(env, "ArgumentError", "empty string");
     }
-    StringValue *c = static_cast<StringValue *>(vector_get(&chars->ary, 0));
+    StringValue *c = (*chars)[0]->as_string();
     assert(c->length() > 0);
     unsigned int code;
     const char *str = c->c_str();
@@ -152,11 +152,11 @@ Value *String_ord(Env *env, Value *self, ssize_t argc, Value **args, Block *bloc
 Value *String_bytes(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     StringValue *self = self_value->as_string();
-    Value *ary = array_new(env);
+    ArrayValue *ary = new ArrayValue { env };
     ssize_t length = self->length();
     const char *str = self->c_str();
     for (ssize_t i = 0; i < length; i++) {
-        array_push(env, ary, new IntegerValue { env, str[i] });
+        ary->push(new IntegerValue { env, str[i] });
     }
     return ary;
 }
@@ -169,7 +169,7 @@ Value *String_chars(Env *env, Value *self, ssize_t argc, Value **args, Block *bl
 Value *String_size(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     ArrayValue *chars = self->as_string()->chars(env);
-    return new IntegerValue { env, vector_size(&chars->ary) };
+    return new IntegerValue { env, chars->size() };
 }
 
 Value *String_encoding(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
@@ -195,11 +195,11 @@ static char *lcase_string(const char *str) {
 static EncodingValue *find_encoding_by_name(Env *env, const char *name) {
     char *lcase_name = lcase_string(name);
     ArrayValue *list = Encoding_list(env, NAT_OBJECT->const_get(env, "Encoding", true), 0, NULL, NULL)->as_array();
-    for (ssize_t i = 0; i < vector_size(&list->ary); i++) {
-        EncodingValue *encoding = static_cast<EncodingValue *>(vector_get(&list->ary, i));
+    for (ssize_t i = 0; i < list->size(); i++) {
+        EncodingValue *encoding = (*list)[i]->as_encoding();
         ArrayValue *names = encoding->encoding_names;
-        for (ssize_t n = 0; n < vector_size(&names->ary); n++) {
-            StringValue *name_obj = static_cast<StringValue *>(vector_get(&names->ary, n));
+        for (ssize_t n = 0; n < names->size(); n++) {
+            StringValue *name_obj = (*names)[n]->as_string();
             char *name = lcase_string(name_obj->c_str());
             if (strcmp(name, lcase_name) == 0) {
                 free(name);
@@ -224,8 +224,8 @@ Value *String_encode(Env *env, Value *self_value, ssize_t argc, Value **args, Bl
         return copy;
     } else if (orig_encoding == Encoding::UTF_8 && copy->encoding() == Encoding::ASCII_8BIT) {
         ArrayValue *chars = self->chars(env);
-        for (ssize_t i = 0; i < vector_size(&chars->ary); i++) {
-            StringValue *char_obj = static_cast<StringValue *>(vector_get(&chars->ary, i));
+        for (ssize_t i = 0; i < chars->size(); i++) {
+            StringValue *char_obj = (*chars)[i]->as_string();
             if (char_obj->length() > 1) {
                 Value *ord = String_ord(env, char_obj, 0, NULL, NULL);
                 Value *message = StringValue::sprintf(env, "U+%X from UTF-8 to ASCII-8BIT", ord->as_integer()->to_int64_t());
@@ -276,13 +276,13 @@ Value *String_ref(Env *env, Value *self_value, ssize_t argc, Value **args, Block
 
     ArrayValue *chars = self->chars(env);
     if (index < 0) {
-        index = vector_size(&chars->ary) + index;
+        index = chars->size() + index;
     }
 
-    if (index < 0 || index >= (int64_t)vector_size(&chars->ary)) {
+    if (index < 0 || index >= (int64_t)chars->size()) {
         return NAT_NIL;
     }
-    return static_cast<Value *>(vector_get(&chars->ary, index));
+    return (*chars)[index];
 }
 
 Value *String_index(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
@@ -343,7 +343,7 @@ Value *String_split(Env *env, Value *self_value, ssize_t argc, Value **args, Blo
     NAT_ASSERT_ARGC(1);
     StringValue *self = self_value->as_string();
     Value *splitter = args[0];
-    Value *ary = array_new(env);
+    ArrayValue *ary = new ArrayValue { env };
     if (self->length() == 0) {
         return ary;
     } else if (splitter->is_regexp()) {
@@ -356,16 +356,16 @@ Value *String_split(Env *env, Value *self_value, ssize_t argc, Value **args, Blo
         unsigned char *range = end;
         int result = onig_search(splitter->as_regexp()->regexp, str, end, start, range, region, ONIG_OPTION_NONE);
         if (result == ONIG_MISMATCH) {
-            array_push(env, ary, dup(env, self));
+            ary->push(dup(env, self));
         } else {
             do {
                 index = region->beg[0];
                 len = region->end[0] - region->beg[0];
-                array_push(env, ary, new StringValue { env, &self->c_str()[last_index], index - last_index });
+                ary->push(new StringValue { env, &self->c_str()[last_index], index - last_index });
                 last_index = index + len;
                 result = onig_search(splitter->as_regexp()->regexp, str, end, start + last_index, range, region, ONIG_OPTION_NONE);
             } while (result != ONIG_MISMATCH);
-            array_push(env, ary, new StringValue { env, &self->c_str()[last_index] });
+            ary->push(new StringValue { env, &self->c_str()[last_index] });
         }
         onig_region_free(region, true);
         return ary;
@@ -373,14 +373,14 @@ Value *String_split(Env *env, Value *self_value, ssize_t argc, Value **args, Blo
         ssize_t last_index = 0;
         ssize_t index = self->index(env, splitter->as_string(), 0);
         if (index == -1) {
-            array_push(env, ary, dup(env, self));
+            ary->push(dup(env, self));
         } else {
             do {
-                array_push(env, ary, new StringValue { env, &self->c_str()[last_index], index - last_index });
+                ary->push(new StringValue { env, &self->c_str()[last_index], index - last_index });
                 last_index = index + splitter->as_string()->length();
                 index = self->index(env, splitter->as_string(), last_index);
             } while (index != -1);
-            array_push(env, ary, new StringValue { env, &self->c_str()[last_index] });
+            ary->push(new StringValue { env, &self->c_str()[last_index] });
         }
         return ary;
     } else {

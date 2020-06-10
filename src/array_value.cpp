@@ -1,10 +1,41 @@
+#include <algorithm>
+
 #include "natalie.hpp"
 
 namespace Natalie {
 
-ArrayValue::ArrayValue(Env *env)
-    : Value { env, Value::Type::Array, NAT_OBJECT->const_get(env, "Array", true)->as_class() } {
-    vector_init(&ary, 0);
+void ArrayValue::push_splat(Env *env, Value *val) {
+    if (!val->is_array() && respond_to(env, val, "to_a")) {
+        val = send(env, val, "to_a", 0, NULL, NULL);
+    }
+    if (val->is_array()) {
+        for (Value *v : *val->as_array()) {
+            push(*v);
+        }
+    } else {
+        push(*val);
+    }
+}
+
+Value *ArrayValue::pop(Env *env) {
+    if (size() == 0) return NAT_NIL;
+    Value *val = m_vector.back();
+    m_vector.pop_back();
+    return val;
+}
+
+void ArrayValue::expand_with_nil(Env *env, ssize_t total) {
+    for (ssize_t i = size(); i < total; i++) {
+        push(*NAT_NIL);
+    }
+}
+
+void ArrayValue::sort(Env *env) {
+    auto cmp = [env](Value *a, Value *b) {
+        Value *compare = send(env, a, "<=>", 1, &b, NULL);
+        return compare->as_integer()->to_int64_t() < 0;
+    };
+    std::sort(m_vector.begin(), m_vector.end(), cmp);
 }
 
 }

@@ -140,9 +140,9 @@ Value *Module_prepend(Env *env, Value *self_value, ssize_t argc, Value **args, B
 Value *Module_included_modules(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     ModuleValue *self = self_value->as_module();
     NAT_ASSERT_ARGC(0);
-    Value *modules = array_new(env);
+    ArrayValue *modules = new ArrayValue { env };
     for (ssize_t i = 0; i < self->included_modules_count; i++) {
-        array_push(env, modules, self->included_modules[i]);
+        modules->push(self->included_modules[i]);
     }
     return modules;
 }

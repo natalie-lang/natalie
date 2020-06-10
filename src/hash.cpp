@@ -25,16 +25,16 @@ Value *Hash_square_new(Env *env, Value *self_value, ssize_t argc, Value **args, 
             return value;
         } else if (NAT_TYPE(value) == Value::Type::Array) {
             HashValue *hash = hash_new(env);
-            for (ssize_t i = 0; i < vector_size(&value->as_array()->ary); i++) {
-                Value *pair = static_cast<Value *>(vector_get(&value->as_array()->ary, i));
+            for (auto &pair : *value->as_array()) {
                 if (NAT_TYPE(pair) != Value::Type::Array) {
                     NAT_RAISE(env, "ArgumentError", "wrong element in array to Hash[]");
                 }
-                if (vector_size(&pair->as_array()->ary) < 1 || vector_size(&pair->as_array()->ary) > 2) {
-                    NAT_RAISE(env, "ArgumentError", "invalid number of elements (%d for 1..2)", vector_size(&pair->as_array()->ary));
+                ssize_t size = pair->as_array()->size();
+                if (size < 1 || size > 2) {
+                    NAT_RAISE(env, "ArgumentError", "invalid number of elements (%d for 1..2)", size);
                 }
-                Value *key = static_cast<Value *>(vector_get(&pair->as_array()->ary, 0));
-                Value *value = vector_size(&pair->as_array()->ary) == 1 ? NAT_NIL : static_cast<Value *>(vector_get(&pair->as_array()->ary, 1));
+                Value *key = (*pair->as_array())[0];
+                Value *value = size == 1 ? NAT_NIL : (*pair->as_array())[1];
                 hash_put(env, hash, key, value);
             }
             return hash;
@@ -164,10 +164,10 @@ Value *Hash_each(Env *env, Value *self_value, ssize_t argc, Value **args, Block 
 Value *Hash_keys(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     HashValue *self = self_value->as_hash();
-    Value *array = array_new(env);
+    ArrayValue *array = new ArrayValue { env };
     HashIter *iter;
     for (iter = hash_iter(env, self); iter; iter = hash_iter_next(env, self, iter)) {
-        array_push(env, array, iter->key);
+        array->push(iter->key);
     }
     return array;
 }
@@ -175,10 +175,10 @@ Value *Hash_keys(Env *env, Value *self_value, ssize_t argc, Value **args, Block 
 Value *Hash_values(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     HashValue *self = self_value->as_hash();
-    Value *array = array_new(env);
+    ArrayValue *array = new ArrayValue { env };
     HashIter *iter;
     for (iter = hash_iter(env, self); iter; iter = hash_iter_next(env, self, iter)) {
-        array_push(env, array, iter->val);
+        array->push(iter->val);
     }
     return array;
 }
@@ -186,12 +186,12 @@ Value *Hash_values(Env *env, Value *self_value, ssize_t argc, Value **args, Bloc
 Value *Hash_sort(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     HashIter *iter;
     HashValue *self = self_value->as_hash();
-    Value *ary = array_new(env);
+    ArrayValue *ary = new ArrayValue { env };
     for (iter = hash_iter(env, self); iter; iter = hash_iter_next(env, self, iter)) {
-        Value *pair = array_new(env);
-        array_push(env, pair, iter->key);
-        array_push(env, pair, iter->val);
-        array_push(env, ary, pair);
+        ArrayValue *pair = new ArrayValue { env };
+        pair->push(iter->key);
+        pair->push(iter->val);
+        ary->push(pair);
     }
     return Array_sort(env, ary, 0, NULL, NULL);
 }
