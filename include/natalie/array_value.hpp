@@ -1,14 +1,13 @@
 #pragma once
 
 #include <iterator>
-#include <vector>
 
 #include "natalie/class_value.hpp"
 #include "natalie/forward.hpp"
 #include "natalie/global_env.hpp"
 #include "natalie/macros.hpp"
 #include "natalie/value.hpp"
-#include "natalie/vector_temporary_delete_this_soon.hpp"
+#include "natalie/vector.hpp"
 
 namespace Natalie {
 
@@ -19,7 +18,7 @@ struct ArrayValue : Value {
     ArrayValue(Env *env, std::initializer_list<Value *> list)
         : ArrayValue { env } {
         for (auto &v : list) {
-            m_vector.push_back(v);
+            m_vector.push(v);
         }
     }
 
@@ -32,22 +31,22 @@ struct ArrayValue : Value {
     ssize_t size() { return m_vector.size(); }
 
     void push(Value &val) {
-        m_vector.push_back(&val);
+        m_vector.push(&val);
     }
 
     void push(Value *val) {
-        m_vector.push_back(val);
+        m_vector.push(val);
     }
 
     Value *pop(Env *);
 
     Value *&operator[](ssize_t index) {
-        return m_vector.at(index);
+        return m_vector[index];
     }
 
     void concat(ArrayValue &other) {
-        for (auto &v : other) {
-            push(*v);
+        for (Value *v : other) {
+            push(v);
         }
     }
 
@@ -56,9 +55,9 @@ struct ArrayValue : Value {
     void expand_with_nil(Env *, ssize_t);
 
     void overwrite(ArrayValue &other) {
-        m_vector.clear();
-        for (auto &v : other) {
-            push(*v);
+        m_vector.set_size(0);
+        for (Value *v : other) {
+            push(v);
         }
     }
 
@@ -68,11 +67,12 @@ struct ArrayValue : Value {
 
     void sort(Env *);
 
-    std::vector<Value *>::iterator begin() noexcept { return m_vector.begin(); }
-    std::vector<Value *>::iterator end() noexcept { return m_vector.end(); }
+    MyVector<Value *>::iterator begin() noexcept { return m_vector.begin(); }
+    MyVector<Value *>::iterator end() noexcept { return m_vector.end(); }
+
+    MyVector<Value *> m_vector;
 
 private:
-    std::vector<Value *> m_vector;
 };
 
 }

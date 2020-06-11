@@ -621,8 +621,9 @@ void alias(Env *env, Value *self, const char *new_name, const char *old_name) {
         NAT_RAISE(env, "NameError", "undefined method `%s' for `%v'", old_name, klass);
     }
     free(hashmap_remove(&klass->methods, new_name));
-    Method *method_copy = static_cast<Method *>(malloc(sizeof(Method)));
-    memcpy(method_copy, method, sizeof(Method));
+    Method *method_copy = new Method { *method };
+    //static_cast<Method *>(malloc(sizeof(Method)));
+    //memcpy(method_copy, method, sizeof(Method));
     hashmap_put(&klass->methods, new_name, method_copy);
 }
 

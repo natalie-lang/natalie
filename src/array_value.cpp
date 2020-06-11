@@ -19,8 +19,8 @@ void ArrayValue::push_splat(Env *env, Value *val) {
 
 Value *ArrayValue::pop(Env *env) {
     if (size() == 0) return NAT_NIL;
-    Value *val = m_vector.back();
-    m_vector.pop_back();
+    Value *val = m_vector[m_vector.size() - 1];
+    m_vector.set_size(m_vector.size() - 1);
     return val;
 }
 
@@ -35,7 +35,7 @@ void ArrayValue::sort(Env *env) {
         Value *compare = send(env, a, "<=>", 1, &b, NULL);
         return compare->as_integer()->to_int64_t() < 0;
     };
-    std::sort(m_vector.begin(), m_vector.end(), cmp);
+    m_vector.sort(cmp);
 }
 
 }

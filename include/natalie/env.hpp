@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 #include "natalie/forward.hpp"
+#include "natalie/vector.hpp"
 
 namespace Natalie {
 
@@ -35,7 +36,7 @@ struct Env {
     Value *raise_local_jump_error(Value *, const char *);
 
     GlobalEnv *global_env { nullptr };
-    Vector *vars { nullptr };
+    MyVector<Value *> *vars { nullptr };
     Env *outer { nullptr };
     Block *block { nullptr };
     bool block_env { false };

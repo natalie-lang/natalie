@@ -31,7 +31,6 @@
 #include "natalie/symbol_value.hpp"
 #include "natalie/true_value.hpp"
 #include "natalie/value.hpp"
-#include "natalie/vector_temporary_delete_this_soon.hpp"
 #include "natalie/void_p_value.hpp"
 
 namespace Natalie {

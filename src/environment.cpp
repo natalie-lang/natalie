@@ -1,16 +1,18 @@
 #include "natalie.hpp"
 #include "natalie/builtin.hpp"
+#include "natalie/env.hpp"
+#include "natalie/vector.hpp"
 
 extern char **environ;
 
 namespace Natalie {
 
 Value *Env::var_get(const char *key, ssize_t index) {
-    if (index >= vector_size(this->vars)) {
+    if (index >= this->vars->size()) {
         printf("Trying to get variable `%s' at index %zu which is not set.\n", key, index);
         abort();
     }
-    Value *val = static_cast<Value *>(vector_get(this->vars, index));
+    Value *val = (*this->vars)[index];
     if (val) {
         return val;
     } else {
@@ -20,23 +22,21 @@ Value *Env::var_get(const char *key, ssize_t index) {
 }
 
 Value *Env::var_set(const char *name, ssize_t index, bool allocate, Value *val) {
-    size_t needed = index + 1;
-    size_t current_size = vector_capacity(this->vars);
+    ssize_t needed = index + 1;
+    ssize_t current_size = this->vars ? this->vars->size() : 0;
     if (needed > current_size) {
         if (allocate) {
             if (!this->vars) {
-                this->vars = vector(needed);
-                vector_set(this->vars, index, val);
+                this->vars = new MyVector<Value *> { needed };
             } else {
-                vector_push(this->vars, val);
+                this->vars->set_size(needed);
             }
         } else {
             printf("Tried to set a variable without first allocating space for it.\n");
             abort();
         }
-    } else {
-        vector_set(this->vars, index, val);
     }
+    (*this->vars)[index] = val;
     return val;
 }
 
