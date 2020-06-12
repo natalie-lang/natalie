@@ -1,7 +1,5 @@
 #pragma once
 
-#include <algorithm>
-#include <iterator>
 #include <stdlib.h>
 
 #define NAT_VECTOR_GROW_FACTOR 2
@@ -9,16 +7,16 @@
 namespace Natalie {
 
 template <typename T>
-struct MyVector {
-    MyVector() { }
+struct Vector {
+    Vector() { }
 
-    MyVector(ssize_t initial_capacity)
+    Vector(ssize_t initial_capacity)
         : m_size { initial_capacity }
         , m_capacity { initial_capacity }
-        , m_data { new T[initial_capacity] {} } { }
+        , m_data { static_cast<T *>(malloc(sizeof(T) * initial_capacity)) } { }
 
-    ~MyVector() {
-        delete[] m_data;
+    ~Vector() {
+        free(m_data);
     }
 
     T &operator[](ssize_t index) {
@@ -43,45 +41,10 @@ struct MyVector {
         m_size = new_size;
     }
 
-    void sort(std::function<bool(T, T)> cmp) {
-        std::sort(m_data, m_data + m_size, cmp);
-    }
-
     class iterator {
     public:
-        using iterator_category = std::input_iterator_tag;
-        using value_type = T;
-        using difference_type = ptrdiff_t;
-        using pointer = T *;
-        using reference = T &;
-
         iterator(T *ptr)
             : m_ptr { ptr } { }
-
-        /*
-        iterator(const iterator &other)
-            : m_ptr { other.m_ptr } { }
-
-        iterator operator=(const iterator &other) {
-            m_ptr = other.m_ptr;
-            return *this;
-        }
-
-        iterator operator++() {
-            m_ptr++;
-            return *this;
-        }
-
-
-        T &operator*() { return *m_ptr; }
-        T *operator->() { return m_ptr; }
-        bool operator==(const T &rhs) { return m_ptr == rhs.m_ptr; }
-        bool operator!=(const T &rhs) { return m_ptr != rhs.m_ptr; }
-        //bool operator==(const T *rhs) { return m_ptr == rhs->m_ptr; }
-        //bool operator!=(const T *rhs) { return m_ptr != rhs->m_ptr; }
-        //bool operator==(const iterator &i) { return m_ptr == i.m_ptr; }
-        bool operator!=(const iterator &i) { return m_ptr != i.m_ptr; }
-        */
 
         T &operator*() { return *m_ptr; }
 
@@ -96,9 +59,9 @@ struct MyVector {
             return i;
         }
 
-        value_type operator*() const { return *m_ptr; }
+        T operator*() const { return *m_ptr; }
 
-        pointer operator->() const { return m_ptr; }
+        T *operator->() const { return m_ptr; }
 
         friend bool operator==(const iterator &i1, const iterator &i2) {
             return i1.m_ptr == i2.m_ptr;
@@ -120,12 +83,18 @@ struct MyVector {
         return iterator { m_data + m_size };
     }
 
+    struct SortComparator {
+        void *data;
+        bool (*cmp)(void *, T, T);
+    };
+
+    void sort(SortComparator cmp) {
+        quicksort(0, m_size - 1, cmp);
+    }
+
 private:
     void grow(ssize_t capacity) {
-        T *new_data = new T[capacity] {};
-        std::copy_n(m_data, std::min(capacity, m_capacity), new_data);
-        delete[] m_data;
-        m_data = new_data;
+        m_data = static_cast<T *>(realloc(m_data, sizeof(T) * capacity));
         m_capacity = capacity;
     }
 
@@ -138,6 +107,32 @@ private:
         } else {
             grow(min_capacity);
         }
+    }
+
+    void quicksort(int start, int end, SortComparator cmp) {
+        if (start >= end) return;
+        int p_index = quicksort_partition(start, end, cmp);
+        quicksort(start, p_index - 1, cmp);
+        quicksort(p_index + 1, end, cmp);
+    }
+
+    int quicksort_partition(int start, int end, SortComparator cmp) {
+        T pivot = m_data[end];
+        int p_index = start;
+        T temp;
+
+        for (int i = start; i < end; i++) {
+            if (cmp.cmp(cmp.data, m_data[i], pivot)) {
+                temp = m_data[i];
+                m_data[i] = m_data[p_index];
+                m_data[p_index] = temp;
+                p_index++;
+            }
+        }
+        temp = m_data[end];
+        m_data[end] = m_data[p_index];
+        m_data[p_index] = temp;
+        return p_index;
     }
 
     ssize_t m_size { 0 };

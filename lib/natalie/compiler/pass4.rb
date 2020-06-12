@@ -577,7 +577,7 @@ module Natalie
       def process_var_alloc(exp)
         count = exp.last
         if count > 0
-          decl "env->vars = new MyVector<Value*> { #{count} };"
+          decl "env->vars = new Vector<Value*> { #{count} };"
         end
         ''
       end

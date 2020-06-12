@@ -27,7 +27,7 @@ Value *Env::var_set(const char *name, ssize_t index, bool allocate, Value *val) 
     if (needed > current_size) {
         if (allocate) {
             if (!this->vars) {
-                this->vars = new MyVector<Value *> { needed };
+                this->vars = new Vector<Value *> { needed };
             } else {
                 this->vars->set_size(needed);
             }

@@ -1,5 +1,3 @@
-#include <algorithm>
-
 #include "natalie.hpp"
 
 namespace Natalie {
@@ -31,11 +29,11 @@ void ArrayValue::expand_with_nil(Env *env, ssize_t total) {
 }
 
 void ArrayValue::sort(Env *env) {
-    auto cmp = [env](Value *a, Value *b) {
-        Value *compare = send(env, a, "<=>", 1, &b, NULL);
+    auto cmp = [](void *env, Value *a, Value *b) {
+        Value *compare = send(static_cast<Env *>(env), a, "<=>", 1, &b, NULL);
         return compare->as_integer()->to_int64_t() < 0;
     };
-    m_vector.sort(cmp);
+    m_vector.sort(Vector<Value *>::SortComparator { env, cmp });
 }
 
 }

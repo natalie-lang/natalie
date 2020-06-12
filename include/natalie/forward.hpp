@@ -26,8 +26,10 @@ struct StringValue;
 struct SymbolValue;
 struct TrueValue;
 struct Value;
-struct Vector;
 struct VoidPValue;
+
+template <typename T>
+struct Vector;
 
 typedef HashKey HashIter;
 

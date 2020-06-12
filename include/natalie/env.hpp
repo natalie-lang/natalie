@@ -36,7 +36,7 @@ struct Env {
     Value *raise_local_jump_error(Value *, const char *);
 
     GlobalEnv *global_env { nullptr };
-    MyVector<Value *> *vars { nullptr };
+    Vector<Value *> *vars { nullptr };
     Env *outer { nullptr };
     Block *block { nullptr };
     bool block_env { false };

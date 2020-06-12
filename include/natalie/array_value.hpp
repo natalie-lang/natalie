@@ -1,6 +1,6 @@
 #pragma once
 
-#include <iterator>
+#include <initializer_list>
 
 #include "natalie/class_value.hpp"
 #include "natalie/forward.hpp"
@@ -67,10 +67,10 @@ struct ArrayValue : Value {
 
     void sort(Env *);
 
-    MyVector<Value *>::iterator begin() noexcept { return m_vector.begin(); }
-    MyVector<Value *>::iterator end() noexcept { return m_vector.end(); }
+    Vector<Value *>::iterator begin() noexcept { return m_vector.begin(); }
+    Vector<Value *>::iterator end() noexcept { return m_vector.end(); }
 
-    MyVector<Value *> m_vector;
+    Vector<Value *> m_vector;
 
 private:
 };
