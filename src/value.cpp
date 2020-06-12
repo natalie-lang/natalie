@@ -248,4 +248,17 @@ Value *Value::cvar_set(Env *env, const char *name, Value *val) {
     }
 }
 
+void Value::alias(Env *env, const char *new_name, const char *old_name) {
+    if (is_integer() || is_symbol()) {
+        NAT_RAISE(env, "TypeError", "no klass to make alias");
+    }
+    if (is_main_object(this)) {
+        this->klass->alias(env, new_name, old_name);
+    } else if (this->is_module()) {
+        this->as_module()->alias(env, new_name, old_name);
+    } else {
+        this->singleton_class(env)->alias(env, new_name, old_name);
+    }
+}
+
 }

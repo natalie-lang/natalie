@@ -58,6 +58,7 @@ module Natalie
       }
 
       METHODS = %i[
+        alias
         append
         append_string
         as_class

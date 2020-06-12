@@ -102,4 +102,14 @@ Value *ModuleValue::const_set(Env *env, const char *name, Value *val) {
     return val;
 }
 
+void ModuleValue::alias(Env *env, const char *new_name, const char *old_name) {
+    ModuleValue *matching_class_or_module;
+    Method *method = find_method(this, old_name, &matching_class_or_module);
+    if (!method) {
+        NAT_RAISE(env, "NameError", "undefined method `%s' for `%v'", old_name, this);
+    }
+    free(hashmap_remove(&methods, new_name));
+    hashmap_put(&methods, new_name, new Method { *method });
+}
+
 }

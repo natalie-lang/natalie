@@ -203,7 +203,7 @@ Value *Module_alias_method(Env *env, Value *self_value, ssize_t argc, Value **ar
     if (!old_name) {
         NAT_RAISE(env, "TypeError", "%s is not a symbol", send(env, args[1], "inspect", 0, NULL, NULL));
     }
-    alias(env, self, new_name, old_name);
+    self->alias(env, new_name, old_name);
     return self;
 }
 

@@ -133,6 +133,8 @@ struct Value {
     Value *cvar_get_or_null(Env *, const char *);
     Value *cvar_set(Env *, const char *, Value *);
 
+    virtual void alias(Env *, const char *, const char *);
+
 private:
     void init_ivars();
 };

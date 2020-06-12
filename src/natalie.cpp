@@ -415,31 +415,6 @@ Value *bool_not(Env *env, Value *val) {
     }
 }
 
-void alias(Env *env, Value *self, const char *new_name, const char *old_name) {
-    if (self->is_integer() || self->is_symbol()) {
-        NAT_RAISE(env, "TypeError", "no klass to make alias");
-    }
-    if (is_main_object(self)) {
-        self = NAT_OBJ_CLASS(self);
-    }
-    ModuleValue *klass;
-    if (self->is_module()) {
-        klass = self->as_module();
-    } else {
-        klass = self->singleton_class(env);
-    }
-    ModuleValue *matching_class_or_module;
-    Method *method = find_method(klass->as_module(), old_name, &matching_class_or_module);
-    if (!method) {
-        NAT_RAISE(env, "NameError", "undefined method `%s' for `%v'", old_name, klass);
-    }
-    free(hashmap_remove(&klass->methods, new_name));
-    Method *method_copy = new Method { *method };
-    //static_cast<Method *>(malloc(sizeof(Method)));
-    //memcpy(method_copy, method, sizeof(Method));
-    hashmap_put(&klass->methods, new_name, method_copy);
-}
-
 void run_at_exit_handlers(Env *env) {
     ArrayValue *at_exit_handlers = env->global_get("$NAT_at_exit_handlers")->as_array();
     assert(at_exit_handlers);
