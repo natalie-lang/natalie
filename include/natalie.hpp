@@ -121,8 +121,6 @@ Value *eval_class_or_module_body(Env *env, Value *class_or_module, Value *(*fn)(
 
 void arg_spread(Env *env, ssize_t argc, Value **args, const char *arrangement, ...);
 
-VoidPValue *void_ptr(Env *env, void *ptr);
-
 template <typename T>
 void list_prepend(T *list, T item) {
     T next_item = *list;

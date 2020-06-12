@@ -753,7 +753,7 @@ void arg_spread(Env *env, ssize_t argc, Value **args, char *arrangement, ...) {
             obj = args[arg_index++];
             obj = obj->ivar_get(env, "@_ptr");
             assert(obj->type == Value::Type::VoidP);
-            *void_ptr = obj->as_void_p()->void_ptr;
+            *void_ptr = obj->as_void_p()->void_ptr();
             break;
         default:
             fprintf(stderr, "Unknown arg spread arrangement specifier: %%%c", c);
@@ -761,12 +761,6 @@ void arg_spread(Env *env, ssize_t argc, Value **args, char *arrangement, ...) {
         }
     }
     va_end(va_args);
-}
-
-VoidPValue *void_ptr(Env *env, void *ptr) {
-    VoidPValue *obj = new VoidPValue { env };
-    obj->void_ptr = ptr;
-    return obj;
 }
 
 }

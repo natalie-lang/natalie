@@ -12,12 +12,18 @@
 namespace Natalie {
 
 struct VoidPValue : Value {
-    using Value::Value;
-
     VoidPValue(Env *env)
-        : Value { env, Value::Type::VoidP, nullptr } { }
+        : VoidPValue { env, nullptr } { }
 
-    void *void_ptr { nullptr };
+    VoidPValue(Env *env, void *ptr)
+        : Value { env, Value::Type::VoidP, nullptr }
+        , m_void_ptr { ptr } { }
+
+    void *void_ptr() { return m_void_ptr; }
+    void set_void_ptr(void *ptr) { m_void_ptr = ptr; }
+
+private:
+    void *m_void_ptr { nullptr };
 };
 
 }
