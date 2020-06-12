@@ -37,12 +37,12 @@ module Natalie
         grow_string_at_least
         handle_top_level_exception
         hash_key_list_remove_node
-        hash_put
         include
         methods
         prepend
         push
         push_splat
+        put
         print_exception_with_backtrace
         run_at_exit_handlers
         string_append
@@ -68,6 +68,7 @@ module Natalie
         cvar_get
         cvar_get_or_null
         cvar_set
+        get
         global_get
         global_set
         include
@@ -76,6 +77,7 @@ module Natalie
         prepend
         push
         push_splat
+        put
         raise
         raise_exception
         raise_local_jump_error

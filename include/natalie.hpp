@@ -52,20 +52,6 @@ struct Method {
     bool undefined { false };
 };
 
-struct HashKey {
-    HashKey *prev { nullptr };
-    HashKey *next { nullptr };
-    Value *key { nullptr };
-    Value *val { nullptr };
-    Env env;
-    bool removed { false };
-};
-
-struct HashVal {
-    HashKey *key { nullptr };
-    Value *val { nullptr };
-};
-
 bool is_constant_name(const char *name);
 
 const char *find_current_method_name(Env *env);
@@ -102,21 +88,6 @@ ProcValue *to_proc(Env *env, Value *obj);
 ProcValue *lambda(Env *env, Block *block);
 
 Value *splat(Env *env, Value *obj);
-
-HashKey *hash_key_list_append(Env *env, Value *hash, Value *key, Value *val);
-void hash_key_list_remove_node(Value *hash, HashKey *node);
-HashIter *hash_iter(Env *env, HashValue *hash);
-HashIter *hash_iter_prev(Env *env, HashValue *hash, HashIter *iter);
-HashIter *hash_iter_next(Env *env, HashValue *hash, HashIter *iter);
-size_t hashmap_hash(const void *obj);
-int hashmap_compare(const void *a, const void *b);
-HashValue *hash_new(Env *env);
-Value *hash_get(Env *env, Value *hash, Value *key);
-Value *hash_get(Env *env, HashValue *hash, Value *key);
-Value *hash_get_default(Env *env, HashValue *hash, Value *key);
-void hash_put(Env *env, Value *hash, Value *key, Value *val);
-void hash_put(Env *env, HashValue *hash, Value *key, Value *val);
-Value *hash_delete(Env *env, HashValue *hash, Value *key);
 
 RegexpValue *regexp_new(Env *env, const char *pattern);
 MatchDataValue *matchdata_new(Env *env, OnigRegion *region, StringValue *str_obj);

@@ -75,13 +75,9 @@ struct Vector {
         T *m_ptr;
     };
 
-    iterator begin() {
-        return iterator { m_data };
-    }
+    iterator begin() { return iterator { m_data }; }
 
-    iterator end() {
-        return iterator { m_data + m_size };
-    }
+    iterator end() { return iterator { m_data + m_size }; }
 
     struct SortComparator {
         void *data;

@@ -31,6 +31,4 @@ struct VoidPValue;
 template <typename T>
 struct Vector;
 
-typedef HashKey HashIter;
-
 }

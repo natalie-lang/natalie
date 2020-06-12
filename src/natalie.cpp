@@ -21,193 +21,6 @@ Value *splat(Env *env, Value *obj) {
     }
 }
 
-// this is used by the hashmap library and assumes that obj->env has been set
-size_t hashmap_hash(const void *key) {
-    HashKey *key_p = (HashKey *)key;
-    assert(NAT_OBJ_HAS_ENV2(key_p));
-    assert(key_p->env.caller);
-    Value *hash_obj = send(&key_p->env, key_p->key, "hash", 0, NULL, NULL);
-    assert(NAT_TYPE(hash_obj) == Value::Type::Integer);
-    return hash_obj->as_integer()->to_int64_t();
-}
-
-// this is used by the hashmap library to compare keys
-int hashmap_compare(const void *a, const void *b) {
-    HashKey *a_p = (HashKey *)a;
-    HashKey *b_p = (HashKey *)b;
-    // NOTE: Only one of the keys will have a relevant Env, i.e. the one with a non-null caller.
-    // This is a bit of a hack to get around the fact that we can't pass any extra args to hashmap_* functions.
-    // TODO: Write our own hashmap implementation that passes Env around. :^)
-    Env *env = a_p->env.caller ? &a_p->env : &b_p->env;
-    assert(env);
-    assert(env->caller);
-    Value *a_hash = send(env, a_p->key, "hash", 0, NULL, NULL);
-    Value *b_hash = send(env, b_p->key, "hash", 0, NULL, NULL);
-    assert(NAT_TYPE(a_hash) == Value::Type::Integer);
-    assert(NAT_TYPE(b_hash) == Value::Type::Integer);
-    return a_hash->as_integer()->to_int64_t() - b_hash->as_integer()->to_int64_t();
-}
-
-HashKey *hash_key_list_append(Env *env, HashValue *hash, Value *key, Value *val) {
-    if (hash->key_list) {
-        HashKey *first = hash->key_list;
-        HashKey *last = hash->key_list->prev;
-        HashKey *new_last = static_cast<HashKey *>(malloc(sizeof(HashKey)));
-        new_last->key = key;
-        new_last->val = val;
-        // <first> ... <last> <new_last> -|
-        // ^______________________________|
-        new_last->prev = last;
-        new_last->next = first;
-        new_last->env = Env::new_detatched_block_env(env);
-        new_last->env.caller = env;
-        new_last->removed = false;
-        first->prev = new_last;
-        last->next = new_last;
-        return new_last;
-    } else {
-        HashKey *node = static_cast<HashKey *>(malloc(sizeof(HashKey)));
-        node->key = key;
-        node->val = val;
-        node->prev = node;
-        node->next = node;
-        node->env = Env::new_detatched_block_env(env);
-        node->env.caller = env;
-        node->removed = false;
-        hash->key_list = node;
-        return node;
-    }
-}
-
-void hash_key_list_remove_node(HashValue *hash, HashKey *node) {
-    HashKey *prev = node->prev;
-    HashKey *next = node->next;
-    // <prev> <-> <node> <-> <next>
-    if (node == next) {
-        // <node> -|
-        // ^_______|
-        node->prev = NULL;
-        node->next = NULL;
-        node->removed = true;
-        hash->key_list = NULL;
-        return;
-    } else if (hash->key_list == node) {
-        // starting point is the node to be removed, so shift them forward by one
-        hash->key_list = next;
-    }
-    // remove the node
-    node->removed = true;
-    prev->next = next;
-    next->prev = prev;
-}
-
-HashIter *hash_iter(Env *env, HashValue *hash) {
-    if (!hash->key_list) {
-        return NULL;
-    } else {
-        hash->hash_is_iterating = true;
-        return hash->key_list;
-    }
-}
-
-HashIter *hash_iter_prev(Env *env, HashValue *hash, HashIter *iter) {
-    if (iter->prev == NULL || iter == hash->key_list) {
-        // finished
-        hash->hash_is_iterating = false;
-        return NULL;
-    } else if (iter->prev->removed) {
-        return hash_iter_prev(env, hash, iter->prev);
-    } else {
-        return iter->prev;
-    }
-}
-
-HashIter *hash_iter_next(Env *env, HashValue *hash, HashIter *iter) {
-    if (iter->next == NULL || (!iter->removed && iter->next == hash->key_list)) {
-        // finished
-        hash->hash_is_iterating = false;
-        return NULL;
-    } else if (iter->next->removed) {
-        return hash_iter_next(env, hash, iter->next);
-    } else {
-        return iter->next;
-    }
-}
-
-HashValue *hash_new(Env *env) {
-    HashValue *obj = new HashValue { env };
-    obj->key_list = NULL;
-    obj->hash_default_value = NAT_NIL;
-    obj->hash_default_block = NULL;
-    hashmap_init(&obj->hashmap, hashmap_hash, hashmap_compare, 256);
-    return obj;
-}
-
-Value *hash_get(Env *env, Value *hash, Value *key) {
-    return hash_get(env, hash->as_hash(), key);
-}
-
-Value *hash_get(Env *env, HashValue *hash, Value *key) {
-    HashKey key_container;
-    key_container.key = key;
-    key_container.env = *env;
-    HashVal *container = static_cast<HashVal *>(hashmap_get(&hash->hashmap, &key_container));
-    Value *val = container ? container->val : NULL;
-    return val;
-}
-
-Value *hash_get_default(Env *env, HashValue *hash, Value *key) {
-    if (hash->hash_default_block) {
-        Value *args[2] = { hash, key };
-        return NAT_RUN_BLOCK_WITHOUT_BREAK(env, hash->hash_default_block, 2, args, NULL);
-    } else {
-        return hash->hash_default_value;
-    }
-}
-
-void hash_put(Env *env, Value *hash, Value *key, Value *val) {
-    hash_put(env, hash->as_hash(), key, val);
-}
-
-void hash_put(Env *env, HashValue *hash, Value *key, Value *val) {
-    assert(NAT_TYPE(hash) == Value::Type::Hash);
-    HashKey key_container;
-    key_container.key = key;
-    key_container.env = *env;
-    HashVal *container = static_cast<HashVal *>(hashmap_get(&hash->hashmap, &key_container));
-    if (container) {
-        container->key->val = val;
-        container->val = val;
-    } else {
-        if (hash->hash_is_iterating) {
-            NAT_RAISE(env, "RuntimeError", "can't add a new key into hash during iteration");
-        }
-        container = static_cast<HashVal *>(malloc(sizeof(HashVal)));
-        container->key = hash_key_list_append(env, hash, key, val);
-        container->val = val;
-        hashmap_put(&hash->hashmap, container->key, container);
-        // NOTE: caller must be current and relevant at all times
-        // See note on hashmap_compare for more details
-        container->key->env.caller = NULL;
-    }
-}
-
-Value *hash_delete(Env *env, HashValue *hash, Value *key) {
-    assert(hash->type == Value::Type::Hash);
-    HashKey key_container;
-    key_container.key = key;
-    key_container.env = *env;
-    HashVal *container = static_cast<HashVal *>(hashmap_remove(&hash->hashmap, &key_container));
-    if (container) {
-        hash_key_list_remove_node(hash, container->key);
-        Value *val = container->val;
-        free(container);
-        return val;
-    } else {
-        return NULL;
-    }
-}
-
 RegexpValue *regexp_new(Env *env, const char *pattern) {
     regex_t *regexp;
     OnigErrorInfo einfo;
@@ -847,14 +660,14 @@ Value *kwarg_value_by_name(Env *env, Value *args, const char *name, Value *defau
 Value *kwarg_value_by_name(Env *env, ArrayValue *args, const char *name, Value *default_value) {
     Value *hash;
     if (args->size() == 0) {
-        hash = hash_new(env);
+        hash = new HashValue { env };
     } else {
         hash = (*args)[args->size() - 1];
         if (NAT_TYPE(hash) != Value::Type::Hash) {
-            hash = hash_new(env);
+            hash = new HashValue { env };
         }
     }
-    Value *value = hash_get(env, hash, SymbolValue::intern(env, name));
+    Value *value = hash->as_hash()->get(env, SymbolValue::intern(env, name));
     if (!value) {
         if (default_value) {
             return default_value;

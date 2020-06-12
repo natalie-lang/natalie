@@ -42,7 +42,7 @@ Value *Env::var_set(const char *name, ssize_t index, bool allocate, Value *val) 
 
 Value *ENV_inspect(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
-    Value *hash = hash_new(env);
+    HashValue *hash = new HashValue { env };
     int i = 1;
     char *pair = *environ;
     for (; pair; i++) {
@@ -51,7 +51,7 @@ Value *ENV_inspect(Env *env, Value *self_value, ssize_t argc, Value **args, Bloc
         ssize_t index = eq - pair;
         StringValue *name = new StringValue { env, pair };
         name->truncate(index);
-        hash_put(env, hash, name, new StringValue { env, getenv(name->c_str()) });
+        hash->put(env, name, new StringValue { env, getenv(name->c_str()) });
         pair = *(environ + i);
     }
     return Hash_inspect(env, hash, 0, NULL, NULL);

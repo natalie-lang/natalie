@@ -299,10 +299,10 @@ module Natalie
         (_, *pairs) = exp
         hash = temp('hash')
         inserts = pairs.each_slice(2).map do |(key, val)|
-          s(:hash_put, :env, hash, process(key), process(val))
+          s(:put, s(:l, "#{hash}->as_hash()"), :env, process(key), process(val))
         end
         exp.new(:block,
-                s(:declare, hash, s(:hash_new, :env)),
+                s(:declare, hash, s(:new, :HashValue, :env)),
                 s(:block, *inserts),
                 hash)
       end
