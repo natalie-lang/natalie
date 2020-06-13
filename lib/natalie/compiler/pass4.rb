@@ -80,6 +80,7 @@ module Natalie
         include
         ivar_get
         ivar_set
+        last_match
         prepend
         push
         push_splat

@@ -115,4 +115,12 @@ Value *Env::raise_local_jump_error(Value *exit_value, const char *message) {
     return exception;
 }
 
+Value *Env::last_match() {
+    if (match) {
+        return match;
+    } else {
+        return global_env->nil;
+    }
+}
+
 }

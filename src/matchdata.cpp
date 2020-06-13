@@ -6,17 +6,15 @@ namespace Natalie {
 Value *MatchData_size(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     MatchDataValue *self = self_value->as_match_data();
-    assert(self->matchdata_region->num_regs > 0);
-    return new IntegerValue { env, self->matchdata_region->num_regs };
+    assert(self->size() > 0);
+    return new IntegerValue { env, self->size() };
 }
 
 Value *MatchData_to_s(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     MatchDataValue *self = self_value->as_match_data();
-    assert(self->matchdata_region->num_regs > 0);
-    const char *str = &self->matchdata_str[self->matchdata_region->beg[0]];
-    ssize_t length = self->matchdata_region->end[0] - self->matchdata_region->beg[0];
-    return new StringValue { env, str, length };
+    assert(self->size() > 0);
+    return self->group(env, 0);
 }
 
 Value *MatchData_ref(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
@@ -30,12 +28,8 @@ Value *MatchData_ref(Env *env, Value *self_value, ssize_t argc, Value **args, Bl
     assert(index >= 0); // TODO: accept negative indices
     if (index == 0) {
         return MatchData_to_s(env, self, 0, NULL, NULL);
-    } else if (index >= self->matchdata_region->num_regs) {
-        return NAT_NIL;
     } else {
-        const char *str = &self->matchdata_str[self->matchdata_region->beg[index]];
-        ssize_t length = self->matchdata_region->end[index] - self->matchdata_region->beg[index];
-        return new StringValue { env, str, length };
+        return self->group(env, index);
     }
 }
 

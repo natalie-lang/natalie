@@ -42,8 +42,8 @@ Value *Regexp_eqtilde(Env *env, Value *self_value, ssize_t argc, Value **args, B
         return match;
     } else {
         MatchDataValue *matchdata = match->as_match_data();
-        assert(matchdata->matchdata_region->num_regs > 0);
-        return new IntegerValue { env, matchdata->matchdata_region->beg[0] };
+        assert(matchdata->size() > 0);
+        return new IntegerValue { env, matchdata->index(0) };
     }
 }
 
@@ -56,7 +56,7 @@ Value *Regexp_match(Env *env, Value *self_value, ssize_t argc, Value **args, Blo
     OnigRegion *region = onig_region_new();
     int result = self->search(str_obj->c_str(), region, ONIG_OPTION_NONE);
     if (result >= 0) {
-        env->caller->match = matchdata_new(env, region, str_obj);
+        env->caller->match = new MatchDataValue { env, region, str_obj };
         return env->caller->match;
     } else if (result == ONIG_MISMATCH) {
         env->caller->match = NULL;

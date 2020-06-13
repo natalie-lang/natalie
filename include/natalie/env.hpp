@@ -35,6 +35,8 @@ struct Env {
     Value *raise_exception(ExceptionValue *);
     Value *raise_local_jump_error(Value *, const char *);
 
+    Value *last_match();
+
     GlobalEnv *global_env { nullptr };
     Vector<Value *> *vars { nullptr };
     Env *outer { nullptr };

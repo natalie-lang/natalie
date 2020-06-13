@@ -6,18 +6,28 @@
 #include "natalie/forward.hpp"
 #include "natalie/global_env.hpp"
 #include "natalie/macros.hpp"
+#include "natalie/string_value.hpp"
 #include "natalie/value.hpp"
 
 namespace Natalie {
 
 struct MatchDataValue : Value {
-    using Value::Value;
+    MatchDataValue(Env *env, OnigRegion *region, StringValue *string)
+        : Value { env, Value::Type::MatchData, NAT_OBJECT->const_get(env, "MatchData", true)->as_class() } {
+        m_region = region;
+        m_str = strdup(string->c_str());
+    }
 
-    MatchDataValue(Env *env)
-        : Value { env, Value::Type::MatchData, NAT_OBJECT->const_get(env, "MatchData", true)->as_class() } { }
+    const char *c_str() { return m_str; }
 
-    OnigRegion *matchdata_region;
-    char *matchdata_str { nullptr };
+    ssize_t size() { return m_region->num_regs; }
+
+    ssize_t index(ssize_t);
+
+    Value *group(Env *, ssize_t);
+
+private:
+    OnigRegion *m_region;
+    const char *m_str { nullptr };
 };
-
 }

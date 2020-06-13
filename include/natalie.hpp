@@ -77,9 +77,6 @@ ProcValue *lambda(Env *env, Block *block);
 
 Value *splat(Env *env, Value *obj);
 
-MatchDataValue *matchdata_new(Env *env, OnigRegion *region, StringValue *str_obj);
-Value *last_match(Env *env);
-
 RangeValue *range_new(Env *env, Value *begin, Value *end, bool exclude_end);
 
 Value *dup(Env *env, Value *obj);

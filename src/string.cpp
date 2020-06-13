@@ -316,11 +316,11 @@ Value *String_sub(Env *env, Value *self_value, ssize_t argc, Value **args, Block
         if (match == NAT_NIL) {
             return dup(env, self);
         }
-        StringValue *match_str = MatchData_to_s(env, match, 0, NULL, NULL)->as_string();
-        int64_t index = match->as_match_data()->matchdata_region->beg[0];
+        size_t length = match->as_match_data()->group(env, 0)->as_string()->length();
+        int64_t index = match->as_match_data()->index(0);
         StringValue *out = new StringValue { env, self->c_str(), index };
         out->append_string(env, repl->as_string());
-        out->append(env, &self->c_str()[index + match_str->length()]);
+        out->append(env, &self->c_str()[index + length]);
         return out;
     } else {
         NAT_RAISE(env, "TypeError", "wrong argument type %s (expected Regexp)", NAT_OBJ_CLASS(sub)->class_name());

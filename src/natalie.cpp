@@ -21,21 +21,6 @@ Value *splat(Env *env, Value *obj) {
     }
 }
 
-MatchDataValue *matchdata_new(Env *env, OnigRegion *region, StringValue *str_obj) {
-    MatchDataValue *obj = new MatchDataValue { env };
-    obj->matchdata_region = region;
-    obj->matchdata_str = strdup(str_obj->c_str());
-    return obj;
-}
-
-Value *last_match(Env *env) {
-    if (env->match) {
-        return env->match;
-    } else {
-        return NAT_NIL;
-    }
-}
-
 void int_to_string(int64_t num, char *buf) {
     if (num == 0) {
         buf[0] = '0';
