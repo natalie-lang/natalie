@@ -18,7 +18,7 @@ Value *Symbol_to_proc(Env *env, Value *self_value, ssize_t argc, Value **args, B
     NAT_ASSERT_ARGC(0);
     Env block_env = Env::new_detatched_block_env(env);
     block_env.var_set("name", 0, true, self);
-    Block *proc_block = block_new(&block_env, self, Symbol_to_proc_block_fn);
+    Block *proc_block = new Block { block_env, self, Symbol_to_proc_block_fn };
     return new ProcValue { env, proc_block };
 }
 

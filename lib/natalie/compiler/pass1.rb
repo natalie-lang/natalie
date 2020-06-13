@@ -371,7 +371,7 @@ module Natalie
                     assign_args,
                     block_arg || s(:block),
                     process(s(:block, *body)))),
-        s(:declare_block, block, s(:block_new, :env, :self, block_fn)),
+        s(:declare_block, block, s(:new, :Block, s(:l, "*env"), :self, block_fn)),
         call)
       end
 

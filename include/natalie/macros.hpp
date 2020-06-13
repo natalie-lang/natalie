@@ -112,21 +112,19 @@
 
 #define remove_break(obj) ((obj)->flags = (obj)->flags & ~NAT_FLAG_BREAK)
 
-#define NAT_RUN_BLOCK_FROM_ENV(env, argc, args) ({                                         \
-    Env *env_with_block = env;                                                             \
-    while (!env_with_block->block && env_with_block->outer) {                              \
-        env_with_block = env_with_block->outer;                                            \
-    }                                                                                      \
-    Value *_result = _run_block_internal(env, env_with_block->block, argc, args, nullptr); \
-    if (is_break(_result)) {                                                               \
-        remove_break(_result);                                                             \
-        return _result;                                                                    \
-    }                                                                                      \
-    _result;                                                                               \
+#define NAT_RUN_BLOCK_FROM_ENV(env, argc, args) ({                                     \
+    Env *env_with_block = env;                                                         \
+    while (!env_with_block->block && env_with_block->outer) {                          \
+        env_with_block = env_with_block->outer;                                        \
+    }                                                                                  \
+    if (!env_with_block->block) {                                                      \
+        NAT_RAISE(env, "LocalJumpError", "no block given");                            \
+    }                                                                                  \
+    NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, env_with_block->block, argc, args, nullptr); \
 })
 
 #define NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, the_block, argc, args, block) ({ \
-    Value *_result = _run_block_internal(env, the_block, argc, args, block);   \
+    Value *_result = the_block->_run(env, argc, args, block);                  \
     if (is_break(_result)) {                                                   \
         remove_break(_result);                                                 \
         return _result;                                                        \
@@ -134,14 +132,14 @@
     _result;                                                                   \
 })
 
-#define NAT_RUN_BLOCK_WITHOUT_BREAK(env, the_block, argc, args, block) ({    \
-    Value *_result = _run_block_internal(env, the_block, argc, args, block); \
-    if (is_break(_result)) {                                                 \
-        remove_break(_result);                                               \
-        env->raise_local_jump_error(_result, "break from proc-closure");     \
-        abort();                                                             \
-    }                                                                        \
-    _result;                                                                 \
+#define NAT_RUN_BLOCK_WITHOUT_BREAK(env, the_block, argc, args, block) ({ \
+    Value *_result = the_block->_run(env, argc, args, block);             \
+    if (is_break(_result)) {                                              \
+        remove_break(_result);                                            \
+        env->raise_local_jump_error(_result, "break from proc-closure");  \
+        abort();                                                          \
+    }                                                                     \
+    _result;                                                              \
 })
 
 #define EMPTY_HASHMAP \

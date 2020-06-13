@@ -66,7 +66,7 @@ Value *Module_attr_reader(Env *env, Value *self_value, ssize_t argc, Value **arg
         }
         Env block_env = Env::new_detatched_block_env(env);
         block_env.var_set("name", 0, true, name_obj);
-        Block *attr_block = block_new(&block_env, self, Module_attr_reader_block_fn);
+        Block *attr_block = new Block { block_env, self, Module_attr_reader_block_fn };
         self->define_method_with_block(env, name_obj->as_string()->c_str(), attr_block);
     }
     return NAT_NIL;
@@ -95,7 +95,7 @@ Value *Module_attr_writer(Env *env, Value *self_value, ssize_t argc, Value **arg
         method_name->append_char(env, '=');
         Env block_env = Env::new_detatched_block_env(env);
         block_env.var_set("name", 0, true, name_obj);
-        Block *attr_block = block_new(&block_env, self, Module_attr_writer_block_fn);
+        Block *attr_block = new Block { block_env, self, Module_attr_writer_block_fn };
         self->define_method_with_block(env, method_name->c_str(), attr_block);
     }
     return NAT_NIL;

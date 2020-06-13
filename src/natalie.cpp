@@ -48,24 +48,6 @@ Value *call_begin(Env *env, Value *self, Value *(*block_fn)(Env *, Value *)) {
     return block_fn(&e, self);
 }
 
-Block *block_new(Env *env, Value *self, Value *(*fn)(Env *, Value *, ssize_t, Value **, Block *)) {
-    Block *block = static_cast<Block *>(malloc(sizeof(Block)));
-    block->env = *env;
-    block->env.caller = nullptr;
-    block->self = self;
-    block->fn = fn;
-    return block;
-}
-
-Value *_run_block_internal(Env *env, Block *the_block, ssize_t argc, Value **args, Block *block) {
-    if (!the_block) {
-        abort();
-        NAT_RAISE(env, "LocalJumpError", "no block given");
-    }
-    Env e = Env::new_block_env(&the_block->env, env);
-    return the_block->fn(&e, the_block->self, argc, args, block);
-}
-
 ProcValue *to_proc(Env *env, Value *obj) {
     if (obj->is_proc()) {
         return obj->as_proc();
