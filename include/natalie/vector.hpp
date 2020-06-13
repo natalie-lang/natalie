@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdio.h>
 #include <stdlib.h>
 
 #define NAT_VECTOR_GROW_FACTOR 2
@@ -14,6 +15,13 @@ struct Vector {
         : m_size { initial_capacity }
         , m_capacity { initial_capacity }
         , m_data { static_cast<T *>(malloc(sizeof(T) * initial_capacity)) } { }
+
+    Vector(Vector &other)
+        : m_size { other.m_size }
+        , m_capacity { other.m_size }
+        , m_data { static_cast<T *>(malloc(sizeof(T) * m_size)) } {
+        memcpy(m_data, other.m_data, sizeof(T) * m_size);
+    }
 
     ~Vector() {
         free(m_data);
@@ -32,6 +40,18 @@ struct Vector {
         m_data[len] = val;
     }
 
+    void push_front(T val) {
+        if (m_size >= m_capacity) {
+            grow_at_least(m_size + 1);
+        }
+        m_size++;
+        for (ssize_t i = m_size - 1; i > 0; i--) {
+            m_data[i] = m_data[i - 1];
+        }
+        m_data[0] = val;
+    }
+
+    ssize_t is_empty() { return m_size == 0; }
     ssize_t size() { return m_size; }
     ssize_t capacity() { return m_capacity; }
     T *data() { return m_data; }
@@ -46,8 +66,6 @@ struct Vector {
         iterator(T *ptr)
             : m_ptr { ptr } { }
 
-        T &operator*() { return *m_ptr; }
-
         iterator operator++() {
             m_ptr++;
             return *this;
@@ -59,9 +77,8 @@ struct Vector {
             return i;
         }
 
-        T operator*() const { return *m_ptr; }
-
-        T *operator->() const { return m_ptr; }
+        T &operator*() { return *m_ptr; }
+        T *operator->() { return m_ptr; }
 
         friend bool operator==(const iterator &i1, const iterator &i2) {
             return i1.m_ptr == i2.m_ptr;
@@ -75,9 +92,13 @@ struct Vector {
         T *m_ptr;
     };
 
-    iterator begin() { return iterator { m_data }; }
+    iterator begin() {
+        return iterator { m_data };
+    }
 
-    iterator end() { return iterator { m_data + m_size }; }
+    iterator end() {
+        return iterator { m_data + m_size };
+    }
 
     struct SortComparator {
         void *data;

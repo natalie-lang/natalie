@@ -137,7 +137,7 @@ Value *Array_ref(Env *env, Value *self_value, ssize_t argc, Value **args, Block 
         }
         return result;
     } else {
-        NAT_RAISE(env, "TypeError", "no implicit conversion of %s into Integer", NAT_OBJ_CLASS(index_obj)->class_name);
+        NAT_RAISE(env, "TypeError", "no implicit conversion of %s into Integer", NAT_OBJ_CLASS(index_obj)->class_name());
     }
 }
 

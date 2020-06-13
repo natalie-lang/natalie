@@ -14,20 +14,20 @@ extern "C" Env *build_top_env() {
     env->method_name = strdup("<main>");
 
     ClassValue *Class = ClassValue::bootstrap_class_class(env);
-    define_method(env, Class, "superclass", Class_superclass);
+    Class->define_method(env, "superclass", Class_superclass);
 
     ClassValue *BasicObject = ClassValue::bootstrap_basic_object(env, Class);
-    define_method(env, BasicObject, "!", BasicObject_not);
-    define_method(env, BasicObject, "==", BasicObject_eqeq);
-    define_method(env, BasicObject, "!=", BasicObject_neq);
-    define_method(env, BasicObject, "equal?", Kernel_equal);
-    define_method(env, BasicObject, "instance_eval", BasicObject_instance_eval);
+    BasicObject->define_method(env, "!", BasicObject_not);
+    BasicObject->define_method(env, "==", BasicObject_eqeq);
+    BasicObject->define_method(env, "!=", BasicObject_neq);
+    BasicObject->define_method(env, "equal?", Kernel_equal);
+    BasicObject->define_method(env, "instance_eval", BasicObject_instance_eval);
 
     ClassValue *Object = NAT_OBJECT = BasicObject->subclass(env, "Object");
-    define_singleton_method(env, Object, "new", Object_new);
+    Object->define_singleton_method(env, "new", Object_new);
 
     // these must be defined after Object exists
-    define_singleton_method(env, Class, "new", Class_new);
+    Class->define_singleton_method(env, "new", Class_new);
     BasicObject->set_singleton_class(Class->singleton_class(env));
     Object->const_set(env, "Class", Class);
     Object->const_set(env, "BasicObject", BasicObject);
@@ -35,7 +35,7 @@ extern "C" Env *build_top_env() {
 
     ClassValue *Module = Object->subclass(env, "Module");
     Object->const_set(env, "Module", Module);
-    Class->superclass = Module;
+    Class->set_superclass_DANGEROUSLY(Module);
     NAT_MODULE_INIT(Module);
 
     ModuleValue *Kernel = new ModuleValue { env, "Kernel" };
@@ -47,12 +47,11 @@ extern "C" Env *build_top_env() {
     Object->const_set(env, "Comparable", Comparable);
     NAT_COMPARABLE_INIT(Comparable);
 
-    Value *Symbol = Object->subclass(env, "Symbol");
+    ClassValue *Symbol = Object->subclass(env, "Symbol");
     Object->const_set(env, "Symbol", Symbol);
     NAT_SYMBOL_INIT(Symbol);
 
     ClassValue *NilClass = Object->subclass(env, "NilClass");
-    undefine_singleton_method(env, NilClass, "new");
     Object->const_set(env, "NilClass", NilClass);
     NAT_NIL_CLASS_INIT(NilClass);
 
@@ -60,7 +59,6 @@ extern "C" Env *build_top_env() {
     NAT_NIL->set_singleton_class(NilClass);
 
     ClassValue *TrueClass = Object->subclass(env, "TrueClass");
-    undefine_singleton_method(env, TrueClass, "new");
     Object->const_set(env, "TrueClass", TrueClass);
     NAT_TRUE_CLASS_INIT(TrueClass);
 
@@ -68,7 +66,6 @@ extern "C" Env *build_top_env() {
     NAT_TRUE->set_singleton_class(TrueClass);
 
     ClassValue *FalseClass = Object->subclass(env, "FalseClass");
-    undefine_singleton_method(env, FalseClass, "new");
     Object->const_set(env, "FalseClass", FalseClass);
     NAT_FALSE_CLASS_INIT(FalseClass);
 
@@ -79,7 +76,7 @@ extern "C" Env *build_top_env() {
     Object->const_set(env, "Numeric", Numeric);
     Numeric->include(env, Comparable);
 
-    Value *Integer = NAT_INTEGER = Numeric->subclass(env, "Integer");
+    ClassValue *Integer = NAT_INTEGER = Numeric->subclass(env, "Integer");
     Object->const_set(env, "Integer", Integer);
     Object->const_set(env, "Fixnum", Integer);
     NAT_INTEGER_INIT(Integer);
@@ -122,11 +119,11 @@ extern "C" Env *build_top_env() {
 
     ClassValue *Exception = Object->subclass(env, "Exception");
     Object->const_set(env, "Exception", Exception);
-    define_method(env, Exception, "initialize", Exception_initialize);
-    define_method(env, Exception, "inspect", Exception_inspect);
-    define_method(env, Exception, "message", Exception_message);
-    define_method(env, Exception, "backtrace", Exception_backtrace);
-    define_singleton_method(env, Exception, "new", Exception_new);
+    Exception->define_method(env, "initialize", Exception_initialize);
+    Exception->define_method(env, "inspect", Exception_inspect);
+    Exception->define_method(env, "message", Exception_message);
+    Exception->define_method(env, "backtrace", Exception_backtrace);
+    Exception->define_singleton_method(env, "new", Exception_new);
     ClassValue *ScriptError = Exception->subclass(env, "ScriptError");
     Object->const_set(env, "ScriptError", ScriptError);
     Value *SyntaxError = ScriptError->subclass(env, "SyntaxError");
@@ -152,7 +149,7 @@ extern "C" Env *build_top_env() {
 
     ClassValue *EncodingError = StandardError->subclass(env, "EncodingError");
     Object->const_set(env, "EncodingError", EncodingError);
-    Value *Encoding = NAT_OBJECT->subclass(env, "Encoding");
+    ClassValue *Encoding = NAT_OBJECT->subclass(env, "Encoding");
     Value *InvalidByteSequenceError = EncodingError->subclass(env, "InvalidByteSequenceError");
     Encoding->const_set(env, "InvalidByteSequenceError", InvalidByteSequenceError);
     Value *UndefinedConversionError = EncodingError->subclass(env, "UndefinedConversionError");
@@ -176,7 +173,7 @@ extern "C" Env *build_top_env() {
 
     Value *self = new Value { env };
     self->flags = NAT_FLAG_MAIN_OBJECT;
-    define_singleton_method(env, self, "inspect", main_obj_inspect);
+    self->define_singleton_method(env, "inspect", main_obj_inspect);
     env->global_set("$NAT_main_object", self);
 
     Value *stdin_fileno = new IntegerValue { env, STDIN_FILENO };

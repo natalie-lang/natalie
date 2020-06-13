@@ -12,6 +12,7 @@
 #include <unistd.h>
 
 #include "natalie/array_value.hpp"
+#include "natalie/block.hpp"
 #include "natalie/class_value.hpp"
 #include "natalie/encoding_value.hpp"
 #include "natalie/env.hpp"
@@ -40,12 +41,6 @@ extern "C" {
 #include "onigmo.h"
 }
 
-struct Block {
-    Value *(*fn)(Env *env, Value *self, ssize_t argc, Value **args, Block *block) { nullptr };
-    Env env;
-    Value *self { nullptr };
-};
-
 struct Method {
     Value *(*fn)(Env *env, Value *self, ssize_t argc, Value **args, Block *block) { nullptr };
     Env env;
@@ -59,12 +54,8 @@ const char *find_current_method_name(Env *env);
 void int_to_string(int64_t num, char *buf);
 void int_to_hex_string(int64_t num, char *buf, bool capitalize);
 
-void define_method(Env *env, Value *obj, const char *name, Value *(*fn)(Env *, Value *, ssize_t, Value **, Block *block));
-void define_method_with_block(Env *env, Value *obj, const char *name, Block *block);
-void define_singleton_method(Env *env, Value *obj, const char *name, Value *(*fn)(Env *, Value *, ssize_t, Value **, Block *block));
-void define_singleton_method_with_block(Env *env, Value *obj, const char *name, Block *block);
-void undefine_method(Env *env, Value *obj, const char *name);
-void undefine_singleton_method(Env *env, Value *obj, const char *name);
+Method *method_from_fn(Value *(*fn)(Env *, Value *, ssize_t, Value **, Block *block));
+Method *method_from_block(Block *block);
 
 ArrayValue *class_ancestors(Env *env, ModuleValue *klass);
 bool is_a(Env *env, Value *obj, Value *klass_or_module);
@@ -74,9 +65,6 @@ const char *defined(Env *env, Value *receiver, const char *name);
 Value *defined_obj(Env *env, Value *receiver, const char *name);
 
 Value *send(Env *env, Value *receiver, const char *sym, ssize_t argc, Value **args, Block *block);
-void methods(Env *env, ArrayValue *array, ModuleValue *klass);
-Method *find_method(ModuleValue *klass, const char *method_name, ModuleValue **matching_class_or_module);
-Method *find_method_without_undefined(Value *klass, const char *method_name, ModuleValue **matching_class_or_module);
 Value *call_begin(Env *env, Value *self, Value *(*block_fn)(Env *, Value *));
 Value *call_method_on_class(Env *env, ClassValue *klass, Value *instance_class, const char *method_name, Value *self, ssize_t argc, Value **args, Block *block);
 bool respond_to(Env *env, Value *obj, const char *name);
@@ -114,8 +102,6 @@ Value *kwarg_value_by_name(Env *env, ArrayValue *args, const char *name, Value *
 
 ArrayValue *args_to_array(Env *env, ssize_t argc, Value **args);
 ArrayValue *block_args_to_array(Env *env, ssize_t signature_size, ssize_t argc, Value **args);
-
-Value *eval_class_or_module_body(Env *env, Value *class_or_module, Value *(*fn)(Env *, Value *));
 
 void arg_spread(Env *env, ssize_t argc, Value **args, const char *arrangement, ...);
 

@@ -11,11 +11,11 @@ Value *Module_new(Env *env, Value *self_value, ssize_t argc, Value **args, Block
 Value *Module_inspect(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     ModuleValue *self = self_value->as_module();
     NAT_ASSERT_ARGC(0);
-    if (self->class_name) {
+    if (self->class_name()) {
         if (self->owner && self->owner != NAT_OBJECT) {
-            return StringValue::sprintf(env, "%S::%s", Module_inspect(env, self->owner, 0, NULL, NULL), self->class_name);
+            return StringValue::sprintf(env, "%S::%s", Module_inspect(env, self->owner, 0, NULL, NULL), self->class_name());
         } else {
-            return new StringValue { env, self->class_name };
+            return new StringValue { env, self->class_name() };
         }
     } else if (NAT_TYPE(self) == Value::Type::Class) {
         char buf[NAT_OBJECT_POINTER_BUF_LENGTH];
@@ -40,8 +40,8 @@ Value *Module_eqeqeq(Env *env, Value *self_value, ssize_t argc, Value **args, Bl
 Value *Module_name(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     ModuleValue *self = self_value->as_module();
     NAT_ASSERT_ARGC(0);
-    if (self->class_name) {
-        return new StringValue { env, self->class_name };
+    if (self->class_name()) {
+        return new StringValue { env, self->class_name() };
     } else {
         return NAT_NIL;
     }
@@ -68,7 +68,7 @@ Value *Module_attr_reader(Env *env, Value *self_value, ssize_t argc, Value **arg
         Env block_env = Env::new_detatched_block_env(env);
         block_env.var_set("name", 0, true, name_obj);
         Block *attr_block = block_new(&block_env, self, Module_attr_reader_block_fn);
-        define_method_with_block(env, self, name_obj->as_string()->c_str(), attr_block);
+        self->define_method_with_block(env, name_obj->as_string()->c_str(), attr_block);
     }
     return NAT_NIL;
 }
@@ -97,7 +97,7 @@ Value *Module_attr_writer(Env *env, Value *self_value, ssize_t argc, Value **arg
         Env block_env = Env::new_detatched_block_env(env);
         block_env.var_set("name", 0, true, name_obj);
         Block *attr_block = block_new(&block_env, self, Module_attr_writer_block_fn);
-        define_method_with_block(env, self, method_name->c_str(), attr_block);
+        self->define_method_with_block(env, method_name->c_str(), attr_block);
     }
     return NAT_NIL;
 }
@@ -141,8 +141,8 @@ Value *Module_included_modules(Env *env, Value *self_value, ssize_t argc, Value 
     ModuleValue *self = self_value->as_module();
     NAT_ASSERT_ARGC(0);
     ArrayValue *modules = new ArrayValue { env };
-    for (ssize_t i = 0; i < self->included_modules_count; i++) {
-        modules->push(self->included_modules[i]);
+    for (ModuleValue *m : self->included_modules()) {
+        modules->push(m);
     }
     return modules;
 }
@@ -155,7 +155,7 @@ Value *Module_define_method(Env *env, Value *self_value, ssize_t argc, Value **a
     if (!block) {
         NAT_RAISE(env, "ArgumentError", "tried to create Proc object without a block");
     }
-    define_method_with_block(env, self, name, block);
+    self->define_method_with_block(env, name, block);
     return SymbolValue::intern(env, name);
 }
 

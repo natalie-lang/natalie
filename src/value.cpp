@@ -6,7 +6,7 @@ namespace Natalie {
 Value *Value::initialize(Env *env, ssize_t argc, Value **args, Block *block) {
     ClassValue *klass = this->klass;
     ModuleValue *matching_class_or_module;
-    Method *method = find_method(klass, "initialize", &matching_class_or_module);
+    Method *method = klass->find_method("initialize", &matching_class_or_module);
     if (method) {
         call_method_on_class(env, klass, klass, "initialize", this, argc, args, block);
     }
@@ -178,7 +178,7 @@ Value *Value::cvar_get(Env *env, const char *name) {
         } else {
             module = this->klass;
         }
-        NAT_RAISE(env, "NameError", "uninitialized class variable %s in %s", name, module->class_name);
+        NAT_RAISE(env, "NameError", "uninitialized class variable %s in %s", name, module->class_name());
     }
 }
 
@@ -188,26 +188,7 @@ Value *Value::cvar_get_or_null(Env *env, const char *name) {
         NAT_RAISE(env, "NameError", "`%s' is not allowed as a class variable name", name);
     }
 
-    ModuleValue *module;
-    if (this->is_module()) {
-        module = this->as_module();
-    } else {
-        module = this->klass;
-    }
-
-    Value *val = nullptr;
-    while (1) {
-        if (module->cvars.table) {
-            val = static_cast<Value *>(hashmap_get(&module->cvars, name));
-            if (val) {
-                return val;
-            }
-        }
-        if (!module->superclass) {
-            return nullptr;
-        }
-        module = module->superclass;
-    }
+    return this->klass->cvar_get_or_null(env, name);
 }
 
 Value *Value::cvar_set(Env *env, const char *name, Value *val) {
@@ -216,36 +197,7 @@ Value *Value::cvar_set(Env *env, const char *name, Value *val) {
         NAT_RAISE(env, "NameError", "`%s' is not allowed as a class variable name", name);
     }
 
-    ModuleValue *module;
-    if (this->is_module()) {
-        module = this->as_module();
-    } else {
-        module = this->klass;
-    }
-
-    ModuleValue *current = module;
-
-    Value *exists = nullptr;
-    while (1) {
-        if (current->cvars.table) {
-            exists = static_cast<Value *>(hashmap_get(&current->cvars, name));
-            if (exists) {
-                hashmap_remove(&current->cvars, name);
-                hashmap_put(&current->cvars, name, val);
-                return val;
-            }
-        }
-        if (!current->superclass) {
-            if (module->cvars.table == nullptr) {
-                hashmap_init(&module->cvars, hashmap_hash_string, hashmap_compare_string, 10);
-                hashmap_set_key_alloc_funcs(&module->cvars, hashmap_alloc_key_string, free);
-            }
-            hashmap_remove(&module->cvars, name);
-            hashmap_put(&module->cvars, name, val);
-            return val;
-        }
-        current = current->superclass;
-    }
+    return this->klass->cvar_set(env, name, val);
 }
 
 void Value::alias(Env *env, const char *new_name, const char *old_name) {
@@ -259,6 +211,44 @@ void Value::alias(Env *env, const char *new_name, const char *old_name) {
     } else {
         this->singleton_class(env)->alias(env, new_name, old_name);
     }
+}
+
+void Value::define_singleton_method(Env *env, const char *name, Value *(*fn)(Env *, Value *, ssize_t, Value **, Block *block)) {
+    ClassValue *klass = singleton_class(env);
+    klass->define_method(env, name, fn);
+}
+
+void Value::define_singleton_method_with_block(Env *env, const char *name, Block *block) {
+    ClassValue *klass = singleton_class(env);
+    klass->define_method_with_block(env, name, block);
+}
+
+void Value::undefine_singleton_method(Env *env, const char *name) {
+    define_singleton_method(env, name, nullptr);
+}
+
+void Value::define_method(Env *env, const char *name, Value *(*fn)(Env *, Value *, ssize_t, Value **, Block *block)) {
+    if (!is_main_object(this)) {
+        printf("tried to call define_method on something that has no methods\n");
+        abort();
+    }
+    klass->define_method(env, name, fn);
+}
+
+void Value::define_method_with_block(Env *env, const char *name, Block *block) {
+    if (!is_main_object(this)) {
+        printf("tried to call define_method on something that has no methods\n");
+        abort();
+    }
+    klass->define_method_with_block(env, name, block);
+}
+
+void Value::undefine_method(Env *env, const char *name) {
+    if (!is_main_object(this)) {
+        printf("tried to call define_method on something that has no methods\n");
+        abort();
+    }
+    klass->undefine_method(env, name);
 }
 
 }

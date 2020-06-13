@@ -33,7 +33,7 @@ Value *HashValue::get(Env *env, Value *key) {
     Key key_container;
     key_container.key = key;
     key_container.env = *env;
-    Val *container = static_cast<Val *>(hashmap_get(&hashmap, &key_container));
+    Val *container = static_cast<Val *>(hashmap_get(&m_hashmap, &key_container));
     Value *val = container ? container->val : NULL;
     return val;
 }
@@ -51,7 +51,7 @@ void HashValue::put(Env *env, Value *key, Value *val) {
     Key key_container;
     key_container.key = key;
     key_container.env = *env;
-    Val *container = static_cast<Val *>(hashmap_get(&hashmap, &key_container));
+    Val *container = static_cast<Val *>(hashmap_get(&m_hashmap, &key_container));
     if (container) {
         container->key->val = val;
         container->val = val;
@@ -62,7 +62,7 @@ void HashValue::put(Env *env, Value *key, Value *val) {
         container = static_cast<Val *>(malloc(sizeof(Val)));
         container->key = key_list_append(env, key, val);
         container->val = val;
-        hashmap_put(&hashmap, container->key, container);
+        hashmap_put(&m_hashmap, container->key, container);
         // NOTE: env must be current and relevant at all times
         // See note on hashmap_compare for more details
         container->key->env = {};
@@ -73,7 +73,7 @@ Value *HashValue::remove(Env *env, Value *key) {
     Key key_container;
     key_container.key = key;
     key_container.env = *env;
-    Val *container = static_cast<Val *>(hashmap_remove(&hashmap, &key_container));
+    Val *container = static_cast<Val *>(hashmap_remove(&m_hashmap, &key_container));
     if (container) {
         key_list_remove_node(container->key);
         Value *val = container->val;
@@ -85,9 +85,9 @@ Value *HashValue::remove(Env *env, Value *key) {
 }
 
 HashValue::Key *HashValue::key_list_append(Env *env, Value *key, Value *val) {
-    if (key_list) {
-        Key *first = key_list;
-        Key *last = key_list->prev;
+    if (m_key_list) {
+        Key *first = m_key_list;
+        Key *last = m_key_list->prev;
         Key *new_last = static_cast<Key *>(malloc(sizeof(Key)));
         new_last->key = key;
         new_last->val = val;
@@ -108,7 +108,7 @@ HashValue::Key *HashValue::key_list_append(Env *env, Value *key, Value *val) {
         node->next = node;
         node->env = Env::new_detatched_block_env(env);
         node->removed = false;
-        key_list = node;
+        m_key_list = node;
         return node;
     }
 }
@@ -123,11 +123,11 @@ void HashValue::key_list_remove_node(Key *node) {
         node->prev = NULL;
         node->next = NULL;
         node->removed = true;
-        key_list = NULL;
+        m_key_list = NULL;
         return;
-    } else if (key_list == node) {
+    } else if (m_key_list == node) {
         // starting point is the node to be removed, so shift them forward by one
-        key_list = next;
+        m_key_list = next;
     }
     // remove the node
     node->removed = true;

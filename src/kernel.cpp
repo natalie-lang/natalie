@@ -33,8 +33,8 @@ Value *Kernel_p(Env *env, Value *self, ssize_t argc, Value **args, Block *block)
 
 Value *Kernel_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
-    if (self->is_module() && self->as_module()->class_name) {
-        return new StringValue { env, self->as_module()->class_name };
+    if (self->is_module() && self->as_module()->class_name()) {
+        return new StringValue { env, self->as_module()->class_name() };
     } else {
         StringValue *str = new StringValue { env, "#<" };
         assert(NAT_OBJ_CLASS(self));
@@ -122,7 +122,7 @@ Value *Kernel_raise(Env *env, Value *self, ssize_t argc, Value **args, Block *bl
         Value *arg = args[0];
         if (arg->is_class()) {
             klass = arg->as_class();
-            message = new StringValue { env, arg->as_class()->class_name };
+            message = new StringValue { env, arg->as_class()->class_name() };
         } else if (arg->is_string()) {
             klass = NAT_OBJECT->const_get(env, "RuntimeError", true)->as_class();
             message = arg;
@@ -156,9 +156,9 @@ Value *Kernel_methods(Env *env, Value *self, ssize_t argc, Value **args, Block *
     NAT_ASSERT_ARGC(0); // for now
     ArrayValue *array = new ArrayValue { env };
     if (self->singleton_class(env)) {
-        methods(env, array, self->singleton_class(env));
+        self->singleton_class(env)->methods(env, array);
     } else {
-        methods(env, array, NAT_OBJ_CLASS(self));
+        self->klass->methods(env, array);
     }
     return array;
 }
@@ -267,7 +267,7 @@ Value *Kernel_define_singleton_method(Env *env, Value *self, ssize_t argc, Value
     NAT_ASSERT_ARGC(1);
     NAT_ASSERT_BLOCK();
     SymbolValue *name_obj = args[0]->to_symbol(env, Value::Conversion::Strict);
-    define_singleton_method_with_block(env, self, name_obj->c_str(), block);
+    self->define_singleton_method_with_block(env, name_obj->c_str(), block);
     return name_obj;
 }
 

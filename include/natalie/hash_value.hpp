@@ -2,6 +2,7 @@
 
 #include <assert.h>
 
+#include "natalie/block.hpp"
 #include "natalie/class_value.hpp"
 #include "natalie/forward.hpp"
 #include "natalie/global_env.hpp"
@@ -29,13 +30,24 @@ struct HashValue : Value {
     HashValue(Env *env)
         : Value { env, Value::Type::Hash, NAT_OBJECT->const_get(env, "Hash", true)->as_class() }
         , m_default_value { NAT_NIL } {
-        hashmap_init(&hashmap, hash, compare, 256);
+        hashmap_init(&m_hashmap, hash, compare, 256);
+    }
+
+    ~HashValue() {
+        /*
+        destroy_key_list();
+        for (HashValue::Key &node : *this) {
+            delete static_cast<Val *>(hashmap_get(&m_hashmap, &node));
+        }
+        hashmap_destroy(&m_hashmap);
+        delete m_default_block;
+        */
     }
 
     static size_t hash(const void *);
     static int compare(const void *, const void *);
 
-    ssize_t size() { return hashmap.num_entries; }
+    ssize_t size() { return m_hashmap.num_entries; }
     Value *get(Env *, Value *);
     Value *get_default(Env *, Value *);
     void put(Env *, Value *, Value *);
@@ -59,7 +71,7 @@ struct HashValue : Value {
         }
 
         iterator operator++() {
-            if (m_key->next == nullptr || (!m_key->removed && m_key->next == m_hash->key_list)) {
+            if (m_key->next == nullptr || (!m_key->removed && m_key->next == m_hash->m_key_list)) {
                 m_key = nullptr;
                 m_hash->set_is_iterating(false);
             } else if (m_key->next->removed) {
@@ -78,8 +90,7 @@ struct HashValue : Value {
         }
 
         Key &operator*() { return *m_key; }
-        Key operator*() const { return *m_key; }
-        Key *operator->() const { return m_key; }
+        Key *operator->() { return m_key; }
 
         friend bool operator==(const iterator &i1, const iterator &i2) {
             return i1.m_key == i2.m_key;
@@ -95,7 +106,7 @@ struct HashValue : Value {
     };
 
     iterator begin() {
-        return iterator { key_list, this };
+        return iterator { m_key_list, this };
     }
 
     iterator end() {
@@ -106,8 +117,19 @@ private:
     void key_list_remove_node(Key *);
     Key *key_list_append(Env *, Value *, Value *);
 
-    Key *key_list { nullptr };
-    struct hashmap hashmap EMPTY_HASHMAP;
+    void destroy_key_list() {
+        if (!m_key_list) return;
+        Key *first_key = m_key_list;
+        Key *key = m_key_list;
+        do {
+            Key *next_key = key->next;
+            delete key;
+            key = next_key;
+        } while (key != first_key);
+    }
+
+    Key *m_key_list { nullptr };
+    struct hashmap m_hashmap EMPTY_HASHMAP;
     bool m_is_iterating { false };
     Value *m_default_value { nullptr };
     Block *m_default_block { nullptr };

@@ -258,7 +258,7 @@ Value *String_force_encoding(Env *env, Value *self_value, ssize_t argc, Value **
         self->set_encoding(find_encoding_by_name(env, encoding->as_string()->c_str())->encoding_num);
         break;
     default:
-        NAT_RAISE(env, "TypeError", "no implicit conversion of %s into %s", NAT_OBJ_CLASS(encoding)->class_name, "String");
+        NAT_RAISE(env, "TypeError", "no implicit conversion of %s into %s", NAT_OBJ_CLASS(encoding)->class_name(), "String");
     }
     return self;
 }
@@ -323,7 +323,7 @@ Value *String_sub(Env *env, Value *self_value, ssize_t argc, Value **args, Block
         out->append(env, &self->c_str()[index + match_str->length()]);
         return out;
     } else {
-        NAT_RAISE(env, "TypeError", "wrong argument type %s (expected Regexp)", NAT_OBJ_CLASS(sub)->class_name);
+        NAT_RAISE(env, "TypeError", "wrong argument type %s (expected Regexp)", NAT_OBJ_CLASS(sub)->class_name());
     }
 }
 
@@ -384,7 +384,7 @@ Value *String_split(Env *env, Value *self_value, ssize_t argc, Value **args, Blo
         }
         return ary;
     } else {
-        NAT_RAISE(env, "TypeError", "wrong argument type %s (expected Regexp))", NAT_OBJ_CLASS(splitter)->class_name);
+        NAT_RAISE(env, "TypeError", "wrong argument type %s (expected Regexp))", NAT_OBJ_CLASS(splitter)->class_name());
     }
 }
 

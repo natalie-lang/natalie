@@ -6,14 +6,14 @@ namespace Natalie {
 Value *Exception_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     ExceptionValue *exception = new ExceptionValue { env, self->as_class() };
     exception->initialize(env, argc, args, block);
-    if (exception->message == NULL) exception->message = strdup(self->as_class()->class_name);
+    if (exception->message == NULL) exception->message = strdup(self->as_class()->class_name());
     return exception;
 }
 
 Value *Exception_initialize(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     ExceptionValue *self = self_value->as_exception();
     if (argc == 0) {
-        self->message = strdup(self->klass->class_name);
+        self->message = strdup(self->klass->class_name());
     } else if (argc == 1) {
         Value *message = args[0];
         if (!message->is_string()) {

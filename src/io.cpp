@@ -160,7 +160,7 @@ Value *IO_seek(Env *env, Value *self_value, ssize_t argc, Value **args, Block *b
             break;
         }
         default:
-            NAT_RAISE(env, "TypeError", "no implicit conversion of %s into NAT_INTEGER", NAT_OBJ_CLASS(whence_obj)->class_name);
+            NAT_RAISE(env, "TypeError", "no implicit conversion of %s into NAT_INTEGER", NAT_OBJ_CLASS(whence_obj)->class_name());
         }
     }
     int result = lseek(self->fileno, amount, whence);

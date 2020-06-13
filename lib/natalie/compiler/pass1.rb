@@ -135,7 +135,7 @@ module Natalie
                   s(:block,
                     s(:set, klass, s(:subclass, s(:as_class, process(superclass)), :env, s(:s, name))),
                     s(:const_set, :self, :env, s(:s, name), klass))),
-        s(:eval_class_or_module_body, :env, klass, fn))
+        s(:eval_body, s(:l, "#{klass}->as_class()"), :env, fn))
       end
 
       def process_colon2(exp)
@@ -213,7 +213,7 @@ module Natalie
         fn = process_defn_internal(exp)
         exp.new(:block,
                 fn,
-                s(:define_method, :env, :self, s(:s, name), fn[1]),
+                s(:define_method, :self, :env, s(:s, name), fn[1]),
                 s(:"SymbolValue::intern", :env, s(:s, name)))
       end
 
@@ -222,7 +222,7 @@ module Natalie
         fn = process_defn_internal(exp.new(:defs, name, args, *body))
         exp.new(:block,
                 fn,
-                s(:define_singleton_method, :env, process(owner), s(:s, name), fn[1]),
+                s(:define_singleton_method, process(owner), :env, s(:s, name), fn[1]),
                 s(:"SymbolValue::intern", :env, s(:s, name)))
       end
 
@@ -597,7 +597,7 @@ module Natalie
                   s(:block,
                     s(:set, mod, s(:new, :ModuleValue, :env, s(:s, name))),
                     s(:const_set, :self, :env, s(:s, name), mod))),
-        s(:eval_class_or_module_body, :env, mod, fn))
+        s(:eval_body, s(:l, "#{mod}->as_module()"), :env, fn))
       end
 
       def process_next(exp)

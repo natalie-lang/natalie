@@ -12,8 +12,8 @@ ClassValue *ClassValue::subclass(Env *env, const char *name) {
         // TODO: what happens if the superclass gets a singleton_class later?
         subclass->set_singleton_class(m_singleton_class->subclass(env, nullptr));
     }
-    subclass->class_name = name ? strdup(name) : nullptr;
-    subclass->superclass = this;
+    subclass->set_class_name(name);
+    subclass->m_superclass = this;
     return subclass;
 }
 
@@ -23,7 +23,7 @@ ClassValue *ClassValue::bootstrap_class_class(Env *env) {
         reinterpret_cast<ClassValue *>(-1)
     };
     Class->klass = Class;
-    Class->class_name = strdup("Class");
+    Class->set_class_name("Class");
     return Class;
 }
 
@@ -33,7 +33,7 @@ ClassValue *ClassValue::bootstrap_basic_object(Env *env, ClassValue *Class) {
         reinterpret_cast<ClassValue *>(-1)
     };
     BasicObject->klass = Class;
-    BasicObject->class_name = strdup("BasicObject");
+    BasicObject->set_class_name("BasicObject");
     return BasicObject;
 }
 

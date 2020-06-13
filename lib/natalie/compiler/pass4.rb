@@ -69,6 +69,11 @@ module Natalie
         cvar_get
         cvar_get_or_null
         cvar_set
+        define_method
+        define_method_with_block
+        define_singleton_method
+        define_singleton_method_with_block
+        eval_body
         get
         global_get
         global_set
@@ -84,6 +89,8 @@ module Natalie
         raise_local_jump_error
         singleton_class
         subclass
+        undefine_method
+        undefine_singleton_method
         var_get
         var_set
       ]
@@ -241,7 +248,7 @@ module Natalie
         (_, (_, name), (_, c)) = exp
         fn = temp('fn')
         top "Value *#{fn}(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {\n#{c}\n}"
-        process(s(:define_method, :env, :self, s(:s, name), fn))
+        process(s(:define_method, s(:l, "self->as_module()"), :env, s(:s, name), fn))
         "symbol(env, #{name.inspect})"
       end
 
@@ -480,9 +487,9 @@ module Natalie
         result_name = temp('call_result')
         if args.size > 1
           args_name, args_count = process_atom(args).split(':')
-          decl "Value *#{result_name} = call_method_on_class(env, NAT_OBJ_CLASS(self)->superclass, NAT_OBJ_CLASS(self)->superclass, env->find_current_method_name(), self, #{args_count}, #{args_name}, #{block || 'NULL'});"
+          decl "Value *#{result_name} = call_method_on_class(env, NAT_OBJ_CLASS(self)->superclass(), NAT_OBJ_CLASS(self)->superclass(), env->find_current_method_name(), self, #{args_count}, #{args_name}, #{block || 'NULL'});"
         else
-          decl "Value *#{result_name} = call_method_on_class(env, NAT_OBJ_CLASS(self)->superclass, NAT_OBJ_CLASS(self)->superclass, env->find_current_method_name(), self, argc, args, #{block || 'NULL'});"
+          decl "Value *#{result_name} = call_method_on_class(env, NAT_OBJ_CLASS(self)->superclass(), NAT_OBJ_CLASS(self)->superclass(), env->find_current_method_name(), self, argc, args, #{block || 'NULL'});"
         end
         result_name
       end

@@ -60,6 +60,9 @@ struct Value {
         assert(klass);
     }
 
+    Value(const Value &) = delete;
+    Value &operator=(const Value &) = delete;
+
     Type type { Type::Object };
     ClassValue *klass { nullptr };
 
@@ -130,8 +133,16 @@ struct Value {
     Value *ivar_set(Env *, const char *, Value *);
 
     Value *cvar_get(Env *, const char *);
-    Value *cvar_get_or_null(Env *, const char *);
-    Value *cvar_set(Env *, const char *, Value *);
+    virtual Value *cvar_get_or_null(Env *, const char *);
+    virtual Value *cvar_set(Env *, const char *, Value *);
+
+    virtual void define_method(Env *, const char *, Value *(*)(Env *, Value *, ssize_t, Value **, Block *block));
+    virtual void define_method_with_block(Env *, const char *, Block *);
+    virtual void undefine_method(Env *, const char *);
+
+    void define_singleton_method(Env *, const char *, Value *(*)(Env *, Value *, ssize_t, Value **, Block *block));
+    void define_singleton_method_with_block(Env *, const char *, Block *);
+    void undefine_singleton_method(Env *, const char *);
 
     virtual void alias(Env *, const char *, const char *);
 

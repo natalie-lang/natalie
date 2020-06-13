@@ -75,7 +75,7 @@ void int_to_hex_string(int64_t num, char *buf, bool capitalize) {
     }
 }
 
-static Method *method_from_fn(Value *(*fn)(Env *, Value *, ssize_t, Value **, Block *block)) {
+Method *method_from_fn(Value *(*fn)(Env *, Value *, ssize_t, Value **, Block *block)) {
     Method *method = static_cast<Method *>(malloc(sizeof(Method)));
     method->fn = fn;
     method->env.global_env = NULL;
@@ -83,7 +83,7 @@ static Method *method_from_fn(Value *(*fn)(Env *, Value *, ssize_t, Value **, Bl
     return method;
 }
 
-static Method *method_from_block(Block *block) {
+Method *method_from_block(Block *block) {
     Method *method = static_cast<Method *>(malloc(sizeof(Method)));
     method->fn = block->fn;
     method->env = block->env;
@@ -92,61 +92,17 @@ static Method *method_from_block(Block *block) {
     return method;
 }
 
-void define_method(Env *env, Value *obj, const char *name, Value *(*fn)(Env *, Value *, ssize_t, Value **, Block *block)) {
-    Method *method = method_from_fn(fn);
-    if (is_main_object(obj)) {
-        free(hashmap_remove(&obj->klass->methods, name));
-        hashmap_put(&obj->klass->methods, name, method);
-    } else {
-        free(hashmap_remove(&obj->as_module()->methods, name));
-        hashmap_put(&obj->as_module()->methods, name, method);
-    }
-}
-
-void define_method_with_block(Env *env, Value *obj, const char *name, Block *block) {
-    Method *method = method_from_block(block);
-    if (is_main_object(obj)) {
-        free(hashmap_remove(&obj->klass->methods, name));
-        hashmap_put(&obj->klass->methods, name, method);
-    } else {
-        free(hashmap_remove(&obj->as_module()->methods, name));
-        hashmap_put(&obj->as_module()->methods, name, method);
-    }
-}
-
-void define_singleton_method(Env *env, Value *obj, const char *name, Value *(*fn)(Env *, Value *, ssize_t, Value **, Block *block)) {
-    Method *method = method_from_fn(fn);
-    ClassValue *klass = obj->singleton_class(env);
-    free(hashmap_remove(&klass->methods, name));
-    hashmap_put(&klass->methods, name, method);
-}
-
-void define_singleton_method_with_block(Env *env, Value *obj, const char *name, Block *block) {
-    Method *method = method_from_block(block);
-    ClassValue *klass = obj->singleton_class(env);
-    free(hashmap_remove(&klass->methods, name));
-    hashmap_put(&klass->methods, name, method);
-}
-
-void undefine_method(Env *env, Value *obj, const char *name) {
-    define_method(env, obj, name, NULL);
-}
-
-void undefine_singleton_method(Env *env, Value *obj, const char *name) {
-    define_singleton_method(env, obj, name, NULL);
-}
-
 ArrayValue *class_ancestors(Env *env, ModuleValue *klass) {
     ArrayValue *ancestors = new ArrayValue { env };
     do {
-        if (klass->included_modules_count == 0) {
+        if (klass->included_modules().is_empty()) {
             // note: if there are included modules, then they will include this klass
             ancestors->push(klass);
         }
-        for (ssize_t i = 0; i < klass->included_modules_count; i++) {
-            ancestors->push(klass->included_modules[i]);
+        for (ModuleValue *m : klass->included_modules()) {
+            ancestors->push(m);
         }
-        klass = klass->superclass;
+        klass = klass->superclass();
     } while (klass);
     return ancestors;
 }
@@ -201,21 +157,21 @@ Value *send(Env *env, Value *receiver, const char *sym, ssize_t argc, Value **ar
         klass = receiver->singleton_class(env);
         if (klass) {
             ModuleValue *matching_class_or_module;
-            Method *method = find_method(klass, sym, &matching_class_or_module);
+            Method *method = klass->find_method(sym, &matching_class_or_module);
             if (method) {
 #ifdef NAT_DEBUG_METHOD_RESOLUTION
                 if (strcmp(sym, "inspect") != 0) {
                     if (method->undefined) {
-                        fprintf(stderr, "Method %s found on %s and is marked undefined\n", sym, matching_class_or_module->class_name);
+                        fprintf(stderr, "Method %s found on %s and is marked undefined\n", sym, matching_class_or_module->class_name());
                     } else if (matching_class_or_module == klass) {
                         fprintf(stderr, "Method %s found on the singleton klass of %s\n", sym, send(env, receiver, "inspect", 0, NULL, NULL)->str);
                     } else {
-                        fprintf(stderr, "Method %s found on %s, which is an ancestor of the singleton klass of %s\n", sym, matching_class_or_module->class_name, send(env, receiver, "inspect", 0, NULL, NULL)->str);
+                        fprintf(stderr, "Method %s found on %s, which is an ancestor of the singleton klass of %s\n", sym, matching_class_or_module->class_name(), send(env, receiver, "inspect", 0, NULL, NULL)->str);
                     }
                 }
 #endif
                 if (method->undefined) {
-                    NAT_RAISE(env, "NoMethodError", "undefined method `%s' for %s:Class", sym, receiver->as_class()->class_name);
+                    NAT_RAISE(env, "NoMethodError", "undefined method `%s' for %s:Class", sym, receiver->as_class()->class_name());
                 }
                 return call_method_on_class(env, klass, NAT_OBJ_CLASS(receiver), sym, receiver, argc, args, block);
             }
@@ -230,75 +186,16 @@ Value *send(Env *env, Value *receiver, const char *sym, ssize_t argc, Value **ar
     return call_method_on_class(env, klass, klass, sym, receiver, argc, args, block);
 }
 
-// supply an empty array and it will be populated with the method names as symbols
-void methods(Env *env, ArrayValue *array, ModuleValue *klass) {
-    struct hashmap_iter *iter;
-    for (iter = hashmap_iter(&klass->methods); iter; iter = hashmap_iter_next(&klass->methods, iter)) {
-        const char *name = (char *)hashmap_iter_get_key(iter);
-        array->push(SymbolValue::intern(env, name));
-    }
-    for (ssize_t i = 0; i < klass->included_modules_count; i++) {
-        ModuleValue *module = klass->included_modules[i];
-        for (iter = hashmap_iter(&module->methods); iter; iter = hashmap_iter_next(&module->methods, iter)) {
-            const char *name = (char *)hashmap_iter_get_key(iter);
-            array->push(SymbolValue::intern(env, name));
-        }
-    }
-    if (klass->superclass) {
-        return methods(env, array, klass->superclass);
-    }
-}
-
-// returns the method and sets matching_class_or_module to where the method was found
-Method *find_method(ModuleValue *klass, const char *method_name, ModuleValue **matching_class_or_module) {
-    assert(NAT_TYPE(klass) == Value::Type::Class);
-
-    Method *method;
-    if (klass->included_modules_count == 0) {
-        // no included modules, just search the class/module
-        // note: if there are included modules, then the module chain will include this class/module
-        method = static_cast<Method *>(hashmap_get(&klass->methods, method_name));
-        if (method) {
-            *matching_class_or_module = klass;
-            return method;
-        }
-    }
-
-    for (ssize_t i = 0; i < klass->included_modules_count; i++) {
-        ModuleValue *module = klass->included_modules[i];
-        method = static_cast<Method *>(hashmap_get(&module->methods, method_name));
-        if (method) {
-            *matching_class_or_module = module;
-            return method;
-        }
-    }
-
-    if (klass->superclass) {
-        return find_method(klass->superclass, method_name, matching_class_or_module);
-    } else {
-        return NULL;
-    }
-}
-
-Method *find_method_without_undefined(ClassValue *klass, const char *method_name, ModuleValue **matching_class_or_module) {
-    Method *method = find_method(klass, method_name, matching_class_or_module);
-    if (method && method->undefined) {
-        return NULL;
-    } else {
-        return method;
-    }
-}
-
 Value *call_method_on_class(Env *env, ClassValue *klass, Value *instance_class, const char *method_name, Value *self, ssize_t argc, Value **args, Block *block) {
     assert(klass != NULL);
     assert(NAT_TYPE(klass) == Value::Type::Class);
 
     ModuleValue *matching_class_or_module;
-    Method *method = find_method(klass, method_name, &matching_class_or_module);
+    Method *method = klass->find_method(method_name, &matching_class_or_module);
     if (method && !method->undefined) {
 #ifdef NAT_DEBUG_METHOD_RESOLUTION
         if (strcmp(method_name, "inspect") != 0) {
-            fprintf(stderr, "Calling method %s from %s\n", method_name, matching_class_or_module->class_name);
+            fprintf(stderr, "Calling method %s from %s\n", method_name, matching_class_or_module->class_name());
         }
 #endif
         Env *closure_env;
@@ -327,14 +224,14 @@ bool respond_to(Env *env, Value *obj, const char *name) {
     ModuleValue *matching_class_or_module;
     if (NAT_TYPE(obj) == Value::Type::Integer) {
         ClassValue *klass = NAT_INTEGER;
-        if (find_method_without_undefined(klass, name, &matching_class_or_module)) {
+        if (klass->find_method_without_undefined(name, &matching_class_or_module)) {
             return true;
         } else {
             return false;
         }
-    } else if (obj->singleton_class(env) && find_method_without_undefined(obj->singleton_class(env), name, &matching_class_or_module)) {
+    } else if (obj->singleton_class(env) && obj->singleton_class(env)->find_method_without_undefined(name, &matching_class_or_module)) {
         return true;
-    } else if (find_method_without_undefined(NAT_OBJ_CLASS(obj), name, &matching_class_or_module)) {
+    } else if (obj->klass->find_method_without_undefined(name, &matching_class_or_module)) {
         return true;
     } else {
         return false;
@@ -371,7 +268,7 @@ ProcValue *to_proc(Env *env, Value *obj) {
     } else if (respond_to(env, obj, "to_proc")) {
         return send(env, obj, "to_proc", 0, NULL, NULL)->as_proc();
     } else {
-        NAT_RAISE(env, "TypeError", "wrong argument type %s (expected Proc)", NAT_OBJ_CLASS(obj)->class_name);
+        NAT_RAISE(env, "TypeError", "wrong argument type %s (expected Proc)", NAT_OBJ_CLASS(obj)->class_name());
     }
 }
 
@@ -439,7 +336,7 @@ void print_exception_with_backtrace(Env *env, ExceptionValue *exception) {
         StringValue *line = (*exception->backtrace)[0]->as_string();
         dprintf(fd, "%s: ", line->c_str());
     }
-    dprintf(fd, "%s (%s)\n", exception->message, NAT_OBJ_CLASS(exception)->class_name);
+    dprintf(fd, "%s (%s)\n", exception->message, NAT_OBJ_CLASS(exception)->class_name());
 }
 
 void handle_top_level_exception(Env *env, bool run_exit_handlers) {
@@ -487,8 +384,8 @@ ArrayValue *to_ary(Env *env, Value *obj, bool raise_for_non_array) {
             ary->as_array()->push(obj);
             return ary->as_array();
         } else {
-            const char *class_name = NAT_OBJ_CLASS(obj)->class_name;
-            NAT_RAISE(env, "TypeError", "can't convert %s to Array (%s#to_ary gives %s)", class_name, class_name, NAT_OBJ_CLASS(ary)->class_name);
+            const char *class_name = NAT_OBJ_CLASS(obj)->class_name();
+            NAT_RAISE(env, "TypeError", "can't convert %s to Array (%s#to_ary gives %s)", class_name, class_name, NAT_OBJ_CLASS(ary)->class_name());
         }
     } else {
         ArrayValue *ary = new ArrayValue { env };
@@ -668,14 +565,6 @@ ArrayValue *block_args_to_array(Env *env, ssize_t signature_size, ssize_t argc, 
         return to_ary(env, args[0], true);
     }
     return args_to_array(env, argc, args);
-}
-
-Value *eval_class_or_module_body(Env *env, Value *class_or_module, Value *(*fn)(Env *, Value *)) {
-    Env body_env = new Env { env };
-    body_env.caller = env;
-    Value *result = fn(&body_env, class_or_module);
-    body_env.caller = NULL;
-    return result;
 }
 
 void arg_spread(Env *env, ssize_t argc, Value **args, char *arrangement, ...) {
