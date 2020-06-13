@@ -11,11 +11,24 @@
 namespace Natalie {
 
 struct ProcValue : Value {
-    ProcValue(Env *env)
-        : Value { Value::Type::Proc, NAT_OBJECT->const_get(env, "Proc", true)->as_class() } { }
+    enum class ProcType {
+        Proc,
+        Lambda
+    };
 
-    Block *block { nullptr };
-    bool lambda;
+    ProcValue(Env *env, Block *block, ProcType type = ProcType::Proc)
+        : Value { Value::Type::Proc, NAT_OBJECT->const_get(env, "Proc", true)->as_class() }
+        , m_block { block }
+        , m_type { type } {
+        assert(m_block);
+    }
+
+    Block *block() { return m_block; }
+    bool is_lambda() { return m_type == ProcType::Lambda; }
+
+private:
+    Block *m_block { nullptr };
+    ProcType m_type { ProcType::Proc };
 };
 
 }

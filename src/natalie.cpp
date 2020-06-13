@@ -89,12 +89,6 @@ Value *_run_block_internal(Env *env, Block *the_block, ssize_t argc, Value **arg
     return the_block->fn(&e, the_block->self, argc, args, block);
 }
 
-ProcValue *proc_new(Env *env, Block *block) {
-    ProcValue *obj = new ProcValue { env };
-    obj->block = block;
-    return obj;
-}
-
 ProcValue *to_proc(Env *env, Value *obj) {
     if (obj->is_proc()) {
         return obj->as_proc();
@@ -105,12 +99,6 @@ ProcValue *to_proc(Env *env, Value *obj) {
     }
 }
 
-ProcValue *lambda(Env *env, Block *block) {
-    ProcValue *lambda = proc_new(env, block);
-    lambda->lambda = true;
-    return lambda;
-}
-
 void run_at_exit_handlers(Env *env) {
     ArrayValue *at_exit_handlers = env->global_get("$NAT_at_exit_handlers")->as_array();
     assert(at_exit_handlers);
@@ -118,7 +106,7 @@ void run_at_exit_handlers(Env *env) {
         Value *proc = (*at_exit_handlers)[i];
         assert(proc);
         assert(proc->is_proc());
-        NAT_RUN_BLOCK_WITHOUT_BREAK(env, proc->as_proc()->block, 0, NULL, NULL);
+        NAT_RUN_BLOCK_WITHOUT_BREAK(env, proc->as_proc()->block(), 0, NULL, NULL);
     }
 }
 

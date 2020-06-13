@@ -88,12 +88,12 @@ module Natalie
                end
         if block_pass
           proc_name = temp('proc_to_block')
-          call << "#{proc_name}->as_proc()->block"
+          call << "#{proc_name}->as_proc()->block()"
           exp.new(:block,
                   s(:declare, proc_name, s(:to_proc, :env, process(block_pass))),
                   call)
         else
-          call << 'NULL'
+          call << 'nullptr'
           call
         end
       end
@@ -107,7 +107,7 @@ module Natalie
           when_body = when_body.map { |w| process(w) }
           when_body = [s(:nil)] if when_body == [nil]
           matchers.each do |matcher|
-            cond << s(:is_truthy, s(:send, process(matcher), '===', s(:args, value_name), 'NULL'))
+            cond << s(:is_truthy, s(:send, process(matcher), '===', s(:args, value_name), 'nullptr'))
             cond << s(:block, *when_body)
           end
         end
@@ -182,7 +182,7 @@ module Natalie
         name = name.to_s
         fn_name = temp('fn')
         if args.last&.to_s&.start_with?('&')
-          block_arg = exp.new(:var_set, :env, s(:s, args.pop.to_s[1..-1]), s(:proc_new, :env, 'block'))
+          block_arg = exp.new(:var_set, :env, s(:s, args.pop.to_s[1..-1]), s(:new, :ProcValue, :env, 'block'))
         end
         args_name = temp('args_as_array')
         assign_args = s(:block,
@@ -349,12 +349,17 @@ module Natalie
         (_, call, (_, *args), *body) = exp
         args = fix_unnecessary_nesting(args)
         if args.last&.to_s&.start_with?('&')
-          block_arg = exp.new(:arg_set, :env, s(:s, args.pop.to_s[1..-1]), s(:proc_new, :env, 'block'))
+          block_arg = exp.new(:arg_set, :env, s(:s, args.pop.to_s[1..-1]), s(:new, :ProcValue, :env, 'block'))
         end
         block_fn = temp('block_fn')
         block = block_fn.sub(/_fn/, '')
         call = process(call)
-        call[call.size-1] = block
+        if (i = call.index('nullptr'))
+          call[i] = block
+        else
+          p call
+          raise "cannot add block to call!"
+        end
         args_name = temp('args_as_array')
         assign_args = s(:block,
                         s(:declare, args_name, s(:block_args_to_array, :env, args.size, s(:l, 'argc'), s(:l, 'args'))),
@@ -385,7 +390,8 @@ module Natalie
       end
 
       def process_lambda(exp)
-        exp.new(:lambda, :env, 'NULL') # note: the block gets overwritten by process_iter later
+        # note: the nullptr gets overwritten with an actual block by process_iter later
+        exp.new(:new, :ProcValue, :env, 'nullptr', :"ProcValue::ProcType::Lambda")
       end
 
       def process_lasgn(exp)
@@ -487,7 +493,7 @@ module Natalie
               value = s(:arg_value_by_path, :env, value_name, s(:nil), s(:l, :true), names.size, defaults.size, defaults_on_right ? s(:l, :true) : s(:l, :false), path_details[:offset_from_end], path.size, *path)
               prepare_masgn_set(name.last, value, arg: true)
             when :kwarg
-              default_value = name[2] ? process(name[2]) : 'NULL'
+              default_value = name[2] ? process(name[2]) : 'nullptr'
               value = s(:kwarg_value_by_name, :env, value_name, s(:s, name[1]), default_value)
               prepare_masgn_set(name, value, arg: true)
             else
@@ -621,28 +627,29 @@ module Natalie
         if op == :"||"
           exp.new(:block,
                   s(:declare, obj_name, process(obj)),
-                  s(:declare, val, s(:send, obj_name, :[], s(:args, *key_args.map { |a| process(a) }), 'NULL')),
+                  s(:declare, val, s(:send, obj_name, :[], s(:args, *key_args.map { |a| process(a) }), 'nullptr')),
                   s(:c_if, s(:is_truthy, val),
                     val,
                     s(:send, obj_name, :[]=,
                       s(:args,
                         *key_args.map { |a| process(a) },
-                        *val_args.map { |a| process(a) }),
-          'NULL')))
+                        *val_args.map { |a| process(a) }
+                       ),
+                       'nullptr')))
         else
           exp.new(:block,
                   s(:declare, obj_name, process(obj)),
                   s(:declare, val,
                     s(:send,
-                      s(:send, obj_name, :[], s(:args, *key_args.map { |a| process(a) }), 'NULL'),
+                      s(:send, obj_name, :[], s(:args, *key_args.map { |a| process(a) }), 'nullptr'),
                       op,
                       s(:args, *val_args.map { |a| process(a) }),
-                      'NULL')),
+                      'nullptr')),
                      s(:send, obj_name, :[]=,
                        s(:args,
                          *key_args.map { |a| process(a) },
                          val),
-                         'NULL'))
+                         'nullptr'))
         end
       end
 

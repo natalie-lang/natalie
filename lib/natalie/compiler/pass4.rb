@@ -143,7 +143,7 @@ module Natalie
       def process_args(exp)
         (_, *args) = exp
         if args.size.zero?
-          'NULL:0'
+          'nullptr:0'
         else
           args_name = temp('args')
           decl "Value *#{args_name}[#{args.size}] = { #{args.map { |arg| process_atom(arg) }.join(', ')} };"
@@ -330,7 +330,7 @@ module Natalie
         count = 0
         result_name = temp('cond_result')
         in_decl_context do
-          decl "Value *#{result_name} = NULL;"
+          decl "Value *#{result_name} = nullptr;"
           exp[1..-1].each_slice(2).each_with_index do |(cond, body), index|
             if cond == s(:else)
               in_decl_context do
@@ -451,7 +451,7 @@ module Natalie
         receiver_name = process_atom(receiver)
         args_name, args_count = process_atom(args).split(':')
         result_name = temp('call_result')
-        decl "Value *#{result_name} = #{receiver_name}->#{fn}(env, #{method.to_s.inspect}, #{args_count}, #{args_name}, #{block || 'NULL'});"
+        decl "Value *#{result_name} = #{receiver_name}->#{fn}(env, #{method.to_s.inspect}, #{args_count}, #{args_name}, #{block || 'nullptr'});"
         result_name
       end
 
@@ -489,9 +489,9 @@ module Natalie
         result_name = temp('call_result')
         if args.size > 1
           args_name, args_count = process_atom(args).split(':')
-          decl "Value *#{result_name} = NAT_OBJ_CLASS(self)->superclass()->call_method(env, NAT_OBJ_CLASS(self)->superclass(), env->find_current_method_name(), self, #{args_count}, #{args_name}, #{block || 'NULL'});"
+          decl "Value *#{result_name} = NAT_OBJ_CLASS(self)->superclass()->call_method(env, NAT_OBJ_CLASS(self)->superclass(), env->find_current_method_name(), self, #{args_count}, #{args_name}, #{block || 'nullptr'});"
         else
-          decl "Value *#{result_name} = NAT_OBJ_CLASS(self)->superclass()->call_method(env, NAT_OBJ_CLASS(self)->superclass(), env->find_current_method_name(), self, argc, args, #{block || 'NULL'});"
+          decl "Value *#{result_name} = NAT_OBJ_CLASS(self)->superclass()->call_method(env, NAT_OBJ_CLASS(self)->superclass(), env->find_current_method_name(), self, argc, args, #{block || 'nullptr'});"
         end
         result_name
       end
@@ -508,10 +508,6 @@ module Natalie
       def process_not(exp)
         (_, cond) = exp
         "!#{process_atom cond}"
-      end
-
-      def process_NULL(_)
-        'NULL'
       end
 
       def process_s(exp)

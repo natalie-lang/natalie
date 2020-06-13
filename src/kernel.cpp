@@ -183,7 +183,7 @@ Value *Kernel_exit(Env *env, Value *self, ssize_t argc, Value **args, Block *blo
 Value *Kernel_at_exit(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     ArrayValue *at_exit_handlers = env->global_get("$NAT_at_exit_handlers")->as_array();
     NAT_ASSERT_BLOCK();
-    Value *proc = proc_new(env, block);
+    Value *proc = new ProcValue { env, block };
     at_exit_handlers->push(proc);
     return proc;
 }
@@ -212,7 +212,7 @@ Value *Kernel_hash(Env *env, Value *self, ssize_t argc, Value **args, Block *blo
 Value *Kernel_proc(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     if (block) {
-        return proc_new(env, block);
+        return new ProcValue { env, block };
     } else {
         NAT_RAISE(env, "ArgumentError", "tried to create Proc object without a block");
     }
@@ -221,7 +221,7 @@ Value *Kernel_proc(Env *env, Value *self, ssize_t argc, Value **args, Block *blo
 Value *Kernel_lambda(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     if (block) {
-        return lambda(env, block);
+        return new ProcValue(env, block, ProcValue::ProcType::Lambda);
     } else {
         NAT_RAISE(env, "ArgumentError", "tried to create Proc object without a block");
     }

@@ -19,7 +19,7 @@ Value *Symbol_to_proc(Env *env, Value *self_value, ssize_t argc, Value **args, B
     Env block_env = Env::new_detatched_block_env(env);
     block_env.var_set("name", 0, true, self);
     Block *proc_block = block_new(&block_env, self, Symbol_to_proc_block_fn);
-    return proc_new(env, proc_block);
+    return new ProcValue { env, proc_block };
 }
 
 Value *Symbol_to_proc_block_fn(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {

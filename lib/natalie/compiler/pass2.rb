@@ -69,7 +69,7 @@ module Natalie
       def process_send(exp)
         return process_sexp(exp) unless repl?
         (_, receiver, name, *args) = exp
-        return process_sexp(exp) unless receiver == :self && args.last == 'NULL'
+        return process_sexp(exp) unless receiver == :self && args.last == 'nullptr'
         if find_var(name.to_s)
           process_var_get(exp.new(:var_get, :env, s(:s, name)))
         else
