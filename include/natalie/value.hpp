@@ -161,6 +161,8 @@ struct Value {
     const char *defined(Env *, const char *);
     Value *defined_obj(Env *, const char *);
 
+    virtual ProcValue *to_proc(Env *);
+
 private:
     void init_ivars();
 };

@@ -26,6 +26,11 @@ struct ProcValue : Value {
     Block *block() { return m_block; }
     bool is_lambda() { return m_type == ProcType::Lambda; }
 
+    virtual ProcValue *to_proc(Env *) override {
+        // TODO: might need to return a copy with m_type set to Proc if this is a Lambda
+        return this;
+    }
+
 private:
     Block *m_block { nullptr };
     ProcType m_type { ProcType::Proc };

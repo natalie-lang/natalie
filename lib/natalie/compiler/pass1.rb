@@ -90,7 +90,7 @@ module Natalie
           proc_name = temp('proc_to_block')
           call << "#{proc_name}->as_proc()->block()"
           exp.new(:block,
-                  s(:declare, proc_name, s(:to_proc, :env, process(block_pass))),
+                  s(:declare, proc_name, s(:to_proc, process(block_pass), :env)),
                   call)
         else
           call << 'nullptr'

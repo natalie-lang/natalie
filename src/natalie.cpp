@@ -48,16 +48,6 @@ Value *call_begin(Env *env, Value *self, Value *(*block_fn)(Env *, Value *)) {
     return block_fn(&e, self);
 }
 
-ProcValue *to_proc(Env *env, Value *obj) {
-    if (obj->is_proc()) {
-        return obj->as_proc();
-    } else if (obj->respond_to(env, "to_proc")) {
-        return obj->send(env, "to_proc")->as_proc();
-    } else {
-        NAT_RAISE(env, "TypeError", "wrong argument type %s (expected Proc)", NAT_OBJ_CLASS(obj)->class_name());
-    }
-}
-
 void run_at_exit_handlers(Env *env) {
     ArrayValue *at_exit_handlers = env->global_get("$NAT_at_exit_handlers")->as_array();
     assert(at_exit_handlers);

@@ -52,8 +52,6 @@ void int_to_hex_string(int64_t num, char *buf, bool capitalize);
 
 Value *call_begin(Env *env, Value *self, Value *(*block_fn)(Env *, Value *));
 
-ProcValue *to_proc(Env *env, Value *obj);
-
 Value *splat(Env *env, Value *obj);
 
 void run_at_exit_handlers(Env *env);

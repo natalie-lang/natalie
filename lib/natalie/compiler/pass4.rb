@@ -19,8 +19,8 @@ module Natalie
       VOID_FUNCTIONS = %i[
         NAT_ASSERT_ARGC
         NAT_ASSERT_ARGC_AT_LEAST
-        NAT_ASSERT_TYPE
         NAT_ASSERT_NOT_FROZEN
+        NAT_ASSERT_TYPE
         NAT_UNREACHABLE
         alias
         append
@@ -40,10 +40,10 @@ module Natalie
         include
         methods
         prepend
+        print_exception_with_backtrace
         push
         push_splat
         put
-        print_exception_with_backtrace
         run_at_exit_handlers
         string_append
         string_append_char
@@ -91,6 +91,7 @@ module Natalie
         send
         singleton_class
         subclass
+        to_proc
         undefine_method
         undefine_singleton_method
         var_get

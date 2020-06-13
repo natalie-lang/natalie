@@ -339,4 +339,12 @@ Value *Value::defined_obj(Env *env, const char *name) {
     }
 }
 
+ProcValue *Value::to_proc(Env *env) {
+    if (respond_to(env, "to_proc")) {
+        return send(env, "to_proc")->as_proc();
+    } else {
+        NAT_RAISE(env, "TypeError", "wrong argument type %s (expected Proc)", klass->class_name());
+    }
+}
+
 }
