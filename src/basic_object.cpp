@@ -4,7 +4,11 @@
 namespace Natalie {
 
 Value *BasicObject_not(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
-    return bool_not(env, self);
+    if (self->is_truthy()) {
+        return NAT_FALSE;
+    } else {
+        return NAT_TRUE;
+    }
 }
 
 Value *BasicObject_eqeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {

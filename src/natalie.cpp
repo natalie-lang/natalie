@@ -272,14 +272,6 @@ Value *dup(Env *env, Value *obj) {
     }
 }
 
-Value *bool_not(Env *env, Value *val) {
-    if (val->is_truthy()) {
-        return NAT_FALSE;
-    } else {
-        return NAT_TRUE;
-    }
-}
-
 void run_at_exit_handlers(Env *env) {
     ArrayValue *at_exit_handlers = env->global_get("$NAT_at_exit_handlers")->as_array();
     assert(at_exit_handlers);

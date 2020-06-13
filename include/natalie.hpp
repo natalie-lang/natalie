@@ -80,7 +80,6 @@ Value *splat(Env *env, Value *obj);
 RangeValue *range_new(Env *env, Value *begin, Value *end, bool exclude_end);
 
 Value *dup(Env *env, Value *obj);
-Value *bool_not(Env *env, Value *val);
 
 void run_at_exit_handlers(Env *env);
 void print_exception_with_backtrace(Env *env, ExceptionValue *exception);
