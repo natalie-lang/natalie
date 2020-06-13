@@ -30,7 +30,7 @@ Value *Module_eqeqeq(Env *env, Value *self_value, ssize_t argc, Value **args, Bl
     ModuleValue *self = self_value->as_module();
     NAT_ASSERT_ARGC(1);
     Value *arg = args[0];
-    if (is_a(env, arg, self)) {
+    if (arg->is_a(env, self)) {
         return NAT_TRUE;
     } else {
         return NAT_FALSE;
@@ -47,10 +47,9 @@ Value *Module_name(Env *env, Value *self_value, ssize_t argc, Value **args, Bloc
     }
 }
 
-Value *Module_ancestors(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
-    ModuleValue *self = self_value->as_module();
+Value *Module_ancestors(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
-    return class_ancestors(env, self);
+    return self->as_module()->ancestors(env);
 }
 
 Value *Module_attr_reader(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {

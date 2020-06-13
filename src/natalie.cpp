@@ -43,39 +43,6 @@ void int_to_hex_string(int64_t num, char *buf, bool capitalize) {
     }
 }
 
-ArrayValue *class_ancestors(Env *env, ModuleValue *klass) {
-    ArrayValue *ancestors = new ArrayValue { env };
-    do {
-        if (klass->included_modules().is_empty()) {
-            // note: if there are included modules, then they will include this klass
-            ancestors->push(klass);
-        }
-        for (ModuleValue *m : klass->included_modules()) {
-            ancestors->push(m);
-        }
-        klass = klass->superclass();
-    } while (klass);
-    return ancestors;
-}
-
-bool is_a(Env *env, Value *obj, Value *klass_or_module) {
-    return is_a(env, obj, klass_or_module->as_module());
-}
-
-bool is_a(Env *env, Value *obj, ModuleValue *klass_or_module) {
-    if (obj == klass_or_module) {
-        return true;
-    } else {
-        ArrayValue *ancestors = class_ancestors(env, NAT_OBJ_CLASS(obj));
-        for (ssize_t i = 0; i < ancestors->size(); i++) {
-            if (klass_or_module == (*ancestors)[i]) {
-                return true;
-            }
-        }
-        return false;
-    }
-}
-
 const char *defined(Env *env, Value *receiver, const char *name) {
     Value *obj;
     if (is_constant_name(name)) {
@@ -84,7 +51,7 @@ const char *defined(Env *env, Value *receiver, const char *name) {
     } else if (is_global_name(name)) {
         obj = env->global_get(name);
         if (obj != NAT_NIL) return "global-variable";
-    } else if (respond_to(env, receiver, name)) {
+    } else if (receiver->respond_to(env, name)) {
         return "method";
     }
     return NULL;
@@ -102,24 +69,6 @@ Value *defined_obj(Env *env, Value *receiver, const char *name) {
 Value *call_begin(Env *env, Value *self, Value *(*block_fn)(Env *, Value *)) {
     Env e = Env::new_block_env(env, env);
     return block_fn(&e, self);
-}
-
-bool respond_to(Env *env, Value *obj, const char *name) {
-    ModuleValue *matching_class_or_module;
-    if (NAT_TYPE(obj) == Value::Type::Integer) {
-        ClassValue *klass = NAT_INTEGER;
-        if (klass->find_method_without_undefined(name, &matching_class_or_module)) {
-            return true;
-        } else {
-            return false;
-        }
-    } else if (obj->singleton_class(env) && obj->singleton_class(env)->find_method_without_undefined(name, &matching_class_or_module)) {
-        return true;
-    } else if (obj->klass->find_method_without_undefined(name, &matching_class_or_module)) {
-        return true;
-    } else {
-        return false;
-    }
 }
 
 Block *block_new(Env *env, Value *self, Value *(*fn)(Env *, Value *, ssize_t, Value **, Block *)) {
@@ -149,7 +98,7 @@ ProcValue *proc_new(Env *env, Block *block) {
 ProcValue *to_proc(Env *env, Value *obj) {
     if (obj->is_proc()) {
         return obj->as_proc();
-    } else if (respond_to(env, obj, "to_proc")) {
+    } else if (obj->respond_to(env, "to_proc")) {
         return obj->send(env, "to_proc")->as_proc();
     } else {
         NAT_RAISE(env, "TypeError", "wrong argument type %s (expected Proc)", NAT_OBJ_CLASS(obj)->class_name());
@@ -200,7 +149,7 @@ void print_exception_with_backtrace(Env *env, ExceptionValue *exception) {
 void handle_top_level_exception(Env *env, bool run_exit_handlers) {
     ExceptionValue *exception = env->exception->as_exception();
     env->rescue = false;
-    if (is_a(env, exception, NAT_OBJECT->const_get(env, "SystemExit", true)->as_class())) {
+    if (exception->is_a(env, NAT_OBJECT->const_get(env, "SystemExit", true)->as_class())) {
         Value *status_obj = exception->ivar_get(env, "@status");
         if (run_exit_handlers) run_at_exit_handlers(env);
         if (NAT_TYPE(status_obj) == Value::Type::Integer) {
@@ -221,7 +170,7 @@ void handle_top_level_exception(Env *env, bool run_exit_handlers) {
 ArrayValue *to_ary(Env *env, Value *obj, bool raise_for_non_array) {
     if (obj->is_array()) {
         return obj->as_array();
-    } else if (respond_to(env, obj, "to_ary")) {
+    } else if (obj->respond_to(env, "to_ary")) {
         Value *ary = obj->send(env, "to_ary");
         if (ary->is_array()) {
             return ary->as_array();

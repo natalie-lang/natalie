@@ -155,6 +155,9 @@ struct Value {
 
     Value *dup(Env *);
 
+    bool is_a(Env *, Value *);
+    bool respond_to(Env *, const char *);
+
 private:
     void init_ivars();
 };

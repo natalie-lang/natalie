@@ -53,6 +53,8 @@ struct ModuleValue : Value {
 
     Value *call_method(Env *, Value *, const char *, Value *, ssize_t, Value **, Block *);
 
+    ArrayValue *ancestors(Env *env);
+
 protected:
     struct hashmap m_constants EMPTY_HASHMAP;
     const char *m_class_name { nullptr };

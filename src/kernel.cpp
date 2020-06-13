@@ -140,7 +140,7 @@ Value *Kernel_raise(Env *env, Value *self, ssize_t argc, Value **args, Block *bl
 Value *Kernel_respond_to(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     const char *name = args[0]->identifier_str(env, Value::Conversion::NullAllowed);
-    if (name && respond_to(env, self, name)) {
+    if (name && self->respond_to(env, name)) {
         return NAT_TRUE;
     } else {
         return NAT_FALSE;
@@ -194,7 +194,7 @@ Value *Kernel_is_a(Env *env, Value *self, ssize_t argc, Value **args, Block *blo
     if (!klass_or_module->is_module()) {
         NAT_RAISE(env, "TypeError", "class or module required");
     }
-    if (is_a(env, self, klass_or_module->as_module())) {
+    if (self->is_a(env, klass_or_module->as_module())) {
         return NAT_TRUE;
     } else {
         return NAT_FALSE;
@@ -281,7 +281,7 @@ Value *Kernel_Array(Env *env, Value *self, ssize_t argc, Value **args, Block *bl
     Value *value = args[0];
     if (NAT_TYPE(value) == Value::Type::Array) {
         return value;
-    } else if (respond_to(env, value, "to_ary")) {
+    } else if (value->respond_to(env, "to_ary")) {
         return value->send(env, "to_ary");
     } else if (value == NAT_NIL) {
         return new ArrayValue { env };

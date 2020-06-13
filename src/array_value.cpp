@@ -3,7 +3,7 @@
 namespace Natalie {
 
 void ArrayValue::push_splat(Env *env, Value *val) {
-    if (!val->is_array() && respond_to(env, val, "to_a")) {
+    if (!val->is_array() && val->respond_to(env, "to_a")) {
         val = val->send(env, "to_a");
     }
     if (val->is_array()) {

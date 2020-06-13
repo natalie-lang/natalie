@@ -240,4 +240,21 @@ Value *ModuleValue::call_method(Env *env, Value *instance_class, const char *met
         NAT_RAISE(env, "NoMethodError", "undefined method `%s' for %v", method_name, instance_class);
     }
 }
+
+ArrayValue *ModuleValue::ancestors(Env *env) {
+    ModuleValue *klass = this;
+    ArrayValue *ancestors = new ArrayValue { env };
+    do {
+        if (klass->included_modules().is_empty()) {
+            // note: if there are included modules, then they will include this klass
+            ancestors->push(klass);
+        }
+        for (ModuleValue *m : klass->included_modules()) {
+            ancestors->push(m);
+        }
+        klass = klass->superclass();
+    } while (klass);
+    return ancestors;
+}
+
 }

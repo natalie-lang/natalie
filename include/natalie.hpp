@@ -49,15 +49,10 @@ const char *find_current_method_name(Env *env);
 void int_to_string(int64_t num, char *buf);
 void int_to_hex_string(int64_t num, char *buf, bool capitalize);
 
-ArrayValue *class_ancestors(Env *env, ModuleValue *klass);
-bool is_a(Env *env, Value *obj, Value *klass_or_module);
-bool is_a(Env *env, Value *obj, ModuleValue *klass_or_module);
-
 const char *defined(Env *env, Value *receiver, const char *name);
 Value *defined_obj(Env *env, Value *receiver, const char *name);
 
 Value *call_begin(Env *env, Value *self, Value *(*block_fn)(Env *, Value *));
-bool respond_to(Env *env, Value *obj, const char *name);
 
 Block *block_new(Env *env, Value *self, Value *(*fn)(Env *, Value *, ssize_t, Value **, Block *));
 Value *_run_block_internal(Env *env, Block *the_block, ssize_t argc, Value **args, Block *block);

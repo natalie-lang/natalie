@@ -118,8 +118,11 @@ SymbolValue *Value::to_symbol(Env *env, Conversion conversion) {
 }
 
 ClassValue *Value::singleton_class(Env *env) {
-    if (m_singleton_class == nullptr) {
-        m_singleton_class = klass->subclass(env, nullptr);
+    if (is_integer() || is_symbol()) {
+        NAT_RAISE(env, "TypeError", "can't define singleton");
+    }
+    if (!m_singleton_class) {
+        m_singleton_class = klass->subclass(env);
     }
     return m_singleton_class;
 }
@@ -285,4 +288,32 @@ Value *Value::dup(Env *env) {
         abort();
     }
 }
+
+bool Value::is_a(Env *env, Value *val) {
+    if (!val->is_module()) return false;
+    ModuleValue *module = val->as_module();
+    if (this == module) {
+        return true;
+    } else {
+        ArrayValue *ancestors = klass->ancestors(env);
+        for (Value *m : *ancestors) {
+            if (module == m->as_module()) {
+                return true;
+            }
+        }
+        return false;
+    }
+}
+
+bool Value::respond_to(Env *env, const char *name) {
+    ModuleValue *matching_class_or_module;
+    if (singleton_class() && singleton_class()->find_method_without_undefined(name, &matching_class_or_module)) {
+        return true;
+    } else if (klass->find_method_without_undefined(name, &matching_class_or_module)) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 }

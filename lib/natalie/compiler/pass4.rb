@@ -136,7 +136,7 @@ module Natalie
       def process_is_a(exp)
         (_, target, *list) = exp
         list.map do |klass|
-          "is_a(env, #{process_atom target}, #{process_atom klass})"
+          "#{process_atom target}->is_a(env, #{process_atom klass})"
         end.join(' || ')
       end
 
