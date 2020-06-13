@@ -9,25 +9,25 @@ Value *Range_new(Env *env, Value *self_value, ssize_t argc, Value **args, Block 
     if (argc == 3) {
         exclude_end = args[2]->is_truthy();
     }
-    return range_new(env, args[0], args[1], exclude_end);
+    return new RangeValue { env, args[0], args[1], exclude_end };
 }
 
 Value *Range_begin(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     RangeValue *self = self_value->as_range();
-    return self->range_begin;
+    return self->begin();
 }
 
 Value *Range_end(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     RangeValue *self = self_value->as_range();
-    return self->range_end;
+    return self->end();
 }
 
 Value *Range_exclude_end(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     RangeValue *self = self_value->as_range();
-    if (self->range_exclude_end) {
+    if (self->exclude_end()) {
         return NAT_TRUE;
     } else {
         return NAT_FALSE;
@@ -38,9 +38,10 @@ Value *Range_to_a(Env *env, Value *self_value, ssize_t argc, Value **args, Block
     NAT_ASSERT_ARGC(0);
     RangeValue *self = self_value->as_range();
     ArrayValue *ary = new ArrayValue { env };
-    Value *item = self->range_begin;
-    const char *op = self->range_exclude_end ? "<" : "<=";
-    while (item->send(env, op, 1, &self->range_end, nullptr)->is_truthy()) {
+    Value *item = self->begin();
+    const char *op = self->exclude_end() ? "<" : "<=";
+    Value *end = self->end();
+    while (item->send(env, op, 1, &end, nullptr)->is_truthy()) {
         ary->push(item);
         item = item->send(env, "succ");
     }
@@ -50,9 +51,10 @@ Value *Range_to_a(Env *env, Value *self_value, ssize_t argc, Value **args, Block
 Value *Range_each(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     RangeValue *self = self_value->as_range();
-    Value *item = self->range_begin;
-    const char *op = self->range_exclude_end ? "<" : "<=";
-    while (item->send(env, op, 1, &self->range_end, nullptr)->is_truthy()) {
+    Value *item = self->begin();
+    const char *op = self->exclude_end() ? "<" : "<=";
+    Value *end = self->end();
+    while (item->send(env, op, 1, &end, nullptr)->is_truthy()) {
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, NULL);
         item = item->send(env, "succ");
     }
@@ -62,10 +64,10 @@ Value *Range_each(Env *env, Value *self_value, ssize_t argc, Value **args, Block
 Value *Range_inspect(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     RangeValue *self = self_value->as_range();
-    if (self->range_exclude_end) {
-        return StringValue::sprintf(env, "%v...%v", self->range_begin, self->range_end);
+    if (self->exclude_end()) {
+        return StringValue::sprintf(env, "%v...%v", self->begin(), self->end());
     } else {
-        return StringValue::sprintf(env, "%v..%v", self->range_begin, self->range_end);
+        return StringValue::sprintf(env, "%v..%v", self->begin(), self->end());
     }
 }
 
@@ -74,9 +76,11 @@ Value *Range_eqeq(Env *env, Value *self_value, ssize_t argc, Value **args, Block
     RangeValue *self = self_value->as_range();
     if (NAT_TYPE(args[0]) == Value::Type::Range) {
         RangeValue *arg = args[0]->as_range();
-        bool begin_equal = self->range_begin->send(env, "==", 1, &arg->range_begin, nullptr)->is_truthy();
-        bool end_equal = self->range_end->send(env, "==", 1, &arg->range_end, nullptr)->is_truthy();
-        if (begin_equal && end_equal && self->range_exclude_end == arg->range_exclude_end) {
+        Value *begin = arg->begin();
+        Value *end = arg->end();
+        bool begin_equal = self->begin()->send(env, "==", 1, &begin, nullptr)->is_truthy();
+        bool end_equal = self->end()->send(env, "==", 1, &end, nullptr)->is_truthy();
+        if (begin_equal && end_equal && self->exclude_end() == arg->exclude_end()) {
             return NAT_TRUE;
         }
     }
@@ -87,19 +91,20 @@ Value *Range_eqeqeq(Env *env, Value *self_value, ssize_t argc, Value **args, Blo
     NAT_ASSERT_ARGC(1);
     RangeValue *self = self_value->as_range();
     Value *arg = args[0];
-    if (NAT_TYPE(self->range_begin) == Value::Type::Integer && NAT_TYPE(arg) == Value::Type::Integer) {
+    if (NAT_TYPE(self->begin()) == Value::Type::Integer && NAT_TYPE(arg) == Value::Type::Integer) {
         // optimized path for integer ranges
-        int64_t begin = self->range_begin->as_integer()->to_int64_t();
-        int64_t end = self->range_end->as_integer()->to_int64_t();
+        int64_t begin = self->begin()->as_integer()->to_int64_t();
+        int64_t end = self->end()->as_integer()->to_int64_t();
         int64_t val = arg->as_integer()->to_int64_t();
-        if (begin <= val && ((self->range_exclude_end && val < end) || (!self->range_exclude_end && val <= end))) {
+        if (begin <= val && ((self->exclude_end() && val < end) || (!self->exclude_end() && val <= end))) {
             return NAT_TRUE;
         }
     } else {
         // slower method that should work for any type of range
-        Value *item = self->range_begin;
-        const char *op = self->range_exclude_end ? "<" : "<=";
-        while (item->send(env, op, 1, &self->range_end, nullptr)->is_truthy()) {
+        Value *item = self->begin();
+        const char *op = self->exclude_end() ? "<" : "<=";
+        Value *end = self->end();
+        while (item->send(env, op, 1, &end, nullptr)->is_truthy()) {
             if (item->send(env, "==", 1, &arg, nullptr)->is_truthy()) {
                 return NAT_TRUE;
             }

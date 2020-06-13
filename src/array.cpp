@@ -113,8 +113,8 @@ Value *Array_ref(Env *env, Value *self_value, ssize_t argc, Value **args, Block 
         return result;
     } else if (index_obj->is_range()) {
         RangeValue *range = index_obj->as_range();
-        Value *begin_obj = range->range_begin;
-        Value *end_obj = range->range_end;
+        Value *begin_obj = range->begin();
+        Value *end_obj = range->end();
         NAT_ASSERT_TYPE(begin_obj, Value::Type::Integer, "Integer");
         NAT_ASSERT_TYPE(end_obj, Value::Type::Integer, "Integer");
         int64_t begin = begin_obj->as_integer()->to_int64_t();
@@ -128,7 +128,7 @@ Value *Array_ref(Env *env, Value *self_value, ssize_t argc, Value **args, Block 
         if (begin < 0 || end < 0) {
             return NAT_NIL;
         }
-        if (!range->range_exclude_end) end++;
+        if (!range->exclude_end()) end++;
         ssize_t max = self->size();
         end = end > max ? max : end;
         ArrayValue *result = new ArrayValue { env };

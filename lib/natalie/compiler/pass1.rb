@@ -228,12 +228,12 @@ module Natalie
 
       def process_dot2(exp)
         (_, beginning, ending) = exp
-        exp.new(:range_new, :env, process(beginning), process(ending), 0)
+        exp.new(:new, :RangeValue, :env, process(beginning), process(ending), 0)
       end
 
       def process_dot3(exp)
         (_, beginning, ending) = exp
-        exp.new(:range_new, :env, process(beginning), process(ending), 1)
+        exp.new(:new, :RangeValue, :env, process(beginning), process(ending), 1)
       end
 
       def process_dregx(exp)
@@ -399,7 +399,7 @@ module Natalie
         when Integer
           exp.new(:new, :IntegerValue, :env, lit)
         when Range
-          exp.new(:range_new, :env, process_lit(s(:lit, lit.first)), process_lit(s(:lit, lit.last)), lit.exclude_end? ? 1 : 0)
+          exp.new(:new, :RangeValue, :env, process_lit(s(:lit, lit.first)), process_lit(s(:lit, lit.last)), lit.exclude_end? ? 1 : 0)
         when Regexp
           exp.new(:new, :RegexpValue, :env, s(:s, lit.inspect[1...-1]))
         when Symbol

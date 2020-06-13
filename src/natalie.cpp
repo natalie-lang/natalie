@@ -111,14 +111,6 @@ ProcValue *lambda(Env *env, Block *block) {
     return lambda;
 }
 
-RangeValue *range_new(Env *env, Value *begin, Value *end, bool exclude_end) {
-    RangeValue *obj = new RangeValue { env };
-    obj->range_begin = begin;
-    obj->range_end = end;
-    obj->range_exclude_end = exclude_end;
-    return obj;
-}
-
 void run_at_exit_handlers(Env *env) {
     ArrayValue *at_exit_handlers = env->global_get("$NAT_at_exit_handlers")->as_array();
     assert(at_exit_handlers);
