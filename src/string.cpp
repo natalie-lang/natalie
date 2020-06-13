@@ -350,11 +350,7 @@ Value *String_split(Env *env, Value *self_value, ssize_t argc, Value **args, Blo
         ssize_t last_index = 0;
         ssize_t index, len;
         OnigRegion *region = onig_region_new();
-        unsigned char *str = (unsigned char *)self->c_str();
-        unsigned char *end = str + self->length();
-        unsigned char *start = str;
-        unsigned char *range = end;
-        int result = onig_search(splitter->as_regexp()->regexp, str, end, start, range, region, ONIG_OPTION_NONE);
+        int result = splitter->as_regexp()->search(self->c_str(), region, ONIG_OPTION_NONE);
         if (result == ONIG_MISMATCH) {
             ary->push(dup(env, self));
         } else {
@@ -363,7 +359,7 @@ Value *String_split(Env *env, Value *self_value, ssize_t argc, Value **args, Blo
                 len = region->end[0] - region->beg[0];
                 ary->push(new StringValue { env, &self->c_str()[last_index], index - last_index });
                 last_index = index + len;
-                result = onig_search(splitter->as_regexp()->regexp, str, end, start + last_index, range, region, ONIG_OPTION_NONE);
+                result = splitter->as_regexp()->search(self->c_str(), last_index, region, ONIG_OPTION_NONE);
             } while (result != ONIG_MISMATCH);
             ary->push(new StringValue { env, &self->c_str()[last_index] });
         }

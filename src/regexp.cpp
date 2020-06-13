@@ -6,10 +6,10 @@ namespace Natalie {
 Value *Regexp_new(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     if (args[0]->is_regexp()) {
-        return regexp_new(env, args[0]->as_regexp()->regexp_str);
+        return new RegexpValue { env, args[0]->as_regexp()->pattern() };
     } else {
         NAT_ASSERT_TYPE(args[0], Value::Type::String, "String");
-        return regexp_new(env, args[0]->as_string()->c_str());
+        return new RegexpValue { env, args[0]->as_string()->c_str() };
     }
 }
 
@@ -17,7 +17,7 @@ Value *Regexp_eqeq(Env *env, Value *self_value, ssize_t argc, Value **args, Bloc
     RegexpValue *self = self_value->as_regexp();
     NAT_ASSERT_ARGC(1);
     Value *arg = args[0];
-    if (arg->is_regexp() && strcmp(self->as_regexp()->regexp_str, arg->as_regexp()->regexp_str) == 0) {
+    if (*self == *arg) {
         return NAT_TRUE;
     } else {
         return NAT_FALSE;
@@ -28,7 +28,7 @@ Value *Regexp_inspect(Env *env, Value *self_value, ssize_t argc, Value **args, B
     RegexpValue *self = self_value->as_regexp();
     NAT_ASSERT_ARGC(0);
     StringValue *out = new StringValue { env, "/" };
-    out->append(env, self->regexp_str);
+    out->append(env, self->pattern());
     out->append_char(env, '/');
     return out;
 }
@@ -52,13 +52,9 @@ Value *Regexp_match(Env *env, Value *self_value, ssize_t argc, Value **args, Blo
     NAT_ASSERT_ARGC(1);
     NAT_ASSERT_TYPE(args[0], Value::Type::String, "String");
     StringValue *str_obj = args[0]->as_string();
-    unsigned char *str = (unsigned char *)str_obj->c_str();
-    int result;
+
     OnigRegion *region = onig_region_new();
-    unsigned char *end = str + strlen((char *)str);
-    unsigned char *start = str;
-    unsigned char *range = end;
-    result = onig_search(self->regexp, str, end, start, range, region, ONIG_OPTION_NONE);
+    int result = self->search(str_obj->c_str(), region, ONIG_OPTION_NONE);
     if (result >= 0) {
         env->caller->match = matchdata_new(env, region, str_obj);
         return env->caller->match;

@@ -21,23 +21,6 @@ Value *splat(Env *env, Value *obj) {
     }
 }
 
-RegexpValue *regexp_new(Env *env, const char *pattern) {
-    regex_t *regexp;
-    OnigErrorInfo einfo;
-    UChar *pat = (UChar *)pattern;
-    int result = onig_new(&regexp, pat, pat + strlen((char *)pat),
-        ONIG_OPTION_DEFAULT, ONIG_ENCODING_ASCII, ONIG_SYNTAX_DEFAULT, &einfo);
-    if (result != ONIG_NORMAL) {
-        OnigUChar s[ONIG_MAX_ERROR_MESSAGE_LEN];
-        onig_error_code_to_str(s, result, &einfo);
-        NAT_RAISE(env, "SyntaxError", (char *)s);
-    }
-    RegexpValue *obj = new RegexpValue { env };
-    obj->regexp = regexp;
-    obj->regexp_str = strdup(pattern);
-    return obj;
-}
-
 MatchDataValue *matchdata_new(Env *env, OnigRegion *region, StringValue *str_obj) {
     MatchDataValue *obj = new MatchDataValue { env };
     obj->matchdata_region = region;

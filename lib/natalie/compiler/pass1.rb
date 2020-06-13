@@ -239,7 +239,7 @@ module Natalie
       def process_dregx(exp)
         str_node = process_dstr(exp)
         str = str_node.pop
-        str_node << exp.new(:regexp_new, :env, s(:l, "#{str}->as_string()->c_str()"))
+        str_node << exp.new(:new, :RegexpValue, :env, s(:l, "#{str}->as_string()->c_str()"))
         str_node
       end
 
@@ -401,7 +401,7 @@ module Natalie
         when Range
           exp.new(:range_new, :env, process_lit(s(:lit, lit.first)), process_lit(s(:lit, lit.last)), lit.exclude_end? ? 1 : 0)
         when Regexp
-          exp.new(:regexp_new, :env, s(:s, lit.inspect[1...-1]))
+          exp.new(:new, :RegexpValue, :env, s(:s, lit.inspect[1...-1]))
         when Symbol
           exp.new(:"SymbolValue::intern", :env, s(:s, lit))
         else

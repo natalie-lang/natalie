@@ -8,16 +8,51 @@
 #include "natalie/macros.hpp"
 #include "natalie/value.hpp"
 
+extern "C" {
+#include "onigmo.h"
+}
+
 namespace Natalie {
 
 struct RegexpValue : Value {
-    using Value::Value;
+    RegexpValue(Env *env, const char *pattern)
+        : Value { env, Value::Type::Regexp, NAT_OBJECT->const_get(env, "Regexp", true)->as_class() } {
+        assert(pattern);
+        regex_t *regex;
+        OnigErrorInfo einfo;
+        UChar *pat = (UChar *)pattern;
+        int result = onig_new(&regex, pat, pat + strlen((char *)pat),
+            ONIG_OPTION_DEFAULT, ONIG_ENCODING_ASCII, ONIG_SYNTAX_DEFAULT, &einfo);
+        if (result != ONIG_NORMAL) {
+            OnigUChar s[ONIG_MAX_ERROR_MESSAGE_LEN];
+            onig_error_code_to_str(s, result, &einfo);
+            NAT_RAISE(env, "SyntaxError", (char *)s);
+        }
+        m_regex = regex;
+        m_pattern = strdup(pattern);
+    }
 
-    RegexpValue(Env *env)
-        : Value { env, Value::Type::Regexp, NAT_OBJECT->const_get(env, "Regexp", true)->as_class() } { }
+    const char *pattern() { return m_pattern; }
 
-    regex_t *regexp { nullptr };
-    char *regexp_str { nullptr };
+    bool operator==(const Value &other) const {
+        return other.is_regexp() && strcmp(m_pattern, const_cast<Value &>(other).as_regexp()->m_pattern) == 0;
+    }
+
+    int search(const char *str, OnigRegion *region, OnigOptionType options) {
+        return search(str, 0, region, options);
+    }
+
+    int search(const char *str, int start, OnigRegion *region, OnigOptionType options) {
+        unsigned char *unsigned_str = (unsigned char *)str;
+        unsigned char *char_end = unsigned_str + strlen(str);
+        unsigned char *char_start = unsigned_str + start;
+        unsigned char *char_range = char_end;
+        return onig_search(m_regex, unsigned_str, char_end, char_start, char_range, region, options);
+    }
+
+private:
+    regex_t *m_regex { nullptr };
+    const char *m_pattern { nullptr };
 };
 
 }

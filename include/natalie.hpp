@@ -77,7 +77,6 @@ ProcValue *lambda(Env *env, Block *block);
 
 Value *splat(Env *env, Value *obj);
 
-RegexpValue *regexp_new(Env *env, const char *pattern);
 MatchDataValue *matchdata_new(Env *env, OnigRegion *region, StringValue *str_obj);
 Value *last_match(Env *env);
 
