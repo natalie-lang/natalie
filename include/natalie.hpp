@@ -85,9 +85,6 @@ void run_at_exit_handlers(Env *env);
 void print_exception_with_backtrace(Env *env, ExceptionValue *exception);
 void handle_top_level_exception(Env *env, bool run_exit_handlers);
 
-void object_pointer_id(Value *obj, char *buf);
-int64_t object_id(Env *env, Value *obj);
-
 ArrayValue *to_ary(Env *env, Value *obj, bool raise_for_non_array);
 
 Value *arg_value_by_path(Env *env, Value *value, Value *default_value, bool splat, int total_count, int default_count, bool defaults_on_right, int offset_from_end, ssize_t path_size, ...);

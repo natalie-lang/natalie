@@ -146,6 +146,12 @@ struct Value {
 
     virtual void alias(Env *, const char *, const char *);
 
+    int64_t object_id() { return (int64_t)this; }
+
+    void pointer_id(char *buf) {
+        snprintf(buf, NAT_OBJECT_POINTER_BUF_LENGTH, "%p", this);
+    }
+
 private:
     void init_ivars();
 };

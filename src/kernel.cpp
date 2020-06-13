@@ -42,7 +42,7 @@ Value *Kernel_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *
         str->append_string(env, inspected);
         str->append_char(env, ':');
         char buf[NAT_OBJECT_POINTER_BUF_LENGTH];
-        object_pointer_id(self, buf);
+        self->pointer_id(buf);
         str->append(env, buf);
         str->append_char(env, '>');
         return str;
@@ -51,7 +51,7 @@ Value *Kernel_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *
 
 Value *Kernel_object_id(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
-    return new IntegerValue { env, object_id(env, self) };
+    return new IntegerValue { env, self->object_id() };
 }
 
 Value *Kernel_equal(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {

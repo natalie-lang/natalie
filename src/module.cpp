@@ -19,7 +19,7 @@ Value *Module_inspect(Env *env, Value *self_value, ssize_t argc, Value **args, B
         }
     } else if (NAT_TYPE(self) == Value::Type::Class) {
         char buf[NAT_OBJECT_POINTER_BUF_LENGTH];
-        object_pointer_id(self, buf);
+        self->pointer_id(buf);
         return StringValue::sprintf(env, "#<Class:%s>", buf);
     } else {
         return Kernel_inspect(env, self, argc, args, block);

@@ -320,18 +320,6 @@ void handle_top_level_exception(Env *env, bool run_exit_handlers) {
     }
 }
 
-void object_pointer_id(Value *obj, char *buf) {
-    snprintf(buf, NAT_OBJECT_POINTER_BUF_LENGTH, "%p", obj);
-}
-
-int64_t object_id(Env *env, Value *obj) {
-    if (NAT_TYPE(obj) == Value::Type::Integer) {
-        return (int64_t)obj;
-    } else {
-        return (int64_t)obj / 2;
-    }
-}
-
 ArrayValue *to_ary(Env *env, Value *obj, bool raise_for_non_array) {
     if (obj->is_array()) {
         return obj->as_array();
