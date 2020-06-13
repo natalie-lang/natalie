@@ -27,13 +27,6 @@ struct ArrayValue : Value {
         : Value { Value::Type::Array, other.klass }
         , m_vector { other.m_vector } { }
 
-    // TODO: remove this
-    static ArrayValue *copy(Env *env, ArrayValue &other) {
-        ArrayValue *array = new ArrayValue { env };
-        array->overwrite(other);
-        return array;
-    }
-
     ssize_t size() { return m_vector.size(); }
 
     void push(Value &val) {

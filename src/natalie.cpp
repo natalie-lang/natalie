@@ -15,7 +15,7 @@ bool is_global_name(const char *name) {
 
 Value *splat(Env *env, Value *obj) {
     if (obj->is_array()) {
-        return ArrayValue::copy(env, *obj->as_array());
+        return new ArrayValue { *obj->as_array() };
     } else {
         return to_ary(env, obj, false);
     }

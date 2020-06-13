@@ -61,7 +61,7 @@ Value *Array_add(Env *env, Value *self_value, ssize_t argc, Value **args, Block 
     ArrayValue *self = self_value->as_array();
     NAT_ASSERT_TYPE(args[0], Value::Type::Array, "Array");
     ArrayValue *arg = args[0]->as_array();
-    ArrayValue *new_array = ArrayValue::copy(env, *self);
+    ArrayValue *new_array = new ArrayValue { *self };
     new_array->concat(*arg);
     return new_array;
 }
@@ -310,7 +310,7 @@ Value *Array_include(Env *env, Value *self_value, ssize_t argc, Value **args, Bl
 Value *Array_sort(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     ArrayValue *self = self_value->as_array();
     NAT_ASSERT_ARGC(0);
-    ArrayValue *copy = ArrayValue::copy(env, *self);
+    ArrayValue *copy = new ArrayValue { *self };
     copy->sort(env);
     return copy;
 }
