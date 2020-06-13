@@ -201,7 +201,7 @@ Value *Array_any(Env *env, Value *self_value, ssize_t argc, Value **args, Block 
     NAT_ASSERT_ARGC(0);
     if (block) {
         for (auto &obj : *self) {
-            Value *result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &obj, NULL);
+            Value *result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &obj, nullptr);
             if (result->is_truthy()) return NAT_TRUE;
         }
     } else if (self->size() > 0) {
@@ -220,7 +220,7 @@ Value *Array_eqeq(Env *env, Value *self_value, ssize_t argc, Value **args, Block
     for (ssize_t i = 0; i < self->size(); i++) {
         // TODO: could easily be optimized for strings and numbers
         Value *item = (*arg)[i];
-        Value *result = (*self)[i]->send(env, "==", 1, &item, NULL);
+        Value *result = (*self)[i]->send(env, "==", 1, &item, nullptr);
         if (NAT_TYPE(result) == Value::Type::False) return result;
     }
     return NAT_TRUE;
@@ -231,7 +231,7 @@ Value *Array_each(Env *env, Value *self_value, ssize_t argc, Value **args, Block
     NAT_ASSERT_ARGC(0);
     NAT_ASSERT_BLOCK(); // TODO: return Enumerator when no block given
     for (auto &obj : *self) {
-        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &obj, NULL);
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &obj, nullptr);
     }
     return self;
 }
@@ -242,7 +242,7 @@ Value *Array_each_with_index(Env *env, Value *self_value, ssize_t argc, Value **
     NAT_ASSERT_BLOCK(); // TODO: return Enumerator when no block given
     for (ssize_t i = 0; i < self->size(); i++) {
         Value *args[2] = { (*self)[i], new IntegerValue { env, i } };
-        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 2, args, NULL);
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 2, args, nullptr);
     }
     return self;
 }
@@ -253,7 +253,7 @@ Value *Array_map(Env *env, Value *self_value, ssize_t argc, Value **args, Block 
     NAT_ASSERT_BLOCK(); // TODO: return Enumerator when no block given
     ArrayValue *new_array = new ArrayValue { env };
     for (auto &item : *self) {
-        Value *result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, NULL);
+        Value *result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
         new_array->push(result);
     }
     return new_array;
@@ -345,7 +345,7 @@ Value *Array_cmp(Env *env, Value *self_value, ssize_t argc, Value **args, Block 
             return new IntegerValue { env, 1 };
         }
         Value *item = (*other)[i];
-        Value *cmp_obj = (*self)[i]->send(env, "<=>", 1, &item, NULL);
+        Value *cmp_obj = (*self)[i]->send(env, "<=>", 1, &item, nullptr);
         assert(NAT_TYPE(cmp_obj) == Value::Type::Integer);
         int64_t cmp = cmp_obj->as_integer()->to_int64_t();
         if (cmp < 0) return new IntegerValue { env, -1 };

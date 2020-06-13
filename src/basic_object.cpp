@@ -38,7 +38,7 @@ Value *BasicObject_instance_eval(Env *env, Value *self, ssize_t argc, Value **ar
     if (NAT_TYPE(self) == Value::Type::Class || NAT_TYPE(self) == Value::Type::Module) {
         self_for_eval = self->singleton_class(env);
     }
-    return block->fn(&e, self_for_eval, 0, NULL, NULL);
+    return block->fn(&e, self_for_eval, 0, nullptr, nullptr);
 }
 
 }

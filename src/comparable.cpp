@@ -5,7 +5,7 @@ namespace Natalie {
 
 Value *Comparable_eqeq(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
-    Value *result = self_value->send(env, "<=>", argc, args, NULL);
+    Value *result = self_value->send(env, "<=>", argc, args, nullptr);
     if (result->is_integer() && result->as_integer()->is_zero()) {
         return NAT_TRUE;
     } else {
@@ -15,7 +15,7 @@ Value *Comparable_eqeq(Env *env, Value *self_value, ssize_t argc, Value **args, 
 
 Value *Comparable_neq(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
-    Value *result = self_value->send(env, "<=>", argc, args, NULL);
+    Value *result = self_value->send(env, "<=>", argc, args, nullptr);
     if (result->is_integer() && result->as_integer()->is_zero()) {
         return NAT_FALSE;
     } else {
@@ -25,7 +25,7 @@ Value *Comparable_neq(Env *env, Value *self_value, ssize_t argc, Value **args, B
 
 Value *Comparable_lt(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
-    Value *result = self_value->send(env, "<=>", argc, args, NULL);
+    Value *result = self_value->send(env, "<=>", argc, args, nullptr);
     if (result->is_integer() && result->as_integer()->to_int64_t() < 0) {
         return NAT_TRUE;
     } else {
@@ -35,7 +35,7 @@ Value *Comparable_lt(Env *env, Value *self_value, ssize_t argc, Value **args, Bl
 
 Value *Comparable_lte(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
-    Value *result = self_value->send(env, "<=>", argc, args, NULL);
+    Value *result = self_value->send(env, "<=>", argc, args, nullptr);
     if (result->is_integer() && result->as_integer()->to_int64_t() <= 0) {
         return NAT_TRUE;
     } else {
@@ -45,7 +45,7 @@ Value *Comparable_lte(Env *env, Value *self_value, ssize_t argc, Value **args, B
 
 Value *Comparable_gt(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
-    Value *result = self_value->send(env, "<=>", argc, args, NULL);
+    Value *result = self_value->send(env, "<=>", argc, args, nullptr);
     if (result->is_integer() && result->as_integer()->to_int64_t() > 0) {
         return NAT_TRUE;
     } else {
@@ -55,7 +55,7 @@ Value *Comparable_gt(Env *env, Value *self_value, ssize_t argc, Value **args, Bl
 
 Value *Comparable_gte(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
-    Value *result = self_value->send(env, "<=>", argc, args, NULL);
+    Value *result = self_value->send(env, "<=>", argc, args, nullptr);
     if (result->is_integer() && result->as_integer()->to_int64_t() >= 0) {
         return NAT_TRUE;
     } else {

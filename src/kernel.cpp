@@ -18,7 +18,7 @@ Value *Kernel_p(Env *env, Value *self, ssize_t argc, Value **args, Block *block)
         return NAT_NIL;
     } else if (argc == 1) {
         Value *arg = args[0]->send(env, "inspect");
-        Kernel_puts(env, self, 1, &arg, NULL);
+        Kernel_puts(env, self, 1, &arg, nullptr);
         return arg;
     } else {
         ArrayValue *result = new ArrayValue { env };
@@ -26,7 +26,7 @@ Value *Kernel_p(Env *env, Value *self, ssize_t argc, Value **args, Block *block)
             result->push(args[i]);
             args[i] = args[i]->send(env, "inspect");
         }
-        Kernel_puts(env, self, argc, args, NULL);
+        Kernel_puts(env, self, argc, args, nullptr);
         return result;
     }
 }
@@ -38,7 +38,7 @@ Value *Kernel_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *
     } else {
         StringValue *str = new StringValue { env, "#<" };
         assert(NAT_OBJ_CLASS(self));
-        StringValue *inspected = static_cast<StringValue *>(Module_inspect(env, NAT_OBJ_CLASS(self), 0, NULL, NULL));
+        StringValue *inspected = static_cast<StringValue *>(Module_inspect(env, NAT_OBJ_CLASS(self), 0, nullptr, nullptr));
         str->append_string(env, inspected);
         str->append_char(env, ':');
         char buf[NAT_OBJECT_POINTER_BUF_LENGTH];
@@ -272,7 +272,7 @@ Value *Kernel_define_singleton_method(Env *env, Value *self, ssize_t argc, Value
 }
 
 Value *Kernel_tap(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
-    NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &self, NULL);
+    NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &self, nullptr);
     return self;
 }
 
@@ -300,13 +300,13 @@ Value *Kernel_send(Env *env, Value *self, ssize_t argc, Value **args, Block *blo
 
 Value *Kernel_cur_dir(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
-    if (env->file == NULL) {
+    if (env->file == nullptr) {
         NAT_RAISE(env, "RuntimeError", "could not get current directory");
     } else if (strcmp(env->file, "-e") == 0) {
         return new StringValue { env, "." };
     } else {
         Value *relative = new StringValue { env, env->file };
-        StringValue *absolute = static_cast<StringValue *>(File_expand_path(env, NAT_OBJECT->const_get(env, "File", true), 1, &relative, NULL));
+        StringValue *absolute = static_cast<StringValue *>(File_expand_path(env, NAT_OBJECT->const_get(env, "File", true), 1, &relative, nullptr));
         ssize_t last_slash = 0;
         bool found = false;
         for (ssize_t i = 0; i < absolute->length(); i++) {

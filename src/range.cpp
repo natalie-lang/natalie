@@ -55,7 +55,7 @@ Value *Range_each(Env *env, Value *self_value, ssize_t argc, Value **args, Block
     const char *op = self->exclude_end() ? "<" : "<=";
     Value *end = self->end();
     while (item->send(env, op, 1, &end, nullptr)->is_truthy()) {
-        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, NULL);
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
         item = item->send(env, "succ");
     }
     return self;

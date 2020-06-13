@@ -81,7 +81,7 @@ Value *IO_write(Env *env, Value *self_value, ssize_t argc, Value **args, Block *
         ssize_t result = write(self->fileno, obj->as_string()->c_str(), obj->as_string()->length());
         if (result == -1) {
             Value *error_number = new IntegerValue { env, errno };
-            ExceptionValue *error = NAT_OBJECT->const_get(env, "SystemCallError", true)->send(env, "exception", 1, &error_number, NULL)->as_exception();
+            ExceptionValue *error = NAT_OBJECT->const_get(env, "SystemCallError", true)->send(env, "exception", 1, &error_number, nullptr)->as_exception();
             env->raise_exception(error);
             abort();
         } else {
@@ -125,7 +125,7 @@ Value *IO_close(Env *env, Value *self_value, ssize_t argc, Value **args, Block *
     int result = close(self->fileno);
     if (result == -1) {
         Value *error_number = new IntegerValue { env, errno };
-        ExceptionValue *error = NAT_OBJECT->const_get(env, "SystemCallError", true)->send(env, "exception", 1, &error_number, NULL)->as_exception();
+        ExceptionValue *error = NAT_OBJECT->const_get(env, "SystemCallError", true)->send(env, "exception", 1, &error_number, nullptr)->as_exception();
         env->raise_exception(error);
         abort();
     } else {
@@ -166,7 +166,7 @@ Value *IO_seek(Env *env, Value *self_value, ssize_t argc, Value **args, Block *b
     int result = lseek(self->fileno, amount, whence);
     if (result == -1) {
         Value *error_number = new IntegerValue { env, errno };
-        ExceptionValue *error = NAT_OBJECT->const_get(env, "SystemCallError", true)->send(env, "exception", 1, &error_number, NULL)->as_exception();
+        ExceptionValue *error = NAT_OBJECT->const_get(env, "SystemCallError", true)->send(env, "exception", 1, &error_number, nullptr)->as_exception();
         env->raise_exception(error);
         abort();
     } else {

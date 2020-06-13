@@ -49,7 +49,7 @@ const char *Env::find_current_method_name() {
     while ((!env->method_name || strcmp(env->method_name, "<block>") == 0) && env->outer) {
         env = env->outer;
     }
-    if (strcmp(env->method_name, "<main>") == 0) return NULL;
+    if (strcmp(env->method_name, "<main>") == 0) return nullptr;
     return env->method_name;
 }
 

@@ -13,7 +13,7 @@ Value *Module_inspect(Env *env, Value *self_value, ssize_t argc, Value **args, B
     NAT_ASSERT_ARGC(0);
     if (self->class_name()) {
         if (self->owner && self->owner != NAT_OBJECT) {
-            return StringValue::sprintf(env, "%S::%s", Module_inspect(env, self->owner, 0, NULL, NULL), self->class_name());
+            return StringValue::sprintf(env, "%S::%s", Module_inspect(env, self->owner, 0, nullptr, nullptr), self->class_name());
         } else {
             return new StringValue { env, self->class_name() };
         }
@@ -164,7 +164,7 @@ Value *Module_class_eval(Env *env, Value *self_value, ssize_t argc, Value **args
         NAT_RAISE(env, "ArgumentError", "Natalie only supports class_eval with a block");
     }
     Env e = Env::new_block_env(&block->env, env);
-    return block->fn(&e, self, 0, NULL, NULL);
+    return block->fn(&e, self, 0, nullptr, nullptr);
 }
 
 Value *Module_private(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {

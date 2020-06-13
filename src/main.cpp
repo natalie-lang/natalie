@@ -224,7 +224,7 @@ extern "C" Value *EVAL(Env *env) {
 }
 
 int main(int argc, char *argv[]) {
-    setvbuf(stdout, NULL, _IOLBF, 1024);
+    setvbuf(stdout, nullptr, _IOLBF, 1024);
     Env *env = build_top_env();
     ArrayValue *ARGV = new ArrayValue { env };
     /*INIT*/

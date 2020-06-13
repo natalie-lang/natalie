@@ -15,7 +15,7 @@ struct Method {
         : fn { block->fn }
         , env { block->env }
         , undefined { false } {
-        env.caller = NULL;
+        env.caller = nullptr;
     }
 
     Value *(*fn)(Env *env, Value *self, ssize_t argc, Value **args, Block *block) { nullptr };

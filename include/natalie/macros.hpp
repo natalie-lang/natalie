@@ -70,7 +70,7 @@
 #define NAT_OBJ_HAS_ENV(obj) ((obj)->env.global_env == env->global_env) // prefered check
 #define NAT_OBJ_HAS_ENV2(obj) ((obj)->env.global_env) // limited check used when there is no current env, i.e. hashmap_hash and hashmap_compare
 
-#define NAT_INSPECT(obj) obj->send(env, "inspect", 0, NULL, NULL)
+#define NAT_INSPECT(obj) obj->send(env, "inspect", 0, nullptr, nullptr)
 
 // ahem, "globals"
 #define NAT_OBJECT env->global_env->Object
@@ -92,7 +92,7 @@
 
 #define NAT_INT_64_MAX_BUF_LEN 21 // 1 for sign, 19 for max digits, and 1 for null terminator
 
-// "0x" + up to 16 hex chars + NULL terminator
+// "0x" + up to 16 hex chars + nullptr terminator
 #define NAT_OBJECT_POINTER_BUF_LENGTH 2 + 16 + 1
 
 #define NAT_FLAG_MAIN_OBJECT 1
@@ -112,17 +112,17 @@
 
 #define remove_break(obj) ((obj)->flags = (obj)->flags & ~NAT_FLAG_BREAK)
 
-#define NAT_RUN_BLOCK_FROM_ENV(env, argc, args) ({                                      \
-    Env *env_with_block = env;                                                          \
-    while (!env_with_block->block && env_with_block->outer) {                           \
-        env_with_block = env_with_block->outer;                                         \
-    }                                                                                   \
-    Value *_result = _run_block_internal(env, env_with_block->block, argc, args, NULL); \
-    if (is_break(_result)) {                                                            \
-        remove_break(_result);                                                          \
-        return _result;                                                                 \
-    }                                                                                   \
-    _result;                                                                            \
+#define NAT_RUN_BLOCK_FROM_ENV(env, argc, args) ({                                         \
+    Env *env_with_block = env;                                                             \
+    while (!env_with_block->block && env_with_block->outer) {                              \
+        env_with_block = env_with_block->outer;                                            \
+    }                                                                                      \
+    Value *_result = _run_block_internal(env, env_with_block->block, argc, args, nullptr); \
+    if (is_break(_result)) {                                                               \
+        remove_break(_result);                                                             \
+        return _result;                                                                    \
+    }                                                                                      \
+    _result;                                                                               \
 })
 
 #define NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, the_block, argc, args, block) ({ \

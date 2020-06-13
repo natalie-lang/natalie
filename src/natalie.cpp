@@ -54,7 +54,7 @@ const char *defined(Env *env, Value *receiver, const char *name) {
     } else if (receiver->respond_to(env, name)) {
         return "method";
     }
-    return NULL;
+    return nullptr;
 }
 
 Value *defined_obj(Env *env, Value *receiver, const char *name) {
@@ -74,7 +74,7 @@ Value *call_begin(Env *env, Value *self, Value *(*block_fn)(Env *, Value *)) {
 Block *block_new(Env *env, Value *self, Value *(*fn)(Env *, Value *, ssize_t, Value **, Block *)) {
     Block *block = static_cast<Block *>(malloc(sizeof(Block)));
     block->env = *env;
-    block->env.caller = NULL;
+    block->env.caller = nullptr;
     block->self = self;
     block->fn = fn;
     return block;
@@ -106,7 +106,7 @@ void run_at_exit_handlers(Env *env) {
         Value *proc = (*at_exit_handlers)[i];
         assert(proc);
         assert(proc->is_proc());
-        NAT_RUN_BLOCK_WITHOUT_BREAK(env, proc->as_proc()->block(), 0, NULL, NULL);
+        NAT_RUN_BLOCK_WITHOUT_BREAK(env, proc->as_proc()->block(), 0, nullptr, nullptr);
     }
 }
 
@@ -374,7 +374,7 @@ void arg_spread(Env *env, ssize_t argc, Value **args, char *arrangement, ...) {
             if (arg_index >= argc) NAT_RAISE(env, "ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, arg_index + 1);
             obj = args[arg_index++];
             if (obj == NAT_NIL) {
-                *str_ptr = NULL;
+                *str_ptr = nullptr;
             } else {
                 NAT_ASSERT_TYPE(obj, Value::Type::String, "String");
             }

@@ -59,11 +59,11 @@ Value *Regexp_match(Env *env, Value *self_value, ssize_t argc, Value **args, Blo
         env->caller->match = new MatchDataValue { env, region, str_obj };
         return env->caller->match;
     } else if (result == ONIG_MISMATCH) {
-        env->caller->match = NULL;
+        env->caller->match = nullptr;
         onig_region_free(region, true);
         return NAT_NIL;
     } else {
-        env->caller->match = NULL;
+        env->caller->match = nullptr;
         onig_region_free(region, true);
         OnigUChar s[ONIG_MAX_ERROR_MESSAGE_LEN];
         onig_error_code_to_str(s, result);

@@ -154,7 +154,7 @@ Value *Hash_each(Env *env, Value *self_value, ssize_t argc, Value **args, Block 
     for (HashValue::Key &node : *self) {
         block_args[0] = node.key;
         block_args[1] = node.val;
-        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK_WHILE_ITERATING_HASH(env, block, 2, block_args, NULL, self);
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK_WHILE_ITERATING_HASH(env, block, 2, block_args, nullptr, self);
     }
     return self;
 }
@@ -188,7 +188,7 @@ Value *Hash_sort(Env *env, Value *self_value, ssize_t argc, Value **args, Block 
         pair->push(node.val);
         ary->push(pair);
     }
-    return Array_sort(env, ary, 0, NULL, NULL);
+    return Array_sort(env, ary, 0, nullptr, nullptr);
 }
 
 Value *Hash_is_key(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {

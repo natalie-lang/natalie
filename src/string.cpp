@@ -194,7 +194,7 @@ static char *lcase_string(const char *str) {
 
 static EncodingValue *find_encoding_by_name(Env *env, const char *name) {
     char *lcase_name = lcase_string(name);
-    ArrayValue *list = Encoding_list(env, NAT_OBJECT->const_get(env, "Encoding", true), 0, NULL, NULL)->as_array();
+    ArrayValue *list = Encoding_list(env, NAT_OBJECT->const_get(env, "Encoding", true), 0, nullptr, nullptr)->as_array();
     for (ssize_t i = 0; i < list->size(); i++) {
         EncodingValue *encoding = (*list)[i]->as_encoding();
         ArrayValue *names = encoding->names(env);
@@ -218,7 +218,7 @@ Value *String_encode(Env *env, Value *self_value, ssize_t argc, Value **args, Bl
     StringValue *self = self_value->as_string();
     Encoding orig_encoding = self->encoding();
     StringValue *copy = self->dup(env)->as_string();
-    String_force_encoding(env, copy, argc, args, NULL);
+    String_force_encoding(env, copy, argc, args, nullptr);
     ClassValue *Encoding = NAT_OBJECT->const_get(env, "Encoding", true)->as_class();
     if (orig_encoding == copy->encoding()) {
         return copy;
@@ -227,12 +227,12 @@ Value *String_encode(Env *env, Value *self_value, ssize_t argc, Value **args, Bl
         for (ssize_t i = 0; i < chars->size(); i++) {
             StringValue *char_obj = (*chars)[i]->as_string();
             if (char_obj->length() > 1) {
-                Value *ord = String_ord(env, char_obj, 0, NULL, NULL);
+                Value *ord = String_ord(env, char_obj, 0, nullptr, nullptr);
                 Value *message = StringValue::sprintf(env, "U+%X from UTF-8 to ASCII-8BIT", ord->as_integer()->to_int64_t());
                 StringValue zero_x { env, "0X" };
                 StringValue blank { env, "" };
                 Value *sub_args[2] = { &zero_x, &blank };
-                message = String_sub(env, message, 2, sub_args, NULL);
+                message = String_sub(env, message, 2, sub_args, nullptr);
                 env->raise(Encoding->const_get(env, "UndefinedConversionError", true)->as_class(), "%S", message);
                 abort();
             }
@@ -312,7 +312,7 @@ Value *String_sub(Env *env, Value *self_value, ssize_t argc, Value **args, Block
         out->append(env, &self->c_str()[index + sub->as_string()->length()]);
         return out;
     } else if (sub->is_regexp()) {
-        Value *match = Regexp_match(env, sub, 1, &self_value, NULL);
+        Value *match = Regexp_match(env, sub, 1, &self_value, nullptr);
         if (match == NAT_NIL) {
             return self->dup(env);
         }

@@ -30,7 +30,7 @@ void ArrayValue::expand_with_nil(Env *env, ssize_t total) {
 
 void ArrayValue::sort(Env *env) {
     auto cmp = [](void *env, Value *a, Value *b) {
-        Value *compare = a->send(static_cast<Env *>(env), "<=>", 1, &b, NULL);
+        Value *compare = a->send(static_cast<Env *>(env), "<=>", 1, &b, nullptr);
         return compare->as_integer()->to_int64_t() < 0;
     };
     m_vector.sort(Vector<Value *>::SortComparator { env, cmp });

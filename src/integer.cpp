@@ -108,7 +108,7 @@ Value *Integer_times(Env *env, Value *self_value, ssize_t argc, Value **args, Bl
     Value *num;
     for (long long i = 0; i < val; i++) {
         num = new IntegerValue { env, i };
-        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &num, NULL);
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &num, nullptr);
     }
     return self;
 }

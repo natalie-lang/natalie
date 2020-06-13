@@ -34,14 +34,14 @@ Value *HashValue::get(Env *env, Value *key) {
     key_container.key = key;
     key_container.env = *env;
     Val *container = static_cast<Val *>(hashmap_get(&m_hashmap, &key_container));
-    Value *val = container ? container->val : NULL;
+    Value *val = container ? container->val : nullptr;
     return val;
 }
 
 Value *HashValue::get_default(Env *env, Value *key) {
     if (m_default_block) {
         Value *args[2] = { this, key };
-        return NAT_RUN_BLOCK_WITHOUT_BREAK(env, m_default_block, 2, args, NULL);
+        return NAT_RUN_BLOCK_WITHOUT_BREAK(env, m_default_block, 2, args, nullptr);
     } else {
         return m_default_value;
     }
@@ -80,7 +80,7 @@ Value *HashValue::remove(Env *env, Value *key) {
         free(container);
         return val;
     } else {
-        return NULL;
+        return nullptr;
     }
 }
 
@@ -120,10 +120,10 @@ void HashValue::key_list_remove_node(Key *node) {
     if (node == next) {
         // <node> -|
         // ^_______|
-        node->prev = NULL;
-        node->next = NULL;
+        node->prev = nullptr;
+        node->next = nullptr;
         node->removed = true;
-        m_key_list = NULL;
+        m_key_list = nullptr;
         return;
     } else if (m_key_list == node) {
         // starting point is the node to be removed, so shift them forward by one

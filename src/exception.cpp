@@ -6,7 +6,7 @@ namespace Natalie {
 Value *Exception_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     ExceptionValue *exception = new ExceptionValue { env, self->as_class() };
     exception->initialize(env, argc, args, block);
-    if (exception->message == NULL) exception->message = strdup(self->as_class()->class_name());
+    if (exception->message == nullptr) exception->message = strdup(self->as_class()->class_name());
     return exception;
 }
 
@@ -29,7 +29,7 @@ Value *Exception_inspect(Env *env, Value *self_value, ssize_t argc, Value **args
     ExceptionValue *self = self_value->as_exception();
     StringValue *out = new StringValue { env, "#<" };
     assert(NAT_OBJ_CLASS(self));
-    out->append(env, Module_inspect(env, NAT_OBJ_CLASS(self), 0, NULL, NULL)->as_string()->c_str());
+    out->append(env, Module_inspect(env, NAT_OBJ_CLASS(self), 0, nullptr, nullptr)->as_string()->c_str());
     out->append(env, ": ");
     out->append(env, self->message);
     out->append_char(env, '>');

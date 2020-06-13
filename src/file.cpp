@@ -46,7 +46,7 @@ Value *File_initialize(Env *env, Value *self_value, ssize_t argc, Value **args, 
     int fileno = open(filename->as_string()->c_str(), flags, mode);
     if (fileno == -1) {
         Value *exception_args[2] = { filename, new IntegerValue { env, errno } };
-        ExceptionValue *error = NAT_OBJECT->const_get(env, "SystemCallError", true)->send(env, "exception", 2, exception_args, NULL)->as_exception();
+        ExceptionValue *error = NAT_OBJECT->const_get(env, "SystemCallError", true)->send(env, "exception", 2, exception_args, nullptr)->as_exception();
         env->raise_exception(error);
         abort();
     } else {
@@ -64,7 +64,7 @@ Value *File_expand_path(Env *env, Value *self, ssize_t argc, Value **args, Block
     }
     Value *merged;
     if (argc == 2) {
-        Value *root = File_expand_path(env, self, 1, args + 1, NULL);
+        Value *root = File_expand_path(env, self, 1, args + 1, nullptr);
         merged = StringValue::sprintf(env, "%S/%S", root, path);
     } else {
         char root[4096];
@@ -78,7 +78,7 @@ Value *File_expand_path(Env *env, Value *self, ssize_t argc, Value **args, Block
     StringValue empty_string { env, "" };
     while (Regexp_match(env, &dotdot, 1, &merged, nullptr)->is_truthy()) {
         Value *args[2] = { &dotdot, &empty_string };
-        merged = String_sub(env, merged, 2, args, NULL);
+        merged = String_sub(env, merged, 2, args, nullptr);
     }
     return merged;
 }
