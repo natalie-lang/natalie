@@ -11,13 +11,11 @@
 namespace Natalie {
 
 struct IoValue : Value {
-    using Value::Value;
-
     IoValue(Env *env)
-        : Value { env, Value::Type::Io, NAT_OBJECT->const_get(env, "IO", true)->as_class() } { }
+        : Value { Value::Type::Io, NAT_OBJECT->const_get(env, "IO", true)->as_class() } { }
 
     IoValue(Env *env, ClassValue *klass)
-        : Value { env, Value::Type::Io, klass } { }
+        : Value { Value::Type::Io, klass } { }
 
     int fileno { 0 };
 };

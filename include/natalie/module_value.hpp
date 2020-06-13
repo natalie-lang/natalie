@@ -12,6 +12,7 @@
 namespace Natalie {
 
 struct ModuleValue : Value {
+
     ModuleValue(Env *);
     ModuleValue(Env *, const char *);
     ModuleValue(Env *, Type, ClassValue *);

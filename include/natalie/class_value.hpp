@@ -12,8 +12,6 @@
 namespace Natalie {
 
 struct ClassValue : ModuleValue {
-    using ModuleValue::ModuleValue;
-
     ClassValue(Env *env)
         : ClassValue { env, NAT_OBJECT->const_get(env, "Class", true)->as_class() } { }
 

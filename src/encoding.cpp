@@ -14,19 +14,23 @@ Value *Encoding_list(Env *env, Value *self_value, ssize_t argc, Value **args, Bl
 Value *Encoding_inspect(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     EncodingValue *self = self_value->as_encoding();
-    return StringValue::sprintf(env, "#<Encoding:%S>", (*self->encoding_names)[0]);
+    return StringValue::sprintf(env, "#<Encoding:%S>", self->name());
 }
 
 Value *Encoding_name(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     EncodingValue *self = self_value->as_encoding();
-    return (*self->encoding_names)[0];
+    return const_cast<StringValue *>(self->name());
 }
 
 Value *Encoding_names(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     EncodingValue *self = self_value->as_encoding();
-    return self->encoding_names;
+    ArrayValue *names = new ArrayValue { env };
+    for (Value *name : *self->names(env)) {
+        names->push(name);
+    }
+    return names;
 }
 
 }

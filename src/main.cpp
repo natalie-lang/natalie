@@ -163,10 +163,10 @@ extern "C" Env *build_top_env() {
     Object->const_set(env, "Process", Process);
     NAT_PROCESS_INIT(Process);
 
-    Value *EncodingAscii8Bit = encoding(env, Encoding::ASCII_8BIT, new ArrayValue { env, std::initializer_list<Value *>({ new StringValue { env, "ASCII-8BIT" }, new StringValue { env, "BINARY" } }) });
+    EncodingValue *EncodingAscii8Bit = new EncodingValue { env, Encoding::ASCII_8BIT, std::initializer_list<const char *>({ "ASCII-8BIT", "BINARY" }) };
     Encoding->const_set(env, "ASCII_8BIT", EncodingAscii8Bit);
 
-    Value *EncodingUTF8 = encoding(env, Encoding::UTF_8, new ArrayValue { env, std::initializer_list<Value *>({ new StringValue { env, "UTF-8" } }) });
+    Value *EncodingUTF8 = new EncodingValue { env, Encoding::UTF_8, std::initializer_list<const char *>({ "UTF-8" }) };
     Encoding->const_set(env, "UTF_8", EncodingUTF8);
 
     env->global_set("$NAT_at_exit_handlers", new ArrayValue { env });

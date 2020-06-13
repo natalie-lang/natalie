@@ -149,7 +149,7 @@ Value *Kernel_respond_to(Env *env, Value *self, ssize_t argc, Value **args, Bloc
 
 Value *Kernel_dup(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
-    return dup(env, self);
+    return self->dup(env);
 }
 
 Value *Kernel_methods(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {

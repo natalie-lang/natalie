@@ -13,15 +13,21 @@ namespace Natalie {
 
 struct ArrayValue : Value {
     ArrayValue(Env *env)
-        : Value { env, Value::Type::Array, NAT_OBJECT->const_get(env, "Array", true)->as_class() } { }
+        : Value { Value::Type::Array, NAT_OBJECT->const_get(env, "Array", true)->as_class() } { }
 
     ArrayValue(Env *env, std::initializer_list<Value *> list)
         : ArrayValue { env } {
+        m_vector.set_size(list.size());
         for (auto &v : list) {
             m_vector.push(v);
         }
     }
 
+    ArrayValue(const ArrayValue &other)
+        : Value { Value::Type::Array, other.klass }
+        , m_vector { other.m_vector } { }
+
+    // TODO: remove this
     static ArrayValue *copy(Env *env, ArrayValue &other) {
         ArrayValue *array = new ArrayValue { env };
         array->overwrite(other);
@@ -70,7 +76,7 @@ struct ArrayValue : Value {
     Vector<Value *>::iterator begin() noexcept { return m_vector.begin(); }
     Vector<Value *>::iterator end() noexcept { return m_vector.end(); }
 
-    Vector<Value *> m_vector;
+    Vector<Value *> m_vector {};
 
 private:
 };

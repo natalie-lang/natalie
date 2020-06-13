@@ -268,4 +268,21 @@ Value *Value::send(Env *env, const char *sym, ssize_t argc, Value **args, Block 
     return klass->call_method(env, klass, sym, this, argc, args, block);
 }
 
+Value *Value::dup(Env *env) {
+    switch (type) {
+    case Value::Type::Array:
+        return new ArrayValue { *as_array() };
+    case Value::Type::String:
+        return new StringValue { *as_string() };
+    case Value::Type::False:
+    case Value::Type::Integer:
+    case Value::Type::Nil:
+    case Value::Type::Symbol:
+    case Value::Type::True:
+        return this;
+    default:
+        fprintf(stderr, "I don't know how to dup this kind of object yet %s (type = %d).\n", klass->class_name(), static_cast<int>(type));
+        abort();
+    }
+}
 }

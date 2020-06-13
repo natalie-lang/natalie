@@ -16,7 +16,7 @@ struct Vector {
         , m_capacity { initial_capacity }
         , m_data { static_cast<T *>(malloc(sizeof(T) * initial_capacity)) } { }
 
-    Vector(Vector &other)
+    Vector(const Vector &other)
         : m_size { other.m_size }
         , m_capacity { other.m_size }
         , m_data { static_cast<T *>(malloc(sizeof(T) * m_size)) } {

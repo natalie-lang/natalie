@@ -11,13 +11,11 @@
 namespace Natalie {
 
 struct ExceptionValue : Value {
-    using Value::Value;
-
     ExceptionValue(Env *env)
-        : Value { env, Value::Type::Exception, NAT_OBJECT->const_get(env, "Exception", true)->as_class() } { }
+        : Value { Value::Type::Exception, NAT_OBJECT->const_get(env, "Exception", true)->as_class() } { }
 
     ExceptionValue(Env *env, ClassValue *klass)
-        : Value { env, Value::Type::Exception, klass } { }
+        : Value { Value::Type::Exception, klass } { }
 
     ExceptionValue(Env *, ClassValue *, const char *);
 

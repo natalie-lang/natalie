@@ -3,7 +3,7 @@
 namespace Natalie {
 
 ClassValue *ClassValue::subclass(Env *env, const char *name) {
-    ClassValue *subclass = new ClassValue { env, Value::Type::Class, this->klass };
+    ClassValue *subclass = new ClassValue { env, this->klass };
     subclass->env = Env::new_detatched_block_env(&this->env);
     if (m_singleton_class) {
         // TODO: what happens if the superclass gets a singleton_class later?

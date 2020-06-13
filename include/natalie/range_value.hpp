@@ -11,10 +11,8 @@
 namespace Natalie {
 
 struct RangeValue : Value {
-    using Value::Value;
-
     RangeValue(Env *env)
-        : Value { env, Value::Type::Range, NAT_OBJECT->const_get(env, "Range", true)->as_class() } { }
+        : Value { Value::Type::Range, NAT_OBJECT->const_get(env, "Range", true)->as_class() } { }
 
     Value *range_begin { nullptr };
     Value *range_end { nullptr };

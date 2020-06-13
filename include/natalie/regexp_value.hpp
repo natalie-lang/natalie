@@ -16,7 +16,7 @@ namespace Natalie {
 
 struct RegexpValue : Value {
     RegexpValue(Env *env, const char *pattern)
-        : Value { env, Value::Type::Regexp, NAT_OBJECT->const_get(env, "Regexp", true)->as_class() } {
+        : Value { Value::Type::Regexp, NAT_OBJECT->const_get(env, "Regexp", true)->as_class() } {
         assert(pattern);
         regex_t *regex;
         OnigErrorInfo einfo;

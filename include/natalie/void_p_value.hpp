@@ -16,7 +16,7 @@ struct VoidPValue : Value {
         : VoidPValue { env, nullptr } { }
 
     VoidPValue(Env *env, void *ptr)
-        : Value { env, Value::Type::VoidP, nullptr }
+        : Value { Value::Type::VoidP, nullptr }
         , m_void_ptr { ptr } { }
 
     void *void_ptr() { return m_void_ptr; }

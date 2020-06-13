@@ -17,10 +17,8 @@ struct NilValue : Value {
     }
 
 private:
-    using Value::Value;
-
     NilValue(Env *env)
-        : Value { env, Value::Type::Nil, NAT_OBJECT->const_get(env, "NilClass", true)->as_class() } { }
+        : Value { Value::Type::Nil, NAT_OBJECT->const_get(env, "NilClass", true)->as_class() } { }
 };
 
 }

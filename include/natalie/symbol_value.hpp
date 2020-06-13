@@ -20,10 +20,8 @@ struct SymbolValue : Value {
     StringValue *inspect(Env *);
 
 private:
-    using Value::Value;
-
     SymbolValue(Env *env, const char *name)
-        : Value { env, Value::Type::Symbol, NAT_OBJECT->const_get(env, "Symbol", true)->as_class() }
+        : Value { Value::Type::Symbol, NAT_OBJECT->const_get(env, "Symbol", true)->as_class() }
         , m_name { name } {
         assert(m_name);
     }

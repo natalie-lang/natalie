@@ -47,14 +47,12 @@ struct Value {
         assert(klass);
     }
 
-    // TODO: don't need env here
-    Value(Env *env, ClassValue *klass)
+    Value(ClassValue *klass)
         : klass { klass } {
         assert(klass);
     }
 
-    // TODO: don't need env here
-    Value(Env *env, Type type, ClassValue *klass)
+    Value(Type type, ClassValue *klass)
         : type { type }
         , klass { klass } {
         assert(klass);
@@ -154,6 +152,8 @@ struct Value {
     }
 
     Value *send(Env *, const char *, ssize_t = 0, Value ** = nullptr, Block * = nullptr);
+
+    Value *dup(Env *);
 
 private:
     void init_ivars();

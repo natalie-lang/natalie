@@ -77,8 +77,6 @@ Value *splat(Env *env, Value *obj);
 
 RangeValue *range_new(Env *env, Value *begin, Value *end, bool exclude_end);
 
-Value *dup(Env *env, Value *obj);
-
 void run_at_exit_handlers(Env *env);
 void print_exception_with_backtrace(Env *env, ExceptionValue *exception);
 void handle_top_level_exception(Env *env, bool run_exit_handlers);

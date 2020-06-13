@@ -187,24 +187,6 @@ RangeValue *range_new(Env *env, Value *begin, Value *end, bool exclude_end) {
     return obj;
 }
 
-Value *dup(Env *env, Value *obj) {
-    switch (NAT_TYPE(obj)) {
-    case Value::Type::Array:
-        return ArrayValue::copy(env, *obj->as_array());
-    case Value::Type::String:
-        return new StringValue { env, obj->as_string()->c_str() };
-    case Value::Type::Symbol:
-        return new StringValue { env, obj->as_symbol()->c_str() };
-    case Value::Type::False:
-    case Value::Type::Nil:
-    case Value::Type::True:
-        return obj;
-    default:
-        fprintf(stderr, "I don't know how to dup this kind of object yet %d.\n", static_cast<int>(obj->type));
-        abort();
-    }
-}
-
 void run_at_exit_handlers(Env *env) {
     ArrayValue *at_exit_handlers = env->global_get("$NAT_at_exit_handlers")->as_array();
     assert(at_exit_handlers);

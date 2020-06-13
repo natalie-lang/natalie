@@ -2,12 +2,19 @@
 
 namespace Natalie {
 
-EncodingValue *encoding(Env *env, Encoding num, ArrayValue *names) {
-    EncodingValue *encoding = new EncodingValue { env };
-    encoding->encoding_num = num;
-    encoding->encoding_names = names;
-    freeze_object(names);
-    return encoding;
+EncodingValue::EncodingValue(Env *env, Encoding num, std::initializer_list<const char *> names)
+    : EncodingValue { env } {
+    m_num = num;
+    for (const char *name : names) {
+        m_names.push(new StringValue { env, name });
+    }
 }
 
+ArrayValue *EncodingValue::names(Env *env) {
+    auto array = new ArrayValue { env };
+    for (StringValue *name : m_names) {
+        array->push(name);
+    }
+    return array;
+}
 }

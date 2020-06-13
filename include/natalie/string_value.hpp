@@ -17,7 +17,7 @@ struct StringValue : Value {
     const int STRING_GROW_FACTOR = 2;
 
     StringValue(Env *env, ClassValue *klass)
-        : Value { env, Value::Type::String, klass } {
+        : Value { Value::Type::String, klass } {
         m_str = strdup("");
     }
 
@@ -25,13 +25,18 @@ struct StringValue : Value {
         : StringValue { env, "" } { }
 
     StringValue(Env *env, const char *str)
-        : Value { env, Value::Type::String, NAT_OBJECT->const_get(env, "String", true)->as_class() } {
+        : Value { Value::Type::String, NAT_OBJECT->const_get(env, "String", true)->as_class() } {
         set_str(str);
     }
 
     StringValue(Env *env, const char *str, ssize_t length)
-        : Value { env, Value::Type::String, NAT_OBJECT->const_get(env, "String", true)->as_class() } {
+        : Value { Value::Type::String, NAT_OBJECT->const_get(env, "String", true)->as_class() } {
         set_str(str, length);
+    }
+
+    StringValue(const StringValue &other)
+        : Value { Value::Type::String, other.klass } {
+        set_str(other.c_str(), other.length());
     }
 
     static StringValue *sprintf(Env *, const char *, ...);

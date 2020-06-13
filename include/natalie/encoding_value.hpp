@@ -1,7 +1,9 @@
 #pragma once
 
 #include <assert.h>
+#include <initializer_list>
 
+#include "natalie/array_value.hpp"
 #include "natalie/class_value.hpp"
 #include "natalie/forward.hpp"
 #include "natalie/global_env.hpp"
@@ -17,13 +19,20 @@ enum class Encoding {
 
 struct EncodingValue : Value {
 
-    using Value::Value;
-
     EncodingValue(Env *env)
-        : Value { env, Value::Type::Encoding, NAT_OBJECT->const_get(env, "Encoding", true)->as_class() } { }
+        : Value { Value::Type::Encoding, NAT_OBJECT->const_get(env, "Encoding", true)->as_class() } { }
 
-    ArrayValue *encoding_names { nullptr };
-    Encoding encoding_num;
+    EncodingValue(Env *, Encoding, std::initializer_list<const char *>);
+
+    Encoding num() { return m_num; }
+
+    const StringValue *name() { return m_names[0]; }
+
+    ArrayValue *names(Env *);
+
+private:
+    Vector<StringValue *> m_names {};
+    Encoding m_num;
 };
 
 EncodingValue *encoding(Env *env, Encoding num, ArrayValue *names);

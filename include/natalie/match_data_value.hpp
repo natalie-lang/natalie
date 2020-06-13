@@ -13,10 +13,9 @@ namespace Natalie {
 
 struct MatchDataValue : Value {
     MatchDataValue(Env *env, OnigRegion *region, StringValue *string)
-        : Value { env, Value::Type::MatchData, NAT_OBJECT->const_get(env, "MatchData", true)->as_class() } {
-        m_region = region;
-        m_str = strdup(string->c_str());
-    }
+        : Value { Value::Type::MatchData, NAT_OBJECT->const_get(env, "MatchData", true)->as_class() }
+        , m_region { region }
+        , m_str { strdup(string->c_str()) } { }
 
     const char *c_str() { return m_str; }
 

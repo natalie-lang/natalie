@@ -28,20 +28,18 @@ struct HashValue : Value {
     };
 
     HashValue(Env *env)
-        : Value { env, Value::Type::Hash, NAT_OBJECT->const_get(env, "Hash", true)->as_class() }
+        : Value { Value::Type::Hash, NAT_OBJECT->const_get(env, "Hash", true)->as_class() }
         , m_default_value { NAT_NIL } {
         hashmap_init(&m_hashmap, hash, compare, 256);
     }
 
     ~HashValue() {
-        /*
         destroy_key_list();
         for (HashValue::Key &node : *this) {
             delete static_cast<Val *>(hashmap_get(&m_hashmap, &node));
         }
         hashmap_destroy(&m_hashmap);
         delete m_default_block;
-        */
     }
 
     static size_t hash(const void *);

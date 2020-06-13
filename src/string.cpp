@@ -197,7 +197,7 @@ static EncodingValue *find_encoding_by_name(Env *env, const char *name) {
     ArrayValue *list = Encoding_list(env, NAT_OBJECT->const_get(env, "Encoding", true), 0, NULL, NULL)->as_array();
     for (ssize_t i = 0; i < list->size(); i++) {
         EncodingValue *encoding = (*list)[i]->as_encoding();
-        ArrayValue *names = encoding->encoding_names;
+        ArrayValue *names = encoding->names(env);
         for (ssize_t n = 0; n < names->size(); n++) {
             StringValue *name_obj = (*names)[n]->as_string();
             char *name = lcase_string(name_obj->c_str());
@@ -217,7 +217,7 @@ Value *String_encode(Env *env, Value *self_value, ssize_t argc, Value **args, Bl
     NAT_ASSERT_ARGC(1);
     StringValue *self = self_value->as_string();
     Encoding orig_encoding = self->encoding();
-    StringValue *copy = dup(env, self)->as_string();
+    StringValue *copy = self->dup(env)->as_string();
     String_force_encoding(env, copy, argc, args, NULL);
     ClassValue *Encoding = NAT_OBJECT->const_get(env, "Encoding", true)->as_class();
     if (orig_encoding == copy->encoding()) {
@@ -252,10 +252,10 @@ Value *String_force_encoding(Env *env, Value *self_value, ssize_t argc, Value **
     Value *encoding = args[0];
     switch (encoding->type) {
     case Value::Type::Encoding:
-        self->set_encoding(encoding->as_encoding()->encoding_num);
+        self->set_encoding(encoding->as_encoding()->num());
         break;
     case Value::Type::String:
-        self->set_encoding(find_encoding_by_name(env, encoding->as_string()->c_str())->encoding_num);
+        self->set_encoding(find_encoding_by_name(env, encoding->as_string()->c_str())->num());
         break;
     default:
         NAT_RAISE(env, "TypeError", "no implicit conversion of %s into %s", NAT_OBJ_CLASS(encoding)->class_name(), "String");
@@ -305,7 +305,7 @@ Value *String_sub(Env *env, Value *self_value, ssize_t argc, Value **args, Block
     if (sub->is_string()) {
         ssize_t index = self->index(env, sub->as_string());
         if (index == -1) {
-            return dup(env, self);
+            return self->dup(env);
         }
         StringValue *out = new StringValue { env, self->c_str(), index };
         out->append_string(env, repl->as_string());
@@ -314,7 +314,7 @@ Value *String_sub(Env *env, Value *self_value, ssize_t argc, Value **args, Block
     } else if (sub->is_regexp()) {
         Value *match = Regexp_match(env, sub, 1, &self_value, NULL);
         if (match == NAT_NIL) {
-            return dup(env, self);
+            return self->dup(env);
         }
         size_t length = match->as_match_data()->group(env, 0)->as_string()->length();
         int64_t index = match->as_match_data()->index(0);
@@ -352,7 +352,7 @@ Value *String_split(Env *env, Value *self_value, ssize_t argc, Value **args, Blo
         OnigRegion *region = onig_region_new();
         int result = splitter->as_regexp()->search(self->c_str(), region, ONIG_OPTION_NONE);
         if (result == ONIG_MISMATCH) {
-            ary->push(dup(env, self));
+            ary->push(self->dup(env));
         } else {
             do {
                 index = region->beg[0];
@@ -369,7 +369,7 @@ Value *String_split(Env *env, Value *self_value, ssize_t argc, Value **args, Blo
         ssize_t last_index = 0;
         ssize_t index = self->index(env, splitter->as_string(), 0);
         if (index == -1) {
-            ary->push(dup(env, self));
+            ary->push(self->dup(env));
         } else {
             do {
                 ary->push(new StringValue { env, &self->c_str()[last_index], index - last_index });
@@ -397,7 +397,7 @@ Value *String_ljust(Env *env, Value *self_value, ssize_t argc, Value **args, Blo
     } else {
         padstr = new StringValue { env, " " };
     }
-    StringValue *copy = dup(env, self)->as_string();
+    StringValue *copy = self->dup(env)->as_string();
     while (copy->length() < length) {
         bool truncate = copy->length() + padstr->length() > length;
         copy->append_string(env, padstr);
