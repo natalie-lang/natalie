@@ -43,14 +43,12 @@ extern "C" {
 }
 
 bool is_constant_name(const char *name);
+bool is_global_name(const char *name);
 
 const char *find_current_method_name(Env *env);
 
 void int_to_string(int64_t num, char *buf);
 void int_to_hex_string(int64_t num, char *buf, bool capitalize);
-
-const char *defined(Env *env, Value *receiver, const char *name);
-Value *defined_obj(Env *env, Value *receiver, const char *name);
 
 Value *call_begin(Env *env, Value *self, Value *(*block_fn)(Env *, Value *));
 

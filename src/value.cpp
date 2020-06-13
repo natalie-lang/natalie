@@ -316,4 +316,27 @@ bool Value::respond_to(Env *env, const char *name) {
     }
 }
 
+const char *Value::defined(Env *env, const char *name) {
+    Value *obj;
+    if (is_constant_name(name)) {
+        obj = const_get_or_null(env, name, false, false);
+        if (obj) return "constant";
+    } else if (is_global_name(name)) {
+        obj = env->global_get(name);
+        if (obj != NAT_NIL) return "global-variable";
+    } else if (respond_to(env, name)) {
+        return "method";
+    }
+    return nullptr;
+}
+
+Value *Value::defined_obj(Env *env, const char *name) {
+    const char *result = defined(env, name);
+    if (result) {
+        return new StringValue { env, result };
+    } else {
+        return NAT_NIL;
+    }
+}
+
 }

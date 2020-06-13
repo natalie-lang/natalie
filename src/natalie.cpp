@@ -43,29 +43,6 @@ void int_to_hex_string(int64_t num, char *buf, bool capitalize) {
     }
 }
 
-const char *defined(Env *env, Value *receiver, const char *name) {
-    Value *obj;
-    if (is_constant_name(name)) {
-        obj = receiver->const_get_or_null(env, name, false, false);
-        if (obj) return "constant";
-    } else if (is_global_name(name)) {
-        obj = env->global_get(name);
-        if (obj != NAT_NIL) return "global-variable";
-    } else if (receiver->respond_to(env, name)) {
-        return "method";
-    }
-    return nullptr;
-}
-
-Value *defined_obj(Env *env, Value *receiver, const char *name) {
-    const char *result = defined(env, receiver, name);
-    if (result) {
-        return new StringValue { env, result };
-    } else {
-        return NAT_NIL;
-    }
-}
-
 Value *call_begin(Env *env, Value *self, Value *(*block_fn)(Env *, Value *)) {
     Env e = Env::new_block_env(env, env);
     return block_fn(&e, self);

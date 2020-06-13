@@ -158,6 +158,9 @@ struct Value {
     bool is_a(Env *, Value *);
     bool respond_to(Env *, const char *);
 
+    const char *defined(Env *, const char *);
+    Value *defined_obj(Env *, const char *);
+
 private:
     void init_ivars();
 };

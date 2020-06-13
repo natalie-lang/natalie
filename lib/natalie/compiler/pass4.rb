@@ -379,13 +379,13 @@ module Natalie
         result = temp('defined_result')
         case name.sexp_type
         when :const, :gvar
-          decl "Value *#{result} = defined_obj(env, self, #{name.last.to_s.inspect});"
+          decl "Value *#{result} = self->defined_obj(env, #{name.last.to_s.inspect});"
         when :send
           (_, receiver, name) = name
           receiver ||= 'self'
           decl "Value *#{result};"
           decl "if (!NAT_RESCUE(env)) {"
-          decl "#{result} = defined_obj(env, #{process_atom receiver}, #{name.to_s.inspect});"
+          decl "#{result} = #{process_atom receiver}->defined_obj(env, #{name.to_s.inspect});"
           decl '} else {'
           decl "#{result} = #{process_atom s(:nil)};"
           decl '}'
