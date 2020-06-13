@@ -24,7 +24,7 @@ Value *BasicObject_eqeq(Env *env, Value *self, ssize_t argc, Value **args, Block
 Value *BasicObject_neq(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     Value *arg = args[0];
-    return BasicObject_not(env, send(env, self, "==", 1, &arg, NULL), 0, NULL, NULL);
+    return BasicObject_not(env, self->send(env, "==", 1, &arg, nullptr), 0, nullptr, nullptr);
 }
 
 Value *BasicObject_instance_eval(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {

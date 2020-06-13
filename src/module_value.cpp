@@ -38,7 +38,7 @@ Value *ModuleValue::const_get(Env *env, const char *name, bool strict) {
     if (val) {
         return val;
     } else if (strict) {
-        NAT_RAISE(env, "NameError", "uninitialized constant %S::%s", send(env, this, "inspect", 0, nullptr, nullptr), name);
+        NAT_RAISE(env, "NameError", "uninitialized constant %S::%s", this->send(env, "inspect", 0, nullptr, nullptr), name);
     } else {
         NAT_RAISE(env, "NameError", "uninitialized constant %s", name);
     }
@@ -220,4 +220,24 @@ Method *ModuleValue::find_method_without_undefined(const char *method_name, Modu
     }
 }
 
+Value *ModuleValue::call_method(Env *env, Value *instance_class, const char *method_name, Value *self, ssize_t argc, Value **args, Block *block) {
+    ModuleValue *matching_class_or_module;
+    Method *method = find_method(method_name, &matching_class_or_module);
+    if (method && !method->undefined) {
+        Env *closure_env;
+        if (NAT_OBJ_HAS_ENV(method)) {
+            closure_env = &method->env;
+        } else {
+            closure_env = &matching_class_or_module->env;
+        }
+        Env e = Env::new_block_env(closure_env, env);
+        e.file = env->file;
+        e.line = env->line;
+        e.method_name = method_name;
+        e.block = block;
+        return method->fn(&e, self, argc, args, block);
+    } else {
+        NAT_RAISE(env, "NoMethodError", "undefined method `%s' for %v", method_name, instance_class);
+    }
+}
 }

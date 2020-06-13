@@ -40,9 +40,9 @@ Value *Range_to_a(Env *env, Value *self_value, ssize_t argc, Value **args, Block
     ArrayValue *ary = new ArrayValue { env };
     Value *item = self->range_begin;
     const char *op = self->range_exclude_end ? "<" : "<=";
-    while (send(env, item, op, 1, &self->range_end, nullptr)->is_truthy()) {
+    while (item->send(env, op, 1, &self->range_end, nullptr)->is_truthy()) {
         ary->push(item);
-        item = send(env, item, "succ", 0, NULL, NULL);
+        item = item->send(env, "succ");
     }
     return ary;
 }
@@ -52,9 +52,9 @@ Value *Range_each(Env *env, Value *self_value, ssize_t argc, Value **args, Block
     RangeValue *self = self_value->as_range();
     Value *item = self->range_begin;
     const char *op = self->range_exclude_end ? "<" : "<=";
-    while (send(env, item, op, 1, &self->range_end, nullptr)->is_truthy()) {
+    while (item->send(env, op, 1, &self->range_end, nullptr)->is_truthy()) {
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, NULL);
-        item = send(env, item, "succ", 0, NULL, NULL);
+        item = item->send(env, "succ");
     }
     return self;
 }
@@ -74,8 +74,8 @@ Value *Range_eqeq(Env *env, Value *self_value, ssize_t argc, Value **args, Block
     RangeValue *self = self_value->as_range();
     if (NAT_TYPE(args[0]) == Value::Type::Range) {
         RangeValue *arg = args[0]->as_range();
-        bool begin_equal = send(env, self->range_begin, "==", 1, &arg->range_begin, nullptr)->is_truthy();
-        bool end_equal = send(env, self->range_end, "==", 1, &arg->range_end, nullptr)->is_truthy();
+        bool begin_equal = self->range_begin->send(env, "==", 1, &arg->range_begin, nullptr)->is_truthy();
+        bool end_equal = self->range_end->send(env, "==", 1, &arg->range_end, nullptr)->is_truthy();
         if (begin_equal && end_equal && self->range_exclude_end == arg->range_exclude_end) {
             return NAT_TRUE;
         }
@@ -99,11 +99,11 @@ Value *Range_eqeqeq(Env *env, Value *self_value, ssize_t argc, Value **args, Blo
         // slower method that should work for any type of range
         Value *item = self->range_begin;
         const char *op = self->range_exclude_end ? "<" : "<=";
-        while (send(env, item, op, 1, &self->range_end, nullptr)->is_truthy()) {
-            if (send(env, item, "==", 1, &arg, nullptr)->is_truthy()) {
+        while (item->send(env, op, 1, &self->range_end, nullptr)->is_truthy()) {
+            if (item->send(env, "==", 1, &arg, nullptr)->is_truthy()) {
                 return NAT_TRUE;
             }
-            item = send(env, item, "succ", 0, NULL, NULL);
+            item = item->send(env, "succ");
         }
     }
     return NAT_FALSE;

@@ -121,6 +121,7 @@ struct Value {
 
     const char *identifier_str(Env *, Conversion);
 
+    ClassValue *singleton_class() { return m_singleton_class; }
     ClassValue *singleton_class(Env *);
 
     void set_singleton_class(ClassValue *c) { m_singleton_class = c; }
@@ -151,6 +152,8 @@ struct Value {
     void pointer_id(char *buf) {
         snprintf(buf, NAT_OBJECT_POINTER_BUF_LENGTH, "%p", this);
     }
+
+    Value *send(Env *, const char *, ssize_t = 0, Value ** = nullptr, Block * = nullptr);
 
 private:
     void init_ivars();

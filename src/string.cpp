@@ -36,7 +36,7 @@ Value *String_ltlt(Env *env, Value *self_value, ssize_t argc, Value **args, Bloc
     if (arg->is_string()) {
         self->append_string(env, arg->as_string());
     } else {
-        Value *str_obj = send(env, arg, "to_s", 0, NULL, NULL);
+        Value *str_obj = arg->send(env, "to_s");
         NAT_ASSERT_TYPE(str_obj, Value::Type::String, "String");
         self->append_string(env, str_obj->as_string());
     }
@@ -55,7 +55,7 @@ Value *String_add(Env *env, Value *self_value, ssize_t argc, Value **args, Block
     if (args[0]->is_string()) {
         str = args[0]->as_string()->c_str();
     } else {
-        StringValue *str_obj = send(env, args[0], "to_s", 0, NULL, NULL)->as_string();
+        StringValue *str_obj = args[0]->send(env, "to_s")->as_string();
         NAT_ASSERT_TYPE(str_obj, Value::Type::String, "String");
         str = str_obj->c_str();
     }

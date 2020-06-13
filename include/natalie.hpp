@@ -64,9 +64,7 @@ bool is_a(Env *env, Value *obj, ModuleValue *klass_or_module);
 const char *defined(Env *env, Value *receiver, const char *name);
 Value *defined_obj(Env *env, Value *receiver, const char *name);
 
-Value *send(Env *env, Value *receiver, const char *sym, ssize_t argc, Value **args, Block *block);
 Value *call_begin(Env *env, Value *self, Value *(*block_fn)(Env *, Value *));
-Value *call_method_on_class(Env *env, ClassValue *klass, Value *instance_class, const char *method_name, Value *self, ssize_t argc, Value **args, Block *block);
 bool respond_to(Env *env, Value *obj, const char *name);
 
 Block *block_new(Env *env, Value *self, Value *(*fn)(Env *, Value *, ssize_t, Value **, Block *));

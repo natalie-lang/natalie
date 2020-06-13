@@ -17,14 +17,14 @@ Value *Kernel_p(Env *env, Value *self, ssize_t argc, Value **args, Block *block)
     if (argc == 0) {
         return NAT_NIL;
     } else if (argc == 1) {
-        Value *arg = send(env, args[0], "inspect", 0, NULL, NULL);
+        Value *arg = args[0]->send(env, "inspect");
         Kernel_puts(env, self, 1, &arg, NULL);
         return arg;
     } else {
         ArrayValue *result = new ArrayValue { env };
         for (ssize_t i = 0; i < argc; i++) {
             result->push(args[i]);
-            args[i] = send(env, args[i], "inspect", 0, NULL, NULL);
+            args[i] = args[i]->send(env, "inspect");
         }
         Kernel_puts(env, self, argc, args, NULL);
         return result;
@@ -203,7 +203,7 @@ Value *Kernel_is_a(Env *env, Value *self, ssize_t argc, Value **args, Block *blo
 
 Value *Kernel_hash(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
-    StringValue *inspected = send(env, self, "inspect", 0, NULL, NULL)->as_string();
+    StringValue *inspected = self->send(env, "inspect")->as_string();
     ssize_t hash_value = hashmap_hash_string(inspected->c_str());
     ssize_t truncated_hash_value = RSHIFT(hash_value, 1); // shift right to fit in our int size (without need for BigNum)
     return new IntegerValue { env, truncated_hash_value };
@@ -282,7 +282,7 @@ Value *Kernel_Array(Env *env, Value *self, ssize_t argc, Value **args, Block *bl
     if (NAT_TYPE(value) == Value::Type::Array) {
         return value;
     } else if (respond_to(env, value, "to_ary")) {
-        return send(env, value, "to_ary", 0, NULL, NULL);
+        return value->send(env, "to_ary");
     } else if (value == NAT_NIL) {
         return new ArrayValue { env };
     } else {
@@ -295,7 +295,7 @@ Value *Kernel_Array(Env *env, Value *self, ssize_t argc, Value **args, Block *bl
 Value *Kernel_send(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC_AT_LEAST(1);
     const char *name = args[0]->identifier_str(env, Value::Conversion::Strict);
-    return send(env->caller, self, name, argc - 1, args + 1, block);
+    return self->send(env->caller, name, argc - 1, args + 1, block);
 }
 
 Value *Kernel_cur_dir(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {

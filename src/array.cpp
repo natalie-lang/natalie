@@ -37,7 +37,7 @@ Value *Array_inspect(Env *env, Value *self_value, ssize_t argc, Value **args, Bl
     StringValue *out = new StringValue { env, "[" };
     for (ssize_t i = 0; i < self->size(); i++) {
         Value *obj = (*self)[i];
-        StringValue *repr = send(env, obj, "inspect", 0, NULL, NULL)->as_string();
+        StringValue *repr = obj->send(env, "inspect")->as_string();
         out->append_string(env, repr);
         if (i < self->size() - 1) {
             out->append(env, ", ");
@@ -75,7 +75,7 @@ Value *Array_sub(Env *env, Value *self_value, ssize_t argc, Value **args, Block 
     for (auto &item : *self) {
         int found = 0;
         for (auto &compare_item : *arg) {
-            if (send(env, item, "==", 1, &compare_item, nullptr)->is_truthy()) {
+            if (item->send(env, "==", 1, &compare_item, nullptr)->is_truthy()) {
                 found = 1;
                 break;
             }
@@ -220,7 +220,7 @@ Value *Array_eqeq(Env *env, Value *self_value, ssize_t argc, Value **args, Block
     for (ssize_t i = 0; i < self->size(); i++) {
         // TODO: could easily be optimized for strings and numbers
         Value *item = (*arg)[i];
-        Value *result = send(env, (*self)[i], "==", 1, &item, NULL);
+        Value *result = (*self)[i]->send(env, "==", 1, &item, NULL);
         if (NAT_TYPE(result) == Value::Type::False) return result;
     }
     return NAT_TRUE;
@@ -299,7 +299,7 @@ Value *Array_include(Env *env, Value *self_value, ssize_t argc, Value **args, Bl
         return NAT_FALSE;
     } else {
         for (auto &compare_item : *self) {
-            if (send(env, item, "==", 1, &compare_item, nullptr)->is_truthy()) {
+            if (item->send(env, "==", 1, &compare_item, nullptr)->is_truthy()) {
                 return NAT_TRUE;
             }
         }
@@ -321,15 +321,15 @@ Value *Array_join(Env *env, Value *self_value, ssize_t argc, Value **args, Block
     if (self->size() == 0) {
         return new StringValue { env };
     } else if (self->size() == 1) {
-        return send(env, (*self)[0], "to_s", 0, NULL, NULL);
+        return (*self)[0]->send(env, "to_s");
     } else {
         Value *joiner = args[0];
         NAT_ASSERT_TYPE(joiner, Value::Type::String, "String");
-        StringValue *out = send(env, (*self)[0], "to_s", 0, NULL, NULL)->as_string();
+        StringValue *out = (*self)[0]->send(env, "to_s")->as_string();
         for (auto i = 1; i < self->size(); i++) {
             Value *item = (*self)[i];
             out->append_string(env, joiner->as_string());
-            out->append_string(env, send(env, item, "to_s", 0, NULL, NULL)->as_string());
+            out->append_string(env, item->send(env, "to_s")->as_string());
         }
         return out;
     }
@@ -345,7 +345,7 @@ Value *Array_cmp(Env *env, Value *self_value, ssize_t argc, Value **args, Block 
             return new IntegerValue { env, 1 };
         }
         Value *item = (*other)[i];
-        Value *cmp_obj = send(env, (*self)[i], "<=>", 1, &item, NULL);
+        Value *cmp_obj = (*self)[i]->send(env, "<=>", 1, &item, NULL);
         assert(NAT_TYPE(cmp_obj) == Value::Type::Integer);
         int64_t cmp = cmp_obj->as_integer()->to_int64_t();
         if (cmp < 0) return new IntegerValue { env, -1 };

@@ -8,7 +8,7 @@ Value *Value::initialize(Env *env, ssize_t argc, Value **args, Block *block) {
     ModuleValue *matching_class_or_module;
     Method *method = klass->find_method("initialize", &matching_class_or_module);
     if (method) {
-        call_method_on_class(env, klass, klass, "initialize", this, argc, args, block);
+        klass->call_method(env, klass, "initialize", this, argc, args, block);
     }
     return this;
 }
@@ -101,7 +101,7 @@ const char *Value::identifier_str(Env *env, Conversion conversion) {
     } else if (conversion == Conversion::NullAllowed) {
         return nullptr;
     } else {
-        NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", send(env, this, "inspect", 0, nullptr, nullptr));
+        NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", this->send(env, "inspect", 0, nullptr, nullptr));
     }
 }
 
@@ -113,7 +113,7 @@ SymbolValue *Value::to_symbol(Env *env, Conversion conversion) {
     } else if (conversion == Conversion::NullAllowed) {
         return nullptr;
     } else {
-        NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", send(env, this, "inspect", 0, nullptr, nullptr));
+        NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", this->send(env, "inspect", 0, nullptr, nullptr));
     }
 }
 
@@ -249,6 +249,23 @@ void Value::undefine_method(Env *env, const char *name) {
         abort();
     }
     klass->undefine_method(env, name);
+}
+
+Value *Value::send(Env *env, const char *sym, ssize_t argc, Value **args, Block *block) {
+    ClassValue *klass;
+    klass = singleton_class();
+    if (klass) {
+        ModuleValue *matching_class_or_module;
+        Method *method = klass->find_method(sym, &matching_class_or_module);
+        if (method) {
+            if (method->undefined) {
+                NAT_RAISE(env, "NoMethodError", "undefined method `%s' for %s:Class", sym, this->klass->class_name());
+            }
+            return klass->call_method(env, this->klass, sym, this, argc, args, block);
+        }
+    }
+    klass = this->klass;
+    return klass->call_method(env, klass, sym, this, argc, args, block);
 }
 
 }

@@ -14,7 +14,8 @@ namespace Natalie {
 struct ClassValue : ModuleValue {
     using ModuleValue::ModuleValue;
 
-    ClassValue(Env *);
+    ClassValue(Env *env)
+        : ClassValue { env, NAT_OBJECT->const_get(env, "Class", true)->as_class() } { }
 
     ClassValue *subclass(Env *, const char *);
 
@@ -22,7 +23,8 @@ struct ClassValue : ModuleValue {
     static ClassValue *bootstrap_basic_object(Env *, ClassValue *);
 
 private:
-    ClassValue(Env *, ClassValue *);
+    ClassValue(Env *env, ClassValue *klass)
+        : ModuleValue { env, Value::Type::Class, klass } { }
 };
 
 }

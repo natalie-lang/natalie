@@ -19,6 +19,7 @@ void StringValue::grow_at_least(Env *env, ssize_t min_capacity) {
 }
 
 void StringValue::append(Env *env, const char *str) {
+    if (str == nullptr) return;
     ssize_t new_length = strlen(str);
     if (new_length == 0) return;
     ssize_t total_length = m_length + new_length;
@@ -64,18 +65,18 @@ ArrayValue *StringValue::chars(Env *env) {
         for (ssize_t i = 0; i < m_length; i++) {
             buffer[0] = m_str[i];
             if (((unsigned char)buffer[0] >> 3) == 30) { // 11110xxx, 4 bytes
-                if (i + 3 >= m_length) abort(); // NAT_RAISE_ENCODING_INVALID_BYTE_SEQUENCE_ERROR(env, "invalid byte sequence at index %i in string %S (string not long enough)", i, send(env, this, "inspect", 0, NULL, NULL));
+                if (i + 3 >= m_length) abort(); // NAT_RAISE_ENCODING_INVALID_BYTE_SEQUENCE_ERROR(env, "invalid byte sequence at index %i in string %S (string not long enough)", i, this->send(env, "inspect"));
                 buffer[1] = m_str[++i];
                 buffer[2] = m_str[++i];
                 buffer[3] = m_str[++i];
                 buffer[4] = 0;
             } else if (((unsigned char)buffer[0] >> 4) == 14) { // 1110xxxx, 3 bytes
-                if (i + 2 >= m_length) abort(); // NAT_RAISE_ENCODING_INVALID_BYTE_SEQUENCE_ERROR(env, "invalid byte sequence at index %i in string %S (string not long enough)", i, send(env, this, "inspect", 0, NULL, NULL));
+                if (i + 2 >= m_length) abort(); // NAT_RAISE_ENCODING_INVALID_BYTE_SEQUENCE_ERROR(env, "invalid byte sequence at index %i in string %S (string not long enough)", i, this->send(env, "inspect"));
                 buffer[1] = m_str[++i];
                 buffer[2] = m_str[++i];
                 buffer[3] = 0;
             } else if (((unsigned char)buffer[0] >> 5) == 6) { // 110xxxxx, 2 bytes
-                if (i + 1 >= m_length) abort(); // NAT_RAISE_ENCODING_INVALID_BYTE_SEQUENCE_ERROR(env, "invalid byte sequence at index %i in string %S (string not long enough)", i, send(env, this, "inspect", 0, NULL, NULL));
+                if (i + 1 >= m_length) abort(); // NAT_RAISE_ENCODING_INVALID_BYTE_SEQUENCE_ERROR(env, "invalid byte sequence at index %i in string %S (string not long enough)", i, this->send(env, "inspect"));
                 buffer[1] = m_str[++i];
                 buffer[2] = 0;
             } else {
@@ -212,7 +213,7 @@ StringValue *StringValue::vsprintf(Env *env, const char *format, va_list args) {
                 out->append(env, buf);
                 break;
             case 'v':
-                inspected = send(env, va_arg(args, Value *), "inspect", 0, NULL, NULL)->as_string();
+                inspected = va_arg(args, Value *)->send(env, "inspect")->as_string();
                 out->append_string(env, inspected);
                 break;
             case '%':

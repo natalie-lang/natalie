@@ -50,6 +50,8 @@ struct ModuleValue : Value {
     Method *find_method(const char *, ModuleValue **);
     Method *find_method_without_undefined(const char *, ModuleValue **);
 
+    Value *call_method(Env *, Value *, const char *, Value *, ssize_t, Value **, Block *);
+
 protected:
     struct hashmap m_constants EMPTY_HASHMAP;
     const char *m_class_name { nullptr };

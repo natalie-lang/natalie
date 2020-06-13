@@ -1,5 +1,3 @@
-//#define NAT_DEBUG_METHOD_RESOLUTION
-
 #define NAT_IS_TAGGED_INT(obj) ((int64_t)obj & 1)
 #define NAT_TYPE(obj) (NAT_IS_TAGGED_INT(obj) ? Value::Type::Integer : obj->type)
 #define NAT_IS_MODULE_OR_CLASS(obj) (NAT_TYPE(obj) == Value::Type::Module || NAT_TYPE(obj) == Value::Type::Class)
@@ -72,7 +70,7 @@
 #define NAT_OBJ_HAS_ENV(obj) ((obj)->env.global_env == env->global_env) // prefered check
 #define NAT_OBJ_HAS_ENV2(obj) ((obj)->env.global_env) // limited check used when there is no current env, i.e. hashmap_hash and hashmap_compare
 
-#define NAT_INSPECT(obj) send(env, obj, "inspect", 0, NULL, NULL)
+#define NAT_INSPECT(obj) obj->send(env, "inspect", 0, NULL, NULL)
 
 // ahem, "globals"
 #define NAT_OBJECT env->global_env->Object

@@ -17,7 +17,7 @@ Value *Exception_initialize(Env *env, Value *self_value, ssize_t argc, Value **a
     } else if (argc == 1) {
         Value *message = args[0];
         if (!message->is_string()) {
-            message = send(env, message, "inspect", 0, NULL, NULL);
+            message = message->send(env, "inspect");
         }
         self->message = strdup(message->as_string()->c_str());
     }

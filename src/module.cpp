@@ -63,7 +63,7 @@ Value *Module_attr_reader(Env *env, Value *self_value, ssize_t argc, Value **arg
         } else if (NAT_TYPE(name_obj) == Value::Type::Symbol) {
             name_obj = name_obj->as_symbol()->to_s(env);
         } else {
-            NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", send(env, name_obj, "inspect", 0, NULL, NULL));
+            NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", name_obj->send(env, "inspect"));
         }
         Env block_env = Env::new_detatched_block_env(env);
         block_env.var_set("name", 0, true, name_obj);
@@ -90,7 +90,7 @@ Value *Module_attr_writer(Env *env, Value *self_value, ssize_t argc, Value **arg
         } else if (NAT_TYPE(name_obj) == Value::Type::Symbol) {
             name_obj = name_obj->as_symbol()->to_s(env);
         } else {
-            NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", send(env, name_obj, "inspect", 0, NULL, NULL));
+            NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", name_obj->send(env, "inspect"));
         }
         StringValue *method_name = new StringValue { env, name_obj->as_string()->c_str() };
         method_name->append_char(env, '=');
@@ -183,7 +183,7 @@ Value *Module_const_defined(Env *env, Value *self_value, ssize_t argc, Value **a
     NAT_ASSERT_ARGC(1);
     const char *name = args[0]->identifier_str(env, Value::Conversion::NullAllowed);
     if (!name) {
-        NAT_RAISE(env, "TypeError", "no implicit conversion of %s to String", send(env, args[0], "inspect", 0, NULL, NULL));
+        NAT_RAISE(env, "TypeError", "no implicit conversion of %s to String", args[0]->send(env, "inspect"));
     }
     if (self->const_get_or_null(env, name, false, false)) {
         return NAT_TRUE;
@@ -197,11 +197,11 @@ Value *Module_alias_method(Env *env, Value *self_value, ssize_t argc, Value **ar
     NAT_ASSERT_ARGC(2);
     const char *new_name = args[0]->identifier_str(env, Value::Conversion::NullAllowed);
     if (!new_name) {
-        NAT_RAISE(env, "TypeError", "%s is not a symbol", send(env, args[0], "inspect", 0, NULL, NULL));
+        NAT_RAISE(env, "TypeError", "%s is not a symbol", args[0]->send(env, "inspect"));
     }
     const char *old_name = args[1]->identifier_str(env, Value::Conversion::NullAllowed);
     if (!old_name) {
-        NAT_RAISE(env, "TypeError", "%s is not a symbol", send(env, args[1], "inspect", 0, NULL, NULL));
+        NAT_RAISE(env, "TypeError", "%s is not a symbol", args[0]->send(env, "inspect"));
     }
     self->alias(env, new_name, old_name);
     return self;

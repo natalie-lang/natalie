@@ -2,9 +2,6 @@
 
 namespace Natalie {
 
-ClassValue::ClassValue(Env *env)
-    : ClassValue { env, NAT_OBJECT->const_get(env, "Class", true)->as_class() } { }
-
 ClassValue *ClassValue::subclass(Env *env, const char *name) {
     ClassValue *subclass = new ClassValue { env, Value::Type::Class, this->klass };
     subclass->env = Env::new_detatched_block_env(&this->env);
@@ -36,8 +33,5 @@ ClassValue *ClassValue::bootstrap_basic_object(Env *env, ClassValue *Class) {
     BasicObject->set_class_name("BasicObject");
     return BasicObject;
 }
-
-ClassValue::ClassValue(Env *env, ClassValue *klass)
-    : ModuleValue { env, Value::Type::Class, klass } { }
 
 }

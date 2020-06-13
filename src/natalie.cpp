@@ -116,73 +116,6 @@ Value *defined_obj(Env *env, Value *receiver, const char *name) {
     }
 }
 
-Value *send(Env *env, Value *receiver, const char *sym, ssize_t argc, Value **args, Block *block) {
-    assert(receiver);
-    ClassValue *klass;
-    if (NAT_TYPE(receiver) == Value::Type::Integer) {
-        klass = NAT_INTEGER;
-    } else {
-        klass = receiver->singleton_class(env);
-        if (klass) {
-            ModuleValue *matching_class_or_module;
-            Method *method = klass->find_method(sym, &matching_class_or_module);
-            if (method) {
-#ifdef NAT_DEBUG_METHOD_RESOLUTION
-                if (strcmp(sym, "inspect") != 0) {
-                    if (method->undefined) {
-                        fprintf(stderr, "Method %s found on %s and is marked undefined\n", sym, matching_class_or_module->class_name());
-                    } else if (matching_class_or_module == klass) {
-                        fprintf(stderr, "Method %s found on the singleton klass of %s\n", sym, send(env, receiver, "inspect", 0, NULL, NULL)->str);
-                    } else {
-                        fprintf(stderr, "Method %s found on %s, which is an ancestor of the singleton klass of %s\n", sym, matching_class_or_module->class_name(), send(env, receiver, "inspect", 0, NULL, NULL)->str);
-                    }
-                }
-#endif
-                if (method->undefined) {
-                    NAT_RAISE(env, "NoMethodError", "undefined method `%s' for %s:Class", sym, receiver->as_class()->class_name());
-                }
-                return call_method_on_class(env, klass, NAT_OBJ_CLASS(receiver), sym, receiver, argc, args, block);
-            }
-        }
-        klass = NAT_OBJ_CLASS(receiver);
-    }
-#ifdef NAT_DEBUG_METHOD_RESOLUTION
-    if (strcmp(sym, "inspect") != 0) {
-        fprintf(stderr, "Looking for method %s in the klass hierarchy of %s\n", sym, send(env, receiver, "inspect", 0, NULL, NULL)->str);
-    }
-#endif
-    return call_method_on_class(env, klass, klass, sym, receiver, argc, args, block);
-}
-
-Value *call_method_on_class(Env *env, ClassValue *klass, Value *instance_class, const char *method_name, Value *self, ssize_t argc, Value **args, Block *block) {
-    assert(klass != NULL);
-    assert(NAT_TYPE(klass) == Value::Type::Class);
-
-    ModuleValue *matching_class_or_module;
-    Method *method = klass->find_method(method_name, &matching_class_or_module);
-    if (method && !method->undefined) {
-#ifdef NAT_DEBUG_METHOD_RESOLUTION
-        if (strcmp(method_name, "inspect") != 0) {
-            fprintf(stderr, "Calling method %s from %s\n", method_name, matching_class_or_module->class_name());
-        }
-#endif
-        Env *closure_env;
-        if (NAT_OBJ_HAS_ENV(method)) {
-            closure_env = &method->env;
-        } else {
-            closure_env = &matching_class_or_module->env;
-        }
-        Env e = Env::new_block_env(closure_env, env);
-        e.file = env->file;
-        e.line = env->line;
-        e.method_name = method_name;
-        e.block = block;
-        return method->fn(&e, self, argc, args, block);
-    } else {
-        NAT_RAISE(env, "NoMethodError", "undefined method `%s' for %v", method_name, instance_class);
-    }
-}
-
 Value *call_begin(Env *env, Value *self, Value *(*block_fn)(Env *, Value *)) {
     Env e = Env::new_block_env(env, env);
     return block_fn(&e, self);
@@ -234,7 +167,7 @@ ProcValue *to_proc(Env *env, Value *obj) {
     if (obj->is_proc()) {
         return obj->as_proc();
     } else if (respond_to(env, obj, "to_proc")) {
-        return send(env, obj, "to_proc", 0, NULL, NULL)->as_proc();
+        return obj->send(env, "to_proc")->as_proc();
     } else {
         NAT_RAISE(env, "TypeError", "wrong argument type %s (expected Proc)", NAT_OBJ_CLASS(obj)->class_name());
     }
@@ -324,7 +257,7 @@ ArrayValue *to_ary(Env *env, Value *obj, bool raise_for_non_array) {
     if (obj->is_array()) {
         return obj->as_array();
     } else if (respond_to(env, obj, "to_ary")) {
-        Value *ary = send(env, obj, "to_ary", 0, NULL, NULL);
+        Value *ary = obj->send(env, "to_ary");
         if (ary->is_array()) {
             return ary->as_array();
         } else if (ary->is_nil() || !raise_for_non_array) {

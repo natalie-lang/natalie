@@ -88,6 +88,7 @@ module Natalie
         raise
         raise_exception
         raise_local_jump_error
+        send
         singleton_class
         subclass
         undefine_method
@@ -450,7 +451,7 @@ module Natalie
         receiver_name = process_atom(receiver)
         args_name, args_count = process_atom(args).split(':')
         result_name = temp('call_result')
-        decl "Value *#{result_name} = #{fn}(env, #{receiver_name}, #{method.to_s.inspect}, #{args_count}, #{args_name}, #{block || 'NULL'});"
+        decl "Value *#{result_name} = #{receiver_name}->#{fn}(env, #{method.to_s.inspect}, #{args_count}, #{args_name}, #{block || 'NULL'});"
         result_name
       end
 
@@ -488,9 +489,9 @@ module Natalie
         result_name = temp('call_result')
         if args.size > 1
           args_name, args_count = process_atom(args).split(':')
-          decl "Value *#{result_name} = call_method_on_class(env, NAT_OBJ_CLASS(self)->superclass(), NAT_OBJ_CLASS(self)->superclass(), env->find_current_method_name(), self, #{args_count}, #{args_name}, #{block || 'NULL'});"
+          decl "Value *#{result_name} = NAT_OBJ_CLASS(self)->superclass()->call_method(env, NAT_OBJ_CLASS(self)->superclass(), env->find_current_method_name(), self, #{args_count}, #{args_name}, #{block || 'NULL'});"
         else
-          decl "Value *#{result_name} = call_method_on_class(env, NAT_OBJ_CLASS(self)->superclass(), NAT_OBJ_CLASS(self)->superclass(), env->find_current_method_name(), self, argc, args, #{block || 'NULL'});"
+          decl "Value *#{result_name} = NAT_OBJ_CLASS(self)->superclass()->call_method(env, NAT_OBJ_CLASS(self)->superclass(), env->find_current_method_name(), self, argc, args, #{block || 'NULL'});"
         end
         result_name
       end

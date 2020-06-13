@@ -27,7 +27,7 @@ Value *Symbol_to_proc_block_fn(Env *env, Value *self_value, ssize_t argc, Value 
     SymbolValue *name_obj = env->outer->var_get("name", 0)->as_symbol();
     assert(name_obj);
     const char *name = name_obj->c_str();
-    return send(env, args[0], name, 0, NULL, NULL);
+    return args[0]->send(env, name);
 }
 
 Value *Symbol_cmp(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {

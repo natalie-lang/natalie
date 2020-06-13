@@ -59,10 +59,10 @@ Value *Hash_inspect(Env *env, Value *self_value, ssize_t argc, Value **args, Blo
     ssize_t last_index = self->size() - 1;
     ssize_t index = 0;
     for (HashValue::Key &node : *self) {
-        StringValue *key_repr = send(env, node.key, "inspect", 0, NULL, NULL)->as_string();
+        StringValue *key_repr = node.key->send(env, "inspect")->as_string();
         out->append_string(env, key_repr);
         out->append(env, "=>");
-        StringValue *val_repr = send(env, node.val, "inspect", 0, NULL, NULL)->as_string();
+        StringValue *val_repr = node.val->send(env, "inspect")->as_string();
         out->append_string(env, val_repr);
         if (index < last_index) {
             out->append(env, ", ");
@@ -129,7 +129,7 @@ Value *Hash_eqeq(Env *env, Value *self_value, ssize_t argc, Value **args, Block 
     Value *other_val;
     for (HashValue::Key &node : *self) {
         other_val = other->get(env, node.key);
-        if (!send(env, node.val, "==", 1, &other_val, nullptr)->is_truthy()) {
+        if (!node.val->send(env, "==", 1, &other_val, nullptr)->is_truthy()) {
             return NAT_FALSE;
         }
     }
