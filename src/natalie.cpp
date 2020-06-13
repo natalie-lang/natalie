@@ -43,23 +43,6 @@ void int_to_hex_string(int64_t num, char *buf, bool capitalize) {
     }
 }
 
-Method *method_from_fn(Value *(*fn)(Env *, Value *, ssize_t, Value **, Block *block)) {
-    Method *method = static_cast<Method *>(malloc(sizeof(Method)));
-    method->fn = fn;
-    method->env.global_env = NULL;
-    method->undefined = fn ? false : true;
-    return method;
-}
-
-Method *method_from_block(Block *block) {
-    Method *method = static_cast<Method *>(malloc(sizeof(Method)));
-    method->fn = block->fn;
-    method->env = block->env;
-    method->env.caller = NULL;
-    method->undefined = false;
-    return method;
-}
-
 ArrayValue *class_ancestors(Env *env, ModuleValue *klass) {
     ArrayValue *ancestors = new ArrayValue { env };
     do {

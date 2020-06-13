@@ -150,13 +150,13 @@ Value *ModuleValue::cvar_set(Env *env, const char *name, Value *val) {
 }
 
 void ModuleValue::define_method(Env *env, const char *name, Value *(*fn)(Env *, Value *, ssize_t, Value **, Block *block)) {
-    Method *method = method_from_fn(fn);
+    Method *method = new Method { fn };
     free(hashmap_remove(&m_methods, name));
     hashmap_put(&m_methods, name, method);
 }
 
 void ModuleValue::define_method_with_block(Env *env, const char *name, Block *block) {
-    Method *method = method_from_block(block);
+    Method *method = new Method { block };
     free(hashmap_remove(&m_methods, name));
     hashmap_put(&m_methods, name, method);
 }

@@ -23,6 +23,7 @@
 #include "natalie/integer_value.hpp"
 #include "natalie/io_value.hpp"
 #include "natalie/match_data_value.hpp"
+#include "natalie/method.hpp"
 #include "natalie/module_value.hpp"
 #include "natalie/nil_value.hpp"
 #include "natalie/proc_value.hpp"
@@ -41,21 +42,12 @@ extern "C" {
 #include "onigmo.h"
 }
 
-struct Method {
-    Value *(*fn)(Env *env, Value *self, ssize_t argc, Value **args, Block *block) { nullptr };
-    Env env;
-    bool undefined { false };
-};
-
 bool is_constant_name(const char *name);
 
 const char *find_current_method_name(Env *env);
 
 void int_to_string(int64_t num, char *buf);
 void int_to_hex_string(int64_t num, char *buf, bool capitalize);
-
-Method *method_from_fn(Value *(*fn)(Env *, Value *, ssize_t, Value **, Block *block));
-Method *method_from_block(Block *block);
 
 ArrayValue *class_ancestors(Env *env, ModuleValue *klass);
 bool is_a(Env *env, Value *obj, Value *klass_or_module);
