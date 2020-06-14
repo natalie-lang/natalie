@@ -1,11 +1,13 @@
 #pragma once
 
+#include <gc_cpp.h>
+
 #include "natalie/env.hpp"
 #include "natalie/forward.hpp"
 
 namespace Natalie {
 
-struct Block {
+struct Block : public gc {
 
     Block(Env &env, Value *self, Value *(*fn)(Env *, Value *, ssize_t, Value **, Block *))
         : fn { fn }

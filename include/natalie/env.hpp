@@ -1,5 +1,6 @@
 #pragma once
 
+#include <gc_cpp.h>
 #include <setjmp.h>
 #include <stdlib.h>
 
@@ -8,7 +9,7 @@
 
 namespace Natalie {
 
-struct Env {
+struct Env : public gc {
     Env() { }
 
     Env(Env *outer)

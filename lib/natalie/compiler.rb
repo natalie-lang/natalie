@@ -7,15 +7,21 @@ require_relative './compiler/pass4'
 
 module Natalie
   class Compiler
-    SRC_PATH = File.expand_path('../../src', __dir__)
+    ROOT_DIR = File.expand_path('../../', __dir__)
+    SRC_PATH = File.join(ROOT_DIR, 'src')
     INC_PATHS = [
-      File.expand_path('../../include', __dir__),
-      File.expand_path('../../ext/onigmo', __dir__),
-      File.expand_path('../../ext/hashmap/include', __dir__),
+      File.join(ROOT_DIR, 'include'),
+      File.join(ROOT_DIR, 'ext/bdwgc/include'),
+      File.join(ROOT_DIR, 'ext/onigmo'),
+      File.join(ROOT_DIR, 'ext/hashmap/include'),
+    ]
+    LIB_PATHS = [
+      File.join(ROOT_DIR, 'ext/bdwgc/.libs/libgc.a'),
+      File.join(ROOT_DIR, 'ext/bdwgc/.libs/libgccpp.a'),
+      File.join(ROOT_DIR, 'ext/hashmap/build/libhashmap.a'),
+      File.join(ROOT_DIR, 'ext/onigmo/.libs/libonigmo.a'),
     ]
     OBJ_PATH = File.expand_path('../../obj', __dir__)
-    HASHMAP_LIB_PATH = File.expand_path('../../ext/hashmap/build', __dir__)
-    ONIGMO_LIB_PATH = File.expand_path('../../ext/onigmo/.libs', __dir__)
 
     MAIN_TEMPLATE = File.read(File.join(SRC_PATH, 'main.cpp'))
     OBJ_TEMPLATE = <<-EOF
@@ -131,7 +137,7 @@ module Natalie
         "#{cc} #{build_flags} #{extra_cflags} #{inc_paths} -fPIC -x c++ -std=c++17 -c #{@c_path} -o #{out_path}"
       else
         libs = '-lm'
-        "#{cc} #{build_flags} #{extra_cflags} #{shared? ? '-fPIC -shared' : ''} #{inc_paths} -o #{out_path} #{OBJ_PATH}/*.o #{OBJ_PATH}/nat/*.o #{HASHMAP_LIB_PATH}/libhashmap.a #{ONIGMO_LIB_PATH}/libonigmo.a -x c++ -std=c++17 #{@c_path || 'code.cpp'} #{libs}"
+        "#{cc} #{build_flags} #{extra_cflags} #{shared? ? '-fPIC -shared' : ''} #{inc_paths} -o #{out_path} #{OBJ_PATH}/*.o #{OBJ_PATH}/nat/*.o #{LIB_PATHS.join(' ')} -x c++ -std=c++17 #{@c_path || 'code.cpp'} #{libs}"
       end
     end
 

@@ -11,6 +11,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "gc_cpp.h"
+
 #include "natalie/array_value.hpp"
 #include "natalie/block.hpp"
 #include "natalie/class_value.hpp"

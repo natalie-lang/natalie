@@ -255,6 +255,9 @@ void Value::undefine_method(Env *env, const char *name) {
 }
 
 Value *Value::send(Env *env, const char *sym, ssize_t argc, Value **args, Block *block) {
+#ifdef NAT_GC_COLLECT_DEBUG
+    GC_gcollect();
+#endif
     ClassValue *klass;
     klass = singleton_class();
     if (klass) {

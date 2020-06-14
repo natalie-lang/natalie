@@ -4,3 +4,6 @@
 [submodule "ext/hashmap"]
 	path = ext/hashmap
 	url = https://github.com/DavidLeeds/hashmap.git
+[submodule "ext/bdwgc"]
+	path = ext/bdwgc
+	url = https://github.com/ivmai/bdwgc.git

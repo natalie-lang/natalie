@@ -1,12 +1,14 @@
 #pragma once
 
+#include <gc_cpp.h>
+
 #include "natalie/block.hpp"
 #include "natalie/env.hpp"
 #include "natalie/forward.hpp"
 
 namespace Natalie {
 
-struct Method {
+struct Method : public gc {
     Method(Value *(*fn)(Env *, Value *, ssize_t, Value **, Block *))
         : fn { fn }
         , undefined { !fn } { }

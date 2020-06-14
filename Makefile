@@ -5,6 +5,7 @@ SRC := src
 INC := include
 LIB := lib/natalie
 OBJ := obj
+BDWGC := ext/bdwgc/include
 HASHMAP := ext/hashmap/include
 ONIGMO := ext/onigmo
 NAT_CFLAGS ?=
@@ -12,7 +13,7 @@ NAT_CFLAGS ?=
 # debug, coverage, or release
 BUILD ?= debug
 
-cflags.debug := -g -Wall -Wextra -Werror -Wno-unused-parameter -D"NAT_GC_COLLECT_DEBUG=true"
+cflags.debug := -g -Wall -Wextra -Werror -Wno-unused-parameter
 cflags.coverage := ${cflags.debug} -fprofile-arcs -ftest-coverage
 cflags.release := -O1
 CFLAGS := ${cflags.${BUILD}} ${NAT_CFLAGS}
@@ -31,16 +32,19 @@ NAT_OBJECTS := $(patsubst $(SRC)/%.nat, $(OBJ)/nat/%.o, $(NAT_SOURCES))
 mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
 current_dir := $(notdir $(patsubst %/,%,$(dir $(mkfile_path))))
 
-build: write_build_type ext/hashmap/build/libhashmap.a ext/onigmo/.libs/libonigmo.a $(OBJECTS) $(NAT_OBJECTS)
+build: write_build_type ext/bdwgc/.libs/libgccpp.a ext/hashmap/build/libhashmap.a ext/onigmo/.libs/libonigmo.a $(OBJECTS) $(NAT_OBJECTS)
 
 write_build_type:
 	@echo $(BUILD) > .build
 
 $(OBJ)/%.o: $(SRC)/%.cpp
-	$(CXX) -std=c++17 $(CFLAGS) -I$(INC) -I$(HASHMAP) -I$(ONIGMO) -fPIC -c $< -o $@
+	$(CXX) -std=c++17 $(CFLAGS) -I$(INC) -I$(BDWGC) -I$(HASHMAP) -I$(ONIGMO) -fPIC -c $< -o $@
 
 $(OBJ)/nat/%.o: $(SRC)/%.nat
 	bin/natalie --compile-obj $@ $<
+
+ext/bdwgc/.libs/libgccpp.a:
+	cd ext/bdwgc && ./autogen.sh && ./configure --enable-cplusplus --enable-redirect-malloc --disable-threads --enable-static --with-pic && make
 
 ext/hashmap/build/libhashmap.a:
 	mkdir ext/hashmap/build && cd ext/hashmap/build && CFLAGS="-fPIC" cmake .. && make
@@ -51,7 +55,10 @@ ext/onigmo/.libs/libonigmo.a:
 clean:
 	rm -f $(OBJ)/*.o $(OBJ)/nat/*.o
 
-cleanall: clean clean_hashmap clean_onigmo
+cleanall: clean clean_bdwgc clean_hashmap clean_onigmo
+
+clean_bdwgc:
+	cd ext/bdwgc && make clean || true
 
 clean_hashmap:
 	cd ext/hashmap && rm -rf build || true
@@ -61,6 +68,9 @@ clean_onigmo:
 
 test: build
 	ruby test/all.rb
+
+test_slow:
+	NAT_CFLAGS="-D\"NAT_GC_COLLECT_DEBUG=true\"" make clean test
 
 test_valgrind: build
 	bin/natalie -c assign_test test/natalie/assign_test.nat
@@ -107,7 +117,7 @@ docker_coverage_report: docker_build
 	docker run $(DOCKER_FLAGS) -v $(CURDIR)/coverage-report:/natalie/coverage-report --rm --entrypoint bash natalie -c "make BUILD=coverage clean test; make coverage_report"
 
 cloc:
-	cloc --not-match-f=hashmap.\* --not-match-f=compile_commands.json --exclude-dir=.cquery_cache,.github,ext .
+	cloc include lib src test
 
 ctags:
 	ctags -R --exclude=.cquery_cache --exclude=ext --append=no .

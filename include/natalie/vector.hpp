@@ -1,5 +1,6 @@
 #pragma once
 
+#include <gc_cpp.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -8,7 +9,7 @@
 namespace Natalie {
 
 template <typename T>
-struct Vector {
+struct Vector : public gc {
     Vector() { }
 
     Vector(ssize_t initial_capacity)

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <assert.h>
+#include <gc_cpp.h>
 
 #include "natalie/env.hpp"
 #include "natalie/forward.hpp"
@@ -14,7 +15,7 @@ extern "C" {
 #include "onigmo.h"
 }
 
-struct Value {
+struct Value : public gc {
     enum class Type {
         Nil,
         Array,
