@@ -97,6 +97,8 @@ private:
 
     void increment_successive_char(Env *, char, char, char);
 
+    void raise_encoding_invalid_byte_sequence_error(Env *, ssize_t);
+
     char *m_str { nullptr };
     ssize_t m_length { 0 };
     ssize_t m_capacity { 0 };
