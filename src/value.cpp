@@ -24,7 +24,7 @@ ArrayValue *Value::as_array() {
 }
 
 ModuleValue *Value::as_module() {
-    assert(is_module() || is_class());
+    assert(is_module());
     return static_cast<ModuleValue *>(this);
 }
 
