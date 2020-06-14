@@ -140,8 +140,6 @@ extern "C" Env *build_top_env() {
     Object->const_set(env, "RuntimeError", RuntimeError);
     ClassValue *TypeError = StandardError->subclass(env, "TypeError");
     Object->const_set(env, "TypeError", TypeError);
-    ClassValue *SystemExit = StandardError->subclass(env, "SystemExit");
-    Object->const_set(env, "SystemExit", SystemExit);
     ClassValue *ZeroDivisionError = StandardError->subclass(env, "ZeroDivisionError");
     Object->const_set(env, "ZeroDivisionError", ZeroDivisionError);
     ClassValue *FrozenError = RuntimeError->subclass(env, "FrozenError");

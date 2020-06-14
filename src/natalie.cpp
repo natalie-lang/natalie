@@ -62,17 +62,18 @@ void run_at_exit_handlers(Env *env) {
 void print_exception_with_backtrace(Env *env, ExceptionValue *exception) {
     IoValue *stderr = env->global_get("$stderr")->as_io();
     int fd = stderr->fileno;
-    if (exception->backtrace->size() > 0) {
+    ArrayValue *backtrace = exception->backtrace();
+    if (backtrace && backtrace->size() > 0) {
         dprintf(fd, "Traceback (most recent call last):\n");
-        for (int i = exception->backtrace->size() - 1; i > 0; i--) {
-            StringValue *line = (*exception->backtrace)[i]->as_string();
+        for (int i = backtrace->size() - 1; i > 0; i--) {
+            StringValue *line = (*backtrace)[i]->as_string();
             assert(NAT_TYPE(line) == Value::Type::String);
             dprintf(fd, "        %d: from %s\n", i, line->c_str());
         }
-        StringValue *line = (*exception->backtrace)[0]->as_string();
+        StringValue *line = (*backtrace)[0]->as_string();
         dprintf(fd, "%s: ", line->c_str());
     }
-    dprintf(fd, "%s (%s)\n", exception->message, NAT_OBJ_CLASS(exception)->class_name());
+    dprintf(fd, "%s (%s)\n", exception->message(), NAT_OBJ_CLASS(exception)->class_name());
 }
 
 void handle_top_level_exception(Env *env, bool run_exit_handlers) {

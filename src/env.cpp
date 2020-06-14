@@ -80,23 +80,15 @@ Value *Env::raise(ClassValue *klass, const char *message_format, ...) {
     va_start(args, message_format);
     StringValue *message = StringValue::vsprintf(this, message_format, args);
     va_end(args);
-    ExceptionValue *exception = new ExceptionValue { this, klass, strdup(message->c_str()) };
+    ExceptionValue *exception = new ExceptionValue { this, klass, message->c_str() };
     this->raise_exception(exception);
     return exception;
 }
 
 Value *Env::raise_exception(ExceptionValue *exception) {
-    if (!exception->backtrace) { // only build a backtrace the first time the exception is raised (not on a re-raise)
-        ArrayValue *bt = exception->backtrace = new ArrayValue { this };
-        Env *bt_env = this;
-        do {
-            if (bt_env->file) {
-                char *method_name = this->build_code_location_name(bt_env);
-                bt->push(StringValue::sprintf(this, "%s:%d:in `%s'", bt_env->file, bt_env->line, method_name));
-                free(method_name);
-            }
-            bt_env = bt_env->caller;
-        } while (bt_env);
+    if (!exception->backtrace()) {
+        // only build a backtrace the first time the exception is raised (not on a re-raise)
+        exception->build_backtrace(this);
     }
     Env *env = this;
     while (env && !env->rescue) {

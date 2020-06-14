@@ -52,7 +52,7 @@ void StringValue::raise_encoding_invalid_byte_sequence_error(Env *env, ssize_t i
     StringValue *message = sprintf(env, "invalid byte sequence at index %i in string of size %i (string not long enough)", index, length());
     ClassValue *Encoding = NAT_OBJECT->const_get(env, "Encoding", true)->as_class();
     ClassValue *InvalidByteSequenceError = Encoding->const_get(env, "InvalidByteSequenceError", true)->as_class();
-    ExceptionValue *exception = new ExceptionValue { env, InvalidByteSequenceError, strdup(message->c_str()) };
+    ExceptionValue *exception = new ExceptionValue { env, InvalidByteSequenceError, message->c_str() };
     env->raise_exception(exception);
 }
 
