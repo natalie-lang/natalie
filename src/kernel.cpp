@@ -1,3 +1,5 @@
+#include <sys/resource.h>
+
 #include "natalie.hpp"
 #include "natalie/builtin.hpp"
 
@@ -320,6 +322,29 @@ Value *Kernel_cur_dir(Env *env, Value *self, ssize_t argc, Value **args, Block *
         }
         return absolute;
     }
+}
+
+Value *Kernel_get_usage(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
+    struct rusage usage;
+    if (getrusage(RUSAGE_SELF, &usage) != 0) {
+        return NAT_NIL;
+    }
+    HashValue *hash = new HashValue { env };
+    hash->put(env, new StringValue { env, "maxrss" }, new IntegerValue { env, usage.ru_maxrss });
+    hash->put(env, new StringValue { env, "ixrss" }, new IntegerValue { env, usage.ru_ixrss });
+    hash->put(env, new StringValue { env, "idrss" }, new IntegerValue { env, usage.ru_idrss });
+    hash->put(env, new StringValue { env, "isrss" }, new IntegerValue { env, usage.ru_isrss });
+    hash->put(env, new StringValue { env, "minflt" }, new IntegerValue { env, usage.ru_minflt });
+    hash->put(env, new StringValue { env, "majflt" }, new IntegerValue { env, usage.ru_majflt });
+    hash->put(env, new StringValue { env, "nswap" }, new IntegerValue { env, usage.ru_nswap });
+    hash->put(env, new StringValue { env, "inblock" }, new IntegerValue { env, usage.ru_inblock });
+    hash->put(env, new StringValue { env, "oublock" }, new IntegerValue { env, usage.ru_oublock });
+    hash->put(env, new StringValue { env, "msgsnd" }, new IntegerValue { env, usage.ru_msgsnd });
+    hash->put(env, new StringValue { env, "msgrcv" }, new IntegerValue { env, usage.ru_msgrcv });
+    hash->put(env, new StringValue { env, "nsignals" }, new IntegerValue { env, usage.ru_nsignals });
+    hash->put(env, new StringValue { env, "nvcsw" }, new IntegerValue { env, usage.ru_nvcsw });
+    hash->put(env, new StringValue { env, "nivcsw" }, new IntegerValue { env, usage.ru_nivcsw });
+    return hash;
 }
 
 }

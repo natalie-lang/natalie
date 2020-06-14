@@ -262,7 +262,8 @@ Value *IO_seek(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
     module->define_method(env, "tap", Kernel_tap);                                         \
     module->define_method(env, "Array", Kernel_Array);                                     \
     module->define_method(env, "send", Kernel_send);                                       \
-    module->define_method(env, "__dir__", Kernel_cur_dir);
+    module->define_method(env, "__dir__", Kernel_cur_dir);                                 \
+    module->define_method(env, "get_usage", Kernel_get_usage);
 
 Value *Kernel_puts(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Kernel_print(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
@@ -294,6 +295,7 @@ Value *Kernel_tap(Env *env, Value *self, ssize_t argc, Value **args, Block *bloc
 Value *Kernel_Array(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Kernel_send(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Kernel_cur_dir(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Kernel_get_usage(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
 Value *main_obj_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
