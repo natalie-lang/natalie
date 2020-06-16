@@ -17,11 +17,3 @@ jobs:
       run: make docker_test_valgrind
     - name: test release build
       run: make docker_test_release
-    - name: test release build with extra GC
-      run: make docker_test_release_slow
-    #- name: coverage report
-    #  run: make docker_coverage_report
-    #- uses: actions/upload-artifact@v1
-    #  with:
-    #    name: coverage-report
-    #    path: coverage-report

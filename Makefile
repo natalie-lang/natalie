@@ -69,24 +69,15 @@ clean_onigmo:
 test: build
 	ruby test/all.rb
 
-test_slow:
-	NAT_CFLAGS="-D\"NAT_GC_COLLECT_DEBUG=true\"" make clean test
-
-test_valgrind: build
-	bin/natalie -c assign_test test/natalie/assign_test.nat
-	valgrind --leak-check=no --suppressions=test/valgrind-suppressions --error-exitcode=1 ./assign_test
-	bin/natalie -c block_spec spec/language/block_spec.nat
-	valgrind --leak-check=no --suppressions=test/valgrind-suppressions --error-exitcode=1 ./block_spec
+test_valgrind:
+	NAT_CFLAGS="-DNAT_GC_DISABLE" make clean build
+	NAT_CFLAGS="-DNAT_GC_DISABLE" bin/natalie -c assign_test test/natalie/assign_test.nat
+	valgrind --leak-check=no --error-exitcode=1 ./assign_test
+	NAT_CFLAGS="-DNAT_GC_DISABLE" bin/natalie -c block_spec spec/language/block_spec.nat
+	valgrind --leak-check=no --error-exitcode=1 ./block_spec
 
 test_release:
 	BUILD="release" make clean test
-
-test_release_slow:
-	BUILD="release" NAT_CFLAGS="-D\"NAT_GC_COLLECT_DEBUG=true\"" make clean test
-
-coverage_report:
-	lcov -c --directory . --output-file coverage.info
-	genhtml coverage.info --output-directory coverage-report
 
 docker_build:
 	docker build -t natalie .
@@ -94,7 +85,7 @@ docker_build:
 docker_build_clang:
 	docker build -t natalie_clang --build-arg CXX=clang .
 
-docker_test: docker_test_gcc docker_test_clang docker_test_valgrind docker_test_release docker_test_release_slow
+docker_test: docker_test_gcc docker_test_clang docker_test_valgrind docker_test_release
 
 docker_test_gcc: docker_build
 	docker run $(DOCKER_FLAGS) --rm --entrypoint make natalie test
@@ -107,14 +98,6 @@ docker_test_valgrind: docker_build
 
 docker_test_release: docker_build
 	docker run $(DOCKER_FLAGS) --rm --entrypoint make natalie test_release
-
-docker_test_release_slow: docker_build
-	docker run $(DOCKER_FLAGS) --rm --entrypoint make natalie test_release_slow
-
-docker_coverage_report: docker_build
-	rm -rf coverage-report
-	mkdir coverage-report
-	docker run $(DOCKER_FLAGS) -v $(CURDIR)/coverage-report:/natalie/coverage-report --rm --entrypoint bash natalie -c "make BUILD=coverage clean test; make coverage_report"
 
 cloc:
 	cloc include lib src test

@@ -1,10 +1,10 @@
 #pragma once
 
-#include <gc_cpp.h>
 #include <setjmp.h>
 #include <stdlib.h>
 
 #include "natalie/forward.hpp"
+#include "natalie/gc.hpp"
 #include "natalie/vector.hpp"
 
 namespace Natalie {

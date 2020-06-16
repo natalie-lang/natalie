@@ -1,9 +1,8 @@
 #pragma once
 
-#include <gc_cpp.h>
-
 #include "natalie/env.hpp"
 #include "natalie/forward.hpp"
+#include "natalie/gc.hpp"
 
 namespace Natalie {
 

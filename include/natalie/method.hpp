@@ -1,10 +1,9 @@
 #pragma once
 
-#include <gc_cpp.h>
-
 #include "natalie/block.hpp"
 #include "natalie/env.hpp"
 #include "natalie/forward.hpp"
+#include "natalie/gc.hpp"
 
 namespace Natalie {
 

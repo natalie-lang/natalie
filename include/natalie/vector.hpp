@@ -1,8 +1,9 @@
 #pragma once
 
-#include <gc_cpp.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "natalie/gc.hpp"
 
 #define NAT_VECTOR_GROW_FACTOR 2
 

@@ -15,9 +15,11 @@ module Natalie
       File.join(ROOT_DIR, 'ext/onigmo'),
       File.join(ROOT_DIR, 'ext/hashmap/include'),
     ]
-    LIB_PATHS = [
+    GC_LIB_PATHS = ENV['NAT_CFLAGS'] =~ /NAT_GC_DISABLE/ ? [] : [
       File.join(ROOT_DIR, 'ext/bdwgc/.libs/libgc.a'),
       File.join(ROOT_DIR, 'ext/bdwgc/.libs/libgccpp.a'),
+    ]
+    LIB_PATHS = GC_LIB_PATHS + [
       File.join(ROOT_DIR, 'ext/hashmap/build/libhashmap.a'),
       File.join(ROOT_DIR, 'ext/onigmo/.libs/libonigmo.a'),
     ]
@@ -152,7 +154,7 @@ module Natalie
     end
 
     RELEASE_FLAGS = '-O1'
-    DEBUG_FLAGS = '-g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unknown-warning-option -D"NAT_GC_COLLECT_DEBUG=true"'
+    DEBUG_FLAGS = '-g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unknown-warning-option'
     COVERAGE_FLAGS = '-fprofile-arcs -ftest-coverage'
 
     def build_flags

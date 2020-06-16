@@ -222,9 +222,6 @@ extern "C" Value *EVAL(Env *env) {
 }
 
 int main(int argc, char *argv[]) {
-#ifdef NAT_GC_DISABLE
-    GC_disable();
-#endif
     setvbuf(stdout, nullptr, _IOLBF, 1024);
     Env *env = build_top_env();
     ArrayValue *ARGV = new ArrayValue { env };
