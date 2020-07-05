@@ -72,4 +72,11 @@ describe 'block' do
   describe 'passing a symbol as a block' do
     ['2'].map(&:to_i).should == [2]
   end
+
+  describe "method call with block || another value" do
+    it 'works' do
+      r = [1, 2].any? { |i| i > 2 } || 'nope'
+      r.should == 'nope'
+    end
+  end
 end

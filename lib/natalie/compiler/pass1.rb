@@ -713,9 +713,11 @@ module Natalie
 
       def process_or(exp)
         (_, lhs, rhs) = exp
-        lhs = process(lhs)
         rhs = process(rhs)
-        exp.new(:c_if, s(:not, s(:is_truthy, lhs)), rhs, lhs)
+        lhs_result = temp('lhs')
+        exp.new(:block,
+                s(:declare, lhs_result, process(lhs)),
+                s(:c_if, s(:not, s(:is_truthy, lhs_result)), rhs, lhs_result))
       end
 
       def process_rescue(exp)
