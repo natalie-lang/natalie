@@ -38,6 +38,10 @@ class CanRefIndex
   end
 end
 
+class AttrAssign
+  attr_accessor :foo
+end
+
 describe 'assignment' do
   it 'does single assignment' do
     a = 1
@@ -155,6 +159,15 @@ describe 'assignment' do
     h[:e].should == 6
     h[:e] -= 1
     h[:e].should == 5
+  end
+
+  it 'can optionally call an attr writer with ||=' do
+    a = AttrAssign.new
+    a.foo ||= 'foo'
+    a.foo.should == 'foo'
+
+    a.foo ||= 'bar'
+    a.foo.should == 'foo'
   end
 
   it 'can optionally override a variable with &&=' do

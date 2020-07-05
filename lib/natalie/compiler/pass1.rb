@@ -653,6 +653,25 @@ module Natalie
         end
       end
 
+      def process_op_asgn2(exp)
+        s(:op_asgn2, s(:lvar, :a), :foo=, :"||", s(:str, "foo"))
+        (_, obj, writer, op, *val_args) = exp
+        raise "expected writer=" unless writer =~ /=$/
+        reader = writer.to_s.chop
+        raise "expected ||" unless op == :"||"
+        val = temp('val')
+        obj_name = temp('obj')
+        exp.new(:block,
+                s(:declare, obj_name, process(obj)),
+                s(:declare, val, s(:send, obj_name, reader, s(:args))),
+                s(:c_if, s(:is_truthy, val),
+                  val,
+                  s(:send, obj_name, writer,
+                    s(:args,
+                      *val_args.map { |a| process(a) }
+                     ))))
+      end
+
       def process_op_asgn_and(exp)
         process_op_asgn_bool(exp, condition: ->(result_name) { s(:not, s(:is_truthy, result_name)) })
       end
