@@ -5,6 +5,8 @@ NUM = 1
 $global = 2
 
 class Foo
+  class Bar
+  end
 end
 
 def foo
@@ -15,6 +17,11 @@ describe 'defined?' do
     defined?(NUM).should == 'constant'
     defined?(Foo).should == 'constant'
     defined?(NonExistent).should == nil
+  end
+
+  it 'recognizes namespaced constants' do
+    defined?(Foo::Bar).should == 'constant'
+    defined?(Food::Bar).should == nil
   end
 
   it 'recognizes variables' do

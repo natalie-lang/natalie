@@ -390,6 +390,15 @@ module Natalie
           decl '} else {'
           decl "#{result} = #{process_atom s(:nil)};"
           decl '}'
+        when :colon2
+          (_, namespace, name) = name
+          raise "expected const" unless namespace.first == :const
+          decl "Value *#{result};"
+          decl "if (!NAT_RESCUE(env)) {"
+          decl "#{result} = NAT_OBJECT->const_get(env, #{namespace.last.to_s.inspect}, false)->defined_obj(env, #{name.to_s.inspect});"
+          decl '} else {'
+          decl "#{result} = #{process_atom s(:nil)};"
+          decl '}'
         when :lit, :str
           decl "Value *#{result} = new StringValue { env, \"expression\" };"
         when :nil
