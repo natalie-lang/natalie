@@ -7,7 +7,7 @@ require_relative '../lib/natalie'
 
 orig_args = ARGV.dup
 
-options = { load_path: [] }
+options = { load_path: [], require: [] }
 OptionParser.new do |opts|
   opts.banner = 'Usage: natalie [options] file.nat'
 
@@ -35,6 +35,10 @@ OptionParser.new do |opts|
   opts.on('--compile-obj path', 'Compile to object file') do |path|
     options[:compile] = path
     options[:compile_obj] = true
+  end
+
+  opts.on('-r library', 'Require the library before executing your script') do |library|
+    options[:require] << library
   end
 
   opts.on('-I path', 'Specify $LOAD_PATH directory (may be used more than once)') do |p|
@@ -132,9 +136,15 @@ class Runner
     if options[:execute]
       @source_path = '-e'
       @code = options[:execute].gsub(/\\n/, "\n")
+      if options[:require].any?
+        @code = options[:require].map { |l| "require #{l.inspect}" }.join("\n") + "\n" + @code
+      end
     elsif ARGV.any?
       @source_path = ARGV.shift
       @code = File.read(source_path)
+      if options[:require].any?
+        @code = options[:require].map { |l| "require #{l.inspect}" }.join("\n") + "\n" + @code
+      end
     else
       @repl = true
       @source_path = '.'
