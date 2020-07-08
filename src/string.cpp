@@ -267,22 +267,52 @@ Value *String_ref(Env *env, Value *self_value, ssize_t argc, Value **args, Block
     NAT_ASSERT_ARGC(1);
     StringValue *self = self_value->as_string();
     Value *index_obj = args[0];
-    NAT_ASSERT_TYPE(index_obj, Value::Type::Integer, "Integer");
-    int64_t index = index_obj->as_integer()->to_int64_t();
 
-    // not sure how we'd handle that given a 64-bit signed int for an index,
-    // not to mention that a string that long would be insane to index into
+    // not sure how we'd handle a string that big anyway
     assert(self->length() < INT64_MAX);
 
-    ArrayValue *chars = self->chars(env);
-    if (index < 0) {
-        index = chars->size() + index;
-    }
+    if (index_obj->is_integer()) {
+        int64_t index = index_obj->as_integer()->to_int64_t();
 
-    if (index < 0 || index >= (int64_t)chars->size()) {
-        return NAT_NIL;
+        ArrayValue *chars = self->chars(env);
+        if (index < 0) {
+            index = chars->size() + index;
+        }
+
+        if (index < 0 || index >= (int64_t)chars->size()) {
+            return NAT_NIL;
+        }
+        return (*chars)[index];
+    } else if (index_obj->is_range()) {
+        RangeValue *range = index_obj->as_range();
+
+        NAT_ASSERT_TYPE(range->begin(), Value::Type::Integer, "Integer");
+        NAT_ASSERT_TYPE(range->end(), Value::Type::Integer, "Integer");
+
+        int64_t begin = range->begin()->as_integer()->to_int64_t();
+        int64_t end = range->end()->as_integer()->to_int64_t();
+
+        ArrayValue *chars = self->chars(env);
+
+        if (begin < 0) begin = chars->size() + begin;
+        if (end < 0) end = chars->size() + end;
+
+        if (begin < 0 || end < 0) return NAT_NIL;
+        if (begin >= chars->size()) return NAT_NIL;
+
+        if (!range->exclude_end()) end++;
+
+        ssize_t max = chars->size();
+        end = end > max ? max : end;
+        StringValue *result = new StringValue { env };
+        for (int64_t i = begin; i < end; i++) {
+            result->append_string(env, (*chars)[i]);
+        }
+
+        return result;
     }
-    return (*chars)[index];
+    NAT_ASSERT_TYPE(index_obj, Value::Type::Integer, "Integer");
+    abort();
 }
 
 Value *String_index(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {

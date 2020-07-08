@@ -126,6 +126,24 @@ describe 'string' do
       s = "😉”ăa"
       s[-5].should == nil
     end
+
+    context 'given a range' do
+      it 'returns a substring' do
+        s = "😉”ăa"
+        s[1..-1].should == "”ăa"
+      end
+
+      it 'returns nil for a range out of bounds' do
+        s = "hello"
+        s[-2..0].should == ""
+        s[2..100].should == "llo"
+      end
+
+      it 'returns nil for a range that starts beyond the end of the string' do
+        s = "hello"
+        s[90..100].should == nil
+      end
+    end
   end
 
   describe '#succ' do
