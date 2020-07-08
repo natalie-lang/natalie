@@ -218,22 +218,30 @@ module Natalie
 
     def macro_require(node, current_path)
       name = node[1]
-      REQUIRE_EXTENSIONS.each do |extension|
-        path = "#{name}.#{extension}"
-        next unless full_path = find_full_path(path, base: Dir.pwd, search: true)
+      if File.extname(name).empty?
+        REQUIRE_EXTENSIONS.each do |extension|
+          path = "#{name}.#{extension}"
+          next unless full_path = find_full_path(path, base: Dir.pwd, search: true)
+          return load_file(full_path)
+        end
+      elsif (full_path = find_full_path(name, base: Dir.pwd, search: true))
         return load_file(full_path)
       end
-      raise LoadError, "cannot load such file -- #{name}.{#{REQUIRE_EXTENSIONS.join(',')}}"
+      raise LoadError, "cannot load such file #{node.file}##{node.line}-- #{name}.{#{REQUIRE_EXTENSIONS.join(',')}}"
     end
 
     def macro_require_relative(node, current_path)
       name = node[1]
-      REQUIRE_EXTENSIONS.each do |extension|
-        path = "#{name}.#{extension}"
-        next unless full_path = find_full_path(path, base: File.dirname(current_path), search: false)
+      if File.extname(name).empty?
+        REQUIRE_EXTENSIONS.each do |extension|
+          path = "#{name}.#{extension}"
+          next unless full_path = find_full_path(path, base: File.dirname(current_path), search: false)
+          return load_file(full_path)
+        end
+      elsif (full_path = find_full_path(name, base: File.dirname(current_path), search: false))
         return load_file(full_path)
       end
-      raise LoadError, "cannot load such file -- #{name}.{#{REQUIRE_EXTENSIONS.join(',')}}"
+      raise LoadError, "cannot load such file at #{node.file}##{node.line} -- #{name}.{#{REQUIRE_EXTENSIONS.join(',')}}"
     end
 
     def macro_load(node, _)
