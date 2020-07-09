@@ -1,6 +1,7 @@
 class SpecFailedException < StandardError; end
 
 @context = []
+@shared = {}
 @specs = []
 
 $expectations = []
@@ -27,10 +28,14 @@ class Context
   end
 end
 
-def describe(description)
-  @context << Context.new(description)
-  yield
-  @context.pop
+def describe(description, shared: false, &block)
+  if shared
+    @shared[description] = block
+  else
+    @context << Context.new(description)
+    yield
+    @context.pop
+  end
 end
 
 alias context describe
@@ -45,6 +50,20 @@ end
 
 def xit(test, &block)
   @specs << [@context.dup, test, nil]
+end
+
+def it_behaves_like(behavior, method, obj = nil)
+  before :all do
+    @method = method
+    @object = obj
+  end
+
+  block = @shared[behavior]
+  if block
+    block.call
+  else
+    raise "Cannot find shared behavior: #{behavior.inspect} (available: #{@shared.keys.inspect})"
+  end
 end
 
 def ruby_version_is(_)
