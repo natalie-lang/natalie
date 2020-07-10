@@ -142,8 +142,7 @@ Value *Integer_coerce(Env *env, Value *self_value, ssize_t argc, Value **args, B
     Value *arg = args[0];
     switch (NAT_TYPE(arg)) {
     case Value::Type::Float:
-        // FIXME: narrowing conversion -- google this!
-        ary->push(new FloatValue { env, (double)self->to_int64_t() });
+        ary->push(new FloatValue { env, self->to_int64_t() });
         ary->push(arg);
         break;
     case Value::Type::Integer:

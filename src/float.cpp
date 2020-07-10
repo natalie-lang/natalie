@@ -49,8 +49,7 @@ Value *Float_coerce(Env *env, Value *self_value, ssize_t argc, Value **args, Blo
         ary->push(arg);
         break;
     case Value::Type::Integer:
-        // FIXME: narrowing conversion -- google this!
-        ary->push(new FloatValue { env, (double)arg->as_integer()->to_int64_t() });
+        ary->push(new FloatValue { env, arg->as_integer()->to_int64_t() });
         break;
     case Value::Type::String:
         printf("TODO\n");
