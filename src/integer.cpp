@@ -43,15 +43,31 @@ Value *Integer_div(Env *env, Value *self_value, ssize_t argc, Value **args, Bloc
     IntegerValue *self = self_value->as_integer();
     NAT_ASSERT_ARGC(1);
     Value *arg = args[0];
-    NAT_ASSERT_TYPE(arg, Value::Type::Integer, "Integer");
-
-    int64_t dividend = self->to_int64_t();
-    int64_t divisor = arg->as_integer()->to_int64_t();
-    if (divisor == 0) {
-        NAT_RAISE(env, "ZeroDivisionError", "divided by 0");
+    switch (arg->type) {
+    case Value::Type::Integer: {
+        int64_t dividend = self->to_int64_t();
+        int64_t divisor = arg->as_integer()->to_int64_t();
+        if (divisor == 0) {
+            NAT_RAISE(env, "ZeroDivisionError", "divided by 0");
+        }
+        int64_t result = dividend / divisor;
+        return new IntegerValue { env, result };
     }
-    int64_t result = dividend / divisor;
-    return new IntegerValue { env, result };
+
+    case Value::Type::Float: {
+        double dividend = static_cast<double>(self->to_int64_t());
+        double divisor = arg->as_float()->to_double();
+        if (divisor == 0.0) {
+            return FloatValue::nan(env);
+        }
+        double result = dividend / divisor;
+        return new FloatValue { env, result };
+    }
+
+    default:
+        NAT_ASSERT_TYPE(arg, Value::Type::Integer, "Integer");
+        abort();
+    }
 }
 
 Value *Integer_mod(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {

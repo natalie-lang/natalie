@@ -66,4 +66,39 @@ Value *Float_to_i(Env *env, Value *self, ssize_t argc, Value **args, Block *bloc
     return new IntegerValue { env, static_cast<int64_t>(floor(self->as_float()->to_double())) };
 }
 
+Value *Float_nan(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
+    if (self->as_float()->is_nan()) {
+        return NAT_TRUE;
+    } else {
+        return NAT_FALSE;
+    }
+}
+
+Value *Float_div(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    FloatValue *self = self_value->as_float();
+    NAT_ASSERT_ARGC(1);
+    Value *arg = args[0];
+    NAT_ASSERT_TYPE(arg, Value::Type::Integer, "Integer");
+
+    double dividend = self->to_double();
+    double divisor;
+
+    switch (arg->type) {
+    case Value::Type::Integer:
+        divisor = static_cast<double>(arg->as_integer()->to_int64_t());
+        break;
+    case Value::Type::Float:
+        divisor = arg->as_float()->to_double();
+        break;
+    default:
+        NAT_ASSERT_TYPE(arg, Value::Type::Integer, "Integer");
+    }
+
+    if (divisor == 0.0) {
+        return FloatValue::nan(env);
+    }
+    double result = dividend / divisor;
+    return new FloatValue { env, result };
+}
+
 }

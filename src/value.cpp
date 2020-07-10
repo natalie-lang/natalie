@@ -283,6 +283,7 @@ Value *Value::dup(Env *env) {
     case Value::Type::String:
         return new StringValue { *as_string() };
     case Value::Type::False:
+    case Value::Type::Float:
     case Value::Type::Integer:
     case Value::Type::Nil:
     case Value::Type::Symbol:

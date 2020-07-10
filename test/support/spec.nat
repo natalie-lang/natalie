@@ -66,6 +66,10 @@ def it_behaves_like(behavior, method, obj = nil)
   end
 end
 
+def nan_value
+  0/0.0
+end
+
 def ruby_version_is(_)
   yield # TODO
 end
@@ -151,6 +155,23 @@ class Matcher
       expectation.inverted_match(@subject)
     else
       expectation.match(@subject)
+    end
+  end
+
+  # FIXME: remove this once method_missing is implemented
+  def nan?
+    method_missing(:nan?)
+  end
+
+  def method_missing(method, *args)
+    if !@inverted
+      if !@subject.send(method, *args)
+        raise SpecFailedException, "#{@subject.inspect} should be #{method}"
+      end
+    else
+      if @subject.send(method, *args)
+        raise SpecFailedException, "#{@subject.inspect} should not be #{method}"
+      end
     end
   end
 end

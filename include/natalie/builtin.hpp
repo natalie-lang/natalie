@@ -169,12 +169,16 @@ Value *File_expand_path(Env *env, Value *self, ssize_t argc, Value **args, Block
     klass->define_method(env, "<=>", Float_cmp);       \
     klass->define_method(env, "coerce", Float_coerce); \
     klass->define_method(env, "eql?", Float_eql);      \
-    klass->define_method(env, "to_i", Float_to_i);
+    klass->define_method(env, "to_i", Float_to_i);     \
+    klass->define_method(env, "nan?", Float_nan);      \
+    klass->define_method(env, "/", Float_div);
 
 Value *Float_cmp(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_coerce(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_eql(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_to_i(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Float_nan(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Float_div(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
 Value *Hash_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Hash_square_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
