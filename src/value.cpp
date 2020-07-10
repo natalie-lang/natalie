@@ -43,6 +43,11 @@ ExceptionValue *Value::as_exception() {
     return static_cast<ExceptionValue *>(this);
 }
 
+FloatValue *Value::as_float() {
+    assert(is_float());
+    return static_cast<FloatValue *>(this);
+}
+
 HashValue *Value::as_hash() {
     assert(is_hash());
     return static_cast<HashValue *>(this);
@@ -118,7 +123,7 @@ SymbolValue *Value::to_symbol(Env *env, Conversion conversion) {
 }
 
 ClassValue *Value::singleton_class(Env *env) {
-    if (is_integer() || is_symbol()) {
+    if (is_integer() || is_float() || is_symbol()) {
         NAT_RAISE(env, "TypeError", "can't define singleton");
     }
     if (!m_singleton_class) {

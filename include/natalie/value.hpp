@@ -23,6 +23,7 @@ struct Value : public gc {
         Encoding,
         Exception,
         False,
+        Float,
         Hash,
         Integer,
         Io,
@@ -84,6 +85,7 @@ struct Value : public gc {
     bool is_class() const { return type == Type::Class; }
     bool is_encoding() const { return type == Type::Encoding; }
     bool is_exception() const { return type == Type::Exception; }
+    bool is_float() const { return type == Type::Float; }
     bool is_hash() const { return type == Type::Hash; }
     bool is_integer() const { return type == Type::Integer; }
     bool is_io() const { return type == Type::Io; }
@@ -105,6 +107,7 @@ struct Value : public gc {
     ClassValue *as_class();
     EncodingValue *as_encoding();
     ExceptionValue *as_exception();
+    FloatValue *as_float();
     HashValue *as_hash();
     IntegerValue *as_integer();
     IoValue *as_io();

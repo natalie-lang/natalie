@@ -135,4 +135,29 @@ Value *Integer_succ(Env *env, Value *self_value, ssize_t argc, Value **args, Blo
     return new IntegerValue { env, self->to_int64_t() + 1 };
 }
 
+Value *Integer_coerce(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    IntegerValue *self = self_value->as_integer();
+    NAT_ASSERT_ARGC(1);
+    ArrayValue *ary = new ArrayValue { env };
+    Value *arg = args[0];
+    switch (NAT_TYPE(arg)) {
+    case Value::Type::Float:
+        // FIXME: narrowing conversion -- google this!
+        ary->push(new FloatValue { env, (double)self->to_int64_t() });
+        ary->push(arg);
+        break;
+    case Value::Type::Integer:
+        ary->push(self);
+        ary->push(arg);
+        break;
+    case Value::Type::String:
+        printf("TODO\n");
+        abort();
+        break;
+    default:
+        NAT_RAISE(env, "ArgumentError", "invalid value for Float(): %S", NAT_INSPECT(arg));
+    }
+    return ary;
+}
+
 }

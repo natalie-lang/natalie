@@ -127,7 +127,7 @@ module Natalie
           process(exp)
         when String
           exp
-        when Symbol, Integer, true, false
+        when Symbol, Integer, Float, true, false
           exp.to_s
         else
           raise "unknown node type: #{exp.inspect}"

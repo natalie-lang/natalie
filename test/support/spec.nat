@@ -282,6 +282,14 @@ class Object
     BeNilExpectation.new
   end
 
+  def be_true
+    EqualExpectation.new(true)
+  end
+
+  def be_false
+    EqualExpectation.new(false)
+  end
+
   def be_kind_of(klass)
     BeKindOfExpectation.new(klass)
   end

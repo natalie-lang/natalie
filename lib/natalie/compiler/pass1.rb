@@ -402,6 +402,8 @@ module Natalie
       def process_lit(exp)
         lit = exp.last
         case lit
+        when Float
+          exp.new(:new, :FloatValue, :env, lit)
         when Integer
           exp.new(:new, :IntegerValue, :env, lit)
         when Range

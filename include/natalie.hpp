@@ -18,6 +18,7 @@
 #include "natalie/env.hpp"
 #include "natalie/exception_value.hpp"
 #include "natalie/false_value.hpp"
+#include "natalie/float_value.hpp"
 #include "natalie/global_env.hpp"
 #include "natalie/hash_value.hpp"
 #include "natalie/integer_value.hpp"

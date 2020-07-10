@@ -81,6 +81,10 @@ extern "C" Env *build_top_env() {
     Object->const_set(env, "Fixnum", Integer);
     NAT_INTEGER_INIT(Integer);
 
+    ClassValue *Float = Numeric->subclass(env, "Float");
+    Object->const_set(env, "Float", Float);
+    NAT_FLOAT_INIT(Float);
+
     ClassValue *String = Object->subclass(env, "String");
     Object->const_set(env, "String", String);
     NAT_STRING_INIT(String);

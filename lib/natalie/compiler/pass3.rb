@@ -45,7 +45,7 @@ module Natalie
         case exp
         when Sexp
           process(exp)
-        when String, Symbol, Integer, nil
+        when String, Symbol, Integer, Float, nil
           exp
         else
           raise "unknown node type: #{exp.inspect}"

@@ -9,6 +9,7 @@ struct EncodingValue;
 struct Env;
 struct ExceptionValue;
 struct FalseValue;
+struct FloatValue;
 struct GlobalEnv;
 struct HashKey;
 struct HashVal;
