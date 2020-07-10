@@ -160,4 +160,15 @@ Value *Integer_coerce(Env *env, Value *self_value, ssize_t argc, Value **args, B
     return ary;
 }
 
+Value *Integer_eql(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    IntegerValue *self = self_value->as_integer();
+    NAT_ASSERT_ARGC(1);
+    Value *other = args[0];
+    if (other->is_integer() && other->as_integer()->to_int64_t() == self->to_int64_t()) {
+        return NAT_TRUE;
+    } else {
+        return NAT_FALSE;
+    }
+}
+
 }

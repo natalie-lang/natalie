@@ -168,11 +168,13 @@ Value *File_expand_path(Env *env, Value *self, ssize_t argc, Value **args, Block
 #define NAT_FLOAT_INIT(klass)                          \
     klass->define_method(env, "<=>", Float_cmp);       \
     klass->define_method(env, "coerce", Float_coerce); \
-    klass->define_method(env, "eql?", Float_eql);
+    klass->define_method(env, "eql?", Float_eql);      \
+    klass->define_method(env, "to_i", Float_to_i);
 
 Value *Float_cmp(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_coerce(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_eql(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Float_to_i(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
 Value *Hash_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Hash_square_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
@@ -203,7 +205,8 @@ Value *Hash_is_key(Env *env, Value *self, ssize_t argc, Value **args, Block *blo
     klass->define_method(env, "&", Integer_bitwise_and); \
     klass->define_method(env, "|", Integer_bitwise_or);  \
     klass->define_method(env, "succ", Integer_succ);     \
-    klass->define_method(env, "coerce", Integer_coerce);
+    klass->define_method(env, "coerce", Integer_coerce); \
+    klass->define_method(env, "eql?", Integer_eql);
 
 Value *Integer_to_s(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Integer_add(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
@@ -219,6 +222,7 @@ Value *Integer_bitwise_and(Env *env, Value *self, ssize_t argc, Value **args, Bl
 Value *Integer_bitwise_or(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Integer_succ(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Integer_coerce(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Integer_eql(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
 #define NAT_IO_INIT(klass)                                  \
     klass->define_singleton_method(env, "new", IO_new);     \

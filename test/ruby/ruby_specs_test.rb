@@ -11,7 +11,7 @@ describe 'ruby/spec' do
     next if code =~ /# skip-test/
     describe path do
       it 'passes all specs' do
-        out_nat = `bin/natalie #{path} 2>&1`.force_encoding("US-ASCII").encode("utf-8", replace: nil)
+        out_nat = `bin/natalie #{path} 2>&1` #.force_encoding("US-ASCII").encode("utf-8", replace: nil)
         puts out_nat unless $?.success?
         expect($?).must_be :success?
       end

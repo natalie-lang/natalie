@@ -187,6 +187,24 @@ class BeKindOfExpectation
   end
 end
 
+class EqlExpectation
+  def initialize(other)
+    @other = other
+  end
+
+  def match(subject)
+    if !subject.eql?(@other)
+      raise SpecFailedException, subject.inspect + ' should be eql (same type) to ' + @other.inspect
+    end
+  end
+
+  def inverted_match(subject)
+    if subject.eql?(@other)
+      raise SpecFailedException, subject.inspect + ' should not be eql (same type) to ' + @other.inspect
+    end
+  end
+end
+
 class EqualExpectation
   def initialize(other)
     @other = other
@@ -292,6 +310,10 @@ class Object
 
   def be_kind_of(klass)
     BeKindOfExpectation.new(klass)
+  end
+
+  def eql(other)
+    EqlExpectation.new(other)
   end
 
   def equal(other)

@@ -1,5 +1,6 @@
 #include "natalie.hpp"
 #include "natalie/builtin.hpp"
+#include <math.h>
 
 namespace Natalie {
 
@@ -59,6 +60,11 @@ Value *Float_coerce(Env *env, Value *self_value, ssize_t argc, Value **args, Blo
         NAT_RAISE(env, "ArgumentError", "invalid value for Float(): %S", NAT_INSPECT(arg));
     }
     return ary;
+}
+
+Value *Float_to_i(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    return new IntegerValue { env, static_cast<int64_t>(floor(self->as_float()->to_double())) };
 }
 
 }
