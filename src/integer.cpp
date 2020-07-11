@@ -59,8 +59,8 @@ Value *Integer_div(Env *env, Value *self_value, ssize_t argc, Value **args, Bloc
 
     } else if (arg->respond_to(env, "coerce")) {
         Value *coerced = arg->send(env, "coerce", 1, &self_value, nullptr);
-        Value *dividend = (*coerced->as_array())[1];
-        Value *divisor = (*coerced->as_array())[0];
+        Value *dividend = (*coerced->as_array())[0];
+        Value *divisor = (*coerced->as_array())[1];
         return dividend->send(env, "/", 1, &divisor, nullptr);
 
     } else {
