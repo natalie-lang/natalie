@@ -1,6 +1,8 @@
 #include "natalie.hpp"
 #include "string.h"
 
+#include <math.h>
+
 namespace Natalie {
 
 bool FloatValue::eq(Env *env, Value &other) {
@@ -22,6 +24,21 @@ bool FloatValue::eql(Value &other) {
     if (!other.is_float()) return false;
     auto *f = other.as_float();
     return f->m_float == m_float && f->m_nan == m_nan && f->m_infinity == m_infinity;
+}
+
+Value *FloatValue::ceil(Env *env, int64_t precision) {
+    double value = this->to_double();
+    FloatValue *result;
+    if (precision == 0) {
+        result = new FloatValue { env, ::ceil(value) };
+    } else {
+        value *= pow(10, precision);
+        result = new FloatValue { env, ::ceil(value) * (pow(10, (-1 * precision))) };
+    }
+    if (precision <= 0) {
+        return result->to_int_no_truncation(env);
+    }
+    return result;
 }
 
 }

@@ -167,6 +167,7 @@ Value *File_expand_path(Env *env, Value *self, ssize_t argc, Value **args, Block
 
 #define NAT_FLOAT_INIT(klass)                               \
     klass->define_method(env, "abs", Float_abs);            \
+    klass->define_method(env, "ceil", Float_ceil);          \
     klass->define_method(env, "coerce", Float_coerce);      \
     klass->define_method(env, "eql?", Float_eql);           \
     klass->define_method(env, "+", Float_add);              \
@@ -190,6 +191,7 @@ Value *File_expand_path(Env *env, Value *self, ssize_t argc, Value **args, Block
 
 Value *Float_abs(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_add(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Float_ceil(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_cmp(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_coerce(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_div(Env *env, Value *self, ssize_t argc, Value **args, Block *block);

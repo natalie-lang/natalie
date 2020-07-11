@@ -230,6 +230,17 @@ Value *Float_abs(Env *env, Value *self_value, ssize_t argc, Value **args, Block 
     }
 }
 
+Value *Float_ceil(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0, 1);
+    FloatValue *self = self_value->as_float();
+    int64_t precision = 0;
+    if (argc == 1) {
+        NAT_ASSERT_TYPE(args[0], Value::Type::Integer, "Integer");
+        precision = args[0]->as_integer()->to_int64_t();
+    }
+    return self->ceil(env, precision);
+}
+
 Value *Float_infinite(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     FloatValue *self = self_value->as_float();
