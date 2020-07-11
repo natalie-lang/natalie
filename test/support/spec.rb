@@ -364,6 +364,10 @@ class Object
     BeNanExpectation.new
   end
 
+  def be_positive_zero
+    EqlExpectation.new(0.0)
+  end
+
   def be_true
     EqualExpectation.new(true)
   end

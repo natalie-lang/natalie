@@ -212,8 +212,8 @@ Value *Float_abs(Env *env, Value *self_value, ssize_t argc, Value **args, Block 
     NAT_ASSERT_ARGC(0);
     FloatValue *self = self_value->as_float();
     auto number = self->to_double();
-    if (number < 0.0) {
-        return new FloatValue { env, -1 * number };
+    if (number == -0.0 || number < 0.0) {
+        return self->negate();
     } else {
         return self;
     }
