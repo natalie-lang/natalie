@@ -26,8 +26,8 @@ endif
 SOURCES := $(filter-out $(SRC)/main.cpp, $(wildcard $(SRC)/*.cpp))
 OBJECTS := $(patsubst $(SRC)/%.cpp, $(OBJ)/%.o, $(SOURCES))
 
-NAT_SOURCES := $(wildcard $(SRC)/*.nat)
-NAT_OBJECTS := $(patsubst $(SRC)/%.nat, $(OBJ)/nat/%.o, $(NAT_SOURCES))
+NAT_SOURCES := $(wildcard $(SRC)/*.rb)
+NAT_OBJECTS := $(patsubst $(SRC)/%.rb, $(OBJ)/nat/%.o, $(NAT_SOURCES))
 
 mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
 current_dir := $(notdir $(patsubst %/,%,$(dir $(mkfile_path))))
@@ -40,7 +40,7 @@ write_build_type:
 $(OBJ)/%.o: $(SRC)/%.cpp
 	$(CXX) -std=c++17 $(CFLAGS) -I$(INC) -I$(BDWGC) -I$(HASHMAP) -I$(ONIGMO) -fPIC -c $< -o $@
 
-$(OBJ)/nat/%.o: $(SRC)/%.nat
+$(OBJ)/nat/%.o: $(SRC)/%.rb
 	bin/natalie --compile-obj $@ $<
 
 ext/bdwgc/.libs/libgccpp.a:
@@ -71,9 +71,9 @@ test: build
 
 test_valgrind:
 	NAT_CFLAGS="-DNAT_GC_DISABLE" make clean build
-	NAT_CFLAGS="-DNAT_GC_DISABLE" bin/natalie -c assign_test test/natalie/assign_test.nat
+	NAT_CFLAGS="-DNAT_GC_DISABLE" bin/natalie -c assign_test test/natalie/assign_test.rb
 	valgrind --leak-check=no --error-exitcode=1 ./assign_test
-	NAT_CFLAGS="-DNAT_GC_DISABLE" bin/natalie -c block_spec spec/language/block_spec.nat
+	NAT_CFLAGS="-DNAT_GC_DISABLE" bin/natalie -c block_spec spec/language/block_spec.rb
 	valgrind --leak-check=no --error-exitcode=1 ./block_spec
 
 test_release:

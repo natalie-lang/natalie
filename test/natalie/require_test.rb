@@ -2,7 +2,7 @@ require_relative '../spec_helper'
 
 # all of these are in the support directory
 require 'require_sub1'
-load 'require_sub2.nat'
+load 'require_sub2.rb'
 require_relative '../support/require_sub3'
 
 describe 'require' do

@@ -13,7 +13,7 @@ orig_args = ARGV.dup
 
 options = { load_path: [], require: [] }
 OptionParser.new do |opts|
-  opts.banner = 'Usage: natalie [options] file.nat'
+  opts.banner = 'Usage: natalie [options] file.rb'
 
   opts.on('-d [level]', '--debug [level]', 'Show debug output') do |level|
     case level

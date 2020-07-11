@@ -10,7 +10,7 @@ def run_nat(path, *args)
 end
 
 def run_ruby(path, *args)
-  out_ruby = `ruby -r./test/support/ruby_require_patch -I test/support #{path} #{args.join(' ')} 2>&1`
+  out_ruby = `ruby -I test/support #{path} #{args.join(' ')} 2>&1`
   puts out_ruby unless $?.to_i == 0
   expect($?).must_be :success?
   out_ruby
@@ -26,7 +26,7 @@ describe 'Natalie tests' do
   parallelize_me!
 
   Dir.chdir File.expand_path('../..', __dir__)
-  Dir['test/natalie/*_test.nat'].each do |path|
+  Dir['test/natalie/*_test.rb'].each do |path|
     code = File.read(path, encoding: 'utf-8')
     next if code =~ /# skip-test/
     describe path do
@@ -36,15 +36,15 @@ describe 'Natalie tests' do
     end
   end
 
-  describe 'examples/fib.nat' do
+  describe 'examples/fib.rb' do
     it 'computes the Nth fibonacci number' do
-      run_both_and_compare('examples/fib.nat', 5)
+      run_both_and_compare('examples/fib.rb', 5)
     end
   end
 
-  describe 'examples/boardslam.nat' do
+  describe 'examples/boardslam.rb' do
     it 'prints solutions to a 6x6 boardslam game card' do
-      run_both_and_compare('examples/boardslam.nat', 1, 2, 3)
+      run_both_and_compare('examples/boardslam.rb', 1, 2, 3)
     end
   end
 end

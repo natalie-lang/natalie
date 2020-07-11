@@ -474,7 +474,7 @@ def run_specs
       if error.is_a?(SpecFailedException)
         line_num = nil
         error.backtrace.each do |line|
-          if line !~ /spec\.nat/
+          if line !~ /spec\.rb/
             line_num = line.split(':')[1]
             break
           end

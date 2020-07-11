@@ -107,9 +107,9 @@ describe 'File' do
 
   describe '#expand_path' do
     it 'returns the absolute path given a relative one' do
-      File.expand_path('test/spec_helper.nat').should =~ %r{^/.*natalie/test/spec_helper\.nat$}
-      File.expand_path('/spec_helper.nat').should == '/spec_helper.nat'
-      File.expand_path('../spec_helper.nat', __dir__).should =~ %r{^/.*natalie/test/spec_helper\.nat$}
+      File.expand_path('test/spec_helper.rb').should =~ %r{^/.*natalie/test/spec_helper\.rb$}
+      File.expand_path('/spec_helper.rb').should == '/spec_helper.rb'
+      File.expand_path('../spec_helper.rb', __dir__).should =~ %r{^/.*natalie/test/spec_helper\.rb$}
     end
   end
 end

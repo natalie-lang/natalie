@@ -5,7 +5,7 @@
 #
 # pass 3 numbers as arguments:
 #
-# bin/natalie examples/boardslam.nat 3 5 1
+# bin/natalie examples/boardslam.rb 3 5 1
 #
 # 3   - 5^0 - 1   = 1
 # 3   - 5^0 * 1   = 2
@@ -41,7 +41,7 @@
 # 3^2 + 5^2 * 1   = 34
 # 3^2 + 5^2 + 1   = 35
 # 5   - 1   * 3^2 = 36
-# 
+#
 # missing answers: 19, 30
 
 class BoardSlam
@@ -69,14 +69,14 @@ class BoardSlam
     each_order do |x_base, y_base, z_base|
       each_variant(x_base, y_base, z_base) do |(x_pretty, x), (y_pretty, y), (z_pretty, z)|
         each_operation_pair do |op1, op2|
-          result1 = x.send(op1, y)
-          next if op1 == '/' && x % y != 0
-          result2 = result1.send(op2, z)
-          next if op2 == '/' && result1 % z != 0
-          if BOARD.include?(result2) and !answers.key?(result2)
-            answers[result2] = "#{x_pretty.to_s.ljust(3)} #{op1} #{y_pretty.to_s.ljust(3)} #{op2} #{z_pretty.to_s.ljust(3)}"
-          end
+        result1 = x.send(op1, y)
+        next if op1 == '/' && x % y != 0
+        result2 = result1.send(op2, z)
+        next if op2 == '/' && result1 % z != 0
+        if BOARD.include?(result2) and !answers.key?(result2)
+          answers[result2] = "#{x_pretty.to_s.ljust(3)} #{op1} #{y_pretty.to_s.ljust(3)} #{op2} #{z_pretty.to_s.ljust(3)}"
         end
+      end
       end
     end
     answers
@@ -117,7 +117,7 @@ end
 
 if $0 == __FILE__
   if ARGV.size < 3
-    puts 'usage: bin/natalie examples/boardslam.nat 3 5 1'
+    puts 'usage: bin/natalie examples/boardslam.rb 3 5 1'
     exit
   end
   board = BoardSlam.new(*ARGV.map(&:to_i))

@@ -655,7 +655,7 @@ module Natalie
       end
 
       def obj_files
-        Dir[File.expand_path('../../../src/*.nat', __dir__)].sort.map do |path|
+        Dir[File.expand_path('../../../src/*.rb', __dir__)].sort.map do |path|
           File.split(path).last.split('.').first
         end
       end
