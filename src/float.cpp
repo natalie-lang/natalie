@@ -26,11 +26,22 @@ Value *Float_to_s(Env *env, Value *self_value, ssize_t argc, Value **args, Block
     return new StringValue { env, out };
 }
 
+Value *Float_eqeq(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    FloatValue *self = self_value->as_float();
+    NAT_ASSERT_ARGC(1);
+    Value *other = args[0];
+    if (self->eq(env, *other)) {
+        return NAT_TRUE;
+    } else {
+        return NAT_FALSE;
+    }
+}
+
 Value *Float_eql(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     FloatValue *self = self_value->as_float();
     NAT_ASSERT_ARGC(1);
     Value *other = args[0];
-    if (other->is_float() && other->as_float()->to_double() == self->to_double()) {
+    if (self->eql(*other)) {
         return NAT_TRUE;
     } else {
         return NAT_FALSE;

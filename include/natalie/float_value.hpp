@@ -5,6 +5,7 @@
 #include "natalie/class_value.hpp"
 #include "natalie/forward.hpp"
 #include "natalie/global_env.hpp"
+#include "natalie/integer_value.hpp"
 #include "natalie/macros.hpp"
 #include "natalie/value.hpp"
 
@@ -73,6 +74,10 @@ struct FloatValue : Value {
         copy->m_float *= -1;
         return copy;
     }
+
+    bool eq(Env *, Value &);
+
+    bool eql(Value &);
 
 private:
     double m_float { 0.0 };
