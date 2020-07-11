@@ -165,22 +165,25 @@ Value *File_expand_path(Env *env, Value *self, ssize_t argc, Value **args, Block
     klass->define_method(env, "sort", Hash_sort);               \
     klass->define_method(env, "key?", Hash_is_key);
 
-#define NAT_FLOAT_INIT(klass)                          \
-    klass->define_method(env, "abs", Float_abs);       \
-    klass->define_method(env, "coerce", Float_coerce); \
-    klass->define_method(env, "eql?", Float_eql);      \
-    klass->define_method(env, "+", Float_add);         \
-    klass->define_method(env, "<=>", Float_cmp);       \
-    klass->define_method(env, "/", Float_div);         \
-    klass->define_method(env, ">", Float_gt);          \
-    klass->define_method(env, ">=", Float_gte);        \
-    klass->define_method(env, "<", Float_lt);          \
-    klass->define_method(env, "<=", Float_lte);        \
-    klass->define_method(env, "*", Float_mul);         \
-    klass->define_method(env, "-", Float_sub);         \
-    klass->define_method(env, "inspect", Float_to_s);  \
-    klass->define_method(env, "nan?", Float_nan);      \
-    klass->define_method(env, "to_i", Float_to_i);     \
+#define NAT_FLOAT_INIT(klass)                               \
+    klass->define_method(env, "abs", Float_abs);            \
+    klass->define_method(env, "coerce", Float_coerce);      \
+    klass->define_method(env, "eql?", Float_eql);           \
+    klass->define_method(env, "+", Float_add);              \
+    klass->define_method(env, "<=>", Float_cmp);            \
+    klass->define_method(env, "/", Float_div);              \
+    klass->define_method(env, ">", Float_gt);               \
+    klass->define_method(env, ">=", Float_gte);             \
+    klass->define_method(env, "<", Float_lt);               \
+    klass->define_method(env, "<=", Float_lte);             \
+    klass->define_method(env, "*", Float_mul);              \
+    klass->define_method(env, "-", Float_sub);              \
+    klass->define_method(env, "-@", Float_neg);             \
+    klass->define_method(env, "infinite?", Float_infinite); \
+    klass->define_method(env, "inspect", Float_to_s);       \
+    klass->define_method(env, "nan?", Float_nan);           \
+    klass->define_method(env, "quo", Float_div);            \
+    klass->define_method(env, "to_i", Float_to_i);          \
     klass->define_method(env, "to_s", Float_to_s);
 
 Value *Float_abs(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
@@ -191,10 +194,12 @@ Value *Float_div(Env *env, Value *self, ssize_t argc, Value **args, Block *block
 Value *Float_eql(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_gte(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_gt(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Float_infinite(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_lte(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_lt(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_mul(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_nan(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Float_neg(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_sub(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_to_i(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_to_s(Env *env, Value *self, ssize_t argc, Value **args, Block *block);

@@ -72,6 +72,10 @@ def nan_value
   0/0.0
 end
 
+def infinity_value
+  1/0.0
+end
+
 def ruby_version_is(_)
   yield # TODO
 end

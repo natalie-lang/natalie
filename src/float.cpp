@@ -105,6 +105,11 @@ Value *Float_nan(Env *env, Value *self, ssize_t argc, Value **args, Block *block
     }
 }
 
+Value *Float_neg(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    return self->as_float()->negate();
+}
+
 Value *Float_add(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     FloatValue *self = self_value->as_float();
     NAT_ASSERT_ARGC(1);
@@ -175,6 +180,10 @@ Value *Float_div(Env *env, Value *self_value, ssize_t argc, Value **args, Block 
     Value *lhs = self_value;
     Value *rhs = args[0];
 
+    if (rhs->is_float() && rhs->as_float()->is_nan()) return FloatValue::nan(env);
+    if (rhs->is_float() && rhs->as_float()->is_positive_infinity()) return new FloatValue { env, 0.0 };
+    if (rhs->is_float() && rhs->as_float()->is_negative_infinity()) return new FloatValue { env, -0.0 };
+
     if (!rhs->is_float()) {
         auto coerced = coerce(env, rhs, lhs);
         lhs = coerced.first;
@@ -186,19 +195,39 @@ Value *Float_div(Env *env, Value *self_value, ssize_t argc, Value **args, Block 
 
     double dividend = self->to_double();
     double divisor = rhs->as_float()->to_double();
+
     if (divisor == 0.0) {
-        return FloatValue::nan(env);
+        if (dividend < 0.0) {
+            return FloatValue::negative_infinity(env);
+        } else if (dividend > 0.0) {
+            return FloatValue::positive_infinity(env);
+        } else {
+            return FloatValue::nan(env);
+        }
     }
     return new FloatValue { env, dividend / divisor };
 }
 
 Value *Float_abs(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
     FloatValue *self = self_value->as_float();
     auto number = self->to_double();
     if (number < 0.0) {
         return new FloatValue { env, -1 * number };
     } else {
         return self;
+    }
+}
+
+Value *Float_infinite(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    FloatValue *self = self_value->as_float();
+    if (self->is_positive_infinity()) {
+        return new IntegerValue { env, 1 };
+    } else if (self->is_negative_infinity()) {
+        return new IntegerValue { env, -1 };
+    } else {
+        return NAT_NIL;
     }
 }
 

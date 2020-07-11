@@ -19,9 +19,28 @@ struct FloatValue : Value {
         : Value { Value::Type::Float, NAT_OBJECT->const_get(env, "Float", true)->as_class() }
         , m_float { static_cast<double>(number) } { }
 
+    FloatValue(const FloatValue &other)
+        : Value { Value::Type::Float, other.klass }
+        , m_float { other.m_float }
+        , m_nan { other.m_nan }
+        , m_infinity { other.m_infinity } {
+    }
+
     static FloatValue *nan(Env *env) {
         auto *value = new FloatValue { env, 0.0 };
         value->m_nan = true;
+        return value;
+    }
+
+    static FloatValue *positive_infinity(Env *env) {
+        auto *value = new FloatValue { env, 1.0 };
+        value->m_infinity = true;
+        return value;
+    }
+
+    static FloatValue *negative_infinity(Env *env) {
+        auto *value = new FloatValue { env, -1.0 };
+        value->m_infinity = true;
         return value;
     }
 
@@ -37,9 +56,28 @@ struct FloatValue : Value {
         return m_nan;
     }
 
+    bool is_infinity() {
+        return m_infinity;
+    }
+
+    bool is_positive_infinity() {
+        return m_infinity && m_float > 0;
+    }
+
+    bool is_negative_infinity() {
+        return m_infinity && m_float < 0;
+    }
+
+    FloatValue *negate() {
+        FloatValue *copy = new FloatValue { *this };
+        copy->m_float *= -1;
+        return copy;
+    }
+
 private:
     double m_float { 0.0 };
     bool m_nan { false };
+    bool m_infinity { false };
 };
 
 }
