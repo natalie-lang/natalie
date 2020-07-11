@@ -41,4 +41,19 @@ Value *FloatValue::ceil(Env *env, int64_t precision) {
     return result;
 }
 
+Value *FloatValue::floor(Env *env, int64_t precision) {
+    double value = this->to_double();
+    FloatValue *result;
+    if (precision == 0) {
+        result = new FloatValue { env, ::floor(value) };
+    } else {
+        value *= pow(10, precision);
+        result = new FloatValue { env, ::floor(value) * (pow(10, (-1 * precision))) };
+    }
+    if (precision <= 0) {
+        return result->to_int_no_truncation(env);
+    }
+    return result;
+}
+
 }

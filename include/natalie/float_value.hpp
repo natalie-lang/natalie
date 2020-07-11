@@ -52,7 +52,7 @@ struct FloatValue : Value {
 
     Value *to_int_no_truncation(Env *env) {
         if (m_nan || m_infinity) return this;
-        if (m_float == floor(m_float)) {
+        if (m_float == ::floor(m_float)) {
             return new IntegerValue { env, static_cast<int64_t>(m_float) };
         }
         return this;
@@ -89,6 +89,7 @@ struct FloatValue : Value {
     bool eql(Value &);
 
     Value *ceil(Env *, int64_t);
+    Value *floor(Env *, int64_t);
 
 private:
     double m_float { 0.0 };

@@ -170,6 +170,7 @@ Value *File_expand_path(Env *env, Value *self, ssize_t argc, Value **args, Block
     klass->define_method(env, "ceil", Float_ceil);          \
     klass->define_method(env, "coerce", Float_coerce);      \
     klass->define_method(env, "eql?", Float_eql);           \
+    klass->define_method(env, "floor", Float_floor);        \
     klass->define_method(env, "+", Float_add);              \
     klass->define_method(env, "==", Float_eqeq);            \
     klass->define_method(env, "===", Float_eqeq);           \
@@ -197,6 +198,7 @@ Value *Float_coerce(Env *env, Value *self, ssize_t argc, Value **args, Block *bl
 Value *Float_div(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_eqeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_eql(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Float_floor(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_gte(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_gt(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_infinite(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
