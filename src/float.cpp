@@ -4,14 +4,25 @@
 
 namespace Natalie {
 
-Value *Float_to_s(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
+Value *Float_to_s(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
+    FloatValue *self = self_value->as_float();
+
+    if (self->is_nan()) {
+        return new StringValue { env, "NaN" };
+    } else if (self->is_positive_infinity()) {
+        return new StringValue { env, "Infinity" };
+    } else if (self->is_negative_infinity()) {
+        return new StringValue { env, "-Infinity" };
+    }
+
     char out[100]; // probably overkill
-    snprintf(out, 100, "%.15f", self->as_float()->to_double());
+    snprintf(out, 100, "%.15f", self->to_double());
     int len = strlen(out);
-    while (len > 0 && out[len - 1] == '0') {
+    while (len > 1 && out[len - 1] == '0' && out[len - 2] != '.') {
         out[--len] = '\0';
     }
+
     return new StringValue { env, out };
 }
 
