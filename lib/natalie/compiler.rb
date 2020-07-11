@@ -44,6 +44,7 @@ module Natalie
       @var_num = 0
       @path = path
       @options = options
+      @required = {}
     end
 
     attr_accessor :ast, :compile_to_object_file, :repl, :out_path, :context, :vars, :options, :c_path
@@ -222,10 +223,10 @@ module Natalie
         REQUIRE_EXTENSIONS.each do |extension|
           path = "#{name}.#{extension}"
           next unless full_path = find_full_path(path, base: Dir.pwd, search: true)
-          return load_file(full_path)
+          return load_file(full_path, require_once: true)
         end
       elsif (full_path = find_full_path(name, base: Dir.pwd, search: true))
-        return load_file(full_path)
+        return load_file(full_path, require_once: true)
       end
       raise LoadError, "cannot load such file #{node.file}##{node.line}-- #{name}.{#{REQUIRE_EXTENSIONS.join(',')}}"
     end
@@ -236,10 +237,10 @@ module Natalie
         REQUIRE_EXTENSIONS.each do |extension|
           path = "#{name}.#{extension}"
           next unless full_path = find_full_path(path, base: File.dirname(current_path), search: false)
-          return load_file(full_path)
+          return load_file(full_path, require_once: true)
         end
       elsif (full_path = find_full_path(name, base: File.dirname(current_path), search: false))
-        return load_file(full_path)
+        return load_file(full_path, require_once: true)
       end
       raise LoadError, "cannot load such file at #{node.file}##{node.line} -- #{name}.{#{REQUIRE_EXTENSIONS.join(',')}}"
     end
@@ -248,13 +249,15 @@ module Natalie
       path = node.last
       full_path = find_full_path(path, base: Dir.pwd, search: true)
       if full_path
-        load_file(full_path)
+        load_file(full_path, require_once: false)
       else
         raise LoadError, "cannot load such file -- #{path}"
       end
     end
 
-    def load_file(path)
+    def load_file(path, require_once:)
+      return s(:block) if require_once && @required[path]
+      @required[path] = true
       code = File.read(path)
       file_ast = Natalie::Parser.new(code, path).ast
       expand_macros(file_ast, path)
