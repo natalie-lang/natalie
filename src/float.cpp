@@ -26,23 +26,31 @@ Value *Float_eql(Env *env, Value *self_value, ssize_t argc, Value **args, Block 
     }
 }
 
-Value *Float_cmp(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
-    FloatValue *self = self_value->as_float();
+Value *Float_cmp(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
-    Value *arg = args[0];
-    double d1 = self->to_double();
-    double d2;
-    if (NAT_TYPE(arg) == Value::Type::Float) {
-        d2 = arg->as_float()->to_double();
-    } else if (arg->respond_to(env, "coerce")) {
-        Value *coerced = arg->send(env, "coerce", 1, &self_value, nullptr);
-        d2 = (*coerced->as_array())[0]->as_float()->to_double();
-    } else {
-        NAT_RAISE(env, "ArgumentError", "comparison of Float with %s failed", arg->klass->class_name());
+
+    Value *lhs = self;
+    Value *rhs = args[0];
+
+    if (!rhs->is_float()) {
+        auto coerced = coerce(env, rhs, lhs);
+        lhs = coerced.first;
+        rhs = coerced.second;
     }
-    if (d1 < d2) {
+
+    if (!lhs->is_float()) return lhs->send(env, "<=>", 1, &rhs);
+    if (!rhs->is_float()) return NAT_NIL;
+
+    if (lhs->as_float()->is_nan() || rhs->as_float()->is_nan()) {
+        return NAT_NIL;
+    }
+
+    double lhs_d = lhs->as_float()->to_double();
+    double rhs_d = rhs->as_float()->to_double();
+
+    if (lhs_d < rhs_d) {
         return new IntegerValue { env, -1 };
-    } else if (d1 == d2) {
+    } else if (lhs_d == rhs_d) {
         return new IntegerValue { env, 0 };
     } else {
         return new IntegerValue { env, 1 };
@@ -53,14 +61,15 @@ Value *Float_coerce(Env *env, Value *self_value, ssize_t argc, Value **args, Blo
     FloatValue *self = self_value->as_float();
     NAT_ASSERT_ARGC(1);
     ArrayValue *ary = new ArrayValue { env };
-    ary->push(self);
     Value *arg = args[0];
     switch (NAT_TYPE(arg)) {
     case Value::Type::Float:
         ary->push(arg);
+        ary->push(self);
         break;
     case Value::Type::Integer:
         ary->push(new FloatValue { env, arg->as_integer()->to_int64_t() });
+        ary->push(self);
         break;
     case Value::Type::String:
         printf("TODO\n");
@@ -181,5 +190,42 @@ Value *Float_abs(Env *env, Value *self_value, ssize_t argc, Value **args, Block 
         return self;
     }
 }
+
+#define NAT_DEFINE_FLOAT_COMPARISON_METHOD(name, op)                                                             \
+    Value *name(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {                               \
+        NAT_ASSERT_ARGC(1);                                                                                      \
+                                                                                                                 \
+        Value *lhs = self;                                                                                       \
+        Value *rhs = args[0];                                                                                    \
+                                                                                                                 \
+        if (!rhs->is_float()) {                                                                                  \
+            auto coerced = coerce(env, rhs, lhs);                                                                \
+            lhs = coerced.first;                                                                                 \
+            rhs = coerced.second;                                                                                \
+        }                                                                                                        \
+                                                                                                                 \
+        if (!lhs->is_float()) return lhs->send(env, NAT_QUOTE(op), 1, &rhs);                                     \
+        if (!rhs->is_float()) {                                                                                  \
+            NAT_RAISE(env, "ArgumentError", "comparison of Float with %s failed", args[0]->klass->class_name()); \
+        }                                                                                                        \
+                                                                                                                 \
+        if (lhs->as_float()->is_nan() || rhs->as_float()->is_nan()) {                                            \
+            return NAT_NIL;                                                                                      \
+        }                                                                                                        \
+                                                                                                                 \
+        double lhs_d = lhs->as_float()->to_double();                                                             \
+        double rhs_d = rhs->as_float()->to_double();                                                             \
+                                                                                                                 \
+        if (lhs_d op rhs_d) {                                                                                    \
+            return NAT_TRUE;                                                                                     \
+        } else {                                                                                                 \
+            return NAT_FALSE;                                                                                    \
+        }                                                                                                        \
+    }
+
+NAT_DEFINE_FLOAT_COMPARISON_METHOD(Float_lt, <)
+NAT_DEFINE_FLOAT_COMPARISON_METHOD(Float_lte, <=)
+NAT_DEFINE_FLOAT_COMPARISON_METHOD(Float_gt, >)
+NAT_DEFINE_FLOAT_COMPARISON_METHOD(Float_gte, >=)
 
 }

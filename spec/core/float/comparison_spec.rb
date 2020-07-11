@@ -1,12 +1,10 @@
-# skip-test
-
 require_relative '../../spec_helper'
 
 describe "Float#<=>" do
   it "returns -1, 0, 1 when self is less than, equal, or greater than other" do
     (1.5 <=> 5).should == -1
     (2.45 <=> 2.45).should == 0
-    ((bignum_value*1.1) <=> bignum_value).should == 1
+    #((bignum_value*1.1) <=> bignum_value).should == 1
   end
 
   it "returns nil when either argument is NaN" do
@@ -50,19 +48,19 @@ describe "Float#<=>" do
 
   # The 4 tests below are taken from matz's revision 23730 for Ruby trunk
   #
-  it "returns 1 when self is Infinity and other is a Bignum" do
+  xit "returns 1 when self is Infinity and other is a Bignum" do
     (infinity_value <=> Float::MAX.to_i*2).should == 1
   end
 
-  it "returns -1 when self is negative and other is Infinity" do
+  xit "returns -1 when self is negative and other is Infinity" do
     (-Float::MAX.to_i*2 <=> infinity_value).should == -1
   end
 
-  it "returns -1 when self is -Infinity and other is negative" do
+  xit "returns -1 when self is -Infinity and other is negative" do
     (-infinity_value <=> -Float::MAX.to_i*2).should == -1
   end
 
-  it "returns 1 when self is negative and other is -Infinity" do
+  xit "returns 1 when self is negative and other is -Infinity" do
     (-Float::MAX.to_i*2 <=> -infinity_value).should == 1
   end
 end

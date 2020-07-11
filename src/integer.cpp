@@ -157,12 +157,12 @@ Value *Integer_coerce(Env *env, Value *self_value, ssize_t argc, Value **args, B
     Value *arg = args[0];
     switch (NAT_TYPE(arg)) {
     case Value::Type::Float:
-        ary->push(new FloatValue { env, self->to_int64_t() });
         ary->push(arg);
+        ary->push(new FloatValue { env, self->to_int64_t() });
         break;
     case Value::Type::Integer:
-        ary->push(self);
         ary->push(arg);
+        ary->push(self);
         break;
     case Value::Type::String:
         printf("TODO\n");

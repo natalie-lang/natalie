@@ -355,6 +355,9 @@ void arg_spread(Env *env, ssize_t argc, Value **args, char *arrangement, ...) {
 std::pair<Value *, Value *> coerce(Env *env, Value *lhs, Value *rhs) {
     if (lhs->respond_to(env, "coerce")) {
         Value *coerced = lhs->send(env, "coerce", 1, &rhs, nullptr);
+        if (!coerced->is_array()) {
+            NAT_RAISE(env, "TypeError", "coerce must return [x, y]");
+        }
         lhs = (*coerced->as_array())[0];
         rhs = (*coerced->as_array())[1];
         return { lhs, rhs };

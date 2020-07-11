@@ -97,7 +97,8 @@ struct Value : public gc {
     bool is_string() const { return type == Type::String; }
     bool is_void_p() const { return type == Type::VoidP; }
 
-    bool is_truthy() const { return !this->is_false() && !this->is_nil(); }
+    bool is_truthy() const { return !is_false() && !is_nil(); }
+    bool is_numeric() const { return is_integer() || is_float(); }
 
     NilValue *as_nil();
     TrueValue *as_true();
