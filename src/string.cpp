@@ -258,7 +258,7 @@ Value *String_force_encoding(Env *env, Value *self_value, ssize_t argc, Value **
         self->set_encoding(find_encoding_by_name(env, encoding->as_string()->c_str())->num());
         break;
     default:
-        NAT_RAISE(env, "TypeError", "no implicit conversion of %s into %s", NAT_OBJ_CLASS(encoding)->class_name(), "String");
+        NAT_RAISE(env, "TypeError", "no implicit conversion of %s into String", NAT_OBJ_CLASS(encoding)->class_name());
     }
     return self;
 }

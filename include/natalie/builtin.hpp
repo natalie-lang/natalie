@@ -166,19 +166,26 @@ Value *File_expand_path(Env *env, Value *self, ssize_t argc, Value **args, Block
     klass->define_method(env, "key?", Hash_is_key);
 
 #define NAT_FLOAT_INIT(klass)                          \
-    klass->define_method(env, "<=>", Float_cmp);       \
+    klass->define_method(env, "abs", Float_abs);       \
     klass->define_method(env, "coerce", Float_coerce); \
     klass->define_method(env, "eql?", Float_eql);      \
-    klass->define_method(env, "to_i", Float_to_i);     \
+    klass->define_method(env, "<=>", Float_cmp);       \
+    klass->define_method(env, "/", Float_div);         \
+    klass->define_method(env, "-", Float_sub);         \
+    klass->define_method(env, "inspect", Float_to_s);  \
     klass->define_method(env, "nan?", Float_nan);      \
-    klass->define_method(env, "/", Float_div);
+    klass->define_method(env, "to_i", Float_to_i);     \
+    klass->define_method(env, "to_s", Float_to_s);
 
+Value *Float_abs(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_cmp(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_coerce(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Float_eql(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Float_to_i(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Float_nan(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_div(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Float_eql(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Float_nan(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Float_sub(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Float_to_i(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Float_to_s(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
 Value *Hash_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Hash_square_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
@@ -195,38 +202,42 @@ Value *Hash_sort(Env *env, Value *self, ssize_t argc, Value **args, Block *block
 Value *Hash_is_key(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
 #define NAT_INTEGER_INIT(klass)                          \
-    klass->define_method(env, "to_s", Integer_to_s);     \
+    klass->define_method(env, "abs", Integer_abs);       \
+    klass->define_method(env, "coerce", Integer_coerce); \
+    klass->define_method(env, "eql?", Integer_eql);      \
     klass->define_method(env, "inspect", Integer_to_s);  \
     klass->define_method(env, "+", Integer_add);         \
-    klass->define_method(env, "-", Integer_sub);         \
-    klass->define_method(env, "*", Integer_mul);         \
-    klass->define_method(env, "/", Integer_div);         \
-    klass->define_method(env, "%", Integer_mod);         \
-    klass->define_method(env, "**", Integer_pow);        \
-    klass->define_method(env, "<=>", Integer_cmp);       \
-    klass->define_method(env, "===", Integer_eqeqeq);    \
-    klass->define_method(env, "times", Integer_times);   \
     klass->define_method(env, "&", Integer_bitwise_and); \
     klass->define_method(env, "|", Integer_bitwise_or);  \
+    klass->define_method(env, "<=>", Integer_cmp);       \
+    klass->define_method(env, "/", Integer_div);         \
+    klass->define_method(env, "===", Integer_eqeqeq);    \
+    klass->define_method(env, "%", Integer_mod);         \
+    klass->define_method(env, "*", Integer_mul);         \
+    klass->define_method(env, "**", Integer_pow);        \
+    klass->define_method(env, "-", Integer_sub);         \
     klass->define_method(env, "succ", Integer_succ);     \
-    klass->define_method(env, "coerce", Integer_coerce); \
-    klass->define_method(env, "eql?", Integer_eql);
+    klass->define_method(env, "times", Integer_times);   \
+    klass->define_method(env, "to_i", Integer_to_i);     \
+    klass->define_method(env, "to_s", Integer_to_s);
 
-Value *Integer_to_s(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Integer_abs(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Integer_add(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Integer_sub(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Integer_mul(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Integer_div(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Integer_mod(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Integer_pow(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Integer_cmp(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Integer_eqeqeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Integer_times(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Integer_bitwise_and(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Integer_bitwise_or(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Integer_succ(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Integer_cmp(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Integer_coerce(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Integer_div(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Integer_eqeqeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Integer_eql(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Integer_mod(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Integer_mul(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Integer_pow(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Integer_sub(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Integer_succ(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Integer_times(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Integer_to_i(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Integer_to_s(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
 #define NAT_IO_INIT(klass)                                  \
     klass->define_singleton_method(env, "new", IO_new);     \

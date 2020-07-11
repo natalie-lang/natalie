@@ -50,7 +50,7 @@
 
 #define NAT_ASSERT_NOT_FROZEN(obj)                                                                                       \
     if (is_frozen(obj)) {                                                                                                \
-        NAT_RAISE(env, "FrozenError", "can't modify frozen %s: %S", NAT_OBJ_CLASS(obj)->class_name(), NAT_INSPECT(obj)); \
+        NAT_RAISE(env, "FrozenError", "can't modify frozen %s: %s", NAT_OBJ_CLASS(obj)->class_name(), NAT_INSPECT(obj)); \
     }
 
 #define NAT_ASSERT_BLOCK()                                         \
@@ -70,7 +70,7 @@
 #define NAT_OBJ_HAS_ENV(obj) ((obj)->env.global_env == env->global_env) // prefered check
 #define NAT_OBJ_HAS_ENV2(obj) ((obj)->env.global_env) // limited check used when there is no current env, i.e. hashmap_hash and hashmap_compare
 
-#define NAT_INSPECT(obj) obj->send(env, "inspect", 0, nullptr, nullptr)
+#define NAT_INSPECT(obj) obj->send(env, "inspect", 0, nullptr, nullptr)->as_string()->c_str()
 
 // ahem, "globals"
 #define NAT_OBJECT env->global_env->Object

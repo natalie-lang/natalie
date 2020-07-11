@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <utility>
 
 #include "natalie/array_value.hpp"
 #include "natalie/block.hpp"
@@ -77,5 +78,7 @@ void list_prepend(T *list, T item) {
     *list = item;
     item->next = next_item;
 }
+
+std::pair<Value *, Value *> coerce(Env *, Value *, Value *);
 
 }

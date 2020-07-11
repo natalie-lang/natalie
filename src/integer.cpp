@@ -12,6 +12,10 @@ Value *Integer_to_s(Env *env, Value *self_value, ssize_t argc, Value **args, Blo
     return new StringValue { env, buf };
 }
 
+Value *Integer_to_i(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
+    return self;
+}
+
 Value *Integer_add(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     IntegerValue *self = self_value->as_integer();
     NAT_ASSERT_ARGC(1);
@@ -43,8 +47,8 @@ Value *Integer_div(Env *env, Value *self_value, ssize_t argc, Value **args, Bloc
     IntegerValue *self = self_value->as_integer();
     NAT_ASSERT_ARGC(1);
     Value *arg = args[0];
-    switch (arg->type) {
-    case Value::Type::Integer: {
+
+    if (arg->is_integer()) {
         int64_t dividend = self->to_int64_t();
         int64_t divisor = arg->as_integer()->to_int64_t();
         if (divisor == 0) {
@@ -52,19 +56,14 @@ Value *Integer_div(Env *env, Value *self_value, ssize_t argc, Value **args, Bloc
         }
         int64_t result = dividend / divisor;
         return new IntegerValue { env, result };
-    }
 
-    case Value::Type::Float: {
-        double dividend = static_cast<double>(self->to_int64_t());
-        double divisor = arg->as_float()->to_double();
-        if (divisor == 0.0) {
-            return FloatValue::nan(env);
-        }
-        double result = dividend / divisor;
-        return new FloatValue { env, result };
-    }
+    } else if (arg->respond_to(env, "coerce")) {
+        Value *coerced = arg->send(env, "coerce", 1, &self_value, nullptr);
+        Value *dividend = (*coerced->as_array())[1];
+        Value *divisor = (*coerced->as_array())[0];
+        return dividend->send(env, "/", 1, &divisor, nullptr);
 
-    default:
+    } else {
         NAT_ASSERT_TYPE(arg, Value::Type::Integer, "Integer");
         abort();
     }
@@ -183,6 +182,16 @@ Value *Integer_eql(Env *env, Value *self_value, ssize_t argc, Value **args, Bloc
         return NAT_TRUE;
     } else {
         return NAT_FALSE;
+    }
+}
+
+Value *Integer_abs(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    IntegerValue *self = self_value->as_integer();
+    auto number = self->to_int64_t();
+    if (number < 0) {
+        return new IntegerValue { env, -1 * number };
+    } else {
+        return self;
     }
 }
 

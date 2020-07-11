@@ -1,5 +1,7 @@
 class SpecFailedException < StandardError; end
 
+TOLERANCE = 0.00003
+
 @context = []
 @shared = {}
 @specs = []
@@ -244,6 +246,39 @@ class EqualExpectation
   end
 end
 
+class BeCloseExpectation
+  def initialize(target, tolerance = TOLERANCE)
+    @target = target
+    @tolerance = tolerance
+  end
+
+  def match(subject)
+    if subject.abs - @target.abs > @tolerance
+      raise SpecFailedException, "#{subject.inspect} should be within #{@tolerance} of #{@target}"
+    end
+  end
+
+  def inverted_match(subject)
+    if subject.abs - @target.abs <= @tolerance
+      raise SpecFailedException, "#{subject.inspect} should not be within #{@tolerance} of #{@target}"
+    end
+  end
+end
+
+class BeNanExpectation
+  def match(subject)
+    if !subject.nan?
+      raise SpecFailedException, "#{subject.inspect} should be NaN"
+    end
+  end
+
+  def inverted_match(subject)
+    if subject.nan?
+      raise SpecFailedException, "#{subject.inspect} should not be NaN"
+    end
+  end
+end
+
 class RaiseErrorExpectation
   def initialize(klass, message = nil)
     @klass = klass
@@ -321,12 +356,20 @@ class Object
     BeNilExpectation.new
   end
 
+  def be_nan
+    BeNanExpectation.new
+  end
+
   def be_true
     EqualExpectation.new(true)
   end
 
   def be_false
     EqualExpectation.new(false)
+  end
+
+  def be_close(target, tolerance)
+    BeCloseExpectation.new(target, tolerance)
   end
 
   def be_kind_of(klass)

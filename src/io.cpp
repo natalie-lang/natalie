@@ -155,12 +155,12 @@ Value *IO_seek(Env *env, Value *self_value, ssize_t argc, Value **args, Block *b
             } else if (strcmp(whence_sym->c_str(), "END") == 0) {
                 whence = 2;
             } else {
-                NAT_RAISE(env, "TypeError", "no implicit conversion of Symbol into NAT_INTEGER");
+                NAT_RAISE(env, "TypeError", "no implicit conversion of Symbol into Integer");
             }
             break;
         }
         default:
-            NAT_RAISE(env, "TypeError", "no implicit conversion of %s into NAT_INTEGER", NAT_OBJ_CLASS(whence_obj)->class_name());
+            NAT_RAISE(env, "TypeError", "no implicit conversion of %s into Integer", NAT_OBJ_CLASS(whence_obj)->class_name());
         }
     }
     int result = lseek(self->fileno, amount, whence);
