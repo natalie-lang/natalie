@@ -148,6 +148,10 @@ extern "C" Env *build_top_env() {
     Object->const_set(env, "ZeroDivisionError", ZeroDivisionError);
     ClassValue *FrozenError = RuntimeError->subclass(env, "FrozenError");
     Object->const_set(env, "FrozenError", FrozenError);
+    ClassValue *RangeError = StandardError->subclass(env, "RangeError");
+    Object->const_set(env, "RangeError", RangeError);
+    ClassValue *FloatDomainError = RangeError->subclass(env, "FloatDomainError");
+    Object->const_set(env, "FloatDomainError", FloatDomainError);
 
     ClassValue *EncodingError = StandardError->subclass(env, "EncodingError");
     Object->const_set(env, "EncodingError", EncodingError);

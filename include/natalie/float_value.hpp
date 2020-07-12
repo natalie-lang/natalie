@@ -59,7 +59,7 @@ struct FloatValue : Value {
     }
 
     bool is_zero() {
-        return m_float == 0;
+        return m_float == 0 && !m_nan;
     }
 
     bool is_nan() {

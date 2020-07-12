@@ -219,6 +219,65 @@ Value *Float_div(Env *env, Value *self_value, ssize_t argc, Value **args, Block 
     return new FloatValue { env, dividend / divisor };
 }
 
+Value *Float_mod(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    FloatValue *self = self_value->as_float();
+    NAT_ASSERT_ARGC(1);
+
+    Value *lhs = self_value;
+    Value *rhs = args[0];
+
+    if (rhs->is_float() && rhs->as_float()->is_nan()) return FloatValue::nan(env);
+    if (rhs->is_float() && rhs->as_float()->is_positive_infinity()) return new FloatValue { env, 0.0 };
+    if (rhs->is_float() && rhs->as_float()->is_negative_infinity()) return new FloatValue { env, -0.0 };
+
+    if (!rhs->is_float()) {
+        auto coerced = coerce(env, rhs, lhs);
+        lhs = coerced.first;
+        rhs = coerced.second;
+    }
+
+    if (!lhs->is_float()) return lhs->send(env, "%", 1, &rhs);
+    if (!rhs->is_float()) NAT_ASSERT_TYPE(rhs, Value::Type::Float, "Float");
+
+    double dividend = self->to_double();
+    double divisor = rhs->as_float()->to_double();
+
+    if (divisor == 0.0) {
+        if (dividend < 0.0) {
+            return FloatValue::negative_infinity(env);
+        } else if (dividend > 0.0) {
+            return FloatValue::positive_infinity(env);
+        } else {
+            return FloatValue::nan(env);
+        }
+    }
+    return new FloatValue { env, fmod(dividend, divisor) };
+}
+
+Value *Float_divmod(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    FloatValue *self = self_value->as_float();
+    NAT_ASSERT_ARGC(1);
+
+    if (self->is_nan()) NAT_RAISE(env, "FloatDomainError", "NaN");
+    if (self->is_infinity()) NAT_RAISE(env, "FloatDomainError", "Infinity");
+
+    Value *arg = args[0];
+
+    if (!arg->is_numeric()) NAT_RAISE(env, "TypeError", "%s can't be coerced into Float", arg->klass->class_name());
+    if (arg->is_float() && arg->as_float()->is_nan()) NAT_RAISE(env, "FloatDomainError", "NaN");
+    if (arg->is_float() && arg->as_float()->is_zero()) NAT_RAISE(env, "ZeroDivisionError", "divided by 0");
+    if (arg->is_integer() && arg->as_integer()->is_zero()) NAT_RAISE(env, "ZeroDivisionError", "divided by 0");
+
+    Value *division = Float_div(env, self, argc, args, nullptr);
+    Value *modulus = Float_mod(env, self, argc, args, nullptr);
+
+    ArrayValue *ary = new ArrayValue { env };
+    ary->push(division->as_float()->floor(env, 0));
+    ary->push(modulus);
+
+    return ary;
+}
+
 Value *Float_abs(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     FloatValue *self = self_value->as_float();
