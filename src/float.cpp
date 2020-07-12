@@ -278,6 +278,28 @@ Value *Float_divmod(Env *env, Value *self_value, ssize_t argc, Value **args, Blo
     return ary;
 }
 
+Value *Float_pow(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    FloatValue *self = self_value->as_float();
+    NAT_ASSERT_ARGC(1);
+
+    Value *lhs = self_value;
+    Value *rhs = args[0];
+
+    if (!rhs->is_float()) {
+        auto coerced = coerce(env, rhs, lhs);
+        lhs = coerced.first;
+        rhs = coerced.second;
+    }
+
+    if (!lhs->is_float()) return lhs->send(env, "**", 1, &rhs);
+    if (!rhs->is_float()) NAT_ASSERT_TYPE(rhs, Value::Type::Float, "Float");
+
+    double base = self->to_double();
+    double exponent = rhs->as_float()->to_double();
+
+    return new FloatValue { env, pow(base, exponent) };
+}
+
 Value *Float_abs(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     FloatValue *self = self_value->as_float();

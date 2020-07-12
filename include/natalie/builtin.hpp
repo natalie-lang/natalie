@@ -182,8 +182,10 @@ Value *File_expand_path(Env *env, Value *self, ssize_t argc, Value **args, Block
     klass->define_method(env, "<=", Float_lte);             \
     klass->define_method(env, "%", Float_mod);              \
     klass->define_method(env, "*", Float_mul);              \
+    klass->define_method(env, "**", Float_pow);             \
     klass->define_method(env, "-@", Float_neg);             \
     klass->define_method(env, "-", Float_sub);              \
+    klass->define_method(env, "fdiv", Float_div);           \
     klass->define_method(env, "floor", Float_floor);        \
     klass->define_method(env, "infinite?", Float_infinite); \
     klass->define_method(env, "inspect", Float_to_s);       \
@@ -211,6 +213,7 @@ Value *Float_mod(Env *env, Value *self, ssize_t argc, Value **args, Block *block
 Value *Float_mul(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_nan(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_neg(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Float_pow(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_sub(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_to_i(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_to_s(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
