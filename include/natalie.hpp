@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <errno.h>
+#include <float.h>
 #include <inttypes.h>
 #include <setjmp.h>
 #include <stdbool.h>

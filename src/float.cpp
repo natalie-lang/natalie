@@ -116,6 +116,22 @@ Value *Float_nan(Env *env, Value *self, ssize_t argc, Value **args, Block *block
     }
 }
 
+Value *Float_zero(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
+    if (self->as_float()->is_zero()) {
+        return NAT_TRUE;
+    } else {
+        return NAT_FALSE;
+    }
+}
+
+Value *Float_uminus(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
+    return self->as_float()->negate();
+}
+
+Value *Float_uplus(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
+    return self;
+}
+
 Value *Float_neg(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     return self->as_float()->negate();

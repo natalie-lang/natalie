@@ -164,10 +164,9 @@ class Matcher
     end
   end
 
-  # FIXME: remove this once method_missing is implemented
-  def nan?
-    method_missing(:nan?)
-  end
+  # FIXME: remove these once method_missing is implemented
+  def nan?; method_missing(:nan?); end
+  def zero?; method_missing(:zero?); end
 
   def method_missing(method, *args)
     if !@inverted

@@ -1,5 +1,3 @@
-# skip-test
-
 require_relative '../../spec_helper'
 
 describe "Float#-@" do
