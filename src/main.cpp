@@ -209,7 +209,7 @@ extern "C" Env *build_top_env() {
     Value *RUBY_VERSION = new StringValue { env, "2.7.1" };
     Object->const_set(env, "RUBY_VERSION", RUBY_VERSION);
 
-    bridge_methods(env);
+    init_bindings(env);
 
     /*OBJ_NAT_INIT*/
 

@@ -32,13 +32,13 @@ NAT_OBJECTS := $(patsubst $(SRC)/%.rb, $(OBJ)/nat/%.o, $(NAT_SOURCES))
 mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
 current_dir := $(notdir $(patsubst %/,%,$(dir $(mkfile_path))))
 
-build: write_build_type ext/bdwgc/.libs/libgccpp.a ext/hashmap/build/libhashmap.a ext/onigmo/.libs/libonigmo.a src/bridge.cpp $(OBJECTS) $(NAT_OBJECTS)
+build: write_build_type ext/bdwgc/.libs/libgccpp.a ext/hashmap/build/libhashmap.a ext/onigmo/.libs/libonigmo.a src/bindings.cpp $(OBJECTS) $(NAT_OBJECTS)
 
 write_build_type:
 	@echo $(BUILD) > .build
 
-src/bridge.cpp: lib/natalie/compiler/bridge.rb
-	ruby lib/natalie/compiler/bridge.rb > src/bridge.cpp
+src/bindings.cpp: lib/natalie/compiler/binding_gen.rb
+	ruby lib/natalie/compiler/binding_gen.rb > src/bindings.cpp
 
 $(OBJ)/%.o: $(SRC)/%.cpp
 	$(CXX) -std=c++17 $(CFLAGS) -I$(INC) -I$(BDWGC) -I$(HASHMAP) -I$(ONIGMO) -fPIC -c $< -o $@
