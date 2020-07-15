@@ -62,6 +62,10 @@ struct FloatValue : Value {
         return m_float == 0 && !m_nan;
     }
 
+    bool is_finite() {
+        return !(is_negative_infinity() || is_positive_infinity() || is_nan());
+    }
+
     bool is_nan() {
         return m_nan;
     }
