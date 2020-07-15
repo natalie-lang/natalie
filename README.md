@@ -54,6 +54,8 @@ that is not yet implemented and make it yourself!
 The compiler and REPL currently (but hopefully not for long!) require Ruby.
 I only test with Ruby 2.7.x currently.
 
+Prerequisites: autoconf, automake, libtool, cmake, and Ruby version 2.7.x
+
 ```sh
 git submodule update --init
 gem install bundler
@@ -61,8 +63,7 @@ bundle install
 make build
 ```
 
-**NOTE:** Currently, the default build is the "debug" build, which enables
-aggressive garbage collection and is extremely slow.
+**NOTE:** Currently, the default build is the "debug" build.
 
 ## Usage
 
@@ -72,7 +73,7 @@ aggressive garbage collection and is extremely slow.
 bin/natalie
 ```
 
-**Run a nat file:**
+**Run a Ruby script:**
 
 ```sh
 bin/natalie examples/hello.rb
