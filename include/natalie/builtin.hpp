@@ -188,6 +188,7 @@ Value *File_expand_path(Env *env, Value *self, ssize_t argc, Value **args, Block
     klass->define_method(env, "divmod", Float_divmod);      \
     klass->define_method(env, "eql?", Float_eql);           \
     klass->define_method(env, "fdiv", Float_div);           \
+    klass->define_method(env, "finite?", Float_finite);     \
     klass->define_method(env, "floor", Float_floor);        \
     klass->define_method(env, "infinite?", Float_infinite); \
     klass->define_method(env, "inspect", Float_to_s);       \
@@ -206,6 +207,7 @@ Value *Float_div(Env *env, Value *self, ssize_t argc, Value **args, Block *block
 Value *Float_divmod(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_eqeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_eql(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
+Value *Float_finite(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_floor(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_gte(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_gt(Env *env, Value *self, ssize_t argc, Value **args, Block *block);

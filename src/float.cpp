@@ -108,6 +108,15 @@ Value *Float_to_i(Env *env, Value *self, ssize_t argc, Value **args, Block *bloc
     return new IntegerValue { env, static_cast<int64_t>(floor(self->as_float()->to_double())) };
 }
 
+Value *Float_finite(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    FloatValue *self = self_value->as_float();
+    if (self->is_negative_infinity() || self->is_positive_infinity() || self->is_nan()) {
+        return NAT_FALSE;
+    } else {
+        return NAT_TRUE;
+    }
+}
+
 Value *Float_nan(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     if (self->as_float()->is_nan()) {
         return NAT_TRUE;
