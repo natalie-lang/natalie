@@ -56,4 +56,52 @@ Value *FloatValue::floor(Env *env, int64_t precision) {
     return result;
 }
 
+Value *FloatValue::to_s(Env &env) {
+    if (is_nan()) {
+        return new StringValue { &env, "NaN" };
+    } else if (is_positive_infinity()) {
+        return new StringValue { &env, "Infinity" };
+    } else if (is_negative_infinity()) {
+        return new StringValue { &env, "-Infinity" };
+    }
+
+    char out[100]; // probably overkill
+    snprintf(out, 100, "%.15f", to_double());
+    int len = strlen(out);
+    while (len > 1 && out[len - 1] == '0' && out[len - 2] != '.') {
+        out[--len] = '\0';
+    }
+
+    return new StringValue { &env, out };
+}
+
+Value *FloatValue::cmp(Env &env, Value &other) {
+    Value *lhs = this;
+    Value *rhs = &other;
+
+    if (!rhs->is_float()) {
+        auto coerced = coerce(&env, rhs, lhs);
+        lhs = coerced.first;
+        rhs = coerced.second;
+    }
+
+    if (!lhs->is_float()) return lhs->send(&env, "<=>", 1, &rhs);
+    if (!rhs->is_float()) return env.nil();
+
+    if (lhs->as_float()->is_nan() || rhs->as_float()->is_nan()) {
+        return env.nil();
+    }
+
+    double lhs_d = lhs->as_float()->to_double();
+    double rhs_d = rhs->as_float()->to_double();
+
+    if (lhs_d < rhs_d) {
+        return new IntegerValue { &env, -1 };
+    } else if (lhs_d == rhs_d) {
+        return new IntegerValue { &env, 0 };
+    } else {
+        return new IntegerValue { &env, 1 };
+    }
+}
+
 }

@@ -95,6 +95,9 @@ struct FloatValue : Value {
     Value *ceil(Env *, int64_t);
     Value *floor(Env *, int64_t);
 
+    Value *to_s(Env &);
+    Value *cmp(Env &, Value &);
+
 private:
     double m_float { 0.0 };
     bool m_nan { false };

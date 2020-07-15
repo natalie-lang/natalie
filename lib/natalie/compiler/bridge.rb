@@ -18,7 +18,7 @@ class MethodBridger
 Value *#{name}(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(#{argc});
     #{cpp_class} *self = self_value->as_#{cpp_class.sub(/Value/, '').downcase}();
-    auto return_value = self->#{cpp_method}(#{pass_env ? '*env, ' : ''} #{(0..(argc-1)).map { |i| "*args[#{i}]" }.join(', ')} #{pass_block ? ', block' : ''});
+    auto return_value = self->#{cpp_method}(#{pass_env ? '*env' : ''} #{pass_env && argc > 0 ? ',' : ''} #{(0..(argc-1)).map { |i| "*args[#{i}]" }.join(', ')} #{pass_block ? ', block' : ''});
     #{return_code}
 }\n
     FUNC
@@ -46,6 +46,10 @@ bridger = MethodBridger.new
 
 bridger.bridge('Float', '==', 'FloatValue', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 bridger.bridge('Float', '===', 'FloatValue', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+bridger.bridge('Float', 'to_s', 'FloatValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+bridger.bridge('Float', 'inspect', 'FloatValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+bridger.bridge('Float', 'eql?', 'FloatValue', 'eql', argc: 1, pass_env: false, pass_block: false, return_type: :bool)
+bridger.bridge('Float', '<=>', 'FloatValue', 'cmp', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 
 bridger.init
 

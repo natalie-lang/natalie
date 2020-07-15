@@ -5,6 +5,7 @@
 
 #include "natalie/forward.hpp"
 #include "natalie/gc.hpp"
+#include "natalie/global_env.hpp"
 #include "natalie/vector.hpp"
 
 namespace Natalie {
@@ -37,6 +38,12 @@ struct Env : public gc {
     Value *raise_local_jump_error(Value *, const char *);
 
     Value *last_match();
+
+    ClassValue *Object() { return global_env->Object; }
+    ClassValue *Integer() { return global_env->Integer; }
+    NilValue *nil() { return global_env->nil; }
+    TrueValue *true_obj() { return global_env->true_obj; }
+    FalseValue *false_obj() { return global_env->false_obj; }
 
     GlobalEnv *global_env { nullptr };
     Vector<Value *> *vars { nullptr };

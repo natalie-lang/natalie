@@ -177,33 +177,27 @@ Value *File_expand_path(Env *env, Value *self, ssize_t argc, Value **args, Block
     klass->define_method(env, "/", Float_div);              \
     klass->define_method(env, "<", Float_lt);               \
     klass->define_method(env, "<=", Float_lte);             \
-    klass->define_method(env, "<=>", Float_cmp);            \
     klass->define_method(env, ">", Float_gt);               \
     klass->define_method(env, ">=", Float_gte);             \
     klass->define_method(env, "abs", Float_abs);            \
     klass->define_method(env, "ceil", Float_ceil);          \
     klass->define_method(env, "coerce", Float_coerce);      \
     klass->define_method(env, "divmod", Float_divmod);      \
-    klass->define_method(env, "eql?", Float_eql);           \
     klass->define_method(env, "fdiv", Float_div);           \
     klass->define_method(env, "finite?", Float_finite);     \
     klass->define_method(env, "floor", Float_floor);        \
     klass->define_method(env, "infinite?", Float_infinite); \
-    klass->define_method(env, "inspect", Float_to_s);       \
     klass->define_method(env, "nan?", Float_nan);           \
     klass->define_method(env, "quo", Float_div);            \
     klass->define_method(env, "to_i", Float_to_i);          \
-    klass->define_method(env, "to_s", Float_to_s);          \
     klass->define_method(env, "zero?", Float_zero);
 
 Value *Float_abs(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_add(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_ceil(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Float_cmp(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_coerce(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_div(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_divmod(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Float_eql(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_finite(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_floor(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_gte(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
@@ -218,7 +212,6 @@ Value *Float_neg(Env *env, Value *self, ssize_t argc, Value **args, Block *block
 Value *Float_pow(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_sub(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_to_i(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Float_to_s(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_uminus(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_uplus(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_zero(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
