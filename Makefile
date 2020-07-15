@@ -47,7 +47,7 @@ ext/bdwgc/.libs/libgccpp.a:
 	cd ext/bdwgc && ./autogen.sh && ./configure --enable-cplusplus --enable-redirect-malloc --disable-threads --enable-static --with-pic && make
 
 ext/hashmap/build/libhashmap.a:
-	mkdir ext/hashmap/build && cd ext/hashmap/build && CFLAGS="-fPIC" cmake .. && make
+	mkdir -p ext/hashmap/build && cd ext/hashmap/build && CFLAGS="-fPIC" cmake .. && make
 
 ext/onigmo/.libs/libonigmo.a:
 	cd ext/onigmo && ./autogen.sh && ./configure --with-pic && make
