@@ -5,7 +5,7 @@
 
 namespace Natalie {
 
-bool FloatValue::eq(Env *env, Value &other) {
+bool FloatValue::eq(Env &env, Value &other) {
     if (other.is_integer()) {
         return m_float == other.as_integer()->to_int64_t() && !m_nan && !m_infinity;
     }
@@ -13,9 +13,9 @@ bool FloatValue::eq(Env *env, Value &other) {
         auto *f = other.as_float();
         return f->m_float == m_float && f->m_nan == m_nan && f->m_infinity == m_infinity;
     }
-    if (other.respond_to(env, "==")) {
+    if (other.respond_to(&env, "==")) {
         Value *args[] = { this };
-        return other.send(env, "==", 1, args)->is_truthy();
+        return other.send(&env, "==", 1, args)->is_truthy();
     }
     return false;
 }

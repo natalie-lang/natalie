@@ -88,7 +88,7 @@ struct FloatValue : Value {
         return copy;
     }
 
-    bool eq(Env *, Value &);
+    bool eq(Env &, Value &);
 
     bool eql(Value &);
 

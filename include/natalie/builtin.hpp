@@ -178,8 +178,6 @@ Value *File_expand_path(Env *env, Value *self, ssize_t argc, Value **args, Block
     klass->define_method(env, "<", Float_lt);               \
     klass->define_method(env, "<=", Float_lte);             \
     klass->define_method(env, "<=>", Float_cmp);            \
-    klass->define_method(env, "==", Float_eqeq);            \
-    klass->define_method(env, "===", Float_eqeq);           \
     klass->define_method(env, ">", Float_gt);               \
     klass->define_method(env, ">=", Float_gte);             \
     klass->define_method(env, "abs", Float_abs);            \
@@ -205,7 +203,6 @@ Value *Float_cmp(Env *env, Value *self, ssize_t argc, Value **args, Block *block
 Value *Float_coerce(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_div(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_divmod(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Float_eqeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_eql(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_finite(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Float_floor(Env *env, Value *self, ssize_t argc, Value **args, Block *block);

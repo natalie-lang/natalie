@@ -45,6 +45,8 @@ extern "C" {
 #include "onigmo.h"
 }
 
+void bridge_methods(Env *);
+
 bool is_constant_name(const char *name);
 bool is_global_name(const char *name);
 
