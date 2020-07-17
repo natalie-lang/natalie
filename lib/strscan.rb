@@ -117,8 +117,8 @@ class StringScanner
   end
 
   def unscan
-    @pos = @prev_pos
     if @match
+      @pos = @prev_pos
       @match = nil
       @matched = nil
     else
