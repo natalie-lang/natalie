@@ -1,5 +1,3 @@
-# skip-test
-
 require_relative '../../spec_helper'
 require_relative 'shared/extract_range_matched'
 require 'strscan'
@@ -35,7 +33,8 @@ describe "StringScanner#pre_match" do
   it "is not changed when the scanner's position changes" do
     @s.scan_until(/\s+/)
     @s.pre_match.should == "This"
-    @s.pos -= 1
+    #@s.pos -= 1
+    @s.pos = @s.pos - 1
     @s.pre_match.should == "This"
   end
 

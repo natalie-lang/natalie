@@ -401,6 +401,7 @@ Value *Regexp_match(Env *env, Value *self, ssize_t argc, Value **args, Block *bl
     klass->define_method(env, "==", String_eqeq);                       \
     klass->define_method(env, "===", String_eqeq);                      \
     klass->define_method(env, "=~", String_eqtilde);                    \
+    klass->define_method(env, "length", String_size);                   \
     klass->define_method(env, "match", String_match);                   \
     klass->define_method(env, "succ", String_succ);                     \
     klass->define_method(env, "ord", String_ord);                       \

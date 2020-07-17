@@ -1,5 +1,3 @@
-# skip-test
-
 require_relative '../../spec_helper'
 require_relative 'shared/rest_size'
 require 'strscan'
@@ -7,7 +5,7 @@ require 'strscan'
 describe "StringScanner#restsize" do
   it_behaves_like :strscan_rest_size, :restsize
 
-  it "warns in verbose mode that the method is obsolete" do
+  xit "warns in verbose mode that the method is obsolete" do
     s = StringScanner.new("abc")
     -> {
       s.restsize

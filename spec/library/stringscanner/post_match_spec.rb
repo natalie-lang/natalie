@@ -1,5 +1,3 @@
-# skip-test
-
 require_relative '../../spec_helper'
 require_relative 'shared/extract_range_matched'
 require 'strscan'

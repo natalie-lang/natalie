@@ -1,13 +1,44 @@
 class StringScanner
+  class Error < StandardError; end
+
   def initialize(string)
     @string = string.to_str
     @pos = 0
-    @prev_index = 0
+    @prev_pos = nil
     @matched = nil
   end
 
-  attr_reader :string, :matched
-  attr_accessor :pos
+  attr_reader :string, :matched, :pos
+
+  def inspect
+    if @pos >= @string.size
+      '#<StringScanner fin>'
+    else
+      before = @pos == 0 ? nil : "#{@string[0...@pos].inspect} "
+      after = " #{@string[@pos...@pos+5].inspect[0..-2]}...\""
+      "#<StringScanner #{@pos}/#{@string.size} #{before}@#{after}>"
+    end
+  end
+
+  def pos=(index)
+    index = @string.size + index if index < 0
+    raise RangeError, "pos negative" if index < 0
+    raise RangeError, "pos too far" if index > @string.size
+    @pos = index
+  end
+
+  def string=(s)
+    @string = s.to_str
+    @pos = 0
+  end
+
+  def pointer
+    pos
+  end
+
+  def pointer=(index)
+    self.pos = index
+  end
 
   def eos?
     @pos >= @string.size
@@ -24,11 +55,22 @@ class StringScanner
     end
   end
 
+  def check_until(pattern)
+    start = @pos
+    until (matched = check(pattern))
+      @pos += 1
+    end
+    @pos += matched.size
+    accumulated = @string[start...@pos]
+    @pos = start
+    accumulated
+  end
+
   def scan(pattern)
     anchored_pattern = Regexp.new('^' + pattern.inspect[1...-1])
     if (@match = rest.match(anchored_pattern))
       @matched = @match.to_s
-      @prev_index = @pos
+      @prev_pos = @pos
       @pos += @matched.size
       @matched
     else
@@ -36,8 +78,52 @@ class StringScanner
     end
   end
 
+  def scan_until(pattern)
+    start = @pos
+    until (matched = scan(pattern))
+      return nil if @pos > @string.size
+      @pos += 1
+    end
+    @string[start...@pos + matched.size]
+  end
+
+  def skip(pattern)
+    anchored_pattern = Regexp.new('^' + pattern.inspect[1...-1])
+    if (match = rest.match(anchored_pattern))
+      matched = match.to_s
+      @pos += matched.size
+      matched.size
+    end
+  end
+
+  def skip_until(pattern)
+    start = @pos
+    until (matched = scan(pattern))
+      return nil if @pos > @string.size
+      @pos += 1
+    end
+    @pos - start
+  end
+
+  def match?(pattern)
+    anchored_pattern = Regexp.new('^' + pattern.inspect[1...-1])
+    if (@match = rest.match(anchored_pattern))
+      @matched = @match.to_s
+      true
+    else
+      @matched = nil
+      false
+    end
+  end
+
   def unscan
-    @pos = @prev_index
+    @pos = @prev_pos
+    if @match
+      @match = nil
+      @matched = nil
+    else
+      raise ScanError, "no previous match"
+    end
   end
 
   def peek(length)
@@ -45,14 +131,31 @@ class StringScanner
     @string.bytes[@pos...(@pos+length)].map(&:chr).join
   end
 
+  alias peep peek
+
+  def scan_full(pattern, advance_pointer_p, return_string_p)
+    start = @pos
+    scan(pattern)
+    distance = @pos - start
+    @pos = start unless advance_pointer_p
+    if return_string_p
+      @matched
+    else
+      distance
+    end
+  end
+
+  alias search_full scan_full
+
   def get_byte
-    scan(/./)
+    @matched = scan(/./)
   end
 
   def getch
     c = @string.chars[@pos]
+    @prev_pos = @pos
     @pos += 1
-    c
+    @matched = c
   end
 
   alias getbyte get_byte
@@ -65,17 +168,6 @@ class StringScanner
     else
       raise TypeError, "Bad index: #{index.inspect}"
     end
-  end
-
-  def check_until(pattern)
-    start = @pos
-    until (matched = check(pattern))
-      @pos += 1
-    end
-    @pos += matched.size
-    accumulated = @string[start...@pos]
-    @pos = start
-    accumulated
   end
 
   def exist?(pattern)
@@ -99,7 +191,22 @@ class StringScanner
   end
 
   def pre_match
-    @string[0...@prev_index]
+    if @prev_pos
+      @string[0...@prev_pos]
+    end
+  end
+
+  def post_match
+    return nil if @prev_pos.nil?
+    @string[@pos..-1]
+  end
+
+  def matched?
+    !!@matched
+  end
+
+  def matched_size
+    @matched ? @matched.size : nil
   end
 
   def <<(str)
@@ -122,6 +229,12 @@ class StringScanner
     @string[@pos..-1] || ''
   end
 
+  def rest_size
+    rest.size
+  end
+
+  alias restsize rest_size
+
   def rest?
     @pos < @string.size
   end
@@ -138,3 +251,5 @@ class StringScanner
 
   alias clear terminate
 end
+
+ScanError = StringScanner::Error
