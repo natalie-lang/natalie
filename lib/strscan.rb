@@ -40,6 +40,11 @@ class StringScanner
     @pos = @prev_index
   end
 
+  def peek(length)
+    raise ArgumentError, "length is negative" if length < 0
+    @string.bytes[@pos...(@pos+length)].map(&:chr).join
+  end
+
   def [](index)
     return nil unless @match
     if index.is_a?(Integer) || index.is_a?(String)

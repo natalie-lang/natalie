@@ -22,7 +22,7 @@ describe :strscan_peek, shared: true do
     -> { @s.send(@method, -2) }.should raise_error(ArgumentError)
   end
 
-  it "raises a RangeError when the passed argument is a Bignum" do
+  xit "raises a RangeError when the passed argument is a Bignum" do
     -> { @s.send(@method, bignum_value) }.should raise_error(RangeError)
   end
 
@@ -38,7 +38,7 @@ describe :strscan_peek, shared: true do
   end
 
   ruby_version_is ''...'2.7' do
-    it "taints the returned String if the input was tainted" do
+    xit "taints the returned String if the input was tainted" do
       str = 'abc'
       str.taint
 
