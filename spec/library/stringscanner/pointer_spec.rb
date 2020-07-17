@@ -1,3 +1,5 @@
+# skip-test
+
 require_relative '../../spec_helper'
 require_relative 'shared/pos'
 require 'strscan'
