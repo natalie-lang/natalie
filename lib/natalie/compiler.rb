@@ -25,6 +25,8 @@ module Natalie
     ]
     OBJ_PATH = File.expand_path('../../obj', __dir__)
 
+    RB_LIB_PATH = File.expand_path('..', __dir__)
+
     MAIN_TEMPLATE = File.read(File.join(SRC_PATH, 'main.cpp'))
     OBJ_TEMPLATE = <<-EOF
       #{MAIN_TEMPLATE.split(/\/\* end of front matter \*\//).first}
@@ -120,7 +122,7 @@ module Natalie
     end
 
     def load_path
-      Array(@load_path)
+      Array(@load_path) + [RB_LIB_PATH]
     end
 
     def debug
