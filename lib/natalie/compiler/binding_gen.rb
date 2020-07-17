@@ -3,34 +3,105 @@ class BindingGen
     @bindings = {}
   end
 
-  def binding(rb_class, rb_method, cpp_class, cpp_method, argc:, pass_env: false, pass_block: false, return_type: :Value)
-    return_code = if return_type == :bool
-                    'if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }'
-                  else
-                    'return return_value;'
-                  end
-    name = "#{cpp_class}_#{cpp_method}_binding"
-    while @bindings[name]
-      name = name.sub(/_binding(\d*)$/) { "_binding#{$1.to_i + 1}" }
-    end
-    @bindings[name] = [rb_class, rb_method]
-    max_argc = Range === argc ? argc.end : argc
-    puts <<-FUNC
-Value *#{name}(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
-    #{Range === argc ? "NAT_ASSERT_ARGC(#{argc.begin}, #{argc.end})" : "NAT_ASSERT_ARGC(#{argc})"};
-    #{cpp_class} *self = self_value->as_#{cpp_class.sub(/Value/, '').downcase}();
-    auto return_value = self->#{cpp_method}(#{pass_env ? 'env' : ''}#{pass_env && max_argc > 0 ? ',' : ''} #{(0...max_argc).map { |i| "argc >= #{max_argc} ? args[#{i}] : nullptr" }.join(', ')} #{pass_block ? ', block' : ''});
-    #{return_code}
-}\n
-    FUNC
+  def binding(*args, **kwargs)
+    b = Binding.new(*args, **kwargs)
+    b.increment_name while @bindings[b.name]
+    @bindings[b.name] = b
+    b.write
   end
 
   def init
     puts 'void init_bindings(Env *env) {'
-    @bindings.each do |cpp_binding_func, (rb_class, rb_method)|
-      puts "    NAT_OBJECT->const_get(env, #{rb_class.inspect}, true)->define_method(env, #{rb_method.inspect}, #{cpp_binding_func});"
+    @consts = {}
+    @bindings.values.each do |binding|
+      unless @consts[binding.rb_class]
+        puts "    Value *#{binding.rb_class} = NAT_OBJECT->const_get(env, #{binding.rb_class.inspect}, true);"
+        @consts[binding.rb_class] = true
+      end
+      puts "    #{binding.rb_class}->define_method(env, #{binding.rb_method.inspect}, #{binding.name});"
     end
     puts '}'
+  end
+
+  class Binding
+    def initialize(rb_class, rb_method, cpp_class, cpp_method, argc:, pass_env:, pass_block:, return_type:)
+      @rb_class = rb_class
+      @rb_method = rb_method
+      @cpp_class = cpp_class
+      @cpp_method = cpp_method
+      @argc = argc
+      @pass_env = pass_env
+      @pass_block = pass_block
+      @return_type = return_type
+      generate_name
+    end
+
+    attr_reader :rb_class, :rb_method, :cpp_class, :cpp_method, :argc, :pass_env, :pass_block, :return_type, :name
+
+    def write
+      puts <<-FUNC
+Value *#{name}(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    #{argc_assertion}
+    #{cpp_class} *self = self_value->#{as_method_name}();
+    auto return_value = self->#{cpp_method}(#{env_arg} #{args} #{block_arg});
+    #{return_code}
+}\n
+      FUNC
+    end
+
+    def increment_name
+      @name = @name.sub(/_binding(\d*)$/) { "_binding#{$1.to_i + 1}" }
+    end
+
+    private
+
+    def argc_assertion
+      if Range === argc
+        "NAT_ASSERT_ARGC(#{argc.begin}, #{argc.end});"
+      else
+        "NAT_ASSERT_ARGC(#{argc});"
+      end
+    end
+
+    def env_arg
+      "#{pass_env ? 'env' : ''}#{pass_env && max_argc > 0 ? ',' : ''}"
+    end
+
+    def args
+      (0...max_argc).map do |i|
+        "argc >= #{max_argc} ? args[#{i}] : nullptr"
+      end.join(', ')
+    end
+
+    def block_arg
+      if pass_block
+        ', block'
+      end
+    end
+
+    def as_method_name
+      "as_#{cpp_class.sub(/Value/, '').downcase}"
+    end
+
+    def return_code
+      if return_type == :bool
+        'if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }'
+      else
+        'return return_value;'
+      end
+    end
+
+    def max_argc
+      if Range === argc
+        argc.end
+      else
+        argc
+      end
+    end
+
+    def generate_name
+      @name = "#{cpp_class}_#{cpp_method}_binding"
+    end
   end
 end
 
