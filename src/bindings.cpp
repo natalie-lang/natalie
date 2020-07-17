@@ -216,6 +216,132 @@ Value *FloatValue_is_zero_binding(Env *env, Value *self_value, ssize_t argc, Val
     if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
 }
 
+Value *IntegerValue_mod_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    IntegerValue *self = self_value->as_integer();
+    auto return_value = self->mod(env, argc >= 1 ? args[0] : nullptr );
+    return return_value;
+}
+
+Value *IntegerValue_bitwise_and_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    IntegerValue *self = self_value->as_integer();
+    auto return_value = self->bitwise_and(env, argc >= 1 ? args[0] : nullptr );
+    return return_value;
+}
+
+Value *IntegerValue_mul_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    IntegerValue *self = self_value->as_integer();
+    auto return_value = self->mul(env, argc >= 1 ? args[0] : nullptr );
+    return return_value;
+}
+
+Value *IntegerValue_pow_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    IntegerValue *self = self_value->as_integer();
+    auto return_value = self->pow(env, argc >= 1 ? args[0] : nullptr );
+    return return_value;
+}
+
+Value *IntegerValue_add_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    IntegerValue *self = self_value->as_integer();
+    auto return_value = self->add(env, argc >= 1 ? args[0] : nullptr );
+    return return_value;
+}
+
+Value *IntegerValue_sub_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    IntegerValue *self = self_value->as_integer();
+    auto return_value = self->sub(env, argc >= 1 ? args[0] : nullptr );
+    return return_value;
+}
+
+Value *IntegerValue_div_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    IntegerValue *self = self_value->as_integer();
+    auto return_value = self->div(env, argc >= 1 ? args[0] : nullptr );
+    return return_value;
+}
+
+Value *IntegerValue_cmp_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    IntegerValue *self = self_value->as_integer();
+    auto return_value = self->cmp(env, argc >= 1 ? args[0] : nullptr );
+    return return_value;
+}
+
+Value *IntegerValue_eqeqeq_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    IntegerValue *self = self_value->as_integer();
+    auto return_value = self->eqeqeq(env, argc >= 1 ? args[0] : nullptr );
+    return return_value;
+}
+
+Value *IntegerValue_abs_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    IntegerValue *self = self_value->as_integer();
+    auto return_value = self->abs(env  );
+    return return_value;
+}
+
+Value *IntegerValue_coerce_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    IntegerValue *self = self_value->as_integer();
+    auto return_value = self->coerce(env, argc >= 1 ? args[0] : nullptr );
+    return return_value;
+}
+
+Value *IntegerValue_eql_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    IntegerValue *self = self_value->as_integer();
+    auto return_value = self->eql(env, argc >= 1 ? args[0] : nullptr );
+    if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
+}
+
+Value *IntegerValue_to_s_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    IntegerValue *self = self_value->as_integer();
+    auto return_value = self->to_s(env  );
+    return return_value;
+}
+
+Value *IntegerValue_succ_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    IntegerValue *self = self_value->as_integer();
+    auto return_value = self->succ(env  );
+    return return_value;
+}
+
+Value *IntegerValue_times_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    IntegerValue *self = self_value->as_integer();
+    auto return_value = self->times(env  , block);
+    return return_value;
+}
+
+Value *IntegerValue_to_i_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    IntegerValue *self = self_value->as_integer();
+    auto return_value = self->to_i(  );
+    return return_value;
+}
+
+Value *IntegerValue_to_s_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    IntegerValue *self = self_value->as_integer();
+    auto return_value = self->to_s(env  );
+    return return_value;
+}
+
+Value *IntegerValue_bitwise_or_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    IntegerValue *self = self_value->as_integer();
+    auto return_value = self->bitwise_or(env, argc >= 1 ? args[0] : nullptr );
+    return return_value;
+}
+
 void init_bindings(Env *env) {
     NAT_OBJECT->const_get(env, "Float", true)->define_method(env, "%", FloatValue_mod_binding);
     NAT_OBJECT->const_get(env, "Float", true)->define_method(env, "*", FloatValue_mul_binding);
@@ -247,6 +373,24 @@ void init_bindings(Env *env) {
     NAT_OBJECT->const_get(env, "Float", true)->define_method(env, "to_i", FloatValue_to_i_binding);
     NAT_OBJECT->const_get(env, "Float", true)->define_method(env, "to_s", FloatValue_to_s_binding1);
     NAT_OBJECT->const_get(env, "Float", true)->define_method(env, "zero?", FloatValue_is_zero_binding);
+    NAT_OBJECT->const_get(env, "Integer", true)->define_method(env, "%", IntegerValue_mod_binding);
+    NAT_OBJECT->const_get(env, "Integer", true)->define_method(env, "&", IntegerValue_bitwise_and_binding);
+    NAT_OBJECT->const_get(env, "Integer", true)->define_method(env, "*", IntegerValue_mul_binding);
+    NAT_OBJECT->const_get(env, "Integer", true)->define_method(env, "**", IntegerValue_pow_binding);
+    NAT_OBJECT->const_get(env, "Integer", true)->define_method(env, "+", IntegerValue_add_binding);
+    NAT_OBJECT->const_get(env, "Integer", true)->define_method(env, "-", IntegerValue_sub_binding);
+    NAT_OBJECT->const_get(env, "Integer", true)->define_method(env, "/", IntegerValue_div_binding);
+    NAT_OBJECT->const_get(env, "Integer", true)->define_method(env, "<=>", IntegerValue_cmp_binding);
+    NAT_OBJECT->const_get(env, "Integer", true)->define_method(env, "===", IntegerValue_eqeqeq_binding);
+    NAT_OBJECT->const_get(env, "Integer", true)->define_method(env, "abs", IntegerValue_abs_binding);
+    NAT_OBJECT->const_get(env, "Integer", true)->define_method(env, "coerce", IntegerValue_coerce_binding);
+    NAT_OBJECT->const_get(env, "Integer", true)->define_method(env, "eql?", IntegerValue_eql_binding);
+    NAT_OBJECT->const_get(env, "Integer", true)->define_method(env, "inspect", IntegerValue_to_s_binding);
+    NAT_OBJECT->const_get(env, "Integer", true)->define_method(env, "succ", IntegerValue_succ_binding);
+    NAT_OBJECT->const_get(env, "Integer", true)->define_method(env, "times", IntegerValue_times_binding);
+    NAT_OBJECT->const_get(env, "Integer", true)->define_method(env, "to_i", IntegerValue_to_i_binding);
+    NAT_OBJECT->const_get(env, "Integer", true)->define_method(env, "to_s", IntegerValue_to_s_binding1);
+    NAT_OBJECT->const_get(env, "Integer", true)->define_method(env, "|", IntegerValue_bitwise_or_binding);
 }
 
 }
