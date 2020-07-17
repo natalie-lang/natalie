@@ -45,6 +45,12 @@ class StringScanner
     @string.bytes[@pos...(@pos+length)].map(&:chr).join
   end
 
+  def get_byte
+    scan(/./)
+  end
+
+  alias getbyte get_byte
+
   def [](index)
     return nil unless @match
     if index.is_a?(Integer) || index.is_a?(String)

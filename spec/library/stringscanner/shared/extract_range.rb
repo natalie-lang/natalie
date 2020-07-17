@@ -10,7 +10,7 @@ describe :extract_range, shared: true do
   end
 
   ruby_version_is ''...'2.7' do
-    it "taints the returned String if the input was tainted" do
+    xit "taints the returned String if the input was tainted" do
       str = 'abc'
       str.taint
 
