@@ -1,23 +1,89 @@
 class StringScanner
   def initialize(string)
     @string = string
-    @index = 0
+    @pos = 0
+    @prev_index = 0
+    @matched = nil
   end
 
+  attr_reader :string, :matched
+  attr_accessor :pos
+
   def eos?
-    @index >= @string.size
+    @pos >= @string.size
+  end
+
+  def check(pattern)
+    anchored_pattern = Regexp.new('^' + pattern.inspect[1...-1])
+    if (match = rest.match(anchored_pattern))
+      @matched = match.to_s
+    else
+      @matched = nil
+    end
   end
 
   def scan(pattern)
     anchored_pattern = Regexp.new('^' + pattern.inspect[1...-1])
     if (match = rest.match(anchored_pattern))
-      s = match.to_s
-      @index += s.size
-      s
+      @matched = match.to_s
+      @prev_index = @pos
+      @pos += @matched.size
+      @matched
+    else
+      @matched = nil
     end
   end
 
-  def rest
-    @string[@index..-1] || ''
+  def unscan
+    @pos = @prev_index
   end
+
+  def check_until(pattern)
+    start = @pos
+    until (matched = check(pattern))
+      @pos += 1
+    end
+    @pos += matched.size
+    accumulated = @string[start...@pos]
+    @pos = start
+    accumulated
+  end
+
+  def pre_match
+    @string[0...@prev_index]
+  end
+
+  def <<(str)
+    unless str.is_a?(String)
+      raise TypeError, 'cannot convert argument to string'
+    end
+    @string << str
+    self
+  end
+
+  alias concat <<
+
+  def beginning_of_line?
+    @pos == 0 || (@pos > 0 && @string[@pos - 1] == "\n")
+  end
+
+  alias bol? beginning_of_line?
+
+  def rest
+    @string[@pos..-1] || ''
+  end
+
+  def rest?
+    @pos < @string.size
+  end
+
+  def reset
+    @pos = 0
+  end
+
+  def terminate
+    @pos = @string.size
+  end
+
+  alias clear terminate
 end

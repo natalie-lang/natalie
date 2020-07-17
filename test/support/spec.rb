@@ -384,6 +384,10 @@ class Object
     BeKindOfExpectation.new(klass)
   end
 
+  def be_an_instance_of(klass)
+    BeKindOfExpectation.new(klass)
+  end
+
   def eql(other)
     EqlExpectation.new(other)
   end
