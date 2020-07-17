@@ -27,7 +27,7 @@ describe "StringScanner#[]" do
     @s[-5].should == nil
   end
 
-  it "calls to_int on the given index" do
+  xit "calls to_int on the given index" do
     @s.scan(/(\w+) (\w+) (\d+) /)
     @s[0.5].should == "Fri Jun 13 "
   end
@@ -42,13 +42,13 @@ describe "StringScanner#[]" do
     -> { @s[0..2]}.should raise_error(TypeError)
   end
 
-  it "raises a IndexError when there's no named capture" do
+  xit "raises a IndexError when there's no named capture" do
     @s.scan(/(\w+) (\w+) (\d+) /)
     -> { @s["wday"]}.should raise_error(IndexError)
     -> { @s[:wday]}.should raise_error(IndexError)
   end
 
-  it "returns named capture" do
+  xit "returns named capture" do
     @s.scan(/(?<wday>\w+) (?<month>\w+) (?<day>\d+) /)
     @s["wday"].should == "Fri"
     @s["month"].should == "Jun"

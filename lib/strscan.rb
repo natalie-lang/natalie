@@ -13,10 +13,12 @@ class StringScanner
     @pos >= @string.size
   end
 
+  alias empty? eos?
+
   def check(pattern)
     anchored_pattern = Regexp.new('^' + pattern.inspect[1...-1])
-    if (match = rest.match(anchored_pattern))
-      @matched = match.to_s
+    if (@match = rest.match(anchored_pattern))
+      @matched = @match.to_s
     else
       @matched = nil
     end
@@ -24,8 +26,8 @@ class StringScanner
 
   def scan(pattern)
     anchored_pattern = Regexp.new('^' + pattern.inspect[1...-1])
-    if (match = rest.match(anchored_pattern))
-      @matched = match.to_s
+    if (@match = rest.match(anchored_pattern))
+      @matched = @match.to_s
       @prev_index = @pos
       @pos += @matched.size
       @matched
@@ -38,6 +40,16 @@ class StringScanner
     @pos = @prev_index
   end
 
+  def [](index)
+    return nil unless @match
+    if index.is_a?(Integer) || index.is_a?(String)
+      return nil unless index.is_a?(Integer) # FIXME
+      @match[index]
+    else
+      raise TypeError, "Bad index: #{index.inspect}"
+    end
+  end
+
   def check_until(pattern)
     start = @pos
     until (matched = check(pattern))
@@ -47,6 +59,26 @@ class StringScanner
     accumulated = @string[start...@pos]
     @pos = start
     accumulated
+  end
+
+  def exist?(pattern)
+    return 0 if pattern == //
+    start = @pos
+    while true
+      # FIXME: this is ugly because `break` is broken here :-(
+      if check(pattern)
+        found_at = @pos - start + 1
+        @pos = start
+        return found_at
+      end
+      if @pos >= @string.size
+        @pos = start
+        return nil
+      end
+      @pos += 1
+    end
+    @pos = start
+    nil
   end
 
   def pre_match
