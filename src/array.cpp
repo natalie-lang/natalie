@@ -317,13 +317,13 @@ Value *Array_sort(Env *env, Value *self_value, ssize_t argc, Value **args, Block
 
 Value *Array_join(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     ArrayValue *self = self_value->as_array();
-    NAT_ASSERT_ARGC(1);
+    NAT_ASSERT_ARGC(0, 1);
     if (self->size() == 0) {
         return new StringValue { env };
     } else if (self->size() == 1) {
         return (*self)[0]->send(env, "to_s");
     } else {
-        Value *joiner = args[0];
+        Value *joiner = argc == 0 ? new StringValue { env, "" } : args[0];
         NAT_ASSERT_TYPE(joiner, Value::Type::String, "String");
         StringValue *out = (*self)[0]->send(env, "to_s")->as_string();
         for (auto i = 1; i < self->size(); i++) {
