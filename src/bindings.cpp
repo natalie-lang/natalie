@@ -286,6 +286,13 @@ Value *IntegerValue_abs_binding(Env *env, Value *self_value, ssize_t argc, Value
     return return_value;
 }
 
+Value *IntegerValue_chr_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    IntegerValue *self = self_value->as_integer();
+    auto return_value = self->chr(env  );
+    return return_value;
+}
+
 Value *IntegerValue_coerce_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     IntegerValue *self = self_value->as_integer();
@@ -385,6 +392,7 @@ void init_bindings(Env *env) {
     Integer->define_method(env, "<=>", IntegerValue_cmp_binding);
     Integer->define_method(env, "===", IntegerValue_eqeqeq_binding);
     Integer->define_method(env, "abs", IntegerValue_abs_binding);
+    Integer->define_method(env, "chr", IntegerValue_chr_binding);
     Integer->define_method(env, "coerce", IntegerValue_coerce_binding);
     Integer->define_method(env, "eql?", IntegerValue_eql_binding);
     Integer->define_method(env, "inspect", IntegerValue_to_s_binding);

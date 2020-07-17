@@ -152,4 +152,11 @@ Value *IntegerValue::abs(Env *env) {
     }
 }
 
+Value *IntegerValue::chr(Env *env) {
+    char c = static_cast<char>(to_int64_t());
+    char str[] = " ";
+    str[0] = c;
+    return new StringValue { env, str };
+}
+
 }

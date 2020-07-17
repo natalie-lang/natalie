@@ -13,7 +13,7 @@ namespace Natalie {
 struct IntegerValue : Value {
     IntegerValue(Env *env, int64_t integer)
         : Value { Value::Type::Integer, NAT_OBJECT->const_get(env, "Integer", true)->as_class() }
-        , m_integer { integer } {}
+        , m_integer { integer } { }
 
     int64_t to_int64_t() {
         return m_integer;
@@ -40,6 +40,7 @@ struct IntegerValue : Value {
     Value *coerce(Env *, Value *);
     Value *eql(Env *, Value *);
     Value *abs(Env *);
+    Value *chr(Env *);
 
 private:
     int64_t m_integer { 0 };
