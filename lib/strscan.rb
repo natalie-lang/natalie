@@ -84,7 +84,7 @@ class StringScanner
       return nil if @pos > @string.size
       @pos += 1
     end
-    @string[start...@pos + matched.size]
+    @string[start...@pos + matched.size - 1]
   end
 
   def skip(pattern)
@@ -107,12 +107,12 @@ class StringScanner
 
   def match?(pattern)
     anchored_pattern = Regexp.new('^' + pattern.inspect[1...-1])
+    @prev_pos = @pos
     if (@match = rest.match(anchored_pattern))
       @matched = @match.to_s
-      true
+      @matched.size
     else
       @matched = nil
-      false
     end
   end
 
