@@ -17,6 +17,17 @@ struct ModuleValue : Value {
     ModuleValue(Env *, const char *);
     ModuleValue(Env *, Type, ClassValue *);
 
+    ModuleValue(const ModuleValue &other)
+        : Value { other.type, other.klass }
+        , m_class_name { strdup(other.m_class_name) }
+        , m_superclass { other.m_superclass } {
+        copy_hashmap(m_constants, other.m_constants);
+        copy_hashmap(m_methods, other.m_methods);
+        for (ModuleValue *module : const_cast<ModuleValue &>(other).m_included_modules) {
+            m_included_modules.push(module);
+        }
+    }
+
     ~ModuleValue() {
         delete m_class_name;
     }

@@ -60,7 +60,8 @@ struct Value : public gc {
         assert(klass);
     }
 
-    Value(const Value &) = delete;
+    Value(const Value &);
+
     Value &operator=(const Value &) = delete;
 
     Type type { Type::Object };

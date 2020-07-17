@@ -366,4 +366,13 @@ std::pair<Value *, Value *> coerce(Env *env, Value *lhs, Value *rhs) {
     }
 }
 
+void copy_hashmap(struct hashmap &dest, const struct hashmap &source) {
+    struct hashmap_iter *iter;
+    for (iter = hashmap_iter(&source); iter; iter = hashmap_iter_next(&source, iter)) {
+        char *name = (char *)hashmap_iter_get_key(iter);
+        Value *value = (Value *)hashmap_iter_get_data(iter);
+        hashmap_put(&dest, name, value);
+    }
+}
+
 }

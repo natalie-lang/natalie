@@ -29,6 +29,8 @@ struct TrueValue;
 struct Value;
 struct VoidPValue;
 
+void copy_hashmap(struct hashmap &, const struct hashmap &);
+
 template <typename T>
 struct Vector;
 

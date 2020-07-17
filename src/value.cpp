@@ -3,6 +3,16 @@
 
 namespace Natalie {
 
+Value::Value(const Value &other)
+    : type { other.type }
+    , klass { other.klass }
+    , m_singleton_class { other.m_singleton_class ? new ClassValue { *other.m_singleton_class } : nullptr }
+    , owner { other.owner }
+    , flags { other.flags } {
+    init_ivars();
+    copy_hashmap(ivars, other.ivars);
+}
+
 Value *Value::initialize(Env *env, ssize_t argc, Value **args, Block *block) {
     ClassValue *klass = this->klass;
     ModuleValue *matching_class_or_module;
@@ -289,6 +299,8 @@ Value *Value::dup(Env *env) {
     case Value::Type::Symbol:
     case Value::Type::True:
         return this;
+    case Value::Type::Object:
+        return new Value { *this };
     default:
         fprintf(stderr, "I don't know how to dup this kind of object yet %s (type = %d).\n", klass->class_name(), static_cast<int>(type));
         abort();
