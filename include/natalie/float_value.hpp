@@ -15,11 +15,11 @@ namespace Natalie {
 struct FloatValue : Value {
     FloatValue(Env *env, double number)
         : Value { Value::Type::Float, NAT_OBJECT->const_get(env, "Float", true)->as_class() }
-        , m_float { number } { }
+        , m_float { number } {}
 
     FloatValue(Env *env, int64_t number)
         : Value { Value::Type::Float, NAT_OBJECT->const_get(env, "Float", true)->as_class() }
-        , m_float { static_cast<double>(number) } { }
+        , m_float { static_cast<double>(number) } {}
 
     FloatValue(const FloatValue &other)
         : Value { Value::Type::Float, other.klass }
@@ -74,6 +74,9 @@ struct FloatValue : Value {
         return m_infinity;
     }
 
+    // NOTE: even though this is a predicate method with a ? suffix, it returns an 1, -1, or nil.
+    Value *is_infinite(Env *);
+
     bool is_positive_infinity() {
         return m_infinity && m_float > 0;
     }
@@ -88,15 +91,36 @@ struct FloatValue : Value {
         return copy;
     }
 
-    bool eq(Env &, Value &);
+    bool eq(Env *, Value *);
 
-    bool eql(Value &);
+    bool eql(Value *);
 
-    Value *ceil(Env *, int64_t);
-    Value *floor(Env *, int64_t);
+    Value *to_s(Env *);
+    Value *cmp(Env *, Value *);
+    Value *coerce(Env *, Value *);
+    Value *to_i(Env *);
+    Value *add(Env *, Value *);
+    Value *sub(Env *, Value *);
+    Value *mul(Env *, Value *);
+    Value *div(Env *, Value *);
+    Value *mod(Env *, Value *);
+    Value *divmod(Env *, Value *);
+    Value *pow(Env *, Value *);
+    Value *abs(Env *);
+    Value *ceil(Env *, Value *);
+    Value *floor(Env *, Value *);
+    bool lt(Env *, Value *);
+    bool lte(Env *, Value *);
+    bool gt(Env *, Value *);
+    bool gte(Env *, Value *);
 
-    Value *to_s(Env &);
-    Value *cmp(Env &, Value &);
+    Value *uminus() {
+        return negate();
+    }
+
+    Value *uplus() {
+        return this;
+    }
 
 private:
     double m_float { 0.0 };

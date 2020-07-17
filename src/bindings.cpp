@@ -6,55 +6,247 @@
 
 namespace Natalie {
 
-Value *FloatValue_eq_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_mod_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     FloatValue *self = self_value->as_float();
-    auto return_value = self->eq(*env , *args[0] );
-    if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
-}
-
-Value *FloatValue_eq_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
-    NAT_ASSERT_ARGC(1);
-    FloatValue *self = self_value->as_float();
-    auto return_value = self->eq(*env , *args[0] );
-    if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
-}
-
-Value *FloatValue_to_s_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
-    NAT_ASSERT_ARGC(0);
-    FloatValue *self = self_value->as_float();
-    auto return_value = self->to_s(*env   );
+    auto return_value = self->mod(env, argc >= 1 ? args[0] : nullptr );
     return return_value;
 }
 
-Value *FloatValue_to_s_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
-    NAT_ASSERT_ARGC(0);
+Value *FloatValue_mul_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
     FloatValue *self = self_value->as_float();
-    auto return_value = self->to_s(*env   );
+    auto return_value = self->mul(env, argc >= 1 ? args[0] : nullptr );
     return return_value;
 }
 
-Value *FloatValue_eql_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_pow_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     FloatValue *self = self_value->as_float();
-    auto return_value = self->eql(  *args[0] );
+    auto return_value = self->pow(env, argc >= 1 ? args[0] : nullptr );
+    return return_value;
+}
+
+Value *FloatValue_add_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    FloatValue *self = self_value->as_float();
+    auto return_value = self->add(env, argc >= 1 ? args[0] : nullptr );
+    return return_value;
+}
+
+Value *FloatValue_uplus_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    FloatValue *self = self_value->as_float();
+    auto return_value = self->uplus(  );
+    return return_value;
+}
+
+Value *FloatValue_sub_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    FloatValue *self = self_value->as_float();
+    auto return_value = self->sub(env, argc >= 1 ? args[0] : nullptr );
+    return return_value;
+}
+
+Value *FloatValue_uminus_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    FloatValue *self = self_value->as_float();
+    auto return_value = self->uminus(  );
+    return return_value;
+}
+
+Value *FloatValue_div_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    FloatValue *self = self_value->as_float();
+    auto return_value = self->div(env, argc >= 1 ? args[0] : nullptr );
+    return return_value;
+}
+
+Value *FloatValue_lt_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    FloatValue *self = self_value->as_float();
+    auto return_value = self->lt(env, argc >= 1 ? args[0] : nullptr );
+    if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
+}
+
+Value *FloatValue_lte_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    FloatValue *self = self_value->as_float();
+    auto return_value = self->lte(env, argc >= 1 ? args[0] : nullptr );
     if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
 }
 
 Value *FloatValue_cmp_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     FloatValue *self = self_value->as_float();
-    auto return_value = self->cmp(*env , *args[0] );
+    auto return_value = self->cmp(env, argc >= 1 ? args[0] : nullptr );
     return return_value;
 }
 
+Value *FloatValue_eq_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    FloatValue *self = self_value->as_float();
+    auto return_value = self->eq(env, argc >= 1 ? args[0] : nullptr );
+    if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
+}
+
+Value *FloatValue_eq_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    FloatValue *self = self_value->as_float();
+    auto return_value = self->eq(env, argc >= 1 ? args[0] : nullptr );
+    if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
+}
+
+Value *FloatValue_gt_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    FloatValue *self = self_value->as_float();
+    auto return_value = self->gt(env, argc >= 1 ? args[0] : nullptr );
+    if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
+}
+
+Value *FloatValue_gte_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    FloatValue *self = self_value->as_float();
+    auto return_value = self->gte(env, argc >= 1 ? args[0] : nullptr );
+    if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
+}
+
+Value *FloatValue_abs_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    FloatValue *self = self_value->as_float();
+    auto return_value = self->abs(env  );
+    return return_value;
+}
+
+Value *FloatValue_ceil_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0, 1);
+    FloatValue *self = self_value->as_float();
+    auto return_value = self->ceil(env, argc >= 1 ? args[0] : nullptr );
+    return return_value;
+}
+
+Value *FloatValue_coerce_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    FloatValue *self = self_value->as_float();
+    auto return_value = self->coerce(env, argc >= 1 ? args[0] : nullptr );
+    return return_value;
+}
+
+Value *FloatValue_divmod_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    FloatValue *self = self_value->as_float();
+    auto return_value = self->divmod(env, argc >= 1 ? args[0] : nullptr );
+    return return_value;
+}
+
+Value *FloatValue_eql_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    FloatValue *self = self_value->as_float();
+    auto return_value = self->eql( argc >= 1 ? args[0] : nullptr );
+    if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
+}
+
+Value *FloatValue_div_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    FloatValue *self = self_value->as_float();
+    auto return_value = self->div(env, argc >= 1 ? args[0] : nullptr );
+    return return_value;
+}
+
+Value *FloatValue_is_finite_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    FloatValue *self = self_value->as_float();
+    auto return_value = self->is_finite(  );
+    if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
+}
+
+Value *FloatValue_floor_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0, 1);
+    FloatValue *self = self_value->as_float();
+    auto return_value = self->floor(env, argc >= 1 ? args[0] : nullptr );
+    return return_value;
+}
+
+Value *FloatValue_is_infinite_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    FloatValue *self = self_value->as_float();
+    auto return_value = self->is_infinite(env  );
+    return return_value;
+}
+
+Value *FloatValue_to_s_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    FloatValue *self = self_value->as_float();
+    auto return_value = self->to_s(env  );
+    return return_value;
+}
+
+Value *FloatValue_is_nan_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    FloatValue *self = self_value->as_float();
+    auto return_value = self->is_nan(  );
+    if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
+}
+
+Value *FloatValue_div_binding2(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    FloatValue *self = self_value->as_float();
+    auto return_value = self->div(env, argc >= 1 ? args[0] : nullptr );
+    return return_value;
+}
+
+Value *FloatValue_to_i_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    FloatValue *self = self_value->as_float();
+    auto return_value = self->to_i(env  );
+    return return_value;
+}
+
+Value *FloatValue_to_s_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    FloatValue *self = self_value->as_float();
+    auto return_value = self->to_s(env  );
+    return return_value;
+}
+
+Value *FloatValue_is_zero_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    FloatValue *self = self_value->as_float();
+    auto return_value = self->is_zero(  );
+    if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
+}
+
 void init_bindings(Env *env) {
+    NAT_OBJECT->const_get(env, "Float", true)->define_method(env, "%", FloatValue_mod_binding);
+    NAT_OBJECT->const_get(env, "Float", true)->define_method(env, "*", FloatValue_mul_binding);
+    NAT_OBJECT->const_get(env, "Float", true)->define_method(env, "**", FloatValue_pow_binding);
+    NAT_OBJECT->const_get(env, "Float", true)->define_method(env, "+", FloatValue_add_binding);
+    NAT_OBJECT->const_get(env, "Float", true)->define_method(env, "+@", FloatValue_uplus_binding);
+    NAT_OBJECT->const_get(env, "Float", true)->define_method(env, "-", FloatValue_sub_binding);
+    NAT_OBJECT->const_get(env, "Float", true)->define_method(env, "-@", FloatValue_uminus_binding);
+    NAT_OBJECT->const_get(env, "Float", true)->define_method(env, "/", FloatValue_div_binding);
+    NAT_OBJECT->const_get(env, "Float", true)->define_method(env, "<", FloatValue_lt_binding);
+    NAT_OBJECT->const_get(env, "Float", true)->define_method(env, "<=", FloatValue_lte_binding);
+    NAT_OBJECT->const_get(env, "Float", true)->define_method(env, "<=>", FloatValue_cmp_binding);
     NAT_OBJECT->const_get(env, "Float", true)->define_method(env, "==", FloatValue_eq_binding);
     NAT_OBJECT->const_get(env, "Float", true)->define_method(env, "===", FloatValue_eq_binding1);
-    NAT_OBJECT->const_get(env, "Float", true)->define_method(env, "to_s", FloatValue_to_s_binding);
-    NAT_OBJECT->const_get(env, "Float", true)->define_method(env, "inspect", FloatValue_to_s_binding1);
+    NAT_OBJECT->const_get(env, "Float", true)->define_method(env, ">", FloatValue_gt_binding);
+    NAT_OBJECT->const_get(env, "Float", true)->define_method(env, ">=", FloatValue_gte_binding);
+    NAT_OBJECT->const_get(env, "Float", true)->define_method(env, "abs", FloatValue_abs_binding);
+    NAT_OBJECT->const_get(env, "Float", true)->define_method(env, "ceil", FloatValue_ceil_binding);
+    NAT_OBJECT->const_get(env, "Float", true)->define_method(env, "coerce", FloatValue_coerce_binding);
+    NAT_OBJECT->const_get(env, "Float", true)->define_method(env, "divmod", FloatValue_divmod_binding);
     NAT_OBJECT->const_get(env, "Float", true)->define_method(env, "eql?", FloatValue_eql_binding);
-    NAT_OBJECT->const_get(env, "Float", true)->define_method(env, "<=>", FloatValue_cmp_binding);
+    NAT_OBJECT->const_get(env, "Float", true)->define_method(env, "fdiv", FloatValue_div_binding1);
+    NAT_OBJECT->const_get(env, "Float", true)->define_method(env, "finite?", FloatValue_is_finite_binding);
+    NAT_OBJECT->const_get(env, "Float", true)->define_method(env, "floor", FloatValue_floor_binding);
+    NAT_OBJECT->const_get(env, "Float", true)->define_method(env, "infinite?", FloatValue_is_infinite_binding);
+    NAT_OBJECT->const_get(env, "Float", true)->define_method(env, "inspect", FloatValue_to_s_binding);
+    NAT_OBJECT->const_get(env, "Float", true)->define_method(env, "nan?", FloatValue_is_nan_binding);
+    NAT_OBJECT->const_get(env, "Float", true)->define_method(env, "quo", FloatValue_div_binding2);
+    NAT_OBJECT->const_get(env, "Float", true)->define_method(env, "to_i", FloatValue_to_i_binding);
+    NAT_OBJECT->const_get(env, "Float", true)->define_method(env, "to_s", FloatValue_to_s_binding1);
+    NAT_OBJECT->const_get(env, "Float", true)->define_method(env, "zero?", FloatValue_is_zero_binding);
 }
 
 }

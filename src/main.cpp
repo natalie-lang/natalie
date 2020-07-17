@@ -85,7 +85,6 @@ extern "C" Env *build_top_env() {
     Object->const_set(env, "Float", Float);
     Float->const_set(env, "MIN", new FloatValue { env, NAT_MIN_FLOAT });
     Float->const_set(env, "MAX", new FloatValue { env, NAT_MAX_FLOAT });
-    NAT_FLOAT_INIT(Float);
 
     ClassValue *String = Object->subclass(env, "String");
     Object->const_set(env, "String", String);
