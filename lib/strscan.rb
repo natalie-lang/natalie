@@ -128,6 +128,8 @@ class StringScanner
 
   def reset
     @pos = 0
+    @match = nil
+    @matched = nil
   end
 
   def terminate
