@@ -16,29 +16,29 @@ Natalie is able to compile and run **very simple Ruby** scripts at the moment.
 We have the foundations in place, like classes, modules, methods, blocks and
 the various types of variables. We have the basic data objects in place, e.g.
 true, false, nil, Integer, Symbol, String, Array, Hash, Range.  But there are
-still some yet unimplemented, like Float, and probably 90% of convenience
-methods on all the various objects.
+still some yet unimplemented, like Date, Time, Enumerator, etc.
 
 This is **not** comprehensive, but here is a rough to do list, as I think of
 things that are missing ;-) (not in any specific order):
 
-- enumerators
 - method visibility
+- Enumerator
+- Enumerable module
 - Bignum support
 - Date and Time
 - Lots and lots of convenience methods on built-in objects
-- The entire Ruby standard library (Hopefully we can pull most of it in from
+- The entire Ruby standard library (Hopefully we can pull a lot of it in from
   MRI once the core is more complete)
-- MRI C-extension compatibility
+- MRI C-extension compatibility (I'm still not sure if I even want to build this)
 - Probably lots more I just haven't thought of yet!
 
 The current driving force is to make Natalie complete enough to be able to
 compile itself. Since the Natalie compiler is written in Ruby, theoretically
 at some point, we should be able to run the Ruby code through Natalie to
-produce a compiled version of the compiler. That day will be glorious!
+produce a binary of the compiler. That day will be glorious!
 
 A more lofty goal would be the ability to compile a larger project like
-Sinatra. But that's probably a year away at this point.
+Sinatra. But that's still a distant dream...
 
 ## Helping Out
 
@@ -50,16 +50,27 @@ that is not yet implemented and make it yourself!
 
 ## Building
 
-The compiler and REPL currently (but hopefully not for long!) require Ruby.
-I only test with Ruby 2.7.x currently.
+Natalie is tested on macOS and Ubuntu Linux. Windows is not yet supported.
 
-Prerequisites: autoconf, automake, libtool, cmake, and Ruby version 2.7.x
+The compiler and REPL require Ruby. I only test with Ruby 2.7.x currently.
+
+Prerequisites:
+
+- git
+- autoconf
+- automake
+- libtool
+- cmake
+- Ruby 2.7.x
+
+Install the above prerequisites on your platform, then run:
 
 ```sh
+git clone https://github.com/seven1m/natalie
 git submodule update --init
 gem install bundler
 bundle install
-make build
+make
 ```
 
 **NOTE:** Currently, the default build is the "debug" build.
