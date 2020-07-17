@@ -1,5 +1,3 @@
-# skip-test
-
 # -*- encoding: binary -*-
 require_relative '../../spec_helper'
 require_relative 'shared/extract_range'
@@ -15,7 +13,10 @@ describe "StringScanner#getch" do
 
   it "is multi-byte character sensitive" do
     # Japanese hiragana "A" in EUC-JP
-    src = "\244\242".force_encoding("euc-jp")
+    #src = "\244\242".force_encoding("euc-jp")
+
+    # nerd face emoji in UTF-8
+    src = "\xF0\x9F\xA4\x93".force_encoding("utf-8")
 
     s = StringScanner.new(src)
     s.getch.should == src

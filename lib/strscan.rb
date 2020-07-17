@@ -49,6 +49,12 @@ class StringScanner
     scan(/./)
   end
 
+  def getch
+    c = @string.chars[@pos]
+    @pos += 1
+    c
+  end
+
   alias getbyte get_byte
 
   def [](index)
