@@ -536,12 +536,10 @@ module Natalie
             "\\\""
           when 92
             "\\\\\\\\" # I'm in escape sequence hell
-          when 127
-            "\\#{byte}"
-          when 32..255
+          when 32..126
             byte.chr
           else
-            "\\#{byte}"
+            "\\\\#{byte.to_s(8)}"
           end
         end
         '"' + c_chars.join + '"'
