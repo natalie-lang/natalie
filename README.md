@@ -24,7 +24,6 @@ things that are missing ;-) (not in any specific order):
 
 - enumerators
 - method visibility
-- Float
 - Bignum support
 - Date and Time
 - Lots and lots of convenience methods on built-in objects
