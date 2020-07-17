@@ -28,9 +28,9 @@ describe 'Natalie tests' do
   Dir.chdir File.expand_path('../..', __dir__)
   Dir['test/natalie/*_test.rb'].each do |path|
     code = File.read(path, encoding: 'utf-8')
-    next if code =~ /# skip-test/
     describe path do
       it 'has the same output in ruby and natalie' do
+        skip if code =~ /# skip-test/
         run_both_and_compare(path)
       end
     end
