@@ -349,6 +349,13 @@ Value *IntegerValue_bitwise_or_binding(Env *env, Value *self_value, ssize_t argc
     return return_value;
 }
 
+Value *StringValue_to_str_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    StringValue *self = self_value->as_string();
+    auto return_value = self->to_str(  );
+    return return_value;
+}
+
 void init_bindings(Env *env) {
     Value *Float = NAT_OBJECT->const_get(env, "Float", true);
     Float->define_method(env, "%", FloatValue_mod_binding);
@@ -401,6 +408,8 @@ void init_bindings(Env *env) {
     Integer->define_method(env, "to_i", IntegerValue_to_i_binding);
     Integer->define_method(env, "to_s", IntegerValue_to_s_binding1);
     Integer->define_method(env, "|", IntegerValue_bitwise_or_binding);
+    Value *String = NAT_OBJECT->const_get(env, "String", true);
+    String->define_method(env, "to_str", StringValue_to_str_binding);
 }
 
 }

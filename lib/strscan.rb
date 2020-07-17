@@ -1,6 +1,6 @@
 class StringScanner
   def initialize(string)
-    @string = string
+    @string = string.to_str
     @pos = 0
     @prev_index = 0
     @matched = nil

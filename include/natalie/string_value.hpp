@@ -74,6 +74,9 @@ struct StringValue : Value {
     ArrayValue *chars(Env *);
 
     SymbolValue *to_symbol(Env *);
+
+    StringValue *to_str() { return this; }
+
     StringValue *inspect(Env *);
 
     bool operator==(const Value &) const;

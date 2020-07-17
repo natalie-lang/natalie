@@ -1,5 +1,3 @@
-# skip-test
-
 require_relative '../../spec_helper'
 require 'strscan'
 
@@ -8,7 +6,7 @@ describe "StringScanner#initialize" do
     @s = StringScanner.new("This is a test")
   end
 
-  it "is a private method" do
+  xit "is a private method" do
     StringScanner.should have_private_instance_method(:initialize)
   end
 
