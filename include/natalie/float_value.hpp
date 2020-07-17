@@ -74,6 +74,13 @@ struct FloatValue : Value {
         return m_infinity;
     }
 
+    bool is_negative() {
+        return m_float < 0.0;
+    };
+    bool is_positive() {
+        return m_float > 0.0;
+    };
+
     // NOTE: even though this is a predicate method with a ? suffix, it returns an 1, -1, or nil.
     Value *is_infinite(Env *);
 
@@ -109,6 +116,8 @@ struct FloatValue : Value {
     Value *abs(Env *);
     Value *ceil(Env *, Value *);
     Value *floor(Env *, Value *);
+    Value *next_float(Env *);
+    Value *prev_float(Env *);
     bool lt(Env *, Value *);
     bool lte(Env *, Value *);
     bool gt(Env *, Value *);

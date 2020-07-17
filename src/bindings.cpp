@@ -444,11 +444,53 @@ Value *FloatValue_to_s_binding(Env *env, Value *self_value, ssize_t argc, Value 
     return return_value;
 }
 
+Value *FloatValue_abs_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    FloatValue *self = self_value->as_float();
+    auto return_value = self->abs(env  );
+    return return_value;
+}
+
+Value *FloatValue_mod_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    FloatValue *self = self_value->as_float();
+    auto return_value = self->mod(env, argc >= 1 ? args[0] : nullptr );
+    return return_value;
+}
+
 Value *FloatValue_is_nan_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     FloatValue *self = self_value->as_float();
     auto return_value = self->is_nan();
     if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
+}
+
+Value *FloatValue_is_negative_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    FloatValue *self = self_value->as_float();
+    auto return_value = self->is_negative(  );
+    if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
+}
+
+Value *FloatValue_next_float_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    FloatValue *self = self_value->as_float();
+    auto return_value = self->next_float(env  );
+    return return_value;
+}
+
+Value *FloatValue_is_positive_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    FloatValue *self = self_value->as_float();
+    auto return_value = self->is_positive(  );
+    if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
+}
+
+Value *FloatValue_prev_float_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    FloatValue *self = self_value->as_float();
+    auto return_value = self->prev_float(env  );
+    return return_value;
 }
 
 Value *FloatValue_div_binding2(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
@@ -1423,7 +1465,13 @@ void init_bindings(Env *env) {
     Float->define_method(env, "floor", FloatValue_floor_binding);
     Float->define_method(env, "infinite?", FloatValue_is_infinite_binding);
     Float->define_method(env, "inspect", FloatValue_to_s_binding);
+    Float->define_method(env, "magnitude", FloatValue_abs_binding1);
+    Float->define_method(env, "modulo", FloatValue_mod_binding1);
     Float->define_method(env, "nan?", FloatValue_is_nan_binding);
+    Float->define_method(env, "negative?", FloatValue_is_negative_binding);
+    Float->define_method(env, "next_float", FloatValue_next_float_binding);
+    Float->define_method(env, "positive?", FloatValue_is_positive_binding);
+    Float->define_method(env, "prev_float", FloatValue_prev_float_binding);
     Float->define_method(env, "quo", FloatValue_div_binding2);
     Float->define_method(env, "to_i", FloatValue_to_i_binding);
     Float->define_method(env, "to_s", FloatValue_to_s_binding1);

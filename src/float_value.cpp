@@ -310,6 +310,20 @@ Value *FloatValue::abs(Env *env) {
     }
 }
 
+Value *FloatValue::next_float(Env *env) {
+    double x, y;
+    x = as_float()->to_double();
+    y = nextafterf(x, DBL_MAX);
+    return new FloatValue { env, y };
+}
+
+Value *FloatValue::prev_float(Env *env) {
+    double x, y;
+    x = as_float()->to_double();
+    y = nextafterf(x, DBL_MIN);
+    return new FloatValue { env, y };
+}
+
 #define NAT_DEFINE_FLOAT_COMPARISON_METHOD(name, op)                                                         \
     bool FloatValue::name(Env *env, Value *rhs) {                                                            \
         Value *lhs = this;                                                                                   \
