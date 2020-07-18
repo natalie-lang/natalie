@@ -12,6 +12,12 @@
 namespace Natalie {
 
 struct MatchDataValue : Value {
+    MatchDataValue(Env *env)
+        : Value { Value::Type::MatchData, NAT_OBJECT->const_get(env, "MatchData", true)->as_class() } { }
+
+    MatchDataValue(Env *env, ClassValue *klass)
+        : Value { Value::Type::MatchData, klass } { }
+
     MatchDataValue(Env *env, OnigRegion *region, StringValue *string)
         : Value { Value::Type::MatchData, NAT_OBJECT->const_get(env, "MatchData", true)->as_class() }
         , m_region { region }
@@ -26,7 +32,7 @@ struct MatchDataValue : Value {
     Value *group(Env *, ssize_t);
 
 private:
-    OnigRegion *m_region;
+    OnigRegion *m_region { nullptr };
     const char *m_str { nullptr };
 };
 }

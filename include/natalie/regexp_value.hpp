@@ -15,9 +15,19 @@ extern "C" {
 namespace Natalie {
 
 struct RegexpValue : Value {
+    RegexpValue(Env *env)
+        : Value { Value::Type::Regexp, NAT_OBJECT->const_get(env, "Regexp", true)->as_class() } { }
+
+    RegexpValue(Env *env, ClassValue *klass)
+        : Value { Value::Type::Regexp, klass } { }
+
     RegexpValue(Env *env, const char *pattern)
         : Value { Value::Type::Regexp, NAT_OBJECT->const_get(env, "Regexp", true)->as_class() } {
         assert(pattern);
+        initialize(env, pattern);
+    }
+
+    void initialize(Env *env, const char *pattern) {
         regex_t *regex;
         OnigErrorInfo einfo;
         UChar *pat = (UChar *)pattern;
@@ -49,6 +59,15 @@ struct RegexpValue : Value {
         unsigned char *char_range = char_end;
         return onig_search(m_regex, unsigned_str, char_end, char_start, char_range, region, options);
     }
+
+    bool eq(Env *env, Value *other) {
+        return *this == *other;
+    }
+
+    Value *initialize(Env *, Value *);
+    Value *inspect(Env *env);
+    Value *eqtilde(Env *env, Value *);
+    Value *match(Env *env, Value *);
 
 private:
     regex_t *m_regex { nullptr };

@@ -33,7 +33,7 @@ extern "C" Env *build_top_env() {
     Object->const_set(env, "BasicObject", BasicObject);
     Object->const_set(env, "Object", Object);
 
-    ClassValue *Module = Object->subclass(env, "Module");
+    ClassValue *Module = Object->subclass(env, "Module", Value::Type::Module);
     Object->const_set(env, "Module", Module);
     Class->set_superclass_DANGEROUSLY(Module);
     NAT_MODULE_INIT(Module);
@@ -47,25 +47,25 @@ extern "C" Env *build_top_env() {
     Object->const_set(env, "Comparable", Comparable);
     NAT_COMPARABLE_INIT(Comparable);
 
-    ClassValue *Symbol = Object->subclass(env, "Symbol");
+    ClassValue *Symbol = Object->subclass(env, "Symbol", Value::Type::Symbol);
     Object->const_set(env, "Symbol", Symbol);
     NAT_SYMBOL_INIT(Symbol);
 
-    ClassValue *NilClass = Object->subclass(env, "NilClass");
+    ClassValue *NilClass = Object->subclass(env, "NilClass", Value::Type::Nil);
     Object->const_set(env, "NilClass", NilClass);
     NAT_NIL_CLASS_INIT(NilClass);
 
     NAT_NIL = NilValue::instance(env);
     NAT_NIL->set_singleton_class(NilClass);
 
-    ClassValue *TrueClass = Object->subclass(env, "TrueClass");
+    ClassValue *TrueClass = Object->subclass(env, "TrueClass", Value::Type::True);
     Object->const_set(env, "TrueClass", TrueClass);
     NAT_TRUE_CLASS_INIT(TrueClass);
 
     NAT_TRUE = TrueValue::instance(env);
     NAT_TRUE->set_singleton_class(TrueClass);
 
-    ClassValue *FalseClass = Object->subclass(env, "FalseClass");
+    ClassValue *FalseClass = Object->subclass(env, "FalseClass", Value::Type::False);
     Object->const_set(env, "FalseClass", FalseClass);
     NAT_FALSE_CLASS_INIT(FalseClass);
 
@@ -76,44 +76,43 @@ extern "C" Env *build_top_env() {
     Object->const_set(env, "Numeric", Numeric);
     Numeric->include(env, Comparable);
 
-    ClassValue *Integer = NAT_INTEGER = Numeric->subclass(env, "Integer");
+    ClassValue *Integer = NAT_INTEGER = Numeric->subclass(env, "Integer", Value::Type::Integer);
     Object->const_set(env, "Integer", Integer);
     Object->const_set(env, "Fixnum", Integer);
 
-    ClassValue *Float = Numeric->subclass(env, "Float");
+    ClassValue *Float = Numeric->subclass(env, "Float", Value::Type::Float);
     Object->const_set(env, "Float", Float);
     Float->const_set(env, "MIN", new FloatValue { env, NAT_MIN_FLOAT });
     Float->const_set(env, "MAX", new FloatValue { env, NAT_MAX_FLOAT });
 
-    ClassValue *String = Object->subclass(env, "String");
+    ClassValue *String = Object->subclass(env, "String", Value::Type::String);
     Object->const_set(env, "String", String);
     NAT_STRING_INIT(String);
 
-    ClassValue *Array = Object->subclass(env, "Array");
+    ClassValue *Array = Object->subclass(env, "Array", Value::Type::Array);
     Object->const_set(env, "Array", Array);
     NAT_ARRAY_INIT(Array);
 
-    ClassValue *Hash = Object->subclass(env, "Hash");
+    ClassValue *Hash = Object->subclass(env, "Hash", Value::Type::Hash);
     Object->const_set(env, "Hash", Hash);
     NAT_HASH_INIT(Hash);
 
-    ClassValue *Regexp = Object->subclass(env, "Regexp");
+    ClassValue *Regexp = Object->subclass(env, "Regexp", Value::Type::Regexp);
     Object->const_set(env, "Regexp", Regexp);
-    NAT_REGEXP_INIT(Regexp);
 
-    ClassValue *Range = Object->subclass(env, "Range");
+    ClassValue *Range = Object->subclass(env, "Range", Value::Type::Range);
     Object->const_set(env, "Range", Range);
     NAT_RANGE_INIT(Range);
 
-    ClassValue *MatchData = Object->subclass(env, "MatchData");
+    ClassValue *MatchData = Object->subclass(env, "MatchData", Value::Type::MatchData);
     Object->const_set(env, "MatchData", MatchData);
     NAT_MATCH_DATA_INIT(MatchData);
 
-    ClassValue *Proc = Object->subclass(env, "Proc");
+    ClassValue *Proc = Object->subclass(env, "Proc", Value::Type::Proc);
     Object->const_set(env, "Proc", Proc);
     NAT_PROC_INIT(Proc);
 
-    ClassValue *IO = Object->subclass(env, "IO");
+    ClassValue *IO = Object->subclass(env, "IO", Value::Type::Io);
     Object->const_set(env, "IO", IO);
     NAT_IO_INIT(IO);
 
@@ -121,7 +120,7 @@ extern "C" Env *build_top_env() {
     Object->const_set(env, "File", File);
     NAT_FILE_INIT(File);
 
-    ClassValue *Exception = Object->subclass(env, "Exception");
+    ClassValue *Exception = Object->subclass(env, "Exception", Value::Type::Exception);
     Object->const_set(env, "Exception", Exception);
     Exception->define_method(env, "initialize", Exception_initialize);
     Exception->define_method(env, "inspect", Exception_inspect);

@@ -105,13 +105,13 @@ Value *String_cmp(Env *env, Value *self_value, ssize_t argc, Value **args, Block
 Value *String_eqtilde(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     NAT_ASSERT_TYPE(args[0], Value::Type::Regexp, "Regexp");
-    return Regexp_eqtilde(env, args[0], 1, &self_value, block);
+    return args[0]->as_regexp()->eqtilde(env, self_value);
 }
 
 Value *String_match(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     NAT_ASSERT_TYPE(args[0], Value::Type::Regexp, "Regexp");
-    return Regexp_match(env, args[0], 1, &self_value, block);
+    return args[0]->as_regexp()->match(env, self_value);
 }
 
 Value *String_succ(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
@@ -342,7 +342,7 @@ Value *String_sub(Env *env, Value *self_value, ssize_t argc, Value **args, Block
         out->append(env, &self->c_str()[index + sub->as_string()->length()]);
         return out;
     } else if (sub->is_regexp()) {
-        Value *match = Regexp_match(env, sub, 1, &self_value, nullptr);
+        Value *match = sub->as_regexp()->match(env, self_value);
         if (match == NAT_NIL) {
             return self->dup(env);
         }

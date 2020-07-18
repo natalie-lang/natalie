@@ -22,6 +22,9 @@ struct EncodingValue : Value {
     EncodingValue(Env *env)
         : Value { Value::Type::Encoding, NAT_OBJECT->const_get(env, "Encoding", true)->as_class() } { }
 
+    EncodingValue(Env *env, ClassValue *klass)
+        : Value { Value::Type::Encoding, klass } { }
+
     EncodingValue(Env *, Encoding, std::initializer_list<const char *>);
 
     Encoding num() { return m_num; }

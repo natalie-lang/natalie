@@ -349,6 +349,48 @@ Value *IntegerValue_bitwise_or_binding(Env *env, Value *self_value, ssize_t argc
     return return_value;
 }
 
+Value *RegexpValue_eq_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    RegexpValue *self = self_value->as_regexp();
+    auto return_value = self->eq(env, argc >= 1 ? args[0] : nullptr );
+    if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
+}
+
+Value *RegexpValue_match_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    RegexpValue *self = self_value->as_regexp();
+    auto return_value = self->match(env, argc >= 1 ? args[0] : nullptr );
+    return return_value;
+}
+
+Value *RegexpValue_eqtilde_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    RegexpValue *self = self_value->as_regexp();
+    auto return_value = self->eqtilde(env, argc >= 1 ? args[0] : nullptr );
+    return return_value;
+}
+
+Value *RegexpValue_initialize_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0, 1);
+    RegexpValue *self = self_value->as_regexp();
+    auto return_value = self->initialize(env, argc >= 1 ? args[0] : nullptr );
+    return return_value;
+}
+
+Value *RegexpValue_inspect_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    RegexpValue *self = self_value->as_regexp();
+    auto return_value = self->inspect(env  );
+    return return_value;
+}
+
+Value *RegexpValue_match_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    RegexpValue *self = self_value->as_regexp();
+    auto return_value = self->match(env, argc >= 1 ? args[0] : nullptr );
+    return return_value;
+}
+
 Value *StringValue_to_str_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     StringValue *self = self_value->as_string();
@@ -408,6 +450,13 @@ void init_bindings(Env *env) {
     Integer->define_method(env, "to_i", IntegerValue_to_i_binding);
     Integer->define_method(env, "to_s", IntegerValue_to_s_binding1);
     Integer->define_method(env, "|", IntegerValue_bitwise_or_binding);
+    Value *Regexp = NAT_OBJECT->const_get(env, "Regexp", true);
+    Regexp->define_method(env, "==", RegexpValue_eq_binding);
+    Regexp->define_method(env, "===", RegexpValue_match_binding);
+    Regexp->define_method(env, "=~", RegexpValue_eqtilde_binding);
+    Regexp->define_method(env, "initialize", RegexpValue_initialize_binding);
+    Regexp->define_method(env, "inspect", RegexpValue_inspect_binding);
+    Regexp->define_method(env, "match", RegexpValue_match_binding1);
     Value *String = NAT_OBJECT->const_get(env, "String", true);
     String->define_method(env, "to_str", StringValue_to_str_binding);
 }

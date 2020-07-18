@@ -3,6 +3,10 @@
 namespace Natalie {
 
 ClassValue *ClassValue::subclass(Env *env, const char *name) {
+    return subclass(env, name, m_object_type);
+}
+
+ClassValue *ClassValue::subclass(Env *env, const char *name, Type object_type) {
     ClassValue *subclass = new ClassValue { env, this->klass };
     subclass->env = Env::new_detatched_block_env(&this->env);
     if (m_singleton_class) {
@@ -11,6 +15,7 @@ ClassValue *ClassValue::subclass(Env *env, const char *name) {
     }
     subclass->set_class_name(name);
     subclass->m_superclass = this;
+    subclass->m_object_type = object_type;
     return subclass;
 }
 

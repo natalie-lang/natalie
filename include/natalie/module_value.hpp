@@ -17,6 +17,9 @@ struct ModuleValue : Value {
     ModuleValue(Env *, const char *);
     ModuleValue(Env *, Type, ClassValue *);
 
+    ModuleValue(Env *env, ClassValue *klass)
+        : ModuleValue { env, Type::Module, klass } { }
+
     ModuleValue(const ModuleValue &other)
         : Value { other.type, other.klass }
         , m_class_name { strdup(other.m_class_name) }

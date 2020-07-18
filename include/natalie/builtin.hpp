@@ -379,20 +379,6 @@ Value *Range_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *b
 Value *Range_eqeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Range_eqeqeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
-#define NAT_REGEXP_INIT(klass)                              \
-    klass->define_singleton_method(env, "new", Regexp_new); \
-    klass->define_method(env, "==", Regexp_eqeq);           \
-    klass->define_method(env, "===", Regexp_match);         \
-    klass->define_method(env, "inspect", Regexp_inspect);   \
-    klass->define_method(env, "=~", Regexp_eqtilde);        \
-    klass->define_method(env, "match", Regexp_match);
-
-Value *Regexp_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Regexp_eqeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Regexp_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Regexp_eqtilde(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Regexp_match(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-
 #define NAT_STRING_INIT(klass)                                          \
     klass->define_singleton_method(env, "new", String_new);             \
     klass->include(env, Comparable);                                    \

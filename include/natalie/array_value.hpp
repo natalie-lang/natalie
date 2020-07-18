@@ -15,6 +15,9 @@ struct ArrayValue : Value {
     ArrayValue(Env *env)
         : Value { Value::Type::Array, NAT_OBJECT->const_get(env, "Array", true)->as_class() } { }
 
+    ArrayValue(Env *env, ClassValue *klass)
+        : Value { Value::Type::Array, klass } { }
+
     ArrayValue(Env *env, std::initializer_list<Value *> list)
         : ArrayValue { env } {
         m_vector.set_size(list.size());
