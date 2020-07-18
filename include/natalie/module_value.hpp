@@ -32,6 +32,7 @@ struct ModuleValue : Value {
         delete m_class_name;
     }
 
+    void extend(Env *, ModuleValue *);
     void include(Env *, ModuleValue *);
     void prepend(Env *, ModuleValue *);
 
@@ -64,7 +65,9 @@ struct ModuleValue : Value {
 
     Value *call_method(Env *, Value *, const char *, Value *, ssize_t, Value **, Block *);
 
-    ArrayValue *ancestors(Env *env);
+    ArrayValue *ancestors(Env *);
+
+    bool is_method_defined(Env *, Value *);
 
 protected:
     struct hashmap m_constants EMPTY_HASHMAP;

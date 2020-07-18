@@ -118,6 +118,15 @@ Value *Module_attr_accessor(Env *env, Value *self_value, ssize_t argc, Value **a
     return NAT_NIL;
 }
 
+Value *Module_extend(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    ModuleValue *self = self_value->as_module();
+    NAT_ASSERT_ARGC_AT_LEAST(1);
+    for (ssize_t i = 0; i < argc; i++) {
+        self->extend(env, args[i]->as_module());
+    }
+    return self;
+}
+
 Value *Module_include(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     ModuleValue *self = self_value->as_module();
     NAT_ASSERT_ARGC_AT_LEAST(1);
@@ -204,6 +213,16 @@ Value *Module_alias_method(Env *env, Value *self_value, ssize_t argc, Value **ar
     }
     self->alias(env, new_name, old_name);
     return self;
+}
+
+Value *Module_method_defined(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    ModuleValue *self = self_value->as_module();
+    NAT_ASSERT_ARGC(1);
+    if (self->is_method_defined(env, args[0])) {
+        return NAT_TRUE;
+    } else {
+        return NAT_FALSE;
+    }
 }
 
 }

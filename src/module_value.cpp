@@ -19,6 +19,10 @@ ModuleValue::ModuleValue(Env *env, Type type, ClassValue *klass)
     hashmap_set_key_alloc_funcs(&m_constants, hashmap_alloc_key_string, free);
 }
 
+void ModuleValue::extend(Env *env, ModuleValue *module) {
+    singleton_class(env)->include(env, module);
+}
+
 void ModuleValue::include(Env *env, ModuleValue *module) {
     if (m_included_modules.is_empty()) {
         m_included_modules.push(this);
@@ -255,6 +259,12 @@ ArrayValue *ModuleValue::ancestors(Env *env) {
         klass = klass->superclass();
     } while (klass);
     return ancestors;
+}
+
+bool ModuleValue::is_method_defined(Env *env, Value *name_value) {
+    const char *name = name_value->identifier_str(env, Conversion::Strict);
+    ModuleValue *matching_class_or_module;
+    return !!find_method(name, &matching_class_or_module);
 }
 
 }

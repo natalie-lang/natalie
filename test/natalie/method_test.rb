@@ -54,7 +54,7 @@ class Foo
     'instance method foo'
   end
 
-  def self.foo
+  def self.foo1
     'class method foo'
   end
 
@@ -148,7 +148,7 @@ describe 'method' do
   end
 
   it 'can be a class method' do
-    Foo.foo.should == 'class method foo'
+    Foo.foo1.should == 'class method foo'
     Foo.foo2.should == 'class method foo2'
   end
 
@@ -259,18 +259,33 @@ describe 'method' do
     method_name_from_block.should == [:method_name_from_block]
   end
 
+  describe '#method_defined?' do
+    it 'returns true for regular methods' do
+      Foo.method_defined?(:foo).should == true
+    end
+
+    it 'returns false for class methods' do
+      Foo.method_defined?('foo1').should == false
+      Foo.method_defined?(:foo2).should == false
+    end
+
+    it 'returns false for undefined (removed) methods' do
+      NilClass.method_defined?('new').should == false
+    end
+  end
+
   describe '#respond_to?' do
     it 'works for class methods' do
-      Foo.respond_to?('foo').should == true
-      Foo.respond_to?('foo2').should == true
+      Foo.respond_to?('foo1').should == true
+      Foo.respond_to?(:foo2).should == true
       Foo.respond_to?('xxx').should == false
     end
 
     it 'works for instance methods' do
       Foo.new.respond_to?('foo').should == true
-      Foo.new.respond_to?('xxx').should == false
+      Foo.new.respond_to?(:xxx).should == false
       Bar.new.respond_to?('bar').should == true
-      Bar.new.respond_to?('xxx').should == false
+      Bar.new.respond_to?(:xxx).should == false
     end
 
     it 'returns false for undefined methods' do

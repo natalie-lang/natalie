@@ -87,6 +87,10 @@ module M1
   end
 end
 
+class ExtendTest
+  extend M1, M2
+end
+
 class IncludeTest
   include M1, M2
 end
@@ -112,6 +116,14 @@ class PrependTestOverride
 end
 
 describe 'class' do
+  describe 'extend' do
+    it 'includes methods from a module into the singleton class' do
+      ExtendTest.ancestors.should == [ExtendTest, Object, Kernel, BasicObject]
+      ExtendTest.m1.should == 'm1'
+      ExtendTest.m1b.should == 'm1b'
+    end
+  end
+
   describe 'include' do
     it 'includes methods from a module' do
       IncludeTest.ancestors.should == [IncludeTest, M1, M2, Object, Kernel, BasicObject]
