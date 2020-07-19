@@ -1,3 +1,4 @@
+#include "ctype.h"
 #include "natalie.hpp"
 #include "string.h"
 
