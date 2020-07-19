@@ -194,10 +194,10 @@ module Natalie
           method_body = s(:rescue,
                           method_body,
                           s(:cond,
-                            s(:is_a, 'env->exception', process(s(:const, :LocalJumpError))),
-                            process(s(:call, s(:l, 'env->exception'), :exit_value)),
+                            s(:is_a, :exception, process(s(:const, :LocalJumpError))),
+                            process(s(:call, s(:l, :exception), :exit_value)),
                             s(:else),
-                            s(:raise_exception, :env, 'env->exception')))
+                            s(:raise_exception, :env, :exception)))
         end
         exp.new(:def_fn, fn_name,
                 s(:block,
@@ -277,7 +277,7 @@ module Natalie
                     body,
                     s(:resbody, s(:array),
                       ensure_body,
-                      s(:raise_exception, :env, s(:l, 'env->exception')))),
+                      s(:raise_exception, :env, :exception))),
         ensure_body))
       end
 
@@ -732,15 +732,14 @@ module Natalie
         resbodies.each_with_index do |(_, (_, *match), *resbody), index|
           lasgn = match.pop if match.last&.sexp_type == :lasgn
           match << s(:const, 'StandardError') if match.empty?
-          condition = s(:is_a, 'env->exception', *match.map { |n| process(n) })
+          condition = s(:is_a, :exception, *match.map { |n| process(n) })
           rescue_block << condition
           resbody = resbody == [nil] ? [s(:nil)] : resbody.map { |n| process(n) }
           rescue_block << (lasgn ? s(:block, process(lasgn), *resbody) : s(:block, *resbody))
         end
         rescue_block << s(:else)
-        rescue_block << s(:block, s(:raise_exception, :env, 'env->exception'))
+        rescue_block << s(:block, s(:raise_exception, :env, :exception))
         if else_body
-          body << s(:clear_jump_buf)
           body << else_body
         end
         body = body.empty? ? [s(:nil)] : body

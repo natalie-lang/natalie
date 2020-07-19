@@ -4,7 +4,6 @@
 #include <errno.h>
 #include <float.h>
 #include <inttypes.h>
-#include <setjmp.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -63,7 +62,7 @@ Value *splat(Env *env, Value *obj);
 
 void run_at_exit_handlers(Env *env);
 void print_exception_with_backtrace(Env *env, ExceptionValue *exception);
-void handle_top_level_exception(Env *env, bool run_exit_handlers);
+void handle_top_level_exception(Env *, ExceptionValue *, bool);
 
 ArrayValue *to_ary(Env *env, Value *obj, bool raise_for_non_array);
 

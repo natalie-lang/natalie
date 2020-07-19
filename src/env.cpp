@@ -90,13 +90,7 @@ Value *Env::raise_exception(ExceptionValue *exception) {
         // only build a backtrace the first time the exception is raised (not on a re-raise)
         exception->build_backtrace(this);
     }
-    Env *env = this;
-    while (env && !env->rescue) {
-        env = env->caller;
-    }
-    assert(env);
-    env->exception = exception;
-    longjmp(env->jump_buf, 1);
+    throw exception;
 }
 
 Value *Env::raise_local_jump_error(Value *exit_value, const char *message) {

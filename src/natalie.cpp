@@ -76,9 +76,7 @@ void print_exception_with_backtrace(Env *env, ExceptionValue *exception) {
     dprintf(fd, "%s (%s)\n", exception->message(), exception->klass()->class_name());
 }
 
-void handle_top_level_exception(Env *env, bool run_exit_handlers) {
-    ExceptionValue *exception = env->exception->as_exception();
-    env->rescue = false;
+void handle_top_level_exception(Env *env, ExceptionValue *exception, bool run_exit_handlers) {
     if (exception->is_a(env, NAT_OBJECT->const_get(env, "SystemExit", true)->as_class())) {
         Value *status_obj = exception->ivar_get(env, "@status");
         if (run_exit_handlers) run_at_exit_handlers(env);

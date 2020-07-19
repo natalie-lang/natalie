@@ -1,5 +1,3 @@
-#include <setjmp.h>
-
 #include "natalie.hpp"
 #include "natalie/builtin.hpp"
 
@@ -219,13 +217,13 @@ extern "C" Value *EVAL(Env *env) {
     Value *self = env->global_get("$NAT_main_object");
     (void)self; // don't warn about unused var
     volatile bool run_exit_handlers = true;
-    if (!NAT_RESCUE(env)) {
+    try {
         /*BODY*/
         run_exit_handlers = false;
         run_at_exit_handlers(env);
         return NAT_NIL; // just in case there's no return value
-    } else {
-        handle_top_level_exception(env, run_exit_handlers);
+    } catch (ExceptionValue *exception) {
+        handle_top_level_exception(env, exception, run_exit_handlers);
         return NAT_NIL;
     }
 }

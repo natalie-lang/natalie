@@ -1,5 +1,3 @@
-#define NAT_RESCUE(env) ((env->rescue = 1) && setjmp(env->jump_buf))
-
 #define NAT_RAISE(env, class_name, message_format, ...)                                                      \
     {                                                                                                        \
         env->raise(NAT_OBJECT->const_get(env, class_name, true)->as_class(), message_format, ##__VA_ARGS__); \

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <setjmp.h>
 #include <stdlib.h>
 
 #include "natalie/forward.hpp"
@@ -49,9 +48,6 @@ struct Env : public gc {
     Env *outer { nullptr };
     Block *block { nullptr };
     bool block_env { false };
-    bool rescue { false };
-    jmp_buf jump_buf;
-    ExceptionValue *exception { nullptr };
     Env *caller { nullptr };
     const char *file { nullptr };
     ssize_t line { 0 };

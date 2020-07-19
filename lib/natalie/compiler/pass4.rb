@@ -327,11 +327,6 @@ module Natalie
         ''
       end
 
-      def process_clear_jump_buf(_)
-        decl 'env->rescue = false;'
-        ''
-      end
-
       def process_cond(exp)
         c = []
         count = 0
@@ -391,18 +386,18 @@ module Natalie
           (_, receiver, name) = name
           receiver ||= 'self'
           decl "Value *#{result};"
-          decl "if (!NAT_RESCUE(env)) {"
+          decl 'try {'
           decl "#{result} = #{process_atom receiver}->defined_obj(env, #{name.to_s.inspect});"
-          decl '} else {'
+          decl '} catch (ExceptionValue *) {'
           decl "#{result} = #{process_atom s(:nil)};"
           decl '}'
         when :colon2
           (_, namespace, name) = name
           raise "expected const" unless namespace.first == :const
           decl "Value *#{result};"
-          decl "if (!NAT_RESCUE(env)) {"
+          decl 'try {'
           decl "#{result} = NAT_OBJECT->const_get(env, #{namespace.last.to_s.inspect}, false)->defined_obj(env, #{name.to_s.inspect});"
-          decl '} else {'
+          decl '} catch (ExceptionValue *) {'
           decl "#{result} = #{process_atom s(:nil)};"
           decl '}'
         when :lit, :str
@@ -475,13 +470,12 @@ module Natalie
         (_, top, bottom) = exp
         c = []
         in_decl_context do
-          c << "if (!NAT_RESCUE(env)) {"
+          c << 'try {'
           result = process_atom(top)
           c += @decl
           c << "return #{result};" unless result.empty?
-          c << '} else {'
-          c << 'env->global_set("$!", env->exception);'
-          c << 'env->rescue = false;'
+          c << '} catch (ExceptionValue *exception) {'
+          c << 'env->global_set("$!", exception);'
           @decl = []
           result = process_atom(bottom)
           c += @decl
