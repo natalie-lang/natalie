@@ -10,6 +10,13 @@ class BindingGen
     b.write
   end
 
+  def singleton_binding(*args, **kwargs)
+    b = Binding.new(*args, singleton: true, **kwargs)
+    b.increment_name while @bindings[b.name]
+    @bindings[b.name] = b
+    b.write
+  end
+
   def init
     puts 'void init_bindings(Env *env) {'
     @consts = {}
@@ -18,13 +25,13 @@ class BindingGen
         puts "    Value *#{binding.rb_class} = NAT_OBJECT->const_get(env, #{binding.rb_class.inspect}, true);"
         @consts[binding.rb_class] = true
       end
-      puts "    #{binding.rb_class}->define_method(env, #{binding.rb_method.inspect}, #{binding.name});"
+      puts "    #{binding.rb_class}->#{binding.define_method_name}(env, #{binding.rb_method.inspect}, #{binding.name});"
     end
     puts '}'
   end
 
   class Binding
-    def initialize(rb_class, rb_method, cpp_class, cpp_method, argc:, pass_env:, pass_block:, return_type:)
+    def initialize(rb_class, rb_method, cpp_class, cpp_method, argc:, pass_env:, pass_block:, return_type:, singleton: false)
       @rb_class = rb_class
       @rb_method = rb_method
       @cpp_class = cpp_class
@@ -33,12 +40,21 @@ class BindingGen
       @pass_env = pass_env
       @pass_block = pass_block
       @return_type = return_type
+      @singleton = singleton
       generate_name
     end
 
     attr_reader :rb_class, :rb_method, :cpp_class, :cpp_method, :argc, :pass_env, :pass_block, :return_type, :name
 
     def write
+      if @singleton
+        write_singleton_function
+      else
+        write_function
+      end
+    end
+
+    def write_function
       puts <<-FUNC
 Value *#{name}(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     #{argc_assertion}
@@ -47,6 +63,20 @@ Value *#{name}(Env *env, Value *self_value, ssize_t argc, Value **args, Block *b
     #{return_code}
 }\n
       FUNC
+    end
+
+    def write_singleton_function
+      puts <<-FUNC
+Value *#{name}(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
+    #{argc_assertion}
+    auto return_value = #{cpp_class}::#{cpp_method}(#{env_arg} #{args} #{block_arg});
+    #{return_code}
+}\n
+      FUNC
+    end
+
+    def define_method_name
+      "define#{@singleton ? '_singleton' : ''}_method"
     end
 
     def increment_name
@@ -69,7 +99,7 @@ Value *#{name}(Env *env, Value *self_value, ssize_t argc, Value **args, Block *b
 
     def args
       (0...max_argc).map do |i|
-        "argc >= #{max_argc} ? args[#{i}] : nullptr"
+        "argc > #{i} ? args[#{i}] : nullptr"
       end.join(', ')
     end
 
@@ -84,10 +114,17 @@ Value *#{name}(Env *env, Value *self_value, ssize_t argc, Value **args, Block *b
     end
 
     def return_code
-      if return_type == :bool
+      case return_type
+      when :bool
         'if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }'
-      else
+      when :ssize_t
+        'return new IntegerValue { env, return_value };'
+      when :Value
         'return return_value;'
+      when :StringValue
+        'return return_value;'
+      else
+        raise "Unknown return type: #{return_type.inspect}"
       end
     end
 
@@ -100,7 +137,7 @@ Value *#{name}(Env *env, Value *self_value, ssize_t argc, Value **args, Block *b
     end
 
     def generate_name
-      @name = "#{cpp_class}_#{cpp_method}_binding"
+      @name = "#{cpp_class}_#{cpp_method}#{@singleton ? '_singleton' : ''}_binding"
     end
   end
 end
@@ -115,6 +152,11 @@ puts 'namespace Natalie {'
 puts
 
 gen = BindingGen.new
+
+gen.singleton_binding('Encoding', 'list', 'EncodingValue', 'list', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Encoding', 'inspect', 'EncodingValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Encoding', 'name', 'EncodingValue', 'name', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Encoding', 'names', 'EncodingValue', 'names', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 
 gen.binding('Float', '%', 'FloatValue', 'mod', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Float', '*', 'FloatValue', 'mul', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
@@ -174,6 +216,32 @@ gen.binding('Regexp', 'initialize', 'RegexpValue', 'initialize', argc: 0..1, pas
 gen.binding('Regexp', 'inspect', 'RegexpValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
 gen.binding('Regexp', 'match', 'RegexpValue', 'match', argc: 1, pass_env: true, pass_block: false, return_type: :Value);
 
+gen.binding('String', '*', 'StringValue', 'mul', argc: 1, pass_env: true, pass_block: false, return_type: :Value);
+gen.binding('String', '+', 'StringValue', 'add', argc: 1, pass_env: true, pass_block: false, return_type: :Value);
+gen.binding('String', '<<', 'StringValue', 'ltlt', argc: 1, pass_env: true, pass_block: false, return_type: :Value);
+gen.binding('String', '<=>', 'StringValue', 'cmp', argc: 1, pass_env: true, pass_block: false, return_type: :Value);
+gen.binding('String', '==', 'StringValue', 'eq', argc: 1, pass_env: false, pass_block: false, return_type: :bool);
+gen.binding('String', '===', 'StringValue', 'eq', argc: 1, pass_env: false, pass_block: false, return_type: :bool);
+gen.binding('String', '=~', 'StringValue', 'eqtilde', argc: 1, pass_env: true, pass_block: false, return_type: :Value);
+gen.binding('String', '[]', 'StringValue', 'ref', argc: 1, pass_env: true, pass_block: false, return_type: :Value);
+gen.binding('String', 'bytes', 'StringValue', 'bytes', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
+gen.binding('String', 'chars', 'StringValue', 'chars', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
+gen.binding('String', 'encode', 'StringValue', 'encode', argc: 1, pass_env: true, pass_block: false, return_type: :Value);
+gen.binding('String', 'encoding', 'StringValue', 'encoding', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
+gen.binding('String', 'force_encoding', 'StringValue', 'force_encoding', argc: 1, pass_env: true, pass_block: false, return_type: :Value);
+gen.binding('String', 'index', 'StringValue', 'index', argc: 1, pass_env: true, pass_block: false, return_type: :Value);
+gen.binding('String', 'initialize', 'StringValue', 'initialize', argc: 0..1, pass_env: true, pass_block: false, return_type: :Value);
+gen.binding('String', 'inspect', 'StringValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
+gen.binding('String', 'length', 'StringValue', 'length', argc: 0, pass_env: false, pass_block: false, return_type: :ssize_t);
+gen.binding('String', 'ljust', 'StringValue', 'ljust', argc: 1..2, pass_env: true, pass_block: false, return_type: :Value);
+gen.binding('String', 'match', 'StringValue', 'match', argc: 1, pass_env: true, pass_block: false, return_type: :Value);
+gen.binding('String', 'ord', 'StringValue', 'ord', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
+gen.binding('String', 'size', 'StringValue', 'size', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
+gen.binding('String', 'split', 'StringValue', 'split', argc: 0..1, pass_env: true, pass_block: false, return_type: :Value);
+gen.binding('String', 'sub', 'StringValue', 'sub', argc: 2, pass_env: true, pass_block: false, return_type: :Value);
+gen.binding('String', 'succ', 'StringValue', 'successive', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
+gen.binding('String', 'to_i', 'StringValue', 'to_i', argc: 0..1, pass_env: true, pass_block: false, return_type: :Value);
+gen.binding('String', 'to_s', 'StringValue', 'to_s', argc: 0, pass_env: false, pass_block: false, return_type: :Value);
 gen.binding('String', 'to_str', 'StringValue', 'to_str', argc: 0, pass_env: false, pass_block: false, return_type: :Value);
 
 gen.init

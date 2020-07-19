@@ -83,14 +83,43 @@ struct StringValue : Value {
 
     StringValue *successive(Env *);
 
-    ssize_t index(Env *, StringValue *);
-    ssize_t index(Env *, StringValue *, ssize_t start);
+    Value *index(Env *, Value *);
+    Value *index(Env *, Value *, ssize_t start);
+    ssize_t index_ssize_t(Env *, Value *, ssize_t start);
 
     void truncate(ssize_t length) {
         assert(length <= m_length);
         m_str[length] = 0;
         m_length = length;
     }
+
+    Value *initialize(Env *, Value *);
+    Value *ltlt(Env *, Value *);
+
+    bool eq(Value *arg) {
+        return *this == *arg;
+    }
+
+    Value *to_s() {
+        return this;
+    }
+
+    Value *add(Env *, Value *);
+    Value *mul(Env *, Value *);
+    Value *cmp(Env *, Value *);
+    Value *eqtilde(Env *, Value *);
+    Value *match(Env *, Value *);
+    Value *ord(Env *);
+    Value *bytes(Env *);
+    Value *size(Env *);
+    Value *encoding(Env *);
+    Value *encode(Env *, Value *);
+    Value *force_encoding(Env *, Value *);
+    Value *ref(Env *, Value *);
+    Value *sub(Env *, Value *, Value *);
+    Value *to_i(Env *, Value *);
+    Value *split(Env *, Value *);
+    Value *ljust(Env *, Value *, Value *);
 
 private:
     using Value::Value;

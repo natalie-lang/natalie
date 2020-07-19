@@ -10,7 +10,7 @@ Value *RegexpValue::initialize(Env *env, Value *arg) {
         NAT_ASSERT_TYPE(arg, Value::Type::String, "String");
         initialize(env, arg->as_string()->c_str());
     }
-    return NAT_NIL;
+    return this;
 }
 
 Value *RegexpValue::inspect(Env *env) {

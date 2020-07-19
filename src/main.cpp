@@ -87,7 +87,7 @@ extern "C" Env *build_top_env() {
 
     ClassValue *String = Object->subclass(env, "String", Value::Type::String);
     Object->const_set(env, "String", String);
-    NAT_STRING_INIT(String);
+    String->include(env, Comparable);
 
     ClassValue *Array = Object->subclass(env, "Array", Value::Type::Array);
     Object->const_set(env, "Array", Array);
@@ -164,7 +164,6 @@ extern "C" Env *build_top_env() {
     Value *ConverterNotFoundError = EncodingError->subclass(env, "ConverterNotFoundError");
     Encoding->const_set(env, "ConverterNotFoundError", ConverterNotFoundError);
     Object->const_set(env, "Encoding", Encoding);
-    NAT_ENCODING_INIT(Encoding);
 
     Value *Process = new ModuleValue { env, "Process" };
     Object->const_set(env, "Process", Process);

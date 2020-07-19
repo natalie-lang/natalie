@@ -30,8 +30,19 @@ struct EncodingValue : Value {
     Encoding num() { return m_num; }
 
     const StringValue *name() { return m_names[0]; }
+    Value *name(Env *);
 
     ArrayValue *names(Env *);
+
+    Value *inspect(Env *);
+
+    static ArrayValue *list(Env *env) {
+        ArrayValue *ary = new ArrayValue { env };
+        Value *Encoding = NAT_OBJECT->const_get(env, "Encoding", true);
+        ary->push(Encoding->const_get(env, "ASCII_8BIT", true));
+        ary->push(Encoding->const_get(env, "UTF_8", true));
+        return ary;
+    }
 
 private:
     Vector<StringValue *> m_names {};

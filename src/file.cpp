@@ -77,8 +77,7 @@ Value *File_expand_path(Env *env, Value *self, ssize_t argc, Value **args, Block
     RegexpValue dotdot { env, "[^/]*/\\.\\./" };
     StringValue empty_string { env, "" };
     while (dotdot.match(env, merged)->is_truthy()) {
-        Value *args[2] = { &dotdot, &empty_string };
-        merged = String_sub(env, merged, 2, args, nullptr);
+        merged = merged->as_string()->sub(env, &dotdot, &empty_string);
     }
     return merged;
 }

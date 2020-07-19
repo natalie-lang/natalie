@@ -81,17 +81,6 @@ Value *Comparable_lte(Env *env, Value *self, ssize_t argc, Value **args, Block *
 Value *Comparable_gt(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Comparable_gte(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
-#define NAT_ENCODING_INIT(klass)                                \
-    klass->define_singleton_method(env, "list", Encoding_list); \
-    klass->define_method(env, "inspect", Encoding_inspect);     \
-    klass->define_method(env, "name", Encoding_name);           \
-    klass->define_method(env, "names", Encoding_names);
-
-Value *Encoding_list(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Encoding_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Encoding_name(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Encoding_names(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-
 Value *ENV_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *ENV_ref(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *ENV_refeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
@@ -378,62 +367,6 @@ Value *Range_each(Env *env, Value *self, ssize_t argc, Value **args, Block *bloc
 Value *Range_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Range_eqeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Range_eqeqeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-
-#define NAT_STRING_INIT(klass)                                          \
-    klass->define_singleton_method(env, "new", String_new);             \
-    klass->include(env, Comparable);                                    \
-    klass->define_method(env, "initialize", String_initialize);         \
-    klass->define_method(env, "to_s", String_to_s);                     \
-    klass->define_method(env, "inspect", String_inspect);               \
-    klass->define_method(env, "<=>", String_cmp);                       \
-    klass->define_method(env, "<<", String_ltlt);                       \
-    klass->define_method(env, "+", String_add);                         \
-    klass->define_method(env, "*", String_mul);                         \
-    klass->define_method(env, "==", String_eqeq);                       \
-    klass->define_method(env, "===", String_eqeq);                      \
-    klass->define_method(env, "=~", String_eqtilde);                    \
-    klass->define_method(env, "length", String_size);                   \
-    klass->define_method(env, "match", String_match);                   \
-    klass->define_method(env, "succ", String_succ);                     \
-    klass->define_method(env, "ord", String_ord);                       \
-    klass->define_method(env, "bytes", String_bytes);                   \
-    klass->define_method(env, "chars", String_chars);                   \
-    klass->define_method(env, "size", String_size);                     \
-    klass->define_method(env, "encoding", String_encoding);             \
-    klass->define_method(env, "encode", String_encode);                 \
-    klass->define_method(env, "force_encoding", String_force_encoding); \
-    klass->define_method(env, "[]", String_ref);                        \
-    klass->define_method(env, "index", String_index);                   \
-    klass->define_method(env, "sub", String_sub);                       \
-    klass->define_method(env, "to_i", String_to_i);                     \
-    klass->define_method(env, "split", String_split);                   \
-    klass->define_method(env, "ljust", String_ljust);
-
-Value *String_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *String_initialize(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *String_to_s(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *String_ltlt(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *String_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *String_add(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *String_mul(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *String_eqeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *String_cmp(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *String_eqtilde(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *String_match(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *String_succ(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *String_ord(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *String_bytes(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *String_chars(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *String_size(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *String_encoding(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *String_encode(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *String_force_encoding(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *String_ref(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *String_index(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *String_sub(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *String_to_i(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *String_split(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *String_ljust(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
 #define NAT_SYMBOL_INIT(klass)                            \
     klass->define_method(env, "to_s", Symbol_to_s);       \
