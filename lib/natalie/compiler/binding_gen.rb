@@ -121,6 +121,8 @@ Value *#{name}(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
         'return new IntegerValue { env, return_value };'
       when :Value
         'return return_value;'
+      when :NullableValue
+        'if (return_value) { return return_value; } else { return NAT_NIL; }'
       when :StringValue
         'return return_value;'
       else
@@ -152,6 +154,9 @@ puts 'namespace Natalie {'
 puts
 
 gen = BindingGen.new
+
+gen.singleton_binding('Class', 'new', 'ClassValue', 'new_method', argc: 0..1, pass_env: true, pass_block: true, return_type: :Value)
+gen.binding('Class', 'superclass', 'ClassValue', 'superclass', argc: 0, pass_env: false, pass_block: false, return_type: :NullableValue)
 
 gen.singleton_binding('Encoding', 'list', 'EncodingValue', 'list', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Encoding', 'inspect', 'EncodingValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)

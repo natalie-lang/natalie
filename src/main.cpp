@@ -14,7 +14,6 @@ extern "C" Env *build_top_env() {
     env->method_name = strdup("<main>");
 
     ClassValue *Class = ClassValue::bootstrap_class_class(env);
-    Class->define_method(env, "superclass", Class_superclass);
 
     ClassValue *BasicObject = ClassValue::bootstrap_basic_object(env, Class);
     BasicObject->define_method(env, "!", BasicObject_not);
@@ -27,7 +26,6 @@ extern "C" Env *build_top_env() {
     Object->define_singleton_method(env, "new", Object_new);
 
     // these must be defined after Object exists
-    Class->define_singleton_method(env, "new", Class_new);
     BasicObject->set_singleton_class(Class->singleton_class(env));
     Object->const_set(env, "Class", Class);
     Object->const_set(env, "BasicObject", BasicObject);

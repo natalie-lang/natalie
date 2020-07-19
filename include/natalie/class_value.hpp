@@ -2,6 +2,7 @@
 
 #include <assert.h>
 
+#include "natalie/block.hpp"
 #include "natalie/env.hpp"
 #include "natalie/forward.hpp"
 #include "natalie/global_env.hpp"
@@ -25,6 +26,24 @@ struct ClassValue : ModuleValue {
     static ClassValue *bootstrap_basic_object(Env *, ClassValue *);
 
     Type object_type() { return m_object_type; }
+
+    Value *initialize(Env *, Value *, Block *);
+
+    static Value *new_method(Env *env, Value *superclass, Block *block) {
+        if (superclass) {
+            if (!superclass->is_class()) {
+                NAT_RAISE(env, "TypeError", "superclass must be a Class (%s given)", superclass->klass->class_name());
+            }
+        } else {
+            superclass = NAT_OBJECT;
+        }
+        Value *klass = superclass->as_class()->subclass(env);
+        if (block) {
+            Env e = Env::new_block_env(&block->env, env);
+            block->fn(&e, klass, 0, nullptr, nullptr);
+        }
+        return klass;
+    }
 
 private:
     Type m_object_type { Type::Object };

@@ -6,6 +6,19 @@
 
 namespace Natalie {
 
+Value *ClassValue_new_method_singleton_binding(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0, 1);
+    auto return_value = ClassValue::new_method(env, argc > 0 ? args[0] : nullptr , block);
+    return return_value;
+}
+
+Value *ClassValue_superclass_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    ClassValue *self = self_value->as_class();
+    auto return_value = self->superclass(  );
+    if (return_value) { return return_value; } else { return NAT_NIL; }
+}
+
 Value *EncodingValue_list_singleton_binding(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     auto return_value = EncodingValue::list(env  );
@@ -608,6 +621,9 @@ Value *StringValue_to_str_binding(Env *env, Value *self_value, ssize_t argc, Val
 }
 
 void init_bindings(Env *env) {
+    Value *Class = NAT_OBJECT->const_get(env, "Class", true);
+    Class->define_singleton_method(env, "new", ClassValue_new_method_singleton_binding);
+    Class->define_method(env, "superclass", ClassValue_superclass_binding);
     Value *Encoding = NAT_OBJECT->const_get(env, "Encoding", true);
     Encoding->define_singleton_method(env, "list", EncodingValue_list_singleton_binding);
     Encoding->define_method(env, "inspect", EncodingValue_inspect_binding);

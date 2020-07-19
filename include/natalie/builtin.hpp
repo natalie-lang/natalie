@@ -63,9 +63,6 @@ Value *BasicObject_eqeq(Env *env, Value *self, ssize_t argc, Value **args, Block
 Value *BasicObject_neq(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *BasicObject_instance_eval(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
-Value *Class_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Class_superclass(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-
 #define NAT_COMPARABLE_INIT(module)                    \
     module->define_method(env, "==", Comparable_eqeq); \
     module->define_method(env, "!=", Comparable_neq);  \
