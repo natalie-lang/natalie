@@ -323,3 +323,14 @@ describe 'alias' do
   AliasTest.alias_method :baz, :foo
   AliasTest.new.baz.should == 'foo'
 end
+
+BrokenClass = Class.new do
+  1
+  break
+end
+
+describe 'break inside new block' do
+  it 'causes the returned value to be nil' do
+    BrokenClass.should be_nil
+  end
+end

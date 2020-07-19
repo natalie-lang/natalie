@@ -1,5 +1,7 @@
 #pragma once
 
+#include <unistd.h>
+
 namespace Natalie {
 
 struct ArrayValue;
@@ -30,6 +32,8 @@ struct Value;
 struct VoidPValue;
 
 void copy_hashmap(struct hashmap &, const struct hashmap &);
+
+using MethodFnPtr = Value *(*)(Env *, Value *, ssize_t, Value **, Block *);
 
 template <typename T>
 struct Vector;

@@ -8,22 +8,29 @@ namespace Natalie {
 
 struct Block : public gc {
 
-    Block(Env &env, Value *self, Value *(*fn)(Env *, Value *, ssize_t, Value **, Block *))
-        : fn { fn }
-        , env { env }
-        , self { self } {
-        this->env.caller = nullptr;
+    Block(Env &env, Value *self, MethodFnPtr fn)
+        : m_fn { fn }
+        , m_env { env }
+        , m_self { self } {
+        m_env.caller = nullptr;
     }
 
     // NOTE: This should only be called from one of the RUN_BLOCK_* macros!
-    Value *_run(Env *env, ssize_t argc, Value **args, Block *block) {
-        Env e = Env::new_block_env(&this->env, env);
-        return this->fn(&e, self, argc, args, block);
+    Value *_run(Env *env, ssize_t argc = 0, Value **args = nullptr, Block *block = nullptr) {
+        Env e = Env::new_block_env(&m_env, env);
+        return m_fn(&e, m_self, argc, args, block);
     }
 
-    Value *(*fn)(Env *env, Value *self, ssize_t argc, Value **args, Block *block) { nullptr };
-    Env env {};
-    Value *self { nullptr };
+    Env *env() { return &m_env; }
+
+    void set_self(Value *self) { m_self = self; }
+
+    void copy_fn_pointer_to_method(Method *);
+
+private:
+    MethodFnPtr m_fn;
+    Env m_env {};
+    Value *m_self { nullptr };
 };
 
 }

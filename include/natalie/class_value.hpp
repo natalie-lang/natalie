@@ -39,8 +39,8 @@ struct ClassValue : ModuleValue {
         }
         Value *klass = superclass->as_class()->subclass(env);
         if (block) {
-            Env e = Env::new_block_env(&block->env, env);
-            block->fn(&e, klass, 0, nullptr, nullptr);
+            block->set_self(klass);
+            NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 0, nullptr, nullptr);
         }
         return klass;
     }

@@ -45,6 +45,8 @@ extern "C" {
 #include "onigmo.h"
 }
 
+using MethodFn = Value *(*)(Env *, Value *, ssize_t, Value **, Block *);
+
 void init_bindings(Env *);
 
 bool is_constant_name(const char *name);

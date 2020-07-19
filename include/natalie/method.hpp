@@ -13,9 +13,8 @@ struct Method : public gc {
         , undefined { !fn } { }
 
     Method(Block *block)
-        : fn { block->fn }
-        , env { block->env }
-        , undefined { false } {
+        : env { *block->env() } {
+        block->copy_fn_pointer_to_method(this);
         env.caller = nullptr;
     }
 

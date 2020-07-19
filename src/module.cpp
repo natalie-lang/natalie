@@ -168,12 +168,12 @@ Value *Module_define_method(Env *env, Value *self_value, ssize_t argc, Value **a
 }
 
 Value *Module_class_eval(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
-    ModuleValue *self = self_value->as_module();
     if (argc > 0 || !block) {
         NAT_RAISE(env, "ArgumentError", "Natalie only supports class_eval with a block");
     }
-    Env e = Env::new_block_env(&block->env, env);
-    return block->fn(&e, self, 0, nullptr, nullptr);
+    block->set_self(self_value);
+    NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 0, nullptr, nullptr);
+    return NAT_NIL;
 }
 
 Value *Module_private(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
