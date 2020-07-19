@@ -217,7 +217,7 @@ Method *ModuleValue::find_method(const char *method_name, ModuleValue **matching
 
 Method *ModuleValue::find_method_without_undefined(const char *method_name, ModuleValue **matching_class_or_module) {
     Method *method = find_method(method_name, matching_class_or_module);
-    if (method && method->undefined) {
+    if (method && method->is_undefined()) {
         return nullptr;
     } else {
         return method;
@@ -227,10 +227,10 @@ Method *ModuleValue::find_method_without_undefined(const char *method_name, Modu
 Value *ModuleValue::call_method(Env *env, Value *instance_class, const char *method_name, Value *self, ssize_t argc, Value **args, Block *block) {
     ModuleValue *matching_class_or_module;
     Method *method = find_method(method_name, &matching_class_or_module);
-    if (method && !method->undefined) {
+    if (method && !method->is_undefined()) {
         Env *closure_env;
-        if (NAT_OBJ_HAS_ENV(method)) {
-            closure_env = &method->env;
+        if (method->has_env()) {
+            closure_env = method->env();
         } else {
             closure_env = &matching_class_or_module->m_env;
         }
@@ -239,7 +239,7 @@ Value *ModuleValue::call_method(Env *env, Value *instance_class, const char *met
         e.line = env->line;
         e.method_name = method_name;
         e.block = block;
-        return method->fn(&e, self, argc, args, block);
+        return method->run(&e, self, argc, args, block);
     } else {
         NAT_RAISE(env, "NoMethodError", "undefined method `%s' for %v", method_name, instance_class);
     }

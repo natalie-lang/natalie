@@ -287,7 +287,7 @@ Value *Value::send(Env *env, const char *sym, ssize_t argc, Value **args, Block 
         ModuleValue *matching_class_or_module;
         Method *method = singleton_class()->find_method(sym, &matching_class_or_module);
         if (method) {
-            if (method->undefined) {
+            if (method->is_undefined()) {
                 NAT_RAISE(env, "NoMethodError", "undefined method `%s' for %s:Class", sym, m_klass->class_name());
             }
             return singleton_class()->call_method(env, m_klass, sym, this, argc, args, block);

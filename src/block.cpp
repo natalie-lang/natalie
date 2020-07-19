@@ -6,7 +6,7 @@
 namespace Natalie {
 
 void Block::copy_fn_pointer_to_method(Method *method) {
-    method->fn = m_fn;
+    method->set_fn(m_fn);
 }
 
 }

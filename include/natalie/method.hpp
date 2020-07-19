@@ -9,18 +9,30 @@ namespace Natalie {
 
 struct Method : public gc {
     Method(Value *(*fn)(Env *, Value *, ssize_t, Value **, Block *))
-        : fn { fn }
-        , undefined { !fn } { }
+        : m_fn { fn }
+        , m_undefined { !fn } { }
 
     Method(Block *block)
-        : env { *block->env() } {
+        : m_env { *block->env() } {
         block->copy_fn_pointer_to_method(this);
-        env.caller = nullptr;
+        m_env.caller = nullptr;
     }
 
-    Value *(*fn)(Env *env, Value *self, ssize_t argc, Value **args, Block *block) { nullptr };
-    Env env {};
-    bool undefined { false };
+    void set_fn(MethodFnPtr fn) { m_fn = fn; }
+
+    Env *env() { return &m_env; }
+    bool has_env() { return !!m_env.global_env; }
+
+    bool is_undefined() { return m_undefined; }
+
+    Value *run(Env *env, Value *self, ssize_t argc = 0, Value **args = nullptr, Block *block = nullptr) {
+        return m_fn(env, self, argc, args, block);
+    }
+
+private:
+    MethodFnPtr m_fn;
+    Env m_env {};
+    bool m_undefined { false };
 };
 
 }
