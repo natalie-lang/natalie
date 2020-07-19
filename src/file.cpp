@@ -50,7 +50,7 @@ Value *File_initialize(Env *env, Value *self_value, ssize_t argc, Value **args, 
         env->raise_exception(error);
         abort();
     } else {
-        self->fileno = fileno;
+        self->set_fileno(fileno);
         return self;
     }
 }

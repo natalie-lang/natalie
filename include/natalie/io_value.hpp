@@ -17,7 +17,11 @@ struct IoValue : Value {
     IoValue(Env *env, ClassValue *klass)
         : Value { Value::Type::Io, klass } { }
 
-    int fileno { 0 };
+    int fileno() { return m_fileno; }
+    void set_fileno(int fileno) { m_fileno = fileno; }
+
+private:
+    int m_fileno { 0 };
 };
 
 }

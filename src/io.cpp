@@ -16,14 +16,14 @@ Value *IO_initialize(Env *env, Value *self_value, ssize_t argc, Value **args, Bl
     assert(args[0]->type() == Value::Type::Integer);
     //NAT_ASSERT_TYPE(args[0], Value::Type::Integer, "Integer");
     IoValue *self = self_value->as_io();
-    self->fileno = args[0]->as_integer()->to_int64_t();
+    self->set_fileno(args[0]->as_integer()->to_int64_t());
     return self;
 }
 
 Value *IO_fileno(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     IoValue *self = self_value->as_io();
-    return new IntegerValue { env, self->fileno };
+    return new IntegerValue { env, self->fileno() };
 }
 
 #define NAT_READ_BYTES 1024
@@ -36,7 +36,7 @@ Value *IO_read(Env *env, Value *self_value, ssize_t argc, Value **args, Block *b
         NAT_ASSERT_TYPE(args[0], Value::Type::Integer, "Integer");
         int count = args[0]->as_integer()->to_int64_t();
         char *buf = static_cast<char *>(malloc((count + 1) * sizeof(char)));
-        bytes_read = read(self->fileno, buf, count);
+        bytes_read = read(self->fileno(), buf, count);
         if (bytes_read == 0) {
             free(buf);
             return NAT_NIL;
@@ -48,14 +48,14 @@ Value *IO_read(Env *env, Value *self_value, ssize_t argc, Value **args, Block *b
         }
     } else if (argc == 0) {
         char buf[NAT_READ_BYTES + 1];
-        bytes_read = read(self->fileno, buf, NAT_READ_BYTES);
+        bytes_read = read(self->fileno(), buf, NAT_READ_BYTES);
         if (bytes_read == 0) {
             return new StringValue { env, "" };
         } else {
             buf[bytes_read] = 0;
             StringValue *str = new StringValue { env, buf };
             while (1) {
-                bytes_read = read(self->fileno, buf, NAT_READ_BYTES);
+                bytes_read = read(self->fileno(), buf, NAT_READ_BYTES);
                 if (bytes_read == 0) break;
                 buf[bytes_read] = 0;
                 str->append(env, buf);
@@ -78,7 +78,7 @@ Value *IO_write(Env *env, Value *self_value, ssize_t argc, Value **args, Block *
             obj = obj->send(env, "to_s");
         }
         NAT_ASSERT_TYPE(obj, Value::Type::String, "String");
-        ssize_t result = write(self->fileno, obj->as_string()->c_str(), obj->as_string()->length());
+        ssize_t result = write(self->fileno(), obj->as_string()->c_str(), obj->as_string()->length());
         if (result == -1) {
             Value *error_number = new IntegerValue { env, errno };
             ExceptionValue *error = NAT_OBJECT->const_get(env, "SystemCallError", true)->send(env, "exception", 1, &error_number, nullptr)->as_exception();
@@ -93,7 +93,7 @@ Value *IO_write(Env *env, Value *self_value, ssize_t argc, Value **args, Block *
 
 Value *IO_puts(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     IoValue *self = self_value->as_io();
-    int fd = self->fileno;
+    int fd = self->fileno();
     if (argc == 0) {
         dprintf(fd, "\n");
     } else {
@@ -108,7 +108,7 @@ Value *IO_puts(Env *env, Value *self_value, ssize_t argc, Value **args, Block *b
 
 Value *IO_print(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     IoValue *self = self_value->as_io();
-    int fd = self->fileno;
+    int fd = self->fileno();
     if (argc > 0) {
         for (ssize_t i = 0; i < argc; i++) {
             Value *str = args[i]->send(env, "to_s");
@@ -122,7 +122,7 @@ Value *IO_print(Env *env, Value *self_value, ssize_t argc, Value **args, Block *
 Value *IO_close(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     IoValue *self = self_value->as_io();
-    int result = close(self->fileno);
+    int result = close(self->fileno());
     if (result == -1) {
         Value *error_number = new IntegerValue { env, errno };
         ExceptionValue *error = NAT_OBJECT->const_get(env, "SystemCallError", true)->send(env, "exception", 1, &error_number, nullptr)->as_exception();
@@ -163,7 +163,7 @@ Value *IO_seek(Env *env, Value *self_value, ssize_t argc, Value **args, Block *b
             NAT_RAISE(env, "TypeError", "no implicit conversion of %s into Integer", whence_obj->klass()->class_name());
         }
     }
-    int result = lseek(self->fileno, amount, whence);
+    int result = lseek(self->fileno(), amount, whence);
     if (result == -1) {
         Value *error_number = new IntegerValue { env, errno };
         ExceptionValue *error = NAT_OBJECT->const_get(env, "SystemCallError", true)->send(env, "exception", 1, &error_number, nullptr)->as_exception();
