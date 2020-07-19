@@ -13,26 +13,46 @@ extern "C" {
 
 struct GlobalEnv {
     GlobalEnv() {
-        globals = static_cast<struct hashmap *>(malloc(sizeof(struct hashmap)));
-        hashmap_init(globals, hashmap_hash_string, hashmap_compare_string, 100);
-        hashmap_set_key_alloc_funcs(globals, hashmap_alloc_key_string, free);
-        symbols = static_cast<struct hashmap *>(malloc(sizeof(struct hashmap)));
-        hashmap_init(symbols, hashmap_hash_string, hashmap_compare_string, 100);
-        hashmap_set_key_alloc_funcs(symbols, hashmap_alloc_key_string, free);
+        m_globals = static_cast<struct hashmap *>(malloc(sizeof(struct hashmap)));
+        hashmap_init(m_globals, hashmap_hash_string, hashmap_compare_string, 100);
+        hashmap_set_key_alloc_funcs(m_globals, hashmap_alloc_key_string, free);
+        m_symbols = static_cast<struct hashmap *>(malloc(sizeof(struct hashmap)));
+        hashmap_init(m_symbols, hashmap_hash_string, hashmap_compare_string, 100);
+        hashmap_set_key_alloc_funcs(m_symbols, hashmap_alloc_key_string, free);
     }
 
     ~GlobalEnv() {
-        hashmap_destroy(globals);
-        hashmap_destroy(symbols);
+        hashmap_destroy(m_globals);
+        hashmap_destroy(m_symbols);
     }
 
-    struct hashmap *globals { nullptr };
-    struct hashmap *symbols { nullptr };
-    ClassValue *Object { nullptr };
-    ClassValue *Integer { nullptr };
-    NilValue *nil { nullptr };
-    TrueValue *true_obj { nullptr };
-    FalseValue *false_obj { nullptr };
+    struct hashmap *globals() {
+        return m_globals;
+    }
+
+    struct hashmap *symbols() {
+        return m_symbols;
+    }
+
+    ClassValue *Object() { return m_Object; }
+    void set_Object(ClassValue *Object) { m_Object = Object; }
+
+    NilValue *nil() { return m_nil; }
+    void set_nil(NilValue *nil) { m_nil = nil; }
+
+    TrueValue *true_obj() { return m_true_obj; }
+    void set_true_obj(TrueValue *true_obj) { m_true_obj = true_obj; }
+
+    FalseValue *false_obj() { return m_false_obj; }
+    void set_false_obj(FalseValue *false_obj) { m_false_obj = false_obj; }
+
+private:
+    struct hashmap *m_globals { nullptr };
+    struct hashmap *m_symbols { nullptr };
+    ClassValue *m_Object { nullptr };
+    NilValue *m_nil { nullptr };
+    TrueValue *m_true_obj { nullptr };
+    FalseValue *m_false_obj { nullptr };
 };
 
 }

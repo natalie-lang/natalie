@@ -39,11 +39,10 @@ struct Env : public gc {
 
     Value *last_match();
 
-    ClassValue *Object() { return global_env->Object; }
-    ClassValue *Integer() { return global_env->Integer; }
-    NilValue *nil() { return global_env->nil; }
-    TrueValue *true_obj() { return global_env->true_obj; }
-    FalseValue *false_obj() { return global_env->false_obj; }
+    ClassValue *Object() { return global_env->Object(); }
+    NilValue *nil() { return global_env->nil(); }
+    TrueValue *true_obj() { return global_env->true_obj(); }
+    FalseValue *false_obj() { return global_env->false_obj(); }
 
     GlobalEnv *global_env { nullptr };
     Vector<Value *> *vars { nullptr };

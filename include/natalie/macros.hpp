@@ -31,7 +31,7 @@
         NAT_RAISE(env, "ArgumentError", "wrong number of arguments (given %d, expected %d+)", argc, expected); \
     }
 
-#define NAT_ASSERT_TYPE(obj, expected_type, expected_class_name)                                                              \
+#define NAT_ASSERT_TYPE(obj, expected_type, expected_class_name)                                                                \
     if ((obj->type()) != expected_type) {                                                                                       \
         NAT_RAISE(env, "TypeError", "no implicit conversion of %s into %s", (obj->klass())->class_name(), expected_class_name); \
     }
@@ -44,8 +44,8 @@
         abort();                                 \
     }
 
-#define NAT_ASSERT_NOT_FROZEN(obj)                                                                               \
-    if (obj->is_frozen()) {                                                                                      \
+#define NAT_ASSERT_NOT_FROZEN(obj)                                                                                 \
+    if (obj->is_frozen()) {                                                                                        \
         NAT_RAISE(env, "FrozenError", "can't modify frozen %s: %s", obj->klass()->class_name(), NAT_INSPECT(obj)); \
     }
 
@@ -69,11 +69,10 @@
 #define NAT_INSPECT(obj) obj->send(env, "inspect")->as_string()->c_str()
 
 // ahem, "globals"
-#define NAT_OBJECT env->global_env->Object
-#define NAT_INTEGER env->global_env->Integer
-#define NAT_NIL env->global_env->nil
-#define NAT_TRUE env->global_env->true_obj
-#define NAT_FALSE env->global_env->false_obj
+#define NAT_OBJECT env->global_env->Object()
+#define NAT_NIL env->global_env->nil()
+#define NAT_TRUE env->global_env->true_obj()
+#define NAT_FALSE env->global_env->false_obj()
 
 #define NAT_MIN_INT INT64_MIN
 #define NAT_MAX_INT INT64_MAX
