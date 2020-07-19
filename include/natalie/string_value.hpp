@@ -34,8 +34,8 @@ struct StringValue : Value {
         set_str(str, length);
     }
 
-    StringValue(const StringValue &other)
-        : Value { Value::Type::String, other.klass } {
+    StringValue(StringValue &other)
+        : Value { Value::Type::String, other.klass() } {
         set_str(other.c_str(), other.length());
     }
 

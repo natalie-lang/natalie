@@ -45,18 +45,16 @@ struct Value : public gc {
     };
 
     Value(Env *env)
-        : klass { NAT_OBJECT } {
-        assert(klass);
-    }
+        : m_klass { NAT_OBJECT } { }
 
     Value(ClassValue *klass)
-        : klass { klass } {
+        : m_klass { klass } {
         assert(klass);
     }
 
     Value(Type type, ClassValue *klass)
-        : type { type }
-        , klass { klass } {
+        : m_klass { klass }
+        , m_type { type } {
         assert(klass);
     }
 
@@ -64,39 +62,41 @@ struct Value : public gc {
 
     Value &operator=(const Value &) = delete;
 
-    Type type { Type::Object };
-    ClassValue *klass { nullptr };
+    Type type() { return m_type; }
+    ClassValue *klass() { return m_klass; }
 
-    ClassValue *m_singleton_class { nullptr };
+    ModuleValue *owner() { return m_owner; }
+    void set_owner(ModuleValue *owner) { m_owner = owner; }
 
-    ModuleValue *owner { nullptr };
-    int flags { 0 };
+    int flags() { return m_flags; }
 
-    Env env;
+    Env env() { return m_env; }
 
-    struct hashmap ivars EMPTY_HASHMAP;
+    struct hashmap ivars() { // TODO: is this getter really needed?
+        return m_ivars;
+    }
 
     Value *initialize(Env *, ssize_t, Value **, Block *);
 
-    bool is_nil() const { return type == Type::Nil; }
-    bool is_true() const { return type == Type::True; }
-    bool is_false() const { return type == Type::False; }
-    bool is_array() const { return type == Type::Array; }
-    bool is_module() const { return type == Type::Module || type == Type::Class; }
-    bool is_class() const { return type == Type::Class; }
-    bool is_encoding() const { return type == Type::Encoding; }
-    bool is_exception() const { return type == Type::Exception; }
-    bool is_float() const { return type == Type::Float; }
-    bool is_hash() const { return type == Type::Hash; }
-    bool is_integer() const { return type == Type::Integer; }
-    bool is_io() const { return type == Type::Io; }
-    bool is_match_data() const { return type == Type::MatchData; }
-    bool is_proc() const { return type == Type::Proc; }
-    bool is_range() const { return type == Type::Range; }
-    bool is_regexp() const { return type == Type::Regexp; }
-    bool is_symbol() const { return type == Type::Symbol; }
-    bool is_string() const { return type == Type::String; }
-    bool is_void_p() const { return type == Type::VoidP; }
+    bool is_nil() const { return m_type == Type::Nil; }
+    bool is_true() const { return m_type == Type::True; }
+    bool is_false() const { return m_type == Type::False; }
+    bool is_array() const { return m_type == Type::Array; }
+    bool is_module() const { return m_type == Type::Module || m_type == Type::Class; }
+    bool is_class() const { return m_type == Type::Class; }
+    bool is_encoding() const { return m_type == Type::Encoding; }
+    bool is_exception() const { return m_type == Type::Exception; }
+    bool is_float() const { return m_type == Type::Float; }
+    bool is_hash() const { return m_type == Type::Hash; }
+    bool is_integer() const { return m_type == Type::Integer; }
+    bool is_io() const { return m_type == Type::Io; }
+    bool is_match_data() const { return m_type == Type::MatchData; }
+    bool is_proc() const { return m_type == Type::Proc; }
+    bool is_range() const { return m_type == Type::Range; }
+    bool is_regexp() const { return m_type == Type::Regexp; }
+    bool is_symbol() const { return m_type == Type::Symbol; }
+    bool is_string() const { return m_type == Type::String; }
+    bool is_void_p() const { return m_type == Type::VoidP; }
 
     bool is_truthy() const { return !is_false() && !is_nil(); }
     bool is_numeric() const { return is_integer() || is_float(); }
@@ -136,6 +136,7 @@ struct Value : public gc {
 
     Value *ivar_get(Env *, const char *);
     Value *ivar_set(Env *, const char *, Value *);
+    Value *ivars(Env *);
 
     Value *cvar_get(Env *, const char *);
     virtual Value *cvar_get_or_null(Env *, const char *);
@@ -169,17 +170,32 @@ struct Value : public gc {
 
     virtual ProcValue *to_proc(Env *);
 
-    bool is_main_object() { return (flags & NAT_FLAG_MAIN_OBJECT) == NAT_FLAG_MAIN_OBJECT; }
+    bool is_main_object() { return (m_flags & NAT_FLAG_MAIN_OBJECT) == NAT_FLAG_MAIN_OBJECT; }
 
-    bool is_frozen() { return is_integer() || is_float() || (flags & NAT_FLAG_FROZEN) == NAT_FLAG_FROZEN; }
-    void freeze() { flags = flags | NAT_FLAG_FROZEN; }
+    bool is_frozen() { return is_integer() || is_float() || (m_flags & NAT_FLAG_FROZEN) == NAT_FLAG_FROZEN; }
+    void freeze() { m_flags = m_flags | NAT_FLAG_FROZEN; }
 
-    void add_break_flag() { flags = flags | NAT_FLAG_BREAK; }
-    void remove_break_flag() { flags = flags & ~NAT_FLAG_BREAK; }
-    bool has_break_flag() { return (flags & NAT_FLAG_BREAK) == NAT_FLAG_BREAK; }
+    void add_break_flag() { m_flags = m_flags | NAT_FLAG_BREAK; }
+    void remove_break_flag() { m_flags = m_flags & ~NAT_FLAG_BREAK; }
+    bool has_break_flag() { return (m_flags & NAT_FLAG_BREAK) == NAT_FLAG_BREAK; }
+
+    void add_main_object_flag() { m_flags = m_flags | NAT_FLAG_MAIN_OBJECT; }
+
+protected:
+    Env m_env;
+    ClassValue *m_klass { nullptr };
 
 private:
     void init_ivars();
+
+    Type m_type { Type::Object };
+
+    ClassValue *m_singleton_class { nullptr };
+
+    ModuleValue *m_owner { nullptr };
+    int m_flags { 0 };
+
+    struct hashmap m_ivars EMPTY_HASHMAP;
 };
 
 }

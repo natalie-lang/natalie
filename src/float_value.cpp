@@ -126,7 +126,7 @@ Value *FloatValue::cmp(Env *env, Value *other) {
 
 Value *FloatValue::coerce(Env *env, Value *arg) {
     ArrayValue *ary = new ArrayValue { env };
-    switch (arg->type) {
+    switch (arg->type()) {
     case Value::Type::Float:
         ary->push(arg);
         ary->push(this);
@@ -268,7 +268,7 @@ Value *FloatValue::divmod(Env *env, Value *arg) {
     if (is_nan()) NAT_RAISE(env, "FloatDomainError", "NaN");
     if (is_infinity()) NAT_RAISE(env, "FloatDomainError", "Infinity");
 
-    if (!arg->is_numeric()) NAT_RAISE(env, "TypeError", "%s can't be coerced into Float", arg->klass->class_name());
+    if (!arg->is_numeric()) NAT_RAISE(env, "TypeError", "%s can't be coerced into Float", arg->klass()->class_name());
     if (arg->is_float() && arg->as_float()->is_nan()) NAT_RAISE(env, "FloatDomainError", "NaN");
     if (arg->is_float() && arg->as_float()->is_zero()) NAT_RAISE(env, "ZeroDivisionError", "divided by 0");
     if (arg->is_integer() && arg->as_integer()->is_zero()) NAT_RAISE(env, "ZeroDivisionError", "divided by 0");
@@ -322,7 +322,7 @@ Value *FloatValue::abs(Env *env) {
                                                                                                              \
         if (!lhs->is_float()) return lhs->send(env, NAT_QUOTE(op), 1, &rhs);                                 \
         if (!rhs->is_float()) {                                                                              \
-            NAT_RAISE(env, "ArgumentError", "comparison of Float with %s failed", rhs->klass->class_name()); \
+            NAT_RAISE(env, "ArgumentError", "comparison of Float with %s failed", rhs->klass()->class_name()); \
         }                                                                                                    \
                                                                                                              \
         if (lhs->as_float()->is_nan() || rhs->as_float()->is_nan()) {                                        \

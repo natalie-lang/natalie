@@ -39,8 +39,8 @@ Value *Kernel_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *
         return new StringValue { env, self->as_module()->class_name() };
     } else {
         StringValue *str = new StringValue { env, "#<" };
-        assert(self->klass);
-        StringValue *inspected = static_cast<StringValue *>(Module_inspect(env, self->klass, 0, nullptr, nullptr));
+        assert(self->klass());
+        StringValue *inspected = static_cast<StringValue *>(Module_inspect(env, self->klass(), 0, nullptr, nullptr));
         str->append_string(env, inspected);
         str->append_char(env, ':');
         char buf[NAT_OBJECT_POINTER_BUF_LENGTH];
@@ -68,8 +68,8 @@ Value *Kernel_equal(Env *env, Value *self, ssize_t argc, Value **args, Block *bl
 
 Value *Kernel_class(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
-    if (self->klass) {
-        return self->klass;
+    if (self->klass()) {
+        return self->klass();
     } else {
         return NAT_NIL;
     }
@@ -81,23 +81,12 @@ Value *Kernel_singleton_class(Env *env, Value *self, ssize_t argc, Value **args,
 }
 
 Value *Kernel_instance_variables(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
-    ArrayValue *ary = new ArrayValue { env };
-    if (self->type == Value::Type::Integer) {
-        return ary;
-    }
-    struct hashmap_iter *iter;
-    if (self->ivars.table) {
-        for (iter = hashmap_iter(&self->ivars); iter; iter = hashmap_iter_next(&self->ivars, iter)) {
-            char *name = (char *)hashmap_iter_get_key(iter);
-            ary->push(SymbolValue::intern(env, name));
-        }
-    }
-    return ary;
+    return self->ivars(env);
 }
 
 Value *Kernel_instance_variable_get(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
-    if (self->type == Value::Type::Integer) {
+    if (self->type() == Value::Type::Integer) {
         return NAT_NIL;
     }
     const char *name = args[0]->identifier_str(env, Value::Conversion::Strict);
@@ -160,7 +149,7 @@ Value *Kernel_methods(Env *env, Value *self, ssize_t argc, Value **args, Block *
     if (self->singleton_class(env)) {
         self->singleton_class(env)->methods(env, array);
     } else {
-        self->klass->methods(env, array);
+        self->klass()->methods(env, array);
     }
     return array;
 }
@@ -170,7 +159,7 @@ Value *Kernel_exit(Env *env, Value *self, ssize_t argc, Value **args, Block *blo
     Value *status;
     if (argc == 1) {
         status = args[0];
-        if (status->type != Value::Type::Integer) {
+        if (status->type() != Value::Type::Integer) {
             status = new IntegerValue { env, 0 };
         }
     } else {
@@ -280,7 +269,7 @@ Value *Kernel_tap(Env *env, Value *self, ssize_t argc, Value **args, Block *bloc
 Value *Kernel_Array(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     Value *value = args[0];
-    if (value->type == Value::Type::Array) {
+    if (value->type() == Value::Type::Array) {
         return value;
     } else if (value->respond_to(env, "to_ary")) {
         return value->send(env, "to_ary");

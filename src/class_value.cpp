@@ -7,11 +7,11 @@ ClassValue *ClassValue::subclass(Env *env, const char *name) {
 }
 
 ClassValue *ClassValue::subclass(Env *env, const char *name, Type object_type) {
-    ClassValue *subclass = new ClassValue { env, this->klass };
-    subclass->env = Env::new_detatched_block_env(&this->env);
-    if (m_singleton_class) {
+    ClassValue *subclass = new ClassValue { env, klass() };
+    subclass->m_env = Env::new_detatched_block_env(&m_env);
+    if (singleton_class()) {
         // TODO: what happens if the superclass gets a singleton_class later?
-        subclass->set_singleton_class(m_singleton_class->subclass(env));
+        subclass->set_singleton_class(singleton_class()->subclass(env));
     }
     subclass->set_class_name(name);
     subclass->m_superclass = this;
@@ -24,7 +24,7 @@ ClassValue *ClassValue::bootstrap_class_class(Env *env) {
         env,
         reinterpret_cast<ClassValue *>(-1)
     };
-    Class->klass = Class;
+    Class->m_klass = Class;
     Class->set_class_name("Class");
     return Class;
 }
@@ -34,7 +34,7 @@ ClassValue *ClassValue::bootstrap_basic_object(Env *env, ClassValue *Class) {
         env,
         reinterpret_cast<ClassValue *>(-1)
     };
-    BasicObject->klass = Class;
+    BasicObject->m_klass = Class;
     BasicObject->set_class_name("BasicObject");
     return BasicObject;
 }

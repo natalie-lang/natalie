@@ -26,8 +26,8 @@ struct ArrayValue : Value {
         }
     }
 
-    ArrayValue(const ArrayValue &other)
-        : Value { other.type, other.klass }
+    ArrayValue(ArrayValue &other)
+        : Value { other.type(), other.klass() }
         , m_vector { other.m_vector } { }
 
     ssize_t size() { return m_vector.size(); }

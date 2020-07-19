@@ -12,7 +12,7 @@ ModuleValue::ModuleValue(Env *env, const char *name)
 
 ModuleValue::ModuleValue(Env *env, Type type, ClassValue *klass)
     : Value { type, klass } {
-    this->env = Env::new_detatched_block_env(env);
+    m_env = Env::new_detatched_block_env(env);
     hashmap_init(&m_methods, hashmap_hash_string, hashmap_compare_string, 10);
     hashmap_set_key_alloc_funcs(&m_methods, hashmap_alloc_key_string, free);
     hashmap_init(&m_constants, hashmap_hash_string, hashmap_compare_string, 10);
@@ -49,14 +49,14 @@ Value *ModuleValue::const_get(Env *env, const char *name, bool strict) {
 }
 
 Value *ModuleValue::const_get_or_null(Env *env, const char *name, bool strict, bool define) {
-    const ModuleValue *search_parent;
+    ModuleValue *search_parent;
     Value *val;
 
     if (!strict) {
         // first search in parent namespaces (not including global, i.e. Object namespace)
         search_parent = this;
-        while (!(val = static_cast<Value *>(hashmap_get(&search_parent->m_constants, name))) && search_parent->owner && search_parent->owner != NAT_OBJECT) {
-            search_parent = search_parent->owner;
+        while (!(val = static_cast<Value *>(hashmap_get(&search_parent->m_constants, name))) && search_parent->owner() && search_parent->owner() != NAT_OBJECT) {
+            search_parent = search_parent->owner();
         }
         if (val) return val;
     }
@@ -86,8 +86,8 @@ Value *ModuleValue::const_get_or_null(Env *env, const char *name, bool strict, b
 Value *ModuleValue::const_set(Env *env, const char *name, Value *val) {
     hashmap_remove(&m_constants, name);
     hashmap_put(&m_constants, name, val);
-    if (val->is_module() && !val->owner) {
-        val->owner = this;
+    if (val->is_module() && !val->owner()) {
+        val->set_owner(this);
     }
     return val;
 }
@@ -195,7 +195,7 @@ Method *ModuleValue::find_method(const char *method_name, ModuleValue **matching
         // note: if there are included modules, then the module chain will include this class/module
         method = static_cast<Method *>(hashmap_get(&m_methods, method_name));
         if (method) {
-            *matching_class_or_module = klass;
+            *matching_class_or_module = m_klass;
             return method;
         }
     }
@@ -232,7 +232,7 @@ Value *ModuleValue::call_method(Env *env, Value *instance_class, const char *met
         if (NAT_OBJ_HAS_ENV(method)) {
             closure_env = &method->env;
         } else {
-            closure_env = &matching_class_or_module->env;
+            closure_env = &matching_class_or_module->m_env;
         }
         Env e = Env::new_block_env(closure_env, env);
         e.file = env->file;

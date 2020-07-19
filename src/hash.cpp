@@ -21,12 +21,12 @@ Value *Hash_square_new(Env *env, Value *self_value, ssize_t argc, Value **args, 
         return new HashValue { env };
     } else if (argc == 1) {
         Value *value = args[0];
-        if (value->type == Value::Type::Hash) {
+        if (value->type() == Value::Type::Hash) {
             return value;
-        } else if (value->type == Value::Type::Array) {
+        } else if (value->type() == Value::Type::Array) {
             HashValue *hash = new HashValue { env };
             for (auto &pair : *value->as_array()) {
-                if (pair->type != Value::Type::Array) {
+                if (pair->type() != Value::Type::Array) {
                     NAT_RAISE(env, "ArgumentError", "wrong element in array to Hash[]");
                 }
                 ssize_t size = pair->as_array()->size();
@@ -119,7 +119,7 @@ Value *Hash_eqeq(Env *env, Value *self_value, ssize_t argc, Value **args, Block 
     NAT_ASSERT_ARGC(1);
     HashValue *self = self_value->as_hash();
     Value *other_value = args[0];
-    if (other_value->type != Value::Type::Hash) {
+    if (other_value->type() != Value::Type::Hash) {
         return NAT_FALSE;
     }
     HashValue *other = other_value->as_hash();
@@ -194,7 +194,7 @@ Value *Hash_sort(Env *env, Value *self_value, ssize_t argc, Value **args, Block 
 Value *Hash_is_key(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     HashValue *self = self_value->as_hash();
-    assert(self->type == Value::Type::Hash);
+    assert(self->type() == Value::Type::Hash);
     Value *key = args[0];
     Value *val = self->get(env, key);
     if (val) {

@@ -176,7 +176,7 @@ extern "C" Env *build_top_env() {
     env->global_set("$NAT_at_exit_handlers", new ArrayValue { env });
 
     Value *self = new Value { env };
-    self->flags = NAT_FLAG_MAIN_OBJECT;
+    self->add_main_object_flag();
     self->define_singleton_method(env, "inspect", main_obj_inspect);
     env->global_set("$NAT_main_object", self);
 

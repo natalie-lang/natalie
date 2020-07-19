@@ -74,7 +74,7 @@ Value *Range_inspect(Env *env, Value *self_value, ssize_t argc, Value **args, Bl
 Value *Range_eqeq(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     RangeValue *self = self_value->as_range();
-    if (args[0]->type == Value::Type::Range) {
+    if (args[0]->type() == Value::Type::Range) {
         RangeValue *arg = args[0]->as_range();
         Value *begin = arg->begin();
         Value *end = arg->end();
@@ -91,7 +91,7 @@ Value *Range_eqeqeq(Env *env, Value *self_value, ssize_t argc, Value **args, Blo
     NAT_ASSERT_ARGC(1);
     RangeValue *self = self_value->as_range();
     Value *arg = args[0];
-    if (self->begin()->type == Value::Type::Integer && arg->type == Value::Type::Integer) {
+    if (self->begin()->type() == Value::Type::Integer && arg->type() == Value::Type::Integer) {
         // optimized path for integer ranges
         int64_t begin = self->begin()->as_integer()->to_int64_t();
         int64_t end = self->end()->as_integer()->to_int64_t();

@@ -10,7 +10,7 @@ Value *Array_new(Env *env, Value *self_value, ssize_t argc, Value **args, Block 
         return ary;
     }
     Value *size = args[0];
-    if (size->type == Value::Type::Array) {
+    if (size->type() == Value::Type::Array) {
         // given an array, just return it
         return size;
     }
@@ -91,7 +91,7 @@ Value *Array_ref(Env *env, Value *self_value, ssize_t argc, Value **args, Block 
     NAT_ASSERT_ARGC(1, 2);
     ArrayValue *self = self_value->as_array();
     Value *index_obj = args[0];
-    if (index_obj->type == Value::Type::Integer) {
+    if (index_obj->type() == Value::Type::Integer) {
         ssize_t index = index_obj->as_integer()->to_int64_t();
         if (index < 0) {
             index = self->size() + index;
@@ -137,7 +137,7 @@ Value *Array_ref(Env *env, Value *self_value, ssize_t argc, Value **args, Block 
         }
         return result;
     } else {
-        NAT_RAISE(env, "TypeError", "no implicit conversion of %s into Integer", index_obj->klass->class_name());
+        NAT_RAISE(env, "TypeError", "no implicit conversion of %s into Integer", index_obj->klass()->class_name());
     }
 }
 
@@ -221,7 +221,7 @@ Value *Array_eqeq(Env *env, Value *self_value, ssize_t argc, Value **args, Block
         // TODO: could easily be optimized for strings and numbers
         Value *item = (*arg)[i];
         Value *result = (*self)[i]->send(env, "==", 1, &item, nullptr);
-        if (result->type == Value::Type::False) return result;
+        if (result->type() == Value::Type::False) return result;
     }
     return NAT_TRUE;
 }
@@ -346,7 +346,7 @@ Value *Array_cmp(Env *env, Value *self_value, ssize_t argc, Value **args, Block 
         }
         Value *item = (*other)[i];
         Value *cmp_obj = (*self)[i]->send(env, "<=>", 1, &item, nullptr);
-        assert(cmp_obj->type == Value::Type::Integer);
+        assert(cmp_obj->type() == Value::Type::Integer);
         int64_t cmp = cmp_obj->as_integer()->to_int64_t();
         if (cmp < 0) return new IntegerValue { env, -1 };
         if (cmp > 0) return new IntegerValue { env, 1 };

@@ -67,13 +67,13 @@ void print_exception_with_backtrace(Env *env, ExceptionValue *exception) {
         dprintf(fd, "Traceback (most recent call last):\n");
         for (int i = backtrace->size() - 1; i > 0; i--) {
             StringValue *line = (*backtrace)[i]->as_string();
-            assert(line->type == Value::Type::String);
+            assert(line->type() == Value::Type::String);
             dprintf(fd, "        %d: from %s\n", i, line->c_str());
         }
         StringValue *line = (*backtrace)[0]->as_string();
         dprintf(fd, "%s: ", line->c_str());
     }
-    dprintf(fd, "%s (%s)\n", exception->message(), exception->klass->class_name());
+    dprintf(fd, "%s (%s)\n", exception->message(), exception->klass()->class_name());
 }
 
 void handle_top_level_exception(Env *env, bool run_exit_handlers) {
@@ -82,7 +82,7 @@ void handle_top_level_exception(Env *env, bool run_exit_handlers) {
     if (exception->is_a(env, NAT_OBJECT->const_get(env, "SystemExit", true)->as_class())) {
         Value *status_obj = exception->ivar_get(env, "@status");
         if (run_exit_handlers) run_at_exit_handlers(env);
-        if (status_obj->type == Value::Type::Integer) {
+        if (status_obj->type() == Value::Type::Integer) {
             int64_t val = status_obj->as_integer()->to_int64_t();
             if (val >= 0 && val <= 255) {
                 exit(val);
@@ -109,8 +109,8 @@ ArrayValue *to_ary(Env *env, Value *obj, bool raise_for_non_array) {
             ary->as_array()->push(obj);
             return ary->as_array();
         } else {
-            const char *class_name = obj->klass->class_name();
-            NAT_RAISE(env, "TypeError", "can't convert %s to Array (%s#to_ary gives %s)", class_name, class_name, ary->klass->class_name());
+            const char *class_name = obj->klass()->class_name();
+            NAT_RAISE(env, "TypeError", "can't convert %s to Array (%s#to_ary gives %s)", class_name, class_name, ary->klass()->class_name());
         }
     } else {
         ArrayValue *ary = new ArrayValue { env };
@@ -260,7 +260,7 @@ Value *kwarg_value_by_name(Env *env, ArrayValue *args, const char *name, Value *
         hash = new HashValue { env };
     } else {
         hash = (*args)[args->size() - 1];
-        if (hash->type != Value::Type::Hash) {
+        if (hash->type() != Value::Type::Hash) {
             hash = new HashValue { env };
         }
     }
@@ -341,7 +341,7 @@ void arg_spread(Env *env, ssize_t argc, Value **args, char *arrangement, ...) {
             if (arg_index >= argc) NAT_RAISE(env, "ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, arg_index + 1);
             obj = args[arg_index++];
             obj = obj->ivar_get(env, "@_ptr");
-            assert(obj->type == Value::Type::VoidP);
+            assert(obj->type() == Value::Type::VoidP);
             *void_ptr = obj->as_void_p()->void_ptr();
             break;
         default:

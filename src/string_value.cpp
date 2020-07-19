@@ -285,7 +285,7 @@ Value *StringValue::mul(Env *env, Value *arg) {
 }
 
 Value *StringValue::cmp(Env *env, Value *other) {
-    if (other->type != Value::Type::String) return NAT_NIL;
+    if (other->type() != Value::Type::String) return NAT_NIL;
     int diff = strcmp(c_str(), other->as_string()->c_str());
     int result;
     if (diff < 0) {
@@ -421,7 +421,7 @@ Value *StringValue::encode(Env *env, Value *encoding) {
 }
 
 Value *StringValue::force_encoding(Env *env, Value *encoding) {
-    switch (encoding->type) {
+    switch (encoding->type()) {
     case Value::Type::Encoding:
         set_encoding(encoding->as_encoding()->num());
         break;
@@ -429,7 +429,7 @@ Value *StringValue::force_encoding(Env *env, Value *encoding) {
         set_encoding(find_encoding_by_name(env, encoding->as_string()->c_str())->num());
         break;
     default:
-        NAT_RAISE(env, "TypeError", "no implicit conversion of %s into String", encoding->klass->class_name());
+        NAT_RAISE(env, "TypeError", "no implicit conversion of %s into String", encoding->klass()->class_name());
     }
     return this;
 }
@@ -505,7 +505,7 @@ Value *StringValue::sub(Env *env, Value *find, Value *replacement) {
         out->append(env, &m_str[index + length]);
         return out;
     } else {
-        NAT_RAISE(env, "TypeError", "wrong argument type %s (expected Regexp)", find->klass->class_name());
+        NAT_RAISE(env, "TypeError", "wrong argument type %s (expected Regexp)", find->klass()->class_name());
     }
 }
 
@@ -560,7 +560,7 @@ Value *StringValue::split(Env *env, Value *splitter) {
         }
         return ary;
     } else {
-        NAT_RAISE(env, "TypeError", "wrong argument type %s (expected Regexp))", splitter->klass->class_name());
+        NAT_RAISE(env, "TypeError", "wrong argument type %s (expected Regexp))", splitter->klass()->class_name());
     }
 }
 

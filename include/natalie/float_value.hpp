@@ -15,14 +15,14 @@ namespace Natalie {
 struct FloatValue : Value {
     FloatValue(Env *env, double number)
         : Value { Value::Type::Float, NAT_OBJECT->const_get(env, "Float", true)->as_class() }
-        , m_float { number } {}
+        , m_float { number } { }
 
     FloatValue(Env *env, int64_t number)
         : Value { Value::Type::Float, NAT_OBJECT->const_get(env, "Float", true)->as_class() }
-        , m_float { static_cast<double>(number) } {}
+        , m_float { static_cast<double>(number) } { }
 
     FloatValue(const FloatValue &other)
-        : Value { Value::Type::Float, other.klass }
+        : Value { Value::Type::Float, const_cast<FloatValue &>(other).klass() }
         , m_float { other.m_float }
         , m_nan { other.m_nan }
         , m_infinity { other.m_infinity } {

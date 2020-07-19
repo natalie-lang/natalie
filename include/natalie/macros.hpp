@@ -32,8 +32,8 @@
     }
 
 #define NAT_ASSERT_TYPE(obj, expected_type, expected_class_name)                                                              \
-    if ((obj->type) != expected_type) {                                                                                       \
-        NAT_RAISE(env, "TypeError", "no implicit conversion of %s into %s", (obj->klass)->class_name(), expected_class_name); \
+    if ((obj->type()) != expected_type) {                                                                                       \
+        NAT_RAISE(env, "TypeError", "no implicit conversion of %s into %s", (obj->klass())->class_name(), expected_class_name); \
     }
 
 #define NAT_GET_MACRO(_1, _2, NAME, ...) NAME
@@ -46,7 +46,7 @@
 
 #define NAT_ASSERT_NOT_FROZEN(obj)                                                                               \
     if (obj->is_frozen()) {                                                                                      \
-        NAT_RAISE(env, "FrozenError", "can't modify frozen %s: %s", obj->klass->class_name(), NAT_INSPECT(obj)); \
+        NAT_RAISE(env, "FrozenError", "can't modify frozen %s: %s", obj->klass()->class_name(), NAT_INSPECT(obj)); \
     }
 
 #define NAT_ASSERT_BLOCK()                                         \

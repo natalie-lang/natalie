@@ -13,7 +13,7 @@ Value *Exception_new(Env *env, Value *self, ssize_t argc, Value **args, Block *b
 Value *Exception_initialize(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     ExceptionValue *self = self_value->as_exception();
     if (argc == 0) {
-        self->set_message(self->klass->class_name());
+        self->set_message(self->klass()->class_name());
     } else if (argc == 1) {
         Value *message = args[0];
         if (!message->is_string()) {
@@ -28,8 +28,8 @@ Value *Exception_inspect(Env *env, Value *self_value, ssize_t argc, Value **args
     NAT_ASSERT_ARGC(0);
     ExceptionValue *self = self_value->as_exception();
     StringValue *out = new StringValue { env, "#<" };
-    assert(self->klass);
-    out->append(env, Module_inspect(env, self->klass, 0, nullptr, nullptr)->as_string()->c_str());
+    assert(self->klass());
+    out->append(env, Module_inspect(env, self->klass(), 0, nullptr, nullptr)->as_string()->c_str());
     out->append(env, ": ");
     out->append(env, self->message());
     out->append_char(env, '>');

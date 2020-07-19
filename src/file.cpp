@@ -15,7 +15,7 @@ Value *File_initialize(Env *env, Value *self_value, ssize_t argc, Value **args, 
     int flags = O_RDONLY;
     if (argc > 1) {
         Value *flags_obj = args[1];
-        switch (flags_obj->type) {
+        switch (flags_obj->type()) {
         case Value::Type::Integer:
             flags = flags_obj->as_integer()->to_int64_t();
             break;
@@ -39,7 +39,7 @@ Value *File_initialize(Env *env, Value *self_value, ssize_t argc, Value **args, 
             break;
         }
         default:
-            NAT_RAISE(env, "TypeError", "no implicit conversion of %s into String", flags_obj->klass->class_name());
+            NAT_RAISE(env, "TypeError", "no implicit conversion of %s into String", flags_obj->klass()->class_name());
         }
     }
     int mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;

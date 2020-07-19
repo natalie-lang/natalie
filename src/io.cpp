@@ -13,7 +13,7 @@ Value *IO_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
 
 Value *IO_initialize(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1); // TODO: ruby accepts 1..2
-    assert(args[0]->type == Value::Type::Integer);
+    assert(args[0]->type() == Value::Type::Integer);
     //NAT_ASSERT_TYPE(args[0], Value::Type::Integer, "Integer");
     IoValue *self = self_value->as_io();
     self->fileno = args[0]->as_integer()->to_int64_t();
@@ -74,7 +74,7 @@ Value *IO_write(Env *env, Value *self_value, ssize_t argc, Value **args, Block *
     int bytes_written = 0;
     for (ssize_t i = 0; i < argc; i++) {
         Value *obj = args[i];
-        if (obj->type != Value::Type::String) {
+        if (obj->type() != Value::Type::String) {
             obj = obj->send(env, "to_s");
         }
         NAT_ASSERT_TYPE(obj, Value::Type::String, "String");
@@ -142,7 +142,7 @@ Value *IO_seek(Env *env, Value *self_value, ssize_t argc, Value **args, Block *b
     int whence = 0;
     if (argc > 1) {
         Value *whence_obj = args[1];
-        switch (whence_obj->type) {
+        switch (whence_obj->type()) {
         case Value::Type::Integer:
             whence = whence_obj->as_integer()->to_int64_t();
             break;
@@ -160,7 +160,7 @@ Value *IO_seek(Env *env, Value *self_value, ssize_t argc, Value **args, Block *b
             break;
         }
         default:
-            NAT_RAISE(env, "TypeError", "no implicit conversion of %s into Integer", whence_obj->klass->class_name());
+            NAT_RAISE(env, "TypeError", "no implicit conversion of %s into Integer", whence_obj->klass()->class_name());
         }
     }
     int result = lseek(self->fileno, amount, whence);

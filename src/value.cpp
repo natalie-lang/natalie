@@ -4,21 +4,20 @@
 namespace Natalie {
 
 Value::Value(const Value &other)
-    : type { other.type }
-    , klass { other.klass }
+    : m_klass { other.m_klass }
+    , m_type { other.m_type }
     , m_singleton_class { other.m_singleton_class ? new ClassValue { *other.m_singleton_class } : nullptr }
-    , owner { other.owner }
-    , flags { other.flags } {
+    , m_owner { other.m_owner }
+    , m_flags { other.m_flags } {
     init_ivars();
-    copy_hashmap(ivars, other.ivars);
+    copy_hashmap(m_ivars, other.m_ivars);
 }
 
 Value *Value::initialize(Env *env, ssize_t argc, Value **args, Block *block) {
-    ClassValue *klass = this->klass;
     ModuleValue *matching_class_or_module;
-    Method *method = klass->find_method("initialize", &matching_class_or_module);
+    Method *method = m_klass->find_method("initialize", &matching_class_or_module);
     if (method) {
-        klass->call_method(env, klass, "initialize", this, argc, args, block);
+        m_klass->call_method(env, m_klass, "initialize", this, argc, args, block);
     }
     return this;
 }
@@ -116,7 +115,7 @@ const char *Value::identifier_str(Env *env, Conversion conversion) {
     } else if (conversion == Conversion::NullAllowed) {
         return nullptr;
     } else {
-        NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", this->send(env, "inspect", 0, nullptr, nullptr));
+        NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", send(env, "inspect", 0, nullptr, nullptr));
     }
 }
 
@@ -128,7 +127,7 @@ SymbolValue *Value::to_symbol(Env *env, Conversion conversion) {
     } else if (conversion == Conversion::NullAllowed) {
         return nullptr;
     } else {
-        NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", this->send(env, "inspect", 0, nullptr, nullptr));
+        NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", send(env, "inspect", 0, nullptr, nullptr));
     }
 }
 
@@ -137,21 +136,21 @@ ClassValue *Value::singleton_class(Env *env) {
         NAT_RAISE(env, "TypeError", "can't define singleton");
     }
     if (!m_singleton_class) {
-        m_singleton_class = klass->subclass(env);
+        m_singleton_class = m_klass->subclass(env);
     }
     return m_singleton_class;
 }
 
 Value *Value::const_get(Env *env, const char *name, bool strict) {
-    return this->klass->const_get(env, name, strict);
+    return m_klass->const_get(env, name, strict);
 }
 
 Value *Value::const_get_or_null(Env *env, const char *name, bool strict, bool define) {
-    return this->klass->const_get_or_null(env, name, strict, define);
+    return m_klass->const_get_or_null(env, name, strict, define);
 }
 
 Value *Value::const_set(Env *env, const char *name, Value *val) {
-    return this->klass->const_set(env, name, val);
+    return m_klass->const_set(env, name, val);
 }
 
 Value *Value::ivar_get(Env *env, const char *name) {
@@ -160,7 +159,7 @@ Value *Value::ivar_get(Env *env, const char *name) {
         NAT_RAISE(env, "NameError", "`%s' is not allowed as an instance variable name", name);
     }
     init_ivars();
-    Value *val = static_cast<Value *>(hashmap_get(&this->ivars, name));
+    Value *val = static_cast<Value *>(hashmap_get(&m_ivars, name));
     if (val) {
         return val;
     } else {
@@ -174,27 +173,41 @@ Value *Value::ivar_set(Env *env, const char *name, Value *val) {
         NAT_RAISE(env, "NameError", "`%s' is not allowed as an instance variable name", name);
     }
     init_ivars();
-    hashmap_remove(&this->ivars, name);
-    hashmap_put(&this->ivars, name, val);
+    hashmap_remove(&m_ivars, name);
+    hashmap_put(&m_ivars, name, val);
     return val;
 }
 
+Value *Value::ivars(Env *env) {
+    ArrayValue *ary = new ArrayValue { env };
+    if (m_type == Value::Type::Integer) {
+        return ary;
+    }
+    struct hashmap_iter *iter;
+    if (m_ivars.table) {
+        for (iter = hashmap_iter(&m_ivars); iter; iter = hashmap_iter_next(&m_ivars, iter)) {
+            char *name = (char *)hashmap_iter_get_key(iter);
+            ary->push(SymbolValue::intern(env, name));
+        }
+    }
+    return ary;
+}
 void Value::init_ivars() {
-    if (this->ivars.table) return;
-    hashmap_init(&this->ivars, hashmap_hash_string, hashmap_compare_string, 100);
-    hashmap_set_key_alloc_funcs(&this->ivars, hashmap_alloc_key_string, free);
+    if (m_ivars.table) return;
+    hashmap_init(&m_ivars, hashmap_hash_string, hashmap_compare_string, 100);
+    hashmap_set_key_alloc_funcs(&m_ivars, hashmap_alloc_key_string, free);
 }
 
 Value *Value::cvar_get(Env *env, const char *name) {
-    Value *val = this->cvar_get_or_null(env, name);
+    Value *val = cvar_get_or_null(env, name);
     if (val) {
         return val;
     } else {
         ModuleValue *module;
-        if (this->is_module()) {
-            module = this->as_module();
+        if (is_module()) {
+            module = as_module();
         } else {
-            module = this->klass;
+            module = m_klass;
         }
         NAT_RAISE(env, "NameError", "uninitialized class variable %s in %s", name, module->class_name());
     }
@@ -206,7 +219,7 @@ Value *Value::cvar_get_or_null(Env *env, const char *name) {
         NAT_RAISE(env, "NameError", "`%s' is not allowed as a class variable name", name);
     }
 
-    return this->klass->cvar_get_or_null(env, name);
+    return m_klass->cvar_get_or_null(env, name);
 }
 
 Value *Value::cvar_set(Env *env, const char *name, Value *val) {
@@ -215,7 +228,7 @@ Value *Value::cvar_set(Env *env, const char *name, Value *val) {
         NAT_RAISE(env, "NameError", "`%s' is not allowed as a class variable name", name);
     }
 
-    return this->klass->cvar_set(env, name, val);
+    return m_klass->cvar_set(env, name, val);
 }
 
 void Value::alias(Env *env, const char *new_name, const char *old_name) {
@@ -223,11 +236,11 @@ void Value::alias(Env *env, const char *new_name, const char *old_name) {
         NAT_RAISE(env, "TypeError", "no klass to make alias");
     }
     if (is_main_object()) {
-        this->klass->alias(env, new_name, old_name);
-    } else if (this->is_module()) {
-        this->as_module()->alias(env, new_name, old_name);
+        m_klass->alias(env, new_name, old_name);
+    } else if (is_module()) {
+        as_module()->alias(env, new_name, old_name);
     } else {
-        this->singleton_class(env)->alias(env, new_name, old_name);
+        singleton_class(env)->alias(env, new_name, old_name);
     }
 }
 
@@ -250,7 +263,7 @@ void Value::define_method(Env *env, const char *name, Value *(*fn)(Env *, Value 
         printf("tried to call define_method on something that has no methods\n");
         abort();
     }
-    klass->define_method(env, name, fn);
+    m_klass->define_method(env, name, fn);
 }
 
 void Value::define_method_with_block(Env *env, const char *name, Block *block) {
@@ -258,7 +271,7 @@ void Value::define_method_with_block(Env *env, const char *name, Block *block) {
         printf("tried to call define_method on something that has no methods\n");
         abort();
     }
-    klass->define_method_with_block(env, name, block);
+    m_klass->define_method_with_block(env, name, block);
 }
 
 void Value::undefine_method(Env *env, const char *name) {
@@ -266,28 +279,25 @@ void Value::undefine_method(Env *env, const char *name) {
         printf("tried to call define_method on something that has no methods\n");
         abort();
     }
-    klass->undefine_method(env, name);
+    m_klass->undefine_method(env, name);
 }
 
 Value *Value::send(Env *env, const char *sym, ssize_t argc, Value **args, Block *block) {
-    ClassValue *klass;
-    klass = singleton_class();
-    if (klass) {
+    if (singleton_class()) {
         ModuleValue *matching_class_or_module;
-        Method *method = klass->find_method(sym, &matching_class_or_module);
+        Method *method = singleton_class()->find_method(sym, &matching_class_or_module);
         if (method) {
             if (method->undefined) {
-                NAT_RAISE(env, "NoMethodError", "undefined method `%s' for %s:Class", sym, this->klass->class_name());
+                NAT_RAISE(env, "NoMethodError", "undefined method `%s' for %s:Class", sym, m_klass->class_name());
             }
-            return klass->call_method(env, this->klass, sym, this, argc, args, block);
+            return singleton_class()->call_method(env, m_klass, sym, this, argc, args, block);
         }
     }
-    klass = this->klass;
-    return klass->call_method(env, klass, sym, this, argc, args, block);
+    return m_klass->call_method(env, m_klass, sym, this, argc, args, block);
 }
 
 Value *Value::dup(Env *env) {
-    switch (type) {
+    switch (m_type) {
     case Value::Type::Array:
         return new ArrayValue { *as_array() };
     case Value::Type::String:
@@ -302,7 +312,7 @@ Value *Value::dup(Env *env) {
     case Value::Type::Object:
         return new Value { *this };
     default:
-        fprintf(stderr, "I don't know how to dup this kind of object yet %s (type = %d).\n", klass->class_name(), static_cast<int>(type));
+        fprintf(stderr, "I don't know how to dup this kind of object yet %s (type = %d).\n", m_klass->class_name(), static_cast<int>(m_type));
         abort();
     }
 }
@@ -313,7 +323,7 @@ bool Value::is_a(Env *env, Value *val) {
     if (this == module) {
         return true;
     } else {
-        ArrayValue *ancestors = klass->ancestors(env);
+        ArrayValue *ancestors = m_klass->ancestors(env);
         for (Value *m : *ancestors) {
             if (module == m->as_module()) {
                 return true;
@@ -327,7 +337,7 @@ bool Value::respond_to(Env *env, const char *name) {
     ModuleValue *matching_class_or_module;
     if (singleton_class() && singleton_class()->find_method_without_undefined(name, &matching_class_or_module)) {
         return true;
-    } else if (klass->find_method_without_undefined(name, &matching_class_or_module)) {
+    } else if (m_klass->find_method_without_undefined(name, &matching_class_or_module)) {
         return true;
     } else {
         return false;
@@ -361,7 +371,7 @@ ProcValue *Value::to_proc(Env *env) {
     if (respond_to(env, "to_proc")) {
         return send(env, "to_proc")->as_proc();
     } else {
-        NAT_RAISE(env, "TypeError", "wrong argument type %s (expected Proc)", klass->class_name());
+        NAT_RAISE(env, "TypeError", "wrong argument type %s (expected Proc)", m_klass->class_name());
     }
 }
 
