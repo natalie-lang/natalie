@@ -240,7 +240,7 @@ Value *Kernel_method(Env *env, Value *self, ssize_t argc, Value **args, Block *b
 
 Value *Kernel_freeze(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
-    freeze_object(self);
+    self->freeze();
     return self;
 }
 

@@ -169,6 +169,15 @@ struct Value : public gc {
 
     virtual ProcValue *to_proc(Env *);
 
+    bool is_main_object() { return (flags & NAT_FLAG_MAIN_OBJECT) == NAT_FLAG_MAIN_OBJECT; }
+
+    bool is_frozen() { return is_integer() || is_float() || (flags & NAT_FLAG_FROZEN) == NAT_FLAG_FROZEN; }
+    void freeze() { flags = flags | NAT_FLAG_FROZEN; }
+
+    void add_break_flag() { flags = flags | NAT_FLAG_BREAK; }
+    void remove_break_flag() { flags = flags & ~NAT_FLAG_BREAK; }
+    bool has_break_flag() { return (flags & NAT_FLAG_BREAK) == NAT_FLAG_BREAK; }
+
 private:
     void init_ivars();
 };

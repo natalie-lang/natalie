@@ -63,7 +63,7 @@ module Natalie
         break_name = temp('break_value')
         exp.new(:block,
                 s(:declare, break_name, process(value)),
-                s(:flag_break, break_name),
+                s(:add_break_flag, break_name),
                 s(:c_return, break_name))
       end
 

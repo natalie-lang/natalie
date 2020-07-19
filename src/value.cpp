@@ -222,7 +222,7 @@ void Value::alias(Env *env, const char *new_name, const char *old_name) {
     if (is_integer() || is_symbol()) {
         NAT_RAISE(env, "TypeError", "no klass to make alias");
     }
-    if (is_main_object(this)) {
+    if (is_main_object()) {
         this->klass->alias(env, new_name, old_name);
     } else if (this->is_module()) {
         this->as_module()->alias(env, new_name, old_name);
@@ -246,7 +246,7 @@ void Value::undefine_singleton_method(Env *env, const char *name) {
 }
 
 void Value::define_method(Env *env, const char *name, Value *(*fn)(Env *, Value *, ssize_t, Value **, Block *block)) {
-    if (!is_main_object(this)) {
+    if (!is_main_object()) {
         printf("tried to call define_method on something that has no methods\n");
         abort();
     }
@@ -254,7 +254,7 @@ void Value::define_method(Env *env, const char *name, Value *(*fn)(Env *, Value 
 }
 
 void Value::define_method_with_block(Env *env, const char *name, Block *block) {
-    if (!is_main_object(this)) {
+    if (!is_main_object()) {
         printf("tried to call define_method on something that has no methods\n");
         abort();
     }
@@ -262,7 +262,7 @@ void Value::define_method_with_block(Env *env, const char *name, Block *block) {
 }
 
 void Value::undefine_method(Env *env, const char *name) {
-    if (!is_main_object(this)) {
+    if (!is_main_object()) {
         printf("tried to call define_method on something that has no methods\n");
         abort();
     }

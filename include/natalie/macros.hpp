@@ -45,7 +45,7 @@
     }
 
 #define NAT_ASSERT_NOT_FROZEN(obj)                                                                               \
-    if (is_frozen(obj)) {                                                                                        \
+    if (obj->is_frozen()) {                                                                                      \
         NAT_RAISE(env, "FrozenError", "can't modify frozen %s: %s", obj->klass->class_name(), NAT_INSPECT(obj)); \
     }
 
@@ -90,19 +90,6 @@
 #define NAT_FLAG_FROZEN 2
 #define NAT_FLAG_BREAK 4
 
-#define is_main_object(obj) ((((obj)->flags & NAT_FLAG_MAIN_OBJECT) == NAT_FLAG_MAIN_OBJECT))
-
-#define is_frozen(obj) ((obj->is_integer() || ((obj)->flags & NAT_FLAG_FROZEN) == NAT_FLAG_FROZEN))
-
-#define freeze_object(obj) obj->flags = obj->flags | NAT_FLAG_FROZEN;
-
-#define flag_break(obj) \
-    obj->flags = obj->flags | NAT_FLAG_BREAK;
-
-#define is_break(obj) ((((obj)->flags & NAT_FLAG_BREAK) == NAT_FLAG_BREAK))
-
-#define remove_break(obj) ((obj)->flags = (obj)->flags & ~NAT_FLAG_BREAK)
-
 #define NAT_RUN_BLOCK_FROM_ENV(env, argc, args) ({                                     \
     Env *env_with_block = env;                                                         \
     while (!env_with_block->block && env_with_block->outer) {                          \
@@ -116,8 +103,8 @@
 
 #define NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, the_block, argc, args, block) ({ \
     Value *_result = the_block->_run(env, argc, args, block);                  \
-    if (is_break(_result)) {                                                   \
-        remove_break(_result);                                                 \
+    if (_result->has_break_flag()) {                                           \
+        _result->remove_break_flag();                                          \
         return _result;                                                        \
     }                                                                          \
     _result;                                                                   \
@@ -125,8 +112,8 @@
 
 #define NAT_RUN_BLOCK_WITHOUT_BREAK(env, the_block, argc, args, block) ({ \
     Value *_result = the_block->_run(env, argc, args, block);             \
-    if (is_break(_result)) {                                              \
-        remove_break(_result);                                            \
+    if (_result->has_break_flag()) {                                      \
+        _result->remove_break_flag();                                     \
         env->raise_local_jump_error(_result, "break from proc-closure");  \
         abort();                                                          \
     }                                                                     \

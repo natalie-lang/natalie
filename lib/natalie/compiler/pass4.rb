@@ -22,6 +22,7 @@ module Natalie
         NAT_ASSERT_NOT_FROZEN
         NAT_ASSERT_TYPE
         NAT_UNREACHABLE
+        add_break_flag
         alias
         append
         append_string
@@ -30,7 +31,7 @@ module Natalie
         define_method_with_block
         define_singleton_method
         define_singleton_method_with_block
-        flag_break
+        freeze
         grow_array
         grow_array_at_least
         grow_string
@@ -44,6 +45,7 @@ module Natalie
         push
         push_splat
         put
+        remove_break_flag
         run_at_exit_handlers
         string_append
         string_append_char
@@ -61,6 +63,7 @@ module Natalie
         alias
         append
         append_string
+        add_break_flag
         as_class
         as_string
         const_get
@@ -74,9 +77,11 @@ module Natalie
         define_singleton_method
         define_singleton_method_with_block
         eval_body
+        freeze
         get
         global_get
         global_set
+        has_break_flag
         include
         ivar_get
         ivar_set
@@ -88,6 +93,7 @@ module Natalie
         raise
         raise_exception
         raise_local_jump_error
+        remove_break_flag
         send
         singleton_class
         subclass
