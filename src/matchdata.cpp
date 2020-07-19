@@ -20,7 +20,7 @@ Value *MatchData_to_s(Env *env, Value *self_value, ssize_t argc, Value **args, B
 Value *MatchData_ref(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     MatchDataValue *self = self_value->as_match_data();
-    if (NAT_TYPE(args[0]) == Value::Type::String || NAT_TYPE(args[0]) == Value::Type::Symbol) {
+    if (args[0]->type == Value::Type::String || args[0]->type == Value::Type::Symbol) {
         NAT_NOT_YET_IMPLEMENTED("group name support in Regexp MatchData#[]");
     }
     NAT_ASSERT_TYPE(args[0], Value::Type::Integer, "Integer");

@@ -1,7 +1,3 @@
-#define NAT_IS_TAGGED_INT(obj) ((int64_t)obj & 1)
-#define NAT_TYPE(obj) (NAT_IS_TAGGED_INT(obj) ? Value::Type::Integer : obj->type)
-#define NAT_IS_MODULE_OR_CLASS(obj) (NAT_TYPE(obj) == Value::Type::Module || NAT_TYPE(obj) == Value::Type::Class)
-#define NAT_OBJ_CLASS(obj) (NAT_IS_TAGGED_INT(obj) ? NAT_INTEGER : obj->klass)
 #define NAT_RESCUE(env) ((env->rescue = 1) && setjmp(env->jump_buf))
 
 #define NAT_RAISE(env, class_name, message_format, ...)                                                      \
@@ -35,9 +31,9 @@
         NAT_RAISE(env, "ArgumentError", "wrong number of arguments (given %d, expected %d+)", argc, expected); \
     }
 
-#define NAT_ASSERT_TYPE(obj, expected_type, expected_class_name)                                                                      \
-    if (NAT_TYPE((obj)) != expected_type) {                                                                                           \
-        NAT_RAISE(env, "TypeError", "no implicit conversion of %s into %s", NAT_OBJ_CLASS((obj))->class_name(), expected_class_name); \
+#define NAT_ASSERT_TYPE(obj, expected_type, expected_class_name)                                                              \
+    if ((obj->type) != expected_type) {                                                                                       \
+        NAT_RAISE(env, "TypeError", "no implicit conversion of %s into %s", (obj->klass)->class_name(), expected_class_name); \
     }
 
 #define NAT_GET_MACRO(_1, _2, NAME, ...) NAME
@@ -48,9 +44,9 @@
         abort();                                 \
     }
 
-#define NAT_ASSERT_NOT_FROZEN(obj)                                                                                       \
-    if (is_frozen(obj)) {                                                                                                \
-        NAT_RAISE(env, "FrozenError", "can't modify frozen %s: %s", NAT_OBJ_CLASS(obj)->class_name(), NAT_INSPECT(obj)); \
+#define NAT_ASSERT_NOT_FROZEN(obj)                                                                               \
+    if (is_frozen(obj)) {                                                                                        \
+        NAT_RAISE(env, "FrozenError", "can't modify frozen %s: %s", obj->klass->class_name(), NAT_INSPECT(obj)); \
     }
 
 #define NAT_ASSERT_BLOCK()                                         \
@@ -70,7 +66,7 @@
 #define NAT_OBJ_HAS_ENV(obj) ((obj)->env.global_env == env->global_env) // prefered check
 #define NAT_OBJ_HAS_ENV2(obj) ((obj)->env.global_env) // limited check used when there is no current env, i.e. hashmap_hash and hashmap_compare
 
-#define NAT_INSPECT(obj) obj->send(env, "inspect", 0, nullptr, nullptr)->as_string()->c_str()
+#define NAT_INSPECT(obj) obj->send(env, "inspect")->as_string()->c_str()
 
 // ahem, "globals"
 #define NAT_OBJECT env->global_env->Object
@@ -79,16 +75,8 @@
 #define NAT_TRUE env->global_env->true_obj
 #define NAT_FALSE env->global_env->false_obj
 
-// FIXME: Either use Autoconf or find another way to define this
-#ifdef PORTABLE_RSHIFT
-#define RSHIFT(x, y) (((x) < 0) ? ~((~(x)) >> y) : (x) >> y)
-#else
-#define RSHIFT(x, y) ((x) >> (int)y)
-#endif
-
-// only 63-bit numbers for now
-#define NAT_MIN_INT RSHIFT(INT64_MIN, 1)
-#define NAT_MAX_INT RSHIFT(INT64_MAX, 1)
+#define NAT_MIN_INT INT64_MIN
+#define NAT_MAX_INT INT64_MAX
 
 #define NAT_MIN_FLOAT DBL_MIN
 #define NAT_MAX_FLOAT DBL_MAX
@@ -102,7 +90,7 @@
 #define NAT_FLAG_FROZEN 2
 #define NAT_FLAG_BREAK 4
 
-#define is_main_object(obj) ((!NAT_IS_TAGGED_INT(obj) && ((obj)->flags & NAT_FLAG_MAIN_OBJECT) == NAT_FLAG_MAIN_OBJECT))
+#define is_main_object(obj) ((((obj)->flags & NAT_FLAG_MAIN_OBJECT) == NAT_FLAG_MAIN_OBJECT))
 
 #define is_frozen(obj) ((obj->is_integer() || ((obj)->flags & NAT_FLAG_FROZEN) == NAT_FLAG_FROZEN))
 
@@ -111,7 +99,7 @@
 #define flag_break(obj) \
     obj->flags = obj->flags | NAT_FLAG_BREAK;
 
-#define is_break(obj) ((!NAT_IS_TAGGED_INT(obj) && ((obj)->flags & NAT_FLAG_BREAK) == NAT_FLAG_BREAK))
+#define is_break(obj) ((((obj)->flags & NAT_FLAG_BREAK) == NAT_FLAG_BREAK))
 
 #define remove_break(obj) ((obj)->flags = (obj)->flags & ~NAT_FLAG_BREAK)
 

@@ -499,9 +499,9 @@ module Natalie
         result_name = temp('call_result')
         if args.size > 1
           args_name, args_count = process_atom(args).split(':')
-          decl "Value *#{result_name} = NAT_OBJ_CLASS(self)->superclass()->call_method(env, NAT_OBJ_CLASS(self)->superclass(), env->find_current_method_name(), self, #{args_count}, #{args_name}, #{block || 'nullptr'});"
+          decl "Value *#{result_name} = self->klass->superclass()->call_method(env, self->klass->superclass(), env->find_current_method_name(), self, #{args_count}, #{args_name}, #{block || 'nullptr'});"
         else
-          decl "Value *#{result_name} = NAT_OBJ_CLASS(self)->superclass()->call_method(env, NAT_OBJ_CLASS(self)->superclass(), env->find_current_method_name(), self, argc, args, #{block || 'nullptr'});"
+          decl "Value *#{result_name} = self->klass->superclass()->call_method(env, self->klass->superclass(), env->find_current_method_name(), self, argc, args, #{block || 'nullptr'});"
         end
         result_name
       end

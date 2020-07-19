@@ -17,7 +17,7 @@ Value *Module_inspect(Env *env, Value *self_value, ssize_t argc, Value **args, B
         } else {
             return new StringValue { env, self->class_name() };
         }
-    } else if (NAT_TYPE(self) == Value::Type::Class) {
+    } else if (self->type == Value::Type::Class) {
         char buf[NAT_OBJECT_POINTER_BUF_LENGTH];
         self->pointer_id(buf);
         return StringValue::sprintf(env, "#<Class:%s>", buf);
@@ -57,9 +57,9 @@ Value *Module_attr_reader(Env *env, Value *self_value, ssize_t argc, Value **arg
     NAT_ASSERT_ARGC_AT_LEAST(1);
     for (ssize_t i = 0; i < argc; i++) {
         Value *name_obj = args[i];
-        if (NAT_TYPE(name_obj) == Value::Type::String) {
+        if (name_obj->type == Value::Type::String) {
             // we're good!
-        } else if (NAT_TYPE(name_obj) == Value::Type::Symbol) {
+        } else if (name_obj->type == Value::Type::Symbol) {
             name_obj = name_obj->as_symbol()->to_s(env);
         } else {
             NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", name_obj->send(env, "inspect"));
@@ -84,9 +84,9 @@ Value *Module_attr_writer(Env *env, Value *self_value, ssize_t argc, Value **arg
     NAT_ASSERT_ARGC_AT_LEAST(1);
     for (ssize_t i = 0; i < argc; i++) {
         Value *name_obj = args[i];
-        if (NAT_TYPE(name_obj) == Value::Type::String) {
+        if (name_obj->type == Value::Type::String) {
             // we're good!
-        } else if (NAT_TYPE(name_obj) == Value::Type::Symbol) {
+        } else if (name_obj->type == Value::Type::Symbol) {
             name_obj = name_obj->as_symbol()->to_s(env);
         } else {
             NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", name_obj->send(env, "inspect"));

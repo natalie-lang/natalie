@@ -8,7 +8,7 @@ size_t HashValue::hash(const void *key) {
     assert(NAT_OBJ_HAS_ENV2(key_p));
     assert(key_p->env.global_env);
     Value *hash_obj = key_p->key->send(&key_p->env, "hash");
-    assert(NAT_TYPE(hash_obj) == Value::Type::Integer);
+    assert(hash_obj->type == Value::Type::Integer);
     return hash_obj->as_integer()->to_int64_t();
 }
 
@@ -24,8 +24,8 @@ int HashValue::compare(const void *a, const void *b) {
     assert(env->global_env);
     Value *a_hash = a_p->key->send(env, "hash");
     Value *b_hash = b_p->key->send(env, "hash");
-    assert(NAT_TYPE(a_hash) == Value::Type::Integer);
-    assert(NAT_TYPE(b_hash) == Value::Type::Integer);
+    assert(a_hash->type == Value::Type::Integer);
+    assert(b_hash->type == Value::Type::Integer);
     return a_hash->as_integer()->to_int64_t() - b_hash->as_integer()->to_int64_t();
 }
 

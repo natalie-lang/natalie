@@ -74,7 +74,7 @@ Value *IO_write(Env *env, Value *self_value, ssize_t argc, Value **args, Block *
     int bytes_written = 0;
     for (ssize_t i = 0; i < argc; i++) {
         Value *obj = args[i];
-        if (NAT_TYPE(obj) != Value::Type::String) {
+        if (obj->type != Value::Type::String) {
             obj = obj->send(env, "to_s");
         }
         NAT_ASSERT_TYPE(obj, Value::Type::String, "String");
@@ -142,7 +142,7 @@ Value *IO_seek(Env *env, Value *self_value, ssize_t argc, Value **args, Block *b
     int whence = 0;
     if (argc > 1) {
         Value *whence_obj = args[1];
-        switch (NAT_TYPE(whence_obj)) {
+        switch (whence_obj->type) {
         case Value::Type::Integer:
             whence = whence_obj->as_integer()->to_int64_t();
             break;
@@ -160,7 +160,7 @@ Value *IO_seek(Env *env, Value *self_value, ssize_t argc, Value **args, Block *b
             break;
         }
         default:
-            NAT_RAISE(env, "TypeError", "no implicit conversion of %s into Integer", NAT_OBJ_CLASS(whence_obj)->class_name());
+            NAT_RAISE(env, "TypeError", "no implicit conversion of %s into Integer", whence_obj->klass->class_name());
         }
     }
     int result = lseek(self->fileno, amount, whence);

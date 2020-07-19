@@ -28,8 +28,8 @@ Value *Exception_inspect(Env *env, Value *self_value, ssize_t argc, Value **args
     NAT_ASSERT_ARGC(0);
     ExceptionValue *self = self_value->as_exception();
     StringValue *out = new StringValue { env, "#<" };
-    assert(NAT_OBJ_CLASS(self));
-    out->append(env, Module_inspect(env, NAT_OBJ_CLASS(self), 0, nullptr, nullptr)->as_string()->c_str());
+    assert(self->klass);
+    out->append(env, Module_inspect(env, self->klass, 0, nullptr, nullptr)->as_string()->c_str());
     out->append(env, ": ");
     out->append(env, self->message());
     out->append_char(env, '>');

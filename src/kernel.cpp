@@ -39,8 +39,8 @@ Value *Kernel_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *
         return new StringValue { env, self->as_module()->class_name() };
     } else {
         StringValue *str = new StringValue { env, "#<" };
-        assert(NAT_OBJ_CLASS(self));
-        StringValue *inspected = static_cast<StringValue *>(Module_inspect(env, NAT_OBJ_CLASS(self), 0, nullptr, nullptr));
+        assert(self->klass);
+        StringValue *inspected = static_cast<StringValue *>(Module_inspect(env, self->klass, 0, nullptr, nullptr));
         str->append_string(env, inspected);
         str->append_char(env, ':');
         char buf[NAT_OBJECT_POINTER_BUF_LENGTH];
@@ -82,7 +82,7 @@ Value *Kernel_singleton_class(Env *env, Value *self, ssize_t argc, Value **args,
 
 Value *Kernel_instance_variables(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     ArrayValue *ary = new ArrayValue { env };
-    if (NAT_TYPE(self) == Value::Type::Integer) {
+    if (self->type == Value::Type::Integer) {
         return ary;
     }
     struct hashmap_iter *iter;
@@ -97,7 +97,7 @@ Value *Kernel_instance_variables(Env *env, Value *self, ssize_t argc, Value **ar
 
 Value *Kernel_instance_variable_get(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
-    if (NAT_TYPE(self) == Value::Type::Integer) {
+    if (self->type == Value::Type::Integer) {
         return NAT_NIL;
     }
     const char *name = args[0]->identifier_str(env, Value::Conversion::Strict);
@@ -170,7 +170,7 @@ Value *Kernel_exit(Env *env, Value *self, ssize_t argc, Value **args, Block *blo
     Value *status;
     if (argc == 1) {
         status = args[0];
-        if (NAT_TYPE(status) != Value::Type::Integer) {
+        if (status->type != Value::Type::Integer) {
             status = new IntegerValue { env, 0 };
         }
     } else {
@@ -207,8 +207,7 @@ Value *Kernel_hash(Env *env, Value *self, ssize_t argc, Value **args, Block *blo
     NAT_ASSERT_ARGC(0);
     StringValue *inspected = self->send(env, "inspect")->as_string();
     ssize_t hash_value = hashmap_hash_string(inspected->c_str());
-    ssize_t truncated_hash_value = RSHIFT(hash_value, 1); // shift right to fit in our int size (without need for BigNum)
-    return new IntegerValue { env, truncated_hash_value };
+    return new IntegerValue { env, hash_value };
 }
 
 Value *Kernel_proc(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
@@ -281,7 +280,7 @@ Value *Kernel_tap(Env *env, Value *self, ssize_t argc, Value **args, Block *bloc
 Value *Kernel_Array(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     Value *value = args[0];
-    if (NAT_TYPE(value) == Value::Type::Array) {
+    if (value->type == Value::Type::Array) {
         return value;
     } else if (value->respond_to(env, "to_ary")) {
         return value->send(env, "to_ary");
