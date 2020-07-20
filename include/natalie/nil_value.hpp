@@ -16,6 +16,11 @@ struct NilValue : Value {
         return new NilValue { env };
     }
 
+    Value *to_s(Env *);
+    Value *to_a(Env *);
+    Value *to_i(Env *);
+    Value *inspect(Env *);
+
 private:
     NilValue(Env *env)
         : Value { Value::Type::Nil, NAT_OBJECT->const_get(env, "NilClass", true)->as_class() } { }

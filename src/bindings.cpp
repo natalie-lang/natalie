@@ -584,6 +584,41 @@ Value *IntegerValue_bitwise_or_binding(Env *env, Value *self_value, ssize_t argc
     return return_value;
 }
 
+Value *NilValue_to_a_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    NilValue *self = self_value->as_nil();
+    auto return_value = self->to_a(env);
+    return return_value;
+}
+
+Value *NilValue_to_i_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    NilValue *self = self_value->as_nil();
+    auto return_value = self->to_i(env);
+    return return_value;
+}
+
+Value *NilValue_to_s_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    NilValue *self = self_value->as_nil();
+    auto return_value = self->to_s(env);
+    return return_value;
+}
+
+Value *NilValue_inspect_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    NilValue *self = self_value->as_nil();
+    auto return_value = self->inspect(env);
+    return return_value;
+}
+
+Value *Value_is_nil_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    Value *self = self_value;
+    auto return_value = self->is_nil();
+    if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
+}
+
 Value *RegexpValue_eq_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     RegexpValue *self = self_value->as_regexp();
@@ -919,6 +954,13 @@ void init_bindings(Env *env) {
     Integer->define_method(env, "to_i", IntegerValue_to_i_binding);
     Integer->define_method(env, "to_s", IntegerValue_to_s_binding1);
     Integer->define_method(env, "|", IntegerValue_bitwise_or_binding);
+    Value *NilClass = NAT_OBJECT->const_get(env, "NilClass", true);
+    NilClass->define_method(env, "to_a", NilValue_to_a_binding);
+    NilClass->define_method(env, "to_i", NilValue_to_i_binding);
+    NilClass->define_method(env, "to_s", NilValue_to_s_binding);
+    NilClass->define_method(env, "inspect", NilValue_inspect_binding);
+    Value *Object = NAT_OBJECT->const_get(env, "Object", true);
+    Object->define_method(env, "nil?", Value_is_nil_binding);
     Value *Regexp = NAT_OBJECT->const_get(env, "Regexp", true);
     Regexp->define_method(env, "==", RegexpValue_eq_binding);
     Regexp->define_method(env, "===", RegexpValue_match_binding);
@@ -958,6 +1000,7 @@ void init_bindings(Env *env) {
     TrueClass->define_method(env, "to_s", TrueValue_to_s_binding);
     TrueClass->define_method(env, "inspect", TrueValue_to_s_binding1);
     FalseClass->undefine_singleton_method(env, "new");
+    NilClass->undefine_singleton_method(env, "new");
     TrueClass->undefine_singleton_method(env, "new");
 }
 

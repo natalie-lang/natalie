@@ -66,7 +66,7 @@ class BindingGen
       puts <<-FUNC
 Value *#{name}(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     #{argc_assertion}
-    #{cpp_class} *self = self_value->#{as_method_name}();
+    #{cpp_class} *self = #{as_type 'self_value'};
     auto return_value = self->#{cpp_method}(#{args_to_pass});
     #{return_code}
 }\n
@@ -132,8 +132,12 @@ Value *#{name}(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
       end
     end
 
-    def as_method_name
-      "as_#{cpp_class.sub(/Value/, '').downcase}"
+    def as_type(value)
+      if cpp_class == 'Value'
+        value
+      else
+        "#{value}->as_#{cpp_class.sub(/Value/, '').downcase}()"
+      end
     end
 
     def return_code
@@ -267,6 +271,14 @@ gen.binding('Integer', 'times', 'IntegerValue', 'times', argc: 0, pass_env: true
 gen.binding('Integer', 'to_i', 'IntegerValue', 'to_i', argc: 0, pass_env: false, pass_block: false, return_type: :Value);
 gen.binding('Integer', 'to_s', 'IntegerValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
 gen.binding('Integer', '|', 'IntegerValue', 'bitwise_or', argc: 1, pass_env: true, pass_block: false, return_type: :Value);
+
+gen.undefine_singleton_method('NilClass', 'new')
+gen.binding('NilClass', 'to_a', 'NilValue', 'to_a', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
+gen.binding('NilClass', 'to_i', 'NilValue', 'to_i', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
+gen.binding('NilClass', 'to_s', 'NilValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
+gen.binding('NilClass', 'inspect', 'NilValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
+
+gen.binding('Object', 'nil?', 'Value', 'is_nil', argc: 0, pass_env: false, pass_block: false, return_type: :bool);
 
 gen.binding('Regexp', '==', 'RegexpValue', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool);
 gen.binding('Regexp', '===', 'RegexpValue', 'match', argc: 1, pass_env: true, pass_block: false, return_type: :Value);

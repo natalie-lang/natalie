@@ -250,21 +250,6 @@ Value *Module_const_defined(Env *env, Value *self, ssize_t argc, Value **args, B
 Value *Module_alias_method(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Module_method_defined(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
-#define NAT_NIL_CLASS_INIT(klass)                           \
-    klass->undefine_singleton_method(env, "new");           \
-    klass->define_method(env, "to_s", NilClass_to_s);       \
-    klass->define_method(env, "to_a", NilClass_to_a);       \
-    klass->define_method(env, "to_i", NilClass_to_i);       \
-    klass->define_method(env, "inspect", NilClass_inspect); \
-    klass->define_method(env, "nil?", NilClass_is_nil);
-
-Value *NilClass_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *NilClass_to_s(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *NilClass_to_a(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *NilClass_to_i(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *NilClass_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *NilClass_is_nil(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-
 Value *Object_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
 #define NAT_PROC_INIT(klass)                              \

@@ -50,7 +50,6 @@ extern "C" Env *build_top_env() {
 
     ClassValue *NilClass = Object->subclass(env, "NilClass", Value::Type::Nil);
     Object->const_set(env, "NilClass", NilClass);
-    NAT_NIL_CLASS_INIT(NilClass);
 
     env->global_env()->set_nil(NilValue::instance(env));
     NAT_NIL->set_singleton_class(NilClass);
