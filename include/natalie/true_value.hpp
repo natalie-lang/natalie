@@ -16,6 +16,8 @@ struct TrueValue : Value {
         return new TrueValue { env };
     }
 
+    Value *to_s(Env *);
+
 private:
     TrueValue(Env *env)
         : Value { Value::Type::True, NAT_OBJECT->const_get(env, "TrueClass", true)->as_class() } { }

@@ -1,6 +1,7 @@
 class BindingGen
   def initialize
     @bindings = {}
+    @undefine_singleton_methods = []
   end
 
   def binding(*args, **kwargs)
@@ -17,6 +18,10 @@ class BindingGen
     b.write
   end
 
+  def undefine_singleton_method(rb_class, method)
+    @undefine_singleton_methods << [rb_class, method]
+  end
+
   def init
     puts 'void init_bindings(Env *env) {'
     @consts = {}
@@ -26,6 +31,9 @@ class BindingGen
         @consts[binding.rb_class] = true
       end
       puts "    #{binding.rb_class}->#{binding.define_method_name}(env, #{binding.rb_method.inspect}, #{binding.name});"
+    end
+    @undefine_singleton_methods.each do |rb_class, method|
+      puts "    #{rb_class}->undefine_singleton_method(env, #{method.inspect});"
     end
     puts '}'
   end
@@ -205,6 +213,10 @@ gen.binding('Encoding', 'inspect', 'EncodingValue', 'inspect', argc: 0, pass_env
 gen.binding('Encoding', 'name', 'EncodingValue', 'name', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Encoding', 'names', 'EncodingValue', 'names', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 
+gen.undefine_singleton_method('FalseClass', 'new')
+gen.binding('FalseClass', 'to_s', 'FalseValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
+gen.binding('FalseClass', 'inspect', 'FalseValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
+
 gen.binding('Float', '%', 'FloatValue', 'mod', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Float', '*', 'FloatValue', 'mul', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Float', '**', 'FloatValue', 'pow', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
@@ -290,6 +302,10 @@ gen.binding('String', 'succ', 'StringValue', 'successive', argc: 0, pass_env: tr
 gen.binding('String', 'to_i', 'StringValue', 'to_i', argc: 0..1, pass_env: true, pass_block: false, return_type: :Value);
 gen.binding('String', 'to_s', 'StringValue', 'to_s', argc: 0, pass_env: false, pass_block: false, return_type: :Value);
 gen.binding('String', 'to_str', 'StringValue', 'to_str', argc: 0, pass_env: false, pass_block: false, return_type: :Value);
+
+gen.undefine_singleton_method('TrueClass', 'new')
+gen.binding('TrueClass', 'to_s', 'TrueValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
+gen.binding('TrueClass', 'inspect', 'TrueValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
 
 gen.init
 

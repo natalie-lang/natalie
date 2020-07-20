@@ -52,6 +52,11 @@ ExceptionValue *Value::as_exception() {
     return static_cast<ExceptionValue *>(this);
 }
 
+FalseValue *Value::as_false() {
+    assert(is_false());
+    return static_cast<FalseValue *>(this);
+}
+
 FloatValue *Value::as_float() {
     assert(is_float());
     return static_cast<FloatValue *>(this);
@@ -100,6 +105,11 @@ StringValue *Value::as_string() {
 SymbolValue *Value::as_symbol() {
     assert(is_symbol());
     return static_cast<SymbolValue *>(this);
+}
+
+TrueValue *Value::as_true() {
+    assert(is_true());
+    return static_cast<TrueValue *>(this);
 }
 
 VoidPValue *Value::as_void_p() {

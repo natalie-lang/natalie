@@ -227,6 +227,20 @@ Value *EncodingValue_names_binding(Env *env, Value *self_value, ssize_t argc, Va
     return return_value;
 }
 
+Value *FalseValue_to_s_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    FalseValue *self = self_value->as_false();
+    auto return_value = self->to_s(env);
+    return return_value;
+}
+
+Value *FalseValue_to_s_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    FalseValue *self = self_value->as_false();
+    auto return_value = self->to_s(env);
+    return return_value;
+}
+
 Value *FloatValue_mod_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     FloatValue *self = self_value->as_float();
@@ -801,6 +815,20 @@ Value *StringValue_to_str_binding(Env *env, Value *self_value, ssize_t argc, Val
     return return_value;
 }
 
+Value *TrueValue_to_s_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    TrueValue *self = self_value->as_true();
+    auto return_value = self->to_s(env);
+    return return_value;
+}
+
+Value *TrueValue_to_s_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    TrueValue *self = self_value->as_true();
+    auto return_value = self->to_s(env);
+    return return_value;
+}
+
 void init_bindings(Env *env) {
     Value *Array = NAT_OBJECT->const_get(env, "Array", true);
     Array->define_singleton_method(env, "[]", ArrayValue_square_new_singleton_binding);
@@ -837,6 +865,9 @@ void init_bindings(Env *env) {
     Encoding->define_method(env, "inspect", EncodingValue_inspect_binding);
     Encoding->define_method(env, "name", EncodingValue_name_binding);
     Encoding->define_method(env, "names", EncodingValue_names_binding);
+    Value *FalseClass = NAT_OBJECT->const_get(env, "FalseClass", true);
+    FalseClass->define_method(env, "to_s", FalseValue_to_s_binding);
+    FalseClass->define_method(env, "inspect", FalseValue_to_s_binding1);
     Value *Float = NAT_OBJECT->const_get(env, "Float", true);
     Float->define_method(env, "%", FloatValue_mod_binding);
     Float->define_method(env, "*", FloatValue_mul_binding);
@@ -923,6 +954,11 @@ void init_bindings(Env *env) {
     String->define_method(env, "to_i", StringValue_to_i_binding);
     String->define_method(env, "to_s", StringValue_to_s_binding);
     String->define_method(env, "to_str", StringValue_to_str_binding);
+    Value *TrueClass = NAT_OBJECT->const_get(env, "TrueClass", true);
+    TrueClass->define_method(env, "to_s", TrueValue_to_s_binding);
+    TrueClass->define_method(env, "inspect", TrueValue_to_s_binding1);
+    FalseClass->undefine_singleton_method(env, "new");
+    TrueClass->undefine_singleton_method(env, "new");
 }
 
 }

@@ -16,6 +16,8 @@ struct FalseValue : Value {
         return new FalseValue { env };
     }
 
+    Value *to_s(Env *);
+
 private:
     FalseValue(Env *env)
         : Value { Value::Type::False, NAT_OBJECT->const_get(env, "FalseClass", true)->as_class() } { }

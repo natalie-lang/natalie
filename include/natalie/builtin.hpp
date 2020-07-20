@@ -41,14 +41,6 @@ Value *Exception_inspect(Env *env, Value *self, ssize_t argc, Value **args, Bloc
 Value *Exception_message(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Exception_backtrace(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
-#define NAT_FALSE_CLASS_INIT(klass)                     \
-    klass->undefine_singleton_method(env, "new");       \
-    klass->define_method(env, "to_s", FalseClass_to_s); \
-    klass->define_method(env, "inspect", FalseClass_to_s);
-
-Value *FalseClass_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *FalseClass_to_s(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-
 #define NAT_FILE_INIT(klass)                                                     \
     Value *Constants = new ModuleValue { env, "Constants" };                     \
     klass->define_method(env, "initialize", File_initialize);                    \
@@ -324,13 +316,5 @@ Value *Symbol_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *
 Value *Symbol_to_proc(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Symbol_to_proc_block_fn(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Symbol_cmp(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-
-#define NAT_TRUE_CLASS_INIT(klass)                     \
-    klass->undefine_singleton_method(env, "new");      \
-    klass->define_method(env, "to_s", TrueClass_to_s); \
-    klass->define_method(env, "inspect", TrueClass_to_s);
-
-Value *TrueClass_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *TrueClass_to_s(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
 }

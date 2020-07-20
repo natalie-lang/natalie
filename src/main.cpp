@@ -57,14 +57,12 @@ extern "C" Env *build_top_env() {
 
     ClassValue *TrueClass = Object->subclass(env, "TrueClass", Value::Type::True);
     Object->const_set(env, "TrueClass", TrueClass);
-    NAT_TRUE_CLASS_INIT(TrueClass);
 
     env->global_env()->set_true_obj(TrueValue::instance(env));
     NAT_TRUE->set_singleton_class(TrueClass);
 
     ClassValue *FalseClass = Object->subclass(env, "FalseClass", Value::Type::False);
     Object->const_set(env, "FalseClass", FalseClass);
-    NAT_FALSE_CLASS_INIT(FalseClass);
 
     env->global_env()->set_false_obj(FalseValue::instance(env));
     NAT_FALSE->set_singleton_class(FalseClass);
