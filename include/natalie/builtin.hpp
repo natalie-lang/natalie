@@ -6,58 +6,6 @@
 
 namespace Natalie {
 
-#define NAT_ARRAY_INIT(klass)                                            \
-    klass->define_singleton_method(env, "new", Array_new);               \
-    klass->define_singleton_method(env, "[]", Array_square_new);         \
-    klass->define_method(env, "inspect", Array_inspect);                 \
-    klass->define_method(env, "to_s", Array_inspect);                    \
-    klass->define_method(env, "<<", Array_ltlt);                         \
-    klass->define_method(env, "+", Array_add);                           \
-    klass->define_method(env, "-", Array_sub);                           \
-    klass->define_method(env, "[]", Array_ref);                          \
-    klass->define_method(env, "[]=", Array_refeq);                       \
-    klass->define_method(env, "size", Array_size);                       \
-    klass->define_method(env, "any?", Array_any);                        \
-    klass->define_method(env, "length", Array_size);                     \
-    klass->define_method(env, "==", Array_eqeq);                         \
-    klass->define_method(env, "===", Array_eqeq);                        \
-    klass->define_method(env, "each", Array_each);                       \
-    klass->define_method(env, "each_with_index", Array_each_with_index); \
-    klass->define_method(env, "map", Array_map);                         \
-    klass->define_method(env, "first", Array_first);                     \
-    klass->define_method(env, "last", Array_last);                       \
-    klass->define_method(env, "to_ary", Array_to_ary);                   \
-    klass->define_method(env, "pop", Array_pop);                         \
-    klass->define_method(env, "include?", Array_include);                \
-    klass->define_method(env, "sort", Array_sort);                       \
-    klass->define_method(env, "join", Array_join);                       \
-    klass->define_method(env, "<=>", Array_cmp);                         \
-    klass->define_method(env, "to_a", Array_to_a);
-
-Value *Array_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Array_square_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Array_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Array_ltlt(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Array_add(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Array_sub(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Array_ref(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Array_refeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Array_size(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Array_any(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Array_eqeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Array_each(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Array_each_with_index(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Array_map(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Array_first(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Array_last(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Array_to_ary(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Array_pop(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Array_include(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Array_sort(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Array_join(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Array_cmp(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Array_to_a(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-
 Value *BasicObject_not(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *BasicObject_eqeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *BasicObject_neq(Env *env, Value *self, ssize_t argc, Value **args, Block *block);

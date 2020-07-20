@@ -59,7 +59,7 @@ class BindingGen
 Value *#{name}(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     #{argc_assertion}
     #{cpp_class} *self = self_value->#{as_method_name}();
-    auto return_value = self->#{cpp_method}(#{env_arg} #{args} #{block_arg});
+    auto return_value = self->#{cpp_method}(#{args_to_pass});
     #{return_code}
 }\n
       FUNC
@@ -69,10 +69,18 @@ Value *#{name}(Env *env, Value *self_value, ssize_t argc, Value **args, Block *b
       puts <<-FUNC
 Value *#{name}(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
     #{argc_assertion}
-    auto return_value = #{cpp_class}::#{cpp_method}(#{env_arg} #{args} #{block_arg});
+    auto return_value = #{cpp_class}::#{cpp_method}(#{args_to_pass});
     #{return_code}
 }\n
       FUNC
+    end
+
+    def args_to_pass
+      if argc == :any
+        [env_arg, 'argc', 'args', block_arg].compact.join(', ')
+      else
+        ([env_arg] + args + [block_arg]).compact.join(', ')
+      end
     end
 
     def define_method_name
@@ -86,26 +94,33 @@ Value *#{name}(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
     private
 
     def argc_assertion
-      if Range === argc
+      case argc
+      when :any
+        ''
+      when Range
         "NAT_ASSERT_ARGC(#{argc.begin}, #{argc.end});"
-      else
+      when Integer
         "NAT_ASSERT_ARGC(#{argc});"
+      else
+        raise "Unknown argc: #{argc.inspect}"
       end
     end
 
     def env_arg
-      "#{pass_env ? 'env' : ''}#{pass_env && max_argc > 0 ? ',' : ''}"
+      if pass_env
+        'env'
+      end
     end
 
     def args
       (0...max_argc).map do |i|
         "argc > #{i} ? args[#{i}] : nullptr"
-      end.join(', ')
+      end
     end
 
     def block_arg
       if pass_block
-        ', block'
+        'block'
       end
     end
 
@@ -154,6 +169,33 @@ puts 'namespace Natalie {'
 puts
 
 gen = BindingGen.new
+
+gen.singleton_binding('Array', '[]', 'ArrayValue', 'square_new', argc: :any, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Array', '+', 'ArrayValue', 'add', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Array', '-', 'ArrayValue', 'sub', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Array', '<<', 'ArrayValue', 'ltlt', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Array', '==', 'ArrayValue', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Array', '===', 'ArrayValue', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Array', '[]', 'ArrayValue', 'ref', argc: 1..2, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Array', '[]=', 'ArrayValue', 'refeq', argc: 2..3, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Array', 'any?', 'ArrayValue', 'any', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
+gen.binding('Array', '<=>', 'ArrayValue', 'cmp', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Array', 'each', 'ArrayValue', 'each', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
+gen.binding('Array', 'each_with_index', 'ArrayValue', 'each_with_index', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
+gen.binding('Array', 'first', 'ArrayValue', 'first', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Array', 'include?', 'ArrayValue', 'include', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Array', 'initialize', 'ArrayValue', 'initialize', argc: 0..2, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Array', 'inspect', 'ArrayValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Array', 'join', 'ArrayValue', 'join', argc: 0..1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Array', 'last', 'ArrayValue', 'last', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Array', 'length', 'ArrayValue', 'size', argc: 0, pass_env: false, pass_block: false, return_type: :ssize_t)
+gen.binding('Array', 'map', 'ArrayValue', 'map', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
+gen.binding('Array', 'pop', 'ArrayValue', 'pop', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Array', 'size', 'ArrayValue', 'size', argc: 0, pass_env: false, pass_block: false, return_type: :ssize_t)
+gen.binding('Array', 'sort', 'ArrayValue', 'sort', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Array', 'to_a', 'ArrayValue', 'to_ary', argc: 0, pass_env: false, pass_block: false, return_type: :Value)
+gen.binding('Array', 'to_ary', 'ArrayValue', 'to_ary', argc: 0, pass_env: false, pass_block: false, return_type: :Value)
+gen.binding('Array', 'to_s', 'ArrayValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 
 gen.singleton_binding('Class', 'new', 'ClassValue', 'new_method', argc: 0..1, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Class', 'superclass', 'ClassValue', 'superclass', argc: 0, pass_env: false, pass_block: false, return_type: :NullableValue)

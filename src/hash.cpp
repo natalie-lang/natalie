@@ -188,7 +188,7 @@ Value *Hash_sort(Env *env, Value *self_value, ssize_t argc, Value **args, Block 
         pair->push(node.val);
         ary->push(pair);
     }
-    return Array_sort(env, ary, 0, nullptr, nullptr);
+    return ary->sort(env);
 }
 
 Value *Hash_is_key(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {

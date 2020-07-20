@@ -6,621 +6,829 @@
 
 namespace Natalie {
 
+Value *ArrayValue_square_new_singleton_binding(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
+    
+    auto return_value = ArrayValue::square_new(env, argc, args);
+    return return_value;
+}
+
+Value *ArrayValue_add_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    ArrayValue *self = self_value->as_array();
+    auto return_value = self->add(env, argc > 0 ? args[0] : nullptr);
+    return return_value;
+}
+
+Value *ArrayValue_sub_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    ArrayValue *self = self_value->as_array();
+    auto return_value = self->sub(env, argc > 0 ? args[0] : nullptr);
+    return return_value;
+}
+
+Value *ArrayValue_ltlt_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    ArrayValue *self = self_value->as_array();
+    auto return_value = self->ltlt(env, argc > 0 ? args[0] : nullptr);
+    return return_value;
+}
+
+Value *ArrayValue_eq_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    ArrayValue *self = self_value->as_array();
+    auto return_value = self->eq(env, argc > 0 ? args[0] : nullptr);
+    return return_value;
+}
+
+Value *ArrayValue_eq_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    ArrayValue *self = self_value->as_array();
+    auto return_value = self->eq(env, argc > 0 ? args[0] : nullptr);
+    return return_value;
+}
+
+Value *ArrayValue_ref_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1, 2);
+    ArrayValue *self = self_value->as_array();
+    auto return_value = self->ref(env, argc > 0 ? args[0] : nullptr, argc > 1 ? args[1] : nullptr);
+    return return_value;
+}
+
+Value *ArrayValue_refeq_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(2, 3);
+    ArrayValue *self = self_value->as_array();
+    auto return_value = self->refeq(env, argc > 0 ? args[0] : nullptr, argc > 1 ? args[1] : nullptr, argc > 2 ? args[2] : nullptr);
+    return return_value;
+}
+
+Value *ArrayValue_any_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    ArrayValue *self = self_value->as_array();
+    auto return_value = self->any(env, block);
+    return return_value;
+}
+
+Value *ArrayValue_cmp_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    ArrayValue *self = self_value->as_array();
+    auto return_value = self->cmp(env, argc > 0 ? args[0] : nullptr);
+    return return_value;
+}
+
+Value *ArrayValue_each_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    ArrayValue *self = self_value->as_array();
+    auto return_value = self->each(env, block);
+    return return_value;
+}
+
+Value *ArrayValue_each_with_index_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    ArrayValue *self = self_value->as_array();
+    auto return_value = self->each_with_index(env, block);
+    return return_value;
+}
+
+Value *ArrayValue_first_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    ArrayValue *self = self_value->as_array();
+    auto return_value = self->first(env);
+    return return_value;
+}
+
+Value *ArrayValue_include_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    ArrayValue *self = self_value->as_array();
+    auto return_value = self->include(env, argc > 0 ? args[0] : nullptr);
+    return return_value;
+}
+
+Value *ArrayValue_initialize_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0, 2);
+    ArrayValue *self = self_value->as_array();
+    auto return_value = self->initialize(env, argc > 0 ? args[0] : nullptr, argc > 1 ? args[1] : nullptr);
+    return return_value;
+}
+
+Value *ArrayValue_inspect_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    ArrayValue *self = self_value->as_array();
+    auto return_value = self->inspect(env);
+    return return_value;
+}
+
+Value *ArrayValue_join_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0, 1);
+    ArrayValue *self = self_value->as_array();
+    auto return_value = self->join(env, argc > 0 ? args[0] : nullptr);
+    return return_value;
+}
+
+Value *ArrayValue_last_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    ArrayValue *self = self_value->as_array();
+    auto return_value = self->last(env);
+    return return_value;
+}
+
+Value *ArrayValue_size_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    ArrayValue *self = self_value->as_array();
+    auto return_value = self->size();
+    return new IntegerValue { env, return_value };
+}
+
+Value *ArrayValue_map_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    ArrayValue *self = self_value->as_array();
+    auto return_value = self->map(env, block);
+    return return_value;
+}
+
+Value *ArrayValue_pop_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    ArrayValue *self = self_value->as_array();
+    auto return_value = self->pop(env);
+    return return_value;
+}
+
+Value *ArrayValue_size_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    ArrayValue *self = self_value->as_array();
+    auto return_value = self->size();
+    return new IntegerValue { env, return_value };
+}
+
+Value *ArrayValue_sort_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    ArrayValue *self = self_value->as_array();
+    auto return_value = self->sort(env);
+    return return_value;
+}
+
+Value *ArrayValue_to_ary_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    ArrayValue *self = self_value->as_array();
+    auto return_value = self->to_ary();
+    return return_value;
+}
+
+Value *ArrayValue_to_ary_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    ArrayValue *self = self_value->as_array();
+    auto return_value = self->to_ary();
+    return return_value;
+}
+
+Value *ArrayValue_inspect_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    ArrayValue *self = self_value->as_array();
+    auto return_value = self->inspect(env);
+    return return_value;
+}
+
 Value *ClassValue_new_method_singleton_binding(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0, 1);
-    auto return_value = ClassValue::new_method(env, argc > 0 ? args[0] : nullptr , block);
+    auto return_value = ClassValue::new_method(env, argc > 0 ? args[0] : nullptr, block);
     return return_value;
 }
 
 Value *ClassValue_superclass_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     ClassValue *self = self_value->as_class();
-    auto return_value = self->superclass(  );
+    auto return_value = self->superclass();
     if (return_value) { return return_value; } else { return NAT_NIL; }
 }
 
 Value *EncodingValue_list_singleton_binding(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
-    auto return_value = EncodingValue::list(env  );
+    auto return_value = EncodingValue::list(env);
     return return_value;
 }
 
 Value *EncodingValue_inspect_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     EncodingValue *self = self_value->as_encoding();
-    auto return_value = self->inspect(env  );
+    auto return_value = self->inspect(env);
     return return_value;
 }
 
 Value *EncodingValue_name_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     EncodingValue *self = self_value->as_encoding();
-    auto return_value = self->name(env  );
+    auto return_value = self->name(env);
     return return_value;
 }
 
 Value *EncodingValue_names_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     EncodingValue *self = self_value->as_encoding();
-    auto return_value = self->names(env  );
+    auto return_value = self->names(env);
     return return_value;
 }
 
 Value *FloatValue_mod_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     FloatValue *self = self_value->as_float();
-    auto return_value = self->mod(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->mod(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
 Value *FloatValue_mul_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     FloatValue *self = self_value->as_float();
-    auto return_value = self->mul(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->mul(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
 Value *FloatValue_pow_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     FloatValue *self = self_value->as_float();
-    auto return_value = self->pow(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->pow(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
 Value *FloatValue_add_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     FloatValue *self = self_value->as_float();
-    auto return_value = self->add(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->add(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
 Value *FloatValue_uplus_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     FloatValue *self = self_value->as_float();
-    auto return_value = self->uplus(  );
+    auto return_value = self->uplus();
     return return_value;
 }
 
 Value *FloatValue_sub_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     FloatValue *self = self_value->as_float();
-    auto return_value = self->sub(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->sub(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
 Value *FloatValue_uminus_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     FloatValue *self = self_value->as_float();
-    auto return_value = self->uminus(  );
+    auto return_value = self->uminus();
     return return_value;
 }
 
 Value *FloatValue_div_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     FloatValue *self = self_value->as_float();
-    auto return_value = self->div(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->div(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
 Value *FloatValue_lt_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     FloatValue *self = self_value->as_float();
-    auto return_value = self->lt(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->lt(env, argc > 0 ? args[0] : nullptr);
     if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
 }
 
 Value *FloatValue_lte_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     FloatValue *self = self_value->as_float();
-    auto return_value = self->lte(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->lte(env, argc > 0 ? args[0] : nullptr);
     if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
 }
 
 Value *FloatValue_cmp_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     FloatValue *self = self_value->as_float();
-    auto return_value = self->cmp(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->cmp(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
 Value *FloatValue_eq_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     FloatValue *self = self_value->as_float();
-    auto return_value = self->eq(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->eq(env, argc > 0 ? args[0] : nullptr);
     if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
 }
 
 Value *FloatValue_eq_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     FloatValue *self = self_value->as_float();
-    auto return_value = self->eq(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->eq(env, argc > 0 ? args[0] : nullptr);
     if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
 }
 
 Value *FloatValue_gt_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     FloatValue *self = self_value->as_float();
-    auto return_value = self->gt(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->gt(env, argc > 0 ? args[0] : nullptr);
     if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
 }
 
 Value *FloatValue_gte_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     FloatValue *self = self_value->as_float();
-    auto return_value = self->gte(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->gte(env, argc > 0 ? args[0] : nullptr);
     if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
 }
 
 Value *FloatValue_abs_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     FloatValue *self = self_value->as_float();
-    auto return_value = self->abs(env  );
+    auto return_value = self->abs(env);
     return return_value;
 }
 
 Value *FloatValue_ceil_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0, 1);
     FloatValue *self = self_value->as_float();
-    auto return_value = self->ceil(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->ceil(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
 Value *FloatValue_coerce_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     FloatValue *self = self_value->as_float();
-    auto return_value = self->coerce(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->coerce(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
 Value *FloatValue_divmod_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     FloatValue *self = self_value->as_float();
-    auto return_value = self->divmod(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->divmod(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
 Value *FloatValue_eql_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     FloatValue *self = self_value->as_float();
-    auto return_value = self->eql( argc > 0 ? args[0] : nullptr );
+    auto return_value = self->eql(argc > 0 ? args[0] : nullptr);
     if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
 }
 
 Value *FloatValue_div_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     FloatValue *self = self_value->as_float();
-    auto return_value = self->div(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->div(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
 Value *FloatValue_is_finite_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     FloatValue *self = self_value->as_float();
-    auto return_value = self->is_finite(  );
+    auto return_value = self->is_finite();
     if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
 }
 
 Value *FloatValue_floor_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0, 1);
     FloatValue *self = self_value->as_float();
-    auto return_value = self->floor(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->floor(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
 Value *FloatValue_is_infinite_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     FloatValue *self = self_value->as_float();
-    auto return_value = self->is_infinite(env  );
+    auto return_value = self->is_infinite(env);
     return return_value;
 }
 
 Value *FloatValue_to_s_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     FloatValue *self = self_value->as_float();
-    auto return_value = self->to_s(env  );
+    auto return_value = self->to_s(env);
     return return_value;
 }
 
 Value *FloatValue_is_nan_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     FloatValue *self = self_value->as_float();
-    auto return_value = self->is_nan(  );
+    auto return_value = self->is_nan();
     if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
 }
 
 Value *FloatValue_div_binding2(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     FloatValue *self = self_value->as_float();
-    auto return_value = self->div(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->div(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
 Value *FloatValue_to_i_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     FloatValue *self = self_value->as_float();
-    auto return_value = self->to_i(env  );
+    auto return_value = self->to_i(env);
     return return_value;
 }
 
 Value *FloatValue_to_s_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     FloatValue *self = self_value->as_float();
-    auto return_value = self->to_s(env  );
+    auto return_value = self->to_s(env);
     return return_value;
 }
 
 Value *FloatValue_is_zero_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     FloatValue *self = self_value->as_float();
-    auto return_value = self->is_zero(  );
+    auto return_value = self->is_zero();
     if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
 }
 
 Value *IntegerValue_mod_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     IntegerValue *self = self_value->as_integer();
-    auto return_value = self->mod(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->mod(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
 Value *IntegerValue_bitwise_and_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     IntegerValue *self = self_value->as_integer();
-    auto return_value = self->bitwise_and(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->bitwise_and(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
 Value *IntegerValue_mul_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     IntegerValue *self = self_value->as_integer();
-    auto return_value = self->mul(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->mul(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
 Value *IntegerValue_pow_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     IntegerValue *self = self_value->as_integer();
-    auto return_value = self->pow(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->pow(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
 Value *IntegerValue_add_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     IntegerValue *self = self_value->as_integer();
-    auto return_value = self->add(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->add(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
 Value *IntegerValue_sub_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     IntegerValue *self = self_value->as_integer();
-    auto return_value = self->sub(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->sub(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
 Value *IntegerValue_div_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     IntegerValue *self = self_value->as_integer();
-    auto return_value = self->div(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->div(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
 Value *IntegerValue_cmp_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     IntegerValue *self = self_value->as_integer();
-    auto return_value = self->cmp(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->cmp(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
 Value *IntegerValue_eqeqeq_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     IntegerValue *self = self_value->as_integer();
-    auto return_value = self->eqeqeq(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->eqeqeq(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
 Value *IntegerValue_abs_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     IntegerValue *self = self_value->as_integer();
-    auto return_value = self->abs(env  );
+    auto return_value = self->abs(env);
     return return_value;
 }
 
 Value *IntegerValue_chr_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     IntegerValue *self = self_value->as_integer();
-    auto return_value = self->chr(env  );
+    auto return_value = self->chr(env);
     return return_value;
 }
 
 Value *IntegerValue_coerce_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     IntegerValue *self = self_value->as_integer();
-    auto return_value = self->coerce(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->coerce(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
 Value *IntegerValue_eql_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     IntegerValue *self = self_value->as_integer();
-    auto return_value = self->eql(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->eql(env, argc > 0 ? args[0] : nullptr);
     if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
 }
 
 Value *IntegerValue_to_s_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     IntegerValue *self = self_value->as_integer();
-    auto return_value = self->to_s(env  );
+    auto return_value = self->to_s(env);
     return return_value;
 }
 
 Value *IntegerValue_succ_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     IntegerValue *self = self_value->as_integer();
-    auto return_value = self->succ(env  );
+    auto return_value = self->succ(env);
     return return_value;
 }
 
 Value *IntegerValue_times_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     IntegerValue *self = self_value->as_integer();
-    auto return_value = self->times(env  , block);
+    auto return_value = self->times(env, block);
     return return_value;
 }
 
 Value *IntegerValue_to_i_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     IntegerValue *self = self_value->as_integer();
-    auto return_value = self->to_i(  );
+    auto return_value = self->to_i();
     return return_value;
 }
 
 Value *IntegerValue_to_s_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     IntegerValue *self = self_value->as_integer();
-    auto return_value = self->to_s(env  );
+    auto return_value = self->to_s(env);
     return return_value;
 }
 
 Value *IntegerValue_bitwise_or_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     IntegerValue *self = self_value->as_integer();
-    auto return_value = self->bitwise_or(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->bitwise_or(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
 Value *RegexpValue_eq_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     RegexpValue *self = self_value->as_regexp();
-    auto return_value = self->eq(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->eq(env, argc > 0 ? args[0] : nullptr);
     if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
 }
 
 Value *RegexpValue_match_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     RegexpValue *self = self_value->as_regexp();
-    auto return_value = self->match(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->match(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
 Value *RegexpValue_eqtilde_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     RegexpValue *self = self_value->as_regexp();
-    auto return_value = self->eqtilde(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->eqtilde(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
 Value *RegexpValue_initialize_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0, 1);
     RegexpValue *self = self_value->as_regexp();
-    auto return_value = self->initialize(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->initialize(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
 Value *RegexpValue_inspect_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     RegexpValue *self = self_value->as_regexp();
-    auto return_value = self->inspect(env  );
+    auto return_value = self->inspect(env);
     return return_value;
 }
 
 Value *RegexpValue_match_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     RegexpValue *self = self_value->as_regexp();
-    auto return_value = self->match(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->match(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
 Value *StringValue_mul_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     StringValue *self = self_value->as_string();
-    auto return_value = self->mul(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->mul(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
 Value *StringValue_add_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     StringValue *self = self_value->as_string();
-    auto return_value = self->add(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->add(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
 Value *StringValue_ltlt_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     StringValue *self = self_value->as_string();
-    auto return_value = self->ltlt(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->ltlt(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
 Value *StringValue_cmp_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     StringValue *self = self_value->as_string();
-    auto return_value = self->cmp(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->cmp(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
 Value *StringValue_eq_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     StringValue *self = self_value->as_string();
-    auto return_value = self->eq( argc > 0 ? args[0] : nullptr );
+    auto return_value = self->eq(argc > 0 ? args[0] : nullptr);
     if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
 }
 
 Value *StringValue_eq_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     StringValue *self = self_value->as_string();
-    auto return_value = self->eq( argc > 0 ? args[0] : nullptr );
+    auto return_value = self->eq(argc > 0 ? args[0] : nullptr);
     if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
 }
 
 Value *StringValue_eqtilde_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     StringValue *self = self_value->as_string();
-    auto return_value = self->eqtilde(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->eqtilde(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
 Value *StringValue_ref_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     StringValue *self = self_value->as_string();
-    auto return_value = self->ref(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->ref(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
 Value *StringValue_bytes_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     StringValue *self = self_value->as_string();
-    auto return_value = self->bytes(env  );
+    auto return_value = self->bytes(env);
     return return_value;
 }
 
 Value *StringValue_chars_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     StringValue *self = self_value->as_string();
-    auto return_value = self->chars(env  );
+    auto return_value = self->chars(env);
     return return_value;
 }
 
 Value *StringValue_encode_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     StringValue *self = self_value->as_string();
-    auto return_value = self->encode(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->encode(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
 Value *StringValue_encoding_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     StringValue *self = self_value->as_string();
-    auto return_value = self->encoding(env  );
+    auto return_value = self->encoding(env);
     return return_value;
 }
 
 Value *StringValue_force_encoding_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     StringValue *self = self_value->as_string();
-    auto return_value = self->force_encoding(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->force_encoding(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
 Value *StringValue_index_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     StringValue *self = self_value->as_string();
-    auto return_value = self->index(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->index(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
 Value *StringValue_initialize_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0, 1);
     StringValue *self = self_value->as_string();
-    auto return_value = self->initialize(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->initialize(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
 Value *StringValue_inspect_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     StringValue *self = self_value->as_string();
-    auto return_value = self->inspect(env  );
+    auto return_value = self->inspect(env);
     return return_value;
 }
 
 Value *StringValue_length_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     StringValue *self = self_value->as_string();
-    auto return_value = self->length(  );
+    auto return_value = self->length();
     return new IntegerValue { env, return_value };
 }
 
 Value *StringValue_ljust_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1, 2);
     StringValue *self = self_value->as_string();
-    auto return_value = self->ljust(env, argc > 0 ? args[0] : nullptr, argc > 1 ? args[1] : nullptr );
+    auto return_value = self->ljust(env, argc > 0 ? args[0] : nullptr, argc > 1 ? args[1] : nullptr);
     return return_value;
 }
 
 Value *StringValue_match_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     StringValue *self = self_value->as_string();
-    auto return_value = self->match(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->match(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
 Value *StringValue_ord_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     StringValue *self = self_value->as_string();
-    auto return_value = self->ord(env  );
+    auto return_value = self->ord(env);
     return return_value;
 }
 
 Value *StringValue_size_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     StringValue *self = self_value->as_string();
-    auto return_value = self->size(env  );
+    auto return_value = self->size(env);
     return return_value;
 }
 
 Value *StringValue_split_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0, 1);
     StringValue *self = self_value->as_string();
-    auto return_value = self->split(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->split(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
 Value *StringValue_sub_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(2);
     StringValue *self = self_value->as_string();
-    auto return_value = self->sub(env, argc > 0 ? args[0] : nullptr, argc > 1 ? args[1] : nullptr );
+    auto return_value = self->sub(env, argc > 0 ? args[0] : nullptr, argc > 1 ? args[1] : nullptr);
     return return_value;
 }
 
 Value *StringValue_successive_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     StringValue *self = self_value->as_string();
-    auto return_value = self->successive(env  );
+    auto return_value = self->successive(env);
     return return_value;
 }
 
 Value *StringValue_to_i_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0, 1);
     StringValue *self = self_value->as_string();
-    auto return_value = self->to_i(env, argc > 0 ? args[0] : nullptr );
+    auto return_value = self->to_i(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
 Value *StringValue_to_s_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     StringValue *self = self_value->as_string();
-    auto return_value = self->to_s(  );
+    auto return_value = self->to_s();
     return return_value;
 }
 
 Value *StringValue_to_str_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     StringValue *self = self_value->as_string();
-    auto return_value = self->to_str(  );
+    auto return_value = self->to_str();
     return return_value;
 }
 
 void init_bindings(Env *env) {
+    Value *Array = NAT_OBJECT->const_get(env, "Array", true);
+    Array->define_singleton_method(env, "[]", ArrayValue_square_new_singleton_binding);
+    Array->define_method(env, "+", ArrayValue_add_binding);
+    Array->define_method(env, "-", ArrayValue_sub_binding);
+    Array->define_method(env, "<<", ArrayValue_ltlt_binding);
+    Array->define_method(env, "==", ArrayValue_eq_binding);
+    Array->define_method(env, "===", ArrayValue_eq_binding1);
+    Array->define_method(env, "[]", ArrayValue_ref_binding);
+    Array->define_method(env, "[]=", ArrayValue_refeq_binding);
+    Array->define_method(env, "any?", ArrayValue_any_binding);
+    Array->define_method(env, "<=>", ArrayValue_cmp_binding);
+    Array->define_method(env, "each", ArrayValue_each_binding);
+    Array->define_method(env, "each_with_index", ArrayValue_each_with_index_binding);
+    Array->define_method(env, "first", ArrayValue_first_binding);
+    Array->define_method(env, "include?", ArrayValue_include_binding);
+    Array->define_method(env, "initialize", ArrayValue_initialize_binding);
+    Array->define_method(env, "inspect", ArrayValue_inspect_binding);
+    Array->define_method(env, "join", ArrayValue_join_binding);
+    Array->define_method(env, "last", ArrayValue_last_binding);
+    Array->define_method(env, "length", ArrayValue_size_binding);
+    Array->define_method(env, "map", ArrayValue_map_binding);
+    Array->define_method(env, "pop", ArrayValue_pop_binding);
+    Array->define_method(env, "size", ArrayValue_size_binding1);
+    Array->define_method(env, "sort", ArrayValue_sort_binding);
+    Array->define_method(env, "to_a", ArrayValue_to_ary_binding);
+    Array->define_method(env, "to_ary", ArrayValue_to_ary_binding1);
+    Array->define_method(env, "to_s", ArrayValue_inspect_binding1);
     Value *Class = NAT_OBJECT->const_get(env, "Class", true);
     Class->define_singleton_method(env, "new", ClassValue_new_method_singleton_binding);
     Class->define_method(env, "superclass", ClassValue_superclass_binding);

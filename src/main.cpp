@@ -88,7 +88,6 @@ extern "C" Env *build_top_env() {
 
     ClassValue *Array = Object->subclass(env, "Array", Value::Type::Array);
     Object->const_set(env, "Array", Array);
-    NAT_ARRAY_INIT(Array);
 
     ClassValue *Hash = Object->subclass(env, "Hash", Value::Type::Hash);
     Object->const_set(env, "Hash", Hash);
