@@ -6,7 +6,6 @@ namespace Natalie {
 size_t HashValue::hash(const void *key) {
     Key *key_p = (Key *)key;
     assert(NAT_OBJ_HAS_ENV2(key_p));
-    assert(key_p->env.global_env);
     Value *hash_obj = key_p->key->send(&key_p->env, "hash");
     assert(hash_obj->type() == Value::Type::Integer);
     return hash_obj->as_integer()->to_int64_t();
@@ -19,9 +18,9 @@ int HashValue::compare(const void *a, const void *b) {
     // NOTE: Only one of the keys will have a relevant Env, i.e. the one with a non-null global_env.
     // This is a bit of a hack to get around the fact that we can't pass any extra args to hashmap_* functions.
     // TODO: Write our own hashmap implementation that passes Env around. :^)
-    Env *env = a_p->env.global_env ? &a_p->env : &b_p->env;
+    Env *env = a_p->env.global_env() ? &a_p->env : &b_p->env;
     assert(env);
-    assert(env->global_env);
+    assert(env->global_env());
     Value *a_hash = a_p->key->send(env, "hash");
     Value *b_hash = b_p->key->send(env, "hash");
     assert(a_hash->type() == Value::Type::Integer);

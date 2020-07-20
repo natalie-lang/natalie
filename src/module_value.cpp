@@ -104,9 +104,9 @@ void ModuleValue::alias(Env *env, const char *new_name, const char *old_name) {
 
 Value *ModuleValue::eval_body(Env *env, Value *(*fn)(Env *, Value *)) {
     Env body_env = new Env { env };
-    body_env.caller = env;
+    body_env.set_caller(env);
     Value *result = fn(&body_env, this);
-    body_env.caller = nullptr;
+    body_env.clear_caller();
     return result;
 }
 
@@ -235,10 +235,10 @@ Value *ModuleValue::call_method(Env *env, Value *instance_class, const char *met
             closure_env = &matching_class_or_module->m_env;
         }
         Env e = Env::new_block_env(closure_env, env);
-        e.file = env->file;
-        e.line = env->line;
-        e.method_name = method_name;
-        e.block = block;
+        e.set_file(env->file());
+        e.set_line(env->line());
+        e.set_method_name(method_name);
+        e.set_block(block);
         return method->run(&e, self, argc, args, block);
     } else {
         NAT_RAISE(env, "NoMethodError", "undefined method `%s' for %v", method_name, instance_class);

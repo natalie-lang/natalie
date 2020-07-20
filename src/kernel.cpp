@@ -219,7 +219,7 @@ Value *Kernel_lambda(Env *env, Value *self, ssize_t argc, Value **args, Block *b
 
 Value *Kernel_method(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
-    const char *name = env->caller->find_current_method_name();
+    const char *name = env->caller()->find_current_method_name();
     if (name) {
         return SymbolValue::intern(env, name);
     } else {
@@ -285,17 +285,17 @@ Value *Kernel_Array(Env *env, Value *self, ssize_t argc, Value **args, Block *bl
 Value *Kernel_send(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC_AT_LEAST(1);
     const char *name = args[0]->identifier_str(env, Value::Conversion::Strict);
-    return self->send(env->caller, name, argc - 1, args + 1, block);
+    return self->send(env->caller(), name, argc - 1, args + 1, block);
 }
 
 Value *Kernel_cur_dir(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
-    if (env->file == nullptr) {
+    if (env->file() == nullptr) {
         NAT_RAISE(env, "RuntimeError", "could not get current directory");
-    } else if (strcmp(env->file, "-e") == 0) {
+    } else if (strcmp(env->file(), "-e") == 0) {
         return new StringValue { env, "." };
     } else {
-        Value *relative = new StringValue { env, env->file };
+        Value *relative = new StringValue { env, env->file() };
         StringValue *absolute = static_cast<StringValue *>(File_expand_path(env, NAT_OBJECT->const_get(env, "File", true), 1, &relative, nullptr));
         ssize_t last_slash = 0;
         bool found = false;

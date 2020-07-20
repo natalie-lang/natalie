@@ -9,7 +9,7 @@ using namespace Natalie;
 
 extern "C" Env *build_top_env() {
     Env *env = new Env { new GlobalEnv };
-    env->method_name = strdup("<main>");
+    env->set_method_name(strdup("<main>"));
 
     ClassValue *Class = ClassValue::bootstrap_class_class(env);
 
@@ -21,7 +21,7 @@ extern "C" Env *build_top_env() {
     BasicObject->define_method(env, "instance_eval", BasicObject_instance_eval);
 
     ClassValue *Object = BasicObject->subclass(env, "Object");
-    env->global_env->set_Object(Object);
+    env->global_env()->set_Object(Object);
     Object->define_singleton_method(env, "new", Object_new);
 
     // these must be defined after Object exists
@@ -52,21 +52,21 @@ extern "C" Env *build_top_env() {
     Object->const_set(env, "NilClass", NilClass);
     NAT_NIL_CLASS_INIT(NilClass);
 
-    env->global_env->set_nil(NilValue::instance(env));
+    env->global_env()->set_nil(NilValue::instance(env));
     NAT_NIL->set_singleton_class(NilClass);
 
     ClassValue *TrueClass = Object->subclass(env, "TrueClass", Value::Type::True);
     Object->const_set(env, "TrueClass", TrueClass);
     NAT_TRUE_CLASS_INIT(TrueClass);
 
-    env->global_env->set_true_obj(TrueValue::instance(env));
+    env->global_env()->set_true_obj(TrueValue::instance(env));
     NAT_TRUE->set_singleton_class(TrueClass);
 
     ClassValue *FalseClass = Object->subclass(env, "FalseClass", Value::Type::False);
     Object->const_set(env, "FalseClass", FalseClass);
     NAT_FALSE_CLASS_INIT(FalseClass);
 
-    env->global_env->set_false_obj(FalseValue::instance(env));
+    env->global_env()->set_false_obj(FalseValue::instance(env));
     NAT_FALSE->set_singleton_class(FalseClass);
 
     ClassValue *Numeric = Object->subclass(env, "Numeric");
@@ -239,7 +239,8 @@ int main(int argc, char *argv[]) {
         ARGV->push(new StringValue { env, argv[i] });
     }
     Value *result = EVAL(env);
-    delete env->global_env;
+    delete env->global_env();
+    env->clear_global_env();
     delete env;
     if (result) {
         return 0;

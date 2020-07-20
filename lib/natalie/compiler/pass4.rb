@@ -419,7 +419,7 @@ module Natalie
         (_, name) = exp
         methods = "#{@compiler_context[:var_prefix]}source_methods"
         index = @source_methods[name] ||= @source_methods.size
-        decl "env->method_name = #{methods}[#{index}];"
+        decl "env->set_method_name(#{methods}[#{index}]);"
         ''
       end
 
@@ -593,7 +593,7 @@ module Natalie
       def process_var_alloc(exp)
         count = exp.last
         if count > 0
-          decl "env->vars = new Vector<Value*> { #{count} };"
+          decl "env->build_vars(#{count});"
         end
         ''
       end
@@ -638,7 +638,7 @@ module Natalie
         return unless exp.file
         files = "#{@compiler_context[:var_prefix]}source_files"
         index = @source_files[exp.file] ||= @source_files.size
-        line = "env->file = #{files}[#{index}]; env->line = #{exp.line || 0};"
+        line = "env->set_file(#{files}[#{index}]); env->set_line(#{exp.line || 0});"
         decl line unless @decl.last == line
       end
 

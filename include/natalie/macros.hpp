@@ -61,16 +61,16 @@
         abort();                                                 \
     }
 
-#define NAT_OBJ_HAS_ENV(obj) ((obj)->env.global_env == env->global_env) // prefered check
-#define NAT_OBJ_HAS_ENV2(obj) ((obj)->env.global_env) // limited check used when there is no current env, i.e. hashmap_hash and hashmap_compare
+#define NAT_OBJ_HAS_ENV(obj) ((obj)->env.global_env() == env->global_env()) // prefered check
+#define NAT_OBJ_HAS_ENV2(obj) ((obj)->env.global_env()) // limited check used when there is no current env, i.e. hashmap_hash and hashmap_compare
 
 #define NAT_INSPECT(obj) obj->send(env, "inspect")->as_string()->c_str()
 
 // ahem, "globals"
-#define NAT_OBJECT env->global_env->Object()
-#define NAT_NIL env->global_env->nil()
-#define NAT_TRUE env->global_env->true_obj()
-#define NAT_FALSE env->global_env->false_obj()
+#define NAT_OBJECT env->Object()
+#define NAT_NIL env->nil()
+#define NAT_TRUE env->true_obj()
+#define NAT_FALSE env->false_obj()
 
 #define NAT_MIN_INT INT64_MIN
 #define NAT_MAX_INT INT64_MAX
@@ -87,15 +87,15 @@
 #define NAT_FLAG_FROZEN 2
 #define NAT_FLAG_BREAK 4
 
-#define NAT_RUN_BLOCK_FROM_ENV(env, argc, args) ({                                     \
-    Env *env_with_block = env;                                                         \
-    while (!env_with_block->block && env_with_block->outer) {                          \
-        env_with_block = env_with_block->outer;                                        \
-    }                                                                                  \
-    if (!env_with_block->block) {                                                      \
-        NAT_RAISE(env, "LocalJumpError", "no block given");                            \
-    }                                                                                  \
-    NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, env_with_block->block, argc, args, nullptr); \
+#define NAT_RUN_BLOCK_FROM_ENV(env, argc, args) ({                                       \
+    Env *env_with_block = env;                                                           \
+    while (!env_with_block->block() && env_with_block->outer()) {                        \
+        env_with_block = env_with_block->outer();                                        \
+    }                                                                                    \
+    if (!env_with_block->block()) {                                                      \
+        NAT_RAISE(env, "LocalJumpError", "no block given");                              \
+    }                                                                                    \
+    NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, env_with_block->block(), argc, args, nullptr); \
 })
 
 #define NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, the_block, argc, args, block) ({ \

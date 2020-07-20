@@ -125,7 +125,7 @@ module Natalie
           var[:captured] = true if capture
           [env_name, var]
         elsif env[:parent] && env[:block]
-          find_var(name, env_name: "#{env_name}->outer", env: env[:parent], capture: true)
+          find_var(name, env_name: "#{env_name}->outer()", env: env[:parent], capture: true)
         end
       end
 
@@ -133,10 +133,10 @@ module Natalie
         var_num = @compiler_context[:var_num] += 1
         if @env[:hoist]
           env = @env[:parent]
-          env_name = 'env->outer'
+          env_name = 'env->outer()'
           while env[:hoist]
             env = env[:parent]
-            env_name = "#{env_name}->outer"
+            env_name = "#{env_name}->outer()"
           end
           var = env[:vars][name] = { name: name, index: env[:vars].size, var_num: var_num, captured: true }
           [env_name, var]

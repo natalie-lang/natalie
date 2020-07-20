@@ -38,15 +38,16 @@ Value *RegexpValue::match(Env *env, Value *other) {
 
     OnigRegion *region = onig_region_new();
     int result = search(str_obj->c_str(), region, ONIG_OPTION_NONE);
+    Env *caller_env = env->caller();
     if (result >= 0) {
-        env->caller->match = new MatchDataValue { env, region, str_obj };
-        return env->caller->match;
+        caller_env->set_match(new MatchDataValue { env, region, str_obj });
+        return caller_env->match();
     } else if (result == ONIG_MISMATCH) {
-        env->caller->match = nullptr;
+        caller_env->clear_match();
         onig_region_free(region, true);
         return NAT_NIL;
     } else {
-        env->caller->match = nullptr;
+        caller_env->clear_match();
         onig_region_free(region, true);
         OnigUChar s[ONIG_MAX_ERROR_MESSAGE_LEN];
         onig_error_code_to_str(s, result);

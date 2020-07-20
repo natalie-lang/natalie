@@ -13,12 +13,12 @@ struct Env : public gc {
     Env() { }
 
     Env(Env *outer)
-        : outer { outer } {
-        global_env = outer->global_env;
+        : m_outer { outer } {
+        m_global_env = outer->m_global_env;
     }
 
     Env(GlobalEnv *global_env)
-        : global_env { global_env } { }
+        : m_global_env { global_env } { }
 
     static Env new_block_env(Env *, Env *);
     static Env new_detatched_block_env(Env *);
@@ -38,21 +38,53 @@ struct Env : public gc {
 
     Value *last_match();
 
-    ClassValue *Object() { return global_env->Object(); }
-    NilValue *nil() { return global_env->nil(); }
-    TrueValue *true_obj() { return global_env->true_obj(); }
-    FalseValue *false_obj() { return global_env->false_obj(); }
+    ClassValue *Object() { return m_global_env->Object(); }
+    NilValue *nil() { return m_global_env->nil(); }
+    TrueValue *true_obj() { return m_global_env->true_obj(); }
+    FalseValue *false_obj() { return m_global_env->false_obj(); }
 
-    GlobalEnv *global_env { nullptr };
-    Vector<Value *> *vars { nullptr };
-    Env *outer { nullptr };
-    Block *block { nullptr };
-    bool block_env { false };
-    Env *caller { nullptr };
-    const char *file { nullptr };
-    ssize_t line { 0 };
-    const char *method_name { nullptr };
-    Value *match { nullptr };
+    GlobalEnv *global_env() { return m_global_env; }
+    void set_global_env(GlobalEnv *global_env) { m_global_env = global_env; }
+    void clear_global_env() { m_global_env = nullptr; }
+
+    void build_vars(ssize_t size) { m_vars = new Vector<Value *> { size }; }
+
+    Env *outer() { return m_outer; }
+
+    Env *caller() { return m_caller; }
+    void set_caller(Env *caller) { m_caller = caller; }
+    void clear_caller() { m_caller = nullptr; }
+
+    Block *block() { return m_block; }
+    void set_block(Block *block) { m_block = block; }
+
+    bool is_block_env() { return m_block_env; }
+    void set_block_env() { m_block_env = true; }
+
+    const char *file() { return m_file; }
+    void set_file(const char *file) { m_file = file; }
+
+    ssize_t line() { return m_line; }
+    void set_line(ssize_t line) { m_line = line; }
+
+    const char *method_name() { return m_method_name; }
+    void set_method_name(const char *name) { m_method_name = name; }
+
+    Value *match() { return m_match; }
+    void set_match(Value *match) { m_match = match; }
+    void clear_match() { m_match = nullptr; }
+
+private:
+    GlobalEnv *m_global_env { nullptr };
+    Vector<Value *> *m_vars { nullptr };
+    Env *m_outer { nullptr };
+    Block *m_block { nullptr };
+    bool m_block_env { false };
+    Env *m_caller { nullptr };
+    const char *m_file { nullptr };
+    ssize_t m_line { 0 };
+    const char *m_method_name { nullptr };
+    Value *m_match { nullptr };
 };
 
 }

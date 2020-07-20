@@ -7,39 +7,6 @@ extern char **environ;
 
 namespace Natalie {
 
-Value *Env::var_get(const char *key, ssize_t index) {
-    if (index >= this->vars->size()) {
-        printf("Trying to get variable `%s' at index %zu which is not set.\n", key, index);
-        abort();
-    }
-    Value *val = (*this->vars)[index];
-    if (val) {
-        return val;
-    } else {
-        Env *env = this;
-        return NAT_NIL;
-    }
-}
-
-Value *Env::var_set(const char *name, ssize_t index, bool allocate, Value *val) {
-    ssize_t needed = index + 1;
-    ssize_t current_size = this->vars ? this->vars->size() : 0;
-    if (needed > current_size) {
-        if (allocate) {
-            if (!this->vars) {
-                this->vars = new Vector<Value *> { needed };
-            } else {
-                this->vars->set_size(needed);
-            }
-        } else {
-            printf("Tried to set a variable without first allocating space for it.\n");
-            abort();
-        }
-    }
-    (*this->vars)[index] = val;
-    return val;
-}
-
 Value *ENV_inspect(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     HashValue *hash = new HashValue { env };

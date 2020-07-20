@@ -12,7 +12,7 @@ struct Block : public gc {
         : m_fn { fn }
         , m_env { env }
         , m_self { self } {
-        m_env.caller = nullptr;
+        m_env.clear_caller();
     }
 
     // NOTE: This should only be called from one of the RUN_BLOCK_* macros!

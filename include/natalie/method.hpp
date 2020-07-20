@@ -15,13 +15,13 @@ struct Method : public gc {
     Method(Block *block)
         : m_env { *block->env() } {
         block->copy_fn_pointer_to_method(this);
-        m_env.caller = nullptr;
+        m_env.clear_caller();
     }
 
     void set_fn(MethodFnPtr fn) { m_fn = fn; }
 
     Env *env() { return &m_env; }
-    bool has_env() { return !!m_env.global_env; }
+    bool has_env() { return !!m_env.global_env(); }
 
     bool is_undefined() { return m_undefined; }
 
