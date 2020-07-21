@@ -26,7 +26,12 @@ struct ExceptionValue : Value {
     const char *message() { return m_message; }
     void set_message(const char *message) { m_message = strdup(message); }
 
-    ArrayValue *backtrace() { return m_backtrace; }
+    Value *initialize(Env *, Value *);
+    Value *inspect(Env *);
+    Value *message(Env *);
+
+    const ArrayValue *backtrace() { return m_backtrace; }
+    Value *backtrace(Env *);
     void build_backtrace(Env *);
 
 private:

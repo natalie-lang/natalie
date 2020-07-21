@@ -227,6 +227,34 @@ Value *EncodingValue_names_binding(Env *env, Value *self_value, ssize_t argc, Va
     return return_value;
 }
 
+Value *ExceptionValue_initialize_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0, 1);
+    ExceptionValue *self = self_value->as_exception();
+    auto return_value = self->initialize(env, argc > 0 ? args[0] : nullptr);
+    return return_value;
+}
+
+Value *ExceptionValue_inspect_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    ExceptionValue *self = self_value->as_exception();
+    auto return_value = self->inspect(env);
+    return return_value;
+}
+
+Value *ExceptionValue_message_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    ExceptionValue *self = self_value->as_exception();
+    auto return_value = self->message(env);
+    return return_value;
+}
+
+Value *ExceptionValue_backtrace_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    ExceptionValue *self = self_value->as_exception();
+    auto return_value = self->backtrace(env);
+    return return_value;
+}
+
 Value *FalseValue_to_s_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     FalseValue *self = self_value->as_false();
@@ -900,6 +928,11 @@ void init_bindings(Env *env) {
     Encoding->define_method(env, "inspect", EncodingValue_inspect_binding);
     Encoding->define_method(env, "name", EncodingValue_name_binding);
     Encoding->define_method(env, "names", EncodingValue_names_binding);
+    Value *Exception = NAT_OBJECT->const_get(env, "Exception", true);
+    Exception->define_method(env, "initialize", ExceptionValue_initialize_binding);
+    Exception->define_method(env, "inspect", ExceptionValue_inspect_binding);
+    Exception->define_method(env, "message", ExceptionValue_message_binding);
+    Exception->define_method(env, "backtrace", ExceptionValue_backtrace_binding);
     Value *FalseClass = NAT_OBJECT->const_get(env, "FalseClass", true);
     FalseClass->define_method(env, "to_s", FalseValue_to_s_binding);
     FalseClass->define_method(env, "inspect", FalseValue_to_s_binding1);

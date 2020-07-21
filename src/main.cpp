@@ -115,11 +115,6 @@ extern "C" Env *build_top_env() {
 
     ClassValue *Exception = Object->subclass(env, "Exception", Value::Type::Exception);
     Object->const_set(env, "Exception", Exception);
-    Exception->define_method(env, "initialize", Exception_initialize);
-    Exception->define_method(env, "inspect", Exception_inspect);
-    Exception->define_method(env, "message", Exception_message);
-    Exception->define_method(env, "backtrace", Exception_backtrace);
-    Exception->define_singleton_method(env, "new", Exception_new);
     ClassValue *ScriptError = Exception->subclass(env, "ScriptError");
     Object->const_set(env, "ScriptError", ScriptError);
     Value *SyntaxError = ScriptError->subclass(env, "SyntaxError");

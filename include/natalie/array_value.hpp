@@ -41,7 +41,7 @@ struct ArrayValue : Value {
 
     Value *to_ary() { return this; }
 
-    ssize_t size() { return m_vector.size(); }
+    ssize_t size() const { return m_vector.size(); }
 
     void push(Value &val) {
         m_vector.push(&val);
@@ -53,7 +53,7 @@ struct ArrayValue : Value {
 
     Value *pop(Env *);
 
-    Value *&operator[](ssize_t index) {
+    Value *&operator[](ssize_t index) const {
         return m_vector[index];
     }
 

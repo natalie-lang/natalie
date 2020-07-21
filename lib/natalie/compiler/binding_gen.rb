@@ -217,6 +217,11 @@ gen.binding('Encoding', 'inspect', 'EncodingValue', 'inspect', argc: 0, pass_env
 gen.binding('Encoding', 'name', 'EncodingValue', 'name', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Encoding', 'names', 'EncodingValue', 'names', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 
+gen.binding('Exception', 'initialize', 'ExceptionValue', 'initialize', argc: 0..1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Exception', 'inspect', 'ExceptionValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Exception', 'message', 'ExceptionValue', 'message', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Exception', 'backtrace', 'ExceptionValue', 'backtrace', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+
 gen.undefine_singleton_method('FalseClass', 'new')
 gen.binding('FalseClass', 'to_s', 'FalseValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
 gen.binding('FalseClass', 'inspect', 'FalseValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value);

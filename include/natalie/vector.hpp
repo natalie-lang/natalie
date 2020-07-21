@@ -29,7 +29,7 @@ struct Vector : public gc {
         free(m_data);
     }
 
-    T &operator[](ssize_t index) {
+    T &operator[](ssize_t index) const {
         return m_data[index];
     }
 
@@ -53,9 +53,9 @@ struct Vector : public gc {
         m_data[0] = val;
     }
 
-    ssize_t is_empty() { return m_size == 0; }
-    ssize_t size() { return m_size; }
-    ssize_t capacity() { return m_capacity; }
+    ssize_t is_empty() const { return m_size == 0; }
+    ssize_t size() const { return m_size; }
+    ssize_t capacity() const { return m_capacity; }
     T *data() { return m_data; }
 
     void set_size(ssize_t new_size) {
