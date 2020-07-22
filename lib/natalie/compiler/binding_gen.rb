@@ -235,8 +235,8 @@ gen.binding('Exception', 'inspect', 'ExceptionValue', 'inspect', argc: 0, pass_e
 gen.binding('Exception', 'message', 'ExceptionValue', 'message', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 
 gen.undefine_singleton_method('FalseClass', 'new')
-gen.binding('FalseClass', 'inspect', 'FalseValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('FalseClass', 'to_s', 'FalseValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
+gen.binding('FalseClass', 'inspect', 'FalseValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('FalseClass', 'to_s', 'FalseValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 
 gen.binding('Float', '%', 'FloatValue', 'mod', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Float', '*', 'FloatValue', 'mul', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
@@ -285,86 +285,86 @@ gen.binding('Hash', 'sort', 'HashValue', 'sort', argc: 0, pass_env: true, pass_b
 gen.binding('Hash', 'to_s', 'HashValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Hash', 'values', 'HashValue', 'values', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 
-gen.binding('Integer', '%', 'IntegerValue', 'mod', argc: 1, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('Integer', '&', 'IntegerValue', 'bitwise_and', argc: 1, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('Integer', '*', 'IntegerValue', 'mul', argc: 1, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('Integer', '**', 'IntegerValue', 'pow', argc: 1, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('Integer', '+', 'IntegerValue', 'add', argc: 1, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('Integer', '-', 'IntegerValue', 'sub', argc: 1, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('Integer', '/', 'IntegerValue', 'div', argc: 1, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('Integer', '<=>', 'IntegerValue', 'cmp', argc: 1, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('Integer', '===', 'IntegerValue', 'eqeqeq', argc: 1, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('Integer', 'abs', 'IntegerValue', 'abs', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('Integer', 'chr', 'IntegerValue', 'chr', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('Integer', 'coerce', 'IntegerValue', 'coerce', argc: 1, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('Integer', 'eql?', 'IntegerValue', 'eql', argc: 1, pass_env: true, pass_block: false, return_type: :bool);
-gen.binding('Integer', 'inspect', 'IntegerValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('Integer', 'succ', 'IntegerValue', 'succ', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('Integer', 'times', 'IntegerValue', 'times', argc: 0, pass_env: true, pass_block: true, return_type: :Value);
-gen.binding('Integer', 'to_i', 'IntegerValue', 'to_i', argc: 0, pass_env: false, pass_block: false, return_type: :Value);
-gen.binding('Integer', 'to_s', 'IntegerValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('Integer', '|', 'IntegerValue', 'bitwise_or', argc: 1, pass_env: true, pass_block: false, return_type: :Value);
+gen.binding('Integer', '%', 'IntegerValue', 'mod', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Integer', '&', 'IntegerValue', 'bitwise_and', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Integer', '*', 'IntegerValue', 'mul', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Integer', '**', 'IntegerValue', 'pow', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Integer', '+', 'IntegerValue', 'add', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Integer', '-', 'IntegerValue', 'sub', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Integer', '/', 'IntegerValue', 'div', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Integer', '<=>', 'IntegerValue', 'cmp', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Integer', '===', 'IntegerValue', 'eqeqeq', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Integer', 'abs', 'IntegerValue', 'abs', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Integer', 'chr', 'IntegerValue', 'chr', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Integer', 'coerce', 'IntegerValue', 'coerce', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Integer', 'eql?', 'IntegerValue', 'eql', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.binding('Integer', 'inspect', 'IntegerValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Integer', 'succ', 'IntegerValue', 'succ', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Integer', 'times', 'IntegerValue', 'times', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
+gen.binding('Integer', 'to_i', 'IntegerValue', 'to_i', argc: 0, pass_env: false, pass_block: false, return_type: :Value)
+gen.binding('Integer', 'to_s', 'IntegerValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Integer', '|', 'IntegerValue', 'bitwise_or', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 
-gen.binding('IO', 'close', 'IoValue', 'close', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('IO', 'fileno', 'IoValue', 'fileno', argc: 0, pass_env: false, pass_block: false, return_type: :int);
-gen.binding('IO', 'initialize', 'IoValue', 'initialize', argc: 1, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('IO', 'print', 'IoValue', 'print', argc: :any, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('IO', 'puts', 'IoValue', 'puts', argc: :any, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('IO', 'read', 'IoValue', 'read', argc: 0..1, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('IO', 'seek', 'IoValue', 'seek', argc: 1..2, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('IO', 'write', 'IoValue', 'write', argc: 1.., pass_env: true, pass_block: false, return_type: :Value);
+gen.binding('IO', 'close', 'IoValue', 'close', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('IO', 'fileno', 'IoValue', 'fileno', argc: 0, pass_env: false, pass_block: false, return_type: :int)
+gen.binding('IO', 'initialize', 'IoValue', 'initialize', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('IO', 'print', 'IoValue', 'print', argc: :any, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('IO', 'puts', 'IoValue', 'puts', argc: :any, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('IO', 'read', 'IoValue', 'read', argc: 0..1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('IO', 'seek', 'IoValue', 'seek', argc: 1..2, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('IO', 'write', 'IoValue', 'write', argc: 1.., pass_env: true, pass_block: false, return_type: :Value)
 
-gen.binding('MatchData', 'size', 'MatchDataValue', 'size', argc: 0, pass_env: false, pass_block: false, return_type: :ssize_t);
-gen.binding('MatchData', 'length', 'MatchDataValue', 'size', argc: 0, pass_env: false, pass_block: false, return_type: :ssize_t);
-gen.binding('MatchData', 'to_s', 'MatchDataValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('MatchData', '[]', 'MatchDataValue', 'ref', argc: 1, pass_env: true, pass_block: false, return_type: :Value);
+gen.binding('MatchData', 'size', 'MatchDataValue', 'size', argc: 0, pass_env: false, pass_block: false, return_type: :ssize_t)
+gen.binding('MatchData', 'length', 'MatchDataValue', 'size', argc: 0, pass_env: false, pass_block: false, return_type: :ssize_t)
+gen.binding('MatchData', 'to_s', 'MatchDataValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('MatchData', '[]', 'MatchDataValue', 'ref', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 
 gen.undefine_singleton_method('NilClass', 'new')
-gen.binding('NilClass', 'inspect', 'NilValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('NilClass', 'to_a', 'NilValue', 'to_a', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('NilClass', 'to_i', 'NilValue', 'to_i', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('NilClass', 'to_s', 'NilValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
+gen.binding('NilClass', 'inspect', 'NilValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('NilClass', 'to_a', 'NilValue', 'to_a', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('NilClass', 'to_i', 'NilValue', 'to_i', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('NilClass', 'to_s', 'NilValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 
-gen.binding('Object', 'nil?', 'Value', 'is_nil', argc: 0, pass_env: false, pass_block: false, return_type: :bool);
+gen.binding('Object', 'nil?', 'Value', 'is_nil', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 
-gen.binding('Proc', 'initialize', 'ProcValue', 'initialize', argc: 0, pass_env: true, pass_block: true, return_type: :Value);
-gen.binding('Proc', 'call', 'ProcValue', 'call', argc: :any, pass_env: true, pass_block: true, return_type: :Value);
-gen.binding('Proc', 'lambda?', 'ProcValue', 'is_lambda', argc: 0, pass_env: false, pass_block: false, return_type: :bool);
+gen.binding('Proc', 'initialize', 'ProcValue', 'initialize', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
+gen.binding('Proc', 'call', 'ProcValue', 'call', argc: :any, pass_env: true, pass_block: true, return_type: :Value)
+gen.binding('Proc', 'lambda?', 'ProcValue', 'is_lambda', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 
-gen.binding('Regexp', '==', 'RegexpValue', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool);
-gen.binding('Regexp', '===', 'RegexpValue', 'match', argc: 1, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('Regexp', '=~', 'RegexpValue', 'eqtilde', argc: 1, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('Regexp', 'initialize', 'RegexpValue', 'initialize', argc: 0..1, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('Regexp', 'inspect', 'RegexpValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('Regexp', 'match', 'RegexpValue', 'match', argc: 1, pass_env: true, pass_block: false, return_type: :Value);
+gen.binding('Regexp', '==', 'RegexpValue', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.binding('Regexp', '===', 'RegexpValue', 'match', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Regexp', '=~', 'RegexpValue', 'eqtilde', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Regexp', 'initialize', 'RegexpValue', 'initialize', argc: 0..1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Regexp', 'inspect', 'RegexpValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Regexp', 'match', 'RegexpValue', 'match', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 
-gen.binding('String', '*', 'StringValue', 'mul', argc: 1, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('String', '+', 'StringValue', 'add', argc: 1, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('String', '<<', 'StringValue', 'ltlt', argc: 1, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('String', '<=>', 'StringValue', 'cmp', argc: 1, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('String', '==', 'StringValue', 'eq', argc: 1, pass_env: false, pass_block: false, return_type: :bool);
-gen.binding('String', '===', 'StringValue', 'eq', argc: 1, pass_env: false, pass_block: false, return_type: :bool);
-gen.binding('String', '=~', 'StringValue', 'eqtilde', argc: 1, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('String', '[]', 'StringValue', 'ref', argc: 1, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('String', 'bytes', 'StringValue', 'bytes', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('String', 'chars', 'StringValue', 'chars', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('String', 'encode', 'StringValue', 'encode', argc: 1, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('String', 'encoding', 'StringValue', 'encoding', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('String', 'force_encoding', 'StringValue', 'force_encoding', argc: 1, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('String', 'index', 'StringValue', 'index', argc: 1, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('String', 'initialize', 'StringValue', 'initialize', argc: 0..1, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('String', 'inspect', 'StringValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('String', 'length', 'StringValue', 'length', argc: 0, pass_env: false, pass_block: false, return_type: :ssize_t);
-gen.binding('String', 'ljust', 'StringValue', 'ljust', argc: 1..2, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('String', 'match', 'StringValue', 'match', argc: 1, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('String', 'ord', 'StringValue', 'ord', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('String', 'size', 'StringValue', 'size', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('String', 'split', 'StringValue', 'split', argc: 0..1, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('String', 'sub', 'StringValue', 'sub', argc: 2, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('String', 'succ', 'StringValue', 'successive', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('String', 'to_i', 'StringValue', 'to_i', argc: 0..1, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('String', 'to_s', 'StringValue', 'to_s', argc: 0, pass_env: false, pass_block: false, return_type: :Value);
-gen.binding('String', 'to_str', 'StringValue', 'to_str', argc: 0, pass_env: false, pass_block: false, return_type: :Value);
+gen.binding('String', '*', 'StringValue', 'mul', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('String', '+', 'StringValue', 'add', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('String', '<<', 'StringValue', 'ltlt', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('String', '<=>', 'StringValue', 'cmp', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('String', '==', 'StringValue', 'eq', argc: 1, pass_env: false, pass_block: false, return_type: :bool)
+gen.binding('String', '===', 'StringValue', 'eq', argc: 1, pass_env: false, pass_block: false, return_type: :bool)
+gen.binding('String', '=~', 'StringValue', 'eqtilde', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('String', '[]', 'StringValue', 'ref', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('String', 'bytes', 'StringValue', 'bytes', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('String', 'chars', 'StringValue', 'chars', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('String', 'encode', 'StringValue', 'encode', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('String', 'encoding', 'StringValue', 'encoding', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('String', 'force_encoding', 'StringValue', 'force_encoding', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('String', 'index', 'StringValue', 'index', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('String', 'initialize', 'StringValue', 'initialize', argc: 0..1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('String', 'inspect', 'StringValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('String', 'length', 'StringValue', 'length', argc: 0, pass_env: false, pass_block: false, return_type: :ssize_t)
+gen.binding('String', 'ljust', 'StringValue', 'ljust', argc: 1..2, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('String', 'match', 'StringValue', 'match', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('String', 'ord', 'StringValue', 'ord', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('String', 'size', 'StringValue', 'size', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('String', 'split', 'StringValue', 'split', argc: 0..1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('String', 'sub', 'StringValue', 'sub', argc: 2, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('String', 'succ', 'StringValue', 'successive', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('String', 'to_i', 'StringValue', 'to_i', argc: 0..1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('String', 'to_s', 'StringValue', 'to_s', argc: 0, pass_env: false, pass_block: false, return_type: :Value)
+gen.binding('String', 'to_str', 'StringValue', 'to_str', argc: 0, pass_env: false, pass_block: false, return_type: :Value)
 
 gen.binding('Symbol', '<=>', 'SymbolValue', 'cmp', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Symbol', 'inspect', 'SymbolValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
@@ -372,8 +372,8 @@ gen.binding('Symbol', 'to_proc', 'SymbolValue', 'to_proc', argc: 0, pass_env: tr
 gen.binding('Symbol', 'to_s', 'SymbolValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 
 gen.undefine_singleton_method('TrueClass', 'new')
-gen.binding('TrueClass', 'inspect', 'TrueValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
-gen.binding('TrueClass', 'to_s', 'TrueValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
+gen.binding('TrueClass', 'inspect', 'TrueValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('TrueClass', 'to_s', 'TrueValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 
 gen.init
 
