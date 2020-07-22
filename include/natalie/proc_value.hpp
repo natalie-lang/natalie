@@ -29,6 +29,8 @@ struct ProcValue : Value {
         assert(m_block);
     }
 
+    Value *initialize(Env *, Block *);
+
     Block *block() { return m_block; }
     bool is_lambda() { return m_type == ProcType::Lambda; }
 
@@ -36,6 +38,8 @@ struct ProcValue : Value {
         // TODO: might need to return a copy with m_type set to Proc if this is a Lambda
         return this;
     }
+
+    Value *call(Env *, ssize_t, Value **, Block *);
 
 private:
     Block *m_block { nullptr };

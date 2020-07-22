@@ -101,7 +101,6 @@ extern "C" Env *build_top_env() {
 
     ClassValue *Proc = Object->subclass(env, "Proc", Value::Type::Proc);
     Object->const_set(env, "Proc", Proc);
-    NAT_PROC_INIT(Proc);
 
     ClassValue *IO = Object->subclass(env, "IO", Value::Type::Io);
     Object->const_set(env, "IO", IO);

@@ -835,6 +835,27 @@ Value *Value_is_nil_binding(Env *env, Value *self_value, ssize_t argc, Value **a
     if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
 }
 
+Value *ProcValue_initialize_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    ProcValue *self = self_value->as_proc();
+    auto return_value = self->initialize(env, block);
+    return return_value;
+}
+
+Value *ProcValue_call_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    
+    ProcValue *self = self_value->as_proc();
+    auto return_value = self->call(env, argc, args, block);
+    return return_value;
+}
+
+Value *ProcValue_is_lambda_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    ProcValue *self = self_value->as_proc();
+    auto return_value = self->is_lambda();
+    if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
+}
+
 Value *RegexpValue_eq_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     RegexpValue *self = self_value->as_regexp();
@@ -1212,6 +1233,10 @@ void init_bindings(Env *env) {
     NilClass->define_method(env, "to_s", NilValue_to_s_binding);
     Value *Object = NAT_OBJECT->const_get(env, "Object", true);
     Object->define_method(env, "nil?", Value_is_nil_binding);
+    Value *Proc = NAT_OBJECT->const_get(env, "Proc", true);
+    Proc->define_method(env, "initialize", ProcValue_initialize_binding);
+    Proc->define_method(env, "call", ProcValue_call_binding);
+    Proc->define_method(env, "lambda?", ProcValue_is_lambda_binding);
     Value *Regexp = NAT_OBJECT->const_get(env, "Regexp", true);
     Regexp->define_method(env, "==", RegexpValue_eq_binding);
     Regexp->define_method(env, "===", RegexpValue_match_binding);

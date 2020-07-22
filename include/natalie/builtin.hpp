@@ -182,15 +182,6 @@ Value *Module_const_defined(Env *env, Value *self, ssize_t argc, Value **args, B
 Value *Module_alias_method(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Module_method_defined(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
-#define NAT_PROC_INIT(klass)                              \
-    klass->define_singleton_method(env, "new", Proc_new); \
-    klass->define_method(env, "call", Proc_call);         \
-    klass->define_method(env, "lambda?", Proc_lambda);
-
-Value *Proc_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Proc_call(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Proc_lambda(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-
 #define NAT_RANGE_INIT(klass)                                     \
     klass->define_singleton_method(env, "new", Range_new);        \
     klass->define_method(env, "begin", Range_begin);              \
