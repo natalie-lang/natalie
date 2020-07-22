@@ -19,6 +19,12 @@ struct SymbolValue : Value {
     StringValue *to_s(Env *env) { return new StringValue { env, m_name }; }
     StringValue *inspect(Env *);
 
+    virtual ProcValue *to_proc(Env *) override;
+
+    static Value *to_proc_block_fn(Env *, Value *, ssize_t, Value **, Block *);
+
+    Value *cmp(Env *, Value *);
+
 private:
     SymbolValue(Env *env, const char *name)
         : Value { Value::Type::Symbol, NAT_OBJECT->const_get(env, "Symbol", true)->as_class() }

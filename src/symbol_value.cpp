@@ -33,4 +33,34 @@ StringValue *SymbolValue::inspect(Env *env) {
     return string;
 }
 
+ProcValue *SymbolValue::to_proc(Env *env) {
+    Env block_env = Env::new_detatched_block_env(env);
+    block_env.var_set("name", 0, true, this);
+    Block *proc_block = new Block { block_env, this, SymbolValue::to_proc_block_fn };
+    return new ProcValue { env, proc_block };
+}
+
+Value *SymbolValue::to_proc_block_fn(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    SymbolValue *name_obj = env->outer()->var_get("name", 0)->as_symbol();
+    assert(name_obj);
+    const char *name = name_obj->c_str();
+    return args[0]->send(env, name);
+}
+
+Value *SymbolValue::cmp(Env *env, Value *other_value) {
+    if (!other_value->is_symbol()) return NAT_NIL;
+    SymbolValue *other = other_value->as_symbol();
+    int diff = strcmp(m_name, other->m_name);
+    int result;
+    if (diff < 0) {
+        result = -1;
+    } else if (diff > 0) {
+        result = 1;
+    } else {
+        result = 0;
+    }
+    return new IntegerValue { env, result };
+}
+
 }

@@ -211,16 +211,4 @@ Value *Range_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *b
 Value *Range_eqeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Range_eqeqeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
-#define NAT_SYMBOL_INIT(klass)                            \
-    klass->define_method(env, "to_s", Symbol_to_s);       \
-    klass->define_method(env, "inspect", Symbol_inspect); \
-    klass->define_method(env, "to_proc", Symbol_to_proc); \
-    klass->define_method(env, "<=>", Symbol_cmp);
-
-Value *Symbol_to_s(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Symbol_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Symbol_to_proc(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Symbol_to_proc_block_fn(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Symbol_cmp(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-
 }

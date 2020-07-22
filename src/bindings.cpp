@@ -1087,6 +1087,34 @@ Value *StringValue_to_str_binding(Env *env, Value *self_value, ssize_t argc, Val
     return return_value;
 }
 
+Value *SymbolValue_cmp_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    SymbolValue *self = self_value->as_symbol();
+    auto return_value = self->cmp(env, argc > 0 ? args[0] : nullptr);
+    return return_value;
+}
+
+Value *SymbolValue_inspect_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    SymbolValue *self = self_value->as_symbol();
+    auto return_value = self->inspect(env);
+    return return_value;
+}
+
+Value *SymbolValue_to_proc_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    SymbolValue *self = self_value->as_symbol();
+    auto return_value = self->to_proc(env);
+    return return_value;
+}
+
+Value *SymbolValue_to_s_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    SymbolValue *self = self_value->as_symbol();
+    auto return_value = self->to_s(env);
+    return return_value;
+}
+
 Value *TrueValue_to_s_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     TrueValue *self = self_value->as_true();
@@ -1272,6 +1300,11 @@ void init_bindings(Env *env) {
     String->define_method(env, "to_i", StringValue_to_i_binding);
     String->define_method(env, "to_s", StringValue_to_s_binding);
     String->define_method(env, "to_str", StringValue_to_str_binding);
+    Value *Symbol = NAT_OBJECT->const_get(env, "Symbol", true);
+    Symbol->define_method(env, "<=>", SymbolValue_cmp_binding);
+    Symbol->define_method(env, "inspect", SymbolValue_inspect_binding);
+    Symbol->define_method(env, "to_proc", SymbolValue_to_proc_binding);
+    Symbol->define_method(env, "to_s", SymbolValue_to_s_binding);
     Value *TrueClass = NAT_OBJECT->const_get(env, "TrueClass", true);
     TrueClass->define_method(env, "inspect", TrueValue_to_s_binding);
     TrueClass->define_method(env, "to_s", TrueValue_to_s_binding1);

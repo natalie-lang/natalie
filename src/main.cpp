@@ -46,7 +46,6 @@ extern "C" Env *build_top_env() {
 
     ClassValue *Symbol = Object->subclass(env, "Symbol", Value::Type::Symbol);
     Object->const_set(env, "Symbol", Symbol);
-    NAT_SYMBOL_INIT(Symbol);
 
     ClassValue *NilClass = Object->subclass(env, "NilClass", Value::Type::Nil);
     Object->const_set(env, "NilClass", NilClass);

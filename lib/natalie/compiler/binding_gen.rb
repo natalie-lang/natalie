@@ -366,6 +366,11 @@ gen.binding('String', 'to_i', 'StringValue', 'to_i', argc: 0..1, pass_env: true,
 gen.binding('String', 'to_s', 'StringValue', 'to_s', argc: 0, pass_env: false, pass_block: false, return_type: :Value);
 gen.binding('String', 'to_str', 'StringValue', 'to_str', argc: 0, pass_env: false, pass_block: false, return_type: :Value);
 
+gen.binding('Symbol', '<=>', 'SymbolValue', 'cmp', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Symbol', 'inspect', 'SymbolValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Symbol', 'to_proc', 'SymbolValue', 'to_proc', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Symbol', 'to_s', 'SymbolValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+
 gen.undefine_singleton_method('TrueClass', 'new')
 gen.binding('TrueClass', 'inspect', 'TrueValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
 gen.binding('TrueClass', 'to_s', 'TrueValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
