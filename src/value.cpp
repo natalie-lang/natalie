@@ -13,6 +13,78 @@ Value::Value(const Value &other)
     copy_hashmap(m_ivars, other.m_ivars);
 }
 
+Value *Value::_new(Env *env, Value *klass_value, ssize_t argc, Value **args, Block *block) {
+    ClassValue *klass = klass_value->as_class();
+    Value *obj;
+    switch (klass->object_type()) {
+    case Value::Type::Array:
+        obj = new ArrayValue { env, klass };
+        break;
+
+    case Value::Type::Class:
+        obj = new ClassValue { env, klass };
+        break;
+
+    case Value::Type::Encoding:
+        obj = new EncodingValue { env, klass };
+        break;
+
+    case Value::Type::Exception:
+        obj = new ExceptionValue { env, klass };
+        break;
+
+    case Value::Type::Hash:
+        obj = new HashValue { env, klass };
+        break;
+
+    case Value::Type::Io:
+        obj = new IoValue { env, klass };
+        break;
+
+    case Value::Type::MatchData:
+        obj = new MatchDataValue { env, klass };
+        break;
+
+    case Value::Type::Module:
+        obj = new ModuleValue { env, klass };
+        break;
+
+    case Value::Type::Object:
+        obj = new Value { klass };
+        break;
+
+    case Value::Type::Proc:
+        obj = new ProcValue { env, klass };
+        break;
+
+    case Value::Type::Range:
+        obj = new RangeValue { env, klass };
+        break;
+
+    case Value::Type::Regexp:
+        obj = new RegexpValue { env, klass };
+        break;
+
+    case Value::Type::String:
+        obj = new StringValue { env, klass };
+        break;
+
+    case Value::Type::VoidP:
+        obj = new VoidPValue { env, klass };
+        break;
+
+    case Value::Type::Nil:
+    case Value::Type::False:
+    case Value::Type::True:
+    case Value::Type::Integer:
+    case Value::Type::Float:
+    case Value::Type::Symbol:
+        NAT_UNREACHABLE();
+    }
+
+    return obj->initialize(env, argc, args, block);
+}
+
 Value *Value::initialize(Env *env, ssize_t argc, Value **args, Block *block) {
     ModuleValue *matching_class_or_module;
     Method *method = m_klass->find_method("initialize", &matching_class_or_module);

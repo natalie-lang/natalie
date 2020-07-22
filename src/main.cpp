@@ -22,7 +22,7 @@ extern "C" Env *build_top_env() {
 
     ClassValue *Object = BasicObject->subclass(env, "Object");
     env->global_env()->set_Object(Object);
-    Object->define_singleton_method(env, "new", Object_new);
+    Object->define_singleton_method(env, "new", Value::_new);
 
     // these must be defined after Object exists
     BasicObject->set_singleton_class(Class->singleton_class(env));

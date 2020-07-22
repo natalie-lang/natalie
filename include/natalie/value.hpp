@@ -58,6 +58,8 @@ struct Value : public gc {
         assert(klass);
     }
 
+    static Value *_new(Env *, Value *, ssize_t, Value **, Block *);
+
     Value(const Value &);
 
     Value &operator=(const Value &) = delete;

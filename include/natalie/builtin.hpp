@@ -182,8 +182,6 @@ Value *Module_const_defined(Env *env, Value *self, ssize_t argc, Value **args, B
 Value *Module_alias_method(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Module_method_defined(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
-Value *Object_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-
 #define NAT_PROC_INIT(klass)                              \
     klass->define_singleton_method(env, "new", Proc_new); \
     klass->define_method(env, "call", Proc_call);         \
