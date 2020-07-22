@@ -35,9 +35,14 @@ struct ModuleValue : Value {
         delete m_class_name;
     }
 
-    void extend(Env *, ModuleValue *);
-    void include(Env *, ModuleValue *);
-    void prepend(Env *, ModuleValue *);
+    Value *extend(Env *, ssize_t argc, Value **args);
+    void extend_once(Env *, ModuleValue *);
+
+    Value *include(Env *, ssize_t argc, Value **args);
+    void include_once(Env *, ModuleValue *);
+
+    Value *prepend(Env *, ssize_t argc, Value **args);
+    void prepend_once(Env *, ModuleValue *);
 
     virtual Value *const_get(Env *, const char *, bool) override;
     virtual Value *const_get_or_null(Env *, const char *, bool, bool) override;
@@ -53,11 +58,13 @@ struct ModuleValue : Value {
     ClassValue *superclass() { return m_superclass; }
     void set_superclass_DANGEROUSLY(ClassValue *superclass) { m_superclass = superclass; }
 
+    Value *included_modules(Env *);
     Vector<ModuleValue *> included_modules() { return m_included_modules; }
 
     virtual Value *cvar_get_or_null(Env *, const char *) override;
     virtual Value *cvar_set(Env *, const char *, Value *) override;
 
+    Value *define_method(Env *, Value *, Block *);
     virtual void define_method(Env *, const char *, Value *(*)(Env *, Value *, ssize_t, Value **, Block *block)) override;
     virtual void define_method_with_block(Env *, const char *, Block *) override;
     virtual void undefine_method(Env *, const char *) override;
@@ -71,6 +78,28 @@ struct ModuleValue : Value {
     ArrayValue *ancestors(Env *);
 
     bool is_method_defined(Env *, Value *);
+
+    Value *inspect(Env *);
+    Value *name(Env *);
+    Value *attr_reader(Env *, ssize_t, Value **);
+    Value *attr_writer(Env *, ssize_t, Value **);
+    Value *attr_accessor(Env *, ssize_t, Value **);
+
+    static Value *attr_reader_block_fn(Env *, Value *, ssize_t, Value **, Block *);
+    static Value *attr_writer_block_fn(Env *, Value *, ssize_t, Value **, Block *);
+
+    Value *class_eval(Env *, Block *);
+
+    Value *private_method(Env *, Value *method_name);
+    Value *protected_method(Env *, Value *method_name);
+    Value *public_method(Env *, Value *method_name);
+
+    bool const_defined(Env *, Value *);
+    Value *alias_method(Env *, Value *, Value *);
+
+    bool eqeqeq(Env *env, Value *other) {
+        return other->is_a(env, this);
+    }
 
 protected:
     struct hashmap m_constants EMPTY_HASHMAP;

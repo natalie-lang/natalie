@@ -19,18 +19,39 @@ ModuleValue::ModuleValue(Env *env, Type type, ClassValue *klass)
     hashmap_set_key_alloc_funcs(&m_constants, hashmap_alloc_key_string, free);
 }
 
-void ModuleValue::extend(Env *env, ModuleValue *module) {
-    singleton_class(env)->include(env, module);
+Value *ModuleValue::extend(Env *env, ssize_t argc, Value **args) {
+    for (ssize_t i = 0; i < argc; i++) {
+        extend_once(env, args[i]->as_module());
+    }
+    return this;
 }
 
-void ModuleValue::include(Env *env, ModuleValue *module) {
+void ModuleValue::extend_once(Env *env, ModuleValue *module) {
+    singleton_class(env)->include_once(env, module);
+}
+
+Value *ModuleValue::include(Env *env, ssize_t argc, Value **args) {
+    for (ssize_t i = 0; i < argc; i++) {
+        include_once(env, args[i]->as_module());
+    }
+    return this;
+}
+
+void ModuleValue::include_once(Env *env, ModuleValue *module) {
     if (m_included_modules.is_empty()) {
         m_included_modules.push(this);
     }
     m_included_modules.push(module);
 }
 
-void ModuleValue::prepend(Env *env, ModuleValue *module) {
+Value *ModuleValue::prepend(Env *env, ssize_t argc, Value **args) {
+    for (int i = argc - 1; i >= 0; i--) {
+        prepend_once(env, args[i]->as_module());
+    }
+    return this;
+}
+
+void ModuleValue::prepend_once(Env *env, ModuleValue *module) {
     if (m_included_modules.is_empty()) {
         m_included_modules.push(this);
     }
@@ -265,6 +286,163 @@ bool ModuleValue::is_method_defined(Env *env, Value *name_value) {
     const char *name = name_value->identifier_str(env, Conversion::Strict);
     ModuleValue *matching_class_or_module;
     return !!find_method(name, &matching_class_or_module);
+}
+
+Value *ModuleValue::inspect(Env *env) {
+    if (m_class_name) {
+        if (owner() && owner() != NAT_OBJECT) {
+            return StringValue::sprintf(env, "%S::%s", owner()->send(env, "inspect"), m_class_name);
+        } else {
+            return new StringValue { env, m_class_name };
+        }
+    } else if (is_class()) {
+        char buf[NAT_OBJECT_POINTER_BUF_LENGTH];
+        pointer_id(buf);
+        return StringValue::sprintf(env, "#<Class:%s>", buf);
+    } else if (is_module() && m_class_name) {
+        return new StringValue { env, m_class_name };
+    } else {
+        // TODO: extract this somewhere?
+        StringValue *str = new StringValue { env, "#<" };
+        StringValue *inspected = klass()->send(env, "inspect")->as_string();
+        str->append_string(env, inspected);
+        str->append_char(env, ':');
+        char buf[NAT_OBJECT_POINTER_BUF_LENGTH];
+        pointer_id(buf);
+        str->append(env, buf);
+        str->append_char(env, '>');
+        return str;
+    }
+}
+
+Value *ModuleValue::name(Env *env) {
+    if (m_class_name) {
+        return new StringValue { env, m_class_name };
+    } else {
+        return NAT_NIL;
+    }
+}
+
+Value *ModuleValue::attr_reader(Env *env, ssize_t argc, Value **args) {
+    for (ssize_t i = 0; i < argc; i++) {
+        Value *name_obj = args[i];
+        if (name_obj->type() == Value::Type::String) {
+            // we're good!
+        } else if (name_obj->type() == Value::Type::Symbol) {
+            name_obj = name_obj->as_symbol()->to_s(env);
+        } else {
+            NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", name_obj->send(env, "inspect"));
+        }
+        Env block_env = Env::new_detatched_block_env(env);
+        block_env.var_set("name", 0, true, name_obj);
+        Block *attr_block = new Block { block_env, this, ModuleValue::attr_reader_block_fn };
+        define_method_with_block(env, name_obj->as_string()->c_str(), attr_block);
+    }
+    return NAT_NIL;
+}
+
+Value *ModuleValue::attr_reader_block_fn(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
+    Value *name_obj = env->outer()->var_get("name", 0);
+    assert(name_obj);
+    StringValue *ivar_name = StringValue::sprintf(env, "@%S", name_obj);
+    return self->ivar_get(env, ivar_name->c_str());
+}
+
+Value *ModuleValue::attr_writer(Env *env, ssize_t argc, Value **args) {
+    for (ssize_t i = 0; i < argc; i++) {
+        Value *name_obj = args[i];
+        if (name_obj->type() == Value::Type::String) {
+            // we're good!
+        } else if (name_obj->type() == Value::Type::Symbol) {
+            name_obj = name_obj->as_symbol()->to_s(env);
+        } else {
+            NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", name_obj->send(env, "inspect"));
+        }
+        StringValue *method_name = new StringValue { env, name_obj->as_string()->c_str() };
+        method_name->append_char(env, '=');
+        Env block_env = Env::new_detatched_block_env(env);
+        block_env.var_set("name", 0, true, name_obj);
+        Block *attr_block = new Block { block_env, this, ModuleValue::attr_writer_block_fn };
+        define_method_with_block(env, method_name->c_str(), attr_block);
+    }
+    return NAT_NIL;
+}
+
+Value *ModuleValue::attr_writer_block_fn(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
+    Value *val = args[0];
+    Value *name_obj = env->outer()->var_get("name", 0);
+    assert(name_obj);
+    StringValue *ivar_name = StringValue::sprintf(env, "@%S", name_obj);
+    self->ivar_set(env, ivar_name->c_str(), val);
+    return val;
+}
+
+Value *ModuleValue::attr_accessor(Env *env, ssize_t argc, Value **args) {
+    attr_reader(env, argc, args);
+    attr_writer(env, argc, args);
+    return NAT_NIL;
+}
+
+Value *ModuleValue::included_modules(Env *env) {
+    ArrayValue *modules = new ArrayValue { env };
+    for (ModuleValue *m : included_modules()) {
+        modules->push(m);
+    }
+    return modules;
+}
+
+Value *ModuleValue::define_method(Env *env, Value *name_value, Block *block) {
+    const char *name = name_value->identifier_str(env, Value::Conversion::Strict);
+    if (!block) {
+        NAT_RAISE(env, "ArgumentError", "tried to create Proc object without a block");
+    }
+    define_method_with_block(env, name, block);
+    return SymbolValue::intern(env, name);
+}
+
+Value *ModuleValue::class_eval(Env *env, Block *block) {
+    if (!block) {
+        NAT_RAISE(env, "ArgumentError", "Natalie only supports class_eval with a block");
+    }
+    block->set_self(this);
+    NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 0, nullptr, nullptr);
+    return NAT_NIL;
+}
+
+Value *ModuleValue::private_method(Env *env, Value *method_name) {
+    printf("TODO: class private\n");
+    return NAT_NIL;
+}
+
+Value *ModuleValue::protected_method(Env *env, Value *method_name) {
+    printf("TODO: class protected\n");
+    return NAT_NIL;
+}
+
+Value *ModuleValue::public_method(Env *env, Value *method_name) {
+    printf("TODO: class public\n");
+    return NAT_NIL;
+}
+
+bool ModuleValue::const_defined(Env *env, Value *name_value) {
+    const char *name = name_value->identifier_str(env, Value::Conversion::NullAllowed);
+    if (!name) {
+        NAT_RAISE(env, "TypeError", "no implicit conversion of %v to String", name_value);
+    }
+    return !!const_get_or_null(env, name, false, false);
+}
+
+Value *ModuleValue::alias_method(Env *env, Value *new_name_value, Value *old_name_value) {
+    const char *new_name = new_name_value->identifier_str(env, Value::Conversion::NullAllowed);
+    if (!new_name) {
+        NAT_RAISE(env, "TypeError", "%s is not a symbol", new_name_value->send(env, "inspect"));
+    }
+    const char *old_name = old_name_value->identifier_str(env, Value::Conversion::NullAllowed);
+    if (!old_name) {
+        NAT_RAISE(env, "TypeError", "%s is not a symbol", old_name_value->send(env, "inspect"));
+    }
+    alias(env, new_name, old_name);
+    return this;
 }
 
 }

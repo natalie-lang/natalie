@@ -137,51 +137,6 @@ Value *Kernel_get_usage(Env *env, Value *self, ssize_t argc, Value **args, Block
 
 Value *main_obj_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
-#define NAT_MODULE_INIT(klass)                                              \
-    klass->define_singleton_method(env, "new", Module_new);                 \
-    klass->define_method(env, "inspect", Module_inspect);                   \
-    klass->define_method(env, "name", Module_name);                         \
-    klass->define_method(env, "===", Module_eqeqeq);                        \
-    klass->define_method(env, "ancestors", Module_ancestors);               \
-    klass->define_method(env, "attr", Module_attr_reader);                  \
-    klass->define_method(env, "attr_reader", Module_attr_reader);           \
-    klass->define_method(env, "attr_writer", Module_attr_writer);           \
-    klass->define_method(env, "attr_accessor", Module_attr_accessor);       \
-    klass->define_method(env, "extend", Module_extend);                     \
-    klass->define_method(env, "include", Module_include);                   \
-    klass->define_method(env, "prepend", Module_prepend);                   \
-    klass->define_method(env, "included_modules", Module_included_modules); \
-    klass->define_method(env, "define_method", Module_define_method);       \
-    klass->define_method(env, "class_eval", Module_class_eval);             \
-    klass->define_method(env, "private", Module_private);                   \
-    klass->define_method(env, "protected", Module_protected);               \
-    klass->define_method(env, "const_defined?", Module_const_defined);      \
-    klass->define_method(env, "alias_method", Module_alias_method);         \
-    klass->define_method(env, "method_defined?", Module_method_defined);    \
-    klass->define_method(env, "private_method_defined?", Module_method_defined);
-
-Value *Module_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Module_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Module_eqeqeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Module_name(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Module_ancestors(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Module_attr_reader(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Module_attr_reader_block_fn(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Module_attr_writer(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Module_attr_writer_block_fn(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Module_attr_accessor(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Module_extend(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Module_include(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Module_prepend(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Module_included_modules(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Module_define_method(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Module_class_eval(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Module_private(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Module_protected(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Module_const_defined(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Module_alias_method(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Module_method_defined(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-
 #define NAT_PROCESS_INIT(module) \
     module->define_singleton_method(env, "pid", Process_pid);
 

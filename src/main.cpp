@@ -33,11 +33,10 @@ extern "C" Env *build_top_env() {
     ClassValue *Module = Object->subclass(env, "Module", Value::Type::Module);
     Object->const_set(env, "Module", Module);
     Class->set_superclass_DANGEROUSLY(Module);
-    NAT_MODULE_INIT(Module);
 
     ModuleValue *Kernel = new ModuleValue { env, "Kernel" };
     Object->const_set(env, "Kernel", Kernel);
-    Object->include(env, Kernel);
+    Object->include_once(env, Kernel);
     NAT_KERNEL_INIT(Kernel);
 
     ModuleValue *Comparable = new ModuleValue { env, "Comparable" };
@@ -67,7 +66,7 @@ extern "C" Env *build_top_env() {
 
     ClassValue *Numeric = Object->subclass(env, "Numeric");
     Object->const_set(env, "Numeric", Numeric);
-    Numeric->include(env, Comparable);
+    Numeric->include_once(env, Comparable);
 
     ClassValue *Integer = Numeric->subclass(env, "Integer", Value::Type::Integer);
     Object->const_set(env, "Integer", Integer);
@@ -80,7 +79,7 @@ extern "C" Env *build_top_env() {
 
     ClassValue *String = Object->subclass(env, "String", Value::Type::String);
     Object->const_set(env, "String", String);
-    String->include(env, Comparable);
+    String->include_once(env, Comparable);
 
     ClassValue *Array = Object->subclass(env, "Array", Value::Type::Array);
     Object->const_set(env, "Array", Array);

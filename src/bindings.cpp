@@ -800,6 +800,146 @@ Value *MatchDataValue_ref_binding(Env *env, Value *self_value, ssize_t argc, Val
     return return_value;
 }
 
+Value *ModuleValue_eqeqeq_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    ModuleValue *self = self_value->as_module();
+    auto return_value = self->eqeqeq(env, argc > 0 ? args[0] : nullptr);
+    if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
+}
+
+Value *ModuleValue_alias_method_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(2);
+    ModuleValue *self = self_value->as_module();
+    auto return_value = self->alias_method(env, argc > 0 ? args[0] : nullptr, argc > 1 ? args[1] : nullptr);
+    return return_value;
+}
+
+Value *ModuleValue_ancestors_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    ModuleValue *self = self_value->as_module();
+    auto return_value = self->ancestors(env);
+    return return_value;
+}
+
+Value *ModuleValue_attr_reader_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC_AT_LEAST(1);
+    ModuleValue *self = self_value->as_module();
+    auto return_value = self->attr_reader(env, argc, args);
+    return return_value;
+}
+
+Value *ModuleValue_attr_accessor_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC_AT_LEAST(1);
+    ModuleValue *self = self_value->as_module();
+    auto return_value = self->attr_accessor(env, argc, args);
+    return return_value;
+}
+
+Value *ModuleValue_attr_reader_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC_AT_LEAST(1);
+    ModuleValue *self = self_value->as_module();
+    auto return_value = self->attr_reader(env, argc, args);
+    return return_value;
+}
+
+Value *ModuleValue_attr_writer_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC_AT_LEAST(1);
+    ModuleValue *self = self_value->as_module();
+    auto return_value = self->attr_writer(env, argc, args);
+    return return_value;
+}
+
+Value *ModuleValue_class_eval_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    ModuleValue *self = self_value->as_module();
+    auto return_value = self->class_eval(env, block);
+    return return_value;
+}
+
+Value *ModuleValue_const_defined_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    ModuleValue *self = self_value->as_module();
+    auto return_value = self->const_defined(env, argc > 0 ? args[0] : nullptr);
+    if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
+}
+
+Value *ModuleValue_define_method_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    ModuleValue *self = self_value->as_module();
+    auto return_value = self->define_method(env, argc > 0 ? args[0] : nullptr, block);
+    return return_value;
+}
+
+Value *ModuleValue_extend_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC_AT_LEAST(1);
+    ModuleValue *self = self_value->as_module();
+    auto return_value = self->extend(env, argc, args);
+    return return_value;
+}
+
+Value *ModuleValue_include_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC_AT_LEAST(1);
+    ModuleValue *self = self_value->as_module();
+    auto return_value = self->include(env, argc, args);
+    return return_value;
+}
+
+Value *ModuleValue_included_modules_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    ModuleValue *self = self_value->as_module();
+    auto return_value = self->included_modules(env);
+    return return_value;
+}
+
+Value *ModuleValue_inspect_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    ModuleValue *self = self_value->as_module();
+    auto return_value = self->inspect(env);
+    return return_value;
+}
+
+Value *ModuleValue_is_method_defined_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    ModuleValue *self = self_value->as_module();
+    auto return_value = self->is_method_defined(env, argc > 0 ? args[0] : nullptr);
+    if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
+}
+
+Value *ModuleValue_name_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    ModuleValue *self = self_value->as_module();
+    auto return_value = self->name(env);
+    return return_value;
+}
+
+Value *ModuleValue_prepend_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC_AT_LEAST(1);
+    ModuleValue *self = self_value->as_module();
+    auto return_value = self->prepend(env, argc, args);
+    return return_value;
+}
+
+Value *ModuleValue_private_method_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0, 1);
+    ModuleValue *self = self_value->as_module();
+    auto return_value = self->private_method(env, argc > 0 ? args[0] : nullptr);
+    return return_value;
+}
+
+Value *ModuleValue_protected_method_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0, 1);
+    ModuleValue *self = self_value->as_module();
+    auto return_value = self->protected_method(env, argc > 0 ? args[0] : nullptr);
+    return return_value;
+}
+
+Value *ModuleValue_public_method_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0, 1);
+    ModuleValue *self = self_value->as_module();
+    auto return_value = self->public_method(env, argc > 0 ? args[0] : nullptr);
+    return return_value;
+}
+
 Value *NilValue_inspect_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     NilValue *self = self_value->as_nil();
@@ -1338,6 +1478,27 @@ void init_bindings(Env *env) {
     MatchData->define_method(env, "length", MatchDataValue_size_binding1);
     MatchData->define_method(env, "to_s", MatchDataValue_to_s_binding);
     MatchData->define_method(env, "[]", MatchDataValue_ref_binding);
+    Value *Module = NAT_OBJECT->const_get(env, "Module", true);
+    Module->define_method(env, "===", ModuleValue_eqeqeq_binding);
+    Module->define_method(env, "alias_method", ModuleValue_alias_method_binding);
+    Module->define_method(env, "ancestors", ModuleValue_ancestors_binding);
+    Module->define_method(env, "attr", ModuleValue_attr_reader_binding);
+    Module->define_method(env, "attr_accessor", ModuleValue_attr_accessor_binding);
+    Module->define_method(env, "attr_reader", ModuleValue_attr_reader_binding1);
+    Module->define_method(env, "attr_writer", ModuleValue_attr_writer_binding);
+    Module->define_method(env, "class_eval", ModuleValue_class_eval_binding);
+    Module->define_method(env, "const_defined?", ModuleValue_const_defined_binding);
+    Module->define_method(env, "define_method", ModuleValue_define_method_binding);
+    Module->define_method(env, "extend", ModuleValue_extend_binding);
+    Module->define_method(env, "include", ModuleValue_include_binding);
+    Module->define_method(env, "included_modules", ModuleValue_included_modules_binding);
+    Module->define_method(env, "inspect", ModuleValue_inspect_binding);
+    Module->define_method(env, "method_defined?", ModuleValue_is_method_defined_binding);
+    Module->define_method(env, "name", ModuleValue_name_binding);
+    Module->define_method(env, "prepend", ModuleValue_prepend_binding);
+    Module->define_method(env, "private", ModuleValue_private_method_binding);
+    Module->define_method(env, "protected", ModuleValue_protected_method_binding);
+    Module->define_method(env, "public", ModuleValue_public_method_binding);
     Value *NilClass = NAT_OBJECT->const_get(env, "NilClass", true);
     NilClass->define_method(env, "inspect", NilValue_inspect_binding);
     NilClass->define_method(env, "to_a", NilValue_to_a_binding);

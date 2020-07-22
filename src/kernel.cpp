@@ -40,7 +40,7 @@ Value *Kernel_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *
     } else {
         StringValue *str = new StringValue { env, "#<" };
         assert(self->klass());
-        StringValue *inspected = static_cast<StringValue *>(Module_inspect(env, self->klass(), 0, nullptr, nullptr));
+        StringValue *inspected = self->klass()->send(env, "inspect")->as_string();
         str->append_string(env, inspected);
         str->append_char(env, ':');
         char buf[NAT_OBJECT_POINTER_BUF_LENGTH];
