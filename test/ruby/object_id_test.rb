@@ -16,7 +16,7 @@ describe 'object_id' do
       'p([nil.object_id, nil.object_id])' => /^\[([0-9]+), \1\]$/
     }
 
-    before do 
+    before do
       @output = `bin/natalie -e #{TESTS.keys.join(';').inspect}`.strip.split(/\n/)
       expect($?).must_be :success?
     end

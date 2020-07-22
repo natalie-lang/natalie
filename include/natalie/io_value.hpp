@@ -17,8 +17,20 @@ struct IoValue : Value {
     IoValue(Env *env, ClassValue *klass)
         : Value { Value::Type::Io, klass } { }
 
+    IoValue(Env *env, int fileno)
+        : Value { Value::Type::Io, NAT_OBJECT->const_get(env, "IO", true)->as_class() }
+        , m_fileno { fileno } { }
+
     int fileno() { return m_fileno; }
     void set_fileno(int fileno) { m_fileno = fileno; }
+
+    Value *initialize(Env *, Value *);
+    Value *read(Env *, Value *);
+    Value *write(Env *, ssize_t, Value **);
+    Value *puts(Env *, ssize_t, Value **);
+    Value *print(Env *, ssize_t, Value **);
+    Value *close(Env *);
+    Value *seek(Env *, Value *, Value *);
 
 private:
     int m_fileno { 0 };

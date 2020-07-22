@@ -6,13 +6,13 @@
 namespace Natalie {
 
 Value *Kernel_puts(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
-    Value *stdout = env->global_get("$stdout");
-    return IO_puts(env, stdout, argc, args, block);
+    IoValue *stdout = env->global_get("$stdout")->as_io();
+    return stdout->puts(env, argc, args);
 }
 
 Value *Kernel_print(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
-    Value *stdout = env->global_get("$stdout");
-    return IO_print(env, stdout, argc, args, block);
+    IoValue *stdout = env->global_get("$stdout")->as_io();
+    return stdout->print(env, argc, args);
 }
 
 Value *Kernel_p(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {

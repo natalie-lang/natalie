@@ -716,6 +716,62 @@ Value *IntegerValue_bitwise_or_binding(Env *env, Value *self_value, ssize_t argc
     return return_value;
 }
 
+Value *IoValue_initialize_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    IoValue *self = self_value->as_io();
+    auto return_value = self->initialize(env, argc > 0 ? args[0] : nullptr);
+    return return_value;
+}
+
+Value *IoValue_fileno_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    IoValue *self = self_value->as_io();
+    auto return_value = self->fileno();
+    return new IntegerValue { env, return_value };
+}
+
+Value *IoValue_read_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0, 1);
+    IoValue *self = self_value->as_io();
+    auto return_value = self->read(env, argc > 0 ? args[0] : nullptr);
+    return return_value;
+}
+
+Value *IoValue_write_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC_AT_LEAST(1);
+    IoValue *self = self_value->as_io();
+    auto return_value = self->write(env, argc, args);
+    return return_value;
+}
+
+Value *IoValue_puts_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    
+    IoValue *self = self_value->as_io();
+    auto return_value = self->puts(env, argc, args);
+    return return_value;
+}
+
+Value *IoValue_print_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    
+    IoValue *self = self_value->as_io();
+    auto return_value = self->print(env, argc, args);
+    return return_value;
+}
+
+Value *IoValue_close_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    IoValue *self = self_value->as_io();
+    auto return_value = self->close(env);
+    return return_value;
+}
+
+Value *IoValue_seek_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1, 2);
+    IoValue *self = self_value->as_io();
+    auto return_value = self->seek(env, argc > 0 ? args[0] : nullptr, argc > 1 ? args[1] : nullptr);
+    return return_value;
+}
+
 Value *NilValue_to_a_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     NilValue *self = self_value->as_nil();
@@ -1107,6 +1163,15 @@ void init_bindings(Env *env) {
     Integer->define_method(env, "to_i", IntegerValue_to_i_binding);
     Integer->define_method(env, "to_s", IntegerValue_to_s_binding1);
     Integer->define_method(env, "|", IntegerValue_bitwise_or_binding);
+    Value *IO = NAT_OBJECT->const_get(env, "IO", true);
+    IO->define_method(env, "initialize", IoValue_initialize_binding);
+    IO->define_method(env, "fileno", IoValue_fileno_binding);
+    IO->define_method(env, "read", IoValue_read_binding);
+    IO->define_method(env, "write", IoValue_write_binding);
+    IO->define_method(env, "puts", IoValue_puts_binding);
+    IO->define_method(env, "print", IoValue_print_binding);
+    IO->define_method(env, "close", IoValue_close_binding);
+    IO->define_method(env, "seek", IoValue_seek_binding);
     Value *NilClass = NAT_OBJECT->const_get(env, "NilClass", true);
     NilClass->define_method(env, "to_a", NilValue_to_a_binding);
     NilClass->define_method(env, "to_i", NilValue_to_i_binding);

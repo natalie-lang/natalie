@@ -106,7 +106,6 @@ extern "C" Env *build_top_env() {
 
     ClassValue *IO = Object->subclass(env, "IO", Value::Type::Io);
     Object->const_set(env, "IO", IO);
-    NAT_IO_INIT(IO);
 
     ClassValue *File = IO->subclass(env, "File");
     Object->const_set(env, "File", File);
@@ -169,21 +168,15 @@ extern "C" Env *build_top_env() {
     self->define_singleton_method(env, "inspect", main_obj_inspect);
     env->global_set("$NAT_main_object", self);
 
-    Value *stdin_fileno = new IntegerValue { env, STDIN_FILENO };
-    Value *stdin = new IoValue { env };
-    stdin->initialize(env, 1, &stdin_fileno, nullptr);
+    Value *stdin = new IoValue { env, STDIN_FILENO };
     env->global_set("$stdin", stdin);
     Object->const_set(env, "STDIN", stdin);
 
-    Value *stdout_fileno = new IntegerValue { env, STDOUT_FILENO };
-    Value *stdout = new IoValue { env };
-    stdout->initialize(env, 1, &stdout_fileno, nullptr);
+    Value *stdout = new IoValue { env, STDOUT_FILENO };
     env->global_set("$stdout", stdout);
     Object->const_set(env, "STDOUT", stdout);
 
-    Value *stderr_fileno = new IntegerValue { env, STDERR_FILENO };
-    Value *stderr = new IoValue { env };
-    stderr->initialize(env, 1, &stderr_fileno, nullptr);
+    Value *stderr = new IoValue { env, STDERR_FILENO };
     env->global_set("$stderr", stderr);
     Object->const_set(env, "STDERR", stderr);
 

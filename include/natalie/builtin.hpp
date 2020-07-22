@@ -68,27 +68,6 @@ Value *ENV_refeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block
 Value *File_initialize(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *File_expand_path(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
-#define NAT_IO_INIT(klass)                                  \
-    klass->define_singleton_method(env, "new", IO_new);     \
-    klass->define_method(env, "initialize", IO_initialize); \
-    klass->define_method(env, "fileno", IO_fileno);         \
-    klass->define_method(env, "read", IO_read);             \
-    klass->define_method(env, "write", IO_write);           \
-    klass->define_method(env, "puts", IO_puts);             \
-    klass->define_method(env, "print", IO_print);           \
-    klass->define_method(env, "close", IO_close);           \
-    klass->define_method(env, "seek", IO_seek);
-
-Value *IO_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *IO_initialize(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *IO_fileno(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *IO_read(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *IO_write(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *IO_puts(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *IO_print(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *IO_close(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *IO_seek(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-
 #define NAT_KERNEL_INIT(module)                                                            \
     module->define_method(env, "puts", Kernel_puts);                                       \
     module->define_method(env, "print", Kernel_print);                                     \

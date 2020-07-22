@@ -84,9 +84,16 @@ Value *#{name}(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
     end
 
     def args_to_pass
-      if argc == :any
+      case argc
+      when :any
         [env_arg, 'argc', 'args', block_arg].compact.join(', ')
-      else
+      when Range
+        if argc.end
+          ([env_arg] + args + [block_arg]).compact.join(', ')
+        else
+          [env_arg, 'argc', 'args', block_arg].compact.join(', ')
+        end
+      when Integer
         ([env_arg] + args + [block_arg]).compact.join(', ')
       end
     end
@@ -106,7 +113,11 @@ Value *#{name}(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
       when :any
         ''
       when Range
-        "NAT_ASSERT_ARGC(#{argc.begin}, #{argc.end});"
+        if argc.end
+          "NAT_ASSERT_ARGC(#{argc.begin}, #{argc.end});"
+        else
+          "NAT_ASSERT_ARGC_AT_LEAST(#{argc.begin});"
+        end
       when Integer
         "NAT_ASSERT_ARGC(#{argc});"
       else
@@ -144,7 +155,7 @@ Value *#{name}(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
       case return_type
       when :bool
         'if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }'
-      when :ssize_t
+      when :ssize_t, :int
         'return new IntegerValue { env, return_value };'
       when :Value
         'return return_value;'
@@ -292,6 +303,15 @@ gen.binding('Integer', 'times', 'IntegerValue', 'times', argc: 0, pass_env: true
 gen.binding('Integer', 'to_i', 'IntegerValue', 'to_i', argc: 0, pass_env: false, pass_block: false, return_type: :Value);
 gen.binding('Integer', 'to_s', 'IntegerValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
 gen.binding('Integer', '|', 'IntegerValue', 'bitwise_or', argc: 1, pass_env: true, pass_block: false, return_type: :Value);
+
+gen.binding('IO', 'initialize', 'IoValue', 'initialize', argc: 1, pass_env: true, pass_block: false, return_type: :Value);
+gen.binding('IO', 'fileno', 'IoValue', 'fileno', argc: 0, pass_env: false, pass_block: false, return_type: :int);
+gen.binding('IO', 'read', 'IoValue', 'read', argc: 0..1, pass_env: true, pass_block: false, return_type: :Value);
+gen.binding('IO', 'write', 'IoValue', 'write', argc: 1.., pass_env: true, pass_block: false, return_type: :Value);
+gen.binding('IO', 'puts', 'IoValue', 'puts', argc: :any, pass_env: true, pass_block: false, return_type: :Value);
+gen.binding('IO', 'print', 'IoValue', 'print', argc: :any, pass_env: true, pass_block: false, return_type: :Value);
+gen.binding('IO', 'close', 'IoValue', 'close', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
+gen.binding('IO', 'seek', 'IoValue', 'seek', argc: 1..2, pass_env: true, pass_block: false, return_type: :Value);
 
 gen.undefine_singleton_method('NilClass', 'new')
 gen.binding('NilClass', 'to_a', 'NilValue', 'to_a', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
