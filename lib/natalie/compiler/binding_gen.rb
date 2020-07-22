@@ -147,7 +147,8 @@ Value *#{name}(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
       if cpp_class == 'Value'
         value
       else
-        "#{value}->as_#{cpp_class.sub(/Value/, '').downcase}()"
+        underscored = cpp_class.sub(/Value/, '').gsub(/([a-z])([A-Z])/,'\1_\2').downcase
+        "#{value}->as_#{underscored}()"
       end
     end
 
@@ -312,6 +313,11 @@ gen.binding('IO', 'puts', 'IoValue', 'puts', argc: :any, pass_env: true, pass_bl
 gen.binding('IO', 'read', 'IoValue', 'read', argc: 0..1, pass_env: true, pass_block: false, return_type: :Value);
 gen.binding('IO', 'seek', 'IoValue', 'seek', argc: 1..2, pass_env: true, pass_block: false, return_type: :Value);
 gen.binding('IO', 'write', 'IoValue', 'write', argc: 1.., pass_env: true, pass_block: false, return_type: :Value);
+
+gen.binding('MatchData', 'size', 'MatchDataValue', 'size', argc: 0, pass_env: false, pass_block: false, return_type: :ssize_t);
+gen.binding('MatchData', 'length', 'MatchDataValue', 'size', argc: 0, pass_env: false, pass_block: false, return_type: :ssize_t);
+gen.binding('MatchData', 'to_s', 'MatchDataValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value);
+gen.binding('MatchData', '[]', 'MatchDataValue', 'ref', argc: 1, pass_env: true, pass_block: false, return_type: :Value);
 
 gen.undefine_singleton_method('NilClass', 'new')
 gen.binding('NilClass', 'inspect', 'NilValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value);

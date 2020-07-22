@@ -137,16 +137,6 @@ Value *Kernel_get_usage(Env *env, Value *self, ssize_t argc, Value **args, Block
 
 Value *main_obj_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
-#define NAT_MATCH_DATA_INIT(klass)                       \
-    klass->define_method(env, "size", MatchData_size);   \
-    klass->define_method(env, "length", MatchData_size); \
-    klass->define_method(env, "to_s", MatchData_to_s);   \
-    klass->define_method(env, "[]", MatchData_ref);
-
-Value *MatchData_size(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *MatchData_to_s(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *MatchData_ref(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-
 #define NAT_MODULE_INIT(klass)                                              \
     klass->define_singleton_method(env, "new", Module_new);                 \
     klass->define_method(env, "inspect", Module_inspect);                   \

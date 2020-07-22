@@ -31,6 +31,9 @@ struct MatchDataValue : Value {
 
     Value *group(Env *, ssize_t);
 
+    Value *to_s(Env *);
+    Value *ref(Env *, Value *);
+
 private:
     OnigRegion *m_region { nullptr };
     const char *m_str { nullptr };

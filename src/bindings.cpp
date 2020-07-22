@@ -772,6 +772,34 @@ Value *IoValue_write_binding(Env *env, Value *self_value, ssize_t argc, Value **
     return return_value;
 }
 
+Value *MatchDataValue_size_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    MatchDataValue *self = self_value->as_match_data();
+    auto return_value = self->size();
+    return new IntegerValue { env, return_value };
+}
+
+Value *MatchDataValue_size_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    MatchDataValue *self = self_value->as_match_data();
+    auto return_value = self->size();
+    return new IntegerValue { env, return_value };
+}
+
+Value *MatchDataValue_to_s_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    MatchDataValue *self = self_value->as_match_data();
+    auto return_value = self->to_s(env);
+    return return_value;
+}
+
+Value *MatchDataValue_ref_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    MatchDataValue *self = self_value->as_match_data();
+    auto return_value = self->ref(env, argc > 0 ? args[0] : nullptr);
+    return return_value;
+}
+
 Value *NilValue_inspect_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     NilValue *self = self_value->as_nil();
@@ -1172,6 +1200,11 @@ void init_bindings(Env *env) {
     IO->define_method(env, "read", IoValue_read_binding);
     IO->define_method(env, "seek", IoValue_seek_binding);
     IO->define_method(env, "write", IoValue_write_binding);
+    Value *MatchData = NAT_OBJECT->const_get(env, "MatchData", true);
+    MatchData->define_method(env, "size", MatchDataValue_size_binding);
+    MatchData->define_method(env, "length", MatchDataValue_size_binding1);
+    MatchData->define_method(env, "to_s", MatchDataValue_to_s_binding);
+    MatchData->define_method(env, "[]", MatchDataValue_ref_binding);
     Value *NilClass = NAT_OBJECT->const_get(env, "NilClass", true);
     NilClass->define_method(env, "inspect", NilValue_inspect_binding);
     NilClass->define_method(env, "to_a", NilValue_to_a_binding);

@@ -98,7 +98,6 @@ extern "C" Env *build_top_env() {
 
     ClassValue *MatchData = Object->subclass(env, "MatchData", Value::Type::MatchData);
     Object->const_set(env, "MatchData", MatchData);
-    NAT_MATCH_DATA_INIT(MatchData);
 
     ClassValue *Proc = Object->subclass(env, "Proc", Value::Type::Proc);
     Object->const_set(env, "Proc", Proc);
