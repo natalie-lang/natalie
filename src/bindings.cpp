@@ -856,6 +856,90 @@ Value *ProcValue_is_lambda_binding(Env *env, Value *self_value, ssize_t argc, Va
     if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
 }
 
+Value *RangeValue_initialize_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(2, 3);
+    RangeValue *self = self_value->as_range();
+    auto return_value = self->initialize(env, argc > 0 ? args[0] : nullptr, argc > 1 ? args[1] : nullptr, argc > 2 ? args[2] : nullptr);
+    return return_value;
+}
+
+Value *RangeValue_begin_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    RangeValue *self = self_value->as_range();
+    auto return_value = self->begin();
+    return return_value;
+}
+
+Value *RangeValue_begin_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    RangeValue *self = self_value->as_range();
+    auto return_value = self->begin();
+    return return_value;
+}
+
+Value *RangeValue_end_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    RangeValue *self = self_value->as_range();
+    auto return_value = self->end();
+    return return_value;
+}
+
+Value *RangeValue_end_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    RangeValue *self = self_value->as_range();
+    auto return_value = self->end();
+    return return_value;
+}
+
+Value *RangeValue_exclude_end_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    RangeValue *self = self_value->as_range();
+    auto return_value = self->exclude_end();
+    if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
+}
+
+Value *RangeValue_to_a_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    RangeValue *self = self_value->as_range();
+    auto return_value = self->to_a(env);
+    return return_value;
+}
+
+Value *RangeValue_each_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    RangeValue *self = self_value->as_range();
+    auto return_value = self->each(env, block);
+    return return_value;
+}
+
+Value *RangeValue_inspect_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    RangeValue *self = self_value->as_range();
+    auto return_value = self->inspect(env);
+    return return_value;
+}
+
+Value *RangeValue_eq_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    RangeValue *self = self_value->as_range();
+    auto return_value = self->eq(env, argc > 0 ? args[0] : nullptr);
+    return return_value;
+}
+
+Value *RangeValue_eqeqeq_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    RangeValue *self = self_value->as_range();
+    auto return_value = self->eqeqeq(env, argc > 0 ? args[0] : nullptr);
+    return return_value;
+}
+
+Value *RangeValue_eqeqeq_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    RangeValue *self = self_value->as_range();
+    auto return_value = self->eqeqeq(env, argc > 0 ? args[0] : nullptr);
+    return return_value;
+}
+
 Value *RegexpValue_eq_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     RegexpValue *self = self_value->as_regexp();
@@ -1265,6 +1349,19 @@ void init_bindings(Env *env) {
     Proc->define_method(env, "initialize", ProcValue_initialize_binding);
     Proc->define_method(env, "call", ProcValue_call_binding);
     Proc->define_method(env, "lambda?", ProcValue_is_lambda_binding);
+    Value *Range = NAT_OBJECT->const_get(env, "Range", true);
+    Range->define_method(env, "initialize", RangeValue_initialize_binding);
+    Range->define_method(env, "begin", RangeValue_begin_binding);
+    Range->define_method(env, "first", RangeValue_begin_binding1);
+    Range->define_method(env, "end", RangeValue_end_binding);
+    Range->define_method(env, "last", RangeValue_end_binding1);
+    Range->define_method(env, "exclude_end?", RangeValue_exclude_end_binding);
+    Range->define_method(env, "to_a", RangeValue_to_a_binding);
+    Range->define_method(env, "each", RangeValue_each_binding);
+    Range->define_method(env, "inspect", RangeValue_inspect_binding);
+    Range->define_method(env, "==", RangeValue_eq_binding);
+    Range->define_method(env, "===", RangeValue_eqeqeq_binding);
+    Range->define_method(env, "include?", RangeValue_eqeqeq_binding1);
     Value *Regexp = NAT_OBJECT->const_get(env, "Regexp", true);
     Regexp->define_method(env, "==", RegexpValue_eq_binding);
     Regexp->define_method(env, "===", RegexpValue_match_binding);

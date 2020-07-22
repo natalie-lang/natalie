@@ -182,33 +182,9 @@ Value *Module_const_defined(Env *env, Value *self, ssize_t argc, Value **args, B
 Value *Module_alias_method(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Module_method_defined(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
-#define NAT_RANGE_INIT(klass)                                     \
-    klass->define_singleton_method(env, "new", Range_new);        \
-    klass->define_method(env, "begin", Range_begin);              \
-    klass->define_method(env, "first", Range_begin);              \
-    klass->define_method(env, "end", Range_end);                  \
-    klass->define_method(env, "last", Range_end);                 \
-    klass->define_method(env, "exclude_end?", Range_exclude_end); \
-    klass->define_method(env, "to_a", Range_to_a);                \
-    klass->define_method(env, "each", Range_each);                \
-    klass->define_method(env, "inspect", Range_inspect);          \
-    klass->define_method(env, "==", Range_eqeq);                  \
-    klass->define_method(env, "===", Range_eqeqeq);               \
-    klass->define_method(env, "include?", Range_eqeqeq);
-
 #define NAT_PROCESS_INIT(module) \
     module->define_singleton_method(env, "pid", Process_pid);
 
 Value *Process_pid(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-
-Value *Range_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Range_begin(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Range_end(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Range_exclude_end(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Range_to_a(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Range_each(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Range_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Range_eqeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Range_eqeqeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
 }

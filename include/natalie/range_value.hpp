@@ -27,6 +27,13 @@ struct RangeValue : Value {
     Value *end() { return m_end; }
     bool exclude_end() { return m_exclude_end; }
 
+    Value *initialize(Env *, Value *, Value *, Value *);
+    Value *to_a(Env *);
+    Value *each(Env *, Block *);
+    Value *inspect(Env *);
+    Value *eq(Env *, Value *);
+    Value *eqeqeq(Env *, Value *);
+
 private:
     Value *m_begin { nullptr };
     Value *m_end { nullptr };

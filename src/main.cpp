@@ -93,7 +93,6 @@ extern "C" Env *build_top_env() {
 
     ClassValue *Range = Object->subclass(env, "Range", Value::Type::Range);
     Object->const_set(env, "Range", Range);
-    NAT_RANGE_INIT(Range);
 
     ClassValue *MatchData = Object->subclass(env, "MatchData", Value::Type::MatchData);
     Object->const_set(env, "MatchData", MatchData);
