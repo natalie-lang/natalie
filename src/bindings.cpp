@@ -479,6 +479,110 @@ Value *FloatValue_is_zero_binding(Env *env, Value *self_value, ssize_t argc, Val
     if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
 }
 
+Value *HashValue_square_new_singleton_binding(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
+    
+    auto return_value = HashValue::square_new(env, argc, args);
+    return return_value;
+}
+
+Value *HashValue_initialize_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0, 1);
+    HashValue *self = self_value->as_hash();
+    auto return_value = self->initialize(env, argc > 0 ? args[0] : nullptr, block);
+    return return_value;
+}
+
+Value *HashValue_inspect_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    HashValue *self = self_value->as_hash();
+    auto return_value = self->inspect(env);
+    return return_value;
+}
+
+Value *HashValue_inspect_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    HashValue *self = self_value->as_hash();
+    auto return_value = self->inspect(env);
+    return return_value;
+}
+
+Value *HashValue_ref_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    HashValue *self = self_value->as_hash();
+    auto return_value = self->ref(env, argc > 0 ? args[0] : nullptr);
+    return return_value;
+}
+
+Value *HashValue_refeq_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(2);
+    HashValue *self = self_value->as_hash();
+    auto return_value = self->refeq(env, argc > 0 ? args[0] : nullptr, argc > 1 ? args[1] : nullptr);
+    return return_value;
+}
+
+Value *HashValue_delete_key_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    HashValue *self = self_value->as_hash();
+    auto return_value = self->delete_key(env, argc > 0 ? args[0] : nullptr);
+    return return_value;
+}
+
+Value *HashValue_size_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    HashValue *self = self_value->as_hash();
+    auto return_value = self->size(env);
+    return return_value;
+}
+
+Value *HashValue_eq_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    HashValue *self = self_value->as_hash();
+    auto return_value = self->eq(env, argc > 0 ? args[0] : nullptr);
+    return return_value;
+}
+
+Value *HashValue_eq_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    HashValue *self = self_value->as_hash();
+    auto return_value = self->eq(env, argc > 0 ? args[0] : nullptr);
+    return return_value;
+}
+
+Value *HashValue_each_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    HashValue *self = self_value->as_hash();
+    auto return_value = self->each(env, block);
+    return return_value;
+}
+
+Value *HashValue_keys_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    HashValue *self = self_value->as_hash();
+    auto return_value = self->keys(env);
+    return return_value;
+}
+
+Value *HashValue_values_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    HashValue *self = self_value->as_hash();
+    auto return_value = self->values(env);
+    return return_value;
+}
+
+Value *HashValue_sort_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    HashValue *self = self_value->as_hash();
+    auto return_value = self->sort(env);
+    return return_value;
+}
+
+Value *HashValue_has_key_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    HashValue *self = self_value->as_hash();
+    auto return_value = self->has_key(env, argc > 0 ? args[0] : nullptr);
+    return return_value;
+}
+
 Value *IntegerValue_mod_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     IntegerValue *self = self_value->as_integer();
@@ -967,6 +1071,22 @@ void init_bindings(Env *env) {
     Float->define_method(env, "to_i", FloatValue_to_i_binding);
     Float->define_method(env, "to_s", FloatValue_to_s_binding1);
     Float->define_method(env, "zero?", FloatValue_is_zero_binding);
+    Value *Hash = NAT_OBJECT->const_get(env, "Hash", true);
+    Hash->define_singleton_method(env, "[]", HashValue_square_new_singleton_binding);
+    Hash->define_method(env, "initialize", HashValue_initialize_binding);
+    Hash->define_method(env, "inspect", HashValue_inspect_binding);
+    Hash->define_method(env, "to_s", HashValue_inspect_binding1);
+    Hash->define_method(env, "[]", HashValue_ref_binding);
+    Hash->define_method(env, "[]=", HashValue_refeq_binding);
+    Hash->define_method(env, "delete", HashValue_delete_key_binding);
+    Hash->define_method(env, "size", HashValue_size_binding);
+    Hash->define_method(env, "==", HashValue_eq_binding);
+    Hash->define_method(env, "===", HashValue_eq_binding1);
+    Hash->define_method(env, "each", HashValue_each_binding);
+    Hash->define_method(env, "keys", HashValue_keys_binding);
+    Hash->define_method(env, "values", HashValue_values_binding);
+    Hash->define_method(env, "sort", HashValue_sort_binding);
+    Hash->define_method(env, "key?", HashValue_has_key_binding);
     Value *Integer = NAT_OBJECT->const_get(env, "Integer", true);
     Integer->define_method(env, "%", IntegerValue_mod_binding);
     Integer->define_method(env, "&", IntegerValue_bitwise_and_binding);

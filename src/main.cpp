@@ -88,7 +88,6 @@ extern "C" Env *build_top_env() {
 
     ClassValue *Hash = Object->subclass(env, "Hash", Value::Type::Hash);
     Object->const_set(env, "Hash", Hash);
-    NAT_HASH_INIT(Hash);
 
     ClassValue *Regexp = Object->subclass(env, "Regexp", Value::Type::Regexp);
     Object->const_set(env, "Regexp", Regexp);

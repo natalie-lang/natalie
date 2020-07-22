@@ -21,7 +21,7 @@ Value *ENV_inspect(Env *env, Value *self_value, ssize_t argc, Value **args, Bloc
         hash->put(env, name, new StringValue { env, getenv(name->c_str()) });
         pair = *(environ + i);
     }
-    return Hash_inspect(env, hash, 0, nullptr, nullptr);
+    return hash->inspect(env);
 }
 
 Value *ENV_ref(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {

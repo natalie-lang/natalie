@@ -68,37 +68,6 @@ Value *ENV_refeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block
 Value *File_initialize(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *File_expand_path(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
-#define NAT_HASH_INIT(klass)                                    \
-    klass->define_singleton_method(env, "new", Hash_new);       \
-    klass->define_singleton_method(env, "[]", Hash_square_new); \
-    klass->define_method(env, "inspect", Hash_inspect);         \
-    klass->define_method(env, "to_s", Hash_inspect);            \
-    klass->define_method(env, "[]", Hash_ref);                  \
-    klass->define_method(env, "[]=", Hash_refeq);               \
-    klass->define_method(env, "delete", Hash_delete);           \
-    klass->define_method(env, "size", Hash_size);               \
-    klass->define_method(env, "==", Hash_eqeq);                 \
-    klass->define_method(env, "===", Hash_eqeq);                \
-    klass->define_method(env, "each", Hash_each);               \
-    klass->define_method(env, "keys", Hash_keys);               \
-    klass->define_method(env, "values", Hash_values);           \
-    klass->define_method(env, "sort", Hash_sort);               \
-    klass->define_method(env, "key?", Hash_is_key);
-
-Value *Hash_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Hash_square_new(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Hash_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Hash_ref(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Hash_refeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Hash_delete(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Hash_size(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Hash_eqeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Hash_each(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Hash_keys(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Hash_values(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Hash_sort(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *Hash_is_key(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-
 #define NAT_IO_INIT(klass)                                  \
     klass->define_singleton_method(env, "new", IO_new);     \
     klass->define_method(env, "initialize", IO_initialize); \

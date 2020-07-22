@@ -47,6 +47,7 @@ Value *HashValue::get_default(Env *env, Value *key) {
 }
 
 void HashValue::put(Env *env, Value *key, Value *val) {
+    NAT_ASSERT_NOT_FROZEN(this);
     Key key_container;
     key_container.key = key;
     key_container.env = *env;
@@ -132,6 +133,178 @@ void HashValue::key_list_remove_node(Key *node) {
     node->removed = true;
     prev->next = next;
     next->prev = prev;
+}
+
+Value *HashValue::initialize(Env *env, Value *default_value, Block *block) {
+    if (block) {
+        if (default_value) {
+            NAT_RAISE(env, "ArgumentError", "wrong number of arguments (given 1, expected 0)");
+        }
+        set_default_block(block);
+    } else if (default_value) {
+        set_default_value(default_value);
+    }
+    return this;
+}
+
+// Hash[]
+Value *HashValue::square_new(Env *env, ssize_t argc, Value **args) {
+    if (argc == 0) {
+        return new HashValue { env };
+    } else if (argc == 1) {
+        Value *value = args[0];
+        if (value->type() == Value::Type::Hash) {
+            return value;
+        } else if (value->type() == Value::Type::Array) {
+            HashValue *hash = new HashValue { env };
+            for (auto &pair : *value->as_array()) {
+                if (pair->type() != Value::Type::Array) {
+                    NAT_RAISE(env, "ArgumentError", "wrong element in array to Hash[]");
+                }
+                ssize_t size = pair->as_array()->size();
+                if (size < 1 || size > 2) {
+                    NAT_RAISE(env, "ArgumentError", "invalid number of elements (%d for 1..2)", size);
+                }
+                Value *key = (*pair->as_array())[0];
+                Value *value = size == 1 ? NAT_NIL : (*pair->as_array())[1];
+                hash->put(env, key, value);
+            }
+            return hash;
+        }
+    }
+    if (argc % 2 != 0) {
+        NAT_RAISE(env, "ArgumentError", "odd number of arguments for Hash");
+    }
+    HashValue *hash = new HashValue { env };
+    for (ssize_t i = 0; i < argc; i += 2) {
+        Value *key = args[i];
+        Value *value = args[i + 1];
+        hash->put(env, key, value);
+    }
+    return hash;
+}
+
+Value *HashValue::inspect(Env *env) {
+    StringValue *out = new StringValue { env, "{" };
+    ssize_t last_index = size() - 1;
+    ssize_t index = 0;
+    for (HashValue::Key &node : *this) {
+        StringValue *key_repr = node.key->send(env, "inspect")->as_string();
+        out->append_string(env, key_repr);
+        out->append(env, "=>");
+        StringValue *val_repr = node.val->send(env, "inspect")->as_string();
+        out->append_string(env, val_repr);
+        if (index < last_index) {
+            out->append(env, ", ");
+        }
+        index++;
+    }
+    out->append_char(env, '}');
+    return out;
+}
+
+Value *HashValue::ref(Env *env, Value *key) {
+    Value *val = get(env, key);
+    if (val) {
+        return val;
+    } else {
+        return get_default(env, key);
+    }
+}
+
+Value *HashValue::refeq(Env *env, Value *key, Value *val) {
+    put(env, key, val);
+    return val;
+}
+
+Value *HashValue::delete_key(Env *env, Value *key) {
+    NAT_ASSERT_NOT_FROZEN(this);
+    Value *val = remove(env, key);
+    if (val) {
+        return val;
+    } else {
+        return NAT_NIL;
+    }
+}
+
+Value *HashValue::size(Env *env) {
+    assert(size() <= NAT_MAX_INT);
+    return new IntegerValue { env, static_cast<int64_t>(size()) };
+}
+
+Value *HashValue::eq(Env *env, Value *other_value) {
+    if (!other_value->is_hash()) {
+        return NAT_FALSE;
+    }
+    HashValue *other = other_value->as_hash();
+    if (size() != other->size()) {
+        return NAT_FALSE;
+    }
+    Value *other_val;
+    for (HashValue::Key &node : *this) {
+        other_val = other->get(env, node.key);
+        if (!node.val->send(env, "==", 1, &other_val, nullptr)->is_truthy()) {
+            return NAT_FALSE;
+        }
+    }
+    return NAT_TRUE;
+}
+
+#define NAT_RUN_BLOCK_AND_POSSIBLY_BREAK_WHILE_ITERATING_HASH(env, the_block, argc, args, block, hash) ({ \
+    Value *_result = the_block->_run(env, argc, args, block);                                             \
+    if (_result->has_break_flag()) {                                                                      \
+        _result->remove_break_flag();                                                                     \
+        hash->set_is_iterating(false);                                                                    \
+        return _result;                                                                                   \
+    }                                                                                                     \
+    _result;                                                                                              \
+})
+
+Value *HashValue::each(Env *env, Block *block) {
+    NAT_ASSERT_BLOCK(); // TODO: return Enumerator when no block given
+    Value *block_args[2];
+    for (HashValue::Key &node : *this) {
+        block_args[0] = node.key;
+        block_args[1] = node.val;
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK_WHILE_ITERATING_HASH(env, block, 2, block_args, nullptr, this);
+    }
+    return this;
+}
+
+Value *HashValue::keys(Env *env) {
+    ArrayValue *array = new ArrayValue { env };
+    for (HashValue::Key &node : *this) {
+        array->push(node.key);
+    }
+    return array;
+}
+
+Value *HashValue::values(Env *env) {
+    ArrayValue *array = new ArrayValue { env };
+    for (HashValue::Key &node : *this) {
+        array->push(node.val);
+    }
+    return array;
+}
+
+Value *HashValue::sort(Env *env) {
+    ArrayValue *ary = new ArrayValue { env };
+    for (HashValue::Key &node : *this) {
+        ArrayValue *pair = new ArrayValue { env };
+        pair->push(node.key);
+        pair->push(node.val);
+        ary->push(pair);
+    }
+    return ary->sort(env);
+}
+
+Value *HashValue::has_key(Env *env, Value *key) {
+    Value *val = get(env, key);
+    if (val) {
+        return NAT_TRUE;
+    } else {
+        return NAT_FALSE;
+    }
 }
 
 }

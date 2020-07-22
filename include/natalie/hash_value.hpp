@@ -45,10 +45,14 @@ struct HashValue : Value {
         delete m_default_block;
     }
 
+    static Value *square_new(Env *, ssize_t argc, Value **args);
+
     static size_t hash(const void *);
     static int compare(const void *, const void *);
 
     ssize_t size() { return m_hashmap.num_entries; }
+    Value *size(Env *);
+
     Value *get(Env *, Value *);
     Value *get_default(Env *, Value *);
     void put(Env *, Value *, Value *);
@@ -113,6 +117,18 @@ struct HashValue : Value {
     iterator end() {
         return iterator { nullptr, this };
     }
+
+    Value *initialize(Env *, Value *, Block *);
+    Value *inspect(Env *);
+    Value *ref(Env *, Value *);
+    Value *refeq(Env *, Value *, Value *);
+    Value *delete_key(Env *, Value *);
+    Value *eq(Env *, Value *);
+    Value *each(Env *, Block *);
+    Value *keys(Env *);
+    Value *values(Env *);
+    Value *sort(Env *);
+    Value *has_key(Env *, Value *);
 
 private:
     void key_list_remove_node(Key *);
