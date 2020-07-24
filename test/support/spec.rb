@@ -174,13 +174,16 @@ class Matcher
   def zero?; method_missing(:zero?); end
 
   def method_missing(method, *args)
+    if args.any?
+      than = " than #{args.first.inspect}"
+    end
     if !@inverted
       if !@subject.send(method, *args)
-        raise SpecFailedException, "#{@subject.inspect} should be #{method}"
+        raise SpecFailedException, "#{@subject.inspect} should be #{method}#{than}"
       end
     else
       if @subject.send(method, *args)
-        raise SpecFailedException, "#{@subject.inspect} should not be #{method}"
+        raise SpecFailedException, "#{@subject.inspect} should not be #{method}#{than}"
       end
     end
   end
