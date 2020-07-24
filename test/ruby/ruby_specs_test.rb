@@ -6,7 +6,7 @@ describe 'ruby/spec' do
   parallelize_me!
 
   Dir.chdir File.expand_path('../..', __dir__)
-  Dir['spec/**/*_spec.{rb,nat}'].each do |path|
+  Dir['spec/core/float/*_spec.{rb,nat}'].each do |path|
     code = File.read(path, encoding: 'utf-8')
     describe path do
       it 'passes all specs' do

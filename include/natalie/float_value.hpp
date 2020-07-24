@@ -24,27 +24,18 @@ struct FloatValue : Value {
 
     FloatValue(const FloatValue &other)
         : Value { Value::Type::Float, const_cast<FloatValue &>(other).klass() }
-        , m_float { other.m_float }
-        , m_nan { other.m_nan }
-        , m_infinity { other.m_infinity } {
-    }
+        , m_float { other.m_float } { }
 
     static FloatValue *nan(Env *env) {
-        auto *value = new FloatValue { env, 0.0 };
-        value->m_nan = true;
-        return value;
+        return new FloatValue { env, 0.0 / 0.0 };
     }
 
     static FloatValue *positive_infinity(Env *env) {
-        auto *value = new FloatValue { env, 1.0 };
-        value->m_infinity = true;
-        return value;
+        return new FloatValue { env, std::numeric_limits<float>::infinity() };
     }
 
     static FloatValue *negative_infinity(Env *env) {
-        auto *value = new FloatValue { env, -1.0 };
-        value->m_infinity = true;
-        return value;
+        return new FloatValue { env, -std::numeric_limits<float>::infinity() };
     }
 
     static FloatValue *max(Env *env) {
@@ -64,7 +55,7 @@ struct FloatValue : Value {
     }
 
     Value *to_int_no_truncation(Env *env) {
-        if (m_nan || m_infinity) return this;
+        if (is_nan() || is_infinity()) return this;
         if (m_float == ::floor(m_float)) {
             return new IntegerValue { env, static_cast<int64_t>(m_float) };
         }
@@ -72,7 +63,7 @@ struct FloatValue : Value {
     }
 
     bool is_zero() {
-        return m_float == 0 && !m_nan;
+        return m_float == 0 && !is_nan();
     }
 
     bool is_finite() {
@@ -80,11 +71,11 @@ struct FloatValue : Value {
     }
 
     bool is_nan() {
-        return m_nan;
+        return isnan(m_float);
     }
 
     bool is_infinity() {
-        return m_infinity;
+        return isinf(m_float);
     }
 
     bool is_negative() {
@@ -99,11 +90,11 @@ struct FloatValue : Value {
     Value *is_infinite(Env *);
 
     bool is_positive_infinity() {
-        return m_infinity && m_float > 0;
+        return is_infinity() && m_float > 0;
     }
 
     bool is_negative_infinity() {
-        return m_infinity && m_float < 0;
+        return is_infinity() && m_float < 0;
     }
 
     FloatValue *negate() {
@@ -147,8 +138,5 @@ struct FloatValue : Value {
 
 private:
     double m_float { 0.0 };
-    bool m_nan { false };
-    bool m_infinity { false };
 };
-
 }

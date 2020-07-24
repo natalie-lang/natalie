@@ -17,11 +17,11 @@ Value *FloatValue::is_infinite(Env *env) {
 
 bool FloatValue::eq(Env *env, Value *other) {
     if (other->is_integer()) {
-        return m_float == other->as_integer()->to_int64_t() && !m_nan && !m_infinity;
+        return m_float == other->as_integer()->to_int64_t();
     }
     if (other->is_float()) {
         auto *f = other->as_float();
-        return f->m_float == m_float && f->m_nan == m_nan && f->m_infinity == m_infinity;
+        return f->m_float == m_float;
     }
     if (other->respond_to(env, "==")) {
         Value *args[] = { this };
@@ -33,7 +33,7 @@ bool FloatValue::eq(Env *env, Value *other) {
 bool FloatValue::eql(Value *other) {
     if (!other->is_float()) return false;
     auto *f = other->as_float();
-    return f->m_float == m_float && f->m_nan == m_nan && f->m_infinity == m_infinity;
+    return f->m_float == m_float;
 }
 
 Value *FloatValue::ceil(Env *env, Value *precision_value) {
@@ -203,11 +203,13 @@ Value *FloatValue::mul(Env *env, Value *rhs) {
 Value *FloatValue::div(Env *env, Value *rhs) {
     Value *lhs = this;
 
+    /*
     if (rhs->is_float()) {
         if (rhs->as_float()->is_nan()) return FloatValue::nan(env);
         if (rhs->as_float()->is_positive_infinity()) return new FloatValue { env, 0.0 };
         if (rhs->as_float()->is_negative_infinity()) return new FloatValue { env, -0.0 };
     }
+    */
 
     if (!rhs->is_float()) {
         auto coerced = Natalie::coerce(env, rhs, lhs);
@@ -236,9 +238,11 @@ Value *FloatValue::div(Env *env, Value *rhs) {
 Value *FloatValue::mod(Env *env, Value *rhs) {
     Value *lhs = this;
 
+    /*
     if (rhs->is_float() && rhs->as_float()->is_nan()) return FloatValue::nan(env);
     if (rhs->is_float() && rhs->as_float()->is_positive_infinity()) return new FloatValue { env, 0.0 };
     if (rhs->is_float() && rhs->as_float()->is_negative_infinity()) return new FloatValue { env, -0.0 };
+    */
 
     if (!rhs->is_float()) {
         auto coerced = Natalie::coerce(env, rhs, lhs);
@@ -311,25 +315,19 @@ Value *FloatValue::abs(Env *env) {
 }
 
 Value *FloatValue::next_float(Env *env) {
-    if (m_nan) {
-        return this;
-    }
-    if (is_positive_infinity()) {
-        return this;
-    }
     if (is_negative_infinity()) {
         return FloatValue::neg_max(env);
     }
     double x, y;
     x = as_float()->to_double();
-    if (x == NAT_MAX_FLOAT) {
-        return FloatValue::positive_infinity(env);
-    }
     y = nextafterf(x, DBL_MAX);
     return new FloatValue { env, y };
 }
 
 Value *FloatValue::prev_float(Env *env) {
+    if (is_positive_infinity()) {
+        return FloatValue::max(env);
+    }
     double x, y;
     x = as_float()->to_double();
     y = nextafterf(x, DBL_MIN);
