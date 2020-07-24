@@ -351,6 +351,27 @@ class ShouldReceiveExpectation
   end
 end
 
+# what method does that need?
+class IncludeExpectation
+  def initialize(value)
+    @value = value
+  end
+
+  def match(subject)
+    (start, stop) = subject
+    if @value < start || @value > stop
+      raise SpecFailedException, "#{subject.inspect} should include #{@value.inspect}"
+    end
+  end
+
+  def inverted_match(subject)
+    (start, stop) = subject
+    if @value >= start && @value <= stop
+      raise SpecFailedException, "#{subject.inspect} should not include #{@value.inspect}"
+    end
+  end
+end
+
 class Object
   def should(*args)
     Matcher.new(self, false, args)
@@ -412,6 +433,10 @@ class Object
     define_singleton_method(message) do
       raise SpecFailedException, "#{message} should not have been sent to #{inspect}"
     end
+  end
+
+  def include(value)
+    IncludeExpectation.new(value)
   end
 end
 
