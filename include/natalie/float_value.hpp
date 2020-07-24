@@ -1,6 +1,7 @@
 #pragma once
 
 #include <assert.h>
+#include <float.h>
 #include <math.h>
 
 #include "natalie/class_value.hpp"
@@ -46,6 +47,18 @@ struct FloatValue : Value {
         return value;
     }
 
+    static FloatValue *max(Env *env) {
+        return new FloatValue { env, NAT_MAX_FLOAT };
+    }
+
+    static FloatValue *neg_max(Env *env) {
+        return new FloatValue { env, -1 * NAT_MAX_FLOAT };
+    }
+
+    static FloatValue *min(Env *env) {
+        return new FloatValue { env, NAT_MIN_FLOAT };
+    }
+
     double to_double() {
         return m_float;
     }
@@ -77,6 +90,7 @@ struct FloatValue : Value {
     bool is_negative() {
         return m_float < 0.0;
     };
+
     bool is_positive() {
         return m_float > 0.0;
     };
