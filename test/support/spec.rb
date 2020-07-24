@@ -165,6 +165,10 @@ class Matcher
   end
 
   # FIXME: remove these once method_missing is implemented
+  def >(other); method_missing(:>, other); end
+  def >=(other); method_missing(:>=, other); end
+  def <(other); method_missing(:<, other); end
+  def <=(other); method_missing(:<=, other); end
   def finite?; method_missing(:finite?); end
   def nan?; method_missing(:nan?); end
   def zero?; method_missing(:zero?); end
