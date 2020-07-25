@@ -77,7 +77,7 @@ void print_exception_with_backtrace(Env *env, ExceptionValue *exception) {
 }
 
 void handle_top_level_exception(Env *env, ExceptionValue *exception, bool run_exit_handlers) {
-    if (exception->is_a(env, NAT_OBJECT->const_get(env, "SystemExit", true)->as_class())) {
+    if (exception->is_a(env, env->Object()->const_get(env, "SystemExit", true)->as_class())) {
         Value *status_obj = exception->ivar_get(env, "@status");
         if (run_exit_handlers) run_at_exit_handlers(env);
         if (status_obj->type() == Value::Type::Integer) {
@@ -130,7 +130,7 @@ static Value *splat_value(Env *env, Value *value, ssize_t index, ssize_t offset_
 Value *arg_value_by_path(Env *env, Value *value, Value *default_value, bool splat, int total_count, int default_count, bool defaults_on_right, int offset_from_end, ssize_t path_size, ...) {
     va_list args;
     va_start(args, path_size);
-    bool has_default = default_value != NAT_NIL;
+    bool has_default = default_value != env->nil_obj();
     bool defaults_on_left = !defaults_on_right;
     int required_count = total_count - default_count;
     Value *return_value = value;
@@ -321,7 +321,7 @@ void arg_spread(Env *env, ssize_t argc, Value **args, char *arrangement, ...) {
             str_ptr = va_arg(va_args, const char **);
             if (arg_index >= argc) NAT_RAISE(env, "ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, arg_index + 1);
             obj = args[arg_index++];
-            if (obj == NAT_NIL) {
+            if (obj == env->nil_obj()) {
                 *str_ptr = nullptr;
             } else {
                 NAT_ASSERT_TYPE(obj, Value::Type::String, "String");

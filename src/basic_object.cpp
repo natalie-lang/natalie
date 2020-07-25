@@ -5,9 +5,9 @@ namespace Natalie {
 
 Value *BasicObject_not(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     if (self->is_truthy()) {
-        return NAT_FALSE;
+        return env->false_obj();
     } else {
-        return NAT_TRUE;
+        return env->true_obj();
     }
 }
 
@@ -15,9 +15,9 @@ Value *BasicObject_eqeq(Env *env, Value *self, ssize_t argc, Value **args, Block
     NAT_ASSERT_ARGC(1);
     Value *arg = args[0];
     if (self == arg) {
-        return NAT_TRUE;
+        return env->true_obj();
     } else {
-        return NAT_FALSE;
+        return env->false_obj();
     }
 }
 
@@ -39,7 +39,7 @@ Value *BasicObject_instance_eval(Env *env, Value *self, ssize_t argc, Value **ar
     }
     block->set_self(self_for_eval);
     NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 0, nullptr, nullptr);
-    return NAT_NIL;
+    return env->nil_obj();
 }
 
 }

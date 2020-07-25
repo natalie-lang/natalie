@@ -396,7 +396,7 @@ module Natalie
           raise "expected const" unless namespace.first == :const
           decl "Value *#{result};"
           decl 'try {'
-          decl "#{result} = NAT_OBJECT->const_get(env, #{namespace.last.to_s.inspect}, false)->defined_obj(env, #{name.to_s.inspect});"
+          decl "#{result} = env->Object()->const_get(env, #{namespace.last.to_s.inspect}, false)->defined_obj(env, #{name.to_s.inspect});"
           decl '} catch (ExceptionValue *) {'
           decl "#{result} = #{process_atom s(:nil)};"
           decl '}'
@@ -424,7 +424,7 @@ module Natalie
       end
 
       def process_false(_)
-        'NAT_FALSE'
+        'env->false_obj()'
       end
 
       def process_fn(exp, arg_list = 6)
@@ -512,7 +512,7 @@ module Natalie
       end
 
       def process_nil(_)
-        'NAT_NIL'
+        'env->nil_obj()'
       end
 
       def process_not(exp)
@@ -550,7 +550,7 @@ module Natalie
       end
 
       def process_true(_)
-        'NAT_TRUE'
+        'env->true_obj()'
       end
 
       def process_set(exp)

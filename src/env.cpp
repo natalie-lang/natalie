@@ -29,7 +29,7 @@ Value *Env::global_get(const char *name) {
     if (val) {
         return val;
     } else {
-        return NAT_NIL;
+        return env->nil_obj();
     }
 }
 
@@ -95,7 +95,7 @@ Value *Env::raise_exception(ExceptionValue *exception) {
 
 Value *Env::raise_local_jump_error(Value *exit_value, const char *message) {
     Env *env = this;
-    ExceptionValue *exception = new ExceptionValue { this, NAT_OBJECT->const_get(this, "LocalJumpError", true)->as_class(), message };
+    ExceptionValue *exception = new ExceptionValue { this, env->Object()->const_get(this, "LocalJumpError", true)->as_class(), message };
     exception->ivar_set(this, "@exit_value", exit_value);
     this->raise_exception(exception);
     return exception;
@@ -105,7 +105,7 @@ Value *Env::last_match() {
     if (m_match) {
         return m_match;
     } else {
-        return nil();
+        return nil_obj();
     }
 }
 
@@ -119,7 +119,7 @@ Value *Env::var_get(const char *key, ssize_t index) {
         return val;
     } else {
         Env *env = this;
-        return NAT_NIL;
+        return env->nil_obj();
     }
 }
 

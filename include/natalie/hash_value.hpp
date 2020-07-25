@@ -28,11 +28,11 @@ struct HashValue : Value {
     };
 
     HashValue(Env *env)
-        : HashValue { env, NAT_OBJECT->const_get(env, "Hash", true)->as_class() } { }
+        : HashValue { env, env->Object()->const_get(env, "Hash", true)->as_class() } { }
 
     HashValue(Env *env, ClassValue *klass)
         : Value { Value::Type::Hash, klass }
-        , m_default_value { NAT_NIL } {
+        , m_default_value { env->nil_obj() } {
         hashmap_init(&m_hashmap, hash, compare, 256);
     }
 

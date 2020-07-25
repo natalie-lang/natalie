@@ -32,7 +32,7 @@ Value *ENV_ref(Env *env, Value *self_value, ssize_t argc, Value **args, Block *b
     if (value) {
         return new StringValue { env, value };
     } else {
-        return NAT_NIL;
+        return env->nil_obj();
     }
 }
 

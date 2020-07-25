@@ -8,7 +8,7 @@ ssize_t MatchDataValue::index(ssize_t index) {
 }
 
 Value *MatchDataValue::group(Env *env, ssize_t index) {
-    if (index >= size()) return NAT_NIL;
+    if (index >= size()) return env->nil_obj();
     const char *str = &m_str[m_region->beg[index]];
     ssize_t length = m_region->end[index] - m_region->beg[index];
     return new StringValue { env, str, length };
@@ -29,7 +29,7 @@ Value *MatchDataValue::ref(Env *env, Value *index_value) {
         index = size() + index;
     }
     if (index < 0) {
-        return NAT_NIL;
+        return env->nil_obj();
     } else {
         return group(env, index);
     }

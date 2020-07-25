@@ -27,7 +27,7 @@ struct SymbolValue : Value {
 
 private:
     SymbolValue(Env *env, const char *name)
-        : Value { Value::Type::Symbol, NAT_OBJECT->const_get(env, "Symbol", true)->as_class() }
+        : Value { Value::Type::Symbol, env->Object()->const_get(env, "Symbol", true)->as_class() }
         , m_name { name } {
         assert(m_name);
     }

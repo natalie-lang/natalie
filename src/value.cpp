@@ -245,7 +245,7 @@ Value *Value::ivar_get(Env *env, const char *name) {
     if (val) {
         return val;
     } else {
-        return NAT_NIL;
+        return env->nil_obj();
     }
 }
 
@@ -433,7 +433,7 @@ const char *Value::defined(Env *env, const char *name) {
         if (obj) return "constant";
     } else if (is_global_name(name)) {
         obj = env->global_get(name);
-        if (obj != NAT_NIL) return "global-variable";
+        if (obj != env->nil_obj()) return "global-variable";
     } else if (respond_to(env, name)) {
         return "method";
     }
@@ -445,7 +445,7 @@ Value *Value::defined_obj(Env *env, const char *name) {
     if (result) {
         return new StringValue { env, result };
     } else {
-        return NAT_NIL;
+        return env->nil_obj();
     }
 }
 

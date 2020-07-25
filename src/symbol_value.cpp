@@ -49,7 +49,7 @@ Value *SymbolValue::to_proc_block_fn(Env *env, Value *self_value, ssize_t argc, 
 }
 
 Value *SymbolValue::cmp(Env *env, Value *other_value) {
-    if (!other_value->is_symbol()) return NAT_NIL;
+    if (!other_value->is_symbol()) return env->nil_obj();
     SymbolValue *other = other_value->as_symbol();
     int diff = strcmp(m_name, other->m_name);
     int result;

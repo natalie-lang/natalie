@@ -1,7 +1,7 @@
-#define NAT_RAISE(env, class_name, message_format, ...)                                                      \
-    {                                                                                                        \
-        env->raise(NAT_OBJECT->const_get(env, class_name, true)->as_class(), message_format, ##__VA_ARGS__); \
-        abort();                                                                                             \
+#define NAT_RAISE(env, class_name, message_format, ...)                                                         \
+    {                                                                                                           \
+        env->raise(env->Object()->const_get(env, class_name, true)->as_class(), message_format, ##__VA_ARGS__); \
+        abort();                                                                                                \
     }
 
 #define NAT_RAISE2(env, constant, message_format, ...)       \
@@ -65,12 +65,6 @@
 #define NAT_OBJ_HAS_ENV2(obj) ((obj)->env.global_env()) // limited check used when there is no current env, i.e. hashmap_hash and hashmap_compare
 
 #define NAT_INSPECT(obj) obj->send(env, "inspect")->as_string()->c_str()
-
-// ahem, "globals"
-#define NAT_OBJECT env->Object()
-#define NAT_NIL env->nil()
-#define NAT_TRUE env->true_obj()
-#define NAT_FALSE env->false_obj()
 
 #define NAT_MIN_INT INT64_MIN
 #define NAT_MAX_INT INT64_MAX

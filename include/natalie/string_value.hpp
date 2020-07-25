@@ -25,12 +25,12 @@ struct StringValue : Value {
         : StringValue { env, "" } { }
 
     StringValue(Env *env, const char *str)
-        : Value { Value::Type::String, NAT_OBJECT->const_get(env, "String", true)->as_class() } {
+        : Value { Value::Type::String, env->Object()->const_get(env, "String", true)->as_class() } {
         set_str(str);
     }
 
     StringValue(Env *env, const char *str, ssize_t length)
-        : Value { Value::Type::String, NAT_OBJECT->const_get(env, "String", true)->as_class() } {
+        : Value { Value::Type::String, env->Object()->const_get(env, "String", true)->as_class() } {
         set_str(str, length);
     }
 

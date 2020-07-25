@@ -68,7 +68,7 @@ Value *IntegerValue::pow(Env *env, Value *arg) {
 }
 
 Value *IntegerValue::cmp(Env *env, Value *arg) {
-    if (arg->type() != Value::Type::Integer) return NAT_NIL;
+    if (arg->type() != Value::Type::Integer) return env->nil_obj();
     int64_t i1 = to_int64_t();
     int64_t i2 = arg->as_integer()->to_int64_t();
     if (i1 < i2) {
@@ -82,9 +82,9 @@ Value *IntegerValue::cmp(Env *env, Value *arg) {
 
 Value *IntegerValue::eqeqeq(Env *env, Value *arg) {
     if (arg->type() == Value::Type::Integer && to_int64_t() == arg->as_integer()->to_int64_t()) {
-        return NAT_TRUE;
+        return env->true_obj();
     } else {
-        return NAT_FALSE;
+        return env->false_obj();
     }
 }
 
@@ -137,9 +137,9 @@ Value *IntegerValue::coerce(Env *env, Value *arg) {
 
 Value *IntegerValue::eql(Env *env, Value *other) {
     if (other->is_integer() && other->as_integer()->to_int64_t() == to_int64_t()) {
-        return NAT_TRUE;
+        return env->true_obj();
     } else {
-        return NAT_FALSE;
+        return env->false_obj();
     }
 }
 

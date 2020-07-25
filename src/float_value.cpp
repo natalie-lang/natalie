@@ -11,7 +11,7 @@ Value *FloatValue::is_infinite(Env *env) {
     } else if (is_negative_infinity()) {
         return new IntegerValue { env, -1 };
     } else {
-        return NAT_NIL;
+        return env->nil_obj();
     }
 }
 
@@ -106,10 +106,10 @@ Value *FloatValue::cmp(Env *env, Value *other) {
     }
 
     if (!lhs->is_float()) return lhs->send(env, "<=>", 1, &rhs);
-    if (!rhs->is_float()) return env->nil();
+    if (!rhs->is_float()) return env->nil_obj();
 
     if (lhs->as_float()->is_nan() || rhs->as_float()->is_nan()) {
-        return env->nil();
+        return env->nil_obj();
     }
 
     double lhs_d = lhs->as_float()->to_double();
@@ -350,7 +350,7 @@ Value *FloatValue::prev_float(Env *env) {
         }                                                                                                      \
                                                                                                                \
         if (lhs->as_float()->is_nan() || rhs->as_float()->is_nan()) {                                          \
-            return NAT_NIL;                                                                                    \
+            return env->nil_obj();                                                                                    \
         }                                                                                                      \
                                                                                                                \
         double lhs_d = lhs->as_float()->to_double();                                                           \

@@ -45,7 +45,7 @@ struct Value : public gc {
     };
 
     Value(Env *env)
-        : m_klass { NAT_OBJECT } { }
+        : m_klass { env->Object() } { }
 
     Value(ClassValue *klass)
         : m_klass { klass } {

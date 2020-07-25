@@ -7,9 +7,9 @@ Value *Comparable_eqeq(Env *env, Value *self_value, ssize_t argc, Value **args, 
     NAT_ASSERT_ARGC(1);
     Value *result = self_value->send(env, "<=>", argc, args, nullptr);
     if (result->is_integer() && result->as_integer()->is_zero()) {
-        return NAT_TRUE;
+        return env->true_obj();
     } else {
-        return NAT_FALSE;
+        return env->false_obj();
     }
 }
 
@@ -17,9 +17,9 @@ Value *Comparable_neq(Env *env, Value *self_value, ssize_t argc, Value **args, B
     NAT_ASSERT_ARGC(1);
     Value *result = self_value->send(env, "<=>", argc, args, nullptr);
     if (result->is_integer() && result->as_integer()->is_zero()) {
-        return NAT_FALSE;
+        return env->false_obj();
     } else {
-        return NAT_TRUE;
+        return env->true_obj();
     }
 }
 
@@ -27,9 +27,9 @@ Value *Comparable_lt(Env *env, Value *self_value, ssize_t argc, Value **args, Bl
     NAT_ASSERT_ARGC(1);
     Value *result = self_value->send(env, "<=>", argc, args, nullptr);
     if (result->is_integer() && result->as_integer()->to_int64_t() < 0) {
-        return NAT_TRUE;
+        return env->true_obj();
     } else {
-        return NAT_FALSE;
+        return env->false_obj();
     }
 }
 
@@ -37,9 +37,9 @@ Value *Comparable_lte(Env *env, Value *self_value, ssize_t argc, Value **args, B
     NAT_ASSERT_ARGC(1);
     Value *result = self_value->send(env, "<=>", argc, args, nullptr);
     if (result->is_integer() && result->as_integer()->to_int64_t() <= 0) {
-        return NAT_TRUE;
+        return env->true_obj();
     } else {
-        return NAT_FALSE;
+        return env->false_obj();
     }
 }
 
@@ -47,9 +47,9 @@ Value *Comparable_gt(Env *env, Value *self_value, ssize_t argc, Value **args, Bl
     NAT_ASSERT_ARGC(1);
     Value *result = self_value->send(env, "<=>", argc, args, nullptr);
     if (result->is_integer() && result->as_integer()->to_int64_t() > 0) {
-        return NAT_TRUE;
+        return env->true_obj();
     } else {
-        return NAT_FALSE;
+        return env->false_obj();
     }
 }
 
@@ -57,9 +57,9 @@ Value *Comparable_gte(Env *env, Value *self_value, ssize_t argc, Value **args, B
     NAT_ASSERT_ARGC(1);
     Value *result = self_value->send(env, "<=>", argc, args, nullptr);
     if (result->is_integer() && result->as_integer()->to_int64_t() >= 0) {
-        return NAT_TRUE;
+        return env->true_obj();
     } else {
-        return NAT_FALSE;
+        return env->false_obj();
     }
 }
 

@@ -13,7 +13,7 @@ Value *ArrayValue::initialize(Env *env, Value *size, Value *value) {
         return this;
     }
     NAT_ASSERT_TYPE(size, Value::Type::Integer, "Integer");
-    if (!value) value = NAT_NIL;
+    if (!value) value = env->nil_obj();
     for (int64_t i = 0; i < size->as_integer()->to_int64_t(); i++) {
         push(value);
     }
@@ -72,7 +72,7 @@ Value *ArrayValue::ref(Env *env, Value *index_obj, Value *size) {
             index = this->size() + index;
         }
         if (index < 0 || index >= this->size()) {
-            return NAT_NIL;
+            return env->nil_obj();
         } else if (!size) {
             return (*this)[index];
         }
@@ -100,7 +100,7 @@ Value *ArrayValue::ref(Env *env, Value *index_obj, Value *size) {
             end = this->size() + end;
         }
         if (begin < 0 || end < 0) {
-            return NAT_NIL;
+            return env->nil_obj();
         }
         if (!range->exclude_end()) end++;
         ssize_t max = this->size();
@@ -162,26 +162,26 @@ Value *ArrayValue::any(Env *env, Block *block) {
     if (block) {
         for (auto &obj : *this) {
             Value *result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &obj, nullptr);
-            if (result->is_truthy()) return NAT_TRUE;
+            if (result->is_truthy()) return env->true_obj();
         }
     } else if (size() > 0) {
-        return NAT_TRUE;
+        return env->true_obj();
     }
-    return NAT_FALSE;
+    return env->false_obj();
 }
 
 Value *ArrayValue::eq(Env *env, Value *other) {
-    if (!other->is_array()) return NAT_FALSE;
+    if (!other->is_array()) return env->false_obj();
     ArrayValue *other_array = other->as_array();
-    if (size() != other_array->size()) return NAT_FALSE;
-    if (size() == 0) return NAT_TRUE;
+    if (size() != other_array->size()) return env->false_obj();
+    if (size() == 0) return env->true_obj();
     for (ssize_t i = 0; i < size(); i++) {
         // TODO: could easily be optimized for strings and numbers
         Value *item = (*other_array)[i];
         Value *result = (*this)[i]->send(env, "==", 1, &item, nullptr);
         if (result->type() == Value::Type::False) return result;
     }
-    return NAT_TRUE;
+    return env->true_obj();
 }
 
 Value *ArrayValue::each(Env *env, Block *block) {
@@ -216,7 +216,7 @@ Value *ArrayValue::first(Env *env) {
     if (size() > 0) {
         return (*this)[0];
     } else {
-        return NAT_NIL;
+        return env->nil_obj();
     }
 }
 
@@ -225,20 +225,20 @@ Value *ArrayValue::last(Env *env) {
     if (size() > 0) {
         return (*this)[size() - 1];
     } else {
-        return NAT_NIL;
+        return env->nil_obj();
     }
 }
 
 Value *ArrayValue::include(Env *env, Value *item) {
     if (size() == 0) {
-        return NAT_FALSE;
+        return env->false_obj();
     } else {
         for (auto &compare_item : *this) {
             if (item->send(env, "==", 1, &compare_item, nullptr)->is_truthy()) {
-                return NAT_TRUE;
+                return env->true_obj();
             }
         }
-        return NAT_FALSE;
+        return env->false_obj();
     }
 }
 
@@ -301,7 +301,7 @@ void ArrayValue::push_splat(Env *env, Value *val) {
 
 Value *ArrayValue::pop(Env *env) {
     NAT_ASSERT_NOT_FROZEN(this);
-    if (size() == 0) return NAT_NIL;
+    if (size() == 0) return env->nil_obj();
     Value *val = m_vector[m_vector.size() - 1];
     m_vector.set_size(m_vector.size() - 1);
     return val;
@@ -309,7 +309,7 @@ Value *ArrayValue::pop(Env *env) {
 
 void ArrayValue::expand_with_nil(Env *env, ssize_t total) {
     for (ssize_t i = size(); i < total; i++) {
-        push(*NAT_NIL);
+        push(*env->nil_obj());
     }
 }
 

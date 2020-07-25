@@ -20,7 +20,7 @@ enum class Encoding {
 struct EncodingValue : Value {
 
     EncodingValue(Env *env)
-        : Value { Value::Type::Encoding, NAT_OBJECT->const_get(env, "Encoding", true)->as_class() } { }
+        : Value { Value::Type::Encoding, env->Object()->const_get(env, "Encoding", true)->as_class() } { }
 
     EncodingValue(Env *env, ClassValue *klass)
         : Value { Value::Type::Encoding, klass } { }
@@ -38,7 +38,7 @@ struct EncodingValue : Value {
 
     static ArrayValue *list(Env *env) {
         ArrayValue *ary = new ArrayValue { env };
-        Value *Encoding = NAT_OBJECT->const_get(env, "Encoding", true);
+        Value *Encoding = env->Object()->const_get(env, "Encoding", true);
         ary->push(Encoding->const_get(env, "ASCII_8BIT", true));
         ary->push(Encoding->const_get(env, "UTF_8", true));
         return ary;

@@ -49,20 +49,20 @@ extern "C" Env *build_top_env() {
     ClassValue *NilClass = Object->subclass(env, "NilClass", Value::Type::Nil);
     Object->const_set(env, "NilClass", NilClass);
 
-    env->global_env()->set_nil(NilValue::instance(env));
-    NAT_NIL->set_singleton_class(NilClass);
+    env->global_env()->set_nil_obj(NilValue::instance(env));
+    env->nil_obj()->set_singleton_class(NilClass);
 
     ClassValue *TrueClass = Object->subclass(env, "TrueClass", Value::Type::True);
     Object->const_set(env, "TrueClass", TrueClass);
 
     env->global_env()->set_true_obj(TrueValue::instance(env));
-    NAT_TRUE->set_singleton_class(TrueClass);
+    env->true_obj()->set_singleton_class(TrueClass);
 
     ClassValue *FalseClass = Object->subclass(env, "FalseClass", Value::Type::False);
     Object->const_set(env, "FalseClass", FalseClass);
 
     env->global_env()->set_false_obj(FalseValue::instance(env));
-    NAT_FALSE->set_singleton_class(FalseClass);
+    env->false_obj()->set_singleton_class(FalseClass);
 
     ClassValue *Numeric = Object->subclass(env, "Numeric");
     Object->const_set(env, "Numeric", Numeric);
@@ -139,7 +139,7 @@ extern "C" Env *build_top_env() {
 
     ClassValue *EncodingError = StandardError->subclass(env, "EncodingError");
     Object->const_set(env, "EncodingError", EncodingError);
-    ClassValue *Encoding = NAT_OBJECT->subclass(env, "Encoding");
+    ClassValue *Encoding = env->Object()->subclass(env, "Encoding");
     Value *InvalidByteSequenceError = EncodingError->subclass(env, "InvalidByteSequenceError");
     Encoding->const_set(env, "InvalidByteSequenceError", InvalidByteSequenceError);
     Value *UndefinedConversionError = EncodingError->subclass(env, "UndefinedConversionError");
@@ -201,10 +201,10 @@ extern "C" Value *EVAL(Env *env) {
         /*BODY*/
         run_exit_handlers = false;
         run_at_exit_handlers(env);
-        return NAT_NIL; // just in case there's no return value
+        return env->nil_obj(); // just in case there's no return value
     } catch (ExceptionValue *exception) {
         handle_top_level_exception(env, exception, run_exit_handlers);
-        return NAT_NIL;
+        return env->nil_obj();
     }
 }
 
@@ -213,7 +213,7 @@ int main(int argc, char *argv[]) {
     Env *env = build_top_env();
     ArrayValue *ARGV = new ArrayValue { env };
     /*INIT*/
-    NAT_OBJECT->const_set(env, "ARGV", ARGV);
+    env->Object()->const_set(env, "ARGV", ARGV);
     assert(argc > 0);
     for (int i = 1; i < argc; i++) {
         ARGV->push(new StringValue { env, argv[i] });

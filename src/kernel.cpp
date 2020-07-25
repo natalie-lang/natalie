@@ -17,7 +17,7 @@ Value *Kernel_print(Env *env, Value *self, ssize_t argc, Value **args, Block *bl
 
 Value *Kernel_p(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     if (argc == 0) {
-        return NAT_NIL;
+        return env->nil_obj();
     } else if (argc == 1) {
         Value *arg = args[0]->send(env, "inspect");
         Kernel_puts(env, self, 1, &arg, nullptr);
@@ -60,9 +60,9 @@ Value *Kernel_equal(Env *env, Value *self, ssize_t argc, Value **args, Block *bl
     NAT_ASSERT_ARGC(1);
     Value *arg = args[0];
     if (self == arg) {
-        return NAT_TRUE;
+        return env->true_obj();
     } else {
-        return NAT_FALSE;
+        return env->false_obj();
     }
 }
 
@@ -71,7 +71,7 @@ Value *Kernel_class(Env *env, Value *self, ssize_t argc, Value **args, Block *bl
     if (self->klass()) {
         return self->klass();
     } else {
-        return NAT_NIL;
+        return env->nil_obj();
     }
 }
 
@@ -87,7 +87,7 @@ Value *Kernel_instance_variables(Env *env, Value *self, ssize_t argc, Value **ar
 Value *Kernel_instance_variable_get(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     if (self->type() == Value::Type::Integer) {
-        return NAT_NIL;
+        return env->nil_obj();
     }
     const char *name = args[0]->identifier_str(env, Value::Conversion::Strict);
     return self->ivar_get(env, name);
@@ -115,7 +115,7 @@ Value *Kernel_raise(Env *env, Value *self, ssize_t argc, Value **args, Block *bl
             klass = arg->as_class();
             message = new StringValue { env, arg->as_class()->class_name() };
         } else if (arg->is_string()) {
-            klass = NAT_OBJECT->const_get(env, "RuntimeError", true)->as_class();
+            klass = env->Object()->const_get(env, "RuntimeError", true)->as_class();
             message = arg;
         } else if (arg->is_exception()) {
             env->raise_exception(arg->as_exception());
@@ -132,9 +132,9 @@ Value *Kernel_respond_to(Env *env, Value *self, ssize_t argc, Value **args, Bloc
     NAT_ASSERT_ARGC(1);
     const char *name = args[0]->identifier_str(env, Value::Conversion::NullAllowed);
     if (name && self->respond_to(env, name)) {
-        return NAT_TRUE;
+        return env->true_obj();
     } else {
-        return NAT_FALSE;
+        return env->false_obj();
     }
 }
 
@@ -165,10 +165,10 @@ Value *Kernel_exit(Env *env, Value *self, ssize_t argc, Value **args, Block *blo
     } else {
         status = new IntegerValue { env, 0 };
     }
-    ExceptionValue *exception = new ExceptionValue { env, NAT_OBJECT->const_get(env, "SystemExit", true)->as_class(), "exit" };
+    ExceptionValue *exception = new ExceptionValue { env, env->Object()->const_get(env, "SystemExit", true)->as_class(), "exit" };
     exception->ivar_set(env, "@status", status);
     env->raise_exception(exception);
-    return NAT_NIL;
+    return env->nil_obj();
 }
 
 Value *Kernel_at_exit(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
@@ -186,9 +186,9 @@ Value *Kernel_is_a(Env *env, Value *self, ssize_t argc, Value **args, Block *blo
         NAT_RAISE(env, "TypeError", "class or module required");
     }
     if (self->is_a(env, klass_or_module->as_module())) {
-        return NAT_TRUE;
+        return env->true_obj();
     } else {
-        return NAT_FALSE;
+        return env->false_obj();
     }
 }
 
@@ -223,7 +223,7 @@ Value *Kernel_method(Env *env, Value *self, ssize_t argc, Value **args, Block *b
     if (name) {
         return SymbolValue::intern(env, name);
     } else {
-        return NAT_NIL;
+        return env->nil_obj();
     }
 }
 
@@ -235,7 +235,7 @@ Value *Kernel_freeze(Env *env, Value *self, ssize_t argc, Value **args, Block *b
 
 Value *Kernel_is_nil(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
-    return NAT_FALSE;
+    return env->false_obj();
 }
 
 Value *Kernel_sleep(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
@@ -273,7 +273,7 @@ Value *Kernel_Array(Env *env, Value *self, ssize_t argc, Value **args, Block *bl
         return value;
     } else if (value->respond_to(env, "to_ary")) {
         return value->send(env, "to_ary");
-    } else if (value == NAT_NIL) {
+    } else if (value == env->nil_obj()) {
         return new ArrayValue { env };
     } else {
         ArrayValue *ary = new ArrayValue { env };
@@ -296,7 +296,7 @@ Value *Kernel_cur_dir(Env *env, Value *self, ssize_t argc, Value **args, Block *
         return new StringValue { env, "." };
     } else {
         Value *relative = new StringValue { env, env->file() };
-        StringValue *absolute = static_cast<StringValue *>(File_expand_path(env, NAT_OBJECT->const_get(env, "File", true), 1, &relative, nullptr));
+        StringValue *absolute = static_cast<StringValue *>(File_expand_path(env, env->Object()->const_get(env, "File", true), 1, &relative, nullptr));
         ssize_t last_slash = 0;
         bool found = false;
         for (ssize_t i = 0; i < absolute->length(); i++) {
@@ -315,7 +315,7 @@ Value *Kernel_cur_dir(Env *env, Value *self, ssize_t argc, Value **args, Block *
 Value *Kernel_get_usage(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
     struct rusage usage;
     if (getrusage(RUSAGE_SELF, &usage) != 0) {
-        return NAT_NIL;
+        return env->nil_obj();
     }
     HashValue *hash = new HashValue { env };
     hash->put(env, new StringValue { env, "maxrss" }, new IntegerValue { env, usage.ru_maxrss });

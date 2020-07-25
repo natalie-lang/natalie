@@ -36,7 +36,7 @@ Value *ExceptionValue::message(Env *env) {
 }
 
 Value *ExceptionValue::backtrace(Env *env) {
-    return m_backtrace ? m_backtrace->dup(env) : NAT_NIL;
+    return m_backtrace ? m_backtrace->dup(env) : env->nil_obj();
 }
 
 }

@@ -3,7 +3,7 @@
 namespace Natalie {
 
 ModuleValue::ModuleValue(Env *env)
-    : ModuleValue { env, Value::Type::Module, NAT_OBJECT->const_get(env, "Module", true)->as_class() } { }
+    : ModuleValue { env, Value::Type::Module, env->Object()->const_get(env, "Module", true)->as_class() } { }
 
 ModuleValue::ModuleValue(Env *env, const char *name)
     : ModuleValue { env } {
@@ -76,7 +76,7 @@ Value *ModuleValue::const_get_or_null(Env *env, const char *name, bool strict, b
     if (!strict) {
         // first search in parent namespaces (not including global, i.e. Object namespace)
         search_parent = this;
-        while (!(val = static_cast<Value *>(hashmap_get(&search_parent->m_constants, name))) && search_parent->owner() && search_parent->owner() != NAT_OBJECT) {
+        while (!(val = static_cast<Value *>(hashmap_get(&search_parent->m_constants, name))) && search_parent->owner() && search_parent->owner() != env->Object()) {
             search_parent = search_parent->owner();
         }
         if (val) return val;
@@ -97,7 +97,7 @@ Value *ModuleValue::const_get_or_null(Env *env, const char *name, bool strict, b
 
     if (!strict) {
         // lastly, search on the global, i.e. Object namespace
-        val = static_cast<Value *>(hashmap_get(&NAT_OBJECT->m_constants, name));
+        val = static_cast<Value *>(hashmap_get(&env->Object()->m_constants, name));
         if (val) return val;
     }
 
@@ -290,7 +290,7 @@ bool ModuleValue::is_method_defined(Env *env, Value *name_value) {
 
 Value *ModuleValue::inspect(Env *env) {
     if (m_class_name) {
-        if (owner() && owner() != NAT_OBJECT) {
+        if (owner() && owner() != env->Object()) {
             return StringValue::sprintf(env, "%S::%s", owner()->send(env, "inspect"), m_class_name);
         } else {
             return new StringValue { env, m_class_name };
@@ -319,7 +319,7 @@ Value *ModuleValue::name(Env *env) {
     if (m_class_name) {
         return new StringValue { env, m_class_name };
     } else {
-        return NAT_NIL;
+        return env->nil_obj();
     }
 }
 
@@ -338,7 +338,7 @@ Value *ModuleValue::attr_reader(Env *env, ssize_t argc, Value **args) {
         Block *attr_block = new Block { block_env, this, ModuleValue::attr_reader_block_fn };
         define_method_with_block(env, name_obj->as_string()->c_str(), attr_block);
     }
-    return NAT_NIL;
+    return env->nil_obj();
 }
 
 Value *ModuleValue::attr_reader_block_fn(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
@@ -365,7 +365,7 @@ Value *ModuleValue::attr_writer(Env *env, ssize_t argc, Value **args) {
         Block *attr_block = new Block { block_env, this, ModuleValue::attr_writer_block_fn };
         define_method_with_block(env, method_name->c_str(), attr_block);
     }
-    return NAT_NIL;
+    return env->nil_obj();
 }
 
 Value *ModuleValue::attr_writer_block_fn(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
@@ -380,7 +380,7 @@ Value *ModuleValue::attr_writer_block_fn(Env *env, Value *self, ssize_t argc, Va
 Value *ModuleValue::attr_accessor(Env *env, ssize_t argc, Value **args) {
     attr_reader(env, argc, args);
     attr_writer(env, argc, args);
-    return NAT_NIL;
+    return env->nil_obj();
 }
 
 Value *ModuleValue::included_modules(Env *env) {
@@ -406,22 +406,22 @@ Value *ModuleValue::class_eval(Env *env, Block *block) {
     }
     block->set_self(this);
     NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 0, nullptr, nullptr);
-    return NAT_NIL;
+    return env->nil_obj();
 }
 
 Value *ModuleValue::private_method(Env *env, Value *method_name) {
     printf("TODO: class private\n");
-    return NAT_NIL;
+    return env->nil_obj();
 }
 
 Value *ModuleValue::protected_method(Env *env, Value *method_name) {
     printf("TODO: class protected\n");
-    return NAT_NIL;
+    return env->nil_obj();
 }
 
 Value *ModuleValue::public_method(Env *env, Value *method_name) {
     printf("TODO: class public\n");
-    return NAT_NIL;
+    return env->nil_obj();
 }
 
 bool ModuleValue::const_defined(Env *env, Value *name_value) {

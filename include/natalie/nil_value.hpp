@@ -12,7 +12,7 @@ namespace Natalie {
 
 struct NilValue : Value {
     static NilValue *instance(Env *env) {
-        if (NAT_NIL) return NAT_NIL;
+        if (env->nil_obj()) return env->nil_obj();
         return new NilValue { env };
     }
 
@@ -23,7 +23,7 @@ struct NilValue : Value {
 
 private:
     NilValue(Env *env)
-        : Value { Value::Type::Nil, NAT_OBJECT->const_get(env, "NilClass", true)->as_class() } { }
+        : Value { Value::Type::Nil, env->Object()->const_get(env, "NilClass", true)->as_class() } { }
 };
 
 }

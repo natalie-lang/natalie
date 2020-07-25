@@ -17,13 +17,13 @@ struct ProcValue : Value {
     };
 
     ProcValue(Env *env)
-        : Value { Value::Type::Proc, NAT_OBJECT->const_get(env, "Proc", true)->as_class() } { }
+        : Value { Value::Type::Proc, env->Object()->const_get(env, "Proc", true)->as_class() } { }
 
     ProcValue(Env *env, ClassValue *klass)
         : Value { Value::Type::Proc, klass } { }
 
     ProcValue(Env *env, Block *block, ProcType type = ProcType::Proc)
-        : Value { Value::Type::Proc, NAT_OBJECT->const_get(env, "Proc", true)->as_class() }
+        : Value { Value::Type::Proc, env->Object()->const_get(env, "Proc", true)->as_class() }
         , m_block { block }
         , m_type { type } {
         assert(m_block);

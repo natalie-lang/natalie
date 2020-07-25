@@ -25,7 +25,7 @@ Value *IoValue::read(Env *env, Value *count_value) {
         bytes_read = ::read(m_fileno, buf, count);
         if (bytes_read == 0) {
             free(buf);
-            return NAT_NIL;
+            return env->nil_obj();
         } else {
             buf[bytes_read] = 0;
             Value *result = new StringValue { env, buf };
@@ -61,7 +61,7 @@ Value *IoValue::write(Env *env, ssize_t argc, Value **args) {
         ssize_t result = ::write(m_fileno, obj->as_string()->c_str(), obj->as_string()->length());
         if (result == -1) {
             Value *error_number = new IntegerValue { env, errno };
-            ExceptionValue *error = NAT_OBJECT->const_get(env, "SystemCallError", true)->send(env, "exception", 1, &error_number, nullptr)->as_exception();
+            ExceptionValue *error = env->Object()->const_get(env, "SystemCallError", true)->send(env, "exception", 1, &error_number, nullptr)->as_exception();
             env->raise_exception(error);
             abort();
         } else {
@@ -81,7 +81,7 @@ Value *IoValue::puts(Env *env, ssize_t argc, Value **args) {
             dprintf(m_fileno, "%s\n", str->as_string()->c_str());
         }
     }
-    return NAT_NIL;
+    return env->nil_obj();
 }
 
 Value *IoValue::print(Env *env, ssize_t argc, Value **args) {
@@ -92,18 +92,18 @@ Value *IoValue::print(Env *env, ssize_t argc, Value **args) {
             dprintf(m_fileno, "%s", str->as_string()->c_str());
         }
     }
-    return NAT_NIL;
+    return env->nil_obj();
 }
 
 Value *IoValue::close(Env *env) {
     int result = ::close(m_fileno);
     if (result == -1) {
         Value *error_number = new IntegerValue { env, errno };
-        ExceptionValue *error = NAT_OBJECT->const_get(env, "SystemCallError", true)->send(env, "exception", 1, &error_number, nullptr)->as_exception();
+        ExceptionValue *error = env->Object()->const_get(env, "SystemCallError", true)->send(env, "exception", 1, &error_number, nullptr)->as_exception();
         env->raise_exception(error);
         abort();
     } else {
-        return NAT_NIL;
+        return env->nil_obj();
     }
 }
 
@@ -136,7 +136,7 @@ Value *IoValue::seek(Env *env, Value *amount_value, Value *whence_value) {
     int result = lseek(m_fileno, amount, whence);
     if (result == -1) {
         Value *error_number = new IntegerValue { env, errno };
-        ExceptionValue *error = NAT_OBJECT->const_get(env, "SystemCallError", true)->send(env, "exception", 1, &error_number, nullptr)->as_exception();
+        ExceptionValue *error = env->Object()->const_get(env, "SystemCallError", true)->send(env, "exception", 1, &error_number, nullptr)->as_exception();
         env->raise_exception(error);
         abort();
     } else {

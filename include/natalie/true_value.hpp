@@ -12,7 +12,7 @@ namespace Natalie {
 
 struct TrueValue : Value {
     static TrueValue *instance(Env *env) {
-        if (NAT_TRUE) return NAT_TRUE;
+        if (env->true_obj()) return env->true_obj();
         return new TrueValue { env };
     }
 
@@ -20,7 +20,7 @@ struct TrueValue : Value {
 
 private:
     TrueValue(Env *env)
-        : Value { Value::Type::True, NAT_OBJECT->const_get(env, "TrueClass", true)->as_class() } { }
+        : Value { Value::Type::True, env->Object()->const_get(env, "TrueClass", true)->as_class() } { }
 };
 
 }

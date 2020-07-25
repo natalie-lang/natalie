@@ -51,7 +51,7 @@ void StringValue::append_string(Env *env, StringValue *string2) {
 
 void StringValue::raise_encoding_invalid_byte_sequence_error(Env *env, ssize_t index) {
     StringValue *message = sprintf(env, "invalid byte sequence at index %i in string of size %i (string not long enough)", index, length());
-    ClassValue *Encoding = NAT_OBJECT->const_get(env, "Encoding", true)->as_class();
+    ClassValue *Encoding = env->Object()->const_get(env, "Encoding", true)->as_class();
     ClassValue *InvalidByteSequenceError = Encoding->const_get(env, "InvalidByteSequenceError", true)->as_class();
     ExceptionValue *exception = new ExceptionValue { env, InvalidByteSequenceError, message->c_str() };
     env->raise_exception(exception);
@@ -171,7 +171,7 @@ Value *StringValue::index(Env *env, Value *needle) {
 Value *StringValue::index(Env *env, Value *needle, ssize_t start) {
     ssize_t i = index_ssize_t(env, needle, start);
     if (i == -1) {
-        return NAT_NIL;
+        return env->nil_obj();
     }
     return new IntegerValue { env, i };
 }
@@ -285,7 +285,7 @@ Value *StringValue::mul(Env *env, Value *arg) {
 }
 
 Value *StringValue::cmp(Env *env, Value *other) {
-    if (other->type() != Value::Type::String) return NAT_NIL;
+    if (other->type() != Value::Type::String) return env->nil_obj();
     int diff = strcmp(c_str(), other->as_string()->c_str());
     int result;
     if (diff < 0) {
@@ -351,7 +351,7 @@ Value *StringValue::size(Env *env) {
 }
 
 Value *StringValue::encoding(Env *env) {
-    ClassValue *Encoding = NAT_OBJECT->const_get(env, "Encoding", true)->as_class();
+    ClassValue *Encoding = env->Object()->const_get(env, "Encoding", true)->as_class();
     switch (m_encoding) {
     case Encoding::ASCII_8BIT:
         return Encoding->const_get(env, "ASCII_8BIT", true);
@@ -394,7 +394,7 @@ Value *StringValue::encode(Env *env, Value *encoding) {
     Encoding orig_encoding = m_encoding;
     StringValue *copy = dup(env)->as_string();
     copy->force_encoding(env, encoding);
-    ClassValue *Encoding = NAT_OBJECT->const_get(env, "Encoding", true)->as_class();
+    ClassValue *Encoding = env->Object()->const_get(env, "Encoding", true)->as_class();
     if (orig_encoding == copy->encoding()) {
         return copy;
     } else if (orig_encoding == Encoding::UTF_8 && copy->encoding() == Encoding::ASCII_8BIT) {
@@ -447,7 +447,7 @@ Value *StringValue::ref(Env *env, Value *index_obj) {
         }
 
         if (index < 0 || index >= (int64_t)chars->size()) {
-            return NAT_NIL;
+            return env->nil_obj();
         }
         return (*chars)[index];
     } else if (index_obj->is_range()) {
@@ -464,8 +464,8 @@ Value *StringValue::ref(Env *env, Value *index_obj) {
         if (begin < 0) begin = chars->size() + begin;
         if (end < 0) end = chars->size() + end;
 
-        if (begin < 0 || end < 0) return NAT_NIL;
-        if (begin >= chars->size()) return NAT_NIL;
+        if (begin < 0 || end < 0) return env->nil_obj();
+        if (begin >= chars->size()) return env->nil_obj();
 
         if (!range->exclude_end()) end++;
 
@@ -495,7 +495,7 @@ Value *StringValue::sub(Env *env, Value *find, Value *replacement) {
         return out;
     } else if (find->is_regexp()) {
         Value *match = find->as_regexp()->match(env, this);
-        if (match == NAT_NIL) {
+        if (match == env->nil_obj()) {
             return dup(env);
         }
         size_t length = match->as_match_data()->group(env, 0)->as_string()->length();

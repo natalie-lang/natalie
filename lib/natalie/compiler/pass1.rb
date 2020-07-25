@@ -148,7 +148,7 @@ module Natalie
 
       def process_colon3(exp)
         (_, name) = exp
-        s(:const_get, s(:l, :NAT_OBJECT), :env, s(:s, name), s(:l, :true))
+        s(:const_get, s(:l, 'env->Object()'), :env, s(:s, name), s(:l, :true))
       end
 
       def process_const(exp)

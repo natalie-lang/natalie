@@ -45,7 +45,7 @@ Value *RegexpValue::match(Env *env, Value *other) {
     } else if (result == ONIG_MISMATCH) {
         caller_env->clear_match();
         onig_region_free(region, true);
-        return NAT_NIL;
+        return env->nil_obj();
     } else {
         caller_env->clear_match();
         onig_region_free(region, true);

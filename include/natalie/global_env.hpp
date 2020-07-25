@@ -37,8 +37,8 @@ struct GlobalEnv {
     ClassValue *Object() { return m_Object; }
     void set_Object(ClassValue *Object) { m_Object = Object; }
 
-    NilValue *nil() { return m_nil; }
-    void set_nil(NilValue *nil) { m_nil = nil; }
+    NilValue *nil_obj() { return m_nil_obj; }
+    void set_nil_obj(NilValue *nil_obj) { m_nil_obj = nil_obj; }
 
     TrueValue *true_obj() { return m_true_obj; }
     void set_true_obj(TrueValue *true_obj) { m_true_obj = true_obj; }
@@ -50,7 +50,7 @@ private:
     struct hashmap *m_globals { nullptr };
     struct hashmap *m_symbols { nullptr };
     ClassValue *m_Object { nullptr };
-    NilValue *m_nil { nullptr };
+    NilValue *m_nil_obj { nullptr };
     TrueValue *m_true_obj { nullptr };
     FalseValue *m_false_obj { nullptr };
 };

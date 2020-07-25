@@ -14,7 +14,7 @@ namespace Natalie {
 
 struct ClassValue : ModuleValue {
     ClassValue(Env *env)
-        : ClassValue { env, NAT_OBJECT->const_get(env, "Class", true)->as_class() } { }
+        : ClassValue { env, env->Object()->const_get(env, "Class", true)->as_class() } { }
 
     ClassValue(Env *env, ClassValue *klass)
         : ModuleValue { env, Value::Type::Class, klass } { }
@@ -35,7 +35,7 @@ struct ClassValue : ModuleValue {
                 NAT_RAISE(env, "TypeError", "superclass must be a Class (%s given)", superclass->klass()->class_name());
             }
         } else {
-            superclass = NAT_OBJECT;
+            superclass = env->Object();
         }
         Value *klass = superclass->as_class()->subclass(env);
         if (block) {

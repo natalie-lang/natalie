@@ -47,10 +47,10 @@ Value *RangeValue::eq(Env *env, Value *other_value) {
         bool begin_equal = m_begin->send(env, "==", 1, &begin, nullptr)->is_truthy();
         bool end_equal = m_end->send(env, "==", 1, &end, nullptr)->is_truthy();
         if (begin_equal && end_equal && m_exclude_end == other->m_exclude_end) {
-            return NAT_TRUE;
+            return env->true_obj();
         }
     }
-    return NAT_FALSE;
+    return env->false_obj();
 }
 
 Value *RangeValue::eqeqeq(Env *env, Value *arg) {
@@ -60,7 +60,7 @@ Value *RangeValue::eqeqeq(Env *env, Value *arg) {
         int64_t end = m_end->as_integer()->to_int64_t();
         int64_t val = arg->as_integer()->to_int64_t();
         if (begin <= val && ((m_exclude_end && val < end) || (!m_exclude_end && val <= end))) {
-            return NAT_TRUE;
+            return env->true_obj();
         }
     } else {
         // slower method that should work for any type of range
@@ -69,12 +69,12 @@ Value *RangeValue::eqeqeq(Env *env, Value *arg) {
         Value *end = m_end;
         while (item->send(env, op, 1, &end, nullptr)->is_truthy()) {
             if (item->send(env, "==", 1, &arg, nullptr)->is_truthy()) {
-                return NAT_TRUE;
+                return env->true_obj();
             }
             item = item->send(env, "succ");
         }
     }
-    return NAT_FALSE;
+    return env->false_obj();
 }
 
 }

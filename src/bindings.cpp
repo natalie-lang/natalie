@@ -197,7 +197,7 @@ Value *ClassValue_superclass_binding(Env *env, Value *self_value, ssize_t argc, 
     NAT_ASSERT_ARGC(0);
     ClassValue *self = self_value->as_class();
     auto return_value = self->superclass();
-    if (return_value) { return return_value; } else { return NAT_NIL; }
+    if (return_value) { return return_value; } else { return env->nil_obj(); }
 }
 
 Value *EncodingValue_list_singleton_binding(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
@@ -329,14 +329,14 @@ Value *FloatValue_lt_binding(Env *env, Value *self_value, ssize_t argc, Value **
     NAT_ASSERT_ARGC(1);
     FloatValue *self = self_value->as_float();
     auto return_value = self->lt(env, argc > 0 ? args[0] : nullptr);
-    if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
 Value *FloatValue_lte_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     FloatValue *self = self_value->as_float();
     auto return_value = self->lte(env, argc > 0 ? args[0] : nullptr);
-    if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
 Value *FloatValue_cmp_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
@@ -350,28 +350,28 @@ Value *FloatValue_eq_binding(Env *env, Value *self_value, ssize_t argc, Value **
     NAT_ASSERT_ARGC(1);
     FloatValue *self = self_value->as_float();
     auto return_value = self->eq(env, argc > 0 ? args[0] : nullptr);
-    if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
 Value *FloatValue_eq_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     FloatValue *self = self_value->as_float();
     auto return_value = self->eq(env, argc > 0 ? args[0] : nullptr);
-    if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
 Value *FloatValue_gt_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     FloatValue *self = self_value->as_float();
     auto return_value = self->gt(env, argc > 0 ? args[0] : nullptr);
-    if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
 Value *FloatValue_gte_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     FloatValue *self = self_value->as_float();
     auto return_value = self->gte(env, argc > 0 ? args[0] : nullptr);
-    if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
 Value *FloatValue_abs_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
@@ -406,7 +406,7 @@ Value *FloatValue_eql_binding(Env *env, Value *self_value, ssize_t argc, Value *
     NAT_ASSERT_ARGC(1);
     FloatValue *self = self_value->as_float();
     auto return_value = self->eql(argc > 0 ? args[0] : nullptr);
-    if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
 Value *FloatValue_div_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
@@ -420,7 +420,7 @@ Value *FloatValue_is_finite_binding(Env *env, Value *self_value, ssize_t argc, V
     NAT_ASSERT_ARGC(0);
     FloatValue *self = self_value->as_float();
     auto return_value = self->is_finite();
-    if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
 Value *FloatValue_floor_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
@@ -462,14 +462,14 @@ Value *FloatValue_is_nan_binding(Env *env, Value *self_value, ssize_t argc, Valu
     NAT_ASSERT_ARGC(0);
     FloatValue *self = self_value->as_float();
     auto return_value = self->is_nan();
-    if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
 Value *FloatValue_is_negative_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     FloatValue *self = self_value->as_float();
     auto return_value = self->is_negative();
-    if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
 Value *FloatValue_next_float_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
@@ -483,7 +483,7 @@ Value *FloatValue_is_positive_binding(Env *env, Value *self_value, ssize_t argc,
     NAT_ASSERT_ARGC(0);
     FloatValue *self = self_value->as_float();
     auto return_value = self->is_positive();
-    if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
 Value *FloatValue_prev_float_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
@@ -518,7 +518,7 @@ Value *FloatValue_is_zero_binding(Env *env, Value *self_value, ssize_t argc, Val
     NAT_ASSERT_ARGC(0);
     FloatValue *self = self_value->as_float();
     auto return_value = self->is_zero();
-    if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
 Value *HashValue_square_new_singleton_binding(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
@@ -713,7 +713,7 @@ Value *IntegerValue_eql_binding(Env *env, Value *self_value, ssize_t argc, Value
     NAT_ASSERT_ARGC(1);
     IntegerValue *self = self_value->as_integer();
     auto return_value = self->eql(env, argc > 0 ? args[0] : nullptr);
-    if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
 Value *IntegerValue_to_s_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
@@ -846,7 +846,7 @@ Value *ModuleValue_eqeqeq_binding(Env *env, Value *self_value, ssize_t argc, Val
     NAT_ASSERT_ARGC(1);
     ModuleValue *self = self_value->as_module();
     auto return_value = self->eqeqeq(env, argc > 0 ? args[0] : nullptr);
-    if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
 Value *ModuleValue_alias_method_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
@@ -902,7 +902,7 @@ Value *ModuleValue_const_defined_binding(Env *env, Value *self_value, ssize_t ar
     NAT_ASSERT_ARGC(1);
     ModuleValue *self = self_value->as_module();
     auto return_value = self->const_defined(env, argc > 0 ? args[0] : nullptr);
-    if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
 Value *ModuleValue_define_method_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
@@ -944,7 +944,7 @@ Value *ModuleValue_is_method_defined_binding(Env *env, Value *self_value, ssize_
     NAT_ASSERT_ARGC(1);
     ModuleValue *self = self_value->as_module();
     auto return_value = self->is_method_defined(env, argc > 0 ? args[0] : nullptr);
-    if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
 Value *ModuleValue_name_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
@@ -1014,7 +1014,7 @@ Value *Value_is_nil_binding(Env *env, Value *self_value, ssize_t argc, Value **a
     NAT_ASSERT_ARGC(0);
     Value *self = self_value;
     auto return_value = self->is_nil();
-    if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
 Value *ProcValue_initialize_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
@@ -1035,7 +1035,7 @@ Value *ProcValue_is_lambda_binding(Env *env, Value *self_value, ssize_t argc, Va
     NAT_ASSERT_ARGC(0);
     ProcValue *self = self_value->as_proc();
     auto return_value = self->is_lambda();
-    if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
 Value *RangeValue_initialize_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
@@ -1077,7 +1077,7 @@ Value *RangeValue_exclude_end_binding(Env *env, Value *self_value, ssize_t argc,
     NAT_ASSERT_ARGC(0);
     RangeValue *self = self_value->as_range();
     auto return_value = self->exclude_end();
-    if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
 Value *RangeValue_to_a_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
@@ -1126,7 +1126,7 @@ Value *RegexpValue_eq_binding(Env *env, Value *self_value, ssize_t argc, Value *
     NAT_ASSERT_ARGC(1);
     RegexpValue *self = self_value->as_regexp();
     auto return_value = self->eq(env, argc > 0 ? args[0] : nullptr);
-    if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
 Value *RegexpValue_match_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
@@ -1196,14 +1196,14 @@ Value *StringValue_eq_binding(Env *env, Value *self_value, ssize_t argc, Value *
     NAT_ASSERT_ARGC(1);
     StringValue *self = self_value->as_string();
     auto return_value = self->eq(argc > 0 ? args[0] : nullptr);
-    if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
 Value *StringValue_eq_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     StringValue *self = self_value->as_string();
     auto return_value = self->eq(argc > 0 ? args[0] : nullptr);
-    if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
 Value *StringValue_eqtilde_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
@@ -1396,7 +1396,7 @@ Value *TrueValue_to_s_binding1(Env *env, Value *self_value, ssize_t argc, Value 
 }
 
 void init_bindings(Env *env) {
-    Value *Array = NAT_OBJECT->const_get(env, "Array", true);
+    Value *Array = env->Object()->const_get(env, "Array", true);
     Array->define_singleton_method(env, "[]", ArrayValue_square_new_singleton_binding);
     Array->define_method(env, "+", ArrayValue_add_binding);
     Array->define_method(env, "-", ArrayValue_sub_binding);
@@ -1423,23 +1423,23 @@ void init_bindings(Env *env) {
     Array->define_method(env, "to_a", ArrayValue_to_ary_binding);
     Array->define_method(env, "to_ary", ArrayValue_to_ary_binding1);
     Array->define_method(env, "to_s", ArrayValue_inspect_binding1);
-    Value *Class = NAT_OBJECT->const_get(env, "Class", true);
+    Value *Class = env->Object()->const_get(env, "Class", true);
     Class->define_singleton_method(env, "new", ClassValue_new_method_singleton_binding);
     Class->define_method(env, "superclass", ClassValue_superclass_binding);
-    Value *Encoding = NAT_OBJECT->const_get(env, "Encoding", true);
+    Value *Encoding = env->Object()->const_get(env, "Encoding", true);
     Encoding->define_singleton_method(env, "list", EncodingValue_list_singleton_binding);
     Encoding->define_method(env, "inspect", EncodingValue_inspect_binding);
     Encoding->define_method(env, "name", EncodingValue_name_binding);
     Encoding->define_method(env, "names", EncodingValue_names_binding);
-    Value *Exception = NAT_OBJECT->const_get(env, "Exception", true);
+    Value *Exception = env->Object()->const_get(env, "Exception", true);
     Exception->define_method(env, "backtrace", ExceptionValue_backtrace_binding);
     Exception->define_method(env, "initialize", ExceptionValue_initialize_binding);
     Exception->define_method(env, "inspect", ExceptionValue_inspect_binding);
     Exception->define_method(env, "message", ExceptionValue_message_binding);
-    Value *FalseClass = NAT_OBJECT->const_get(env, "FalseClass", true);
+    Value *FalseClass = env->Object()->const_get(env, "FalseClass", true);
     FalseClass->define_method(env, "inspect", FalseValue_to_s_binding);
     FalseClass->define_method(env, "to_s", FalseValue_to_s_binding1);
-    Value *Float = NAT_OBJECT->const_get(env, "Float", true);
+    Value *Float = env->Object()->const_get(env, "Float", true);
     Float->define_method(env, "%", FloatValue_mod_binding);
     Float->define_method(env, "*", FloatValue_mul_binding);
     Float->define_method(env, "**", FloatValue_pow_binding);
@@ -1476,7 +1476,7 @@ void init_bindings(Env *env) {
     Float->define_method(env, "to_i", FloatValue_to_i_binding);
     Float->define_method(env, "to_s", FloatValue_to_s_binding1);
     Float->define_method(env, "zero?", FloatValue_is_zero_binding);
-    Value *Hash = NAT_OBJECT->const_get(env, "Hash", true);
+    Value *Hash = env->Object()->const_get(env, "Hash", true);
     Hash->define_singleton_method(env, "[]", HashValue_square_new_singleton_binding);
     Hash->define_method(env, "==", HashValue_eq_binding);
     Hash->define_method(env, "===", HashValue_eq_binding1);
@@ -1492,7 +1492,7 @@ void init_bindings(Env *env) {
     Hash->define_method(env, "sort", HashValue_sort_binding);
     Hash->define_method(env, "to_s", HashValue_inspect_binding1);
     Hash->define_method(env, "values", HashValue_values_binding);
-    Value *Integer = NAT_OBJECT->const_get(env, "Integer", true);
+    Value *Integer = env->Object()->const_get(env, "Integer", true);
     Integer->define_method(env, "%", IntegerValue_mod_binding);
     Integer->define_method(env, "&", IntegerValue_bitwise_and_binding);
     Integer->define_method(env, "*", IntegerValue_mul_binding);
@@ -1512,7 +1512,7 @@ void init_bindings(Env *env) {
     Integer->define_method(env, "to_i", IntegerValue_to_i_binding);
     Integer->define_method(env, "to_s", IntegerValue_to_s_binding1);
     Integer->define_method(env, "|", IntegerValue_bitwise_or_binding);
-    Value *IO = NAT_OBJECT->const_get(env, "IO", true);
+    Value *IO = env->Object()->const_get(env, "IO", true);
     IO->define_method(env, "close", IoValue_close_binding);
     IO->define_method(env, "fileno", IoValue_fileno_binding);
     IO->define_method(env, "initialize", IoValue_initialize_binding);
@@ -1521,12 +1521,12 @@ void init_bindings(Env *env) {
     IO->define_method(env, "read", IoValue_read_binding);
     IO->define_method(env, "seek", IoValue_seek_binding);
     IO->define_method(env, "write", IoValue_write_binding);
-    Value *MatchData = NAT_OBJECT->const_get(env, "MatchData", true);
+    Value *MatchData = env->Object()->const_get(env, "MatchData", true);
     MatchData->define_method(env, "size", MatchDataValue_size_binding);
     MatchData->define_method(env, "length", MatchDataValue_size_binding1);
     MatchData->define_method(env, "to_s", MatchDataValue_to_s_binding);
     MatchData->define_method(env, "[]", MatchDataValue_ref_binding);
-    Value *Module = NAT_OBJECT->const_get(env, "Module", true);
+    Value *Module = env->Object()->const_get(env, "Module", true);
     Module->define_method(env, "===", ModuleValue_eqeqeq_binding);
     Module->define_method(env, "alias_method", ModuleValue_alias_method_binding);
     Module->define_method(env, "ancestors", ModuleValue_ancestors_binding);
@@ -1547,18 +1547,18 @@ void init_bindings(Env *env) {
     Module->define_method(env, "private", ModuleValue_private_method_binding);
     Module->define_method(env, "protected", ModuleValue_protected_method_binding);
     Module->define_method(env, "public", ModuleValue_public_method_binding);
-    Value *NilClass = NAT_OBJECT->const_get(env, "NilClass", true);
+    Value *NilClass = env->Object()->const_get(env, "NilClass", true);
     NilClass->define_method(env, "inspect", NilValue_inspect_binding);
     NilClass->define_method(env, "to_a", NilValue_to_a_binding);
     NilClass->define_method(env, "to_i", NilValue_to_i_binding);
     NilClass->define_method(env, "to_s", NilValue_to_s_binding);
-    Value *Object = NAT_OBJECT->const_get(env, "Object", true);
+    Value *Object = env->Object()->const_get(env, "Object", true);
     Object->define_method(env, "nil?", Value_is_nil_binding);
-    Value *Proc = NAT_OBJECT->const_get(env, "Proc", true);
+    Value *Proc = env->Object()->const_get(env, "Proc", true);
     Proc->define_method(env, "initialize", ProcValue_initialize_binding);
     Proc->define_method(env, "call", ProcValue_call_binding);
     Proc->define_method(env, "lambda?", ProcValue_is_lambda_binding);
-    Value *Range = NAT_OBJECT->const_get(env, "Range", true);
+    Value *Range = env->Object()->const_get(env, "Range", true);
     Range->define_method(env, "initialize", RangeValue_initialize_binding);
     Range->define_method(env, "begin", RangeValue_begin_binding);
     Range->define_method(env, "first", RangeValue_begin_binding1);
@@ -1571,14 +1571,14 @@ void init_bindings(Env *env) {
     Range->define_method(env, "==", RangeValue_eq_binding);
     Range->define_method(env, "===", RangeValue_eqeqeq_binding);
     Range->define_method(env, "include?", RangeValue_eqeqeq_binding1);
-    Value *Regexp = NAT_OBJECT->const_get(env, "Regexp", true);
+    Value *Regexp = env->Object()->const_get(env, "Regexp", true);
     Regexp->define_method(env, "==", RegexpValue_eq_binding);
     Regexp->define_method(env, "===", RegexpValue_match_binding);
     Regexp->define_method(env, "=~", RegexpValue_eqtilde_binding);
     Regexp->define_method(env, "initialize", RegexpValue_initialize_binding);
     Regexp->define_method(env, "inspect", RegexpValue_inspect_binding);
     Regexp->define_method(env, "match", RegexpValue_match_binding1);
-    Value *String = NAT_OBJECT->const_get(env, "String", true);
+    Value *String = env->Object()->const_get(env, "String", true);
     String->define_method(env, "*", StringValue_mul_binding);
     String->define_method(env, "+", StringValue_add_binding);
     String->define_method(env, "<<", StringValue_ltlt_binding);
@@ -1606,12 +1606,12 @@ void init_bindings(Env *env) {
     String->define_method(env, "to_i", StringValue_to_i_binding);
     String->define_method(env, "to_s", StringValue_to_s_binding);
     String->define_method(env, "to_str", StringValue_to_str_binding);
-    Value *Symbol = NAT_OBJECT->const_get(env, "Symbol", true);
+    Value *Symbol = env->Object()->const_get(env, "Symbol", true);
     Symbol->define_method(env, "<=>", SymbolValue_cmp_binding);
     Symbol->define_method(env, "inspect", SymbolValue_inspect_binding);
     Symbol->define_method(env, "to_proc", SymbolValue_to_proc_binding);
     Symbol->define_method(env, "to_s", SymbolValue_to_s_binding);
-    Value *TrueClass = NAT_OBJECT->const_get(env, "TrueClass", true);
+    Value *TrueClass = env->Object()->const_get(env, "TrueClass", true);
     TrueClass->define_method(env, "inspect", TrueValue_to_s_binding);
     TrueClass->define_method(env, "to_s", TrueValue_to_s_binding1);
     FalseClass->undefine_singleton_method(env, "new");

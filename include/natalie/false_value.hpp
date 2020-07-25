@@ -12,7 +12,7 @@ namespace Natalie {
 
 struct FalseValue : Value {
     static FalseValue *instance(Env *env) {
-        if (NAT_FALSE) return NAT_FALSE;
+        if (env->false_obj()) return env->false_obj();
         return new FalseValue { env };
     }
 
@@ -20,7 +20,7 @@ struct FalseValue : Value {
 
 private:
     FalseValue(Env *env)
-        : Value { Value::Type::False, NAT_OBJECT->const_get(env, "FalseClass", true)->as_class() } { }
+        : Value { Value::Type::False, env->Object()->const_get(env, "FalseClass", true)->as_class() } { }
 };
 
 }

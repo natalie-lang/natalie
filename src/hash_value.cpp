@@ -166,7 +166,7 @@ Value *HashValue::square_new(Env *env, ssize_t argc, Value **args) {
                     NAT_RAISE(env, "ArgumentError", "invalid number of elements (%d for 1..2)", size);
                 }
                 Value *key = (*pair->as_array())[0];
-                Value *value = size == 1 ? NAT_NIL : (*pair->as_array())[1];
+                Value *value = size == 1 ? env->nil_obj() : (*pair->as_array())[1];
                 hash->put(env, key, value);
             }
             return hash;
@@ -223,7 +223,7 @@ Value *HashValue::delete_key(Env *env, Value *key) {
     if (val) {
         return val;
     } else {
-        return NAT_NIL;
+        return env->nil_obj();
     }
 }
 
@@ -234,20 +234,20 @@ Value *HashValue::size(Env *env) {
 
 Value *HashValue::eq(Env *env, Value *other_value) {
     if (!other_value->is_hash()) {
-        return NAT_FALSE;
+        return env->false_obj();
     }
     HashValue *other = other_value->as_hash();
     if (size() != other->size()) {
-        return NAT_FALSE;
+        return env->false_obj();
     }
     Value *other_val;
     for (HashValue::Key &node : *this) {
         other_val = other->get(env, node.key);
         if (!node.val->send(env, "==", 1, &other_val, nullptr)->is_truthy()) {
-            return NAT_FALSE;
+            return env->false_obj();
         }
     }
-    return NAT_TRUE;
+    return env->true_obj();
 }
 
 #define NAT_RUN_BLOCK_AND_POSSIBLY_BREAK_WHILE_ITERATING_HASH(env, the_block, argc, args, block, hash) ({ \
@@ -301,9 +301,9 @@ Value *HashValue::sort(Env *env) {
 Value *HashValue::has_key(Env *env, Value *key) {
     Value *val = get(env, key);
     if (val) {
-        return NAT_TRUE;
+        return env->true_obj();
     } else {
-        return NAT_FALSE;
+        return env->false_obj();
     }
 }
 

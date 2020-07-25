@@ -27,7 +27,7 @@ class BindingGen
     @consts = {}
     @bindings.values.each do |binding|
       unless @consts[binding.rb_class]
-        puts "    Value *#{binding.rb_class} = NAT_OBJECT->const_get(env, #{binding.rb_class.inspect}, true);"
+        puts "    Value *#{binding.rb_class} = env->Object()->const_get(env, #{binding.rb_class.inspect}, true);"
         @consts[binding.rb_class] = true
       end
       puts "    #{binding.rb_class}->#{binding.define_method_name}(env, #{binding.rb_method.inspect}, #{binding.name});"
@@ -155,13 +155,13 @@ Value *#{name}(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
     def return_code
       case return_type
       when :bool
-        'if (return_value) { return NAT_TRUE; } else { return NAT_FALSE; }'
+        'if (return_value) { return env->true_obj(); } else { return env->false_obj(); }'
       when :ssize_t, :int
         'return new IntegerValue { env, return_value };'
       when :Value
         'return return_value;'
       when :NullableValue
-        'if (return_value) { return return_value; } else { return NAT_NIL; }'
+        'if (return_value) { return return_value; } else { return env->nil_obj(); }'
       when :StringValue
         'return return_value;'
       else
