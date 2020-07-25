@@ -49,19 +49,19 @@ extern "C" Env *build_top_env() {
     ClassValue *NilClass = Object->subclass(env, "NilClass", Value::Type::Nil);
     Object->const_set(env, "NilClass", NilClass);
 
-    env->global_env()->set_nil_obj(NilValue::instance(env));
+    env->global_env()->set_nil_obj(new NilValue { env });
     env->nil_obj()->set_singleton_class(NilClass);
 
     ClassValue *TrueClass = Object->subclass(env, "TrueClass", Value::Type::True);
     Object->const_set(env, "TrueClass", TrueClass);
 
-    env->global_env()->set_true_obj(TrueValue::instance(env));
+    env->global_env()->set_true_obj(new TrueValue { env });
     env->true_obj()->set_singleton_class(TrueClass);
 
     ClassValue *FalseClass = Object->subclass(env, "FalseClass", Value::Type::False);
     Object->const_set(env, "FalseClass", FalseClass);
 
-    env->global_env()->set_false_obj(FalseValue::instance(env));
+    env->global_env()->set_false_obj(new FalseValue { env });
     env->false_obj()->set_singleton_class(FalseClass);
 
     ClassValue *Numeric = Object->subclass(env, "Numeric");

@@ -11,19 +11,15 @@
 namespace Natalie {
 
 struct NilValue : Value {
-    static NilValue *instance(Env *env) {
-        if (env->nil_obj()) return env->nil_obj();
-        return new NilValue { env };
+    NilValue(Env *env)
+        : Value { Value::Type::Nil, env->Object()->const_get(env, "NilClass", true)->as_class() } {
+        if (env->nil_obj()) NAT_UNREACHABLE();
     }
 
     Value *to_s(Env *);
     Value *to_a(Env *);
     Value *to_i(Env *);
     Value *inspect(Env *);
-
-private:
-    NilValue(Env *env)
-        : Value { Value::Type::Nil, env->Object()->const_get(env, "NilClass", true)->as_class() } { }
 };
 
 }

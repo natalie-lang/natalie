@@ -11,16 +11,12 @@
 namespace Natalie {
 
 struct TrueValue : Value {
-    static TrueValue *instance(Env *env) {
-        if (env->true_obj()) return env->true_obj();
-        return new TrueValue { env };
+    TrueValue(Env *env)
+        : Value { Value::Type::True, env->Object()->const_get(env, "TrueClass", true)->as_class() } {
+        if (env->true_obj()) NAT_UNREACHABLE();
     }
 
     Value *to_s(Env *);
-
-private:
-    TrueValue(Env *env)
-        : Value { Value::Type::True, env->Object()->const_get(env, "TrueClass", true)->as_class() } { }
 };
 
 }
