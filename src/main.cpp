@@ -14,11 +14,6 @@ extern "C" Env *build_top_env() {
     ClassValue *Class = ClassValue::bootstrap_class_class(env);
 
     ClassValue *BasicObject = ClassValue::bootstrap_basic_object(env, Class);
-    BasicObject->define_method(env, "!", BasicObject_not);
-    BasicObject->define_method(env, "==", BasicObject_eqeq);
-    BasicObject->define_method(env, "!=", BasicObject_neq);
-    BasicObject->define_method(env, "equal?", Kernel_equal);
-    BasicObject->define_method(env, "instance_eval", BasicObject_instance_eval);
 
     ClassValue *Object = BasicObject->subclass(env, "Object");
     env->global_env()->set_Object(Object);

@@ -187,6 +187,41 @@ Value *ArrayValue_inspect_binding1(Env *env, Value *self_value, ssize_t argc, Va
     return return_value;
 }
 
+Value *Value_is_falsey_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    Value *self = self_value;
+    auto return_value = self->is_falsey();
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+}
+
+Value *Value_eq_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    Value *self = self_value;
+    auto return_value = self->eq(env, argc > 0 ? args[0] : nullptr);
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+}
+
+Value *Value_eq_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    Value *self = self_value;
+    auto return_value = self->eq(env, argc > 0 ? args[0] : nullptr);
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+}
+
+Value *Value_neq_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    Value *self = self_value;
+    auto return_value = self->neq(env, argc > 0 ? args[0] : nullptr);
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+}
+
+Value *Value_instance_eval_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0, 1);
+    Value *self = self_value;
+    auto return_value = self->instance_eval(env, argc > 0 ? args[0] : nullptr, block);
+    return return_value;
+}
+
 Value *ClassValue_new_method_singleton_binding(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0, 1);
     auto return_value = ClassValue::new_method(env, argc > 0 ? args[0] : nullptr, block);
@@ -1423,6 +1458,12 @@ void init_bindings(Env *env) {
     Array->define_method(env, "to_a", ArrayValue_to_ary_binding);
     Array->define_method(env, "to_ary", ArrayValue_to_ary_binding1);
     Array->define_method(env, "to_s", ArrayValue_inspect_binding1);
+    Value *BasicObject = env->Object()->const_get(env, "BasicObject", true);
+    BasicObject->define_method(env, "!", Value_is_falsey_binding);
+    BasicObject->define_method(env, "==", Value_eq_binding);
+    BasicObject->define_method(env, "equal?", Value_eq_binding1);
+    BasicObject->define_method(env, "!=", Value_neq_binding);
+    BasicObject->define_method(env, "instance_eval", Value_instance_eval_binding);
     Value *Class = env->Object()->const_get(env, "Class", true);
     Class->define_singleton_method(env, "new", ClassValue_new_method_singleton_binding);
     Class->define_method(env, "superclass", ClassValue_superclass_binding);

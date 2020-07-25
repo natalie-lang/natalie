@@ -101,6 +101,7 @@ struct Value : public gc {
     bool is_void_p() const { return m_type == Type::VoidP; }
 
     bool is_truthy() const { return !is_false() && !is_nil(); }
+    bool is_falsey() const { return !is_truthy(); }
     bool is_numeric() const { return is_integer() || is_float(); }
 
     NilValue *as_nil();
@@ -182,6 +183,16 @@ struct Value : public gc {
     bool has_break_flag() { return (m_flags & NAT_FLAG_BREAK) == NAT_FLAG_BREAK; }
 
     void add_main_object_flag() { m_flags = m_flags | NAT_FLAG_MAIN_OBJECT; }
+
+    bool eq(Env *, Value *other) {
+        return this == other;
+    }
+
+    bool neq(Env *env, Value *other) {
+        return send(env, "==", 1, &other)->is_falsey();
+    }
+
+    Value *instance_eval(Env *, Value *, Block *);
 
 protected:
     Env m_env;
