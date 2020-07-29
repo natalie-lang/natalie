@@ -677,18 +677,24 @@ module Natalie
         (_, obj, writer, op, *val_args) = exp
         raise "expected writer=" unless writer =~ /=$/
         reader = writer.to_s.chop
-        raise "expected ||" unless op == :"||"
         val = temp('val')
         obj_name = temp('obj')
-        exp.new(:block,
-                s(:declare, obj_name, process(obj)),
-                s(:declare, val, s(:send, obj_name, reader, s(:args))),
-                s(:c_if, s(:is_truthy, val),
-                  val,
-                  s(:send, obj_name, writer,
-                    s(:args,
-                      *val_args.map { |a| process(a) }
-                     ))))
+        if op == :"||"
+          exp.new(:block,
+                  s(:declare, obj_name, process(obj)),
+                  s(:declare, val, s(:send, obj_name, reader, s(:args))),
+                  s(:c_if, s(:is_truthy, val),
+                    val,
+                    s(:send, obj_name, writer,
+                      s(:args,
+                        *val_args.map { |a| process(a) }
+                       ))))
+        else
+          exp.new(:block,
+                  s(:declare, obj_name, process(obj)),
+                  s(:declare, val, s(:send, s(:send, obj_name, reader, s(:args)), op, s(:args, *val_args.map { |a| process(a) }))),
+                  s(:send, obj_name, writer, s(:args, val)))
+        end
       end
 
       def process_op_asgn_and(exp)

@@ -179,6 +179,34 @@ describe 'assignment' do
     b.should == 2
   end
 
+  it 'can add to an attr with +=' do
+    a = AttrAssign.new
+    a.foo = 1
+    a.foo += 2
+    a.foo.should == 3
+  end
+
+  it 'can subtract from an attr with -=' do
+    a = AttrAssign.new
+    a.foo = 3
+    a.foo -= 2
+    a.foo.should == 1
+  end
+
+  it 'can multiply an attr with *=' do
+    a = AttrAssign.new
+    a.foo = 2
+    a.foo *= 3
+    a.foo.should == 6
+  end
+
+  it 'can divide an attr with /=' do
+    a = AttrAssign.new
+    a.foo = 6
+    a.foo /= 3
+    a.foo.should == 2
+  end
+
   it 'assigns instance variables' do
     @a, b = 1, 2
     @a.should == 1
