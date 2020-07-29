@@ -6,6 +6,7 @@ module Natalie
         super()
         self.require_empty = false
         @compiler_context = compiler_context
+        @loop_context = []
       end
 
       def go(ast)
@@ -57,14 +58,30 @@ module Natalie
         exp.new(:block, *parts.map { |p| p.is_a?(Sexp) ? process(p) : p })
       end
 
+      VALID_BREAK_CONTEXT = %i[iter while until]
+      BREAK_LOOPS = %i[while until]
+
       def process_break(exp)
         (_, value) = exp
         value ||= s(:nil)
         break_name = temp('break_value')
-        exp.new(:block,
-                s(:declare, break_name, process(value)),
-                s(:add_break_flag, break_name),
-                s(:c_return, break_name))
+        container = context.detect { |e| VALID_BREAK_CONTEXT.include?(e) }
+        unless container
+          puts "#{exp.file}##{exp.line}"
+          raise SyntaxError, "Invalid break"
+        end
+        if BREAK_LOOPS.include?(container)
+          result_name = @loop_context.last
+          raise "No proper loop context!" if result_name.nil?
+          exp.new(:block,
+                  s(:set, result_name, process(value)),
+                  s(:c_break))
+        else
+          exp.new(:block,
+                  s(:declare, break_name, process(value)),
+                  s(:add_break_flag, break_name),
+                  s(:c_return, break_name))
+        end
       end
 
       def process_call(exp, is_super: false)
@@ -788,24 +805,32 @@ module Natalie
         (_, condition, body, unknown) = exp
         raise 'check this out' if unknown != true # NOTE: I don't know what this is; it always seems to be true
         body ||= s(:nil)
-        exp.new(:block,
-                s(:c_while, 'true',
-                  s(:block,
-                    s(:c_if, s(:is_truthy, process(condition)), s(:c_break)),
-                    process(body))),
-        s(:nil))
+        result_name = temp('while_result')
+        loop_context(result_name) do
+          exp.new(:block,
+                  s(:declare, result_name, s(:nil)),
+                  s(:c_while, 'true',
+                    s(:block,
+                      s(:c_if, s(:is_truthy, process(condition)), s(:c_break)),
+                      process(body))),
+          result_name)
+        end
       end
 
       def process_while(exp)
         (_, condition, body, unknown) = exp
         raise 'check this out' if unknown != true # NOTE: I don't know what this is; it always seems to be true
         body ||= s(:nil)
-        exp.new(:block,
-                s(:c_while, 'true',
-                  s(:block,
-                    s(:c_if, s(:not, s(:is_truthy, process(condition))), s(:c_break)),
-                    process(body))),
-        s(:nil))
+        result_name = temp('while_result')
+        loop_context(result_name) do
+          exp.new(:block,
+                  s(:declare, result_name, s(:nil)),
+                  s(:c_while, 'true',
+                    s(:block,
+                      s(:c_if, s(:not, s(:is_truthy, process(condition))), s(:c_break)),
+                      process(body))),
+          result_name)
+        end
       end
 
       def process_yield(exp)
@@ -841,6 +866,13 @@ module Natalie
           end
         end
         return false
+      end
+
+      def loop_context(name)
+        @loop_context << name
+        exp = yield
+        @loop_context.pop
+        exp
       end
     end
   end

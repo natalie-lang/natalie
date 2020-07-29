@@ -1,5 +1,32 @@
 require_relative '../spec_helper'
 
+def break_in_while_in_method
+  x = 0
+  while true
+    x += 1
+    break if x > 2
+  end
+  x
+end
+
+def break_in_until_in_method
+  x = 0
+  until false
+    x += 1
+    break if x > 2
+  end
+  x
+end
+
+def break_in_iter_in_method
+  x = 0
+  [1, 2, 3].each do |i|
+    x += 1
+    break if x > 2
+  end
+  x
+end
+
 describe 'break' do
   it 'breaks from a block' do
     result = [1, 2, 3].each { break }
@@ -10,6 +37,12 @@ describe 'break' do
     result.should == nil
     result = 10.times { break }
     result.should == nil
+  end
+
+  it 'breaks from a block in a method' do
+    break_in_while_in_method.should == 3
+    break_in_until_in_method.should == 3
+    break_in_iter_in_method.should == 3
   end
 
   it 'returns the value given' do
