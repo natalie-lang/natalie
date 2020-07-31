@@ -7,3 +7,6 @@
 [submodule "ext/bdwgc"]
 	path = ext/bdwgc
 	url = https://github.com/ivmai/bdwgc.git
+[submodule "ext/gdtoa"]
+	path = ext/gdtoa
+	url = https://github.com/jwiegley/gdtoa.git

@@ -19,6 +19,23 @@ void StringValue::grow_at_least(Env *env, ssize_t min_capacity) {
     }
 }
 
+void StringValue::prepend_char(Env *env, char c) {
+    ssize_t total_length = m_length + 1;
+    grow_at_least(env, total_length);
+    memmove(m_str + 1, m_str, m_length);
+    m_str[0] = c;
+    m_length = total_length;
+}
+
+void StringValue::insert(Env *env, ssize_t position, char c) {
+    assert(position < m_length);
+    grow_at_least(env, m_length + 1);
+    m_length++;
+    size_t nbytes = m_length - position + 1; // 1 extra for null terminator
+    memmove(m_str + position + 1, m_str + position, nbytes);
+    m_str[position] = c;
+}
+
 void StringValue::append(Env *env, const char *str) {
     if (str == nullptr) return;
     ssize_t new_length = strlen(str);

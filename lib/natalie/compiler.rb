@@ -12,6 +12,7 @@ module Natalie
     INC_PATHS = [
       File.join(ROOT_DIR, 'include'),
       File.join(ROOT_DIR, 'ext/bdwgc/include'),
+      File.join(ROOT_DIR, 'ext/gdtoa'),
       File.join(ROOT_DIR, 'ext/onigmo'),
       File.join(ROOT_DIR, 'ext/hashmap/include'),
     ]
@@ -20,6 +21,7 @@ module Natalie
       File.join(ROOT_DIR, 'ext/bdwgc/.libs/libgccpp.a'),
     ]
     LIB_PATHS = GC_LIB_PATHS + [
+      File.join(ROOT_DIR, 'ext/gdtoa/.libs/libgdtoa.a'),
       File.join(ROOT_DIR, 'ext/hashmap/build/libhashmap.a'),
       File.join(ROOT_DIR, 'ext/onigmo/.libs/libonigmo.a'),
     ]

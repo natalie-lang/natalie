@@ -67,6 +67,10 @@ struct StringValue : Value {
 
     void set_encoding(Encoding encoding) { m_encoding = encoding; }
 
+    void prepend_char(Env *, char);
+
+    void insert(Env *, ssize_t, char);
+
     void append(Env *, const char *);
     void append_char(Env *, char);
     void append_string(Env *, Value *);

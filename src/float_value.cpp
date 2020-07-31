@@ -3,6 +3,10 @@
 
 #include <math.h>
 
+extern "C" {
+#include "gdtoa.h"
+}
+
 namespace Natalie {
 
 Value *FloatValue::is_infinite(Env *env) {
@@ -94,14 +98,40 @@ Value *FloatValue::to_s(Env *env) {
         return new StringValue { env, "-Infinity" };
     }
 
-    char out[100]; // probably overkill
-    snprintf(out, 100, "%.15f", to_double());
-    int len = strlen(out);
-    while (len > 1 && out[len - 1] == '0' && out[len - 2] != '.') {
-        out[--len] = '\0';
+    int decpt, sign;
+    char *out, *e;
+    out = dtoa(to_double(), 0, 0, &decpt, &sign, &e);
+
+    StringValue *string;
+
+    if (decpt == 0) {
+        string = new StringValue { env, "0." };
+        string->append(env, out);
+
+    } else if (decpt < 0) {
+        string = new StringValue { env, "0." };
+        char *zeros = zero_string(::abs(decpt));
+        string->append(env, zeros);
+        string->append(env, out);
+
+    } else {
+        string = new StringValue { env, out };
+        if (decpt == string->length()) {
+            string->append(env, ".0");
+        } else if (decpt > string->length()) {
+            char *zeros = zero_string(decpt - string->length());
+            string->append(env, zeros);
+            string->append(env, ".0");
+        } else {
+            string->insert(env, decpt, '.');
+        }
     }
 
-    return new StringValue { env, out };
+    if (sign) {
+        string->prepend_char(env, '-');
+    }
+
+    return string;
 }
 
 Value *FloatValue::cmp(Env *env, Value *other) {

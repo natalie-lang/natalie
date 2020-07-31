@@ -85,4 +85,6 @@ void list_prepend(T *list, T item) {
 
 std::pair<Value *, Value *> coerce(Env *, Value *, Value *);
 
+char *zero_string(int);
+
 }

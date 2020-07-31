@@ -373,4 +373,11 @@ void copy_hashmap(struct hashmap &dest, const struct hashmap &source) {
     }
 }
 
+char *zero_string(int size) {
+    char *buf = new char[size + 1];
+    memset(buf, '0', size);
+    buf[size] = 0;
+    return buf;
+}
+
 }

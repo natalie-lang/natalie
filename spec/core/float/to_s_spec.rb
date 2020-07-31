@@ -1,5 +1,3 @@
-# skip-test
-
 require_relative '../../spec_helper'
 
 describe "Float#to_s" do
@@ -33,7 +31,8 @@ describe "Float#to_s" do
     50.0.to_s.should == "50.0"
   end
 
-  it "emits a trailing '.0' for the mantissa in e format" do
+  # TODO
+  xit "emits a trailing '.0' for the mantissa in e format" do
     1.0e20.to_s.should == "1.0e+20"
   end
 
@@ -45,11 +44,13 @@ describe "Float#to_s" do
     -0.0001.to_s.should == "-0.0001"
   end
 
-  it "uses e format for a positive value with fractional part having 6 significant figures" do
+  # TODO
+  xit "uses e format for a positive value with fractional part having 6 significant figures" do
     0.00001.to_s.should == "1.0e-05"
   end
 
-  it "uses e format for a negative value with fractional part having 6 significant figures" do
+  # TODO
+  xit "uses e format for a negative value with fractional part having 6 significant figures" do
     -0.00001.to_s.should == "-1.0e-05"
   end
 
@@ -69,24 +70,29 @@ describe "Float#to_s" do
     -100000000000000.0.to_s.should == "-100000000000000.0"
   end
 
-  it "uses e format for a positive value with whole part having 18 significant figures" do
+  # TODO
+  xit "uses e format for a positive value with whole part having 18 significant figures" do
     10000000000000000.0.to_s.should == "1.0e+16"
   end
 
-  it "uses e format for a negative value with whole part having 18 significant figures" do
+  # TODO
+  xit "uses e format for a negative value with whole part having 18 significant figures" do
     -10000000000000000.0.to_s.should == "-1.0e+16"
   end
 
-  it "uses e format for a positive value with whole part having 17 significant figures" do
+  # TODO
+  xit "uses e format for a positive value with whole part having 17 significant figures" do
     1000000000000000.0.to_s.should == "1.0e+15"
   end
 
-  it "uses e format for a negative value with whole part having 17 significant figures" do
+  # TODO
+  xit "uses e format for a negative value with whole part having 17 significant figures" do
     -1000000000000000.0.to_s.should == "-1.0e+15"
   end
 
   # #3273
-  it "outputs the minimal, unique form necessary to recreate the value" do
+  # TODO: String#to_f
+  xit "outputs the minimal, unique form necessary to recreate the value" do
     value = 0.21611564636388508
     string = "0.21611564636388508"
 
@@ -99,7 +105,8 @@ describe "Float#to_s" do
   end
 
   describe "matches" do
-    it "random examples in all ranges" do
+    # TODO: e-notation
+    xit "random examples in all ranges" do
       # 50.times do
       #   bytes = (0...8).map { rand(256) }
       #   string = bytes.pack('C8')
@@ -291,7 +298,8 @@ describe "Float#to_s" do
   end
 end
 
-describe "Float#to_s" do
+# TODO: Encoding.default_internal
+xdescribe "Float#to_s" do
   before :each do
     @internal = Encoding.default_internal
   end

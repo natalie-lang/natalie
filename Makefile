@@ -6,6 +6,7 @@ INC := include
 LIB := lib/natalie
 OBJ := obj
 BDWGC := ext/bdwgc/include
+GDTOA := ext/gdtoa
 HASHMAP := ext/hashmap/include
 ONIGMO := ext/onigmo
 NAT_CFLAGS ?=
@@ -32,7 +33,7 @@ NAT_OBJECTS := $(patsubst $(SRC)/%.rb, $(OBJ)/nat/%.o, $(NAT_SOURCES))
 mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
 current_dir := $(notdir $(patsubst %/,%,$(dir $(mkfile_path))))
 
-build: write_build_type ext/bdwgc/.libs/libgccpp.a ext/hashmap/build/libhashmap.a ext/onigmo/.libs/libonigmo.a src/bindings.cpp $(OBJECTS) $(NAT_OBJECTS)
+build: write_build_type ext/bdwgc/.libs/libgccpp.a ext/gdtoa/.libs/libgdtoa.a ext/hashmap/build/libhashmap.a ext/onigmo/.libs/libonigmo.a src/bindings.cpp $(OBJECTS) $(NAT_OBJECTS)
 
 write_build_type:
 	@echo $(BUILD) > .build
@@ -41,13 +42,16 @@ src/bindings.cpp: lib/natalie/compiler/binding_gen.rb
 	ruby lib/natalie/compiler/binding_gen.rb > src/bindings.cpp
 
 $(OBJ)/%.o: $(SRC)/%.cpp
-	$(CXX) -std=c++17 $(CFLAGS) -I$(INC) -I$(BDWGC) -I$(HASHMAP) -I$(ONIGMO) -fPIC -c $< -o $@
+	$(CXX) -std=c++17 $(CFLAGS) -I$(INC) -I$(BDWGC) -I$(GDTOA) -I$(HASHMAP) -I$(ONIGMO) -fPIC -c $< -o $@
 
 $(OBJ)/nat/%.o: $(SRC)/%.rb
 	bin/natalie --compile-obj $@ $<
 
 ext/bdwgc/.libs/libgccpp.a:
 	cd ext/bdwgc && ./autogen.sh && ./configure --enable-cplusplus --enable-redirect-malloc --disable-threads --enable-static --with-pic && make
+
+ext/gdtoa/.libs/libgdtoa.a:
+	cd ext/gdtoa && ./autogen.sh && ./configure --with-pic && make && rm -f compile
 
 ext/hashmap/build/libhashmap.a:
 	mkdir -p ext/hashmap/build && cd ext/hashmap/build && CFLAGS="-fPIC" cmake .. && make
@@ -58,10 +62,13 @@ ext/onigmo/.libs/libonigmo.a:
 clean:
 	rm -f $(OBJ)/*.o $(OBJ)/nat/*.o
 
-cleanall: clean clean_bdwgc clean_hashmap clean_onigmo
+cleanall: clean clean_bdwgc clean_gdtoa clean_hashmap clean_onigmo
 
 clean_bdwgc:
 	cd ext/bdwgc && make clean || true
+
+clean_gdtoa:
+	cd ext/gdtoa && make clean && rm -f compile || true
 
 clean_hashmap:
 	cd ext/hashmap && rm -rf build || true
