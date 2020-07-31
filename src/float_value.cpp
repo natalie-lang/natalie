@@ -47,8 +47,9 @@ Value *FloatValue::ceil(Env *env, Value *precision_value) {
     if (precision == 0) {
         result = new FloatValue { env, ::ceil(value) };
     } else {
-        value *= ::pow(10, precision);
-        result = new FloatValue { env, ::ceil(value) * (::pow(10, (-1 * precision))) };
+        double f = ::pow(10, precision);
+        value = ::ceil(value * f) / f;
+        result = new FloatValue { env, value };
     }
     if (precision <= 0) {
         return result->to_int_no_truncation(env);
@@ -67,13 +68,21 @@ Value *FloatValue::floor(Env *env, Value *precision_value) {
     if (precision == 0) {
         result = new FloatValue { env, ::floor(value) };
     } else {
-        value *= ::pow(10, precision);
-        result = new FloatValue { env, ::floor(value) * (::pow(10, (-1 * precision))) };
+        double f = ::pow(10, precision);
+        value = ::floor(value * f) / f;
+        result = new FloatValue { env, value };
     }
     if (precision <= 0) {
         return result->to_int_no_truncation(env);
     }
     return result;
+}
+
+Value *FloatValue::truncate(Env *env, Value *precision_value) {
+    if (is_negative()) {
+        return ceil(env, precision_value);
+    }
+    return floor(env, precision_value);
 }
 
 Value *FloatValue::to_s(Env *env) {
@@ -350,7 +359,7 @@ Value *FloatValue::prev_float(Env *env) {
         }                                                                                                      \
                                                                                                                \
         if (lhs->as_float()->is_nan() || rhs->as_float()->is_nan()) {                                          \
-            return env->nil_obj();                                                                                    \
+            return env->nil_obj();                                                                             \
         }                                                                                                      \
                                                                                                                \
         double lhs_d = lhs->as_float()->to_double();                                                           \

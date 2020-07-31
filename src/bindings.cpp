@@ -549,6 +549,13 @@ Value *FloatValue_to_s_binding1(Env *env, Value *self_value, ssize_t argc, Value
     return return_value;
 }
 
+Value *FloatValue_truncate_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0, 1);
+    FloatValue *self = self_value->as_float();
+    auto return_value = self->truncate(env, argc > 0 ? args[0] : nullptr);
+    return return_value;
+}
+
 Value *FloatValue_is_zero_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     FloatValue *self = self_value->as_float();
@@ -1516,6 +1523,7 @@ void init_bindings(Env *env) {
     Float->define_method(env, "quo", FloatValue_div_binding2);
     Float->define_method(env, "to_i", FloatValue_to_i_binding);
     Float->define_method(env, "to_s", FloatValue_to_s_binding1);
+    Float->define_method(env, "truncate", FloatValue_truncate_binding);
     Float->define_method(env, "zero?", FloatValue_is_zero_binding);
     Value *Hash = env->Object()->const_get(env, "Hash", true);
     Hash->define_singleton_method(env, "[]", HashValue_square_new_singleton_binding);
