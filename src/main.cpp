@@ -73,6 +73,7 @@ extern "C" Env *build_top_env() {
     Float->const_set(env, "MIN", FloatValue::min(env));
     Float->const_set(env, "MAX", FloatValue::max(env));
     Float->const_set(env, "NAN", FloatValue::nan(env));
+    Float->include_once(env, Comparable);
 
     ClassValue *String = Object->subclass(env, "String", Value::Type::String);
     Object->const_set(env, "String", String);

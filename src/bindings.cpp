@@ -1696,6 +1696,7 @@ void init_bindings(Env *env) {
     TrueClass->define_method(env, "inspect", TrueValue_to_s_binding);
     TrueClass->define_method(env, "to_s", TrueValue_to_s_binding1);
     FalseClass->undefine_singleton_method(env, "new");
+    Float->undefine_singleton_method(env, "new");
     NilClass->undefine_singleton_method(env, "new");
     TrueClass->undefine_singleton_method(env, "new");
 }

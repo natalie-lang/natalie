@@ -1,5 +1,3 @@
-# skip-test
-
 require_relative '../../spec_helper'
 
 describe "Float" do
@@ -7,7 +5,8 @@ describe "Float" do
     Float.include?(Comparable).should == true
   end
 
-  it ".allocate raises a TypeError" do
+  # TODO: implement allocate
+  xit ".allocate raises a TypeError" do
     -> do
       Float.allocate
     end.should raise_error(TypeError)
