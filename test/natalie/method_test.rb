@@ -9,7 +9,7 @@ def double(x)
 end
 
 def mul(x, y,
-         z)
+        z)
   x * y * z
 end
 
@@ -27,6 +27,10 @@ end
 
 def block_arg_test(a, b, &block)
   [a, b, block.call]
+end
+
+def block_arg_is_nil(&block)
+  block
 end
 
 def default(x = 1)
@@ -114,6 +118,10 @@ describe 'method' do
   it 'can receive a block as a Proc argument' do
     r = block_arg_test(1, 2) { 3 }
     r.should == [1, 2, 3]
+    r = block_arg_is_nil
+    r.should == nil
+    r = block_arg_is_nil(&nil)
+    r.should == nil
   end
 
   # FIXME: doesn't actually bubble up because LocalJumpError is trapped by the method

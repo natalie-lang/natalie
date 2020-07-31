@@ -105,9 +105,9 @@ module Natalie
                end
         if block_pass
           proc_name = temp('proc_to_block')
-          call << "#{proc_name}->as_proc()->block()"
+          call << "proc_to_block_arg(#{proc_name})"
           exp.new(:block,
-                  s(:declare, proc_name, s(:to_proc, process(block_pass), :env)),
+                  s(:declare, proc_name, process(block_pass)),
                   call)
         else
           call << 'nullptr'
@@ -199,7 +199,8 @@ module Natalie
         name = name.to_s
         fn_name = temp('fn')
         if args.last&.to_s&.start_with?('&')
-          block_arg = exp.new(:var_set, :env, s(:s, args.pop.to_s[1..-1]), s(:new, :ProcValue, :env, 'block'))
+          arg_name = args.pop.to_s[1..-1]
+          block_arg = exp.new(:var_set, :env, s(:s, arg_name), s(:"ProcValue::from_block_maybe", :env, 'block'))
         end
         args_name = temp('args_as_array')
         assign_args = s(:block,

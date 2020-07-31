@@ -51,7 +51,7 @@ end
 alias xcontext xdescribe
 
 def it(test, &block)
-  return xit(test, &block) if @context.last.skip
+  return xit(test, &block) if @context.last.skip || block.nil?
   @specs << [@context.dup, test, block]
 end
 

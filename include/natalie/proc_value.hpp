@@ -6,6 +6,7 @@
 #include "natalie/forward.hpp"
 #include "natalie/global_env.hpp"
 #include "natalie/macros.hpp"
+#include "natalie/nil_value.hpp"
 #include "natalie/value.hpp"
 
 namespace Natalie {
@@ -27,6 +28,13 @@ struct ProcValue : Value {
         , m_block { block }
         , m_type { type } {
         assert(m_block);
+    }
+
+    static Value *from_block_maybe(Env *env, Block *block) {
+        if (!block) {
+            return env->nil_obj();
+        }
+        return new ProcValue { env, block };
     }
 
     Value *initialize(Env *, Block *);
