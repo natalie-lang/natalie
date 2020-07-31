@@ -542,6 +542,13 @@ Value *FloatValue_to_i_binding(Env *env, Value *self_value, ssize_t argc, Value 
     return return_value;
 }
 
+Value *FloatValue_to_i_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    FloatValue *self = self_value->as_float();
+    auto return_value = self->to_i(env);
+    return return_value;
+}
+
 Value *FloatValue_to_s_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     FloatValue *self = self_value->as_float();
@@ -1522,6 +1529,7 @@ void init_bindings(Env *env) {
     Float->define_method(env, "prev_float", FloatValue_prev_float_binding);
     Float->define_method(env, "quo", FloatValue_div_binding2);
     Float->define_method(env, "to_i", FloatValue_to_i_binding);
+    Float->define_method(env, "to_int", FloatValue_to_i_binding1);
     Float->define_method(env, "to_s", FloatValue_to_s_binding1);
     Float->define_method(env, "truncate", FloatValue_truncate_binding);
     Float->define_method(env, "zero?", FloatValue_is_zero_binding);
