@@ -60,6 +60,7 @@ struct ModuleValue : Value {
 
     Value *included_modules(Env *);
     Vector<ModuleValue *> included_modules() { return m_included_modules; }
+    bool does_include_module(Env *, Value *);
 
     virtual Value *cvar_get_or_null(Env *, const char *) override;
     virtual Value *cvar_set(Env *, const char *, Value *) override;

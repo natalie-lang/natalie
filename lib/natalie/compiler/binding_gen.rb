@@ -347,6 +347,7 @@ gen.binding('Module', 'const_defined?', 'ModuleValue', 'const_defined', argc: 1,
 gen.binding('Module', 'define_method', 'ModuleValue', 'define_method', argc: 1, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Module', 'extend', 'ModuleValue', 'extend', argc: 1.., pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Module', 'include', 'ModuleValue', 'include', argc: 1.., pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Module', 'include?', 'ModuleValue', 'does_include_module', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Module', 'included_modules', 'ModuleValue', 'included_modules', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Module', 'inspect', 'ModuleValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Module', 'method_defined?', 'ModuleValue', 'is_method_defined', argc: 1, pass_env: true, pass_block: false, return_type: :bool)

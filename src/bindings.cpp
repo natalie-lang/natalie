@@ -989,6 +989,13 @@ Value *ModuleValue_include_binding(Env *env, Value *self_value, ssize_t argc, Va
     return return_value;
 }
 
+Value *ModuleValue_does_include_module_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    ModuleValue *self = self_value->as_module();
+    auto return_value = self->does_include_module(env, argc > 0 ? args[0] : nullptr);
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+}
+
 Value *ModuleValue_included_modules_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     ModuleValue *self = self_value->as_module();
@@ -1612,6 +1619,7 @@ void init_bindings(Env *env) {
     Module->define_method(env, "define_method", ModuleValue_define_method_binding);
     Module->define_method(env, "extend", ModuleValue_extend_binding);
     Module->define_method(env, "include", ModuleValue_include_binding);
+    Module->define_method(env, "include?", ModuleValue_does_include_module_binding);
     Module->define_method(env, "included_modules", ModuleValue_included_modules_binding);
     Module->define_method(env, "inspect", ModuleValue_inspect_binding);
     Module->define_method(env, "method_defined?", ModuleValue_is_method_defined_binding);

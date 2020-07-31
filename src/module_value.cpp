@@ -391,6 +391,15 @@ Value *ModuleValue::included_modules(Env *env) {
     return modules;
 }
 
+bool ModuleValue::does_include_module(Env *env, Value *module) {
+    NAT_ASSERT_TYPE(module, Value::Type::Module, "Module");
+    for (ModuleValue *m : included_modules()) {
+        if (m == this) continue;
+        if (m == module) return true;
+    }
+    return false;
+}
+
 Value *ModuleValue::define_method(Env *env, Value *name_value, Block *block) {
     const char *name = name_value->identifier_str(env, Value::Conversion::Strict);
     if (!block) {
