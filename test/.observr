@@ -19,7 +19,7 @@ def run_tests(test = nil)
   end
   if test && File.exist?(test)
     @last_test = test
-    cmd = "ruby -r ./test/support/ruby_require_patch.rb #{test}"
+    cmd = "ruby #{test}"
     puts cmd
     sh cmd
     puts
@@ -37,14 +37,13 @@ def run_suite
 end
 
 def focused_tests
-  Dir['test/**/*_test.nat'].to_a.select { |f| File.read(f).match(/fit ['"]/) }
+  Dir['test/**/*_test.rb'].to_a.select { |f| File.read(f).match(/fit ['"]/) }
 end
 
-watch('^test/.*_test\.nat') { |m| run_tests(m.to_s) }
-watch('^spec/.*\.nat'     ) { |m| run_tests(m.to_s) }
-watch('^test/.*_test\.rb' ) { |m| run_tests }
-watch('^src/(.*)\.c'      ) { |m| run_tests }
-watch('^src/(.*)\.nat'    ) { |m| run_tests }
-watch('^lib/(.*)\.rb'     ) { |m| run_tests }
+watch('^test/.*_test\.rb') { |m| run_tests(m.to_s) }
+watch('^spec/.*_spec\.rb') { |m| run_tests(m.to_s) }
+watch('^src/(.*)\.c'     ) { |m| run_tests }
+watch('^src/(.*)\.rb'    ) { |m| run_tests }
+watch('^lib/(.*)\.rb'    ) { |m| run_tests }
 
 Signal.trap('QUIT') { run_suite } # Ctrl-\
