@@ -9,13 +9,14 @@ TOLERANCE = 0.00003
 $expectations = []
 
 class Context
-  def initialize(description)
+  def initialize(description, skip: false)
     @description = description
     @before_each = []
     @before_all = []
+    @skip = skip
   end
 
-  attr_reader :description, :before_each, :before_all
+  attr_reader :description, :before_each, :before_all, :skip
 
   def add_before_each(block)
     @before_each << block
@@ -34,7 +35,8 @@ def describe(description, shared: false, &block)
   if shared
     @shared[description] = block
   else
-    @context << Context.new(description)
+    parent = @context.last
+    @context << Context.new(description, skip: parent && parent.skip)
     yield
     @context.pop
   end
@@ -42,7 +44,14 @@ end
 
 alias context describe
 
+def xdescribe(description, &block)
+  @context << Context.new(description, skip: true)
+end
+
+alias xcontext xdescribe
+
 def it(test, &block)
+  return xit(test, &block) if @context.last.skip
   @specs << [@context.dup, test, block]
 end
 
