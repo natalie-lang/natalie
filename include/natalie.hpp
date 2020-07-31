@@ -87,6 +87,6 @@ std::pair<Value *, Value *> coerce(Env *, Value *, Value *);
 
 char *zero_string(int);
 
-Block *proc_to_block_arg(Value *proc_or_nil);
+Block *proc_to_block_arg(Env *, Value *);
 
 }

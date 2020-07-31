@@ -105,7 +105,7 @@ module Natalie
                end
         if block_pass
           proc_name = temp('proc_to_block')
-          call << "proc_to_block_arg(#{proc_name})"
+          call << "proc_to_block_arg(env, #{proc_name})"
           exp.new(:block,
                   s(:declare, proc_name, process(block_pass)),
                   call)

@@ -380,11 +380,11 @@ char *zero_string(int size) {
     return buf;
 }
 
-Block *proc_to_block_arg(Value *proc_or_nil) {
+Block *proc_to_block_arg(Env *env, Value *proc_or_nil) {
     if (proc_or_nil->is_nil()) {
         return nullptr;
     }
-    return proc_or_nil->as_proc()->block();
+    return proc_or_nil->to_proc(env)->block();
 }
 
 }
