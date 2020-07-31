@@ -277,6 +277,7 @@ gen.binding('Float', 'next_float', 'FloatValue', 'next_float', argc: 0, pass_env
 gen.binding('Float', 'positive?', 'FloatValue', 'is_positive', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('Float', 'prev_float', 'FloatValue', 'prev_float', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Float', 'quo', 'FloatValue', 'div', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Float', 'round', 'FloatValue', 'round', argc: 0..1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Float', 'to_f', 'FloatValue', 'to_f', argc: 0, pass_env: false, pass_block: false, return_type: :Value)
 gen.binding('Float', 'to_i', 'FloatValue', 'to_i', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Float', 'to_int', 'FloatValue', 'to_i', argc: 0, pass_env: true, pass_block: false, return_type: :Value)

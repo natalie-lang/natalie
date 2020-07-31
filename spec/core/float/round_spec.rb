@@ -1,5 +1,3 @@
-# skip-test
-
 require_relative '../../spec_helper'
 
 describe "Float#round" do
@@ -76,7 +74,8 @@ describe "Float#round" do
   end
 
   # redmine #5272
-  it "returns rounded values for big values" do
+  # TODO: e-notation
+  xit "returns rounded values for big values" do
     +2.4e20.round(-20).should   eql( +2 * 10 ** 20  )
     -2.4e20.round(-20).should   eql( -2 * 10 ** 20  )
     +2.5e200.round(-200).should eql( +3 * 10 ** 200 )
@@ -85,7 +84,8 @@ describe "Float#round" do
     -2.4e200.round(-200).should eql( -2 * 10 ** 200 )
   end
 
-  it "returns different rounded values depending on the half option" do
+  # TODO: keyword arguments to C++ functions
+  xit "returns different rounded values depending on the half option" do
     2.5.round(half: nil).should      eql(3)
     2.5.round(half: :up).should      eql(3)
     2.5.round(half: :down).should    eql(2)
@@ -100,20 +100,23 @@ describe "Float#round" do
     (-2.5).round(half: :even).should eql(-2)
   end
 
-  it "rounds self to an optionally given precision with a half option" do
+  # TODO: keyword arguments to C++ functions
+  xit "rounds self to an optionally given precision with a half option" do
     5.55.round(1, half: nil).should eql(5.6)
     5.55.round(1, half: :up).should eql(5.6)
     5.55.round(1, half: :down).should eql(5.5)
     5.55.round(1, half: :even).should eql(5.6)
   end
 
-  it "raises FloatDomainError for exceptional values with a half option" do
+  # TODO: keyword arguments to C++ functions
+  xit "raises FloatDomainError for exceptional values with a half option" do
     -> { (+infinity_value).round(half: :up) }.should raise_error(FloatDomainError)
     -> { (-infinity_value).round(half: :down) }.should raise_error(FloatDomainError)
     -> { nan_value.round(half: :even) }.should raise_error(FloatDomainError)
   end
 
-  it "raise for a non-existent round mode" do
+  # TODO: keyword arguments to C++ functions
+  xit "raise for a non-existent round mode" do
     -> { 14.2.round(half: :nonsense) }.should raise_error(ArgumentError, "invalid rounding mode: nonsense")
   end
 end

@@ -82,6 +82,40 @@ Value *FloatValue::floor(Env *env, Value *precision_value) {
     return result;
 }
 
+Value *FloatValue::round(Env *env, Value *precision_value) {
+    double value = this->to_double();
+    int64_t precision = 0;
+    if (precision_value) {
+        if (precision_value->is_float()) {
+            precision_value = precision_value->as_float()->to_i(env);
+        }
+        NAT_ASSERT_TYPE(precision_value, Value::Type::Integer, "Integer");
+        precision = precision_value->as_integer()->to_int64_t();
+    }
+    if (precision <= 0 && (is_nan() || is_infinity())) {
+        NAT_RAISE(env, "FloatDomainError", NAT_INSPECT(this));
+    }
+    if (is_infinity()) {
+        return new FloatValue { env, value };
+    }
+    FloatValue *result;
+    if (precision == 0) {
+        result = new FloatValue { env, ::round(value) };
+    } else {
+        double f = ::pow(10, precision);
+        double rounded = ::round(value * f) / f;
+        if (isinf(f) || isinf(rounded)) {
+            result = new FloatValue { env, value };
+        } else {
+            result = new FloatValue { env, rounded };
+        }
+    }
+    if (precision <= 0) {
+        return result->to_int_no_truncation(env);
+    }
+    return result;
+}
+
 Value *FloatValue::truncate(Env *env, Value *precision_value) {
     if (is_negative()) {
         return ceil(env, precision_value);
