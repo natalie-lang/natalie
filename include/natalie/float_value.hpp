@@ -111,6 +111,7 @@ struct FloatValue : Value {
     Value *cmp(Env *, Value *);
     Value *coerce(Env *, Value *);
     Value *to_i(Env *);
+    Value *to_f() { return this; }
     Value *add(Env *, Value *);
     Value *sub(Env *, Value *);
     Value *mul(Env *, Value *);
