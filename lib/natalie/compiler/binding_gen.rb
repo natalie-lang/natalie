@@ -410,6 +410,8 @@ gen.binding('Proc', 'initialize', 'ProcValue', 'initialize', argc: 0, pass_env: 
 gen.binding('Proc', 'call', 'ProcValue', 'call', argc: :any, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Proc', 'lambda?', 'ProcValue', 'is_lambda', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 
+gen.singleton_binding('Process', 'pid', 'ProcessModule', 'pid', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+
 gen.binding('Range', 'initialize', 'RangeValue', 'initialize', argc: 2..3, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Range', 'begin', 'RangeValue', 'begin', argc: 0, pass_env: false, pass_block: false, return_type: :Value)
 gen.binding('Range', 'first', 'RangeValue', 'begin', argc: 0, pass_env: false, pass_block: false, return_type: :Value)

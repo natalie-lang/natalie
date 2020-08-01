@@ -31,6 +31,7 @@
 #include "natalie/module_value.hpp"
 #include "natalie/nil_value.hpp"
 #include "natalie/proc_value.hpp"
+#include "natalie/process_module.hpp"
 #include "natalie/range_value.hpp"
 #include "natalie/regexp_value.hpp"
 #include "natalie/string_value.hpp"

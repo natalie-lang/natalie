@@ -30,9 +30,4 @@ Value *ENV_refeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block
 
 Value *main_obj_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
-#define NAT_PROCESS_INIT(module) \
-    module->define_singleton_method(env, "pid", Process_pid);
-
-Value *Process_pid(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-
 }

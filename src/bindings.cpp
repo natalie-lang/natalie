@@ -1352,6 +1352,12 @@ Value *ProcValue_is_lambda_binding(Env *env, Value *self_value, ssize_t argc, Va
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
+Value *ProcessModule_pid_singleton_binding(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    auto return_value = ProcessModule::pid(env);
+    return return_value;
+}
+
 Value *RangeValue_initialize_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(2, 3);
     RangeValue *self = self_value->as_range();
@@ -1920,6 +1926,8 @@ void init_bindings(Env *env) {
     Proc->define_method(env, "initialize", ProcValue_initialize_binding);
     Proc->define_method(env, "call", ProcValue_call_binding);
     Proc->define_method(env, "lambda?", ProcValue_is_lambda_binding);
+    Value *Process = env->Object()->const_get(env, "Process", true);
+    Process->define_singleton_method(env, "pid", ProcessModule_pid_singleton_binding);
     Value *Range = env->Object()->const_get(env, "Range", true);
     Range->define_method(env, "initialize", RangeValue_initialize_binding);
     Range->define_method(env, "begin", RangeValue_begin_binding);
