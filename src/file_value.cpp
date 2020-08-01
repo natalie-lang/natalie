@@ -1,20 +1,15 @@
+#include "natalie.hpp"
+
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 
-#include "natalie.hpp"
-#include "natalie/builtin.hpp"
-
 namespace Natalie {
 
-Value *File_initialize(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
-    IoValue *self = self_value->as_io();
-    NAT_ASSERT_ARGC2(1, 2); // TODO: Ruby accepts 3 args??
-    Value *filename = args[0];
+Value *FileValue::initialize(Env *env, Value *filename, Value *flags_obj, Block *block) {
     NAT_ASSERT_TYPE(filename, Value::Type::String, "String");
     int flags = O_RDONLY;
-    if (argc > 1) {
-        Value *flags_obj = args[1];
+    if (flags_obj) {
         switch (flags_obj->type()) {
         case Value::Type::Integer:
             flags = flags_obj->as_integer()->to_int64_t();
@@ -50,36 +45,9 @@ Value *File_initialize(Env *env, Value *self_value, ssize_t argc, Value **args, 
         env->raise_exception(error);
         abort();
     } else {
-        self->set_fileno(fileno);
-        return self;
+        set_fileno(fileno);
+        return this;
     }
-}
-
-Value *File_expand_path(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
-    NAT_ASSERT_ARGC2(1, 2);
-    Value *path = args[0];
-    NAT_ASSERT_TYPE(path, Value::Type::String, "String");
-    if (path->as_string()->length() > 0 && path->as_string()->c_str()[0] == '/') {
-        return path;
-    }
-    Value *merged;
-    if (argc == 2) {
-        Value *root = File_expand_path(env, self, 1, args + 1, nullptr);
-        merged = StringValue::sprintf(env, "%S/%S", root, path);
-    } else {
-        char root[4096];
-        if (getcwd(root, 4096)) {
-            merged = StringValue::sprintf(env, "%s/%S", root, path);
-        } else {
-            NAT_RAISE(env, "RuntimeError", "could not get current directory");
-        }
-    }
-    RegexpValue dotdot { env, "[^/]*/\\.\\./" };
-    StringValue empty_string { env, "" };
-    while (dotdot.match(env, merged)->is_truthy()) {
-        merged = merged->as_string()->sub(env, &dotdot, &empty_string);
-    }
-    return merged;
 }
 
 }

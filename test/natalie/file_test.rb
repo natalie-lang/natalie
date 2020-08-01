@@ -110,6 +110,7 @@ describe 'File' do
       File.expand_path('test/spec_helper.rb').should =~ %r{^/.*natalie/test/spec_helper\.rb$}
       File.expand_path('/spec_helper.rb').should == '/spec_helper.rb'
       File.expand_path('../spec_helper.rb', __dir__).should =~ %r{^/.*natalie/test/spec_helper\.rb$}
+      File.expand_path('..', __dir__).should =~ %r{^/.*natalie/test$}
     end
   end
 end

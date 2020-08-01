@@ -304,6 +304,19 @@ Value *FalseValue_to_s_binding1(Env *env, Value *self_value, ssize_t argc, Value
     return return_value;
 }
 
+Value *FileValue_expand_path_singleton_binding(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1, 2);
+    auto return_value = FileValue::expand_path(env, argc > 0 ? args[0] : nullptr, argc > 1 ? args[1] : nullptr);
+    return return_value;
+}
+
+Value *FileValue_initialize_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1, 2);
+    FileValue *self = self_value->as_file();
+    auto return_value = self->initialize(env, argc > 0 ? args[0] : nullptr, argc > 1 ? args[1] : nullptr, block);
+    return return_value;
+}
+
 Value *FloatValue_mod_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     FloatValue *self = self_value->as_float();
@@ -1515,6 +1528,9 @@ void init_bindings(Env *env) {
     Value *FalseClass = env->Object()->const_get(env, "FalseClass", true);
     FalseClass->define_method(env, "inspect", FalseValue_to_s_binding);
     FalseClass->define_method(env, "to_s", FalseValue_to_s_binding1);
+    Value *File = env->Object()->const_get(env, "File", true);
+    File->define_singleton_method(env, "expand_path", FileValue_expand_path_singleton_binding);
+    File->define_method(env, "initialize", FileValue_initialize_binding);
     Value *Float = env->Object()->const_get(env, "Float", true);
     Float->define_method(env, "%", FloatValue_mod_binding);
     Float->define_method(env, "*", FloatValue_mul_binding);

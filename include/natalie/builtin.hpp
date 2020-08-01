@@ -30,39 +30,6 @@ Value *ENV_refeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block
     obj->define_singleton_method(env, "[]", ENV_ref);          \
     obj->define_singleton_method(env, "[]=", ENV_refeq);
 
-#define NAT_FILE_INIT(klass)                                                     \
-    Value *Constants = new ModuleValue { env, "Constants" };                     \
-    klass->define_method(env, "initialize", File_initialize);                    \
-    klass->define_singleton_method(env, "expand_path", File_expand_path);        \
-    klass->const_set(env, "Constants", Constants);                               \
-    klass->const_set(env, "APPEND", new IntegerValue { env, O_APPEND });         \
-    Constants->const_set(env, "APPEND", new IntegerValue { env, O_APPEND });     \
-    klass->const_set(env, "RDONLY", new IntegerValue { env, O_RDONLY });         \
-    Constants->const_set(env, "RDONLY", new IntegerValue { env, O_RDONLY });     \
-    klass->const_set(env, "WRONLY", new IntegerValue { env, O_WRONLY });         \
-    Constants->const_set(env, "WRONLY", new IntegerValue { env, O_WRONLY });     \
-    klass->const_set(env, "TRUNC", new IntegerValue { env, O_TRUNC });           \
-    Constants->const_set(env, "TRUNC", new IntegerValue { env, O_TRUNC });       \
-    klass->const_set(env, "CREAT", new IntegerValue { env, O_CREAT });           \
-    Constants->const_set(env, "CREAT", new IntegerValue { env, O_CREAT });       \
-    klass->const_set(env, "DSYNC", new IntegerValue { env, O_DSYNC });           \
-    Constants->const_set(env, "DSYNC", new IntegerValue { env, O_DSYNC });       \
-    klass->const_set(env, "EXCL", new IntegerValue { env, O_EXCL });             \
-    Constants->const_set(env, "EXCL", new IntegerValue { env, O_EXCL });         \
-    klass->const_set(env, "NOCTTY", new IntegerValue { env, O_NOCTTY });         \
-    Constants->const_set(env, "NOCTTY", new IntegerValue { env, O_NOCTTY });     \
-    klass->const_set(env, "NOFOLLOW", new IntegerValue { env, O_NOFOLLOW });     \
-    Constants->const_set(env, "NOFOLLOW", new IntegerValue { env, O_NOFOLLOW }); \
-    klass->const_set(env, "NONBLOCK", new IntegerValue { env, O_NONBLOCK });     \
-    Constants->const_set(env, "NONBLOCK", new IntegerValue { env, O_NONBLOCK }); \
-    klass->const_set(env, "RDWR", new IntegerValue { env, O_RDWR });             \
-    Constants->const_set(env, "RDWR", new IntegerValue { env, O_RDWR });         \
-    klass->const_set(env, "SYNC", new IntegerValue { env, O_SYNC });             \
-    Constants->const_set(env, "SYNC", new IntegerValue { env, O_SYNC });
-
-Value *File_initialize(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *File_expand_path(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-
 #define NAT_KERNEL_INIT(module)                                                            \
     module->define_method(env, "puts", Kernel_puts);                                       \
     module->define_method(env, "print", Kernel_print);                                     \

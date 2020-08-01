@@ -11,6 +11,7 @@ struct EncodingValue;
 struct Env;
 struct ExceptionValue;
 struct FalseValue;
+struct FileValue;
 struct FloatValue;
 struct GlobalEnv;
 struct HashKey;

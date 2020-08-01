@@ -116,6 +116,7 @@ struct Value : public gc {
     HashValue *as_hash();
     IntegerValue *as_integer();
     IoValue *as_io();
+    FileValue *as_file();
     MatchDataValue *as_match_data();
     ProcValue *as_proc();
     RangeValue *as_range();

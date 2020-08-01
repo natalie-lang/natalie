@@ -149,6 +149,11 @@ IoValue *Value::as_io() {
     return static_cast<IoValue *>(this);
 }
 
+FileValue *Value::as_file() {
+    assert(is_io());
+    return static_cast<FileValue *>(this);
+}
+
 MatchDataValue *Value::as_match_data() {
     assert(is_match_data());
     return static_cast<MatchDataValue *>(this);

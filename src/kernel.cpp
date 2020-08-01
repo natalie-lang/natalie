@@ -296,7 +296,7 @@ Value *Kernel_cur_dir(Env *env, Value *self, ssize_t argc, Value **args, Block *
         return new StringValue { env, "." };
     } else {
         Value *relative = new StringValue { env, env->file() };
-        StringValue *absolute = static_cast<StringValue *>(File_expand_path(env, env->Object()->const_get(env, "File", true), 1, &relative, nullptr));
+        StringValue *absolute = static_cast<StringValue *>(FileValue::expand_path(env, relative, nullptr));
         ssize_t last_slash = 0;
         bool found = false;
         for (ssize_t i = 0; i < absolute->length(); i++) {

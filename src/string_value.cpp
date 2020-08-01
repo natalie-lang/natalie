@@ -499,12 +499,12 @@ Value *StringValue::ref(Env *env, Value *index_obj) {
     abort();
 }
 
-Value *StringValue::sub(Env *env, Value *find, Value *replacement) {
+StringValue *StringValue::sub(Env *env, Value *find, Value *replacement) {
     NAT_ASSERT_TYPE(replacement, Value::Type::String, "String");
     if (find->is_string()) {
         ssize_t index = this->index_ssize_t(env, find->as_string(), 0);
         if (index == -1) {
-            return dup(env);
+            return dup(env)->as_string();
         }
         StringValue *out = new StringValue { env, m_str, index };
         out->append_string(env, replacement->as_string());
@@ -513,7 +513,7 @@ Value *StringValue::sub(Env *env, Value *find, Value *replacement) {
     } else if (find->is_regexp()) {
         Value *match = find->as_regexp()->match(env, this);
         if (match == env->nil_obj()) {
-            return dup(env);
+            return dup(env)->as_string();
         }
         size_t length = match->as_match_data()->group(env, 0)->as_string()->length();
         int64_t index = match->as_match_data()->index(0);

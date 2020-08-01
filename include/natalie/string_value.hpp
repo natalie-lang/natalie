@@ -120,7 +120,7 @@ struct StringValue : Value {
     Value *encode(Env *, Value *);
     Value *force_encoding(Env *, Value *);
     Value *ref(Env *, Value *);
-    Value *sub(Env *, Value *, Value *);
+    StringValue *sub(Env *, Value *, Value *);
     Value *to_i(Env *, Value *);
     Value *split(Env *, Value *);
     Value *ljust(Env *, Value *, Value *);

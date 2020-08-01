@@ -102,7 +102,7 @@ extern "C" Env *build_top_env() {
 
     ClassValue *File = IO->subclass(env, "File");
     Object->const_set(env, "File", File);
-    NAT_FILE_INIT(File);
+    FileValue::build_constants(env, File);
 
     ClassValue *Exception = Object->subclass(env, "Exception", Value::Type::Exception);
     Object->const_set(env, "Exception", Exception);
