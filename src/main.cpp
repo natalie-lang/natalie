@@ -32,7 +32,6 @@ extern "C" Env *build_top_env() {
     ModuleValue *Kernel = new ModuleValue { env, "Kernel" };
     Object->const_set(env, "Kernel", Kernel);
     Object->include_once(env, Kernel);
-    NAT_KERNEL_INIT(Kernel);
 
     ModuleValue *Comparable = new ModuleValue { env, "Comparable" };
     Object->const_set(env, "Comparable", Comparable);

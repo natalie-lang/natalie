@@ -194,6 +194,10 @@ VoidPValue *Value::as_void_p() {
     return static_cast<VoidPValue *>(this);
 }
 
+KernelModule *Value::as_kernel_module_for_method_binding() {
+    return static_cast<KernelModule *>(this);
+}
+
 const char *Value::identifier_str(Env *env, Conversion conversion) {
     if (is_symbol()) {
         return as_symbol()->c_str();
@@ -429,6 +433,11 @@ bool Value::respond_to(Env *env, const char *name) {
     } else {
         return false;
     }
+}
+
+bool Value::respond_to(Env *env, Value *name_val) {
+    const char *name = name_val->identifier_str(env, Value::Conversion::NullAllowed);
+    return !!(name && respond_to(env, name));
 }
 
 const char *Value::defined(Env *env, const char *name) {

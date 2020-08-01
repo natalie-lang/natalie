@@ -25,6 +25,7 @@
 #include "natalie/hash_value.hpp"
 #include "natalie/integer_value.hpp"
 #include "natalie/io_value.hpp"
+#include "natalie/kernel_module.hpp"
 #include "natalie/match_data_value.hpp"
 #include "natalie/method.hpp"
 #include "natalie/module_value.hpp"

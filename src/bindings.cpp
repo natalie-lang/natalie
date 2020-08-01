@@ -890,6 +890,237 @@ Value *IoValue_write_binding(Env *env, Value *self_value, ssize_t argc, Value **
     return return_value;
 }
 
+Value *KernelModule_Array_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    KernelModule *self = self_value->as_kernel_module_for_method_binding();
+    auto return_value = self->Array(env, argc > 0 ? args[0] : nullptr);
+    return return_value;
+}
+
+Value *KernelModule_at_exit_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    KernelModule *self = self_value->as_kernel_module_for_method_binding();
+    auto return_value = self->at_exit(env, block);
+    return return_value;
+}
+
+Value *KernelModule_klass_obj_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    KernelModule *self = self_value->as_kernel_module_for_method_binding();
+    auto return_value = self->klass_obj(env);
+    return return_value;
+}
+
+Value *KernelModule_cur_dir_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    KernelModule *self = self_value->as_kernel_module_for_method_binding();
+    auto return_value = self->cur_dir(env);
+    return return_value;
+}
+
+Value *KernelModule_define_singleton_method_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    KernelModule *self = self_value->as_kernel_module_for_method_binding();
+    auto return_value = self->define_singleton_method(env, argc > 0 ? args[0] : nullptr, block);
+    return return_value;
+}
+
+Value *KernelModule_dup_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    KernelModule *self = self_value->as_kernel_module_for_method_binding();
+    auto return_value = self->dup(env);
+    return return_value;
+}
+
+Value *KernelModule_equal_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    KernelModule *self = self_value->as_kernel_module_for_method_binding();
+    auto return_value = self->equal(argc > 0 ? args[0] : nullptr);
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+}
+
+Value *KernelModule_equal_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    KernelModule *self = self_value->as_kernel_module_for_method_binding();
+    auto return_value = self->equal(argc > 0 ? args[0] : nullptr);
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+}
+
+Value *KernelModule_exit_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0, 1);
+    KernelModule *self = self_value->as_kernel_module_for_method_binding();
+    auto return_value = self->exit(env, argc > 0 ? args[0] : nullptr);
+    return return_value;
+}
+
+Value *KernelModule_freeze_obj_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    KernelModule *self = self_value->as_kernel_module_for_method_binding();
+    auto return_value = self->freeze_obj(env);
+    return return_value;
+}
+
+Value *KernelModule_get_usage_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    KernelModule *self = self_value->as_kernel_module_for_method_binding();
+    auto return_value = self->get_usage(env);
+    return return_value;
+}
+
+Value *KernelModule_hash_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    KernelModule *self = self_value->as_kernel_module_for_method_binding();
+    auto return_value = self->hash(env);
+    return return_value;
+}
+
+Value *KernelModule_inspect_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    KernelModule *self = self_value->as_kernel_module_for_method_binding();
+    auto return_value = self->inspect(env);
+    return return_value;
+}
+
+Value *KernelModule_instance_variable_get_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    KernelModule *self = self_value->as_kernel_module_for_method_binding();
+    auto return_value = self->instance_variable_get(env, argc > 0 ? args[0] : nullptr);
+    return return_value;
+}
+
+Value *KernelModule_instance_variable_set_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(2);
+    KernelModule *self = self_value->as_kernel_module_for_method_binding();
+    auto return_value = self->instance_variable_set(env, argc > 0 ? args[0] : nullptr, argc > 1 ? args[1] : nullptr);
+    return return_value;
+}
+
+Value *KernelModule_ivars_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    KernelModule *self = self_value->as_kernel_module_for_method_binding();
+    auto return_value = self->ivars(env);
+    return return_value;
+}
+
+Value *KernelModule_is_a_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    KernelModule *self = self_value->as_kernel_module_for_method_binding();
+    auto return_value = self->is_a(env, argc > 0 ? args[0] : nullptr);
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+}
+
+Value *KernelModule_is_nil_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    KernelModule *self = self_value->as_kernel_module_for_method_binding();
+    auto return_value = self->is_nil();
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+}
+
+Value *KernelModule_lambda_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    KernelModule *self = self_value->as_kernel_module_for_method_binding();
+    auto return_value = self->lambda(env, block);
+    return return_value;
+}
+
+Value *KernelModule_this_method_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    KernelModule *self = self_value->as_kernel_module_for_method_binding();
+    auto return_value = self->this_method(env);
+    return return_value;
+}
+
+Value *KernelModule_methods_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    KernelModule *self = self_value->as_kernel_module_for_method_binding();
+    auto return_value = self->methods(env);
+    return return_value;
+}
+
+Value *KernelModule_methods_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    KernelModule *self = self_value->as_kernel_module_for_method_binding();
+    auto return_value = self->methods(env);
+    return return_value;
+}
+
+Value *KernelModule_object_id_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    KernelModule *self = self_value->as_kernel_module_for_method_binding();
+    auto return_value = self->object_id(env);
+    return return_value;
+}
+
+Value *KernelModule_p_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    
+    KernelModule *self = self_value->as_kernel_module_for_method_binding();
+    auto return_value = self->p(env, argc, args);
+    return return_value;
+}
+
+Value *KernelModule_print_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    
+    KernelModule *self = self_value->as_kernel_module_for_method_binding();
+    auto return_value = self->print(env, argc, args);
+    return return_value;
+}
+
+Value *KernelModule_proc_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    KernelModule *self = self_value->as_kernel_module_for_method_binding();
+    auto return_value = self->proc(env, block);
+    return return_value;
+}
+
+Value *KernelModule_puts_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    
+    KernelModule *self = self_value->as_kernel_module_for_method_binding();
+    auto return_value = self->puts(env, argc, args);
+    return return_value;
+}
+
+Value *KernelModule_raise_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1, 2);
+    KernelModule *self = self_value->as_kernel_module_for_method_binding();
+    auto return_value = self->raise(env, argc > 0 ? args[0] : nullptr, argc > 1 ? args[1] : nullptr);
+    return return_value;
+}
+
+Value *KernelModule_respond_to_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    KernelModule *self = self_value->as_kernel_module_for_method_binding();
+    auto return_value = self->respond_to(env, argc > 0 ? args[0] : nullptr);
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+}
+
+Value *KernelModule_send_message_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC_AT_LEAST(1);
+    KernelModule *self = self_value->as_kernel_module_for_method_binding();
+    auto return_value = self->send_message(env, argc, args, block);
+    return return_value;
+}
+
+Value *KernelModule_singleton_class_obj_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    KernelModule *self = self_value->as_kernel_module_for_method_binding();
+    auto return_value = self->singleton_class_obj(env);
+    return return_value;
+}
+
+Value *KernelModule_sleep_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0, 1);
+    KernelModule *self = self_value->as_kernel_module_for_method_binding();
+    auto return_value = self->sleep(env, argc > 0 ? args[0] : nullptr);
+    return return_value;
+}
+
+Value *KernelModule_tap_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    KernelModule *self = self_value->as_kernel_module_for_method_binding();
+    auto return_value = self->tap(env, block);
+    return return_value;
+}
+
 Value *MatchDataValue_size_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     MatchDataValue *self = self_value->as_match_data();
@@ -1617,6 +1848,40 @@ void init_bindings(Env *env) {
     IO->define_method(env, "read", IoValue_read_binding);
     IO->define_method(env, "seek", IoValue_seek_binding);
     IO->define_method(env, "write", IoValue_write_binding);
+    Value *Kernel = env->Object()->const_get(env, "Kernel", true);
+    Kernel->define_method(env, "Array", KernelModule_Array_binding);
+    Kernel->define_method(env, "at_exit", KernelModule_at_exit_binding);
+    Kernel->define_method(env, "class", KernelModule_klass_obj_binding);
+    Kernel->define_method(env, "__dir__", KernelModule_cur_dir_binding);
+    Kernel->define_method(env, "define_singleton_method", KernelModule_define_singleton_method_binding);
+    Kernel->define_method(env, "dup", KernelModule_dup_binding);
+    Kernel->define_method(env, "===", KernelModule_equal_binding);
+    Kernel->define_method(env, "eql?", KernelModule_equal_binding1);
+    Kernel->define_method(env, "exit", KernelModule_exit_binding);
+    Kernel->define_method(env, "freeze", KernelModule_freeze_obj_binding);
+    Kernel->define_method(env, "get_usage", KernelModule_get_usage_binding);
+    Kernel->define_method(env, "hash", KernelModule_hash_binding);
+    Kernel->define_method(env, "inspect", KernelModule_inspect_binding);
+    Kernel->define_method(env, "instance_variable_get", KernelModule_instance_variable_get_binding);
+    Kernel->define_method(env, "instance_variable_set", KernelModule_instance_variable_set_binding);
+    Kernel->define_method(env, "instance_variables", KernelModule_ivars_binding);
+    Kernel->define_method(env, "is_a?", KernelModule_is_a_binding);
+    Kernel->define_method(env, "nil?", KernelModule_is_nil_binding);
+    Kernel->define_method(env, "lambda", KernelModule_lambda_binding);
+    Kernel->define_method(env, "__method__", KernelModule_this_method_binding);
+    Kernel->define_method(env, "methods", KernelModule_methods_binding);
+    Kernel->define_method(env, "public_methods", KernelModule_methods_binding1);
+    Kernel->define_method(env, "object_id", KernelModule_object_id_binding);
+    Kernel->define_method(env, "p", KernelModule_p_binding);
+    Kernel->define_method(env, "print", KernelModule_print_binding);
+    Kernel->define_method(env, "proc", KernelModule_proc_binding);
+    Kernel->define_method(env, "puts", KernelModule_puts_binding);
+    Kernel->define_method(env, "raise", KernelModule_raise_binding);
+    Kernel->define_method(env, "respond_to?", KernelModule_respond_to_binding);
+    Kernel->define_method(env, "send", KernelModule_send_message_binding);
+    Kernel->define_method(env, "singleton_class", KernelModule_singleton_class_obj_binding);
+    Kernel->define_method(env, "sleep", KernelModule_sleep_binding);
+    Kernel->define_method(env, "tap", KernelModule_tap_binding);
     Value *MatchData = env->Object()->const_get(env, "MatchData", true);
     MatchData->define_method(env, "size", MatchDataValue_size_binding);
     MatchData->define_method(env, "length", MatchDataValue_size_binding1);

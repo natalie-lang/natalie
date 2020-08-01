@@ -31,6 +31,7 @@ struct SymbolValue;
 struct TrueValue;
 struct Value;
 struct VoidPValue;
+struct KernelModule;
 
 void copy_hashmap(struct hashmap &, const struct hashmap &);
 

@@ -125,6 +125,8 @@ struct Value : public gc {
     SymbolValue *as_symbol();
     VoidPValue *as_void_p();
 
+    KernelModule *as_kernel_module_for_method_binding();
+
     SymbolValue *to_symbol(Env *, Conversion);
 
     const char *identifier_str(Env *, Conversion);
@@ -168,6 +170,7 @@ struct Value : public gc {
 
     bool is_a(Env *, Value *);
     bool respond_to(Env *, const char *);
+    bool respond_to(Env *, Value *);
 
     const char *defined(Env *, const char *);
     Value *defined_obj(Env *, const char *);
