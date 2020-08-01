@@ -21,13 +21,11 @@ describe "Float#prev_float" do
     (-Float::MAX).prev_float.should == -Float::INFINITY
   end
 
-  # TODO: EPSILON
-  xit "steps directly between 1.0 and 1.0 - EPSILON/2" do
+  it "steps directly between 1.0 and 1.0 - EPSILON/2" do
     1.0.prev_float.should == 1.0 - Float::EPSILON/2
   end
 
-  # TODO: EPSILON
-  xit "steps directly between -1.0 and -1.0 - EPSILON" do
+  it "steps directly between -1.0 and -1.0 - EPSILON" do
     (-1.0).prev_float.should == -1.0 - Float::EPSILON
   end
 

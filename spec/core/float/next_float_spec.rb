@@ -21,13 +21,11 @@ describe "Float#next_float" do
     Float::MAX.next_float.should == Float::INFINITY
   end
 
-  # TODO: EPSILON
-  xit "steps directly between 1.0 and 1.0 + EPSILON" do
+  it "steps directly between 1.0 and 1.0 + EPSILON" do
     1.0.next_float.should == 1.0 + Float::EPSILON
   end
 
-  # TODO: EPSILON
-  xit "steps directly between -1.0 and -1.0 + EPSILON/2" do
+  it "steps directly between -1.0 and -1.0 + EPSILON/2" do
     (-1.0).next_float.should == -1.0 + Float::EPSILON/2
   end
 

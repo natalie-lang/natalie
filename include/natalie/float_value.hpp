@@ -26,16 +26,20 @@ struct FloatValue : Value {
         : Value { Value::Type::Float, const_cast<FloatValue &>(other).klass() }
         , m_float { other.m_float } { }
 
+    static FloatValue *epsilon(Env *env) {
+        return new FloatValue { env, std::numeric_limits<double>::epsilon() };
+    }
+
     static FloatValue *nan(Env *env) {
         return new FloatValue { env, 0.0 / 0.0 };
     }
 
     static FloatValue *positive_infinity(Env *env) {
-        return new FloatValue { env, std::numeric_limits<float>::infinity() };
+        return new FloatValue { env, std::numeric_limits<double>::infinity() };
     }
 
     static FloatValue *negative_infinity(Env *env) {
-        return new FloatValue { env, -std::numeric_limits<float>::infinity() };
+        return new FloatValue { env, -std::numeric_limits<double>::infinity() };
     }
 
     static FloatValue *max(Env *env) {
@@ -137,6 +141,14 @@ struct FloatValue : Value {
 
     Value *uplus() {
         return this;
+    }
+
+    static void build_constants(Env *env, ClassValue *klass) {
+        klass->const_set(env, "EPSILON", FloatValue::epsilon(env));
+        klass->const_set(env, "INFINITY", FloatValue::positive_infinity(env));
+        klass->const_set(env, "MIN", FloatValue::min(env));
+        klass->const_set(env, "MAX", FloatValue::max(env));
+        klass->const_set(env, "NAN", FloatValue::nan(env));
     }
 
 private:
