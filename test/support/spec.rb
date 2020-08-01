@@ -374,14 +374,14 @@ class IncludeExpectation
   end
 
   def match(subject)
-    (start, stop) = subject
+    (start, stop) = subject.sort
     if @value < start || @value > stop
       raise SpecFailedException, "#{subject.inspect} should include #{@value.inspect}"
     end
   end
 
   def inverted_match(subject)
-    (start, stop) = subject
+    (start, stop) = subject.sort
     if @value >= start && @value <= stop
       raise SpecFailedException, "#{subject.inspect} should not include #{@value.inspect}"
     end
