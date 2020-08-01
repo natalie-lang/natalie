@@ -80,6 +80,51 @@ Value *IntegerValue::cmp(Env *env, Value *arg) {
     }
 }
 
+bool IntegerValue::eq(Env *env, Value *other) {
+    if (other->is_integer()) {
+        return to_int64_t() == other->as_integer()->to_int64_t();
+    } else if (other->is_float()) {
+        return to_int64_t() == other->as_float()->to_double();
+    }
+    return false;
+}
+
+bool IntegerValue::lt(Env *env, Value *other) {
+    if (other->is_integer()) {
+        return to_int64_t() < other->as_integer()->to_int64_t();
+    } else if (other->is_float()) {
+        return to_int64_t() < other->as_float()->to_double();
+    }
+    NAT_RAISE(env, "ArgumentError", "comparison of Integer with %s failed", NAT_INSPECT(other));
+}
+
+bool IntegerValue::lte(Env *env, Value *other) {
+    if (other->is_integer()) {
+        return to_int64_t() <= other->as_integer()->to_int64_t();
+    } else if (other->is_float()) {
+        return to_int64_t() <= other->as_float()->to_double();
+    }
+    NAT_RAISE(env, "ArgumentError", "comparison of Integer with %s failed", NAT_INSPECT(other));
+}
+
+bool IntegerValue::gt(Env *env, Value *other) {
+    if (other->is_integer()) {
+        return to_int64_t() > other->as_integer()->to_int64_t();
+    } else if (other->is_float()) {
+        return to_int64_t() > other->as_float()->to_double();
+    }
+    NAT_RAISE(env, "ArgumentError", "comparison of Integer with %s failed", NAT_INSPECT(other));
+}
+
+bool IntegerValue::gte(Env *env, Value *other) {
+    if (other->is_integer()) {
+        return to_int64_t() >= other->as_integer()->to_int64_t();
+    } else if (other->is_float()) {
+        return to_int64_t() >= other->as_float()->to_double();
+    }
+    NAT_RAISE(env, "ArgumentError", "comparison of Integer with %s failed", NAT_INSPECT(other));
+}
+
 Value *IntegerValue::eqeqeq(Env *env, Value *arg) {
     if (arg->type() == Value::Type::Integer && to_int64_t() == arg->as_integer()->to_int64_t()) {
         return env->true_obj();

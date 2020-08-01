@@ -42,6 +42,12 @@ struct IntegerValue : Value {
     Value *abs(Env *);
     Value *chr(Env *);
 
+    bool eq(Env *, Value *);
+    bool lt(Env *, Value *);
+    bool lte(Env *, Value *);
+    bool gt(Env *, Value *);
+    bool gte(Env *, Value *);
+
 private:
     int64_t m_integer { 0 };
 };

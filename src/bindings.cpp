@@ -778,6 +778,48 @@ Value *IntegerValue_cmp_binding(Env *env, Value *self_value, ssize_t argc, Value
     return return_value;
 }
 
+Value *Value_neq_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    Value *self = self_value;
+    auto return_value = self->neq(env, argc > 0 ? args[0] : nullptr);
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+}
+
+Value *IntegerValue_lt_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    IntegerValue *self = self_value->as_integer();
+    auto return_value = self->lt(env, argc > 0 ? args[0] : nullptr);
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+}
+
+Value *IntegerValue_lte_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    IntegerValue *self = self_value->as_integer();
+    auto return_value = self->lte(env, argc > 0 ? args[0] : nullptr);
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+}
+
+Value *IntegerValue_gt_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    IntegerValue *self = self_value->as_integer();
+    auto return_value = self->gt(env, argc > 0 ? args[0] : nullptr);
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+}
+
+Value *IntegerValue_gte_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    IntegerValue *self = self_value->as_integer();
+    auto return_value = self->gte(env, argc > 0 ? args[0] : nullptr);
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+}
+
+Value *IntegerValue_eq_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    IntegerValue *self = self_value->as_integer();
+    auto return_value = self->eq(env, argc > 0 ? args[0] : nullptr);
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+}
+
 Value *IntegerValue_eqeqeq_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     IntegerValue *self = self_value->as_integer();
@@ -1866,6 +1908,12 @@ void init_bindings(Env *env) {
     Integer->define_method(env, "-", IntegerValue_sub_binding);
     Integer->define_method(env, "/", IntegerValue_div_binding);
     Integer->define_method(env, "<=>", IntegerValue_cmp_binding);
+    Integer->define_method(env, "!=", Value_neq_binding1);
+    Integer->define_method(env, "<", IntegerValue_lt_binding);
+    Integer->define_method(env, "<=", IntegerValue_lte_binding);
+    Integer->define_method(env, ">", IntegerValue_gt_binding);
+    Integer->define_method(env, ">=", IntegerValue_gte_binding);
+    Integer->define_method(env, "==", IntegerValue_eq_binding);
     Integer->define_method(env, "===", IntegerValue_eqeqeq_binding);
     Integer->define_method(env, "abs", IntegerValue_abs_binding);
     Integer->define_method(env, "chr", IntegerValue_chr_binding);
