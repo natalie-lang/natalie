@@ -1,5 +1,3 @@
-# skip-test
-
 require_relative '../../spec_helper'
 
 describe "Float#prev_float" do
@@ -23,20 +21,24 @@ describe "Float#prev_float" do
     (-Float::MAX).prev_float.should == -Float::INFINITY
   end
 
-  it "steps directly between 1.0 and 1.0 - EPSILON/2" do
+  # TODO: EPSILON
+  xit "steps directly between 1.0 and 1.0 - EPSILON/2" do
     1.0.prev_float.should == 1.0 - Float::EPSILON/2
   end
 
-  it "steps directly between -1.0 and -1.0 - EPSILON" do
+  # TODO: EPSILON
+  xit "steps directly between -1.0 and -1.0 - EPSILON" do
     (-1.0).prev_float.should == -1.0 - Float::EPSILON
   end
 
-  it "reverses the effect of next_float for all Floats except -INFINITY and -0.0" do
+  # TODO: rand
+  xit "reverses the effect of next_float for all Floats except -INFINITY and -0.0" do
     num = rand
     num.next_float.prev_float.should == num
   end
 
-  it "returns positive zero when stepping downward from just above zero" do
+  # TODO: wat
+  xit "returns positive zero when stepping downward from just above zero" do
     x = 0.0.next_float.prev_float
     (1/x).should == Float::INFINITY
   end

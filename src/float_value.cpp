@@ -388,23 +388,13 @@ Value *FloatValue::abs(Env *env) {
 }
 
 Value *FloatValue::next_float(Env *env) {
-    if (is_negative_infinity()) {
-        return FloatValue::neg_max(env);
-    }
-    double x, y;
-    x = as_float()->to_double();
-    y = nextafterf(x, DBL_MAX);
-    return new FloatValue { env, y };
+    double number = nextafter(to_double(), HUGE_VAL);
+    return new FloatValue { env, number };
 }
 
 Value *FloatValue::prev_float(Env *env) {
-    if (is_positive_infinity()) {
-        return FloatValue::max(env);
-    }
-    double x, y;
-    x = as_float()->to_double();
-    y = nextafterf(x, DBL_MIN);
-    return new FloatValue { env, y };
+    double number = nextafter(to_double(), -HUGE_VAL);
+    return new FloatValue { env, number };
 }
 
 #define NAT_DEFINE_FLOAT_COMPARISON_METHOD(name, op)                                                           \

@@ -37,7 +37,7 @@ describe "Float#next_float" do
     num.prev_float.next_float.should == num
   end
 
-  # TODO: prev_float
+  # TODO: wat
   xit "returns negative zero when stepping upward from just below zero" do
     x = (-0.0).prev_float.next_float
     (1/x).should == -Float::INFINITY
