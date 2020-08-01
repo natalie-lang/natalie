@@ -1736,6 +1736,13 @@ Value *TrueValue_to_s_binding1(Env *env, Value *self_value, ssize_t argc, Value 
     return return_value;
 }
 
+Value *KernelModule_main_obj_inspect_singleton_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    KernelModule *self = self_value->as_kernel_module_for_method_binding();
+    auto return_value = self->main_obj_inspect(env);
+    return return_value;
+}
+
 void init_bindings(Env *env) {
     Value *Array = env->Object()->const_get(env, "Array", true);
     Array->define_singleton_method(env, "[]", ArrayValue_square_new_static_binding);
@@ -2009,6 +2016,8 @@ void init_bindings(Env *env) {
     Value *TrueClass = env->Object()->const_get(env, "TrueClass", true);
     TrueClass->define_method(env, "inspect", TrueValue_to_s_binding);
     TrueClass->define_method(env, "to_s", TrueValue_to_s_binding1);
+    Value *$NAT_main_object = env->global_get("$NAT_main_object");
+    $NAT_main_object->define_singleton_method(env, "inspect", KernelModule_main_obj_inspect_singleton_binding);
     FalseClass->undefine_singleton_method(env, "new");
     Float->undefine_singleton_method(env, "new");
     NilClass->undefine_singleton_method(env, "new");

@@ -116,6 +116,11 @@ Value *KernelModule::inspect(Env *env) {
     }
 }
 
+// Note: this method is only defined here in the C++ -- the method is actually attached directly to `main` in Ruby.
+Value *KernelModule::main_obj_inspect(Env *env) {
+    return new StringValue { env, "main" };
+}
+
 Value *KernelModule::instance_variable_get(Env *env, Value *name_val) {
     if (is_integer() || is_float()) {
         return env->nil_obj();

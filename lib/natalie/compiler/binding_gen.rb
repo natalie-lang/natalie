@@ -32,7 +32,7 @@ class BindingGen
     @consts = {}
     @bindings.values.each do |binding|
       unless @consts[binding.rb_class]
-        puts "    Value *#{binding.rb_class} = env->Object()->const_get(env, #{binding.rb_class.inspect}, true);"
+        puts "    " + binding.get_object
         @consts[binding.rb_class] = true
       end
       puts "    #{binding.rb_class}->#{binding.define_method_name}(env, #{binding.rb_method.inspect}, #{binding.name});"
@@ -110,6 +110,14 @@ Value *#{name}(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
 
     def increment_name
       @name = @name.sub(/_binding(\d*)$/) { "_binding#{$1.to_i + 1}" }
+    end
+
+    def get_object
+      if rb_class.start_with?('$')
+      "Value *#{rb_class} = env->global_get(#{rb_class.inspect});"
+      else
+      "Value *#{rb_class} = env->Object()->const_get(env, #{rb_class.inspect}, true);"
+      end
     end
 
     private
@@ -478,6 +486,8 @@ gen.binding('Symbol', 'to_s', 'SymbolValue', 'to_s', argc: 0, pass_env: true, pa
 gen.undefine_singleton_method('TrueClass', 'new')
 gen.binding('TrueClass', 'inspect', 'TrueValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('TrueClass', 'to_s', 'TrueValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+
+gen.singleton_binding('$NAT_main_object', 'inspect', 'KernelModule', 'main_obj_inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 
 gen.init
 

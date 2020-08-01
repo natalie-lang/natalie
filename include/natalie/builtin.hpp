@@ -19,6 +19,4 @@ Value *Comparable_lte(Env *env, Value *self, ssize_t argc, Value **args, Block *
 Value *Comparable_gt(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Comparable_gte(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
-Value *main_obj_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-
 }

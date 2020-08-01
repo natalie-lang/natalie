@@ -43,6 +43,7 @@ struct KernelModule : Value {
     Value *get_usage(Env *env);
     Value *hash(Env *env);
     Value *inspect(Env *env);
+    Value *main_obj_inspect(Env *);
     Value *instance_variable_get(Env *env, Value *name_val);
     Value *instance_variable_set(Env *env, Value *name_val, Value *value);
     Value *lambda(Env *env, Block *block);

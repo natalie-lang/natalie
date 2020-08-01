@@ -156,7 +156,6 @@ extern "C" Env *build_top_env() {
 
     Value *self = new Value { env };
     self->add_main_object_flag();
-    self->define_singleton_method(env, "inspect", main_obj_inspect);
     env->global_set("$NAT_main_object", self);
 
     Value *stdin = new IoValue { env, STDIN_FILENO };
