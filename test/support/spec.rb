@@ -354,7 +354,7 @@ class ShouldReceiveExpectation
 
   def and_raise(exception)
     should_receive_expectation_passed = -> { @pass = true }
-    @subject.define_singleton_method(@message) do
+    @subject.define_singleton_method(@message) do |*|
       should_receive_expectation_passed.()
       raise exception
     end
