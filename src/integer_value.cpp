@@ -15,18 +15,30 @@ Value *IntegerValue::to_i() {
 }
 
 Value *IntegerValue::add(Env *env, Value *arg) {
+    if (arg->is_float()) {
+        double result = to_int64_t() + arg->as_float()->to_double();
+        return new FloatValue { env, result };
+    }
     NAT_ASSERT_TYPE(arg, Value::Type::Integer, "Integer");
     int64_t result = to_int64_t() + arg->as_integer()->to_int64_t();
     return new IntegerValue { env, result };
 }
 
 Value *IntegerValue::sub(Env *env, Value *arg) {
+    if (arg->is_float()) {
+        double result = to_int64_t() - arg->as_float()->to_double();
+        return new FloatValue { env, result };
+    }
     NAT_ASSERT_TYPE(arg, Value::Type::Integer, "Integer");
     int64_t result = to_int64_t() - arg->as_integer()->to_int64_t();
     return new IntegerValue { env, result };
 }
 
 Value *IntegerValue::mul(Env *env, Value *arg) {
+    if (arg->is_float()) {
+        double result = to_int64_t() * arg->as_float()->to_double();
+        return new FloatValue { env, result };
+    }
     NAT_ASSERT_TYPE(arg, Value::Type::Integer, "Integer");
     int64_t result = to_int64_t() * arg->as_integer()->to_int64_t();
     return new IntegerValue { env, result };

@@ -26,9 +26,45 @@ describe 'integer' do
     end
   end
 
-  describe 'divide' do
+  describe '*' do
+    it 'works for integers' do
+      (2 * 3).should == 6
+    end
+
+    it 'works for floats' do
+      (2 * 2.5).should == 5.0
+    end
+  end
+
+  describe '+' do
+    it 'works for integers' do
+      (2 + 3).should == 5
+    end
+
+    it 'works for floats' do
+      (2 + 2.5).should == 4.5
+    end
+  end
+
+  describe '-' do
+    it 'works for integers' do
+      (3 - 2).should == 1
+      (2 - 3).should == -1
+    end
+
+    it 'works for floats' do
+      (2 - 1.0).should == 1.0
+      (2 - 2.5).should == -0.5
+    end
+  end
+
+  describe '/' do
     it 'works for whole quotients' do
       (6 / 2).should == 3
+    end
+
+    it 'works for floats' do
+      (7 / 2.0).should == 3.5
     end
 
     it 'returns quotient of integer division rounded down' do

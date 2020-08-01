@@ -26,10 +26,6 @@ struct FloatValue : Value {
         : Value { Value::Type::Float, const_cast<FloatValue &>(other).klass() }
         , m_float { other.m_float } { }
 
-    static FloatValue *epsilon(Env *env) {
-        return new FloatValue { env, std::numeric_limits<double>::epsilon() };
-    }
-
     static FloatValue *nan(Env *env) {
         return new FloatValue { env, 0.0 / 0.0 };
     }
@@ -43,15 +39,15 @@ struct FloatValue : Value {
     }
 
     static FloatValue *max(Env *env) {
-        return new FloatValue { env, NAT_MAX_FLOAT };
+        return new FloatValue { env, DBL_MAX };
     }
 
     static FloatValue *neg_max(Env *env) {
-        return new FloatValue { env, -1 * NAT_MAX_FLOAT };
+        return new FloatValue { env, -DBL_MAX };
     }
 
     static FloatValue *min(Env *env) {
-        return new FloatValue { env, NAT_MIN_FLOAT };
+        return new FloatValue { env, DBL_MIN };
     }
 
     double to_double() {
@@ -144,11 +140,18 @@ struct FloatValue : Value {
     }
 
     static void build_constants(Env *env, ClassValue *klass) {
-        klass->const_set(env, "EPSILON", FloatValue::epsilon(env));
+        klass->const_set(env, "DIG", new FloatValue { env, double { DBL_DIG } });
+        klass->const_set(env, "EPSILON", new FloatValue { env, std::numeric_limits<double>::epsilon() });
         klass->const_set(env, "INFINITY", FloatValue::positive_infinity(env));
-        klass->const_set(env, "MIN", FloatValue::min(env));
+        klass->const_set(env, "MANT_DIG", new FloatValue { env, double { DBL_MANT_DIG } });
         klass->const_set(env, "MAX", FloatValue::max(env));
+        klass->const_set(env, "MAX_10_EXP", new FloatValue { env, double { DBL_MAX_10_EXP } });
+        klass->const_set(env, "MAX_EXP", new FloatValue { env, double { DBL_MAX_EXP } });
+        klass->const_set(env, "MIN", FloatValue::min(env));
+        klass->const_set(env, "MIN_10_EXP", new FloatValue { env, double { DBL_MIN_10_EXP } });
+        klass->const_set(env, "MIN_EXP", new FloatValue { env, double { DBL_MIN_EXP } });
         klass->const_set(env, "NAN", FloatValue::nan(env));
+        klass->const_set(env, "RADIX", new FloatValue { env, double { std::numeric_limits<double>::radix } });
     }
 
 private:
