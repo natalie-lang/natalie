@@ -1,5 +1,4 @@
 #include "natalie.hpp"
-#include "natalie/builtin.hpp"
 
 using namespace Natalie;
 
@@ -35,7 +34,6 @@ extern "C" Env *build_top_env() {
 
     ModuleValue *Comparable = new ModuleValue { env, "Comparable" };
     Object->const_set(env, "Comparable", Comparable);
-    NAT_COMPARABLE_INIT(Comparable);
 
     ClassValue *Symbol = Object->subclass(env, "Symbol", Value::Type::Symbol);
     Object->const_set(env, "Symbol", Symbol);
