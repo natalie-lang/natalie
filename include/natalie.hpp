@@ -17,6 +17,7 @@
 #include "natalie/class_value.hpp"
 #include "natalie/encoding_value.hpp"
 #include "natalie/env.hpp"
+#include "natalie/env_value.hpp"
 #include "natalie/exception_value.hpp"
 #include "natalie/false_value.hpp"
 #include "natalie/file_value.hpp"

@@ -198,6 +198,10 @@ KernelModule *Value::as_kernel_module_for_method_binding() {
     return static_cast<KernelModule *>(this);
 }
 
+EnvValue *Value::as_env_value_for_method_binding() {
+    return static_cast<EnvValue *>(this);
+}
+
 const char *Value::identifier_str(Env *env, Conversion conversion) {
     if (is_symbol()) {
         return as_symbol()->c_str();

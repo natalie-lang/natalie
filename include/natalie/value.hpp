@@ -126,6 +126,7 @@ struct Value : public gc {
     VoidPValue *as_void_p();
 
     KernelModule *as_kernel_module_for_method_binding();
+    EnvValue *as_env_value_for_method_binding();
 
     SymbolValue *to_symbol(Env *, Conversion);
 

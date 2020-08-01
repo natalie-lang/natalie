@@ -7,8 +7,7 @@ extern char **environ;
 
 namespace Natalie {
 
-Value *ENV_inspect(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
-    NAT_ASSERT_ARGC(0);
+Value *EnvValue::inspect(Env *env) {
     HashValue *hash = new HashValue { env };
     int i = 1;
     char *pair = *environ;
@@ -24,9 +23,7 @@ Value *ENV_inspect(Env *env, Value *self_value, ssize_t argc, Value **args, Bloc
     return hash->inspect(env);
 }
 
-Value *ENV_ref(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
-    NAT_ASSERT_ARGC(1);
-    Value *name = args[0];
+Value *EnvValue::ref(Env *env, Value *name) {
     NAT_ASSERT_TYPE(name, Value::Type::String, "String");
     char *value = getenv(name->as_string()->c_str());
     if (value) {
@@ -36,10 +33,7 @@ Value *ENV_ref(Env *env, Value *self_value, ssize_t argc, Value **args, Block *b
     }
 }
 
-Value *ENV_refeq(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
-    NAT_ASSERT_ARGC(2);
-    Value *name = args[0];
-    Value *value = args[1];
+Value *EnvValue::refeq(Env *env, Value *name, Value *value) {
     NAT_ASSERT_TYPE(name, Value::Type::String, "String");
     NAT_ASSERT_TYPE(value, Value::Type::String, "String");
     setenv(name->as_string()->c_str(), value->as_string()->c_str(), 1);

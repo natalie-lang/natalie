@@ -173,7 +173,6 @@ extern "C" Env *build_top_env() {
 
     Value *ENV = new Value { env };
     Object->const_set(env, "ENV", ENV);
-    NAT_ENV_INIT(ENV);
 
     Value *RUBY_VERSION = new StringValue { env, "2.7.1" };
     Object->const_set(env, "RUBY_VERSION", RUBY_VERSION);

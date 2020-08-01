@@ -9,6 +9,7 @@ struct Block;
 struct ClassValue;
 struct EncodingValue;
 struct Env;
+struct EnvValue;
 struct ExceptionValue;
 struct FalseValue;
 struct FileValue;

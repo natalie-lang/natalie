@@ -19,15 +19,6 @@ Value *Comparable_lte(Env *env, Value *self, ssize_t argc, Value **args, Block *
 Value *Comparable_gt(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 Value *Comparable_gte(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
-Value *ENV_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *ENV_ref(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-Value *ENV_refeq(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
-
-#define NAT_ENV_INIT(obj)                                      \
-    obj->define_singleton_method(env, "inspect", ENV_inspect); \
-    obj->define_singleton_method(env, "[]", ENV_ref);          \
-    obj->define_singleton_method(env, "[]=", ENV_refeq);
-
 Value *main_obj_inspect(Env *env, Value *self, ssize_t argc, Value **args, Block *block);
 
 }

@@ -4,6 +4,7 @@ class BindingGen
     @undefine_singleton_methods = []
   end
 
+  # define a method on the Ruby class and link it to a method on the C++ class
   def binding(*args, **kwargs)
     b = Binding.new(*args, **kwargs)
     b.increment_name while @bindings[b.name]
@@ -11,13 +12,17 @@ class BindingGen
     b.write
   end
 
+  # define a method on the Ruby *SINGLETON* class and link it to a method on the C++ class
   def singleton_binding(*args, **kwargs)
-    b = Binding.new(*args, singleton: true, **kwargs)
-    b.increment_name while @bindings[b.name]
-    @bindings[b.name] = b
-    b.write
+    binding(*args, **kwargs.update(singleton: true))
   end
 
+  # define a method on the Ruby *SINGLETON* class and link it to a *STATIC* method on the C++ class
+  def static_binding(*args, **kwargs)
+    binding(*args, **kwargs.update(static: true))
+  end
+
+  # mark a method as undefined on the Ruby singleton class
   def undefine_singleton_method(rb_class, method)
     @undefine_singleton_methods << [rb_class, method]
   end
@@ -39,7 +44,7 @@ class BindingGen
   end
 
   class Binding
-    def initialize(rb_class, rb_method, cpp_class, cpp_method, argc:, pass_env:, pass_block:, return_type:, singleton: false)
+    def initialize(rb_class, rb_method, cpp_class, cpp_method, argc:, pass_env:, pass_block:, return_type:, singleton: false, static: false)
       @rb_class = rb_class
       @rb_method = rb_method
       @cpp_class = cpp_class
@@ -49,14 +54,15 @@ class BindingGen
       @pass_block = pass_block
       @return_type = return_type
       @singleton = singleton
+      @static = static
       generate_name
     end
 
     attr_reader :rb_class, :rb_method, :cpp_class, :cpp_method, :argc, :pass_env, :pass_block, :return_type, :name
 
     def write
-      if @singleton
-        write_singleton_function
+      if @static
+        write_static_function
       else
         write_function
       end
@@ -73,7 +79,7 @@ Value *#{name}(Env *env, Value *self_value, ssize_t argc, Value **args, Block *b
       FUNC
     end
 
-    def write_singleton_function
+    def write_static_function
       puts <<-FUNC
 Value *#{name}(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
     #{argc_assertion}
@@ -99,7 +105,7 @@ Value *#{name}(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
     end
 
     def define_method_name
-      "define#{@singleton ? '_singleton' : ''}_method"
+      "define#{@singleton || @static ? '_singleton' : ''}_method"
     end
 
     def increment_name
@@ -146,7 +152,7 @@ Value *#{name}(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
     def as_type(value)
       if cpp_class == 'Value'
         value
-      elsif cpp_class =~ /Module$/
+      elsif cpp_class =~ /EnvValue|Module$/
         underscored = cpp_class.gsub(/([a-z])([A-Z])/,'\1_\2').downcase
         "#{value}->as_#{underscored}_for_method_binding()"
       else
@@ -181,7 +187,7 @@ Value *#{name}(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
     end
 
     def generate_name
-      @name = "#{cpp_class}_#{cpp_method}#{@singleton ? '_singleton' : ''}_binding"
+      @name = "#{cpp_class}_#{cpp_method}#{@singleton ? '_singleton' : ''}#{@static ? '_static' : ''}_binding"
     end
   end
 end
@@ -197,7 +203,7 @@ puts
 
 gen = BindingGen.new
 
-gen.singleton_binding('Array', '[]', 'ArrayValue', 'square_new', argc: :any, pass_env: true, pass_block: false, return_type: :Value)
+gen.static_binding('Array', '[]', 'ArrayValue', 'square_new', argc: :any, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Array', '+', 'ArrayValue', 'add', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Array', '-', 'ArrayValue', 'sub', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Array', '<<', 'ArrayValue', 'ltlt', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
@@ -230,13 +236,17 @@ gen.binding('BasicObject', 'equal?', 'Value', 'eq', argc: 1, pass_env: true, pas
 gen.binding('BasicObject', '!=', 'Value', 'neq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('BasicObject', 'instance_eval', 'Value', 'instance_eval', argc: 0..1, pass_env: true, pass_block: true, return_type: :Value)
 
-gen.singleton_binding('Class', 'new', 'ClassValue', 'new_method', argc: 0..1, pass_env: true, pass_block: true, return_type: :Value)
+gen.static_binding('Class', 'new', 'ClassValue', 'new_method', argc: 0..1, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Class', 'superclass', 'ClassValue', 'superclass', argc: 0, pass_env: false, pass_block: false, return_type: :NullableValue)
 
-gen.singleton_binding('Encoding', 'list', 'EncodingValue', 'list', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.static_binding('Encoding', 'list', 'EncodingValue', 'list', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Encoding', 'inspect', 'EncodingValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Encoding', 'name', 'EncodingValue', 'name', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Encoding', 'names', 'EncodingValue', 'names', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+
+gen.singleton_binding('ENV', 'inspect', 'EnvValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.singleton_binding('ENV', '[]', 'EnvValue', 'ref', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.singleton_binding('ENV', '[]=', 'EnvValue', 'refeq', argc: 2, pass_env: true, pass_block: false, return_type: :Value)
 
 gen.binding('Exception', 'backtrace', 'ExceptionValue', 'backtrace', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Exception', 'initialize', 'ExceptionValue', 'initialize', argc: 0..1, pass_env: true, pass_block: false, return_type: :Value)
@@ -247,7 +257,7 @@ gen.undefine_singleton_method('FalseClass', 'new')
 gen.binding('FalseClass', 'inspect', 'FalseValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('FalseClass', 'to_s', 'FalseValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 
-gen.singleton_binding('File', 'expand_path', 'FileValue', 'expand_path', argc: 1..2, pass_env: true, pass_block: false, return_type: :Value)
+gen.static_binding('File', 'expand_path', 'FileValue', 'expand_path', argc: 1..2, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('File', 'initialize', 'FileValue', 'initialize', argc: 1..2, pass_env: true, pass_block: true, return_type: :Value)
 
 gen.undefine_singleton_method('Float', 'new')
@@ -292,7 +302,7 @@ gen.binding('Float', 'to_s', 'FloatValue', 'to_s', argc: 0, pass_env: true, pass
 gen.binding('Float', 'truncate', 'FloatValue', 'truncate', argc: 0..1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Float', 'zero?', 'FloatValue', 'is_zero', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 
-gen.singleton_binding('Hash', '[]', 'HashValue', 'square_new', argc: :any, pass_env: true, pass_block: false, return_type: :Value)
+gen.static_binding('Hash', '[]', 'HashValue', 'square_new', argc: :any, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Hash', '==', 'HashValue', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Hash', '===', 'HashValue', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Hash', '[]', 'HashValue', 'ref', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
@@ -410,7 +420,7 @@ gen.binding('Proc', 'initialize', 'ProcValue', 'initialize', argc: 0, pass_env: 
 gen.binding('Proc', 'call', 'ProcValue', 'call', argc: :any, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Proc', 'lambda?', 'ProcValue', 'is_lambda', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 
-gen.singleton_binding('Process', 'pid', 'ProcessModule', 'pid', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.static_binding('Process', 'pid', 'ProcessModule', 'pid', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 
 gen.binding('Range', 'initialize', 'RangeValue', 'initialize', argc: 2..3, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Range', 'begin', 'RangeValue', 'begin', argc: 0, pass_env: false, pass_block: false, return_type: :Value)

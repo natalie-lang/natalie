@@ -6,7 +6,7 @@
 
 namespace Natalie {
 
-Value *ArrayValue_square_new_singleton_binding(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
+Value *ArrayValue_square_new_static_binding(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
     
     auto return_value = ArrayValue::square_new(env, argc, args);
     return return_value;
@@ -222,7 +222,7 @@ Value *Value_instance_eval_binding(Env *env, Value *self_value, ssize_t argc, Va
     return return_value;
 }
 
-Value *ClassValue_new_method_singleton_binding(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
+Value *ClassValue_new_method_static_binding(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0, 1);
     auto return_value = ClassValue::new_method(env, argc > 0 ? args[0] : nullptr, block);
     return return_value;
@@ -235,7 +235,7 @@ Value *ClassValue_superclass_binding(Env *env, Value *self_value, ssize_t argc, 
     if (return_value) { return return_value; } else { return env->nil_obj(); }
 }
 
-Value *EncodingValue_list_singleton_binding(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
+Value *EncodingValue_list_static_binding(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     auto return_value = EncodingValue::list(env);
     return return_value;
@@ -259,6 +259,27 @@ Value *EncodingValue_names_binding(Env *env, Value *self_value, ssize_t argc, Va
     NAT_ASSERT_ARGC(0);
     EncodingValue *self = self_value->as_encoding();
     auto return_value = self->names(env);
+    return return_value;
+}
+
+Value *EnvValue_inspect_singleton_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    EnvValue *self = self_value->as_env_value_for_method_binding();
+    auto return_value = self->inspect(env);
+    return return_value;
+}
+
+Value *EnvValue_ref_singleton_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    EnvValue *self = self_value->as_env_value_for_method_binding();
+    auto return_value = self->ref(env, argc > 0 ? args[0] : nullptr);
+    return return_value;
+}
+
+Value *EnvValue_refeq_singleton_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(2);
+    EnvValue *self = self_value->as_env_value_for_method_binding();
+    auto return_value = self->refeq(env, argc > 0 ? args[0] : nullptr, argc > 1 ? args[1] : nullptr);
     return return_value;
 }
 
@@ -304,7 +325,7 @@ Value *FalseValue_to_s_binding1(Env *env, Value *self_value, ssize_t argc, Value
     return return_value;
 }
 
-Value *FileValue_expand_path_singleton_binding(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
+Value *FileValue_expand_path_static_binding(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1, 2);
     auto return_value = FileValue::expand_path(env, argc > 0 ? args[0] : nullptr, argc > 1 ? args[1] : nullptr);
     return return_value;
@@ -597,7 +618,7 @@ Value *FloatValue_is_zero_binding(Env *env, Value *self_value, ssize_t argc, Val
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *HashValue_square_new_singleton_binding(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
+Value *HashValue_square_new_static_binding(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
     
     auto return_value = HashValue::square_new(env, argc, args);
     return return_value;
@@ -1352,7 +1373,7 @@ Value *ProcValue_is_lambda_binding(Env *env, Value *self_value, ssize_t argc, Va
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *ProcessModule_pid_singleton_binding(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
+Value *ProcessModule_pid_static_binding(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     auto return_value = ProcessModule::pid(env);
     return return_value;
@@ -1717,7 +1738,7 @@ Value *TrueValue_to_s_binding1(Env *env, Value *self_value, ssize_t argc, Value 
 
 void init_bindings(Env *env) {
     Value *Array = env->Object()->const_get(env, "Array", true);
-    Array->define_singleton_method(env, "[]", ArrayValue_square_new_singleton_binding);
+    Array->define_singleton_method(env, "[]", ArrayValue_square_new_static_binding);
     Array->define_method(env, "+", ArrayValue_add_binding);
     Array->define_method(env, "-", ArrayValue_sub_binding);
     Array->define_method(env, "<<", ArrayValue_ltlt_binding);
@@ -1750,13 +1771,17 @@ void init_bindings(Env *env) {
     BasicObject->define_method(env, "!=", Value_neq_binding);
     BasicObject->define_method(env, "instance_eval", Value_instance_eval_binding);
     Value *Class = env->Object()->const_get(env, "Class", true);
-    Class->define_singleton_method(env, "new", ClassValue_new_method_singleton_binding);
+    Class->define_singleton_method(env, "new", ClassValue_new_method_static_binding);
     Class->define_method(env, "superclass", ClassValue_superclass_binding);
     Value *Encoding = env->Object()->const_get(env, "Encoding", true);
-    Encoding->define_singleton_method(env, "list", EncodingValue_list_singleton_binding);
+    Encoding->define_singleton_method(env, "list", EncodingValue_list_static_binding);
     Encoding->define_method(env, "inspect", EncodingValue_inspect_binding);
     Encoding->define_method(env, "name", EncodingValue_name_binding);
     Encoding->define_method(env, "names", EncodingValue_names_binding);
+    Value *ENV = env->Object()->const_get(env, "ENV", true);
+    ENV->define_singleton_method(env, "inspect", EnvValue_inspect_singleton_binding);
+    ENV->define_singleton_method(env, "[]", EnvValue_ref_singleton_binding);
+    ENV->define_singleton_method(env, "[]=", EnvValue_refeq_singleton_binding);
     Value *Exception = env->Object()->const_get(env, "Exception", true);
     Exception->define_method(env, "backtrace", ExceptionValue_backtrace_binding);
     Exception->define_method(env, "initialize", ExceptionValue_initialize_binding);
@@ -1766,7 +1791,7 @@ void init_bindings(Env *env) {
     FalseClass->define_method(env, "inspect", FalseValue_to_s_binding);
     FalseClass->define_method(env, "to_s", FalseValue_to_s_binding1);
     Value *File = env->Object()->const_get(env, "File", true);
-    File->define_singleton_method(env, "expand_path", FileValue_expand_path_singleton_binding);
+    File->define_singleton_method(env, "expand_path", FileValue_expand_path_static_binding);
     File->define_method(env, "initialize", FileValue_initialize_binding);
     Value *Float = env->Object()->const_get(env, "Float", true);
     Float->define_method(env, "%", FloatValue_mod_binding);
@@ -1810,7 +1835,7 @@ void init_bindings(Env *env) {
     Float->define_method(env, "truncate", FloatValue_truncate_binding);
     Float->define_method(env, "zero?", FloatValue_is_zero_binding);
     Value *Hash = env->Object()->const_get(env, "Hash", true);
-    Hash->define_singleton_method(env, "[]", HashValue_square_new_singleton_binding);
+    Hash->define_singleton_method(env, "[]", HashValue_square_new_static_binding);
     Hash->define_method(env, "==", HashValue_eq_binding);
     Hash->define_method(env, "===", HashValue_eq_binding1);
     Hash->define_method(env, "[]", HashValue_ref_binding);
@@ -1927,7 +1952,7 @@ void init_bindings(Env *env) {
     Proc->define_method(env, "call", ProcValue_call_binding);
     Proc->define_method(env, "lambda?", ProcValue_is_lambda_binding);
     Value *Process = env->Object()->const_get(env, "Process", true);
-    Process->define_singleton_method(env, "pid", ProcessModule_pid_singleton_binding);
+    Process->define_singleton_method(env, "pid", ProcessModule_pid_static_binding);
     Value *Range = env->Object()->const_get(env, "Range", true);
     Range->define_method(env, "initialize", RangeValue_initialize_binding);
     Range->define_method(env, "begin", RangeValue_begin_binding);
