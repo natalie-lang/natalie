@@ -72,8 +72,8 @@ struct ModuleValue : Value {
     virtual void undefine_method(Env *, const char *) override;
 
     void methods(Env *, ArrayValue *);
-    Method *find_method(const char *, ModuleValue **);
-    Method *find_method_without_undefined(const char *, ModuleValue **);
+    Method *find_method(Env *env, const char *, ModuleValue **);
+    Method *find_method_without_undefined(Env *env, const char *, ModuleValue **);
 
     Value *call_method(Env *, Value *, const char *, Value *, ssize_t, Value **, Block *);
 

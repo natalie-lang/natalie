@@ -16,7 +16,7 @@ SymbolValue *intern_and_return_symbol(Env *env, ID id, const char *str) {
     hashmap *symbols = env->global_env()->symbols();
     SymbolValue *symbol = static_cast<SymbolValue *>(hashmap_get(symbols, (void *)id));
     if (!symbol) {
-        symbol = SymbolValue::_new_only_for_use_by_intern(env, str);
+        symbol = SymbolValue::_new_only_for_use_by_intern(env, id, str);
         hashmap_put(symbols, (void *)id, symbol);
     }
     return symbol;

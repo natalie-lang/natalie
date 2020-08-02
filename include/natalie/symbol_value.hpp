@@ -26,8 +26,8 @@ struct SymbolValue : Value {
         return intern_and_return_symbol(env, id, str);
     }
 
-    static SymbolValue *_new_only_for_use_by_intern(Env *env, const char *str) {
-        return new SymbolValue { env, str };
+    static SymbolValue *_new_only_for_use_by_intern(Env *env, ID id, const char *str) {
+        return new SymbolValue { env, id, str };
     }
 
     const char *c_str() { return m_name; }
@@ -41,14 +41,18 @@ struct SymbolValue : Value {
 
     Value *cmp(Env *, Value *);
 
+    ID id() { return m_id; }
+
 private:
-    SymbolValue(Env *env, const char *name)
+    SymbolValue(Env *env, ID id, const char *name)
         : Value { Value::Type::Symbol, env->Object()->const_get_or_panic(env, "Symbol", true)->as_class() }
-        , m_name { name } {
+        , m_name { name }
+        , m_id { id } {
         assert(m_name);
     }
 
     const char *m_name { nullptr };
+    ID m_id { 0 };
 };
 
 }
