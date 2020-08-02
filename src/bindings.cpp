@@ -2068,7 +2068,9 @@ void init_bindings(Env *env) {
     $NAT_main_object->define_singleton_method(env, "inspect", KernelModule_main_obj_inspect_singleton_binding);
     FalseClass->undefine_singleton_method(env, "new");
     Float->undefine_singleton_method(env, "new");
+    Integer->undefine_singleton_method(env, "new");
     NilClass->undefine_singleton_method(env, "new");
+    Symbol->undefine_singleton_method(env, "new");
     TrueClass->undefine_singleton_method(env, "new");
 }
 
