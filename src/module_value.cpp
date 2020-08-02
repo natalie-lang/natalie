@@ -69,6 +69,16 @@ Value *ModuleValue::const_get(Env *env, const char *name, bool strict) {
     }
 }
 
+Value *ModuleValue::const_get_or_panic(Env *env, const char *name, bool strict) {
+    Value *val = const_get_or_null(env, name, strict, false);
+    if (val) {
+        return val;
+    } else {
+        printf("Constant %s is missing!\n", name);
+        abort();
+    }
+}
+
 Value *ModuleValue::const_get_or_null(Env *env, const char *name, bool strict, bool define) {
     ModuleValue *search_parent;
     Value *val;

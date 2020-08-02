@@ -240,6 +240,10 @@ Value *Value::const_get(Env *env, const char *name, bool strict) {
     return m_klass->const_get(env, name, strict);
 }
 
+Value *Value::const_get_or_panic(Env *env, const char *name, bool strict) {
+    return m_klass->const_get_or_panic(env, name, strict);
+}
+
 Value *Value::const_get_or_null(Env *env, const char *name, bool strict, bool define) {
     return m_klass->const_get_or_null(env, name, strict, define);
 }

@@ -138,6 +138,7 @@ struct Value : public gc {
     void set_singleton_class(ClassValue *c) { m_singleton_class = c; }
 
     virtual Value *const_get(Env *, const char *, bool);
+    virtual Value *const_get_or_panic(Env *, const char *, bool);
     virtual Value *const_get_or_null(Env *, const char *, bool, bool);
     virtual Value *const_set(Env *, const char *, Value *);
 

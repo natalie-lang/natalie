@@ -12,7 +12,7 @@ namespace Natalie {
 
 struct FalseValue : Value {
     FalseValue(Env *env)
-        : Value { Value::Type::False, env->Object()->const_get(env, "FalseClass", true)->as_class() } {
+        : Value { Value::Type::False, env->Object()->const_get_or_panic(env, "FalseClass", true)->as_class() } {
         if (env->false_obj()) NAT_UNREACHABLE();
     }
 

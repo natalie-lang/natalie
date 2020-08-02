@@ -12,7 +12,7 @@ namespace Natalie {
 
 struct TrueValue : Value {
     TrueValue(Env *env)
-        : Value { Value::Type::True, env->Object()->const_get(env, "TrueClass", true)->as_class() } {
+        : Value { Value::Type::True, env->Object()->const_get_or_panic(env, "TrueClass", true)->as_class() } {
         if (env->true_obj()) NAT_UNREACHABLE();
     }
 

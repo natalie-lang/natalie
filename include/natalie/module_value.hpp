@@ -45,6 +45,7 @@ struct ModuleValue : Value {
     void prepend_once(Env *, ModuleValue *);
 
     virtual Value *const_get(Env *, const char *, bool) override;
+    virtual Value *const_get_or_panic(Env *, const char *, bool) override;
     virtual Value *const_get_or_null(Env *, const char *, bool, bool) override;
     virtual Value *const_set(Env *, const char *, Value *) override;
 
