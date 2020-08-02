@@ -24,15 +24,13 @@ describe "Array literals" do
     array[4].should == 4
   end
 
-  # TODO: implement hash
-  xit "[] accepts a literal hash without curly braces as its only parameter" do
-    #["foo" => :bar, baz: 42].should == [{"foo" => :bar, baz: 42}]
+  it "[] accepts a literal hash without curly braces as its only parameter" do
+    ["foo" => :bar, baz: 42].should == [{"foo" => :bar, baz: 42}]
   end
 
-  # TODO: implement hash
-  xit "[] accepts a literal hash without curly braces as its last parameter" do
-    #["foo", "bar" => :baz].should == ["foo", {"bar" => :baz}]
-    #[1, 2, 3 => 6, 4 => 24].should == [1, 2, {3 => 6, 4 => 24}]
+  it "[] accepts a literal hash without curly braces as its last parameter" do
+    ["foo", "bar" => :baz].should == ["foo", {"bar" => :baz}]
+    [1, 2, 3 => 6, 4 => 24].should == [1, 2, {3 => 6, 4 => 24}]
   end
 
   it "[] treats splatted nil as no element" do
@@ -99,7 +97,7 @@ describe "The unpacking splat operator (*)" do
   end
 
   it "unpacks the start and count arguments in an array slice assignment" do
-    #alphabet_1 = ['a'..'z'].to_a # TODO: range support
+    alphabet_1 = ['a'..'z'].to_a
     alphabet_1 = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
     alphabet_2 = alphabet_1.dup
     start_and_count_args = [1, 10]
@@ -135,20 +133,14 @@ describe "The unpacking splat operator (*)" do
   end
 
   it "when applied to a non-Array value attempts to coerce it to Array if the object respond_to?(:to_a)" do
-    #obj = mock("pseudo-array")
-    #obj.should_receive(:to_a).and_return([2, 3, 4])
-    # TODO: implement mock
-    obj = Object.new
-    def obj.to_a
-      [2, 3, 4]
-    end
+    obj = mock("pseudo-array")
+    obj.should_receive(:to_a).and_return([2, 3, 4])
     [1, *obj].should == [1, 2, 3, 4]
   end
 
   it "when applied to a non-Array value uses it unchanged if it does not respond_to?(:to_a)" do
     obj = Object.new
-    #obj.should_not respond_to(:to_a)
-    # TODO: implement respond_to expectation
+    #obj.should_not respond_to(:to_a) # FIXME: What does this do?
     [1, *obj].should == [1, obj]
   end
 
