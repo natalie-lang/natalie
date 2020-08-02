@@ -112,5 +112,3 @@
     { 0, 0, 0, nullptr, nullptr, nullptr, nullptr, nullptr }
 
 #define NAT_QUOTE(val) #val
-
-#define NAT_BRIDGE_METHOD(...) // dummy macro replaced by our compiler later
