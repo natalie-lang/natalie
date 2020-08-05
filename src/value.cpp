@@ -87,7 +87,7 @@ Value *Value::_new(Env *env, Value *klass_value, ssize_t argc, Value **args, Blo
 
 Value *Value::initialize(Env *env, ssize_t argc, Value **args, Block *block) {
     ModuleValue *matching_class_or_module;
-    Method *method = m_klass->find_method(env, "initialize", &matching_class_or_module);
+    Method *method = m_klass->find_method("initialize", &matching_class_or_module);
     if (method) {
         m_klass->call_method(env, m_klass, "initialize", this, argc, args, block);
     }
@@ -384,7 +384,7 @@ void Value::undefine_method(Env *env, const char *name) {
 Value *Value::send(Env *env, const char *sym, ssize_t argc, Value **args, Block *block) {
     if (singleton_class()) {
         ModuleValue *matching_class_or_module;
-        Method *method = singleton_class()->find_method(env, sym, &matching_class_or_module);
+        Method *method = singleton_class()->find_method(sym, &matching_class_or_module);
         if (method) {
             if (method->is_undefined()) {
                 NAT_RAISE(env, "NoMethodError", "undefined method `%s' for %s:Class", sym, m_klass->class_name());
@@ -434,9 +434,9 @@ bool Value::is_a(Env *env, Value *val) {
 
 bool Value::respond_to(Env *env, const char *name) {
     ModuleValue *matching_class_or_module;
-    if (singleton_class() && singleton_class()->find_method_without_undefined(env, name, &matching_class_or_module)) {
+    if (singleton_class() && singleton_class()->find_method_without_undefined(name, &matching_class_or_module)) {
         return true;
-    } else if (m_klass->find_method_without_undefined(env, name, &matching_class_or_module)) {
+    } else if (m_klass->find_method_without_undefined(name, &matching_class_or_module)) {
         return true;
     } else {
         return false;

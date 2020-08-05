@@ -13,8 +13,8 @@ ModuleValue::ModuleValue(Env *env, const char *name)
 ModuleValue::ModuleValue(Env *env, Type type, ClassValue *klass)
     : Value { type, klass } {
     m_env = Env::new_detatched_block_env(env);
-    hashmap_init(&m_methods, hashmap_identity, hashmap_compare_identity, 10);
-    hashmap_set_key_alloc_funcs(&m_methods, nullptr, nullptr);
+    hashmap_init(&m_methods, hashmap_hash_string, hashmap_compare_string, 10);
+    hashmap_set_key_alloc_funcs(&m_methods, hashmap_alloc_key_string, free);
     hashmap_init(&m_constants, hashmap_hash_string, hashmap_compare_string, 10);
     hashmap_set_key_alloc_funcs(&m_constants, hashmap_alloc_key_string, free);
 }
@@ -125,12 +125,12 @@ Value *ModuleValue::const_set(Env *env, const char *name, Value *val) {
 
 void ModuleValue::alias(Env *env, const char *new_name, const char *old_name) {
     ModuleValue *matching_class_or_module;
-    Method *method = find_method(env, old_name, &matching_class_or_module);
+    Method *method = find_method(old_name, &matching_class_or_module);
     if (!method) {
         NAT_RAISE(env, "NameError", "undefined method `%s' for `%v'", old_name, this);
     }
-    hashmap_remove(&m_methods, (void *)intern(env, new_name));
-    hashmap_put(&m_methods, (void *)intern(env, new_name), new Method { *method });
+    free(hashmap_remove(&m_methods, new_name));
+    hashmap_put(&m_methods, new_name, new Method { *method });
 }
 
 Value *ModuleValue::eval_body(Env *env, Value *(*fn)(Env *, Value *)) {
@@ -186,14 +186,14 @@ Value *ModuleValue::cvar_set(Env *env, const char *name, Value *val) {
 
 void ModuleValue::define_method(Env *env, const char *name, Value *(*fn)(Env *, Value *, ssize_t, Value **, Block *block)) {
     Method *method = new Method { fn };
-    hashmap_remove(&m_methods, (void *)intern(env, name));
-    hashmap_put(&m_methods, (void *)intern(env, name), method);
+    free(hashmap_remove(&m_methods, name));
+    hashmap_put(&m_methods, name, method);
 }
 
 void ModuleValue::define_method_with_block(Env *env, const char *name, Block *block) {
     Method *method = new Method { block };
-    hashmap_remove(&m_methods, (void *)intern(env, name));
-    hashmap_put(&m_methods, (void *)intern(env, name), method);
+    free(hashmap_remove(&m_methods, name));
+    hashmap_put(&m_methods, name, method);
 }
 
 void ModuleValue::undefine_method(Env *env, const char *name) {
@@ -204,14 +204,12 @@ void ModuleValue::undefine_method(Env *env, const char *name) {
 void ModuleValue::methods(Env *env, ArrayValue *array) {
     struct hashmap_iter *iter;
     for (iter = hashmap_iter(&m_methods); iter; iter = hashmap_iter_next(&m_methods, iter)) {
-        ID id = (ID)hashmap_iter_get_key(iter);
-        const char *name = SymbolValue::from_id(env, id)->c_str();
+        const char *name = (char *)hashmap_iter_get_key(iter);
         array->push(SymbolValue::intern(env, name));
     }
     for (ModuleValue *module : m_included_modules) {
         for (iter = hashmap_iter(&module->m_methods); iter; iter = hashmap_iter_next(&module->m_methods, iter)) {
-            ID id = (ID)hashmap_iter_get_key(iter);
-            const char *name = SymbolValue::from_id(env, id)->c_str();
+            const char *name = (char *)hashmap_iter_get_key(iter);
             array->push(SymbolValue::intern(env, name));
         }
     }
@@ -221,12 +219,12 @@ void ModuleValue::methods(Env *env, ArrayValue *array) {
 }
 
 // returns the method and sets matching_class_or_module to where the method was found
-Method *ModuleValue::find_method(Env *env, const char *method_name, ModuleValue **matching_class_or_module) {
+Method *ModuleValue::find_method(const char *method_name, ModuleValue **matching_class_or_module) {
     Method *method;
     if (m_included_modules.is_empty()) {
         // no included modules, just search the class/module
         // note: if there are included modules, then the module chain will include this class/module
-        method = static_cast<Method *>(hashmap_get(&m_methods, (void *)intern(env, method_name)));
+        method = static_cast<Method *>(hashmap_get(&m_methods, method_name));
         if (method) {
             *matching_class_or_module = m_klass;
             return method;
@@ -234,7 +232,7 @@ Method *ModuleValue::find_method(Env *env, const char *method_name, ModuleValue 
     }
 
     for (ModuleValue *module : m_included_modules) {
-        method = static_cast<Method *>(hashmap_get(&module->m_methods, (void *)intern(env, method_name)));
+        method = static_cast<Method *>(hashmap_get(&module->m_methods, method_name));
         if (method) {
             *matching_class_or_module = module;
             return method;
@@ -242,14 +240,14 @@ Method *ModuleValue::find_method(Env *env, const char *method_name, ModuleValue 
     }
 
     if (m_superclass) {
-        return m_superclass->find_method(env, method_name, matching_class_or_module);
+        return m_superclass->find_method(method_name, matching_class_or_module);
     } else {
         return nullptr;
     }
 }
 
-Method *ModuleValue::find_method_without_undefined(Env *env, const char *method_name, ModuleValue **matching_class_or_module) {
-    Method *method = find_method(env, method_name, matching_class_or_module);
+Method *ModuleValue::find_method_without_undefined(const char *method_name, ModuleValue **matching_class_or_module) {
+    Method *method = find_method(method_name, matching_class_or_module);
     if (method && method->is_undefined()) {
         return nullptr;
     } else {
@@ -259,7 +257,7 @@ Method *ModuleValue::find_method_without_undefined(Env *env, const char *method_
 
 Value *ModuleValue::call_method(Env *env, Value *instance_class, const char *method_name, Value *self, ssize_t argc, Value **args, Block *block) {
     ModuleValue *matching_class_or_module;
-    Method *method = find_method(env, method_name, &matching_class_or_module);
+    Method *method = find_method(method_name, &matching_class_or_module);
     if (method && !method->is_undefined()) {
         Env *closure_env;
         if (method->has_env()) {
@@ -297,7 +295,7 @@ ArrayValue *ModuleValue::ancestors(Env *env) {
 bool ModuleValue::is_method_defined(Env *env, Value *name_value) {
     const char *name = name_value->identifier_str(env, Conversion::Strict);
     ModuleValue *matching_class_or_module;
-    return !!find_method(env, name, &matching_class_or_module);
+    return !!find_method(name, &matching_class_or_module);
 }
 
 Value *ModuleValue::inspect(Env *env) {
