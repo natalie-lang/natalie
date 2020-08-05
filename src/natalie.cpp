@@ -1,26 +1,9 @@
 #include "natalie.hpp"
-
 #include <ctype.h>
 #include <math.h>
 #include <stdarg.h>
 
 namespace Natalie {
-
-ID intern(Env *env, const char *str) {
-    ID id = hashmap_hash_string(str);
-    intern_and_return_symbol(env, id, str);
-    return id;
-}
-
-SymbolValue *intern_and_return_symbol(Env *env, ID id, const char *str) {
-    hashmap *symbols = env->global_env()->symbols();
-    SymbolValue *symbol = static_cast<SymbolValue *>(hashmap_get(symbols, (void *)id));
-    if (!symbol) {
-        symbol = SymbolValue::_new_only_for_use_by_intern(env, str);
-        hashmap_put(symbols, (void *)id, symbol);
-    }
-    return symbol;
-}
 
 bool is_constant_name(const char *name) {
     return strlen(name) > 0 && isupper(name[0]);
@@ -388,14 +371,6 @@ void copy_hashmap(struct hashmap &dest, const struct hashmap &source) {
         Value *value = (Value *)hashmap_iter_get_data(iter);
         hashmap_put(&dest, name, value);
     }
-}
-
-size_t hashmap_identity(const void *key) {
-    return (size_t)key;
-}
-
-int hashmap_compare_identity(const void *a, const void *b) {
-    return a == b ? 0 : 1;
 }
 
 char *zero_string(int size) {

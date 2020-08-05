@@ -2,6 +2,17 @@
 
 namespace Natalie {
 
+SymbolValue *SymbolValue::intern(Env *env, const char *name) {
+    SymbolValue *symbol = static_cast<SymbolValue *>(hashmap_get(env->global_env()->symbols(), name));
+    if (symbol) {
+        return symbol;
+    } else {
+        symbol = new SymbolValue { env, name };
+        hashmap_put(env->global_env()->symbols(), name, symbol);
+        return symbol;
+    }
+}
+
 StringValue *SymbolValue::inspect(Env *env) {
     StringValue *string = new StringValue { env, ":" };
     ssize_t len = strlen(m_name);

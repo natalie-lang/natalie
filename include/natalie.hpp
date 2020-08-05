@@ -50,10 +50,6 @@ extern "C" {
 
 using MethodFn = Value *(*)(Env *, Value *, ssize_t, Value **, Block *);
 
-using ID = size_t;
-ID intern(Env *, const char *);
-SymbolValue *intern_and_return_symbol(Env *, ID, const char *);
-
 void init_bindings(Env *);
 
 bool is_constant_name(const char *name);

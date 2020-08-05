@@ -12,23 +12,7 @@
 namespace Natalie {
 
 struct SymbolValue : Value {
-    static SymbolValue *from_id(Env *env, ID id) {
-        SymbolValue *symbol = static_cast<SymbolValue *>(hashmap_get(env->global_env()->symbols(), (void *)id));
-        if (!symbol) {
-            printf("Tried to get a symbol with and ID (%zu) that was never intern'd!\n", id);
-            abort();
-        }
-        return symbol;
-    }
-
-    static SymbolValue *intern(Env *env, const char *str) {
-        ID id = hashmap_hash_string(str);
-        return intern_and_return_symbol(env, id, str);
-    }
-
-    static SymbolValue *_new_only_for_use_by_intern(Env *env, const char *str) {
-        return new SymbolValue { env, str };
-    }
+    static SymbolValue *intern(Env *, const char *);
 
     const char *c_str() { return m_name; }
 
