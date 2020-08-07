@@ -276,14 +276,6 @@ Value *FloatValue::mul(Env *env, Value *rhs) {
 Value *FloatValue::div(Env *env, Value *rhs) {
     Value *lhs = this;
 
-    /*
-    if (rhs->is_float()) {
-        if (rhs->as_float()->is_nan()) return FloatValue::nan(env);
-        if (rhs->as_float()->is_positive_infinity()) return new FloatValue { env, 0.0 };
-        if (rhs->as_float()->is_negative_infinity()) return new FloatValue { env, -0.0 };
-    }
-    */
-
     if (!rhs->is_float()) {
         auto coerced = Natalie::coerce(env, rhs, lhs);
         lhs = coerced.first;
@@ -296,26 +288,16 @@ Value *FloatValue::div(Env *env, Value *rhs) {
     double dividend = to_double();
     double divisor = rhs->as_float()->to_double();
 
-    if (divisor == 0.0) {
-        if (dividend < 0.0) {
-            return FloatValue::negative_infinity(env);
-        } else if (dividend > 0.0) {
-            return FloatValue::positive_infinity(env);
-        } else {
-            return FloatValue::nan(env);
-        }
-    }
     return new FloatValue { env, dividend / divisor };
 }
 
 Value *FloatValue::mod(Env *env, Value *rhs) {
     Value *lhs = this;
 
-    /*
-    if (rhs->is_float() && rhs->as_float()->is_nan()) return FloatValue::nan(env);
-    if (rhs->is_float() && rhs->as_float()->is_positive_infinity()) return new FloatValue { env, 0.0 };
-    if (rhs->is_float() && rhs->as_float()->is_negative_infinity()) return new FloatValue { env, -0.0 };
-    */
+    bool rhs_is_non_zero = (rhs->is_float() && !rhs->as_float()->is_zero()) || (rhs->is_integer() && !rhs->as_integer()->is_zero());
+
+    if (rhs->is_float() && rhs->as_float()->is_negative_infinity()) return rhs;
+    if (is_negative_zero() && rhs_is_non_zero) return this;
 
     if (!rhs->is_float()) {
         auto coerced = Natalie::coerce(env, rhs, lhs);
@@ -329,15 +311,8 @@ Value *FloatValue::mod(Env *env, Value *rhs) {
     double dividend = to_double();
     double divisor = rhs->as_float()->to_double();
 
-    if (divisor == 0.0) {
-        if (dividend < 0.0) {
-            return FloatValue::negative_infinity(env);
-        } else if (dividend > 0.0) {
-            return FloatValue::positive_infinity(env);
-        } else {
-            return FloatValue::nan(env);
-        }
-    }
+    if (divisor == 0.0) NAT_RAISE(env, "ZeroDivisionError", "divided by 0");
+
     return new FloatValue { env, fmod(dividend, divisor) };
 }
 

@@ -97,6 +97,14 @@ struct FloatValue : Value {
         return is_infinity() && m_float < 0;
     }
 
+    bool is_positive_zero() {
+        return m_float == 0 && !signbit(m_float);
+    }
+
+    bool is_negative_zero() {
+        return m_float == 0 && signbit(m_float);
+    }
+
     FloatValue *negate() {
         FloatValue *copy = new FloatValue { *this };
         copy->m_float *= -1;
