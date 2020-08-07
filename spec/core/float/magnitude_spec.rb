@@ -1,5 +1,3 @@
-# skip-test
-
 require_relative 'shared/abs'
 
 describe "Float#magnitude" do
