@@ -77,6 +77,16 @@ describe 'integer' do
     end
   end
 
+  describe '==' do
+    (2 == 2).should == true
+    (2 == 3).should == false
+  end
+
+  describe 'eql?' do
+    (2.eql?(2)).should == true
+    (2.eql?(3)).should == false
+  end
+
   describe '<' do
     it 'returns true if we are less than the given integer' do
       (1 < 10).should == true

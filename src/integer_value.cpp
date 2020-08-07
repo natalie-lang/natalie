@@ -192,12 +192,8 @@ Value *IntegerValue::coerce(Env *env, Value *arg) {
     return ary;
 }
 
-Value *IntegerValue::eql(Env *env, Value *other) {
-    if (other->is_integer() && other->as_integer()->to_int64_t() == to_int64_t()) {
-        return env->true_obj();
-    } else {
-        return env->false_obj();
-    }
+bool IntegerValue::eql(Env *env, Value *other) {
+    return other->is_integer() && other->as_integer()->to_int64_t() == to_int64_t();
 }
 
 Value *IntegerValue::abs(Env *env) {

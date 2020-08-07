@@ -38,11 +38,11 @@ struct IntegerValue : Value {
     Value *bitwise_or(Env *, Value *);
     Value *succ(Env *);
     Value *coerce(Env *, Value *);
-    Value *eql(Env *, Value *);
     Value *abs(Env *);
     Value *chr(Env *);
 
     bool eq(Env *, Value *);
+    bool eql(Env *, Value *);
     bool lt(Env *, Value *);
     bool lte(Env *, Value *);
     bool gt(Env *, Value *);
