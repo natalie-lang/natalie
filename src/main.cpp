@@ -69,6 +69,10 @@ extern "C" Env *build_top_env() {
     Float->include_once(env, Comparable);
     FloatValue::build_constants(env, Float);
 
+    Value *Math = new ModuleValue { env, "Math" };
+    Object->const_set(env, "Math", Math);
+    Math->const_set(env, "PI", new FloatValue { env, M_PI });
+
     ClassValue *String = Object->subclass(env, "String", Value::Type::String);
     Object->const_set(env, "String", String);
     String->include_once(env, Comparable);
