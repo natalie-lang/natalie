@@ -4,11 +4,7 @@ namespace Natalie {
 
 // this is used by the hashmap library and assumes that obj->env has been set
 size_t HashValue::hash(const void *key) {
-    Key *key_p = (Key *)key;
-    assert(NAT_OBJ_HAS_ENV2(key_p));
-    Value *hash_obj = key_p->key->send(&key_p->env, "hash");
-    assert(hash_obj->type() == Value::Type::Integer);
-    return hash_obj->as_integer()->to_int64_t();
+    return static_cast<const HashValue::Key *>(key)->hash;
 }
 
 // this is used by the hashmap library to compare keys
@@ -21,17 +17,14 @@ int HashValue::compare(const void *a, const void *b) {
     Env *env = a_p->env.global_env() ? &a_p->env : &b_p->env;
     assert(env);
     assert(env->global_env());
-    Value *a_hash = a_p->key->send(env, "hash");
-    Value *b_hash = b_p->key->send(env, "hash");
-    assert(a_hash->type() == Value::Type::Integer);
-    assert(b_hash->type() == Value::Type::Integer);
-    return a_hash->as_integer()->to_int64_t() - b_hash->as_integer()->to_int64_t();
+    return a_p->key->send(env, "eql?", 1, &b_p->key)->is_truthy() ? 0 : 1; // return 0 for exact match
 }
 
 Value *HashValue::get(Env *env, Value *key) {
     Key key_container;
     key_container.key = key;
     key_container.env = *env;
+    key_container.hash = key->send(env, "hash")->as_integer()->to_int64_t();
     Val *container = static_cast<Val *>(hashmap_get(&m_hashmap, &key_container));
     Value *val = container ? container->val : nullptr;
     return val;
@@ -51,6 +44,7 @@ void HashValue::put(Env *env, Value *key, Value *val) {
     Key key_container;
     key_container.key = key;
     key_container.env = *env;
+    key_container.hash = key->send(env, "hash")->as_integer()->to_int64_t();
     Val *container = static_cast<Val *>(hashmap_get(&m_hashmap, &key_container));
     if (container) {
         container->key->val = val;
@@ -73,6 +67,7 @@ Value *HashValue::remove(Env *env, Value *key) {
     Key key_container;
     key_container.key = key;
     key_container.env = *env;
+    key_container.hash = key->send(env, "hash")->as_integer()->to_int64_t();
     Val *container = static_cast<Val *>(hashmap_remove(&m_hashmap, &key_container));
     if (container) {
         key_list_remove_node(container->key);
@@ -96,6 +91,7 @@ HashValue::Key *HashValue::key_list_append(Env *env, Value *key, Value *val) {
         new_last->prev = last;
         new_last->next = first;
         new_last->env = Env::new_detatched_block_env(env);
+        new_last->hash = key->send(env, "hash")->as_integer()->to_int64_t();
         new_last->removed = false;
         first->prev = new_last;
         last->next = new_last;
@@ -107,6 +103,7 @@ HashValue::Key *HashValue::key_list_append(Env *env, Value *key, Value *val) {
         node->prev = node;
         node->next = node;
         node->env = Env::new_detatched_block_env(env);
+        node->hash = key->send(env, "hash")->as_integer()->to_int64_t();
         node->removed = false;
         m_key_list = node;
         return node;
@@ -243,6 +240,9 @@ Value *HashValue::eq(Env *env, Value *other_value) {
     Value *other_val;
     for (HashValue::Key &node : *this) {
         other_val = other->get(env, node.key);
+        if (!other_val) {
+            return env->false_obj();
+        }
         if (!node.val->send(env, "==", 1, &other_val, nullptr)->is_truthy()) {
             return env->false_obj();
         }

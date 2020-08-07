@@ -18,6 +18,7 @@ struct HashValue : Value {
         Key *next { nullptr };
         Value *key { nullptr };
         Value *val { nullptr };
+        size_t hash { 0 };
         Env env {};
         bool removed { false };
     };

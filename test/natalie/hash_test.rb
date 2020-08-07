@@ -236,4 +236,17 @@ describe 'hash' do
       h.key?(1).should == false
     end
   end
+
+  describe 'handles two keys with the same hash' do
+    class MyDumbKey
+      def hash
+        111
+      end
+    end
+
+    a = MyDumbKey.new
+    b = MyDumbKey.new
+    h = { a => 1, b => 2 }
+    h[a].should_not == h[b]
+  end
 end
