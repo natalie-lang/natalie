@@ -299,6 +299,7 @@ gen.binding('Float', 'modulo', 'FloatValue', 'mod', argc: 1, pass_env: true, pas
 gen.binding('Float', 'nan?', 'FloatValue', 'is_nan', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('Float', 'negative?', 'FloatValue', 'is_negative', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('Float', 'next_float', 'FloatValue', 'next_float', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Float', 'phase', 'FloatValue', 'phase', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Float', 'positive?', 'FloatValue', 'is_positive', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('Float', 'prev_float', 'FloatValue', 'prev_float', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Float', 'quo', 'FloatValue', 'div', argc: 1, pass_env: true, pass_block: false, return_type: :Value)

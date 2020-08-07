@@ -397,6 +397,15 @@ Value *FloatValue::prev_float(Env *env) {
     return new FloatValue { env, number };
 }
 
+Value *FloatValue::phase(Env *env) {
+    if (is_nan()) return this;
+    if (!signbit(m_float)) {
+        return new IntegerValue { env, 0 };
+    } else {
+        return env->Object()->const_get_or_panic(env, "Math", true)->const_get_or_panic(env, "PI", true);
+    }
+}
+
 #define NAT_DEFINE_FLOAT_COMPARISON_METHOD(name, op)                                                           \
     bool FloatValue::name(Env *env, Value *rhs) {                                                              \
         Value *lhs = this;                                                                                     \

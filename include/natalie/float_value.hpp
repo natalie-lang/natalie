@@ -126,6 +126,7 @@ struct FloatValue : Value {
     Value *truncate(Env *, Value *);
     Value *next_float(Env *);
     Value *prev_float(Env *);
+    Value *phase(Env *);
     bool lt(Env *, Value *);
     bool lte(Env *, Value *);
     bool gt(Env *, Value *);

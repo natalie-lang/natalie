@@ -548,6 +548,13 @@ Value *FloatValue_next_float_binding(Env *env, Value *self_value, ssize_t argc, 
     return return_value;
 }
 
+Value *FloatValue_phase_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    FloatValue *self = self_value->as_float();
+    auto return_value = self->phase(env);
+    return return_value;
+}
+
 Value *FloatValue_is_positive_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     FloatValue *self = self_value->as_float();
@@ -1880,6 +1887,7 @@ void init_bindings(Env *env) {
     Float->define_method(env, "nan?", FloatValue_is_nan_binding);
     Float->define_method(env, "negative?", FloatValue_is_negative_binding);
     Float->define_method(env, "next_float", FloatValue_next_float_binding);
+    Float->define_method(env, "phase", FloatValue_phase_binding);
     Float->define_method(env, "positive?", FloatValue_is_positive_binding);
     Float->define_method(env, "prev_float", FloatValue_prev_float_binding);
     Float->define_method(env, "quo", FloatValue_div_binding2);
