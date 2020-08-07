@@ -285,6 +285,7 @@ gen.binding('Float', '===', 'FloatValue', 'eq', argc: 1, pass_env: true, pass_bl
 gen.binding('Float', '>', 'FloatValue', 'gt', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Float', '>=', 'FloatValue', 'gte', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Float', 'abs', 'FloatValue', 'abs', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Float', 'angle', 'FloatValue', 'arg', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Float', 'arg', 'FloatValue', 'arg', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Float', 'ceil', 'FloatValue', 'ceil', argc: 0..1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Float', 'coerce', 'FloatValue', 'coerce', argc: 1, pass_env: true, pass_block: false, return_type: :Value)

@@ -457,6 +457,13 @@ Value *FloatValue_arg_binding(Env *env, Value *self_value, ssize_t argc, Value *
     return return_value;
 }
 
+Value *FloatValue_arg_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    FloatValue *self = self_value->as_float();
+    auto return_value = self->arg(env);
+    return return_value;
+}
+
 Value *FloatValue_ceil_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0, 1);
     FloatValue *self = self_value->as_float();
@@ -555,7 +562,7 @@ Value *FloatValue_next_float_binding(Env *env, Value *self_value, ssize_t argc, 
     return return_value;
 }
 
-Value *FloatValue_arg_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_arg_binding2(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     FloatValue *self = self_value->as_float();
     auto return_value = self->arg(env);
@@ -1880,7 +1887,8 @@ void init_bindings(Env *env) {
     Float->define_method(env, ">", FloatValue_gt_binding);
     Float->define_method(env, ">=", FloatValue_gte_binding);
     Float->define_method(env, "abs", FloatValue_abs_binding);
-    Float->define_method(env, "arg", FloatValue_arg_binding);
+    Float->define_method(env, "angle", FloatValue_arg_binding);
+    Float->define_method(env, "arg", FloatValue_arg_binding1);
     Float->define_method(env, "ceil", FloatValue_ceil_binding);
     Float->define_method(env, "coerce", FloatValue_coerce_binding);
     Float->define_method(env, "divmod", FloatValue_divmod_binding);
@@ -1895,7 +1903,7 @@ void init_bindings(Env *env) {
     Float->define_method(env, "nan?", FloatValue_is_nan_binding);
     Float->define_method(env, "negative?", FloatValue_is_negative_binding);
     Float->define_method(env, "next_float", FloatValue_next_float_binding);
-    Float->define_method(env, "phase", FloatValue_arg_binding1);
+    Float->define_method(env, "phase", FloatValue_arg_binding2);
     Float->define_method(env, "positive?", FloatValue_is_positive_binding);
     Float->define_method(env, "prev_float", FloatValue_prev_float_binding);
     Float->define_method(env, "quo", FloatValue_div_binding2);
