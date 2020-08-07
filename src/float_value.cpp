@@ -397,7 +397,7 @@ Value *FloatValue::prev_float(Env *env) {
     return new FloatValue { env, number };
 }
 
-Value *FloatValue::phase(Env *env) {
+Value *FloatValue::arg(Env *env) {
     if (is_nan()) return this;
     if (!signbit(m_float)) {
         return new IntegerValue { env, 0 };

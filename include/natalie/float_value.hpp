@@ -107,26 +107,27 @@ struct FloatValue : Value {
 
     bool eql(Value *);
 
-    Value *to_s(Env *);
+    Value *abs(Env *);
+    Value *add(Env *, Value *);
+    Value *arg(Env *);
+    Value *ceil(Env *, Value *);
     Value *cmp(Env *, Value *);
     Value *coerce(Env *, Value *);
-    Value *to_i(Env *);
-    Value *to_f() { return this; }
-    Value *add(Env *, Value *);
-    Value *sub(Env *, Value *);
-    Value *mul(Env *, Value *);
     Value *div(Env *, Value *);
-    Value *mod(Env *, Value *);
     Value *divmod(Env *, Value *);
-    Value *pow(Env *, Value *);
-    Value *abs(Env *);
-    Value *ceil(Env *, Value *);
     Value *floor(Env *, Value *);
-    Value *round(Env *, Value *);
-    Value *truncate(Env *, Value *);
+    Value *mod(Env *, Value *);
+    Value *mul(Env *, Value *);
     Value *next_float(Env *);
+    Value *pow(Env *, Value *);
     Value *prev_float(Env *);
-    Value *phase(Env *);
+    Value *round(Env *, Value *);
+    Value *sub(Env *, Value *);
+    Value *to_f() { return this; }
+    Value *to_i(Env *);
+    Value *to_s(Env *);
+    Value *truncate(Env *, Value *);
+
     bool lt(Env *, Value *);
     bool lte(Env *, Value *);
     bool gt(Env *, Value *);
@@ -151,6 +152,7 @@ struct FloatValue : Value {
         klass->const_set(env, "MIN", FloatValue::min(env));
         klass->const_set(env, "MIN_10_EXP", new FloatValue { env, double { DBL_MIN_10_EXP } });
         klass->const_set(env, "MIN_EXP", new FloatValue { env, double { DBL_MIN_EXP } });
+        klass->const_set(env, "NAN", FloatValue::nan(env));
         klass->const_set(env, "NAN", FloatValue::nan(env));
         klass->const_set(env, "RADIX", new FloatValue { env, double { std::numeric_limits<double>::radix } });
     }
