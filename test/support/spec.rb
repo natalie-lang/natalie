@@ -341,14 +341,25 @@ class ShouldReceiveExpectation
     @subject = subject
     @message = message
     @pass = false
+    @args = nil
     $expectations << self
+  end
+
+  def with(*args)
+    @args = args
+    self
   end
 
   def and_return(result)
     should_receive_expectation_passed = -> { @pass = true }
-    @subject.define_singleton_method(@message) do
-      should_receive_expectation_passed.()
-      result
+    @subject.define_singleton_method(@message) do |*args|
+      if @args.nil? || args == @args
+        should_receive_expectation_passed.()
+        result
+      else
+        puts 'TODO: make a way for the original method to be called from the stub'
+        fail
+      end
     end
   end
 
