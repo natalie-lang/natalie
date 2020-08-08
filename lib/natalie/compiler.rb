@@ -51,14 +51,14 @@ module Natalie
       @required = {}
     end
 
-    attr_accessor :ast, :compile_to_object_file, :repl, :out_path, :context, :vars, :options, :c_path
+    attr_accessor :ast, :write_obj, :repl, :out_path, :context, :vars, :options, :c_path
 
     attr_writer :load_path
 
     def compile
       check_build
       write_file
-      compile_c_to_binary
+      compile_c_to_binary unless write_obj
     end
 
     def compile_c_to_binary
@@ -78,10 +78,14 @@ module Natalie
 
     def write_file
       c = to_c
-      temp_c = Tempfile.create('natalie.cpp')
-      temp_c.write(c)
-      temp_c.close
-      @c_path = temp_c.path
+      if write_obj
+        File.write(write_obj, c)
+      else
+        temp_c = Tempfile.create('natalie.cpp')
+        temp_c.write(c)
+        temp_c.close
+        @c_path = temp_c.path
+      end
     end
 
     def build_context
@@ -140,12 +144,7 @@ module Natalie
     end
 
     def compiler_command
-      if compile_to_object_file
-        "#{cc} #{build_flags} #{extra_cflags} #{inc_paths} -fPIC -x c++ -std=c++17 -c #{@c_path} -o #{out_path}"
-      else
-        libs = '-lm'
-        "#{cc} #{build_flags} #{extra_cflags} #{shared? ? '-fPIC -shared' : ''} #{inc_paths} -o #{out_path} #{OBJ_PATH}/*.o #{OBJ_PATH}/nat/*.o #{LIB_PATHS.join(' ')} -x c++ -std=c++17 #{@c_path || 'code.cpp'} #{libs}"
-      end
+      "#{cc} #{build_flags} #{extra_cflags} #{shared? ? '-fPIC -shared' : ''} #{inc_paths} -o #{out_path} #{OBJ_PATH}/*.o #{OBJ_PATH}/nat/*.o #{LIB_PATHS.join(' ')} -x c++ -std=c++17 #{@c_path || 'code.cpp'} -lm"
     end
 
     private
@@ -180,7 +179,7 @@ module Natalie
     end
 
     def var_prefix
-      if compile_to_object_file
+      if write_obj
         "#{obj_name}_"
       else
         ''
@@ -188,11 +187,11 @@ module Natalie
     end
 
     def obj_name
-      out_path.sub(/.*obj\//, '').sub(/\.o$/, '').tr('/', '_').sub(/^nat_/, '')
+      write_obj.sub(/\.cpp/, '').split('/').last
     end
 
     def template
-      if compile_to_object_file
+      if write_obj
         OBJ_TEMPLATE % { name: obj_name }
       else
         MAIN_TEMPLATE
