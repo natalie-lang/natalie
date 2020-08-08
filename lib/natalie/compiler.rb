@@ -8,6 +8,7 @@ require_relative './compiler/pass4'
 module Natalie
   class Compiler
     ROOT_DIR = File.expand_path('../../', __dir__)
+    BUILD_DIR = File.join(ROOT_DIR, 'build')
     SRC_PATH = File.join(ROOT_DIR, 'src')
     INC_PATHS = [
       File.join(ROOT_DIR, 'include'),
@@ -56,9 +57,10 @@ module Natalie
     attr_writer :load_path
 
     def compile
+      return write_file if write_obj
       check_build
       write_file
-      compile_c_to_binary unless write_obj
+      compile_c_to_binary
     end
 
     def compile_c_to_binary
@@ -70,7 +72,7 @@ module Natalie
     end
 
     def check_build
-      if Dir[File.join(OBJ_PATH, '*.o')].none?
+      unless File.exist?(File.join(BUILD_DIR, 'libnatalie.a'))
         puts 'please run: make build'
         exit 1
       end
@@ -144,7 +146,7 @@ module Natalie
     end
 
     def compiler_command
-      "#{cc} #{build_flags} #{extra_cflags} #{shared? ? '-fPIC -shared' : ''} #{inc_paths} -o #{out_path} #{OBJ_PATH}/*.o #{OBJ_PATH}/nat/*.o #{LIB_PATHS.join(' ')} -x c++ -std=c++17 #{@c_path || 'code.cpp'} -lm"
+      "#{cc} #{build_flags} #{extra_cflags} #{shared? ? '-fPIC -shared' : ''} #{inc_paths} -o #{out_path} #{BUILD_DIR}/libnatalie.a #{LIB_PATHS.join(' ')} -x c++ -std=c++17 #{@c_path || 'code.cpp'} -lm"
     end
 
     private
