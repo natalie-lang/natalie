@@ -1,3 +1,2 @@
-obj
-ext/onigmo/.libs
-ext/hashmap/build
+build
+**/CMakeCache.txt
