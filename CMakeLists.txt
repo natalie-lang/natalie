@@ -72,3 +72,8 @@ set_source_files_properties(generated/comparable.cpp PROPERTIES GENERATED TRUE)
 set_source_files_properties(generated/errno.cpp PROPERTIES GENERATED TRUE)
 set_source_files_properties(generated/exception.cpp PROPERTIES GENERATED TRUE)
 set_source_files_properties(generated/io.cpp PROPERTIES GENERATED TRUE)
+
+include(ext/bdwgc.cmake)
+include(ext/gdtoa.cmake)
+include(ext/hashmap.cmake)
+include(ext/onigmo.cmake)
