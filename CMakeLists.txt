@@ -46,19 +46,25 @@ set_target_properties(natalie PROPERTIES CXX_STANDARD 17 POSITION_INDEPENDENT_CO
 
 add_custom_target(make-generated-directory ALL COMMAND ${CMAKE_COMMAND} -E make_directory generated)
 
+add_custom_command(
+  OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/bindings.cpp
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/lib/natalie/compiler/binding_gen.rb
+  COMMAND ruby ${CMAKE_CURRENT_SOURCE_DIR}/lib/natalie/compiler/binding_gen.rb > ${CMAKE_CURRENT_SOURCE_DIR}/src/bindings.cpp VERBATIM)
+add_custom_target(generate-bindings DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/bindings.cpp)
+add_dependencies(natalie generate-bindings)
+set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/src/bindings.cpp PROPERTIES GENERATED TRUE)
+
 add_custom_command(OUTPUT generated/array.cpp      DEPENDS src/array.rb      COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/bin/natalie --write-obj generated/array.cpp      ${CMAKE_CURRENT_SOURCE_DIR}/src/array.rb VERBATIM)
 add_custom_command(OUTPUT generated/comparable.cpp DEPENDS src/comparable.rb COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/bin/natalie --write-obj generated/comparable.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/comparable.rb VERBATIM)
 add_custom_command(OUTPUT generated/errno.cpp      DEPENDS src/errno.rb      COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/bin/natalie --write-obj generated/errno.cpp      ${CMAKE_CURRENT_SOURCE_DIR}/src/errno.rb VERBATIM)
 add_custom_command(OUTPUT generated/exception.cpp  DEPENDS src/exception.rb  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/bin/natalie --write-obj generated/exception.cpp  ${CMAKE_CURRENT_SOURCE_DIR}/src/exception.rb VERBATIM)
 add_custom_command(OUTPUT generated/io.cpp         DEPENDS src/io.rb         COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/bin/natalie --write-obj generated/io.cpp         ${CMAKE_CURRENT_SOURCE_DIR}/src/io.rb VERBATIM)
-
 add_custom_target(compile-rb DEPENDS
   generated/array.cpp
   generated/comparable.cpp
   generated/errno.cpp
   generated/exception.cpp
   generated/io.cpp)
-
 add_dependencies(natalie compile-rb)
 
 set_source_files_properties(generated/array.cpp PROPERTIES GENERATED TRUE)
