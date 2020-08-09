@@ -1,80 +1,16 @@
-.PHONY: test cloc debug write_build_type
+.PHONY: build test cloc debug write_build_type
 
-CXX := c++
-SRC := src
-INC := include
-LIB := lib/natalie
-OBJ := obj
-BDWGC := ext/bdwgc/include
-GDTOA := ext/gdtoa
-HASHMAP := ext/hashmap/include
-ONIGMO := ext/onigmo
-NAT_CFLAGS ?=
+DOCKER_FLAGS := -i -t
 
-# debug, coverage, or release
-BUILD ?= debug
-
-cflags.debug := -g -Wall -Wextra -Werror -Wno-unused-parameter
-cflags.coverage := ${cflags.debug} -fprofile-arcs -ftest-coverage
-cflags.release := -O1
-CFLAGS := ${cflags.${BUILD}} ${NAT_CFLAGS}
-
-HAS_TTY := $(shell test -t 1 && echo yes || echo no)
-ifeq ($(HAS_TTY),yes)
-  DOCKER_FLAGS := -i -t
-endif
-
-SOURCES := $(filter-out $(SRC)/main.cpp, $(wildcard $(SRC)/*.cpp))
-OBJECTS := $(patsubst $(SRC)/%.cpp, $(OBJ)/%.o, $(SOURCES))
-
-NAT_SOURCES := $(wildcard $(SRC)/*.rb)
-NAT_OBJECTS := $(patsubst $(SRC)/%.rb, $(OBJ)/nat/%.o, $(NAT_SOURCES))
-
-mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
-current_dir := $(notdir $(patsubst %/,%,$(dir $(mkfile_path))))
-
-build: write_build_type ext/bdwgc/.libs/libgccpp.a ext/gdtoa/.libs/libgdtoa.a ext/hashmap/build/libhashmap.a ext/onigmo/.libs/libonigmo.a src/bindings.cpp $(OBJECTS) $(NAT_OBJECTS)
-
-write_build_type:
-	@echo $(BUILD) > .build
-
-src/bindings.cpp: lib/natalie/compiler/binding_gen.rb
-	ruby lib/natalie/compiler/binding_gen.rb > src/bindings.cpp
-
-$(OBJ)/%.o: $(SRC)/%.cpp
-	$(CXX) -std=c++17 $(CFLAGS) -I$(INC) -I$(BDWGC) -I$(GDTOA) -I$(HASHMAP) -I$(ONIGMO) -fPIC -c $< -o $@
-
-$(OBJ)/nat/%.o: $(SRC)/%.rb
-	bin/natalie --compile-obj $@ $<
-
-ext/bdwgc/.libs/libgccpp.a:
-	cd ext/bdwgc && ./autogen.sh && ./configure --enable-cplusplus --enable-redirect-malloc --disable-threads --enable-static --with-pic && make
-
-ext/gdtoa/.libs/libgdtoa.a:
-	cd ext/gdtoa && ./autogen.sh && ./configure --with-pic && make && rm -f compile
-
-ext/hashmap/build/libhashmap.a:
-	mkdir -p ext/hashmap/build && cd ext/hashmap/build && CFLAGS="-fPIC" cmake .. && make
-
-ext/onigmo/.libs/libonigmo.a:
-	cd ext/onigmo && ./autogen.sh && ./configure --with-pic && make
+build:
+	cmake -S . -B build
+	cmake --build build -j 4
 
 clean:
-	rm -f $(OBJ)/*.o $(OBJ)/nat/*.o
+	cd build && make -f CMakeFiles/Makefile2 CMakeFiles/natalie.dir/clean
 
-cleanall: clean clean_bdwgc clean_gdtoa clean_hashmap clean_onigmo
-
-clean_bdwgc:
-	cd ext/bdwgc && make clean || true
-
-clean_gdtoa:
-	cd ext/gdtoa && make clean && rm -f compile || true
-
-clean_hashmap:
-	cd ext/hashmap && rm -rf build || true
-
-clean_onigmo:
-	cd ext/onigmo && make clean || true
+cleanall:
+	cmake --build build --target clean
 
 test: build
 	ruby test/all.rb
