@@ -23,7 +23,6 @@ add_library(natalie STATIC
   src/integer_value.cpp
   src/io_value.cpp
   src/kernel_module.cpp
-  src/main.cpp
   src/match_data_value.cpp
   src/module_value.cpp
   src/natalie.cpp
