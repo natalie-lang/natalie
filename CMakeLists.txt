@@ -2,45 +2,30 @@ cmake_minimum_required(VERSION 3.10)
 
 project(Natalie)
 
+file(GLOB LIB_SOURCES "src/*.cpp")
+file(GLOB GENERATED_NAMES "src/*.rb")
+
+list(FILTER LIB_SOURCES EXCLUDE REGEX ".*main.cpp$")
+
 add_library(natalie STATIC
-  ${CMAKE_CURRENT_BINARY_DIR}/generated/array.cpp
-  ${CMAKE_CURRENT_BINARY_DIR}/generated/comparable.cpp
-  ${CMAKE_CURRENT_BINARY_DIR}/generated/errno.cpp
-  ${CMAKE_CURRENT_BINARY_DIR}/generated/exception.cpp
-  ${CMAKE_CURRENT_BINARY_DIR}/generated/io.cpp
-  src/array_value.cpp
-  src/bindings.cpp
-  src/block.cpp
-  src/class_value.cpp
-  src/encoding_value.cpp
-  src/env.cpp
-  src/env_value.cpp
-  src/exception_value.cpp
-  src/false_value.cpp
-  src/file_value.cpp
-  src/float_value.cpp
-  src/hash_value.cpp
-  src/integer_value.cpp
-  src/io_value.cpp
-  src/kernel_module.cpp
-  src/match_data_value.cpp
-  src/module_value.cpp
-  src/natalie.cpp
-  src/nil_value.cpp
-  src/proc_value.cpp
-  src/range_value.cpp
-  src/regexp_value.cpp
-  src/string_value.cpp
-  src/symbol_value.cpp
-  src/true_value.cpp
-  src/value.cpp)
+  ${LIB_SOURCES})
+
+foreach(PATH ${GENERATED_NAMES})
+  get_filename_component(FILENAME ${PATH} NAME)
+  string(REGEX REPLACE "[.]rb$" ".cpp" GENERATED_NAME ${FILENAME})
+  set(GENERATED_PATH generated/${GENERATED_NAME})
+  add_custom_command(
+    OUTPUT "${GENERATED_PATH}"
+    DEPENDS "${PATH}"
+    DEPENDS make-generated-directory
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/bin/natalie --write-obj "${GENERATED_PATH}" ${PATH} VERBATIM)
+  target_sources(natalie PRIVATE "${GENERATED_PATH}")
+endforeach()
 
 target_include_directories(natalie PRIVATE
   include
-  ext/bdwgc/include
-  ext/gdtoa
-  ext/hashmap/include
-  ext/onigmo)
+  ${CMAKE_BINARY_DIR}/include
+  ${CMAKE_BINARY_DIR}/include/gdtoa)
 
 set_target_properties(natalie PROPERTIES CXX_STANDARD 17 POSITION_INDEPENDENT_CODE true)
 
@@ -54,26 +39,13 @@ add_custom_target(generate-bindings DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/bind
 add_dependencies(natalie generate-bindings)
 set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/src/bindings.cpp PROPERTIES GENERATED TRUE)
 
-add_custom_command(OUTPUT generated/array.cpp      DEPENDS src/array.rb      COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/bin/natalie --write-obj generated/array.cpp      ${CMAKE_CURRENT_SOURCE_DIR}/src/array.rb VERBATIM)
-add_custom_command(OUTPUT generated/comparable.cpp DEPENDS src/comparable.rb COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/bin/natalie --write-obj generated/comparable.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/comparable.rb VERBATIM)
-add_custom_command(OUTPUT generated/errno.cpp      DEPENDS src/errno.rb      COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/bin/natalie --write-obj generated/errno.cpp      ${CMAKE_CURRENT_SOURCE_DIR}/src/errno.rb VERBATIM)
-add_custom_command(OUTPUT generated/exception.cpp  DEPENDS src/exception.rb  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/bin/natalie --write-obj generated/exception.cpp  ${CMAKE_CURRENT_SOURCE_DIR}/src/exception.rb VERBATIM)
-add_custom_command(OUTPUT generated/io.cpp         DEPENDS src/io.rb         COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/bin/natalie --write-obj generated/io.cpp         ${CMAKE_CURRENT_SOURCE_DIR}/src/io.rb VERBATIM)
-add_custom_target(compile-rb DEPENDS
-  generated/array.cpp
-  generated/comparable.cpp
-  generated/errno.cpp
-  generated/exception.cpp
-  generated/io.cpp)
-add_dependencies(natalie compile-rb)
-
-set_source_files_properties(generated/array.cpp PROPERTIES GENERATED TRUE)
-set_source_files_properties(generated/comparable.cpp PROPERTIES GENERATED TRUE)
-set_source_files_properties(generated/errno.cpp PROPERTIES GENERATED TRUE)
-set_source_files_properties(generated/exception.cpp PROPERTIES GENERATED TRUE)
-set_source_files_properties(generated/io.cpp PROPERTIES GENERATED TRUE)
-
 include(ext/bdwgc.cmake)
 include(ext/gdtoa.cmake)
 include(ext/hashmap.cmake)
 include(ext/onigmo.cmake)
+
+add_dependencies(natalie
+    ${BDWGC_TARGET}
+    ${GDTOA_TARGET}
+    ${HASHMAP_TARGET}
+    ${ONIGMO_TARGET})
