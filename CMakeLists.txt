@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.10)
 
 project(Natalie)
 
+set(default_build_type "Debug")
+set(CMAKE_CXX_FLAGS_DEBUG "-g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unknown-warning-option")
+set(CMAKE_CXX_FLAGS_RELEASE "-O2")
+
 file(GLOB LIB_SOURCES "src/*.cpp")
 file(GLOB GENERATED_NAMES "src/*.rb")
 

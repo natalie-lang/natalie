@@ -49,9 +49,9 @@ OptionParser.new do |opts|
   end
 end.parse!
 
-build_type_path = File.expand_path('../.build', __dir__)
-if File.exist?(build_type_path)
-  options[:build] = File.read(build_type_path).strip
+cmake_cache_path = File.expand_path('../build/CMakeCache.txt', __dir__)
+if File.exist?(cmake_cache_path) && File.read(cmake_cache_path) =~ /CMAKE_BUILD_TYPE:STRING=(.+)/
+  options[:build] = $1.downcase
 else
   options[:build] = 'debug'
 end

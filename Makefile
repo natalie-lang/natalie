@@ -1,9 +1,15 @@
-.PHONY: build test cloc debug write_build_type
+.PHONY: build build_debug build_release test cloc debug write_build_type
 
 DOCKER_FLAGS ?= -i -t
 
-build:
-	cmake -S . -B build
+build: build_debug
+
+build_debug:
+	cmake -S . -B build -DCMAKE_BUILD_TYPE="Debug"
+	cmake --build build -j 4
+
+build_release:
+	cmake -S . -B build -DCMAKE_BUILD_TYPE="Release"
 	cmake --build build -j 4
 
 clean:
@@ -21,9 +27,6 @@ test_valgrind:
 	valgrind --leak-check=no --error-exitcode=1 ./assign_test
 	NAT_CXX_FLAGS="-DNAT_GC_DISABLE" bin/natalie -c block_spec spec/language/block_spec.rb
 	valgrind --leak-check=no --error-exitcode=1 ./block_spec
-
-test_release:
-	BUILD="release" make clean test
 
 docker_build:
 	docker build -t natalie .
@@ -46,7 +49,7 @@ docker_test_valgrind: docker_build
 	docker run $(DOCKER_FLAGS) --rm --entrypoint make natalie test_valgrind
 
 docker_test_release: docker_build
-	docker run $(DOCKER_FLAGS) --rm --entrypoint make natalie test_release
+	docker run $(DOCKER_FLAGS) --rm --entrypoint make natalie clean build_release test
 
 cloc:
 	cloc include lib src test
