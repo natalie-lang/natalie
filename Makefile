@@ -28,6 +28,9 @@ test_release:
 docker_build:
 	docker build -t natalie .
 
+docker_bash: docker_build
+	docker run -it --rm --entrypoint bash natalie
+
 docker_build_clang:
 	docker build -t natalie_clang --build-arg CXX=clang .
 
