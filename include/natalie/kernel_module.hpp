@@ -6,6 +6,8 @@
 
 #include "natalie/forward.hpp"
 #include "natalie/value.hpp"
+#include "natalie/integer_value.hpp"
+#include "natalie/nil_value.hpp"
 
 namespace Natalie {
 
@@ -47,6 +49,7 @@ struct KernelModule : Value {
     Value *instance_variable_get(Env *env, Value *name_val);
     Value *instance_variable_set(Env *env, Value *name_val, Value *value);
     Value *lambda(Env *env, Block *block);
+    Value *loop(Env *env, Block *block);
     Value *methods(Env *env);
     Value *p(Env *env, ssize_t argc, Value **args);
     Value *print(Env *env, ssize_t argc, Value **args);

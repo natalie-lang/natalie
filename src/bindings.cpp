@@ -1107,6 +1107,13 @@ Value *KernelModule_lambda_binding(Env *env, Value *self_value, ssize_t argc, Va
     return return_value;
 }
 
+Value *KernelModule_loop_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    KernelModule *self = self_value->as_kernel_module_for_method_binding();
+    auto return_value = self->loop(env, block);
+    return return_value;
+}
+
 Value *KernelModule_this_method_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
@@ -1985,6 +1992,7 @@ void init_bindings(Env *env) {
     Kernel->define_method(env, "is_a?", KernelModule_is_a_binding);
     Kernel->define_method(env, "nil?", KernelModule_is_nil_binding);
     Kernel->define_method(env, "lambda", KernelModule_lambda_binding);
+    Kernel->define_method(env, "loop", KernelModule_loop_binding);
     Kernel->define_method(env, "__method__", KernelModule_this_method_binding);
     Kernel->define_method(env, "methods", KernelModule_methods_binding);
     Kernel->define_method(env, "public_methods", KernelModule_methods_binding1);

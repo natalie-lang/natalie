@@ -33,3 +33,33 @@ describe 'each' do
     x.should == 3
   end
 end
+
+describe 'loop' do
+  it 'can be invoked' do
+    s = false
+    loop do
+      s = true
+      break
+    end
+    s.should == true
+  end
+
+  it 'loops' do
+    x = 0
+    loop do
+      x += 1
+      break if x > 3
+    end
+    x.should == 4
+  end
+
+  it 'can handle break expr' do
+    x = 0
+    s = loop do
+      x += 1
+      break 'hello' if x > 3
+    end
+    s.should == 'hello'
+    x.should == 4
+  end
+end
