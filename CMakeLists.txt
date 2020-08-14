@@ -6,6 +6,7 @@ file(GLOB LIB_SOURCES "src/*.cpp")
 file(GLOB GENERATED_NAMES "src/*.rb")
 
 list(FILTER LIB_SOURCES EXCLUDE REGEX ".*main.cpp$")
+list(APPEND LIB_SOURCES "src/bindings.cpp")
 
 add_library(natalie STATIC
   ${LIB_SOURCES})
