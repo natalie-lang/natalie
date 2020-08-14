@@ -16,10 +16,10 @@ test: build
 	ruby test/all.rb
 
 test_valgrind:
-	CXXFLAGS="-DNAT_GC_DISABLE" make clean build
-	CXXFLAGS="-DNAT_GC_DISABLE" bin/natalie -c assign_test test/natalie/assign_test.rb
+	NAT_CXX_FLAGS="-DNAT_GC_DISABLE" make clean build
+	NAT_CXX_FLAGS="-DNAT_GC_DISABLE" bin/natalie -c assign_test test/natalie/assign_test.rb
 	valgrind --leak-check=no --error-exitcode=1 ./assign_test
-	CXXFLAGS="-DNAT_GC_DISABLE" bin/natalie -c block_spec spec/language/block_spec.rb
+	NAT_CXX_FLAGS="-DNAT_GC_DISABLE" bin/natalie -c block_spec spec/language/block_spec.rb
 	valgrind --leak-check=no --error-exitcode=1 ./block_spec
 
 test_release:

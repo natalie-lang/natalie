@@ -147,13 +147,13 @@ module Natalie
         [
           cc,
           build_flags,
-          ENV['CXXFLAGS'],
+          ENV['NAT_CXX_FLAGS'],
           (shared? ? '-fPIC -shared' : ''),
           inc_paths,
           "-o #{out_path}",
           "#{BUILD_DIR}/libnatalie.a",
           "-L #{BUILD_DIR}",
-          LIBRARIES.join(' '),
+          libraries.join(' '),
           "-x c++ -std=c++17",
           (@c_path || 'code.cpp'),
         ].map(&:to_s).join(' ')
@@ -161,14 +161,14 @@ module Natalie
         [
           cc,
           build_flags,
-          ENV['CXXFLAGS'],
+          ENV['NAT_CXX_FLAGS'],
           (shared? ? '-fPIC -shared' : ''),
           inc_paths,
           "-o #{out_path}",
           "-x c++ -std=c++17",
           (@c_path || 'code.cpp'),
           "-L #{BUILD_DIR}",
-          LIBRARIES.join(' '),
+          libraries.join(' '),
         ].map(&:to_s).join(' ')
       end
     end
@@ -178,6 +178,14 @@ module Natalie
     def clang?
       return @clang if defined?(@clang)
       @clang = !!(`#{cc} --version` =~ /clang/)
+    end
+
+    def libraries
+      if ENV['NAT_CXX_FLAGS'] =~ /NAT_GC_DISABLE/
+        LIBRARIES - %w[-lgc -lgccpp]
+      else
+        LIBRARIES
+      end
     end
 
     def cc
