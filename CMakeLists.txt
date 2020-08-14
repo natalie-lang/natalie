@@ -29,6 +29,7 @@ target_include_directories(natalie PRIVATE
   ${CMAKE_BINARY_DIR}/include/gdtoa)
 
 set_target_properties(natalie PROPERTIES CXX_STANDARD 17 POSITION_INDEPENDENT_CODE true)
+set_property(TARGET natalie APPEND_STRING PROPERTY COMPILE_FLAGS $ENV{NAT_CXX_FLAGS})
 
 add_custom_target(make-generated-directory ALL COMMAND ${CMAKE_COMMAND} -E make_directory generated)
 
