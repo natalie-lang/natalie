@@ -384,6 +384,7 @@ gen.binding('Kernel', 'instance_variables', 'KernelModule', 'ivars', argc: 0, pa
 gen.binding('Kernel', 'is_a?', 'KernelModule', 'is_a', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Kernel', 'nil?', 'KernelModule', 'is_nil', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('Kernel', 'lambda', 'KernelModule', 'lambda', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
+gen.binding('Kernel', 'loop', 'KernelModule', 'loop', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Kernel', '__method__', 'KernelModule', 'this_method', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Kernel', 'methods', 'KernelModule', 'methods', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Kernel', 'public_methods', 'KernelModule', 'methods', argc: 0, pass_env: true, pass_block: false, return_type: :Value)

@@ -151,6 +151,18 @@ Value *KernelModule::lambda(Env *env, Block *block) {
     }
 }
 
+Value *KernelModule::loop(Env *env, Block *block) {
+    if (block) {
+       for (;;) {
+           NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 0, nullptr, nullptr);
+       }
+       return env->nil_obj();
+    } else {
+        // TODO: Enumerator?
+        NAT_RAISE(env, "ArgumentError", "loop without block");
+    }
+}
+
 Value *KernelModule::methods(Env *env) {
     ArrayValue *array = new ArrayValue { env };
     if (singleton_class(env)) {
