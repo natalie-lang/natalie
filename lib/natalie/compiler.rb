@@ -12,20 +12,20 @@ module Natalie
     SRC_PATH = File.join(ROOT_DIR, 'src')
     INC_PATHS = [
       File.join(ROOT_DIR, 'include'),
-      File.join(ROOT_DIR, 'ext/bdwgc/include'),
-      File.join(ROOT_DIR, 'ext/gdtoa'),
-      File.join(ROOT_DIR, 'ext/onigmo'),
-      File.join(ROOT_DIR, 'ext/hashmap/include'),
+      File.join(BUILD_DIR, 'include'),
+      File.join(BUILD_DIR, 'include/gdtoa'),
     ]
-    GC_LIB_PATHS = ENV['NAT_CFLAGS'] =~ /NAT_GC_DISABLE/ ? [] : [
-      File.join(ROOT_DIR, 'ext/bdwgc/.libs/libgc.a'),
-      File.join(ROOT_DIR, 'ext/bdwgc/.libs/libgccpp.a'),
+    GC_LIBS = ENV['NAT_CFLAGS'] =~ /NAT_GC_DISABLE/ ? [] : [
+      'libgc.a',
+      'libgccpp.a',
     ]
-    LIB_PATHS = GC_LIB_PATHS + [
-      File.join(ROOT_DIR, 'ext/gdtoa/.libs/libgdtoa.a'),
-      File.join(ROOT_DIR, 'ext/hashmap/build/libhashmap.a'),
-      File.join(ROOT_DIR, 'ext/onigmo/.libs/libonigmo.a'),
+    LIBS = GC_LIBS + [
+      'libgdtoa.a',
+      'libhashmap.a',
+      'libonigmo.a',
     ]
+    LIB_NAMES = LIBS.map { |lib| "-l:#{lib}" }
+    LIB_PATH = BUILD_DIR
     OBJ_PATH = File.expand_path('../../obj', __dir__)
 
     RB_LIB_PATH = File.expand_path('..', __dir__)
@@ -146,7 +146,7 @@ module Natalie
     end
 
     def compiler_command
-      "#{cc} #{build_flags} #{extra_cflags} #{shared? ? '-fPIC -shared' : ''} #{inc_paths} -o #{out_path} #{BUILD_DIR}/libnatalie.a #{LIB_PATHS.join(' ')} -x c++ -std=c++17 #{@c_path || 'code.cpp'} -lm"
+      "#{cc} #{build_flags} #{extra_cflags} #{shared? ? '-fPIC -shared' : ''} #{inc_paths} -x c++ -std=c++17 #{@c_path || 'code.cpp'} -o #{out_path} -L #{LIB_PATH} -Wl,-Bstatic -l:libnatalie.a #{LIB_NAMES.join(' ')} -Wl,-Bdynamic -lm"
     end
 
     private
