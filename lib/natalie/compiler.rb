@@ -17,16 +17,15 @@ module Natalie
       File.join(ROOT_DIR, 'ext/onigmo'),
       File.join(ROOT_DIR, 'ext/hashmap/include'),
     ]
-    GC_LIB_PATHS = ENV['NAT_CFLAGS'] =~ /NAT_GC_DISABLE/ ? [] : [
-      File.join(BUILD_DIR, 'libgc.a'),
-      File.join(BUILD_DIR, 'libgccpp.a'),
+    LIBRARIES = %W[
+      -lnatalie
+      -lgc
+      -lgccpp
+      -lgdtoa
+      -lhashmap
+      -lm
+      -lonigmo
     ]
-    LIB_PATHS = GC_LIB_PATHS + [
-      File.join(BUILD_DIR, 'libgdtoa.a'),
-      File.join(BUILD_DIR, 'libhashmap.a'),
-      File.join(BUILD_DIR, 'libonigmo.a'),
-    ]
-    OBJ_PATH = File.expand_path('../../obj', __dir__)
 
     RB_LIB_PATH = File.expand_path('..', __dir__)
 
@@ -146,10 +145,42 @@ module Natalie
     end
 
     def compiler_command
-      "#{cc} #{build_flags} #{extra_cflags} #{shared? ? '-fPIC -shared' : ''} #{inc_paths} -o #{out_path} #{BUILD_DIR}/libnatalie.a #{LIB_PATHS.join(' ')} -x c++ -std=c++17 #{@c_path || 'code.cpp'} -lm"
+      if clang?
+        [
+          cc,
+          build_flags,
+          extra_cflags,
+          (shared? ? '-fPIC -shared' : ''),
+          inc_paths,
+          "-o #{out_path}",
+          "#{BUILD_DIR}/libnatalie.a",
+          "-L #{BUILD_DIR}",
+          LIBRARIES.join(' '),
+          "-x c++ -std=c++17",
+          (@c_path || 'code.cpp'),
+        ].map(&:to_s).join(' ')
+      else
+        [
+          cc,
+          build_flags,
+          extra_cflags,
+          (shared? ? '-fPIC -shared' : ''),
+          inc_paths,
+          "-o #{out_path}",
+          "-x c++ -std=c++17",
+          (@c_path || 'code.cpp'),
+          "-L #{BUILD_DIR}",
+          LIBRARIES.join(' '),
+        ].map(&:to_s).join(' ')
+      end
     end
 
     private
+
+    def clang?
+      return @clang if defined?(@clang)
+      @clang = !!(`#{cc} --version` =~ /clang/)
+    end
 
     def cc
       ENV['CXX'] || 'c++'
