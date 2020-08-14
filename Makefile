@@ -1,6 +1,6 @@
 .PHONY: build test cloc debug write_build_type
 
-DOCKER_FLAGS := -i -t
+DOCKER_FLAGS ?= -i -t
 
 build:
 	cmake -S . -B build
