@@ -149,7 +149,7 @@ module Natalie
         [
           cc,
           build_flags,
-          extra_cflags,
+          ENV['CXXFLAGS'],
           (shared? ? '-fPIC -shared' : ''),
           inc_paths,
           "-o #{out_path}",
@@ -163,7 +163,7 @@ module Natalie
         [
           cc,
           build_flags,
-          extra_cflags,
+          ENV['CXXFLAGS'],
           (shared? ? '-fPIC -shared' : ''),
           inc_paths,
           "-o #{out_path}",
@@ -205,10 +205,6 @@ module Natalie
       else
         raise "unknown build mode: #{build.inspect}"
       end
-    end
-
-    def extra_cflags
-      ENV['NAT_CFLAGS']
     end
 
     def var_prefix
