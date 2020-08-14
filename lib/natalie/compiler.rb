@@ -12,10 +12,8 @@ module Natalie
     SRC_PATH = File.join(ROOT_DIR, 'src')
     INC_PATHS = [
       File.join(ROOT_DIR, 'include'),
-      File.join(ROOT_DIR, 'ext/bdwgc/include'),
-      File.join(ROOT_DIR, 'ext/gdtoa'),
-      File.join(ROOT_DIR, 'ext/onigmo'),
-      File.join(ROOT_DIR, 'ext/hashmap/include'),
+      File.join(BUILD_DIR, 'include'),
+      File.join(BUILD_DIR, 'include/gdtoa'),
     ]
     LIBRARIES = %W[
       -lnatalie
