@@ -250,6 +250,10 @@ class StringScanner
   end
 
   alias clear terminate
+
+  def self.must_C_version
+    self
+  end
 end
 
 ScanError = StringScanner::Error
