@@ -809,33 +809,45 @@ module Natalie
       end
 
       def process_until(exp)
-        (_, condition, body, unknown) = exp
-        raise 'check this out' if unknown != true # NOTE: I don't know what this is; it always seems to be true
+        (_, condition, body, pre) = exp
         body ||= s(:nil)
         result_name = temp('while_result')
+        condition_and_body = if pre
+                               s(:block,
+                                 s(:c_if, s(:is_truthy, process(condition)), s(:c_break)),
+                                 process(body))
+                             else
+                               s(:block,
+                                 process(body),
+                                 s(:c_if, s(:is_truthy, process(condition)), s(:c_break)))
+                             end
         loop_context(result_name) do
           exp.new(:block,
                   s(:declare, result_name, s(:nil)),
                   s(:c_while, 'true',
-                    s(:block,
-                      s(:c_if, s(:is_truthy, process(condition)), s(:c_break)),
-                      process(body))),
-          result_name)
+                    condition_and_body),
+            result_name)
         end
       end
 
       def process_while(exp)
-        (_, condition, body, unknown) = exp
-        raise 'check this out' if unknown != true # NOTE: I don't know what this is; it always seems to be true
+        (_, condition, body, pre) = exp
         body ||= s(:nil)
         result_name = temp('while_result')
+        condition_and_body = if pre
+                               s(:block,
+                                 s(:c_if, s(:not, s(:is_truthy, process(condition))), s(:c_break)),
+                                 process(body))
+                             else
+                               s(:block,
+                                 process(body),
+                                 s(:c_if, s(:not, s(:is_truthy, process(condition))), s(:c_break)))
+                             end
         loop_context(result_name) do
           exp.new(:block,
                   s(:declare, result_name, s(:nil)),
                   s(:c_while, 'true',
-                    s(:block,
-                      s(:c_if, s(:not, s(:is_truthy, process(condition))), s(:c_break)),
-                      process(body))),
+                    condition_and_body),
           result_name)
         end
       end

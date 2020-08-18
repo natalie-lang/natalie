@@ -1,7 +1,7 @@
 require_relative '../spec_helper'
 
 describe 'while' do
-  it 'works' do
+  it 'works as a pre-condition' do
     r = []
     x = 10
     while x != 0
@@ -10,16 +10,36 @@ describe 'while' do
     end
     r.should == [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
   end
+
+  it 'works as a post-condition' do
+    r = []
+    x = 10
+    begin
+      r << x
+      x = x - 1
+    end while x != 0
+    r.should == [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+  end
 end
 
 describe 'until' do
-  it 'works' do
+  it 'works as a pre-condition' do
     r = []
     x = 10
     until x == 0
       r << x
       x = x - 1
     end
+    r.should == [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+  end
+
+  it 'works as a post-condition' do
+    r = []
+    x = 10
+    begin
+      r << x
+      x = x - 1
+    end until x == 0
     r.should == [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
   end
 end
