@@ -812,20 +812,16 @@ module Natalie
         (_, condition, body, pre) = exp
         body ||= s(:nil)
         result_name = temp('while_result')
-        condition_and_body = if pre
-                               s(:block,
-                                 s(:c_if, s(:is_truthy, process(condition)), s(:c_break)),
-                                 process(body))
-                             else
-                               s(:block,
-                                 process(body),
-                                 s(:c_if, s(:is_truthy, process(condition)), s(:c_break)))
-                             end
         loop_context(result_name) do
+          condition = s(:c_if, s(:is_truthy, process(condition)), s(:c_break)),
+          condition_and_body = if pre
+                                 s(:block, condition, process(body))
+                               else
+                                 s(:block, process(body), condition)
+                               end
           exp.new(:block,
                   s(:declare, result_name, s(:nil)),
-                  s(:c_while, 'true',
-                    condition_and_body),
+                  s(:c_while, 'true', condition_and_body),
             result_name)
         end
       end
@@ -834,20 +830,16 @@ module Natalie
         (_, condition, body, pre) = exp
         body ||= s(:nil)
         result_name = temp('while_result')
-        condition_and_body = if pre
-                               s(:block,
-                                 s(:c_if, s(:not, s(:is_truthy, process(condition))), s(:c_break)),
-                                 process(body))
-                             else
-                               s(:block,
-                                 process(body),
-                                 s(:c_if, s(:not, s(:is_truthy, process(condition))), s(:c_break)))
-                             end
         loop_context(result_name) do
+          condition = s(:c_if, s(:not, s(:is_truthy, process(condition))), s(:c_break))
+          condition_and_body = if pre
+                                 s(:block, condition, process(body))
+                               else
+                                 s(:block, process(body), condition)
+                               end
           exp.new(:block,
                   s(:declare, result_name, s(:nil)),
-                  s(:c_while, 'true',
-                    condition_and_body),
+                  s(:c_while, 'true', condition_and_body),
           result_name)
         end
       end
