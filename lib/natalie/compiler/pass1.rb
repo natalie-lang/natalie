@@ -811,18 +811,14 @@ module Natalie
       def process_until(exp)
         (_, condition, body, pre) = exp
         body ||= s(:nil)
-        result_name = temp('while_result')
+        result_name = temp('until_result')
         loop_context(result_name) do
-          condition = s(:c_if, s(:is_truthy, process(condition)), s(:c_break)),
-          condition_and_body = if pre
-                                 s(:block, condition, process(body))
-                               else
-                                 s(:block, process(body), condition)
-                               end
+          cond = s(:c_if, s(:is_truthy, process(condition)), s(:c_break))
+          loop_body = pre ? s(:block, cond, process(body)) : s(:block, process(body), cond)
           exp.new(:block,
                   s(:declare, result_name, s(:nil)),
-                  s(:c_while, 'true', condition_and_body),
-            result_name)
+                  s(:c_while, 'true', loop_body),
+          result_name)
         end
       end
 
@@ -831,15 +827,11 @@ module Natalie
         body ||= s(:nil)
         result_name = temp('while_result')
         loop_context(result_name) do
-          condition = s(:c_if, s(:not, s(:is_truthy, process(condition))), s(:c_break))
-          condition_and_body = if pre
-                                 s(:block, condition, process(body))
-                               else
-                                 s(:block, process(body), condition)
-                               end
+          cond = s(:c_if, s(:not, s(:is_truthy, process(condition))), s(:c_break))
+          loop_body = pre ? s(:block, cond, process(body)) : s(:block, process(body), cond)
           exp.new(:block,
                   s(:declare, result_name, s(:nil)),
-                  s(:c_while, 'true', condition_and_body),
+                  s(:c_while, 'true', loop_body),
           result_name)
         end
       end
