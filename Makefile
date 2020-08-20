@@ -1,6 +1,7 @@
 .PHONY: build build_debug build_release test cloc debug write_build_type
 
 DOCKER_FLAGS ?= -i -t
+GNUMAKEFLAGS := --no-print-directory
 
 build: build_debug
 
