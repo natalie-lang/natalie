@@ -448,10 +448,16 @@ bool Value::respond_to(Env *env, Value *name_val) {
     return !!(name && respond_to(env, name));
 }
 
-const char *Value::defined(Env *env, const char *name) {
-    Value *obj;
+const char *Value::defined(Env *env, const char *name, bool strict) {
+    Value *obj = nullptr;
     if (is_constant_name(name)) {
-        obj = const_get_or_null(env, name, false, false);
+        if (strict) {
+            if (is_module()) {
+                obj = as_module()->const_lookup(name);
+            }
+        } else {
+            obj = const_get_or_null(env, name, false, false);
+        }
         if (obj) return "constant";
     } else if (is_global_name(name)) {
         obj = env->global_get(name);
@@ -462,8 +468,8 @@ const char *Value::defined(Env *env, const char *name) {
     return nullptr;
 }
 
-Value *Value::defined_obj(Env *env, const char *name) {
-    const char *result = defined(env, name);
+Value *Value::defined_obj(Env *env, const char *name, bool strict) {
+    const char *result = defined(env, name, strict);
     if (result) {
         return new StringValue { env, result };
     } else {

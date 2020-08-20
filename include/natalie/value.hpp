@@ -174,8 +174,8 @@ struct Value : public gc {
     bool respond_to(Env *, const char *);
     bool respond_to(Env *, Value *);
 
-    const char *defined(Env *, const char *);
-    Value *defined_obj(Env *, const char *);
+    const char *defined(Env *, const char *, bool);
+    Value *defined_obj(Env *, const char *, bool = false);
 
     virtual ProcValue *to_proc(Env *);
 

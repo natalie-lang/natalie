@@ -387,7 +387,7 @@ module Natalie
           receiver ||= 'self'
           decl "Value *#{result};"
           decl 'try {'
-          decl "#{result} = #{process_atom receiver}->defined_obj(env, #{name.to_s.inspect});"
+          decl "#{result} = #{process_atom receiver}->defined_obj(env, #{name.to_s.inspect}, true);"
           decl '} catch (ExceptionValue *) {'
           decl "#{result} = #{process_atom s(:nil)};"
           decl '}'
@@ -396,7 +396,7 @@ module Natalie
           raise "expected const" unless namespace.first == :const
           decl "Value *#{result};"
           decl 'try {'
-          decl "#{result} = env->Object()->const_get(env, #{namespace.last.to_s.inspect}, false)->defined_obj(env, #{name.to_s.inspect});"
+          decl "#{result} = env->Object()->const_get(env, #{namespace.last.to_s.inspect}, false)->defined_obj(env, #{name.to_s.inspect}, true);"
           decl '} catch (ExceptionValue *) {'
           decl "#{result} = #{process_atom s(:nil)};"
           decl '}'

@@ -58,6 +58,10 @@ void ModuleValue::prepend_once(Env *env, ModuleValue *module) {
     m_included_modules.push_front(module);
 }
 
+Value *ModuleValue::const_lookup(const char *name) {
+    return static_cast<Value *>(hashmap_get(&m_constants, name));
+}
+
 Value *ModuleValue::const_get(Env *env, const char *name, bool strict) {
     Value *val = const_get_or_null(env, name, strict, false);
     if (val) {
@@ -86,7 +90,7 @@ Value *ModuleValue::const_get_or_null(Env *env, const char *name, bool strict, b
     if (!strict) {
         // first search in parent namespaces (not including global, i.e. Object namespace)
         search_parent = this;
-        while (!(val = static_cast<Value *>(hashmap_get(&search_parent->m_constants, name))) && search_parent->owner() && search_parent->owner() != env->Object()) {
+        while (!(val = search_parent->const_lookup(name)) && search_parent->owner() && search_parent->owner() != env->Object()) {
             search_parent = search_parent->owner();
         }
         if (val) return val;

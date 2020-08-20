@@ -22,6 +22,7 @@ describe 'defined?' do
   it 'recognizes namespaced constants' do
     defined?(Foo::Bar).should == 'constant'
     defined?(Food::Bar).should == nil
+    defined?(Foo::NUM).should == nil
   end
 
   it 'recognizes variables' do
