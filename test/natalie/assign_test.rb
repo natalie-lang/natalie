@@ -287,4 +287,13 @@ describe 'assignment' do
     c.should == 5
     d.should == 6
   end
+
+  it 'handles nameless splat' do
+    (a, *, c) = [1, 4]
+    a.should == 1
+    c.should == 4
+    (a, *, c) = [1, 2, 3, 4]
+    a.should == 1
+    c.should == 4
+  end
 end

@@ -455,8 +455,12 @@ module Natalie
           path = path_details[:path]
           if name.is_a?(Sexp)
             if name.sexp_type == :splat
-              value = s(:array_value_by_path, :env, value_name, s(:nil), s(:l, :true), path_details[:offset_from_end], path.size, *path)
-              prepare_masgn_set(name.last, value)
+              if name.size == 1 # nameless splat
+                s(:block)
+              else
+                value = s(:array_value_by_path, :env, value_name, s(:nil), s(:l, :true), path_details[:offset_from_end], path.size, *path)
+                prepare_masgn_set(name.last, value)
+              end
             else
               default_value = name.size == 3 ? process(name.pop) : s(:nil)
               value = s(:array_value_by_path, :env, value_name, default_value, s(:l, :false), 0, path.size, *path)
