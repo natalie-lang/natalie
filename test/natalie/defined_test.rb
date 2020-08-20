@@ -15,6 +15,7 @@ end
 describe 'defined?' do
   it 'recognizes constants' do
     defined?(NUM).should == 'constant'
+    defined?(::NUM).should == 'constant'
     defined?(Foo).should == 'constant'
     defined?(NonExistent).should == nil
   end

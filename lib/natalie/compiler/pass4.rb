@@ -400,6 +400,14 @@ module Natalie
           decl '} catch (ExceptionValue *) {'
           decl "#{result} = #{process_atom s(:nil)};"
           decl '}'
+        when :colon3
+          (_, name) = name
+          decl "Value *#{result};"
+          decl 'try {'
+          decl "#{result} = env->Object()->defined_obj(env, #{name.to_s.inspect}, true);"
+          decl '} catch (ExceptionValue *) {'
+          decl "#{result} = #{process_atom s(:nil)};"
+          decl '}'
         when :lit, :str
           decl "Value *#{result} = new StringValue { env, \"expression\" };"
         when :nil
