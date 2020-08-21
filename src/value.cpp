@@ -462,6 +462,9 @@ const char *Value::defined(Env *env, const char *name, bool strict) {
     } else if (is_global_name(name)) {
         obj = env->global_get(name);
         if (obj != env->nil_obj()) return "global-variable";
+    } else if (is_ivar_name(name)) {
+        obj = ivar_get(env, name);
+        if (obj != env->nil_obj()) return "instance-variable";
     } else if (respond_to(env, name)) {
         return "method";
     }

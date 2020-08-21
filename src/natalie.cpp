@@ -13,6 +13,10 @@ bool is_global_name(const char *name) {
     return strlen(name) > 0 && name[0] == '$';
 }
 
+bool is_ivar_name(const char *name) {
+    return strlen(name) > 0 && name[0] == '@';
+}
+
 Value *splat(Env *env, Value *obj) {
     if (obj->is_array()) {
         return new ArrayValue { *obj->as_array() };

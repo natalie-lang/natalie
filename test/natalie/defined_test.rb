@@ -32,6 +32,12 @@ describe 'defined?' do
     defined?(not_a_variable).should == nil
   end
 
+  it 'recognizes instance variables' do
+    @x = 1
+    defined?(@x).should == 'instance-variable'
+    defined?(@not_a_variable).should == nil
+  end
+
   it 'recognizes global variables' do
     defined?($global).should == 'global-variable'
     defined?($not_a_global).should == nil

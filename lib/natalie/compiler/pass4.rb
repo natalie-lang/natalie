@@ -380,7 +380,7 @@ module Natalie
         (_, name) = exp
         result = temp('defined_result')
         case name.sexp_type
-        when :const, :gvar
+        when :const, :gvar, :ivar
           decl "Value *#{result} = self->defined_obj(env, #{name.last.to_s.inspect});"
         when :send
           (_, receiver, name) = name

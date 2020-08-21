@@ -54,6 +54,7 @@ void init_bindings(Env *);
 
 bool is_constant_name(const char *name);
 bool is_global_name(const char *name);
+bool is_ivar_name(const char *name);
 
 const char *find_current_method_name(Env *env);
 
