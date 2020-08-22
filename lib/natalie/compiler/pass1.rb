@@ -53,6 +53,12 @@ module Natalie
         exp.new(:send, process(receiver), method, args)
       end
 
+      # bare begin without rescue
+      def process_begin(exp)
+        (_, code_block) = exp
+        process(code_block)
+      end
+
       def process_block(exp)
         (_, *parts) = exp
         exp.new(:block, *parts.map { |p| p.is_a?(Sexp) ? process(p) : p })
@@ -660,7 +666,7 @@ module Natalie
                         *val_args.map { |a| process(a) }
                        ),
                        'nullptr')))
-        else
+        else # math operators
           exp.new(:block,
                   s(:declare, obj_name, process(obj)),
                   s(:declare, val,
@@ -678,7 +684,6 @@ module Natalie
       end
 
       def process_op_asgn2(exp)
-        s(:op_asgn2, s(:lvar, :a), :foo=, :"||", s(:str, "foo"))
         (_, obj, writer, op, *val_args) = exp
         raise "expected writer=" unless writer =~ /=$/
         reader = writer.to_s.chop

@@ -159,6 +159,12 @@ describe 'assignment' do
     h[:e].should == 6
     h[:e] -= 1
     h[:e].should == 5
+    h[:f] ||= begin
+                1
+                2
+                3
+              end
+    h[:f].should == 3
   end
 
   it 'can optionally call an attr writer with ||=' do
