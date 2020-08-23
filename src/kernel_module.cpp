@@ -229,11 +229,6 @@ Value *KernelModule::raise(Env *env, Value *klass, Value *message) {
     abort();
 }
 
-Value *KernelModule::send_message(Env *env, ssize_t argc, Value **args, Block *block) {
-    const char *name = args[0]->identifier_str(env, Value::Conversion::Strict);
-    return send(env->caller(), name, argc - 1, args + 1, block);
-}
-
 Value *KernelModule::sleep(Env *env, Value *length) {
     if (!length) {
         while (true) {

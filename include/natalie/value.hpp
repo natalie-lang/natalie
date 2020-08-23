@@ -167,6 +167,7 @@ struct Value : public gc {
     }
 
     Value *send(Env *, const char *, ssize_t = 0, Value ** = nullptr, Block * = nullptr);
+    Value *send(Env *, ssize_t, Value **, Block *);
 
     Value *dup(Env *);
 

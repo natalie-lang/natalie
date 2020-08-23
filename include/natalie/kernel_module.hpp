@@ -56,7 +56,6 @@ struct KernelModule : Value {
     Value *proc(Env *env, Block *block);
     Value *puts(Env *env, ssize_t argc, Value **args);
     Value *raise(Env *env, Value *klass, Value *message);
-    Value *send_message(Env *env, ssize_t argc, Value **args, Block *block);
     Value *sleep(Env *env, Value *length);
     Value *tap(Env *env, Block *block);
     Value *this_method(Env *env);

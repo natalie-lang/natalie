@@ -187,6 +187,13 @@ Value *ArrayValue_inspect_binding1(Env *env, Value *self_value, ssize_t argc, Va
     return return_value;
 }
 
+Value *Value_send_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC_AT_LEAST(1);
+    Value *self = self_value;
+    auto return_value = self->send(env, argc, args, block);
+    return return_value;
+}
+
 Value *Value_is_falsey_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     Value *self = self_value;
@@ -1184,10 +1191,10 @@ Value *KernelModule_respond_to_binding(Env *env, Value *self_value, ssize_t argc
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *KernelModule_send_message_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *Value_send_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC_AT_LEAST(1);
-    KernelModule *self = self_value->as_kernel_module_for_method_binding();
-    auto return_value = self->send_message(env, argc, args, block);
+    Value *self = self_value;
+    auto return_value = self->send(env, argc, args, block);
     return return_value;
 }
 
@@ -1849,6 +1856,7 @@ void init_bindings(Env *env) {
     Array->define_method(env, "to_ary", ArrayValue_to_ary_binding1);
     Array->define_method(env, "to_s", ArrayValue_inspect_binding1);
     Value *BasicObject = env->Object()->const_get(env, "BasicObject", true);
+    BasicObject->define_method(env, "__send__", Value_send_binding);
     BasicObject->define_method(env, "!", Value_is_falsey_binding);
     BasicObject->define_method(env, "==", Value_eq_binding);
     BasicObject->define_method(env, "equal?", Value_eq_binding1);
@@ -2003,7 +2011,7 @@ void init_bindings(Env *env) {
     Kernel->define_method(env, "puts", KernelModule_puts_binding);
     Kernel->define_method(env, "raise", KernelModule_raise_binding);
     Kernel->define_method(env, "respond_to?", KernelModule_respond_to_binding);
-    Kernel->define_method(env, "send", KernelModule_send_message_binding);
+    Kernel->define_method(env, "send", Value_send_binding1);
     Kernel->define_method(env, "singleton_class", KernelModule_singleton_class_obj_binding);
     Kernel->define_method(env, "sleep", KernelModule_sleep_binding);
     Kernel->define_method(env, "tap", KernelModule_tap_binding);

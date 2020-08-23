@@ -395,6 +395,11 @@ Value *Value::send(Env *env, const char *sym, ssize_t argc, Value **args, Block 
     return m_klass->call_method(env, m_klass, sym, this, argc, args, block);
 }
 
+Value *Value::send(Env *env, ssize_t argc, Value **args, Block *block) {
+    const char *name = args[0]->identifier_str(env, Value::Conversion::Strict);
+    return send(env->caller(), name, argc - 1, args + 1, block);
+}
+
 Value *Value::dup(Env *env) {
     switch (m_type) {
     case Value::Type::Array:

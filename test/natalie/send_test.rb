@@ -12,3 +12,10 @@ describe 'Kernel#send' do
     Foo.send(:new).send(:foo).should == 'foo'
   end
 end
+
+describe 'BasicObject#__send__' do
+  it 'works' do
+    1.__send__(:+, 2).should == 3
+    Foo.__send__(:new).__send__(:foo).should == 'foo'
+  end
+end
