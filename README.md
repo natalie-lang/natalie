@@ -2,43 +2,13 @@
 
 [![](https://github.com/seven1m/natalie/workflows/Build/badge.svg)](https://github.com/seven1m/natalie/actions?workflow=Build)
 
-Natalie is a work-in-progress Ruby implementation.
+Natalie is a very early-stage work-in-progress Ruby implementation.
 
 It provides an ahead-of-time compiler using C++ and gcc/clang as the backend.
 Also, the language has a REPL that performs incremental compilation.
 
 There is much work left to do before this is useful. Please let me know if you
 want to help!
-
-## Current Status
-
-Natalie is able to compile and run **very simple Ruby** scripts at the moment.
-We have the foundations in place, like classes, modules, methods, blocks and
-the various types of variables. We have the basic data objects in place, e.g.
-true, false, nil, Integer, Symbol, String, Array, Hash, Range.  But there are
-still some yet unimplemented, like Date, Time, Enumerator, etc.
-
-This is **not** comprehensive, but here is a rough to do list, as I think of
-things that are missing ;-) (not in any specific order):
-
-- method visibility
-- Enumerator
-- Enumerable module
-- Bignum support
-- Date and Time
-- Lots and lots of convenience methods on built-in objects
-- The entire Ruby standard library (Hopefully we can pull a lot of it in from
-  MRI once the core is more complete)
-- MRI C-extension compatibility (I'm still not sure if I even want to build this)
-- Probably lots more I just haven't thought of yet!
-
-The current driving force is to make Natalie complete enough to be able to
-compile itself. Since the Natalie compiler is written in Ruby, theoretically
-at some point, we should be able to run the Ruby code through Natalie to
-produce a binary of the compiler. That day will be glorious!
-
-A more lofty goal would be the ability to compile a larger project like
-Sinatra. But that's still a distant dream...
 
 ## Helping Out
 
