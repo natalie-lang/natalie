@@ -1,5 +1,3 @@
-# skip-test
-
 require_relative '../spec_helper'
 
 describe "The retry statement" do
@@ -33,7 +31,8 @@ describe "The retry statement" do
     results.should == [1, 2, 3, 1, 2, 4, 5, 6, 4, 5]
   end
 
-  it "raises a SyntaxError when used outside of a begin statement" do
+  # TODO: eval
+  xit "raises a SyntaxError when used outside of a begin statement" do
     -> { eval 'retry' }.should raise_error(SyntaxError)
   end
 end

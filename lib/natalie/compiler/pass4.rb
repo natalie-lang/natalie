@@ -313,6 +313,25 @@ module Natalie
         ''
       end
 
+      def process_c_continue(_)
+        decl 'continue;'
+        ''
+      end
+
+      def process_c_do(exp)
+        (_, body, condition) = exp
+        condition = process_atom(condition)
+        c = []
+        in_decl_context do
+          c << 'do {'
+          result = process_atom(body)
+          c += @decl
+          c << "} while (#{condition});"
+        end
+        decl c
+        ''
+      end
+
       def process_c_while(exp)
         (_, condition, body) = exp
         condition = process_atom(condition)
@@ -361,11 +380,12 @@ module Natalie
       end
 
       def process_declare(exp)
-        (_, name, value) = exp
+        (_, name, value, type) = exp
+        type ||= 'Value *'
         if value
-          decl "Value *#{name} = #{process_atom value};"
+          decl "#{type} #{name} = #{process_atom value};"
         else
-          decl "Value *#{name};"
+          decl "#{type} #{name};"
         end
         name
       end

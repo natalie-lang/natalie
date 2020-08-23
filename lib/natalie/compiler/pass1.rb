@@ -7,6 +7,7 @@ module Natalie
         self.require_empty = false
         @compiler_context = compiler_context
         @loop_context = []
+        @retry_context = []
       end
 
       def go(ast)
@@ -757,32 +758,49 @@ module Natalie
 
       def process_rescue(exp)
         (_, *rest) = exp
-        else_body = rest.pop if rest.last.sexp_type != :resbody
-        (body, resbodies) = rest.partition { |n| n.first != :resbody }
-        begin_fn = temp('begin_fn')
-        rescue_fn = begin_fn.sub(/begin/, 'rescue')
-        rescue_block = s(:cond)
-        resbodies.each_with_index do |(_, (_, *match), *resbody), index|
-          lasgn = match.pop if match.last&.sexp_type == :lasgn
-          match << s(:const, 'StandardError') if match.empty?
-          condition = s(:is_a, :exception, *match.map { |n| process(n) })
-          rescue_block << condition
-          resbody = resbody == [nil] ? [s(:nil)] : resbody.map { |n| process(n) }
-          rescue_block << (lasgn ? s(:block, process(lasgn), *resbody) : s(:block, *resbody))
+        retry_name = temp('should_retry')
+        retry_context(retry_name) do
+          else_body = rest.pop if rest.last.sexp_type != :resbody
+          (body, resbodies) = rest.partition { |n| n.first != :resbody }
+          begin_fn = temp('begin_fn')
+          rescue_fn = begin_fn.sub(/begin/, 'rescue')
+          rescue_block = s(:cond)
+          resbodies.each_with_index do |(_, (_, *match), *resbody), index|
+            lasgn = match.pop if match.last&.sexp_type == :lasgn
+            match << s(:const, 'StandardError') if match.empty?
+            condition = s(:is_a, :exception, *match.map { |n| process(n) })
+            rescue_block << condition
+            resbody = resbody == [nil] ? [s(:nil)] : resbody.map { |n| process(n) }
+            rescue_block << (lasgn ? s(:block, process(lasgn), *resbody) : s(:block, *resbody))
+          end
+          rescue_block << s(:else)
+          rescue_block << s(:block, s(:raise_exception, :env, :exception))
+          if else_body
+            body << else_body
+          end
+          body = body.empty? ? [s(:nil)] : body
+          exp.new(:block,
+                  s(:begin_fn, begin_fn,
+                    s(:block,
+                      s(:declare, retry_name, s(:l, :false), :bool),
+                      s(:c_do,
+                        s(:block,
+                          s(:set, retry_name, s(:l, :false)),
+                          s(:rescue,
+                            s(:block, *body.map { |n| process(n) }),
+                            rescue_block)),
+                        retry_name),
+                       s(:NAT_UNREACHABLE))),
+                  s(:call_begin, :env, :self, begin_fn))
         end
-        rescue_block << s(:else)
-        rescue_block << s(:block, s(:raise_exception, :env, :exception))
-        if else_body
-          body << else_body
-        end
-        body = body.empty? ? [s(:nil)] : body
-        exp.new(:block,
-                s(:begin_fn, begin_fn,
-                  s(:block,
-                    s(:rescue,
-                      s(:block, *body.map { |n| process(n) }),
-                      rescue_block))),
-                     s(:call_begin, :env, :self, begin_fn))
+      end
+
+      def process_retry(_)
+        retry_name = @retry_context.last
+        raise "No proper rescue context!" if retry_name.nil?
+        s(:block,
+          s(:set, retry_name, s(:l, :true)),
+          s(:c_continue))
       end
 
       def process_return(exp)
@@ -884,6 +902,13 @@ module Natalie
         @loop_context << name
         exp = yield
         @loop_context.pop
+        exp
+      end
+
+      def retry_context(name)
+        @retry_context << name
+        exp = yield
+        @retry_context.pop
         exp
       end
     end
