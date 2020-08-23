@@ -165,8 +165,8 @@ Value *KernelModule::loop(Env *env, Block *block) {
 
 Value *KernelModule::methods(Env *env) {
     ArrayValue *array = new ArrayValue { env };
-    if (singleton_class(env)) {
-        singleton_class(env)->methods(env, array);
+    if (singleton_class()) {
+        singleton_class()->methods(env, array);
     } else { // FIXME: I don't think this else should be here. Shouldn't we *always* grab methods from the klass?
         klass()->methods(env, array);
     }
