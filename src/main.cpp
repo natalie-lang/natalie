@@ -35,6 +35,9 @@ extern "C" Env *build_top_env() {
     ModuleValue *Comparable = new ModuleValue { env, "Comparable" };
     Object->const_set(env, "Comparable", Comparable);
 
+    ModuleValue *Enumerable = new ModuleValue { env, "Enumerable" };
+    Object->const_set(env, "Enumerable", Enumerable);
+
     ClassValue *Symbol = Object->subclass(env, "Symbol", Value::Type::Symbol);
     Object->const_set(env, "Symbol", Symbol);
 
@@ -79,6 +82,7 @@ extern "C" Env *build_top_env() {
 
     ClassValue *Array = Object->subclass(env, "Array", Value::Type::Array);
     Object->const_set(env, "Array", Array);
+    Array->include_once(env, Enumerable);
 
     ClassValue *Hash = Object->subclass(env, "Hash", Value::Type::Hash);
     Object->const_set(env, "Hash", Hash);
