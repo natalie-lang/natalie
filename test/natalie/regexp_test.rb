@@ -114,12 +114,9 @@ describe 'regexp' do
   end
 
   describe 'numbered references' do
-    def another_match
-      'foo' =~ /foo/
-    end
-
     it 'returns the most recent parenthesized submatch' do
       'tim' =~ /t(i)(m)/
+      $&.should == 'tim'
       $~.to_s.should == 'tim'
       $1.should == 'i'
       $2.should == 'm'

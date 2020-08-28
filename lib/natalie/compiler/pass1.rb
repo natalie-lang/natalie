@@ -54,6 +54,15 @@ module Natalie
         exp.new(:send, process(receiver), method, args)
       end
 
+      def process_back_ref(exp)
+        (_, name) = exp
+        raise "Unknown back ref: #{name.inspect}" unless name == :&
+        match = temp('match')
+        exp.new(:block,
+                s(:declare, match, s(:last_match, :env)),
+                s(:c_if, s(:is_truthy, match), s(:send, match, :to_s), s(:nil)))
+      end
+
       # bare begin without rescue
       def process_begin(exp)
         (_, code_block) = exp
