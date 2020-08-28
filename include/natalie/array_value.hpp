@@ -101,6 +101,7 @@ struct ArrayValue : Value {
     Value *sort(Env *);
     Value *join(Env *, Value *);
     Value *cmp(Env *, Value *);
+    Value *select(Env *, Block *);
 
 private:
     Vector<Value *> m_vector {};

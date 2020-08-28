@@ -322,4 +322,16 @@ void ArrayValue::sort_in_place(Env *env) {
     m_vector.sort(Vector<Value *>::SortComparator { env, cmp });
 }
 
+Value *ArrayValue::select(Env *env, Block *block) {
+    NAT_ASSERT_BLOCK(); // TODO: return Enumerator when no block given
+    ArrayValue *new_array = new ArrayValue { env };
+    for (auto &item : *this) {
+        Value *result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
+        if (result->is_truthy()) {
+            new_array->push(item);
+        }
+    }
+    return new_array;
+}
+
 }

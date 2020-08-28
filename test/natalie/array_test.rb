@@ -541,4 +541,10 @@ describe 'array' do
       [:foo, 2, 'bar', {baz: :buz}].join(',').should == 'foo,2,bar,{:baz=>:buz}'
     end
   end
+
+  describe '#select' do
+    it 'works' do
+      [1, 2, 3, 4].select { |i| i % 2 == 0 }.should == [2, 4]
+    end
+  end
 end

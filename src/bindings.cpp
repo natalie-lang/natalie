@@ -89,6 +89,13 @@ Value *ArrayValue_each_with_index_binding(Env *env, Value *self_value, ssize_t a
     return return_value;
 }
 
+Value *ArrayValue_select_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    ArrayValue *self = self_value->as_array();
+    auto return_value = self->select(env, block);
+    return return_value;
+}
+
 Value *ArrayValue_first_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     ArrayValue *self = self_value->as_array();
@@ -149,6 +156,13 @@ Value *ArrayValue_pop_binding(Env *env, Value *self_value, ssize_t argc, Value *
     NAT_ASSERT_ARGC(0);
     ArrayValue *self = self_value->as_array();
     auto return_value = self->pop(env);
+    return return_value;
+}
+
+Value *ArrayValue_select_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    ArrayValue *self = self_value->as_array();
+    auto return_value = self->select(env, block);
     return return_value;
 }
 
@@ -1841,6 +1855,7 @@ void init_bindings(Env *env) {
     Array->define_method(env, "any?", ArrayValue_any_binding);
     Array->define_method(env, "each", ArrayValue_each_binding);
     Array->define_method(env, "each_with_index", ArrayValue_each_with_index_binding);
+    Array->define_method(env, "filter", ArrayValue_select_binding);
     Array->define_method(env, "first", ArrayValue_first_binding);
     Array->define_method(env, "include?", ArrayValue_include_binding);
     Array->define_method(env, "initialize", ArrayValue_initialize_binding);
@@ -1850,6 +1865,7 @@ void init_bindings(Env *env) {
     Array->define_method(env, "length", ArrayValue_size_binding);
     Array->define_method(env, "map", ArrayValue_map_binding);
     Array->define_method(env, "pop", ArrayValue_pop_binding);
+    Array->define_method(env, "select", ArrayValue_select_binding1);
     Array->define_method(env, "size", ArrayValue_size_binding1);
     Array->define_method(env, "sort", ArrayValue_sort_binding);
     Array->define_method(env, "to_a", ArrayValue_to_ary_binding);
