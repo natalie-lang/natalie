@@ -1568,11 +1568,11 @@ Value *RegexpValue_eq_binding(Env *env, Value *self_value, ssize_t argc, Value *
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *RegexpValue_match_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *RegexpValue_eqeqeq_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     RegexpValue *self = self_value->as_regexp();
-    auto return_value = self->match(env, argc > 0 ? args[0] : nullptr);
-    return return_value;
+    auto return_value = self->eqeqeq(env, argc > 0 ? args[0] : nullptr);
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
 Value *RegexpValue_eqtilde_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
@@ -1596,7 +1596,7 @@ Value *RegexpValue_inspect_binding(Env *env, Value *self_value, ssize_t argc, Va
     return return_value;
 }
 
-Value *RegexpValue_match_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *RegexpValue_match_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     RegexpValue *self = self_value->as_regexp();
     auto return_value = self->match(env, argc > 0 ? args[0] : nullptr);
@@ -2094,11 +2094,11 @@ void init_bindings(Env *env) {
     Range->define_method(env, "include?", RangeValue_eqeqeq_binding1);
     Value *Regexp = env->Object()->const_get(env, "Regexp", true);
     Regexp->define_method(env, "==", RegexpValue_eq_binding);
-    Regexp->define_method(env, "===", RegexpValue_match_binding);
+    Regexp->define_method(env, "===", RegexpValue_eqeqeq_binding);
     Regexp->define_method(env, "=~", RegexpValue_eqtilde_binding);
     Regexp->define_method(env, "initialize", RegexpValue_initialize_binding);
     Regexp->define_method(env, "inspect", RegexpValue_inspect_binding);
-    Regexp->define_method(env, "match", RegexpValue_match_binding1);
+    Regexp->define_method(env, "match", RegexpValue_match_binding);
     Value *String = env->Object()->const_get(env, "String", true);
     String->define_method(env, "*", StringValue_mul_binding);
     String->define_method(env, "+", StringValue_add_binding);

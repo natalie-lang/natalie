@@ -64,6 +64,13 @@ struct RegexpValue : Value {
         return *this == *other;
     }
 
+    bool eqeqeq(Env *env, Value *other) {
+        if (!other->is_string()) {
+            return false;
+        }
+        return match(env, other)->is_truthy();
+    }
+
     Value *initialize(Env *, Value *);
     Value *inspect(Env *env);
     Value *eqtilde(Env *env, Value *);
