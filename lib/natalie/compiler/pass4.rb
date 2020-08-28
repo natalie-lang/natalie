@@ -130,13 +130,14 @@ module Natalie
       def process_atom(exp)
         case exp
         when Sexp
+          @last_sexp = exp
           process(exp)
         when String
           exp
         when Symbol, Integer, Float, true, false
           exp.to_s
         else
-          raise "unknown node type: #{exp.inspect}"
+          raise "unknown node type: #{exp.inspect} (last sexp: #{@last_sexp.inspect})"
         end
       end
 
