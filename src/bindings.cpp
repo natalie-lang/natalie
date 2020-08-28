@@ -1009,6 +1009,13 @@ Value *KernelModule_at_exit_binding(Env *env, Value *self_value, ssize_t argc, V
     return return_value;
 }
 
+Value *KernelModule_block_given_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    KernelModule *self = self_value->as_kernel_module_for_method_binding();
+    auto return_value = self->block_given(env, block);
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+}
+
 Value *KernelModule_klass_obj_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
@@ -1999,6 +2006,7 @@ void init_bindings(Env *env) {
     Value *Kernel = env->Object()->const_get(env, "Kernel", true);
     Kernel->define_method(env, "Array", KernelModule_Array_binding);
     Kernel->define_method(env, "at_exit", KernelModule_at_exit_binding);
+    Kernel->define_method(env, "block_given?", KernelModule_block_given_binding);
     Kernel->define_method(env, "class", KernelModule_klass_obj_binding);
     Kernel->define_method(env, "__dir__", KernelModule_cur_dir_binding);
     Kernel->define_method(env, "define_singleton_method", KernelModule_define_singleton_method_binding);

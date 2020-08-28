@@ -110,6 +110,9 @@ module Natalie
           args = s(:args, *args.map { |a| process(a) })
         end
         receiver = receiver ? process(receiver) : :self
+        if method == :block_given?
+          return exp.new(:send, receiver, method, args, 'block')
+        end
         call = if is_super
                  if args.any?
                    exp.new(:super, args)

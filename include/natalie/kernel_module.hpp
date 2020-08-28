@@ -60,6 +60,7 @@ struct KernelModule : Value {
     Value *tap(Env *env, Block *block);
     Value *this_method(Env *env);
     bool is_a(Env *env, Value *module);
+    bool block_given(Env *env, Block *block) { return !!block; }
 };
 
 }

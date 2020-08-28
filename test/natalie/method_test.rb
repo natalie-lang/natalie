@@ -33,6 +33,10 @@ def block_arg_is_nil(&block)
   block
 end
 
+def block_given_test
+  block_given?
+end
+
 def default(x = 1)
   x
 end
@@ -122,6 +126,13 @@ describe 'method' do
     r.should == nil
     r = block_arg_is_nil(&nil)
     r.should == nil
+  end
+
+  it 'knows if it received a block' do
+    without = block_given_test
+    without.should == false
+    with = block_given_test { p 'hi' }
+    with.should == true
   end
 
   # FIXME: doesn't actually bubble up because LocalJumpError is trapped by the method
