@@ -336,13 +336,12 @@ class RaiseErrorExpectation
   end
 end
 
-class ShouldReceiveExpectation
+class Stub
   def initialize(subject, message)
     @subject = subject
     @message = message
     @pass = false
     @args = nil
-    $expectations << self
   end
 
   def with(*args)
@@ -453,7 +452,9 @@ class Object
   end
 
   def should_receive(message)
-    ShouldReceiveExpectation.new(self, message)
+    Stub.new(self, message).tap do |stub|
+      $expectations << stub
+    end
   end
 
   def should_not_receive(message)
@@ -464,6 +465,10 @@ class Object
 
   def include(value)
     IncludeExpectation.new(value)
+  end
+
+  def stub!(message)
+    Stub.new(self, message)
   end
 end
 
