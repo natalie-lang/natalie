@@ -83,6 +83,8 @@ struct ArrayValue : Value {
     Vector<Value *>::iterator begin() noexcept { return m_vector.begin(); }
     Vector<Value *>::iterator end() noexcept { return m_vector.end(); }
 
+    bool is_empty() { return m_vector.is_empty(); }
+
     Value *initialize(Env *, Value *, Value *);
     Value *inspect(Env *);
     Value *ltlt(Env *, Value *);
