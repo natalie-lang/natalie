@@ -489,7 +489,12 @@ module Natalie
         debug_info(exp)
         (fn, receiver, method, args, block) = exp
         receiver_name = process_atom(receiver)
-        args_name, args_count = process_atom(args).split(':')
+        if args
+          args_name, args_count = process_atom(args).split(':')
+        else
+          args_name = 'nullptr'
+          args_count = 0
+        end
         result_name = temp('call_result')
         decl "Value *#{result_name} = #{receiver_name}->#{fn}(env, #{method.to_s.inspect}, #{args_count}, #{args_name}, #{block || 'nullptr'});"
         result_name
