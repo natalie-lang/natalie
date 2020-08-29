@@ -77,6 +77,11 @@ def it_behaves_like(behavior, method, obj = nil)
   end
 end
 
+def specify(&block)
+  return xit(nil, &block) if @context.last.skip
+  @specs << [@context.dup, nil, block]
+end
+
 def nan_value
   0/0.0
 end
@@ -540,9 +545,11 @@ def run_specs
         puts con.to_s
         indent += 2
       end
-      print ' ' * indent
-      puts test
-      indent += 2
+      if test # nil if using 'specify'
+        print ' ' * indent
+        puts test
+        indent += 2
+      end
       print ' ' * indent
       if error.is_a?(SpecFailedException)
         line_num = nil
