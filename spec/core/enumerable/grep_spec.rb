@@ -57,8 +57,7 @@ describe "Enumerable#grep" do
     $&.should == "e"
   end
 
-  # TODO: Integer#odd?
-  xdescribe "with a block" do
+  describe "with a block" do
     before :each do
       @numerous = EnumerableSpecs::Numerous.new(*(0..9).to_a)
       def (@odd_matcher = BasicObject.new).===(obj)
