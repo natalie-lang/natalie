@@ -904,11 +904,25 @@ Value *IntegerValue_eql_binding(Env *env, Value *self_value, ssize_t argc, Value
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
+Value *IntegerValue_is_even_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    IntegerValue *self = self_value->as_integer();
+    auto return_value = self->is_even();
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+}
+
 Value *IntegerValue_to_s_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     IntegerValue *self = self_value->as_integer();
     auto return_value = self->to_s(env);
     return return_value;
+}
+
+Value *IntegerValue_is_odd_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    IntegerValue *self = self_value->as_integer();
+    auto return_value = self->is_odd();
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
 Value *IntegerValue_succ_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
@@ -1996,7 +2010,9 @@ void init_bindings(Env *env) {
     Integer->define_method(env, "chr", IntegerValue_chr_binding);
     Integer->define_method(env, "coerce", IntegerValue_coerce_binding);
     Integer->define_method(env, "eql?", IntegerValue_eql_binding);
+    Integer->define_method(env, "even?", IntegerValue_is_even_binding);
     Integer->define_method(env, "inspect", IntegerValue_to_s_binding);
+    Integer->define_method(env, "odd?", IntegerValue_is_odd_binding);
     Integer->define_method(env, "succ", IntegerValue_succ_binding);
     Integer->define_method(env, "times", IntegerValue_times_binding);
     Integer->define_method(env, "to_i", IntegerValue_to_i_binding);

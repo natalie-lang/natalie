@@ -134,4 +134,24 @@ describe 'integer' do
       (1 >= 2).should == false
     end
   end
+
+  describe '#odd?' do
+    specify do
+      -2.odd?.should == false
+      -1.odd?.should == true
+      0.odd?.should == false
+      1.odd?.should == true
+      2.odd?.should == false
+    end
+  end
+
+  describe '#even?' do
+    specify do
+      -2.even?.should == true
+      -1.even?.should == false
+      0.even?.should == true
+      1.even?.should == false
+      2.even?.should == true
+    end
+  end
 end
