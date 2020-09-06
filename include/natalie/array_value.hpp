@@ -92,7 +92,7 @@ struct ArrayValue : Value {
     Value *sub(Env *, Value *);
     Value *ref(Env *, Value *, Value *);
     Value *refeq(Env *, Value *, Value *, Value *);
-    Value *any(Env *, Block *);
+    Value *any(Env *, ssize_t, Value **, Block *);
     Value *eq(Env *, Value *);
     Value *each(Env *, Block *);
     Value *each_with_index(Env *, Block *);

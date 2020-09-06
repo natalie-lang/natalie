@@ -19,6 +19,26 @@ module Enumerable
     end
   end
 
+  def any?(pattern = nil)
+    gather = ->(item) { item.size <= 1 ? item.first : item }
+    if pattern
+      each do |*item|
+        return true if pattern === gather.(item)
+      end
+      false
+    elsif block_given?
+      each do |*item|
+        return true if yield(*item)
+      end
+      false
+    else
+      each do |*item|
+        return true if gather.(item)
+      end
+      false
+    end
+  end
+
   def grep(pattern)
     if block_given?
       ary = []

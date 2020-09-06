@@ -69,9 +69,9 @@ Value *ArrayValue_refeq_binding(Env *env, Value *self_value, ssize_t argc, Value
 }
 
 Value *ArrayValue_any_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
-    NAT_ASSERT_ARGC(0);
+    
     ArrayValue *self = self_value->as_array();
-    auto return_value = self->any(env, block);
+    auto return_value = self->any(env, argc, args, block);
     return return_value;
 }
 

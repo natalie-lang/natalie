@@ -220,7 +220,7 @@ gen.binding('Array', '==', 'ArrayValue', 'eq', argc: 1, pass_env: true, pass_blo
 gen.binding('Array', '===', 'ArrayValue', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Array', '[]', 'ArrayValue', 'ref', argc: 1..2, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Array', '[]=', 'ArrayValue', 'refeq', argc: 2..3, pass_env: true, pass_block: false, return_type: :Value)
-gen.binding('Array', 'any?', 'ArrayValue', 'any', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
+gen.binding('Array', 'any?', 'ArrayValue', 'any', argc: :any, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Array', 'each', 'ArrayValue', 'each', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Array', 'each_with_index', 'ArrayValue', 'each_with_index', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Array', 'empty?', 'ArrayValue', 'is_empty', argc: 0, pass_env: false, pass_block: false, return_type: :bool)

@@ -188,6 +188,7 @@ class Matcher
   def <(other); method_missing(:<, other); end
   def <=(other); method_missing(:<=, other); end
   def all?; method_missing(:all?); end
+  def any?; method_missing(:any?); end
   def finite?; method_missing(:finite?); end
   def nan?; method_missing(:nan?); end
   def zero?; method_missing(:zero?); end

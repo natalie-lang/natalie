@@ -158,16 +158,9 @@ Value *ArrayValue::refeq(Env *env, Value *index_obj, Value *size, Value *val) {
     return val;
 }
 
-Value *ArrayValue::any(Env *env, Block *block) {
-    if (block) {
-        for (auto &obj : *this) {
-            Value *result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &obj, nullptr);
-            if (result->is_truthy()) return env->true_obj();
-        }
-    } else if (size() > 0) {
-        return env->true_obj();
-    }
-    return env->false_obj();
+Value *ArrayValue::any(Env *env, ssize_t argc, Value **args, Block *block) {
+    ModuleValue *Enumerable = env->Object()->const_get_or_panic(env, "Enumerable", true)->as_module();
+    return Enumerable->call_method(env, klass(), "any?", this, argc, args, block);
 }
 
 Value *ArrayValue::eq(Env *env, Value *other) {
