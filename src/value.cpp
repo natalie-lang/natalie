@@ -236,6 +236,10 @@ ClassValue *Value::singleton_class(Env *env) {
     return m_singleton_class;
 }
 
+Value *Value::const_lookup(const char *name) {
+    return m_klass->const_lookup(name);
+}
+
 Value *Value::const_get(Env *env, const char *name, bool strict) {
     return m_klass->const_get(env, name, strict);
 }
@@ -244,8 +248,8 @@ Value *Value::const_get_or_panic(Env *env, const char *name, bool strict) {
     return m_klass->const_get_or_panic(env, name, strict);
 }
 
-Value *Value::const_get_or_null(Env *env, const char *name, bool strict, bool define) {
-    return m_klass->const_get_or_null(env, name, strict, define);
+Value *Value::const_get_or_null(Env *env, const char *name, bool strict) {
+    return m_klass->const_get_or_null(env, name, strict);
 }
 
 Value *Value::const_set(Env *env, const char *name, Value *val) {
@@ -461,7 +465,7 @@ const char *Value::defined(Env *env, const char *name, bool strict) {
                 obj = as_module()->const_lookup(name);
             }
         } else {
-            obj = const_get_or_null(env, name, false, false);
+            obj = const_get_or_null(env, name, false);
         }
         if (obj) return "constant";
     } else if (is_global_name(name)) {

@@ -63,7 +63,7 @@ Value *ModuleValue::const_lookup(const char *name) {
 }
 
 Value *ModuleValue::const_get(Env *env, const char *name, bool strict) {
-    Value *val = const_get_or_null(env, name, strict, false);
+    Value *val = const_get_or_null(env, name, strict);
     if (val) {
         return val;
     } else if (strict) {
@@ -74,7 +74,7 @@ Value *ModuleValue::const_get(Env *env, const char *name, bool strict) {
 }
 
 Value *ModuleValue::const_get_or_panic(Env *env, const char *name, bool strict) {
-    Value *val = const_get_or_null(env, name, strict, false);
+    Value *val = const_get_or_null(env, name, strict);
     if (val) {
         return val;
     } else {
@@ -83,7 +83,7 @@ Value *ModuleValue::const_get_or_panic(Env *env, const char *name, bool strict) 
     }
 }
 
-Value *ModuleValue::const_get_or_null(Env *env, const char *name, bool strict, bool define) {
+Value *ModuleValue::const_get_or_null(Env *env, const char *name, bool strict) {
     ModuleValue *search_parent;
     Value *val;
 
@@ -96,22 +96,16 @@ Value *ModuleValue::const_get_or_null(Env *env, const char *name, bool strict, b
         if (val) return val;
     }
 
-    if (define) {
-        // don't search superclasses
-        val = static_cast<Value *>(hashmap_get(&m_constants, name));
-        if (val) return val;
-    } else {
-        // search in superclass hierarchy
-        search_parent = this;
-        while (!(val = static_cast<Value *>(hashmap_get(&search_parent->m_constants, name))) && search_parent->m_superclass) {
-            search_parent = search_parent->m_superclass;
-        }
-        if (val) return val;
+    // search in superclass hierarchy
+    search_parent = this;
+    while (!(val = search_parent->const_lookup(name)) && search_parent->m_superclass) {
+        search_parent = search_parent->m_superclass;
     }
+    if (val) return val;
 
     if (!strict) {
         // lastly, search on the global, i.e. Object namespace
-        val = static_cast<Value *>(hashmap_get(&env->Object()->m_constants, name));
+        val = env->Object()->const_lookup(name);
         if (val) return val;
     }
 
@@ -452,7 +446,7 @@ bool ModuleValue::const_defined(Env *env, Value *name_value) {
     if (!name) {
         NAT_RAISE(env, "TypeError", "no implicit conversion of %v to String", name_value);
     }
-    return !!const_get_or_null(env, name, false, false);
+    return !!const_get_or_null(env, name, false);
 }
 
 Value *ModuleValue::alias_method(Env *env, Value *new_name_value, Value *old_name_value) {

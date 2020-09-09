@@ -68,6 +68,7 @@ module Natalie
         as_string
         const_get
         const_get_or_null
+        const_lookup
         const_set
         cvar_get
         cvar_get_or_null
