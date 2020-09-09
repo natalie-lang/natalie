@@ -13,13 +13,13 @@ namespace Natalie {
 
 struct MatchDataValue : Value {
     MatchDataValue(Env *env)
-        : Value { Value::Type::MatchData, env->Object()->const_get_or_panic(env, "MatchData", true)->as_class() } { }
+        : Value { Value::Type::MatchData, env->Object()->const_fetch("MatchData")->as_class() } { }
 
     MatchDataValue(Env *env, ClassValue *klass)
         : Value { Value::Type::MatchData, klass } { }
 
     MatchDataValue(Env *env, OnigRegion *region, StringValue *string)
-        : Value { Value::Type::MatchData, env->Object()->const_get_or_panic(env, "MatchData", true)->as_class() }
+        : Value { Value::Type::MatchData, env->Object()->const_fetch("MatchData")->as_class() }
         , m_region { region }
         , m_str { strdup(string->c_str()) } { }
 

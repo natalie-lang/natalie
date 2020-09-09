@@ -12,7 +12,7 @@ namespace Natalie {
 
 struct ExceptionValue : Value {
     ExceptionValue(Env *env)
-        : Value { Value::Type::Exception, env->Object()->const_get_or_panic(env, "Exception", true)->as_class() } { }
+        : Value { Value::Type::Exception, env->Object()->const_fetch("Exception")->as_class() } { }
 
     ExceptionValue(Env *env, ClassValue *klass)
         : Value { Value::Type::Exception, klass } { }

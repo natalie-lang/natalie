@@ -41,7 +41,7 @@ Value *FileValue::initialize(Env *env, Value *filename, Value *flags_obj, Block 
     int fileno = open(filename->as_string()->c_str(), flags, mode);
     if (fileno == -1) {
         Value *exception_args[2] = { filename, new IntegerValue { env, errno } };
-        ExceptionValue *error = env->Object()->const_get(env, "SystemCallError", true)->send(env, "exception", 2, exception_args, nullptr)->as_exception();
+        ExceptionValue *error = env->Object()->const_find(env, "SystemCallError")->send(env, "exception", 2, exception_args, nullptr)->as_exception();
         env->raise_exception(error);
         abort();
     } else {

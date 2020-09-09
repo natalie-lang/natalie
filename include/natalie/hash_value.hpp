@@ -29,7 +29,7 @@ struct HashValue : Value {
     };
 
     HashValue(Env *env)
-        : HashValue { env, env->Object()->const_get_or_panic(env, "Hash", true)->as_class() } { }
+        : HashValue { env, env->Object()->const_fetch("Hash")->as_class() } { }
 
     HashValue(Env *env, ClassValue *klass)
         : Value { Value::Type::Hash, klass }

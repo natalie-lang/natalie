@@ -166,7 +166,7 @@ module Natalie
         klass = temp('class')
         exp.new(:block,
                 s(:class_fn, fn, process(s(:block, *body))),
-                s(:declare, klass, s(:const_lookup, :self, s(:s, name))),
+                s(:declare, klass, s(:const_get, :self, s(:s, name))),
                 s(:c_if, s(:not, klass),
                   s(:block,
                     s(:set, klass, s(:subclass, s(:as_class, process(superclass)), :env, s(:s, name))),
@@ -179,17 +179,17 @@ module Natalie
         parent_name = temp('parent')
         exp.new(:block,
                 s(:declare, parent_name, process(parent)),
-                s(:const_get, parent_name, :env, s(:s, name), s(:l, :true)))
+                s(:const_find, parent_name, :env, s(:s, name)))
       end
 
       def process_colon3(exp)
         (_, name) = exp
-        s(:const_get, s(:l, 'env->Object()'), :env, s(:s, name), s(:l, :true))
+        s(:const_find, s(:l, 'env->Object()'), :env, s(:s, name))
       end
 
       def process_const(exp)
         (_, name) = exp
-        exp.new(:const_get, :self, :env, s(:s, name), s(:l, :false))
+        exp.new(:const_find, :self, :env, s(:s, name), s(:l, 'Value::ConstLookupSearchMode::NotStrict'))
       end
 
       def process_cvdecl(exp)
@@ -641,7 +641,7 @@ module Natalie
         mod = temp('module')
         exp.new(:block,
                 s(:module_fn, fn, process(s(:block, *body))),
-                s(:declare, mod, s(:const_lookup, :self, s(:s, name))),
+                s(:declare, mod, s(:const_get, :self, s(:s, name))),
                 s(:c_if, s(:not, mod),
                   s(:block,
                     s(:set, mod, s(:new, :ModuleValue, :env, s(:s, name))),

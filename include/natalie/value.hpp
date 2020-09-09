@@ -44,6 +44,16 @@ struct Value : public gc {
         NullAllowed,
     };
 
+    enum class ConstLookupSearchMode {
+        NotStrict,
+        Strict,
+    };
+
+    enum class ConstLookupFailureMode {
+        Null,
+        Raise,
+    };
+
     Value(Env *env)
         : m_klass { env->Object() } { }
 
@@ -137,10 +147,9 @@ struct Value : public gc {
 
     void set_singleton_class(ClassValue *c) { m_singleton_class = c; }
 
-    virtual Value *const_lookup(const char *);
-    virtual Value *const_get(Env *, const char *, bool);
-    virtual Value *const_get_or_panic(Env *, const char *, bool);
-    virtual Value *const_get_or_null(Env *, const char *, bool);
+    virtual Value *const_get(const char *);
+    virtual Value *const_fetch(const char *);
+    virtual Value *const_find(Env *, const char *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::Raise);
     virtual Value *const_set(Env *, const char *, Value *);
 
     Value *ivar_get(Env *, const char *);

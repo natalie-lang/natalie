@@ -1,6 +1,6 @@
 #define NAT_RAISE(env, class_name, message_format, ...)                                                                  \
     {                                                                                                                    \
-        env->raise(env->Object()->const_get_or_panic(env, class_name, true)->as_class(), message_format, ##__VA_ARGS__); \
+        env->raise(env->Object()->const_fetch(class_name)->as_class(), message_format, ##__VA_ARGS__); \
         abort();                                                                                                         \
     }
 

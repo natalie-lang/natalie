@@ -13,7 +13,7 @@ namespace Natalie {
 
 struct ArrayValue : Value {
     ArrayValue(Env *env)
-        : Value { Value::Type::Array, env->Object()->const_get_or_panic(env, "Array", true)->as_class() } { }
+        : Value { Value::Type::Array, env->Object()->const_fetch("Array")->as_class() } { }
 
     ArrayValue(Env *env, ClassValue *klass)
         : Value { Value::Type::Array, klass } { }

@@ -16,13 +16,13 @@ namespace Natalie {
 
 struct RegexpValue : Value {
     RegexpValue(Env *env)
-        : Value { Value::Type::Regexp, env->Object()->const_get_or_panic(env, "Regexp", true)->as_class() } { }
+        : Value { Value::Type::Regexp, env->Object()->const_fetch("Regexp")->as_class() } { }
 
     RegexpValue(Env *env, ClassValue *klass)
         : Value { Value::Type::Regexp, klass } { }
 
     RegexpValue(Env *env, const char *pattern)
-        : Value { Value::Type::Regexp, env->Object()->const_get_or_panic(env, "Regexp", true)->as_class() } {
+        : Value { Value::Type::Regexp, env->Object()->const_fetch("Regexp")->as_class() } {
         assert(pattern);
         initialize(env, pattern);
     }

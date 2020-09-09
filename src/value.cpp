@@ -236,20 +236,16 @@ ClassValue *Value::singleton_class(Env *env) {
     return m_singleton_class;
 }
 
-Value *Value::const_lookup(const char *name) {
-    return m_klass->const_lookup(name);
+Value *Value::const_get(const char *name) {
+    return m_klass->const_get(name);
 }
 
-Value *Value::const_get(Env *env, const char *name, bool strict) {
-    return m_klass->const_get(env, name, strict);
+Value *Value::const_fetch(const char *name) {
+    return m_klass->const_fetch(name);
 }
 
-Value *Value::const_get_or_panic(Env *env, const char *name, bool strict) {
-    return m_klass->const_get_or_panic(env, name, strict);
-}
-
-Value *Value::const_get_or_null(Env *env, const char *name, bool strict) {
-    return m_klass->const_get_or_null(env, name, strict);
+Value *Value::const_find(Env *env, const char *name, ConstLookupSearchMode search_mode, ConstLookupFailureMode failure_mode) {
+    return m_klass->const_find(env, name, search_mode, failure_mode);
 }
 
 Value *Value::const_set(Env *env, const char *name, Value *val) {
@@ -462,10 +458,10 @@ const char *Value::defined(Env *env, const char *name, bool strict) {
     if (is_constant_name(name)) {
         if (strict) {
             if (is_module()) {
-                obj = as_module()->const_lookup(name);
+                obj = as_module()->const_get(name);
             }
         } else {
-            obj = const_get_or_null(env, name, false);
+            obj = const_find(env, name, ConstLookupSearchMode::NotStrict, ConstLookupFailureMode::Null);
         }
         if (obj) return "constant";
     } else if (is_global_name(name)) {

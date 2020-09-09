@@ -12,7 +12,7 @@ namespace Natalie {
 
 struct IntegerValue : Value {
     IntegerValue(Env *env, int64_t integer)
-        : Value { Value::Type::Integer, env->Object()->const_get_or_panic(env, "Integer", true)->as_class() }
+        : Value { Value::Type::Integer, env->Object()->const_fetch("Integer")->as_class() }
         , m_integer { integer } { }
 
     int64_t to_int64_t() {

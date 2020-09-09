@@ -61,7 +61,7 @@ Value *IoValue::write(Env *env, ssize_t argc, Value **args) {
         ssize_t result = ::write(m_fileno, obj->as_string()->c_str(), obj->as_string()->length());
         if (result == -1) {
             Value *error_number = new IntegerValue { env, errno };
-            ExceptionValue *error = env->Object()->const_get(env, "SystemCallError", true)->send(env, "exception", 1, &error_number, nullptr)->as_exception();
+            ExceptionValue *error = env->Object()->const_find(env, "SystemCallError")->send(env, "exception", 1, &error_number, nullptr)->as_exception();
             env->raise_exception(error);
             abort();
         } else {
@@ -99,7 +99,7 @@ Value *IoValue::close(Env *env) {
     int result = ::close(m_fileno);
     if (result == -1) {
         Value *error_number = new IntegerValue { env, errno };
-        ExceptionValue *error = env->Object()->const_get(env, "SystemCallError", true)->send(env, "exception", 1, &error_number, nullptr)->as_exception();
+        ExceptionValue *error = env->Object()->const_find(env, "SystemCallError")->send(env, "exception", 1, &error_number, nullptr)->as_exception();
         env->raise_exception(error);
         abort();
     } else {
@@ -136,7 +136,7 @@ Value *IoValue::seek(Env *env, Value *amount_value, Value *whence_value) {
     int result = lseek(m_fileno, amount, whence);
     if (result == -1) {
         Value *error_number = new IntegerValue { env, errno };
-        ExceptionValue *error = env->Object()->const_get(env, "SystemCallError", true)->send(env, "exception", 1, &error_number, nullptr)->as_exception();
+        ExceptionValue *error = env->Object()->const_find(env, "SystemCallError")->send(env, "exception", 1, &error_number, nullptr)->as_exception();
         env->raise_exception(error);
         abort();
     } else {

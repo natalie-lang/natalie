@@ -66,9 +66,8 @@ module Natalie
         add_break_flag
         as_class
         as_string
+        const_find
         const_get
-        const_get_or_null
-        const_lookup
         const_set
         cvar_get
         cvar_get_or_null
@@ -418,7 +417,7 @@ module Natalie
           raise "expected const" unless namespace.first == :const
           decl "Value *#{result};"
           decl 'try {'
-          decl "#{result} = env->Object()->const_get(env, #{namespace.last.to_s.inspect}, false)->defined_obj(env, #{name.to_s.inspect}, true);"
+          decl "#{result} = env->Object()->const_find(env, #{namespace.last.to_s.inspect}, Value::ConstLookupSearchMode::NotStrict)->defined_obj(env, #{name.to_s.inspect}, true);"
           decl '} catch (ExceptionValue *) {'
           decl "#{result} = #{process_atom s(:nil)};"
           decl '}'

@@ -64,7 +64,7 @@ Value *KernelModule::exit(Env *env, Value *status) {
     if (!status || status->type() != Value::Type::Integer) {
         status = new IntegerValue { env, 0 };
     }
-    ExceptionValue *exception = new ExceptionValue { env, env->Object()->const_get(env, "SystemExit", true)->as_class(), "exit" };
+    ExceptionValue *exception = new ExceptionValue { env, env->Object()->const_find(env, "SystemExit")->as_class(), "exit" };
     exception->ivar_set(env, "@status", status);
     env->raise_exception(exception);
     return env->nil_obj();
@@ -216,7 +216,7 @@ Value *KernelModule::raise(Env *env, Value *klass, Value *message) {
             klass = arg->as_class();
             message = new StringValue { env, arg->as_class()->class_name() };
         } else if (arg->is_string()) {
-            klass = env->Object()->const_get(env, "RuntimeError", true)->as_class();
+            klass = env->Object()->const_find(env, "RuntimeError")->as_class();
             message = arg;
         } else if (arg->is_exception()) {
             env->raise_exception(arg->as_exception());

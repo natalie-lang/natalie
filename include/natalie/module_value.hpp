@@ -12,7 +12,6 @@
 namespace Natalie {
 
 struct ModuleValue : Value {
-
     ModuleValue(Env *);
     ModuleValue(Env *, const char *);
     ModuleValue(Env *, Type, ClassValue *);
@@ -44,10 +43,9 @@ struct ModuleValue : Value {
     Value *prepend(Env *, ssize_t argc, Value **args);
     void prepend_once(Env *, ModuleValue *);
 
-    virtual Value *const_lookup(const char *) override;
-    virtual Value *const_get(Env *, const char *, bool) override;
-    virtual Value *const_get_or_panic(Env *, const char *, bool) override;
-    virtual Value *const_get_or_null(Env *, const char *, bool) override;
+    virtual Value *const_get(const char *) override;
+    virtual Value *const_fetch(const char *) override;
+    virtual Value *const_find(Env *, const char *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::Raise) override;
     virtual Value *const_set(Env *, const char *, Value *) override;
 
     virtual void alias(Env *, const char *, const char *) override;

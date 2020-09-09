@@ -3,7 +3,7 @@
 namespace Natalie {
 
 ModuleValue::ModuleValue(Env *env)
-    : ModuleValue { env, Value::Type::Module, env->Object()->const_get(env, "Module", true)->as_class() } { }
+    : ModuleValue { env, Value::Type::Module, env->Object()->const_find(env, "Module")->as_class() } { }
 
 ModuleValue::ModuleValue(Env *env, const char *name)
     : ModuleValue { env } {
@@ -58,39 +58,27 @@ void ModuleValue::prepend_once(Env *env, ModuleValue *module) {
     m_included_modules.push_front(module);
 }
 
-Value *ModuleValue::const_lookup(const char *name) {
+Value *ModuleValue::const_get(const char *name) {
     return static_cast<Value *>(hashmap_get(&m_constants, name));
 }
 
-Value *ModuleValue::const_get(Env *env, const char *name, bool strict) {
-    Value *val = const_get_or_null(env, name, strict);
-    if (val) {
-        return val;
-    } else if (strict) {
-        NAT_RAISE(env, "NameError", "uninitialized constant %S::%s", this->send(env, "inspect", 0, nullptr, nullptr), name);
-    } else {
-        NAT_RAISE(env, "NameError", "uninitialized constant %s", name);
-    }
-}
-
-Value *ModuleValue::const_get_or_panic(Env *env, const char *name, bool strict) {
-    Value *val = const_get_or_null(env, name, strict);
-    if (val) {
-        return val;
-    } else {
+Value *ModuleValue::const_fetch(const char *name) {
+    Value *value = const_get(name);
+    if (!value) {
         printf("Constant %s is missing!\n", name);
         abort();
     }
+    return value;
 }
 
-Value *ModuleValue::const_get_or_null(Env *env, const char *name, bool strict) {
+Value *ModuleValue::const_find(Env *env, const char *name, ConstLookupSearchMode search_mode, ConstLookupFailureMode failure_mode) {
     ModuleValue *search_parent;
     Value *val;
 
-    if (!strict) {
+    if (search_mode == ConstLookupSearchMode::NotStrict) {
         // first search in parent namespaces (not including global, i.e. Object namespace)
         search_parent = this;
-        while (!(val = search_parent->const_lookup(name)) && search_parent->owner() && search_parent->owner() != env->Object()) {
+        while (!(val = search_parent->const_get(name)) && search_parent->owner() && search_parent->owner() != env->Object()) {
             search_parent = search_parent->owner();
         }
         if (val) return val;
@@ -98,18 +86,25 @@ Value *ModuleValue::const_get_or_null(Env *env, const char *name, bool strict) {
 
     // search in superclass hierarchy
     search_parent = this;
-    while (!(val = search_parent->const_lookup(name)) && search_parent->m_superclass) {
+    do {
+        val = search_parent->const_get(name);
+        if (val) return val;
         search_parent = search_parent->m_superclass;
-    }
-    if (val) return val;
+    } while (search_parent);
 
-    if (!strict) {
+    if (this != env->Object() && search_mode == ConstLookupSearchMode::NotStrict) {
         // lastly, search on the global, i.e. Object namespace
-        val = env->Object()->const_lookup(name);
+        val = env->Object()->const_get(name);
         if (val) return val;
     }
 
-    return nullptr;
+    if (failure_mode == ConstLookupFailureMode::Null) return nullptr;
+
+    if (search_mode == ConstLookupSearchMode::Strict) {
+        NAT_RAISE(env, "NameError", "uninitialized constant %S::%s", this->send(env, "inspect", 0, nullptr, nullptr), name);
+    } else {
+        NAT_RAISE(env, "NameError", "uninitialized constant %s", name);
+    }
 }
 
 Value *ModuleValue::const_set(Env *env, const char *name, Value *val) {
@@ -446,7 +441,7 @@ bool ModuleValue::const_defined(Env *env, Value *name_value) {
     if (!name) {
         NAT_RAISE(env, "TypeError", "no implicit conversion of %v to String", name_value);
     }
-    return !!const_get_or_null(env, name, false);
+    return !!const_find(env, name, ConstLookupSearchMode::NotStrict, ConstLookupFailureMode::Null);
 }
 
 Value *ModuleValue::alias_method(Env *env, Value *new_name_value, Value *old_name_value) {

@@ -68,8 +68,8 @@ void StringValue::append_string(Env *env, StringValue *string2) {
 
 void StringValue::raise_encoding_invalid_byte_sequence_error(Env *env, ssize_t index) {
     StringValue *message = sprintf(env, "invalid byte sequence at index %i in string of size %i (string not long enough)", index, length());
-    ClassValue *Encoding = env->Object()->const_get(env, "Encoding", true)->as_class();
-    ClassValue *InvalidByteSequenceError = Encoding->const_get(env, "InvalidByteSequenceError", true)->as_class();
+    ClassValue *Encoding = env->Object()->const_find(env, "Encoding")->as_class();
+    ClassValue *InvalidByteSequenceError = Encoding->const_find(env, "InvalidByteSequenceError")->as_class();
     ExceptionValue *exception = new ExceptionValue { env, InvalidByteSequenceError, message->c_str() };
     env->raise_exception(exception);
 }
@@ -368,12 +368,12 @@ Value *StringValue::size(Env *env) {
 }
 
 Value *StringValue::encoding(Env *env) {
-    ClassValue *Encoding = env->Object()->const_get(env, "Encoding", true)->as_class();
+    ClassValue *Encoding = env->Object()->const_find(env, "Encoding")->as_class();
     switch (m_encoding) {
     case Encoding::ASCII_8BIT:
-        return Encoding->const_get(env, "ASCII_8BIT", true);
+        return Encoding->const_find(env, "ASCII_8BIT");
     case Encoding::UTF_8:
-        return Encoding->const_get(env, "UTF_8", true);
+        return Encoding->const_find(env, "UTF_8");
     }
     NAT_UNREACHABLE();
 }
@@ -411,7 +411,7 @@ Value *StringValue::encode(Env *env, Value *encoding) {
     Encoding orig_encoding = m_encoding;
     StringValue *copy = dup(env)->as_string();
     copy->force_encoding(env, encoding);
-    ClassValue *Encoding = env->Object()->const_get(env, "Encoding", true)->as_class();
+    ClassValue *Encoding = env->Object()->const_find(env, "Encoding")->as_class();
     if (orig_encoding == copy->encoding()) {
         return copy;
     } else if (orig_encoding == Encoding::UTF_8 && copy->encoding() == Encoding::ASCII_8BIT) {
@@ -424,7 +424,7 @@ Value *StringValue::encode(Env *env, Value *encoding) {
                 StringValue zero_x { env, "0X" };
                 StringValue blank { env, "" };
                 message = message->as_string()->sub(env, &zero_x, &blank);
-                env->raise(Encoding->const_get(env, "UndefinedConversionError", true)->as_class(), "%S", message);
+                env->raise(Encoding->const_find(env, "UndefinedConversionError")->as_class(), "%S", message);
                 abort();
             }
         }
@@ -432,7 +432,7 @@ Value *StringValue::encode(Env *env, Value *encoding) {
     } else if (orig_encoding == Encoding::ASCII_8BIT && copy->encoding() == Encoding::UTF_8) {
         return copy;
     } else {
-        env->raise(Encoding->const_get(env, "ConverterNotFoundError", true)->as_class(), "code converter not found");
+        env->raise(Encoding->const_find(env, "ConverterNotFoundError")->as_class(), "code converter not found");
         abort();
     }
 }

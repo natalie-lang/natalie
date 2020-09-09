@@ -116,7 +116,7 @@ Value *#{name}(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
       if rb_class.start_with?('$')
         "Value *#{rb_class} = env->global_get(#{rb_class.inspect});"
       else
-        "Value *#{rb_class} = env->Object()->const_get(env, #{rb_class.inspect}, true);"
+        "Value *#{rb_class} = env->Object()->const_find(env, #{rb_class.inspect});"
       end
     end
 

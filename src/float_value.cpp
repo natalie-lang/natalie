@@ -377,7 +377,8 @@ Value *FloatValue::arg(Env *env) {
     if (!signbit(m_float)) {
         return new IntegerValue { env, 0 };
     } else {
-        return env->Object()->const_get_or_panic(env, "Math", true)->const_get_or_panic(env, "PI", true);
+        Value *Math = env->Object()->const_fetch("Math");
+        return Math->const_fetch("PI");
     }
 }
 
