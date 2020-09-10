@@ -24,12 +24,8 @@ module Natalie
         begin
           multi_line_expr << line
           ast = Natalie::Parser.new(multi_line_expr.join("\n"), '(repl)').ast
-        rescue Racc::ParseError => e
-          if e.message =~ /\$end/
-            next
-          else
-            raise
-          end
+        rescue Parser::IncompleteExpression
+          next
         else
           multi_line_expr = []
         end

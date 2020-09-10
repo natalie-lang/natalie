@@ -2,6 +2,8 @@ require 'ruby_parser'
 
 module Natalie
   class Parser
+    class IncompleteExpression < StandardError; end
+
     def initialize(code_str, path)
       @code_str = code_str
       @path = path
@@ -15,6 +17,12 @@ module Natalie
         node
       else
         s(:block, node)
+      end
+    rescue Racc::ParseError => e
+      if e.message =~ /\$end/
+        raise IncompleteExpression, e.message
+      else
+        raise
       end
     end
   end
