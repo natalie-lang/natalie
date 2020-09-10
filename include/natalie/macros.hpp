@@ -1,7 +1,7 @@
-#define NAT_RAISE(env, class_name, message_format, ...)                                                                  \
-    {                                                                                                                    \
+#define NAT_RAISE(env, class_name, message_format, ...)                                                \
+    {                                                                                                  \
         env->raise(env->Object()->const_fetch(class_name)->as_class(), message_format, ##__VA_ARGS__); \
-        abort();                                                                                                         \
+        abort();                                                                                       \
     }
 
 #define NAT_RAISE2(env, constant, message_format, ...)       \

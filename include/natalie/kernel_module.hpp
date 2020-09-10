@@ -5,9 +5,9 @@
 #include <sys/stat.h>
 
 #include "natalie/forward.hpp"
-#include "natalie/value.hpp"
 #include "natalie/integer_value.hpp"
 #include "natalie/nil_value.hpp"
+#include "natalie/value.hpp"
 
 namespace Natalie {
 
