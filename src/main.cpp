@@ -111,6 +111,8 @@ extern "C" Env *build_top_env() {
     Object->const_set(env, "Exception", Exception);
     ClassValue *ScriptError = Exception->subclass(env, "ScriptError");
     Object->const_set(env, "ScriptError", ScriptError);
+    Value *NotImplementedError = ScriptError->subclass(env, "NotImplementedError");
+    Object->const_set(env, "NotImplementedError", NotImplementedError);
     Value *SyntaxError = ScriptError->subclass(env, "SyntaxError");
     Object->const_set(env, "SyntaxError", SyntaxError);
     ClassValue *StandardError = Exception->subclass(env, "StandardError");
