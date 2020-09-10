@@ -1834,6 +1834,13 @@ Value *SymbolValue_cmp_binding(Env *env, Value *self_value, ssize_t argc, Value 
     return return_value;
 }
 
+Value *SymbolValue_to_s_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    SymbolValue *self = self_value->as_symbol();
+    auto return_value = self->to_s(env);
+    return return_value;
+}
+
 Value *SymbolValue_inspect_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     SymbolValue *self = self_value->as_symbol();
@@ -1848,7 +1855,7 @@ Value *SymbolValue_to_proc_binding(Env *env, Value *self_value, ssize_t argc, Va
     return return_value;
 }
 
-Value *SymbolValue_to_s_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *SymbolValue_to_s_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     SymbolValue *self = self_value->as_symbol();
     auto return_value = self->to_s(env);
@@ -2162,9 +2169,10 @@ void init_bindings(Env *env) {
     String->define_method(env, "to_str", StringValue_to_str_binding);
     Value *Symbol = env->Object()->const_find(env, "Symbol");
     Symbol->define_method(env, "<=>", SymbolValue_cmp_binding);
+    Symbol->define_method(env, "id2name", SymbolValue_to_s_binding);
     Symbol->define_method(env, "inspect", SymbolValue_inspect_binding);
     Symbol->define_method(env, "to_proc", SymbolValue_to_proc_binding);
-    Symbol->define_method(env, "to_s", SymbolValue_to_s_binding);
+    Symbol->define_method(env, "to_s", SymbolValue_to_s_binding1);
     Value *TrueClass = env->Object()->const_find(env, "TrueClass");
     TrueClass->define_method(env, "inspect", TrueValue_to_s_binding);
     TrueClass->define_method(env, "to_s", TrueValue_to_s_binding1);
