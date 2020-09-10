@@ -89,7 +89,7 @@ struct ModuleValue : Value {
     static Value *attr_reader_block_fn(Env *, Value *, ssize_t, Value **, Block *);
     static Value *attr_writer_block_fn(Env *, Value *, ssize_t, Value **, Block *);
 
-    Value *class_eval(Env *, Block *);
+    Value *module_eval(Env *, Block *);
 
     Value *private_method(Env *, Value *method_name);
     Value *protected_method(Env *, Value *method_name);

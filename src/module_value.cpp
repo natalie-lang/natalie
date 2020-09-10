@@ -412,9 +412,9 @@ Value *ModuleValue::define_method(Env *env, Value *name_value, Block *block) {
     return SymbolValue::intern(env, name);
 }
 
-Value *ModuleValue::class_eval(Env *env, Block *block) {
+Value *ModuleValue::module_eval(Env *env, Block *block) {
     if (!block) {
-        NAT_RAISE(env, "ArgumentError", "Natalie only supports class_eval with a block");
+        NAT_RAISE(env, "ArgumentError", "Natalie only supports module_eval with a block");
     }
     block->set_self(this);
     NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 0, nullptr, nullptr);

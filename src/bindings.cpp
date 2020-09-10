@@ -1338,10 +1338,10 @@ Value *ModuleValue_attr_writer_binding(Env *env, Value *self_value, ssize_t argc
     return return_value;
 }
 
-Value *ModuleValue_class_eval_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ModuleValue_module_eval_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     ModuleValue *self = self_value->as_module();
-    auto return_value = self->class_eval(env, block);
+    auto return_value = self->module_eval(env, block);
     return return_value;
 }
 
@@ -1399,6 +1399,13 @@ Value *ModuleValue_is_method_defined_binding(Env *env, Value *self_value, ssize_
     ModuleValue *self = self_value->as_module();
     auto return_value = self->is_method_defined(env, argc > 0 ? args[0] : nullptr);
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+}
+
+Value *ModuleValue_module_eval_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    ModuleValue *self = self_value->as_module();
+    auto return_value = self->module_eval(env, block);
+    return return_value;
 }
 
 Value *ModuleValue_name_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
@@ -2076,7 +2083,7 @@ void init_bindings(Env *env) {
     Module->define_method(env, "attr_accessor", ModuleValue_attr_accessor_binding);
     Module->define_method(env, "attr_reader", ModuleValue_attr_reader_binding1);
     Module->define_method(env, "attr_writer", ModuleValue_attr_writer_binding);
-    Module->define_method(env, "class_eval", ModuleValue_class_eval_binding);
+    Module->define_method(env, "class_eval", ModuleValue_module_eval_binding);
     Module->define_method(env, "const_defined?", ModuleValue_const_defined_binding);
     Module->define_method(env, "define_method", ModuleValue_define_method_binding);
     Module->define_method(env, "extend", ModuleValue_extend_binding);
@@ -2085,6 +2092,7 @@ void init_bindings(Env *env) {
     Module->define_method(env, "included_modules", ModuleValue_included_modules_binding);
     Module->define_method(env, "inspect", ModuleValue_inspect_binding);
     Module->define_method(env, "method_defined?", ModuleValue_is_method_defined_binding);
+    Module->define_method(env, "module_eval", ModuleValue_module_eval_binding1);
     Module->define_method(env, "name", ModuleValue_name_binding);
     Module->define_method(env, "prepend", ModuleValue_prepend_binding);
     Module->define_method(env, "private", ModuleValue_private_method_binding);
