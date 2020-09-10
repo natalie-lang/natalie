@@ -103,9 +103,13 @@ class Runner
     when 'gdb', 'lldb'
       exec(options[:debug], out.path)
     else
-      pid = spawn(out.path, *ARGV)
-      Process.wait(pid)
-      exit $?.exitstatus || 1
+      begin
+        pid = spawn(out.path, *ARGV)
+        Process.wait(pid)
+        exit $?.exitstatus || 1
+      ensure
+        File.unlink(out.path)
+      end
     end
   end
 
