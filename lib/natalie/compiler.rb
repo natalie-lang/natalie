@@ -234,10 +234,11 @@ module Natalie
     end
 
     def expand_macros(ast, path)
-      (0...(ast.size)).reverse_each do |i|
-        node = ast[i]
+      ast.each_with_index do |node, i|
         if macro?(node)
-          ast[i,1] = run_macro(node, path)
+          expanded = run_macro(node, path)
+          raise 'bad node' if expanded.sexp_type != :block
+          ast[i] = expanded
         end
       end
       ast

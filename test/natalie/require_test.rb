@@ -5,6 +5,11 @@ require 'require_sub1'
 load 'require_sub2.rb'
 require_relative '../support/require_sub3'
 
+# this is here to test that order of requires goes top-to-bottom
+class Foo1 < Bar1
+end
+require 'require_sub1'
+
 describe 'require' do
   it 'works' do
     foo1.should == 'foo1'
