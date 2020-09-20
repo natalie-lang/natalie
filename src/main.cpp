@@ -109,44 +109,8 @@ extern "C" Env *build_top_env() {
 
     ClassValue *Exception = Object->subclass(env, "Exception", Value::Type::Exception);
     Object->const_set(env, "Exception", Exception);
-    ClassValue *ScriptError = Exception->subclass(env, "ScriptError");
-    Object->const_set(env, "ScriptError", ScriptError);
-    Value *NotImplementedError = ScriptError->subclass(env, "NotImplementedError");
-    Object->const_set(env, "NotImplementedError", NotImplementedError);
-    Value *SyntaxError = ScriptError->subclass(env, "SyntaxError");
-    Object->const_set(env, "SyntaxError", SyntaxError);
-    ClassValue *StandardError = Exception->subclass(env, "StandardError");
-    Object->const_set(env, "StandardError", StandardError);
-    ClassValue *NameError = StandardError->subclass(env, "NameError");
-    Object->const_set(env, "NameError", NameError);
-    ClassValue *NoMethodError = NameError->subclass(env, "NoMethodError");
-    Object->const_set(env, "NoMethodError", NoMethodError);
-    ClassValue *ArgumentError = StandardError->subclass(env, "ArgumentError");
-    Object->const_set(env, "ArgumentError", ArgumentError);
-    ClassValue *RuntimeError = StandardError->subclass(env, "RuntimeError");
-    Object->const_set(env, "RuntimeError", RuntimeError);
-    ClassValue *TypeError = StandardError->subclass(env, "TypeError");
-    Object->const_set(env, "TypeError", TypeError);
-    ClassValue *ZeroDivisionError = StandardError->subclass(env, "ZeroDivisionError");
-    Object->const_set(env, "ZeroDivisionError", ZeroDivisionError);
-    ClassValue *FrozenError = RuntimeError->subclass(env, "FrozenError");
-    Object->const_set(env, "FrozenError", FrozenError);
-    ClassValue *RangeError = StandardError->subclass(env, "RangeError");
-    Object->const_set(env, "RangeError", RangeError);
-    ClassValue *FloatDomainError = RangeError->subclass(env, "FloatDomainError");
-    Object->const_set(env, "FloatDomainError", FloatDomainError);
-    ClassValue *IndexError = StandardError->subclass(env, "IndexError");
-    Object->const_set(env, "IndexError", IndexError);
 
-    ClassValue *EncodingError = StandardError->subclass(env, "EncodingError");
-    Object->const_set(env, "EncodingError", EncodingError);
     ClassValue *Encoding = env->Object()->subclass(env, "Encoding");
-    Value *InvalidByteSequenceError = EncodingError->subclass(env, "InvalidByteSequenceError");
-    Encoding->const_set(env, "InvalidByteSequenceError", InvalidByteSequenceError);
-    Value *UndefinedConversionError = EncodingError->subclass(env, "UndefinedConversionError");
-    Encoding->const_set(env, "UndefinedConversionError", UndefinedConversionError);
-    Value *ConverterNotFoundError = EncodingError->subclass(env, "ConverterNotFoundError");
-    Encoding->const_set(env, "ConverterNotFoundError", ConverterNotFoundError);
     Object->const_set(env, "Encoding", Encoding);
 
     Value *Process = new ModuleValue { env, "Process" };

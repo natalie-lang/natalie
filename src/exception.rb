@@ -1,3 +1,26 @@
+class ScriptError < Exception; end
+  class NotImplementedError < ScriptError; end
+  class SyntaxError < ScriptError; end
+
+class StandardError < Exception; end
+  class ArgumentError < StandardError; end
+  class EncodingError < StandardError; end
+  class IndexError < StandardError; end
+  class NameError < StandardError; end
+    class NoMethodError < NameError; end
+  class RangeError < StandardError; end
+    class FloatDomainError < RangeError; end
+  class RuntimeError < StandardError; end
+    class FrozenError < RuntimeError; end
+  class TypeError < StandardError; end
+  class ZeroDivisionError < StandardError; end
+
+class Encoding
+  class InvalidByteSequenceError < EncodingError; end
+  class UndefinedConversionError < EncodingError; end
+  class ConverterNotFoundError < EncodingError; end
+end
+
 class SystemExit < Exception
   def initialize(*args)
     @status = 0
