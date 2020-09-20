@@ -173,6 +173,13 @@ Value *ArrayValue_select_binding1(Env *env, Value *self_value, ssize_t argc, Val
     return return_value;
 }
 
+Value *ArrayValue_shift_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0, 1);
+    ArrayValue *self = self_value->as_array();
+    auto return_value = self->shift(env, argc > 0 ? args[0] : nullptr);
+    return return_value;
+}
+
 Value *ArrayValue_size_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     ArrayValue *self = self_value->as_array();
@@ -1909,6 +1916,7 @@ void init_bindings(Env *env) {
     Array->define_method(env, "map", ArrayValue_map_binding);
     Array->define_method(env, "pop", ArrayValue_pop_binding);
     Array->define_method(env, "select", ArrayValue_select_binding1);
+    Array->define_method(env, "shift", ArrayValue_shift_binding);
     Array->define_method(env, "size", ArrayValue_size_binding1);
     Array->define_method(env, "sort", ArrayValue_sort_binding);
     Array->define_method(env, "to_a", ArrayValue_to_ary_binding);

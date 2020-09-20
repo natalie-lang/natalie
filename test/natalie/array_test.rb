@@ -547,4 +547,13 @@ describe 'array' do
       [1, 2, 3, 4].select { |i| i % 2 == 0 }.should == [2, 4]
     end
   end
+
+  describe '#shift' do
+    it 'works' do
+      a = [1, 2, 3]
+      a.shift.should == 1
+      a.shift(2).should == [2, 3]
+      a.should == []
+    end
+  end
 end

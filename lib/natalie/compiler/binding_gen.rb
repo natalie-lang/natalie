@@ -235,6 +235,7 @@ gen.binding('Array', 'length', 'ArrayValue', 'size', argc: 0, pass_env: false, p
 gen.binding('Array', 'map', 'ArrayValue', 'map', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Array', 'pop', 'ArrayValue', 'pop', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Array', 'select', 'ArrayValue', 'select', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
+gen.binding('Array', 'shift', 'ArrayValue', 'shift', argc: 0..1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Array', 'size', 'ArrayValue', 'size', argc: 0, pass_env: false, pass_block: false, return_type: :ssize_t)
 gen.binding('Array', 'sort', 'ArrayValue', 'sort', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Array', 'to_a', 'ArrayValue', 'to_ary', argc: 0, pass_env: false, pass_block: false, return_type: :Value)
