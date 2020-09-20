@@ -10,6 +10,7 @@ class StandardError < Exception; end
     class NoMethodError < NameError; end
   class RangeError < StandardError; end
     class FloatDomainError < RangeError; end
+  class RegexpError < StandardError; end
   class RuntimeError < StandardError; end
     class FrozenError < RuntimeError; end
   class TypeError < StandardError; end
