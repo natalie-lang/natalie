@@ -25,8 +25,48 @@ struct Vector : public gc {
         memcpy(m_data, other.m_data, sizeof(T) * m_size);
     }
 
+    Vector slice(ssize_t offset, ssize_t count = -1) {
+        if (count == -1 && m_size >= offset)
+            count = m_size - offset;
+        auto size = count;
+        auto capacity = size;
+        T *data = nullptr;
+        if (offset >= 0 && count >= 0 && m_size >= offset + count) {
+            if constexpr (NAT_VECTOR_GROW_FACTOR == 2) {
+                --capacity;
+                for (auto i = 0; i < 64; i += 4)
+                    capacity |= capacity >> i;
+                ++capacity;
+            } else {
+                capacity /= NAT_VECTOR_GROW_FACTOR;
+                ++capacity;
+                capacity *= NAT_VECTOR_GROW_FACTOR;
+            }
+            data = static_cast<T *>(malloc(sizeof(T) * capacity));
+            memcpy(data, m_data + offset, sizeof(T) * size);
+        } else {
+            // FIXME: We should probably say something here.
+            size = 0;
+            capacity = 0;
+            data = nullptr;
+        }
+
+        return { size, capacity, data };
+    }
+
+    Vector &operator=(Vector &&other) {
+        m_size = other.m_size;
+        m_capacity = other.m_size;
+        m_data = other.m_data;
+        other.m_data = nullptr;
+        other.m_size = 0;
+        other.m_capacity = 0;
+        return *this;
+    }
+
     ~Vector() {
-        free(m_data);
+        if (m_data)
+            free(m_data);
     }
 
     T &operator[](ssize_t index) const {
@@ -112,6 +152,11 @@ struct Vector : public gc {
     }
 
 private:
+    Vector(ssize_t size, ssize_t capacity, T *data)
+        : m_size(size)
+        , m_capacity(capacity)
+        , m_data(data) { }
+
     void grow(ssize_t capacity) {
         m_data = static_cast<T *>(realloc(m_data, sizeof(T) * capacity));
         m_capacity = capacity;
