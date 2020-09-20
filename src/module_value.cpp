@@ -264,8 +264,10 @@ Value *ModuleValue::call_method(Env *env, Value *instance_class, const char *met
         e.set_method_name(method_name);
         e.set_block(block);
         return method->run(&e, self, argc, args, block);
+    } else if (self->is_module()) {
+        NAT_RAISE(env, "NoMethodError", "undefined method `%s' for %s:%v", method_name, self->as_module()->class_name(), instance_class);
     } else {
-        NAT_RAISE(env, "NoMethodError", "undefined method `%s' for %v", method_name, instance_class);
+        NAT_RAISE(env, "NoMethodError", "undefined method `%s' for %s", method_name, NAT_INSPECT(self));
     }
 }
 
