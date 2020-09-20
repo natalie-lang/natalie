@@ -83,4 +83,42 @@ module Enumerable
     end
     ary
   end
+
+  def zip(*args)
+    has_block = block_given?
+    args = args.map do |arg|
+      if arg.respond_to? :to_ary
+        arg.to_ary
+      elsif arg.respond_to? :to_enum
+        arg.to_enum :each
+      else
+        arg
+      end
+    end
+
+    all_array = true
+    args.each do |arg|
+      all_array = arg.is_a? Array
+      break if not all_array
+    end
+
+    raise 'Support non-array args for #zip' unless all_array
+
+    result = has_block ? nil : []
+
+    each_with_index do |item, index|
+      entry = [item]
+      if all_array
+        args.each do |arg|
+          entry << arg[index]
+        end
+      end
+      if has_block
+        yield entry
+      else
+        result << entry
+      end
+    end
+    result
+  end
 end
