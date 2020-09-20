@@ -1,5 +1,3 @@
-# skip-test
-
 require_relative '../../spec_helper'
 require_relative 'fixtures/classes'
 require_relative 'shared/enumerable_enumeratorized'
@@ -38,18 +36,18 @@ describe "Enumerable#each_with_index" do
     res.should eql(@b)
   end
 
-  it "returns an enumerator if no block" do
+  xit "returns an enumerator if no block" do
     e = @b.each_with_index
     e.should be_an_instance_of(Enumerator)
     e.to_a.should == [[2, 0], [5, 1], [3, 2], [6, 3], [1, 4], [4, 5]]
   end
 
-  it "passes extra parameters to each" do
+  xit "passes extra parameters to each" do
     count = EnumerableSpecs::EachCounter.new(:apple)
     e = count.each_with_index(:foo, :bar)
     e.to_a.should == [[:apple, 0]]
     count.arguments_passed.should == [:foo, :bar]
   end
 
-  it_behaves_like :enumerable_enumeratorized_with_origin_size, :each_with_index
+  # it_behaves_like :enumerable_enumeratorized_with_origin_size, :each_with_index
 end

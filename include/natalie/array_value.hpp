@@ -101,11 +101,16 @@ struct ArrayValue : Value {
     Value *last(Env *);
     Value *include(Env *, Value *);
     Value *sort(Env *);
+    Value *shift(Env *, Value *);
     Value *join(Env *, Value *);
     Value *cmp(Env *, Value *);
     Value *select(Env *, Block *);
 
 private:
+    ArrayValue(Env *env, Vector<Value *> &&vector)
+        : Value { Value::Type::Array, env->Object()->const_fetch("Array")->as_class() }
+        , m_vector { std::move(vector) } { }
+
     Vector<Value *> m_vector {};
 };
 

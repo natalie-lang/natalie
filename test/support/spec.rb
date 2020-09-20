@@ -77,6 +77,12 @@ def it_behaves_like(behavior, method, obj = nil)
   end
 end
 
+def it_should_behave_like(*shared_groups)
+  shared_groups.each do |behavior|
+    it_behaves_like behavior, nil, nil
+  end
+end
+
 def specify(&block)
   return xit(nil, &block) if @context.last.skip
   @specs << [@context.dup, nil, block]

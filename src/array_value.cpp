@@ -235,6 +235,23 @@ Value *ArrayValue::include(Env *env, Value *item) {
     }
 }
 
+Value *ArrayValue::shift(Env *env, Value *count) {
+    auto has_count = count != nullptr;
+    ssize_t shift_count = 1;
+    Value *result = nullptr;
+    if (has_count) {
+        NAT_ASSERT_TYPE(count, Value::Type::Integer, "Integer");
+        shift_count = count->as_integer()->to_int64_t();
+        result = new ArrayValue { env, m_vector.slice(0, shift_count) };
+    } else {
+        result = m_vector[0];
+    }
+
+    auto shifted = m_vector.slice(shift_count);
+    m_vector = std::move(shifted);
+    return result;
+}
+
 Value *ArrayValue::sort(Env *env) {
     ArrayValue *copy = new ArrayValue { *this };
     copy->sort_in_place(env);
