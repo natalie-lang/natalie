@@ -39,6 +39,21 @@ module Enumerable
     end
   end
 
+  def each_with_index(*args)
+    index = 0
+    if block_given?
+      # FIXME: Expose ArgumentError.
+      raise "Wrong number of arguments, given #{args.size} expected 0" unless args.empty?
+      each do |item|
+        yield item, index
+        index += 1
+      end
+      self
+    else
+      raise 'Support #each_with_index without block'
+    end
+  end
+
   def grep(pattern)
     if block_given?
       ary = []
