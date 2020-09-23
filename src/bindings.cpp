@@ -750,6 +750,13 @@ Value *HashValue_has_key_binding(Env *env, Value *self_value, ssize_t argc, Valu
     return return_value;
 }
 
+Value *HashValue_has_key_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    HashValue *self = self_value->as_hash();
+    auto return_value = self->has_key(env, argc > 0 ? args[0] : nullptr);
+    return return_value;
+}
+
 Value *HashValue_keys_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     HashValue *self = self_value->as_hash();
@@ -2029,6 +2036,7 @@ void init_bindings(Env *env) {
     Hash->define_method(env, "initialize", HashValue_initialize_binding);
     Hash->define_method(env, "inspect", HashValue_inspect_binding);
     Hash->define_method(env, "key?", HashValue_has_key_binding);
+    Hash->define_method(env, "include?", HashValue_has_key_binding1);
     Hash->define_method(env, "keys", HashValue_keys_binding);
     Hash->define_method(env, "size", HashValue_size_binding);
     Hash->define_method(env, "sort", HashValue_sort_binding);
