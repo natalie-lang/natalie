@@ -84,6 +84,20 @@ module Enumerable
     ary
   end
 
+  def take_while
+    has_block = block_given?
+    raise ArgumentError, 'called without a block' unless has_block
+
+    result = []
+    broken_value = each do |item|
+      break self unless yield item
+      result << item
+    end
+
+    return result if broken_value.equal? self
+    broken_value
+  end
+
   def to_a(*args)
     result = []
     each(*args) do |x|
