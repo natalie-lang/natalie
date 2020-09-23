@@ -84,6 +84,30 @@ module Enumerable
     ary
   end
 
+  def take(count)
+    if not count.is_a? Integer and count.respond_to? :to_int
+      count = count.to_int
+    end
+    raise TypeError unless count.is_a? Integer
+    raise ArgumentError,
+      'Attempted to take a negative number of values' unless count >= 0
+
+    result = []
+    return result if count == 0
+
+    each do |*items|
+      if items.size > 1
+        result << items
+      else
+        result << items[0]
+      end
+
+      break if result.size == count
+    end
+
+    result
+  end
+
   def take_while
     has_block = block_given?
     raise ArgumentError, 'called without a block' unless has_block
