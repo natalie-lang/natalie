@@ -84,6 +84,14 @@ module Enumerable
     ary
   end
 
+  def to_a(*args)
+    result = []
+    each(*args) do |x|
+      result << x
+    end
+    result
+  end
+
   def zip(*args)
     has_block = block_given?
     args = args.map do |arg|

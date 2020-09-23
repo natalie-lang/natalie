@@ -4,7 +4,7 @@ describe :enumerable_entries, shared: true do
     numerous.send(@method).should == [1, nil, "a", 2, false, true]
   end
 
-  it "passes through the values yielded by #each_with_index" do
+  xit "passes through the values yielded by #each_with_index" do
     [:a, :b].each_with_index.send(@method).should == [[:a, 0], [:b, 1]]
   end
 
@@ -15,11 +15,11 @@ describe :enumerable_entries, shared: true do
   end
 
   ruby_version_is ''...'2.7' do
-    it "returns a tainted array if self is tainted" do
+    xit "returns a tainted array if self is tainted" do
       EnumerableSpecs::Empty.new.taint.send(@method).tainted?.should be_true
     end
 
-    it "returns an untrusted array if self is untrusted" do
+    xit "returns an untrusted array if self is untrusted" do
       EnumerableSpecs::Empty.new.untrust.send(@method).untrusted?.should be_true
     end
   end
