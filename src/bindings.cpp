@@ -40,6 +40,13 @@ Value *ArrayValue_cmp_binding(Env *env, Value *self_value, ssize_t argc, Value *
     return return_value;
 }
 
+Value *ArrayValue_eql_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    ArrayValue *self = self_value->as_array();
+    auto return_value = self->eql(env, argc > 0 ? args[0] : nullptr);
+    return return_value;
+}
+
 Value *ArrayValue_eq_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     ArrayValue *self = self_value->as_array();
@@ -1897,6 +1904,7 @@ void init_bindings(Env *env) {
     Array->define_method(env, "-", ArrayValue_sub_binding);
     Array->define_method(env, "<<", ArrayValue_ltlt_binding);
     Array->define_method(env, "<=>", ArrayValue_cmp_binding);
+    Array->define_method(env, "eql?", ArrayValue_eql_binding);
     Array->define_method(env, "==", ArrayValue_eq_binding);
     Array->define_method(env, "===", ArrayValue_eq_binding1);
     Array->define_method(env, "[]", ArrayValue_ref_binding);

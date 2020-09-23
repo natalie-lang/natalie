@@ -177,6 +177,26 @@ Value *ArrayValue::eq(Env *env, Value *other) {
     return env->true_obj();
 }
 
+Value *ArrayValue::eql(Env *env, Value *other) {
+    if (this == other)
+        return env->true_obj();
+    if (!other->is_array())
+        return env->false_obj();
+
+    auto other_array = other->as_array();
+    if (size() != other_array->size())
+        return env->false_obj();
+
+    for (ssize_t i = 0; i < size(); ++i) {
+        Value *item = (*other_array)[i];
+        Value *result = (*this)[i]->send(env, "eql?", 1, &item, nullptr);
+        if (result->type() == Value::Type::False)
+            return result;
+    }
+
+    return env->true_obj();
+}
+
 Value *ArrayValue::each(Env *env, Block *block) {
     NAT_ASSERT_BLOCK(); // TODO: return Enumerator when no block given
     for (auto &obj : *this) {

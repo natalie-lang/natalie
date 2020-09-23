@@ -94,6 +94,7 @@ struct ArrayValue : Value {
     Value *refeq(Env *, Value *, Value *, Value *);
     Value *any(Env *, ssize_t, Value **, Block *);
     Value *eq(Env *, Value *);
+    Value *eql(Env *, Value *);
     Value *each(Env *, Block *);
     Value *each_with_index(Env *, Block *);
     Value *map(Env *, Block *);
