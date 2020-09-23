@@ -58,6 +58,8 @@ struct HashValue : Value {
     Value *get_default(Env *, Value *);
     void put(Env *, Value *, Value *);
     Value *remove(Env *, Value *);
+    Value *default_proc(Env *);
+    Value *default_value(Env *);
 
     const Value *default_value() { return m_default_value; }
     void set_default_value(Value *val) { m_default_value = val; }

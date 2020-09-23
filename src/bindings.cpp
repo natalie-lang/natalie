@@ -785,6 +785,20 @@ Value *HashValue_values_binding(Env *env, Value *self_value, ssize_t argc, Value
     return return_value;
 }
 
+Value *HashValue_default_value_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    HashValue *self = self_value->as_hash();
+    auto return_value = self->default_value(env);
+    return return_value;
+}
+
+Value *HashValue_default_proc_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    HashValue *self = self_value->as_hash();
+    auto return_value = self->default_proc(env);
+    return return_value;
+}
+
 Value *IntegerValue_mod_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     IntegerValue *self = self_value->as_integer();
@@ -2020,6 +2034,8 @@ void init_bindings(Env *env) {
     Hash->define_method(env, "sort", HashValue_sort_binding);
     Hash->define_method(env, "to_s", HashValue_inspect_binding1);
     Hash->define_method(env, "values", HashValue_values_binding);
+    Hash->define_method(env, "default", HashValue_default_value_binding);
+    Hash->define_method(env, "default_proc", HashValue_default_proc_binding);
     Value *Integer = env->Object()->const_find(env, "Integer");
     Integer->define_method(env, "%", IntegerValue_mod_binding);
     Integer->define_method(env, "&", IntegerValue_bitwise_and_binding);

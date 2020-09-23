@@ -334,6 +334,8 @@ gen.binding('Hash', 'size', 'HashValue', 'size', argc: 0, pass_env: true, pass_b
 gen.binding('Hash', 'sort', 'HashValue', 'sort', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Hash', 'to_s', 'HashValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Hash', 'values', 'HashValue', 'values', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Hash', 'default', 'HashValue', 'default_value', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Hash', 'default_proc', 'HashValue', 'default_proc', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 
 gen.undefine_singleton_method('Integer', 'new')
 gen.binding('Integer', '%', 'IntegerValue', 'mod', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
