@@ -79,6 +79,17 @@ Value *HashValue::remove(Env *env, Value *key) {
     }
 }
 
+Value *HashValue::default_proc(Env *env) {
+    return ProcValue::from_block_maybe(env, m_default_block);
+}
+
+Value *HashValue::default_value(Env *env) {
+    if (m_default_value)
+        return m_default_value;
+
+    return env->nil_obj();
+}
+
 HashValue::Key *HashValue::key_list_append(Env *env, Value *key, Value *val) {
     if (m_key_list) {
         Key *first = m_key_list;

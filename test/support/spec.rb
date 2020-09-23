@@ -355,6 +355,8 @@ class Stub
     @message = message
     @pass = false
     @args = nil
+    @count = 0
+    @count_restriction = Integer
   end
 
   def with(*args)
@@ -363,16 +365,19 @@ class Stub
   end
 
   def and_return(result)
-    should_receive_expectation_passed = -> { @pass = true }
+    should_receive_called = -> { @pass = @count_restriction === @count }
+    increment = -> { @count += 1 }
     @subject.define_singleton_method(@message) do |*args|
+      increment.()
       if @args.nil? || args == @args
-        should_receive_expectation_passed.()
+        should_receive_called.()
         result
       else
         puts 'TODO: make a way for the original method to be called from the stub'
         fail
       end
     end
+    self
   end
 
   def and_raise(exception)
@@ -381,6 +386,19 @@ class Stub
       should_receive_expectation_passed.()
       raise exception
     end
+    self
+  end
+
+  def at_most(n)
+    case n
+    when :once
+      @count_restriction = 0..1
+    when :twice
+      @count_restriction = 0..2
+    else
+      raise ArgumentError, "Unimplemented value #{n.inspect} for Stub#at_most"
+    end
+    self
   end
 
   def validate!

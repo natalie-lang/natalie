@@ -78,6 +78,7 @@ struct StringValue : Value {
     ArrayValue *chars(Env *);
 
     SymbolValue *to_symbol(Env *);
+    Value *to_sym(Env *);
 
     StringValue *to_str() { return this; }
 

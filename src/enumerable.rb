@@ -58,14 +58,9 @@ module Enumerable
     if block_given?
       ary = []
       each do |*item|
-        if item.size <= 1
-          if pattern === item.first
-            ary << yield(*item)
-          end
-        else
-          if pattern === item
-            ary << yield(item)
-          end
+        item = items.size > 1 ? items : items[0]
+        if pattern === item
+          ary << yield(item)
         end
       end
       ary
@@ -76,12 +71,72 @@ module Enumerable
     end
   end
 
+  def group_by
+    raise ArgumentError, 'Support #group_by without block' unless block_given?
+
+    result = Hash.new
+    each do |*items|
+      item = items.size > 1 ? items : items[0]
+      group = yield item
+      if result.include? group
+        result[group] << item
+      else
+        result[group] = [item]
+      end
+    end
+
+    result
+  end
+
   def select
     ary = []
     each do |item|
       ary << item if yield(item)
     end
     ary
+  end
+
+  def take(count)
+    if not count.is_a? Integer and count.respond_to? :to_int
+      count = count.to_int
+    end
+    raise TypeError unless count.is_a? Integer
+    raise ArgumentError,
+      'Attempted to take a negative number of values' unless count >= 0
+
+    result = []
+    return result if count == 0
+
+    each do |*items|
+      item = items.size > 1 ? items : items[0]
+      result << item
+
+      break if result.size == count
+    end
+
+    result
+  end
+
+  def take_while
+    has_block = block_given?
+    raise ArgumentError, 'called without a block' unless has_block
+
+    result = []
+    broken_value = each do |item|
+      break self unless yield item
+      result << item
+    end
+
+    return result if broken_value.equal? self
+    broken_value
+  end
+
+  def to_a(*args)
+    result = []
+    each(*args) do |x|
+      result << x
+    end
+    result
   end
 
   def zip(*args)

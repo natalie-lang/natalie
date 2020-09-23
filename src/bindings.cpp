@@ -40,6 +40,13 @@ Value *ArrayValue_cmp_binding(Env *env, Value *self_value, ssize_t argc, Value *
     return return_value;
 }
 
+Value *ArrayValue_eql_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    ArrayValue *self = self_value->as_array();
+    auto return_value = self->eql(env, argc > 0 ? args[0] : nullptr);
+    return return_value;
+}
+
 Value *ArrayValue_eq_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     ArrayValue *self = self_value->as_array();
@@ -743,6 +750,13 @@ Value *HashValue_has_key_binding(Env *env, Value *self_value, ssize_t argc, Valu
     return return_value;
 }
 
+Value *HashValue_has_key_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    HashValue *self = self_value->as_hash();
+    auto return_value = self->has_key(env, argc > 0 ? args[0] : nullptr);
+    return return_value;
+}
+
 Value *HashValue_keys_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     HashValue *self = self_value->as_hash();
@@ -775,6 +789,20 @@ Value *HashValue_values_binding(Env *env, Value *self_value, ssize_t argc, Value
     NAT_ASSERT_ARGC(0);
     HashValue *self = self_value->as_hash();
     auto return_value = self->values(env);
+    return return_value;
+}
+
+Value *HashValue_default_value_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    HashValue *self = self_value->as_hash();
+    auto return_value = self->default_value(env);
+    return return_value;
+}
+
+Value *HashValue_default_proc_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    HashValue *self = self_value->as_hash();
+    auto return_value = self->default_proc(env);
     return return_value;
 }
 
@@ -1834,6 +1862,13 @@ Value *StringValue_to_str_binding(Env *env, Value *self_value, ssize_t argc, Val
     return return_value;
 }
 
+Value *StringValue_to_sym_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    StringValue *self = self_value->as_string();
+    auto return_value = self->to_sym(env);
+    return return_value;
+}
+
 Value *SymbolValue_cmp_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     SymbolValue *self = self_value->as_symbol();
@@ -1897,6 +1932,7 @@ void init_bindings(Env *env) {
     Array->define_method(env, "-", ArrayValue_sub_binding);
     Array->define_method(env, "<<", ArrayValue_ltlt_binding);
     Array->define_method(env, "<=>", ArrayValue_cmp_binding);
+    Array->define_method(env, "eql?", ArrayValue_eql_binding);
     Array->define_method(env, "==", ArrayValue_eq_binding);
     Array->define_method(env, "===", ArrayValue_eq_binding1);
     Array->define_method(env, "[]", ArrayValue_ref_binding);
@@ -2007,11 +2043,14 @@ void init_bindings(Env *env) {
     Hash->define_method(env, "initialize", HashValue_initialize_binding);
     Hash->define_method(env, "inspect", HashValue_inspect_binding);
     Hash->define_method(env, "key?", HashValue_has_key_binding);
+    Hash->define_method(env, "include?", HashValue_has_key_binding1);
     Hash->define_method(env, "keys", HashValue_keys_binding);
     Hash->define_method(env, "size", HashValue_size_binding);
     Hash->define_method(env, "sort", HashValue_sort_binding);
     Hash->define_method(env, "to_s", HashValue_inspect_binding1);
     Hash->define_method(env, "values", HashValue_values_binding);
+    Hash->define_method(env, "default", HashValue_default_value_binding);
+    Hash->define_method(env, "default_proc", HashValue_default_proc_binding);
     Value *Integer = env->Object()->const_find(env, "Integer");
     Integer->define_method(env, "%", IntegerValue_mod_binding);
     Integer->define_method(env, "&", IntegerValue_bitwise_and_binding);
@@ -2175,6 +2214,7 @@ void init_bindings(Env *env) {
     String->define_method(env, "to_i", StringValue_to_i_binding);
     String->define_method(env, "to_s", StringValue_to_s_binding);
     String->define_method(env, "to_str", StringValue_to_str_binding);
+    String->define_method(env, "to_sym", StringValue_to_sym_binding);
     Value *Symbol = env->Object()->const_find(env, "Symbol");
     Symbol->define_method(env, "<=>", SymbolValue_cmp_binding);
     Symbol->define_method(env, "id2name", SymbolValue_to_s_binding);

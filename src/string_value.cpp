@@ -122,6 +122,10 @@ SymbolValue *StringValue::to_symbol(Env *env) {
     return SymbolValue::intern(env, m_str);
 }
 
+Value *StringValue::to_sym(Env *env) {
+    return to_symbol(env);
+}
+
 StringValue *StringValue::inspect(Env *env) {
     StringValue *out = new StringValue { env, "\"" };
     for (ssize_t i = 0; i < m_length; i++) {
