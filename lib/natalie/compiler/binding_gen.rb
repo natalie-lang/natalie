@@ -502,6 +502,7 @@ gen.binding('String', 'succ', 'StringValue', 'successive', argc: 0, pass_env: tr
 gen.binding('String', 'to_i', 'StringValue', 'to_i', argc: 0..1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('String', 'to_s', 'StringValue', 'to_s', argc: 0, pass_env: false, pass_block: false, return_type: :Value)
 gen.binding('String', 'to_str', 'StringValue', 'to_str', argc: 0, pass_env: false, pass_block: false, return_type: :Value)
+gen.binding('String', 'to_sym', 'StringValue', 'to_sym', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 
 gen.undefine_singleton_method('Symbol', 'new')
 gen.binding('Symbol', '<=>', 'SymbolValue', 'cmp', argc: 1, pass_env: true, pass_block: false, return_type: :Value)

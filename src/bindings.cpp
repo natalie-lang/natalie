@@ -1862,6 +1862,13 @@ Value *StringValue_to_str_binding(Env *env, Value *self_value, ssize_t argc, Val
     return return_value;
 }
 
+Value *StringValue_to_sym_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    StringValue *self = self_value->as_string();
+    auto return_value = self->to_sym(env);
+    return return_value;
+}
+
 Value *SymbolValue_cmp_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     SymbolValue *self = self_value->as_symbol();
@@ -2207,6 +2214,7 @@ void init_bindings(Env *env) {
     String->define_method(env, "to_i", StringValue_to_i_binding);
     String->define_method(env, "to_s", StringValue_to_s_binding);
     String->define_method(env, "to_str", StringValue_to_str_binding);
+    String->define_method(env, "to_sym", StringValue_to_sym_binding);
     Value *Symbol = env->Object()->const_find(env, "Symbol");
     Symbol->define_method(env, "<=>", SymbolValue_cmp_binding);
     Symbol->define_method(env, "id2name", SymbolValue_to_s_binding);
