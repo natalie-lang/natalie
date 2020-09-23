@@ -76,6 +76,23 @@ module Enumerable
     end
   end
 
+  def group_by
+    raise ArgumentError, 'Support #group_by without block' unless block_given?
+
+    result = Hash.new
+    each do |*items|
+      item = items.size > 1 ? items : items[0]
+      group = yield item
+      if result.include? group
+        result[group] << item
+      else
+        result[group] = [item]
+      end
+    end
+
+    result
+  end
+
   def select
     ary = []
     each do |item|
