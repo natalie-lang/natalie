@@ -78,15 +78,26 @@
 #define NAT_FLAG_FROZEN 2
 #define NAT_FLAG_BREAK 4
 
-#define NAT_RUN_BLOCK_FROM_ENV(env, argc, args) ({                                       \
-    Env *env_with_block = env;                                                           \
-    while (!env_with_block->block() && env_with_block->outer()) {                        \
-        env_with_block = env_with_block->outer();                                        \
-    }                                                                                    \
-    if (!env_with_block->block()) {                                                      \
-        NAT_RAISE(env, "LocalJumpError", "no block given");                              \
-    }                                                                                    \
-    NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, env_with_block->block(), argc, args, nullptr); \
+#define NAT_RUN_BLOCK_FROM_ENV(env, argc, args) ({                                                        \
+    Env *env_with_block = env;                                                                            \
+    while (!env_with_block->block() && env_with_block->outer()) {                                         \
+        env_with_block = env_with_block->outer();                                                         \
+    }                                                                                                     \
+    if (!env_with_block->block()) {                                                                       \
+        NAT_RAISE(env, "LocalJumpError", "no block given");                                               \
+    }                                                                                                     \
+    NAT_RUN_BLOCK_AND_PROPAGATE_BREAK(env, env_with_block, env_with_block->block(), argc, args, nullptr); \
+})
+
+#define NAT_RUN_BLOCK_AND_PROPAGATE_BREAK(env, env_with_block, the_block, argc, args, block) ({ \
+    Value *_result = the_block->_run(env, argc, args, block);                                   \
+    if (_result->has_break_flag()) {                                                            \
+        if (env == env_with_block) {                                                            \
+            _result->remove_break_flag();                                                       \
+        }                                                                                       \
+        return _result;                                                                         \
+    }                                                                                           \
+    _result;                                                                                    \
 })
 
 #define NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, the_block, argc, args, block) ({ \

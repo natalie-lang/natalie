@@ -27,6 +27,14 @@ def break_in_iter_in_method
   x
 end
 
+def break_propagates(x, result)
+  x.each do |y|
+    result << y
+    yield y
+    result << y
+  end
+end
+
 describe 'break' do
   it 'breaks from a block' do
     result = [1, 2, 3].each { break }
@@ -77,5 +85,13 @@ describe 'break' do
       break 'from block'
     end
     result.should == 'from block'
+  end
+
+  it 'propagates the break to the env where the block was passed' do
+    result = []
+    break_propagates([1, 2, 3], result) {
+      break
+    }
+    result.should == [1]
   end
 end
