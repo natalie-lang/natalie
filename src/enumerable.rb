@@ -58,14 +58,9 @@ module Enumerable
     if block_given?
       ary = []
       each do |*item|
-        if item.size <= 1
-          if pattern === item.first
-            ary << yield(*item)
-          end
-        else
-          if pattern === item
-            ary << yield(item)
-          end
+        item = items.size > 1 ? items : items[0]
+        if pattern === item
+          ary << yield(item)
         end
       end
       ary
@@ -113,11 +108,8 @@ module Enumerable
     return result if count == 0
 
     each do |*items|
-      if items.size > 1
-        result << items
-      else
-        result << items[0]
-      end
+      item = items.size > 1 ? items : items[0]
+      result << item
 
       break if result.size == count
     end
