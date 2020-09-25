@@ -1624,6 +1624,12 @@ Value *RangeValue_eqeqeq_binding1(Env *env, Value *self_value, ssize_t argc, Val
     return return_value;
 }
 
+Value *RegexpValue_compile_static_binding(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1, 2);
+    auto return_value = RegexpValue::compile(env, argc > 0 ? args[0] : nullptr, argc > 1 ? args[1] : nullptr);
+    return return_value;
+}
+
 Value *RegexpValue_eq_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     RegexpValue *self = self_value->as_regexp();
@@ -2179,6 +2185,7 @@ void init_bindings(Env *env) {
     Range->define_method(env, "===", RangeValue_eqeqeq_binding);
     Range->define_method(env, "include?", RangeValue_eqeqeq_binding1);
     Value *Regexp = env->Object()->const_find(env, "Regexp");
+    Regexp->define_singleton_method(env, "compile", RegexpValue_compile_static_binding);
     Regexp->define_method(env, "==", RegexpValue_eq_binding);
     Regexp->define_method(env, "===", RegexpValue_eqeqeq_binding);
     Regexp->define_method(env, "=~", RegexpValue_eqtilde_binding);

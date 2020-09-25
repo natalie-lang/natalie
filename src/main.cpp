@@ -90,6 +90,9 @@ extern "C" Env *build_top_env() {
 
     ClassValue *Regexp = Object->subclass(env, "Regexp", Value::Type::Regexp);
     Object->const_set(env, "Regexp", Regexp);
+    Regexp->const_set(env, "IGNORECASE", new IntegerValue { env, 1 });
+    Regexp->const_set(env, "EXTENDED", new IntegerValue { env, 2 });
+    Regexp->const_set(env, "MULTILINE", new IntegerValue { env, 4 });
 
     ClassValue *Range = Object->subclass(env, "Range", Value::Type::Range);
     Object->const_set(env, "Range", Range);

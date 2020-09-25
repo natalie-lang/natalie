@@ -4,6 +4,9 @@ describe 'regexp' do
   it 'can be created with syntax' do
     r = /foo/
     r.should be_kind_of(Regexp)
+    r = /foo/ixm
+    r.should be_kind_of(Regexp)
+    r.inspect.should == "/foo/mix"
   end
 
   it 'can be created dynamically' do
@@ -121,6 +124,18 @@ describe 'regexp' do
       $1.should == 'i'
       $2.should == 'm'
       $3.should == nil
+    end
+  end
+
+  describe '#compile' do
+    it 'creates a regexp from a string' do
+      r = Regexp.compile("t(i)m+", true)
+      r.should == /t(i)m+/i
+    end
+
+    it 'creates a regexp from a string with options' do
+      r = Regexp.compile("tim", Regexp::EXTENDED | Regexp::IGNORECASE)
+      r.should == /tim/ix
     end
   end
 end

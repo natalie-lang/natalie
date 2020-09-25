@@ -17,6 +17,9 @@ Value *RegexpValue::inspect(Env *env) {
     StringValue *out = new StringValue { env, "/" };
     out->append(env, pattern());
     out->append_char(env, '/');
+    if ((options() & 4) != 0) out->append_char(env, 'm');
+    if ((options() & 1) != 0) out->append_char(env, 'i');
+    if ((options() & 2) != 0) out->append_char(env, 'x');
     return out;
 }
 

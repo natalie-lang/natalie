@@ -5,7 +5,9 @@
 #include "natalie/class_value.hpp"
 #include "natalie/forward.hpp"
 #include "natalie/global_env.hpp"
+#include "natalie/integer_value.hpp"
 #include "natalie/macros.hpp"
+#include "natalie/string_value.hpp"
 #include "natalie/value.hpp"
 
 extern "C" {
@@ -21,31 +23,45 @@ struct RegexpValue : Value {
     RegexpValue(Env *env, ClassValue *klass)
         : Value { Value::Type::Regexp, klass } { }
 
-    RegexpValue(Env *env, const char *pattern)
+    RegexpValue(Env *env, const char *pattern, int options = 0)
         : Value { Value::Type::Regexp, env->Object()->const_fetch("Regexp")->as_class() } {
         assert(pattern);
-        initialize(env, pattern);
+        initialize(env, pattern, options);
     }
 
-    void initialize(Env *env, const char *pattern) {
+    static Value *compile(Env *env, Value *pattern, Value *flags) {
+        NAT_ASSERT_TYPE(pattern, Value::Type::String, "String");
+        int options = 0;
+        if (flags->is_integer())
+            options = flags->as_integer()->to_int64_t();
+        else if (flags->is_truthy())
+            options = 1;
+        RegexpValue *regexp = new RegexpValue { env, pattern->as_string()->c_str(), options };
+        return regexp;
+    }
+
+    void initialize(Env *env, const char *pattern, int options = 0) {
         regex_t *regex;
         OnigErrorInfo einfo;
         UChar *pat = (UChar *)pattern;
         int result = onig_new(&regex, pat, pat + strlen((char *)pat),
-            ONIG_OPTION_DEFAULT, ONIG_ENCODING_ASCII, ONIG_SYNTAX_DEFAULT, &einfo);
+            options, ONIG_ENCODING_ASCII, ONIG_SYNTAX_DEFAULT, &einfo);
         if (result != ONIG_NORMAL) {
             OnigUChar s[ONIG_MAX_ERROR_MESSAGE_LEN];
             onig_error_code_to_str(s, result, &einfo);
             NAT_RAISE(env, "SyntaxError", (char *)s);
         }
         m_regex = regex;
+        m_options = options;
         m_pattern = strdup(pattern);
     }
 
     const char *pattern() { return m_pattern; }
+    int options() { return m_options; }
 
     bool operator==(const Value &other) const {
-        return other.is_regexp() && strcmp(m_pattern, const_cast<Value &>(other).as_regexp()->m_pattern) == 0;
+        RegexpValue *other_regexp = const_cast<Value &>(other).as_regexp();
+        return other.is_regexp() && strcmp(m_pattern, other_regexp->m_pattern) == 0 && m_options == other_regexp->m_options;
     }
 
     int search(const char *str, OnigRegion *region, OnigOptionType options) {
@@ -78,6 +94,7 @@ struct RegexpValue : Value {
 
 private:
     regex_t *m_regex { nullptr };
+    int m_options { 0 };
     const char *m_pattern { nullptr };
 };
 
