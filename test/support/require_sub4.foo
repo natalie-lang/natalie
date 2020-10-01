@@ -1,0 +1,1 @@
+raise 'This file should not be loaded because there is a sibling file with a .rb extension.'

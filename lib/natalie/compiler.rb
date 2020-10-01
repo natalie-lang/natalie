@@ -258,10 +258,8 @@ module Natalie
 
     def macro_require(node, current_path)
       name = node[1]
-      if File.extname(name).empty?
-        if (full_path = find_full_path("#{name}.rb", base: Dir.pwd, search: true))
-          return load_file(full_path, require_once: true)
-        end
+      if (full_path = find_full_path("#{name}.rb", base: Dir.pwd, search: true))
+        return load_file(full_path, require_once: true)
       elsif (full_path = find_full_path(name, base: Dir.pwd, search: true))
         return load_file(full_path, require_once: true)
       end
@@ -270,10 +268,8 @@ module Natalie
 
     def macro_require_relative(node, current_path)
       name = node[1]
-      if File.extname(name).empty?
-        if (full_path = find_full_path("#{name}.rb", base: File.dirname(current_path), search: false))
-          return load_file(full_path, require_once: true)
-        end
+      if (full_path = find_full_path("#{name}.rb", base: File.dirname(current_path), search: false))
+        return load_file(full_path, require_once: true)
       elsif (full_path = find_full_path(name, base: File.dirname(current_path), search: false))
         return load_file(full_path, require_once: true)
       end

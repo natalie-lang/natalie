@@ -4,6 +4,7 @@ require_relative '../spec_helper'
 require 'require_sub1'
 load 'require_sub2.rb'
 require_relative '../support/require_sub3'
+require 'require_sub4.foo'
 
 # this is here to test that order of requires goes top-to-bottom
 class Foo1 < Bar1
