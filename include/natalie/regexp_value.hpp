@@ -32,10 +32,12 @@ struct RegexpValue : Value {
     static Value *compile(Env *env, Value *pattern, Value *flags) {
         NAT_ASSERT_TYPE(pattern, Value::Type::String, "String");
         int options = 0;
-        if (flags->is_integer())
-            options = flags->as_integer()->to_int64_t();
-        else if (flags->is_truthy())
-            options = 1;
+        if (flags) {
+            if (flags->is_integer())
+                options = flags->as_integer()->to_int64_t();
+            else if (flags->is_truthy())
+                options = 1;
+        }
         RegexpValue *regexp = new RegexpValue { env, pattern->as_string()->c_str(), options };
         return regexp;
     }
