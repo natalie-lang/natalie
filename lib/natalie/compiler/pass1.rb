@@ -280,6 +280,9 @@ module Natalie
         str_node
       end
 
+      # TODO: support /o option on Regexes which compiles the literal only once
+      alias process_dregx_once process_dregx
+
       def process_dstr(exp)
         (_, start, *rest) = exp
         string = temp('string')
