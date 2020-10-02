@@ -167,7 +167,7 @@ module Natalie
         exp.new(:block,
                 s(:class_fn, fn, process(s(:block, *body))),
                 s(:declare, klass, s(:const_get, :self, s(:s, name))),
-                s(:c_if, s(:not, klass),
+                s(:c_if, s(:c_not, klass),
                   s(:block,
                     s(:set, klass, s(:subclass, s(:as_class, process(superclass)), :env, s(:s, name))),
                     s(:const_set, :self, :env, s(:s, name), klass))),
@@ -645,7 +645,7 @@ module Natalie
         exp.new(:block,
                 s(:module_fn, fn, process(s(:block, *body))),
                 s(:declare, mod, s(:const_get, :self, s(:s, name))),
-                s(:c_if, s(:not, mod),
+                s(:c_if, s(:c_not, mod),
                   s(:block,
                     s(:set, mod, s(:new, :ModuleValue, :env, s(:s, name))),
                     s(:const_set, :self, :env, s(:s, name), mod))),
@@ -664,6 +664,11 @@ module Natalie
         exp.new(:block,
                 s(:declare, match, s(:last_match, :env)),
                 s(:c_if, s(:is_truthy, match), s(:send, match, :[], s(:args, s(:new, :IntegerValue, :env, num))), s(:nil)))
+      end
+
+      def process_not(exp)
+        (_, value) = exp
+        exp.new(:send, process(value), :!, s(:args))
       end
 
       def process_op_asgn1(exp)
@@ -724,7 +729,7 @@ module Natalie
       end
 
       def process_op_asgn_and(exp)
-        process_op_asgn_bool(exp, condition: ->(result_name) { s(:not, s(:is_truthy, result_name)) })
+        process_op_asgn_bool(exp, condition: ->(result_name) { s(:c_not, s(:is_truthy, result_name)) })
       end
 
       def process_op_asgn_or(exp)
@@ -768,7 +773,7 @@ module Natalie
         lhs_result = temp('lhs')
         exp.new(:block,
                 s(:declare, lhs_result, process(lhs)),
-                s(:c_if, s(:not, s(:is_truthy, lhs_result)), rhs, lhs_result))
+                s(:c_if, s(:c_not, s(:is_truthy, lhs_result)), rhs, lhs_result))
       end
 
       def process_rescue(exp)
@@ -869,7 +874,7 @@ module Natalie
         body ||= s(:nil)
         result_name = temp('while_result')
         loop_context(result_name) do
-          cond = s(:c_if, s(:not, s(:is_truthy, process(condition))), s(:c_break))
+          cond = s(:c_if, s(:c_not, s(:is_truthy, process(condition))), s(:c_break))
           loop_body = pre ? s(:block, cond, process(body)) : s(:block, process(body), cond)
           exp.new(:block,
                   s(:declare, result_name, s(:nil)),

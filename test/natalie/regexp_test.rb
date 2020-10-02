@@ -56,6 +56,15 @@ describe 'regexp' do
     end
   end
 
+  describe '!~' do
+    it 'return a boolean for match' do
+      result = /foo/ !~ 'foo'
+      result.should == false
+      result = /bar/ !~ 'baz'
+      result.should == true
+    end
+  end
+
   describe '#match' do
     describe '#size' do
       it 'returns the number of captures (including the whole match)' do

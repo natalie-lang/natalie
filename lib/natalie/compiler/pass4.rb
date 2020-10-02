@@ -333,6 +333,11 @@ module Natalie
         ''
       end
 
+      def process_c_not(exp)
+        (_, cond) = exp
+        "!#{process_atom cond}"
+      end
+
       def process_c_while(exp)
         (_, condition, body) = exp
         condition = process_atom(condition)
@@ -547,11 +552,6 @@ module Natalie
 
       def process_nil(_)
         'env->nil_obj()'
-      end
-
-      def process_not(exp)
-        (_, cond) = exp
-        "!#{process_atom cond}"
       end
 
       def process_s(exp)
