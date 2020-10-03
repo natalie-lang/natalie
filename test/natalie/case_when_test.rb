@@ -119,4 +119,14 @@ describe 'case/when' do
              end
     result.should == nil
   end
+
+  it 'does not require a value to match' do
+    result = case
+             when true
+               'yep'
+             when false
+               'nope'
+             end
+    result.should == 'yep'
+  end
 end

@@ -136,22 +136,38 @@ module Natalie
 
       def process_case(exp)
         (_, value, *whens, else_body) = exp
-        value_name = temp('case_value')
-        cond = s(:cond)
-        whens.each do |when_exp|
-          (_, (_, *matchers), *when_body) = when_exp
-          when_body = when_body.map { |w| process(w) }
-          when_body = [s(:nil)] if when_body == [nil]
-          matchers.each do |matcher|
-            cond << s(:is_truthy, s(:send, process(matcher), '===', s(:args, value_name), 'nullptr'))
-            cond << s(:block, *when_body)
+        if value # matching against a value
+          value_name = temp('case_value')
+          cond = s(:cond)
+          whens.each do |when_exp|
+            (_, (_, *matchers), *when_body) = when_exp
+            when_body = when_body.map { |w| process(w) }
+            when_body = [s(:nil)] if when_body == [nil]
+            matchers.each do |matcher|
+              cond << s(:is_truthy, s(:send, process(matcher), '===', s(:args, value_name), 'nullptr'))
+              cond << s(:block, *when_body)
+            end
           end
+          cond << s(:else)
+          cond << process(else_body || s(:nil))
+          exp.new(:block,
+                  s(:declare, value_name, process(value)),
+                  cond)
+        else # just a glorified if/elsif
+          cond = s(:cond)
+          whens.each do |when_exp|
+            (_, (_, *matchers), *when_body) = when_exp
+            when_body = when_body.map { |w| process(w) }
+            when_body = [s(:nil)] if when_body == [nil]
+            matchers.each do |matcher|
+              cond << s(:is_truthy, process(matcher))
+              cond << s(:block, *when_body)
+            end
+          end
+          cond << s(:else)
+          cond << process(else_body || s(:nil))
+          cond
         end
-        cond << s(:else)
-        cond << process(else_body || s(:nil))
-        exp.new(:block,
-                s(:declare, value_name, process(value)),
-                cond)
       end
 
       def process_cdecl(exp)
