@@ -1,4 +1,5 @@
 #include "natalie.hpp"
+#include <random>
 
 namespace Natalie {
 
@@ -228,6 +229,18 @@ Value *ArrayValue::map(Env *env, Block *block) {
 Value *ArrayValue::first(Env *env) {
     if (size() > 0) {
         return (*this)[0];
+    } else {
+        return env->nil_obj();
+    }
+}
+
+Value *ArrayValue::sample(Env *env) {
+    std::random_device dev;
+    std::mt19937 rng(dev());
+    std::uniform_int_distribution<std::mt19937::result_type> random_number(1,size());
+
+    if (size() > 0) {
+        return (*this)[random_number(rng) - 1];
     } else {
         return env->nil_obj();
     }

@@ -106,6 +106,7 @@ struct ArrayValue : Value {
     Value *join(Env *, Value *);
     Value *cmp(Env *, Value *);
     Value *select(Env *, Block *);
+    Value *sample(Env *);
 
 private:
     ArrayValue(Env *env, Vector<Value *> &&vector)

@@ -242,6 +242,7 @@ gen.binding('Array', 'sort', 'ArrayValue', 'sort', argc: 0, pass_env: true, pass
 gen.binding('Array', 'to_a', 'ArrayValue', 'to_ary', argc: 0, pass_env: false, pass_block: false, return_type: :Value)
 gen.binding('Array', 'to_ary', 'ArrayValue', 'to_ary', argc: 0, pass_env: false, pass_block: false, return_type: :Value)
 gen.binding('Array', 'to_s', 'ArrayValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Array', 'sample', 'ArrayValue', 'sample', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 
 gen.binding('BasicObject', '__send__', 'Value', 'send', argc: 1.., pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('BasicObject', '!', 'Value', 'is_falsey', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
