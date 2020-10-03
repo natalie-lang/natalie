@@ -995,6 +995,13 @@ Value *IntegerValue_bitwise_or_binding(Env *env, Value *self_value, ssize_t argc
     return return_value;
 }
 
+Value *IntegerValue_is_zero_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    IntegerValue *self = self_value->as_integer();
+    auto return_value = self->is_zero();
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+}
+
 Value *IoValue_close_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     IoValue *self = self_value->as_io();
@@ -2085,6 +2092,7 @@ void init_bindings(Env *env) {
     Integer->define_method(env, "to_i", IntegerValue_to_i_binding);
     Integer->define_method(env, "to_s", IntegerValue_to_s_binding1);
     Integer->define_method(env, "|", IntegerValue_bitwise_or_binding);
+    Integer->define_method(env, "zero?", IntegerValue_is_zero_binding);
     Value *IO = env->Object()->const_find(env, "IO");
     IO->define_method(env, "close", IoValue_close_binding);
     IO->define_method(env, "fileno", IoValue_fileno_binding);

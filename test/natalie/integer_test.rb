@@ -154,4 +154,12 @@ describe 'integer' do
       2.even?.should == true
     end
   end
+
+  describe '#zero?' do
+    specify do
+      0.zero?.should == true
+      1.zero?.should == false
+      -1.zero?.should == false
+    end
+  end
 end

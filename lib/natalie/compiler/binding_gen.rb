@@ -366,6 +366,7 @@ gen.binding('Integer', 'times', 'IntegerValue', 'times', argc: 0, pass_env: true
 gen.binding('Integer', 'to_i', 'IntegerValue', 'to_i', argc: 0, pass_env: false, pass_block: false, return_type: :Value)
 gen.binding('Integer', 'to_s', 'IntegerValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Integer', '|', 'IntegerValue', 'bitwise_or', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Integer', 'zero?', 'IntegerValue', 'is_zero', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 
 gen.binding('IO', 'close', 'IoValue', 'close', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('IO', 'fileno', 'IoValue', 'fileno', argc: 0, pass_env: false, pass_block: false, return_type: :int)
