@@ -63,7 +63,7 @@ module Natalie
     def compile_c_to_binary
       cmd = compiler_command
       out = `#{cmd} 2>&1`
-      File.unlink(@c_path) unless debug || build == 'coverage'
+      File.unlink(@c_path) unless debug || build == 'coverage' || $? != 0
       $stderr.puts out if out.strip != ''
       raise CompileError.new('There was an error compiling.') if $? != 0
     end
