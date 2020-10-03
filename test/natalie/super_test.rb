@@ -31,12 +31,12 @@ class PirateGreeter < Greeter
     "ARRRR. #{super}"
   end
 
-  #def greet_in_rescue
-  #  begin
-  #    "ARRRR. #{super}"
-  #  rescue
-  #  end
-  #end
+  def greet_in_rescue
+    begin
+      "ARRRR. #{super}"
+    rescue
+    end
+  end
 end
 
 describe 'super' do
@@ -55,7 +55,7 @@ describe 'super' do
     greeter.greet_by_name_implicitly('Tim').should == "ARRRR. Hello, Tim."
   end
 
-  xit 'works inside a rescue block' do
+  it 'works inside a rescue block' do
     greeter = PirateGreeter.new
     greeter.greet_in_rescue.should == "ARRRR. Hello."
   end

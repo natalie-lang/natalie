@@ -482,11 +482,11 @@ module Natalie
       end
       alias process_block_fn process_fn
       alias process_def_fn process_fn
+      alias process_begin_fn process_fn
 
       def process_fn2(exp)
         process_fn(exp, 2)
       end
-      alias process_begin_fn process_fn2
       alias process_class_fn process_fn2
       alias process_module_fn process_fn2
 

@@ -48,8 +48,6 @@ extern "C" {
 #include "onigmo.h"
 }
 
-using MethodFn = Value *(*)(Env *, Value *, ssize_t, Value **, Block *);
-
 void init_bindings(Env *);
 
 bool is_constant_name(const char *name);
@@ -61,7 +59,7 @@ const char *find_current_method_name(Env *env);
 void int_to_string(int64_t num, char *buf);
 void int_to_hex_string(int64_t num, char *buf, bool capitalize);
 
-Value *call_begin(Env *env, Value *self, Value *(*block_fn)(Env *, Value *));
+Value *call_begin(Env *, Value *, MethodFnPtr, ssize_t, Value **, Block *);
 
 Value *splat(Env *env, Value *obj);
 

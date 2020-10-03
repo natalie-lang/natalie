@@ -1,4 +1,5 @@
 #include "natalie.hpp"
+#include "natalie/forward.hpp"
 #include <ctype.h>
 #include <math.h>
 #include <stdarg.h>
@@ -47,9 +48,9 @@ void int_to_hex_string(int64_t num, char *buf, bool capitalize) {
     }
 }
 
-Value *call_begin(Env *env, Value *self, Value *(*block_fn)(Env *, Value *)) {
+Value *call_begin(Env *env, Value *self, MethodFnPtr begin_fn, ssize_t argc, Value **args, Block *block) {
     Env e = Env::new_block_env(env, env);
-    return block_fn(&e, self);
+    return begin_fn(&e, self, argc, args, block);
 }
 
 void run_at_exit_handlers(Env *env) {
