@@ -556,4 +556,26 @@ describe 'array' do
       a.should == []
     end
   end
+
+  describe '#sample' do
+    it 'works' do
+      a = [1, 2, 3]
+
+      occurrences = []
+
+      1000.times do
+        sample = a.sample
+
+        occurrences << sample unless occurrences.include?(sample)
+      end
+
+      a.each do |e|
+        occurrences.include?(e).should == true
+      end
+    end
+
+    it 'returns nil for empty arrays' do
+      [].sample.should == nil
+    end
+  end
 end

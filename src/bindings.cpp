@@ -222,6 +222,13 @@ Value *ArrayValue_inspect_binding1(Env *env, Value *self_value, ssize_t argc, Va
     return return_value;
 }
 
+Value *ArrayValue_sample_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    ArrayValue *self = self_value->as_array();
+    auto return_value = self->sample(env);
+    return return_value;
+}
+
 Value *Value_send_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC_AT_LEAST(1);
     Value *self = self_value;
@@ -1971,6 +1978,7 @@ void init_bindings(Env *env) {
     Array->define_method(env, "to_a", ArrayValue_to_ary_binding);
     Array->define_method(env, "to_ary", ArrayValue_to_ary_binding1);
     Array->define_method(env, "to_s", ArrayValue_inspect_binding1);
+    Array->define_method(env, "sample", ArrayValue_sample_binding);
     Value *BasicObject = env->Object()->const_find(env, "BasicObject");
     BasicObject->define_method(env, "__send__", Value_send_binding);
     BasicObject->define_method(env, "!", Value_is_falsey_binding);
