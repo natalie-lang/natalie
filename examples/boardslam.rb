@@ -116,7 +116,7 @@ class BoardSlam
 end
 
 if $0 == __FILE__
-  if ARGV.size < 3
+  if ARGV.size != 3
     puts 'usage: bin/natalie examples/boardslam.rb 3 5 1'
     exit
   end
