@@ -2,6 +2,6 @@ require 'fileutils'
 
 FileUtils.mkdir_p(File.expand_path('tmp', __dir__))
 
-Dir['test/ruby/*_test.rb'].each do |path|
+Dir[File.expand_path('ruby/*_test.rb', __dir__)].each do |path|
   load(path)
 end

@@ -6,6 +6,11 @@ set(default_build_type "Debug")
 set(CMAKE_CXX_FLAGS_DEBUG "-g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unknown-warning-option")
 set(CMAKE_CXX_FLAGS_RELEASE "-O2")
 
+add_custom_target(test
+    COMMAND ruby ${CMAKE_SOURCE_DIR}/test/all.rb
+    USES_TERMINAL
+)
+
 file(GLOB LIB_SOURCES "src/*.cpp")
 file(GLOB GENERATED_NAMES "src/*.rb")
 
