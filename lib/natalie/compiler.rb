@@ -49,7 +49,7 @@ module Natalie
       @required = {}
     end
 
-    attr_accessor :ast, :write_obj, :repl, :out_path, :context, :vars, :options, :c_path
+    attr_accessor :ast, :write_obj, :repl, :out_path, :context, :vars, :options, :c_path, :inline_cpp_enabled
 
     attr_writer :load_path
 
@@ -93,7 +93,8 @@ module Natalie
         var_num: 0,
         template: template,
         repl: repl,
-        vars: vars || {}
+        vars: vars || {},
+        inline_cpp_enabled: inline_cpp_enabled,
       }
     end
 
@@ -258,6 +259,10 @@ module Natalie
 
     def macro_require(node, current_path)
       name = node[1]
+      if name == 'natalie/inline'
+        @inline_cpp_enabled = true
+        return s(:block)
+      end
       if (full_path = find_full_path("#{name}.rb", base: Dir.pwd, search: true))
         return load_file(full_path, require_once: true)
       elsif (full_path = find_full_path(name, base: Dir.pwd, search: true))

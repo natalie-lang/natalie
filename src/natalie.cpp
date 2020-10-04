@@ -295,7 +295,7 @@ ArrayValue *block_args_to_array(Env *env, ssize_t signature_size, ssize_t argc, 
     return args_to_array(env, argc, args);
 }
 
-void arg_spread(Env *env, ssize_t argc, Value **args, char *arrangement, ...) {
+void arg_spread(Env *env, ssize_t argc, Value **args, const char *arrangement, ...) {
     va_list va_args;
     va_start(va_args, arrangement);
     ssize_t len = strlen(arrangement);

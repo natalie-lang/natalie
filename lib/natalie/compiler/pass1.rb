@@ -102,7 +102,9 @@ module Natalie
 
       def process_call(exp, is_super: false)
         (_, receiver, method, *args) = exp
-        return process_inline_c(exp) if receiver == s(:const, :C)
+        if %i[__inline__ __define_method__].include?(method) && @compiler_context[:inline_cpp_enabled]
+          return exp.new(method, *args)
+        end
         (_, block_pass) = args.pop if args.last&.sexp_type == :block_pass
         if args.any? { |a| a.sexp_type == :splat }
           args = s(:args_array, process(s(:array, *args.map { |n| process(n) })))
@@ -375,30 +377,6 @@ module Natalie
       def process_iasgn(exp)
         (_, name, value) = exp
         exp.new(:ivar_set, :self, :env, s(:s, name), process(value))
-      end
-
-      def process_inline_c(exp)
-        (_, _, op, *args) = exp
-        case op
-        when :define_method
-          (name, c) = args
-          raise "Expected string passed to C.define_method, but got: #{c.inspect}" unless c.sexp_type == :str
-          exp.new(:c_define_method, name, c)
-        when :eval
-          c = args.first
-          raise "Expected string passed to C.eval, but got: #{c.inspect}" unless c.sexp_type == :str
-          exp.new(:c_eval, c)
-        when :include
-          lib = args.first
-          raise "Expected string passed to C.include, but got: #{lib.inspect}" unless lib.sexp_type == :str
-          exp.new(:c_include, lib)
-        when :top_eval
-          c = args.first
-          raise "Expected string passed to C.top_eval, but got: #{c.inspect}" unless c.sexp_type == :str
-          exp.new(:c_top_eval, c)
-        else
-          raise "Unknown C operation #{op.inspect}"
-        end
       end
 
       def process_iter(exp)

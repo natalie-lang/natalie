@@ -127,6 +127,29 @@ module Natalie
         "env->global_set(\"$0\", new StringValue { env, source_files[0] });"
       end
 
+      def process___define_method__(exp)
+        (_, name, body) = exp
+        raise "Expected string passed to __define_method__, but got: #{body.inspect}" unless body.sexp_type == :str
+        name = name.last
+        body = body.last
+        fn = temp('fn')
+        top "Value *#{fn}(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {\n#{body}\n}"
+        process(s(:define_method, s(:l, "self->as_module()"), :env, s(:s, name), fn))
+        "new SymbolValue { env, #{name.inspect} }"
+      end
+
+      def process___inline__(exp)
+        (_, body) = exp
+        raise "Expected string passed to __inline__, but got: #{body.inspect}" unless body.sexp_type == :str
+        body = body.last
+        if context.grep(/_fn$/).any?
+          decl body
+        else
+          top body
+        end
+        'env->nil_obj()'
+      end
+
       def process_atom(exp)
         case exp
         when Sexp
@@ -254,20 +277,6 @@ module Natalie
         ''
       end
 
-      def process_c_define_method(exp)
-        (_, (_, name), (_, c)) = exp
-        fn = temp('fn')
-        top "Value *#{fn}(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {\n#{c}\n}"
-        process(s(:define_method, s(:l, "self->as_module()"), :env, s(:s, name), fn))
-        "symbol(env, #{name.inspect})"
-      end
-
-      def process_c_eval(exp)
-        (_, (_, c)) = exp
-        decl c
-        ''
-      end
-
       def process_c_if(exp)
         (_, condition, true_body, false_body) = exp
         condition = process(condition)
@@ -292,25 +301,9 @@ module Natalie
         result_name
       end
 
-      def process_c_include(exp)
-        (_, (_, lib)) = exp
-        if lib.start_with?('<')
-          top "#include #{lib}"
-        else
-          top "#include #{lib.inspect}"
-        end
-        ''
-      end
-
       def process_c_return(exp)
         (_, value) = exp
         decl "return #{process_atom(value)};"
-        ''
-      end
-
-      def process_c_top_eval(exp)
-        (_, (_, c)) = exp
-        top c
         ''
       end
 

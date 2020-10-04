@@ -1,3 +1,12 @@
+# This is just a simple about dialog for Natalie that uses the
+# gtk3 library in this same directory. Currently, this only
+# works with Natalie if we disable the garbage collector. Also,
+# some flags must be passed to the compiler in order to find
+# the gtk3 library:
+#
+# NAT_CXX_FLAGS="-DNAT_GC_DISABLE" make clean build
+# NAT_CXX_FLAGS="$(pkg-config --libs --cflags gtk+-3.0) -DNAT_GC_DISABLE" bin/natalie examples/about.rb
+
 require_relative './gtk3'
 
 destroy = -> { Gtk3.main_quit }
@@ -18,7 +27,7 @@ box1.pack_start(icon, false, false, 0)
 box2 = Gtk3::Box.new(Gtk3::ORIENTATION_VERTICAL, 10)
 box1.pack_start(box2, true, true, 0)
 
-title = Gtk3::Label.new(nil)
+title = Gtk3::Label.new
 title.set_markup("<b>Natalie</b>")
 title.set_halign(Gtk3::ALIGN_START)
 title.set_valign(Gtk3::ALIGN_START)
