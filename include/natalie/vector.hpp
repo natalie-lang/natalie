@@ -1,5 +1,6 @@
 #pragma once
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -99,8 +100,13 @@ struct Vector : public gc {
     T *data() { return m_data; }
 
     void set_size(ssize_t new_size) {
+        assert(new_size <= m_size);
         grow(new_size);
         m_size = new_size;
+    }
+
+    void set_capacity(ssize_t new_size) {
+        grow_at_least(new_size);
     }
 
     class iterator {

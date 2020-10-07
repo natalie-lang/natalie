@@ -20,7 +20,7 @@ struct ArrayValue : Value {
 
     ArrayValue(Env *env, std::initializer_list<Value *> list)
         : ArrayValue { env } {
-        m_vector.set_size(list.size());
+        m_vector.set_capacity(list.size());
         for (auto &v : list) {
             m_vector.push(v);
         }
