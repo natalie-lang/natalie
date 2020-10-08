@@ -1527,6 +1527,13 @@ Value *Value_is_nil_binding(Env *env, Value *self_value, ssize_t argc, Value **a
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
+Value *ParserValue_parse_singleton_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(1);
+    ParserValue *self = self_value->as_parser_value_for_method_binding();
+    auto return_value = self->parse(env, argc > 0 ? args[0] : nullptr);
+    return return_value;
+}
+
 Value *ProcValue_initialize_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(0);
     ProcValue *self = self_value->as_proc();
@@ -2181,6 +2188,8 @@ void init_bindings(Env *env) {
     NilClass->define_method(env, "to_s", NilValue_to_s_binding);
     Value *Object = env->Object()->const_find(env, "Object");
     Object->define_method(env, "nil?", Value_is_nil_binding);
+    Value *Parser = env->Object()->const_find(env, "Parser");
+    Parser->define_singleton_method(env, "parse", ParserValue_parse_singleton_binding);
     Value *Proc = env->Object()->const_find(env, "Proc");
     Proc->define_method(env, "initialize", ProcValue_initialize_binding);
     Proc->define_method(env, "call", ProcValue_call_binding);

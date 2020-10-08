@@ -14,6 +14,11 @@ module Natalie
       File.join(ROOT_DIR, 'include'),
       File.join(BUILD_DIR, 'include'),
       File.join(BUILD_DIR, 'include/gdtoa'),
+      File.join(BUILD_DIR, '_deps/pegparser-src/include'),
+    ]
+    LIB_PATHS = [
+      BUILD_DIR,
+      File.join(BUILD_DIR, '_deps/pegparser-build'),
     ]
     LIBRARIES = %W[
       -lnatalie
@@ -23,6 +28,7 @@ module Natalie
       -lhashmap
       -lm
       -lonigmo
+      -lPEGParser
     ]
 
     RB_LIB_PATH = File.expand_path('..', __dir__)
@@ -153,7 +159,7 @@ module Natalie
           inc_paths,
           "-o #{out_path}",
           "#{BUILD_DIR}/libnatalie.a",
-          "-L #{BUILD_DIR}",
+          LIB_PATHS.map { |path| "-L #{path}" }.join(' '),
           libraries.join(' '),
           "-x c++ -std=c++17",
           (@c_path || 'code.cpp'),
@@ -168,7 +174,7 @@ module Natalie
           "-o #{out_path}",
           "-x c++ -std=c++17",
           (@c_path || 'code.cpp'),
-          "-L #{BUILD_DIR}",
+          LIB_PATHS.map { |path| "-L #{path}" }.join(' '),
           libraries.join(' '),
         ].map(&:to_s).join(' ')
       end

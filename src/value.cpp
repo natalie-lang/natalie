@@ -202,6 +202,10 @@ EnvValue *Value::as_env_value_for_method_binding() {
     return static_cast<EnvValue *>(this);
 }
 
+ParserValue *Value::as_parser_value_for_method_binding() {
+    return static_cast<ParserValue *>(this);
+}
+
 const char *Value::identifier_str(Env *env, Conversion conversion) {
     if (is_symbol()) {
         return as_symbol()->c_str();

@@ -24,6 +24,7 @@ struct MatchDataValue;
 struct Method;
 struct ModuleValue;
 struct NilValue;
+struct ParserValue;
 struct ProcValue;
 struct RangeValue;
 struct RegexpValue;

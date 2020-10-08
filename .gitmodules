@@ -10,3 +10,9 @@
 [submodule "ext/gdtoa"]
 	path = ext/gdtoa
 	url = https://github.com/jwiegley/gdtoa.git
+[submodule "ext/PEGParser"]
+	path = ext/PEGParser
+	url = https://github.com/TheLartians/PEGParser.git
+[submodule "ext/EasyIterator"]
+	path = ext/EasyIterator
+	url = https://github.com/TheLartians/EasyIterator.git

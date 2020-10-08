@@ -160,7 +160,7 @@ Value *#{name}(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
     def as_type(value)
       if cpp_class == 'Value'
         value
-      elsif cpp_class =~ /EnvValue|Module$/
+      elsif cpp_class =~ /ParserValue|EnvValue|Module$/ # TODO: put the special cases in an array in a constant :-)
         underscored = cpp_class.gsub(/([a-z])([A-Z])/,'\1_\2').downcase
         "#{value}->as_#{underscored}_for_method_binding()"
       else
@@ -449,6 +449,8 @@ gen.binding('NilClass', 'to_i', 'NilValue', 'to_i', argc: 0, pass_env: true, pas
 gen.binding('NilClass', 'to_s', 'NilValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 
 gen.binding('Object', 'nil?', 'Value', 'is_nil', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
+
+gen.singleton_binding('Parser', 'parse', 'ParserValue', 'parse', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 
 gen.binding('Proc', 'initialize', 'ProcValue', 'initialize', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Proc', 'call', 'ProcValue', 'call', argc: :any, pass_env: true, pass_block: true, return_type: :Value)
