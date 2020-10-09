@@ -29,9 +29,16 @@ describe 'Natalie tests' do
   Dir['test/natalie/*_test.rb'].each do |path|
     code = File.read(path, encoding: 'utf-8')
     describe path do
-      it 'has the same output in ruby and natalie' do
-        skip if code =~ /# skip-test/
-        run_both_and_compare(path)
+      if code =~ /# skip-ruby/
+        it 'it passes' do
+          skip if code =~ /# skip-test/
+          run_nat(path)
+        end
+      else
+        it 'has the same output in ruby and natalie' do
+          skip if code =~ /# skip-test/
+          run_both_and_compare(path)
+        end
       end
     end
   end
