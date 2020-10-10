@@ -130,7 +130,7 @@ Value *Env::var_set(const char *name, ssize_t index, bool allocate, Value *val) 
             if (!m_vars) {
                 m_vars = new Vector<Value *> { needed };
             } else {
-                m_vars->set_capacity(needed);
+                m_vars->set_size(needed);
             }
         } else {
             printf("Tried to set a variable without first allocating space for it.\n");
