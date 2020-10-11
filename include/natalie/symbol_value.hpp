@@ -28,7 +28,7 @@ struct SymbolValue : Value {
 private:
     SymbolValue(Env *env, const char *name)
         : Value { Value::Type::Symbol, env->Object()->const_fetch("Symbol")->as_class() }
-        , m_name { name } {
+        , m_name { strdup(name) } {
         assert(m_name);
     }
 
