@@ -18,6 +18,10 @@ Env Env::new_detatched_block_env(Env *outer) {
     return env;
 }
 
+void Env::build_vars(ssize_t size) {
+    m_vars = new Vector<Value *> { size, static_cast<Value *>(nil_obj()) };
+}
+
 Value *Env::global_get(const char *name) {
     Env *env = this;
     assert(strlen(name) > 0);
@@ -128,9 +132,9 @@ Value *Env::var_set(const char *name, ssize_t index, bool allocate, Value *val) 
     if (needed > current_size) {
         if (allocate) {
             if (!m_vars) {
-                m_vars = new Vector<Value *> { needed };
+                m_vars = new Vector<Value *> { needed, nil_obj() };
             } else {
-                m_vars->set_size(needed);
+                m_vars->set_size(needed, nil_obj());
             }
         } else {
             printf("Tried to set a variable without first allocating space for it.\n");

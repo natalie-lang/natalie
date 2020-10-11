@@ -1,5 +1,6 @@
 #pragma once
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -13,10 +14,12 @@ template <typename T>
 struct Vector : public gc {
     Vector() { }
 
-    Vector(ssize_t initial_capacity)
+    Vector(ssize_t initial_capacity, T filler)
         : m_size { initial_capacity }
         , m_capacity { initial_capacity }
-        , m_data { static_cast<T *>(malloc(sizeof(T) * initial_capacity)) } { }
+        , m_data { static_cast<T *>(malloc(sizeof(T) * initial_capacity)) } {
+        fill(0, initial_capacity, filler);
+    }
 
     Vector(const Vector &other)
         : m_size { other.m_size }
@@ -98,9 +101,25 @@ struct Vector : public gc {
     ssize_t capacity() const { return m_capacity; }
     T *data() { return m_data; }
 
+    void fill(ssize_t from, ssize_t to_exclusive, T filler) {
+        assert(from >= 0);
+        assert(to_exclusive <= m_size);
+        for (ssize_t i = from; i < to_exclusive; i++) {
+            m_data[i] = filler;
+        }
+    }
+
     void set_size(ssize_t new_size) {
+        assert(new_size <= m_size);
         grow(new_size);
         m_size = new_size;
+    }
+
+    void set_size(ssize_t new_size, T filler) {
+        grow(new_size);
+        ssize_t old_size = m_size;
+        m_size = new_size;
+        fill(old_size, new_size, filler);
     }
 
     void set_capacity(ssize_t new_size) {

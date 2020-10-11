@@ -47,7 +47,7 @@ struct Env : public gc {
     void set_global_env(GlobalEnv *global_env) { m_global_env = global_env; }
     void clear_global_env() { m_global_env = nullptr; }
 
-    void build_vars(ssize_t size) { m_vars = new Vector<Value *> { size }; }
+    void build_vars(ssize_t);
 
     Env *outer() { return m_outer; }
 
