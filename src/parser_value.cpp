@@ -7,6 +7,8 @@
 
 namespace Natalie {
 
+using std::string;
+
 Value *ParserValue::parse(Env *env, Value *code) {
     peg_parser::ParserGenerator<Value *, Env *&> g;
 
@@ -16,12 +18,57 @@ Value *ParserValue::parse(Env *env, Value *code) {
     g["Float"] << "'-'? [0-9]+ '.' [0-9]+" >> [](auto e, Env *env) { return new ArrayValue { env, { SymbolValue::intern(env, "lit"), new FloatValue { env, stof(e.string()) } } }; };
     g["Integer"] << "'-'? [0-9]+" >> [](auto e, Env *env) { return new ArrayValue { env, { SymbolValue::intern(env, "lit"), new IntegerValue { env, stoll(e.string()) } } }; };
     g["Numeric"] << "Float | Integer";
-    //g["Char"] << "[^\"] | '\\' .";
-    //g.setProgramRule("Character", peg_parser::presets::createCharacterProgram(),
-    //[](auto e) { return e.string(); });
-    //g["Char"] << "[^\\"]";
-    g["String"] << "'\"' '\"'" >> [](auto e, Env *env) { return new ArrayValue { env, { SymbolValue::intern(env, "str"), new StringValue { env, e.string().c_str() + 1, static_cast<ssize_t>(e.string().length() - 2) } } }; };
-    g["Expression"] << "Op | String | Numeric";
+    g["EscapedChar"] << "'\\\\' .";
+    g["DqChar"] << "!'\"' .";
+    g["DqString"] << "'\"' (EscapedChar | DqChar)* '\"'" >> [](auto e, Env *env) {
+        string result;
+        string s = e.string();
+        for (size_t i = 1; i < s.length() - 1; i++) {
+            char c = s[i];
+            if (c == '\\') {
+                i++;
+                c = s[i];
+                switch (c) {
+                case 'n':
+                    result += '\n';
+                    break;
+                case 't':
+                    result += '\t';
+                    break;
+                default:
+                    result += c;
+                }
+                continue;
+            }
+            result += c;
+        }
+        return new ArrayValue { env, { SymbolValue::intern(env, "str"), new StringValue { env, result.c_str() } } };
+    };
+    g["SqChar"] << "!'\\'' .";
+    g["SqString"] << "'\\'' (EscapedChar | SqChar)* '\\''" >> [](auto e, Env *env) {
+        string result;
+        string s = e.string();
+        for (size_t i = 1; i < s.length() - 1; i++) {
+            char c = s[i];
+            if (c == '\\') {
+                i++;
+                c = s[i];
+                switch (c) {
+                case '\\':
+                case '\'':
+                    result += c;
+                    break;
+                default:
+                    result += '\\';
+                    result += c;
+                }
+                continue;
+            }
+            result += c;
+        }
+        return new ArrayValue { env, { SymbolValue::intern(env, "str"), new StringValue { env, result.c_str() } } };
+    };
+    g["Expression"] << "Op | DqString | SqString | Numeric";
     g.setStart(g["Expression"]);
 
     const char *input = code->as_string()->c_str();

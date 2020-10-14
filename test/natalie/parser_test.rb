@@ -22,10 +22,14 @@ describe 'Parser' do
     end
 
     it 'parses strings' do
-      Parser.parse(%("")).should == [:block, [:str, '']]
-      #Parser.parse(%("x")).should == [:block, [:str, 'x']]
-      #Parser.parse(%("foo")).should == [:block, [:str, 'foo']]
-      #Parser.parse(%('foo')).should == [:block, [:str, 'foo']]
+      Parser.parse('""').should == [:block, [:str, '']]
+      Parser.parse('"foo"').should == [:block, [:str, 'foo']]
+      Parser.parse('"this is \"quoted\""').should == [:block, [:str, 'this is "quoted"']]
+      Parser.parse('"other escaped chars \\\\ \n"').should == [:block, [:str, "other escaped chars \\ \n"]]
+      Parser.parse("''").should == [:block, [:str, '']]
+      Parser.parse("'foo'").should == [:block, [:str, 'foo']]
+      Parser.parse("'this is \\'quoted\\''").should == [:block, [:str, "this is 'quoted'"]]
+      Parser.parse("'other escaped chars \\\\ \\n'").should == [:block, [:str, "other escaped chars \\ \\n"]]
     end
   end
 end
