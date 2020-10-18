@@ -13,13 +13,26 @@ Value *ParserValue::parse(Env *env, Value *code) {
     peg_parser::ParserGenerator<Value *, Env *&> g;
 
     g.setSeparator(g["Whitespace"] << "[\t ]");
-    g["Operator"] << "[+\\-\\*/]" >> [](auto e, Env *env) { return SymbolValue::intern(env, e.string().c_str()); };
-    g["Op"] << "Numeric Operator Numeric" >> [](auto e, Env *env) { return new ArrayValue { env, { SymbolValue::intern(env, "call"), e[0].evaluate(env), e[1].evaluate(env), e[2].evaluate(env) } }; };
+
+    g["Expression"] << "Sum | DqString | SqString | Numeric";
+    g.setStart(g["Expression"]);
+
+    g["Sum"] << "SumOp | Product";
+    g["SumOp"] << "Product SumOperator Product" >> [](auto e, Env *env) { return new ArrayValue { env, { SymbolValue::intern(env, "call"), e[0].evaluate(env), e[1].evaluate(env), e[2].evaluate(env) } }; };
+    g["SumOperator"] << "[+\\-]" >> [](auto e, Env *env) { return SymbolValue::intern(env, e.string().c_str()); };
+
+    g["Product"] << "ProductOp | Atomic";
+    g["ProductOp"] << "Product ProductOperator Atomic" >> [](auto e, Env *env) { return new ArrayValue { env, { SymbolValue::intern(env, "call"), e[0].evaluate(env), e[1].evaluate(env), e[2].evaluate(env) } }; };
+    g["ProductOperator"] << "[\\*/]" >> [](auto e, Env *env) { return SymbolValue::intern(env, e.string().c_str()); };
+
+    g["Atomic"] << "Numeric | '(' Sum ')'";
+    g["Numeric"] << "Float | Integer";
+
     g["Float"] << "'-'? [0-9]+ '.' [0-9]+" >> [](auto e, Env *env) { return new ArrayValue { env, { SymbolValue::intern(env, "lit"), new FloatValue { env, stof(e.string()) } } }; };
     g["Integer"] << "'-'? [0-9]+" >> [](auto e, Env *env) { return new ArrayValue { env, { SymbolValue::intern(env, "lit"), new IntegerValue { env, stoll(e.string()) } } }; };
-    g["Numeric"] << "Float | Integer";
+
     g["EscapedChar"] << "'\\\\' .";
-    g["DqChar"] << "!'\"' .";
+
     g["DqString"] << "'\"' (EscapedChar | DqChar)* '\"'" >> [](auto e, Env *env) {
         string result;
         string s = e.string();
@@ -44,7 +57,8 @@ Value *ParserValue::parse(Env *env, Value *code) {
         }
         return new ArrayValue { env, { SymbolValue::intern(env, "str"), new StringValue { env, result.c_str() } } };
     };
-    g["SqChar"] << "!'\\'' .";
+    g["DqChar"] << "!'\"' .";
+
     g["SqString"] << "'\\'' (EscapedChar | SqChar)* '\\''" >> [](auto e, Env *env) {
         string result;
         string s = e.string();
@@ -68,8 +82,7 @@ Value *ParserValue::parse(Env *env, Value *code) {
         }
         return new ArrayValue { env, { SymbolValue::intern(env, "str"), new StringValue { env, result.c_str() } } };
     };
-    g["Expression"] << "Op | DqString | SqString | Numeric";
-    g.setStart(g["Expression"]);
+    g["SqChar"] << "!'\\'' .";
 
     const char *input = code->as_string()->c_str();
     Value *result;

@@ -15,6 +15,13 @@ describe 'Parser' do
       Parser.parse('1 - 3').should == [:block, [:call, [:lit, 1], :-, [:lit, 3]]]
       Parser.parse('1 * 3').should == [:block, [:call, [:lit, 1], :*, [:lit, 3]]]
       Parser.parse('1 / 3').should == [:block, [:call, [:lit, 1], :/, [:lit, 3]]]
+      Parser.parse('1 * 2 + 3').should == [:block, [:call, [:call, [:lit, 1], :*, [:lit, 2]], :+, [:lit, 3]]]
+      Parser.parse('1 / 2 - 3').should == [:block, [:call, [:call, [:lit, 1], :/, [:lit, 2]], :-, [:lit, 3]]]
+      Parser.parse('1 + 2 * 3').should == [:block, [:call, [:lit, 1], :+, [:call, [:lit, 2], :*, [:lit, 3]]]]
+      Parser.parse('1 - 2 / 3').should == [:block, [:call, [:lit, 1], :-, [:call, [:lit, 2], :/, [:lit, 3]]]]
+      Parser.parse('(1 + 2) * 3').should == [:block, [:call, [:call, [:lit, 1], :+, [:lit, 2]], :*, [:lit, 3]]]
+      Parser.parse('(1 - 2) / 3').should == [:block, [:call, [:call, [:lit, 1], :-, [:lit, 2]], :/, [:lit, 3]]]
+      Parser.parse('(1 + 2) * (3 + 4)').should == [:block, [:call, [:call, [:lit, 1], :+, [:lit, 2]], :*, [:call, [:lit, 3], :+, [:lit, 4]]]]
     end
 
     it 'raises an error if there is a syntax error' do
