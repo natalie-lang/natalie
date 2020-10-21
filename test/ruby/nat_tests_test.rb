@@ -10,7 +10,7 @@ def run_nat(path, *args)
 end
 
 def run_ruby(path, *args)
-  out_ruby = `ruby -I test/support #{path} #{args.join(' ')} 2>&1`
+  out_ruby = `ruby -r ruby_parser -I test/support #{path} #{args.join(' ')} 2>&1`
   puts out_ruby unless $?.to_i == 0
   expect($?).must_be :success?
   out_ruby
