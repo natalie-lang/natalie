@@ -57,5 +57,10 @@ describe 'Parser' do
       Parser.parse("'this is \\'quoted\\''").should == s(:block, s(:str, "this is 'quoted'"))
       Parser.parse("'other escaped chars \\\\ \\n'").should == s(:block, s(:str, "other escaped chars \\ \\n"))
     end
+
+    it 'parses multiple expressions' do
+      Parser.parse("1 + 2\n3 + 4").should == s(:block, s(:call, s(:lit, 1), :+, s(:lit, 2)), s(:call, s(:lit, 3), :+, s(:lit, 4)))
+      Parser.parse("1 + 2;'foo'").should == s(:block, s(:call, s(:lit, 1), :+, s(:lit, 2)), s(:str, "foo"))
+    end
   end
 end

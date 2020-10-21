@@ -16,8 +16,20 @@ Value *ParserValue::parse(Env *env, Value *code) {
     g["Nl"] << "'\n'?";
     g["Nl"]->hidden = true;
 
+    g["EndOfExpression"] << "[;\n]";
+    g["EndOfExpression"]->hidden = true;
+
+    g["Program"] << "Expression (EndOfExpression Expression)*" >> [](auto e, Env *env) {
+        ArrayValue *array = new ArrayValue { env, { SymbolValue::intern(env, "block") } };
+        for (auto item : e) {
+            array->push(item.evaluate(env));
+        }
+        return array;
+    };
+
+    g.setStart(g["Program"]);
+
     g["Expression"] << "Sum | DqString | SqString | Numeric";
-    g.setStart(g["Expression"]);
 
     g["Sum"] << "SumOp | Product";
     g["SumOp"] << "Product SumOperator Nl Product" >> [](auto e, Env *env) { return new ArrayValue { env, { SymbolValue::intern(env, "call"), e[0].evaluate(env), e[1].evaluate(env), e[2].evaluate(env) } }; };
@@ -97,8 +109,7 @@ Value *ParserValue::parse(Env *env, Value *code) {
         //printf("rule = %s\n", error.syntax->rule->name.c_str());
         NAT_RAISE(env, "SyntaxError", "syntax error");
     }
-    Value *block = new ArrayValue { env, { SymbolValue::intern(env, "block"), result } };
-    return block;
+    return result;
 }
 
 }
