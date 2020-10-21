@@ -13,19 +13,21 @@ Value *ParserValue::parse(Env *env, Value *code) {
     peg_parser::ParserGenerator<Value *, Env *&> g;
 
     g.setSeparator(g["Whitespace"] << "[\t ]");
+    g["Nl"] << "'\n'?";
+    g["Nl"]->hidden = true;
 
     g["Expression"] << "Sum | DqString | SqString | Numeric";
     g.setStart(g["Expression"]);
 
     g["Sum"] << "SumOp | Product";
-    g["SumOp"] << "Product SumOperator Product" >> [](auto e, Env *env) { return new ArrayValue { env, { SymbolValue::intern(env, "call"), e[0].evaluate(env), e[1].evaluate(env), e[2].evaluate(env) } }; };
+    g["SumOp"] << "Product SumOperator Nl Product" >> [](auto e, Env *env) { return new ArrayValue { env, { SymbolValue::intern(env, "call"), e[0].evaluate(env), e[1].evaluate(env), e[2].evaluate(env) } }; };
     g["SumOperator"] << "[+\\-]" >> [](auto e, Env *env) { return SymbolValue::intern(env, e.string().c_str()); };
 
     g["Product"] << "ProductOp | Atomic";
-    g["ProductOp"] << "Product ProductOperator Atomic" >> [](auto e, Env *env) { return new ArrayValue { env, { SymbolValue::intern(env, "call"), e[0].evaluate(env), e[1].evaluate(env), e[2].evaluate(env) } }; };
+    g["ProductOp"] << "Product ProductOperator Nl Atomic" >> [](auto e, Env *env) { return new ArrayValue { env, { SymbolValue::intern(env, "call"), e[0].evaluate(env), e[1].evaluate(env), e[2].evaluate(env) } }; };
     g["ProductOperator"] << "[\\*/]" >> [](auto e, Env *env) { return SymbolValue::intern(env, e.string().c_str()); };
 
-    g["Atomic"] << "Numeric | '(' Sum ')'";
+    g["Atomic"] << "Numeric | '(' Nl Sum Nl ')'";
     g["Numeric"] << "Float | Integer";
 
     g["Float"] << "'-'? [0-9]+ '.' [0-9]+" >> [](auto e, Env *env) { return new ArrayValue { env, { SymbolValue::intern(env, "lit"), new FloatValue { env, stof(e.string()) } } }; };
