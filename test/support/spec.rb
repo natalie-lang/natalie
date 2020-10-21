@@ -546,7 +546,7 @@ def run_specs
       rescue SpecFailedException => e
         print 'F'
         @failures << [context, test, e]
-      rescue => e
+      rescue Exception => e
         print 'E'
         @errors << [context, test, e]
       else
