@@ -19,7 +19,16 @@ Value *ParserValue::parse(Env *env, Value *code) {
     g["EndOfExpression"] << "[;\n]";
     g["EndOfExpression"]->hidden = true;
 
-    g["Program"] << "Expression (EndOfExpression Expression)*" >> [](auto e, Env *env) {
+    g["Garbage"] << ".+" >> [](auto e, Env *env) {
+        //printf("garbage = %s\n", e.string().c_str());
+        //printf("begin = %s\n", e.view().data());
+        NAT_RAISE(env, "SyntaxError", "syntax error");
+        return env->nil_obj();
+    };
+
+    g["Program"] << "ValidProgram | ValidProgram Garbage | Garbage";
+
+    g["ValidProgram"] << "Expression (EndOfExpression Expression)*" >> [](auto e, Env *env) {
         ArrayValue *array = new ArrayValue { env, { SymbolValue::intern(env, "block") } };
         for (auto item : e) {
             array->push(item.evaluate(env));
