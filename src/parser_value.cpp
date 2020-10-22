@@ -13,22 +13,19 @@ Value *ParserValue::parse(Env *env, Value *code) {
     peg_parser::ParserGenerator<Value *, Env *&> g;
 
     g.setSeparator(g["Whitespace"] << "[\t ]");
-    g["Nl"] << "'\n'?";
+    g["Nl"] << "'\n'*";
     g["Nl"]->hidden = true;
 
     g["EndOfExpression"] << "[;\n]";
     g["EndOfExpression"]->hidden = true;
 
-    g["Garbage"] << ".+" >> [](auto e, Env *env) {
-        //printf("garbage = %s\n", e.string().c_str());
-        //printf("begin = %s\n", e.view().data());
-        NAT_RAISE(env, "SyntaxError", "syntax error");
-        return env->nil_obj();
+    g["Program"] << "ValidProgram Nl Garbage?" >> [](auto e, Env *env) {
+        if (e.size() > 1) e[1].evaluate(env);
+        return e[0].evaluate(env);
     };
+    g.setStart(g["Program"]);
 
-    g["Program"] << "ValidProgram | ValidProgram Garbage | Garbage";
-
-    g["ValidProgram"] << "Expression (EndOfExpression Expression)*" >> [](auto e, Env *env) {
+    g["ValidProgram"] << "Expression? (EndOfExpression Expression)*" >> [](auto e, Env *env) {
         ArrayValue *array = new ArrayValue { env, { SymbolValue::intern(env, "block") } };
         for (auto item : e) {
             array->push(item.evaluate(env));
@@ -36,7 +33,19 @@ Value *ParserValue::parse(Env *env, Value *code) {
         return array;
     };
 
-    g.setStart(g["Program"]);
+    g["Garbage"] << ".+" >> [](auto e, Env *env) {
+        auto position = e.position();
+        size_t line = 1;
+        size_t index = 0;
+        auto full_string = std::string(e.syntax()->fullString);
+        for (char c : full_string) {
+            if (index > position) break;
+            if (c == '\n') line++;
+            index++;
+        }
+        NAT_RAISE(env, "SyntaxError", "(string):%d :: parse error on value \"%s\"", line, e.string().c_str());
+        return env->nil_obj();
+    };
 
     g["Expression"] << "Sum | CallWithParens | CallWithoutParens | DqString | SqString | Numeric";
 
@@ -142,13 +151,9 @@ Value *ParserValue::parse(Env *env, Value *code) {
     try {
         result = g.run(input, env);
     } catch (peg_parser::SyntaxError &error) {
-        // TODO: return message about what went wrong, probably using the following stuff:
-        //printf("begin = %zu\n", error.syntax->begin);
-        //printf("length = %zu\n", error.syntax->length());
-        //printf("rule = %s\n", error.syntax->rule->name.c_str());
-        NAT_RAISE(env, "SyntaxError", "syntax error");
+        // Note: bad syntax should be caught by the "Garbage" rule above.
+        NAT_UNREACHABLE();
     }
     return result;
 }
-
 }

@@ -12,14 +12,18 @@ unless defined?(Parser)
       else
         s(:block, node)
       end
-    rescue Racc::ParseError
-      raise SyntaxError
+    rescue Racc::ParseError => e
+      raise SyntaxError, e.message
     end
   end
 end
 
 describe 'Parser' do
   describe '#parse' do
+    it 'parses an empty program' do
+      Parser.parse('').should == s(:block)
+    end
+
     it 'parses numbers' do
       Parser.parse('1').should == s(:block, s(:lit, 1))
       Parser.parse(' 1').should == s(:block, s(:lit, 1))
@@ -45,7 +49,8 @@ describe 'Parser' do
     end
 
     it 'raises an error if there is a syntax error' do
-      -> { Parser.parse(')') }.should raise_error(SyntaxError)
+      -> { Parser.parse(')') }.should raise_error(SyntaxError, /\(string\):1 :: parse error on value "\)"/)
+      -> { Parser.parse("1 + 2\n\n )") }.should raise_error(SyntaxError, /\(string\):3 :: parse error on value "\)"/)
     end
 
     it 'parses strings' do
