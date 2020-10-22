@@ -38,7 +38,7 @@ Value *ParserValue::parse(Env *env, Value *code) {
 
     g.setStart(g["Program"]);
 
-    g["Expression"] << "Sum | DqString | SqString | Numeric";
+    g["Expression"] << "Sum | CallWithParens | CallWithoutParens | DqString | SqString | Numeric";
 
     g["Sum"] << "SumOp | Product";
     g["SumOp"] << "Product SumOperator Nl Product" >> [](auto e, Env *env) { return new ArrayValue { env, { SymbolValue::intern(env, "call"), e[0].evaluate(env), e[1].evaluate(env), e[2].evaluate(env) } }; };
@@ -48,8 +48,38 @@ Value *ParserValue::parse(Env *env, Value *code) {
     g["ProductOp"] << "Product ProductOperator Nl Atomic" >> [](auto e, Env *env) { return new ArrayValue { env, { SymbolValue::intern(env, "call"), e[0].evaluate(env), e[1].evaluate(env), e[2].evaluate(env) } }; };
     g["ProductOperator"] << "[\\*/]" >> [](auto e, Env *env) { return SymbolValue::intern(env, e.string().c_str()); };
 
-    g["Atomic"] << "Numeric | '(' Nl Sum Nl ')'";
+    g["Atomic"] << "Numeric | '(' Nl Sum Nl ')' | Expression";
     g["Numeric"] << "Float | Integer";
+
+    g["CallWithoutParens"] << "Identifier Args?" >> [](auto e, Env *env) {
+        ArrayValue *result = new ArrayValue { env, { SymbolValue::intern(env, "call"), env->nil_obj(), e[0].evaluate(env) } };
+        if (e.size() > 1) {
+            for (auto item : *e[1].evaluate(env)->as_array()) {
+                result->push(item);
+            }
+        }
+        return result;
+    };
+
+    g["CallWithParens"] << "Identifier '(' Nl Args? Nl ')'" >> [](auto e, Env *env) {
+        ArrayValue *result = new ArrayValue { env, { SymbolValue::intern(env, "call"), env->nil_obj(), e[0].evaluate(env) } };
+        if (e.size() > 1) {
+            for (auto item : *e[1].evaluate(env)->as_array()) {
+                result->push(item);
+            }
+        }
+        return result;
+    };
+
+    g["Args"] << "Expression (',' Nl Expression)*" >> [](auto e, Env *env) {
+        ArrayValue *array = new ArrayValue { env };
+        for (auto item : e) {
+            array->push(item.evaluate(env));
+        }
+        return array;
+    };
+
+    g["Identifier"] << "[a-z_] [a-zA-Z0-9_]*" >> [](auto e, Env *env) { return SymbolValue::intern(env, e.string().c_str()); };
 
     g["Float"] << "'-'? [0-9]+ '.' [0-9]+" >> [](auto e, Env *env) { return new ArrayValue { env, { SymbolValue::intern(env, "lit"), new FloatValue { env, stof(e.string()) } } }; };
     g["Integer"] << "'-'? [0-9]+" >> [](auto e, Env *env) { return new ArrayValue { env, { SymbolValue::intern(env, "lit"), new IntegerValue { env, stoll(e.string()) } } }; };
