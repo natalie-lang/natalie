@@ -330,6 +330,8 @@ class RaiseErrorExpectation
         nil # good
       elsif @message == e.message
         nil # good
+      elsif @message.is_a?(Regexp) && @message =~ e.message
+        nil # good
       else
         raise SpecFailedException, "#{subject.inspect} should have raised #{@klass.inspect} with message #{@message.inspect}, but the message was #{e.message.inspect}"
       end
