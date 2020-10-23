@@ -16,8 +16,8 @@ Value *ParserValue::parse(Env *env, Value *code) {
     g["Nl"] << "'\n'*";
     g["Nl"]->hidden = true;
 
-    g["EndOfExpression"] << "[;\n]";
-    g["EndOfExpression"]->hidden = true;
+    g["EndOfLine"] << "[;\n]";
+    g["EndOfLine"]->hidden = true;
 
     g["Program"] << "ValidProgram Nl Garbage?" >> [](auto e, Env *env) {
         if (e.size() > 1) e[1].evaluate(env);
@@ -25,7 +25,7 @@ Value *ParserValue::parse(Env *env, Value *code) {
     };
     g.setStart(g["Program"]);
 
-    g["ValidProgram"] << "Expression? (EndOfExpression Expression)*" >> [](auto e, Env *env) {
+    g["ValidProgram"] << "Expression? (EndOfLine Expression)*" >> [](auto e, Env *env) {
         ArrayValue *array = new ArrayValue { env, { SymbolValue::intern(env, "block") } };
         for (auto item : e) {
             array->push(item.evaluate(env));
@@ -47,7 +47,38 @@ Value *ParserValue::parse(Env *env, Value *code) {
         return env->nil_obj();
     };
 
-    g["Expression"] << "Sum | CallWithParens | CallWithoutParens | DqString | SqString | Numeric";
+    g["Expression"] << "Method | Sum | CallWithParens | CallWithoutParens | DqString | SqString | Numeric";
+
+    g["Method"] << "'def' Identifier ('(' Nl)? Parameters (Nl ')')? EndOfLine* MethodBody EndOfLine* 'end'" >> [](auto e, Env *env) {
+        ArrayValue *result = new ArrayValue { env, { SymbolValue::intern(env, "defn") } };
+        result->push(e[0].evaluate(env));
+        result->push(e[1].evaluate(env));
+        ArrayValue *body = e[2].evaluate(env)->as_array();
+        if (body->size() > 0) {
+            for (auto item : *body) {
+                result->push(item);
+            }
+        } else {
+            result->push(new ArrayValue { env, { SymbolValue::intern(env, "nil") } });
+        }
+        return result;
+    };
+
+    g["Parameters"] << "Identifier? (',' Nl Identifier)*" >> [](auto e, Env *env) {
+        ArrayValue *args = new ArrayValue { env, { SymbolValue::intern(env, "args") } };
+        for (auto item : e) {
+            args->push(item.evaluate(env));
+        }
+        return args;
+    };
+
+    g["MethodBody"] << "Expression? (EndOfLine Expression)*" >> [](auto e, Env *env) {
+        ArrayValue *array = new ArrayValue { env };
+        for (auto item : e) {
+            array->push(item.evaluate(env));
+        }
+        return array;
+    };
 
     g["Sum"] << "SumOp | Product";
     g["SumOp"] << "Product SumOperator Nl Product" >> [](auto e, Env *env) { return new ArrayValue { env, { SymbolValue::intern(env, "call"), e[0].evaluate(env), e[1].evaluate(env), e[2].evaluate(env) } }; };
@@ -88,7 +119,9 @@ Value *ParserValue::parse(Env *env, Value *code) {
         return array;
     };
 
-    g["Identifier"] << "[a-z_] [a-zA-Z0-9_]*" >> [](auto e, Env *env) { return SymbolValue::intern(env, e.string().c_str()); };
+    g["Keyword"] << "'def' | 'end'";
+
+    g["Identifier"] << "!Keyword [a-z_] [a-zA-Z0-9_]*" >> [](auto e, Env *env) { return SymbolValue::intern(env, e.string().c_str()); };
 
     g["Float"] << "'-'? [0-9]+ '.' [0-9]+" >> [](auto e, Env *env) { return new ArrayValue { env, { SymbolValue::intern(env, "lit"), new FloatValue { env, stof(e.string()) } } }; };
     g["Integer"] << "'-'? [0-9]+" >> [](auto e, Env *env) { return new ArrayValue { env, { SymbolValue::intern(env, "lit"), new IntegerValue { env, stoll(e.string()) } } }; };
