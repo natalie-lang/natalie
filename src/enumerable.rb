@@ -176,4 +176,12 @@ module Enumerable
     end
     result
   end
+
+  def chain(*args)
+    args.each do |arg|
+      arg.each do |val|
+        yield val
+      end
+    end
+  end
 end
