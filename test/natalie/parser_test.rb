@@ -12,7 +12,7 @@ unless defined?(Parser)
       else
         s(:block, node)
       end
-    rescue Racc::ParseError => e
+    rescue Racc::ParseError, RubyParser::SyntaxError => e
       raise SyntaxError, e.message
     end
   end
@@ -50,7 +50,7 @@ describe 'Parser' do
 
     it 'raises an error if there is a syntax error' do
       -> { Parser.parse(')') }.should raise_error(SyntaxError, /\(string\):1 :: parse error on value "\)"/)
-      -> { Parser.parse("1 + 2\n\n )") }.should raise_error(SyntaxError, /\(string\):3 :: parse error on value "\)"/)
+      -> { Parser.parse("1 + 2\n\n)") }.should raise_error(SyntaxError, /\(string\):3 :: parse error on value "\)"/)
     end
 
     it 'parses strings' do
@@ -95,6 +95,14 @@ describe 'Parser' do
       Parser.parse("def foo\n1\nend").should == s(:block, s(:defn, :foo, s(:args), s(:lit, 1)))
       Parser.parse("def foo;1;end").should == s(:block, s(:defn, :foo, s(:args), s(:lit, 1)))
       Parser.parse("def foo(x, y)\n1\n2\nend").should == s(:block, s(:defn, :foo, s(:args, :x, :y), s(:lit, 1), s(:lit, 2)))
+    end
+
+    it 'parses class definition' do
+      Parser.parse("class Foo\nend").should == s(:block, s(:class, :Foo, nil))
+      Parser.parse("class Foo;end").should == s(:block, s(:class, :Foo, nil))
+      Parser.parse("class FooBar; 1; 2; end").should == s(:block, s(:class, :FooBar, nil, s(:lit, 1), s(:lit, 2)))
+      -> { Parser.parse('class foo;end') }.should raise_error(SyntaxError, 'class/module name must be CONSTANT')
+      Parser.parse("class Foo < Bar; 3\n 4\n end").should == s(:block, s(:class, :Foo, s(:const, :Bar), s(:lit, 3), s(:lit, 4)))
     end
   end
 end
