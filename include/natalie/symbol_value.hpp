@@ -1,6 +1,7 @@
 #pragma once
 
 #include <assert.h>
+#include <ctype.h>
 
 #include "natalie/class_value.hpp"
 #include "natalie/forward.hpp"
@@ -24,6 +25,10 @@ struct SymbolValue : Value {
     static Value *to_proc_block_fn(Env *, Value *, ssize_t, Value **, Block *);
 
     Value *cmp(Env *, Value *);
+
+    bool is_constant() {
+        return strlen(m_name) > 0 && isupper(m_name[0]);
+    }
 
 private:
     SymbolValue(Env *env, const char *name)
