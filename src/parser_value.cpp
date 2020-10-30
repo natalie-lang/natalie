@@ -47,7 +47,7 @@ Value *ParserValue::parse(Env *env, Value *code) {
         return env->nil_obj();
     };
 
-    g["Expression"] << "Class | Method | Sum | CallWithParens | CallWithoutParens | Constant | DqString | SqString | Numeric";
+    g["Expression"] << "Class | Method | Sum | CallWithParens | CallWithoutParens | Constant | Array | DqString | SqString | Numeric";
 
     g["Class"] << "'class' (ConstantIdentifier | Identifier) OptionalSuperclass EndOfLine+ BlockBody EndOfLine* 'end'" >> [](auto e, Env *env) {
         ArrayValue *result = new ArrayValue { env, { SymbolValue::intern(env, "class") } };
@@ -155,6 +155,14 @@ Value *ParserValue::parse(Env *env, Value *code) {
     g["Integer"] << "'-'? [0-9]+" >> [](auto e, Env *env) { return new ArrayValue { env, { SymbolValue::intern(env, "lit"), new IntegerValue { env, stoll(e.string()) } } }; };
 
     g["EscapedChar"] << "'\\\\' .";
+
+    g["Array"] << "'[' Nl Expression? (',' Nl Expression)* Nl ']'" >> [](auto e, Env *env) {
+        ArrayValue *array = new ArrayValue { env, { SymbolValue::intern(env, "array") } };
+        for (auto item : e) {
+            array->push(item.evaluate(env));
+        }
+        return array;
+    };
 
     g["DqString"] << "'\"' (EscapedChar | DqChar)* '\"'" >> [](auto e, Env *env) {
         string result;
