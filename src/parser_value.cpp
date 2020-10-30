@@ -47,7 +47,7 @@ Value *ParserValue::parse(Env *env, Value *code) {
         return env->nil_obj();
     };
 
-    g["Expression"] << "Class | Method | Sum | CallWithParens | CallWithoutParens | Constant | Array | DqString | SqString | Numeric";
+    g["Expression"] << "Class | Method | Sum | CallWithParens | CallWithoutParens | Constant | Array | Hash | DqString | SqString | Numeric";
 
     g["Class"] << "'class' (ConstantIdentifier | Identifier) OptionalSuperclass EndOfLine+ BlockBody EndOfLine* 'end'" >> [](auto e, Env *env) {
         ArrayValue *result = new ArrayValue { env, { SymbolValue::intern(env, "class") } };
@@ -162,6 +162,25 @@ Value *ParserValue::parse(Env *env, Value *code) {
             array->push(item.evaluate(env));
         }
         return array;
+    };
+
+    g["Hash"] << "'{' Nl HashPair? Nl '}' | '{' Nl HashPair (',' Nl HashPair)* Nl '}'" >> [](auto e, Env *env) {
+        ArrayValue *array = new ArrayValue { env, { SymbolValue::intern(env, "hash") } };
+        for (auto item : e) {
+            ArrayValue *pair = item.evaluate(env)->as_array();
+            array->push((*pair)[0]);
+            array->push((*pair)[1]);
+        }
+        return array;
+    };
+
+    g["HashPair"] << "Expression '=>' Nl Expression | HashSymbolKey ':' Nl Expression" >> [](auto e, Env *env) {
+        assert(e.size() == 2);
+        return new ArrayValue { env, { e[0].evaluate(env), e[1].evaluate(env) } };
+    };
+
+    g["HashSymbolKey"] << "Identifier" >> [](auto e, Env *env) {
+        return new ArrayValue { env, { SymbolValue::intern(env, "lit"), e[0].evaluate(env) } };
     };
 
     g["DqString"] << "'\"' (EscapedChar | DqChar)* '\"'" >> [](auto e, Env *env) {

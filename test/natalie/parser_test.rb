@@ -113,5 +113,15 @@ describe 'Parser' do
       Parser.parse("[\n1 , \n2,\n 3]").should == s(:block, s(:array, s(:lit, 1), s(:lit, 2), s(:lit, 3)))
       -> { Parser.parse('[ , 1]') }.should raise_error(SyntaxError, /\(string\):1 :: parse error on value/)
     end
+
+    it 'parses a hash' do
+      Parser.parse("{}").should == s(:block, s(:hash))
+      Parser.parse("{ 1 => 2 }").should == s(:block, s(:hash, s(:lit, 1), s(:lit, 2)))
+      Parser.parse("{ foo: 'bar' }").should == s(:block, s(:hash, s(:lit, :foo), s(:str, 'bar')))
+      Parser.parse("{ 1 => 2, 'foo' => 'bar' }").should == s(:block, s(:hash, s(:lit, 1), s(:lit, 2), s(:str, 'foo'), s(:str, 'bar')))
+      Parser.parse("{\n 1 => \n2,\n 'foo' =>\n'bar'\n}").should == s(:block, s(:hash, s(:lit, 1), s(:lit, 2), s(:str, 'foo'), s(:str, 'bar')))
+      Parser.parse("{ foo: 'bar', baz: 'buz' }").should == s(:block, s(:hash, s(:lit, :foo), s(:str, 'bar'), s(:lit, :baz), s(:str, 'buz')))
+      -> { Parser.parse('{ , 1 => 2 }') }.should raise_error(SyntaxError, /\(string\):1 :: parse error on value/)
+    end
   end
 end
