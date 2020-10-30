@@ -111,6 +111,7 @@ describe 'Parser' do
       Parser.parse("['foo']").should == s(:block, s(:array, s(:str, 'foo')))
       Parser.parse("[1, 2, 3]").should == s(:block, s(:array, s(:lit, 1), s(:lit, 2), s(:lit, 3)))
       Parser.parse("[\n1 , \n2,\n 3]").should == s(:block, s(:array, s(:lit, 1), s(:lit, 2), s(:lit, 3)))
+      -> { Parser.parse('[ , 1]') }.should raise_error(SyntaxError, /\(string\):1 :: parse error on value/)
     end
   end
 end

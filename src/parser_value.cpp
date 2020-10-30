@@ -156,7 +156,7 @@ Value *ParserValue::parse(Env *env, Value *code) {
 
     g["EscapedChar"] << "'\\\\' .";
 
-    g["Array"] << "'[' Nl Expression? (',' Nl Expression)* Nl ']'" >> [](auto e, Env *env) {
+    g["Array"] << "'[' Nl Expression? Nl ']' | '[' Nl Expression (',' Nl Expression)* Nl ']'" >> [](auto e, Env *env) {
         ArrayValue *array = new ArrayValue { env, { SymbolValue::intern(env, "array") } };
         for (auto item : e) {
             array->push(item.evaluate(env));
