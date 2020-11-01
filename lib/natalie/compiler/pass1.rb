@@ -391,7 +391,7 @@ module Natalie
         if (i = call.index('nullptr'))
           call[i] = block
         else
-          p call
+          puts "#{exp.file}##{exp.line}: #{call.inspect}"
           raise "cannot add block to call!"
         end
         args_name = temp('args_as_array')
@@ -888,7 +888,7 @@ module Natalie
       end
 
       def process_zsuper(exp)
-        exp.new(:super, s(:args))
+        process(exp.new(:super))
       end
 
       def temp(name)
