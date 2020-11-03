@@ -112,6 +112,7 @@ Value *ModuleValue::const_set(Env *env, const char *name, Value *val) {
     hashmap_put(&m_constants, name, val);
     if (val->is_module() && !val->owner()) {
         val->set_owner(this);
+        if (val->singleton_class()) val->singleton_class()->set_owner(this);
     }
     return val;
 }

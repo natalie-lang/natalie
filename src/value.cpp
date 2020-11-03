@@ -231,12 +231,15 @@ SymbolValue *Value::to_symbol(Env *env, Conversion conversion) {
 }
 
 ClassValue *Value::singleton_class(Env *env) {
+    if (m_singleton_class) {
+        return m_singleton_class;
+    }
+
     if (is_integer() || is_float() || is_symbol()) {
         NAT_RAISE(env, "TypeError", "can't define singleton");
     }
-    if (!m_singleton_class) {
-        m_singleton_class = m_klass->subclass(env);
-    }
+
+    m_singleton_class = m_klass->subclass(env);
     return m_singleton_class;
 }
 
