@@ -267,6 +267,8 @@ Value *ModuleValue::call_method(Env *env, Value *instance_class, const char *met
         return method->run(&e, self, argc, args, block);
     } else if (self->is_module()) {
         NAT_RAISE(env, "NoMethodError", "undefined method `%s' for %s:%v", method_name, self->as_module()->class_name(), instance_class);
+    } else if (strcmp(method_name, "inspect") == 0) {
+        NAT_RAISE(env, "NoMethodError", "undefined method `inspect' for #<%s:0x%x>", self->klass()->class_name(), self->object_id());
     } else {
         NAT_RAISE(env, "NoMethodError", "undefined method `%s' for %s", method_name, NAT_INSPECT(self));
     }

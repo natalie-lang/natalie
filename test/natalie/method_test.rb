@@ -371,4 +371,13 @@ describe 'method with keyword args' do
   xit 'raises an error when an extra keyword argument is supplied' do
     -> { method_with_kwargs6(a: 1, b: 2, c: 3) }.should raise_error(ArgumentError, "unknown keyword: :c")
   end
+
+  it 'raises an error when the method is not defined' do
+    class Foo; end
+    -> { Foo.new.not_a_method }.should raise_error(NoMethodError, /undefined method `not_a_method' for #<Foo:0x.+>/)
+  end
+
+  it 'does not loop infinitely when trying to call inspect on BasicObject' do
+    -> { BasicObject.new.inspect }.should raise_error(NoMethodError, /undefined method `inspect' for #<BasicObject:0x.+>/)
+  end
 end
