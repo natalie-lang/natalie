@@ -13,13 +13,12 @@ extern "C" Env *build_top_env() {
     ClassValue *Class = ClassValue::bootstrap_class_class(env);
 
     ClassValue *BasicObject = ClassValue::bootstrap_basic_object(env, Class);
+    BasicObject->define_singleton_method(env, "new", Value::_new);
 
     ClassValue *Object = BasicObject->subclass(env, "Object");
     env->global_env()->set_Object(Object);
-    Object->define_singleton_method(env, "new", Value::_new);
 
     // these must be defined after Object exists
-    BasicObject->set_singleton_class(Class->singleton_class(env));
     Object->const_set(env, "Class", Class);
     Object->const_set(env, "BasicObject", BasicObject);
     Object->const_set(env, "Object", Object);
@@ -27,6 +26,7 @@ extern "C" Env *build_top_env() {
     ClassValue *Module = Object->subclass(env, "Module", Value::Type::Module);
     Object->const_set(env, "Module", Module);
     Class->set_superclass_DANGEROUSLY(Module);
+    Class->set_singleton_class(Module->singleton_class()->subclass(env, "#<Class:Class>"));
 
     ModuleValue *Kernel = new ModuleValue { env, "Kernel" };
     Object->const_set(env, "Kernel", Kernel);
