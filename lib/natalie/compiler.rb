@@ -14,11 +14,9 @@ module Natalie
       File.join(ROOT_DIR, 'include'),
       File.join(BUILD_DIR, 'include'),
       File.join(BUILD_DIR, 'include/gdtoa'),
-      File.join(BUILD_DIR, '_deps/pegparser-src/include'),
     ]
     LIB_PATHS = [
       BUILD_DIR,
-      File.join(BUILD_DIR, '_deps/pegparser-build'),
     ]
     LIBRARIES = %W[
       -lnatalie
