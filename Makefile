@@ -15,10 +15,10 @@ build_release:
 	cmake --build build -j 4
 
 clean:
-	cd build && make -f CMakeFiles/Makefile2 CMakeFiles/natalie.dir/clean
+	if [[ -d build ]]; then make -C build -f CMakeFiles/Makefile2 CMakeFiles/natalie.dir/clean; fi
 
 cleanall:
-	cmake --build build --target clean
+	rm -rf build
 
 test: build
 	ruby test/all.rb
