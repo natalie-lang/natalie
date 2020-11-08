@@ -12,6 +12,7 @@ struct Env;
 struct EnvValue;
 struct ExceptionValue;
 struct FalseValue;
+struct FiberValue;
 struct FileValue;
 struct FloatValue;
 struct GlobalEnv;

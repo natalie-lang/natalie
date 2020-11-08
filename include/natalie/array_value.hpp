@@ -30,13 +30,16 @@ struct ArrayValue : Value {
         : Value { other.type(), other.klass() }
         , m_vector { other.m_vector } { }
 
+    ArrayValue(Env *env, ssize_t argc, Value **args)
+        : ArrayValue { env } {
+        for (ssize_t i = 0; i < argc; i++) {
+            push(args[i]);
+        }
+    }
+
     // Array[]
     static Value *square_new(Env *env, ssize_t argc, Value **args) {
-        ArrayValue *ary = new ArrayValue { env };
-        for (ssize_t i = 0; i < argc; i++) {
-            ary->push(args[i]);
-        }
-        return ary;
+        return new ArrayValue { env, argc, args };
     }
 
     Value *to_ary() { return this; }

@@ -374,6 +374,26 @@ Value *FalseValue_to_s_binding1(Env *env, Value *self_value, ssize_t argc, Value
     return return_value;
 }
 
+Value *FiberValue_yield_static_binding(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
+    
+    auto return_value = FiberValue::yield(env, argc, args);
+    return return_value;
+}
+
+Value *FiberValue_initialize_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    FiberValue *self = self_value->as_fiber();
+    auto return_value = self->initialize(env, block);
+    return return_value;
+}
+
+Value *FiberValue_resume_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    
+    FiberValue *self = self_value->as_fiber();
+    auto return_value = self->resume(env, argc, args);
+    return return_value;
+}
+
 Value *FileValue_expand_path_static_binding(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1, 2);
     auto return_value = FileValue::expand_path(env, argc > 0 ? args[0] : nullptr, argc > 1 ? args[1] : nullptr);
@@ -2013,6 +2033,10 @@ void init_bindings(Env *env) {
     Value *FalseClass = env->Object()->const_find(env, "FalseClass");
     FalseClass->define_method(env, "inspect", FalseValue_to_s_binding);
     FalseClass->define_method(env, "to_s", FalseValue_to_s_binding1);
+    Value *Fiber = env->Object()->const_find(env, "Fiber");
+    Fiber->define_singleton_method(env, "yield", FiberValue_yield_static_binding);
+    Fiber->define_method(env, "initialize", FiberValue_initialize_binding);
+    Fiber->define_method(env, "resume", FiberValue_resume_binding);
     Value *File = env->Object()->const_find(env, "File");
     File->define_singleton_method(env, "expand_path", FileValue_expand_path_static_binding);
     File->define_method(env, "initialize", FileValue_initialize_binding);

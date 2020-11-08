@@ -33,6 +33,10 @@ Value *Value::_new(Env *env, Value *klass_value, ssize_t argc, Value **args, Blo
         obj = new ExceptionValue { env, klass };
         break;
 
+    case Value::Type::Fiber:
+        obj = new FiberValue { env, klass };
+        break;
+
     case Value::Type::Hash:
         obj = new HashValue { env, klass };
         break;
@@ -127,6 +131,11 @@ ExceptionValue *Value::as_exception() {
 FalseValue *Value::as_false() {
     assert(is_false());
     return static_cast<FalseValue *>(this);
+}
+
+FiberValue *Value::as_fiber() {
+    assert(is_fiber());
+    return static_cast<FiberValue *>(this);
 }
 
 FloatValue *Value::as_float() {

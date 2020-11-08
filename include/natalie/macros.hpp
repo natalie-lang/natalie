@@ -110,7 +110,7 @@
 })
 
 #define NAT_RUN_BLOCK_WITHOUT_BREAK(env, the_block, argc, args, block) ({ \
-    Value *_result = the_block->_run(env, argc, args, block);             \
+    Natalie::Value *_result = the_block->_run(env, argc, args, block);    \
     if (_result->has_break_flag()) {                                      \
         _result->remove_break_flag();                                     \
         env->raise_local_jump_error(_result, "break from proc-closure");  \
@@ -123,3 +123,9 @@
     { 0, 0, 0, nullptr, nullptr, nullptr, nullptr, nullptr }
 
 #define NAT_QUOTE(val) #val
+
+#ifdef __APPLE__
+#define NAT_ASM_PREFIX "_"
+#else
+#define NAT_ASM_PREFIX ""
+#endif

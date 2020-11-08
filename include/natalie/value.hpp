@@ -23,6 +23,7 @@ struct Value : public gc {
         Encoding,
         Exception,
         False,
+        Fiber,
         Float,
         Hash,
         Integer,
@@ -93,6 +94,7 @@ struct Value : public gc {
     bool is_nil() const { return m_type == Type::Nil; }
     bool is_true() const { return m_type == Type::True; }
     bool is_false() const { return m_type == Type::False; }
+    bool is_fiber() const { return m_type == Type::Fiber; }
     bool is_array() const { return m_type == Type::Array; }
     bool is_module() const { return m_type == Type::Module || m_type == Type::Class; }
     bool is_class() const { return m_type == Type::Class; }
@@ -117,6 +119,7 @@ struct Value : public gc {
     NilValue *as_nil();
     TrueValue *as_true();
     FalseValue *as_false();
+    FiberValue *as_fiber();
     ArrayValue *as_array();
     ModuleValue *as_module();
     ClassValue *as_class();

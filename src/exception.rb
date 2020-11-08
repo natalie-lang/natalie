@@ -5,6 +5,7 @@ class ScriptError < Exception; end
 class StandardError < Exception; end
   class ArgumentError < StandardError; end
   class EncodingError < StandardError; end
+  class FiberError < StandardError; end
   class IndexError < StandardError; end
   class NameError < StandardError; end
     class NoMethodError < NameError; end

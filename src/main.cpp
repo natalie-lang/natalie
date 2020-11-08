@@ -59,6 +59,9 @@ extern "C" Env *build_top_env() {
     env->global_env()->set_false_obj(new FalseValue { env });
     env->false_obj()->set_singleton_class(FalseClass);
 
+    ClassValue *Fiber = Object->subclass(env, "Fiber", Value::Type::Fiber);
+    Object->const_set(env, "Fiber", Fiber);
+
     ClassValue *Numeric = Object->subclass(env, "Numeric");
     Object->const_set(env, "Numeric", Numeric);
     Numeric->include_once(env, Comparable);
