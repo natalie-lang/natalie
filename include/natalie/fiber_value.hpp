@@ -44,7 +44,6 @@ typedef struct {
 
 extern int fiber_asm_switch(fiber_stack_struct *, fiber_stack_struct *, int, Natalie::Env *, Natalie::FiberValue *);
 extern void fiber_wrapper_func(Natalie::Env *, Natalie::FiberValue *);
-extern void *asm_call_fiber_exit();
 extern void fiber_exit();
 }
 
@@ -110,7 +109,7 @@ struct FiberValue : Value {
 #endif
 
         // 4 bytes below 16-byte alignment: mac os x wants return address here so this points to a call instruction.
-        *(--m_fiber.stack) = (void *)((uintptr_t)&asm_call_fiber_exit);
+        *(--m_fiber.stack) = (void *)((uintptr_t)&fiber_exit);
         // 8 bytes below 16-byte alignment: will "return" to start this function
         *(--m_fiber.stack) = (void *)((uintptr_t)&fiber_wrapper_func); // Cast to avoid ISO C warnings.
         // push NULL words to initialize the registers loaded by fiber_asm_switch

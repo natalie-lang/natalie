@@ -29,8 +29,8 @@
 extern "C" {
 
 void fiber_exit() {
-    // FIXME: this should be the function that calls fiber_asm_switch but I don't know how to do that yet :-)
-    abort(); // fiber_asm_switch should never return for an exiting fiber.
+    // fiber_asm_switch should never return for an exiting fiber.
+    NAT_UNREACHABLE();
 }
 
 void fiber_wrapper_func(Natalie::Env *env, Natalie::FiberValue *fiber) {
@@ -46,18 +46,8 @@ void fiber_wrapper_func(Natalie::Env *env, Natalie::FiberValue *fiber) {
     fiber->set_status(Natalie::FiberValue::Status::Terminated);
     env->global_env()->reset_current_fiber();
     env->global_env()->set_fiber_args(1, return_args);
-    // FIXME: maybe this should be done in fiber_exit, but I'm not sure how to get the args needed there
     fiber_asm_switch(env->global_env()->main_fiber(env)->fiber(), fiber->fiber(), 0, env, fiber);
 }
-
-/* Used to handle the correct stack alignment on Mac OS X, which requires a
-16-byte aligned stack. The process returns here from its "main" function,
-leaving the stack at 16-byte alignment. The call instruction then places a
-return address on the stack, making the stack correctly aligned for the
-process_exit function. */
-asm(".globl " NAT_ASM_PREFIX "asm_call_fiber_exit\n" NAT_ASM_PREFIX
-    "asm_call_fiber_exit:\n"
-    "\tcall " NAT_ASM_PREFIX "fiber_exit\n");
 
 #ifdef __x86_64
 /* arguments:
