@@ -71,6 +71,8 @@ asm(".globl " NAT_ASM_PREFIX "fiber_asm_switch\n" NAT_ASM_PREFIX "fiber_asm_swit
     "\tpushq %r13\n"
     "\tpushq %r14\n"
     "\tpushq %r15\n"
+
+    // save current stack pointer into fiber struct
     "\tmovq %rsp, (%rsi)\n"
 
     // move args for function
