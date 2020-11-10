@@ -64,7 +64,7 @@ asm(".globl " NAT_ASM_PREFIX "fiber_asm_switch\n" NAT_ASM_PREFIX "fiber_asm_swit
     // Move return value into rax
     "\tmovq %rdx, %rax\n"
 
-    // save registers: rbx rbp r12 r13 r14 r15 (rsp into structure)
+    // save registers to current stack
     "\tpushq %rbx\n"
     "\tpushq %rbp\n"
     "\tpushq %r12\n"
@@ -83,7 +83,7 @@ asm(".globl " NAT_ASM_PREFIX "fiber_asm_switch\n" NAT_ASM_PREFIX "fiber_asm_swit
     // swap stack
     "\tmovq (%r15), %rsp\n"
 
-    // restore registers
+    // restore registers from new stack
     "\tpopq %r15\n"
     "\tpopq %r14\n"
     "\tpopq %r13\n"
@@ -91,7 +91,7 @@ asm(".globl " NAT_ASM_PREFIX "fiber_asm_switch\n" NAT_ASM_PREFIX "fiber_asm_swit
     "\tpopq %rbp\n"
     "\tpopq %rbx\n"
 
-    // return to the "next" fiber with eax set to return_value
+    // return to the "next" fiber with rax set to return_value
     "\tret\n");
 #else
 asm(".globl " NAT_ASM_PREFIX "fiber_asm_switch\n" NAT_ASM_PREFIX "fiber_asm_switch:\n"
