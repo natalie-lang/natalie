@@ -68,8 +68,13 @@ struct FiberValue : Value {
     FiberValue *initialize(Env *env, Block *block) {
         NAT_ASSERT_BLOCK();
         create_stack(env, STACK_SIZE);
+        m_stack_base.mem_base = m_stack_bottom;
         m_block = block;
         return this;
+    }
+
+    void set_current_stack_bottom() {
+        GC_get_my_stackbottom(&m_stack_base);
     }
 
     static Value *yield(Env *env, ssize_t argc, Value **args) {
@@ -78,6 +83,7 @@ struct FiberValue : Value {
         current_fiber->set_status(Status::Suspended);
         env->global_env()->reset_current_fiber();
         env->global_env()->set_fiber_args(argc, args);
+        GC_set_stackbottom(nullptr, main_fiber->stack_base());
         fiber_asm_switch(main_fiber->fiber(), current_fiber->fiber(), 0, env, main_fiber);
         argc = env->global_env()->fiber_argc();
         args = env->global_env()->fiber_args();
@@ -125,6 +131,7 @@ struct FiberValue : Value {
         auto main_fiber = env->global_env()->main_fiber(env);
         env->global_env()->set_current_fiber(this);
         env->global_env()->set_fiber_args(argc, args);
+        GC_set_stackbottom(nullptr, stack_base());
         fiber_asm_switch(fiber(), main_fiber->fiber(), 0, env, this);
         argc = env->global_env()->fiber_argc();
         args = env->global_env()->fiber_args();
@@ -137,15 +144,22 @@ struct FiberValue : Value {
         }
     }
 
+    void *stack_bottom() { return m_stack_bottom; }
+
     fiber_stack_struct *fiber() { return &m_fiber; }
     Block *block() { return m_block; }
     void set_status(Status status) { m_status = status; }
+
+    struct GC_stack_base *stack_base() {
+        return &m_stack_base;
+    }
 
 private:
     Block *m_block { nullptr };
     ::fiber_stack_struct m_fiber {};
     void *m_stack_bottom { nullptr };
     Status m_status { Status::Created };
+    struct GC_stack_base m_stack_base;
 };
 
 }

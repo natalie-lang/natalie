@@ -7,3 +7,4 @@ coverage-report
 .ccls
 compile_commands.json
 tags
+.gdb_history

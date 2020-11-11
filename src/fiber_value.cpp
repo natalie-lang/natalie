@@ -34,6 +34,7 @@ void fiber_exit() {
 }
 
 void fiber_wrapper_func(Natalie::Env *env, Natalie::FiberValue *fiber) {
+    GC_set_stackbottom(nullptr, fiber->stack_base());
     fiber->set_status(Natalie::FiberValue::Status::Active);
     assert(fiber->block());
     Natalie::Value **return_args = new Natalie::Value *[1];
@@ -46,7 +47,9 @@ void fiber_wrapper_func(Natalie::Env *env, Natalie::FiberValue *fiber) {
     fiber->set_status(Natalie::FiberValue::Status::Terminated);
     env->global_env()->reset_current_fiber();
     env->global_env()->set_fiber_args(1, return_args);
-    fiber_asm_switch(env->global_env()->main_fiber(env)->fiber(), fiber->fiber(), 0, env, fiber);
+    auto main_fiber = env->global_env()->main_fiber(env);
+    GC_set_stackbottom(nullptr, main_fiber->stack_base());
+    fiber_asm_switch(main_fiber->fiber(), fiber->fiber(), 0, env, fiber);
 }
 
 #ifdef __x86_64

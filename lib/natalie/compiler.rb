@@ -201,8 +201,8 @@ module Natalie
       !!repl
     end
 
-    RELEASE_FLAGS = '-O1'
-    DEBUG_FLAGS = '-g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unknown-warning-option'
+    RELEASE_FLAGS = '-pthread -ldl -O1'
+    DEBUG_FLAGS = '-pthread -ldl -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unknown-warning-option'
     COVERAGE_FLAGS = '-fprofile-arcs -ftest-coverage'
 
     def build_flags
