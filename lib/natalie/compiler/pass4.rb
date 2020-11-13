@@ -127,6 +127,13 @@ module Natalie
         "env->global_set(\"$0\", new StringValue { env, source_files[0] });"
       end
 
+      def process___compile_flags__(exp)
+        (_, flags) = exp
+        raise "Expected string passed to __compile_flags__, but got: #{flags.inspect}" unless flags.sexp_type == :str
+        @compiler_context[:compile_flags] << flags.last
+        ''
+      end
+
       def process___define_method__(exp)
         (_, name, body) = exp
         raise "Expected string passed to __define_method__, but got: #{body.inspect}" unless body.sexp_type == :str

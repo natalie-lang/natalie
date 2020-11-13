@@ -98,6 +98,7 @@ module Natalie
         repl: repl,
         vars: vars || {},
         inline_cpp_enabled: inline_cpp_enabled,
+        compile_flags: [],
       }
     end
 
@@ -165,7 +166,6 @@ module Natalie
         [
           cc,
           build_flags,
-          ENV['NAT_CXX_FLAGS'],
           (shared? ? '-fPIC -shared' : ''),
           inc_paths,
           "-o #{out_path}",
@@ -214,7 +214,11 @@ module Natalie
         DEBUG_FLAGS + ' ' + COVERAGE_FLAGS
       else
         raise "unknown build mode: #{build.inspect}"
-      end
+      end + extra_build_flags
+    end
+
+    def extra_build_flags
+      "#{ENV['NAT_CXX_FLAGS']} #{@context[:compile_flags].join(' ')}"
     end
 
     def var_prefix
