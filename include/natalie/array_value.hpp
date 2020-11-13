@@ -1,6 +1,7 @@
 #pragma once
 
 #include <initializer_list>
+#include <utility>
 
 #include "natalie/class_value.hpp"
 #include "natalie/forward.hpp"
