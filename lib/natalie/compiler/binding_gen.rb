@@ -275,6 +275,7 @@ gen.binding('FalseClass', 'to_s', 'FalseValue', 'to_s', argc: 0, pass_env: true,
 gen.static_binding('Fiber', 'yield', 'FiberValue', 'yield', argc: :any, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Fiber', 'initialize', 'FiberValue', 'initialize', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Fiber', 'resume', 'FiberValue', 'resume', argc: :any, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Fiber', 'status', 'FiberValue', 'status', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 
 gen.static_binding('File', 'expand_path', 'FileValue', 'expand_path', argc: 1..2, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('File', 'initialize', 'FileValue', 'initialize', argc: 1..2, pass_env: true, pass_block: true, return_type: :Value)

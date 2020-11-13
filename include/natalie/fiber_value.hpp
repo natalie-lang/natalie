@@ -36,6 +36,7 @@
 #include "natalie/global_env.hpp"
 #include "natalie/macros.hpp"
 #include "natalie/nil_value.hpp"
+#include "natalie/symbol_value.hpp"
 #include "natalie/value.hpp"
 
 extern "C" {
@@ -153,6 +154,20 @@ struct FiberValue : Value {
 
     struct GC_stack_base *stack_base() {
         return &m_stack_base;
+    }
+
+    SymbolValue *status(Env *env) {
+        switch (m_status) {
+        case Status::Created:
+            return SymbolValue::intern(env, "created");
+        case Status::Active:
+            return SymbolValue::intern(env, "active");
+        case Status::Suspended:
+            return SymbolValue::intern(env, "suspended");
+        case Status::Terminated:
+            return SymbolValue::intern(env, "terminated");
+        }
+        NAT_UNREACHABLE();
     }
 
 private:

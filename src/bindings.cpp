@@ -394,6 +394,13 @@ Value *FiberValue_resume_binding(Env *env, Value *self_value, ssize_t argc, Valu
     return return_value;
 }
 
+Value *FiberValue_status_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    FiberValue *self = self_value->as_fiber();
+    auto return_value = self->status(env);
+    return return_value;
+}
+
 Value *FileValue_expand_path_static_binding(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1, 2);
     auto return_value = FileValue::expand_path(env, argc > 0 ? args[0] : nullptr, argc > 1 ? args[1] : nullptr);
@@ -2037,6 +2044,7 @@ void init_bindings(Env *env) {
     Fiber->define_singleton_method(env, "yield", FiberValue_yield_static_binding);
     Fiber->define_method(env, "initialize", FiberValue_initialize_binding);
     Fiber->define_method(env, "resume", FiberValue_resume_binding);
+    Fiber->define_method(env, "status", FiberValue_status_binding);
     Value *File = env->Object()->const_find(env, "File");
     File->define_singleton_method(env, "expand_path", FileValue_expand_path_static_binding);
     File->define_method(env, "initialize", FileValue_initialize_binding);
