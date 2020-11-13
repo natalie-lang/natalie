@@ -32,6 +32,7 @@
 #include "natalie/array_value.hpp"
 #include "natalie/class_value.hpp"
 #include "natalie/forward.hpp"
+#include "natalie/gc.hpp"
 #include "natalie/global_env.hpp"
 #include "natalie/macros.hpp"
 #include "natalie/nil_value.hpp"
