@@ -1,0 +1,21 @@
+{
+   <GC_mark>
+   Memcheck:Addr8
+   ...
+   fun:GC_mark_some
+   ...
+}
+{
+   <GC_mark>
+   Memcheck:Value8
+   ...
+   fun:GC_mark_some
+   ...
+}
+{
+   <GC_mark>
+   Memcheck:Cond
+   ...
+   fun:GC_mark_some
+   ...
+}

@@ -7,8 +7,9 @@ using namespace Natalie;
 /*OBJ_NAT*/
 
 extern "C" Env *build_top_env() {
-    Env *env = new Env { new GlobalEnv };
-    env->set_method_name(strdup("<main>"));
+    GlobalEnv *global_env = new GlobalEnv {};
+    Env *env = new Env { global_env };
+    env->set_method_name(GC_STRDUP("<main>"));
 
     ClassValue *Class = ClassValue::bootstrap_class_class(env);
 
@@ -190,9 +191,7 @@ int main(int argc, char *argv[]) {
         ARGV->push(new StringValue { env, argv[i] });
     }
     Value *result = EVAL(env);
-    delete env->global_env();
     env->clear_global_env();
-    delete env;
     if (result) {
         return 0;
     } else {

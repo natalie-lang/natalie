@@ -18,7 +18,7 @@ struct StringValue : Value {
 
     StringValue(Env *env, ClassValue *klass)
         : Value { Value::Type::String, klass } {
-        m_str = strdup("");
+        m_str = GC_STRDUP("");
     }
 
     StringValue(Env *env)
@@ -48,17 +48,17 @@ struct StringValue : Value {
     Encoding encoding() const { return m_encoding; }
 
     void set_str(const char *str) {
-        free(m_str);
+        GC_FREE(m_str);
         assert(str);
-        m_str = strdup(str);
+        m_str = GC_STRDUP(str);
         m_length = strlen(str);
         m_capacity = m_length;
     }
 
     void set_str(const char *str, ssize_t length) {
-        free(m_str);
+        GC_FREE(m_str);
         assert(str);
-        m_str = strdup(str);
+        m_str = GC_STRDUP(str);
         m_str[length] = 0;
         m_length = length;
         m_capacity = strlen(str);

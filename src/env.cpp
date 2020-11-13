@@ -63,19 +63,19 @@ char *Env::build_code_location_name(Env *location_env) {
             if (strcmp(location_env->method_name(), "<block>") == 0) {
                 if (location_env->outer()) {
                     char *outer_name = build_code_location_name(location_env->outer());
-                    char *name = strdup(StringValue::sprintf(this, "block in %s", outer_name)->c_str());
-                    free(outer_name);
+                    char *name = GC_STRDUP(StringValue::sprintf(this, "block in %s", outer_name)->c_str());
+                    GC_FREE(outer_name);
                     return name;
                 } else {
-                    return strdup("block");
+                    return GC_STRDUP("block");
                 }
             } else {
-                return strdup(location_env->method_name());
+                return GC_STRDUP(location_env->method_name());
             }
         }
         location_env = location_env->outer();
     } while (location_env);
-    return strdup("(unknown)");
+    return GC_STRDUP("(unknown)");
 }
 
 Value *Env::raise(ClassValue *klass, const char *message_format, ...) {

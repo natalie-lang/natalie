@@ -315,7 +315,7 @@ Value *Value::ivars(Env *env) {
 void Value::init_ivars() {
     if (m_ivars.table) return;
     hashmap_init(&m_ivars, hashmap_hash_string, hashmap_compare_string, 100);
-    hashmap_set_key_alloc_funcs(&m_ivars, hashmap_alloc_key_string, free);
+    hashmap_set_key_alloc_funcs(&m_ivars, hashmap_alloc_key_string, nullptr);
 }
 
 Value *Value::cvar_get(Env *env, const char *name) {

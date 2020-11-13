@@ -55,7 +55,7 @@ struct RegexpValue : Value {
         }
         m_regex = regex;
         m_options = options;
-        m_pattern = strdup(pattern);
+        m_pattern = GC_STRDUP(pattern);
     }
 
     const char *pattern() { return m_pattern; }

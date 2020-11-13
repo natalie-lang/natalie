@@ -14,9 +14,9 @@ ModuleValue::ModuleValue(Env *env, Type type, ClassValue *klass)
     : Value { type, klass } {
     m_env = Env::new_detatched_block_env(env);
     hashmap_init(&m_methods, hashmap_hash_string, hashmap_compare_string, 10);
-    hashmap_set_key_alloc_funcs(&m_methods, hashmap_alloc_key_string, free);
+    hashmap_set_key_alloc_funcs(&m_methods, hashmap_alloc_key_string, nullptr);
     hashmap_init(&m_constants, hashmap_hash_string, hashmap_compare_string, 10);
-    hashmap_set_key_alloc_funcs(&m_constants, hashmap_alloc_key_string, free);
+    hashmap_set_key_alloc_funcs(&m_constants, hashmap_alloc_key_string, nullptr);
 }
 
 Value *ModuleValue::extend(Env *env, ssize_t argc, Value **args) {
@@ -123,7 +123,7 @@ void ModuleValue::alias(Env *env, const char *new_name, const char *old_name) {
     if (!method) {
         NAT_RAISE(env, "NameError", "undefined method `%s' for `%v'", old_name, this);
     }
-    free(hashmap_remove(&m_methods, new_name));
+    GC_FREE(hashmap_remove(&m_methods, new_name));
     hashmap_put(&m_methods, new_name, new Method { *method });
 }
 
@@ -168,7 +168,7 @@ Value *ModuleValue::cvar_set(Env *env, const char *name, Value *val) {
         if (!current->m_superclass) {
             if (this->m_class_vars.table == nullptr) {
                 hashmap_init(&this->m_class_vars, hashmap_hash_string, hashmap_compare_string, 10);
-                hashmap_set_key_alloc_funcs(&this->m_class_vars, hashmap_alloc_key_string, free);
+                hashmap_set_key_alloc_funcs(&this->m_class_vars, hashmap_alloc_key_string, nullptr);
             }
             hashmap_remove(&this->m_class_vars, name);
             hashmap_put(&this->m_class_vars, name, val);
@@ -180,13 +180,13 @@ Value *ModuleValue::cvar_set(Env *env, const char *name, Value *val) {
 
 void ModuleValue::define_method(Env *env, const char *name, Value *(*fn)(Env *, Value *, ssize_t, Value **, Block *block)) {
     Method *method = new Method { fn };
-    free(hashmap_remove(&m_methods, name));
+    GC_FREE(hashmap_remove(&m_methods, name));
     hashmap_put(&m_methods, name, method);
 }
 
 void ModuleValue::define_method_with_block(Env *env, const char *name, Block *block) {
     Method *method = new Method { block };
-    free(hashmap_remove(&m_methods, name));
+    GC_FREE(hashmap_remove(&m_methods, name));
     hashmap_put(&m_methods, name, method);
 }
 

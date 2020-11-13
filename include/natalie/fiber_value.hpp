@@ -105,7 +105,7 @@ struct FiberValue : Value {
         static const int NUM_REGISTERS = 4;
 #endif
         assert(stack_size % 16 == 0);
-        m_stack_bottom = malloc(stack_size);
+        m_stack_bottom = GC_MALLOC(stack_size);
         if (m_stack_bottom == 0) {
             NAT_RAISE(env, "StandardError", "could not allocate stack for Fiber");
         }

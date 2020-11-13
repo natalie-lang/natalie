@@ -14,7 +14,7 @@ add_custom_command(
     WORKING_DIRECTORY ${BDWGC_SRC}
     COMMAND sh autogen.sh
     COMMAND mkdir -p ${BDWGC_BUILD_DIR}
-    COMMAND ./configure --enable-cplusplus --enable-redirect-malloc --enable-threads=pthreads --enable-static --with-pic --prefix "${BDWGC_BUILD_DIR}"
+    COMMAND ./configure --enable-cplusplus --enable-threads=pthreads --enable-static --with-pic --prefix "${BDWGC_BUILD_DIR}"
     COMMAND make
     COMMAND make install
     COMMAND make clean

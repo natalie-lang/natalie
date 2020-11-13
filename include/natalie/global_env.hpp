@@ -3,22 +3,23 @@
 #include <stdlib.h>
 
 #include "natalie/forward.hpp"
+#include "natalie/gc.hpp"
+#include "natalie/hashmap.hpp"
 
 namespace Natalie {
 
 extern "C" {
-#include "hashmap.h"
 #include "onigmo.h"
 }
 
-struct GlobalEnv {
+struct GlobalEnv : public gc {
     GlobalEnv() {
-        m_globals = static_cast<struct hashmap *>(malloc(sizeof(struct hashmap)));
+        m_globals = static_cast<struct hashmap *>(GC_MALLOC(sizeof(struct hashmap)));
         hashmap_init(m_globals, hashmap_hash_string, hashmap_compare_string, 100);
-        hashmap_set_key_alloc_funcs(m_globals, hashmap_alloc_key_string, free);
-        m_symbols = static_cast<struct hashmap *>(malloc(sizeof(struct hashmap)));
+        hashmap_set_key_alloc_funcs(m_globals, hashmap_alloc_key_string, nullptr);
+        m_symbols = static_cast<struct hashmap *>(GC_MALLOC(sizeof(struct hashmap)));
         hashmap_init(m_symbols, hashmap_hash_string, hashmap_compare_string, 100);
-        hashmap_set_key_alloc_funcs(m_symbols, hashmap_alloc_key_string, free);
+        hashmap_set_key_alloc_funcs(m_symbols, hashmap_alloc_key_string, nullptr);
     }
 
     ~GlobalEnv() {

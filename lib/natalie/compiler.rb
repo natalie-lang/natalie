@@ -23,7 +23,6 @@ module Natalie
       -lgc
       -lgccpp
       -lgdtoa
-      -lhashmap
       -lm
       -lonigmo
       -lPEGParser

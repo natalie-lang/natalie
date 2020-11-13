@@ -21,15 +21,15 @@ Value *IoValue::read(Env *env, Value *count_value) {
     if (count_value) {
         NAT_ASSERT_TYPE(count_value, Value::Type::Integer, "Integer");
         int count = count_value->as_integer()->to_int64_t();
-        char *buf = static_cast<char *>(malloc((count + 1) * sizeof(char)));
+        char *buf = static_cast<char *>(GC_MALLOC((count + 1) * sizeof(char)));
         bytes_read = ::read(m_fileno, buf, count);
         if (bytes_read == 0) {
-            free(buf);
+            GC_FREE(buf);
             return env->nil_obj();
         } else {
             buf[bytes_read] = 0;
             Value *result = new StringValue { env, buf };
-            free(buf);
+            GC_FREE(buf);
             return result;
         }
     }

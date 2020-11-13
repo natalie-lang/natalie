@@ -6,12 +6,12 @@
 #include "natalie/forward.hpp"
 #include "natalie/gc.hpp"
 #include "natalie/global_env.hpp"
+#include "natalie/hashmap.hpp"
 #include "natalie/macros.hpp"
 
 namespace Natalie {
 
 extern "C" {
-#include "hashmap.h"
 #include "onigmo.h"
 }
 

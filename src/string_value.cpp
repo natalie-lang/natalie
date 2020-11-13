@@ -6,7 +6,7 @@ namespace Natalie {
 
 void StringValue::grow(Env *env, ssize_t new_capacity) {
     assert(new_capacity >= m_length);
-    m_str = static_cast<char *>(realloc(m_str, new_capacity + 1));
+    m_str = static_cast<char *>(GC_REALLOC(m_str, new_capacity + 1));
     m_capacity = new_capacity;
 }
 
@@ -162,10 +162,10 @@ StringValue *StringValue::successive(Env *env) {
     } else if (last_char == '9') {
         result->increment_successive_char(env, '0', '1', '9');
     } else {
-        char *next = strdup(result->c_str());
+        char *next = GC_STRDUP(result->c_str());
         next[index]++;
         result->set_str(next);
-        free(next);
+        GC_FREE(next);
     }
     return result;
 }
@@ -383,7 +383,7 @@ Value *StringValue::encoding(Env *env) {
 }
 
 static char *lcase_string(const char *str) {
-    char *lcase_str = strdup(str);
+    char *lcase_str = GC_STRDUP(str);
     for (int i = 0; lcase_str[i]; i++) {
         lcase_str[i] = tolower(lcase_str[i]);
     }
@@ -400,14 +400,14 @@ static EncodingValue *find_encoding_by_name(Env *env, const char *name) {
             StringValue *name_obj = (*names)[n]->as_string();
             char *name = lcase_string(name_obj->c_str());
             if (strcmp(name, lcase_name) == 0) {
-                free(name);
-                free(lcase_name);
+                GC_FREE(name);
+                GC_FREE(lcase_name);
                 return encoding;
             }
-            free(name);
+            GC_FREE(name);
         }
     }
-    free(lcase_name);
+    GC_FREE(lcase_name);
     NAT_RAISE(env, "ArgumentError", "unknown encoding name - %s", name);
 }
 

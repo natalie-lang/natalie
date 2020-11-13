@@ -21,7 +21,7 @@ struct ModuleValue : Value {
 
     ModuleValue(ModuleValue &other)
         : Value { other.type(), other.klass() }
-        , m_class_name { strdup(other.m_class_name) }
+        , m_class_name { GC_STRDUP(other.m_class_name) }
         , m_superclass { other.m_superclass } {
         copy_hashmap(m_constants, other.m_constants);
         copy_hashmap(m_methods, other.m_methods);
@@ -53,7 +53,7 @@ struct ModuleValue : Value {
     Value *eval_body(Env *, Value *(*)(Env *, Value *));
 
     const char *class_name() { return m_class_name; }
-    void set_class_name(const char *name) { m_class_name = name ? strdup(name) : nullptr; }
+    void set_class_name(const char *name) { m_class_name = name ? GC_STRDUP(name) : nullptr; }
 
     ClassValue *superclass() { return m_superclass; }
     void set_superclass_DANGEROUSLY(ClassValue *superclass) { m_superclass = superclass; }

@@ -17,14 +17,14 @@ struct Vector : public gc {
     Vector(ssize_t initial_capacity, T filler)
         : m_size { initial_capacity }
         , m_capacity { initial_capacity }
-        , m_data { static_cast<T *>(malloc(sizeof(T) * initial_capacity)) } {
+        , m_data { static_cast<T *>(GC_MALLOC(sizeof(T) * initial_capacity)) } {
         fill(0, initial_capacity, filler);
     }
 
     Vector(const Vector &other)
         : m_size { other.m_size }
         , m_capacity { other.m_size }
-        , m_data { static_cast<T *>(malloc(sizeof(T) * m_size)) } {
+        , m_data { static_cast<T *>(GC_MALLOC(sizeof(T) * m_size)) } {
         memcpy(m_data, other.m_data, sizeof(T) * m_size);
     }
 
@@ -45,7 +45,7 @@ struct Vector : public gc {
                 ++capacity;
                 capacity *= NAT_VECTOR_GROW_FACTOR;
             }
-            data = static_cast<T *>(malloc(sizeof(T) * capacity));
+            data = static_cast<T *>(GC_MALLOC(sizeof(T) * capacity));
             memcpy(data, m_data + offset, sizeof(T) * size);
         } else {
             // FIXME: We should probably say something here.
@@ -69,7 +69,7 @@ struct Vector : public gc {
 
     ~Vector() {
         if (m_data)
-            free(m_data);
+            GC_FREE(m_data);
     }
 
     T &operator[](ssize_t index) const {
@@ -181,7 +181,7 @@ private:
         , m_data(data) { }
 
     void grow(ssize_t capacity) {
-        m_data = static_cast<T *>(realloc(m_data, sizeof(T) * capacity));
+        m_data = static_cast<T *>(GC_REALLOC(m_data, sizeof(T) * capacity));
         m_capacity = capacity;
     }
 
