@@ -47,7 +47,7 @@ Value *ParserValue::parse(Env *env, Value *code) {
         return env->nil_obj();
     };
 
-    g["Expression"] << "Class | Method | Assignment | Sum | CallWithParens | CallWithoutParens | Constant | Array | Hash | DqString | SqString | Numeric";
+    g["Expression"] << "Class | Module | Method | Assignment | Sum | CallWithParens | CallWithoutParens | Constant | Array | Hash | DqString | SqString | Numeric";
 
     g["Class"] << "'class' (ConstantIdentifier | Identifier) OptionalSuperclass EndOfLine+ BlockBody EndOfLine* 'end'" >> [](auto e, Env *env) {
         ArrayValue *result = new ArrayValue { env, { SymbolValue::intern(env, "class") } };
@@ -72,6 +72,22 @@ Value *ParserValue::parse(Env *env, Value *code) {
         } else {
             return static_cast<Value *>(env->nil_obj());
         }
+    };
+
+    g["Module"] << "'module' (ConstantIdentifier | Identifier) EndOfLine+ BlockBody EndOfLine* 'end'" >> [](auto e, Env *env) {
+        ArrayValue *result = new ArrayValue { env, { SymbolValue::intern(env, "module") } };
+        SymbolValue *name = e[0].evaluate(env)->as_symbol();
+        if (!name->is_constant()) {
+            NAT_RAISE(env, "SyntaxError", "class/module name must be CONSTANT");
+        }
+        result->push(name);
+        ArrayValue *body = e[1].evaluate(env)->as_array();
+        if (body->size() > 0) {
+            for (auto item : *body) {
+                result->push(item);
+            }
+        }
+        return result;
     };
 
     g["Method"] << "'def' Identifier ('(' Nl)? Parameters (Nl ')')? EndOfLine* BlockBody EndOfLine* 'end'" >> [](auto e, Env *env) {

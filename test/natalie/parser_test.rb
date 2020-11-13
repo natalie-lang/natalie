@@ -105,6 +105,13 @@ describe 'Parser' do
       Parser.parse("class Foo < Bar; 3\n 4\n end").should == s(:block, s(:class, :Foo, s(:const, :Bar), s(:lit, 3), s(:lit, 4)))
     end
 
+    it 'parses module definition' do
+      Parser.parse("module Foo\nend").should == s(:block, s(:module, :Foo))
+      Parser.parse("module Foo;end").should == s(:block, s(:module, :Foo))
+      Parser.parse("module FooBar; 1; 2; end").should == s(:block, s(:module, :FooBar, s(:lit, 1), s(:lit, 2)))
+      -> { Parser.parse('module foo;end') }.should raise_error(SyntaxError, 'class/module name must be CONSTANT')
+    end
+
     it 'parses an array' do
       Parser.parse("[]").should == s(:block, s(:array))
       Parser.parse("[1]").should == s(:block, s(:array, s(:lit, 1)))
