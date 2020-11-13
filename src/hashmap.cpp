@@ -213,6 +213,7 @@ static int hashmap_rehash(struct hashmap *map, size_t new_size) {
     HASHMAP_ASSERT((new_size & (new_size - 1)) == 0);
 
     new_table = (struct hashmap_entry *)GC_MALLOC(new_size * sizeof(struct hashmap_entry));
+    memset(new_table, 0, new_size * sizeof(struct hashmap_entry));
     if (!new_table) {
         return -ENOMEM;
     }
@@ -297,6 +298,7 @@ int hashmap_init(struct hashmap *map, size_t (*hash_func)(const void *),
     map->table_size = initial_size;
     map->num_entries = 0;
     map->table = (struct hashmap_entry *)GC_MALLOC(initial_size * sizeof(struct hashmap_entry));
+    memset(map->table, 0, initial_size * sizeof(struct hashmap_entry));
     if (!map->table) {
         return -ENOMEM;
     }
