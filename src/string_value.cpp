@@ -22,7 +22,7 @@ void StringValue::grow_at_least(Env *env, ssize_t min_capacity) {
 void StringValue::prepend_char(Env *env, char c) {
     ssize_t total_length = m_length + 1;
     grow_at_least(env, total_length);
-    memmove(m_str + 1, m_str, m_length);
+    memmove(m_str + 1, m_str, m_length + 1); // 1 extra for null terminator
     m_str[0] = c;
     m_length = total_length;
 }
