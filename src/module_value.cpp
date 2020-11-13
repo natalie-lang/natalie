@@ -128,7 +128,7 @@ void ModuleValue::alias(Env *env, const char *new_name, const char *old_name) {
 }
 
 Value *ModuleValue::eval_body(Env *env, Value *(*fn)(Env *, Value *)) {
-    Env body_env = new Env { env };
+    Env body_env = Env { env };
     body_env.set_caller(env);
     Value *result = fn(&body_env, this);
     body_env.clear_caller();
