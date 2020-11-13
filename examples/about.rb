@@ -1,11 +1,8 @@
 # This is just a simple about dialog for Natalie that uses the
-# gtk3 library in this same directory. Currently, this only
-# works with Natalie if we disable the garbage collector. Also,
-# some flags must be passed to the compiler in order to find
-# the gtk3 library:
+# gtk3 library in this same directory. Some flags must be
+# passed to the compiler in order to find the gtk3 library:
 #
-# NAT_CXX_FLAGS="-DNAT_GC_DISABLE" make clean build
-# NAT_CXX_FLAGS="$(pkg-config --libs --cflags gtk+-3.0) -DNAT_GC_DISABLE" bin/natalie examples/about.rb
+# NAT_CXX_FLAGS="$(pkg-config --libs --cflags gtk+-3.0)" bin/natalie examples/about.rb
 
 require_relative './gtk3'
 
