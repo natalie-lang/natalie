@@ -35,6 +35,9 @@ struct GlobalEnv : public gc {
         return m_symbols;
     }
 
+    ClassValue *Array() { return m_Array; }
+    void set_Array(ClassValue *Array) { m_Array = Array; }
+
     ClassValue *Object() { return m_Object; }
     void set_Object(ClassValue *Object) { m_Object = Object; }
 
@@ -66,6 +69,7 @@ struct GlobalEnv : public gc {
 private:
     struct hashmap *m_globals { nullptr };
     struct hashmap *m_symbols { nullptr };
+    ClassValue *m_Array { nullptr };
     ClassValue *m_Integer { nullptr };
     ClassValue *m_Object { nullptr };
     NilValue *m_nil_obj { nullptr };

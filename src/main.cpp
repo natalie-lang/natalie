@@ -86,6 +86,7 @@ extern "C" Env *build_top_env() {
     String->include_once(env, Comparable);
 
     ClassValue *Array = Object->subclass(env, "Array", Value::Type::Array);
+    env->global_env()->set_Array(Array);
     Object->const_set(env, "Array", Array);
     Array->include_once(env, Enumerable);
 

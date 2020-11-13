@@ -14,7 +14,7 @@ namespace Natalie {
 
 struct ArrayValue : Value {
     ArrayValue(Env *env)
-        : Value { Value::Type::Array, env->Object()->const_fetch("Array")->as_class() } { }
+        : Value { Value::Type::Array, env->Array() } { }
 
     ArrayValue(Env *env, ClassValue *klass)
         : Value { Value::Type::Array, klass } { }
@@ -114,7 +114,7 @@ struct ArrayValue : Value {
 
 private:
     ArrayValue(Env *env, Vector<Value *> &&vector)
-        : Value { Value::Type::Array, env->Object()->const_fetch("Array")->as_class() }
+        : Value { Value::Type::Array, env->Array() }
         , m_vector { std::move(vector) } { }
 
     Vector<Value *> m_vector {};
