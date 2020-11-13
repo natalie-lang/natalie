@@ -7,15 +7,23 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v1
-    - name: disable tty in docker
-      run: echo "::set-env name=DOCKER_FLAGS::"
     - name: checkout submodules
       run: git submodule update --init --recursive
+      env:
+        DOCKER_FLAGS: ""
     - name: test with gcc
       run: make docker_test_gcc
+      env:
+        DOCKER_FLAGS: ""
     - name: test with clang
       run: make docker_test_clang
+      env:
+        DOCKER_FLAGS: ""
     - name: test with valgrind
       run: make docker_test_valgrind
+      env:
+        DOCKER_FLAGS: ""
     - name: test release build
       run: make docker_test_release
+      env:
+        DOCKER_FLAGS: ""
