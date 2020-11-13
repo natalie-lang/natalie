@@ -47,7 +47,7 @@ Value *ParserValue::parse(Env *env, Value *code) {
         return env->nil_obj();
     };
 
-    g["Expression"] << "Class | Method | Sum | CallWithParens | CallWithoutParens | Constant | Array | Hash | DqString | SqString | Numeric";
+    g["Expression"] << "Class | Method | Assignment | Sum | CallWithParens | CallWithoutParens | Constant | Array | Hash | DqString | SqString | Numeric";
 
     g["Class"] << "'class' (ConstantIdentifier | Identifier) OptionalSuperclass EndOfLine+ BlockBody EndOfLine* 'end'" >> [](auto e, Env *env) {
         ArrayValue *result = new ArrayValue { env, { SymbolValue::intern(env, "class") } };
@@ -104,6 +104,8 @@ Value *ParserValue::parse(Env *env, Value *code) {
         }
         return array;
     };
+
+    g["Assignment"] << "Identifier '=' Nl Expression" >> [](auto e, Env *env) { return new ArrayValue { env, { SymbolValue::intern(env, "lasgn"), e[0].evaluate(env), e[1].evaluate(env) } }; };
 
     g["Sum"] << "SumOp | Product";
     g["SumOp"] << "Product SumOperator Nl Product" >> [](auto e, Env *env) { return new ArrayValue { env, { SymbolValue::intern(env, "call"), e[0].evaluate(env), e[1].evaluate(env), e[2].evaluate(env) } }; };

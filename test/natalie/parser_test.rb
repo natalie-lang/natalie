@@ -123,5 +123,11 @@ describe 'Parser' do
       Parser.parse("{ foo: 'bar', baz: 'buz' }").should == s(:block, s(:hash, s(:lit, :foo), s(:str, 'bar'), s(:lit, :baz), s(:str, 'buz')))
       -> { Parser.parse('{ , 1 => 2 }') }.should raise_error(SyntaxError, /\(string\):1 :: parse error on value/)
     end
+
+    it 'parses assignment' do
+      Parser.parse("a = 'foo'").should == s(:block, s(:lasgn, :a, s(:str, "foo")))
+      Parser.parse("a =\n'foo'").should == s(:block, s(:lasgn, :a, s(:str, "foo")))
+      Parser.parse("a = 1").should == s(:block, s(:lasgn, :a, s(:lit, 1)))
+    end
   end
 end
