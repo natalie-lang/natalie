@@ -205,6 +205,10 @@ module Natalie
     COVERAGE_FLAGS = '-fprofile-arcs -ftest-coverage'
 
     def build_flags
+      "#{base_build_flags} #{extra_build_flags}"
+    end
+
+    def base_build_flags
       case build
       when 'release'
         RELEASE_FLAGS
@@ -214,7 +218,7 @@ module Natalie
         DEBUG_FLAGS + ' ' + COVERAGE_FLAGS
       else
         raise "unknown build mode: #{build.inspect}"
-      end + extra_build_flags
+      end
     end
 
     def extra_build_flags
