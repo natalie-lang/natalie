@@ -39,6 +39,7 @@ struct Env : public gc {
     Value *last_match();
 
     ClassValue *Object() { return m_global_env->Object(); }
+    ClassValue *Integer() { return m_global_env->Integer(); }
     NilValue *nil_obj() { return m_global_env->nil_obj(); }
     TrueValue *true_obj() { return m_global_env->true_obj(); }
     FalseValue *false_obj() { return m_global_env->false_obj(); }

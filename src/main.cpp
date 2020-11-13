@@ -68,6 +68,7 @@ extern "C" Env *build_top_env() {
     Numeric->include_once(env, Comparable);
 
     ClassValue *Integer = Numeric->subclass(env, "Integer", Value::Type::Integer);
+    env->global_env()->set_Integer(Integer);
     Object->const_set(env, "Integer", Integer);
     Object->const_set(env, "Fixnum", Integer);
 
