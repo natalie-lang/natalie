@@ -7,7 +7,7 @@
 namespace Natalie {
 
 Value *FileValue::initialize(Env *env, Value *filename, Value *flags_obj, Block *block) {
-    NAT_ASSERT_TYPE(filename, Value::Type::String, "String");
+    filename->assert_type(env, Value::Type::String, "String");
     int flags = O_RDONLY;
     if (flags_obj) {
         switch (flags_obj->type()) {

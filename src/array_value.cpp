@@ -13,7 +13,7 @@ Value *ArrayValue::initialize(Env *env, Value *size, Value *value) {
         }
         return this;
     }
-    NAT_ASSERT_TYPE(size, Value::Type::Integer, "Integer");
+    size->assert_type(env, Value::Type::Integer, "Integer");
     if (!value) value = env->nil_obj();
     for (int64_t i = 0; i < size->as_integer()->to_int64_t(); i++) {
         push(value);
@@ -42,14 +42,14 @@ Value *ArrayValue::ltlt(Env *env, Value *arg) {
 }
 
 Value *ArrayValue::add(Env *env, Value *other) {
-    NAT_ASSERT_TYPE(other, Value::Type::Array, "Array");
+    other->assert_type(env, Value::Type::Array, "Array");
     ArrayValue *new_array = new ArrayValue { *this };
     new_array->concat(*other->as_array());
     return new_array;
 }
 
 Value *ArrayValue::sub(Env *env, Value *other) {
-    NAT_ASSERT_TYPE(other, Value::Type::Array, "Array");
+    other->assert_type(env, Value::Type::Array, "Array");
     ArrayValue *new_array = new ArrayValue { env };
     for (auto &item : *this) {
         int found = 0;
@@ -77,7 +77,7 @@ Value *ArrayValue::ref(Env *env, Value *index_obj, Value *size) {
         } else if (!size) {
             return (*this)[index];
         }
-        NAT_ASSERT_TYPE(size, Value::Type::Integer, "Integer");
+        size->assert_type(env, Value::Type::Integer, "Integer");
         ssize_t end = index + size->as_integer()->to_int64_t();
         ssize_t max = this->size();
         end = end > max ? max : end;
@@ -90,8 +90,8 @@ Value *ArrayValue::ref(Env *env, Value *index_obj, Value *size) {
         RangeValue *range = index_obj->as_range();
         Value *begin_obj = range->begin();
         Value *end_obj = range->end();
-        NAT_ASSERT_TYPE(begin_obj, Value::Type::Integer, "Integer");
-        NAT_ASSERT_TYPE(end_obj, Value::Type::Integer, "Integer");
+        begin_obj->assert_type(env, Value::Type::Integer, "Integer");
+        end_obj->assert_type(env, Value::Type::Integer, "Integer");
         int64_t begin = begin_obj->as_integer()->to_int64_t();
         int64_t end = end_obj->as_integer()->to_int64_t();
         if (begin < 0) {
@@ -118,7 +118,7 @@ Value *ArrayValue::ref(Env *env, Value *index_obj, Value *size) {
 
 Value *ArrayValue::refeq(Env *env, Value *index_obj, Value *size, Value *val) {
     NAT_ASSERT_NOT_FROZEN(this);
-    NAT_ASSERT_TYPE(index_obj, Value::Type::Integer, "Integer"); // TODO: accept a range
+    index_obj->assert_type(env, Value::Type::Integer, "Integer"); // TODO: accept a range
     int64_t index = index_obj->as_integer()->to_int64_t();
     assert(index >= 0); // TODO: accept negative index
     if (!val) {
@@ -131,7 +131,7 @@ Value *ArrayValue::refeq(Env *env, Value *index_obj, Value *size, Value *val) {
         }
         return val;
     }
-    NAT_ASSERT_TYPE(size, Value::Type::Integer, "Integer");
+    size->assert_type(env, Value::Type::Integer, "Integer");
     int64_t length = size->as_integer()->to_int64_t();
     assert(length >= 0);
     // PERF: inefficient for large arrays where changes are being made to only the right side
@@ -273,7 +273,7 @@ Value *ArrayValue::shift(Env *env, Value *count) {
     ssize_t shift_count = 1;
     Value *result = nullptr;
     if (has_count) {
-        NAT_ASSERT_TYPE(count, Value::Type::Integer, "Integer");
+        count->assert_type(env, Value::Type::Integer, "Integer");
         shift_count = count->as_integer()->to_int64_t();
         result = new ArrayValue { env, m_vector.slice(0, shift_count) };
     } else {
@@ -298,7 +298,7 @@ Value *ArrayValue::join(Env *env, Value *joiner) {
         return (*this)[0]->send(env, "to_s");
     } else {
         if (!joiner) joiner = new StringValue { env, "" };
-        NAT_ASSERT_TYPE(joiner, Value::Type::String, "String");
+        joiner->assert_type(env, Value::Type::String, "String");
         StringValue *out = (*this)[0]->send(env, "to_s")->as_string();
         for (auto i = 1; i < size(); i++) {
             Value *item = (*this)[i];
@@ -310,7 +310,7 @@ Value *ArrayValue::join(Env *env, Value *joiner) {
 }
 
 Value *ArrayValue::cmp(Env *env, Value *other) {
-    NAT_ASSERT_TYPE(other, Value::Type::Array, "Array");
+    other->assert_type(env, Value::Type::Array, "Array");
     ArrayValue *other_array = other->as_array();
     for (ssize_t i = 0; i < size(); i++) {
         if (i >= other_array->size()) {

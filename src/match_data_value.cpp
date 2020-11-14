@@ -23,7 +23,7 @@ Value *MatchDataValue::ref(Env *env, Value *index_value) {
     if (index_value->type() == Value::Type::String || index_value->type() == Value::Type::Symbol) {
         NAT_NOT_YET_IMPLEMENTED("group name support in Regexp MatchData#[]");
     }
-    NAT_ASSERT_TYPE(index_value, Value::Type::Integer, "Integer");
+    index_value->assert_type(env, Value::Type::Integer, "Integer");
     int64_t index = index_value->as_integer()->to_int64_t();
     if (index < 0) {
         index = size() + index;

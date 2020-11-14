@@ -1,27 +1,3 @@
-#define NAT_ASSERT_ARGC(...)                                       \
-    NAT_GET_MACRO(__VA_ARGS__, NAT_ASSERT_ARGC2, NAT_ASSERT_ARGC1) \
-    (__VA_ARGS__)
-
-#define NAT_ASSERT_ARGC1(expected)                                                                        \
-    if (argc != expected) {                                                                               \
-        env->raise("ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, expected); \
-    }
-
-#define NAT_ASSERT_ARGC2(expected_low, expected_high)                                                                            \
-    if (argc < expected_low || argc > expected_high) {                                                                           \
-        env->raise("ArgumentError", "wrong number of arguments (given %d, expected %d..%d)", argc, expected_low, expected_high); \
-    }
-
-#define NAT_ASSERT_ARGC_AT_LEAST(expected)                                                                 \
-    if (argc < expected) {                                                                                 \
-        env->raise("ArgumentError", "wrong number of arguments (given %d, expected %d+)", argc, expected); \
-    }
-
-#define NAT_ASSERT_TYPE(obj, expected_type, expected_class_name)                                                            \
-    if ((obj->type()) != expected_type) {                                                                                   \
-        env->raise("TypeError", "no implicit conversion of %s into %s", (obj->klass())->class_name(), expected_class_name); \
-    }
-
 #define NAT_GET_MACRO(_1, _2, NAME, ...) NAME
 
 #define NAT_UNREACHABLE()                        \

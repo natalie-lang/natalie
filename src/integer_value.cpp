@@ -19,7 +19,7 @@ Value *IntegerValue::add(Env *env, Value *arg) {
         double result = to_int64_t() + arg->as_float()->to_double();
         return new FloatValue { env, result };
     }
-    NAT_ASSERT_TYPE(arg, Value::Type::Integer, "Integer");
+    arg->assert_type(env, Value::Type::Integer, "Integer");
     int64_t result = to_int64_t() + arg->as_integer()->to_int64_t();
     return new IntegerValue { env, result };
 }
@@ -29,7 +29,7 @@ Value *IntegerValue::sub(Env *env, Value *arg) {
         double result = to_int64_t() - arg->as_float()->to_double();
         return new FloatValue { env, result };
     }
-    NAT_ASSERT_TYPE(arg, Value::Type::Integer, "Integer");
+    arg->assert_type(env, Value::Type::Integer, "Integer");
     int64_t result = to_int64_t() - arg->as_integer()->to_int64_t();
     return new IntegerValue { env, result };
 }
@@ -39,7 +39,7 @@ Value *IntegerValue::mul(Env *env, Value *arg) {
         double result = to_int64_t() * arg->as_float()->to_double();
         return new FloatValue { env, result };
     }
-    NAT_ASSERT_TYPE(arg, Value::Type::Integer, "Integer");
+    arg->assert_type(env, Value::Type::Integer, "Integer");
     int64_t result = to_int64_t() * arg->as_integer()->to_int64_t();
     return new IntegerValue { env, result };
 }
@@ -62,19 +62,19 @@ Value *IntegerValue::div(Env *env, Value *arg) {
         return dividend->send(env, "/", 1, &divisor, nullptr);
 
     } else {
-        NAT_ASSERT_TYPE(arg, Value::Type::Integer, "Integer");
+        arg->assert_type(env, Value::Type::Integer, "Integer");
         abort();
     }
 }
 
 Value *IntegerValue::mod(Env *env, Value *arg) {
-    NAT_ASSERT_TYPE(arg, Value::Type::Integer, "Integer");
+    arg->assert_type(env, Value::Type::Integer, "Integer");
     int64_t result = to_int64_t() % arg->as_integer()->to_int64_t();
     return new IntegerValue { env, result };
 }
 
 Value *IntegerValue::pow(Env *env, Value *arg) {
-    NAT_ASSERT_TYPE(arg, Value::Type::Integer, "Integer");
+    arg->assert_type(env, Value::Type::Integer, "Integer");
     int64_t result = ::pow(to_int64_t(), arg->as_integer()->to_int64_t());
     return new IntegerValue { env, result };
 }
@@ -158,12 +158,12 @@ Value *IntegerValue::times(Env *env, Block *block) {
 }
 
 Value *IntegerValue::bitwise_and(Env *env, Value *arg) {
-    NAT_ASSERT_TYPE(arg, Value::Type::Integer, "Integer");
+    arg->assert_type(env, Value::Type::Integer, "Integer");
     return new IntegerValue { env, to_int64_t() & arg->as_integer()->to_int64_t() };
 }
 
 Value *IntegerValue::bitwise_or(Env *env, Value *arg) {
-    NAT_ASSERT_TYPE(arg, Value::Type::Integer, "Integer");
+    arg->assert_type(env, Value::Type::Integer, "Integer");
     return new IntegerValue { env, to_int64_t() | arg->as_integer()->to_int64_t() };
 }
 

@@ -400,7 +400,7 @@ Value *ModuleValue::included_modules(Env *env) {
 }
 
 bool ModuleValue::does_include_module(Env *env, Value *module) {
-    NAT_ASSERT_TYPE(module, Value::Type::Module, "Module");
+    module->assert_type(env, Value::Type::Module, "Module");
     for (ModuleValue *m : included_modules()) {
         if (m == this) continue;
         if (m == module) return true;

@@ -30,7 +30,7 @@ struct RegexpValue : Value {
     }
 
     static Value *compile(Env *env, Value *pattern, Value *flags) {
-        NAT_ASSERT_TYPE(pattern, Value::Type::String, "String");
+        pattern->assert_type(env, Value::Type::String, "String");
         int options = 0;
         if (flags) {
             if (flags->is_integer())

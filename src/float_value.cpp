@@ -44,7 +44,7 @@ Value *FloatValue::ceil(Env *env, Value *precision_value) {
     double value = this->to_double();
     int64_t precision = 0;
     if (precision_value) {
-        NAT_ASSERT_TYPE(precision_value, Value::Type::Integer, "Integer");
+        precision_value->assert_type(env, Value::Type::Integer, "Integer");
         precision = precision_value->as_integer()->to_int64_t();
     }
     FloatValue *result;
@@ -65,7 +65,7 @@ Value *FloatValue::floor(Env *env, Value *precision_value) {
     double value = this->to_double();
     int64_t precision = 0;
     if (precision_value) {
-        NAT_ASSERT_TYPE(precision_value, Value::Type::Integer, "Integer");
+        precision_value->assert_type(env, Value::Type::Integer, "Integer");
         precision = precision_value->as_integer()->to_int64_t();
     }
     FloatValue *result;
@@ -89,7 +89,7 @@ Value *FloatValue::round(Env *env, Value *precision_value) {
         if (precision_value->is_float()) {
             precision_value = precision_value->as_float()->to_i(env);
         }
-        NAT_ASSERT_TYPE(precision_value, Value::Type::Integer, "Integer");
+        precision_value->assert_type(env, Value::Type::Integer, "Integer");
         precision = precision_value->as_integer()->to_int64_t();
     }
     if (precision <= 0 && (is_nan() || is_infinity())) {
@@ -232,7 +232,7 @@ Value *FloatValue::add(Env *env, Value *rhs) {
     }
 
     if (!lhs->is_float()) return lhs->send(env, "+", 1, &rhs);
-    if (!rhs->is_float()) NAT_ASSERT_TYPE(rhs, Value::Type::Float, "Float");
+    if (!rhs->is_float()) rhs->assert_type(env, Value::Type::Float, "Float");
 
     double addend1 = to_double();
     double addend2 = rhs->as_float()->to_double();
@@ -249,7 +249,7 @@ Value *FloatValue::sub(Env *env, Value *rhs) {
     }
 
     if (!lhs->is_float()) return lhs->send(env, "-", 1, &rhs);
-    if (!rhs->is_float()) NAT_ASSERT_TYPE(rhs, Value::Type::Float, "Float");
+    if (!rhs->is_float()) rhs->assert_type(env, Value::Type::Float, "Float");
 
     double minuend = to_double();
     double subtrahend = rhs->as_float()->to_double();
@@ -266,7 +266,7 @@ Value *FloatValue::mul(Env *env, Value *rhs) {
     }
 
     if (!lhs->is_float()) return lhs->send(env, "*", 1, &rhs);
-    if (!rhs->is_float()) NAT_ASSERT_TYPE(rhs, Value::Type::Float, "Float");
+    if (!rhs->is_float()) rhs->assert_type(env, Value::Type::Float, "Float");
 
     double multiplicand = to_double();
     double mulitiplier = rhs->as_float()->to_double();
@@ -283,7 +283,7 @@ Value *FloatValue::div(Env *env, Value *rhs) {
     }
 
     if (!lhs->is_float()) return lhs->send(env, "/", 1, &rhs);
-    if (!rhs->is_float()) NAT_ASSERT_TYPE(rhs, Value::Type::Float, "Float");
+    if (!rhs->is_float()) rhs->assert_type(env, Value::Type::Float, "Float");
 
     double dividend = to_double();
     double divisor = rhs->as_float()->to_double();
@@ -306,7 +306,7 @@ Value *FloatValue::mod(Env *env, Value *rhs) {
     }
 
     if (!lhs->is_float()) return lhs->send(env, "%", 1, &rhs);
-    if (!rhs->is_float()) NAT_ASSERT_TYPE(rhs, Value::Type::Float, "Float");
+    if (!rhs->is_float()) rhs->assert_type(env, Value::Type::Float, "Float");
 
     double dividend = to_double();
     double divisor = rhs->as_float()->to_double();
@@ -345,7 +345,7 @@ Value *FloatValue::pow(Env *env, Value *rhs) {
     }
 
     if (!lhs->is_float()) return lhs->send(env, "**", 1, &rhs);
-    if (!rhs->is_float()) NAT_ASSERT_TYPE(rhs, Value::Type::Float, "Float");
+    if (!rhs->is_float()) rhs->assert_type(env, Value::Type::Float, "Float");
 
     double base = to_double();
     double exponent = rhs->as_float()->to_double();

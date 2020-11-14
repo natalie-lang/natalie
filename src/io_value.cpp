@@ -7,7 +7,7 @@
 namespace Natalie {
 
 Value *IoValue::initialize(Env *env, Value *file_number) {
-    NAT_ASSERT_TYPE(file_number, Value::Type::Integer, "Integer");
+    file_number->assert_type(env, Value::Type::Integer, "Integer");
     int64_t fileno = file_number->as_integer()->to_int64_t();
     assert(fileno >= INT_MIN && fileno <= INT_MAX);
     set_fileno(fileno);
@@ -19,7 +19,7 @@ Value *IoValue::initialize(Env *env, Value *file_number) {
 Value *IoValue::read(Env *env, Value *count_value) {
     ssize_t bytes_read;
     if (count_value) {
-        NAT_ASSERT_TYPE(count_value, Value::Type::Integer, "Integer");
+        count_value->assert_type(env, Value::Type::Integer, "Integer");
         int count = count_value->as_integer()->to_int64_t();
         char *buf = static_cast<char *>(GC_MALLOC((count + 1) * sizeof(char)));
         bytes_read = ::read(m_fileno, buf, count);
@@ -50,14 +50,14 @@ Value *IoValue::read(Env *env, Value *count_value) {
 }
 
 Value *IoValue::write(Env *env, ssize_t argc, Value **args) {
-    NAT_ASSERT_ARGC_AT_LEAST(1);
+    env->assert_argc_at_least(argc, 1);
     int bytes_written = 0;
     for (ssize_t i = 0; i < argc; i++) {
         Value *obj = args[i];
         if (obj->type() != Value::Type::String) {
             obj = obj->send(env, "to_s");
         }
-        NAT_ASSERT_TYPE(obj, Value::Type::String, "String");
+        obj->assert_type(env, Value::Type::String, "String");
         ssize_t result = ::write(m_fileno, obj->as_string()->c_str(), obj->as_string()->length());
         if (result == -1) {
             Value *error_number = new IntegerValue { env, errno };
@@ -76,7 +76,7 @@ Value *IoValue::puts(Env *env, ssize_t argc, Value **args) {
     } else {
         for (ssize_t i = 0; i < argc; i++) {
             Value *str = args[i]->send(env, "to_s");
-            NAT_ASSERT_TYPE(str, Value::Type::String, "String");
+            str->assert_type(env, Value::Type::String, "String");
             dprintf(m_fileno, "%s\n", str->as_string()->c_str());
         }
     }
@@ -87,7 +87,7 @@ Value *IoValue::print(Env *env, ssize_t argc, Value **args) {
     if (argc > 0) {
         for (ssize_t i = 0; i < argc; i++) {
             Value *str = args[i]->send(env, "to_s");
-            NAT_ASSERT_TYPE(str, Value::Type::String, "String");
+            str->assert_type(env, Value::Type::String, "String");
             dprintf(m_fileno, "%s", str->as_string()->c_str());
         }
     }
@@ -106,7 +106,7 @@ Value *IoValue::close(Env *env) {
 }
 
 Value *IoValue::seek(Env *env, Value *amount_value, Value *whence_value) {
-    NAT_ASSERT_TYPE(amount_value, Value::Type::Integer, "Integer");
+    amount_value->assert_type(env, Value::Type::Integer, "Integer");
     int amount = amount_value->as_integer()->to_int64_t();
     int whence = 0;
     if (whence_value) {

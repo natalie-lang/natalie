@@ -19,7 +19,7 @@ struct FileValue : IoValue {
     Value *initialize(Env *, Value *, Value *, Block *);
 
     static Value *expand_path(Env *env, Value *path, Value *root) {
-        NAT_ASSERT_TYPE(path, Value::Type::String, "String");
+        path->assert_type(env, Value::Type::String, "String");
         if (path->as_string()->length() > 0 && path->as_string()->c_str()[0] == '/') {
             return path;
         }

@@ -42,6 +42,10 @@ struct Env : public gc {
     [[noreturn]] void raise_exception(ExceptionValue *);
     [[noreturn]] void raise_local_jump_error(Value *, const char *);
 
+    void assert_argc(ssize_t, ssize_t);
+    void assert_argc(ssize_t, ssize_t, ssize_t);
+    void assert_argc_at_least(ssize_t, ssize_t);
+
     Value *last_match();
 
     ClassValue *Array() { return m_global_env->Array(); }

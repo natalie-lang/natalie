@@ -215,6 +215,8 @@ struct Value : public gc {
 
     Value *instance_eval(Env *, Value *, Block *);
 
+    void assert_type(Env *, Value::Type, const char *);
+
 protected:
     Env m_env;
     ClassValue *m_klass { nullptr };

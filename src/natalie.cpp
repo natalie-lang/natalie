@@ -319,7 +319,7 @@ void arg_spread(Env *env, ssize_t argc, Value **args, const char *arrangement, .
             int_ptr = va_arg(va_args, int *);
             if (arg_index >= argc) env->raise("ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, arg_index + 1);
             obj = args[arg_index++];
-            NAT_ASSERT_TYPE(obj, Value::Type::Integer, "Integer");
+            obj->assert_type(env, Value::Type::Integer, "Integer");
             *int_ptr = obj->as_integer()->to_int64_t();
             break;
         case 's':
@@ -329,7 +329,7 @@ void arg_spread(Env *env, ssize_t argc, Value **args, const char *arrangement, .
             if (obj == env->nil_obj()) {
                 *str_ptr = nullptr;
             } else {
-                NAT_ASSERT_TYPE(obj, Value::Type::String, "String");
+                obj->assert_type(env, Value::Type::String, "String");
             }
             *str_ptr = obj->as_string()->c_str();
             break;

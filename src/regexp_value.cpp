@@ -7,7 +7,7 @@ Value *RegexpValue::initialize(Env *env, Value *arg) {
         m_regex = arg->as_regexp()->m_regex;
         m_pattern = arg->as_regexp()->m_pattern;
     } else {
-        NAT_ASSERT_TYPE(arg, Value::Type::String, "String");
+        arg->assert_type(env, Value::Type::String, "String");
         initialize(env, arg->as_string()->c_str());
     }
     return this;
@@ -24,7 +24,7 @@ Value *RegexpValue::inspect(Env *env) {
 }
 
 Value *RegexpValue::eqtilde(Env *env, Value *other) {
-    NAT_ASSERT_TYPE(other, Value::Type::String, "String");
+    other->assert_type(env, Value::Type::String, "String");
     Value *result = match(env, other);
     if (result->is_nil()) {
         return result;
@@ -36,7 +36,7 @@ Value *RegexpValue::eqtilde(Env *env, Value *other) {
 }
 
 Value *RegexpValue::match(Env *env, Value *other) {
-    NAT_ASSERT_TYPE(other, Value::Type::String, "String");
+    other->assert_type(env, Value::Type::String, "String");
     StringValue *str_obj = other->as_string();
 
     OnigRegion *region = onig_region_new();

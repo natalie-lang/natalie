@@ -529,4 +529,10 @@ Value *Value::instance_eval(Env *env, Value *string, Block *block) {
     return env->nil_obj();
 }
 
+void Value::assert_type(Env *env, Value::Type expected_type, const char *expected_class_name) {
+    if ((type()) != expected_type) {
+        env->raise("TypeError", "no implicit conversion of %s into %s", (klass())->class_name(), expected_class_name);
+    }
+}
+
 }

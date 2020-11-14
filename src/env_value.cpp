@@ -23,7 +23,7 @@ Value *EnvValue::inspect(Env *env) {
 }
 
 Value *EnvValue::ref(Env *env, Value *name) {
-    NAT_ASSERT_TYPE(name, Value::Type::String, "String");
+    name->assert_type(env, Value::Type::String, "String");
     char *value = getenv(name->as_string()->c_str());
     if (value) {
         return new StringValue { env, value };
@@ -33,8 +33,8 @@ Value *EnvValue::ref(Env *env, Value *name) {
 }
 
 Value *EnvValue::refeq(Env *env, Value *name, Value *value) {
-    NAT_ASSERT_TYPE(name, Value::Type::String, "String");
-    NAT_ASSERT_TYPE(value, Value::Type::String, "String");
+    name->assert_type(env, Value::Type::String, "String");
+    value->assert_type(env, Value::Type::String, "String");
     setenv(name->as_string()->c_str(), value->as_string()->c_str(), 1);
     return value;
 }

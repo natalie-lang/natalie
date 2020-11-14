@@ -17,16 +17,16 @@ module Natalie
       end
 
       VOID_FUNCTIONS = %i[
-        NAT_ASSERT_ARGC
-        NAT_ASSERT_ARGC_AT_LEAST
         NAT_ASSERT_NOT_FROZEN
-        NAT_ASSERT_TYPE
         NAT_UNREACHABLE
         add_break_flag
         alias
         append
         append_string
         array_expand_with_nil
+        assert_argc
+        assert_argc_at_least
+        assert_type
         define_method
         define_method_with_block
         define_singleton_method
@@ -68,6 +68,9 @@ module Natalie
         add_break_flag
         as_class
         as_string
+        assert_argc
+        assert_argc_at_least
+        assert_type
         const_find
         const_get
         const_set

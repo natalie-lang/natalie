@@ -217,7 +217,7 @@ Value *StringValue::index(Env *env, Value *needle, ssize_t start) {
 
 // FIXME: this does not honor multi-byte characters :-(
 ssize_t StringValue::index_ssize_t(Env *env, Value *needle, ssize_t start) {
-    NAT_ASSERT_TYPE(needle, Value::Type::String, "String");
+    needle->assert_type(env, Value::Type::String, "String");
     const char *ptr = strstr(c_str() + start, needle->as_string()->c_str());
     if (ptr == nullptr) {
         return -1;
@@ -282,7 +282,7 @@ StringValue *StringValue::vsprintf(Env *env, const char *format, va_list args) {
 
 Value *StringValue::initialize(Env *env, Value *arg) {
     if (arg) {
-        NAT_ASSERT_TYPE(arg, Value::Type::String, "String");
+        arg->assert_type(env, Value::Type::String, "String");
         set_str(arg->as_string()->c_str());
     }
     return this;
@@ -294,7 +294,7 @@ Value *StringValue::ltlt(Env *env, Value *arg) {
         append_string(env, arg->as_string());
     } else {
         Value *str_obj = arg->send(env, "to_s");
-        NAT_ASSERT_TYPE(str_obj, Value::Type::String, "String");
+        str_obj->assert_type(env, Value::Type::String, "String");
         append_string(env, str_obj->as_string());
     }
     return this;
@@ -306,7 +306,7 @@ Value *StringValue::add(Env *env, Value *arg) {
         str = arg->as_string()->c_str();
     } else {
         StringValue *str_obj = arg->send(env, "to_s")->as_string();
-        NAT_ASSERT_TYPE(str_obj, Value::Type::String, "String");
+        str_obj->assert_type(env, Value::Type::String, "String");
         str = str_obj->c_str();
     }
     StringValue *new_string = new StringValue { env, c_str() };
@@ -315,7 +315,7 @@ Value *StringValue::add(Env *env, Value *arg) {
 }
 
 Value *StringValue::mul(Env *env, Value *arg) {
-    NAT_ASSERT_TYPE(arg, Value::Type::Integer, "Integer");
+    arg->assert_type(env, Value::Type::Integer, "Integer");
     StringValue *new_string = new StringValue { env, "" };
     for (int64_t i = 0; i < arg->as_integer()->to_int64_t(); i++) {
         new_string->append_string(env, this);
@@ -338,12 +338,12 @@ Value *StringValue::cmp(Env *env, Value *other) {
 }
 
 Value *StringValue::eqtilde(Env *env, Value *other) {
-    NAT_ASSERT_TYPE(other, Value::Type::Regexp, "Regexp");
+    other->assert_type(env, Value::Type::Regexp, "Regexp");
     return other->as_regexp()->eqtilde(env, this);
 }
 
 Value *StringValue::match(Env *env, Value *other) {
-    NAT_ASSERT_TYPE(other, Value::Type::Regexp, "Regexp");
+    other->assert_type(env, Value::Type::Regexp, "Regexp");
     return other->as_regexp()->match(env, this);
 }
 
@@ -490,8 +490,8 @@ Value *StringValue::ref(Env *env, Value *index_obj) {
     } else if (index_obj->is_range()) {
         RangeValue *range = index_obj->as_range();
 
-        NAT_ASSERT_TYPE(range->begin(), Value::Type::Integer, "Integer");
-        NAT_ASSERT_TYPE(range->end(), Value::Type::Integer, "Integer");
+        range->begin()->assert_type(env, Value::Type::Integer, "Integer");
+        range->begin()->assert_type(env, Value::Type::Integer, "Integer");
 
         int64_t begin = range->begin()->as_integer()->to_int64_t();
         int64_t end = range->end()->as_integer()->to_int64_t();
@@ -515,12 +515,12 @@ Value *StringValue::ref(Env *env, Value *index_obj) {
 
         return result;
     }
-    NAT_ASSERT_TYPE(index_obj, Value::Type::Integer, "Integer");
+    index_obj->assert_type(env, Value::Type::Integer, "Integer");
     abort();
 }
 
 StringValue *StringValue::sub(Env *env, Value *find, Value *replacement) {
-    NAT_ASSERT_TYPE(replacement, Value::Type::String, "String");
+    replacement->assert_type(env, Value::Type::String, "String");
     if (find->is_string()) {
         ssize_t index = this->index_ssize_t(env, find->as_string(), 0);
         if (index == -1) {
@@ -549,7 +549,7 @@ StringValue *StringValue::sub(Env *env, Value *find, Value *replacement) {
 Value *StringValue::to_i(Env *env, Value *base_obj) {
     int base = 10;
     if (base_obj) {
-        NAT_ASSERT_TYPE(base_obj, Value::Type::Integer, "Integer");
+        base_obj->assert_type(env, Value::Type::Integer, "Integer");
         base = base_obj->as_integer()->to_int64_t();
     }
     int64_t number = strtoll(m_str, nullptr, base);
@@ -602,11 +602,11 @@ Value *StringValue::split(Env *env, Value *splitter) {
 }
 
 Value *StringValue::ljust(Env *env, Value *length_obj, Value *pad_obj) {
-    NAT_ASSERT_TYPE(length_obj, Value::Type::Integer, "Integer");
+    length_obj->assert_type(env, Value::Type::Integer, "Integer");
     ssize_t length = length_obj->as_integer()->to_int64_t() < 0 ? 0 : length_obj->as_integer()->to_int64_t();
     StringValue *padstr;
     if (pad_obj) {
-        NAT_ASSERT_TYPE(pad_obj, Value::Type::String, "String");
+        pad_obj->assert_type(env, Value::Type::String, "String");
         padstr = pad_obj->as_string();
     } else {
         padstr = new StringValue { env, " " };

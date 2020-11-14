@@ -234,7 +234,7 @@ Value *KernelModule::sleep(Env *env, Value *length) {
         }
         NAT_UNREACHABLE();
     }
-    NAT_ASSERT_TYPE(length, Value::Type::Integer, "Integer"); // TODO: float supported also
+    length->assert_type(env, Value::Type::Integer, "Integer"); // TODO: float supported also
     ::sleep(length->as_integer()->to_int64_t());
     return length;
 }

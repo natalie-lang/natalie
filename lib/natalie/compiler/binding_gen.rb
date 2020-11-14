@@ -128,12 +128,12 @@ Value *#{name}(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
         ''
       when Range
         if argc.end
-          "NAT_ASSERT_ARGC(#{argc.begin}, #{argc.end});"
+          "env->assert_argc(argc, #{argc.begin}, #{argc.end});"
         else
-          "NAT_ASSERT_ARGC_AT_LEAST(#{argc.begin});"
+          "env->assert_argc_at_least(argc, #{argc.begin});"
         end
       when Integer
-        "NAT_ASSERT_ARGC(#{argc});"
+        "env->assert_argc(argc, #{argc});"
       else
         raise "Unknown argc: #{argc.inspect}"
       end

@@ -102,6 +102,24 @@ void Env::raise_local_jump_error(Value *exit_value, const char *message) {
     this->raise_exception(exception);
 }
 
+void Env::assert_argc(ssize_t argc, ssize_t expected) {
+    if (argc != expected) {
+        raise("ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, expected);
+    }
+}
+
+void Env::assert_argc(ssize_t argc, ssize_t expected_low, ssize_t expected_high) {
+    if (argc < expected_low || argc > expected_high) {
+        raise("ArgumentError", "wrong number of arguments (given %d, expected %d..%d)", argc, expected_low, expected_high);
+    }
+}
+
+void Env::assert_argc_at_least(ssize_t argc, ssize_t expected) {
+    if (argc < expected) {
+        raise("ArgumentError", "wrong number of arguments (given %d, expected %d+)", argc, expected);
+    }
+}
+
 Value *Env::last_match() {
     if (m_match) {
         return m_match;
