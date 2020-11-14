@@ -40,7 +40,7 @@ Value *HashValue::get_default(Env *env, Value *key) {
 }
 
 void HashValue::put(Env *env, Value *key, Value *val) {
-    NAT_ASSERT_NOT_FROZEN(this);
+    this->assert_not_frozen(env);
     Key key_container;
     key_container.key = key;
     key_container.env = *env;
@@ -226,7 +226,7 @@ Value *HashValue::refeq(Env *env, Value *key, Value *val) {
 }
 
 Value *HashValue::delete_key(Env *env, Value *key) {
-    NAT_ASSERT_NOT_FROZEN(this);
+    this->assert_not_frozen(env);
     Value *val = remove(env, key);
     if (val) {
         return val;

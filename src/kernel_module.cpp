@@ -130,7 +130,7 @@ Value *KernelModule::instance_variable_get(Env *env, Value *name_val) {
 }
 
 Value *KernelModule::instance_variable_set(Env *env, Value *name_val, Value *value) {
-    NAT_ASSERT_NOT_FROZEN(this);
+    this->assert_not_frozen(env);
     const char *name = name_val->identifier_str(env, Value::Conversion::Strict);
     ivar_set(env, name, value);
     return value;

@@ -6,11 +6,6 @@
         abort();                                 \
     }
 
-#define NAT_ASSERT_NOT_FROZEN(obj)                                                                             \
-    if (obj->is_frozen()) {                                                                                    \
-        env->raise("FrozenError", "can't modify frozen %s: %s", obj->klass()->class_name(), NAT_INSPECT(obj)); \
-    }
-
 #define NAT_ASSERT_BLOCK()                                     \
     if (!block) {                                              \
         env->raise("ArgumentError", "called without a block"); \

@@ -36,7 +36,7 @@ Value *ArrayValue::inspect(Env *env) {
 }
 
 Value *ArrayValue::ltlt(Env *env, Value *arg) {
-    NAT_ASSERT_NOT_FROZEN(this);
+    this->assert_not_frozen(env);
     push(arg);
     return this;
 }
@@ -117,7 +117,7 @@ Value *ArrayValue::ref(Env *env, Value *index_obj, Value *size) {
 }
 
 Value *ArrayValue::refeq(Env *env, Value *index_obj, Value *size, Value *val) {
-    NAT_ASSERT_NOT_FROZEN(this);
+    this->assert_not_frozen(env);
     index_obj->assert_type(env, Value::Type::Integer, "Integer"); // TODO: accept a range
     int64_t index = index_obj->as_integer()->to_int64_t();
     assert(index >= 0); // TODO: accept negative index
@@ -343,7 +343,7 @@ void ArrayValue::push_splat(Env *env, Value *val) {
 }
 
 Value *ArrayValue::pop(Env *env) {
-    NAT_ASSERT_NOT_FROZEN(this);
+    this->assert_not_frozen(env);
     if (size() == 0) return env->nil_obj();
     Value *val = m_vector[m_vector.size() - 1];
     m_vector.set_size(m_vector.size() - 1);
@@ -357,7 +357,7 @@ void ArrayValue::expand_with_nil(Env *env, ssize_t total) {
 }
 
 void ArrayValue::sort_in_place(Env *env) {
-    NAT_ASSERT_NOT_FROZEN(this);
+    this->assert_not_frozen(env);
     auto cmp = [](void *env, Value *a, Value *b) {
         Value *compare = a->send(static_cast<Env *>(env), "<=>", 1, &b, nullptr);
         return compare->as_integer()->to_int64_t() < 0;

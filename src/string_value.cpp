@@ -289,7 +289,7 @@ Value *StringValue::initialize(Env *env, Value *arg) {
 }
 
 Value *StringValue::ltlt(Env *env, Value *arg) {
-    NAT_ASSERT_NOT_FROZEN(this);
+    this->assert_not_frozen(env);
     if (arg->is_string()) {
         append_string(env, arg->as_string());
     } else {
