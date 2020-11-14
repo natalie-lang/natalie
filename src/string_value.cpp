@@ -74,46 +74,64 @@ void StringValue::raise_encoding_invalid_byte_sequence_error(Env *env, ssize_t i
     env->raise_exception(exception);
 }
 
-ArrayValue *StringValue::chars(Env *env) {
-    ArrayValue *ary = new ArrayValue { env };
+StringValue *StringValue::next_char(Env *env, ssize_t *index) {
     StringValue *c;
     char buffer[5];
+    if (*index >= m_length)
+        return nullptr;
+    ssize_t i = *index;
     switch (m_encoding) {
     case Encoding::UTF_8:
-        for (ssize_t i = 0; i < m_length; i++) {
-            buffer[0] = m_str[i];
-            if (((unsigned char)buffer[0] >> 3) == 30) { // 11110xxx, 4 bytes
-                if (i + 3 >= m_length) raise_encoding_invalid_byte_sequence_error(env, i);
-                buffer[1] = m_str[++i];
-                buffer[2] = m_str[++i];
-                buffer[3] = m_str[++i];
-                buffer[4] = 0;
-            } else if (((unsigned char)buffer[0] >> 4) == 14) { // 1110xxxx, 3 bytes
-                if (i + 2 >= m_length) raise_encoding_invalid_byte_sequence_error(env, i);
-                buffer[1] = m_str[++i];
-                buffer[2] = m_str[++i];
-                buffer[3] = 0;
-            } else if (((unsigned char)buffer[0] >> 5) == 6) { // 110xxxxx, 2 bytes
-                if (i + 1 >= m_length) raise_encoding_invalid_byte_sequence_error(env, i);
-                buffer[1] = m_str[++i];
-                buffer[2] = 0;
-            } else {
-                buffer[1] = 0;
-            }
-            c = new StringValue { env, buffer };
-            c->set_encoding(Encoding::UTF_8);
-            ary->push(c);
-        }
-        break;
-    case Encoding::ASCII_8BIT:
-        for (ssize_t i = 0; i < m_length; i++) {
-            buffer[0] = m_str[i];
+        buffer[0] = m_str[i];
+        if (((unsigned char)buffer[0] >> 3) == 30) { // 11110xxx, 4 bytes
+            if (i + 3 >= m_length) raise_encoding_invalid_byte_sequence_error(env, i);
+            buffer[1] = m_str[++i];
+            buffer[2] = m_str[++i];
+            buffer[3] = m_str[++i];
+            buffer[4] = 0;
+        } else if (((unsigned char)buffer[0] >> 4) == 14) { // 1110xxxx, 3 bytes
+            if (i + 2 >= m_length) raise_encoding_invalid_byte_sequence_error(env, i);
+            buffer[1] = m_str[++i];
+            buffer[2] = m_str[++i];
+            buffer[3] = 0;
+        } else if (((unsigned char)buffer[0] >> 5) == 6) { // 110xxxxx, 2 bytes
+            if (i + 1 >= m_length) raise_encoding_invalid_byte_sequence_error(env, i);
+            buffer[1] = m_str[++i];
+            buffer[2] = 0;
+        } else {
             buffer[1] = 0;
-            c = new StringValue { env, buffer };
-            c->set_encoding(Encoding::ASCII_8BIT);
-            ary->push(c);
         }
-        break;
+        c = new StringValue { env, buffer };
+        c->set_encoding(Encoding::UTF_8);
+        *index = i + 1;
+        return c;
+    case Encoding::ASCII_8BIT:
+        buffer[0] = m_str[i];
+        buffer[1] = 0;
+        c = new StringValue { env, buffer };
+        c->set_encoding(Encoding::ASCII_8BIT);
+        (*index)++;
+        return c;
+    }
+    NAT_UNREACHABLE();
+}
+
+Value *StringValue::each_char(Env *env, Block *block) {
+    StringValue *c = nullptr;
+    ssize_t index = 0;
+    while ((c = next_char(env, &index))) {
+        Value *args[] = { c };
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, args, nullptr);
+    }
+    return env->nil_obj();
+}
+
+ArrayValue *StringValue::chars(Env *env) {
+    ArrayValue *ary = new ArrayValue { env };
+    StringValue *c = nullptr;
+    ssize_t index = 0;
+    while ((c = next_char(env, &index))) {
+        ary->push(c);
     }
     return ary;
 }

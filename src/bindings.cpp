@@ -1790,6 +1790,13 @@ Value *StringValue_chars_binding(Env *env, Value *self_value, ssize_t argc, Valu
     return return_value;
 }
 
+Value *StringValue_each_char_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+    NAT_ASSERT_ARGC(0);
+    StringValue *self = self_value->as_string();
+    auto return_value = self->each_char(env, block);
+    return return_value;
+}
+
 Value *StringValue_encode_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
     NAT_ASSERT_ARGC(1);
     StringValue *self = self_value->as_string();
@@ -2260,6 +2267,7 @@ void init_bindings(Env *env) {
     String->define_method(env, "[]", StringValue_ref_binding);
     String->define_method(env, "bytes", StringValue_bytes_binding);
     String->define_method(env, "chars", StringValue_chars_binding);
+    String->define_method(env, "each_char", StringValue_each_char_binding);
     String->define_method(env, "encode", StringValue_encode_binding);
     String->define_method(env, "encoding", StringValue_encoding_binding);
     String->define_method(env, "eql?", StringValue_eq_binding2);

@@ -90,6 +90,16 @@ describe 'string' do
     end
   end
 
+  describe '#each_char' do
+    it 'yields to the block each character' do
+      result = []
+      'foo'.each_char do |char|
+        result << char
+      end
+      result.should == ['f', 'o', 'o']
+    end
+  end
+
   describe '#chars' do
     it 'returns an array of characters' do
       'foo'.chars.should == ['f', 'o', 'o']

@@ -494,6 +494,7 @@ gen.binding('String', '=~', 'StringValue', 'eqtilde', argc: 1, pass_env: true, p
 gen.binding('String', '[]', 'StringValue', 'ref', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('String', 'bytes', 'StringValue', 'bytes', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('String', 'chars', 'StringValue', 'chars', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('String', 'each_char', 'StringValue', 'each_char', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('String', 'encode', 'StringValue', 'encode', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('String', 'encoding', 'StringValue', 'encoding', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('String', 'eql?', 'StringValue', 'eq', argc: 1, pass_env: false, pass_block: false, return_type: :bool)

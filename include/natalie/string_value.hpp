@@ -75,6 +75,8 @@ struct StringValue : Value {
     void append_char(Env *, char);
     void append_string(Env *, Value *);
     void append_string(Env *, StringValue *);
+    StringValue *next_char(Env *, ssize_t *);
+    Value *each_char(Env *, Block *);
     ArrayValue *chars(Env *);
 
     SymbolValue *to_symbol(Env *);
