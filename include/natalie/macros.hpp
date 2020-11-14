@@ -6,17 +6,11 @@
         abort();                                 \
     }
 
-#define NAT_MIN(a, b) ((a < b) ? a : b)
-#define NAT_MAX(a, b) ((a > b) ? a : b)
-
 #define NAT_NOT_YET_IMPLEMENTED(description)                     \
     {                                                            \
         fprintf(stderr, "NOT YET IMPLEMENTED: %s", description); \
         abort();                                                 \
     }
-
-#define NAT_OBJ_HAS_ENV(obj) ((obj)->env.global_env() == env->global_env()) // prefered check
-#define NAT_OBJ_HAS_ENV2(obj) ((obj)->env.global_env()) // limited check used when there is no current env, i.e. hashmap_hash and hashmap_compare
 
 #define NAT_INSPECT(obj) obj->send(env, "inspect")->as_string()->c_str()
 
