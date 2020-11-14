@@ -12,8 +12,6 @@
         abort();                                                 \
     }
 
-#define NAT_INSPECT(obj) obj->send(env, "inspect")->as_string()->c_str()
-
 #define NAT_MIN_INT INT64_MIN
 #define NAT_MAX_INT INT64_MAX
 

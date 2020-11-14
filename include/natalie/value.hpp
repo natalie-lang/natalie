@@ -218,6 +218,8 @@ struct Value : public gc {
     void assert_type(Env *, Value::Type, const char *);
     void assert_not_frozen(Env *);
 
+    const char *inspect(Env *);
+
 protected:
     Env m_env;
     ClassValue *m_klass { nullptr };

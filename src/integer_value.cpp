@@ -107,7 +107,7 @@ bool IntegerValue::lt(Env *env, Value *other) {
     } else if (other->is_float()) {
         return to_int64_t() < other->as_float()->to_double();
     }
-    env->raise("ArgumentError", "comparison of Integer with %s failed", NAT_INSPECT(other));
+    env->raise("ArgumentError", "comparison of Integer with %s failed", other->inspect(env));
 }
 
 bool IntegerValue::lte(Env *env, Value *other) {
@@ -116,7 +116,7 @@ bool IntegerValue::lte(Env *env, Value *other) {
     } else if (other->is_float()) {
         return to_int64_t() <= other->as_float()->to_double();
     }
-    env->raise("ArgumentError", "comparison of Integer with %s failed", NAT_INSPECT(other));
+    env->raise("ArgumentError", "comparison of Integer with %s failed", other->inspect(env));
 }
 
 bool IntegerValue::gt(Env *env, Value *other) {
@@ -125,7 +125,7 @@ bool IntegerValue::gt(Env *env, Value *other) {
     } else if (other->is_float()) {
         return to_int64_t() > other->as_float()->to_double();
     }
-    env->raise("ArgumentError", "comparison of Integer with %s failed", NAT_INSPECT(other));
+    env->raise("ArgumentError", "comparison of Integer with %s failed", other->inspect(env));
 }
 
 bool IntegerValue::gte(Env *env, Value *other) {
@@ -134,7 +134,7 @@ bool IntegerValue::gte(Env *env, Value *other) {
     } else if (other->is_float()) {
         return to_int64_t() >= other->as_float()->to_double();
     }
-    env->raise("ArgumentError", "comparison of Integer with %s failed", NAT_INSPECT(other));
+    env->raise("ArgumentError", "comparison of Integer with %s failed", other->inspect(env));
 }
 
 Value *IntegerValue::eqeqeq(Env *env, Value *arg) {
@@ -187,7 +187,7 @@ Value *IntegerValue::coerce(Env *env, Value *arg) {
         abort();
         break;
     default:
-        env->raise("ArgumentError", "invalid value for Float(): %S", NAT_INSPECT(arg));
+        env->raise("ArgumentError", "invalid value for Float(): %S", arg->inspect(env));
     }
     return ary;
 }

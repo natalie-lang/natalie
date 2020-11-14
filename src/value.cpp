@@ -537,8 +537,12 @@ void Value::assert_type(Env *env, Value::Type expected_type, const char *expecte
 
 void Value::assert_not_frozen(Env *env) {
     if (is_frozen()) {
-        env->raise("FrozenError", "can't modify frozen %s: %s", klass()->class_name(), NAT_INSPECT(this));
+        env->raise("FrozenError", "can't modify frozen %s: %s", klass()->class_name(), inspect(env));
     }
+}
+
+const char *Value::inspect(Env *env) {
+    return send(env, "inspect")->as_string()->c_str();
 }
 
 }
