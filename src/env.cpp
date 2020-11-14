@@ -4,18 +4,8 @@
 
 namespace Natalie {
 
-Env Env::new_block_env(Env *outer, Env *calling_env) {
-    Env env { outer };
-    env.set_block_env();
-    env.set_caller(calling_env);
-    return env;
-}
-
-Env Env::new_detatched_block_env(Env *outer) {
-    Env env;
-    env.set_global_env(outer->global_env());
-    env.set_block_env();
-    return env;
+Env Env::new_detatched_env(Env *outer) {
+    return Env { outer->global_env() };
 }
 
 void Env::build_vars(ssize_t size) {

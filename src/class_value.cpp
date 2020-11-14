@@ -8,7 +8,7 @@ ClassValue *ClassValue::subclass(Env *env, const char *name) {
 
 ClassValue *ClassValue::subclass(Env *env, const char *name, Type object_type) {
     ClassValue *subclass = new ClassValue { env, klass() };
-    subclass->m_env = Env::new_detatched_block_env(&m_env);
+    subclass->m_env = Env::new_detatched_env(&m_env);
     if (singleton_class()) {
         char singleton_name[255];
         snprintf(singleton_name, 255, "#<Class:%s>", name);

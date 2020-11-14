@@ -49,7 +49,7 @@ void int_to_hex_string(int64_t num, char *buf, bool capitalize) {
 }
 
 Value *call_begin(Env *env, Value *self, MethodFnPtr begin_fn, ssize_t argc, Value **args, Block *block) {
-    Env e = Env::new_block_env(env, env);
+    Env e = Env { env, env };
     return begin_fn(&e, self, argc, args, block);
 }
 

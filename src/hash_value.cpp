@@ -101,7 +101,7 @@ HashValue::Key *HashValue::key_list_append(Env *env, Value *key, Value *val) {
         // ^______________________________|
         new_last->prev = last;
         new_last->next = first;
-        new_last->env = Env::new_detatched_block_env(env);
+        new_last->env = Env::new_detatched_env(env);
         new_last->hash = key->send(env, "hash")->as_integer()->to_int64_t();
         new_last->removed = false;
         first->prev = new_last;
@@ -113,7 +113,7 @@ HashValue::Key *HashValue::key_list_append(Env *env, Value *key, Value *val) {
         node->val = val;
         node->prev = node;
         node->next = node;
-        node->env = Env::new_detatched_block_env(env);
+        node->env = Env::new_detatched_env(env);
         node->hash = key->send(env, "hash")->as_integer()->to_int64_t();
         node->removed = false;
         m_key_list = node;

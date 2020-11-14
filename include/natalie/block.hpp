@@ -17,7 +17,7 @@ struct Block : public gc {
 
     // NOTE: This should only be called from one of the RUN_BLOCK_* macros!
     Value *_run(Env *env, ssize_t argc = 0, Value **args = nullptr, Block *block = nullptr) {
-        Env e = Env::new_block_env(&m_env, env);
+        Env e = Env { &m_env, env };
         return m_fn(&e, m_self, argc, args, block);
     }
 

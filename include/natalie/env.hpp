@@ -17,11 +17,16 @@ struct Env : public gc {
         m_global_env = outer->m_global_env;
     }
 
+    Env(Env *outer, Env *calling_env)
+        : m_outer { outer }
+        , m_caller { calling_env } {
+        m_global_env = outer->m_global_env;
+    }
+
     Env(GlobalEnv *global_env)
         : m_global_env { global_env } { }
 
-    static Env new_block_env(Env *, Env *);
-    static Env new_detatched_block_env(Env *);
+    static Env new_detatched_env(Env *);
 
     Value *global_get(const char *);
     Value *global_set(const char *, Value *);
@@ -60,9 +65,6 @@ struct Env : public gc {
     Block *block() { return m_block; }
     void set_block(Block *block) { m_block = block; }
 
-    bool is_block_env() { return m_block_env; }
-    void set_block_env() { m_block_env = true; }
-
     const char *file() { return m_file; }
     void set_file(const char *file) { m_file = file; }
 
@@ -81,7 +83,6 @@ private:
     Vector<Value *> *m_vars { nullptr };
     Env *m_outer { nullptr };
     Block *m_block { nullptr };
-    bool m_block_env { false };
     Env *m_caller { nullptr };
     const char *m_file { nullptr };
     ssize_t m_line { 0 };

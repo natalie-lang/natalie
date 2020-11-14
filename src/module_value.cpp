@@ -12,7 +12,7 @@ ModuleValue::ModuleValue(Env *env, const char *name)
 
 ModuleValue::ModuleValue(Env *env, Type type, ClassValue *klass)
     : Value { type, klass } {
-    m_env = Env::new_detatched_block_env(env);
+    m_env = Env::new_detatched_env(env);
     hashmap_init(&m_methods, hashmap_hash_string, hashmap_compare_string, 10);
     hashmap_set_key_alloc_funcs(&m_methods, hashmap_alloc_key_string, nullptr);
     hashmap_init(&m_constants, hashmap_hash_string, hashmap_compare_string, 10);
@@ -259,7 +259,7 @@ Value *ModuleValue::call_method(Env *env, Value *instance_class, const char *met
         } else {
             closure_env = &matching_class_or_module->m_env;
         }
-        Env e = Env::new_block_env(closure_env, env);
+        Env e = Env { closure_env, env };
         e.set_file(env->file());
         e.set_line(env->line());
         e.set_method_name(method_name);
@@ -341,7 +341,7 @@ Value *ModuleValue::attr_reader(Env *env, ssize_t argc, Value **args) {
         } else {
             NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", name_obj->send(env, "inspect"));
         }
-        Env block_env = Env::new_detatched_block_env(env);
+        Env block_env = Env::new_detatched_env(env);
         block_env.var_set("name", 0, true, name_obj);
         Block *attr_block = new Block { block_env, this, ModuleValue::attr_reader_block_fn };
         define_method_with_block(env, name_obj->as_string()->c_str(), attr_block);
@@ -368,7 +368,7 @@ Value *ModuleValue::attr_writer(Env *env, ssize_t argc, Value **args) {
         }
         StringValue *method_name = new StringValue { env, name_obj->as_string()->c_str() };
         method_name->append_char(env, '=');
-        Env block_env = Env::new_detatched_block_env(env);
+        Env block_env = Env::new_detatched_env(env);
         block_env.var_set("name", 0, true, name_obj);
         Block *attr_block = new Block { block_env, this, ModuleValue::attr_writer_block_fn };
         define_method_with_block(env, method_name->c_str(), attr_block);
