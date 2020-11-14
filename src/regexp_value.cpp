@@ -54,7 +54,7 @@ Value *RegexpValue::match(Env *env, Value *other) {
         onig_region_free(region, true);
         OnigUChar s[ONIG_MAX_ERROR_MESSAGE_LEN];
         onig_error_code_to_str(s, result);
-        NAT_RAISE(env, "RuntimeError", (char *)s);
+        env->raise("RuntimeError", (char *)s);
     }
 }
 

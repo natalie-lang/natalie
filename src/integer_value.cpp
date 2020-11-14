@@ -49,7 +49,7 @@ Value *IntegerValue::div(Env *env, Value *arg) {
         int64_t dividend = to_int64_t();
         int64_t divisor = arg->as_integer()->to_int64_t();
         if (divisor == 0) {
-            NAT_RAISE(env, "ZeroDivisionError", "divided by 0");
+            env->raise("ZeroDivisionError", "divided by 0");
         }
         int64_t result = dividend / divisor;
         return new IntegerValue { env, result };
@@ -107,7 +107,7 @@ bool IntegerValue::lt(Env *env, Value *other) {
     } else if (other->is_float()) {
         return to_int64_t() < other->as_float()->to_double();
     }
-    NAT_RAISE(env, "ArgumentError", "comparison of Integer with %s failed", NAT_INSPECT(other));
+    env->raise("ArgumentError", "comparison of Integer with %s failed", NAT_INSPECT(other));
 }
 
 bool IntegerValue::lte(Env *env, Value *other) {
@@ -116,7 +116,7 @@ bool IntegerValue::lte(Env *env, Value *other) {
     } else if (other->is_float()) {
         return to_int64_t() <= other->as_float()->to_double();
     }
-    NAT_RAISE(env, "ArgumentError", "comparison of Integer with %s failed", NAT_INSPECT(other));
+    env->raise("ArgumentError", "comparison of Integer with %s failed", NAT_INSPECT(other));
 }
 
 bool IntegerValue::gt(Env *env, Value *other) {
@@ -125,7 +125,7 @@ bool IntegerValue::gt(Env *env, Value *other) {
     } else if (other->is_float()) {
         return to_int64_t() > other->as_float()->to_double();
     }
-    NAT_RAISE(env, "ArgumentError", "comparison of Integer with %s failed", NAT_INSPECT(other));
+    env->raise("ArgumentError", "comparison of Integer with %s failed", NAT_INSPECT(other));
 }
 
 bool IntegerValue::gte(Env *env, Value *other) {
@@ -134,7 +134,7 @@ bool IntegerValue::gte(Env *env, Value *other) {
     } else if (other->is_float()) {
         return to_int64_t() >= other->as_float()->to_double();
     }
-    NAT_RAISE(env, "ArgumentError", "comparison of Integer with %s failed", NAT_INSPECT(other));
+    env->raise("ArgumentError", "comparison of Integer with %s failed", NAT_INSPECT(other));
 }
 
 Value *IntegerValue::eqeqeq(Env *env, Value *arg) {
@@ -187,7 +187,7 @@ Value *IntegerValue::coerce(Env *env, Value *arg) {
         abort();
         break;
     default:
-        NAT_RAISE(env, "ArgumentError", "invalid value for Float(): %S", NAT_INSPECT(arg));
+        env->raise("ArgumentError", "invalid value for Float(): %S", NAT_INSPECT(arg));
     }
     return ary;
 }

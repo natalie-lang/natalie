@@ -32,7 +32,7 @@ struct FileValue : IoValue {
             if (getcwd(root, 4096)) {
                 merged = StringValue::sprintf(env, "%s/%S", root, path);
             } else {
-                NAT_RAISE(env, "RuntimeError", "could not get current directory");
+                env->raise("RuntimeError", "could not get current directory");
             }
         }
         // collapse ..

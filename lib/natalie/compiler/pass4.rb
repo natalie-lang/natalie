@@ -45,6 +45,8 @@ module Natalie
         push
         push_splat
         put
+        raise_exception
+        raise_local_jump_error
         remove_break_flag
         run_at_exit_handlers
         string_append

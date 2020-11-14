@@ -223,7 +223,7 @@ const char *Value::identifier_str(Env *env, Conversion conversion) {
     } else if (conversion == Conversion::NullAllowed) {
         return nullptr;
     } else {
-        NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", send(env, "inspect", 0, nullptr, nullptr));
+        env->raise("TypeError", "%s is not a symbol nor a string", send(env, "inspect", 0, nullptr, nullptr));
     }
 }
 
@@ -235,7 +235,7 @@ SymbolValue *Value::to_symbol(Env *env, Conversion conversion) {
     } else if (conversion == Conversion::NullAllowed) {
         return nullptr;
     } else {
-        NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", send(env, "inspect", 0, nullptr, nullptr));
+        env->raise("TypeError", "%s is not a symbol nor a string", send(env, "inspect", 0, nullptr, nullptr));
     }
 }
 
@@ -245,7 +245,7 @@ ClassValue *Value::singleton_class(Env *env) {
     }
 
     if (is_integer() || is_float() || is_symbol()) {
-        NAT_RAISE(env, "TypeError", "can't define singleton");
+        env->raise("TypeError", "can't define singleton");
     }
 
     m_singleton_class = m_klass->subclass(env);
@@ -276,7 +276,7 @@ Value *Value::const_set(Env *env, const char *name, Value *val) {
 Value *Value::ivar_get(Env *env, const char *name) {
     assert(strlen(name) > 0);
     if (name[0] != '@') {
-        NAT_RAISE(env, "NameError", "`%s' is not allowed as an instance variable name", name);
+        env->raise("NameError", "`%s' is not allowed as an instance variable name", name);
     }
     init_ivars();
     Value *val = static_cast<Value *>(hashmap_get(&m_ivars, name));
@@ -290,7 +290,7 @@ Value *Value::ivar_get(Env *env, const char *name) {
 Value *Value::ivar_set(Env *env, const char *name, Value *val) {
     assert(strlen(name) > 0);
     if (name[0] != '@') {
-        NAT_RAISE(env, "NameError", "`%s' is not allowed as an instance variable name", name);
+        env->raise("NameError", "`%s' is not allowed as an instance variable name", name);
     }
     init_ivars();
     hashmap_remove(&m_ivars, name);
@@ -329,14 +329,14 @@ Value *Value::cvar_get(Env *env, const char *name) {
         } else {
             module = m_klass;
         }
-        NAT_RAISE(env, "NameError", "uninitialized class variable %s in %s", name, module->class_name());
+        env->raise("NameError", "uninitialized class variable %s in %s", name, module->class_name());
     }
 }
 
 Value *Value::cvar_get_or_null(Env *env, const char *name) {
     assert(strlen(name) > 1);
     if (name[0] != '@' || name[1] != '@') {
-        NAT_RAISE(env, "NameError", "`%s' is not allowed as a class variable name", name);
+        env->raise("NameError", "`%s' is not allowed as a class variable name", name);
     }
 
     return m_klass->cvar_get_or_null(env, name);
@@ -345,7 +345,7 @@ Value *Value::cvar_get_or_null(Env *env, const char *name) {
 Value *Value::cvar_set(Env *env, const char *name, Value *val) {
     assert(strlen(name) > 1);
     if (name[0] != '@' || name[1] != '@') {
-        NAT_RAISE(env, "NameError", "`%s' is not allowed as a class variable name", name);
+        env->raise("NameError", "`%s' is not allowed as a class variable name", name);
     }
 
     return m_klass->cvar_set(env, name, val);
@@ -353,7 +353,7 @@ Value *Value::cvar_set(Env *env, const char *name, Value *val) {
 
 void Value::alias(Env *env, const char *new_name, const char *old_name) {
     if (is_integer() || is_symbol()) {
-        NAT_RAISE(env, "TypeError", "no klass to make alias");
+        env->raise("TypeError", "no klass to make alias");
     }
     if (is_main_object()) {
         m_klass->alias(env, new_name, old_name);
@@ -408,7 +408,7 @@ Value *Value::send(Env *env, const char *sym, ssize_t argc, Value **args, Block 
         Method *method = singleton_class()->find_method(sym, &matching_class_or_module);
         if (method) {
             if (method->is_undefined()) {
-                NAT_RAISE(env, "NoMethodError", "undefined method `%s' for %s:Class", sym, m_klass->class_name());
+                env->raise("NoMethodError", "undefined method `%s' for %s:Class", sym, m_klass->class_name());
             }
             return singleton_class()->call_method(env, m_klass, sym, this, argc, args, block);
         }
@@ -510,13 +510,13 @@ ProcValue *Value::to_proc(Env *env) {
     if (respond_to(env, "to_proc")) {
         return send(env, "to_proc")->as_proc();
     } else {
-        NAT_RAISE(env, "TypeError", "wrong argument type %s (expected Proc)", m_klass->class_name());
+        env->raise("TypeError", "wrong argument type %s (expected Proc)", m_klass->class_name());
     }
 }
 
 Value *Value::instance_eval(Env *env, Value *string, Block *block) {
     if (string || !block) {
-        NAT_RAISE(env, "ArgumentError", "Natalie only supports instance_eval with a block");
+        env->raise("ArgumentError", "Natalie only supports instance_eval with a block");
     }
     if (is_module()) {
         // I *think* this is right... instance_eval, when called on a class/module,

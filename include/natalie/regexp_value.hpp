@@ -51,7 +51,7 @@ struct RegexpValue : Value {
         if (result != ONIG_NORMAL) {
             OnigUChar s[ONIG_MAX_ERROR_MESSAGE_LEN];
             onig_error_code_to_str(s, result, &einfo);
-            NAT_RAISE(env, "SyntaxError", (char *)s);
+            env->raise("SyntaxError", (char *)s);
         }
         m_regex = regex;
         m_options = options;

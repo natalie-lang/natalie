@@ -112,7 +112,7 @@ Value *ArrayValue::ref(Env *env, Value *index_obj, Value *size) {
         }
         return result;
     } else {
-        NAT_RAISE(env, "TypeError", "no implicit conversion of %s into Integer", index_obj->klass()->class_name());
+        env->raise("TypeError", "no implicit conversion of %s into Integer", index_obj->klass()->class_name());
     }
 }
 

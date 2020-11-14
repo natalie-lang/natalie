@@ -63,7 +63,6 @@ Value *IoValue::write(Env *env, ssize_t argc, Value **args) {
             Value *error_number = new IntegerValue { env, errno };
             ExceptionValue *error = env->Object()->const_find(env, "SystemCallError")->send(env, "exception", 1, &error_number, nullptr)->as_exception();
             env->raise_exception(error);
-            abort();
         } else {
             bytes_written += result;
         }
@@ -101,7 +100,6 @@ Value *IoValue::close(Env *env) {
         Value *error_number = new IntegerValue { env, errno };
         ExceptionValue *error = env->Object()->const_find(env, "SystemCallError")->send(env, "exception", 1, &error_number, nullptr)->as_exception();
         env->raise_exception(error);
-        abort();
     } else {
         return env->nil_obj();
     }
@@ -125,12 +123,12 @@ Value *IoValue::seek(Env *env, Value *amount_value, Value *whence_value) {
             } else if (strcmp(whence_sym->c_str(), "END") == 0) {
                 whence = 2;
             } else {
-                NAT_RAISE(env, "TypeError", "no implicit conversion of Symbol into Integer");
+                env->raise("TypeError", "no implicit conversion of Symbol into Integer");
             }
             break;
         }
         default:
-            NAT_RAISE(env, "TypeError", "no implicit conversion of %s into Integer", whence_value->klass()->class_name());
+            env->raise("TypeError", "no implicit conversion of %s into Integer", whence_value->klass()->class_name());
         }
     }
     int result = lseek(m_fileno, amount, whence);
@@ -138,7 +136,6 @@ Value *IoValue::seek(Env *env, Value *amount_value, Value *whence_value) {
         Value *error_number = new IntegerValue { env, errno };
         ExceptionValue *error = env->Object()->const_find(env, "SystemCallError")->send(env, "exception", 1, &error_number, nullptr)->as_exception();
         env->raise_exception(error);
-        abort();
     } else {
         return new IntegerValue { env, 0 };
     }

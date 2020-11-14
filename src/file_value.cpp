@@ -29,12 +29,12 @@ Value *FileValue::initialize(Env *env, Value *filename, Value *flags_obj, Block 
             } else if (strcmp(flags_str, "a+") == 0) {
                 flags = O_RDWR | O_CREAT | O_APPEND;
             } else {
-                NAT_RAISE(env, "ArgumentError", "invalid access mode %s", flags_str);
+                env->raise("ArgumentError", "invalid access mode %s", flags_str);
             }
             break;
         }
         default:
-            NAT_RAISE(env, "TypeError", "no implicit conversion of %s into String", flags_obj->klass()->class_name());
+            env->raise("TypeError", "no implicit conversion of %s into String", flags_obj->klass()->class_name());
         }
     }
     int mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
@@ -43,7 +43,6 @@ Value *FileValue::initialize(Env *env, Value *filename, Value *flags_obj, Block 
         Value *exception_args[2] = { filename, new IntegerValue { env, errno } };
         ExceptionValue *error = env->Object()->const_find(env, "SystemCallError")->send(env, "exception", 2, exception_args, nullptr)->as_exception();
         env->raise_exception(error);
-        abort();
     } else {
         set_fileno(fileno);
         return this;

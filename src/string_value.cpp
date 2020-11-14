@@ -350,7 +350,7 @@ Value *StringValue::match(Env *env, Value *other) {
 Value *StringValue::ord(Env *env) {
     ArrayValue *chars = this->chars(env);
     if (chars->size() == 0) {
-        NAT_RAISE(env, "ArgumentError", "empty string");
+        env->raise("ArgumentError", "empty string");
     }
     StringValue *c = (*chars)[0]->as_string();
     assert(c->length() > 0);
@@ -426,7 +426,7 @@ static EncodingValue *find_encoding_by_name(Env *env, const char *name) {
         }
     }
     GC_FREE(lcase_name);
-    NAT_RAISE(env, "ArgumentError", "unknown encoding name - %s", name);
+    env->raise("ArgumentError", "unknown encoding name - %s", name);
 }
 
 Value *StringValue::encode(Env *env, Value *encoding) {
@@ -447,7 +447,6 @@ Value *StringValue::encode(Env *env, Value *encoding) {
                 StringValue blank { env, "" };
                 message = message->as_string()->sub(env, &zero_x, &blank);
                 env->raise(Encoding->const_find(env, "UndefinedConversionError")->as_class(), "%S", message);
-                abort();
             }
         }
         return copy;
@@ -455,7 +454,6 @@ Value *StringValue::encode(Env *env, Value *encoding) {
         return copy;
     } else {
         env->raise(Encoding->const_find(env, "ConverterNotFoundError")->as_class(), "code converter not found");
-        abort();
     }
 }
 
@@ -468,7 +466,7 @@ Value *StringValue::force_encoding(Env *env, Value *encoding) {
         set_encoding(find_encoding_by_name(env, encoding->as_string()->c_str())->num());
         break;
     default:
-        NAT_RAISE(env, "TypeError", "no implicit conversion of %s into String", encoding->klass()->class_name());
+        env->raise("TypeError", "no implicit conversion of %s into String", encoding->klass()->class_name());
     }
     return this;
 }
@@ -544,7 +542,7 @@ StringValue *StringValue::sub(Env *env, Value *find, Value *replacement) {
         out->append(env, &m_str[index + length]);
         return out;
     } else {
-        NAT_RAISE(env, "TypeError", "wrong argument type %s (expected Regexp)", find->klass()->class_name());
+        env->raise("TypeError", "wrong argument type %s (expected Regexp)", find->klass()->class_name());
     }
 }
 
@@ -599,7 +597,7 @@ Value *StringValue::split(Env *env, Value *splitter) {
         }
         return ary;
     } else {
-        NAT_RAISE(env, "TypeError", "wrong argument type %s (expected Regexp))", splitter->klass()->class_name());
+        env->raise("TypeError", "wrong argument type %s (expected Regexp))", splitter->klass()->class_name());
     }
 }
 

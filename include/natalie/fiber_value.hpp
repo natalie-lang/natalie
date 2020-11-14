@@ -109,7 +109,7 @@ struct FiberValue : Value {
         assert(stack_size % 16 == 0);
         m_stack_bottom = GC_MALLOC(stack_size);
         if (m_stack_bottom == 0) {
-            NAT_RAISE(env, "StandardError", "could not allocate stack for Fiber");
+            env->raise("StandardError", "could not allocate stack for Fiber");
         }
         m_fiber.stack = (void **)((char *)m_stack_bottom + stack_size);
 #ifdef __APPLE__
@@ -128,7 +128,7 @@ struct FiberValue : Value {
 
     Value *resume(Env *env, ssize_t argc, Value **args) {
         if (m_status == Status::Terminated) {
-            NAT_RAISE(env, "FiberError", "dead fiber called");
+            env->raise("FiberError", "dead fiber called");
         }
         auto main_fiber = env->global_env()->main_fiber(env);
         env->global_env()->set_current_fiber(this);

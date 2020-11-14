@@ -16,7 +16,7 @@ Value *Env::global_get(const char *name) {
     Env *env = this;
     assert(strlen(name) > 0);
     if (name[0] != '$') {
-        NAT_RAISE(env, "NameError", "`%s' is not allowed as a global variable name", name);
+        env->raise("NameError", "`%s' is not allowed as a global variable name", name);
     }
     Value *val = static_cast<Value *>(hashmap_get(env->global_env()->globals(), name));
     if (val) {
@@ -30,7 +30,7 @@ Value *Env::global_set(const char *name, Value *val) {
     Env *env = this;
     assert(strlen(name) > 0);
     if (name[0] != '$') {
-        NAT_RAISE(env, "NameError", "`%s' is not allowed as an global variable name", name);
+        env->raise("NameError", "`%s' is not allowed as an global variable name", name);
     }
     hashmap_remove(env->global_env()->globals(), name);
     hashmap_put(env->global_env()->globals(), name, val);
@@ -68,17 +68,26 @@ char *Env::build_code_location_name(Env *location_env) {
     return GC_STRDUP("(unknown)");
 }
 
-Value *Env::raise(ClassValue *klass, const char *message_format, ...) {
+void Env::raise(ClassValue *klass, const char *message_format, ...) {
     va_list args;
     va_start(args, message_format);
     StringValue *message = StringValue::vsprintf(this, message_format, args);
     va_end(args);
     ExceptionValue *exception = new ExceptionValue { this, klass, message->c_str() };
     this->raise_exception(exception);
-    return exception;
 }
 
-Value *Env::raise_exception(ExceptionValue *exception) {
+void Env::raise(const char *class_name, const char *message_format, ...) {
+    va_list args;
+    va_start(args, message_format);
+    StringValue *message = StringValue::vsprintf(this, message_format, args);
+    va_end(args);
+    ClassValue *klass = Object()->const_fetch(class_name)->as_class();
+    ExceptionValue *exception = new ExceptionValue { this, klass, message->c_str() };
+    this->raise_exception(exception);
+}
+
+void Env::raise_exception(ExceptionValue *exception) {
     if (!exception->backtrace()) {
         // only build a backtrace the first time the exception is raised (not on a re-raise)
         exception->build_backtrace(this);
@@ -86,12 +95,11 @@ Value *Env::raise_exception(ExceptionValue *exception) {
     throw exception;
 }
 
-Value *Env::raise_local_jump_error(Value *exit_value, const char *message) {
+void Env::raise_local_jump_error(Value *exit_value, const char *message) {
     Env *env = this;
     ExceptionValue *exception = new ExceptionValue { this, env->Object()->const_find(this, "LocalJumpError")->as_class(), message };
     exception->ivar_set(this, "@exit_value", exit_value);
     this->raise_exception(exception);
-    return exception;
 }
 
 Value *Env::last_match() {

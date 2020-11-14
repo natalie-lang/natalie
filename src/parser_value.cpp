@@ -43,7 +43,7 @@ Value *ParserValue::parse(Env *env, Value *code) {
             if (c == '\n') line++;
             index++;
         }
-        NAT_RAISE(env, "SyntaxError", "(string):%d :: parse error on value \"%s\"", line, e.string().c_str());
+        env->raise("SyntaxError", "(string):%d :: parse error on value \"%s\"", line, e.string().c_str());
         return env->nil_obj();
     };
 
@@ -53,7 +53,7 @@ Value *ParserValue::parse(Env *env, Value *code) {
         ArrayValue *result = new ArrayValue { env, { SymbolValue::intern(env, "class") } };
         SymbolValue *name = e[0].evaluate(env)->as_symbol();
         if (!name->is_constant()) {
-            NAT_RAISE(env, "SyntaxError", "class/module name must be CONSTANT");
+            env->raise("SyntaxError", "class/module name must be CONSTANT");
         }
         result->push(name);
         result->push(e[1].evaluate(env));
@@ -78,7 +78,7 @@ Value *ParserValue::parse(Env *env, Value *code) {
         ArrayValue *result = new ArrayValue { env, { SymbolValue::intern(env, "module") } };
         SymbolValue *name = e[0].evaluate(env)->as_symbol();
         if (!name->is_constant()) {
-            NAT_RAISE(env, "SyntaxError", "class/module name must be CONSTANT");
+            env->raise("SyntaxError", "class/module name must be CONSTANT");
         }
         result->push(name);
         ArrayValue *body = e[1].evaluate(env)->as_array();

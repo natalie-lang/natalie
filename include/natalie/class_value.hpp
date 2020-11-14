@@ -32,7 +32,7 @@ struct ClassValue : ModuleValue {
     static Value *new_method(Env *env, Value *superclass, Block *block) {
         if (superclass) {
             if (!superclass->is_class()) {
-                NAT_RAISE(env, "TypeError", "superclass must be a Class (%s given)", superclass->klass()->class_name());
+                env->raise("TypeError", "superclass must be a Class (%s given)", superclass->klass()->class_name());
             }
         } else {
             superclass = env->Object();

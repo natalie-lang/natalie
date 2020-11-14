@@ -51,7 +51,7 @@ void HashValue::put(Env *env, Value *key, Value *val) {
         container->val = val;
     } else {
         if (m_is_iterating) {
-            NAT_RAISE(env, "RuntimeError", "can't add a new key into hash during iteration");
+            env->raise("RuntimeError", "can't add a new key into hash during iteration");
         }
         container = static_cast<Val *>(GC_MALLOC(sizeof(Val)));
         container->key = key_list_append(env, key, val);
@@ -146,7 +146,7 @@ void HashValue::key_list_remove_node(Key *node) {
 Value *HashValue::initialize(Env *env, Value *default_value, Block *block) {
     if (block) {
         if (default_value) {
-            NAT_RAISE(env, "ArgumentError", "wrong number of arguments (given 1, expected 0)");
+            env->raise("ArgumentError", "wrong number of arguments (given 1, expected 0)");
         }
         set_default_block(block);
     } else if (default_value) {
@@ -167,11 +167,11 @@ Value *HashValue::square_new(Env *env, ssize_t argc, Value **args) {
             HashValue *hash = new HashValue { env };
             for (auto &pair : *value->as_array()) {
                 if (pair->type() != Value::Type::Array) {
-                    NAT_RAISE(env, "ArgumentError", "wrong element in array to Hash[]");
+                    env->raise("ArgumentError", "wrong element in array to Hash[]");
                 }
                 ssize_t size = pair->as_array()->size();
                 if (size < 1 || size > 2) {
-                    NAT_RAISE(env, "ArgumentError", "invalid number of elements (%d for 1..2)", size);
+                    env->raise("ArgumentError", "invalid number of elements (%d for 1..2)", size);
                 }
                 Value *key = (*pair->as_array())[0];
                 Value *value = size == 1 ? env->nil_obj() : (*pair->as_array())[1];
@@ -181,7 +181,7 @@ Value *HashValue::square_new(Env *env, ssize_t argc, Value **args) {
         }
     }
     if (argc % 2 != 0) {
-        NAT_RAISE(env, "ArgumentError", "odd number of arguments for Hash");
+        env->raise("ArgumentError", "odd number of arguments for Hash");
     }
     HashValue *hash = new HashValue { env };
     for (ssize_t i = 0; i < argc; i += 2) {

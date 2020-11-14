@@ -113,7 +113,7 @@ ArrayValue *to_ary(Env *env, Value *obj, bool raise_for_non_array) {
             return ary->as_array();
         } else {
             const char *class_name = obj->klass()->class_name();
-            NAT_RAISE(env, "TypeError", "can't convert %s to Array (%s#to_ary gives %s)", class_name, class_name, ary->klass()->class_name());
+            env->raise("TypeError", "can't convert %s to Array (%s#to_ary gives %s)", class_name, class_name, ary->klass()->class_name());
         }
     } else {
         ArrayValue *ary = new ArrayValue { env };
@@ -272,7 +272,7 @@ Value *kwarg_value_by_name(Env *env, ArrayValue *args, const char *name, Value *
         if (default_value) {
             return default_value;
         } else {
-            NAT_RAISE(env, "ArgumentError", "missing keyword: :%s", name);
+            env->raise("ArgumentError", "missing keyword: :%s", name);
         }
     }
     return value;
@@ -311,20 +311,20 @@ void arg_spread(Env *env, ssize_t argc, Value **args, const char *arrangement, .
         switch (c) {
         case 'o':
             obj_ptr = va_arg(va_args, Value **);
-            if (arg_index >= argc) NAT_RAISE(env, "ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, arg_index + 1);
+            if (arg_index >= argc) env->raise("ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, arg_index + 1);
             obj = args[arg_index++];
             *obj_ptr = obj;
             break;
         case 'i':
             int_ptr = va_arg(va_args, int *);
-            if (arg_index >= argc) NAT_RAISE(env, "ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, arg_index + 1);
+            if (arg_index >= argc) env->raise("ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, arg_index + 1);
             obj = args[arg_index++];
             NAT_ASSERT_TYPE(obj, Value::Type::Integer, "Integer");
             *int_ptr = obj->as_integer()->to_int64_t();
             break;
         case 's':
             str_ptr = va_arg(va_args, const char **);
-            if (arg_index >= argc) NAT_RAISE(env, "ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, arg_index + 1);
+            if (arg_index >= argc) env->raise("ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, arg_index + 1);
             obj = args[arg_index++];
             if (obj == env->nil_obj()) {
                 *str_ptr = nullptr;
@@ -335,13 +335,13 @@ void arg_spread(Env *env, ssize_t argc, Value **args, const char *arrangement, .
             break;
         case 'b':
             bool_ptr = va_arg(va_args, bool *);
-            if (arg_index >= argc) NAT_RAISE(env, "ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, arg_index + 1);
+            if (arg_index >= argc) env->raise("ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, arg_index + 1);
             obj = args[arg_index++];
             *bool_ptr = obj->is_truthy();
             break;
         case 'v':
             void_ptr = va_arg(va_args, void **);
-            if (arg_index >= argc) NAT_RAISE(env, "ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, arg_index + 1);
+            if (arg_index >= argc) env->raise("ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, arg_index + 1);
             obj = args[arg_index++];
             obj = obj->ivar_get(env, "@_ptr");
             assert(obj->type() == Value::Type::VoidP);
@@ -359,7 +359,7 @@ std::pair<Value *, Value *> coerce(Env *env, Value *lhs, Value *rhs) {
     if (lhs->respond_to(env, "coerce")) {
         Value *coerced = lhs->send(env, "coerce", 1, &rhs, nullptr);
         if (!coerced->is_array()) {
-            NAT_RAISE(env, "TypeError", "coerce must return [x, y]");
+            env->raise("TypeError", "coerce must return [x, y]");
         }
         lhs = (*coerced->as_array())[0];
         rhs = (*coerced->as_array())[1];

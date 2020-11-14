@@ -101,9 +101,9 @@ Value *ModuleValue::const_find(Env *env, const char *name, ConstLookupSearchMode
     if (failure_mode == ConstLookupFailureMode::Null) return nullptr;
 
     if (search_mode == ConstLookupSearchMode::Strict) {
-        NAT_RAISE(env, "NameError", "uninitialized constant %S::%s", this->send(env, "inspect", 0, nullptr, nullptr), name);
+        env->raise("NameError", "uninitialized constant %S::%s", this->send(env, "inspect", 0, nullptr, nullptr), name);
     } else {
-        NAT_RAISE(env, "NameError", "uninitialized constant %s", name);
+        env->raise("NameError", "uninitialized constant %s", name);
     }
 }
 
@@ -121,7 +121,7 @@ void ModuleValue::alias(Env *env, const char *new_name, const char *old_name) {
     ModuleValue *matching_class_or_module;
     Method *method = find_method(old_name, &matching_class_or_module);
     if (!method) {
-        NAT_RAISE(env, "NameError", "undefined method `%s' for `%v'", old_name, this);
+        env->raise("NameError", "undefined method `%s' for `%v'", old_name, this);
     }
     GC_FREE(hashmap_remove(&m_methods, new_name));
     hashmap_put(&m_methods, new_name, new Method { *method });
@@ -266,11 +266,11 @@ Value *ModuleValue::call_method(Env *env, Value *instance_class, const char *met
         e.set_block(block);
         return method->run(&e, self, argc, args, block);
     } else if (self->is_module()) {
-        NAT_RAISE(env, "NoMethodError", "undefined method `%s' for %s:%v", method_name, self->as_module()->class_name(), instance_class);
+        env->raise("NoMethodError", "undefined method `%s' for %s:%v", method_name, self->as_module()->class_name(), instance_class);
     } else if (strcmp(method_name, "inspect") == 0) {
-        NAT_RAISE(env, "NoMethodError", "undefined method `inspect' for #<%s:0x%x>", self->klass()->class_name(), self->object_id());
+        env->raise("NoMethodError", "undefined method `inspect' for #<%s:0x%x>", self->klass()->class_name(), self->object_id());
     } else {
-        NAT_RAISE(env, "NoMethodError", "undefined method `%s' for %s", method_name, NAT_INSPECT(self));
+        env->raise("NoMethodError", "undefined method `%s' for %s", method_name, NAT_INSPECT(self));
     }
 }
 
@@ -339,7 +339,7 @@ Value *ModuleValue::attr_reader(Env *env, ssize_t argc, Value **args) {
         } else if (name_obj->type() == Value::Type::Symbol) {
             name_obj = name_obj->as_symbol()->to_s(env);
         } else {
-            NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", name_obj->send(env, "inspect"));
+            env->raise("TypeError", "%s is not a symbol nor a string", name_obj->send(env, "inspect"));
         }
         Env block_env = Env::new_detatched_env(env);
         block_env.var_set("name", 0, true, name_obj);
@@ -364,7 +364,7 @@ Value *ModuleValue::attr_writer(Env *env, ssize_t argc, Value **args) {
         } else if (name_obj->type() == Value::Type::Symbol) {
             name_obj = name_obj->as_symbol()->to_s(env);
         } else {
-            NAT_RAISE(env, "TypeError", "%s is not a symbol nor a string", name_obj->send(env, "inspect"));
+            env->raise("TypeError", "%s is not a symbol nor a string", name_obj->send(env, "inspect"));
         }
         StringValue *method_name = new StringValue { env, name_obj->as_string()->c_str() };
         method_name->append_char(env, '=');
@@ -411,7 +411,7 @@ bool ModuleValue::does_include_module(Env *env, Value *module) {
 Value *ModuleValue::define_method(Env *env, Value *name_value, Block *block) {
     const char *name = name_value->identifier_str(env, Value::Conversion::Strict);
     if (!block) {
-        NAT_RAISE(env, "ArgumentError", "tried to create Proc object without a block");
+        env->raise("ArgumentError", "tried to create Proc object without a block");
     }
     define_method_with_block(env, name, block);
     return SymbolValue::intern(env, name);
@@ -419,7 +419,7 @@ Value *ModuleValue::define_method(Env *env, Value *name_value, Block *block) {
 
 Value *ModuleValue::module_eval(Env *env, Block *block) {
     if (!block) {
-        NAT_RAISE(env, "ArgumentError", "Natalie only supports module_eval with a block");
+        env->raise("ArgumentError", "Natalie only supports module_eval with a block");
     }
     block->set_self(this);
     NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 0, nullptr, nullptr);
@@ -444,7 +444,7 @@ Value *ModuleValue::public_method(Env *env, Value *method_name) {
 bool ModuleValue::const_defined(Env *env, Value *name_value) {
     const char *name = name_value->identifier_str(env, Value::Conversion::NullAllowed);
     if (!name) {
-        NAT_RAISE(env, "TypeError", "no implicit conversion of %v to String", name_value);
+        env->raise("TypeError", "no implicit conversion of %v to String", name_value);
     }
     return !!const_find(env, name, ConstLookupSearchMode::NotStrict, ConstLookupFailureMode::Null);
 }
@@ -452,11 +452,11 @@ bool ModuleValue::const_defined(Env *env, Value *name_value) {
 Value *ModuleValue::alias_method(Env *env, Value *new_name_value, Value *old_name_value) {
     const char *new_name = new_name_value->identifier_str(env, Value::Conversion::NullAllowed);
     if (!new_name) {
-        NAT_RAISE(env, "TypeError", "%s is not a symbol", new_name_value->send(env, "inspect"));
+        env->raise("TypeError", "%s is not a symbol", new_name_value->send(env, "inspect"));
     }
     const char *old_name = old_name_value->identifier_str(env, Value::Conversion::NullAllowed);
     if (!old_name) {
-        NAT_RAISE(env, "TypeError", "%s is not a symbol", old_name_value->send(env, "inspect"));
+        env->raise("TypeError", "%s is not a symbol", old_name_value->send(env, "inspect"));
     }
     alias(env, new_name, old_name);
     return this;

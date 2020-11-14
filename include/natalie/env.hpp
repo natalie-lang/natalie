@@ -37,9 +37,10 @@ struct Env : public gc {
     Value *var_get(const char *, ssize_t);
     Value *var_set(const char *, ssize_t, bool, Value *);
 
-    Value *raise(ClassValue *, const char *, ...);
-    Value *raise_exception(ExceptionValue *);
-    Value *raise_local_jump_error(Value *, const char *);
+    [[noreturn]] void raise(ClassValue *, const char *, ...);
+    [[noreturn]] void raise(const char *, const char *, ...);
+    [[noreturn]] void raise_exception(ExceptionValue *);
+    [[noreturn]] void raise_local_jump_error(Value *, const char *);
 
     Value *last_match();
 

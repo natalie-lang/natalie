@@ -32,7 +32,7 @@ Value *KernelModule::at_exit(Env *env, Block *block) {
 
 Value *KernelModule::cur_dir(Env *env) {
     if (env->file() == nullptr) {
-        NAT_RAISE(env, "RuntimeError", "could not get current directory");
+        env->raise("RuntimeError", "could not get current directory");
     } else if (strcmp(env->file(), "-e") == 0) {
         return new StringValue { env, "." };
     } else {
@@ -138,7 +138,7 @@ Value *KernelModule::instance_variable_set(Env *env, Value *name_val, Value *val
 
 bool KernelModule::is_a(Env *env, Value *module) {
     if (!module->is_module()) {
-        NAT_RAISE(env, "TypeError", "class or module required");
+        env->raise("TypeError", "class or module required");
     }
     return Value::is_a(env, module->as_module());
 }
@@ -147,7 +147,7 @@ Value *KernelModule::lambda(Env *env, Block *block) {
     if (block) {
         return new ProcValue(env, block, ProcValue::ProcType::Lambda);
     } else {
-        NAT_RAISE(env, "ArgumentError", "tried to create Proc object without a block");
+        env->raise("ArgumentError", "tried to create Proc object without a block");
     }
 }
 
@@ -159,7 +159,7 @@ Value *KernelModule::loop(Env *env, Block *block) {
         return env->nil_obj();
     } else {
         // TODO: Enumerator?
-        NAT_RAISE(env, "ArgumentError", "loop without block");
+        env->raise("ArgumentError", "loop without block");
     }
 }
 
@@ -200,7 +200,7 @@ Value *KernelModule::proc(Env *env, Block *block) {
     if (block) {
         return new ProcValue { env, block };
     } else {
-        NAT_RAISE(env, "ArgumentError", "tried to create Proc object without a block");
+        env->raise("ArgumentError", "tried to create Proc object without a block");
     }
 }
 
@@ -220,13 +220,11 @@ Value *KernelModule::raise(Env *env, Value *klass, Value *message) {
             message = arg;
         } else if (arg->is_exception()) {
             env->raise_exception(arg->as_exception());
-            abort();
         } else {
-            NAT_RAISE(env, "TypeError", "exception klass/object expected");
+            env->raise("TypeError", "exception klass/object expected");
         }
     }
     env->raise(klass->as_class(), message->as_string()->c_str());
-    abort();
 }
 
 Value *KernelModule::sleep(Env *env, Value *length) {

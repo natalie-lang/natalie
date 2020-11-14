@@ -93,7 +93,7 @@ Value *FloatValue::round(Env *env, Value *precision_value) {
         precision = precision_value->as_integer()->to_int64_t();
     }
     if (precision <= 0 && (is_nan() || is_infinity())) {
-        NAT_RAISE(env, "FloatDomainError", NAT_INSPECT(this));
+        env->raise("FloatDomainError", NAT_INSPECT(this));
     }
     if (is_infinity()) {
         return new FloatValue { env, value };
@@ -213,7 +213,7 @@ Value *FloatValue::coerce(Env *env, Value *arg) {
         abort();
         break;
     default:
-        NAT_RAISE(env, "ArgumentError", "invalid value for Float(): %s", NAT_INSPECT(arg));
+        env->raise("ArgumentError", "invalid value for Float(): %s", NAT_INSPECT(arg));
     }
     return ary;
 }
@@ -311,19 +311,19 @@ Value *FloatValue::mod(Env *env, Value *rhs) {
     double dividend = to_double();
     double divisor = rhs->as_float()->to_double();
 
-    if (divisor == 0.0) NAT_RAISE(env, "ZeroDivisionError", "divided by 0");
+    if (divisor == 0.0) env->raise("ZeroDivisionError", "divided by 0");
 
     return new FloatValue { env, fmod(dividend, divisor) };
 }
 
 Value *FloatValue::divmod(Env *env, Value *arg) {
-    if (is_nan()) NAT_RAISE(env, "FloatDomainError", "NaN");
-    if (is_infinity()) NAT_RAISE(env, "FloatDomainError", "Infinity");
+    if (is_nan()) env->raise("FloatDomainError", "NaN");
+    if (is_infinity()) env->raise("FloatDomainError", "Infinity");
 
-    if (!arg->is_numeric()) NAT_RAISE(env, "TypeError", "%s can't be coerced into Float", arg->klass()->class_name());
-    if (arg->is_float() && arg->as_float()->is_nan()) NAT_RAISE(env, "FloatDomainError", "NaN");
-    if (arg->is_float() && arg->as_float()->is_zero()) NAT_RAISE(env, "ZeroDivisionError", "divided by 0");
-    if (arg->is_integer() && arg->as_integer()->is_zero()) NAT_RAISE(env, "ZeroDivisionError", "divided by 0");
+    if (!arg->is_numeric()) env->raise("TypeError", "%s can't be coerced into Float", arg->klass()->class_name());
+    if (arg->is_float() && arg->as_float()->is_nan()) env->raise("FloatDomainError", "NaN");
+    if (arg->is_float() && arg->as_float()->is_zero()) env->raise("ZeroDivisionError", "divided by 0");
+    if (arg->is_integer() && arg->as_integer()->is_zero()) env->raise("ZeroDivisionError", "divided by 0");
 
     Value *division = div(env, arg);
     Value *modulus = mod(env, arg);
@@ -394,7 +394,7 @@ Value *FloatValue::arg(Env *env) {
                                                                                                                \
         if (!lhs->is_float()) return lhs->send(env, NAT_QUOTE(op), 1, &rhs);                                   \
         if (!rhs->is_float()) {                                                                                \
-            NAT_RAISE(env, "ArgumentError", "comparison of Float with %s failed", rhs->klass()->class_name()); \
+            env->raise("ArgumentError", "comparison of Float with %s failed", rhs->klass()->class_name()); \
         }                                                                                                      \
                                                                                                                \
         if (lhs->as_float()->is_nan() || rhs->as_float()->is_nan()) {                                          \
