@@ -6,11 +6,6 @@
         abort();                                 \
     }
 
-#define NAT_ASSERT_BLOCK()                                     \
-    if (!block) {                                              \
-        env->raise("ArgumentError", "called without a block"); \
-    }
-
 #define NAT_MIN(a, b) ((a < b) ? a : b)
 #define NAT_MAX(a, b) ((a > b) ? a : b)
 

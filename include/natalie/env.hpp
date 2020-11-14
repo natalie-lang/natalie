@@ -45,6 +45,7 @@ struct Env : public gc {
     void assert_argc(ssize_t, ssize_t);
     void assert_argc(ssize_t, ssize_t, ssize_t);
     void assert_argc_at_least(ssize_t, ssize_t);
+    void assert_block_given(Block *);
 
     Value *last_match();
 

@@ -21,7 +21,7 @@ Value *RangeValue::to_a(Env *env) {
 }
 
 Value *RangeValue::each(Env *env, Block *block) {
-    NAT_ASSERT_BLOCK();
+    env->assert_block_given(block);
     Value *item = m_begin;
     const char *op = m_exclude_end ? "<" : "<=";
     while (item->send(env, op, 1, &m_end, nullptr)->is_truthy()) {

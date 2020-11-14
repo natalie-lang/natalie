@@ -24,7 +24,7 @@ Value *KernelModule::Array(Env *env, Value *value) {
 
 Value *KernelModule::at_exit(Env *env, Block *block) {
     ArrayValue *at_exit_handlers = env->global_get("$NAT_at_exit_handlers")->as_array();
-    NAT_ASSERT_BLOCK();
+    env->assert_block_given(block);
     Value *proc = new ProcValue { env, block };
     at_exit_handlers->push(proc);
     return proc;
@@ -54,7 +54,7 @@ Value *KernelModule::cur_dir(Env *env) {
 }
 
 Value *KernelModule::define_singleton_method(Env *env, Value *name, Block *block) {
-    NAT_ASSERT_BLOCK();
+    env->assert_block_given(block);
     SymbolValue *name_obj = name->to_symbol(env, Value::Conversion::Strict);
     define_singleton_method_with_block(env, name_obj->c_str(), block);
     return name_obj;

@@ -199,7 +199,7 @@ Value *ArrayValue::eql(Env *env, Value *other) {
 }
 
 Value *ArrayValue::each(Env *env, Block *block) {
-    NAT_ASSERT_BLOCK(); // TODO: return Enumerator when no block given
+    env->assert_block_given(block); // TODO: return Enumerator when no block given
     for (auto &obj : *this) {
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &obj, nullptr);
     }
@@ -207,7 +207,7 @@ Value *ArrayValue::each(Env *env, Block *block) {
 }
 
 Value *ArrayValue::each_with_index(Env *env, Block *block) {
-    NAT_ASSERT_BLOCK(); // TODO: return Enumerator when no block given
+    env->assert_block_given(block); // TODO: return Enumerator when no block given
     for (ssize_t i = 0; i < size(); i++) {
         Value *args[2] = { (*this)[i], new IntegerValue { env, i } };
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 2, args, nullptr);
@@ -216,7 +216,7 @@ Value *ArrayValue::each_with_index(Env *env, Block *block) {
 }
 
 Value *ArrayValue::map(Env *env, Block *block) {
-    NAT_ASSERT_BLOCK(); // TODO: return Enumerator when no block given
+    env->assert_block_given(block); // TODO: return Enumerator when no block given
     ArrayValue *new_array = new ArrayValue { env };
     for (auto &item : *this) {
         Value *result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
@@ -237,7 +237,7 @@ Value *ArrayValue::first(Env *env) {
 Value *ArrayValue::sample(Env *env) {
     std::random_device dev;
     std::mt19937 rng(dev());
-    std::uniform_int_distribution<std::mt19937::result_type> random_number(1,size());
+    std::uniform_int_distribution<std::mt19937::result_type> random_number(1, size());
 
     if (size() > 0) {
         return (*this)[random_number(rng) - 1];
@@ -366,7 +366,7 @@ void ArrayValue::sort_in_place(Env *env) {
 }
 
 Value *ArrayValue::select(Env *env, Block *block) {
-    NAT_ASSERT_BLOCK(); // TODO: return Enumerator when no block given
+    env->assert_block_given(block); // TODO: return Enumerator when no block given
     ArrayValue *new_array = new ArrayValue { env };
     for (auto &item : *this) {
         Value *result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);

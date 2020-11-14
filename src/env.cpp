@@ -120,6 +120,12 @@ void Env::assert_argc_at_least(ssize_t argc, ssize_t expected) {
     }
 }
 
+void Env::assert_block_given(Block *block) {
+    if (!block) {
+        raise("ArgumentError", "called without a block");
+    }
+}
+
 Value *Env::last_match() {
     if (m_match) {
         return m_match;

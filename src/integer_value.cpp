@@ -148,7 +148,7 @@ Value *IntegerValue::eqeqeq(Env *env, Value *arg) {
 Value *IntegerValue::times(Env *env, Block *block) {
     int64_t val = to_int64_t();
     assert(val >= 0);
-    NAT_ASSERT_BLOCK(); // TODO: return Enumerator when no block given
+    env->assert_block_given(block); // TODO: return Enumerator when no block given
     Value *num;
     for (long long i = 0; i < val; i++) {
         num = new IntegerValue { env, i };

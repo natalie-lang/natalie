@@ -272,7 +272,7 @@ Value *HashValue::eq(Env *env, Value *other_value) {
 })
 
 Value *HashValue::each(Env *env, Block *block) {
-    NAT_ASSERT_BLOCK(); // TODO: return Enumerator when no block given
+    env->assert_block_given(block); // TODO: return Enumerator when no block given
     Value *block_args[2];
     for (HashValue::Key &node : *this) {
         block_args[0] = node.key;

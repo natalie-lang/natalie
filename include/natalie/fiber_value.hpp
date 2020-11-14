@@ -68,7 +68,7 @@ struct FiberValue : Value {
     const int STACK_SIZE = 1024 * 1024;
 
     FiberValue *initialize(Env *env, Block *block) {
-        NAT_ASSERT_BLOCK();
+        env->assert_block_given(block);
         create_stack(env, STACK_SIZE);
         m_stack_base.mem_base = m_stack_bottom;
         m_block = block;
