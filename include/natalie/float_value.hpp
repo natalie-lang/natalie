@@ -16,15 +16,15 @@ namespace Natalie {
 struct FloatValue : Value {
     FloatValue(Env *env, double number)
         : Value { Value::Type::Float, env->Object()->const_fetch("Float")->as_class() }
-        , m_float { number } { }
+        , m_double { number } { }
 
     FloatValue(Env *env, nat_int_t number)
         : Value { Value::Type::Float, env->Object()->const_fetch("Float")->as_class() }
-        , m_float { static_cast<double>(number) } { }
+        , m_double { static_cast<double>(number) } { }
 
     FloatValue(const FloatValue &other)
         : Value { Value::Type::Float, const_cast<FloatValue &>(other).klass() }
-        , m_float { other.m_float } { }
+        , m_double { other.m_double } { }
 
     static FloatValue *nan(Env *env) {
         return new FloatValue { env, 0.0 / 0.0 };
@@ -51,19 +51,19 @@ struct FloatValue : Value {
     }
 
     double to_double() {
-        return m_float;
+        return m_double;
     }
 
     Value *to_int_no_truncation(Env *env) {
         if (is_nan() || is_infinity()) return this;
-        if (m_float == ::floor(m_float)) {
-            return new IntegerValue { env, static_cast<nat_int_t>(m_float) };
+        if (m_double == ::floor(m_double)) {
+            return new IntegerValue { env, static_cast<nat_int_t>(m_double) };
         }
         return this;
     }
 
     bool is_zero() {
-        return m_float == 0 && !is_nan();
+        return m_double == 0 && !is_nan();
     }
 
     bool is_finite() {
@@ -71,43 +71,43 @@ struct FloatValue : Value {
     }
 
     bool is_nan() {
-        return isnan(m_float);
+        return isnan(m_double);
     }
 
     bool is_infinity() {
-        return isinf(m_float);
+        return isinf(m_double);
     }
 
     bool is_negative() {
-        return m_float < 0.0;
+        return m_double < 0.0;
     };
 
     bool is_positive() {
-        return m_float > 0.0;
+        return m_double > 0.0;
     };
 
     // NOTE: even though this is a predicate method with a ? suffix, it returns an 1, -1, or nil.
     Value *is_infinite(Env *);
 
     bool is_positive_infinity() {
-        return is_infinity() && m_float > 0;
+        return is_infinity() && m_double > 0;
     }
 
     bool is_negative_infinity() {
-        return is_infinity() && m_float < 0;
+        return is_infinity() && m_double < 0;
     }
 
     bool is_positive_zero() {
-        return m_float == 0 && !signbit(m_float);
+        return m_double == 0 && !signbit(m_double);
     }
 
     bool is_negative_zero() {
-        return m_float == 0 && signbit(m_float);
+        return m_double == 0 && signbit(m_double);
     }
 
     FloatValue *negate() {
         FloatValue *copy = new FloatValue { *this };
-        copy->m_float *= -1;
+        copy->m_double *= -1;
         return copy;
     }
 
@@ -166,6 +166,6 @@ struct FloatValue : Value {
     }
 
 private:
-    double m_float { 0.0 };
+    double m_double { 0.0 };
 };
 }

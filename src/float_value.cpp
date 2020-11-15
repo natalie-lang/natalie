@@ -21,11 +21,11 @@ Value *FloatValue::is_infinite(Env *env) {
 
 bool FloatValue::eq(Env *env, Value *other) {
     if (other->is_integer()) {
-        return m_float == other->as_integer()->to_nat_int_t();
+        return m_double == other->as_integer()->to_nat_int_t();
     }
     if (other->is_float()) {
         auto *f = other->as_float();
-        return f->m_float == m_float;
+        return f->m_double == m_double;
     }
     if (other->respond_to(env, "==")) {
         Value *args[] = { this };
@@ -37,7 +37,7 @@ bool FloatValue::eq(Env *env, Value *other) {
 bool FloatValue::eql(Value *other) {
     if (!other->is_float()) return false;
     auto *f = other->as_float();
-    return f->m_float == m_float;
+    return f->m_double == m_double;
 }
 
 Value *FloatValue::ceil(Env *env, Value *precision_value) {
@@ -375,7 +375,7 @@ Value *FloatValue::prev_float(Env *env) {
 
 Value *FloatValue::arg(Env *env) {
     if (is_nan()) return this;
-    if (!signbit(m_float)) {
+    if (!signbit(m_double)) {
         return new IntegerValue { env, 0 };
     } else {
         Value *Math = env->Object()->const_fetch("Math");
