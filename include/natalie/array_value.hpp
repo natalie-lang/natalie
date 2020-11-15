@@ -45,7 +45,7 @@ struct ArrayValue : Value {
 
     Value *to_ary() { return this; }
 
-    ssize_t size() const { return m_vector.size(); }
+    size_t size() const { return m_vector.size(); }
 
     void push(Value &val) {
         m_vector.push(&val);
@@ -57,7 +57,8 @@ struct ArrayValue : Value {
 
     Value *pop(Env *);
 
-    Value *&operator[](ssize_t index) const {
+    Value *&operator[](size_t index) const {
+        assert(index < m_vector.size());
         return m_vector[index];
     }
 
@@ -69,7 +70,7 @@ struct ArrayValue : Value {
 
     void push_splat(Env *, Value *);
 
-    void expand_with_nil(Env *, ssize_t);
+    void expand_with_nil(Env *, size_t);
 
     void overwrite(ArrayValue &other) {
         m_vector.set_size(0);

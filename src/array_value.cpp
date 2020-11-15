@@ -23,7 +23,7 @@ Value *ArrayValue::initialize(Env *env, Value *size, Value *value) {
 
 Value *ArrayValue::inspect(Env *env) {
     StringValue *out = new StringValue { env, "[" };
-    for (ssize_t i = 0; i < size(); i++) {
+    for (size_t i = 0; i < size(); i++) {
         Value *obj = (*this)[i];
         StringValue *repr = obj->send(env, "inspect")->as_string();
         out->append_string(env, repr);
@@ -68,21 +68,25 @@ Value *ArrayValue::sub(Env *env, Value *other) {
 
 Value *ArrayValue::ref(Env *env, Value *index_obj, Value *size) {
     if (index_obj->type() == Value::Type::Integer) {
-        ssize_t index = index_obj->as_integer()->to_int64_t();
+        int64_t index = index_obj->as_integer()->to_int64_t();
         if (index < 0) {
             index = this->size() + index;
         }
-        if (index < 0 || index >= this->size()) {
+        if (index < 0) {
+            return env->nil_obj();
+        }
+        size_t sindex = static_cast<size_t>(index);
+        if (sindex >= this->size()) {
             return env->nil_obj();
         } else if (!size) {
             return (*this)[index];
         }
         size->assert_type(env, Value::Type::Integer, "Integer");
-        ssize_t end = index + size->as_integer()->to_int64_t();
-        ssize_t max = this->size();
+        size_t end = index + size->as_integer()->to_int64_t();
+        size_t max = this->size();
         end = end > max ? max : end;
         ArrayValue *result = new ArrayValue { env };
-        for (ssize_t i = index; i < end; i++) {
+        for (size_t i = index; i < end; i++) {
             result->push((*this)[i]);
         }
         return result;
@@ -103,11 +107,12 @@ Value *ArrayValue::ref(Env *env, Value *index_obj, Value *size) {
         if (begin < 0 || end < 0) {
             return env->nil_obj();
         }
-        if (!range->exclude_end()) end++;
-        ssize_t max = this->size();
-        end = end > max ? max : end;
+        size_t u_end = static_cast<size_t>(end);
+        if (!range->exclude_end()) u_end++;
+        size_t max = this->size();
+        u_end = u_end > max ? max : u_end;
         ArrayValue *result = new ArrayValue { env };
-        for (int64_t i = begin; i < end; i++) {
+        for (size_t i = begin; i < u_end; i++) {
             result->push((*this)[i]);
         }
         return result;
@@ -121,12 +126,13 @@ Value *ArrayValue::refeq(Env *env, Value *index_obj, Value *size, Value *val) {
     index_obj->assert_type(env, Value::Type::Integer, "Integer"); // TODO: accept a range
     int64_t index = index_obj->as_integer()->to_int64_t();
     assert(index >= 0); // TODO: accept negative index
+    size_t u_index = static_cast<size_t>(index);
     if (!val) {
         val = size;
-        if (index < this->size()) {
-            (*this)[index] = val;
+        if (u_index < this->size()) {
+            (*this)[u_index] = val;
         } else {
-            expand_with_nil(env, index);
+            expand_with_nil(env, u_index);
             push(val);
         }
         return val;
@@ -137,12 +143,12 @@ Value *ArrayValue::refeq(Env *env, Value *index_obj, Value *size, Value *val) {
     // PERF: inefficient for large arrays where changes are being made to only the right side
     ArrayValue *ary2 = new ArrayValue { env };
     // stuff before the new entry/entries
-    for (ssize_t i = 0; i < index; i++) {
+    for (size_t i = 0; i < u_index; i++) {
         if (i >= this->size()) break;
         ary2->push((*this)[i]);
     }
     // extra nils if needed
-    ary2->expand_with_nil(env, index);
+    ary2->expand_with_nil(env, u_index);
     // the new entry/entries
     if (val->is_array()) {
         for (auto &v : *val->as_array()) {
@@ -152,7 +158,7 @@ Value *ArrayValue::refeq(Env *env, Value *index_obj, Value *size, Value *val) {
         ary2->push(val);
     }
     // stuff after the new entry/entries
-    for (ssize_t i = index + length; i < this->size(); i++) {
+    for (size_t i = u_index + length; i < this->size(); i++) {
         ary2->push((*this)[i]);
     }
     overwrite(*ary2);
@@ -169,7 +175,7 @@ Value *ArrayValue::eq(Env *env, Value *other) {
     ArrayValue *other_array = other->as_array();
     if (size() != other_array->size()) return env->false_obj();
     if (size() == 0) return env->true_obj();
-    for (ssize_t i = 0; i < size(); i++) {
+    for (size_t i = 0; i < size(); i++) {
         // TODO: could easily be optimized for strings and numbers
         Value *item = (*other_array)[i];
         Value *result = (*this)[i]->send(env, "==", 1, &item, nullptr);
@@ -188,7 +194,7 @@ Value *ArrayValue::eql(Env *env, Value *other) {
     if (size() != other_array->size())
         return env->false_obj();
 
-    for (ssize_t i = 0; i < size(); ++i) {
+    for (size_t i = 0; i < size(); ++i) {
         Value *item = (*other_array)[i];
         Value *result = (*this)[i]->send(env, "eql?", 1, &item, nullptr);
         if (result->type() == Value::Type::False)
@@ -208,7 +214,9 @@ Value *ArrayValue::each(Env *env, Block *block) {
 
 Value *ArrayValue::each_with_index(Env *env, Block *block) {
     env->assert_block_given(block); // TODO: return Enumerator when no block given
-    for (ssize_t i = 0; i < size(); i++) {
+    assert(size() <= INT64_MAX);
+    int64_t u_size = static_cast<size_t>(size());
+    for (int64_t i = 0; i < u_size; i++) {
         Value *args[2] = { (*this)[i], new IntegerValue { env, i } };
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 2, args, nullptr);
     }
@@ -270,7 +278,7 @@ Value *ArrayValue::include(Env *env, Value *item) {
 
 Value *ArrayValue::shift(Env *env, Value *count) {
     auto has_count = count != nullptr;
-    ssize_t shift_count = 1;
+    size_t shift_count = 1;
     Value *result = nullptr;
     if (has_count) {
         count->assert_type(env, Value::Type::Integer, "Integer");
@@ -303,7 +311,7 @@ Value *ArrayValue::join(Env *env, Value *joiner) {
         if (!joiner) joiner = new StringValue { env, "" };
         joiner->assert_type(env, Value::Type::String, "String");
         StringValue *out = (*this)[0]->send(env, "to_s")->as_string();
-        for (auto i = 1; i < size(); i++) {
+        for (size_t i = 1; i < size(); i++) {
             Value *item = (*this)[i];
             out->append_string(env, joiner->as_string());
             out->append_string(env, item->send(env, "to_s")->as_string());
@@ -315,7 +323,7 @@ Value *ArrayValue::join(Env *env, Value *joiner) {
 Value *ArrayValue::cmp(Env *env, Value *other) {
     other->assert_type(env, Value::Type::Array, "Array");
     ArrayValue *other_array = other->as_array();
-    for (ssize_t i = 0; i < size(); i++) {
+    for (size_t i = 0; i < size(); i++) {
         if (i >= other_array->size()) {
             return new IntegerValue { env, 1 };
         }
@@ -353,8 +361,8 @@ Value *ArrayValue::pop(Env *env) {
     return val;
 }
 
-void ArrayValue::expand_with_nil(Env *env, ssize_t total) {
-    for (ssize_t i = size(); i < total; i++) {
+void ArrayValue::expand_with_nil(Env *env, size_t total) {
+    for (size_t i = size(); i < total; i++) {
         push(*env->nil_obj());
     }
 }

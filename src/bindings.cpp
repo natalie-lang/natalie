@@ -156,7 +156,8 @@ Value *ArrayValue_size_binding(Env *env, Value *self_value, ssize_t argc, Value 
     env->assert_argc(argc, 0);
     ArrayValue *self = self_value->as_array();
     auto return_value = self->size();
-    return new IntegerValue { env, return_value };
+    assert(return_value <= INT64_MAX);
+return new IntegerValue { env, static_cast<int64_t>(return_value) };
 }
 
 Value *ArrayValue_map_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
@@ -191,7 +192,8 @@ Value *ArrayValue_size_binding1(Env *env, Value *self_value, ssize_t argc, Value
     env->assert_argc(argc, 0);
     ArrayValue *self = self_value->as_array();
     auto return_value = self->size();
-    return new IntegerValue { env, return_value };
+    assert(return_value <= INT64_MAX);
+return new IntegerValue { env, static_cast<int64_t>(return_value) };
 }
 
 Value *ArrayValue_sort_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {

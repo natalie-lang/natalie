@@ -386,7 +386,9 @@ Value *StringValue::bytes(Env *env) {
 }
 
 Value *StringValue::size(Env *env) {
-    return new IntegerValue { env, chars(env)->size() };
+    auto c = chars(env);
+    assert(c->size() < INT64_MAX);
+    return new IntegerValue { env, static_cast<int64_t>(c->size()) };
 }
 
 Value *StringValue::encoding(Env *env) {
@@ -411,10 +413,10 @@ static char *lcase_string(const char *str) {
 static EncodingValue *find_encoding_by_name(Env *env, const char *name) {
     char *lcase_name = lcase_string(name);
     ArrayValue *list = EncodingValue::list(env);
-    for (ssize_t i = 0; i < list->size(); i++) {
+    for (size_t i = 0; i < list->size(); i++) {
         EncodingValue *encoding = (*list)[i]->as_encoding();
         ArrayValue *names = encoding->names(env);
-        for (ssize_t n = 0; n < names->size(); n++) {
+        for (size_t n = 0; n < names->size(); n++) {
             StringValue *name_obj = (*names)[n]->as_string();
             char *name = lcase_string(name_obj->c_str());
             if (strcmp(name, lcase_name) == 0) {
@@ -438,7 +440,7 @@ Value *StringValue::encode(Env *env, Value *encoding) {
         return copy;
     } else if (orig_encoding == Encoding::UTF_8 && copy->encoding() == Encoding::ASCII_8BIT) {
         ArrayValue *chars = this->chars(env);
-        for (ssize_t i = 0; i < chars->size(); i++) {
+        for (size_t i = 0; i < chars->size(); i++) {
             StringValue *char_obj = (*chars)[i]->as_string();
             if (char_obj->length() > 1) {
                 Value *ord = char_obj->ord(env);
@@ -502,7 +504,8 @@ Value *StringValue::ref(Env *env, Value *index_obj) {
         if (end < 0) end = chars->size() + end;
 
         if (begin < 0 || end < 0) return env->nil_obj();
-        if (begin >= chars->size()) return env->nil_obj();
+        size_t u_begin = static_cast<size_t>(begin);
+        if (u_begin >= chars->size()) return env->nil_obj();
 
         if (!range->exclude_end()) end++;
 

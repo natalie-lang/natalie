@@ -122,10 +122,10 @@ ArrayValue *to_ary(Env *env, Value *obj, bool raise_for_non_array) {
     }
 }
 
-static Value *splat_value(Env *env, Value *value, ssize_t index, ssize_t offset_from_end) {
+static Value *splat_value(Env *env, Value *value, size_t index, size_t offset_from_end) {
     ArrayValue *splat = new ArrayValue { env };
     if (value->is_array() && index < value->as_array()->size() - offset_from_end) {
-        for (ssize_t s = index; s < value->as_array()->size() - offset_from_end; s++) {
+        for (size_t s = index; s < value->as_array()->size() - offset_from_end; s++) {
             splat->push((*value->as_array())[s]);
         }
     }

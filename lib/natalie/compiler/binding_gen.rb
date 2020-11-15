@@ -175,6 +175,9 @@ Value *#{name}(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
         'if (return_value) { return env->true_obj(); } else { return env->false_obj(); }'
       when :ssize_t, :int
         'return new IntegerValue { env, return_value };'
+      when :size_t
+        "assert(return_value <= INT64_MAX);\n" +
+        'return new IntegerValue { env, static_cast<int64_t>(return_value) };'
       when :Value
         'return return_value;'
       when :NullableValue
@@ -232,12 +235,12 @@ gen.binding('Array', 'initialize', 'ArrayValue', 'initialize', argc: 0..2, pass_
 gen.binding('Array', 'inspect', 'ArrayValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Array', 'join', 'ArrayValue', 'join', argc: 0..1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Array', 'last', 'ArrayValue', 'last', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
-gen.binding('Array', 'length', 'ArrayValue', 'size', argc: 0, pass_env: false, pass_block: false, return_type: :ssize_t)
+gen.binding('Array', 'length', 'ArrayValue', 'size', argc: 0, pass_env: false, pass_block: false, return_type: :size_t)
 gen.binding('Array', 'map', 'ArrayValue', 'map', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Array', 'pop', 'ArrayValue', 'pop', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Array', 'select', 'ArrayValue', 'select', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Array', 'shift', 'ArrayValue', 'shift', argc: 0..1, pass_env: true, pass_block: false, return_type: :Value)
-gen.binding('Array', 'size', 'ArrayValue', 'size', argc: 0, pass_env: false, pass_block: false, return_type: :ssize_t)
+gen.binding('Array', 'size', 'ArrayValue', 'size', argc: 0, pass_env: false, pass_block: false, return_type: :size_t)
 gen.binding('Array', 'sort', 'ArrayValue', 'sort', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Array', 'to_a', 'ArrayValue', 'to_ary', argc: 0, pass_env: false, pass_block: false, return_type: :Value)
 gen.binding('Array', 'to_ary', 'ArrayValue', 'to_ary', argc: 0, pass_env: false, pass_block: false, return_type: :Value)
