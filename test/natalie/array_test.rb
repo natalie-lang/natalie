@@ -550,10 +550,11 @@ describe 'array' do
 
   describe '#shift' do
     it 'works' do
-      a = [1, 2, 3]
+      a = [1, 2, 3, 4, 5]
       a.shift.should == 1
       a.shift(2).should == [2, 3]
-      a.should == []
+      a.shift(0).should == []
+      a.should == [4, 5]
     end
   end
 

@@ -275,6 +275,9 @@ Value *ArrayValue::shift(Env *env, Value *count) {
     if (has_count) {
         count->assert_type(env, Value::Type::Integer, "Integer");
         shift_count = count->as_integer()->to_int64_t();
+        if (shift_count == 0) {
+            return new ArrayValue { env };
+        }
         result = new ArrayValue { env, m_vector.slice(0, shift_count) };
     } else {
         result = m_vector[0];
