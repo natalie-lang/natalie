@@ -18,7 +18,7 @@ struct FloatValue : Value {
         : Value { Value::Type::Float, env->Object()->const_fetch("Float")->as_class() }
         , m_float { number } { }
 
-    FloatValue(Env *env, int64_t number)
+    FloatValue(Env *env, nat_int_t number)
         : Value { Value::Type::Float, env->Object()->const_fetch("Float")->as_class() }
         , m_float { static_cast<double>(number) } { }
 
@@ -57,7 +57,7 @@ struct FloatValue : Value {
     Value *to_int_no_truncation(Env *env) {
         if (is_nan() || is_infinity()) return this;
         if (m_float == ::floor(m_float)) {
-            return new IntegerValue { env, static_cast<int64_t>(m_float) };
+            return new IntegerValue { env, static_cast<nat_int_t>(m_float) };
         }
         return this;
     }

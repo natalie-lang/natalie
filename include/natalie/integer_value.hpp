@@ -6,16 +6,17 @@
 #include "natalie/forward.hpp"
 #include "natalie/global_env.hpp"
 #include "natalie/macros.hpp"
+#include "natalie/types.hpp"
 #include "natalie/value.hpp"
 
 namespace Natalie {
 
 struct IntegerValue : Value {
-    IntegerValue(Env *env, int64_t integer)
+    IntegerValue(Env *env, nat_int_t integer)
         : Value { Value::Type::Integer, env->Integer() }
         , m_integer { integer } { }
 
-    int64_t to_int64_t() {
+    nat_int_t to_nat_int_t() {
         return m_integer;
     }
 
@@ -32,8 +33,8 @@ struct IntegerValue : Value {
     }
 
     static IntegerValue *from_size_t(Env *env, size_t number) {
-        assert(number <= INT64_MAX);
-        return new IntegerValue { env, static_cast<int64_t>(number) };
+        assert(number <= NAT_INT_MAX);
+        return new IntegerValue { env, static_cast<nat_int_t>(number) };
     }
 
     Value *to_s(Env *);
@@ -62,7 +63,7 @@ struct IntegerValue : Value {
     bool gte(Env *, Value *);
 
 private:
-    int64_t m_integer { 0 };
+    nat_int_t m_integer { 0 };
 };
 
 }

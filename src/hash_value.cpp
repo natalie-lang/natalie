@@ -3,7 +3,7 @@
 namespace Natalie {
 
 // this is used by the hashmap library and assumes that obj->env has been set
-int64_t HashValue::hash(const void *key) {
+nat_int_t HashValue::hash(const void *key) {
     return static_cast<const HashValue::Key *>(key)->hash;
 }
 
@@ -24,7 +24,7 @@ Value *HashValue::get(Env *env, Value *key) {
     Key key_container;
     key_container.key = key;
     key_container.env = *env;
-    key_container.hash = key->send(env, "hash")->as_integer()->to_int64_t();
+    key_container.hash = key->send(env, "hash")->as_integer()->to_nat_int_t();
     Val *container = static_cast<Val *>(hashmap_get(&m_hashmap, &key_container));
     Value *val = container ? container->val : nullptr;
     return val;
@@ -44,7 +44,7 @@ void HashValue::put(Env *env, Value *key, Value *val) {
     Key key_container;
     key_container.key = key;
     key_container.env = *env;
-    key_container.hash = key->send(env, "hash")->as_integer()->to_int64_t();
+    key_container.hash = key->send(env, "hash")->as_integer()->to_nat_int_t();
     Val *container = static_cast<Val *>(hashmap_get(&m_hashmap, &key_container));
     if (container) {
         container->key->val = val;
@@ -67,7 +67,7 @@ Value *HashValue::remove(Env *env, Value *key) {
     Key key_container;
     key_container.key = key;
     key_container.env = *env;
-    key_container.hash = key->send(env, "hash")->as_integer()->to_int64_t();
+    key_container.hash = key->send(env, "hash")->as_integer()->to_nat_int_t();
     Val *container = static_cast<Val *>(hashmap_remove(&m_hashmap, &key_container));
     if (container) {
         key_list_remove_node(container->key);
@@ -102,7 +102,7 @@ HashValue::Key *HashValue::key_list_append(Env *env, Value *key, Value *val) {
         new_last->prev = last;
         new_last->next = first;
         new_last->env = Env::new_detatched_env(env);
-        new_last->hash = key->send(env, "hash")->as_integer()->to_int64_t();
+        new_last->hash = key->send(env, "hash")->as_integer()->to_nat_int_t();
         new_last->removed = false;
         first->prev = new_last;
         last->next = new_last;
@@ -114,7 +114,7 @@ HashValue::Key *HashValue::key_list_append(Env *env, Value *key, Value *val) {
         node->prev = node;
         node->next = node;
         node->env = Env::new_detatched_env(env);
-        node->hash = key->send(env, "hash")->as_integer()->to_int64_t();
+        node->hash = key->send(env, "hash")->as_integer()->to_nat_int_t();
         node->removed = false;
         m_key_list = node;
         return node;

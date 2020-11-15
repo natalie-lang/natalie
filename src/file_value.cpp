@@ -12,7 +12,7 @@ Value *FileValue::initialize(Env *env, Value *filename, Value *flags_obj, Block 
     if (flags_obj) {
         switch (flags_obj->type()) {
         case Value::Type::Integer:
-            flags = flags_obj->as_integer()->to_int64_t();
+            flags = flags_obj->as_integer()->to_nat_int_t();
             break;
         case Value::Type::String: {
             const char *flags_str = flags_obj->as_string()->c_str();

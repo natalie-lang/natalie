@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <stdarg.h>
 #include <string.h>
+#include <string>
 
 #include "natalie/class_value.hpp"
 #include "natalie/encoding_value.hpp"
@@ -23,6 +24,11 @@ struct StringValue : Value {
 
     StringValue(Env *env)
         : StringValue { env, "" } { }
+
+    StringValue(Env *env, std::string str)
+        : Value { Value::Type::String, env->Object()->const_fetch("String")->as_class() } {
+        set_str(str.c_str());
+    }
 
     StringValue(Env *env, const char *str)
         : Value { Value::Type::String, env->Object()->const_fetch("String")->as_class() } {
@@ -72,6 +78,7 @@ struct StringValue : Value {
     void insert(Env *, size_t, char);
 
     void append(Env *, const char *);
+    void append(Env *, std::string);
     void append_char(Env *, char);
     void append_string(Env *, Value *);
     void append_string(Env *, StringValue *);
@@ -92,7 +99,7 @@ struct StringValue : Value {
 
     Value *index(Env *, Value *);
     Value *index(Env *, Value *, size_t start);
-    int64_t index_int(Env *, Value *, size_t start);
+    nat_int_t index_int(Env *, Value *, size_t start);
 
     void truncate(size_t length) {
         assert(length <= m_length);

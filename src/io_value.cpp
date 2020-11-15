@@ -8,7 +8,7 @@ namespace Natalie {
 
 Value *IoValue::initialize(Env *env, Value *file_number) {
     file_number->assert_type(env, Value::Type::Integer, "Integer");
-    int64_t fileno = file_number->as_integer()->to_int64_t();
+    nat_int_t fileno = file_number->as_integer()->to_nat_int_t();
     assert(fileno >= INT_MIN && fileno <= INT_MAX);
     set_fileno(fileno);
     return this;
@@ -20,7 +20,7 @@ Value *IoValue::read(Env *env, Value *count_value) {
     size_t bytes_read;
     if (count_value) {
         count_value->assert_type(env, Value::Type::Integer, "Integer");
-        int count = count_value->as_integer()->to_int64_t();
+        int count = count_value->as_integer()->to_nat_int_t();
         char *buf = static_cast<char *>(GC_MALLOC((count + 1) * sizeof(char)));
         bytes_read = ::read(m_fileno, buf, count);
         if (bytes_read == 0) {
@@ -107,12 +107,12 @@ Value *IoValue::close(Env *env) {
 
 Value *IoValue::seek(Env *env, Value *amount_value, Value *whence_value) {
     amount_value->assert_type(env, Value::Type::Integer, "Integer");
-    int amount = amount_value->as_integer()->to_int64_t();
+    int amount = amount_value->as_integer()->to_nat_int_t();
     int whence = 0;
     if (whence_value) {
         switch (whence_value->type()) {
         case Value::Type::Integer:
-            whence = whence_value->as_integer()->to_int64_t();
+            whence = whence_value->as_integer()->to_nat_int_t();
             break;
         case Value::Type::Symbol: {
             SymbolValue *whence_sym = whence_value->as_symbol();

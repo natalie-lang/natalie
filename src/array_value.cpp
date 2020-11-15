@@ -15,7 +15,7 @@ Value *ArrayValue::initialize(Env *env, Value *size, Value *value) {
     }
     size->assert_type(env, Value::Type::Integer, "Integer");
     if (!value) value = env->nil_obj();
-    for (int64_t i = 0; i < size->as_integer()->to_int64_t(); i++) {
+    for (nat_int_t i = 0; i < size->as_integer()->to_nat_int_t(); i++) {
         push(value);
     }
     return this;
@@ -68,7 +68,7 @@ Value *ArrayValue::sub(Env *env, Value *other) {
 
 Value *ArrayValue::ref(Env *env, Value *index_obj, Value *size) {
     if (index_obj->type() == Value::Type::Integer) {
-        int64_t index = index_obj->as_integer()->to_int64_t();
+        nat_int_t index = index_obj->as_integer()->to_nat_int_t();
         if (index < 0) {
             index = this->size() + index;
         }
@@ -82,7 +82,7 @@ Value *ArrayValue::ref(Env *env, Value *index_obj, Value *size) {
             return (*this)[index];
         }
         size->assert_type(env, Value::Type::Integer, "Integer");
-        size_t end = index + size->as_integer()->to_int64_t();
+        size_t end = index + size->as_integer()->to_nat_int_t();
         size_t max = this->size();
         end = end > max ? max : end;
         ArrayValue *result = new ArrayValue { env };
@@ -96,8 +96,8 @@ Value *ArrayValue::ref(Env *env, Value *index_obj, Value *size) {
         Value *end_obj = range->end();
         begin_obj->assert_type(env, Value::Type::Integer, "Integer");
         end_obj->assert_type(env, Value::Type::Integer, "Integer");
-        int64_t begin = begin_obj->as_integer()->to_int64_t();
-        int64_t end = end_obj->as_integer()->to_int64_t();
+        nat_int_t begin = begin_obj->as_integer()->to_nat_int_t();
+        nat_int_t end = end_obj->as_integer()->to_nat_int_t();
         if (begin < 0) {
             begin = this->size() + begin;
         }
@@ -124,7 +124,7 @@ Value *ArrayValue::ref(Env *env, Value *index_obj, Value *size) {
 Value *ArrayValue::refeq(Env *env, Value *index_obj, Value *size, Value *val) {
     this->assert_not_frozen(env);
     index_obj->assert_type(env, Value::Type::Integer, "Integer"); // TODO: accept a range
-    int64_t index = index_obj->as_integer()->to_int64_t();
+    nat_int_t index = index_obj->as_integer()->to_nat_int_t();
     assert(index >= 0); // TODO: accept negative index
     size_t u_index = static_cast<size_t>(index);
     if (!val) {
@@ -138,7 +138,7 @@ Value *ArrayValue::refeq(Env *env, Value *index_obj, Value *size, Value *val) {
         return val;
     }
     size->assert_type(env, Value::Type::Integer, "Integer");
-    int64_t length = size->as_integer()->to_int64_t();
+    nat_int_t length = size->as_integer()->to_nat_int_t();
     assert(length >= 0);
     // PERF: inefficient for large arrays where changes are being made to only the right side
     ArrayValue *ary2 = new ArrayValue { env };
@@ -214,9 +214,9 @@ Value *ArrayValue::each(Env *env, Block *block) {
 
 Value *ArrayValue::each_with_index(Env *env, Block *block) {
     env->assert_block_given(block); // TODO: return Enumerator when no block given
-    assert(size() <= INT64_MAX);
-    int64_t u_size = static_cast<size_t>(size());
-    for (int64_t i = 0; i < u_size; i++) {
+    assert(size() <= NAT_INT_MAX);
+    nat_int_t u_size = static_cast<size_t>(size());
+    for (nat_int_t i = 0; i < u_size; i++) {
         Value *args[2] = { (*this)[i], new IntegerValue { env, i } };
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 2, args, nullptr);
     }
@@ -282,7 +282,7 @@ Value *ArrayValue::shift(Env *env, Value *count) {
     Value *result = nullptr;
     if (has_count) {
         count->assert_type(env, Value::Type::Integer, "Integer");
-        shift_count = count->as_integer()->to_int64_t();
+        shift_count = count->as_integer()->to_nat_int_t();
         if (shift_count == 0) {
             return new ArrayValue { env };
         }
@@ -330,7 +330,7 @@ Value *ArrayValue::cmp(Env *env, Value *other) {
         Value *item = (*other_array)[i];
         Value *cmp_obj = (*this)[i]->send(env, "<=>", 1, &item, nullptr);
         assert(cmp_obj->type() == Value::Type::Integer);
-        int64_t cmp = cmp_obj->as_integer()->to_int64_t();
+        nat_int_t cmp = cmp_obj->as_integer()->to_nat_int_t();
         if (cmp < 0) return new IntegerValue { env, -1 };
         if (cmp > 0) return new IntegerValue { env, 1 };
     }
@@ -371,7 +371,7 @@ void ArrayValue::sort_in_place(Env *env) {
     this->assert_not_frozen(env);
     auto cmp = [](void *env, Value *a, Value *b) {
         Value *compare = a->send(static_cast<Env *>(env), "<=>", 1, &b, nullptr);
-        return compare->as_integer()->to_int64_t() < 0;
+        return compare->as_integer()->to_nat_int_t() < 0;
     };
     m_vector.sort(Vector<Value *>::SortComparator { env, cmp });
 }

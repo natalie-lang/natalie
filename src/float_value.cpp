@@ -21,7 +21,7 @@ Value *FloatValue::is_infinite(Env *env) {
 
 bool FloatValue::eq(Env *env, Value *other) {
     if (other->is_integer()) {
-        return m_float == other->as_integer()->to_int64_t();
+        return m_float == other->as_integer()->to_nat_int_t();
     }
     if (other->is_float()) {
         auto *f = other->as_float();
@@ -42,10 +42,10 @@ bool FloatValue::eql(Value *other) {
 
 Value *FloatValue::ceil(Env *env, Value *precision_value) {
     double value = this->to_double();
-    int64_t precision = 0;
+    nat_int_t precision = 0;
     if (precision_value) {
         precision_value->assert_type(env, Value::Type::Integer, "Integer");
-        precision = precision_value->as_integer()->to_int64_t();
+        precision = precision_value->as_integer()->to_nat_int_t();
     }
     FloatValue *result;
     if (precision == 0) {
@@ -63,10 +63,10 @@ Value *FloatValue::ceil(Env *env, Value *precision_value) {
 
 Value *FloatValue::floor(Env *env, Value *precision_value) {
     double value = this->to_double();
-    int64_t precision = 0;
+    nat_int_t precision = 0;
     if (precision_value) {
         precision_value->assert_type(env, Value::Type::Integer, "Integer");
-        precision = precision_value->as_integer()->to_int64_t();
+        precision = precision_value->as_integer()->to_nat_int_t();
     }
     FloatValue *result;
     if (precision == 0) {
@@ -84,13 +84,13 @@ Value *FloatValue::floor(Env *env, Value *precision_value) {
 
 Value *FloatValue::round(Env *env, Value *precision_value) {
     double value = this->to_double();
-    int64_t precision = 0;
+    nat_int_t precision = 0;
     if (precision_value) {
         if (precision_value->is_float()) {
             precision_value = precision_value->as_float()->to_i(env);
         }
         precision_value->assert_type(env, Value::Type::Integer, "Integer");
-        precision = precision_value->as_integer()->to_int64_t();
+        precision = precision_value->as_integer()->to_nat_int_t();
     }
     if (precision <= 0 && (is_nan() || is_infinity())) {
         env->raise("FloatDomainError", this->inspect(env));
@@ -150,7 +150,7 @@ Value *FloatValue::to_s(Env *env) {
 
     } else {
         string = new StringValue { env, out };
-        int64_t s_length = string->length();
+        nat_int_t s_length = string->length();
         if (decpt == s_length) {
             string->append(env, ".0");
         } else if (decpt > s_length) {
@@ -206,7 +206,7 @@ Value *FloatValue::coerce(Env *env, Value *arg) {
         ary->push(this);
         break;
     case Value::Type::Integer:
-        ary->push(new FloatValue { env, arg->as_integer()->to_int64_t() });
+        ary->push(new FloatValue { env, arg->as_integer()->to_nat_int_t() });
         ary->push(this);
         break;
     case Value::Type::String:
@@ -220,7 +220,7 @@ Value *FloatValue::coerce(Env *env, Value *arg) {
 }
 
 Value *FloatValue::to_i(Env *env) {
-    return new IntegerValue { env, static_cast<int64_t>(::floor(to_double())) };
+    return new IntegerValue { env, static_cast<nat_int_t>(::floor(to_double())) };
 }
 
 Value *FloatValue::add(Env *env, Value *rhs) {

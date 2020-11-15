@@ -95,7 +95,7 @@ Value *KernelModule::get_usage(Env *env) {
 
 Value *KernelModule::hash(Env *env) {
     StringValue *inspected = send(env, "inspect")->as_string();
-    int64_t hash_value = hashmap_hash_string(inspected->c_str());
+    nat_int_t hash_value = hashmap_hash_string(inspected->c_str());
     return new IntegerValue { env, hash_value };
 }
 
@@ -108,9 +108,7 @@ Value *KernelModule::inspect(Env *env) {
         StringValue *inspected = klass()->send(env, "inspect")->as_string();
         str->append_string(env, inspected);
         str->append_char(env, ':');
-        char buf[NAT_OBJECT_POINTER_BUF_LENGTH];
-        pointer_id(buf);
-        str->append(env, buf);
+        str->append(env, pointer_id());
         str->append_char(env, '>');
         return str;
     }
@@ -235,7 +233,7 @@ Value *KernelModule::sleep(Env *env, Value *length) {
         NAT_UNREACHABLE();
     }
     length->assert_type(env, Value::Type::Integer, "Integer"); // TODO: float supported also
-    ::sleep(length->as_integer()->to_int64_t());
+    ::sleep(length->as_integer()->to_nat_int_t());
     return length;
 }
 

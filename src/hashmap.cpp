@@ -283,7 +283,7 @@ static void hashmap_free_keys(struct hashmap *map) {
  *
  * Returns 0 on success and -errno on failure.
  */
-int hashmap_init(struct hashmap *map, int64_t (*hash_func)(const void *),
+int hashmap_init(struct hashmap *map, nat_int_t (*hash_func)(const void *),
     int (*key_compare_func)(const void *, const void *),
     size_t initial_size) {
     HASHMAP_ASSERT(map != NULL);
@@ -594,7 +594,7 @@ int hashmap_foreach(const struct hashmap *map,
  * This is an implementation of the well-documented Jenkins one-at-a-time
  * hash function.
  */
-int64_t hashmap_hash_string(const void *key) {
+nat_int_t hashmap_hash_string(const void *key) {
     const char *key_str = (const char *)key;
     size_t hash = 0;
 

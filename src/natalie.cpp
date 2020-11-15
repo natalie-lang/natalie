@@ -26,28 +26,6 @@ Value *splat(Env *env, Value *obj) {
     }
 }
 
-void int_to_string(int64_t num, char *buf) {
-    if (num == 0) {
-        buf[0] = '0';
-        buf[1] = 0;
-    } else {
-        snprintf(buf, NAT_INT_64_MAX_BUF_LEN, "%" PRId64, num);
-    }
-}
-
-void int_to_hex_string(int64_t num, char *buf, bool capitalize) {
-    if (num == 0) {
-        buf[0] = '0';
-        buf[1] = 0;
-    } else {
-        if (capitalize) {
-            snprintf(buf, NAT_INT_64_MAX_BUF_LEN, "0X%" PRIX64, num);
-        } else {
-            snprintf(buf, NAT_INT_64_MAX_BUF_LEN, "0x%" PRIx64, num);
-        }
-    }
-}
-
 Value *call_begin(Env *env, Value *self, MethodFnPtr begin_fn, size_t argc, Value **args, Block *block) {
     Env e = Env { env, env };
     return begin_fn(&e, self, argc, args, block);
@@ -86,7 +64,7 @@ void handle_top_level_exception(Env *env, ExceptionValue *exception, bool run_ex
         Value *status_obj = exception->ivar_get(env, "@status");
         if (run_exit_handlers) run_at_exit_handlers(env);
         if (status_obj->type() == Value::Type::Integer) {
-            int64_t val = status_obj->as_integer()->to_int64_t();
+            nat_int_t val = status_obj->as_integer()->to_nat_int_t();
             if (val >= 0 && val <= 255) {
                 exit(val);
             } else {
@@ -147,8 +125,8 @@ Value *arg_value_by_path(Env *env, Value *value, Value *default_value, bool spla
         } else {
             if (return_value->is_array()) {
 
-                assert(return_value->as_array()->size() <= NAT_MAX_INT);
-                int64_t ary_len = return_value->as_array()->size();
+                assert(return_value->as_array()->size() <= NAT_INT_MAX);
+                nat_int_t ary_len = return_value->as_array()->size();
 
                 int first_required = default_count;
                 int remain = ary_len - required_count;
@@ -218,8 +196,8 @@ Value *array_value_by_path(Env *env, Value *value, Value *default_value, bool sp
         } else {
             if (return_value->is_array()) {
 
-                assert(return_value->as_array()->size() <= NAT_MAX_INT);
-                int64_t ary_len = return_value->as_array()->size();
+                assert(return_value->as_array()->size() <= NAT_INT_MAX);
+                nat_int_t ary_len = return_value->as_array()->size();
 
                 if (index < 0) {
                     // negative offset index should go from the right
@@ -320,7 +298,7 @@ void arg_spread(Env *env, size_t argc, Value **args, const char *arrangement, ..
             if (arg_index >= argc) env->raise("ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, arg_index + 1);
             obj = args[arg_index++];
             obj->assert_type(env, Value::Type::Integer, "Integer");
-            *int_ptr = obj->as_integer()->to_int64_t();
+            *int_ptr = obj->as_integer()->to_nat_int_t();
             break;
         case 's':
             str_ptr = va_arg(va_args, const char **);

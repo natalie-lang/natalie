@@ -41,6 +41,7 @@
 #include "natalie/string_value.hpp"
 #include "natalie/symbol_value.hpp"
 #include "natalie/true_value.hpp"
+#include "natalie/types.hpp"
 #include "natalie/value.hpp"
 #include "natalie/void_p_value.hpp"
 
@@ -57,9 +58,6 @@ bool is_global_name(const char *name);
 bool is_ivar_name(const char *name);
 
 const char *find_current_method_name(Env *env);
-
-void int_to_string(int64_t num, char *buf);
-void int_to_hex_string(int64_t num, char *buf, bool capitalize);
 
 Value *call_begin(Env *, Value *, MethodFnPtr, size_t, Value **, Block *);
 

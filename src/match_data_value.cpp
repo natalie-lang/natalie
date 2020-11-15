@@ -24,7 +24,7 @@ Value *MatchDataValue::ref(Env *env, Value *index_value) {
         NAT_NOT_YET_IMPLEMENTED("group name support in Regexp MatchData#[]");
     }
     index_value->assert_type(env, Value::Type::Integer, "Integer");
-    int64_t index = index_value->as_integer()->to_int64_t();
+    nat_int_t index = index_value->as_integer()->to_nat_int_t();
     if (index < 0) {
         index = size() + index;
     }

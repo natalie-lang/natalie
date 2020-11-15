@@ -56,9 +56,9 @@ Value *RangeValue::eq(Env *env, Value *other_value) {
 Value *RangeValue::eqeqeq(Env *env, Value *arg) {
     if (m_begin->type() == Value::Type::Integer && arg->is_integer()) {
         // optimized path for integer ranges
-        int64_t begin = m_begin->as_integer()->to_int64_t();
-        int64_t end = m_end->as_integer()->to_int64_t();
-        int64_t val = arg->as_integer()->to_int64_t();
+        nat_int_t begin = m_begin->as_integer()->to_nat_int_t();
+        nat_int_t end = m_end->as_integer()->to_nat_int_t();
+        nat_int_t val = arg->as_integer()->to_nat_int_t();
         if (begin <= val && ((m_exclude_end && val < end) || (!m_exclude_end && val <= end))) {
             return env->true_obj();
         }

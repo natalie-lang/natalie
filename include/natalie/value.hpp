@@ -174,10 +174,12 @@ struct Value : public gc {
 
     virtual void alias(Env *, const char *, const char *);
 
-    int64_t object_id() { return (int64_t)this; }
+    nat_int_t object_id() { return reinterpret_cast<nat_int_t>(this); }
 
-    void pointer_id(char *buf) {
-        snprintf(buf, NAT_OBJECT_POINTER_BUF_LENGTH, "%p", this);
+    const char *pointer_id() {
+        char buf[100]; // ought to be enough for anybody ;-)
+        snprintf(buf, 100, "%p", this);
+        return GC_STRDUP(buf);
     }
 
     Value *send(Env *, const char *, size_t = 0, Value ** = nullptr, Block * = nullptr);

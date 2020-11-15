@@ -304,9 +304,7 @@ Value *ModuleValue::inspect(Env *env) {
             return new StringValue { env, m_class_name };
         }
     } else if (is_class()) {
-        char buf[NAT_OBJECT_POINTER_BUF_LENGTH];
-        pointer_id(buf);
-        return StringValue::sprintf(env, "#<Class:%s>", buf);
+        return StringValue::sprintf(env, "#<Class:%s>", pointer_id());
     } else if (is_module() && m_class_name) {
         return new StringValue { env, m_class_name };
     } else {
@@ -315,9 +313,7 @@ Value *ModuleValue::inspect(Env *env) {
         StringValue *inspected = klass()->send(env, "inspect")->as_string();
         str->append_string(env, inspected);
         str->append_char(env, ':');
-        char buf[NAT_OBJECT_POINTER_BUF_LENGTH];
-        pointer_id(buf);
-        str->append(env, buf);
+        str->append(env, pointer_id());
         str->append_char(env, '>');
         return str;
     }

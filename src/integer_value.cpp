@@ -1,13 +1,13 @@
 #include "natalie.hpp"
 
 #include <math.h>
+#include <string>
 
 namespace Natalie {
 
 Value *IntegerValue::to_s(Env *env) {
-    char buf[NAT_INT_64_MAX_BUF_LEN];
-    int_to_string(to_int64_t(), buf);
-    return new StringValue { env, buf };
+    auto str = std::to_string(m_integer);
+    return new StringValue { env, str };
 }
 
 Value *IntegerValue::to_i() {
@@ -16,42 +16,42 @@ Value *IntegerValue::to_i() {
 
 Value *IntegerValue::add(Env *env, Value *arg) {
     if (arg->is_float()) {
-        double result = to_int64_t() + arg->as_float()->to_double();
+        double result = to_nat_int_t() + arg->as_float()->to_double();
         return new FloatValue { env, result };
     }
     arg->assert_type(env, Value::Type::Integer, "Integer");
-    int64_t result = to_int64_t() + arg->as_integer()->to_int64_t();
+    nat_int_t result = to_nat_int_t() + arg->as_integer()->to_nat_int_t();
     return new IntegerValue { env, result };
 }
 
 Value *IntegerValue::sub(Env *env, Value *arg) {
     if (arg->is_float()) {
-        double result = to_int64_t() - arg->as_float()->to_double();
+        double result = to_nat_int_t() - arg->as_float()->to_double();
         return new FloatValue { env, result };
     }
     arg->assert_type(env, Value::Type::Integer, "Integer");
-    int64_t result = to_int64_t() - arg->as_integer()->to_int64_t();
+    nat_int_t result = to_nat_int_t() - arg->as_integer()->to_nat_int_t();
     return new IntegerValue { env, result };
 }
 
 Value *IntegerValue::mul(Env *env, Value *arg) {
     if (arg->is_float()) {
-        double result = to_int64_t() * arg->as_float()->to_double();
+        double result = to_nat_int_t() * arg->as_float()->to_double();
         return new FloatValue { env, result };
     }
     arg->assert_type(env, Value::Type::Integer, "Integer");
-    int64_t result = to_int64_t() * arg->as_integer()->to_int64_t();
+    nat_int_t result = to_nat_int_t() * arg->as_integer()->to_nat_int_t();
     return new IntegerValue { env, result };
 }
 
 Value *IntegerValue::div(Env *env, Value *arg) {
     if (arg->is_integer()) {
-        int64_t dividend = to_int64_t();
-        int64_t divisor = arg->as_integer()->to_int64_t();
+        nat_int_t dividend = to_nat_int_t();
+        nat_int_t divisor = arg->as_integer()->to_nat_int_t();
         if (divisor == 0) {
             env->raise("ZeroDivisionError", "divided by 0");
         }
-        int64_t result = dividend / divisor;
+        nat_int_t result = dividend / divisor;
         return new IntegerValue { env, result };
 
     } else if (arg->respond_to(env, "coerce")) {
@@ -69,20 +69,20 @@ Value *IntegerValue::div(Env *env, Value *arg) {
 
 Value *IntegerValue::mod(Env *env, Value *arg) {
     arg->assert_type(env, Value::Type::Integer, "Integer");
-    int64_t result = to_int64_t() % arg->as_integer()->to_int64_t();
+    nat_int_t result = to_nat_int_t() % arg->as_integer()->to_nat_int_t();
     return new IntegerValue { env, result };
 }
 
 Value *IntegerValue::pow(Env *env, Value *arg) {
     arg->assert_type(env, Value::Type::Integer, "Integer");
-    int64_t result = ::pow(to_int64_t(), arg->as_integer()->to_int64_t());
+    nat_int_t result = ::pow(to_nat_int_t(), arg->as_integer()->to_nat_int_t());
     return new IntegerValue { env, result };
 }
 
 Value *IntegerValue::cmp(Env *env, Value *arg) {
     if (arg->type() != Value::Type::Integer) return env->nil_obj();
-    int64_t i1 = to_int64_t();
-    int64_t i2 = arg->as_integer()->to_int64_t();
+    nat_int_t i1 = to_nat_int_t();
+    nat_int_t i2 = arg->as_integer()->to_nat_int_t();
     if (i1 < i2) {
         return new IntegerValue { env, -1 };
     } else if (i1 == i2) {
@@ -94,51 +94,51 @@ Value *IntegerValue::cmp(Env *env, Value *arg) {
 
 bool IntegerValue::eq(Env *env, Value *other) {
     if (other->is_integer()) {
-        return to_int64_t() == other->as_integer()->to_int64_t();
+        return to_nat_int_t() == other->as_integer()->to_nat_int_t();
     } else if (other->is_float()) {
-        return to_int64_t() == other->as_float()->to_double();
+        return to_nat_int_t() == other->as_float()->to_double();
     }
     return false;
 }
 
 bool IntegerValue::lt(Env *env, Value *other) {
     if (other->is_integer()) {
-        return to_int64_t() < other->as_integer()->to_int64_t();
+        return to_nat_int_t() < other->as_integer()->to_nat_int_t();
     } else if (other->is_float()) {
-        return to_int64_t() < other->as_float()->to_double();
+        return to_nat_int_t() < other->as_float()->to_double();
     }
     env->raise("ArgumentError", "comparison of Integer with %s failed", other->inspect(env));
 }
 
 bool IntegerValue::lte(Env *env, Value *other) {
     if (other->is_integer()) {
-        return to_int64_t() <= other->as_integer()->to_int64_t();
+        return to_nat_int_t() <= other->as_integer()->to_nat_int_t();
     } else if (other->is_float()) {
-        return to_int64_t() <= other->as_float()->to_double();
+        return to_nat_int_t() <= other->as_float()->to_double();
     }
     env->raise("ArgumentError", "comparison of Integer with %s failed", other->inspect(env));
 }
 
 bool IntegerValue::gt(Env *env, Value *other) {
     if (other->is_integer()) {
-        return to_int64_t() > other->as_integer()->to_int64_t();
+        return to_nat_int_t() > other->as_integer()->to_nat_int_t();
     } else if (other->is_float()) {
-        return to_int64_t() > other->as_float()->to_double();
+        return to_nat_int_t() > other->as_float()->to_double();
     }
     env->raise("ArgumentError", "comparison of Integer with %s failed", other->inspect(env));
 }
 
 bool IntegerValue::gte(Env *env, Value *other) {
     if (other->is_integer()) {
-        return to_int64_t() >= other->as_integer()->to_int64_t();
+        return to_nat_int_t() >= other->as_integer()->to_nat_int_t();
     } else if (other->is_float()) {
-        return to_int64_t() >= other->as_float()->to_double();
+        return to_nat_int_t() >= other->as_float()->to_double();
     }
     env->raise("ArgumentError", "comparison of Integer with %s failed", other->inspect(env));
 }
 
 Value *IntegerValue::eqeqeq(Env *env, Value *arg) {
-    if (arg->type() == Value::Type::Integer && to_int64_t() == arg->as_integer()->to_int64_t()) {
+    if (arg->type() == Value::Type::Integer && to_nat_int_t() == arg->as_integer()->to_nat_int_t()) {
         return env->true_obj();
     } else {
         return env->false_obj();
@@ -146,7 +146,7 @@ Value *IntegerValue::eqeqeq(Env *env, Value *arg) {
 }
 
 Value *IntegerValue::times(Env *env, Block *block) {
-    int64_t val = to_int64_t();
+    nat_int_t val = to_nat_int_t();
     assert(val >= 0);
     env->assert_block_given(block); // TODO: return Enumerator when no block given
     Value *num;
@@ -159,16 +159,16 @@ Value *IntegerValue::times(Env *env, Block *block) {
 
 Value *IntegerValue::bitwise_and(Env *env, Value *arg) {
     arg->assert_type(env, Value::Type::Integer, "Integer");
-    return new IntegerValue { env, to_int64_t() & arg->as_integer()->to_int64_t() };
+    return new IntegerValue { env, to_nat_int_t() & arg->as_integer()->to_nat_int_t() };
 }
 
 Value *IntegerValue::bitwise_or(Env *env, Value *arg) {
     arg->assert_type(env, Value::Type::Integer, "Integer");
-    return new IntegerValue { env, to_int64_t() | arg->as_integer()->to_int64_t() };
+    return new IntegerValue { env, to_nat_int_t() | arg->as_integer()->to_nat_int_t() };
 }
 
 Value *IntegerValue::succ(Env *env) {
-    return new IntegerValue { env, to_int64_t() + 1 };
+    return new IntegerValue { env, to_nat_int_t() + 1 };
 }
 
 Value *IntegerValue::coerce(Env *env, Value *arg) {
@@ -176,7 +176,7 @@ Value *IntegerValue::coerce(Env *env, Value *arg) {
     switch (arg->type()) {
     case Value::Type::Float:
         ary->push(arg);
-        ary->push(new FloatValue { env, to_int64_t() });
+        ary->push(new FloatValue { env, to_nat_int_t() });
         break;
     case Value::Type::Integer:
         ary->push(arg);
@@ -193,11 +193,11 @@ Value *IntegerValue::coerce(Env *env, Value *arg) {
 }
 
 bool IntegerValue::eql(Env *env, Value *other) {
-    return other->is_integer() && other->as_integer()->to_int64_t() == to_int64_t();
+    return other->is_integer() && other->as_integer()->to_nat_int_t() == to_nat_int_t();
 }
 
 Value *IntegerValue::abs(Env *env) {
-    auto number = to_int64_t();
+    auto number = to_nat_int_t();
     if (number < 0) {
         return new IntegerValue { env, -1 * number };
     } else {
@@ -206,7 +206,7 @@ Value *IntegerValue::abs(Env *env) {
 }
 
 Value *IntegerValue::chr(Env *env) {
-    char c = static_cast<char>(to_int64_t());
+    char c = static_cast<char>(to_nat_int_t());
     char str[] = " ";
     str[0] = c;
     return new StringValue { env, str };

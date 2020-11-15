@@ -1,5 +1,3 @@
-#define NAT_GET_MACRO(_1, _2, NAME, ...) NAME
-
 #define NAT_UNREACHABLE()                        \
     {                                            \
         fprintf(stderr, "panic: unreachable\n"); \
@@ -11,14 +9,6 @@
         fprintf(stderr, "NOT YET IMPLEMENTED: %s", description); \
         abort();                                                 \
     }
-
-#define NAT_MIN_INT INT64_MIN
-#define NAT_MAX_INT INT64_MAX
-
-#define NAT_INT_64_MAX_BUF_LEN 21 // 1 for sign, 19 for max digits, and 1 for null terminator
-
-// "0x" + up to 16 hex chars + nullptr terminator
-#define NAT_OBJECT_POINTER_BUF_LENGTH 2 + 16 + 1
 
 #define NAT_FLAG_MAIN_OBJECT 1
 #define NAT_FLAG_FROZEN 2

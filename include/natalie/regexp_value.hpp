@@ -34,7 +34,7 @@ struct RegexpValue : Value {
         int options = 0;
         if (flags) {
             if (flags->is_integer())
-                options = flags->as_integer()->to_int64_t();
+                options = flags->as_integer()->to_nat_int_t();
             else if (flags->is_truthy())
                 options = 1;
         }
