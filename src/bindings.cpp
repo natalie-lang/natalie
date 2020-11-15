@@ -6,153 +6,153 @@
 
 namespace Natalie {
 
-Value *ArrayValue_square_new_static_binding(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
+Value *ArrayValue_square_new_static_binding(Env *env, Value *, size_t argc, Value **args, Block *block) {
     
     auto return_value = ArrayValue::square_new(env, argc, args);
     return return_value;
 }
 
-Value *ArrayValue_add_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ArrayValue_add_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     ArrayValue *self = self_value->as_array();
     auto return_value = self->add(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *ArrayValue_sub_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ArrayValue_sub_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     ArrayValue *self = self_value->as_array();
     auto return_value = self->sub(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *ArrayValue_ltlt_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ArrayValue_ltlt_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     ArrayValue *self = self_value->as_array();
     auto return_value = self->ltlt(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *ArrayValue_cmp_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ArrayValue_cmp_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     ArrayValue *self = self_value->as_array();
     auto return_value = self->cmp(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *ArrayValue_eql_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ArrayValue_eql_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     ArrayValue *self = self_value->as_array();
     auto return_value = self->eql(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *ArrayValue_eq_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ArrayValue_eq_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     ArrayValue *self = self_value->as_array();
     auto return_value = self->eq(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *ArrayValue_eq_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ArrayValue_eq_binding1(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     ArrayValue *self = self_value->as_array();
     auto return_value = self->eq(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *ArrayValue_ref_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ArrayValue_ref_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1, 2);
     ArrayValue *self = self_value->as_array();
     auto return_value = self->ref(env, argc > 0 ? args[0] : nullptr, argc > 1 ? args[1] : nullptr);
     return return_value;
 }
 
-Value *ArrayValue_refeq_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ArrayValue_refeq_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 2, 3);
     ArrayValue *self = self_value->as_array();
     auto return_value = self->refeq(env, argc > 0 ? args[0] : nullptr, argc > 1 ? args[1] : nullptr, argc > 2 ? args[2] : nullptr);
     return return_value;
 }
 
-Value *ArrayValue_any_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ArrayValue_any_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     
     ArrayValue *self = self_value->as_array();
     auto return_value = self->any(env, argc, args, block);
     return return_value;
 }
 
-Value *ArrayValue_each_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ArrayValue_each_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     ArrayValue *self = self_value->as_array();
     auto return_value = self->each(env, block);
     return return_value;
 }
 
-Value *ArrayValue_each_with_index_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ArrayValue_each_with_index_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     ArrayValue *self = self_value->as_array();
     auto return_value = self->each_with_index(env, block);
     return return_value;
 }
 
-Value *ArrayValue_is_empty_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ArrayValue_is_empty_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     ArrayValue *self = self_value->as_array();
     auto return_value = self->is_empty();
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *ArrayValue_select_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ArrayValue_select_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     ArrayValue *self = self_value->as_array();
     auto return_value = self->select(env, block);
     return return_value;
 }
 
-Value *ArrayValue_first_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ArrayValue_first_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     ArrayValue *self = self_value->as_array();
     auto return_value = self->first(env);
     return return_value;
 }
 
-Value *ArrayValue_include_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ArrayValue_include_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     ArrayValue *self = self_value->as_array();
     auto return_value = self->include(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *ArrayValue_initialize_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ArrayValue_initialize_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0, 2);
     ArrayValue *self = self_value->as_array();
     auto return_value = self->initialize(env, argc > 0 ? args[0] : nullptr, argc > 1 ? args[1] : nullptr);
     return return_value;
 }
 
-Value *ArrayValue_inspect_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ArrayValue_inspect_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     ArrayValue *self = self_value->as_array();
     auto return_value = self->inspect(env);
     return return_value;
 }
 
-Value *ArrayValue_join_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ArrayValue_join_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0, 1);
     ArrayValue *self = self_value->as_array();
     auto return_value = self->join(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *ArrayValue_last_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ArrayValue_last_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     ArrayValue *self = self_value->as_array();
     auto return_value = self->last(env);
     return return_value;
 }
 
-Value *ArrayValue_size_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ArrayValue_size_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     ArrayValue *self = self_value->as_array();
     auto return_value = self->size();
@@ -160,35 +160,35 @@ Value *ArrayValue_size_binding(Env *env, Value *self_value, ssize_t argc, Value 
 return new IntegerValue { env, static_cast<int64_t>(return_value) };
 }
 
-Value *ArrayValue_map_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ArrayValue_map_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     ArrayValue *self = self_value->as_array();
     auto return_value = self->map(env, block);
     return return_value;
 }
 
-Value *ArrayValue_pop_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ArrayValue_pop_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     ArrayValue *self = self_value->as_array();
     auto return_value = self->pop(env);
     return return_value;
 }
 
-Value *ArrayValue_select_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ArrayValue_select_binding1(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     ArrayValue *self = self_value->as_array();
     auto return_value = self->select(env, block);
     return return_value;
 }
 
-Value *ArrayValue_shift_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ArrayValue_shift_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0, 1);
     ArrayValue *self = self_value->as_array();
     auto return_value = self->shift(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *ArrayValue_size_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ArrayValue_size_binding1(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     ArrayValue *self = self_value->as_array();
     auto return_value = self->size();
@@ -196,1792 +196,1795 @@ Value *ArrayValue_size_binding1(Env *env, Value *self_value, ssize_t argc, Value
 return new IntegerValue { env, static_cast<int64_t>(return_value) };
 }
 
-Value *ArrayValue_sort_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ArrayValue_sort_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     ArrayValue *self = self_value->as_array();
     auto return_value = self->sort(env);
     return return_value;
 }
 
-Value *ArrayValue_to_ary_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ArrayValue_to_ary_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     ArrayValue *self = self_value->as_array();
     auto return_value = self->to_ary();
     return return_value;
 }
 
-Value *ArrayValue_to_ary_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ArrayValue_to_ary_binding1(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     ArrayValue *self = self_value->as_array();
     auto return_value = self->to_ary();
     return return_value;
 }
 
-Value *ArrayValue_inspect_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ArrayValue_inspect_binding1(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     ArrayValue *self = self_value->as_array();
     auto return_value = self->inspect(env);
     return return_value;
 }
 
-Value *ArrayValue_sample_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ArrayValue_sample_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     ArrayValue *self = self_value->as_array();
     auto return_value = self->sample(env);
     return return_value;
 }
 
-Value *Value_send_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *Value_send_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc_at_least(argc, 1);
     Value *self = self_value;
     auto return_value = self->send(env, argc, args, block);
     return return_value;
 }
 
-Value *Value_is_falsey_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *Value_is_falsey_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     Value *self = self_value;
     auto return_value = self->is_falsey();
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *Value_eq_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *Value_eq_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     Value *self = self_value;
     auto return_value = self->eq(env, argc > 0 ? args[0] : nullptr);
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *Value_eq_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *Value_eq_binding1(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     Value *self = self_value;
     auto return_value = self->eq(env, argc > 0 ? args[0] : nullptr);
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *Value_neq_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *Value_neq_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     Value *self = self_value;
     auto return_value = self->neq(env, argc > 0 ? args[0] : nullptr);
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *Value_instance_eval_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *Value_instance_eval_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0, 1);
     Value *self = self_value;
     auto return_value = self->instance_eval(env, argc > 0 ? args[0] : nullptr, block);
     return return_value;
 }
 
-Value *ClassValue_new_method_static_binding(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
+Value *ClassValue_new_method_static_binding(Env *env, Value *, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0, 1);
     auto return_value = ClassValue::new_method(env, argc > 0 ? args[0] : nullptr, block);
     return return_value;
 }
 
-Value *ClassValue_superclass_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ClassValue_superclass_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     ClassValue *self = self_value->as_class();
     auto return_value = self->superclass();
     if (return_value) { return return_value; } else { return env->nil_obj(); }
 }
 
-Value *EncodingValue_list_static_binding(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
+Value *EncodingValue_list_static_binding(Env *env, Value *, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     auto return_value = EncodingValue::list(env);
     return return_value;
 }
 
-Value *EncodingValue_inspect_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *EncodingValue_inspect_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     EncodingValue *self = self_value->as_encoding();
     auto return_value = self->inspect(env);
     return return_value;
 }
 
-Value *EncodingValue_name_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *EncodingValue_name_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     EncodingValue *self = self_value->as_encoding();
     auto return_value = self->name(env);
     return return_value;
 }
 
-Value *EncodingValue_names_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *EncodingValue_names_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     EncodingValue *self = self_value->as_encoding();
     auto return_value = self->names(env);
     return return_value;
 }
 
-Value *EnvValue_inspect_singleton_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *EnvValue_inspect_singleton_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     EnvValue *self = self_value->as_env_value_for_method_binding();
     auto return_value = self->inspect(env);
     return return_value;
 }
 
-Value *EnvValue_ref_singleton_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *EnvValue_ref_singleton_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     EnvValue *self = self_value->as_env_value_for_method_binding();
     auto return_value = self->ref(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *EnvValue_refeq_singleton_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *EnvValue_refeq_singleton_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 2);
     EnvValue *self = self_value->as_env_value_for_method_binding();
     auto return_value = self->refeq(env, argc > 0 ? args[0] : nullptr, argc > 1 ? args[1] : nullptr);
     return return_value;
 }
 
-Value *ExceptionValue_backtrace_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ExceptionValue_backtrace_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     ExceptionValue *self = self_value->as_exception();
     auto return_value = self->backtrace(env);
     return return_value;
 }
 
-Value *ExceptionValue_initialize_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ExceptionValue_initialize_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0, 1);
     ExceptionValue *self = self_value->as_exception();
     auto return_value = self->initialize(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *ExceptionValue_inspect_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ExceptionValue_inspect_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     ExceptionValue *self = self_value->as_exception();
     auto return_value = self->inspect(env);
     return return_value;
 }
 
-Value *ExceptionValue_message_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ExceptionValue_message_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     ExceptionValue *self = self_value->as_exception();
     auto return_value = self->message(env);
     return return_value;
 }
 
-Value *FalseValue_to_s_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FalseValue_to_s_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     FalseValue *self = self_value->as_false();
     auto return_value = self->to_s(env);
     return return_value;
 }
 
-Value *FalseValue_to_s_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FalseValue_to_s_binding1(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     FalseValue *self = self_value->as_false();
     auto return_value = self->to_s(env);
     return return_value;
 }
 
-Value *FiberValue_yield_static_binding(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
+Value *FiberValue_yield_static_binding(Env *env, Value *, size_t argc, Value **args, Block *block) {
     
     auto return_value = FiberValue::yield(env, argc, args);
     return return_value;
 }
 
-Value *FiberValue_initialize_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FiberValue_initialize_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     FiberValue *self = self_value->as_fiber();
     auto return_value = self->initialize(env, block);
     return return_value;
 }
 
-Value *FiberValue_resume_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FiberValue_resume_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     
     FiberValue *self = self_value->as_fiber();
     auto return_value = self->resume(env, argc, args);
     return return_value;
 }
 
-Value *FiberValue_status_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FiberValue_status_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     FiberValue *self = self_value->as_fiber();
     auto return_value = self->status(env);
     return return_value;
 }
 
-Value *FileValue_expand_path_static_binding(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
+Value *FileValue_expand_path_static_binding(Env *env, Value *, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1, 2);
     auto return_value = FileValue::expand_path(env, argc > 0 ? args[0] : nullptr, argc > 1 ? args[1] : nullptr);
     return return_value;
 }
 
-Value *FileValue_initialize_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FileValue_initialize_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1, 2);
     FileValue *self = self_value->as_file();
     auto return_value = self->initialize(env, argc > 0 ? args[0] : nullptr, argc > 1 ? args[1] : nullptr, block);
     return return_value;
 }
 
-Value *FloatValue_mod_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_mod_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     FloatValue *self = self_value->as_float();
     auto return_value = self->mod(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *FloatValue_mul_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_mul_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     FloatValue *self = self_value->as_float();
     auto return_value = self->mul(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *FloatValue_pow_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_pow_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     FloatValue *self = self_value->as_float();
     auto return_value = self->pow(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *FloatValue_add_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_add_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     FloatValue *self = self_value->as_float();
     auto return_value = self->add(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *FloatValue_uplus_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_uplus_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     FloatValue *self = self_value->as_float();
     auto return_value = self->uplus();
     return return_value;
 }
 
-Value *FloatValue_sub_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_sub_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     FloatValue *self = self_value->as_float();
     auto return_value = self->sub(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *FloatValue_uminus_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_uminus_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     FloatValue *self = self_value->as_float();
     auto return_value = self->uminus();
     return return_value;
 }
 
-Value *FloatValue_div_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_div_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     FloatValue *self = self_value->as_float();
     auto return_value = self->div(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *FloatValue_lt_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_lt_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     FloatValue *self = self_value->as_float();
     auto return_value = self->lt(env, argc > 0 ? args[0] : nullptr);
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *FloatValue_lte_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_lte_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     FloatValue *self = self_value->as_float();
     auto return_value = self->lte(env, argc > 0 ? args[0] : nullptr);
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *FloatValue_cmp_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_cmp_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     FloatValue *self = self_value->as_float();
     auto return_value = self->cmp(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *FloatValue_eq_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_eq_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     FloatValue *self = self_value->as_float();
     auto return_value = self->eq(env, argc > 0 ? args[0] : nullptr);
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *FloatValue_eq_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_eq_binding1(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     FloatValue *self = self_value->as_float();
     auto return_value = self->eq(env, argc > 0 ? args[0] : nullptr);
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *FloatValue_gt_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_gt_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     FloatValue *self = self_value->as_float();
     auto return_value = self->gt(env, argc > 0 ? args[0] : nullptr);
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *FloatValue_gte_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_gte_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     FloatValue *self = self_value->as_float();
     auto return_value = self->gte(env, argc > 0 ? args[0] : nullptr);
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *FloatValue_abs_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_abs_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     FloatValue *self = self_value->as_float();
     auto return_value = self->abs(env);
     return return_value;
 }
 
-Value *FloatValue_arg_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_arg_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     FloatValue *self = self_value->as_float();
     auto return_value = self->arg(env);
     return return_value;
 }
 
-Value *FloatValue_arg_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_arg_binding1(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     FloatValue *self = self_value->as_float();
     auto return_value = self->arg(env);
     return return_value;
 }
 
-Value *FloatValue_ceil_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_ceil_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0, 1);
     FloatValue *self = self_value->as_float();
     auto return_value = self->ceil(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *FloatValue_coerce_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_coerce_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     FloatValue *self = self_value->as_float();
     auto return_value = self->coerce(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *FloatValue_divmod_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_divmod_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     FloatValue *self = self_value->as_float();
     auto return_value = self->divmod(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *FloatValue_eql_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_eql_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     FloatValue *self = self_value->as_float();
     auto return_value = self->eql(argc > 0 ? args[0] : nullptr);
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *FloatValue_div_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_div_binding1(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     FloatValue *self = self_value->as_float();
     auto return_value = self->div(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *FloatValue_is_finite_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_is_finite_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     FloatValue *self = self_value->as_float();
     auto return_value = self->is_finite();
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *FloatValue_floor_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_floor_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0, 1);
     FloatValue *self = self_value->as_float();
     auto return_value = self->floor(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *FloatValue_is_infinite_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_is_infinite_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     FloatValue *self = self_value->as_float();
     auto return_value = self->is_infinite(env);
     return return_value;
 }
 
-Value *FloatValue_to_s_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_to_s_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     FloatValue *self = self_value->as_float();
     auto return_value = self->to_s(env);
     return return_value;
 }
 
-Value *FloatValue_abs_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_abs_binding1(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     FloatValue *self = self_value->as_float();
     auto return_value = self->abs(env);
     return return_value;
 }
 
-Value *FloatValue_mod_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_mod_binding1(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     FloatValue *self = self_value->as_float();
     auto return_value = self->mod(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *FloatValue_is_nan_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_is_nan_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     FloatValue *self = self_value->as_float();
     auto return_value = self->is_nan();
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *FloatValue_is_negative_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_is_negative_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     FloatValue *self = self_value->as_float();
     auto return_value = self->is_negative();
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *FloatValue_next_float_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_next_float_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     FloatValue *self = self_value->as_float();
     auto return_value = self->next_float(env);
     return return_value;
 }
 
-Value *FloatValue_arg_binding2(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_arg_binding2(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     FloatValue *self = self_value->as_float();
     auto return_value = self->arg(env);
     return return_value;
 }
 
-Value *FloatValue_is_positive_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_is_positive_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     FloatValue *self = self_value->as_float();
     auto return_value = self->is_positive();
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *FloatValue_prev_float_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_prev_float_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     FloatValue *self = self_value->as_float();
     auto return_value = self->prev_float(env);
     return return_value;
 }
 
-Value *FloatValue_div_binding2(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_div_binding2(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     FloatValue *self = self_value->as_float();
     auto return_value = self->div(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *FloatValue_round_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_round_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0, 1);
     FloatValue *self = self_value->as_float();
     auto return_value = self->round(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *FloatValue_to_f_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_to_f_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     FloatValue *self = self_value->as_float();
     auto return_value = self->to_f();
     return return_value;
 }
 
-Value *FloatValue_to_i_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_to_i_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     FloatValue *self = self_value->as_float();
     auto return_value = self->to_i(env);
     return return_value;
 }
 
-Value *FloatValue_to_i_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_to_i_binding1(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     FloatValue *self = self_value->as_float();
     auto return_value = self->to_i(env);
     return return_value;
 }
 
-Value *FloatValue_to_s_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_to_s_binding1(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     FloatValue *self = self_value->as_float();
     auto return_value = self->to_s(env);
     return return_value;
 }
 
-Value *FloatValue_truncate_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_truncate_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0, 1);
     FloatValue *self = self_value->as_float();
     auto return_value = self->truncate(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *FloatValue_is_zero_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *FloatValue_is_zero_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     FloatValue *self = self_value->as_float();
     auto return_value = self->is_zero();
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *HashValue_square_new_static_binding(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
+Value *HashValue_square_new_static_binding(Env *env, Value *, size_t argc, Value **args, Block *block) {
     
     auto return_value = HashValue::square_new(env, argc, args);
     return return_value;
 }
 
-Value *HashValue_eq_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *HashValue_eq_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     HashValue *self = self_value->as_hash();
     auto return_value = self->eq(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *HashValue_eq_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *HashValue_eq_binding1(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     HashValue *self = self_value->as_hash();
     auto return_value = self->eq(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *HashValue_ref_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *HashValue_ref_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     HashValue *self = self_value->as_hash();
     auto return_value = self->ref(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *HashValue_refeq_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *HashValue_refeq_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 2);
     HashValue *self = self_value->as_hash();
     auto return_value = self->refeq(env, argc > 0 ? args[0] : nullptr, argc > 1 ? args[1] : nullptr);
     return return_value;
 }
 
-Value *HashValue_delete_key_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *HashValue_delete_key_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     HashValue *self = self_value->as_hash();
     auto return_value = self->delete_key(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *HashValue_each_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *HashValue_each_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     HashValue *self = self_value->as_hash();
     auto return_value = self->each(env, block);
     return return_value;
 }
 
-Value *HashValue_initialize_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *HashValue_initialize_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0, 1);
     HashValue *self = self_value->as_hash();
     auto return_value = self->initialize(env, argc > 0 ? args[0] : nullptr, block);
     return return_value;
 }
 
-Value *HashValue_inspect_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *HashValue_inspect_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     HashValue *self = self_value->as_hash();
     auto return_value = self->inspect(env);
     return return_value;
 }
 
-Value *HashValue_has_key_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *HashValue_has_key_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     HashValue *self = self_value->as_hash();
     auto return_value = self->has_key(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *HashValue_has_key_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *HashValue_has_key_binding1(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     HashValue *self = self_value->as_hash();
     auto return_value = self->has_key(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *HashValue_keys_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *HashValue_keys_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     HashValue *self = self_value->as_hash();
     auto return_value = self->keys(env);
     return return_value;
 }
 
-Value *HashValue_size_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *HashValue_size_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     HashValue *self = self_value->as_hash();
     auto return_value = self->size(env);
     return return_value;
 }
 
-Value *HashValue_sort_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *HashValue_sort_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     HashValue *self = self_value->as_hash();
     auto return_value = self->sort(env);
     return return_value;
 }
 
-Value *HashValue_inspect_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *HashValue_inspect_binding1(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     HashValue *self = self_value->as_hash();
     auto return_value = self->inspect(env);
     return return_value;
 }
 
-Value *HashValue_values_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *HashValue_values_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     HashValue *self = self_value->as_hash();
     auto return_value = self->values(env);
     return return_value;
 }
 
-Value *HashValue_default_value_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *HashValue_default_value_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     HashValue *self = self_value->as_hash();
     auto return_value = self->default_value(env);
     return return_value;
 }
 
-Value *HashValue_default_proc_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *HashValue_default_proc_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     HashValue *self = self_value->as_hash();
     auto return_value = self->default_proc(env);
     return return_value;
 }
 
-Value *IntegerValue_mod_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *IntegerValue_mod_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     IntegerValue *self = self_value->as_integer();
     auto return_value = self->mod(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *IntegerValue_bitwise_and_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *IntegerValue_bitwise_and_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     IntegerValue *self = self_value->as_integer();
     auto return_value = self->bitwise_and(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *IntegerValue_mul_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *IntegerValue_mul_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     IntegerValue *self = self_value->as_integer();
     auto return_value = self->mul(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *IntegerValue_pow_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *IntegerValue_pow_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     IntegerValue *self = self_value->as_integer();
     auto return_value = self->pow(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *IntegerValue_add_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *IntegerValue_add_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     IntegerValue *self = self_value->as_integer();
     auto return_value = self->add(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *IntegerValue_sub_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *IntegerValue_sub_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     IntegerValue *self = self_value->as_integer();
     auto return_value = self->sub(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *IntegerValue_div_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *IntegerValue_div_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     IntegerValue *self = self_value->as_integer();
     auto return_value = self->div(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *IntegerValue_cmp_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *IntegerValue_cmp_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     IntegerValue *self = self_value->as_integer();
     auto return_value = self->cmp(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *Value_neq_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *Value_neq_binding1(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     Value *self = self_value;
     auto return_value = self->neq(env, argc > 0 ? args[0] : nullptr);
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *IntegerValue_lt_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *IntegerValue_lt_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     IntegerValue *self = self_value->as_integer();
     auto return_value = self->lt(env, argc > 0 ? args[0] : nullptr);
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *IntegerValue_lte_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *IntegerValue_lte_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     IntegerValue *self = self_value->as_integer();
     auto return_value = self->lte(env, argc > 0 ? args[0] : nullptr);
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *IntegerValue_gt_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *IntegerValue_gt_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     IntegerValue *self = self_value->as_integer();
     auto return_value = self->gt(env, argc > 0 ? args[0] : nullptr);
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *IntegerValue_gte_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *IntegerValue_gte_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     IntegerValue *self = self_value->as_integer();
     auto return_value = self->gte(env, argc > 0 ? args[0] : nullptr);
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *IntegerValue_eq_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *IntegerValue_eq_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     IntegerValue *self = self_value->as_integer();
     auto return_value = self->eq(env, argc > 0 ? args[0] : nullptr);
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *IntegerValue_eqeqeq_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *IntegerValue_eqeqeq_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     IntegerValue *self = self_value->as_integer();
     auto return_value = self->eqeqeq(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *IntegerValue_abs_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *IntegerValue_abs_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     IntegerValue *self = self_value->as_integer();
     auto return_value = self->abs(env);
     return return_value;
 }
 
-Value *IntegerValue_chr_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *IntegerValue_chr_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     IntegerValue *self = self_value->as_integer();
     auto return_value = self->chr(env);
     return return_value;
 }
 
-Value *IntegerValue_coerce_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *IntegerValue_coerce_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     IntegerValue *self = self_value->as_integer();
     auto return_value = self->coerce(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *IntegerValue_eql_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *IntegerValue_eql_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     IntegerValue *self = self_value->as_integer();
     auto return_value = self->eql(env, argc > 0 ? args[0] : nullptr);
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *IntegerValue_is_even_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *IntegerValue_is_even_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     IntegerValue *self = self_value->as_integer();
     auto return_value = self->is_even();
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *IntegerValue_to_s_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *IntegerValue_to_s_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     IntegerValue *self = self_value->as_integer();
     auto return_value = self->to_s(env);
     return return_value;
 }
 
-Value *IntegerValue_is_odd_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *IntegerValue_is_odd_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     IntegerValue *self = self_value->as_integer();
     auto return_value = self->is_odd();
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *IntegerValue_succ_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *IntegerValue_succ_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     IntegerValue *self = self_value->as_integer();
     auto return_value = self->succ(env);
     return return_value;
 }
 
-Value *IntegerValue_times_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *IntegerValue_times_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     IntegerValue *self = self_value->as_integer();
     auto return_value = self->times(env, block);
     return return_value;
 }
 
-Value *IntegerValue_to_i_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *IntegerValue_to_i_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     IntegerValue *self = self_value->as_integer();
     auto return_value = self->to_i();
     return return_value;
 }
 
-Value *IntegerValue_to_s_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *IntegerValue_to_s_binding1(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     IntegerValue *self = self_value->as_integer();
     auto return_value = self->to_s(env);
     return return_value;
 }
 
-Value *IntegerValue_bitwise_or_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *IntegerValue_bitwise_or_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     IntegerValue *self = self_value->as_integer();
     auto return_value = self->bitwise_or(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *IntegerValue_is_zero_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *IntegerValue_is_zero_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     IntegerValue *self = self_value->as_integer();
     auto return_value = self->is_zero();
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *IoValue_close_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *IoValue_close_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     IoValue *self = self_value->as_io();
     auto return_value = self->close(env);
     return return_value;
 }
 
-Value *IoValue_fileno_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *IoValue_fileno_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     IoValue *self = self_value->as_io();
     auto return_value = self->fileno();
     return new IntegerValue { env, return_value };
 }
 
-Value *IoValue_initialize_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *IoValue_initialize_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     IoValue *self = self_value->as_io();
     auto return_value = self->initialize(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *IoValue_print_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *IoValue_print_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     
     IoValue *self = self_value->as_io();
     auto return_value = self->print(env, argc, args);
     return return_value;
 }
 
-Value *IoValue_puts_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *IoValue_puts_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     
     IoValue *self = self_value->as_io();
     auto return_value = self->puts(env, argc, args);
     return return_value;
 }
 
-Value *IoValue_read_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *IoValue_read_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0, 1);
     IoValue *self = self_value->as_io();
     auto return_value = self->read(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *IoValue_seek_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *IoValue_seek_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1, 2);
     IoValue *self = self_value->as_io();
     auto return_value = self->seek(env, argc > 0 ? args[0] : nullptr, argc > 1 ? args[1] : nullptr);
     return return_value;
 }
 
-Value *IoValue_write_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *IoValue_write_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc_at_least(argc, 1);
     IoValue *self = self_value->as_io();
     auto return_value = self->write(env, argc, args);
     return return_value;
 }
 
-Value *KernelModule_Array_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *KernelModule_Array_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->Array(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *KernelModule_at_exit_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *KernelModule_at_exit_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->at_exit(env, block);
     return return_value;
 }
 
-Value *KernelModule_block_given_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *KernelModule_block_given_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->block_given(env, block);
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *KernelModule_klass_obj_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *KernelModule_klass_obj_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->klass_obj(env);
     return return_value;
 }
 
-Value *KernelModule_cur_dir_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *KernelModule_cur_dir_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->cur_dir(env);
     return return_value;
 }
 
-Value *KernelModule_define_singleton_method_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *KernelModule_define_singleton_method_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->define_singleton_method(env, argc > 0 ? args[0] : nullptr, block);
     return return_value;
 }
 
-Value *KernelModule_dup_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *KernelModule_dup_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->dup(env);
     return return_value;
 }
 
-Value *KernelModule_equal_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *KernelModule_equal_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->equal(argc > 0 ? args[0] : nullptr);
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *KernelModule_equal_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *KernelModule_equal_binding1(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->equal(argc > 0 ? args[0] : nullptr);
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *KernelModule_exit_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *KernelModule_exit_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0, 1);
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->exit(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *KernelModule_freeze_obj_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *KernelModule_freeze_obj_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->freeze_obj(env);
     return return_value;
 }
 
-Value *KernelModule_get_usage_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *KernelModule_get_usage_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->get_usage(env);
     return return_value;
 }
 
-Value *KernelModule_hash_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *KernelModule_hash_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->hash(env);
     return return_value;
 }
 
-Value *KernelModule_inspect_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *KernelModule_inspect_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->inspect(env);
     return return_value;
 }
 
-Value *KernelModule_instance_variable_get_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *KernelModule_instance_variable_get_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->instance_variable_get(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *KernelModule_instance_variable_set_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *KernelModule_instance_variable_set_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 2);
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->instance_variable_set(env, argc > 0 ? args[0] : nullptr, argc > 1 ? args[1] : nullptr);
     return return_value;
 }
 
-Value *KernelModule_ivars_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *KernelModule_ivars_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->ivars(env);
     return return_value;
 }
 
-Value *KernelModule_is_a_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *KernelModule_is_a_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->is_a(env, argc > 0 ? args[0] : nullptr);
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *KernelModule_is_nil_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *KernelModule_is_nil_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->is_nil();
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *KernelModule_lambda_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *KernelModule_lambda_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->lambda(env, block);
     return return_value;
 }
 
-Value *KernelModule_loop_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *KernelModule_loop_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->loop(env, block);
     return return_value;
 }
 
-Value *KernelModule_this_method_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *KernelModule_this_method_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->this_method(env);
     return return_value;
 }
 
-Value *KernelModule_methods_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *KernelModule_methods_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->methods(env);
     return return_value;
 }
 
-Value *KernelModule_methods_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *KernelModule_methods_binding1(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->methods(env);
     return return_value;
 }
 
-Value *KernelModule_object_id_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *KernelModule_object_id_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->object_id(env);
     return return_value;
 }
 
-Value *KernelModule_p_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *KernelModule_p_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->p(env, argc, args);
     return return_value;
 }
 
-Value *KernelModule_print_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *KernelModule_print_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->print(env, argc, args);
     return return_value;
 }
 
-Value *KernelModule_proc_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *KernelModule_proc_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->proc(env, block);
     return return_value;
 }
 
-Value *KernelModule_puts_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *KernelModule_puts_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->puts(env, argc, args);
     return return_value;
 }
 
-Value *KernelModule_raise_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *KernelModule_raise_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1, 2);
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->raise(env, argc > 0 ? args[0] : nullptr, argc > 1 ? args[1] : nullptr);
     return return_value;
 }
 
-Value *KernelModule_respond_to_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *KernelModule_respond_to_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->respond_to(env, argc > 0 ? args[0] : nullptr);
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *Value_send_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *Value_send_binding1(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc_at_least(argc, 1);
     Value *self = self_value;
     auto return_value = self->send(env, argc, args, block);
     return return_value;
 }
 
-Value *KernelModule_singleton_class_obj_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *KernelModule_singleton_class_obj_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->singleton_class_obj(env);
     return return_value;
 }
 
-Value *KernelModule_sleep_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *KernelModule_sleep_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0, 1);
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->sleep(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *KernelModule_tap_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *KernelModule_tap_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->tap(env, block);
     return return_value;
 }
 
-Value *MatchDataValue_size_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *MatchDataValue_size_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     MatchDataValue *self = self_value->as_match_data();
     auto return_value = self->size();
-    return new IntegerValue { env, return_value };
+    assert(return_value <= INT64_MAX);
+return new IntegerValue { env, static_cast<int64_t>(return_value) };
 }
 
-Value *MatchDataValue_size_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *MatchDataValue_size_binding1(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     MatchDataValue *self = self_value->as_match_data();
     auto return_value = self->size();
-    return new IntegerValue { env, return_value };
+    assert(return_value <= INT64_MAX);
+return new IntegerValue { env, static_cast<int64_t>(return_value) };
 }
 
-Value *MatchDataValue_to_s_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *MatchDataValue_to_s_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     MatchDataValue *self = self_value->as_match_data();
     auto return_value = self->to_s(env);
     return return_value;
 }
 
-Value *MatchDataValue_ref_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *MatchDataValue_ref_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     MatchDataValue *self = self_value->as_match_data();
     auto return_value = self->ref(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *ModuleValue_eqeqeq_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ModuleValue_eqeqeq_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     ModuleValue *self = self_value->as_module();
     auto return_value = self->eqeqeq(env, argc > 0 ? args[0] : nullptr);
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *ModuleValue_alias_method_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ModuleValue_alias_method_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 2);
     ModuleValue *self = self_value->as_module();
     auto return_value = self->alias_method(env, argc > 0 ? args[0] : nullptr, argc > 1 ? args[1] : nullptr);
     return return_value;
 }
 
-Value *ModuleValue_ancestors_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ModuleValue_ancestors_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     ModuleValue *self = self_value->as_module();
     auto return_value = self->ancestors(env);
     return return_value;
 }
 
-Value *ModuleValue_attr_reader_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ModuleValue_attr_reader_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc_at_least(argc, 1);
     ModuleValue *self = self_value->as_module();
     auto return_value = self->attr_reader(env, argc, args);
     return return_value;
 }
 
-Value *ModuleValue_attr_accessor_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ModuleValue_attr_accessor_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc_at_least(argc, 1);
     ModuleValue *self = self_value->as_module();
     auto return_value = self->attr_accessor(env, argc, args);
     return return_value;
 }
 
-Value *ModuleValue_attr_reader_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ModuleValue_attr_reader_binding1(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc_at_least(argc, 1);
     ModuleValue *self = self_value->as_module();
     auto return_value = self->attr_reader(env, argc, args);
     return return_value;
 }
 
-Value *ModuleValue_attr_writer_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ModuleValue_attr_writer_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc_at_least(argc, 1);
     ModuleValue *self = self_value->as_module();
     auto return_value = self->attr_writer(env, argc, args);
     return return_value;
 }
 
-Value *ModuleValue_module_eval_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ModuleValue_module_eval_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     ModuleValue *self = self_value->as_module();
     auto return_value = self->module_eval(env, block);
     return return_value;
 }
 
-Value *ModuleValue_const_defined_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ModuleValue_const_defined_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     ModuleValue *self = self_value->as_module();
     auto return_value = self->const_defined(env, argc > 0 ? args[0] : nullptr);
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *ModuleValue_define_method_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ModuleValue_define_method_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     ModuleValue *self = self_value->as_module();
     auto return_value = self->define_method(env, argc > 0 ? args[0] : nullptr, block);
     return return_value;
 }
 
-Value *ModuleValue_extend_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ModuleValue_extend_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc_at_least(argc, 1);
     ModuleValue *self = self_value->as_module();
     auto return_value = self->extend(env, argc, args);
     return return_value;
 }
 
-Value *ModuleValue_include_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ModuleValue_include_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc_at_least(argc, 1);
     ModuleValue *self = self_value->as_module();
     auto return_value = self->include(env, argc, args);
     return return_value;
 }
 
-Value *ModuleValue_does_include_module_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ModuleValue_does_include_module_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     ModuleValue *self = self_value->as_module();
     auto return_value = self->does_include_module(env, argc > 0 ? args[0] : nullptr);
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *ModuleValue_included_modules_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ModuleValue_included_modules_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     ModuleValue *self = self_value->as_module();
     auto return_value = self->included_modules(env);
     return return_value;
 }
 
-Value *ModuleValue_inspect_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ModuleValue_inspect_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     ModuleValue *self = self_value->as_module();
     auto return_value = self->inspect(env);
     return return_value;
 }
 
-Value *ModuleValue_is_method_defined_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ModuleValue_is_method_defined_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     ModuleValue *self = self_value->as_module();
     auto return_value = self->is_method_defined(env, argc > 0 ? args[0] : nullptr);
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *ModuleValue_module_eval_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ModuleValue_module_eval_binding1(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     ModuleValue *self = self_value->as_module();
     auto return_value = self->module_eval(env, block);
     return return_value;
 }
 
-Value *ModuleValue_name_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ModuleValue_name_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     ModuleValue *self = self_value->as_module();
     auto return_value = self->name(env);
     return return_value;
 }
 
-Value *ModuleValue_prepend_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ModuleValue_prepend_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc_at_least(argc, 1);
     ModuleValue *self = self_value->as_module();
     auto return_value = self->prepend(env, argc, args);
     return return_value;
 }
 
-Value *ModuleValue_private_method_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ModuleValue_private_method_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0, 1);
     ModuleValue *self = self_value->as_module();
     auto return_value = self->private_method(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *ModuleValue_protected_method_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ModuleValue_protected_method_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0, 1);
     ModuleValue *self = self_value->as_module();
     auto return_value = self->protected_method(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *ModuleValue_public_method_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ModuleValue_public_method_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0, 1);
     ModuleValue *self = self_value->as_module();
     auto return_value = self->public_method(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *NilValue_inspect_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *NilValue_inspect_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     NilValue *self = self_value->as_nil();
     auto return_value = self->inspect(env);
     return return_value;
 }
 
-Value *NilValue_to_a_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *NilValue_to_a_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     NilValue *self = self_value->as_nil();
     auto return_value = self->to_a(env);
     return return_value;
 }
 
-Value *NilValue_to_i_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *NilValue_to_i_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     NilValue *self = self_value->as_nil();
     auto return_value = self->to_i(env);
     return return_value;
 }
 
-Value *NilValue_to_s_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *NilValue_to_s_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     NilValue *self = self_value->as_nil();
     auto return_value = self->to_s(env);
     return return_value;
 }
 
-Value *Value_is_nil_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *Value_is_nil_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     Value *self = self_value;
     auto return_value = self->is_nil();
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *ParserValue_parse_singleton_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ParserValue_parse_singleton_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     ParserValue *self = self_value->as_parser_value_for_method_binding();
     auto return_value = self->parse(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *ProcValue_initialize_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ProcValue_initialize_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     ProcValue *self = self_value->as_proc();
     auto return_value = self->initialize(env, block);
     return return_value;
 }
 
-Value *ProcValue_call_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ProcValue_call_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     
     ProcValue *self = self_value->as_proc();
     auto return_value = self->call(env, argc, args, block);
     return return_value;
 }
 
-Value *ProcValue_is_lambda_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *ProcValue_is_lambda_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     ProcValue *self = self_value->as_proc();
     auto return_value = self->is_lambda();
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *ProcessModule_pid_static_binding(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
+Value *ProcessModule_pid_static_binding(Env *env, Value *, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     auto return_value = ProcessModule::pid(env);
     return return_value;
 }
 
-Value *RangeValue_initialize_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *RangeValue_initialize_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 2, 3);
     RangeValue *self = self_value->as_range();
     auto return_value = self->initialize(env, argc > 0 ? args[0] : nullptr, argc > 1 ? args[1] : nullptr, argc > 2 ? args[2] : nullptr);
     return return_value;
 }
 
-Value *RangeValue_begin_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *RangeValue_begin_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     RangeValue *self = self_value->as_range();
     auto return_value = self->begin();
     return return_value;
 }
 
-Value *RangeValue_begin_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *RangeValue_begin_binding1(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     RangeValue *self = self_value->as_range();
     auto return_value = self->begin();
     return return_value;
 }
 
-Value *RangeValue_end_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *RangeValue_end_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     RangeValue *self = self_value->as_range();
     auto return_value = self->end();
     return return_value;
 }
 
-Value *RangeValue_end_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *RangeValue_end_binding1(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     RangeValue *self = self_value->as_range();
     auto return_value = self->end();
     return return_value;
 }
 
-Value *RangeValue_exclude_end_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *RangeValue_exclude_end_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     RangeValue *self = self_value->as_range();
     auto return_value = self->exclude_end();
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *RangeValue_to_a_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *RangeValue_to_a_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     RangeValue *self = self_value->as_range();
     auto return_value = self->to_a(env);
     return return_value;
 }
 
-Value *RangeValue_each_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *RangeValue_each_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     RangeValue *self = self_value->as_range();
     auto return_value = self->each(env, block);
     return return_value;
 }
 
-Value *RangeValue_inspect_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *RangeValue_inspect_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     RangeValue *self = self_value->as_range();
     auto return_value = self->inspect(env);
     return return_value;
 }
 
-Value *RangeValue_eq_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *RangeValue_eq_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     RangeValue *self = self_value->as_range();
     auto return_value = self->eq(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *RangeValue_eqeqeq_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *RangeValue_eqeqeq_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     RangeValue *self = self_value->as_range();
     auto return_value = self->eqeqeq(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *RangeValue_eqeqeq_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *RangeValue_eqeqeq_binding1(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     RangeValue *self = self_value->as_range();
     auto return_value = self->eqeqeq(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *RegexpValue_compile_static_binding(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
+Value *RegexpValue_compile_static_binding(Env *env, Value *, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1, 2);
     auto return_value = RegexpValue::compile(env, argc > 0 ? args[0] : nullptr, argc > 1 ? args[1] : nullptr);
     return return_value;
 }
 
-Value *RegexpValue_eq_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *RegexpValue_eq_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     RegexpValue *self = self_value->as_regexp();
     auto return_value = self->eq(env, argc > 0 ? args[0] : nullptr);
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *RegexpValue_eqeqeq_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *RegexpValue_eqeqeq_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     RegexpValue *self = self_value->as_regexp();
     auto return_value = self->eqeqeq(env, argc > 0 ? args[0] : nullptr);
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *RegexpValue_eqtilde_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *RegexpValue_eqtilde_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     RegexpValue *self = self_value->as_regexp();
     auto return_value = self->eqtilde(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *RegexpValue_initialize_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *RegexpValue_initialize_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0, 1);
     RegexpValue *self = self_value->as_regexp();
     auto return_value = self->initialize(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *RegexpValue_inspect_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *RegexpValue_inspect_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     RegexpValue *self = self_value->as_regexp();
     auto return_value = self->inspect(env);
     return return_value;
 }
 
-Value *RegexpValue_match_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *RegexpValue_match_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     RegexpValue *self = self_value->as_regexp();
     auto return_value = self->match(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *StringValue_mul_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *StringValue_mul_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     StringValue *self = self_value->as_string();
     auto return_value = self->mul(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *StringValue_add_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *StringValue_add_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     StringValue *self = self_value->as_string();
     auto return_value = self->add(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *StringValue_ltlt_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *StringValue_ltlt_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     StringValue *self = self_value->as_string();
     auto return_value = self->ltlt(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *StringValue_cmp_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *StringValue_cmp_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     StringValue *self = self_value->as_string();
     auto return_value = self->cmp(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *StringValue_eq_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *StringValue_eq_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     StringValue *self = self_value->as_string();
     auto return_value = self->eq(argc > 0 ? args[0] : nullptr);
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *StringValue_eq_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *StringValue_eq_binding1(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     StringValue *self = self_value->as_string();
     auto return_value = self->eq(argc > 0 ? args[0] : nullptr);
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *StringValue_eqtilde_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *StringValue_eqtilde_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     StringValue *self = self_value->as_string();
     auto return_value = self->eqtilde(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *StringValue_ref_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *StringValue_ref_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     StringValue *self = self_value->as_string();
     auto return_value = self->ref(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *StringValue_bytes_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *StringValue_bytes_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     StringValue *self = self_value->as_string();
     auto return_value = self->bytes(env);
     return return_value;
 }
 
-Value *StringValue_chars_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *StringValue_chars_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     StringValue *self = self_value->as_string();
     auto return_value = self->chars(env);
     return return_value;
 }
 
-Value *StringValue_each_char_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *StringValue_each_char_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     StringValue *self = self_value->as_string();
     auto return_value = self->each_char(env, block);
     return return_value;
 }
 
-Value *StringValue_encode_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *StringValue_encode_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     StringValue *self = self_value->as_string();
     auto return_value = self->encode(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *StringValue_encoding_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *StringValue_encoding_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     StringValue *self = self_value->as_string();
     auto return_value = self->encoding(env);
     return return_value;
 }
 
-Value *StringValue_eq_binding2(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *StringValue_eq_binding2(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     StringValue *self = self_value->as_string();
     auto return_value = self->eq(argc > 0 ? args[0] : nullptr);
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
-Value *StringValue_force_encoding_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *StringValue_force_encoding_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     StringValue *self = self_value->as_string();
     auto return_value = self->force_encoding(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *StringValue_index_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *StringValue_index_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     StringValue *self = self_value->as_string();
     auto return_value = self->index(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *StringValue_initialize_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *StringValue_initialize_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0, 1);
     StringValue *self = self_value->as_string();
     auto return_value = self->initialize(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *StringValue_inspect_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *StringValue_inspect_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     StringValue *self = self_value->as_string();
     auto return_value = self->inspect(env);
     return return_value;
 }
 
-Value *StringValue_length_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *StringValue_length_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     StringValue *self = self_value->as_string();
     auto return_value = self->length();
-    return new IntegerValue { env, return_value };
+    assert(return_value <= INT64_MAX);
+return new IntegerValue { env, static_cast<int64_t>(return_value) };
 }
 
-Value *StringValue_ljust_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *StringValue_ljust_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1, 2);
     StringValue *self = self_value->as_string();
     auto return_value = self->ljust(env, argc > 0 ? args[0] : nullptr, argc > 1 ? args[1] : nullptr);
     return return_value;
 }
 
-Value *StringValue_match_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *StringValue_match_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     StringValue *self = self_value->as_string();
     auto return_value = self->match(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *StringValue_ord_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *StringValue_ord_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     StringValue *self = self_value->as_string();
     auto return_value = self->ord(env);
     return return_value;
 }
 
-Value *StringValue_size_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *StringValue_size_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     StringValue *self = self_value->as_string();
     auto return_value = self->size(env);
     return return_value;
 }
 
-Value *StringValue_split_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *StringValue_split_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0, 1);
     StringValue *self = self_value->as_string();
     auto return_value = self->split(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *StringValue_sub_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *StringValue_sub_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 2);
     StringValue *self = self_value->as_string();
     auto return_value = self->sub(env, argc > 0 ? args[0] : nullptr, argc > 1 ? args[1] : nullptr);
     return return_value;
 }
 
-Value *StringValue_successive_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *StringValue_successive_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     StringValue *self = self_value->as_string();
     auto return_value = self->successive(env);
     return return_value;
 }
 
-Value *StringValue_to_i_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *StringValue_to_i_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0, 1);
     StringValue *self = self_value->as_string();
     auto return_value = self->to_i(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *StringValue_to_s_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *StringValue_to_s_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     StringValue *self = self_value->as_string();
     auto return_value = self->to_s();
     return return_value;
 }
 
-Value *StringValue_to_str_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *StringValue_to_str_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     StringValue *self = self_value->as_string();
     auto return_value = self->to_str();
     return return_value;
 }
 
-Value *StringValue_to_sym_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *StringValue_to_sym_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     StringValue *self = self_value->as_string();
     auto return_value = self->to_sym(env);
     return return_value;
 }
 
-Value *SymbolValue_cmp_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *SymbolValue_cmp_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     SymbolValue *self = self_value->as_symbol();
     auto return_value = self->cmp(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
-Value *SymbolValue_to_s_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *SymbolValue_to_s_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     SymbolValue *self = self_value->as_symbol();
     auto return_value = self->to_s(env);
     return return_value;
 }
 
-Value *SymbolValue_inspect_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *SymbolValue_inspect_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     SymbolValue *self = self_value->as_symbol();
     auto return_value = self->inspect(env);
     return return_value;
 }
 
-Value *SymbolValue_to_proc_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *SymbolValue_to_proc_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     SymbolValue *self = self_value->as_symbol();
     auto return_value = self->to_proc(env);
     return return_value;
 }
 
-Value *SymbolValue_to_s_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *SymbolValue_to_s_binding1(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     SymbolValue *self = self_value->as_symbol();
     auto return_value = self->to_s(env);
     return return_value;
 }
 
-Value *TrueValue_to_s_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *TrueValue_to_s_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     TrueValue *self = self_value->as_true();
     auto return_value = self->to_s(env);
     return return_value;
 }
 
-Value *TrueValue_to_s_binding1(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *TrueValue_to_s_binding1(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     TrueValue *self = self_value->as_true();
     auto return_value = self->to_s(env);
     return return_value;
 }
 
-Value *KernelModule_main_obj_inspect_singleton_binding(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *KernelModule_main_obj_inspect_singleton_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->main_obj_inspect(env);

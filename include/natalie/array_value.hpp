@@ -31,15 +31,15 @@ struct ArrayValue : Value {
         : Value { other.type(), other.klass() }
         , m_vector { other.m_vector } { }
 
-    ArrayValue(Env *env, ssize_t argc, Value **args)
+    ArrayValue(Env *env, size_t argc, Value **args)
         : ArrayValue { env } {
-        for (ssize_t i = 0; i < argc; i++) {
+        for (size_t i = 0; i < argc; i++) {
             push(args[i]);
         }
     }
 
     // Array[]
-    static Value *square_new(Env *env, ssize_t argc, Value **args) {
+    static Value *square_new(Env *env, size_t argc, Value **args) {
         return new ArrayValue { env, argc, args };
     }
 
@@ -97,7 +97,7 @@ struct ArrayValue : Value {
     Value *sub(Env *, Value *);
     Value *ref(Env *, Value *, Value *);
     Value *refeq(Env *, Value *, Value *, Value *);
-    Value *any(Env *, ssize_t, Value **, Block *);
+    Value *any(Env *, size_t, Value **, Block *);
     Value *eq(Env *, Value *);
     Value *eql(Env *, Value *);
     Value *each(Env *, Block *);

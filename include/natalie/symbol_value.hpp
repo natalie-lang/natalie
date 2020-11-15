@@ -22,7 +22,7 @@ struct SymbolValue : Value {
 
     virtual ProcValue *to_proc(Env *) override;
 
-    static Value *to_proc_block_fn(Env *, Value *, ssize_t, Value **, Block *);
+    static Value *to_proc_block_fn(Env *, Value *, size_t, Value **, Block *);
 
     Value *cmp(Env *, Value *);
 

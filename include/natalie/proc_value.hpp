@@ -47,7 +47,7 @@ struct ProcValue : Value {
         return this;
     }
 
-    Value *call(Env *, ssize_t, Value **, Block *);
+    Value *call(Env *, size_t, Value **, Block *);
 
 private:
     Block *m_block { nullptr };

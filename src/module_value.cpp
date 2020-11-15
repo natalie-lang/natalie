@@ -19,8 +19,8 @@ ModuleValue::ModuleValue(Env *env, Type type, ClassValue *klass)
     hashmap_set_key_alloc_funcs(&m_constants, hashmap_alloc_key_string, nullptr);
 }
 
-Value *ModuleValue::extend(Env *env, ssize_t argc, Value **args) {
-    for (ssize_t i = 0; i < argc; i++) {
+Value *ModuleValue::extend(Env *env, size_t argc, Value **args) {
+    for (size_t i = 0; i < argc; i++) {
         extend_once(env, args[i]->as_module());
     }
     return this;
@@ -30,8 +30,8 @@ void ModuleValue::extend_once(Env *env, ModuleValue *module) {
     singleton_class(env)->include_once(env, module);
 }
 
-Value *ModuleValue::include(Env *env, ssize_t argc, Value **args) {
-    for (ssize_t i = 0; i < argc; i++) {
+Value *ModuleValue::include(Env *env, size_t argc, Value **args) {
+    for (size_t i = 0; i < argc; i++) {
         include_once(env, args[i]->as_module());
     }
     return this;
@@ -44,7 +44,7 @@ void ModuleValue::include_once(Env *env, ModuleValue *module) {
     m_included_modules.push(module);
 }
 
-Value *ModuleValue::prepend(Env *env, ssize_t argc, Value **args) {
+Value *ModuleValue::prepend(Env *env, size_t argc, Value **args) {
     for (int i = argc - 1; i >= 0; i--) {
         prepend_once(env, args[i]->as_module());
     }
@@ -178,7 +178,7 @@ Value *ModuleValue::cvar_set(Env *env, const char *name, Value *val) {
     }
 }
 
-void ModuleValue::define_method(Env *env, const char *name, Value *(*fn)(Env *, Value *, ssize_t, Value **, Block *block)) {
+void ModuleValue::define_method(Env *env, const char *name, MethodFnPtr fn) {
     Method *method = new Method { fn };
     GC_FREE(hashmap_remove(&m_methods, name));
     hashmap_put(&m_methods, name, method);
@@ -249,7 +249,7 @@ Method *ModuleValue::find_method_without_undefined(const char *method_name, Modu
     }
 }
 
-Value *ModuleValue::call_method(Env *env, Value *instance_class, const char *method_name, Value *self, ssize_t argc, Value **args, Block *block) {
+Value *ModuleValue::call_method(Env *env, Value *instance_class, const char *method_name, Value *self, size_t argc, Value **args, Block *block) {
     ModuleValue *matching_class_or_module;
     Method *method = find_method(method_name, &matching_class_or_module);
     if (method && !method->is_undefined()) {
@@ -331,8 +331,8 @@ Value *ModuleValue::name(Env *env) {
     }
 }
 
-Value *ModuleValue::attr_reader(Env *env, ssize_t argc, Value **args) {
-    for (ssize_t i = 0; i < argc; i++) {
+Value *ModuleValue::attr_reader(Env *env, size_t argc, Value **args) {
+    for (size_t i = 0; i < argc; i++) {
         Value *name_obj = args[i];
         if (name_obj->type() == Value::Type::String) {
             // we're good!
@@ -349,15 +349,15 @@ Value *ModuleValue::attr_reader(Env *env, ssize_t argc, Value **args) {
     return env->nil_obj();
 }
 
-Value *ModuleValue::attr_reader_block_fn(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
+Value *ModuleValue::attr_reader_block_fn(Env *env, Value *self, size_t argc, Value **args, Block *block) {
     Value *name_obj = env->outer()->var_get("name", 0);
     assert(name_obj);
     StringValue *ivar_name = StringValue::sprintf(env, "@%S", name_obj);
     return self->ivar_get(env, ivar_name->c_str());
 }
 
-Value *ModuleValue::attr_writer(Env *env, ssize_t argc, Value **args) {
-    for (ssize_t i = 0; i < argc; i++) {
+Value *ModuleValue::attr_writer(Env *env, size_t argc, Value **args) {
+    for (size_t i = 0; i < argc; i++) {
         Value *name_obj = args[i];
         if (name_obj->type() == Value::Type::String) {
             // we're good!
@@ -376,7 +376,7 @@ Value *ModuleValue::attr_writer(Env *env, ssize_t argc, Value **args) {
     return env->nil_obj();
 }
 
-Value *ModuleValue::attr_writer_block_fn(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {
+Value *ModuleValue::attr_writer_block_fn(Env *env, Value *self, size_t argc, Value **args, Block *block) {
     Value *val = args[0];
     Value *name_obj = env->outer()->var_get("name", 0);
     assert(name_obj);
@@ -385,7 +385,7 @@ Value *ModuleValue::attr_writer_block_fn(Env *env, Value *self, ssize_t argc, Va
     return val;
 }
 
-Value *ModuleValue::attr_accessor(Env *env, ssize_t argc, Value **args) {
+Value *ModuleValue::attr_accessor(Env *env, size_t argc, Value **args) {
     attr_reader(env, argc, args);
     attr_writer(env, argc, args);
     return env->nil_obj();

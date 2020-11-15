@@ -29,7 +29,7 @@ struct StringValue : Value {
         set_str(str);
     }
 
-    StringValue(Env *env, const char *str, ssize_t length)
+    StringValue(Env *env, const char *str, size_t length)
         : Value { Value::Type::String, env->Object()->const_fetch("String")->as_class() } {
         set_str(str, length);
     }
@@ -43,8 +43,8 @@ struct StringValue : Value {
     static StringValue *vsprintf(Env *, const char *, va_list);
 
     const char *c_str() const { return m_str; }
-    ssize_t length() const { return m_length; }
-    ssize_t capcity() const { return m_capacity; }
+    size_t length() const { return m_length; }
+    size_t capcity() const { return m_capacity; }
     Encoding encoding() const { return m_encoding; }
 
     void set_str(const char *str) {
@@ -55,7 +55,7 @@ struct StringValue : Value {
         m_capacity = m_length;
     }
 
-    void set_str(const char *str, ssize_t length) {
+    void set_str(const char *str, size_t length) {
         GC_FREE(m_str);
         assert(str);
         m_str = GC_STRDUP(str);
@@ -69,13 +69,13 @@ struct StringValue : Value {
 
     void prepend_char(Env *, char);
 
-    void insert(Env *, ssize_t, char);
+    void insert(Env *, size_t, char);
 
     void append(Env *, const char *);
     void append_char(Env *, char);
     void append_string(Env *, Value *);
     void append_string(Env *, StringValue *);
-    StringValue *next_char(Env *, ssize_t *);
+    StringValue *next_char(Env *, size_t *);
     Value *each_char(Env *, Block *);
     ArrayValue *chars(Env *);
 
@@ -91,10 +91,10 @@ struct StringValue : Value {
     StringValue *successive(Env *);
 
     Value *index(Env *, Value *);
-    Value *index(Env *, Value *, ssize_t start);
-    ssize_t index_ssize_t(Env *, Value *, ssize_t start);
+    Value *index(Env *, Value *, size_t start);
+    int64_t index_int(Env *, Value *, size_t start);
 
-    void truncate(ssize_t length) {
+    void truncate(size_t length) {
         assert(length <= m_length);
         m_str[length] = 0;
         m_length = length;
@@ -131,16 +131,16 @@ struct StringValue : Value {
 private:
     using Value::Value;
 
-    void grow(Env *, ssize_t);
-    void grow_at_least(Env *, ssize_t);
+    void grow(Env *, size_t);
+    void grow_at_least(Env *, size_t);
 
     void increment_successive_char(Env *, char, char, char);
 
-    void raise_encoding_invalid_byte_sequence_error(Env *, ssize_t);
+    void raise_encoding_invalid_byte_sequence_error(Env *, size_t);
 
     char *m_str { nullptr };
-    ssize_t m_length { 0 };
-    ssize_t m_capacity { 0 };
+    size_t m_length { 0 };
+    size_t m_capacity { 0 };
     Encoding m_encoding { Encoding::UTF_8 };
 };
 }

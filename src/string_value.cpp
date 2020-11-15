@@ -4,13 +4,13 @@
 
 namespace Natalie {
 
-void StringValue::grow(Env *env, ssize_t new_capacity) {
+void StringValue::grow(Env *env, size_t new_capacity) {
     assert(new_capacity >= m_length);
     m_str = static_cast<char *>(GC_REALLOC(m_str, new_capacity + 1));
     m_capacity = new_capacity;
 }
 
-void StringValue::grow_at_least(Env *env, ssize_t min_capacity) {
+void StringValue::grow_at_least(Env *env, size_t min_capacity) {
     if (m_capacity >= min_capacity) return;
     if (m_capacity > 0 && min_capacity <= m_capacity * STRING_GROW_FACTOR) {
         grow(env, m_capacity * STRING_GROW_FACTOR);
@@ -20,14 +20,14 @@ void StringValue::grow_at_least(Env *env, ssize_t min_capacity) {
 }
 
 void StringValue::prepend_char(Env *env, char c) {
-    ssize_t total_length = m_length + 1;
+    size_t total_length = m_length + 1;
     grow_at_least(env, total_length);
     memmove(m_str + 1, m_str, m_length + 1); // 1 extra for null terminator
     m_str[0] = c;
     m_length = total_length;
 }
 
-void StringValue::insert(Env *env, ssize_t position, char c) {
+void StringValue::insert(Env *env, size_t position, char c) {
     assert(position < m_length);
     grow_at_least(env, m_length + 1);
     m_length++;
@@ -38,16 +38,16 @@ void StringValue::insert(Env *env, ssize_t position, char c) {
 
 void StringValue::append(Env *env, const char *str) {
     if (str == nullptr) return;
-    ssize_t new_length = strlen(str);
+    size_t new_length = strlen(str);
     if (new_length == 0) return;
-    ssize_t total_length = m_length + new_length;
+    size_t total_length = m_length + new_length;
     grow_at_least(env, total_length);
     strcat(m_str, str);
     m_length = total_length;
 }
 
 void StringValue::append_char(Env *env, char c) {
-    ssize_t total_length = m_length + 1;
+    size_t total_length = m_length + 1;
     grow_at_least(env, total_length);
     m_str[total_length - 1] = c;
     m_str[total_length] = 0;
@@ -60,13 +60,13 @@ void StringValue::append_string(Env *env, Value *value) {
 
 void StringValue::append_string(Env *env, StringValue *string2) {
     if (string2->length() == 0) return;
-    ssize_t total_length = m_length + string2->length();
+    size_t total_length = m_length + string2->length();
     grow_at_least(env, total_length);
     strncat(m_str, string2->c_str(), string2->length());
     m_length = total_length;
 }
 
-void StringValue::raise_encoding_invalid_byte_sequence_error(Env *env, ssize_t index) {
+void StringValue::raise_encoding_invalid_byte_sequence_error(Env *env, size_t index) {
     StringValue *message = sprintf(env, "invalid byte sequence at index %i in string of size %i (string not long enough)", index, length());
     ClassValue *Encoding = env->Object()->const_find(env, "Encoding")->as_class();
     ClassValue *InvalidByteSequenceError = Encoding->const_find(env, "InvalidByteSequenceError")->as_class();
@@ -74,12 +74,12 @@ void StringValue::raise_encoding_invalid_byte_sequence_error(Env *env, ssize_t i
     env->raise_exception(exception);
 }
 
-StringValue *StringValue::next_char(Env *env, ssize_t *index) {
+StringValue *StringValue::next_char(Env *env, size_t *index) {
     StringValue *c;
     char buffer[5];
     if (*index >= m_length)
         return nullptr;
-    ssize_t i = *index;
+    size_t i = *index;
     switch (m_encoding) {
     case Encoding::UTF_8:
         buffer[0] = m_str[i];
@@ -118,7 +118,7 @@ StringValue *StringValue::next_char(Env *env, ssize_t *index) {
 
 Value *StringValue::each_char(Env *env, Block *block) {
     StringValue *c = nullptr;
-    ssize_t index = 0;
+    size_t index = 0;
     while ((c = next_char(env, &index))) {
         Value *args[] = { c };
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, args, nullptr);
@@ -129,7 +129,7 @@ Value *StringValue::each_char(Env *env, Block *block) {
 ArrayValue *StringValue::chars(Env *env) {
     ArrayValue *ary = new ArrayValue { env };
     StringValue *c = nullptr;
-    ssize_t index = 0;
+    size_t index = 0;
     while ((c = next_char(env, &index))) {
         ary->push(c);
     }
@@ -146,7 +146,7 @@ Value *StringValue::to_sym(Env *env) {
 
 StringValue *StringValue::inspect(Env *env) {
     StringValue *out = new StringValue { env, "\"" };
-    for (ssize_t i = 0; i < m_length; i++) {
+    for (size_t i = 0; i < m_length; i++) {
         char c = m_str[i];
         if (c == '"' || c == '\\' || c == '#') {
             out->append_char(env, '\\');
@@ -171,7 +171,7 @@ bool StringValue::operator==(const Value &other) const {
 
 StringValue *StringValue::successive(Env *env) {
     StringValue *result = new StringValue { env, m_str };
-    ssize_t index = m_length - 1;
+    size_t index = m_length - 1;
     char last_char = m_str[index];
     if (last_char == 'z') {
         result->increment_successive_char(env, 'a', 'a', 'z');
@@ -189,7 +189,8 @@ StringValue *StringValue::successive(Env *env) {
 }
 
 void StringValue::increment_successive_char(Env *env, char append_char, char begin_char, char end_char) {
-    ssize_t index = m_length - 1;
+    assert(m_length > 0);
+    int64_t index = m_length - 1;
     char last_char = m_str[index];
     while (last_char == end_char) {
         m_str[index] = begin_char;
@@ -207,8 +208,8 @@ Value *StringValue::index(Env *env, Value *needle) {
 }
 
 // FIXME: this does not honor multi-byte characters :-(
-Value *StringValue::index(Env *env, Value *needle, ssize_t start) {
-    ssize_t i = index_ssize_t(env, needle, start);
+Value *StringValue::index(Env *env, Value *needle, size_t start) {
+    int64_t i = index_int(env, needle, start);
     if (i == -1) {
         return env->nil_obj();
     }
@@ -216,7 +217,7 @@ Value *StringValue::index(Env *env, Value *needle, ssize_t start) {
 }
 
 // FIXME: this does not honor multi-byte characters :-(
-ssize_t StringValue::index_ssize_t(Env *env, Value *needle, ssize_t start) {
+int64_t StringValue::index_int(Env *env, Value *needle, size_t start) {
     needle->assert_type(env, Value::Type::String, "String");
     const char *ptr = strstr(c_str() + start, needle->as_string()->c_str());
     if (ptr == nullptr) {
@@ -235,10 +236,10 @@ StringValue *StringValue::sprintf(Env *env, const char *format, ...) {
 
 StringValue *StringValue::vsprintf(Env *env, const char *format, va_list args) {
     StringValue *out = new StringValue { env, "" };
-    ssize_t len = strlen(format);
+    size_t len = strlen(format);
     StringValue *inspected;
     char buf[NAT_INT_64_MAX_BUF_LEN];
-    for (ssize_t i = 0; i < len; i++) {
+    for (size_t i = 0; i < len; i++) {
         char c = format[i];
         if (c == '%') {
             char c2 = format[++i];
@@ -379,7 +380,7 @@ Value *StringValue::ord(Env *env) {
 
 Value *StringValue::bytes(Env *env) {
     ArrayValue *ary = new ArrayValue { env };
-    for (ssize_t i = 0; i < m_length; i++) {
+    for (size_t i = 0; i < m_length; i++) {
         ary->push(new IntegerValue { env, m_str[i] });
     }
     return ary;
@@ -505,14 +506,15 @@ Value *StringValue::ref(Env *env, Value *index_obj) {
 
         if (begin < 0 || end < 0) return env->nil_obj();
         size_t u_begin = static_cast<size_t>(begin);
+        size_t u_end = static_cast<size_t>(end);
         if (u_begin >= chars->size()) return env->nil_obj();
 
-        if (!range->exclude_end()) end++;
+        if (!range->exclude_end()) u_end++;
 
-        ssize_t max = chars->size();
-        end = end > max ? max : end;
+        size_t max = chars->size();
+        u_end = u_end > max ? max : u_end;
         StringValue *result = new StringValue { env };
-        for (int64_t i = begin; i < end; i++) {
+        for (size_t i = begin; i < u_end; i++) {
             result->append_string(env, (*chars)[i]);
         }
 
@@ -525,11 +527,11 @@ Value *StringValue::ref(Env *env, Value *index_obj) {
 StringValue *StringValue::sub(Env *env, Value *find, Value *replacement) {
     replacement->assert_type(env, Value::Type::String, "String");
     if (find->is_string()) {
-        ssize_t index = this->index_ssize_t(env, find->as_string(), 0);
+        int64_t index = this->index_int(env, find->as_string(), 0);
         if (index == -1) {
             return dup(env)->as_string();
         }
-        StringValue *out = new StringValue { env, m_str, index };
+        StringValue *out = new StringValue { env, m_str, static_cast<size_t>(index) };
         out->append_string(env, replacement->as_string());
         out->append(env, &m_str[index + find->as_string()->length()]);
         return out;
@@ -540,7 +542,7 @@ StringValue *StringValue::sub(Env *env, Value *find, Value *replacement) {
         }
         size_t length = match->as_match_data()->group(env, 0)->as_string()->length();
         int64_t index = match->as_match_data()->index(0);
-        StringValue *out = new StringValue { env, m_str, index };
+        StringValue *out = new StringValue { env, m_str, static_cast<size_t>(index) };
         out->append_string(env, replacement->as_string());
         out->append(env, &m_str[index + length]);
         return out;
@@ -567,8 +569,8 @@ Value *StringValue::split(Env *env, Value *splitter) {
     if (m_length == 0) {
         return ary;
     } else if (splitter->is_regexp()) {
-        ssize_t last_index = 0;
-        ssize_t index, len;
+        size_t last_index = 0;
+        size_t index, len;
         OnigRegion *region = onig_region_new();
         int result = splitter->as_regexp()->search(m_str, region, ONIG_OPTION_NONE);
         if (result == ONIG_MISMATCH) {
@@ -586,15 +588,15 @@ Value *StringValue::split(Env *env, Value *splitter) {
         onig_region_free(region, true);
         return ary;
     } else if (splitter->is_string()) {
-        ssize_t last_index = 0;
-        ssize_t index = index_ssize_t(env, splitter->as_string(), 0);
+        size_t last_index = 0;
+        int64_t index = index_int(env, splitter->as_string(), 0);
         if (index == -1) {
             ary->push(dup(env));
         } else {
             do {
                 ary->push(new StringValue { env, &m_str[last_index], index - last_index });
                 last_index = index + splitter->as_string()->length();
-                index = index_ssize_t(env, splitter->as_string(), last_index);
+                index = index_int(env, splitter->as_string(), last_index);
             } while (index != -1);
             ary->push(new StringValue { env, &m_str[last_index] });
         }
@@ -606,7 +608,7 @@ Value *StringValue::split(Env *env, Value *splitter) {
 
 Value *StringValue::ljust(Env *env, Value *length_obj, Value *pad_obj) {
     length_obj->assert_type(env, Value::Type::Integer, "Integer");
-    ssize_t length = length_obj->as_integer()->to_int64_t() < 0 ? 0 : length_obj->as_integer()->to_int64_t();
+    size_t length = length_obj->as_integer()->to_int64_t() < 0 ? 0 : length_obj->as_integer()->to_int64_t();
     StringValue *padstr;
     if (pad_obj) {
         pad_obj->assert_type(env, Value::Type::String, "String");

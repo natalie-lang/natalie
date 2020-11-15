@@ -79,7 +79,7 @@ struct FiberValue : Value {
         GC_get_my_stackbottom(&m_stack_base);
     }
 
-    static Value *yield(Env *env, ssize_t argc, Value **args) {
+    static Value *yield(Env *env, size_t argc, Value **args) {
         auto main_fiber = env->global_env()->main_fiber(env);
         auto current_fiber = env->global_env()->current_fiber();
         current_fiber->set_status(Status::Suspended);
@@ -126,7 +126,7 @@ struct FiberValue : Value {
         }
     }
 
-    Value *resume(Env *env, ssize_t argc, Value **args) {
+    Value *resume(Env *env, size_t argc, Value **args) {
         if (m_status == Status::Terminated) {
             env->raise("FiberError", "dead fiber called");
         }

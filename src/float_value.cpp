@@ -150,9 +150,10 @@ Value *FloatValue::to_s(Env *env) {
 
     } else {
         string = new StringValue { env, out };
-        if (decpt == string->length()) {
+        int64_t s_length = string->length();
+        if (decpt == s_length) {
             string->append(env, ".0");
-        } else if (decpt > string->length()) {
+        } else if (decpt > s_length) {
             char *zeros = zero_string(decpt - string->length());
             string->append(env, zeros);
             string->append(env, ".0");

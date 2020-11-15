@@ -25,11 +25,11 @@ struct MatchDataValue : Value {
 
     const char *c_str() { return m_str; }
 
-    ssize_t size() { return m_region->num_regs; }
+    size_t size() { return m_region->num_regs; }
 
-    ssize_t index(ssize_t);
+    size_t index(size_t);
 
-    Value *group(Env *, ssize_t);
+    Value *group(Env *, size_t);
 
     Value *to_s(Env *);
     Value *ref(Env *, Value *);

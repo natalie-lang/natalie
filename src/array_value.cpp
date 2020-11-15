@@ -165,7 +165,7 @@ Value *ArrayValue::refeq(Env *env, Value *index_obj, Value *size, Value *val) {
     return val;
 }
 
-Value *ArrayValue::any(Env *env, ssize_t argc, Value **args, Block *block) {
+Value *ArrayValue::any(Env *env, size_t argc, Value **args, Block *block) {
     ModuleValue *Enumerable = env->Object()->const_fetch("Enumerable")->as_module();
     return Enumerable->call_method(env, klass(), "any?", this, argc, args, block);
 }

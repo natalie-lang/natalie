@@ -18,7 +18,7 @@ struct HashValue : Value {
         Key *next { nullptr };
         Value *key { nullptr };
         Value *val { nullptr };
-        size_t hash { 0 };
+        int64_t hash { 0 };
         Env env {};
         bool removed { false };
     };
@@ -46,12 +46,12 @@ struct HashValue : Value {
         delete m_default_block;
     }
 
-    static Value *square_new(Env *, ssize_t argc, Value **args);
+    static Value *square_new(Env *, size_t argc, Value **args);
 
-    static size_t hash(const void *);
+    static int64_t hash(const void *);
     static int compare(const void *, const void *);
 
-    ssize_t size() { return m_hashmap.num_entries; }
+    size_t size() { return m_hashmap.num_entries; }
     Value *size(Env *);
 
     Value *get(Env *, Value *);

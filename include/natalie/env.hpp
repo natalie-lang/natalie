@@ -42,9 +42,9 @@ struct Env : public gc {
     [[noreturn]] void raise_exception(ExceptionValue *);
     [[noreturn]] void raise_local_jump_error(Value *, const char *);
 
-    void assert_argc(ssize_t, ssize_t);
-    void assert_argc(ssize_t, ssize_t, ssize_t);
-    void assert_argc_at_least(ssize_t, ssize_t);
+    void assert_argc(size_t, size_t);
+    void assert_argc(size_t, size_t, size_t);
+    void assert_argc_at_least(size_t, size_t);
     void assert_block_given(Block *);
 
     Value *last_match();
@@ -74,8 +74,8 @@ struct Env : public gc {
     const char *file() { return m_file; }
     void set_file(const char *file) { m_file = file; }
 
-    ssize_t line() { return m_line; }
-    void set_line(ssize_t line) { m_line = line; }
+    size_t line() { return m_line; }
+    void set_line(size_t line) { m_line = line; }
 
     const char *method_name() { return m_method_name; }
     void set_method_name(const char *name) { m_method_name = name; }
@@ -91,7 +91,7 @@ private:
     Block *m_block { nullptr };
     Env *m_caller { nullptr };
     const char *m_file { nullptr };
-    ssize_t m_line { 0 };
+    size_t m_line { 0 };
     const char *m_method_name { nullptr };
     Value *m_match { nullptr };
 };

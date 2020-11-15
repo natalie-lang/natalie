@@ -38,7 +38,7 @@ struct KernelModule;
 
 void copy_hashmap(struct hashmap &, const struct hashmap &);
 
-using MethodFnPtr = Value *(*)(Env *, Value *, ssize_t, Value **, Block *);
+using MethodFnPtr = Value *(*)(Env *, Value *, size_t, Value **, Block *);
 
 template <typename T>
 struct Vector;

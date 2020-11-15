@@ -13,7 +13,7 @@ Value *EnvValue::inspect(Env *env) {
     for (; pair; i++) {
         char *eq = strchr(pair, '=');
         assert(eq);
-        ssize_t index = eq - pair;
+        size_t index = eq - pair;
         StringValue *name = new StringValue { env, pair };
         name->truncate(index);
         hash->put(env, name, new StringValue { env, getenv(name->c_str()) });

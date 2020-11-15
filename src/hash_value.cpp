@@ -3,7 +3,7 @@
 namespace Natalie {
 
 // this is used by the hashmap library and assumes that obj->env has been set
-size_t HashValue::hash(const void *key) {
+int64_t HashValue::hash(const void *key) {
     return static_cast<const HashValue::Key *>(key)->hash;
 }
 
@@ -156,7 +156,7 @@ Value *HashValue::initialize(Env *env, Value *default_value, Block *block) {
 }
 
 // Hash[]
-Value *HashValue::square_new(Env *env, ssize_t argc, Value **args) {
+Value *HashValue::square_new(Env *env, size_t argc, Value **args) {
     if (argc == 0) {
         return new HashValue { env };
     } else if (argc == 1) {
@@ -169,7 +169,7 @@ Value *HashValue::square_new(Env *env, ssize_t argc, Value **args) {
                 if (pair->type() != Value::Type::Array) {
                     env->raise("ArgumentError", "wrong element in array to Hash[]");
                 }
-                ssize_t size = pair->as_array()->size();
+                size_t size = pair->as_array()->size();
                 if (size < 1 || size > 2) {
                     env->raise("ArgumentError", "invalid number of elements (%d for 1..2)", size);
                 }
@@ -184,7 +184,7 @@ Value *HashValue::square_new(Env *env, ssize_t argc, Value **args) {
         env->raise("ArgumentError", "odd number of arguments for Hash");
     }
     HashValue *hash = new HashValue { env };
-    for (ssize_t i = 0; i < argc; i += 2) {
+    for (size_t i = 0; i < argc; i += 2) {
         Value *key = args[i];
         Value *value = args[i + 1];
         hash->put(env, key, value);
@@ -194,8 +194,8 @@ Value *HashValue::square_new(Env *env, ssize_t argc, Value **args) {
 
 Value *HashValue::inspect(Env *env) {
     StringValue *out = new StringValue { env, "{" };
-    ssize_t last_index = size() - 1;
-    ssize_t index = 0;
+    size_t last_index = size() - 1;
+    size_t index = 0;
     for (HashValue::Key &node : *this) {
         StringValue *key_repr = node.key->send(env, "inspect")->as_string();
         out->append_string(env, key_repr);

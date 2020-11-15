@@ -8,7 +8,7 @@
 namespace Natalie {
 
 struct Method : public gc {
-    Method(Value *(*fn)(Env *, Value *, ssize_t, Value **, Block *))
+    Method(MethodFnPtr fn)
         : m_fn { fn }
         , m_undefined { !fn } { }
 
@@ -25,7 +25,7 @@ struct Method : public gc {
 
     bool is_undefined() { return m_undefined; }
 
-    Value *run(Env *env, Value *self, ssize_t argc = 0, Value **args = nullptr, Block *block = nullptr) {
+    Value *run(Env *env, Value *self, size_t argc = 0, Value **args = nullptr, Block *block = nullptr) {
         return m_fn(env, self, argc, args, block);
     }
 

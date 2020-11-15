@@ -17,7 +17,7 @@ Value *IoValue::initialize(Env *env, Value *file_number) {
 #define NAT_READ_BYTES 1024
 
 Value *IoValue::read(Env *env, Value *count_value) {
-    ssize_t bytes_read;
+    size_t bytes_read;
     if (count_value) {
         count_value->assert_type(env, Value::Type::Integer, "Integer");
         int count = count_value->as_integer()->to_int64_t();
@@ -49,16 +49,16 @@ Value *IoValue::read(Env *env, Value *count_value) {
     return str;
 }
 
-Value *IoValue::write(Env *env, ssize_t argc, Value **args) {
+Value *IoValue::write(Env *env, size_t argc, Value **args) {
     env->assert_argc_at_least(argc, 1);
     int bytes_written = 0;
-    for (ssize_t i = 0; i < argc; i++) {
+    for (size_t i = 0; i < argc; i++) {
         Value *obj = args[i];
         if (obj->type() != Value::Type::String) {
             obj = obj->send(env, "to_s");
         }
         obj->assert_type(env, Value::Type::String, "String");
-        ssize_t result = ::write(m_fileno, obj->as_string()->c_str(), obj->as_string()->length());
+        int result = ::write(m_fileno, obj->as_string()->c_str(), obj->as_string()->length());
         if (result == -1) {
             Value *error_number = new IntegerValue { env, errno };
             ExceptionValue *error = env->Object()->const_find(env, "SystemCallError")->send(env, "exception", 1, &error_number, nullptr)->as_exception();
@@ -70,11 +70,11 @@ Value *IoValue::write(Env *env, ssize_t argc, Value **args) {
     return new IntegerValue { env, bytes_written };
 }
 
-Value *IoValue::puts(Env *env, ssize_t argc, Value **args) {
+Value *IoValue::puts(Env *env, size_t argc, Value **args) {
     if (argc == 0) {
         dprintf(m_fileno, "\n");
     } else {
-        for (ssize_t i = 0; i < argc; i++) {
+        for (size_t i = 0; i < argc; i++) {
             Value *str = args[i]->send(env, "to_s");
             str->assert_type(env, Value::Type::String, "String");
             dprintf(m_fileno, "%s\n", str->as_string()->c_str());
@@ -83,9 +83,9 @@ Value *IoValue::puts(Env *env, ssize_t argc, Value **args) {
     return env->nil_obj();
 }
 
-Value *IoValue::print(Env *env, ssize_t argc, Value **args) {
+Value *IoValue::print(Env *env, size_t argc, Value **args) {
     if (argc > 0) {
-        for (ssize_t i = 0; i < argc; i++) {
+        for (size_t i = 0; i < argc; i++) {
             Value *str = args[i]->send(env, "to_s");
             str->assert_type(env, Value::Type::String, "String");
             dprintf(m_fileno, "%s", str->as_string()->c_str());

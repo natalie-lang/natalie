@@ -70,7 +70,7 @@ class BindingGen
 
     def write_function
       puts <<-FUNC
-Value *#{name}(Env *env, Value *self_value, ssize_t argc, Value **args, Block *block) {
+Value *#{name}(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     #{argc_assertion}
     #{cpp_class} *self = #{as_type 'self_value'};
     auto return_value = self->#{cpp_method}(#{args_to_pass});
@@ -81,7 +81,7 @@ Value *#{name}(Env *env, Value *self_value, ssize_t argc, Value **args, Block *b
 
     def write_static_function
       puts <<-FUNC
-Value *#{name}(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
+Value *#{name}(Env *env, Value *, size_t argc, Value **args, Block *block) {
     #{argc_assertion}
     auto return_value = #{cpp_class}::#{cpp_method}(#{args_to_pass});
     #{return_code}
@@ -173,7 +173,7 @@ Value *#{name}(Env *env, Value *, ssize_t argc, Value **args, Block *block) {
       case return_type
       when :bool
         'if (return_value) { return env->true_obj(); } else { return env->false_obj(); }'
-      when :ssize_t, :int
+      when :int
         'return new IntegerValue { env, return_value };'
       when :size_t
         "assert(return_value <= INT64_MAX);\n" +
@@ -422,8 +422,8 @@ gen.binding('Kernel', 'singleton_class', 'KernelModule', 'singleton_class_obj', 
 gen.binding('Kernel', 'sleep', 'KernelModule', 'sleep', argc: 0..1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Kernel', 'tap', 'KernelModule', 'tap', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
 
-gen.binding('MatchData', 'size', 'MatchDataValue', 'size', argc: 0, pass_env: false, pass_block: false, return_type: :ssize_t)
-gen.binding('MatchData', 'length', 'MatchDataValue', 'size', argc: 0, pass_env: false, pass_block: false, return_type: :ssize_t)
+gen.binding('MatchData', 'size', 'MatchDataValue', 'size', argc: 0, pass_env: false, pass_block: false, return_type: :size_t)
+gen.binding('MatchData', 'length', 'MatchDataValue', 'size', argc: 0, pass_env: false, pass_block: false, return_type: :size_t)
 gen.binding('MatchData', 'to_s', 'MatchDataValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('MatchData', '[]', 'MatchDataValue', 'ref', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 
@@ -505,7 +505,7 @@ gen.binding('String', 'force_encoding', 'StringValue', 'force_encoding', argc: 1
 gen.binding('String', 'index', 'StringValue', 'index', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('String', 'initialize', 'StringValue', 'initialize', argc: 0..1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('String', 'inspect', 'StringValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
-gen.binding('String', 'length', 'StringValue', 'length', argc: 0, pass_env: false, pass_block: false, return_type: :ssize_t)
+gen.binding('String', 'length', 'StringValue', 'length', argc: 0, pass_env: false, pass_block: false, return_type: :size_t)
 gen.binding('String', 'ljust', 'StringValue', 'ljust', argc: 1..2, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('String', 'match', 'StringValue', 'match', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('String', 'ord', 'StringValue', 'ord', argc: 0, pass_env: true, pass_block: false, return_type: :Value)

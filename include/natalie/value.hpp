@@ -69,7 +69,7 @@ struct Value : public gc {
         assert(klass);
     }
 
-    static Value *_new(Env *, Value *, ssize_t, Value **, Block *);
+    static Value *_new(Env *, Value *, size_t, Value **, Block *);
 
     Value(const Value &);
 
@@ -89,7 +89,7 @@ struct Value : public gc {
         return m_ivars;
     }
 
-    Value *initialize(Env *, ssize_t, Value **, Block *);
+    Value *initialize(Env *, size_t, Value **, Block *);
 
     bool is_nil() const { return m_type == Type::Nil; }
     bool is_true() const { return m_type == Type::True; }
@@ -164,11 +164,11 @@ struct Value : public gc {
     virtual Value *cvar_get_or_null(Env *, const char *);
     virtual Value *cvar_set(Env *, const char *, Value *);
 
-    virtual void define_method(Env *, const char *, Value *(*)(Env *, Value *, ssize_t, Value **, Block *block));
+    virtual void define_method(Env *, const char *, MethodFnPtr);
     virtual void define_method_with_block(Env *, const char *, Block *);
     virtual void undefine_method(Env *, const char *);
 
-    void define_singleton_method(Env *, const char *, Value *(*)(Env *, Value *, ssize_t, Value **, Block *block));
+    void define_singleton_method(Env *, const char *, Value *(*)(Env *, Value *, size_t, Value **, Block *block));
     void define_singleton_method_with_block(Env *, const char *, Block *);
     void undefine_singleton_method(Env *, const char *);
 
@@ -180,8 +180,8 @@ struct Value : public gc {
         snprintf(buf, NAT_OBJECT_POINTER_BUF_LENGTH, "%p", this);
     }
 
-    Value *send(Env *, const char *, ssize_t = 0, Value ** = nullptr, Block * = nullptr);
-    Value *send(Env *, ssize_t, Value **, Block *);
+    Value *send(Env *, const char *, size_t = 0, Value ** = nullptr, Block * = nullptr);
+    Value *send(Env *, size_t, Value **, Block *);
 
     Value *dup(Env *);
 

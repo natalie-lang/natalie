@@ -26,9 +26,9 @@ struct IoValue : Value {
 
     Value *initialize(Env *, Value *);
     Value *read(Env *, Value *);
-    Value *write(Env *, ssize_t, Value **);
-    Value *puts(Env *, ssize_t, Value **);
-    Value *print(Env *, ssize_t, Value **);
+    Value *write(Env *, size_t, Value **);
+    Value *puts(Env *, size_t, Value **);
+    Value *print(Env *, size_t, Value **);
     Value *close(Env *);
     Value *seek(Env *, Value *, Value *);
 

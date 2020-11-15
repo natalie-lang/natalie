@@ -38,9 +38,9 @@ Value *KernelModule::cur_dir(Env *env) {
     } else {
         Value *relative = new StringValue { env, env->file() };
         StringValue *absolute = static_cast<StringValue *>(FileValue::expand_path(env, relative, nullptr));
-        ssize_t last_slash = 0;
+        size_t last_slash = 0;
         bool found = false;
-        for (ssize_t i = 0; i < absolute->length(); i++) {
+        for (size_t i = 0; i < absolute->length(); i++) {
             if (absolute->c_str()[i] == '/') {
                 found = true;
                 last_slash = i;
@@ -95,7 +95,7 @@ Value *KernelModule::get_usage(Env *env) {
 
 Value *KernelModule::hash(Env *env) {
     StringValue *inspected = send(env, "inspect")->as_string();
-    ssize_t hash_value = hashmap_hash_string(inspected->c_str());
+    int64_t hash_value = hashmap_hash_string(inspected->c_str());
     return new IntegerValue { env, hash_value };
 }
 
@@ -173,7 +173,7 @@ Value *KernelModule::methods(Env *env) {
     return array;
 }
 
-Value *KernelModule::p(Env *env, ssize_t argc, Value **args) {
+Value *KernelModule::p(Env *env, size_t argc, Value **args) {
     if (argc == 0) {
         return env->nil_obj();
     } else if (argc == 1) {
@@ -182,7 +182,7 @@ Value *KernelModule::p(Env *env, ssize_t argc, Value **args) {
         return arg;
     } else {
         ArrayValue *result = new ArrayValue { env };
-        for (ssize_t i = 0; i < argc; i++) {
+        for (size_t i = 0; i < argc; i++) {
             result->push(args[i]);
             args[i] = args[i]->send(env, "inspect");
         }
@@ -191,7 +191,7 @@ Value *KernelModule::p(Env *env, ssize_t argc, Value **args) {
     }
 }
 
-Value *KernelModule::print(Env *env, ssize_t argc, Value **args) {
+Value *KernelModule::print(Env *env, size_t argc, Value **args) {
     IoValue *stdout = env->global_get("$stdout")->as_io();
     return stdout->print(env, argc, args);
 }
@@ -204,7 +204,7 @@ Value *KernelModule::proc(Env *env, Block *block) {
     }
 }
 
-Value *KernelModule::puts(Env *env, ssize_t argc, Value **args) {
+Value *KernelModule::puts(Env *env, size_t argc, Value **args) {
     IoValue *stdout = env->global_get("$stdout")->as_io();
     return stdout->puts(env, argc, args);
 }

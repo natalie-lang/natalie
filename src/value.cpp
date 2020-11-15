@@ -13,7 +13,7 @@ Value::Value(const Value &other)
     copy_hashmap(m_ivars, other.m_ivars);
 }
 
-Value *Value::_new(Env *env, Value *klass_value, ssize_t argc, Value **args, Block *block) {
+Value *Value::_new(Env *env, Value *klass_value, size_t argc, Value **args, Block *block) {
     ClassValue *klass = klass_value->as_class();
     Value *obj;
     switch (klass->object_type()) {
@@ -89,7 +89,7 @@ Value *Value::_new(Env *env, Value *klass_value, ssize_t argc, Value **args, Blo
     return obj->initialize(env, argc, args, block);
 }
 
-Value *Value::initialize(Env *env, ssize_t argc, Value **args, Block *block) {
+Value *Value::initialize(Env *env, size_t argc, Value **args, Block *block) {
     ModuleValue *matching_class_or_module;
     Method *method = m_klass->find_method("initialize", &matching_class_or_module);
     if (method) {
@@ -364,7 +364,7 @@ void Value::alias(Env *env, const char *new_name, const char *old_name) {
     }
 }
 
-void Value::define_singleton_method(Env *env, const char *name, Value *(*fn)(Env *, Value *, ssize_t, Value **, Block *block)) {
+void Value::define_singleton_method(Env *env, const char *name, Value *(*fn)(Env *, Value *, size_t, Value **, Block *block)) {
     ClassValue *klass = singleton_class(env);
     klass->define_method(env, name, fn);
 }
@@ -378,7 +378,7 @@ void Value::undefine_singleton_method(Env *env, const char *name) {
     define_singleton_method(env, name, nullptr);
 }
 
-void Value::define_method(Env *env, const char *name, Value *(*fn)(Env *, Value *, ssize_t, Value **, Block *block)) {
+void Value::define_method(Env *env, const char *name, Value *(*fn)(Env *, Value *, size_t, Value **, Block *block)) {
     if (!is_main_object()) {
         printf("tried to call define_method on something that has no methods\n");
         abort();
@@ -402,7 +402,7 @@ void Value::undefine_method(Env *env, const char *name) {
     m_klass->undefine_method(env, name);
 }
 
-Value *Value::send(Env *env, const char *sym, ssize_t argc, Value **args, Block *block) {
+Value *Value::send(Env *env, const char *sym, size_t argc, Value **args, Block *block) {
     if (singleton_class()) {
         ModuleValue *matching_class_or_module;
         Method *method = singleton_class()->find_method(sym, &matching_class_or_module);
@@ -416,7 +416,7 @@ Value *Value::send(Env *env, const char *sym, ssize_t argc, Value **args, Block 
     return m_klass->call_method(env, m_klass, sym, this, argc, args, block);
 }
 
-Value *Value::send(Env *env, ssize_t argc, Value **args, Block *block) {
+Value *Value::send(Env *env, size_t argc, Value **args, Block *block) {
     const char *name = args[0]->identifier_str(env, Value::Conversion::Strict);
     return send(env->caller(), name, argc - 1, args + 1, block);
 }

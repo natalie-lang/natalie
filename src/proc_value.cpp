@@ -7,7 +7,7 @@ Value *ProcValue::initialize(Env *env, Block *block) {
     return this;
 }
 
-Value *ProcValue::call(Env *env, ssize_t argc, Value **args, Block *block) {
+Value *ProcValue::call(Env *env, size_t argc, Value **args, Block *block) {
     assert(m_block);
     return NAT_RUN_BLOCK_WITHOUT_BREAK(env, m_block, argc, args, block);
 }

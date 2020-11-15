@@ -32,6 +32,7 @@
 namespace Natalie {
 
 #include <stddef.h>
+#include <stdint.h>
 
 /*
  * Define HASHMAP_METRICS to compile in performance analysis
@@ -119,7 +120,7 @@ struct hashmap {
     size_t table_size;
     size_t num_entries;
     struct hashmap_entry *table;
-    size_t (*hash)(const void *);
+    int64_t (*hash)(const void *);
     int (*key_compare)(const void *, const void *);
     void *(*key_alloc)(const void *);
     void (*key_free)(void *);
@@ -143,7 +144,7 @@ struct hashmap {
  *
  * Returns 0 on success and -errno on failure.
  */
-int hashmap_init(struct hashmap *map, size_t (*hash_func)(const void *),
+int hashmap_init(struct hashmap *map, int64_t (*hash_func)(const void *),
     int (*key_compare_func)(const void *, const void *),
     size_t initial_size);
 
@@ -247,7 +248,7 @@ int hashmap_foreach(const struct hashmap *map,
  * This is an implementation of the well-documented Jenkins one-at-a-time
  * hash function.
  */
-size_t hashmap_hash_string(const void *key);
+int64_t hashmap_hash_string(const void *key);
 
 /*
  * Default key comparator function for string keys.

@@ -61,7 +61,7 @@ const char *find_current_method_name(Env *env);
 void int_to_string(int64_t num, char *buf);
 void int_to_hex_string(int64_t num, char *buf, bool capitalize);
 
-Value *call_begin(Env *, Value *, MethodFnPtr, ssize_t, Value **, Block *);
+Value *call_begin(Env *, Value *, MethodFnPtr, size_t, Value **, Block *);
 
 Value *splat(Env *env, Value *obj);
 
@@ -71,15 +71,15 @@ void handle_top_level_exception(Env *, ExceptionValue *, bool);
 
 ArrayValue *to_ary(Env *env, Value *obj, bool raise_for_non_array);
 
-Value *arg_value_by_path(Env *env, Value *value, Value *default_value, bool splat, int total_count, int default_count, bool defaults_on_right, int offset_from_end, ssize_t path_size, ...);
-Value *array_value_by_path(Env *env, Value *value, Value *default_value, bool splat, int offset_from_end, ssize_t path_size, ...);
+Value *arg_value_by_path(Env *env, Value *value, Value *default_value, bool splat, int total_count, int default_count, bool defaults_on_right, int offset_from_end, size_t path_size, ...);
+Value *array_value_by_path(Env *env, Value *value, Value *default_value, bool splat, int offset_from_end, size_t path_size, ...);
 Value *kwarg_value_by_name(Env *env, Value *args, const char *name, Value *default_value);
 Value *kwarg_value_by_name(Env *env, ArrayValue *args, const char *name, Value *default_value);
 
-ArrayValue *args_to_array(Env *env, ssize_t argc, Value **args);
-ArrayValue *block_args_to_array(Env *env, ssize_t signature_size, ssize_t argc, Value **args);
+ArrayValue *args_to_array(Env *env, size_t argc, Value **args);
+ArrayValue *block_args_to_array(Env *env, size_t signature_size, size_t argc, Value **args);
 
-void arg_spread(Env *env, ssize_t argc, Value **args, const char *arrangement, ...);
+void arg_spread(Env *env, size_t argc, Value **args, const char *arrangement, ...);
 
 template <typename T>
 void list_prepend(T *list, T item) {

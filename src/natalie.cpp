@@ -48,7 +48,7 @@ void int_to_hex_string(int64_t num, char *buf, bool capitalize) {
     }
 }
 
-Value *call_begin(Env *env, Value *self, MethodFnPtr begin_fn, ssize_t argc, Value **args, Block *block) {
+Value *call_begin(Env *env, Value *self, MethodFnPtr begin_fn, size_t argc, Value **args, Block *block) {
     Env e = Env { env, env };
     return begin_fn(&e, self, argc, args, block);
 }
@@ -132,14 +132,14 @@ static Value *splat_value(Env *env, Value *value, size_t index, size_t offset_fr
     return splat;
 }
 
-Value *arg_value_by_path(Env *env, Value *value, Value *default_value, bool splat, int total_count, int default_count, bool defaults_on_right, int offset_from_end, ssize_t path_size, ...) {
+Value *arg_value_by_path(Env *env, Value *value, Value *default_value, bool splat, int total_count, int default_count, bool defaults_on_right, int offset_from_end, size_t path_size, ...) {
     va_list args;
     va_start(args, path_size);
     bool has_default = default_value != env->nil_obj();
     bool defaults_on_left = !defaults_on_right;
     int required_count = total_count - default_count;
     Value *return_value = value;
-    for (ssize_t i = 0; i < path_size; i++) {
+    for (size_t i = 0; i < path_size; i++) {
         int index = va_arg(args, int);
 
         if (splat && i == path_size - 1) {
@@ -207,11 +207,11 @@ Value *arg_value_by_path(Env *env, Value *value, Value *default_value, bool spla
     return return_value;
 }
 
-Value *array_value_by_path(Env *env, Value *value, Value *default_value, bool splat, int offset_from_end, ssize_t path_size, ...) {
+Value *array_value_by_path(Env *env, Value *value, Value *default_value, bool splat, int offset_from_end, size_t path_size, ...) {
     va_list args;
     va_start(args, path_size);
     Value *return_value = value;
-    for (ssize_t i = 0; i < path_size; i++) {
+    for (size_t i = 0; i < path_size; i++) {
         int index = va_arg(args, int);
         if (splat && i == path_size - 1) {
             return splat_value(env, return_value, index, offset_from_end);
@@ -278,9 +278,9 @@ Value *kwarg_value_by_name(Env *env, ArrayValue *args, const char *name, Value *
     return value;
 }
 
-ArrayValue *args_to_array(Env *env, ssize_t argc, Value **args) {
+ArrayValue *args_to_array(Env *env, size_t argc, Value **args) {
     ArrayValue *ary = new ArrayValue { env };
-    for (ssize_t i = 0; i < argc; i++) {
+    for (size_t i = 0; i < argc; i++) {
         ary->push(args[i]);
     }
     return ary;
@@ -288,25 +288,25 @@ ArrayValue *args_to_array(Env *env, ssize_t argc, Value **args) {
 
 // much like args_to_array above, but when a block is given a single arg,
 // and the block wants multiple args, call to_ary on the first arg and return that
-ArrayValue *block_args_to_array(Env *env, ssize_t signature_size, ssize_t argc, Value **args) {
+ArrayValue *block_args_to_array(Env *env, size_t signature_size, size_t argc, Value **args) {
     if (argc == 1 && signature_size > 1) {
         return to_ary(env, args[0], true);
     }
     return args_to_array(env, argc, args);
 }
 
-void arg_spread(Env *env, ssize_t argc, Value **args, const char *arrangement, ...) {
+void arg_spread(Env *env, size_t argc, Value **args, const char *arrangement, ...) {
     va_list va_args;
     va_start(va_args, arrangement);
-    ssize_t len = strlen(arrangement);
-    ssize_t arg_index = 0;
+    size_t len = strlen(arrangement);
+    size_t arg_index = 0;
     Value *obj;
     bool *bool_ptr;
     int *int_ptr;
     const char **str_ptr;
     void **void_ptr;
     Value **obj_ptr;
-    for (ssize_t i = 0; i < len; i++) {
+    for (size_t i = 0; i < len; i++) {
         char c = arrangement[i];
         switch (c) {
         case 'o':

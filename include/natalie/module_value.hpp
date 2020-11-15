@@ -34,13 +34,13 @@ struct ModuleValue : Value {
         delete m_class_name;
     }
 
-    Value *extend(Env *, ssize_t argc, Value **args);
+    Value *extend(Env *, size_t argc, Value **args);
     void extend_once(Env *, ModuleValue *);
 
-    Value *include(Env *, ssize_t argc, Value **args);
+    Value *include(Env *, size_t argc, Value **args);
     void include_once(Env *, ModuleValue *);
 
-    Value *prepend(Env *, ssize_t argc, Value **args);
+    Value *prepend(Env *, size_t argc, Value **args);
     void prepend_once(Env *, ModuleValue *);
 
     virtual Value *const_get(const char *) override;
@@ -66,7 +66,7 @@ struct ModuleValue : Value {
     virtual Value *cvar_set(Env *, const char *, Value *) override;
 
     Value *define_method(Env *, Value *, Block *);
-    virtual void define_method(Env *, const char *, Value *(*)(Env *, Value *, ssize_t, Value **, Block *block)) override;
+    virtual void define_method(Env *, const char *, MethodFnPtr) override;
     virtual void define_method_with_block(Env *, const char *, Block *) override;
     virtual void undefine_method(Env *, const char *) override;
 
@@ -74,7 +74,7 @@ struct ModuleValue : Value {
     Method *find_method(const char *, ModuleValue **);
     Method *find_method_without_undefined(const char *, ModuleValue **);
 
-    Value *call_method(Env *, Value *, const char *, Value *, ssize_t, Value **, Block *);
+    Value *call_method(Env *, Value *, const char *, Value *, size_t, Value **, Block *);
 
     ArrayValue *ancestors(Env *);
 
@@ -82,12 +82,12 @@ struct ModuleValue : Value {
 
     Value *inspect(Env *);
     Value *name(Env *);
-    Value *attr_reader(Env *, ssize_t, Value **);
-    Value *attr_writer(Env *, ssize_t, Value **);
-    Value *attr_accessor(Env *, ssize_t, Value **);
+    Value *attr_reader(Env *, size_t, Value **);
+    Value *attr_writer(Env *, size_t, Value **);
+    Value *attr_accessor(Env *, size_t, Value **);
 
-    static Value *attr_reader_block_fn(Env *, Value *, ssize_t, Value **, Block *);
-    static Value *attr_writer_block_fn(Env *, Value *, ssize_t, Value **, Block *);
+    static Value *attr_reader_block_fn(Env *, Value *, size_t, Value **, Block *);
+    static Value *attr_writer_block_fn(Env *, Value *, size_t, Value **, Block *);
 
     Value *module_eval(Env *, Block *);
 

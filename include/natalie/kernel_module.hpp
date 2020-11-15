@@ -51,10 +51,10 @@ struct KernelModule : Value {
     Value *lambda(Env *env, Block *block);
     Value *loop(Env *env, Block *block);
     Value *methods(Env *env);
-    Value *p(Env *env, ssize_t argc, Value **args);
-    Value *print(Env *env, ssize_t argc, Value **args);
+    Value *p(Env *env, size_t argc, Value **args);
+    Value *print(Env *env, size_t argc, Value **args);
     Value *proc(Env *env, Block *block);
-    Value *puts(Env *env, ssize_t argc, Value **args);
+    Value *puts(Env *env, size_t argc, Value **args);
     Value *raise(Env *env, Value *klass, Value *message);
     Value *sleep(Env *env, Value *length);
     Value *tap(Env *env, Block *block);

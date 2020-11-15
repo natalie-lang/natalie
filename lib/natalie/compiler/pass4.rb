@@ -145,7 +145,7 @@ module Natalie
         name = name.last
         body = body.last
         fn = temp('fn')
-        top "Value *#{fn}(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {\n#{body}\n}"
+        top "Value *#{fn}(Env *env, Value *self, size_t argc, Value **args, Block *block) {\n#{body}\n}"
         process(s(:define_method, s(:l, "self->as_module()"), :env, s(:s, name), fn))
         "new SymbolValue { env, #{name.inspect} }"
       end
@@ -265,7 +265,7 @@ module Natalie
         if type == :rest
           rest = temp('rest')
           decl "ArrayValue *#{rest} = new ArrayValue { env };"
-          decl "for (ssize_t i=#{index}; i<#{argc_name}; i++) {"
+          decl "for (size_t i=#{index}; i<#{argc_name}; i++) {"
           decl "#{rest}->push(#{args_name}[i]);"
           decl '}'
           rest
@@ -472,7 +472,7 @@ module Natalie
           result = process_atom(body)
           fn = []
           if arg_list == 6
-            fn << "Value *#{name}(Env *env, Value *self, ssize_t argc, Value **args, Block *block) {"
+            fn << "Value *#{name}(Env *env, Value *self, size_t argc, Value **args, Block *block) {"
           elsif arg_list == 2
             fn << "Value *#{name}(Env *env, Value *self) {"
           else
