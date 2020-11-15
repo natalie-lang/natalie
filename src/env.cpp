@@ -8,7 +8,7 @@ Env Env::new_detatched_env(Env *outer) {
     return Env { outer->global_env() };
 }
 
-void Env::build_vars(ssize_t size) {
+void Env::build_vars(size_t size) {
     m_vars = new Vector<Value *> { size, static_cast<Value *>(nil_obj()) };
 }
 
@@ -134,7 +134,7 @@ Value *Env::last_match() {
     }
 }
 
-Value *Env::var_get(const char *key, ssize_t index) {
+Value *Env::var_get(const char *key, size_t index) {
     if (index >= m_vars->size()) {
         printf("Trying to get variable `%s' at index %zu which is not set.\n", key, index);
         abort();
@@ -148,9 +148,9 @@ Value *Env::var_get(const char *key, ssize_t index) {
     }
 }
 
-Value *Env::var_set(const char *name, ssize_t index, bool allocate, Value *val) {
-    ssize_t needed = index + 1;
-    ssize_t current_size = m_vars ? m_vars->size() : 0;
+Value *Env::var_set(const char *name, size_t index, bool allocate, Value *val) {
+    size_t needed = index + 1;
+    size_t current_size = m_vars ? m_vars->size() : 0;
     if (needed > current_size) {
         if (allocate) {
             if (!m_vars) {

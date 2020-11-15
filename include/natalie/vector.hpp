@@ -19,7 +19,7 @@ struct Vector : public gc {
         memset(m_data, 0, sizeof(T) * NAT_VECTOR_MIN_CAPACITY);
     }
 
-    Vector(ssize_t initial_capacity, T filler)
+    Vector(size_t initial_capacity, T filler)
         : m_size { initial_capacity }
         , m_capacity { initial_capacity }
         , m_data { static_cast<T *>(GC_MALLOC(sizeof(T) * initial_capacity)) } {
@@ -33,33 +33,16 @@ struct Vector : public gc {
         memcpy(m_data, other.m_data, sizeof(T) * m_size);
     }
 
-    Vector slice(ssize_t offset, ssize_t count = -1) {
-        if (count == -1 && m_size >= offset)
+    Vector slice(size_t offset, size_t count = 0) {
+        if (count == 0 || offset + count > m_size) {
             count = m_size - offset;
-        auto size = count;
-        auto capacity = size;
-        T *data = nullptr;
-        if (offset >= 0 && count >= 0 && m_size >= offset + count) {
-            if constexpr (NAT_VECTOR_GROW_FACTOR == 2) {
-                --capacity;
-                for (auto i = 0; i < 64; i += 4)
-                    capacity |= capacity >> i;
-                ++capacity;
-            } else {
-                capacity /= NAT_VECTOR_GROW_FACTOR;
-                ++capacity;
-                capacity *= NAT_VECTOR_GROW_FACTOR;
-            }
-            data = static_cast<T *>(GC_MALLOC(sizeof(T) * capacity));
-            memcpy(data, m_data + offset, sizeof(T) * size);
-        } else {
-            // FIXME: We should probably say something here.
-            size = 0;
-            capacity = 0;
-            data = nullptr;
         }
-
-        return { size, capacity, data };
+        if (offset >= m_size || count == 0) {
+            return {};
+        }
+        T *data = static_cast<T *>(GC_MALLOC(sizeof(T) * count));
+        memcpy(data, m_data + offset, sizeof(T) * count);
+        return { count, count, data };
     }
 
     Vector &operator=(Vector &&other) {
@@ -77,12 +60,12 @@ struct Vector : public gc {
             GC_FREE(m_data);
     }
 
-    T &operator[](ssize_t index) const {
+    T &operator[](size_t index) const {
         return m_data[index];
     }
 
     void push(T val) {
-        ssize_t len = m_size;
+        size_t len = m_size;
         if (m_size >= m_capacity) {
             grow_at_least(m_size + 1);
         }
@@ -95,39 +78,39 @@ struct Vector : public gc {
             grow_at_least(m_size + 1);
         }
         m_size++;
-        for (ssize_t i = m_size - 1; i > 0; i--) {
+        for (size_t i = m_size - 1; i > 0; i--) {
             m_data[i] = m_data[i - 1];
         }
         m_data[0] = val;
     }
 
-    ssize_t is_empty() const { return m_size == 0; }
-    ssize_t size() const { return m_size; }
-    ssize_t capacity() const { return m_capacity; }
+    bool is_empty() const { return m_size == 0; }
+
+    size_t size() const { return m_size; }
+    size_t capacity() const { return m_capacity; }
     T *data() { return m_data; }
 
-    void fill(ssize_t from, ssize_t to_exclusive, T filler) {
-        assert(from >= 0);
+    void fill(size_t from, size_t to_exclusive, T filler) {
         assert(to_exclusive <= m_size);
-        for (ssize_t i = from; i < to_exclusive; i++) {
+        for (size_t i = from; i < to_exclusive; i++) {
             m_data[i] = filler;
         }
     }
 
-    void set_size(ssize_t new_size) {
+    void set_size(size_t new_size) {
         assert(new_size <= m_size);
         grow(new_size);
         m_size = new_size;
     }
 
-    void set_size(ssize_t new_size, T filler) {
+    void set_size(size_t new_size, T filler) {
         grow(new_size);
-        ssize_t old_size = m_size;
+        size_t old_size = m_size;
         m_size = new_size;
         fill(old_size, new_size, filler);
     }
 
-    void set_capacity(ssize_t new_size) {
+    void set_capacity(size_t new_size) {
         grow_at_least(new_size);
     }
 
@@ -180,17 +163,17 @@ struct Vector : public gc {
     }
 
 private:
-    Vector(ssize_t size, ssize_t capacity, T *data)
+    Vector(size_t size, size_t capacity, T *data)
         : m_size(size)
         , m_capacity(capacity)
         , m_data(data) { }
 
-    void grow(ssize_t capacity) {
+    void grow(size_t capacity) {
         m_data = static_cast<T *>(GC_REALLOC(m_data, sizeof(T) * capacity));
         m_capacity = capacity;
     }
 
-    void grow_at_least(ssize_t min_capacity) {
+    void grow_at_least(size_t min_capacity) {
         if (m_capacity >= min_capacity) {
             return;
         }
@@ -227,8 +210,8 @@ private:
         return p_index;
     }
 
-    ssize_t m_size { 0 };
-    ssize_t m_capacity { 0 };
+    size_t m_size { 0 };
+    size_t m_capacity { 0 };
     T *m_data { nullptr };
 };
 

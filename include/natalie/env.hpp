@@ -34,8 +34,8 @@ struct Env : public gc {
     const char *find_current_method_name();
     char *build_code_location_name(Env *);
 
-    Value *var_get(const char *, ssize_t);
-    Value *var_set(const char *, ssize_t, bool, Value *);
+    Value *var_get(const char *, size_t);
+    Value *var_set(const char *, size_t, bool, Value *);
 
     [[noreturn]] void raise(ClassValue *, const char *, ...);
     [[noreturn]] void raise(const char *, const char *, ...);
@@ -60,7 +60,7 @@ struct Env : public gc {
     void set_global_env(GlobalEnv *global_env) { m_global_env = global_env; }
     void clear_global_env() { m_global_env = nullptr; }
 
-    void build_vars(ssize_t);
+    void build_vars(size_t);
 
     Env *outer() { return m_outer; }
 
