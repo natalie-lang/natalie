@@ -611,8 +611,9 @@ Value *StringValue::split(Env *env, Value *splitter) {
             ary->push(dup(env));
         } else {
             do {
-                ary->push(new StringValue { env, &m_str[last_index], index - last_index });
-                last_index = index + splitter->as_string()->length();
+                size_t u_index = static_cast<size_t>(index);
+                ary->push(new StringValue { env, &m_str[last_index], u_index - last_index });
+                last_index = u_index + splitter->as_string()->length();
                 index = index_int(env, splitter->as_string(), last_index);
             } while (index != -1);
             ary->push(new StringValue { env, &m_str[last_index] });
