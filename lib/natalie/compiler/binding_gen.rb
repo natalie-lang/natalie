@@ -176,8 +176,7 @@ Value *#{name}(Env *env, Value *, size_t argc, Value **args, Block *block) {
       when :int
         'return new IntegerValue { env, return_value };'
       when :size_t
-        "assert(return_value <= INT64_MAX);\n" +
-        'return new IntegerValue { env, static_cast<int64_t>(return_value) };'
+        'return IntegerValue::from_size_t(env, return_value);'
       when :Value
         'return return_value;'
       when :NullableValue

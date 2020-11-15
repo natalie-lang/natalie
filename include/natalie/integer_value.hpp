@@ -31,6 +31,11 @@ struct IntegerValue : Value {
         return m_integer % 2 == 0;
     }
 
+    static IntegerValue *from_size_t(Env *env, size_t number) {
+        assert(number <= INT64_MAX);
+        return new IntegerValue { env, static_cast<int64_t>(number) };
+    }
+
     Value *to_s(Env *);
     Value *to_i();
     Value *add(Env *, Value *);

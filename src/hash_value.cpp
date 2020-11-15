@@ -236,8 +236,7 @@ Value *HashValue::delete_key(Env *env, Value *key) {
 }
 
 Value *HashValue::size(Env *env) {
-    assert(size() <= NAT_MAX_INT);
-    return new IntegerValue { env, static_cast<int64_t>(size()) };
+    return IntegerValue::from_size_t(env, size());
 }
 
 Value *HashValue::eq(Env *env, Value *other_value) {

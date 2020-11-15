@@ -387,9 +387,7 @@ Value *StringValue::bytes(Env *env) {
 }
 
 Value *StringValue::size(Env *env) {
-    auto c = chars(env);
-    assert(c->size() < INT64_MAX);
-    return new IntegerValue { env, static_cast<int64_t>(c->size()) };
+    return IntegerValue::from_size_t(env, chars(env)->size());
 }
 
 Value *StringValue::encoding(Env *env) {

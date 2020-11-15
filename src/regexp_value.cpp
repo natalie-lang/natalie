@@ -31,7 +31,7 @@ Value *RegexpValue::eqtilde(Env *env, Value *other) {
     } else {
         MatchDataValue *matchdata = result->as_match_data();
         assert(matchdata->size() > 0);
-        return new IntegerValue { env, static_cast<int64_t>(matchdata->index(0)) };
+        return IntegerValue::from_size_t(env, matchdata->index(0));
     }
 }
 
