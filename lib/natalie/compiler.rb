@@ -13,7 +13,9 @@ module Natalie
     INC_PATHS = [
       File.join(ROOT_DIR, 'include'),
       File.join(BUILD_DIR, 'include'),
+      File.join(BUILD_DIR, 'include/bdwgc'),
       File.join(BUILD_DIR, 'include/gdtoa'),
+      File.join(BUILD_DIR, 'include/onigmo'),
     ]
     LIB_PATHS = [
       BUILD_DIR,

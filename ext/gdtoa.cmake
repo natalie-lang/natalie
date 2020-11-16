@@ -4,23 +4,20 @@ set(GDTOA_LIB "${CMAKE_BINARY_DIR}/libgdtoa.a")
 set(GDTOA_BUILD_DIR "${CMAKE_BINARY_DIR}/gdtoa-build")
 
 add_custom_target(make_gdtoa_build_dir
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${GDTOA_BUILD_DIR})
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${GDTOA_BUILD_DIR}
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/include/gdtoa)
 
 add_custom_command(
     OUTPUT "${GDTOA_LIB}"
     BYPRODUCTS "${GDTOA_BUILD_DIR}/libgdtoa.a" "${GDTOA_SRC}/arith.h"
     DEPENDS make_gdtoa_build_dir
-    WORKING_DIRECTORY ${GDTOA_SRC}
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${GDTOA_SRC}" "${GDTOA_BUILD_DIR}"
+    WORKING_DIRECTORY ${GDTOA_BUILD_DIR}
     COMMAND sh autogen.sh
-    COMMAND mkdir -p ${GDTOA_BUILD_DIR}
-    COMMAND ./configure --with-pic --prefix "${GDTOA_BUILD_DIR}"
+    COMMAND ./configure --with-pic
     COMMAND make
-    COMMAND make install
-    COMMAND ${CMAKE_COMMAND} -E copy "${GDTOA_BUILD_DIR}/lib/libgdtoa.a" "${GDTOA_LIB}"
-    COMMAND ${CMAKE_COMMAND} -E copy_directory "${GDTOA_BUILD_DIR}/include" "${CMAKE_BINARY_DIR}/include"
-    COMMAND ${CMAKE_COMMAND} -E copy "${GDTOA_SRC}/*.h" "${CMAKE_BINARY_DIR}/include/gdtoa" # gdtoa does not install all its headers :(
-    COMMAND make clean
-    COMMAND ${CMAKE_COMMAND} -E remove ${GDTOA_SRC}/compile)
+    COMMAND ${CMAKE_COMMAND} -E copy "${GDTOA_BUILD_DIR}/*.h" "${CMAKE_BINARY_DIR}/include/gdtoa"
+    COMMAND ${CMAKE_COMMAND} -E copy "${GDTOA_BUILD_DIR}/.libs/libgdtoa.a" "${GDTOA_LIB}")
 
 add_custom_target(gdtoa
     DEPENDS "${GDTOA_LIB}" "${GDTOA_CPPLIB}")

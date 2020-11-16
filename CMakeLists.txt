@@ -35,7 +35,9 @@ endforeach()
 target_include_directories(natalie PRIVATE
   include
   ${CMAKE_BINARY_DIR}/include
-  ${CMAKE_BINARY_DIR}/include/gdtoa)
+  ${CMAKE_BINARY_DIR}/include/bdwgc
+  ${CMAKE_BINARY_DIR}/include/gdtoa
+  ${CMAKE_BINARY_DIR}/include/onigmo)
 
 set_target_properties(natalie PROPERTIES CXX_STANDARD 17 POSITION_INDEPENDENT_CODE true)
 set_property(TARGET natalie APPEND_STRING PROPERTY COMPILE_FLAGS $ENV{NAT_CXX_FLAGS})

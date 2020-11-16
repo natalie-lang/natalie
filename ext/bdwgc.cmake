@@ -5,22 +5,21 @@ set(BDWGC_CPPLIB "${CMAKE_BINARY_DIR}/libgccpp.a")
 set(BDWGC_BUILD_DIR "${CMAKE_BINARY_DIR}/bdwgc-build")
 
 add_custom_target(make_bdwgc_build_dir
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${BDWGC_BUILD_DIR})
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${BDWGC_BUILD_DIR}
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/include/bdwgc)
 
 add_custom_command(
     OUTPUT "${BDWGC_LIB}" "${BDWGC_CPPLIB}"
     BYPRODUCTS "${BDWGC_BUILD_DIR}/libgc.a" "${BDWGC_BUILD_DIR}/libgccpp.a"
     DEPENDS make_bdwgc_build_dir
-    WORKING_DIRECTORY ${BDWGC_SRC}
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${BDWGC_SRC}" "${BDWGC_BUILD_DIR}"
+    WORKING_DIRECTORY ${BDWGC_BUILD_DIR}
     COMMAND sh autogen.sh
-    COMMAND mkdir -p ${BDWGC_BUILD_DIR}
-    COMMAND ./configure --enable-cplusplus --enable-threads=pthreads --enable-static --with-pic --prefix "${BDWGC_BUILD_DIR}"
+    COMMAND ./configure --enable-cplusplus --enable-threads=pthreads --enable-static --with-pic
     COMMAND make
-    COMMAND make install
-    COMMAND make clean
-    COMMAND ${CMAKE_COMMAND} -E copy_directory "${BDWGC_BUILD_DIR}/include" "${CMAKE_BINARY_DIR}/include"
-    COMMAND ${CMAKE_COMMAND} -E copy "${BDWGC_BUILD_DIR}/lib/libgc.a" "${BDWGC_LIB}"
-    COMMAND ${CMAKE_COMMAND} -E copy "${BDWGC_BUILD_DIR}/lib/libgccpp.a" "${BDWGC_CPPLIB}")
+    COMMAND ${CMAKE_COMMAND} -E copy "${BDWGC_BUILD_DIR}/include/*.h" "${CMAKE_BINARY_DIR}/include/bdwgc"
+    COMMAND ${CMAKE_COMMAND} -E copy "${BDWGC_BUILD_DIR}/.libs/libgc.a" "${BDWGC_LIB}"
+    COMMAND ${CMAKE_COMMAND} -E copy "${BDWGC_BUILD_DIR}/.libs/libgccpp.a" "${BDWGC_CPPLIB}")
 
 add_custom_target(bdwgc
     DEPENDS "${BDWGC_LIB}" "${BDWGC_CPPLIB}")
