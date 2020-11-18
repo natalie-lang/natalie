@@ -79,13 +79,6 @@ ArrayValue *block_args_to_array(Env *env, size_t signature_size, size_t argc, Va
 
 void arg_spread(Env *env, size_t argc, Value **args, const char *arrangement, ...);
 
-template <typename T>
-void list_prepend(T *list, T item) {
-    T next_item = *list;
-    *list = item;
-    item->next = next_item;
-}
-
 std::pair<Value *, Value *> coerce(Env *, Value *, Value *);
 
 char *zero_string(int);
