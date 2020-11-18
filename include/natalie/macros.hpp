@@ -10,10 +10,6 @@
         abort();                                                 \
     }
 
-#define NAT_FLAG_MAIN_OBJECT 1
-#define NAT_FLAG_FROZEN 2
-#define NAT_FLAG_BREAK 4
-
 #define NAT_RUN_BLOCK_FROM_ENV(env, argc, args) ({                                                        \
     Env *env_with_block = env;                                                                            \
     while (!env_with_block->block() && env_with_block->outer()) {                                         \

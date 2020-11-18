@@ -40,6 +40,12 @@ struct Value : public gc {
         VoidP,
     };
 
+    enum Flag {
+        MainObject = 1,
+        Frozen = 2,
+        Break = 4,
+    };
+
     enum class Conversion {
         Strict,
         NullAllowed,
@@ -196,16 +202,15 @@ struct Value : public gc {
 
     virtual ProcValue *to_proc(Env *);
 
-    bool is_main_object() { return (m_flags & NAT_FLAG_MAIN_OBJECT) == NAT_FLAG_MAIN_OBJECT; }
+    bool is_main_object() { return (m_flags & Flag::MainObject) == Flag::MainObject; }
+    void add_main_object_flag() { m_flags = m_flags | Flag::MainObject; }
 
-    bool is_frozen() { return is_integer() || is_float() || (m_flags & NAT_FLAG_FROZEN) == NAT_FLAG_FROZEN; }
-    void freeze() { m_flags = m_flags | NAT_FLAG_FROZEN; }
+    bool is_frozen() { return is_integer() || is_float() || (m_flags & Flag::Frozen) == Flag::Frozen; }
+    void freeze() { m_flags = m_flags | Flag::Frozen; }
 
-    void add_break_flag() { m_flags = m_flags | NAT_FLAG_BREAK; }
-    void remove_break_flag() { m_flags = m_flags & ~NAT_FLAG_BREAK; }
-    bool has_break_flag() { return (m_flags & NAT_FLAG_BREAK) == NAT_FLAG_BREAK; }
-
-    void add_main_object_flag() { m_flags = m_flags | NAT_FLAG_MAIN_OBJECT; }
+    void add_break_flag() { m_flags = m_flags | Flag::Break; }
+    void remove_break_flag() { m_flags = m_flags & ~Flag::Break; }
+    bool has_break_flag() { return (m_flags & Flag::Break) == Flag::Break; }
 
     bool eq(Env *, Value *other) {
         return this == other;
