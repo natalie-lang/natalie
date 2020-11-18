@@ -318,7 +318,6 @@ void hashmap_destroy(struct hashmap *map) {
     }
     hashmap_free_keys(map);
     GC_FREE(map->table);
-    memset(map, 0, sizeof(*map));
 }
 
 /*

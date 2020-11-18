@@ -103,11 +103,11 @@ struct ModuleValue : Value {
     }
 
 protected:
-    struct hashmap m_constants EMPTY_HASHMAP;
+    hashmap m_constants {};
     const char *m_class_name { nullptr };
     ClassValue *m_superclass { nullptr };
-    struct hashmap m_methods EMPTY_HASHMAP;
-    struct hashmap m_class_vars EMPTY_HASHMAP;
+    hashmap m_methods {};
+    hashmap m_class_vars {};
     Vector<ModuleValue *> m_included_modules {};
 };
 

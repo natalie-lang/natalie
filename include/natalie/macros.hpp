@@ -50,9 +50,6 @@
     _result;                                                              \
 })
 
-#define EMPTY_HASHMAP \
-    { 0, 0, 0, nullptr, nullptr, nullptr, nullptr, nullptr }
-
 #define NAT_QUOTE(val) #val
 
 #ifdef __APPLE__

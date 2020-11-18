@@ -149,7 +149,7 @@ private:
     }
 
     Key *m_key_list { nullptr };
-    struct hashmap m_hashmap EMPTY_HASHMAP;
+    hashmap m_hashmap {};
     bool m_is_iterating { false };
     Value *m_default_value { nullptr };
     Block *m_default_block { nullptr };

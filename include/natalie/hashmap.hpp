@@ -118,15 +118,17 @@ struct hashmap_entry;
  * The hashmap state structure.
  */
 struct hashmap {
-    size_t table_size_init;
-    size_t table_size;
-    size_t num_entries;
-    struct hashmap_entry *table;
-    nat_int_t (*hash)(const void *);
-    int (*key_compare)(const void *, const void *);
-    void *(*key_alloc)(const void *);
-    void (*key_free)(void *);
+    size_t table_size_init { 0 };
+    size_t table_size { 0 };
+    size_t num_entries { 0 };
+    struct hashmap_entry *table { nullptr };
+    nat_int_t (*hash)(const void *) { nullptr };
+    int (*key_compare)(const void *, const void *) { nullptr };
+    void *(*key_alloc)(const void *) { nullptr };
+    void (*key_free)(void *) { nullptr };
 };
+
+typedef struct hashmap hashmap;
 
 /*
  * Initialize an empty hashmap.

@@ -14,10 +14,10 @@ extern "C" {
 
 struct GlobalEnv : public gc {
     GlobalEnv() {
-        m_globals = static_cast<struct hashmap *>(GC_MALLOC(sizeof(struct hashmap)));
+        m_globals = static_cast<hashmap *>(GC_MALLOC(sizeof(hashmap)));
         hashmap_init(m_globals, hashmap_hash_string, hashmap_compare_string, 100);
         hashmap_set_key_alloc_funcs(m_globals, hashmap_alloc_key_string, nullptr);
-        m_symbols = static_cast<struct hashmap *>(GC_MALLOC(sizeof(struct hashmap)));
+        m_symbols = static_cast<hashmap *>(GC_MALLOC(sizeof(hashmap)));
         hashmap_init(m_symbols, hashmap_hash_string, hashmap_compare_string, 100);
         hashmap_set_key_alloc_funcs(m_symbols, hashmap_alloc_key_string, nullptr);
     }
@@ -27,11 +27,11 @@ struct GlobalEnv : public gc {
         hashmap_destroy(m_symbols);
     }
 
-    struct hashmap *globals() {
+    hashmap *globals() {
         return m_globals;
     }
 
-    struct hashmap *symbols() {
+    hashmap *symbols() {
         return m_symbols;
     }
 
@@ -67,8 +67,8 @@ struct GlobalEnv : public gc {
     }
 
 private:
-    struct hashmap *m_globals { nullptr };
-    struct hashmap *m_symbols { nullptr };
+    hashmap *m_globals { nullptr };
+    hashmap *m_symbols { nullptr };
     ClassValue *m_Array { nullptr };
     ClassValue *m_Integer { nullptr };
     ClassValue *m_Object { nullptr };

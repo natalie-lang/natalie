@@ -91,7 +91,7 @@ struct Value : public gc {
 
     Env env() { return m_env; }
 
-    struct hashmap ivars() { // TODO: is this getter really needed?
+    hashmap ivars() { // TODO: is this getter really needed?
         return m_ivars;
     }
 
@@ -241,7 +241,7 @@ private:
     ModuleValue *m_owner { nullptr };
     int m_flags { 0 };
 
-    struct hashmap m_ivars EMPTY_HASHMAP;
+    hashmap m_ivars {};
 };
 
 }
