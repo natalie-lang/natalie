@@ -298,9 +298,9 @@ Value *Value::ivar_set(Env *env, const char *name, Value *val) {
     return val;
 }
 
-Value *Value::ivars(Env *env) {
+Value *Value::instance_variables(Env *env) {
     ArrayValue *ary = new ArrayValue { env };
-    if (m_type == Value::Type::Integer) {
+    if (m_type == Value::Type::Integer || m_type == Value::Type::Float) {
         return ary;
     }
     struct hashmap_iter *iter;

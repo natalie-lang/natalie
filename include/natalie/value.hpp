@@ -91,10 +91,6 @@ struct Value : public gc {
 
     Env env() { return m_env; }
 
-    hashmap ivars() { // TODO: is this getter really needed?
-        return m_ivars;
-    }
-
     Value *initialize(Env *, size_t, Value **, Block *);
 
     bool is_nil() const { return m_type == Type::Nil; }
@@ -164,7 +160,8 @@ struct Value : public gc {
 
     Value *ivar_get(Env *, const char *);
     Value *ivar_set(Env *, const char *, Value *);
-    Value *ivars(Env *);
+
+    Value *instance_variables(Env *);
 
     Value *cvar_get(Env *, const char *);
     virtual Value *cvar_get_or_null(Env *, const char *);

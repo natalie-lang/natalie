@@ -1204,10 +1204,10 @@ Value *KernelModule_instance_variable_set_binding(Env *env, Value *self_value, s
     return return_value;
 }
 
-Value *KernelModule_ivars_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
+Value *KernelModule_instance_variables_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
-    auto return_value = self->ivars(env);
+    auto return_value = self->instance_variables(env);
     return return_value;
 }
 
@@ -2173,7 +2173,7 @@ void init_bindings(Env *env) {
     Kernel->define_method(env, "inspect", KernelModule_inspect_binding);
     Kernel->define_method(env, "instance_variable_get", KernelModule_instance_variable_get_binding);
     Kernel->define_method(env, "instance_variable_set", KernelModule_instance_variable_set_binding);
-    Kernel->define_method(env, "instance_variables", KernelModule_ivars_binding);
+    Kernel->define_method(env, "instance_variables", KernelModule_instance_variables_binding);
     Kernel->define_method(env, "is_a?", KernelModule_is_a_binding);
     Kernel->define_method(env, "nil?", KernelModule_is_nil_binding);
     Kernel->define_method(env, "lambda", KernelModule_lambda_binding);
