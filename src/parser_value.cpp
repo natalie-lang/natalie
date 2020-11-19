@@ -16,7 +16,7 @@ Value *ParserValue::parse(Env *env, Value *code) {
     g["Nl"] << "'\n'*";
     g["Nl"]->hidden = true;
 
-    g["EndOfLine"] << "[;\n]";
+    g["EndOfLine"] << "(Whitespace* '#' (!'\n' .)* '\n') | ';' | [;\n]";
     g["EndOfLine"]->hidden = true;
 
     g["Program"] << "ValidProgram Nl Garbage?" >> [](auto e, Env *env) {
@@ -25,7 +25,7 @@ Value *ParserValue::parse(Env *env, Value *code) {
     };
     g.setStart(g["Program"]);
 
-    g["ValidProgram"] << "Expression? (EndOfLine Expression)*" >> [](auto e, Env *env) {
+    g["ValidProgram"] << "EndOfLine* Expression? (EndOfLine+ Expression)* EndOfLine*" >> [](auto e, Env *env) {
         ArrayValue *array = new ArrayValue { env, { SymbolValue::intern(env, "block") } };
         for (auto item : e) {
             array->push(item.evaluate(env));
@@ -252,7 +252,9 @@ Value *ParserValue::parse(Env *env, Value *code) {
     };
     g["SqChar"] << "!'\\'' .";
 
-    const char *input = code->as_string()->c_str();
+    StringValue *code_string = code->as_string();
+    code_string->append_char(env, '\n');
+    const char *input = code_string->c_str();
     Value *result;
     try {
         result = g.run(input, env);

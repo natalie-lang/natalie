@@ -49,8 +49,8 @@ describe 'Parser' do
     end
 
     it 'raises an error if there is a syntax error' do
-      -> { Parser.parse(')') }.should raise_error(SyntaxError, /\(string\):1 :: parse error on value "\)"/)
-      -> { Parser.parse("1 + 2\n\n)") }.should raise_error(SyntaxError, /\(string\):3 :: parse error on value "\)"/)
+      -> { Parser.parse(')') }.should raise_error(SyntaxError, /\(string\):1 :: parse error on value "\)/)
+      -> { Parser.parse("1 + 2\n\n)") }.should raise_error(SyntaxError, /\(string\):3 :: parse error on value "\)/)
     end
 
     it 'parses strings' do
@@ -135,6 +135,12 @@ describe 'Parser' do
       Parser.parse("a = 'foo'").should == s(:block, s(:lasgn, :a, s(:str, "foo")))
       Parser.parse("a =\n'foo'").should == s(:block, s(:lasgn, :a, s(:str, "foo")))
       Parser.parse("a = 1").should == s(:block, s(:lasgn, :a, s(:lit, 1)))
+    end
+
+    it 'ignores comments' do
+      Parser.parse("# comment").should == s(:block)
+      Parser.parse("# comment\n#comment 2").should == s(:block)
+      Parser.parse("1 + 1 # comment").should == s(:block, s(:call, s(:lit, 1), :+, s(:lit, 1)))
     end
   end
 end
