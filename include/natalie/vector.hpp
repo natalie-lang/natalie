@@ -15,9 +15,7 @@ template <typename T>
 struct Vector : public gc {
     Vector()
         : m_capacity { NAT_VECTOR_MIN_CAPACITY }
-        , m_data { static_cast<T *>(GC_MALLOC(sizeof(T) * NAT_VECTOR_MIN_CAPACITY)) } {
-        memset(m_data, 0, sizeof(T) * NAT_VECTOR_MIN_CAPACITY);
-    }
+        , m_data { static_cast<T *>(GC_MALLOC(sizeof(T) * NAT_VECTOR_MIN_CAPACITY)) } { }
 
     Vector(size_t initial_capacity, T filler)
         : m_size { initial_capacity }

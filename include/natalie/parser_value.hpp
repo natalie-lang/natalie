@@ -11,6 +11,7 @@ namespace Natalie {
 
 struct ParserValue : Value {
     Value *parse(Env *, Value *);
+    Value *tokens(Env *, Value *);
 };
 
 }

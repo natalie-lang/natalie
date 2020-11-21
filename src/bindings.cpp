@@ -1561,6 +1561,13 @@ Value *ParserValue_parse_singleton_binding(Env *env, Value *self_value, size_t a
     return return_value;
 }
 
+Value *ParserValue_tokens_singleton_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
+    env->assert_argc(argc, 1);
+    ParserValue *self = self_value->as_parser_value_for_method_binding();
+    auto return_value = self->tokens(env, argc > 0 ? args[0] : nullptr);
+    return return_value;
+}
+
 Value *ProcValue_initialize_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     ProcValue *self = self_value->as_proc();
@@ -2229,6 +2236,7 @@ void init_bindings(Env *env) {
     Object->define_method(env, "nil?", Value_is_nil_binding);
     Value *Parser = env->Object()->const_find(env, "Parser");
     Parser->define_singleton_method(env, "parse", ParserValue_parse_singleton_binding);
+    Parser->define_singleton_method(env, "tokens", ParserValue_tokens_singleton_binding);
     Value *Proc = env->Object()->const_find(env, "Proc");
     Proc->define_method(env, "initialize", ProcValue_initialize_binding);
     Proc->define_method(env, "call", ProcValue_call_binding);

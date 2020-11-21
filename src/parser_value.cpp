@@ -1,6 +1,7 @@
 #include "natalie.hpp"
 #include "natalie/array_value.hpp"
 #include "natalie/env.hpp"
+#include "natalie/lexer.hpp"
 #include "natalie/symbol_value.hpp"
 
 #include <peg_parser/generator.h>
@@ -264,4 +265,15 @@ Value *ParserValue::parse(Env *env, Value *code) {
     }
     return result;
 }
+
+Value *ParserValue::tokens(Env *env, Value *code) {
+    auto lexer = Lexer { code->as_string()->c_str() };
+    auto array = new ArrayValue { env };
+    auto the_tokens = lexer.tokens();
+    for (auto token : *the_tokens) {
+        array->push(token.to_ruby(env));
+    }
+    return array;
+}
+
 }
