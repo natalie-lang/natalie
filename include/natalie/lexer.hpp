@@ -286,7 +286,7 @@ private:
             return GC_STRDUP(buf.c_str());
         };
 
-        auto consume_integer = [this]() {
+        auto consume_integer = [this](bool negative) {
             nat_int_t number = 0;
             do {
                 number *= 10;
@@ -294,6 +294,8 @@ private:
                 advance();
             } while (isdigit(current_char()));
             // TODO: check if invalid character follows, such as a letter
+            if (negative)
+                number *= -1;
             return number;
         };
 
@@ -348,7 +350,21 @@ private:
             return Token { Token::Type::Plus, line, column };
         case '-':
             advance();
-            return Token { Token::Type::Minus, line, column };
+            switch (current_char()) {
+            case '0':
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+            case '9':
+                return Token { Token::Type::Integer, consume_integer(true), line, column };
+            default:
+                return Token { Token::Type::Minus, line, column };
+            }
         case '*':
             advance();
             return Token { Token::Type::Multiply, line, column };
@@ -475,7 +491,7 @@ private:
         case '7':
         case '8':
         case '9':
-            return Token { Token::Type::Integer, consume_integer(), line, column };
+            return Token { Token::Type::Integer, consume_integer(false), line, column };
         };
         if (!token.is_valid()) {
             if (match(12, "__ENCODING__"))
