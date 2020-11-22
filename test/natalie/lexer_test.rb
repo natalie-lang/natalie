@@ -48,7 +48,7 @@ describe 'Parser' do
         while
         yield
       ].each do |keyword|
-        Parser.tokens(keyword).should == [{type: keyword.to_sym}]
+        Parser.tokens(keyword).should == [{type: :keyword, literal: keyword.to_sym}]
       end
       Parser.tokens('defx = 1').should == [{type: :identifier, literal: :defx}, {type: :"="}, {type: :integer, literal: 1}]
     end
