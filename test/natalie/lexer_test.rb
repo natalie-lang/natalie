@@ -65,15 +65,8 @@ describe 'Parser' do
     end
 
     it 'tokenizes operators' do
-      Parser.tokens('+ - * / = == ===').should == [
-        {type: :"+"},
-        {type: :"-"},
-        {type: :"*"},
-        {type: :"/"},
-        {type: :"="},
-        {type: :"=="},
-        {type: :"==="},
-      ]
+      operators = %w[+ += - -= * *= ** **= / /= % %= = == === != > >= < <= <=> & | ^ ~ << >> && || ! ? : ::]
+      Parser.tokens(operators.join(' ')).should == operators.map { |o| {type: o.to_sym} }
     end
 
     it 'tokenizes integers' do

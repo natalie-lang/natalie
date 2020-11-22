@@ -13,16 +13,28 @@ struct Lexer : public gc {
 
     struct Token : public gc {
         enum class Type {
+            And,
+            BinaryAnd,
+            BinaryOr,
+            BinaryXor,
+            BinaryOnesComplement,
             Comma,
             Comment,
+            Comparison,
             Constant,
+            ConstantResolution,
             Divide,
+            DivideEqual,
             Dot,
             Eof,
             Eol,
             Equal,
             EqualEqual,
             EqualEqualEqual,
+            Exponent,
+            ExponentEqual,
+            GreaterThan,
+            GreaterThanOrEqual,
             HashRocket,
             Identifier,
             Integer,
@@ -31,17 +43,31 @@ struct Lexer : public gc {
             LBrace,
             LBracket,
             LParen,
+            LeftShift,
+            LessThan,
+            LessThanOrEqual,
             Minus,
+            MinusEqual,
+            Modulus,
+            ModulusEqual,
             Multiply,
+            MultiplyEqual,
+            Not,
+            NotEqual,
+            Or,
             Plus,
+            PlusEqual,
             RBrace,
             RBracket,
             Regexp,
+            RightShift,
             RParen,
             Semicolon,
             String,
             Symbol,
             SymbolKey,
+            TernaryColon,
+            TernaryQuestion,
             UnterminatedRegexp,
             UnterminatedString,
         };
@@ -74,6 +100,21 @@ struct Lexer : public gc {
         Value *to_ruby(Env *env, bool with_line_and_column_numbers = false) {
             Value *type;
             switch (m_type) {
+            case Type::And:
+                type = SymbolValue::intern(env, "&&");
+                break;
+            case Type::BinaryAnd:
+                type = SymbolValue::intern(env, "&");
+                break;
+            case Type::BinaryOr:
+                type = SymbolValue::intern(env, "|");
+                break;
+            case Type::BinaryXor:
+                type = SymbolValue::intern(env, "^");
+                break;
+            case Type::BinaryOnesComplement:
+                type = SymbolValue::intern(env, "~");
+                break;
             case Type::Keyword:
                 type = SymbolValue::intern(env, "keyword");
                 break;
@@ -83,11 +124,20 @@ struct Lexer : public gc {
             case Type::Comment:
                 type = env->nil_obj();
                 break;
+            case Type::Comparison:
+                type = SymbolValue::intern(env, "<=>");
+                break;
             case Type::Constant:
                 type = SymbolValue::intern(env, "constant");
                 break;
+            case Type::ConstantResolution:
+                type = SymbolValue::intern(env, "::");
+                break;
             case Type::Divide:
                 type = SymbolValue::intern(env, "/");
+                break;
+            case Type::DivideEqual:
+                type = SymbolValue::intern(env, "/=");
                 break;
             case Type::Dot:
                 type = SymbolValue::intern(env, ".");
@@ -106,6 +156,18 @@ struct Lexer : public gc {
                 break;
             case Type::EqualEqualEqual:
                 type = SymbolValue::intern(env, "===");
+                break;
+            case Type::Exponent:
+                type = SymbolValue::intern(env, "**");
+                break;
+            case Type::ExponentEqual:
+                type = SymbolValue::intern(env, "**=");
+                break;
+            case Type::GreaterThan:
+                type = SymbolValue::intern(env, ">");
+                break;
+            case Type::GreaterThanOrEqual:
+                type = SymbolValue::intern(env, ">=");
                 break;
             case Type::HashRocket:
                 type = SymbolValue::intern(env, "=>");
@@ -128,14 +190,47 @@ struct Lexer : public gc {
             case Type::LParen:
                 type = SymbolValue::intern(env, "(");
                 break;
+            case Type::LeftShift:
+                type = SymbolValue::intern(env, "<<");
+                break;
+            case Type::LessThan:
+                type = SymbolValue::intern(env, "<");
+                break;
+            case Type::LessThanOrEqual:
+                type = SymbolValue::intern(env, "<=");
+                break;
             case Type::Minus:
                 type = SymbolValue::intern(env, "-");
+                break;
+            case Type::MinusEqual:
+                type = SymbolValue::intern(env, "-=");
+                break;
+            case Type::Modulus:
+                type = SymbolValue::intern(env, "%");
+                break;
+            case Type::ModulusEqual:
+                type = SymbolValue::intern(env, "%=");
                 break;
             case Type::Multiply:
                 type = SymbolValue::intern(env, "*");
                 break;
+            case Type::MultiplyEqual:
+                type = SymbolValue::intern(env, "*=");
+                break;
+            case Type::Not:
+                type = SymbolValue::intern(env, "!");
+                break;
+            case Type::NotEqual:
+                type = SymbolValue::intern(env, "!=");
+                break;
+            case Type::Or:
+                type = SymbolValue::intern(env, "||");
+                break;
             case Type::Plus:
                 type = SymbolValue::intern(env, "+");
+                break;
+            case Type::PlusEqual:
+                type = SymbolValue::intern(env, "+=");
                 break;
             case Type::RBrace:
                 type = SymbolValue::intern(env, "}");
@@ -149,6 +244,9 @@ struct Lexer : public gc {
             case Type::Regexp:
                 type = SymbolValue::intern(env, "regexp");
                 break;
+            case Type::RightShift:
+                type = SymbolValue::intern(env, ">>");
+                break;
             case Type::Semicolon:
                 type = SymbolValue::intern(env, ";");
                 break;
@@ -160,6 +258,12 @@ struct Lexer : public gc {
                 break;
             case Type::SymbolKey:
                 type = SymbolValue::intern(env, "symbol_key");
+                break;
+            case Type::TernaryColon:
+                type = SymbolValue::intern(env, ":");
+                break;
+            case Type::TernaryQuestion:
+                type = SymbolValue::intern(env, "?");
                 break;
             case Type::UnterminatedRegexp:
                 env->raise("SyntaxError", "unterminated regexp meets end of file");
@@ -347,7 +451,13 @@ private:
         }
         case '+':
             advance();
-            return Token { Token::Type::Plus, line, column };
+            switch (current_char()) {
+            case '=':
+                advance();
+                return Token { Token::Type::PlusEqual, line, column };
+            default:
+                return Token { Token::Type::Plus, line, column };
+            }
         case '-':
             advance();
             switch (current_char()) {
@@ -363,11 +473,32 @@ private:
             case '9':
                 return Token { Token::Type::Integer, consume_integer(true), line, column };
             default:
-                return Token { Token::Type::Minus, line, column };
+                switch (current_char()) {
+                case '=':
+                    advance();
+                    return Token { Token::Type::MinusEqual, line, column };
+                default:
+                    return Token { Token::Type::Minus, line, column };
+                }
             }
         case '*':
             advance();
-            return Token { Token::Type::Multiply, line, column };
+            switch (current_char()) {
+            case '*':
+                advance();
+                switch (current_char()) {
+                case '=':
+                    advance();
+                    return Token { Token::Type::ExponentEqual, line, column };
+                default:
+                    return Token { Token::Type::Exponent, line, column };
+                }
+            case '=':
+                advance();
+                return Token { Token::Type::MultiplyEqual, line, column };
+            default:
+                return Token { Token::Type::Multiply, line, column };
+            }
         case '/': {
             auto consume_regexp = [this, line, column]() -> Token {
                 auto buf = std::string("");
@@ -390,13 +521,15 @@ private:
             case Token::Type::Comma:
             case Token::Type::LBrace:
             case Token::Type::LBracket:
-            case Token::Type::LParen: {
+            case Token::Type::LParen:
                 return consume_regexp();
-            }
             default: {
                 switch (current_char()) {
                 case ' ':
                     return Token { Token::Type::Divide, line, column };
+                case '=':
+                    advance();
+                    return Token { Token::Type::DivideEqual, line, column };
                 default:
                     if (we_skipped_whitespace) {
                         return consume_regexp();
@@ -405,6 +538,94 @@ private:
                     }
                 }
             }
+            }
+        }
+        case '%':
+            advance();
+            switch (current_char()) {
+            case '=':
+                advance();
+                return Token { Token::Type::ModulusEqual, line, column };
+            default:
+                return Token { Token::Type::Modulus, line, column };
+            }
+        case '!':
+            advance();
+            switch (current_char()) {
+            case '=':
+                advance();
+                return Token { Token::Type::NotEqual, line, column };
+            default:
+                return Token { Token::Type::Not, line, column };
+            }
+        case '<':
+            advance();
+            switch (current_char()) {
+            case '<':
+                advance();
+                return Token { Token::Type::LeftShift, line, column };
+            case '=':
+                advance();
+                switch (current_char()) {
+                case '>':
+                    advance();
+                    return Token { Token::Type::Comparison, line, column };
+                default:
+                    return Token { Token::Type::LessThanOrEqual, line, column };
+                }
+            default:
+                return Token { Token::Type::LessThan, line, column };
+            }
+        case '>':
+            advance();
+            switch (current_char()) {
+            case '>':
+                advance();
+                return Token { Token::Type::RightShift, line, column };
+            case '=':
+                advance();
+                return Token { Token::Type::GreaterThanOrEqual, line, column };
+            default:
+                return Token { Token::Type::GreaterThan, line, column };
+            }
+        case '&':
+            advance();
+            switch (current_char()) {
+            case '&':
+                advance();
+                return Token { Token::Type::And, line, column };
+            default:
+                return Token { Token::Type::BinaryAnd, line, column };
+            }
+        case '|':
+            advance();
+            switch (current_char()) {
+            case '|':
+                advance();
+                return Token { Token::Type::Or, line, column };
+            default:
+                return Token { Token::Type::BinaryOr, line, column };
+            }
+        case '^':
+            advance();
+            return Token { Token::Type::BinaryXor, line, column };
+        case '~':
+            advance();
+            return Token { Token::Type::BinaryOnesComplement, line, column };
+        case '?':
+            advance();
+            return Token { Token::Type::TernaryQuestion, line, column };
+        case ':': {
+            advance();
+            auto c = current_char();
+            if (is_identifier_char(c)) {
+                const char *buf = consume_word();
+                return Token { Token::Type::Symbol, buf, line, column };
+            } else if (c == ':') {
+                advance();
+                return Token { Token::Type::ConstantResolution, line, column };
+            } else {
+                return Token { Token::Type::TernaryColon, line, column };
             }
         }
         case '.':
@@ -434,11 +655,6 @@ private:
         case ';':
             advance();
             return Token { Token::Type::Semicolon, line, column };
-        case ':': {
-            advance();
-            const char *buf = consume_word();
-            return Token { Token::Type::Symbol, buf, line, column };
-        }
         case ',':
             advance();
             return Token { Token::Type::Comma, line, column };
