@@ -21,11 +21,13 @@ struct Lexer : public gc {
             Case,
             Class,
             Comma,
+            Comment,
             Constant,
             Def,
             Defined,
             Divide,
             Do,
+            Dot,
             Else,
             Elsif,
             _ENCODING_,
@@ -129,6 +131,8 @@ struct Lexer : public gc {
                 return SymbolValue::intern(env, "class");
             case Type::Comma:
                 return SymbolValue::intern(env, ",");
+            case Type::Comment:
+                return env->nil_obj();
             case Type::Constant:
                 return new ArrayValue { env, { SymbolValue::intern(env, "constant"), SymbolValue::intern(env, m_literal) } };
             case Type::Def:
@@ -139,6 +143,8 @@ struct Lexer : public gc {
                 return SymbolValue::intern(env, "/");
             case Type::Do:
                 return SymbolValue::intern(env, "do");
+            case Type::Dot:
+                return SymbolValue::intern(env, ".");
             case Type::End:
                 return SymbolValue::intern(env, "end");
             case Type::Else:
@@ -253,8 +259,9 @@ struct Lexer : public gc {
             NAT_UNREACHABLE();
         }
 
-        bool eof() { return m_type == Type::Eof; }
-        bool valid() { return m_type != Type::Invalid; }
+        bool is_comment() { return m_type == Type::Comment; }
+        bool is_eof() { return m_type == Type::Eof; }
+        bool is_valid() { return m_type != Type::Invalid; }
 
     private:
         Type m_type { Type::Invalid };
@@ -266,10 +273,12 @@ struct Lexer : public gc {
         auto tokens = new Vector<Token> {};
         for (;;) {
             auto token = next_token();
-            if (token.eof())
+            if (token.is_eof())
                 return tokens;
+            if (token.is_comment())
+                continue;
             tokens->push(token);
-            if (!token.valid())
+            if (!token.is_valid())
                 return tokens;
         };
         NAT_UNREACHABLE();
@@ -436,6 +445,9 @@ private:
             }
             }
         }
+        case '.':
+            advance();
+            return Token { Token::Type::Dot };
         case '{':
             advance();
             return Token { Token::Type::LBrace };
@@ -500,6 +512,13 @@ private:
             }
             NAT_UNREACHABLE();
         }
+        case '#':
+            char c;
+            do {
+                advance();
+                c = current_char();
+            } while (c != '\n' && c != '\r');
+            return Token { Token::Type::Comment };
         case '0':
         case '1':
         case '2':
@@ -512,7 +531,7 @@ private:
         case '9':
             return consume_integer();
         };
-        if (!token.valid()) {
+        if (!token.is_valid()) {
             if (match(12, "__ENCODING__"))
                 return Token { Token::Type::_ENCODING_ };
             else if (match(8, "__LINE__"))
