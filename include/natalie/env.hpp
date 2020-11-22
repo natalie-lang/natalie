@@ -37,6 +37,7 @@ struct Env : public gc {
     Value *var_get(const char *, size_t);
     Value *var_set(const char *, size_t, bool, Value *);
 
+    [[noreturn]] void raise(ClassValue *, StringValue *);
     [[noreturn]] void raise(ClassValue *, const char *, ...);
     [[noreturn]] void raise(const char *, const char *, ...);
     [[noreturn]] void raise_exception(ExceptionValue *);

@@ -222,7 +222,7 @@ Value *KernelModule::raise(Env *env, Value *klass, Value *message) {
             env->raise("TypeError", "exception klass/object expected");
         }
     }
-    env->raise(klass->as_class(), message->as_string()->c_str());
+    env->raise(klass->as_class(), message->as_string());
 }
 
 Value *KernelModule::sleep(Env *env, Value *length) {

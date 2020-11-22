@@ -68,13 +68,16 @@ char *Env::build_code_location_name(Env *location_env) {
     return GC_STRDUP("(unknown)");
 }
 
+void Env::raise(ClassValue *klass, StringValue *message) {
+    ExceptionValue *exception = new ExceptionValue { this, klass, message->c_str() };
+    this->raise_exception(exception);
+}
+
 void Env::raise(ClassValue *klass, const char *message_format, ...) {
     va_list args;
     va_start(args, message_format);
     StringValue *message = StringValue::vsprintf(this, message_format, args);
-    va_end(args);
-    ExceptionValue *exception = new ExceptionValue { this, klass, message->c_str() };
-    this->raise_exception(exception);
+    raise(klass, message);
 }
 
 void Env::raise(const char *class_name, const char *message_format, ...) {
