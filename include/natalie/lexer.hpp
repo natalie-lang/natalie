@@ -268,7 +268,7 @@ struct Lexer : public gc {
             case Type::UnterminatedRegexp:
                 env->raise("SyntaxError", "unterminated regexp meets end of file");
             case Type::UnterminatedString:
-                env->raise("SyntaxError", "unterminated string meets end of file");
+                env->raise("SyntaxError", "unterminated string meets end of file at line %i and column %i: %s", m_line, m_column, m_literal);
             }
             auto hash = new HashValue { env };
             hash->put(env, SymbolValue::intern(env, "type"), type);
@@ -663,7 +663,7 @@ private:
             auto buf = std::string("");
             char c = current_char();
             for (;;) {
-                if (!c) return Token { Token::Type::UnterminatedString, line, column };
+                if (!c) return Token { Token::Type::UnterminatedString, GC_STRDUP(buf.c_str()), line, column };
                 if (c == '"') {
                     advance();
                     return Token { Token::Type::String, GC_STRDUP(buf.c_str()), line, column };
@@ -679,7 +679,7 @@ private:
             auto buf = std::string("");
             char c = current_char();
             for (;;) {
-                if (!c) return Token { Token::Type::UnterminatedString, line, column };
+                if (!c) return Token { Token::Type::UnterminatedString, GC_STRDUP(buf.c_str()), line, column };
                 if (c == '\'') {
                     advance();
                     return Token { Token::Type::String, GC_STRDUP(buf.c_str()), line, column };
