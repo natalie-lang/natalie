@@ -18,6 +18,13 @@ struct FileValue : IoValue {
 
     Value *initialize(Env *, Value *, Value *, Block *);
 
+    static Value *open(Env *env, Value *filename, Value *flags_obj, Block *block) {
+        Value *args[] = { filename, flags_obj };
+        size_t argc = 1;
+        if (flags_obj) argc++;
+        return _new(env, env->Object()->const_fetch("File")->as_class(), argc, args, block);
+    }
+
     static Value *expand_path(Env *env, Value *path, Value *root) {
         path->assert_type(env, Value::Type::String, "String");
         if (path->as_string()->length() > 0 && path->as_string()->c_str()[0] == '/') {

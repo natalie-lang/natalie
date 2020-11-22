@@ -280,6 +280,7 @@ gen.binding('Fiber', 'resume', 'FiberValue', 'resume', argc: :any, pass_env: tru
 gen.binding('Fiber', 'status', 'FiberValue', 'status', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 
 gen.static_binding('File', 'expand_path', 'FileValue', 'expand_path', argc: 1..2, pass_env: true, pass_block: false, return_type: :Value)
+gen.static_binding('File', 'open', 'FileValue', 'open', argc: 1..2, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('File', 'initialize', 'FileValue', 'initialize', argc: 1..2, pass_env: true, pass_block: true, return_type: :Value)
 
 gen.undefine_singleton_method('Float', 'new')
