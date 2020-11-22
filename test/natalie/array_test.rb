@@ -540,6 +540,12 @@ describe 'array' do
       ['foo', 'bar'].join(',').should == 'foo,bar'
       [:foo, 2, 'bar', {baz: :buz}].join(',').should == 'foo,2,bar,{:baz=>:buz}'
     end
+
+    it 'does not mutate anything' do
+      a = ['foo', 'bar']
+      a.join(' ')
+      a.should == ['foo', 'bar']
+    end
   end
 
   describe '#select' do

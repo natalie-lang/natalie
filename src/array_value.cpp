@@ -310,7 +310,7 @@ Value *ArrayValue::join(Env *env, Value *joiner) {
     } else {
         if (!joiner) joiner = new StringValue { env, "" };
         joiner->assert_type(env, Value::Type::String, "String");
-        StringValue *out = (*this)[0]->send(env, "to_s")->as_string();
+        StringValue *out = (*this)[0]->send(env, "to_s")->dup(env)->as_string();
         for (size_t i = 1; i < size(); i++) {
             Value *item = (*this)[i];
             out->append_string(env, joiner->as_string());
