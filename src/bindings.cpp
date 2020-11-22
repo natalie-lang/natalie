@@ -1562,9 +1562,9 @@ Value *ParserValue_parse_singleton_binding(Env *env, Value *self_value, size_t a
 }
 
 Value *ParserValue_tokens_singleton_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
-    env->assert_argc(argc, 1);
+    env->assert_argc(argc, 1, 2);
     ParserValue *self = self_value->as_parser_value_for_method_binding();
-    auto return_value = self->tokens(env, argc > 0 ? args[0] : nullptr);
+    auto return_value = self->tokens(env, argc > 0 ? args[0] : nullptr, argc > 1 ? args[1] : nullptr);
     return return_value;
 }
 

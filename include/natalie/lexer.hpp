@@ -90,183 +90,289 @@ struct Lexer : public gc {
 
         Token() { }
 
-        Token(Type type)
-            : m_type { type } { }
-
-        Token(Type type, const char *literal)
+        Token(Type type, size_t line, size_t column)
             : m_type { type }
-            , m_literal { literal } {
+            , m_line { line }
+            , m_column { column } { }
+
+        Token(Type type, const char *literal, size_t line, size_t column)
+            : m_type { type }
+            , m_literal { literal }
+            , m_line { line }
+            , m_column { column } {
             assert(m_literal);
         }
 
-        Token(Type type, nat_int_t integer)
+        Token(Type type, nat_int_t integer, size_t line, size_t column)
             : m_type { type }
-            , m_integer { integer } { }
+            , m_integer { integer }
+            , m_line { line }
+            , m_column { column } { }
 
         Type type() { return m_type; }
         const char *literal() { return m_literal; }
         nat_int_t integer() { return m_integer; }
 
-        Value *to_ruby(Env *env) {
+        Value *to_ruby(Env *env, bool with_line_and_column_numbers = false) {
+            Value *type;
             switch (m_type) {
             case Type::_ENCODING_:
-                return SymbolValue::intern(env, "__ENCODING__");
+                type = SymbolValue::intern(env, "__ENCODING__");
+                break;
             case Type::_FILE_:
-                return SymbolValue::intern(env, "__FILE__");
+                type = SymbolValue::intern(env, "__FILE__");
+                break;
             case Type::_LINE_:
-                return SymbolValue::intern(env, "__LINE__");
+                type = SymbolValue::intern(env, "__LINE__");
+                break;
             case Type::Alias:
-                return SymbolValue::intern(env, "alias");
+                type = SymbolValue::intern(env, "alias");
+                break;
             case Type::And:
-                return SymbolValue::intern(env, "and");
+                type = SymbolValue::intern(env, "and");
+                break;
             case Type::Begin:
-                return SymbolValue::intern(env, "begin");
+                type = SymbolValue::intern(env, "begin");
+                break;
             case Type::BEGIN:
-                return SymbolValue::intern(env, "BEGIN");
+                type = SymbolValue::intern(env, "BEGIN");
+                break;
             case Type::Break:
-                return SymbolValue::intern(env, "break");
+                type = SymbolValue::intern(env, "break");
+                break;
             case Type::Case:
-                return SymbolValue::intern(env, "case");
+                type = SymbolValue::intern(env, "case");
+                break;
             case Type::Class:
-                return SymbolValue::intern(env, "class");
+                type = SymbolValue::intern(env, "class");
+                break;
             case Type::Comma:
-                return SymbolValue::intern(env, ",");
+                type = SymbolValue::intern(env, ",");
+                break;
             case Type::Comment:
-                return env->nil_obj();
+                type = env->nil_obj();
+                break;
             case Type::Constant:
-                return new ArrayValue { env, { SymbolValue::intern(env, "constant"), SymbolValue::intern(env, m_literal) } };
+                type = SymbolValue::intern(env, "constant");
+                break;
             case Type::Def:
-                return SymbolValue::intern(env, "def");
+                type = SymbolValue::intern(env, "def");
+                break;
             case Type::Defined:
-                return SymbolValue::intern(env, "defined?");
+                type = SymbolValue::intern(env, "defined?");
+                break;
             case Type::Divide:
-                return SymbolValue::intern(env, "/");
+                type = SymbolValue::intern(env, "/");
+                break;
             case Type::Do:
-                return SymbolValue::intern(env, "do");
+                type = SymbolValue::intern(env, "do");
+                break;
             case Type::Dot:
-                return SymbolValue::intern(env, ".");
+                type = SymbolValue::intern(env, ".");
+                break;
             case Type::End:
-                return SymbolValue::intern(env, "end");
+                type = SymbolValue::intern(env, "end");
+                break;
             case Type::Else:
-                return SymbolValue::intern(env, "else");
+                type = SymbolValue::intern(env, "else");
+                break;
             case Type::Elsif:
-                return SymbolValue::intern(env, "elsif");
+                type = SymbolValue::intern(env, "elsif");
+                break;
             case Type::END:
-                return SymbolValue::intern(env, "END");
+                type = SymbolValue::intern(env, "END");
+                break;
             case Type::Ensure:
-                return SymbolValue::intern(env, "ensure");
+                type = SymbolValue::intern(env, "ensure");
+                break;
             case Type::Eol:
-                return SymbolValue::intern(env, "\n");
+                type = SymbolValue::intern(env, "\n");
+                break;
             case Type::Eof:
-                return env->nil_obj();
+                type = env->nil_obj();
+                break;
             case Type::Equal:
-                return SymbolValue::intern(env, "=");
+                type = SymbolValue::intern(env, "=");
+                break;
             case Type::EqualEqual:
-                return SymbolValue::intern(env, "==");
+                type = SymbolValue::intern(env, "==");
+                break;
             case Type::EqualEqualEqual:
-                return SymbolValue::intern(env, "===");
+                type = SymbolValue::intern(env, "===");
+                break;
             case Type::Fail:
-                return SymbolValue::intern(env, "fail");
+                type = SymbolValue::intern(env, "fail");
+                break;
             case Type::False:
-                return SymbolValue::intern(env, "false");
+                type = SymbolValue::intern(env, "false");
+                break;
             case Type::For:
-                return SymbolValue::intern(env, "for");
+                type = SymbolValue::intern(env, "for");
+                break;
             case Type::HashRocket:
-                return SymbolValue::intern(env, "=>");
+                type = SymbolValue::intern(env, "=>");
+                break;
             case Type::Identifier:
-                return new ArrayValue { env, { SymbolValue::intern(env, "identifier"), SymbolValue::intern(env, m_literal) } };
+                type = SymbolValue::intern(env, "identifier");
+                break;
             case Type::If:
-                return SymbolValue::intern(env, "if");
+                type = SymbolValue::intern(env, "if");
+                break;
             case Type::In:
-                return SymbolValue::intern(env, "in");
+                type = SymbolValue::intern(env, "in");
+                break;
             case Type::Integer:
-                return new ArrayValue { env, { SymbolValue::intern(env, "integer"), new IntegerValue { env, m_integer } } };
+                type = SymbolValue::intern(env, "integer");
+                break;
             case Type::Invalid:
                 env->raise("SyntaxError", "syntax error, unexpected '%s'", m_literal);
+                break;
             case Type::LBrace:
-                return SymbolValue::intern(env, "{");
+                type = SymbolValue::intern(env, "{");
+                break;
             case Type::LBracket:
-                return SymbolValue::intern(env, "[");
+                type = SymbolValue::intern(env, "[");
+                break;
             case Type::LParen:
-                return SymbolValue::intern(env, "(");
+                type = SymbolValue::intern(env, "(");
+                break;
             case Type::Loop:
-                return SymbolValue::intern(env, "loop");
+                type = SymbolValue::intern(env, "loop");
+                break;
             case Type::Minus:
-                return SymbolValue::intern(env, "-");
+                type = SymbolValue::intern(env, "-");
+                break;
             case Type::Module:
-                return SymbolValue::intern(env, "module");
+                type = SymbolValue::intern(env, "module");
+                break;
             case Type::Multiply:
-                return SymbolValue::intern(env, "*");
+                type = SymbolValue::intern(env, "*");
+                break;
             case Type::Next:
-                return SymbolValue::intern(env, "next");
+                type = SymbolValue::intern(env, "next");
+                break;
             case Type::Nil:
-                return SymbolValue::intern(env, "nil");
+                type = SymbolValue::intern(env, "nil");
+                break;
             case Type::Not:
-                return SymbolValue::intern(env, "not");
+                type = SymbolValue::intern(env, "not");
+                break;
             case Type::Or:
-                return SymbolValue::intern(env, "or");
+                type = SymbolValue::intern(env, "or");
+                break;
             case Type::Plus:
-                return SymbolValue::intern(env, "+");
+                type = SymbolValue::intern(env, "+");
+                break;
             case Type::RBrace:
-                return SymbolValue::intern(env, "}");
+                type = SymbolValue::intern(env, "}");
+                break;
             case Type::RBracket:
-                return SymbolValue::intern(env, "]");
+                type = SymbolValue::intern(env, "]");
+                break;
             case Type::RParen:
-                return SymbolValue::intern(env, ")");
+                type = SymbolValue::intern(env, ")");
+                break;
             case Type::Redo:
-                return SymbolValue::intern(env, "redo");
+                type = SymbolValue::intern(env, "redo");
+                break;
             case Type::Regexp:
-                return new ArrayValue { env, { SymbolValue::intern(env, "regexp"), new StringValue { env, m_literal } } };
+                type = SymbolValue::intern(env, "regexp");
+                break;
             case Type::Rescue:
-                return SymbolValue::intern(env, "rescue");
+                type = SymbolValue::intern(env, "rescue");
+                break;
             case Type::Retry:
-                return SymbolValue::intern(env, "retry");
+                type = SymbolValue::intern(env, "retry");
+                break;
             case Type::Return:
-                return SymbolValue::intern(env, "return");
+                type = SymbolValue::intern(env, "return");
+                break;
             case Type::Self:
-                return SymbolValue::intern(env, "self");
+                type = SymbolValue::intern(env, "self");
+                break;
             case Type::Semicolon:
-                return SymbolValue::intern(env, ";");
+                type = SymbolValue::intern(env, ";");
+                break;
             case Type::String:
-                return new ArrayValue { env, { SymbolValue::intern(env, "string"), new StringValue { env, m_literal } } };
+                type = SymbolValue::intern(env, "string");
+                break;
             case Type::Super:
-                return SymbolValue::intern(env, "super");
+                type = SymbolValue::intern(env, "super");
+                break;
             case Type::Symbol:
-                return new ArrayValue { env, { SymbolValue::intern(env, "symbol"), SymbolValue::intern(env, m_literal) } };
+                type = SymbolValue::intern(env, "symbol");
+                break;
             case Type::SymbolKey:
-                return new ArrayValue { env, { SymbolValue::intern(env, "symbol_key"), SymbolValue::intern(env, m_literal) } };
+                type = SymbolValue::intern(env, "symbol_key");
+                break;
             case Type::Then:
-                return SymbolValue::intern(env, "then");
+                type = SymbolValue::intern(env, "then");
+                break;
             case Type::True:
-                return SymbolValue::intern(env, "true");
+                type = SymbolValue::intern(env, "true");
+                break;
             case Type::Undef:
-                return SymbolValue::intern(env, "undef");
+                type = SymbolValue::intern(env, "undef");
+                break;
             case Type::Unless:
-                return SymbolValue::intern(env, "unless");
+                type = SymbolValue::intern(env, "unless");
+                break;
             case Type::UnterminatedRegexp:
                 env->raise("SyntaxError", "unterminated regexp meets end of file");
             case Type::UnterminatedString:
                 env->raise("SyntaxError", "unterminated string meets end of file");
             case Type::Until:
-                return SymbolValue::intern(env, "until");
+                type = SymbolValue::intern(env, "until");
+                break;
             case Type::When:
-                return SymbolValue::intern(env, "when");
+                type = SymbolValue::intern(env, "when");
+                break;
             case Type::While:
-                return SymbolValue::intern(env, "while");
+                type = SymbolValue::intern(env, "while");
+                break;
             case Type::Yield:
-                return SymbolValue::intern(env, "yield");
+                type = SymbolValue::intern(env, "yield");
+                break;
             }
-            NAT_UNREACHABLE();
+            auto hash = new HashValue { env };
+            hash->put(env, SymbolValue::intern(env, "type"), type);
+            switch (m_type) {
+            case Type::Regexp:
+            case Type::String:
+                hash->put(env, SymbolValue::intern(env, "literal"), new StringValue { env, m_literal });
+                break;
+            case Type::Constant:
+            case Type::Identifier:
+            case Type::Symbol:
+            case Type::SymbolKey:
+                hash->put(env, SymbolValue::intern(env, "literal"), SymbolValue::intern(env, m_literal));
+                break;
+            case Type::Integer:
+                hash->put(env, SymbolValue::intern(env, "literal"), new IntegerValue { env, m_integer });
+                break;
+            default:
+                void();
+            }
+            if (with_line_and_column_numbers) {
+                hash->put(env, SymbolValue::intern(env, "line"), new IntegerValue { env, static_cast<nat_int_t>(m_line) });
+                hash->put(env, SymbolValue::intern(env, "column"), new IntegerValue { env, static_cast<nat_int_t>(m_column) });
+            }
+            return hash;
         }
 
         bool is_comment() { return m_type == Type::Comment; }
         bool is_eof() { return m_type == Type::Eof; }
         bool is_valid() { return m_type != Type::Invalid; }
 
+        size_t line() { return m_line; }
+        size_t column() { return m_column; }
+
     private:
         Type m_type { Type::Invalid };
         const char *m_literal { nullptr };
         nat_int_t m_integer { 0 };
+        size_t m_line { 0 };
+        size_t m_column { 0 };
     };
 
     Vector<Token> *tokens() {
@@ -301,24 +407,29 @@ struct Lexer : public gc {
         if (m_index + bytes > m_size)
             return false;
         if (strncmp(compare, m_input + m_index, bytes) == 0) {
-            auto index_was = m_index;
-            advance(bytes);
-            auto c = current_char();
-            if (is_identifier_char(c)) {
-                m_index = index_was;
+            if (m_index + bytes < m_size && is_identifier_char(m_input[m_index + bytes]))
                 return false;
-            }
+            advance(bytes);
             return true;
         }
         return false;
     }
 
     void advance() {
+        auto c = current_char();
         m_index++;
+        if (c == '\n') {
+            m_line++;
+            m_column = 0;
+        } else {
+            m_column++;
+        }
     }
 
     void advance(size_t bytes) {
-        m_index += bytes;
+        for (size_t i = 0; i < bytes; i++) {
+            advance();
+        }
     }
 
 private:
@@ -350,7 +461,7 @@ private:
                 advance();
             } while (isdigit(current_char()));
             // TODO: check if invalid character follows, such as a letter
-            return Token { Token::Type::Integer, number };
+            return number;
         };
 
         auto consume_non_whitespace = [this]() {
@@ -365,15 +476,17 @@ private:
         };
 
         if (m_index >= m_size)
-            return Token { Token::Type::Eof };
+            return Token { Token::Type::Eof, m_line, m_column };
         Token token;
         bool we_skipped_whitespace = false;
         while (current_char() == ' ' || current_char() == '\t') {
             we_skipped_whitespace = true;
             advance();
             if (m_index >= m_size)
-                return Token { Token::Type::Eof };
+                return Token { Token::Type::Eof, m_line, m_column };
         }
+        auto line = m_line;
+        auto column = m_column;
         switch (current_char()) {
         case '=': {
             advance();
@@ -383,38 +496,38 @@ private:
                 switch (current_char()) {
                 case '=': {
                     advance();
-                    return Token { Token::Type::EqualEqualEqual };
+                    return Token { Token::Type::EqualEqualEqual, line, column };
                 }
                 default:
-                    return Token { Token::Type::EqualEqual };
+                    return Token { Token::Type::EqualEqual, line, column };
                 }
             }
             case '>': {
                 advance();
-                return Token { Token::Type::HashRocket };
+                return Token { Token::Type::HashRocket, line, column };
             }
             default:
-                return Token { Token::Type::Equal };
+                return Token { Token::Type::Equal, line, column };
             }
         }
         case '+':
             advance();
-            return Token { Token::Type::Plus };
+            return Token { Token::Type::Plus, line, column };
         case '-':
             advance();
-            return Token { Token::Type::Minus };
+            return Token { Token::Type::Minus, line, column };
         case '*':
             advance();
-            return Token { Token::Type::Multiply };
+            return Token { Token::Type::Multiply, line, column };
         case '/': {
-            auto consume_regexp = [this]() -> Token {
+            auto consume_regexp = [this, line, column]() -> Token {
                 auto buf = std::string("");
                 char c = current_char();
                 for (;;) {
-                    if (!c) return Token { Token::Type::UnterminatedRegexp };
+                    if (!c) return Token { Token::Type::UnterminatedRegexp, line, column };
                     if (c == '/') {
                         advance();
-                        return Token { Token::Type::Regexp, GC_STRDUP(buf.c_str()) };
+                        return Token { Token::Type::Regexp, GC_STRDUP(buf.c_str()), line, column };
                     }
                     buf += c;
                     advance();
@@ -434,12 +547,12 @@ private:
             default: {
                 switch (current_char()) {
                 case ' ':
-                    return Token { Token::Type::Divide };
+                    return Token { Token::Type::Divide, line, column };
                 default:
                     if (we_skipped_whitespace) {
                         return consume_regexp();
                     } else {
-                        return Token { Token::Type::Divide };
+                        return Token { Token::Type::Divide, line, column };
                     }
                 }
             }
@@ -447,48 +560,48 @@ private:
         }
         case '.':
             advance();
-            return Token { Token::Type::Dot };
+            return Token { Token::Type::Dot, line, column };
         case '{':
             advance();
-            return Token { Token::Type::LBrace };
+            return Token { Token::Type::LBrace, line, column };
         case '[':
             advance();
-            return Token { Token::Type::LBracket };
+            return Token { Token::Type::LBracket, line, column };
         case '(':
             advance();
-            return Token { Token::Type::LParen };
+            return Token { Token::Type::LParen, line, column };
         case '}':
             advance();
-            return Token { Token::Type::RBrace };
+            return Token { Token::Type::RBrace, line, column };
         case ']':
             advance();
-            return Token { Token::Type::RBracket };
+            return Token { Token::Type::RBracket, line, column };
         case ')':
             advance();
-            return Token { Token::Type::RParen };
+            return Token { Token::Type::RParen, line, column };
         case '\n':
             advance();
-            return Token { Token::Type::Eol };
+            return Token { Token::Type::Eol, line, column };
         case ';':
             advance();
-            return Token { Token::Type::Semicolon };
+            return Token { Token::Type::Semicolon, line, column };
         case ':': {
             advance();
             const char *buf = consume_word();
-            return Token { Token::Type::Symbol, buf };
+            return Token { Token::Type::Symbol, buf, line, column };
         }
         case ',':
             advance();
-            return Token { Token::Type::Comma };
+            return Token { Token::Type::Comma, line, column };
         case '"': {
             advance();
             auto buf = std::string("");
             char c = current_char();
             for (;;) {
-                if (!c) return Token { Token::Type::UnterminatedString };
+                if (!c) return Token { Token::Type::UnterminatedString, line, column };
                 if (c == '"') {
                     advance();
-                    return Token { Token::Type::String, GC_STRDUP(buf.c_str()) };
+                    return Token { Token::Type::String, GC_STRDUP(buf.c_str()), line, column };
                 }
                 buf += c;
                 advance();
@@ -501,10 +614,10 @@ private:
             auto buf = std::string("");
             char c = current_char();
             for (;;) {
-                if (!c) return Token { Token::Type::UnterminatedString };
+                if (!c) return Token { Token::Type::UnterminatedString, line, column };
                 if (c == '\'') {
                     advance();
-                    return Token { Token::Type::String, GC_STRDUP(buf.c_str()) };
+                    return Token { Token::Type::String, GC_STRDUP(buf.c_str()), line, column };
                 }
                 buf += c;
                 advance();
@@ -518,7 +631,7 @@ private:
                 advance();
                 c = current_char();
             } while (c != '\n' && c != '\r');
-            return Token { Token::Type::Comment };
+            return Token { Token::Type::Comment, line, column };
         case '0':
         case '1':
         case '2':
@@ -529,109 +642,109 @@ private:
         case '7':
         case '8':
         case '9':
-            return consume_integer();
+            return Token { Token::Type::Integer, consume_integer(), line, column };
         };
         if (!token.is_valid()) {
             if (match(12, "__ENCODING__"))
-                return Token { Token::Type::_ENCODING_ };
+                return Token { Token::Type::_ENCODING_, line, column };
             else if (match(8, "__LINE__"))
-                return Token { Token::Type::_LINE_ };
+                return Token { Token::Type::_LINE_, line, column };
             else if (match(8, "__FILE__"))
-                return Token { Token::Type::_FILE_ };
+                return Token { Token::Type::_FILE_, line, column };
             else if (match(5, "BEGIN"))
-                return Token { Token::Type::BEGIN };
+                return Token { Token::Type::BEGIN, line, column };
             else if (match(3, "END"))
-                return Token { Token::Type::END };
+                return Token { Token::Type::END, line, column };
             else if (match(5, "alias"))
-                return Token { Token::Type::Alias };
+                return Token { Token::Type::Alias, line, column };
             else if (match(3, "and"))
-                return Token { Token::Type::And };
+                return Token { Token::Type::And, line, column };
             else if (match(5, "begin"))
-                return Token { Token::Type::Begin };
+                return Token { Token::Type::Begin, line, column };
             else if (match(5, "break"))
-                return Token { Token::Type::Break };
+                return Token { Token::Type::Break, line, column };
             else if (match(4, "case"))
-                return Token { Token::Type::Case };
+                return Token { Token::Type::Case, line, column };
             else if (match(5, "class"))
-                return Token { Token::Type::Class };
+                return Token { Token::Type::Class, line, column };
             else if (match(8, "defined?"))
-                return Token { Token::Type::Defined };
+                return Token { Token::Type::Defined, line, column };
             else if (match(3, "def"))
-                return Token { Token::Type::Def };
+                return Token { Token::Type::Def, line, column };
             else if (match(2, "do"))
-                return Token { Token::Type::Do };
+                return Token { Token::Type::Do, line, column };
             else if (match(4, "else"))
-                return Token { Token::Type::Else };
+                return Token { Token::Type::Else, line, column };
             else if (match(5, "elsif"))
-                return Token { Token::Type::Elsif };
+                return Token { Token::Type::Elsif, line, column };
             else if (match(3, "end"))
-                return Token { Token::Type::End };
+                return Token { Token::Type::End, line, column };
             else if (match(6, "ensure"))
-                return Token { Token::Type::Ensure };
+                return Token { Token::Type::Ensure, line, column };
             else if (match(5, "false"))
-                return Token { Token::Type::False };
+                return Token { Token::Type::False, line, column };
             else if (match(3, "for"))
-                return Token { Token::Type::For };
+                return Token { Token::Type::For, line, column };
             else if (match(2, "if"))
-                return Token { Token::Type::If };
+                return Token { Token::Type::If, line, column };
             else if (match(2, "in"))
-                return Token { Token::Type::In };
+                return Token { Token::Type::In, line, column };
             else if (match(6, "module"))
-                return Token { Token::Type::Module };
+                return Token { Token::Type::Module, line, column };
             else if (match(4, "next"))
-                return Token { Token::Type::Next };
+                return Token { Token::Type::Next, line, column };
             else if (match(3, "nil"))
-                return Token { Token::Type::Nil };
+                return Token { Token::Type::Nil, line, column };
             else if (match(3, "not"))
-                return Token { Token::Type::Not };
+                return Token { Token::Type::Not, line, column };
             else if (match(2, "or"))
-                return Token { Token::Type::Or };
+                return Token { Token::Type::Or, line, column };
             else if (match(4, "redo"))
-                return Token { Token::Type::Redo };
+                return Token { Token::Type::Redo, line, column };
             else if (match(6, "rescue"))
-                return Token { Token::Type::Rescue };
+                return Token { Token::Type::Rescue, line, column };
             else if (match(5, "retry"))
-                return Token { Token::Type::Retry };
+                return Token { Token::Type::Retry, line, column };
             else if (match(6, "return"))
-                return Token { Token::Type::Return };
+                return Token { Token::Type::Return, line, column };
             else if (match(4, "self"))
-                return Token { Token::Type::Self };
+                return Token { Token::Type::Self, line, column };
             else if (match(5, "super"))
-                return Token { Token::Type::Super };
+                return Token { Token::Type::Super, line, column };
             else if (match(4, "then"))
-                return Token { Token::Type::Then };
+                return Token { Token::Type::Then, line, column };
             else if (match(4, "true"))
-                return Token { Token::Type::True };
+                return Token { Token::Type::True, line, column };
             else if (match(5, "undef"))
-                return Token { Token::Type::Undef };
+                return Token { Token::Type::Undef, line, column };
             else if (match(6, "unless"))
-                return Token { Token::Type::Unless };
+                return Token { Token::Type::Unless, line, column };
             else if (match(5, "until"))
-                return Token { Token::Type::Until };
+                return Token { Token::Type::Until, line, column };
             else if (match(4, "when"))
-                return Token { Token::Type::When };
+                return Token { Token::Type::When, line, column };
             else if (match(5, "while"))
-                return Token { Token::Type::While };
+                return Token { Token::Type::While, line, column };
             else if (match(5, "yield"))
-                return Token { Token::Type::Yield };
+                return Token { Token::Type::Yield, line, column };
             else {
                 auto c = current_char();
                 bool symbol_key = false;
                 if ((c >= 'a' && c <= 'z') || c == '_') {
                     const char *buf = consume_word(&symbol_key);
                     if (symbol_key)
-                        return Token { Token::Type::SymbolKey, buf };
+                        return Token { Token::Type::SymbolKey, buf, line, column };
                     else
-                        return Token { Token::Type::Identifier, buf };
+                        return Token { Token::Type::Identifier, buf, line, column };
                 } else if (c >= 'A' && c <= 'Z') {
                     const char *buf = consume_word(&symbol_key);
                     if (symbol_key)
-                        return Token { Token::Type::SymbolKey, buf };
+                        return Token { Token::Type::SymbolKey, buf, line, column };
                     else
-                        return Token { Token::Type::Constant, buf };
+                        return Token { Token::Type::Constant, buf, line, column };
                 } else {
                     const char *buf = consume_non_whitespace();
-                    return Token { Token::Type::Invalid, buf };
+                    return Token { Token::Type::Invalid, buf, line, column };
                 }
             }
         }
@@ -641,6 +754,8 @@ private:
     const char *m_input { nullptr };
     size_t m_size { 0 };
     size_t m_index { 0 };
+    size_t m_line { 0 };
+    size_t m_column { 0 };
     Token m_last_token {};
 };
 }
