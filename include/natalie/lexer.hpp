@@ -35,6 +35,7 @@ struct Lexer : public gc {
             ExponentEqual,
             GreaterThan,
             GreaterThanOrEqual,
+            GlobalVariable,
             HashRocket,
             Identifier,
             InstanceVariable,
@@ -167,6 +168,9 @@ struct Lexer : public gc {
                 break;
             case Type::ExponentEqual:
                 type = SymbolValue::intern(env, "**=");
+                break;
+            case Type::GlobalVariable:
+                type = SymbolValue::intern(env, "gvar");
                 break;
             case Type::GreaterThan:
                 type = SymbolValue::intern(env, ">");
@@ -302,6 +306,7 @@ struct Lexer : public gc {
                 hash->put(env, SymbolValue::intern(env, "literal"), new StringValue { env, m_literal });
                 break;
             case Type::Constant:
+            case Type::GlobalVariable:
             case Type::Keyword:
             case Type::Identifier:
             case Type::InstanceVariable:
@@ -823,9 +828,12 @@ private:
             }
         }
         case '@': {
-            advance();
             const char *buf = consume_word();
             return Token { Token::Type::InstanceVariable, buf, line, column };
+        }
+        case '$': {
+            const char *buf = consume_word();
+            return Token { Token::Type::GlobalVariable, buf, line, column };
         }
         case '.':
             advance();

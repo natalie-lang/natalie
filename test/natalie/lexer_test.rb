@@ -110,7 +110,11 @@ describe 'Parser' do
     end
 
     it 'tokenizes instance variables' do
-      Parser.tokens('@foo').should == [{type: :ivar, literal: :foo}]
+      Parser.tokens('@foo').should == [{type: :ivar, literal: :@foo}]
+    end
+
+    it 'tokenizes global variables' do
+      Parser.tokens('$foo').should == [{type: :gvar, literal: :$foo}]
     end
 
     it 'tokenizes dots' do
