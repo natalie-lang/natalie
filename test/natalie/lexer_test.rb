@@ -109,6 +109,10 @@ describe 'Parser' do
       ]
     end
 
+    it 'tokenizes instance variables' do
+      Parser.tokens('@foo').should == [{type: :ivar, literal: :foo}]
+    end
+
     it 'tokenizes dots' do
       Parser.tokens('foo.bar').should == [{type: :identifier, literal: :foo}, {type: :"."}, {type: :identifier, literal: :bar}]
       Parser.tokens('foo . bar').should == [{type: :identifier, literal: :foo}, {type: :"."}, {type: :identifier, literal: :bar}]

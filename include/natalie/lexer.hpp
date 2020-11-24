@@ -37,6 +37,7 @@ struct Lexer : public gc {
             GreaterThanOrEqual,
             HashRocket,
             Identifier,
+            InstanceVariable,
             Integer,
             Invalid,
             Keyword,
@@ -179,6 +180,9 @@ struct Lexer : public gc {
             case Type::Identifier:
                 type = SymbolValue::intern(env, "identifier");
                 break;
+            case Type::InstanceVariable:
+                type = SymbolValue::intern(env, "ivar");
+                break;
             case Type::Integer:
                 type = SymbolValue::intern(env, "integer");
                 break;
@@ -300,6 +304,7 @@ struct Lexer : public gc {
             case Type::Constant:
             case Type::Keyword:
             case Type::Identifier:
+            case Type::InstanceVariable:
             case Type::Symbol:
             case Type::SymbolKey:
                 hash->put(env, SymbolValue::intern(env, "literal"), SymbolValue::intern(env, m_literal));
@@ -816,6 +821,11 @@ private:
             } else {
                 return Token { Token::Type::TernaryColon, line, column };
             }
+        }
+        case '@': {
+            advance();
+            const char *buf = consume_word();
+            return Token { Token::Type::InstanceVariable, buf, line, column };
         }
         case '.':
             advance();
