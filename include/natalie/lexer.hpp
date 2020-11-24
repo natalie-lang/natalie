@@ -369,6 +369,12 @@ struct Lexer : public gc {
         }
     }
 
+    char peek() {
+        if (m_index + 1 >= m_size)
+            return 0;
+        return m_input[m_index + 1];
+    }
+
 private:
     bool is_identifier_char(char c) {
         return c && ((c >= 'a' && c <= 'z') || (c >= 'A' && c < 'Z') || (c >= '0' && c <= '9') || c == '_');
@@ -401,6 +407,38 @@ private:
             if (negative)
                 number *= -1;
             return number;
+        };
+
+        auto consume_double_quoted_string = [this](size_t line, size_t column, char delimiter) {
+            auto buf = std::string("");
+            char c = current_char();
+            for (;;) {
+                if (!c) return Token { Token::Type::UnterminatedString, GC_STRDUP(buf.c_str()), line, column };
+                if (c == delimiter) {
+                    advance();
+                    return Token { Token::Type::String, GC_STRDUP(buf.c_str()), line, column };
+                }
+                buf += c;
+                advance();
+                c = current_char();
+            }
+            NAT_UNREACHABLE();
+        };
+
+        auto consume_single_quoted_string = [this](size_t line, size_t column, char delimiter) {
+            auto buf = std::string("");
+            char c = current_char();
+            for (;;) {
+                if (!c) return Token { Token::Type::UnterminatedString, GC_STRDUP(buf.c_str()), line, column };
+                if (c == delimiter) {
+                    advance();
+                    return Token { Token::Type::String, GC_STRDUP(buf.c_str()), line, column };
+                }
+                buf += c;
+                advance();
+                c = current_char();
+            }
+            NAT_UNREACHABLE();
         };
 
         auto consume_non_whitespace = [this]() {
@@ -542,10 +580,41 @@ private:
         }
         case '%':
             advance();
+            if (current_char() == 'q')
+                advance();
             switch (current_char()) {
             case '=':
                 advance();
                 return Token { Token::Type::ModulusEqual, line, column };
+            case '/':
+                advance();
+                return consume_single_quoted_string(line, column, '/');
+            case '[':
+                advance();
+                return consume_single_quoted_string(line, column, ']');
+            case '{':
+                advance();
+                return consume_single_quoted_string(line, column, '}');
+            case '(':
+                advance();
+                return consume_single_quoted_string(line, column, ')');
+            case 'Q':
+                switch (peek()) {
+                case '/':
+                    advance(2);
+                    return consume_double_quoted_string(line, column, '/');
+                case '[':
+                    advance(2);
+                    return consume_double_quoted_string(line, column, ']');
+                case '{':
+                    advance(2);
+                    return consume_double_quoted_string(line, column, '}');
+                case '(':
+                    advance(2);
+                    return consume_double_quoted_string(line, column, ')');
+                default:
+                    return Token { Token::Type::Modulus, line, column };
+                }
             default:
                 return Token { Token::Type::Modulus, line, column };
             }
@@ -660,35 +729,11 @@ private:
             return Token { Token::Type::Comma, line, column };
         case '"': {
             advance();
-            auto buf = std::string("");
-            char c = current_char();
-            for (;;) {
-                if (!c) return Token { Token::Type::UnterminatedString, GC_STRDUP(buf.c_str()), line, column };
-                if (c == '"') {
-                    advance();
-                    return Token { Token::Type::String, GC_STRDUP(buf.c_str()), line, column };
-                }
-                buf += c;
-                advance();
-                c = current_char();
-            }
-            NAT_UNREACHABLE();
+            return consume_double_quoted_string(line, column, '"');
         }
         case '\'': {
             advance();
-            auto buf = std::string("");
-            char c = current_char();
-            for (;;) {
-                if (!c) return Token { Token::Type::UnterminatedString, GC_STRDUP(buf.c_str()), line, column };
-                if (c == '\'') {
-                    advance();
-                    return Token { Token::Type::String, GC_STRDUP(buf.c_str()), line, column };
-                }
-                buf += c;
-                advance();
-                c = current_char();
-            }
-            NAT_UNREACHABLE();
+            return consume_single_quoted_string(line, column, '\'');
         }
         case '#':
             char c;

@@ -84,6 +84,11 @@ describe 'Parser' do
     it 'tokenizes strings' do
       Parser.tokens('"foo"').should == [{type: :string, literal: 'foo'}]
       Parser.tokens("'foo'").should == [{type: :string, literal: 'foo'}]
+      Parser.tokens("%(foo)").should == [{type: :string, literal: 'foo'}]
+      Parser.tokens("%[foo]").should == [{type: :string, literal: 'foo'}]
+      Parser.tokens("%/foo/").should == [{type: :string, literal: 'foo'}]
+      Parser.tokens("%q(foo)").should == [{type: :string, literal: 'foo'}]
+      Parser.tokens("%Q(foo)").should == [{type: :string, literal: 'foo'}]
     end
 
     it 'tokenizes arrays' do
