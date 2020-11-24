@@ -55,6 +55,10 @@ struct Lexer : public gc {
             Not,
             NotEqual,
             Or,
+            PercentLowerI,
+            PercentLowerW,
+            PercentUpperI,
+            PercentUpperW,
             Plus,
             PlusEqual,
             RBrace,
@@ -226,6 +230,18 @@ struct Lexer : public gc {
             case Type::Or:
                 type = SymbolValue::intern(env, "||");
                 break;
+            case Type::PercentLowerI:
+                type = SymbolValue::intern(env, "%i");
+                break;
+            case Type::PercentUpperI:
+                type = SymbolValue::intern(env, "%I");
+                break;
+            case Type::PercentLowerW:
+                type = SymbolValue::intern(env, "%w");
+                break;
+            case Type::PercentUpperW:
+                type = SymbolValue::intern(env, "%W");
+                break;
             case Type::Plus:
                 type = SymbolValue::intern(env, "+");
                 break;
@@ -273,6 +289,10 @@ struct Lexer : public gc {
             auto hash = new HashValue { env };
             hash->put(env, SymbolValue::intern(env, "type"), type);
             switch (m_type) {
+            case Type::PercentLowerI:
+            case Type::PercentUpperI:
+            case Type::PercentLowerW:
+            case Type::PercentUpperW:
             case Type::Regexp:
             case Type::String:
                 hash->put(env, SymbolValue::intern(env, "literal"), new StringValue { env, m_literal });
@@ -433,6 +453,38 @@ private:
                 if (c == delimiter) {
                     advance();
                     return Token { Token::Type::String, GC_STRDUP(buf.c_str()), line, column };
+                }
+                buf += c;
+                advance();
+                c = current_char();
+            }
+            NAT_UNREACHABLE();
+        };
+
+        auto consume_quoted_array_without_interpolation = [this](size_t line, size_t column, char delimiter, Token::Type type) {
+            auto buf = std::string("");
+            char c = current_char();
+            for (;;) {
+                if (!c) return Token { Token::Type::UnterminatedString, GC_STRDUP(buf.c_str()), line, column };
+                if (c == delimiter) {
+                    advance();
+                    return Token { type, GC_STRDUP(buf.c_str()), line, column };
+                }
+                buf += c;
+                advance();
+                c = current_char();
+            }
+            NAT_UNREACHABLE();
+        };
+
+        auto consume_quoted_array_with_interpolation = [this](size_t line, size_t column, char delimiter, Token::Type type) {
+            auto buf = std::string("");
+            char c = current_char();
+            for (;;) {
+                if (!c) return Token { Token::Type::UnterminatedString, GC_STRDUP(buf.c_str()), line, column };
+                if (c == delimiter) {
+                    advance();
+                    return Token { type, GC_STRDUP(buf.c_str()), line, column };
                 }
                 buf += c;
                 advance();
@@ -612,6 +664,74 @@ private:
                 case '(':
                     advance(2);
                     return consume_double_quoted_string(line, column, ')');
+                default:
+                    return Token { Token::Type::Modulus, line, column };
+                }
+            case 'w':
+                switch (peek()) {
+                case '/':
+                    advance(2);
+                    return consume_quoted_array_without_interpolation(line, column, '/', Token::Type::PercentLowerW);
+                case '[':
+                    advance(2);
+                    return consume_quoted_array_without_interpolation(line, column, ']', Token::Type::PercentLowerW);
+                case '{':
+                    advance(2);
+                    return consume_quoted_array_without_interpolation(line, column, '}', Token::Type::PercentLowerW);
+                case '(':
+                    advance(2);
+                    return consume_quoted_array_without_interpolation(line, column, ')', Token::Type::PercentLowerW);
+                default:
+                    return Token { Token::Type::Modulus, line, column };
+                }
+            case 'W':
+                switch (peek()) {
+                case '/':
+                    advance(2);
+                    return consume_quoted_array_with_interpolation(line, column, '/', Token::Type::PercentUpperW);
+                case '[':
+                    advance(2);
+                    return consume_quoted_array_with_interpolation(line, column, ']', Token::Type::PercentUpperW);
+                case '{':
+                    advance(2);
+                    return consume_quoted_array_with_interpolation(line, column, '}', Token::Type::PercentUpperW);
+                case '(':
+                    advance(2);
+                    return consume_quoted_array_with_interpolation(line, column, ')', Token::Type::PercentUpperW);
+                default:
+                    return Token { Token::Type::Modulus, line, column };
+                }
+            case 'i':
+                switch (peek()) {
+                case '/':
+                    advance(2);
+                    return consume_quoted_array_without_interpolation(line, column, '/', Token::Type::PercentLowerI);
+                case '[':
+                    advance(2);
+                    return consume_quoted_array_without_interpolation(line, column, ']', Token::Type::PercentLowerI);
+                case '{':
+                    advance(2);
+                    return consume_quoted_array_without_interpolation(line, column, '}', Token::Type::PercentLowerI);
+                case '(':
+                    advance(2);
+                    return consume_quoted_array_without_interpolation(line, column, ')', Token::Type::PercentLowerI);
+                default:
+                    return Token { Token::Type::Modulus, line, column };
+                }
+            case 'I':
+                switch (peek()) {
+                case '/':
+                    advance(2);
+                    return consume_quoted_array_with_interpolation(line, column, '/', Token::Type::PercentUpperI);
+                case '[':
+                    advance(2);
+                    return consume_quoted_array_with_interpolation(line, column, ']', Token::Type::PercentUpperI);
+                case '{':
+                    advance(2);
+                    return consume_quoted_array_with_interpolation(line, column, '}', Token::Type::PercentUpperI);
+                case '(':
+                    advance(2);
+                    return consume_quoted_array_with_interpolation(line, column, ')', Token::Type::PercentUpperI);
                 default:
                     return Token { Token::Type::Modulus, line, column };
                 }
