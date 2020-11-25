@@ -142,6 +142,11 @@ describe 'Parser' do
       Parser.tokens("# only a comment") # does not get stuck in a loop :^)
     end
 
+    it 'tokenizes lambdas' do
+      Parser.tokens('-> { }').should == [{type: :"->"}, {type: :"{"}, {type: :"}"}]
+      Parser.tokens('->(x) { }').should == [{type: :"->"}, {type: :"("}, {type: :identifier, literal: :x}, {type: :")"}, {type: :"{"}, {type: :"}"}]
+    end
+
     it 'stores line and column numbers with each token' do
       Parser.tokens("foo = 1 + 2 # comment\n# comment\nbar.baz", true).should == [
         {type: :identifier, literal: :foo, line: 0, column: 0},

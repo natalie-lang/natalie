@@ -14,6 +14,7 @@ struct Lexer : public gc {
     struct Token : public gc {
         enum class Type {
             And,
+            Arrow,
             BinaryAnd,
             BinaryOr,
             BinaryXor,
@@ -110,6 +111,9 @@ struct Lexer : public gc {
             switch (m_type) {
             case Type::And:
                 type = SymbolValue::intern(env, "&&");
+                break;
+            case Type::Arrow:
+                type = SymbolValue::intern(env, "->");
                 break;
             case Type::BinaryAnd:
                 type = SymbolValue::intern(env, "&");
@@ -476,6 +480,9 @@ private:
                 const bool is_negative = true;
                 return consume_integer(is_negative);
             }
+            case '>':
+                advance();
+                return Token { Token::Type::Arrow, m_token_line, m_token_column };
             default:
                 switch (current_char()) {
                 case '=':
