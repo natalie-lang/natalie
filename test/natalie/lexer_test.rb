@@ -147,6 +147,33 @@ describe 'Parser' do
       Parser.tokens('->(x) { }').should == [{type: :"->"}, {type: :"("}, {type: :identifier, literal: :x}, {type: :")"}, {type: :"{"}, {type: :"}"}]
     end
 
+    it 'tokenizes blocks' do
+      Parser.tokens("foo do |x, y|\nx\nend").should == [
+        {type: :identifier, literal: :foo},
+        {type: :keyword, literal: :do},
+        {type: :"|"},
+        {type: :identifier, literal: :x},
+        {type: :","},
+        {type: :identifier, literal: :y},
+        {type: :"|"},
+        {type: :"\n"},
+        {type: :identifier, literal: :x},
+        {type: :"\n"},
+        {type: :keyword, literal: :end},
+      ]
+      Parser.tokens("foo { |x, y| x }").should == [
+        {type: :identifier, literal: :foo},
+        {type: :"{"},
+        {type: :"|"},
+        {type: :identifier, literal: :x},
+        {type: :","},
+        {type: :identifier, literal: :y},
+        {type: :"|"},
+        {type: :identifier, literal: :x},
+        {type: :"}"},
+      ]
+    end
+
     it 'stores line and column numbers with each token' do
       Parser.tokens("foo = 1 + 2 # comment\n# comment\nbar.baz", true).should == [
         {type: :identifier, literal: :foo, line: 0, column: 0},
