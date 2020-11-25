@@ -139,6 +139,7 @@ describe 'Parser' do
         bar
       END
       tokens.should == [{type: :identifier, literal: :foo}, {type: :"\n"}, {type: :"\n"}, {type: :identifier, literal: :bar}, {type: :"\n"}]
+      Parser.tokens("# only a comment") # does not get stuck in a loop :^)
     end
 
     it 'stores line and column numbers with each token' do

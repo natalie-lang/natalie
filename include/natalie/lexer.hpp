@@ -878,7 +878,7 @@ private:
             do {
                 advance();
                 c = current_char();
-            } while (c != '\n' && c != '\r');
+            } while (c && c != '\n' && c != '\r');
             return Token { Token::Type::Comment, line, column };
         case '0':
         case '1':
