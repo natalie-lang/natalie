@@ -19,6 +19,7 @@ struct Lexer : public gc {
             BinaryOr,
             BinaryXor,
             BinaryOnesComplement,
+            ClassVariable,
             Comma,
             Comment,
             Comparison,
@@ -104,6 +105,9 @@ struct Lexer : public gc {
         void set_type(Token::Type type) { m_type = type; }
 
         const char *literal() { return m_literal; }
+        void set_literal(const char *literal) { m_literal = literal; }
+        void set_literal(std::string literal) { m_literal = GC_STRDUP(literal.c_str()); }
+
         nat_int_t integer() { return m_integer; }
 
         Value *to_ruby(Env *env, bool with_line_and_column_numbers = false) {
@@ -127,8 +131,8 @@ struct Lexer : public gc {
             case Type::BinaryOnesComplement:
                 type = SymbolValue::intern(env, "~");
                 break;
-            case Type::Keyword:
-                type = SymbolValue::intern(env, "keyword");
+            case Type::ClassVariable:
+                type = SymbolValue::intern(env, "cvar");
                 break;
             case Type::Comma:
                 type = SymbolValue::intern(env, ",");
@@ -198,6 +202,9 @@ struct Lexer : public gc {
                 break;
             case Type::Invalid:
                 env->raise("SyntaxError", "syntax error, unexpected '%s'", m_literal);
+                break;
+            case Type::Keyword:
+                type = SymbolValue::intern(env, "keyword");
                 break;
             case Type::LBrace:
                 type = SymbolValue::intern(env, "{");
@@ -311,6 +318,7 @@ struct Lexer : public gc {
             case Type::String:
                 hash->put(env, SymbolValue::intern(env, "literal"), new StringValue { env, m_literal });
                 break;
+            case Type::ClassVariable:
             case Type::Constant:
             case Type::GlobalVariable:
             case Type::Keyword:
@@ -722,9 +730,18 @@ private:
                 return Token { Token::Type::TernaryColon, m_token_line, m_token_column };
             }
         }
-        case '@': {
-            return consume_word(Token::Type::InstanceVariable);
-        }
+        case '@':
+            switch (peek()) {
+            case '@': {
+                // kinda janky, but we gotta trick consume_word and then prepend the '@' back on the front
+                advance();
+                auto token = consume_word(Token::Type::ClassVariable);
+                token.set_literal(std::string(1, '@') + std::string(token.literal()));
+                return token;
+            }
+            default:
+                return consume_word(Token::Type::InstanceVariable);
+            }
         case '$': {
             return consume_word(Token::Type::GlobalVariable);
         }
