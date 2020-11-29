@@ -51,6 +51,7 @@ struct Lexer : public gc {
             LeftShift,
             LessThan,
             LessThanOrEqual,
+            Match,
             Minus,
             MinusEqual,
             Modulus,
@@ -59,6 +60,7 @@ struct Lexer : public gc {
             MultiplyEqual,
             Not,
             NotEqual,
+            NotMatch,
             Or,
             PercentLowerI,
             PercentLowerW,
@@ -228,6 +230,9 @@ struct Lexer : public gc {
             case Type::LessThanOrEqual:
                 type = SymbolValue::intern(env, "<=");
                 break;
+            case Type::Match:
+                type = SymbolValue::intern(env, "=~");
+                break;
             case Type::Minus:
                 type = SymbolValue::intern(env, "-");
                 break;
@@ -251,6 +256,9 @@ struct Lexer : public gc {
                 break;
             case Type::NotEqual:
                 type = SymbolValue::intern(env, "!=");
+                break;
+            case Type::NotMatch:
+                type = SymbolValue::intern(env, "!~");
                 break;
             case Type::Or:
                 type = SymbolValue::intern(env, "||");
@@ -459,10 +467,12 @@ private:
                     return Token { Token::Type::EqualEqual, m_token_line, m_token_column };
                 }
             }
-            case '>': {
+            case '>':
                 advance();
                 return Token { Token::Type::HashRocket, m_token_line, m_token_column };
-            }
+            case '~':
+                advance();
+                return Token { Token::Type::Match, m_token_line, m_token_column };
             default:
                 return Token { Token::Type::Equal, m_token_line, m_token_column };
             }
@@ -662,6 +672,9 @@ private:
             case '=':
                 advance();
                 return Token { Token::Type::NotEqual, m_token_line, m_token_column };
+            case '~':
+                advance();
+                return Token { Token::Type::NotMatch, m_token_line, m_token_column };
             default:
                 return Token { Token::Type::Not, m_token_line, m_token_column };
             }
