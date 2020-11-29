@@ -27,7 +27,6 @@ module Natalie
       -lgdtoa
       -lm
       -lonigmo
-      -lPEGParser
     ]
 
     RB_LIB_PATH = File.expand_path('..', __dir__)

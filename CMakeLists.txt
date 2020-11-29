@@ -55,12 +55,8 @@ set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/src/bindings.cpp PROPERT
 include(ext/bdwgc.cmake)
 include(ext/gdtoa.cmake)
 include(ext/onigmo.cmake)
-include(ext/PEGParser.cmake)
 
 add_dependencies(natalie
   ${BDWGC_TARGET}
   ${GDTOA_TARGET}
-  ${ONIGMO_TARGET}
-  ${PEGPARSER_TARGET})
-
-target_link_libraries(natalie PEGParser)
+  ${ONIGMO_TARGET})
