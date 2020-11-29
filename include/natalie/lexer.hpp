@@ -28,6 +28,7 @@ struct Lexer : public gc {
             Divide,
             DivideEqual,
             Dot,
+            DotDot,
             Eof,
             Eol,
             Equal,
@@ -157,6 +158,9 @@ struct Lexer : public gc {
                 break;
             case Type::Dot:
                 type = SymbolValue::intern(env, ".");
+                break;
+            case Type::DotDot:
+                type = SymbolValue::intern(env, "..");
                 break;
             case Type::Eol:
                 type = SymbolValue::intern(env, "\n");
@@ -747,7 +751,13 @@ private:
         }
         case '.':
             advance();
-            return Token { Token::Type::Dot, m_token_line, m_token_column };
+            switch (current_char()) {
+            case '.':
+                advance();
+                return Token { Token::Type::DotDot, m_token_line, m_token_column };
+            default:
+                return Token { Token::Type::Dot, m_token_line, m_token_column };
+            }
         case '{':
             advance();
             return Token { Token::Type::LBrace, m_token_line, m_token_column };
