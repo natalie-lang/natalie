@@ -357,6 +357,11 @@ struct Lexer : public gc {
         bool is_eof() { return m_type == Type::Eof; }
         bool is_valid() { return m_type != Type::Invalid; }
 
+        // FIXME: make "def" its own type and eliminate this strcmp
+        bool can_precede_method_name() {
+            return m_type == Token::Type::Dot || m_type == Token::Type::ConstantResolution || (m_type == Token::Type::Keyword && strcmp(m_literal, "def") == 0);
+        }
+
         size_t line() { return m_line; }
         size_t column() { return m_column; }
 
@@ -392,8 +397,7 @@ struct Lexer : public gc {
         return token;
     }
 
-    char
-    current_char() {
+    char current_char() {
         if (m_index >= m_size)
             return 0;
         return m_input[m_index];
@@ -932,13 +936,26 @@ private:
             advance();
             c = current_char();
         } while (is_identifier_char(c));
+        switch (c) {
+        case '?':
+        case '!':
+        case '=':
+            if (m_last_token.can_precede_method_name()) {
+                advance();
+                buf += c;
+            } else {
+                break;
+            }
+        default:
+            break;
+        }
         return Token { type, GC_STRDUP(buf.c_str()), m_token_line, m_token_column };
     }
 
     Token consume_identifier() {
         Token token = consume_word(Token::Type::Identifier);
         auto c = current_char();
-        if (c && c == ':') {
+        if (c == ':' && peek() != ':') {
             advance();
             token.set_type(Token::Type::SymbolKey);
         }
@@ -948,7 +965,7 @@ private:
     Token consume_constant() {
         Token token = consume_word(Token::Type::Constant);
         auto c = current_char();
-        if (c && c == ':') {
+        if (c == ':' && peek() != ':') {
             advance();
             token.set_type(Token::Type::SymbolKey);
         }

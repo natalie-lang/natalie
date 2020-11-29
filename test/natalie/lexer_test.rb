@@ -178,6 +178,17 @@ describe 'Parser' do
       ]
     end
 
+    it 'tokenizes method names' do
+      Parser.tokens("def foo?").should == [{type: :keyword, literal: :def}, {type: :identifier, literal: :foo?}]
+      Parser.tokens("def foo!").should == [{type: :keyword, literal: :def}, {type: :identifier, literal: :foo!}]
+      Parser.tokens("def foo=").should == [{type: :keyword, literal: :def}, {type: :identifier, literal: :foo=}]
+      Parser.tokens("def self.foo=").should == [{type: :keyword, literal: :def}, {type: :keyword, literal: :self}, {type: :"."}, {type: :identifier, literal: :foo=}]
+      Parser.tokens("foo.bar=").should == [{type: :identifier, literal: :foo}, {type: :"."}, {type: :identifier, literal: :bar=}]
+      Parser.tokens("foo::bar!").should == [{type: :identifier, literal: :foo}, {type: :"::"}, {type: :identifier, literal: :bar!}]
+      Parser.tokens("Foo::bar!").should == [{type: :constant, literal: :Foo}, {type: :"::"}, {type: :identifier, literal: :bar!}]
+      Parser.tokens("bar=1").should == [{type: :identifier, literal: :bar}, {type: :"="}, {type: :integer, literal: 1}]
+    end
+
     it 'stores line and column numbers with each token' do
       Parser.tokens("foo = 1 + 2 # comment\n# comment\nbar.baz", true).should == [
         {type: :identifier, literal: :foo, line: 0, column: 0},
