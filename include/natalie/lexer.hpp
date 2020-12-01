@@ -73,6 +73,7 @@ struct Lexer : public gc {
             Regexp,
             RightShift,
             RParen,
+            SafeNavigation,
             Semicolon,
             String,
             Symbol,
@@ -295,6 +296,9 @@ struct Lexer : public gc {
                 break;
             case Type::RightShift:
                 type = SymbolValue::intern(env, ">>");
+                break;
+            case Type::SafeNavigation:
+                type = SymbolValue::intern(env, "&.");
                 break;
             case Type::Semicolon:
                 type = SymbolValue::intern(env, ";");
@@ -718,6 +722,9 @@ private:
             case '&':
                 advance();
                 return Token { Token::Type::And, m_token_line, m_token_column };
+            case '.':
+                advance();
+                return Token { Token::Type::SafeNavigation, m_token_line, m_token_column };
             default:
                 return Token { Token::Type::BinaryAnd, m_token_line, m_token_column };
             }
