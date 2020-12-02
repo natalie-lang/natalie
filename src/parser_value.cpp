@@ -2,6 +2,7 @@
 #include "natalie/array_value.hpp"
 #include "natalie/env.hpp"
 #include "natalie/lexer.hpp"
+#include "natalie/parser.hpp"
 #include "natalie/symbol_value.hpp"
 
 namespace Natalie {
@@ -9,7 +10,9 @@ namespace Natalie {
 using std::string;
 
 Value *ParserValue::parse(Env *env, Value *code) {
-    return env->nil_obj();
+    code->assert_type(env, Value::Type::String, "String");
+    auto parser = Parser { code->as_string()->c_str() };
+    return parser.tree(env)->to_ruby(env);
 }
 
 Value *ParserValue::tokens(Env *env, Value *code, Value *with_line_and_column_numbers) {

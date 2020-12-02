@@ -1,5 +1,3 @@
-# skip-test
-
 require_relative '../spec_helper'
 require 'sexp'
 
@@ -28,11 +26,11 @@ describe 'Parser' do
 
     it 'parses numbers' do
       Parser.parse('1').should == s(:block, s(:lit, 1))
-      Parser.parse(' 1').should == s(:block, s(:lit, 1))
-      Parser.parse('1.5 ').should == s(:block, s(:lit, 1.5))
+      Parser.parse(' 1234').should == s(:block, s(:lit, 1234))
+      #Parser.parse('1.5 ').should == s(:block, s(:lit, 1.5))
     end
 
-    it 'parses operator calls' do
+    xit 'parses operator calls' do
       Parser.parse('1 + 3').should == s(:block, s(:call, s(:lit, 1), :+, s(:lit, 3)))
       Parser.parse('1+3').should == s(:block, s(:call, s(:lit, 1), :+, s(:lit, 3)))
       Parser.parse("1+\n 3").should == s(:block, s(:call, s(:lit, 1), :+, s(:lit, 3)))
@@ -50,7 +48,7 @@ describe 'Parser' do
       Parser.parse('"foo" + "bar"').should == s(:block, s(:call, s(:str, "foo"), :+, s(:str, "bar")))
     end
 
-    it 'raises an error if there is a syntax error' do
+    xit 'raises an error if there is a syntax error' do
       -> { Parser.parse(')') }.should raise_error(SyntaxError, /\(string\):1 :: parse error on value "\)/)
       -> { Parser.parse("1 + 2\n\n)") }.should raise_error(SyntaxError, /\(string\):3 :: parse error on value "\)/)
     end
@@ -58,27 +56,27 @@ describe 'Parser' do
     it 'parses strings' do
       Parser.parse('""').should == s(:block, s(:str, ''))
       Parser.parse('"foo"').should == s(:block, s(:str, 'foo'))
-      Parser.parse('"this is \"quoted\""').should == s(:block, s(:str, 'this is "quoted"'))
-      Parser.parse('"other escaped chars \\\\ \n"').should == s(:block, s(:str, "other escaped chars \\ \n"))
+      #Parser.parse('"this is \"quoted\""').should == s(:block, s(:str, 'this is "quoted"'))
+      #Parser.parse('"other escaped chars \\\\ \n"').should == s(:block, s(:str, "other escaped chars \\ \n"))
       Parser.parse("''").should == s(:block, s(:str, ''))
       Parser.parse("'foo'").should == s(:block, s(:str, 'foo'))
-      Parser.parse("'this is \\'quoted\\''").should == s(:block, s(:str, "this is 'quoted'"))
-      Parser.parse("'other escaped chars \\\\ \\n'").should == s(:block, s(:str, "other escaped chars \\ \\n"))
+      #Parser.parse("'this is \\'quoted\\''").should == s(:block, s(:str, "this is 'quoted'"))
+      #Parser.parse("'other escaped chars \\\\ \\n'").should == s(:block, s(:str, "other escaped chars \\ \\n"))
     end
 
-    it 'parses multiple expressions' do
+    xit 'parses multiple expressions' do
       Parser.parse("1 + 2\n3 + 4").should == s(:block, s(:call, s(:lit, 1), :+, s(:lit, 2)), s(:call, s(:lit, 3), :+, s(:lit, 4)))
       Parser.parse("1 + 2;'foo'").should == s(:block, s(:call, s(:lit, 1), :+, s(:lit, 2)), s(:str, "foo"))
     end
 
-    it 'parses method calls with parentheses' do
+    xit 'parses method calls with parentheses' do
       Parser.parse("foo()").should == s(:block, s(:call, nil, :foo))
       Parser.parse("foo() + bar()").should == s(:block, s(:call, s(:call, nil, :foo), :+, s(:call, nil, :bar)))
       Parser.parse("foo(1, 'baz')").should == s(:block, s(:call, nil, :foo, s(:lit, 1), s(:str, "baz")))
       Parser.parse("foo(\n1 + 2  ,\n  'baz'  \n )").should == s(:block, s(:call, nil, :foo, s(:call, s(:lit, 1), :+, s(:lit, 2)), s(:str, "baz")))
     end
 
-    it 'parses method calls without parentheses' do
+    xit 'parses method calls without parentheses' do
       Parser.parse("foo").should == s(:block, s(:call, nil, :foo))
       Parser.parse("foo + bar").should == s(:block, s(:call, s(:call, nil, :foo), :+, s(:call, nil, :bar)))
       Parser.parse("foo 1, 'baz'").should == s(:block, s(:call, nil, :foo, s(:lit, 1), s(:str, "baz")))
@@ -86,7 +84,7 @@ describe 'Parser' do
       Parser.parse("foo 'foo' + 'bar'  ,\n  2").should == s(:block, s(:call, nil, :foo, s(:call, s(:str, "foo"), :+, s(:str, "bar")), s(:lit, 2)))
     end
 
-    it 'parses method definition' do
+    xit 'parses method definition' do
       Parser.parse("def foo\nend").should == s(:block, s(:defn, :foo, s(:args), s(:nil)))
       Parser.parse("def foo;end").should == s(:block, s(:defn, :foo, s(:args), s(:nil)))
       Parser.parse("def foo x, y\nend").should == s(:block, s(:defn, :foo, s(:args, :x, :y), s(:nil)))
@@ -99,7 +97,7 @@ describe 'Parser' do
       Parser.parse("def foo(x, y)\n1\n2\nend").should == s(:block, s(:defn, :foo, s(:args, :x, :y), s(:lit, 1), s(:lit, 2)))
     end
 
-    it 'parses class definition' do
+    xit 'parses class definition' do
       Parser.parse("class Foo\nend").should == s(:block, s(:class, :Foo, nil))
       Parser.parse("class Foo;end").should == s(:block, s(:class, :Foo, nil))
       Parser.parse("class FooBar; 1; 2; end").should == s(:block, s(:class, :FooBar, nil, s(:lit, 1), s(:lit, 2)))
@@ -107,14 +105,14 @@ describe 'Parser' do
       Parser.parse("class Foo < Bar; 3\n 4\n end").should == s(:block, s(:class, :Foo, s(:const, :Bar), s(:lit, 3), s(:lit, 4)))
     end
 
-    it 'parses module definition' do
+    xit 'parses module definition' do
       Parser.parse("module Foo\nend").should == s(:block, s(:module, :Foo))
       Parser.parse("module Foo;end").should == s(:block, s(:module, :Foo))
       Parser.parse("module FooBar; 1; 2; end").should == s(:block, s(:module, :FooBar, s(:lit, 1), s(:lit, 2)))
       -> { Parser.parse('module foo;end') }.should raise_error(SyntaxError, 'class/module name must be CONSTANT')
     end
 
-    it 'parses an array' do
+    xit 'parses an array' do
       Parser.parse("[]").should == s(:block, s(:array))
       Parser.parse("[1]").should == s(:block, s(:array, s(:lit, 1)))
       Parser.parse("['foo']").should == s(:block, s(:array, s(:str, 'foo')))
@@ -123,7 +121,7 @@ describe 'Parser' do
       -> { Parser.parse('[ , 1]') }.should raise_error(SyntaxError, /\(string\):1 :: parse error on value/)
     end
 
-    it 'parses a hash' do
+    xit 'parses a hash' do
       Parser.parse("{}").should == s(:block, s(:hash))
       Parser.parse("{ 1 => 2 }").should == s(:block, s(:hash, s(:lit, 1), s(:lit, 2)))
       Parser.parse("{ foo: 'bar' }").should == s(:block, s(:hash, s(:lit, :foo), s(:str, 'bar')))
@@ -133,13 +131,13 @@ describe 'Parser' do
       -> { Parser.parse('{ , 1 => 2 }') }.should raise_error(SyntaxError, /\(string\):1 :: parse error on value/)
     end
 
-    it 'parses assignment' do
+    xit 'parses assignment' do
       Parser.parse("a = 'foo'").should == s(:block, s(:lasgn, :a, s(:str, "foo")))
       Parser.parse("a =\n'foo'").should == s(:block, s(:lasgn, :a, s(:str, "foo")))
       Parser.parse("a = 1").should == s(:block, s(:lasgn, :a, s(:lit, 1)))
     end
 
-    it 'ignores comments' do
+    xit 'ignores comments' do
       Parser.parse("# comment").should == s(:block)
       Parser.parse("# comment\n#comment 2").should == s(:block)
       Parser.parse("1 + 1 # comment").should == s(:block, s(:call, s(:lit, 1), :+, s(:lit, 1)))
