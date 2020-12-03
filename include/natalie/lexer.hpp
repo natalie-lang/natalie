@@ -107,6 +107,8 @@ struct Lexer : public gc {
             , m_line { line }
             , m_column { column } { }
 
+        static Token invalid() { return Token { Token::Type::Invalid, 0, 0 }; }
+
         Type type() { return m_type; }
         void set_type(Token::Type type) { m_type = type; }
 
@@ -116,215 +118,152 @@ struct Lexer : public gc {
 
         nat_int_t integer() { return m_integer; }
 
-        Value *to_ruby(Env *env, bool with_line_and_column_numbers = false) {
-            Value *type;
+        Value *type_value(Env *env) {
             switch (m_type) {
             case Type::And:
-                type = SymbolValue::intern(env, "&&");
-                break;
+                return SymbolValue::intern(env, "&&");
             case Type::Arrow:
-                type = SymbolValue::intern(env, "->");
-                break;
+                return SymbolValue::intern(env, "->");
             case Type::BinaryAnd:
-                type = SymbolValue::intern(env, "&");
-                break;
+                return SymbolValue::intern(env, "&");
             case Type::BinaryOr:
-                type = SymbolValue::intern(env, "|");
-                break;
+                return SymbolValue::intern(env, "|");
             case Type::BinaryXor:
-                type = SymbolValue::intern(env, "^");
-                break;
+                return SymbolValue::intern(env, "^");
             case Type::BinaryOnesComplement:
-                type = SymbolValue::intern(env, "~");
-                break;
+                return SymbolValue::intern(env, "~");
             case Type::ClassVariable:
-                type = SymbolValue::intern(env, "cvar");
-                break;
+                return SymbolValue::intern(env, "cvar");
             case Type::Comma:
-                type = SymbolValue::intern(env, ",");
-                break;
+                return SymbolValue::intern(env, ",");
             case Type::Comment:
-                type = env->nil_obj();
-                break;
+                return env->nil_obj();
             case Type::Comparison:
-                type = SymbolValue::intern(env, "<=>");
-                break;
+                return SymbolValue::intern(env, "<=>");
             case Type::Constant:
-                type = SymbolValue::intern(env, "constant");
-                break;
+                return SymbolValue::intern(env, "constant");
             case Type::ConstantResolution:
-                type = SymbolValue::intern(env, "::");
-                break;
+                return SymbolValue::intern(env, "::");
             case Type::Divide:
-                type = SymbolValue::intern(env, "/");
-                break;
+                return SymbolValue::intern(env, "/");
             case Type::DivideEqual:
-                type = SymbolValue::intern(env, "/=");
-                break;
+                return SymbolValue::intern(env, "/=");
             case Type::Dot:
-                type = SymbolValue::intern(env, ".");
-                break;
+                return SymbolValue::intern(env, ".");
             case Type::DotDot:
-                type = SymbolValue::intern(env, "..");
-                break;
+                return SymbolValue::intern(env, "..");
             case Type::Eol:
-                type = SymbolValue::intern(env, "\n");
-                break;
+                return SymbolValue::intern(env, "\n");
             case Type::Eof:
-                type = env->nil_obj();
-                break;
+                return env->nil_obj();
             case Type::Equal:
-                type = SymbolValue::intern(env, "=");
-                break;
+                return SymbolValue::intern(env, "=");
             case Type::EqualEqual:
-                type = SymbolValue::intern(env, "==");
-                break;
+                return SymbolValue::intern(env, "==");
             case Type::EqualEqualEqual:
-                type = SymbolValue::intern(env, "===");
-                break;
+                return SymbolValue::intern(env, "===");
             case Type::Exponent:
-                type = SymbolValue::intern(env, "**");
-                break;
+                return SymbolValue::intern(env, "**");
             case Type::ExponentEqual:
-                type = SymbolValue::intern(env, "**=");
-                break;
+                return SymbolValue::intern(env, "**=");
             case Type::GlobalVariable:
-                type = SymbolValue::intern(env, "gvar");
-                break;
+                return SymbolValue::intern(env, "gvar");
             case Type::GreaterThan:
-                type = SymbolValue::intern(env, ">");
-                break;
+                return SymbolValue::intern(env, ">");
             case Type::GreaterThanOrEqual:
-                type = SymbolValue::intern(env, ">=");
-                break;
+                return SymbolValue::intern(env, ">=");
             case Type::HashRocket:
-                type = SymbolValue::intern(env, "=>");
-                break;
+                return SymbolValue::intern(env, "=>");
             case Type::Identifier:
-                type = SymbolValue::intern(env, "identifier");
-                break;
+                return SymbolValue::intern(env, "identifier");
             case Type::InstanceVariable:
-                type = SymbolValue::intern(env, "ivar");
-                break;
+                return SymbolValue::intern(env, "ivar");
             case Type::Integer:
-                type = SymbolValue::intern(env, "integer");
-                break;
+                return SymbolValue::intern(env, "integer");
             case Type::Invalid:
                 env->raise("SyntaxError", "syntax error, unexpected '%s'", m_literal);
-                break;
             case Type::Keyword:
-                type = SymbolValue::intern(env, "keyword");
-                break;
+                return SymbolValue::intern(env, "keyword");
             case Type::LBrace:
-                type = SymbolValue::intern(env, "{");
-                break;
+                return SymbolValue::intern(env, "{");
             case Type::LBracket:
-                type = SymbolValue::intern(env, "[");
-                break;
+                return SymbolValue::intern(env, "[");
             case Type::LParen:
-                type = SymbolValue::intern(env, "(");
-                break;
+                return SymbolValue::intern(env, "(");
             case Type::LeftShift:
-                type = SymbolValue::intern(env, "<<");
-                break;
+                return SymbolValue::intern(env, "<<");
             case Type::LessThan:
-                type = SymbolValue::intern(env, "<");
-                break;
+                return SymbolValue::intern(env, "<");
             case Type::LessThanOrEqual:
-                type = SymbolValue::intern(env, "<=");
-                break;
+                return SymbolValue::intern(env, "<=");
             case Type::Match:
-                type = SymbolValue::intern(env, "=~");
-                break;
+                return SymbolValue::intern(env, "=~");
             case Type::Minus:
-                type = SymbolValue::intern(env, "-");
-                break;
+                return SymbolValue::intern(env, "-");
             case Type::MinusEqual:
-                type = SymbolValue::intern(env, "-=");
-                break;
+                return SymbolValue::intern(env, "-=");
             case Type::Modulus:
-                type = SymbolValue::intern(env, "%");
-                break;
+                return SymbolValue::intern(env, "%");
             case Type::ModulusEqual:
-                type = SymbolValue::intern(env, "%=");
-                break;
+                return SymbolValue::intern(env, "%=");
             case Type::Multiply:
-                type = SymbolValue::intern(env, "*");
-                break;
+                return SymbolValue::intern(env, "*");
             case Type::MultiplyEqual:
-                type = SymbolValue::intern(env, "*=");
-                break;
+                return SymbolValue::intern(env, "*=");
             case Type::Not:
-                type = SymbolValue::intern(env, "!");
-                break;
+                return SymbolValue::intern(env, "!");
             case Type::NotEqual:
-                type = SymbolValue::intern(env, "!=");
-                break;
+                return SymbolValue::intern(env, "!=");
             case Type::NotMatch:
-                type = SymbolValue::intern(env, "!~");
-                break;
+                return SymbolValue::intern(env, "!~");
             case Type::Or:
-                type = SymbolValue::intern(env, "||");
-                break;
+                return SymbolValue::intern(env, "||");
             case Type::PercentLowerI:
-                type = SymbolValue::intern(env, "%i");
-                break;
+                return SymbolValue::intern(env, "%i");
             case Type::PercentUpperI:
-                type = SymbolValue::intern(env, "%I");
-                break;
+                return SymbolValue::intern(env, "%I");
             case Type::PercentLowerW:
-                type = SymbolValue::intern(env, "%w");
-                break;
+                return SymbolValue::intern(env, "%w");
             case Type::PercentUpperW:
-                type = SymbolValue::intern(env, "%W");
-                break;
+                return SymbolValue::intern(env, "%W");
             case Type::Plus:
-                type = SymbolValue::intern(env, "+");
-                break;
+                return SymbolValue::intern(env, "+");
             case Type::PlusEqual:
-                type = SymbolValue::intern(env, "+=");
-                break;
+                return SymbolValue::intern(env, "+=");
             case Type::RBrace:
-                type = SymbolValue::intern(env, "}");
-                break;
+                return SymbolValue::intern(env, "}");
             case Type::RBracket:
-                type = SymbolValue::intern(env, "]");
-                break;
+                return SymbolValue::intern(env, "]");
             case Type::RParen:
-                type = SymbolValue::intern(env, ")");
-                break;
+                return SymbolValue::intern(env, ")");
             case Type::Regexp:
-                type = SymbolValue::intern(env, "regexp");
-                break;
+                return SymbolValue::intern(env, "regexp");
             case Type::RightShift:
-                type = SymbolValue::intern(env, ">>");
-                break;
+                return SymbolValue::intern(env, ">>");
             case Type::SafeNavigation:
-                type = SymbolValue::intern(env, "&.");
-                break;
+                return SymbolValue::intern(env, "&.");
             case Type::Semicolon:
-                type = SymbolValue::intern(env, ";");
-                break;
+                return SymbolValue::intern(env, ";");
             case Type::String:
-                type = SymbolValue::intern(env, "string");
-                break;
+                return SymbolValue::intern(env, "string");
             case Type::Symbol:
-                type = SymbolValue::intern(env, "symbol");
-                break;
+                return SymbolValue::intern(env, "symbol");
             case Type::SymbolKey:
-                type = SymbolValue::intern(env, "symbol_key");
-                break;
+                return SymbolValue::intern(env, "symbol_key");
             case Type::TernaryColon:
-                type = SymbolValue::intern(env, ":");
-                break;
+                return SymbolValue::intern(env, ":");
             case Type::TernaryQuestion:
-                type = SymbolValue::intern(env, "?");
-                break;
+                return SymbolValue::intern(env, "?");
             case Type::UnterminatedRegexp:
                 env->raise("SyntaxError", "unterminated regexp meets end of file");
             case Type::UnterminatedString:
                 env->raise("SyntaxError", "unterminated string meets end of file at line %i and column %i: %s", m_line, m_column, m_literal);
             }
+            NAT_UNREACHABLE();
+        }
+
+        Value *to_ruby(Env *env, bool with_line_and_column_numbers = false) {
+            Value *type = type_value(env);
             auto hash = new HashValue { env };
             hash->put(env, SymbolValue::intern(env, "type"), type);
             switch (m_type) {
