@@ -1,6 +1,5 @@
 #pragma once
 
-#include <functional>
 #include <string>
 
 #include "natalie.hpp"
@@ -138,51 +137,12 @@ struct Parser : public gc {
     }
 
     Node *parse_expression(Env *env, Precedence precedence = LOWEST) {
-        auto parse_integer = [env, this]() {
-            auto lit = new LiteralNode { new IntegerValue { env, current_token().integer() } };
-            advance();
-            return lit;
-        };
-
-        auto parse_string = [env, this]() {
-            auto lit = new StringNode { new StringValue { env, current_token().literal() } };
-            advance();
-            return lit;
-        };
-
-        auto parse_infix_expression = [env, this](Node *left) {
-            auto op = current_token();
-            advance();
-            auto right = parse_expression(env, get_precedence(op.type()));
-            return new CallNode {
-                left,
-                op.type_value(env),
-                right,
-            };
-        };
-
-        auto null_denotation = [&](Lexer::Token::Type type) -> std::function<Node *()> {
-            using Type = Lexer::Token::Type;
-            switch (type) {
-            case Type::Integer:
-                return parse_integer;
-            case Type::String:
-                return parse_string;
-            default:
-                NAT_UNREACHABLE();
-            }
-        };
-
-        auto left_denotation = [parse_infix_expression](Lexer::Token::Type type) -> std::function<Node *(Node *)> {
-            return parse_infix_expression;
-        };
-
         auto null_fn = null_denotation(current_token().type());
-        Node *left = null_fn();
+        Node *left = (this->*null_fn)(env);
 
         while (current_token().is_valid() && precedence < get_precedence(current_token().type())) {
             auto left_fn = left_denotation(current_token().type());
-            left = left_fn(left);
+            left = (this->*left_fn)(env, left);
         }
         return left;
     }
@@ -197,6 +157,48 @@ struct Parser : public gc {
     }
 
 private:
+    Node *parse_integer(Env *env) {
+        auto lit = new LiteralNode { new IntegerValue { env, current_token().integer() } };
+        advance();
+        return lit;
+    };
+
+    Node *parse_string(Env *env) {
+        auto lit = new StringNode { new StringValue { env, current_token().literal() } };
+        advance();
+        return lit;
+    };
+
+    Node *parse_infix_expression(Env *env, Node *left) {
+        auto op = current_token();
+        advance();
+        auto right = parse_expression(env, get_precedence(op.type()));
+        return new CallNode {
+            left,
+            op.type_value(env),
+            right,
+        };
+    };
+
+    using parse_fn1 = Node *(Parser::*)(Env *);
+    using parse_fn2 = Node *(Parser::*)(Env *, Node *);
+
+    parse_fn1 null_denotation(Lexer::Token::Type type) {
+        using Type = Lexer::Token::Type;
+        switch (type) {
+        case Type::Integer:
+            return &Parser::parse_integer;
+        case Type::String:
+            return &Parser::parse_string;
+        default:
+            NAT_UNREACHABLE();
+        }
+    };
+
+    parse_fn2 left_denotation(Lexer::Token::Type type) {
+        return &Parser::parse_infix_expression;
+    };
+
     Lexer::Token current_token() {
         if (m_index < m_tokens->size()) {
             return (*m_tokens)[m_index];
