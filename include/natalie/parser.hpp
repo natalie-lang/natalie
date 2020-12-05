@@ -29,6 +29,29 @@ struct Parser : public gc {
         size_t m_column { 0 };
     };
 
+    struct IdentifierNode;
+
+    struct AssignmentNode : Node {
+        AssignmentNode(IdentifierNode *name, Node *value)
+            : m_name { name }
+            , m_value { value } {
+            assert(m_name);
+            assert(m_value);
+        }
+
+        virtual Value *to_ruby(Env *env) override {
+            return new ArrayValue { env, {
+                                             SymbolValue::intern(env, "lasgn"),
+                                             SymbolValue::intern(env, m_name->name()),
+                                             m_value->to_ruby(env),
+                                         } };
+        }
+
+    private:
+        IdentifierNode *m_name { nullptr };
+        Node *m_value { nullptr };
+    };
+
     struct BlockNode : Node {
         void add_node(Node *node) {
             m_nodes.push(node);
@@ -69,6 +92,22 @@ struct Parser : public gc {
         Node *m_receiver { nullptr };
         Value *m_message { nullptr };
         Node *m_arg { nullptr };
+    };
+
+    struct IdentifierNode : Node {
+        IdentifierNode(const char *name)
+            : m_name { name } {
+            assert(m_name);
+        }
+
+        virtual Value *to_ruby(Env *env) override {
+            return new StringValue { env, "FIXME: IdentifierNode#to_ruby" };
+        }
+
+        const char *name() { return m_name; }
+
+    private:
+        const char *m_name { nullptr };
     };
 
     struct LiteralNode : Node {
@@ -114,13 +153,14 @@ struct Parser : public gc {
     };
 
     enum Precedence {
-        LOWEST = 1,
-        EQUALITY = 2,
-        LESSGREATER = 3,
-        SUM = 4,
-        PRODUCT = 5,
-        PREFIX = 6,
-        CALL = 7,
+        LOWEST,
+        ASSIGNMENT,
+        EQUALITY,
+        LESSGREATER,
+        SUM,
+        PRODUCT,
+        PREFIX,
+        CALL,
     };
 
     Precedence get_precedence(Token token) {
@@ -131,6 +171,8 @@ struct Parser : public gc {
         case Token::Type::Multiply:
         case Token::Type::Divide:
             return PRODUCT;
+        case Token::Type::Equal:
+            return ASSIGNMENT;
         default:
             return LOWEST;
         }
@@ -148,6 +190,10 @@ struct Parser : public gc {
 
         while (current_token().is_valid() && precedence < get_precedence(current_token())) {
             auto left_fn = left_denotation(current_token().type());
+            if (!left_fn) {
+                env->raise("SyntaxError", "%d: syntax error, unexpected '%s'", current_token().line() + 1, current_token().type_value(env)->c_str());
+            }
+
             left = (this->*left_fn)(env, left);
         }
         return left;
@@ -189,6 +235,12 @@ private:
         return lit;
     };
 
+    Node *parse_identifier(Env *env) {
+        auto identifier = new IdentifierNode { GC_STRDUP(current_token().literal()) };
+        advance();
+        return identifier;
+    };
+
     Node *parse_infix_expression(Env *env, Node *left) {
         auto op = current_token();
         advance();
@@ -196,6 +248,15 @@ private:
         return new CallNode {
             left,
             op.type_value(env),
+            right,
+        };
+    };
+
+    Node *parse_assignment_expression(Env *env, Node *left) {
+        advance();
+        auto right = parse_expression(env, ASSIGNMENT);
+        return new AssignmentNode {
+            static_cast<IdentifierNode *>(left),
             right,
         };
     };
@@ -224,6 +285,8 @@ private:
         case Type::Integer:
         case Type::Float:
             return &Parser::parse_lit;
+        case Type::Identifier:
+            return &Parser::parse_identifier;
         case Type::String:
             return &Parser::parse_string;
         case Type::LParen:
@@ -234,7 +297,18 @@ private:
     };
 
     parse_fn2 left_denotation(Token::Type type) {
-        return &Parser::parse_infix_expression;
+        using Type = Token::Type;
+        switch (type) {
+        case Type::Plus:
+        case Type::Minus:
+        case Type::Multiply:
+        case Type::Divide:
+            return &Parser::parse_infix_expression;
+        case Type::Equal:
+            return &Parser::parse_assignment_expression;
+        default:
+            return nullptr;
+        }
     };
 
     Token current_token() {
