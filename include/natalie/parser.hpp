@@ -123,13 +123,13 @@ struct Parser : public gc {
         CALL = 7,
     };
 
-    Precedence get_precedence(Env *env, Lexer::Token token) {
+    Precedence get_precedence(Env *env, Token token) {
         switch (token.type()) {
-        case Lexer::Token::Type::Plus:
-        case Lexer::Token::Type::Minus:
+        case Token::Type::Plus:
+        case Token::Type::Minus:
             return SUM;
-        case Lexer::Token::Type::Multiply:
-        case Lexer::Token::Type::Divide:
+        case Token::Type::Multiply:
+        case Token::Type::Divide:
             return PRODUCT;
         default:
             return LOWEST;
@@ -198,7 +198,7 @@ private:
         if (!current_token().is_valid()) {
             fprintf(stderr, "expected ), but got EOF\n");
             abort();
-        } else if (current_token().type() != Lexer::Token::Type::RParen) {
+        } else if (current_token().type() != Token::Type::RParen) {
             fprintf(stderr, "expected ), but got %s\n", current_token().type_value(env)->inspect(env));
             abort();
         }
@@ -209,8 +209,8 @@ private:
     using parse_fn1 = Node *(Parser::*)(Env *);
     using parse_fn2 = Node *(Parser::*)(Env *, Node *);
 
-    parse_fn1 null_denotation(Lexer::Token::Type type) {
-        using Type = Lexer::Token::Type;
+    parse_fn1 null_denotation(Token::Type type) {
+        using Type = Token::Type;
         switch (type) {
         case Type::Integer:
             return &Parser::parse_integer;
@@ -223,23 +223,23 @@ private:
         }
     };
 
-    parse_fn2 left_denotation(Lexer::Token::Type type) {
+    parse_fn2 left_denotation(Token::Type type) {
         return &Parser::parse_infix_expression;
     };
 
-    Lexer::Token current_token() {
+    Token current_token() {
         if (m_index < m_tokens->size()) {
             return (*m_tokens)[m_index];
         } else {
-            return Lexer::Token::invalid();
+            return Token::invalid();
         }
     }
 
-    Lexer::Token peek_token() {
+    Token peek_token() {
         if (m_index + 1 < m_tokens->size()) {
             return (*m_tokens)[m_index + 1];
         } else {
-            return Lexer::Token::invalid();
+            return Token::invalid();
         }
     }
 
@@ -257,7 +257,7 @@ private:
 
     const char *m_code { nullptr };
     size_t m_index { 0 };
-    Vector<Lexer::Token> *m_tokens { nullptr };
+    Vector<Token> *m_tokens { nullptr };
 };
 
 }
