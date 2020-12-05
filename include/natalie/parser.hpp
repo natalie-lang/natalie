@@ -151,9 +151,18 @@ struct Parser : public gc {
 
     Node *tree(Env *env) {
         auto tree = new BlockNode {};
-        if (current_token().is_valid()) {
+        if (!current_token().is_valid()) {
+            fprintf(stderr, "Invalid token: %s\n", current_token().literal());
+            abort();
+        }
+        while (!current_token().is_eof()) {
             auto exp = parse_expression(env);
             tree->add_node(exp);
+            if (!current_token().is_valid()) {
+                fprintf(stderr, "Invalid token: %s\n", current_token().literal());
+                abort();
+            }
+            skip_semicolons();
         }
         return tree;
     }
@@ -236,6 +245,11 @@ private:
 
     void skip_newlines() {
         while (current_token().is_eol())
+            advance();
+    }
+
+    void skip_semicolons() {
+        while (current_token().is_semicolon())
             advance();
     }
 

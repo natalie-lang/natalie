@@ -301,6 +301,7 @@ struct Lexer : public gc {
         bool is_comment() { return m_type == Type::Comment; }
         bool is_eof() { return m_type == Type::Eof; }
         bool is_eol() { return m_type == Type::Eol; }
+        bool is_semicolon() { return m_type == Type::Semicolon; }
         bool is_valid() { return m_type != Type::Invalid; }
 
         // FIXME: make "def" its own type and eliminate this strcmp
@@ -323,11 +324,11 @@ struct Lexer : public gc {
         auto tokens = new Vector<Token> {};
         for (;;) {
             auto token = next_token();
-            if (token.is_eof())
-                return tokens;
             if (token.is_comment())
                 continue;
             tokens->push(token);
+            if (token.is_eof())
+                return tokens;
             if (!token.is_valid())
                 return tokens;
         };
