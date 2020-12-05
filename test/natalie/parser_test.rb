@@ -48,9 +48,13 @@ describe 'Parser' do
       Parser.parse('"foo" + "bar"').should == s(:block, s(:call, s(:str, "foo"), :+, s(:str, "bar")))
     end
 
-    xit 'raises an error if there is a syntax error' do
-      -> { Parser.parse(')') }.should raise_error(SyntaxError, /\(string\):1 :: parse error on value "\)/)
-      -> { Parser.parse("1 + 2\n\n)") }.should raise_error(SyntaxError, /\(string\):3 :: parse error on value "\)/)
+    it 'raises an error if there is a syntax error' do
+      # We choose to more closely match what MRI does vs what ruby_parser raises
+      if (RUBY_ENGINE == 'natalie')
+        -> { Parser.parse("1 + 2\n\n)") }.should raise_error(SyntaxError, "3: syntax error, unexpected ')'")
+      else
+        -> { Parser.parse("1 + 2\n\n)") }.should raise_error(SyntaxError, "(string):3 :: parse error on value \")\" (tRPAREN)")
+      end
     end
 
     it 'parses strings' do

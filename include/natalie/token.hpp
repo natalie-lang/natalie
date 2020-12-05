@@ -125,7 +125,7 @@ struct Token : public gc {
     nat_int_t get_integer() { return m_integer; }
     double get_double() { return m_double; }
 
-    Value *type_value(Env *env) {
+    SymbolValue *type_value(Env *env) {
         switch (m_type) {
         case Type::And:
             return SymbolValue::intern(env, "&&");
@@ -144,7 +144,7 @@ struct Token : public gc {
         case Type::Comma:
             return SymbolValue::intern(env, ",");
         case Type::Comment:
-            return env->nil_obj();
+            return SymbolValue::intern(env, "comment");
         case Type::Comparison:
             return SymbolValue::intern(env, "<=>");
         case Type::Constant:
@@ -162,7 +162,7 @@ struct Token : public gc {
         case Type::Eol:
             return SymbolValue::intern(env, "\n");
         case Type::Eof:
-            return env->nil_obj();
+            return SymbolValue::intern(env, "EOF");
         case Type::Equal:
             return SymbolValue::intern(env, "=");
         case Type::EqualEqual:

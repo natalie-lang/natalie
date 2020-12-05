@@ -140,6 +140,10 @@ struct Parser : public gc {
         skip_newlines();
 
         auto null_fn = null_denotation(current_token().type());
+        if (!null_fn) {
+            env->raise("SyntaxError", "%d: syntax error, unexpected '%s'", current_token().line() + 1, current_token().type_value(env)->c_str());
+        }
+
         Node *left = (this->*null_fn)(env);
 
         while (current_token().is_valid() && precedence < get_precedence(current_token())) {
@@ -204,7 +208,7 @@ private:
             fprintf(stderr, "expected ), but got EOF\n");
             abort();
         } else if (current_token().type() != Token::Type::RParen) {
-            fprintf(stderr, "expected ), but got %s\n", current_token().type_value(env)->inspect(env));
+            fprintf(stderr, "expected ), but got %s\n", current_token().type_value(env)->c_str());
             abort();
         }
         advance();
@@ -225,7 +229,7 @@ private:
         case Type::LParen:
             return &Parser::parse_grouped_expression;
         default:
-            NAT_UNREACHABLE();
+            return nullptr;
         }
     };
 
