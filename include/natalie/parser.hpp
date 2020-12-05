@@ -123,8 +123,8 @@ struct Parser : public gc {
         CALL = 7,
     };
 
-    Precedence get_precedence(Lexer::Token::Type type) {
-        switch (type) {
+    Precedence get_precedence(Env *env, Lexer::Token token) {
+        switch (token.type()) {
         case Lexer::Token::Type::Plus:
         case Lexer::Token::Type::Minus:
             return SUM;
@@ -132,18 +132,17 @@ struct Parser : public gc {
         case Lexer::Token::Type::Divide:
             return PRODUCT;
         default:
-            NAT_UNREACHABLE();
+            return LOWEST;
         }
     }
 
     Node *parse_expression(Env *env, Precedence precedence = LOWEST) {
-        while (current_token().is_eol())
-            advance();
+        skip_newlines();
 
         auto null_fn = null_denotation(current_token().type());
         Node *left = (this->*null_fn)(env);
 
-        while (current_token().is_valid() && precedence < get_precedence(current_token().type())) {
+        while (current_token().is_valid() && precedence < get_precedence(env, current_token())) {
             auto left_fn = left_denotation(current_token().type());
             left = (this->*left_fn)(env, left);
         }
@@ -175,12 +174,27 @@ private:
     Node *parse_infix_expression(Env *env, Node *left) {
         auto op = current_token();
         advance();
-        auto right = parse_expression(env, get_precedence(op.type()));
+        auto right = parse_expression(env, get_precedence(env, op));
         return new CallNode {
             left,
             op.type_value(env),
             right,
         };
+    };
+
+    Node *parse_grouped_expression(Env *env) {
+        advance();
+        auto exp = parse_expression(env, LOWEST);
+        skip_newlines();
+        if (!current_token().is_valid()) {
+            fprintf(stderr, "expected ), but got EOF\n");
+            abort();
+        } else if (current_token().type() != Lexer::Token::Type::RParen) {
+            fprintf(stderr, "expected ), but got %s\n", current_token().type_value(env)->inspect(env));
+            abort();
+        }
+        advance();
+        return exp;
     };
 
     using parse_fn1 = Node *(Parser::*)(Env *);
@@ -193,6 +207,8 @@ private:
             return &Parser::parse_integer;
         case Type::String:
             return &Parser::parse_string;
+        case Type::LParen:
+            return &Parser::parse_grouped_expression;
         default:
             NAT_UNREACHABLE();
         }
@@ -216,6 +232,11 @@ private:
         } else {
             return Lexer::Token::invalid();
         }
+    }
+
+    void skip_newlines() {
+        while (current_token().is_eol())
+            advance();
     }
 
     void advance() { m_index++; }
