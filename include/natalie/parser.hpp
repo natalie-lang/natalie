@@ -123,7 +123,7 @@ struct Parser : public gc {
         CALL = 7,
     };
 
-    Precedence get_precedence(Env *env, Token token) {
+    Precedence get_precedence(Token token) {
         switch (token.type()) {
         case Token::Type::Plus:
         case Token::Type::Minus:
@@ -142,7 +142,7 @@ struct Parser : public gc {
         auto null_fn = null_denotation(current_token().type());
         Node *left = (this->*null_fn)(env);
 
-        while (current_token().is_valid() && precedence < get_precedence(env, current_token())) {
+        while (current_token().is_valid() && precedence < get_precedence(current_token())) {
             auto left_fn = left_denotation(current_token().type());
             left = (this->*left_fn)(env, left);
         }
@@ -183,7 +183,7 @@ private:
     Node *parse_infix_expression(Env *env, Node *left) {
         auto op = current_token();
         advance();
-        auto right = parse_expression(env, get_precedence(env, op));
+        auto right = parse_expression(env, get_precedence(op));
         return new CallNode {
             left,
             op.type_value(env),

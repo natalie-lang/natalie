@@ -69,8 +69,8 @@ describe 'Parser' do
       Parser.tokens(operators.join(' ')).should == operators.map { |o| {type: o.to_sym} }
     end
 
-    it 'tokenizes integers' do
-      Parser.tokens('1 123 -456 - 0').should == [
+    it 'tokenizes numbers' do
+      Parser.tokens('1 123 -456 - 0 0d5 0D6 0o10 0O11 0xff 0XFF 0b110 0B111').should == [
         {type: :integer, literal: 1},
         {type: :integer, literal: 123},
         # NOTE: in the parser this negative number may need to be interpreted to a minus (-) followed by a literal 456,
@@ -78,7 +78,33 @@ describe 'Parser' do
         {type: :integer, literal: -456},
         {type: :"-"},
         {type: :integer, literal: 0},
+        {type: :integer, literal: 5}, # 0d5
+        {type: :integer, literal: 6}, # 0D6
+        {type: :integer, literal: 8}, # 0o10
+        {type: :integer, literal: 9}, # 0O11
+        {type: :integer, literal: 255}, # 0xff
+        {type: :integer, literal: 255}, # 0XFF
+        {type: :integer, literal: 6}, # 0b110
+        {type: :integer, literal: 7}, # 0B111
       ]
+      Parser.tokens('1, (123)').should == [
+        {type: :integer, literal: 1},
+        {type: :","},
+        {type: :"("},
+        {type: :integer, literal: 123},
+        {type: :")"},
+      ]
+      -> { Parser.tokens('1x') }.should raise_error(SyntaxError)
+      Parser.tokens('1.234').should == [{type: :float, literal: 1.234}]
+      Parser.tokens('-1.234').should == [{type: :float, literal: -1.234}]
+      Parser.tokens('0.1').should == [{type: :float, literal: 0.1}]
+      Parser.tokens('-0.1').should == [{type: :float, literal: -0.1}]
+      -> { Parser.tokens('0.1a') }.should raise_error(SyntaxError, "1: syntax error, unexpected 'a'")
+      -> { Parser.tokens('0bb') }.should raise_error(SyntaxError, "1: syntax error, unexpected 'b'")
+      -> { Parser.tokens('0dc') }.should raise_error(SyntaxError, "1: syntax error, unexpected 'c'")
+      -> { Parser.tokens('0d2d') }.should raise_error(SyntaxError, "1: syntax error, unexpected 'd'")
+      -> { Parser.tokens('0o2e') }.should raise_error(SyntaxError, "1: syntax error, unexpected 'e'")
+      -> { Parser.tokens('0x2z') }.should raise_error(SyntaxError, "1: syntax error, unexpected 'z'")
     end
 
     it 'tokenizes strings' do

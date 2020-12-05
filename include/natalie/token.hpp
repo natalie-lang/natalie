@@ -29,6 +29,7 @@ struct Token : public gc {
         EqualEqualEqual,
         Exponent,
         ExponentEqual,
+        Float,
         GreaterThan,
         GreaterThanOrEqual,
         GlobalVariable,
@@ -92,9 +93,23 @@ struct Token : public gc {
         assert(m_literal);
     }
 
+    Token(Type type, char literal, size_t line, size_t column)
+        : m_type { type }
+        , m_line { line }
+        , m_column { column } {
+        char buf[2] = { literal, 0 };
+        m_literal = GC_STRDUP(buf);
+    }
+
     Token(Type type, nat_int_t integer, size_t line, size_t column)
         : m_type { type }
         , m_integer { integer }
+        , m_line { line }
+        , m_column { column } { }
+
+    Token(Type type, double dbl, size_t line, size_t column)
+        : m_type { type }
+        , m_double { dbl }
         , m_line { line }
         , m_column { column } { }
 
@@ -157,6 +172,8 @@ struct Token : public gc {
             return SymbolValue::intern(env, "**");
         case Type::ExponentEqual:
             return SymbolValue::intern(env, "**=");
+        case Type::Float:
+            return SymbolValue::intern(env, "float");
         case Type::GlobalVariable:
             return SymbolValue::intern(env, "gvar");
         case Type::GreaterThan:
@@ -172,7 +189,7 @@ struct Token : public gc {
         case Type::Integer:
             return SymbolValue::intern(env, "integer");
         case Type::Invalid:
-            env->raise("SyntaxError", "syntax error, unexpected '%s'", m_literal);
+            env->raise("SyntaxError", "%d: syntax error, unexpected '%s'", m_line + 1, m_literal);
         case Type::Keyword:
             return SymbolValue::intern(env, "keyword");
         case Type::LBrace:
@@ -278,6 +295,9 @@ struct Token : public gc {
         case Type::SymbolKey:
             hash->put(env, SymbolValue::intern(env, "literal"), SymbolValue::intern(env, m_literal));
             break;
+        case Type::Float:
+            hash->put(env, SymbolValue::intern(env, "literal"), new FloatValue { env, m_double });
+            break;
         case Type::Integer:
             hash->put(env, SymbolValue::intern(env, "literal"), new IntegerValue { env, m_integer });
             break;
@@ -309,6 +329,7 @@ private:
     Type m_type { Type::Invalid };
     const char *m_literal { nullptr };
     nat_int_t m_integer { 0 };
+    double m_double { 0 };
     size_t m_line { 0 };
     size_t m_column { 0 };
 };

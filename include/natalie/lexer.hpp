@@ -145,7 +145,11 @@ private:
             case '8':
             case '9': {
                 const bool is_negative = true;
-                return consume_integer(is_negative);
+                auto token = consume_numeric(is_negative);
+                if (isalpha(current_char())) {
+                    return Token { Token::Type::Invalid, current_char(), m_cursor_line, m_cursor_column };
+                }
+                return token;
             }
             case '>':
                 advance();
@@ -471,7 +475,11 @@ private:
         case '7':
         case '8':
         case '9':
-            return consume_integer(false);
+            auto token = consume_numeric(false);
+            if (isalpha(current_char())) {
+                return Token { Token::Type::Invalid, current_char(), m_cursor_line, m_cursor_column };
+            }
+            return token;
         };
         if (!token.is_valid()) {
             if (match(12, "__ENCODING__"))
@@ -616,17 +624,105 @@ private:
         return token;
     }
 
-    Token consume_integer(bool negative) {
+    Token consume_numeric(bool negative) {
+        size_t start_index = m_index;
         nat_int_t number = 0;
+        if (current_char() == '0') {
+            switch (peek()) {
+            case 'd':
+            case 'D': {
+                advance(2);
+                char c = current_char();
+                if (!isdigit(c))
+                    return Token { Token::Type::Invalid, c, m_cursor_line, m_cursor_column };
+                do {
+                    number *= 10;
+                    number += c - 48;
+                    advance();
+                    c = current_char();
+                } while (isdigit(c));
+                if (negative)
+                    number *= -1;
+                return Token { Token::Type::Integer, number, m_token_line, m_token_column };
+            }
+            case 'o':
+            case 'O': {
+                advance(2);
+                char c = current_char();
+                if (!(c >= '0' && c <= '7'))
+                    return Token { Token::Type::Invalid, c, m_cursor_line, m_token_column };
+                do {
+                    number *= 8;
+                    number += c - 48;
+                    advance();
+                    c = current_char();
+                } while (c >= '0' && c <= '7');
+                if (negative)
+                    number *= -1;
+                return Token { Token::Type::Integer, number, m_token_line, m_token_column };
+            }
+            case 'x':
+            case 'X': {
+                advance(2);
+                char c = current_char();
+                if (!isxdigit(c))
+                    return Token { Token::Type::Invalid, c, m_cursor_line, m_cursor_column };
+                do {
+                    number *= 16;
+                    if (c >= 'a' && c <= 'f')
+                        number += c - 97 + 10;
+                    else if (c >= 'A' && c <= 'F')
+                        number += c - 65 + 10;
+                    else
+                        number += c - 48;
+                    advance();
+                    c = current_char();
+                } while (isxdigit(c));
+                if (negative)
+                    number *= -1;
+                return Token { Token::Type::Integer, number, m_token_line, m_token_column };
+            }
+            case 'b':
+            case 'B': {
+                advance(2);
+                char c = current_char();
+                if (c != '0' && c != '1')
+                    return Token { Token::Type::Invalid, c, m_cursor_line, m_cursor_column };
+                do {
+                    number *= 2;
+                    number += c - 48;
+                    advance();
+                    c = current_char();
+                } while (c == '0' || c == '1');
+                if (negative)
+                    number *= -1;
+                return Token { Token::Type::Integer, number, m_token_line, m_token_column };
+            }
+            }
+        }
+        char c = current_char();
         do {
             number *= 10;
-            number += current_char() - 48;
+            number += c - 48;
             advance();
-        } while (isdigit(current_char()));
-        // TODO: check if invalid character follows, such as a letter
-        if (negative)
-            number *= -1;
-        return Token { Token::Type::Integer, number, m_token_line, m_token_column };
+            c = current_char();
+        } while (isdigit(c));
+        if (c == '.' && isdigit(peek())) {
+            advance();
+            while (isdigit(current_char())) {
+                advance();
+            }
+            char *endptr = nullptr;
+            double dbl = ::strtod(m_input + start_index, &endptr);
+            assert(endptr == m_input + m_index); // FIXME: return Invalid token?
+            if (negative)
+                dbl *= -1;
+            return Token { Token::Type::Float, dbl, m_token_line, m_token_column };
+        } else {
+            if (negative)
+                number *= -1;
+            return Token { Token::Type::Integer, number, m_token_line, m_token_column };
+        }
     }
 
     Token consume_double_quoted_string(char delimiter) {

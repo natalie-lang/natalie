@@ -266,6 +266,9 @@ StringValue *StringValue::vsprintf(Env *env, const char *format, va_list args) {
         if (c == '%') {
             char c2 = format[++i];
             switch (c2) {
+            case 'c':
+                out->append_char(env, va_arg(args, int));
+                break;
             case 's':
                 out->append(env, va_arg(args, char *));
                 break;
