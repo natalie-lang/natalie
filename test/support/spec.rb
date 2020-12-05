@@ -336,6 +336,8 @@ class RaiseErrorExpectation
         raise SpecFailedException, "#{subject.inspect} should have raised #{@klass.inspect} with message #{@message.inspect}, but the message was #{e.message.inspect}"
       end
     rescue => e
+      # FIXME: I don't think this `raise e if` line is needed in MRI -- smells like a Natalie bug
+      raise e if e.is_a?(SpecFailedException)
       raise SpecFailedException, "#{subject.inspect} should have raised #{@klass.inspect}, but instead raised #{e.inspect}"
     else
       raise SpecFailedException, "#{subject.inspect} should have raised #{@klass.inspect}, but instead raised nothing"
