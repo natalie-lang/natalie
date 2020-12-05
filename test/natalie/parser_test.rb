@@ -67,12 +67,12 @@ describe 'Parser' do
     it 'parses strings' do
       Parser.parse('""').should == s(:block, s(:str, ''))
       Parser.parse('"foo"').should == s(:block, s(:str, 'foo'))
-      #Parser.parse('"this is \"quoted\""').should == s(:block, s(:str, 'this is "quoted"'))
-      #Parser.parse('"other escaped chars \\\\ \n"').should == s(:block, s(:str, "other escaped chars \\ \n"))
+      Parser.parse('"this is \"quoted\""').should == s(:block, s(:str, 'this is "quoted"'))
+      Parser.parse('"other escaped chars \\\\ \n"').should == s(:block, s(:str, "other escaped chars \\ \n"))
       Parser.parse("''").should == s(:block, s(:str, ''))
       Parser.parse("'foo'").should == s(:block, s(:str, 'foo'))
-      #Parser.parse("'this is \\'quoted\\''").should == s(:block, s(:str, "this is 'quoted'"))
-      #Parser.parse("'other escaped chars \\\\ \\n'").should == s(:block, s(:str, "other escaped chars \\ \\n"))
+      Parser.parse("'this is \\'quoted\\''").should == s(:block, s(:str, "this is 'quoted'"))
+      Parser.parse("'other escaped chars \\\\ \\n'").should == s(:block, s(:str, "other escaped chars \\ \\n"))
     end
 
     it 'parses multiple expressions' do

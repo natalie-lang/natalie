@@ -109,7 +109,11 @@ describe 'Parser' do
 
     it 'tokenizes strings' do
       Parser.tokens('"foo"').should == [{type: :string, literal: 'foo'}]
+      Parser.tokens('"this is \"quoted\""').should == [{type: :string, literal: 'this is "quoted"'}]
       Parser.tokens("'foo'").should == [{type: :string, literal: 'foo'}]
+      Parser.tokens("'this is \\'quoted\\''").should == [{type: :string, literal: "this is 'quoted'"}]
+      Parser.tokens('"\t\n"').should == [{type: :string, literal: "\t\n"}]
+      Parser.tokens("'other escaped chars \\\\ \\n'").should == [{type: :string, literal: "other escaped chars \\ \\n"}]
       Parser.tokens("%(foo)").should == [{type: :string, literal: 'foo'}]
       Parser.tokens("%[foo]").should == [{type: :string, literal: 'foo'}]
       Parser.tokens("%/foo/").should == [{type: :string, literal: 'foo'}]

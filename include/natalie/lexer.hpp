@@ -728,33 +728,60 @@ private:
     Token consume_double_quoted_string(char delimiter) {
         auto buf = std::string("");
         char c = current_char();
-        for (;;) {
-            if (!c) return Token { Token::Type::UnterminatedString, GC_STRDUP(buf.c_str()), m_token_line, m_token_column };
-            if (c == delimiter) {
+        while (c) {
+            if (c == '\\') {
+                advance();
+                c = current_char();
+                switch (c) {
+                case 'n':
+                    buf += '\n';
+                    break;
+                case 't':
+                    buf += '\t';
+                    break;
+                default:
+                    buf += c;
+                    break;
+                }
+            } else if (c == delimiter) {
                 advance();
                 return Token { Token::Type::String, GC_STRDUP(buf.c_str()), m_token_line, m_token_column };
+            } else {
+                buf += c;
             }
-            buf += c;
             advance();
             c = current_char();
         }
-        NAT_UNREACHABLE();
+        return Token { Token::Type::UnterminatedString, GC_STRDUP(buf.c_str()), m_token_line, m_token_column };
     }
 
     Token consume_single_quoted_string(char delimiter) {
         auto buf = std::string("");
         char c = current_char();
-        for (;;) {
-            if (!c) return Token { Token::Type::UnterminatedString, GC_STRDUP(buf.c_str()), m_token_line, m_token_column };
-            if (c == delimiter) {
+        while (c) {
+            if (c == '\\') {
+                advance();
+                c = current_char();
+                switch (c) {
+                case '\\':
+                case '\'':
+                    buf += c;
+                    break;
+                default:
+                    buf += '\\';
+                    buf += c;
+                    break;
+                }
+            } else if (c == delimiter) {
                 advance();
                 return Token { Token::Type::String, GC_STRDUP(buf.c_str()), m_token_line, m_token_column };
+            } else {
+                buf += c;
             }
-            buf += c;
             advance();
             c = current_char();
         }
-        NAT_UNREACHABLE();
+        return Token { Token::Type::UnterminatedString, GC_STRDUP(buf.c_str()), m_token_line, m_token_column };
     }
 
     Token consume_quoted_array_without_interpolation(char delimiter, Token::Type type) {
