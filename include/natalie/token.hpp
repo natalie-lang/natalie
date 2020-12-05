@@ -122,7 +122,8 @@ struct Token : public gc {
     void set_literal(const char *literal) { m_literal = literal; }
     void set_literal(std::string literal) { m_literal = GC_STRDUP(literal.c_str()); }
 
-    nat_int_t integer() { return m_integer; }
+    nat_int_t get_integer() { return m_integer; }
+    double get_double() { return m_double; }
 
     Value *type_value(Env *env) {
         switch (m_type) {
@@ -316,6 +317,13 @@ struct Token : public gc {
     bool is_eol() { return m_type == Type::Eol; }
     bool is_semicolon() { return m_type == Type::Semicolon; }
     bool is_valid() { return m_type != Type::Invalid; }
+
+    void validate(Env *env) {
+        if (!is_valid()) {
+            type_value(env);
+            NAT_UNREACHABLE();
+        }
+    }
 
     // FIXME: make "def" its own type and eliminate this strcmp
     bool can_precede_method_name() {

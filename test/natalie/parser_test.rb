@@ -27,7 +27,7 @@ describe 'Parser' do
     it 'parses numbers' do
       Parser.parse('1').should == s(:block, s(:lit, 1))
       Parser.parse(' 1234').should == s(:block, s(:lit, 1234))
-      #Parser.parse('1.5 ').should == s(:block, s(:lit, 1.5))
+      Parser.parse('1.5 ').should == s(:block, s(:lit, 1.5))
     end
 
     it 'parses operator calls' do

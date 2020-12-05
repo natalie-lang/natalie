@@ -151,27 +151,32 @@ struct Parser : public gc {
 
     Node *tree(Env *env) {
         auto tree = new BlockNode {};
-        if (!current_token().is_valid()) {
-            fprintf(stderr, "Invalid token: %s\n", current_token().literal());
-            abort();
-        }
+        current_token().validate(env);
         while (!current_token().is_eof()) {
             auto exp = parse_expression(env);
             tree->add_node(exp);
-            if (!current_token().is_valid()) {
-                fprintf(stderr, "Invalid token: %s\n", current_token().literal());
-                abort();
-            }
+            current_token().validate(env);
             skip_semicolons();
         }
         return tree;
     }
 
 private:
-    Node *parse_integer(Env *env) {
-        auto lit = new LiteralNode { new IntegerValue { env, current_token().integer() } };
+    Node *parse_lit(Env *env) {
+        Value *value;
+        auto token = current_token();
+        switch (token.type()) {
+        case Token::Type::Integer:
+            value = new IntegerValue { env, token.get_integer() };
+            break;
+        case Token::Type::Float:
+            value = new FloatValue { env, token.get_double() };
+            break;
+        default:
+            NAT_UNREACHABLE();
+        }
         advance();
-        return lit;
+        return new LiteralNode { value };
     };
 
     Node *parse_string(Env *env) {
@@ -213,7 +218,8 @@ private:
         using Type = Token::Type;
         switch (type) {
         case Type::Integer:
-            return &Parser::parse_integer;
+        case Type::Float:
+            return &Parser::parse_lit;
         case Type::String:
             return &Parser::parse_string;
         case Type::LParen:
