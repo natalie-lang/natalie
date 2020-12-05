@@ -300,6 +300,7 @@ struct Lexer : public gc {
 
         bool is_comment() { return m_type == Type::Comment; }
         bool is_eof() { return m_type == Type::Eof; }
+        bool is_eol() { return m_type == Type::Eol; }
         bool is_valid() { return m_type != Type::Invalid; }
 
         // FIXME: make "def" its own type and eliminate this strcmp

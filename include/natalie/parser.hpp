@@ -137,6 +137,9 @@ struct Parser : public gc {
     }
 
     Node *parse_expression(Env *env, Precedence precedence = LOWEST) {
+        while (current_token().is_eol())
+            advance();
+
         auto null_fn = null_denotation(current_token().type());
         Node *left = (this->*null_fn)(env);
 
