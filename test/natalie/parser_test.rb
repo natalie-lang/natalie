@@ -88,10 +88,10 @@ describe 'Parser' do
       else
         -> { Parser.parse("x =") }.should raise_error(SyntaxError, '(string):1 :: parse error on value false ($end)')
       end
-      #Parser.parse("@foo = 1").should == s(:block, s(:iasgn, :@foo, s(:lit, 1)))
-      #Parser.parse("@@abc_123 = 1").should == s(:block, s(:cvdecl, :@@abc_123, s(:lit, 1)))
-      #Parser.parse("$baz = 1").should == s(:block, s(:gasgn, :$baz, s(:lit, 1)))
-      #Parser.parse("Constant = 1").should == s(:block, s(:cdecl, :Constant, s(:lit, 1)))
+      Parser.parse("@foo = 1").should == s(:block, s(:iasgn, :@foo, s(:lit, 1)))
+      Parser.parse("@@abc_123 = 1").should == s(:block, s(:cvdecl, :@@abc_123, s(:lit, 1)))
+      Parser.parse("$baz = 1").should == s(:block, s(:gasgn, :$baz, s(:lit, 1)))
+      Parser.parse("Constant = 1").should == s(:block, s(:cdecl, :Constant, s(:lit, 1)))
     end
 
     xit 'parses method definition' do

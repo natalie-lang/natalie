@@ -4,10 +4,11 @@
         abort();                                 \
     }
 
-#define NAT_NOT_YET_IMPLEMENTED(description)                     \
-    {                                                            \
-        fprintf(stderr, "NOT YET IMPLEMENTED: %s", description); \
-        abort();                                                 \
+#define NAT_NOT_YET_IMPLEMENTED(msg, ...)                            \
+    {                                                                \
+        fprintf(stderr, "NOT YET IMPLEMENTED: " msg, ##__VA_ARGS__); \
+        fprintf(stderr, "\n");                                       \
+        abort();                                                     \
     }
 
 #define NAT_RUN_BLOCK_FROM_ENV(env, argc, args) ({                                                        \

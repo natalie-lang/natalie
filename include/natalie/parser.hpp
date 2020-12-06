@@ -32,23 +32,43 @@ struct Parser : public gc {
     struct IdentifierNode;
 
     struct AssignmentNode : Node {
-        AssignmentNode(IdentifierNode *name, Node *value)
-            : m_name { name }
+        AssignmentNode(IdentifierNode *identifier, Node *value)
+            : m_identifier { identifier }
             , m_value { value } {
-            assert(m_name);
+            assert(m_identifier);
             assert(m_value);
         }
 
         virtual Value *to_ruby(Env *env) override {
+            const char *assignment_type;
+            switch (m_identifier->token_type()) {
+            case Token::Type::ClassVariable:
+                assignment_type = "cvdecl";
+                break;
+            case Token::Type::Constant:
+                assignment_type = "cdecl";
+                break;
+            case Token::Type::GlobalVariable:
+                assignment_type = "gasgn";
+                break;
+            case Token::Type::Identifier:
+                assignment_type = "lasgn";
+                break;
+            case Token::Type::InstanceVariable:
+                assignment_type = "iasgn";
+                break;
+            default:
+                NAT_UNREACHABLE();
+            }
             return new ArrayValue { env, {
-                                             SymbolValue::intern(env, "lasgn"),
-                                             SymbolValue::intern(env, m_name->name()),
+                                             SymbolValue::intern(env, assignment_type),
+                                             SymbolValue::intern(env, m_identifier->name()),
                                              m_value->to_ruby(env),
                                          } };
         }
 
     private:
-        IdentifierNode *m_name { nullptr };
+        IdentifierNode *m_identifier { nullptr };
         Node *m_value { nullptr };
     };
 
@@ -95,19 +115,18 @@ struct Parser : public gc {
     };
 
     struct IdentifierNode : Node {
-        IdentifierNode(const char *name)
-            : m_name { name } {
-            assert(m_name);
-        }
+        IdentifierNode(Token token)
+            : m_token { token } { }
 
         virtual Value *to_ruby(Env *env) override {
             return new StringValue { env, "FIXME: IdentifierNode#to_ruby" };
         }
 
-        const char *name() { return m_name; }
+        Token::Type token_type() { return m_token.type(); }
+        const char *name() { return m_token.literal(); }
 
     private:
-        const char *m_name { nullptr };
+        Token m_token {};
     };
 
     struct LiteralNode : Node {
@@ -236,7 +255,7 @@ private:
     };
 
     Node *parse_identifier(Env *env) {
-        auto identifier = new IdentifierNode { GC_STRDUP(current_token().literal()) };
+        auto identifier = new IdentifierNode { current_token() };
         advance();
         return identifier;
     };
@@ -285,7 +304,11 @@ private:
         case Type::Integer:
         case Type::Float:
             return &Parser::parse_lit;
+        case Type::ClassVariable:
+        case Type::Constant:
+        case Type::GlobalVariable:
         case Type::Identifier:
+        case Type::InstanceVariable:
             return &Parser::parse_identifier;
         case Type::String:
             return &Parser::parse_string;
