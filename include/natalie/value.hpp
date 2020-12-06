@@ -143,6 +143,7 @@ struct Value : public gc {
     KernelModule *as_kernel_module_for_method_binding();
     EnvValue *as_env_value_for_method_binding();
     ParserValue *as_parser_value_for_method_binding();
+    SexpValue *as_sexp_value_for_method_binding();
 
     SymbolValue *to_symbol(Env *, Conversion);
 
@@ -222,7 +223,7 @@ struct Value : public gc {
     void assert_type(Env *, Value::Type, const char *);
     void assert_not_frozen(Env *);
 
-    const char *inspect(Env *);
+    const char *inspect_str(Env *);
 
 protected:
     Env m_env;

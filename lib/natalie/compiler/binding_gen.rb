@@ -35,7 +35,7 @@ class BindingGen
         puts "    " + binding.get_object
         @consts[binding.rb_class] = true
       end
-      puts "    #{binding.rb_class}->#{binding.define_method_name}(env, #{binding.rb_method.inspect}, #{binding.name});"
+      puts "    #{binding.rb_class_as_c_variable}->#{binding.define_method_name}(env, #{binding.rb_method.inspect}, #{binding.name});"
     end
     @undefine_singleton_methods.each do |rb_class, method|
       puts "    #{rb_class}->undefine_singleton_method(env, #{method.inspect});"
@@ -116,8 +116,12 @@ Value *#{name}(Env *env, Value *, size_t argc, Value **args, Block *block) {
       if rb_class.start_with?('$')
         "Value *#{rb_class} = env->global_get(#{rb_class.inspect});"
       else
-        "Value *#{rb_class} = env->Object()->const_find(env, #{rb_class.inspect});"
+        "Value *#{rb_class_as_c_variable} = env->Object()->#{rb_class.split('::').map { |c| %(const_find(env, #{c.inspect})) }.join('->')};"
       end
+    end
+
+    def rb_class_as_c_variable
+      rb_class.split('::').last
     end
 
     private
@@ -157,10 +161,17 @@ Value *#{name}(Env *env, Value *, size_t argc, Value **args, Block *block) {
       end
     end
 
+    SPECIAL_CLASSES_WITHOUT_DEDICATED_TYPES = %w[
+      EnvValue
+      KernelModule
+      ParserValue
+      SexpValue
+    ]
+
     def as_type(value)
       if cpp_class == 'Value'
         value
-      elsif cpp_class =~ /ParserValue|EnvValue|Module$/ # TODO: put the special cases in an array in a constant :-)
+      elsif SPECIAL_CLASSES_WITHOUT_DEDICATED_TYPES.include?(cpp_class)
         underscored = cpp_class.gsub(/([a-z])([A-Z])/,'\1_\2').downcase
         "#{value}->as_#{underscored}_for_method_binding()"
       else
@@ -487,6 +498,8 @@ gen.binding('Regexp', '=~', 'RegexpValue', 'eqtilde', argc: 1, pass_env: true, p
 gen.binding('Regexp', 'initialize', 'RegexpValue', 'initialize', argc: 0..1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Regexp', 'inspect', 'RegexpValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Regexp', 'match', 'RegexpValue', 'match', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+
+gen.binding('Parser::Sexp', 'inspect', 'SexpValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 
 gen.binding('String', '*', 'StringValue', 'mul', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('String', '+', 'StringValue', 'add', argc: 1, pass_env: true, pass_block: false, return_type: :Value)

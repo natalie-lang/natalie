@@ -29,6 +29,7 @@ struct ParserValue;
 struct ProcValue;
 struct RangeValue;
 struct RegexpValue;
+struct SexpValue;
 struct StringValue;
 struct SymbolValue;
 struct TrueValue;

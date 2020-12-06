@@ -93,7 +93,7 @@ Value *FloatValue::round(Env *env, Value *precision_value) {
         precision = precision_value->as_integer()->to_nat_int_t();
     }
     if (precision <= 0 && (is_nan() || is_infinity())) {
-        env->raise("FloatDomainError", this->inspect(env));
+        env->raise("FloatDomainError", this->inspect_str(env));
     }
     if (is_infinity()) {
         return new FloatValue { env, value };
@@ -214,7 +214,7 @@ Value *FloatValue::coerce(Env *env, Value *arg) {
         abort();
         break;
     default:
-        env->raise("ArgumentError", "invalid value for Float(): %s", arg->inspect(env));
+        env->raise("ArgumentError", "invalid value for Float(): %s", arg->inspect_str(env));
     }
     return ary;
 }

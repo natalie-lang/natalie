@@ -35,7 +35,7 @@ struct Parser : public gc {
         }
 
         virtual Value *to_ruby(Env *env) override {
-            auto *array = new ArrayValue { env, { SymbolValue::intern(env, "block") } };
+            auto *array = new SexpValue { env, { SymbolValue::intern(env, "block") } };
             for (auto node : m_nodes) {
                 array->push(node->to_ruby(env));
             }
@@ -57,12 +57,12 @@ struct Parser : public gc {
         }
 
         virtual Value *to_ruby(Env *env) override {
-            return new ArrayValue { env, {
-                                             SymbolValue::intern(env, "call"),
-                                             m_receiver->to_ruby(env),
-                                             m_message,
-                                             m_arg->to_ruby(env),
-                                         } };
+            return new SexpValue { env, {
+                                            SymbolValue::intern(env, "call"),
+                                            m_receiver->to_ruby(env),
+                                            m_message,
+                                            m_arg->to_ruby(env),
+                                        } };
         }
 
     private:
@@ -78,7 +78,7 @@ struct Parser : public gc {
         }
 
         virtual Value *to_ruby(Env *env) override {
-            return new ArrayValue { env, { SymbolValue::intern(env, "lit"), m_value } };
+            return new SexpValue { env, { SymbolValue::intern(env, "lit"), m_value } };
         }
 
     private:
@@ -92,7 +92,7 @@ struct Parser : public gc {
         }
 
         virtual Value *to_ruby(Env *env) override {
-            return new ArrayValue { env, { SymbolValue::intern(env, "lit"), m_value } };
+            return new SexpValue { env, { SymbolValue::intern(env, "lit"), m_value } };
         }
 
     private:
@@ -106,7 +106,7 @@ struct Parser : public gc {
         }
 
         virtual Value *to_ruby(Env *env) override {
-            return new ArrayValue { env, { SymbolValue::intern(env, "str"), m_value } };
+            return new SexpValue { env, { SymbolValue::intern(env, "str"), m_value } };
         }
 
     private:

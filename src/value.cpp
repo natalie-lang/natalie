@@ -215,6 +215,10 @@ ParserValue *Value::as_parser_value_for_method_binding() {
     return static_cast<ParserValue *>(this);
 }
 
+SexpValue *Value::as_sexp_value_for_method_binding() {
+    return static_cast<SexpValue *>(this);
+}
+
 const char *Value::identifier_str(Env *env, Conversion conversion) {
     if (is_symbol()) {
         return as_symbol()->c_str();
@@ -537,11 +541,11 @@ void Value::assert_type(Env *env, Value::Type expected_type, const char *expecte
 
 void Value::assert_not_frozen(Env *env) {
     if (is_frozen()) {
-        env->raise("FrozenError", "can't modify frozen %s: %s", klass()->class_name(), inspect(env));
+        env->raise("FrozenError", "can't modify frozen %s: %s", klass()->class_name(), inspect_str(env));
     }
 }
 
-const char *Value::inspect(Env *env) {
+const char *Value::inspect_str(Env *env) {
     return send(env, "inspect")->as_string()->c_str();
 }
 

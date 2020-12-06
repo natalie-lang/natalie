@@ -7,7 +7,7 @@
 namespace Natalie {
 
 Value *ArrayValue_square_new_static_binding(Env *env, Value *, size_t argc, Value **args, Block *block) {
-    
+
     auto return_value = ArrayValue::square_new(env, argc, args);
     return return_value;
 }
@@ -76,7 +76,7 @@ Value *ArrayValue_refeq_binding(Env *env, Value *self_value, size_t argc, Value 
 }
 
 Value *ArrayValue_any_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
-    
+
     ArrayValue *self = self_value->as_array();
     auto return_value = self->any(env, argc, args, block);
     return return_value;
@@ -100,7 +100,11 @@ Value *ArrayValue_is_empty_binding(Env *env, Value *self_value, size_t argc, Val
     env->assert_argc(argc, 0);
     ArrayValue *self = self_value->as_array();
     auto return_value = self->is_empty();
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *ArrayValue_select_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
@@ -240,28 +244,44 @@ Value *Value_is_falsey_binding(Env *env, Value *self_value, size_t argc, Value *
     env->assert_argc(argc, 0);
     Value *self = self_value;
     auto return_value = self->is_falsey();
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *Value_eq_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     Value *self = self_value;
     auto return_value = self->eq(env, argc > 0 ? args[0] : nullptr);
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *Value_eq_binding1(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     Value *self = self_value;
     auto return_value = self->eq(env, argc > 0 ? args[0] : nullptr);
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *Value_neq_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     Value *self = self_value;
     auto return_value = self->neq(env, argc > 0 ? args[0] : nullptr);
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *Value_instance_eval_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
@@ -281,7 +301,11 @@ Value *ClassValue_superclass_binding(Env *env, Value *self_value, size_t argc, V
     env->assert_argc(argc, 0);
     ClassValue *self = self_value->as_class();
     auto return_value = self->superclass();
-    if (return_value) { return return_value; } else { return env->nil_obj(); }
+    if (return_value) {
+        return return_value;
+    } else {
+        return env->nil_obj();
+    }
 }
 
 Value *EncodingValue_list_static_binding(Env *env, Value *, size_t argc, Value **args, Block *block) {
@@ -375,7 +399,7 @@ Value *FalseValue_to_s_binding1(Env *env, Value *self_value, size_t argc, Value 
 }
 
 Value *FiberValue_yield_static_binding(Env *env, Value *, size_t argc, Value **args, Block *block) {
-    
+
     auto return_value = FiberValue::yield(env, argc, args);
     return return_value;
 }
@@ -388,7 +412,7 @@ Value *FiberValue_initialize_binding(Env *env, Value *self_value, size_t argc, V
 }
 
 Value *FiberValue_resume_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
-    
+
     FiberValue *self = self_value->as_fiber();
     auto return_value = self->resume(env, argc, args);
     return return_value;
@@ -480,14 +504,22 @@ Value *FloatValue_lt_binding(Env *env, Value *self_value, size_t argc, Value **a
     env->assert_argc(argc, 1);
     FloatValue *self = self_value->as_float();
     auto return_value = self->lt(env, argc > 0 ? args[0] : nullptr);
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *FloatValue_lte_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     FloatValue *self = self_value->as_float();
     auto return_value = self->lte(env, argc > 0 ? args[0] : nullptr);
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *FloatValue_cmp_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
@@ -501,28 +533,44 @@ Value *FloatValue_eq_binding(Env *env, Value *self_value, size_t argc, Value **a
     env->assert_argc(argc, 1);
     FloatValue *self = self_value->as_float();
     auto return_value = self->eq(env, argc > 0 ? args[0] : nullptr);
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *FloatValue_eq_binding1(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     FloatValue *self = self_value->as_float();
     auto return_value = self->eq(env, argc > 0 ? args[0] : nullptr);
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *FloatValue_gt_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     FloatValue *self = self_value->as_float();
     auto return_value = self->gt(env, argc > 0 ? args[0] : nullptr);
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *FloatValue_gte_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     FloatValue *self = self_value->as_float();
     auto return_value = self->gte(env, argc > 0 ? args[0] : nullptr);
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *FloatValue_abs_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
@@ -571,7 +619,11 @@ Value *FloatValue_eql_binding(Env *env, Value *self_value, size_t argc, Value **
     env->assert_argc(argc, 1);
     FloatValue *self = self_value->as_float();
     auto return_value = self->eql(argc > 0 ? args[0] : nullptr);
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *FloatValue_div_binding1(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
@@ -585,7 +637,11 @@ Value *FloatValue_is_finite_binding(Env *env, Value *self_value, size_t argc, Va
     env->assert_argc(argc, 0);
     FloatValue *self = self_value->as_float();
     auto return_value = self->is_finite();
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *FloatValue_floor_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
@@ -627,14 +683,22 @@ Value *FloatValue_is_nan_binding(Env *env, Value *self_value, size_t argc, Value
     env->assert_argc(argc, 0);
     FloatValue *self = self_value->as_float();
     auto return_value = self->is_nan();
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *FloatValue_is_negative_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     FloatValue *self = self_value->as_float();
     auto return_value = self->is_negative();
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *FloatValue_next_float_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
@@ -655,7 +719,11 @@ Value *FloatValue_is_positive_binding(Env *env, Value *self_value, size_t argc, 
     env->assert_argc(argc, 0);
     FloatValue *self = self_value->as_float();
     auto return_value = self->is_positive();
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *FloatValue_prev_float_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
@@ -718,11 +786,15 @@ Value *FloatValue_is_zero_binding(Env *env, Value *self_value, size_t argc, Valu
     env->assert_argc(argc, 0);
     FloatValue *self = self_value->as_float();
     auto return_value = self->is_zero();
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *HashValue_square_new_static_binding(Env *env, Value *, size_t argc, Value **args, Block *block) {
-    
+
     auto return_value = HashValue::square_new(env, argc, args);
     return return_value;
 }
@@ -906,42 +978,66 @@ Value *Value_neq_binding1(Env *env, Value *self_value, size_t argc, Value **args
     env->assert_argc(argc, 1);
     Value *self = self_value;
     auto return_value = self->neq(env, argc > 0 ? args[0] : nullptr);
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *IntegerValue_lt_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     IntegerValue *self = self_value->as_integer();
     auto return_value = self->lt(env, argc > 0 ? args[0] : nullptr);
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *IntegerValue_lte_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     IntegerValue *self = self_value->as_integer();
     auto return_value = self->lte(env, argc > 0 ? args[0] : nullptr);
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *IntegerValue_gt_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     IntegerValue *self = self_value->as_integer();
     auto return_value = self->gt(env, argc > 0 ? args[0] : nullptr);
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *IntegerValue_gte_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     IntegerValue *self = self_value->as_integer();
     auto return_value = self->gte(env, argc > 0 ? args[0] : nullptr);
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *IntegerValue_eq_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     IntegerValue *self = self_value->as_integer();
     auto return_value = self->eq(env, argc > 0 ? args[0] : nullptr);
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *IntegerValue_eqeqeq_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
@@ -976,14 +1072,22 @@ Value *IntegerValue_eql_binding(Env *env, Value *self_value, size_t argc, Value 
     env->assert_argc(argc, 1);
     IntegerValue *self = self_value->as_integer();
     auto return_value = self->eql(env, argc > 0 ? args[0] : nullptr);
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *IntegerValue_is_even_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     IntegerValue *self = self_value->as_integer();
     auto return_value = self->is_even();
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *IntegerValue_to_s_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
@@ -997,7 +1101,11 @@ Value *IntegerValue_is_odd_binding(Env *env, Value *self_value, size_t argc, Val
     env->assert_argc(argc, 0);
     IntegerValue *self = self_value->as_integer();
     auto return_value = self->is_odd();
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *IntegerValue_succ_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
@@ -1039,7 +1147,11 @@ Value *IntegerValue_is_zero_binding(Env *env, Value *self_value, size_t argc, Va
     env->assert_argc(argc, 0);
     IntegerValue *self = self_value->as_integer();
     auto return_value = self->is_zero();
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *IoValue_close_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
@@ -1064,14 +1176,14 @@ Value *IoValue_initialize_binding(Env *env, Value *self_value, size_t argc, Valu
 }
 
 Value *IoValue_print_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
-    
+
     IoValue *self = self_value->as_io();
     auto return_value = self->print(env, argc, args);
     return return_value;
 }
 
 Value *IoValue_puts_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
-    
+
     IoValue *self = self_value->as_io();
     auto return_value = self->puts(env, argc, args);
     return return_value;
@@ -1116,7 +1228,11 @@ Value *KernelModule_block_given_binding(Env *env, Value *self_value, size_t argc
     env->assert_argc(argc, 0);
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->block_given(env, block);
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *KernelModule_klass_obj_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
@@ -1151,14 +1267,22 @@ Value *KernelModule_equal_binding(Env *env, Value *self_value, size_t argc, Valu
     env->assert_argc(argc, 1);
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->equal(argc > 0 ? args[0] : nullptr);
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *KernelModule_equal_binding1(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->equal(argc > 0 ? args[0] : nullptr);
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *KernelModule_exit_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
@@ -1221,14 +1345,22 @@ Value *KernelModule_is_a_binding(Env *env, Value *self_value, size_t argc, Value
     env->assert_argc(argc, 1);
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->is_a(env, argc > 0 ? args[0] : nullptr);
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *KernelModule_is_nil_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->is_nil();
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *KernelModule_lambda_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
@@ -1274,14 +1406,14 @@ Value *KernelModule_object_id_binding(Env *env, Value *self_value, size_t argc, 
 }
 
 Value *KernelModule_p_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
-    
+
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->p(env, argc, args);
     return return_value;
 }
 
 Value *KernelModule_print_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
-    
+
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->print(env, argc, args);
     return return_value;
@@ -1295,7 +1427,7 @@ Value *KernelModule_proc_binding(Env *env, Value *self_value, size_t argc, Value
 }
 
 Value *KernelModule_puts_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
-    
+
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->puts(env, argc, args);
     return return_value;
@@ -1312,7 +1444,11 @@ Value *KernelModule_respond_to_binding(Env *env, Value *self_value, size_t argc,
     env->assert_argc(argc, 1);
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
     auto return_value = self->respond_to(env, argc > 0 ? args[0] : nullptr);
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *Value_send_binding1(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
@@ -1375,7 +1511,11 @@ Value *ModuleValue_eqeqeq_binding(Env *env, Value *self_value, size_t argc, Valu
     env->assert_argc(argc, 1);
     ModuleValue *self = self_value->as_module();
     auto return_value = self->eqeqeq(env, argc > 0 ? args[0] : nullptr);
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *ModuleValue_alias_method_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
@@ -1431,7 +1571,11 @@ Value *ModuleValue_const_defined_binding(Env *env, Value *self_value, size_t arg
     env->assert_argc(argc, 1);
     ModuleValue *self = self_value->as_module();
     auto return_value = self->const_defined(env, argc > 0 ? args[0] : nullptr);
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *ModuleValue_define_method_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
@@ -1459,7 +1603,11 @@ Value *ModuleValue_does_include_module_binding(Env *env, Value *self_value, size
     env->assert_argc(argc, 1);
     ModuleValue *self = self_value->as_module();
     auto return_value = self->does_include_module(env, argc > 0 ? args[0] : nullptr);
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *ModuleValue_included_modules_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
@@ -1480,7 +1628,11 @@ Value *ModuleValue_is_method_defined_binding(Env *env, Value *self_value, size_t
     env->assert_argc(argc, 1);
     ModuleValue *self = self_value->as_module();
     auto return_value = self->is_method_defined(env, argc > 0 ? args[0] : nullptr);
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *ModuleValue_module_eval_binding1(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
@@ -1557,7 +1709,11 @@ Value *Value_is_nil_binding(Env *env, Value *self_value, size_t argc, Value **ar
     env->assert_argc(argc, 0);
     Value *self = self_value;
     auto return_value = self->is_nil();
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *ParserValue_parse_singleton_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
@@ -1582,7 +1738,7 @@ Value *ProcValue_initialize_binding(Env *env, Value *self_value, size_t argc, Va
 }
 
 Value *ProcValue_call_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
-    
+
     ProcValue *self = self_value->as_proc();
     auto return_value = self->call(env, argc, args, block);
     return return_value;
@@ -1592,7 +1748,11 @@ Value *ProcValue_is_lambda_binding(Env *env, Value *self_value, size_t argc, Val
     env->assert_argc(argc, 0);
     ProcValue *self = self_value->as_proc();
     auto return_value = self->is_lambda();
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *ProcessModule_pid_static_binding(Env *env, Value *, size_t argc, Value **args, Block *block) {
@@ -1640,7 +1800,11 @@ Value *RangeValue_exclude_end_binding(Env *env, Value *self_value, size_t argc, 
     env->assert_argc(argc, 0);
     RangeValue *self = self_value->as_range();
     auto return_value = self->exclude_end();
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *RangeValue_to_a_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
@@ -1695,14 +1859,22 @@ Value *RegexpValue_eq_binding(Env *env, Value *self_value, size_t argc, Value **
     env->assert_argc(argc, 1);
     RegexpValue *self = self_value->as_regexp();
     auto return_value = self->eq(env, argc > 0 ? args[0] : nullptr);
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *RegexpValue_eqeqeq_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     RegexpValue *self = self_value->as_regexp();
     auto return_value = self->eqeqeq(env, argc > 0 ? args[0] : nullptr);
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *RegexpValue_eqtilde_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
@@ -1730,6 +1902,13 @@ Value *RegexpValue_match_binding(Env *env, Value *self_value, size_t argc, Value
     env->assert_argc(argc, 1);
     RegexpValue *self = self_value->as_regexp();
     auto return_value = self->match(env, argc > 0 ? args[0] : nullptr);
+    return return_value;
+}
+
+Value *SexpValue_inspect_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
+    env->assert_argc(argc, 0);
+    SexpValue *self = self_value->as_sexp_value_for_method_binding();
+    auto return_value = self->inspect(env);
     return return_value;
 }
 
@@ -1765,14 +1944,22 @@ Value *StringValue_eq_binding(Env *env, Value *self_value, size_t argc, Value **
     env->assert_argc(argc, 1);
     StringValue *self = self_value->as_string();
     auto return_value = self->eq(argc > 0 ? args[0] : nullptr);
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *StringValue_eq_binding1(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     StringValue *self = self_value->as_string();
     auto return_value = self->eq(argc > 0 ? args[0] : nullptr);
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *StringValue_eqtilde_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
@@ -1828,7 +2015,11 @@ Value *StringValue_eq_binding2(Env *env, Value *self_value, size_t argc, Value *
     env->assert_argc(argc, 1);
     StringValue *self = self_value->as_string();
     auto return_value = self->eq(argc > 0 ? args[0] : nullptr);
-    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+    if (return_value) {
+        return env->true_obj();
+    } else {
+        return env->false_obj();
+    }
 }
 
 Value *StringValue_force_encoding_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
@@ -2271,6 +2462,8 @@ void init_bindings(Env *env) {
     Regexp->define_method(env, "initialize", RegexpValue_initialize_binding);
     Regexp->define_method(env, "inspect", RegexpValue_inspect_binding);
     Regexp->define_method(env, "match", RegexpValue_match_binding);
+    Value *Sexp = env->Object()->const_find(env, "Parser")->const_find(env, "Sexp");
+    Sexp->define_method(env, "inspect", SexpValue_inspect_binding);
     Value *String = env->Object()->const_find(env, "String");
     String->define_method(env, "*", StringValue_mul_binding);
     String->define_method(env, "+", StringValue_add_binding);

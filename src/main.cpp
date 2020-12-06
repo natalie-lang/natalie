@@ -155,6 +155,9 @@ extern "C" Env *build_top_env() {
     ClassValue *Parser = env->Object()->subclass(env, "Parser");
     Object->const_set(env, "Parser", Parser);
 
+    ClassValue *Sexp = Array->subclass(env, "Sexp", Value::Type::Array);
+    Parser->const_set(env, "Sexp", Sexp);
+
     Value *RUBY_VERSION = new StringValue { env, "2.7.1" };
     Object->const_set(env, "RUBY_VERSION", RUBY_VERSION);
 
