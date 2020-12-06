@@ -483,87 +483,87 @@ private:
         };
         if (!token.is_valid()) {
             if (match(12, "__ENCODING__"))
-                return Token { Token::Type::Keyword, GC_STRDUP("__ENCODING__"), m_token_line, m_token_column };
+                return Token { Token::Type::ENCODINGKeyword, m_token_line, m_token_column };
             else if (match(8, "__LINE__"))
-                return Token { Token::Type::Keyword, GC_STRDUP("__LINE__"), m_token_line, m_token_column };
+                return Token { Token::Type::LINEKeyword, m_token_line, m_token_column };
             else if (match(8, "__FILE__"))
-                return Token { Token::Type::Keyword, GC_STRDUP("__FILE__"), m_token_line, m_token_column };
+                return Token { Token::Type::FILEKeyword, m_token_line, m_token_column };
             else if (match(5, "BEGIN"))
-                return Token { Token::Type::Keyword, GC_STRDUP("BEGIN"), m_token_line, m_token_column };
+                return Token { Token::Type::BEGINKeyword, m_token_line, m_token_column };
             else if (match(3, "END"))
-                return Token { Token::Type::Keyword, GC_STRDUP("END"), m_token_line, m_token_column };
+                return Token { Token::Type::ENDKeyword, m_token_line, m_token_column };
             else if (match(5, "alias"))
-                return Token { Token::Type::Keyword, GC_STRDUP("alias"), m_token_line, m_token_column };
+                return Token { Token::Type::AliasKeyword, m_token_line, m_token_column };
             else if (match(3, "and"))
-                return Token { Token::Type::Keyword, GC_STRDUP("and"), m_token_line, m_token_column };
+                return Token { Token::Type::AndKeyword, m_token_line, m_token_column };
             else if (match(5, "begin"))
-                return Token { Token::Type::Keyword, GC_STRDUP("begin"), m_token_line, m_token_column };
+                return Token { Token::Type::BeginKeyword, m_token_line, m_token_column };
             else if (match(5, "break"))
-                return Token { Token::Type::Keyword, GC_STRDUP("break"), m_token_line, m_token_column };
+                return Token { Token::Type::BreakKeyword, m_token_line, m_token_column };
             else if (match(4, "case"))
-                return Token { Token::Type::Keyword, GC_STRDUP("case"), m_token_line, m_token_column };
+                return Token { Token::Type::CaseKeyword, m_token_line, m_token_column };
             else if (match(5, "class"))
-                return Token { Token::Type::Keyword, GC_STRDUP("class"), m_token_line, m_token_column };
+                return Token { Token::Type::ClassKeyword, m_token_line, m_token_column };
             else if (match(8, "defined?"))
-                return Token { Token::Type::Keyword, GC_STRDUP("defined?"), m_token_line, m_token_column };
+                return Token { Token::Type::DefinedKeyword, m_token_line, m_token_column };
             else if (match(3, "def"))
-                return Token { Token::Type::Keyword, GC_STRDUP("def"), m_token_line, m_token_column };
+                return Token { Token::Type::DefKeyword, m_token_line, m_token_column };
             else if (match(2, "do"))
-                return Token { Token::Type::Keyword, GC_STRDUP("do"), m_token_line, m_token_column };
+                return Token { Token::Type::DoKeyword, m_token_line, m_token_column };
             else if (match(4, "else"))
-                return Token { Token::Type::Keyword, GC_STRDUP("else"), m_token_line, m_token_column };
+                return Token { Token::Type::ElseKeyword, m_token_line, m_token_column };
             else if (match(5, "elsif"))
-                return Token { Token::Type::Keyword, GC_STRDUP("elsif"), m_token_line, m_token_column };
+                return Token { Token::Type::ElsifKeyword, m_token_line, m_token_column };
             else if (match(3, "end"))
-                return Token { Token::Type::Keyword, GC_STRDUP("end"), m_token_line, m_token_column };
+                return Token { Token::Type::EndKeyword, m_token_line, m_token_column };
             else if (match(6, "ensure"))
-                return Token { Token::Type::Keyword, GC_STRDUP("ensure"), m_token_line, m_token_column };
+                return Token { Token::Type::EnsureKeyword, m_token_line, m_token_column };
             else if (match(5, "false"))
-                return Token { Token::Type::Keyword, GC_STRDUP("false"), m_token_line, m_token_column };
+                return Token { Token::Type::FalseKeyword, m_token_line, m_token_column };
             else if (match(3, "for"))
-                return Token { Token::Type::Keyword, GC_STRDUP("for"), m_token_line, m_token_column };
+                return Token { Token::Type::ForKeyword, m_token_line, m_token_column };
             else if (match(2, "if"))
-                return Token { Token::Type::Keyword, GC_STRDUP("if"), m_token_line, m_token_column };
+                return Token { Token::Type::IfKeyword, m_token_line, m_token_column };
             else if (match(2, "in"))
-                return Token { Token::Type::Keyword, GC_STRDUP("in"), m_token_line, m_token_column };
+                return Token { Token::Type::InKeyword, m_token_line, m_token_column };
             else if (match(6, "module"))
-                return Token { Token::Type::Keyword, GC_STRDUP("module"), m_token_line, m_token_column };
+                return Token { Token::Type::ModuleKeyword, m_token_line, m_token_column };
             else if (match(4, "next"))
-                return Token { Token::Type::Keyword, GC_STRDUP("next"), m_token_line, m_token_column };
+                return Token { Token::Type::NextKeyword, m_token_line, m_token_column };
             else if (match(3, "nil"))
-                return Token { Token::Type::Keyword, GC_STRDUP("nil"), m_token_line, m_token_column };
+                return Token { Token::Type::NilKeyword, m_token_line, m_token_column };
             else if (match(3, "not"))
-                return Token { Token::Type::Keyword, GC_STRDUP("not"), m_token_line, m_token_column };
+                return Token { Token::Type::NotKeyword, m_token_line, m_token_column };
             else if (match(2, "or"))
-                return Token { Token::Type::Keyword, GC_STRDUP("or"), m_token_line, m_token_column };
+                return Token { Token::Type::OrKeyword, m_token_line, m_token_column };
             else if (match(4, "redo"))
-                return Token { Token::Type::Keyword, GC_STRDUP("redo"), m_token_line, m_token_column };
+                return Token { Token::Type::RedoKeyword, m_token_line, m_token_column };
             else if (match(6, "rescue"))
-                return Token { Token::Type::Keyword, GC_STRDUP("rescue"), m_token_line, m_token_column };
+                return Token { Token::Type::RescueKeyword, m_token_line, m_token_column };
             else if (match(5, "retry"))
-                return Token { Token::Type::Keyword, GC_STRDUP("retry"), m_token_line, m_token_column };
+                return Token { Token::Type::RetryKeyword, m_token_line, m_token_column };
             else if (match(6, "return"))
-                return Token { Token::Type::Keyword, GC_STRDUP("return"), m_token_line, m_token_column };
+                return Token { Token::Type::ReturnKeyword, m_token_line, m_token_column };
             else if (match(4, "self"))
-                return Token { Token::Type::Keyword, GC_STRDUP("self"), m_token_line, m_token_column };
+                return Token { Token::Type::SelfKeyword, m_token_line, m_token_column };
             else if (match(5, "super"))
-                return Token { Token::Type::Keyword, GC_STRDUP("super"), m_token_line, m_token_column };
+                return Token { Token::Type::SuperKeyword, m_token_line, m_token_column };
             else if (match(4, "then"))
-                return Token { Token::Type::Keyword, GC_STRDUP("then"), m_token_line, m_token_column };
+                return Token { Token::Type::ThenKeyword, m_token_line, m_token_column };
             else if (match(4, "true"))
-                return Token { Token::Type::Keyword, GC_STRDUP("true"), m_token_line, m_token_column };
+                return Token { Token::Type::TrueKeyword, m_token_line, m_token_column };
             else if (match(5, "undef"))
-                return Token { Token::Type::Keyword, GC_STRDUP("undef"), m_token_line, m_token_column };
+                return Token { Token::Type::UndefKeyword, m_token_line, m_token_column };
             else if (match(6, "unless"))
-                return Token { Token::Type::Keyword, GC_STRDUP("unless"), m_token_line, m_token_column };
+                return Token { Token::Type::UnlessKeyword, m_token_line, m_token_column };
             else if (match(5, "until"))
-                return Token { Token::Type::Keyword, GC_STRDUP("until"), m_token_line, m_token_column };
+                return Token { Token::Type::UntilKeyword, m_token_line, m_token_column };
             else if (match(4, "when"))
-                return Token { Token::Type::Keyword, GC_STRDUP("when"), m_token_line, m_token_column };
+                return Token { Token::Type::WhenKeyword, m_token_line, m_token_column };
             else if (match(5, "while"))
-                return Token { Token::Type::Keyword, GC_STRDUP("while"), m_token_line, m_token_column };
+                return Token { Token::Type::WhileKeyword, m_token_line, m_token_column };
             else if (match(5, "yield"))
-                return Token { Token::Type::Keyword, GC_STRDUP("yield"), m_token_line, m_token_column };
+                return Token { Token::Type::YieldKeyword, m_token_line, m_token_column };
             else {
                 auto c = current_char();
                 bool symbol_key = false;

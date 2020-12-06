@@ -6,22 +6,38 @@ namespace Natalie {
 
 struct Token : public gc {
     enum class Type {
+        AliasKeyword,
         And,
+        AndKeyword,
         Arrow,
+        BeginKeyword,
+        BEGINKeyword,
         BinaryAnd,
+        BinaryOnesComplement,
         BinaryOr,
         BinaryXor,
-        BinaryOnesComplement,
+        BreakKeyword,
+        CaseKeyword,
+        ClassKeyword,
         ClassVariable,
         Comma,
         Comment,
         Comparison,
         Constant,
         ConstantResolution,
+        DefinedKeyword,
+        DefKeyword,
         Divide,
         DivideEqual,
+        DoKeyword,
         Dot,
         DotDot,
+        ElseKeyword,
+        ElsifKeyword,
+        ENCODINGKeyword,
+        EndKeyword,
+        ENDKeyword,
+        EnsureKeyword,
         Eof,
         Eol,
         Equal,
@@ -29,33 +45,43 @@ struct Token : public gc {
         EqualEqualEqual,
         Exponent,
         ExponentEqual,
+        FalseKeyword,
+        FILEKeyword,
         Float,
+        ForKeyword,
+        GlobalVariable,
         GreaterThan,
         GreaterThanOrEqual,
-        GlobalVariable,
         HashRocket,
         Identifier,
+        IfKeyword,
+        InKeyword,
         InstanceVariable,
         Integer,
         Invalid,
-        Keyword,
         LBrace,
         LBracket,
-        LParen,
         LeftShift,
         LessThan,
         LessThanOrEqual,
+        LINEKeyword,
+        LParen,
         Match,
         Minus,
         MinusEqual,
+        ModuleKeyword,
         Modulus,
         ModulusEqual,
         Multiply,
         MultiplyEqual,
+        NextKeyword,
+        NilKeyword,
         Not,
         NotEqual,
+        NotKeyword,
         NotMatch,
         Or,
+        OrKeyword,
         PercentLowerI,
         PercentLowerW,
         PercentUpperI,
@@ -64,18 +90,32 @@ struct Token : public gc {
         PlusEqual,
         RBrace,
         RBracket,
+        RedoKeyword,
         Regexp,
+        RescueKeyword,
+        RetryKeyword,
+        ReturnKeyword,
         RightShift,
         RParen,
         SafeNavigation,
+        SelfKeyword,
         Semicolon,
         String,
+        SuperKeyword,
         Symbol,
         SymbolKey,
         TernaryColon,
         TernaryQuestion,
+        ThenKeyword,
+        TrueKeyword,
+        UndefKeyword,
+        UnlessKeyword,
         UnterminatedRegexp,
         UnterminatedString,
+        UntilKeyword,
+        WhenKeyword,
+        WhileKeyword,
+        YieldKeyword,
     };
 
     Token() { }
@@ -127,18 +167,32 @@ struct Token : public gc {
 
     SymbolValue *type_value(Env *env) {
         switch (m_type) {
+        case Type::AliasKeyword:
+            return SymbolValue::intern(env, "alias");
+        case Type::AndKeyword:
+            return SymbolValue::intern(env, "and");
         case Type::And:
             return SymbolValue::intern(env, "&&");
         case Type::Arrow:
             return SymbolValue::intern(env, "->");
+        case Type::BeginKeyword:
+            return SymbolValue::intern(env, "begin");
+        case Type::BEGINKeyword:
+            return SymbolValue::intern(env, "BEGIN");
         case Type::BinaryAnd:
             return SymbolValue::intern(env, "&");
+        case Type::BinaryOnesComplement:
+            return SymbolValue::intern(env, "~");
         case Type::BinaryOr:
             return SymbolValue::intern(env, "|");
         case Type::BinaryXor:
             return SymbolValue::intern(env, "^");
-        case Type::BinaryOnesComplement:
-            return SymbolValue::intern(env, "~");
+        case Type::BreakKeyword:
+            return SymbolValue::intern(env, "break");
+        case Type::CaseKeyword:
+            return SymbolValue::intern(env, "case");
+        case Type::ClassKeyword:
+            return SymbolValue::intern(env, "class");
         case Type::ClassVariable:
             return SymbolValue::intern(env, "cvar");
         case Type::Comma:
@@ -147,126 +201,192 @@ struct Token : public gc {
             return SymbolValue::intern(env, "comment");
         case Type::Comparison:
             return SymbolValue::intern(env, "<=>");
-        case Type::Constant:
-            return SymbolValue::intern(env, "constant");
         case Type::ConstantResolution:
             return SymbolValue::intern(env, "::");
-        case Type::Divide:
-            return SymbolValue::intern(env, "/");
+        case Type::Constant:
+            return SymbolValue::intern(env, "constant");
+        case Type::DefinedKeyword:
+            return SymbolValue::intern(env, "defined?");
+        case Type::DefKeyword:
+            return SymbolValue::intern(env, "def");
         case Type::DivideEqual:
             return SymbolValue::intern(env, "/=");
-        case Type::Dot:
-            return SymbolValue::intern(env, ".");
+        case Type::Divide:
+            return SymbolValue::intern(env, "/");
+        case Type::DoKeyword:
+            return SymbolValue::intern(env, "do");
         case Type::DotDot:
             return SymbolValue::intern(env, "..");
-        case Type::Eol:
-            return SymbolValue::intern(env, "\n");
+        case Type::Dot:
+            return SymbolValue::intern(env, ".");
+        case Type::ElseKeyword:
+            return SymbolValue::intern(env, "else");
+        case Type::ElsifKeyword:
+            return SymbolValue::intern(env, "elsif");
+        case Type::ENCODINGKeyword:
+            return SymbolValue::intern(env, "__ENCODING__");
+        case Type::EndKeyword:
+            return SymbolValue::intern(env, "end");
+        case Type::ENDKeyword:
+            return SymbolValue::intern(env, "END");
+        case Type::EnsureKeyword:
+            return SymbolValue::intern(env, "ensure");
         case Type::Eof:
             return SymbolValue::intern(env, "EOF");
-        case Type::Equal:
-            return SymbolValue::intern(env, "=");
-        case Type::EqualEqual:
-            return SymbolValue::intern(env, "==");
+        case Type::Eol:
+            return SymbolValue::intern(env, "\n");
         case Type::EqualEqualEqual:
             return SymbolValue::intern(env, "===");
-        case Type::Exponent:
-            return SymbolValue::intern(env, "**");
+        case Type::EqualEqual:
+            return SymbolValue::intern(env, "==");
+        case Type::Equal:
+            return SymbolValue::intern(env, "=");
         case Type::ExponentEqual:
             return SymbolValue::intern(env, "**=");
+        case Type::Exponent:
+            return SymbolValue::intern(env, "**");
+        case Type::FalseKeyword:
+            return SymbolValue::intern(env, "false");
+        case Type::FILEKeyword:
+            return SymbolValue::intern(env, "__FILE__");
         case Type::Float:
             return SymbolValue::intern(env, "float");
+        case Type::ForKeyword:
+            return SymbolValue::intern(env, "for");
         case Type::GlobalVariable:
             return SymbolValue::intern(env, "gvar");
-        case Type::GreaterThan:
-            return SymbolValue::intern(env, ">");
         case Type::GreaterThanOrEqual:
             return SymbolValue::intern(env, ">=");
+        case Type::GreaterThan:
+            return SymbolValue::intern(env, ">");
         case Type::HashRocket:
             return SymbolValue::intern(env, "=>");
         case Type::Identifier:
             return SymbolValue::intern(env, "identifier");
+        case Type::IfKeyword:
+            return SymbolValue::intern(env, "if");
+        case Type::InKeyword:
+            return SymbolValue::intern(env, "in");
         case Type::InstanceVariable:
             return SymbolValue::intern(env, "ivar");
         case Type::Integer:
             return SymbolValue::intern(env, "integer");
         case Type::Invalid:
             env->raise("SyntaxError", "%d: syntax error, unexpected '%s'", m_line + 1, m_literal);
-        case Type::Keyword:
-            return SymbolValue::intern(env, "keyword");
         case Type::LBrace:
             return SymbolValue::intern(env, "{");
         case Type::LBracket:
             return SymbolValue::intern(env, "[");
-        case Type::LParen:
-            return SymbolValue::intern(env, "(");
         case Type::LeftShift:
             return SymbolValue::intern(env, "<<");
-        case Type::LessThan:
-            return SymbolValue::intern(env, "<");
         case Type::LessThanOrEqual:
             return SymbolValue::intern(env, "<=");
+        case Type::LessThan:
+            return SymbolValue::intern(env, "<");
+        case Type::LINEKeyword:
+            return SymbolValue::intern(env, "__LINE__");
+        case Type::LParen:
+            return SymbolValue::intern(env, "(");
         case Type::Match:
             return SymbolValue::intern(env, "=~");
-        case Type::Minus:
-            return SymbolValue::intern(env, "-");
         case Type::MinusEqual:
             return SymbolValue::intern(env, "-=");
-        case Type::Modulus:
-            return SymbolValue::intern(env, "%");
+        case Type::Minus:
+            return SymbolValue::intern(env, "-");
+        case Type::ModuleKeyword:
+            return SymbolValue::intern(env, "module");
         case Type::ModulusEqual:
             return SymbolValue::intern(env, "%=");
-        case Type::Multiply:
-            return SymbolValue::intern(env, "*");
+        case Type::Modulus:
+            return SymbolValue::intern(env, "%");
         case Type::MultiplyEqual:
             return SymbolValue::intern(env, "*=");
-        case Type::Not:
-            return SymbolValue::intern(env, "!");
+        case Type::Multiply:
+            return SymbolValue::intern(env, "*");
+        case Type::NextKeyword:
+            return SymbolValue::intern(env, "next");
+        case Type::NilKeyword:
+            return SymbolValue::intern(env, "nil");
         case Type::NotEqual:
             return SymbolValue::intern(env, "!=");
+        case Type::NotKeyword:
+            return SymbolValue::intern(env, "not");
         case Type::NotMatch:
             return SymbolValue::intern(env, "!~");
+        case Type::Not:
+            return SymbolValue::intern(env, "!");
+        case Type::OrKeyword:
+            return SymbolValue::intern(env, "or");
         case Type::Or:
             return SymbolValue::intern(env, "||");
         case Type::PercentLowerI:
             return SymbolValue::intern(env, "%i");
-        case Type::PercentUpperI:
-            return SymbolValue::intern(env, "%I");
         case Type::PercentLowerW:
             return SymbolValue::intern(env, "%w");
+        case Type::PercentUpperI:
+            return SymbolValue::intern(env, "%I");
         case Type::PercentUpperW:
             return SymbolValue::intern(env, "%W");
-        case Type::Plus:
-            return SymbolValue::intern(env, "+");
         case Type::PlusEqual:
             return SymbolValue::intern(env, "+=");
+        case Type::Plus:
+            return SymbolValue::intern(env, "+");
         case Type::RBrace:
             return SymbolValue::intern(env, "}");
         case Type::RBracket:
             return SymbolValue::intern(env, "]");
-        case Type::RParen:
-            return SymbolValue::intern(env, ")");
+        case Type::RedoKeyword:
+            return SymbolValue::intern(env, "redo");
         case Type::Regexp:
             return SymbolValue::intern(env, "regexp");
+        case Type::RescueKeyword:
+            return SymbolValue::intern(env, "rescue");
+        case Type::RetryKeyword:
+            return SymbolValue::intern(env, "retry");
+        case Type::ReturnKeyword:
+            return SymbolValue::intern(env, "return");
         case Type::RightShift:
             return SymbolValue::intern(env, ">>");
+        case Type::RParen:
+            return SymbolValue::intern(env, ")");
         case Type::SafeNavigation:
             return SymbolValue::intern(env, "&.");
+        case Type::SelfKeyword:
+            return SymbolValue::intern(env, "self");
         case Type::Semicolon:
             return SymbolValue::intern(env, ";");
         case Type::String:
             return SymbolValue::intern(env, "string");
-        case Type::Symbol:
-            return SymbolValue::intern(env, "symbol");
+        case Type::SuperKeyword:
+            return SymbolValue::intern(env, "super");
         case Type::SymbolKey:
             return SymbolValue::intern(env, "symbol_key");
+        case Type::Symbol:
+            return SymbolValue::intern(env, "symbol");
         case Type::TernaryColon:
             return SymbolValue::intern(env, ":");
         case Type::TernaryQuestion:
             return SymbolValue::intern(env, "?");
+        case Type::ThenKeyword:
+            return SymbolValue::intern(env, "then");
+        case Type::TrueKeyword:
+            return SymbolValue::intern(env, "true");
+        case Type::UndefKeyword:
+            return SymbolValue::intern(env, "undef");
+        case Type::UnlessKeyword:
+            return SymbolValue::intern(env, "unless");
         case Type::UnterminatedRegexp:
             env->raise("SyntaxError", "unterminated regexp meets end of file");
         case Type::UnterminatedString:
             env->raise("SyntaxError", "unterminated string meets end of file at line %i and column %i: %s", m_line, m_column, m_literal);
+        case Type::UntilKeyword:
+            return SymbolValue::intern(env, "until");
+        case Type::WhenKeyword:
+            return SymbolValue::intern(env, "when");
+        case Type::WhileKeyword:
+            return SymbolValue::intern(env, "while");
+        case Type::YieldKeyword:
+            return SymbolValue::intern(env, "yield");
         }
         NAT_UNREACHABLE();
     }
@@ -289,7 +409,6 @@ struct Token : public gc {
         case Type::ClassVariable:
         case Type::Constant:
         case Type::GlobalVariable:
-        case Type::Keyword:
         case Type::Identifier:
         case Type::InstanceVariable:
         case Type::Symbol:
@@ -325,9 +444,8 @@ struct Token : public gc {
         }
     }
 
-    // FIXME: make "def" its own type and eliminate this strcmp
     bool can_precede_method_name() {
-        return m_type == Token::Type::Dot || m_type == Token::Type::ConstantResolution || (m_type == Token::Type::Keyword && strcmp(m_literal, "def") == 0);
+        return m_type == Token::Type::Dot || m_type == Token::Type::ConstantResolution || m_type == Token::Type::DefKeyword;
     }
 
     size_t line() { return m_line; }

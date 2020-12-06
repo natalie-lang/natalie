@@ -48,7 +48,7 @@ describe 'Parser' do
         while
         yield
       ].each do |keyword|
-        Parser.tokens(keyword).should == [{type: :keyword, literal: keyword.to_sym}]
+        Parser.tokens(keyword).should == [{type: keyword.to_sym}]
       end
       Parser.tokens('defx = 1').should == [{type: :identifier, literal: :defx}, {type: :"="}, {type: :integer, literal: 1}]
     end
@@ -184,7 +184,7 @@ describe 'Parser' do
     it 'tokenizes blocks' do
       Parser.tokens("foo do |x, y|\nx\nend").should == [
         {type: :identifier, literal: :foo},
-        {type: :keyword, literal: :do},
+        {type: :do},
         {type: :"|"},
         {type: :identifier, literal: :x},
         {type: :","},
@@ -193,7 +193,7 @@ describe 'Parser' do
         {type: :"\n"},
         {type: :identifier, literal: :x},
         {type: :"\n"},
-        {type: :keyword, literal: :end},
+        {type: :end},
       ]
       Parser.tokens("foo { |x, y| x }").should == [
         {type: :identifier, literal: :foo},
@@ -209,10 +209,10 @@ describe 'Parser' do
     end
 
     it 'tokenizes method names' do
-      Parser.tokens("def foo?").should == [{type: :keyword, literal: :def}, {type: :identifier, literal: :foo?}]
-      Parser.tokens("def foo!").should == [{type: :keyword, literal: :def}, {type: :identifier, literal: :foo!}]
-      Parser.tokens("def foo=").should == [{type: :keyword, literal: :def}, {type: :identifier, literal: :foo=}]
-      Parser.tokens("def self.foo=").should == [{type: :keyword, literal: :def}, {type: :keyword, literal: :self}, {type: :"."}, {type: :identifier, literal: :foo=}]
+      Parser.tokens("def foo?").should == [{type: :def}, {type: :identifier, literal: :foo?}]
+      Parser.tokens("def foo!").should == [{type: :def}, {type: :identifier, literal: :foo!}]
+      Parser.tokens("def foo=").should == [{type: :def}, {type: :identifier, literal: :foo=}]
+      Parser.tokens("def self.foo=").should == [{type: :def}, {type: :self}, {type: :"."}, {type: :identifier, literal: :foo=}]
       Parser.tokens("foo.bar=").should == [{type: :identifier, literal: :foo}, {type: :"."}, {type: :identifier, literal: :bar=}]
       Parser.tokens("foo::bar!").should == [{type: :identifier, literal: :foo}, {type: :"::"}, {type: :identifier, literal: :bar!}]
       Parser.tokens("Foo::bar!").should == [{type: :constant, literal: :Foo}, {type: :"::"}, {type: :identifier, literal: :bar!}]
@@ -237,27 +237,27 @@ describe 'Parser' do
     it 'tokenizes examples/fib.rb' do
       fib = File.open('examples/fib.rb').read
       Parser.tokens(fib).should == [
-        {type: :keyword, literal: :def},
+        {type: :def},
         {type: :identifier, literal: :fib},
         {type: :"("},
         {type: :identifier, literal: :n},
         {type: :")"},
         {type: :"\n"},
-        {type: :keyword, literal: :if},
+        {type: :if},
         {type: :identifier, literal: :n},
         {type: :"=="},
         {type: :integer, literal: 0},
         {type: :"\n"},
         {type: :integer, literal: 0},
         {type: :"\n"},
-        {type: :keyword, literal: :elsif},
+        {type: :elsif},
         {type: :identifier, literal: :n},
         {type: :"=="},
         {type: :integer, literal: 1},
         {type: :"\n"},
         {type: :integer, literal: 1},
         {type: :"\n"},
-        {type: :keyword, literal: :else},
+        {type: :else},
         {type: :"\n"},
         {type: :identifier, literal: :fib},
         {type: :"("},
@@ -273,9 +273,9 @@ describe 'Parser' do
         {type: :integer, literal: 2},
         {type: :")"},
         {type: :"\n"},
-        {type: :keyword, literal: :end},
+        {type: :end},
         {type: :"\n"},
-        {type: :keyword, literal: :end},
+        {type: :end},
         {type: :"\n"},
         {type: :"\n"},
         {type: :identifier, literal: :num},
