@@ -1,7 +1,14 @@
 require_relative '../spec_helper'
-require 'sexp'
 
-unless defined?(Parser)
+if RUBY_ENGINE == 'natalie'
+  def s(*items)
+    sexp = Parser::Sexp.new
+    items.each do |item|
+      sexp << item
+    end
+    sexp
+  end
+else
   class Parser
     def self.parse(code)
       node = RubyParser.new.parse(code)
