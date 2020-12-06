@@ -60,11 +60,11 @@ struct Parser : public gc {
             default:
                 NAT_UNREACHABLE();
             }
-            return new ArrayValue { env, {
-                                             SymbolValue::intern(env, assignment_type),
-                                             SymbolValue::intern(env, m_identifier->name()),
-                                             m_value->to_ruby(env),
-                                         } };
+            return new SexpValue { env, {
+                                            SymbolValue::intern(env, assignment_type),
+                                            SymbolValue::intern(env, m_identifier->name()),
+                                            m_value->to_ruby(env),
+                                        } };
         }
 
     private:
