@@ -183,7 +183,7 @@ struct Parser : public gc {
 
         auto null_fn = null_denotation(current_token().type());
         if (!null_fn) {
-            env->raise("SyntaxError", "%d: syntax error, unexpected '%s'", current_token().line() + 1, current_token().type_value(env)->c_str());
+            raise_unexpected(env);
         }
 
         Node *left = (this->*null_fn)(env);
@@ -191,7 +191,7 @@ struct Parser : public gc {
         while (current_token().is_valid() && precedence < get_precedence(current_token())) {
             auto left_fn = left_denotation(current_token().type());
             if (!left_fn) {
-                env->raise("SyntaxError", "%d: syntax error, unexpected '%s'", current_token().line() + 1, current_token().type_value(env)->c_str());
+                raise_unexpected(env);
             }
 
             left = (this->*left_fn)(env, left);
@@ -335,6 +335,16 @@ private:
     void skip_semicolons() {
         while (current_token().is_semicolon())
             advance();
+    }
+
+    void raise_unexpected(Env *env) {
+        auto line = current_token().line() + 1;
+        auto type = current_token().type_value(env);
+        if (type == SymbolValue::intern(env, "EOF")) {
+            env->raise("SyntaxError", "%d: syntax error, unexpected end-of-input", line);
+        } else {
+            env->raise("SyntaxError", "%d: syntax error, unexpected '%s'", line, type->c_str());
+        }
     }
 
     void advance() { m_index++; }

@@ -83,11 +83,11 @@ describe 'Parser' do
     it 'parses assignment' do
       Parser.parse("x = 1").should == s(:block, s(:lasgn, :x, s(:lit, 1)))
       Parser.parse("x = 1 + 2").should == s(:block, s(:lasgn, :x, s(:call, s(:lit, 1), :+, s(:lit, 2))))
-      #if (RUBY_ENGINE == 'natalie')
-        #-> { Parser.parse("x =") }.should raise_error(SyntaxError, '1: syntax error, unexpected end-of-input')
-      #else
-        #-> { Parser.parse("x =") }.should raise_error(SyntaxError, '(string):1 :: parse error on value false ($end)')
-      #end
+      if (RUBY_ENGINE == 'natalie')
+        -> { Parser.parse("x =") }.should raise_error(SyntaxError, '1: syntax error, unexpected end-of-input')
+      else
+        -> { Parser.parse("x =") }.should raise_error(SyntaxError, '(string):1 :: parse error on value false ($end)')
+      end
       #Parser.parse("@foo = 1").should == s(:block, s(:iasgn, :@foo, s(:lit, 1)))
       #Parser.parse("@@abc_123 = 1").should == s(:block, s(:cvdecl, :@@abc_123, s(:lit, 1)))
       #Parser.parse("$baz = 1").should == s(:block, s(:gasgn, :$baz, s(:lit, 1)))
