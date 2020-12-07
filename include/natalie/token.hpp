@@ -432,6 +432,7 @@ struct Token : public gc {
     }
 
     bool is_comment() { return m_type == Type::Comment; }
+    bool is_end_keyword() { return m_type == Type::EndKeyword; }
     bool is_eof() { return m_type == Type::Eof; }
     bool is_eol() { return m_type == Type::Eol; }
     bool is_semicolon() { return m_type == Type::Semicolon; }

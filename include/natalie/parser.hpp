@@ -85,6 +85,9 @@ struct Parser : public gc {
             return array;
         }
 
+        Vector<Node *> *nodes() { return &m_nodes; }
+        bool is_empty() { return m_nodes.is_empty(); }
+
     private:
         Vector<Node *> m_nodes {};
     };
@@ -112,6 +115,34 @@ struct Parser : public gc {
         Node *m_receiver { nullptr };
         Value *m_message { nullptr };
         Node *m_arg { nullptr };
+    };
+
+    struct LiteralNode;
+
+    struct DefNode : Node {
+        DefNode(IdentifierNode *name, BlockNode *body)
+            : m_name { name }
+            , m_body { body } { }
+
+        virtual Value *to_ruby(Env *env) override {
+            auto sexp = new SexpValue { env, {
+                                                 SymbolValue::intern(env, "defn"),
+                                                 SymbolValue::intern(env, m_name->name()),
+                                                 new SexpValue { env, { SymbolValue::intern(env, "args") } },
+                                             } };
+            if (m_body->is_empty()) {
+                sexp->push(new SexpValue { env, { SymbolValue::intern(env, "nil") } });
+            } else {
+                for (auto node : *(m_body->nodes())) {
+                    sexp->push(node->to_ruby(env));
+                }
+            }
+            return sexp;
+        }
+
+    private:
+        IdentifierNode *m_name { nullptr };
+        BlockNode *m_body { nullptr };
     };
 
     struct IdentifierNode : Node {
@@ -231,6 +262,29 @@ struct Parser : public gc {
     }
 
 private:
+    Node *parse_def(Env *env) {
+        advance();
+        auto name = static_cast<IdentifierNode *>(parse_identifier(env));
+        auto body = static_cast<BlockNode *>(parse_body(env));
+        return new DefNode { name, body };
+    };
+
+    Node *parse_body(Env *env) {
+        auto body = new BlockNode {};
+        current_token().validate(env);
+        skip_newlines_and_semicolons();
+        while (!current_token().is_eof() && !current_token().is_end_keyword()) {
+            auto exp = parse_expression(env);
+            body->add_node(exp);
+            current_token().validate(env);
+            skip_newlines_and_semicolons();
+        }
+        if (!current_token().is_end_keyword())
+            raise_unexpected(env);
+        advance();
+        return body;
+    }
+
     Node *parse_lit(Env *env) {
         Value *value;
         auto token = current_token();
@@ -301,19 +355,21 @@ private:
     parse_fn1 null_denotation(Token::Type type) {
         using Type = Token::Type;
         switch (type) {
-        case Type::Integer:
-        case Type::Float:
-            return &Parser::parse_lit;
+        case Type::DefKeyword:
+            return &Parser::parse_def;
+        case Type::LParen:
+            return &Parser::parse_grouped_expression;
         case Type::ClassVariable:
         case Type::Constant:
         case Type::GlobalVariable:
         case Type::Identifier:
         case Type::InstanceVariable:
             return &Parser::parse_identifier;
+        case Type::Integer:
+        case Type::Float:
+            return &Parser::parse_lit;
         case Type::String:
             return &Parser::parse_string;
-        case Type::LParen:
-            return &Parser::parse_grouped_expression;
         default:
             return nullptr;
         }
@@ -352,6 +408,11 @@ private:
 
     void skip_newlines() {
         while (current_token().is_eol())
+            advance();
+    }
+
+    void skip_newlines_and_semicolons() {
+        while (current_token().is_eol() || current_token().is_semicolon())
             advance();
     }
 
