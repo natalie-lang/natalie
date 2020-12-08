@@ -161,9 +161,13 @@ describe 'Parser' do
       Parser.tokens("foo \n bar").should == [{type: :identifier, literal: :foo}, {type: :"\n"}, {type: :identifier, literal: :bar}]
     end
 
-    it 'tokenizes semicolons' do
-      Parser.tokens("foo;bar").should == [{type: :identifier, literal: :foo}, {type: :";"}, {type: :identifier, literal: :bar}]
-      Parser.tokens("foo ; bar").should == [{type: :identifier, literal: :foo}, {type: :";"}, {type: :identifier, literal: :bar}]
+    it 'ignores newlines that are not significant' do
+      Parser.tokens("foo(\n1\n)").should == [{type: :identifier, literal: :foo}, {type: :"("}, {type: :integer, literal: 1}, {type: :")"}]
+    end
+
+    it 'tokenizes semicolons as newlines' do
+      Parser.tokens("foo;bar").should == [{type: :identifier, literal: :foo}, {type: :"\n"}, {type: :identifier, literal: :bar}]
+      Parser.tokens("foo ; bar").should == [{type: :identifier, literal: :foo}, {type: :"\n"}, {type: :identifier, literal: :bar}]
     end
 
     it 'does not tokenize comments' do
@@ -190,7 +194,6 @@ describe 'Parser' do
         {type: :","},
         {type: :identifier, literal: :y},
         {type: :"|"},
-        {type: :"\n"},
         {type: :identifier, literal: :x},
         {type: :"\n"},
         {type: :end},

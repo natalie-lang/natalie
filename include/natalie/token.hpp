@@ -438,6 +438,7 @@ struct Token : public gc {
     bool is_eol() { return m_type == Type::Eol; }
     bool is_identifier() { return m_type == Type::Identifier; }
     bool is_lparen() { return m_type == Type::LParen; }
+    bool is_newline() { return m_type == Type::Eol; }
     bool is_rparen() { return m_type == Type::RParen; }
     bool is_semicolon() { return m_type == Type::Semicolon; }
     bool is_valid() { return m_type != Type::Invalid; }
@@ -453,6 +454,62 @@ struct Token : public gc {
         return m_type == Token::Type::Dot || m_type == Token::Type::ConstantResolution || m_type == Token::Type::DefKeyword;
     }
 
+    bool can_follow_collapsible_newline() {
+        return m_type == Token::Type::RBrace
+            || m_type == Token::Type::RBracket
+            || m_type == Token::Type::RParen;
+    }
+
+    bool can_precede_collapsible_newline() {
+        return m_type == Token::Type::And
+            || m_type == Token::Type::AndKeyword
+            || m_type == Token::Type::Arrow
+            || m_type == Token::Type::BinaryAnd
+            || m_type == Token::Type::BinaryOnesComplement
+            || m_type == Token::Type::BinaryOr
+            || m_type == Token::Type::BinaryXor
+            || m_type == Token::Type::Comma
+            || m_type == Token::Type::Comparison
+            || m_type == Token::Type::ConstantResolution
+            || m_type == Token::Type::Divide
+            || m_type == Token::Type::DivideEqual
+            || m_type == Token::Type::Dot
+            || m_type == Token::Type::DotDot
+            || m_type == Token::Type::Equal
+            || m_type == Token::Type::EqualEqual
+            || m_type == Token::Type::EqualEqualEqual
+            || m_type == Token::Type::Exponent
+            || m_type == Token::Type::ExponentEqual
+            || m_type == Token::Type::GreaterThan
+            || m_type == Token::Type::GreaterThanOrEqual
+            || m_type == Token::Type::HashRocket
+            || m_type == Token::Type::InKeyword
+            || m_type == Token::Type::LBrace
+            || m_type == Token::Type::LBracket
+            || m_type == Token::Type::LeftShift
+            || m_type == Token::Type::LessThan
+            || m_type == Token::Type::LessThanOrEqual
+            || m_type == Token::Type::LParen
+            || m_type == Token::Type::Match
+            || m_type == Token::Type::Minus
+            || m_type == Token::Type::MinusEqual
+            || m_type == Token::Type::Modulus
+            || m_type == Token::Type::ModulusEqual
+            || m_type == Token::Type::Multiply
+            || m_type == Token::Type::MultiplyEqual
+            || m_type == Token::Type::Not
+            || m_type == Token::Type::NotEqual
+            || m_type == Token::Type::NotMatch
+            || m_type == Token::Type::Or
+            || m_type == Token::Type::OrKeyword
+            || m_type == Token::Type::Plus
+            || m_type == Token::Type::PlusEqual
+            || m_type == Token::Type::RightShift
+            || m_type == Token::Type::SafeNavigation
+            || m_type == Token::Type::TernaryColon
+            || m_type == Token::Type::TernaryQuestion;
+    }
+
     size_t line() { return m_line; }
     size_t column() { return m_column; }
 
@@ -464,5 +521,4 @@ private:
     size_t m_line { 0 };
     size_t m_column { 0 };
 };
-
 }

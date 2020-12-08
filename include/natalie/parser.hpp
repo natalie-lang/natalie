@@ -274,7 +274,7 @@ struct Parser : public gc {
     }
 
     Node *parse_expression(Env *env, Precedence precedence = LOWEST) {
-        skip_newlines();
+        next_expression();
 
         auto null_fn = null_denotation(current_token().type());
         if (!null_fn) {
@@ -301,7 +301,7 @@ struct Parser : public gc {
             auto exp = parse_expression(env);
             tree->add_node(exp);
             current_token().validate(env);
-            skip_semicolons();
+            next_expression();
         }
         return tree;
     }
@@ -313,18 +313,15 @@ private:
         auto args = new Vector<Node *> {};
         if (current_token().is_lparen()) {
             advance();
-            skip_newlines();
             if (!current_token().is_identifier())
                 raise_unexpected(env);
             args->push(parse_identifier(env));
             while (current_token().is_comma()) {
                 advance();
-                skip_newlines();
                 if (!current_token().is_identifier())
                     raise_unexpected(env);
                 args->push(parse_identifier(env));
             };
-            skip_newlines();
             if (!current_token().is_rparen())
                 raise_unexpected(env);
             advance();
@@ -332,7 +329,6 @@ private:
             args->push(parse_identifier(env));
             while (current_token().is_comma()) {
                 advance();
-                skip_newlines();
                 if (!current_token().is_identifier())
                     raise_unexpected(env);
                 args->push(parse_identifier(env));
@@ -345,12 +341,12 @@ private:
     Node *parse_body(Env *env) {
         auto body = new BlockNode {};
         current_token().validate(env);
-        skip_newlines_and_semicolons();
+        next_expression();
         while (!current_token().is_eof() && !current_token().is_end_keyword()) {
             auto exp = parse_expression(env);
             body->add_node(exp);
             current_token().validate(env);
-            skip_newlines_and_semicolons();
+            next_expression();
         }
         if (!current_token().is_end_keyword())
             raise_unexpected(env);
@@ -410,7 +406,6 @@ private:
     Node *parse_grouped_expression(Env *env) {
         advance();
         auto exp = parse_expression(env, LOWEST);
-        skip_newlines();
         if (!current_token().is_valid()) {
             fprintf(stderr, "expected ), but got EOF\n");
             abort();
@@ -479,18 +474,8 @@ private:
         }
     }
 
-    void skip_newlines() {
+    void next_expression() {
         while (current_token().is_eol())
-            advance();
-    }
-
-    void skip_newlines_and_semicolons() {
-        while (current_token().is_eol() || current_token().is_semicolon())
-            advance();
-    }
-
-    void skip_semicolons() {
-        while (current_token().is_semicolon())
             advance();
     }
 

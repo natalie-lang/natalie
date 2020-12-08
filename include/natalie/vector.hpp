@@ -62,6 +62,16 @@ struct Vector : public gc {
         return m_data[index];
     }
 
+    T last() {
+        assert(m_size != 0);
+        return m_data[m_size - 1];
+    }
+
+    T pop() {
+        assert(m_size != 0);
+        return m_data[--m_size];
+    }
+
     void push(T val) {
         size_t len = m_size;
         if (m_size >= m_capacity) {

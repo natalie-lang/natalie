@@ -16,15 +16,34 @@ struct Lexer : public gc {
 
     Vector<Token> *tokens() {
         auto tokens = new Vector<Token> {};
+        bool skip_next_newline = false;
         for (;;) {
             auto token = next_token();
             if (token.is_comment())
                 continue;
+
+            // get rid of newlines after certain tokens
+            if (skip_next_newline && token.is_newline())
+                continue;
+            if (skip_next_newline && !token.is_newline())
+                skip_next_newline = false;
+
+            // get rid of newlines before certain tokens
+            while (token.can_follow_collapsible_newline() && !tokens->is_empty() && tokens->last().is_newline())
+                tokens->pop();
+
+            // convert semicolons to eol tokens
+            if (token.is_semicolon())
+                token = Token { Token::Type::Eol, token.line(), token.column() };
+
             tokens->push(token);
+
             if (token.is_eof())
                 return tokens;
             if (!token.is_valid())
                 return tokens;
+            if (token.can_precede_collapsible_newline())
+                skip_next_newline = true;
         };
         NAT_UNREACHABLE();
     }
