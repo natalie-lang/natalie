@@ -15,6 +15,17 @@ struct Parser : public gc {
     }
 
     struct Node : public gc {
+        enum class Type {
+            Assignment,
+            Block,
+            Call,
+            Def,
+            Identifier,
+            Literal,
+            Symbol,
+            String,
+        };
+
         Node() { }
 
         size_t line() { return m_line; }
@@ -23,6 +34,8 @@ struct Parser : public gc {
         virtual Value *to_ruby(Env *env) {
             return env->nil_obj();
         }
+
+        virtual Type type() { NAT_UNREACHABLE(); }
 
     private:
         size_t m_line { 0 };
@@ -38,6 +51,8 @@ struct Parser : public gc {
             assert(m_identifier);
             assert(m_value);
         }
+
+        virtual Type type() override { return Type::Assignment; }
 
         virtual Value *to_ruby(Env *env) override {
             const char *assignment_type;
@@ -77,6 +92,8 @@ struct Parser : public gc {
             m_nodes.push(node);
         }
 
+        virtual Type type() override { return Type::Block; }
+
         virtual Value *to_ruby(Env *env) override {
             auto *array = new SexpValue { env, { SymbolValue::intern(env, "block") } };
             for (auto node : m_nodes) {
@@ -102,6 +119,8 @@ struct Parser : public gc {
             assert(m_arg);
         }
 
+        virtual Type type() override { return Type::Call; }
+
         virtual Value *to_ruby(Env *env) override {
             return new SexpValue { env, {
                                             SymbolValue::intern(env, "call"),
@@ -120,15 +139,18 @@ struct Parser : public gc {
     struct LiteralNode;
 
     struct DefNode : Node {
-        DefNode(IdentifierNode *name, BlockNode *body)
+        DefNode(IdentifierNode *name, Vector<Node *> *args, BlockNode *body)
             : m_name { name }
+            , m_args { args }
             , m_body { body } { }
+
+        virtual Type type() override { return Type::Def; }
 
         virtual Value *to_ruby(Env *env) override {
             auto sexp = new SexpValue { env, {
                                                  SymbolValue::intern(env, "defn"),
                                                  SymbolValue::intern(env, m_name->name()),
-                                                 new SexpValue { env, { SymbolValue::intern(env, "args") } },
+                                                 build_args_sexp(env),
                                              } };
             if (m_body->is_empty()) {
                 sexp->push(new SexpValue { env, { SymbolValue::intern(env, "nil") } });
@@ -141,13 +163,30 @@ struct Parser : public gc {
         }
 
     private:
+        SexpValue *build_args_sexp(Env *env) {
+            auto sexp = new SexpValue { env, { SymbolValue::intern(env, "args") } };
+            for (auto arg : *m_args) {
+                switch (arg->type()) {
+                case Node::Type::Identifier:
+                    sexp->push(SymbolValue::intern(env, static_cast<IdentifierNode *>(arg)->name()));
+                    break;
+                default:
+                    NAT_UNREACHABLE();
+                }
+            }
+            return sexp;
+        }
+
         IdentifierNode *m_name { nullptr };
+        Vector<Node *> *m_args { nullptr };
         BlockNode *m_body { nullptr };
     };
 
     struct IdentifierNode : Node {
         IdentifierNode(Token token)
             : m_token { token } { }
+
+        virtual Type type() override { return Type::Identifier; }
 
         virtual Value *to_ruby(Env *env) override {
             return new StringValue { env, "FIXME: IdentifierNode#to_ruby" };
@@ -166,6 +205,8 @@ struct Parser : public gc {
             assert(m_value);
         }
 
+        virtual Type type() override { return Type::Literal; }
+
         virtual Value *to_ruby(Env *env) override {
             return new SexpValue { env, { SymbolValue::intern(env, "lit"), m_value } };
         }
@@ -180,6 +221,8 @@ struct Parser : public gc {
             assert(m_value);
         }
 
+        virtual Type type() override { return Type::Symbol; }
+
         virtual Value *to_ruby(Env *env) override {
             return new SexpValue { env, { SymbolValue::intern(env, "lit"), m_value } };
         }
@@ -193,6 +236,8 @@ struct Parser : public gc {
             : m_value { value } {
             assert(m_value);
         }
+
+        virtual Type type() override { return Type::String; }
 
         virtual Value *to_ruby(Env *env) override {
             return new SexpValue { env, { SymbolValue::intern(env, "str"), m_value } };
@@ -265,8 +310,36 @@ private:
     Node *parse_def(Env *env) {
         advance();
         auto name = static_cast<IdentifierNode *>(parse_identifier(env));
+        auto args = new Vector<Node *> {};
+        if (current_token().is_lparen()) {
+            advance();
+            skip_newlines();
+            if (!current_token().is_identifier())
+                raise_unexpected(env);
+            args->push(parse_identifier(env));
+            while (current_token().is_comma()) {
+                advance();
+                skip_newlines();
+                if (!current_token().is_identifier())
+                    raise_unexpected(env);
+                args->push(parse_identifier(env));
+            };
+            skip_newlines();
+            if (!current_token().is_rparen())
+                raise_unexpected(env);
+            advance();
+        } else if (current_token().is_identifier()) {
+            args->push(parse_identifier(env));
+            while (current_token().is_comma()) {
+                advance();
+                skip_newlines();
+                if (!current_token().is_identifier())
+                    raise_unexpected(env);
+                args->push(parse_identifier(env));
+            };
+        }
         auto body = static_cast<BlockNode *>(parse_body(env));
-        return new DefNode { name, body };
+        return new DefNode { name, args, body };
     };
 
     Node *parse_body(Env *env) {

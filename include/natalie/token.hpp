@@ -431,10 +431,14 @@ struct Token : public gc {
         return hash;
     }
 
+    bool is_comma() { return m_type == Type::Comma; }
     bool is_comment() { return m_type == Type::Comment; }
     bool is_end_keyword() { return m_type == Type::EndKeyword; }
     bool is_eof() { return m_type == Type::Eof; }
     bool is_eol() { return m_type == Type::Eol; }
+    bool is_identifier() { return m_type == Type::Identifier; }
+    bool is_lparen() { return m_type == Type::LParen; }
+    bool is_rparen() { return m_type == Type::RParen; }
     bool is_semicolon() { return m_type == Type::Semicolon; }
     bool is_valid() { return m_type != Type::Invalid; }
 
