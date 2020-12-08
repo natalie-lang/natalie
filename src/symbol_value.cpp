@@ -3,6 +3,7 @@
 namespace Natalie {
 
 SymbolValue *SymbolValue::intern(Env *env, const char *name) {
+    assert(name);
     SymbolValue *symbol = static_cast<SymbolValue *>(hashmap_get(env->global_env()->symbols(), name));
     if (symbol) {
         return symbol;
