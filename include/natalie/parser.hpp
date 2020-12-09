@@ -264,8 +264,8 @@ struct Parser : public gc {
         CALL,
     };
 
-    Precedence get_precedence(Token token) {
-        switch (token.type()) {
+    Precedence get_precedence() {
+        switch (current_token().type()) {
         case Token::Type::Plus:
         case Token::Type::Minus:
             return SUM;
@@ -280,19 +280,25 @@ struct Parser : public gc {
     }
 
     Node *parse_expression(Env *env, Precedence precedence = LOWEST) {
+#ifdef NAT_DEBUG_PARSER
+        printf("entering parse_expression with precedence = %d, current token = %s\n", precedence, current_token().to_ruby(env)->inspect_str(env));
+#endif
         next_expression();
 
         auto null_fn = null_denotation(current_token().type());
         if (!null_fn) {
-            raise_unexpected(env);
+            raise_unexpected(env, "null_fn");
         }
 
         Node *left = (this->*null_fn)(env);
 
-        while (current_token().is_valid() && precedence < get_precedence(current_token())) {
+        while (current_token().is_valid() && precedence < get_precedence()) {
+#ifdef NAT_DEBUG_PARSER
+            printf("while loop: current token = %s\n", current_token().to_ruby(env)->inspect_str(env));
+#endif
             auto left_fn = left_denotation(current_token().type());
             if (!left_fn) {
-                raise_unexpected(env);
+                raise_unexpected(env, "left_fn");
             }
 
             left = (this->*left_fn)(env, left);
@@ -320,23 +326,23 @@ private:
         if (current_token().is_lparen()) {
             advance();
             if (!current_token().is_identifier())
-                raise_unexpected(env);
+                raise_unexpected(env, "parse_def first arg identifier");
             args->push(parse_identifier(env));
             while (current_token().is_comma()) {
                 advance();
                 if (!current_token().is_identifier())
-                    raise_unexpected(env);
+                    raise_unexpected(env, "parse_def 2nd+ arg identifier");
                 args->push(parse_identifier(env));
             };
             if (!current_token().is_rparen())
-                raise_unexpected(env);
+                raise_unexpected(env, "parse_def rparen");
             advance();
         } else if (current_token().is_identifier()) {
             args->push(parse_identifier(env));
             while (current_token().is_comma()) {
                 advance();
                 if (!current_token().is_identifier())
-                    raise_unexpected(env);
+                    raise_unexpected(env, "parse_def 2nd+ arg identifier");
                 args->push(parse_identifier(env));
             };
         }
@@ -355,7 +361,7 @@ private:
             next_expression();
         }
         if (!current_token().is_end_keyword())
-            raise_unexpected(env);
+            raise_unexpected(env, "parse_body end");
         advance();
         return body;
     }
@@ -391,8 +397,9 @@ private:
 
     Node *parse_infix_expression(Env *env, Node *left) {
         auto op = current_token();
+        auto precedence = get_precedence();
         advance();
-        auto right = parse_expression(env, get_precedence(op));
+        auto right = parse_expression(env, precedence);
         auto node = new CallNode {
             left,
             op.type_value(env),
@@ -486,9 +493,12 @@ private:
             advance();
     }
 
-    void raise_unexpected(Env *env) {
+    void raise_unexpected(Env *env, const char *expected) {
         auto line = current_token().line() + 1;
         auto type = current_token().type_value(env);
+#ifdef NAT_DEBUG_PARSER
+        printf("DEBUG: %s expected\n", expected);
+#endif
         if (type == SymbolValue::intern(env, "EOF")) {
             env->raise("SyntaxError", "%d: syntax error, unexpected end-of-input", line);
         } else {
