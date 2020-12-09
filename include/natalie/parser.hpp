@@ -110,30 +110,36 @@ struct Parser : public gc {
     };
 
     struct CallNode : Node {
-        CallNode(Node *receiver, Value *message, Node *arg)
+        CallNode(Node *receiver, Value *message)
             : m_receiver { receiver }
-            , m_message { message }
-            , m_arg { arg } {
+            , m_message { message } {
             assert(m_receiver);
             assert(m_message);
-            assert(m_arg);
         }
 
         virtual Type type() override { return Type::Call; }
 
         virtual Value *to_ruby(Env *env) override {
-            return new SexpValue { env, {
-                                            SymbolValue::intern(env, "call"),
-                                            m_receiver->to_ruby(env),
-                                            m_message,
-                                            m_arg->to_ruby(env),
-                                        } };
+            auto sexp = new SexpValue { env, {
+                                                 SymbolValue::intern(env, "call"),
+                                                 m_receiver->to_ruby(env),
+                                                 m_message,
+                                             } };
+
+            for (auto arg : m_args) {
+                sexp->push(arg->to_ruby(env));
+            }
+            return sexp;
+        }
+
+        void add_arg(Node *arg) {
+            m_args.push(arg);
         }
 
     private:
         Node *m_receiver { nullptr };
         Value *m_message { nullptr };
-        Node *m_arg { nullptr };
+        Vector<Node *> m_args {};
     };
 
     struct LiteralNode;
@@ -387,11 +393,12 @@ private:
         auto op = current_token();
         advance();
         auto right = parse_expression(env, get_precedence(op));
-        return new CallNode {
+        auto node = new CallNode {
             left,
             op.type_value(env),
-            right,
         };
+        node->add_arg(right);
+        return node;
     };
 
     Node *parse_assignment_expression(Env *env, Node *left) {
