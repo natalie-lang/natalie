@@ -82,6 +82,8 @@ struct Parser : public gc {
                                         } };
         }
 
+        const char *name() { return m_identifier->name(); }
+
     private:
         IdentifierNode *m_identifier { nullptr };
         Node *m_value { nullptr };
@@ -189,13 +191,18 @@ struct Parser : public gc {
     };
 
     struct IdentifierNode : Node {
-        IdentifierNode(Token token)
-            : m_token { token } { }
+        IdentifierNode(Token token, bool is_lvar)
+            : m_token { token }
+            , m_is_lvar { is_lvar } { }
 
         virtual Type type() override { return Type::Identifier; }
 
         virtual Value *to_ruby(Env *env) override {
-            return new StringValue { env, "FIXME: IdentifierNode#to_ruby" };
+            if (m_is_lvar) {
+                return new SexpValue { env, { SymbolValue::intern(env, "lvar"), SymbolValue::intern(env, name()) } };
+            } else {
+                return new SexpValue { env, { SymbolValue::intern(env, "call"), env->nil_obj(), SymbolValue::intern(env, name()) } };
+            }
         }
 
         Token::Type token_type() { return m_token.type(); }
@@ -203,6 +210,7 @@ struct Parser : public gc {
 
     private:
         Token m_token {};
+        bool m_is_lvar { false };
     };
 
     struct LiteralNode : Node {
@@ -279,7 +287,7 @@ struct Parser : public gc {
         }
     }
 
-    Node *parse_expression(Env *env, Precedence precedence = LOWEST) {
+    Node *parse_expression(Env *env, Precedence precedence, Vector<SymbolValue *> *locals) {
 #ifdef NAT_DEBUG_PARSER
         printf("entering parse_expression with precedence = %d, current token = %s\n", precedence, current_token().to_ruby(env)->inspect_str(env));
 #endif
@@ -290,7 +298,7 @@ struct Parser : public gc {
             raise_unexpected(env, "null_fn");
         }
 
-        Node *left = (this->*null_fn)(env);
+        Node *left = (this->*null_fn)(env, locals);
 
         while (current_token().is_valid() && precedence < get_precedence()) {
 #ifdef NAT_DEBUG_PARSER
@@ -301,7 +309,7 @@ struct Parser : public gc {
                 raise_unexpected(env, "left_fn");
             }
 
-            left = (this->*left_fn)(env, left);
+            left = (this->*left_fn)(env, left, locals);
         }
         return left;
     }
@@ -309,8 +317,9 @@ struct Parser : public gc {
     Node *tree(Env *env) {
         auto tree = new BlockNode {};
         current_token().validate(env);
+        auto locals = new Vector<SymbolValue *> {};
         while (!current_token().is_eof()) {
-            auto exp = parse_expression(env);
+            auto exp = parse_expression(env, LOWEST, locals);
             tree->add_node(exp);
             current_token().validate(env);
             next_expression();
@@ -319,43 +328,44 @@ struct Parser : public gc {
     }
 
 private:
-    Node *parse_def(Env *env) {
+    Node *parse_def(Env *env, Vector<SymbolValue *> *) {
         advance();
-        auto name = static_cast<IdentifierNode *>(parse_identifier(env));
+        auto locals = new Vector<SymbolValue *> {};
+        auto name = static_cast<IdentifierNode *>(parse_identifier(env, locals));
         auto args = new Vector<Node *> {};
         if (current_token().is_lparen()) {
             advance();
             if (!current_token().is_identifier())
                 raise_unexpected(env, "parse_def first arg identifier");
-            args->push(parse_identifier(env));
+            args->push(parse_identifier(env, locals));
             while (current_token().is_comma()) {
                 advance();
                 if (!current_token().is_identifier())
                     raise_unexpected(env, "parse_def 2nd+ arg identifier");
-                args->push(parse_identifier(env));
+                args->push(parse_identifier(env, locals));
             };
             if (!current_token().is_rparen())
                 raise_unexpected(env, "parse_def rparen");
             advance();
         } else if (current_token().is_identifier()) {
-            args->push(parse_identifier(env));
+            args->push(parse_identifier(env, locals));
             while (current_token().is_comma()) {
                 advance();
                 if (!current_token().is_identifier())
                     raise_unexpected(env, "parse_def 2nd+ arg identifier");
-                args->push(parse_identifier(env));
+                args->push(parse_identifier(env, locals));
             };
         }
-        auto body = static_cast<BlockNode *>(parse_body(env));
+        auto body = static_cast<BlockNode *>(parse_body(env, locals));
         return new DefNode { name, args, body };
     };
 
-    Node *parse_body(Env *env) {
+    Node *parse_body(Env *env, Vector<SymbolValue *> *locals) {
         auto body = new BlockNode {};
         current_token().validate(env);
         next_expression();
         while (!current_token().is_eof() && !current_token().is_end_keyword()) {
-            auto exp = parse_expression(env);
+            auto exp = parse_expression(env, LOWEST, locals);
             body->add_node(exp);
             current_token().validate(env);
             next_expression();
@@ -366,7 +376,7 @@ private:
         return body;
     }
 
-    Node *parse_lit(Env *env) {
+    Node *parse_lit(Env *env, Vector<SymbolValue *> *locals) {
         Value *value;
         auto token = current_token();
         switch (token.type()) {
@@ -383,23 +393,31 @@ private:
         return new LiteralNode { value };
     };
 
-    Node *parse_string(Env *env) {
+    Node *parse_string(Env *env, Vector<SymbolValue *> *locals) {
         auto lit = new StringNode { new StringValue { env, current_token().literal() } };
         advance();
         return lit;
     };
 
-    Node *parse_identifier(Env *env) {
-        auto identifier = new IdentifierNode { current_token() };
+    Node *parse_identifier(Env *env, Vector<SymbolValue *> *locals) {
+        bool is_lvar = false;
+        auto name_symbol = SymbolValue::intern(env, current_token().literal());
+        for (auto local : *locals) {
+            if (local == name_symbol) {
+                is_lvar = true;
+                break;
+            }
+        }
+        auto identifier = new IdentifierNode { current_token(), is_lvar };
         advance();
         return identifier;
     };
 
-    Node *parse_infix_expression(Env *env, Node *left) {
+    Node *parse_infix_expression(Env *env, Node *left, Vector<SymbolValue *> *locals) {
         auto op = current_token();
         auto precedence = get_precedence();
         advance();
-        auto right = parse_expression(env, precedence);
+        auto right = parse_expression(env, precedence, locals);
         auto node = new CallNode {
             left,
             op.type_value(env),
@@ -408,18 +426,21 @@ private:
         return node;
     };
 
-    Node *parse_assignment_expression(Env *env, Node *left) {
+    Node *parse_assignment_expression(Env *env, Node *left, Vector<SymbolValue *> *locals) {
+        auto left_identifier = static_cast<IdentifierNode *>(left);
+        if (left_identifier->token_type() == Token::Type::Identifier)
+            locals->push(SymbolValue::intern(env, left_identifier->name()));
         advance();
-        auto right = parse_expression(env, ASSIGNMENT);
+        auto right = parse_expression(env, ASSIGNMENT, locals);
         return new AssignmentNode {
-            static_cast<IdentifierNode *>(left),
+            left_identifier,
             right,
         };
     };
 
-    Node *parse_grouped_expression(Env *env) {
+    Node *parse_grouped_expression(Env *env, Vector<SymbolValue *> *locals) {
         advance();
-        auto exp = parse_expression(env, LOWEST);
+        auto exp = parse_expression(env, LOWEST, locals);
         if (!current_token().is_valid()) {
             fprintf(stderr, "expected ), but got EOF\n");
             abort();
@@ -431,10 +452,10 @@ private:
         return exp;
     };
 
-    using parse_fn1 = Node *(Parser::*)(Env *);
-    using parse_fn2 = Node *(Parser::*)(Env *, Node *);
+    using parse_null_fn = Node *(Parser::*)(Env *, Vector<SymbolValue *> *);
+    using parse_left_fn = Node *(Parser::*)(Env *, Node *, Vector<SymbolValue *> *);
 
-    parse_fn1 null_denotation(Token::Type type) {
+    parse_null_fn null_denotation(Token::Type type) {
         using Type = Token::Type;
         switch (type) {
         case Type::DefKeyword:
@@ -457,7 +478,7 @@ private:
         }
     };
 
-    parse_fn2 left_denotation(Token::Type type) {
+    parse_left_fn left_denotation(Token::Type type) {
         using Type = Token::Type;
         switch (type) {
         case Type::Plus:

@@ -108,6 +108,13 @@ describe 'Parser' do
       Parser.parse("def foo(x, y)\n1\n2\nend").should == s(:block, s(:defn, :foo, s(:args, :x, :y), s(:lit, 1), s(:lit, 2)))
     end
 
+    it 'parses method calls vs local variable lookup' do
+      Parser.parse("foo").should == s(:block, s(:call, nil, :foo))
+      Parser.parse("foo = 1; foo").should == s(:block, s(:lasgn, :foo, s(:lit, 1)), s(:lvar, :foo))
+      Parser.parse("foo = 1; def bar; foo; end").should == s(:block, s(:lasgn, :foo, s(:lit, 1)), s(:defn, :bar, s(:args), s(:call, nil, :foo)))
+      Parser.parse("@foo = 1; foo").should == s(:block, s(:iasgn, :@foo, s(:lit, 1)), s(:call, nil, :foo))
+    end
+
     xit 'parses method calls with parentheses' do
       Parser.parse("foo()").should == s(:block, s(:call, nil, :foo))
       Parser.parse("foo() + bar()").should == s(:block, s(:call, s(:call, nil, :foo), :+, s(:call, nil, :bar)))
