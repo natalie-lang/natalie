@@ -221,19 +221,21 @@ private:
         }
     }
 
-    Node *parse_expression(Env *, Precedence, Vector<SymbolValue *> *);
+    using LocalsVectorPtr = Vector<SymbolValue *> *;
 
-    Node *parse_def(Env *, Vector<SymbolValue *> *);
-    Node *parse_body(Env *, Vector<SymbolValue *> *);
-    Node *parse_lit(Env *, Vector<SymbolValue *> *);
-    Node *parse_string(Env *, Vector<SymbolValue *> *);
-    Node *parse_identifier(Env *, Vector<SymbolValue *> *);
-    Node *parse_infix_expression(Env *, Node *, Vector<SymbolValue *> *);
-    Node *parse_assignment_expression(Env *, Node *, Vector<SymbolValue *> *);
-    Node *parse_grouped_expression(Env *, Vector<SymbolValue *> *);
+    Node *parse_expression(Env *, Precedence, LocalsVectorPtr);
 
-    using parse_null_fn = Node *(Parser::*)(Env *, Vector<SymbolValue *> *);
-    using parse_left_fn = Node *(Parser::*)(Env *, Node *, Vector<SymbolValue *> *);
+    Node *parse_def(Env *, LocalsVectorPtr);
+    Node *parse_body(Env *, LocalsVectorPtr);
+    Node *parse_lit(Env *, LocalsVectorPtr);
+    Node *parse_string(Env *, LocalsVectorPtr);
+    Node *parse_identifier(Env *, LocalsVectorPtr);
+    Node *parse_infix_expression(Env *, Node *, LocalsVectorPtr);
+    Node *parse_assignment_expression(Env *, Node *, LocalsVectorPtr);
+    Node *parse_grouped_expression(Env *, LocalsVectorPtr);
+
+    using parse_null_fn = Node *(Parser::*)(Env *, LocalsVectorPtr);
+    using parse_left_fn = Node *(Parser::*)(Env *, Node *, LocalsVectorPtr);
 
     parse_null_fn null_denotation(Token::Type);
     parse_left_fn left_denotation(Token::Type);

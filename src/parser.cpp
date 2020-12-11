@@ -2,7 +2,7 @@
 
 namespace Natalie {
 
-Parser::Node *Parser::parse_expression(Env *env, Parser::Precedence precedence, Vector<SymbolValue *> *locals) {
+Parser::Node *Parser::parse_expression(Env *env, Parser::Precedence precedence, LocalsVectorPtr locals) {
 #ifdef NAT_DEBUG_PARSER
     printf("entering parse_expression with precedence = %d, current token = %s\n", precedence, current_token().to_ruby(env)->inspect_str(env));
 #endif
@@ -42,7 +42,7 @@ Parser::Node *Parser::tree(Env *env) {
     return tree;
 }
 
-Parser::Node *Parser::parse_def(Env *env, Vector<SymbolValue *> *) {
+Parser::Node *Parser::parse_def(Env *env, LocalsVectorPtr) {
     advance();
     auto locals = new Vector<SymbolValue *> {};
     auto name = static_cast<IdentifierNode *>(parse_identifier(env, locals));
@@ -74,7 +74,7 @@ Parser::Node *Parser::parse_def(Env *env, Vector<SymbolValue *> *) {
     return new DefNode { name, args, body };
 };
 
-Parser::Node *Parser::parse_body(Env *env, Vector<SymbolValue *> *locals) {
+Parser::Node *Parser::parse_body(Env *env, LocalsVectorPtr locals) {
     auto body = new BlockNode {};
     current_token().validate(env);
     skip_newlines();
@@ -90,7 +90,7 @@ Parser::Node *Parser::parse_body(Env *env, Vector<SymbolValue *> *locals) {
     return body;
 }
 
-Parser::Node *Parser::parse_lit(Env *env, Vector<SymbolValue *> *locals) {
+Parser::Node *Parser::parse_lit(Env *env, LocalsVectorPtr locals) {
     Value *value;
     auto token = current_token();
     switch (token.type()) {
@@ -107,13 +107,13 @@ Parser::Node *Parser::parse_lit(Env *env, Vector<SymbolValue *> *locals) {
     return new LiteralNode { value };
 };
 
-Parser::Node *Parser::parse_string(Env *env, Vector<SymbolValue *> *locals) {
+Parser::Node *Parser::parse_string(Env *env, LocalsVectorPtr locals) {
     auto lit = new StringNode { new StringValue { env, current_token().literal() } };
     advance();
     return lit;
 };
 
-Parser::Node *Parser::parse_identifier(Env *env, Vector<SymbolValue *> *locals) {
+Parser::Node *Parser::parse_identifier(Env *env, LocalsVectorPtr locals) {
     bool is_lvar = false;
     auto name_symbol = SymbolValue::intern(env, current_token().literal());
     for (auto local : *locals) {
@@ -127,7 +127,7 @@ Parser::Node *Parser::parse_identifier(Env *env, Vector<SymbolValue *> *locals) 
     return identifier;
 };
 
-Parser::Node *Parser::parse_infix_expression(Env *env, Node *left, Vector<SymbolValue *> *locals) {
+Parser::Node *Parser::parse_infix_expression(Env *env, Node *left, LocalsVectorPtr locals) {
     auto op = current_token();
     auto precedence = get_precedence();
     advance();
@@ -140,7 +140,7 @@ Parser::Node *Parser::parse_infix_expression(Env *env, Node *left, Vector<Symbol
     return node;
 };
 
-Parser::Node *Parser::parse_assignment_expression(Env *env, Node *left, Vector<SymbolValue *> *locals) {
+Parser::Node *Parser::parse_assignment_expression(Env *env, Node *left, LocalsVectorPtr locals) {
     auto left_identifier = static_cast<IdentifierNode *>(left);
     if (left_identifier->token_type() == Token::Type::Identifier)
         locals->push(SymbolValue::intern(env, left_identifier->name()));
@@ -152,7 +152,7 @@ Parser::Node *Parser::parse_assignment_expression(Env *env, Node *left, Vector<S
     };
 };
 
-Parser::Node *Parser::parse_grouped_expression(Env *env, Vector<SymbolValue *> *locals) {
+Parser::Node *Parser::parse_grouped_expression(Env *env, LocalsVectorPtr locals) {
     advance();
     auto exp = parse_expression(env, LOWEST, locals);
     if (!current_token().is_valid()) {
