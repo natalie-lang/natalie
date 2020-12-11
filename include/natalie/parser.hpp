@@ -291,7 +291,7 @@ struct Parser : public gc {
 #ifdef NAT_DEBUG_PARSER
         printf("entering parse_expression with precedence = %d, current token = %s\n", precedence, current_token().to_ruby(env)->inspect_str(env));
 #endif
-        next_expression();
+        skip_newlines();
 
         auto null_fn = null_denotation(current_token().type());
         if (!null_fn) {
@@ -322,7 +322,7 @@ struct Parser : public gc {
             auto exp = parse_expression(env, LOWEST, locals);
             tree->add_node(exp);
             current_token().validate(env);
-            next_expression();
+            next_expression(env);
         }
         return tree;
     }
@@ -363,12 +363,12 @@ private:
     Node *parse_body(Env *env, Vector<SymbolValue *> *locals) {
         auto body = new BlockNode {};
         current_token().validate(env);
-        next_expression();
+        skip_newlines();
         while (!current_token().is_eof() && !current_token().is_end_keyword()) {
             auto exp = parse_expression(env, LOWEST, locals);
             body->add_node(exp);
             current_token().validate(env);
-            next_expression();
+            next_expression(env);
         }
         if (!current_token().is_end_keyword())
             raise_unexpected(env, "parse_body end");
@@ -509,7 +509,14 @@ private:
         }
     }
 
-    void next_expression() {
+    void next_expression(Env *env) {
+        auto token = current_token();
+        if (!token.is_eol() && !token.is_eof())
+            raise_unexpected(env, "end-of-line");
+        skip_newlines();
+    }
+
+    void skip_newlines() {
         while (current_token().is_eol())
             advance();
     }
