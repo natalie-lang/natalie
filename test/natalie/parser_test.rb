@@ -135,6 +135,13 @@ describe 'Parser' do
       Parser.parse("foo 'foo' + 'bar'  ,\n  2").should == s(:block, s(:call, nil, :foo, s(:call, s(:str, "foo"), :+, s(:str, "bar")), s(:lit, 2)))
     end
 
+    it 'parses method calls with a receiver' do
+      Parser.parse("foo.bar").should == s(:block, s(:call, s(:call, nil, :foo), :bar))
+      Parser.parse("foo.bar.baz").should == s(:block, s(:call, s(:call, s(:call, nil, :foo), :bar), :baz))
+      Parser.parse("foo.bar 1, 2").should == s(:block, s(:call, s(:call, nil, :foo), :bar, s(:lit, 1), s(:lit, 2)))
+      Parser.parse("foo.bar(1, 2)").should == s(:block, s(:call, s(:call, nil, :foo), :bar, s(:lit, 1), s(:lit, 2)))
+    end
+
     xit 'parses class definition' do
       Parser.parse("class Foo\nend").should == s(:block, s(:class, :Foo, nil))
       Parser.parse("class Foo;end").should == s(:block, s(:class, :Foo, nil))

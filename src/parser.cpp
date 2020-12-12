@@ -145,12 +145,21 @@ Parser::Node *Parser::parse_assignment_expression(Env *env, Node *left, LocalsVe
 };
 
 Parser::Node *Parser::parse_call_expression_with_parens(Env *env, Node *left, LocalsVectorPtr locals) {
-    assert(left->type() == Node::Type::Identifier);
+    CallNode *call_node;
+    switch (left->type()) {
+    case Node::Type::Identifier:
+        call_node = new CallNode {
+            new NilNode {},
+            SymbolValue::intern(env, static_cast<IdentifierNode *>(left)->name()),
+        };
+        break;
+    case Node::Type::Call:
+        call_node = static_cast<CallNode *>(left);
+        break;
+    default:
+        NAT_UNREACHABLE();
+    }
     advance();
-    auto call_node = new CallNode {
-        new NilNode {},
-        SymbolValue::intern(env, static_cast<IdentifierNode *>(left)->name()),
-    };
     if (!current_token().is_rparen()) {
         auto arg = parse_expression(env, LOWEST, locals);
         call_node->add_arg(arg);
@@ -167,11 +176,20 @@ Parser::Node *Parser::parse_call_expression_with_parens(Env *env, Node *left, Lo
 }
 
 Parser::Node *Parser::parse_call_expression_without_parens(Env *env, Node *left, LocalsVectorPtr locals) {
-    assert(left->type() == Node::Type::Identifier);
-    auto call_node = new CallNode {
-        new NilNode {},
-        SymbolValue::intern(env, static_cast<IdentifierNode *>(left)->name()),
-    };
+    CallNode *call_node;
+    switch (left->type()) {
+    case Node::Type::Identifier:
+        call_node = new CallNode {
+            new NilNode {},
+            SymbolValue::intern(env, static_cast<IdentifierNode *>(left)->name()),
+        };
+        break;
+    case Node::Type::Call:
+        call_node = static_cast<CallNode *>(left);
+        break;
+    default:
+        NAT_UNREACHABLE();
+    }
     if (!current_token().is_eol()) {
         auto arg = parse_expression(env, LOWEST, locals);
         call_node->add_arg(arg);
@@ -211,6 +229,23 @@ Parser::Node *Parser::parse_infix_expression(Env *env, Node *left, LocalsVectorP
     return node;
 };
 
+Parser::Node *Parser::parse_send_expression(Env *env, Node *left, LocalsVectorPtr locals) {
+    advance();
+    if (!current_token().is_identifier())
+        raise_unexpected(env, "send method name");
+    auto name = static_cast<IdentifierNode *>(parse_identifier(env, locals));
+    auto call_node = new CallNode {
+        left,
+        SymbolValue::intern(env, name->name()),
+    };
+
+    if (!current_token().is_eol() && !current_token().is_eof() && get_precedence() == LOWEST) {
+        call_node = static_cast<CallNode *>(parse_call_expression_without_parens(env, call_node, locals));
+    }
+
+    return call_node;
+}
+
 Parser::parse_null_fn Parser::null_denotation(Token::Type type) {
     using Type = Token::Type;
     switch (type) {
@@ -246,6 +281,8 @@ Parser::parse_left_fn Parser::left_denotation(Token::Type type) {
         return &Parser::parse_assignment_expression;
     case Type::LParen:
         return &Parser::parse_call_expression_with_parens;
+    case Type::Dot:
+        return &Parser::parse_send_expression;
     default:
         return nullptr;
     }

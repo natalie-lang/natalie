@@ -203,6 +203,7 @@ struct Parser : public gc {
         LESSGREATER,
         SUM,
         PRODUCT,
+        DOT,
         PREFIX,
         CALL,
     };
@@ -222,6 +223,8 @@ private:
             return ASSIGNMENT;
         case Token::Type::LParen:
             return CALL;
+        case Token::Type::Dot:
+            return DOT;
         default:
             return LOWEST;
         }
@@ -242,6 +245,7 @@ private:
     Node *parse_call_expression_with_parens(Env *, Node *, LocalsVectorPtr);
     Node *parse_grouped_expression(Env *, LocalsVectorPtr);
     Node *parse_infix_expression(Env *, Node *, LocalsVectorPtr);
+    Node *parse_send_expression(Env *, Node *, LocalsVectorPtr);
 
     using parse_null_fn = Node *(Parser::*)(Env *, LocalsVectorPtr);
     using parse_left_fn = Node *(Parser::*)(Env *, Node *, LocalsVectorPtr);
