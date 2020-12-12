@@ -164,6 +164,10 @@ struct Parser : public gc {
         Value *m_value { nullptr };
     };
 
+    struct NilNode : Node {
+        virtual Value *to_ruby(Env *) override;
+    };
+
     struct SymbolNode : Node {
         SymbolNode(Value *value)
             : m_value { value } {
@@ -216,6 +220,8 @@ private:
             return PRODUCT;
         case Token::Type::Equal:
             return ASSIGNMENT;
+        case Token::Type::LParen:
+            return CALL;
         default:
             return LOWEST;
         }
@@ -232,6 +238,8 @@ private:
     Node *parse_identifier(Env *, LocalsVectorPtr);
     Node *parse_infix_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_assignment_expression(Env *, Node *, LocalsVectorPtr);
+    Node *parse_call_expression_with_parens(Env *, Node *, LocalsVectorPtr);
+    Node *parse_call_expression_without_parens(Env *, Node *, LocalsVectorPtr);
     Node *parse_grouped_expression(Env *, LocalsVectorPtr);
 
     using parse_null_fn = Node *(Parser::*)(Env *, LocalsVectorPtr);

@@ -79,6 +79,10 @@ Value *Parser::LiteralNode::to_ruby(Env *env) {
     return new SexpValue { env, { SymbolValue::intern(env, "lit"), m_value } };
 }
 
+Value *Parser::NilNode::to_ruby(Env *env) {
+    return env->nil_obj();
+}
+
 Value *Parser::SymbolNode::to_ruby(Env *env) {
     return new SexpValue { env, { SymbolValue::intern(env, "lit"), m_value } };
 }

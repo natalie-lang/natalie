@@ -115,17 +115,22 @@ describe 'Parser' do
       Parser.parse("@foo = 1; foo").should == s(:block, s(:iasgn, :@foo, s(:lit, 1)), s(:call, nil, :foo))
     end
 
-    xit 'parses method calls with parentheses' do
+    it 'parses method calls with parentheses' do
       Parser.parse("foo()").should == s(:block, s(:call, nil, :foo))
       Parser.parse("foo() + bar()").should == s(:block, s(:call, s(:call, nil, :foo), :+, s(:call, nil, :bar)))
       Parser.parse("foo(1, 'baz')").should == s(:block, s(:call, nil, :foo, s(:lit, 1), s(:str, "baz")))
       Parser.parse("foo(\n1 + 2  ,\n  'baz'  \n )").should == s(:block, s(:call, nil, :foo, s(:call, s(:lit, 1), :+, s(:lit, 2)), s(:str, "baz")))
+      if (RUBY_ENGINE == 'natalie')
+        -> { Parser.parse("foo(") }.should raise_error(SyntaxError, '1: syntax error, unexpected end-of-input')
+      else
+        -> { Parser.parse("foo(") }.should raise_error(SyntaxError, '(string):1 :: parse error on value false ($end)')
+      end
     end
 
-    xit 'parses method calls without parentheses' do
-      Parser.parse("foo").should == s(:block, s(:call, nil, :foo))
+    it 'parses method calls without parentheses' do
       Parser.parse("foo + bar").should == s(:block, s(:call, s(:call, nil, :foo), :+, s(:call, nil, :bar)))
       Parser.parse("foo 1, 'baz'").should == s(:block, s(:call, nil, :foo, s(:lit, 1), s(:str, "baz")))
+      Parser.parse("foo 1 + 2").should == s(:block, s(:call, nil, :foo, s(:call, s(:lit, 1), :+, s(:lit, 2))))
       Parser.parse("foo 1 + 2  ,\n  'baz'").should == s(:block, s(:call, nil, :foo, s(:call, s(:lit, 1), :+, s(:lit, 2)), s(:str, "baz")))
       Parser.parse("foo 'foo' + 'bar'  ,\n  2").should == s(:block, s(:call, nil, :foo, s(:call, s(:str, "foo"), :+, s(:str, "bar")), s(:lit, 2)))
     end

@@ -15,6 +15,10 @@ Parser::Node *Parser::parse_expression(Env *env, Parser::Precedence precedence, 
 
     Node *left = (this->*null_fn)(env, locals);
 
+    if (left->type() == Node::Type::Identifier && !current_token().is_eol() && !current_token().is_eof() && get_precedence() == LOWEST) {
+        left = parse_call_expression_without_parens(env, left, locals);
+    }
+
     while (current_token().is_valid() && precedence < get_precedence()) {
 #ifdef NAT_DEBUG_PARSER
         printf("while loop: current token = %s\n", current_token().to_ruby(env)->inspect_str(env));
@@ -141,6 +145,46 @@ Parser::Node *Parser::parse_infix_expression(Env *env, Node *left, LocalsVectorP
     return node;
 };
 
+Parser::Node *Parser::parse_call_expression_with_parens(Env *env, Node *left, LocalsVectorPtr locals) {
+    assert(left->type() == Node::Type::Identifier);
+    advance();
+    auto call_node = new CallNode {
+        new NilNode {},
+        SymbolValue::intern(env, static_cast<IdentifierNode *>(left)->name()),
+    };
+    if (!current_token().is_rparen()) {
+        auto arg = parse_expression(env, LOWEST, locals);
+        call_node->add_arg(arg);
+        while (current_token().is_comma()) {
+            advance();
+            auto arg = parse_expression(env, LOWEST, locals);
+            call_node->add_arg(arg);
+        }
+    }
+    if (!current_token().is_rparen())
+        raise_unexpected(env, "call rparen");
+    advance();
+    return call_node;
+}
+
+Parser::Node *Parser::parse_call_expression_without_parens(Env *env, Node *left, LocalsVectorPtr locals) {
+    assert(left->type() == Node::Type::Identifier);
+    auto call_node = new CallNode {
+        new NilNode {},
+        SymbolValue::intern(env, static_cast<IdentifierNode *>(left)->name()),
+    };
+    if (!current_token().is_eol()) {
+        auto arg = parse_expression(env, LOWEST, locals);
+        call_node->add_arg(arg);
+        while (current_token().is_comma()) {
+            advance();
+            auto arg = parse_expression(env, LOWEST, locals);
+            call_node->add_arg(arg);
+        }
+    }
+    return call_node;
+}
+
 Parser::Node *Parser::parse_assignment_expression(Env *env, Node *left, LocalsVectorPtr locals) {
     auto left_identifier = static_cast<IdentifierNode *>(left);
     if (left_identifier->token_type() == Token::Type::Identifier)
@@ -200,6 +244,8 @@ Parser::parse_left_fn Parser::left_denotation(Token::Type type) {
         return &Parser::parse_infix_expression;
     case Type::Equal:
         return &Parser::parse_assignment_expression;
+    case Type::LParen:
+        return &Parser::parse_call_expression_with_parens;
     default:
         return nullptr;
     }
