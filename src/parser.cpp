@@ -70,24 +70,20 @@ Parser::Node *Parser::parse_def(Env *env, LocalsVectorPtr) {
     auto args = new Vector<Node *> {};
     if (current_token().is_lparen()) {
         advance();
-        if (!current_token().is_identifier())
-            raise_unexpected(env, "parse_def first arg identifier");
+        expect(env, Token::Type::Identifier, "parse_def first arg identifier");
         args->push(parse_identifier(env, locals));
         while (current_token().is_comma()) {
             advance();
-            if (!current_token().is_identifier())
-                raise_unexpected(env, "parse_def 2nd+ arg identifier");
+            expect(env, Token::Type::Identifier, "parse_def 2nd+ arg identifier");
             args->push(parse_identifier(env, locals));
         };
-        if (!current_token().is_rparen())
-            raise_unexpected(env, "parse_def rparen");
+        expect(env, Token::Type::RParen, "parse_def rparen");
         advance();
     } else if (current_token().is_identifier()) {
         args->push(parse_identifier(env, locals));
         while (current_token().is_comma()) {
             advance();
-            if (!current_token().is_identifier())
-                raise_unexpected(env, "parse_def 2nd+ arg identifier");
+            expect(env, Token::Type::Identifier, "parse_def 2nd+ arg identifier");
             args->push(parse_identifier(env, locals));
         };
     }
@@ -169,8 +165,7 @@ Parser::Node *Parser::parse_call_expression_with_parens(Env *env, Node *left, Lo
             call_node->add_arg(arg);
         }
     }
-    if (!current_token().is_rparen())
-        raise_unexpected(env, "call rparen");
+    expect(env, Token::Type::RParen, "call rparen");
     advance();
     return call_node;
 }
@@ -231,8 +226,7 @@ Parser::Node *Parser::parse_infix_expression(Env *env, Node *left, LocalsVectorP
 
 Parser::Node *Parser::parse_send_expression(Env *env, Node *left, LocalsVectorPtr locals) {
     advance();
-    if (!current_token().is_identifier())
-        raise_unexpected(env, "send method name");
+    expect(env, Token::Type::Identifier, "send method name");
     auto name = static_cast<IdentifierNode *>(parse_identifier(env, locals));
     auto call_node = new CallNode {
         left,
