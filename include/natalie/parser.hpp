@@ -231,16 +231,17 @@ private:
 
     Node *parse_expression(Env *, Precedence, LocalsVectorPtr);
 
-    Node *parse_def(Env *, LocalsVectorPtr);
     Node *parse_body(Env *, LocalsVectorPtr);
+    Node *parse_def(Env *, LocalsVectorPtr);
+    Node *parse_identifier(Env *, LocalsVectorPtr);
     Node *parse_lit(Env *, LocalsVectorPtr);
     Node *parse_string(Env *, LocalsVectorPtr);
-    Node *parse_identifier(Env *, LocalsVectorPtr);
-    Node *parse_infix_expression(Env *, Node *, LocalsVectorPtr);
+
     Node *parse_assignment_expression(Env *, Node *, LocalsVectorPtr);
-    Node *parse_call_expression_with_parens(Env *, Node *, LocalsVectorPtr);
     Node *parse_call_expression_without_parens(Env *, Node *, LocalsVectorPtr);
+    Node *parse_call_expression_with_parens(Env *, Node *, LocalsVectorPtr);
     Node *parse_grouped_expression(Env *, LocalsVectorPtr);
+    Node *parse_infix_expression(Env *, Node *, LocalsVectorPtr);
 
     using parse_null_fn = Node *(Parser::*)(Env *, LocalsVectorPtr);
     using parse_left_fn = Node *(Parser::*)(Env *, Node *, LocalsVectorPtr);

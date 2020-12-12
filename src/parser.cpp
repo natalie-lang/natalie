@@ -47,6 +47,22 @@ Parser::Node *Parser::tree(Env *env) {
     return tree;
 }
 
+Parser::Node *Parser::parse_body(Env *env, LocalsVectorPtr locals) {
+    auto body = new BlockNode {};
+    current_token().validate(env);
+    skip_newlines();
+    while (!current_token().is_eof() && !current_token().is_end_keyword()) {
+        auto exp = parse_expression(env, LOWEST, locals);
+        body->add_node(exp);
+        current_token().validate(env);
+        next_expression(env);
+    }
+    if (!current_token().is_end_keyword())
+        raise_unexpected(env, "parse_body end");
+    advance();
+    return body;
+}
+
 Parser::Node *Parser::parse_def(Env *env, LocalsVectorPtr) {
     advance();
     auto locals = new Vector<SymbolValue *> {};
@@ -79,21 +95,19 @@ Parser::Node *Parser::parse_def(Env *env, LocalsVectorPtr) {
     return new DefNode { name, args, body };
 };
 
-Parser::Node *Parser::parse_body(Env *env, LocalsVectorPtr locals) {
-    auto body = new BlockNode {};
-    current_token().validate(env);
-    skip_newlines();
-    while (!current_token().is_eof() && !current_token().is_end_keyword()) {
-        auto exp = parse_expression(env, LOWEST, locals);
-        body->add_node(exp);
-        current_token().validate(env);
-        next_expression(env);
+Parser::Node *Parser::parse_identifier(Env *env, LocalsVectorPtr locals) {
+    bool is_lvar = false;
+    auto name_symbol = SymbolValue::intern(env, current_token().literal());
+    for (auto local : *locals) {
+        if (local == name_symbol) {
+            is_lvar = true;
+            break;
+        }
     }
-    if (!current_token().is_end_keyword())
-        raise_unexpected(env, "parse_body end");
+    auto identifier = new IdentifierNode { current_token(), is_lvar };
     advance();
-    return body;
-}
+    return identifier;
+};
 
 Parser::Node *Parser::parse_lit(Env *env, LocalsVectorPtr locals) {
     Value *value;
@@ -118,31 +132,16 @@ Parser::Node *Parser::parse_string(Env *env, LocalsVectorPtr locals) {
     return lit;
 };
 
-Parser::Node *Parser::parse_identifier(Env *env, LocalsVectorPtr locals) {
-    bool is_lvar = false;
-    auto name_symbol = SymbolValue::intern(env, current_token().literal());
-    for (auto local : *locals) {
-        if (local == name_symbol) {
-            is_lvar = true;
-            break;
-        }
-    }
-    auto identifier = new IdentifierNode { current_token(), is_lvar };
+Parser::Node *Parser::parse_assignment_expression(Env *env, Node *left, LocalsVectorPtr locals) {
+    auto left_identifier = static_cast<IdentifierNode *>(left);
+    if (left_identifier->token_type() == Token::Type::Identifier)
+        locals->push(SymbolValue::intern(env, left_identifier->name()));
     advance();
-    return identifier;
-};
-
-Parser::Node *Parser::parse_infix_expression(Env *env, Node *left, LocalsVectorPtr locals) {
-    auto op = current_token();
-    auto precedence = get_precedence();
-    advance();
-    auto right = parse_expression(env, precedence, locals);
-    auto node = new CallNode {
-        left,
-        op.type_value(env),
+    auto right = parse_expression(env, ASSIGNMENT, locals);
+    return new AssignmentNode {
+        left_identifier,
+        right,
     };
-    node->add_arg(right);
-    return node;
 };
 
 Parser::Node *Parser::parse_call_expression_with_parens(Env *env, Node *left, LocalsVectorPtr locals) {
@@ -185,18 +184,6 @@ Parser::Node *Parser::parse_call_expression_without_parens(Env *env, Node *left,
     return call_node;
 }
 
-Parser::Node *Parser::parse_assignment_expression(Env *env, Node *left, LocalsVectorPtr locals) {
-    auto left_identifier = static_cast<IdentifierNode *>(left);
-    if (left_identifier->token_type() == Token::Type::Identifier)
-        locals->push(SymbolValue::intern(env, left_identifier->name()));
-    advance();
-    auto right = parse_expression(env, ASSIGNMENT, locals);
-    return new AssignmentNode {
-        left_identifier,
-        right,
-    };
-};
-
 Parser::Node *Parser::parse_grouped_expression(Env *env, LocalsVectorPtr locals) {
     advance();
     auto exp = parse_expression(env, LOWEST, locals);
@@ -209,6 +196,19 @@ Parser::Node *Parser::parse_grouped_expression(Env *env, LocalsVectorPtr locals)
     }
     advance();
     return exp;
+};
+
+Parser::Node *Parser::parse_infix_expression(Env *env, Node *left, LocalsVectorPtr locals) {
+    auto op = current_token();
+    auto precedence = get_precedence();
+    advance();
+    auto right = parse_expression(env, precedence, locals);
+    auto node = new CallNode {
+        left,
+        op.type_value(env),
+    };
+    node->add_arg(right);
+    return node;
 };
 
 Parser::parse_null_fn Parser::null_denotation(Token::Type type) {
