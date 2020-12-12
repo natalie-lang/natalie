@@ -33,6 +33,7 @@ Parser::Node *Parser::tree(Env *env) {
     auto tree = new Parser::BlockNode {};
     current_token().validate(env);
     auto locals = new Vector<SymbolValue *> {};
+    skip_newlines();
     while (!current_token().is_eof()) {
         auto exp = parse_expression(env, LOWEST, locals);
         tree->add_node(exp);

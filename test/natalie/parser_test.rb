@@ -164,13 +164,7 @@ describe 'Parser' do
       -> { Parser.parse('{ , 1 => 2 }') }.should raise_error(SyntaxError, /\(string\):1 :: parse error on value/)
     end
 
-    xit 'parses assignment' do
-      Parser.parse("a = 'foo'").should == s(:block, s(:lasgn, :a, s(:str, "foo")))
-      Parser.parse("a =\n'foo'").should == s(:block, s(:lasgn, :a, s(:str, "foo")))
-      Parser.parse("a = 1").should == s(:block, s(:lasgn, :a, s(:lit, 1)))
-    end
-
-    xit 'ignores comments' do
+    it 'ignores comments' do
       Parser.parse("# comment").should == s(:block)
       Parser.parse("# comment\n#comment 2").should == s(:block)
       Parser.parse("1 + 1 # comment").should == s(:block, s(:call, s(:lit, 1), :+, s(:lit, 1)))
