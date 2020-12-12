@@ -457,7 +457,8 @@ struct Token : public gc {
     bool can_follow_collapsible_newline() {
         return m_type == Token::Type::RBrace
             || m_type == Token::Type::RBracket
-            || m_type == Token::Type::RParen;
+            || m_type == Token::Type::RParen
+            || m_type == Token::Type::TernaryColon;
     }
 
     bool can_precede_collapsible_newline() {

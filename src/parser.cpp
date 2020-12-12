@@ -246,6 +246,16 @@ Parser::Node *Parser::parse_send_expression(Env *env, Node *left, LocalsVectorPt
     return call_node;
 }
 
+Parser::Node *Parser::parse_ternary_expression(Env *env, Node *left, LocalsVectorPtr locals) {
+    expect(env, Token::Type::TernaryQuestion, "ternary question");
+    advance();
+    auto true_expr = parse_expression(env, TERNARY, locals);
+    expect(env, Token::Type::TernaryColon, "ternary colon");
+    advance();
+    auto false_expr = parse_expression(env, TERNARY, locals);
+    return new IfNode { left, true_expr, false_expr };
+}
+
 Parser::parse_null_fn Parser::null_denotation(Token::Type type) {
     using Type = Token::Type;
     switch (type) {
@@ -283,6 +293,8 @@ Parser::parse_left_fn Parser::left_denotation(Token::Type type) {
         return &Parser::parse_call_expression_with_parens;
     case Type::Dot:
         return &Parser::parse_send_expression;
+    case Type::TernaryQuestion:
+        return &Parser::parse_ternary_expression;
     default:
         return nullptr;
     }
@@ -314,6 +326,11 @@ void Parser::next_expression(Env *env) {
 void Parser::skip_newlines() {
     while (current_token().is_eol())
         advance();
+}
+
+void Parser::expect(Env *env, Token::Type type, const char *expected) {
+    if (current_token().type() != type)
+        raise_unexpected(env, expected);
 }
 
 void Parser::raise_unexpected(Env *env, const char *expected) {

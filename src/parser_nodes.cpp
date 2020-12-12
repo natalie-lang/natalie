@@ -91,4 +91,13 @@ Value *Parser::StringNode::to_ruby(Env *env) {
     return new SexpValue { env, { SymbolValue::intern(env, "str"), m_value } };
 }
 
+Value *Parser::IfNode::to_ruby(Env *env) {
+    return new SexpValue { env, {
+                                    SymbolValue::intern(env, "if"),
+                                    m_condition->to_ruby(env),
+                                    m_true_expr->to_ruby(env),
+                                    m_false_expr->to_ruby(env),
+                                } };
+}
+
 }

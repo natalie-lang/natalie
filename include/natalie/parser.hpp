@@ -196,8 +196,27 @@ struct Parser : public gc {
         Value *m_value { nullptr };
     };
 
+    struct IfNode : Node {
+        IfNode(Node *condition, Node *true_expr, Node *false_expr)
+            : m_condition { condition }
+            , m_true_expr { true_expr }
+            , m_false_expr { false_expr } {
+            assert(m_condition);
+            assert(m_true_expr);
+            assert(m_false_expr);
+        }
+
+        virtual Value *to_ruby(Env *) override;
+
+    private:
+        Node *m_condition { nullptr };
+        Node *m_true_expr { nullptr };
+        Node *m_false_expr { nullptr };
+    };
+
     enum Precedence {
         LOWEST,
+        TERNARY,
         ASSIGNMENT,
         EQUALITY,
         LESSGREATER,
@@ -225,6 +244,9 @@ private:
             return CALL;
         case Token::Type::Dot:
             return DOT;
+        case Token::Type::TernaryQuestion:
+        case Token::Type::TernaryColon:
+            return TERNARY;
         default:
             return LOWEST;
         }
@@ -246,6 +268,7 @@ private:
     Node *parse_grouped_expression(Env *, LocalsVectorPtr);
     Node *parse_infix_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_send_expression(Env *, Node *, LocalsVectorPtr);
+    Node *parse_ternary_expression(Env *, Node *, LocalsVectorPtr);
 
     using parse_null_fn = Node *(Parser::*)(Env *, LocalsVectorPtr);
     using parse_left_fn = Node *(Parser::*)(Env *, Node *, LocalsVectorPtr);
@@ -259,6 +282,7 @@ private:
     void next_expression(Env *);
     void skip_newlines();
 
+    void expect(Env *, Token::Type, const char *);
     void raise_unexpected(Env *, const char *);
 
     void advance() { m_index++; }
