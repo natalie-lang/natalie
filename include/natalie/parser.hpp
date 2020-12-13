@@ -257,6 +257,8 @@ private:
             return PRODUCT;
         case Token::Type::Equal:
             return ASSIGNMENT;
+        case Token::Type::EqualEqual:
+            return EQUALITY;
         case Token::Type::LParen:
             return CALL;
         case Token::Type::Dot:
