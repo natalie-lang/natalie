@@ -259,6 +259,11 @@ private:
             return ASSIGNMENT;
         case Token::Type::EqualEqual:
             return EQUALITY;
+        case Token::Type::LessThan:
+        case Token::Type::LessThanOrEqual:
+        case Token::Type::GreaterThan:
+        case Token::Type::GreaterThanOrEqual:
+            return LESSGREATER;
         case Token::Type::LParen:
             return CALL;
         case Token::Type::Dot:

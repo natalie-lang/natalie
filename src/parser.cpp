@@ -297,6 +297,10 @@ Parser::parse_left_fn Parser::left_denotation(Token::Type type) {
     case Type::Multiply:
     case Type::Divide:
     case Type::EqualEqual:
+    case Type::LessThan:
+    case Type::LessThanOrEqual:
+    case Type::GreaterThan:
+    case Type::GreaterThanOrEqual:
         return &Parser::parse_infix_expression;
     case Type::Equal:
         return &Parser::parse_assignment_expression;

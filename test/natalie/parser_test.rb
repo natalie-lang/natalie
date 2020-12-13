@@ -54,6 +54,10 @@ describe 'Parser' do
       Parser.parse('(1 + 2) * (3 + 4)').should == s(:block, s(:call, s(:call, s(:lit, 1), :+, s(:lit, 2)), :*, s(:call, s(:lit, 3), :+, s(:lit, 4))))
       Parser.parse('"foo" + "bar"').should == s(:block, s(:call, s(:str, "foo"), :+, s(:str, "bar")))
       Parser.parse('1 == 1').should == s(:block, s(:call, s(:lit, 1), :==, s(:lit, 1)))
+      Parser.parse('1 < 2').should == s(:block, s(:call, s(:lit, 1), :<, s(:lit, 2)))
+      Parser.parse('1 <= 2').should == s(:block, s(:call, s(:lit, 1), :<=, s(:lit, 2)))
+      Parser.parse('1 > 2').should == s(:block, s(:call, s(:lit, 1), :>, s(:lit, 2)))
+      Parser.parse('1 >= 2').should == s(:block, s(:call, s(:lit, 1), :>=, s(:lit, 2)))
     end
 
     it 'raises an error if there is a syntax error' do
