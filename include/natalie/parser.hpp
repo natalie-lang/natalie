@@ -252,6 +252,16 @@ private:
         case Token::Type::Plus:
         case Token::Type::Minus:
             return SUM;
+        case Token::Type::Integer:
+            if (current_token().get_integer() < 0)
+                return SUM;
+            else
+                return LOWEST;
+        case Token::Type::Float:
+            if (current_token().get_double() < 0.0)
+                return SUM;
+            else
+                return LOWEST;
         case Token::Type::Multiply:
         case Token::Type::Divide:
             return PRODUCT;

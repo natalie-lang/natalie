@@ -228,7 +228,16 @@ Parser::Node *Parser::parse_infix_expression(Env *env, Node *left, LocalsVectorP
     auto op = current_token();
     auto precedence = get_precedence();
     advance();
-    auto right = parse_expression(env, precedence, locals);
+    Node *right = nullptr;
+    if (op.type() == Token::Type::Integer) {
+        right = new LiteralNode { new IntegerValue { env, op.get_integer() * -1 } };
+        op = Token { Token::Type::Minus, op.line(), op.column() };
+    } else if (op.type() == Token::Type::Float) {
+        right = new LiteralNode { new FloatValue { env, op.get_double() * -1 } };
+        op = Token { Token::Type::Minus, op.line(), op.column() };
+    } else {
+        right = parse_expression(env, precedence, locals);
+    }
     auto node = new CallNode {
         left,
         op.type_value(env),
@@ -302,6 +311,16 @@ Parser::parse_left_fn Parser::left_denotation(Token::Type type) {
     case Type::GreaterThan:
     case Type::GreaterThanOrEqual:
         return &Parser::parse_infix_expression;
+    case Type::Integer:
+        if (current_token().get_integer() < 0)
+            return &Parser::parse_infix_expression;
+        else
+            return nullptr;
+    case Type::Float:
+        if (current_token().get_double() < 0.0)
+            return &Parser::parse_infix_expression;
+        else
+            return nullptr;
     case Type::Equal:
         return &Parser::parse_assignment_expression;
     case Type::LParen:
