@@ -147,6 +147,11 @@ describe 'Parser' do
       Parser.parse("foo ?\nbar + baz\n :\n buz / 2").should == s(:block, s(:if, s(:call, nil, :foo), s(:call, s(:call, nil, :bar), :+, s(:call, nil, :baz)), s(:call, s(:call, nil, :buz), :/, s(:lit, 2))))
     end
 
+    it 'parses true/false' do
+      Parser.parse("true").should == s(:block, s(:true))
+      Parser.parse("false").should == s(:block, s(:false))
+    end
+
     xit 'parses class definition' do
       Parser.parse("class Foo\nend").should == s(:block, s(:class, :Foo, nil))
       Parser.parse("class Foo;end").should == s(:block, s(:class, :Foo, nil))

@@ -67,12 +67,25 @@ Value *Parser::DefNode::to_ruby(Env *env) {
     return sexp;
 }
 
+Value *Parser::FalseNode::to_ruby(Env *env) {
+    return new SexpValue { env, { SymbolValue::intern(env, "false") } };
+}
+
 Value *Parser::IdentifierNode::to_ruby(Env *env) {
     if (m_is_lvar) {
         return new SexpValue { env, { SymbolValue::intern(env, "lvar"), SymbolValue::intern(env, name()) } };
     } else {
         return new SexpValue { env, { SymbolValue::intern(env, "call"), env->nil_obj(), SymbolValue::intern(env, name()) } };
     }
+}
+
+Value *Parser::IfNode::to_ruby(Env *env) {
+    return new SexpValue { env, {
+                                    SymbolValue::intern(env, "if"),
+                                    m_condition->to_ruby(env),
+                                    m_true_expr->to_ruby(env),
+                                    m_false_expr->to_ruby(env),
+                                } };
 }
 
 Value *Parser::LiteralNode::to_ruby(Env *env) {
@@ -91,13 +104,8 @@ Value *Parser::StringNode::to_ruby(Env *env) {
     return new SexpValue { env, { SymbolValue::intern(env, "str"), m_value } };
 }
 
-Value *Parser::IfNode::to_ruby(Env *env) {
-    return new SexpValue { env, {
-                                    SymbolValue::intern(env, "if"),
-                                    m_condition->to_ruby(env),
-                                    m_true_expr->to_ruby(env),
-                                    m_false_expr->to_ruby(env),
-                                } };
+Value *Parser::TrueNode::to_ruby(Env *env) {
+    return new SexpValue { env, { SymbolValue::intern(env, "true") } };
 }
 
 }

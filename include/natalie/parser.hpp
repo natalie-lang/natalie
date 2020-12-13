@@ -20,10 +20,13 @@ struct Parser : public gc {
             Block,
             Call,
             Def,
+            False,
             Identifier,
             Literal,
+            Nil,
             Symbol,
             String,
+            True,
         };
 
         Node() { }
@@ -133,6 +136,12 @@ struct Parser : public gc {
         BlockNode *m_body { nullptr };
     };
 
+    struct FalseNode : Node {
+        virtual Value *to_ruby(Env *) override;
+
+        virtual Type type() override { return Type::False; }
+    };
+
     struct IdentifierNode : Node {
         IdentifierNode(Token token, bool is_lvar)
             : m_token { token }
@@ -148,6 +157,24 @@ struct Parser : public gc {
     private:
         Token m_token {};
         bool m_is_lvar { false };
+    };
+
+    struct IfNode : Node {
+        IfNode(Node *condition, Node *true_expr, Node *false_expr)
+            : m_condition { condition }
+            , m_true_expr { true_expr }
+            , m_false_expr { false_expr } {
+            assert(m_condition);
+            assert(m_true_expr);
+            assert(m_false_expr);
+        }
+
+        virtual Value *to_ruby(Env *) override;
+
+    private:
+        Node *m_condition { nullptr };
+        Node *m_true_expr { nullptr };
+        Node *m_false_expr { nullptr };
     };
 
     struct LiteralNode : Node {
@@ -166,6 +193,8 @@ struct Parser : public gc {
 
     struct NilNode : Node {
         virtual Value *to_ruby(Env *) override;
+
+        virtual Type type() override { return Type::Nil; }
     };
 
     struct SymbolNode : Node {
@@ -196,22 +225,10 @@ struct Parser : public gc {
         Value *m_value { nullptr };
     };
 
-    struct IfNode : Node {
-        IfNode(Node *condition, Node *true_expr, Node *false_expr)
-            : m_condition { condition }
-            , m_true_expr { true_expr }
-            , m_false_expr { false_expr } {
-            assert(m_condition);
-            assert(m_true_expr);
-            assert(m_false_expr);
-        }
-
+    struct TrueNode : Node {
         virtual Value *to_ruby(Env *) override;
 
-    private:
-        Node *m_condition { nullptr };
-        Node *m_true_expr { nullptr };
-        Node *m_false_expr { nullptr };
+        virtual Type type() override { return Type::True; }
     };
 
     enum Precedence {
@@ -257,6 +274,7 @@ private:
     Node *parse_expression(Env *, Precedence, LocalsVectorPtr);
 
     Node *parse_body(Env *, LocalsVectorPtr);
+    Node *parse_bool(Env *, LocalsVectorPtr);
     Node *parse_def(Env *, LocalsVectorPtr);
     Node *parse_identifier(Env *, LocalsVectorPtr);
     Node *parse_lit(Env *, LocalsVectorPtr);

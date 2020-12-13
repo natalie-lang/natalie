@@ -63,6 +63,19 @@ Parser::Node *Parser::parse_body(Env *env, LocalsVectorPtr locals) {
     return body;
 }
 
+Parser::Node *Parser::parse_bool(Env *env, LocalsVectorPtr) {
+    switch (current_token().type()) {
+    case Token::Type::TrueKeyword:
+        advance();
+        return new TrueNode {};
+    case Token::Type::FalseKeyword:
+        advance();
+        return new FalseNode {};
+    default:
+        NAT_UNREACHABLE();
+    }
+}
+
 Parser::Node *Parser::parse_def(Env *env, LocalsVectorPtr) {
     advance();
     auto locals = new Vector<SymbolValue *> {};
@@ -253,6 +266,9 @@ Parser::Node *Parser::parse_ternary_expression(Env *env, Node *left, LocalsVecto
 Parser::parse_null_fn Parser::null_denotation(Token::Type type) {
     using Type = Token::Type;
     switch (type) {
+    case Type::TrueKeyword:
+    case Type::FalseKeyword:
+        return &Parser::parse_bool;
     case Type::DefKeyword:
         return &Parser::parse_def;
     case Type::LParen:
@@ -339,5 +355,4 @@ void Parser::raise_unexpected(Env *env, const char *expected) {
         env->raise("SyntaxError", "%d: syntax error, unexpected '%s'", line, type->c_str());
     }
 }
-
 }
