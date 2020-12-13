@@ -278,6 +278,7 @@ private:
     Node *parse_body(Env *, LocalsVectorPtr);
     Node *parse_bool(Env *, LocalsVectorPtr);
     Node *parse_def(Env *, LocalsVectorPtr);
+    Node *parse_group(Env *, LocalsVectorPtr);
     Node *parse_identifier(Env *, LocalsVectorPtr);
     Node *parse_lit(Env *, LocalsVectorPtr);
     Node *parse_string(Env *, LocalsVectorPtr);
@@ -285,7 +286,6 @@ private:
     Node *parse_assignment_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_call_expression_without_parens(Env *, Node *, LocalsVectorPtr);
     Node *parse_call_expression_with_parens(Env *, Node *, LocalsVectorPtr);
-    Node *parse_grouped_expression(Env *, LocalsVectorPtr);
     Node *parse_infix_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_send_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_ternary_expression(Env *, Node *, LocalsVectorPtr);

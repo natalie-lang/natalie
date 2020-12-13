@@ -104,6 +104,20 @@ Parser::Node *Parser::parse_def(Env *env, LocalsVectorPtr) {
     return new DefNode { name, args, body };
 };
 
+Parser::Node *Parser::parse_group(Env *env, LocalsVectorPtr locals) {
+    advance();
+    auto exp = parse_expression(env, LOWEST, locals);
+    if (!current_token().is_valid()) {
+        fprintf(stderr, "expected ), but got EOF\n");
+        abort();
+    } else if (current_token().type() != Token::Type::RParen) {
+        fprintf(stderr, "expected ), but got %s\n", current_token().type_value(env)->c_str());
+        abort();
+    }
+    advance();
+    return exp;
+};
+
 Parser::Node *Parser::parse_identifier(Env *env, LocalsVectorPtr locals) {
     bool is_lvar = false;
     auto name_symbol = SymbolValue::intern(env, current_token().literal());
@@ -210,20 +224,6 @@ Parser::Node *Parser::parse_call_expression_without_parens(Env *env, Node *left,
     return call_node;
 }
 
-Parser::Node *Parser::parse_grouped_expression(Env *env, LocalsVectorPtr locals) {
-    advance();
-    auto exp = parse_expression(env, LOWEST, locals);
-    if (!current_token().is_valid()) {
-        fprintf(stderr, "expected ), but got EOF\n");
-        abort();
-    } else if (current_token().type() != Token::Type::RParen) {
-        fprintf(stderr, "expected ), but got %s\n", current_token().type_value(env)->c_str());
-        abort();
-    }
-    advance();
-    return exp;
-};
-
 Parser::Node *Parser::parse_infix_expression(Env *env, Node *left, LocalsVectorPtr locals) {
     auto op = current_token();
     auto precedence = get_precedence();
@@ -272,7 +272,7 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type) {
     case Type::DefKeyword:
         return &Parser::parse_def;
     case Type::LParen:
-        return &Parser::parse_grouped_expression;
+        return &Parser::parse_group;
     case Type::ClassVariable:
     case Type::Constant:
     case Type::GlobalVariable:
