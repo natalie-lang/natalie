@@ -70,11 +70,10 @@ describe 'Parser' do
     end
 
     it 'tokenizes numbers' do
-      Parser.tokens('1 123 -456 - 0 0d5 0D6 0o10 0O11 0xff 0XFF 0b110 0B111').should == [
+      Parser.tokens('1 123 +1 -456 - 0 0d5 0D6 0o10 0O11 0xff 0XFF 0b110 0B111').should == [
         {type: :integer, literal: 1},
         {type: :integer, literal: 123},
-        # NOTE: in the parser this negative number may need to be interpreted to a minus (-) followed by a literal 456,
-        # depending on if the previous token is a variable or a method name
+        {type: :integer, literal: 1},
         {type: :integer, literal: -456},
         {type: :"-"},
         {type: :integer, literal: 0},

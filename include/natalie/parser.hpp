@@ -253,12 +253,8 @@ private:
         case Token::Type::Minus:
             return SUM;
         case Token::Type::Integer:
-            if (current_token().get_integer() < 0)
-                return SUM;
-            else
-                return LOWEST;
         case Token::Type::Float:
-            if (current_token().get_double() < 0.0)
+            if (current_token().has_sign())
                 return SUM;
             else
                 return LOWEST;

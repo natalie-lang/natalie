@@ -230,11 +230,13 @@ Parser::Node *Parser::parse_infix_expression(Env *env, Node *left, LocalsVectorP
     advance();
     Node *right = nullptr;
     if (op.type() == Token::Type::Integer) {
-        right = new LiteralNode { new IntegerValue { env, op.get_integer() * -1 } };
-        op = Token { Token::Type::Minus, op.line(), op.column() };
+        bool is_negative = op.get_integer() < 0;
+        right = new LiteralNode { new IntegerValue { env, op.get_integer() * (is_negative ? -1 : 1) } };
+        op = Token { is_negative ? Token::Type::Minus : Token::Type::Plus, op.line(), op.column() };
     } else if (op.type() == Token::Type::Float) {
-        right = new LiteralNode { new FloatValue { env, op.get_double() * -1 } };
-        op = Token { Token::Type::Minus, op.line(), op.column() };
+        bool is_negative = op.get_double() < 0;
+        right = new LiteralNode { new FloatValue { env, op.get_double() * (is_negative ? -1 : 1) } };
+        op = Token { is_negative ? Token::Type::Minus : Token::Type::Plus, op.line(), op.column() };
     } else {
         right = parse_expression(env, precedence, locals);
     }
@@ -312,12 +314,12 @@ Parser::parse_left_fn Parser::left_denotation(Token::Type type) {
     case Type::GreaterThanOrEqual:
         return &Parser::parse_infix_expression;
     case Type::Integer:
-        if (current_token().get_integer() < 0)
+        if (current_token().has_sign())
             return &Parser::parse_infix_expression;
         else
             return nullptr;
     case Type::Float:
-        if (current_token().get_double() < 0.0)
+        if (current_token().has_sign())
             return &Parser::parse_infix_expression;
         else
             return nullptr;

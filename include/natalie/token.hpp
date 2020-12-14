@@ -511,6 +511,9 @@ struct Token : public gc {
             || m_type == Token::Type::TernaryQuestion;
     }
 
+    bool has_sign() { return m_has_sign; }
+    void set_has_sign(bool has_sign) { m_has_sign = has_sign; }
+
     size_t line() { return m_line; }
     size_t column() { return m_column; }
 
@@ -519,6 +522,7 @@ private:
     const char *m_literal { nullptr };
     nat_int_t m_integer { 0 };
     double m_double { 0 };
+    bool m_has_sign { false };
     size_t m_line { 0 };
     size_t m_column { 0 };
 };

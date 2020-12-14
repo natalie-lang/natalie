@@ -144,6 +144,23 @@ private:
         case '+':
             advance();
             switch (current_char()) {
+            case '0':
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+            case '9': {
+                auto token = consume_numeric();
+                if (isalpha(current_char())) {
+                    return Token { Token::Type::Invalid, current_char(), m_cursor_line, m_cursor_column };
+                }
+                token.set_has_sign(true);
+                return token;
+            }
             case '=':
                 advance();
                 return Token { Token::Type::PlusEqual, m_token_line, m_token_column };
@@ -168,6 +185,7 @@ private:
                 if (isalpha(current_char())) {
                     return Token { Token::Type::Invalid, current_char(), m_cursor_line, m_cursor_column };
                 }
+                token.set_has_sign(true);
                 return token;
             }
             case '>':
@@ -494,7 +512,7 @@ private:
         case '7':
         case '8':
         case '9':
-            auto token = consume_numeric(false);
+            auto token = consume_numeric();
             if (isalpha(current_char())) {
                 return Token { Token::Type::Invalid, current_char(), m_cursor_line, m_cursor_column };
             }
@@ -643,7 +661,7 @@ private:
         return token;
     }
 
-    Token consume_numeric(bool negative) {
+    Token consume_numeric(bool negative = false) {
         size_t start_index = m_index;
         nat_int_t number = 0;
         if (current_char() == '0') {

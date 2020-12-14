@@ -59,6 +59,8 @@ describe 'Parser' do
       Parser.parse('1 > 2').should == s(:block, s(:call, s(:lit, 1), :>, s(:lit, 2)))
       Parser.parse('1 >= 2').should == s(:block, s(:call, s(:lit, 1), :>=, s(:lit, 2)))
       Parser.parse('5-3').should == s(:block, s(:call, s(:lit, 5), :-, s(:lit, 3)))
+      Parser.parse('5 -3').should == s(:block, s(:call, s(:lit, 5), :-, s(:lit, 3)))
+      Parser.parse('1 +1').should == s(:block, s(:call, s(:lit, 1), :+, s(:lit, 1)))
       Parser.parse('(1+2)-3 == 0').should == s(:block, s(:call, s(:call, s(:call, s(:lit, 1), :+, s(:lit, 2)), :-, s(:lit, 3)), :==, s(:lit, 0)))
     end
 
