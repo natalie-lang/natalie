@@ -296,6 +296,7 @@ private:
 
     Node *parse_bool(Env *, LocalsVectorPtr);
     Node *parse_def(Env *, LocalsVectorPtr);
+    Vector<Node *> *parse_def_args(Env *, LocalsVectorPtr);
     Node *parse_group(Env *, LocalsVectorPtr);
     Node *parse_identifier(Env *, LocalsVectorPtr);
     Node *parse_if(Env *, LocalsVectorPtr);

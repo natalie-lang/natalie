@@ -80,29 +80,36 @@ Parser::Node *Parser::parse_def(Env *env, LocalsVectorPtr) {
     advance();
     auto locals = new Vector<SymbolValue *> {};
     auto name = static_cast<IdentifierNode *>(parse_identifier(env, locals));
-    auto args = new Vector<Node *> {};
+    Vector<Node *> *args;
     if (current_token().is_lparen()) {
         advance();
         expect(env, Token::Type::Identifier, "parse_def first arg identifier");
-        args->push(parse_identifier(env, locals));
-        while (current_token().is_comma()) {
-            advance();
-            expect(env, Token::Type::Identifier, "parse_def 2nd+ arg identifier");
-            args->push(parse_identifier(env, locals));
-        };
+        args = parse_def_args(env, locals);
         expect(env, Token::Type::RParen, "parse_def rparen");
         advance();
     } else if (current_token().is_identifier()) {
-        args->push(parse_identifier(env, locals));
-        while (current_token().is_comma()) {
-            advance();
-            expect(env, Token::Type::Identifier, "parse_def 2nd+ arg identifier");
-            args->push(parse_identifier(env, locals));
-        };
+        args = parse_def_args(env, locals);
+    } else {
+        args = new Vector<Node *> {};
     }
     auto body = parse_body(env, locals);
     return new DefNode { name, args, body };
 };
+
+Vector<Parser::Node *> *Parser::parse_def_args(Env *env, LocalsVectorPtr locals) {
+    auto args = new Vector<Node *> {};
+    auto arg = static_cast<IdentifierNode *>(parse_identifier(env, locals));
+    args->push(arg);
+    locals->push(SymbolValue::intern(env, arg->name()));
+    while (current_token().is_comma()) {
+        advance();
+        expect(env, Token::Type::Identifier, "parse_def 2nd+ arg identifier");
+        auto arg = static_cast<IdentifierNode *>(parse_identifier(env, locals));
+        args->push(arg);
+        locals->push(SymbolValue::intern(env, arg->name()));
+    };
+    return args;
+}
 
 Parser::Node *Parser::parse_group(Env *env, LocalsVectorPtr locals) {
     advance();
