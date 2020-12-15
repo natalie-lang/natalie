@@ -124,6 +124,10 @@ describe 'Parser' do
       Parser.parse("@foo = 1; foo").should == s(:block, s(:iasgn, :@foo, s(:lit, 1)), s(:call, nil, :foo))
     end
 
+    it 'parses constants' do
+      Parser.parse("ARGV").should == s(:block, s(:const, :ARGV))
+    end
+
     it 'parses method calls with parentheses' do
       Parser.parse("foo()").should == s(:block, s(:call, nil, :foo))
       Parser.parse("foo() + bar()").should == s(:block, s(:call, s(:call, nil, :foo), :+, s(:call, nil, :bar)))

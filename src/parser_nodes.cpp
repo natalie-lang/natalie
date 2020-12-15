@@ -72,7 +72,9 @@ Value *Parser::FalseNode::to_ruby(Env *env) {
 }
 
 Value *Parser::IdentifierNode::to_ruby(Env *env) {
-    if (m_is_lvar) {
+    if (token_type() == Token::Type::Constant) {
+        return new SexpValue { env, { SymbolValue::intern(env, "const"), SymbolValue::intern(env, name()) } };
+    } else if (m_is_lvar) {
         return new SexpValue { env, { SymbolValue::intern(env, "lvar"), SymbolValue::intern(env, name()) } };
     } else {
         return new SexpValue { env, { SymbolValue::intern(env, "call"), env->nil_obj(), SymbolValue::intern(env, name()) } };
