@@ -21,6 +21,8 @@ struct IoValue : Value {
         : Value { Value::Type::Io, env->Object()->const_fetch("IO")->as_class() }
         , m_fileno { fileno } { }
 
+    static Value *read_file(Env *, Value *);
+
     int fileno() { return m_fileno; }
     void set_fileno(int fileno) { m_fileno = fileno; }
 

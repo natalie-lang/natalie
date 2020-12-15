@@ -1042,6 +1042,12 @@ Value *IntegerValue_is_zero_binding(Env *env, Value *self_value, size_t argc, Va
     if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
 }
 
+Value *IoValue_read_file_static_binding(Env *env, Value *, size_t argc, Value **args, Block *block) {
+    env->assert_argc(argc, 1);
+    auto return_value = IoValue::read_file(env, argc > 0 ? args[0] : nullptr);
+    return return_value;
+}
+
 Value *IoValue_close_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     IoValue *self = self_value->as_io();
@@ -2169,6 +2175,7 @@ void init_bindings(Env *env) {
     Integer->define_method(env, "|", IntegerValue_bitwise_or_binding);
     Integer->define_method(env, "zero?", IntegerValue_is_zero_binding);
     Value *IO = env->Object()->const_find(env, "IO");
+    IO->define_singleton_method(env, "read", IoValue_read_file_static_binding);
     IO->define_method(env, "close", IoValue_close_binding);
     IO->define_method(env, "fileno", IoValue_fileno_binding);
     IO->define_method(env, "initialize", IoValue_initialize_binding);

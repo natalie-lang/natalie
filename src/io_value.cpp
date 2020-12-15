@@ -14,6 +14,14 @@ Value *IoValue::initialize(Env *env, Value *file_number) {
     return this;
 }
 
+Value *IoValue::read_file(Env *env, Value *filename) {
+    Value *args[] = { filename };
+    FileValue *file = _new(env, env->Object()->const_fetch("File")->as_class(), 1, args, nullptr)->as_file();
+    auto data = file->read(env, nullptr);
+    file->close(env);
+    return data;
+}
+
 #define NAT_READ_BYTES 1024
 
 Value *IoValue::read(Env *env, Value *count_value) {
