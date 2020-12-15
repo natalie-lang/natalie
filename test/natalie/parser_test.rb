@@ -174,6 +174,28 @@ describe 'Parser' do
       Parser.parse("false").should == s(:block, s(:false))
     end
 
+    it 'parses examples/fib.rb' do
+      fib = File.read(File.expand_path('../../examples/fib.rb', __dir__))
+      Parser.parse(fib).should == s(:block,
+                                    s(:defn, :fib, s(:args, :n),
+                                      s(:if, s(:call, s(:lvar, :n), :==, s(:lit, 0)),
+                                        s(:lit, 0),
+                                        s(:if, s(:call, s(:lvar, :n), :==, s(:lit, 1)),
+                                          s(:lit, 1),
+                                          s(:call,
+                                            s(:call, nil, :fib,
+                                              s(:call, s(:lvar, :n), :-, s(:lit, 1))),
+                                            :+,
+                                            s(:call, nil, :fib,
+                                              s(:call, s(:lvar, :n), :-, s(:lit, 2))))))),
+                                    s(:lasgn, :num, s(:call, s(:const, :ARGV), :first)),
+                                    s(:call, nil, :puts,
+                                      s(:call, nil, :fib,
+                                        s(:if, s(:lvar, :num),
+                                          s(:call, s(:lvar, :num), :to_i),
+                                          s(:lit, 25)))))
+    end
+
     xit 'parses class definition' do
       Parser.parse("class Foo\nend").should == s(:block, s(:class, :Foo, nil))
       Parser.parse("class Foo;end").should == s(:block, s(:class, :Foo, nil))
