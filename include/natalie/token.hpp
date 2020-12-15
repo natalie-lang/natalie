@@ -433,6 +433,8 @@ struct Token : public gc {
 
     bool is_comma() { return m_type == Type::Comma; }
     bool is_comment() { return m_type == Type::Comment; }
+    bool is_else_keyword() { return m_type == Type::ElseKeyword; }
+    bool is_elsif_keyword() { return m_type == Type::ElsifKeyword; }
     bool is_end_keyword() { return m_type == Type::EndKeyword; }
     bool is_eof() { return m_type == Type::Eof; }
     bool is_eol() { return m_type == Type::Eol; }

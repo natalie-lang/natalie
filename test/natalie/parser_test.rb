@@ -156,6 +156,14 @@ describe 'Parser' do
       Parser.parse("foo ?\nbar + baz\n :\n buz / 2").should == s(:block, s(:if, s(:call, nil, :foo), s(:call, s(:call, nil, :bar), :+, s(:call, nil, :baz)), s(:call, s(:call, nil, :buz), :/, s(:lit, 2))))
     end
 
+    it 'parses if/elsif/else' do
+      Parser.parse("if true; 1; end").should == s(:block, s(:if, s(:true), s(:lit, 1), nil))
+      Parser.parse("if true; 1; 2; end").should == s(:block, s(:if, s(:true), s(:block, s(:lit, 1), s(:lit, 2)), nil))
+      Parser.parse("if false; 1; else; 2; end").should == s(:block, s(:if, s(:false), s(:lit, 1), s(:lit, 2)))
+      Parser.parse("if false; 1; elsif 1 + 1 == 2; 2; else; 3; end").should == s(:block, s(:if, s(:false), s(:lit, 1), s(:if, s(:call, s(:call, s(:lit, 1), :+, s(:lit, 1)), :==, s(:lit, 2)), s(:lit, 2), s(:lit, 3))))
+      Parser.parse("if false; 1; elsif 1 + 1 == 0; 2; 3; elsif false; 4; elsif foo() == 'bar'; 5; 6; else; 7; end").should == s(:block, s(:if, s(:false), s(:lit, 1), s(:if, s(:call, s(:call, s(:lit, 1), :+, s(:lit, 1)), :==, s(:lit, 0)), s(:block, s(:lit, 2), s(:lit, 3)), s(:if, s(:false), s(:lit, 4), s(:if, s(:call, s(:call, nil, :foo), :==, s(:str, 'bar')), s(:block, s(:lit, 5), s(:lit, 6)), s(:lit, 7))))))
+    end
+
     it 'parses true/false' do
       Parser.parse("true").should == s(:block, s(:true))
       Parser.parse("false").should == s(:block, s(:false))

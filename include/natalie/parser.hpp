@@ -22,6 +22,7 @@ struct Parser : public gc {
             Def,
             False,
             Identifier,
+            If,
             Literal,
             Nil,
             Symbol,
@@ -77,6 +78,8 @@ struct Parser : public gc {
 
         Vector<Node *> *nodes() { return &m_nodes; }
         bool is_empty() { return m_nodes.is_empty(); }
+
+        bool has_one_node() { return m_nodes.size() == 1; }
 
     private:
         Vector<Node *> m_nodes {};
@@ -168,6 +171,8 @@ struct Parser : public gc {
             assert(m_true_expr);
             assert(m_false_expr);
         }
+
+        virtual Type type() override { return Type::If; }
 
         virtual Value *to_ruby(Env *) override;
 
@@ -286,11 +291,14 @@ private:
 
     Node *parse_expression(Env *, Precedence, LocalsVectorPtr);
 
-    Node *parse_body(Env *, LocalsVectorPtr);
+    BlockNode *parse_body(Env *, LocalsVectorPtr);
+    Node *parse_if_body(Env *, LocalsVectorPtr);
+
     Node *parse_bool(Env *, LocalsVectorPtr);
     Node *parse_def(Env *, LocalsVectorPtr);
     Node *parse_group(Env *, LocalsVectorPtr);
     Node *parse_identifier(Env *, LocalsVectorPtr);
+    Node *parse_if(Env *, LocalsVectorPtr);
     Node *parse_lit(Env *, LocalsVectorPtr);
     Node *parse_string(Env *, LocalsVectorPtr);
 

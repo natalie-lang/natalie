@@ -47,7 +47,7 @@ Parser::Node *Parser::tree(Env *env) {
     return tree;
 }
 
-Parser::Node *Parser::parse_body(Env *env, LocalsVectorPtr locals) {
+Parser::BlockNode *Parser::parse_body(Env *env, LocalsVectorPtr locals) {
     auto body = new BlockNode {};
     current_token().validate(env);
     skip_newlines();
@@ -100,7 +100,7 @@ Parser::Node *Parser::parse_def(Env *env, LocalsVectorPtr) {
             args->push(parse_identifier(env, locals));
         };
     }
-    auto body = static_cast<BlockNode *>(parse_body(env, locals));
+    auto body = parse_body(env, locals);
     return new DefNode { name, args, body };
 };
 
@@ -131,6 +131,43 @@ Parser::Node *Parser::parse_identifier(Env *env, LocalsVectorPtr locals) {
     advance();
     return identifier;
 };
+
+Parser::Node *Parser::parse_if(Env *env, LocalsVectorPtr locals) {
+    advance();
+    auto condition = parse_expression(env, LOWEST, locals);
+    next_expression(env);
+    auto true_expr = parse_if_body(env, locals);
+    Node *false_expr;
+    if (current_token().is_elsif_keyword()) {
+        false_expr = parse_if(env, locals);
+        return new IfNode { condition, true_expr, false_expr };
+    } else {
+        if (current_token().is_else_keyword()) {
+            advance();
+            false_expr = parse_if_body(env, locals);
+        } else {
+            false_expr = new NilNode {};
+        }
+        expect(env, Token::Type::EndKeyword, "if end");
+        advance();
+        return new IfNode { condition, true_expr, false_expr };
+    }
+}
+
+Parser::Node *Parser::parse_if_body(Env *env, LocalsVectorPtr locals) {
+    auto body = new BlockNode {};
+    current_token().validate(env);
+    skip_newlines();
+    while (!current_token().is_eof() && !current_token().is_elsif_keyword() && !current_token().is_else_keyword() && !current_token().is_end_keyword()) {
+        auto exp = parse_expression(env, LOWEST, locals);
+        body->add_node(exp);
+        current_token().validate(env);
+        next_expression(env);
+    }
+    if (!current_token().is_elsif_keyword() && !current_token().is_else_keyword() && !current_token().is_end_keyword())
+        raise_unexpected(env, "if end");
+    return body->has_one_node() ? (*body->nodes())[0] : body;
+}
 
 Parser::Node *Parser::parse_lit(Env *env, LocalsVectorPtr locals) {
     Value *value;
@@ -290,6 +327,8 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type) {
     case Type::Identifier:
     case Type::InstanceVariable:
         return &Parser::parse_identifier;
+    case Type::IfKeyword:
+        return &Parser::parse_if;
     case Type::Integer:
     case Type::Float:
         return &Parser::parse_lit;
