@@ -75,6 +75,8 @@ struct Value : public gc {
         assert(klass);
     }
 
+    virtual ~Value() { }
+
     static Value *_new(Env *, Value *, size_t, Value **, Block *);
 
     Value(const Value &);

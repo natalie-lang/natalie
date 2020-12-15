@@ -37,15 +37,6 @@ struct HashValue : Value {
         hashmap_init(&m_hashmap, hash, compare, 256);
     }
 
-    ~HashValue() {
-        destroy_key_list();
-        for (HashValue::Key &node : *this) {
-            delete static_cast<Val *>(hashmap_get(&m_hashmap, &node));
-        }
-        hashmap_destroy(&m_hashmap);
-        delete m_default_block;
-    }
-
     static Value *square_new(Env *, size_t argc, Value **args);
 
     static nat_int_t hash(const void *);

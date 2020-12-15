@@ -30,10 +30,6 @@ struct ModuleValue : Value {
         }
     }
 
-    ~ModuleValue() {
-        delete m_class_name;
-    }
-
     Value *extend(Env *, size_t argc, Value **args);
     void extend_once(Env *, ModuleValue *);
 

@@ -53,11 +53,6 @@ struct Vector : public gc {
         return *this;
     }
 
-    ~Vector() {
-        if (m_data)
-            GC_FREE(m_data);
-    }
-
     T &operator[](size_t index) const {
         return m_data[index];
     }

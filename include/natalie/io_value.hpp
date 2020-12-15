@@ -3,6 +3,7 @@
 #include <assert.h>
 
 #include "natalie/class_value.hpp"
+#include "natalie/finalizer.hpp"
 #include "natalie/forward.hpp"
 #include "natalie/global_env.hpp"
 #include "natalie/macros.hpp"
@@ -10,7 +11,7 @@
 
 namespace Natalie {
 
-struct IoValue : Value {
+struct IoValue : Value, finalizer {
     IoValue(Env *env)
         : Value { Value::Type::Io, env->Object()->const_fetch("IO")->as_class() } { }
 
@@ -20,6 +21,10 @@ struct IoValue : Value {
     IoValue(Env *env, int fileno)
         : Value { Value::Type::Io, env->Object()->const_fetch("IO")->as_class() }
         , m_fileno { fileno } { }
+
+    virtual ~IoValue() {
+        ::close(m_fileno);
+    }
 
     static Value *read_file(Env *, Value *);
 

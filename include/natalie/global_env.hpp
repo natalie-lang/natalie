@@ -22,11 +22,6 @@ struct GlobalEnv : public gc {
         hashmap_set_key_alloc_funcs(m_symbols, hashmap_alloc_key_string, nullptr);
     }
 
-    ~GlobalEnv() {
-        hashmap_destroy(m_globals);
-        hashmap_destroy(m_symbols);
-    }
-
     hashmap *globals() {
         return m_globals;
     }
