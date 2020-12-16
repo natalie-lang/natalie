@@ -13,6 +13,16 @@ describe 'File' do
     }.should raise_error(Errno::ENOENT)
   end
 
+  describe '.open and .new' do
+    it 'accepts a block' do
+      path = File.expand_path('../tmp/file.txt', __dir__)
+      bytes_written = File.open(path, 'w') { |f| f.write('hello world') }
+      actual = File.read(path)
+      actual.should == 'hello world'
+      #bytes_written.should == 11 # FIXME
+    end
+  end
+
   describe '#read' do
     it 'reads the entire file' do
       f = File.new('test/support/file.txt')

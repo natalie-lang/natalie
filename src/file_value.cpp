@@ -45,6 +45,12 @@ Value *FileValue::initialize(Env *env, Value *filename, Value *flags_obj, Block 
         env->raise_exception(error);
     } else {
         set_fileno(fileno);
+        if (block) {
+            Value *block_args[] = { this };
+            NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, block_args, nullptr);
+            close(env);
+            // FIXME: return bytes written
+        }
         return this;
     }
 }
