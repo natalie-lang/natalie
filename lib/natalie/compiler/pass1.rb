@@ -827,6 +827,16 @@ module Natalie
         end
       end
 
+      def process_safe_call(exp)
+        (_, receiver, method, *args) = exp
+        obj = temp('safe_call_obj')
+        exp.new(:block,
+                s(:declare, obj, process(receiver)),
+                s(:c_if, s(:is_truthy, obj),
+                  process(exp.new(:call, receiver, method, *args)),
+                  s(:nil)))
+      end
+
       def process_sclass(exp)
         (_, obj, *body) = exp
         exp.new(:with_self, s(:singleton_class, process(obj), :env),

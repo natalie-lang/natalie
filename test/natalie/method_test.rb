@@ -381,3 +381,14 @@ describe 'method with keyword args' do
     -> { BasicObject.new.inspect }.should raise_error(NoMethodError, /undefined method `inspect' for #<BasicObject:0x.+>/)
   end
 end
+
+def returns_arg(arg)
+  arg
+end
+
+describe 'safe navigation operator' do
+  it 'returns nil if the receiver is nil, otherwise calls the method' do
+    returns_arg(nil)&.first.should be_nil
+    returns_arg([1])&.first.should == 1
+  end
+end
