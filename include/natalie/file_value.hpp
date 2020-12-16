@@ -14,7 +14,7 @@ namespace Natalie {
 
 struct FileValue : IoValue {
     FileValue(Env *env)
-        : IoValue { env } { }
+        : IoValue { env, env->Object()->const_fetch("File")->as_class() } { }
 
     Value *initialize(Env *, Value *, Value *, Block *);
 
