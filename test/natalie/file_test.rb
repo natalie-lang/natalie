@@ -115,12 +115,22 @@ describe 'File' do
     end
   end
 
-  describe '#expand_path' do
+  describe '.expand_path' do
     it 'returns the absolute path given a relative one' do
       File.expand_path('test/spec_helper.rb').should =~ %r{^/.*natalie/test/spec_helper\.rb$}
       File.expand_path('/spec_helper.rb').should == '/spec_helper.rb'
       File.expand_path('../spec_helper.rb', __dir__).should =~ %r{^/.*natalie/test/spec_helper\.rb$}
       File.expand_path('..', __dir__).should =~ %r{^/.*natalie/test$}
+    end
+  end
+
+  describe '.unlink' do
+    it 'deletes the given file path' do
+      path = File.expand_path('../tmp/file_to_delete.txt', __dir__)
+      File.open(path, 'w') { |f| f.write('hello world') }
+      File.unlink(path)
+      -> { File.open(path, 'r') }.should raise_error(Errno::ENOENT)
+      -> { File.unlink(path) }.should raise_error(Errno::ENOENT)
     end
   end
 end

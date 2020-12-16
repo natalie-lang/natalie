@@ -55,6 +55,17 @@ struct FileValue : IoValue {
         return merged;
     }
 
+    static Value *unlink(Env *env, Value *path) {
+        int result = ::unlink(path->as_string()->c_str());
+        if (result == 0) {
+            return new IntegerValue { env, 1 };
+        } else {
+            Value *args[] = { new IntegerValue { env, errno } };
+            auto exception = env->Object()->const_fetch("SystemCallError")->send(env, "exception", 1, args)->as_exception();
+            env->raise_exception(exception);
+        }
+    }
+
     static void build_constants(Env *env, ClassValue *klass) {
         Value *Constants = new ModuleValue { env, "Constants" };
         klass->const_set(env, "Constants", Constants);

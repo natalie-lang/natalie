@@ -413,6 +413,12 @@ Value *FileValue_open_static_binding(Env *env, Value *, size_t argc, Value **arg
     return return_value;
 }
 
+Value *FileValue_unlink_static_binding(Env *env, Value *, size_t argc, Value **args, Block *block) {
+    env->assert_argc(argc, 1);
+    auto return_value = FileValue::unlink(env, argc > 0 ? args[0] : nullptr);
+    return return_value;
+}
+
 Value *FileValue_initialize_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1, 2);
     FileValue *self = self_value->as_file();
@@ -2088,6 +2094,7 @@ void init_bindings(Env *env) {
     Value *File = env->Object()->const_find(env, "File");
     File->define_singleton_method(env, "expand_path", FileValue_expand_path_static_binding);
     File->define_singleton_method(env, "open", FileValue_open_static_binding);
+    File->define_singleton_method(env, "unlink", FileValue_unlink_static_binding);
     File->define_method(env, "initialize", FileValue_initialize_binding);
     File->define_method(env, "path", FileValue_path_binding);
     Value *Float = env->Object()->const_find(env, "Float");
