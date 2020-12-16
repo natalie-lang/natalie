@@ -420,6 +420,13 @@ Value *FileValue_initialize_binding(Env *env, Value *self_value, size_t argc, Va
     return return_value;
 }
 
+Value *FileValue_path_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
+    env->assert_argc(argc, 0);
+    FileValue *self = self_value->as_file();
+    auto return_value = self->path();
+    return new StringValue { env, return_value };
+}
+
 Value *FloatValue_mod_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     FloatValue *self = self_value->as_float();
@@ -2082,6 +2089,7 @@ void init_bindings(Env *env) {
     File->define_singleton_method(env, "expand_path", FileValue_expand_path_static_binding);
     File->define_singleton_method(env, "open", FileValue_open_static_binding);
     File->define_method(env, "initialize", FileValue_initialize_binding);
+    File->define_method(env, "path", FileValue_path_binding);
     Value *Float = env->Object()->const_find(env, "Float");
     Float->define_method(env, "%", FloatValue_mod_binding);
     Float->define_method(env, "*", FloatValue_mul_binding);

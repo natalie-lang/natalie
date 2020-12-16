@@ -83,6 +83,12 @@ struct FileValue : IoValue {
         klass->const_set(env, "SYNC", new IntegerValue { env, O_SYNC });
         Constants->const_set(env, "SYNC", new IntegerValue { env, O_SYNC });
     }
+
+    const char *path() { return m_path; }
+    void set_path(const char *path) { m_path = path; }
+
+private:
+    const char *m_path { nullptr };
 };
 
 }

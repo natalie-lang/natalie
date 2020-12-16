@@ -188,6 +188,8 @@ Value *#{name}(Env *env, Value *, size_t argc, Value **args, Block *block) {
         'return new IntegerValue { env, return_value };'
       when :size_t
         'return IntegerValue::from_size_t(env, return_value);'
+      when :c_str
+        'return new StringValue { env, return_value };'
       when :Value
         'return return_value;'
       when :NullableValue
@@ -293,6 +295,7 @@ gen.binding('Fiber', 'status', 'FiberValue', 'status', argc: 0, pass_env: true, 
 gen.static_binding('File', 'expand_path', 'FileValue', 'expand_path', argc: 1..2, pass_env: true, pass_block: false, return_type: :Value)
 gen.static_binding('File', 'open', 'FileValue', 'open', argc: 1..2, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('File', 'initialize', 'FileValue', 'initialize', argc: 1..2, pass_env: true, pass_block: true, return_type: :Value)
+gen.binding('File', 'path', 'FileValue', 'path', argc: 0, pass_env: false, pass_block: false, return_type: :c_str)
 
 gen.undefine_singleton_method('Float', 'new')
 gen.binding('Float', '%', 'FloatValue', 'mod', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
