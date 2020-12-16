@@ -210,6 +210,17 @@ describe 'string' do
     end
   end
 
+  describe '#start_with?' do
+    it 'returns true if the string starts with the given substring' do
+      s = 'tim morgan'
+      s.start_with?('tim').should be_true
+      s.start_with?('t').should be_true
+      s.start_with?('').should be_true
+      s.start_with?('x').should be_false
+      s.start_with?('xxxxxxxxxxxxxxx').should be_false
+    end
+  end
+
   describe '#sub' do
     it 'returns a duped string if no substitution was made' do
       s = 'tim is ok'

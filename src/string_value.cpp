@@ -216,6 +216,11 @@ Value *StringValue::index(Env *env, Value *needle) {
     return index(env, needle, 0);
 }
 
+bool StringValue::start_with(Env *env, Value *needle) {
+    nat_int_t i = index_int(env, needle, 0);
+    return i == 0;
+}
+
 // FIXME: this does not honor multi-byte characters :-(
 Value *StringValue::index(Env *env, Value *needle, size_t start) {
     nat_int_t i = index_int(env, needle, start);

@@ -118,6 +118,8 @@ struct StringValue : Value {
         return this;
     }
 
+    bool start_with(Env *, Value *);
+
     Value *add(Env *, Value *);
     Value *mul(Env *, Value *);
     Value *cmp(Env *, Value *);

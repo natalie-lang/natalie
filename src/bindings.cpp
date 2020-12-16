@@ -1927,6 +1927,13 @@ Value *StringValue_split_binding(Env *env, Value *self_value, size_t argc, Value
     return return_value;
 }
 
+Value *StringValue_start_with_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
+    env->assert_argc(argc, 1);
+    StringValue *self = self_value->as_string();
+    auto return_value = self->start_with(env, argc > 0 ? args[0] : nullptr);
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+}
+
 Value *StringValue_sub_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 2);
     StringValue *self = self_value->as_string();
@@ -2327,6 +2334,7 @@ void init_bindings(Env *env) {
     String->define_method(env, "ord", StringValue_ord_binding);
     String->define_method(env, "size", StringValue_size_binding);
     String->define_method(env, "split", StringValue_split_binding);
+    String->define_method(env, "start_with?", StringValue_start_with_binding);
     String->define_method(env, "sub", StringValue_sub_binding);
     String->define_method(env, "succ", StringValue_successive_binding);
     String->define_method(env, "to_i", StringValue_to_i_binding);
