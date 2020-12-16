@@ -212,17 +212,6 @@ Value *ArrayValue::each(Env *env, Block *block) {
     return this;
 }
 
-Value *ArrayValue::each_with_index(Env *env, Block *block) {
-    env->assert_block_given(block); // TODO: return Enumerator when no block given
-    assert(size() <= NAT_INT_MAX);
-    nat_int_t u_size = static_cast<size_t>(size());
-    for (nat_int_t i = 0; i < u_size; i++) {
-        Value *args[2] = { (*this)[i], new IntegerValue { env, i } };
-        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 2, args, nullptr);
-    }
-    return this;
-}
-
 Value *ArrayValue::map(Env *env, Block *block) {
     env->assert_block_given(block); // TODO: return Enumerator when no block given
     ArrayValue *new_array = new ArrayValue { env };

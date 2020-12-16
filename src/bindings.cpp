@@ -89,13 +89,6 @@ Value *ArrayValue_each_binding(Env *env, Value *self_value, size_t argc, Value *
     return return_value;
 }
 
-Value *ArrayValue_each_with_index_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
-    env->assert_argc(argc, 0);
-    ArrayValue *self = self_value->as_array();
-    auto return_value = self->each_with_index(env, block);
-    return return_value;
-}
-
 Value *ArrayValue_is_empty_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     ArrayValue *self = self_value->as_array();
@@ -2046,7 +2039,6 @@ void init_bindings(Env *env) {
     Array->define_method(env, "[]=", ArrayValue_refeq_binding);
     Array->define_method(env, "any?", ArrayValue_any_binding);
     Array->define_method(env, "each", ArrayValue_each_binding);
-    Array->define_method(env, "each_with_index", ArrayValue_each_with_index_binding);
     Array->define_method(env, "empty?", ArrayValue_is_empty_binding);
     Array->define_method(env, "filter", ArrayValue_select_binding);
     Array->define_method(env, "first", ArrayValue_first_binding);

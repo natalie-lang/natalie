@@ -42,15 +42,18 @@ module Enumerable
   def each_with_index(*args)
     index = 0
     if block_given?
-      # FIXME: Expose ArgumentError.
-      raise "Wrong number of arguments, given #{args.size} expected 0" unless args.empty?
-      each do |item|
+      each(*args) do |item|
         yield item, index
         index += 1
       end
       self
     else
-      raise 'Support #each_with_index without block'
+      Enumerator.new do |y|
+        each(*args) do |item|
+          y << [item, index]
+          index += 1
+        end
+      end
     end
   end
 

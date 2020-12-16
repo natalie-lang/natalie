@@ -101,7 +101,6 @@ struct ArrayValue : Value {
     Value *eq(Env *, Value *);
     Value *eql(Env *, Value *);
     Value *each(Env *, Block *);
-    Value *each_with_index(Env *, Block *);
     Value *map(Env *, Block *);
     Value *first(Env *);
     Value *last(Env *);

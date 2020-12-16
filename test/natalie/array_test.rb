@@ -456,6 +456,12 @@ describe 'array' do
       end
       result.should == [['a', 0], ['b', 1], ['c', 2]]
     end
+
+    it 'returns an enumerator' do
+      enum = ['a', 'b', 'c'].each_with_index
+      enum.should be_an_instance_of(Enumerator)
+      enum.to_a.should == [['a', 0], ['b', 1], ['c', 2]]
+    end
   end
 
   describe '#map' do
