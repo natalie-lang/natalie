@@ -541,7 +541,7 @@ module Natalie
       def process_super(exp)
         (_, args, block) = exp
         result_name = temp('call_result')
-        if args.size > 1
+        if args
           args_name, args_count = process_atom(args).split(':')
           decl "Value *#{result_name} = self->klass()->superclass()->call_method(env, self->klass()->superclass(), env->find_current_method_name(), self, #{args_count}, #{args_name}, #{block || 'nullptr'});"
         else

@@ -5,6 +5,10 @@ class Greeter
     "Hello."
   end
 
+  def greet_no_arg
+    "Hello."
+  end
+
   def greet_by_name(name)
     "Hello, #{name}."
   end
@@ -29,6 +33,10 @@ end
 class PirateGreeter < Greeter
   def greet
     "ARRRR. #{super}"
+  end
+
+  def greet_no_arg(_arg)
+    "ARRRR. #{super()}"
   end
 
   def greet_by_name(name)
@@ -77,6 +85,11 @@ describe 'super' do
   it 'works with implicit args' do
     greeter = PirateGreeter.new
     greeter.greet_by_name_implicitly('Tim').should == "ARRRR. Hello, Tim."
+  end
+
+  it 'works with explicit empty args' do
+    greeter = PirateGreeter.new
+    greeter.greet_no_arg('Tim').should == "ARRRR. Hello."
   end
 
   it 'works inside a rescue block' do

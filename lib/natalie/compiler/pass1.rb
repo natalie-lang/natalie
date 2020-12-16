@@ -115,12 +115,10 @@ module Natalie
         if method == :block_given?
           return exp.new(:send, receiver, method, args, 'block')
         end
-        call = if is_super
-                 if args.any?
-                   exp.new(:super, args)
-                 else
-                   exp.new(:super, nil)
-                 end
+        call = if is_super == :zsuper
+                 exp.new(:super, nil)
+               elsif is_super
+                 exp.new(:super, args)
                else
                  exp.new(:send, receiver, method, args)
                end
@@ -898,7 +896,7 @@ module Natalie
       end
 
       def process_zsuper(exp)
-        process(exp.new(:super))
+        process_call(exp.new(:call, nil, :super), is_super: :zsuper)
       end
 
       def temp(name)
