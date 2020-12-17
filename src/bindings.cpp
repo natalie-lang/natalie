@@ -1745,10 +1745,52 @@ Value *RegexpValue_match_binding(Env *env, Value *self_value, size_t argc, Value
     return return_value;
 }
 
+Value *SexpValue_new_method_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
+    
+    SexpValue *self = self_value->as_sexp_value_for_method_binding();
+    auto return_value = self->new_method(env, argc, args);
+    return return_value;
+}
+
 Value *SexpValue_inspect_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     SexpValue *self = self_value->as_sexp_value_for_method_binding();
     auto return_value = self->inspect(env);
+    return return_value;
+}
+
+Value *SexpValue_first_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
+    env->assert_argc(argc, 0);
+    SexpValue *self = self_value->as_sexp_value_for_method_binding();
+    auto return_value = self->first(env);
+    return return_value;
+}
+
+Value *SexpValue_file_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
+    env->assert_argc(argc, 0);
+    SexpValue *self = self_value->as_sexp_value_for_method_binding();
+    auto return_value = self->file();
+    return new StringValue { env, return_value };
+}
+
+Value *SexpValue_set_file_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
+    env->assert_argc(argc, 1);
+    SexpValue *self = self_value->as_sexp_value_for_method_binding();
+    auto return_value = self->set_file(env, argc > 0 ? args[0] : nullptr);
+    return return_value;
+}
+
+Value *SexpValue_line_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
+    env->assert_argc(argc, 0);
+    SexpValue *self = self_value->as_sexp_value_for_method_binding();
+    auto return_value = self->line();
+    return IntegerValue::from_size_t(env, return_value);
+}
+
+Value *SexpValue_set_line_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
+    env->assert_argc(argc, 1);
+    SexpValue *self = self_value->as_sexp_value_for_method_binding();
+    auto return_value = self->set_line(env, argc > 0 ? args[0] : nullptr);
     return return_value;
 }
 
@@ -2300,7 +2342,13 @@ void init_bindings(Env *env) {
     Regexp->define_method(env, "inspect", RegexpValue_inspect_binding);
     Regexp->define_method(env, "match", RegexpValue_match_binding);
     Value *Sexp = env->Object()->const_find(env, "Parser")->const_find(env, "Sexp");
+    Sexp->define_method(env, "new", SexpValue_new_method_binding);
     Sexp->define_method(env, "inspect", SexpValue_inspect_binding);
+    Sexp->define_method(env, "sexp_type", SexpValue_first_binding);
+    Sexp->define_method(env, "file", SexpValue_file_binding);
+    Sexp->define_method(env, "file=", SexpValue_set_file_binding);
+    Sexp->define_method(env, "line", SexpValue_line_binding);
+    Sexp->define_method(env, "line=", SexpValue_set_line_binding);
     Value *String = env->Object()->const_find(env, "String");
     String->define_method(env, "*", StringValue_mul_binding);
     String->define_method(env, "+", StringValue_add_binding);

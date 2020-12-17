@@ -23,6 +23,36 @@ struct SexpValue : ArrayValue {
         out->append_char(env, ')');
         return out;
     }
+
+    Value *new_method(Env *env, size_t argc, Value **args) {
+        auto sexp = new SexpValue { env, {} };
+        sexp->m_file = m_file;
+        sexp->m_line = m_line;
+        for (size_t i = 0; i < argc; i++) {
+            sexp->push(args[i]);
+        }
+        return sexp;
+    }
+
+    const char *file() { return m_file; }
+    void set_file(const char *file) { m_file = file; }
+    Value *set_file(Env *env, Value *file) {
+        file->assert_type(env, Value::Type::String, "String");
+        m_file = file->as_string()->c_str();
+        return file;
+    }
+
+    size_t line() { return m_line; }
+    void set_line(size_t line) { m_line = line; }
+    Value *set_line(Env *env, Value *line) {
+        line->assert_type(env, Value::Type::Integer, "Integer");
+        m_line = line->as_integer()->to_nat_int_t();
+        return line;
+    }
+
+private:
+    const char *m_file { nullptr };
+    size_t m_line { 0 };
 };
 
 }
