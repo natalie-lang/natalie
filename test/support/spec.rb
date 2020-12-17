@@ -31,6 +31,24 @@ class Context
   end
 end
 
+class ScratchPad
+  def self.record(item)
+    @record = item
+  end
+
+  def recorded
+    @record
+  end
+
+  def clear
+    @recorded = nil
+  end
+
+  def <<(item)
+    @record << item
+  end
+end
+
 def describe(description, shared: false, &block)
   if shared
     @shared[description] = block
