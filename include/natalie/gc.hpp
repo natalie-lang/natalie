@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string.h>
+
 #ifdef NAT_GC_DISABLE
 class gc { };
 struct GC_stack_base {

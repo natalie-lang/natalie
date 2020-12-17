@@ -6,6 +6,7 @@ namespace Natalie {
 
 struct finalizer {
     finalizer() {
+#ifndef NAT_GC_DISABLE
         GC_finalization_proc oldProc;
         void *oldData;
         void *this_ptr = (void *)this;
@@ -19,6 +20,7 @@ struct finalizer {
                 GC_register_finalizer_ignore_self(base, oldProc, oldData, 0, 0);
             }
         }
+#endif
     }
 
     static void finalize(void *obj, void *);
