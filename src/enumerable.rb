@@ -123,6 +123,14 @@ module Enumerable
     ary
   end
 
+  def map
+    ary = []
+    each do |item|
+      ary << yield(item)
+    end
+    ary
+  end
+
   def take(count)
     if not count.is_a? Integer and count.respond_to? :to_int
       count = count.to_int
