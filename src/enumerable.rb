@@ -125,8 +125,12 @@ module Enumerable
 
   def map
     ary = []
-    each do |item|
-      ary << yield(item)
+    each do |*items|
+      if items.size > 1
+        ary << yield(*items)
+      else
+        ary << yield(items.first)
+      end
     end
     ary
   end

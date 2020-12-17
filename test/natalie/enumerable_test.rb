@@ -15,5 +15,13 @@ describe 'Enumerable' do
 
       Things.new.map { |i| i * 2 }.should == [2, 4, 6]
     end
+
+    it 'works with a hash' do
+      h = { 1 => 2, 3 => 4 }
+      h.map { |k, v| [k, v] }.should == [
+        [1, 2],
+        [3, 4],
+      ]
+    end
   end
 end
