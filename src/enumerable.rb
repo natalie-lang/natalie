@@ -57,6 +57,30 @@ module Enumerable
     end
   end
 
+  def each_with_object(obj)
+    if block_given?
+      each do |*items|
+        if items.size > 1
+          yield items, obj
+        else
+          yield items.first, obj
+        end
+      end
+      obj
+    else
+      Enumerator.new do |y|
+        each do |*items|
+          if items.size > 1
+            y << [items, obj]
+          else
+            y << [items.first, obj]
+          end
+          obj
+        end
+      end
+    end
+  end
+
   def grep(pattern)
     if block_given?
       ary = []
