@@ -2032,6 +2032,13 @@ Value *SymbolValue_inspect_binding(Env *env, Value *self_value, size_t argc, Val
     return return_value;
 }
 
+Value *SymbolValue_start_with_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
+    env->assert_argc(argc, 1);
+    SymbolValue *self = self_value->as_symbol();
+    auto return_value = self->start_with(env, argc > 0 ? args[0] : nullptr);
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+}
+
 Value *SymbolValue_to_proc_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     SymbolValue *self = self_value->as_symbol();
@@ -2385,6 +2392,7 @@ void init_bindings(Env *env) {
     Symbol->define_method(env, "<=>", SymbolValue_cmp_binding);
     Symbol->define_method(env, "id2name", SymbolValue_to_s_binding);
     Symbol->define_method(env, "inspect", SymbolValue_inspect_binding);
+    Symbol->define_method(env, "start_with?", SymbolValue_start_with_binding);
     Symbol->define_method(env, "to_proc", SymbolValue_to_proc_binding);
     Symbol->define_method(env, "to_s", SymbolValue_to_s_binding1);
     Value *TrueClass = env->Object()->const_find(env, "TrueClass");

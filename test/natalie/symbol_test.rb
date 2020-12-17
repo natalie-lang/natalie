@@ -27,4 +27,13 @@ describe 'symbol' do
       :to_i.to_proc.call('2').should == 2
     end
   end
+
+  describe '#start_with?' do
+    it 'returns true if the symbol (when converted to a string) starts with the given substring' do
+      :tim.start_with?('t').should be_true
+      :tim.start_with?('tim').should be_true
+      :tim.start_with?('').should be_true
+      :tim.start_with?('xxxxx').should be_false
+    end
+  end
 end

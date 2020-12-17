@@ -30,6 +30,8 @@ struct SymbolValue : Value {
         return strlen(m_name) > 0 && isupper(m_name[0]);
     }
 
+    bool start_with(Env *, Value *);
+
 private:
     SymbolValue(Env *env, const char *name)
         : Value { Value::Type::Symbol, env->Object()->const_fetch("Symbol")->as_class() }

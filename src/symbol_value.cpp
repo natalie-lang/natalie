@@ -64,4 +64,8 @@ Value *SymbolValue::cmp(Env *env, Value *other_value) {
     return new IntegerValue { env, result };
 }
 
+bool SymbolValue::start_with(Env *env, Value *needle) {
+    return to_s(env)->start_with(env, needle);
+}
+
 }
