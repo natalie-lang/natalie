@@ -105,6 +105,11 @@ Value *ArrayValue::ref(Env *env, Value *index_obj, Value *size) {
             end = this->size() + end;
         }
         if (begin < 0 || end < 0) {
+            if (begin_obj->as_integer()->is_zero()) {
+                // NOTE: not entirely sure about this, but range beginning with 0..
+                // seems to be a special case ¯\_(ツ)_/¯
+                return new ArrayValue { env };
+            }
             return env->nil_obj();
         }
         size_t u_end = static_cast<size_t>(end);

@@ -389,6 +389,8 @@ describe 'array' do
       a[1...-1].should == [2, 3, 4, 5]
       a[1...1].should == []
       a[-1...-1].should == []
+      a = []
+      a[0..-2].should == []
     end
   end
 
