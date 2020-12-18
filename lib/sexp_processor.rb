@@ -11,7 +11,13 @@ class SexpProcessor
 
   def process(ast)
     method = "process_#{ast.sexp_type}"
-    send(method, ast)
+    if respond_to?(method)
+      send(method, ast)
+    elsif default_method
+      send(default_method, ast)
+    else
+      raise NameError
+    end
   end
 end
 
