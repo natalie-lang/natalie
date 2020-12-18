@@ -221,6 +221,13 @@ describe 'string' do
     end
   end
 
+  describe '#empty?' do
+    it 'returns true if the string has a length of 0' do
+      ''.empty?.should be_true
+      'x'.empty?.should be_false
+    end
+  end
+
   describe '#sub' do
     it 'returns a duped string if no substitution was made' do
       s = 'tim is ok'

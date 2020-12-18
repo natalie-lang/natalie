@@ -120,6 +120,7 @@ struct StringValue : Value {
     }
 
     bool start_with(Env *, Value *);
+    bool is_empty() { return m_length == 0; }
 
     Value *add(Env *, Value *);
     Value *mul(Env *, Value *);

@@ -1873,6 +1873,13 @@ Value *StringValue_each_char_binding(Env *env, Value *self_value, size_t argc, V
     return return_value;
 }
 
+Value *StringValue_is_empty_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
+    env->assert_argc(argc, 0);
+    StringValue *self = self_value->as_string();
+    auto return_value = self->is_empty();
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+}
+
 Value *StringValue_encode_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     StringValue *self = self_value->as_string();
@@ -2377,6 +2384,7 @@ void init_bindings(Env *env) {
     String->define_method(env, "bytes", StringValue_bytes_binding);
     String->define_method(env, "chars", StringValue_chars_binding);
     String->define_method(env, "each_char", StringValue_each_char_binding);
+    String->define_method(env, "empty?", StringValue_is_empty_binding);
     String->define_method(env, "encode", StringValue_encode_binding);
     String->define_method(env, "encoding", StringValue_encoding_binding);
     String->define_method(env, "eql?", StringValue_eq_binding2);
