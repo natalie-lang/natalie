@@ -4,7 +4,7 @@ using namespace Natalie;
 
 /* end of front matter */
 
-/*OBJ_NAT*/
+/*NAT_OBJ*/
 
 extern "C" Env *build_top_env() {
     GlobalEnv *global_env = new GlobalEnv {};
@@ -166,19 +166,19 @@ extern "C" Env *build_top_env() {
 
     init_bindings(env);
 
-    /*OBJ_NAT_INIT*/
+    /*NAT_OBJ_INIT*/
 
     return env;
 }
 
-/*TOP*/
+/*NAT_TOP*/
 
 extern "C" Value *EVAL(Env *env) {
     Value *self = env->global_get("$NAT_main_object");
     (void)self; // don't warn about unused var
     volatile bool run_exit_handlers = true;
     try {
-        /*BODY*/
+        /*NAT_BODY*/
         run_exit_handlers = false;
         run_at_exit_handlers(env);
         return env->nil_obj(); // just in case there's no return value
@@ -192,7 +192,7 @@ int main(int argc, char *argv[]) {
     setvbuf(stdout, nullptr, _IOLBF, 1024);
     Env *env = build_top_env();
     ArrayValue *ARGV = new ArrayValue { env };
-    /*INIT*/
+    /*NAT_INIT*/
     env->Object()->const_set(env, "ARGV", ARGV);
     assert(argc > 0);
     for (int i = 1; i < argc; i++) {

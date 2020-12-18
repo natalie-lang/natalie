@@ -35,10 +35,10 @@ module Natalie
     OBJ_TEMPLATE = <<-EOF
       #{MAIN_TEMPLATE.split(/\/\* end of front matter \*\//).first}
 
-      /*TOP*/
+      /*NAT_TOP*/
 
       Value *obj_%{name}(Env *env, Value *self) {
-        /*BODY*/
+        /*NAT_BODY*/
         return env->nil_obj();
       }
     EOF

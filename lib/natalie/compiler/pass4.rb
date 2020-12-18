@@ -112,11 +112,11 @@ module Natalie
       def go(ast)
         result = process(ast)
         @compiler_context[:template]
-          .sub('/*OBJ_NAT*/', obj_declarations.join("\n"))
-          .sub('/*OBJ_NAT_INIT*/', obj_init_lines.join("\n"))
-          .sub('/*TOP*/', top_matter)
-          .sub('/*INIT*/', init_matter.to_s)
-          .sub('/*BODY*/', @decl.join("\n") + "\n" + result)
+          .sub('/*' + 'NAT_OBJ' + '*/', obj_declarations.join("\n"))
+          .sub('/*' + 'NAT_OBJ_INIT' + '*/', obj_init_lines.join("\n"))
+          .sub('/*' + 'NAT_TOP' + '*/', top_matter)
+          .sub('/*' + 'NAT_INIT' + '*/', init_matter.to_s)
+          .sub('/*' + 'NAT_BODY' + '*/', @decl.join("\n") + "\n" + result)
       end
 
       def top_matter
