@@ -1901,6 +1901,13 @@ Value *StringValue_force_encoding_binding(Env *env, Value *self_value, size_t ar
     return return_value;
 }
 
+Value *StringValue_gsub_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
+    env->assert_argc(argc, 2);
+    StringValue *self = self_value->as_string();
+    auto return_value = self->gsub(env, argc > 0 ? args[0] : nullptr, argc > 1 ? args[1] : nullptr);
+    return return_value;
+}
+
 Value *StringValue_index_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     StringValue *self = self_value->as_string();
@@ -2374,6 +2381,7 @@ void init_bindings(Env *env) {
     String->define_method(env, "encoding", StringValue_encoding_binding);
     String->define_method(env, "eql?", StringValue_eq_binding2);
     String->define_method(env, "force_encoding", StringValue_force_encoding_binding);
+    String->define_method(env, "gsub", StringValue_gsub_binding);
     String->define_method(env, "index", StringValue_index_binding);
     String->define_method(env, "initialize", StringValue_initialize_binding);
     String->define_method(env, "inspect", StringValue_inspect_binding);

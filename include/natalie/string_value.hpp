@@ -134,13 +134,14 @@ struct StringValue : Value {
     Value *force_encoding(Env *, Value *);
     Value *ref(Env *, Value *);
     StringValue *sub(Env *, Value *, Value *);
+    StringValue *gsub(Env *, Value *, Value *);
     Value *to_i(Env *, Value *);
     Value *split(Env *, Value *);
     Value *ljust(Env *, Value *, Value *);
 
 private:
     StringValue *expand_backrefs(Env *, StringValue *, MatchDataValue *);
-    StringValue *sub(Env *, RegexpValue *, StringValue *, MatchDataValue **);
+    StringValue *regexp_sub(Env *, RegexpValue *, StringValue *, MatchDataValue **, StringValue **, size_t = 0);
 
     using Value::Value;
 

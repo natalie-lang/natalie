@@ -257,6 +257,16 @@ describe 'string' do
     end
   end
 
+  describe '#gsub' do
+    it 'returns a copy of the string with all matching substrings replaced' do
+      s = 'foo bar foo bar'
+      s.gsub(/foo/, 'bar').should == 'bar bar bar bar'
+      s.gsub(/foo/, 'foo foo').should == 'foo foo bar foo foo bar'
+      s.gsub(/bar/, 'foo').should == 'foo foo foo foo'
+      'abc'.gsub(/([a-z])/, '\0-').should == 'a-b-c-'
+    end
+  end
+
   describe '#to_i' do
     it 'returns an Integer by recognizing digits in the string' do
       '12345'.to_i.should == 12345

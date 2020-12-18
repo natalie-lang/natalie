@@ -35,12 +35,12 @@ Value *RegexpValue::eqtilde(Env *env, Value *other) {
     }
 }
 
-Value *RegexpValue::match(Env *env, Value *other) {
+Value *RegexpValue::match(Env *env, Value *other, size_t start_index) {
     other->assert_type(env, Value::Type::String, "String");
     StringValue *str_obj = other->as_string();
 
     OnigRegion *region = onig_region_new();
-    int result = search(str_obj->c_str(), region, ONIG_OPTION_NONE);
+    int result = search(str_obj->c_str(), start_index, region, ONIG_OPTION_NONE);
     Env *caller_env = env->caller();
     if (result >= 0) {
         caller_env->set_match(new MatchDataValue { env, region, str_obj });

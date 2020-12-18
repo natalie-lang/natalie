@@ -93,7 +93,7 @@ struct RegexpValue : Value {
     Value *initialize(Env *, Value *);
     Value *inspect(Env *env);
     Value *eqtilde(Env *env, Value *);
-    Value *match(Env *env, Value *);
+    Value *match(Env *env, Value *, size_t = 0);
 
 private:
     regex_t *m_regex { nullptr };
