@@ -5,19 +5,24 @@ class SexpProcessor
   attr_accessor :strict
   attr_accessor :expected
 
-  def initialize
+  attr_reader :context
 
+  def initialize
+    @context = []
   end
 
   def process(ast)
     method = "process_#{ast.sexp_type}"
+    context << ast.sexp_type
     if respond_to?(method)
-      send(method, ast)
+      result = send(method, ast)
     elsif default_method
-      send(default_method, ast)
+      result = send(default_method, ast)
     else
       raise NameError
     end
+    context.pop
+    result
   end
 end
 
