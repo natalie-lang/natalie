@@ -138,6 +138,8 @@ struct StringValue : Value {
     Value *ljust(Env *, Value *, Value *);
 
 private:
+    StringValue *expand_backrefs(Env *, StringValue *, MatchDataValue *);
+
     using Value::Value;
 
     void grow(Env *, size_t);

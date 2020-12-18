@@ -568,12 +568,52 @@ StringValue *StringValue::sub(Env *env, Value *find, Value *replacement) {
         size_t length = match->as_match_data()->group(env, 0)->as_string()->length();
         nat_int_t index = match->as_match_data()->index(0);
         StringValue *out = new StringValue { env, m_str, static_cast<size_t>(index) };
-        out->append_string(env, replacement->as_string());
+        out->append_string(env, expand_backrefs(env, replacement->as_string(), match->as_match_data()));
         out->append(env, &m_str[index + length]);
         return out;
     } else {
         env->raise("TypeError", "wrong argument type %s (expected Regexp)", find->klass()->class_name());
     }
+}
+
+StringValue *StringValue::expand_backrefs(Env *env, StringValue *str, MatchDataValue *match) {
+    const char *c_str = str->c_str();
+    size_t len = strlen(c_str);
+    StringValue *expanded = new StringValue { env, "" };
+    for (size_t i = 0; i < len; i++) {
+        auto c = c_str[i];
+        switch (c) {
+        case '\\':
+            c = c_str[++i];
+            switch (c) {
+            case '0':
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+            case '9': {
+                int num = c - 48;
+                expanded->append_string(env, match->group(env, num)->as_string());
+                break;
+            }
+            case '\\':
+                expanded->append_char(env, c);
+                break;
+            // TODO: there are other back references we need to handle, e.g. \&, \', \`, and \+
+            default:
+                fprintf(stderr, "Unknown backslash reference: \\%c", c);
+                abort();
+            }
+            break;
+        default:
+            expanded->append_char(env, c);
+        }
+    }
+    return expanded;
 }
 
 Value *StringValue::to_i(Env *env, Value *base_obj) {

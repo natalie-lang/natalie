@@ -245,6 +245,11 @@ describe 'string' do
       s.sub(/bogus/, '').should == 'tim is ok'
     end
 
+    it 'substitues back references' do
+      '0b1101011'.sub(/0b([01]+)/, 'the binary number is \1').should == 'the binary number is 1101011'
+      'abc'.sub(/([a-z]+)/, '\0def').should == 'abcdef'
+    end
+
     it 'raises an error if the arguments are of the wrong type' do
       -> { 'foo'.sub(1, 'bar') }.should raise_error(TypeError, 'wrong argument type Integer (expected Regexp)')
       -> { 'foo'.sub(:foo, 'bar') }.should raise_error(TypeError, 'wrong argument type Symbol (expected Regexp)')
