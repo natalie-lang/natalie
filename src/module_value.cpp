@@ -423,17 +423,17 @@ Value *ModuleValue::module_eval(Env *env, Block *block) {
 }
 
 Value *ModuleValue::private_method(Env *env, Value *method_name) {
-    printf("TODO: class private\n");
+    // TODO: class private
     return env->nil_obj();
 }
 
 Value *ModuleValue::protected_method(Env *env, Value *method_name) {
-    printf("TODO: class protected\n");
+    // TODO: class protected
     return env->nil_obj();
 }
 
 Value *ModuleValue::public_method(Env *env, Value *method_name) {
-    printf("TODO: class public\n");
+    // TODO: class public
     return env->nil_obj();
 }
 
