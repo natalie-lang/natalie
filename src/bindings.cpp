@@ -423,7 +423,8 @@ Value *FileValue_path_binding(Env *env, Value *self_value, size_t argc, Value **
     env->assert_argc(argc, 0);
     FileValue *self = self_value->as_file();
     auto return_value = self->path();
-    return new StringValue { env, return_value };
+    if (return_value) return new StringValue { env, return_value };
+else return env->nil_obj();
 }
 
 Value *FloatValue_mod_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
@@ -1770,7 +1771,8 @@ Value *SexpValue_file_binding(Env *env, Value *self_value, size_t argc, Value **
     env->assert_argc(argc, 0);
     SexpValue *self = self_value->as_sexp_value_for_method_binding();
     auto return_value = self->file();
-    return new StringValue { env, return_value };
+    if (return_value) return new StringValue { env, return_value };
+else return env->nil_obj();
 }
 
 Value *SexpValue_set_file_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {

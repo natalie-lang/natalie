@@ -189,7 +189,8 @@ Value *#{name}(Env *env, Value *, size_t argc, Value **args, Block *block) {
       when :size_t
         'return IntegerValue::from_size_t(env, return_value);'
       when :c_str
-        'return new StringValue { env, return_value };'
+        "if (return_value) return new StringValue { env, return_value };\n" +
+        'else return env->nil_obj();'
       when :Value
         'return return_value;'
       when :NullableValue
