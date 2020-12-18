@@ -61,6 +61,7 @@ struct StringValue : Value {
         m_capacity = m_length;
     }
 
+    // FIXME: this is memory inefficient if you are slicing a tiny string from a really huge one :-(
     void set_str(const char *str, size_t length) {
         GC_FREE(m_str);
         assert(str);
