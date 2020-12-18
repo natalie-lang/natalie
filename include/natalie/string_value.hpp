@@ -139,6 +139,7 @@ struct StringValue : Value {
 
 private:
     StringValue *expand_backrefs(Env *, StringValue *, MatchDataValue *);
+    StringValue *sub(Env *, RegexpValue *, StringValue *, MatchDataValue **);
 
     using Value::Value;
 

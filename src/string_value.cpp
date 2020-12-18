@@ -561,19 +561,25 @@ StringValue *StringValue::sub(Env *env, Value *find, Value *replacement) {
         out->append(env, &m_str[index + find->as_string()->length()]);
         return out;
     } else if (find->is_regexp()) {
-        Value *match = find->as_regexp()->match(env, this);
-        if (match == env->nil_obj()) {
-            return dup(env)->as_string();
-        }
-        size_t length = match->as_match_data()->group(env, 0)->as_string()->length();
-        nat_int_t index = match->as_match_data()->index(0);
-        StringValue *out = new StringValue { env, m_str, static_cast<size_t>(index) };
-        out->append_string(env, expand_backrefs(env, replacement->as_string(), match->as_match_data()));
-        out->append(env, &m_str[index + length]);
-        return out;
+        MatchDataValue *match;
+        return sub(env, find->as_regexp(), replacement->as_string(), &match);
     } else {
         env->raise("TypeError", "wrong argument type %s (expected Regexp)", find->klass()->class_name());
     }
+}
+
+StringValue *StringValue::sub(Env *env, RegexpValue *find, StringValue *replacement, MatchDataValue **match) {
+    Value *match_result = find->as_regexp()->match(env, this);
+    if (match_result == env->nil_obj()) {
+        return dup(env)->as_string();
+    }
+    *match = match_result->as_match_data();
+    size_t length = (*match)->as_match_data()->group(env, 0)->as_string()->length();
+    nat_int_t index = (*match)->as_match_data()->index(0);
+    StringValue *out = new StringValue { env, m_str, static_cast<size_t>(index) };
+    out->append_string(env, expand_backrefs(env, replacement->as_string(), *match));
+    out->append(env, &m_str[index + length]);
+    return out;
 }
 
 StringValue *StringValue::expand_backrefs(Env *env, StringValue *str, MatchDataValue *match) {
