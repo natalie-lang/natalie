@@ -129,7 +129,7 @@ module Natalie
 
     def to_c
       @ast = expand_macros(@ast, @path)
-      reindent(transform(@ast))
+      transform(@ast)
     end
 
     def load_path
@@ -327,18 +327,6 @@ module Natalie
 
     def find_file_in_load_path(path)
       load_path.map { |d| File.join(d, path) }.detect { |p| File.exist?(p) }
-    end
-
-    def reindent(code)
-      out = []
-      indent = 0
-      code.split("\n").each do |line|
-        indent -= 4 if line =~ /^\s*\}/
-        indent = [0, indent].max
-        out << line.sub(/^\s*/, ' ' * indent)
-        indent += 4 if line.end_with?('{')
-      end
-      out.join("\n")
     end
   end
 end

@@ -111,12 +111,13 @@ module Natalie
 
       def go(ast)
         result = process(ast)
-        @compiler_context[:template]
+        out = @compiler_context[:template]
           .sub('/*' + 'NAT_OBJ' + '*/', obj_declarations.join("\n"))
           .sub('/*' + 'NAT_OBJ_INIT' + '*/', obj_init_lines.join("\n"))
           .sub('/*' + 'NAT_TOP' + '*/', top_matter)
           .sub('/*' + 'NAT_INIT' + '*/', init_matter.to_s)
           .sub('/*' + 'NAT_BODY' + '*/', @decl.join("\n") + "\n" + result)
+        reindent(out)
       end
 
       def top_matter
@@ -708,6 +709,18 @@ module Natalie
         obj_files.map do |name|
           "obj_#{name}(env, self);"
         end
+      end
+
+      def reindent(code)
+        out = []
+        indent = 0
+        code.split("\n").each do |line|
+          indent -= 4 if line =~ /^\s*\}/
+          indent = [0, indent].max
+          out << line.sub(/^\s*/, ' ' * indent)
+          indent += 4 if line.end_with?('{')
+        end
+        out.join("\n")
       end
     end
   end
