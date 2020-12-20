@@ -45,6 +45,8 @@ struct HashValue : Value {
     size_t size() { return m_hashmap.num_entries; }
     Value *size(Env *);
 
+    bool is_empty() { return m_hashmap.num_entries == 0; }
+
     Value *get(Env *, Value *);
     Value *get_default(Env *, Value *);
     void put(Env *, Value *, Value *);

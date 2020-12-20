@@ -776,6 +776,13 @@ Value *HashValue_each_binding(Env *env, Value *self_value, size_t argc, Value **
     return return_value;
 }
 
+Value *HashValue_is_empty_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
+    env->assert_argc(argc, 0);
+    HashValue *self = self_value->as_hash();
+    auto return_value = self->is_empty();
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+}
+
 Value *HashValue_initialize_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0, 1);
     HashValue *self = self_value->as_hash();
@@ -2213,6 +2220,7 @@ void init_bindings(Env *env) {
     Hash->define_method(env, "[]=", HashValue_refeq_binding);
     Hash->define_method(env, "delete", HashValue_delete_key_binding);
     Hash->define_method(env, "each", HashValue_each_binding);
+    Hash->define_method(env, "empty?", HashValue_is_empty_binding);
     Hash->define_method(env, "initialize", HashValue_initialize_binding);
     Hash->define_method(env, "inspect", HashValue_inspect_binding);
     Hash->define_method(env, "key?", HashValue_has_key_binding);
