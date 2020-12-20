@@ -382,4 +382,26 @@ Value *ArrayValue::select(Env *env, Block *block) {
     return new_array;
 }
 
+Value *ArrayValue::max(Env *env) {
+    if (m_vector.size() == 0)
+        return env->nil_obj();
+    Value *max = nullptr;
+    for (auto item : *this) {
+        if (!max || item->send(env, ">", 1, &max)->is_truthy())
+            max = item;
+    }
+    return max;
+}
+
+Value *ArrayValue::min(Env *env) {
+    if (m_vector.size() == 0)
+        return env->nil_obj();
+    Value *min = nullptr;
+    for (auto item : *this) {
+        if (!min || item->send(env, "<", 1, &min)->is_truthy())
+            min = item;
+    }
+    return min;
+}
+
 }

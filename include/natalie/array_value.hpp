@@ -91,26 +91,29 @@ struct ArrayValue : Value {
     bool is_empty() { return m_vector.is_empty(); }
 
     Value *initialize(Env *, Value *, Value *);
-    Value *inspect(Env *);
-    Value *ltlt(Env *, Value *);
+
     Value *add(Env *, Value *);
-    Value *sub(Env *, Value *);
-    Value *ref(Env *, Value *, Value *);
-    Value *refeq(Env *, Value *, Value *, Value *);
     Value *any(Env *, size_t, Value **, Block *);
+    Value *cmp(Env *, Value *);
+    Value *each(Env *, Block *);
     Value *eq(Env *, Value *);
     Value *eql(Env *, Value *);
-    Value *each(Env *, Block *);
-    Value *map(Env *, Block *);
     Value *first(Env *);
-    Value *last(Env *);
     Value *include(Env *, Value *);
-    Value *sort(Env *);
-    Value *shift(Env *, Value *);
+    Value *inspect(Env *);
     Value *join(Env *, Value *);
-    Value *cmp(Env *, Value *);
-    Value *select(Env *, Block *);
+    Value *last(Env *);
+    Value *ltlt(Env *, Value *);
+    Value *map(Env *, Block *);
+    Value *max(Env *);
+    Value *min(Env *);
+    Value *ref(Env *, Value *, Value *);
+    Value *refeq(Env *, Value *, Value *, Value *);
     Value *sample(Env *);
+    Value *select(Env *, Block *);
+    Value *shift(Env *, Value *);
+    Value *sort(Env *);
+    Value *sub(Env *, Value *);
 
 private:
     ArrayValue(Env *env, Vector<Value *> &&vector)

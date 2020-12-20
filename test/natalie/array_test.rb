@@ -593,4 +593,20 @@ describe 'array' do
       [].sample.should == nil
     end
   end
+
+  describe '#max' do
+    [].max.should == nil
+    [10].max.should == 10
+    [1, 3].max.should == 3
+    [1, 0, -1].max.should == 1
+    ['abc', 'mno', 'xyz'].max.should == 'xyz'
+  end
+
+  describe '#min' do
+    [].min.should == nil
+    [10].min.should == 10
+    [1, 3].min.should == 1
+    [1, 0, -1].min.should == -1
+    ['abc', 'mno', 'xyz'].min.should == 'abc'
+  end
 end

@@ -159,6 +159,20 @@ Value *ArrayValue_map_binding(Env *env, Value *self_value, size_t argc, Value **
     return return_value;
 }
 
+Value *ArrayValue_max_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
+    env->assert_argc(argc, 0);
+    ArrayValue *self = self_value->as_array();
+    auto return_value = self->max(env);
+    return return_value;
+}
+
+Value *ArrayValue_min_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
+    env->assert_argc(argc, 0);
+    ArrayValue *self = self_value->as_array();
+    auto return_value = self->min(env);
+    return return_value;
+}
+
 Value *ArrayValue_pop_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     ArrayValue *self = self_value->as_array();
@@ -2121,6 +2135,8 @@ void init_bindings(Env *env) {
     Array->define_method(env, "last", ArrayValue_last_binding);
     Array->define_method(env, "length", ArrayValue_size_binding);
     Array->define_method(env, "map", ArrayValue_map_binding);
+    Array->define_method(env, "max", ArrayValue_max_binding);
+    Array->define_method(env, "min", ArrayValue_min_binding);
     Array->define_method(env, "pop", ArrayValue_pop_binding);
     Array->define_method(env, "select", ArrayValue_select_binding1);
     Array->define_method(env, "shift", ArrayValue_shift_binding);
