@@ -1915,6 +1915,13 @@ Value *StringValue_encoding_binding(Env *env, Value *self_value, size_t argc, Va
     return return_value;
 }
 
+Value *StringValue_end_with_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
+    env->assert_argc(argc, 1);
+    StringValue *self = self_value->as_string();
+    auto return_value = self->end_with(env, argc > 0 ? args[0] : nullptr);
+    if (return_value) { return env->true_obj(); } else { return env->false_obj(); }
+}
+
 Value *StringValue_eq_binding2(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 1);
     StringValue *self = self_value->as_string();
@@ -2411,6 +2418,7 @@ void init_bindings(Env *env) {
     String->define_method(env, "empty?", StringValue_is_empty_binding);
     String->define_method(env, "encode", StringValue_encode_binding);
     String->define_method(env, "encoding", StringValue_encoding_binding);
+    String->define_method(env, "end_with?", StringValue_end_with_binding);
     String->define_method(env, "eql?", StringValue_eq_binding2);
     String->define_method(env, "force_encoding", StringValue_force_encoding_binding);
     String->define_method(env, "gsub", StringValue_gsub_binding);

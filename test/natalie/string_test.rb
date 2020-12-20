@@ -221,6 +221,18 @@ describe 'string' do
     end
   end
 
+  describe '#end_with?' do
+    it 'returns true if the string ends with the given substring' do
+      s = 'tim morgan'
+      s.end_with?('tim morgan').should be_true
+      s.end_with?('morgan').should be_true
+      s.end_with?('n').should be_true
+      s.end_with?('').should be_true
+      s.end_with?('x').should be_false
+      s.end_with?('xxxxxxxxxxxxxxx').should be_false
+    end
+  end
+
   describe '#empty?' do
     it 'returns true if the string has a length of 0' do
       ''.empty?.should be_true

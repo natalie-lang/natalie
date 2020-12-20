@@ -221,6 +221,15 @@ bool StringValue::start_with(Env *env, Value *needle) {
     return i == 0;
 }
 
+bool StringValue::end_with(Env *env, Value *needle) {
+    needle->assert_type(env, Value::Type::String, "String");
+    if (m_length < needle->as_string()->length())
+        return false;
+    auto from_end = new StringValue { env, m_str + m_length - needle->as_string()->length() };
+    nat_int_t i = from_end->index_int(env, needle, 0);
+    return i == 0;
+}
+
 // FIXME: this does not honor multi-byte characters :-(
 Value *StringValue::index(Env *env, Value *needle, size_t start) {
     nat_int_t i = index_int(env, needle, start);

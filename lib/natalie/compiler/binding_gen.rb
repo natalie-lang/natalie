@@ -529,6 +529,7 @@ gen.binding('String', 'each_char', 'StringValue', 'each_char', argc: 0, pass_env
 gen.binding('String', 'empty?', 'StringValue', 'is_empty', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('String', 'encode', 'StringValue', 'encode', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('String', 'encoding', 'StringValue', 'encoding', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('String', 'end_with?', 'StringValue', 'end_with', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('String', 'eql?', 'StringValue', 'eq', argc: 1, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('String', 'force_encoding', 'StringValue', 'force_encoding', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('String', 'gsub', 'StringValue', 'gsub', argc: 2, pass_env: true, pass_block: false, return_type: :Value)
