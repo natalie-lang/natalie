@@ -342,6 +342,20 @@ describe 'string' do
     end
   end
 
+  describe '#strip' do
+    it 'returns a copy of the string with all starting and ending spaces removed' do
+      ''.strip.should == ''
+      '    foo    '.strip.should == 'foo'
+      " \n  foo  \t  ".strip.should == 'foo'
+    end
+
+    it 'makes a copy of the string if no changes were made' do
+      s1 = 'foo'
+      s2 = s1.strip
+      s1.object_id.should_not == s2
+    end
+  end
+
   describe 'subclass' do
     class NegativeString < String
       def initialize(s)

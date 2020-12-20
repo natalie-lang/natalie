@@ -731,4 +731,24 @@ Value *StringValue::ljust(Env *env, Value *length_obj, Value *pad_obj) {
     return copy;
 }
 
+Value *StringValue::strip(Env *env) {
+    if (m_length == 0)
+        return new StringValue { env };
+    assert(m_length < NAT_INT_MAX);
+    nat_int_t first_char, last_char;
+    nat_int_t length = static_cast<nat_int_t>(m_length);
+    for (first_char = 0; first_char < length; first_char++) {
+        char c = m_str[first_char];
+        if (c != ' ' && c != '\t' && c != '\n')
+            break;
+    }
+    for (last_char = length - 1; last_char >= 0; last_char--) {
+        char c = m_str[last_char];
+        if (c != ' ' && c != '\t' && c != '\n')
+            break;
+    }
+    size_t new_length = static_cast<size_t>(last_char - first_char + 1);
+    return new StringValue { env, m_str + first_char, new_length };
+}
+
 }

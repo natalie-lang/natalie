@@ -123,23 +123,25 @@ struct StringValue : Value {
     bool end_with(Env *, Value *);
     bool is_empty() { return m_length == 0; }
 
-    Value *add(Env *, Value *);
-    Value *mul(Env *, Value *);
-    Value *cmp(Env *, Value *);
-    Value *eqtilde(Env *, Value *);
-    Value *match(Env *, Value *);
-    Value *ord(Env *);
-    Value *bytes(Env *);
-    Value *size(Env *);
-    Value *encoding(Env *);
-    Value *encode(Env *, Value *);
-    Value *force_encoding(Env *, Value *);
-    Value *ref(Env *, Value *);
-    StringValue *sub(Env *, Value *, Value *);
     StringValue *gsub(Env *, Value *, Value *);
-    Value *to_i(Env *, Value *);
-    Value *split(Env *, Value *);
+    StringValue *sub(Env *, Value *, Value *);
+
+    Value *add(Env *, Value *);
+    Value *bytes(Env *);
+    Value *cmp(Env *, Value *);
+    Value *encode(Env *, Value *);
+    Value *encoding(Env *);
+    Value *eqtilde(Env *, Value *);
+    Value *force_encoding(Env *, Value *);
     Value *ljust(Env *, Value *, Value *);
+    Value *match(Env *, Value *);
+    Value *mul(Env *, Value *);
+    Value *ord(Env *);
+    Value *ref(Env *, Value *);
+    Value *size(Env *);
+    Value *split(Env *, Value *);
+    Value *strip(Env *);
+    Value *to_i(Env *, Value *);
 
 private:
     StringValue *expand_backrefs(Env *, StringValue *, MatchDataValue *);
