@@ -15,6 +15,14 @@ describe 'string' do
     end
   end
 
+  describe '#size' do
+    it 'returns the number of characters in the string'
+  end
+
+  describe '#length' do
+    it 'returns the number of characters in the string'
+  end
+
   describe "#<=>" do
     it "should return -1 if lhs is less than rhs" do
       ('a' <=> 'b').should == -1
