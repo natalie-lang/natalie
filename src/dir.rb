@@ -8,6 +8,10 @@ class Dir
     '/tmp'
   end
 
+  def self.children(dirname)
+    each_child(dirname).to_a
+  end
+
   def self.each_child(dirname)
     __inline__ <<-END
         auto dirname = args[0];

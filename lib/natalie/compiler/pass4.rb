@@ -693,8 +693,9 @@ module Natalie
       end
 
       def obj_files
-        list = Dir[File.expand_path('../../../src/*.rb', __dir__)].sort.map do |path|
-          File.split(path).last.split('.').first
+        rb_files = Dir.children(File.expand_path('../../../src', __dir__)).grep(/\.rb$/)
+        list = rb_files.sort.map do |name|
+          name.split('.').first
         end
         ['exception'] + (list - ['exception'])
       end
