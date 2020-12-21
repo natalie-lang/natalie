@@ -42,6 +42,7 @@ struct Env : public gc {
     [[noreturn]] void raise(const char *, const char *, ...);
     [[noreturn]] void raise_exception(ExceptionValue *);
     [[noreturn]] void raise_local_jump_error(Value *, const char *);
+    [[noreturn]] void raise_errno();
 
     void assert_argc(size_t, size_t);
     void assert_argc(size_t, size_t, size_t);

@@ -86,4 +86,6 @@ char *zero_string(int);
 
 Block *proc_to_block_arg(Env *, Value *);
 
+Value *shell_backticks(Env *, Value *);
+
 }

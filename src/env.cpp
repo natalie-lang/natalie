@@ -105,6 +105,12 @@ void Env::raise_local_jump_error(Value *exit_value, const char *message) {
     this->raise_exception(exception);
 }
 
+void Env::raise_errno() {
+    Value *exception_args[] = { new IntegerValue { this, errno } };
+    ExceptionValue *error = Object()->const_find(this, "SystemCallError")->send(this, "exception", 1, exception_args, nullptr)->as_exception();
+    raise_exception(error);
+}
+
 void Env::assert_argc(size_t argc, size_t expected) {
     if (argc != expected) {
         raise("ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, expected);

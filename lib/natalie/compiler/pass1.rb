@@ -318,6 +318,19 @@ module Natalie
                 string)
       end
 
+      def process_dxstr(exp)
+        exp = process_dstr(exp)
+        exp.new(:shell_backticks,
+                :env,
+                s(:declare, eval_string, s(:new, :StringValue, :env, s(:s, start))),
+                *segments,
+                string)
+      end
+
+      def process_xstr(exp)
+        exp.new(:shell_backticks, :env, process_str(exp))
+      end
+
       def process_dsym(exp)
         str_node = process_dstr(exp)
         str = str_node.pop

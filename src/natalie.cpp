@@ -370,4 +370,29 @@ Block *proc_to_block_arg(Env *env, Value *proc_or_nil) {
     return proc_or_nil->to_proc(env)->block();
 }
 
+#define NAT_SHELL_READ_BYTES 1024
+
+Value *shell_backticks(Env *env, Value *command) {
+    command->assert_type(env, Value::Type::String, "String");
+    auto process = popen(command->as_string()->c_str(), "r");
+    if (!process)
+        env->raise_errno();
+    char buf[NAT_SHELL_READ_BYTES];
+    auto result = fgets(buf, NAT_SHELL_READ_BYTES, process);
+    if (!result)
+        return env->nil_obj();
+    StringValue *out = new StringValue { env, buf };
+    while (1) {
+        result = fgets(buf, NAT_SHELL_READ_BYTES, process);
+        if (!result) break;
+        out->append(env, buf);
+    }
+    auto status = pclose(process);
+    auto status_obj = env->Object()->const_fetch("Process")->const_fetch("Status")->send(env, "new");
+    status_obj->ivar_set(env, "@exitstatus", new IntegerValue { env, status >> 8 });
+    // TODO: set ivar @pid
+    env->global_set("$?", status_obj);
+    return out;
+}
+
 }
