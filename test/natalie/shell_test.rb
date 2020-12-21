@@ -12,5 +12,9 @@ describe 'shell out' do
       `which not_a_thing_on_the_path 2>&1`
       $?.exitstatus.should == 1
     end
+
+    it 'works with interpolated strings' do
+      `echo #{1 + 1}`.should == "2\n"
+    end
   end
 end

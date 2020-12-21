@@ -319,12 +319,7 @@ module Natalie
       end
 
       def process_dxstr(exp)
-        exp = process_dstr(exp)
-        exp.new(:shell_backticks,
-                :env,
-                s(:declare, eval_string, s(:new, :StringValue, :env, s(:s, start))),
-                *segments,
-                string)
+        exp.new(:shell_backticks, :env, process_dstr(exp))
       end
 
       def process_xstr(exp)
