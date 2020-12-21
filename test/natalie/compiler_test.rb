@@ -1,10 +1,7 @@
 require 'sexp_processor'
 
 require_relative '../spec_helper'
-require_relative '../../lib/natalie/compiler/pass1'
-require_relative '../../lib/natalie/compiler/pass2'
-require_relative '../../lib/natalie/compiler/pass3'
-require_relative '../../lib/natalie/compiler/pass4'
+require_relative '../../lib/natalie/compiler'
 
 describe 'Natalie::Compiler' do
   describe 'Pass1' do
