@@ -88,4 +88,7 @@ Block *proc_to_block_arg(Env *, Value *);
 
 Value *shell_backticks(Env *, Value *);
 
+FILE *popen2(const char *, const char *, int &);
+int pclose2(FILE *, pid_t);
+
 }

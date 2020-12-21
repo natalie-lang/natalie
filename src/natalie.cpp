@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include <math.h>
 #include <stdarg.h>
+#include <sys/wait.h>
 
 namespace Natalie {
 
@@ -374,25 +375,90 @@ Block *proc_to_block_arg(Env *env, Value *proc_or_nil) {
 
 Value *shell_backticks(Env *env, Value *command) {
     command->assert_type(env, Value::Type::String, "String");
-    auto process = popen(command->as_string()->c_str(), "r");
+    int pid;
+    auto process = popen2(command->as_string()->c_str(), "r", pid);
     if (!process)
         env->raise_errno();
     char buf[NAT_SHELL_READ_BYTES];
     auto result = fgets(buf, NAT_SHELL_READ_BYTES, process);
-    if (!result)
-        return env->nil_obj();
-    StringValue *out = new StringValue { env, buf };
-    while (1) {
-        result = fgets(buf, NAT_SHELL_READ_BYTES, process);
-        if (!result) break;
-        out->append(env, buf);
+    Value *out;
+    if (result) {
+        StringValue *out_string = new StringValue { env, buf };
+        while (1) {
+            result = fgets(buf, NAT_SHELL_READ_BYTES, process);
+            if (!result) break;
+            out_string->append(env, buf);
+        }
+        out = out_string;
+    } else {
+        out = env->nil_obj();
     }
-    auto status = pclose(process);
+    int status = pclose2(process, pid);
     auto status_obj = env->Object()->const_fetch("Process")->const_fetch("Status")->send(env, "new");
-    status_obj->ivar_set(env, "@exitstatus", new IntegerValue { env, status >> 8 });
-    // TODO: set ivar @pid
+    status_obj->ivar_set(env, "@exitstatus", new IntegerValue { env, WEXITSTATUS(status) });
+    status_obj->ivar_set(env, "@pid", new IntegerValue { env, pid });
     env->global_set("$?", status_obj);
     return out;
+}
+
+// https://stackoverflow.com/a/26852210/197498
+FILE *popen2(const char *command, const char *type, int &pid) {
+    pid_t child_pid;
+    int fd[2];
+    pipe(fd);
+
+    const int read = 0;
+    const int write = 1;
+
+    bool is_read = strcmp(type, "r") == 0;
+
+    if ((child_pid = fork()) == -1) {
+        perror("fork");
+        exit(1);
+    }
+
+    // child process
+    if (child_pid == 0) {
+        if (is_read) {
+            close(fd[read]); // close the READ end of the pipe since the child's fd is write-only
+            dup2(fd[write], 1); // redirect stdout to pipe
+        } else {
+            close(fd[write]); // close the WRITE end of the pipe since the child's fd is read-only
+            dup2(fd[read], 0); // redirect stdin to pipe
+        }
+
+        setpgid(child_pid, child_pid); //Needed so negative PIDs can kill children of /bin/sh
+        execl("/bin/sh", "/bin/sh", "-c", command, NULL);
+        exit(0);
+    } else {
+        if (is_read) {
+            close(fd[write]); // close the WRITE end of the pipe since parent's fd is read-only
+        } else {
+            close(fd[read]); // close the READ end of the pipe since parent's fd is write-only
+        }
+    }
+
+    pid = child_pid;
+
+    if (is_read)
+        return fdopen(fd[read], "r");
+
+    return fdopen(fd[write], "w");
+}
+
+// https://stackoverflow.com/a/26852210/197498
+int pclose2(FILE *fp, pid_t pid) {
+    int stat;
+
+    fclose(fp);
+    while (waitpid(pid, &stat, 0) == -1) {
+        if (errno != EINTR) {
+            stat = -1;
+            break;
+        }
+    }
+
+    return stat;
 }
 
 }
