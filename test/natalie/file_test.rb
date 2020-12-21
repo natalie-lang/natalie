@@ -133,4 +133,12 @@ describe 'File' do
       -> { File.unlink(path) }.should raise_error(Errno::ENOENT)
     end
   end
+
+  describe '.exist?' do
+    it 'returns true if the path exists' do
+      File.exist?(__dir__).should be_true
+      File.exist?(__FILE__).should be_true
+      File.exist?('should_not_exist').should be_false
+    end
+  end
 end
