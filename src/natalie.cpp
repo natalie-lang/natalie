@@ -44,8 +44,8 @@ void run_at_exit_handlers(Env *env) {
 }
 
 void print_exception_with_backtrace(Env *env, ExceptionValue *exception) {
-    IoValue *stderr = env->global_get("$stderr")->as_io();
-    int fd = stderr->fileno();
+    IoValue *_stderr = env->global_get("$stderr")->as_io();
+    int fd = _stderr->fileno();
     const ArrayValue *backtrace = exception->backtrace();
     if (backtrace && backtrace->size() > 0) {
         dprintf(fd, "Traceback (most recent call last):\n");

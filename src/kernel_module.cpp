@@ -8,6 +8,8 @@
 #include <sys/time.h>
 #include <sys/wait.h>
 
+extern char **environ;
+
 namespace Natalie {
 
 Value *KernelModule::Array(Env *env, Value *value) {
@@ -192,8 +194,8 @@ Value *KernelModule::p(Env *env, size_t argc, Value **args) {
 }
 
 Value *KernelModule::print(Env *env, size_t argc, Value **args) {
-    IoValue *stdout = env->global_get("$stdout")->as_io();
-    return stdout->print(env, argc, args);
+    IoValue *_stdout = env->global_get("$stdout")->as_io();
+    return _stdout->print(env, argc, args);
 }
 
 Value *KernelModule::proc(Env *env, Block *block) {
@@ -205,8 +207,8 @@ Value *KernelModule::proc(Env *env, Block *block) {
 }
 
 Value *KernelModule::puts(Env *env, size_t argc, Value **args) {
-    IoValue *stdout = env->global_get("$stdout")->as_io();
-    return stdout->puts(env, argc, args);
+    IoValue *_stdout = env->global_get("$stdout")->as_io();
+    return _stdout->puts(env, argc, args);
 }
 
 Value *KernelModule::raise(Env *env, Value *klass, Value *message) {

@@ -137,17 +137,17 @@ extern "C" Env *build_top_env() {
     self->add_main_object_flag();
     env->global_set("$NAT_main_object", self);
 
-    Value *stdin = new IoValue { env, STDIN_FILENO };
-    env->global_set("$stdin", stdin);
-    Object->const_set(env, "STDIN", stdin);
+    Value *_stdin = new IoValue { env, STDIN_FILENO };
+    env->global_set("$stdin", _stdin);
+    Object->const_set(env, "STDIN", _stdin);
 
-    Value *stdout = new IoValue { env, STDOUT_FILENO };
-    env->global_set("$stdout", stdout);
-    Object->const_set(env, "STDOUT", stdout);
+    Value *_stdout = new IoValue { env, STDOUT_FILENO };
+    env->global_set("$stdout", _stdout);
+    Object->const_set(env, "STDOUT", _stdout);
 
-    Value *stderr = new IoValue { env, STDERR_FILENO };
-    env->global_set("$stderr", stderr);
-    Object->const_set(env, "STDERR", stderr);
+    Value *_stderr = new IoValue { env, STDERR_FILENO };
+    env->global_set("$stderr", _stderr);
+    Object->const_set(env, "STDERR", _stderr);
 
     Value *ENV = new Value { env };
     Object->const_set(env, "ENV", ENV);
