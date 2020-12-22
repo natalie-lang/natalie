@@ -294,6 +294,7 @@ gen.binding('Fiber', 'initialize', 'FiberValue', 'initialize', argc: 0, pass_env
 gen.binding('Fiber', 'resume', 'FiberValue', 'resume', argc: :any, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Fiber', 'status', 'FiberValue', 'status', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 
+gen.static_binding('File', 'exist?', 'FileValue', 'exist', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.static_binding('File', 'expand_path', 'FileValue', 'expand_path', argc: 1..2, pass_env: true, pass_block: false, return_type: :Value)
 gen.static_binding('File', 'open', 'FileValue', 'open', argc: 1..2, pass_env: true, pass_block: true, return_type: :Value)
 gen.static_binding('File', 'unlink', 'FileValue', 'unlink', argc: 1, pass_env: true, pass_block: false, return_type: :Value)

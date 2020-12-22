@@ -95,6 +95,12 @@ struct FileValue : IoValue {
         Constants->const_set(env, "SYNC", new IntegerValue { env, O_SYNC });
     }
 
+    static bool exist(Env *env, Value *path) {
+        struct stat sb;
+        path->assert_type(env, Value::Type::String, "String");
+        return stat(path->as_string()->c_str(), &sb) != -1;
+    }
+
     const char *path() { return m_path; }
     void set_path(const char *path) { m_path = path; }
 
