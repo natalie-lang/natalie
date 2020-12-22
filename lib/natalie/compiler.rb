@@ -258,6 +258,7 @@ module Natalie
     end
 
     def macro?(node)
+      return false unless node.is_a?(Sexp)
       return false unless node[0..1] == s(:call, nil)
       %i[require require_relative load].include?(node[2])
     end
