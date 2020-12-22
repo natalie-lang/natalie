@@ -381,17 +381,16 @@ Value *shell_backticks(Env *env, Value *command) {
         env->raise_errno();
     char buf[NAT_SHELL_READ_BYTES];
     auto result = fgets(buf, NAT_SHELL_READ_BYTES, process);
-    Value *out;
+    StringValue *out;
     if (result) {
-        StringValue *out_string = new StringValue { env, buf };
+        out = new StringValue { env, buf };
         while (1) {
             result = fgets(buf, NAT_SHELL_READ_BYTES, process);
             if (!result) break;
-            out_string->append(env, buf);
+            out->append(env, buf);
         }
-        out = out_string;
     } else {
-        out = env->nil_obj();
+        out = new StringValue { env };
     }
     int status = pclose2(process, pid);
     auto status_obj = env->Object()->const_fetch("Process")->const_fetch("Status")->send(env, "new");

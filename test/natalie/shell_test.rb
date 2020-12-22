@@ -6,6 +6,10 @@ describe 'shell out' do
       `echo foo`.should == "foo\n"
     end
 
+    it 'returns an empty string if there is no output' do
+      `sh -c 'exit'`.should == ''
+    end
+
     it 'sets $? to the return value' do
       `echo foo`
       $?.exitstatus.should == 0
