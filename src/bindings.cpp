@@ -1370,6 +1370,13 @@ Value *KernelModule_sleep_binding(Env *env, Value *self_value, size_t argc, Valu
     return return_value;
 }
 
+Value *KernelModule_spawn_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
+    env->assert_argc_at_least(argc, 1);
+    KernelModule *self = self_value->as_kernel_module_for_method_binding();
+    auto return_value = self->spawn(env, argc, args);
+    return return_value;
+}
+
 Value *KernelModule_tap_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     KernelModule *self = self_value->as_kernel_module_for_method_binding();
@@ -2343,6 +2350,7 @@ void init_bindings(Env *env) {
     Kernel->define_method(env, "send", Value_send_binding1);
     Kernel->define_method(env, "singleton_class", KernelModule_singleton_class_obj_binding);
     Kernel->define_method(env, "sleep", KernelModule_sleep_binding);
+    Kernel->define_method(env, "spawn", KernelModule_spawn_binding);
     Kernel->define_method(env, "tap", KernelModule_tap_binding);
     Value *MatchData = env->Object()->const_find(env, "MatchData");
     MatchData->define_method(env, "size", MatchDataValue_size_binding);

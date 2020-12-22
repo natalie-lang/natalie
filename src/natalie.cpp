@@ -427,7 +427,7 @@ FILE *popen2(const char *command, const char *type, int &pid) {
             dup2(fd[read], 0); // redirect stdin to pipe
         }
 
-        setpgid(child_pid, child_pid); //Needed so negative PIDs can kill children of /bin/sh
+        setpgid(child_pid, child_pid); // needed so negative PIDs can kill children of /bin/sh
         execl("/bin/sh", "/bin/sh", "-c", command, NULL);
         exit(0);
     } else {

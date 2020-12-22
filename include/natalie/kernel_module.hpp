@@ -57,6 +57,7 @@ struct KernelModule : Value {
     Value *puts(Env *env, size_t argc, Value **args);
     Value *raise(Env *env, Value *klass, Value *message);
     Value *sleep(Env *env, Value *length);
+    Value *spawn(Env *, size_t, Value **);
     Value *tap(Env *env, Block *block);
     Value *this_method(Env *env);
     bool is_a(Env *env, Value *module);

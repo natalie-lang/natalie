@@ -2,9 +2,11 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <spawn.h>
 #include <sys/resource.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+#include <sys/wait.h>
 
 namespace Natalie {
 
@@ -235,6 +237,24 @@ Value *KernelModule::sleep(Env *env, Value *length) {
     length->assert_type(env, Value::Type::Integer, "Integer"); // TODO: float supported also
     ::sleep(length->as_integer()->to_nat_int_t());
     return length;
+}
+
+Value *KernelModule::spawn(Env *env, size_t argc, Value **args) {
+    pid_t pid;
+    auto command = new Vector<const char *> {};
+    char *cmd[argc + 1];
+    for (size_t i = 0; i < argc; i++) {
+        auto arg = args[i];
+        arg->assert_type(env, Value::Type::String, "String");
+        cmd[i] = GC_STRDUP(arg->as_string()->c_str());
+    }
+    cmd[argc] = nullptr;
+    int result = posix_spawnp(&pid, cmd[0], NULL, NULL, cmd, environ);
+    if (result == 0) {
+        return new IntegerValue { env, pid };
+    } else {
+        env->raise_errno();
+    }
 }
 
 Value *KernelModule::tap(Env *env, Block *block) {

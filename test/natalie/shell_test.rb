@@ -25,4 +25,16 @@ describe 'shell out' do
       `echo #{1 + 1}`.should == "2\n"
     end
   end
+
+  describe 'spawn' do
+    it 'executes the given command with arguments and returns the pid' do
+      pid = spawn('sh', '-c', '')
+      pid.should be_an_instance_of(Integer)
+    end
+
+    xit 'executes the given command string by splitting it apart' do
+      pid = spawn('sh -c ""')
+      pid.should be_an_instance_of(Integer)
+    end
+  end
 end

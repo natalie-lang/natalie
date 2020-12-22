@@ -44,9 +44,9 @@ struct Env : public gc {
     [[noreturn]] void raise_local_jump_error(Value *, const char *);
     [[noreturn]] void raise_errno();
 
-    void assert_argc(size_t, size_t);
-    void assert_argc(size_t, size_t, size_t);
-    void assert_argc_at_least(size_t, size_t);
+    void assert_argc(size_t argc, size_t expected);
+    void assert_argc(size_t argc, size_t expected_low, size_t expected_high);
+    void assert_argc_at_least(size_t argc, size_t expected);
     void assert_block_given(Block *);
 
     Value *last_match();
