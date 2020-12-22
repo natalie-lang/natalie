@@ -35,11 +35,7 @@ module Process
         auto result = waitpid(pid->as_integer()->to_nat_int_t(), &status, flags->as_integer()->to_nat_int_t());
         if (result == -1)
             env->raise_errno();
-        auto status_obj = env->Object()->const_fetch("Process")->const_fetch("Status")->send(env, "new");
-        status_obj->ivar_set(env, "@to_i", new IntegerValue { env, status });
-        status_obj->ivar_set(env, "@exitstatus", new IntegerValue { env, WEXITSTATUS(status) });
-        status_obj->ivar_set(env, "@pid", new IntegerValue { env, result });
-        env->global_set("$?", status_obj);
+        set_status_object(env, result, status);
         return new IntegerValue { env, static_cast<nat_int_t>(result) };
     END
   end

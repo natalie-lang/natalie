@@ -393,11 +393,7 @@ Value *shell_backticks(Env *env, Value *command) {
         out = new StringValue { env };
     }
     int status = pclose2(process, pid);
-    auto status_obj = env->Object()->const_fetch("Process")->const_fetch("Status")->send(env, "new");
-    status_obj->ivar_set(env, "@to_i", new IntegerValue { env, status });
-    status_obj->ivar_set(env, "@exitstatus", new IntegerValue { env, WEXITSTATUS(status) });
-    status_obj->ivar_set(env, "@pid", new IntegerValue { env, pid });
-    env->global_set("$?", status_obj);
+    set_status_object(env, pid, status);
     return out;
 }
 
@@ -459,6 +455,14 @@ int pclose2(FILE *fp, pid_t pid) {
     }
 
     return stat;
+}
+
+void set_status_object(Env *env, int pid, int status) {
+    auto status_obj = env->Object()->const_fetch("Process")->const_fetch("Status")->send(env, "new");
+    status_obj->ivar_set(env, "@to_i", new IntegerValue { env, status });
+    status_obj->ivar_set(env, "@exitstatus", new IntegerValue { env, WEXITSTATUS(status) });
+    status_obj->ivar_set(env, "@pid", new IntegerValue { env, pid });
+    env->global_set("$?", status_obj);
 }
 
 }

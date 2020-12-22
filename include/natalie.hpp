@@ -91,4 +91,6 @@ Value *shell_backticks(Env *, Value *);
 FILE *popen2(const char *, const char *, int &);
 int pclose2(FILE *, pid_t);
 
+void set_status_object(Env *, int, int);
+
 }
