@@ -15,7 +15,7 @@ add_custom_command(
     WORKING_DIRECTORY ${GDTOA_BUILD_DIR}
     COMMAND sh autogen.sh
     COMMAND ./configure --with-pic
-    COMMAND make
+    COMMAND ${CMAKE_MAKE_PROGRAM}
     COMMAND ${CMAKE_COMMAND} -E copy "${GDTOA_BUILD_DIR}/*.h" "${CMAKE_BINARY_DIR}/include/gdtoa"
     COMMAND ${CMAKE_COMMAND} -E copy "${GDTOA_BUILD_DIR}/.libs/libgdtoa.a" "${GDTOA_LIB}")
 

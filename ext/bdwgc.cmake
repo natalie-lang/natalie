@@ -16,7 +16,7 @@ add_custom_command(
     WORKING_DIRECTORY ${BDWGC_BUILD_DIR}
     COMMAND sh autogen.sh
     COMMAND ./configure --enable-cplusplus --enable-threads=pthreads --enable-static --with-pic
-    COMMAND make
+    COMMAND ${CMAKE_MAKE_PROGRAM}
     COMMAND ${CMAKE_COMMAND} -E copy "${BDWGC_BUILD_DIR}/include/*.h" "${CMAKE_BINARY_DIR}/include/bdwgc"
     COMMAND ${CMAKE_COMMAND} -E copy "${BDWGC_BUILD_DIR}/.libs/libgc.a" "${BDWGC_LIB}"
     COMMAND ${CMAKE_COMMAND} -E copy "${BDWGC_BUILD_DIR}/.libs/libgccpp.a" "${BDWGC_CPPLIB}")
