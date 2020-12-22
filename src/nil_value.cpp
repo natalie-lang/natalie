@@ -2,6 +2,10 @@
 
 namespace Natalie {
 
+Value *NilValue::eqtilde(Env *env, Value *) {
+    return env->nil_obj();
+}
+
 Value *NilValue::to_s(Env *env) {
     return new StringValue { env, "" };
 }

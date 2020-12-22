@@ -470,6 +470,7 @@ gen.binding('Module', 'protected', 'ModuleValue', 'protected_method', argc: 0..1
 gen.binding('Module', 'public', 'ModuleValue', 'public_method', argc: 0..1, pass_env: true, pass_block: false, return_type: :Value)
 
 gen.undefine_singleton_method('NilClass', 'new')
+gen.binding('NilClass', '=~', 'NilValue', 'eqtilde', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('NilClass', 'inspect', 'NilValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('NilClass', 'to_a', 'NilValue', 'to_a', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('NilClass', 'to_i', 'NilValue', 'to_i', argc: 0, pass_env: true, pass_block: false, return_type: :Value)

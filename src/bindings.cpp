@@ -1559,6 +1559,13 @@ Value *ModuleValue_public_method_binding(Env *env, Value *self_value, size_t arg
     return return_value;
 }
 
+Value *NilValue_eqtilde_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
+    env->assert_argc(argc, 1);
+    NilValue *self = self_value->as_nil();
+    auto return_value = self->eqtilde(env, argc > 0 ? args[0] : nullptr);
+    return return_value;
+}
+
 Value *NilValue_inspect_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     NilValue *self = self_value->as_nil();
@@ -2366,6 +2373,7 @@ void init_bindings(Env *env) {
     Module->define_method(env, "protected", ModuleValue_protected_method_binding);
     Module->define_method(env, "public", ModuleValue_public_method_binding);
     Value *NilClass = env->Object()->const_find(env, "NilClass");
+    NilClass->define_method(env, "=~", NilValue_eqtilde_binding);
     NilClass->define_method(env, "inspect", NilValue_inspect_binding);
     NilClass->define_method(env, "to_a", NilValue_to_a_binding);
     NilClass->define_method(env, "to_i", NilValue_to_i_binding);
