@@ -3,8 +3,12 @@ cmake_minimum_required(VERSION 3.10)
 project(Natalie)
 
 set(default_build_type "Debug")
-set(CMAKE_CXX_FLAGS_DEBUG "-pthread -ldl -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unknown-warning-option")
-set(CMAKE_CXX_FLAGS_RELEASE "-pthread -ldl -O2")
+set(CMAKE_CXX_FLAGS_DEBUG "-pthread -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unknown-warning-option")
+set(CMAKE_CXX_FLAGS_RELEASE "-pthread -O2")
+if(LINUX)
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ldl")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -ldl")
+endif()
 
 add_custom_target(tests
     COMMAND ruby ${CMAKE_SOURCE_DIR}/test/all.rb
