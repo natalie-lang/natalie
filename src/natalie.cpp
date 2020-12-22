@@ -394,6 +394,7 @@ Value *shell_backticks(Env *env, Value *command) {
     }
     int status = pclose2(process, pid);
     auto status_obj = env->Object()->const_fetch("Process")->const_fetch("Status")->send(env, "new");
+    status_obj->ivar_set(env, "@to_i", new IntegerValue { env, status });
     status_obj->ivar_set(env, "@exitstatus", new IntegerValue { env, WEXITSTATUS(status) });
     status_obj->ivar_set(env, "@pid", new IntegerValue { env, pid });
     env->global_set("$?", status_obj);

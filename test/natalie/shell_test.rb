@@ -13,8 +13,12 @@ describe 'shell out' do
     it 'sets $? to the return value' do
       `echo foo`
       $?.exitstatus.should == 0
+      $?.should == 0
+      $?.to_i.should == 0
       `sh -c 'exit 10'`
       $?.exitstatus.should == 10
+      $?.should == 2560
+      $?.to_i.should == 2560
     end
 
     it 'works with interpolated strings' do
