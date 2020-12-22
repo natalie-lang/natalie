@@ -37,4 +37,13 @@ describe 'shell out' do
       pid.should be_an_instance_of(Integer)
     end
   end
+
+  describe 'Process.wait' do
+    it 'waits for the given process pid to complete and sets $?' do
+      pid = spawn('sleep', '1')
+      result = Process.wait(pid)
+      result.should == pid
+      $?.should == 0
+    end
+  end
 end

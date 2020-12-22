@@ -1,3 +1,7 @@
+require 'natalie/inline'
+
+__inline__ "#include <sys/wait.h>"
+
 module Process
   class Status
     attr_accessor :pid
@@ -11,5 +15,32 @@ module Process
     def ==(other)
       other.is_a?(Integer) && to_i == other
     end
+  end
+
+  def self.wait(pid = -1, flags = 0)
+    __inline__ <<-END
+        // TODO: find a better way to get args into inline code...
+        Value *pid, *flags;
+        if (argc >= 1)
+            pid = args[0];
+        else
+            pid = new IntegerValue { env, -1 };
+        if (argc >= 2)
+            flags = args[1];
+        else
+            flags = new IntegerValue { env, 0 };
+        pid->assert_type(env, Value::Type::Integer, "Integer");
+        flags->assert_type(env, Value::Type::Integer, "Integer");
+        int status;
+        auto result = waitpid(pid->as_integer()->to_nat_int_t(), &status, flags->as_integer()->to_nat_int_t());
+        if (result == -1)
+            env->raise_errno();
+        auto status_obj = env->Object()->const_fetch("Process")->const_fetch("Status")->send(env, "new");
+        status_obj->ivar_set(env, "@to_i", new IntegerValue { env, status });
+        status_obj->ivar_set(env, "@exitstatus", new IntegerValue { env, WEXITSTATUS(status) });
+        status_obj->ivar_set(env, "@pid", new IntegerValue { env, result });
+        env->global_set("$?", status_obj);
+        return new IntegerValue { env, static_cast<nat_int_t>(result) };
+    END
   end
 end
