@@ -1,4 +1,6 @@
-require 'ruby_parser'
+if RUBY_ENGINE != 'natalie'
+  require 'ruby_parser'
+end
 
 module Natalie
   class Parser
@@ -10,6 +12,20 @@ module Natalie
     end
 
     def ast
+      if RUBY_ENGINE == 'natalie'
+        natalie_parse
+      else
+        ruby_parse
+      end
+    end
+
+    private
+
+    def natalie_parse
+      ::Parser.parse(@code_str)
+    end
+
+    def ruby_parse
       node = RubyParser.new.parse(@code_str, @path)
       if node.nil?
         s(:block)
