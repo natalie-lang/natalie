@@ -95,6 +95,7 @@ struct ArrayValue : Value {
     Value *add(Env *, Value *);
     Value *any(Env *, size_t, Value **, Block *);
     Value *cmp(Env *, Value *);
+    Value *compact(Env *);
     Value *each(Env *, Block *);
     Value *eq(Env *, Value *);
     Value *eql(Env *, Value *);

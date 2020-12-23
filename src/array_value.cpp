@@ -404,4 +404,13 @@ Value *ArrayValue::min(Env *env) {
     return min;
 }
 
+Value *ArrayValue::compact(Env *env) {
+    auto ary = new ArrayValue { env };
+    for (auto item : *this) {
+        if (item->is_nil()) continue;
+        ary->push(item);
+    }
+    return ary;
+}
+
 }

@@ -609,4 +609,12 @@ describe 'array' do
     [1, 0, -1].min.should == -1
     ['abc', 'mno', 'xyz'].min.should == 'abc'
   end
+
+  describe '#compact' do
+    [].compact.should == []
+    [nil, 1, nil].compact.should == [1]
+    [nil, false].compact.should == [false]
+    a = []
+    a.compact.object_id.should_not == a.object_id
+  end
 end
