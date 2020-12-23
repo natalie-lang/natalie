@@ -139,7 +139,7 @@ struct StringValue : Value {
     Value *ord(Env *);
     Value *ref(Env *, Value *);
     Value *size(Env *);
-    Value *split(Env *, Value *);
+    Value *split(Env *, Value *, Value *);
     Value *strip(Env *);
     Value *to_i(Env *, Value *);
 

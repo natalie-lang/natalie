@@ -664,12 +664,20 @@ Value *StringValue::to_i(Env *env, Value *base_obj) {
     return new IntegerValue { env, number };
 }
 
-Value *StringValue::split(Env *env, Value *splitter) {
+Value *StringValue::split(Env *env, Value *splitter, Value *max_count_value) {
     ArrayValue *ary = new ArrayValue { env };
     if (!splitter) {
         splitter = new RegexpValue { env, "\\s+" };
     }
+    nat_int_t max_count = 0;
+    if (max_count_value) {
+        max_count_value->assert_type(env, Value::Type::Integer, "Integer");
+        max_count = max_count_value->as_integer()->to_nat_int_t();
+    }
     if (m_length == 0) {
+        return ary;
+    } else if (max_count == 1) {
+        ary->push(dup(env));
         return ary;
     } else if (splitter->is_regexp()) {
         size_t last_index = 0;
@@ -684,6 +692,11 @@ Value *StringValue::split(Env *env, Value *splitter) {
                 len = region->end[0] - region->beg[0];
                 ary->push(new StringValue { env, &m_str[last_index], index - last_index });
                 last_index = index + len;
+                if (max_count > 0 && ary->size() >= static_cast<size_t>(max_count) - 1) {
+                    ary->push(new StringValue { env, &m_str[last_index] });
+                    onig_region_free(region, true);
+                    return ary;
+                }
                 result = splitter->as_regexp()->search(m_str, last_index, region, ONIG_OPTION_NONE);
             } while (result != ONIG_MISMATCH);
             ary->push(new StringValue { env, &m_str[last_index] });
@@ -700,6 +713,10 @@ Value *StringValue::split(Env *env, Value *splitter) {
                 size_t u_index = static_cast<size_t>(index);
                 ary->push(new StringValue { env, &m_str[last_index], u_index - last_index });
                 last_index = u_index + splitter->as_string()->length();
+                if (max_count > 0 && ary->size() >= static_cast<size_t>(max_count) - 1) {
+                    ary->push(new StringValue { env, &m_str[last_index] });
+                    return ary;
+                }
                 index = index_int(env, splitter->as_string(), last_index);
             } while (index != -1);
             ary->push(new StringValue { env, &m_str[last_index] });

@@ -328,6 +328,12 @@ describe 'string' do
       'tim     morgan rocks'.split(/\s+/).should == ['tim', 'morgan', 'rocks']
       'tim morgan rocks'.split(/ mo[a-z]+ /).should == ['tim', 'rocks']
     end
+
+    it 'only splits into the specified number of pieces' do
+      'tim,morgan,rocks'.split(/,/, 1).should == ['tim,morgan,rocks']
+      'tim,morgan,rocks'.split(/,/, 2).should == ['tim', 'morgan,rocks']
+      'tim,morgan,rocks'.split(',', 2).should == ['tim', 'morgan,rocks']
+    end
   end
 
   describe '#ljust' do

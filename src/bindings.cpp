@@ -2020,9 +2020,9 @@ Value *StringValue_size_binding(Env *env, Value *self_value, size_t argc, Value 
 }
 
 Value *StringValue_split_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
-    env->assert_argc(argc, 0, 1);
+    env->assert_argc(argc, 0, 2);
     StringValue *self = self_value->as_string();
-    auto return_value = self->split(env, argc > 0 ? args[0] : nullptr);
+    auto return_value = self->split(env, argc > 0 ? args[0] : nullptr, argc > 1 ? args[1] : nullptr);
     return return_value;
 }
 
