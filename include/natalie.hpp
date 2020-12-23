@@ -48,6 +48,9 @@
 
 namespace Natalie {
 
+extern const char *platform_arch;
+extern const char *platform_os;
+
 extern "C" {
 #include "onigmo.h"
 }

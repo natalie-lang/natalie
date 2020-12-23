@@ -7,6 +7,20 @@
 
 namespace Natalie {
 
+#if defined(__x86_64__)
+const char *platform_arch = "x86_64";
+#else
+const char *platform_arch = "unknown"; // TODO
+#endif
+
+#if defined(__apple__)
+const char *platform_os = "darwin";
+#elif defined(__linux__)
+const char *platform_os = "linux";
+#else
+const char *platform_os = "unknown";
+#endif
+
 bool is_constant_name(const char *name) {
     return strlen(name) > 0 && isupper(name[0]);
 }
