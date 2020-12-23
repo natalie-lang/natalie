@@ -186,11 +186,17 @@ module Natalie
     end
 
     def libraries
-      if ENV['NAT_CXX_FLAGS'] =~ /NAT_GC_DISABLE/
+      libs = if ENV['NAT_CXX_FLAGS'] =~ /NAT_GC_DISABLE/
         LIBRARIES - %w[-lgc -lgccpp]
       else
         LIBRARIES
       end
+
+      if `uname -s`.strip == "Linux"
+        libs.push "-ldl"
+      end
+
+      libs
     end
 
     def cc
@@ -201,8 +207,8 @@ module Natalie
       !!repl
     end
 
-    RELEASE_FLAGS = '-pthread -ldl -O1'
-    DEBUG_FLAGS = '-pthread -ldl -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unknown-warning-option'
+    RELEASE_FLAGS = '-pthread -O1'
+    DEBUG_FLAGS = '-pthread -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unknown-warning-option'
     COVERAGE_FLAGS = '-fprofile-arcs -ftest-coverage'
 
     def build_flags

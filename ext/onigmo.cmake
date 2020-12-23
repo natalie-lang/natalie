@@ -15,8 +15,8 @@ add_custom_command(
     WORKING_DIRECTORY ${ONIGMO_BUILD_DIR}
     COMMAND sh autogen.sh
     COMMAND ./configure --with-pic --prefix "${ONIGMO_BUILD_DIR}"
-    COMMAND make
-    COMMAND make install
+    COMMAND ${CMAKE_MAKE_PROGRAM}
+    COMMAND ${CMAKE_MAKE_PROGRAM} install
     COMMAND ${CMAKE_COMMAND} -E copy "${ONIGMO_BUILD_DIR}/include/*.h" "${CMAKE_BINARY_DIR}/include/onigmo"
     COMMAND ${CMAKE_COMMAND} -E copy "${ONIGMO_BUILD_DIR}/lib/libonigmo.a" "${ONIGMO_LIB}")
 

@@ -9,6 +9,10 @@
 #include "natalie/macros.hpp"
 #include "natalie/value.hpp"
 
+#ifdef fileno
+#undef fileno
+#endif
+
 namespace Natalie {
 
 struct IoValue : Value, finalizer {

@@ -6,7 +6,7 @@ GNUMAKEFLAGS := --no-print-directory
 build: build_debug
 
 build_debug:
-	cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -S . -B build -DCMAKE_BUILD_TYPE="Debug"
+	cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -S . -B build -DCMAKE_BUILD_TYPE="Debug" -DCMAKE_MAKE_PROGRAM="${MAKE}"
 	cmake --build build -j 4
 	cp build/compile_commands.json .
 
