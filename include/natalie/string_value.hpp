@@ -49,6 +49,7 @@ struct StringValue : Value {
     static StringValue *vsprintf(Env *, const char *, va_list);
 
     const char *c_str() const { return m_str; }
+    size_t bytesize() const { return m_length; }
     size_t length() const { return m_length; }
     size_t capcity() const { return m_capacity; }
     Encoding encoding() const { return m_encoding; }
@@ -129,6 +130,7 @@ struct StringValue : Value {
     Value *add(Env *, Value *);
     Value *bytes(Env *);
     Value *cmp(Env *, Value *);
+    Value *downcase(Env *);
     Value *encode(Env *, Value *);
     Value *encoding(Env *);
     Value *eqtilde(Env *, Value *);
@@ -142,6 +144,7 @@ struct StringValue : Value {
     Value *split(Env *, Value *, Value *);
     Value *strip(Env *);
     Value *to_i(Env *, Value *);
+    Value *upcase(Env *);
 
 private:
     StringValue *expand_backrefs(Env *, StringValue *, MatchDataValue *);

@@ -1914,6 +1914,13 @@ Value *StringValue_chars_binding(Env *env, Value *self_value, size_t argc, Value
     return return_value;
 }
 
+Value *StringValue_downcase_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
+    env->assert_argc(argc, 0);
+    StringValue *self = self_value->as_string();
+    auto return_value = self->downcase(env);
+    return return_value;
+}
+
 Value *StringValue_each_char_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
     env->assert_argc(argc, 0);
     StringValue *self = self_value->as_string();
@@ -2086,6 +2093,13 @@ Value *StringValue_to_sym_binding(Env *env, Value *self_value, size_t argc, Valu
     env->assert_argc(argc, 0);
     StringValue *self = self_value->as_string();
     auto return_value = self->to_sym(env);
+    return return_value;
+}
+
+Value *StringValue_upcase_binding(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
+    env->assert_argc(argc, 0);
+    StringValue *self = self_value->as_string();
+    auto return_value = self->upcase(env);
     return return_value;
 }
 
@@ -2452,6 +2466,7 @@ void init_bindings(Env *env) {
     String->define_method(env, "[]", StringValue_ref_binding);
     String->define_method(env, "bytes", StringValue_bytes_binding);
     String->define_method(env, "chars", StringValue_chars_binding);
+    String->define_method(env, "downcase", StringValue_downcase_binding);
     String->define_method(env, "each_char", StringValue_each_char_binding);
     String->define_method(env, "empty?", StringValue_is_empty_binding);
     String->define_method(env, "encode", StringValue_encode_binding);
@@ -2477,6 +2492,7 @@ void init_bindings(Env *env) {
     String->define_method(env, "to_s", StringValue_to_s_binding);
     String->define_method(env, "to_str", StringValue_to_str_binding);
     String->define_method(env, "to_sym", StringValue_to_sym_binding);
+    String->define_method(env, "upcase", StringValue_upcase_binding);
     Value *Symbol = env->Object()->const_find(env, "Symbol");
     Symbol->define_method(env, "<=>", SymbolValue_cmp_binding);
     Symbol->define_method(env, "id2name", SymbolValue_to_s_binding);

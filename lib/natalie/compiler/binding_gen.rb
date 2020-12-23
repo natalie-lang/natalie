@@ -529,6 +529,7 @@ gen.binding('String', '=~', 'StringValue', 'eqtilde', argc: 1, pass_env: true, p
 gen.binding('String', '[]', 'StringValue', 'ref', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('String', 'bytes', 'StringValue', 'bytes', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('String', 'chars', 'StringValue', 'chars', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('String', 'downcase', 'StringValue', 'downcase', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('String', 'each_char', 'StringValue', 'each_char', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('String', 'empty?', 'StringValue', 'is_empty', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('String', 'encode', 'StringValue', 'encode', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
@@ -554,6 +555,7 @@ gen.binding('String', 'to_i', 'StringValue', 'to_i', argc: 0..1, pass_env: true,
 gen.binding('String', 'to_s', 'StringValue', 'to_s', argc: 0, pass_env: false, pass_block: false, return_type: :Value)
 gen.binding('String', 'to_str', 'StringValue', 'to_str', argc: 0, pass_env: false, pass_block: false, return_type: :Value)
 gen.binding('String', 'to_sym', 'StringValue', 'to_sym', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('String', 'upcase', 'StringValue', 'upcase', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 
 gen.undefine_singleton_method('Symbol', 'new')
 gen.binding('Symbol', '<=>', 'SymbolValue', 'cmp', argc: 1, pass_env: true, pass_block: false, return_type: :Value)

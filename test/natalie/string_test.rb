@@ -370,6 +370,18 @@ describe 'string' do
     end
   end
 
+  describe '#downcase' do
+    it 'returns a copy of the string with all characters lower-cased' do
+      'FoObAr'.downcase.should == 'foobar'
+    end
+  end
+
+  describe '#upcase' do
+    it 'returns a copy of the string with all characters upper-cased' do
+      'FoObAr'.upcase.should == 'FOOBAR'
+    end
+  end
+
   describe 'subclass' do
     class NegativeString < String
       def initialize(s)

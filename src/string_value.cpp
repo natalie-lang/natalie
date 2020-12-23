@@ -768,4 +768,40 @@ Value *StringValue::strip(Env *env) {
     return new StringValue { env, m_str + first_char, new_length };
 }
 
+Value *StringValue::downcase(Env *env) {
+    auto ary = chars(env);
+    auto str = new StringValue { env };
+    for (auto c_val : *ary) {
+        auto c_str = c_val->as_string();
+        if (c_str->bytesize() > 1) {
+            str->append_string(env, c_str);
+        } else {
+            auto c = c_str->c_str()[0];
+            if (c >= 65 && c <= 90) {
+                c += 32;
+            }
+            str->append_char(env, c);
+        }
+    }
+    return str;
+}
+
+Value *StringValue::upcase(Env *env) {
+    auto ary = chars(env);
+    auto str = new StringValue { env };
+    for (auto c_val : *ary) {
+        auto c_str = c_val->as_string();
+        if (c_str->bytesize() > 1) {
+            str->append_string(env, c_str);
+        } else {
+            auto c = c_str->c_str()[0];
+            if (c >= 97 && c <= 122) {
+                c -= 32;
+            }
+            str->append_char(env, c);
+        }
+    }
+    return str;
+}
+
 }
