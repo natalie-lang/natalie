@@ -39,6 +39,13 @@ module Enumerable
     end
   end
 
+  def detect
+    each do |item|
+      return item if yield(item)
+    end
+    nil
+  end
+
   def each_with_index(*args)
     index = 0
     if block_given?
@@ -94,6 +101,23 @@ module Enumerable
     else
       select do |item|
         pattern === item
+      end
+    end
+  end
+
+  def grep_v(pattern)
+    if block_given?
+      ary = []
+      each do |*item|
+        item = items.size > 1 ? items : items[0]
+        if !(pattern === item)
+          ary << yield(item)
+        end
+      end
+      ary
+    else
+      select do |item|
+        !(pattern === item)
       end
     end
   end

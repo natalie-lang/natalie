@@ -24,4 +24,9 @@ describe 'Enumerable' do
       ]
     end
   end
+
+  describe '#detect' do
+    i = [1, 2, 3, 4, 5].detect { |i| i > 2 }
+    i.should == 3
+  end
 end
