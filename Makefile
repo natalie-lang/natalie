@@ -21,7 +21,7 @@ cleanall:
 	rm -rf build
 
 test: build
-	ruby test/all.rb
+	bundle exec ruby test/all.rb
 
 test_valgrind:
 	NAT_CXX_FLAGS="-DNAT_GC_DISABLE" make clean build

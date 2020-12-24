@@ -14,6 +14,7 @@ add_custom_command(
     DEPENDS make_bdwgc_build_dir
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${BDWGC_SRC}" "${BDWGC_BUILD_DIR}"
     WORKING_DIRECTORY ${BDWGC_BUILD_DIR}
+    COMMAND [ -e .patched0 ] || (patch -sp0 < ../../ext/bdwgc-openbsd.patch && touch .patched0)
     COMMAND sh autogen.sh
     COMMAND ./configure --enable-cplusplus --enable-threads=pthreads --enable-static --with-pic
     COMMAND ${CMAKE_MAKE_PROGRAM}
