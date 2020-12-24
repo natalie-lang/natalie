@@ -1,0 +1,30 @@
+diff --git include/private/gcconfig.h include/private/gcconfig.h
+index b342883b..f4e04743 100644
+--- include/private/gcconfig.h
++++ include/private/gcconfig.h
+@@ -117,6 +117,10 @@ EXTERN_C_BEGIN
+ /* And one for OpenBSD: */
+ # if defined(__OpenBSD__)
+ #    define OPENBSD
++#    ifndef USE_MMAP
++#      define USE_MMAP
++#    endif
++#    define USE_MMAP_ANON
+ # endif
+ 
+ /* And one for FreeBSD: */
+diff --git os_dep.c os_dep.c
+index a74155e0..02ff7414 100644
+--- os_dep.c
++++ os_dep.c
+@@ -2152,7 +2152,9 @@ void GC_register_data_segments(void)
+ 
+ #ifdef USE_MMAP_ANON
+ # define zero_fd -1
+-# if defined(MAP_ANONYMOUS) && !defined(CPPCHECK)
++# if defined(OPENBSD)
++#   define OPT_MAP_ANON MAP_ANON | MAP_STACK
++# elif defined(MAP_ANONYMOUS) && !defined(CPPCHECK)
+ #   define OPT_MAP_ANON MAP_ANONYMOUS
+ # else
+ #   define OPT_MAP_ANON MAP_ANON
