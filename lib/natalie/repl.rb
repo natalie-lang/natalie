@@ -3,12 +3,18 @@ require 'fileutils'
 require 'tempfile'
 
 begin
-  require 'readline'
+  if STDOUT.tty?
+    require 'readline'
+  else
+    raise LoadError
+  end
 rescue LoadError
   class Readline
     def self.readline(prompt, _)
-      print prompt
-      gets
+      if !(i = gets)
+        exit
+      end
+      i
     end
   end
 end

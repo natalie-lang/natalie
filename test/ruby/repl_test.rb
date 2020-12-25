@@ -8,7 +8,7 @@ class ReplWrapper
   end
 
   def execute(input)
-    @in.puts(input + "\n")
+    @in.puts input
   end
 
   def out
@@ -16,7 +16,7 @@ class ReplWrapper
   end
 
   def quit
-    @in.puts("\x04")
+    @in.close
   end
 
   private
@@ -40,19 +40,12 @@ describe 'REPL' do
     @repl.execute('self')
     @repl.quit
     expect(@repl.out).must_equal dedent(<<-EOF)
-      nat> x = 100
       100
-      nat> y = 3 * 4
       12
-      nat> @z = "z"
       "z"
-      nat> x
       100
-      nat> [y, @z]
       [12, "z"]
-      nat> self
       main
-      nat> 
     EOF
   end
 
