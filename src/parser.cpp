@@ -375,6 +375,12 @@ Parser::Node *Parser::parse_infix_expression(Env *env, Node *left, LocalsVectorP
     return node;
 };
 
+Parser::Node *Parser::parse_range_expression(Env *env, Node *left, LocalsVectorPtr locals) {
+    auto token = current_token();
+    advance();
+    return new RangeNode { left, parse_expression(env, LOWEST, locals), token.type() == Token::Type::DotDotDot };
+}
+
 Parser::Node *Parser::parse_send_expression(Env *env, Node *left, LocalsVectorPtr locals) {
     advance();
     expect(env, Token::Type::Identifier, "send method name");
@@ -440,6 +446,10 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type) {
 Parser::parse_left_fn Parser::left_denotation(Token::Type type) {
     using Type = Token::Type;
     switch (type) {
+    case Type::Equal:
+        return &Parser::parse_assignment_expression;
+    case Type::LParen:
+        return &Parser::parse_call_expression_with_parens;
     case Type::Plus:
     case Type::Minus:
     case Type::Multiply:
@@ -460,10 +470,9 @@ Parser::parse_left_fn Parser::left_denotation(Token::Type type) {
             return &Parser::parse_infix_expression;
         else
             return nullptr;
-    case Type::Equal:
-        return &Parser::parse_assignment_expression;
-    case Type::LParen:
-        return &Parser::parse_call_expression_with_parens;
+    case Type::DotDot:
+    case Type::DotDotDot:
+        return &Parser::parse_range_expression;
     case Type::Dot:
         return &Parser::parse_send_expression;
     case Type::TernaryQuestion:

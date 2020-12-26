@@ -32,6 +32,7 @@ struct Token : public gc {
         DoKeyword,
         Dot,
         DotDot,
+        DotDotDot,
         ElseKeyword,
         ElsifKeyword,
         ENCODINGKeyword,
@@ -215,6 +216,8 @@ struct Token : public gc {
             return SymbolValue::intern(env, "/");
         case Type::DoKeyword:
             return SymbolValue::intern(env, "do");
+        case Type::DotDotDot:
+            return SymbolValue::intern(env, "...");
         case Type::DotDot:
             return SymbolValue::intern(env, "..");
         case Type::Dot:

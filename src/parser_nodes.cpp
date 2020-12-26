@@ -141,6 +141,17 @@ Value *Parser::NilNode::to_ruby(Env *env) {
     return env->nil_obj();
 }
 
+Value *Parser::RangeNode::to_ruby(Env *env) {
+    if (m_first->type() == Node::Type::Literal && static_cast<LiteralNode *>(m_first)->value_type() == Value::Type::Integer && m_last->type() == Node::Type::Literal && static_cast<LiteralNode *>(m_last)->value_type() == Value::Type::Integer) {
+        return new SexpValue {
+            env, { SymbolValue::intern(env, "lit"), new RangeValue { env, static_cast<LiteralNode *>(m_first)->value(), static_cast<LiteralNode *>(m_last)->value(), m_exclude_end } }
+        };
+    }
+    return new SexpValue {
+        env, { SymbolValue::intern(env, m_exclude_end ? "dot3" : "dot2"), m_first->to_ruby(env), m_last->to_ruby(env) }
+    };
+}
+
 Value *Parser::SymbolNode::to_ruby(Env *env) {
     return new SexpValue { env, { SymbolValue::intern(env, "lit"), m_value } };
 }

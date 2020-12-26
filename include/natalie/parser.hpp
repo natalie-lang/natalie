@@ -30,6 +30,7 @@ struct Parser : public gc {
             Literal,
             Module,
             Nil,
+            Range,
             Symbol,
             String,
             True,
@@ -259,6 +260,9 @@ struct Parser : public gc {
 
         virtual Value *to_ruby(Env *) override;
 
+        Value *value() { return m_value; }
+        Value::Type value_type() { return m_value->type(); }
+
     private:
         Value *m_value { nullptr };
     };
@@ -281,6 +285,25 @@ struct Parser : public gc {
         virtual Value *to_ruby(Env *) override;
 
         virtual Type type() override { return Type::Nil; }
+    };
+
+    struct RangeNode : Node {
+        RangeNode(Node *first, Node *last, bool exclude_end)
+            : m_first { first }
+            , m_last { last }
+            , m_exclude_end { exclude_end } {
+            assert(m_first);
+            assert(m_last);
+        }
+
+        virtual Type type() override { return Type::Range; }
+
+        virtual Value *to_ruby(Env *) override;
+
+    private:
+        Node *m_first { nullptr };
+        Node *m_last { nullptr };
+        bool m_exclude_end { false };
     };
 
     struct SymbolNode : Node {
@@ -321,6 +344,7 @@ struct Parser : public gc {
         LOWEST,
         TERNARY,
         ASSIGNMENT,
+        RANGE,
         EQUALITY,
         LESSGREATER,
         SUM,
@@ -344,11 +368,12 @@ private:
                 return SUM;
             else
                 return LOWEST;
-        case Token::Type::Multiply:
-        case Token::Type::Divide:
-            return PRODUCT;
         case Token::Type::Equal:
             return ASSIGNMENT;
+        case Token::Type::LParen:
+            return CALL;
+        case Token::Type::Dot:
+            return DOT;
         case Token::Type::EqualEqual:
             return EQUALITY;
         case Token::Type::LessThan:
@@ -356,10 +381,12 @@ private:
         case Token::Type::GreaterThan:
         case Token::Type::GreaterThanOrEqual:
             return LESSGREATER;
-        case Token::Type::LParen:
-            return CALL;
-        case Token::Type::Dot:
-            return DOT;
+        case Token::Type::Multiply:
+        case Token::Type::Divide:
+            return PRODUCT;
+        case Token::Type::DotDot:
+        case Token::Type::DotDotDot:
+            return RANGE;
         case Token::Type::TernaryQuestion:
         case Token::Type::TernaryColon:
             return TERNARY;
@@ -394,6 +421,7 @@ private:
     Node *parse_call_expression_without_parens(Env *, Node *, LocalsVectorPtr);
     Node *parse_call_expression_with_parens(Env *, Node *, LocalsVectorPtr);
     Node *parse_infix_expression(Env *, Node *, LocalsVectorPtr);
+    Node *parse_range_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_send_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_ternary_expression(Env *, Node *, LocalsVectorPtr);
 

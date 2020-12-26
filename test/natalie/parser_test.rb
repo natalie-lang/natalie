@@ -196,6 +196,11 @@ describe 'Parser' do
                                           s(:lit, 25)))))
     end
 
+    xit 'parses examples/boardslam.rb' do
+      bs = File.read(File.expand_path('../../examples/boardslam.rb', __dir__))
+      Parser.parse(bs)
+    end
+
     it 'parses class definition' do
       Parser.parse("class Foo\nend").should == s(:block, s(:class, :Foo, nil))
       Parser.parse("class Foo;end").should == s(:block, s(:class, :Foo, nil))
@@ -243,6 +248,21 @@ describe 'Parser' do
       Parser.parse("# comment").should == s(:block)
       Parser.parse("# comment\n#comment 2").should == s(:block)
       Parser.parse("1 + 1 # comment").should == s(:block, s(:call, s(:lit, 1), :+, s(:lit, 1)))
+    end
+
+    it 'parses a range' do
+      Parser.parse('1..10').should == s(:block, s(:lit, 1..10))
+      Parser.parse("1..'a'").should == s(:block, s(:dot2, s(:lit, 1), s(:str, 'a')))
+      Parser.parse("'a'..1").should == s(:block, s(:dot2, s(:str, 'a'), s(:lit, 1)))
+      Parser.parse('1...10').should == s(:block, s(:lit, 1...10))
+      Parser.parse('1.1..2.2').should == s(:block, s(:dot2, s(:lit, 1.1), s(:lit, 2.2)))
+      Parser.parse('1.1...2.2').should == s(:block, s(:dot3, s(:lit, 1.1), s(:lit, 2.2)))
+      Parser.parse("'a'..'z'").should == s(:block, s(:dot2, s(:str, "a"), s(:str, "z")))
+      Parser.parse("'a'...'z'").should == s(:block, s(:dot3, s(:str, "a"), s(:str, "z")))
+      Parser.parse("('a')..('z')").should == s(:block, s(:dot2, s(:str, "a"), s(:str, "z")))
+      Parser.parse("('a')...('z')").should == s(:block, s(:dot3, s(:str, "a"), s(:str, "z")))
+      Parser.parse("foo..bar").should == s(:block, s(:dot2, s(:call, nil, :foo), s(:call, nil, :bar)))
+      Parser.parse("foo...bar").should == s(:block, s(:dot3, s(:call, nil, :foo), s(:call, nil, :bar)))
     end
   end
 end

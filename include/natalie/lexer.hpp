@@ -448,15 +448,20 @@ private:
             default:
                 return consume_word(Token::Type::InstanceVariable);
             }
-        case '$': {
+        case '$':
             return consume_word(Token::Type::GlobalVariable);
-        }
         case '.':
             advance();
             switch (current_char()) {
             case '.':
                 advance();
-                return Token { Token::Type::DotDot, m_token_line, m_token_column };
+                switch (current_char()) {
+                case '.':
+                    advance();
+                    return Token { Token::Type::DotDotDot, m_token_line, m_token_column };
+                default:
+                    return Token { Token::Type::DotDot, m_token_line, m_token_column };
+                }
             default:
                 return Token { Token::Type::Dot, m_token_line, m_token_column };
             }

@@ -65,7 +65,7 @@ describe 'Parser' do
     end
 
     it 'tokenizes operators' do
-      operators = %w[+ += - -= * *= ** **= / /= % %= = == === != =~ !~ > >= < <= <=> & | ^ ~ << >> && || ! ? : :: .. &.]
+      operators = %w[+ += - -= * *= ** **= / /= % %= = == === != =~ !~ > >= < <= <=> & | ^ ~ << >> && || ! ? : :: .. ... &.]
       Parser.tokens(operators.join(' ')).should == operators.map { |o| {type: o.to_sym} }
     end
 
