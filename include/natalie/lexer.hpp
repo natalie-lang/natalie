@@ -829,33 +829,61 @@ private:
     Token consume_quoted_array_without_interpolation(char delimiter, Token::Type type) {
         auto buf = std::string("");
         char c = current_char();
+        bool seen_space = false;
+        bool seen_start = false;
         for (;;) {
             if (!c) return Token { Token::Type::UnterminatedString, GC_STRDUP(buf.c_str()), m_token_line, m_token_column };
             if (c == delimiter) {
                 advance();
-                return Token { type, GC_STRDUP(buf.c_str()), m_token_line, m_token_column };
+                break;
             }
-            buf += c;
+            switch (c) {
+            case ' ':
+            case '\t':
+            case '\n':
+                if (!seen_space && seen_start) buf += ' ';
+                seen_space = true;
+                break;
+            default:
+                buf += c;
+                seen_space = false;
+                seen_start = true;
+            }
             advance();
             c = current_char();
         }
-        NAT_UNREACHABLE();
+        if (buf[buf.length() - 1] == ' ') buf.erase(buf.length() - 1, 1);
+        return Token { type, GC_STRDUP(buf.c_str()), m_token_line, m_token_column };
     }
 
     Token consume_quoted_array_with_interpolation(char delimiter, Token::Type type) {
         auto buf = std::string("");
         char c = current_char();
+        bool seen_space = false;
+        bool seen_start = false;
         for (;;) {
             if (!c) return Token { Token::Type::UnterminatedString, GC_STRDUP(buf.c_str()), m_token_line, m_token_column };
             if (c == delimiter) {
                 advance();
-                return Token { type, GC_STRDUP(buf.c_str()), m_token_line, m_token_column };
+                break;
             }
-            buf += c;
+            switch (c) {
+            case ' ':
+            case '\t':
+            case '\n':
+                if (!seen_space && seen_start) buf += ' ';
+                seen_space = true;
+                break;
+            default:
+                buf += c;
+                seen_space = false;
+                seen_start = true;
+            }
             advance();
             c = current_char();
         }
-        NAT_UNREACHABLE();
+        if (buf[buf.length() - 1] == ' ') buf.erase(buf.length() - 1, 1);
+        return Token { type, GC_STRDUP(buf.c_str()), m_token_line, m_token_column };
     }
 
     Token consume_regexp() {

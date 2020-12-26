@@ -282,6 +282,52 @@ Parser::Node *Parser::parse_symbol(Env *env, LocalsVectorPtr locals) {
     return symbol;
 };
 
+Parser::Node *Parser::parse_word_array(Env *env, LocalsVectorPtr locals) {
+    auto array = new ArrayNode {};
+    auto literal = current_token().literal();
+    size_t len = strlen(literal);
+    if (len > 0) {
+        StringValue *string = new StringValue { env };
+        for (size_t i = 0; i < len; i++) {
+            auto c = literal[i];
+            switch (c) {
+            case ' ':
+                array->add_node(new StringNode { string });
+                string = new StringValue { env };
+                break;
+            default:
+                string->append_char(env, c);
+            }
+        }
+        array->add_node(new StringNode { string });
+    }
+    advance();
+    return array;
+}
+
+Parser::Node *Parser::parse_word_symbol_array(Env *env, LocalsVectorPtr locals) {
+    auto array = new ArrayNode {};
+    auto literal = current_token().literal();
+    size_t len = strlen(literal);
+    if (len > 0) {
+        StringValue *string = new StringValue { env };
+        for (size_t i = 0; i < len; i++) {
+            auto c = literal[i];
+            switch (c) {
+            case ' ':
+                array->add_node(new LiteralNode { SymbolValue::intern(env, string->c_str()) });
+                string = new StringValue { env };
+                break;
+            default:
+                string->append_char(env, c);
+            }
+        }
+        array->add_node(new LiteralNode { SymbolValue::intern(env, string->c_str()) });
+    }
+    advance();
+    return array;
+}
+
 Parser::Node *Parser::parse_assignment_expression(Env *env, Node *left, LocalsVectorPtr locals) {
     auto left_identifier = static_cast<IdentifierNode *>(left);
     if (left_identifier->token_type() == Token::Type::Identifier)
@@ -438,6 +484,12 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type) {
         return &Parser::parse_module;
     case Type::String:
         return &Parser::parse_string;
+    case Type::PercentLowerI:
+    case Type::PercentUpperI:
+        return &Parser::parse_word_symbol_array;
+    case Type::PercentLowerW:
+    case Type::PercentUpperW:
+        return &Parser::parse_word_array;
     default:
         return nullptr;
     }

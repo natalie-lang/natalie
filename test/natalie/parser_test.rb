@@ -230,6 +230,14 @@ describe 'Parser' do
       end
     end
 
+    it 'parses word arrays' do
+      Parser.parse('%w[]').should == s(:block, s(:array))
+      Parser.parse("%w[  1 2\t  3\n \n4 ]").should == s(:block, s(:array, s(:str, "1"), s(:str, "2"), s(:str, "3"), s(:str, "4")))
+      Parser.parse("%W[  1 2\t  3\n \n4 ]").should == s(:block, s(:array, s(:str, "1"), s(:str, "2"), s(:str, "3"), s(:str, "4")))
+      Parser.parse("%i[ foo bar ]").should == s(:block, s(:array, s(:lit, :foo), s(:lit, :bar)))
+      Parser.parse("%I[ foo bar ]").should == s(:block, s(:array, s(:lit, :foo), s(:lit, :bar)))
+    end
+
     it 'parses a hash' do
       Parser.parse("{}").should == s(:block, s(:hash))
       Parser.parse("{ 1 => 2 }").should == s(:block, s(:hash, s(:lit, 1), s(:lit, 2)))

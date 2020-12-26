@@ -123,9 +123,10 @@ describe 'Parser' do
     it 'tokenizes arrays' do
       Parser.tokens('["foo"]').should == [{type: :"["}, {type: :string, literal: 'foo'}, {type: :"]"}]
       Parser.tokens('["foo", 1]').should == [{type: :"["}, {type: :string, literal: 'foo'}, {type: :","}, {type: :integer, literal: 1}, {type: :"]"}]
-      Parser.tokens('%w[foo 1]').should == [{type: :"%w", literal: 'foo 1'}]
-      Parser.tokens('%W[foo 1]').should == [{type: :"%W", literal: 'foo 1'}]
-      Parser.tokens('%i[foo 1]').should == [{type: :"%i", literal: 'foo 1'}]
+      Parser.tokens("%w[    foo\n 1\t 2  ]").should == [{type: :"%w", literal: "foo 1 2"}]
+      Parser.tokens("%W[    foo\n 1\t 2  ]").should == [{type: :"%W", literal: "foo 1 2"}]
+      Parser.tokens("%i[    foo\n 1\t 2  ]").should == [{type: :"%i", literal: "foo 1 2"}]
+      Parser.tokens("%I[    foo\n 1\t 2  ]").should == [{type: :"%I", literal: "foo 1 2"}]
     end
 
     it 'tokenizes hashes' do

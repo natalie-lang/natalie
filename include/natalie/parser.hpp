@@ -416,6 +416,8 @@ private:
     Node *parse_module(Env *, LocalsVectorPtr);
     Node *parse_string(Env *, LocalsVectorPtr);
     Node *parse_symbol(Env *, LocalsVectorPtr);
+    Node *parse_word_array(Env *, LocalsVectorPtr);
+    Node *parse_word_symbol_array(Env *, LocalsVectorPtr);
 
     Node *parse_assignment_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_call_expression_without_parens(Env *, Node *, LocalsVectorPtr);
