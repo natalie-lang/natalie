@@ -19,6 +19,8 @@ struct Parser : public gc {
             Assignment,
             Block,
             Call,
+            Class,
+            Constant,
             Def,
             False,
             Identifier,
@@ -105,6 +107,38 @@ struct Parser : public gc {
         Node *m_receiver { nullptr };
         Value *m_message { nullptr };
         Vector<Node *> m_args {};
+    };
+
+    struct ConstantNode;
+
+    struct ClassNode : Node {
+        ClassNode(ConstantNode *name, Node *superclass, BlockNode *body)
+            : m_name { name }
+            , m_superclass { superclass }
+            , m_body { body } { }
+
+        virtual Type type() override { return Type::Class; }
+
+        virtual Value *to_ruby(Env *) override;
+
+    private:
+        ConstantNode *m_name { nullptr };
+        Node *m_superclass { nullptr };
+        BlockNode *m_body { nullptr };
+    };
+
+    struct ConstantNode : Node {
+        ConstantNode(Token token)
+            : m_token { token } { }
+
+        virtual Type type() override { return Type::Constant; }
+
+        virtual Value *to_ruby(Env *) override;
+
+        const char *name() { return m_token.literal(); }
+
+    private:
+        Token m_token {};
     };
 
     struct LiteralNode;
@@ -295,6 +329,8 @@ private:
     Node *parse_if_body(Env *, LocalsVectorPtr);
 
     Node *parse_bool(Env *, LocalsVectorPtr);
+    Node *parse_class(Env *, LocalsVectorPtr);
+    Node *parse_constant(Env *, LocalsVectorPtr);
     Node *parse_def(Env *, LocalsVectorPtr);
     Vector<Node *> *parse_def_args(Env *, LocalsVectorPtr);
     Node *parse_group(Env *, LocalsVectorPtr);

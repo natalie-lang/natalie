@@ -51,6 +51,23 @@ Value *Parser::CallNode::to_ruby(Env *env) {
     return sexp;
 }
 
+Value *Parser::ClassNode::to_ruby(Env *env) {
+    auto sexp = new SexpValue { env, { SymbolValue::intern(env, "class"), SymbolValue::intern(env, m_name->name()), m_superclass->to_ruby(env) } };
+    if (!m_body->is_empty()) {
+        for (auto node : *(m_body->nodes())) {
+            sexp->push(node->to_ruby(env));
+        }
+    }
+    return sexp;
+}
+
+Value *Parser::ConstantNode::to_ruby(Env *env) {
+    return new SexpValue { env, {
+                                    SymbolValue::intern(env, "const"),
+                                    SymbolValue::intern(env, m_token.literal()),
+                                } };
+}
+
 Value *Parser::DefNode::to_ruby(Env *env) {
     auto sexp = new SexpValue { env, {
                                          SymbolValue::intern(env, "defn"),
@@ -109,5 +126,4 @@ Value *Parser::StringNode::to_ruby(Env *env) {
 Value *Parser::TrueNode::to_ruby(Env *env) {
     return new SexpValue { env, { SymbolValue::intern(env, "true") } };
 }
-
 }

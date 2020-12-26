@@ -76,6 +76,29 @@ Parser::Node *Parser::parse_bool(Env *env, LocalsVectorPtr) {
     }
 }
 
+Parser::Node *Parser::parse_class(Env *env, LocalsVectorPtr) {
+    advance();
+    auto locals = new Vector<SymbolValue *> {};
+    if (current_token().type() != Token::Type::Constant)
+        env->raise("SyntaxError", "class/module name must be CONSTANT");
+    auto name = static_cast<ConstantNode *>(parse_constant(env, locals));
+    Node *superclass;
+    if (current_token().type() == Token::Type::LessThan) {
+        advance();
+        superclass = parse_expression(env, LOWEST, locals);
+    } else {
+        superclass = new NilNode {};
+    }
+    auto body = parse_body(env, locals);
+    return new ClassNode { name, superclass, body };
+};
+
+Parser::Node *Parser::parse_constant(Env *env, LocalsVectorPtr locals) {
+    auto node = new ConstantNode { current_token() };
+    advance();
+    return node;
+};
+
 Parser::Node *Parser::parse_def(Env *env, LocalsVectorPtr) {
     advance();
     auto locals = new Vector<SymbolValue *> {};
@@ -324,6 +347,8 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type) {
     case Type::TrueKeyword:
     case Type::FalseKeyword:
         return &Parser::parse_bool;
+    case Type::ClassKeyword:
+        return &Parser::parse_class;
     case Type::DefKeyword:
         return &Parser::parse_def;
     case Type::LParen:
