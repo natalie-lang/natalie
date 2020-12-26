@@ -23,6 +23,15 @@ list(FILTER LIB_SOURCES EXCLUDE REGEX ".*main.cpp$")
 add_library(natalie STATIC
   ${LIB_SOURCES})
 
+add_custom_command(
+  OUTPUT ${CMAKE_BINARY_DIR}/generated/bindings.cpp
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/lib/natalie/compiler/binding_gen.rb
+  COMMAND ruby ${CMAKE_CURRENT_SOURCE_DIR}/lib/natalie/compiler/binding_gen.rb > ${CMAKE_BINARY_DIR}/generated/bindings.cpp VERBATIM)
+add_custom_target(generate-bindings DEPENDS ${CMAKE_BINARY_DIR}/generated/bindings.cpp)
+add_dependencies(natalie generate-bindings)
+set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/src/bindings.cpp PROPERTIES GENERATED TRUE)
+target_sources(natalie PRIVATE ${CMAKE_BINARY_DIR}/generated/bindings.cpp)
+
 foreach(PATH ${GENERATED_NAMES})
   get_filename_component(FILENAME ${PATH} NAME)
   string(REGEX REPLACE "[.]rb$" ".cpp" GENERATED_NAME ${FILENAME})
@@ -46,15 +55,6 @@ set_target_properties(natalie PROPERTIES CXX_STANDARD 17 POSITION_INDEPENDENT_CO
 set_property(TARGET natalie APPEND_STRING PROPERTY COMPILE_FLAGS $ENV{NAT_CXX_FLAGS})
 
 add_custom_target(make-generated-directory ALL COMMAND ${CMAKE_COMMAND} -E make_directory generated)
-
-add_custom_command(
-  OUTPUT ${CMAKE_BINARY_DIR}/generated/bindings.cpp
-  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/lib/natalie/compiler/binding_gen.rb
-  COMMAND ruby ${CMAKE_CURRENT_SOURCE_DIR}/lib/natalie/compiler/binding_gen.rb > ${CMAKE_BINARY_DIR}/generated/bindings.cpp VERBATIM)
-add_custom_target(generate-bindings DEPENDS ${CMAKE_BINARY_DIR}/generated/bindings.cpp)
-add_dependencies(natalie generate-bindings)
-set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/src/bindings.cpp PROPERTIES GENERATED TRUE)
-target_sources(natalie PRIVATE ${CMAKE_BINARY_DIR}/generated/bindings.cpp)
 
 add_custom_command(
   OUTPUT ${CMAKE_BINARY_DIR}/generated/platform.cpp
