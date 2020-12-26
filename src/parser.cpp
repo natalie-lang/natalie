@@ -63,6 +63,21 @@ Parser::BlockNode *Parser::parse_body(Env *env, LocalsVectorPtr locals) {
     return body;
 }
 
+Parser::Node *Parser::parse_array(Env *env, LocalsVectorPtr locals) {
+    advance();
+    auto array = new ArrayNode {};
+    if (current_token().type() != Token::Type::RBracket) {
+        array->add_node(parse_expression(env, LOWEST, locals));
+        while (current_token().type() == Token::Type::Comma) {
+            advance();
+            array->add_node(parse_expression(env, LOWEST, locals));
+        }
+    }
+    expect(env, Token::Type::RBracket, "array closing bracket");
+    advance();
+    return array;
+}
+
 Parser::Node *Parser::parse_bool(Env *env, LocalsVectorPtr) {
     switch (current_token().type()) {
     case Token::Type::TrueKeyword:
@@ -354,6 +369,8 @@ Parser::Node *Parser::parse_ternary_expression(Env *env, Node *left, LocalsVecto
 Parser::parse_null_fn Parser::null_denotation(Token::Type type) {
     using Type = Token::Type;
     switch (type) {
+    case Type::LBracket:
+        return &Parser::parse_array;
     case Type::TrueKeyword:
     case Type::FalseKeyword:
         return &Parser::parse_bool;

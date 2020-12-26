@@ -2,6 +2,14 @@
 
 namespace Natalie {
 
+Value *Parser::ArrayNode::to_ruby(Env *env) {
+    auto sexp = new SexpValue { env, { SymbolValue::intern(env, "array") } };
+    for (auto node : m_nodes) {
+        sexp->push(node->to_ruby(env));
+    }
+    return sexp;
+}
+
 Value *Parser::AssignmentNode::to_ruby(Env *env) {
     const char *assignment_type;
     switch (m_identifier->token_type()) {

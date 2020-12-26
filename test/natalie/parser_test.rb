@@ -212,13 +212,17 @@ describe 'Parser' do
       -> { Parser.parse('module foo;end') }.should raise_error(SyntaxError, 'class/module name must be CONSTANT')
     end
 
-    xit 'parses an array' do
+    it 'parses an array' do
       Parser.parse("[]").should == s(:block, s(:array))
       Parser.parse("[1]").should == s(:block, s(:array, s(:lit, 1)))
       Parser.parse("['foo']").should == s(:block, s(:array, s(:str, 'foo')))
       Parser.parse("[1, 2, 3]").should == s(:block, s(:array, s(:lit, 1), s(:lit, 2), s(:lit, 3)))
       Parser.parse("[\n1 , \n2,\n 3]").should == s(:block, s(:array, s(:lit, 1), s(:lit, 2), s(:lit, 3)))
-      -> { Parser.parse('[ , 1]') }.should raise_error(SyntaxError, /\(string\):1 :: parse error on value/)
+      if (RUBY_ENGINE == 'natalie')
+        -> { Parser.parse('[ , 1]') }.should raise_error(SyntaxError, "1: syntax error, unexpected ','")
+      else
+        -> { Parser.parse('[ , 1]') }.should raise_error(SyntaxError, '(string):1 :: parse error on value "," (tCOMMA)')
+      end
     end
 
     xit 'parses a hash' do

@@ -16,6 +16,7 @@ struct Parser : public gc {
 
     struct Node : public gc {
         enum class Type {
+            Array,
             Assignment,
             Block,
             Call,
@@ -47,6 +48,21 @@ struct Parser : public gc {
     private:
         size_t m_line { 0 };
         size_t m_column { 0 };
+    };
+
+    struct ArrayNode : Node {
+        ArrayNode() { }
+
+        virtual Type type() override { return Type::Array; }
+
+        virtual Value *to_ruby(Env *) override;
+
+        void add_node(Node *node) {
+            m_nodes.push(node);
+        }
+
+    private:
+        Vector<Node *> m_nodes {};
     };
 
     struct IdentifierNode;
@@ -343,6 +359,7 @@ private:
     BlockNode *parse_body(Env *, LocalsVectorPtr);
     Node *parse_if_body(Env *, LocalsVectorPtr);
 
+    Node *parse_array(Env *, LocalsVectorPtr);
     Node *parse_bool(Env *, LocalsVectorPtr);
     Node *parse_class(Env *, LocalsVectorPtr);
     Node *parse_constant(Env *, LocalsVectorPtr);
