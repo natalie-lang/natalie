@@ -11,7 +11,9 @@ describe 'string' do
     it 'returns a code representation of the string' do
       'foo'.inspect.should == '"foo"'
       "foo\nbar".inspect.should == "\"foo\\nbar\""
-      "😉🤷".inspect.should == "\"😉🤷\""
+      unless RUBY_PLATFORM =~ /openbsd/
+        "😉🤷".inspect.should == "\"😉🤷\""
+      end
     end
   end
 
