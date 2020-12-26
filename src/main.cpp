@@ -164,9 +164,7 @@ extern "C" Env *build_top_env() {
     Value *RUBY_ENGINE = new StringValue { env, "natalie" };
     Object->const_set(env, "RUBY_ENGINE", RUBY_ENGINE);
 
-    StringValue *RUBY_PLATFORM = new StringValue { env, platform_arch };
-    RUBY_PLATFORM->append_char(env, '-');
-    RUBY_PLATFORM->append(env, platform_os);
+    StringValue *RUBY_PLATFORM = new StringValue { env, ruby_platform };
     Object->const_set(env, "RUBY_PLATFORM", RUBY_PLATFORM);
 
     init_bindings(env);

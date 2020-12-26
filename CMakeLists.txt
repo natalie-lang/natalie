@@ -56,6 +56,14 @@ add_custom_target(generate-bindings DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/bind
 add_dependencies(natalie generate-bindings)
 set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/src/bindings.cpp PROPERTIES GENERATED TRUE)
 
+add_custom_command(
+  OUTPUT ${CMAKE_BINARY_DIR}/generated/platform.cpp
+  COMMAND ruby -e "puts %(#include \"natalie.hpp\"\\nconst char *Natalie::ruby_platform = #{RUBY_PLATFORM.inspect};)" > ${CMAKE_BINARY_DIR}/generated/platform.cpp VERBATIM)
+add_custom_target(generate-platform DEPENDS ${CMAKE_BINARY_DIR}/generated/platform.cpp)
+add_dependencies(natalie generate-platform)
+set_source_files_properties(${CMAKE_BINARY_DIR}/generated/platform.cpp PROPERTIES GENERATED TRUE)
+target_sources(natalie PRIVATE ${CMAKE_BINARY_DIR}/generated/platform.cpp)
+
 include(ext/bdwgc.cmake)
 include(ext/gdtoa.cmake)
 include(ext/onigmo.cmake)
