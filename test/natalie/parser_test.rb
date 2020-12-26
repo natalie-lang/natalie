@@ -222,6 +222,7 @@ describe 'Parser' do
       Parser.parse("[1]").should == s(:block, s(:array, s(:lit, 1)))
       Parser.parse("['foo']").should == s(:block, s(:array, s(:str, 'foo')))
       Parser.parse("[1, 2, 3]").should == s(:block, s(:array, s(:lit, 1), s(:lit, 2), s(:lit, 3)))
+      Parser.parse("[x, y, z]").should == s(:block, s(:array, s(:call, nil, :x), s(:call, nil, :y), s(:call, nil, :z)))
       Parser.parse("[\n1 , \n2,\n 3]").should == s(:block, s(:array, s(:lit, 1), s(:lit, 2), s(:lit, 3)))
       if (RUBY_ENGINE == 'natalie')
         -> { Parser.parse('[ , 1]') }.should raise_error(SyntaxError, "1: syntax error, unexpected ','")

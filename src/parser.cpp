@@ -385,7 +385,15 @@ Parser::Node *Parser::parse_call_expression_without_parens(Env *env, Node *left,
     default:
         NAT_UNREACHABLE();
     }
-    if (!current_token().is_eol()) {
+    switch (current_token().type()) {
+    case Token::Type::Comma:
+    case Token::Type::RBrace:
+    case Token::Type::RBracket:
+    case Token::Type::RParen:
+    case Token::Type::Eof:
+    case Token::Type::Eol:
+        break;
+    default:
         auto arg = parse_expression(env, LOWEST, locals);
         call_node->add_arg(arg);
         while (current_token().is_comma()) {
