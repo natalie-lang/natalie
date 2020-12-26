@@ -163,6 +163,35 @@ Parser::Node *Parser::parse_group(Env *env, LocalsVectorPtr locals) {
     return exp;
 };
 
+Parser::Node *Parser::parse_hash(Env *env, LocalsVectorPtr locals) {
+    advance();
+    auto hash = new HashNode {};
+    if (current_token().type() != Token::Type::RBrace) {
+        if (current_token().type() == Token::Type::SymbolKey) {
+            hash->add_node(parse_symbol(env, locals));
+        } else {
+            hash->add_node(parse_expression(env, LOWEST, locals));
+            expect(env, Token::Type::HashRocket, "hash rocket");
+            advance();
+        }
+        hash->add_node(parse_expression(env, LOWEST, locals));
+        while (current_token().type() == Token::Type::Comma) {
+            advance();
+            if (current_token().type() == Token::Type::SymbolKey) {
+                hash->add_node(parse_symbol(env, locals));
+            } else {
+                hash->add_node(parse_expression(env, LOWEST, locals));
+                expect(env, Token::Type::HashRocket, "hash rocket");
+                advance();
+            }
+            hash->add_node(parse_expression(env, LOWEST, locals));
+        }
+    }
+    expect(env, Token::Type::RBrace, "hash closing brace");
+    advance();
+    return hash;
+}
+
 Parser::Node *Parser::parse_identifier(Env *env, LocalsVectorPtr locals) {
     bool is_lvar = false;
     auto name_symbol = SymbolValue::intern(env, current_token().literal());
@@ -242,9 +271,15 @@ Parser::Node *Parser::parse_module(Env *env, LocalsVectorPtr) {
 };
 
 Parser::Node *Parser::parse_string(Env *env, LocalsVectorPtr locals) {
-    auto lit = new StringNode { new StringValue { env, current_token().literal() } };
+    auto string = new StringNode { new StringValue { env, current_token().literal() } };
     advance();
-    return lit;
+    return string;
+};
+
+Parser::Node *Parser::parse_symbol(Env *env, LocalsVectorPtr locals) {
+    auto symbol = new SymbolNode { SymbolValue::intern(env, current_token().literal()) };
+    advance();
+    return symbol;
 };
 
 Parser::Node *Parser::parse_assignment_expression(Env *env, Node *left, LocalsVectorPtr locals) {
@@ -380,6 +415,8 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type) {
         return &Parser::parse_def;
     case Type::LParen:
         return &Parser::parse_group;
+    case Type::LBrace:
+        return &Parser::parse_hash;
     case Type::ClassVariable:
     case Type::Constant:
     case Type::GlobalVariable:

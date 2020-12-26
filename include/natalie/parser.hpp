@@ -24,6 +24,7 @@ struct Parser : public gc {
             Constant,
             Def,
             False,
+            Hash,
             Identifier,
             If,
             Literal,
@@ -196,6 +197,21 @@ struct Parser : public gc {
         virtual Type type() override { return Type::False; }
     };
 
+    struct HashNode : Node {
+        HashNode() { }
+
+        virtual Type type() override { return Type::Array; }
+
+        virtual Value *to_ruby(Env *) override;
+
+        void add_node(Node *node) {
+            m_nodes.push(node);
+        }
+
+    private:
+        Vector<Node *> m_nodes {};
+    };
+
     struct IdentifierNode : Node {
         IdentifierNode(Token token, bool is_lvar)
             : m_token { token }
@@ -366,11 +382,13 @@ private:
     Node *parse_def(Env *, LocalsVectorPtr);
     Vector<Node *> *parse_def_args(Env *, LocalsVectorPtr);
     Node *parse_group(Env *, LocalsVectorPtr);
+    Node *parse_hash(Env *, LocalsVectorPtr);
     Node *parse_identifier(Env *, LocalsVectorPtr);
     Node *parse_if(Env *, LocalsVectorPtr);
     Node *parse_lit(Env *, LocalsVectorPtr);
     Node *parse_module(Env *, LocalsVectorPtr);
     Node *parse_string(Env *, LocalsVectorPtr);
+    Node *parse_symbol(Env *, LocalsVectorPtr);
 
     Node *parse_assignment_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_call_expression_without_parens(Env *, Node *, LocalsVectorPtr);

@@ -96,6 +96,14 @@ Value *Parser::FalseNode::to_ruby(Env *env) {
     return new SexpValue { env, { SymbolValue::intern(env, "false") } };
 }
 
+Value *Parser::HashNode::to_ruby(Env *env) {
+    auto sexp = new SexpValue { env, { SymbolValue::intern(env, "hash") } };
+    for (auto node : m_nodes) {
+        sexp->push(node->to_ruby(env));
+    }
+    return sexp;
+}
+
 Value *Parser::IdentifierNode::to_ruby(Env *env) {
     if (token_type() == Token::Type::Constant) {
         return new SexpValue { env, { SymbolValue::intern(env, "const"), SymbolValue::intern(env, name()) } };
