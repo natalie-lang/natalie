@@ -21,9 +21,9 @@ that is not yet implemented and make it yourself!
 
 ## Building
 
-Natalie is tested on macOS and Ubuntu Linux. Windows is not yet supported.
+Natalie is tested on macOS, OpenBSD, and Ubuntu Linux. Windows is not yet supported.
 
-The compiler and REPL require Ruby. I only test with Ruby 2.7.x currently.
+The compiler and REPL require MRI Ruby. I only test with Ruby 2.7.x currently.
 
 Prerequisites:
 
@@ -32,6 +32,7 @@ Prerequisites:
 - automake
 - libtool
 - cmake
+- GNU make
 - Ruby 2.7.x
 
 Install the above prerequisites on your platform, then run:
@@ -41,7 +42,7 @@ git clone https://github.com/seven1m/natalie
 git submodule update --init
 gem install bundler
 bundle install
-make
+make # or gmake if your system make isn't GNU make
 ```
 
 **NOTE:** Currently, the default build is the "debug" build.
