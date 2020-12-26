@@ -205,7 +205,7 @@ describe 'Parser' do
       Parser.parse("class Foo < bar; 3\n 4\n end").should == s(:block, s(:class, :Foo, s(:call, nil, :bar), s(:lit, 3), s(:lit, 4)))
     end
 
-    xit 'parses module definition' do
+    it 'parses module definition' do
       Parser.parse("module Foo\nend").should == s(:block, s(:module, :Foo))
       Parser.parse("module Foo;end").should == s(:block, s(:module, :Foo))
       Parser.parse("module FooBar; 1; 2; end").should == s(:block, s(:module, :FooBar, s(:lit, 1), s(:lit, 2)))

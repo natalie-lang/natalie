@@ -111,6 +111,16 @@ Value *Parser::LiteralNode::to_ruby(Env *env) {
     return new SexpValue { env, { SymbolValue::intern(env, "lit"), m_value } };
 }
 
+Value *Parser::ModuleNode::to_ruby(Env *env) {
+    auto sexp = new SexpValue { env, { SymbolValue::intern(env, "module"), SymbolValue::intern(env, m_name->name()) } };
+    if (!m_body->is_empty()) {
+        for (auto node : *(m_body->nodes())) {
+            sexp->push(node->to_ruby(env));
+        }
+    }
+    return sexp;
+}
+
 Value *Parser::NilNode::to_ruby(Env *env) {
     return env->nil_obj();
 }

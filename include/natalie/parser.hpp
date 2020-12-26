@@ -26,6 +26,7 @@ struct Parser : public gc {
             Identifier,
             If,
             Literal,
+            Module,
             Nil,
             Symbol,
             String,
@@ -230,6 +231,20 @@ struct Parser : public gc {
         Value *m_value { nullptr };
     };
 
+    struct ModuleNode : Node {
+        ModuleNode(ConstantNode *name, BlockNode *body)
+            : m_name { name }
+            , m_body { body } { }
+
+        virtual Type type() override { return Type::Module; }
+
+        virtual Value *to_ruby(Env *) override;
+
+    private:
+        ConstantNode *m_name { nullptr };
+        BlockNode *m_body { nullptr };
+    };
+
     struct NilNode : Node {
         virtual Value *to_ruby(Env *) override;
 
@@ -337,6 +352,7 @@ private:
     Node *parse_identifier(Env *, LocalsVectorPtr);
     Node *parse_if(Env *, LocalsVectorPtr);
     Node *parse_lit(Env *, LocalsVectorPtr);
+    Node *parse_module(Env *, LocalsVectorPtr);
     Node *parse_string(Env *, LocalsVectorPtr);
 
     Node *parse_assignment_expression(Env *, Node *, LocalsVectorPtr);

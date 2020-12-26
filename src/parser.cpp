@@ -216,6 +216,16 @@ Parser::Node *Parser::parse_lit(Env *env, LocalsVectorPtr locals) {
     return new LiteralNode { value };
 };
 
+Parser::Node *Parser::parse_module(Env *env, LocalsVectorPtr) {
+    advance();
+    auto locals = new Vector<SymbolValue *> {};
+    if (current_token().type() != Token::Type::Constant)
+        env->raise("SyntaxError", "class/module name must be CONSTANT");
+    auto name = static_cast<ConstantNode *>(parse_constant(env, locals));
+    auto body = parse_body(env, locals);
+    return new ModuleNode { name, body };
+};
+
 Parser::Node *Parser::parse_string(Env *env, LocalsVectorPtr locals) {
     auto lit = new StringNode { new StringValue { env, current_token().literal() } };
     advance();
@@ -364,6 +374,8 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type) {
     case Type::Integer:
     case Type::Float:
         return &Parser::parse_lit;
+    case Type::ModuleKeyword:
+        return &Parser::parse_module;
     case Type::String:
         return &Parser::parse_string;
     default:
