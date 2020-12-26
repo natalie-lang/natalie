@@ -84,6 +84,13 @@ describe 'Parser' do
       Parser.parse("'other escaped chars \\\\ \\n'").should == s(:block, s(:str, "other escaped chars \\ \\n"))
     end
 
+    it 'parses symbols' do
+      Parser.parse(':foo').should == s(:block, s(:lit, :foo))
+      Parser.parse(':foo_bar').should == s(:block, s(:lit, :foo_bar))
+      Parser.parse(':"foo bar"').should == s(:block, s(:lit, :"foo bar"))
+      Parser.parse(':FooBar').should == s(:block, s(:lit, :FooBar))
+    end
+
     it 'parses multiple expressions' do
       Parser.parse("1 + 2\n3 + 4").should == s(:block, s(:call, s(:lit, 1), :+, s(:lit, 2)), s(:call, s(:lit, 3), :+, s(:lit, 4)))
       Parser.parse("1 + 2;'foo'").should == s(:block, s(:call, s(:lit, 1), :+, s(:lit, 2)), s(:str, "foo"))

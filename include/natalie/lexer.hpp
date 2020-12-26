@@ -432,6 +432,14 @@ private:
             } else if (c == ':') {
                 advance();
                 return Token { Token::Type::ConstantResolution, m_token_line, m_token_column };
+            } else if (c == '"') {
+                advance();
+                auto string = consume_double_quoted_string('"');
+                return Token { Token::Type::Symbol, GC_STRDUP(string.literal()), m_token_line, m_token_column };
+            } else if (c == '\'') {
+                advance();
+                auto string = consume_single_quoted_string('\'');
+                return Token { Token::Type::Symbol, GC_STRDUP(string.literal()), m_token_line, m_token_column };
             } else {
                 return Token { Token::Type::TernaryColon, m_token_line, m_token_column };
             }

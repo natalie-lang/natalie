@@ -120,6 +120,14 @@ describe 'Parser' do
       Parser.tokens("%Q(foo)").should == [{type: :string, literal: 'foo'}]
     end
 
+    it 'tokenizes symbols' do
+      Parser.tokens(':foo').should == [{type: :symbol, literal: :foo}]
+      Parser.tokens(':foo_bar').should == [{type: :symbol, literal: :foo_bar}]
+      Parser.tokens(':"foo bar"').should == [{type: :symbol, literal: :"foo bar"}]
+      Parser.tokens(":'foo bar'").should == [{type: :symbol, literal: :"foo bar"}]
+      Parser.tokens(':FooBar').should == [{type: :symbol, literal: :FooBar}]
+    end
+
     it 'tokenizes arrays' do
       Parser.tokens('["foo"]').should == [{type: :"["}, {type: :string, literal: 'foo'}, {type: :"]"}]
       Parser.tokens('["foo", 1]').should == [{type: :"["}, {type: :string, literal: 'foo'}, {type: :","}, {type: :integer, literal: 1}, {type: :"]"}]

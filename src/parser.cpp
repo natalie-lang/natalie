@@ -492,6 +492,8 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type) {
         return &Parser::parse_module;
     case Type::String:
         return &Parser::parse_string;
+    case Type::Symbol:
+        return &Parser::parse_symbol;
     case Type::PercentLowerI:
     case Type::PercentUpperI:
         return &Parser::parse_word_symbol_array;
