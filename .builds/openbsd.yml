@@ -23,6 +23,6 @@ tasks:
   - build: |
       cd natalie
       gmake
-  #- test: |
-      #cd natalie
-      #gmake test
+  - test: |
+      cd natalie
+      gmake test
