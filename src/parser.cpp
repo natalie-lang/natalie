@@ -66,6 +66,7 @@ Parser::BlockNode *Parser::parse_body(Env *env, LocalsVectorPtr locals) {
 Parser::Node *Parser::parse_array(Env *env, LocalsVectorPtr locals) {
     advance();
     auto array = new ArrayNode {};
+    m_in_array = true;
     if (current_token().type() != Token::Type::RBracket) {
         array->add_node(parse_expression(env, LOWEST, locals));
         while (current_token().type() == Token::Type::Comma) {
@@ -73,6 +74,7 @@ Parser::Node *Parser::parse_array(Env *env, LocalsVectorPtr locals) {
             array->add_node(parse_expression(env, LOWEST, locals));
         }
     }
+    m_in_array = false;
     expect(env, Token::Type::RBracket, "array closing bracket");
     advance();
     return array;
@@ -107,6 +109,26 @@ Parser::Node *Parser::parse_class(Env *env, LocalsVectorPtr) {
     auto body = parse_body(env, locals);
     return new ClassNode { name, superclass, body };
 };
+
+Parser::Node *Parser::parse_comma_separated_identifiers(Env *env, LocalsVectorPtr locals) {
+    auto list = new CommaSeparatedIdentifiersNode {};
+    list->add_node(parse_identifier(env, locals));
+    while (current_token().is_comma()) {
+        advance();
+        switch (current_token().type()) {
+        case Token::Type::ClassVariable:
+        case Token::Type::Constant:
+        case Token::Type::GlobalVariable:
+        case Token::Type::Identifier:
+        case Token::Type::InstanceVariable:
+            list->add_node(parse_identifier(env, locals));
+            break;
+        default:
+            expect(env, Token::Type::Identifier, "assignment identifier");
+        }
+    }
+    return list;
+}
 
 Parser::Node *Parser::parse_constant(Env *env, LocalsVectorPtr locals) {
     auto node = new ConstantNode { current_token() };
@@ -336,15 +358,27 @@ Parser::Node *Parser::parse_word_symbol_array(Env *env, LocalsVectorPtr locals) 
 }
 
 Parser::Node *Parser::parse_assignment_expression(Env *env, Node *left, LocalsVectorPtr locals) {
-    auto left_identifier = static_cast<IdentifierNode *>(left);
-    if (left_identifier->token_type() == Token::Type::Identifier)
-        locals->push(SymbolValue::intern(env, left_identifier->name()));
-    advance();
-    auto right = parse_expression(env, ASSIGNMENT, locals);
-    return new AssignmentNode {
-        left_identifier,
-        right,
-    };
+    switch (left->type()) {
+    case Node::Type::Identifier: {
+        auto left_identifier = static_cast<IdentifierNode *>(left);
+        if (left_identifier->token_type() == Token::Type::Identifier)
+            locals->push(SymbolValue::intern(env, left_identifier->name()));
+        advance();
+        return new AssignmentNode {
+            left,
+            parse_expression(env, ASSIGNMENT, locals),
+        };
+    }
+    case Node::Type::CommaSeparatedIdentifiers: {
+        advance();
+        return new AssignmentNode {
+            left,
+            parse_expression(env, ASSIGNMENT, locals),
+        };
+    }
+    default:
+        NAT_UNREACHABLE();
+    }
 };
 
 Parser::Node *Parser::parse_call_expression_with_parens(Env *env, Node *left, LocalsVectorPtr locals) {
@@ -489,7 +523,11 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type) {
     case Type::GlobalVariable:
     case Type::Identifier:
     case Type::InstanceVariable:
-        return &Parser::parse_identifier;
+        if (peek_token().is_comma() && !m_in_array) {
+            return &Parser::parse_comma_separated_identifiers;
+        } else {
+            return &Parser::parse_identifier;
+        }
     case Type::IfKeyword:
         return &Parser::parse_if;
     case Type::Integer:

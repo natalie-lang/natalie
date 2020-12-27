@@ -21,6 +21,7 @@ struct Parser : public gc {
             Block,
             Call,
             Class,
+            CommaSeparatedIdentifiers,
             Constant,
             Def,
             False,
@@ -64,14 +65,20 @@ struct Parser : public gc {
             m_nodes.push(node);
         }
 
+        Vector<Node *> *nodes() { return &m_nodes; }
+
     private:
         Vector<Node *> m_nodes {};
+    };
+
+    struct CommaSeparatedIdentifiersNode : ArrayNode {
+        virtual Type type() override { return Type::CommaSeparatedIdentifiers; }
     };
 
     struct IdentifierNode;
 
     struct AssignmentNode : Node {
-        AssignmentNode(IdentifierNode *identifier, Node *value)
+        AssignmentNode(Node *identifier, Node *value)
             : m_identifier { identifier }
             , m_value { value } {
             assert(m_identifier);
@@ -82,10 +89,8 @@ struct Parser : public gc {
 
         virtual Value *to_ruby(Env *) override;
 
-        const char *name() { return m_identifier->name(); }
-
     private:
-        IdentifierNode *m_identifier { nullptr };
+        Node *m_identifier { nullptr };
         Node *m_value { nullptr };
     };
 
@@ -226,6 +231,31 @@ struct Parser : public gc {
         Token::Type token_type() { return m_token.type(); }
         const char *name() { return m_token.literal(); }
 
+        void set_is_lvar(bool is_lvar) { m_is_lvar = is_lvar; }
+
+        SexpValue *to_sexp(Env *env) {
+            return new SexpValue {
+                env, { assignment_type(env), SymbolValue::intern(env, name()) }
+            };
+        }
+
+        SymbolValue *assignment_type(Env *env) {
+            switch (token_type()) {
+            case Token::Type::ClassVariable:
+                return SymbolValue::intern(env, "cvdecl");
+            case Token::Type::Constant:
+                return SymbolValue::intern(env, "cdecl");
+            case Token::Type::GlobalVariable:
+                return SymbolValue::intern(env, "gasgn");
+            case Token::Type::Identifier:
+                return SymbolValue::intern(env, "lasgn");
+            case Token::Type::InstanceVariable:
+                return SymbolValue::intern(env, "iasgn");
+            default:
+                NAT_UNREACHABLE();
+            }
+        }
+
     private:
         Token m_token {};
         bool m_is_lvar { false };
@@ -359,6 +389,7 @@ struct Parser : public gc {
 
     enum Precedence {
         LOWEST,
+        ARRAY,
         TERNARY,
         ASSIGNMENT,
         RANGE,
@@ -422,6 +453,7 @@ private:
     Node *parse_array(Env *, LocalsVectorPtr);
     Node *parse_bool(Env *, LocalsVectorPtr);
     Node *parse_class(Env *, LocalsVectorPtr);
+    Node *parse_comma_separated_identifiers(Env *, LocalsVectorPtr);
     Node *parse_constant(Env *, LocalsVectorPtr);
     Node *parse_def(Env *, LocalsVectorPtr);
     Vector<Node *> *parse_def_args(Env *, LocalsVectorPtr);
@@ -465,6 +497,6 @@ private:
     const char *m_code { nullptr };
     size_t m_index { 0 };
     Vector<Token> *m_tokens { nullptr };
+    bool m_in_array { false };
 };
-
 }

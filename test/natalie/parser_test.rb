@@ -108,6 +108,10 @@ describe 'Parser' do
       Parser.parse("@@abc_123 = 1").should == s(:block, s(:cvdecl, :@@abc_123, s(:lit, 1)))
       Parser.parse("$baz = 1").should == s(:block, s(:gasgn, :$baz, s(:lit, 1)))
       Parser.parse("Constant = 1").should == s(:block, s(:cdecl, :Constant, s(:lit, 1)))
+      Parser.parse("x, y = [1, 2]").should == s(:block, s(:masgn, s(:array, s(:lasgn, :x), s(:lasgn, :y)), s(:to_ary, s(:array, s(:lit, 1), s(:lit, 2)))))
+      Parser.parse("(x, y) = [1, 2]").should == s(:block, s(:masgn, s(:array, s(:lasgn, :x), s(:lasgn, :y)), s(:to_ary, s(:array, s(:lit, 1), s(:lit, 2)))))
+      Parser.parse("@x, $y, Z = foo").should == s(:block, s(:masgn, s(:array, s(:iasgn, :@x), s(:gasgn, :$y), s(:cdecl, :Z)), s(:to_ary, s(:call, nil, :foo))))
+      Parser.parse("(@x, $y, Z) = foo").should == s(:block, s(:masgn, s(:array, s(:iasgn, :@x), s(:gasgn, :$y), s(:cdecl, :Z)), s(:to_ary, s(:call, nil, :foo))))
     end
 
     it 'parses method definition' do

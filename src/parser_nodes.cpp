@@ -12,30 +12,30 @@ Value *Parser::ArrayNode::to_ruby(Env *env) {
 
 Value *Parser::AssignmentNode::to_ruby(Env *env) {
     const char *assignment_type;
-    switch (m_identifier->token_type()) {
-    case Token::Type::ClassVariable:
-        assignment_type = "cvdecl";
-        break;
-    case Token::Type::Constant:
-        assignment_type = "cdecl";
-        break;
-    case Token::Type::GlobalVariable:
-        assignment_type = "gasgn";
-        break;
-    case Token::Type::Identifier:
-        assignment_type = "lasgn";
-        break;
-    case Token::Type::InstanceVariable:
-        assignment_type = "iasgn";
-        break;
+    Value *left;
+    switch (m_identifier->type()) {
+    case Node::Type::CommaSeparatedIdentifiers: {
+        auto list = static_cast<CommaSeparatedIdentifiersNode *>(m_identifier);
+        auto sexp = new SexpValue { env, { SymbolValue::intern(env, "masgn") } };
+        auto array = new SexpValue { env, { SymbolValue::intern(env, "array") } };
+        for (auto identifier : *(list->nodes())) {
+            assert(identifier->type() == Node::Type::Identifier);
+            array->push(static_cast<IdentifierNode *>(identifier)->to_sexp(env));
+        }
+        sexp->push(array);
+        auto value = new SexpValue { env, { SymbolValue::intern(env, "to_ary") } };
+        value->push(m_value->to_ruby(env));
+        sexp->push(value);
+        return sexp;
+    }
+    case Node::Type::Identifier: {
+        auto sexp = static_cast<IdentifierNode *>(m_identifier)->to_sexp(env);
+        sexp->push(m_value->to_ruby(env));
+        return sexp;
+    }
     default:
         NAT_UNREACHABLE();
     }
-    return new SexpValue { env, {
-                                    SymbolValue::intern(env, assignment_type),
-                                    SymbolValue::intern(env, m_identifier->name()),
-                                    m_value->to_ruby(env),
-                                } };
 }
 
 Value *Parser::BlockNode::to_ruby(Env *env) {
