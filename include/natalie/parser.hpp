@@ -430,6 +430,8 @@ struct Parser : public gc {
         RANGE,
         EQUALITY,
         LESSGREATER,
+        BITWISEOR,
+        BITWISEAND,
         SUM,
         PRODUCT,
         DOT,
@@ -454,6 +456,11 @@ private:
                 return LOWEST;
         case Token::Type::Equal:
             return ASSIGNMENT;
+        case Token::Type::BitwiseAnd:
+            return BITWISEAND;
+        case Token::Type::BitwiseOr:
+        case Token::Type::BitwiseXor:
+            return BITWISEOR;
         case Token::Type::LParen:
             return CALL;
         case Token::Type::Dot:

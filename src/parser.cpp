@@ -598,16 +598,19 @@ Parser::parse_left_fn Parser::left_denotation(Token::Type type) {
         return &Parser::parse_assignment_expression;
     case Type::LParen:
         return &Parser::parse_call_expression_with_parens;
-    case Type::Plus:
-    case Type::Minus:
-    case Type::Multiply:
+    case Type::BitwiseAnd:
+    case Type::BitwiseOr:
+    case Type::BitwiseXor:
     case Type::Divide:
     case Type::EqualEqual:
     case Type::Exponent:
-    case Type::LessThan:
-    case Type::LessThanOrEqual:
     case Type::GreaterThan:
     case Type::GreaterThanOrEqual:
+    case Type::LessThan:
+    case Type::LessThanOrEqual:
+    case Type::Minus:
+    case Type::Multiply:
+    case Type::Plus:
         return &Parser::parse_infix_expression;
     case Type::Integer:
         if (current_token().has_sign())
