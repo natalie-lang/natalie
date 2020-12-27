@@ -203,7 +203,7 @@ Parser::Node *Parser::parse_group(Env *env, LocalsVectorPtr locals) {
 Parser::Node *Parser::parse_hash(Env *env, LocalsVectorPtr locals) {
     advance();
     auto hash = new HashNode {};
-    if (current_token().type() != Token::Type::RBrace) {
+    if (current_token().type() != Token::Type::RCurlyBrace) {
         if (current_token().type() == Token::Type::SymbolKey) {
             hash->add_node(parse_symbol(env, locals));
         } else {
@@ -224,7 +224,7 @@ Parser::Node *Parser::parse_hash(Env *env, LocalsVectorPtr locals) {
             hash->add_node(parse_expression(env, HASH, locals));
         }
     }
-    expect(env, Token::Type::RBrace, "hash closing brace");
+    expect(env, Token::Type::RCurlyBrace, "hash closing curly brace");
     advance();
     return hash;
 }
@@ -443,7 +443,7 @@ Parser::Node *Parser::parse_call_expression_without_parens(Env *env, Node *left,
     }
     switch (current_token().type()) {
     case Token::Type::Comma:
-    case Token::Type::RBrace:
+    case Token::Type::RCurlyBrace:
     case Token::Type::RBracket:
     case Token::Type::RParen:
     case Token::Type::Eof:
@@ -533,7 +533,7 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type, Precedence prece
         return &Parser::parse_def;
     case Type::LParen:
         return &Parser::parse_group;
-    case Type::LBrace:
+    case Type::LCurlyBrace:
         return &Parser::parse_hash;
     case Type::ClassVariable:
     case Type::Constant:

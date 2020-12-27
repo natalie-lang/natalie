@@ -60,7 +60,7 @@ struct Token : public gc {
         InstanceVariable,
         Integer,
         Invalid,
-        LBrace,
+        LCurlyBrace,
         LBracket,
         LeftShift,
         LessThan,
@@ -89,7 +89,7 @@ struct Token : public gc {
         PercentUpperW,
         Plus,
         PlusEqual,
-        RBrace,
+        RCurlyBrace,
         RBracket,
         RedoKeyword,
         Regexp,
@@ -276,7 +276,7 @@ struct Token : public gc {
             return SymbolValue::intern(env, "integer");
         case Type::Invalid:
             env->raise("SyntaxError", "%d: syntax error, unexpected '%s'", m_line + 1, m_literal);
-        case Type::LBrace:
+        case Type::LCurlyBrace:
             return SymbolValue::intern(env, "{");
         case Type::LBracket:
             return SymbolValue::intern(env, "[");
@@ -334,7 +334,7 @@ struct Token : public gc {
             return SymbolValue::intern(env, "+=");
         case Type::Plus:
             return SymbolValue::intern(env, "+");
-        case Type::RBrace:
+        case Type::RCurlyBrace:
             return SymbolValue::intern(env, "}");
         case Type::RBracket:
             return SymbolValue::intern(env, "]");
@@ -461,7 +461,7 @@ struct Token : public gc {
     }
 
     bool can_follow_collapsible_newline() {
-        return m_type == Token::Type::RBrace
+        return m_type == Token::Type::RCurlyBrace
             || m_type == Token::Type::RBracket
             || m_type == Token::Type::RParen
             || m_type == Token::Type::TernaryColon;
@@ -491,7 +491,7 @@ struct Token : public gc {
             || m_type == Token::Type::GreaterThanOrEqual
             || m_type == Token::Type::HashRocket
             || m_type == Token::Type::InKeyword
-            || m_type == Token::Type::LBrace
+            || m_type == Token::Type::LCurlyBrace
             || m_type == Token::Type::LBracket
             || m_type == Token::Type::LeftShift
             || m_type == Token::Type::LessThan

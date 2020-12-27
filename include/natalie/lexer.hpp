@@ -223,7 +223,7 @@ private:
             switch (m_last_token.type()) {
             case Token::Type::Invalid: // no previous token
             case Token::Type::Comma:
-            case Token::Type::LBrace:
+            case Token::Type::LCurlyBrace:
             case Token::Type::LBracket:
             case Token::Type::LParen:
                 return consume_regexp();
@@ -475,7 +475,7 @@ private:
             }
         case '{':
             advance();
-            return Token { Token::Type::LBrace, m_token_line, m_token_column };
+            return Token { Token::Type::LCurlyBrace, m_token_line, m_token_column };
         case '[':
             advance();
             return Token { Token::Type::LBracket, m_token_line, m_token_column };
@@ -484,7 +484,7 @@ private:
             return Token { Token::Type::LParen, m_token_line, m_token_column };
         case '}':
             advance();
-            return Token { Token::Type::RBrace, m_token_line, m_token_column };
+            return Token { Token::Type::RCurlyBrace, m_token_line, m_token_column };
         case ']':
             advance();
             return Token { Token::Type::RBracket, m_token_line, m_token_column };
