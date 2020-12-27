@@ -552,7 +552,8 @@ module Natalie
               prepare_masgn_set(name, value, arg: true)
             else
               default_value = name.size == 3 ? process(name.pop) : s(:nil)
-              value = s(:arg_value_by_path, :env, value_name, default_value, s(:l, :false), names.size, defaults.size, defaults_on_right ? s(:l, :true) : s(:l, :false), 0, path.size, *path)
+              non_kwargs = names.reject { |name| name.sexp_type == :kwarg }
+              value = s(:arg_value_by_path, :env, value_name, default_value, s(:l, :false), non_kwargs.size, defaults.size, defaults_on_right ? s(:l, :true) : s(:l, :false), 0, path.size, *path)
               prepare_masgn_set(name, value, arg: true)
             end
           else
