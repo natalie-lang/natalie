@@ -298,10 +298,12 @@ struct Parser : public gc {
     };
 
     struct IterNode : Node {
-        IterNode(Node *call, BlockNode *body)
+        IterNode(Node *call, Vector<Node *> *args, BlockNode *body)
             : m_call { call }
+            , m_args { args }
             , m_body { body } {
             assert(m_call);
+            assert(m_args);
             assert(m_body);
         }
 
@@ -310,7 +312,22 @@ struct Parser : public gc {
         virtual Value *to_ruby(Env *) override;
 
     private:
+        SexpValue *build_args_sexp(Env *env) {
+            auto sexp = new SexpValue { env, { SymbolValue::intern(env, "args") } };
+            for (auto arg : *m_args) {
+                switch (arg->type()) {
+                case Node::Type::Identifier:
+                    sexp->push(SymbolValue::intern(env, static_cast<IdentifierNode *>(arg)->name()));
+                    break;
+                default:
+                    NAT_UNREACHABLE();
+                }
+            }
+            return sexp;
+        }
+
         Node *m_call { nullptr };
+        Vector<Node *> *m_args { nullptr };
         BlockNode *m_body { nullptr };
     };
 
@@ -495,7 +512,7 @@ private:
 
     Node *parse_expression(Env *, Precedence, LocalsVectorPtr);
 
-    BlockNode *parse_body(Env *, LocalsVectorPtr, Token::Type = Token::Type::EndKeyword);
+    BlockNode *parse_body(Env *, LocalsVectorPtr, Precedence, Token::Type = Token::Type::EndKeyword);
     Node *parse_if_body(Env *, LocalsVectorPtr);
 
     Node *parse_array(Env *, LocalsVectorPtr);
@@ -523,6 +540,7 @@ private:
     Node *parse_call_expression_with_parens(Env *, Node *, LocalsVectorPtr);
     Node *parse_infix_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_iter_expression(Env *, Node *, LocalsVectorPtr);
+    Vector<Node *> *parse_iter_args(Env *, LocalsVectorPtr);
     Node *parse_range_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_send_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_ternary_expression(Env *, Node *, LocalsVectorPtr);

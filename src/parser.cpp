@@ -47,12 +47,12 @@ Parser::Node *Parser::tree(Env *env) {
     return tree;
 }
 
-Parser::BlockNode *Parser::parse_body(Env *env, LocalsVectorPtr locals, Token::Type end_token_type) {
+Parser::BlockNode *Parser::parse_body(Env *env, LocalsVectorPtr locals, Precedence precedence, Token::Type end_token_type) {
     auto body = new BlockNode {};
     current_token().validate(env);
     skip_newlines();
     while (!current_token().is_eof() && current_token().type() != end_token_type) {
-        auto exp = parse_expression(env, LOWEST, locals);
+        auto exp = parse_expression(env, precedence, locals);
         body->add_node(exp);
         current_token().validate(env);
         if (end_token_type == Token::Type::EndKeyword) {
@@ -128,7 +128,7 @@ Parser::Node *Parser::parse_class(Env *env, LocalsVectorPtr) {
     } else {
         superclass = new NilNode {};
     }
-    auto body = parse_body(env, locals);
+    auto body = parse_body(env, locals, LOWEST);
     return new ClassNode { name, superclass, body };
 };
 
@@ -174,18 +174,19 @@ Parser::Node *Parser::parse_def(Env *env, LocalsVectorPtr) {
     } else {
         args = new Vector<Node *> {};
     }
-    auto body = parse_body(env, locals);
+    auto body = parse_body(env, locals, LOWEST);
     return new DefNode { name, args, body };
 };
 
 Vector<Parser::Node *> *Parser::parse_def_args(Env *env, LocalsVectorPtr locals) {
     auto args = new Vector<Node *> {};
+    expect(env, Token::Type::Identifier, "argument");
     auto arg = static_cast<IdentifierNode *>(parse_identifier(env, locals));
     args->push(arg);
     locals->push(SymbolValue::intern(env, arg->name()));
     while (current_token().is_comma()) {
         advance();
-        expect(env, Token::Type::Identifier, "parse_def 2nd+ arg identifier");
+        expect(env, Token::Type::Identifier, "argument");
         auto arg = static_cast<IdentifierNode *>(parse_identifier(env, locals));
         args->push(arg);
         locals->push(SymbolValue::intern(env, arg->name()));
@@ -310,7 +311,7 @@ Parser::Node *Parser::parse_module(Env *env, LocalsVectorPtr) {
     if (current_token().type() != Token::Type::Constant)
         env->raise("SyntaxError", "class/module name must be CONSTANT");
     auto name = static_cast<ConstantNode *>(parse_constant(env, locals));
-    auto body = parse_body(env, locals);
+    auto body = parse_body(env, locals, LOWEST);
     return new ModuleNode { name, body };
 };
 
@@ -404,6 +405,7 @@ Parser::Node *Parser::parse_assignment_expression(Env *env, Node *left, LocalsVe
 };
 
 Parser::Node *Parser::parse_iter_expression(Env *env, Node *left, LocalsVectorPtr locals) {
+    locals = new Vector<SymbolValue *> {};
     bool curly_brace = current_token().type() == Token::Type::LCurlyBrace;
     advance();
     switch (left->type()) {
@@ -413,9 +415,22 @@ Parser::Node *Parser::parse_iter_expression(Env *env, Node *left, LocalsVectorPt
     default:
         raise_unexpected(env, "call");
     }
+    Vector<Node *> *args;
+    if (current_token().type() == Token::Type::BitwiseOr) {
+        advance();
+        args = parse_iter_args(env, locals);
+        expect(env, Token::Type::BitwiseOr, "end of block args");
+        advance();
+    } else {
+        args = new Vector<Node *> {};
+    }
     auto end_token_type = curly_brace ? Token::Type::RCurlyBrace : Token::Type::EndKeyword;
-    auto body = parse_body(env, locals, end_token_type);
-    return new IterNode { left, body };
+    auto body = parse_body(env, locals, ITER, end_token_type);
+    return new IterNode { left, args, body };
+}
+
+Vector<Parser::Node *> *Parser::parse_iter_args(Env *env, LocalsVectorPtr locals) {
+    return parse_def_args(env, locals);
 }
 
 Parser::Node *Parser::parse_call_expression_with_parens(Env *env, Node *left, LocalsVectorPtr locals) {

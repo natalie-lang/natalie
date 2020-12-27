@@ -133,8 +133,11 @@ Value *Parser::IterNode::to_ruby(Env *env) {
     auto sexp = new SexpValue { env, {
                                          SymbolValue::intern(env, "iter"),
                                          m_call->to_ruby(env),
-                                         new IntegerValue { env, 0 },
                                      } };
+    if (m_args->is_empty())
+        sexp->push(new IntegerValue { env, 0 });
+    else
+        sexp->push(build_args_sexp(env));
     if (!m_body->is_empty())
         sexp->push(m_body->to_ruby(env));
     return sexp;

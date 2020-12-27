@@ -297,8 +297,10 @@ describe 'Parser' do
     it 'parses block' do
       Parser.parse("foo do\nend").should == s(:block, s(:iter, s(:call, nil, :foo), 0))
       Parser.parse("foo do\n1\n2\nend").should == s(:block, s(:iter, s(:call, nil, :foo), 0, s(:block, s(:lit, 1), s(:lit, 2))))
+      Parser.parse("foo do |x, y|\nx\ny\nend").should == s(:block, s(:iter, s(:call, nil, :foo), s(:args, :x, :y), s(:block, s(:lvar, :x), s(:lvar, :y))))
       Parser.parse("foo { }").should == s(:block, s(:iter, s(:call, nil, :foo), 0))
       Parser.parse("foo { 1; 2 }").should == s(:block, s(:iter, s(:call, nil, :foo), 0, s(:block, s(:lit, 1), s(:lit, 2))))
+      Parser.parse("foo { |x, y| x; y }").should == s(:block, s(:iter, s(:call, nil, :foo), s(:args, :x, :y), s(:block, s(:lvar, :x), s(:lvar, :y))))
     end
 
     it 'parses block pass' do
