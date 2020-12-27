@@ -404,7 +404,7 @@ private:
                 advance();
                 return Token { Token::Type::SafeNavigation, m_token_line, m_token_column };
             default:
-                return Token { Token::Type::BinaryAnd, m_token_line, m_token_column };
+                return Token { Token::Type::BitwiseAnd, m_token_line, m_token_column };
             }
         case '|':
             advance();
@@ -413,11 +413,11 @@ private:
                 advance();
                 return Token { Token::Type::Or, m_token_line, m_token_column };
             default:
-                return Token { Token::Type::BinaryOr, m_token_line, m_token_column };
+                return Token { Token::Type::BitwiseOr, m_token_line, m_token_column };
             }
         case '^':
             advance();
-            return Token { Token::Type::BinaryXor, m_token_line, m_token_column };
+            return Token { Token::Type::BitwiseXor, m_token_line, m_token_column };
         case '~':
             advance();
             return Token { Token::Type::BinaryOnesComplement, m_token_line, m_token_column };

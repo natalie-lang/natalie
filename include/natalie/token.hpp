@@ -12,10 +12,10 @@ struct Token : public gc {
         Arrow,
         BeginKeyword,
         BEGINKeyword,
-        BinaryAnd,
+        BitwiseAnd,
         BinaryOnesComplement,
-        BinaryOr,
-        BinaryXor,
+        BitwiseOr,
+        BitwiseXor,
         BreakKeyword,
         CaseKeyword,
         ClassKeyword,
@@ -180,13 +180,13 @@ struct Token : public gc {
             return SymbolValue::intern(env, "begin");
         case Type::BEGINKeyword:
             return SymbolValue::intern(env, "BEGIN");
-        case Type::BinaryAnd:
+        case Type::BitwiseAnd:
             return SymbolValue::intern(env, "&");
         case Type::BinaryOnesComplement:
             return SymbolValue::intern(env, "~");
-        case Type::BinaryOr:
+        case Type::BitwiseOr:
             return SymbolValue::intern(env, "|");
-        case Type::BinaryXor:
+        case Type::BitwiseXor:
             return SymbolValue::intern(env, "^");
         case Type::BreakKeyword:
             return SymbolValue::intern(env, "break");
@@ -471,10 +471,10 @@ struct Token : public gc {
         return m_type == Token::Type::And
             || m_type == Token::Type::AndKeyword
             || m_type == Token::Type::Arrow
-            || m_type == Token::Type::BinaryAnd
+            || m_type == Token::Type::BitwiseAnd
             || m_type == Token::Type::BinaryOnesComplement
-            || m_type == Token::Type::BinaryOr
-            || m_type == Token::Type::BinaryXor
+            || m_type == Token::Type::BitwiseOr
+            || m_type == Token::Type::BitwiseXor
             || m_type == Token::Type::Comma
             || m_type == Token::Type::Comparison
             || m_type == Token::Type::ConstantResolution

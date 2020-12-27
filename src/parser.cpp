@@ -544,7 +544,7 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type, Precedence prece
     switch (type) {
     case Type::LBracket:
         return &Parser::parse_array;
-    case Type::BinaryAnd:
+    case Type::BitwiseAnd:
         return &Parser::parse_block_pass;
     case Type::TrueKeyword:
     case Type::FalseKeyword:
