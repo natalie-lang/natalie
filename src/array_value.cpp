@@ -382,6 +382,18 @@ Value *ArrayValue::select(Env *env, Block *block) {
     return new_array;
 }
 
+Value *ArrayValue::reject(Env *env, Block *block) {
+    env->assert_block_given(block); // TODO: return Enumerator when no block given
+    ArrayValue *new_array = new ArrayValue { env };
+    for (auto &item : *this) {
+        Value *result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
+        if (result->is_falsey()) {
+            new_array->push(item);
+        }
+    }
+    return new_array;
+}
+
 Value *ArrayValue::max(Env *env) {
     if (m_vector.size() == 0)
         return env->nil_obj();

@@ -110,6 +110,7 @@ struct ArrayValue : Value {
     Value *min(Env *);
     Value *ref(Env *, Value *, Value *);
     Value *refeq(Env *, Value *, Value *, Value *);
+    Value *reject(Env *, Block *);
     Value *sample(Env *);
     Value *select(Env *, Block *);
     Value *shift(Env *, Value *);
