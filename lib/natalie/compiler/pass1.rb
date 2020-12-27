@@ -237,10 +237,14 @@ module Natalie
           arg_name = args.pop.to_s[1..-1]
           block_arg = exp.new(:var_set, :env, s(:s, arg_name), s(:"ProcValue::from_block_maybe", :env, 'block'))
         end
-        args_name = temp('args_as_array')
-        assign_args = s(:block,
-                        s(:declare, args_name, s(:args_to_array, :env, s(:l, 'argc'), s(:l, 'args'))),
-                        *prepare_args(args, args_name))
+        if args.any?
+          args_name = temp('args_as_array')
+          assign_args = s(:block,
+                          s(:declare, args_name, s(:args_to_array, :env, s(:l, 'argc'), s(:l, 'args'))),
+                          *prepare_args(args, args_name))
+        else
+          assign_args = s(:block)
+        end
         method_body = process(s(:block, *body))
         if raises_local_jump_error?(method_body)
           # We only need to wrap method body in a rescue for LocalJumpError if there is a `return` inside a block.
@@ -400,10 +404,14 @@ module Natalie
           puts "#{exp.file}##{exp.line}: #{call.inspect}"
           raise "cannot add block to call!"
         end
-        args_name = temp('args_as_array')
-        assign_args = s(:block,
-                        s(:declare, args_name, s(:block_args_to_array, :env, args.size, s(:l, 'argc'), s(:l, 'args'))),
-                        *prepare_args(args, args_name))
+        if args.any?
+          args_name = temp('args_as_array')
+          assign_args = s(:block,
+                          s(:declare, args_name, s(:block_args_to_array, :env, args.size, s(:l, 'argc'), s(:l, 'args'))),
+                          *prepare_args(args, args_name))
+        else
+          assign_args = s(:block)
+        end
         exp.new(:block,
                 s(:block_fn, block_fn,
                   s(:block,
