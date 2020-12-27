@@ -8,14 +8,14 @@ Parser::Node *Parser::parse_expression(Env *env, Parser::Precedence precedence, 
 #endif
     skip_newlines();
 
-    auto null_fn = null_denotation(current_token().type());
+    auto null_fn = null_denotation(current_token().type(), precedence);
     if (!null_fn) {
-        raise_unexpected(env, "null_fn");
+        raise_unexpected(env, "expression");
     }
 
     Node *left = (this->*null_fn)(env, locals);
 
-    if (left->type() == Node::Type::Identifier && !current_token().is_end_of_expression() && get_precedence() == LOWEST) {
+    if (left->type() == Node::Type::Identifier && !current_token().is_end_of_expression() && get_precedence() == LOWEST && precedence == LOWEST) {
         left = parse_call_expression_without_parens(env, left, locals);
     }
 
@@ -66,15 +66,13 @@ Parser::BlockNode *Parser::parse_body(Env *env, LocalsVectorPtr locals) {
 Parser::Node *Parser::parse_array(Env *env, LocalsVectorPtr locals) {
     advance();
     auto array = new ArrayNode {};
-    m_in_array = true;
     if (current_token().type() != Token::Type::RBracket) {
-        array->add_node(parse_expression(env, LOWEST, locals));
+        array->add_node(parse_expression(env, ARRAY, locals));
         while (current_token().type() == Token::Type::Comma) {
             advance();
-            array->add_node(parse_expression(env, LOWEST, locals));
+            array->add_node(parse_expression(env, ARRAY, locals));
         }
     }
-    m_in_array = false;
     expect(env, Token::Type::RBracket, "array closing bracket");
     advance();
     return array;
@@ -192,21 +190,21 @@ Parser::Node *Parser::parse_hash(Env *env, LocalsVectorPtr locals) {
         if (current_token().type() == Token::Type::SymbolKey) {
             hash->add_node(parse_symbol(env, locals));
         } else {
-            hash->add_node(parse_expression(env, LOWEST, locals));
+            hash->add_node(parse_expression(env, HASH, locals));
             expect(env, Token::Type::HashRocket, "hash rocket");
             advance();
         }
-        hash->add_node(parse_expression(env, LOWEST, locals));
+        hash->add_node(parse_expression(env, HASH, locals));
         while (current_token().type() == Token::Type::Comma) {
             advance();
             if (current_token().type() == Token::Type::SymbolKey) {
                 hash->add_node(parse_symbol(env, locals));
             } else {
-                hash->add_node(parse_expression(env, LOWEST, locals));
+                hash->add_node(parse_expression(env, HASH, locals));
                 expect(env, Token::Type::HashRocket, "hash rocket");
                 advance();
             }
-            hash->add_node(parse_expression(env, LOWEST, locals));
+            hash->add_node(parse_expression(env, HASH, locals));
         }
     }
     expect(env, Token::Type::RBrace, "hash closing brace");
@@ -502,7 +500,7 @@ Parser::Node *Parser::parse_ternary_expression(Env *env, Node *left, LocalsVecto
     return new IfNode { left, true_expr, false_expr };
 }
 
-Parser::parse_null_fn Parser::null_denotation(Token::Type type) {
+Parser::parse_null_fn Parser::null_denotation(Token::Type type, Precedence precedence) {
     using Type = Token::Type;
     switch (type) {
     case Type::LBracket:
@@ -523,7 +521,7 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type) {
     case Type::GlobalVariable:
     case Type::Identifier:
     case Type::InstanceVariable:
-        if (peek_token().is_comma() && !m_in_array) {
+        if (peek_token().is_comma() && precedence == LOWEST) {
             return &Parser::parse_comma_separated_identifiers;
         } else {
             return &Parser::parse_identifier;
@@ -627,13 +625,10 @@ void Parser::expect(Env *env, Token::Type type, const char *expected) {
 void Parser::raise_unexpected(Env *env, const char *expected) {
     auto line = current_token().line() + 1;
     auto type = current_token().type_value(env);
-#ifdef NAT_DEBUG_PARSER
-    printf("DEBUG: %s expected\n", expected);
-#endif
     if (type == SymbolValue::intern(env, "EOF")) {
         env->raise("SyntaxError", "%d: syntax error, unexpected end-of-input", line);
     } else {
-        env->raise("SyntaxError", "%d: syntax error, unexpected '%s'", line, type->c_str());
+        env->raise("SyntaxError", "%d: syntax error, unexpected '%s' (expected: '%s')", line, type->c_str(), expected);
     }
 }
 }

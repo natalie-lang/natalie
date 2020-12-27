@@ -390,6 +390,7 @@ struct Parser : public gc {
     enum Precedence {
         LOWEST,
         ARRAY,
+        HASH,
         TERNARY,
         ASSIGNMENT,
         RANGE,
@@ -480,7 +481,7 @@ private:
     using parse_null_fn = Node *(Parser::*)(Env *, LocalsVectorPtr);
     using parse_left_fn = Node *(Parser::*)(Env *, Node *, LocalsVectorPtr);
 
-    parse_null_fn null_denotation(Token::Type);
+    parse_null_fn null_denotation(Token::Type, Precedence);
     parse_left_fn left_denotation(Token::Type);
 
     Token current_token();
@@ -497,6 +498,5 @@ private:
     const char *m_code { nullptr };
     size_t m_index { 0 };
     Vector<Token> *m_tokens { nullptr };
-    bool m_in_array { false };
 };
 }

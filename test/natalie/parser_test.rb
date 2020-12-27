@@ -67,7 +67,7 @@ describe 'Parser' do
     it 'raises an error if there is a syntax error' do
       # We choose to more closely match what MRI does vs what ruby_parser raises
       if (RUBY_ENGINE == 'natalie')
-        -> { Parser.parse("1 + 2\n\n)") }.should raise_error(SyntaxError, "3: syntax error, unexpected ')'")
+        -> { Parser.parse("1 + 2\n\n)") }.should raise_error(SyntaxError, "3: syntax error, unexpected ')' (expected: 'end-of-line')")
       else
         -> { Parser.parse("1 + 2\n\n)") }.should raise_error(SyntaxError, "(string):3 :: parse error on value \")\" (tRPAREN)")
       end
@@ -236,7 +236,7 @@ describe 'Parser' do
       Parser.parse("[x, y, z]").should == s(:block, s(:array, s(:call, nil, :x), s(:call, nil, :y), s(:call, nil, :z)))
       Parser.parse("[\n1 , \n2,\n 3]").should == s(:block, s(:array, s(:lit, 1), s(:lit, 2), s(:lit, 3)))
       if (RUBY_ENGINE == 'natalie')
-        -> { Parser.parse('[ , 1]') }.should raise_error(SyntaxError, "1: syntax error, unexpected ','")
+        -> { Parser.parse('[ , 1]') }.should raise_error(SyntaxError, "1: syntax error, unexpected ',' (expected: 'expression')")
       else
         -> { Parser.parse('[ , 1]') }.should raise_error(SyntaxError, '(string):1 :: parse error on value "," (tCOMMA)')
       end
@@ -257,8 +257,9 @@ describe 'Parser' do
       Parser.parse("{ 1 => 2, 'foo' => 'bar' }").should == s(:block, s(:hash, s(:lit, 1), s(:lit, 2), s(:str, 'foo'), s(:str, 'bar')))
       Parser.parse("{\n 1 => \n2,\n 'foo' =>\n'bar'\n}").should == s(:block, s(:hash, s(:lit, 1), s(:lit, 2), s(:str, 'foo'), s(:str, 'bar')))
       Parser.parse("{ foo: 'bar', baz: 'buz' }").should == s(:block, s(:hash, s(:lit, :foo), s(:str, 'bar'), s(:lit, :baz), s(:str, 'buz')))
+      Parser.parse("{ a => b, c => d }").should == s(:block, s(:hash, s(:call, nil, :a), s(:call, nil, :b), s(:call, nil, :c), s(:call, nil, :d)))
       if (RUBY_ENGINE == 'natalie')
-        -> { Parser.parse('{ , 1 => 2 }') }.should raise_error(SyntaxError, "1: syntax error, unexpected ','")
+        -> { Parser.parse('{ , 1 => 2 }') }.should raise_error(SyntaxError, "1: syntax error, unexpected ',' (expected: 'expression')")
       else
         -> { Parser.parse('{ , 1 => 2 }') }.should raise_error(SyntaxError, '(string):1 :: parse error on value "," (tCOMMA)')
       end
