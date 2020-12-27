@@ -78,12 +78,11 @@ class OptionParser
     @switches << Switch.new(short_name, long_name, value, description, block)
   end
 
-  def parse(argv = nil, into: {})
-    parse!((argv || ARGV).dup, into: into)
+  def parse(argv = ARGV, into: {})
+    parse!(argv.dup, into: into)
   end
 
-  def parse!(argv = nil, into: {})
-    argv = argv || ARGV
+  def parse!(argv = ARGV, into: {})
     left_over = []
     matched = []
     position_argv = []
