@@ -47,18 +47,25 @@ Parser::Node *Parser::tree(Env *env) {
     return tree;
 }
 
-Parser::BlockNode *Parser::parse_body(Env *env, LocalsVectorPtr locals) {
+Parser::BlockNode *Parser::parse_body(Env *env, LocalsVectorPtr locals, Token::Type end_token_type) {
     auto body = new BlockNode {};
     current_token().validate(env);
     skip_newlines();
-    while (!current_token().is_eof() && !current_token().is_end_keyword()) {
+    while (!current_token().is_eof() && current_token().type() != end_token_type) {
         auto exp = parse_expression(env, LOWEST, locals);
         body->add_node(exp);
         current_token().validate(env);
-        next_expression(env);
+        if (end_token_type == Token::Type::EndKeyword) {
+            next_expression(env);
+        } else {
+            auto token = current_token();
+            if (token.type() != end_token_type && !token.is_end_of_expression())
+                raise_unexpected(env, "end-of-line");
+            skip_newlines();
+        }
     }
-    if (!current_token().is_end_keyword())
-        raise_unexpected(env, "parse_body end");
+    if (current_token().type() != end_token_type)
+        raise_unexpected(env, "body end");
     advance();
     return body;
 }
@@ -396,6 +403,21 @@ Parser::Node *Parser::parse_assignment_expression(Env *env, Node *left, LocalsVe
     }
 };
 
+Parser::Node *Parser::parse_iter_expression(Env *env, Node *left, LocalsVectorPtr locals) {
+    bool curly_brace = current_token().type() == Token::Type::LCurlyBrace;
+    advance();
+    switch (left->type()) {
+    case Node::Type::Identifier:
+    case Node::Type::Call:
+        break;
+    default:
+        raise_unexpected(env, "call");
+    }
+    auto end_token_type = curly_brace ? Token::Type::RCurlyBrace : Token::Type::EndKeyword;
+    auto body = parse_body(env, locals, end_token_type);
+    return new IterNode { left, body };
+}
+
 Parser::Node *Parser::parse_call_expression_with_parens(Env *env, Node *left, LocalsVectorPtr locals) {
     CallNode *call_node;
     switch (left->type()) {
@@ -597,6 +619,9 @@ Parser::parse_left_fn Parser::left_denotation(Token::Type type) {
             return &Parser::parse_infix_expression;
         else
             return nullptr;
+    case Type::DoKeyword:
+    case Type::LCurlyBrace:
+        return &Parser::parse_iter_expression;
     case Type::DotDot:
     case Type::DotDotDot:
         return &Parser::parse_range_expression;

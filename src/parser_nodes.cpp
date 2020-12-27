@@ -129,6 +129,17 @@ Value *Parser::IfNode::to_ruby(Env *env) {
                                 } };
 }
 
+Value *Parser::IterNode::to_ruby(Env *env) {
+    auto sexp = new SexpValue { env, {
+                                         SymbolValue::intern(env, "iter"),
+                                         m_call->to_ruby(env),
+                                         new IntegerValue { env, 0 },
+                                     } };
+    if (!m_body->is_empty())
+        sexp->push(m_body->to_ruby(env));
+    return sexp;
+}
+
 Value *Parser::LiteralNode::to_ruby(Env *env) {
     return new SexpValue { env, { SymbolValue::intern(env, "lit"), m_value } };
 }

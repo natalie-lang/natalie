@@ -29,6 +29,7 @@ struct Parser : public gc {
             Hash,
             Identifier,
             If,
+            Iter,
             Literal,
             Module,
             Nil,
@@ -296,6 +297,23 @@ struct Parser : public gc {
         Node *m_false_expr { nullptr };
     };
 
+    struct IterNode : Node {
+        IterNode(Node *call, BlockNode *body)
+            : m_call { call }
+            , m_body { body } {
+            assert(m_call);
+            assert(m_body);
+        }
+
+        virtual Type type() override { return Type::Iter; }
+
+        virtual Value *to_ruby(Env *) override;
+
+    private:
+        Node *m_call { nullptr };
+        BlockNode *m_body { nullptr };
+    };
+
     struct LiteralNode : Node {
         LiteralNode(Value *value)
             : m_value { value } {
@@ -406,6 +424,7 @@ struct Parser : public gc {
         LOWEST,
         ARRAY,
         HASH,
+        ITER,
         TERNARY,
         ASSIGNMENT,
         RANGE,
@@ -440,6 +459,9 @@ private:
             return DOT;
         case Token::Type::EqualEqual:
             return EQUALITY;
+        case Token::Type::DoKeyword:
+        case Token::Type::LCurlyBrace:
+            return ITER;
         case Token::Type::LessThan:
         case Token::Type::LessThanOrEqual:
         case Token::Type::GreaterThan:
@@ -464,7 +486,7 @@ private:
 
     Node *parse_expression(Env *, Precedence, LocalsVectorPtr);
 
-    BlockNode *parse_body(Env *, LocalsVectorPtr);
+    BlockNode *parse_body(Env *, LocalsVectorPtr, Token::Type = Token::Type::EndKeyword);
     Node *parse_if_body(Env *, LocalsVectorPtr);
 
     Node *parse_array(Env *, LocalsVectorPtr);
@@ -491,6 +513,7 @@ private:
     Node *parse_call_expression_without_parens(Env *, Node *, LocalsVectorPtr);
     Node *parse_call_expression_with_parens(Env *, Node *, LocalsVectorPtr);
     Node *parse_infix_expression(Env *, Node *, LocalsVectorPtr);
+    Node *parse_iter_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_range_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_send_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_ternary_expression(Env *, Node *, LocalsVectorPtr);

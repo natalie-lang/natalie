@@ -292,6 +292,13 @@ describe 'Parser' do
       Parser.parse('return foo').should == s(:block, s(:return, s(:call, nil, :foo)))
     end
 
+    it 'parses block' do
+      Parser.parse("foo do\nend").should == s(:block, s(:iter, s(:call, nil, :foo), 0))
+      Parser.parse("foo do\n1\n2\nend").should == s(:block, s(:iter, s(:call, nil, :foo), 0, s(:block, s(:lit, 1), s(:lit, 2))))
+      Parser.parse("foo { }").should == s(:block, s(:iter, s(:call, nil, :foo), 0))
+      Parser.parse("foo { 1; 2 }").should == s(:block, s(:iter, s(:call, nil, :foo), 0, s(:block, s(:lit, 1), s(:lit, 2))))
+    end
+
     it 'parses block pass' do
       Parser.parse('map(&:foo)').should == s(:block, s(:call, nil, :map, s(:block_pass, s(:lit, :foo))))
       Parser.parse('map(&block)').should == s(:block, s(:call, nil, :map, s(:block_pass, s(:call, nil, :block))))
