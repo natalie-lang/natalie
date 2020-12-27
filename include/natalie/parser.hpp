@@ -434,6 +434,7 @@ struct Parser : public gc {
         PRODUCT,
         DOT,
         PREFIX,
+        EXPONENT,
         CALL,
     };
 
@@ -459,6 +460,8 @@ private:
             return DOT;
         case Token::Type::EqualEqual:
             return EQUALITY;
+        case Token::Type::Exponent:
+            return EXPONENT;
         case Token::Type::DoKeyword:
         case Token::Type::LCurlyBrace:
             return ITER;
@@ -467,7 +470,6 @@ private:
         case Token::Type::GreaterThan:
         case Token::Type::GreaterThanOrEqual:
             return LESSGREATER;
-        case Token::Type::Exponent:
         case Token::Type::Multiply:
         case Token::Type::Divide:
             return PRODUCT;
