@@ -46,6 +46,12 @@ Value *Parser::BlockNode::to_ruby(Env *env) {
     return array;
 }
 
+Value *Parser::BlockPassNode::to_ruby(Env *env) {
+    auto *sexp = new SexpValue { env, { SymbolValue::intern(env, "block_pass") } };
+    sexp->push(m_node->to_ruby(env));
+    return sexp;
+}
+
 Value *Parser::CallNode::to_ruby(Env *env) {
     auto sexp = new SexpValue { env, {
                                          SymbolValue::intern(env, "call"),

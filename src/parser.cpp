@@ -78,6 +78,23 @@ Parser::Node *Parser::parse_array(Env *env, LocalsVectorPtr locals) {
     return array;
 }
 
+Parser::Node *Parser::parse_block_pass(Env *env, LocalsVectorPtr locals) {
+    advance();
+    switch (current_token().type()) {
+    case Token::Type::ClassVariable:
+    case Token::Type::Constant:
+    case Token::Type::GlobalVariable:
+    case Token::Type::Identifier:
+    case Token::Type::InstanceVariable:
+        return new BlockPassNode { parse_expression(env, LOWEST, locals) };
+    case Token::Type::Symbol:
+        return new BlockPassNode { parse_symbol(env, locals) };
+    default:
+        expect(env, Token::Type::Identifier, "block");
+    }
+    NAT_UNREACHABLE();
+}
+
 Parser::Node *Parser::parse_bool(Env *env, LocalsVectorPtr) {
     switch (current_token().type()) {
     case Token::Type::TrueKeyword:
@@ -505,6 +522,8 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type, Precedence prece
     switch (type) {
     case Type::LBracket:
         return &Parser::parse_array;
+    case Type::BinaryAnd:
+        return &Parser::parse_block_pass;
     case Type::TrueKeyword:
     case Type::FalseKeyword:
         return &Parser::parse_bool;

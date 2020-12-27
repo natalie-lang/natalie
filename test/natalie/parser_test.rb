@@ -290,5 +290,10 @@ describe 'Parser' do
       Parser.parse('return').should == s(:block, s(:return))
       Parser.parse('return foo').should == s(:block, s(:return, s(:call, nil, :foo)))
     end
+
+    it 'parses block pass' do
+      Parser.parse('map(&:foo)').should == s(:block, s(:call, nil, :map, s(:block_pass, s(:lit, :foo))))
+      Parser.parse('map(&block)').should == s(:block, s(:call, nil, :map, s(:block_pass, s(:call, nil, :block))))
+    end
   end
 end

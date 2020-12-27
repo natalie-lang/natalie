@@ -19,6 +19,7 @@ struct Parser : public gc {
             Array,
             Assignment,
             Block,
+            BlockPass,
             Call,
             Class,
             CommaSeparatedIdentifiers,
@@ -69,6 +70,20 @@ struct Parser : public gc {
 
     private:
         Vector<Node *> m_nodes {};
+    };
+
+    struct BlockPassNode : Node {
+        BlockPassNode(Node *node)
+            : m_node { node } {
+            assert(m_node);
+        }
+
+        virtual Type type() override { return Type::BlockPass; }
+
+        virtual Value *to_ruby(Env *) override;
+
+    private:
+        Node *m_node { nullptr };
     };
 
     struct CommaSeparatedIdentifiersNode : ArrayNode {
@@ -452,6 +467,7 @@ private:
     Node *parse_if_body(Env *, LocalsVectorPtr);
 
     Node *parse_array(Env *, LocalsVectorPtr);
+    Node *parse_block_pass(Env *, LocalsVectorPtr);
     Node *parse_bool(Env *, LocalsVectorPtr);
     Node *parse_class(Env *, LocalsVectorPtr);
     Node *parse_comma_separated_identifiers(Env *, LocalsVectorPtr);
