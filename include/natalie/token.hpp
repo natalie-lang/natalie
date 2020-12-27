@@ -441,6 +441,7 @@ struct Token : public gc {
     bool is_end_keyword() { return m_type == Type::EndKeyword; }
     bool is_eof() { return m_type == Type::Eof; }
     bool is_eol() { return m_type == Type::Eol; }
+    bool is_end_of_expression() { return m_type == Type::Eol || m_type == Type::Eof; }
     bool is_identifier() { return m_type == Type::Identifier; }
     bool is_lparen() { return m_type == Type::LParen; }
     bool is_newline() { return m_type == Type::Eol; }

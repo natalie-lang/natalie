@@ -15,7 +15,7 @@ Parser::Node *Parser::parse_expression(Env *env, Parser::Precedence precedence, 
 
     Node *left = (this->*null_fn)(env, locals);
 
-    if (left->type() == Node::Type::Identifier && !current_token().is_eol() && !current_token().is_eof() && get_precedence() == LOWEST) {
+    if (left->type() == Node::Type::Identifier && !current_token().is_end_of_expression() && get_precedence() == LOWEST) {
         left = parse_call_expression_without_parens(env, left, locals);
     }
 
@@ -270,6 +270,13 @@ Parser::Node *Parser::parse_module(Env *env, LocalsVectorPtr) {
     return new ModuleNode { name, body };
 };
 
+Parser::Node *Parser::parse_return(Env *env, LocalsVectorPtr locals) {
+    advance();
+    if (current_token().is_end_of_expression())
+        return new ReturnNode {};
+    return new ReturnNode { parse_expression(env, LOWEST, locals) };
+};
+
 Parser::Node *Parser::parse_string(Env *env, LocalsVectorPtr locals) {
     auto string = new StringNode { new StringValue { env, current_token().literal() } };
     advance();
@@ -444,7 +451,7 @@ Parser::Node *Parser::parse_send_expression(Env *env, Node *left, LocalsVectorPt
         SymbolValue::intern(env, name->name()),
     };
 
-    if (!current_token().is_eol() && !current_token().is_eof() && get_precedence() == LOWEST) {
+    if (!current_token().is_end_of_expression() && get_precedence() == LOWEST) {
         call_node = static_cast<CallNode *>(parse_call_expression_without_parens(env, call_node, locals));
     }
 
@@ -490,6 +497,8 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type) {
         return &Parser::parse_lit;
     case Type::ModuleKeyword:
         return &Parser::parse_module;
+    case Type::ReturnKeyword:
+        return &Parser::parse_return;
     case Type::String:
         return &Parser::parse_string;
     case Type::Symbol:
@@ -562,7 +571,7 @@ Token Parser::peek_token() {
 
 void Parser::next_expression(Env *env) {
     auto token = current_token();
-    if (!token.is_eol() && !token.is_eof())
+    if (!token.is_end_of_expression())
         raise_unexpected(env, "end-of-line");
     skip_newlines();
 }

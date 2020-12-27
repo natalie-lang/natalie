@@ -31,6 +31,7 @@ struct Parser : public gc {
             Module,
             Nil,
             Range,
+            Return,
             Symbol,
             String,
             True,
@@ -306,6 +307,22 @@ struct Parser : public gc {
         bool m_exclude_end { false };
     };
 
+    struct ReturnNode : Node {
+        ReturnNode() { }
+
+        ReturnNode(Node *node)
+            : m_node { node } {
+            assert(m_node);
+        }
+
+        virtual Type type() override { return Type::Return; }
+
+        virtual Value *to_ruby(Env *) override;
+
+    private:
+        Node *m_node { nullptr };
+    };
+
     struct SymbolNode : Node {
         SymbolNode(Value *value)
             : m_value { value } {
@@ -414,6 +431,7 @@ private:
     Node *parse_if(Env *, LocalsVectorPtr);
     Node *parse_lit(Env *, LocalsVectorPtr);
     Node *parse_module(Env *, LocalsVectorPtr);
+    Node *parse_return(Env *, LocalsVectorPtr);
     Node *parse_string(Env *, LocalsVectorPtr);
     Node *parse_symbol(Env *, LocalsVectorPtr);
     Node *parse_word_array(Env *, LocalsVectorPtr);

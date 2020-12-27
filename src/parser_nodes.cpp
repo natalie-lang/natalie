@@ -152,6 +152,13 @@ Value *Parser::RangeNode::to_ruby(Env *env) {
     };
 }
 
+Value *Parser::ReturnNode::to_ruby(Env *env) {
+    if (m_node) {
+        return new SexpValue { env, { SymbolValue::intern(env, "return"), m_node->to_ruby(env) } };
+    }
+    return new SexpValue { env, { SymbolValue::intern(env, "return") } };
+}
+
 Value *Parser::SymbolNode::to_ruby(Env *env) {
     return new SexpValue { env, { SymbolValue::intern(env, "lit"), m_value } };
 }
