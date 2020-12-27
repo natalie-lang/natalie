@@ -445,6 +445,7 @@ private:
         case Token::Type::GreaterThan:
         case Token::Type::GreaterThanOrEqual:
             return LESSGREATER;
+        case Token::Type::Exponent:
         case Token::Type::Multiply:
         case Token::Type::Divide:
             return PRODUCT;

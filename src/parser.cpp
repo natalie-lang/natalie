@@ -581,6 +581,7 @@ Parser::parse_left_fn Parser::left_denotation(Token::Type type) {
     case Type::Multiply:
     case Type::Divide:
     case Type::EqualEqual:
+    case Type::Exponent:
     case Type::LessThan:
     case Type::LessThanOrEqual:
     case Type::GreaterThan:

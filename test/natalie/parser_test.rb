@@ -37,7 +37,7 @@ describe 'Parser' do
       Parser.parse('1.5 ').should == s(:block, s(:lit, 1.5))
     end
 
-    it 'parses operator calls' do
+    it 'parses operator expressions' do
       Parser.parse('1 + 3').should == s(:block, s(:call, s(:lit, 1), :+, s(:lit, 3)))
       Parser.parse('1+3').should == s(:block, s(:call, s(:lit, 1), :+, s(:lit, 3)))
       Parser.parse("1+\n 3").should == s(:block, s(:call, s(:lit, 1), :+, s(:lit, 3)))
@@ -62,6 +62,7 @@ describe 'Parser' do
       Parser.parse('5 -3').should == s(:block, s(:call, s(:lit, 5), :-, s(:lit, 3)))
       Parser.parse('1 +1').should == s(:block, s(:call, s(:lit, 1), :+, s(:lit, 1)))
       Parser.parse('(1+2)-3 == 0').should == s(:block, s(:call, s(:call, s(:call, s(:lit, 1), :+, s(:lit, 2)), :-, s(:lit, 3)), :==, s(:lit, 0)))
+      Parser.parse('2 ** 10').should == s(:block, s(:call, s(:lit, 2), :**, s(:lit, 10)))
     end
 
     it 'raises an error if there is a syntax error' do
