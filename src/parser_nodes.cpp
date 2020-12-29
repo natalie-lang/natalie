@@ -138,8 +138,12 @@ Value *Parser::IterNode::to_ruby(Env *env) {
         sexp->push(new IntegerValue { env, 0 });
     else
         sexp->push(build_args_sexp(env));
-    if (!m_body->is_empty())
-        sexp->push(m_body->to_ruby(env));
+    if (!m_body->is_empty()) {
+        if (m_body->has_one_node())
+            sexp->push((*m_body->nodes())[0]->to_ruby(env));
+        else
+            sexp->push(m_body->to_ruby(env));
+    }
     return sexp;
 }
 

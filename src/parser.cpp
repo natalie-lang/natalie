@@ -405,7 +405,7 @@ Parser::Node *Parser::parse_assignment_expression(Env *env, Node *left, LocalsVe
 };
 
 Parser::Node *Parser::parse_iter_expression(Env *env, Node *left, LocalsVectorPtr locals) {
-    locals = new Vector<SymbolValue *> {};
+    locals = new Vector<SymbolValue *> { *locals };
     bool curly_brace = current_token().type() == Token::Type::LCurlyBrace;
     advance();
     switch (left->type()) {
