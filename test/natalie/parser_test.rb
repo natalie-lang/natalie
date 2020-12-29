@@ -314,5 +314,10 @@ describe 'Parser' do
       Parser.parse('map(&:foo)').should == s(:block, s(:call, nil, :map, s(:block_pass, s(:lit, :foo))))
       Parser.parse('map(&block)').should == s(:block, s(:call, nil, :map, s(:block_pass, s(:call, nil, :block))))
     end
+
+    it 'parses next and break' do
+      Parser.parse('next').should == s(:block, s(:next))
+      Parser.parse('break').should == s(:block, s(:break))
+    end
   end
 end

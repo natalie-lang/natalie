@@ -20,6 +20,7 @@ struct Parser : public gc {
             Assignment,
             Block,
             BlockPass,
+            Break,
             Call,
             Class,
             MultipleAssignment,
@@ -32,6 +33,7 @@ struct Parser : public gc {
             Iter,
             Literal,
             Module,
+            Next,
             Nil,
             Range,
             Return,
@@ -87,10 +89,10 @@ struct Parser : public gc {
         Node *m_node { nullptr };
     };
 
-    struct MultipleAssignmentNode : ArrayNode {
-        virtual Type type() override { return Type::MultipleAssignment; }
-
+    struct BreakNode : Node {
         virtual Value *to_ruby(Env *) override;
+
+        virtual Type type() override { return Type::Break; }
     };
 
     struct IdentifierNode;
@@ -371,6 +373,18 @@ struct Parser : public gc {
         BlockNode *m_body { nullptr };
     };
 
+    struct MultipleAssignmentNode : ArrayNode {
+        virtual Type type() override { return Type::MultipleAssignment; }
+
+        virtual Value *to_ruby(Env *) override;
+    };
+
+    struct NextNode : Node {
+        virtual Value *to_ruby(Env *) override;
+
+        virtual Type type() override { return Type::Next; }
+    };
+
     struct NilNode : Node {
         virtual Value *to_ruby(Env *) override;
 
@@ -543,6 +557,7 @@ private:
     Node *parse_return(Env *, LocalsVectorPtr);
     Node *parse_string(Env *, LocalsVectorPtr);
     Node *parse_symbol(Env *, LocalsVectorPtr);
+    Node *parse_statement_keyword(Env *, LocalsVectorPtr);
     Node *parse_word_array(Env *, LocalsVectorPtr);
     Node *parse_word_symbol_array(Env *, LocalsVectorPtr);
 

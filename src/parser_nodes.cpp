@@ -52,6 +52,10 @@ Value *Parser::BlockPassNode::to_ruby(Env *env) {
     return sexp;
 }
 
+Value *Parser::BreakNode::to_ruby(Env *env) {
+    return new SexpValue { env, { SymbolValue::intern(env, "break") } };
+}
+
 Value *Parser::CallNode::to_ruby(Env *env) {
     auto sexp = new SexpValue { env, {
                                          SymbolValue::intern(env, "call"),
@@ -171,6 +175,10 @@ Value *Parser::MultipleAssignmentNode::to_ruby(Env *env) {
         }
     }
     return sexp;
+}
+
+Value *Parser::NextNode::to_ruby(Env *env) {
+    return new SexpValue { env, { SymbolValue::intern(env, "next") } };
 }
 
 Value *Parser::NilNode::to_ruby(Env *env) {

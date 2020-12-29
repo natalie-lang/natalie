@@ -351,6 +351,19 @@ Parser::Node *Parser::parse_symbol(Env *env, LocalsVectorPtr locals) {
     return symbol;
 };
 
+Parser::Node *Parser::parse_statement_keyword(Env *env, LocalsVectorPtr locals) {
+    switch (current_token().type()) {
+    case Token::Type::BreakKeyword:
+        advance();
+        return new BreakNode {};
+    case Token::Type::NextKeyword:
+        advance();
+        return new NextNode {};
+    default:
+        NAT_UNREACHABLE()
+    }
+};
+
 Parser::Node *Parser::parse_word_array(Env *env, LocalsVectorPtr locals) {
     auto array = new ArrayNode {};
     auto literal = current_token().literal();
@@ -612,6 +625,9 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type, Precedence prece
         return &Parser::parse_string;
     case Type::Symbol:
         return &Parser::parse_symbol;
+    case Type::BreakKeyword:
+    case Type::NextKeyword:
+        return &Parser::parse_statement_keyword;
     case Type::PercentLowerI:
     case Type::PercentUpperI:
         return &Parser::parse_word_symbol_array;
