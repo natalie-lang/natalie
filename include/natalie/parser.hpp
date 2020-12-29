@@ -570,8 +570,9 @@ private:
             return LOGICALAND;
         case Token::Type::Or:
             return LOGICALOR;
-        case Token::Type::Multiply:
         case Token::Type::Divide:
+        case Token::Type::Modulus:
+        case Token::Type::Multiply:
             return PRODUCT;
         case Token::Type::DotDot:
         case Token::Type::DotDotDot:

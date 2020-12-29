@@ -717,6 +717,7 @@ Parser::parse_left_fn Parser::left_denotation(Token::Type type) {
     case Type::LessThan:
     case Type::LessThanOrEqual:
     case Type::Minus:
+    case Type::Modulus:
     case Type::Multiply:
     case Type::Plus:
         return &Parser::parse_infix_expression;
