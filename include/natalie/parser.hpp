@@ -32,6 +32,8 @@ struct Parser : public gc {
             If,
             Iter,
             Literal,
+            LogicalAnd,
+            LogicalOr,
             Module,
             Next,
             Nil,
@@ -359,6 +361,40 @@ struct Parser : public gc {
         Value *m_value { nullptr };
     };
 
+    struct LogicalAndNode : Node {
+        LogicalAndNode(Node *left, Node *right)
+            : m_left { left }
+            , m_right { right } {
+            assert(m_left);
+            assert(m_right);
+        }
+
+        virtual Type type() override { return Type::LogicalAnd; }
+
+        virtual Value *to_ruby(Env *) override;
+
+    private:
+        Node *m_left { nullptr };
+        Node *m_right { nullptr };
+    };
+
+    struct LogicalOrNode : Node {
+        LogicalOrNode(Node *left, Node *right)
+            : m_left { left }
+            , m_right { right } {
+            assert(m_left);
+            assert(m_right);
+        }
+
+        virtual Type type() override { return Type::LogicalOr; }
+
+        virtual Value *to_ruby(Env *) override;
+
+    private:
+        Node *m_left { nullptr };
+        Node *m_right { nullptr };
+    };
+
     struct ModuleNode : Node {
         ModuleNode(ConstantNode *name, BlockNode *body)
             : m_name { name }
@@ -462,24 +498,27 @@ struct Parser : public gc {
 
     enum Precedence {
         LOWEST,
-        ARRAY,
-        HASH,
-        CALLARGS,
-        ITER,
-        TERNARY,
-        EXPRMODIFIER,
-        ASSIGNMENT,
-        RANGE,
-        EQUALITY,
-        LESSGREATER,
-        BITWISEOR,
-        BITWISEAND,
-        SUM,
-        PRODUCT,
-        DOT,
-        PREFIX,
-        EXPONENT,
-        CALL,
+        ARRAY, // []
+        HASH, // {}
+        CALLARGS, // foo a, b
+        ITER, // do/end {}
+        TERNARY, // ? :
+        EXPRMODIFIER, // if/unless/while/until
+        ASSIGNMENT, // =
+        RANGE, // ..
+        COMPOSITION, // and/or
+        LOGICALOR, // ||
+        LOGICALAND, // &&
+        EQUALITY, // <=> == === != =~ !~
+        LESSGREATER, // <= < > >=
+        BITWISEOR, // ^ |
+        BITWISEAND, // &
+        SUM, // + -
+        PRODUCT, // * / %
+        DOT, // foo.bar
+        PREFIX, // -1 +1
+        EXPONENT, // **
+        CALL, // foo()
     };
 
     Node *tree(Env *);
@@ -505,6 +544,9 @@ private:
             return BITWISEOR;
         case Token::Type::LParen:
             return CALL;
+        case Token::Type::AndKeyword:
+        case Token::Type::OrKeyword:
+            return COMPOSITION;
         case Token::Type::Dot:
             return DOT;
         case Token::Type::EqualEqual:
@@ -524,6 +566,10 @@ private:
         case Token::Type::GreaterThan:
         case Token::Type::GreaterThanOrEqual:
             return LESSGREATER;
+        case Token::Type::And:
+            return LOGICALAND;
+        case Token::Type::Or:
+            return LOGICALOR;
         case Token::Type::Multiply:
         case Token::Type::Divide:
             return PRODUCT;
@@ -575,6 +621,7 @@ private:
     Node *parse_infix_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_iter_expression(Env *, Node *, LocalsVectorPtr);
     Vector<Node *> *parse_iter_args(Env *, LocalsVectorPtr);
+    Node *parse_logical_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_range_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_send_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_ternary_expression(Env *, Node *, LocalsVectorPtr);

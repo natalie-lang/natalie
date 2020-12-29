@@ -586,6 +586,25 @@ Parser::Node *Parser::parse_infix_expression(Env *env, Node *left, LocalsVectorP
     return node;
 };
 
+Parser::Node *Parser::parse_logical_expression(Env *env, Node *left, LocalsVectorPtr locals) {
+    switch (current_token().type()) {
+    case Token::Type::And:
+        advance();
+        return new LogicalAndNode { left, parse_expression(env, LOGICALAND, locals) };
+    case Token::Type::AndKeyword:
+        advance();
+        return new LogicalAndNode { left, parse_expression(env, COMPOSITION, locals) };
+    case Token::Type::Or:
+        advance();
+        return new LogicalOrNode { left, parse_expression(env, LOGICALOR, locals) };
+    case Token::Type::OrKeyword:
+        advance();
+        return new LogicalOrNode { left, parse_expression(env, COMPOSITION, locals) };
+    default:
+        NAT_UNREACHABLE();
+    }
+}
+
 Parser::Node *Parser::parse_range_expression(Env *env, Node *left, LocalsVectorPtr locals) {
     auto token = current_token();
     advance();
@@ -714,6 +733,11 @@ Parser::parse_left_fn Parser::left_denotation(Token::Type type) {
     case Type::DoKeyword:
     case Type::LCurlyBrace:
         return &Parser::parse_iter_expression;
+    case Type::And:
+    case Type::AndKeyword:
+    case Type::Or:
+    case Type::OrKeyword:
+        return &Parser::parse_logical_expression;
     case Type::DotDot:
     case Type::DotDotDot:
         return &Parser::parse_range_expression;

@@ -155,6 +155,26 @@ Value *Parser::LiteralNode::to_ruby(Env *env) {
     return new SexpValue { env, { SymbolValue::intern(env, "lit"), m_value } };
 }
 
+Value *Parser::LogicalAndNode::to_ruby(Env *env) {
+    auto sexp = new SexpValue { env, {
+                                         SymbolValue::intern(env, "and"),
+                                         m_left->to_ruby(env),
+                                         m_right->to_ruby(env),
+                                     } };
+
+    return sexp;
+}
+
+Value *Parser::LogicalOrNode::to_ruby(Env *env) {
+    auto sexp = new SexpValue { env, {
+                                         SymbolValue::intern(env, "or"),
+                                         m_left->to_ruby(env),
+                                         m_right->to_ruby(env),
+                                     } };
+
+    return sexp;
+}
+
 Value *Parser::ModuleNode::to_ruby(Env *env) {
     auto sexp = new SexpValue { env, { SymbolValue::intern(env, "module"), SymbolValue::intern(env, m_name->name()) } };
     if (!m_body->is_empty()) {
