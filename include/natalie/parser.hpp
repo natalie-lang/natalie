@@ -467,6 +467,7 @@ struct Parser : public gc {
         CALLARGS,
         ITER,
         TERNARY,
+        EXPRMODIFIER,
         ASSIGNMENT,
         RANGE,
         EQUALITY,
@@ -510,6 +511,11 @@ private:
             return EQUALITY;
         case Token::Type::Exponent:
             return EXPONENT;
+        case Token::Type::IfKeyword:
+        case Token::Type::UnlessKeyword:
+        case Token::Type::WhileKeyword:
+        case Token::Type::UntilKeyword:
+            return EXPRMODIFIER;
         case Token::Type::DoKeyword:
         case Token::Type::LCurlyBrace:
             return ITER;
@@ -547,7 +553,7 @@ private:
     Node *parse_constant(Env *, LocalsVectorPtr);
     Node *parse_def(Env *, LocalsVectorPtr);
     Vector<Node *> *parse_def_args(Env *, LocalsVectorPtr);
-    Parser::Node *parse_def_single_arg(Env *, LocalsVectorPtr);
+    Node *parse_def_single_arg(Env *, LocalsVectorPtr);
     Node *parse_group(Env *, LocalsVectorPtr);
     Node *parse_hash(Env *, LocalsVectorPtr);
     Node *parse_identifier(Env *, LocalsVectorPtr);
@@ -565,6 +571,7 @@ private:
     Node *parse_assignment_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_call_expression_without_parens(Env *, Node *, LocalsVectorPtr);
     Node *parse_call_expression_with_parens(Env *, Node *, LocalsVectorPtr);
+    Node *parse_modifier_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_infix_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_iter_expression(Env *, Node *, LocalsVectorPtr);
     Vector<Node *> *parse_iter_args(Env *, LocalsVectorPtr);

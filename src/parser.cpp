@@ -211,6 +211,23 @@ Parser::Node *Parser::parse_def_single_arg(Env *env, LocalsVectorPtr locals) {
     NAT_UNREACHABLE();
 }
 
+Parser::Node *Parser::parse_modifier_expression(Env *env, Node *left, LocalsVectorPtr locals) {
+    switch (current_token().type()) {
+    case Token::Type::IfKeyword: {
+        advance();
+        auto condition = parse_expression(env, LOWEST, locals);
+        return new IfNode { condition, left, new NilNode {} };
+    }
+    case Token::Type::UnlessKeyword: {
+        advance();
+        auto condition = parse_expression(env, LOWEST, locals);
+        return new IfNode { condition, new NilNode {}, left };
+    }
+    default:
+        NAT_NOT_YET_IMPLEMENTED();
+    }
+}
+
 Parser::Node *Parser::parse_group(Env *env, LocalsVectorPtr locals) {
     advance();
     auto exp = parse_expression(env, LOWEST, locals);
@@ -665,6 +682,11 @@ Parser::parse_left_fn Parser::left_denotation(Token::Type type) {
         return &Parser::parse_assignment_expression;
     case Type::LParen:
         return &Parser::parse_call_expression_with_parens;
+    case Type::IfKeyword:
+    case Type::UnlessKeyword:
+    case Type::WhileKeyword:
+    case Type::UntilKeyword:
+        return &Parser::parse_modifier_expression;
     case Type::BitwiseAnd:
     case Type::BitwiseOr:
     case Type::BitwiseXor:
