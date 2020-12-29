@@ -22,7 +22,7 @@ struct Parser : public gc {
             BlockPass,
             Call,
             Class,
-            CommaSeparatedIdentifiers,
+            MultipleAssignment,
             Constant,
             Def,
             False,
@@ -69,7 +69,7 @@ struct Parser : public gc {
 
         Vector<Node *> *nodes() { return &m_nodes; }
 
-    private:
+    protected:
         Vector<Node *> m_nodes {};
     };
 
@@ -87,8 +87,10 @@ struct Parser : public gc {
         Node *m_node { nullptr };
     };
 
-    struct CommaSeparatedIdentifiersNode : ArrayNode {
-        virtual Type type() override { return Type::CommaSeparatedIdentifiers; }
+    struct MultipleAssignmentNode : ArrayNode {
+        virtual Type type() override { return Type::MultipleAssignment; }
+
+        virtual Value *to_ruby(Env *) override;
     };
 
     struct IdentifierNode;
@@ -202,6 +204,9 @@ struct Parser : public gc {
                 case Node::Type::Identifier:
                     sexp->push(SymbolValue::intern(env, static_cast<IdentifierNode *>(arg)->name()));
                     break;
+                case Node::Type::MultipleAssignment:
+                    sexp->push(arg->to_ruby(env));
+                    break;
                 default:
                     NAT_UNREACHABLE();
                 }
@@ -270,6 +275,10 @@ struct Parser : public gc {
             default:
                 NAT_UNREACHABLE();
             }
+        }
+
+        SymbolValue *to_symbol(Env *env) {
+            return SymbolValue::intern(env, name());
         }
 
     private:
@@ -524,6 +533,7 @@ private:
     Node *parse_constant(Env *, LocalsVectorPtr);
     Node *parse_def(Env *, LocalsVectorPtr);
     Vector<Node *> *parse_def_args(Env *, LocalsVectorPtr);
+    Parser::Node *parse_def_single_arg(Env *, LocalsVectorPtr);
     Node *parse_group(Env *, LocalsVectorPtr);
     Node *parse_hash(Env *, LocalsVectorPtr);
     Node *parse_identifier(Env *, LocalsVectorPtr);

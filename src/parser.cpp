@@ -133,7 +133,7 @@ Parser::Node *Parser::parse_class(Env *env, LocalsVectorPtr) {
 };
 
 Parser::Node *Parser::parse_comma_separated_identifiers(Env *env, LocalsVectorPtr locals) {
-    auto list = new CommaSeparatedIdentifiersNode {};
+    auto list = new MultipleAssignmentNode {};
     list->add_node(parse_identifier(env, locals));
     while (current_token().is_comma()) {
         advance();
@@ -165,9 +165,8 @@ Parser::Node *Parser::parse_def(Env *env, LocalsVectorPtr) {
     Vector<Node *> *args;
     if (current_token().is_lparen()) {
         advance();
-        expect(env, Token::Type::Identifier, "parse_def first arg identifier");
         args = parse_def_args(env, locals);
-        expect(env, Token::Type::RParen, "parse_def rparen");
+        expect(env, Token::Type::RParen, "args closing paren");
         advance();
     } else if (current_token().is_identifier()) {
         args = parse_def_args(env, locals);
@@ -180,18 +179,36 @@ Parser::Node *Parser::parse_def(Env *env, LocalsVectorPtr) {
 
 Vector<Parser::Node *> *Parser::parse_def_args(Env *env, LocalsVectorPtr locals) {
     auto args = new Vector<Node *> {};
-    expect(env, Token::Type::Identifier, "argument");
-    auto arg = static_cast<IdentifierNode *>(parse_identifier(env, locals));
-    args->push(arg);
-    locals->push(SymbolValue::intern(env, arg->name()));
+    args->push(parse_def_single_arg(env, locals));
     while (current_token().is_comma()) {
         advance();
-        expect(env, Token::Type::Identifier, "argument");
-        auto arg = static_cast<IdentifierNode *>(parse_identifier(env, locals));
-        args->push(arg);
-        locals->push(SymbolValue::intern(env, arg->name()));
-    };
+        args->push(parse_def_single_arg(env, locals));
+    }
     return args;
+}
+
+Parser::Node *Parser::parse_def_single_arg(Env *env, LocalsVectorPtr locals) {
+    switch (current_token().type()) {
+    case Token::Type::Identifier: {
+        auto arg = static_cast<IdentifierNode *>(parse_identifier(env, locals));
+        locals->push(SymbolValue::intern(env, arg->name()));
+        return arg;
+    }
+    case Token::Type::LParen: {
+        advance();
+        auto sub_args = parse_def_args(env, locals);
+        expect(env, Token::Type::RParen, "args closing paren");
+        advance();
+        auto masgn = new MultipleAssignmentNode {};
+        for (auto arg : *sub_args) {
+            masgn->add_node(arg);
+        }
+        return masgn;
+    }
+    default:
+        raise_unexpected(env, "argument");
+    }
+    NAT_UNREACHABLE();
 }
 
 Parser::Node *Parser::parse_group(Env *env, LocalsVectorPtr locals) {
@@ -392,7 +409,7 @@ Parser::Node *Parser::parse_assignment_expression(Env *env, Node *left, LocalsVe
             parse_expression(env, ASSIGNMENT, locals),
         };
     }
-    case Node::Type::CommaSeparatedIdentifiers: {
+    case Node::Type::MultipleAssignment: {
         advance();
         return new AssignmentNode {
             left,

@@ -14,8 +14,8 @@ Value *Parser::AssignmentNode::to_ruby(Env *env) {
     const char *assignment_type;
     Value *left;
     switch (m_identifier->type()) {
-    case Node::Type::CommaSeparatedIdentifiers: {
-        auto list = static_cast<CommaSeparatedIdentifiersNode *>(m_identifier);
+    case Node::Type::MultipleAssignment: {
+        auto list = static_cast<MultipleAssignmentNode *>(m_identifier);
         auto sexp = new SexpValue { env, { SymbolValue::intern(env, "masgn") } };
         auto array = new SexpValue { env, { SymbolValue::intern(env, "array") } };
         for (auto identifier : *(list->nodes())) {
@@ -156,6 +156,18 @@ Value *Parser::ModuleNode::to_ruby(Env *env) {
     if (!m_body->is_empty()) {
         for (auto node : *(m_body->nodes())) {
             sexp->push(node->to_ruby(env));
+        }
+    }
+    return sexp;
+}
+
+Value *Parser::MultipleAssignmentNode::to_ruby(Env *env) {
+    auto sexp = new SexpValue { env, { SymbolValue::intern(env, "masgn") } };
+    for (auto node : m_nodes) {
+        if (node->type() == Node::Type::Identifier) {
+            sexp->push(static_cast<IdentifierNode *>(node)->to_symbol(env));
+        } else {
+            NAT_NOT_YET_IMPLEMENTED(); // maybe not needed?
         }
     }
     return sexp;
