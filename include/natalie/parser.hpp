@@ -558,6 +558,7 @@ private:
     Node *parse_string(Env *, LocalsVectorPtr);
     Node *parse_symbol(Env *, LocalsVectorPtr);
     Node *parse_statement_keyword(Env *, LocalsVectorPtr);
+    Node *parse_unless(Env *, LocalsVectorPtr);
     Node *parse_word_array(Env *, LocalsVectorPtr);
     Node *parse_word_symbol_array(Env *, LocalsVectorPtr);
 

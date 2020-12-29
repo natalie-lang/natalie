@@ -290,6 +290,23 @@ Parser::Node *Parser::parse_if(Env *env, LocalsVectorPtr locals) {
     }
 }
 
+Parser::Node *Parser::parse_unless(Env *env, LocalsVectorPtr locals) {
+    advance();
+    auto condition = parse_expression(env, LOWEST, locals);
+    next_expression(env);
+    auto false_expr = parse_if_body(env, locals);
+    Node *true_expr;
+    if (current_token().is_else_keyword()) {
+        advance();
+        true_expr = parse_if_body(env, locals);
+    } else {
+        true_expr = new NilNode {};
+    }
+    expect(env, Token::Type::EndKeyword, "if end");
+    advance();
+    return new IfNode { condition, true_expr, false_expr };
+}
+
 Parser::Node *Parser::parse_if_body(Env *env, LocalsVectorPtr locals) {
     auto body = new BlockNode {};
     current_token().validate(env);
@@ -628,6 +645,8 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type, Precedence prece
     case Type::BreakKeyword:
     case Type::NextKeyword:
         return &Parser::parse_statement_keyword;
+    case Type::UnlessKeyword:
+        return &Parser::parse_unless;
     case Type::PercentLowerI:
     case Type::PercentUpperI:
         return &Parser::parse_word_symbol_array;

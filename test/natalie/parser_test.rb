@@ -186,6 +186,10 @@ describe 'Parser' do
       Parser.parse("if false; 1; elsif 1 + 1 == 0; 2; 3; elsif false; 4; elsif foo() == 'bar'; 5; 6; else; 7; end").should == s(:block, s(:if, s(:false), s(:lit, 1), s(:if, s(:call, s(:call, s(:lit, 1), :+, s(:lit, 1)), :==, s(:lit, 0)), s(:block, s(:lit, 2), s(:lit, 3)), s(:if, s(:false), s(:lit, 4), s(:if, s(:call, s(:call, nil, :foo), :==, s(:str, 'bar')), s(:block, s(:lit, 5), s(:lit, 6)), s(:lit, 7))))))
     end
 
+    it 'parses unless' do
+      Parser.parse("unless false; 1; else; 2; end").should == s(:block, s(:if, s(:false), s(:lit, 2), s(:lit, 1)))
+    end
+
     it 'parses true/false' do
       Parser.parse("true").should == s(:block, s(:true))
       Parser.parse("false").should == s(:block, s(:false))
