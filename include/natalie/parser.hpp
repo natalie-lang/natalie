@@ -550,6 +550,8 @@ private:
         case Token::Type::Dot:
             return DOT;
         case Token::Type::EqualEqual:
+        case Token::Type::EqualEqualEqual:
+        case Token::Type::NotEqual:
             return EQUALITY;
         case Token::Type::Exponent:
             return EXPONENT;

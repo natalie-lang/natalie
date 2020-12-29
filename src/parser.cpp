@@ -711,6 +711,7 @@ Parser::parse_left_fn Parser::left_denotation(Token::Type type) {
     case Type::BitwiseXor:
     case Type::Divide:
     case Type::EqualEqual:
+    case Type::EqualEqualEqual:
     case Type::Exponent:
     case Type::GreaterThan:
     case Type::GreaterThanOrEqual:
@@ -719,6 +720,7 @@ Parser::parse_left_fn Parser::left_denotation(Token::Type type) {
     case Type::Minus:
     case Type::Modulus:
     case Type::Multiply:
+    case Type::NotEqual:
     case Type::Plus:
         return &Parser::parse_infix_expression;
     case Type::Integer:
