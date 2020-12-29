@@ -502,11 +502,12 @@ struct Parser : public gc {
         HASH, // {}
         CALLARGS, // foo a, b
         ITER, // do/end {}
-        TERNARY, // ? :
         EXPRMODIFIER, // if/unless/while/until
-        ASSIGNMENT, // =
         RANGE, // ..
         COMPOSITION, // and/or
+        ASSIGNMENT, // =
+        TERNARY, // ? :
+        LOGICALNOT, // not
         LOGICALOR, // ||
         LOGICALAND, // &&
         EQUALITY, // <=> == === != =~ !~
@@ -517,6 +518,7 @@ struct Parser : public gc {
         PRODUCT, // * / %
         DOT, // foo.bar
         PREFIX, // -1 +1
+        UNARY, // ! ~ + -
         EXPONENT, // **
         CALL, // foo()
     };
@@ -570,6 +572,8 @@ private:
             return LESSGREATER;
         case Token::Type::And:
             return LOGICALAND;
+        case Token::Type::NotKeyword:
+            return LOGICALNOT;
         case Token::Type::Or:
             return LOGICALOR;
         case Token::Type::Divide:
@@ -582,6 +586,8 @@ private:
         case Token::Type::TernaryQuestion:
         case Token::Type::TernaryColon:
             return TERNARY;
+        case Token::Type::Not:
+            return UNARY;
         default:
             return LOWEST;
         }
@@ -609,6 +615,7 @@ private:
     Node *parse_if(Env *, LocalsVectorPtr);
     Node *parse_lit(Env *, LocalsVectorPtr);
     Node *parse_module(Env *, LocalsVectorPtr);
+    Node *parse_not(Env *, LocalsVectorPtr);
     Node *parse_return(Env *, LocalsVectorPtr);
     Node *parse_string(Env *, LocalsVectorPtr);
     Node *parse_symbol(Env *, LocalsVectorPtr);

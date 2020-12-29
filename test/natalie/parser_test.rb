@@ -72,6 +72,11 @@ describe 'Parser' do
       Parser.parse('10 % 3').should == s(:block, s(:call, s(:lit, 10), :%, s(:lit, 3)))
     end
 
+    xit 'parses ! and not' do
+      Parser.parse('!false').should == s(:block, s(:call, s(:false), :!))
+      Parser.parse('not false').should == s(:block, s(:call, s(:false), :!))
+    end
+
     it 'raises an error if there is a syntax error' do
       # We choose to more closely match what MRI does vs what ruby_parser raises
       if (RUBY_ENGINE == 'natalie')

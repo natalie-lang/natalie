@@ -366,6 +366,14 @@ Parser::Node *Parser::parse_module(Env *env, LocalsVectorPtr) {
     return new ModuleNode { name, body };
 };
 
+Parser::Node *Parser::parse_not(Env *env, LocalsVectorPtr locals) {
+    auto precedence = get_precedence();
+    advance();
+    auto node = new CallNode { parse_expression(env, precedence, locals),
+        SymbolValue::intern(env, "!") };
+    return node;
+}
+
 Parser::Node *Parser::parse_return(Env *env, LocalsVectorPtr locals) {
     advance();
     if (current_token().is_end_of_expression())
@@ -672,6 +680,9 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type, Precedence prece
         return &Parser::parse_lit;
     case Type::ModuleKeyword:
         return &Parser::parse_module;
+    case Type::Not:
+    case Type::NotKeyword:
+        return &Parser::parse_not;
     case Type::ReturnKeyword:
         return &Parser::parse_return;
     case Type::String:
