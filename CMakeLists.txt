@@ -26,6 +26,7 @@ add_library(natalie STATIC
 add_custom_command(
   OUTPUT ${CMAKE_BINARY_DIR}/generated/bindings.cpp
   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/lib/natalie/compiler/binding_gen.rb
+  DEPENDS make-generated-directory
   COMMAND ruby ${CMAKE_CURRENT_SOURCE_DIR}/lib/natalie/compiler/binding_gen.rb > ${CMAKE_BINARY_DIR}/generated/bindings.cpp VERBATIM)
 add_custom_target(generate-bindings DEPENDS ${CMAKE_BINARY_DIR}/generated/bindings.cpp)
 add_dependencies(natalie generate-bindings)
