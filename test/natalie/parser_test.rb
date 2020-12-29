@@ -306,6 +306,7 @@ describe 'Parser' do
       Parser.parse("foo { |x, y| x; y }").should == s(:block, s(:iter, s(:call, nil, :foo), s(:args, :x, :y), s(:block, s(:lvar, :x), s(:lvar, :y))))
       Parser.parse("foo { |x| x }; x").should == s(:block, s(:iter, s(:call, nil, :foo), s(:args, :x), s(:lvar, :x)), s(:call, nil, :x))
       Parser.parse("x = 1; foo { x }; x").should == s(:block, s(:lasgn, :x, s(:lit, 1)), s(:iter, s(:call, nil, :foo), 0, s(:lvar, :x)), s(:lvar, :x))
+      Parser.parse("foo do\nbar do\nend\nend").should == s(:block, s(:iter, s(:call, nil, :foo), 0, s(:iter, s(:call, nil, :bar), 0)))
     end
 
     it 'parses block pass' do

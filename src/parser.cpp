@@ -15,7 +15,7 @@ Parser::Node *Parser::parse_expression(Env *env, Parser::Precedence precedence, 
 
     Node *left = (this->*null_fn)(env, locals);
 
-    if (left->type() == Node::Type::Identifier && !current_token().is_end_of_expression() && get_precedence() == LOWEST && precedence == LOWEST) {
+    if (left->type() == Node::Type::Identifier && !current_token().is_end_of_expression() && get_precedence() == LOWEST && precedence == LOWEST && !current_token().is_closing_token()) {
         left = parse_call_expression_without_parens(env, left, locals);
     }
 
@@ -425,7 +425,7 @@ Parser::Node *Parser::parse_iter_expression(Env *env, Node *left, LocalsVectorPt
         args = new Vector<Node *> {};
     }
     auto end_token_type = curly_brace ? Token::Type::RCurlyBrace : Token::Type::EndKeyword;
-    auto body = parse_body(env, locals, ITER, end_token_type);
+    auto body = parse_body(env, locals, LOWEST, end_token_type);
     return new IterNode { left, args, body };
 }
 
@@ -537,7 +537,7 @@ Parser::Node *Parser::parse_send_expression(Env *env, Node *left, LocalsVectorPt
         SymbolValue::intern(env, name->name()),
     };
 
-    if (!current_token().is_end_of_expression() && get_precedence() == LOWEST) {
+    if (!current_token().is_end_of_expression() && get_precedence() == LOWEST && !current_token().is_closing_token()) {
         call_node = static_cast<CallNode *>(parse_call_expression_without_parens(env, call_node, locals));
     }
 

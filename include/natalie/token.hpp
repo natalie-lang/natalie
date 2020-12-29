@@ -434,6 +434,7 @@ struct Token : public gc {
         return hash;
     }
 
+    bool is_closing_token() { return m_type == Type::RBracket || m_type == Type::RCurlyBrace || m_type == Type::RParen; }
     bool is_comma() { return m_type == Type::Comma; }
     bool is_comment() { return m_type == Type::Comment; }
     bool is_else_keyword() { return m_type == Type::ElseKeyword; }
