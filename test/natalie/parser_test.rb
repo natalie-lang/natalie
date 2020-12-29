@@ -147,6 +147,7 @@ describe 'Parser' do
       Parser.parse("foo()").should == s(:block, s(:call, nil, :foo))
       Parser.parse("foo() + bar()").should == s(:block, s(:call, s(:call, nil, :foo), :+, s(:call, nil, :bar)))
       Parser.parse("foo(1, 'baz')").should == s(:block, s(:call, nil, :foo, s(:lit, 1), s(:str, "baz")))
+      Parser.parse("foo(a, b)").should == s(:block, s(:call, nil, :foo, s(:call, nil, :a), s(:call, nil, :b)))
       Parser.parse("foo(\n1 + 2  ,\n  'baz'  \n )").should == s(:block, s(:call, nil, :foo, s(:call, s(:lit, 1), :+, s(:lit, 2)), s(:str, "baz")))
       if (RUBY_ENGINE == 'natalie')
         -> { Parser.parse("foo(") }.should raise_error(SyntaxError, '1: syntax error, unexpected end-of-input')
@@ -161,6 +162,7 @@ describe 'Parser' do
       Parser.parse("foo 1 + 2").should == s(:block, s(:call, nil, :foo, s(:call, s(:lit, 1), :+, s(:lit, 2))))
       Parser.parse("foo 1 + 2  ,\n  'baz'").should == s(:block, s(:call, nil, :foo, s(:call, s(:lit, 1), :+, s(:lit, 2)), s(:str, "baz")))
       Parser.parse("foo 'foo' + 'bar'  ,\n  2").should == s(:block, s(:call, nil, :foo, s(:call, s(:str, "foo"), :+, s(:str, "bar")), s(:lit, 2)))
+      Parser.parse("foo a, b").should == s(:block, s(:call, nil, :foo, s(:call, nil, :a), s(:call, nil, :b)))
     end
 
     it 'parses method calls with a receiver' do
@@ -298,6 +300,7 @@ describe 'Parser' do
       Parser.parse("foo do\nend").should == s(:block, s(:iter, s(:call, nil, :foo), 0))
       Parser.parse("foo do\n1\n2\nend").should == s(:block, s(:iter, s(:call, nil, :foo), 0, s(:block, s(:lit, 1), s(:lit, 2))))
       Parser.parse("foo do |x, y|\nx\ny\nend").should == s(:block, s(:iter, s(:call, nil, :foo), s(:args, :x, :y), s(:block, s(:lvar, :x), s(:lvar, :y))))
+      Parser.parse("foo(a, b) do |x, y|\nx\ny\nend").should == s(:block, s(:iter, s(:call, nil, :foo, s(:call, nil, :a), s(:call, nil, :b)), s(:args, :x, :y), s(:block, s(:lvar, :x), s(:lvar, :y))))
       Parser.parse("foo { }").should == s(:block, s(:iter, s(:call, nil, :foo), 0))
       Parser.parse("foo { 1; 2 }").should == s(:block, s(:iter, s(:call, nil, :foo), 0, s(:block, s(:lit, 1), s(:lit, 2))))
       Parser.parse("foo { |x, y| x; y }").should == s(:block, s(:iter, s(:call, nil, :foo), s(:args, :x, :y), s(:block, s(:lvar, :x), s(:lvar, :y))))

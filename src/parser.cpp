@@ -450,11 +450,11 @@ Parser::Node *Parser::parse_call_expression_with_parens(Env *env, Node *left, Lo
     }
     advance();
     if (!current_token().is_rparen()) {
-        auto arg = parse_expression(env, LOWEST, locals);
+        auto arg = parse_expression(env, CALLARGS, locals);
         call_node->add_arg(arg);
         while (current_token().is_comma()) {
             advance();
-            auto arg = parse_expression(env, LOWEST, locals);
+            auto arg = parse_expression(env, CALLARGS, locals);
             call_node->add_arg(arg);
         }
     }
@@ -487,11 +487,11 @@ Parser::Node *Parser::parse_call_expression_without_parens(Env *env, Node *left,
     case Token::Type::Eol:
         break;
     default:
-        auto arg = parse_expression(env, LOWEST, locals);
+        auto arg = parse_expression(env, CALLARGS, locals);
         call_node->add_arg(arg);
         while (current_token().is_comma()) {
             advance();
-            auto arg = parse_expression(env, LOWEST, locals);
+            auto arg = parse_expression(env, CALLARGS, locals);
             call_node->add_arg(arg);
         }
     }

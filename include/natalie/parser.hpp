@@ -441,6 +441,7 @@ struct Parser : public gc {
         LOWEST,
         ARRAY,
         HASH,
+        CALLARGS,
         ITER,
         TERNARY,
         ASSIGNMENT,
