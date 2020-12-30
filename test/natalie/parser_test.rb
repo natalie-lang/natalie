@@ -354,9 +354,13 @@ describe 'Parser' do
       Parser.parse('map(&block)').should == s(:block, s(:call, nil, :map, s(:block_pass, s(:call, nil, :block))))
     end
 
-    it 'parses next and break' do
+    it 'parses next, break, and yield' do
       Parser.parse('next').should == s(:block, s(:next))
+      Parser.parse('next 1, 2').should == s(:block, s(:next, s(:array, s(:lit, 1), s(:lit, 2))))
       Parser.parse('break').should == s(:block, s(:break))
+      Parser.parse('break 1, 2').should == s(:block, s(:break, s(:array, s(:lit, 1), s(:lit, 2))))
+      Parser.parse('yield').should == s(:block, s(:yield))
+      Parser.parse('yield 1, 2').should == s(:block, s(:yield, s(:lit, 1), s(:lit, 2)))
     end
   end
 end

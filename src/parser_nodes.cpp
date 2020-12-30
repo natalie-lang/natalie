@@ -66,7 +66,15 @@ Value *Parser::BlockPassNode::to_ruby(Env *env) {
 }
 
 Value *Parser::BreakNode::to_ruby(Env *env) {
-    return new SexpValue { env, { SymbolValue::intern(env, "break") } };
+    auto sexp = new SexpValue { env, { SymbolValue::intern(env, "break") } };
+    if (m_args.is_empty())
+        return sexp;
+    auto array = new SexpValue { env, { SymbolValue::intern(env, "array") } };
+    for (auto arg : m_args) {
+        array->push(arg->to_ruby(env));
+    }
+    sexp->push(array);
+    return sexp;
 }
 
 Value *Parser::CallNode::to_ruby(Env *env) {
@@ -211,7 +219,15 @@ Value *Parser::MultipleAssignmentNode::to_ruby(Env *env) {
 }
 
 Value *Parser::NextNode::to_ruby(Env *env) {
-    return new SexpValue { env, { SymbolValue::intern(env, "next") } };
+    auto sexp = new SexpValue { env, { SymbolValue::intern(env, "next") } };
+    if (m_args.is_empty())
+        return sexp;
+    auto array = new SexpValue { env, { SymbolValue::intern(env, "array") } };
+    for (auto arg : m_args) {
+        array->push(arg->to_ruby(env));
+    }
+    sexp->push(array);
+    return sexp;
 }
 
 Value *Parser::NilNode::to_ruby(Env *env) {
@@ -247,4 +263,15 @@ Value *Parser::StringNode::to_ruby(Env *env) {
 Value *Parser::TrueNode::to_ruby(Env *env) {
     return new SexpValue { env, { SymbolValue::intern(env, "true") } };
 }
+
+Value *Parser::YieldNode::to_ruby(Env *env) {
+    auto sexp = new SexpValue { env, { SymbolValue::intern(env, "yield") } };
+    if (m_args.is_empty())
+        return sexp;
+    for (auto arg : m_args) {
+        sexp->push(arg->to_ruby(env));
+    }
+    return sexp;
+}
+
 }

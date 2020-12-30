@@ -43,6 +43,7 @@ struct Parser : public gc {
             Symbol,
             String,
             True,
+            Yield,
         };
 
         Node() { }
@@ -59,6 +60,15 @@ struct Parser : public gc {
     private:
         size_t m_line { 0 };
         size_t m_column { 0 };
+    };
+
+    struct NodeWithArgs : Node {
+        void add_arg(Node *arg) {
+            m_args.push(arg);
+        }
+
+    protected:
+        Vector<Node *> m_args {};
     };
 
     struct ArrayNode : Node {
@@ -92,7 +102,7 @@ struct Parser : public gc {
         Node *m_node { nullptr };
     };
 
-    struct BreakNode : Node {
+    struct BreakNode : NodeWithArgs {
         virtual Value *to_ruby(Env *) override;
 
         virtual Type type() override { return Type::Break; }
@@ -135,7 +145,7 @@ struct Parser : public gc {
         Vector<Node *> m_nodes {};
     };
 
-    struct CallNode : Node {
+    struct CallNode : NodeWithArgs {
         CallNode(Node *receiver, Value *message)
             : m_receiver { receiver }
             , m_message { message } {
@@ -155,17 +165,12 @@ struct Parser : public gc {
 
         virtual Value *to_ruby(Env *) override;
 
-        void add_arg(Node *arg) {
-            m_args.push(arg);
-        }
-
         Value *message() { return m_message; }
         void set_message(Value *message) { m_message = message; }
 
     protected:
         Node *m_receiver { nullptr };
         Value *m_message { nullptr };
-        Vector<Node *> m_args {};
     };
 
     struct AttrAssignNode : CallNode {
@@ -437,7 +442,7 @@ struct Parser : public gc {
         virtual Value *to_ruby(Env *) override;
     };
 
-    struct NextNode : Node {
+    struct NextNode : NodeWithArgs {
         virtual Value *to_ruby(Env *) override;
 
         virtual Type type() override { return Type::Next; }
@@ -518,6 +523,12 @@ struct Parser : public gc {
         virtual Type type() override { return Type::True; }
     };
 
+    struct YieldNode : NodeWithArgs {
+        virtual Value *to_ruby(Env *) override;
+
+        virtual Type type() override { return Type::Yield; }
+    };
+
     enum Precedence {
         LOWEST,
         ARRAY, // []
@@ -525,8 +536,8 @@ struct Parser : public gc {
         CALLARGS, // foo a, b
         ITER, // do/end {}
         EXPRMODIFIER, // if/unless/while/until
-        RANGE, // ..
         COMPOSITION, // and/or
+        RANGE, // ..
         ASSIGNMENT, // =
         TERNARY, // ? :
         LOGICALNOT, // not
@@ -655,7 +666,7 @@ private:
     Node *parse_assignment_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_call_expression_without_parens(Env *, Node *, LocalsVectorPtr);
     Node *parse_call_expression_with_parens(Env *, Node *, LocalsVectorPtr);
-    void parse_call_args(Env *, CallNode *, LocalsVectorPtr);
+    void parse_call_args(Env *, NodeWithArgs *, LocalsVectorPtr);
     Node *parse_modifier_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_infix_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_iter_expression(Env *, Node *, LocalsVectorPtr);

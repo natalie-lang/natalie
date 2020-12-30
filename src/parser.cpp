@@ -394,12 +394,27 @@ Parser::Node *Parser::parse_symbol(Env *env, LocalsVectorPtr locals) {
 
 Parser::Node *Parser::parse_statement_keyword(Env *env, LocalsVectorPtr locals) {
     switch (current_token().type()) {
-    case Token::Type::BreakKeyword:
+    case Token::Type::BreakKeyword: {
         advance();
-        return new BreakNode {};
-    case Token::Type::NextKeyword:
+        auto node = new BreakNode {};
+        if (!current_token().is_end_of_expression())
+            parse_call_args(env, node, locals);
+        return node;
+    }
+    case Token::Type::NextKeyword: {
         advance();
-        return new NextNode {};
+        auto node = new NextNode {};
+        if (!current_token().is_end_of_expression())
+            parse_call_args(env, node, locals);
+        return node;
+    }
+    case Token::Type::YieldKeyword: {
+        advance();
+        auto node = new YieldNode {};
+        if (!current_token().is_end_of_expression())
+            parse_call_args(env, node, locals);
+        return node;
+    }
     default:
         NAT_UNREACHABLE()
     }
@@ -540,13 +555,13 @@ Parser::Node *Parser::parse_call_expression_with_parens(Env *env, Node *left, Lo
     return call_node;
 }
 
-void Parser::parse_call_args(Env *env, CallNode *call_node, LocalsVectorPtr locals) {
+void Parser::parse_call_args(Env *env, NodeWithArgs *node, LocalsVectorPtr locals) {
     auto arg = parse_expression(env, CALLARGS, locals);
-    call_node->add_arg(arg);
+    node->add_arg(arg);
     while (current_token().is_comma()) {
         advance();
         auto arg = parse_expression(env, CALLARGS, locals);
-        call_node->add_arg(arg);
+        node->add_arg(arg);
     }
 }
 
@@ -713,6 +728,7 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type, Precedence prece
         return &Parser::parse_symbol;
     case Type::BreakKeyword:
     case Type::NextKeyword:
+    case Type::YieldKeyword:
         return &Parser::parse_statement_keyword;
     case Type::UnlessKeyword:
         return &Parser::parse_unless;
