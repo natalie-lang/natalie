@@ -129,6 +129,19 @@ describe 'Parser' do
       Parser.parse("(@x, $y, Z) = foo").should == s(:block, s(:masgn, s(:array, s(:iasgn, :@x), s(:gasgn, :$y), s(:cdecl, :Z)), s(:to_ary, s(:call, nil, :foo))))
     end
 
+    it 'parses [] as an array vs as a method' do
+      Parser.parse("foo[1]").should == s(:block, s(:call, s(:call, nil, :foo), :[], s(:lit, 1)))
+      Parser.parse("foo [1]").should == s(:block, s(:call, nil, :foo, s(:array, s(:lit, 1))))
+      Parser.parse("foo = []; foo[1]").should == s(:block, s(:lasgn, :foo, s(:array)), s(:call, s(:lvar, :foo), :[], s(:lit, 1)))
+      Parser.parse("foo = [1]; foo[1]").should == s(:block, s(:lasgn, :foo, s(:array, s(:lit, 1))), s(:call, s(:lvar, :foo), :[], s(:lit, 1)))
+      Parser.parse("foo = []; foo [1]").should == s(:block, s(:lasgn, :foo, s(:array)), s(:call, s(:lvar, :foo), :[], s(:lit, 1)))
+      Parser.parse("foo = []; foo [1, 2]").should == s(:block, s(:lasgn, :foo, s(:array)), s(:call, s(:lvar, :foo), :[], s(:lit, 1), s(:lit, 2)))
+      Parser.parse("foo[a]").should == s(:block, s(:call, s(:call, nil, :foo), :[], s(:call, nil, :a)))
+      Parser.parse("foo[]").should == s(:block, s(:call, s(:call, nil, :foo), :[]))
+      Parser.parse("foo []").should == s(:block, s(:call, nil, :foo, s(:array)))
+      Parser.parse("foo [a, b]").should == s(:block, s(:call, nil, :foo, s(:array, s(:call, nil, :a), s(:call, nil, :b))))
+    end
+
     it 'parses method definition' do
       Parser.parse("def foo\nend").should == s(:block, s(:defn, :foo, s(:args), s(:nil)))
       Parser.parse("def foo;end").should == s(:block, s(:defn, :foo, s(:args), s(:nil)))

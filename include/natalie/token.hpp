@@ -524,6 +524,9 @@ struct Token : public gc {
     size_t line() { return m_line; }
     size_t column() { return m_column; }
 
+    bool whitespace_precedes() { return m_whitespace_precedes; }
+    void set_whitespace_precedes(bool whitespace_precedes) { m_whitespace_precedes = whitespace_precedes; }
+
 private:
     Type m_type { Type::Invalid };
     const char *m_literal { nullptr };
@@ -532,5 +535,6 @@ private:
     bool m_has_sign { false };
     size_t m_line { 0 };
     size_t m_column { 0 };
+    bool m_whitespace_precedes { false };
 };
 }

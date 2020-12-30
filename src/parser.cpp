@@ -15,18 +15,17 @@ Parser::Node *Parser::parse_expression(Env *env, Parser::Precedence precedence, 
 
     Node *left = (this->*null_fn)(env, locals);
 
-    if (left->type() == Node::Type::Identifier && !current_token().is_end_of_expression() && get_precedence() == LOWEST && precedence == LOWEST && !current_token().is_closing_token()) {
+    if (left->type() == Node::Type::Identifier && !current_token().is_end_of_expression() && get_precedence(left) == LOWEST && precedence == LOWEST && !current_token().is_closing_token()) {
         left = parse_call_expression_without_parens(env, left, locals);
     }
 
-    while (current_token().is_valid() && precedence < get_precedence()) {
+    while (current_token().is_valid() && get_precedence(left) > precedence) {
 #ifdef NAT_DEBUG_PARSER
         printf("while loop: current token = %s\n", current_token().to_ruby(env)->inspect_str(env));
 #endif
-        auto left_fn = left_denotation(current_token().type());
-        if (!left_fn) {
-            raise_unexpected(env, "left_fn");
-        }
+        auto left_fn = left_denotation(current_token(), left);
+        if (!left_fn)
+            NAT_UNREACHABLE();
 
         left = (this->*left_fn)(env, left, locals);
     }
@@ -523,18 +522,21 @@ Parser::Node *Parser::parse_call_expression_with_parens(Env *env, Node *left, Lo
         NAT_UNREACHABLE();
     }
     advance();
-    if (!current_token().is_rparen()) {
-        auto arg = parse_expression(env, CALLARGS, locals);
-        call_node->add_arg(arg);
-        while (current_token().is_comma()) {
-            advance();
-            auto arg = parse_expression(env, CALLARGS, locals);
-            call_node->add_arg(arg);
-        }
-    }
+    if (!current_token().is_rparen())
+        parse_call_args(env, call_node, locals);
     expect(env, Token::Type::RParen, "call rparen");
     advance();
     return call_node;
+}
+
+void Parser::parse_call_args(Env *env, CallNode *call_node, LocalsVectorPtr locals) {
+    auto arg = parse_expression(env, CALLARGS, locals);
+    call_node->add_arg(arg);
+    while (current_token().is_comma()) {
+        advance();
+        auto arg = parse_expression(env, CALLARGS, locals);
+        call_node->add_arg(arg);
+    }
 }
 
 Parser::Node *Parser::parse_call_expression_without_parens(Env *env, Node *left, LocalsVectorPtr locals) {
@@ -561,20 +563,14 @@ Parser::Node *Parser::parse_call_expression_without_parens(Env *env, Node *left,
     case Token::Type::Eol:
         break;
     default:
-        auto arg = parse_expression(env, CALLARGS, locals);
-        call_node->add_arg(arg);
-        while (current_token().is_comma()) {
-            advance();
-            auto arg = parse_expression(env, CALLARGS, locals);
-            call_node->add_arg(arg);
-        }
+        parse_call_args(env, call_node, locals);
     }
     return call_node;
 }
 
 Parser::Node *Parser::parse_infix_expression(Env *env, Node *left, LocalsVectorPtr locals) {
     auto op = current_token();
-    auto precedence = get_precedence();
+    auto precedence = get_precedence(left);
     advance();
     Node *right = nullptr;
     if (op.type() == Token::Type::Integer) {
@@ -621,6 +617,19 @@ Parser::Node *Parser::parse_range_expression(Env *env, Node *left, LocalsVectorP
     return new RangeNode { left, parse_expression(env, LOWEST, locals), token.type() == Token::Type::DotDotDot };
 }
 
+Parser::Node *Parser::parse_ref_expression(Env *env, Node *left, LocalsVectorPtr locals) {
+    advance();
+    auto call_node = new CallNode {
+        left,
+        SymbolValue::intern(env, "[]"),
+    };
+    if (current_token().type() != Token::Type::RBracket)
+        parse_call_args(env, call_node, locals);
+    expect(env, Token::Type::RBracket, "element reference right bracket");
+    advance();
+    return call_node;
+}
+
 Parser::Node *Parser::parse_send_expression(Env *env, Node *left, LocalsVectorPtr locals) {
     advance();
     expect(env, Token::Type::Identifier, "send method name");
@@ -630,7 +639,7 @@ Parser::Node *Parser::parse_send_expression(Env *env, Node *left, LocalsVectorPt
         SymbolValue::intern(env, name->name()),
     };
 
-    if (!current_token().is_end_of_expression() && get_precedence() == LOWEST && !current_token().is_closing_token()) {
+    if (!current_token().is_end_of_expression() && get_precedence(left) == LOWEST && !current_token().is_closing_token()) {
         call_node = static_cast<CallNode *>(parse_call_expression_without_parens(env, call_node, locals));
     }
 
@@ -707,9 +716,9 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type, Precedence prece
     }
 };
 
-Parser::parse_left_fn Parser::left_denotation(Token::Type type) {
+Parser::parse_left_fn Parser::left_denotation(Token token, Node *left) {
     using Type = Token::Type;
-    switch (type) {
+    switch (token.type()) {
     case Type::Equal:
         return &Parser::parse_assignment_expression;
     case Type::LParen:
@@ -757,6 +766,11 @@ Parser::parse_left_fn Parser::left_denotation(Token::Type type) {
     case Type::DotDot:
     case Type::DotDotDot:
         return &Parser::parse_range_expression;
+    case Type::LBracket:
+        if (treat_left_bracket_as_element_reference(left, current_token()))
+            return &Parser::parse_ref_expression;
+        else
+            return nullptr;
     case Type::Dot:
         return &Parser::parse_send_expression;
     case Type::TernaryQuestion:

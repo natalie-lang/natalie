@@ -476,9 +476,12 @@ private:
         case '{':
             advance();
             return Token { Token::Type::LCurlyBrace, m_token_line, m_token_column };
-        case '[':
+        case '[': {
             advance();
-            return Token { Token::Type::LBracket, m_token_line, m_token_column };
+            auto token = Token { Token::Type::LBracket, m_token_line, m_token_column };
+            token.set_whitespace_precedes(m_whitespace_precedes);
+            return token;
+        }
         case '(':
             advance();
             return Token { Token::Type::LParen, m_token_line, m_token_column };

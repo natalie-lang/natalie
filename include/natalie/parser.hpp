@@ -256,6 +256,7 @@ struct Parser : public gc {
         Token::Type token_type() { return m_token.type(); }
         const char *name() { return m_token.literal(); }
 
+        bool is_lvar() { return m_is_lvar; }
         void set_is_lvar(bool is_lvar) { m_is_lvar = is_lvar; }
 
         SexpValue *to_sexp(Env *env) {
@@ -521,12 +522,13 @@ struct Parser : public gc {
         UNARY, // ! ~ + -
         EXPONENT, // **
         CALL, // foo()
+        REF, // foo[1] / foo[1] = 2
     };
 
     Node *tree(Env *);
 
 private:
-    Precedence get_precedence() {
+    Precedence get_precedence(Node *left = nullptr) {
         switch (current_token().type()) {
         case Token::Type::Plus:
         case Token::Type::Minus:
@@ -583,6 +585,11 @@ private:
         case Token::Type::DotDot:
         case Token::Type::DotDotDot:
             return RANGE;
+        case Token::Type::LBracket:
+            if (left && treat_left_bracket_as_element_reference(left, current_token()))
+                return REF;
+            else
+                return LOWEST;
         case Token::Type::TernaryQuestion:
         case Token::Type::TernaryColon:
             return TERNARY;
@@ -627,12 +634,14 @@ private:
     Node *parse_assignment_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_call_expression_without_parens(Env *, Node *, LocalsVectorPtr);
     Node *parse_call_expression_with_parens(Env *, Node *, LocalsVectorPtr);
+    void parse_call_args(Env *, CallNode *, LocalsVectorPtr);
     Node *parse_modifier_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_infix_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_iter_expression(Env *, Node *, LocalsVectorPtr);
     Vector<Node *> *parse_iter_args(Env *, LocalsVectorPtr);
     Node *parse_logical_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_range_expression(Env *, Node *, LocalsVectorPtr);
+    Node *parse_ref_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_send_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_ternary_expression(Env *, Node *, LocalsVectorPtr);
 
@@ -640,7 +649,11 @@ private:
     using parse_left_fn = Node *(Parser::*)(Env *, Node *, LocalsVectorPtr);
 
     parse_null_fn null_denotation(Token::Type, Precedence);
-    parse_left_fn left_denotation(Token::Type);
+    parse_left_fn left_denotation(Token, Node *);
+
+    bool treat_left_bracket_as_element_reference(Node *left, Token token) {
+        return !token.whitespace_precedes() || (left->type() == Node::Type::Identifier && static_cast<IdentifierNode *>(left)->is_lvar());
+    }
 
     Token current_token();
     Token peek_token();
