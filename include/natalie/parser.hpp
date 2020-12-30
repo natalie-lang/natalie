@@ -369,6 +369,9 @@ struct Parser : public gc {
                 case Node::Type::Identifier:
                     sexp->push(SymbolValue::intern(env, static_cast<IdentifierNode *>(arg)->name()));
                     break;
+                case Node::Type::MultipleAssignment:
+                    sexp->push(arg->to_ruby(env));
+                    break;
                 default:
                     NAT_UNREACHABLE();
                 }
