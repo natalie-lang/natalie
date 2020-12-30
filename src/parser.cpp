@@ -472,8 +472,10 @@ Parser::Node *Parser::parse_assignment_expression(Env *env, Node *left, LocalsVe
         };
     }
     default:
-        NAT_UNREACHABLE();
+        // FIXME: needs to print the token for `left` -- not current_token()
+        raise_unexpected(env, "left side of assignment");
     }
+    NAT_UNREACHABLE();
 };
 
 Parser::Node *Parser::parse_iter_expression(Env *env, Node *left, LocalsVectorPtr locals) {
