@@ -565,9 +565,9 @@ struct Parser : public gc {
         LOWEST,
         ARRAY, // []
         HASH, // {}
-        CALLARGS, // foo a, b
         ITER, // do/end {}
         EXPRMODIFIER, // if/unless/while/until
+        CALLARGS, // foo a, b
         COMPOSITION, // and/or
         RANGE, // ..
         ASSIGNMENT, // =

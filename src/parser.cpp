@@ -126,7 +126,7 @@ Parser::Node *Parser::parse_break(Env *env, LocalsVectorPtr locals) {
         expect(env, Token::Type::RParen, "break closing paren");
         advance();
         return new BreakNode { arg };
-    } else if (!current_token().is_end_of_expression()) {
+    } else if (!current_token().is_end_of_expression() && !current_token().is_expression_modifier()) {
         auto array = new ArrayNode {};
         parse_array_items(env, array, locals);
         return new BreakNode { array };
@@ -393,7 +393,7 @@ Parser::Node *Parser::parse_next(Env *env, LocalsVectorPtr locals) {
         expect(env, Token::Type::RParen, "break closing paren");
         advance();
         return new NextNode { arg };
-    } else if (!current_token().is_end_of_expression()) {
+    } else if (!current_token().is_end_of_expression() && !current_token().is_expression_modifier()) {
         auto array = new ArrayNode {};
         parse_array_items(env, array, locals);
         return new NextNode { array };
@@ -487,7 +487,7 @@ Parser::Node *Parser::parse_yield(Env *env, LocalsVectorPtr locals) {
         parse_call_args(env, node, locals);
         expect(env, Token::Type::RParen, "yield closing paren");
         advance();
-    } else if (!current_token().is_end_of_expression()) {
+    } else if (!current_token().is_end_of_expression() && !current_token().is_expression_modifier()) {
         parse_call_args(env, node, locals);
     }
     return node;

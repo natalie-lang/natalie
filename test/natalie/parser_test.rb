@@ -358,12 +358,15 @@ describe 'Parser' do
       Parser.parse('next').should == s(:block, s(:next))
       Parser.parse('next 1, 2').should == s(:block, s(:next, s(:array, s(:lit, 1), s(:lit, 2))))
       Parser.parse('next([1, 2])').should == s(:block, s(:next, s(:array, s(:lit, 1), s(:lit, 2))))
+      Parser.parse("next if true").should == s(:block, s(:if, s(:true), s(:next), nil))
       Parser.parse('break').should == s(:block, s(:break))
       Parser.parse('break 1, 2').should == s(:block, s(:break, s(:array, s(:lit, 1), s(:lit, 2))))
       Parser.parse('break([1, 2])').should == s(:block, s(:break, s(:array, s(:lit, 1), s(:lit, 2))))
+      Parser.parse("break if true").should == s(:block, s(:if, s(:true), s(:break), nil))
       Parser.parse('yield').should == s(:block, s(:yield))
       Parser.parse('yield 1, 2').should == s(:block, s(:yield, s(:lit, 1), s(:lit, 2)))
       Parser.parse('yield(1, 2)').should == s(:block, s(:yield, s(:lit, 1), s(:lit, 2)))
+      Parser.parse("yield if true").should == s(:block, s(:if, s(:true), s(:yield), nil))
     end
 
     it 'parses __FILE__ and __dir__' do
