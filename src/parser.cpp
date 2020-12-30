@@ -118,6 +118,22 @@ Parser::Node *Parser::parse_bool(Env *env, LocalsVectorPtr) {
     }
 }
 
+Parser::Node *Parser::parse_break(Env *env, LocalsVectorPtr locals) {
+    advance();
+    if (current_token().is_lparen()) {
+        advance();
+        auto arg = parse_expression(env, CALLARGS, locals);
+        expect(env, Token::Type::RParen, "break closing paren");
+        advance();
+        return new BreakNode { arg };
+    } else if (!current_token().is_end_of_expression()) {
+        auto array = new ArrayNode {};
+        parse_array_items(env, array, locals);
+        return new BreakNode { array };
+    }
+    return new BreakNode {};
+}
+
 Parser::Node *Parser::parse_class(Env *env, LocalsVectorPtr) {
     advance();
     auto locals = new Vector<SymbolValue *> {};
@@ -229,6 +245,12 @@ Parser::Node *Parser::parse_modifier_expression(Env *env, Node *left, LocalsVect
     default:
         NAT_NOT_YET_IMPLEMENTED();
     }
+}
+
+Parser::Node *Parser::parse_file_constant(Env *env, LocalsVectorPtr locals) {
+    auto token = current_token();
+    advance();
+    return new StringNode { new StringValue { env, token.file() } };
 }
 
 Parser::Node *Parser::parse_group(Env *env, LocalsVectorPtr locals) {
@@ -363,6 +385,22 @@ Parser::Node *Parser::parse_module(Env *env, LocalsVectorPtr) {
     return new ModuleNode { name, body };
 };
 
+Parser::Node *Parser::parse_next(Env *env, LocalsVectorPtr locals) {
+    advance();
+    if (current_token().is_lparen()) {
+        advance();
+        auto arg = parse_expression(env, CALLARGS, locals);
+        expect(env, Token::Type::RParen, "break closing paren");
+        advance();
+        return new NextNode { arg };
+    } else if (!current_token().is_end_of_expression()) {
+        auto array = new ArrayNode {};
+        parse_array_items(env, array, locals);
+        return new NextNode { array };
+    }
+    return new NextNode {};
+}
+
 Parser::Node *Parser::parse_not(Env *env, LocalsVectorPtr locals) {
     auto precedence = get_precedence();
     advance();
@@ -388,56 +426,6 @@ Parser::Node *Parser::parse_symbol(Env *env, LocalsVectorPtr locals) {
     auto symbol = new SymbolNode { SymbolValue::intern(env, current_token().literal()) };
     advance();
     return symbol;
-};
-
-Parser::Node *Parser::parse_statement_keyword(Env *env, LocalsVectorPtr locals) {
-    switch (current_token().type()) {
-    case Token::Type::BreakKeyword: {
-        advance();
-        if (current_token().is_lparen()) {
-            advance();
-            auto arg = parse_expression(env, CALLARGS, locals);
-            expect(env, Token::Type::RParen, "break closing paren");
-            advance();
-            return new BreakNode { arg };
-        } else if (!current_token().is_end_of_expression()) {
-            auto array = new ArrayNode {};
-            parse_array_items(env, array, locals);
-            return new BreakNode { array };
-        }
-        return new BreakNode {};
-    }
-    case Token::Type::NextKeyword: {
-        advance();
-        if (current_token().is_lparen()) {
-            advance();
-            auto arg = parse_expression(env, CALLARGS, locals);
-            expect(env, Token::Type::RParen, "break closing paren");
-            advance();
-            return new NextNode { arg };
-        } else if (!current_token().is_end_of_expression()) {
-            auto array = new ArrayNode {};
-            parse_array_items(env, array, locals);
-            return new NextNode { array };
-        }
-        return new NextNode {};
-    }
-    case Token::Type::YieldKeyword: {
-        advance();
-        auto node = new YieldNode {};
-        if (current_token().is_lparen()) {
-            advance();
-            parse_call_args(env, node, locals);
-            expect(env, Token::Type::RParen, "yield closing paren");
-            advance();
-        } else if (!current_token().is_end_of_expression()) {
-            parse_call_args(env, node, locals);
-        }
-        return node;
-    }
-    default:
-        NAT_UNREACHABLE()
-    }
 };
 
 Parser::Node *Parser::parse_word_array(Env *env, LocalsVectorPtr locals) {
@@ -485,6 +473,20 @@ Parser::Node *Parser::parse_word_symbol_array(Env *env, LocalsVectorPtr locals) 
     advance();
     return array;
 }
+
+Parser::Node *Parser::parse_yield(Env *env, LocalsVectorPtr locals) {
+    advance();
+    auto node = new YieldNode {};
+    if (current_token().is_lparen()) {
+        advance();
+        parse_call_args(env, node, locals);
+        expect(env, Token::Type::RParen, "yield closing paren");
+        advance();
+    } else if (!current_token().is_end_of_expression()) {
+        parse_call_args(env, node, locals);
+    }
+    return node;
+};
 
 Parser::Node *Parser::parse_assignment_expression(Env *env, Node *left, LocalsVectorPtr locals) {
     switch (left->type()) {
@@ -622,11 +624,11 @@ Parser::Node *Parser::parse_infix_expression(Env *env, Node *left, LocalsVectorP
     if (op.type() == Token::Type::Integer) {
         bool is_negative = op.get_integer() < 0;
         right = new LiteralNode { new IntegerValue { env, op.get_integer() * (is_negative ? -1 : 1) } };
-        op = Token { is_negative ? Token::Type::Minus : Token::Type::Plus, op.line(), op.column() };
+        op = Token { is_negative ? Token::Type::Minus : Token::Type::Plus, op.file(), op.line(), op.column() };
     } else if (op.type() == Token::Type::Float) {
         bool is_negative = op.get_double() < 0;
         right = new LiteralNode { new FloatValue { env, op.get_double() * (is_negative ? -1 : 1) } };
-        op = Token { is_negative ? Token::Type::Minus : Token::Type::Plus, op.line(), op.column() };
+        op = Token { is_negative ? Token::Type::Minus : Token::Type::Plus, op.file(), op.line(), op.column() };
     } else {
         right = parse_expression(env, precedence, locals);
     }
@@ -716,6 +718,8 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type, Precedence prece
         return &Parser::parse_class;
     case Type::DefKeyword:
         return &Parser::parse_def;
+    case Type::FILEKeyword:
+        return &Parser::parse_file_constant;
     case Type::LParen:
         return &Parser::parse_group;
     case Type::LCurlyBrace:
@@ -747,9 +751,11 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type, Precedence prece
     case Type::Symbol:
         return &Parser::parse_symbol;
     case Type::BreakKeyword:
+        return &Parser::parse_break;
     case Type::NextKeyword:
+        return &Parser::parse_next;
     case Type::YieldKeyword:
-        return &Parser::parse_statement_keyword;
+        return &Parser::parse_yield;
     case Type::UnlessKeyword:
         return &Parser::parse_unless;
     case Type::PercentLowerI:

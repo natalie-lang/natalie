@@ -365,5 +365,10 @@ describe 'Parser' do
       Parser.parse('yield 1, 2').should == s(:block, s(:yield, s(:lit, 1), s(:lit, 2)))
       Parser.parse('yield(1, 2)').should == s(:block, s(:yield, s(:lit, 1), s(:lit, 2)))
     end
+
+    it 'parses __FILE__ and __dir__' do
+      Parser.parse('__FILE__').should == s(:block, s(:str, "(string)"))
+      Parser.parse('__dir__').should == s(:block, s(:call, nil, :__dir__))
+    end
   end
 end

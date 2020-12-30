@@ -8,10 +8,11 @@
 namespace Natalie {
 
 struct Parser : public gc {
-    Parser(const char *code)
-        : m_code { code } {
+    Parser(const char *code, const char *file)
+        : m_code { code }
+        , m_file { file } {
         assert(m_code);
-        m_tokens = Lexer { m_code }.tokens();
+        m_tokens = Lexer { m_code, m_file }.tokens();
     }
 
     struct Node : public gc {
@@ -659,18 +660,21 @@ private:
     void parse_array_items(Env *, ArrayNode *, LocalsVectorPtr);
     Node *parse_block_pass(Env *, LocalsVectorPtr);
     Node *parse_bool(Env *, LocalsVectorPtr);
+    Node *parse_break(Env *, LocalsVectorPtr);
     Node *parse_class(Env *, LocalsVectorPtr);
     Node *parse_comma_separated_identifiers(Env *, LocalsVectorPtr);
     Node *parse_constant(Env *, LocalsVectorPtr);
     Node *parse_def(Env *, LocalsVectorPtr);
     Vector<Node *> *parse_def_args(Env *, LocalsVectorPtr);
     Node *parse_def_single_arg(Env *, LocalsVectorPtr);
+    Node *parse_file_constant(Env *, LocalsVectorPtr);
     Node *parse_group(Env *, LocalsVectorPtr);
     Node *parse_hash(Env *, LocalsVectorPtr);
     Node *parse_identifier(Env *, LocalsVectorPtr);
     Node *parse_if(Env *, LocalsVectorPtr);
     Node *parse_lit(Env *, LocalsVectorPtr);
     Node *parse_module(Env *, LocalsVectorPtr);
+    Node *parse_next(Env *, LocalsVectorPtr);
     Node *parse_not(Env *, LocalsVectorPtr);
     Node *parse_return(Env *, LocalsVectorPtr);
     Node *parse_string(Env *, LocalsVectorPtr);
@@ -679,6 +683,7 @@ private:
     Node *parse_unless(Env *, LocalsVectorPtr);
     Node *parse_word_array(Env *, LocalsVectorPtr);
     Node *parse_word_symbol_array(Env *, LocalsVectorPtr);
+    Node *parse_yield(Env *, LocalsVectorPtr);
 
     Node *parse_assignment_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_call_expression_without_parens(Env *, Node *, LocalsVectorPtr);
@@ -716,6 +721,7 @@ private:
     void advance() { m_index++; }
 
     const char *m_code { nullptr };
+    const char *m_file { nullptr };
     size_t m_index { 0 };
     Vector<Token> *m_tokens { nullptr };
 };

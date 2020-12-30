@@ -121,40 +121,45 @@ struct Token : public gc {
 
     Token() { }
 
-    Token(Type type, size_t line, size_t column)
+    Token(Type type, const char *file, size_t line, size_t column)
         : m_type { type }
+        , m_file { file }
         , m_line { line }
         , m_column { column } { }
 
-    Token(Type type, const char *literal, size_t line, size_t column)
+    Token(Type type, const char *literal, const char *file, size_t line, size_t column)
         : m_type { type }
         , m_literal { literal }
+        , m_file { file }
         , m_line { line }
         , m_column { column } {
         assert(m_literal);
     }
 
-    Token(Type type, char literal, size_t line, size_t column)
+    Token(Type type, char literal, const char *file, size_t line, size_t column)
         : m_type { type }
+        , m_file { file }
         , m_line { line }
         , m_column { column } {
         char buf[2] = { literal, 0 };
         m_literal = GC_STRDUP(buf);
     }
 
-    Token(Type type, nat_int_t integer, size_t line, size_t column)
+    Token(Type type, nat_int_t integer, const char *file, size_t line, size_t column)
         : m_type { type }
         , m_integer { integer }
+        , m_file { file }
         , m_line { line }
         , m_column { column } { }
 
-    Token(Type type, double dbl, size_t line, size_t column)
+    Token(Type type, double dbl, const char *file, size_t line, size_t column)
         : m_type { type }
         , m_double { dbl }
+        , m_file { file }
         , m_line { line }
         , m_column { column } { }
 
-    static Token invalid() { return Token { Token::Type::Invalid, 0, 0 }; }
+    static Token invalid() { return Token { Token::Type::Invalid, nullptr, 0, 0 }; }
 
     Type type() { return m_type; }
     void set_type(Token::Type type) { m_type = type; }
@@ -521,6 +526,7 @@ struct Token : public gc {
     bool has_sign() { return m_has_sign; }
     void set_has_sign(bool has_sign) { m_has_sign = has_sign; }
 
+    const char *file() { return m_file; }
     size_t line() { return m_line; }
     size_t column() { return m_column; }
 
@@ -533,6 +539,7 @@ private:
     nat_int_t m_integer { 0 };
     double m_double { 0 };
     bool m_has_sign { false };
+    const char *m_file { nullptr };
     size_t m_line { 0 };
     size_t m_column { 0 };
     bool m_whitespace_precedes { false };
