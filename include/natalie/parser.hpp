@@ -25,7 +25,6 @@ struct Parser : public gc {
             Break,
             Call,
             Class,
-            MultipleAssignment,
             Constant,
             Def,
             False,
@@ -37,12 +36,14 @@ struct Parser : public gc {
             LogicalAnd,
             LogicalOr,
             Module,
+            MultipleAssignment,
             Next,
             Nil,
             Range,
             Return,
-            Symbol,
+            Splat,
             String,
+            Symbol,
             True,
             Yield,
         };
@@ -506,18 +507,18 @@ struct Parser : public gc {
         Node *m_node { nullptr };
     };
 
-    struct SymbolNode : Node {
-        SymbolNode(Value *value)
-            : m_value { value } {
-            assert(m_value);
+    struct SplatNode : Node {
+        SplatNode(Node *node)
+            : m_node { node } {
+            assert(m_node);
         }
 
-        virtual Type type() override { return Type::Symbol; }
+        virtual Type type() override { return Type::Splat; }
 
         virtual Value *to_ruby(Env *) override;
 
     private:
-        Value *m_value { nullptr };
+        Node *m_node { nullptr };
     };
 
     struct StringNode : Node {
@@ -527,6 +528,20 @@ struct Parser : public gc {
         }
 
         virtual Type type() override { return Type::String; }
+
+        virtual Value *to_ruby(Env *) override;
+
+    private:
+        Value *m_value { nullptr };
+    };
+
+    struct SymbolNode : Node {
+        SymbolNode(Value *value)
+            : m_value { value } {
+            assert(m_value);
+        }
+
+        virtual Type type() override { return Type::Symbol; }
 
         virtual Value *to_ruby(Env *) override;
 
@@ -677,6 +692,7 @@ private:
     Node *parse_next(Env *, LocalsVectorPtr);
     Node *parse_not(Env *, LocalsVectorPtr);
     Node *parse_return(Env *, LocalsVectorPtr);
+    Node *parse_splat(Env *, LocalsVectorPtr);
     Node *parse_string(Env *, LocalsVectorPtr);
     Node *parse_symbol(Env *, LocalsVectorPtr);
     Node *parse_statement_keyword(Env *, LocalsVectorPtr);

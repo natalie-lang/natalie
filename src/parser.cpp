@@ -416,6 +416,11 @@ Parser::Node *Parser::parse_return(Env *env, LocalsVectorPtr locals) {
     return new ReturnNode { parse_expression(env, LOWEST, locals) };
 };
 
+Parser::Node *Parser::parse_splat(Env *env, LocalsVectorPtr locals) {
+    advance();
+    return new SplatNode { parse_expression(env, LOWEST, locals) };
+};
+
 Parser::Node *Parser::parse_string(Env *env, LocalsVectorPtr locals) {
     auto string = new StringNode { new StringValue { env, current_token().literal() } };
     advance();
@@ -714,6 +719,8 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type, Precedence prece
     case Type::TrueKeyword:
     case Type::FalseKeyword:
         return &Parser::parse_bool;
+    case Type::BreakKeyword:
+        return &Parser::parse_break;
     case Type::ClassKeyword:
         return &Parser::parse_class;
     case Type::DefKeyword:
@@ -741,19 +748,19 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type, Precedence prece
         return &Parser::parse_lit;
     case Type::ModuleKeyword:
         return &Parser::parse_module;
+    case Type::NextKeyword:
+        return &Parser::parse_next;
     case Type::Not:
     case Type::NotKeyword:
         return &Parser::parse_not;
     case Type::ReturnKeyword:
         return &Parser::parse_return;
+    case Type::Multiply:
+        return &Parser::parse_splat;
     case Type::String:
         return &Parser::parse_string;
     case Type::Symbol:
         return &Parser::parse_symbol;
-    case Type::BreakKeyword:
-        return &Parser::parse_break;
-    case Type::NextKeyword:
-        return &Parser::parse_next;
     case Type::YieldKeyword:
         return &Parser::parse_yield;
     case Type::UnlessKeyword:

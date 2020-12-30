@@ -242,12 +242,16 @@ Value *Parser::ReturnNode::to_ruby(Env *env) {
     return new SexpValue { env, { SymbolValue::intern(env, "return") } };
 }
 
-Value *Parser::SymbolNode::to_ruby(Env *env) {
-    return new SexpValue { env, { SymbolValue::intern(env, "lit"), m_value } };
+Value *Parser::SplatNode::to_ruby(Env *env) {
+    return new SexpValue { env, { SymbolValue::intern(env, "splat"), m_node->to_ruby(env) } };
 }
 
 Value *Parser::StringNode::to_ruby(Env *env) {
     return new SexpValue { env, { SymbolValue::intern(env, "str"), m_value } };
+}
+
+Value *Parser::SymbolNode::to_ruby(Env *env) {
+    return new SexpValue { env, { SymbolValue::intern(env, "lit"), m_value } };
 }
 
 Value *Parser::TrueNode::to_ruby(Env *env) {

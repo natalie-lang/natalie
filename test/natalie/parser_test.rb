@@ -370,5 +370,9 @@ describe 'Parser' do
       Parser.parse('__FILE__').should == s(:block, s(:str, "(string)"))
       Parser.parse('__dir__').should == s(:block, s(:call, nil, :__dir__))
     end
+
+    it 'parses splat *' do
+      Parser.parse('foo(*args)').should == s(:block, s(:call, nil, :foo, s(:splat, s(:call, nil, :args))))
+    end
   end
 end
