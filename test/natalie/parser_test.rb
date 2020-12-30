@@ -72,7 +72,7 @@ describe 'Parser' do
       Parser.parse('10 % 3').should == s(:block, s(:call, s(:lit, 10), :%, s(:lit, 3)))
     end
 
-    xit 'parses ! and not' do
+    it 'parses ! and not' do
       Parser.parse('!false').should == s(:block, s(:call, s(:false), :!))
       Parser.parse('not false').should == s(:block, s(:call, s(:false), :!))
     end
@@ -357,10 +357,13 @@ describe 'Parser' do
     it 'parses next, break, and yield' do
       Parser.parse('next').should == s(:block, s(:next))
       Parser.parse('next 1, 2').should == s(:block, s(:next, s(:array, s(:lit, 1), s(:lit, 2))))
+      Parser.parse('next([1, 2])').should == s(:block, s(:next, s(:array, s(:lit, 1), s(:lit, 2))))
       Parser.parse('break').should == s(:block, s(:break))
       Parser.parse('break 1, 2').should == s(:block, s(:break, s(:array, s(:lit, 1), s(:lit, 2))))
+      Parser.parse('break([1, 2])').should == s(:block, s(:break, s(:array, s(:lit, 1), s(:lit, 2))))
       Parser.parse('yield').should == s(:block, s(:yield))
       Parser.parse('yield 1, 2').should == s(:block, s(:yield, s(:lit, 1), s(:lit, 2)))
+      Parser.parse('yield(1, 2)').should == s(:block, s(:yield, s(:lit, 1), s(:lit, 2)))
     end
   end
 end

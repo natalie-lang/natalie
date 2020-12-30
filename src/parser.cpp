@@ -73,15 +73,19 @@ Parser::Node *Parser::parse_array(Env *env, LocalsVectorPtr locals) {
     advance();
     auto array = new ArrayNode {};
     if (current_token().type() != Token::Type::RBracket) {
-        array->add_node(parse_expression(env, ARRAY, locals));
-        while (current_token().type() == Token::Type::Comma) {
-            advance();
-            array->add_node(parse_expression(env, ARRAY, locals));
-        }
+        parse_array_items(env, array, locals);
     }
     expect(env, Token::Type::RBracket, "array closing bracket");
     advance();
     return array;
+}
+
+void Parser::parse_array_items(Env *env, ArrayNode *array, LocalsVectorPtr locals) {
+    array->add_node(parse_expression(env, ARRAY, locals));
+    while (current_token().type() == Token::Type::Comma) {
+        advance();
+        array->add_node(parse_expression(env, ARRAY, locals));
+    }
 }
 
 Parser::Node *Parser::parse_block_pass(Env *env, LocalsVectorPtr locals) {
@@ -230,13 +234,7 @@ Parser::Node *Parser::parse_modifier_expression(Env *env, Node *left, LocalsVect
 Parser::Node *Parser::parse_group(Env *env, LocalsVectorPtr locals) {
     advance();
     auto exp = parse_expression(env, LOWEST, locals);
-    if (!current_token().is_valid()) {
-        fprintf(stderr, "expected ), but got EOF\n");
-        abort();
-    } else if (current_token().type() != Token::Type::RParen) {
-        fprintf(stderr, "expected ), but got %s\n", current_token().type_value(env)->c_str());
-        abort();
-    }
+    expect(env, Token::Type::RParen, "group closing paren");
     advance();
     return exp;
 };
@@ -396,23 +394,45 @@ Parser::Node *Parser::parse_statement_keyword(Env *env, LocalsVectorPtr locals) 
     switch (current_token().type()) {
     case Token::Type::BreakKeyword: {
         advance();
-        auto node = new BreakNode {};
-        if (!current_token().is_end_of_expression())
-            parse_call_args(env, node, locals);
-        return node;
+        if (current_token().is_lparen()) {
+            advance();
+            auto arg = parse_expression(env, CALLARGS, locals);
+            expect(env, Token::Type::RParen, "break closing paren");
+            advance();
+            return new BreakNode { arg };
+        } else if (!current_token().is_end_of_expression()) {
+            auto array = new ArrayNode {};
+            parse_array_items(env, array, locals);
+            return new BreakNode { array };
+        }
+        return new BreakNode {};
     }
     case Token::Type::NextKeyword: {
         advance();
-        auto node = new NextNode {};
-        if (!current_token().is_end_of_expression())
-            parse_call_args(env, node, locals);
-        return node;
+        if (current_token().is_lparen()) {
+            advance();
+            auto arg = parse_expression(env, CALLARGS, locals);
+            expect(env, Token::Type::RParen, "break closing paren");
+            advance();
+            return new NextNode { arg };
+        } else if (!current_token().is_end_of_expression()) {
+            auto array = new ArrayNode {};
+            parse_array_items(env, array, locals);
+            return new NextNode { array };
+        }
+        return new NextNode {};
     }
     case Token::Type::YieldKeyword: {
         advance();
         auto node = new YieldNode {};
-        if (!current_token().is_end_of_expression())
+        if (current_token().is_lparen()) {
+            advance();
             parse_call_args(env, node, locals);
+            expect(env, Token::Type::RParen, "yield closing paren");
+            advance();
+        } else if (!current_token().is_end_of_expression()) {
+            parse_call_args(env, node, locals);
+        }
         return node;
     }
     default:

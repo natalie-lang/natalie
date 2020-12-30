@@ -103,9 +103,17 @@ struct Parser : public gc {
     };
 
     struct BreakNode : NodeWithArgs {
+        BreakNode() { }
+
+        BreakNode(Node *arg)
+            : m_arg { arg } { }
+
         virtual Value *to_ruby(Env *) override;
 
         virtual Type type() override { return Type::Break; }
+
+    private:
+        Node *m_arg { nullptr };
     };
 
     struct IdentifierNode;
@@ -442,10 +450,18 @@ struct Parser : public gc {
         virtual Value *to_ruby(Env *) override;
     };
 
-    struct NextNode : NodeWithArgs {
+    struct NextNode : Node {
+        NextNode() { }
+
+        NextNode(Node *arg)
+            : m_arg { arg } { }
+
         virtual Value *to_ruby(Env *) override;
 
         virtual Type type() override { return Type::Next; }
+
+    private:
+        Node *m_arg { nullptr };
     };
 
     struct NilNode : Node {
@@ -640,6 +656,7 @@ private:
     Node *parse_if_body(Env *, LocalsVectorPtr);
 
     Node *parse_array(Env *, LocalsVectorPtr);
+    void parse_array_items(Env *, ArrayNode *, LocalsVectorPtr);
     Node *parse_block_pass(Env *, LocalsVectorPtr);
     Node *parse_bool(Env *, LocalsVectorPtr);
     Node *parse_class(Env *, LocalsVectorPtr);
