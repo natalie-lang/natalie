@@ -572,8 +572,8 @@ struct Parser : public gc {
         EXPRMODIFIER, // if/unless/while/until
         CALLARGS, // foo a, b
         COMPOSITION, // and/or
-        RANGE, // ..
         ASSIGNMENT, // =
+        RANGE, // ..
         TERNARY, // ? :
         LOGICALNOT, // not
         LOGICALOR, // ||

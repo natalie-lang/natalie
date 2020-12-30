@@ -329,6 +329,7 @@ describe 'Parser' do
       Parser.parse("('a')...('z')").should == s(:block, s(:dot3, s(:str, "a"), s(:str, "z")))
       Parser.parse("foo..bar").should == s(:block, s(:dot2, s(:call, nil, :foo), s(:call, nil, :bar)))
       Parser.parse("foo...bar").should == s(:block, s(:dot3, s(:call, nil, :foo), s(:call, nil, :bar)))
+      Parser.parse("foo = 1..10").should == s(:block, s(:lasgn, :foo, s(:lit, 1..10)))
     end
 
     it 'parses return' do
