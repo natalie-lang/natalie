@@ -18,6 +18,7 @@ struct Parser : public gc {
         enum class Type {
             Array,
             Assignment,
+            AttrAssign,
             Block,
             BlockPass,
             Break,
@@ -142,6 +143,14 @@ struct Parser : public gc {
             assert(m_message);
         }
 
+        CallNode(CallNode &node)
+            : m_receiver { node.m_receiver }
+            , m_message { node.m_message } {
+            for (auto arg : node.m_args) {
+                add_arg(arg);
+            }
+        }
+
         virtual Type type() override { return Type::Call; }
 
         virtual Value *to_ruby(Env *) override;
@@ -150,10 +159,22 @@ struct Parser : public gc {
             m_args.push(arg);
         }
 
-    private:
+        Value *message() { return m_message; }
+        void set_message(Value *message) { m_message = message; }
+
+    protected:
         Node *m_receiver { nullptr };
         Value *m_message { nullptr };
         Vector<Node *> m_args {};
+    };
+
+    struct AttrAssignNode : CallNode {
+        AttrAssignNode(CallNode &node)
+            : CallNode { node } { }
+
+        virtual Type type() override { return Type::AttrAssign; }
+
+        virtual Value *to_ruby(Env *) override;
     };
 
     struct ConstantNode;

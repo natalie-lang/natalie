@@ -470,6 +470,17 @@ Parser::Node *Parser::parse_assignment_expression(Env *env, Node *left, LocalsVe
             parse_expression(env, ASSIGNMENT, locals),
         };
     }
+    case Node::Type::Call: {
+        advance();
+        auto attr_assign_node = new AttrAssignNode { *static_cast<CallNode *>(left) };
+        if (attr_assign_node->message() == SymbolValue::intern(env, "[]")) {
+            attr_assign_node->set_message(SymbolValue::intern(env, "[]="));
+            attr_assign_node->add_arg(parse_expression(env, ASSIGNMENT, locals));
+        } else {
+            raise_unexpected(env, "left side of assignment");
+        }
+        return attr_assign_node;
+    }
     default:
         // FIXME: needs to print the token for `left` -- not current_token()
         raise_unexpected(env, "left side of assignment");

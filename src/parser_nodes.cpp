@@ -38,6 +38,19 @@ Value *Parser::AssignmentNode::to_ruby(Env *env) {
     }
 }
 
+Value *Parser::AttrAssignNode::to_ruby(Env *env) {
+    auto sexp = new SexpValue { env, {
+                                         SymbolValue::intern(env, "attrasgn"),
+                                         m_receiver->to_ruby(env),
+                                         m_message,
+                                     } };
+
+    for (auto arg : m_args) {
+        sexp->push(arg->to_ruby(env));
+    }
+    return sexp;
+}
+
 Value *Parser::BlockNode::to_ruby(Env *env) {
     auto *array = new SexpValue { env, { SymbolValue::intern(env, "block") } };
     for (auto node : m_nodes) {

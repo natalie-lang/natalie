@@ -142,6 +142,11 @@ describe 'Parser' do
       Parser.parse("foo [a, b]").should == s(:block, s(:call, nil, :foo, s(:array, s(:call, nil, :a), s(:call, nil, :b))))
     end
 
+    it 'parses []=' do
+      Parser.parse("foo[a, b] = :bar").should == s(:block, s(:attrasgn, s(:call, nil, :foo), :[]=, s(:call, nil, :a), s(:call, nil, :b), s(:lit, :bar)))
+      Parser.parse("foo[] = :bar").should == s(:block, s(:attrasgn, s(:call, nil, :foo), :[]=, s(:lit, :bar)))
+    end
+
     it 'parses method definition' do
       Parser.parse("def foo\nend").should == s(:block, s(:defn, :foo, s(:args), s(:nil)))
       Parser.parse("def foo;end").should == s(:block, s(:defn, :foo, s(:args), s(:nil)))
