@@ -590,7 +590,7 @@ private:
                 auto c = current_char();
                 bool symbol_key = false;
                 if ((c >= 'a' && c <= 'z') || c == '_') {
-                    return consume_identifier();
+                    return consume_bare_name();
                 } else if (c >= 'A' && c <= 'Z') {
                     return consume_constant();
                 } else {
@@ -626,8 +626,8 @@ private:
         return Token { type, GC_STRDUP(buf.c_str()), m_file, m_token_line, m_token_column };
     }
 
-    Token consume_identifier() {
-        Token token = consume_word(Token::Type::Identifier);
+    Token consume_bare_name() {
+        Token token = consume_word(Token::Type::BareName);
         auto c = current_char();
         if (c == ':' && peek() != ':') {
             advance();

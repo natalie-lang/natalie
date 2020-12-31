@@ -50,18 +50,18 @@ describe 'Parser' do
       ].each do |keyword|
         Parser.tokens(keyword).should == [{type: keyword.to_sym}]
       end
-      Parser.tokens('defx = 1').should == [{type: :identifier, literal: :defx}, {type: :"="}, {type: :integer, literal: 1}]
+      Parser.tokens('defx = 1').should == [{type: :name, literal: :defx}, {type: :"="}, {type: :integer, literal: 1}]
     end
 
     it 'tokenizes division and regexp' do
       Parser.tokens('1/2').should == [{type: :integer, literal: 1}, {type: :"/"}, {type: :integer, literal: 2}]
       Parser.tokens('1 / 2').should == [{type: :integer, literal: 1}, {type: :"/"}, {type: :integer, literal: 2}]
       Parser.tokens('1 / 2 / 3').should == [{type: :integer, literal: 1}, {type: :"/"}, {type: :integer, literal: 2}, {type: :"/"}, {type: :integer, literal: 3}]
-      Parser.tokens('foo / 2').should == [{type: :identifier, literal: :foo}, {type: :"/"}, {type: :integer, literal: 2}]
-      Parser.tokens('foo /2/').should == [{type: :identifier, literal: :foo}, {type: :regexp, literal: '2'}]
-      Parser.tokens('foo/2').should == [{type: :identifier, literal: :foo}, {type: :"/"}, {type: :integer, literal: 2}]
-      Parser.tokens('foo( /2/ )').should == [{type: :identifier, literal: :foo}, {type: :"("}, {type: :regexp, literal: '2'}, {type: :")"}]
-      Parser.tokens('foo 1,/2/').should == [{type: :identifier, literal: :foo}, {type: :integer, literal: 1}, {type: :","}, {type: :regexp, literal: '2'}]
+      Parser.tokens('foo / 2').should == [{type: :name, literal: :foo}, {type: :"/"}, {type: :integer, literal: 2}]
+      Parser.tokens('foo /2/').should == [{type: :name, literal: :foo}, {type: :regexp, literal: '2'}]
+      Parser.tokens('foo/2').should == [{type: :name, literal: :foo}, {type: :"/"}, {type: :integer, literal: 2}]
+      Parser.tokens('foo( /2/ )').should == [{type: :name, literal: :foo}, {type: :"("}, {type: :regexp, literal: '2'}, {type: :")"}]
+      Parser.tokens('foo 1,/2/').should == [{type: :name, literal: :foo}, {type: :integer, literal: 1}, {type: :","}, {type: :regexp, literal: '2'}]
     end
 
     it 'tokenizes operators' do
@@ -176,22 +176,22 @@ describe 'Parser' do
     end
 
     it 'tokenizes dots' do
-      Parser.tokens('foo.bar').should == [{type: :identifier, literal: :foo}, {type: :"."}, {type: :identifier, literal: :bar}]
-      Parser.tokens('foo . bar').should == [{type: :identifier, literal: :foo}, {type: :"."}, {type: :identifier, literal: :bar}]
+      Parser.tokens('foo.bar').should == [{type: :name, literal: :foo}, {type: :"."}, {type: :name, literal: :bar}]
+      Parser.tokens('foo . bar').should == [{type: :name, literal: :foo}, {type: :"."}, {type: :name, literal: :bar}]
     end
 
     it 'tokenizes newlines' do
-      Parser.tokens("foo\nbar").should == [{type: :identifier, literal: :foo}, {type: :"\n"}, {type: :identifier, literal: :bar}]
-      Parser.tokens("foo \n bar").should == [{type: :identifier, literal: :foo}, {type: :"\n"}, {type: :identifier, literal: :bar}]
+      Parser.tokens("foo\nbar").should == [{type: :name, literal: :foo}, {type: :"\n"}, {type: :name, literal: :bar}]
+      Parser.tokens("foo \n bar").should == [{type: :name, literal: :foo}, {type: :"\n"}, {type: :name, literal: :bar}]
     end
 
     it 'ignores newlines that are not significant' do
-      Parser.tokens("foo(\n1\n)").should == [{type: :identifier, literal: :foo}, {type: :"("}, {type: :integer, literal: 1}, {type: :")"}]
+      Parser.tokens("foo(\n1\n)").should == [{type: :name, literal: :foo}, {type: :"("}, {type: :integer, literal: 1}, {type: :")"}]
     end
 
     it 'tokenizes semicolons as newlines' do
-      Parser.tokens("foo;bar").should == [{type: :identifier, literal: :foo}, {type: :"\n"}, {type: :identifier, literal: :bar}]
-      Parser.tokens("foo ; bar").should == [{type: :identifier, literal: :foo}, {type: :"\n"}, {type: :identifier, literal: :bar}]
+      Parser.tokens("foo;bar").should == [{type: :name, literal: :foo}, {type: :"\n"}, {type: :name, literal: :bar}]
+      Parser.tokens("foo ; bar").should == [{type: :name, literal: :foo}, {type: :"\n"}, {type: :name, literal: :bar}]
     end
 
     it 'does not tokenize comments' do
@@ -200,64 +200,64 @@ describe 'Parser' do
         # comment 2
         bar
       END
-      tokens.should == [{type: :identifier, literal: :foo}, {type: :"\n"}, {type: :"\n"}, {type: :identifier, literal: :bar}, {type: :"\n"}]
+      tokens.should == [{type: :name, literal: :foo}, {type: :"\n"}, {type: :"\n"}, {type: :name, literal: :bar}, {type: :"\n"}]
       Parser.tokens("# only a comment") # does not get stuck in a loop :^)
     end
 
     it 'tokenizes lambdas' do
       Parser.tokens('-> { }').should == [{type: :"->"}, {type: :"{"}, {type: :"}"}]
-      Parser.tokens('->(x) { }').should == [{type: :"->"}, {type: :"("}, {type: :identifier, literal: :x}, {type: :")"}, {type: :"{"}, {type: :"}"}]
+      Parser.tokens('->(x) { }').should == [{type: :"->"}, {type: :"("}, {type: :name, literal: :x}, {type: :")"}, {type: :"{"}, {type: :"}"}]
     end
 
     it 'tokenizes blocks' do
       Parser.tokens("foo do |x, y|\nx\nend").should == [
-        {type: :identifier, literal: :foo},
+        {type: :name, literal: :foo},
         {type: :do},
         {type: :"|"},
-        {type: :identifier, literal: :x},
+        {type: :name, literal: :x},
         {type: :","},
-        {type: :identifier, literal: :y},
+        {type: :name, literal: :y},
         {type: :"|"},
-        {type: :identifier, literal: :x},
+        {type: :name, literal: :x},
         {type: :"\n"},
         {type: :end},
       ]
       Parser.tokens("foo { |x, y| x }").should == [
-        {type: :identifier, literal: :foo},
+        {type: :name, literal: :foo},
         {type: :"{"},
         {type: :"|"},
-        {type: :identifier, literal: :x},
+        {type: :name, literal: :x},
         {type: :","},
-        {type: :identifier, literal: :y},
+        {type: :name, literal: :y},
         {type: :"|"},
-        {type: :identifier, literal: :x},
+        {type: :name, literal: :x},
         {type: :"}"},
       ]
     end
 
     it 'tokenizes method names' do
-      Parser.tokens("def foo?").should == [{type: :def}, {type: :identifier, literal: :foo?}]
-      Parser.tokens("def foo!").should == [{type: :def}, {type: :identifier, literal: :foo!}]
-      Parser.tokens("def foo=").should == [{type: :def}, {type: :identifier, literal: :foo=}]
-      Parser.tokens("def self.foo=").should == [{type: :def}, {type: :self}, {type: :"."}, {type: :identifier, literal: :foo=}]
-      Parser.tokens("foo.bar=").should == [{type: :identifier, literal: :foo}, {type: :"."}, {type: :identifier, literal: :bar=}]
-      Parser.tokens("foo::bar!").should == [{type: :identifier, literal: :foo}, {type: :"::"}, {type: :identifier, literal: :bar!}]
-      Parser.tokens("Foo::bar!").should == [{type: :constant, literal: :Foo}, {type: :"::"}, {type: :identifier, literal: :bar!}]
-      Parser.tokens("bar=1").should == [{type: :identifier, literal: :bar}, {type: :"="}, {type: :integer, literal: 1}]
+      Parser.tokens("def foo?").should == [{type: :def}, {type: :name, literal: :foo?}]
+      Parser.tokens("def foo!").should == [{type: :def}, {type: :name, literal: :foo!}]
+      Parser.tokens("def foo=").should == [{type: :def}, {type: :name, literal: :foo=}]
+      Parser.tokens("def self.foo=").should == [{type: :def}, {type: :self}, {type: :"."}, {type: :name, literal: :foo=}]
+      Parser.tokens("foo.bar=").should == [{type: :name, literal: :foo}, {type: :"."}, {type: :name, literal: :bar=}]
+      Parser.tokens("foo::bar!").should == [{type: :name, literal: :foo}, {type: :"::"}, {type: :name, literal: :bar!}]
+      Parser.tokens("Foo::bar!").should == [{type: :constant, literal: :Foo}, {type: :"::"}, {type: :name, literal: :bar!}]
+      Parser.tokens("bar=1").should == [{type: :name, literal: :bar}, {type: :"="}, {type: :integer, literal: 1}]
     end
 
     it 'stores line and column numbers with each token' do
       Parser.tokens("foo = 1 + 2 # comment\n# comment\nbar.baz", true).should == [
-        {type: :identifier, literal: :foo, line: 0, column: 0},
+        {type: :name, literal: :foo, line: 0, column: 0},
         {type: :"=", line: 0, column: 4},
         {type: :integer, literal: 1, line: 0, column: 6},
         {type: :"+", line: 0, column: 8},
         {type: :integer, literal: 2, line: 0, column: 10},
         {type: :"\n", line: 0, column: 21},
         {type: :"\n", line: 1, column: 9},
-        {type: :identifier, literal: :bar, line: 2, column: 0},
+        {type: :name, literal: :bar, line: 2, column: 0},
         {type: :".", line: 2, column: 3},
-        {type: :identifier, literal: :baz, line: 2, column: 4},
+        {type: :name, literal: :baz, line: 2, column: 4},
       ]
     end
 
@@ -265,20 +265,20 @@ describe 'Parser' do
       fib = File.open('examples/fib.rb').read
       Parser.tokens(fib).should == [
         {type: :def},
-        {type: :identifier, literal: :fib},
+        {type: :name, literal: :fib},
         {type: :"("},
-        {type: :identifier, literal: :n},
+        {type: :name, literal: :n},
         {type: :")"},
         {type: :"\n"},
         {type: :if},
-        {type: :identifier, literal: :n},
+        {type: :name, literal: :n},
         {type: :"=="},
         {type: :integer, literal: 0},
         {type: :"\n"},
         {type: :integer, literal: 0},
         {type: :"\n"},
         {type: :elsif},
-        {type: :identifier, literal: :n},
+        {type: :name, literal: :n},
         {type: :"=="},
         {type: :integer, literal: 1},
         {type: :"\n"},
@@ -286,16 +286,16 @@ describe 'Parser' do
         {type: :"\n"},
         {type: :else},
         {type: :"\n"},
-        {type: :identifier, literal: :fib},
+        {type: :name, literal: :fib},
         {type: :"("},
-        {type: :identifier, literal: :n},
+        {type: :name, literal: :n},
         {type: :"-"},
         {type: :integer, literal: 1},
         {type: :")"},
         {type: :"+"},
-        {type: :identifier, literal: :fib},
+        {type: :name, literal: :fib},
         {type: :"("},
-        {type: :identifier, literal: :n},
+        {type: :name, literal: :n},
         {type: :"-"},
         {type: :integer, literal: 2},
         {type: :")"},
@@ -305,20 +305,20 @@ describe 'Parser' do
         {type: :end},
         {type: :"\n"},
         {type: :"\n"},
-        {type: :identifier, literal: :num},
+        {type: :name, literal: :num},
         {type: :"="},
         {type: :constant, literal: :ARGV},
         {type: :"."},
-        {type: :identifier, literal: :first},
+        {type: :name, literal: :first},
         {type: :"\n"},
-        {type: :identifier, literal: :puts},
-        {type: :identifier, literal: :fib},
+        {type: :name, literal: :puts},
+        {type: :name, literal: :fib},
         {type: :"("},
-        {type: :identifier, literal: :num},
+        {type: :name, literal: :num},
         {type: :"?"},
-        {type: :identifier, literal: :num},
+        {type: :name, literal: :num},
         {type: :"."},
-        {type: :identifier, literal: :to_i},
+        {type: :name, literal: :to_i},
         {type: :":"},
         {type: :integer, literal: 25},
         {type: :")"},

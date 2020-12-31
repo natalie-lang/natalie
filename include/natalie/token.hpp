@@ -10,6 +10,7 @@ struct Token : public gc {
         And,
         AndKeyword,
         Arrow,
+        BareName,
         BeginKeyword,
         BEGINKeyword,
         BitwiseAnd,
@@ -56,7 +57,6 @@ struct Token : public gc {
         GreaterThan,
         GreaterThanOrEqual,
         HashRocket,
-        Identifier,
         IfKeyword,
         InKeyword,
         InstanceVariable,
@@ -185,6 +185,8 @@ struct Token : public gc {
             return SymbolValue::intern(env, "&&");
         case Type::Arrow:
             return SymbolValue::intern(env, "->");
+        case Type::BareName:
+            return SymbolValue::intern(env, "name");
         case Type::BeginKeyword:
             return SymbolValue::intern(env, "begin");
         case Type::BEGINKeyword:
@@ -277,8 +279,6 @@ struct Token : public gc {
             return SymbolValue::intern(env, ">");
         case Type::HashRocket:
             return SymbolValue::intern(env, "=>");
-        case Type::Identifier:
-            return SymbolValue::intern(env, "identifier");
         case Type::IfKeyword:
             return SymbolValue::intern(env, "if");
         case Type::InKeyword:
@@ -426,10 +426,10 @@ struct Token : public gc {
         case Type::String:
             hash->put(env, SymbolValue::intern(env, "literal"), new StringValue { env, m_literal });
             break;
+        case Type::BareName:
         case Type::ClassVariable:
         case Type::Constant:
         case Type::GlobalVariable:
-        case Type::Identifier:
         case Type::InstanceVariable:
         case Type::Symbol:
         case Type::SymbolKey:
@@ -461,7 +461,7 @@ struct Token : public gc {
     bool is_eol() { return m_type == Type::Eol; }
     bool is_end_of_expression() { return m_type == Type::Eol || m_type == Type::Eof || is_expression_modifier(); }
     bool is_expression_modifier() { return m_type == Type::IfKeyword || m_type == Type::UnlessKeyword || m_type == Type::WhileKeyword || m_type == Type::UntilKeyword; }
-    bool is_identifier() { return m_type == Type::Identifier; }
+    bool is_bare_name() { return m_type == Type::BareName; }
     bool is_lparen() { return m_type == Type::LParen; }
     bool is_newline() { return m_type == Type::Eol; }
     bool is_rparen() { return m_type == Type::RParen; }

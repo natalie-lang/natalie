@@ -317,14 +317,14 @@ struct Parser : public gc {
 
         SymbolValue *assignment_type(Env *env) {
             switch (token_type()) {
+            case Token::Type::BareName:
+                return SymbolValue::intern(env, "lasgn");
             case Token::Type::ClassVariable:
                 return SymbolValue::intern(env, "cvdecl");
             case Token::Type::Constant:
                 return SymbolValue::intern(env, "cdecl");
             case Token::Type::GlobalVariable:
                 return SymbolValue::intern(env, "gasgn");
-            case Token::Type::Identifier:
-                return SymbolValue::intern(env, "lasgn");
             case Token::Type::InstanceVariable:
                 return SymbolValue::intern(env, "iasgn");
             default:

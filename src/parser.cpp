@@ -91,16 +91,16 @@ void Parser::parse_array_items(Env *env, ArrayNode *array, LocalsVectorPtr local
 Parser::Node *Parser::parse_block_pass(Env *env, LocalsVectorPtr locals) {
     advance();
     switch (current_token().type()) {
+    case Token::Type::BareName:
     case Token::Type::ClassVariable:
     case Token::Type::Constant:
     case Token::Type::GlobalVariable:
-    case Token::Type::Identifier:
     case Token::Type::InstanceVariable:
         return new BlockPassNode { parse_expression(env, LOWEST, locals) };
     case Token::Type::Symbol:
         return new BlockPassNode { parse_symbol(env, locals) };
     default:
-        expect(env, Token::Type::Identifier, "block");
+        expect(env, Token::Type::BareName, "block");
     }
     NAT_UNREACHABLE();
 }
@@ -157,15 +157,15 @@ Parser::Node *Parser::parse_comma_separated_identifiers(Env *env, LocalsVectorPt
     while (current_token().is_comma()) {
         advance();
         switch (current_token().type()) {
+        case Token::Type::BareName:
         case Token::Type::ClassVariable:
         case Token::Type::Constant:
         case Token::Type::GlobalVariable:
-        case Token::Type::Identifier:
         case Token::Type::InstanceVariable:
             list->add_node(parse_identifier(env, locals));
             break;
         default:
-            expect(env, Token::Type::Identifier, "assignment identifier");
+            expect(env, Token::Type::BareName, "assignment identifier");
         }
     }
     return list;
@@ -187,7 +187,7 @@ Parser::Node *Parser::parse_def(Env *env, LocalsVectorPtr) {
         args = parse_def_args(env, locals);
         expect(env, Token::Type::RParen, "args closing paren");
         advance();
-    } else if (current_token().is_identifier()) {
+    } else if (current_token().is_bare_name()) {
         args = parse_def_args(env, locals);
     } else {
         args = new Vector<Node *> {};
@@ -208,7 +208,7 @@ Vector<Parser::Node *> *Parser::parse_def_args(Env *env, LocalsVectorPtr locals)
 
 Parser::Node *Parser::parse_def_single_arg(Env *env, LocalsVectorPtr locals) {
     switch (current_token().type()) {
-    case Token::Type::Identifier: {
+    case Token::Type::BareName: {
         auto arg = static_cast<IdentifierNode *>(parse_identifier(env, locals));
         locals->push(SymbolValue::intern(env, arg->name()));
         return arg;
@@ -539,7 +539,7 @@ Parser::Node *Parser::parse_assignment_expression(Env *env, Node *left, LocalsVe
     switch (left->type()) {
     case Node::Type::Identifier: {
         auto left_identifier = static_cast<IdentifierNode *>(left);
-        if (left_identifier->token_type() == Token::Type::Identifier)
+        if (left_identifier->token_type() == Token::Type::BareName)
             locals->push(SymbolValue::intern(env, left_identifier->name()));
         advance();
         return new AssignmentNode {
@@ -551,7 +551,7 @@ Parser::Node *Parser::parse_assignment_expression(Env *env, Node *left, LocalsVe
         for (auto name : *static_cast<MultipleAssignmentNode *>(left)->nodes()) {
             assert(name->type() == Node::Type::Identifier);
             auto identifier = static_cast<IdentifierNode *>(name);
-            if (identifier->token_type() == Token::Type::Identifier)
+            if (identifier->token_type() == Token::Type::BareName)
                 locals->push(SymbolValue::intern(env, identifier->name()));
         }
         advance();
@@ -733,7 +733,7 @@ Parser::Node *Parser::parse_ref_expression(Env *env, Node *left, LocalsVectorPtr
 
 Parser::Node *Parser::parse_send_expression(Env *env, Node *left, LocalsVectorPtr locals) {
     advance();
-    expect(env, Token::Type::Identifier, "send method name");
+    expect(env, Token::Type::BareName, "send method name");
     auto name = static_cast<IdentifierNode *>(parse_identifier(env, locals));
     auto call_node = new CallNode {
         left,
@@ -779,10 +779,10 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type, Precedence prece
         return &Parser::parse_group;
     case Type::LCurlyBrace:
         return &Parser::parse_hash;
+    case Type::BareName:
     case Type::ClassVariable:
     case Type::Constant:
     case Type::GlobalVariable:
-    case Type::Identifier:
     case Type::InstanceVariable:
         if (peek_token().is_comma() && precedence == LOWEST) {
             return &Parser::parse_comma_separated_identifiers;
