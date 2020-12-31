@@ -126,7 +126,7 @@ Parser::Node *Parser::parse_break(Env *env, LocalsVectorPtr locals) {
         expect(env, Token::Type::RParen, "break closing paren");
         advance();
         return new BreakNode { arg };
-    } else if (!current_token().is_end_of_expression() && !current_token().is_expression_modifier()) {
+    } else if (!current_token().is_end_of_expression()) {
         auto array = new ArrayNode {};
         parse_array_items(env, array, locals);
         return new BreakNode { array };
@@ -435,7 +435,7 @@ Parser::Node *Parser::parse_next(Env *env, LocalsVectorPtr locals) {
         expect(env, Token::Type::RParen, "break closing paren");
         advance();
         return new NextNode { arg };
-    } else if (!current_token().is_end_of_expression() && !current_token().is_expression_modifier()) {
+    } else if (!current_token().is_end_of_expression()) {
         auto array = new ArrayNode {};
         parse_array_items(env, array, locals);
         return new NextNode { array };
@@ -455,7 +455,7 @@ Parser::Node *Parser::parse_return(Env *env, LocalsVectorPtr locals) {
     advance();
     if (current_token().is_end_of_expression())
         return new ReturnNode {};
-    return new ReturnNode { parse_expression(env, LOWEST, locals) };
+    return new ReturnNode { parse_expression(env, CALLARGS, locals) };
 };
 
 Parser::Node *Parser::parse_splat(Env *env, LocalsVectorPtr locals) {
@@ -529,7 +529,7 @@ Parser::Node *Parser::parse_yield(Env *env, LocalsVectorPtr locals) {
         parse_call_args(env, node, locals);
         expect(env, Token::Type::RParen, "yield closing paren");
         advance();
-    } else if (!current_token().is_end_of_expression() && !current_token().is_expression_modifier()) {
+    } else if (!current_token().is_end_of_expression()) {
         parse_call_args(env, node, locals);
     }
     return node;

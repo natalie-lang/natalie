@@ -336,6 +336,7 @@ describe 'Parser' do
     it 'parses return' do
       Parser.parse('return').should == s(:block, s(:return))
       Parser.parse('return foo').should == s(:block, s(:return, s(:call, nil, :foo)))
+      Parser.parse('return foo if true').should == s(:block, s(:if, s(:true), s(:return, s(:call, nil, :foo)), nil))
     end
 
     it 'parses block' do
