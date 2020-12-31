@@ -548,6 +548,12 @@ Parser::Node *Parser::parse_assignment_expression(Env *env, Node *left, LocalsVe
         };
     }
     case Node::Type::MultipleAssignment: {
+        for (auto name : *static_cast<MultipleAssignmentNode *>(left)->nodes()) {
+            assert(name->type() == Node::Type::Identifier);
+            auto identifier = static_cast<IdentifierNode *>(name);
+            if (identifier->token_type() == Token::Type::Identifier)
+                locals->push(SymbolValue::intern(env, identifier->name()));
+        }
         advance();
         return new AssignmentNode {
             left,
