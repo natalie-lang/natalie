@@ -133,10 +133,10 @@ module Natalie
         "env->global_set(\"$0\", new StringValue { env, source_files[0] });"
       end
 
-      def process___compile_flags__(exp)
+      def process___cxx_flags__(exp)
         (_, flags) = exp
-        raise "Expected string passed to __compile_flags__, but got: #{flags.inspect}" unless flags.sexp_type == :str
-        @compiler_context[:compile_flags] << flags.last
+        raise "Expected string passed to __cxx_flags__, but got: #{flags.inspect}" unless flags.sexp_type == :str
+        @compiler_context[:compile_cxx_flags] << flags.last
         ''
       end
 
@@ -161,6 +161,13 @@ module Natalie
           top body
         end
         'env->nil_obj()'
+      end
+
+      def process___ld_flags__(exp)
+        (_, flags) = exp
+        raise "Expected string passed to __ld_flags__, but got: #{flags.inspect}" unless flags.sexp_type == :str
+        @compiler_context[:compile_ld_flags] << flags.last
+        ''
       end
 
       def process_atom(exp)

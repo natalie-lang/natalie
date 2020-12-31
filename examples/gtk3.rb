@@ -4,7 +4,8 @@
 
 require 'natalie/inline'
 
-__compile_flags__ "$(pkg-config --libs --cflags gtk+-3.0)"
+__cxx_flags__ "$(pkg-config --cflags gtk+-3.0)"
+__ld_flags__ "$(pkg-config --libs gtk+-3.0)"
 
 __inline__ <<-END
   #include <gtk/gtk.h>

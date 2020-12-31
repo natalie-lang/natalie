@@ -99,7 +99,8 @@ module Natalie
         repl: repl,
         vars: vars || {},
         inline_cpp_enabled: inline_cpp_enabled,
-        compile_flags: [],
+        compile_cxx_flags: [],
+        compile_ld_flags: [],
       }
     end
 
@@ -153,7 +154,6 @@ module Natalie
         [
           cc,
           build_flags,
-          ENV['NAT_CXX_FLAGS'],
           (shared? ? '-fPIC -shared' : ''),
           inc_paths,
           "-o #{out_path}",
@@ -162,6 +162,7 @@ module Natalie
           libraries.join(' '),
           "-x c++ -std=c++17",
           (@c_path || 'code.cpp'),
+          link_flags,
         ].map(&:to_s).join(' ')
       else
         [
@@ -174,6 +175,7 @@ module Natalie
           (@c_path || 'code.cpp'),
           LIB_PATHS.map { |path| "-L #{path}" }.join(' '),
           libraries.join(' '),
+          link_flags,
         ].map(&:to_s).join(' ')
       end
     end
@@ -212,7 +214,11 @@ module Natalie
     COVERAGE_FLAGS = '-fprofile-arcs -ftest-coverage'
 
     def build_flags
-      "#{base_build_flags} #{extra_build_flags}"
+      "#{base_build_flags} #{ENV['NAT_CXX_FLAGS']} #{@context[:compile_cxx_flags].join(' ')}"
+    end
+
+    def link_flags
+      @context[:compile_ld_flags].join(' ')
     end
 
     def base_build_flags
@@ -226,10 +232,6 @@ module Natalie
       else
         raise "unknown build mode: #{build.inspect}"
       end
-    end
-
-    def extra_build_flags
-      "#{ENV['NAT_CXX_FLAGS']} #{@context[:compile_flags].join(' ')}"
     end
 
     def var_prefix
