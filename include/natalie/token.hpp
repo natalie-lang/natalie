@@ -44,6 +44,8 @@ struct Token : public gc {
         Equal,
         EqualEqual,
         EqualEqualEqual,
+        EvaluateToStringBegin,
+        EvaluateToStringEnd,
         Exponent,
         ExponentEqual,
         FalseKeyword,
@@ -59,6 +61,8 @@ struct Token : public gc {
         InKeyword,
         InstanceVariable,
         Integer,
+        InterpolatedStringBegin,
+        InterpolatedStringEnd,
         Invalid,
         LCurlyBrace,
         LBracket,
@@ -249,10 +253,14 @@ struct Token : public gc {
             return SymbolValue::intern(env, "==");
         case Type::Equal:
             return SymbolValue::intern(env, "=");
-        case Type::ExponentEqual:
-            return SymbolValue::intern(env, "**=");
+        case Type::EvaluateToStringBegin:
+            return SymbolValue::intern(env, "evstr");
+        case Type::EvaluateToStringEnd:
+            return SymbolValue::intern(env, "evstrend");
         case Type::Exponent:
             return SymbolValue::intern(env, "**");
+        case Type::ExponentEqual:
+            return SymbolValue::intern(env, "**=");
         case Type::FalseKeyword:
             return SymbolValue::intern(env, "false");
         case Type::FILEKeyword:
@@ -279,6 +287,10 @@ struct Token : public gc {
             return SymbolValue::intern(env, "ivar");
         case Type::Integer:
             return SymbolValue::intern(env, "integer");
+        case Type::InterpolatedStringBegin:
+            return SymbolValue::intern(env, "dstr");
+        case Type::InterpolatedStringEnd:
+            return SymbolValue::intern(env, "dstrend");
         case Type::Invalid:
             env->raise("SyntaxError", "%d: syntax error, unexpected '%s'", m_line + 1, m_literal);
         case Type::LCurlyBrace:
@@ -454,6 +466,7 @@ struct Token : public gc {
     bool is_newline() { return m_type == Type::Eol; }
     bool is_rparen() { return m_type == Type::RParen; }
     bool is_semicolon() { return m_type == Type::Semicolon; }
+    bool is_double_quoted_string() { return m_type == Type::String && m_double_quoted; }
     bool is_valid() { return m_type != Type::Invalid; }
 
     void validate(Env *env) {
@@ -534,6 +547,9 @@ struct Token : public gc {
     bool whitespace_precedes() { return m_whitespace_precedes; }
     void set_whitespace_precedes(bool whitespace_precedes) { m_whitespace_precedes = whitespace_precedes; }
 
+    bool double_quoted() { return m_double_quoted; }
+    void set_double_quoted(bool double_quoted) { m_double_quoted = double_quoted; }
+
 private:
     Type m_type { Type::Invalid };
     const char *m_literal { nullptr };
@@ -544,5 +560,6 @@ private:
     size_t m_line { 0 };
     size_t m_column { 0 };
     bool m_whitespace_precedes { false };
+    bool m_double_quoted { false };
 };
 }

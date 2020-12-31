@@ -27,11 +27,13 @@ struct Parser : public gc {
             Class,
             Constant,
             Def,
+            EvaluateToString,
             False,
             Hash,
             Identifier,
             If,
             Iter,
+            InterpolatedString,
             Literal,
             LogicalAnd,
             LogicalOr,
@@ -259,6 +261,18 @@ struct Parser : public gc {
         BlockNode *m_body { nullptr };
     };
 
+    struct EvaluateToStringNode : Node {
+        EvaluateToStringNode(Node *node)
+            : m_node { node } { }
+
+        virtual Value *to_ruby(Env *) override;
+
+        virtual Type type() override { return Type::EvaluateToString; }
+
+    private:
+        Node *m_node { nullptr };
+    };
+
     struct FalseNode : Node {
         virtual Value *to_ruby(Env *) override;
 
@@ -382,6 +396,19 @@ struct Parser : public gc {
         Node *m_call { nullptr };
         Vector<Node *> *m_args { nullptr };
         BlockNode *m_body { nullptr };
+    };
+
+    struct InterpolatedStringNode : Node {
+        InterpolatedStringNode() { }
+
+        virtual Type type() override { return Type::InterpolatedString; }
+
+        virtual Value *to_ruby(Env *) override;
+
+        void add_node(Node *node) { m_nodes.push(node); };
+
+    private:
+        Vector<Node *> m_nodes {};
     };
 
     struct LiteralNode : Node {
@@ -533,6 +560,8 @@ struct Parser : public gc {
         virtual Type type() override { return Type::String; }
 
         virtual Value *to_ruby(Env *) override;
+
+        Value *value() { return m_value; }
 
     private:
         Value *m_value { nullptr };
@@ -690,6 +719,7 @@ private:
     Node *parse_hash(Env *, LocalsVectorPtr);
     Node *parse_identifier(Env *, LocalsVectorPtr);
     Node *parse_if(Env *, LocalsVectorPtr);
+    Node *parse_interpolated_string(Env *, LocalsVectorPtr);
     Node *parse_lit(Env *, LocalsVectorPtr);
     Node *parse_module(Env *, LocalsVectorPtr);
     Node *parse_next(Env *, LocalsVectorPtr);

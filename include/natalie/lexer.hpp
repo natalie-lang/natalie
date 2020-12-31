@@ -15,39 +15,7 @@ struct Lexer : public gc {
         assert(m_input);
     }
 
-    Vector<Token> *tokens() {
-        auto tokens = new Vector<Token> {};
-        bool skip_next_newline = false;
-        for (;;) {
-            auto token = next_token();
-            if (token.is_comment())
-                continue;
-
-            // get rid of newlines after certain tokens
-            if (skip_next_newline && token.is_newline())
-                continue;
-            if (skip_next_newline && !token.is_newline())
-                skip_next_newline = false;
-
-            // get rid of newlines before certain tokens
-            while (token.can_follow_collapsible_newline() && !tokens->is_empty() && tokens->last().is_newline())
-                tokens->pop();
-
-            // convert semicolons to eol tokens
-            if (token.is_semicolon())
-                token = Token { Token::Type::Eol, token.file(), token.line(), token.column() };
-
-            tokens->push(token);
-
-            if (token.is_eof())
-                return tokens;
-            if (!token.is_valid())
-                return tokens;
-            if (token.can_precede_collapsible_newline())
-                skip_next_newline = true;
-        };
-        NAT_UNREACHABLE();
-    }
+    Vector<Token> *tokens();
 
     Token next_token() {
         m_whitespace_precedes = skip_whitespace();
@@ -799,7 +767,9 @@ private:
                 }
             } else if (c == delimiter) {
                 advance();
-                return Token { Token::Type::String, GC_STRDUP(buf.c_str()), m_file, m_token_line, m_token_column };
+                auto token = Token { Token::Type::String, GC_STRDUP(buf.c_str()), m_file, m_token_line, m_token_column };
+                token.set_double_quoted(true);
+                return token;
             } else {
                 buf += c;
             }
@@ -944,4 +914,56 @@ private:
     // the previously-matched token
     Token m_last_token {};
 };
+
+struct DoubleQuotedStringLexer {
+    DoubleQuotedStringLexer(Token token)
+        : m_input { token.literal() }
+        , m_file { token.file() }
+        , m_line { token.line() }
+        , m_column { token.column() }
+        , m_size { strlen(token.literal()) } { }
+
+    Vector<Token> *tokens() {
+        auto tokens = new Vector<Token> {};
+        auto raw = std::string("");
+        while (m_index < m_size) {
+            char c = current_char();
+            if (c == '#' && peek() == '{') {
+                tokens->push(Token { Token::Type::String, GC_STRDUP(raw.c_str()), m_file, m_line, m_column });
+                raw.clear();
+                m_index += 2;
+                tokenize_interpolation(tokens);
+            } else {
+                raw += c;
+                m_index++;
+            }
+        }
+        if (!raw.empty())
+            tokens->push(Token { Token::Type::String, GC_STRDUP(raw.c_str()), m_file, m_line, m_column });
+        return tokens;
+    }
+
+private:
+    void tokenize_interpolation(Vector<Token> *);
+
+    char current_char() {
+        if (m_index >= m_size)
+            return 0;
+        return m_input[m_index];
+    }
+
+    char peek() {
+        if (m_index + 1 >= m_size)
+            return 0;
+        return m_input[m_index + 1];
+    }
+
+    const char *m_input { nullptr };
+    const char *m_file { nullptr };
+    size_t m_line { 0 };
+    size_t m_column { 0 };
+    size_t m_size { 0 };
+    size_t m_index { 0 };
+};
+
 }

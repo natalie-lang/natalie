@@ -118,6 +118,10 @@ Value *Parser::DefNode::to_ruby(Env *env) {
     return sexp;
 }
 
+Value *Parser::EvaluateToStringNode::to_ruby(Env *env) {
+    return new SexpValue { env, { SymbolValue::intern(env, "evstr"), m_node->to_ruby(env) } };
+}
+
 Value *Parser::FalseNode::to_ruby(Env *env) {
     return new SexpValue { env, { SymbolValue::intern(env, "false") } };
 }
@@ -163,6 +167,18 @@ Value *Parser::IterNode::to_ruby(Env *env) {
             sexp->push((*m_body->nodes())[0]->to_ruby(env));
         else
             sexp->push(m_body->to_ruby(env));
+    }
+    return sexp;
+}
+
+Value *Parser::InterpolatedStringNode::to_ruby(Env *env) {
+    auto sexp = new SexpValue { env, { SymbolValue::intern(env, "dstr") } };
+    for (size_t i = 0; i < m_nodes.size(); i++) {
+        auto node = m_nodes[i];
+        if (i == 0 && node->type() == Node::Type::String)
+            sexp->push(static_cast<StringNode *>(node)->value());
+        else
+            sexp->push(node->to_ruby(env));
     }
     return sexp;
 }

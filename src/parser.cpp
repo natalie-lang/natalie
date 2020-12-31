@@ -358,6 +358,48 @@ Parser::Node *Parser::parse_if_body(Env *env, LocalsVectorPtr locals) {
     return body->has_one_node() ? (*body->nodes())[0] : body;
 }
 
+Parser::Node *Parser::parse_interpolated_string(Env *env, LocalsVectorPtr locals) {
+    advance();
+    if (current_token().type() == Token::Type::InterpolatedStringEnd) {
+        auto string = new StringNode { new StringValue { env } };
+        advance();
+        return string;
+    } else if (current_token().type() == Token::Type::String && peek_token().type() == Token::Type::InterpolatedStringEnd) {
+        auto string = new StringNode { new StringValue { env, current_token().literal() } };
+        advance();
+        advance();
+        return string;
+    } else {
+        auto interpolated_string = new InterpolatedStringNode {};
+        while (current_token().type() != Token::Type::InterpolatedStringEnd) {
+            switch (current_token().type()) {
+            case Token::Type::EvaluateToStringBegin: {
+                advance();
+                auto block = new BlockNode {};
+                while (current_token().type() != Token::Type::EvaluateToStringEnd) {
+                    block->add_node(parse_expression(env, LOWEST, locals));
+                    skip_newlines();
+                }
+                advance();
+                if (block->has_one_node())
+                    interpolated_string->add_node(new EvaluateToStringNode { (*block->nodes())[0] });
+                else
+                    interpolated_string->add_node(new EvaluateToStringNode { block });
+                break;
+            }
+            case Token::Type::String:
+                interpolated_string->add_node(new StringNode { new StringValue { env, current_token().literal() } });
+                advance();
+                break;
+            default:
+                NAT_UNREACHABLE();
+            }
+        }
+        advance();
+        return interpolated_string;
+    }
+};
+
 Parser::Node *Parser::parse_lit(Env *env, LocalsVectorPtr locals) {
     Value *value;
     auto token = current_token();
@@ -743,6 +785,8 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type, Precedence prece
         }
     case Type::IfKeyword:
         return &Parser::parse_if;
+    case Type::InterpolatedStringBegin:
+        return &Parser::parse_interpolated_string;
     case Type::Integer:
     case Type::Float:
         return &Parser::parse_lit;

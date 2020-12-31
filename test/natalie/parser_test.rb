@@ -95,6 +95,7 @@ describe 'Parser' do
       Parser.parse("'foo'").should == s(:block, s(:str, 'foo'))
       Parser.parse("'this is \\'quoted\\''").should == s(:block, s(:str, "this is 'quoted'"))
       Parser.parse("'other escaped chars \\\\ \\n'").should == s(:block, s(:str, "other escaped chars \\ \\n"))
+      Parser.parse('"#{:foo} bar #{1 + 1}"').should == s(:block, s(:dstr, "", s(:evstr, s(:lit, :foo)), s(:str, " bar "), s(:evstr, s(:call, s(:lit, 1), :+, s(:lit, 1)))))
     end
 
     it 'parses symbols' do

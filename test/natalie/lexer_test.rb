@@ -107,17 +107,33 @@ describe 'Parser' do
     end
 
     it 'tokenizes strings' do
-      Parser.tokens('"foo"').should == [{type: :string, literal: 'foo'}]
-      Parser.tokens('"this is \"quoted\""').should == [{type: :string, literal: 'this is "quoted"'}]
+      Parser.tokens('"foo"').should == [{:type=>:dstr}, {:type=>:string, :literal=>"foo"}, {:type=>:dstrend}]
+      Parser.tokens('"this is \"quoted\""').should == [{:type=>:dstr}, {:type=>:string, :literal=>"this is \"quoted\""}, {:type=>:dstrend}]
       Parser.tokens("'foo'").should == [{type: :string, literal: 'foo'}]
       Parser.tokens("'this is \\'quoted\\''").should == [{type: :string, literal: "this is 'quoted'"}]
-      Parser.tokens('"\t\n"').should == [{type: :string, literal: "\t\n"}]
+      Parser.tokens('"\t\n"').should == [{:type=>:dstr}, {:type=>:string, :literal=>"\t\n"}, {:type=>:dstrend}]
       Parser.tokens("'other escaped chars \\\\ \\n'").should == [{type: :string, literal: "other escaped chars \\ \\n"}]
       Parser.tokens("%(foo)").should == [{type: :string, literal: 'foo'}]
       Parser.tokens("%[foo]").should == [{type: :string, literal: 'foo'}]
       Parser.tokens("%/foo/").should == [{type: :string, literal: 'foo'}]
       Parser.tokens("%q(foo)").should == [{type: :string, literal: 'foo'}]
-      Parser.tokens("%Q(foo)").should == [{type: :string, literal: 'foo'}]
+      Parser.tokens("%Q(foo)").should == [{:type=>:dstr}, {:type=>:string, :literal=>"foo"}, {:type=>:dstrend}]
+      Parser.tokens('"#{:foo} bar #{1 + 1}"').should == [
+        {type: :dstr},
+        {type: :string, literal: ''},
+        {type: :evstr},
+        {type: :symbol, literal: :foo},
+        {type: :"\n"},
+        {type: :evstrend},
+        {type: :string, literal: ' bar '},
+        {type: :evstr},
+        {type: :integer, literal: 1},
+        {type: :"+"},
+        {type: :integer, literal: 1},
+        {type: :"\n"},
+        {type: :evstrend},
+        {type: :dstrend},
+      ]
     end
 
     it 'tokenizes symbols' do
@@ -129,8 +145,8 @@ describe 'Parser' do
     end
 
     it 'tokenizes arrays' do
-      Parser.tokens('["foo"]').should == [{type: :"["}, {type: :string, literal: 'foo'}, {type: :"]"}]
-      Parser.tokens('["foo", 1]').should == [{type: :"["}, {type: :string, literal: 'foo'}, {type: :","}, {type: :integer, literal: 1}, {type: :"]"}]
+      Parser.tokens("['foo']").should == [{type: :"["}, {type: :string, literal: 'foo'}, {type: :"]"}]
+      Parser.tokens("['foo', 1]").should == [{type: :"["}, {type: :string, literal: 'foo'}, {type: :","}, {type: :integer, literal: 1}, {type: :"]"}]
       Parser.tokens("%w[    foo\n 1\t 2  ]").should == [{type: :"%w", literal: "foo 1 2"}]
       Parser.tokens("%W[    foo\n 1\t 2  ]").should == [{type: :"%W", literal: "foo 1 2"}]
       Parser.tokens("%i[    foo\n 1\t 2  ]").should == [{type: :"%i", literal: "foo 1 2"}]
@@ -138,7 +154,7 @@ describe 'Parser' do
     end
 
     it 'tokenizes hashes' do
-      Parser.tokens('{ "foo" => 1, bar: 2 }').should == [
+      Parser.tokens("{ 'foo' => 1, bar: 2 }").should == [
         {type: :"{"},
         {type: :string, literal: 'foo'}, {type: :"=>"}, {type: :integer, literal: 1},
         {type: :","},
