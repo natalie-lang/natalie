@@ -17,14 +17,8 @@ SymbolValue *SymbolValue::intern(Env *env, const char *name) {
 StringValue *SymbolValue::inspect(Env *env) {
     StringValue *string = new StringValue { env, ":" };
     size_t len = strlen(m_name);
-    bool quote = false;
-    for (size_t i = 0; i < len; i++) {
-        char c = m_name[i];
-        if (!((c >= 65 && c <= 90) || (c >= 97 && c <= 122) || c == '_')) {
-            quote = true;
-            break;
-        }
-    };
+    auto quote_regex = new RegexpValue { env, "\\A(@{0,2}|\\$)[a-z_][a-z0-9_]*[\\?\\!]?\\z|\\A\\*{1,2}\\z|\\A[\\+\\-/]\\z", 1 };
+    bool quote = quote_regex->match(env, new StringValue { env, m_name })->is_falsey();
     if (quote) {
         StringValue *quoted = StringValue { env, m_name }.inspect(env);
         string->append_string(env, quoted);
