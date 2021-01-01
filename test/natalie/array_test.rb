@@ -617,4 +617,14 @@ describe 'array' do
     a = []
     a.compact.object_id.should_not == a.object_id
   end
+
+  describe '#push' do
+    a = []
+    a.push
+    a.should == []
+    a.push(1, 2, 3)
+    a.should == [1, 2, 3]
+    a.push(4)
+    a.should == [1, 2, 3, 4]
+  end
 end

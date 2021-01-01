@@ -334,6 +334,13 @@ Value *ArrayValue::cmp(Env *env, Value *other) {
     return new IntegerValue { env, 0 };
 }
 
+Value *ArrayValue::push(Env *env, size_t argc, Value **args) {
+    for (size_t i = 0; i < argc; i++) {
+        push(args[i]);
+    }
+    return this;
+}
+
 void ArrayValue::push_splat(Env *env, Value *val) {
     if (!val->is_array() && val->respond_to(env, "to_a")) {
         val = val->send(env, "to_a");

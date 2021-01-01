@@ -108,6 +108,7 @@ struct ArrayValue : Value {
     Value *map(Env *, Block *);
     Value *max(Env *);
     Value *min(Env *);
+    Value *push(Env *, size_t, Value **);
     Value *ref(Env *, Value *, Value *);
     Value *refeq(Env *, Value *, Value *, Value *);
     Value *reject(Env *, Block *);
