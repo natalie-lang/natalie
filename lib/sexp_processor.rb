@@ -18,8 +18,10 @@ class SexpProcessor
       result = send(method, ast)
     elsif default_method
       result = send(default_method, ast)
+    elsif strict
+      raise NoMethodError, "undefined method `#{method}' for #{inspect}"
     else
-      raise NameError
+      result = ast
     end
     context.pop
     result
