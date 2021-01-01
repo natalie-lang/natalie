@@ -15,6 +15,8 @@ struct Parser : public gc {
         m_tokens = Lexer { m_code, m_file }.tokens();
     }
 
+    using LocalsVectorPtr = Vector<SymbolValue *> *;
+
     struct Node : public gc {
         enum class Type {
             Array,
@@ -480,6 +482,25 @@ struct Parser : public gc {
         virtual Type type() override { return Type::MultipleAssignment; }
 
         virtual Value *to_ruby(Env *) override;
+        ArrayValue *to_ruby_with_array(Env *);
+
+        void add_locals(Env *env, LocalsVectorPtr locals) {
+            for (auto node : m_nodes) {
+                switch (node->type()) {
+                case Node::Type::Identifier: {
+                    auto identifier = static_cast<IdentifierNode *>(node);
+                    if (identifier->token_type() == Token::Type::BareName)
+                        locals->push(SymbolValue::intern(env, identifier->name()));
+                    break;
+                }
+                case Node::Type::MultipleAssignment:
+                    static_cast<MultipleAssignmentNode *>(node)->add_locals(env, locals);
+                    break;
+                default:
+                    NAT_UNREACHABLE();
+                }
+            }
+        }
     };
 
     struct NextNode : Node {
@@ -695,8 +716,6 @@ private:
             return LOWEST;
         }
     }
-
-    using LocalsVectorPtr = Vector<SymbolValue *> *;
 
     Node *parse_expression(Env *, Precedence, LocalsVectorPtr);
 

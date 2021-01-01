@@ -128,6 +128,8 @@ describe 'Parser' do
       Parser.parse("(x, y) = [1, 2]").should == s(:block, s(:masgn, s(:array, s(:lasgn, :x), s(:lasgn, :y)), s(:to_ary, s(:array, s(:lit, 1), s(:lit, 2)))))
       Parser.parse("@x, $y, Z = foo").should == s(:block, s(:masgn, s(:array, s(:iasgn, :@x), s(:gasgn, :$y), s(:cdecl, :Z)), s(:to_ary, s(:call, nil, :foo))))
       Parser.parse("(@x, $y, Z) = foo").should == s(:block, s(:masgn, s(:array, s(:iasgn, :@x), s(:gasgn, :$y), s(:cdecl, :Z)), s(:to_ary, s(:call, nil, :foo))))
+      Parser.parse("(a, (b, c)) = [1, [2, 3]]").should == s(:block, s(:masgn, s(:array, s(:lasgn, :a), s(:masgn, s(:array, s(:lasgn, :b), s(:lasgn, :c)))), s(:to_ary, s(:array, s(:lit, 1), s(:array, s(:lit, 2), s(:lit, 3))))))
+      Parser.parse("a, (b, c) = [1, [2, 3]]").should == s(:block, s(:masgn, s(:array, s(:lasgn, :a), s(:masgn, s(:array, s(:lasgn, :b), s(:lasgn, :c)))), s(:to_ary, s(:array, s(:lit, 1), s(:array, s(:lit, 2), s(:lit, 3))))))
     end
 
     it 'parses [] as an array vs as a method' do
@@ -170,8 +172,7 @@ describe 'Parser' do
       Parser.parse("foo = 1; def bar; foo; end").should == s(:block, s(:lasgn, :foo, s(:lit, 1)), s(:defn, :bar, s(:args), s(:call, nil, :foo)))
       Parser.parse("@foo = 1; foo").should == s(:block, s(:iasgn, :@foo, s(:lit, 1)), s(:call, nil, :foo))
       Parser.parse("foo, bar = [1, 2]; foo; bar").should == s(:block, s(:masgn, s(:array, s(:lasgn, :foo), s(:lasgn, :bar)), s(:to_ary, s(:array, s(:lit, 1), s(:lit, 2)))), s(:lvar, :foo), s(:lvar, :bar))
-      # FIXME
-      #Parser.parse("(foo, (bar, baz)) = [1, [2, 3]]; foo; bar; baz").should == s(:block, s(:masgn, s(:array, s(:lasgn, :foo), s(:masgn, s(:array, s(:lasgn, :bar), s(:lasgn, :baz)))), s(:to_ary, s(:array, s(:lit, 1), s(:array, s(:lit, 2), s(:lit, 3))))), s(:lvar, :foo), s(:lvar, :bar), s(:lvar, :baz))
+      Parser.parse("(foo, (bar, baz)) = [1, [2, 3]]; foo; bar; baz").should == s(:block, s(:masgn, s(:array, s(:lasgn, :foo), s(:masgn, s(:array, s(:lasgn, :bar), s(:lasgn, :baz)))), s(:to_ary, s(:array, s(:lit, 1), s(:array, s(:lit, 2), s(:lit, 3))))), s(:lvar, :foo), s(:lvar, :bar), s(:lvar, :baz))
     end
 
     it 'parses constants' do

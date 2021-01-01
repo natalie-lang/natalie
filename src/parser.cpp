@@ -164,6 +164,12 @@ Parser::Node *Parser::parse_comma_separated_identifiers(Env *env, LocalsVectorPt
         case Token::Type::InstanceVariable:
             list->add_node(parse_identifier(env, locals));
             break;
+        case Token::Type::LParen:
+            advance();
+            list->add_node(parse_comma_separated_identifiers(env, locals));
+            expect(env, Token::Type::RParen, "multiple assignment closing paren");
+            advance();
+            break;
         default:
             expect(env, Token::Type::BareName, "assignment identifier");
         }
@@ -548,12 +554,7 @@ Parser::Node *Parser::parse_assignment_expression(Env *env, Node *left, LocalsVe
         };
     }
     case Node::Type::MultipleAssignment: {
-        for (auto name : *static_cast<MultipleAssignmentNode *>(left)->nodes()) {
-            assert(name->type() == Node::Type::Identifier);
-            auto identifier = static_cast<IdentifierNode *>(name);
-            if (identifier->token_type() == Token::Type::BareName)
-                locals->push(SymbolValue::intern(env, identifier->name()));
-        }
+        static_cast<MultipleAssignmentNode *>(left)->add_locals(env, locals);
         advance();
         return new AssignmentNode {
             left,

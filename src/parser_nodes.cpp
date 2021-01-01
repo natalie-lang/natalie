@@ -15,14 +15,8 @@ Value *Parser::AssignmentNode::to_ruby(Env *env) {
     Value *left;
     switch (m_identifier->type()) {
     case Node::Type::MultipleAssignment: {
-        auto list = static_cast<MultipleAssignmentNode *>(m_identifier);
-        auto sexp = new SexpValue { env, { SymbolValue::intern(env, "masgn") } };
-        auto array = new SexpValue { env, { SymbolValue::intern(env, "array") } };
-        for (auto identifier : *(list->nodes())) {
-            assert(identifier->type() == Node::Type::Identifier);
-            array->push(static_cast<IdentifierNode *>(identifier)->to_sexp(env));
-        }
-        sexp->push(array);
+        auto masgn = static_cast<MultipleAssignmentNode *>(m_identifier);
+        auto sexp = masgn->to_ruby_with_array(env);
         auto value = new SexpValue { env, { SymbolValue::intern(env, "to_ary") } };
         value->push(m_value->to_ruby(env));
         sexp->push(value);
@@ -226,6 +220,25 @@ Value *Parser::MultipleAssignmentNode::to_ruby(Env *env) {
             NAT_NOT_YET_IMPLEMENTED(); // maybe not needed?
         }
     }
+    return sexp;
+}
+
+ArrayValue *Parser::MultipleAssignmentNode::to_ruby_with_array(Env *env) {
+    auto sexp = new SexpValue { env, { SymbolValue::intern(env, "masgn") } };
+    auto array = new SexpValue { env, { SymbolValue::intern(env, "array") } };
+    for (auto identifier : m_nodes) {
+        switch (identifier->type()) {
+        case Node::Type::Identifier:
+            array->push(static_cast<IdentifierNode *>(identifier)->to_sexp(env));
+            break;
+        case Node::Type::MultipleAssignment:
+            array->push(static_cast<MultipleAssignmentNode *>(identifier)->to_ruby_with_array(env));
+            break;
+        default:
+            NAT_UNREACHABLE();
+        }
+    }
+    sexp->push(array);
     return sexp;
 }
 
