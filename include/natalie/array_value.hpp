@@ -101,6 +101,7 @@ struct ArrayValue : Value {
     Value *eql(Env *, Value *);
     Value *first(Env *);
     Value *include(Env *, Value *);
+    Value *index(Env *, Value *, Block *);
     Value *inspect(Env *);
     Value *join(Env *, Value *);
     Value *last(Env *);

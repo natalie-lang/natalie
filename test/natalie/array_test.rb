@@ -595,36 +595,59 @@ describe 'array' do
   end
 
   describe '#max' do
-    [].max.should == nil
-    [10].max.should == 10
-    [1, 3].max.should == 3
-    [1, 0, -1].max.should == 1
-    ['abc', 'mno', 'xyz'].max.should == 'xyz'
+    specify do
+      [].max.should == nil
+      [10].max.should == 10
+      [1, 3].max.should == 3
+      [1, 0, -1].max.should == 1
+      ['abc', 'mno', 'xyz'].max.should == 'xyz'
+    end
   end
 
   describe '#min' do
-    [].min.should == nil
-    [10].min.should == 10
-    [1, 3].min.should == 1
-    [1, 0, -1].min.should == -1
-    ['abc', 'mno', 'xyz'].min.should == 'abc'
+    specify do
+      [].min.should == nil
+      [10].min.should == 10
+      [1, 3].min.should == 1
+      [1, 0, -1].min.should == -1
+      ['abc', 'mno', 'xyz'].min.should == 'abc'
+    end
   end
 
   describe '#compact' do
-    [].compact.should == []
-    [nil, 1, nil].compact.should == [1]
-    [nil, false].compact.should == [false]
-    a = []
-    a.compact.object_id.should_not == a.object_id
+    specify do
+      [].compact.should == []
+      [nil, 1, nil].compact.should == [1]
+      [nil, false].compact.should == [false]
+      a = []
+      a.compact.object_id.should_not == a.object_id
+    end
   end
 
   describe '#push' do
-    a = []
-    a.push
-    a.should == []
-    a.push(1, 2, 3)
-    a.should == [1, 2, 3]
-    a.push(4)
-    a.should == [1, 2, 3, 4]
+    specify do
+      a = []
+      a.push
+      a.should == []
+      a.push(1, 2, 3)
+      a.should == [1, 2, 3]
+      a.push(4)
+      a.should == [1, 2, 3, 4]
+    end
+  end
+
+  describe '#index' do
+    specify do
+      a = [1, 2, 3]
+      a.index(2).should == 1
+      a = ['a', 'b', 'c']
+      a.index('c').should == 2
+      a.index('d').should == nil
+      a.index(nil).should == nil
+      a.index { |i| i == 'a' }.should == 0
+      # TODO
+      #a.index.should be_an_instance_of(Enumerator)
+      #a.index.each { |i| i == 'c' }.should == 2
+    end
   end
 end

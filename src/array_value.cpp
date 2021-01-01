@@ -270,6 +270,33 @@ Value *ArrayValue::include(Env *env, Value *item) {
     }
 }
 
+Value *ArrayValue::index(Env *env, Value *object, Block *block) {
+    assert(size() <= NAT_INT_MAX);
+    auto length = static_cast<nat_int_t>(size());
+    if (block) {
+        for (nat_int_t i = 0; i < length; i++) {
+            auto item = m_vector[i];
+            Value *args[] = { item };
+            auto result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, args, nullptr);
+            if (result->is_truthy())
+                return new IntegerValue { env, i };
+        }
+        return env->nil_obj();
+    } else if (object) {
+        for (nat_int_t i = 0; i < length; i++) {
+            auto item = m_vector[i];
+            Value *args[] = { object };
+            if (item->send(env, "==", 1, args)->is_truthy())
+                return new IntegerValue { env, i };
+        }
+        return env->nil_obj();
+    } else {
+        // TODO
+        env->assert_block_given(block);
+        NAT_UNREACHABLE();
+    }
+}
+
 Value *ArrayValue::shift(Env *env, Value *count) {
     auto has_count = count != nullptr;
     size_t shift_count = 1;
