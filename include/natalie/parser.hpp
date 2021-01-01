@@ -634,10 +634,10 @@ struct Parser : public gc {
         BITWISEAND, // &
         SUM, // + -
         PRODUCT, // * / %
-        DOT, // foo.bar
         PREFIX, // -1 +1
         UNARY, // ! ~ + -
         EXPONENT, // **
+        DOT, // foo.bar
         CALL, // foo()
         REF, // foo[1] / foo[1] = 2
     };

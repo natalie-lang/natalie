@@ -75,6 +75,7 @@ describe 'Parser' do
     it 'parses ! and not' do
       Parser.parse('!false').should == s(:block, s(:call, s(:false), :!))
       Parser.parse('not false').should == s(:block, s(:call, s(:false), :!))
+      Parser.parse('!foo.bar(baz)').should == s(:block, s(:call, s(:call, s(:call, nil, :foo), :bar, s(:call, nil, :baz)), :!))
     end
 
     it 'raises an error if there is a syntax error' do
