@@ -137,11 +137,38 @@ describe 'Parser' do
     end
 
     it 'tokenizes symbols' do
-      Parser.tokens(':foo').should == [{type: :symbol, literal: :foo}]
-      Parser.tokens(':foo_bar').should == [{type: :symbol, literal: :foo_bar}]
-      Parser.tokens(':"foo bar"').should == [{type: :symbol, literal: :"foo bar"}]
-      Parser.tokens(":'foo bar'").should == [{type: :symbol, literal: :"foo bar"}]
-      Parser.tokens(':FooBar').should == [{type: :symbol, literal: :FooBar}]
+      [
+        :foo,
+        :FooBar123,
+        :foo_bar,
+        :"foo bar",
+        :"foo\nbar",
+        :foo?,
+        :"?foo",
+        :foo!,
+        :"!foo",
+        :"@",
+        :@foo,
+        :@@foo,
+        :"foo@",
+        :$foo,
+        :"foo$",
+        :+,
+        :-,
+        :*,
+        :**,
+        :/,
+        :==,
+        :!=,
+        :!,
+        :"=",
+        :%,
+        :$0,
+        :[],
+        :[]=
+      ].each do |symbol|
+        Parser.tokens(symbol.inspect).should == [{type: :symbol, literal: symbol}]
+      end
     end
 
     it 'tokenizes arrays' do

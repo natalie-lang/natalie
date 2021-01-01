@@ -69,7 +69,8 @@ struct Lexer : public gc {
 
 private:
     bool is_identifier_char(char c) {
-        return c && ((c >= 'a' && c <= 'z') || (c >= 'A' && c < 'Z') || (c >= '0' && c <= '9') || c == '_');
+        if (!c) return false;
+        return isalnum(c) || c == '_';
     };
 
     bool skip_whitespace() {
@@ -396,9 +397,7 @@ private:
         case ':': {
             advance();
             auto c = current_char();
-            if (is_identifier_char(c)) {
-                return consume_word(Token::Type::Symbol);
-            } else if (c == ':') {
+            if (c == ':') {
                 advance();
                 return Token { Token::Type::ConstantResolution, m_file, m_token_line, m_token_column };
             } else if (c == '"') {
@@ -409,8 +408,10 @@ private:
                 advance();
                 auto string = consume_single_quoted_string('\'');
                 return Token { Token::Type::Symbol, GC_STRDUP(string.literal()), m_file, m_token_line, m_token_column };
-            } else {
+            } else if (isspace(c)) {
                 return Token { Token::Type::TernaryColon, m_file, m_token_line, m_token_column };
+            } else {
+                return consume_symbol();
             }
         }
         case '@':
@@ -600,6 +601,62 @@ private:
             }
         }
         NAT_UNREACHABLE();
+    }
+
+    Token consume_symbol() {
+        char c = current_char();
+        auto buf = std::string("");
+        auto gobble = [&buf, this](char c) -> char { buf += c; advance(); return current_char(); };
+        switch (c) {
+        case '@':
+            c = gobble(c);
+            if (c == '@') c = gobble(c);
+            do {
+                c = gobble(c);
+            } while (is_identifier_char(c));
+            break;
+        case '$':
+            c = gobble(c);
+            do {
+                c = gobble(c);
+            } while (is_identifier_char(c));
+            break;
+        case '+':
+        case '-':
+        case '/':
+            c = gobble(c);
+            break;
+        case '*':
+            c = gobble(c);
+            if (c == '*') c = gobble(c);
+            break;
+        case '=':
+            c = gobble(c);
+            if (c == '=') c = gobble(c);
+            break;
+        case '[':
+            if (peek() == ']') {
+                c = gobble(c);
+                c = gobble(c);
+                if (c == '=') c = gobble(c);
+            } else {
+                return Token { Token::Type::TernaryColon, m_file, m_token_line, m_token_column };
+            }
+            break;
+        default:
+            do {
+                c = gobble(c);
+            } while (is_identifier_char(c));
+            switch (c) {
+            case '?':
+            case '!':
+            case '=':
+                gobble(c);
+            default:
+                break;
+            }
+        }
+        return Token { Token::Type::Symbol, GC_STRDUP(buf.c_str()), m_file, m_token_line, m_token_column };
     }
 
     Token consume_word(Token::Type type) {
@@ -965,5 +1022,4 @@ private:
     size_t m_size { 0 };
     size_t m_index { 0 };
 };
-
 }
