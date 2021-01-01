@@ -17,7 +17,7 @@ SymbolValue *SymbolValue::intern(Env *env, const char *name) {
 StringValue *SymbolValue::inspect(Env *env) {
     StringValue *string = new StringValue { env, ":" };
     size_t len = strlen(m_name);
-    auto quote_regex = new RegexpValue { env, "\\A(@{0,2}|\\$)[a-z_][a-z0-9_]*[\\?\\!]?\\z|\\A\\*{1,2}\\z|\\A[\\+\\-/]\\z", 1 };
+    auto quote_regex = new RegexpValue { env, "\\A\\$\\d\\z|\\A(@{0,2}|\\$)[a-z_][a-z0-9_]*[\\?\\!]?\\z|\\A(%|==|\\!|\\!=|\\+|\\-|/|\\*{1,2}|\\[\\]\\=?)\\z", 1 };
     bool quote = quote_regex->match(env, new StringValue { env, m_name })->is_falsey();
     if (quote) {
         StringValue *quoted = StringValue { env, m_name }.inspect(env);

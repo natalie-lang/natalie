@@ -27,6 +27,14 @@ describe 'symbol' do
       :*.inspect.should == ':*'
       :**.inspect.should == ':**'
       :/.inspect.should == ':/'
+      :==.inspect.should == ':=='
+      :!=.inspect.should == ':!='
+      :!.inspect.should == ':!'
+      :"=".inspect.should == ':"="'
+      :%.inspect.should == ':%'
+      :$0.inspect.should == ':$0'
+      :[].inspect.should == ':[]'
+      :[]=.inspect.should == ':[]='
     end
   end
 
