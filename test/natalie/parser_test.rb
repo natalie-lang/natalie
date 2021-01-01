@@ -180,6 +180,19 @@ describe 'Parser' do
       Parser.parse("ARGV").should == s(:block, s(:const, :ARGV))
     end
 
+    it 'parses global variabls' do
+      Parser.parse("$foo").should == s(:block, s(:gvar, :$foo))
+      Parser.parse("$0").should == s(:block, s(:gvar, :$0))
+    end
+
+    it 'parses instance variabls' do
+      Parser.parse("@foo").should == s(:block, s(:ivar, :@foo))
+    end
+
+    it 'parses class variabls' do
+      Parser.parse("@@foo").should == s(:block, s(:cvar, :@@foo))
+    end
+
     it 'parses method calls with parentheses' do
       Parser.parse("foo()").should == s(:block, s(:call, nil, :foo))
       Parser.parse("foo() + bar()").should == s(:block, s(:call, s(:call, nil, :foo), :+, s(:call, nil, :bar)))

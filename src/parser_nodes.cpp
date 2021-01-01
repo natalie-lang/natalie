@@ -129,12 +129,23 @@ Value *Parser::HashNode::to_ruby(Env *env) {
 }
 
 Value *Parser::IdentifierNode::to_ruby(Env *env) {
-    if (token_type() == Token::Type::Constant) {
+    switch (token_type()) {
+    case Token::Type::BareName:
+        if (m_is_lvar) {
+            return new SexpValue { env, { SymbolValue::intern(env, "lvar"), SymbolValue::intern(env, name()) } };
+        } else {
+            return new SexpValue { env, { SymbolValue::intern(env, "call"), env->nil_obj(), SymbolValue::intern(env, name()) } };
+        }
+    case Token::Type::ClassVariable:
+        return new SexpValue { env, { SymbolValue::intern(env, "cvar"), SymbolValue::intern(env, name()) } };
+    case Token::Type::Constant:
         return new SexpValue { env, { SymbolValue::intern(env, "const"), SymbolValue::intern(env, name()) } };
-    } else if (m_is_lvar) {
-        return new SexpValue { env, { SymbolValue::intern(env, "lvar"), SymbolValue::intern(env, name()) } };
-    } else {
-        return new SexpValue { env, { SymbolValue::intern(env, "call"), env->nil_obj(), SymbolValue::intern(env, name()) } };
+    case Token::Type::GlobalVariable:
+        return new SexpValue { env, { SymbolValue::intern(env, "gvar"), SymbolValue::intern(env, name()) } };
+    case Token::Type::InstanceVariable:
+        return new SexpValue { env, { SymbolValue::intern(env, "ivar"), SymbolValue::intern(env, name()) } };
+    default:
+        NAT_NOT_YET_IMPLEMENTED();
     }
 }
 
