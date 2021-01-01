@@ -449,6 +449,11 @@ Parser::Node *Parser::parse_next(Env *env, LocalsVectorPtr locals) {
     return new NextNode {};
 }
 
+Parser::Node *Parser::parse_nil(Env *env, LocalsVectorPtr) {
+    advance();
+    return new NilSexpNode {};
+}
+
 Parser::Node *Parser::parse_not(Env *env, LocalsVectorPtr locals) {
     auto precedence = get_precedence();
     advance();
@@ -801,6 +806,8 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type, Precedence prece
         return &Parser::parse_module;
     case Type::NextKeyword:
         return &Parser::parse_next;
+    case Type::NilKeyword:
+        return &Parser::parse_nil;
     case Type::Not:
     case Type::NotKeyword:
         return &Parser::parse_not;

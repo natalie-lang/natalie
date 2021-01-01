@@ -264,6 +264,10 @@ Value *Parser::NilNode::to_ruby(Env *env) {
     return env->nil_obj();
 }
 
+Value *Parser::NilSexpNode::to_ruby(Env *env) {
+    return new SexpValue { env, { SymbolValue::intern(env, "nil") } };
+}
+
 Value *Parser::RangeNode::to_ruby(Env *env) {
     if (m_first->type() == Node::Type::Literal && static_cast<LiteralNode *>(m_first)->value_type() == Value::Type::Integer && m_last->type() == Node::Type::Literal && static_cast<LiteralNode *>(m_last)->value_type() == Value::Type::Integer) {
         return new SexpValue {

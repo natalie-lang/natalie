@@ -244,9 +244,10 @@ describe 'Parser' do
       Parser.parse("true unless true").should == s(:block, s(:if, s(:true), nil, s(:true)))
     end
 
-    it 'parses true/false' do
+    it 'parses true/false/nil' do
       Parser.parse("true").should == s(:block, s(:true))
       Parser.parse("false").should == s(:block, s(:false))
+      Parser.parse("nil").should == s(:block, s(:nil))
     end
 
     it 'parses examples/fib.rb' do

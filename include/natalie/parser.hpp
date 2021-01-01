@@ -43,6 +43,7 @@ struct Parser : public gc {
             MultipleAssignment,
             Next,
             Nil,
+            NilSexp,
             Range,
             Return,
             Splat,
@@ -523,6 +524,12 @@ struct Parser : public gc {
         virtual Type type() override { return Type::Nil; }
     };
 
+    struct NilSexpNode : Node {
+        virtual Value *to_ruby(Env *) override;
+
+        virtual Type type() override { return Type::NilSexp; }
+    };
+
     struct RangeNode : Node {
         RangeNode(Node *first, Node *last, bool exclude_end)
             : m_first { first }
@@ -742,6 +749,7 @@ private:
     Node *parse_lit(Env *, LocalsVectorPtr);
     Node *parse_module(Env *, LocalsVectorPtr);
     Node *parse_next(Env *, LocalsVectorPtr);
+    Node *parse_nil(Env *, LocalsVectorPtr);
     Node *parse_not(Env *, LocalsVectorPtr);
     Node *parse_return(Env *, LocalsVectorPtr);
     Node *parse_splat(Env *, LocalsVectorPtr);
