@@ -37,6 +37,13 @@ struct HashValue : Value {
         hashmap_init(&m_hashmap, hash, compare, 256);
     }
 
+    HashValue(Env *env, HashValue &other)
+        : HashValue { env, other.klass() } {
+        for (auto node : other) {
+            put(env, node.key, node.val);
+        }
+    }
+
     static Value *square_new(Env *, size_t argc, Value **args);
 
     static nat_int_t hash(const void *);
@@ -114,17 +121,19 @@ struct HashValue : Value {
         return iterator { nullptr, this };
     }
 
+    Value *delete_key(Env *, Value *);
+    Value *each(Env *, Block *);
+    Value *eq(Env *, Value *);
+    Value *has_key(Env *, Value *);
     Value *initialize(Env *, Value *, Block *);
     Value *inspect(Env *);
+    Value *keys(Env *);
+    Value *merge(Env *, size_t, Value **);
+    Value *merge_bang(Env *, size_t, Value **);
     Value *ref(Env *, Value *);
     Value *refeq(Env *, Value *, Value *);
-    Value *delete_key(Env *, Value *);
-    Value *eq(Env *, Value *);
-    Value *each(Env *, Block *);
-    Value *keys(Env *);
-    Value *values(Env *);
     Value *sort(Env *);
-    Value *has_key(Env *, Value *);
+    Value *values(Env *);
 
 private:
     void key_list_remove_node(Key *);

@@ -317,4 +317,19 @@ Value *HashValue::has_key(Env *env, Value *key) {
     }
 }
 
+Value *HashValue::merge(Env *env, size_t argc, Value **args) {
+    return dup(env)->as_hash()->merge_bang(env, argc, args);
+}
+
+Value *HashValue::merge_bang(Env *env, size_t argc, Value **args) {
+    for (size_t i = 0; i < argc; i++) {
+        auto h = args[i];
+        h->assert_type(env, Value::Type::Hash, "Hash");
+        for (auto node : *h->as_hash()) {
+            put(env, node.key, node.val);
+        }
+    }
+    return this;
+}
+
 }

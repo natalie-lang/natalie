@@ -429,6 +429,8 @@ Value *Value::dup(Env *env) {
     switch (m_type) {
     case Value::Type::Array:
         return new ArrayValue { *as_array() };
+    case Value::Type::Hash:
+        return new HashValue { env, *as_hash() };
     case Value::Type::String:
         return new StringValue { *as_string() };
     case Value::Type::False:
@@ -548,5 +550,4 @@ void Value::assert_not_frozen(Env *env) {
 const char *Value::inspect_str(Env *env) {
     return send(env, "inspect")->as_string()->c_str();
 }
-
 }

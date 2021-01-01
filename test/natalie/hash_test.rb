@@ -237,7 +237,7 @@ describe 'hash' do
     end
   end
 
-  describe 'handles two keys with the same hash' do
+  it 'handles two keys with the same hash' do
     class MyDumbKey
       def hash
         111
@@ -248,5 +248,21 @@ describe 'hash' do
     b = MyDumbKey.new
     h = { a => 1, b => 2 }
     h[a].should_not == h[b]
+  end
+
+  describe 'merge/update' do
+    it 'creates a new copy of the hash with the given hashes merged in' do
+      h = { 0 => 0, 1 => 1 }
+      h.merge({ 2 => 2 }, { 3 => 3, 1 => 10 }).should == { 0 => 0, 1 => 10, 2 => 2, 3 => 3 }
+      h.update({ 2 => 2 }, { 3 => 3, 1 => 10 }).should == { 0 => 0, 1 => 10, 2 => 2, 3 => 3 }
+    end
+  end
+
+  describe 'merge!' do
+    it 'merges given hashes into self, changing self in-place' do
+      h = { 0 => 0, 1 => 1 }
+      h.merge!({ 2 => 2 }, { 3 => 3, 1 => 10 })
+      h.should == { 0 => 0, 1 => 10, 2 => 2, 3 => 3 }
+    end
   end
 end
