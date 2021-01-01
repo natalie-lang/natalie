@@ -8,41 +8,35 @@ class Dir
     '/tmp'
   end
 
-  def self.children(dirname)
-    each_child(dirname).to_a
+  def self.each_child(dirname)
+    return enum_for(:each_child, dirname) unless block_given?
+    children(dirname).each do |name|
+      yield name
+    end
   end
 
-  def self.each_child(dirname)
+  def self.children(dirname)
     __inline__ <<-END
         auto dirname = args[0];
         dirname->assert_type(env, Value::Type::String, "String");
-        if (!block) {
-            Value *enum_for_args[] = { SymbolValue::intern(env, "each_child"), args[0] };
-            return self->send(env, "enum_for", 2, enum_for_args, nullptr);
-        }
         auto dir = opendir(dirname->as_string()->c_str());
-        if (!dir) {
-            Value *args[] = { new IntegerValue { env, errno } };
-            auto exception = env->Object()->const_fetch("SystemCallError")->send(env, "exception", 1, args)->as_exception();
-            env->raise_exception(exception);
-        }
-        errno = 0;
+        if (!dir)
+            env->raise_errno();
         dirent *entry;
+        errno = 0;
+        auto array = new ArrayValue { env };
         for (;;) {
             entry = readdir(dir);
             if (!entry) break;
             if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) continue;
-            Value *args[] = { new StringValue { env, entry->d_name } };
-            NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, args, nullptr);
+            array->push(new StringValue { env, entry->d_name });
         }
         if (errno) {
             closedir(dir);
-            Value *args[] = { new IntegerValue { env, errno } };
-            auto exception = env->Object()->const_fetch("SystemCallError")->send(env, "exception", 1, args)->as_exception();
-            env->raise_exception(exception);
+            env->raise_errno();
         }
         closedir(dir);
-        return env->nil_obj();
+        return array;
     END
   end
 end
