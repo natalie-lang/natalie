@@ -46,6 +46,22 @@ module Enumerable
     nil
   end
 
+  def each_slice(count)
+    count = count.to_int
+    raise ArgumentError, 'invalid slice size' if count < 1
+    return enum_for(:each_slice, count) unless block_given?
+    slice = []
+    each do |*items|
+      slice << (items.size == 1 ? items.first : items)
+      if slice.size >= count
+        yield slice
+        slice = []
+      end
+    end
+    yield slice if slice.any?
+    nil
+  end
+
   def each_with_index(*args)
     index = 0
     if block_given?
