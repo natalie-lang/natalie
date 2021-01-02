@@ -1059,7 +1059,7 @@ void Parser::raise_unexpected(Env *env, Token token, const char *expected) {
     auto line = token.line() + 1;
     auto type = token.type_value(env);
     if (strcmp(type, "EOF") == 0) {
-        env->raise("SyntaxError", "%s#%d: syntax error, unexpected end-of-input", file, line);
+        env->raise("SyntaxError", "%s#%d: syntax error, unexpected end-of-input (expected: '%s')", file, line, expected);
     } else {
         env->raise("SyntaxError", "%s#%d: syntax error, unexpected '%s' (expected: '%s')", file, line, type, expected);
     }

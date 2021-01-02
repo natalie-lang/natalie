@@ -10,8 +10,8 @@ if RUBY_ENGINE == 'natalie'
   end
 else
   class Parser
-    def self.parse(code)
-      node = RubyParser.new.parse(code)
+    def self.parse(code, path = '(string)')
+      node = RubyParser.new.parse(code, path)
       if node.nil?
         s(:block)
       elsif node.first == :block
@@ -117,7 +117,7 @@ describe 'Parser' do
       Parser.parse("x = 1").should == s(:block, s(:lasgn, :x, s(:lit, 1)))
       Parser.parse("x = 1 + 2").should == s(:block, s(:lasgn, :x, s(:call, s(:lit, 1), :+, s(:lit, 2))))
       if (RUBY_ENGINE == 'natalie')
-        -> { Parser.parse("x =") }.should raise_error(SyntaxError, '(string)#1: syntax error, unexpected end-of-input')
+        -> { Parser.parse("x =") }.should raise_error(SyntaxError, "(string)#1: syntax error, unexpected end-of-input (expected: 'expression')")
         -> { Parser.parse("[1] = 2") }.should raise_error(SyntaxError, "(string)#1: syntax error, unexpected '[' (expected: 'left side of assignment')")
       else
         -> { Parser.parse("x =") }.should raise_error(SyntaxError, '(string):1 :: parse error on value false ($end)')
@@ -207,7 +207,7 @@ describe 'Parser' do
       Parser.parse("foo(a, b)").should == s(:block, s(:call, nil, :foo, s(:call, nil, :a), s(:call, nil, :b)))
       Parser.parse("foo(\n1 + 2  ,\n  'baz'  \n )").should == s(:block, s(:call, nil, :foo, s(:call, s(:lit, 1), :+, s(:lit, 2)), s(:str, "baz")))
       if (RUBY_ENGINE == 'natalie')
-        -> { Parser.parse("foo(") }.should raise_error(SyntaxError, '(string)#1: syntax error, unexpected end-of-input')
+        -> { Parser.parse("foo(") }.should raise_error(SyntaxError, "(string)#1: syntax error, unexpected end-of-input (expected: 'expression')")
       else
         -> { Parser.parse("foo(") }.should raise_error(SyntaxError, '(string):1 :: parse error on value false ($end)')
       end
@@ -395,7 +395,7 @@ describe 'Parser' do
     end
 
     it 'parses __FILE__ and __dir__' do
-      Parser.parse('__FILE__').should == s(:block, s(:str, "(string)"))
+      Parser.parse('__FILE__', 'foo/bar.rb').should == s(:block, s(:str, 'foo/bar.rb'))
       Parser.parse('__dir__').should == s(:block, s(:call, nil, :__dir__))
     end
 
