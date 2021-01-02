@@ -12,6 +12,7 @@ describe 'Dir' do
         entries << entry
       end
       entries.sort.should == [
+        'compare_rubies.rb',
         'file.txt',
         'require_sub1.rb',
         'require_sub2.rb',
@@ -26,6 +27,7 @@ describe 'Dir' do
       dir = Dir.each_child(File.expand_path('../support', __dir__))
       dir.should be_an_instance_of(Enumerator)
       dir.to_a.sort.should == [
+        'compare_rubies.rb',
         'file.txt',
         'require_sub1.rb',
         'require_sub2.rb',
