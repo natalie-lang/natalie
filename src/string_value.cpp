@@ -157,7 +157,8 @@ StringValue *StringValue::inspect(Env *env) {
     StringValue *out = new StringValue { env, "\"" };
     for (size_t i = 0; i < m_length; i++) {
         char c = m_str[i];
-        if (c == '"' || c == '\\' || c == '#') {
+        char c2 = (i + 1) < m_length ? m_str[i + 1] : 0;
+        if (c == '"' || c == '\\' || (c == '#' && c2 == '{')) {
             out->append_char(env, '\\');
             out->append_char(env, c);
         } else if (c == '\n') {
