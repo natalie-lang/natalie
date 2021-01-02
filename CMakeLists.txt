@@ -59,6 +59,7 @@ add_custom_target(make-generated-directory ALL COMMAND ${CMAKE_COMMAND} -E make_
 
 add_custom_command(
   OUTPUT ${CMAKE_BINARY_DIR}/generated/platform.cpp
+  DEPENDS make-generated-directory
   COMMAND ruby -e "puts %(#include \"natalie.hpp\"\\nconst char *Natalie::ruby_platform = #{RUBY_PLATFORM.inspect};)" > ${CMAKE_BINARY_DIR}/generated/platform.cpp VERBATIM)
 add_custom_target(generate-platform DEPENDS ${CMAKE_BINARY_DIR}/generated/platform.cpp)
 add_dependencies(natalie generate-platform)
