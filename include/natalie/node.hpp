@@ -19,6 +19,8 @@ struct Node : public gc {
         Case,
         CaseWhen,
         Class,
+        Colon2,
+        Colon3,
         Constant,
         Def,
         EvaluateToString,
@@ -56,6 +58,8 @@ struct Node : public gc {
     }
 
     virtual Type type() { NAT_UNREACHABLE(); }
+
+    virtual bool is_callable() { return false; }
 
     const char *file() { return m_token.file(); }
     size_t line() { return m_token.line(); }
@@ -188,6 +192,8 @@ struct CallNode : NodeWithArgs {
 
     virtual Value *to_ruby(Env *) override;
 
+    virtual bool is_callable() override { return true; }
+
     const char *message() { return m_message; }
     void set_message(const char *message) { m_message = message; }
 
@@ -268,6 +274,41 @@ private:
     ConstantNode *m_name { nullptr };
     Node *m_superclass { nullptr };
     BlockNode *m_body { nullptr };
+};
+
+struct Colon2Node : Node {
+    Colon2Node(Token token, Node *left, const char *name)
+        : Node { token }
+        , m_left { left }
+        , m_name { name } {
+        assert(m_left);
+        assert(m_name);
+    }
+
+    virtual Type type() override { return Type::Colon2; }
+
+    virtual Value *to_ruby(Env *) override;
+
+private:
+    Token m_token {};
+    Node *m_left { nullptr };
+    const char *m_name { nullptr };
+};
+
+struct Colon3Node : Node {
+    Colon3Node(Token token, const char *name)
+        : Node { token }
+        , m_name { name } {
+        assert(m_name);
+    }
+
+    virtual Type type() override { return Type::Colon3; }
+
+    virtual Value *to_ruby(Env *) override;
+
+private:
+    Token m_token {};
+    const char *m_name { nullptr };
 };
 
 struct ConstantNode : Node {
@@ -372,6 +413,16 @@ struct IdentifierNode : Node {
 
     Token::Type token_type() { return m_token.type(); }
     const char *name() { return m_token.literal(); }
+
+    virtual bool is_callable() override {
+        switch (token_type()) {
+        case Token::Type::BareName:
+        case Token::Type::Constant:
+            return !m_is_lvar;
+        default:
+            return false;
+        }
+    }
 
     bool is_lvar() { return m_is_lvar; }
     void set_is_lvar(bool is_lvar) { m_is_lvar = is_lvar; }

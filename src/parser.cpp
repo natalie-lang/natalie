@@ -15,10 +15,6 @@ Node *Parser::parse_expression(Env *env, Parser::Precedence precedence, LocalsVe
 
     Node *left = (this->*null_fn)(env, locals);
 
-    if (left->type() == Node::Type::Identifier && !current_token().is_end_of_expression() && get_precedence(left) == LOWEST && precedence == LOWEST && !current_token().is_closing_token()) {
-        left = parse_call_expression_without_parens(env, left, locals);
-    }
-
     while (current_token().is_valid() && get_precedence(left) > precedence) {
 #ifdef NAT_DEBUG_PARSER
         printf("while loop: current token = %s\n", current_token().to_ruby(env)->inspect_str(env));
@@ -29,6 +25,11 @@ Node *Parser::parse_expression(Env *env, Parser::Precedence precedence, LocalsVe
 
         left = (this->*left_fn)(env, left, locals);
     }
+
+    if (left->is_callable() && !current_token().is_end_of_expression() && get_precedence(left) == LOWEST && precedence == LOWEST && !current_token().is_closing_token()) {
+        left = parse_call_expression_without_parens(env, left, locals);
+    }
+
     return left;
 }
 
@@ -587,6 +588,23 @@ Node *Parser::parse_symbol(Env *env, LocalsVectorPtr locals) {
     return symbol;
 };
 
+Node *Parser::parse_top_level_constant(Env *env, LocalsVectorPtr locals) {
+    auto token = current_token();
+    advance();
+    const char *name;
+    auto name_token = current_token();
+    auto identifier = static_cast<IdentifierNode *>(parse_identifier(env, locals));
+    switch (identifier->token_type()) {
+    case Token::Type::BareName:
+    case Token::Type::Constant:
+        name = identifier->name();
+        break;
+    default:
+        raise_unexpected(env, name_token, ":: identifier name");
+    }
+    return new Colon3Node { token, name };
+}
+
 Node *Parser::parse_word_array(Env *env, LocalsVectorPtr locals) {
     auto token = current_token();
     auto array = new ArrayNode { token };
@@ -793,6 +811,25 @@ Node *Parser::parse_call_expression_without_parens(Env *env, Node *left, LocalsV
     return call_node;
 }
 
+Node *Parser::parse_constant_resolution_expression(Env *env, Node *left, LocalsVectorPtr locals) {
+    auto token = current_token();
+    advance();
+    auto name_token = current_token();
+    auto identifier = static_cast<IdentifierNode *>(parse_identifier(env, locals));
+    switch (identifier->token_type()) {
+    case Token::Type::BareName: {
+        const char *name = identifier->name();
+        return new CallNode { token, left, name };
+    }
+    case Token::Type::Constant: {
+        const char *name = identifier->name();
+        return new Colon2Node { token, left, name };
+    }
+    default:
+        raise_unexpected(env, name_token, ":: identifier name");
+    }
+}
+
 Node *Parser::parse_infix_expression(Env *env, Node *left, LocalsVectorPtr locals) {
     auto token = current_token();
     auto op = current_token();
@@ -879,10 +916,6 @@ Node *Parser::parse_send_expression(Env *env, Node *left, LocalsVectorPtr locals
         GC_STRDUP(name->name()),
     };
 
-    if (!current_token().is_end_of_expression() && get_precedence(left) == LOWEST && !current_token().is_closing_token()) {
-        call_node = static_cast<CallNode *>(parse_call_expression_without_parens(env, call_node, locals));
-    }
-
     return call_node;
 }
 
@@ -959,8 +992,8 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type, Precedence prece
         return &Parser::parse_string;
     case Type::Symbol:
         return &Parser::parse_symbol;
-    case Type::YieldKeyword:
-        return &Parser::parse_yield;
+    case Type::ConstantResolution:
+        return &Parser::parse_top_level_constant;
     case Type::UnlessKeyword:
         return &Parser::parse_unless;
     case Type::PercentLowerI:
@@ -969,6 +1002,8 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type, Precedence prece
     case Type::PercentLowerW:
     case Type::PercentUpperW:
         return &Parser::parse_word_array;
+    case Type::YieldKeyword:
+        return &Parser::parse_yield;
     default:
         return nullptr;
     }
@@ -981,11 +1016,8 @@ Parser::parse_left_fn Parser::left_denotation(Token token, Node *left) {
         return &Parser::parse_assignment_expression;
     case Type::LParen:
         return &Parser::parse_call_expression_with_parens;
-    case Type::IfKeyword:
-    case Type::UnlessKeyword:
-    case Type::WhileKeyword:
-    case Type::UntilKeyword:
-        return &Parser::parse_modifier_expression;
+    case Type::ConstantResolution:
+        return &Parser::parse_constant_resolution_expression;
     case Type::BitwiseAnd:
     case Type::BitwiseOr:
     case Type::BitwiseXor:
@@ -1024,6 +1056,11 @@ Parser::parse_left_fn Parser::left_denotation(Token token, Node *left) {
     case Type::Or:
     case Type::OrKeyword:
         return &Parser::parse_logical_expression;
+    case Type::IfKeyword:
+    case Type::UnlessKeyword:
+    case Type::WhileKeyword:
+    case Type::UntilKeyword:
+        return &Parser::parse_modifier_expression;
     case Type::NotMatch:
         return &Parser::parse_not_match_expression;
     case Type::DotDot:

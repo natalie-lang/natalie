@@ -191,7 +191,13 @@ describe 'Parser' do
     end
 
     it 'parses constants' do
-      Parser.parse("ARGV").should == s(:block, s(:const, :ARGV))
+      Parser.parse('ARGV').should == s(:block, s(:const, :ARGV))
+      Parser.parse('Foo::Bar').should == s(:block, s(:colon2, s(:const, :Foo), :Bar))
+      Parser.parse('Foo::Bar::BAZ').should == s(:block, s(:colon2, s(:colon2, s(:const, :Foo), :Bar), :BAZ))
+      Parser.parse('x, y = ::Bar').should == s(:block, s(:masgn, s(:array, s(:lasgn, :x), s(:lasgn, :y)), s(:to_ary, s(:colon3, :Bar))))
+      Parser.parse('Foo::bar').should == s(:block, s(:call, s(:const, :Foo), :bar))
+      Parser.parse('Foo::bar = 1 + 2').should == s(:block, s(:attrasgn, s(:const, :Foo), :bar=, s(:call, s(:lit, 1), :+, s(:lit, 2))))
+      Parser.parse('Foo::bar x, y').should == s(:block, s(:call, s(:const, :Foo), :bar, s(:call, nil, :x), s(:call, nil, :y)))
     end
 
     it 'parses global variabls' do

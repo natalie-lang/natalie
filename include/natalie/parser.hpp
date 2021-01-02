@@ -41,6 +41,7 @@ struct Parser : public gc {
         SUM, // + -
         PRODUCT, // * / %
         PREFIX, // -1 +1
+        CONSTANTRESOLUTION, // ::
         UNARY, // ! ~ + -
         EXPONENT, // **
         DOT, // foo.bar
@@ -77,6 +78,8 @@ private:
         case Token::Type::AndKeyword:
         case Token::Type::OrKeyword:
             return COMPOSITION;
+        case Token::Type::ConstantResolution:
+            return CONSTANTRESOLUTION;
         case Token::Type::Dot:
             return DOT;
         case Token::Type::EqualEqual:
@@ -164,6 +167,7 @@ private:
     Node *parse_string(Env *, LocalsVectorPtr);
     Node *parse_symbol(Env *, LocalsVectorPtr);
     Node *parse_statement_keyword(Env *, LocalsVectorPtr);
+    Node *parse_top_level_constant(Env *, LocalsVectorPtr);
     Node *parse_unless(Env *, LocalsVectorPtr);
     Node *parse_word_array(Env *, LocalsVectorPtr);
     Node *parse_word_symbol_array(Env *, LocalsVectorPtr);
@@ -173,8 +177,9 @@ private:
     Node *parse_call_expression_without_parens(Env *, Node *, LocalsVectorPtr);
     Node *parse_call_expression_with_parens(Env *, Node *, LocalsVectorPtr);
     void parse_call_args(Env *, NodeWithArgs *, LocalsVectorPtr);
-    Node *parse_modifier_expression(Env *, Node *, LocalsVectorPtr);
+    Node *parse_constant_resolution_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_infix_expression(Env *, Node *, LocalsVectorPtr);
+    Node *parse_modifier_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_iter_expression(Env *, Node *, LocalsVectorPtr);
     Vector<Node *> *parse_iter_args(Env *, LocalsVectorPtr);
     Node *parse_logical_expression(Env *, Node *, LocalsVectorPtr);
