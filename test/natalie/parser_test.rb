@@ -272,11 +272,6 @@ describe 'Parser' do
                                           s(:lit, 25)))))
     end
 
-    xit 'parses examples/boardslam.rb' do
-      bs = File.read(File.expand_path('../../examples/boardslam.rb', __dir__))
-      Parser.parse(bs)
-    end
-
     it 'parses class definition' do
       Parser.parse("class Foo\nend").should == s(:block, s(:class, :Foo, nil))
       Parser.parse("class Foo;end").should == s(:block, s(:class, :Foo, nil))
@@ -399,6 +394,13 @@ describe 'Parser' do
 
     it 'parses splat *' do
       Parser.parse('foo(*args)').should == s(:block, s(:call, nil, :foo, s(:splat, s(:call, nil, :args))))
+    end
+
+    it 'parses stabby proc' do
+      Parser.parse('-> { puts 1 }').should == s(:block, s(:iter, s(:lambda), 0, s(:call, nil, :puts, s(:lit, 1))))
+      Parser.parse('-> x { puts x }').should == s(:block, s(:iter, s(:lambda), s(:args, :x), s(:call, nil, :puts, s(:lvar, :x))))
+      Parser.parse('-> x, y { puts x, y }').should == s(:block, s(:iter, s(:lambda), s(:args, :x, :y), s(:call, nil, :puts, s(:lvar, :x), s(:lvar, :y))))
+      Parser.parse('-> (x, y) { x; y }').should == s(:block, s(:iter, s(:lambda), s(:args, :x, :y), s(:block, s(:lvar, :x), s(:lvar, :y))))
     end
   end
 end

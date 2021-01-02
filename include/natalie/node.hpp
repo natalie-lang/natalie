@@ -37,6 +37,7 @@ struct Node : public gc {
         Range,
         Return,
         Splat,
+        StabbyProc,
         String,
         Symbol,
         True,
@@ -568,6 +569,23 @@ struct SplatNode : Node {
 
 private:
     Node *m_node { nullptr };
+};
+
+struct StabbyProcNode : Node {
+    StabbyProcNode(Token token, Vector<Node *> *args)
+        : Node { token }
+        , m_args { args } {
+        assert(m_args);
+    }
+
+    virtual Type type() override { return Type::StabbyProc; }
+
+    virtual Value *to_ruby(Env *) override;
+
+    Vector<Node *> *args() { return m_args; };
+
+private:
+    Vector<Node *> *m_args { nullptr };
 };
 
 struct StringNode : Node {

@@ -239,7 +239,6 @@ Node *Parser::parse_def_single_arg(Env *env, LocalsVectorPtr locals) {
     default:
         raise_unexpected(env, "argument");
     }
-    NAT_UNREACHABLE();
 }
 
 Node *Parser::parse_modifier_expression(Env *env, Node *left, LocalsVectorPtr locals) {
@@ -491,6 +490,23 @@ Node *Parser::parse_splat(Env *env, LocalsVectorPtr locals) {
     return new SplatNode { token, parse_expression(env, LOWEST, locals) };
 };
 
+Node *Parser::parse_stabby_proc(Env *env, LocalsVectorPtr locals) {
+    auto token = current_token();
+    advance();
+    Vector<Node *> *args;
+    if (current_token().is_lparen()) {
+        advance();
+        args = parse_def_args(env, locals);
+        expect(env, Token::Type::RParen, "proc args closing paren");
+        advance();
+    } else if (current_token().is_bare_name()) {
+        args = parse_def_args(env, locals);
+    } else {
+        args = new Vector<Node *> {};
+    }
+    return new StabbyProcNode { token, args };
+};
+
 Node *Parser::parse_string(Env *env, LocalsVectorPtr locals) {
     auto token = current_token();
     auto string = new StringNode { token, new StringValue { env, token.literal() } };
@@ -606,7 +622,6 @@ Node *Parser::parse_assignment_expression(Env *env, Node *left, LocalsVectorPtr 
         // FIXME: needs to print the token for `left` -- not current_token()
         raise_unexpected(env, "left side of assignment");
     }
-    NAT_UNREACHABLE();
 };
 
 Node *Parser::parse_iter_expression(Env *env, Node *left, LocalsVectorPtr locals) {
@@ -614,21 +629,24 @@ Node *Parser::parse_iter_expression(Env *env, Node *left, LocalsVectorPtr locals
     locals = new Vector<SymbolValue *> { *locals };
     bool curly_brace = current_token().type() == Token::Type::LCurlyBrace;
     advance();
+    Vector<Node *> *args;
     switch (left->type()) {
     case Node::Type::Identifier:
     case Node::Type::Call:
+        if (current_token().type() == Token::Type::BitwiseOr) {
+            advance();
+            args = parse_iter_args(env, locals);
+            expect(env, Token::Type::BitwiseOr, "end of block args");
+            advance();
+        } else {
+            args = new Vector<Node *> {};
+        }
+        break;
+    case Node::Type::StabbyProc:
+        args = static_cast<StabbyProcNode *>(left)->args();
         break;
     default:
         raise_unexpected(env, "call");
-    }
-    Vector<Node *> *args;
-    if (current_token().type() == Token::Type::BitwiseOr) {
-        advance();
-        args = parse_iter_args(env, locals);
-        expect(env, Token::Type::BitwiseOr, "end of block args");
-        advance();
-    } else {
-        args = new Vector<Node *> {};
     }
     auto end_token_type = curly_brace ? Token::Type::RCurlyBrace : Token::Type::EndKeyword;
     auto body = parse_body(env, locals, LOWEST, end_token_type);
@@ -853,6 +871,8 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type, Precedence prece
         return &Parser::parse_return;
     case Type::Multiply:
         return &Parser::parse_splat;
+    case Type::Arrow:
+        return &Parser::parse_stabby_proc;
     case Type::String:
         return &Parser::parse_string;
     case Type::Symbol:

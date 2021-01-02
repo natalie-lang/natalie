@@ -150,6 +150,7 @@ private:
     Node *parse_not(Env *, LocalsVectorPtr);
     Node *parse_return(Env *, LocalsVectorPtr);
     Node *parse_splat(Env *, LocalsVectorPtr);
+    Node *parse_stabby_proc(Env *, LocalsVectorPtr);
     Node *parse_string(Env *, LocalsVectorPtr);
     Node *parse_symbol(Env *, LocalsVectorPtr);
     Node *parse_statement_keyword(Env *, LocalsVectorPtr);
@@ -189,7 +190,7 @@ private:
     void skip_newlines();
 
     void expect(Env *, Token::Type, const char *);
-    void raise_unexpected(Env *, const char *);
+    [[noreturn]] void raise_unexpected(Env *, const char *);
 
     void advance() { m_index++; }
 

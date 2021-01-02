@@ -336,6 +336,10 @@ Value *SplatNode::to_ruby(Env *env) {
     return new SexpValue { env, this, { SymbolValue::intern(env, "splat"), m_node->to_ruby(env) } };
 }
 
+Value *StabbyProcNode::to_ruby(Env *env) {
+    return new SexpValue { env, this, { SymbolValue::intern(env, "lambda") } };
+}
+
 Value *StringNode::to_ruby(Env *env) {
     return new SexpValue { env, this, { SymbolValue::intern(env, "str"), m_value } };
 }
