@@ -451,23 +451,24 @@ struct Token : public gc {
         return hash;
     }
 
+    bool is_bare_name() { return m_type == Type::BareName; }
     bool is_closing_token() { return m_type == Type::RBracket || m_type == Type::RCurlyBrace || m_type == Type::RParen; }
     bool is_comma() { return m_type == Type::Comma; }
     bool is_comment() { return m_type == Type::Comment; }
+    bool is_double_quoted_string() { return m_type == Type::String && m_double_quoted; }
     bool is_else_keyword() { return m_type == Type::ElseKeyword; }
     bool is_elsif_keyword() { return m_type == Type::ElsifKeyword; }
     bool is_end_keyword() { return m_type == Type::EndKeyword; }
+    bool is_end_of_expression() { return m_type == Type::Eol || m_type == Type::Eof || is_expression_modifier(); }
     bool is_eof() { return m_type == Type::Eof; }
     bool is_eol() { return m_type == Type::Eol; }
-    bool is_end_of_expression() { return m_type == Type::Eol || m_type == Type::Eof || is_expression_modifier(); }
     bool is_expression_modifier() { return m_type == Type::IfKeyword || m_type == Type::UnlessKeyword || m_type == Type::WhileKeyword || m_type == Type::UntilKeyword; }
-    bool is_bare_name() { return m_type == Type::BareName; }
     bool is_lparen() { return m_type == Type::LParen; }
     bool is_newline() { return m_type == Type::Eol; }
     bool is_rparen() { return m_type == Type::RParen; }
     bool is_semicolon() { return m_type == Type::Semicolon; }
-    bool is_double_quoted_string() { return m_type == Type::String && m_double_quoted; }
     bool is_valid() { return m_type != Type::Invalid; }
+    bool is_when_keyword() { return m_type == Type::WhenKeyword; }
 
     void validate(Env *env) {
         if (!is_valid()) {

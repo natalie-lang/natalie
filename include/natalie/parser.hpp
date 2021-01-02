@@ -24,6 +24,7 @@ struct Parser : public gc {
         HASH, // {}
         ITER, // do/end {}
         EXPRMODIFIER, // if/unless/while/until
+        CASE, // case/when/else
         CALLARGS, // foo a, b
         COMPOSITION, // and/or
         ASSIGNMENT, // =
@@ -124,6 +125,7 @@ private:
     Node *parse_expression(Env *, Precedence, LocalsVectorPtr);
 
     BlockNode *parse_body(Env *, LocalsVectorPtr, Precedence, Token::Type = Token::Type::EndKeyword);
+    BlockNode *parse_case_when_body(Env *, LocalsVectorPtr);
     Node *parse_if_body(Env *, LocalsVectorPtr);
 
     Node *parse_array(Env *, LocalsVectorPtr);
@@ -132,6 +134,7 @@ private:
     Node *parse_bool(Env *, LocalsVectorPtr);
     Node *parse_break(Env *, LocalsVectorPtr);
     Node *parse_class(Env *, LocalsVectorPtr);
+    Node *parse_case(Env *, LocalsVectorPtr);
     Node *parse_comma_separated_identifiers(Env *, LocalsVectorPtr);
     Node *parse_constant(Env *, LocalsVectorPtr);
     Node *parse_def(Env *, LocalsVectorPtr);

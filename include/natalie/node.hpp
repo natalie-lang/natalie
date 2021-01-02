@@ -16,6 +16,8 @@ struct Node : public gc {
         BlockPass,
         Break,
         Call,
+        Case,
+        CaseWhen,
         Class,
         Constant,
         Def,
@@ -190,6 +192,49 @@ struct CallNode : NodeWithArgs {
 protected:
     Node *m_receiver { nullptr };
     const char *m_message { nullptr };
+};
+
+struct CaseNode : Node {
+    CaseNode(Token token, Node *subject)
+        : Node { token }
+        , m_subject { subject } {
+        assert(m_subject);
+    }
+
+    virtual Type type() override { return Type::Case; }
+
+    virtual Value *to_ruby(Env *) override;
+
+    void add_when_node(Node *node) {
+        m_when_nodes.push(node);
+    }
+
+    void set_else_node(BlockNode *node) {
+        m_else_node = node;
+    }
+
+private:
+    Node *m_subject { nullptr };
+    Vector<Node *> m_when_nodes {};
+    BlockNode *m_else_node { nullptr };
+};
+
+struct CaseWhenNode : Node {
+    CaseWhenNode(Token token, Node *condition, BlockNode *body)
+        : Node { token }
+        , m_condition { condition }
+        , m_body { body } {
+        assert(m_condition);
+        assert(m_body);
+    }
+
+    virtual Type type() override { return Type::CaseWhen; }
+
+    virtual Value *to_ruby(Env *) override;
+
+private:
+    Node *m_condition { nullptr };
+    BlockNode *m_body { nullptr };
 };
 
 struct AttrAssignNode : CallNode {

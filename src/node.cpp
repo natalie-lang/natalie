@@ -67,14 +67,56 @@ Value *BreakNode::to_ruby(Env *env) {
 }
 
 Value *CallNode::to_ruby(Env *env) {
-    auto sexp = new SexpValue { env, this, {
-                                               SymbolValue::intern(env, "call"),
-                                               m_receiver->to_ruby(env),
-                                               SymbolValue::intern(env, m_message),
-                                           } };
+    auto sexp = new SexpValue {
+        env,
+        this,
+        {
+            SymbolValue::intern(env, "call"),
+            m_receiver->to_ruby(env),
+            SymbolValue::intern(env, m_message),
+        }
+    };
 
     for (auto arg : m_args) {
         sexp->push(arg->to_ruby(env));
+    }
+    return sexp;
+}
+
+Value *CaseNode::to_ruby(Env *env) {
+    auto sexp = new SexpValue {
+        env,
+        this,
+        {
+            SymbolValue::intern(env, "case"),
+            m_subject->to_ruby(env),
+        }
+    };
+    for (auto when_node : m_when_nodes) {
+        sexp->push(when_node->to_ruby(env));
+    }
+    if (m_else_node) {
+        if (m_else_node->has_one_node())
+            sexp->push((*m_else_node->nodes())[0]->to_ruby(env));
+        else
+            sexp->push(m_else_node->to_ruby(env));
+    } else {
+        sexp->push(env->nil_obj());
+    }
+    return sexp;
+}
+
+Value *CaseWhenNode::to_ruby(Env *env) {
+    auto sexp = new SexpValue {
+        env,
+        this,
+        {
+            SymbolValue::intern(env, "when"),
+            m_condition->to_ruby(env),
+        }
+    };
+    for (auto node : *m_body->nodes()) {
+        sexp->push(node->to_ruby(env));
     }
     return sexp;
 }

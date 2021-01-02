@@ -63,9 +63,6 @@ BlockNode *Parser::parse_body(Env *env, LocalsVectorPtr locals, Precedence prece
             skip_newlines();
         }
     }
-    if (current_token().type() != end_token_type)
-        raise_unexpected(env, "body end");
-    advance();
     return body;
 }
 
@@ -137,6 +134,57 @@ Node *Parser::parse_break(Env *env, LocalsVectorPtr locals) {
     return new BreakNode { token };
 }
 
+Node *Parser::parse_case(Env *env, LocalsVectorPtr locals) {
+    auto case_token = current_token();
+    advance();
+    auto subject = parse_expression(env, CASE, locals);
+    next_expression(env);
+    auto node = new CaseNode { case_token, subject };
+    while (!current_token().is_end_keyword()) {
+        auto token = current_token();
+        switch (token.type()) {
+        case Token::Type::WhenKeyword: {
+            advance();
+            auto condition_array = new ArrayNode { token };
+            parse_array_items(env, condition_array, locals);
+            next_expression(env);
+            auto body = parse_case_when_body(env, locals);
+            auto when_node = new CaseWhenNode { token, condition_array, body };
+            node->add_when_node(when_node);
+            break;
+        }
+        case Token::Type::ElseKeyword: {
+            advance();
+            next_expression(env);
+            BlockNode *body = parse_body(env, locals, LOWEST);
+            node->set_else_node(body);
+            expect(env, Token::Type::EndKeyword, "case end");
+            break;
+        }
+        default:
+            raise_unexpected(env, "case when keyword");
+        }
+    }
+    expect(env, Token::Type::EndKeyword, "case end");
+    advance();
+    return node;
+}
+
+BlockNode *Parser::parse_case_when_body(Env *env, LocalsVectorPtr locals) {
+    auto body = new BlockNode { current_token() };
+    current_token().validate(env);
+    skip_newlines();
+    while (!current_token().is_eof() && !current_token().is_when_keyword() && !current_token().is_else_keyword() && !current_token().is_end_keyword()) {
+        auto exp = parse_expression(env, LOWEST, locals);
+        body->add_node(exp);
+        current_token().validate(env);
+        next_expression(env);
+    }
+    if (!current_token().is_when_keyword() && !current_token().is_else_keyword() && !current_token().is_end_keyword())
+        raise_unexpected(env, "case when, else, or end");
+    return body;
+}
+
 Node *Parser::parse_class(Env *env, LocalsVectorPtr) {
     auto token = current_token();
     advance();
@@ -152,6 +200,8 @@ Node *Parser::parse_class(Env *env, LocalsVectorPtr) {
         superclass = new NilNode { token };
     }
     auto body = parse_body(env, locals, LOWEST);
+    expect(env, Token::Type::EndKeyword, "class end");
+    advance();
     return new ClassNode { token, name, superclass, body };
 };
 
@@ -204,6 +254,8 @@ Node *Parser::parse_def(Env *env, LocalsVectorPtr) {
         args = new Vector<Node *> {};
     }
     auto body = parse_body(env, locals, LOWEST);
+    expect(env, Token::Type::EndKeyword, "def end");
+    advance();
     return new DefNode { token, name, args, body };
 };
 
@@ -441,6 +493,8 @@ Node *Parser::parse_module(Env *env, LocalsVectorPtr) {
         env->raise("SyntaxError", "class/module name must be CONSTANT");
     auto name = static_cast<ConstantNode *>(parse_constant(env, locals));
     auto body = parse_body(env, locals, LOWEST);
+    expect(env, Token::Type::EndKeyword, "module end");
+    advance();
     return new ModuleNode { token, name, body };
 };
 
@@ -657,6 +711,8 @@ Node *Parser::parse_iter_expression(Env *env, Node *left, LocalsVectorPtr locals
     }
     auto end_token_type = curly_brace ? Token::Type::RCurlyBrace : Token::Type::EndKeyword;
     auto body = parse_body(env, locals, LOWEST, end_token_type);
+    expect(env, end_token_type, "block end");
+    advance();
     return new IterNode { token, left, args, body };
 }
 
@@ -838,6 +894,8 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type, Precedence prece
         return &Parser::parse_bool;
     case Type::BreakKeyword:
         return &Parser::parse_break;
+    case Type::CaseKeyword:
+        return &Parser::parse_case;
     case Type::ClassKeyword:
         return &Parser::parse_class;
     case Type::DefKeyword:

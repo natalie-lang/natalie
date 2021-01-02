@@ -410,5 +410,10 @@ describe 'Parser' do
       Parser.parse('-> (x, y) { x; y }').should == s(:block, s(:iter, s(:lambda), s(:args, :x, :y), s(:block, s(:lvar, :x), s(:lvar, :y))))
       -> { Parser.parse('->') }.should raise_error(SyntaxError)
     end
+
+    it 'parses case/when/else' do
+      Parser.parse("case 1\nwhen 1\n:a\nend").should == s(:block, s(:case, s(:lit, 1), s(:when, s(:array, s(:lit, 1)), s(:lit, :a)), nil))
+      Parser.parse("case 1\nwhen 1\n:a\n:b\nwhen 2, 3\n:c\nelse\n:d\nend").should == s(:block, s(:case, s(:lit, 1), s(:when, s(:array, s(:lit, 1)), s(:lit, :a), s(:lit, :b)), s(:when, s(:array, s(:lit, 2), s(:lit, 3)), s(:lit, :c)), s(:lit, :d)))
+    end
   end
 end
