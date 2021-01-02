@@ -504,6 +504,8 @@ Node *Parser::parse_stabby_proc(Env *env, LocalsVectorPtr locals) {
     } else {
         args = new Vector<Node *> {};
     }
+    if (current_token().type() != Token::Type::DoKeyword && current_token().type() != Token::Type::LCurlyBrace)
+        raise_unexpected(env, "block");
     return new StabbyProcNode { token, args };
 };
 

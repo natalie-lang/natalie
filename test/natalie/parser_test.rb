@@ -401,6 +401,7 @@ describe 'Parser' do
       Parser.parse('-> x { puts x }').should == s(:block, s(:iter, s(:lambda), s(:args, :x), s(:call, nil, :puts, s(:lvar, :x))))
       Parser.parse('-> x, y { puts x, y }').should == s(:block, s(:iter, s(:lambda), s(:args, :x, :y), s(:call, nil, :puts, s(:lvar, :x), s(:lvar, :y))))
       Parser.parse('-> (x, y) { x; y }').should == s(:block, s(:iter, s(:lambda), s(:args, :x, :y), s(:block, s(:lvar, :x), s(:lvar, :y))))
+      -> { Parser.parse('->') }.should raise_error(SyntaxError)
     end
   end
 end
