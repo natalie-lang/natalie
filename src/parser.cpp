@@ -2,7 +2,7 @@
 
 namespace Natalie {
 
-Parser::Node *Parser::parse_expression(Env *env, Parser::Precedence precedence, LocalsVectorPtr locals) {
+Node *Parser::parse_expression(Env *env, Parser::Precedence precedence, LocalsVectorPtr locals) {
 #ifdef NAT_DEBUG_PARSER
     printf("entering parse_expression with precedence = %d, current token = %s\n", precedence, current_token().to_ruby(env)->inspect_str(env));
 #endif
@@ -32,8 +32,8 @@ Parser::Node *Parser::parse_expression(Env *env, Parser::Precedence precedence, 
     return left;
 }
 
-Parser::Node *Parser::tree(Env *env) {
-    auto tree = new Parser::BlockNode {};
+Node *Parser::tree(Env *env) {
+    auto tree = new BlockNode { current_token() };
     current_token().validate(env);
     auto locals = new Vector<SymbolValue *> {};
     skip_newlines();
@@ -46,8 +46,8 @@ Parser::Node *Parser::tree(Env *env) {
     return tree;
 }
 
-Parser::BlockNode *Parser::parse_body(Env *env, LocalsVectorPtr locals, Precedence precedence, Token::Type end_token_type) {
-    auto body = new BlockNode {};
+BlockNode *Parser::parse_body(Env *env, LocalsVectorPtr locals, Precedence precedence, Token::Type end_token_type) {
+    auto body = new BlockNode { current_token() };
     current_token().validate(env);
     skip_newlines();
     while (!current_token().is_eof() && current_token().type() != end_token_type) {
@@ -69,9 +69,9 @@ Parser::BlockNode *Parser::parse_body(Env *env, LocalsVectorPtr locals, Preceden
     return body;
 }
 
-Parser::Node *Parser::parse_array(Env *env, LocalsVectorPtr locals) {
+Node *Parser::parse_array(Env *env, LocalsVectorPtr locals) {
+    auto array = new ArrayNode { current_token() };
     advance();
-    auto array = new ArrayNode {};
     if (current_token().type() != Token::Type::RBracket) {
         parse_array_items(env, array, locals);
     }
@@ -88,7 +88,8 @@ void Parser::parse_array_items(Env *env, ArrayNode *array, LocalsVectorPtr local
     }
 }
 
-Parser::Node *Parser::parse_block_pass(Env *env, LocalsVectorPtr locals) {
+Node *Parser::parse_block_pass(Env *env, LocalsVectorPtr locals) {
+    auto token = current_token();
     advance();
     switch (current_token().type()) {
     case Token::Type::BareName:
@@ -96,45 +97,48 @@ Parser::Node *Parser::parse_block_pass(Env *env, LocalsVectorPtr locals) {
     case Token::Type::Constant:
     case Token::Type::GlobalVariable:
     case Token::Type::InstanceVariable:
-        return new BlockPassNode { parse_expression(env, LOWEST, locals) };
+        return new BlockPassNode { token, parse_expression(env, LOWEST, locals) };
     case Token::Type::Symbol:
-        return new BlockPassNode { parse_symbol(env, locals) };
+        return new BlockPassNode { token, parse_symbol(env, locals) };
     default:
         expect(env, Token::Type::BareName, "block");
     }
     NAT_UNREACHABLE();
 }
 
-Parser::Node *Parser::parse_bool(Env *env, LocalsVectorPtr) {
+Node *Parser::parse_bool(Env *env, LocalsVectorPtr) {
+    auto token = current_token();
     switch (current_token().type()) {
     case Token::Type::TrueKeyword:
         advance();
-        return new TrueNode {};
+        return new TrueNode { token };
     case Token::Type::FalseKeyword:
         advance();
-        return new FalseNode {};
+        return new FalseNode { token };
     default:
         NAT_UNREACHABLE();
     }
 }
 
-Parser::Node *Parser::parse_break(Env *env, LocalsVectorPtr locals) {
+Node *Parser::parse_break(Env *env, LocalsVectorPtr locals) {
+    auto token = current_token();
     advance();
     if (current_token().is_lparen()) {
         advance();
         auto arg = parse_expression(env, CALLARGS, locals);
         expect(env, Token::Type::RParen, "break closing paren");
         advance();
-        return new BreakNode { arg };
+        return new BreakNode { token, arg };
     } else if (!current_token().is_end_of_expression()) {
-        auto array = new ArrayNode {};
+        auto array = new ArrayNode { token };
         parse_array_items(env, array, locals);
-        return new BreakNode { array };
+        return new BreakNode { token, array };
     }
-    return new BreakNode {};
+    return new BreakNode { token };
 }
 
-Parser::Node *Parser::parse_class(Env *env, LocalsVectorPtr) {
+Node *Parser::parse_class(Env *env, LocalsVectorPtr) {
+    auto token = current_token();
     advance();
     auto locals = new Vector<SymbolValue *> {};
     if (current_token().type() != Token::Type::Constant)
@@ -145,14 +149,14 @@ Parser::Node *Parser::parse_class(Env *env, LocalsVectorPtr) {
         advance();
         superclass = parse_expression(env, LOWEST, locals);
     } else {
-        superclass = new NilNode {};
+        superclass = new NilNode { token };
     }
     auto body = parse_body(env, locals, LOWEST);
-    return new ClassNode { name, superclass, body };
+    return new ClassNode { token, name, superclass, body };
 };
 
-Parser::Node *Parser::parse_comma_separated_identifiers(Env *env, LocalsVectorPtr locals) {
-    auto list = new MultipleAssignmentNode {};
+Node *Parser::parse_comma_separated_identifiers(Env *env, LocalsVectorPtr locals) {
+    auto list = new MultipleAssignmentNode { current_token() };
     list->add_node(parse_identifier(env, locals));
     while (current_token().is_comma()) {
         advance();
@@ -177,13 +181,14 @@ Parser::Node *Parser::parse_comma_separated_identifiers(Env *env, LocalsVectorPt
     return list;
 }
 
-Parser::Node *Parser::parse_constant(Env *env, LocalsVectorPtr locals) {
+Node *Parser::parse_constant(Env *env, LocalsVectorPtr locals) {
     auto node = new ConstantNode { current_token() };
     advance();
     return node;
 };
 
-Parser::Node *Parser::parse_def(Env *env, LocalsVectorPtr) {
+Node *Parser::parse_def(Env *env, LocalsVectorPtr) {
+    auto token = current_token();
     advance();
     auto locals = new Vector<SymbolValue *> {};
     auto name = static_cast<IdentifierNode *>(parse_identifier(env, locals));
@@ -199,10 +204,10 @@ Parser::Node *Parser::parse_def(Env *env, LocalsVectorPtr) {
         args = new Vector<Node *> {};
     }
     auto body = parse_body(env, locals, LOWEST);
-    return new DefNode { name, args, body };
+    return new DefNode { token, name, args, body };
 };
 
-Vector<Parser::Node *> *Parser::parse_def_args(Env *env, LocalsVectorPtr locals) {
+Vector<Node *> *Parser::parse_def_args(Env *env, LocalsVectorPtr locals) {
     auto args = new Vector<Node *> {};
     args->push(parse_def_single_arg(env, locals));
     while (current_token().is_comma()) {
@@ -212,8 +217,9 @@ Vector<Parser::Node *> *Parser::parse_def_args(Env *env, LocalsVectorPtr locals)
     return args;
 }
 
-Parser::Node *Parser::parse_def_single_arg(Env *env, LocalsVectorPtr locals) {
-    switch (current_token().type()) {
+Node *Parser::parse_def_single_arg(Env *env, LocalsVectorPtr locals) {
+    auto token = current_token();
+    switch (token.type()) {
     case Token::Type::BareName: {
         auto arg = static_cast<IdentifierNode *>(parse_identifier(env, locals));
         locals->push(SymbolValue::intern(env, arg->name()));
@@ -224,7 +230,7 @@ Parser::Node *Parser::parse_def_single_arg(Env *env, LocalsVectorPtr locals) {
         auto sub_args = parse_def_args(env, locals);
         expect(env, Token::Type::RParen, "args closing paren");
         advance();
-        auto masgn = new MultipleAssignmentNode {};
+        auto masgn = new MultipleAssignmentNode { token };
         for (auto arg : *sub_args) {
             masgn->add_node(arg);
         }
@@ -236,30 +242,31 @@ Parser::Node *Parser::parse_def_single_arg(Env *env, LocalsVectorPtr locals) {
     NAT_UNREACHABLE();
 }
 
-Parser::Node *Parser::parse_modifier_expression(Env *env, Node *left, LocalsVectorPtr locals) {
-    switch (current_token().type()) {
+Node *Parser::parse_modifier_expression(Env *env, Node *left, LocalsVectorPtr locals) {
+    auto token = current_token();
+    switch (token.type()) {
     case Token::Type::IfKeyword: {
         advance();
         auto condition = parse_expression(env, LOWEST, locals);
-        return new IfNode { condition, left, new NilNode {} };
+        return new IfNode { token, condition, left, new NilNode { token } };
     }
     case Token::Type::UnlessKeyword: {
         advance();
         auto condition = parse_expression(env, LOWEST, locals);
-        return new IfNode { condition, new NilNode {}, left };
+        return new IfNode { token, condition, new NilNode { token }, left };
     }
     default:
         NAT_NOT_YET_IMPLEMENTED();
     }
 }
 
-Parser::Node *Parser::parse_file_constant(Env *env, LocalsVectorPtr locals) {
+Node *Parser::parse_file_constant(Env *env, LocalsVectorPtr locals) {
     auto token = current_token();
     advance();
-    return new StringNode { new StringValue { env, token.file() } };
+    return new StringNode { token, new StringValue { env, token.file() } };
 }
 
-Parser::Node *Parser::parse_group(Env *env, LocalsVectorPtr locals) {
+Node *Parser::parse_group(Env *env, LocalsVectorPtr locals) {
     advance();
     auto exp = parse_expression(env, LOWEST, locals);
     expect(env, Token::Type::RParen, "group closing paren");
@@ -267,9 +274,10 @@ Parser::Node *Parser::parse_group(Env *env, LocalsVectorPtr locals) {
     return exp;
 };
 
-Parser::Node *Parser::parse_hash(Env *env, LocalsVectorPtr locals) {
+Node *Parser::parse_hash(Env *env, LocalsVectorPtr locals) {
+    auto token = current_token();
     advance();
-    auto hash = new HashNode {};
+    auto hash = new HashNode { token };
     if (current_token().type() != Token::Type::RCurlyBrace) {
         if (current_token().type() == Token::Type::SymbolKey) {
             hash->add_node(parse_symbol(env, locals));
@@ -296,7 +304,7 @@ Parser::Node *Parser::parse_hash(Env *env, LocalsVectorPtr locals) {
     return hash;
 }
 
-Parser::Node *Parser::parse_identifier(Env *env, LocalsVectorPtr locals) {
+Node *Parser::parse_identifier(Env *env, LocalsVectorPtr locals) {
     bool is_lvar = false;
     auto name_symbol = SymbolValue::intern(env, current_token().literal());
     for (auto local : *locals) {
@@ -310,7 +318,8 @@ Parser::Node *Parser::parse_identifier(Env *env, LocalsVectorPtr locals) {
     return identifier;
 };
 
-Parser::Node *Parser::parse_if(Env *env, LocalsVectorPtr locals) {
+Node *Parser::parse_if(Env *env, LocalsVectorPtr locals) {
+    auto token = current_token();
     advance();
     auto condition = parse_expression(env, LOWEST, locals);
     next_expression(env);
@@ -318,21 +327,22 @@ Parser::Node *Parser::parse_if(Env *env, LocalsVectorPtr locals) {
     Node *false_expr;
     if (current_token().is_elsif_keyword()) {
         false_expr = parse_if(env, locals);
-        return new IfNode { condition, true_expr, false_expr };
+        return new IfNode { current_token(), condition, true_expr, false_expr };
     } else {
         if (current_token().is_else_keyword()) {
             advance();
             false_expr = parse_if_body(env, locals);
         } else {
-            false_expr = new NilNode {};
+            false_expr = new NilNode { current_token() };
         }
         expect(env, Token::Type::EndKeyword, "if end");
         advance();
-        return new IfNode { condition, true_expr, false_expr };
+        return new IfNode { token, condition, true_expr, false_expr };
     }
 }
 
-Parser::Node *Parser::parse_unless(Env *env, LocalsVectorPtr locals) {
+Node *Parser::parse_unless(Env *env, LocalsVectorPtr locals) {
+    auto token = current_token();
     advance();
     auto condition = parse_expression(env, LOWEST, locals);
     next_expression(env);
@@ -342,15 +352,15 @@ Parser::Node *Parser::parse_unless(Env *env, LocalsVectorPtr locals) {
         advance();
         true_expr = parse_if_body(env, locals);
     } else {
-        true_expr = new NilNode {};
+        true_expr = new NilNode { current_token() };
     }
     expect(env, Token::Type::EndKeyword, "if end");
     advance();
-    return new IfNode { condition, true_expr, false_expr };
+    return new IfNode { token, condition, true_expr, false_expr };
 }
 
-Parser::Node *Parser::parse_if_body(Env *env, LocalsVectorPtr locals) {
-    auto body = new BlockNode {};
+Node *Parser::parse_if_body(Env *env, LocalsVectorPtr locals) {
+    auto body = new BlockNode { current_token() };
     current_token().validate(env);
     skip_newlines();
     while (!current_token().is_eof() && !current_token().is_elsif_keyword() && !current_token().is_else_keyword() && !current_token().is_end_keyword()) {
@@ -364,37 +374,38 @@ Parser::Node *Parser::parse_if_body(Env *env, LocalsVectorPtr locals) {
     return body->has_one_node() ? (*body->nodes())[0] : body;
 }
 
-Parser::Node *Parser::parse_interpolated_string(Env *env, LocalsVectorPtr locals) {
+Node *Parser::parse_interpolated_string(Env *env, LocalsVectorPtr locals) {
+    auto token = current_token();
     advance();
     if (current_token().type() == Token::Type::InterpolatedStringEnd) {
-        auto string = new StringNode { new StringValue { env } };
+        auto string = new StringNode { token, new StringValue { env } };
         advance();
         return string;
     } else if (current_token().type() == Token::Type::String && peek_token().type() == Token::Type::InterpolatedStringEnd) {
-        auto string = new StringNode { new StringValue { env, current_token().literal() } };
+        auto string = new StringNode { token, new StringValue { env, current_token().literal() } };
         advance();
         advance();
         return string;
     } else {
-        auto interpolated_string = new InterpolatedStringNode {};
+        auto interpolated_string = new InterpolatedStringNode { token };
         while (current_token().type() != Token::Type::InterpolatedStringEnd) {
             switch (current_token().type()) {
             case Token::Type::EvaluateToStringBegin: {
                 advance();
-                auto block = new BlockNode {};
+                auto block = new BlockNode { current_token() };
                 while (current_token().type() != Token::Type::EvaluateToStringEnd) {
                     block->add_node(parse_expression(env, LOWEST, locals));
                     skip_newlines();
                 }
                 advance();
                 if (block->has_one_node())
-                    interpolated_string->add_node(new EvaluateToStringNode { (*block->nodes())[0] });
+                    interpolated_string->add_node(new EvaluateToStringNode { current_token(), (*block->nodes())[0] });
                 else
-                    interpolated_string->add_node(new EvaluateToStringNode { block });
+                    interpolated_string->add_node(new EvaluateToStringNode { current_token(), block });
                 break;
             }
             case Token::Type::String:
-                interpolated_string->add_node(new StringNode { new StringValue { env, current_token().literal() } });
+                interpolated_string->add_node(new StringNode { current_token(), new StringValue { env, current_token().literal() } });
                 advance();
                 break;
             default:
@@ -406,7 +417,7 @@ Parser::Node *Parser::parse_interpolated_string(Env *env, LocalsVectorPtr locals
     }
 };
 
-Parser::Node *Parser::parse_lit(Env *env, LocalsVectorPtr locals) {
+Node *Parser::parse_lit(Env *env, LocalsVectorPtr locals) {
     Value *value;
     auto token = current_token();
     switch (token.type()) {
@@ -420,75 +431,84 @@ Parser::Node *Parser::parse_lit(Env *env, LocalsVectorPtr locals) {
         NAT_UNREACHABLE();
     }
     advance();
-    return new LiteralNode { value };
+    return new LiteralNode { token, value };
 };
 
-Parser::Node *Parser::parse_module(Env *env, LocalsVectorPtr) {
+Node *Parser::parse_module(Env *env, LocalsVectorPtr) {
+    auto token = current_token();
     advance();
     auto locals = new Vector<SymbolValue *> {};
     if (current_token().type() != Token::Type::Constant)
         env->raise("SyntaxError", "class/module name must be CONSTANT");
     auto name = static_cast<ConstantNode *>(parse_constant(env, locals));
     auto body = parse_body(env, locals, LOWEST);
-    return new ModuleNode { name, body };
+    return new ModuleNode { token, name, body };
 };
 
-Parser::Node *Parser::parse_next(Env *env, LocalsVectorPtr locals) {
+Node *Parser::parse_next(Env *env, LocalsVectorPtr locals) {
+    auto token = current_token();
     advance();
     if (current_token().is_lparen()) {
         advance();
         auto arg = parse_expression(env, CALLARGS, locals);
         expect(env, Token::Type::RParen, "break closing paren");
         advance();
-        return new NextNode { arg };
+        return new NextNode { token, arg };
     } else if (!current_token().is_end_of_expression()) {
-        auto array = new ArrayNode {};
+        auto array = new ArrayNode { token };
         parse_array_items(env, array, locals);
-        return new NextNode { array };
+        return new NextNode { token, array };
     }
-    return new NextNode {};
+    return new NextNode { token };
 }
 
-Parser::Node *Parser::parse_nil(Env *env, LocalsVectorPtr) {
+Node *Parser::parse_nil(Env *env, LocalsVectorPtr) {
+    auto token = current_token();
     advance();
-    return new NilSexpNode {};
+    return new NilSexpNode { token };
 }
 
-Parser::Node *Parser::parse_not(Env *env, LocalsVectorPtr locals) {
+Node *Parser::parse_not(Env *env, LocalsVectorPtr locals) {
+    auto token = current_token();
     auto precedence = get_precedence();
     advance();
-    auto node = new CallNode { parse_expression(env, precedence, locals),
+    auto node = new CallNode { token, parse_expression(env, precedence, locals),
         SymbolValue::intern(env, "!") };
     return node;
 }
 
-Parser::Node *Parser::parse_return(Env *env, LocalsVectorPtr locals) {
+Node *Parser::parse_return(Env *env, LocalsVectorPtr locals) {
+    auto token = current_token();
     advance();
     if (current_token().is_end_of_expression())
-        return new ReturnNode {};
-    return new ReturnNode { parse_expression(env, CALLARGS, locals) };
+        return new ReturnNode { token };
+    return new ReturnNode { token, parse_expression(env, CALLARGS, locals) };
 };
 
-Parser::Node *Parser::parse_splat(Env *env, LocalsVectorPtr locals) {
+Node *Parser::parse_splat(Env *env, LocalsVectorPtr locals) {
+    auto token = current_token();
     advance();
-    return new SplatNode { parse_expression(env, LOWEST, locals) };
+    return new SplatNode { token, parse_expression(env, LOWEST, locals) };
 };
 
-Parser::Node *Parser::parse_string(Env *env, LocalsVectorPtr locals) {
-    auto string = new StringNode { new StringValue { env, current_token().literal() } };
+Node *Parser::parse_string(Env *env, LocalsVectorPtr locals) {
+    auto token = current_token();
+    auto string = new StringNode { token, new StringValue { env, token.literal() } };
     advance();
     return string;
 };
 
-Parser::Node *Parser::parse_symbol(Env *env, LocalsVectorPtr locals) {
-    auto symbol = new SymbolNode { SymbolValue::intern(env, current_token().literal()) };
+Node *Parser::parse_symbol(Env *env, LocalsVectorPtr locals) {
+    auto token = current_token();
+    auto symbol = new SymbolNode { token, SymbolValue::intern(env, current_token().literal()) };
     advance();
     return symbol;
 };
 
-Parser::Node *Parser::parse_word_array(Env *env, LocalsVectorPtr locals) {
-    auto array = new ArrayNode {};
-    auto literal = current_token().literal();
+Node *Parser::parse_word_array(Env *env, LocalsVectorPtr locals) {
+    auto token = current_token();
+    auto array = new ArrayNode { token };
+    auto literal = token.literal();
     size_t len = strlen(literal);
     if (len > 0) {
         StringValue *string = new StringValue { env };
@@ -496,22 +516,23 @@ Parser::Node *Parser::parse_word_array(Env *env, LocalsVectorPtr locals) {
             auto c = literal[i];
             switch (c) {
             case ' ':
-                array->add_node(new StringNode { string });
+                array->add_node(new StringNode { token, string });
                 string = new StringValue { env };
                 break;
             default:
                 string->append_char(env, c);
             }
         }
-        array->add_node(new StringNode { string });
+        array->add_node(new StringNode { token, string });
     }
     advance();
     return array;
 }
 
-Parser::Node *Parser::parse_word_symbol_array(Env *env, LocalsVectorPtr locals) {
-    auto array = new ArrayNode {};
-    auto literal = current_token().literal();
+Node *Parser::parse_word_symbol_array(Env *env, LocalsVectorPtr locals) {
+    auto token = current_token();
+    auto array = new ArrayNode { token };
+    auto literal = token.literal();
     size_t len = strlen(literal);
     if (len > 0) {
         StringValue *string = new StringValue { env };
@@ -519,22 +540,23 @@ Parser::Node *Parser::parse_word_symbol_array(Env *env, LocalsVectorPtr locals) 
             auto c = literal[i];
             switch (c) {
             case ' ':
-                array->add_node(new LiteralNode { SymbolValue::intern(env, string->c_str()) });
+                array->add_node(new LiteralNode { token, SymbolValue::intern(env, string->c_str()) });
                 string = new StringValue { env };
                 break;
             default:
                 string->append_char(env, c);
             }
         }
-        array->add_node(new LiteralNode { SymbolValue::intern(env, string->c_str()) });
+        array->add_node(new LiteralNode { token, SymbolValue::intern(env, string->c_str()) });
     }
     advance();
     return array;
 }
 
-Parser::Node *Parser::parse_yield(Env *env, LocalsVectorPtr locals) {
+Node *Parser::parse_yield(Env *env, LocalsVectorPtr locals) {
+    auto token = current_token();
     advance();
-    auto node = new YieldNode {};
+    auto node = new YieldNode { token };
     if (current_token().is_lparen()) {
         advance();
         parse_call_args(env, node, locals);
@@ -546,7 +568,8 @@ Parser::Node *Parser::parse_yield(Env *env, LocalsVectorPtr locals) {
     return node;
 };
 
-Parser::Node *Parser::parse_assignment_expression(Env *env, Node *left, LocalsVectorPtr locals) {
+Node *Parser::parse_assignment_expression(Env *env, Node *left, LocalsVectorPtr locals) {
+    auto token = current_token();
     switch (left->type()) {
     case Node::Type::Identifier: {
         auto left_identifier = static_cast<IdentifierNode *>(left);
@@ -554,6 +577,7 @@ Parser::Node *Parser::parse_assignment_expression(Env *env, Node *left, LocalsVe
             locals->push(SymbolValue::intern(env, left_identifier->name()));
         advance();
         return new AssignmentNode {
+            token,
             left,
             parse_expression(env, ASSIGNMENT, locals),
         };
@@ -562,13 +586,14 @@ Parser::Node *Parser::parse_assignment_expression(Env *env, Node *left, LocalsVe
         static_cast<MultipleAssignmentNode *>(left)->add_locals(env, locals);
         advance();
         return new AssignmentNode {
+            token,
             left,
             parse_expression(env, ASSIGNMENT, locals),
         };
     }
     case Node::Type::Call: {
         advance();
-        auto attr_assign_node = new AttrAssignNode { *static_cast<CallNode *>(left) };
+        auto attr_assign_node = new AttrAssignNode { token, *static_cast<CallNode *>(left) };
         if (attr_assign_node->message() == SymbolValue::intern(env, "[]")) {
             attr_assign_node->set_message(SymbolValue::intern(env, "[]="));
             attr_assign_node->add_arg(parse_expression(env, ASSIGNMENT, locals));
@@ -584,7 +609,8 @@ Parser::Node *Parser::parse_assignment_expression(Env *env, Node *left, LocalsVe
     NAT_UNREACHABLE();
 };
 
-Parser::Node *Parser::parse_iter_expression(Env *env, Node *left, LocalsVectorPtr locals) {
+Node *Parser::parse_iter_expression(Env *env, Node *left, LocalsVectorPtr locals) {
+    auto token = current_token();
     locals = new Vector<SymbolValue *> { *locals };
     bool curly_brace = current_token().type() == Token::Type::LCurlyBrace;
     advance();
@@ -606,19 +632,21 @@ Parser::Node *Parser::parse_iter_expression(Env *env, Node *left, LocalsVectorPt
     }
     auto end_token_type = curly_brace ? Token::Type::RCurlyBrace : Token::Type::EndKeyword;
     auto body = parse_body(env, locals, LOWEST, end_token_type);
-    return new IterNode { left, args, body };
+    return new IterNode { token, left, args, body };
 }
 
-Vector<Parser::Node *> *Parser::parse_iter_args(Env *env, LocalsVectorPtr locals) {
+Vector<Node *> *Parser::parse_iter_args(Env *env, LocalsVectorPtr locals) {
     return parse_def_args(env, locals);
 }
 
-Parser::Node *Parser::parse_call_expression_with_parens(Env *env, Node *left, LocalsVectorPtr locals) {
+Node *Parser::parse_call_expression_with_parens(Env *env, Node *left, LocalsVectorPtr locals) {
+    auto token = current_token();
     CallNode *call_node;
     switch (left->type()) {
     case Node::Type::Identifier:
         call_node = new CallNode {
-            new NilNode {},
+            token,
+            new NilNode { token },
             SymbolValue::intern(env, static_cast<IdentifierNode *>(left)->name()),
         };
         break;
@@ -646,12 +674,14 @@ void Parser::parse_call_args(Env *env, NodeWithArgs *node, LocalsVectorPtr local
     }
 }
 
-Parser::Node *Parser::parse_call_expression_without_parens(Env *env, Node *left, LocalsVectorPtr locals) {
+Node *Parser::parse_call_expression_without_parens(Env *env, Node *left, LocalsVectorPtr locals) {
+    auto token = current_token();
     CallNode *call_node;
     switch (left->type()) {
     case Node::Type::Identifier:
         call_node = new CallNode {
-            new NilNode {},
+            token,
+            new NilNode { token },
             SymbolValue::intern(env, static_cast<IdentifierNode *>(left)->name()),
         };
         break;
@@ -675,23 +705,25 @@ Parser::Node *Parser::parse_call_expression_without_parens(Env *env, Node *left,
     return call_node;
 }
 
-Parser::Node *Parser::parse_infix_expression(Env *env, Node *left, LocalsVectorPtr locals) {
+Node *Parser::parse_infix_expression(Env *env, Node *left, LocalsVectorPtr locals) {
+    auto token = current_token();
     auto op = current_token();
     auto precedence = get_precedence(left);
     advance();
     Node *right = nullptr;
     if (op.type() == Token::Type::Integer) {
         bool is_negative = op.get_integer() < 0;
-        right = new LiteralNode { new IntegerValue { env, op.get_integer() * (is_negative ? -1 : 1) } };
+        right = new LiteralNode { token, new IntegerValue { env, op.get_integer() * (is_negative ? -1 : 1) } };
         op = Token { is_negative ? Token::Type::Minus : Token::Type::Plus, op.file(), op.line(), op.column() };
     } else if (op.type() == Token::Type::Float) {
         bool is_negative = op.get_double() < 0;
-        right = new LiteralNode { new FloatValue { env, op.get_double() * (is_negative ? -1 : 1) } };
+        right = new LiteralNode { token, new FloatValue { env, op.get_double() * (is_negative ? -1 : 1) } };
         op = Token { is_negative ? Token::Type::Minus : Token::Type::Plus, op.file(), op.line(), op.column() };
     } else {
         right = parse_expression(env, precedence, locals);
     }
     auto node = new CallNode {
+        token,
         left,
         op.type_value(env),
     };
@@ -699,34 +731,37 @@ Parser::Node *Parser::parse_infix_expression(Env *env, Node *left, LocalsVectorP
     return node;
 };
 
-Parser::Node *Parser::parse_logical_expression(Env *env, Node *left, LocalsVectorPtr locals) {
+Node *Parser::parse_logical_expression(Env *env, Node *left, LocalsVectorPtr locals) {
+    auto token = current_token();
     switch (current_token().type()) {
     case Token::Type::And:
         advance();
-        return new LogicalAndNode { left, parse_expression(env, LOGICALAND, locals) };
+        return new LogicalAndNode { token, left, parse_expression(env, LOGICALAND, locals) };
     case Token::Type::AndKeyword:
         advance();
-        return new LogicalAndNode { left, parse_expression(env, COMPOSITION, locals) };
+        return new LogicalAndNode { token, left, parse_expression(env, COMPOSITION, locals) };
     case Token::Type::Or:
         advance();
-        return new LogicalOrNode { left, parse_expression(env, LOGICALOR, locals) };
+        return new LogicalOrNode { token, left, parse_expression(env, LOGICALOR, locals) };
     case Token::Type::OrKeyword:
         advance();
-        return new LogicalOrNode { left, parse_expression(env, COMPOSITION, locals) };
+        return new LogicalOrNode { token, left, parse_expression(env, COMPOSITION, locals) };
     default:
         NAT_UNREACHABLE();
     }
 }
 
-Parser::Node *Parser::parse_range_expression(Env *env, Node *left, LocalsVectorPtr locals) {
+Node *Parser::parse_range_expression(Env *env, Node *left, LocalsVectorPtr locals) {
     auto token = current_token();
     advance();
-    return new RangeNode { left, parse_expression(env, LOWEST, locals), token.type() == Token::Type::DotDotDot };
+    return new RangeNode { token, left, parse_expression(env, LOWEST, locals), token.type() == Token::Type::DotDotDot };
 }
 
-Parser::Node *Parser::parse_ref_expression(Env *env, Node *left, LocalsVectorPtr locals) {
+Node *Parser::parse_ref_expression(Env *env, Node *left, LocalsVectorPtr locals) {
+    auto token = current_token();
     advance();
     auto call_node = new CallNode {
+        token,
         left,
         SymbolValue::intern(env, "[]"),
     };
@@ -737,11 +772,13 @@ Parser::Node *Parser::parse_ref_expression(Env *env, Node *left, LocalsVectorPtr
     return call_node;
 }
 
-Parser::Node *Parser::parse_send_expression(Env *env, Node *left, LocalsVectorPtr locals) {
+Node *Parser::parse_send_expression(Env *env, Node *left, LocalsVectorPtr locals) {
+    auto token = current_token();
     advance();
     expect(env, Token::Type::BareName, "send method name");
     auto name = static_cast<IdentifierNode *>(parse_identifier(env, locals));
     auto call_node = new CallNode {
+        token,
         left,
         SymbolValue::intern(env, name->name()),
     };
@@ -753,14 +790,15 @@ Parser::Node *Parser::parse_send_expression(Env *env, Node *left, LocalsVectorPt
     return call_node;
 }
 
-Parser::Node *Parser::parse_ternary_expression(Env *env, Node *left, LocalsVectorPtr locals) {
+Node *Parser::parse_ternary_expression(Env *env, Node *left, LocalsVectorPtr locals) {
+    auto token = current_token();
     expect(env, Token::Type::TernaryQuestion, "ternary question");
     advance();
     auto true_expr = parse_expression(env, TERNARY, locals);
     expect(env, Token::Type::TernaryColon, "ternary colon");
     advance();
     auto false_expr = parse_expression(env, TERNARY, locals);
-    return new IfNode { left, true_expr, false_expr };
+    return new IfNode { token, left, true_expr, false_expr };
 }
 
 Parser::parse_null_fn Parser::null_denotation(Token::Type type, Precedence precedence) {

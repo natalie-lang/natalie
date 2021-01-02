@@ -22,7 +22,7 @@ module Natalie
     private
 
     def natalie_parse
-      ::Parser.parse(@code_str)
+      ::Parser.parse(@code_str, @path)
     end
 
     def ruby_parse

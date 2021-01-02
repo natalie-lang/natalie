@@ -1,13 +1,27 @@
 #pragma once
 
 #include "natalie.hpp"
+#include "natalie/node.hpp"
 
 namespace Natalie {
 
 struct SexpValue : ArrayValue {
-    SexpValue(Env *env, std::initializer_list<Value *> list)
-        : ArrayValue { env, list } {
+    SexpValue(Env *env, Node *node, std::initializer_list<Value *> list)
+        : ArrayValue { env, list }
+        , m_file { node->file() }
+        , m_line { node->line() }
+        , m_column { node->column() } {
         m_klass = env->Object()->const_fetch("Parser")->const_fetch("Sexp")->as_class();
+    }
+
+    Value *new_method(Env *env, size_t argc, Value **args) {
+        auto sexp = new SexpValue { env, {} };
+        sexp->m_file = m_file;
+        sexp->m_line = m_line;
+        for (size_t i = 0; i < argc; i++) {
+            sexp->push(args[i]);
+        }
+        return sexp;
     }
 
     Value *inspect(Env *env) {
@@ -22,16 +36,6 @@ struct SexpValue : ArrayValue {
         }
         out->append_char(env, ')');
         return out;
-    }
-
-    Value *new_method(Env *env, size_t argc, Value **args) {
-        auto sexp = new SexpValue { env, {} };
-        sexp->m_file = m_file;
-        sexp->m_line = m_line;
-        for (size_t i = 0; i < argc; i++) {
-            sexp->push(args[i]);
-        }
-        return sexp;
     }
 
     const char *file() { return m_file; }
@@ -51,8 +55,14 @@ struct SexpValue : ArrayValue {
     }
 
 private:
+    SexpValue(Env *env, std::initializer_list<Value *> list)
+        : ArrayValue { env, list } {
+        m_klass = env->Object()->const_fetch("Parser")->const_fetch("Sexp")->as_class();
+    }
+
     const char *m_file { nullptr };
     size_t m_line { 0 };
+    size_t m_column { 0 };
 };
 
 }
