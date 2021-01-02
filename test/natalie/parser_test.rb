@@ -71,6 +71,8 @@ describe 'Parser' do
       Parser.parse('1 and 2 or 3 and 4').should == s(:block, s(:and, s(:or, s(:and, s(:lit, 1), s(:lit, 2)), s(:lit, 3)), s(:lit, 4)))
       Parser.parse('10 % 3').should == s(:block, s(:call, s(:lit, 10), :%, s(:lit, 3)))
       Parser.parse('x << 1').should == s(:block, s(:call, s(:call, nil, :x), :<<, s(:lit, 1)))
+      Parser.parse('x =~ y').should == s(:block, s(:call, s(:call, nil, :x), :=~, s(:call, nil, :y)))
+      Parser.parse('x !~ y').should == s(:block, s(:not, s(:call, s(:call, nil, :x), :=~, s(:call, nil, :y))))
     end
 
     it 'parses ! and not' do

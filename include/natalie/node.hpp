@@ -36,6 +36,7 @@ struct Node : public gc {
         Next,
         Nil,
         NilSexp,
+        Not,
         Range,
         Return,
         Splat,
@@ -559,6 +560,21 @@ struct NilNode : Node {
     virtual Value *to_ruby(Env *) override;
 
     virtual Type type() override { return Type::Nil; }
+};
+
+struct NotNode : Node {
+    NotNode(Token token, Node *expression)
+        : Node { token }
+        , m_expression { expression } {
+        assert(m_expression);
+    }
+
+    virtual Value *to_ruby(Env *) override;
+
+    virtual Type type() override { return Type::Not; }
+
+private:
+    Node *m_expression { nullptr };
 };
 
 struct NilSexpNode : Node {

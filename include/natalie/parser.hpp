@@ -82,6 +82,8 @@ private:
         case Token::Type::EqualEqual:
         case Token::Type::EqualEqualEqual:
         case Token::Type::NotEqual:
+        case Token::Type::Match:
+        case Token::Type::NotMatch:
             return EQUALITY;
         case Token::Type::Exponent:
             return EXPONENT;
@@ -175,6 +177,7 @@ private:
     Node *parse_iter_expression(Env *, Node *, LocalsVectorPtr);
     Vector<Node *> *parse_iter_args(Env *, LocalsVectorPtr);
     Node *parse_logical_expression(Env *, Node *, LocalsVectorPtr);
+    Node *parse_not_match_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_range_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_ref_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_send_expression(Env *, Node *, LocalsVectorPtr);

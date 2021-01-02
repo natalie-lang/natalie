@@ -803,7 +803,7 @@ Node *Parser::parse_infix_expression(Env *env, Node *left, LocalsVectorPtr local
     } else {
         right = parse_expression(env, precedence, locals);
     }
-    auto node = new CallNode {
+    auto *node = new CallNode {
         token,
         left,
         GC_STRDUP(op.type_value(env)),
@@ -830,6 +830,14 @@ Node *Parser::parse_logical_expression(Env *env, Node *left, LocalsVectorPtr loc
     default:
         NAT_UNREACHABLE();
     }
+}
+
+Node *Parser::parse_not_match_expression(Env *env, Node *left, LocalsVectorPtr locals) {
+    auto token = current_token();
+    auto expression = parse_infix_expression(env, left, locals);
+    assert(expression->type() == Node::Type::Call);
+    static_cast<CallNode *>(expression)->set_message(GC_STRDUP("=~"));
+    return new NotNode { token, expression };
 }
 
 Node *Parser::parse_range_expression(Env *env, Node *left, LocalsVectorPtr locals) {
@@ -981,6 +989,7 @@ Parser::parse_left_fn Parser::left_denotation(Token token, Node *left) {
     case Type::LeftShift:
     case Type::LessThan:
     case Type::LessThanOrEqual:
+    case Type::Match:
     case Type::Minus:
     case Type::Modulus:
     case Type::Multiply:
@@ -1006,6 +1015,8 @@ Parser::parse_left_fn Parser::left_denotation(Token token, Node *left) {
     case Type::Or:
     case Type::OrKeyword:
         return &Parser::parse_logical_expression;
+    case Type::NotMatch:
+        return &Parser::parse_not_match_expression;
     case Type::DotDot:
     case Type::DotDotDot:
         return &Parser::parse_range_expression;
