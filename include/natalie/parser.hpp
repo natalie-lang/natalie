@@ -37,6 +37,7 @@ struct Parser : public gc {
         LESSGREATER, // <= < > >=
         BITWISEOR, // ^ |
         BITWISEAND, // &
+        BITWISESHIFT, // << >>
         SUM, // + -
         PRODUCT, // * / %
         PREFIX, // -1 +1
@@ -68,6 +69,9 @@ private:
         case Token::Type::BitwiseOr:
         case Token::Type::BitwiseXor:
             return BITWISEOR;
+        case Token::Type::LeftShift:
+        case Token::Type::RightShift:
+            return BITWISESHIFT;
         case Token::Type::LParen:
             return CALL;
         case Token::Type::AndKeyword:

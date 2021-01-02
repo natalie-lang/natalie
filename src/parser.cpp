@@ -978,6 +978,7 @@ Parser::parse_left_fn Parser::left_denotation(Token token, Node *left) {
     case Type::Exponent:
     case Type::GreaterThan:
     case Type::GreaterThanOrEqual:
+    case Type::LeftShift:
     case Type::LessThan:
     case Type::LessThanOrEqual:
     case Type::Minus:
@@ -985,6 +986,7 @@ Parser::parse_left_fn Parser::left_denotation(Token token, Node *left) {
     case Type::Multiply:
     case Type::NotEqual:
     case Type::Plus:
+    case Type::RightShift:
         return &Parser::parse_infix_expression;
     case Type::Integer:
         if (current_token().has_sign())
