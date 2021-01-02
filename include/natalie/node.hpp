@@ -38,6 +38,7 @@ struct Node : public gc {
         NilSexp,
         Not,
         Range,
+        Regexp,
         Return,
         Splat,
         StabbyProc,
@@ -604,6 +605,23 @@ private:
     Node *m_first { nullptr };
     Node *m_last { nullptr };
     bool m_exclude_end { false };
+};
+
+struct RegexpNode : Node {
+    RegexpNode(Token token, Value *value)
+        : Node { token }
+        , m_value { value } {
+        assert(m_value);
+    }
+
+    virtual Type type() override { return Type::Regexp; }
+
+    virtual Value *to_ruby(Env *) override;
+
+    Value *value() { return m_value; }
+
+private:
+    Value *m_value { nullptr };
 };
 
 struct ReturnNode : Node {

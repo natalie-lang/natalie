@@ -157,6 +157,7 @@ private:
     Node *parse_next(Env *, LocalsVectorPtr);
     Node *parse_nil(Env *, LocalsVectorPtr);
     Node *parse_not(Env *, LocalsVectorPtr);
+    Node *parse_regexp(Env *, LocalsVectorPtr);
     Node *parse_return(Env *, LocalsVectorPtr);
     Node *parse_splat(Env *, LocalsVectorPtr);
     Node *parse_stabby_proc(Env *, LocalsVectorPtr);

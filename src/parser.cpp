@@ -533,6 +533,13 @@ Node *Parser::parse_not(Env *env, LocalsVectorPtr locals) {
     return node;
 }
 
+Node *Parser::parse_regexp(Env *env, LocalsVectorPtr locals) {
+    auto token = current_token();
+    auto regexp = new RegexpNode { token, new RegexpValue { env, token.literal() } };
+    advance();
+    return regexp;
+};
+
 Node *Parser::parse_return(Env *env, LocalsVectorPtr locals) {
     auto token = current_token();
     advance();
@@ -940,6 +947,8 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type, Precedence prece
     case Type::Not:
     case Type::NotKeyword:
         return &Parser::parse_not;
+    case Type::Regexp:
+        return &Parser::parse_regexp;
     case Type::ReturnKeyword:
         return &Parser::parse_return;
     case Type::Multiply:

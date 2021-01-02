@@ -371,6 +371,10 @@ Value *RangeNode::to_ruby(Env *env) {
     };
 }
 
+Value *RegexpNode::to_ruby(Env *env) {
+    return new SexpValue { env, this, { SymbolValue::intern(env, "lit"), m_value } };
+}
+
 Value *ReturnNode::to_ruby(Env *env) {
     if (m_arg) {
         return new SexpValue { env, this, { SymbolValue::intern(env, "return"), m_arg->to_ruby(env) } };
