@@ -36,7 +36,7 @@ Value *AttrAssignNode::to_ruby(Env *env) {
     auto sexp = new SexpValue { env, this, {
                                                SymbolValue::intern(env, "attrasgn"),
                                                m_receiver->to_ruby(env),
-                                               m_message,
+                                               SymbolValue::intern(env, m_message),
                                            } };
 
     for (auto arg : m_args) {
@@ -70,7 +70,7 @@ Value *CallNode::to_ruby(Env *env) {
     auto sexp = new SexpValue { env, this, {
                                                SymbolValue::intern(env, "call"),
                                                m_receiver->to_ruby(env),
-                                               m_message,
+                                               SymbolValue::intern(env, m_message),
                                            } };
 
     for (auto arg : m_args) {

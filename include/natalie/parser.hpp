@@ -190,6 +190,7 @@ private:
     void skip_newlines();
 
     void expect(Env *, Token::Type, const char *);
+    [[noreturn]] void raise_unexpected(Env *, Token, const char *);
     [[noreturn]] void raise_unexpected(Env *, const char *);
 
     void advance() { m_index++; }

@@ -57,6 +57,8 @@ struct Node : public gc {
     size_t line() { return m_token.line(); }
     size_t column() { return m_token.column(); }
 
+    Token token() { return m_token; }
+
 private:
     Token m_token {};
 };
@@ -161,7 +163,7 @@ private:
 };
 
 struct CallNode : NodeWithArgs {
-    CallNode(Token token, Node *receiver, Value *message)
+    CallNode(Token token, Node *receiver, const char *message)
         : NodeWithArgs { token }
         , m_receiver { receiver }
         , m_message { message } {
@@ -182,16 +184,16 @@ struct CallNode : NodeWithArgs {
 
     virtual Value *to_ruby(Env *) override;
 
-    Value *message() { return m_message; }
-    void set_message(Value *message) { m_message = message; }
+    const char *message() { return m_message; }
+    void set_message(const char *message) { m_message = message; }
 
 protected:
     Node *m_receiver { nullptr };
-    Value *m_message { nullptr };
+    const char *m_message { nullptr };
 };
 
 struct AttrAssignNode : CallNode {
-    AttrAssignNode(Token token, Node *receiver, Value *message)
+    AttrAssignNode(Token token, Node *receiver, const char *message)
         : CallNode { token, receiver, message } { }
 
     AttrAssignNode(Token token, CallNode &node)

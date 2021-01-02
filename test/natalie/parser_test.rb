@@ -81,7 +81,7 @@ describe 'Parser' do
     it 'raises an error if there is a syntax error' do
       # We choose to more closely match what MRI does vs what ruby_parser raises
       if (RUBY_ENGINE == 'natalie')
-        -> { Parser.parse("1 + 2\n\n)") }.should raise_error(SyntaxError, "3: syntax error, unexpected ')' (expected: 'end-of-line')")
+        -> { Parser.parse("1 + 2\n\n)") }.should raise_error(SyntaxError, "(string)#3: syntax error, unexpected ')' (expected: 'end-of-line')")
       else
         -> { Parser.parse("1 + 2\n\n)") }.should raise_error(SyntaxError, "(string):3 :: parse error on value \")\" (tRPAREN)")
       end
@@ -97,6 +97,8 @@ describe 'Parser' do
       Parser.parse("'this is \\'quoted\\''").should == s(:block, s(:str, "this is 'quoted'"))
       Parser.parse("'other escaped chars \\\\ \\n'").should == s(:block, s(:str, "other escaped chars \\ \\n"))
       Parser.parse('"#{:foo} bar #{1 + 1}"').should == s(:block, s(:dstr, "", s(:evstr, s(:lit, :foo)), s(:str, " bar "), s(:evstr, s(:call, s(:lit, 1), :+, s(:lit, 1)))))
+      Parser.parse('y = "#{1 + 1} 2"').should == s(:block, s(:lasgn, :y, s(:dstr, "", s(:evstr, s(:call, s(:lit, 1), :+, s(:lit, 1))), s(:str, " 2"))))
+      Parser.parse('x.y = "#{1 + 1} 2"').should == s(:block, s(:attrasgn, s(:call, nil, :x), :y=, s(:dstr, "", s(:evstr, s(:call, s(:lit, 1), :+, s(:lit, 1))), s(:str, " 2"))))
     end
 
     it 'parses symbols' do
@@ -115,8 +117,8 @@ describe 'Parser' do
       Parser.parse("x = 1").should == s(:block, s(:lasgn, :x, s(:lit, 1)))
       Parser.parse("x = 1 + 2").should == s(:block, s(:lasgn, :x, s(:call, s(:lit, 1), :+, s(:lit, 2))))
       if (RUBY_ENGINE == 'natalie')
-        -> { Parser.parse("x =") }.should raise_error(SyntaxError, '1: syntax error, unexpected end-of-input')
-        -> { Parser.parse("[1] = 2") }.should raise_error(SyntaxError, "1: syntax error, unexpected '=' (expected: 'left side of assignment')")
+        -> { Parser.parse("x =") }.should raise_error(SyntaxError, '(string)#1: syntax error, unexpected end-of-input')
+        -> { Parser.parse("[1] = 2") }.should raise_error(SyntaxError, "(string)#1: syntax error, unexpected '[' (expected: 'left side of assignment')")
       else
         -> { Parser.parse("x =") }.should raise_error(SyntaxError, '(string):1 :: parse error on value false ($end)')
         -> { Parser.parse("[1] = 2") }.should raise_error(SyntaxError, '(string):1 :: parse error on value "=" (tEQL)')
@@ -131,6 +133,11 @@ describe 'Parser' do
       Parser.parse("(@x, $y, Z) = foo").should == s(:block, s(:masgn, s(:array, s(:iasgn, :@x), s(:gasgn, :$y), s(:cdecl, :Z)), s(:to_ary, s(:call, nil, :foo))))
       Parser.parse("(a, (b, c)) = [1, [2, 3]]").should == s(:block, s(:masgn, s(:array, s(:lasgn, :a), s(:masgn, s(:array, s(:lasgn, :b), s(:lasgn, :c)))), s(:to_ary, s(:array, s(:lit, 1), s(:array, s(:lit, 2), s(:lit, 3))))))
       Parser.parse("a, (b, c) = [1, [2, 3]]").should == s(:block, s(:masgn, s(:array, s(:lasgn, :a), s(:masgn, s(:array, s(:lasgn, :b), s(:lasgn, :c)))), s(:to_ary, s(:array, s(:lit, 1), s(:array, s(:lit, 2), s(:lit, 3))))))
+    end
+
+    it 'parses attr assignment' do
+      Parser.parse("x.y = 1").should == s(:block, s(:attrasgn, s(:call, nil, :x), :y=, s(:lit, 1)))
+      Parser.parse("x[y] = 1").should == s(:block, s(:attrasgn, s(:call, nil, :x), :[]=, s(:call, nil, :y), s(:lit, 1)))
     end
 
     it 'parses [] as an array vs as a method' do
@@ -200,7 +207,7 @@ describe 'Parser' do
       Parser.parse("foo(a, b)").should == s(:block, s(:call, nil, :foo, s(:call, nil, :a), s(:call, nil, :b)))
       Parser.parse("foo(\n1 + 2  ,\n  'baz'  \n )").should == s(:block, s(:call, nil, :foo, s(:call, s(:lit, 1), :+, s(:lit, 2)), s(:str, "baz")))
       if (RUBY_ENGINE == 'natalie')
-        -> { Parser.parse("foo(") }.should raise_error(SyntaxError, '1: syntax error, unexpected end-of-input')
+        -> { Parser.parse("foo(") }.should raise_error(SyntaxError, '(string)#1: syntax error, unexpected end-of-input')
       else
         -> { Parser.parse("foo(") }.should raise_error(SyntaxError, '(string):1 :: parse error on value false ($end)')
       end
@@ -296,7 +303,7 @@ describe 'Parser' do
       Parser.parse("[x, y, z]").should == s(:block, s(:array, s(:call, nil, :x), s(:call, nil, :y), s(:call, nil, :z)))
       Parser.parse("[\n1 , \n2,\n 3]").should == s(:block, s(:array, s(:lit, 1), s(:lit, 2), s(:lit, 3)))
       if (RUBY_ENGINE == 'natalie')
-        -> { Parser.parse('[ , 1]') }.should raise_error(SyntaxError, "1: syntax error, unexpected ',' (expected: 'expression')")
+        -> { Parser.parse('[ , 1]') }.should raise_error(SyntaxError, "(string)#1: syntax error, unexpected ',' (expected: 'expression')")
       else
         -> { Parser.parse('[ , 1]') }.should raise_error(SyntaxError, '(string):1 :: parse error on value "," (tCOMMA)')
       end
@@ -319,7 +326,7 @@ describe 'Parser' do
       Parser.parse("{ foo: 'bar', baz: 'buz' }").should == s(:block, s(:hash, s(:lit, :foo), s(:str, 'bar'), s(:lit, :baz), s(:str, 'buz')))
       Parser.parse("{ a => b, c => d }").should == s(:block, s(:hash, s(:call, nil, :a), s(:call, nil, :b), s(:call, nil, :c), s(:call, nil, :d)))
       if (RUBY_ENGINE == 'natalie')
-        -> { Parser.parse('{ , 1 => 2 }') }.should raise_error(SyntaxError, "1: syntax error, unexpected ',' (expected: 'expression')")
+        -> { Parser.parse('{ , 1 => 2 }') }.should raise_error(SyntaxError, "(string)#1: syntax error, unexpected ',' (expected: 'expression')")
       else
         -> { Parser.parse('{ , 1 => 2 }') }.should raise_error(SyntaxError, '(string):1 :: parse error on value "," (tCOMMA)')
       end

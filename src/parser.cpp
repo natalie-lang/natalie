@@ -471,8 +471,11 @@ Node *Parser::parse_not(Env *env, LocalsVectorPtr locals) {
     auto token = current_token();
     auto precedence = get_precedence();
     advance();
-    auto node = new CallNode { token, parse_expression(env, precedence, locals),
-        SymbolValue::intern(env, "!") };
+    auto node = new CallNode {
+        token,
+        parse_expression(env, precedence, locals),
+        GC_STRDUP("!")
+    };
     return node;
 }
 
@@ -612,17 +615,19 @@ Node *Parser::parse_assignment_expression(Env *env, Node *left, LocalsVectorPtr 
     case Node::Type::Call: {
         advance();
         auto attr_assign_node = new AttrAssignNode { token, *static_cast<CallNode *>(left) };
-        if (attr_assign_node->message() == SymbolValue::intern(env, "[]")) {
-            attr_assign_node->set_message(SymbolValue::intern(env, "[]="));
+        if (strcmp(attr_assign_node->message(), "[]") == 0) {
+            attr_assign_node->set_message(GC_STRDUP("[]="));
             attr_assign_node->add_arg(parse_expression(env, ASSIGNMENT, locals));
         } else {
-            raise_unexpected(env, "left side of assignment");
+            auto message = std::string(attr_assign_node->message());
+            message += '=';
+            attr_assign_node->set_message(GC_STRDUP(message.c_str()));
+            attr_assign_node->add_arg(parse_expression(env, ASSIGNMENT, locals));
         }
         return attr_assign_node;
     }
     default:
-        // FIXME: needs to print the token for `left` -- not current_token()
-        raise_unexpected(env, "left side of assignment");
+        raise_unexpected(env, left->token(), "left side of assignment");
     }
 };
 
@@ -667,7 +672,7 @@ Node *Parser::parse_call_expression_with_parens(Env *env, Node *left, LocalsVect
         call_node = new CallNode {
             token,
             new NilNode { token },
-            SymbolValue::intern(env, static_cast<IdentifierNode *>(left)->name()),
+            GC_STRDUP(static_cast<IdentifierNode *>(left)->name()),
         };
         break;
     case Node::Type::Call:
@@ -702,7 +707,7 @@ Node *Parser::parse_call_expression_without_parens(Env *env, Node *left, LocalsV
         call_node = new CallNode {
             token,
             new NilNode { token },
-            SymbolValue::intern(env, static_cast<IdentifierNode *>(left)->name()),
+            GC_STRDUP(static_cast<IdentifierNode *>(left)->name()),
         };
         break;
     case Node::Type::Call:
@@ -745,7 +750,7 @@ Node *Parser::parse_infix_expression(Env *env, Node *left, LocalsVectorPtr local
     auto node = new CallNode {
         token,
         left,
-        op.type_value(env),
+        GC_STRDUP(op.type_value(env)),
     };
     node->add_arg(right);
     return node;
@@ -783,7 +788,7 @@ Node *Parser::parse_ref_expression(Env *env, Node *left, LocalsVectorPtr locals)
     auto call_node = new CallNode {
         token,
         left,
-        SymbolValue::intern(env, "[]"),
+        GC_STRDUP("[]"),
     };
     if (current_token().type() != Token::Type::RBracket)
         parse_call_args(env, call_node, locals);
@@ -800,7 +805,7 @@ Node *Parser::parse_send_expression(Env *env, Node *left, LocalsVectorPtr locals
     auto call_node = new CallNode {
         token,
         left,
-        SymbolValue::intern(env, name->name()),
+        GC_STRDUP(name->name()),
     };
 
     if (!current_token().is_end_of_expression() && get_precedence(left) == LOWEST && !current_token().is_closing_token()) {
@@ -991,13 +996,19 @@ void Parser::expect(Env *env, Token::Type type, const char *expected) {
         raise_unexpected(env, expected);
 }
 
-void Parser::raise_unexpected(Env *env, const char *expected) {
-    auto line = current_token().line() + 1;
-    auto type = current_token().type_value(env);
-    if (type == SymbolValue::intern(env, "EOF")) {
-        env->raise("SyntaxError", "%d: syntax error, unexpected end-of-input", line);
+void Parser::raise_unexpected(Env *env, Token token, const char *expected) {
+    auto file = token.file() ? token.file() : "(unknown)";
+    auto line = token.line() + 1;
+    auto type = token.type_value(env);
+    if (strcmp(type, "EOF") == 0) {
+        env->raise("SyntaxError", "%s#%d: syntax error, unexpected end-of-input", file, line);
     } else {
-        env->raise("SyntaxError", "%d: syntax error, unexpected '%s' (expected: '%s')", line, type->c_str(), expected);
+        env->raise("SyntaxError", "%s#%d: syntax error, unexpected '%s' (expected: '%s')", file, line, type, expected);
     }
 }
+
+void Parser::raise_unexpected(Env *env, const char *expected) {
+    raise_unexpected(env, current_token(), expected);
+}
+
 }
