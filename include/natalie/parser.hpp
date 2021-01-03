@@ -44,7 +44,7 @@ struct Parser : public gc {
         CONSTANTRESOLUTION, // ::
         UNARY, // ! ~ + -
         EXPONENT, // **
-        DOT, // foo.bar
+        DOT, // foo.bar foo&.bar
         CALL, // foo()
         REF, // foo[1] / foo[1] = 2
     };
@@ -83,6 +83,7 @@ private:
         case Token::Type::ConstantResolution:
             return CONSTANTRESOLUTION;
         case Token::Type::Dot:
+        case Token::Type::SafeNavigation:
             return DOT;
         case Token::Type::EqualEqual:
         case Token::Type::EqualEqualEqual:
@@ -192,6 +193,7 @@ private:
     Node *parse_op_assign_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_range_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_ref_expression(Env *, Node *, LocalsVectorPtr);
+    Node *parse_safe_send_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_send_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_ternary_expression(Env *, Node *, LocalsVectorPtr);
 

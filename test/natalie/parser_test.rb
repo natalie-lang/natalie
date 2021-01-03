@@ -9,6 +9,7 @@ if RUBY_ENGINE == 'natalie'
     sexp
   end
 else
+  require 'ruby_parser'
   class Parser
     def self.parse(code, path = '(string)')
       node = RubyParser.new.parse(code, path)
@@ -75,6 +76,9 @@ describe 'Parser' do
       Parser.parse('x !~ y').should == s(:block, s(:not, s(:call, s(:call, nil, :x), :=~, s(:call, nil, :y))))
       Parser.parse('x &&= 1').should == s(:block, s(:op_asgn_and, s(:lvar, :x), s(:lasgn, :x, s(:lit, 1))))
       Parser.parse('x ||= 1').should == s(:block, s(:op_asgn_or, s(:lvar, :x), s(:lasgn, :x, s(:lit, 1))))
+      Parser.parse('foo&.bar').should == s(:block, s(:safe_call, s(:call, nil, :foo), :bar))
+      Parser.parse('foo&.bar 1').should == s(:block, s(:safe_call, s(:call, nil, :foo), :bar, s(:lit, 1)))
+      Parser.parse('foo&.bar x').should == s(:block, s(:safe_call, s(:call, nil, :foo), :bar, s(:call, nil, :x)))
     end
 
     it 'parses ! and not' do

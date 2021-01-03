@@ -522,6 +522,23 @@ Value *ReturnNode::to_ruby(Env *env) {
     return new SexpValue { env, this, { SymbolValue::intern(env, "return") } };
 }
 
+Value *SafeCallNode::to_ruby(Env *env) {
+    auto sexp = new SexpValue {
+        env,
+        this,
+        {
+            SymbolValue::intern(env, "safe_call"),
+            m_receiver->to_ruby(env),
+            SymbolValue::intern(env, m_message),
+        }
+    };
+
+    for (auto arg : m_args) {
+        sexp->push(arg->to_ruby(env));
+    }
+    return sexp;
+}
+
 Value *ShellNode::to_ruby(Env *env) {
     return new SexpValue { env, this, { SymbolValue::intern(env, "xstr"), m_value } };
 }

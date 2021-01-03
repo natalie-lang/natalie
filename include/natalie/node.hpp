@@ -47,6 +47,7 @@ struct Node : public gc {
         Range,
         Regexp,
         Return,
+        SafeCall,
         Splat,
         StabbyProc,
         String,
@@ -318,6 +319,18 @@ struct AttrAssignNode : CallNode {
         : CallNode { token, node } { }
 
     virtual Type type() override { return Type::AttrAssign; }
+
+    virtual Value *to_ruby(Env *) override;
+};
+
+struct SafeCallNode : CallNode {
+    SafeCallNode(Token token, Node *receiver, const char *message)
+        : CallNode { token, receiver, message } { }
+
+    SafeCallNode(Token token, CallNode &node)
+        : CallNode { token, node } { }
+
+    virtual Type type() override { return Type::SafeCall; }
 
     virtual Value *to_ruby(Env *) override;
 };

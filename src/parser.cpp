@@ -880,6 +880,9 @@ Node *Parser::parse_call_expression_with_parens(Env *env, Node *left, LocalsVect
     case Node::Type::Call:
         call_node = static_cast<CallNode *>(left);
         break;
+    case Node::Type::SafeCall:
+        call_node = static_cast<SafeCallNode *>(left);
+        break;
     default:
         NAT_UNREACHABLE();
     }
@@ -914,6 +917,9 @@ Node *Parser::parse_call_expression_without_parens(Env *env, Node *left, LocalsV
         break;
     case Node::Type::Call:
         call_node = static_cast<CallNode *>(left);
+        break;
+    case Node::Type::SafeCall:
+        call_node = static_cast<SafeCallNode *>(left);
         break;
     default:
         NAT_UNREACHABLE();
@@ -1043,6 +1049,19 @@ Node *Parser::parse_ref_expression(Env *env, Node *left, LocalsVectorPtr locals)
     return call_node;
 }
 
+Node *Parser::parse_safe_send_expression(Env *env, Node *left, LocalsVectorPtr locals) {
+    auto token = current_token();
+    advance();
+    expect(env, Token::Type::BareName, "safe navigator method name");
+    auto name = static_cast<IdentifierNode *>(parse_identifier(env, locals));
+    auto call_node = new SafeCallNode {
+        token,
+        left,
+        GC_STRDUP(name->name()),
+    };
+    return call_node;
+}
+
 Node *Parser::parse_send_expression(Env *env, Node *left, LocalsVectorPtr locals) {
     auto token = current_token();
     advance();
@@ -1053,7 +1072,6 @@ Node *Parser::parse_send_expression(Env *env, Node *left, LocalsVectorPtr locals
         left,
         GC_STRDUP(name->name()),
     };
-
     return call_node;
 }
 
@@ -1216,6 +1234,8 @@ Parser::parse_left_fn Parser::left_denotation(Token token, Node *left) {
             return &Parser::parse_ref_expression;
         else
             return nullptr;
+    case Type::SafeNavigation:
+        return &Parser::parse_safe_send_expression;
     case Type::Dot:
         return &Parser::parse_send_expression;
     case Type::TernaryQuestion:
