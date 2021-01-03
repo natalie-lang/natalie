@@ -14,7 +14,7 @@ index b342883b..f4e04743 100644
  
  /* And one for FreeBSD: */
 diff --git os_dep.c os_dep.c
-index a74155e0..02ff7414 100644
+index a74155e0..a931bbdb 100644
 --- os_dep.c
 +++ os_dep.c
 @@ -2152,7 +2152,9 @@ void GC_register_data_segments(void)
@@ -28,3 +28,12 @@ index a74155e0..02ff7414 100644
  #   define OPT_MAP_ANON MAP_ANONYMOUS
  # else
  #   define OPT_MAP_ANON MAP_ANON
+@@ -2604,7 +2606,7 @@ GC_INNER void GC_unmap(ptr_t start, size_t bytes)
+       /* accidentally grabbing the same address space.                  */
+       {
+ #       if defined(AIX) || defined(CYGWIN32) || defined(HAIKU) \
+-           || defined(HPUX)
++           || defined(HPUX) || defined(OPENBSD)
+           /* On AIX, mmap(PROT_NONE) fails with ENOMEM unless the       */
+           /* environment variable XPG_SUS_ENV is set to ON.             */
+           /* On Cygwin, calling mmap() with the new protection flags on */
