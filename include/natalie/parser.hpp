@@ -134,11 +134,13 @@ private:
     Node *parse_expression(Env *, Precedence, LocalsVectorPtr);
 
     BlockNode *parse_body(Env *, LocalsVectorPtr, Precedence, Token::Type = Token::Type::EndKeyword);
+    BlockNode *parse_body(Env *, LocalsVectorPtr, Precedence, Vector<Token::Type> *, const char *);
     BlockNode *parse_case_when_body(Env *, LocalsVectorPtr);
     Node *parse_if_body(Env *, LocalsVectorPtr);
 
     Node *parse_array(Env *, LocalsVectorPtr);
     void parse_array_items(Env *, ArrayNode *, LocalsVectorPtr);
+    Node *parse_begin(Env *, LocalsVectorPtr);
     Node *parse_block_pass(Env *, LocalsVectorPtr);
     Node *parse_bool(Env *, LocalsVectorPtr);
     Node *parse_break(Env *, LocalsVectorPtr);

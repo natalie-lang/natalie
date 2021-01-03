@@ -428,5 +428,14 @@ describe 'Parser' do
       Parser.parse("case 1\nwhen 1\n:a\nend").should == s(:block, s(:case, s(:lit, 1), s(:when, s(:array, s(:lit, 1)), s(:lit, :a)), nil))
       Parser.parse("case 1\nwhen 1\n:a\n:b\nwhen 2, 3\n:c\nelse\n:d\nend").should == s(:block, s(:case, s(:lit, 1), s(:when, s(:array, s(:lit, 1)), s(:lit, :a), s(:lit, :b)), s(:when, s(:array, s(:lit, 2), s(:lit, 3)), s(:lit, :c)), s(:lit, :d)))
     end
+
+    it 'parses begin/rescue/else/ensure' do
+      Parser.parse("begin;1;2;rescue;3;4;end").should == s(:block, s(:rescue, s(:block, s(:lit, 1), s(:lit, 2)), s(:resbody, s(:array), s(:lit, 3), s(:lit, 4))))
+      Parser.parse("begin;1;rescue => e;3;end").should == s(:block, s(:rescue, s(:lit, 1), s(:resbody, s(:array, s(:lasgn, :e, s(:gvar, :$!))), s(:lit, 3))))
+      Parser.parse("begin;rescue SyntaxError, NoMethodError => e;3;end").should == s(:block, s(:rescue, s(:resbody, s(:array, s(:const, :SyntaxError), s(:const, :NoMethodError), s(:lasgn, :e, s(:gvar, :$!))), s(:lit, 3))))
+      Parser.parse("begin;rescue SyntaxError;3;else;4;5;end").should == s(:block, s(:rescue, s(:resbody, s(:array, s(:const, :SyntaxError)), s(:lit, 3)), s(:block, s(:lit, 4), s(:lit, 5))))
+      Parser.parse("begin\n0\nensure\n:a\n:b\nend").should == s(:block, s(:ensure, s(:lit, 0), s(:block, s(:lit, :a), s(:lit, :b))))
+      Parser.parse("begin;0;rescue;:a;else;:c;ensure;:d;:e;end").should == s(:block, s(:ensure, s(:rescue, s(:lit, 0), s(:resbody, s(:array), s(:lit, :a)), s(:lit, :c)), s(:block, s(:lit, :d), s(:lit, :e))))
+    end
   end
 end

@@ -49,8 +49,64 @@ Value *AttrAssignNode::to_ruby(Env *env) {
     return sexp;
 }
 
+Value *BeginNode::to_ruby(Env *env) {
+    assert(m_body);
+    auto *sexp = new SexpValue { env, this, { SymbolValue::intern(env, "rescue") } };
+    if (!m_body->is_empty())
+        sexp->push(m_body->without_unnecessary_nesting()->to_ruby(env));
+    for (auto rescue_node : m_rescue_nodes) {
+        sexp->push(rescue_node->to_ruby(env));
+    }
+    if (m_else_body)
+        sexp->push(m_else_body->without_unnecessary_nesting()->to_ruby(env));
+    if (m_ensure_body) {
+        if (m_rescue_nodes.is_empty())
+            (*sexp)[0] = SymbolValue::intern(env, "ensure");
+        else
+            sexp = new SexpValue { env, this, { SymbolValue::intern(env, "ensure"), sexp } };
+        sexp->push(m_ensure_body->to_ruby(env));
+    }
+    return sexp;
+}
+
+Node *BeginRescueNode::name_to_node() {
+    assert(m_name);
+    return new AssignmentNode {
+        token(),
+        m_name,
+        new IdentifierNode {
+            Token { Token::Type::GlobalVariable, "$!", file(), line(), column() },
+            false },
+    };
+}
+
+Value *BeginRescueNode::to_ruby(Env *env) {
+    auto array = new ArrayNode { token() };
+    for (auto exception_node : m_exceptions) {
+        array->add_node(exception_node);
+    }
+    if (m_name)
+        array->add_node(name_to_node());
+    auto *rescue_node = new SexpValue {
+        env,
+        this,
+        {
+            SymbolValue::intern(env, "resbody"),
+            array->to_ruby(env),
+        }
+    };
+    for (auto node : *m_body->nodes()) {
+        rescue_node->push(node->to_ruby(env));
+    }
+    return rescue_node;
+}
+
 Value *BlockNode::to_ruby(Env *env) {
-    auto *array = new SexpValue { env, this, { SymbolValue::intern(env, "block") } };
+    return to_ruby_with_name(env, "block");
+}
+
+Value *BlockNode::to_ruby_with_name(Env *env, const char *name) {
+    auto *array = new SexpValue { env, this, { SymbolValue::intern(env, name) } };
     for (auto node : m_nodes) {
         array->push(node->to_ruby(env));
     }
@@ -100,10 +156,7 @@ Value *CaseNode::to_ruby(Env *env) {
         sexp->push(when_node->to_ruby(env));
     }
     if (m_else_node) {
-        if (m_else_node->has_one_node())
-            sexp->push((*m_else_node->nodes())[0]->to_ruby(env));
-        else
-            sexp->push(m_else_node->to_ruby(env));
+        sexp->push(m_else_node->without_unnecessary_nesting()->to_ruby(env));
     } else {
         sexp->push(env->nil_obj());
     }

@@ -12,6 +12,8 @@ struct Node : public gc {
         Array,
         Assignment,
         AttrAssign,
+        Begin,
+        BeginRescue,
         Block,
         BlockPass,
         Break,
@@ -149,6 +151,58 @@ private:
     Node *m_value { nullptr };
 };
 
+struct BlockNode;
+struct BeginRescueNode;
+
+struct BeginNode : Node {
+    BeginNode(Token token, BlockNode *body)
+        : Node { token }
+        , m_body { body } {
+        assert(m_body);
+    }
+
+    virtual Type type() override { return Type::Begin; }
+
+    virtual Value *to_ruby(Env *) override;
+
+    void add_rescue_node(BeginRescueNode *node) { m_rescue_nodes.push(node); }
+
+    void set_else_body(BlockNode *else_body) { m_else_body = else_body; }
+    void set_ensure_body(BlockNode *ensure_body) { m_ensure_body = ensure_body; }
+
+private:
+    BlockNode *m_body { nullptr };
+    BlockNode *m_else_body { nullptr };
+    BlockNode *m_ensure_body { nullptr };
+    Vector<BeginRescueNode *> m_rescue_nodes {};
+};
+
+struct BeginRescueNode : Node {
+    BeginRescueNode(Token token)
+        : Node { token } { }
+
+    virtual Type type() override { return Type::BeginRescue; }
+
+    virtual Value *to_ruby(Env *) override;
+
+    void add_exception_node(IdentifierNode *node) {
+        m_exceptions.push(node);
+    }
+
+    void set_exception_name(IdentifierNode *name) {
+        m_name = name;
+    }
+
+    void set_body(BlockNode *body) { m_body = body; }
+
+    Node *name_to_node();
+
+private:
+    IdentifierNode *m_name { nullptr };
+    Vector<IdentifierNode *> m_exceptions {};
+    BlockNode *m_body { nullptr };
+};
+
 struct BlockNode : Node {
     BlockNode(Token token)
         : Node { token } { }
@@ -160,11 +214,19 @@ struct BlockNode : Node {
     virtual Type type() override { return Type::Block; }
 
     virtual Value *to_ruby(Env *) override;
+    Value *to_ruby_with_name(Env *, const char *);
 
     Vector<Node *> *nodes() { return &m_nodes; }
     bool is_empty() { return m_nodes.is_empty(); }
 
     bool has_one_node() { return m_nodes.size() == 1; }
+
+    Node *without_unnecessary_nesting() {
+        if (has_one_node())
+            return m_nodes[0];
+        else
+            return this;
+    }
 
 private:
     Vector<Node *> m_nodes {};
