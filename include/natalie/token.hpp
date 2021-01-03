@@ -8,6 +8,7 @@ struct Token : public gc {
     enum class Type {
         AliasKeyword,
         And,
+        AndEqual,
         AndKeyword,
         Arrow,
         BareName,
@@ -88,6 +89,7 @@ struct Token : public gc {
         NotKeyword,
         NotMatch,
         Or,
+        OrEqual,
         OrKeyword,
         PercentLowerI,
         PercentLowerW,
@@ -181,10 +183,12 @@ struct Token : public gc {
         switch (m_type) {
         case Type::AliasKeyword:
             return "alias";
-        case Type::AndKeyword:
-            return "and";
         case Type::And:
             return "&&";
+        case Type::AndEqual:
+            return "&&=";
+        case Type::AndKeyword:
+            return "and";
         case Type::Arrow:
             return "->";
         case Type::BareName:
@@ -341,10 +345,12 @@ struct Token : public gc {
             return "!~";
         case Type::Not:
             return "!";
-        case Type::OrKeyword:
-            return "or";
         case Type::Or:
             return "||";
+        case Type::OrEqual:
+            return "||=";
+        case Type::OrKeyword:
+            return "or";
         case Type::PercentLowerI:
             return "%i";
         case Type::PercentLowerW:

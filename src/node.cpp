@@ -472,6 +472,30 @@ Value *NotNode::to_ruby(Env *env) {
     return new SexpValue { env, this, { SymbolValue::intern(env, "not"), m_expression->to_ruby(env) } };
 }
 
+Value *OpAssignAndNode::to_ruby(Env *env) {
+    return new SexpValue {
+        env,
+        this,
+        {
+            SymbolValue::intern(env, "op_asgn_and"),
+            m_name->to_ruby(env),
+            (new AssignmentNode { token(), m_name, m_value })->to_ruby(env),
+        },
+    };
+}
+
+Value *OpAssignOrNode::to_ruby(Env *env) {
+    return new SexpValue {
+        env,
+        this,
+        {
+            SymbolValue::intern(env, "op_asgn_or"),
+            m_name->to_ruby(env),
+            (new AssignmentNode { token(), m_name, m_value })->to_ruby(env),
+        },
+    };
+}
+
 Value *RangeNode::to_ruby(Env *env) {
     if (m_first->type() == Node::Type::Literal && static_cast<LiteralNode *>(m_first)->value_type() == Value::Type::Integer && m_last->type() == Node::Type::Literal && static_cast<LiteralNode *>(m_last)->value_type() == Value::Type::Integer) {
         return new SexpValue {

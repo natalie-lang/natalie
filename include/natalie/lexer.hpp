@@ -413,7 +413,13 @@ private:
             switch (current_char()) {
             case '&':
                 advance();
-                return Token { Token::Type::And, m_file, m_token_line, m_token_column };
+                switch (current_char()) {
+                case '=':
+                    advance();
+                    return Token { Token::Type::AndEqual, m_file, m_token_line, m_token_column };
+                default:
+                    return Token { Token::Type::And, m_file, m_token_line, m_token_column };
+                }
             case '.':
                 advance();
                 return Token { Token::Type::SafeNavigation, m_file, m_token_line, m_token_column };
@@ -425,7 +431,13 @@ private:
             switch (current_char()) {
             case '|':
                 advance();
-                return Token { Token::Type::Or, m_file, m_token_line, m_token_column };
+                switch (current_char()) {
+                case '=':
+                    advance();
+                    return Token { Token::Type::OrEqual, m_file, m_token_line, m_token_column };
+                default:
+                    return Token { Token::Type::Or, m_file, m_token_line, m_token_column };
+                }
             default:
                 return Token { Token::Type::BitwiseOr, m_file, m_token_line, m_token_column };
             }

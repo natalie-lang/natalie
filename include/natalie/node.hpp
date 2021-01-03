@@ -42,6 +42,8 @@ struct Node : public gc {
         Nil,
         NilSexp,
         Not,
+        OpAssignAnd,
+        OpAssignOr,
         Range,
         Regexp,
         Return,
@@ -713,6 +715,42 @@ struct NilSexpNode : Node {
     virtual Value *to_ruby(Env *) override;
 
     virtual Type type() override { return Type::NilSexp; }
+};
+
+struct OpAssignAndNode : Node {
+    OpAssignAndNode(Token token, IdentifierNode *name, Node *value)
+        : Node { token }
+        , m_name { name }
+        , m_value { value } {
+        assert(m_name);
+        assert(m_value);
+    }
+
+    virtual Value *to_ruby(Env *) override;
+
+    virtual Type type() override { return Type::OpAssignAnd; }
+
+private:
+    IdentifierNode *m_name { nullptr };
+    Node *m_value { nullptr };
+};
+
+struct OpAssignOrNode : Node {
+    OpAssignOrNode(Token token, IdentifierNode *name, Node *value)
+        : Node { token }
+        , m_name { name }
+        , m_value { value } {
+        assert(m_name);
+        assert(m_value);
+    }
+
+    virtual Value *to_ruby(Env *) override;
+
+    virtual Type type() override { return Type::OpAssignOr; }
+
+private:
+    IdentifierNode *m_name { nullptr };
+    Node *m_value { nullptr };
 };
 
 struct RangeNode : Node {

@@ -1005,6 +1005,23 @@ Node *Parser::parse_not_match_expression(Env *env, Node *left, LocalsVectorPtr l
     return new NotNode { token, expression };
 }
 
+Node *Parser::parse_op_assign_expression(Env *env, Node *left, LocalsVectorPtr locals) {
+    if (left->type() != Node::Type::Identifier)
+        raise_unexpected(env, "identifier");
+    auto left_identifier = static_cast<IdentifierNode *>(left);
+    left_identifier->set_is_lvar(true);
+    auto token = current_token();
+    advance();
+    switch (token.type()) {
+    case Token::Type::AndEqual:
+        return new OpAssignAndNode { token, left_identifier, parse_expression(env, ASSIGNMENT, locals) };
+    case Token::Type::OrEqual:
+        return new OpAssignOrNode { token, left_identifier, parse_expression(env, ASSIGNMENT, locals) };
+    default:
+        NAT_UNREACHABLE();
+    }
+}
+
 Node *Parser::parse_range_expression(Env *env, Node *left, LocalsVectorPtr locals) {
     auto token = current_token();
     advance();
@@ -1188,6 +1205,9 @@ Parser::parse_left_fn Parser::left_denotation(Token token, Node *left) {
         return &Parser::parse_modifier_expression;
     case Type::NotMatch:
         return &Parser::parse_not_match_expression;
+    case Type::AndEqual:
+    case Type::OrEqual:
+        return &Parser::parse_op_assign_expression;
     case Type::DotDot:
     case Type::DotDotDot:
         return &Parser::parse_range_expression;
@@ -1252,5 +1272,4 @@ void Parser::raise_unexpected(Env *env, Token token, const char *expected) {
 void Parser::raise_unexpected(Env *env, const char *expected) {
     raise_unexpected(env, current_token(), expected);
 }
-
 }

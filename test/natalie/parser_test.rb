@@ -73,6 +73,8 @@ describe 'Parser' do
       Parser.parse('x << 1').should == s(:block, s(:call, s(:call, nil, :x), :<<, s(:lit, 1)))
       Parser.parse('x =~ y').should == s(:block, s(:call, s(:call, nil, :x), :=~, s(:call, nil, :y)))
       Parser.parse('x !~ y').should == s(:block, s(:not, s(:call, s(:call, nil, :x), :=~, s(:call, nil, :y))))
+      Parser.parse('x &&= 1').should == s(:block, s(:op_asgn_and, s(:lvar, :x), s(:lasgn, :x, s(:lit, 1))))
+      Parser.parse('x ||= 1').should == s(:block, s(:op_asgn_or, s(:lvar, :x), s(:lasgn, :x, s(:lit, 1))))
     end
 
     it 'parses ! and not' do

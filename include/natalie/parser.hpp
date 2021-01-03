@@ -63,7 +63,9 @@ private:
                 return SUM;
             else
                 return LOWEST;
+        case Token::Type::AndEqual:
         case Token::Type::Equal:
+        case Token::Type::OrEqual:
             return ASSIGNMENT;
         case Token::Type::BitwiseAnd:
             return BITWISEAND;
@@ -187,6 +189,7 @@ private:
     Vector<Node *> *parse_iter_args(Env *, LocalsVectorPtr);
     Node *parse_logical_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_not_match_expression(Env *, Node *, LocalsVectorPtr);
+    Node *parse_op_assign_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_range_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_ref_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_send_expression(Env *, Node *, LocalsVectorPtr);
