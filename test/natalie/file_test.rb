@@ -141,4 +141,31 @@ describe 'File' do
       File.exist?('should_not_exist').should be_false
     end
   end
+
+  describe '#dirname' do
+    it 'returns the directory of a given path sans filename' do
+      File.dirname('foo/bar.txt').should == 'foo'
+      File.dirname('/foo/bar/baz.txt').should == '/foo/bar'
+      File.dirname('/foo/bar/baz.txt/').should == '/foo/bar'
+      File.dirname('/foo/bar/baz').should == '/foo/bar'
+      File.dirname('/foo/bar/').should == '/foo'
+      File.dirname('/foo/bar/ ').should == '/foo/bar'
+      File.dirname('/foo/bar').should == '/foo'
+      File.dirname('  /foo/bar').should == '  /foo'
+      File.dirname('../foo/bar').should == '../foo'
+      File.dirname('../foo/bar/baz.md').should == '../foo/bar'
+      File.dirname('   ../foo/bar/baz.md  ').should == '   ../foo/bar'
+      File.dirname('').should == '.'
+      File.dirname(' ').should == '.'
+      File.dirname('/').should == '/'
+      File.dirname('/  ').should == '/'
+      File.dirname('  /').should == '.'
+      File.dirname('  /  ').should == '  '
+      File.dirname('./').should == '.'
+      File.dirname('./  ').should == '.'
+      File.dirname('../').should == '.'
+      File.dirname('../  ').should == '..'
+      File.dirname('../../').should == '..'
+    end
+  end
 end
