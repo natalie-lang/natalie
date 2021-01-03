@@ -1,6 +1,7 @@
 #pragma once
 
 #include <assert.h>
+#include <initializer_list>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -17,11 +18,21 @@ struct Vector : public gc {
         : m_capacity { NAT_VECTOR_MIN_CAPACITY }
         , m_data { static_cast<T *>(GC_MALLOC(sizeof(T) * NAT_VECTOR_MIN_CAPACITY)) } { }
 
-    Vector(size_t initial_capacity, T filler)
+    Vector(size_t initial_capacity)
         : m_size { initial_capacity }
         , m_capacity { initial_capacity }
-        , m_data { static_cast<T *>(GC_MALLOC(sizeof(T) * initial_capacity)) } {
+        , m_data { static_cast<T *>(GC_MALLOC(sizeof(T) * initial_capacity)) } { }
+
+    Vector(size_t initial_capacity, T filler)
+        : Vector { initial_capacity } {
         fill(0, initial_capacity, filler);
+    }
+
+    Vector(std::initializer_list<T> list)
+        : Vector { list.size() } {
+        for (auto v : list) {
+            push(v);
+        }
     }
 
     Vector(const Vector &other)
