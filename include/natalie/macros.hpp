@@ -42,6 +42,17 @@
     _result;                                                                   \
 })
 
+#define NAT_RUN_BLOCK_AND_POSSIBLY_BREAK_WITH_CLEANUP(env, the_block, argc, args, block, cleanup_code) ({ \
+    Value *_result = the_block->_run(env, argc, args, block);                                             \
+    if (_result->has_break_flag()) {                                                                      \
+        _result->remove_break_flag();                                                                     \
+        cleanup_code;                                                                                     \
+        return _result;                                                                                   \
+    }                                                                                                     \
+    cleanup_code;                                                                                         \
+    _result;                                                                                              \
+})
+
 #define NAT_RUN_BLOCK_WITHOUT_BREAK(env, the_block, argc, args, block) ({ \
     Natalie::Value *_result = the_block->_run(env, argc, args, block);    \
     if (_result->has_break_flag()) {                                      \

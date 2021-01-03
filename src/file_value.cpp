@@ -40,17 +40,9 @@ Value *FileValue::initialize(Env *env, Value *filename, Value *flags_obj, Block 
     int mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
     int fileno = ::open(filename->as_string()->c_str(), flags, mode);
     if (fileno == -1) {
-        Value *exception_args[2] = { filename, new IntegerValue { env, errno } };
-        ExceptionValue *error = env->Object()->const_find(env, "SystemCallError")->send(env, "exception", 2, exception_args, nullptr)->as_exception();
-        env->raise_exception(error);
+        env->raise_errno();
     } else {
         set_fileno(fileno);
-        if (block) {
-            Value *block_args[] = { this };
-            NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, block_args, nullptr);
-            close(env);
-            // FIXME: return bytes written
-        }
         return this;
     }
 }

@@ -19,13 +19,45 @@ describe 'File' do
     end
   end
 
-  describe '.open and .new' do
+  describe '.new' do
+    it 'returns the File object' do
+      path = File.expand_path('../tmp/file.txt', __dir__)
+      file = File.new(path, 'w')
+      bytes_written = file.write('hello world')
+      file.close
+      bytes_written.should == 11
+      actual = File.read(path)
+      actual.should == 'hello world'
+    end
+
+    it 'raises an error when trying to read/write a bad path' do
+      -> { File.new('/tmp/should_not_exist/file.txt') }.should raise_error(Errno::ENOENT)
+      -> { File.new('/tmp/should_not_exist.txt', 'r') }.should raise_error(Errno::ENOENT)
+    end
+  end
+
+  describe '.open' do
+    it 'without a block it returns the File object' do
+      path = File.expand_path('../tmp/file.txt', __dir__)
+      file = File.open(path, 'w')
+      bytes_written = file.write('hello world')
+      file.close
+      bytes_written.should == 11
+      actual = File.read(path)
+      actual.should == 'hello world'
+    end
+
     it 'accepts a block' do
       path = File.expand_path('../tmp/file.txt', __dir__)
       bytes_written = File.open(path, 'w') { |f| f.write('hello world') }
       actual = File.read(path)
       actual.should == 'hello world'
-      #bytes_written.should == 11 # FIXME
+      bytes_written.should == 11
+    end
+
+    it 'raises an error when trying to read/write a bad path' do
+      -> { File.open('/tmp/should_not_exist/file.txt') }.should raise_error(Errno::ENOENT)
+      -> { File.open('/tmp/should_not_exist.txt', 'r') }.should raise_error(Errno::ENOENT)
     end
   end
 
@@ -74,7 +106,7 @@ describe 'File' do
   end
 
   describe '#seek' do
-    it 'seeks too an absolute position' do
+    it 'seeks to an absolute position' do
       f = File.new('test/support/file.txt')
       f.seek(4)
       f.seek(4).should == 0
@@ -85,7 +117,7 @@ describe 'File' do
       f.read(3).should == 'bar'
     end
 
-    it 'seeks too an offset position from current' do
+    it 'seeks to an offset position from current' do
       f = File.new('test/support/file.txt')
       f.seek(4)
       f.seek(4, :CUR).should == 0
@@ -95,7 +127,7 @@ describe 'File' do
       f.read(3).should == 'foo'
     end
 
-    it 'seeks too an offset position from end' do
+    it 'seeks to an offset position from end' do
       f = File.new('test/support/file.txt')
       f.seek(-4, :END).should == 0
       f.read(3).should == 'baz'

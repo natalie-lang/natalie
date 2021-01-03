@@ -22,7 +22,14 @@ struct FileValue : IoValue {
         Value *args[] = { filename, flags_obj };
         size_t argc = 1;
         if (flags_obj) argc++;
-        return _new(env, env->Object()->const_fetch("File")->as_class(), argc, args, block);
+        auto obj = _new(env, env->Object()->const_fetch("File")->as_class(), argc, args, nullptr);
+        if (block) {
+            Value *block_args[] = { obj };
+            Value *result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK_WITH_CLEANUP(env, block, 1, block_args, nullptr, obj->as_file()->close(env));
+            return result;
+        } else {
+            return obj;
+        }
     }
 
     static Value *expand_path(Env *env, Value *path, Value *root) {
