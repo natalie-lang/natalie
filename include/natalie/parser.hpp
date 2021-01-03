@@ -168,6 +168,7 @@ private:
     Node *parse_not(Env *, LocalsVectorPtr);
     Node *parse_regexp(Env *, LocalsVectorPtr);
     Node *parse_return(Env *, LocalsVectorPtr);
+    Node *parse_self(Env *, LocalsVectorPtr);
     Node *parse_splat(Env *, LocalsVectorPtr);
     Node *parse_stabby_proc(Env *, LocalsVectorPtr);
     Node *parse_string(Env *, LocalsVectorPtr);

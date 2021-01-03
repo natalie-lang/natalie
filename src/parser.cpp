@@ -697,6 +697,12 @@ Node *Parser::parse_return(Env *env, LocalsVectorPtr locals) {
     return new ReturnNode { token, parse_expression(env, CALLARGS, locals) };
 };
 
+Node *Parser::parse_self(Env *env, LocalsVectorPtr locals) {
+    auto token = current_token();
+    advance();
+    return new SelfNode { token };
+};
+
 Node *Parser::parse_splat(Env *env, LocalsVectorPtr locals) {
     auto token = current_token();
     advance();
@@ -1171,6 +1177,8 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type, Precedence prece
         return &Parser::parse_regexp;
     case Type::ReturnKeyword:
         return &Parser::parse_return;
+    case Type::SelfKeyword:
+        return &Parser::parse_self;
     case Type::Multiply:
         return &Parser::parse_splat;
     case Type::Arrow:

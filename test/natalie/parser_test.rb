@@ -422,6 +422,10 @@ describe 'Parser' do
       Parser.parse("yield if true").should == s(:block, s(:if, s(:true), s(:yield), nil))
     end
 
+    it 'parses self' do
+      Parser.parse("self").should == s(:block, s(:self))
+    end
+
     it 'parses __FILE__ and __dir__' do
       Parser.parse('__FILE__', 'foo/bar.rb').should == s(:block, s(:str, 'foo/bar.rb'))
       Parser.parse('__dir__').should == s(:block, s(:call, nil, :__dir__))
