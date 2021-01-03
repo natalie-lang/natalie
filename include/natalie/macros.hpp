@@ -1,14 +1,14 @@
-#define NAT_UNREACHABLE()                        \
-    {                                            \
-        fprintf(stderr, "panic: unreachable\n"); \
-        abort();                                 \
+#define NAT_UNREACHABLE()                                                     \
+    {                                                                         \
+        fprintf(stderr, "panic: unreachable in %s#%d\n", __FILE__, __LINE__); \
+        abort();                                                              \
     }
 
-#define NAT_NOT_YET_IMPLEMENTED(msg, ...)                            \
-    {                                                                \
-        fprintf(stderr, "NOT YET IMPLEMENTED: " msg, ##__VA_ARGS__); \
-        fprintf(stderr, "\n");                                       \
-        abort();                                                     \
+#define NAT_NOT_YET_IMPLEMENTED(msg, ...)                                                         \
+    {                                                                                             \
+        fprintf(stderr, "NOT YET IMPLEMENTED in %s#%d: " msg, __FILE__, __LINE__, ##__VA_ARGS__); \
+        fprintf(stderr, "\n");                                                                    \
+        abort();                                                                                  \
     }
 
 #define NAT_RUN_BLOCK_FROM_ENV(env, argc, args) ({                                                        \
