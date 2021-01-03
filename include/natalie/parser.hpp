@@ -142,7 +142,6 @@ private:
     Node *parse_if_body(Env *, LocalsVectorPtr);
 
     Node *parse_array(Env *, LocalsVectorPtr);
-    void parse_array_items(Env *, ArrayNode *, LocalsVectorPtr);
     Node *parse_begin(Env *, LocalsVectorPtr);
     Node *parse_block_pass(Env *, LocalsVectorPtr);
     Node *parse_bool(Env *, LocalsVectorPtr);
@@ -150,6 +149,7 @@ private:
     Node *parse_class(Env *, LocalsVectorPtr);
     Node *parse_case(Env *, LocalsVectorPtr);
     Node *parse_comma_separated_identifiers(Env *, LocalsVectorPtr);
+    void parse_comma_separated_expressions(Env *, ArrayNode *, LocalsVectorPtr);
     Node *parse_constant(Env *, LocalsVectorPtr);
     Node *parse_def(Env *, LocalsVectorPtr);
     Vector<Node *> *parse_def_args(Env *, LocalsVectorPtr);

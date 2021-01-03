@@ -93,14 +93,20 @@ Node *Parser::parse_array(Env *env, LocalsVectorPtr locals) {
     auto array = new ArrayNode { current_token() };
     advance();
     if (current_token().type() != Token::Type::RBracket) {
-        parse_array_items(env, array, locals);
+        array->add_node(parse_expression(env, ARRAY, locals));
+        while (current_token().type() == Token::Type::Comma) {
+            advance();
+            if (current_token().type() == Token::Type::RBracket)
+                break;
+            array->add_node(parse_expression(env, ARRAY, locals));
+        }
     }
     expect(env, Token::Type::RBracket, "array closing bracket");
     advance();
     return array;
 }
 
-void Parser::parse_array_items(Env *env, ArrayNode *array, LocalsVectorPtr locals) {
+void Parser::parse_comma_separated_expressions(Env *env, ArrayNode *array, LocalsVectorPtr locals) {
     array->add_node(parse_expression(env, ARRAY, locals));
     while (current_token().type() == Token::Type::Comma) {
         advance();
@@ -207,7 +213,7 @@ Node *Parser::parse_break(Env *env, LocalsVectorPtr locals) {
         return new BreakNode { token, arg };
     } else if (!current_token().is_end_of_expression()) {
         auto array = new ArrayNode { token };
-        parse_array_items(env, array, locals);
+        parse_comma_separated_expressions(env, array, locals);
         return new BreakNode { token, array };
     }
     return new BreakNode { token };
@@ -225,7 +231,7 @@ Node *Parser::parse_case(Env *env, LocalsVectorPtr locals) {
         case Token::Type::WhenKeyword: {
             advance();
             auto condition_array = new ArrayNode { token };
-            parse_array_items(env, condition_array, locals);
+            parse_comma_separated_expressions(env, condition_array, locals);
             next_expression(env);
             auto body = parse_case_when_body(env, locals);
             auto when_node = new CaseWhenNode { token, condition_array, body };
@@ -672,7 +678,7 @@ Node *Parser::parse_next(Env *env, LocalsVectorPtr locals) {
         return new NextNode { token, arg };
     } else if (!current_token().is_end_of_expression()) {
         auto array = new ArrayNode { token };
-        parse_array_items(env, array, locals);
+        parse_comma_separated_expressions(env, array, locals);
         return new NextNode { token, array };
     }
     return new NextNode { token };

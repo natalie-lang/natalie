@@ -325,13 +325,17 @@ describe 'Parser' do
       -> { Parser.parse('module foo;end') }.should raise_error(SyntaxError, 'class/module name must be CONSTANT')
     end
 
-    it 'parses an array' do
+    it 'parses array' do
       Parser.parse("[]").should == s(:block, s(:array))
       Parser.parse("[1]").should == s(:block, s(:array, s(:lit, 1)))
+      Parser.parse("[1,]").should == s(:block, s(:array, s(:lit, 1)))
       Parser.parse("['foo']").should == s(:block, s(:array, s(:str, 'foo')))
       Parser.parse("[1, 2, 3]").should == s(:block, s(:array, s(:lit, 1), s(:lit, 2), s(:lit, 3)))
+      Parser.parse("[1, 2, 3, ]").should == s(:block, s(:array, s(:lit, 1), s(:lit, 2), s(:lit, 3)))
       Parser.parse("[x, y, z]").should == s(:block, s(:array, s(:call, nil, :x), s(:call, nil, :y), s(:call, nil, :z)))
       Parser.parse("[\n1 , \n2,\n 3]").should == s(:block, s(:array, s(:lit, 1), s(:lit, 2), s(:lit, 3)))
+      Parser.parse("[\n1 , \n2,\n 3\n]").should == s(:block, s(:array, s(:lit, 1), s(:lit, 2), s(:lit, 3)))
+      Parser.parse("[\n1 , \n2,\n 3,\n]").should == s(:block, s(:array, s(:lit, 1), s(:lit, 2), s(:lit, 3)))
       if (RUBY_ENGINE == 'natalie')
         -> { Parser.parse('[ , 1]') }.should raise_error(SyntaxError, "(string)#1: syntax error, unexpected ',' (expected: 'expression')")
       else
@@ -339,7 +343,7 @@ describe 'Parser' do
       end
     end
 
-    it 'parses word arrays' do
+    it 'parses word array' do
       Parser.parse('%w[]').should == s(:block, s(:array))
       Parser.parse("%w[  1 2\t  3\n \n4 ]").should == s(:block, s(:array, s(:str, "1"), s(:str, "2"), s(:str, "3"), s(:str, "4")))
       Parser.parse("%W[  1 2\t  3\n \n4 ]").should == s(:block, s(:array, s(:str, "1"), s(:str, "2"), s(:str, "3"), s(:str, "4")))
@@ -347,7 +351,7 @@ describe 'Parser' do
       Parser.parse("%I[ foo bar ]").should == s(:block, s(:array, s(:lit, :foo), s(:lit, :bar)))
     end
 
-    it 'parses a hash' do
+    it 'parses hash' do
       Parser.parse("{}").should == s(:block, s(:hash))
       Parser.parse("{ 1 => 2 }").should == s(:block, s(:hash, s(:lit, 1), s(:lit, 2)))
       Parser.parse("{ foo: 'bar' }").should == s(:block, s(:hash, s(:lit, :foo), s(:str, 'bar')))
@@ -368,7 +372,7 @@ describe 'Parser' do
       Parser.parse("1 + 1 # comment").should == s(:block, s(:call, s(:lit, 1), :+, s(:lit, 1)))
     end
 
-    it 'parses a range' do
+    it 'parses range' do
       Parser.parse('1..10').should == s(:block, s(:lit, 1..10))
       Parser.parse("1..'a'").should == s(:block, s(:dot2, s(:lit, 1), s(:str, 'a')))
       Parser.parse("'a'..1").should == s(:block, s(:dot2, s(:str, 'a'), s(:lit, 1)))
