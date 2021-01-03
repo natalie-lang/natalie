@@ -28,12 +28,9 @@ module CompareRubies
 
   def run_all_and_compare(path, *args)
     out_nat = run_nat(path, *args)
+    out_self_hosted_nat = run_self_hosted_nat(path, *args)
     out_ruby = run_ruby(path, *args)
+    expect(out_nat).must_equal(out_self_hosted_nat)
     expect(out_nat).must_equal(out_ruby)
-    if RUBY_PLATFORM !~ /openbsd/
-      # FIXME error on boardslam.rb: mmap(PROT_NONE) failed
-      out_self_hosted_nat = run_self_hosted_nat(path, *args)
-      expect(out_nat).must_equal(out_self_hosted_nat)
-    end
   end
 end
