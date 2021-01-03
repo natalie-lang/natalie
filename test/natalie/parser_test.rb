@@ -140,6 +140,7 @@ describe 'Parser' do
       Parser.parse("(@x, $y, Z) = foo").should == s(:block, s(:masgn, s(:array, s(:iasgn, :@x), s(:gasgn, :$y), s(:cdecl, :Z)), s(:to_ary, s(:call, nil, :foo))))
       Parser.parse("(a, (b, c)) = [1, [2, 3]]").should == s(:block, s(:masgn, s(:array, s(:lasgn, :a), s(:masgn, s(:array, s(:lasgn, :b), s(:lasgn, :c)))), s(:to_ary, s(:array, s(:lit, 1), s(:array, s(:lit, 2), s(:lit, 3))))))
       Parser.parse("a, (b, c) = [1, [2, 3]]").should == s(:block, s(:masgn, s(:array, s(:lasgn, :a), s(:masgn, s(:array, s(:lasgn, :b), s(:lasgn, :c)))), s(:to_ary, s(:array, s(:lit, 1), s(:array, s(:lit, 2), s(:lit, 3))))))
+      Parser.parse("x = foo.bar").should == s(:block, s(:lasgn, :x, s(:call, s(:call, nil, :foo), :bar)))
     end
 
     it 'parses attr assignment' do
@@ -385,6 +386,7 @@ describe 'Parser' do
       Parser.parse("x = 1; foo { x }; x").should == s(:block, s(:lasgn, :x, s(:lit, 1)), s(:iter, s(:call, nil, :foo), 0, s(:lvar, :x)), s(:lvar, :x))
       Parser.parse("foo do\nbar do\nend\nend").should == s(:block, s(:iter, s(:call, nil, :foo), 0, s(:iter, s(:call, nil, :bar), 0)))
       Parser.parse("foo do |(x, y), z|\nend").should == s(:block, s(:iter, s(:call, nil, :foo), s(:args, s(:masgn, :x, :y), :z)))
+      Parser.parse("x = foo.bar { |y| y }").should == s(:block, s(:lasgn, :x, s(:iter, s(:call, s(:call, nil, :foo), :bar), s(:args, :y), s(:lvar, :y))))
     end
 
     it 'parses block pass' do

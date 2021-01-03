@@ -22,12 +22,12 @@ struct Parser : public gc {
         LOWEST,
         ARRAY, // []
         HASH, // {}
-        ITER, // do/end {}
         EXPRMODIFIER, // if/unless/while/until
         CASE, // case/when/else
         CALLARGS, // foo a, b
         COMPOSITION, // and/or
         ASSIGNMENT, // =
+        ITER, // do/end {}
         RANGE, // ..
         TERNARY, // ? :
         LOGICALNOT, // not
