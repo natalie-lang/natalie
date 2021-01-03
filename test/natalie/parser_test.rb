@@ -152,6 +152,9 @@ describe 'Parser' do
     it 'parses attr assignment' do
       Parser.parse("x.y = 1").should == s(:block, s(:attrasgn, s(:call, nil, :x), :y=, s(:lit, 1)))
       Parser.parse("x[y] = 1").should == s(:block, s(:attrasgn, s(:call, nil, :x), :[]=, s(:call, nil, :y), s(:lit, 1)))
+      Parser.parse("foo[a, b] = :bar").should == s(:block, s(:attrasgn, s(:call, nil, :foo), :[]=, s(:call, nil, :a), s(:call, nil, :b), s(:lit, :bar)))
+      Parser.parse("foo[] = :bar").should == s(:block, s(:attrasgn, s(:call, nil, :foo), :[]=, s(:lit, :bar)))
+      Parser.parse("foo.bar=x").should == s(:block, s(:attrasgn, s(:call, nil, :foo), :bar=, s(:call, nil, :x)))
     end
 
     it 'parses [] as an array vs as a method' do
@@ -165,11 +168,6 @@ describe 'Parser' do
       Parser.parse("foo[]").should == s(:block, s(:call, s(:call, nil, :foo), :[]))
       Parser.parse("foo []").should == s(:block, s(:call, nil, :foo, s(:array)))
       Parser.parse("foo [a, b]").should == s(:block, s(:call, nil, :foo, s(:array, s(:call, nil, :a), s(:call, nil, :b))))
-    end
-
-    it 'parses []=' do
-      Parser.parse("foo[a, b] = :bar").should == s(:block, s(:attrasgn, s(:call, nil, :foo), :[]=, s(:call, nil, :a), s(:call, nil, :b), s(:lit, :bar)))
-      Parser.parse("foo[] = :bar").should == s(:block, s(:attrasgn, s(:call, nil, :foo), :[]=, s(:lit, :bar)))
     end
 
     it 'parses method definition' do
@@ -186,10 +184,14 @@ describe 'Parser' do
       Parser.parse("def foo(x, y)\n1\n2\nend").should == s(:block, s(:defn, :foo, s(:args, :x, :y), s(:lit, 1), s(:lit, 2)))
       Parser.parse("def foo n\nn\nend").should == s(:block, s(:defn, :foo, s(:args, :n), s(:lvar, :n)))
       Parser.parse("def foo((a, b), c, (d, e))\nend").should == s(:block, s(:defn, :foo, s(:args, s(:masgn, :a, :b), :c, s(:masgn, :d, :e)), s(:nil)))
+      Parser.parse("def foo!; end").should == s(:block, s(:defn, :foo!, s(:args), s(:nil)))
+      Parser.parse("def foo?; end").should == s(:block, s(:defn, :foo?, s(:args), s(:nil)))
+      Parser.parse("def foo=; end").should == s(:block, s(:defn, :foo=, s(:args), s(:nil)))
     end
 
     it 'parses method calls vs local variable lookup' do
       Parser.parse("foo").should == s(:block, s(:call, nil, :foo))
+      Parser.parse("foo?").should == s(:block, s(:call, nil, :foo?))
       Parser.parse("foo = 1; foo").should == s(:block, s(:lasgn, :foo, s(:lit, 1)), s(:lvar, :foo))
       Parser.parse("foo = 1; def bar; foo; end").should == s(:block, s(:lasgn, :foo, s(:lit, 1)), s(:defn, :bar, s(:args), s(:call, nil, :foo)))
       Parser.parse("@foo = 1; foo").should == s(:block, s(:iasgn, :@foo, s(:lit, 1)), s(:call, nil, :foo))
@@ -247,6 +249,9 @@ describe 'Parser' do
       Parser.parse("foo.bar.baz").should == s(:block, s(:call, s(:call, s(:call, nil, :foo), :bar), :baz))
       Parser.parse("foo.bar 1, 2").should == s(:block, s(:call, s(:call, nil, :foo), :bar, s(:lit, 1), s(:lit, 2)))
       Parser.parse("foo.bar(1, 2)").should == s(:block, s(:call, s(:call, nil, :foo), :bar, s(:lit, 1), s(:lit, 2)))
+      Parser.parse("foo.nil?").should == s(:block, s(:call, s(:call, nil, :foo), :nil?))
+      Parser.parse("foo.not?").should == s(:block, s(:call, s(:call, nil, :foo), :not?))
+      Parser.parse("foo.baz?").should == s(:block, s(:call, s(:call, nil, :foo), :baz?))
     end
 
     it 'parses ternary expressions' do

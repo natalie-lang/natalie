@@ -26,6 +26,7 @@ struct Lexer : public gc {
         return token;
     }
 
+private:
     char current_char() {
         if (m_index >= m_size)
             return 0;
@@ -36,7 +37,7 @@ struct Lexer : public gc {
         if (m_index + bytes > m_size)
             return false;
         if (strncmp(compare, m_input + m_index, bytes) == 0) {
-            if (m_index + bytes < m_size && is_identifier_char(m_input[m_index + bytes]))
+            if (m_index + bytes < m_size && is_identifier_char_or_message_suffix(m_input[m_index + bytes]))
                 return false;
             advance(bytes);
             return true;
@@ -61,17 +62,32 @@ struct Lexer : public gc {
         }
     }
 
+    // NOTE: this does not work across lines
+    void rewind(size_t bytes = 1) {
+        auto c = current_char();
+        m_cursor_column -= bytes;
+        m_index -= bytes;
+    }
+
     char peek() {
         if (m_index + 1 >= m_size)
             return 0;
         return m_input[m_index + 1];
     }
 
-private:
     bool is_identifier_char(char c) {
         if (!c) return false;
         return isalnum(c) || c == '_';
-    };
+    }
+
+    bool is_message_suffix(char c) {
+        if (!c) return false;
+        return c == '?' || c == '!';
+    }
+
+    bool is_identifier_char_or_message_suffix(char c) {
+        return is_identifier_char(c) || is_message_suffix(c);
+    }
 
     bool skip_whitespace() {
         bool whitespace_found = false;
@@ -647,17 +663,15 @@ private:
                 return Token { Token::Type::WhileKeyword, m_file, m_token_line, m_token_column };
             else if (match(5, "yield"))
                 return Token { Token::Type::YieldKeyword, m_file, m_token_line, m_token_column };
-            else {
-                auto c = current_char();
-                bool symbol_key = false;
-                if ((c >= 'a' && c <= 'z') || c == '_') {
-                    return consume_bare_name();
-                } else if (c >= 'A' && c <= 'Z') {
-                    return consume_constant();
-                } else {
-                    const char *buf = consume_non_whitespace();
-                    return Token { Token::Type::Invalid, buf, m_file, m_token_line, m_token_column };
-                }
+            auto c = current_char();
+            bool symbol_key = false;
+            if ((c >= 'a' && c <= 'z') || c == '_') {
+                return consume_bare_name();
+            } else if (c >= 'A' && c <= 'Z') {
+                return consume_constant();
+            } else {
+                const char *buf = consume_non_whitespace();
+                return Token { Token::Type::Invalid, buf, m_file, m_token_line, m_token_column };
             }
         }
         NAT_UNREACHABLE();
@@ -729,6 +743,9 @@ private:
         } while (is_identifier_char(c));
         switch (c) {
         case '?':
+            advance();
+            buf += c;
+            break;
         case '!':
         case '=':
             if (m_last_token.can_precede_method_name()) {

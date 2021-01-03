@@ -490,7 +490,7 @@ struct Token : public gc {
     }
 
     bool can_precede_method_name() {
-        return m_type == Token::Type::Dot || m_type == Token::Type::ConstantResolution || m_type == Token::Type::DefKeyword;
+        return m_type == Token::Type::DefKeyword;
     }
 
     bool can_follow_collapsible_newline() {
