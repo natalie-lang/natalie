@@ -1,6 +1,7 @@
 #pragma once
 
-#include "natalie.hpp"
+#include "natalie/gc.hpp"
+#include "natalie/value.hpp"
 
 namespace Natalie {
 

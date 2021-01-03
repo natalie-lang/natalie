@@ -5,6 +5,7 @@
 #include "natalie.hpp"
 #include "natalie/lexer.hpp"
 #include "natalie/node.hpp"
+#include "natalie/token.hpp"
 
 namespace Natalie {
 

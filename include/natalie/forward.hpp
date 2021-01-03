@@ -21,10 +21,14 @@ struct HashVal;
 struct HashValue;
 struct IntegerValue;
 struct IoValue;
+struct KernelModule;
+struct Lexer;
 struct MatchDataValue;
 struct Method;
 struct ModuleValue;
 struct NilValue;
+struct Node;
+struct Parser;
 struct ParserValue;
 struct ProcValue;
 struct RangeValue;
@@ -32,10 +36,10 @@ struct RegexpValue;
 struct SexpValue;
 struct StringValue;
 struct SymbolValue;
+struct Token;
 struct TrueValue;
 struct Value;
 struct VoidPValue;
-struct KernelModule;
 
 void copy_hashmap(struct hashmap &, const struct hashmap &);
 
