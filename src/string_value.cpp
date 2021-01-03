@@ -765,8 +765,12 @@ Value *StringValue::strip(Env *env) {
         if (c != ' ' && c != '\t' && c != '\n')
             break;
     }
-    size_t new_length = static_cast<size_t>(last_char - first_char + 1);
-    return new StringValue { env, m_str + first_char, new_length };
+    if (last_char < 0) {
+        return new StringValue { env };
+    } else {
+        size_t new_length = static_cast<size_t>(last_char - first_char + 1);
+        return new StringValue { env, m_str + first_char, new_length };
+    }
 }
 
 Value *StringValue::downcase(Env *env) {

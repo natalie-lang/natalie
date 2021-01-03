@@ -363,6 +363,8 @@ describe 'string' do
   describe '#strip' do
     it 'returns a copy of the string with all starting and ending spaces removed' do
       ''.strip.should == ''
+      ' '.strip.should == ''
+      '     '.strip.should == ''
       '    foo    '.strip.should == 'foo'
       " \n  foo  \t  ".strip.should == 'foo'
     end
