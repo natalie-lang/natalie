@@ -1,5 +1,3 @@
-require "natalie/inline"
-
 class OptionParser
   class Switch
     attr_accessor :short_name, :long_name, :value_label, :value_type, :description, :value
@@ -62,13 +60,14 @@ class OptionParser
   def initialize
     parser = self
     @base_switches = [
-      Switch.new('-h', '--help', nil, nil, -> { print parser.help; exit })
+      Switch.new('-h', '--help', nil, nil, -> (*) { print parser.help; exit }),
+      Switch.new('-v', '--version', nil, nil, -> (*) { puts parser.version; exit }),
     ]
     @switches = []
     yield self if block_given?
   end
 
-  attr_accessor :banner
+  attr_accessor :banner, :program_name, :version
 
   def on(*args, &block)
     (short_name, short_value) = args.grep(/^\-[^\-]/).first&.split(/[ =]/, 2)
@@ -112,6 +111,10 @@ class OptionParser
       str << "    #{switch.help}\n"
     end
     str
+  end
+
+  def version
+    "#{@program_name || $0} #{@version || 'unknown'}"
   end
 
   alias to_s help

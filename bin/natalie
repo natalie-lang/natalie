@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'optparse'
+require_relative '../lib/optparse'
 require 'tempfile'
 
 if RUBY_ENGINE != 'natalie'
@@ -16,6 +16,9 @@ orig_args = ARGV.dup
 options = { load_path: [], require: [] }
 OptionParser.new do |opts|
   opts.banner = 'Usage: natalie [options] file.rb'
+
+  opts.program_name = 'Natalie'
+  opts.version = '0.1'
 
   opts.on('-d [level]', '--debug [level]', 'Show debug output') do |level|
     case level
