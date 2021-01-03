@@ -28,12 +28,18 @@ Vector<Token> *Lexer::tokens() {
 
         // break apart interpolations in double-quoted string
         if (token.is_double_quoted_string()) {
+            Token::Type begin_token_type = Token::Type::InterpolatedStringBegin;
+            Token::Type end_token_type = Token::Type::InterpolatedStringEnd;
+            if (token.shell_out()) {
+                begin_token_type = Token::Type::InterpolatedShellBegin;
+                end_token_type = Token::Type::InterpolatedShellEnd;
+            }
             auto string_lexer = new DoubleQuotedStringLexer { token };
-            tokens->push(Token { Token::Type::InterpolatedStringBegin, token.file(), token.line(), token.column() });
+            tokens->push(Token { begin_token_type, token.file(), token.line(), token.column() });
             for (auto token : *string_lexer->tokens()) {
                 tokens->push(token);
             }
-            tokens->push(Token { Token::Type::InterpolatedStringEnd, token.file(), token.line(), token.column() });
+            tokens->push(Token { end_token_type, token.file(), token.line(), token.column() });
             continue;
         }
 

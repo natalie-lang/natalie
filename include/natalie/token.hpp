@@ -61,6 +61,8 @@ struct Token : public gc {
         InKeyword,
         InstanceVariable,
         Integer,
+        InterpolatedShellBegin,
+        InterpolatedShellEnd,
         InterpolatedStringBegin,
         InterpolatedStringEnd,
         Invalid,
@@ -287,6 +289,10 @@ struct Token : public gc {
             return "ivar";
         case Type::Integer:
             return "integer";
+        case Type::InterpolatedShellBegin:
+            return "dxstr";
+        case Type::InterpolatedShellEnd:
+            return "dxstrend";
         case Type::InterpolatedStringBegin:
             return "dstr";
         case Type::InterpolatedStringEnd:
@@ -551,6 +557,9 @@ struct Token : public gc {
     bool double_quoted() { return m_double_quoted; }
     void set_double_quoted(bool double_quoted) { m_double_quoted = double_quoted; }
 
+    bool shell_out() { return m_shell_out; }
+    void set_shell_out(bool shell_out) { m_shell_out = shell_out; }
+
 private:
     Type m_type { Type::Invalid };
     const char *m_literal { nullptr };
@@ -562,5 +571,6 @@ private:
     size_t m_column { 0 };
     bool m_whitespace_precedes { false };
     bool m_double_quoted { false };
+    bool m_shell_out { false };
 };
 }

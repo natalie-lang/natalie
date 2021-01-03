@@ -107,17 +107,17 @@ describe 'Parser' do
     end
 
     it 'tokenizes strings' do
-      Parser.tokens('"foo"').should == [{:type=>:dstr}, {:type=>:string, :literal=>"foo"}, {:type=>:dstrend}]
-      Parser.tokens('"this is \"quoted\""').should == [{:type=>:dstr}, {:type=>:string, :literal=>"this is \"quoted\""}, {:type=>:dstrend}]
+      Parser.tokens('"foo"').should == [{type: :dstr}, {type: :string, literal: 'foo'}, {type: :dstrend}]
+      Parser.tokens('"this is \"quoted\""').should == [{type: :dstr}, {type: :string, literal: "this is \"quoted\""}, {type: :dstrend}]
       Parser.tokens("'foo'").should == [{type: :string, literal: 'foo'}]
       Parser.tokens("'this is \\'quoted\\''").should == [{type: :string, literal: "this is 'quoted'"}]
-      Parser.tokens('"\t\n"').should == [{:type=>:dstr}, {:type=>:string, :literal=>"\t\n"}, {:type=>:dstrend}]
+      Parser.tokens('"\t\n"').should == [{type: :dstr}, {type: :string, literal: "\t\n"}, {type: :dstrend}]
       Parser.tokens("'other escaped chars \\\\ \\n'").should == [{type: :string, literal: "other escaped chars \\ \\n"}]
       Parser.tokens("%(foo)").should == [{type: :string, literal: 'foo'}]
       Parser.tokens("%[foo]").should == [{type: :string, literal: 'foo'}]
       Parser.tokens("%/foo/").should == [{type: :string, literal: 'foo'}]
       Parser.tokens("%q(foo)").should == [{type: :string, literal: 'foo'}]
-      Parser.tokens("%Q(foo)").should == [{:type=>:dstr}, {:type=>:string, :literal=>"foo"}, {:type=>:dstrend}]
+      Parser.tokens("%Q(foo)").should == [{type: :dstr}, {type: :string, literal: 'foo'}, {type: :dstrend}]
       Parser.tokens('"#{:foo} bar #{1 + 1}"').should == [
         {type: :dstr},
         {type: :string, literal: ''},
@@ -133,6 +133,20 @@ describe 'Parser' do
         {type: :"\n"},
         {type: :evstrend},
         {type: :dstrend},
+      ]
+    end
+
+    it 'tokenizes backticks and %x()' do
+      Parser.tokens("`ls`").should == [{type: :dxstr}, {type: :string, literal: "ls"}, {type: :dxstrend}]
+      Parser.tokens("%x(ls)").should == [{type: :dxstr}, {type: :string, literal: "ls"}, {type: :dxstrend}]
+      Parser.tokens("%x(ls \#{path})").should == [
+        {type: :dxstr},
+        {type: :string, literal: "ls "},
+        {type: :evstr},
+        {type: :name, literal: :path},
+        {type: :"\n"},
+        {type: :evstrend},
+        {type: :dxstrend},
       ]
     end
 

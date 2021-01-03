@@ -216,8 +216,6 @@ private:
         }
         case '%':
             advance();
-            if (current_char() == 'q')
-                advance();
             switch (current_char()) {
             case '=':
                 advance();
@@ -234,6 +232,23 @@ private:
             case '(':
                 advance();
                 return consume_single_quoted_string(')');
+            case 'q':
+                switch (peek()) {
+                case '/':
+                    advance(2);
+                    return consume_single_quoted_string('/');
+                case '[':
+                    advance(2);
+                    return consume_single_quoted_string(']');
+                case '{':
+                    advance(2);
+                    return consume_single_quoted_string('}');
+                case '(':
+                    advance(2);
+                    return consume_single_quoted_string(')');
+                default:
+                    return Token { Token::Type::Modulus, m_file, m_token_line, m_token_column };
+                }
             case 'Q':
                 switch (peek()) {
                 case '/':
@@ -248,6 +263,35 @@ private:
                 case '(':
                     advance(2);
                     return consume_double_quoted_string(')');
+                default:
+                    return Token { Token::Type::Modulus, m_file, m_token_line, m_token_column };
+                }
+            case 'x':
+                switch (peek()) {
+                case '/': {
+                    advance(2);
+                    auto token = consume_double_quoted_string('/');
+                    token.set_shell_out(true);
+                    return token;
+                }
+                case '[': {
+                    advance(2);
+                    auto token = consume_double_quoted_string(']');
+                    token.set_shell_out(true);
+                    return token;
+                }
+                case '{': {
+                    advance(2);
+                    auto token = consume_double_quoted_string('}');
+                    token.set_shell_out(true);
+                    return token;
+                }
+                case '(': {
+                    advance(2);
+                    auto token = consume_double_quoted_string(')');
+                    token.set_shell_out(true);
+                    return token;
+                }
                 default:
                     return Token { Token::Type::Modulus, m_file, m_token_line, m_token_column };
                 }
@@ -473,13 +517,17 @@ private:
         case ',':
             advance();
             return Token { Token::Type::Comma, m_file, m_token_line, m_token_column };
-        case '"': {
+        case '"':
             advance();
             return consume_double_quoted_string('"');
-        }
-        case '\'': {
+        case '\'':
             advance();
             return consume_single_quoted_string('\'');
+        case '`': {
+            advance();
+            auto token = consume_double_quoted_string('`');
+            token.set_shell_out(true);
+            return token;
         }
         case '#':
             char c;
