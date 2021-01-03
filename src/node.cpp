@@ -6,6 +6,8 @@ Value *ArgNode::to_ruby(Env *env) {
     auto name = std::string(m_name ? m_name : "");
     if (m_splat)
         name = '*' + name;
+    else if (m_block_arg)
+        name = '&' + name;
     return SymbolValue::intern(env, name.c_str());
 }
 

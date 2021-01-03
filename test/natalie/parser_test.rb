@@ -192,6 +192,7 @@ describe 'Parser' do
       Parser.parse("def foo(*); end").should == s(:block, s(:defn, :foo, s(:args, :*), s(:nil)))
       Parser.parse("def foo(*x); end").should == s(:block, s(:defn, :foo, s(:args, :"*x"), s(:nil)))
       Parser.parse("def foo(x, *y, z); end").should == s(:block, s(:defn, :foo, s(:args, :x, :"*y", :z), s(:nil)))
+      Parser.parse("def foo(a, &b); end").should == s(:block, s(:defn, :foo, s(:args, :a, :"&b"), s(:nil)))
     end
 
     it 'parses method calls vs local variable lookup' do

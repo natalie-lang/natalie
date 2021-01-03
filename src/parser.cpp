@@ -414,6 +414,15 @@ Node *Parser::parse_def_single_arg(Env *env, LocalsVectorPtr locals) {
         arg->set_splat(true);
         return arg;
     }
+    case Token::Type::BitwiseAnd: {
+        advance();
+        expect(env, Token::Type::BareName, "block name");
+        auto arg = new ArgNode { token, current_token().literal() };
+        advance();
+        locals->push(SymbolValue::intern(env, arg->name()));
+        arg->set_block_arg(true);
+        return arg;
+    }
     default:
         raise_unexpected(env, "argument");
     }

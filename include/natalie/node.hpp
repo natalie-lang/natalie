@@ -110,8 +110,12 @@ struct ArgNode : Node {
     bool splat() { return m_splat; }
     void set_splat(bool splat) { m_splat = splat; }
 
+    bool block_arg() { return m_block_arg; }
+    void set_block_arg(bool block_arg) { m_block_arg = block_arg; }
+
 protected:
     const char *m_name { nullptr };
+    bool m_block_arg { false };
     bool m_splat { false };
 };
 
