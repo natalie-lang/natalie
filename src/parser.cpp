@@ -466,6 +466,8 @@ Node *Parser::parse_hash(Env *env, LocalsVectorPtr locals) {
         hash->add_node(parse_expression(env, HASH, locals));
         while (current_token().type() == Token::Type::Comma) {
             advance();
+            if (current_token().type() == Token::Type::RCurlyBrace)
+                break;
             if (current_token().type() == Token::Type::SymbolKey) {
                 hash->add_node(parse_symbol(env, locals));
             } else {

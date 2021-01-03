@@ -354,6 +354,8 @@ describe 'Parser' do
     it 'parses hash' do
       Parser.parse("{}").should == s(:block, s(:hash))
       Parser.parse("{ 1 => 2 }").should == s(:block, s(:hash, s(:lit, 1), s(:lit, 2)))
+      Parser.parse("{ 1 => 2, }").should == s(:block, s(:hash, s(:lit, 1), s(:lit, 2)))
+      Parser.parse("{\n 1 => 2,\n }").should == s(:block, s(:hash, s(:lit, 1), s(:lit, 2)))
       Parser.parse("{ foo: 'bar' }").should == s(:block, s(:hash, s(:lit, :foo), s(:str, 'bar')))
       Parser.parse("{ 1 => 2, 'foo' => 'bar' }").should == s(:block, s(:hash, s(:lit, 1), s(:lit, 2), s(:str, 'foo'), s(:str, 'bar')))
       Parser.parse("{\n 1 => \n2,\n 'foo' =>\n'bar'\n}").should == s(:block, s(:hash, s(:lit, 1), s(:lit, 2), s(:str, 'foo'), s(:str, 'bar')))
