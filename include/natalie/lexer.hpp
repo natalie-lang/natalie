@@ -427,7 +427,7 @@ private:
                 return consume_word(Token::Type::InstanceVariable);
             }
         case '$':
-            return consume_word(Token::Type::GlobalVariable);
+            return consume_global_variable();
         case '.':
             advance();
             switch (current_char()) {
@@ -701,6 +701,22 @@ private:
             token.set_type(Token::Type::SymbolKey);
         }
         return token;
+    }
+
+    Token consume_global_variable() {
+        switch (peek()) {
+        case '?':
+        case '!':
+        case '=': {
+            advance();
+            auto buf = std::string("$") + current_char();
+            advance();
+            return Token { Token::Type::GlobalVariable, GC_STRDUP(buf.c_str()), m_file, m_token_line, m_token_column };
+        }
+        default: {
+            return consume_word(Token::Type::GlobalVariable);
+        }
+        }
     }
 
     Token consume_numeric(bool negative = false) {

@@ -200,6 +200,8 @@ describe 'Parser' do
 
     it 'tokenizes global variables' do
       Parser.tokens('$foo').should == [{type: :gvar, literal: :$foo}]
+      Parser.tokens('$0').should == [{type: :gvar, literal: :$0}]
+      Parser.tokens('$?').should == [{type: :gvar, literal: :$?}]
     end
 
     it 'tokenizes dots' do
