@@ -743,17 +743,10 @@ private:
         } while (is_identifier_char(c));
         switch (c) {
         case '?':
+        case '!':
             advance();
             buf += c;
             break;
-        case '!':
-        case '=':
-            if (m_last_token.can_precede_method_name()) {
-                advance();
-                buf += c;
-            } else {
-                break;
-            }
         default:
             break;
         }

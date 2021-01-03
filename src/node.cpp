@@ -223,15 +223,29 @@ Value *ConstantNode::to_ruby(Env *env) {
 }
 
 Value *DefNode::to_ruby(Env *env) {
-    auto sexp = new SexpValue {
-        env,
-        this,
-        {
-            SymbolValue::intern(env, "defn"),
-            SymbolValue::intern(env, m_name->name()),
-            build_args_sexp(env),
-        }
-    };
+    SexpValue *sexp;
+    if (m_self_node) {
+        sexp = new SexpValue {
+            env,
+            this,
+            {
+                SymbolValue::intern(env, "defs"),
+                m_self_node->to_ruby(env),
+                SymbolValue::intern(env, m_name->name()),
+                build_args_sexp(env),
+            }
+        };
+    } else {
+        sexp = new SexpValue {
+            env,
+            this,
+            {
+                SymbolValue::intern(env, "defn"),
+                SymbolValue::intern(env, m_name->name()),
+                build_args_sexp(env),
+            }
+        };
+    }
     if (m_body->is_empty()) {
         sexp->push(new SexpValue { env, this, { SymbolValue::intern(env, "nil") } });
     } else {
@@ -537,6 +551,10 @@ Value *SafeCallNode::to_ruby(Env *env) {
         sexp->push(arg->to_ruby(env));
     }
     return sexp;
+}
+
+Value *SelfNode::to_ruby(Env *env) {
+    return new SexpValue { env, this, { SymbolValue::intern(env, "self") } };
 }
 
 Value *ShellNode::to_ruby(Env *env) {

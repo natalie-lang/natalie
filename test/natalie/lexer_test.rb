@@ -281,15 +281,14 @@ describe 'Parser' do
     it 'tokenizes method names' do
       Parser.tokens("def foo?").should == [{type: :def}, {type: :name, literal: :foo?}]
       Parser.tokens("def foo!").should == [{type: :def}, {type: :name, literal: :foo!}]
-      Parser.tokens("def foo=").should == [{type: :def}, {type: :name, literal: :foo=}]
-      Parser.tokens("def self.foo=").should == [{type: :def}, {type: :self}, {type: :"."}, {type: :name, literal: :foo=}]
-      Parser.tokens("foo.bar=").should == [{type: :name, literal: :foo}, {type: :"."}, {type: :name, literal: :bar=}]
+      Parser.tokens("def foo=").should == [{:type=>:def}, {:type=>:name, :literal=>:foo}, {:type=>:"="}]
+      Parser.tokens("def self.foo=").should == [{:type=>:def}, {:type=>:self}, {:type=>:"."}, {:type=>:name, :literal=>:foo}, {:type=>:"="}]
+      Parser.tokens("foo.bar=").should == [{:type=>:name, :literal=>:foo}, {:type=>:"."}, {:type=>:name, :literal=>:bar}, {:type=>:"="}]
       Parser.tokens("foo::bar!").should == [{type: :name, literal: :foo}, {type: :"::"}, {type: :name, literal: :bar!}]
       Parser.tokens("Foo::bar!").should == [{type: :constant, literal: :Foo}, {type: :"::"}, {type: :name, literal: :bar!}]
       Parser.tokens("bar=1").should == [{type: :name, literal: :bar}, {type: :"="}, {type: :integer, literal: 1}]
       Parser.tokens("nil?").should == [{type: :name, literal: :nil?}]
       Parser.tokens("foo.nil?").should == [{type: :name, literal: :foo}, {type: :"."}, {type: :name, literal: :nil?}]
-      #Parser.tokens("foo.bar=x").should == [{type: :name, literal: :foo}, {type: :"."}, {type: :name, literal: :bar}, {type: :"="}, {type: :name, literal: :x}]
     end
 
     it 'stores line and column numbers with each token' do

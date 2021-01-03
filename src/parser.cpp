@@ -320,7 +320,34 @@ Node *Parser::parse_def(Env *env, LocalsVectorPtr) {
     auto token = current_token();
     advance();
     auto locals = new Vector<SymbolValue *> {};
-    auto name = static_cast<IdentifierNode *>(parse_identifier(env, locals));
+    Node *self_node = nullptr;
+    IdentifierNode *name;
+    switch (current_token().type()) {
+    case Token::Type::BareName:
+        if (peek_token().type() == Token::Type::Dot) {
+            self_node = parse_identifier(env, locals);
+            advance();
+            expect(env, Token::Type::BareName, "def name");
+            name = static_cast<IdentifierNode *>(parse_identifier(env, locals));
+        } else {
+            name = static_cast<IdentifierNode *>(parse_identifier(env, locals));
+        }
+        break;
+    case Token::Type::SelfKeyword:
+        advance();
+        self_node = new SelfNode { current_token() };
+        expect(env, Token::Type::Dot, "def obj dot");
+        advance();
+        expect(env, Token::Type::BareName, "def name");
+        name = static_cast<IdentifierNode *>(parse_identifier(env, locals));
+        break;
+    default:
+        raise_unexpected(env, "method name");
+    }
+    if (current_token().type() == Token::Type::Equal && !current_token().whitespace_precedes()) {
+        advance();
+        name->append_to_name('=');
+    }
     Vector<Node *> *args;
     if (current_token().is_lparen()) {
         advance();
@@ -335,7 +362,7 @@ Node *Parser::parse_def(Env *env, LocalsVectorPtr) {
     auto body = parse_body(env, locals, LOWEST);
     expect(env, Token::Type::EndKeyword, "def end");
     advance();
-    return new DefNode { token, name, args, body };
+    return new DefNode { token, self_node, name, args, body };
 };
 
 Vector<Node *> *Parser::parse_def_args(Env *env, LocalsVectorPtr locals) {

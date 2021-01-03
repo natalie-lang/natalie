@@ -48,6 +48,7 @@ struct Node : public gc {
         Regexp,
         Return,
         SafeCall,
+        Self,
         Splat,
         StabbyProc,
         String,
@@ -423,6 +424,13 @@ private:
 };
 
 struct DefNode : Node {
+    DefNode(Token token, Node *self_node, IdentifierNode *name, Vector<Node *> *args, BlockNode *body)
+        : Node { token }
+        , m_self_node { self_node }
+        , m_name { name }
+        , m_args { args }
+        , m_body { body } { }
+
     DefNode(Token token, IdentifierNode *name, Vector<Node *> *args, BlockNode *body)
         : Node { token }
         , m_name { name }
@@ -436,6 +444,7 @@ struct DefNode : Node {
 private:
     SexpValue *build_args_sexp(Env *);
 
+    Node *m_self_node { nullptr };
     IdentifierNode *m_name { nullptr };
     Vector<Node *> *m_args { nullptr };
     BlockNode *m_body { nullptr };
@@ -490,7 +499,11 @@ struct IdentifierNode : Node {
     virtual Value *to_ruby(Env *) override;
 
     Token::Type token_type() { return m_token.type(); }
+
     const char *name() { return m_token.literal(); }
+    void append_to_name(char c) {
+        m_token.set_literal(std::string(m_token.literal()) + c);
+    }
 
     virtual bool is_callable() override {
         switch (token_type()) {
@@ -814,6 +827,15 @@ struct ReturnNode : Node {
 
 private:
     Node *m_arg { nullptr };
+};
+
+struct SelfNode : Node {
+    SelfNode(Token token)
+        : Node { token } { }
+
+    virtual Type type() override { return Type::Self; }
+
+    virtual Value *to_ruby(Env *) override;
 };
 
 struct ShellNode : Node {
