@@ -189,6 +189,9 @@ describe 'Parser' do
       Parser.parse("def foo=; end").should == s(:block, s(:defn, :foo=, s(:args), s(:nil)))
       Parser.parse("def self.foo=; end").should == s(:block, s(:defs, s(:self), :foo=, s(:args), s(:nil)))
       Parser.parse("def foo.bar=; end").should == s(:block, s(:defs, s(:call, nil, :foo), :bar=, s(:args), s(:nil)))
+      Parser.parse("def foo(*); end").should == s(:block, s(:defn, :foo, s(:args, :*), s(:nil)))
+      Parser.parse("def foo(*x); end").should == s(:block, s(:defn, :foo, s(:args, :"*x"), s(:nil)))
+      Parser.parse("def foo(x, *y, z); end").should == s(:block, s(:defn, :foo, s(:args, :x, :"*y", :z), s(:nil)))
     end
 
     it 'parses method calls vs local variable lookup' do
@@ -400,6 +403,9 @@ describe 'Parser' do
       Parser.parse("foo do\nbar do\nend\nend").should == s(:block, s(:iter, s(:call, nil, :foo), 0, s(:iter, s(:call, nil, :bar), 0)))
       Parser.parse("foo do |(x, y), z|\nend").should == s(:block, s(:iter, s(:call, nil, :foo), s(:args, s(:masgn, :x, :y), :z)))
       Parser.parse("x = foo.bar { |y| y }").should == s(:block, s(:lasgn, :x, s(:iter, s(:call, s(:call, nil, :foo), :bar), s(:args, :y), s(:lvar, :y))))
+      Parser.parse("bar { |*| 1 }").should == s(:block, s(:iter, s(:call, nil, :bar), s(:args, :*), s(:lit, 1)))
+      Parser.parse("bar { |*x| x }").should == s(:block, s(:iter, s(:call, nil, :bar), s(:args, :"*x"), s(:lvar, :x)))
+      Parser.parse("bar { |x, *y, z| y }").should == s(:block, s(:iter, s(:call, nil, :bar), s(:args, :x, :"*y", :z), s(:lvar, :y)))
     end
 
     it 'parses block pass' do

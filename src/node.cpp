@@ -2,6 +2,13 @@
 
 namespace Natalie {
 
+Value *ArgNode::to_ruby(Env *env) {
+    auto name = std::string(m_name ? m_name : "");
+    if (m_splat)
+        name = '*' + name;
+    return SymbolValue::intern(env, name.c_str());
+}
+
 Value *ArrayNode::to_ruby(Env *env) {
     auto sexp = new SexpValue { env, this, { SymbolValue::intern(env, "array") } };
     for (auto node : m_nodes) {
@@ -260,8 +267,8 @@ SexpValue *DefNode::build_args_sexp(Env *env) {
     auto sexp = new SexpValue { env, this, { SymbolValue::intern(env, "args") } };
     for (auto arg : *m_args) {
         switch (arg->type()) {
-        case Node::Type::Identifier:
-            sexp->push(SymbolValue::intern(env, static_cast<IdentifierNode *>(arg)->name()));
+        case Node::Type::Arg:
+            sexp->push(static_cast<ArgNode *>(arg)->to_ruby(env));
             break;
         case Node::Type::MultipleAssignment:
             sexp->push(arg->to_ruby(env));
@@ -357,8 +364,8 @@ SexpValue *IterNode::build_args_sexp(Env *env) {
     auto sexp = new SexpValue { env, this, { SymbolValue::intern(env, "args") } };
     for (auto arg : *m_args) {
         switch (arg->type()) {
-        case Node::Type::Identifier:
-            sexp->push(SymbolValue::intern(env, static_cast<IdentifierNode *>(arg)->name()));
+        case Node::Type::Arg:
+            sexp->push(static_cast<ArgNode *>(arg)->to_ruby(env));
             break;
         case Node::Type::MultipleAssignment:
             sexp->push(arg->to_ruby(env));
@@ -439,8 +446,8 @@ Value *ModuleNode::to_ruby(Env *env) {
 Value *MultipleAssignmentNode::to_ruby(Env *env) {
     auto sexp = new SexpValue { env, this, { SymbolValue::intern(env, "masgn") } };
     for (auto node : m_nodes) {
-        if (node->type() == Node::Type::Identifier) {
-            sexp->push(static_cast<IdentifierNode *>(node)->to_symbol(env));
+        if (node->type() == Node::Type::Arg) {
+            sexp->push(static_cast<ArgNode *>(node)->to_ruby(env));
         } else {
             NAT_NOT_YET_IMPLEMENTED(); // maybe not needed?
         }

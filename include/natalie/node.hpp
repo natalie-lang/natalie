@@ -9,6 +9,7 @@ namespace Natalie {
 
 struct Node : public gc {
     enum class Type {
+        Arg,
         Array,
         Assignment,
         AttrAssign,
@@ -88,6 +89,30 @@ struct NodeWithArgs : Node {
 
 protected:
     Vector<Node *> m_args {};
+};
+
+struct ArgNode : Node {
+    ArgNode(Token token)
+        : Node { token } { }
+
+    ArgNode(Token token, const char *name)
+        : Node { token }
+        , m_name { name } {
+        assert(m_name);
+    }
+
+    virtual Type type() override { return Type::Arg; }
+
+    virtual Value *to_ruby(Env *) override;
+
+    const char *name() { return m_name; }
+
+    bool splat() { return m_splat; }
+    void set_splat(bool splat) { m_splat = splat; }
+
+protected:
+    const char *m_name { nullptr };
+    bool m_splat { false };
 };
 
 struct ArrayNode : Node {
@@ -501,6 +526,7 @@ struct IdentifierNode : Node {
     Token::Type token_type() { return m_token.type(); }
 
     const char *name() { return m_token.literal(); }
+
     void append_to_name(char c) {
         m_token.set_literal(std::string(m_token.literal()) + c);
     }

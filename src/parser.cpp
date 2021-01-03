@@ -379,20 +379,34 @@ Node *Parser::parse_def_single_arg(Env *env, LocalsVectorPtr locals) {
     auto token = current_token();
     switch (token.type()) {
     case Token::Type::BareName: {
-        auto arg = static_cast<IdentifierNode *>(parse_identifier(env, locals));
+        auto arg = new ArgNode { token, token.literal() };
+        advance();
         locals->push(SymbolValue::intern(env, arg->name()));
         return arg;
     }
     case Token::Type::LParen: {
         advance();
         auto sub_args = parse_def_args(env, locals);
-        expect(env, Token::Type::RParen, "args closing paren");
+        expect(env, Token::Type::RParen, "nested args closing paren");
         advance();
         auto masgn = new MultipleAssignmentNode { token };
         for (auto arg : *sub_args) {
             masgn->add_node(arg);
         }
         return masgn;
+    }
+    case Token::Type::Multiply: {
+        advance();
+        ArgNode *arg;
+        if (current_token().is_bare_name()) {
+            arg = new ArgNode { token, current_token().literal() };
+            advance();
+            locals->push(SymbolValue::intern(env, arg->name()));
+        } else {
+            arg = new ArgNode { token };
+        }
+        arg->set_splat(true);
+        return arg;
     }
     default:
         raise_unexpected(env, "argument");
