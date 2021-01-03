@@ -203,16 +203,16 @@ describe 'Parser' do
       Parser.parse('Foo::bar x, y').should == s(:block, s(:call, s(:const, :Foo), :bar, s(:call, nil, :x), s(:call, nil, :y)))
     end
 
-    it 'parses global variabls' do
+    it 'parses global variables' do
       Parser.parse("$foo").should == s(:block, s(:gvar, :$foo))
       Parser.parse("$0").should == s(:block, s(:gvar, :$0))
     end
 
-    it 'parses instance variabls' do
+    it 'parses instance variables' do
       Parser.parse("@foo").should == s(:block, s(:ivar, :@foo))
     end
 
-    it 'parses class variabls' do
+    it 'parses class variables' do
       Parser.parse("@@foo").should == s(:block, s(:cvar, :@@foo))
     end
 
