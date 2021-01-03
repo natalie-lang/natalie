@@ -185,7 +185,7 @@ struct BeginRescueNode : Node {
 
     virtual Value *to_ruby(Env *) override;
 
-    void add_exception_node(IdentifierNode *node) {
+    void add_exception_node(Node *node) {
         m_exceptions.push(node);
     }
 
@@ -199,7 +199,7 @@ struct BeginRescueNode : Node {
 
 private:
     IdentifierNode *m_name { nullptr };
-    Vector<IdentifierNode *> m_exceptions {};
+    Vector<Node *> m_exceptions {};
     BlockNode *m_body { nullptr };
 };
 

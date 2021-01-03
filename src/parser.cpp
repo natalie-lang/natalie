@@ -121,13 +121,13 @@ Node *Parser::parse_begin(Env *env, LocalsVectorPtr locals) {
         case Token::Type::RescueKeyword: {
             auto rescue_node = new BeginRescueNode { current_token() };
             advance();
-            if (current_token().type() == Token::Type::Constant) {
-                auto identifier = static_cast<IdentifierNode *>(parse_identifier(env, locals));
-                rescue_node->add_exception_node(identifier);
-                while (current_token().type() == Token::Type::Comma) {
+            if (!current_token().is_eol() && current_token().type() != Token::Type::HashRocket) {
+                auto name = parse_expression(env, CALLARGS, locals);
+                rescue_node->add_exception_node(name);
+                while (current_token().is_comma()) {
                     advance();
-                    auto identifier = static_cast<IdentifierNode *>(parse_identifier(env, locals));
-                    rescue_node->add_exception_node(identifier);
+                    auto name = parse_expression(env, CALLARGS, locals);
+                    rescue_node->add_exception_node(name);
                 }
             }
             if (current_token().type() == Token::Type::HashRocket) {
