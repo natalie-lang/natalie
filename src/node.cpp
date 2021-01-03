@@ -356,6 +356,18 @@ SexpValue *IterNode::build_args_sexp(Env *env) {
     return sexp;
 }
 
+Value *InterpolatedShellNode::to_ruby(Env *env) {
+    auto sexp = new SexpValue { env, this, { SymbolValue::intern(env, "dxstr") } };
+    for (size_t i = 0; i < m_nodes.size(); i++) {
+        auto node = m_nodes[i];
+        if (i == 0 && node->type() == Node::Type::String)
+            sexp->push(static_cast<StringNode *>(node)->value());
+        else
+            sexp->push(node->to_ruby(env));
+    }
+    return sexp;
+}
+
 Value *InterpolatedStringNode::to_ruby(Env *env) {
     auto sexp = new SexpValue { env, this, { SymbolValue::intern(env, "dstr") } };
     for (size_t i = 0; i < m_nodes.size(); i++) {
@@ -484,6 +496,10 @@ Value *ReturnNode::to_ruby(Env *env) {
         return new SexpValue { env, this, { SymbolValue::intern(env, "return"), m_arg->to_ruby(env) } };
     }
     return new SexpValue { env, this, { SymbolValue::intern(env, "return") } };
+}
+
+Value *ShellNode::to_ruby(Env *env) {
+    return new SexpValue { env, this, { SymbolValue::intern(env, "xstr"), m_value } };
 }
 
 Value *SplatNode::to_ruby(Env *env) {

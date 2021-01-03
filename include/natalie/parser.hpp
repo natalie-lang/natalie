@@ -156,6 +156,7 @@ private:
     Node *parse_hash(Env *, LocalsVectorPtr);
     Node *parse_identifier(Env *, LocalsVectorPtr);
     Node *parse_if(Env *, LocalsVectorPtr);
+    Node *parse_interpolated_shell(Env *, LocalsVectorPtr);
     Node *parse_interpolated_string(Env *, LocalsVectorPtr);
     Node *parse_lit(Env *, LocalsVectorPtr);
     Node *parse_module(Env *, LocalsVectorPtr);

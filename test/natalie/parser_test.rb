@@ -438,5 +438,11 @@ describe 'Parser' do
       Parser.parse("begin;0;rescue;:a;else;:c;ensure;:d;:e;end").should == s(:block, s(:ensure, s(:rescue, s(:lit, 0), s(:resbody, s(:array), s(:lit, :a)), s(:lit, :c)), s(:block, s(:lit, :d), s(:lit, :e))))
       Parser.parse("begin;0;rescue foo(1), bar(2);1;end").should == s(:block, s(:rescue, s(:lit, 0), s(:resbody, s(:array, s(:call, nil, :foo, s(:lit, 1)), s(:call, nil, :bar, s(:lit, 2))), s(:lit, 1))))
     end
+
+    it 'parses backticks and %x()' do
+      Parser.parse("`ls`").should == s(:block, s(:xstr, "ls"))
+      Parser.parse("%x(ls)").should == s(:block, s(:xstr, "ls"))
+      Parser.parse("%x(ls \#{path})").should == s(:block, s(:dxstr, "ls ", s(:evstr, s(:call, nil, :path))))
+    end
   end
 end

@@ -504,6 +504,49 @@ Node *Parser::parse_if_body(Env *env, LocalsVectorPtr locals) {
     return body->has_one_node() ? (*body->nodes())[0] : body;
 }
 
+Node *Parser::parse_interpolated_shell(Env *env, LocalsVectorPtr locals) {
+    auto token = current_token();
+    advance();
+    if (current_token().type() == Token::Type::InterpolatedShellEnd) {
+        auto shell = new ShellNode { token, new StringValue { env } };
+        advance();
+        return shell;
+    } else if (current_token().type() == Token::Type::String && peek_token().type() == Token::Type::InterpolatedShellEnd) {
+        auto shell = new ShellNode { token, new StringValue { env, current_token().literal() } };
+        advance();
+        advance();
+        return shell;
+    } else {
+        auto interpolated_shell = new InterpolatedShellNode { token };
+        while (current_token().type() != Token::Type::InterpolatedShellEnd) {
+            switch (current_token().type()) {
+            case Token::Type::EvaluateToStringBegin: {
+                advance();
+                auto block = new BlockNode { current_token() };
+                while (current_token().type() != Token::Type::EvaluateToStringEnd) {
+                    block->add_node(parse_expression(env, LOWEST, locals));
+                    skip_newlines();
+                }
+                advance();
+                if (block->has_one_node())
+                    interpolated_shell->add_node(new EvaluateToStringNode { current_token(), (*block->nodes())[0] });
+                else
+                    interpolated_shell->add_node(new EvaluateToStringNode { current_token(), block });
+                break;
+            }
+            case Token::Type::String:
+                interpolated_shell->add_node(new StringNode { current_token(), new StringValue { env, current_token().literal() } });
+                advance();
+                break;
+            default:
+                NAT_UNREACHABLE();
+            }
+        }
+        advance();
+        return interpolated_shell;
+    }
+};
+
 Node *Parser::parse_interpolated_string(Env *env, LocalsVectorPtr locals) {
     auto token = current_token();
     advance();
@@ -1046,6 +1089,8 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type, Precedence prece
         }
     case Type::IfKeyword:
         return &Parser::parse_if;
+    case Type::InterpolatedShellBegin:
+        return &Parser::parse_interpolated_shell;
     case Type::InterpolatedStringBegin:
         return &Parser::parse_interpolated_string;
     case Type::Integer:

@@ -31,6 +31,7 @@ struct Node : public gc {
         Identifier,
         If,
         Iter,
+        InterpolatedShell,
         InterpolatedString,
         Literal,
         LogicalAnd,
@@ -561,6 +562,20 @@ private:
     BlockNode *m_body { nullptr };
 };
 
+struct InterpolatedShellNode : Node {
+    InterpolatedShellNode(Token token)
+        : Node { token } { }
+
+    virtual Type type() override { return Type::InterpolatedShell; }
+
+    virtual Value *to_ruby(Env *) override;
+
+    void add_node(Node *node) { m_nodes.push(node); };
+
+private:
+    Vector<Node *> m_nodes {};
+};
+
 struct InterpolatedStringNode : Node {
     InterpolatedStringNode(Token token)
         : Node { token } { }
@@ -748,6 +763,23 @@ struct ReturnNode : Node {
 
 private:
     Node *m_arg { nullptr };
+};
+
+struct ShellNode : Node {
+    ShellNode(Token token, Value *value)
+        : Node { token }
+        , m_value { value } {
+        assert(m_value);
+    }
+
+    virtual Type type() override { return Type::String; }
+
+    virtual Value *to_ruby(Env *) override;
+
+    Value *value() { return m_value; }
+
+private:
+    Value *m_value { nullptr };
 };
 
 struct SplatNode : Node {
