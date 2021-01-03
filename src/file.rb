@@ -1,11 +1,13 @@
 class File
+  SEPARATOR = '/'.freeze
+
   def self.join(*parts)
-    parts.join('/')
+    parts.join(SEPARATOR)
   end
 
   def self.dirname(path)
-    dir = path.sub(%r{/\z}, '').split('/')[0..-2].join('/')
-    return '/' if dir.empty? && path.start_with?('/')
+    dir = path.sub(%r{#{SEPARATOR}\z}, '').split(SEPARATOR)[0..-2].join(SEPARATOR)
+    return SEPARATOR if dir.empty? && path.start_with?(SEPARATOR)
     return '.' if dir.empty?
     dir
   end

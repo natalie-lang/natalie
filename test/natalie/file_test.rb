@@ -13,6 +13,12 @@ describe 'File' do
     }.should raise_error(Errno::ENOENT)
   end
 
+  describe 'SEPARATOR' do
+    it 'is hardcoded to / for now' do
+      File::SEPARATOR.should == '/'
+    end
+  end
+
   describe '.open and .new' do
     it 'accepts a block' do
       path = File.expand_path('../tmp/file.txt', __dir__)
