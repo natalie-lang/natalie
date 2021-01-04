@@ -427,6 +427,21 @@ Node *Parser::parse_def_single_arg(Env *env, LocalsVectorPtr locals) {
         arg->set_block_arg(true);
         return arg;
     }
+    case Token::Type::SymbolKey: {
+        auto arg = new KeywordArgNode { token, current_token().literal() };
+        advance();
+        switch (current_token().type()) {
+        case Token::Type::Comma:
+        case Token::Type::RParen:
+        case Token::Type::Eol:
+        case Token::Type::BitwiseOr:
+            break;
+        default:
+            arg->set_value(parse_expression(env, DEFARGS, locals));
+        }
+        locals->push(SymbolValue::intern(env, arg->name()));
+        return arg;
+    }
     default:
         raise_unexpected(env, "argument");
     }

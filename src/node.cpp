@@ -282,8 +282,7 @@ SexpValue *DefNode::build_args_sexp(Env *env) {
     for (auto arg : *m_args) {
         switch (arg->type()) {
         case Node::Type::Arg:
-            sexp->push(static_cast<ArgNode *>(arg)->to_ruby(env));
-            break;
+        case Node::Type::KeywordArg:
         case Node::Type::MultipleAssignment:
             sexp->push(arg->to_ruby(env));
             break;
@@ -379,8 +378,7 @@ SexpValue *IterNode::build_args_sexp(Env *env) {
     for (auto arg : *m_args) {
         switch (arg->type()) {
         case Node::Type::Arg:
-            sexp->push(static_cast<ArgNode *>(arg)->to_ruby(env));
-            break;
+        case Node::Type::KeywordArg:
         case Node::Type::MultipleAssignment:
             sexp->push(arg->to_ruby(env));
             break;
@@ -412,6 +410,20 @@ Value *InterpolatedStringNode::to_ruby(Env *env) {
         else
             sexp->push(node->to_ruby(env));
     }
+    return sexp;
+}
+
+Value *KeywordArgNode::to_ruby(Env *env) {
+    auto sexp = new SexpValue {
+        env,
+        this,
+        {
+            SymbolValue::intern(env, "kwarg"),
+            SymbolValue::intern(env, m_name),
+        }
+    };
+    if (m_value)
+        sexp->push(m_value->to_ruby(env));
     return sexp;
 }
 

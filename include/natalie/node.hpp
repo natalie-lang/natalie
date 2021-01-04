@@ -34,6 +34,7 @@ struct Node : public gc {
         Iter,
         InterpolatedShell,
         InterpolatedString,
+        KeywordArg,
         Literal,
         LogicalAnd,
         LogicalOr,
@@ -650,6 +651,15 @@ struct InterpolatedStringNode : Node {
 
 private:
     Vector<Node *> m_nodes {};
+};
+
+struct KeywordArgNode : ArgNode {
+    KeywordArgNode(Token token, const char *name)
+        : ArgNode { token, name } { }
+
+    virtual Type type() override { return Type::KeywordArg; }
+
+    virtual Value *to_ruby(Env *) override;
 };
 
 struct LogicalAndNode : Node {
