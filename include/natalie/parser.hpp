@@ -159,12 +159,12 @@ private:
     Node *parse_file_constant(Env *, LocalsVectorPtr);
     Node *parse_group(Env *, LocalsVectorPtr);
     Node *parse_hash(Env *, LocalsVectorPtr);
-    Node *parse_keyword_args(Env *, LocalsVectorPtr);
     Node *parse_identifier(Env *, LocalsVectorPtr);
     Node *parse_if(Env *, LocalsVectorPtr);
     Node *parse_interpolated_shell(Env *, LocalsVectorPtr);
     Node *parse_interpolated_string(Env *, LocalsVectorPtr);
     Node *parse_lit(Env *, LocalsVectorPtr);
+    Node *parse_keyword_args(Env *, LocalsVectorPtr);
     Node *parse_module(Env *, LocalsVectorPtr);
     Node *parse_next(Env *, LocalsVectorPtr);
     Node *parse_nil(Env *, LocalsVectorPtr);
@@ -179,6 +179,7 @@ private:
     Node *parse_statement_keyword(Env *, LocalsVectorPtr);
     Node *parse_top_level_constant(Env *, LocalsVectorPtr);
     Node *parse_unless(Env *, LocalsVectorPtr);
+    Node *parse_while(Env *, LocalsVectorPtr);
     Node *parse_word_array(Env *, LocalsVectorPtr);
     Node *parse_word_symbol_array(Env *, LocalsVectorPtr);
     Node *parse_yield(Env *, LocalsVectorPtr);

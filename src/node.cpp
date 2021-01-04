@@ -85,7 +85,7 @@ Value *BeginNode::to_ruby(Env *env) {
             (*sexp)[0] = SymbolValue::intern(env, "ensure");
         else
             sexp = new SexpValue { env, this, { SymbolValue::intern(env, "ensure"), sexp } };
-        sexp->push(m_ensure_body->to_ruby(env));
+        sexp->push(m_ensure_body->without_unnecessary_nesting()->to_ruby(env));
     }
     return sexp;
 }
@@ -612,6 +612,34 @@ Value *SymbolNode::to_ruby(Env *env) {
 
 Value *TrueNode::to_ruby(Env *env) {
     return new SexpValue { env, this, { SymbolValue::intern(env, "true") } };
+}
+
+Value *UntilNode::to_ruby(Env *env) {
+    auto sexp = WhileNode::to_ruby(env);
+    (*sexp->as_array())[0] = SymbolValue::intern(env, "until");
+    return sexp;
+}
+
+Value *WhileNode::to_ruby(Env *env) {
+    Value *is_pre, *body;
+    if (m_pre)
+        is_pre = env->true_obj();
+    else
+        is_pre = env->false_obj();
+    if (m_body->is_empty())
+        body = env->nil_obj();
+    else
+        body = m_body->without_unnecessary_nesting()->to_ruby(env);
+    return new SexpValue {
+        env,
+        this,
+        {
+            SymbolValue::intern(env, "while"),
+            m_condition->to_ruby(env),
+            body,
+            is_pre,
+        }
+    };
 }
 
 Value *YieldNode::to_ruby(Env *env) {

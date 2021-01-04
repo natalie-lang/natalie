@@ -287,6 +287,23 @@ describe 'Parser' do
       Parser.parse("unless false; 1; else; 2; end").should == s(:block, s(:if, s(:false), s(:lit, 2), s(:lit, 1)))
     end
 
+    it 'parses while/until' do
+      Parser.parse("while true; end").should == s(:block, s(:while, s(:true), nil, true))
+      Parser.parse("while true; 1; end").should == s(:block, s(:while, s(:true), s(:lit, 1), true))
+      Parser.parse("while true; 1; 2; end").should == s(:block, s(:while, s(:true), s(:block, s(:lit, 1), s(:lit, 2)), true))
+      Parser.parse("until true; end").should == s(:block, s(:until, s(:true), nil, true))
+      Parser.parse("until true; 1; end").should == s(:block, s(:until, s(:true), s(:lit, 1), true))
+      Parser.parse("until true; 1; 2; end").should == s(:block, s(:until, s(:true), s(:block, s(:lit, 1), s(:lit, 2)), true))
+      Parser.parse("begin; 1; end while true").should == s(:block, s(:while, s(:true), s(:lit, 1), false))
+      Parser.parse("begin; 1; 2; end while true").should == s(:block, s(:while, s(:true), s(:block, s(:lit, 1), s(:lit, 2)), false))
+      Parser.parse("begin; 1; rescue; 2; end while true").should == s(:block, s(:while, s(:true), s(:rescue, s(:lit, 1), s(:resbody, s(:array), s(:lit, 2))), false))
+      Parser.parse("begin; 1; ensure; 2; end while true").should == s(:block, s(:while, s(:true), s(:ensure, s(:lit, 1), s(:lit, 2)), false))
+      Parser.parse("begin; 1; end until true").should == s(:block, s(:until, s(:true), s(:lit, 1), false))
+      Parser.parse("begin; 1; 2; end until true").should == s(:block, s(:until, s(:true), s(:block, s(:lit, 1), s(:lit, 2)), false)) 
+      Parser.parse("begin; 1; rescue; 2; end until true").should == s(:block, s(:until, s(:true), s(:rescue, s(:lit, 1), s(:resbody, s(:array), s(:lit, 2))), false))
+      Parser.parse("begin; 1; ensure; 2; end until true").should == s(:block, s(:until, s(:true), s(:ensure, s(:lit, 1), s(:lit, 2)), false))
+    end
+
     it 'parses post-conditional if/unless' do
       Parser.parse("true if true").should == s(:block, s(:if, s(:true), s(:true), nil))
       Parser.parse("true unless true").should == s(:block, s(:if, s(:true), nil, s(:true)))
@@ -481,6 +498,7 @@ describe 'Parser' do
       Parser.parse("begin\n0\nensure\n:a\n:b\nend").should == s(:block, s(:ensure, s(:lit, 0), s(:block, s(:lit, :a), s(:lit, :b))))
       Parser.parse("begin;0;rescue;:a;else;:c;ensure;:d;:e;end").should == s(:block, s(:ensure, s(:rescue, s(:lit, 0), s(:resbody, s(:array), s(:lit, :a)), s(:lit, :c)), s(:block, s(:lit, :d), s(:lit, :e))))
       Parser.parse("begin;0;rescue foo(1), bar(2);1;end").should == s(:block, s(:rescue, s(:lit, 0), s(:resbody, s(:array, s(:call, nil, :foo, s(:lit, 1)), s(:call, nil, :bar, s(:lit, 2))), s(:lit, 1))))
+      Parser.parse("begin;0;ensure;1;end").should == s(:block, s(:ensure, s(:lit, 0), s(:lit, 1)))
     end
 
     it 'parses backticks and %x()' do

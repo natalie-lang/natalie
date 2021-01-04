@@ -56,6 +56,8 @@ struct Node : public gc {
         String,
         Symbol,
         True,
+        Until,
+        While,
         Yield,
     };
 
@@ -205,9 +207,13 @@ struct BeginNode : Node {
     virtual Value *to_ruby(Env *) override;
 
     void add_rescue_node(BeginRescueNode *node) { m_rescue_nodes.push(node); }
+    bool no_rescue_nodes() { return m_rescue_nodes.size() == 0; }
 
+    bool has_ensure_body() { return m_ensure_body ? true : false; }
     void set_else_body(BlockNode *else_body) { m_else_body = else_body; }
     void set_ensure_body(BlockNode *ensure_body) { m_ensure_body = ensure_body; }
+
+    BlockNode *body() { return m_body; }
 
 private:
     BlockNode *m_body { nullptr };
@@ -245,6 +251,11 @@ private:
 struct BlockNode : Node {
     BlockNode(Token token)
         : Node { token } { }
+
+    BlockNode(Token token, Node *single_node)
+        : Node { token } {
+        add_node(single_node);
+    }
 
     void add_node(Node *node) {
         m_nodes.push(node);
@@ -970,6 +981,35 @@ struct TrueNode : Node {
     virtual Value *to_ruby(Env *) override;
 
     virtual Type type() override { return Type::True; }
+};
+
+struct WhileNode : Node {
+    WhileNode(Token token, Node *condition, BlockNode *body, bool pre)
+        : Node { token }
+        , m_condition { condition }
+        , m_body { body }
+        , m_pre { pre } {
+        assert(m_condition);
+        assert(m_body);
+    }
+
+    virtual Value *to_ruby(Env *) override;
+
+    virtual Type type() override { return Type::While; }
+
+private:
+    Node *m_condition { nullptr };
+    BlockNode *m_body { nullptr };
+    bool m_pre { false };
+};
+
+struct UntilNode : WhileNode {
+    UntilNode(Token token, Node *condition, BlockNode *body, bool pre)
+        : WhileNode { token, condition, body, pre } { }
+
+    virtual Value *to_ruby(Env *) override;
+
+    virtual Type type() override { return Type::Until; }
 };
 
 struct YieldNode : NodeWithArgs {

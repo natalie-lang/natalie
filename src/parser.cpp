@@ -167,7 +167,31 @@ Node *Parser::parse_begin(Env *env, LocalsVectorPtr locals) {
     }
     expect(env, Token::Type::EndKeyword, "case end");
     advance();
-    return begin_node;
+    token = current_token();
+    switch (token.type()) {
+    case Token::Type::UntilKeyword: {
+        advance();
+        auto condition = parse_expression(env, LOWEST, locals);
+        BlockNode *body;
+        if (begin_node->no_rescue_nodes() && !begin_node->has_ensure_body())
+            body = begin_node->body();
+        else
+            body = new BlockNode { token, begin_node };
+        return new UntilNode { token, condition, body, false };
+    }
+    case Token::Type::WhileKeyword: {
+        advance();
+        auto condition = parse_expression(env, LOWEST, locals);
+        BlockNode *body;
+        if (begin_node->no_rescue_nodes() && !begin_node->has_ensure_body())
+            body = begin_node->body();
+        else
+            body = new BlockNode { token, begin_node };
+        return new WhileNode { token, condition, body, false };
+    }
+    default:
+        return begin_node;
+    }
 }
 
 Node *Parser::parse_block_pass(Env *env, LocalsVectorPtr locals) {
@@ -546,24 +570,6 @@ Node *Parser::parse_if(Env *env, LocalsVectorPtr locals) {
         advance();
         return new IfNode { token, condition, true_expr, false_expr };
     }
-}
-
-Node *Parser::parse_unless(Env *env, LocalsVectorPtr locals) {
-    auto token = current_token();
-    advance();
-    auto condition = parse_expression(env, LOWEST, locals);
-    next_expression(env);
-    auto false_expr = parse_if_body(env, locals);
-    Node *true_expr;
-    if (current_token().is_else_keyword()) {
-        advance();
-        true_expr = parse_if_body(env, locals);
-    } else {
-        true_expr = new NilNode { current_token() };
-    }
-    expect(env, Token::Type::EndKeyword, "if end");
-    advance();
-    return new IfNode { token, condition, true_expr, false_expr };
 }
 
 Node *Parser::parse_if_body(Env *env, LocalsVectorPtr locals) {
@@ -1200,6 +1206,42 @@ Node *Parser::parse_ternary_expression(Env *env, Node *left, LocalsVectorPtr loc
     return new IfNode { token, left, true_expr, false_expr };
 }
 
+Node *Parser::parse_unless(Env *env, LocalsVectorPtr locals) {
+    auto token = current_token();
+    advance();
+    auto condition = parse_expression(env, LOWEST, locals);
+    next_expression(env);
+    auto false_expr = parse_if_body(env, locals);
+    Node *true_expr;
+    if (current_token().is_else_keyword()) {
+        advance();
+        true_expr = parse_if_body(env, locals);
+    } else {
+        true_expr = new NilNode { current_token() };
+    }
+    expect(env, Token::Type::EndKeyword, "if end");
+    advance();
+    return new IfNode { token, condition, true_expr, false_expr };
+}
+
+Node *Parser::parse_while(Env *env, LocalsVectorPtr locals) {
+    auto token = current_token();
+    advance();
+    auto condition = parse_expression(env, LOWEST, locals);
+    next_expression(env);
+    auto body = parse_body(env, locals, LOWEST);
+    expect(env, Token::Type::EndKeyword, "while end");
+    advance();
+    switch (token.type()) {
+    case Token::Type::UntilKeyword:
+        return new UntilNode { token, condition, body, true };
+    case Token::Type::WhileKeyword:
+        return new WhileNode { token, condition, body, true };
+    default:
+        NAT_UNREACHABLE();
+    }
+}
+
 Parser::parse_null_fn Parser::null_denotation(Token::Type type, Precedence precedence) {
     using Type = Token::Type;
     switch (type) {
@@ -1272,6 +1314,9 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type, Precedence prece
         return &Parser::parse_top_level_constant;
     case Type::UnlessKeyword:
         return &Parser::parse_unless;
+    case Type::UntilKeyword:
+    case Type::WhileKeyword:
+        return &Parser::parse_while;
     case Type::PercentLowerI:
     case Type::PercentUpperI:
         return &Parser::parse_word_symbol_array;
