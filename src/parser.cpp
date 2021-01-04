@@ -89,6 +89,27 @@ BlockNode *Parser::parse_body(Env *env, LocalsVectorPtr locals, Precedence prece
     return body;
 }
 
+Node *Parser::parse_alias(Env *env, LocalsVectorPtr locals) {
+    auto token = current_token();
+    advance();
+    auto new_name = parse_alias_arg(env, locals, "alias new name (first argument)");
+    auto existing_name = parse_alias_arg(env, locals, "alias existing name (second argument)");
+    return new AliasNode { token, new_name, existing_name };
+}
+
+SymbolNode *Parser::parse_alias_arg(Env *env, LocalsVectorPtr locals, const char *expected_message) {
+    switch (current_token().type()) {
+    case Token::Type::BareName: {
+        auto identifier = static_cast<IdentifierNode *>(parse_identifier(env, locals));
+        return new SymbolNode { current_token(), SymbolValue::intern(env, identifier->name()) };
+    }
+    case Token::Type::Symbol:
+        return static_cast<SymbolNode *>(parse_symbol(env, locals));
+    default:
+        raise_unexpected(env, expected_message);
+    }
+}
+
 Node *Parser::parse_array(Env *env, LocalsVectorPtr locals) {
     auto array = new ArrayNode { current_token() };
     advance();
@@ -1245,6 +1266,8 @@ Node *Parser::parse_while(Env *env, LocalsVectorPtr locals) {
 Parser::parse_null_fn Parser::null_denotation(Token::Type type, Precedence precedence) {
     using Type = Token::Type;
     switch (type) {
+    case Type::AliasKeyword:
+        return &Parser::parse_alias;
     case Type::LBracket:
         return &Parser::parse_array;
     case Type::BeginKeyword:

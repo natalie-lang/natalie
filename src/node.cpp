@@ -2,6 +2,18 @@
 
 namespace Natalie {
 
+Value *AliasNode::to_ruby(Env *env) {
+    return new SexpValue {
+        env,
+        this,
+        {
+            SymbolValue::intern(env, "alias"),
+            m_new_name->to_ruby(env),
+            m_existing_name->to_ruby(env),
+        }
+    };
+}
+
 Value *ArgNode::to_ruby(Env *env) {
     if (m_value) {
         return new SexpValue {

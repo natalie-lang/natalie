@@ -9,6 +9,7 @@ namespace Natalie {
 
 struct Node : public gc {
     enum class Type {
+        Alias,
         Arg,
         Array,
         Assignment,
@@ -92,6 +93,23 @@ struct NodeWithArgs : Node {
 
 protected:
     Vector<Node *> m_args {};
+};
+
+struct SymbolNode;
+
+struct AliasNode : Node {
+    AliasNode(Token token, SymbolNode *new_name, SymbolNode *existing_name)
+        : Node { token }
+        , m_new_name { new_name }
+        , m_existing_name { existing_name } { }
+
+    virtual Type type() override { return Type::Alias; }
+
+    virtual Value *to_ruby(Env *) override;
+
+private:
+    SymbolNode *m_new_name { nullptr };
+    SymbolNode *m_existing_name { nullptr };
 };
 
 struct ArgNode : Node {

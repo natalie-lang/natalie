@@ -506,5 +506,10 @@ describe 'Parser' do
       Parser.parse("%x(ls)").should == s(:block, s(:xstr, "ls"))
       Parser.parse("%x(ls \#{path})").should == s(:block, s(:dxstr, "ls ", s(:evstr, s(:call, nil, :path))))
     end
+
+    it 'parses alias' do
+      Parser.parse('alias foo bar').should == s(:block, s(:alias, s(:lit, :foo), s(:lit, :bar)))
+      Parser.parse('alias :foo :bar').should == s(:block, s(:alias, s(:lit, :foo), s(:lit, :bar)))
+    end
   end
 end

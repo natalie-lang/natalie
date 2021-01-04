@@ -143,6 +143,8 @@ private:
     BlockNode *parse_case_when_body(Env *, LocalsVectorPtr);
     Node *parse_if_body(Env *, LocalsVectorPtr);
 
+    Node *parse_alias(Env *, LocalsVectorPtr);
+    SymbolNode *parse_alias_arg(Env *, LocalsVectorPtr, const char *);
     Node *parse_array(Env *, LocalsVectorPtr);
     Node *parse_begin(Env *, LocalsVectorPtr);
     Node *parse_block_pass(Env *, LocalsVectorPtr);
