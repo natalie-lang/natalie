@@ -1,18 +1,11 @@
 #pragma once
 
 #include "natalie.hpp"
-#include "natalie/node.hpp"
 
 namespace Natalie {
 
 struct SexpValue : ArrayValue {
-    SexpValue(Env *env, Node *node, std::initializer_list<Value *> list)
-        : ArrayValue { env, list }
-        , m_file { node->file() }
-        , m_line { node->line() }
-        , m_column { node->column() } {
-        m_klass = env->Object()->const_fetch("Parser")->const_fetch("Sexp")->as_class();
-    }
+    SexpValue(Env *, Node *, std::initializer_list<Value *>);
 
     Value *new_method(Env *env, size_t argc, Value **args) {
         auto sexp = new SexpValue { env, {} };

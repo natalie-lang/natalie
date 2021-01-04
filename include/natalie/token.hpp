@@ -1,6 +1,13 @@
 #pragma once
 
+#include "natalie/float_value.hpp"
 #include "natalie/gc.hpp"
+#include "natalie/hash_value.hpp"
+#include "natalie/integer_value.hpp"
+#include "natalie/regexp_value.hpp"
+#include "natalie/sexp_value.hpp"
+#include "natalie/string_value.hpp"
+#include "natalie/symbol_value.hpp"
 #include "natalie/value.hpp"
 
 namespace Natalie {

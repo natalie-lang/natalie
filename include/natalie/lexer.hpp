@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "natalie.hpp"
+#include "natalie/gc.hpp"
 #include "natalie/token.hpp"
 
 namespace Natalie {

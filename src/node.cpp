@@ -1,4 +1,4 @@
-#include "natalie/parser.hpp"
+#include "natalie/node.hpp"
 
 namespace Natalie {
 
