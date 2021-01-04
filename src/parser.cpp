@@ -684,6 +684,30 @@ Node *Parser::parse_lit(Env *env, LocalsVectorPtr locals) {
     return new LiteralNode { token, value };
 };
 
+Node *Parser::parse_keyword_args(Env *env, LocalsVectorPtr locals) {
+    auto hash = new HashNode { current_token() };
+    if (current_token().type() == Token::Type::SymbolKey) {
+        hash->add_node(parse_symbol(env, locals));
+    } else {
+        hash->add_node(parse_expression(env, HASH, locals));
+        expect(env, Token::Type::HashRocket, "hash rocket");
+        advance();
+    }
+    hash->add_node(parse_expression(env, HASH, locals));
+    while (current_token().type() == Token::Type::Comma) {
+        advance();
+        if (current_token().type() == Token::Type::SymbolKey) {
+            hash->add_node(parse_symbol(env, locals));
+        } else {
+            hash->add_node(parse_expression(env, HASH, locals));
+            expect(env, Token::Type::HashRocket, "hash rocket");
+            advance();
+        }
+        hash->add_node(parse_expression(env, HASH, locals));
+    }
+    return hash;
+}
+
 Node *Parser::parse_module(Env *env, LocalsVectorPtr) {
     auto token = current_token();
     advance();
@@ -982,8 +1006,15 @@ void Parser::parse_call_args(Env *env, NodeWithArgs *node, LocalsVectorPtr local
     node->add_arg(arg);
     while (current_token().is_comma()) {
         advance();
-        auto arg = parse_expression(env, CALLARGS, locals);
-        node->add_arg(arg);
+        auto token = current_token();
+        if ((token.type() == Token::Type::Symbol && peek_token().type() == Token::Type::HashRocket) || token.type() == Token::Type::SymbolKey) {
+            auto hash = parse_keyword_args(env, locals);
+            node->add_arg(hash);
+            break;
+        } else {
+            auto arg = parse_expression(env, CALLARGS, locals);
+            node->add_arg(arg);
+        }
     }
 }
 
@@ -1371,7 +1402,7 @@ void Parser::raise_unexpected(Env *env, Token token, const char *expected) {
     if (strcmp(type, "EOF") == 0)
         env->raise("SyntaxError", "%s#%d: syntax error, unexpected end-of-input (expected: '%s')", file, line, expected);
     else if (literal)
-        env->raise("SyntaxError", "%s#%d: syntax error, unexpected '%s' (expected: '%s')", file, line, literal, expected);
+        env->raise("SyntaxError", "%s#%d: syntax error, unexpected %s '%s' (expected: '%s')", file, line, type, literal, expected);
     else
         env->raise("SyntaxError", "%s#%d: syntax error, unexpected '%s' (expected: '%s')", file, line, type, expected);
 }

@@ -236,6 +236,10 @@ describe 'Parser' do
       Parser.parse("foo(1, 'baz')").should == s(:block, s(:call, nil, :foo, s(:lit, 1), s(:str, "baz")))
       Parser.parse("foo(a, b)").should == s(:block, s(:call, nil, :foo, s(:call, nil, :a), s(:call, nil, :b)))
       Parser.parse("foo(\n1 + 2  ,\n  'baz'  \n )").should == s(:block, s(:call, nil, :foo, s(:call, s(:lit, 1), :+, s(:lit, 2)), s(:str, "baz")))
+      Parser.parse("foo(1, a: 2)").should == s(:block, s(:call, nil, :foo, s(:lit, 1), s(:hash, s(:lit, :a), s(:lit, 2))))
+      Parser.parse("foo(1, { a: 2 })").should == s(:block, s(:call, nil, :foo, s(:lit, 1), s(:hash, s(:lit, :a), s(:lit, 2))))
+      Parser.parse("foo(1, { a: 2, :b => 3 })").should == s(:block, s(:call, nil, :foo, s(:lit, 1), s(:hash, s(:lit, :a), s(:lit, 2), s(:lit, :b), s(:lit, 3))))
+      Parser.parse("foo(:a, :b)").should == s(:block, s(:call, nil, :foo, s(:lit, :a), s(:lit, :b)))
       if (RUBY_ENGINE == 'natalie')
         -> { Parser.parse("foo(") }.should raise_error(SyntaxError, "(string)#1: syntax error, unexpected end-of-input (expected: 'expression')")
       else
@@ -250,6 +254,10 @@ describe 'Parser' do
       Parser.parse("foo 1 + 2  ,\n  'baz'").should == s(:block, s(:call, nil, :foo, s(:call, s(:lit, 1), :+, s(:lit, 2)), s(:str, "baz")))
       Parser.parse("foo 'foo' + 'bar'  ,\n  2").should == s(:block, s(:call, nil, :foo, s(:call, s(:str, "foo"), :+, s(:str, "bar")), s(:lit, 2)))
       Parser.parse("foo a, b").should == s(:block, s(:call, nil, :foo, s(:call, nil, :a), s(:call, nil, :b)))
+      Parser.parse("foo 1, a: 2").should == s(:block, s(:call, nil, :foo, s(:lit, 1), s(:hash, s(:lit, :a), s(:lit, 2))))
+      Parser.parse("foo 1, :a => 2, b: 3").should == s(:block, s(:call, nil, :foo, s(:lit, 1), s(:hash, s(:lit, :a), s(:lit, 2), s(:lit, :b), s(:lit, 3))))
+      Parser.parse("foo 1, { a: 2 }").should == s(:block, s(:call, nil, :foo, s(:lit, 1), s(:hash, s(:lit, :a), s(:lit, 2))))
+      Parser.parse("foo :a, :b").should == s(:block, s(:call, nil, :foo, s(:lit, :a), s(:lit, :b)))
     end
 
     it 'parses method calls with a receiver' do

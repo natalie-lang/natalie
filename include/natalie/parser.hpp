@@ -159,6 +159,7 @@ private:
     Node *parse_file_constant(Env *, LocalsVectorPtr);
     Node *parse_group(Env *, LocalsVectorPtr);
     Node *parse_hash(Env *, LocalsVectorPtr);
+    Node *parse_keyword_args(Env *, LocalsVectorPtr);
     Node *parse_identifier(Env *, LocalsVectorPtr);
     Node *parse_if(Env *, LocalsVectorPtr);
     Node *parse_interpolated_shell(Env *, LocalsVectorPtr);
