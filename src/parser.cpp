@@ -388,6 +388,10 @@ Node *Parser::parse_def_single_arg(Env *env, LocalsVectorPtr locals) {
         auto arg = new ArgNode { token, token.literal() };
         advance();
         locals->push(SymbolValue::intern(env, arg->name()));
+        if (current_token().type() == Token::Type::Equal) {
+            advance();
+            arg->set_value(parse_expression(env, DEFARGS, locals));
+        }
         return arg;
     }
     case Token::Type::LParen: {

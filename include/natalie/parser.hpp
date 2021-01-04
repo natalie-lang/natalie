@@ -39,6 +39,7 @@ struct Parser : public gc {
         BITWISEOR, // ^ |
         BITWISEAND, // &
         BITWISESHIFT, // << >>
+        DEFARGS, // def foo(a, b) and { |a, b| ... }
         SUM, // + -
         PRODUCT, // * / %
         PREFIX, // -1 +1

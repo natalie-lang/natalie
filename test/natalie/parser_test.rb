@@ -193,6 +193,7 @@ describe 'Parser' do
       Parser.parse("def foo(*x); end").should == s(:block, s(:defn, :foo, s(:args, :"*x"), s(:nil)))
       Parser.parse("def foo(x, *y, z); end").should == s(:block, s(:defn, :foo, s(:args, :x, :"*y", :z), s(:nil)))
       Parser.parse("def foo(a, &b); end").should == s(:block, s(:defn, :foo, s(:args, :a, :"&b"), s(:nil)))
+      Parser.parse("def foo(a = nil, b = foo, c = FOO); end").should == s(:block, s(:defn, :foo, s(:args, s(:lasgn, :a, s(:nil)), s(:lasgn, :b, s(:call, nil, :foo)), s(:lasgn, :c, s(:const, :FOO))), s(:nil)))
     end
 
     it 'parses method calls vs local variable lookup' do
@@ -413,6 +414,7 @@ describe 'Parser' do
       Parser.parse("bar { |*| 1 }").should == s(:block, s(:iter, s(:call, nil, :bar), s(:args, :*), s(:lit, 1)))
       Parser.parse("bar { |*x| x }").should == s(:block, s(:iter, s(:call, nil, :bar), s(:args, :"*x"), s(:lvar, :x)))
       Parser.parse("bar { |x, *y, z| y }").should == s(:block, s(:iter, s(:call, nil, :bar), s(:args, :x, :"*y", :z), s(:lvar, :y)))
+      Parser.parse("bar { |a = nil, b = foo, c = FOO| b }").should == s(:block, s(:iter, s(:call, nil, :bar), s(:args, s(:lasgn, :a, s(:nil)), s(:lasgn, :b, s(:call, nil, :foo)), s(:lasgn, :c, s(:const, :FOO))), s(:lvar, :b)))
     end
 
     it 'parses block pass' do

@@ -113,10 +113,14 @@ struct ArgNode : Node {
     bool block_arg() { return m_block_arg; }
     void set_block_arg(bool block_arg) { m_block_arg = block_arg; }
 
+    Node *value() { return m_value; }
+    void set_value(Node *value) { m_value = value; }
+
 protected:
     const char *m_name { nullptr };
     bool m_block_arg { false };
     bool m_splat { false };
+    Node *m_value { nullptr };
 };
 
 struct ArrayNode : Node {
