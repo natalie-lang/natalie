@@ -255,6 +255,17 @@ Value *ConstantNode::to_ruby(Env *env) {
     };
 }
 
+Value *DefinedNode::to_ruby(Env *env) {
+    return new SexpValue {
+        env,
+        this,
+        {
+            SymbolValue::intern(env, "defined"),
+            m_arg->to_ruby(env),
+        }
+    };
+}
+
 Value *DefNode::to_ruby(Env *env) {
     SexpValue *sexp;
     if (m_self_node) {

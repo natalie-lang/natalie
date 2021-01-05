@@ -156,6 +156,7 @@ private:
     void parse_comma_separated_expressions(Env *, ArrayNode *, LocalsVectorPtr);
     Node *parse_constant(Env *, LocalsVectorPtr);
     Node *parse_def(Env *, LocalsVectorPtr);
+    Node *parse_defined(Env *, LocalsVectorPtr);
     Vector<Node *> *parse_def_args(Env *, LocalsVectorPtr);
     Node *parse_def_single_arg(Env *, LocalsVectorPtr);
     Node *parse_file_constant(Env *, LocalsVectorPtr);

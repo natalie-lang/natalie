@@ -416,6 +416,13 @@ Node *Parser::parse_def(Env *env, LocalsVectorPtr) {
     return new DefNode { token, self_node, name, args, body };
 };
 
+Node *Parser::parse_defined(Env *env, LocalsVectorPtr locals) {
+    auto token = current_token();
+    advance();
+    auto arg = parse_expression(env, CALLARGS, locals);
+    return new DefinedNode { token, arg };
+}
+
 Vector<Node *> *Parser::parse_def_args(Env *env, LocalsVectorPtr locals) {
     auto args = new Vector<Node *> {};
     args->push(parse_def_single_arg(env, locals));
@@ -1292,6 +1299,8 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type, Precedence prece
         return &Parser::parse_class;
     case Type::DefKeyword:
         return &Parser::parse_def;
+    case Type::DefinedKeyword:
+        return &Parser::parse_defined;
     case Type::FILEKeyword:
         return &Parser::parse_file_constant;
     case Type::LParen:

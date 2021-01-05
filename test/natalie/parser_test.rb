@@ -513,6 +513,11 @@ describe 'Parser' do
       Parser.parse('alias :foo :bar').should == s(:block, s(:alias, s(:lit, :foo), s(:lit, :bar)))
     end
 
+    it 'parses defined?' do
+      Parser.parse('defined? foo').should == s(:block, s(:defined, s(:call, nil, :foo)))
+      Parser.parse('defined?(:foo)').should == s(:block, s(:defined, s(:lit, :foo)))
+    end
+
     it 'parses heredocs' do
       doc1 = <<END
 foo = <<FOO_BAR

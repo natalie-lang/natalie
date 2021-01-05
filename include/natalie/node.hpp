@@ -27,6 +27,7 @@ struct Node : public gc {
         Colon3,
         Constant,
         Def,
+        Defined,
         EvaluateToString,
         False,
         Hash,
@@ -485,6 +486,21 @@ struct LiteralNode : Node {
 
 private:
     Value *m_value { nullptr };
+};
+
+struct DefinedNode : Node {
+    DefinedNode(Token token, Node *arg)
+        : Node { token }
+        , m_arg { arg } {
+        assert(arg);
+    }
+
+    virtual Type type() override { return Type::Defined; }
+
+    virtual Value *to_ruby(Env *) override;
+
+private:
+    Node *m_arg { nullptr };
 };
 
 struct DefNode : Node {
