@@ -511,5 +511,28 @@ describe 'Parser' do
       Parser.parse('alias foo bar').should == s(:block, s(:alias, s(:lit, :foo), s(:lit, :bar)))
       Parser.parse('alias :foo :bar').should == s(:block, s(:alias, s(:lit, :foo), s(:lit, :bar)))
     end
+
+    it 'parses heredocs' do
+      doc1 = <<END
+foo = <<FOO_BAR
+ 1
+2
+FOO_BAR
+END
+      Parser.parse(doc1).should == s(:block, s(:lasgn, :foo, s(:str, " 1\n2\n")))
+      doc2 = <<END
+foo(1, <<-foo, 2)
+ 1
+2
+  foo
+END
+      Parser.parse(doc2).should == s(:block, s(:call, nil, :foo, s(:lit, 1), s(:str, " 1\n2\n"), s(:lit, 2)))
+      doc3 = <<END
+<<FOO
+  \#{1+1}
+FOO
+END
+      Parser.parse(doc3).should == s(:block, s(:dstr, "  ", s(:evstr, s(:call, s(:lit, 1), :+, s(:lit, 1))), s(:str, "\n")))
+    end
   end
 end

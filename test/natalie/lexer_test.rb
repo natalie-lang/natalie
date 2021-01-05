@@ -291,6 +291,48 @@ describe 'Parser' do
       Parser.tokens("foo.nil?").should == [{type: :name, literal: :foo}, {type: :"."}, {type: :name, literal: :nil?}]
     end
 
+    it 'tokenizes heredocs' do
+      doc1 = <<END
+foo = <<FOO
+ 1
+2
+FOO
+bar
+END
+      doc2 = <<END
+foo(1, <<-FOO, 2)
+ 1
+2
+  FOO
+bar
+END
+      Parser.tokens(doc1).should == [
+        {type: :name, literal: :foo},
+        {type: :"="},
+        {type: :dstr},
+        {type: :string, literal: " 1\n2\n"},
+        {type: :dstrend},
+        {type: :"\n"},
+        {type: :name, literal: :bar},
+        {type: :"\n"},
+      ]
+      Parser.tokens(doc2).should == [
+        {type: :name, literal: :foo},
+        {type: :"("},
+        {type: :integer, literal: 1},
+        {type: :","},
+        {type: :dstr},
+        {type: :string, literal: " 1\n2\n"},
+        {type: :dstrend},
+        {type: :","},
+        {type: :integer, literal: 2},
+        {type: :")"},
+        {type: :"\n"},
+        {type: :name, literal: :bar},
+        {type: :"\n"},
+      ]
+    end
+
     it 'stores line and column numbers with each token' do
       Parser.tokens("foo = 1 + 2 # comment\n# comment\nbar.baz", true).should == [
         {type: :name, literal: :foo, line: 0, column: 0},

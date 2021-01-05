@@ -397,9 +397,25 @@ private:
         case '<':
             advance();
             switch (current_char()) {
-            case '<':
+            case '<': {
                 advance();
-                return Token { Token::Type::LeftShift, m_file, m_token_line, m_token_column };
+                switch (current_char()) {
+                case '-': {
+                    auto next = peek();
+                    if (isalpha(next) || next == '_') {
+                        return consume_heredoc();
+                    } else {
+                        return Token { Token::Type::LeftShift, m_file, m_token_line, m_token_column };
+                    }
+                }
+                default:
+                    if (isalpha(current_char()) || current_char() == '_') {
+                        return consume_heredoc();
+                    } else {
+                        return Token { Token::Type::LeftShift, m_file, m_token_line, m_token_column };
+                    }
+                }
+            }
             case '=':
                 advance();
                 switch (current_char()) {
@@ -536,9 +552,13 @@ private:
         case ')':
             advance();
             return Token { Token::Type::RParen, m_file, m_token_line, m_token_column };
-        case '\n':
+        case '\n': {
             advance();
-            return Token { Token::Type::Eol, m_file, m_token_line, m_token_column };
+            auto token = Token { Token::Type::Eol, m_file, m_token_line, m_token_column };
+            while (m_index < m_index_after_heredoc)
+                advance();
+            return token;
+        }
         case ';':
             advance();
             return Token { Token::Type::Semicolon, m_file, m_token_line, m_token_column };
@@ -787,6 +807,50 @@ private:
             return consume_word(Token::Type::GlobalVariable);
         }
         }
+    }
+
+    Token consume_heredoc() {
+        bool with_dash = false;
+        if (current_char() == '-') {
+            advance();
+            with_dash = true;
+        }
+        auto heredoc_name = consume_word(Token::Type::BareName);
+        auto doc = std::string();
+        size_t heredoc_index = m_index;
+        auto get_char = [&heredoc_index, this]() { return (heredoc_index >= m_size) ? 0 : m_input[heredoc_index]; };
+
+        // start consuming the heredoc on the next line
+        while (get_char() != '\n') {
+            if (heredoc_index >= m_size)
+                return Token { Token::Type::UnterminatedString, GC_STRDUP("heredoc"), m_file, m_token_line, m_token_column };
+            heredoc_index++;
+        }
+        heredoc_index++;
+
+        // consume the heredoc until we find the delimiter, either "\nDELIM\n" (if << was used) or "DELIM\n" (if <<- was used)
+        auto delimiter = std::string(heredoc_name.literal()) + '\n';
+        if (!with_dash)
+            delimiter = '\n' + delimiter;
+        while (doc.find(delimiter) == std::string::npos) {
+            if (heredoc_index >= m_size)
+                return Token { Token::Type::UnterminatedString, GC_STRDUP(doc.c_str()), m_file, m_token_line, m_token_column };
+            doc += get_char();
+            heredoc_index++;
+        }
+
+        // chop the delimiter and any trailing space off the string
+        doc.resize(doc.size() - delimiter.size() + (with_dash ? 0 : 1));
+        while (doc.size() > 0 && doc[doc.size() - 1] != '\n')
+            doc.resize(doc.size() - 1);
+
+        // we have to keep tokenizing on the line where the heredoc was started, and then jump to the line after the heredoc
+        // this index is used to do that
+        m_index_after_heredoc = heredoc_index;
+
+        auto token = Token { Token::Type::String, GC_STRDUP(doc.c_str()), m_file, m_token_line, m_token_column };
+        token.set_double_quoted(true);
+        return token;
     }
 
     Token consume_numeric(bool negative = false) {
@@ -1043,6 +1107,9 @@ private:
     size_t m_size { 0 };
     size_t m_index { 0 };
 
+    // if non-zero, the index we should continue on after a linebreak
+    size_t m_index_after_heredoc { 0 };
+
     // current character position
     size_t m_cursor_line { 0 };
     size_t m_cursor_column { 0 };
@@ -1108,4 +1175,5 @@ private:
     size_t m_size { 0 };
     size_t m_index { 0 };
 };
+
 }
