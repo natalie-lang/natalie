@@ -119,6 +119,7 @@ describe 'Parser' do
 
     it 'parses regular expressions' do
       Parser.parse('/foo/').should == s(:block, s(:lit, /foo/))
+      Parser.parse('/foo #{1+1}/').should == s(:block, s(:dregx, "foo ", s(:evstr, s(:call, s(:lit, 1), :+, s(:lit, 1)))))
     end
 
     it 'parses multiple expressions' do

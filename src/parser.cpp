@@ -608,6 +608,55 @@ Node *Parser::parse_if_body(Env *env, LocalsVectorPtr locals) {
     return body->has_one_node() ? (*body->nodes())[0] : body;
 }
 
+void Parser::parse_interpolated_body(Env *env, LocalsVectorPtr locals, InterpolatedNode *node, Token::Type end_token) {
+    while (current_token().is_valid() && current_token().type() != end_token) {
+        switch (current_token().type()) {
+        case Token::Type::EvaluateToStringBegin: {
+            advance();
+            auto block = new BlockNode { current_token() };
+            while (current_token().type() != Token::Type::EvaluateToStringEnd) {
+                block->add_node(parse_expression(env, LOWEST, locals));
+                skip_newlines();
+            }
+            advance();
+            if (block->has_one_node())
+                node->add_node(new EvaluateToStringNode { current_token(), (*block->nodes())[0] });
+            else
+                node->add_node(new EvaluateToStringNode { current_token(), block });
+            break;
+        }
+        case Token::Type::String:
+            node->add_node(new StringNode { current_token(), new StringValue { env, current_token().literal() } });
+            advance();
+            break;
+        default:
+            NAT_UNREACHABLE();
+        }
+    }
+    if (current_token().type() != end_token)
+        NAT_UNREACHABLE() // this shouldn't happen -- if it does, there is a bug in the Lexer
+    advance();
+};
+
+Node *Parser::parse_interpolated_regexp(Env *env, LocalsVectorPtr locals) {
+    auto token = current_token();
+    advance();
+    if (current_token().type() == Token::Type::InterpolatedRegexpEnd) {
+        auto regexp = new RegexpNode { token, new RegexpValue { env, "" } };
+        advance();
+        return regexp;
+    } else if (current_token().type() == Token::Type::String && peek_token().type() == Token::Type::InterpolatedRegexpEnd) {
+        auto regexp = new RegexpNode { token, new RegexpValue { env, current_token().literal() } };
+        advance();
+        advance();
+        return regexp;
+    } else {
+        auto interpolated_regexp = new InterpolatedRegexpNode { token };
+        parse_interpolated_body(env, locals, interpolated_regexp, Token::Type::InterpolatedRegexpEnd);
+        return interpolated_regexp;
+    }
+};
+
 Node *Parser::parse_interpolated_shell(Env *env, LocalsVectorPtr locals) {
     auto token = current_token();
     advance();
@@ -622,31 +671,7 @@ Node *Parser::parse_interpolated_shell(Env *env, LocalsVectorPtr locals) {
         return shell;
     } else {
         auto interpolated_shell = new InterpolatedShellNode { token };
-        while (current_token().type() != Token::Type::InterpolatedShellEnd) {
-            switch (current_token().type()) {
-            case Token::Type::EvaluateToStringBegin: {
-                advance();
-                auto block = new BlockNode { current_token() };
-                while (current_token().type() != Token::Type::EvaluateToStringEnd) {
-                    block->add_node(parse_expression(env, LOWEST, locals));
-                    skip_newlines();
-                }
-                advance();
-                if (block->has_one_node())
-                    interpolated_shell->add_node(new EvaluateToStringNode { current_token(), (*block->nodes())[0] });
-                else
-                    interpolated_shell->add_node(new EvaluateToStringNode { current_token(), block });
-                break;
-            }
-            case Token::Type::String:
-                interpolated_shell->add_node(new StringNode { current_token(), new StringValue { env, current_token().literal() } });
-                advance();
-                break;
-            default:
-                NAT_UNREACHABLE();
-            }
-        }
-        advance();
+        parse_interpolated_body(env, locals, interpolated_shell, Token::Type::InterpolatedShellEnd);
         return interpolated_shell;
     }
 };
@@ -665,31 +690,7 @@ Node *Parser::parse_interpolated_string(Env *env, LocalsVectorPtr locals) {
         return string;
     } else {
         auto interpolated_string = new InterpolatedStringNode { token };
-        while (current_token().type() != Token::Type::InterpolatedStringEnd) {
-            switch (current_token().type()) {
-            case Token::Type::EvaluateToStringBegin: {
-                advance();
-                auto block = new BlockNode { current_token() };
-                while (current_token().type() != Token::Type::EvaluateToStringEnd) {
-                    block->add_node(parse_expression(env, LOWEST, locals));
-                    skip_newlines();
-                }
-                advance();
-                if (block->has_one_node())
-                    interpolated_string->add_node(new EvaluateToStringNode { current_token(), (*block->nodes())[0] });
-                else
-                    interpolated_string->add_node(new EvaluateToStringNode { current_token(), block });
-                break;
-            }
-            case Token::Type::String:
-                interpolated_string->add_node(new StringNode { current_token(), new StringValue { env, current_token().literal() } });
-                advance();
-                break;
-            default:
-                NAT_UNREACHABLE();
-            }
-        }
-        advance();
+        parse_interpolated_body(env, locals, interpolated_string, Token::Type::InterpolatedStringEnd);
         return interpolated_string;
     }
 };
@@ -785,7 +786,13 @@ Node *Parser::parse_not(Env *env, LocalsVectorPtr locals) {
 
 Node *Parser::parse_regexp(Env *env, LocalsVectorPtr locals) {
     auto token = current_token();
-    auto regexp = new RegexpNode { token, new RegexpValue { env, token.literal() } };
+    RegexpValue *value;
+    try {
+        value = new RegexpValue { env, token.literal() };
+    } catch (ExceptionValue *exception) {
+        raise_unexpected(env, "valid regexp");
+    }
+    auto regexp = new RegexpNode { token, value };
     advance();
     return regexp;
 };
@@ -1303,6 +1310,8 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type, Precedence prece
         }
     case Type::IfKeyword:
         return &Parser::parse_if;
+    case Type::InterpolatedRegexpBegin:
+        return &Parser::parse_interpolated_regexp;
     case Type::InterpolatedShellBegin:
         return &Parser::parse_interpolated_shell;
     case Type::InterpolatedStringBegin:

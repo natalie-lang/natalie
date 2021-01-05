@@ -163,6 +163,8 @@ private:
     Node *parse_hash(Env *, LocalsVectorPtr);
     Node *parse_identifier(Env *, LocalsVectorPtr);
     Node *parse_if(Env *, LocalsVectorPtr);
+    void parse_interpolated_body(Env *, LocalsVectorPtr, InterpolatedNode *, Token::Type);
+    Node *parse_interpolated_regexp(Env *, LocalsVectorPtr);
     Node *parse_interpolated_shell(Env *, LocalsVectorPtr);
     Node *parse_interpolated_string(Env *, LocalsVectorPtr);
     Node *parse_lit(Env *, LocalsVectorPtr);

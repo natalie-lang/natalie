@@ -401,6 +401,18 @@ SexpValue *IterNode::build_args_sexp(Env *env) {
     return sexp;
 }
 
+Value *InterpolatedRegexpNode::to_ruby(Env *env) {
+    auto sexp = new SexpValue { env, this, { SymbolValue::intern(env, "dregx") } };
+    for (size_t i = 0; i < m_nodes.size(); i++) {
+        auto node = m_nodes[i];
+        if (i == 0 && node->type() == Node::Type::String)
+            sexp->push(static_cast<StringNode *>(node)->value());
+        else
+            sexp->push(node->to_ruby(env));
+    }
+    return sexp;
+}
+
 Value *InterpolatedShellNode::to_ruby(Env *env) {
     auto sexp = new SexpValue { env, this, { SymbolValue::intern(env, "dxstr") } };
     for (size_t i = 0; i < m_nodes.size(); i++) {

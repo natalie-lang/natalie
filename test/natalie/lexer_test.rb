@@ -58,10 +58,15 @@ describe 'Parser' do
       Parser.tokens('1 / 2').should == [{type: :integer, literal: 1}, {type: :"/"}, {type: :integer, literal: 2}]
       Parser.tokens('1 / 2 / 3').should == [{type: :integer, literal: 1}, {type: :"/"}, {type: :integer, literal: 2}, {type: :"/"}, {type: :integer, literal: 3}]
       Parser.tokens('foo / 2').should == [{type: :name, literal: :foo}, {type: :"/"}, {type: :integer, literal: 2}]
-      Parser.tokens('foo /2/').should == [{type: :name, literal: :foo}, {type: :regexp, literal: '2'}]
+      Parser.tokens('foo /2/').should == [{type: :name, literal: :foo}, {type: :dregx}, {type: :string, literal: "2"}, {type: :dregxend}]
       Parser.tokens('foo/2').should == [{type: :name, literal: :foo}, {type: :"/"}, {type: :integer, literal: 2}]
-      Parser.tokens('foo( /2/ )').should == [{type: :name, literal: :foo}, {type: :"("}, {type: :regexp, literal: '2'}, {type: :")"}]
-      Parser.tokens('foo 1,/2/').should == [{type: :name, literal: :foo}, {type: :integer, literal: 1}, {type: :","}, {type: :regexp, literal: '2'}]
+      Parser.tokens('foo( /2/ )').should == [{type: :name, literal: :foo}, {type: :"("}, {type: :dregx}, {type: :string, literal: "2"}, {type: :dregxend}, {type: :")"}]
+      Parser.tokens('foo 1,/2/').should == [{type: :name, literal: :foo}, {type: :integer, literal: 1}, {type: :","}, {type: :dregx}, {type: :string, literal: "2"}, {type: :dregxend}]
+    end
+
+    it 'tokenizes regexps' do
+      Parser.tokens('/\/\*\/\n/').should == [{type: :dregx}, {type: :string, literal: "/*/\n"}, {type: :dregxend}]
+      Parser.tokens('/foo #{1+1} bar/').should == [{type: :dregx}, {type: :string, literal: "foo "}, {type: :evstr}, {type: :integer, literal: 1}, {type: :integer, literal: 1}, {type: :"\n"}, {type: :evstrend}, {type: :string, literal: " bar"}, {type: :dregxend}]
     end
 
     it 'tokenizes operators' do

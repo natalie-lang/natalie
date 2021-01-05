@@ -287,25 +287,25 @@ private:
                 case '/': {
                     advance(2);
                     auto token = consume_double_quoted_string('/');
-                    token.set_shell_out(true);
+                    token.set_type(Token::Type::Shell);
                     return token;
                 }
                 case '[': {
                     advance(2);
                     auto token = consume_double_quoted_string(']');
-                    token.set_shell_out(true);
+                    token.set_type(Token::Type::Shell);
                     return token;
                 }
                 case '{': {
                     advance(2);
                     auto token = consume_double_quoted_string('}');
-                    token.set_shell_out(true);
+                    token.set_type(Token::Type::Shell);
                     return token;
                 }
                 case '(': {
                     advance(2);
                     auto token = consume_double_quoted_string(')');
-                    token.set_shell_out(true);
+                    token.set_type(Token::Type::Shell);
                     return token;
                 }
                 default:
@@ -574,7 +574,7 @@ private:
         case '`': {
             advance();
             auto token = consume_double_quoted_string('`');
-            token.set_shell_out(true);
+            token.set_type(Token::Type::Shell);
             return token;
         }
         case '#':
@@ -848,8 +848,7 @@ private:
         // this index is used to do that
         m_index_after_heredoc = heredoc_index;
 
-        auto token = Token { Token::Type::String, GC_STRDUP(doc.c_str()), m_file, m_token_line, m_token_column };
-        token.set_double_quoted(true);
+        auto token = Token { Token::Type::DoubleQuotedString, GC_STRDUP(doc.c_str()), m_file, m_token_line, m_token_column };
         return token;
     }
 
@@ -974,8 +973,7 @@ private:
                 }
             } else if (c == delimiter) {
                 advance();
-                auto token = Token { Token::Type::String, GC_STRDUP(buf.c_str()), m_file, m_token_line, m_token_column };
-                token.set_double_quoted(true);
+                auto token = Token { Token::Type::DoubleQuotedString, GC_STRDUP(buf.c_str()), m_file, m_token_line, m_token_column };
                 return token;
             } else {
                 buf += c;
@@ -1076,19 +1074,8 @@ private:
     }
 
     Token consume_regexp() {
-        auto buf = std::string("");
-        char c = current_char();
-        for (;;) {
-            if (!c) return Token { Token::Type::UnterminatedRegexp, m_file, m_token_line, m_token_column };
-            if (c == '/') {
-                advance();
-                return Token { Token::Type::Regexp, GC_STRDUP(buf.c_str()), m_file, m_token_line, m_token_column };
-            }
-            buf += c;
-            advance();
-            c = current_char();
-        }
-        NAT_UNREACHABLE();
+        auto string = consume_double_quoted_string('/');
+        return Token { Token::Type::Regexp, GC_STRDUP(string.literal()), m_file, m_token_line, m_token_column };
     }
 
     const char *consume_non_whitespace() {
@@ -1125,8 +1112,8 @@ private:
     Token m_last_token {};
 };
 
-struct DoubleQuotedStringLexer {
-    DoubleQuotedStringLexer(Token token)
+struct InterpolatedStringLexer {
+    InterpolatedStringLexer(Token token)
         : m_input { token.literal() }
         , m_file { token.file() }
         , m_line { token.line() }

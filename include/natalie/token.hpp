@@ -43,6 +43,7 @@ struct Token : public gc {
         Dot,
         DotDot,
         DotDotDot,
+        DoubleQuotedString,
         ElseKeyword,
         ElsifKeyword,
         ENCODINGKeyword,
@@ -70,6 +71,8 @@ struct Token : public gc {
         InKeyword,
         InstanceVariable,
         Integer,
+        InterpolatedRegexpBegin,
+        InterpolatedRegexpEnd,
         InterpolatedShellBegin,
         InterpolatedShellEnd,
         InterpolatedStringBegin,
@@ -117,6 +120,7 @@ struct Token : public gc {
         SafeNavigation,
         SelfKeyword,
         Semicolon,
+        Shell,
         String,
         SuperKeyword,
         Symbol,
@@ -247,6 +251,8 @@ struct Token : public gc {
             return "..";
         case Type::Dot:
             return ".";
+        case Type::DoubleQuotedString:
+            NAT_UNREACHABLE(); // converted to InterpolatedStringBegin/InterpolatedStringEnd
         case Type::ElseKeyword:
             return "else";
         case Type::ElsifKeyword:
@@ -301,6 +307,10 @@ struct Token : public gc {
             return "ivar";
         case Type::Integer:
             return "integer";
+        case Type::InterpolatedRegexpBegin:
+            return "dregx";
+        case Type::InterpolatedRegexpEnd:
+            return "dregxend";
         case Type::InterpolatedShellBegin:
             return "dxstr";
         case Type::InterpolatedShellEnd:
@@ -378,7 +388,7 @@ struct Token : public gc {
         case Type::RedoKeyword:
             return "redo";
         case Type::Regexp:
-            return "regexp";
+            NAT_UNREACHABLE(); // converted to InterpolatedRegexpBegin/InterpolatedRegexpEnd
         case Type::RescueKeyword:
             return "rescue";
         case Type::RetryKeyword:
@@ -393,6 +403,8 @@ struct Token : public gc {
             return "&.";
         case Type::SelfKeyword:
             return "self";
+        case Type::Shell:
+            NAT_UNREACHABLE(); // converted to InterpolatedShellBegin/InterpolatedShellEnd
         case Type::Semicolon:
             return ";";
         case Type::String:
@@ -475,7 +487,6 @@ struct Token : public gc {
     bool is_closing_token() { return m_type == Type::RBracket || m_type == Type::RCurlyBrace || m_type == Type::RParen; }
     bool is_comma() { return m_type == Type::Comma; }
     bool is_comment() { return m_type == Type::Comment; }
-    bool is_double_quoted_string() { return m_type == Type::String && m_double_quoted; }
     bool is_else_keyword() { return m_type == Type::ElseKeyword; }
     bool is_elsif_keyword() { return m_type == Type::ElsifKeyword; }
     bool is_end_keyword() { return m_type == Type::EndKeyword; }
@@ -564,11 +575,16 @@ struct Token : public gc {
     bool whitespace_precedes() { return m_whitespace_precedes; }
     void set_whitespace_precedes(bool whitespace_precedes) { m_whitespace_precedes = whitespace_precedes; }
 
-    bool double_quoted() { return m_double_quoted; }
-    void set_double_quoted(bool double_quoted) { m_double_quoted = double_quoted; }
-
-    bool shell_out() { return m_shell_out; }
-    void set_shell_out(bool shell_out) { m_shell_out = shell_out; }
+    bool can_have_interpolation() {
+        switch (m_type) {
+        case Token::Type::DoubleQuotedString:
+        case Token::Type::Regexp:
+        case Token::Type::Shell:
+            return true;
+        default:
+            return false;
+        }
+    }
 
 private:
     Type m_type { Type::Invalid };
@@ -580,7 +596,5 @@ private:
     size_t m_line { 0 };
     size_t m_column { 0 };
     bool m_whitespace_precedes { false };
-    bool m_double_quoted { false };
-    bool m_shell_out { false };
 };
 }

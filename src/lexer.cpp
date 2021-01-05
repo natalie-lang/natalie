@@ -27,14 +27,17 @@ Vector<Token> *Lexer::tokens() {
             token = Token { Token::Type::Eol, token.file(), token.line(), token.column() };
 
         // break apart interpolations in double-quoted string
-        if (token.is_double_quoted_string()) {
+        if (token.can_have_interpolation()) {
             Token::Type begin_token_type = Token::Type::InterpolatedStringBegin;
             Token::Type end_token_type = Token::Type::InterpolatedStringEnd;
-            if (token.shell_out()) {
+            if (token.type() == Token::Type::Shell) {
                 begin_token_type = Token::Type::InterpolatedShellBegin;
                 end_token_type = Token::Type::InterpolatedShellEnd;
+            } else if (token.type() == Token::Type::Regexp) {
+                begin_token_type = Token::Type::InterpolatedRegexpBegin;
+                end_token_type = Token::Type::InterpolatedRegexpEnd;
             }
-            auto string_lexer = new DoubleQuotedStringLexer { token };
+            auto string_lexer = new InterpolatedStringLexer { token };
             tokens->push(Token { begin_token_type, token.file(), token.line(), token.column() });
             for (auto token : *string_lexer->tokens()) {
                 tokens->push(token);
@@ -55,7 +58,7 @@ Vector<Token> *Lexer::tokens() {
     NAT_UNREACHABLE();
 }
 
-void DoubleQuotedStringLexer::tokenize_interpolation(Vector<Token> *tokens) {
+void InterpolatedStringLexer::tokenize_interpolation(Vector<Token> *tokens) {
     size_t start_index = m_index;
     size_t curly_brace_count = 1;
     while (m_index < m_size && curly_brace_count > 0) {

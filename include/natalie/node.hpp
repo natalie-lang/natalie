@@ -33,6 +33,7 @@ struct Node : public gc {
         Identifier,
         If,
         Iter,
+        InterpolatedRegexp,
         InterpolatedShell,
         InterpolatedString,
         KeywordArg,
@@ -654,32 +655,41 @@ private:
     BlockNode *m_body { nullptr };
 };
 
-struct InterpolatedShellNode : Node {
-    InterpolatedShellNode(Token token)
+struct InterpolatedNode : Node {
+    InterpolatedNode(Token token)
         : Node { token } { }
+
+    void add_node(Node *node) { m_nodes.push(node); };
+
+protected:
+    Vector<Node *> m_nodes {};
+};
+
+struct InterpolatedRegexpNode : InterpolatedNode {
+    InterpolatedRegexpNode(Token token)
+        : InterpolatedNode { token } { }
+
+    virtual Type type() override { return Type::InterpolatedRegexp; }
+
+    virtual Value *to_ruby(Env *) override;
+};
+
+struct InterpolatedShellNode : InterpolatedNode {
+    InterpolatedShellNode(Token token)
+        : InterpolatedNode { token } { }
 
     virtual Type type() override { return Type::InterpolatedShell; }
 
     virtual Value *to_ruby(Env *) override;
-
-    void add_node(Node *node) { m_nodes.push(node); };
-
-private:
-    Vector<Node *> m_nodes {};
 };
 
-struct InterpolatedStringNode : Node {
+struct InterpolatedStringNode : InterpolatedNode {
     InterpolatedStringNode(Token token)
-        : Node { token } { }
+        : InterpolatedNode { token } { }
 
     virtual Type type() override { return Type::InterpolatedString; }
 
     virtual Value *to_ruby(Env *) override;
-
-    void add_node(Node *node) { m_nodes.push(node); };
-
-private:
-    Vector<Node *> m_nodes {};
 };
 
 struct KeywordArgNode : ArgNode {
