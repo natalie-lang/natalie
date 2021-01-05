@@ -54,8 +54,8 @@ struct Parser : public gc {
     Node *tree(Env *);
 
 private:
-    Precedence get_precedence(Node *left = nullptr) {
-        switch (current_token().type()) {
+    Precedence get_precedence(Token token, Node *left = nullptr) {
+        switch (token.type()) {
         case Token::Type::Plus:
         case Token::Type::Minus:
             return SUM;
@@ -63,8 +63,7 @@ private:
         case Token::Type::Float:
             if (current_token().has_sign())
                 return SUM;
-            else
-                return LOWEST;
+            break;
         case Token::Type::AndEqual:
         case Token::Type::Equal:
         case Token::Type::OrEqual:
@@ -124,17 +123,21 @@ private:
         case Token::Type::LBracket:
             if (left && treat_left_bracket_as_element_reference(left, current_token()))
                 return REF;
-            else
-                return LOWEST;
+            break;
         case Token::Type::TernaryQuestion:
         case Token::Type::TernaryColon:
             return TERNARY;
         case Token::Type::Not:
             return UNARY;
         default:
-            return LOWEST;
+            break;
         }
+        if (left && is_first_arg_of_call_without_parens(current_token(), left))
+            return CALL;
+        return LOWEST;
     }
+
+    bool is_first_arg_of_call_without_parens(Token, Node *);
 
     Node *parse_expression(Env *, Precedence, LocalsVectorPtr);
 

@@ -310,6 +310,8 @@ describe 'Parser' do
     it 'parses post-conditional if/unless' do
       Parser.parse("true if true").should == s(:block, s(:if, s(:true), s(:true), nil))
       Parser.parse("true unless true").should == s(:block, s(:if, s(:true), nil, s(:true)))
+      Parser.parse("foo 'hi' if true").should == s(:block, s(:if, s(:true), s(:call, nil, :foo, s(:str, "hi")), nil))
+      Parser.parse("foo.bar 'hi' if true").should == s(:block, s(:if, s(:true), s(:call, s(:call, nil, :foo), :bar, s(:str, "hi")), nil))
     end
 
     it 'parses true/false/nil' do

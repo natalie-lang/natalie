@@ -15,7 +15,7 @@ Node *Parser::parse_expression(Env *env, Parser::Precedence precedence, LocalsVe
 
     Node *left = (this->*null_fn)(env, locals);
 
-    while (current_token().is_valid() && get_precedence(left) > precedence) {
+    while (current_token().is_valid() && get_precedence(current_token(), left) > precedence) {
 #ifdef NAT_DEBUG_PARSER
         printf("while loop: current token = %s\n", current_token().to_ruby(env)->inspect_str(env));
 #endif
@@ -24,10 +24,6 @@ Node *Parser::parse_expression(Env *env, Parser::Precedence precedence, LocalsVe
             NAT_UNREACHABLE();
 
         left = (this->*left_fn)(env, left, locals);
-    }
-
-    if (left->is_callable() && !current_token().is_end_of_expression() && get_precedence(left) == LOWEST && precedence == LOWEST && !current_token().is_closing_token()) {
-        left = parse_call_expression_without_parens(env, left, locals);
     }
 
     return left;
@@ -795,7 +791,7 @@ Node *Parser::parse_nil(Env *env, LocalsVectorPtr) {
 
 Node *Parser::parse_not(Env *env, LocalsVectorPtr locals) {
     auto token = current_token();
-    auto precedence = get_precedence();
+    auto precedence = get_precedence(current_token());
     advance();
     auto node = new CallNode {
         token,
@@ -1094,11 +1090,11 @@ Node *Parser::parse_call_expression_without_parens(Env *env, Node *left, LocalsV
     }
     switch (current_token().type()) {
     case Token::Type::Comma:
-    case Token::Type::RCurlyBrace:
-    case Token::Type::RBracket:
-    case Token::Type::RParen:
     case Token::Type::Eof:
     case Token::Type::Eol:
+    case Token::Type::RBracket:
+    case Token::Type::RCurlyBrace:
+    case Token::Type::RParen:
         break;
     default:
         parse_call_args(env, call_node, locals);
@@ -1128,7 +1124,7 @@ Node *Parser::parse_constant_resolution_expression(Env *env, Node *left, LocalsV
 Node *Parser::parse_infix_expression(Env *env, Node *left, LocalsVectorPtr locals) {
     auto token = current_token();
     auto op = current_token();
-    auto precedence = get_precedence(left);
+    auto precedence = get_precedence(current_token(), left);
     advance();
     Node *right = nullptr;
     if (op.type() == Token::Type::Integer) {
@@ -1235,12 +1231,11 @@ Node *Parser::parse_send_expression(Env *env, Node *left, LocalsVectorPtr locals
     advance();
     expect(env, Token::Type::BareName, "send method name");
     auto name = static_cast<IdentifierNode *>(parse_identifier(env, locals));
-    auto call_node = new CallNode {
+    return new CallNode {
         token,
         left,
         GC_STRDUP(name->name()),
     };
-    return call_node;
 }
 
 Node *Parser::parse_ternary_expression(Env *env, Node *left, LocalsVectorPtr locals) {
@@ -1267,7 +1262,7 @@ Node *Parser::parse_unless(Env *env, LocalsVectorPtr locals) {
     } else {
         true_expr = new NilNode { current_token() };
     }
-    expect(env, Token::Type::EndKeyword, "if end");
+    expect(env, Token::Type::EndKeyword, "unless end");
     advance();
     return new IfNode { token, condition, true_expr, false_expr };
 }
@@ -1382,7 +1377,7 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type, Precedence prece
     default:
         return nullptr;
     }
-};
+}
 
 Parser::parse_left_fn Parser::left_denotation(Token token, Node *left) {
     using Type = Token::Type;
@@ -1416,13 +1411,11 @@ Parser::parse_left_fn Parser::left_denotation(Token token, Node *left) {
     case Type::Integer:
         if (current_token().has_sign())
             return &Parser::parse_infix_expression;
-        else
-            return nullptr;
+        break;
     case Type::Float:
         if (current_token().has_sign())
             return &Parser::parse_infix_expression;
-        else
-            return nullptr;
+        break;
     case Type::DoKeyword:
     case Type::LCurlyBrace:
         return &Parser::parse_iter_expression;
@@ -1447,8 +1440,7 @@ Parser::parse_left_fn Parser::left_denotation(Token token, Node *left) {
     case Type::LBracket:
         if (treat_left_bracket_as_element_reference(left, current_token()))
             return &Parser::parse_ref_expression;
-        else
-            return nullptr;
+        break;
     case Type::SafeNavigation:
         return &Parser::parse_safe_send_expression;
     case Type::Dot:
@@ -1456,9 +1448,16 @@ Parser::parse_left_fn Parser::left_denotation(Token token, Node *left) {
     case Type::TernaryQuestion:
         return &Parser::parse_ternary_expression;
     default:
-        return nullptr;
+        break;
     }
-};
+    if (is_first_arg_of_call_without_parens(token, left))
+        return &Parser::parse_call_expression_without_parens;
+    return nullptr;
+}
+
+bool Parser::is_first_arg_of_call_without_parens(Token token, Node *left) {
+    return left->is_callable() && token.can_be_first_arg_of_implicit_call();
+}
 
 Token Parser::current_token() {
     if (m_index < m_tokens->size()) {

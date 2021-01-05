@@ -599,6 +599,50 @@ struct Token : public gc {
         }
     }
 
+    bool can_be_first_arg_of_implicit_call() {
+        switch (m_type) {
+        case Token::Type::BareName:
+        case Token::Type::ClassVariable:
+        case Token::Type::Constant:
+        case Token::Type::ConstantResolution:
+        case Token::Type::DefinedKeyword:
+        case Token::Type::DoubleQuotedString:
+        case Token::Type::ENCODINGKeyword:
+        case Token::Type::FalseKeyword:
+        case Token::Type::FILEKeyword:
+        case Token::Type::Float:
+        case Token::Type::GlobalVariable:
+        case Token::Type::InstanceVariable:
+        case Token::Type::Integer:
+        case Token::Type::InterpolatedRegexpBegin:
+        case Token::Type::InterpolatedShellBegin:
+        case Token::Type::InterpolatedStringBegin:
+        case Token::Type::LCurlyBrace:
+        case Token::Type::LBracket:
+        case Token::Type::LINEKeyword:
+        case Token::Type::LParen:
+        case Token::Type::Multiply:
+        case Token::Type::NilKeyword:
+        case Token::Type::Not:
+        case Token::Type::NotKeyword:
+        case Token::Type::PercentLowerI:
+        case Token::Type::PercentLowerW:
+        case Token::Type::PercentUpperI:
+        case Token::Type::PercentUpperW:
+        case Token::Type::Regexp:
+        case Token::Type::SelfKeyword:
+        case Token::Type::Shell:
+        case Token::Type::String:
+        case Token::Type::SuperKeyword:
+        case Token::Type::Symbol:
+        case Token::Type::SymbolKey:
+        case Token::Type::TrueKeyword:
+            return true;
+        default:
+            return false;
+        }
+    }
+
 private:
     Type m_type { Type::Invalid };
     const char *m_literal { nullptr };
