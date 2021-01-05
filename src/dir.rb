@@ -1,11 +1,21 @@
 require 'natalie/inline'
 
-__inline__ "#include <sys/types.h>"
 __inline__ "#include <dirent.h>"
+__inline__ "#include <sys/param.h>"
+__inline__ "#include <sys/types.h>"
 
 class Dir
   def self.tmpdir
     '/tmp'
+  end
+
+  def self.pwd
+    __inline__ <<-END
+        char buf[MAXPATHLEN + 1];
+        if(!getcwd(buf, MAXPATHLEN + 1))
+            env->raise_errno();
+        return new StringValue { env, buf };
+    END
   end
 
   def self.each_child(dirname)

@@ -1,7 +1,7 @@
 require_relative '../spec_helper'
 
 describe 'Dir' do
-  describe '#each_child' do
+  describe '.each_child' do
     it 'raises an error if given a bad path' do
       -> { Dir.each_child('this_directory_does_not_exist') {  } }.should raise_error(SystemCallError)
     end
@@ -36,6 +36,12 @@ describe 'Dir' do
         'require_sub4.foo.rb',
         'spec.rb',
       ]
+    end
+  end
+
+  describe '.pwd' do
+    it 'returns the current working directory' do
+      Dir.pwd.should == File.expand_path('../..', __dir__)
     end
   end
 end
