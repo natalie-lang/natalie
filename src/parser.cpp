@@ -831,7 +831,7 @@ Node *Parser::parse_self(Env *env, LocalsVectorPtr locals) {
 Node *Parser::parse_splat(Env *env, LocalsVectorPtr locals) {
     auto token = current_token();
     advance();
-    return new SplatNode { token, parse_expression(env, LOWEST, locals) };
+    return new SplatNode { token, parse_expression(env, SPLAT, locals) };
 };
 
 Node *Parser::parse_stabby_proc(Env *env, LocalsVectorPtr locals) {

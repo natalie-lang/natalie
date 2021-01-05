@@ -25,6 +25,7 @@ struct Parser : public gc {
         HASH, // {}
         EXPRMODIFIER, // if/unless/while/until
         CASE, // case/when/else
+        SPLAT, // *args
         CALLARGS, // foo a, b
         COMPOSITION, // and/or
         ASSIGNMENT, // =

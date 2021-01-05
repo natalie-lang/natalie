@@ -149,6 +149,8 @@ describe 'Parser' do
       Parser.parse("a, (b, c) = [1, [2, 3]]").should == s(:block, s(:masgn, s(:array, s(:lasgn, :a), s(:masgn, s(:array, s(:lasgn, :b), s(:lasgn, :c)))), s(:to_ary, s(:array, s(:lit, 1), s(:array, s(:lit, 2), s(:lit, 3))))))
       Parser.parse("a, (b, *c) = [1, [2, 3, 4]]").should == s(:block, s(:masgn, s(:array, s(:lasgn, :a), s(:masgn, s(:array, s(:lasgn, :b), s(:splat, s(:lasgn, :c))))), s(:to_ary, s(:array, s(:lit, 1), s(:array, s(:lit, 2), s(:lit, 3), s(:lit, 4))))))
       Parser.parse("a, (b, *@c) = [1, [2, 3, 4]]").should == s(:block, s(:masgn, s(:array, s(:lasgn, :a), s(:masgn, s(:array, s(:lasgn, :b), s(:splat, s(:iasgn, :@c))))), s(:to_ary, s(:array, s(:lit, 1), s(:array, s(:lit, 2), s(:lit, 3), s(:lit, 4))))))
+      Parser.parse("_, a, *b = [1, 2, 3, 4]").should == s(:block, s(:masgn, s(:array, s(:lasgn, :_), s(:lasgn, :a), s(:splat, s(:lasgn, :b))), s(:to_ary, s(:array, s(:lit, 1), s(:lit, 2), s(:lit, 3), s(:lit, 4)))))
+      Parser.parse("(_, a, *b) = [1, 2, 3, 4]").should == s(:block, s(:masgn, s(:array, s(:lasgn, :_), s(:lasgn, :a), s(:splat, s(:lasgn, :b))), s(:to_ary, s(:array, s(:lit, 1), s(:lit, 2), s(:lit, 3), s(:lit, 4)))))
       Parser.parse("x = foo.bar").should == s(:block, s(:lasgn, :x, s(:call, s(:call, nil, :foo), :bar)))
     end
 
@@ -243,6 +245,8 @@ describe 'Parser' do
       Parser.parse("foo(1, { a: 2 })").should == s(:block, s(:call, nil, :foo, s(:lit, 1), s(:hash, s(:lit, :a), s(:lit, 2))))
       Parser.parse("foo(1, { a: 2, :b => 3 })").should == s(:block, s(:call, nil, :foo, s(:lit, 1), s(:hash, s(:lit, :a), s(:lit, 2), s(:lit, :b), s(:lit, 3))))
       Parser.parse("foo(:a, :b)").should == s(:block, s(:call, nil, :foo, s(:lit, :a), s(:lit, :b)))
+      Parser.parse("foo(a, *b, c)").should == s(:block, s(:call, nil, :foo, s(:call, nil, :a), s(:splat, s(:call, nil, :b)), s(:call, nil, :c)))
+      Parser.parse("b=1; foo(a, *b, c)").should == s(:block, s(:lasgn, :b, s(:lit, 1)), s(:call, nil, :foo, s(:call, nil, :a), s(:splat, s(:lvar, :b)), s(:call, nil, :c)))
       if (RUBY_ENGINE == 'natalie')
         -> { Parser.parse("foo(") }.should raise_error(SyntaxError, "(string)#1: syntax error, unexpected end-of-input (expected: 'expression')")
       else
