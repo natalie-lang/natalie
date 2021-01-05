@@ -56,7 +56,7 @@ Value *AssignmentNode::to_ruby(Env *env) {
         return sexp;
     }
     case Node::Type::Identifier: {
-        auto sexp = static_cast<IdentifierNode *>(m_identifier)->to_sexp(env);
+        auto sexp = static_cast<IdentifierNode *>(m_identifier)->to_assignment_sexp(env);
         sexp->push(m_value->to_ruby(env));
         return sexp;
     }
@@ -353,7 +353,7 @@ Value *IdentifierNode::to_ruby(Env *env) {
     }
 }
 
-SexpValue *IdentifierNode::to_sexp(Env *env) {
+SexpValue *IdentifierNode::to_assignment_sexp(Env *env) {
     return new SexpValue {
         env,
         this,
@@ -516,14 +516,41 @@ Value *MultipleAssignmentNode::to_ruby(Env *env) {
     return sexp;
 }
 
+void MultipleAssignmentNode::add_locals(Env *env, Vector<SymbolValue *> *locals) {
+    for (auto node : m_nodes) {
+        switch (node->type()) {
+        case Node::Type::Identifier: {
+            auto identifier = static_cast<IdentifierNode *>(node);
+            identifier->add_to_locals(env, locals);
+            break;
+        }
+        case Node::Type::SplatAssignment: {
+            auto splat = static_cast<SplatAssignmentNode *>(node);
+            if (splat->node())
+                splat->node()->add_to_locals(env, locals);
+            break;
+        }
+        case Node::Type::MultipleAssignment:
+            static_cast<MultipleAssignmentNode *>(node)->add_locals(env, locals);
+            break;
+        default:
+            NAT_UNREACHABLE();
+        }
+    }
+}
+
 ArrayValue *MultipleAssignmentNode::to_ruby_with_array(Env *env) {
     auto sexp = new SexpValue { env, this, { SymbolValue::intern(env, "masgn") } };
     auto array = new SexpValue { env, this, { SymbolValue::intern(env, "array") } };
     for (auto identifier : m_nodes) {
         switch (identifier->type()) {
         case Node::Type::Identifier:
-            array->push(static_cast<IdentifierNode *>(identifier)->to_sexp(env));
+            array->push(static_cast<IdentifierNode *>(identifier)->to_assignment_sexp(env));
             break;
+        case Node::Type::SplatAssignment: {
+            array->push(identifier->to_ruby(env));
+            break;
+        }
         case Node::Type::MultipleAssignment:
             array->push(static_cast<MultipleAssignmentNode *>(identifier)->to_ruby_with_array(env));
             break;
@@ -629,8 +656,18 @@ Value *ShellNode::to_ruby(Env *env) {
     return new SexpValue { env, this, { SymbolValue::intern(env, "xstr"), m_value } };
 }
 
+Value *SplatAssignmentNode::to_ruby(Env *env) {
+    auto sexp = new SexpValue { env, this, { SymbolValue::intern(env, "splat") } };
+    if (m_node)
+        sexp->push(m_node->to_assignment_sexp(env));
+    return sexp;
+}
+
 Value *SplatNode::to_ruby(Env *env) {
-    return new SexpValue { env, this, { SymbolValue::intern(env, "splat"), m_node->to_ruby(env) } };
+    auto sexp = new SexpValue { env, this, { SymbolValue::intern(env, "splat") } };
+    if (m_node)
+        sexp->push(m_node->to_ruby(env));
+    return sexp;
 }
 
 Value *StabbyProcNode::to_ruby(Env *env) {

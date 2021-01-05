@@ -354,6 +354,20 @@ Node *Parser::parse_comma_separated_identifiers(Env *env, LocalsVectorPtr locals
             expect(env, Token::Type::RParen, "multiple assignment closing paren");
             advance();
             break;
+        case Token::Type::Multiply: {
+            auto splat_token = current_token();
+            advance();
+            ArgNode *n;
+            if (current_token().is_assignable()) {
+                auto identifier = static_cast<IdentifierNode *>(parse_identifier(env, locals));
+                identifier->set_is_lvar(true);
+                list->add_node(new SplatAssignmentNode { splat_token, identifier });
+                identifier->add_to_locals(env, locals);
+            } else {
+                list->add_node(new SplatNode { splat_token });
+            }
+            break;
+        }
         default:
             expect(env, Token::Type::BareName, "assignment identifier");
         }
@@ -439,7 +453,7 @@ Node *Parser::parse_def_single_arg(Env *env, LocalsVectorPtr locals) {
     case Token::Type::BareName: {
         auto arg = new ArgNode { token, token.literal() };
         advance();
-        locals->push(SymbolValue::intern(env, arg->name()));
+        arg->add_to_locals(env, locals);
         if (current_token().type() == Token::Type::Equal) {
             advance();
             arg->set_value(parse_expression(env, DEFARGS, locals));
@@ -463,7 +477,7 @@ Node *Parser::parse_def_single_arg(Env *env, LocalsVectorPtr locals) {
         if (current_token().is_bare_name()) {
             arg = new ArgNode { token, current_token().literal() };
             advance();
-            locals->push(SymbolValue::intern(env, arg->name()));
+            arg->add_to_locals(env, locals);
         } else {
             arg = new ArgNode { token };
         }
@@ -475,7 +489,7 @@ Node *Parser::parse_def_single_arg(Env *env, LocalsVectorPtr locals) {
         expect(env, Token::Type::BareName, "block name");
         auto arg = new ArgNode { token, current_token().literal() };
         advance();
-        locals->push(SymbolValue::intern(env, arg->name()));
+        arg->add_to_locals(env, locals);
         arg->set_block_arg(true);
         return arg;
     }
@@ -491,7 +505,7 @@ Node *Parser::parse_def_single_arg(Env *env, LocalsVectorPtr locals) {
         default:
             arg->set_value(parse_expression(env, DEFARGS, locals));
         }
-        locals->push(SymbolValue::intern(env, arg->name()));
+        arg->add_to_locals(env, locals);
         return arg;
     }
     default:
@@ -942,8 +956,7 @@ Node *Parser::parse_assignment_expression(Env *env, Node *left, LocalsVectorPtr 
     switch (left->type()) {
     case Node::Type::Identifier: {
         auto left_identifier = static_cast<IdentifierNode *>(left);
-        if (left_identifier->token_type() == Token::Type::BareName)
-            locals->push(SymbolValue::intern(env, left_identifier->name()));
+        left_identifier->add_to_locals(env, locals);
         advance();
         return new AssignmentNode {
             token,

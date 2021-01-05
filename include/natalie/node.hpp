@@ -55,6 +55,7 @@ struct Node : public gc {
         SafeCall,
         Self,
         Splat,
+        SplatAssignment,
         StabbyProc,
         String,
         Symbol,
@@ -138,6 +139,10 @@ struct ArgNode : Node {
 
     Node *value() { return m_value; }
     void set_value(Node *value) { m_value = value; }
+
+    void add_to_locals(Env *env, Vector<SymbolValue *> *locals) {
+        locals->push(SymbolValue::intern(env, m_name));
+    }
 
 protected:
     const char *m_name { nullptr };
@@ -599,7 +604,7 @@ struct IdentifierNode : Node {
     bool is_lvar() { return m_is_lvar; }
     void set_is_lvar(bool is_lvar) { m_is_lvar = is_lvar; }
 
-    SexpValue *to_sexp(Env *);
+    SexpValue *to_assignment_sexp(Env *);
 
     SymbolValue *assignment_type(Env *env) {
         switch (token_type()) {
@@ -620,6 +625,11 @@ struct IdentifierNode : Node {
 
     SymbolValue *to_symbol(Env *env) {
         return SymbolValue::intern(env, name());
+    }
+
+    void add_to_locals(Env *env, Vector<SymbolValue *> *locals) {
+        if (token_type() == Token::Type::BareName)
+            locals->push(to_symbol(env));
     }
 
 private:
@@ -777,23 +787,7 @@ struct MultipleAssignmentNode : ArrayNode {
     virtual Value *to_ruby(Env *) override;
     ArrayValue *to_ruby_with_array(Env *);
 
-    void add_locals(Env *env, Vector<SymbolValue *> *locals) {
-        for (auto node : m_nodes) {
-            switch (node->type()) {
-            case Node::Type::Identifier: {
-                auto identifier = static_cast<IdentifierNode *>(node);
-                if (identifier->token_type() == Token::Type::BareName)
-                    locals->push(SymbolValue::intern(env, identifier->name()));
-                break;
-            }
-            case Node::Type::MultipleAssignment:
-                static_cast<MultipleAssignmentNode *>(node)->add_locals(env, locals);
-                break;
-            default:
-                NAT_UNREACHABLE();
-            }
-        }
-    }
+    void add_locals(Env *, Vector<SymbolValue *> *);
 };
 
 struct NextNode : Node {
@@ -954,7 +948,30 @@ private:
     Value *m_value { nullptr };
 };
 
+struct SplatAssignmentNode : Node {
+    SplatAssignmentNode(Token token)
+        : Node { token } { }
+
+    SplatAssignmentNode(Token token, IdentifierNode *node)
+        : Node { token }
+        , m_node { node } {
+        assert(m_node);
+    }
+
+    virtual Type type() override { return Type::SplatAssignment; }
+
+    virtual Value *to_ruby(Env *) override;
+
+    IdentifierNode *node() { return m_node; }
+
+private:
+    IdentifierNode *m_node { nullptr };
+};
+
 struct SplatNode : Node {
+    SplatNode(Token token)
+        : Node { token } { }
+
     SplatNode(Token token, Node *node)
         : Node { token }
         , m_node { node } {
@@ -964,6 +981,8 @@ struct SplatNode : Node {
     virtual Type type() override { return Type::Splat; }
 
     virtual Value *to_ruby(Env *) override;
+
+    Node *node() { return m_node; }
 
 private:
     Node *m_node { nullptr };

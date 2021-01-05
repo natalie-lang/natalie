@@ -483,6 +483,19 @@ struct Token : public gc {
         return hash;
     }
 
+    bool is_assignable() {
+        switch (m_type) {
+        case Type::BareName:
+        case Type::ClassVariable:
+        case Type::Constant:
+        case Type::GlobalVariable:
+        case Type::InstanceVariable:
+            return true;
+        default:
+            return false;
+        }
+    }
+
     bool is_bare_name() { return m_type == Type::BareName; }
     bool is_closing_token() { return m_type == Type::RBracket || m_type == Type::RCurlyBrace || m_type == Type::RParen; }
     bool is_comma() { return m_type == Type::Comma; }
