@@ -154,4 +154,11 @@ describe 'regexp' do
       r.source.should == "^foo\\n[0-9]+ (bar){1,2}$"
     end
   end
+
+  describe '#options' do
+    it 'returns the literal representation of the regexp' do
+      r = /^foo\n[0-9]+ (bar){1,2}$/ixm
+      r.options.should == 7
+    end
+  end
 end
