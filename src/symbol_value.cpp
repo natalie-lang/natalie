@@ -62,4 +62,9 @@ bool SymbolValue::start_with(Env *env, Value *needle) {
     return to_s(env)->start_with(env, needle);
 }
 
+Value *SymbolValue::ref(Env *env, Value *index_obj) {
+    Value *args[] = { index_obj };
+    return to_s(env)->send(env, "[]", 1, args);
+}
+
 }

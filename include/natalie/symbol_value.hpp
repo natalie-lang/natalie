@@ -32,6 +32,8 @@ struct SymbolValue : Value {
 
     bool start_with(Env *, Value *);
 
+    Value *ref(Env *, Value *);
+
 private:
     SymbolValue(Env *env, const char *name)
         : Value { Value::Type::Symbol, env->Object()->const_fetch("Symbol")->as_class() }

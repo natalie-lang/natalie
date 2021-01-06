@@ -60,4 +60,13 @@ describe 'symbol' do
       :tim.start_with?('xxxxx').should be_false
     end
   end
+
+  describe '#[]' do
+    it 'subscripts the symbol as if it were a string' do
+      :foo_bar[0..2].should == 'foo'
+      :foo_bar[1..-2].should == 'oo_ba'
+      :foo_bar[0].should == 'f'
+      :foo_bar[-1].should == 'r'
+    end
+  end
 end
