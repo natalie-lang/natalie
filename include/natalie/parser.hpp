@@ -184,6 +184,7 @@ private:
     Node *parse_splat(Env *, LocalsVectorPtr);
     Node *parse_stabby_proc(Env *, LocalsVectorPtr);
     Node *parse_string(Env *, LocalsVectorPtr);
+    Node *parse_super(Env *, LocalsVectorPtr);
     Node *parse_symbol(Env *, LocalsVectorPtr);
     Node *parse_statement_keyword(Env *, LocalsVectorPtr);
     Node *parse_top_level_constant(Env *, LocalsVectorPtr);

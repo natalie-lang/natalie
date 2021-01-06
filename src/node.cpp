@@ -686,6 +686,19 @@ Value *TrueNode::to_ruby(Env *env) {
     return new SexpValue { env, this, { SymbolValue::intern(env, "true") } };
 }
 
+Value *SuperNode::to_ruby(Env *env) {
+    if (empty_parens()) {
+        return new SexpValue { env, this, { SymbolValue::intern(env, "super") } };
+    } else if (m_args.is_empty()) {
+        return new SexpValue { env, this, { SymbolValue::intern(env, "zsuper") } };
+    }
+    auto sexp = new SexpValue { env, this, { SymbolValue::intern(env, "super") } };
+    for (auto arg : m_args) {
+        sexp->push(arg->to_ruby(env));
+    }
+    return sexp;
+}
+
 Value *UntilNode::to_ruby(Env *env) {
     auto sexp = WhileNode::to_ruby(env);
     (*sexp->as_array())[0] = SymbolValue::intern(env, "until");

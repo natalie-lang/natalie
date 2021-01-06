@@ -58,6 +58,7 @@ struct Node : public gc {
         SplatAssignment,
         StabbyProc,
         String,
+        Super,
         Symbol,
         True,
         Until,
@@ -1044,6 +1045,23 @@ struct TrueNode : Node {
     virtual Value *to_ruby(Env *) override;
 
     virtual Type type() override { return Type::True; }
+};
+
+struct SuperNode : NodeWithArgs {
+    SuperNode(Token token)
+        : NodeWithArgs { token } { }
+
+    virtual Value *to_ruby(Env *) override;
+
+    virtual Type type() override { return Type::Super; }
+
+    bool parens() { return m_parens; }
+    void set_parens(bool parens) { m_parens = parens; }
+
+    bool empty_parens() { return m_parens && m_args.is_empty(); }
+
+private:
+    bool m_parens { false };
 };
 
 struct WhileNode : Node {

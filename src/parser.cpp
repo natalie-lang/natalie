@@ -860,6 +860,26 @@ Node *Parser::parse_string(Env *env, LocalsVectorPtr locals) {
     return string;
 };
 
+Node *Parser::parse_super(Env *env, LocalsVectorPtr locals) {
+    auto token = current_token();
+    advance();
+    auto node = new SuperNode { token };
+    if (current_token().is_lparen()) {
+        node->set_parens(true);
+        advance();
+        if (current_token().is_rparen()) {
+            advance();
+        } else {
+            parse_call_args(env, node, locals);
+            expect(env, Token::Type::RParen, "super closing paren");
+            advance();
+        }
+    } else if (!current_token().is_end_of_expression()) {
+        parse_call_args(env, node, locals);
+    }
+    return node;
+};
+
 Node *Parser::parse_symbol(Env *env, LocalsVectorPtr locals) {
     auto token = current_token();
     auto symbol = new SymbolNode { token, SymbolValue::intern(env, current_token().literal()) };
@@ -1357,6 +1377,8 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type, Precedence prece
         return &Parser::parse_stabby_proc;
     case Type::String:
         return &Parser::parse_string;
+    case Type::SuperKeyword:
+        return &Parser::parse_super;
     case Type::Symbol:
         return &Parser::parse_symbol;
     case Type::ConstantResolution:

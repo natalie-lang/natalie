@@ -458,15 +458,19 @@ describe 'Parser' do
       Parser.parse('map(&block)').should == s(:block, s(:call, nil, :map, s(:block_pass, s(:call, nil, :block))))
     end
 
-    it 'parses next, break, and yield' do
-      Parser.parse('next').should == s(:block, s(:next))
-      Parser.parse('next 1, 2').should == s(:block, s(:next, s(:array, s(:lit, 1), s(:lit, 2))))
-      Parser.parse('next([1, 2])').should == s(:block, s(:next, s(:array, s(:lit, 1), s(:lit, 2))))
-      Parser.parse("next if true").should == s(:block, s(:if, s(:true), s(:next), nil))
+    it 'parses break, next, super, and yield' do
       Parser.parse('break').should == s(:block, s(:break))
       Parser.parse('break 1, 2').should == s(:block, s(:break, s(:array, s(:lit, 1), s(:lit, 2))))
       Parser.parse('break([1, 2])').should == s(:block, s(:break, s(:array, s(:lit, 1), s(:lit, 2))))
       Parser.parse("break if true").should == s(:block, s(:if, s(:true), s(:break), nil))
+      Parser.parse('next').should == s(:block, s(:next))
+      Parser.parse('next 1, 2').should == s(:block, s(:next, s(:array, s(:lit, 1), s(:lit, 2))))
+      Parser.parse('next([1, 2])').should == s(:block, s(:next, s(:array, s(:lit, 1), s(:lit, 2))))
+      Parser.parse("next if true").should == s(:block, s(:if, s(:true), s(:next), nil))
+      Parser.parse('super').should == s(:block, s(:zsuper))
+      Parser.parse('super 1, 2').should == s(:block, s(:super, s(:lit, 1), s(:lit, 2)))
+      Parser.parse('super([1, 2])').should == s(:block, s(:super, s(:array, s(:lit, 1), s(:lit, 2))))
+      Parser.parse("super if true").should == s(:block, s(:if, s(:true), s(:zsuper), nil))
       Parser.parse('yield').should == s(:block, s(:yield))
       Parser.parse('yield 1, 2').should == s(:block, s(:yield, s(:lit, 1), s(:lit, 2)))
       Parser.parse('yield(1, 2)').should == s(:block, s(:yield, s(:lit, 1), s(:lit, 2)))
