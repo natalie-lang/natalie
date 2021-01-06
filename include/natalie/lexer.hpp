@@ -212,6 +212,7 @@ private:
             case Token::Type::LCurlyBrace:
             case Token::Type::LBracket:
             case Token::Type::LParen:
+            case Token::Type::Match:
                 return consume_regexp();
             default: {
                 switch (current_char()) {

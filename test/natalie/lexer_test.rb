@@ -67,6 +67,7 @@ describe 'Parser' do
     it 'tokenizes regexps' do
       Parser.tokens('/\/\*\/\n/').should == [{type: :dregx}, {type: :string, literal: "/*/\n"}, {type: :dregxend}]
       Parser.tokens('/foo #{1+1} bar/').should == [{type: :dregx}, {type: :string, literal: "foo "}, {type: :evstr}, {type: :integer, literal: 1}, {type: :integer, literal: 1}, {type: :"\n"}, {type: :evstrend}, {type: :string, literal: " bar"}, {type: :dregxend}]
+      Parser.tokens('foo =~ /=$/').should == [{type: :name, literal: :foo}, {type: :"=~"}, {type: :dregx}, {type: :string, literal: "=$"}, {type: :dregxend}]
     end
 
     it 'tokenizes operators' do
