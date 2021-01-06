@@ -292,6 +292,8 @@ describe 'Parser' do
       Parser.parse("foo.nil?").should == s(:block, s(:call, s(:call, nil, :foo), :nil?))
       Parser.parse("foo.not?").should == s(:block, s(:call, s(:call, nil, :foo), :not?))
       Parser.parse("foo.baz?").should == s(:block, s(:call, s(:call, nil, :foo), :baz?))
+      Parser.parse("foo\n  .bar\n  .baz").should == s(:block, s(:call, s(:call, s(:call, nil, :foo), :bar), :baz))
+      Parser.parse("foo.\n  bar.\n  baz").should == s(:block, s(:call, s(:call, s(:call, nil, :foo), :bar), :baz))
     end
 
     it 'parses ternary expressions' do

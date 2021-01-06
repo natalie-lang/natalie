@@ -537,7 +537,8 @@ struct Token : public gc {
     }
 
     bool can_follow_collapsible_newline() {
-        return m_type == Token::Type::RCurlyBrace
+        return m_type == Token::Type::Dot
+            || m_type == Token::Type::RCurlyBrace
             || m_type == Token::Type::RBracket
             || m_type == Token::Type::RParen
             || m_type == Token::Type::TernaryColon;
