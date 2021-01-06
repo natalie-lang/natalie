@@ -136,7 +136,7 @@ describe 'regexp' do
     end
   end
 
-  describe '#compile' do
+  describe '.compile' do
     it 'creates a regexp from a string' do
       r = Regexp.compile("t(i)m+", true)
       r.should == /t(i)m+/i
@@ -145,6 +145,13 @@ describe 'regexp' do
     it 'creates a regexp from a string with options' do
       r = Regexp.compile("tim", Regexp::EXTENDED | Regexp::IGNORECASE)
       r.should == /tim/ix
+    end
+  end
+
+  describe '#source' do
+    it 'returns the literal representation of the regexp' do
+      r = /^foo\n[0-9]+ (bar){1,2}$/
+      r.source.should == "^foo\\n[0-9]+ (bar){1,2}$"
     end
   end
 end

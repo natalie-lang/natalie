@@ -517,6 +517,7 @@ gen.binding('Regexp', '=~', 'RegexpValue', 'eqtilde', argc: 1, pass_env: true, p
 gen.binding('Regexp', 'initialize', 'RegexpValue', 'initialize', argc: 0..1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Regexp', 'inspect', 'RegexpValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Regexp', 'match', 'RegexpValue', 'match', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Regexp', 'source', 'RegexpValue', 'source', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 
 gen.binding('Parser::Sexp', 'new', 'SexpValue', 'new_method', argc: :any, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Parser::Sexp', 'inspect', 'SexpValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)

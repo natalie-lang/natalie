@@ -58,4 +58,8 @@ Value *RegexpValue::match(Env *env, Value *other, size_t start_index) {
     }
 }
 
+Value *RegexpValue::source(Env *env) {
+    return new StringValue { env, pattern() };
+}
+
 }
