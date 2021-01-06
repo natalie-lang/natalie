@@ -1219,6 +1219,21 @@ Node *Parser::parse_op_assign_expression(Env *env, Node *left, LocalsVectorPtr l
     switch (token.type()) {
     case Token::Type::AndEqual:
         return new OpAssignAndNode { token, left_identifier, parse_expression(env, ASSIGNMENT, locals) };
+    case Token::Type::BitwiseAndEqual:
+    case Token::Type::BitwiseOrEqual:
+    case Token::Type::BitwiseXorEqual:
+    case Token::Type::DivideEqual:
+    case Token::Type::ExponentEqual:
+    case Token::Type::LeftShiftEqual:
+    case Token::Type::MinusEqual:
+    case Token::Type::ModulusEqual:
+    case Token::Type::MultiplyEqual:
+    case Token::Type::PlusEqual:
+    case Token::Type::RightShiftEqual: {
+        auto op = std::string(token.type_value(env));
+        op.resize(op.size() - 1);
+        return new OpAssignNode { token, GC_STRDUP(op.c_str()), left_identifier, parse_expression(env, ASSIGNMENT, locals) };
+    }
     case Token::Type::OrEqual:
         return new OpAssignOrNode { token, left_identifier, parse_expression(env, ASSIGNMENT, locals) };
     default:
@@ -1468,7 +1483,18 @@ Parser::parse_left_fn Parser::left_denotation(Token token, Node *left) {
     case Type::NotMatch:
         return &Parser::parse_not_match_expression;
     case Type::AndEqual:
+    case Type::BitwiseAndEqual:
+    case Type::BitwiseOrEqual:
+    case Type::BitwiseXorEqual:
+    case Type::DivideEqual:
+    case Type::ExponentEqual:
+    case Type::LeftShiftEqual:
+    case Type::MinusEqual:
+    case Type::ModulusEqual:
+    case Type::MultiplyEqual:
     case Type::OrEqual:
+    case Type::PlusEqual:
+    case Type::RightShiftEqual:
         return &Parser::parse_op_assign_expression;
     case Type::DotDot:
     case Type::DotDotDot:

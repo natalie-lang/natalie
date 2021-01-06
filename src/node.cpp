@@ -581,6 +581,15 @@ Value *NotNode::to_ruby(Env *env) {
     return new SexpValue { env, this, { SymbolValue::intern(env, "not"), m_expression->to_ruby(env) } };
 }
 
+Value *OpAssignNode::to_ruby(Env *env) {
+    auto sexp = m_name->to_assignment_sexp(env);
+    assert(m_op);
+    auto call = new CallNode { token(), m_name, m_op };
+    call->add_arg(m_value);
+    sexp->push(call->to_ruby(env));
+    return sexp;
+}
+
 Value *OpAssignAndNode::to_ruby(Env *env) {
     return new SexpValue {
         env,

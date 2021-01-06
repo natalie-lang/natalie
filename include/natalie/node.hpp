@@ -47,6 +47,7 @@ struct Node : public gc {
         Nil,
         NilSexp,
         Not,
+        OpAssign,
         OpAssignAnd,
         OpAssignOr,
         Range,
@@ -837,8 +838,8 @@ struct NilSexpNode : Node {
     virtual Type type() override { return Type::NilSexp; }
 };
 
-struct OpAssignAndNode : Node {
-    OpAssignAndNode(Token token, IdentifierNode *name, Node *value)
+struct OpAssignNode : Node {
+    OpAssignNode(Token token, IdentifierNode *name, Node *value)
         : Node { token }
         , m_name { name }
         , m_value { value } {
@@ -846,31 +847,42 @@ struct OpAssignAndNode : Node {
         assert(m_value);
     }
 
+    OpAssignNode(Token token, const char *op, IdentifierNode *name, Node *value)
+        : Node { token }
+        , m_op { op }
+        , m_name { name }
+        , m_value { value } {
+        assert(m_op);
+        assert(m_name);
+        assert(m_value);
+    }
+
     virtual Value *to_ruby(Env *) override;
 
-    virtual Type type() override { return Type::OpAssignAnd; }
+    virtual Type type() override { return Type::OpAssign; }
 
-private:
+protected:
+    const char *m_op { nullptr };
     IdentifierNode *m_name { nullptr };
     Node *m_value { nullptr };
 };
 
-struct OpAssignOrNode : Node {
+struct OpAssignAndNode : OpAssignNode {
+    OpAssignAndNode(Token token, IdentifierNode *name, Node *value)
+        : OpAssignNode { token, name, value } { }
+
+    virtual Value *to_ruby(Env *) override;
+
+    virtual Type type() override { return Type::OpAssignAnd; }
+};
+
+struct OpAssignOrNode : OpAssignNode {
     OpAssignOrNode(Token token, IdentifierNode *name, Node *value)
-        : Node { token }
-        , m_name { name }
-        , m_value { value } {
-        assert(m_name);
-        assert(m_value);
-    }
+        : OpAssignNode { token, name, value } { }
 
     virtual Value *to_ruby(Env *) override;
 
     virtual Type type() override { return Type::OpAssignOr; }
-
-private:
-    IdentifierNode *m_name { nullptr };
-    Node *m_value { nullptr };
 };
 
 struct RangeNode : Node {

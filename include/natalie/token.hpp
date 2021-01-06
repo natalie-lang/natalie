@@ -23,9 +23,12 @@ struct Token : public gc {
         BeginKeyword,
         BEGINKeyword,
         BitwiseAnd,
+        BitwiseAndEqual,
         BinaryOnesComplement,
         BitwiseOr,
+        BitwiseOrEqual,
         BitwiseXor,
+        BitwiseXorEqual,
         BreakKeyword,
         CaseKeyword,
         ClassKeyword,
@@ -81,6 +84,7 @@ struct Token : public gc {
         LCurlyBrace,
         LBracket,
         LeftShift,
+        LeftShiftEqual,
         LessThan,
         LessThanOrEqual,
         LINEKeyword,
@@ -116,6 +120,7 @@ struct Token : public gc {
         RetryKeyword,
         ReturnKeyword,
         RightShift,
+        RightShiftEqual,
         RParen,
         SafeNavigation,
         SelfKeyword,
@@ -211,12 +216,18 @@ struct Token : public gc {
             return "BEGIN";
         case Type::BitwiseAnd:
             return "&";
+        case Type::BitwiseAndEqual:
+            return "&=";
         case Type::BinaryOnesComplement:
             return "~";
         case Type::BitwiseOr:
             return "|";
+        case Type::BitwiseOrEqual:
+            return "|=";
         case Type::BitwiseXor:
             return "^";
+        case Type::BitwiseXorEqual:
+            return "^=";
         case Type::BreakKeyword:
             return "break";
         case Type::CaseKeyword:
@@ -327,6 +338,8 @@ struct Token : public gc {
             return "[";
         case Type::LeftShift:
             return "<<";
+        case Type::LeftShiftEqual:
+            return "<<=";
         case Type::LessThanOrEqual:
             return "<=";
         case Type::LessThan:
@@ -397,6 +410,8 @@ struct Token : public gc {
             return "return";
         case Type::RightShift:
             return ">>";
+        case Type::RightShiftEqual:
+            return ">>=";
         case Type::RParen:
             return ")";
         case Type::SafeNavigation:
