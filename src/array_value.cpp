@@ -459,4 +459,13 @@ Value *ArrayValue::compact(Env *env) {
     return ary;
 }
 
+Value *ArrayValue::uniq(Env *env) {
+    auto hash = new HashValue { env };
+    auto nil = env->nil_obj();
+    for (auto item : *this) {
+        hash->put(env, item, nil);
+    }
+    return hash->keys(env);
+}
+
 }

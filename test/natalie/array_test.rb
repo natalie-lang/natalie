@@ -650,4 +650,14 @@ describe 'array' do
       #a.index.each { |i| i == 'c' }.should == 2
     end
   end
+
+  describe '#uniq' do
+    specify do
+      [1, 1, 2, 1, 3, 3, 1.0].uniq.should == [1, 2, 3, 1.0]
+      ['a', 'b', 'b', 'a'].uniq.should == ['a', 'b']
+      o1 = Object.new
+      o2 = Object.new
+      [o1, o1, o2].uniq.should == [o1, o2]
+    end
+  end
 end

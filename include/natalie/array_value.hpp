@@ -118,6 +118,7 @@ struct ArrayValue : Value {
     Value *shift(Env *, Value *);
     Value *sort(Env *);
     Value *sub(Env *, Value *);
+    Value *uniq(Env *);
 
 private:
     ArrayValue(Env *env, Vector<Value *> &&vector)
