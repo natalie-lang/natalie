@@ -75,13 +75,14 @@ describe 'Parser' do
     end
 
     it 'tokenizes numbers' do
-      Parser.tokens('1 123 +1 -456 - 0 0d5 0D6 0o10 0O11 0xff 0XFF 0b110 0B111').should == [
+      Parser.tokens('1 123 +1 -456 - 0 100_000_000 0d5 0D6 0o10 0O11 0xff 0XFF 0b110 0B111').should == [
         {type: :integer, literal: 1},
         {type: :integer, literal: 123},
         {type: :integer, literal: 1},
         {type: :integer, literal: -456},
         {type: :"-"},
         {type: :integer, literal: 0},
+        {type: :integer, literal: 100000000},
         {type: :integer, literal: 5}, # 0d5
         {type: :integer, literal: 6}, # 0D6
         {type: :integer, literal: 8}, # 0o10

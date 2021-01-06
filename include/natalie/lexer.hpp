@@ -889,6 +889,10 @@ private:
                     number += c - 48;
                     advance();
                     c = current_char();
+                    if (c == '_') {
+                        advance();
+                        c = current_char();
+                    }
                 } while (isdigit(c));
                 if (negative)
                     number *= -1;
@@ -905,6 +909,10 @@ private:
                     number += c - 48;
                     advance();
                     c = current_char();
+                    if (c == '_') {
+                        advance();
+                        c = current_char();
+                    }
                 } while (c >= '0' && c <= '7');
                 if (negative)
                     number *= -1;
@@ -926,6 +934,10 @@ private:
                         number += c - 48;
                     advance();
                     c = current_char();
+                    if (c == '_') {
+                        advance();
+                        c = current_char();
+                    }
                 } while (isxdigit(c));
                 if (negative)
                     number *= -1;
@@ -942,6 +954,10 @@ private:
                     number += c - 48;
                     advance();
                     c = current_char();
+                    if (c == '_') {
+                        advance();
+                        c = current_char();
+                    }
                 } while (c == '0' || c == '1');
                 if (negative)
                     number *= -1;
@@ -955,6 +971,10 @@ private:
             number += c - 48;
             advance();
             c = current_char();
+            if (c == '_') {
+                advance();
+                c = current_char();
+            }
         } while (isdigit(c));
         if (c == '.' && isdigit(peek())) {
             advance();
