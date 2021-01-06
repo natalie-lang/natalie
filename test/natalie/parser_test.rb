@@ -535,6 +535,7 @@ describe 'Parser' do
       Parser.parse("begin;rescue SyntaxError;3;else;4;5;end").should == s(:block, s(:rescue, s(:resbody, s(:array, s(:const, :SyntaxError)), s(:lit, 3)), s(:block, s(:lit, 4), s(:lit, 5))))
       Parser.parse("begin\n0\nensure\n:a\n:b\nend").should == s(:block, s(:ensure, s(:lit, 0), s(:block, s(:lit, :a), s(:lit, :b))))
       Parser.parse("begin;0;rescue;:a;else;:c;ensure;:d;:e;end").should == s(:block, s(:ensure, s(:rescue, s(:lit, 0), s(:resbody, s(:array), s(:lit, :a)), s(:lit, :c)), s(:block, s(:lit, :d), s(:lit, :e))))
+      Parser.parse("def foo;0;rescue;:a;else;:c;ensure;:d;:e;end").should == s(:block, s(:defn, :foo, s(:args), s(:ensure, s(:rescue, s(:lit, 0), s(:resbody, s(:array), s(:lit, :a)), s(:lit, :c)), s(:block, s(:lit, :d), s(:lit, :e)))))
       Parser.parse("begin;0;rescue foo(1), bar(2);1;end").should == s(:block, s(:rescue, s(:lit, 0), s(:resbody, s(:array, s(:call, nil, :foo, s(:lit, 1)), s(:call, nil, :bar, s(:lit, 2))), s(:lit, 1))))
       Parser.parse("begin;0;ensure;1;end").should == s(:block, s(:ensure, s(:lit, 0), s(:lit, 1)))
     end

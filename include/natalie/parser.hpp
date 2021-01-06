@@ -167,11 +167,13 @@ private:
     BlockNode *parse_body(Env *, LocalsVectorPtr, Precedence, Vector<Token::Type> *, const char *);
     BlockNode *parse_case_when_body(Env *, LocalsVectorPtr);
     Node *parse_if_body(Env *, LocalsVectorPtr);
+    BlockNode *parse_def_body(Env *, LocalsVectorPtr);
 
     Node *parse_alias(Env *, LocalsVectorPtr);
     SymbolNode *parse_alias_arg(Env *, LocalsVectorPtr, const char *);
     Node *parse_array(Env *, LocalsVectorPtr);
     Node *parse_begin(Env *, LocalsVectorPtr);
+    void parse_rest_of_begin(Env *, BeginNode *, LocalsVectorPtr);
     Node *parse_block_pass(Env *, LocalsVectorPtr);
     Node *parse_bool(Env *, LocalsVectorPtr);
     Node *parse_break(Env *, LocalsVectorPtr);
@@ -256,6 +258,7 @@ private:
     [[noreturn]] void raise_unexpected(Env *, const char *);
 
     void advance() { m_index++; }
+    void rewind() { m_index--; }
 
     const char *m_code { nullptr };
     const char *m_file { nullptr };

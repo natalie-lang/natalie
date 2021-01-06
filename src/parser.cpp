@@ -85,6 +85,24 @@ BlockNode *Parser::parse_body(Env *env, LocalsVectorPtr locals, Precedence prece
     return body;
 }
 
+BlockNode *Parser::parse_def_body(Env *env, LocalsVectorPtr locals) {
+    auto token = current_token();
+    auto body = new BlockNode { token };
+    skip_newlines();
+    while (!current_token().is_eof() && !current_token().is_end_keyword()) {
+        if (current_token().type() == Token::Type::RescueKeyword) {
+            auto begin_node = new BeginNode { token, body };
+            parse_rest_of_begin(env, begin_node, locals);
+            rewind(); // so the 'end' keyword can be consumed by parse_def
+            return new BlockNode { token, begin_node };
+        }
+        auto exp = parse_expression(env, LOWEST, locals);
+        body->add_node(exp);
+        next_expression(env);
+    }
+    return body;
+}
+
 Node *Parser::parse_alias(Env *env, LocalsVectorPtr locals) {
     auto token = current_token();
     advance();
@@ -135,55 +153,12 @@ Node *Parser::parse_begin(Env *env, LocalsVectorPtr locals) {
     auto token = current_token();
     advance();
     next_expression(env);
-    auto begin_tokens = new Vector<Token::Type> { { Token::Type::RescueKeyword, Token::Type::ElseKeyword, Token::Type::EnsureKeyword, Token::Type::EndKeyword } };
-    auto else_tokens = new Vector<Token::Type> { { Token::Type::EnsureKeyword, Token::Type::EndKeyword } };
-    auto body = parse_body(env, locals, LOWEST, begin_tokens, "case: rescue, else, ensure, or end");
+    auto begin_ending_tokens = new Vector<Token::Type> { { Token::Type::RescueKeyword, Token::Type::ElseKeyword, Token::Type::EnsureKeyword, Token::Type::EndKeyword } };
+    auto body = parse_body(env, locals, LOWEST, begin_ending_tokens, "case: rescue, else, ensure, or end");
+
     auto begin_node = new BeginNode { token, body };
-    while (!current_token().is_eof() && !current_token().is_end_keyword()) {
-        switch (current_token().type()) {
-        case Token::Type::RescueKeyword: {
-            auto rescue_node = new BeginRescueNode { current_token() };
-            advance();
-            if (!current_token().is_eol() && current_token().type() != Token::Type::HashRocket) {
-                auto name = parse_expression(env, CALLARGS, locals);
-                rescue_node->add_exception_node(name);
-                while (current_token().is_comma()) {
-                    advance();
-                    auto name = parse_expression(env, CALLARGS, locals);
-                    rescue_node->add_exception_node(name);
-                }
-            }
-            if (current_token().type() == Token::Type::HashRocket) {
-                advance();
-                auto name = static_cast<IdentifierNode *>(parse_identifier(env, locals));
-                rescue_node->set_exception_name(name);
-            }
-            next_expression(env);
-            auto body = parse_body(env, locals, LOWEST, begin_tokens, "case: rescue, else, ensure, or end");
-            rescue_node->set_body(body);
-            begin_node->add_rescue_node(rescue_node);
-            break;
-        }
-        case Token::Type::ElseKeyword: {
-            advance();
-            next_expression(env);
-            auto body = parse_body(env, locals, LOWEST, else_tokens, "case: ensure or end");
-            begin_node->set_else_body(body);
-            break;
-        }
-        case Token::Type::EnsureKeyword: {
-            advance();
-            next_expression(env);
-            auto body = parse_body(env, locals, LOWEST);
-            begin_node->set_ensure_body(body);
-            break;
-        }
-        default:
-            raise_unexpected(env, "begin end");
-        }
-    }
-    expect(env, Token::Type::EndKeyword, "case end");
-    advance();
+    parse_rest_of_begin(env, begin_node, locals);
+
     token = current_token();
     switch (token.type()) {
     case Token::Type::UntilKeyword: {
@@ -209,6 +184,56 @@ Node *Parser::parse_begin(Env *env, LocalsVectorPtr locals) {
     default:
         return begin_node;
     }
+}
+
+void Parser::parse_rest_of_begin(Env *env, BeginNode *begin_node, LocalsVectorPtr locals) {
+    auto rescue_ending_tokens = new Vector<Token::Type> { { Token::Type::RescueKeyword, Token::Type::ElseKeyword, Token::Type::EnsureKeyword, Token::Type::EndKeyword } };
+    auto else_ending_tokens = new Vector<Token::Type> { { Token::Type::EnsureKeyword, Token::Type::EndKeyword } };
+    while (!current_token().is_eof() && !current_token().is_end_keyword()) {
+        switch (current_token().type()) {
+        case Token::Type::RescueKeyword: {
+            auto rescue_node = new BeginRescueNode { current_token() };
+            advance();
+            if (!current_token().is_eol() && current_token().type() != Token::Type::HashRocket) {
+                auto name = parse_expression(env, CALLARGS, locals);
+                rescue_node->add_exception_node(name);
+                while (current_token().is_comma()) {
+                    advance();
+                    auto name = parse_expression(env, CALLARGS, locals);
+                    rescue_node->add_exception_node(name);
+                }
+            }
+            if (current_token().type() == Token::Type::HashRocket) {
+                advance();
+                auto name = static_cast<IdentifierNode *>(parse_identifier(env, locals));
+                rescue_node->set_exception_name(name);
+            }
+            next_expression(env);
+            auto body = parse_body(env, locals, LOWEST, rescue_ending_tokens, "case: rescue, else, ensure, or end");
+            rescue_node->set_body(body);
+            begin_node->add_rescue_node(rescue_node);
+            break;
+        }
+        case Token::Type::ElseKeyword: {
+            advance();
+            next_expression(env);
+            auto body = parse_body(env, locals, LOWEST, else_ending_tokens, "case: ensure or end");
+            begin_node->set_else_body(body);
+            break;
+        }
+        case Token::Type::EnsureKeyword: {
+            advance();
+            next_expression(env);
+            auto body = parse_body(env, locals, LOWEST);
+            begin_node->set_ensure_body(body);
+            break;
+        }
+        default:
+            raise_unexpected(env, "begin end");
+        }
+    }
+    expect(env, Token::Type::EndKeyword, "begin/rescue/ensure end");
+    advance();
 }
 
 Node *Parser::parse_block_pass(Env *env, LocalsVectorPtr locals) {
@@ -425,7 +450,7 @@ Node *Parser::parse_def(Env *env, LocalsVectorPtr) {
     } else {
         args = new Vector<Node *> {};
     }
-    auto body = parse_body(env, locals, LOWEST);
+    auto body = parse_def_body(env, locals);
     expect(env, Token::Type::EndKeyword, "def end");
     advance();
     return new DefNode { token, self_node, name, args, body };
