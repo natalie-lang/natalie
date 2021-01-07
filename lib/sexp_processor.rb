@@ -12,6 +12,7 @@ class SexpProcessor
   end
 
   def process(ast)
+    return if ast.nil? && !strict
     method = "process_#{ast.sexp_type}"
     context << ast.sexp_type
     if respond_to?(method)
