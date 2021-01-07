@@ -143,6 +143,16 @@ describe 'Parser' do
         {type: :evstrend},
         {type: :dstrend},
       ]
+      Parser.tokens(%("foo\#{''}bar")).should == [
+        {type: :dstr},
+        {type: :string, literal: 'foo'},
+        {type: :evstr},
+        {type: :string, literal: ''},
+        {type: :"\n"},
+        {type: :evstrend},
+        {type: :string, literal: 'bar'},
+        {type: :dstrend}
+      ]
     end
 
     it 'tokenizes backticks and %x()' do

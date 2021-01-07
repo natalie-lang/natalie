@@ -125,6 +125,7 @@ describe 'Parser' do
       Parser.parse('"#{:foo} bar #{1 + 1}"').should == s(:block, s(:dstr, "", s(:evstr, s(:lit, :foo)), s(:str, " bar "), s(:evstr, s(:call, s(:lit, 1), :+, s(:lit, 1)))))
       Parser.parse('y = "#{1 + 1} 2"').should == s(:block, s(:lasgn, :y, s(:dstr, "", s(:evstr, s(:call, s(:lit, 1), :+, s(:lit, 1))), s(:str, " 2"))))
       Parser.parse('x.y = "#{1 + 1} 2"').should == s(:block, s(:attrasgn, s(:call, nil, :x), :y=, s(:dstr, "", s(:evstr, s(:call, s(:lit, 1), :+, s(:lit, 1))), s(:str, " 2"))))
+      Parser.parse(%("\#{1}foo\#{''}bar")).should == s(:block, s(:dstr, "", s(:evstr, s(:lit, 1)), s(:str, "foo"), s(:str, ""), s(:str, "bar")))
     end
 
     it 'parses symbols' do

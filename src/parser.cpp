@@ -668,7 +668,10 @@ void Parser::parse_interpolated_body(Env *env, LocalsVectorPtr locals, Interpola
             }
             advance();
             if (block->has_one_node())
-                node->add_node(new EvaluateToStringNode { current_token(), (*block->nodes())[0] });
+                if ((*block->nodes())[0]->type() == Node::Type::String)
+                    node->add_node((*block->nodes())[0]);
+                else
+                    node->add_node(new EvaluateToStringNode { current_token(), (*block->nodes())[0] });
             else
                 node->add_node(new EvaluateToStringNode { current_token(), block });
             break;
