@@ -12,6 +12,7 @@ describe 'symbol' do
       :foo_bar.inspect.should == ':foo_bar'
       :"foo bar".inspect.should == ':"foo bar"'
       :"foo\nbar".inspect.should == ":\"foo\\nbar\""
+      :foo=.inspect.should == ':foo='
       :foo?.inspect.should == ':foo?'
       :"?foo".inspect.should == ':"?foo"'
       :foo!.inspect.should == ':foo!'
@@ -35,6 +36,14 @@ describe 'symbol' do
       :$0.inspect.should == ':$0'
       :[].inspect.should == ':[]'
       :[]=.inspect.should == ':[]='
+      :<<.inspect.should == ':<<'
+      :<.inspect.should == ':<'
+      :>>.inspect.should == ':>>'
+      :>.inspect.should == ':>'
+      :$?.inspect.should == ':$?'
+      :$!.inspect.should == ':$!'
+      :$~.inspect.should == ':$~'
+      (:&).inspect.should == ':&'
     end
   end
 
