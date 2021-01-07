@@ -122,6 +122,7 @@ Value *arg_value_by_path(Env *env, Value *value, Value *default_value, bool spla
         int index = va_arg(args, int);
 
         if (splat && i == path_size - 1) {
+            va_end(args);
             return splat_value(env, return_value, index, offset_from_end);
         } else {
             if (return_value->is_array()) {
@@ -135,6 +136,7 @@ Value *arg_value_by_path(Env *env, Value *value, Value *default_value, bool spla
                 if (has_default && index >= remain && index < first_required && defaults_on_left) {
                     // this is an arg with a default value;
                     // not enough values to fill all the required args and this one
+                    va_end(args);
                     return default_value;
                 }
 
@@ -193,6 +195,7 @@ Value *array_value_by_path(Env *env, Value *value, Value *default_value, bool sp
     for (size_t i = 0; i < path_size; i++) {
         int index = va_arg(args, int);
         if (splat && i == path_size - 1) {
+            va_end(args);
             return splat_value(env, return_value, index, offset_from_end);
         } else {
             if (return_value->is_array()) {
