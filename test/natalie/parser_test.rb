@@ -246,6 +246,13 @@ describe 'Parser' do
       Parser.parse("$0").should == s(:block, s(:gvar, :$0))
     end
 
+    it 'parses regex nth refs' do
+      Parser.parse("$1").should == s(:block, s(:nth_ref, 1))
+      Parser.parse("$9").should == s(:block, s(:nth_ref, 9))
+      Parser.parse("$10").should == s(:block, s(:nth_ref, 10))
+      Parser.parse("$100").should == s(:block, s(:nth_ref, 100))
+    end
+
     it 'parses instance variables' do
       Parser.parse("@foo").should == s(:block, s(:ivar, :@foo))
     end

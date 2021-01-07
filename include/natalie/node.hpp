@@ -612,6 +612,27 @@ struct IdentifierNode : Node {
     bool is_lvar() { return m_is_lvar; }
     void set_is_lvar(bool is_lvar) { m_is_lvar = is_lvar; }
 
+    nat_int_t nth_ref() {
+        auto str = name();
+        size_t len = strlen(str);
+        if (strcmp(str, "$0") == 0)
+            return 0;
+        if (len <= 1)
+            return 0;
+        int ref = 0;
+        for (size_t i = 1; i < len; i++) {
+            char c = str[i];
+            if (i == 1 && c == '0')
+                return 0;
+            int num = c - 48;
+            if (num < 0 || num > 9)
+                return 0;
+            ref *= 10;
+            ref += num;
+        }
+        return ref;
+    }
+
     SexpValue *to_assignment_sexp(Env *);
 
     SymbolValue *assignment_type(Env *env) {

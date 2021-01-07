@@ -344,8 +344,13 @@ Value *IdentifierNode::to_ruby(Env *env) {
         return new SexpValue { env, this, { SymbolValue::intern(env, "cvar"), SymbolValue::intern(env, name()) } };
     case Token::Type::Constant:
         return new SexpValue { env, this, { SymbolValue::intern(env, "const"), SymbolValue::intern(env, name()) } };
-    case Token::Type::GlobalVariable:
-        return new SexpValue { env, this, { SymbolValue::intern(env, "gvar"), SymbolValue::intern(env, name()) } };
+    case Token::Type::GlobalVariable: {
+        auto ref = nth_ref();
+        if (ref > 0)
+            return new SexpValue { env, this, { SymbolValue::intern(env, "nth_ref"), new IntegerValue { env, ref } } };
+        else
+            return new SexpValue { env, this, { SymbolValue::intern(env, "gvar"), SymbolValue::intern(env, name()) } };
+    }
     case Token::Type::InstanceVariable:
         return new SexpValue { env, this, { SymbolValue::intern(env, "ivar"), SymbolValue::intern(env, name()) } };
     default:
