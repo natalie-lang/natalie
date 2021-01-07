@@ -137,6 +137,8 @@ describe 'Parser' do
     it 'parses regular expressions' do
       Parser.parse('/foo/').should == s(:block, s(:lit, /foo/))
       Parser.parse('/foo #{1+1}/').should == s(:block, s(:dregx, "foo ", s(:evstr, s(:call, s(:lit, 1), :+, s(:lit, 1)))))
+      Parser.parse('/^$(.)[.]{1}.*.+.?\^\$\.\(\)\[\]\{\}\w\W\d\D\h\H\s\S\R\*\+\?/').should == s(:block, s(:lit, /^$(.)[.]{1}.*.+.?\^\$\.\(\)\[\]\{\}\w\W\d\D\h\H\s\S\R\*\+\?/))
+      Parser.parse("/\\n\\\\n/").should == s(:block, s(:lit, /\n\\n/))
     end
 
     it 'parses multiple expressions' do
@@ -246,7 +248,7 @@ describe 'Parser' do
       Parser.parse("$0").should == s(:block, s(:gvar, :$0))
     end
 
-    it 'parses regex nth refs' do
+    it 'parses regexp nth refs' do
       Parser.parse("$1").should == s(:block, s(:nth_ref, 1))
       Parser.parse("$9").should == s(:block, s(:nth_ref, 9))
       Parser.parse("$10").should == s(:block, s(:nth_ref, 10))

@@ -213,7 +213,7 @@ private:
             case Token::Type::LBracket:
             case Token::Type::LParen:
             case Token::Type::Match:
-                return consume_regexp();
+                return consume_regexp('/');
             default: {
                 switch (current_char()) {
                 case ' ':
@@ -223,7 +223,7 @@ private:
                     return Token { Token::Type::DivideEqual, m_file, m_token_line, m_token_column };
                 default:
                     if (m_whitespace_precedes) {
-                        return consume_regexp();
+                        return consume_regexp('/');
                     } else {
                         return Token { Token::Type::Divide, m_file, m_token_line, m_token_column };
                     }
@@ -1115,9 +1115,56 @@ private:
         return Token { type, GC_STRDUP(buf.c_str()), m_file, m_token_line, m_token_column };
     }
 
-    Token consume_regexp() {
-        auto string = consume_double_quoted_string('/');
-        return Token { Token::Type::Regexp, GC_STRDUP(string.literal()), m_file, m_token_line, m_token_column };
+    Token consume_regexp(char delimiter) {
+        auto buf = std::string("");
+        char c = current_char();
+        while (c) {
+            if (c == '\\') {
+                advance();
+                c = current_char();
+                switch (c) {
+                case 'd':
+                case 'D':
+                case 'h':
+                case 'H':
+                case 'R':
+                case 's':
+                case 'S':
+                case 'w':
+                case 'W':
+                case '^':
+                case '$':
+                case '.':
+                case '*':
+                case '+':
+                case '?':
+                case '(':
+                case ')':
+                case '[':
+                case ']':
+                case '{':
+                case '}':
+                case 'n':
+                case 't':
+                case '\\':
+                    buf += '\\';
+                    buf += c;
+                    break;
+                default:
+                    buf += c;
+                    break;
+                }
+            } else if (c == delimiter) {
+                advance();
+                auto token = Token { Token::Type::Regexp, GC_STRDUP(buf.c_str()), m_file, m_token_line, m_token_column };
+                return token;
+            } else {
+                buf += c;
+            }
+            advance();
+            c = current_char();
+        }
+        return Token { Token::Type::UnterminatedRegexp, GC_STRDUP(buf.c_str()), m_file, m_token_line, m_token_column };
     }
 
     const char *consume_non_whitespace() {
