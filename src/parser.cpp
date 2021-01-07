@@ -206,6 +206,7 @@ void Parser::parse_rest_of_begin(Env *env, BeginNode *begin_node, LocalsVectorPt
             if (current_token().type() == Token::Type::HashRocket) {
                 advance();
                 auto name = static_cast<IdentifierNode *>(parse_identifier(env, locals));
+                name->add_to_locals(env, locals);
                 rescue_node->set_exception_name(name);
             }
             next_expression(env);
