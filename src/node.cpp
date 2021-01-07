@@ -494,6 +494,18 @@ Value *LogicalOrNode::to_ruby(Env *env) {
     return sexp;
 }
 
+Value *MatchNode::to_ruby(Env *env) {
+    return new SexpValue {
+        env,
+        this,
+        {
+            SymbolValue::intern(env, m_regexp_on_left ? "match2" : "match3"),
+            m_regexp->to_ruby(env),
+            m_arg->to_ruby(env),
+        }
+    };
+}
+
 Value *ModuleNode::to_ruby(Env *env) {
     auto sexp = new SexpValue { env, this, { SymbolValue::intern(env, "module"), SymbolValue::intern(env, m_name->name()) } };
     if (!m_body->is_empty()) {

@@ -1226,12 +1226,29 @@ Node *Parser::parse_logical_expression(Env *env, Node *left, LocalsVectorPtr loc
     }
 }
 
+Node *Parser::parse_match_expression(Env *env, Node *left, LocalsVectorPtr locals) {
+    auto token = current_token();
+    advance();
+    auto arg = parse_expression(env, EQUALITY, locals);
+    if (left->type() == Node::Type::Regexp) {
+        return new MatchNode { token, static_cast<RegexpNode *>(left), arg, true };
+    } else if (arg->type() == Node::Type::Regexp) {
+        return new MatchNode { token, static_cast<RegexpNode *>(arg), left, false };
+    } else {
+        auto *node = new CallNode {
+            token,
+            left,
+            GC_STRDUP("=~"),
+        };
+        node->add_arg(arg);
+        return node;
+    }
+}
+
 Node *Parser::parse_not_match_expression(Env *env, Node *left, LocalsVectorPtr locals) {
     auto token = current_token();
-    auto expression = parse_infix_expression(env, left, locals);
-    assert(expression->type() == Node::Type::Call);
-    static_cast<CallNode *>(expression)->set_message(GC_STRDUP("=~"));
-    return new NotNode { token, expression };
+    auto match = parse_match_expression(env, left, locals);
+    return new NotNode { token, match };
 }
 
 Node *Parser::parse_op_assign_expression(Env *env, Node *left, LocalsVectorPtr locals) {
@@ -1510,7 +1527,6 @@ Parser::parse_left_fn Parser::left_denotation(Token token, Node *left) {
     case Type::LeftShift:
     case Type::LessThan:
     case Type::LessThanOrEqual:
-    case Type::Match:
     case Type::Minus:
     case Type::Modulus:
     case Type::Multiply:
@@ -1534,6 +1550,8 @@ Parser::parse_left_fn Parser::left_denotation(Token token, Node *left) {
     case Type::Or:
     case Type::OrKeyword:
         return &Parser::parse_logical_expression;
+    case Type::Match:
+        return &Parser::parse_match_expression;
     case Type::IfKeyword:
     case Type::UnlessKeyword:
     case Type::WhileKeyword:

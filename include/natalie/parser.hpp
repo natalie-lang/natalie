@@ -227,6 +227,7 @@ private:
     Node *parse_iter_expression(Env *, Node *, LocalsVectorPtr);
     Vector<Node *> *parse_iter_args(Env *, LocalsVectorPtr);
     Node *parse_logical_expression(Env *, Node *, LocalsVectorPtr);
+    Node *parse_match_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_modifier_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_not_match_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_op_assign_expression(Env *, Node *, LocalsVectorPtr);

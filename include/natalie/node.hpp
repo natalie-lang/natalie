@@ -41,6 +41,7 @@ struct Node : public gc {
         Literal,
         LogicalAnd,
         LogicalOr,
+        Match,
         Module,
         MultipleAssignment,
         Next,
@@ -768,6 +769,25 @@ struct LogicalOrNode : Node {
 private:
     Node *m_left { nullptr };
     Node *m_right { nullptr };
+};
+
+struct RegexpNode;
+
+struct MatchNode : Node {
+    MatchNode(Token token, RegexpNode *regexp, Node *arg, bool regexp_on_left)
+        : Node { token }
+        , m_regexp { regexp }
+        , m_arg { arg }
+        , m_regexp_on_left { regexp_on_left } { }
+
+    virtual Type type() override { return Type::Match; }
+
+    virtual Value *to_ruby(Env *) override;
+
+private:
+    RegexpNode *m_regexp { nullptr };
+    Node *m_arg { nullptr };
+    bool m_regexp_on_left { false };
 };
 
 struct ModuleNode : Node {
