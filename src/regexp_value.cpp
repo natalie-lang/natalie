@@ -15,7 +15,21 @@ Value *RegexpValue::initialize(Env *env, Value *arg) {
 
 Value *RegexpValue::inspect(Env *env) {
     StringValue *out = new StringValue { env, "/" };
-    out->append(env, pattern());
+    const char *str = pattern();
+    size_t len = strlen(str);
+    for (size_t i = 0; i < len; i++) {
+        char c = str[i];
+        switch (c) {
+        case '\n':
+            out->append(env, "\\n");
+            break;
+        case '\t':
+            out->append(env, "\\t");
+            break;
+        default:
+            out->append_char(env, c);
+        }
+    }
     out->append_char(env, '/');
     if ((options() & 4) != 0) out->append_char(env, 'm');
     if ((options() & 1) != 0) out->append_char(env, 'i');

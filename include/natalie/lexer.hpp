@@ -1146,6 +1146,7 @@ private:
                 case '}':
                 case 'n':
                 case 't':
+                case '/':
                 case '\\':
                     buf += '\\';
                     buf += c;

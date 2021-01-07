@@ -64,7 +64,7 @@ struct RegexpValue : Value {
     bool operator==(const Value &other) const {
         if (!other.is_regexp()) return false;
         RegexpValue *other_regexp = const_cast<Value &>(other).as_regexp();
-        return other.is_regexp() && strcmp(m_pattern, other_regexp->m_pattern) == 0 && m_options == other_regexp->m_options;
+        return strcmp(m_pattern, other_regexp->m_pattern) == 0 && m_options == other_regexp->m_options;
     }
 
     int search(const char *str, OnigRegion *region, OnigOptionType options) {
