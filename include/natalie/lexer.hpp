@@ -1216,8 +1216,10 @@ struct InterpolatedStringLexer {
         while (m_index < m_size) {
             char c = current_char();
             if (c == '#' && peek() == '{') {
-                tokens->push(Token { Token::Type::String, GC_STRDUP(raw.c_str()), m_file, m_line, m_column });
-                raw.clear();
+                if (!raw.empty() || tokens->is_empty()) {
+                    tokens->push(Token { Token::Type::String, GC_STRDUP(raw.c_str()), m_file, m_line, m_column });
+                    raw.clear();
+                }
                 m_index += 2;
                 tokenize_interpolation(tokens);
             } else {

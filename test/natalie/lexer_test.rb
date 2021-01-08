@@ -153,6 +153,19 @@ describe 'Parser' do
         {type: :string, literal: 'bar'},
         {type: :dstrend}
       ]
+      Parser.tokens('"#{1}#{2}"').should == [
+        {type: :dstr},
+        {type: :string, literal: ''},
+        {type: :evstr},
+        {type: :integer, literal: 1},
+        {type: :"\n"},
+        {type: :evstrend},
+        {type: :evstr},
+        {type: :integer, literal: 2},
+        {type: :"\n"},
+        {type: :evstrend},
+        {type: :dstrend}
+      ]
     end
 
     it 'tokenizes backticks and %x()' do
