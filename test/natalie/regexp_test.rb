@@ -54,6 +54,23 @@ describe 'regexp' do
       result = /foo/ =~ 'bar'
       result.should == nil
     end
+
+    it 'works with symbols' do
+      result = /foo/ =~ :foo
+      result.should == 0
+    end
+  end
+
+  describe '===' do
+    it 'works with strings' do
+      result = /foo/ === 'foo'
+      result.should == true
+    end
+
+    it 'works with symbols' do
+      result = /foo/ === :foo
+      result.should == true
+    end
   end
 
   describe '!~' do

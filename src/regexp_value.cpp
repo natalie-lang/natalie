@@ -38,6 +38,8 @@ Value *RegexpValue::inspect(Env *env) {
 }
 
 Value *RegexpValue::eqtilde(Env *env, Value *other) {
+    if (other->is_symbol())
+        other = other->as_symbol()->to_s(env);
     other->assert_type(env, Value::Type::String, "String");
     Value *result = match(env, other);
     if (result->is_nil()) {
@@ -50,6 +52,8 @@ Value *RegexpValue::eqtilde(Env *env, Value *other) {
 }
 
 Value *RegexpValue::match(Env *env, Value *other, size_t start_index) {
+    if (other->is_symbol())
+        other = other->as_symbol()->to_s(env);
     other->assert_type(env, Value::Type::String, "String");
     StringValue *str_obj = other->as_string();
 

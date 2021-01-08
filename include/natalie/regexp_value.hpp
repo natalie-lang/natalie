@@ -84,7 +84,7 @@ struct RegexpValue : Value {
     }
 
     bool eqeqeq(Env *env, Value *other) {
-        if (!other->is_string()) {
+        if (!other->is_string() && !other->is_symbol()) {
             return false;
         }
         return match(env, other)->is_truthy();
