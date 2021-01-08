@@ -41,7 +41,7 @@ struct StringValue : Value {
     }
 
     StringValue(StringValue &other)
-        : Value { Value::Type::String, other.klass() } {
+        : Value { other } {
         set_str(other.c_str(), other.length());
     }
 

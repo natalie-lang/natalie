@@ -38,7 +38,8 @@ struct HashValue : Value {
     }
 
     HashValue(Env *env, HashValue &other)
-        : HashValue { env, other.klass() } {
+        : Value { other } {
+        hashmap_init(&m_hashmap, hash, compare, 256);
         for (auto node : other) {
             put(env, node.key, node.val);
         }
