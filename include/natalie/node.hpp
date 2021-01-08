@@ -769,6 +769,9 @@ struct LogicalAndNode : Node {
 
     virtual Value *to_ruby(Env *) override;
 
+    Node *left() { return m_left; }
+    Node *right() { return m_right; }
+
 private:
     Node *m_left { nullptr };
     Node *m_right { nullptr };
@@ -786,6 +789,9 @@ struct LogicalOrNode : Node {
     virtual Type type() override { return Type::LogicalOr; }
 
     virtual Value *to_ruby(Env *) override;
+
+    Node *left() { return m_left; }
+    Node *right() { return m_right; }
 
 private:
     Node *m_left { nullptr };

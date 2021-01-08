@@ -1213,18 +1213,42 @@ Node *Parser::parse_infix_expression(Env *env, Node *left, LocalsVectorPtr local
 Node *Parser::parse_logical_expression(Env *env, Node *left, LocalsVectorPtr locals) {
     auto token = current_token();
     switch (current_token().type()) {
-    case Token::Type::And:
+    case Token::Type::And: {
         advance();
-        return new LogicalAndNode { token, left, parse_expression(env, LOGICALAND, locals) };
-    case Token::Type::AndKeyword:
+        auto right = parse_expression(env, LOGICALAND, locals);
+        if (left->type() == Node::Type::LogicalAnd) {
+            return regroup<LogicalAndNode>(token, left, right);
+        } else {
+            return new LogicalAndNode { token, left, right };
+        }
+    }
+    case Token::Type::AndKeyword: {
         advance();
-        return new LogicalAndNode { token, left, parse_expression(env, COMPOSITION, locals) };
-    case Token::Type::Or:
+        auto right = parse_expression(env, COMPOSITION, locals);
+        if (left->type() == Node::Type::LogicalAnd) {
+            return regroup<LogicalAndNode>(token, left, right);
+        } else {
+            return new LogicalAndNode { token, left, right };
+        }
+    }
+    case Token::Type::Or: {
         advance();
-        return new LogicalOrNode { token, left, parse_expression(env, LOGICALOR, locals) };
-    case Token::Type::OrKeyword:
+        auto right = parse_expression(env, LOGICALOR, locals);
+        if (left->type() == Node::Type::LogicalOr) {
+            return regroup<LogicalOrNode>(token, left, right);
+        } else {
+            return new LogicalOrNode { token, left, right };
+        }
+    }
+    case Token::Type::OrKeyword: {
         advance();
-        return new LogicalOrNode { token, left, parse_expression(env, COMPOSITION, locals) };
+        auto right = parse_expression(env, COMPOSITION, locals);
+        if (left->type() == Node::Type::LogicalOr) {
+            return regroup<LogicalOrNode>(token, left, right);
+        } else {
+            return new LogicalOrNode { token, left, right };
+        }
+    }
     default:
         NAT_UNREACHABLE();
     }

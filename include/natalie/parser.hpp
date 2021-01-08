@@ -248,6 +248,13 @@ private:
         return !token.whitespace_precedes() || (left->type() == Node::Type::Identifier && static_cast<IdentifierNode *>(left)->is_lvar());
     }
 
+    // convert ((x and y) and z) to (x and (y and z))
+    template <typename T>
+    Node *regroup(Token token, Node *left, Node *right) {
+        auto left_node = static_cast<T *>(left);
+        return new T { left_node->token(), left_node->left(), new T { token, left_node->right(), right } };
+    };
+
     Token current_token();
     Token peek_token();
 
