@@ -149,6 +149,7 @@ describe 'Parser' do
       Parser.parse('/^$(.)[.]{1}.*.+.?\^\$\.\(\)\[\]\{\}\w\W\d\D\h\H\s\S\R\*\+\?/').should == s(:block, s(:lit, /^$(.)[.]{1}.*.+.?\^\$\.\(\)\[\]\{\}\w\W\d\D\h\H\s\S\R\*\+\?/))
       Parser.parse("/\\n\\\\n/").should == s(:block, s(:lit, /\n\\n/))
       Parser.parse("/\\/\\* foo \\*\\//").should == s(:block, s(:lit, Regexp.new("\\/\\* foo \\*\\/")))
+      Parser.parse("/\\&\\a\\b/").should == s(:block, s(:lit, /\&\a\b/))
     end
 
     it 'parses multiple expressions' do

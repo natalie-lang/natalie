@@ -70,6 +70,7 @@ describe 'Parser' do
       Parser.tokens('foo =~ /=$/').should == [{type: :name, literal: :foo}, {type: :"=~"}, {type: :dregx}, {type: :string, literal: "=$"}, {type: :dregxend}]
       Parser.tokens('/^$(.)[.]{1}.*.+.?\^\$\.\(\)\[\]\{\}\w\W\d\D\h\H\s\S\R\*\+\?/').should == [{type: :dregx}, {type: :string, literal: "^$(.)[.]{1}.*.+.?\\^\\$\\.\\(\\)\\[\\]\\{\\}\\w\\W\\d\\D\\h\\H\\s\\S\\R\\*\\+\\?"}, {type: :dregxend}]
       Parser.tokens("/\\n\\\\n/").should == [{type: :dregx}, {type: :string, literal: "\\n\\\\n"}, {type: :dregxend}]
+      Parser.tokens("/\\&\\a\\b/").should == [{type: :dregx}, {type: :string, literal: "\\&\\a\\b"}, {type: :dregxend}]
     end
 
     it 'tokenizes operators' do
