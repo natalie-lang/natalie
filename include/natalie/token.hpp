@@ -148,14 +148,14 @@ struct Token : public gc {
 
     Token(Type type, const char *file, size_t line, size_t column)
         : m_type { type }
-        , m_file { file }
+        , m_file { GC_STRDUP(file) }
         , m_line { line }
         , m_column { column } { }
 
     Token(Type type, const char *literal, const char *file, size_t line, size_t column)
         : m_type { type }
-        , m_literal { literal }
-        , m_file { file }
+        , m_literal { GC_STRDUP(literal) }
+        , m_file { GC_STRDUP(file) }
         , m_line { line }
         , m_column { column } {
         assert(m_literal);
@@ -163,7 +163,7 @@ struct Token : public gc {
 
     Token(Type type, char literal, const char *file, size_t line, size_t column)
         : m_type { type }
-        , m_file { file }
+        , m_file { GC_STRDUP(file) }
         , m_line { line }
         , m_column { column } {
         char buf[2] = { literal, 0 };
@@ -173,18 +173,18 @@ struct Token : public gc {
     Token(Type type, nat_int_t integer, const char *file, size_t line, size_t column)
         : m_type { type }
         , m_integer { integer }
-        , m_file { file }
+        , m_file { GC_STRDUP(file) }
         , m_line { line }
         , m_column { column } { }
 
     Token(Type type, double dbl, const char *file, size_t line, size_t column)
         : m_type { type }
         , m_double { dbl }
-        , m_file { file }
+        , m_file { GC_STRDUP(file) }
         , m_line { line }
         , m_column { column } { }
 
-    static Token invalid() { return Token { Token::Type::Invalid, nullptr, 0, 0 }; }
+    static Token *invalid() { return new Token { Token::Type::Invalid, nullptr, 0, 0 }; }
 
     Type type() { return m_type; }
     void set_type(Token::Type type) { m_type = type; }

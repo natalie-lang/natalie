@@ -27,7 +27,7 @@ Value *ParserValue::tokens(Env *env, Value *code, Value *with_line_and_column_nu
     auto the_tokens = lexer.tokens();
     auto include_line_and_column_numbers = with_line_and_column_numbers && with_line_and_column_numbers->is_truthy();
     for (auto token : *the_tokens) {
-        auto token_value = token.to_ruby(env, include_line_and_column_numbers);
+        auto token_value = token->to_ruby(env, include_line_and_column_numbers);
         if (token_value->is_truthy())
             array->push(token_value);
     }

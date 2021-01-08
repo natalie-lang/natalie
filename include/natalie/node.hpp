@@ -69,7 +69,7 @@ struct Node : public gc {
         Yield,
     };
 
-    Node(Token token)
+    Node(Token *token)
         : m_token { token } { }
 
     virtual Value *to_ruby(Env *env) {
@@ -80,18 +80,18 @@ struct Node : public gc {
 
     virtual bool is_callable() { return false; }
 
-    const char *file() { return m_token.file(); }
-    size_t line() { return m_token.line(); }
-    size_t column() { return m_token.column(); }
+    const char *file() { return m_token->file(); }
+    size_t line() { return m_token->line(); }
+    size_t column() { return m_token->column(); }
 
-    Token token() { return m_token; }
+    Token *token() { return m_token; }
 
 private:
-    Token m_token {};
+    Token *m_token { nullptr };
 };
 
 struct NodeWithArgs : Node {
-    NodeWithArgs(Token token)
+    NodeWithArgs(Token *token)
         : Node { token } { }
 
     void add_arg(Node *arg) {
@@ -107,7 +107,7 @@ protected:
 struct SymbolNode;
 
 struct AliasNode : Node {
-    AliasNode(Token token, SymbolNode *new_name, SymbolNode *existing_name)
+    AliasNode(Token *token, SymbolNode *new_name, SymbolNode *existing_name)
         : Node { token }
         , m_new_name { new_name }
         , m_existing_name { existing_name } { }
@@ -122,10 +122,10 @@ private:
 };
 
 struct ArgNode : Node {
-    ArgNode(Token token)
+    ArgNode(Token *token)
         : Node { token } { }
 
-    ArgNode(Token token, const char *name)
+    ArgNode(Token *token, const char *name)
         : Node { token }
         , m_name { name } {
         assert(m_name);
@@ -158,7 +158,7 @@ protected:
 };
 
 struct ArrayNode : Node {
-    ArrayNode(Token token)
+    ArrayNode(Token *token)
         : Node { token } { }
 
     virtual Type type() override { return Type::Array; }
@@ -176,7 +176,7 @@ protected:
 };
 
 struct BlockPassNode : Node {
-    BlockPassNode(Token token, Node *node)
+    BlockPassNode(Token *token, Node *node)
         : Node { token }
         , m_node { node } {
         assert(m_node);
@@ -191,7 +191,7 @@ private:
 };
 
 struct BreakNode : NodeWithArgs {
-    BreakNode(Token token, Node *arg = nullptr)
+    BreakNode(Token *token, Node *arg = nullptr)
         : NodeWithArgs { token }
         , m_arg { arg } { }
 
@@ -206,7 +206,7 @@ private:
 struct IdentifierNode;
 
 struct AssignmentNode : Node {
-    AssignmentNode(Token token, Node *identifier, Node *value)
+    AssignmentNode(Token *token, Node *identifier, Node *value)
         : Node { token }
         , m_identifier { identifier }
         , m_value { value } {
@@ -227,7 +227,7 @@ struct BlockNode;
 struct BeginRescueNode;
 
 struct BeginNode : Node {
-    BeginNode(Token token, BlockNode *body)
+    BeginNode(Token *token, BlockNode *body)
         : Node { token }
         , m_body { body } {
         assert(m_body);
@@ -254,7 +254,7 @@ private:
 };
 
 struct BeginRescueNode : Node {
-    BeginRescueNode(Token token)
+    BeginRescueNode(Token *token)
         : Node { token } { }
 
     virtual Type type() override { return Type::BeginRescue; }
@@ -280,10 +280,10 @@ private:
 };
 
 struct BlockNode : Node {
-    BlockNode(Token token)
+    BlockNode(Token *token)
         : Node { token } { }
 
-    BlockNode(Token token, Node *single_node)
+    BlockNode(Token *token, Node *single_node)
         : Node { token } {
         add_node(single_node);
     }
@@ -314,7 +314,7 @@ private:
 };
 
 struct CallNode : NodeWithArgs {
-    CallNode(Token token, Node *receiver, const char *message)
+    CallNode(Token *token, Node *receiver, const char *message)
         : NodeWithArgs { token }
         , m_receiver { receiver }
         , m_message { message } {
@@ -322,7 +322,7 @@ struct CallNode : NodeWithArgs {
         assert(m_message);
     }
 
-    CallNode(Token token, CallNode &node)
+    CallNode(Token *token, CallNode &node)
         : NodeWithArgs { token }
         , m_receiver { node.m_receiver }
         , m_message { node.m_message } {
@@ -348,7 +348,7 @@ protected:
 };
 
 struct CaseNode : Node {
-    CaseNode(Token token, Node *subject)
+    CaseNode(Token *token, Node *subject)
         : Node { token }
         , m_subject { subject } {
         assert(m_subject);
@@ -373,7 +373,7 @@ private:
 };
 
 struct CaseWhenNode : Node {
-    CaseWhenNode(Token token, Node *condition, BlockNode *body)
+    CaseWhenNode(Token *token, Node *condition, BlockNode *body)
         : Node { token }
         , m_condition { condition }
         , m_body { body } {
@@ -391,10 +391,10 @@ private:
 };
 
 struct AttrAssignNode : CallNode {
-    AttrAssignNode(Token token, Node *receiver, const char *message)
+    AttrAssignNode(Token *token, Node *receiver, const char *message)
         : CallNode { token, receiver, message } { }
 
-    AttrAssignNode(Token token, CallNode &node)
+    AttrAssignNode(Token *token, CallNode &node)
         : CallNode { token, node } { }
 
     virtual Type type() override { return Type::AttrAssign; }
@@ -403,10 +403,10 @@ struct AttrAssignNode : CallNode {
 };
 
 struct SafeCallNode : CallNode {
-    SafeCallNode(Token token, Node *receiver, const char *message)
+    SafeCallNode(Token *token, Node *receiver, const char *message)
         : CallNode { token, receiver, message } { }
 
-    SafeCallNode(Token token, CallNode &node)
+    SafeCallNode(Token *token, CallNode &node)
         : CallNode { token, node } { }
 
     virtual Type type() override { return Type::SafeCall; }
@@ -417,7 +417,7 @@ struct SafeCallNode : CallNode {
 struct ConstantNode;
 
 struct ClassNode : Node {
-    ClassNode(Token token, ConstantNode *name, Node *superclass, BlockNode *body)
+    ClassNode(Token *token, ConstantNode *name, Node *superclass, BlockNode *body)
         : Node { token }
         , m_name { name }
         , m_superclass { superclass }
@@ -434,7 +434,7 @@ private:
 };
 
 struct Colon2Node : Node {
-    Colon2Node(Token token, Node *left, const char *name)
+    Colon2Node(Token *token, Node *left, const char *name)
         : Node { token }
         , m_left { left }
         , m_name { name } {
@@ -447,13 +447,13 @@ struct Colon2Node : Node {
     virtual Value *to_ruby(Env *) override;
 
 private:
-    Token m_token {};
+    Token *m_token { nullptr };
     Node *m_left { nullptr };
     const char *m_name { nullptr };
 };
 
 struct Colon3Node : Node {
-    Colon3Node(Token token, const char *name)
+    Colon3Node(Token *token, const char *name)
         : Node { token }
         , m_name { name } {
         assert(m_name);
@@ -464,12 +464,12 @@ struct Colon3Node : Node {
     virtual Value *to_ruby(Env *) override;
 
 private:
-    Token m_token {};
+    Token *m_token { nullptr };
     const char *m_name { nullptr };
 };
 
 struct ConstantNode : Node {
-    ConstantNode(Token token)
+    ConstantNode(Token *token)
         : Node { token }
         , m_token { token } { }
 
@@ -477,14 +477,14 @@ struct ConstantNode : Node {
 
     virtual Value *to_ruby(Env *) override;
 
-    const char *name() { return m_token.literal(); }
+    const char *name() { return m_token->literal(); }
 
 private:
-    Token m_token {};
+    Token *m_token { nullptr };
 };
 
 struct LiteralNode : Node {
-    LiteralNode(Token token, Value *value)
+    LiteralNode(Token *token, Value *value)
         : Node { token }
         , m_value { value } {
         assert(m_value);
@@ -502,7 +502,7 @@ private:
 };
 
 struct DefinedNode : Node {
-    DefinedNode(Token token, Node *arg)
+    DefinedNode(Token *token, Node *arg)
         : Node { token }
         , m_arg { arg } {
         assert(arg);
@@ -517,14 +517,14 @@ private:
 };
 
 struct DefNode : Node {
-    DefNode(Token token, Node *self_node, IdentifierNode *name, Vector<Node *> *args, BlockNode *body)
+    DefNode(Token *token, Node *self_node, IdentifierNode *name, Vector<Node *> *args, BlockNode *body)
         : Node { token }
         , m_self_node { self_node }
         , m_name { name }
         , m_args { args }
         , m_body { body } { }
 
-    DefNode(Token token, IdentifierNode *name, Vector<Node *> *args, BlockNode *body)
+    DefNode(Token *token, IdentifierNode *name, Vector<Node *> *args, BlockNode *body)
         : Node { token }
         , m_name { name }
         , m_args { args }
@@ -544,7 +544,7 @@ private:
 };
 
 struct EvaluateToStringNode : Node {
-    EvaluateToStringNode(Token token, Node *node)
+    EvaluateToStringNode(Token *token, Node *node)
         : Node { token }
         , m_node { node } { }
 
@@ -557,7 +557,7 @@ private:
 };
 
 struct FalseNode : Node {
-    FalseNode(Token token)
+    FalseNode(Token *token)
         : Node { token } { }
 
     virtual Value *to_ruby(Env *) override;
@@ -566,7 +566,7 @@ struct FalseNode : Node {
 };
 
 struct HashNode : Node {
-    HashNode(Token token)
+    HashNode(Token *token)
         : Node { token } { }
 
     virtual Type type() override { return Type::Array; }
@@ -582,7 +582,7 @@ private:
 };
 
 struct IdentifierNode : Node {
-    IdentifierNode(Token token, bool is_lvar)
+    IdentifierNode(Token *token, bool is_lvar)
         : Node { token }
         , m_token { token }
         , m_is_lvar { is_lvar } { }
@@ -591,12 +591,12 @@ struct IdentifierNode : Node {
 
     virtual Value *to_ruby(Env *) override;
 
-    Token::Type token_type() { return m_token.type(); }
+    Token::Type token_type() { return m_token->type(); }
 
-    const char *name() { return m_token.literal(); }
+    const char *name() { return m_token->literal(); }
 
     void append_to_name(char c) {
-        m_token.set_literal(std::string(m_token.literal()) + c);
+        m_token->set_literal(std::string(m_token->literal()) + c);
     }
 
     virtual bool is_callable() override {
@@ -662,12 +662,12 @@ struct IdentifierNode : Node {
     }
 
 private:
-    Token m_token {};
+    Token *m_token { nullptr };
     bool m_is_lvar { false };
 };
 
 struct IfNode : Node {
-    IfNode(Token token, Node *condition, Node *true_expr, Node *false_expr)
+    IfNode(Token *token, Node *condition, Node *true_expr, Node *false_expr)
         : Node { token }
         , m_condition { condition }
         , m_true_expr { true_expr }
@@ -688,7 +688,7 @@ private:
 };
 
 struct IterNode : Node {
-    IterNode(Token token, Node *call, Vector<Node *> *args, BlockNode *body)
+    IterNode(Token *token, Node *call, Vector<Node *> *args, BlockNode *body)
         : Node { token }
         , m_call { call }
         , m_args { args }
@@ -711,7 +711,7 @@ private:
 };
 
 struct InterpolatedNode : Node {
-    InterpolatedNode(Token token)
+    InterpolatedNode(Token *token)
         : Node { token } { }
 
     void add_node(Node *node) { m_nodes.push(node); };
@@ -721,7 +721,7 @@ protected:
 };
 
 struct InterpolatedRegexpNode : InterpolatedNode {
-    InterpolatedRegexpNode(Token token)
+    InterpolatedRegexpNode(Token *token)
         : InterpolatedNode { token } { }
 
     virtual Type type() override { return Type::InterpolatedRegexp; }
@@ -730,7 +730,7 @@ struct InterpolatedRegexpNode : InterpolatedNode {
 };
 
 struct InterpolatedShellNode : InterpolatedNode {
-    InterpolatedShellNode(Token token)
+    InterpolatedShellNode(Token *token)
         : InterpolatedNode { token } { }
 
     virtual Type type() override { return Type::InterpolatedShell; }
@@ -739,7 +739,7 @@ struct InterpolatedShellNode : InterpolatedNode {
 };
 
 struct InterpolatedStringNode : InterpolatedNode {
-    InterpolatedStringNode(Token token)
+    InterpolatedStringNode(Token *token)
         : InterpolatedNode { token } { }
 
     virtual Type type() override { return Type::InterpolatedString; }
@@ -748,7 +748,7 @@ struct InterpolatedStringNode : InterpolatedNode {
 };
 
 struct KeywordArgNode : ArgNode {
-    KeywordArgNode(Token token, const char *name)
+    KeywordArgNode(Token *token, const char *name)
         : ArgNode { token, name } { }
 
     virtual Type type() override { return Type::KeywordArg; }
@@ -757,7 +757,7 @@ struct KeywordArgNode : ArgNode {
 };
 
 struct LogicalAndNode : Node {
-    LogicalAndNode(Token token, Node *left, Node *right)
+    LogicalAndNode(Token *token, Node *left, Node *right)
         : Node { token }
         , m_left { left }
         , m_right { right } {
@@ -778,7 +778,7 @@ private:
 };
 
 struct LogicalOrNode : Node {
-    LogicalOrNode(Token token, Node *left, Node *right)
+    LogicalOrNode(Token *token, Node *left, Node *right)
         : Node { token }
         , m_left { left }
         , m_right { right } {
@@ -801,7 +801,7 @@ private:
 struct RegexpNode;
 
 struct MatchNode : Node {
-    MatchNode(Token token, RegexpNode *regexp, Node *arg, bool regexp_on_left)
+    MatchNode(Token *token, RegexpNode *regexp, Node *arg, bool regexp_on_left)
         : Node { token }
         , m_regexp { regexp }
         , m_arg { arg }
@@ -818,7 +818,7 @@ private:
 };
 
 struct ModuleNode : Node {
-    ModuleNode(Token token, ConstantNode *name, BlockNode *body)
+    ModuleNode(Token *token, ConstantNode *name, BlockNode *body)
         : Node { token }
         , m_name { name }
         , m_body { body } { }
@@ -833,7 +833,7 @@ private:
 };
 
 struct MultipleAssignmentNode : ArrayNode {
-    MultipleAssignmentNode(Token token)
+    MultipleAssignmentNode(Token *token)
         : ArrayNode { token } { }
 
     virtual Type type() override { return Type::MultipleAssignment; }
@@ -845,7 +845,7 @@ struct MultipleAssignmentNode : ArrayNode {
 };
 
 struct NextNode : Node {
-    NextNode(Token token, Node *arg = nullptr)
+    NextNode(Token *token, Node *arg = nullptr)
         : Node { token }
         , m_arg { arg } { }
 
@@ -858,7 +858,7 @@ private:
 };
 
 struct NilNode : Node {
-    NilNode(Token token)
+    NilNode(Token *token)
         : Node { token } { }
 
     virtual Value *to_ruby(Env *) override;
@@ -867,7 +867,7 @@ struct NilNode : Node {
 };
 
 struct NotNode : Node {
-    NotNode(Token token, Node *expression)
+    NotNode(Token *token, Node *expression)
         : Node { token }
         , m_expression { expression } {
         assert(m_expression);
@@ -882,7 +882,7 @@ private:
 };
 
 struct NilSexpNode : Node {
-    NilSexpNode(Token token)
+    NilSexpNode(Token *token)
         : Node { token } { }
 
     virtual Value *to_ruby(Env *) override;
@@ -891,7 +891,7 @@ struct NilSexpNode : Node {
 };
 
 struct OpAssignNode : Node {
-    OpAssignNode(Token token, IdentifierNode *name, Node *value)
+    OpAssignNode(Token *token, IdentifierNode *name, Node *value)
         : Node { token }
         , m_name { name }
         , m_value { value } {
@@ -899,7 +899,7 @@ struct OpAssignNode : Node {
         assert(m_value);
     }
 
-    OpAssignNode(Token token, const char *op, IdentifierNode *name, Node *value)
+    OpAssignNode(Token *token, const char *op, IdentifierNode *name, Node *value)
         : Node { token }
         , m_op { op }
         , m_name { name }
@@ -920,7 +920,7 @@ protected:
 };
 
 struct OpAssignAccessorNode : NodeWithArgs {
-    OpAssignAccessorNode(Token token, const char *op, Node *receiver, const char *message, Node *value)
+    OpAssignAccessorNode(Token *token, const char *op, Node *receiver, const char *message, Node *value)
         : NodeWithArgs { token }
         , m_op { op }
         , m_receiver { receiver }
@@ -944,7 +944,7 @@ private:
 };
 
 struct OpAssignAndNode : OpAssignNode {
-    OpAssignAndNode(Token token, IdentifierNode *name, Node *value)
+    OpAssignAndNode(Token *token, IdentifierNode *name, Node *value)
         : OpAssignNode { token, name, value } { }
 
     virtual Value *to_ruby(Env *) override;
@@ -953,7 +953,7 @@ struct OpAssignAndNode : OpAssignNode {
 };
 
 struct OpAssignOrNode : OpAssignNode {
-    OpAssignOrNode(Token token, IdentifierNode *name, Node *value)
+    OpAssignOrNode(Token *token, IdentifierNode *name, Node *value)
         : OpAssignNode { token, name, value } { }
 
     virtual Value *to_ruby(Env *) override;
@@ -962,7 +962,7 @@ struct OpAssignOrNode : OpAssignNode {
 };
 
 struct RangeNode : Node {
-    RangeNode(Token token, Node *first, Node *last, bool exclude_end)
+    RangeNode(Token *token, Node *first, Node *last, bool exclude_end)
         : Node { token }
         , m_first { first }
         , m_last { last }
@@ -982,7 +982,7 @@ private:
 };
 
 struct RegexpNode : Node {
-    RegexpNode(Token token, Value *value)
+    RegexpNode(Token *token, Value *value)
         : Node { token }
         , m_value { value } {
         assert(m_value);
@@ -999,7 +999,7 @@ private:
 };
 
 struct ReturnNode : Node {
-    ReturnNode(Token token, Node *arg = nullptr)
+    ReturnNode(Token *token, Node *arg = nullptr)
         : Node { token }
         , m_arg { arg } { }
 
@@ -1012,7 +1012,7 @@ private:
 };
 
 struct SelfNode : Node {
-    SelfNode(Token token)
+    SelfNode(Token *token)
         : Node { token } { }
 
     virtual Type type() override { return Type::Self; }
@@ -1021,7 +1021,7 @@ struct SelfNode : Node {
 };
 
 struct ShellNode : Node {
-    ShellNode(Token token, Value *value)
+    ShellNode(Token *token, Value *value)
         : Node { token }
         , m_value { value } {
         assert(m_value);
@@ -1038,10 +1038,10 @@ private:
 };
 
 struct SplatAssignmentNode : Node {
-    SplatAssignmentNode(Token token)
+    SplatAssignmentNode(Token *token)
         : Node { token } { }
 
-    SplatAssignmentNode(Token token, IdentifierNode *node)
+    SplatAssignmentNode(Token *token, IdentifierNode *node)
         : Node { token }
         , m_node { node } {
         assert(m_node);
@@ -1058,10 +1058,10 @@ private:
 };
 
 struct SplatNode : Node {
-    SplatNode(Token token)
+    SplatNode(Token *token)
         : Node { token } { }
 
-    SplatNode(Token token, Node *node)
+    SplatNode(Token *token, Node *node)
         : Node { token }
         , m_node { node } {
         assert(m_node);
@@ -1078,7 +1078,7 @@ private:
 };
 
 struct StabbyProcNode : Node {
-    StabbyProcNode(Token token, Vector<Node *> *args)
+    StabbyProcNode(Token *token, Vector<Node *> *args)
         : Node { token }
         , m_args { args } {
         assert(m_args);
@@ -1095,7 +1095,7 @@ private:
 };
 
 struct StringNode : Node {
-    StringNode(Token token, Value *value)
+    StringNode(Token *token, Value *value)
         : Node { token }
         , m_value { value } {
         assert(m_value);
@@ -1112,7 +1112,7 @@ private:
 };
 
 struct SymbolNode : Node {
-    SymbolNode(Token token, Value *value)
+    SymbolNode(Token *token, Value *value)
         : Node { token }
         , m_value { value } {
         assert(m_value);
@@ -1127,7 +1127,7 @@ private:
 };
 
 struct TrueNode : Node {
-    TrueNode(Token token)
+    TrueNode(Token *token)
         : Node { token } { }
 
     virtual Value *to_ruby(Env *) override;
@@ -1136,7 +1136,7 @@ struct TrueNode : Node {
 };
 
 struct SuperNode : NodeWithArgs {
-    SuperNode(Token token)
+    SuperNode(Token *token)
         : NodeWithArgs { token } { }
 
     virtual Value *to_ruby(Env *) override;
@@ -1153,7 +1153,7 @@ private:
 };
 
 struct WhileNode : Node {
-    WhileNode(Token token, Node *condition, BlockNode *body, bool pre)
+    WhileNode(Token *token, Node *condition, BlockNode *body, bool pre)
         : Node { token }
         , m_condition { condition }
         , m_body { body }
@@ -1173,7 +1173,7 @@ private:
 };
 
 struct UntilNode : WhileNode {
-    UntilNode(Token token, Node *condition, BlockNode *body, bool pre)
+    UntilNode(Token *token, Node *condition, BlockNode *body, bool pre)
         : WhileNode { token, condition, body, pre } { }
 
     virtual Value *to_ruby(Env *) override;
@@ -1182,7 +1182,7 @@ struct UntilNode : WhileNode {
 };
 
 struct YieldNode : NodeWithArgs {
-    YieldNode(Token token)
+    YieldNode(Token *token)
         : NodeWithArgs { token } { }
 
     virtual Value *to_ruby(Env *) override;

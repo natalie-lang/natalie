@@ -9,8 +9,8 @@ struct SexpValue : ArrayValue {
 
     Value *new_method(Env *env, size_t argc, Value **args) {
         auto sexp = new SexpValue { env, {} };
-        sexp->m_file = m_file;
-        sexp->m_line = m_line;
+        sexp->ivar_set(env, "@file", ivar_get(env, "@file"));
+        sexp->ivar_set(env, "@line", ivar_get(env, "@line"));
         for (size_t i = 0; i < argc; i++) {
             sexp->push(args[i]);
         }
@@ -31,31 +31,17 @@ struct SexpValue : ArrayValue {
         return out;
     }
 
-    const char *file() { return m_file; }
-    void set_file(const char *file) { m_file = file; }
-    Value *set_file(Env *env, Value *file) {
-        file->assert_type(env, Value::Type::String, "String");
-        m_file = file->as_string()->c_str();
-        return file;
-    }
+    Value *file(Env *env) { return ivar_get(env, "@file"); }
+    Value *set_file(Env *env, Value *file) { return ivar_set(env, "@file", file); }
 
-    size_t line() { return m_line; }
-    void set_line(size_t line) { m_line = line; }
-    Value *set_line(Env *env, Value *line) {
-        line->assert_type(env, Value::Type::Integer, "Integer");
-        m_line = line->as_integer()->to_nat_int_t();
-        return line;
-    }
+    Value *line(Env *env) { return ivar_get(env, "@line"); }
+    Value *set_line(Env *env, Value *line) { return ivar_set(env, "@line", line); }
 
 private:
     SexpValue(Env *env, std::initializer_list<Value *> list)
         : ArrayValue { env, list } {
         m_klass = env->Object()->const_fetch("Parser")->const_fetch("Sexp")->as_class();
     }
-
-    const char *m_file { nullptr };
-    size_t m_line { 0 };
-    size_t m_column { 0 };
 };
 
 }

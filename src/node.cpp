@@ -108,7 +108,7 @@ Node *BeginRescueNode::name_to_node() {
         token(),
         m_name,
         new IdentifierNode {
-            Token { Token::Type::GlobalVariable, "$!", file(), line(), column() },
+            new Token { Token::Type::GlobalVariable, "$!", file(), line(), column() },
             false },
     };
 }
@@ -250,7 +250,7 @@ Value *ConstantNode::to_ruby(Env *env) {
         this,
         {
             SymbolValue::intern(env, "const"),
-            SymbolValue::intern(env, m_token.literal()),
+            SymbolValue::intern(env, m_token->literal()),
         }
     };
 }

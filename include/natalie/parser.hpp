@@ -56,7 +56,7 @@ struct Parser : public gc {
     Node *tree(Env *);
 
 private:
-    bool higher_precedence(Token token, Node *left, Precedence current_precedence) {
+    bool higher_precedence(Token *token, Node *left, Precedence current_precedence) {
         auto next_precedence = get_precedence(token, left);
         // trick to make chained assignment right-to-left
         if (current_precedence == ASSIGNMENT && next_precedence == ASSIGNMENT)
@@ -64,14 +64,14 @@ private:
         return next_precedence > current_precedence;
     }
 
-    Precedence get_precedence(Token token, Node *left = nullptr) {
-        switch (token.type()) {
+    Precedence get_precedence(Token *token, Node *left = nullptr) {
+        switch (token->type()) {
         case Token::Type::Plus:
         case Token::Type::Minus:
             return SUM;
         case Token::Type::Integer:
         case Token::Type::Float:
-            if (current_token().has_sign())
+            if (current_token()->has_sign())
                 return SUM;
             break;
         case Token::Type::Equal:
@@ -159,7 +159,7 @@ private:
         return LOWEST;
     }
 
-    bool is_first_arg_of_call_without_parens(Token, Node *);
+    bool is_first_arg_of_call_without_parens(Token *, Node *);
 
     Node *parse_expression(Env *, Precedence, LocalsVectorPtr);
 
@@ -242,27 +242,27 @@ private:
     using parse_left_fn = Node *(Parser::*)(Env *, Node *, LocalsVectorPtr);
 
     parse_null_fn null_denotation(Token::Type, Precedence);
-    parse_left_fn left_denotation(Token, Node *);
+    parse_left_fn left_denotation(Token *, Node *);
 
-    bool treat_left_bracket_as_element_reference(Node *left, Token token) {
-        return !token.whitespace_precedes() || (left->type() == Node::Type::Identifier && static_cast<IdentifierNode *>(left)->is_lvar());
+    bool treat_left_bracket_as_element_reference(Node *left, Token *token) {
+        return !token->whitespace_precedes() || (left->type() == Node::Type::Identifier && static_cast<IdentifierNode *>(left)->is_lvar());
     }
 
     // convert ((x and y) and z) to (x and (y and z))
     template <typename T>
-    Node *regroup(Token token, Node *left, Node *right) {
+    Node *regroup(Token *token, Node *left, Node *right) {
         auto left_node = static_cast<T *>(left);
         return new T { left_node->token(), left_node->left(), new T { token, left_node->right(), right } };
     };
 
-    Token current_token();
-    Token peek_token();
+    Token *current_token();
+    Token *peek_token();
 
     void next_expression(Env *);
     void skip_newlines();
 
     void expect(Env *, Token::Type, const char *);
-    [[noreturn]] void raise_unexpected(Env *, Token, const char *);
+    [[noreturn]] void raise_unexpected(Env *, Token *, const char *);
     [[noreturn]] void raise_unexpected(Env *, const char *);
 
     void advance() { m_index++; }
@@ -271,6 +271,6 @@ private:
     const char *m_code { nullptr };
     const char *m_file { nullptr };
     size_t m_index { 0 };
-    Vector<Token> *m_tokens { nullptr };
+    Vector<Token *> *m_tokens { nullptr };
 };
 }

@@ -525,9 +525,9 @@ gen.binding('Regexp', 'source', 'RegexpValue', 'source', argc: 0, pass_env: true
 gen.binding('Parser::Sexp', 'new', 'SexpValue', 'new_method', argc: :any, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Parser::Sexp', 'inspect', 'SexpValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Parser::Sexp', 'sexp_type', 'SexpValue', 'first', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
-gen.binding('Parser::Sexp', 'file', 'SexpValue', 'file', argc: 0, pass_env: false, pass_block: false, return_type: :c_str)
+gen.binding('Parser::Sexp', 'file', 'SexpValue', 'file', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Parser::Sexp', 'file=', 'SexpValue', 'set_file', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
-gen.binding('Parser::Sexp', 'line', 'SexpValue', 'line', argc: 0, pass_env: false, pass_block: false, return_type: :size_t)
+gen.binding('Parser::Sexp', 'line', 'SexpValue', 'line', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Parser::Sexp', 'line=', 'SexpValue', 'set_line', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 
 gen.binding('String', '*', 'StringValue', 'mul', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
