@@ -29,4 +29,9 @@ describe 'Enumerable' do
     i = [1, 2, 3, 4, 5].detect { |i| i > 2 }
     i.should == 3
   end
+
+  describe '#partition' do
+    [1, 2, 3, 4].partition(&:odd?).should == [[1, 3], [2, 4]]
+    [1, 2, 3, 4].partition { |i| i <= 2 }.should == [[1, 2], [3, 4]]
+  end
 end

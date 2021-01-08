@@ -155,6 +155,19 @@ module Enumerable
     result
   end
 
+  def partition
+    left = []
+    right = []
+    each do |item|
+      if yield(item)
+        left << item
+      else
+        right << item
+      end
+    end
+    [left, right]
+  end
+
   def select
     ary = []
     each do |item|
