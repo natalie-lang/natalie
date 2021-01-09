@@ -407,4 +407,12 @@ describe 'string' do
       s.bar.should == 'bar'
     end
   end
+
+  describe '#reverse' do
+    specify do
+      ''.reverse.should == ''
+      't'.reverse.should == 't'
+      'tim'.reverse.should == 'mit'
+    end
+  end
 end

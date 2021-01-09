@@ -556,6 +556,7 @@ gen.binding('String', 'length', 'StringValue', 'length', argc: 0, pass_env: fals
 gen.binding('String', 'ljust', 'StringValue', 'ljust', argc: 1..2, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('String', 'match', 'StringValue', 'match', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('String', 'ord', 'StringValue', 'ord', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('String', 'reverse', 'StringValue', 'reverse', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('String', 'size', 'StringValue', 'size', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('String', 'split', 'StringValue', 'split', argc: 0..2, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('String', 'start_with?', 'StringValue', 'start_with', argc: 1, pass_env: true, pass_block: false, return_type: :bool)

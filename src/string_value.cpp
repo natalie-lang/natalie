@@ -809,4 +809,16 @@ Value *StringValue::upcase(Env *env) {
     return str;
 }
 
+Value *StringValue::reverse(Env *env) {
+    if (m_length == 0)
+        return new StringValue { env };
+    auto ary = new ArrayValue { env };
+    auto characters = chars(env)->as_array();
+    for (size_t i = characters->size() - 1;; i--) {
+        ary->push((*characters)[i]);
+        if (i == 0) break;
+    }
+    return ary->join(env, nullptr);
+}
+
 }
