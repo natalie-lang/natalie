@@ -159,6 +159,10 @@ describe 'File' do
       File.expand_path('/spec_helper.rb').should == '/spec_helper.rb'
       File.expand_path('../spec_helper.rb', __dir__).should =~ %r{^/.*natalie/test/spec_helper\.rb$}
       File.expand_path('..', __dir__).should =~ %r{^/.*natalie/test$}
+      File.expand_path('.', __dir__).should =~ %r{^/.*natalie/test/natalie$}
+      File.expand_path('/foo/./bar').should == '/foo/bar'
+      File.expand_path('/foo/bar/.').should == '/foo/bar'
+      File.expand_path('/foo/bar', '/baz').should == '/foo/bar'
     end
   end
 

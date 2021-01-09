@@ -2,6 +2,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <sys/param.h>
 #include <sys/stat.h>
 
 namespace Natalie {
@@ -45,6 +46,79 @@ Value *FileValue::initialize(Env *env, Value *filename, Value *flags_obj, Block 
         set_fileno(fileno);
         return this;
     }
+}
+
+Value *FileValue::expand_path(Env *env, Value *path, Value *root) {
+    path->assert_type(env, Value::Type::String, "String");
+    StringValue *merged;
+    if (path->as_string()->length() > 0 && path->as_string()->c_str()[0] == '/') {
+        merged = path->as_string();
+    } else if (root) {
+        root = expand_path(env, root, nullptr);
+        merged = StringValue::sprintf(env, "%S/%S", root, path);
+    } else {
+        char root[MAXPATHLEN + 1];
+        if (!getcwd(root, MAXPATHLEN + 1))
+            env->raise_errno();
+        merged = StringValue::sprintf(env, "%s/%S", root, path);
+    }
+    // collapse ..
+    RegexpValue dotdot { env, "[^/]*/\\.\\.(/|\\z)" };
+    StringValue empty_string { env, "" };
+    do {
+        merged = merged->sub(env, &dotdot, &empty_string)->as_string();
+    } while (env->caller()->match());
+    // collapse .
+    RegexpValue dot { env, "/\\.(/|\\z)" };
+    StringValue slash { env, "/" };
+    do {
+        merged = merged->sub(env, &dot, &slash)->as_string();
+    } while (env->caller()->match());
+    // remove trailing slash
+    if (merged->length() > 1 && merged->c_str()[merged->length() - 1] == '/') {
+        merged->truncate(merged->length() - 1);
+    }
+    return merged;
+}
+
+Value *FileValue::unlink(Env *env, Value *path) {
+    int result = ::unlink(path->as_string()->c_str());
+    if (result == 0) {
+        return new IntegerValue { env, 1 };
+    } else {
+        Value *args[] = { new IntegerValue { env, errno } };
+        auto exception = env->Object()->const_fetch("SystemCallError")->send(env, "exception", 1, args)->as_exception();
+        env->raise_exception(exception);
+    }
+}
+
+void FileValue::build_constants(Env *env, ClassValue *klass) {
+    Value *Constants = new ModuleValue { env, "Constants" };
+    klass->const_set(env, "Constants", Constants);
+    klass->const_set(env, "APPEND", new IntegerValue { env, O_APPEND });
+    Constants->const_set(env, "APPEND", new IntegerValue { env, O_APPEND });
+    klass->const_set(env, "RDONLY", new IntegerValue { env, O_RDONLY });
+    Constants->const_set(env, "RDONLY", new IntegerValue { env, O_RDONLY });
+    klass->const_set(env, "WRONLY", new IntegerValue { env, O_WRONLY });
+    Constants->const_set(env, "WRONLY", new IntegerValue { env, O_WRONLY });
+    klass->const_set(env, "TRUNC", new IntegerValue { env, O_TRUNC });
+    Constants->const_set(env, "TRUNC", new IntegerValue { env, O_TRUNC });
+    klass->const_set(env, "CREAT", new IntegerValue { env, O_CREAT });
+    Constants->const_set(env, "CREAT", new IntegerValue { env, O_CREAT });
+    klass->const_set(env, "DSYNC", new IntegerValue { env, O_DSYNC });
+    Constants->const_set(env, "DSYNC", new IntegerValue { env, O_DSYNC });
+    klass->const_set(env, "EXCL", new IntegerValue { env, O_EXCL });
+    Constants->const_set(env, "EXCL", new IntegerValue { env, O_EXCL });
+    klass->const_set(env, "NOCTTY", new IntegerValue { env, O_NOCTTY });
+    Constants->const_set(env, "NOCTTY", new IntegerValue { env, O_NOCTTY });
+    klass->const_set(env, "NOFOLLOW", new IntegerValue { env, O_NOFOLLOW });
+    Constants->const_set(env, "NOFOLLOW", new IntegerValue { env, O_NOFOLLOW });
+    klass->const_set(env, "NONBLOCK", new IntegerValue { env, O_NONBLOCK });
+    Constants->const_set(env, "NONBLOCK", new IntegerValue { env, O_NONBLOCK });
+    klass->const_set(env, "RDWR", new IntegerValue { env, O_RDWR });
+    Constants->const_set(env, "RDWR", new IntegerValue { env, O_RDWR });
+    klass->const_set(env, "SYNC", new IntegerValue { env, O_SYNC });
+    Constants->const_set(env, "SYNC", new IntegerValue { env, O_SYNC });
 }
 
 }
