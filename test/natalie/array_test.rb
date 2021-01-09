@@ -35,9 +35,9 @@ describe 'array' do
     end
 
     it 'returns the implicitly converted array if the object responds to to_ary' do
-      n = nil
+      n = Object.new
       n.should_receive(:to_ary).and_return([3, 4])
-      Array(nil).should == [3, 4]
+      Array(n).should == [3, 4]
       o = mock('thing that responds to to_ary')
       o.should_receive(:to_ary).and_return([10, 20])
       Array(o).should == [10, 20]
@@ -546,7 +546,7 @@ describe 'array' do
     it 'returns the items joined together in a string' do
       ['foo', 'bar'].join('').should == 'foobar'
       ['foo', 'bar'].join(',').should == 'foo,bar'
-      [:foo, 2, 'bar', {baz: :buz}].join(',').should == 'foo,2,bar,{:baz=>:buz}'
+      [:foo, 2, nil, 'bar', {baz: :buz}].join(',').should == 'foo,2,,bar,{:baz=>:buz}'
     end
 
     it 'does not mutate anything' do
