@@ -559,18 +559,30 @@ Value *StringValue::ref(Env *env, Value *index_obj) {
     abort();
 }
 
-StringValue *StringValue::sub(Env *env, Value *find, Value *replacement) {
-    replacement->assert_type(env, Value::Type::String, "String");
+Value *StringValue::sub(Env *env, Value *find, Value *replacement, Block *block) {
+    if (!block && !replacement)
+        env->assert_argc(1, 2);
+    if (!block)
+        replacement->assert_type(env, Value::Type::String, "String");
     if (find->is_string()) {
         nat_int_t index = this->index_int(env, find->as_string(), 0);
         if (index == -1) {
             return dup(env)->as_string();
         }
         StringValue *out = new StringValue { env, m_str, static_cast<size_t>(index) };
-        out->append_string(env, replacement->as_string());
+        if (block) {
+            Value *result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 0, nullptr, nullptr);
+            result->assert_type(env, Value::Type::String, "String");
+            out->append_string(env, result->as_string());
+        } else {
+            out->append_string(env, replacement->as_string());
+        }
         out->append(env, &m_str[index + find->as_string()->length()]);
         return out;
     } else if (find->is_regexp()) {
+        if (block) {
+            NAT_NOT_YET_IMPLEMENTED("String#sub(/regex/) { block }")
+        }
         MatchDataValue *match;
         StringValue *expanded_replacement;
         return regexp_sub(env, find->as_regexp(), replacement->as_string(), &match, &expanded_replacement);
@@ -579,7 +591,10 @@ StringValue *StringValue::sub(Env *env, Value *find, Value *replacement) {
     }
 }
 
-StringValue *StringValue::gsub(Env *env, Value *find, Value *replacement_value) {
+Value *StringValue::gsub(Env *env, Value *find, Value *replacement_value, Block *block) {
+    if (!replacement_value || block) {
+        NAT_NOT_YET_IMPLEMENTED("String#gsub(/regex/) { block }")
+    }
     replacement_value->assert_type(env, Value::Type::String, "String");
     StringValue *replacement = replacement_value->as_string();
     if (find->is_string()) {

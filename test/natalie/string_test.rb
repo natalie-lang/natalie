@@ -290,6 +290,14 @@ describe 'string' do
       -> { 'foo'.sub(:foo, 'bar') }.should raise_error(TypeError, 'wrong argument type Symbol (expected Regexp)')
       -> { 'foo'.sub('foo', :bar) }.should raise_error(TypeError, 'no implicit conversion of Symbol into String')
     end
+
+    it 'replaces with the result of calling the block if a block is given' do
+      'ruby is fun'.sub('ruby') { 'RUBY' }.should == 'RUBY is fun'
+      # TODO: accept block for regex sub
+      #'ruby is fun'.sub(/ruby/) { 'RUBY' }.should == 'RUBY is fun'
+      # TODO: pass match object into block
+      #'ruby is fun'.sub(/ruby/) { |m| m.to_s.upcase }.should == 'RUBY is fun'
+    end
   end
 
   describe '#gsub' do

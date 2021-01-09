@@ -53,7 +53,7 @@ struct FileValue : IoValue {
         RegexpValue dotdot { env, "[^/]*/\\.\\.(/|\\z)" };
         StringValue empty_string { env, "" };
         do {
-            merged = merged->sub(env, &dotdot, &empty_string);
+            merged = merged->sub(env, &dotdot, &empty_string)->as_string();
         } while (env->caller()->match());
         // remove trailing slash
         if (merged->length() > 1 && merged->c_str()[merged->length() - 1] == '/') {

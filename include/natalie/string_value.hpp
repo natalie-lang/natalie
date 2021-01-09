@@ -122,8 +122,8 @@ struct StringValue : Value {
     bool end_with(Env *, Value *);
     bool is_empty() { return m_length == 0; }
 
-    StringValue *gsub(Env *, Value *, Value *);
-    StringValue *sub(Env *, Value *, Value *);
+    Value *gsub(Env *, Value *, Value * = nullptr, Block *block = nullptr);
+    Value *sub(Env *, Value *, Value * = nullptr, Block *block = nullptr);
 
     Value *add(Env *, Value *);
     Value *bytes(Env *);
