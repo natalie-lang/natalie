@@ -112,11 +112,11 @@ module Natalie
       def go(ast)
         result = process(ast)
         out = @compiler_context[:template]
-          .sub('/*' + 'NAT_OBJ' + '*/', obj_declarations.join("\n"))
-          .sub('/*' + 'NAT_OBJ_INIT' + '*/', obj_init_lines.join("\n"))
-          .sub('/*' + 'NAT_TOP' + '*/', top_matter)
-          .sub('/*' + 'NAT_INIT' + '*/', init_matter.to_s)
-          .sub('/*' + 'NAT_BODY' + '*/', @decl.join("\n") + "\n" + result)
+          .sub('/*' + 'NAT_OBJ' + '*/') { obj_declarations.join("\n") }
+          .sub('/*' + 'NAT_OBJ_INIT' + '*/') { obj_init_lines.join("\n") }
+          .sub('/*' + 'NAT_TOP' + '*/') { top_matter }
+          .sub('/*' + 'NAT_INIT' + '*/') { init_matter.to_s }
+          .sub('/*' + 'NAT_BODY' + '*/') { @decl.join("\n") + "\n" + result }
         reindent(out)
       end
 
@@ -582,11 +582,11 @@ module Natalie
           when 34
             "\\\""
           when 92
-            "\\\\\\\\" # I'm in escape sequence hell
+            "\\134"
           when 32..126
             byte.chr
           else
-            "\\\\#{byte.to_s(8)}"
+            "\\#{byte.to_s(8)}"
           end
         end
         '"' + c_chars.join + '"'
