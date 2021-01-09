@@ -1,13 +1,37 @@
 #include "natalie.hpp"
 
 #include <math.h>
-#include <string>
 
 namespace Natalie {
 
-Value *IntegerValue::to_s(Env *env) {
-    auto str = std::to_string(m_integer);
-    return new StringValue { env, str };
+Value *IntegerValue::to_s(Env *env, Value *base_value) {
+    if (m_integer == 0)
+        return new StringValue { env, "0" };
+    auto str = new StringValue { env };
+    nat_int_t base = 10;
+    if (base_value) {
+        base_value->assert_type(env, Value::Type::Integer, "Integer");
+        base = base_value->as_integer()->to_nat_int_t();
+    }
+    auto num = m_integer;
+    bool negative = false;
+    if (num < 0) {
+        negative = true;
+        num *= -1;
+    }
+    while (num > 0) {
+        auto digit = num % base;
+        char c;
+        if (digit >= 0 && digit <= 9)
+            c = digit + 48;
+        else
+            c = digit + 87;
+        str->prepend_char(env, c);
+        num /= base;
+    }
+    if (negative)
+        str->prepend_char(env, '-');
+    return str;
 }
 
 Value *IntegerValue::to_i() {

@@ -162,4 +162,18 @@ describe 'integer' do
       -1.zero?.should == false
     end
   end
+
+  describe '#to_s' do
+    it 'returns a base-10 string representation' do
+      -10.to_s.should == '-10'
+      0.to_s.should == '0'
+      1981.to_s.should == '1981'
+    end
+
+    it 'given a base, returns a string representation of that base' do
+      0.to_s(16).should == '0'
+      1981.to_s(16).should == '7bd'
+      -1981.to_s(16).should == '-7bd'
+    end
+  end
 end

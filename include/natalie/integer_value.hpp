@@ -37,7 +37,9 @@ struct IntegerValue : Value {
         return new IntegerValue { env, static_cast<nat_int_t>(number) };
     }
 
-    Value *to_s(Env *);
+    Value *inspect(Env *env) { return to_s(env); }
+
+    Value *to_s(Env *, Value * = nullptr);
     Value *to_i();
     Value *add(Env *, Value *);
     Value *sub(Env *, Value *);
