@@ -27,7 +27,8 @@ struct IoValue : Value, finalizer {
         , m_fileno { fileno } { }
 
     virtual ~IoValue() {
-        ::close(m_fileno);
+        // FIXME: this is broken; being called when object not being destroyed
+        //::close(m_fileno);
     }
 
     static ValuePtr read_file(Env *, ValuePtr);
