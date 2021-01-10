@@ -37,7 +37,7 @@ void fiber_wrapper_func(Natalie::Env *env, Natalie::FiberValue *fiber) {
     GC_set_stackbottom(nullptr, fiber->stack_base());
     fiber->set_status(Natalie::FiberValue::Status::Active);
     assert(fiber->block());
-    Natalie::Value **return_args = new Natalie::Value *[1];
+    Natalie::ValuePtr *return_args = new Natalie::ValuePtr [1];
     try {
         return_args[0] = NAT_RUN_BLOCK_WITHOUT_BREAK(env, fiber->block(), env->global_env()->fiber_argc(), env->global_env()->fiber_args(), nullptr);
     } catch (Natalie::ExceptionValue *exception) {

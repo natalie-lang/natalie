@@ -30,14 +30,14 @@ struct ProcValue : Value {
         assert(m_block);
     }
 
-    static Value *from_block_maybe(Env *env, Block *block) {
+    static ValuePtr from_block_maybe(Env *env, Block *block) {
         if (!block) {
             return env->nil_obj();
         }
         return new ProcValue { env, block };
     }
 
-    Value *initialize(Env *, Block *);
+    ValuePtr initialize(Env *, Block *);
 
     Block *block() { return m_block; }
     bool is_lambda() { return m_type == ProcType::Lambda; }
@@ -47,7 +47,7 @@ struct ProcValue : Value {
         return this;
     }
 
-    Value *call(Env *, size_t, Value **, Block *);
+    ValuePtr call(Env *, size_t, ValuePtr *, Block *);
 
 private:
     Block *m_block { nullptr };

@@ -10,7 +10,7 @@ EncodingValue::EncodingValue(Env *env, Encoding num, std::initializer_list<const
     }
 }
 
-Value *EncodingValue::name(Env *env) {
+ValuePtr EncodingValue::name(Env *env) {
     return m_names[0]->dup(env);
 }
 
@@ -22,7 +22,7 @@ ArrayValue *EncodingValue::names(Env *env) {
     return array;
 }
 
-Value *EncodingValue::inspect(Env *env) {
+ValuePtr EncodingValue::inspect(Env *env) {
     return StringValue::sprintf(env, "#<Encoding:%S>", name());
 }
 

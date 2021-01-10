@@ -29,10 +29,10 @@ struct MatchDataValue : Value {
 
     size_t index(size_t);
 
-    Value *group(Env *, size_t);
+    ValuePtr group(Env *, size_t);
 
-    Value *to_s(Env *);
-    Value *ref(Env *, Value *);
+    ValuePtr to_s(Env *);
+    ValuePtr ref(Env *, ValuePtr );
 
 private:
     OnigRegion *m_region { nullptr };

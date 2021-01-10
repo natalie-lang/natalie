@@ -19,7 +19,7 @@ bool is_ivar_name(const char *name) {
     return strlen(name) > 0 && name[0] == '@';
 }
 
-Value *splat(Env *env, Value *obj) {
+ValuePtr splat(Env *env, ValuePtr obj) {
     if (obj->is_array()) {
         return new ArrayValue { *obj->as_array() };
     } else {
@@ -27,7 +27,7 @@ Value *splat(Env *env, Value *obj) {
     }
 }
 
-Value *call_begin(Env *env, Value *self, MethodFnPtr begin_fn, size_t argc, Value **args, Block *block) {
+ValuePtr call_begin(Env *env, ValuePtr self, MethodFnPtr begin_fn, size_t argc, ValuePtr *args, Block *block) {
     Env e = Env { env, env };
     return begin_fn(&e, self, argc, args, block);
 }
@@ -36,7 +36,7 @@ void run_at_exit_handlers(Env *env) {
     ArrayValue *at_exit_handlers = env->global_get("$NAT_at_exit_handlers")->as_array();
     assert(at_exit_handlers);
     for (int i = at_exit_handlers->size() - 1; i >= 0; i--) {
-        Value *proc = (*at_exit_handlers)[i];
+        ValuePtr proc = (*at_exit_handlers)[i];
         assert(proc);
         assert(proc->is_proc());
         NAT_RUN_BLOCK_WITHOUT_BREAK(env, proc->as_proc()->block(), 0, nullptr, nullptr);
@@ -62,7 +62,7 @@ void print_exception_with_backtrace(Env *env, ExceptionValue *exception) {
 
 void handle_top_level_exception(Env *env, ExceptionValue *exception, bool run_exit_handlers) {
     if (exception->is_a(env, env->Object()->const_find(env, "SystemExit")->as_class())) {
-        Value *status_obj = exception->ivar_get(env, "@status");
+        ValuePtr status_obj = exception->ivar_get(env, "@status");
         if (run_exit_handlers) run_at_exit_handlers(env);
         if (status_obj->type() == Value::Type::Integer) {
             nat_int_t val = status_obj->as_integer()->to_nat_int_t();
@@ -79,11 +79,11 @@ void handle_top_level_exception(Env *env, ExceptionValue *exception, bool run_ex
     }
 }
 
-ArrayValue *to_ary(Env *env, Value *obj, bool raise_for_non_array) {
+ArrayValue *to_ary(Env *env, ValuePtr obj, bool raise_for_non_array) {
     if (obj->is_array()) {
         return obj->as_array();
     } else if (obj->respond_to(env, "to_ary")) {
-        Value *ary = obj->send(env, "to_ary");
+        ValuePtr ary = obj->send(env, "to_ary");
         if (ary->is_array()) {
             return ary->as_array();
         } else if (ary->is_nil() || !raise_for_non_array) {
@@ -101,7 +101,7 @@ ArrayValue *to_ary(Env *env, Value *obj, bool raise_for_non_array) {
     }
 }
 
-static Value *splat_value(Env *env, Value *value, size_t index, size_t offset_from_end) {
+static ValuePtr splat_value(Env *env, ValuePtr value, size_t index, size_t offset_from_end) {
     ArrayValue *splat = new ArrayValue { env };
     if (value->is_array() && index < value->as_array()->size() - offset_from_end) {
         for (size_t s = index; s < value->as_array()->size() - offset_from_end; s++) {
@@ -111,13 +111,13 @@ static Value *splat_value(Env *env, Value *value, size_t index, size_t offset_fr
     return splat;
 }
 
-Value *arg_value_by_path(Env *env, Value *value, Value *default_value, bool splat, int total_count, int default_count, bool defaults_on_right, int offset_from_end, size_t path_size, ...) {
+ValuePtr arg_value_by_path(Env *env, ValuePtr value, ValuePtr default_value, bool splat, int total_count, int default_count, bool defaults_on_right, int offset_from_end, size_t path_size, ...) {
     va_list args;
     va_start(args, path_size);
     bool has_default = default_value != env->nil_obj();
     bool defaults_on_left = !defaults_on_right;
     int required_count = total_count - default_count;
-    Value *return_value = value;
+    ValuePtr return_value = value;
     for (size_t i = 0; i < path_size; i++) {
         int index = va_arg(args, int);
 
@@ -188,10 +188,10 @@ Value *arg_value_by_path(Env *env, Value *value, Value *default_value, bool spla
     return return_value;
 }
 
-Value *array_value_by_path(Env *env, Value *value, Value *default_value, bool splat, int offset_from_end, size_t path_size, ...) {
+ValuePtr array_value_by_path(Env *env, ValuePtr value, ValuePtr default_value, bool splat, int offset_from_end, size_t path_size, ...) {
     va_list args;
     va_start(args, path_size);
-    Value *return_value = value;
+    ValuePtr return_value = value;
     for (size_t i = 0; i < path_size; i++) {
         int index = va_arg(args, int);
         if (splat && i == path_size - 1) {
@@ -235,12 +235,12 @@ Value *array_value_by_path(Env *env, Value *value, Value *default_value, bool sp
     return return_value;
 }
 
-Value *kwarg_value_by_name(Env *env, Value *args, const char *name, Value *default_value) {
+ValuePtr kwarg_value_by_name(Env *env, ValuePtr args, const char *name, ValuePtr default_value) {
     return kwarg_value_by_name(env, args->as_array(), name, default_value);
 }
 
-Value *kwarg_value_by_name(Env *env, ArrayValue *args, const char *name, Value *default_value) {
-    Value *hash;
+ValuePtr kwarg_value_by_name(Env *env, ArrayValue *args, const char *name, ValuePtr default_value) {
+    ValuePtr hash;
     if (args->size() == 0) {
         hash = new HashValue { env };
     } else {
@@ -249,7 +249,7 @@ Value *kwarg_value_by_name(Env *env, ArrayValue *args, const char *name, Value *
             hash = new HashValue { env };
         }
     }
-    Value *value = hash->as_hash()->get(env, SymbolValue::intern(env, name));
+    ValuePtr value = hash->as_hash()->get(env, SymbolValue::intern(env, name));
     if (!value) {
         if (default_value) {
             return default_value;
@@ -260,7 +260,7 @@ Value *kwarg_value_by_name(Env *env, ArrayValue *args, const char *name, Value *
     return value;
 }
 
-ArrayValue *args_to_array(Env *env, size_t argc, Value **args) {
+ArrayValue *args_to_array(Env *env, size_t argc, ValuePtr *args) {
     ArrayValue *ary = new ArrayValue { env };
     for (size_t i = 0; i < argc; i++) {
         ary->push(args[i]);
@@ -270,29 +270,29 @@ ArrayValue *args_to_array(Env *env, size_t argc, Value **args) {
 
 // much like args_to_array above, but when a block is given a single arg,
 // and the block wants multiple args, call to_ary on the first arg and return that
-ArrayValue *block_args_to_array(Env *env, size_t signature_size, size_t argc, Value **args) {
+ArrayValue *block_args_to_array(Env *env, size_t signature_size, size_t argc, ValuePtr *args) {
     if (argc == 1 && signature_size > 1) {
         return to_ary(env, args[0], true);
     }
     return args_to_array(env, argc, args);
 }
 
-void arg_spread(Env *env, size_t argc, Value **args, const char *arrangement, ...) {
+void arg_spread(Env *env, size_t argc, ValuePtr *args, const char *arrangement, ...) {
     va_list va_args;
     va_start(va_args, arrangement);
     size_t len = strlen(arrangement);
     size_t arg_index = 0;
-    Value *obj;
+    ValuePtr obj;
     bool *bool_ptr;
     int *int_ptr;
     const char **str_ptr;
     void **void_ptr;
-    Value **obj_ptr;
+    ValuePtr *obj_ptr;
     for (size_t i = 0; i < len; i++) {
         char c = arrangement[i];
         switch (c) {
         case 'o':
-            obj_ptr = va_arg(va_args, Value **);
+            obj_ptr = va_arg(va_args, ValuePtr *);
             if (arg_index >= argc) env->raise("ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, arg_index + 1);
             obj = args[arg_index++];
             *obj_ptr = obj;
@@ -337,9 +337,9 @@ void arg_spread(Env *env, size_t argc, Value **args, const char *arrangement, ..
     va_end(va_args);
 }
 
-std::pair<Value *, Value *> coerce(Env *env, Value *lhs, Value *rhs) {
+std::pair<ValuePtr , ValuePtr > coerce(Env *env, ValuePtr lhs, ValuePtr rhs) {
     if (lhs->respond_to(env, "coerce")) {
-        Value *coerced = lhs->send(env, "coerce", 1, &rhs, nullptr);
+        ValuePtr coerced = lhs->send(env, "coerce", 1, &rhs, nullptr);
         if (!coerced->is_array()) {
             env->raise("TypeError", "coerce must return [x, y]");
         }
@@ -355,7 +355,7 @@ void copy_hashmap(hashmap &dest, const hashmap &source) {
     struct hashmap_iter *iter;
     for (iter = hashmap_iter(&source); iter; iter = hashmap_iter_next(&source, iter)) {
         char *name = (char *)hashmap_iter_get_key(iter);
-        Value *value = (Value *)hashmap_iter_get_data(iter);
+        ValuePtr value = (ValuePtr )hashmap_iter_get_data(iter);
         hashmap_put(&dest, name, value);
     }
 }
@@ -367,7 +367,7 @@ char *zero_string(int size) {
     return buf;
 }
 
-Block *proc_to_block_arg(Env *env, Value *proc_or_nil) {
+Block *proc_to_block_arg(Env *env, ValuePtr proc_or_nil) {
     if (proc_or_nil->is_nil()) {
         return nullptr;
     }
@@ -376,7 +376,7 @@ Block *proc_to_block_arg(Env *env, Value *proc_or_nil) {
 
 #define NAT_SHELL_READ_BYTES 1024
 
-Value *shell_backticks(Env *env, Value *command) {
+ValuePtr shell_backticks(Env *env, ValuePtr command) {
     command->assert_type(env, Value::Type::String, "String");
     int pid;
     auto process = popen2(command->as_string()->c_str(), "r", pid);

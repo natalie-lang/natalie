@@ -747,7 +747,7 @@ Node *Parser::parse_interpolated_string(Env *env, LocalsVectorPtr locals) {
 };
 
 Node *Parser::parse_lit(Env *env, LocalsVectorPtr locals) {
-    Value *value;
+    ValuePtr value;
     auto token = current_token();
     switch (token->type()) {
     case Token::Type::Integer:

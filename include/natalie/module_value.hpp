@@ -30,23 +30,23 @@ struct ModuleValue : Value {
         }
     }
 
-    Value *extend(Env *, size_t argc, Value **args);
+    ValuePtr extend(Env *, size_t argc, ValuePtr *args);
     void extend_once(Env *, ModuleValue *);
 
-    Value *include(Env *, size_t argc, Value **args);
+    ValuePtr include(Env *, size_t argc, ValuePtr *args);
     void include_once(Env *, ModuleValue *);
 
-    Value *prepend(Env *, size_t argc, Value **args);
+    ValuePtr prepend(Env *, size_t argc, ValuePtr *args);
     void prepend_once(Env *, ModuleValue *);
 
-    virtual Value *const_get(const char *) override;
-    virtual Value *const_fetch(const char *) override;
-    virtual Value *const_find(Env *, const char *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::Raise) override;
-    virtual Value *const_set(Env *, const char *, Value *) override;
+    virtual ValuePtr const_get(const char *) override;
+    virtual ValuePtr const_fetch(const char *) override;
+    virtual ValuePtr const_find(Env *, const char *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::Raise) override;
+    virtual ValuePtr const_set(Env *, const char *, ValuePtr ) override;
 
     virtual void alias(Env *, const char *, const char *) override;
 
-    Value *eval_body(Env *, Value *(*)(Env *, Value *));
+    ValuePtr eval_body(Env *, ValuePtr (*)(Env *, ValuePtr ));
 
     const char *class_name() { return m_class_name; }
     void set_class_name(const char *name) { m_class_name = name ? GC_STRDUP(name) : nullptr; }
@@ -54,14 +54,14 @@ struct ModuleValue : Value {
     ClassValue *superclass() { return m_superclass; }
     void set_superclass_DANGEROUSLY(ClassValue *superclass) { m_superclass = superclass; }
 
-    Value *included_modules(Env *);
+    ValuePtr included_modules(Env *);
     Vector<ModuleValue *> included_modules() { return m_included_modules; }
-    bool does_include_module(Env *, Value *);
+    bool does_include_module(Env *, ValuePtr );
 
-    virtual Value *cvar_get_or_null(Env *, const char *) override;
-    virtual Value *cvar_set(Env *, const char *, Value *) override;
+    virtual ValuePtr cvar_get_or_null(Env *, const char *) override;
+    virtual ValuePtr cvar_set(Env *, const char *, ValuePtr ) override;
 
-    Value *define_method(Env *, Value *, Block *);
+    ValuePtr define_method(Env *, ValuePtr , Block *);
     virtual void define_method(Env *, const char *, MethodFnPtr) override;
     virtual void define_method_with_block(Env *, const char *, Block *) override;
     virtual void undefine_method(Env *, const char *) override;
@@ -70,31 +70,31 @@ struct ModuleValue : Value {
     Method *find_method(const char *, ModuleValue **);
     Method *find_method_without_undefined(const char *, ModuleValue **);
 
-    Value *call_method(Env *, Value *, const char *, Value *, size_t, Value **, Block *);
+    ValuePtr call_method(Env *, ValuePtr , const char *, ValuePtr , size_t, ValuePtr *, Block *);
 
     ArrayValue *ancestors(Env *);
 
-    bool is_method_defined(Env *, Value *);
+    bool is_method_defined(Env *, ValuePtr );
 
-    Value *inspect(Env *);
-    Value *name(Env *);
-    Value *attr_reader(Env *, size_t, Value **);
-    Value *attr_writer(Env *, size_t, Value **);
-    Value *attr_accessor(Env *, size_t, Value **);
+    ValuePtr inspect(Env *);
+    ValuePtr name(Env *);
+    ValuePtr attr_reader(Env *, size_t, ValuePtr *);
+    ValuePtr attr_writer(Env *, size_t, ValuePtr *);
+    ValuePtr attr_accessor(Env *, size_t, ValuePtr *);
 
-    static Value *attr_reader_block_fn(Env *, Value *, size_t, Value **, Block *);
-    static Value *attr_writer_block_fn(Env *, Value *, size_t, Value **, Block *);
+    static ValuePtr attr_reader_block_fn(Env *, ValuePtr , size_t, ValuePtr *, Block *);
+    static ValuePtr attr_writer_block_fn(Env *, ValuePtr , size_t, ValuePtr *, Block *);
 
-    Value *module_eval(Env *, Block *);
+    ValuePtr module_eval(Env *, Block *);
 
-    Value *private_method(Env *, Value *method_name);
-    Value *protected_method(Env *, Value *method_name);
-    Value *public_method(Env *, Value *method_name);
+    ValuePtr private_method(Env *, ValuePtr method_name);
+    ValuePtr protected_method(Env *, ValuePtr method_name);
+    ValuePtr public_method(Env *, ValuePtr method_name);
 
-    bool const_defined(Env *, Value *);
-    Value *alias_method(Env *, Value *, Value *);
+    bool const_defined(Env *, ValuePtr );
+    ValuePtr alias_method(Env *, ValuePtr , ValuePtr );
 
-    bool eqeqeq(Env *env, Value *other) {
+    bool eqeqeq(Env *env, ValuePtr other) {
         return other->is_a(env, this);
     }
 

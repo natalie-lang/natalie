@@ -26,12 +26,12 @@ struct ExceptionValue : Value {
     const char *message() { return m_message; }
     void set_message(const char *message) { m_message = GC_STRDUP(message); }
 
-    Value *initialize(Env *, Value *);
-    Value *inspect(Env *);
-    Value *message(Env *);
+    ValuePtr initialize(Env *, ValuePtr );
+    ValuePtr inspect(Env *);
+    ValuePtr message(Env *);
 
     const ArrayValue *backtrace() { return m_backtrace; }
-    Value *backtrace(Env *);
+    ValuePtr backtrace(Env *);
     void build_backtrace(Env *);
 
 private:

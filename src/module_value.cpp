@@ -19,7 +19,7 @@ ModuleValue::ModuleValue(Env *env, Type type, ClassValue *klass)
     hashmap_set_key_alloc_funcs(&m_constants, hashmap_alloc_key_string, nullptr);
 }
 
-Value *ModuleValue::extend(Env *env, size_t argc, Value **args) {
+ValuePtr ModuleValue::extend(Env *env, size_t argc, ValuePtr *args) {
     for (size_t i = 0; i < argc; i++) {
         extend_once(env, args[i]->as_module());
     }
@@ -30,7 +30,7 @@ void ModuleValue::extend_once(Env *env, ModuleValue *module) {
     singleton_class(env)->include_once(env, module);
 }
 
-Value *ModuleValue::include(Env *env, size_t argc, Value **args) {
+ValuePtr ModuleValue::include(Env *env, size_t argc, ValuePtr *args) {
     for (size_t i = 0; i < argc; i++) {
         include_once(env, args[i]->as_module());
     }
@@ -44,7 +44,7 @@ void ModuleValue::include_once(Env *env, ModuleValue *module) {
     m_included_modules.push(module);
 }
 
-Value *ModuleValue::prepend(Env *env, size_t argc, Value **args) {
+ValuePtr ModuleValue::prepend(Env *env, size_t argc, ValuePtr *args) {
     for (int i = argc - 1; i >= 0; i--) {
         prepend_once(env, args[i]->as_module());
     }
@@ -58,12 +58,12 @@ void ModuleValue::prepend_once(Env *env, ModuleValue *module) {
     m_included_modules.push_front(module);
 }
 
-Value *ModuleValue::const_get(const char *name) {
-    return static_cast<Value *>(hashmap_get(&m_constants, name));
+ValuePtr ModuleValue::const_get(const char *name) {
+    return static_cast<ValuePtr >(hashmap_get(&m_constants, name));
 }
 
-Value *ModuleValue::const_fetch(const char *name) {
-    Value *value = const_get(name);
+ValuePtr ModuleValue::const_fetch(const char *name) {
+    ValuePtr value = const_get(name);
     if (!value) {
         printf("Constant %s is missing!\n", name);
         abort();
@@ -71,9 +71,9 @@ Value *ModuleValue::const_fetch(const char *name) {
     return value;
 }
 
-Value *ModuleValue::const_find(Env *env, const char *name, ConstLookupSearchMode search_mode, ConstLookupFailureMode failure_mode) {
+ValuePtr ModuleValue::const_find(Env *env, const char *name, ConstLookupSearchMode search_mode, ConstLookupFailureMode failure_mode) {
     ModuleValue *search_parent;
-    Value *val;
+    ValuePtr val;
 
     if (search_mode == ConstLookupSearchMode::NotStrict) {
         // first search in parent namespaces (not including global, i.e. Object namespace)
@@ -107,7 +107,7 @@ Value *ModuleValue::const_find(Env *env, const char *name, ConstLookupSearchMode
     }
 }
 
-Value *ModuleValue::const_set(Env *env, const char *name, Value *val) {
+ValuePtr ModuleValue::const_set(Env *env, const char *name, ValuePtr val) {
     hashmap_remove(&m_constants, name);
     hashmap_put(&m_constants, name, val);
     if (val->is_module() && !val->owner()) {
@@ -127,20 +127,20 @@ void ModuleValue::alias(Env *env, const char *new_name, const char *old_name) {
     hashmap_put(&m_methods, new_name, new Method { *method });
 }
 
-Value *ModuleValue::eval_body(Env *env, Value *(*fn)(Env *, Value *)) {
+ValuePtr ModuleValue::eval_body(Env *env, ValuePtr (*fn)(Env *, ValuePtr )) {
     Env body_env = Env { env };
     body_env.set_caller(env);
-    Value *result = fn(&body_env, this);
+    ValuePtr result = fn(&body_env, this);
     body_env.clear_caller();
     return result;
 }
 
-Value *ModuleValue::cvar_get_or_null(Env *env, const char *name) {
+ValuePtr ModuleValue::cvar_get_or_null(Env *env, const char *name) {
     ModuleValue *module = this;
-    Value *val = nullptr;
+    ValuePtr val = nullptr;
     while (1) {
         if (module->m_class_vars.table) {
-            val = static_cast<Value *>(hashmap_get(&module->m_class_vars, name));
+            val = static_cast<ValuePtr >(hashmap_get(&module->m_class_vars, name));
             if (val) {
                 return val;
             }
@@ -152,13 +152,13 @@ Value *ModuleValue::cvar_get_or_null(Env *env, const char *name) {
     }
 }
 
-Value *ModuleValue::cvar_set(Env *env, const char *name, Value *val) {
+ValuePtr ModuleValue::cvar_set(Env *env, const char *name, ValuePtr val) {
     ModuleValue *current = this;
 
-    Value *exists = nullptr;
+    ValuePtr exists = nullptr;
     while (1) {
         if (current->m_class_vars.table) {
-            exists = static_cast<Value *>(hashmap_get(&current->m_class_vars, name));
+            exists = static_cast<ValuePtr >(hashmap_get(&current->m_class_vars, name));
             if (exists) {
                 hashmap_remove(&current->m_class_vars, name);
                 hashmap_put(&current->m_class_vars, name, val);
@@ -249,7 +249,7 @@ Method *ModuleValue::find_method_without_undefined(const char *method_name, Modu
     }
 }
 
-Value *ModuleValue::call_method(Env *env, Value *instance_class, const char *method_name, Value *self, size_t argc, Value **args, Block *block) {
+ValuePtr ModuleValue::call_method(Env *env, ValuePtr instance_class, const char *method_name, ValuePtr self, size_t argc, ValuePtr *args, Block *block) {
     ModuleValue *matching_class_or_module;
     Method *method = find_method(method_name, &matching_class_or_module);
     if (method && !method->is_undefined()) {
@@ -290,13 +290,13 @@ ArrayValue *ModuleValue::ancestors(Env *env) {
     return ancestors;
 }
 
-bool ModuleValue::is_method_defined(Env *env, Value *name_value) {
+bool ModuleValue::is_method_defined(Env *env, ValuePtr name_value) {
     const char *name = name_value->identifier_str(env, Conversion::Strict);
     ModuleValue *matching_class_or_module;
     return !!find_method(name, &matching_class_or_module);
 }
 
-Value *ModuleValue::inspect(Env *env) {
+ValuePtr ModuleValue::inspect(Env *env) {
     if (m_class_name) {
         if (owner() && owner() != env->Object()) {
             return StringValue::sprintf(env, "%S::%s", owner()->send(env, "inspect"), m_class_name);
@@ -319,7 +319,7 @@ Value *ModuleValue::inspect(Env *env) {
     }
 }
 
-Value *ModuleValue::name(Env *env) {
+ValuePtr ModuleValue::name(Env *env) {
     if (m_class_name) {
         return new StringValue { env, m_class_name };
     } else {
@@ -327,9 +327,9 @@ Value *ModuleValue::name(Env *env) {
     }
 }
 
-Value *ModuleValue::attr_reader(Env *env, size_t argc, Value **args) {
+ValuePtr ModuleValue::attr_reader(Env *env, size_t argc, ValuePtr *args) {
     for (size_t i = 0; i < argc; i++) {
-        Value *name_obj = args[i];
+        ValuePtr name_obj = args[i];
         if (name_obj->type() == Value::Type::String) {
             // we're good!
         } else if (name_obj->type() == Value::Type::Symbol) {
@@ -345,16 +345,16 @@ Value *ModuleValue::attr_reader(Env *env, size_t argc, Value **args) {
     return env->nil_obj();
 }
 
-Value *ModuleValue::attr_reader_block_fn(Env *env, Value *self, size_t argc, Value **args, Block *block) {
-    Value *name_obj = env->outer()->var_get("name", 0);
+ValuePtr ModuleValue::attr_reader_block_fn(Env *env, ValuePtr self, size_t argc, ValuePtr *args, Block *block) {
+    ValuePtr name_obj = env->outer()->var_get("name", 0);
     assert(name_obj);
     StringValue *ivar_name = StringValue::sprintf(env, "@%S", name_obj);
     return self->ivar_get(env, ivar_name->c_str());
 }
 
-Value *ModuleValue::attr_writer(Env *env, size_t argc, Value **args) {
+ValuePtr ModuleValue::attr_writer(Env *env, size_t argc, ValuePtr *args) {
     for (size_t i = 0; i < argc; i++) {
-        Value *name_obj = args[i];
+        ValuePtr name_obj = args[i];
         if (name_obj->type() == Value::Type::String) {
             // we're good!
         } else if (name_obj->type() == Value::Type::Symbol) {
@@ -372,22 +372,22 @@ Value *ModuleValue::attr_writer(Env *env, size_t argc, Value **args) {
     return env->nil_obj();
 }
 
-Value *ModuleValue::attr_writer_block_fn(Env *env, Value *self, size_t argc, Value **args, Block *block) {
-    Value *val = args[0];
-    Value *name_obj = env->outer()->var_get("name", 0);
+ValuePtr ModuleValue::attr_writer_block_fn(Env *env, ValuePtr self, size_t argc, ValuePtr *args, Block *block) {
+    ValuePtr val = args[0];
+    ValuePtr name_obj = env->outer()->var_get("name", 0);
     assert(name_obj);
     StringValue *ivar_name = StringValue::sprintf(env, "@%S", name_obj);
     self->ivar_set(env, ivar_name->c_str(), val);
     return val;
 }
 
-Value *ModuleValue::attr_accessor(Env *env, size_t argc, Value **args) {
+ValuePtr ModuleValue::attr_accessor(Env *env, size_t argc, ValuePtr *args) {
     attr_reader(env, argc, args);
     attr_writer(env, argc, args);
     return env->nil_obj();
 }
 
-Value *ModuleValue::included_modules(Env *env) {
+ValuePtr ModuleValue::included_modules(Env *env) {
     ArrayValue *modules = new ArrayValue { env };
     for (ModuleValue *m : included_modules()) {
         modules->push(m);
@@ -395,7 +395,7 @@ Value *ModuleValue::included_modules(Env *env) {
     return modules;
 }
 
-bool ModuleValue::does_include_module(Env *env, Value *module) {
+bool ModuleValue::does_include_module(Env *env, ValuePtr module) {
     module->assert_type(env, Value::Type::Module, "Module");
     for (ModuleValue *m : included_modules()) {
         if (m == this) continue;
@@ -404,7 +404,7 @@ bool ModuleValue::does_include_module(Env *env, Value *module) {
     return false;
 }
 
-Value *ModuleValue::define_method(Env *env, Value *name_value, Block *block) {
+ValuePtr ModuleValue::define_method(Env *env, ValuePtr name_value, Block *block) {
     const char *name = name_value->identifier_str(env, Value::Conversion::Strict);
     if (!block) {
         env->raise("ArgumentError", "tried to create Proc object without a block");
@@ -413,7 +413,7 @@ Value *ModuleValue::define_method(Env *env, Value *name_value, Block *block) {
     return SymbolValue::intern(env, name);
 }
 
-Value *ModuleValue::module_eval(Env *env, Block *block) {
+ValuePtr ModuleValue::module_eval(Env *env, Block *block) {
     if (!block) {
         env->raise("ArgumentError", "Natalie only supports module_eval with a block");
     }
@@ -422,22 +422,22 @@ Value *ModuleValue::module_eval(Env *env, Block *block) {
     return env->nil_obj();
 }
 
-Value *ModuleValue::private_method(Env *env, Value *method_name) {
+ValuePtr ModuleValue::private_method(Env *env, ValuePtr method_name) {
     // TODO: class private
     return env->nil_obj();
 }
 
-Value *ModuleValue::protected_method(Env *env, Value *method_name) {
+ValuePtr ModuleValue::protected_method(Env *env, ValuePtr method_name) {
     // TODO: class protected
     return env->nil_obj();
 }
 
-Value *ModuleValue::public_method(Env *env, Value *method_name) {
+ValuePtr ModuleValue::public_method(Env *env, ValuePtr method_name) {
     // TODO: class public
     return env->nil_obj();
 }
 
-bool ModuleValue::const_defined(Env *env, Value *name_value) {
+bool ModuleValue::const_defined(Env *env, ValuePtr name_value) {
     const char *name = name_value->identifier_str(env, Value::Conversion::NullAllowed);
     if (!name) {
         env->raise("TypeError", "no implicit conversion of %v to String", name_value);
@@ -445,7 +445,7 @@ bool ModuleValue::const_defined(Env *env, Value *name_value) {
     return !!const_find(env, name, ConstLookupSearchMode::NotStrict, ConstLookupFailureMode::Null);
 }
 
-Value *ModuleValue::alias_method(Env *env, Value *new_name_value, Value *old_name_value) {
+ValuePtr ModuleValue::alias_method(Env *env, ValuePtr new_name_value, ValuePtr old_name_value) {
     const char *new_name = new_name_value->identifier_str(env, Value::Conversion::NullAllowed);
     if (!new_name) {
         env->raise("TypeError", "%s is not a symbol", new_name_value->send(env, "inspect"));

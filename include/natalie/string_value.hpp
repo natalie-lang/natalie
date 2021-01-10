@@ -80,14 +80,14 @@ struct StringValue : Value {
     void append(Env *, const char *);
     void append(Env *, std::string);
     void append_char(Env *, char);
-    void append_string(Env *, Value *);
+    void append_string(Env *, ValuePtr );
     void append_string(Env *, StringValue *);
     StringValue *next_char(Env *, size_t *);
-    Value *each_char(Env *, Block *);
+    ValuePtr each_char(Env *, Block *);
     ArrayValue *chars(Env *);
 
     SymbolValue *to_symbol(Env *);
-    Value *to_sym(Env *);
+    ValuePtr to_sym(Env *);
 
     StringValue *to_str() { return this; }
 
@@ -97,9 +97,9 @@ struct StringValue : Value {
 
     StringValue *successive(Env *);
 
-    Value *index(Env *, Value *);
-    Value *index(Env *, Value *, size_t start);
-    nat_int_t index_int(Env *, Value *, size_t start);
+    ValuePtr index(Env *, ValuePtr );
+    ValuePtr index(Env *, ValuePtr , size_t start);
+    nat_int_t index_int(Env *, ValuePtr , size_t start);
 
     void truncate(size_t length) {
         assert(length <= m_length);
@@ -107,43 +107,43 @@ struct StringValue : Value {
         m_length = length;
     }
 
-    Value *initialize(Env *, Value *);
-    Value *ltlt(Env *, Value *);
+    ValuePtr initialize(Env *, ValuePtr );
+    ValuePtr ltlt(Env *, ValuePtr );
 
-    bool eq(Value *arg) {
+    bool eq(ValuePtr arg) {
         return *this == *arg;
     }
 
-    Value *to_s() {
+    ValuePtr to_s() {
         return this;
     }
 
-    bool start_with(Env *, Value *);
-    bool end_with(Env *, Value *);
+    bool start_with(Env *, ValuePtr );
+    bool end_with(Env *, ValuePtr );
     bool is_empty() { return m_length == 0; }
 
-    Value *gsub(Env *, Value *, Value * = nullptr, Block *block = nullptr);
-    Value *sub(Env *, Value *, Value * = nullptr, Block *block = nullptr);
+    ValuePtr gsub(Env *, ValuePtr , ValuePtr  = nullptr, Block *block = nullptr);
+    ValuePtr sub(Env *, ValuePtr , ValuePtr  = nullptr, Block *block = nullptr);
 
-    Value *add(Env *, Value *);
-    Value *bytes(Env *);
-    Value *cmp(Env *, Value *);
-    Value *downcase(Env *);
-    Value *encode(Env *, Value *);
-    Value *encoding(Env *);
-    Value *eqtilde(Env *, Value *);
-    Value *force_encoding(Env *, Value *);
-    Value *ljust(Env *, Value *, Value *);
-    Value *match(Env *, Value *);
-    Value *mul(Env *, Value *);
-    Value *ord(Env *);
-    Value *ref(Env *, Value *);
-    Value *reverse(Env *);
-    Value *size(Env *);
-    Value *split(Env *, Value *, Value *);
-    Value *strip(Env *);
-    Value *to_i(Env *, Value *);
-    Value *upcase(Env *);
+    ValuePtr add(Env *, ValuePtr );
+    ValuePtr bytes(Env *);
+    ValuePtr cmp(Env *, ValuePtr );
+    ValuePtr downcase(Env *);
+    ValuePtr encode(Env *, ValuePtr );
+    ValuePtr encoding(Env *);
+    ValuePtr eqtilde(Env *, ValuePtr );
+    ValuePtr force_encoding(Env *, ValuePtr );
+    ValuePtr ljust(Env *, ValuePtr , ValuePtr );
+    ValuePtr match(Env *, ValuePtr );
+    ValuePtr mul(Env *, ValuePtr );
+    ValuePtr ord(Env *);
+    ValuePtr ref(Env *, ValuePtr );
+    ValuePtr reverse(Env *);
+    ValuePtr size(Env *);
+    ValuePtr split(Env *, ValuePtr , ValuePtr );
+    ValuePtr strip(Env *);
+    ValuePtr to_i(Env *, ValuePtr );
+    ValuePtr upcase(Env *);
 
 private:
     StringValue *expand_backrefs(Env *, StringValue *, MatchDataValue *);

@@ -22,17 +22,17 @@ struct SymbolValue : Value {
 
     virtual ProcValue *to_proc(Env *) override;
 
-    static Value *to_proc_block_fn(Env *, Value *, size_t, Value **, Block *);
+    static ValuePtr to_proc_block_fn(Env *, ValuePtr , size_t, ValuePtr *, Block *);
 
-    Value *cmp(Env *, Value *);
+    ValuePtr cmp(Env *, ValuePtr );
 
     bool is_constant() {
         return strlen(m_name) > 0 && isupper(m_name[0]);
     }
 
-    bool start_with(Env *, Value *);
+    bool start_with(Env *, ValuePtr );
 
-    Value *ref(Env *, Value *);
+    ValuePtr ref(Env *, ValuePtr );
 
 private:
     SymbolValue(Env *env, const char *name)

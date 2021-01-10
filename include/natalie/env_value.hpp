@@ -13,9 +13,9 @@
 namespace Natalie {
 
 struct EnvValue : Value {
-    Value *inspect(Env *);
-    Value *ref(Env *, Value *name);
-    Value *refeq(Env *, Value *name, Value *value);
+    ValuePtr inspect(Env *);
+    ValuePtr ref(Env *, ValuePtr name);
+    ValuePtr refeq(Env *, ValuePtr name, ValuePtr value);
 };
 
 }

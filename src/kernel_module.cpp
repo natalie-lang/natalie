@@ -12,7 +12,7 @@ extern char **environ;
 
 namespace Natalie {
 
-Value *KernelModule::Array(Env *env, Value *value) {
+ValuePtr KernelModule::Array(Env *env, ValuePtr value) {
     if (value->type() == Value::Type::Array) {
         return value;
     } else if (value->respond_to(env, "to_ary")) {
@@ -26,21 +26,21 @@ Value *KernelModule::Array(Env *env, Value *value) {
     }
 }
 
-Value *KernelModule::at_exit(Env *env, Block *block) {
+ValuePtr KernelModule::at_exit(Env *env, Block *block) {
     ArrayValue *at_exit_handlers = env->global_get("$NAT_at_exit_handlers")->as_array();
     env->assert_block_given(block);
-    Value *proc = new ProcValue { env, block };
+    ValuePtr proc = new ProcValue { env, block };
     at_exit_handlers->push(proc);
     return proc;
 }
 
-Value *KernelModule::cur_dir(Env *env) {
+ValuePtr KernelModule::cur_dir(Env *env) {
     if (env->file() == nullptr) {
         env->raise("RuntimeError", "could not get current directory");
     } else if (strcmp(env->file(), "-e") == 0) {
         return new StringValue { env, "." };
     } else {
-        Value *relative = new StringValue { env, env->file() };
+        ValuePtr relative = new StringValue { env, env->file() };
         StringValue *absolute = static_cast<StringValue *>(FileValue::expand_path(env, relative, nullptr));
         size_t last_slash = 0;
         bool found = false;
@@ -57,14 +57,14 @@ Value *KernelModule::cur_dir(Env *env) {
     }
 }
 
-Value *KernelModule::define_singleton_method(Env *env, Value *name, Block *block) {
+ValuePtr KernelModule::define_singleton_method(Env *env, ValuePtr name, Block *block) {
     env->assert_block_given(block);
     SymbolValue *name_obj = name->to_symbol(env, Value::Conversion::Strict);
     define_singleton_method_with_block(env, name_obj->c_str(), block);
     return name_obj;
 }
 
-Value *KernelModule::exit(Env *env, Value *status) {
+ValuePtr KernelModule::exit(Env *env, ValuePtr status) {
     if (!status || status->type() != Value::Type::Integer) {
         status = new IntegerValue { env, 0 };
     }
@@ -74,7 +74,7 @@ Value *KernelModule::exit(Env *env, Value *status) {
     return env->nil_obj();
 }
 
-Value *KernelModule::get_usage(Env *env) {
+ValuePtr KernelModule::get_usage(Env *env) {
     struct rusage usage;
     if (getrusage(RUSAGE_SELF, &usage) != 0) {
         return env->nil_obj();
@@ -97,13 +97,13 @@ Value *KernelModule::get_usage(Env *env) {
     return hash;
 }
 
-Value *KernelModule::hash(Env *env) {
+ValuePtr KernelModule::hash(Env *env) {
     StringValue *inspected = send(env, "inspect")->as_string();
     nat_int_t hash_value = hashmap_hash_string(inspected->c_str());
     return new IntegerValue { env, hash_value };
 }
 
-Value *KernelModule::inspect(Env *env) {
+ValuePtr KernelModule::inspect(Env *env) {
     if (is_module() && as_module()->class_name()) {
         return new StringValue { env, as_module()->class_name() };
     } else {
@@ -119,11 +119,11 @@ Value *KernelModule::inspect(Env *env) {
 }
 
 // Note: this method is only defined here in the C++ -- the method is actually attached directly to `main` in Ruby.
-Value *KernelModule::main_obj_inspect(Env *env) {
+ValuePtr KernelModule::main_obj_inspect(Env *env) {
     return new StringValue { env, "main" };
 }
 
-Value *KernelModule::instance_variable_get(Env *env, Value *name_val) {
+ValuePtr KernelModule::instance_variable_get(Env *env, ValuePtr name_val) {
     if (is_integer() || is_float()) {
         return env->nil_obj();
     }
@@ -131,21 +131,21 @@ Value *KernelModule::instance_variable_get(Env *env, Value *name_val) {
     return ivar_get(env, name);
 }
 
-Value *KernelModule::instance_variable_set(Env *env, Value *name_val, Value *value) {
+ValuePtr KernelModule::instance_variable_set(Env *env, ValuePtr name_val, ValuePtr value) {
     this->assert_not_frozen(env);
     const char *name = name_val->identifier_str(env, Value::Conversion::Strict);
     ivar_set(env, name, value);
     return value;
 }
 
-bool KernelModule::is_a(Env *env, Value *module) {
+bool KernelModule::is_a(Env *env, ValuePtr module) {
     if (!module->is_module()) {
         env->raise("TypeError", "class or module required");
     }
     return Value::is_a(env, module->as_module());
 }
 
-Value *KernelModule::lambda(Env *env, Block *block) {
+ValuePtr KernelModule::lambda(Env *env, Block *block) {
     if (block) {
         return new ProcValue(env, block, ProcValue::ProcType::Lambda);
     } else {
@@ -153,7 +153,7 @@ Value *KernelModule::lambda(Env *env, Block *block) {
     }
 }
 
-Value *KernelModule::loop(Env *env, Block *block) {
+ValuePtr KernelModule::loop(Env *env, Block *block) {
     if (block) {
         for (;;) {
             NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 0, nullptr, nullptr);
@@ -165,7 +165,7 @@ Value *KernelModule::loop(Env *env, Block *block) {
     }
 }
 
-Value *KernelModule::methods(Env *env) {
+ValuePtr KernelModule::methods(Env *env) {
     ArrayValue *array = new ArrayValue { env };
     if (singleton_class()) {
         singleton_class()->methods(env, array);
@@ -175,11 +175,11 @@ Value *KernelModule::methods(Env *env) {
     return array;
 }
 
-Value *KernelModule::p(Env *env, size_t argc, Value **args) {
+ValuePtr KernelModule::p(Env *env, size_t argc, ValuePtr *args) {
     if (argc == 0) {
         return env->nil_obj();
     } else if (argc == 1) {
-        Value *arg = args[0]->send(env, "inspect");
+        ValuePtr arg = args[0]->send(env, "inspect");
         puts(env, 1, &arg);
         return arg;
     } else {
@@ -193,12 +193,12 @@ Value *KernelModule::p(Env *env, size_t argc, Value **args) {
     }
 }
 
-Value *KernelModule::print(Env *env, size_t argc, Value **args) {
+ValuePtr KernelModule::print(Env *env, size_t argc, ValuePtr *args) {
     IoValue *_stdout = env->global_get("$stdout")->as_io();
     return _stdout->print(env, argc, args);
 }
 
-Value *KernelModule::proc(Env *env, Block *block) {
+ValuePtr KernelModule::proc(Env *env, Block *block) {
     if (block) {
         return new ProcValue { env, block };
     } else {
@@ -206,14 +206,14 @@ Value *KernelModule::proc(Env *env, Block *block) {
     }
 }
 
-Value *KernelModule::puts(Env *env, size_t argc, Value **args) {
+ValuePtr KernelModule::puts(Env *env, size_t argc, ValuePtr *args) {
     IoValue *_stdout = env->global_get("$stdout")->as_io();
     return _stdout->puts(env, argc, args);
 }
 
-Value *KernelModule::raise(Env *env, Value *klass, Value *message) {
+ValuePtr KernelModule::raise(Env *env, ValuePtr klass, ValuePtr message) {
     if (!message) {
-        Value *arg = klass;
+        ValuePtr arg = klass;
         if (arg->is_class()) {
             klass = arg->as_class();
             message = new StringValue { env, arg->as_class()->class_name() };
@@ -229,7 +229,7 @@ Value *KernelModule::raise(Env *env, Value *klass, Value *message) {
     env->raise(klass->as_class(), message->as_string());
 }
 
-Value *KernelModule::sleep(Env *env, Value *length) {
+ValuePtr KernelModule::sleep(Env *env, ValuePtr length) {
     if (!length) {
         while (true) {
             ::sleep(1000);
@@ -241,7 +241,7 @@ Value *KernelModule::sleep(Env *env, Value *length) {
     return length;
 }
 
-Value *KernelModule::spawn(Env *env, size_t argc, Value **args) {
+ValuePtr KernelModule::spawn(Env *env, size_t argc, ValuePtr *args) {
     pid_t pid;
     auto command = new Vector<const char *> {};
     char *cmd[argc + 1];
@@ -259,13 +259,13 @@ Value *KernelModule::spawn(Env *env, size_t argc, Value **args) {
     }
 }
 
-Value *KernelModule::tap(Env *env, Block *block) {
-    Value *self = this;
+ValuePtr KernelModule::tap(Env *env, Block *block) {
+    ValuePtr self = this;
     NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &self, nullptr);
     return this;
 }
 
-Value *KernelModule::this_method(Env *env) {
+ValuePtr KernelModule::this_method(Env *env) {
     const char *name = env->caller()->find_current_method_name();
     if (name) {
         return SymbolValue::intern(env, name);

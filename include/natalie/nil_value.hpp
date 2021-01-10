@@ -16,11 +16,11 @@ struct NilValue : Value {
         if (env->nil_obj()) NAT_UNREACHABLE();
     }
 
-    Value *eqtilde(Env *, Value *);
-    Value *to_s(Env *);
-    Value *to_a(Env *);
-    Value *to_i(Env *);
-    Value *inspect(Env *);
+    ValuePtr eqtilde(Env *, ValuePtr );
+    ValuePtr to_s(Env *);
+    ValuePtr to_a(Env *);
+    ValuePtr to_i(Env *);
+    ValuePtr inspect(Env *);
 };
 
 }

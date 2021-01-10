@@ -458,7 +458,7 @@ struct Token : public gc {
         NAT_UNREACHABLE();
     }
 
-    Value *to_ruby(Env *env, bool with_line_and_column_numbers = false) {
+    ValuePtr to_ruby(Env *env, bool with_line_and_column_numbers = false) {
         if (m_type == Type::Eof)
             return env->nil_obj();
         const char *type = type_value(env);

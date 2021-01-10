@@ -2,7 +2,7 @@
 
 namespace Natalie {
 
-Value *RegexpValue::initialize(Env *env, Value *arg) {
+ValuePtr RegexpValue::initialize(Env *env, ValuePtr arg) {
     if (arg->is_regexp()) {
         m_regex = arg->as_regexp()->m_regex;
         m_pattern = arg->as_regexp()->m_pattern;
@@ -13,7 +13,7 @@ Value *RegexpValue::initialize(Env *env, Value *arg) {
     return this;
 }
 
-Value *RegexpValue::inspect(Env *env) {
+ValuePtr RegexpValue::inspect(Env *env) {
     StringValue *out = new StringValue { env, "/" };
     const char *str = pattern();
     size_t len = strlen(str);
@@ -37,11 +37,11 @@ Value *RegexpValue::inspect(Env *env) {
     return out;
 }
 
-Value *RegexpValue::eqtilde(Env *env, Value *other) {
+ValuePtr RegexpValue::eqtilde(Env *env, ValuePtr other) {
     if (other->is_symbol())
         other = other->as_symbol()->to_s(env);
     other->assert_type(env, Value::Type::String, "String");
-    Value *result = match(env, other);
+    ValuePtr result = match(env, other);
     if (result->is_nil()) {
         return result;
     } else {
@@ -51,7 +51,7 @@ Value *RegexpValue::eqtilde(Env *env, Value *other) {
     }
 }
 
-Value *RegexpValue::match(Env *env, Value *other, size_t start_index) {
+ValuePtr RegexpValue::match(Env *env, ValuePtr other, size_t start_index) {
     if (other->is_symbol())
         other = other->as_symbol()->to_s(env);
     other->assert_type(env, Value::Type::String, "String");
@@ -76,7 +76,7 @@ Value *RegexpValue::match(Env *env, Value *other, size_t start_index) {
     }
 }
 
-Value *RegexpValue::source(Env *env) {
+ValuePtr RegexpValue::source(Env *env) {
     return new StringValue { env, pattern() };
 }
 

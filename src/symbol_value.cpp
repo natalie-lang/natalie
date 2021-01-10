@@ -35,7 +35,7 @@ ProcValue *SymbolValue::to_proc(Env *env) {
     return new ProcValue { env, proc_block };
 }
 
-Value *SymbolValue::to_proc_block_fn(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
+ValuePtr SymbolValue::to_proc_block_fn(Env *env, ValuePtr self_value, size_t argc, ValuePtr *args, Block *block) {
     env->assert_argc(argc, 1);
     SymbolValue *name_obj = env->outer()->var_get("name", 0)->as_symbol();
     assert(name_obj);
@@ -43,7 +43,7 @@ Value *SymbolValue::to_proc_block_fn(Env *env, Value *self_value, size_t argc, V
     return args[0]->send(env, name);
 }
 
-Value *SymbolValue::cmp(Env *env, Value *other_value) {
+ValuePtr SymbolValue::cmp(Env *env, ValuePtr other_value) {
     if (!other_value->is_symbol()) return env->nil_obj();
     SymbolValue *other = other_value->as_symbol();
     int diff = strcmp(m_name, other->m_name);
@@ -58,12 +58,12 @@ Value *SymbolValue::cmp(Env *env, Value *other_value) {
     return new IntegerValue { env, result };
 }
 
-bool SymbolValue::start_with(Env *env, Value *needle) {
+bool SymbolValue::start_with(Env *env, ValuePtr needle) {
     return to_s(env)->start_with(env, needle);
 }
 
-Value *SymbolValue::ref(Env *env, Value *index_obj) {
-    Value *args[] = { index_obj };
+ValuePtr SymbolValue::ref(Env *env, ValuePtr index_obj) {
+    ValuePtr args[] = { index_obj };
     return to_s(env)->send(env, "[]", 1, args);
 }
 

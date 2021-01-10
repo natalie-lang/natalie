@@ -13,9 +13,9 @@ Value::Value(const Value &other)
     copy_hashmap(m_ivars, other.m_ivars);
 }
 
-Value *Value::_new(Env *env, Value *klass_value, size_t argc, Value **args, Block *block) {
+ValuePtr Value::_new(Env *env, ValuePtr klass_value, size_t argc, ValuePtr *args, Block *block) {
     ClassValue *klass = klass_value->as_class();
-    Value *obj;
+    ValuePtr obj;
     switch (klass->object_type()) {
     case Value::Type::Array:
         obj = new ArrayValue { env, klass };
@@ -89,7 +89,7 @@ Value *Value::_new(Env *env, Value *klass_value, size_t argc, Value **args, Bloc
     return obj->initialize(env, argc, args, block);
 }
 
-Value *Value::initialize(Env *env, size_t argc, Value **args, Block *block) {
+ValuePtr Value::initialize(Env *env, size_t argc, ValuePtr *args, Block *block) {
     ModuleValue *matching_class_or_module;
     Method *method = m_klass->find_method("initialize", &matching_class_or_module);
     if (method) {
@@ -261,29 +261,29 @@ ClassValue *Value::singleton_class(Env *env) {
     return m_singleton_class;
 }
 
-Value *Value::const_get(const char *name) {
+ValuePtr Value::const_get(const char *name) {
     return m_klass->const_get(name);
 }
 
-Value *Value::const_fetch(const char *name) {
+ValuePtr Value::const_fetch(const char *name) {
     return m_klass->const_fetch(name);
 }
 
-Value *Value::const_find(Env *env, const char *name, ConstLookupSearchMode search_mode, ConstLookupFailureMode failure_mode) {
+ValuePtr Value::const_find(Env *env, const char *name, ConstLookupSearchMode search_mode, ConstLookupFailureMode failure_mode) {
     return m_klass->const_find(env, name, search_mode, failure_mode);
 }
 
-Value *Value::const_set(Env *env, const char *name, Value *val) {
+ValuePtr Value::const_set(Env *env, const char *name, ValuePtr val) {
     return m_klass->const_set(env, name, val);
 }
 
-Value *Value::ivar_get(Env *env, const char *name) {
+ValuePtr Value::ivar_get(Env *env, const char *name) {
     assert(strlen(name) > 0);
     if (name[0] != '@') {
         env->raise("NameError", "`%s' is not allowed as an instance variable name", name);
     }
     init_ivars();
-    Value *val = static_cast<Value *>(hashmap_get(&m_ivars, name));
+    ValuePtr val = static_cast<ValuePtr >(hashmap_get(&m_ivars, name));
     if (val) {
         return val;
     } else {
@@ -291,7 +291,7 @@ Value *Value::ivar_get(Env *env, const char *name) {
     }
 }
 
-Value *Value::ivar_set(Env *env, const char *name, Value *val) {
+ValuePtr Value::ivar_set(Env *env, const char *name, ValuePtr val) {
     assert(strlen(name) > 0);
     if (name[0] != '@') {
         env->raise("NameError", "`%s' is not allowed as an instance variable name", name);
@@ -302,7 +302,7 @@ Value *Value::ivar_set(Env *env, const char *name, Value *val) {
     return val;
 }
 
-Value *Value::instance_variables(Env *env) {
+ValuePtr Value::instance_variables(Env *env) {
     ArrayValue *ary = new ArrayValue { env };
     if (m_type == Value::Type::Integer || m_type == Value::Type::Float) {
         return ary;
@@ -322,8 +322,8 @@ void Value::init_ivars() {
     hashmap_set_key_alloc_funcs(&m_ivars, hashmap_alloc_key_string, nullptr);
 }
 
-Value *Value::cvar_get(Env *env, const char *name) {
-    Value *val = cvar_get_or_null(env, name);
+ValuePtr Value::cvar_get(Env *env, const char *name) {
+    ValuePtr val = cvar_get_or_null(env, name);
     if (val) {
         return val;
     } else {
@@ -337,7 +337,7 @@ Value *Value::cvar_get(Env *env, const char *name) {
     }
 }
 
-Value *Value::cvar_get_or_null(Env *env, const char *name) {
+ValuePtr Value::cvar_get_or_null(Env *env, const char *name) {
     assert(strlen(name) > 1);
     if (name[0] != '@' || name[1] != '@') {
         env->raise("NameError", "`%s' is not allowed as a class variable name", name);
@@ -346,7 +346,7 @@ Value *Value::cvar_get_or_null(Env *env, const char *name) {
     return m_klass->cvar_get_or_null(env, name);
 }
 
-Value *Value::cvar_set(Env *env, const char *name, Value *val) {
+ValuePtr Value::cvar_set(Env *env, const char *name, ValuePtr val) {
     assert(strlen(name) > 1);
     if (name[0] != '@' || name[1] != '@') {
         env->raise("NameError", "`%s' is not allowed as a class variable name", name);
@@ -368,7 +368,7 @@ void Value::alias(Env *env, const char *new_name, const char *old_name) {
     }
 }
 
-void Value::define_singleton_method(Env *env, const char *name, Value *(*fn)(Env *, Value *, size_t, Value **, Block *block)) {
+void Value::define_singleton_method(Env *env, const char *name, ValuePtr (*fn)(Env *, ValuePtr , size_t, ValuePtr *, Block *block)) {
     ClassValue *klass = singleton_class(env);
     klass->define_method(env, name, fn);
 }
@@ -382,7 +382,7 @@ void Value::undefine_singleton_method(Env *env, const char *name) {
     define_singleton_method(env, name, nullptr);
 }
 
-void Value::define_method(Env *env, const char *name, Value *(*fn)(Env *, Value *, size_t, Value **, Block *block)) {
+void Value::define_method(Env *env, const char *name, ValuePtr (*fn)(Env *, ValuePtr , size_t, ValuePtr *, Block *block)) {
     if (!is_main_object()) {
         printf("tried to call define_method on something that has no methods\n");
         abort();
@@ -406,7 +406,7 @@ void Value::undefine_method(Env *env, const char *name) {
     m_klass->undefine_method(env, name);
 }
 
-Value *Value::send(Env *env, const char *sym, size_t argc, Value **args, Block *block) {
+ValuePtr Value::send(Env *env, const char *sym, size_t argc, ValuePtr *args, Block *block) {
     if (singleton_class()) {
         ModuleValue *matching_class_or_module;
         Method *method = singleton_class()->find_method(sym, &matching_class_or_module);
@@ -420,12 +420,12 @@ Value *Value::send(Env *env, const char *sym, size_t argc, Value **args, Block *
     return m_klass->call_method(env, m_klass, sym, this, argc, args, block);
 }
 
-Value *Value::send(Env *env, size_t argc, Value **args, Block *block) {
+ValuePtr Value::send(Env *env, size_t argc, ValuePtr *args, Block *block) {
     const char *name = args[0]->identifier_str(env, Value::Conversion::Strict);
     return send(env->caller(), name, argc - 1, args + 1, block);
 }
 
-Value *Value::dup(Env *env) {
+ValuePtr Value::dup(Env *env) {
     switch (m_type) {
     case Value::Type::Array:
         return new ArrayValue { *as_array() };
@@ -448,14 +448,14 @@ Value *Value::dup(Env *env) {
     }
 }
 
-bool Value::is_a(Env *env, Value *val) {
+bool Value::is_a(Env *env, ValuePtr val) {
     if (!val->is_module()) return false;
     ModuleValue *module = val->as_module();
     if (this == module) {
         return true;
     } else {
         ArrayValue *ancestors = m_klass->ancestors(env);
-        for (Value *m : *ancestors) {
+        for (ValuePtr m : *ancestors) {
             if (module == m->as_module()) {
                 return true;
             }
@@ -475,13 +475,13 @@ bool Value::respond_to(Env *env, const char *name) {
     }
 }
 
-bool Value::respond_to(Env *env, Value *name_val) {
+bool Value::respond_to(Env *env, ValuePtr name_val) {
     const char *name = name_val->identifier_str(env, Value::Conversion::NullAllowed);
     return !!(name && respond_to(env, name));
 }
 
 const char *Value::defined(Env *env, const char *name, bool strict) {
-    Value *obj = nullptr;
+    ValuePtr obj = nullptr;
     if (is_constant_name(name)) {
         if (strict) {
             if (is_module()) {
@@ -503,7 +503,7 @@ const char *Value::defined(Env *env, const char *name, bool strict) {
     return nullptr;
 }
 
-Value *Value::defined_obj(Env *env, const char *name, bool strict) {
+ValuePtr Value::defined_obj(Env *env, const char *name, bool strict) {
     const char *result = defined(env, name, strict);
     if (result) {
         return new StringValue { env, result };
@@ -520,7 +520,7 @@ ProcValue *Value::to_proc(Env *env) {
     }
 }
 
-Value *Value::instance_eval(Env *env, Value *string, Block *block) {
+ValuePtr Value::instance_eval(Env *env, ValuePtr string, Block *block) {
     if (string || !block) {
         env->raise("ArgumentError", "Natalie only supports instance_eval with a block");
     }

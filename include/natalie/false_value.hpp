@@ -16,7 +16,7 @@ struct FalseValue : Value {
         if (env->false_obj()) NAT_UNREACHABLE();
     }
 
-    Value *to_s(Env *);
+    ValuePtr to_s(Env *);
 };
 
 }

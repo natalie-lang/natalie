@@ -29,7 +29,7 @@ struct RegexpValue : Value {
         initialize(env, pattern, options);
     }
 
-    static Value *compile(Env *env, Value *pattern, Value *flags) {
+    static ValuePtr compile(Env *env, ValuePtr pattern, ValuePtr flags) {
         pattern->assert_type(env, Value::Type::String, "String");
         int options = 0;
         if (flags) {
@@ -79,22 +79,22 @@ struct RegexpValue : Value {
         return onig_search(m_regex, unsigned_str, char_end, char_start, char_range, region, options);
     }
 
-    bool eq(Env *env, Value *other) {
+    bool eq(Env *env, ValuePtr other) {
         return *this == *other;
     }
 
-    bool eqeqeq(Env *env, Value *other) {
+    bool eqeqeq(Env *env, ValuePtr other) {
         if (!other->is_string() && !other->is_symbol()) {
             return false;
         }
         return match(env, other)->is_truthy();
     }
 
-    Value *initialize(Env *, Value *);
-    Value *inspect(Env *env);
-    Value *eqtilde(Env *env, Value *);
-    Value *match(Env *env, Value *, size_t = 0);
-    Value *source(Env *env);
+    ValuePtr initialize(Env *, ValuePtr );
+    ValuePtr inspect(Env *env);
+    ValuePtr eqtilde(Env *env, ValuePtr );
+    ValuePtr match(Env *env, ValuePtr , size_t = 0);
+    ValuePtr source(Env *env);
 
 private:
     regex_t *m_regex { nullptr };

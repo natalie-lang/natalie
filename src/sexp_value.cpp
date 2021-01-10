@@ -4,7 +4,7 @@
 
 namespace Natalie {
 
-SexpValue::SexpValue(Env *env, Node *node, std::initializer_list<Value *> list)
+SexpValue::SexpValue(Env *env, Node *node, std::initializer_list<ValuePtr > list)
     : ArrayValue { env, list } {
     m_klass = env->Object()->const_fetch("Parser")->const_fetch("Sexp")->as_class();
     if (node->file())

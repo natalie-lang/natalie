@@ -9,16 +9,16 @@ Env Env::new_detatched_env(Env *outer) {
 }
 
 void Env::build_vars(size_t size) {
-    m_vars = new Vector<Value *> { size, static_cast<Value *>(nil_obj()) };
+    m_vars = new Vector<ValuePtr > { size, static_cast<ValuePtr >(nil_obj()) };
 }
 
-Value *Env::global_get(const char *name) {
+ValuePtr Env::global_get(const char *name) {
     Env *env = this;
     assert(strlen(name) > 0);
     if (name[0] != '$') {
         env->raise("NameError", "`%s' is not allowed as a global variable name", name);
     }
-    Value *val = static_cast<Value *>(hashmap_get(env->global_env()->globals(), name));
+    ValuePtr val = static_cast<ValuePtr >(hashmap_get(env->global_env()->globals(), name));
     if (val) {
         return val;
     } else {
@@ -26,7 +26,7 @@ Value *Env::global_get(const char *name) {
     }
 }
 
-Value *Env::global_set(const char *name, Value *val) {
+ValuePtr Env::global_set(const char *name, ValuePtr val) {
     Env *env = this;
     assert(strlen(name) > 0);
     if (name[0] != '$') {
@@ -98,7 +98,7 @@ void Env::raise_exception(ExceptionValue *exception) {
     throw exception;
 }
 
-void Env::raise_local_jump_error(Value *exit_value, const char *message) {
+void Env::raise_local_jump_error(ValuePtr exit_value, const char *message) {
     Env *env = this;
     ExceptionValue *exception = new ExceptionValue { this, env->Object()->const_find(this, "LocalJumpError")->as_class(), message };
     exception->ivar_set(this, "@exit_value", exit_value);
@@ -106,7 +106,7 @@ void Env::raise_local_jump_error(Value *exit_value, const char *message) {
 }
 
 void Env::raise_errno() {
-    Value *exception_args[] = { new IntegerValue { this, errno } };
+    ValuePtr exception_args[] = { new IntegerValue { this, errno } };
     ExceptionValue *error = Object()->const_find(this, "SystemCallError")->send(this, "exception", 1, exception_args, nullptr)->as_exception();
     raise_exception(error);
 }
@@ -135,7 +135,7 @@ void Env::assert_block_given(Block *block) {
     }
 }
 
-Value *Env::last_match() {
+ValuePtr Env::last_match() {
     if (m_match) {
         return m_match;
     } else {
@@ -143,12 +143,12 @@ Value *Env::last_match() {
     }
 }
 
-Value *Env::var_get(const char *key, size_t index) {
+ValuePtr Env::var_get(const char *key, size_t index) {
     if (index >= m_vars->size()) {
         printf("Trying to get variable `%s' at index %zu which is not set.\n", key, index);
         abort();
     }
-    Value *val = (*m_vars)[index];
+    ValuePtr val = (*m_vars)[index];
     if (val) {
         return val;
     } else {
@@ -157,13 +157,13 @@ Value *Env::var_get(const char *key, size_t index) {
     }
 }
 
-Value *Env::var_set(const char *name, size_t index, bool allocate, Value *val) {
+ValuePtr Env::var_set(const char *name, size_t index, bool allocate, ValuePtr val) {
     size_t needed = index + 1;
     size_t current_size = m_vars ? m_vars->size() : 0;
     if (needed > current_size) {
         if (allocate) {
             if (!m_vars) {
-                m_vars = new Vector<Value *> { needed, nil_obj() };
+                m_vars = new Vector<ValuePtr > { needed, nil_obj() };
             } else {
                 m_vars->set_size(needed, nil_obj());
             }

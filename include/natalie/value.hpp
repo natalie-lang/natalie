@@ -90,7 +90,7 @@ struct Value : public gc {
 
     virtual ~Value() { }
 
-    static Value *_new(Env *, Value *, size_t, Value **, Block *);
+    static ValuePtr _new(Env *, ValuePtr , size_t, ValuePtr *, Block *);
 
     Value(const Value &);
 
@@ -106,7 +106,7 @@ struct Value : public gc {
 
     Env env() { return m_env; }
 
-    Value *initialize(Env *, size_t, Value **, Block *);
+    ValuePtr initialize(Env *, size_t, ValuePtr *, Block *);
 
     bool is_nil() const { return m_type == Type::Nil; }
     bool is_true() const { return m_type == Type::True; }
@@ -169,25 +169,25 @@ struct Value : public gc {
 
     void set_singleton_class(ClassValue *c) { m_singleton_class = c; }
 
-    virtual Value *const_get(const char *);
-    virtual Value *const_fetch(const char *);
-    virtual Value *const_find(Env *, const char *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::Raise);
-    virtual Value *const_set(Env *, const char *, Value *);
+    virtual ValuePtr const_get(const char *);
+    virtual ValuePtr const_fetch(const char *);
+    virtual ValuePtr const_find(Env *, const char *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::Raise);
+    virtual ValuePtr const_set(Env *, const char *, ValuePtr );
 
-    Value *ivar_get(Env *, const char *);
-    Value *ivar_set(Env *, const char *, Value *);
+    ValuePtr ivar_get(Env *, const char *);
+    ValuePtr ivar_set(Env *, const char *, ValuePtr );
 
-    Value *instance_variables(Env *);
+    ValuePtr instance_variables(Env *);
 
-    Value *cvar_get(Env *, const char *);
-    virtual Value *cvar_get_or_null(Env *, const char *);
-    virtual Value *cvar_set(Env *, const char *, Value *);
+    ValuePtr cvar_get(Env *, const char *);
+    virtual ValuePtr cvar_get_or_null(Env *, const char *);
+    virtual ValuePtr cvar_set(Env *, const char *, ValuePtr );
 
     virtual void define_method(Env *, const char *, MethodFnPtr);
     virtual void define_method_with_block(Env *, const char *, Block *);
     virtual void undefine_method(Env *, const char *);
 
-    void define_singleton_method(Env *, const char *, Value *(*)(Env *, Value *, size_t, Value **, Block *block));
+    void define_singleton_method(Env *, const char *, ValuePtr (*)(Env *, ValuePtr , size_t, ValuePtr *, Block *block));
     void define_singleton_method_with_block(Env *, const char *, Block *);
     void undefine_singleton_method(Env *, const char *);
 
@@ -201,17 +201,17 @@ struct Value : public gc {
         return GC_STRDUP(buf);
     }
 
-    Value *send(Env *, const char *, size_t = 0, Value ** = nullptr, Block * = nullptr);
-    Value *send(Env *, size_t, Value **, Block *);
+    ValuePtr send(Env *, const char *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
+    ValuePtr send(Env *, size_t, ValuePtr *, Block *);
 
-    Value *dup(Env *);
+    ValuePtr dup(Env *);
 
-    bool is_a(Env *, Value *);
+    bool is_a(Env *, ValuePtr );
     bool respond_to(Env *, const char *);
-    bool respond_to(Env *, Value *);
+    bool respond_to(Env *, ValuePtr );
 
     const char *defined(Env *, const char *, bool);
-    Value *defined_obj(Env *, const char *, bool = false);
+    ValuePtr defined_obj(Env *, const char *, bool = false);
 
     virtual ProcValue *to_proc(Env *);
 
@@ -225,15 +225,15 @@ struct Value : public gc {
     void remove_break_flag() { m_flags = m_flags & ~Flag::Break; }
     bool has_break_flag() { return (m_flags & Flag::Break) == Flag::Break; }
 
-    bool eq(Env *, Value *other) {
+    bool eq(Env *, ValuePtr other) {
         return this == other;
     }
 
-    bool neq(Env *env, Value *other) {
+    bool neq(Env *env, ValuePtr other) {
         return send(env, "==", 1, &other)->is_falsey();
     }
 
-    Value *instance_eval(Env *, Value *, Block *);
+    ValuePtr instance_eval(Env *, ValuePtr , Block *);
 
     void assert_type(Env *, Value::Type, const char *);
     void assert_not_frozen(Env *);

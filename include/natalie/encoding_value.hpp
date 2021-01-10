@@ -30,15 +30,15 @@ struct EncodingValue : Value {
     Encoding num() { return m_num; }
 
     const StringValue *name() { return m_names[0]; }
-    Value *name(Env *);
+    ValuePtr name(Env *);
 
     ArrayValue *names(Env *);
 
-    Value *inspect(Env *);
+    ValuePtr inspect(Env *);
 
     static ArrayValue *list(Env *env) {
         ArrayValue *ary = new ArrayValue { env };
-        Value *Encoding = env->Object()->const_fetch("Encoding");
+        ValuePtr Encoding = env->Object()->const_fetch("Encoding");
         ary->push(Encoding->const_fetch("ASCII_8BIT"));
         ary->push(Encoding->const_fetch("UTF_8"));
         return ary;

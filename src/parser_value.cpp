@@ -9,7 +9,7 @@ namespace Natalie {
 
 using std::string;
 
-Value *ParserValue::parse(Env *env, Value *code, Value *source_path) {
+ValuePtr ParserValue::parse(Env *env, ValuePtr code, ValuePtr source_path) {
     code->assert_type(env, Value::Type::String, "String");
     if (source_path)
         source_path->assert_type(env, Value::Type::String, "String");
@@ -20,7 +20,7 @@ Value *ParserValue::parse(Env *env, Value *code, Value *source_path) {
     return parser.tree(env)->to_ruby(env);
 }
 
-Value *ParserValue::tokens(Env *env, Value *code, Value *with_line_and_column_numbers) {
+ValuePtr ParserValue::tokens(Env *env, ValuePtr code, ValuePtr with_line_and_column_numbers) {
     code->assert_type(env, Value::Type::String, "String");
     auto lexer = Lexer { code->as_string()->c_str(), "(string)" };
     auto array = new ArrayValue { env };

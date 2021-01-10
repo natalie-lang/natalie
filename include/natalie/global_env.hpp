@@ -55,8 +55,8 @@ struct GlobalEnv : public gc {
     void reset_current_fiber() { m_current_fiber = m_main_fiber; }
 
     size_t fiber_argc() { return m_fiber_args.argc; }
-    Value **fiber_args() { return m_fiber_args.args; }
-    void set_fiber_args(size_t argc, Value **args) {
+    ValuePtr *fiber_args() { return m_fiber_args.args; }
+    void set_fiber_args(size_t argc, ValuePtr *args) {
         m_fiber_args.argc = argc;
         m_fiber_args.args = args;
     }
@@ -75,7 +75,7 @@ private:
     FiberValue *m_current_fiber { nullptr };
     struct {
         size_t argc { 0 };
-        Value **args { nullptr };
+        ValuePtr *args { nullptr };
     } m_fiber_args;
 };
 }

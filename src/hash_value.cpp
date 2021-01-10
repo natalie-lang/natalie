@@ -20,26 +20,26 @@ int HashValue::compare(const void *a, const void *b) {
     return a_p->key->send(env, "eql?", 1, &b_p->key)->is_truthy() ? 0 : 1; // return 0 for exact match
 }
 
-Value *HashValue::get(Env *env, Value *key) {
+ValuePtr HashValue::get(Env *env, ValuePtr key) {
     Key key_container;
     key_container.key = key;
     key_container.env = *env;
     key_container.hash = key->send(env, "hash")->as_integer()->to_nat_int_t();
     Val *container = static_cast<Val *>(hashmap_get(&m_hashmap, &key_container));
-    Value *val = container ? container->val : nullptr;
+    ValuePtr val = container ? container->val : nullptr;
     return val;
 }
 
-Value *HashValue::get_default(Env *env, Value *key) {
+ValuePtr HashValue::get_default(Env *env, ValuePtr key) {
     if (m_default_block) {
-        Value *args[2] = { this, key };
+        ValuePtr args[2] = { this, key };
         return NAT_RUN_BLOCK_WITHOUT_BREAK(env, m_default_block, 2, args, nullptr);
     } else {
         return m_default_value;
     }
 }
 
-void HashValue::put(Env *env, Value *key, Value *val) {
+void HashValue::put(Env *env, ValuePtr key, ValuePtr val) {
     this->assert_not_frozen(env);
     Key key_container;
     key_container.key = key;
@@ -63,7 +63,7 @@ void HashValue::put(Env *env, Value *key, Value *val) {
     }
 }
 
-Value *HashValue::remove(Env *env, Value *key) {
+ValuePtr HashValue::remove(Env *env, ValuePtr key) {
     Key key_container;
     key_container.key = key;
     key_container.env = *env;
@@ -71,7 +71,7 @@ Value *HashValue::remove(Env *env, Value *key) {
     Val *container = static_cast<Val *>(hashmap_remove(&m_hashmap, &key_container));
     if (container) {
         key_list_remove_node(container->key);
-        Value *val = container->val;
+        ValuePtr val = container->val;
         GC_FREE(container);
         return val;
     } else {
@@ -79,18 +79,18 @@ Value *HashValue::remove(Env *env, Value *key) {
     }
 }
 
-Value *HashValue::default_proc(Env *env) {
+ValuePtr HashValue::default_proc(Env *env) {
     return ProcValue::from_block_maybe(env, m_default_block);
 }
 
-Value *HashValue::default_value(Env *env) {
+ValuePtr HashValue::default_value(Env *env) {
     if (m_default_value)
         return m_default_value;
 
     return env->nil_obj();
 }
 
-HashValue::Key *HashValue::key_list_append(Env *env, Value *key, Value *val) {
+HashValue::Key *HashValue::key_list_append(Env *env, ValuePtr key, ValuePtr val) {
     if (m_key_list) {
         Key *first = m_key_list;
         Key *last = m_key_list->prev;
@@ -143,7 +143,7 @@ void HashValue::key_list_remove_node(Key *node) {
     next->prev = prev;
 }
 
-Value *HashValue::initialize(Env *env, Value *default_value, Block *block) {
+ValuePtr HashValue::initialize(Env *env, ValuePtr default_value, Block *block) {
     if (block) {
         if (default_value) {
             env->raise("ArgumentError", "wrong number of arguments (given 1, expected 0)");
@@ -156,11 +156,11 @@ Value *HashValue::initialize(Env *env, Value *default_value, Block *block) {
 }
 
 // Hash[]
-Value *HashValue::square_new(Env *env, size_t argc, Value **args) {
+ValuePtr HashValue::square_new(Env *env, size_t argc, ValuePtr *args) {
     if (argc == 0) {
         return new HashValue { env };
     } else if (argc == 1) {
-        Value *value = args[0];
+        ValuePtr value = args[0];
         if (value->type() == Value::Type::Hash) {
             return value;
         } else if (value->type() == Value::Type::Array) {
@@ -173,8 +173,8 @@ Value *HashValue::square_new(Env *env, size_t argc, Value **args) {
                 if (size < 1 || size > 2) {
                     env->raise("ArgumentError", "invalid number of elements (%d for 1..2)", size);
                 }
-                Value *key = (*pair->as_array())[0];
-                Value *value = size == 1 ? env->nil_obj() : (*pair->as_array())[1];
+                ValuePtr key = (*pair->as_array())[0];
+                ValuePtr value = size == 1 ? env->nil_obj() : (*pair->as_array())[1];
                 hash->put(env, key, value);
             }
             return hash;
@@ -185,14 +185,14 @@ Value *HashValue::square_new(Env *env, size_t argc, Value **args) {
     }
     HashValue *hash = new HashValue { env };
     for (size_t i = 0; i < argc; i += 2) {
-        Value *key = args[i];
-        Value *value = args[i + 1];
+        ValuePtr key = args[i];
+        ValuePtr value = args[i + 1];
         hash->put(env, key, value);
     }
     return hash;
 }
 
-Value *HashValue::inspect(Env *env) {
+ValuePtr HashValue::inspect(Env *env) {
     StringValue *out = new StringValue { env, "{" };
     size_t last_index = size() - 1;
     size_t index = 0;
@@ -211,8 +211,8 @@ Value *HashValue::inspect(Env *env) {
     return out;
 }
 
-Value *HashValue::ref(Env *env, Value *key) {
-    Value *val = get(env, key);
+ValuePtr HashValue::ref(Env *env, ValuePtr key) {
+    ValuePtr val = get(env, key);
     if (val) {
         return val;
     } else {
@@ -220,14 +220,14 @@ Value *HashValue::ref(Env *env, Value *key) {
     }
 }
 
-Value *HashValue::refeq(Env *env, Value *key, Value *val) {
+ValuePtr HashValue::refeq(Env *env, ValuePtr key, ValuePtr val) {
     put(env, key, val);
     return val;
 }
 
-Value *HashValue::delete_key(Env *env, Value *key) {
+ValuePtr HashValue::delete_key(Env *env, ValuePtr key) {
     this->assert_not_frozen(env);
-    Value *val = remove(env, key);
+    ValuePtr val = remove(env, key);
     if (val) {
         return val;
     } else {
@@ -235,11 +235,11 @@ Value *HashValue::delete_key(Env *env, Value *key) {
     }
 }
 
-Value *HashValue::size(Env *env) {
+ValuePtr HashValue::size(Env *env) {
     return IntegerValue::from_size_t(env, size());
 }
 
-Value *HashValue::eq(Env *env, Value *other_value) {
+ValuePtr HashValue::eq(Env *env, ValuePtr other_value) {
     if (!other_value->is_hash()) {
         return env->false_obj();
     }
@@ -247,7 +247,7 @@ Value *HashValue::eq(Env *env, Value *other_value) {
     if (size() != other->size()) {
         return env->false_obj();
     }
-    Value *other_val;
+    ValuePtr other_val;
     for (HashValue::Key &node : *this) {
         other_val = other->get(env, node.key);
         if (!other_val) {
@@ -261,7 +261,7 @@ Value *HashValue::eq(Env *env, Value *other_value) {
 }
 
 #define NAT_RUN_BLOCK_AND_POSSIBLY_BREAK_WHILE_ITERATING_HASH(env, the_block, argc, args, block, hash) ({ \
-    Value *_result = the_block->_run(env, argc, args, block);                                             \
+    ValuePtr _result = the_block->_run(env, argc, args, block);                                             \
     if (_result->has_break_flag()) {                                                                      \
         _result->remove_break_flag();                                                                     \
         hash->set_is_iterating(false);                                                                    \
@@ -270,9 +270,9 @@ Value *HashValue::eq(Env *env, Value *other_value) {
     _result;                                                                                              \
 })
 
-Value *HashValue::each(Env *env, Block *block) {
+ValuePtr HashValue::each(Env *env, Block *block) {
     env->assert_block_given(block); // TODO: return Enumerator when no block given
-    Value *block_args[2];
+    ValuePtr block_args[2];
     for (HashValue::Key &node : *this) {
         block_args[0] = node.key;
         block_args[1] = node.val;
@@ -281,7 +281,7 @@ Value *HashValue::each(Env *env, Block *block) {
     return this;
 }
 
-Value *HashValue::keys(Env *env) {
+ValuePtr HashValue::keys(Env *env) {
     ArrayValue *array = new ArrayValue { env };
     for (HashValue::Key &node : *this) {
         array->push(node.key);
@@ -289,7 +289,7 @@ Value *HashValue::keys(Env *env) {
     return array;
 }
 
-Value *HashValue::values(Env *env) {
+ValuePtr HashValue::values(Env *env) {
     ArrayValue *array = new ArrayValue { env };
     for (HashValue::Key &node : *this) {
         array->push(node.val);
@@ -297,7 +297,7 @@ Value *HashValue::values(Env *env) {
     return array;
 }
 
-Value *HashValue::sort(Env *env) {
+ValuePtr HashValue::sort(Env *env) {
     ArrayValue *ary = new ArrayValue { env };
     for (HashValue::Key &node : *this) {
         ArrayValue *pair = new ArrayValue { env };
@@ -308,8 +308,8 @@ Value *HashValue::sort(Env *env) {
     return ary->sort(env);
 }
 
-Value *HashValue::has_key(Env *env, Value *key) {
-    Value *val = get(env, key);
+ValuePtr HashValue::has_key(Env *env, ValuePtr key) {
+    ValuePtr val = get(env, key);
     if (val) {
         return env->true_obj();
     } else {
@@ -317,11 +317,11 @@ Value *HashValue::has_key(Env *env, Value *key) {
     }
 }
 
-Value *HashValue::merge(Env *env, size_t argc, Value **args) {
+ValuePtr HashValue::merge(Env *env, size_t argc, ValuePtr *args) {
     return dup(env)->as_hash()->merge_bang(env, argc, args);
 }
 
-Value *HashValue::merge_bang(Env *env, size_t argc, Value **args) {
+ValuePtr HashValue::merge_bang(Env *env, size_t argc, ValuePtr *args) {
     for (size_t i = 0; i < argc; i++) {
         auto h = args[i];
         h->assert_type(env, Value::Type::Hash, "Hash");

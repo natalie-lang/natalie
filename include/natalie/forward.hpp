@@ -43,7 +43,8 @@ struct VoidPValue;
 
 void copy_hashmap(struct hashmap &, const struct hashmap &);
 
-using MethodFnPtr = Value *(*)(Env *, Value *, size_t, Value **, Block *);
+using ValuePtr = Value *;
+using MethodFnPtr = ValuePtr (*)(Env *, ValuePtr, size_t, ValuePtr *, Block *);
 
 template <typename T>
 struct Vector;

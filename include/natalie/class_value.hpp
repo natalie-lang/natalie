@@ -27,9 +27,9 @@ struct ClassValue : ModuleValue {
 
     Type object_type() { return m_object_type; }
 
-    Value *initialize(Env *, Value *, Block *);
+    ValuePtr initialize(Env *, ValuePtr , Block *);
 
-    static Value *new_method(Env *env, Value *superclass, Block *block) {
+    static ValuePtr new_method(Env *env, ValuePtr superclass, Block *block) {
         if (superclass) {
             if (!superclass->is_class()) {
                 env->raise("TypeError", "superclass must be a Class (%s given)", superclass->klass()->class_name());
@@ -37,7 +37,7 @@ struct ClassValue : ModuleValue {
         } else {
             superclass = env->Object();
         }
-        Value *klass = superclass->as_class()->subclass(env);
+        ValuePtr klass = superclass->as_class()->subclass(env);
         if (block) {
             block->set_self(klass);
             NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 0, nullptr, nullptr);

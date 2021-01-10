@@ -25,7 +25,7 @@ struct Method : public gc {
 
     bool is_undefined() { return m_undefined; }
 
-    Value *run(Env *env, Value *self, size_t argc = 0, Value **args = nullptr, Block *block = nullptr) {
+    ValuePtr run(Env *env, ValuePtr self, size_t argc = 0, ValuePtr *args = nullptr, Block *block = nullptr) {
         return m_fn(env, self, argc, args, block);
     }
 

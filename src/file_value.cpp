@@ -7,7 +7,7 @@
 
 namespace Natalie {
 
-Value *FileValue::initialize(Env *env, Value *filename, Value *flags_obj, Block *block) {
+ValuePtr FileValue::initialize(Env *env, ValuePtr filename, ValuePtr flags_obj, Block *block) {
     filename->assert_type(env, Value::Type::String, "String");
     int flags = O_RDONLY;
     if (flags_obj) {
@@ -48,7 +48,7 @@ Value *FileValue::initialize(Env *env, Value *filename, Value *flags_obj, Block 
     }
 }
 
-Value *FileValue::expand_path(Env *env, Value *path, Value *root) {
+ValuePtr FileValue::expand_path(Env *env, ValuePtr path, ValuePtr root) {
     path->assert_type(env, Value::Type::String, "String");
     StringValue *merged;
     if (path->as_string()->length() > 0 && path->as_string()->c_str()[0] == '/') {
@@ -81,19 +81,19 @@ Value *FileValue::expand_path(Env *env, Value *path, Value *root) {
     return merged;
 }
 
-Value *FileValue::unlink(Env *env, Value *path) {
+ValuePtr FileValue::unlink(Env *env, ValuePtr path) {
     int result = ::unlink(path->as_string()->c_str());
     if (result == 0) {
         return new IntegerValue { env, 1 };
     } else {
-        Value *args[] = { new IntegerValue { env, errno } };
+        ValuePtr args[] = { new IntegerValue { env, errno } };
         auto exception = env->Object()->const_fetch("SystemCallError")->send(env, "exception", 1, args)->as_exception();
         env->raise_exception(exception);
     }
 }
 
 void FileValue::build_constants(Env *env, ClassValue *klass) {
-    Value *Constants = new ModuleValue { env, "Constants" };
+    ValuePtr Constants = new ModuleValue { env, "Constants" };
     klass->const_set(env, "Constants", Constants);
     klass->const_set(env, "APPEND", new IntegerValue { env, O_APPEND });
     Constants->const_set(env, "APPEND", new IntegerValue { env, O_APPEND });

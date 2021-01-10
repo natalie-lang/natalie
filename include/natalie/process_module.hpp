@@ -11,7 +11,7 @@ namespace Natalie {
 
 struct ProcessModule : Value {
 
-    static Value *pid(Env *env) {
+    static ValuePtr pid(Env *env) {
         pid_t pid = getpid();
         return new IntegerValue { env, pid };
     }

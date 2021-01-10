@@ -12,15 +12,15 @@
 namespace Natalie {
 
 struct KernelModule : Value {
-    Value *object_id(Env *env) {
+    ValuePtr object_id(Env *env) {
         return new IntegerValue { env, Value::object_id() };
     }
 
-    bool equal(Value *other) {
+    bool equal(ValuePtr other) {
         return this == other;
     }
 
-    Value *klass_obj(Env *env) {
+    ValuePtr klass_obj(Env *env) {
         if (klass()) {
             return klass();
         } else {
@@ -28,39 +28,39 @@ struct KernelModule : Value {
         }
     }
 
-    Value *singleton_class_obj(Env *env) {
+    ValuePtr singleton_class_obj(Env *env) {
         return singleton_class(env);
     }
 
-    Value *freeze_obj(Env *env) {
+    ValuePtr freeze_obj(Env *env) {
         freeze();
         return this;
     }
 
-    Value *Array(Env *env, Value *value);
-    Value *at_exit(Env *env, Block *block);
-    Value *cur_dir(Env *env);
-    Value *define_singleton_method(Env *env, Value *name, Block *block);
-    Value *exit(Env *env, Value *status);
-    Value *get_usage(Env *env);
-    Value *hash(Env *env);
-    Value *inspect(Env *env);
-    Value *main_obj_inspect(Env *);
-    Value *instance_variable_get(Env *env, Value *name_val);
-    Value *instance_variable_set(Env *env, Value *name_val, Value *value);
-    Value *lambda(Env *env, Block *block);
-    Value *loop(Env *env, Block *block);
-    Value *methods(Env *env);
-    Value *p(Env *env, size_t argc, Value **args);
-    Value *print(Env *env, size_t argc, Value **args);
-    Value *proc(Env *env, Block *block);
-    Value *puts(Env *env, size_t argc, Value **args);
-    Value *raise(Env *env, Value *klass, Value *message);
-    Value *sleep(Env *env, Value *length);
-    Value *spawn(Env *, size_t, Value **);
-    Value *tap(Env *env, Block *block);
-    Value *this_method(Env *env);
-    bool is_a(Env *env, Value *module);
+    ValuePtr Array(Env *env, ValuePtr value);
+    ValuePtr at_exit(Env *env, Block *block);
+    ValuePtr cur_dir(Env *env);
+    ValuePtr define_singleton_method(Env *env, ValuePtr name, Block *block);
+    ValuePtr exit(Env *env, ValuePtr status);
+    ValuePtr get_usage(Env *env);
+    ValuePtr hash(Env *env);
+    ValuePtr inspect(Env *env);
+    ValuePtr main_obj_inspect(Env *);
+    ValuePtr instance_variable_get(Env *env, ValuePtr name_val);
+    ValuePtr instance_variable_set(Env *env, ValuePtr name_val, ValuePtr value);
+    ValuePtr lambda(Env *env, Block *block);
+    ValuePtr loop(Env *env, Block *block);
+    ValuePtr methods(Env *env);
+    ValuePtr p(Env *env, size_t argc, ValuePtr *args);
+    ValuePtr print(Env *env, size_t argc, ValuePtr *args);
+    ValuePtr proc(Env *env, Block *block);
+    ValuePtr puts(Env *env, size_t argc, ValuePtr *args);
+    ValuePtr raise(Env *env, ValuePtr klass, ValuePtr message);
+    ValuePtr sleep(Env *env, ValuePtr length);
+    ValuePtr spawn(Env *, size_t, ValuePtr *);
+    ValuePtr tap(Env *env, Block *block);
+    ValuePtr this_method(Env *env);
+    bool is_a(Env *env, ValuePtr module);
     bool block_given(Env *env, Block *block) { return !!block; }
 };
 

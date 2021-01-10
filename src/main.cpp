@@ -77,7 +77,7 @@ extern "C" Env *build_top_env() {
     Float->include_once(env, Comparable);
     FloatValue::build_constants(env, Float);
 
-    Value *Math = new ModuleValue { env, "Math" };
+    ValuePtr Math = new ModuleValue { env, "Math" };
     Object->const_set(env, "Math", Math);
     Math->const_set(env, "PI", new FloatValue { env, M_PI });
 
@@ -122,34 +122,34 @@ extern "C" Env *build_top_env() {
     ClassValue *Encoding = env->Object()->subclass(env, "Encoding");
     Object->const_set(env, "Encoding", Encoding);
 
-    Value *Process = new ModuleValue { env, "Process" };
+    ValuePtr Process = new ModuleValue { env, "Process" };
     Object->const_set(env, "Process", Process);
 
     EncodingValue *EncodingAscii8Bit = new EncodingValue { env, Encoding::ASCII_8BIT, { "ASCII-8BIT", "BINARY" } };
     Encoding->const_set(env, "ASCII_8BIT", EncodingAscii8Bit);
 
-    Value *EncodingUTF8 = new EncodingValue { env, Encoding::UTF_8, { "UTF-8" } };
+    ValuePtr EncodingUTF8 = new EncodingValue { env, Encoding::UTF_8, { "UTF-8" } };
     Encoding->const_set(env, "UTF_8", EncodingUTF8);
 
     env->global_set("$NAT_at_exit_handlers", new ArrayValue { env });
 
-    Value *self = new Value { env };
+    ValuePtr self = new Value { env };
     self->add_main_object_flag();
     env->global_set("$NAT_main_object", self);
 
-    Value *_stdin = new IoValue { env, STDIN_FILENO };
+    ValuePtr _stdin = new IoValue { env, STDIN_FILENO };
     env->global_set("$stdin", _stdin);
     Object->const_set(env, "STDIN", _stdin);
 
-    Value *_stdout = new IoValue { env, STDOUT_FILENO };
+    ValuePtr _stdout = new IoValue { env, STDOUT_FILENO };
     env->global_set("$stdout", _stdout);
     Object->const_set(env, "STDOUT", _stdout);
 
-    Value *_stderr = new IoValue { env, STDERR_FILENO };
+    ValuePtr _stderr = new IoValue { env, STDERR_FILENO };
     env->global_set("$stderr", _stderr);
     Object->const_set(env, "STDERR", _stderr);
 
-    Value *ENV = new Value { env };
+    ValuePtr ENV = new Value { env };
     Object->const_set(env, "ENV", ENV);
 
     ClassValue *Parser = env->Object()->subclass(env, "Parser");
@@ -158,10 +158,10 @@ extern "C" Env *build_top_env() {
     ClassValue *Sexp = Array->subclass(env, "Sexp", Value::Type::Array);
     Parser->const_set(env, "Sexp", Sexp);
 
-    Value *RUBY_VERSION = new StringValue { env, "2.7.1" };
+    ValuePtr RUBY_VERSION = new StringValue { env, "2.7.1" };
     Object->const_set(env, "RUBY_VERSION", RUBY_VERSION);
 
-    Value *RUBY_ENGINE = new StringValue { env, "natalie" };
+    ValuePtr RUBY_ENGINE = new StringValue { env, "natalie" };
     Object->const_set(env, "RUBY_ENGINE", RUBY_ENGINE);
 
     StringValue *RUBY_PLATFORM = new StringValue { env, ruby_platform };
@@ -176,8 +176,8 @@ extern "C" Env *build_top_env() {
 
 /*NAT_TOP*/
 
-extern "C" Value *EVAL(Env *env) {
-    Value *self = env->global_get("$NAT_main_object");
+extern "C" ValuePtr EVAL(Env *env) {
+    ValuePtr self = env->global_get("$NAT_main_object");
     (void)self; // don't warn about unused var
     volatile bool run_exit_handlers = true;
     try {
@@ -201,7 +201,7 @@ int main(int argc, char *argv[]) {
     for (int i = 1; i < argc; i++) {
         ARGV->push(new StringValue { env, argv[i] });
     }
-    Value *result = EVAL(env);
+    ValuePtr result = EVAL(env);
     env->clear_global_env();
     if (result) {
         return 0;

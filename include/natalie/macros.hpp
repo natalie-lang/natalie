@@ -23,7 +23,7 @@
 })
 
 #define NAT_RUN_BLOCK_AND_PROPAGATE_BREAK(env, env_with_block, the_block, argc, args, block) ({ \
-    Value *_result = the_block->_run(env, argc, args, block);                                   \
+    ValuePtr _result = the_block->_run(env, argc, args, block);                                   \
     if (_result->has_break_flag()) {                                                            \
         if (env == env_with_block) {                                                            \
             _result->remove_break_flag();                                                       \
@@ -34,7 +34,7 @@
 })
 
 #define NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, the_block, argc, args, block) ({ \
-    Value *_result = the_block->_run(env, argc, args, block);                  \
+    ValuePtr _result = the_block->_run(env, argc, args, block);                  \
     if (_result->has_break_flag()) {                                           \
         _result->remove_break_flag();                                          \
         return _result;                                                        \
@@ -43,7 +43,7 @@
 })
 
 #define NAT_RUN_BLOCK_AND_POSSIBLY_BREAK_WITH_CLEANUP(env, the_block, argc, args, block, cleanup_code) ({ \
-    Value *_result = the_block->_run(env, argc, args, block);                                             \
+    ValuePtr _result = the_block->_run(env, argc, args, block);                                             \
     if (_result->has_break_flag()) {                                                                      \
         _result->remove_break_flag();                                                                     \
         cleanup_code;                                                                                     \
@@ -54,7 +54,7 @@
 })
 
 #define NAT_RUN_BLOCK_WITHOUT_BREAK(env, the_block, argc, args, block) ({ \
-    Natalie::Value *_result = the_block->_run(env, argc, args, block);    \
+    Natalie::ValuePtr _result = the_block->_run(env, argc, args, block);    \
     if (_result->has_break_flag()) {                                      \
         _result->remove_break_flag();                                     \
         env->raise_local_jump_error(_result, "break from proc-closure");  \

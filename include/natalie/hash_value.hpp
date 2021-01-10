@@ -16,8 +16,8 @@ struct HashValue : Value {
     struct Key {
         Key *prev { nullptr };
         Key *next { nullptr };
-        Value *key { nullptr };
-        Value *val { nullptr };
+        ValuePtr key { nullptr };
+        ValuePtr val { nullptr };
         nat_int_t hash { 0 };
         Env env {};
         bool removed { false };
@@ -25,7 +25,7 @@ struct HashValue : Value {
 
     struct Val {
         Key *key { nullptr };
-        Value *val { nullptr };
+        ValuePtr val { nullptr };
     };
 
     HashValue(Env *env)
@@ -45,25 +45,25 @@ struct HashValue : Value {
         }
     }
 
-    static Value *square_new(Env *, size_t argc, Value **args);
+    static ValuePtr square_new(Env *, size_t argc, ValuePtr *args);
 
     static nat_int_t hash(const void *);
     static int compare(const void *, const void *);
 
     size_t size() { return m_hashmap.num_entries; }
-    Value *size(Env *);
+    ValuePtr size(Env *);
 
     bool is_empty() { return m_hashmap.num_entries == 0; }
 
-    Value *get(Env *, Value *);
-    Value *get_default(Env *, Value *);
-    void put(Env *, Value *, Value *);
-    Value *remove(Env *, Value *);
-    Value *default_proc(Env *);
-    Value *default_value(Env *);
+    ValuePtr get(Env *, ValuePtr);
+    ValuePtr get_default(Env *, ValuePtr);
+    void put(Env *, ValuePtr, ValuePtr);
+    ValuePtr remove(Env *, ValuePtr);
+    ValuePtr default_proc(Env *);
+    ValuePtr default_value(Env *);
 
-    const Value *default_value() { return m_default_value; }
-    void set_default_value(Value *val) { m_default_value = val; }
+    ValuePtr default_value() { return m_default_value; }
+    void set_default_value(ValuePtr val) { m_default_value = val; }
 
     const Block *default_block() { return m_default_block; }
     void set_default_block(Block *block) { m_default_block = block; }
@@ -122,23 +122,23 @@ struct HashValue : Value {
         return iterator { nullptr, this };
     }
 
-    Value *delete_key(Env *, Value *);
-    Value *each(Env *, Block *);
-    Value *eq(Env *, Value *);
-    Value *has_key(Env *, Value *);
-    Value *initialize(Env *, Value *, Block *);
-    Value *inspect(Env *);
-    Value *keys(Env *);
-    Value *merge(Env *, size_t, Value **);
-    Value *merge_bang(Env *, size_t, Value **);
-    Value *ref(Env *, Value *);
-    Value *refeq(Env *, Value *, Value *);
-    Value *sort(Env *);
-    Value *values(Env *);
+    ValuePtr delete_key(Env *, ValuePtr);
+    ValuePtr each(Env *, Block *);
+    ValuePtr eq(Env *, ValuePtr);
+    ValuePtr has_key(Env *, ValuePtr);
+    ValuePtr initialize(Env *, ValuePtr, Block *);
+    ValuePtr inspect(Env *);
+    ValuePtr keys(Env *);
+    ValuePtr merge(Env *, size_t, ValuePtr *);
+    ValuePtr merge_bang(Env *, size_t, ValuePtr *);
+    ValuePtr ref(Env *, ValuePtr);
+    ValuePtr refeq(Env *, ValuePtr, ValuePtr);
+    ValuePtr sort(Env *);
+    ValuePtr values(Env *);
 
 private:
     void key_list_remove_node(Key *);
-    Key *key_list_append(Env *, Value *, Value *);
+    Key *key_list_append(Env *, ValuePtr, ValuePtr);
 
     void destroy_key_list() {
         if (!m_key_list) return;
@@ -154,7 +154,7 @@ private:
     Key *m_key_list { nullptr };
     hashmap m_hashmap {};
     bool m_is_iterating { false };
-    Value *m_default_value { nullptr };
+    ValuePtr m_default_value { nullptr };
     Block *m_default_block { nullptr };
 };
 }

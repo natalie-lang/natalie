@@ -72,7 +72,7 @@ struct Node : public gc {
     Node(Token *token)
         : m_token { token } { }
 
-    virtual Value *to_ruby(Env *env) {
+    virtual ValuePtr to_ruby(Env *env) {
         NAT_UNREACHABLE();
     }
 
@@ -114,7 +114,7 @@ struct AliasNode : Node {
 
     virtual Type type() override { return Type::Alias; }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
 private:
     SymbolNode *m_new_name { nullptr };
@@ -133,7 +133,7 @@ struct ArgNode : Node {
 
     virtual Type type() override { return Type::Arg; }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
     const char *name() { return m_name; }
 
@@ -163,7 +163,7 @@ struct ArrayNode : Node {
 
     virtual Type type() override { return Type::Array; }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
     void add_node(Node *node) {
         m_nodes.push(node);
@@ -184,7 +184,7 @@ struct BlockPassNode : Node {
 
     virtual Type type() override { return Type::BlockPass; }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
 protected:
     Node *m_node { nullptr };
@@ -195,7 +195,7 @@ struct BreakNode : NodeWithArgs {
         : NodeWithArgs { token }
         , m_arg { arg } { }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
     virtual Type type() override { return Type::Break; }
 
@@ -216,7 +216,7 @@ struct AssignmentNode : Node {
 
     virtual Type type() override { return Type::Assignment; }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
 protected:
     Node *m_identifier { nullptr };
@@ -235,7 +235,7 @@ struct BeginNode : Node {
 
     virtual Type type() override { return Type::Begin; }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
     void add_rescue_node(BeginRescueNode *node) { m_rescue_nodes.push(node); }
     bool no_rescue_nodes() { return m_rescue_nodes.size() == 0; }
@@ -259,7 +259,7 @@ struct BeginRescueNode : Node {
 
     virtual Type type() override { return Type::BeginRescue; }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
     void add_exception_node(Node *node) {
         m_exceptions.push(node);
@@ -294,8 +294,8 @@ struct BlockNode : Node {
 
     virtual Type type() override { return Type::Block; }
 
-    virtual Value *to_ruby(Env *) override;
-    Value *to_ruby_with_name(Env *, const char *);
+    virtual ValuePtr to_ruby(Env *) override;
+    ValuePtr to_ruby_with_name(Env *, const char *);
 
     Vector<Node *> *nodes() { return &m_nodes; }
     bool is_empty() { return m_nodes.is_empty(); }
@@ -333,7 +333,7 @@ struct CallNode : NodeWithArgs {
 
     virtual Type type() override { return Type::Call; }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
     virtual bool is_callable() override { return true; }
 
@@ -356,7 +356,7 @@ struct CaseNode : Node {
 
     virtual Type type() override { return Type::Case; }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
     void add_when_node(Node *node) {
         m_when_nodes.push(node);
@@ -383,7 +383,7 @@ struct CaseWhenNode : Node {
 
     virtual Type type() override { return Type::CaseWhen; }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
 protected:
     Node *m_condition { nullptr };
@@ -399,7 +399,7 @@ struct AttrAssignNode : CallNode {
 
     virtual Type type() override { return Type::AttrAssign; }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 };
 
 struct SafeCallNode : CallNode {
@@ -411,7 +411,7 @@ struct SafeCallNode : CallNode {
 
     virtual Type type() override { return Type::SafeCall; }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 };
 
 struct ConstantNode;
@@ -425,7 +425,7 @@ struct ClassNode : Node {
 
     virtual Type type() override { return Type::Class; }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
 protected:
     ConstantNode *m_name { nullptr };
@@ -444,7 +444,7 @@ struct Colon2Node : Node {
 
     virtual Type type() override { return Type::Colon2; }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
 protected:
     Node *m_left { nullptr };
@@ -460,7 +460,7 @@ struct Colon3Node : Node {
 
     virtual Type type() override { return Type::Colon3; }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
 protected:
     const char *m_name { nullptr };
@@ -472,13 +472,13 @@ struct ConstantNode : Node {
 
     virtual Type type() override { return Type::Constant; }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
     const char *name() { return m_token->literal(); }
 };
 
 struct LiteralNode : Node {
-    LiteralNode(Token *token, Value *value)
+    LiteralNode(Token *token, ValuePtr value)
         : Node { token }
         , m_value { value } {
         assert(m_value);
@@ -486,13 +486,13 @@ struct LiteralNode : Node {
 
     virtual Type type() override { return Type::Literal; }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
-    Value *value() { return m_value; }
+    ValuePtr value() { return m_value; }
     Value::Type value_type() { return m_value->type(); }
 
 protected:
-    Value *m_value { nullptr };
+    ValuePtr m_value { nullptr };
 };
 
 struct DefinedNode : Node {
@@ -504,7 +504,7 @@ struct DefinedNode : Node {
 
     virtual Type type() override { return Type::Defined; }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
 protected:
     Node *m_arg { nullptr };
@@ -526,7 +526,7 @@ struct DefNode : Node {
 
     virtual Type type() override { return Type::Def; }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
 protected:
     SexpValue *build_args_sexp(Env *);
@@ -542,7 +542,7 @@ struct EvaluateToStringNode : Node {
         : Node { token }
         , m_node { node } { }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
     virtual Type type() override { return Type::EvaluateToString; }
 
@@ -554,7 +554,7 @@ struct FalseNode : Node {
     FalseNode(Token *token)
         : Node { token } { }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
     virtual Type type() override { return Type::False; }
 };
@@ -565,7 +565,7 @@ struct HashNode : Node {
 
     virtual Type type() override { return Type::Array; }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
     void add_node(Node *node) {
         m_nodes.push(node);
@@ -582,7 +582,7 @@ struct IdentifierNode : Node {
 
     virtual Type type() override { return Type::Identifier; }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
     Token::Type token_type() { return m_token->type(); }
 
@@ -671,7 +671,7 @@ struct IfNode : Node {
 
     virtual Type type() override { return Type::If; }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
 protected:
     Node *m_condition { nullptr };
@@ -692,7 +692,7 @@ struct IterNode : Node {
 
     virtual Type type() override { return Type::Iter; }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
 protected:
     SexpValue *build_args_sexp(Env *);
@@ -718,7 +718,7 @@ struct InterpolatedRegexpNode : InterpolatedNode {
 
     virtual Type type() override { return Type::InterpolatedRegexp; }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 };
 
 struct InterpolatedShellNode : InterpolatedNode {
@@ -727,7 +727,7 @@ struct InterpolatedShellNode : InterpolatedNode {
 
     virtual Type type() override { return Type::InterpolatedShell; }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 };
 
 struct InterpolatedStringNode : InterpolatedNode {
@@ -736,7 +736,7 @@ struct InterpolatedStringNode : InterpolatedNode {
 
     virtual Type type() override { return Type::InterpolatedString; }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 };
 
 struct KeywordArgNode : ArgNode {
@@ -745,7 +745,7 @@ struct KeywordArgNode : ArgNode {
 
     virtual Type type() override { return Type::KeywordArg; }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 };
 
 struct LogicalAndNode : Node {
@@ -759,7 +759,7 @@ struct LogicalAndNode : Node {
 
     virtual Type type() override { return Type::LogicalAnd; }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
     Node *left() { return m_left; }
     Node *right() { return m_right; }
@@ -780,7 +780,7 @@ struct LogicalOrNode : Node {
 
     virtual Type type() override { return Type::LogicalOr; }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
     Node *left() { return m_left; }
     Node *right() { return m_right; }
@@ -801,7 +801,7 @@ struct MatchNode : Node {
 
     virtual Type type() override { return Type::Match; }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
 protected:
     RegexpNode *m_regexp { nullptr };
@@ -817,7 +817,7 @@ struct ModuleNode : Node {
 
     virtual Type type() override { return Type::Module; }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
 protected:
     ConstantNode *m_name { nullptr };
@@ -830,7 +830,7 @@ struct MultipleAssignmentNode : ArrayNode {
 
     virtual Type type() override { return Type::MultipleAssignment; }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
     ArrayValue *to_ruby_with_array(Env *);
 
     void add_locals(Env *, Vector<SymbolValue *> *);
@@ -841,7 +841,7 @@ struct NextNode : Node {
         : Node { token }
         , m_arg { arg } { }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
     virtual Type type() override { return Type::Next; }
 
@@ -853,7 +853,7 @@ struct NilNode : Node {
     NilNode(Token *token)
         : Node { token } { }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
     virtual Type type() override { return Type::Nil; }
 };
@@ -865,7 +865,7 @@ struct NotNode : Node {
         assert(m_expression);
     }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
     virtual Type type() override { return Type::Not; }
 
@@ -877,7 +877,7 @@ struct NilSexpNode : Node {
     NilSexpNode(Token *token)
         : Node { token } { }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
     virtual Type type() override { return Type::NilSexp; }
 };
@@ -901,7 +901,7 @@ struct OpAssignNode : Node {
         assert(m_value);
     }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
     virtual Type type() override { return Type::OpAssign; }
 
@@ -924,7 +924,7 @@ struct OpAssignAccessorNode : NodeWithArgs {
         assert(m_value);
     }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
     virtual Type type() override { return Type::OpAssignAccessor; }
 
@@ -939,7 +939,7 @@ struct OpAssignAndNode : OpAssignNode {
     OpAssignAndNode(Token *token, IdentifierNode *name, Node *value)
         : OpAssignNode { token, name, value } { }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
     virtual Type type() override { return Type::OpAssignAnd; }
 };
@@ -948,7 +948,7 @@ struct OpAssignOrNode : OpAssignNode {
     OpAssignOrNode(Token *token, IdentifierNode *name, Node *value)
         : OpAssignNode { token, name, value } { }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
     virtual Type type() override { return Type::OpAssignOr; }
 };
@@ -965,7 +965,7 @@ struct RangeNode : Node {
 
     virtual Type type() override { return Type::Range; }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
 protected:
     Node *m_first { nullptr };
@@ -974,7 +974,7 @@ protected:
 };
 
 struct RegexpNode : Node {
-    RegexpNode(Token *token, Value *value)
+    RegexpNode(Token *token, ValuePtr value)
         : Node { token }
         , m_value { value } {
         assert(m_value);
@@ -982,12 +982,12 @@ struct RegexpNode : Node {
 
     virtual Type type() override { return Type::Regexp; }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
-    Value *value() { return m_value; }
+    ValuePtr value() { return m_value; }
 
 protected:
-    Value *m_value { nullptr };
+    ValuePtr m_value { nullptr };
 };
 
 struct ReturnNode : Node {
@@ -997,7 +997,7 @@ struct ReturnNode : Node {
 
     virtual Type type() override { return Type::Return; }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
 protected:
     Node *m_arg { nullptr };
@@ -1009,11 +1009,11 @@ struct SelfNode : Node {
 
     virtual Type type() override { return Type::Self; }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 };
 
 struct ShellNode : Node {
-    ShellNode(Token *token, Value *value)
+    ShellNode(Token *token, ValuePtr value)
         : Node { token }
         , m_value { value } {
         assert(m_value);
@@ -1021,12 +1021,12 @@ struct ShellNode : Node {
 
     virtual Type type() override { return Type::String; }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
-    Value *value() { return m_value; }
+    ValuePtr value() { return m_value; }
 
 protected:
-    Value *m_value { nullptr };
+    ValuePtr m_value { nullptr };
 };
 
 struct SplatAssignmentNode : Node {
@@ -1041,7 +1041,7 @@ struct SplatAssignmentNode : Node {
 
     virtual Type type() override { return Type::SplatAssignment; }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
     IdentifierNode *node() { return m_node; }
 
@@ -1061,7 +1061,7 @@ struct SplatNode : Node {
 
     virtual Type type() override { return Type::Splat; }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
     Node *node() { return m_node; }
 
@@ -1078,7 +1078,7 @@ struct StabbyProcNode : Node {
 
     virtual Type type() override { return Type::StabbyProc; }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
     Vector<Node *> *args() { return m_args; };
 
@@ -1087,7 +1087,7 @@ protected:
 };
 
 struct StringNode : Node {
-    StringNode(Token *token, Value *value)
+    StringNode(Token *token, ValuePtr value)
         : Node { token }
         , m_value { value } {
         assert(m_value);
@@ -1095,16 +1095,16 @@ struct StringNode : Node {
 
     virtual Type type() override { return Type::String; }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
-    Value *value() { return m_value; }
+    ValuePtr value() { return m_value; }
 
 protected:
-    Value *m_value { nullptr };
+    ValuePtr m_value { nullptr };
 };
 
 struct SymbolNode : Node {
-    SymbolNode(Token *token, Value *value)
+    SymbolNode(Token *token, ValuePtr value)
         : Node { token }
         , m_value { value } {
         assert(m_value);
@@ -1112,17 +1112,17 @@ struct SymbolNode : Node {
 
     virtual Type type() override { return Type::Symbol; }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
 protected:
-    Value *m_value { nullptr };
+    ValuePtr m_value { nullptr };
 };
 
 struct TrueNode : Node {
     TrueNode(Token *token)
         : Node { token } { }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
     virtual Type type() override { return Type::True; }
 };
@@ -1131,7 +1131,7 @@ struct SuperNode : NodeWithArgs {
     SuperNode(Token *token)
         : NodeWithArgs { token } { }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
     virtual Type type() override { return Type::Super; }
 
@@ -1154,7 +1154,7 @@ struct WhileNode : Node {
         assert(m_body);
     }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
     virtual Type type() override { return Type::While; }
 
@@ -1168,7 +1168,7 @@ struct UntilNode : WhileNode {
     UntilNode(Token *token, Node *condition, BlockNode *body, bool pre)
         : WhileNode { token, condition, body, pre } { }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
     virtual Type type() override { return Type::Until; }
 };
@@ -1177,7 +1177,7 @@ struct YieldNode : NodeWithArgs {
     YieldNode(Token *token)
         : NodeWithArgs { token } { }
 
-    virtual Value *to_ruby(Env *) override;
+    virtual ValuePtr to_ruby(Env *) override;
 
     virtual Type type() override { return Type::Yield; }
 };

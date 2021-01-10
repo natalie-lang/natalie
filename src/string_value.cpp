@@ -63,7 +63,7 @@ void StringValue::append_char(Env *env, char c) {
     m_length = total_length;
 }
 
-void StringValue::append_string(Env *env, Value *value) {
+void StringValue::append_string(Env *env, ValuePtr value) {
     append_string(env, value->as_string());
 }
 
@@ -125,11 +125,11 @@ StringValue *StringValue::next_char(Env *env, size_t *index) {
     NAT_UNREACHABLE();
 }
 
-Value *StringValue::each_char(Env *env, Block *block) {
+ValuePtr StringValue::each_char(Env *env, Block *block) {
     StringValue *c = nullptr;
     size_t index = 0;
     while ((c = next_char(env, &index))) {
-        Value *args[] = { c };
+        ValuePtr args[] = { c };
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, args, nullptr);
     }
     return env->nil_obj();
@@ -149,7 +149,7 @@ SymbolValue *StringValue::to_symbol(Env *env) {
     return SymbolValue::intern(env, m_str);
 }
 
-Value *StringValue::to_sym(Env *env) {
+ValuePtr StringValue::to_sym(Env *env) {
     return to_symbol(env);
 }
 
@@ -213,16 +213,16 @@ void StringValue::increment_successive_char(Env *env, char append_char, char beg
     }
 }
 
-Value *StringValue::index(Env *env, Value *needle) {
+ValuePtr StringValue::index(Env *env, ValuePtr needle) {
     return index(env, needle, 0);
 }
 
-bool StringValue::start_with(Env *env, Value *needle) {
+bool StringValue::start_with(Env *env, ValuePtr needle) {
     nat_int_t i = index_int(env, needle, 0);
     return i == 0;
 }
 
-bool StringValue::end_with(Env *env, Value *needle) {
+bool StringValue::end_with(Env *env, ValuePtr needle) {
     needle->assert_type(env, Value::Type::String, "String");
     if (m_length < needle->as_string()->length())
         return false;
@@ -232,7 +232,7 @@ bool StringValue::end_with(Env *env, Value *needle) {
 }
 
 // FIXME: this does not honor multi-byte characters :-(
-Value *StringValue::index(Env *env, Value *needle, size_t start) {
+ValuePtr StringValue::index(Env *env, ValuePtr needle, size_t start) {
     nat_int_t i = index_int(env, needle, start);
     if (i == -1) {
         return env->nil_obj();
@@ -241,7 +241,7 @@ Value *StringValue::index(Env *env, Value *needle, size_t start) {
 }
 
 // FIXME: this does not honor multi-byte characters :-(
-nat_int_t StringValue::index_int(Env *env, Value *needle, size_t start) {
+nat_int_t StringValue::index_int(Env *env, ValuePtr needle, size_t start) {
     needle->assert_type(env, Value::Type::String, "String");
     const char *ptr = strstr(c_str() + start, needle->as_string()->c_str());
     if (ptr == nullptr) {
@@ -301,7 +301,7 @@ StringValue *StringValue::vsprintf(Env *env, const char *format, va_list args) {
                 out->append(env, int_to_hex_string(va_arg(args, nat_int_t), true));
                 break;
             case 'v':
-                inspected = va_arg(args, Value *)->send(env, "inspect")->as_string();
+                inspected = va_arg(args, ValuePtr )->send(env, "inspect")->as_string();
                 out->append_string(env, inspected);
                 break;
             case '%':
@@ -318,7 +318,7 @@ StringValue *StringValue::vsprintf(Env *env, const char *format, va_list args) {
     return out;
 }
 
-Value *StringValue::initialize(Env *env, Value *arg) {
+ValuePtr StringValue::initialize(Env *env, ValuePtr arg) {
     if (arg) {
         arg->assert_type(env, Value::Type::String, "String");
         set_str(arg->as_string()->c_str());
@@ -326,19 +326,19 @@ Value *StringValue::initialize(Env *env, Value *arg) {
     return this;
 }
 
-Value *StringValue::ltlt(Env *env, Value *arg) {
+ValuePtr StringValue::ltlt(Env *env, ValuePtr arg) {
     this->assert_not_frozen(env);
     if (arg->is_string()) {
         append_string(env, arg->as_string());
     } else {
-        Value *str_obj = arg->send(env, "to_s");
+        ValuePtr str_obj = arg->send(env, "to_s");
         str_obj->assert_type(env, Value::Type::String, "String");
         append_string(env, str_obj->as_string());
     }
     return this;
 }
 
-Value *StringValue::add(Env *env, Value *arg) {
+ValuePtr StringValue::add(Env *env, ValuePtr arg) {
     const char *str;
     if (arg->is_string()) {
         str = arg->as_string()->c_str();
@@ -352,7 +352,7 @@ Value *StringValue::add(Env *env, Value *arg) {
     return new_string;
 }
 
-Value *StringValue::mul(Env *env, Value *arg) {
+ValuePtr StringValue::mul(Env *env, ValuePtr arg) {
     arg->assert_type(env, Value::Type::Integer, "Integer");
     StringValue *new_string = new StringValue { env, "" };
     for (nat_int_t i = 0; i < arg->as_integer()->to_nat_int_t(); i++) {
@@ -361,7 +361,7 @@ Value *StringValue::mul(Env *env, Value *arg) {
     return new_string;
 }
 
-Value *StringValue::cmp(Env *env, Value *other) {
+ValuePtr StringValue::cmp(Env *env, ValuePtr other) {
     if (other->type() != Value::Type::String) return env->nil_obj();
     int diff = strcmp(c_str(), other->as_string()->c_str());
     int result;
@@ -375,17 +375,17 @@ Value *StringValue::cmp(Env *env, Value *other) {
     return new IntegerValue { env, result };
 }
 
-Value *StringValue::eqtilde(Env *env, Value *other) {
+ValuePtr StringValue::eqtilde(Env *env, ValuePtr other) {
     other->assert_type(env, Value::Type::Regexp, "Regexp");
     return other->as_regexp()->eqtilde(env, this);
 }
 
-Value *StringValue::match(Env *env, Value *other) {
+ValuePtr StringValue::match(Env *env, ValuePtr other) {
     other->assert_type(env, Value::Type::Regexp, "Regexp");
     return other->as_regexp()->match(env, this);
 }
 
-Value *StringValue::ord(Env *env) {
+ValuePtr StringValue::ord(Env *env) {
     ArrayValue *chars = this->chars(env);
     if (chars->size() == 0) {
         env->raise("ArgumentError", "empty string");
@@ -415,7 +415,7 @@ Value *StringValue::ord(Env *env) {
     return new IntegerValue { env, code };
 }
 
-Value *StringValue::bytes(Env *env) {
+ValuePtr StringValue::bytes(Env *env) {
     ArrayValue *ary = new ArrayValue { env };
     for (size_t i = 0; i < m_length; i++) {
         ary->push(new IntegerValue { env, m_str[i] });
@@ -423,11 +423,11 @@ Value *StringValue::bytes(Env *env) {
     return ary;
 }
 
-Value *StringValue::size(Env *env) {
+ValuePtr StringValue::size(Env *env) {
     return IntegerValue::from_size_t(env, chars(env)->size());
 }
 
-Value *StringValue::encoding(Env *env) {
+ValuePtr StringValue::encoding(Env *env) {
     ClassValue *Encoding = env->Object()->const_find(env, "Encoding")->as_class();
     switch (m_encoding) {
     case Encoding::ASCII_8BIT:
@@ -467,7 +467,7 @@ static EncodingValue *find_encoding_by_name(Env *env, const char *name) {
     env->raise("ArgumentError", "unknown encoding name - %s", name);
 }
 
-Value *StringValue::encode(Env *env, Value *encoding) {
+ValuePtr StringValue::encode(Env *env, ValuePtr encoding) {
     Encoding orig_encoding = m_encoding;
     StringValue *copy = dup(env)->as_string();
     copy->force_encoding(env, encoding);
@@ -479,8 +479,8 @@ Value *StringValue::encode(Env *env, Value *encoding) {
         for (size_t i = 0; i < chars->size(); i++) {
             StringValue *char_obj = (*chars)[i]->as_string();
             if (char_obj->length() > 1) {
-                Value *ord = char_obj->ord(env);
-                Value *message = StringValue::sprintf(env, "U+%X from UTF-8 to ASCII-8BIT", ord->as_integer()->to_nat_int_t());
+                ValuePtr ord = char_obj->ord(env);
+                ValuePtr message = StringValue::sprintf(env, "U+%X from UTF-8 to ASCII-8BIT", ord->as_integer()->to_nat_int_t());
                 StringValue zero_x { env, "0X" };
                 StringValue blank { env, "" };
                 message = message->as_string()->sub(env, &zero_x, &blank);
@@ -495,7 +495,7 @@ Value *StringValue::encode(Env *env, Value *encoding) {
     }
 }
 
-Value *StringValue::force_encoding(Env *env, Value *encoding) {
+ValuePtr StringValue::force_encoding(Env *env, ValuePtr encoding) {
     switch (encoding->type()) {
     case Value::Type::Encoding:
         set_encoding(encoding->as_encoding()->num());
@@ -509,7 +509,7 @@ Value *StringValue::force_encoding(Env *env, Value *encoding) {
     return this;
 }
 
-Value *StringValue::ref(Env *env, Value *index_obj) {
+ValuePtr StringValue::ref(Env *env, ValuePtr index_obj) {
     // not sure how we'd handle a string that big anyway
     assert(m_length < NAT_INT_MAX);
 
@@ -559,7 +559,7 @@ Value *StringValue::ref(Env *env, Value *index_obj) {
     abort();
 }
 
-Value *StringValue::sub(Env *env, Value *find, Value *replacement, Block *block) {
+ValuePtr StringValue::sub(Env *env, ValuePtr find, ValuePtr replacement, Block *block) {
     if (!block && !replacement)
         env->assert_argc(1, 2);
     if (!block)
@@ -571,7 +571,7 @@ Value *StringValue::sub(Env *env, Value *find, Value *replacement, Block *block)
         }
         StringValue *out = new StringValue { env, m_str, static_cast<size_t>(index) };
         if (block) {
-            Value *result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 0, nullptr, nullptr);
+            ValuePtr result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 0, nullptr, nullptr);
             result->assert_type(env, Value::Type::String, "String");
             out->append_string(env, result->as_string());
         } else {
@@ -591,7 +591,7 @@ Value *StringValue::sub(Env *env, Value *find, Value *replacement, Block *block)
     }
 }
 
-Value *StringValue::gsub(Env *env, Value *find, Value *replacement_value, Block *block) {
+ValuePtr StringValue::gsub(Env *env, ValuePtr find, ValuePtr replacement_value, Block *block) {
     if (!replacement_value || block) {
         NAT_NOT_YET_IMPLEMENTED("String#gsub(/regex/) { block }")
     }
@@ -617,7 +617,7 @@ Value *StringValue::gsub(Env *env, Value *find, Value *replacement_value, Block 
 }
 
 StringValue *StringValue::regexp_sub(Env *env, RegexpValue *find, StringValue *replacement, MatchDataValue **match, StringValue **expanded_replacement, size_t start_index) {
-    Value *match_result = find->as_regexp()->match(env, this, start_index);
+    ValuePtr match_result = find->as_regexp()->match(env, this, start_index);
     if (match_result == env->nil_obj())
         return dup(env)->as_string();
     *match = match_result->as_match_data();
@@ -670,7 +670,7 @@ StringValue *StringValue::expand_backrefs(Env *env, StringValue *str, MatchDataV
     return expanded;
 }
 
-Value *StringValue::to_i(Env *env, Value *base_obj) {
+ValuePtr StringValue::to_i(Env *env, ValuePtr base_obj) {
     int base = 10;
     if (base_obj) {
         base_obj->assert_type(env, Value::Type::Integer, "Integer");
@@ -680,7 +680,7 @@ Value *StringValue::to_i(Env *env, Value *base_obj) {
     return new IntegerValue { env, number };
 }
 
-Value *StringValue::split(Env *env, Value *splitter, Value *max_count_value) {
+ValuePtr StringValue::split(Env *env, ValuePtr splitter, ValuePtr max_count_value) {
     ArrayValue *ary = new ArrayValue { env };
     if (!splitter) {
         splitter = new RegexpValue { env, "\\s+" };
@@ -743,7 +743,7 @@ Value *StringValue::split(Env *env, Value *splitter, Value *max_count_value) {
     }
 }
 
-Value *StringValue::ljust(Env *env, Value *length_obj, Value *pad_obj) {
+ValuePtr StringValue::ljust(Env *env, ValuePtr length_obj, ValuePtr pad_obj) {
     length_obj->assert_type(env, Value::Type::Integer, "Integer");
     size_t length = length_obj->as_integer()->to_nat_int_t() < 0 ? 0 : length_obj->as_integer()->to_nat_int_t();
     StringValue *padstr;
@@ -764,7 +764,7 @@ Value *StringValue::ljust(Env *env, Value *length_obj, Value *pad_obj) {
     return copy;
 }
 
-Value *StringValue::strip(Env *env) {
+ValuePtr StringValue::strip(Env *env) {
     if (m_length == 0)
         return new StringValue { env };
     assert(m_length < NAT_INT_MAX);
@@ -788,7 +788,7 @@ Value *StringValue::strip(Env *env) {
     }
 }
 
-Value *StringValue::downcase(Env *env) {
+ValuePtr StringValue::downcase(Env *env) {
     auto ary = chars(env);
     auto str = new StringValue { env };
     for (auto c_val : *ary) {
@@ -806,7 +806,7 @@ Value *StringValue::downcase(Env *env) {
     return str;
 }
 
-Value *StringValue::upcase(Env *env) {
+ValuePtr StringValue::upcase(Env *env) {
     auto ary = chars(env);
     auto str = new StringValue { env };
     for (auto c_val : *ary) {
@@ -824,7 +824,7 @@ Value *StringValue::upcase(Env *env) {
     return str;
 }
 
-Value *StringValue::reverse(Env *env) {
+ValuePtr StringValue::reverse(Env *env) {
     if (m_length == 0)
         return new StringValue { env };
     auto ary = new ArrayValue { env };

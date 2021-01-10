@@ -54,7 +54,7 @@ struct FloatValue : Value {
         return m_double;
     }
 
-    Value *to_int_no_truncation(Env *env) {
+    ValuePtr to_int_no_truncation(Env *env) {
         if (is_nan() || is_infinity()) return this;
         if (m_double == ::floor(m_double)) {
             return new IntegerValue { env, static_cast<nat_int_t>(m_double) };
@@ -87,7 +87,7 @@ struct FloatValue : Value {
     };
 
     // NOTE: even though this is a predicate method with a ? suffix, it returns an 1, -1, or nil.
-    Value *is_infinite(Env *);
+    ValuePtr is_infinite(Env *);
 
     bool is_positive_infinity() {
         return is_infinity() && m_double > 0;
@@ -111,41 +111,41 @@ struct FloatValue : Value {
         return copy;
     }
 
-    bool eq(Env *, Value *);
+    bool eq(Env *, ValuePtr );
 
-    bool eql(Value *);
+    bool eql(ValuePtr );
 
-    Value *abs(Env *);
-    Value *add(Env *, Value *);
-    Value *arg(Env *);
-    Value *ceil(Env *, Value *);
-    Value *cmp(Env *, Value *);
-    Value *coerce(Env *, Value *);
-    Value *div(Env *, Value *);
-    Value *divmod(Env *, Value *);
-    Value *floor(Env *, Value *);
-    Value *mod(Env *, Value *);
-    Value *mul(Env *, Value *);
-    Value *next_float(Env *);
-    Value *pow(Env *, Value *);
-    Value *prev_float(Env *);
-    Value *round(Env *, Value *);
-    Value *sub(Env *, Value *);
-    Value *to_f() { return this; }
-    Value *to_i(Env *);
-    Value *to_s(Env *);
-    Value *truncate(Env *, Value *);
+    ValuePtr abs(Env *);
+    ValuePtr add(Env *, ValuePtr );
+    ValuePtr arg(Env *);
+    ValuePtr ceil(Env *, ValuePtr );
+    ValuePtr cmp(Env *, ValuePtr );
+    ValuePtr coerce(Env *, ValuePtr );
+    ValuePtr div(Env *, ValuePtr );
+    ValuePtr divmod(Env *, ValuePtr );
+    ValuePtr floor(Env *, ValuePtr );
+    ValuePtr mod(Env *, ValuePtr );
+    ValuePtr mul(Env *, ValuePtr );
+    ValuePtr next_float(Env *);
+    ValuePtr pow(Env *, ValuePtr );
+    ValuePtr prev_float(Env *);
+    ValuePtr round(Env *, ValuePtr );
+    ValuePtr sub(Env *, ValuePtr );
+    ValuePtr to_f() { return this; }
+    ValuePtr to_i(Env *);
+    ValuePtr to_s(Env *);
+    ValuePtr truncate(Env *, ValuePtr );
 
-    bool lt(Env *, Value *);
-    bool lte(Env *, Value *);
-    bool gt(Env *, Value *);
-    bool gte(Env *, Value *);
+    bool lt(Env *, ValuePtr );
+    bool lte(Env *, ValuePtr );
+    bool gt(Env *, ValuePtr );
+    bool gte(Env *, ValuePtr );
 
-    Value *uminus() {
+    ValuePtr uminus() {
         return negate();
     }
 
-    Value *uplus() {
+    ValuePtr uplus() {
         return this;
     }
 

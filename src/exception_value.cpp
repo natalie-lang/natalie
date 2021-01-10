@@ -15,7 +15,7 @@ void ExceptionValue::build_backtrace(Env *env) {
     } while (bt_env);
 }
 
-Value *ExceptionValue::initialize(Env *env, Value *message) {
+ValuePtr ExceptionValue::initialize(Env *env, ValuePtr message) {
     if (!message) {
         set_message(m_klass->class_name());
     } else {
@@ -27,15 +27,15 @@ Value *ExceptionValue::initialize(Env *env, Value *message) {
     return this;
 }
 
-Value *ExceptionValue::inspect(Env *env) {
+ValuePtr ExceptionValue::inspect(Env *env) {
     return StringValue::sprintf(env, "#<%S: %s>", m_klass->send(env, "inspect")->as_string(), m_message);
 }
 
-Value *ExceptionValue::message(Env *env) {
+ValuePtr ExceptionValue::message(Env *env) {
     return new StringValue { env, m_message };
 }
 
-Value *ExceptionValue::backtrace(Env *env) {
+ValuePtr ExceptionValue::backtrace(Env *env) {
     return m_backtrace ? m_backtrace->dup(env) : env->nil_obj();
 }
 

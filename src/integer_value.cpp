@@ -4,7 +4,7 @@
 
 namespace Natalie {
 
-Value *IntegerValue::to_s(Env *env, Value *base_value) {
+ValuePtr IntegerValue::to_s(Env *env, ValuePtr base_value) {
     if (m_integer == 0)
         return new StringValue { env, "0" };
     auto str = new StringValue { env };
@@ -34,11 +34,11 @@ Value *IntegerValue::to_s(Env *env, Value *base_value) {
     return str;
 }
 
-Value *IntegerValue::to_i() {
+ValuePtr IntegerValue::to_i() {
     return this;
 }
 
-Value *IntegerValue::add(Env *env, Value *arg) {
+ValuePtr IntegerValue::add(Env *env, ValuePtr arg) {
     if (arg->is_float()) {
         double result = to_nat_int_t() + arg->as_float()->to_double();
         return new FloatValue { env, result };
@@ -48,7 +48,7 @@ Value *IntegerValue::add(Env *env, Value *arg) {
     return new IntegerValue { env, result };
 }
 
-Value *IntegerValue::sub(Env *env, Value *arg) {
+ValuePtr IntegerValue::sub(Env *env, ValuePtr arg) {
     if (arg->is_float()) {
         double result = to_nat_int_t() - arg->as_float()->to_double();
         return new FloatValue { env, result };
@@ -58,7 +58,7 @@ Value *IntegerValue::sub(Env *env, Value *arg) {
     return new IntegerValue { env, result };
 }
 
-Value *IntegerValue::mul(Env *env, Value *arg) {
+ValuePtr IntegerValue::mul(Env *env, ValuePtr arg) {
     if (arg->is_float()) {
         double result = to_nat_int_t() * arg->as_float()->to_double();
         return new FloatValue { env, result };
@@ -68,7 +68,7 @@ Value *IntegerValue::mul(Env *env, Value *arg) {
     return new IntegerValue { env, result };
 }
 
-Value *IntegerValue::div(Env *env, Value *arg) {
+ValuePtr IntegerValue::div(Env *env, ValuePtr arg) {
     if (arg->is_integer()) {
         nat_int_t dividend = to_nat_int_t();
         nat_int_t divisor = arg->as_integer()->to_nat_int_t();
@@ -79,10 +79,10 @@ Value *IntegerValue::div(Env *env, Value *arg) {
         return new IntegerValue { env, result };
 
     } else if (arg->respond_to(env, "coerce")) {
-        Value *args[] = { this };
-        Value *coerced = arg->send(env, "coerce", 1, args, nullptr);
-        Value *dividend = (*coerced->as_array())[0];
-        Value *divisor = (*coerced->as_array())[1];
+        ValuePtr args[] = { this };
+        ValuePtr coerced = arg->send(env, "coerce", 1, args, nullptr);
+        ValuePtr dividend = (*coerced->as_array())[0];
+        ValuePtr divisor = (*coerced->as_array())[1];
         return dividend->send(env, "/", 1, &divisor, nullptr);
 
     } else {
@@ -91,19 +91,19 @@ Value *IntegerValue::div(Env *env, Value *arg) {
     }
 }
 
-Value *IntegerValue::mod(Env *env, Value *arg) {
+ValuePtr IntegerValue::mod(Env *env, ValuePtr arg) {
     arg->assert_type(env, Value::Type::Integer, "Integer");
     nat_int_t result = to_nat_int_t() % arg->as_integer()->to_nat_int_t();
     return new IntegerValue { env, result };
 }
 
-Value *IntegerValue::pow(Env *env, Value *arg) {
+ValuePtr IntegerValue::pow(Env *env, ValuePtr arg) {
     arg->assert_type(env, Value::Type::Integer, "Integer");
     nat_int_t result = ::pow(to_nat_int_t(), arg->as_integer()->to_nat_int_t());
     return new IntegerValue { env, result };
 }
 
-Value *IntegerValue::cmp(Env *env, Value *arg) {
+ValuePtr IntegerValue::cmp(Env *env, ValuePtr arg) {
     if (arg->type() != Value::Type::Integer) return env->nil_obj();
     nat_int_t i1 = to_nat_int_t();
     nat_int_t i2 = arg->as_integer()->to_nat_int_t();
@@ -116,7 +116,7 @@ Value *IntegerValue::cmp(Env *env, Value *arg) {
     }
 }
 
-bool IntegerValue::eq(Env *env, Value *other) {
+bool IntegerValue::eq(Env *env, ValuePtr other) {
     if (other->is_integer()) {
         return to_nat_int_t() == other->as_integer()->to_nat_int_t();
     } else if (other->is_float()) {
@@ -125,7 +125,7 @@ bool IntegerValue::eq(Env *env, Value *other) {
     return false;
 }
 
-bool IntegerValue::lt(Env *env, Value *other) {
+bool IntegerValue::lt(Env *env, ValuePtr other) {
     if (other->is_integer()) {
         return to_nat_int_t() < other->as_integer()->to_nat_int_t();
     } else if (other->is_float()) {
@@ -134,7 +134,7 @@ bool IntegerValue::lt(Env *env, Value *other) {
     env->raise("ArgumentError", "comparison of Integer with %s failed", other->inspect_str(env));
 }
 
-bool IntegerValue::lte(Env *env, Value *other) {
+bool IntegerValue::lte(Env *env, ValuePtr other) {
     if (other->is_integer()) {
         return to_nat_int_t() <= other->as_integer()->to_nat_int_t();
     } else if (other->is_float()) {
@@ -143,7 +143,7 @@ bool IntegerValue::lte(Env *env, Value *other) {
     env->raise("ArgumentError", "comparison of Integer with %s failed", other->inspect_str(env));
 }
 
-bool IntegerValue::gt(Env *env, Value *other) {
+bool IntegerValue::gt(Env *env, ValuePtr other) {
     if (other->is_integer()) {
         return to_nat_int_t() > other->as_integer()->to_nat_int_t();
     } else if (other->is_float()) {
@@ -152,7 +152,7 @@ bool IntegerValue::gt(Env *env, Value *other) {
     env->raise("ArgumentError", "comparison of Integer with %s failed", other->inspect_str(env));
 }
 
-bool IntegerValue::gte(Env *env, Value *other) {
+bool IntegerValue::gte(Env *env, ValuePtr other) {
     if (other->is_integer()) {
         return to_nat_int_t() >= other->as_integer()->to_nat_int_t();
     } else if (other->is_float()) {
@@ -161,7 +161,7 @@ bool IntegerValue::gte(Env *env, Value *other) {
     env->raise("ArgumentError", "comparison of Integer with %s failed", other->inspect_str(env));
 }
 
-Value *IntegerValue::eqeqeq(Env *env, Value *arg) {
+ValuePtr IntegerValue::eqeqeq(Env *env, ValuePtr arg) {
     if (arg->type() == Value::Type::Integer && to_nat_int_t() == arg->as_integer()->to_nat_int_t()) {
         return env->true_obj();
     } else {
@@ -169,11 +169,11 @@ Value *IntegerValue::eqeqeq(Env *env, Value *arg) {
     }
 }
 
-Value *IntegerValue::times(Env *env, Block *block) {
+ValuePtr IntegerValue::times(Env *env, Block *block) {
     nat_int_t val = to_nat_int_t();
     assert(val >= 0);
     env->assert_block_given(block); // TODO: return Enumerator when no block given
-    Value *num;
+    ValuePtr num;
     for (long long i = 0; i < val; i++) {
         num = new IntegerValue { env, i };
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &num, nullptr);
@@ -181,21 +181,21 @@ Value *IntegerValue::times(Env *env, Block *block) {
     return this;
 }
 
-Value *IntegerValue::bitwise_and(Env *env, Value *arg) {
+ValuePtr IntegerValue::bitwise_and(Env *env, ValuePtr arg) {
     arg->assert_type(env, Value::Type::Integer, "Integer");
     return new IntegerValue { env, to_nat_int_t() & arg->as_integer()->to_nat_int_t() };
 }
 
-Value *IntegerValue::bitwise_or(Env *env, Value *arg) {
+ValuePtr IntegerValue::bitwise_or(Env *env, ValuePtr arg) {
     arg->assert_type(env, Value::Type::Integer, "Integer");
     return new IntegerValue { env, to_nat_int_t() | arg->as_integer()->to_nat_int_t() };
 }
 
-Value *IntegerValue::succ(Env *env) {
+ValuePtr IntegerValue::succ(Env *env) {
     return new IntegerValue { env, to_nat_int_t() + 1 };
 }
 
-Value *IntegerValue::coerce(Env *env, Value *arg) {
+ValuePtr IntegerValue::coerce(Env *env, ValuePtr arg) {
     ArrayValue *ary = new ArrayValue { env };
     switch (arg->type()) {
     case Value::Type::Float:
@@ -216,11 +216,11 @@ Value *IntegerValue::coerce(Env *env, Value *arg) {
     return ary;
 }
 
-bool IntegerValue::eql(Env *env, Value *other) {
+bool IntegerValue::eql(Env *env, ValuePtr other) {
     return other->is_integer() && other->as_integer()->to_nat_int_t() == to_nat_int_t();
 }
 
-Value *IntegerValue::abs(Env *env) {
+ValuePtr IntegerValue::abs(Env *env) {
     auto number = to_nat_int_t();
     if (number < 0) {
         return new IntegerValue { env, -1 * number };
@@ -229,7 +229,7 @@ Value *IntegerValue::abs(Env *env) {
     }
 }
 
-Value *IntegerValue::chr(Env *env) {
+ValuePtr IntegerValue::chr(Env *env) {
     char c = static_cast<char>(to_nat_int_t());
     char str[] = " ";
     str[0] = c;

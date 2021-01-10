@@ -17,26 +17,26 @@ struct RangeValue : Value {
     RangeValue(Env *env, ClassValue *klass)
         : Value { Value::Type::Range, klass } { }
 
-    RangeValue(Env *env, Value *begin, Value *end, bool exclude_end)
+    RangeValue(Env *env, ValuePtr begin, ValuePtr end, bool exclude_end)
         : Value { Value::Type::Range, env->Object()->const_fetch("Range")->as_class() }
         , m_begin { begin }
         , m_end { end }
         , m_exclude_end { exclude_end } { }
 
-    Value *begin() { return m_begin; }
-    Value *end() { return m_end; }
+    ValuePtr begin() { return m_begin; }
+    ValuePtr end() { return m_end; }
     bool exclude_end() { return m_exclude_end; }
 
-    Value *initialize(Env *, Value *, Value *, Value *);
-    Value *to_a(Env *);
-    Value *each(Env *, Block *);
-    Value *inspect(Env *);
-    Value *eq(Env *, Value *);
-    Value *eqeqeq(Env *, Value *);
+    ValuePtr initialize(Env *, ValuePtr , ValuePtr , ValuePtr );
+    ValuePtr to_a(Env *);
+    ValuePtr each(Env *, Block *);
+    ValuePtr inspect(Env *);
+    ValuePtr eq(Env *, ValuePtr );
+    ValuePtr eqeqeq(Env *, ValuePtr );
 
 private:
-    Value *m_begin { nullptr };
-    Value *m_end { nullptr };
+    ValuePtr m_begin { nullptr };
+    ValuePtr m_end { nullptr };
     bool m_exclude_end { false };
 };
 

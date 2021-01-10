@@ -6,7 +6,7 @@
 
 namespace Natalie {
 
-Value *IoValue::initialize(Env *env, Value *file_number) {
+ValuePtr IoValue::initialize(Env *env, ValuePtr file_number) {
     file_number->assert_type(env, Value::Type::Integer, "Integer");
     nat_int_t fileno = file_number->as_integer()->to_nat_int_t();
     assert(fileno >= INT_MIN && fileno <= INT_MAX);
@@ -14,8 +14,8 @@ Value *IoValue::initialize(Env *env, Value *file_number) {
     return this;
 }
 
-Value *IoValue::read_file(Env *env, Value *filename) {
-    Value *args[] = { filename };
+ValuePtr IoValue::read_file(Env *env, ValuePtr filename) {
+    ValuePtr args[] = { filename };
     FileValue *file = _new(env, env->Object()->const_fetch("File")->as_class(), 1, args, nullptr)->as_file();
     auto data = file->read(env, nullptr);
     file->close(env);
@@ -24,7 +24,7 @@ Value *IoValue::read_file(Env *env, Value *filename) {
 
 #define NAT_READ_BYTES 1024
 
-Value *IoValue::read(Env *env, Value *count_value) {
+ValuePtr IoValue::read(Env *env, ValuePtr count_value) {
     size_t bytes_read;
     if (count_value) {
         count_value->assert_type(env, Value::Type::Integer, "Integer");
@@ -36,7 +36,7 @@ Value *IoValue::read(Env *env, Value *count_value) {
             return env->nil_obj();
         } else {
             buf[bytes_read] = 0;
-            Value *result = new StringValue { env, buf };
+            ValuePtr result = new StringValue { env, buf };
             GC_FREE(buf);
             return result;
         }
@@ -57,18 +57,18 @@ Value *IoValue::read(Env *env, Value *count_value) {
     return str;
 }
 
-Value *IoValue::write(Env *env, size_t argc, Value **args) {
+ValuePtr IoValue::write(Env *env, size_t argc, ValuePtr *args) {
     env->assert_argc_at_least(argc, 1);
     int bytes_written = 0;
     for (size_t i = 0; i < argc; i++) {
-        Value *obj = args[i];
+        ValuePtr obj = args[i];
         if (obj->type() != Value::Type::String) {
             obj = obj->send(env, "to_s");
         }
         obj->assert_type(env, Value::Type::String, "String");
         int result = ::write(m_fileno, obj->as_string()->c_str(), obj->as_string()->length());
         if (result == -1) {
-            Value *error_number = new IntegerValue { env, errno };
+            ValuePtr error_number = new IntegerValue { env, errno };
             ExceptionValue *error = env->Object()->const_find(env, "SystemCallError")->send(env, "exception", 1, &error_number, nullptr)->as_exception();
             env->raise_exception(error);
         } else {
@@ -78,12 +78,12 @@ Value *IoValue::write(Env *env, size_t argc, Value **args) {
     return new IntegerValue { env, bytes_written };
 }
 
-Value *IoValue::puts(Env *env, size_t argc, Value **args) {
+ValuePtr IoValue::puts(Env *env, size_t argc, ValuePtr *args) {
     if (argc == 0) {
         dprintf(m_fileno, "\n");
     } else {
         for (size_t i = 0; i < argc; i++) {
-            Value *str = args[i]->send(env, "to_s");
+            ValuePtr str = args[i]->send(env, "to_s");
             str->assert_type(env, Value::Type::String, "String");
             dprintf(m_fileno, "%s\n", str->as_string()->c_str());
         }
@@ -91,10 +91,10 @@ Value *IoValue::puts(Env *env, size_t argc, Value **args) {
     return env->nil_obj();
 }
 
-Value *IoValue::print(Env *env, size_t argc, Value **args) {
+ValuePtr IoValue::print(Env *env, size_t argc, ValuePtr *args) {
     if (argc > 0) {
         for (size_t i = 0; i < argc; i++) {
-            Value *str = args[i]->send(env, "to_s");
+            ValuePtr str = args[i]->send(env, "to_s");
             str->assert_type(env, Value::Type::String, "String");
             dprintf(m_fileno, "%s", str->as_string()->c_str());
         }
@@ -102,10 +102,10 @@ Value *IoValue::print(Env *env, size_t argc, Value **args) {
     return env->nil_obj();
 }
 
-Value *IoValue::close(Env *env) {
+ValuePtr IoValue::close(Env *env) {
     int result = ::close(m_fileno);
     if (result == -1) {
-        Value *error_number = new IntegerValue { env, errno };
+        ValuePtr error_number = new IntegerValue { env, errno };
         ExceptionValue *error = env->Object()->const_find(env, "SystemCallError")->send(env, "exception", 1, &error_number, nullptr)->as_exception();
         env->raise_exception(error);
     } else {
@@ -113,7 +113,7 @@ Value *IoValue::close(Env *env) {
     }
 }
 
-Value *IoValue::seek(Env *env, Value *amount_value, Value *whence_value) {
+ValuePtr IoValue::seek(Env *env, ValuePtr amount_value, ValuePtr whence_value) {
     amount_value->assert_type(env, Value::Type::Integer, "Integer");
     int amount = amount_value->as_integer()->to_nat_int_t();
     int whence = 0;
@@ -141,7 +141,7 @@ Value *IoValue::seek(Env *env, Value *amount_value, Value *whence_value) {
     }
     int result = lseek(m_fileno, amount, whence);
     if (result == -1) {
-        Value *error_number = new IntegerValue { env, errno };
+        ValuePtr error_number = new IntegerValue { env, errno };
         ExceptionValue *error = env->Object()->const_find(env, "SystemCallError")->send(env, "exception", 1, &error_number, nullptr)->as_exception();
         env->raise_exception(error);
     } else {

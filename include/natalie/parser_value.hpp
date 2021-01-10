@@ -10,8 +10,8 @@
 namespace Natalie {
 
 struct ParserValue : Value {
-    Value *parse(Env *, Value *, Value * = nullptr);
-    Value *tokens(Env *, Value *, Value *);
+    ValuePtr parse(Env *, ValuePtr , ValuePtr  = nullptr);
+    ValuePtr tokens(Env *, ValuePtr , ValuePtr );
 };
 
 }

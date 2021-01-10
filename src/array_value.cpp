@@ -3,7 +3,7 @@
 
 namespace Natalie {
 
-Value *ArrayValue::initialize(Env *env, Value *size, Value *value) {
+ValuePtr ArrayValue::initialize(Env *env, ValuePtr size, ValuePtr value) {
     if (!size) {
         return this;
     }
@@ -21,10 +21,10 @@ Value *ArrayValue::initialize(Env *env, Value *size, Value *value) {
     return this;
 }
 
-Value *ArrayValue::inspect(Env *env) {
+ValuePtr ArrayValue::inspect(Env *env) {
     StringValue *out = new StringValue { env, "[" };
     for (size_t i = 0; i < size(); i++) {
-        Value *obj = (*this)[i];
+        ValuePtr obj = (*this)[i];
         StringValue *repr = obj->send(env, "inspect")->as_string();
         out->append_string(env, repr);
         if (i < size() - 1) {
@@ -35,20 +35,20 @@ Value *ArrayValue::inspect(Env *env) {
     return out;
 }
 
-Value *ArrayValue::ltlt(Env *env, Value *arg) {
+ValuePtr ArrayValue::ltlt(Env *env, ValuePtr arg) {
     this->assert_not_frozen(env);
     push(arg);
     return this;
 }
 
-Value *ArrayValue::add(Env *env, Value *other) {
+ValuePtr ArrayValue::add(Env *env, ValuePtr other) {
     other->assert_type(env, Value::Type::Array, "Array");
     ArrayValue *new_array = new ArrayValue { *this };
     new_array->concat(*other->as_array());
     return new_array;
 }
 
-Value *ArrayValue::sub(Env *env, Value *other) {
+ValuePtr ArrayValue::sub(Env *env, ValuePtr other) {
     other->assert_type(env, Value::Type::Array, "Array");
     ArrayValue *new_array = new ArrayValue { env };
     for (auto &item : *this) {
@@ -66,7 +66,7 @@ Value *ArrayValue::sub(Env *env, Value *other) {
     return new_array;
 }
 
-Value *ArrayValue::ref(Env *env, Value *index_obj, Value *size) {
+ValuePtr ArrayValue::ref(Env *env, ValuePtr index_obj, ValuePtr size) {
     if (index_obj->type() == Value::Type::Integer) {
         nat_int_t index = index_obj->as_integer()->to_nat_int_t();
         if (index < 0) {
@@ -92,8 +92,8 @@ Value *ArrayValue::ref(Env *env, Value *index_obj, Value *size) {
         return result;
     } else if (index_obj->is_range()) {
         RangeValue *range = index_obj->as_range();
-        Value *begin_obj = range->begin();
-        Value *end_obj = range->end();
+        ValuePtr begin_obj = range->begin();
+        ValuePtr end_obj = range->end();
         begin_obj->assert_type(env, Value::Type::Integer, "Integer");
         end_obj->assert_type(env, Value::Type::Integer, "Integer");
         nat_int_t begin = begin_obj->as_integer()->to_nat_int_t();
@@ -126,7 +126,7 @@ Value *ArrayValue::ref(Env *env, Value *index_obj, Value *size) {
     }
 }
 
-Value *ArrayValue::refeq(Env *env, Value *index_obj, Value *size, Value *val) {
+ValuePtr ArrayValue::refeq(Env *env, ValuePtr index_obj, ValuePtr size, ValuePtr val) {
     this->assert_not_frozen(env);
     index_obj->assert_type(env, Value::Type::Integer, "Integer"); // TODO: accept a range
     nat_int_t index = index_obj->as_integer()->to_nat_int_t();
@@ -170,26 +170,26 @@ Value *ArrayValue::refeq(Env *env, Value *index_obj, Value *size, Value *val) {
     return val;
 }
 
-Value *ArrayValue::any(Env *env, size_t argc, Value **args, Block *block) {
+ValuePtr ArrayValue::any(Env *env, size_t argc, ValuePtr *args, Block *block) {
     ModuleValue *Enumerable = env->Object()->const_fetch("Enumerable")->as_module();
     return Enumerable->call_method(env, klass(), "any?", this, argc, args, block);
 }
 
-Value *ArrayValue::eq(Env *env, Value *other) {
+ValuePtr ArrayValue::eq(Env *env, ValuePtr other) {
     if (!other->is_array()) return env->false_obj();
     ArrayValue *other_array = other->as_array();
     if (size() != other_array->size()) return env->false_obj();
     if (size() == 0) return env->true_obj();
     for (size_t i = 0; i < size(); i++) {
         // TODO: could easily be optimized for strings and numbers
-        Value *item = (*other_array)[i];
-        Value *result = (*this)[i]->send(env, "==", 1, &item, nullptr);
+        ValuePtr item = (*other_array)[i];
+        ValuePtr result = (*this)[i]->send(env, "==", 1, &item, nullptr);
         if (result->type() == Value::Type::False) return result;
     }
     return env->true_obj();
 }
 
-Value *ArrayValue::eql(Env *env, Value *other) {
+ValuePtr ArrayValue::eql(Env *env, ValuePtr other) {
     if (this == other)
         return env->true_obj();
     if (!other->is_array())
@@ -200,8 +200,8 @@ Value *ArrayValue::eql(Env *env, Value *other) {
         return env->false_obj();
 
     for (size_t i = 0; i < size(); ++i) {
-        Value *item = (*other_array)[i];
-        Value *result = (*this)[i]->send(env, "eql?", 1, &item, nullptr);
+        ValuePtr item = (*other_array)[i];
+        ValuePtr result = (*this)[i]->send(env, "eql?", 1, &item, nullptr);
         if (result->type() == Value::Type::False)
             return result;
     }
@@ -209,7 +209,7 @@ Value *ArrayValue::eql(Env *env, Value *other) {
     return env->true_obj();
 }
 
-Value *ArrayValue::each(Env *env, Block *block) {
+ValuePtr ArrayValue::each(Env *env, Block *block) {
     env->assert_block_given(block); // TODO: return Enumerator when no block given
     for (auto &obj : *this) {
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &obj, nullptr);
@@ -217,18 +217,18 @@ Value *ArrayValue::each(Env *env, Block *block) {
     return this;
 }
 
-Value *ArrayValue::map(Env *env, Block *block) {
+ValuePtr ArrayValue::map(Env *env, Block *block) {
     env->assert_block_given(block); // TODO: return Enumerator when no block given
     ArrayValue *new_array = new ArrayValue { env };
     for (auto &item : *this) {
-        Value *result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
+        ValuePtr result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
         new_array->push(result);
     }
     return new_array;
 }
 
 // TODO: accept integer and return array
-Value *ArrayValue::first(Env *env) {
+ValuePtr ArrayValue::first(Env *env) {
     if (size() > 0) {
         return (*this)[0];
     } else {
@@ -236,7 +236,7 @@ Value *ArrayValue::first(Env *env) {
     }
 }
 
-Value *ArrayValue::sample(Env *env) {
+ValuePtr ArrayValue::sample(Env *env) {
     std::random_device dev;
     std::mt19937 rng(dev());
     std::uniform_int_distribution<std::mt19937::result_type> random_number(1, size());
@@ -249,7 +249,7 @@ Value *ArrayValue::sample(Env *env) {
 }
 
 // TODO: accept integer and return array
-Value *ArrayValue::last(Env *env) {
+ValuePtr ArrayValue::last(Env *env) {
     if (size() > 0) {
         return (*this)[size() - 1];
     } else {
@@ -257,7 +257,7 @@ Value *ArrayValue::last(Env *env) {
     }
 }
 
-Value *ArrayValue::include(Env *env, Value *item) {
+ValuePtr ArrayValue::include(Env *env, ValuePtr item) {
     if (size() == 0) {
         return env->false_obj();
     } else {
@@ -270,13 +270,13 @@ Value *ArrayValue::include(Env *env, Value *item) {
     }
 }
 
-Value *ArrayValue::index(Env *env, Value *object, Block *block) {
+ValuePtr ArrayValue::index(Env *env, ValuePtr object, Block *block) {
     assert(size() <= NAT_INT_MAX);
     auto length = static_cast<nat_int_t>(size());
     if (block) {
         for (nat_int_t i = 0; i < length; i++) {
             auto item = m_vector[i];
-            Value *args[] = { item };
+            ValuePtr args[] = { item };
             auto result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, args, nullptr);
             if (result->is_truthy())
                 return new IntegerValue { env, i };
@@ -285,7 +285,7 @@ Value *ArrayValue::index(Env *env, Value *object, Block *block) {
     } else if (object) {
         for (nat_int_t i = 0; i < length; i++) {
             auto item = m_vector[i];
-            Value *args[] = { object };
+            ValuePtr args[] = { object };
             if (item->send(env, "==", 1, args)->is_truthy())
                 return new IntegerValue { env, i };
         }
@@ -297,10 +297,10 @@ Value *ArrayValue::index(Env *env, Value *object, Block *block) {
     }
 }
 
-Value *ArrayValue::shift(Env *env, Value *count) {
+ValuePtr ArrayValue::shift(Env *env, ValuePtr count) {
     auto has_count = count != nullptr;
     size_t shift_count = 1;
-    Value *result = nullptr;
+    ValuePtr result = nullptr;
     if (has_count) {
         count->assert_type(env, Value::Type::Integer, "Integer");
         shift_count = count->as_integer()->to_nat_int_t();
@@ -317,13 +317,13 @@ Value *ArrayValue::shift(Env *env, Value *count) {
     return result;
 }
 
-Value *ArrayValue::sort(Env *env) {
+ValuePtr ArrayValue::sort(Env *env) {
     ArrayValue *copy = new ArrayValue { *this };
     copy->sort_in_place(env);
     return copy;
 }
 
-Value *ArrayValue::join(Env *env, Value *joiner) {
+ValuePtr ArrayValue::join(Env *env, ValuePtr joiner) {
     if (size() == 0) {
         return new StringValue { env };
     } else if (size() == 1) {
@@ -333,7 +333,7 @@ Value *ArrayValue::join(Env *env, Value *joiner) {
         joiner->assert_type(env, Value::Type::String, "String");
         StringValue *out = (*this)[0]->send(env, "to_s")->dup(env)->as_string();
         for (size_t i = 1; i < size(); i++) {
-            Value *item = (*this)[i];
+            ValuePtr item = (*this)[i];
             out->append_string(env, joiner->as_string());
             out->append_string(env, item->send(env, "to_s")->as_string());
         }
@@ -341,15 +341,15 @@ Value *ArrayValue::join(Env *env, Value *joiner) {
     }
 }
 
-Value *ArrayValue::cmp(Env *env, Value *other) {
+ValuePtr ArrayValue::cmp(Env *env, ValuePtr other) {
     other->assert_type(env, Value::Type::Array, "Array");
     ArrayValue *other_array = other->as_array();
     for (size_t i = 0; i < size(); i++) {
         if (i >= other_array->size()) {
             return new IntegerValue { env, 1 };
         }
-        Value *item = (*other_array)[i];
-        Value *cmp_obj = (*this)[i]->send(env, "<=>", 1, &item, nullptr);
+        ValuePtr item = (*other_array)[i];
+        ValuePtr cmp_obj = (*this)[i]->send(env, "<=>", 1, &item, nullptr);
         assert(cmp_obj->type() == Value::Type::Integer);
         nat_int_t cmp = cmp_obj->as_integer()->to_nat_int_t();
         if (cmp < 0) return new IntegerValue { env, -1 };
@@ -361,19 +361,19 @@ Value *ArrayValue::cmp(Env *env, Value *other) {
     return new IntegerValue { env, 0 };
 }
 
-Value *ArrayValue::push(Env *env, size_t argc, Value **args) {
+ValuePtr ArrayValue::push(Env *env, size_t argc, ValuePtr *args) {
     for (size_t i = 0; i < argc; i++) {
         push(args[i]);
     }
     return this;
 }
 
-void ArrayValue::push_splat(Env *env, Value *val) {
+void ArrayValue::push_splat(Env *env, ValuePtr val) {
     if (!val->is_array() && val->respond_to(env, "to_a")) {
         val = val->send(env, "to_a");
     }
     if (val->is_array()) {
-        for (Value *v : *val->as_array()) {
+        for (ValuePtr v : *val->as_array()) {
             push(*v);
         }
     } else {
@@ -381,10 +381,10 @@ void ArrayValue::push_splat(Env *env, Value *val) {
     }
 }
 
-Value *ArrayValue::pop(Env *env) {
+ValuePtr ArrayValue::pop(Env *env) {
     this->assert_not_frozen(env);
     if (size() == 0) return env->nil_obj();
-    Value *val = m_vector[m_vector.size() - 1];
+    ValuePtr val = m_vector[m_vector.size() - 1];
     m_vector.set_size(m_vector.size() - 1);
     return val;
 }
@@ -397,18 +397,18 @@ void ArrayValue::expand_with_nil(Env *env, size_t total) {
 
 void ArrayValue::sort_in_place(Env *env) {
     this->assert_not_frozen(env);
-    auto cmp = [](void *env, Value *a, Value *b) {
-        Value *compare = a->send(static_cast<Env *>(env), "<=>", 1, &b, nullptr);
+    auto cmp = [](void *env, ValuePtr a, ValuePtr b) {
+        ValuePtr compare = a->send(static_cast<Env *>(env), "<=>", 1, &b, nullptr);
         return compare->as_integer()->to_nat_int_t() < 0;
     };
-    m_vector.sort(Vector<Value *>::SortComparator { env, cmp });
+    m_vector.sort(Vector<ValuePtr >::SortComparator { env, cmp });
 }
 
-Value *ArrayValue::select(Env *env, Block *block) {
+ValuePtr ArrayValue::select(Env *env, Block *block) {
     env->assert_block_given(block); // TODO: return Enumerator when no block given
     ArrayValue *new_array = new ArrayValue { env };
     for (auto &item : *this) {
-        Value *result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
+        ValuePtr result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
         if (result->is_truthy()) {
             new_array->push(item);
         }
@@ -416,11 +416,11 @@ Value *ArrayValue::select(Env *env, Block *block) {
     return new_array;
 }
 
-Value *ArrayValue::reject(Env *env, Block *block) {
+ValuePtr ArrayValue::reject(Env *env, Block *block) {
     env->assert_block_given(block); // TODO: return Enumerator when no block given
     ArrayValue *new_array = new ArrayValue { env };
     for (auto &item : *this) {
-        Value *result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
+        ValuePtr result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
         if (result->is_falsey()) {
             new_array->push(item);
         }
@@ -428,10 +428,10 @@ Value *ArrayValue::reject(Env *env, Block *block) {
     return new_array;
 }
 
-Value *ArrayValue::max(Env *env) {
+ValuePtr ArrayValue::max(Env *env) {
     if (m_vector.size() == 0)
         return env->nil_obj();
-    Value *max = nullptr;
+    ValuePtr max = nullptr;
     for (auto item : *this) {
         if (!max || item->send(env, ">", 1, &max)->is_truthy())
             max = item;
@@ -439,10 +439,10 @@ Value *ArrayValue::max(Env *env) {
     return max;
 }
 
-Value *ArrayValue::min(Env *env) {
+ValuePtr ArrayValue::min(Env *env) {
     if (m_vector.size() == 0)
         return env->nil_obj();
-    Value *min = nullptr;
+    ValuePtr min = nullptr;
     for (auto item : *this) {
         if (!min || item->send(env, "<", 1, &min)->is_truthy())
             min = item;
@@ -450,7 +450,7 @@ Value *ArrayValue::min(Env *env) {
     return min;
 }
 
-Value *ArrayValue::compact(Env *env) {
+ValuePtr ArrayValue::compact(Env *env) {
     auto ary = new ArrayValue { env };
     for (auto item : *this) {
         if (item->is_nil()) continue;
@@ -459,7 +459,7 @@ Value *ArrayValue::compact(Env *env) {
     return ary;
 }
 
-Value *ArrayValue::uniq(Env *env) {
+ValuePtr ArrayValue::uniq(Env *env) {
     auto hash = new HashValue { env };
     auto nil = env->nil_obj();
     for (auto item : *this) {
