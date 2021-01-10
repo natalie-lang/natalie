@@ -115,6 +115,7 @@ describe 'File' do
       f.read(3).should == 'baz'
       f.seek(4, IO::SEEK_SET)
       f.read(3).should == 'bar'
+      f.close
     end
 
     it 'seeks to an offset position from current' do
@@ -125,6 +126,7 @@ describe 'File' do
       f.seek(4)
       f.seek(-4, IO::SEEK_CUR)
       f.read(3).should == 'foo'
+      f.close
     end
 
     it 'seeks to an offset position from end' do
@@ -133,6 +135,7 @@ describe 'File' do
       f.read(3).should == 'baz'
       f.seek(-8, IO::SEEK_END)
       f.read(3).should == 'bar'
+      f.close
     end
   end
 
@@ -142,6 +145,7 @@ describe 'File' do
       f.read.should == "foo bar baz\n"
       f.rewind
       f.read.should == "foo bar baz\n"
+      f.close
     end
   end
 
@@ -150,6 +154,14 @@ describe 'File' do
       f = File.new('test/support/file.txt')
       f.fileno.should be_kind_of(Integer)
       f.close
+    end
+  end
+
+  describe '#close' do
+    it 'closes the file' do
+      f = File.open('test/support/file.txt')
+      f.close
+      -> { f.close }.should raise_error(IOError, 'closed stream')
     end
   end
 
@@ -184,7 +196,7 @@ describe 'File' do
     end
   end
 
-  describe '#dirname' do
+  describe '.dirname' do
     it 'returns the directory of a given path sans filename' do
       File.dirname('foo/bar.txt').should == 'foo'
       File.dirname('/foo/bar/baz.txt').should == '/foo/bar'

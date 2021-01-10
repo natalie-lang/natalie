@@ -9,6 +9,7 @@ class StandardError < Exception; end
   class IndexError < StandardError; end
   class NameError < StandardError; end
     class NoMethodError < NameError; end
+  class IOError < StandardError; end
   class RangeError < StandardError; end
     class FloatDomainError < RangeError; end
   class RegexpError < StandardError; end

@@ -103,12 +103,15 @@ ValuePtr IoValue::print(Env *env, size_t argc, ValuePtr *args) {
 }
 
 ValuePtr IoValue::close(Env *env) {
+    if (m_closed)
+        env->raise("IOError", "closed stream");
     int result = ::close(m_fileno);
     if (result == -1) {
         ValuePtr error_number = new IntegerValue { env, errno };
         ExceptionValue *error = env->Object()->const_find(env, "SystemCallError")->send(env, "exception", 1, &error_number, nullptr)->as_exception();
         env->raise_exception(error);
     } else {
+        m_closed = true;
         return env->nil_obj();
     }
 }
