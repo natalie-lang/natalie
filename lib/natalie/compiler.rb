@@ -67,7 +67,7 @@ module Natalie
     def compile_c_to_binary
       cmd = compiler_command
       out = `#{cmd} 2>&1`
-      File.unlink(@c_path) unless debug || build == 'coverage' || $? != 0
+      File.unlink(@c_path) unless keep_cpp? || $? != 0
       $stderr.puts out if out.strip != ''
       raise CompileError.new('There was an error compiling.') if $? != 0
     end
@@ -143,6 +143,10 @@ module Natalie
 
     def build
       options[:build]
+    end
+
+    def keep_cpp?
+      !!(debug || options[:keep_cpp])
     end
 
     def inc_paths
