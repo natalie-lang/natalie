@@ -283,7 +283,7 @@ ValuePtr Value::ivar_get(Env *env, const char *name) {
         env->raise("NameError", "`%s' is not allowed as an instance variable name", name);
     }
     init_ivars();
-    ValuePtr val = static_cast<ValuePtr >(hashmap_get(&m_ivars, name));
+    ValuePtr val = static_cast<ValuePtr>(hashmap_get(&m_ivars, name));
     if (val) {
         return val;
     } else {
@@ -368,7 +368,7 @@ void Value::alias(Env *env, const char *new_name, const char *old_name) {
     }
 }
 
-void Value::define_singleton_method(Env *env, const char *name, ValuePtr (*fn)(Env *, ValuePtr , size_t, ValuePtr *, Block *block)) {
+void Value::define_singleton_method(Env *env, const char *name, ValuePtr (*fn)(Env *, ValuePtr, size_t, ValuePtr *, Block *block)) {
     ClassValue *klass = singleton_class(env);
     klass->define_method(env, name, fn);
 }
@@ -382,7 +382,7 @@ void Value::undefine_singleton_method(Env *env, const char *name) {
     define_singleton_method(env, name, nullptr);
 }
 
-void Value::define_method(Env *env, const char *name, ValuePtr (*fn)(Env *, ValuePtr , size_t, ValuePtr *, Block *block)) {
+void Value::define_method(Env *env, const char *name, ValuePtr (*fn)(Env *, ValuePtr, size_t, ValuePtr *, Block *block)) {
     if (!is_main_object()) {
         printf("tried to call define_method on something that has no methods\n");
         abort();

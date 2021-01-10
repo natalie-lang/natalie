@@ -5,7 +5,7 @@
 namespace Natalie {
 
 struct SexpValue : ArrayValue {
-    SexpValue(Env *, Node *, std::initializer_list<ValuePtr >);
+    SexpValue(Env *, Node *, std::initializer_list<ValuePtr>);
 
     ValuePtr new_method(Env *env, size_t argc, ValuePtr *args) {
         auto sexp = new SexpValue { env, {} };
@@ -38,7 +38,7 @@ struct SexpValue : ArrayValue {
     ValuePtr set_line(Env *env, ValuePtr line) { return ivar_set(env, "@line", line); }
 
 private:
-    SexpValue(Env *env, std::initializer_list<ValuePtr > list)
+    SexpValue(Env *env, std::initializer_list<ValuePtr> list)
         : ArrayValue { env, list } {
         m_klass = env->Object()->const_fetch("Parser")->const_fetch("Sexp")->as_class();
     }

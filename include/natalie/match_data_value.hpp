@@ -32,7 +32,7 @@ struct MatchDataValue : Value {
     ValuePtr group(Env *, size_t);
 
     ValuePtr to_s(Env *);
-    ValuePtr ref(Env *, ValuePtr );
+    ValuePtr ref(Env *, ValuePtr);
 
 private:
     OnigRegion *m_region { nullptr };

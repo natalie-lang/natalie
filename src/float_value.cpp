@@ -384,8 +384,8 @@ ValuePtr FloatValue::arg(Env *env) {
 }
 
 #define NAT_DEFINE_FLOAT_COMPARISON_METHOD(name, op)                                                       \
-    bool FloatValue::name(Env *env, ValuePtr rhs) {                                                          \
-        ValuePtr lhs = this;                                                                                 \
+    bool FloatValue::name(Env *env, ValuePtr rhs) {                                                        \
+        ValuePtr lhs = this;                                                                               \
                                                                                                            \
         if (!rhs->is_float()) {                                                                            \
             auto coerced = Natalie::coerce(env, rhs, lhs);                                                 \

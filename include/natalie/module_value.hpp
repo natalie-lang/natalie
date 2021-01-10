@@ -42,11 +42,11 @@ struct ModuleValue : Value {
     virtual ValuePtr const_get(const char *) override;
     virtual ValuePtr const_fetch(const char *) override;
     virtual ValuePtr const_find(Env *, const char *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::Raise) override;
-    virtual ValuePtr const_set(Env *, const char *, ValuePtr ) override;
+    virtual ValuePtr const_set(Env *, const char *, ValuePtr) override;
 
     virtual void alias(Env *, const char *, const char *) override;
 
-    ValuePtr eval_body(Env *, ValuePtr (*)(Env *, ValuePtr ));
+    ValuePtr eval_body(Env *, ValuePtr (*)(Env *, ValuePtr));
 
     const char *class_name() { return m_class_name; }
     void set_class_name(const char *name) { m_class_name = name ? GC_STRDUP(name) : nullptr; }
@@ -56,12 +56,12 @@ struct ModuleValue : Value {
 
     ValuePtr included_modules(Env *);
     Vector<ModuleValue *> included_modules() { return m_included_modules; }
-    bool does_include_module(Env *, ValuePtr );
+    bool does_include_module(Env *, ValuePtr);
 
     virtual ValuePtr cvar_get_or_null(Env *, const char *) override;
-    virtual ValuePtr cvar_set(Env *, const char *, ValuePtr ) override;
+    virtual ValuePtr cvar_set(Env *, const char *, ValuePtr) override;
 
-    ValuePtr define_method(Env *, ValuePtr , Block *);
+    ValuePtr define_method(Env *, ValuePtr, Block *);
     virtual void define_method(Env *, const char *, MethodFnPtr) override;
     virtual void define_method_with_block(Env *, const char *, Block *) override;
     virtual void undefine_method(Env *, const char *) override;
@@ -70,11 +70,11 @@ struct ModuleValue : Value {
     Method *find_method(const char *, ModuleValue **);
     Method *find_method_without_undefined(const char *, ModuleValue **);
 
-    ValuePtr call_method(Env *, ValuePtr , const char *, ValuePtr , size_t, ValuePtr *, Block *);
+    ValuePtr call_method(Env *, ValuePtr, const char *, ValuePtr, size_t, ValuePtr *, Block *);
 
     ArrayValue *ancestors(Env *);
 
-    bool is_method_defined(Env *, ValuePtr );
+    bool is_method_defined(Env *, ValuePtr);
 
     ValuePtr inspect(Env *);
     ValuePtr name(Env *);
@@ -82,8 +82,8 @@ struct ModuleValue : Value {
     ValuePtr attr_writer(Env *, size_t, ValuePtr *);
     ValuePtr attr_accessor(Env *, size_t, ValuePtr *);
 
-    static ValuePtr attr_reader_block_fn(Env *, ValuePtr , size_t, ValuePtr *, Block *);
-    static ValuePtr attr_writer_block_fn(Env *, ValuePtr , size_t, ValuePtr *, Block *);
+    static ValuePtr attr_reader_block_fn(Env *, ValuePtr, size_t, ValuePtr *, Block *);
+    static ValuePtr attr_writer_block_fn(Env *, ValuePtr, size_t, ValuePtr *, Block *);
 
     ValuePtr module_eval(Env *, Block *);
 
@@ -91,8 +91,8 @@ struct ModuleValue : Value {
     ValuePtr protected_method(Env *, ValuePtr method_name);
     ValuePtr public_method(Env *, ValuePtr method_name);
 
-    bool const_defined(Env *, ValuePtr );
-    ValuePtr alias_method(Env *, ValuePtr , ValuePtr );
+    bool const_defined(Env *, ValuePtr);
+    ValuePtr alias_method(Env *, ValuePtr, ValuePtr);
 
     bool eqeqeq(Env *env, ValuePtr other) {
         return other->is_a(env, this);

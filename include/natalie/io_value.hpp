@@ -30,18 +30,18 @@ struct IoValue : Value, finalizer {
         ::close(m_fileno);
     }
 
-    static ValuePtr read_file(Env *, ValuePtr );
+    static ValuePtr read_file(Env *, ValuePtr);
 
     int fileno() { return m_fileno; }
     void set_fileno(int fileno) { m_fileno = fileno; }
 
-    ValuePtr initialize(Env *, ValuePtr );
-    ValuePtr read(Env *, ValuePtr );
+    ValuePtr initialize(Env *, ValuePtr);
+    ValuePtr read(Env *, ValuePtr);
     ValuePtr write(Env *, size_t, ValuePtr *);
     ValuePtr puts(Env *, size_t, ValuePtr *);
     ValuePtr print(Env *, size_t, ValuePtr *);
     ValuePtr close(Env *);
-    ValuePtr seek(Env *, ValuePtr , ValuePtr );
+    ValuePtr seek(Env *, ValuePtr, ValuePtr);
 
 private:
     int m_fileno { 0 };

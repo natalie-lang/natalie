@@ -90,7 +90,7 @@ struct Value : public gc {
 
     virtual ~Value() { }
 
-    static ValuePtr _new(Env *, ValuePtr , size_t, ValuePtr *, Block *);
+    static ValuePtr _new(Env *, ValuePtr, size_t, ValuePtr *, Block *);
 
     Value(const Value &);
 
@@ -172,22 +172,22 @@ struct Value : public gc {
     virtual ValuePtr const_get(const char *);
     virtual ValuePtr const_fetch(const char *);
     virtual ValuePtr const_find(Env *, const char *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::Raise);
-    virtual ValuePtr const_set(Env *, const char *, ValuePtr );
+    virtual ValuePtr const_set(Env *, const char *, ValuePtr);
 
     ValuePtr ivar_get(Env *, const char *);
-    ValuePtr ivar_set(Env *, const char *, ValuePtr );
+    ValuePtr ivar_set(Env *, const char *, ValuePtr);
 
     ValuePtr instance_variables(Env *);
 
     ValuePtr cvar_get(Env *, const char *);
     virtual ValuePtr cvar_get_or_null(Env *, const char *);
-    virtual ValuePtr cvar_set(Env *, const char *, ValuePtr );
+    virtual ValuePtr cvar_set(Env *, const char *, ValuePtr);
 
     virtual void define_method(Env *, const char *, MethodFnPtr);
     virtual void define_method_with_block(Env *, const char *, Block *);
     virtual void undefine_method(Env *, const char *);
 
-    void define_singleton_method(Env *, const char *, ValuePtr (*)(Env *, ValuePtr , size_t, ValuePtr *, Block *block));
+    void define_singleton_method(Env *, const char *, ValuePtr (*)(Env *, ValuePtr, size_t, ValuePtr *, Block *block));
     void define_singleton_method_with_block(Env *, const char *, Block *);
     void undefine_singleton_method(Env *, const char *);
 
@@ -206,9 +206,9 @@ struct Value : public gc {
 
     ValuePtr dup(Env *);
 
-    bool is_a(Env *, ValuePtr );
+    bool is_a(Env *, ValuePtr);
     bool respond_to(Env *, const char *);
-    bool respond_to(Env *, ValuePtr );
+    bool respond_to(Env *, ValuePtr);
 
     const char *defined(Env *, const char *, bool);
     ValuePtr defined_obj(Env *, const char *, bool = false);
@@ -233,7 +233,7 @@ struct Value : public gc {
         return send(env, "==", 1, &other)->is_falsey();
     }
 
-    ValuePtr instance_eval(Env *, ValuePtr , Block *);
+    ValuePtr instance_eval(Env *, ValuePtr, Block *);
 
     void assert_type(Env *, Value::Type, const char *);
     void assert_not_frozen(Env *);

@@ -59,7 +59,7 @@ void ModuleValue::prepend_once(Env *env, ModuleValue *module) {
 }
 
 ValuePtr ModuleValue::const_get(const char *name) {
-    return static_cast<ValuePtr >(hashmap_get(&m_constants, name));
+    return static_cast<ValuePtr>(hashmap_get(&m_constants, name));
 }
 
 ValuePtr ModuleValue::const_fetch(const char *name) {
@@ -127,7 +127,7 @@ void ModuleValue::alias(Env *env, const char *new_name, const char *old_name) {
     hashmap_put(&m_methods, new_name, new Method { *method });
 }
 
-ValuePtr ModuleValue::eval_body(Env *env, ValuePtr (*fn)(Env *, ValuePtr )) {
+ValuePtr ModuleValue::eval_body(Env *env, ValuePtr (*fn)(Env *, ValuePtr)) {
     Env body_env = Env { env };
     body_env.set_caller(env);
     ValuePtr result = fn(&body_env, this);
@@ -140,7 +140,7 @@ ValuePtr ModuleValue::cvar_get_or_null(Env *env, const char *name) {
     ValuePtr val = nullptr;
     while (1) {
         if (module->m_class_vars.table) {
-            val = static_cast<ValuePtr >(hashmap_get(&module->m_class_vars, name));
+            val = static_cast<ValuePtr>(hashmap_get(&module->m_class_vars, name));
             if (val) {
                 return val;
             }
@@ -158,7 +158,7 @@ ValuePtr ModuleValue::cvar_set(Env *env, const char *name, ValuePtr val) {
     ValuePtr exists = nullptr;
     while (1) {
         if (current->m_class_vars.table) {
-            exists = static_cast<ValuePtr >(hashmap_get(&current->m_class_vars, name));
+            exists = static_cast<ValuePtr>(hashmap_get(&current->m_class_vars, name));
             if (exists) {
                 hashmap_remove(&current->m_class_vars, name);
                 hashmap_put(&current->m_class_vars, name, val);

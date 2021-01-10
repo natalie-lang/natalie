@@ -27,12 +27,12 @@ struct RangeValue : Value {
     ValuePtr end() { return m_end; }
     bool exclude_end() { return m_exclude_end; }
 
-    ValuePtr initialize(Env *, ValuePtr , ValuePtr , ValuePtr );
+    ValuePtr initialize(Env *, ValuePtr, ValuePtr, ValuePtr);
     ValuePtr to_a(Env *);
     ValuePtr each(Env *, Block *);
     ValuePtr inspect(Env *);
-    ValuePtr eq(Env *, ValuePtr );
-    ValuePtr eqeqeq(Env *, ValuePtr );
+    ValuePtr eq(Env *, ValuePtr);
+    ValuePtr eqeqeq(Env *, ValuePtr);
 
 private:
     ValuePtr m_begin { nullptr };

@@ -26,7 +26,7 @@ struct ExceptionValue : Value {
     const char *message() { return m_message; }
     void set_message(const char *message) { m_message = GC_STRDUP(message); }
 
-    ValuePtr initialize(Env *, ValuePtr );
+    ValuePtr initialize(Env *, ValuePtr);
     ValuePtr inspect(Env *);
     ValuePtr message(Env *);
 

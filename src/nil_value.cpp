@@ -2,7 +2,7 @@
 
 namespace Natalie {
 
-ValuePtr NilValue::eqtilde(Env *env, ValuePtr ) {
+ValuePtr NilValue::eqtilde(Env *env, ValuePtr) {
     return env->nil_obj();
 }
 

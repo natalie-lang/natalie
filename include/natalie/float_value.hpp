@@ -111,35 +111,35 @@ struct FloatValue : Value {
         return copy;
     }
 
-    bool eq(Env *, ValuePtr );
+    bool eq(Env *, ValuePtr);
 
-    bool eql(ValuePtr );
+    bool eql(ValuePtr);
 
     ValuePtr abs(Env *);
-    ValuePtr add(Env *, ValuePtr );
+    ValuePtr add(Env *, ValuePtr);
     ValuePtr arg(Env *);
-    ValuePtr ceil(Env *, ValuePtr );
-    ValuePtr cmp(Env *, ValuePtr );
-    ValuePtr coerce(Env *, ValuePtr );
-    ValuePtr div(Env *, ValuePtr );
-    ValuePtr divmod(Env *, ValuePtr );
-    ValuePtr floor(Env *, ValuePtr );
-    ValuePtr mod(Env *, ValuePtr );
-    ValuePtr mul(Env *, ValuePtr );
+    ValuePtr ceil(Env *, ValuePtr);
+    ValuePtr cmp(Env *, ValuePtr);
+    ValuePtr coerce(Env *, ValuePtr);
+    ValuePtr div(Env *, ValuePtr);
+    ValuePtr divmod(Env *, ValuePtr);
+    ValuePtr floor(Env *, ValuePtr);
+    ValuePtr mod(Env *, ValuePtr);
+    ValuePtr mul(Env *, ValuePtr);
     ValuePtr next_float(Env *);
-    ValuePtr pow(Env *, ValuePtr );
+    ValuePtr pow(Env *, ValuePtr);
     ValuePtr prev_float(Env *);
-    ValuePtr round(Env *, ValuePtr );
-    ValuePtr sub(Env *, ValuePtr );
+    ValuePtr round(Env *, ValuePtr);
+    ValuePtr sub(Env *, ValuePtr);
     ValuePtr to_f() { return this; }
     ValuePtr to_i(Env *);
     ValuePtr to_s(Env *);
-    ValuePtr truncate(Env *, ValuePtr );
+    ValuePtr truncate(Env *, ValuePtr);
 
-    bool lt(Env *, ValuePtr );
-    bool lte(Env *, ValuePtr );
-    bool gt(Env *, ValuePtr );
-    bool gte(Env *, ValuePtr );
+    bool lt(Env *, ValuePtr);
+    bool lte(Env *, ValuePtr);
+    bool gt(Env *, ValuePtr);
+    bool gte(Env *, ValuePtr);
 
     ValuePtr uminus() {
         return negate();

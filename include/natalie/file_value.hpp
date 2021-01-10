@@ -16,7 +16,7 @@ struct FileValue : IoValue {
     FileValue(Env *env)
         : IoValue { env, env->Object()->const_fetch("File")->as_class() } { }
 
-    ValuePtr initialize(Env *, ValuePtr , ValuePtr , Block *);
+    ValuePtr initialize(Env *, ValuePtr, ValuePtr, Block *);
 
     static ValuePtr open(Env *env, ValuePtr filename, ValuePtr flags_obj, Block *block) {
         ValuePtr args[] = { filename, flags_obj };

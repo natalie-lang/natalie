@@ -19,7 +19,7 @@ struct ArrayValue : Value {
     ArrayValue(Env *env, ClassValue *klass)
         : Value { Value::Type::Array, klass } { }
 
-    ArrayValue(Env *env, std::initializer_list<ValuePtr > list)
+    ArrayValue(Env *env, std::initializer_list<ValuePtr> list)
         : ArrayValue { env } {
         m_vector.set_capacity(list.size());
         for (auto &v : list) {
@@ -68,7 +68,7 @@ struct ArrayValue : Value {
         }
     }
 
-    void push_splat(Env *, ValuePtr );
+    void push_splat(Env *, ValuePtr);
 
     void expand_with_nil(Env *, size_t);
 
@@ -85,47 +85,47 @@ struct ArrayValue : Value {
 
     void sort_in_place(Env *);
 
-    Vector<ValuePtr >::iterator begin() noexcept { return m_vector.begin(); }
-    Vector<ValuePtr >::iterator end() noexcept { return m_vector.end(); }
+    Vector<ValuePtr>::iterator begin() noexcept { return m_vector.begin(); }
+    Vector<ValuePtr>::iterator end() noexcept { return m_vector.end(); }
 
     bool is_empty() { return m_vector.is_empty(); }
 
-    ValuePtr initialize(Env *, ValuePtr , ValuePtr );
+    ValuePtr initialize(Env *, ValuePtr, ValuePtr);
 
-    ValuePtr add(Env *, ValuePtr );
+    ValuePtr add(Env *, ValuePtr);
     ValuePtr any(Env *, size_t, ValuePtr *, Block *);
-    ValuePtr cmp(Env *, ValuePtr );
+    ValuePtr cmp(Env *, ValuePtr);
     ValuePtr compact(Env *);
     ValuePtr each(Env *, Block *);
-    ValuePtr eq(Env *, ValuePtr );
-    ValuePtr eql(Env *, ValuePtr );
+    ValuePtr eq(Env *, ValuePtr);
+    ValuePtr eql(Env *, ValuePtr);
     ValuePtr first(Env *);
-    ValuePtr include(Env *, ValuePtr );
-    ValuePtr index(Env *, ValuePtr , Block *);
+    ValuePtr include(Env *, ValuePtr);
+    ValuePtr index(Env *, ValuePtr, Block *);
     ValuePtr inspect(Env *);
-    ValuePtr join(Env *, ValuePtr );
+    ValuePtr join(Env *, ValuePtr);
     ValuePtr last(Env *);
-    ValuePtr ltlt(Env *, ValuePtr );
+    ValuePtr ltlt(Env *, ValuePtr);
     ValuePtr map(Env *, Block *);
     ValuePtr max(Env *);
     ValuePtr min(Env *);
     ValuePtr push(Env *, size_t, ValuePtr *);
-    ValuePtr ref(Env *, ValuePtr , ValuePtr );
-    ValuePtr refeq(Env *, ValuePtr , ValuePtr , ValuePtr );
+    ValuePtr ref(Env *, ValuePtr, ValuePtr);
+    ValuePtr refeq(Env *, ValuePtr, ValuePtr, ValuePtr);
     ValuePtr reject(Env *, Block *);
     ValuePtr sample(Env *);
     ValuePtr select(Env *, Block *);
-    ValuePtr shift(Env *, ValuePtr );
+    ValuePtr shift(Env *, ValuePtr);
     ValuePtr sort(Env *);
-    ValuePtr sub(Env *, ValuePtr );
+    ValuePtr sub(Env *, ValuePtr);
     ValuePtr uniq(Env *);
 
 private:
-    ArrayValue(Env *env, Vector<ValuePtr > &&vector)
+    ArrayValue(Env *env, Vector<ValuePtr> &&vector)
         : Value { Value::Type::Array, env->Array() }
         , m_vector { std::move(vector) } { }
 
-    Vector<ValuePtr > m_vector {};
+    Vector<ValuePtr> m_vector {};
 };
 
 }

@@ -9,7 +9,7 @@ Env Env::new_detatched_env(Env *outer) {
 }
 
 void Env::build_vars(size_t size) {
-    m_vars = new Vector<ValuePtr > { size, static_cast<ValuePtr >(nil_obj()) };
+    m_vars = new Vector<ValuePtr> { size, static_cast<ValuePtr>(nil_obj()) };
 }
 
 ValuePtr Env::global_get(const char *name) {
@@ -18,7 +18,7 @@ ValuePtr Env::global_get(const char *name) {
     if (name[0] != '$') {
         env->raise("NameError", "`%s' is not allowed as a global variable name", name);
     }
-    ValuePtr val = static_cast<ValuePtr >(hashmap_get(env->global_env()->globals(), name));
+    ValuePtr val = static_cast<ValuePtr>(hashmap_get(env->global_env()->globals(), name));
     if (val) {
         return val;
     } else {
@@ -163,7 +163,7 @@ ValuePtr Env::var_set(const char *name, size_t index, bool allocate, ValuePtr va
     if (needed > current_size) {
         if (allocate) {
             if (!m_vars) {
-                m_vars = new Vector<ValuePtr > { needed, nil_obj() };
+                m_vars = new Vector<ValuePtr> { needed, nil_obj() };
             } else {
                 m_vars->set_size(needed, nil_obj());
             }

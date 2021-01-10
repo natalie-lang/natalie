@@ -29,19 +29,19 @@ struct Env : public gc {
     static Env new_detatched_env(Env *);
 
     ValuePtr global_get(const char *);
-    ValuePtr global_set(const char *, ValuePtr );
+    ValuePtr global_set(const char *, ValuePtr);
 
     const char *find_current_method_name();
     char *build_code_location_name(Env *);
 
     ValuePtr var_get(const char *, size_t);
-    ValuePtr var_set(const char *, size_t, bool, ValuePtr );
+    ValuePtr var_set(const char *, size_t, bool, ValuePtr);
 
     [[noreturn]] void raise(ClassValue *, StringValue *);
     [[noreturn]] void raise(ClassValue *, const char *, ...);
     [[noreturn]] void raise(const char *, const char *, ...);
     [[noreturn]] void raise_exception(ExceptionValue *);
-    [[noreturn]] void raise_local_jump_error(ValuePtr , const char *);
+    [[noreturn]] void raise_local_jump_error(ValuePtr, const char *);
     [[noreturn]] void raise_errno();
 
     void assert_argc(size_t argc, size_t expected);
@@ -88,7 +88,7 @@ struct Env : public gc {
 
 private:
     GlobalEnv *m_global_env { nullptr };
-    Vector<ValuePtr > *m_vars { nullptr };
+    Vector<ValuePtr> *m_vars { nullptr };
     Env *m_outer { nullptr };
     Block *m_block { nullptr };
     Env *m_caller { nullptr };

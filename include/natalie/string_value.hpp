@@ -80,7 +80,7 @@ struct StringValue : Value {
     void append(Env *, const char *);
     void append(Env *, std::string);
     void append_char(Env *, char);
-    void append_string(Env *, ValuePtr );
+    void append_string(Env *, ValuePtr);
     void append_string(Env *, StringValue *);
     StringValue *next_char(Env *, size_t *);
     ValuePtr each_char(Env *, Block *);
@@ -97,9 +97,9 @@ struct StringValue : Value {
 
     StringValue *successive(Env *);
 
-    ValuePtr index(Env *, ValuePtr );
-    ValuePtr index(Env *, ValuePtr , size_t start);
-    nat_int_t index_int(Env *, ValuePtr , size_t start);
+    ValuePtr index(Env *, ValuePtr);
+    ValuePtr index(Env *, ValuePtr, size_t start);
+    nat_int_t index_int(Env *, ValuePtr, size_t start);
 
     void truncate(size_t length) {
         assert(length <= m_length);
@@ -107,8 +107,8 @@ struct StringValue : Value {
         m_length = length;
     }
 
-    ValuePtr initialize(Env *, ValuePtr );
-    ValuePtr ltlt(Env *, ValuePtr );
+    ValuePtr initialize(Env *, ValuePtr);
+    ValuePtr ltlt(Env *, ValuePtr);
 
     bool eq(ValuePtr arg) {
         return *this == *arg;
@@ -118,31 +118,31 @@ struct StringValue : Value {
         return this;
     }
 
-    bool start_with(Env *, ValuePtr );
-    bool end_with(Env *, ValuePtr );
+    bool start_with(Env *, ValuePtr);
+    bool end_with(Env *, ValuePtr);
     bool is_empty() { return m_length == 0; }
 
-    ValuePtr gsub(Env *, ValuePtr , ValuePtr  = nullptr, Block *block = nullptr);
-    ValuePtr sub(Env *, ValuePtr , ValuePtr  = nullptr, Block *block = nullptr);
+    ValuePtr gsub(Env *, ValuePtr, ValuePtr = nullptr, Block *block = nullptr);
+    ValuePtr sub(Env *, ValuePtr, ValuePtr = nullptr, Block *block = nullptr);
 
-    ValuePtr add(Env *, ValuePtr );
+    ValuePtr add(Env *, ValuePtr);
     ValuePtr bytes(Env *);
-    ValuePtr cmp(Env *, ValuePtr );
+    ValuePtr cmp(Env *, ValuePtr);
     ValuePtr downcase(Env *);
-    ValuePtr encode(Env *, ValuePtr );
+    ValuePtr encode(Env *, ValuePtr);
     ValuePtr encoding(Env *);
-    ValuePtr eqtilde(Env *, ValuePtr );
-    ValuePtr force_encoding(Env *, ValuePtr );
-    ValuePtr ljust(Env *, ValuePtr , ValuePtr );
-    ValuePtr match(Env *, ValuePtr );
-    ValuePtr mul(Env *, ValuePtr );
+    ValuePtr eqtilde(Env *, ValuePtr);
+    ValuePtr force_encoding(Env *, ValuePtr);
+    ValuePtr ljust(Env *, ValuePtr, ValuePtr);
+    ValuePtr match(Env *, ValuePtr);
+    ValuePtr mul(Env *, ValuePtr);
     ValuePtr ord(Env *);
-    ValuePtr ref(Env *, ValuePtr );
+    ValuePtr ref(Env *, ValuePtr);
     ValuePtr reverse(Env *);
     ValuePtr size(Env *);
-    ValuePtr split(Env *, ValuePtr , ValuePtr );
+    ValuePtr split(Env *, ValuePtr, ValuePtr);
     ValuePtr strip(Env *);
-    ValuePtr to_i(Env *, ValuePtr );
+    ValuePtr to_i(Env *, ValuePtr);
     ValuePtr upcase(Env *);
 
 private:

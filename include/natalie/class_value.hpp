@@ -27,7 +27,7 @@ struct ClassValue : ModuleValue {
 
     Type object_type() { return m_object_type; }
 
-    ValuePtr initialize(Env *, ValuePtr , Block *);
+    ValuePtr initialize(Env *, ValuePtr, Block *);
 
     static ValuePtr new_method(Env *env, ValuePtr superclass, Block *block) {
         if (superclass) {

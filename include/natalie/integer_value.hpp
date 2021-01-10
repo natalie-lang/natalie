@@ -39,30 +39,30 @@ struct IntegerValue : Value {
 
     ValuePtr inspect(Env *env) { return to_s(env); }
 
-    ValuePtr to_s(Env *, ValuePtr  = nullptr);
+    ValuePtr to_s(Env *, ValuePtr = nullptr);
     ValuePtr to_i();
-    ValuePtr add(Env *, ValuePtr );
-    ValuePtr sub(Env *, ValuePtr );
-    ValuePtr mul(Env *, ValuePtr );
-    ValuePtr div(Env *, ValuePtr );
-    ValuePtr mod(Env *, ValuePtr );
-    ValuePtr pow(Env *, ValuePtr );
-    ValuePtr cmp(Env *, ValuePtr );
-    ValuePtr eqeqeq(Env *, ValuePtr );
+    ValuePtr add(Env *, ValuePtr);
+    ValuePtr sub(Env *, ValuePtr);
+    ValuePtr mul(Env *, ValuePtr);
+    ValuePtr div(Env *, ValuePtr);
+    ValuePtr mod(Env *, ValuePtr);
+    ValuePtr pow(Env *, ValuePtr);
+    ValuePtr cmp(Env *, ValuePtr);
+    ValuePtr eqeqeq(Env *, ValuePtr);
     ValuePtr times(Env *, Block *);
-    ValuePtr bitwise_and(Env *, ValuePtr );
-    ValuePtr bitwise_or(Env *, ValuePtr );
+    ValuePtr bitwise_and(Env *, ValuePtr);
+    ValuePtr bitwise_or(Env *, ValuePtr);
     ValuePtr succ(Env *);
-    ValuePtr coerce(Env *, ValuePtr );
+    ValuePtr coerce(Env *, ValuePtr);
     ValuePtr abs(Env *);
     ValuePtr chr(Env *);
 
-    bool eq(Env *, ValuePtr );
-    bool eql(Env *, ValuePtr );
-    bool lt(Env *, ValuePtr );
-    bool lte(Env *, ValuePtr );
-    bool gt(Env *, ValuePtr );
-    bool gte(Env *, ValuePtr );
+    bool eq(Env *, ValuePtr);
+    bool eql(Env *, ValuePtr);
+    bool lt(Env *, ValuePtr);
+    bool lte(Env *, ValuePtr);
+    bool gt(Env *, ValuePtr);
+    bool gte(Env *, ValuePtr);
 
 private:
     nat_int_t m_integer { 0 };

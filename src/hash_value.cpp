@@ -261,7 +261,7 @@ ValuePtr HashValue::eq(Env *env, ValuePtr other_value) {
 }
 
 #define NAT_RUN_BLOCK_AND_POSSIBLY_BREAK_WHILE_ITERATING_HASH(env, the_block, argc, args, block, hash) ({ \
-    ValuePtr _result = the_block->_run(env, argc, args, block);                                             \
+    ValuePtr _result = the_block->_run(env, argc, args, block);                                           \
     if (_result->has_break_flag()) {                                                                      \
         _result->remove_break_flag();                                                                     \
         hash->set_is_iterating(false);                                                                    \

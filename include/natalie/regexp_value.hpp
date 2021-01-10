@@ -90,10 +90,10 @@ struct RegexpValue : Value {
         return match(env, other)->is_truthy();
     }
 
-    ValuePtr initialize(Env *, ValuePtr );
+    ValuePtr initialize(Env *, ValuePtr);
     ValuePtr inspect(Env *env);
-    ValuePtr eqtilde(Env *env, ValuePtr );
-    ValuePtr match(Env *env, ValuePtr , size_t = 0);
+    ValuePtr eqtilde(Env *env, ValuePtr);
+    ValuePtr match(Env *env, ValuePtr, size_t = 0);
     ValuePtr source(Env *env);
 
 private:

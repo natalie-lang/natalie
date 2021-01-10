@@ -301,7 +301,7 @@ StringValue *StringValue::vsprintf(Env *env, const char *format, va_list args) {
                 out->append(env, int_to_hex_string(va_arg(args, nat_int_t), true));
                 break;
             case 'v':
-                inspected = va_arg(args, ValuePtr )->send(env, "inspect")->as_string();
+                inspected = va_arg(args, ValuePtr)->send(env, "inspect")->as_string();
                 out->append_string(env, inspected);
                 break;
             case '%':

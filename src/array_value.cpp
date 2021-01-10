@@ -401,7 +401,7 @@ void ArrayValue::sort_in_place(Env *env) {
         ValuePtr compare = a->send(static_cast<Env *>(env), "<=>", 1, &b, nullptr);
         return compare->as_integer()->to_nat_int_t() < 0;
     };
-    m_vector.sort(Vector<ValuePtr >::SortComparator { env, cmp });
+    m_vector.sort(Vector<ValuePtr>::SortComparator { env, cmp });
 }
 
 ValuePtr ArrayValue::select(Env *env, Block *block) {
