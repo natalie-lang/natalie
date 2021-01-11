@@ -363,10 +363,20 @@ class RaiseErrorExpectation
   end
 
   def inverted_match(subject)
-    begin
-      subject.call
-    rescue @klass
-      raise SpecFailedException, subject.inspect + ' should not have raised ' + @klass.inspect
+    if @klass
+      begin
+        subject.call
+      rescue @klass
+        raise SpecFailedException, subject.inspect + ' should not have raised ' + @klass.inspect
+      end
+    else
+      begin
+        subject.call
+      rescue
+        # FIXME: same bug as above
+        raise e if e.is_a?(SpecFailedException)
+        raise SpecFailedException, "#{subject.inspect} should not have raised any errors"
+      end
     end
   end
 end
@@ -500,6 +510,7 @@ class Object
     EqualExpectation.new(other)
   end
 
+  # FIXME: bug if klass has default value of nil
   def raise_error(klass, message = nil)
     RaiseErrorExpectation.new(klass, message)
   end

@@ -25,6 +25,8 @@ ValuePtr IoValue::read_file(Env *env, ValuePtr filename) {
 #define NAT_READ_BYTES 1024
 
 ValuePtr IoValue::read(Env *env, ValuePtr count_value) {
+    if (m_closed)
+        env->raise("IOError", "closed stream");
     size_t bytes_read;
     if (count_value) {
         count_value->assert_type(env, Value::Type::Integer, "Integer");
@@ -104,7 +106,7 @@ ValuePtr IoValue::print(Env *env, size_t argc, ValuePtr *args) {
 
 ValuePtr IoValue::close(Env *env) {
     if (m_closed)
-        env->raise("IOError", "closed stream");
+        return env->nil_obj();
     int result = ::close(m_fileno);
     if (result == -1) {
         ValuePtr error_number = new IntegerValue { env, errno };

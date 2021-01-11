@@ -161,7 +161,8 @@ describe 'File' do
     it 'closes the file' do
       f = File.open('test/support/file.txt')
       f.close
-      -> { f.close }.should raise_error(IOError, 'closed stream')
+      -> { f.close }.should_not raise_error(nil)
+      -> { f.read }.should raise_error(IOError, 'closed stream')
     end
   end
 
