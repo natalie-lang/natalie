@@ -7,7 +7,15 @@ module CompareRubies
   end
 
   def run_self_hosted_nat(path, *args)
-    out_nat = `bin/natalie bin/natalie #{path} #{args.join(' ')} 2>&1`
+    unless File.exist?(File.expand_path('../tmp/nat', __dir__))
+      out_nat = `bin/natalie -c test/tmp/nat bin/natalie 2>&1`
+      puts out_nat unless $?.success?
+    end
+    unless File.exist?(File.expand_path('../tmp/nat2', __dir__))
+      out_nat = `./test/tmp/nat -c test/tmp/nat2 bin/natalie 2>&1`
+      puts out_nat unless $?.success?
+    end
+    out_nat = `./test/tmp/nat2 #{path} #{args.join(' ')} 2>&1`
     puts out_nat unless $?.success?
     expect($?).must_be :success?
     out_nat
