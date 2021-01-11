@@ -43,7 +43,7 @@ ValuePtr ArrayValue::ltlt(Env *env, ValuePtr arg) {
 
 ValuePtr ArrayValue::add(Env *env, ValuePtr other) {
     other->assert_type(env, Value::Type::Array, "Array");
-    ArrayValue *new_array = new ArrayValue { *this };
+    ArrayValue *new_array = new ArrayValue { env, *this };
     new_array->concat(*other->as_array());
     return new_array;
 }
@@ -171,7 +171,7 @@ ValuePtr ArrayValue::refeq(Env *env, ValuePtr index_obj, ValuePtr size, ValuePtr
 }
 
 ValuePtr ArrayValue::any(Env *env, size_t argc, ValuePtr *args, Block *block) {
-    ModuleValue *Enumerable = env->Object()->const_fetch("Enumerable")->as_module();
+    ModuleValue *Enumerable = env->Object()->const_fetch(env, "Enumerable")->as_module();
     return Enumerable->call_method(env, klass(), "any?", this, argc, args, block);
 }
 
@@ -318,7 +318,7 @@ ValuePtr ArrayValue::shift(Env *env, ValuePtr count) {
 }
 
 ValuePtr ArrayValue::sort(Env *env) {
-    ArrayValue *copy = new ArrayValue { *this };
+    ArrayValue *copy = new ArrayValue { env, *this };
     copy->sort_in_place(env);
     return copy;
 }

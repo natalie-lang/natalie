@@ -8,24 +8,17 @@ nat_int_t HashValue::hash(const void *key) {
 }
 
 // this is used by the hashmap library to compare keys
-int HashValue::compare(const void *a, const void *b) {
+int HashValue::compare(Env *env, const void *a, const void *b) {
     Key *a_p = (Key *)a;
     Key *b_p = (Key *)b;
-    // NOTE: Only one of the keys will have a relevant Env, i.e. the one with a non-null global_env.
-    // This is a bit of a hack to get around the fact that we can't pass any extra args to hashmap_* functions.
-    // TODO: Write our own hashmap implementation that passes Env around. :^)
-    Env *env = a_p->env.global_env() ? &a_p->env : &b_p->env;
-    assert(env);
-    assert(env->global_env());
     return a_p->key->send(env, "eql?", 1, &b_p->key)->is_truthy() ? 0 : 1; // return 0 for exact match
 }
 
 ValuePtr HashValue::get(Env *env, ValuePtr key) {
     Key key_container;
     key_container.key = key;
-    key_container.env = *env;
     key_container.hash = key->send(env, "hash")->as_integer()->to_nat_int_t();
-    Val *container = static_cast<Val *>(hashmap_get(&m_hashmap, &key_container));
+    Val *container = static_cast<Val *>(hashmap_get(env, &m_hashmap, &key_container));
     ValuePtr val = container ? container->val : nullptr;
     return val;
 }
@@ -43,9 +36,8 @@ void HashValue::put(Env *env, ValuePtr key, ValuePtr val) {
     this->assert_not_frozen(env);
     Key key_container;
     key_container.key = key;
-    key_container.env = *env;
     key_container.hash = key->send(env, "hash")->as_integer()->to_nat_int_t();
-    Val *container = static_cast<Val *>(hashmap_get(&m_hashmap, &key_container));
+    Val *container = static_cast<Val *>(hashmap_get(env, &m_hashmap, &key_container));
     if (container) {
         container->key->val = val;
         container->val = val;
@@ -56,19 +48,15 @@ void HashValue::put(Env *env, ValuePtr key, ValuePtr val) {
         container = static_cast<Val *>(GC_MALLOC(sizeof(Val)));
         container->key = key_list_append(env, key, val);
         container->val = val;
-        hashmap_put(&m_hashmap, container->key, container);
-        // NOTE: env must be current and relevant at all times
-        // See note on hashmap_compare for more details
-        container->key->env = {};
+        hashmap_put(env, &m_hashmap, container->key, container);
     }
 }
 
 ValuePtr HashValue::remove(Env *env, ValuePtr key) {
     Key key_container;
     key_container.key = key;
-    key_container.env = *env;
     key_container.hash = key->send(env, "hash")->as_integer()->to_nat_int_t();
-    Val *container = static_cast<Val *>(hashmap_remove(&m_hashmap, &key_container));
+    Val *container = static_cast<Val *>(hashmap_remove(env, &m_hashmap, &key_container));
     if (container) {
         key_list_remove_node(container->key);
         ValuePtr val = container->val;
@@ -101,7 +89,6 @@ HashValue::Key *HashValue::key_list_append(Env *env, ValuePtr key, ValuePtr val)
         // ^______________________________|
         new_last->prev = last;
         new_last->next = first;
-        new_last->env = Env::new_detatched_env(env);
         new_last->hash = key->send(env, "hash")->as_integer()->to_nat_int_t();
         new_last->removed = false;
         first->prev = new_last;
@@ -113,7 +100,6 @@ HashValue::Key *HashValue::key_list_append(Env *env, ValuePtr key, ValuePtr val)
         node->val = val;
         node->prev = node;
         node->next = node;
-        node->env = Env::new_detatched_env(env);
         node->hash = key->send(env, "hash")->as_integer()->to_nat_int_t();
         node->removed = false;
         m_key_list = node;

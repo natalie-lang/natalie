@@ -27,8 +27,8 @@ struct ArrayValue : Value {
         }
     }
 
-    ArrayValue(ArrayValue &other)
-        : Value { other }
+    ArrayValue(Env *env, ArrayValue &other)
+        : Value { env, other }
         , m_vector { other.m_vector } { }
 
     ArrayValue(Env *env, size_t argc, ValuePtr *args)

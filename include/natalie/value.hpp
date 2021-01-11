@@ -75,7 +75,7 @@ struct Value : public gc {
         assert(klass);
     }
 
-    Value(Value &other)
+    Value(Env *env, Value &other)
         : m_klass { other.m_klass }
         , m_type { other.m_type } {
         if (other.m_ivars.table) {
@@ -83,18 +83,20 @@ struct Value : public gc {
             struct hashmap_iter *iter;
             for (iter = hashmap_iter(&other.m_ivars); iter; iter = hashmap_iter_next(&other.m_ivars, iter)) {
                 char *name = (char *)hashmap_iter_get_key(iter);
-                hashmap_put(&m_ivars, name, hashmap_iter_get_data(iter));
+                hashmap_put(env, &m_ivars, name, hashmap_iter_get_data(iter));
             }
         }
     }
+
+    Value(const Value &) = delete;
+
+    Value &operator=(const Value &) = delete;
 
     virtual ~Value() { }
 
     static ValuePtr _new(Env *, ValuePtr, size_t, ValuePtr *, Block *);
 
-    Value(const Value &);
-
-    Value &operator=(const Value &) = delete;
+    Value(Env *, const Value &);
 
     Type type() { return m_type; }
     ClassValue *klass() { return m_klass; }
@@ -169,8 +171,8 @@ struct Value : public gc {
 
     void set_singleton_class(ClassValue *c) { m_singleton_class = c; }
 
-    virtual ValuePtr const_get(const char *);
-    virtual ValuePtr const_fetch(const char *);
+    virtual ValuePtr const_get(Env *, const char *);
+    virtual ValuePtr const_fetch(Env *, const char *);
     virtual ValuePtr const_find(Env *, const char *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::Raise);
     virtual ValuePtr const_set(Env *, const char *, ValuePtr);
 

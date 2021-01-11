@@ -41,8 +41,6 @@ struct TrueValue;
 struct Value;
 struct VoidPValue;
 
-void copy_hashmap(struct hashmap &, const struct hashmap &);
-
 using ValuePtr = Value *;
 using MethodFnPtr = ValuePtr (*)(Env *, ValuePtr, size_t, ValuePtr *, Block *);
 

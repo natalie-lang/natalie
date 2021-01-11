@@ -12,13 +12,13 @@ namespace Natalie {
 
 struct RangeValue : Value {
     RangeValue(Env *env)
-        : Value { Value::Type::Range, env->Object()->const_fetch("Range")->as_class() } { }
+        : Value { Value::Type::Range, env->Object()->const_fetch(env, "Range")->as_class() } { }
 
     RangeValue(Env *env, ClassValue *klass)
         : Value { Value::Type::Range, klass } { }
 
     RangeValue(Env *env, ValuePtr begin, ValuePtr end, bool exclude_end)
-        : Value { Value::Type::Range, env->Object()->const_fetch("Range")->as_class() }
+        : Value { Value::Type::Range, env->Object()->const_fetch(env, "Range")->as_class() }
         , m_begin { begin }
         , m_end { end }
         , m_exclude_end { exclude_end } { }

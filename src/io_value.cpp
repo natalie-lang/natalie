@@ -16,7 +16,7 @@ ValuePtr IoValue::initialize(Env *env, ValuePtr file_number) {
 
 ValuePtr IoValue::read_file(Env *env, ValuePtr filename) {
     ValuePtr args[] = { filename };
-    FileValue *file = _new(env, env->Object()->const_fetch("File")->as_class(), 1, args, nullptr)->as_file();
+    FileValue *file = _new(env, env->Object()->const_fetch(env, "File")->as_class(), 1, args, nullptr)->as_file();
     auto data = file->read(env, nullptr);
     file->close(env);
     return data;

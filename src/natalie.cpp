@@ -21,7 +21,7 @@ bool is_ivar_name(const char *name) {
 
 ValuePtr splat(Env *env, ValuePtr obj) {
     if (obj->is_array()) {
-        return new ArrayValue { *obj->as_array() };
+        return new ArrayValue { env, *obj->as_array() };
     } else {
         return to_ary(env, obj, false);
     }
@@ -351,12 +351,12 @@ std::pair<ValuePtr, ValuePtr> coerce(Env *env, ValuePtr lhs, ValuePtr rhs) {
     }
 }
 
-void copy_hashmap(hashmap &dest, const hashmap &source) {
+void copy_hashmap(Env *env, hashmap &dest, const hashmap &source) {
     struct hashmap_iter *iter;
     for (iter = hashmap_iter(&source); iter; iter = hashmap_iter_next(&source, iter)) {
         char *name = (char *)hashmap_iter_get_key(iter);
         ValuePtr value = (ValuePtr)hashmap_iter_get_data(iter);
-        hashmap_put(&dest, name, value);
+        hashmap_put(env, &dest, name, value);
     }
 }
 
@@ -461,7 +461,7 @@ int pclose2(FILE *fp, pid_t pid) {
 }
 
 void set_status_object(Env *env, int pid, int status) {
-    auto status_obj = env->Object()->const_fetch("Process")->const_fetch("Status")->send(env, "new");
+    auto status_obj = env->Object()->const_fetch(env, "Process")->const_fetch(env, "Status")->send(env, "new");
     status_obj->ivar_set(env, "@to_i", new IntegerValue { env, status });
     status_obj->ivar_set(env, "@exitstatus", new IntegerValue { env, WEXITSTATUS(status) });
     status_obj->ivar_set(env, "@pid", new IntegerValue { env, pid });

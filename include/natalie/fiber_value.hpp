@@ -60,7 +60,7 @@ struct FiberValue : Value {
     };
 
     FiberValue(Env *env)
-        : Value { Value::Type::Fiber, env->Object()->const_fetch("Fiber")->as_class() } { }
+        : Value { Value::Type::Fiber, env->Object()->const_fetch(env, "Fiber")->as_class() } { }
 
     FiberValue(Env *env, ClassValue *klass)
         : Value { Value::Type::Fiber, klass } { }

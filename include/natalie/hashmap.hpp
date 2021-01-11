@@ -25,6 +25,8 @@
  *
  * Large portions of this file were copied from David Leeds' hashmap library
  * made available at: https://github.com/DavidLeeds/hashmap
+ *
+ * Modifications to work better with Natalie made by Tim Morgan, 2021.
  */
 
 #pragma once
@@ -36,6 +38,8 @@
 
 namespace Natalie {
 
+struct Env;
+
 /*
  * Define HASHMAP_METRICS to compile in performance analysis
  * functions for use in assessing hash function performance.
@@ -46,70 +50,6 @@ namespace Natalie {
  * Define HASHMAP_NOASSERT to compile out all assertions used internally.
  */
 /* #define HASHMAP_NOASSERT */
-
-/*
- * Macros to declare type-specific versions of hashmap_*() functions to
- * allow compile-time type checking and avoid the need for type casting.
- */
-#define HASHMAP_FUNCS_DECLARE(name, key_type, data_type)               \
-    data_type *name##_hashmap_put(struct hashmap *map,                 \
-        const key_type *key, data_type *data);                         \
-    data_type *name##_hashmap_get(const struct hashmap *map,           \
-        const key_type *key);                                          \
-    data_type *name##_hashmap_remove(struct hashmap *map,              \
-        const key_type *key);                                          \
-    const key_type *name##_hashmap_iter_get_key(                       \
-        const struct hashmap_iter *iter);                              \
-    data_type *name##_hashmap_iter_get_data(                           \
-        const struct hashmap_iter *iter);                              \
-    void name##_hashmap_iter_set_data(const struct hashmap_iter *iter, \
-        data_type *data);                                              \
-    int name##_hashmap_foreach(const struct hashmap *map,              \
-        int (*func)(const key_type *, data_type *, void *), void *arg);
-
-#define HASHMAP_FUNCS_CREATE(name, key_type, data_type)                                              \
-    data_type *name##_hashmap_put(struct hashmap *map,                                               \
-        const key_type *key, data_type *data) {                                                      \
-        return (data_type *)hashmap_put(map, (const void *)key,                                      \
-            (void *)data);                                                                           \
-    }                                                                                                \
-    data_type *name##_hashmap_get(const struct hashmap *map,                                         \
-        const key_type *key) {                                                                       \
-        return (data_type *)hashmap_get(map, (const void *)key);                                     \
-    }                                                                                                \
-    data_type *name##_hashmap_remove(struct hashmap *map,                                            \
-        const key_type *key) {                                                                       \
-        return (data_type *)hashmap_remove(map, (const void *)key);                                  \
-    }                                                                                                \
-    const key_type *name##_hashmap_iter_get_key(                                                     \
-        const struct hashmap_iter *iter) {                                                           \
-        return (const key_type *)hashmap_iter_get_key(iter);                                         \
-    }                                                                                                \
-    data_type *name##_hashmap_iter_get_data(                                                         \
-        const struct hashmap_iter *iter) {                                                           \
-        return (data_type *)hashmap_iter_get_data(iter);                                             \
-    }                                                                                                \
-    void name##_hashmap_iter_set_data(const struct hashmap_iter *iter,                               \
-        data_type *data) {                                                                           \
-        hashmap_iter_set_data(iter, (void *)data);                                                   \
-    }                                                                                                \
-    struct __##name##_hashmap_foreach_state {                                                        \
-        int (*func)(const key_type *, data_type *, void *);                                          \
-        void *arg;                                                                                   \
-    };                                                                                               \
-    static inline int __##name##_hashmap_foreach_callback(                                           \
-        const void *key, void *data, void *arg) {                                                    \
-        struct __##name##_hashmap_foreach_state *s = (struct __##name##_hashmap_foreach_state *)arg; \
-        return s->func((const key_type *)key,                                                        \
-            (data_type *)data, s->arg);                                                              \
-    }                                                                                                \
-    int name##_hashmap_foreach(const struct hashmap *map,                                            \
-        int (*func)(const key_type *, data_type *, void *),                                          \
-        void *arg) {                                                                                 \
-        struct __##name##_hashmap_foreach_state s = { func, arg };                                   \
-        return hashmap_foreach(map,                                                                  \
-            __##name##_hashmap_foreach_callback, &s);                                                \
-    }
 
 struct hashmap_iter;
 struct hashmap_entry;
@@ -123,7 +63,7 @@ struct hashmap {
     size_t num_entries { 0 };
     struct hashmap_entry *table { nullptr };
     nat_int_t (*hash)(const void *) { nullptr };
-    int (*key_compare)(const void *, const void *) { nullptr };
+    int (*key_compare)(Env *, const void *, const void *) { nullptr };
     void *(*key_alloc)(const void *) { nullptr };
     void (*key_free)(void *) { nullptr };
 };
@@ -149,7 +89,7 @@ typedef struct hashmap hashmap;
  * Returns 0 on success and -errno on failure.
  */
 int hashmap_init(struct hashmap *map, nat_int_t (*hash_func)(const void *),
-    int (*key_compare_func)(const void *, const void *),
+    int (*key_compare_func)(Env *env, const void *, const void *),
     size_t initial_size);
 
 /*
@@ -171,18 +111,18 @@ void hashmap_set_key_alloc_funcs(struct hashmap *map,
  * the return value with the data passed in to determine if a new entry was
  * created.  Returns NULL if memory allocation failed.
  */
-void *hashmap_put(struct hashmap *map, const void *key, void *data);
+void *hashmap_put(Env *env, struct hashmap *map, const void *key, void *data);
 
 /*
  * Return the data pointer, or NULL if no entry exists.
  */
-void *hashmap_get(const struct hashmap *map, const void *key);
+void *hashmap_get(Env *env, const struct hashmap *map, const void *key);
 
 /*
  * Remove an entry with the specified key from the map.
  * Returns the data pointer, or NULL, if no entry was found.
  */
-void *hashmap_remove(struct hashmap *map, const void *key);
+void *hashmap_remove(Env *env, struct hashmap *map, const void *key);
 
 /*
  * Remove all entries.
@@ -257,7 +197,7 @@ nat_int_t hashmap_hash_string(const void *key);
 /*
  * Default key comparator function for string keys.
  */
-int hashmap_compare_string(const void *a, const void *b);
+int hashmap_compare_string(Env *env, const void *a, const void *b);
 
 /*
  * Default key allocation function for string keys.  Use free() for the

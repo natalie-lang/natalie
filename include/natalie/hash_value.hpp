@@ -19,7 +19,6 @@ struct HashValue : Value {
         ValuePtr key { nullptr };
         ValuePtr val { nullptr };
         nat_int_t hash { 0 };
-        Env env {};
         bool removed { false };
     };
 
@@ -29,7 +28,7 @@ struct HashValue : Value {
     };
 
     HashValue(Env *env)
-        : HashValue { env, env->Object()->const_fetch("Hash")->as_class() } { }
+        : HashValue { env, env->Object()->const_fetch(env, "Hash")->as_class() } { }
 
     HashValue(Env *env, ClassValue *klass)
         : Value { Value::Type::Hash, klass }
@@ -38,7 +37,7 @@ struct HashValue : Value {
     }
 
     HashValue(Env *env, HashValue &other)
-        : Value { other } {
+        : Value { env, other } {
         hashmap_init(&m_hashmap, hash, compare, 256);
         for (auto node : other) {
             put(env, node.key, node.val);
@@ -48,7 +47,7 @@ struct HashValue : Value {
     static ValuePtr square_new(Env *, size_t argc, ValuePtr *args);
 
     static nat_int_t hash(const void *);
-    static int compare(const void *, const void *);
+    static int compare(Env *env, const void *, const void *);
 
     size_t size() { return m_hashmap.num_entries; }
     ValuePtr size(Env *);

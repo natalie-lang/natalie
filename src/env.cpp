@@ -18,7 +18,7 @@ ValuePtr Env::global_get(const char *name) {
     if (name[0] != '$') {
         env->raise("NameError", "`%s' is not allowed as a global variable name", name);
     }
-    ValuePtr val = static_cast<ValuePtr>(hashmap_get(env->global_env()->globals(), name));
+    ValuePtr val = static_cast<ValuePtr>(hashmap_get(env, env->global_env()->globals(), name));
     if (val) {
         return val;
     } else {
@@ -32,8 +32,8 @@ ValuePtr Env::global_set(const char *name, ValuePtr val) {
     if (name[0] != '$') {
         env->raise("NameError", "`%s' is not allowed as an global variable name", name);
     }
-    hashmap_remove(env->global_env()->globals(), name);
-    hashmap_put(env->global_env()->globals(), name, val);
+    hashmap_remove(env, env->global_env()->globals(), name);
+    hashmap_put(env, env->global_env()->globals(), name, val);
     return val;
 }
 
@@ -85,7 +85,7 @@ void Env::raise(const char *class_name, const char *message_format, ...) {
     va_start(args, message_format);
     StringValue *message = StringValue::vsprintf(this, message_format, args);
     va_end(args);
-    ClassValue *klass = Object()->const_fetch(class_name)->as_class();
+    ClassValue *klass = Object()->const_fetch(this, class_name)->as_class();
     ExceptionValue *exception = new ExceptionValue { this, klass, message->c_str() };
     this->raise_exception(exception);
 }

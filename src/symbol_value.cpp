@@ -4,12 +4,12 @@ namespace Natalie {
 
 SymbolValue *SymbolValue::intern(Env *env, const char *name) {
     assert(name);
-    SymbolValue *symbol = static_cast<SymbolValue *>(hashmap_get(env->global_env()->symbols(), name));
+    SymbolValue *symbol = static_cast<SymbolValue *>(hashmap_get(env, env->global_env()->symbols(), name));
     if (symbol) {
         return symbol;
     } else {
         symbol = new SymbolValue { env, name };
-        hashmap_put(env->global_env()->symbols(), name, symbol);
+        hashmap_put(env, env->global_env()->symbols(), name, symbol);
         return symbol;
     }
 }

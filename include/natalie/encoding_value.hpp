@@ -20,7 +20,7 @@ enum class Encoding {
 struct EncodingValue : Value {
 
     EncodingValue(Env *env)
-        : Value { Value::Type::Encoding, env->Object()->const_fetch("Encoding")->as_class() } { }
+        : Value { Value::Type::Encoding, env->Object()->const_fetch(env, "Encoding")->as_class() } { }
 
     EncodingValue(Env *env, ClassValue *klass)
         : Value { Value::Type::Encoding, klass } { }
@@ -38,9 +38,9 @@ struct EncodingValue : Value {
 
     static ArrayValue *list(Env *env) {
         ArrayValue *ary = new ArrayValue { env };
-        ValuePtr Encoding = env->Object()->const_fetch("Encoding");
-        ary->push(Encoding->const_fetch("ASCII_8BIT"));
-        ary->push(Encoding->const_fetch("UTF_8"));
+        ValuePtr Encoding = env->Object()->const_fetch(env, "Encoding");
+        ary->push(Encoding->const_fetch(env, "ASCII_8BIT"));
+        ary->push(Encoding->const_fetch(env, "UTF_8"));
         return ary;
     }
 

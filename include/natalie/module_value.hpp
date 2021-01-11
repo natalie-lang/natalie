@@ -11,6 +11,8 @@
 
 namespace Natalie {
 
+void copy_hashmap(Env *, struct hashmap &, const struct hashmap &);
+
 struct ModuleValue : Value {
     ModuleValue(Env *);
     ModuleValue(Env *, const char *);
@@ -19,12 +21,12 @@ struct ModuleValue : Value {
     ModuleValue(Env *env, ClassValue *klass)
         : ModuleValue { env, Type::Module, klass } { }
 
-    ModuleValue(ModuleValue &other)
+    ModuleValue(Env *env, ModuleValue &other)
         : Value { other.type(), other.klass() }
         , m_class_name { GC_STRDUP(other.m_class_name) }
         , m_superclass { other.m_superclass } {
-        copy_hashmap(m_constants, other.m_constants);
-        copy_hashmap(m_methods, other.m_methods);
+        copy_hashmap(env, m_constants, other.m_constants);
+        copy_hashmap(env, m_methods, other.m_methods);
         for (ModuleValue *module : const_cast<ModuleValue &>(other).m_included_modules) {
             m_included_modules.push(module);
         }
@@ -39,8 +41,8 @@ struct ModuleValue : Value {
     ValuePtr prepend(Env *, size_t argc, ValuePtr *args);
     void prepend_once(Env *, ModuleValue *);
 
-    virtual ValuePtr const_get(const char *) override;
-    virtual ValuePtr const_fetch(const char *) override;
+    virtual ValuePtr const_get(Env *, const char *) override;
+    virtual ValuePtr const_fetch(Env *, const char *) override;
     virtual ValuePtr const_find(Env *, const char *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::Raise) override;
     virtual ValuePtr const_set(Env *, const char *, ValuePtr) override;
 
@@ -67,8 +69,8 @@ struct ModuleValue : Value {
     virtual void undefine_method(Env *, const char *) override;
 
     void methods(Env *, ArrayValue *);
-    Method *find_method(const char *, ModuleValue **);
-    Method *find_method_without_undefined(const char *, ModuleValue **);
+    Method *find_method(Env *, const char *, ModuleValue **);
+    Method *find_method_without_undefined(Env *, const char *, ModuleValue **);
 
     ValuePtr call_method(Env *, ValuePtr, const char *, ValuePtr, size_t, ValuePtr *, Block *);
 

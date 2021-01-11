@@ -6,6 +6,11 @@ describe 'Object#dup' do
     a.dup.should be_an_instance_of(Array)
   end
 
+  it 'produces a new object_id' do
+    a = []
+    a.dup.object_id.should != a.object_id
+  end
+
   it 'copies the data' do
     [1, 2].dup.should == [1, 2]
     {1 => 2}.dup.should == {1 => 2}

@@ -12,7 +12,7 @@ namespace Natalie {
 
 struct NilValue : Value {
     NilValue(Env *env)
-        : Value { Value::Type::Nil, env->Object()->const_fetch("NilClass")->as_class() } {
+        : Value { Value::Type::Nil, env->Object()->const_fetch(env, "NilClass")->as_class() } {
         if (env->nil_obj()) NAT_UNREACHABLE();
     }
 

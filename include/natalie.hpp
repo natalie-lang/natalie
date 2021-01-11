@@ -96,4 +96,6 @@ int pclose2(FILE *, pid_t);
 
 void set_status_object(Env *, int, int);
 
+void copy_hashmap(Env *, struct hashmap &, const struct hashmap &);
+
 }

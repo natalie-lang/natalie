@@ -58,12 +58,12 @@ void ModuleValue::prepend_once(Env *env, ModuleValue *module) {
     m_included_modules.push_front(module);
 }
 
-ValuePtr ModuleValue::const_get(const char *name) {
-    return static_cast<ValuePtr>(hashmap_get(&m_constants, name));
+ValuePtr ModuleValue::const_get(Env *env, const char *name) {
+    return static_cast<ValuePtr>(hashmap_get(env, &m_constants, name));
 }
 
-ValuePtr ModuleValue::const_fetch(const char *name) {
-    ValuePtr value = const_get(name);
+ValuePtr ModuleValue::const_fetch(Env *env, const char *name) {
+    ValuePtr value = const_get(env, name);
     if (!value) {
         printf("Constant %s is missing!\n", name);
         abort();
@@ -78,7 +78,7 @@ ValuePtr ModuleValue::const_find(Env *env, const char *name, ConstLookupSearchMo
     if (search_mode == ConstLookupSearchMode::NotStrict) {
         // first search in parent namespaces (not including global, i.e. Object namespace)
         search_parent = this;
-        while (!(val = search_parent->const_get(name)) && search_parent->owner() && search_parent->owner() != env->Object()) {
+        while (!(val = search_parent->const_get(env, name)) && search_parent->owner() && search_parent->owner() != env->Object()) {
             search_parent = search_parent->owner();
         }
         if (val) return val;
@@ -87,14 +87,14 @@ ValuePtr ModuleValue::const_find(Env *env, const char *name, ConstLookupSearchMo
     // search in superclass hierarchy
     search_parent = this;
     do {
-        val = search_parent->const_get(name);
+        val = search_parent->const_get(env, name);
         if (val) return val;
         search_parent = search_parent->m_superclass;
     } while (search_parent);
 
     if (this != env->Object() && search_mode == ConstLookupSearchMode::NotStrict) {
         // lastly, search on the global, i.e. Object namespace
-        val = env->Object()->const_get(name);
+        val = env->Object()->const_get(env, name);
         if (val) return val;
     }
 
@@ -108,8 +108,8 @@ ValuePtr ModuleValue::const_find(Env *env, const char *name, ConstLookupSearchMo
 }
 
 ValuePtr ModuleValue::const_set(Env *env, const char *name, ValuePtr val) {
-    hashmap_remove(&m_constants, name);
-    hashmap_put(&m_constants, name, val);
+    hashmap_remove(env, &m_constants, name);
+    hashmap_put(env, &m_constants, name, val);
     if (val->is_module() && !val->owner()) {
         val->set_owner(this);
         if (val->singleton_class()) val->singleton_class()->set_owner(this);
@@ -119,12 +119,12 @@ ValuePtr ModuleValue::const_set(Env *env, const char *name, ValuePtr val) {
 
 void ModuleValue::alias(Env *env, const char *new_name, const char *old_name) {
     ModuleValue *matching_class_or_module;
-    Method *method = find_method(old_name, &matching_class_or_module);
+    Method *method = find_method(env, old_name, &matching_class_or_module);
     if (!method) {
         env->raise("NameError", "undefined method `%s' for `%v'", old_name, this);
     }
-    GC_FREE(hashmap_remove(&m_methods, new_name));
-    hashmap_put(&m_methods, new_name, new Method { *method });
+    GC_FREE(hashmap_remove(env, &m_methods, new_name));
+    hashmap_put(env, &m_methods, new_name, new Method { *method });
 }
 
 ValuePtr ModuleValue::eval_body(Env *env, ValuePtr (*fn)(Env *, ValuePtr)) {
@@ -140,7 +140,7 @@ ValuePtr ModuleValue::cvar_get_or_null(Env *env, const char *name) {
     ValuePtr val = nullptr;
     while (1) {
         if (module->m_class_vars.table) {
-            val = static_cast<ValuePtr>(hashmap_get(&module->m_class_vars, name));
+            val = static_cast<ValuePtr>(hashmap_get(env, &module->m_class_vars, name));
             if (val) {
                 return val;
             }
@@ -158,10 +158,10 @@ ValuePtr ModuleValue::cvar_set(Env *env, const char *name, ValuePtr val) {
     ValuePtr exists = nullptr;
     while (1) {
         if (current->m_class_vars.table) {
-            exists = static_cast<ValuePtr>(hashmap_get(&current->m_class_vars, name));
+            exists = static_cast<ValuePtr>(hashmap_get(env, &current->m_class_vars, name));
             if (exists) {
-                hashmap_remove(&current->m_class_vars, name);
-                hashmap_put(&current->m_class_vars, name, val);
+                hashmap_remove(env, &current->m_class_vars, name);
+                hashmap_put(env, &current->m_class_vars, name, val);
                 return val;
             }
         }
@@ -170,8 +170,8 @@ ValuePtr ModuleValue::cvar_set(Env *env, const char *name, ValuePtr val) {
                 hashmap_init(&this->m_class_vars, hashmap_hash_string, hashmap_compare_string, 10);
                 hashmap_set_key_alloc_funcs(&this->m_class_vars, hashmap_alloc_key_string, nullptr);
             }
-            hashmap_remove(&this->m_class_vars, name);
-            hashmap_put(&this->m_class_vars, name, val);
+            hashmap_remove(env, &this->m_class_vars, name);
+            hashmap_put(env, &this->m_class_vars, name, val);
             return val;
         }
         current = current->m_superclass;
@@ -180,14 +180,14 @@ ValuePtr ModuleValue::cvar_set(Env *env, const char *name, ValuePtr val) {
 
 void ModuleValue::define_method(Env *env, const char *name, MethodFnPtr fn) {
     Method *method = new Method { fn };
-    GC_FREE(hashmap_remove(&m_methods, name));
-    hashmap_put(&m_methods, name, method);
+    GC_FREE(hashmap_remove(env, &m_methods, name));
+    hashmap_put(env, &m_methods, name, method);
 }
 
 void ModuleValue::define_method_with_block(Env *env, const char *name, Block *block) {
     Method *method = new Method { block };
-    GC_FREE(hashmap_remove(&m_methods, name));
-    hashmap_put(&m_methods, name, method);
+    GC_FREE(hashmap_remove(env, &m_methods, name));
+    hashmap_put(env, &m_methods, name, method);
 }
 
 void ModuleValue::undefine_method(Env *env, const char *name) {
@@ -213,12 +213,12 @@ void ModuleValue::methods(Env *env, ArrayValue *array) {
 }
 
 // returns the method and sets matching_class_or_module to where the method was found
-Method *ModuleValue::find_method(const char *method_name, ModuleValue **matching_class_or_module) {
+Method *ModuleValue::find_method(Env *env, const char *method_name, ModuleValue **matching_class_or_module) {
     Method *method;
     if (m_included_modules.is_empty()) {
         // no included modules, just search the class/module
         // note: if there are included modules, then the module chain will include this class/module
-        method = static_cast<Method *>(hashmap_get(&m_methods, method_name));
+        method = static_cast<Method *>(hashmap_get(env, &m_methods, method_name));
         if (method) {
             *matching_class_or_module = m_klass;
             return method;
@@ -226,7 +226,7 @@ Method *ModuleValue::find_method(const char *method_name, ModuleValue **matching
     }
 
     for (ModuleValue *module : m_included_modules) {
-        method = static_cast<Method *>(hashmap_get(&module->m_methods, method_name));
+        method = static_cast<Method *>(hashmap_get(env, &module->m_methods, method_name));
         if (method) {
             *matching_class_or_module = module;
             return method;
@@ -234,14 +234,14 @@ Method *ModuleValue::find_method(const char *method_name, ModuleValue **matching
     }
 
     if (m_superclass) {
-        return m_superclass->find_method(method_name, matching_class_or_module);
+        return m_superclass->find_method(env, method_name, matching_class_or_module);
     } else {
         return nullptr;
     }
 }
 
-Method *ModuleValue::find_method_without_undefined(const char *method_name, ModuleValue **matching_class_or_module) {
-    Method *method = find_method(method_name, matching_class_or_module);
+Method *ModuleValue::find_method_without_undefined(Env *env, const char *method_name, ModuleValue **matching_class_or_module) {
+    Method *method = find_method(env, method_name, matching_class_or_module);
     if (method && method->is_undefined()) {
         return nullptr;
     } else {
@@ -251,7 +251,7 @@ Method *ModuleValue::find_method_without_undefined(const char *method_name, Modu
 
 ValuePtr ModuleValue::call_method(Env *env, ValuePtr instance_class, const char *method_name, ValuePtr self, size_t argc, ValuePtr *args, Block *block) {
     ModuleValue *matching_class_or_module;
-    Method *method = find_method(method_name, &matching_class_or_module);
+    Method *method = find_method(env, method_name, &matching_class_or_module);
     if (method && !method->is_undefined()) {
         Env *closure_env;
         if (method->has_env()) {
@@ -293,7 +293,7 @@ ArrayValue *ModuleValue::ancestors(Env *env) {
 bool ModuleValue::is_method_defined(Env *env, ValuePtr name_value) {
     const char *name = name_value->identifier_str(env, Conversion::Strict);
     ModuleValue *matching_class_or_module;
-    return !!find_method(name, &matching_class_or_module);
+    return !!find_method(env, name, &matching_class_or_module);
 }
 
 ValuePtr ModuleValue::inspect(Env *env) {

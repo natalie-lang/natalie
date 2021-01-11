@@ -3,14 +3,14 @@
 
 namespace Natalie {
 
-Value::Value(const Value &other)
+Value::Value(Env *env, const Value &other)
     : m_klass { other.m_klass }
     , m_type { other.m_type }
-    , m_singleton_class { other.m_singleton_class ? new ClassValue { *other.m_singleton_class } : nullptr }
+    , m_singleton_class { other.m_singleton_class ? new ClassValue { env, other.m_singleton_class } : nullptr }
     , m_owner { other.m_owner }
     , m_flags { other.m_flags } {
     init_ivars();
-    copy_hashmap(m_ivars, other.m_ivars);
+    copy_hashmap(env, m_ivars, other.m_ivars);
 }
 
 ValuePtr Value::_new(Env *env, ValuePtr klass_value, size_t argc, ValuePtr *args, Block *block) {
@@ -91,7 +91,7 @@ ValuePtr Value::_new(Env *env, ValuePtr klass_value, size_t argc, ValuePtr *args
 
 ValuePtr Value::initialize(Env *env, size_t argc, ValuePtr *args, Block *block) {
     ModuleValue *matching_class_or_module;
-    Method *method = m_klass->find_method("initialize", &matching_class_or_module);
+    Method *method = m_klass->find_method(env, "initialize", &matching_class_or_module);
     if (method) {
         m_klass->call_method(env, m_klass, "initialize", this, argc, args, block);
     }
@@ -261,12 +261,12 @@ ClassValue *Value::singleton_class(Env *env) {
     return m_singleton_class;
 }
 
-ValuePtr Value::const_get(const char *name) {
-    return m_klass->const_get(name);
+ValuePtr Value::const_get(Env *env, const char *name) {
+    return m_klass->const_get(env, name);
 }
 
-ValuePtr Value::const_fetch(const char *name) {
-    return m_klass->const_fetch(name);
+ValuePtr Value::const_fetch(Env *env, const char *name) {
+    return m_klass->const_fetch(env, name);
 }
 
 ValuePtr Value::const_find(Env *env, const char *name, ConstLookupSearchMode search_mode, ConstLookupFailureMode failure_mode) {
@@ -283,7 +283,7 @@ ValuePtr Value::ivar_get(Env *env, const char *name) {
         env->raise("NameError", "`%s' is not allowed as an instance variable name", name);
     }
     init_ivars();
-    ValuePtr val = static_cast<ValuePtr>(hashmap_get(&m_ivars, name));
+    ValuePtr val = static_cast<ValuePtr>(hashmap_get(env, &m_ivars, name));
     if (val) {
         return val;
     } else {
@@ -297,8 +297,8 @@ ValuePtr Value::ivar_set(Env *env, const char *name, ValuePtr val) {
         env->raise("NameError", "`%s' is not allowed as an instance variable name", name);
     }
     init_ivars();
-    hashmap_remove(&m_ivars, name);
-    hashmap_put(&m_ivars, name, val);
+    hashmap_remove(env, &m_ivars, name);
+    hashmap_put(env, &m_ivars, name, val);
     return val;
 }
 
@@ -409,7 +409,7 @@ void Value::undefine_method(Env *env, const char *name) {
 ValuePtr Value::send(Env *env, const char *sym, size_t argc, ValuePtr *args, Block *block) {
     if (singleton_class()) {
         ModuleValue *matching_class_or_module;
-        Method *method = singleton_class()->find_method(sym, &matching_class_or_module);
+        Method *method = singleton_class()->find_method(env, sym, &matching_class_or_module);
         if (method) {
             if (method->is_undefined()) {
                 env->raise("NoMethodError", "undefined method `%s' for %s:Class", sym, m_klass->class_name());
@@ -428,11 +428,11 @@ ValuePtr Value::send(Env *env, size_t argc, ValuePtr *args, Block *block) {
 ValuePtr Value::dup(Env *env) {
     switch (m_type) {
     case Value::Type::Array:
-        return new ArrayValue { *as_array() };
+        return new ArrayValue { env, *as_array() };
     case Value::Type::Hash:
         return new HashValue { env, *as_hash() };
     case Value::Type::String:
-        return new StringValue { *as_string() };
+        return new StringValue { env, *as_string() };
     case Value::Type::False:
     case Value::Type::Float:
     case Value::Type::Integer:
@@ -441,7 +441,7 @@ ValuePtr Value::dup(Env *env) {
     case Value::Type::True:
         return this;
     case Value::Type::Object:
-        return new Value { *this };
+        return new Value { env, *this };
     default:
         fprintf(stderr, "I don't know how to dup this kind of object yet %s (type = %d).\n", m_klass->class_name(), static_cast<int>(m_type));
         abort();
@@ -466,9 +466,9 @@ bool Value::is_a(Env *env, ValuePtr val) {
 
 bool Value::respond_to(Env *env, const char *name) {
     ModuleValue *matching_class_or_module;
-    if (singleton_class() && singleton_class()->find_method_without_undefined(name, &matching_class_or_module)) {
+    if (singleton_class() && singleton_class()->find_method_without_undefined(env, name, &matching_class_or_module)) {
         return true;
-    } else if (m_klass->find_method_without_undefined(name, &matching_class_or_module)) {
+    } else if (m_klass->find_method_without_undefined(env, name, &matching_class_or_module)) {
         return true;
     } else {
         return false;
@@ -485,7 +485,7 @@ const char *Value::defined(Env *env, const char *name, bool strict) {
     if (is_constant_name(name)) {
         if (strict) {
             if (is_module()) {
-                obj = as_module()->const_get(name);
+                obj = as_module()->const_get(env, name);
             }
         } else {
             obj = const_find(env, name, ConstLookupSearchMode::NotStrict, ConstLookupFailureMode::Null);
