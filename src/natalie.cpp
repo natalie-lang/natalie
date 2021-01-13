@@ -282,32 +282,34 @@ void arg_spread(Env *env, size_t argc, ValuePtr *args, const char *arrangement, 
     va_start(va_args, arrangement);
     size_t len = strlen(arrangement);
     size_t arg_index = 0;
-    ValuePtr obj;
-    bool *bool_ptr;
-    int *int_ptr;
-    const char **str_ptr;
-    void **void_ptr;
-    ValuePtr *obj_ptr;
+    bool optional = false;
     for (size_t i = 0; i < len; i++) {
+        if (arg_index >= argc && optional)
+            break;
         char c = arrangement[i];
         switch (c) {
-        case 'o':
-            obj_ptr = va_arg(va_args, ValuePtr *);
+        case '|':
+            optional = true;
+            break;
+        case 'o': {
+            ValuePtr *obj_ptr = va_arg(va_args, ValuePtr *);
             if (arg_index >= argc) env->raise("ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, arg_index + 1);
-            obj = args[arg_index++];
+            ValuePtr obj = args[arg_index++];
             *obj_ptr = obj;
             break;
-        case 'i':
-            int_ptr = va_arg(va_args, int *);
+        }
+        case 'i': {
+            int *int_ptr = va_arg(va_args, int *);
             if (arg_index >= argc) env->raise("ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, arg_index + 1);
-            obj = args[arg_index++];
+            ValuePtr obj = args[arg_index++];
             obj->assert_type(env, Value::Type::Integer, "Integer");
             *int_ptr = obj->as_integer()->to_nat_int_t();
             break;
-        case 's':
-            str_ptr = va_arg(va_args, const char **);
+        }
+        case 's': {
+            const char **str_ptr = va_arg(va_args, const char **);
             if (arg_index >= argc) env->raise("ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, arg_index + 1);
-            obj = args[arg_index++];
+            ValuePtr obj = args[arg_index++];
             if (obj == env->nil_obj()) {
                 *str_ptr = nullptr;
             } else {
@@ -315,20 +317,23 @@ void arg_spread(Env *env, size_t argc, ValuePtr *args, const char *arrangement, 
             }
             *str_ptr = obj->as_string()->c_str();
             break;
-        case 'b':
-            bool_ptr = va_arg(va_args, bool *);
+        }
+        case 'b': {
+            bool *bool_ptr = va_arg(va_args, bool *);
             if (arg_index >= argc) env->raise("ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, arg_index + 1);
-            obj = args[arg_index++];
+            ValuePtr obj = args[arg_index++];
             *bool_ptr = obj->is_truthy();
             break;
-        case 'v':
-            void_ptr = va_arg(va_args, void **);
+        }
+        case 'v': {
+            void **void_ptr = va_arg(va_args, void **);
             if (arg_index >= argc) env->raise("ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, arg_index + 1);
-            obj = args[arg_index++];
+            ValuePtr obj = args[arg_index++];
             obj = obj->ivar_get(env, "@_ptr");
             assert(obj->type() == Value::Type::VoidP);
             *void_ptr = obj->as_void_p()->void_ptr();
             break;
+        }
         default:
             fprintf(stderr, "Unknown arg spread arrangement specifier: %%%c", c);
             abort();

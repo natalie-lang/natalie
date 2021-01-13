@@ -17,22 +17,13 @@ module Process
     end
   end
 
-  def self.wait(pid = -1, flags = 0)
-    __inline__ <<-END
-        // TODO: find a better way to get args into inline code...
-        Value *pid, *flags;
-        if (argc >= 1)
-            pid = args[0];
-        else
-            pid = new IntegerValue { env, -1 };
-        if (argc >= 2)
-            flags = args[1];
-        else
-            flags = new IntegerValue { env, 0 };
-        pid->assert_type(env, Value::Type::Integer, "Integer");
-        flags->assert_type(env, Value::Type::Integer, "Integer");
+  class << self
+    __define_method__ :wait, <<-END
+        env->assert_argc(argc, 0, 2);
+        nat_int_t pid = -1, flags = 0;
+        arg_spread(env, argc, args, "|ii", &pid, &flags);
         int status;
-        auto result = waitpid(pid->as_integer()->to_nat_int_t(), &status, flags->as_integer()->to_nat_int_t());
+        auto result = waitpid(pid, &status, flags);
         if (result == -1)
             env->raise_errno();
         set_status_object(env, result, status);

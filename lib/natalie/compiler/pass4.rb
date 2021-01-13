@@ -141,14 +141,27 @@ module Natalie
       end
 
       def process___define_method__(exp)
-        (_, name, body) = exp
+        (_, name, args, body) = exp
+        if exp.size < 4
+          body = args
+          args = nil
+        end
         raise "Expected string passed to __define_method__, but got: #{body.inspect}" unless body.sexp_type == :str
-        name = name.last
-        body = body.last
+        name = name.last.to_s
+        c = []
+        if args
+          (_, *args) = args
+          c << "env->assert_argc(argc, #{args.size});"
+          args.each_with_index do |arg, i|
+            raise "Expected symbol arg name pass to __define_method__, but got: #{arg.inspect}" unless arg.sexp_type == :lit
+            c << "Value *#{arg.last} = args[#{i}];"
+          end
+        end
+        c << body.last
         fn = temp('fn')
-        top "Value *#{fn}(Env *env, Value *self, size_t argc, Value **args, Block *block) {\n#{body}\n}"
+        top "Value *#{fn}(Env *env, Value *self, size_t argc, Value **args, Block *block) {\n#{c.join("\n")}\n}"
         process(s(:define_method, s(:l, "self->as_module()"), :env, s(:s, name), fn))
-        "new SymbolValue { env, #{name.inspect} }"
+        "SymbolValue::intern(env, #{name.inspect})"
       end
 
       def process___inline__(exp)
