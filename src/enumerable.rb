@@ -155,6 +155,16 @@ module Enumerable
     result
   end
 
+  def include?(obj)
+    each do |*items|
+      item = items.size > 1 ? items : items[0]
+      if obj == item || item == obj
+        return true
+      end
+    end
+    false
+  end
+
   def partition
     left = []
     right = []
