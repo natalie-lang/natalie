@@ -56,6 +56,7 @@ struct Node : public gc {
         Regexp,
         Return,
         SafeCall,
+        Sclass,
         Self,
         Splat,
         SplatAssignment,
@@ -1001,6 +1002,21 @@ struct ReturnNode : Node {
 
 protected:
     Node *m_arg { nullptr };
+};
+
+struct SclassNode : Node {
+    SclassNode(Token *token, Node *klass, BlockNode *body)
+        : Node { token }
+        , m_klass { klass }
+        , m_body { body } { }
+
+    virtual Type type() override { return Type::Sclass; }
+
+    virtual ValuePtr to_ruby(Env *) override;
+
+protected:
+    Node *m_klass { nullptr };
+    BlockNode *m_body { nullptr };
 };
 
 struct SelfNode : Node {

@@ -721,6 +721,21 @@ ValuePtr SelfNode::to_ruby(Env *env) {
     return new SexpValue { env, this, { SymbolValue::intern(env, "self") } };
 }
 
+ValuePtr SclassNode::to_ruby(Env *env) {
+    auto sexp = new SexpValue {
+        env,
+        this,
+        {
+            SymbolValue::intern(env, "sclass"),
+            m_klass->to_ruby(env),
+        }
+    };
+    for (auto node : *m_body->nodes()) {
+        sexp->push(node->to_ruby(env));
+    }
+    return sexp;
+}
+
 ValuePtr ShellNode::to_ruby(Env *env) {
     return new SexpValue { env, this, { SymbolValue::intern(env, "xstr"), m_value } };
 }

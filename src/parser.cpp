@@ -342,10 +342,12 @@ BlockNode *Parser::parse_case_when_body(Env *env, LocalsVectorPtr locals) {
     return body;
 }
 
-Node *Parser::parse_class(Env *env, LocalsVectorPtr) {
+Node *Parser::parse_class(Env *env, LocalsVectorPtr locals) {
     auto token = current_token();
+    if (peek_token()->type() == Token::Type::LeftShift)
+        return parse_sclass(env, locals);
     advance();
-    auto locals = new Vector<SymbolValue *> {};
+    locals = new Vector<SymbolValue *> {};
     if (current_token()->type() != Token::Type::Constant)
         env->raise("SyntaxError", "class/module name must be CONSTANT");
     auto name = static_cast<ConstantNode *>(parse_constant(env, locals));
@@ -862,6 +864,17 @@ Node *Parser::parse_return(Env *env, LocalsVectorPtr locals) {
         return new ReturnNode { token };
     return new ReturnNode { token, parse_expression(env, CALLARGS, locals) };
 };
+
+Node *Parser::parse_sclass(Env *env, LocalsVectorPtr locals) {
+    auto token = current_token();
+    advance(); // class
+    advance(); // <<
+    auto klass = parse_expression(env, CALLARGS, locals);
+    auto body = parse_body(env, locals, LOWEST);
+    expect(env, Token::Type::EndKeyword, "sclass end");
+    advance();
+    return new SclassNode { token, klass, body };
+}
 
 Node *Parser::parse_self(Env *env, LocalsVectorPtr locals) {
     auto token = current_token();
