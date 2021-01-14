@@ -159,7 +159,8 @@ module Natalie
         end
         c << body.last
         fn = temp('fn')
-        top "Value *#{fn}(Env *env, Value *self, size_t argc, Value **args, Block *block) {\n#{c.join("\n")}\n}"
+        nl = "\n" # FIXME: parser issue with double quotes inside interpolation
+        top "Value *#{fn}(Env *env, Value *self, size_t argc, Value **args, Block *block) {\n#{c.join(nl)}\n}"
         process(s(:define_method, s(:l, "self->as_module()"), :env, s(:s, name), fn))
         "SymbolValue::intern(env, #{name.inspect})"
       end

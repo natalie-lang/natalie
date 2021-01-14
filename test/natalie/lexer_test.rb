@@ -169,6 +169,20 @@ describe 'Parser' do
       ]
     end
 
+    xit 'string interpolation weirdness' do
+      Parser.tokens('"#{"foo"}"').should == [
+        {type: :dstr},
+        {type: :string, literal: ''},
+        {type: :evstr},
+        {type: :string, literal: 'foo'},
+        {type: :"\n"},
+        {type: :evstrend},
+        {type: :dstrend}
+      ]
+      Parser.tokens('"#{"}"}"')
+      Parser.tokens('"#{ "#{ "#{ 1 + 1 }" }" }"')
+    end
+
     it 'tokenizes backticks and %x()' do
       Parser.tokens("`ls`").should == [{type: :dxstr}, {type: :string, literal: "ls"}, {type: :dxstrend}]
       Parser.tokens("%x(ls)").should == [{type: :dxstr}, {type: :string, literal: "ls"}, {type: :dxstrend}]

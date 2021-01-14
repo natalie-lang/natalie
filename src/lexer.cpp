@@ -77,7 +77,7 @@ void InterpolatedStringLexer::tokenize_interpolation(Vector<Token *> *tokens) {
         m_index++;
     }
     if (curly_brace_count > 0) {
-        fprintf(stderr, "missing } in string interpolation\n");
+        fprintf(stderr, "missing } in string interpolation in %s#%zu\n", m_file, m_line + 1);
         abort();
     }
     size_t len = m_index - start_index;
