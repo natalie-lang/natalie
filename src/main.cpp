@@ -122,14 +122,17 @@ extern "C" Env *build_top_env() {
     ClassValue *Encoding = env->Object()->subclass(env, "Encoding");
     Object->const_set(env, "Encoding", Encoding);
 
-    ValuePtr Process = new ModuleValue { env, "Process" };
-    Object->const_set(env, "Process", Process);
-
     EncodingValue *EncodingAscii8Bit = new EncodingValue { env, Encoding::ASCII_8BIT, { "ASCII-8BIT", "BINARY" } };
     Encoding->const_set(env, "ASCII_8BIT", EncodingAscii8Bit);
 
     ValuePtr EncodingUTF8 = new EncodingValue { env, Encoding::UTF_8, { "UTF-8" } };
     Encoding->const_set(env, "UTF_8", EncodingUTF8);
+
+    ValuePtr Process = new ModuleValue { env, "Process" };
+    Object->const_set(env, "Process", Process);
+
+    ClassValue *Method = Object->subclass(env, "Method", Value::Type::Method);
+    Object->const_set(env, "Method", Method);
 
     env->global_set("$NAT_at_exit_handlers", new ArrayValue { env });
 

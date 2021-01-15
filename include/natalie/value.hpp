@@ -29,6 +29,7 @@ struct Value : public gc {
         Integer,
         Io,
         MatchData,
+        Method,
         Module,
         Object,
         Proc,
@@ -115,6 +116,7 @@ struct Value : public gc {
     bool is_false() const { return m_type == Type::False; }
     bool is_fiber() const { return m_type == Type::Fiber; }
     bool is_array() const { return m_type == Type::Array; }
+    bool is_method() const { return m_type == Type::Method; }
     bool is_module() const { return m_type == Type::Module || m_type == Type::Class; }
     bool is_class() const { return m_type == Type::Class; }
     bool is_encoding() const { return m_type == Type::Encoding; }
@@ -135,26 +137,27 @@ struct Value : public gc {
     bool is_falsey() const { return !is_truthy(); }
     bool is_numeric() const { return is_integer() || is_float(); }
 
-    NilValue *as_nil();
-    TrueValue *as_true();
-    FalseValue *as_false();
-    FiberValue *as_fiber();
     ArrayValue *as_array();
-    ModuleValue *as_module();
     ClassValue *as_class();
     EncodingValue *as_encoding();
     ExceptionValue *as_exception();
+    FalseValue *as_false();
+    FiberValue *as_fiber();
+    FileValue *as_file();
     FloatValue *as_float();
     HashValue *as_hash();
     IntegerValue *as_integer();
     IoValue *as_io();
-    FileValue *as_file();
     MatchDataValue *as_match_data();
+    MethodValue *as_method();
+    ModuleValue *as_module();
+    NilValue *as_nil();
     ProcValue *as_proc();
     RangeValue *as_range();
     RegexpValue *as_regexp();
     StringValue *as_string();
     SymbolValue *as_symbol();
+    TrueValue *as_true();
     VoidPValue *as_void_p();
 
     KernelModule *as_kernel_module_for_method_binding();
@@ -202,6 +205,9 @@ struct Value : public gc {
         snprintf(buf, 100, "%p", this);
         return GC_STRDUP(buf);
     }
+
+    // TODO: rename this find_method and the one on ModuleValue to something else
+    Method *locate_method(Env *, const char *);
 
     ValuePtr send(Env *, const char *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
     ValuePtr send(Env *, size_t, ValuePtr *, Block *);

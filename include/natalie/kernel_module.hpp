@@ -50,6 +50,7 @@ struct KernelModule : Value {
     ValuePtr instance_variable_set(Env *env, ValuePtr name_val, ValuePtr value);
     ValuePtr lambda(Env *env, Block *block);
     ValuePtr loop(Env *env, Block *block);
+    ValuePtr method(Env *env, Value *name);
     ValuePtr methods(Env *env);
     ValuePtr p(Env *env, size_t argc, ValuePtr *args);
     ValuePtr print(Env *env, size_t argc, ValuePtr *args);

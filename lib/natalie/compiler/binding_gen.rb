@@ -438,6 +438,7 @@ gen.binding('Kernel', 'nil?', 'KernelModule', 'is_nil', argc: 0, pass_env: false
 gen.binding('Kernel', 'lambda', 'KernelModule', 'lambda', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Kernel', 'loop', 'KernelModule', 'loop', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Kernel', '__method__', 'KernelModule', 'this_method', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Kernel', 'method', 'KernelModule', 'method', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Kernel', 'methods', 'KernelModule', 'methods', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Kernel', 'public_methods', 'KernelModule', 'methods', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Kernel', 'object_id', 'KernelModule', 'object_id', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
@@ -457,6 +458,8 @@ gen.binding('MatchData', 'size', 'MatchDataValue', 'size', argc: 0, pass_env: fa
 gen.binding('MatchData', 'length', 'MatchDataValue', 'size', argc: 0, pass_env: false, pass_block: false, return_type: :size_t)
 gen.binding('MatchData', 'to_s', 'MatchDataValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('MatchData', '[]', 'MatchDataValue', 'ref', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+
+gen.binding('Method', 'inspect', 'MethodValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 
 gen.binding('Module', '===', 'ModuleValue', 'eqeqeq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Module', 'alias_method', 'ModuleValue', 'alias_method', argc: 2, pass_env: true, pass_block: false, return_type: :Value)

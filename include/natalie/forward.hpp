@@ -25,6 +25,7 @@ struct KernelModule;
 struct Lexer;
 struct MatchDataValue;
 struct Method;
+struct MethodValue;
 struct ModuleValue;
 struct NilValue;
 struct Node;

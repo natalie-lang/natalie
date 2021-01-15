@@ -49,6 +49,10 @@ ValuePtr Value::_new(Env *env, ValuePtr klass_value, size_t argc, ValuePtr *args
         obj = new MatchDataValue { env, klass };
         break;
 
+    case Value::Type::Method:
+        obj = new MethodValue { env, klass };
+        break;
+
     case Value::Type::Module:
         obj = new ModuleValue { env, klass };
         break;
@@ -106,6 +110,11 @@ NilValue *Value::as_nil() {
 ArrayValue *Value::as_array() {
     assert(is_array());
     return static_cast<ArrayValue *>(this);
+}
+
+MethodValue *Value::as_method() {
+    assert(is_method());
+    return static_cast<MethodValue *>(this);
 }
 
 ModuleValue *Value::as_module() {
@@ -406,18 +415,18 @@ void Value::undefine_method(Env *env, const char *name) {
     m_klass->undefine_method(env, name);
 }
 
-ValuePtr Value::send(Env *env, const char *sym, size_t argc, ValuePtr *args, Block *block) {
+ValuePtr Value::send(Env *env, const char *name, size_t argc, ValuePtr *args, Block *block) {
     if (singleton_class()) {
         ModuleValue *matching_class_or_module;
-        Method *method = singleton_class()->find_method(env, sym, &matching_class_or_module);
+        Method *method = singleton_class()->find_method(env, name, &matching_class_or_module);
         if (method) {
             if (method->is_undefined()) {
-                env->raise("NoMethodError", "undefined method `%s' for %s:Class", sym, m_klass->class_name());
+                env->raise("NoMethodError", "undefined method `%s' for %s:Class", name, m_klass->class_name());
             }
-            return singleton_class()->call_method(env, m_klass, sym, this, argc, args, block);
+            return singleton_class()->call_method(env, m_klass, name, this, argc, args, block);
         }
     }
-    return m_klass->call_method(env, m_klass, sym, this, argc, args, block);
+    return m_klass->call_method(env, m_klass, name, this, argc, args, block);
 }
 
 ValuePtr Value::send(Env *env, size_t argc, ValuePtr *args, Block *block) {
@@ -466,13 +475,13 @@ bool Value::is_a(Env *env, ValuePtr val) {
 
 bool Value::respond_to(Env *env, const char *name) {
     ModuleValue *matching_class_or_module;
+    // FIXME: this is incorrect -- undefined on singleton should override defined on class
     if (singleton_class() && singleton_class()->find_method_without_undefined(env, name, &matching_class_or_module)) {
         return true;
     } else if (m_klass->find_method_without_undefined(env, name, &matching_class_or_module)) {
         return true;
-    } else {
-        return false;
     }
+    return false;
 }
 
 bool Value::respond_to(Env *env, ValuePtr name_val) {

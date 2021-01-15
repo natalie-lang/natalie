@@ -32,6 +32,7 @@
 #include "natalie/kernel_module.hpp"
 #include "natalie/match_data_value.hpp"
 #include "natalie/method.hpp"
+#include "natalie/method_value.hpp"
 #include "natalie/module_value.hpp"
 #include "natalie/nil_value.hpp"
 #include "natalie/parser_value.hpp"
