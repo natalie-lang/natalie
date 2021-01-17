@@ -14,6 +14,9 @@ build_release:
 	cmake -S . -B build -DCMAKE_BUILD_TYPE="Release" -DCMAKE_MAKE_PROGRAM="${MAKE}"
 	cmake --build build -j 4
 
+bootstrap: build
+	cmake --build build -t bootstrap -j
+
 clean:
 	if [ -d build ]; then make -C build -f CMakeFiles/Makefile2 CMakeFiles/natalie-base.dir/clean; fi
 
