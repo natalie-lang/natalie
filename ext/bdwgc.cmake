@@ -1,8 +1,8 @@
 set(BDWGC_SRC "${PROJECT_SOURCE_DIR}/ext/bdwgc")
 
-set(BDWGC_LIB "${CMAKE_BINARY_DIR}/libgc.a")
-set(BDWGC_CPPLIB "${CMAKE_BINARY_DIR}/libgccpp.a")
-set(BDWGC_BUILD_DIR "${CMAKE_BINARY_DIR}/bdwgc-build")
+set(BDWGC_LIB "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libgc.a")
+set(BDWGC_CPPLIB "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libgccpp.a")
+set(BDWGC_BUILD_DIR "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/bdwgc-build")
 
 add_custom_target(make_bdwgc_build_dir
     COMMAND ${CMAKE_COMMAND} -E make_directory ${BDWGC_BUILD_DIR}
@@ -14,7 +14,7 @@ add_custom_command(
     DEPENDS make_bdwgc_build_dir
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${BDWGC_SRC}" "${BDWGC_BUILD_DIR}"
     WORKING_DIRECTORY ${BDWGC_BUILD_DIR}
-    COMMAND [ -e .patched0 ] || (patch -sp0 < ../../ext/bdwgc-openbsd.patch && touch .patched0)
+    COMMAND [ -e .patched0 ] || (patch -sp0 < ../../../ext/bdwgc-openbsd.patch && touch .patched0)
     COMMAND sh autogen.sh
     COMMAND ./configure --enable-cplusplus --enable-threads=pthreads --enable-static --with-pic
     COMMAND ${CMAKE_MAKE_PROGRAM}

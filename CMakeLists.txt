@@ -20,69 +20,75 @@ file(GLOB GENERATED_NAMES "src/*.rb")
 
 list(FILTER LIB_SOURCES EXCLUDE REGEX ".*main.cpp$")
 
-add_library(natalie-static STATIC
+add_library(natalie-base STATIC
   ${LIB_SOURCES})
 
 add_custom_command(
-  OUTPUT ${CMAKE_BINARY_DIR}/generated/bindings.cpp
+  OUTPUT ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/generated/bindings.cpp
   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/lib/natalie/compiler/binding_gen.rb
   DEPENDS make-generated-directory
-  COMMAND ruby ${CMAKE_CURRENT_SOURCE_DIR}/lib/natalie/compiler/binding_gen.rb > ${CMAKE_BINARY_DIR}/generated/bindings.cpp VERBATIM)
-add_custom_target(generate-bindings DEPENDS ${CMAKE_BINARY_DIR}/generated/bindings.cpp)
-add_dependencies(natalie-static generate-bindings)
+  COMMAND ruby ${CMAKE_CURRENT_SOURCE_DIR}/lib/natalie/compiler/binding_gen.rb > ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/generated/bindings.cpp VERBATIM)
+add_custom_target(generate-bindings DEPENDS ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/generated/bindings.cpp)
+add_dependencies(natalie-base generate-bindings)
 set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/src/bindings.cpp PROPERTIES GENERATED TRUE)
-target_sources(natalie-static PRIVATE ${CMAKE_BINARY_DIR}/generated/bindings.cpp)
+target_sources(natalie-base PRIVATE ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/generated/bindings.cpp)
 
 foreach(PATH ${GENERATED_NAMES})
   get_filename_component(FILENAME ${PATH} NAME)
   string(REGEX REPLACE "[.]rb$" ".cpp" GENERATED_NAME ${FILENAME})
-  set(GENERATED_PATH generated/${GENERATED_NAME})
+  set(GENERATED_PATH ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/generated/${GENERATED_NAME})
   add_custom_command(
     OUTPUT "${GENERATED_PATH}"
     DEPENDS "${PATH}"
     DEPENDS make-generated-directory
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/bin/natalie --write-obj "${GENERATED_PATH}" ${PATH} VERBATIM)
-  target_sources(natalie-static PRIVATE "${GENERATED_PATH}")
+  target_sources(natalie-base PRIVATE "${GENERATED_PATH}")
 endforeach()
 
-target_include_directories(natalie-static PRIVATE
+target_include_directories(natalie-base PRIVATE
   include
   ${CMAKE_BINARY_DIR}/include
   ${CMAKE_BINARY_DIR}/include/bdwgc
   ${CMAKE_BINARY_DIR}/include/gdtoa
   ${CMAKE_BINARY_DIR}/include/onigmo)
 
-set_target_properties(natalie-static PROPERTIES CXX_STANDARD 17 POSITION_INDEPENDENT_CODE true)
-set_property(TARGET natalie-static APPEND_STRING PROPERTY COMPILE_FLAGS $ENV{NAT_CXX_FLAGS})
+set_target_properties(natalie-base PROPERTIES CXX_STANDARD 17 POSITION_INDEPENDENT_CODE true)
+set_property(TARGET natalie-base APPEND_STRING PROPERTY COMPILE_FLAGS $ENV{NAT_CXX_FLAGS})
 
-add_custom_target(make-generated-directory ALL COMMAND ${CMAKE_COMMAND} -E make_directory generated)
+add_custom_target(make-generated-directory ALL
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/generated)
 
 add_custom_command(
-  OUTPUT ${CMAKE_BINARY_DIR}/generated/platform.cpp
+  OUTPUT ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/generated/platform.cpp
   DEPENDS make-generated-directory
-  COMMAND ruby -e "puts %(#include \"natalie.hpp\"\\nconst char *Natalie::ruby_platform = #{RUBY_PLATFORM.inspect};)" > ${CMAKE_BINARY_DIR}/generated/platform.cpp VERBATIM)
-add_custom_target(generate-platform DEPENDS ${CMAKE_BINARY_DIR}/generated/platform.cpp)
-add_dependencies(natalie-static generate-platform)
-set_source_files_properties(${CMAKE_BINARY_DIR}/generated/platform.cpp PROPERTIES GENERATED TRUE)
-target_sources(natalie-static PRIVATE ${CMAKE_BINARY_DIR}/generated/platform.cpp)
+  COMMAND ruby -e "puts %(#include \"natalie.hpp\"\\nconst char *Natalie::ruby_platform = #{RUBY_PLATFORM.inspect};)" > ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/generated/platform.cpp VERBATIM)
+add_custom_target(generate-platform DEPENDS ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/generated/platform.cpp)
+add_dependencies(natalie-base generate-platform)
+set_source_files_properties(${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/generated/platform.cpp PROPERTIES GENERATED TRUE)
+target_sources(natalie-base PRIVATE ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/generated/platform.cpp)
 
 include(ext/bdwgc.cmake)
 include(ext/gdtoa.cmake)
 include(ext/onigmo.cmake)
 
-add_dependencies(natalie-static
+add_dependencies(natalie-base
   ${BDWGC_TARGET}
   ${GDTOA_TARGET}
   ${ONIGMO_TARGET})
 
 add_custom_command(
   OUTPUT libnatalie.a
-  COMMAND ${CMAKE_COMMAND} -E make_directory libnatalie-o libgc-o libgccpp-o libgdtoa-o libonigmo-o
-  COMMAND cd libnatalie-o && ar x ../libnatalie-static.a && ar r ../libnatalie.a *.o
-  COMMAND cd libgc-o && ar x ../libgc.a && ar r ../libnatalie.a *.o
-  COMMAND cd libgccpp-o && ar x ../libgccpp.a && ar r ../libnatalie.a *.o
-  COMMAND cd libgdtoa-o && ar x ../libgdtoa.a && ar r ../libnatalie.a *.o
-  COMMAND cd libonigmo-o && ar x ../libonigmo.a && ar r ../libnatalie.a *.o
-  DEPENDS natalie-static)
+  COMMAND ${CMAKE_COMMAND} -E make_directory
+    ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libnatalie-o
+    ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libgc-o
+    ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libgccpp-o
+    ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libgdtoa-o
+    ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libonigmo-o
+  COMMAND cd ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libnatalie-o && ar x ${CMAKE_BINARY_DIR}/libnatalie-base.a && ar r ${CMAKE_BINARY_DIR}/libnatalie.a *.o
+  COMMAND cd ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libgc-o && ar x ../libgc.a && ar r ${CMAKE_BINARY_DIR}/libnatalie.a *.o
+  COMMAND cd ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libgccpp-o && ar x ../libgccpp.a && ar r ${CMAKE_BINARY_DIR}/libnatalie.a *.o
+  COMMAND cd ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libgdtoa-o && ar x ../libgdtoa.a && ar r ${CMAKE_BINARY_DIR}/libnatalie.a *.o
+  COMMAND cd ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libonigmo-o && ar x ../libonigmo.a && ar r ${CMAKE_BINARY_DIR}/libnatalie.a *.o
+  DEPENDS natalie-base)
 
-add_custom_target(full-library ALL DEPENDS libnatalie.a)
+add_custom_target(combine-libraries ALL DEPENDS libnatalie.a)

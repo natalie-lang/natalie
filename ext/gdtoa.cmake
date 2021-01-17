@@ -1,7 +1,7 @@
 set(GDTOA_SRC "${PROJECT_SOURCE_DIR}/ext/gdtoa")
 
-set(GDTOA_LIB "${CMAKE_BINARY_DIR}/libgdtoa.a")
-set(GDTOA_BUILD_DIR "${CMAKE_BINARY_DIR}/gdtoa-build")
+set(GDTOA_LIB "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libgdtoa.a")
+set(GDTOA_BUILD_DIR "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/gdtoa-build")
 
 add_custom_target(make_gdtoa_build_dir
     COMMAND ${CMAKE_COMMAND} -E make_directory ${GDTOA_BUILD_DIR}

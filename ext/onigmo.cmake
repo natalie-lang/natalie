@@ -1,7 +1,7 @@
 set(ONIGMO_SRC "${PROJECT_SOURCE_DIR}/ext/onigmo")
 
-set(ONIGMO_LIB "${CMAKE_BINARY_DIR}/libonigmo.a")
-set(ONIGMO_BUILD_DIR "${CMAKE_BINARY_DIR}/onigmo-build")
+set(ONIGMO_LIB "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libonigmo.a")
+set(ONIGMO_BUILD_DIR "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/onigmo-build")
 
 add_custom_target(make_onigmo_build_dir
     COMMAND ${CMAKE_COMMAND} -E make_directory ${ONIGMO_BUILD_DIR}
