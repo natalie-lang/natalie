@@ -11,7 +11,7 @@ build_debug:
 	cp build/compile_commands.json .
 
 build_release:
-	cmake -S . -B build -DCMAKE_BUILD_TYPE="Release"
+	cmake -S . -B build -DCMAKE_BUILD_TYPE="Release" -DCMAKE_MAKE_PROGRAM="${MAKE}"
 	cmake --build build -j 4
 
 clean:
