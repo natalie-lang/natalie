@@ -15,7 +15,7 @@ build_release:
 	cmake --build build -j 4
 
 clean:
-	if [ -d build ]; then make -C build -f CMakeFiles/Makefile2 CMakeFiles/natalie.dir/clean; fi
+	if [ -d build ]; then make -C build -f CMakeFiles/Makefile2 CMakeFiles/natalie-base.dir/clean; fi
 
 cleanall:
 	rm -rf build
