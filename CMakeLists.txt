@@ -76,9 +76,11 @@ add_dependencies(natalie-base
   ${GDTOA_TARGET}
   ${ONIGMO_TARGET})
 
+file(GLOB_RECURSE HEADER_FILES "include/*.hpp")
 add_custom_command(
   OUTPUT include/natalie.hpp
-  COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/include" "${CMAKE_BINARY_DIR}/include")
+  COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/include" "${CMAKE_BINARY_DIR}/include"
+  DEPENDS ${HEADER_FILES})
 add_custom_target(copy-includes ALL DEPENDS include/natalie.hpp)
 
 add_custom_command(
