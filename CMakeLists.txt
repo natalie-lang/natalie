@@ -77,6 +77,11 @@ add_dependencies(natalie-base
   ${ONIGMO_TARGET})
 
 add_custom_command(
+  OUTPUT ${CMAKE_BINARY_DIR}/include/natalie.hpp
+  COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/include" "${CMAKE_BINARY_DIR}/include")
+add_custom_target(copy-includes ALL DEPENDS include/natalie.hpp)
+
+add_custom_command(
   OUTPUT libnatalie.a
   COMMAND ${CMAKE_COMMAND} -E make_directory
     ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libnatalie-o
@@ -90,5 +95,4 @@ add_custom_command(
   COMMAND cd ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libgdtoa-o && ar x ../libgdtoa.a && ar r ${CMAKE_BINARY_DIR}/libnatalie.a *.o
   COMMAND cd ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libonigmo-o && ar x ../libonigmo.a && ar r ${CMAKE_BINARY_DIR}/libnatalie.a *.o
   DEPENDS natalie-base)
-
 add_custom_target(combine-libraries ALL DEPENDS libnatalie.a)
