@@ -22,11 +22,6 @@ module Natalie
     ]
     LIBRARIES = %W[
       -lnatalie
-      -lgc
-      -lgccpp
-      -lgdtoa
-      -lm
-      -lonigmo
     ]
 
     RB_LIB_PATH = File.expand_path('..', __dir__)
