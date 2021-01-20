@@ -13,6 +13,8 @@ describe 'Dir' do
       end
       entries.sort.should == [
         'compare_rubies.rb',
+        'dollar_exe.rb',
+        'dollar_zero.rb',
         'file.txt',
         'require_sub1.rb',
         'require_sub2.rb',
@@ -28,6 +30,8 @@ describe 'Dir' do
       dir.should be_an_instance_of(Enumerator)
       dir.to_a.sort.should == [
         'compare_rubies.rb',
+        'dollar_exe.rb',
+        'dollar_zero.rb',
         'file.txt',
         'require_sub1.rb',
         'require_sub2.rb',

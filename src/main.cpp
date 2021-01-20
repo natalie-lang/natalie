@@ -197,15 +197,23 @@ extern "C" ValuePtr EVAL(Env *env) {
 int main(int argc, char *argv[]) {
     setvbuf(stdout, nullptr, _IOLBF, 1024);
     Env *env = build_top_env();
-    ArrayValue *ARGV = new ArrayValue { env };
+
     /*NAT_INIT*/
-    env->Object()->const_set(env, "ARGV", ARGV);
+
     assert(argc > 0);
+    ValuePtr exe = new StringValue { env, argv[0] };
+    env->global_set("$exe", exe);
+
+    ArrayValue *ARGV = new ArrayValue { env };
+    env->Object()->const_set(env, "ARGV", ARGV);
     for (int i = 1; i < argc; i++) {
         ARGV->push(new StringValue { env, argv[i] });
     }
+
     ValuePtr result = EVAL(env);
+
     env->clear_global_env();
+
     if (result) {
         return 0;
     } else {
