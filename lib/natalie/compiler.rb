@@ -95,6 +95,7 @@ module Natalie
         inline_cpp_enabled: inline_cpp_enabled,
         compile_cxx_flags: [],
         compile_ld_flags: [],
+        source_path: @path,
       }
     end
 

@@ -194,11 +194,13 @@ extern "C" ValuePtr EVAL(Env *env) {
     }
 }
 
+extern const char *source_files[];
+
 int main(int argc, char *argv[]) {
     setvbuf(stdout, nullptr, _IOLBF, 1024);
     Env *env = build_top_env();
 
-    /*NAT_INIT*/
+    env->global_set("$0", new StringValue { env, source_files[0] });
 
     assert(argc > 0);
     ValuePtr exe = new StringValue { env, argv[0] };

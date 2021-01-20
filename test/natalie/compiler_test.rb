@@ -227,12 +227,12 @@ describe 'Natalie::Compiler' do
         # NOTE: The template below is intentionally broken up to work around a bug where the code
         # was being inserted in the wrong place. There's probably a better way.
         template: '/*' + "NAT_TOP*/\n" \
-          '/*' + "NAT_INIT*/\n" \
           '/*' + "NAT_BODY*/",
         repl: false,
         vars: {},
         inline_cpp_enabled: false,
         compile_flags: [],
+        source_path: 'pass4',
       }
       ast = s(:block,
               s(:var_alloc, 1),
@@ -268,7 +268,7 @@ describe 'Natalie::Compiler' do
                 s(:send, :self, :puts, s(:args, s(:send, :self, :fib, s(:args, s(:c_if, s(:is_truthy, s(:l, "num2")), s(:send, s(:l, "num2"), :to_i, s(:args), "nullptr"), s(:new, :IntegerValue, :env, 25))), "nullptr")), "nullptr")))
       pass4 = Natalie::Compiler::Pass4.new(context)
       pass4.go(ast).strip.should == <<END.strip
-const char *source_files[0] = {  };
+const char *source_files[1] = { "pass4" };
 
 const char *source_methods[1] = { "fib" };
 
@@ -315,7 +315,6 @@ Value *fn1(Env *env, Value *self, size_t argc, Value **args, Block *block) {
     }
     return if6;
 }
-
 env->build_vars(1);
 Value * num2 = env->nil_obj();
 self->define_method(env, "fib", fn1);

@@ -10,7 +10,8 @@ module Natalie
         self.strict = true
         self.expected = String
         @compiler_context = compiler_context
-        @source_files = {}
+        raise 'source path unknown!' unless compiler_context[:source_path]
+        @source_files = { compiler_context[:source_path] => 0 }
         @source_methods = {}
         @top = []
         @decl = []
@@ -115,7 +116,6 @@ module Natalie
           .sub('/*' + 'NAT_OBJ' + '*/') { obj_declarations.join("\n") }
           .sub('/*' + 'NAT_OBJ_INIT' + '*/') { obj_init_lines.join("\n") }
           .sub('/*' + 'NAT_TOP' + '*/') { top_matter }
-          .sub('/*' + 'NAT_INIT' + '*/') { init_matter.to_s }
           .sub('/*' + 'NAT_BODY' + '*/') { @decl.join("\n") + "\n" + result }
         reindent(out)
       end
@@ -126,11 +126,6 @@ module Natalie
           source_methods_to_c,
           @top.join("\n")
         ].join("\n\n")
-      end
-
-      def init_matter
-        return if @source_files.empty?
-        "env->global_set(\"$0\", new StringValue { env, source_files[0] });"
       end
 
       def process___cxx_flags__(exp)
