@@ -118,8 +118,7 @@ ValuePtr ModuleValue::const_set(Env *env, const char *name, ValuePtr val) {
 }
 
 void ModuleValue::alias(Env *env, const char *new_name, const char *old_name) {
-    ModuleValue *matching_class_or_module;
-    Method *method = find_method(env, old_name, &matching_class_or_module);
+    Method *method = find_method(env, old_name);
     if (!method) {
         env->raise("NameError", "undefined method `%s' for `%v'", old_name, this);
     }
@@ -220,7 +219,7 @@ Method *ModuleValue::find_method(Env *env, const char *method_name, ModuleValue 
         // note: if there are included modules, then the module chain will include this class/module
         method = static_cast<Method *>(hashmap_get(env, &m_methods, method_name));
         if (method) {
-            *matching_class_or_module = m_klass;
+            if (matching_class_or_module) *matching_class_or_module = m_klass;
             return method;
         }
     }
@@ -228,7 +227,7 @@ Method *ModuleValue::find_method(Env *env, const char *method_name, ModuleValue 
     for (ModuleValue *module : m_included_modules) {
         method = static_cast<Method *>(hashmap_get(env, &module->m_methods, method_name));
         if (method) {
-            *matching_class_or_module = module;
+            if (matching_class_or_module) *matching_class_or_module = module;
             return method;
         }
     }
@@ -292,8 +291,7 @@ ArrayValue *ModuleValue::ancestors(Env *env) {
 
 bool ModuleValue::is_method_defined(Env *env, ValuePtr name_value) {
     const char *name = name_value->identifier_str(env, Conversion::Strict);
-    ModuleValue *matching_class_or_module;
-    return !!find_method(env, name, &matching_class_or_module);
+    return !!find_method(env, name);
 }
 
 ValuePtr ModuleValue::inspect(Env *env) {

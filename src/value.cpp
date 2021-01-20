@@ -94,8 +94,7 @@ ValuePtr Value::_new(Env *env, ValuePtr klass_value, size_t argc, ValuePtr *args
 }
 
 ValuePtr Value::initialize(Env *env, size_t argc, ValuePtr *args, Block *block) {
-    ModuleValue *matching_class_or_module;
-    Method *method = m_klass->find_method(env, "initialize", &matching_class_or_module);
+    Method *method = m_klass->find_method(env, "initialize");
     if (method) {
         m_klass->call_method(env, m_klass, "initialize", this, argc, args, block);
     }
@@ -417,8 +416,7 @@ void Value::undefine_method(Env *env, const char *name) {
 
 ValuePtr Value::send(Env *env, const char *name, size_t argc, ValuePtr *args, Block *block) {
     if (singleton_class()) {
-        ModuleValue *matching_class_or_module;
-        Method *method = singleton_class()->find_method(env, name, &matching_class_or_module);
+        Method *method = singleton_class()->find_method(env, name);
         if (method) {
             if (method->is_undefined()) {
                 env->raise("NoMethodError", "undefined method `%s' for %s:Class", name, m_klass->class_name());
@@ -474,11 +472,10 @@ bool Value::is_a(Env *env, ValuePtr val) {
 }
 
 bool Value::respond_to(Env *env, const char *name) {
-    ModuleValue *matching_class_or_module;
     // FIXME: this is incorrect -- undefined on singleton should override defined on class
-    if (singleton_class() && singleton_class()->find_method_without_undefined(env, name, &matching_class_or_module)) {
+    if (singleton_class() && singleton_class()->find_method_without_undefined(env, name)) {
         return true;
-    } else if (m_klass->find_method_without_undefined(env, name, &matching_class_or_module)) {
+    } else if (m_klass->find_method_without_undefined(env, name)) {
         return true;
     }
     return false;

@@ -167,10 +167,9 @@ ValuePtr KernelModule::loop(Env *env, Block *block) {
 
 ValuePtr KernelModule::method(Env *env, Value *name) {
     auto name_symbol = name->to_symbol(env, Conversion::Strict);
-    ModuleValue *matching_class_or_module;
     auto singleton = singleton_class();
     if (singleton) {
-        Method *method = singleton_class()->find_method(env, name_symbol->c_str(), &matching_class_or_module);
+        Method *method = singleton_class()->find_method(env, name_symbol->c_str());
         if (method) {
             if (method->is_undefined()) {
                 env->raise("NoMethodError", "undefined method `%s' for %s:Class", name, m_klass->class_name());
@@ -179,7 +178,7 @@ ValuePtr KernelModule::method(Env *env, Value *name) {
             return new MethodValue { env, singleton, owner_name, true, name_symbol, method };
         }
     }
-    Method *method = m_klass->find_method(env, name_symbol->c_str(), &matching_class_or_module);
+    Method *method = m_klass->find_method(env, name_symbol->c_str());
     if (method)
         return new MethodValue { env, m_klass, SymbolValue::intern(env, m_klass->class_name()), false, name_symbol, method };
     env->raise("NoMethodError", "undefined method `%s' for %s:Class", name, m_klass->class_name());
