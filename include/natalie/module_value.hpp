@@ -70,7 +70,6 @@ struct ModuleValue : Value {
 
     void methods(Env *, ArrayValue *);
     Method *find_method(Env *, const char *, ModuleValue ** = nullptr);
-    Method *find_method_without_undefined(Env *, const char *, ModuleValue ** = nullptr);
 
     ValuePtr call_method(Env *, ValuePtr, const char *, ValuePtr, size_t, ValuePtr *, Block *);
 

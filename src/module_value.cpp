@@ -239,15 +239,6 @@ Method *ModuleValue::find_method(Env *env, const char *method_name, ModuleValue 
     }
 }
 
-Method *ModuleValue::find_method_without_undefined(Env *env, const char *method_name, ModuleValue **matching_class_or_module) {
-    Method *method = find_method(env, method_name, matching_class_or_module);
-    if (method && method->is_undefined()) {
-        return nullptr;
-    } else {
-        return method;
-    }
-}
-
 ValuePtr ModuleValue::call_method(Env *env, ValuePtr instance_class, const char *method_name, ValuePtr self, size_t argc, ValuePtr *args, Block *block) {
     ModuleValue *matching_class_or_module;
     Method *method = find_method(env, method_name, &matching_class_or_module);

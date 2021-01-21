@@ -472,11 +472,11 @@ bool Value::is_a(Env *env, ValuePtr val) {
 }
 
 bool Value::respond_to(Env *env, const char *name) {
-    // FIXME: this is incorrect -- undefined on singleton should override defined on class
-    if (singleton_class() && singleton_class()->find_method_without_undefined(env, name)) {
-        return true;
-    } else if (m_klass->find_method_without_undefined(env, name)) {
-        return true;
+    Method *method;
+    if (singleton_class() && (method = singleton_class()->find_method(env, name))) {
+        return !method->is_undefined();
+    } else if ((method = m_klass->find_method(env, name))) {
+        return !method->is_undefined();
     }
     return false;
 }
