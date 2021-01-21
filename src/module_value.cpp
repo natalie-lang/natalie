@@ -178,13 +178,13 @@ ValuePtr ModuleValue::cvar_set(Env *env, const char *name, ValuePtr val) {
 }
 
 void ModuleValue::define_method(Env *env, const char *name, MethodFnPtr fn) {
-    Method *method = new Method { fn };
+    Method *method = new Method { name, this, fn };
     GC_FREE(hashmap_remove(env, &m_methods, name));
     hashmap_put(env, &m_methods, name, method);
 }
 
 void ModuleValue::define_method_with_block(Env *env, const char *name, Block *block) {
-    Method *method = new Method { block };
+    Method *method = new Method { name, this, block };
     GC_FREE(hashmap_remove(env, &m_methods, name));
     hashmap_put(env, &m_methods, name, method);
 }
@@ -240,10 +240,9 @@ Method *ModuleValue::find_method(Env *env, const char *method_name, ModuleValue 
 }
 
 ValuePtr ModuleValue::call_method(Env *env, ValuePtr instance_class, const char *method_name, ValuePtr self, size_t argc, ValuePtr *args, Block *block) {
-    ModuleValue *method_owner;
-    Method *method = find_method(env, method_name, &method_owner);
+    Method *method = find_method(env, method_name);
     if (method && !method->is_undefined()) {
-        return method->call(env, method_owner, method_name, self, argc, args, block);
+        return method->call(env, self, argc, args, block);
     } else if (self->is_module()) {
         env->raise("NoMethodError", "undefined method `%s' for %s:%v", method_name, self->as_module()->class_name(), instance_class);
     } else if (strcmp(method_name, "inspect") == 0) {

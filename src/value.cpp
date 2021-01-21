@@ -49,10 +49,6 @@ ValuePtr Value::_new(Env *env, ValuePtr klass_value, size_t argc, ValuePtr *args
         obj = new MatchDataValue { env, klass };
         break;
 
-    case Value::Type::Method:
-        obj = new MethodValue { env, klass };
-        break;
-
     case Value::Type::Module:
         obj = new ModuleValue { env, klass };
         break;
@@ -81,6 +77,7 @@ ValuePtr Value::_new(Env *env, ValuePtr klass_value, size_t argc, ValuePtr *args
         obj = new VoidPValue { env, klass };
         break;
 
+    case Value::Type::Method:
     case Value::Type::Nil:
     case Value::Type::False:
     case Value::Type::True:
@@ -94,10 +91,9 @@ ValuePtr Value::_new(Env *env, ValuePtr klass_value, size_t argc, ValuePtr *args
 }
 
 ValuePtr Value::initialize(Env *env, size_t argc, ValuePtr *args, Block *block) {
-    ModuleValue *method_owner;
-    Method *method = m_klass->find_method(env, "initialize", &method_owner);
+    Method *method = m_klass->find_method(env, "initialize");
     if (method && !method->is_undefined()) {
-        method->call(env, method_owner, "initialize", this, argc, args, block);
+        method->call(env, this, argc, args, block);
     }
     return this;
 }
@@ -418,12 +414,11 @@ void Value::undefine_method(Env *env, const char *name) {
 ValuePtr Value::send(Env *env, const char *name, size_t argc, ValuePtr *args, Block *block) {
     auto singleton = singleton_class();
     if (singleton) {
-        ModuleValue *method_owner;
-        Method *method = singleton_class()->find_method(env, name, &method_owner);
+        Method *method = singleton_class()->find_method(env, name);
         if (method) {
             if (method->is_undefined())
                 env->raise("NoMethodError", "undefined method `%s' for %s:Class", name, m_klass->class_name());
-            return method->call(env, method_owner, name, this, argc, args, block);
+            return method->call(env, this, argc, args, block);
         }
     }
     return m_klass->call_method(env, m_klass, name, this, argc, args, block);
