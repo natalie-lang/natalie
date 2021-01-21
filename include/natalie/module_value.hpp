@@ -99,7 +99,10 @@ struct ModuleValue : Value {
         return other->is_a(env, this);
     }
 
+    Env *env() { return &m_env; }
+
 protected:
+    Env m_env;
     hashmap m_constants {};
     const char *m_class_name { nullptr };
     ClassValue *m_superclass { nullptr };

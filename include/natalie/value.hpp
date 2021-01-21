@@ -107,8 +107,6 @@ struct Value : public gc {
 
     int flags() { return m_flags; }
 
-    Env env() { return m_env; }
-
     ValuePtr initialize(Env *, size_t, ValuePtr *, Block *);
 
     bool is_nil() const { return m_type == Type::Nil; }
@@ -249,7 +247,6 @@ struct Value : public gc {
     const char *inspect_str(Env *);
 
 protected:
-    Env m_env;
     ClassValue *m_klass { nullptr };
 
 private:
