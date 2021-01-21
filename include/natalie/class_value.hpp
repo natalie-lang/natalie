@@ -45,8 +45,12 @@ struct ClassValue : ModuleValue {
         return klass;
     }
 
+    bool is_singleton() { return m_is_singleton; }
+    void set_is_singleton(bool is_singleton) { m_is_singleton = is_singleton; }
+
 private:
     Type m_object_type { Type::Object };
+    bool m_is_singleton { false };
 };
 
 }

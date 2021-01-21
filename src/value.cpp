@@ -248,6 +248,11 @@ SymbolValue *Value::to_symbol(Env *env, Conversion conversion) {
     }
 }
 
+void Value::set_singleton_class(ClassValue *klass) {
+    klass->set_is_singleton(true);
+    m_singleton_class = klass;
+}
+
 ClassValue *Value::singleton_class(Env *env) {
     if (m_singleton_class) {
         return m_singleton_class;
@@ -258,6 +263,7 @@ ClassValue *Value::singleton_class(Env *env) {
     }
 
     m_singleton_class = m_klass->subclass(env);
+    m_singleton_class->set_is_singleton(true);
     if (is_module()) {
         char name[255];
         snprintf(name, 255, "#<Class:%s>", as_module()->class_name());

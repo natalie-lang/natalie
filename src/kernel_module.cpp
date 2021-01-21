@@ -174,13 +174,12 @@ ValuePtr KernelModule::method(Env *env, Value *name) {
             if (method->is_undefined()) {
                 env->raise("NoMethodError", "undefined method `%s' for %s:Class", name, m_klass->class_name());
             }
-            auto owner_name = this->inspect(env)->to_symbol(env, Conversion::Strict);
-            return new MethodValue { env, owner_name, true, method };
+            return new MethodValue { env, this, method };
         }
     }
     Method *method = m_klass->find_method(env, name_symbol->c_str());
     if (method)
-        return new MethodValue { env, SymbolValue::intern(env, m_klass->class_name()), false, method };
+        return new MethodValue { env, this, method };
     env->raise("NoMethodError", "undefined method `%s' for %s:Class", name, m_klass->class_name());
 }
 

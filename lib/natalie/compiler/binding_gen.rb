@@ -275,6 +275,7 @@ gen.binding('BasicObject', 'instance_eval', 'Value', 'instance_eval', argc: 0..1
 
 gen.static_binding('Class', 'new', 'ClassValue', 'new_method', argc: 0..1, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Class', 'superclass', 'ClassValue', 'superclass', argc: 0, pass_env: false, pass_block: false, return_type: :NullableValue)
+gen.binding('Class', 'singleton_class?', 'ClassValue', 'is_singleton', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 
 gen.static_binding('Encoding', 'list', 'EncodingValue', 'list', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Encoding', 'inspect', 'EncodingValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
@@ -460,6 +461,7 @@ gen.binding('MatchData', 'to_s', 'MatchDataValue', 'to_s', argc: 0, pass_env: tr
 gen.binding('MatchData', '[]', 'MatchDataValue', 'ref', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 
 gen.binding('Method', 'inspect', 'MethodValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Method', 'owner', 'MethodValue', 'owner', argc: 0, pass_env: false, pass_block: false, return_type: :Value)
 
 gen.binding('Module', '===', 'ModuleValue', 'eqeqeq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Module', 'alias_method', 'ModuleValue', 'alias_method', argc: 2, pass_env: true, pass_block: false, return_type: :Value)

@@ -315,9 +315,11 @@ describe 'method' do
   describe '#method' do
     it 'returns a method object' do
       Foo.new.method(:foo).should be_an_instance_of(Method)
+      Foo.new.method(:foo).owner.should == Foo
       Foo.new.method('foo').should be_an_instance_of(Method)
       Foo.new.method('foo').inspect.should =~ /^#<Method: Foo#foo.*>$/
       Foo.method('foo1').inspect.should =~ /^#<Method: Foo.foo1.*>$/
+      Foo.method('foo1').owner.should == Foo.singleton_class
     end
   end
 end

@@ -12,10 +12,9 @@
 namespace Natalie {
 
 struct MethodValue : Value {
-    MethodValue(Env *env, SymbolValue *owner_name, bool owner_is_singleton, Method *method)
+    MethodValue(Env *env, Value *object, Method *method)
         : Value { Value::Type::Method, env->Object()->const_fetch(env, "Method")->as_class() }
-        , m_owner_name { owner_name }
-        , m_owner_is_singleton { owner_is_singleton }
+        , m_object { object }
         , m_method { method } { }
 
     MethodValue(Env *env, ClassValue *klass)
@@ -26,15 +25,15 @@ struct MethodValue : Value {
     Method *method() { return m_method; }
 
     ValuePtr inspect(Env *env) {
-        if (m_owner_is_singleton)
-            return StringValue::sprintf(env, "#<Method: %s.%s(*)>", m_owner_name->c_str(), m_method->name());
+        auto the_owner = owner();
+        if (the_owner->is_class() && the_owner->as_class()->is_singleton())
+            return StringValue::sprintf(env, "#<Method: %s.%s(*)>", m_object->inspect_str(env), m_method->name());
         else
-            return StringValue::sprintf(env, "#<Method: %s#%s(*)>", m_owner_name->c_str(), m_method->name());
+            return StringValue::sprintf(env, "#<Method: %s#%s(*)>", owner()->class_name(), m_method->name());
     }
 
 private:
-    SymbolValue *m_owner_name { nullptr };
-    bool m_owner_is_singleton { false };
+    Value *m_object { nullptr };
     Method *m_method { nullptr };
 };
 }

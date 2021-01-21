@@ -170,7 +170,7 @@ struct Value : public gc {
     ClassValue *singleton_class() { return m_singleton_class; }
     ClassValue *singleton_class(Env *);
 
-    void set_singleton_class(ClassValue *c) { m_singleton_class = c; }
+    void set_singleton_class(ClassValue *);
 
     virtual ValuePtr const_get(Env *, const char *);
     virtual ValuePtr const_fetch(Env *, const char *);

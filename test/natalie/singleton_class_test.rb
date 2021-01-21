@@ -38,4 +38,9 @@ describe 'singleton_class' do
     klass = klass.superclass
     klass.should == Class
   end
+
+  it 'knows it is a singleton class' do
+    Bar.singleton_class.singleton_class?.should == true
+    Bar.singleton_class?.should == false
+  end
 end
