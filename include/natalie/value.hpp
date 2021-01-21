@@ -204,9 +204,6 @@ struct Value : public gc {
         return GC_STRDUP(buf);
     }
 
-    // TODO: rename this find_method and the one on ModuleValue to something else
-    Method *locate_method(Env *, const char *);
-
     ValuePtr send(Env *, const char *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
     ValuePtr send(Env *, size_t, ValuePtr *, Block *);
 
