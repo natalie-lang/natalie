@@ -14,7 +14,6 @@ extern "C" Env *build_top_env() {
     ClassValue *Class = ClassValue::bootstrap_class_class(env);
 
     ClassValue *BasicObject = ClassValue::bootstrap_basic_object(env, Class);
-    BasicObject->define_singleton_method(env, "new", Value::_new);
 
     ClassValue *Object = BasicObject->subclass(env, "Object");
     env->global_env()->set_Object(Object);
@@ -41,6 +40,9 @@ extern "C" Env *build_top_env() {
 
     ClassValue *Symbol = Object->subclass(env, "Symbol", Value::Type::Symbol);
     Object->const_set(env, "Symbol", Symbol);
+
+    // need Symbol to exist :^)
+    BasicObject->define_singleton_method(env, SymbolValue::intern(env, "new"), Value::_new);
 
     ClassValue *NilClass = Object->subclass(env, "NilClass", Value::Type::Nil);
     Object->const_set(env, "NilClass", NilClass);

@@ -35,10 +35,10 @@ class BindingGen
         puts "    " + binding.get_object
         @consts[binding.rb_class] = true
       end
-      puts "    #{binding.rb_class_as_c_variable}->#{binding.define_method_name}(env, #{binding.rb_method.inspect}, #{binding.name});"
+      puts "    #{binding.rb_class_as_c_variable}->#{binding.define_method_name}(env, SymbolValue::intern(env, #{binding.rb_method.inspect}), #{binding.name});"
     end
     @undefine_singleton_methods.each do |rb_class, method|
-      puts "    #{rb_class}->undefine_singleton_method(env, #{method.inspect});"
+      puts "    #{rb_class}->undefine_singleton_method(env, SymbolValue::intern(env, #{method.inspect}));"
     end
     puts '}'
   end

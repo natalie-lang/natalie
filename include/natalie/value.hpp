@@ -186,15 +186,15 @@ struct Value : public gc {
     virtual ValuePtr cvar_get_or_null(Env *, const char *);
     virtual ValuePtr cvar_set(Env *, const char *, ValuePtr);
 
-    virtual void define_method(Env *, const char *, MethodFnPtr);
-    virtual void define_method_with_block(Env *, const char *, Block *);
-    virtual void undefine_method(Env *, const char *);
+    virtual SymbolValue *define_method(Env *, SymbolValue *, MethodFnPtr);
+    virtual SymbolValue *define_method_with_block(Env *, SymbolValue *, Block *);
+    virtual SymbolValue *undefine_method(Env *, SymbolValue *);
 
-    void define_singleton_method(Env *, const char *, ValuePtr (*)(Env *, ValuePtr, size_t, ValuePtr *, Block *block));
-    void define_singleton_method_with_block(Env *, const char *, Block *);
-    void undefine_singleton_method(Env *, const char *);
+    SymbolValue *define_singleton_method(Env *, SymbolValue *, ValuePtr (*)(Env *, ValuePtr, size_t, ValuePtr *, Block *block));
+    SymbolValue *define_singleton_method_with_block(Env *, SymbolValue *, Block *);
+    SymbolValue *undefine_singleton_method(Env *, SymbolValue *);
 
-    virtual void alias(Env *, const char *, const char *);
+    virtual void alias(Env *, SymbolValue *, SymbolValue *);
 
     nat_int_t object_id() { return reinterpret_cast<nat_int_t>(this); }
 

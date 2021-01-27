@@ -152,7 +152,16 @@ class Matcher
 
   def eq(other)
     if @subject != other
-      raise SpecFailedException, @subject.inspect + ' should be == to ' + other.inspect
+      if @subject.is_a?(String) && other.is_a?(String) && (@subject.size > 50 || other.size > 50)
+        subject_file = Tempfile.new('subject') { |f| f.write(@subject) }
+        other_file = Tempfile.new('other') { |f| f.write(other) }
+        puts `diff #{other_file.path} #{subject_file.path}`
+        File.unlink(subject_file.path)
+        File.unlink(other_file.path)
+        raise SpecFailedException, 'two strings should match'
+      else
+        raise SpecFailedException, @subject.inspect + ' should be == to ' + other.inspect
+      end
     end
   end
 

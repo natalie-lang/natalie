@@ -366,7 +366,7 @@ ValuePtr Value::cvar_set(Env *env, const char *name, ValuePtr val) {
     return m_klass->cvar_set(env, name, val);
 }
 
-void Value::alias(Env *env, const char *new_name, const char *old_name) {
+void Value::alias(Env *env, SymbolValue *new_name, SymbolValue *old_name) {
     if (is_integer() || is_symbol()) {
         env->raise("TypeError", "no klass to make alias");
     }
@@ -379,55 +379,61 @@ void Value::alias(Env *env, const char *new_name, const char *old_name) {
     }
 }
 
-void Value::define_singleton_method(Env *env, const char *name, ValuePtr (*fn)(Env *, ValuePtr, size_t, ValuePtr *, Block *block)) {
+SymbolValue *Value::define_singleton_method(Env *env, SymbolValue *name, ValuePtr (*fn)(Env *, ValuePtr, size_t, ValuePtr *, Block *block)) {
     ClassValue *klass = singleton_class(env);
     klass->define_method(env, name, fn);
+    return name;
 }
 
-void Value::define_singleton_method_with_block(Env *env, const char *name, Block *block) {
+SymbolValue *Value::define_singleton_method_with_block(Env *env, SymbolValue *name, Block *block) {
     ClassValue *klass = singleton_class(env);
     klass->define_method_with_block(env, name, block);
+    return name;
 }
 
-void Value::undefine_singleton_method(Env *env, const char *name) {
-    define_singleton_method(env, name, nullptr);
+SymbolValue *Value::undefine_singleton_method(Env *env, SymbolValue *name) {
+    return define_singleton_method(env, name, nullptr);
 }
 
-void Value::define_method(Env *env, const char *name, ValuePtr (*fn)(Env *, ValuePtr, size_t, ValuePtr *, Block *block)) {
+SymbolValue *Value::define_method(Env *env, SymbolValue *name, ValuePtr (*fn)(Env *, ValuePtr, size_t, ValuePtr *, Block *block)) {
     if (!is_main_object()) {
         printf("tried to call define_method on something that has no methods\n");
         abort();
     }
     m_klass->define_method(env, name, fn);
+    return name;
 }
 
-void Value::define_method_with_block(Env *env, const char *name, Block *block) {
+SymbolValue *Value::define_method_with_block(Env *env, SymbolValue *name, Block *block) {
     if (!is_main_object()) {
         printf("tried to call define_method on something that has no methods\n");
         abort();
     }
     m_klass->define_method_with_block(env, name, block);
+    return name;
 }
 
-void Value::undefine_method(Env *env, const char *name) {
+SymbolValue *Value::undefine_method(Env *env, SymbolValue *name) {
     if (!is_main_object()) {
         printf("tried to call define_method on something that has no methods\n");
         abort();
     }
     m_klass->undefine_method(env, name);
+    return name;
 }
 
 ValuePtr Value::send(Env *env, const char *name, size_t argc, ValuePtr *args, Block *block) {
+    auto sym = SymbolValue::intern(env, name);
     auto singleton = singleton_class();
     if (singleton) {
-        Method *method = singleton_class()->find_method(env, name);
+        Method *method = singleton_class()->find_method(env, sym);
         if (method) {
             if (method->is_undefined())
                 env->raise("NoMethodError", "undefined method `%s' for %s:Class", name, m_klass->class_name());
             return method->call(env, this, argc, args, block);
         }
     }
-    return m_klass->call_method(env, m_klass, name, this, argc, args, block);
+    return m_klass->call_method(env, m_klass, sym, this, argc, args, block);
 }
 
 ValuePtr Value::send(Env *env, size_t argc, ValuePtr *args, Block *block) {

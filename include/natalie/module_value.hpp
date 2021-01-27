@@ -46,7 +46,7 @@ struct ModuleValue : Value {
     virtual ValuePtr const_find(Env *, const char *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::Raise) override;
     virtual ValuePtr const_set(Env *, const char *, ValuePtr) override;
 
-    virtual void alias(Env *, const char *, const char *) override;
+    virtual void alias(Env *, SymbolValue *, SymbolValue *) override;
 
     ValuePtr eval_body(Env *, ValuePtr (*)(Env *, ValuePtr));
 
@@ -64,14 +64,16 @@ struct ModuleValue : Value {
     virtual ValuePtr cvar_set(Env *, const char *, ValuePtr) override;
 
     ValuePtr define_method(Env *, ValuePtr, Block *);
-    virtual void define_method(Env *, const char *, MethodFnPtr) override;
-    virtual void define_method_with_block(Env *, const char *, Block *) override;
-    virtual void undefine_method(Env *, const char *) override;
+    virtual SymbolValue *define_method(Env *, SymbolValue *, MethodFnPtr) override;
+    virtual SymbolValue *define_method_with_block(Env *, SymbolValue *, Block *) override;
+    virtual SymbolValue *undefine_method(Env *, SymbolValue *) override;
 
     void methods(Env *, ArrayValue *);
+    Method *find_method(Env *, SymbolValue *, ModuleValue ** = nullptr);
     Method *find_method(Env *, const char *, ModuleValue ** = nullptr);
 
     ValuePtr call_method(Env *, ValuePtr, const char *, ValuePtr, size_t, ValuePtr *, Block *);
+    ValuePtr call_method(Env *, ValuePtr, SymbolValue *, ValuePtr, size_t, ValuePtr *, Block *);
 
     ArrayValue *ancestors(Env *);
 

@@ -28,10 +28,6 @@ module Natalie
         assert_argc
         assert_argc_at_least
         assert_type
-        define_method
-        define_method_with_block
-        define_singleton_method
-        define_singleton_method_with_block
         freeze
         grow_array
         grow_array_at_least
@@ -156,7 +152,7 @@ module Natalie
         fn = temp('fn')
         nl = "\n" # FIXME: parser issue with double quotes inside interpolation
         top "Value *#{fn}(Env *env, Value *self, size_t argc, Value **args, Block *block) {\n#{c.join(nl)}\n}"
-        process(s(:define_method, s(:l, "self->as_module()"), :env, s(:s, name), fn))
+        process(s(:define_method, s(:l, "self->as_module()"), :env, s(:intern, name), fn))
         "SymbolValue::intern(env, #{name.inspect})"
       end
 
@@ -663,6 +659,11 @@ module Natalie
         decl "Value *#{result} = #{process_atom body};"
         decl "self = #{self_was};"
         result
+      end
+
+      def process_intern(exp)
+        (_, name) = exp
+        "SymbolValue::intern(env, #{name.to_s.inspect})"
       end
 
       def temp(name)

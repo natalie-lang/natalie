@@ -13,8 +13,8 @@ ModuleValue::ModuleValue(Env *env, const char *name)
 ModuleValue::ModuleValue(Env *env, Type type, ClassValue *klass)
     : Value { type, klass } {
     m_env = Env::new_detatched_env(env);
-    hashmap_init(&m_methods, hashmap_hash_string, hashmap_compare_string, 10);
-    hashmap_set_key_alloc_funcs(&m_methods, hashmap_alloc_key_string, nullptr);
+    hashmap_init(&m_methods, hashmap_hash_ptr, hashmap_compare_ptr, 10);
+    hashmap_set_key_alloc_funcs(&m_methods, nullptr, nullptr);
     hashmap_init(&m_constants, hashmap_hash_string, hashmap_compare_string, 10);
     hashmap_set_key_alloc_funcs(&m_constants, hashmap_alloc_key_string, nullptr);
 }
@@ -117,10 +117,10 @@ ValuePtr ModuleValue::const_set(Env *env, const char *name, ValuePtr val) {
     return val;
 }
 
-void ModuleValue::alias(Env *env, const char *new_name, const char *old_name) {
+void ModuleValue::alias(Env *env, SymbolValue *new_name, SymbolValue *old_name) {
     Method *method = find_method(env, old_name);
     if (!method) {
-        env->raise("NameError", "undefined method `%s' for `%v'", old_name, this);
+        env->raise("NameError", "undefined method `%s' for `%v'", old_name->c_str(), this);
     }
     GC_FREE(hashmap_remove(env, &m_methods, new_name));
     hashmap_put(env, &m_methods, new_name, new Method { *method });
@@ -177,33 +177,35 @@ ValuePtr ModuleValue::cvar_set(Env *env, const char *name, ValuePtr val) {
     }
 }
 
-void ModuleValue::define_method(Env *env, const char *name, MethodFnPtr fn) {
-    Method *method = new Method { name, this, fn };
+SymbolValue *ModuleValue::define_method(Env *env, SymbolValue *name, MethodFnPtr fn) {
+    Method *method = new Method { name->c_str(), this, fn };
     GC_FREE(hashmap_remove(env, &m_methods, name));
     hashmap_put(env, &m_methods, name, method);
+    return name;
 }
 
-void ModuleValue::define_method_with_block(Env *env, const char *name, Block *block) {
-    Method *method = new Method { name, this, block };
+SymbolValue *ModuleValue::define_method_with_block(Env *env, SymbolValue *name, Block *block) {
+    Method *method = new Method { name->c_str(), this, block };
     GC_FREE(hashmap_remove(env, &m_methods, name));
     hashmap_put(env, &m_methods, name, method);
+    return name;
 }
 
-void ModuleValue::undefine_method(Env *env, const char *name) {
-    define_method(env, name, nullptr);
+SymbolValue *ModuleValue::undefine_method(Env *env, SymbolValue *name) {
+    return define_method(env, name, nullptr);
 }
 
 // supply an empty array and it will be populated with the method names as symbols
 void ModuleValue::methods(Env *env, ArrayValue *array) {
     struct hashmap_iter *iter;
     for (iter = hashmap_iter(&m_methods); iter; iter = hashmap_iter_next(&m_methods, iter)) {
-        const char *name = (char *)hashmap_iter_get_key(iter);
-        array->push(SymbolValue::intern(env, name));
+        auto name = (SymbolValue *)hashmap_iter_get_key(iter);
+        array->push(name);
     }
     for (ModuleValue *module : m_included_modules) {
         for (iter = hashmap_iter(&module->m_methods); iter; iter = hashmap_iter_next(&module->m_methods, iter)) {
-            const char *name = (char *)hashmap_iter_get_key(iter);
-            array->push(SymbolValue::intern(env, name));
+            auto name = (SymbolValue *)hashmap_iter_get_key(iter);
+            array->push(name);
         }
     }
     if (m_superclass) {
@@ -212,7 +214,7 @@ void ModuleValue::methods(Env *env, ArrayValue *array) {
 }
 
 // returns the method and sets matching_class_or_module to where the method was found
-Method *ModuleValue::find_method(Env *env, const char *method_name, ModuleValue **matching_class_or_module) {
+Method *ModuleValue::find_method(Env *env, SymbolValue *method_name, ModuleValue **matching_class_or_module) {
     Method *method;
     if (m_included_modules.is_empty()) {
         // no included modules, just search the class/module
@@ -239,17 +241,25 @@ Method *ModuleValue::find_method(Env *env, const char *method_name, ModuleValue 
     }
 }
 
-ValuePtr ModuleValue::call_method(Env *env, ValuePtr instance_class, const char *method_name, ValuePtr self, size_t argc, ValuePtr *args, Block *block) {
+Method *ModuleValue::find_method(Env *env, const char *method_name, ModuleValue **matching_class_or_module) {
+    return find_method(env, SymbolValue::intern(env, method_name), matching_class_or_module);
+}
+
+ValuePtr ModuleValue::call_method(Env *env, ValuePtr instance_class, SymbolValue *method_name, ValuePtr self, size_t argc, ValuePtr *args, Block *block) {
     Method *method = find_method(env, method_name);
     if (method && !method->is_undefined()) {
         return method->call(env, self, argc, args, block);
     } else if (self->is_module()) {
-        env->raise("NoMethodError", "undefined method `%s' for %s:%v", method_name, self->as_module()->class_name(), instance_class);
-    } else if (strcmp(method_name, "inspect") == 0) {
+        env->raise("NoMethodError", "undefined method `%s' for %s:%v", method_name->c_str(), self->as_module()->class_name(), instance_class);
+    } else if (method_name == SymbolValue::intern(env, "inspect")) {
         env->raise("NoMethodError", "undefined method `inspect' for #<%s:0x%x>", self->klass()->class_name(), self->object_id());
     } else {
-        env->raise("NoMethodError", "undefined method `%s' for %s", method_name, self->inspect_str(env));
+        env->raise("NoMethodError", "undefined method `%s' for %s", method_name->c_str(), self->inspect_str(env));
     }
+}
+
+ValuePtr ModuleValue::call_method(Env *env, ValuePtr instance_class, const char *method_name, ValuePtr self, size_t argc, ValuePtr *args, Block *block) {
+    return call_method(env, instance_class, SymbolValue::intern(env, method_name), self, argc, args, block);
 }
 
 ArrayValue *ModuleValue::ancestors(Env *env) {
@@ -317,7 +327,7 @@ ValuePtr ModuleValue::attr_reader(Env *env, size_t argc, ValuePtr *args) {
         Env block_env = Env::new_detatched_env(env);
         block_env.var_set("name", 0, true, name_obj);
         Block *attr_block = new Block { block_env, this, ModuleValue::attr_reader_block_fn };
-        define_method_with_block(env, name_obj->as_string()->c_str(), attr_block);
+        define_method_with_block(env, name_obj->as_string()->to_symbol(env), attr_block);
     }
     return env->nil_obj();
 }
@@ -344,7 +354,7 @@ ValuePtr ModuleValue::attr_writer(Env *env, size_t argc, ValuePtr *args) {
         Env block_env = Env::new_detatched_env(env);
         block_env.var_set("name", 0, true, name_obj);
         Block *attr_block = new Block { block_env, this, ModuleValue::attr_writer_block_fn };
-        define_method_with_block(env, method_name->c_str(), attr_block);
+        define_method_with_block(env, method_name->to_symbol(env), attr_block);
     }
     return env->nil_obj();
 }
@@ -382,12 +392,12 @@ bool ModuleValue::does_include_module(Env *env, ValuePtr module) {
 }
 
 ValuePtr ModuleValue::define_method(Env *env, ValuePtr name_value, Block *block) {
-    const char *name = name_value->identifier_str(env, Value::Conversion::Strict);
+    auto name = name_value->to_symbol(env, Value::Conversion::Strict);
     if (!block) {
         env->raise("ArgumentError", "tried to create Proc object without a block");
     }
     define_method_with_block(env, name, block);
-    return SymbolValue::intern(env, name);
+    return name;
 }
 
 ValuePtr ModuleValue::module_eval(Env *env, Block *block) {
@@ -423,11 +433,11 @@ bool ModuleValue::const_defined(Env *env, ValuePtr name_value) {
 }
 
 ValuePtr ModuleValue::alias_method(Env *env, ValuePtr new_name_value, ValuePtr old_name_value) {
-    const char *new_name = new_name_value->identifier_str(env, Value::Conversion::NullAllowed);
+    auto new_name = new_name_value->to_symbol(env, Value::Conversion::NullAllowed);
     if (!new_name) {
         env->raise("TypeError", "%s is not a symbol", new_name_value->send(env, "inspect"));
     }
-    const char *old_name = old_name_value->identifier_str(env, Value::Conversion::NullAllowed);
+    auto old_name = old_name_value->to_symbol(env, Value::Conversion::NullAllowed);
     if (!old_name) {
         env->raise("TypeError", "%s is not a symbol", old_name_value->send(env, "inspect"));
     }

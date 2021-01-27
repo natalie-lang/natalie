@@ -2,6 +2,12 @@ require 'natalie/inline'
 
 class Tempfile
   class << self
+    def new(basename)
+      f = Tempfile.create(basename)
+      yield f
+      f
+    end
+
     __define_method__ :create, [:basename], <<-END
       basename->assert_type(env, Value::Type::String, "String");
       auto tmpdir = env->Object()->const_fetch(env, "Dir")->send(env, "tmpdir")->as_string();

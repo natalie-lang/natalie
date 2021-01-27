@@ -60,7 +60,7 @@ ValuePtr KernelModule::cur_dir(Env *env) {
 ValuePtr KernelModule::define_singleton_method(Env *env, ValuePtr name, Block *block) {
     env->assert_block_given(block);
     SymbolValue *name_obj = name->to_symbol(env, Value::Conversion::Strict);
-    define_singleton_method_with_block(env, name_obj->c_str(), block);
+    define_singleton_method_with_block(env, name_obj, block);
     return name_obj;
 }
 

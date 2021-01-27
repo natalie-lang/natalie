@@ -187,12 +187,16 @@ void hashmap_iter_set_data(const struct hashmap_iter *iter, void *data);
 int hashmap_foreach(const struct hashmap *map,
     int (*func)(const void *, void *, void *), void *arg);
 
+nat_int_t hashmap_hash_ptr(const void *key);
+
 /*
  * Default hash function for string keys.
  * This is an implementation of the well-documented Jenkins one-at-a-time
  * hash function.
  */
 nat_int_t hashmap_hash_string(const void *key);
+
+int hashmap_compare_ptr(Env *env, const void *a, const void *b);
 
 /*
  * Default key comparator function for string keys.

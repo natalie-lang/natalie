@@ -588,6 +588,15 @@ int hashmap_foreach(const struct hashmap *map,
     return 0;
 }
 
+// https://stackoverflow.com/a/12996028/197498
+nat_int_t hashmap_hash_ptr(const void *key) {
+    nat_int_t x = nat_int_t(key);
+    x = (x ^ (x >> 30)) * UINT64_C(0xbf58476d1ce4e5b9);
+    x = (x ^ (x >> 27)) * UINT64_C(0x94d049bb133111eb);
+    x = x ^ (x >> 31);
+    return x;
+}
+
 /*
  * Default hash function for string keys.
  * This is an implementation of the well-documented Jenkins one-at-a-time
@@ -606,6 +615,10 @@ nat_int_t hashmap_hash_string(const void *key) {
     hash ^= (hash >> 11);
     hash += (hash << 15);
     return hash;
+}
+
+int hashmap_compare_ptr(Env *, const void *a, const void *b) {
+    return (intptr_t)a - (intptr_t)b;
 }
 
 /*

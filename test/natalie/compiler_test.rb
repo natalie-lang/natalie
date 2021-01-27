@@ -50,8 +50,7 @@ describe 'Natalie::Compiler' do
                                           s(:c_if, s(:is_truthy, s(:send, s(:var_get, :env, s(:s, :n)), :==, s(:args, s(:new, :IntegerValue, :env, 1)), "nullptr")),
                                             s(:new, :IntegerValue, :env, 1),
                                             s(:send, s(:send, :self, :fib, s(:args, s(:send, s(:var_get, :env, s(:s, :n)), :-, s(:args, s(:new, :IntegerValue, :env, 1)), "nullptr")), "nullptr"), :+, s(:args, s(:send, :self, :fib, s(:args, s(:send, s(:var_get, :env, s(:s, :n)), :-, s(:args, s(:new, :IntegerValue, :env, 2)), "nullptr")), "nullptr")), "nullptr")))))),
-                                  s(:define_method, :self, :env, s(:s, :fib), "fn1"),
-                                  s(:"SymbolValue::intern", :env, s(:s, :fib))),
+                                  s(:define_method, :self, :env, s(:intern, :fib), "fn1")),
                               s(:var_set, :env, s(:s, :num), s(:send, s(:const_find, :self, :env, s(:s, :ARGV), s(:l, "Value::ConstLookupSearchMode::NotStrict")), :first, s(:args), "nullptr")),
                               s(:send, :self, :puts,
                                 s(:args, s(:send, :self, :fib,
@@ -88,8 +87,7 @@ describe 'Natalie::Compiler' do
                         s(:c_if, s(:is_truthy, s(:send, s(:var_get, :env, s(:s, :n)), :==, s(:args, s(:new, :IntegerValue, :env, 1)), "nullptr")),
                           s(:new, :IntegerValue, :env, 1),
                           s(:send, s(:send, :self, :fib, s(:args, s(:send, s(:var_get, :env, s(:s, :n)), :-, s(:args, s(:new, :IntegerValue, :env, 1)), "nullptr")), "nullptr"), :+, s(:args, s(:send, :self, :fib, s(:args, s(:send, s(:var_get, :env, s(:s, :n)), :-, s(:args, s(:new, :IntegerValue, :env, 2)), "nullptr")), "nullptr")), "nullptr")))))),
-                s(:define_method, :self, :env, s(:s, :fib), "fn1"),
-                s(:"SymbolValue::intern", :env, s(:s, :fib))),
+                s(:define_method, :self, :env, s(:intern, :fib), "fn1")),
             s(:var_set, :env, s(:s, :num), s(:send, s(:const_find, :self, :env, s(:s, :ARGV), s(:l, "Value::ConstLookupSearchMode::NotStrict")), :first, s(:args), "nullptr")),
             s(:send, :self, :puts,
               s(:args, s(:send, :self, :fib,
@@ -125,8 +123,7 @@ describe 'Natalie::Compiler' do
                                                   :+,
                                                   s(:args, s(:send, :self, :fib, s(:args, s(:send, s(:var_get, "env", {:name=>"n", :index=>0, :var_num=>1}), :-, s(:args, s(:new, :IntegerValue, :env, 2)), "nullptr")), "nullptr")),
                                                   "nullptr"))))))),
-                                    s(:define_method, :self, :env, s(:s, :fib), "fn1"),
-                                    s(:"SymbolValue::intern", :env, s(:s, :fib))),
+                                    s(:define_method, :self, :env, s(:intern, :fib), "fn1")),
                                   s(:var_set, "env", {:name=>"num", :index=>0, :var_num=>2}, false, s(:send, s(:const_find, :self, :env, s(:s, :ARGV), s(:l, "Value::ConstLookupSearchMode::NotStrict")), :first, s(:args), "nullptr")),
                                   s(:send,
                                     :self,
@@ -175,8 +172,7 @@ describe 'Natalie::Compiler' do
                               :+,
                               s(:args, s(:send, :self, :fib, s(:args, s(:send, s(:var_get, "env", {:name=>"n", :index=>0, :var_num=>1}), :-, s(:args, s(:new, :IntegerValue, :env, 2)), "nullptr")), "nullptr")),
                               "nullptr"))))))),
-                s(:define_method, :self, :env, s(:s, :fib), "fn1"),
-                s(:"SymbolValue::intern", :env, s(:s, :fib))),
+                s(:define_method, :self, :env, s(:intern, :fib), "fn1")),
               s(:var_set, "env", {:name=>"num", :index=>0, :var_num=>2}, false, s(:send, s(:const_find, :self, :env, s(:s, :ARGV), s(:l, "Value::ConstLookupSearchMode::NotStrict")), :first, s(:args), "nullptr")),
               s(:send,
                 :self,
@@ -212,8 +208,7 @@ describe 'Natalie::Compiler' do
                                                   :+,
                                                   s(:args, s(:send, :self, :fib, s(:args, s(:send, s(:l, "n1"), :-, s(:args, s(:new, :IntegerValue, :env, 2)), "nullptr")), "nullptr")),
                                                   "nullptr"))))))),
-                                    s(:define_method, :self, :env, s(:s, :fib), "fn1"),
-                                    s(:"SymbolValue::intern", :env, s(:s, :fib))),
+                                    s(:define_method, :self, :env, s(:intern, :fib), "fn1")),
                                   s(:c_assign, "num2", s(:send, s(:const_find, :self, :env, s(:s, :ARGV), s(:l, "Value::ConstLookupSearchMode::NotStrict")), :first, s(:args), "nullptr")),
                                   s(:send, :self, :puts, s(:args, s(:send, :self, :fib, s(:args, s(:c_if, s(:is_truthy, s(:l, "num2")), s(:send, s(:l, "num2"), :to_i, s(:args), "nullptr"), s(:new, :IntegerValue, :env, 25))), "nullptr")), "nullptr")))
     end
@@ -262,8 +257,7 @@ describe 'Natalie::Compiler' do
                                 :+,
                                 s(:args, s(:send, :self, :fib, s(:args, s(:send, s(:l, "n1"), :-, s(:args, s(:new, :IntegerValue, :env, 2)), "nullptr")), "nullptr")),
                                 "nullptr"))))))),
-                  s(:define_method, :self, :env, s(:s, :fib), "fn1"),
-                  s(:"SymbolValue::intern", :env, s(:s, :fib))),
+                  s(:define_method, :self, :env, s(:intern, :fib), "fn1")),
                 s(:c_assign, "num2", s(:send, s(:const_find, :self, :env, s(:s, :ARGV), s(:l, "Value::ConstLookupSearchMode::NotStrict")), :first, s(:args), "nullptr")),
                 s(:send, :self, :puts, s(:args, s(:send, :self, :fib, s(:args, s(:c_if, s(:is_truthy, s(:l, "num2")), s(:send, s(:l, "num2"), :to_i, s(:args), "nullptr"), s(:new, :IntegerValue, :env, 25))), "nullptr")), "nullptr")))
       pass4 = Natalie::Compiler::Pass4.new(context)
@@ -317,8 +311,7 @@ Value *fn1(Env *env, Value *self, size_t argc, Value **args, Block *block) {
 }
 env->build_vars(1);
 Value * num2 = env->nil_obj();
-self->define_method(env, "fib", fn1);
-Value *SymbolValueintern25 = SymbolValue::intern(env, "fib");
+Value *definemethod25 = self->define_method(env, SymbolValue::intern(env, "fib"), fn1);
 Value *constfind26 = self->const_find(env, "ARGV", Value::ConstLookupSearchMode::NotStrict);
 Value *callresult27 = constfind26->send(env, "first", 0, nullptr, nullptr);
 num2 = callresult27;

@@ -17,7 +17,7 @@ module Natalie
       def process_alias(exp)
         (_, (_, new_name), (_, old_name)) = exp
         exp.new(:block,
-                s(:alias, :self, :env, s(:s, new_name), s(:s, old_name)),
+                s(:alias, :self, :env, s(:intern, new_name), s(:intern, old_name)),
                 s(:nil))
       end
 
@@ -270,8 +270,7 @@ module Natalie
         fn = process_defn_internal(exp)
         exp.new(:block,
                 fn,
-                s(:define_method, :self, :env, s(:s, name), fn[1]),
-                s(:"SymbolValue::intern", :env, s(:s, name)))
+                s(:define_method, :self, :env, s(:intern, name), fn[1]))
       end
 
       def process_defs(exp)
@@ -279,8 +278,7 @@ module Natalie
         fn = process_defn_internal(exp.new(:defs, name, args, *body))
         exp.new(:block,
                 fn,
-                s(:define_singleton_method, process(owner), :env, s(:s, name), fn[1]),
-                s(:"SymbolValue::intern", :env, s(:s, name)))
+                s(:define_singleton_method, process(owner), :env, s(:intern, name), fn[1]))
       end
 
       def process_dot2(exp)
