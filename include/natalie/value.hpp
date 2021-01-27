@@ -204,6 +204,7 @@ struct Value : public gc {
         return GC_STRDUP(buf);
     }
 
+    ValuePtr send(Env *, SymbolValue *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
     ValuePtr send(Env *, const char *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
     ValuePtr send(Env *, size_t, ValuePtr *, Block *);
 
@@ -214,7 +215,9 @@ struct Value : public gc {
     bool respond_to(Env *, ValuePtr);
 
     const char *defined(Env *, const char *, bool);
+    const char *defined(Env *, SymbolValue *, bool);
     ValuePtr defined_obj(Env *, const char *, bool = false);
+    ValuePtr defined_obj(Env *, SymbolValue *, bool = false);
 
     virtual ProcValue *to_proc(Env *);
 

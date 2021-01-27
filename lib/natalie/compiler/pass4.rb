@@ -431,7 +431,7 @@ module Natalie
           receiver ||= 'self'
           decl "Value *#{result};"
           decl 'try {'
-          decl "#{result} = #{process_atom receiver}->defined_obj(env, #{name.to_s.inspect}, true);"
+          decl "#{result} = #{process_atom receiver}->defined_obj(env, #{process name}, true);"
           decl '} catch (ExceptionValue *) {'
           decl "#{result} = #{process_atom s(:nil)};"
           decl '}'
@@ -519,7 +519,7 @@ module Natalie
           args_count = 0
         end
         result_name = temp('call_result')
-        decl "Value *#{result_name} = #{receiver_name}->#{fn}(env, #{method.to_s.inspect}, #{args_count}, #{args_name}, #{block || 'nullptr'});"
+        decl "Value *#{result_name} = #{receiver_name}->#{fn}(env, #{process method}, #{args_count}, #{args_name}, #{block || 'nullptr'});"
         result_name
       end
 

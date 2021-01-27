@@ -422,22 +422,25 @@ SymbolValue *Value::undefine_method(Env *env, SymbolValue *name) {
     return name;
 }
 
-ValuePtr Value::send(Env *env, const char *name, size_t argc, ValuePtr *args, Block *block) {
-    auto sym = SymbolValue::intern(env, name);
+ValuePtr Value::send(Env *env, SymbolValue *name, size_t argc, ValuePtr *args, Block *block) {
     auto singleton = singleton_class();
     if (singleton) {
-        Method *method = singleton_class()->find_method(env, sym);
+        Method *method = singleton_class()->find_method(env, name);
         if (method) {
             if (method->is_undefined())
                 env->raise("NoMethodError", "undefined method `%s' for %s:Class", name, m_klass->class_name());
             return method->call(env, this, argc, args, block);
         }
     }
-    return m_klass->call_method(env, m_klass, sym, this, argc, args, block);
+    return m_klass->call_method(env, m_klass, name, this, argc, args, block);
+}
+
+ValuePtr Value::send(Env *env, const char *name, size_t argc, ValuePtr *args, Block *block) {
+    return send(env, SymbolValue::intern(env, name), argc, args, block);
 }
 
 ValuePtr Value::send(Env *env, size_t argc, ValuePtr *args, Block *block) {
-    const char *name = args[0]->identifier_str(env, Value::Conversion::Strict);
+    auto name = args[0]->to_symbol(env, Value::Conversion::Strict);
     return send(env->caller(), name, argc - 1, args + 1, block);
 }
 
@@ -518,6 +521,10 @@ const char *Value::defined(Env *env, const char *name, bool strict) {
     return nullptr;
 }
 
+const char *Value::defined(Env *env, SymbolValue *name, bool strict) {
+    return defined(env, name->c_str(), strict);
+}
+
 ValuePtr Value::defined_obj(Env *env, const char *name, bool strict) {
     const char *result = defined(env, name, strict);
     if (result) {
@@ -525,6 +532,10 @@ ValuePtr Value::defined_obj(Env *env, const char *name, bool strict) {
     } else {
         return env->nil_obj();
     }
+}
+
+ValuePtr Value::defined_obj(Env *env, SymbolValue *name, bool strict) {
+    return defined_obj(env, name->c_str(), strict);
 }
 
 ProcValue *Value::to_proc(Env *env) {
