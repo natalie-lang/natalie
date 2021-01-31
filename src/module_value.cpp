@@ -13,8 +13,6 @@ ModuleValue::ModuleValue(Env *env, const char *name)
 ModuleValue::ModuleValue(Env *env, Type type, ClassValue *klass)
     : Value { type, klass } {
     m_env = Env::new_detatched_env(env);
-    hashmap_init(&m_methods, hashmap_hash_ptr, hashmap_compare_ptr, 10);
-    hashmap_set_key_alloc_funcs(&m_methods, nullptr, nullptr);
     hashmap_init(&m_constants, hashmap_hash_string, hashmap_compare_string, 10);
     hashmap_set_key_alloc_funcs(&m_constants, hashmap_alloc_key_string, nullptr);
 }
@@ -122,8 +120,7 @@ void ModuleValue::alias(Env *env, SymbolValue *new_name, SymbolValue *old_name) 
     if (!method) {
         env->raise("NameError", "undefined method `%s' for `%v'", old_name->c_str(), this);
     }
-    GC_FREE(hashmap_remove(env, &m_methods, new_name));
-    hashmap_put(env, &m_methods, new_name, new Method { *method });
+    m_methods.put(env, new_name, new Method { *method });
 }
 
 ValuePtr ModuleValue::eval_body(Env *env, ValuePtr (*fn)(Env *, ValuePtr)) {
@@ -179,15 +176,13 @@ ValuePtr ModuleValue::cvar_set(Env *env, const char *name, ValuePtr val) {
 
 SymbolValue *ModuleValue::define_method(Env *env, SymbolValue *name, MethodFnPtr fn) {
     Method *method = new Method { name->c_str(), this, fn };
-    GC_FREE(hashmap_remove(env, &m_methods, name));
-    hashmap_put(env, &m_methods, name, method);
+    m_methods.put(env, name, method);
     return name;
 }
 
 SymbolValue *ModuleValue::define_method_with_block(Env *env, SymbolValue *name, Block *block) {
     Method *method = new Method { name->c_str(), this, block };
-    GC_FREE(hashmap_remove(env, &m_methods, name));
-    hashmap_put(env, &m_methods, name, method);
+    m_methods.put(env, name, method);
     return name;
 }
 
@@ -197,15 +192,12 @@ SymbolValue *ModuleValue::undefine_method(Env *env, SymbolValue *name) {
 
 // supply an empty array and it will be populated with the method names as symbols
 void ModuleValue::methods(Env *env, ArrayValue *array) {
-    struct hashmap_iter *iter;
-    for (iter = hashmap_iter(&m_methods); iter; iter = hashmap_iter_next(&m_methods, iter)) {
-        auto name = (SymbolValue *)hashmap_iter_get_key(iter);
-        array->push(name);
+    for (auto pair : m_methods) {
+        array->push(pair.first);
     }
     for (ModuleValue *module : m_included_modules) {
-        for (iter = hashmap_iter(&module->m_methods); iter; iter = hashmap_iter_next(&module->m_methods, iter)) {
-            auto name = (SymbolValue *)hashmap_iter_get_key(iter);
-            array->push(name);
+        for (auto pair : module->m_methods) {
+            array->push(pair.first);
         }
     }
     if (m_superclass) {
@@ -219,7 +211,7 @@ Method *ModuleValue::find_method(Env *env, SymbolValue *method_name, ModuleValue
     if (m_included_modules.is_empty()) {
         // no included modules, just search the class/module
         // note: if there are included modules, then the module chain will include this class/module
-        method = static_cast<Method *>(hashmap_get(env, &m_methods, method_name));
+        method = m_methods.get(env, method_name);
         if (method) {
             if (matching_class_or_module) *matching_class_or_module = m_klass;
             return method;
@@ -227,7 +219,7 @@ Method *ModuleValue::find_method(Env *env, SymbolValue *method_name, ModuleValue
     }
 
     for (ModuleValue *module : m_included_modules) {
-        method = static_cast<Method *>(hashmap_get(env, &module->m_methods, method_name));
+        method = module->m_methods.get(env, method_name);
         if (method) {
             if (matching_class_or_module) *matching_class_or_module = module;
             return method;

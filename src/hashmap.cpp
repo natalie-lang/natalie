@@ -310,17 +310,6 @@ int hashmap_init(struct hashmap *map, nat_int_t (*hash_func)(const void *),
 }
 
 /*
- * Free the hashmap and all associated memory.
- */
-void hashmap_destroy(struct hashmap *map) {
-    if (!map) {
-        return;
-    }
-    hashmap_free_keys(map);
-    GC_FREE(map->table);
-}
-
-/*
  * Enable internal memory management of hash keys.
  */
 void hashmap_set_key_alloc_funcs(struct hashmap *map,
@@ -334,10 +323,8 @@ void hashmap_set_key_alloc_funcs(struct hashmap *map,
 
 /*
  * Add an entry to the hashmap.  If an entry with a matching key already
- * exists and has a data pointer associated with it, the existing data
- * pointer is returned, instead of assigning the new value.  Compare
- * the return value with the data passed in to determine if a new entry was
- * created.  Returns NULL if memory allocation failed.
+ * exists, the existing data pointer is overwritten with the new data.
+ * Returns NULL if memory allocation failed.
  */
 void *hashmap_put(Env *env, struct hashmap *map, const void *key, void *data) {
     struct hashmap_entry *entry;
@@ -375,9 +362,6 @@ void *hashmap_put(Env *env, struct hashmap *map, const void *key, void *data) {
             entry->key = (void *)key;
         }
         ++map->num_entries;
-    } else if (entry->data) {
-        /* Do not overwrite existing data */
-        return entry->data;
     }
     entry->data = data;
     return data;

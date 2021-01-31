@@ -31,9 +31,12 @@
 
 #pragma once
 
+#include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <utility>
 
+#include "natalie/gc.hpp"
 #include "natalie/types.hpp"
 
 namespace Natalie {
@@ -57,7 +60,7 @@ struct hashmap_entry;
 /*
  * The hashmap state structure.
  */
-struct hashmap {
+struct hashmap : public gc {
     size_t table_size_init { 0 };
     size_t table_size { 0 };
     size_t num_entries { 0 };
@@ -69,6 +72,9 @@ struct hashmap {
 };
 
 typedef struct hashmap hashmap;
+
+using HashFn = nat_int_t(const void *);
+using CompareFn = int(Env *, const void *, const void *);
 
 /*
  * Initialize an empty hashmap.
@@ -93,11 +99,6 @@ int hashmap_init(struct hashmap *map, nat_int_t (*hash_func)(const void *),
     size_t initial_size);
 
 /*
- * Free the hashmap and all associated memory.
- */
-void hashmap_destroy(struct hashmap *map);
-
-/*
  * Enable internal memory allocation and management of hash keys.
  */
 void hashmap_set_key_alloc_funcs(struct hashmap *map,
@@ -106,10 +107,8 @@ void hashmap_set_key_alloc_funcs(struct hashmap *map,
 
 /*
  * Add an entry to the hashmap.  If an entry with a matching key already
- * exists and has a data pointer associated with it, the existing data
- * pointer is returned, instead of assigning the new value.  Compare
- * the return value with the data passed in to determine if a new entry was
- * created.  Returns NULL if memory allocation failed.
+ * exists, the existing data pointer is overwritten with the new data.
+ * Returns NULL if memory allocation failed.
  */
 void *hashmap_put(Env *env, struct hashmap *map, const void *key, void *data);
 
@@ -237,5 +236,89 @@ double hashmap_collisions_mean(const struct hashmap *map);
 double hashmap_collisions_variance(const struct hashmap *map);
 
 #endif
+
+template <typename KeyT, typename T>
+struct Hashmap : public gc {
+    Hashmap(HashFn *hash_fn, CompareFn *compare_fn, int initial_capacity = 10) {
+        hashmap_init(&m_map, hash_fn, compare_fn, initial_capacity);
+    }
+
+    Hashmap &operator=(Hashmap &other) {
+        assert(!m_map.key_free); // don't know how to free keys with copy constructor yet (not needed?)
+        m_map.table_size_init = other.m_map.table_size_init;
+        m_map.table_size = other.m_map.table_size;
+        m_map.num_entries = other.m_map.num_entries;
+        GC_FREE(m_map.table);
+        m_map.table = static_cast<struct hashmap_entry *>(GC_MALLOC(m_map.table_size));
+        memcpy(m_map.table, other.m_map.table, m_map.table_size);
+        m_map.hash = other.m_map.hash;
+        m_map.key_compare = other.m_map.key_compare;
+        m_map.key_alloc = other.m_map.key_alloc;
+        m_map.key_free = other.m_map.key_free;
+        return *this;
+    }
+
+    T get(Env *env, KeyT key) {
+        return static_cast<T>(hashmap_get(env, &m_map, key));
+    }
+
+    void put(Env *env, KeyT key, T val) {
+        assert(hashmap_put(env, &m_map, key, val));
+    }
+
+    T remove(Env *env, KeyT key) {
+        return static_cast<T>(hashmap_remove(env, &m_map, key));
+    }
+
+    class iterator {
+    public:
+        iterator(hashmap *map, struct hashmap_iter *iter)
+            : m_map { map }
+            , m_iter { iter } { }
+
+        iterator operator++() {
+            m_iter = hashmap_iter_next(m_map, m_iter);
+            return *this;
+        }
+
+        iterator operator++(int _) {
+            iterator i = *this;
+            m_iter = hashmap_iter_next(m_map, m_iter);
+            return i;
+        }
+
+        KeyT key() { return static_cast<KeyT>(hashmap_iter_get_key(m_iter)); }
+        T val() { return static_cast<T>(hashmap_iter_get_data(m_iter)); }
+
+        std::pair<KeyT, T> operator*() {
+            return std::pair(
+                static_cast<KeyT>(const_cast<void *>(hashmap_iter_get_key(m_iter))),
+                static_cast<T>(const_cast<void *>(hashmap_iter_get_data(m_iter))));
+        }
+
+        friend bool operator==(const iterator &i1, const iterator &i2) {
+            return i1.m_iter == i2.m_iter;
+        }
+
+        friend bool operator!=(const iterator &i1, const iterator &i2) {
+            return i1.m_iter != i2.m_iter;
+        }
+
+    private:
+        hashmap *m_map;
+        struct hashmap_iter *m_iter;
+    };
+
+    iterator begin() {
+        return iterator { &m_map, hashmap_iter(&m_map) };
+    }
+
+    iterator end() {
+        return iterator { &m_map, nullptr };
+    }
+
+    //private:
+    hashmap m_map {};
+};
 
 }
