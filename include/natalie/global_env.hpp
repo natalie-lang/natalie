@@ -33,11 +33,26 @@ struct GlobalEnv : public gc {
     ClassValue *Array() { return m_Array; }
     void set_Array(ClassValue *Array) { m_Array = Array; }
 
-    ClassValue *Object() { return m_Object; }
-    void set_Object(ClassValue *Object) { m_Object = Object; }
+    ClassValue *Class() { return m_Class; }
+    void set_Class(ClassValue *Class) { m_Class = Class; }
+
+    ClassValue *Hash() { return m_Hash; }
+    void set_Hash(ClassValue *Hash) { m_Hash = Hash; }
 
     ClassValue *Integer() { return m_Integer; }
     void set_Integer(ClassValue *Integer) { m_Integer = Integer; }
+
+    ClassValue *Module() { return m_Module; }
+    void set_Module(ClassValue *Module) { m_Module = Module; }
+
+    ClassValue *Object() { return m_Object; }
+    void set_Object(ClassValue *Object) { m_Object = Object; }
+
+    ClassValue *Regexp() { return m_Regexp; }
+    void set_Regexp(ClassValue *Regexp) { m_Regexp = Regexp; }
+
+    ClassValue *String() { return m_String; }
+    void set_String(ClassValue *String) { m_String = String; }
 
     NilValue *nil_obj() { return m_nil_obj; }
     void set_nil_obj(NilValue *nil_obj) { m_nil_obj = nil_obj; }
@@ -65,8 +80,13 @@ private:
     hashmap *m_globals { nullptr };
     hashmap *m_symbols { nullptr };
     ClassValue *m_Array { nullptr };
+    ClassValue *m_Class { nullptr };
+    ClassValue *m_Hash { nullptr };
     ClassValue *m_Integer { nullptr };
+    ClassValue *m_Module { nullptr };
     ClassValue *m_Object { nullptr };
+    ClassValue *m_Regexp { nullptr };
+    ClassValue *m_String { nullptr };
     NilValue *m_nil_obj { nullptr };
     TrueValue *m_true_obj { nullptr };
     FalseValue *m_false_obj { nullptr };

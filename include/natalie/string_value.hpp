@@ -26,17 +26,17 @@ struct StringValue : Value {
         : StringValue { env, "" } { }
 
     StringValue(Env *env, std::string str)
-        : Value { Value::Type::String, env->Object()->const_fetch(env, "String")->as_class() } {
+        : Value { Value::Type::String, env->String() } {
         set_str(str.c_str());
     }
 
     StringValue(Env *env, const char *str)
-        : Value { Value::Type::String, env->Object()->const_fetch(env, "String")->as_class() } {
+        : Value { Value::Type::String, env->String() } {
         set_str(str);
     }
 
     StringValue(Env *env, const char *str, size_t length)
-        : Value { Value::Type::String, env->Object()->const_fetch(env, "String")->as_class() } {
+        : Value { Value::Type::String, env->String() } {
         set_str(str, length);
     }
 

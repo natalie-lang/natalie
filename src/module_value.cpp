@@ -3,7 +3,7 @@
 namespace Natalie {
 
 ModuleValue::ModuleValue(Env *env)
-    : ModuleValue { env, Value::Type::Module, env->Object()->const_find(env, "Module")->as_class() } { }
+    : ModuleValue { env, Value::Type::Module, env->Module() } { }
 
 ModuleValue::ModuleValue(Env *env, const char *name)
     : ModuleValue { env } {

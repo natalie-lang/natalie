@@ -12,6 +12,7 @@ extern "C" Env *build_top_env() {
     env->set_method_name(GC_STRDUP("<main>"));
 
     ClassValue *Class = ClassValue::bootstrap_class_class(env);
+    env->global_env()->set_Class(Class);
 
     ClassValue *BasicObject = ClassValue::bootstrap_basic_object(env, Class);
 
@@ -24,6 +25,7 @@ extern "C" Env *build_top_env() {
     Object->const_set(env, "Object", Object);
 
     ClassValue *Module = Object->subclass(env, "Module", Value::Type::Module);
+    env->global_env()->set_Module(Module);
     Object->const_set(env, "Module", Module);
     Class->set_superclass_DANGEROUSLY(Module);
     Class->set_singleton_class(Module->singleton_class()->subclass(env, "#<Class:Class>"));
@@ -84,6 +86,7 @@ extern "C" Env *build_top_env() {
     Math->const_set(env, "PI", new FloatValue { env, M_PI });
 
     ClassValue *String = Object->subclass(env, "String", Value::Type::String);
+    env->global_env()->set_String(String);
     Object->const_set(env, "String", String);
     String->include_once(env, Comparable);
 
@@ -93,10 +96,12 @@ extern "C" Env *build_top_env() {
     Array->include_once(env, Enumerable);
 
     ClassValue *Hash = Object->subclass(env, "Hash", Value::Type::Hash);
+    env->global_env()->set_Hash(Hash);
     Object->const_set(env, "Hash", Hash);
     Hash->include_once(env, Enumerable);
 
     ClassValue *Regexp = Object->subclass(env, "Regexp", Value::Type::Regexp);
+    env->global_env()->set_Regexp(Regexp);
     Object->const_set(env, "Regexp", Regexp);
     Regexp->const_set(env, "IGNORECASE", new IntegerValue { env, 1 });
     Regexp->const_set(env, "EXTENDED", new IntegerValue { env, 2 });

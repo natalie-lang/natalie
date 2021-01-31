@@ -14,7 +14,7 @@ namespace Natalie {
 
 struct ClassValue : ModuleValue {
     ClassValue(Env *env)
-        : ClassValue { env, env->Object()->const_fetch(env, "Class")->as_class() } { }
+        : ClassValue { env, env->Class() } { }
 
     ClassValue(Env *env, ClassValue *klass)
         : ModuleValue { env, Value::Type::Class, klass } { }

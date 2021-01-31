@@ -52,8 +52,13 @@ struct Env : public gc {
     ValuePtr last_match();
 
     ClassValue *Array() { return m_global_env->Array(); }
+    ClassValue *Class() { return m_global_env->Class(); }
+    ClassValue *Hash() { return m_global_env->Hash(); }
     ClassValue *Integer() { return m_global_env->Integer(); }
+    ClassValue *Module() { return m_global_env->Module(); }
     ClassValue *Object() { return m_global_env->Object(); }
+    ClassValue *Regexp() { return m_global_env->Regexp(); }
+    ClassValue *String() { return m_global_env->String(); }
     NilValue *nil_obj() { return m_global_env->nil_obj(); }
     TrueValue *true_obj() { return m_global_env->true_obj(); }
     FalseValue *false_obj() { return m_global_env->false_obj(); }
