@@ -11,7 +11,7 @@ __inline__ <<-END
   #include <gtk/gtk.h>
 
   void gtk3_signal_callback(GtkWidget *widget, gpointer data) {
-    Value *callback = (Value*)data;
+    ProcValue *callback = static_cast<Value*>(data)->as_proc();
     Env env = callback->env();
     callback->send(&env, "call");
   }

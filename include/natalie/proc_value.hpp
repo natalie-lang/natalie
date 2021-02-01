@@ -50,6 +50,8 @@ struct ProcValue : Value {
 
     ValuePtr call(Env *, size_t, ValuePtr *, Block *);
 
+    Env *env() { return m_block->env(); }
+
 private:
     Block *m_block { nullptr };
     ProcType m_type { ProcType::Proc };
