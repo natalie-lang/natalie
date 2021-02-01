@@ -19,127 +19,127 @@ extern "C" Env *build_top_env() {
     ClassValue *Object = BasicObject->subclass(env, "Object");
     env->global_env()->set_Object(Object);
 
+    ClassValue *Symbol = Object->subclass(env, "Symbol", Value::Type::Symbol);
+    env->global_env()->set_Symbol(Symbol);
+    Object->const_set(env, SymbolValue::intern(env, "Symbol"), Symbol);
+
     // these must be defined after Object exists
-    Object->const_set(env, "Class", Class);
-    Object->const_set(env, "BasicObject", BasicObject);
-    Object->const_set(env, "Object", Object);
+    Object->const_set(env, SymbolValue::intern(env, "Class"), Class);
+    Object->const_set(env, SymbolValue::intern(env, "BasicObject"), BasicObject);
+    Object->const_set(env, SymbolValue::intern(env, "Object"), Object);
 
     ClassValue *Module = Object->subclass(env, "Module", Value::Type::Module);
     env->global_env()->set_Module(Module);
-    Object->const_set(env, "Module", Module);
+    Object->const_set(env, SymbolValue::intern(env, "Module"), Module);
     Class->set_superclass_DANGEROUSLY(Module);
     Class->set_singleton_class(Module->singleton_class()->subclass(env, "#<Class:Class>"));
 
     ModuleValue *Kernel = new ModuleValue { env, "Kernel" };
-    Object->const_set(env, "Kernel", Kernel);
+    Object->const_set(env, SymbolValue::intern(env, "Kernel"), Kernel);
     Object->include_once(env, Kernel);
 
     ModuleValue *Comparable = new ModuleValue { env, "Comparable" };
-    Object->const_set(env, "Comparable", Comparable);
+    Object->const_set(env, SymbolValue::intern(env, "Comparable"), Comparable);
 
     ModuleValue *Enumerable = new ModuleValue { env, "Enumerable" };
-    Object->const_set(env, "Enumerable", Enumerable);
+    Object->const_set(env, SymbolValue::intern(env, "Enumerable"), Enumerable);
 
-    ClassValue *Symbol = Object->subclass(env, "Symbol", Value::Type::Symbol);
-    Object->const_set(env, "Symbol", Symbol);
-
-    // need Symbol to exist :^)
     BasicObject->define_singleton_method(env, SymbolValue::intern(env, "new"), Value::_new);
 
     ClassValue *NilClass = Object->subclass(env, "NilClass", Value::Type::Nil);
-    Object->const_set(env, "NilClass", NilClass);
+    Object->const_set(env, SymbolValue::intern(env, "NilClass"), NilClass);
 
     env->global_env()->set_nil_obj(new NilValue { env });
     env->nil_obj()->set_singleton_class(NilClass);
 
     ClassValue *TrueClass = Object->subclass(env, "TrueClass", Value::Type::True);
-    Object->const_set(env, "TrueClass", TrueClass);
+    Object->const_set(env, SymbolValue::intern(env, "TrueClass"), TrueClass);
 
     env->global_env()->set_true_obj(new TrueValue { env });
     env->true_obj()->set_singleton_class(TrueClass);
 
     ClassValue *FalseClass = Object->subclass(env, "FalseClass", Value::Type::False);
-    Object->const_set(env, "FalseClass", FalseClass);
+    Object->const_set(env, SymbolValue::intern(env, "FalseClass"), FalseClass);
 
     env->global_env()->set_false_obj(new FalseValue { env });
     env->false_obj()->set_singleton_class(FalseClass);
 
     ClassValue *Fiber = Object->subclass(env, "Fiber", Value::Type::Fiber);
-    Object->const_set(env, "Fiber", Fiber);
+    Object->const_set(env, SymbolValue::intern(env, "Fiber"), Fiber);
 
     ClassValue *Numeric = Object->subclass(env, "Numeric");
-    Object->const_set(env, "Numeric", Numeric);
+    Object->const_set(env, SymbolValue::intern(env, "Numeric"), Numeric);
     Numeric->include_once(env, Comparable);
 
     ClassValue *Integer = Numeric->subclass(env, "Integer", Value::Type::Integer);
     env->global_env()->set_Integer(Integer);
-    Object->const_set(env, "Integer", Integer);
-    Object->const_set(env, "Fixnum", Integer);
+    Object->const_set(env, SymbolValue::intern(env, "Integer"), Integer);
+    Object->const_set(env, SymbolValue::intern(env, "Fixnum"), Integer);
 
     ClassValue *Float = Numeric->subclass(env, "Float", Value::Type::Float);
-    Object->const_set(env, "Float", Float);
+    Object->const_set(env, SymbolValue::intern(env, "Float"), Float);
     Float->include_once(env, Comparable);
     FloatValue::build_constants(env, Float);
 
     ValuePtr Math = new ModuleValue { env, "Math" };
-    Object->const_set(env, "Math", Math);
-    Math->const_set(env, "PI", new FloatValue { env, M_PI });
+    Object->const_set(env, SymbolValue::intern(env, "Math"), Math);
+    Math->const_set(env, SymbolValue::intern(env, "PI"), new FloatValue { env, M_PI });
 
     ClassValue *String = Object->subclass(env, "String", Value::Type::String);
     env->global_env()->set_String(String);
-    Object->const_set(env, "String", String);
+    Object->const_set(env, SymbolValue::intern(env, "String"), String);
     String->include_once(env, Comparable);
 
     ClassValue *Array = Object->subclass(env, "Array", Value::Type::Array);
     env->global_env()->set_Array(Array);
-    Object->const_set(env, "Array", Array);
+    Object->const_set(env, SymbolValue::intern(env, "Array"), Array);
     Array->include_once(env, Enumerable);
 
     ClassValue *Hash = Object->subclass(env, "Hash", Value::Type::Hash);
     env->global_env()->set_Hash(Hash);
-    Object->const_set(env, "Hash", Hash);
+    Object->const_set(env, SymbolValue::intern(env, "Hash"), Hash);
     Hash->include_once(env, Enumerable);
 
     ClassValue *Regexp = Object->subclass(env, "Regexp", Value::Type::Regexp);
     env->global_env()->set_Regexp(Regexp);
-    Object->const_set(env, "Regexp", Regexp);
-    Regexp->const_set(env, "IGNORECASE", new IntegerValue { env, 1 });
-    Regexp->const_set(env, "EXTENDED", new IntegerValue { env, 2 });
-    Regexp->const_set(env, "MULTILINE", new IntegerValue { env, 4 });
+    Object->const_set(env, SymbolValue::intern(env, "Regexp"), Regexp);
+    Regexp->const_set(env, SymbolValue::intern(env, "IGNORECASE"), new IntegerValue { env, 1 });
+    Regexp->const_set(env, SymbolValue::intern(env, "EXTENDED"), new IntegerValue { env, 2 });
+    Regexp->const_set(env, SymbolValue::intern(env, "MULTILINE"), new IntegerValue { env, 4 });
 
     ClassValue *Range = Object->subclass(env, "Range", Value::Type::Range);
-    Object->const_set(env, "Range", Range);
+    Object->const_set(env, SymbolValue::intern(env, "Range"), Range);
 
     ClassValue *MatchData = Object->subclass(env, "MatchData", Value::Type::MatchData);
-    Object->const_set(env, "MatchData", MatchData);
+    Object->const_set(env, SymbolValue::intern(env, "MatchData"), MatchData);
 
     ClassValue *Proc = Object->subclass(env, "Proc", Value::Type::Proc);
-    Object->const_set(env, "Proc", Proc);
+    Object->const_set(env, SymbolValue::intern(env, "Proc"), Proc);
 
     ClassValue *IO = Object->subclass(env, "IO", Value::Type::Io);
-    Object->const_set(env, "IO", IO);
+    Object->const_set(env, SymbolValue::intern(env, "IO"), IO);
 
     ClassValue *File = IO->subclass(env, "File");
-    Object->const_set(env, "File", File);
+    Object->const_set(env, SymbolValue::intern(env, "File"), File);
     FileValue::build_constants(env, File);
 
     ClassValue *Exception = Object->subclass(env, "Exception", Value::Type::Exception);
-    Object->const_set(env, "Exception", Exception);
+    Object->const_set(env, SymbolValue::intern(env, "Exception"), Exception);
 
     ClassValue *Encoding = env->Object()->subclass(env, "Encoding");
-    Object->const_set(env, "Encoding", Encoding);
+    Object->const_set(env, SymbolValue::intern(env, "Encoding"), Encoding);
 
     EncodingValue *EncodingAscii8Bit = new EncodingValue { env, Encoding::ASCII_8BIT, { "ASCII-8BIT", "BINARY" } };
-    Encoding->const_set(env, "ASCII_8BIT", EncodingAscii8Bit);
+    Encoding->const_set(env, SymbolValue::intern(env, "ASCII_8BIT"), EncodingAscii8Bit);
 
     ValuePtr EncodingUTF8 = new EncodingValue { env, Encoding::UTF_8, { "UTF-8" } };
-    Encoding->const_set(env, "UTF_8", EncodingUTF8);
+    Encoding->const_set(env, SymbolValue::intern(env, "UTF_8"), EncodingUTF8);
 
     ValuePtr Process = new ModuleValue { env, "Process" };
-    Object->const_set(env, "Process", Process);
+    Object->const_set(env, SymbolValue::intern(env, "Process"), Process);
 
     ClassValue *Method = Object->subclass(env, "Method", Value::Type::Method);
-    Object->const_set(env, "Method", Method);
+    Object->const_set(env, SymbolValue::intern(env, "Method"), Method);
 
     env->global_set("$NAT_at_exit_handlers", new ArrayValue { env });
 
@@ -149,33 +149,33 @@ extern "C" Env *build_top_env() {
 
     ValuePtr _stdin = new IoValue { env, STDIN_FILENO };
     env->global_set("$stdin", _stdin);
-    Object->const_set(env, "STDIN", _stdin);
+    Object->const_set(env, SymbolValue::intern(env, "STDIN"), _stdin);
 
     ValuePtr _stdout = new IoValue { env, STDOUT_FILENO };
     env->global_set("$stdout", _stdout);
-    Object->const_set(env, "STDOUT", _stdout);
+    Object->const_set(env, SymbolValue::intern(env, "STDOUT"), _stdout);
 
     ValuePtr _stderr = new IoValue { env, STDERR_FILENO };
     env->global_set("$stderr", _stderr);
-    Object->const_set(env, "STDERR", _stderr);
+    Object->const_set(env, SymbolValue::intern(env, "STDERR"), _stderr);
 
     ValuePtr ENV = new Value { env };
-    Object->const_set(env, "ENV", ENV);
+    Object->const_set(env, SymbolValue::intern(env, "ENV"), ENV);
 
     ClassValue *Parser = env->Object()->subclass(env, "Parser");
-    Object->const_set(env, "Parser", Parser);
+    Object->const_set(env, SymbolValue::intern(env, "Parser"), Parser);
 
     ClassValue *Sexp = Array->subclass(env, "Sexp", Value::Type::Array);
-    Parser->const_set(env, "Sexp", Sexp);
+    Parser->const_set(env, SymbolValue::intern(env, "Sexp"), Sexp);
 
     ValuePtr RUBY_VERSION = new StringValue { env, "2.7.1" };
-    Object->const_set(env, "RUBY_VERSION", RUBY_VERSION);
+    Object->const_set(env, SymbolValue::intern(env, "RUBY_VERSION"), RUBY_VERSION);
 
     ValuePtr RUBY_ENGINE = new StringValue { env, "natalie" };
-    Object->const_set(env, "RUBY_ENGINE", RUBY_ENGINE);
+    Object->const_set(env, SymbolValue::intern(env, "RUBY_ENGINE"), RUBY_ENGINE);
 
     StringValue *RUBY_PLATFORM = new StringValue { env, ruby_platform };
-    Object->const_set(env, "RUBY_PLATFORM", RUBY_PLATFORM);
+    Object->const_set(env, SymbolValue::intern(env, "RUBY_PLATFORM"), RUBY_PLATFORM);
 
     init_bindings(env);
 
@@ -214,7 +214,7 @@ int main(int argc, char *argv[]) {
     env->global_set("$exe", exe);
 
     ArrayValue *ARGV = new ArrayValue { env };
-    env->Object()->const_set(env, "ARGV", ARGV);
+    env->Object()->const_set(env, SymbolValue::intern(env, "ARGV"), ARGV);
     for (int i = 1; i < argc; i++) {
         ARGV->push(new StringValue { env, argv[i] });
     }

@@ -171,7 +171,7 @@ ValuePtr ArrayValue::refeq(Env *env, ValuePtr index_obj, ValuePtr size, ValuePtr
 }
 
 ValuePtr ArrayValue::any(Env *env, size_t argc, ValuePtr *args, Block *block) {
-    ModuleValue *Enumerable = env->Object()->const_fetch(env, "Enumerable")->as_module();
+    ModuleValue *Enumerable = env->Object()->const_fetch(env, SymbolValue::intern(env, "Enumerable"))->as_module();
     return Enumerable->call_method(env, klass(), "any?", this, argc, args, block);
 }
 

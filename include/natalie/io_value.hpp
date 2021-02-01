@@ -7,6 +7,7 @@
 #include "natalie/forward.hpp"
 #include "natalie/global_env.hpp"
 #include "natalie/macros.hpp"
+#include "natalie/symbol_value.hpp"
 #include "natalie/value.hpp"
 
 #ifdef fileno
@@ -17,13 +18,13 @@ namespace Natalie {
 
 struct IoValue : Value, finalizer {
     IoValue(Env *env)
-        : Value { Value::Type::Io, env->Object()->const_fetch(env, "IO")->as_class() } { }
+        : Value { Value::Type::Io, env->Object()->const_fetch(env, SymbolValue::intern(env, "IO"))->as_class() } { }
 
     IoValue(Env *env, ClassValue *klass)
         : Value { Value::Type::Io, klass } { }
 
     IoValue(Env *env, int fileno)
-        : Value { Value::Type::Io, env->Object()->const_fetch(env, "IO")->as_class() }
+        : Value { Value::Type::Io, env->Object()->const_fetch(env, SymbolValue::intern(env, "IO"))->as_class() }
         , m_fileno { fileno } { }
 
     virtual ~IoValue() {

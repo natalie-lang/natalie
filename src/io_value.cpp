@@ -16,7 +16,7 @@ ValuePtr IoValue::initialize(Env *env, ValuePtr file_number) {
 
 ValuePtr IoValue::read_file(Env *env, ValuePtr filename) {
     ValuePtr args[] = { filename };
-    FileValue *file = _new(env, env->Object()->const_fetch(env, "File")->as_class(), 1, args, nullptr)->as_file();
+    FileValue *file = _new(env, env->Object()->const_fetch(env, SymbolValue::intern(env, "File"))->as_class(), 1, args, nullptr)->as_file();
     auto data = file->read(env, nullptr);
     file->close(env);
     return data;
@@ -71,7 +71,7 @@ ValuePtr IoValue::write(Env *env, size_t argc, ValuePtr *args) {
         int result = ::write(m_fileno, obj->as_string()->c_str(), obj->as_string()->length());
         if (result == -1) {
             ValuePtr error_number = new IntegerValue { env, errno };
-            ExceptionValue *error = env->Object()->const_find(env, "SystemCallError")->send(env, "exception", 1, &error_number, nullptr)->as_exception();
+            ExceptionValue *error = env->Object()->const_find(env, SymbolValue::intern(env, "SystemCallError"))->send(env, "exception", 1, &error_number, nullptr)->as_exception();
             env->raise_exception(error);
         } else {
             bytes_written += result;
@@ -110,7 +110,7 @@ ValuePtr IoValue::close(Env *env) {
     int result = ::close(m_fileno);
     if (result == -1) {
         ValuePtr error_number = new IntegerValue { env, errno };
-        ExceptionValue *error = env->Object()->const_find(env, "SystemCallError")->send(env, "exception", 1, &error_number, nullptr)->as_exception();
+        ExceptionValue *error = env->Object()->const_find(env, SymbolValue::intern(env, "SystemCallError"))->send(env, "exception", 1, &error_number, nullptr)->as_exception();
         env->raise_exception(error);
     } else {
         m_closed = true;
@@ -147,7 +147,7 @@ ValuePtr IoValue::seek(Env *env, ValuePtr amount_value, ValuePtr whence_value) {
     int result = lseek(m_fileno, amount, whence);
     if (result == -1) {
         ValuePtr error_number = new IntegerValue { env, errno };
-        ExceptionValue *error = env->Object()->const_find(env, "SystemCallError")->send(env, "exception", 1, &error_number, nullptr)->as_exception();
+        ExceptionValue *error = env->Object()->const_find(env, SymbolValue::intern(env, "SystemCallError"))->send(env, "exception", 1, &error_number, nullptr)->as_exception();
         env->raise_exception(error);
     } else {
         return new IntegerValue { env, 0 };

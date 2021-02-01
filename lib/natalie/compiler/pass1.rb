@@ -172,7 +172,7 @@ module Natalie
 
       def process_cdecl(exp)
         (_, name, value) = exp
-        exp.new(:const_set, :self, :env, s(:s, name), process(value))
+        exp.new(:const_set, :self, :env, s(:intern, name), process(value))
       end
 
       def process_class(exp)
@@ -182,11 +182,11 @@ module Natalie
         klass = temp('class')
         exp.new(:block,
                 s(:class_fn, fn, process(s(:block, *body))),
-                s(:declare, klass, s(:const_get, :self, :env, s(:s, name))),
+                s(:declare, klass, s(:const_get, :self, :env, s(:intern, name))),
                 s(:c_if, s(:c_not, klass),
                   s(:block,
                     s(:set, klass, s(:subclass, s(:as_class, process(superclass)), :env, s(:s, name))),
-                    s(:const_set, :self, :env, s(:s, name), klass))),
+                    s(:const_set, :self, :env, s(:intern, name), klass))),
         s(:eval_body, s(:l, "#{klass}->as_class()"), :env, fn))
       end
 
@@ -195,17 +195,17 @@ module Natalie
         parent_name = temp('parent')
         exp.new(:block,
                 s(:declare, parent_name, process(parent)),
-                s(:const_find, parent_name, :env, s(:s, name)))
+                s(:const_find, parent_name, :env, s(:intern, name)))
       end
 
       def process_colon3(exp)
         (_, name) = exp
-        s(:const_find, s(:l, 'env->Object()'), :env, s(:s, name))
+        s(:const_find, s(:l, 'env->Object()'), :env, s(:intern, name))
       end
 
       def process_const(exp)
         (_, name) = exp
-        exp.new(:const_find, :self, :env, s(:s, name), s(:l, 'Value::ConstLookupSearchMode::NotStrict'))
+        exp.new(:const_find, :self, :env, s(:intern, name), s(:l, 'Value::ConstLookupSearchMode::NotStrict'))
       end
 
       def process_cvdecl(exp)
@@ -596,7 +596,7 @@ module Natalie
       def prepare_masgn_set(exp, value, arg: false)
         case exp.sexp_type
         when :cdecl
-          s(:const_set, :self, :env, s(:s, exp.last), value)
+          s(:const_set, :self, :env, s(:intern, exp.last), value)
         when :gasgn
           s(:global_set, :env, s(:s, exp.last), value)
         when :iasgn
@@ -651,11 +651,11 @@ module Natalie
         mod = temp('module')
         exp.new(:block,
                 s(:module_fn, fn, process(s(:block, *body))),
-                s(:declare, mod, s(:const_get, :self, :env, s(:s, name))),
+                s(:declare, mod, s(:const_get, :self, :env, s(:intern, name))),
                 s(:c_if, s(:c_not, mod),
                   s(:block,
                     s(:set, mod, s(:new, :ModuleValue, :env, s(:s, name))),
-                    s(:const_set, :self, :env, s(:s, name), mod))),
+                    s(:const_set, :self, :env, s(:intern, name), mod))),
         s(:eval_body, s(:l, "#{mod}->as_module()"), :env, fn))
       end
 

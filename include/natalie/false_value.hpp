@@ -6,13 +6,14 @@
 #include "natalie/forward.hpp"
 #include "natalie/global_env.hpp"
 #include "natalie/macros.hpp"
+#include "natalie/symbol_value.hpp"
 #include "natalie/value.hpp"
 
 namespace Natalie {
 
 struct FalseValue : Value {
     FalseValue(Env *env)
-        : Value { Value::Type::False, env->Object()->const_fetch(env, "FalseClass")->as_class() } {
+        : Value { Value::Type::False, env->Object()->const_fetch(env, SymbolValue::intern(env, "FalseClass"))->as_class() } {
         if (env->false_obj()) NAT_UNREACHABLE();
     }
 

@@ -172,10 +172,10 @@ struct Value : public gc {
 
     void set_singleton_class(ClassValue *);
 
-    virtual ValuePtr const_get(Env *, const char *);
-    virtual ValuePtr const_fetch(Env *, const char *);
-    virtual ValuePtr const_find(Env *, const char *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::Raise);
-    virtual ValuePtr const_set(Env *, const char *, ValuePtr);
+    virtual ValuePtr const_get(Env *, SymbolValue *);
+    virtual ValuePtr const_fetch(Env *, SymbolValue *);
+    virtual ValuePtr const_find(Env *, SymbolValue *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::Raise);
+    virtual ValuePtr const_set(Env *, SymbolValue *, ValuePtr);
 
     ValuePtr ivar_get(Env *, const char *);
     ValuePtr ivar_set(Env *, const char *, ValuePtr);

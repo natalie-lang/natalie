@@ -87,38 +87,38 @@ ValuePtr FileValue::unlink(Env *env, ValuePtr path) {
         return new IntegerValue { env, 1 };
     } else {
         ValuePtr args[] = { new IntegerValue { env, errno } };
-        auto exception = env->Object()->const_fetch(env, "SystemCallError")->send(env, "exception", 1, args)->as_exception();
+        auto exception = env->Object()->const_fetch(env, SymbolValue::intern(env, "SystemCallError"))->send(env, "exception", 1, args)->as_exception();
         env->raise_exception(exception);
     }
 }
 
 void FileValue::build_constants(Env *env, ClassValue *klass) {
     ValuePtr Constants = new ModuleValue { env, "Constants" };
-    klass->const_set(env, "Constants", Constants);
-    klass->const_set(env, "APPEND", new IntegerValue { env, O_APPEND });
-    Constants->const_set(env, "APPEND", new IntegerValue { env, O_APPEND });
-    klass->const_set(env, "RDONLY", new IntegerValue { env, O_RDONLY });
-    Constants->const_set(env, "RDONLY", new IntegerValue { env, O_RDONLY });
-    klass->const_set(env, "WRONLY", new IntegerValue { env, O_WRONLY });
-    Constants->const_set(env, "WRONLY", new IntegerValue { env, O_WRONLY });
-    klass->const_set(env, "TRUNC", new IntegerValue { env, O_TRUNC });
-    Constants->const_set(env, "TRUNC", new IntegerValue { env, O_TRUNC });
-    klass->const_set(env, "CREAT", new IntegerValue { env, O_CREAT });
-    Constants->const_set(env, "CREAT", new IntegerValue { env, O_CREAT });
-    klass->const_set(env, "DSYNC", new IntegerValue { env, O_DSYNC });
-    Constants->const_set(env, "DSYNC", new IntegerValue { env, O_DSYNC });
-    klass->const_set(env, "EXCL", new IntegerValue { env, O_EXCL });
-    Constants->const_set(env, "EXCL", new IntegerValue { env, O_EXCL });
-    klass->const_set(env, "NOCTTY", new IntegerValue { env, O_NOCTTY });
-    Constants->const_set(env, "NOCTTY", new IntegerValue { env, O_NOCTTY });
-    klass->const_set(env, "NOFOLLOW", new IntegerValue { env, O_NOFOLLOW });
-    Constants->const_set(env, "NOFOLLOW", new IntegerValue { env, O_NOFOLLOW });
-    klass->const_set(env, "NONBLOCK", new IntegerValue { env, O_NONBLOCK });
-    Constants->const_set(env, "NONBLOCK", new IntegerValue { env, O_NONBLOCK });
-    klass->const_set(env, "RDWR", new IntegerValue { env, O_RDWR });
-    Constants->const_set(env, "RDWR", new IntegerValue { env, O_RDWR });
-    klass->const_set(env, "SYNC", new IntegerValue { env, O_SYNC });
-    Constants->const_set(env, "SYNC", new IntegerValue { env, O_SYNC });
+    klass->const_set(env, SymbolValue::intern(env, "Constants"), Constants);
+    klass->const_set(env, SymbolValue::intern(env, "APPEND"), new IntegerValue { env, O_APPEND });
+    Constants->const_set(env, SymbolValue::intern(env, "APPEND"), new IntegerValue { env, O_APPEND });
+    klass->const_set(env, SymbolValue::intern(env, "RDONLY"), new IntegerValue { env, O_RDONLY });
+    Constants->const_set(env, SymbolValue::intern(env, "RDONLY"), new IntegerValue { env, O_RDONLY });
+    klass->const_set(env, SymbolValue::intern(env, "WRONLY"), new IntegerValue { env, O_WRONLY });
+    Constants->const_set(env, SymbolValue::intern(env, "WRONLY"), new IntegerValue { env, O_WRONLY });
+    klass->const_set(env, SymbolValue::intern(env, "TRUNC"), new IntegerValue { env, O_TRUNC });
+    Constants->const_set(env, SymbolValue::intern(env, "TRUNC"), new IntegerValue { env, O_TRUNC });
+    klass->const_set(env, SymbolValue::intern(env, "CREAT"), new IntegerValue { env, O_CREAT });
+    Constants->const_set(env, SymbolValue::intern(env, "CREAT"), new IntegerValue { env, O_CREAT });
+    klass->const_set(env, SymbolValue::intern(env, "DSYNC"), new IntegerValue { env, O_DSYNC });
+    Constants->const_set(env, SymbolValue::intern(env, "DSYNC"), new IntegerValue { env, O_DSYNC });
+    klass->const_set(env, SymbolValue::intern(env, "EXCL"), new IntegerValue { env, O_EXCL });
+    Constants->const_set(env, SymbolValue::intern(env, "EXCL"), new IntegerValue { env, O_EXCL });
+    klass->const_set(env, SymbolValue::intern(env, "NOCTTY"), new IntegerValue { env, O_NOCTTY });
+    Constants->const_set(env, SymbolValue::intern(env, "NOCTTY"), new IntegerValue { env, O_NOCTTY });
+    klass->const_set(env, SymbolValue::intern(env, "NOFOLLOW"), new IntegerValue { env, O_NOFOLLOW });
+    Constants->const_set(env, SymbolValue::intern(env, "NOFOLLOW"), new IntegerValue { env, O_NOFOLLOW });
+    klass->const_set(env, SymbolValue::intern(env, "NONBLOCK"), new IntegerValue { env, O_NONBLOCK });
+    Constants->const_set(env, SymbolValue::intern(env, "NONBLOCK"), new IntegerValue { env, O_NONBLOCK });
+    klass->const_set(env, SymbolValue::intern(env, "RDWR"), new IntegerValue { env, O_RDWR });
+    Constants->const_set(env, SymbolValue::intern(env, "RDWR"), new IntegerValue { env, O_RDWR });
+    klass->const_set(env, SymbolValue::intern(env, "SYNC"), new IntegerValue { env, O_SYNC });
+    Constants->const_set(env, SymbolValue::intern(env, "SYNC"), new IntegerValue { env, O_SYNC });
 }
 
 }

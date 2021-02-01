@@ -378,8 +378,8 @@ ValuePtr FloatValue::arg(Env *env) {
     if (!signbit(m_double)) {
         return new IntegerValue { env, 0 };
     } else {
-        ValuePtr Math = env->Object()->const_fetch(env, "Math");
-        return Math->const_fetch(env, "PI");
+        ValuePtr Math = env->Object()->const_fetch(env, SymbolValue::intern(env, "Math"));
+        return Math->const_fetch(env, SymbolValue::intern(env, "PI"));
     }
 }
 

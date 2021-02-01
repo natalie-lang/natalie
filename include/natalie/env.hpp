@@ -59,6 +59,7 @@ struct Env : public gc {
     ClassValue *Object() { return m_global_env->Object(); }
     ClassValue *Regexp() { return m_global_env->Regexp(); }
     ClassValue *String() { return m_global_env->String(); }
+    ClassValue *Symbol() { return m_global_env->Symbol(); }
     NilValue *nil_obj() { return m_global_env->nil_obj(); }
     TrueValue *true_obj() { return m_global_env->true_obj(); }
     FalseValue *false_obj() { return m_global_env->false_obj(); }

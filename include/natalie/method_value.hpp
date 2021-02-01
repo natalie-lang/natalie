@@ -13,7 +13,7 @@ namespace Natalie {
 
 struct MethodValue : Value {
     MethodValue(Env *env, Value *object, Method *method)
-        : Value { Value::Type::Method, env->Object()->const_fetch(env, "Method")->as_class() }
+        : Value { Value::Type::Method, env->Object()->const_fetch(env, SymbolValue::intern(env, "Method"))->as_class() }
         , m_object { object }
         , m_method { method } { }
 

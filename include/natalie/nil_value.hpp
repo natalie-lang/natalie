@@ -6,13 +6,14 @@
 #include "natalie/forward.hpp"
 #include "natalie/global_env.hpp"
 #include "natalie/macros.hpp"
+#include "natalie/symbol_value.hpp"
 #include "natalie/value.hpp"
 
 namespace Natalie {
 
 struct NilValue : Value {
     NilValue(Env *env)
-        : Value { Value::Type::Nil, env->Object()->const_fetch(env, "NilClass")->as_class() } {
+        : Value { Value::Type::Nil, env->Object()->const_fetch(env, SymbolValue::intern(env, "NilClass"))->as_class() } {
         if (env->nil_obj()) NAT_UNREACHABLE();
     }
 

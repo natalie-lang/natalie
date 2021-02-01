@@ -2,6 +2,17 @@
 
 namespace Natalie {
 
+EncodingValue::EncodingValue(Env *env)
+    : Value { Value::Type::Encoding, env->Object()->const_fetch(env, SymbolValue::intern(env, "Encoding"))->as_class() } { }
+
+ArrayValue *EncodingValue::list(Env *env) {
+    ArrayValue *ary = new ArrayValue { env };
+    ValuePtr Encoding = env->Object()->const_fetch(env, SymbolValue::intern(env, "Encoding"));
+    ary->push(Encoding->const_fetch(env, SymbolValue::intern(env, "ASCII_8BIT")));
+    ary->push(Encoding->const_fetch(env, SymbolValue::intern(env, "UTF_8")));
+    return ary;
+}
+
 EncodingValue::EncodingValue(Env *env, Encoding num, std::initializer_list<const char *> names)
     : EncodingValue { env } {
     m_num = num;

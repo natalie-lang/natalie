@@ -116,7 +116,7 @@ Value *#{name}(Env *env, Value *, size_t argc, Value **args, Block *block) {
       if rb_class.start_with?('$')
         "Value *#{rb_class} = env->global_get(#{rb_class.inspect});"
       else
-        "Value *#{rb_class_as_c_variable} = env->Object()->#{rb_class.split('::').map { |c| %(const_find(env, #{c.inspect})) }.join('->')};"
+        "Value *#{rb_class_as_c_variable} = env->Object()->#{rb_class.split('::').map { |c| %(const_find(env, SymbolValue::intern(env, #{c.inspect}))) }.join('->')};"
       end
     end
 

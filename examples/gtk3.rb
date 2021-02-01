@@ -100,7 +100,7 @@ module Gtk3
       int type;
       arg_spread(env, argc, args, "i", &type);
       GtkWidget *gtk_window = gtk_window_new((GtkWindowType)type);
-      ClassValue *Window = self->const_fetch(env, "Window")->as_class();
+      ClassValue *Window = self->const_fetch(env, SymbolValue::intern(env, "Window"))->as_class();
       Value *window_wrapper = new Value { Window };
       Value *ptr = new VoidPValue { env, gtk_window };
       window_wrapper->ivar_set(env, "@_ptr", ptr);
@@ -129,7 +129,7 @@ module Gtk3
       int orientation, spacing;
       arg_spread(env, argc, args, "ii", &orientation, &spacing);
       GtkWidget *gtk_box = gtk_box_new((GtkOrientation)orientation, spacing);
-      ClassValue *Box = self->const_fetch(env, "Box")->as_class();
+      ClassValue *Box = self->const_fetch(env, SymbolValue::intern(env, "Box"))->as_class();
       Value *box_wrapper = new Value { Box };
       Value *ptr = new VoidPValue { env, gtk_box };
       box_wrapper->ivar_set(env, "@_ptr", ptr);
@@ -149,7 +149,7 @@ module Gtk3
       char *filename;
       arg_spread(env, argc, args, "s", &filename);
       GtkWidget *gtk_image = gtk_image_new_from_file(filename);
-      ClassValue *Image = self->const_fetch(env, "Image")->as_class();
+      ClassValue *Image = self->const_fetch(env, SymbolValue::intern(env, "Image"))->as_class();
       Value *image_wrapper = new Value { Image };
       Value *ptr = new VoidPValue { env, gtk_image };
       image_wrapper->ivar_set(env, "@_ptr", ptr);
@@ -193,7 +193,7 @@ module Gtk3
           const char *text = args[0]->as_string()->c_str();
           gtk_label = gtk_label_new(text);
       }
-      ClassValue *Label = self->const_fetch(env, "Label")->as_class();
+      ClassValue *Label = self->const_fetch(env, SymbolValue::intern(env, "Label"))->as_class();
       Value *label_wrapper = new Value { Label };
       Value *ptr = new VoidPValue { env, gtk_label };
       label_wrapper->ivar_set(env, "@_ptr", ptr);
@@ -214,7 +214,7 @@ module Gtk3
       char *label;
       arg_spread(env, argc, args, "s", &label);
       GtkWidget *gtk_button = gtk_button_new_with_label(label);
-      ClassValue *Button = self->const_fetch(env, "Button")->as_class();
+      ClassValue *Button = self->const_fetch(env, SymbolValue::intern(env, "Button"))->as_class();
       Value *button_wrapper = new Value { Button };
       Value *ptr = new VoidPValue { env, gtk_button };
       button_wrapper->ivar_set(env, "@_ptr", ptr);

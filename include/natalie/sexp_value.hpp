@@ -40,7 +40,7 @@ struct SexpValue : ArrayValue {
 private:
     SexpValue(Env *env, std::initializer_list<ValuePtr> list)
         : ArrayValue { env, list } {
-        m_klass = env->Object()->const_fetch(env, "Parser")->const_fetch(env, "Sexp")->as_class();
+        m_klass = env->Object()->const_fetch(env, SymbolValue::intern(env, "Parser"))->const_fetch(env, SymbolValue::intern(env, "Sexp"))->as_class();
     }
 };
 

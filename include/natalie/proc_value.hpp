@@ -7,6 +7,7 @@
 #include "natalie/global_env.hpp"
 #include "natalie/macros.hpp"
 #include "natalie/nil_value.hpp"
+#include "natalie/symbol_value.hpp"
 #include "natalie/value.hpp"
 
 namespace Natalie {
@@ -18,13 +19,13 @@ struct ProcValue : Value {
     };
 
     ProcValue(Env *env)
-        : Value { Value::Type::Proc, env->Object()->const_fetch(env, "Proc")->as_class() } { }
+        : Value { Value::Type::Proc, env->Object()->const_fetch(env, SymbolValue::intern(env, "Proc"))->as_class() } { }
 
     ProcValue(Env *env, ClassValue *klass)
         : Value { Value::Type::Proc, klass } { }
 
     ProcValue(Env *env, Block *block, ProcType type = ProcType::Proc)
-        : Value { Value::Type::Proc, env->Object()->const_fetch(env, "Proc")->as_class() }
+        : Value { Value::Type::Proc, env->Object()->const_fetch(env, SymbolValue::intern(env, "Proc"))->as_class() }
         , m_block { block }
         , m_type { type } {
         assert(m_block);

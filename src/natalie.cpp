@@ -61,7 +61,7 @@ void print_exception_with_backtrace(Env *env, ExceptionValue *exception) {
 }
 
 void handle_top_level_exception(Env *env, ExceptionValue *exception, bool run_exit_handlers) {
-    if (exception->is_a(env, env->Object()->const_find(env, "SystemExit")->as_class())) {
+    if (exception->is_a(env, env->Object()->const_find(env, SymbolValue::intern(env, "SystemExit"))->as_class())) {
         ValuePtr status_obj = exception->ivar_get(env, "@status");
         if (run_exit_handlers) run_at_exit_handlers(env);
         if (status_obj->type() == Value::Type::Integer) {
@@ -467,7 +467,7 @@ int pclose2(FILE *fp, pid_t pid) {
 }
 
 void set_status_object(Env *env, int pid, int status) {
-    auto status_obj = env->Object()->const_fetch(env, "Process")->const_fetch(env, "Status")->send(env, "new");
+    auto status_obj = env->Object()->const_fetch(env, SymbolValue::intern(env, "Process"))->const_fetch(env, SymbolValue::intern(env, "Status"))->send(env, "new");
     status_obj->ivar_set(env, "@to_i", new IntegerValue { env, status });
     status_obj->ivar_set(env, "@exitstatus", new IntegerValue { env, WEXITSTATUS(status) });
     status_obj->ivar_set(env, "@pid", new IntegerValue { env, pid });

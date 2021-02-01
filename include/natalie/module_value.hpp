@@ -42,10 +42,10 @@ struct ModuleValue : Value {
     ValuePtr prepend(Env *, size_t argc, ValuePtr *args);
     void prepend_once(Env *, ModuleValue *);
 
-    virtual ValuePtr const_get(Env *, const char *) override;
-    virtual ValuePtr const_fetch(Env *, const char *) override;
-    virtual ValuePtr const_find(Env *, const char *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::Raise) override;
-    virtual ValuePtr const_set(Env *, const char *, ValuePtr) override;
+    virtual ValuePtr const_get(Env *, SymbolValue *) override;
+    virtual ValuePtr const_fetch(Env *, SymbolValue *) override;
+    virtual ValuePtr const_find(Env *, SymbolValue *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::Raise) override;
+    virtual ValuePtr const_set(Env *, SymbolValue *, ValuePtr) override;
 
     virtual void alias(Env *, SymbolValue *, SymbolValue *) override;
 

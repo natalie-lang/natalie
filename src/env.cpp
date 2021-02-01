@@ -13,27 +13,25 @@ void Env::build_vars(size_t size) {
 }
 
 ValuePtr Env::global_get(const char *name) {
-    Env *env = this;
     assert(strlen(name) > 0);
     if (name[0] != '$') {
-        env->raise("NameError", "`%s' is not allowed as a global variable name", name);
+        raise("NameError", "`%s' is not allowed as a global variable name", name);
     }
-    ValuePtr val = static_cast<ValuePtr>(hashmap_get(env, env->global_env()->globals(), name));
+    ValuePtr val = static_cast<ValuePtr>(hashmap_get(this, global_env()->globals(), name));
     if (val) {
         return val;
     } else {
-        return env->nil_obj();
+        return nil_obj();
     }
 }
 
 ValuePtr Env::global_set(const char *name, ValuePtr val) {
-    Env *env = this;
     assert(strlen(name) > 0);
     if (name[0] != '$') {
-        env->raise("NameError", "`%s' is not allowed as an global variable name", name);
+        raise("NameError", "`%s' is not allowed as an global variable name", name);
     }
-    hashmap_remove(env, env->global_env()->globals(), name);
-    hashmap_put(env, env->global_env()->globals(), name, val);
+    hashmap_remove(this, global_env()->globals(), name);
+    hashmap_put(this, global_env()->globals(), name, val);
     return val;
 }
 
@@ -85,7 +83,7 @@ void Env::raise(const char *class_name, const char *message_format, ...) {
     va_start(args, message_format);
     StringValue *message = StringValue::vsprintf(this, message_format, args);
     va_end(args);
-    ClassValue *klass = Object()->const_fetch(this, class_name)->as_class();
+    ClassValue *klass = Object()->const_fetch(this, SymbolValue::intern(this, class_name))->as_class();
     ExceptionValue *exception = new ExceptionValue { this, klass, message->c_str() };
     this->raise_exception(exception);
 }
@@ -99,15 +97,14 @@ void Env::raise_exception(ExceptionValue *exception) {
 }
 
 void Env::raise_local_jump_error(ValuePtr exit_value, const char *message) {
-    Env *env = this;
-    ExceptionValue *exception = new ExceptionValue { this, env->Object()->const_find(this, "LocalJumpError")->as_class(), message };
+    ExceptionValue *exception = new ExceptionValue { this, Object()->const_find(this, SymbolValue::intern(this, "LocalJumpError"))->as_class(), message };
     exception->ivar_set(this, "@exit_value", exit_value);
     this->raise_exception(exception);
 }
 
 void Env::raise_errno() {
     ValuePtr exception_args[] = { new IntegerValue { this, errno } };
-    ExceptionValue *error = Object()->const_find(this, "SystemCallError")->send(this, "exception", 1, exception_args, nullptr)->as_exception();
+    ExceptionValue *error = Object()->const_find(this, SymbolValue::intern(this, "SystemCallError"))->send(this, "exception", 1, exception_args, nullptr)->as_exception();
     raise_exception(error);
 }
 
@@ -152,8 +149,7 @@ ValuePtr Env::var_get(const char *key, size_t index) {
     if (val) {
         return val;
     } else {
-        Env *env = this;
-        return env->nil_obj();
+        return nil_obj();
     }
 }
 

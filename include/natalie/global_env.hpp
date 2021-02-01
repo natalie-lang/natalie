@@ -54,6 +54,9 @@ struct GlobalEnv : public gc {
     ClassValue *String() { return m_String; }
     void set_String(ClassValue *String) { m_String = String; }
 
+    ClassValue *Symbol() { return m_Symbol; }
+    void set_Symbol(ClassValue *Symbol) { m_Symbol = Symbol; }
+
     NilValue *nil_obj() { return m_nil_obj; }
     void set_nil_obj(NilValue *nil_obj) { m_nil_obj = nil_obj; }
 
@@ -87,6 +90,7 @@ private:
     ClassValue *m_Object { nullptr };
     ClassValue *m_Regexp { nullptr };
     ClassValue *m_String { nullptr };
+    ClassValue *m_Symbol { nullptr };
     NilValue *m_nil_obj { nullptr };
     TrueValue *m_true_obj { nullptr };
     FalseValue *m_false_obj { nullptr };

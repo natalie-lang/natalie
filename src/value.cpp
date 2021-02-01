@@ -272,19 +272,19 @@ ClassValue *Value::singleton_class(Env *env) {
     return m_singleton_class;
 }
 
-ValuePtr Value::const_get(Env *env, const char *name) {
+ValuePtr Value::const_get(Env *env, SymbolValue *name) {
     return m_klass->const_get(env, name);
 }
 
-ValuePtr Value::const_fetch(Env *env, const char *name) {
+ValuePtr Value::const_fetch(Env *env, SymbolValue *name) {
     return m_klass->const_fetch(env, name);
 }
 
-ValuePtr Value::const_find(Env *env, const char *name, ConstLookupSearchMode search_mode, ConstLookupFailureMode failure_mode) {
+ValuePtr Value::const_find(Env *env, SymbolValue *name, ConstLookupSearchMode search_mode, ConstLookupFailureMode failure_mode) {
     return m_klass->const_find(env, name, search_mode, failure_mode);
 }
 
-ValuePtr Value::const_set(Env *env, const char *name, ValuePtr val) {
+ValuePtr Value::const_set(Env *env, SymbolValue *name, ValuePtr val) {
     return m_klass->const_set(env, name, val);
 }
 
@@ -503,10 +503,10 @@ const char *Value::defined(Env *env, const char *name, bool strict) {
     if (is_constant_name(name)) {
         if (strict) {
             if (is_module()) {
-                obj = as_module()->const_get(env, name);
+                obj = as_module()->const_get(env, SymbolValue::intern(env, name));
             }
         } else {
-            obj = const_find(env, name, ConstLookupSearchMode::NotStrict, ConstLookupFailureMode::Null);
+            obj = const_find(env, SymbolValue::intern(env, name), ConstLookupSearchMode::NotStrict, ConstLookupFailureMode::Null);
         }
         if (obj) return "constant";
     } else if (is_global_name(name)) {

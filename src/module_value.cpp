@@ -13,8 +13,7 @@ ModuleValue::ModuleValue(Env *env, const char *name)
 ModuleValue::ModuleValue(Env *env, Type type, ClassValue *klass)
     : Value { type, klass } {
     m_env = Env::new_detatched_env(env);
-    hashmap_init(&m_constants, hashmap_hash_string, hashmap_compare_string, 10);
-    hashmap_set_key_alloc_funcs(&m_constants, hashmap_alloc_key_string, nullptr);
+    hashmap_init(&m_constants, hashmap_hash_ptr, hashmap_compare_ptr, 10);
 }
 
 ValuePtr ModuleValue::extend(Env *env, size_t argc, ValuePtr *args) {
@@ -56,20 +55,20 @@ void ModuleValue::prepend_once(Env *env, ModuleValue *module) {
     m_included_modules.push_front(module);
 }
 
-ValuePtr ModuleValue::const_get(Env *env, const char *name) {
+ValuePtr ModuleValue::const_get(Env *env, SymbolValue *name) {
     return static_cast<ValuePtr>(hashmap_get(env, &m_constants, name));
 }
 
-ValuePtr ModuleValue::const_fetch(Env *env, const char *name) {
+ValuePtr ModuleValue::const_fetch(Env *env, SymbolValue *name) {
     ValuePtr value = const_get(env, name);
     if (!value) {
-        printf("Constant %s is missing!\n", name);
+        printf("Constant %s is missing!\n", name->c_str());
         abort();
     }
     return value;
 }
 
-ValuePtr ModuleValue::const_find(Env *env, const char *name, ConstLookupSearchMode search_mode, ConstLookupFailureMode failure_mode) {
+ValuePtr ModuleValue::const_find(Env *env, SymbolValue *name, ConstLookupSearchMode search_mode, ConstLookupFailureMode failure_mode) {
     ModuleValue *search_parent;
     ValuePtr val;
 
@@ -105,7 +104,7 @@ ValuePtr ModuleValue::const_find(Env *env, const char *name, ConstLookupSearchMo
     }
 }
 
-ValuePtr ModuleValue::const_set(Env *env, const char *name, ValuePtr val) {
+ValuePtr ModuleValue::const_set(Env *env, SymbolValue *name, ValuePtr val) {
     hashmap_remove(env, &m_constants, name);
     hashmap_put(env, &m_constants, name, val);
     if (val->is_module() && !val->owner()) {
@@ -417,7 +416,7 @@ ValuePtr ModuleValue::public_method(Env *env, ValuePtr method_name) {
 }
 
 bool ModuleValue::const_defined(Env *env, ValuePtr name_value) {
-    const char *name = name_value->identifier_str(env, Value::Conversion::NullAllowed);
+    auto name = name_value->to_symbol(env, Value::Conversion::NullAllowed);
     if (!name) {
         env->raise("TypeError", "no implicit conversion of %v to String", name_value);
     }
