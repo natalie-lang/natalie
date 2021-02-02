@@ -11,10 +11,8 @@ ModuleValue::ModuleValue(Env *env, const char *name)
 }
 
 ModuleValue::ModuleValue(Env *env, Type type, ClassValue *klass)
-    : Value { type, klass } {
-    m_env = Env::new_detatched_env(env);
-    hashmap_init(&m_constants, hashmap_hash_ptr, hashmap_compare_ptr, 10);
-}
+    : Value { type, klass }
+    , m_env { Env::new_detatched_env(env) } { }
 
 ValuePtr ModuleValue::extend(Env *env, size_t argc, ValuePtr *args) {
     for (size_t i = 0; i < argc; i++) {
@@ -56,7 +54,7 @@ void ModuleValue::prepend_once(Env *env, ModuleValue *module) {
 }
 
 ValuePtr ModuleValue::const_get(Env *env, SymbolValue *name) {
-    return static_cast<ValuePtr>(hashmap_get(env, &m_constants, name));
+    return m_constants.get(env, name);
 }
 
 ValuePtr ModuleValue::const_fetch(Env *env, SymbolValue *name) {
@@ -105,8 +103,7 @@ ValuePtr ModuleValue::const_find(Env *env, SymbolValue *name, ConstLookupSearchM
 }
 
 ValuePtr ModuleValue::const_set(Env *env, SymbolValue *name, ValuePtr val) {
-    hashmap_remove(env, &m_constants, name);
-    hashmap_put(env, &m_constants, name, val);
+    m_constants.put(env, name, val);
     if (val->is_module() && !val->owner()) {
         val->set_owner(this);
         if (val->singleton_class()) val->singleton_class()->set_owner(this);

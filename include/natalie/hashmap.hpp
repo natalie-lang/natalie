@@ -239,8 +239,12 @@ double hashmap_collisions_variance(const struct hashmap *map);
 
 template <typename KeyT, typename T>
 struct Hashmap : public gc {
-    Hashmap(HashFn *hash_fn, CompareFn *compare_fn, int initial_capacity = 10) {
+    Hashmap(HashFn *hash_fn, CompareFn *compare_fn, size_t initial_capacity = 10) {
         hashmap_init(&m_map, hash_fn, compare_fn, initial_capacity);
+    }
+
+    Hashmap(int initial_capacity = 10) {
+        hashmap_init(&m_map, hashmap_hash_ptr, hashmap_compare_ptr, initial_capacity);
     }
 
     Hashmap &operator=(Hashmap &other) {

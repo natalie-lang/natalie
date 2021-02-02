@@ -26,7 +26,7 @@ struct ModuleValue : Value {
         : Value { other.type(), other.klass() }
         , m_class_name { GC_STRDUP(other.m_class_name) }
         , m_superclass { other.m_superclass } {
-        copy_hashmap(env, m_constants, other.m_constants);
+        m_constants = other.m_constants;
         m_methods = other.m_methods;
         for (ModuleValue *module : const_cast<ModuleValue &>(other).m_included_modules) {
             m_included_modules.push(module);
@@ -106,10 +106,10 @@ struct ModuleValue : Value {
 
 protected:
     Env m_env;
-    hashmap m_constants {};
+    Hashmap<SymbolValue *, ValuePtr> m_constants {};
     const char *m_class_name { nullptr };
     ClassValue *m_superclass { nullptr };
-    Hashmap<SymbolValue *, Method *> m_methods { hashmap_hash_ptr, hashmap_compare_ptr, 10 };
+    Hashmap<SymbolValue *, Method *> m_methods {};
     hashmap m_class_vars {};
     Vector<ModuleValue *> m_included_modules {};
 };
