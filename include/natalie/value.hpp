@@ -182,9 +182,9 @@ struct Value : public gc {
 
     ValuePtr instance_variables(Env *);
 
-    ValuePtr cvar_get(Env *, const char *);
-    virtual ValuePtr cvar_get_or_null(Env *, const char *);
-    virtual ValuePtr cvar_set(Env *, const char *, ValuePtr);
+    ValuePtr cvar_get(Env *, SymbolValue *);
+    virtual ValuePtr cvar_get_or_null(Env *, SymbolValue *);
+    virtual ValuePtr cvar_set(Env *, SymbolValue *, ValuePtr);
 
     virtual SymbolValue *define_method(Env *, SymbolValue *, MethodFnPtr);
     virtual SymbolValue *define_method_with_block(Env *, SymbolValue *, Block *);

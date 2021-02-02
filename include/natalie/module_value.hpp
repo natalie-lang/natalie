@@ -61,8 +61,8 @@ struct ModuleValue : Value {
     Vector<ModuleValue *> included_modules() { return m_included_modules; }
     bool does_include_module(Env *, ValuePtr);
 
-    virtual ValuePtr cvar_get_or_null(Env *, const char *) override;
-    virtual ValuePtr cvar_set(Env *, const char *, ValuePtr) override;
+    virtual ValuePtr cvar_get_or_null(Env *, SymbolValue *) override;
+    virtual ValuePtr cvar_set(Env *, SymbolValue *, ValuePtr) override;
 
     ValuePtr define_method(Env *, ValuePtr, Block *);
     virtual SymbolValue *define_method(Env *, SymbolValue *, MethodFnPtr) override;
@@ -110,7 +110,7 @@ protected:
     const char *m_class_name { nullptr };
     ClassValue *m_superclass { nullptr };
     Hashmap<SymbolValue *, Method *> m_methods {};
-    hashmap m_class_vars {};
+    Hashmap<SymbolValue *, ValuePtr> m_class_vars {};
     Vector<ModuleValue *> m_included_modules {};
 };
 

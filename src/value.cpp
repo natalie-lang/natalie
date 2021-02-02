@@ -333,7 +333,7 @@ void Value::init_ivars() {
     hashmap_set_key_alloc_funcs(&m_ivars, hashmap_alloc_key_string, nullptr);
 }
 
-ValuePtr Value::cvar_get(Env *env, const char *name) {
+ValuePtr Value::cvar_get(Env *env, SymbolValue *name) {
     ValuePtr val = cvar_get_or_null(env, name);
     if (val) {
         return val;
@@ -348,21 +348,11 @@ ValuePtr Value::cvar_get(Env *env, const char *name) {
     }
 }
 
-ValuePtr Value::cvar_get_or_null(Env *env, const char *name) {
-    assert(strlen(name) > 1);
-    if (name[0] != '@' || name[1] != '@') {
-        env->raise("NameError", "`%s' is not allowed as a class variable name", name);
-    }
-
+ValuePtr Value::cvar_get_or_null(Env *env, SymbolValue *name) {
     return m_klass->cvar_get_or_null(env, name);
 }
 
-ValuePtr Value::cvar_set(Env *env, const char *name, ValuePtr val) {
-    assert(strlen(name) > 1);
-    if (name[0] != '@' || name[1] != '@') {
-        env->raise("NameError", "`%s' is not allowed as a class variable name", name);
-    }
-
+ValuePtr Value::cvar_set(Env *env, SymbolValue *name, ValuePtr val) {
     return m_klass->cvar_set(env, name, val);
 }
 

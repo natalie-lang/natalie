@@ -210,17 +210,17 @@ module Natalie
 
       def process_cvdecl(exp)
         (_, name, value) = exp
-        exp.new(:cvar_set, :self, :env, s(:s, name), process(value))
+        exp.new(:cvar_set, :self, :env, s(:intern, name), process(value))
       end
 
       def process_cvasgn(exp)
         (_, name, value) = exp
-        exp.new(:cvar_set, :self, :env, s(:s, name), process(value))
+        exp.new(:cvar_set, :self, :env, s(:intern, name), process(value))
       end
 
       def process_cvar(exp)
         (_, name) = exp
-        exp.new(:cvar_get, :self, :env, s(:s, name))
+        exp.new(:cvar_get, :self, :env, s(:intern, name))
       end
 
       def process_defined(exp)
@@ -749,7 +749,7 @@ module Natalie
         when :cvar
           result_name = temp('cvar')
           exp.new(:block,
-                  s(:declare, result_name, s(:cvar_get_or_null, :self, :env, s(:s, name))),
+                  s(:declare, result_name, s(:cvar_get_or_null, :self, :env, s(:intern, name))),
                   s(:c_if, s(:and, s(:l, result_name), condition.(result_name)), result_name, process(value)))
         when :gvar
           result_name = temp('gvar')

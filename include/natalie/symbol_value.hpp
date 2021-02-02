@@ -26,8 +26,16 @@ struct SymbolValue : Value {
 
     ValuePtr cmp(Env *, ValuePtr);
 
-    bool is_constant() {
+    bool is_constant_name() {
         return strlen(m_name) > 0 && isupper(m_name[0]);
+    }
+
+    bool is_ivar_name() {
+        return strlen(m_name) > 0 && m_name[0] == '@';
+    }
+
+    bool is_cvar_name() {
+        return strlen(m_name) > 1 && m_name[0] == '@' && m_name[1] == '@';
     }
 
     bool start_with(Env *, ValuePtr);

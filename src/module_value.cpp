@@ -127,47 +127,38 @@ ValuePtr ModuleValue::eval_body(Env *env, ValuePtr (*fn)(Env *, ValuePtr)) {
     return result;
 }
 
-ValuePtr ModuleValue::cvar_get_or_null(Env *env, const char *name) {
+ValuePtr ModuleValue::cvar_get_or_null(Env *env, SymbolValue *name) {
+    if (!name->is_cvar_name())
+        env->raise("NameError", "`%s' is not allowed as a class variable name", name->c_str());
+
     ModuleValue *module = this;
     ValuePtr val = nullptr;
-    while (1) {
-        if (module->m_class_vars.table) {
-            val = static_cast<ValuePtr>(hashmap_get(env, &module->m_class_vars, name));
-            if (val) {
-                return val;
-            }
-        }
-        if (!module->m_superclass) {
-            return nullptr;
-        }
+    while (module) {
+        val = module->m_class_vars.get(env, name);
+        if (val)
+            return val;
         module = module->m_superclass;
     }
+    return nullptr;
 }
 
-ValuePtr ModuleValue::cvar_set(Env *env, const char *name, ValuePtr val) {
+ValuePtr ModuleValue::cvar_set(Env *env, SymbolValue *name, ValuePtr val) {
+    if (!name->is_cvar_name())
+        env->raise("NameError", "`%s' is not allowed as a class variable name", name->c_str());
+
     ModuleValue *current = this;
 
     ValuePtr exists = nullptr;
-    while (1) {
-        if (current->m_class_vars.table) {
-            exists = static_cast<ValuePtr>(hashmap_get(env, &current->m_class_vars, name));
-            if (exists) {
-                hashmap_remove(env, &current->m_class_vars, name);
-                hashmap_put(env, &current->m_class_vars, name, val);
-                return val;
-            }
-        }
-        if (!current->m_superclass) {
-            if (this->m_class_vars.table == nullptr) {
-                hashmap_init(&this->m_class_vars, hashmap_hash_string, hashmap_compare_string, 10);
-                hashmap_set_key_alloc_funcs(&this->m_class_vars, hashmap_alloc_key_string, nullptr);
-            }
-            hashmap_remove(env, &this->m_class_vars, name);
-            hashmap_put(env, &this->m_class_vars, name, val);
+    while (current) {
+        exists = current->m_class_vars.get(env, name);
+        if (exists) {
+            current->m_class_vars.put(env, name, val);
             return val;
         }
         current = current->m_superclass;
     }
+    m_class_vars.put(env, name, val);
+    return val;
 }
 
 SymbolValue *ModuleValue::define_method(Env *env, SymbolValue *name, MethodFnPtr fn) {
