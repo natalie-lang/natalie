@@ -8,9 +8,7 @@ Value::Value(Env *env, const Value &other)
     , m_type { other.m_type }
     , m_singleton_class { other.m_singleton_class ? new ClassValue { env, other.m_singleton_class } : nullptr }
     , m_owner { other.m_owner }
-    init_ivars();
-    copy_hashmap(env, m_ivars, other.m_ivars);
-}
+    , m_ivars { other.m_ivars } { }
 
 ValuePtr Value::_new(Env *env, ValuePtr klass_value, size_t argc, ValuePtr *args, Block *block) {
     ClassValue *klass = klass_value->as_class();
@@ -287,28 +285,22 @@ ValuePtr Value::const_set(Env *env, SymbolValue *name, ValuePtr val) {
     return m_klass->const_set(env, name, val);
 }
 
-ValuePtr Value::ivar_get(Env *env, const char *name) {
-    assert(strlen(name) > 0);
-    if (name[0] != '@') {
+ValuePtr Value::ivar_get(Env *env, SymbolValue *name) {
+    if (!name->is_ivar_name())
         env->raise("NameError", "`%s' is not allowed as an instance variable name", name);
-    }
-    init_ivars();
-    ValuePtr val = static_cast<ValuePtr>(hashmap_get(env, &m_ivars, name));
-    if (val) {
+
+    auto val = m_ivars.get(env, name);
+    if (val)
         return val;
-    } else {
+    else
         return env->nil_obj();
-    }
 }
 
-ValuePtr Value::ivar_set(Env *env, const char *name, ValuePtr val) {
-    assert(strlen(name) > 0);
-    if (name[0] != '@') {
+ValuePtr Value::ivar_set(Env *env, SymbolValue *name, ValuePtr val) {
+    if (!name->is_ivar_name())
         env->raise("NameError", "`%s' is not allowed as an instance variable name", name);
-    }
-    init_ivars();
-    hashmap_remove(env, &m_ivars, name);
-    hashmap_put(env, &m_ivars, name, val);
+
+    m_ivars.put(env, name, val);
     return val;
 }
 
@@ -318,18 +310,10 @@ ValuePtr Value::instance_variables(Env *env) {
         return ary;
     }
     struct hashmap_iter *iter;
-    if (m_ivars.table) {
-        for (iter = hashmap_iter(&m_ivars); iter; iter = hashmap_iter_next(&m_ivars, iter)) {
-            char *name = (char *)hashmap_iter_get_key(iter);
-            ary->push(SymbolValue::intern(env, name));
-        }
+    for (auto pair : m_ivars) {
+        ary->push(pair.first);
     }
     return ary;
-}
-void Value::init_ivars() {
-    if (m_ivars.table) return;
-    hashmap_init(&m_ivars, hashmap_hash_string, hashmap_compare_string, 100);
-    hashmap_set_key_alloc_funcs(&m_ivars, hashmap_alloc_key_string, nullptr);
 }
 
 ValuePtr Value::cvar_get(Env *env, SymbolValue *name) {
@@ -502,7 +486,7 @@ const char *Value::defined(Env *env, const char *name, bool strict) {
         obj = env->global_get(name);
         if (obj != env->nil_obj()) return "global-variable";
     } else if (is_ivar_name(name)) {
-        obj = ivar_get(env, name);
+        obj = ivar_get(env, SymbolValue::intern(env, name));
         if (obj != env->nil_obj()) return "instance-variable";
     } else if (respond_to(env, name)) {
         return "method";

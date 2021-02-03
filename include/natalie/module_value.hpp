@@ -12,8 +12,6 @@
 
 namespace Natalie {
 
-void copy_hashmap(Env *, struct hashmap &, const struct hashmap &);
-
 struct ModuleValue : Value {
     ModuleValue(Env *);
     ModuleValue(Env *, const char *);

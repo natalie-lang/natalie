@@ -9,8 +9,8 @@ struct SexpValue : ArrayValue {
 
     ValuePtr new_method(Env *env, size_t argc, ValuePtr *args) {
         auto sexp = new SexpValue { env, {} };
-        sexp->ivar_set(env, "@file", ivar_get(env, "@file"));
-        sexp->ivar_set(env, "@line", ivar_get(env, "@line"));
+        sexp->ivar_set(env, SymbolValue::intern(env, "@file"), ivar_get(env, SymbolValue::intern(env, "@file")));
+        sexp->ivar_set(env, SymbolValue::intern(env, "@line"), ivar_get(env, SymbolValue::intern(env, "@line")));
         for (size_t i = 0; i < argc; i++) {
             sexp->push(args[i]);
         }
@@ -31,11 +31,11 @@ struct SexpValue : ArrayValue {
         return out;
     }
 
-    ValuePtr file(Env *env) { return ivar_get(env, "@file"); }
-    ValuePtr set_file(Env *env, ValuePtr file) { return ivar_set(env, "@file", file); }
+    ValuePtr file(Env *env) { return ivar_get(env, SymbolValue::intern(env, "@file")); }
+    ValuePtr set_file(Env *env, ValuePtr file) { return ivar_set(env, SymbolValue::intern(env, "@file"), file); }
 
-    ValuePtr line(Env *env) { return ivar_get(env, "@line"); }
-    ValuePtr set_line(Env *env, ValuePtr line) { return ivar_set(env, "@line", line); }
+    ValuePtr line(Env *env) { return ivar_get(env, SymbolValue::intern(env, "@line")); }
+    ValuePtr set_line(Env *env, ValuePtr line) { return ivar_set(env, SymbolValue::intern(env, "@line"), line); }
 
 private:
     SexpValue(Env *env, std::initializer_list<ValuePtr> list)

@@ -62,7 +62,7 @@ void print_exception_with_backtrace(Env *env, ExceptionValue *exception) {
 
 void handle_top_level_exception(Env *env, ExceptionValue *exception, bool run_exit_handlers) {
     if (exception->is_a(env, env->Object()->const_find(env, SymbolValue::intern(env, "SystemExit"))->as_class())) {
-        ValuePtr status_obj = exception->ivar_get(env, "@status");
+        ValuePtr status_obj = exception->ivar_get(env, SymbolValue::intern(env, "@status"));
         if (run_exit_handlers) run_at_exit_handlers(env);
         if (status_obj->type() == Value::Type::Integer) {
             nat_int_t val = status_obj->as_integer()->to_nat_int_t();
@@ -329,7 +329,7 @@ void arg_spread(Env *env, size_t argc, ValuePtr *args, const char *arrangement, 
             void **void_ptr = va_arg(va_args, void **);
             if (arg_index >= argc) env->raise("ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, arg_index + 1);
             ValuePtr obj = args[arg_index++];
-            obj = obj->ivar_get(env, "@_ptr");
+            obj = obj->ivar_get(env, SymbolValue::intern(env, "@_ptr"));
             assert(obj->type() == Value::Type::VoidP);
             *void_ptr = obj->as_void_p()->void_ptr();
             break;
@@ -468,9 +468,9 @@ int pclose2(FILE *fp, pid_t pid) {
 
 void set_status_object(Env *env, int pid, int status) {
     auto status_obj = env->Object()->const_fetch(env, SymbolValue::intern(env, "Process"))->const_fetch(env, SymbolValue::intern(env, "Status"))->send(env, "new");
-    status_obj->ivar_set(env, "@to_i", new IntegerValue { env, status });
-    status_obj->ivar_set(env, "@exitstatus", new IntegerValue { env, WEXITSTATUS(status) });
-    status_obj->ivar_set(env, "@pid", new IntegerValue { env, pid });
+    status_obj->ivar_set(env, SymbolValue::intern(env, "@to_i"), new IntegerValue { env, status });
+    status_obj->ivar_set(env, SymbolValue::intern(env, "@exitstatus"), new IntegerValue { env, WEXITSTATUS(status) });
+    status_obj->ivar_set(env, SymbolValue::intern(env, "@pid"), new IntegerValue { env, pid });
     env->global_set("$?", status_obj);
 }
 

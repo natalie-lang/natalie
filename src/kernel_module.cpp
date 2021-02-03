@@ -69,7 +69,7 @@ ValuePtr KernelModule::exit(Env *env, ValuePtr status) {
         status = new IntegerValue { env, 0 };
     }
     ExceptionValue *exception = new ExceptionValue { env, env->Object()->const_find(env, SymbolValue::intern(env, "SystemExit"))->as_class(), "exit" };
-    exception->ivar_set(env, "@status", status);
+    exception->ivar_set(env, SymbolValue::intern(env, "@status"), status);
     env->raise_exception(exception);
     return env->nil_obj();
 }
@@ -127,13 +127,13 @@ ValuePtr KernelModule::instance_variable_get(Env *env, ValuePtr name_val) {
     if (is_integer() || is_float()) {
         return env->nil_obj();
     }
-    const char *name = name_val->identifier_str(env, Value::Conversion::Strict);
+    auto name = name_val->to_symbol(env, Value::Conversion::Strict);
     return ivar_get(env, name);
 }
 
 ValuePtr KernelModule::instance_variable_set(Env *env, ValuePtr name_val, ValuePtr value) {
     this->assert_not_frozen(env);
-    const char *name = name_val->identifier_str(env, Value::Conversion::Strict);
+    auto name = name_val->to_symbol(env, Value::Conversion::Strict);
     ivar_set(env, name, value);
     return value;
 }

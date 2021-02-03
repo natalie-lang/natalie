@@ -98,7 +98,7 @@ void Env::raise_exception(ExceptionValue *exception) {
 
 void Env::raise_local_jump_error(ValuePtr exit_value, const char *message) {
     ExceptionValue *exception = new ExceptionValue { this, Object()->const_find(this, SymbolValue::intern(this, "LocalJumpError"))->as_class(), message };
-    exception->ivar_set(this, "@exit_value", exit_value);
+    exception->ivar_set(this, SymbolValue::intern(this, "@exit_value"), exit_value);
     this->raise_exception(exception);
 }
 

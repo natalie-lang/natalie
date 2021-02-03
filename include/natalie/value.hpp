@@ -164,8 +164,8 @@ struct Value : public gc {
     virtual ValuePtr const_find(Env *, SymbolValue *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::Raise);
     virtual ValuePtr const_set(Env *, SymbolValue *, ValuePtr);
 
-    ValuePtr ivar_get(Env *, const char *);
-    ValuePtr ivar_set(Env *, const char *, ValuePtr);
+    ValuePtr ivar_get(Env *, SymbolValue *);
+    ValuePtr ivar_set(Env *, SymbolValue *, ValuePtr);
 
     ValuePtr instance_variables(Env *);
 
@@ -237,8 +237,6 @@ protected:
     ClassValue *m_klass { nullptr };
 
 private:
-    void init_ivars();
-
     Type m_type { Type::Object };
 
     ClassValue *m_singleton_class { nullptr };
@@ -246,7 +244,7 @@ private:
     ModuleValue *m_owner { nullptr };
     int m_flags { 0 };
 
-    hashmap m_ivars {};
+    Hashmap<SymbolValue *, ValuePtr> m_ivars {};
 };
 
 }
