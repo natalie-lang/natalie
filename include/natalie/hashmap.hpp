@@ -55,7 +55,14 @@ struct Env;
 /* #define HASHMAP_NOASSERT */
 
 struct hashmap_iter;
-struct hashmap_entry;
+
+struct hashmap_entry {
+    void *key;
+    void *data;
+#ifdef HASHMAP_METRICS
+    size_t num_collisions;
+#endif
+};
 
 /*
  * The hashmap state structure.
@@ -247,14 +254,14 @@ struct Hashmap : public gc {
         hashmap_init(&m_map, hashmap_hash_ptr, hashmap_compare_ptr, initial_capacity);
     }
 
-    Hashmap &operator=(Hashmap &other) {
+    Hashmap &operator=(const Hashmap &other) {
         assert(!m_map.key_free); // don't know how to free keys with copy constructor yet (not needed?)
         m_map.table_size_init = other.m_map.table_size_init;
         m_map.table_size = other.m_map.table_size;
         m_map.num_entries = other.m_map.num_entries;
         GC_FREE(m_map.table);
-        m_map.table = static_cast<struct hashmap_entry *>(GC_MALLOC(m_map.table_size));
-        memcpy(m_map.table, other.m_map.table, m_map.table_size);
+        m_map.table = static_cast<struct hashmap_entry *>(GC_MALLOC(m_map.table_size * sizeof(struct hashmap_entry)));
+        memcpy(m_map.table, other.m_map.table, m_map.table_size * sizeof(struct hashmap_entry));
         m_map.hash = other.m_map.hash;
         m_map.key_compare = other.m_map.key_compare;
         m_map.key_alloc = other.m_map.key_alloc;

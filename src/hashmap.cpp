@@ -60,14 +60,6 @@
 
 namespace Natalie {
 
-struct hashmap_entry {
-    void *key;
-    void *data;
-#ifdef HASHMAP_METRICS
-    size_t num_collisions;
-#endif
-};
-
 /*
  * Enforce a maximum 0.75 load factor.
  */
