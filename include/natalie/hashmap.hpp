@@ -80,9 +80,6 @@ struct hashmap : public gc {
 
 typedef struct hashmap hashmap;
 
-using HashFn = nat_int_t(const void *);
-using CompareFn = int(Env *, const void *, const void *);
-
 /*
  * Initialize an empty hashmap.
  *
@@ -244,14 +241,20 @@ double hashmap_collisions_variance(const struct hashmap *map);
 
 #endif
 
+enum class HashmapKeyType {
+    Pointer,
+    String,
+};
+
 template <typename KeyT, typename T>
 struct Hashmap : public gc {
-    Hashmap(HashFn *hash_fn, CompareFn *compare_fn, size_t initial_capacity = 10) {
-        hashmap_init(&m_map, hash_fn, compare_fn, initial_capacity);
-    }
-
-    Hashmap(int initial_capacity = 10) {
-        hashmap_init(&m_map, hashmap_hash_ptr, hashmap_compare_ptr, initial_capacity);
+    Hashmap(int initial_capacity = 10, HashmapKeyType key_type = HashmapKeyType::Pointer) {
+        if (key_type == HashmapKeyType::String) {
+            hashmap_init(&m_map, hashmap_hash_string, hashmap_compare_string, initial_capacity);
+            hashmap_set_key_alloc_funcs(&m_map, hashmap_alloc_key_string, nullptr);
+        } else {
+            hashmap_init(&m_map, hashmap_hash_ptr, hashmap_compare_ptr, initial_capacity);
+        }
     }
 
     Hashmap(const Hashmap &other)

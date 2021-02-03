@@ -13,16 +13,6 @@ extern "C" {
 }
 
 struct GlobalEnv : public gc {
-    GlobalEnv() {
-        m_symbols = static_cast<hashmap *>(GC_MALLOC(sizeof(hashmap)));
-        hashmap_init(m_symbols, hashmap_hash_string, hashmap_compare_string, 100);
-        hashmap_set_key_alloc_funcs(m_symbols, hashmap_alloc_key_string, nullptr);
-    }
-
-    hashmap *symbols() {
-        return m_symbols;
-    }
-
     ClassValue *Array() { return m_Array; }
     void set_Array(ClassValue *Array) { m_Array = Array; }
 
@@ -75,9 +65,14 @@ struct GlobalEnv : public gc {
     ValuePtr global_get(Env *, SymbolValue *);
     ValuePtr global_set(Env *, SymbolValue *, ValuePtr);
 
+    friend struct SymbolValue;
+
 private:
+    SymbolValue *symbol_get(Env *, const char *);
+    void symbol_set(Env *, const char *, SymbolValue *);
+
     Hashmap<SymbolValue *, ValuePtr> m_globals {};
-    hashmap *m_symbols { nullptr };
+    Hashmap<const char *, SymbolValue *> m_symbols { 1000, HashmapKeyType::String };
 
     ClassValue *m_Array { nullptr };
     ClassValue *m_Class { nullptr };
