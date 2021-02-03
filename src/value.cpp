@@ -471,22 +471,22 @@ bool Value::respond_to(Env *env, ValuePtr name_val) {
     return !!(name && respond_to(env, name));
 }
 
-const char *Value::defined(Env *env, const char *name, bool strict) {
+const char *Value::defined(Env *env, SymbolValue *name, bool strict) {
     ValuePtr obj = nullptr;
-    if (is_constant_name(name)) {
+    if (name->is_constant_name()) {
         if (strict) {
             if (is_module()) {
-                obj = as_module()->const_get(env, SymbolValue::intern(env, name));
+                obj = as_module()->const_get(env, name);
             }
         } else {
-            obj = const_find(env, SymbolValue::intern(env, name), ConstLookupSearchMode::NotStrict, ConstLookupFailureMode::Null);
+            obj = const_find(env, name, ConstLookupSearchMode::NotStrict, ConstLookupFailureMode::Null);
         }
         if (obj) return "constant";
-    } else if (is_global_name(name)) {
-        obj = env->global_get(SymbolValue::intern(env, name));
+    } else if (name->is_global_name()) {
+        obj = env->global_get(name);
         if (obj != env->nil_obj()) return "global-variable";
-    } else if (is_ivar_name(name)) {
-        obj = ivar_get(env, SymbolValue::intern(env, name));
+    } else if (name->is_ivar_name()) {
+        obj = ivar_get(env, name);
         if (obj != env->nil_obj()) return "instance-variable";
     } else if (respond_to(env, name)) {
         return "method";
@@ -494,21 +494,13 @@ const char *Value::defined(Env *env, const char *name, bool strict) {
     return nullptr;
 }
 
-const char *Value::defined(Env *env, SymbolValue *name, bool strict) {
-    return defined(env, name->c_str(), strict);
-}
-
-ValuePtr Value::defined_obj(Env *env, const char *name, bool strict) {
+ValuePtr Value::defined_obj(Env *env, SymbolValue *name, bool strict) {
     const char *result = defined(env, name, strict);
     if (result) {
         return new StringValue { env, result };
     } else {
         return env->nil_obj();
     }
-}
-
-ValuePtr Value::defined_obj(Env *env, SymbolValue *name, bool strict) {
-    return defined_obj(env, name->c_str(), strict);
 }
 
 ProcValue *Value::to_proc(Env *env) {

@@ -7,18 +7,6 @@
 
 namespace Natalie {
 
-bool is_constant_name(const char *name) {
-    return strlen(name) > 0 && isupper(name[0]);
-}
-
-bool is_global_name(const char *name) {
-    return strlen(name) > 0 && name[0] == '$';
-}
-
-bool is_ivar_name(const char *name) {
-    return strlen(name) > 0 && name[0] == '@';
-}
-
 ValuePtr splat(Env *env, ValuePtr obj) {
     if (obj->is_array()) {
         return new ArrayValue { env, *obj->as_array() };

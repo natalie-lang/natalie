@@ -201,9 +201,7 @@ struct Value : public gc {
     bool respond_to(Env *, const char *);
     bool respond_to(Env *, ValuePtr);
 
-    const char *defined(Env *, const char *, bool);
     const char *defined(Env *, SymbolValue *, bool);
-    ValuePtr defined_obj(Env *, const char *, bool = false);
     ValuePtr defined_obj(Env *, SymbolValue *, bool = false);
 
     virtual ProcValue *to_proc(Env *);

@@ -425,7 +425,7 @@ module Natalie
         result = temp('defined_result')
         case name.sexp_type
         when :const, :gvar, :ivar
-          decl "Value *#{result} = self->defined_obj(env, #{name.last.to_s.inspect});"
+          decl "Value *#{result} = self->defined_obj(env, SymbolValue::intern(env, #{name.last.to_s.inspect}));"
         when :send
           (_, receiver, name) = name
           receiver ||= 'self'
@@ -440,7 +440,7 @@ module Natalie
           raise "expected const" unless namespace.first == :const
           decl "Value *#{result};"
           decl 'try {'
-          decl "#{result} = env->Object()->const_find(env, SymbolValue::intern(env, #{namespace.last.to_s.inspect}), Value::ConstLookupSearchMode::NotStrict)->defined_obj(env, #{name.to_s.inspect}, true);"
+          decl "#{result} = env->Object()->const_find(env, SymbolValue::intern(env, #{namespace.last.to_s.inspect}), Value::ConstLookupSearchMode::NotStrict)->defined_obj(env, SymbolValue::intern(env, #{name.to_s.inspect}), true);"
           decl '} catch (ExceptionValue *) {'
           decl "#{result} = #{process_atom s(:nil)};"
           decl '}'
@@ -448,7 +448,7 @@ module Natalie
           (_, name) = name
           decl "Value *#{result};"
           decl 'try {'
-          decl "#{result} = env->Object()->defined_obj(env, #{name.to_s.inspect}, true);"
+          decl "#{result} = env->Object()->defined_obj(env, SymbolValue::intern(env, #{name.to_s.inspect}), true);"
           decl '} catch (ExceptionValue *) {'
           decl "#{result} = #{process_atom s(:nil)};"
           decl '}'
