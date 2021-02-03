@@ -349,7 +349,7 @@ module Natalie
 
       def process_gasgn(exp)
         (_, name, value) = exp
-        exp.new(:global_set, :env, s(:s, name), process(value))
+        exp.new(:global_set, :env, s(:intern, name), process(value))
       end
 
       def process_gvar(exp)
@@ -357,7 +357,7 @@ module Natalie
         if name == :$~
           exp.new(:last_match, :env)
         else
-          exp.new(:global_get, :env, s(:s, name))
+          exp.new(:global_get, :env, s(:intern, name))
         end
       end
 
@@ -598,7 +598,7 @@ module Natalie
         when :cdecl
           s(:const_set, :self, :env, s(:intern, exp.last), value)
         when :gasgn
-          s(:global_set, :env, s(:s, exp.last), value)
+          s(:global_set, :env, s(:intern, exp.last), value)
         when :iasgn
           s(:ivar_set, :self, :env, s(:intern, exp.last), value)
         when :lasgn, :kwarg
@@ -754,7 +754,7 @@ module Natalie
         when :gvar
           result_name = temp('gvar')
           exp.new(:block,
-                  s(:declare, result_name, s(:global_get, :env, s(:s, name))),
+                  s(:declare, result_name, s(:global_get, :env, s(:intern, name))),
                   s(:c_if, condition.(result_name), result_name, process(value)))
         when :ivar
           result_name = temp('ivar')

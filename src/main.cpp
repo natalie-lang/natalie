@@ -141,22 +141,22 @@ extern "C" Env *build_top_env() {
     ClassValue *Method = Object->subclass(env, "Method", Value::Type::Method);
     Object->const_set(env, SymbolValue::intern(env, "Method"), Method);
 
-    env->global_set("$NAT_at_exit_handlers", new ArrayValue { env });
+    env->global_set(SymbolValue::intern(env, "$NAT_at_exit_handlers"), new ArrayValue { env });
 
     ValuePtr self = new Value { env };
     self->add_main_object_flag();
-    env->global_set("$NAT_main_object", self);
+    env->global_set(SymbolValue::intern(env, "$NAT_main_object"), self);
 
     ValuePtr _stdin = new IoValue { env, STDIN_FILENO };
-    env->global_set("$stdin", _stdin);
+    env->global_set(SymbolValue::intern(env, "$stdin"), _stdin);
     Object->const_set(env, SymbolValue::intern(env, "STDIN"), _stdin);
 
     ValuePtr _stdout = new IoValue { env, STDOUT_FILENO };
-    env->global_set("$stdout", _stdout);
+    env->global_set(SymbolValue::intern(env, "$stdout"), _stdout);
     Object->const_set(env, SymbolValue::intern(env, "STDOUT"), _stdout);
 
     ValuePtr _stderr = new IoValue { env, STDERR_FILENO };
-    env->global_set("$stderr", _stderr);
+    env->global_set(SymbolValue::intern(env, "$stderr"), _stderr);
     Object->const_set(env, SymbolValue::intern(env, "STDERR"), _stderr);
 
     ValuePtr ENV = new Value { env };
@@ -187,7 +187,7 @@ extern "C" Env *build_top_env() {
 /*NAT_TOP*/
 
 extern "C" ValuePtr EVAL(Env *env) {
-    ValuePtr self = env->global_get("$NAT_main_object");
+    ValuePtr self = env->global_get(SymbolValue::intern(env, "$NAT_main_object"));
     (void)self; // don't warn about unused var
     volatile bool run_exit_handlers = true;
     try {
@@ -207,11 +207,11 @@ int main(int argc, char *argv[]) {
     setvbuf(stdout, nullptr, _IOLBF, 1024);
     Env *env = build_top_env();
 
-    env->global_set("$0", new StringValue { env, source_files[0] });
+    env->global_set(SymbolValue::intern(env, "$0"), new StringValue { env, source_files[0] });
 
     assert(argc > 0);
     ValuePtr exe = new StringValue { env, argv[0] };
-    env->global_set("$exe", exe);
+    env->global_set(SymbolValue::intern(env, "$exe"), exe);
 
     ArrayValue *ARGV = new ArrayValue { env };
     env->Object()->const_set(env, SymbolValue::intern(env, "ARGV"), ARGV);

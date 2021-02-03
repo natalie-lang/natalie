@@ -12,27 +12,12 @@ void Env::build_vars(size_t size) {
     m_vars = new Vector<ValuePtr> { size, static_cast<ValuePtr>(nil_obj()) };
 }
 
-ValuePtr Env::global_get(const char *name) {
-    assert(strlen(name) > 0);
-    if (name[0] != '$') {
-        raise("NameError", "`%s' is not allowed as a global variable name", name);
-    }
-    ValuePtr val = static_cast<ValuePtr>(hashmap_get(this, global_env()->globals(), name));
-    if (val) {
-        return val;
-    } else {
-        return nil_obj();
-    }
+ValuePtr Env::global_get(SymbolValue *name) {
+    return m_global_env->global_get(this, name);
 }
 
-ValuePtr Env::global_set(const char *name, ValuePtr val) {
-    assert(strlen(name) > 0);
-    if (name[0] != '$') {
-        raise("NameError", "`%s' is not allowed as an global variable name", name);
-    }
-    hashmap_remove(this, global_env()->globals(), name);
-    hashmap_put(this, global_env()->globals(), name, val);
-    return val;
+ValuePtr Env::global_set(SymbolValue *name, ValuePtr val) {
+    return m_global_env->global_set(this, name, val);
 }
 
 const char *Env::find_current_method_name() {

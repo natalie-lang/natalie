@@ -33,7 +33,7 @@ ValuePtr call_begin(Env *env, ValuePtr self, MethodFnPtr begin_fn, size_t argc, 
 }
 
 void run_at_exit_handlers(Env *env) {
-    ArrayValue *at_exit_handlers = env->global_get("$NAT_at_exit_handlers")->as_array();
+    ArrayValue *at_exit_handlers = env->global_get(SymbolValue::intern(env, "$NAT_at_exit_handlers"))->as_array();
     assert(at_exit_handlers);
     for (int i = at_exit_handlers->size() - 1; i >= 0; i--) {
         ValuePtr proc = (*at_exit_handlers)[i];
@@ -44,7 +44,7 @@ void run_at_exit_handlers(Env *env) {
 }
 
 void print_exception_with_backtrace(Env *env, ExceptionValue *exception) {
-    IoValue *_stderr = env->global_get("$stderr")->as_io();
+    IoValue *_stderr = env->global_get(SymbolValue::intern(env, "$stderr"))->as_io();
     int fd = _stderr->fileno();
     const ArrayValue *backtrace = exception->backtrace();
     if (backtrace && backtrace->size() > 0) {
@@ -471,7 +471,7 @@ void set_status_object(Env *env, int pid, int status) {
     status_obj->ivar_set(env, SymbolValue::intern(env, "@to_i"), new IntegerValue { env, status });
     status_obj->ivar_set(env, SymbolValue::intern(env, "@exitstatus"), new IntegerValue { env, WEXITSTATUS(status) });
     status_obj->ivar_set(env, SymbolValue::intern(env, "@pid"), new IntegerValue { env, pid });
-    env->global_set("$?", status_obj);
+    env->global_set(SymbolValue::intern(env, "$?"), status_obj);
 }
 
 }

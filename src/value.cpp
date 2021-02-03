@@ -483,7 +483,7 @@ const char *Value::defined(Env *env, const char *name, bool strict) {
         }
         if (obj) return "constant";
     } else if (is_global_name(name)) {
-        obj = env->global_get(name);
+        obj = env->global_get(SymbolValue::intern(env, name));
         if (obj != env->nil_obj()) return "global-variable";
     } else if (is_ivar_name(name)) {
         obj = ivar_get(env, SymbolValue::intern(env, name));

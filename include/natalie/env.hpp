@@ -28,8 +28,8 @@ struct Env : public gc {
 
     static Env new_detatched_env(Env *);
 
-    ValuePtr global_get(const char *);
-    ValuePtr global_set(const char *, ValuePtr);
+    ValuePtr global_get(SymbolValue *);
+    ValuePtr global_set(SymbolValue *, ValuePtr);
 
     const char *find_current_method_name();
     char *build_code_location_name(Env *);

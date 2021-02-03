@@ -532,7 +532,7 @@ module Natalie
           c += @decl
           c << "return #{result};" unless result.empty?
           c << '} catch (ExceptionValue *exception) {'
-          c << 'env->global_set("$!", exception);'
+          c << 'env->global_set(SymbolValue::intern(env, "$!"), exception);'
           @decl = []
           result = process_atom(bottom)
           c += @decl

@@ -27,7 +27,7 @@ ValuePtr KernelModule::Array(Env *env, ValuePtr value) {
 }
 
 ValuePtr KernelModule::at_exit(Env *env, Block *block) {
-    ArrayValue *at_exit_handlers = env->global_get("$NAT_at_exit_handlers")->as_array();
+    ArrayValue *at_exit_handlers = env->global_get(SymbolValue::intern(env, "$NAT_at_exit_handlers"))->as_array();
     env->assert_block_given(block);
     ValuePtr proc = new ProcValue { env, block };
     at_exit_handlers->push(proc);
@@ -212,7 +212,7 @@ ValuePtr KernelModule::p(Env *env, size_t argc, ValuePtr *args) {
 }
 
 ValuePtr KernelModule::print(Env *env, size_t argc, ValuePtr *args) {
-    IoValue *_stdout = env->global_get("$stdout")->as_io();
+    IoValue *_stdout = env->global_get(SymbolValue::intern(env, "$stdout"))->as_io();
     return _stdout->print(env, argc, args);
 }
 
@@ -225,7 +225,7 @@ ValuePtr KernelModule::proc(Env *env, Block *block) {
 }
 
 ValuePtr KernelModule::puts(Env *env, size_t argc, ValuePtr *args) {
-    IoValue *_stdout = env->global_get("$stdout")->as_io();
+    IoValue *_stdout = env->global_get(SymbolValue::intern(env, "$stdout"))->as_io();
     return _stdout->puts(env, argc, args);
 }
 

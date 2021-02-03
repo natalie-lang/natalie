@@ -30,6 +30,10 @@ struct SymbolValue : Value {
         return strlen(m_name) > 0 && isupper(m_name[0]);
     }
 
+    bool is_global_name() {
+        return strlen(m_name) > 0 && m_name[0] == '$';
+    }
+
     bool is_ivar_name() {
         return strlen(m_name) > 0 && m_name[0] == '@';
     }

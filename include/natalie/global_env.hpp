@@ -14,16 +14,9 @@ extern "C" {
 
 struct GlobalEnv : public gc {
     GlobalEnv() {
-        m_globals = static_cast<hashmap *>(GC_MALLOC(sizeof(hashmap)));
-        hashmap_init(m_globals, hashmap_hash_string, hashmap_compare_string, 100);
-        hashmap_set_key_alloc_funcs(m_globals, hashmap_alloc_key_string, nullptr);
         m_symbols = static_cast<hashmap *>(GC_MALLOC(sizeof(hashmap)));
         hashmap_init(m_symbols, hashmap_hash_string, hashmap_compare_string, 100);
         hashmap_set_key_alloc_funcs(m_symbols, hashmap_alloc_key_string, nullptr);
-    }
-
-    hashmap *globals() {
-        return m_globals;
     }
 
     hashmap *symbols() {
@@ -79,9 +72,13 @@ struct GlobalEnv : public gc {
         m_fiber_args.args = args;
     }
 
+    ValuePtr global_get(Env *, SymbolValue *);
+    ValuePtr global_set(Env *, SymbolValue *, ValuePtr);
+
 private:
-    hashmap *m_globals { nullptr };
+    Hashmap<SymbolValue *, ValuePtr> m_globals {};
     hashmap *m_symbols { nullptr };
+
     ClassValue *m_Array { nullptr };
     ClassValue *m_Class { nullptr };
     ClassValue *m_Hash { nullptr };
