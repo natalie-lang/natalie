@@ -76,18 +76,7 @@ struct Value : public gc {
         assert(klass);
     }
 
-    Value(Env *env, Value &other)
-        : m_klass { other.m_klass }
-        , m_type { other.m_type } {
-        if (other.m_ivars.table) {
-            init_ivars();
-            struct hashmap_iter *iter;
-            for (iter = hashmap_iter(&other.m_ivars); iter; iter = hashmap_iter_next(&other.m_ivars, iter)) {
-                char *name = (char *)hashmap_iter_get_key(iter);
-                hashmap_put(env, &m_ivars, name, hashmap_iter_get_data(iter));
-            }
-        }
-    }
+    Value(Env *, const Value &);
 
     Value(const Value &) = delete;
 
@@ -96,8 +85,6 @@ struct Value : public gc {
     virtual ~Value() { }
 
     static ValuePtr _new(Env *, ValuePtr, size_t, ValuePtr *, Block *);
-
-    Value(Env *, const Value &);
 
     Type type() { return m_type; }
     ClassValue *klass() { return m_klass; }

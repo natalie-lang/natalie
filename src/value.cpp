@@ -8,7 +8,6 @@ Value::Value(Env *env, const Value &other)
     , m_type { other.m_type }
     , m_singleton_class { other.m_singleton_class ? new ClassValue { env, other.m_singleton_class } : nullptr }
     , m_owner { other.m_owner }
-    , m_flags { other.m_flags } {
     init_ivars();
     copy_hashmap(env, m_ivars, other.m_ivars);
 }
