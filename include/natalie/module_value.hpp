@@ -24,10 +24,10 @@ struct ModuleValue : Value {
 
     ModuleValue(Env *env, ModuleValue &other)
         : Value { other.type(), other.klass() }
+        , m_constants { other.m_constants }
         , m_class_name { GC_STRDUP(other.m_class_name) }
-        , m_superclass { other.m_superclass } {
-        m_constants = other.m_constants;
-        m_methods = other.m_methods;
+        , m_superclass { other.m_superclass }
+        , m_methods { other.m_methods } {
         for (ModuleValue *module : const_cast<ModuleValue &>(other).m_included_modules) {
             m_included_modules.push(module);
         }
