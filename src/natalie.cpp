@@ -356,16 +356,6 @@ std::pair<ValuePtr, ValuePtr> coerce(Env *env, ValuePtr lhs, ValuePtr rhs) {
     }
 }
 
-// TODO: remove this
-void copy_hashmap(Env *env, hashmap &dest, const hashmap &source) {
-    struct hashmap_iter *iter;
-    for (iter = hashmap_iter(&source); iter; iter = hashmap_iter_next(&source, iter)) {
-        char *name = (char *)hashmap_iter_get_key(iter);
-        ValuePtr value = (ValuePtr)hashmap_iter_get_data(iter);
-        hashmap_put(env, &dest, name, value);
-    }
-}
-
 char *zero_string(int size) {
     char *buf = new char[size + 1];
     memset(buf, '0', size);
