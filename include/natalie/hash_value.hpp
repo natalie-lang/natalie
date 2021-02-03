@@ -32,13 +32,10 @@ struct HashValue : Value {
 
     HashValue(Env *env, ClassValue *klass)
         : Value { Value::Type::Hash, klass }
-        , m_default_value { env->nil_obj() } {
-        hashmap_init(&m_hashmap, hash, compare, 256);
-    }
+        , m_default_value { env->nil_obj() } { }
 
     HashValue(Env *env, HashValue &other)
         : Value { env, other } {
-        hashmap_init(&m_hashmap, hash, compare, 256);
         for (auto node : other) {
             put(env, node.key, node.val);
         }
@@ -49,10 +46,10 @@ struct HashValue : Value {
     static nat_int_t hash(const void *);
     static int compare(Env *env, const void *, const void *);
 
-    size_t size() { return m_hashmap.num_entries; }
+    size_t size() { return m_hashmap.size(); }
     ValuePtr size(Env *);
 
-    bool is_empty() { return m_hashmap.num_entries == 0; }
+    bool is_empty() { return m_hashmap.size() == 0; }
 
     ValuePtr get(Env *, ValuePtr);
     ValuePtr get_default(Env *, ValuePtr);
@@ -151,7 +148,7 @@ private:
     }
 
     Key *m_key_list { nullptr };
-    hashmap m_hashmap {};
+    Hashmap<Key *, Val *> m_hashmap { hash, compare, 256 };
     bool m_is_iterating { false };
     ValuePtr m_default_value { nullptr };
     Block *m_default_block { nullptr };

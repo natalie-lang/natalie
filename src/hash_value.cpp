@@ -18,7 +18,7 @@ ValuePtr HashValue::get(Env *env, ValuePtr key) {
     Key key_container;
     key_container.key = key;
     key_container.hash = key->send(env, "hash")->as_integer()->to_nat_int_t();
-    Val *container = static_cast<Val *>(hashmap_get(env, &m_hashmap, &key_container));
+    Val *container = m_hashmap.get(env, &key_container);
     ValuePtr val = container ? container->val : nullptr;
     return val;
 }
@@ -37,7 +37,7 @@ void HashValue::put(Env *env, ValuePtr key, ValuePtr val) {
     Key key_container;
     key_container.key = key;
     key_container.hash = key->send(env, "hash")->as_integer()->to_nat_int_t();
-    Val *container = static_cast<Val *>(hashmap_get(env, &m_hashmap, &key_container));
+    Val *container = m_hashmap.get(env, &key_container);
     if (container) {
         container->key->val = val;
         container->val = val;
@@ -45,10 +45,10 @@ void HashValue::put(Env *env, ValuePtr key, ValuePtr val) {
         if (m_is_iterating) {
             env->raise("RuntimeError", "can't add a new key into hash during iteration");
         }
-        container = static_cast<Val *>(GC_MALLOC(sizeof(Val)));
+        container = new (GC) Val;
         container->key = key_list_append(env, key, val);
         container->val = val;
-        hashmap_put(env, &m_hashmap, container->key, container);
+        m_hashmap.put(env, container->key, container);
     }
 }
 
@@ -56,7 +56,7 @@ ValuePtr HashValue::remove(Env *env, ValuePtr key) {
     Key key_container;
     key_container.key = key;
     key_container.hash = key->send(env, "hash")->as_integer()->to_nat_int_t();
-    Val *container = static_cast<Val *>(hashmap_remove(env, &m_hashmap, &key_container));
+    Val *container = m_hashmap.remove(env, &key_container);
     if (container) {
         key_list_remove_node(container->key);
         ValuePtr val = container->val;
@@ -82,7 +82,7 @@ HashValue::Key *HashValue::key_list_append(Env *env, ValuePtr key, ValuePtr val)
     if (m_key_list) {
         Key *first = m_key_list;
         Key *last = m_key_list->prev;
-        Key *new_last = static_cast<Key *>(GC_MALLOC(sizeof(Key)));
+        Key *new_last = new (GC) Key;
         new_last->key = key;
         new_last->val = val;
         // <first> ... <last> <new_last> -|
@@ -95,7 +95,7 @@ HashValue::Key *HashValue::key_list_append(Env *env, ValuePtr key, ValuePtr val)
         last->next = new_last;
         return new_last;
     } else {
-        Key *node = static_cast<Key *>(GC_MALLOC(sizeof(Key)));
+        Key *node = new (GC) Key;
         node->key = key;
         node->val = val;
         node->prev = node;

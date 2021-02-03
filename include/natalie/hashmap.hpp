@@ -246,6 +246,9 @@ enum class HashmapKeyType {
     String,
 };
 
+using HashFn = nat_int_t(const void *);
+using CompareFn = int(Env *, const void *, const void *);
+
 template <typename KeyT, typename T>
 struct Hashmap : public gc {
     Hashmap(int initial_capacity = 10, HashmapKeyType key_type = HashmapKeyType::Pointer) {
@@ -255,6 +258,10 @@ struct Hashmap : public gc {
         } else {
             hashmap_init(&m_map, hashmap_hash_ptr, hashmap_compare_ptr, initial_capacity);
         }
+    }
+
+    Hashmap(HashFn *hash_fn, CompareFn *compare_fn, int initial_capacity = 10) {
+        hashmap_init(&m_map, hash_fn, compare_fn, initial_capacity);
     }
 
     Hashmap(const Hashmap &other)
@@ -283,6 +290,8 @@ struct Hashmap : public gc {
     T remove(Env *env, KeyT key) {
         return static_cast<T>(hashmap_remove(env, &m_map, key));
     }
+
+    size_t size() { return m_map.num_entries; }
 
     class iterator {
     public:
