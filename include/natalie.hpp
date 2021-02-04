@@ -46,6 +46,7 @@
 #include "natalie/true_value.hpp"
 #include "natalie/types.hpp"
 #include "natalie/value.hpp"
+#include "natalie/value_ptr.hpp"
 #include "natalie/void_p_value.hpp"
 
 namespace Natalie {
@@ -60,33 +61,33 @@ void init_bindings(Env *);
 
 const char *find_current_method_name(Env *env);
 
-Value *call_begin(Env *, Value *, MethodFnPtr, size_t, Value **, Block *);
+ValuePtr call_begin(Env *, ValuePtr, MethodFnPtr, size_t, ValuePtr *, Block *);
 
-Value *splat(Env *env, Value *obj);
+ValuePtr splat(Env *env, ValuePtr obj);
 
 void run_at_exit_handlers(Env *env);
 void print_exception_with_backtrace(Env *env, ExceptionValue *exception);
 void handle_top_level_exception(Env *, ExceptionValue *, bool);
 
-ArrayValue *to_ary(Env *env, Value *obj, bool raise_for_non_array);
+ArrayValue *to_ary(Env *env, ValuePtr obj, bool raise_for_non_array);
 
-Value *arg_value_by_path(Env *env, Value *value, Value *default_value, bool splat, int total_count, int default_count, bool defaults_on_right, int offset_from_end, size_t path_size, ...);
-Value *array_value_by_path(Env *env, Value *value, Value *default_value, bool splat, int offset_from_end, size_t path_size, ...);
-Value *kwarg_value_by_name(Env *env, Value *args, const char *name, Value *default_value);
-Value *kwarg_value_by_name(Env *env, ArrayValue *args, const char *name, Value *default_value);
+ValuePtr arg_value_by_path(Env *env, ValuePtr value, ValuePtr default_value, bool splat, int total_count, int default_count, bool defaults_on_right, int offset_from_end, size_t path_size, ...);
+ValuePtr array_value_by_path(Env *env, ValuePtr value, ValuePtr default_value, bool splat, int offset_from_end, size_t path_size, ...);
+ValuePtr kwarg_value_by_name(Env *env, ValuePtr args, const char *name, ValuePtr default_value);
+ValuePtr kwarg_value_by_name(Env *env, ArrayValue *args, const char *name, ValuePtr default_value);
 
-ArrayValue *args_to_array(Env *env, size_t argc, Value **args);
-ArrayValue *block_args_to_array(Env *env, size_t signature_size, size_t argc, Value **args);
+ArrayValue *args_to_array(Env *env, size_t argc, ValuePtr *args);
+ArrayValue *block_args_to_array(Env *env, size_t signature_size, size_t argc, ValuePtr *args);
 
-void arg_spread(Env *env, size_t argc, Value **args, const char *arrangement, ...);
+void arg_spread(Env *env, size_t argc, ValuePtr *args, const char *arrangement, ...);
 
-std::pair<Value *, Value *> coerce(Env *, Value *, Value *);
+std::pair<ValuePtr, ValuePtr> coerce(Env *, ValuePtr, ValuePtr);
 
 char *zero_string(int);
 
-Block *proc_to_block_arg(Env *, Value *);
+Block *proc_to_block_arg(Env *, ValuePtr);
 
-Value *shell_backticks(Env *, Value *);
+ValuePtr shell_backticks(Env *, ValuePtr);
 
 FILE *popen2(const char *, const char *, int &);
 int pclose2(FILE *, pid_t);

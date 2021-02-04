@@ -54,8 +54,8 @@ module Natalie
       ]
 
       TYPES = {
-        as_class: 'ClassValue',
-        as_string: 'StringValue',
+        as_class: 'ClassValue *',
+        as_string: 'StringValue *',
       }
 
       METHODS = %i[
@@ -145,13 +145,13 @@ module Natalie
           c << "env->assert_argc(argc, #{args.size});"
           args.each_with_index do |arg, i|
             raise "Expected symbol arg name pass to __define_method__, but got: #{arg.inspect}" unless arg.sexp_type == :lit
-            c << "Value *#{arg.last} = args[#{i}];"
+            c << "ValuePtr #{arg.last} = args[#{i}];"
           end
         end
         c << body.last
         fn = temp('fn')
         nl = "\n" # FIXME: parser issue with double quotes inside interpolation
-        top "Value *#{fn}(Env *env, Value *self, size_t argc, Value **args, Block *block) {\n#{c.join(nl)}\n}"
+        top "ValuePtr #{fn}(Env *env, ValuePtr self, size_t argc, ValuePtr *args, Block *block) {\n#{c.join(nl)}\n}"
         process(s(:define_method, s(:l, "self->as_module()"), :env, s(:intern, name), fn))
         "SymbolValue::intern(env, #{name.inspect})"
       end
@@ -202,7 +202,7 @@ module Natalie
           'nullptr:0'
         else
           args_name = temp('args')
-          decl "Value *#{args_name}[#{args.size}] = { #{args.map { |arg| process_atom(arg) }.join(', ')} };"
+          decl "ValuePtr #{args_name}[#{args.size}] = { #{args.map { |arg| process_atom(arg) }.join(', ')} };"
           "#{args_name}:#{args.size}"
         end
       end
@@ -211,9 +211,7 @@ module Natalie
         (_, args) = exp
         array = process_atom(args)
         name = temp('args_array')
-        # NOTE: this array must be marked volatile or the GC might collect it :-(
-        # I wish I knew 1) why/how GCC optimizes this pointer away, and 2) how a big GC like Boehm doesn't fall for tricks like that. :-/
-        decl "Value * volatile #{name} = #{array};"
+        decl "ValuePtr #{name} = #{array};"
         "#{name}->as_array()->data():#{name}->as_array()->size()"
       end
 
@@ -243,7 +241,7 @@ module Natalie
         (_, val, *args) = exp
         val = process(val)
         array_val = temp('array_val')
-        decl "Value *#{array_val} = to_ary(env, #{val}, false);"
+        decl "ValuePtr #{array_val} = to_ary(env, #{val}, false);"
         args.compact.each do |arg|
           arg = arg.dup
           arg_value = process_assign_val(arg.pop, "#{array_val}->size()", "#{array_val}->data()")
@@ -257,7 +255,7 @@ module Natalie
         if args.size > 1
           array_arg = temp('array_arg')
           decl 'if (argc == 1) {'
-          decl "  Value *#{array_arg} = to_ary(env, args[0], true);"
+          decl "  ValuePtr #{array_arg} = to_ary(env, args[0], true);"
           args.compact.each do |arg|
             arg = arg.dup
             arg_value = process_assign_val(arg.pop, "#{array_arg}->size()", "#{array_arg}->data()")
@@ -307,7 +305,7 @@ module Natalie
         condition = process(condition)
         c = []
         result_name = temp('if')
-        c << "Value *#{result_name};"
+        c << "ValuePtr #{result_name};"
         in_decl_context do
           c << "if (#{condition}) {"
           result = process_atom(true_body)
@@ -375,7 +373,7 @@ module Natalie
         count = 0
         result_name = temp('cond_result')
         in_decl_context do
-          decl "Value *#{result_name} = nullptr;"
+          decl "ValuePtr #{result_name} = nullptr;"
           exp[1..-1].each_slice(2).each_with_index do |(cond, body), index|
             if cond == s(:else)
               in_decl_context do
@@ -405,7 +403,7 @@ module Natalie
 
       def process_declare(exp)
         (_, name, value, type) = exp
-        type ||= 'Value *'
+        type ||= 'ValuePtr'
         if value
           decl "#{type} #{name} = #{process_atom value};"
         else
@@ -425,11 +423,11 @@ module Natalie
         result = temp('defined_result')
         case name.sexp_type
         when :const, :gvar, :ivar
-          decl "Value *#{result} = self->defined_obj(env, SymbolValue::intern(env, #{name.last.to_s.inspect}));"
+          decl "ValuePtr #{result} = self->defined_obj(env, SymbolValue::intern(env, #{name.last.to_s.inspect}));"
         when :send
           (_, receiver, name) = name
           receiver ||= 'self'
-          decl "Value *#{result};"
+          decl "ValuePtr #{result};"
           decl 'try {'
           decl "#{result} = #{process_atom receiver}->defined_obj(env, #{process name}, true);"
           decl '} catch (ExceptionValue *) {'
@@ -438,7 +436,7 @@ module Natalie
         when :colon2
           (_, namespace, name) = name
           raise "expected const" unless namespace.first == :const
-          decl "Value *#{result};"
+          decl "ValuePtr #{result};"
           decl 'try {'
           decl "#{result} = env->Object()->const_find(env, SymbolValue::intern(env, #{namespace.last.to_s.inspect}), Value::ConstLookupSearchMode::NotStrict)->defined_obj(env, SymbolValue::intern(env, #{name.to_s.inspect}), true);"
           decl '} catch (ExceptionValue *) {'
@@ -446,16 +444,16 @@ module Natalie
           decl '}'
         when :colon3
           (_, name) = name
-          decl "Value *#{result};"
+          decl "ValuePtr #{result};"
           decl 'try {'
           decl "#{result} = env->Object()->defined_obj(env, SymbolValue::intern(env, #{name.to_s.inspect}), true);"
           decl '} catch (ExceptionValue *) {'
           decl "#{result} = #{process_atom s(:nil)};"
           decl '}'
         when :lit, :str
-          decl "Value *#{result} = new StringValue { env, \"expression\" };"
+          decl "ValuePtr #{result} = new StringValue { env, \"expression\" };"
         when :nil
-          decl "Value *#{result} = new StringValue { env, \"nil\" };"
+          decl "ValuePtr #{result} = new StringValue { env, \"nil\" };"
         else
           raise "unknown defined type: #{exp.inspect}"
         end
@@ -485,9 +483,9 @@ module Natalie
           result = process_atom(body)
           fn = []
           if arg_list == 6
-            fn << "Value *#{name}(Env *env, Value *self, size_t argc, Value **args, Block *block) {"
+            fn << "ValuePtr #{name}(Env *env, ValuePtr self, size_t argc, ValuePtr *args, Block *block) {"
           elsif arg_list == 2
-            fn << "Value *#{name}(Env *env, Value *self) {"
+            fn << "ValuePtr #{name}(Env *env, ValuePtr self) {"
           else
             raise "unknown arg_list #{arg_list.inspect}"
           end
@@ -519,7 +517,7 @@ module Natalie
           args_count = 0
         end
         result_name = temp('call_result')
-        decl "Value *#{result_name} = #{receiver_name}->#{fn}(env, #{process method}, #{args_count}, #{args_name}, #{block || 'nullptr'});"
+        decl "ValuePtr #{result_name} = #{receiver_name}->#{fn}(env, #{process method}, #{args_count}, #{args_name}, #{block || 'nullptr'});"
         result_name
       end
 
@@ -547,7 +545,7 @@ module Natalie
         (fn, args) = exp
         args_name, args_count = process_atom(args).split(':')
         result_name = temp('block_result')
-        decl "Value *#{result_name} = NAT_RUN_BLOCK_FROM_ENV(env, #{args_count}, #{args_name});"
+        decl "ValuePtr #{result_name} = NAT_RUN_BLOCK_FROM_ENV(env, #{args_count}, #{args_name});"
         result_name
       end
 
@@ -556,9 +554,9 @@ module Natalie
         result_name = temp('call_result')
         if args
           args_name, args_count = process_atom(args).split(':')
-          decl "Value *#{result_name} = self->klass()->superclass()->call_method(env, self->klass()->superclass(), env->find_current_method_name(), self, #{args_count}, #{args_name}, #{block || 'nullptr'});"
+          decl "ValuePtr #{result_name} = self->klass()->superclass()->call_method(env, self->klass()->superclass(), env->find_current_method_name(), self, #{args_count}, #{args_name}, #{block || 'nullptr'});"
         else
-          decl "Value *#{result_name} = self->klass()->superclass()->call_method(env, self->klass()->superclass(), env->find_current_method_name(), self, argc, args, #{block || 'nullptr'});"
+          decl "ValuePtr #{result_name} = self->klass()->superclass()->call_method(env, self->klass()->superclass(), env->find_current_method_name(), self, argc, args, #{block || 'nullptr'});"
         end
         result_name
       end
@@ -618,7 +616,7 @@ module Natalie
         name
       end
 
-      def process_sexp(exp, name = nil, type = 'Value')
+      def process_sexp(exp, name = nil, type = 'ValuePtr ')
         debug_info(exp)
         (fn, *args) = exp
         if VOID_FUNCTIONS.include?(fn)
@@ -633,10 +631,10 @@ module Natalie
           result_name = name || temp(fn)
           if METHODS.include?(fn)
             (obj, *args) = args
-            type = TYPES[fn] || 'Value'
-            decl "#{type} *#{result_name} = #{process_atom obj}->#{fn}(#{args.map { |a| process_atom(a) }.join(', ')});"
+            type = TYPES[fn] || 'ValuePtr '
+            decl "#{type}#{result_name} = #{process_atom obj}->#{fn}(#{args.map { |a| process_atom(a) }.join(', ')});"
           else
-            decl "#{type} *#{result_name} = #{fn}(#{args.map { |a| process_atom(a) }.join(', ')});"
+            decl "#{type}#{result_name} = #{fn}(#{args.map { |a| process_atom(a) }.join(', ')});"
           end
           result_name
         end
@@ -653,10 +651,10 @@ module Natalie
       def process_with_self(exp)
         (_, new_self, body) = exp
         self_was = temp('self_was')
-        decl "Value *#{self_was} = self;"
+        decl "ValuePtr #{self_was} = self;"
         decl "self = #{process_atom new_self};"
         result = temp('sclass_result')
-        decl "Value *#{result} = #{process_atom body};"
+        decl "ValuePtr #{result} = #{process_atom body};"
         decl "self = #{self_was};"
         result
       end
@@ -719,7 +717,7 @@ module Natalie
 
       def obj_declarations
         obj_files.map do |name|
-          "Value *obj_#{name}(Env *env, Value *self);"
+          "ValuePtr obj_#{name}(Env *env, ValuePtr self);"
         end
       end
 

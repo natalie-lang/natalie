@@ -31,7 +31,7 @@ module Natalie
 
       /*NAT#{''}_TOP*/
 
-      Value *obj_%{name}(Env *env, Value *self) {
+      ValuePtr obj_%{name}(Env *env, ValuePtr self) {
         /*NAT#{''}_BODY*/
         return env->nil_obj();
       }

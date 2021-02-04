@@ -41,7 +41,7 @@ ValuePtr KernelModule::cur_dir(Env *env) {
         return new StringValue { env, "." };
     } else {
         ValuePtr relative = new StringValue { env, env->file() };
-        StringValue *absolute = static_cast<StringValue *>(FileValue::expand_path(env, relative, nullptr));
+        StringValue *absolute = FileValue::expand_path(env, relative, nullptr)->as_string();
         size_t last_slash = 0;
         bool found = false;
         for (size_t i = 0; i < absolute->length(); i++) {
@@ -165,7 +165,7 @@ ValuePtr KernelModule::loop(Env *env, Block *block) {
     }
 }
 
-ValuePtr KernelModule::method(Env *env, Value *name) {
+ValuePtr KernelModule::method(Env *env, ValuePtr name) {
     auto name_symbol = name->to_symbol(env, Conversion::Strict);
     auto singleton = singleton_class();
     if (singleton) {

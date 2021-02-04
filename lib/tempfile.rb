@@ -15,7 +15,7 @@ class Tempfile
       auto generated_path = GC_STRDUP(path_template->c_str());
       int fileno = mkstemp(generated_path);
       if (fileno == -1) {
-          Value *args[] = { new IntegerValue { env, errno } };
+          ValuePtr args[] = { new IntegerValue { env, errno } };
           auto exception = env->Object()->const_fetch(env, SymbolValue::intern(env, "SystemCallError"))->send(env, "exception", 1, args)->as_exception();
           env->raise_exception(exception);
       } else {

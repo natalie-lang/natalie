@@ -42,7 +42,8 @@ struct TrueValue;
 struct Value;
 struct VoidPValue;
 
-using ValuePtr = Value *;
+struct ValuePtr;
+
 using MethodFnPtr = ValuePtr (*)(Env *, ValuePtr, size_t, ValuePtr *, Block *);
 
 template <typename T>

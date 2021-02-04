@@ -5,6 +5,7 @@
 #include "natalie/forward.hpp"
 #include "natalie/gc.hpp"
 #include "natalie/global_env.hpp"
+#include "natalie/value_ptr.hpp"
 #include "natalie/vector.hpp"
 
 namespace Natalie {

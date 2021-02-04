@@ -190,7 +190,7 @@ ValuePtr ArrayValue::eq(Env *env, ValuePtr other) {
 }
 
 ValuePtr ArrayValue::eql(Env *env, ValuePtr other) {
-    if (this == other)
+    if (other == this)
         return env->true_obj();
     if (!other->is_array())
         return env->false_obj();

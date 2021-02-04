@@ -12,7 +12,7 @@
 namespace Natalie {
 
 struct MethodValue : Value {
-    MethodValue(Env *env, Value *object, Method *method)
+    MethodValue(Env *env, ValuePtr object, Method *method)
         : Value { Value::Type::Method, env->Object()->const_fetch(env, SymbolValue::intern(env, "Method"))->as_class() }
         , m_object { object }
         , m_method { method } { }
@@ -33,7 +33,7 @@ struct MethodValue : Value {
     }
 
 private:
-    Value *m_object { nullptr };
+    ValuePtr m_object { nullptr };
     Method *m_method { nullptr };
 };
 }

@@ -104,11 +104,11 @@ struct ModuleValue : Value {
 
 protected:
     Env m_env;
-    Hashmap<SymbolValue *, ValuePtr> m_constants {};
+    Hashmap<SymbolValue *, Value *> m_constants {};
     const char *m_class_name { nullptr };
     ClassValue *m_superclass { nullptr };
     Hashmap<SymbolValue *, Method *> m_methods {};
-    Hashmap<SymbolValue *, ValuePtr> m_class_vars {};
+    Hashmap<SymbolValue *, Value *> m_class_vars {};
     Vector<ModuleValue *> m_included_modules {};
 };
 

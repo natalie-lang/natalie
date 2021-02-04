@@ -69,10 +69,11 @@ class BindingGen
     end
 
     def write_function
+      type = cpp_class == 'Value' ? 'ValuePtr ' : "#{cpp_class} *"
       puts <<-FUNC
-Value *#{name}(Env *env, Value *self_value, size_t argc, Value **args, Block *block) {
+ValuePtr #{name}(Env *env, ValuePtr self_value, size_t argc, ValuePtr *args, Block *block) {
     #{argc_assertion}
-    #{cpp_class} *self = #{as_type 'self_value'};
+    #{type}self = #{as_type 'self_value'};
     auto return_value = self->#{cpp_method}(#{args_to_pass});
     #{return_code}
 }\n
@@ -81,7 +82,7 @@ Value *#{name}(Env *env, Value *self_value, size_t argc, Value **args, Block *bl
 
     def write_static_function
       puts <<-FUNC
-Value *#{name}(Env *env, Value *, size_t argc, Value **args, Block *block) {
+ValuePtr #{name}(Env *env, ValuePtr, size_t argc, ValuePtr *args, Block *block) {
     #{argc_assertion}
     auto return_value = #{cpp_class}::#{cpp_method}(#{args_to_pass});
     #{return_code}
@@ -114,9 +115,9 @@ Value *#{name}(Env *env, Value *, size_t argc, Value **args, Block *block) {
 
     def get_object
       if rb_class.start_with?('$')
-        "Value *#{rb_class} = env->global_get(SymbolValue::intern(env, #{rb_class.inspect}));"
+        "ValuePtr #{rb_class} = env->global_get(SymbolValue::intern(env, #{rb_class.inspect}));"
       else
-        "Value *#{rb_class_as_c_variable} = env->Object()->#{rb_class.split('::').map { |c| %(const_find(env, SymbolValue::intern(env, #{c.inspect}))) }.join('->')};"
+        "ValuePtr #{rb_class_as_c_variable} = env->Object()->#{rb_class.split('::').map { |c| %(const_find(env, SymbolValue::intern(env, #{c.inspect}))) }.join('->')};"
       end
     end
 

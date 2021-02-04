@@ -8,6 +8,7 @@
 #include "natalie/global_env.hpp"
 #include "natalie/hashmap.hpp"
 #include "natalie/macros.hpp"
+#include "natalie/value_ptr.hpp"
 
 namespace Natalie {
 
@@ -217,7 +218,7 @@ struct Value : public gc {
     bool has_break_flag() { return (m_flags & Flag::Break) == Flag::Break; }
 
     bool eq(Env *, ValuePtr other) {
-        return this == other;
+        return other == this;
     }
 
     bool neq(Env *env, ValuePtr other) {
@@ -242,7 +243,7 @@ private:
     ModuleValue *m_owner { nullptr };
     int m_flags { 0 };
 
-    Hashmap<SymbolValue *, ValuePtr> m_ivars {};
+    Hashmap<SymbolValue *, Value *> m_ivars {};
 };
 
 }

@@ -186,7 +186,7 @@ extern "C" Env *build_top_env() {
 
 /*NAT_TOP*/
 
-extern "C" ValuePtr EVAL(Env *env) {
+extern "C" Value *EVAL(Env *env) {
     ValuePtr self = env->global_get(SymbolValue::intern(env, "$NAT_main_object"));
     (void)self; // don't warn about unused var
     volatile bool run_exit_handlers = true;

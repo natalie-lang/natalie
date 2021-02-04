@@ -25,7 +25,7 @@ ValuePtr GlobalEnv::global_set(Env *env, SymbolValue *name, ValuePtr val) {
     if (!name->is_global_name())
         env->raise("NameError", "`%s' is not allowed as an global variable name", name->c_str());
 
-    m_globals.put(env, name, val);
+    m_globals.put(env, name, val.value());
     return val;
 }
 

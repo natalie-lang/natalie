@@ -300,7 +300,7 @@ ValuePtr Value::ivar_set(Env *env, SymbolValue *name, ValuePtr val) {
     if (!name->is_ivar_name())
         env->raise("NameError", "`%s' is not allowed as an instance variable name", name);
 
-    m_ivars.put(env, name, val);
+    m_ivars.put(env, name, val.value());
     return val;
 }
 

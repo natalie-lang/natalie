@@ -4,7 +4,7 @@
 namespace Natalie {
 
 void finalizer::finalize(void *obj, void *) {
-    static_cast<ValuePtr>(obj)->~Value();
+    static_cast<Value *>(obj)->~Value();
 }
 
 }

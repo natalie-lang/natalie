@@ -103,7 +103,7 @@ ValuePtr ModuleValue::const_find(Env *env, SymbolValue *name, ConstLookupSearchM
 }
 
 ValuePtr ModuleValue::const_set(Env *env, SymbolValue *name, ValuePtr val) {
-    m_constants.put(env, name, val);
+    m_constants.put(env, name, val.value());
     if (val->is_module() && !val->owner()) {
         val->set_owner(this);
         if (val->singleton_class()) val->singleton_class()->set_owner(this);
@@ -152,12 +152,12 @@ ValuePtr ModuleValue::cvar_set(Env *env, SymbolValue *name, ValuePtr val) {
     while (current) {
         exists = current->m_class_vars.get(env, name);
         if (exists) {
-            current->m_class_vars.put(env, name, val);
+            current->m_class_vars.put(env, name, val.value());
             return val;
         }
         current = current->m_superclass;
     }
-    m_class_vars.put(env, name, val);
+    m_class_vars.put(env, name, val.value());
     return val;
 }
 
@@ -365,7 +365,7 @@ bool ModuleValue::does_include_module(Env *env, ValuePtr module) {
     module->assert_type(env, Value::Type::Module, "Module");
     for (ModuleValue *m : included_modules()) {
         if (m == this) continue;
-        if (m == module) return true;
+        if (module == m) return true;
     }
     return false;
 }
