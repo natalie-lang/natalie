@@ -229,7 +229,7 @@ const char *Value::identifier_str(Env *env, Conversion conversion) {
     } else if (conversion == Conversion::NullAllowed) {
         return nullptr;
     } else {
-        env->raise("TypeError", "%s is not a symbol nor a string", send(env, "inspect", 0, nullptr, nullptr));
+        env->raise("TypeError", "%s is not a symbol nor a string", inspect_str(env));
     }
 }
 
@@ -241,7 +241,7 @@ SymbolValue *Value::to_symbol(Env *env, Conversion conversion) {
     } else if (conversion == Conversion::NullAllowed) {
         return nullptr;
     } else {
-        env->raise("TypeError", "%s is not a symbol nor a string", send(env, "inspect", 0, nullptr, nullptr));
+        env->raise("TypeError", "%s is not a symbol nor a string", inspect_str(env));
     }
 }
 

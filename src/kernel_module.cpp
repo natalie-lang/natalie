@@ -107,14 +107,7 @@ ValuePtr KernelModule::inspect(Env *env) {
     if (is_module() && as_module()->class_name()) {
         return new StringValue { env, as_module()->class_name() };
     } else {
-        StringValue *str = new StringValue { env, "#<" };
-        assert(klass());
-        StringValue *inspected = klass()->send(env, "inspect")->as_string();
-        str->append_string(env, inspected);
-        str->append_char(env, ':');
-        str->append(env, pointer_id());
-        str->append_char(env, '>');
-        return str;
+        return StringValue::sprintf(env, "#<%s:%s>", klass()->inspect_str(env), pointer_id());
     }
 }
 

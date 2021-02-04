@@ -28,7 +28,7 @@ ValuePtr ExceptionValue::initialize(Env *env, ValuePtr message) {
 }
 
 ValuePtr ExceptionValue::inspect(Env *env) {
-    return StringValue::sprintf(env, "#<%S: %s>", m_klass->send(env, "inspect")->as_string(), m_message);
+    return StringValue::sprintf(env, "#<%s: %s>", m_klass->inspect_str(env), m_message);
 }
 
 ValuePtr ExceptionValue::message(Env *env) {

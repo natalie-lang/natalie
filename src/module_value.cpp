@@ -96,7 +96,7 @@ ValuePtr ModuleValue::const_find(Env *env, SymbolValue *name, ConstLookupSearchM
     if (failure_mode == ConstLookupFailureMode::Null) return nullptr;
 
     if (search_mode == ConstLookupSearchMode::Strict) {
-        env->raise("NameError", "uninitialized constant %S::%s", this->send(env, "inspect", 0, nullptr, nullptr), name);
+        env->raise("NameError", "uninitialized constant %s::%s", this->inspect_str(env), name);
     } else {
         env->raise("NameError", "uninitialized constant %s", name);
     }
@@ -265,7 +265,7 @@ bool ModuleValue::is_method_defined(Env *env, ValuePtr name_value) {
 ValuePtr ModuleValue::inspect(Env *env) {
     if (m_class_name) {
         if (owner() && owner() != env->Object()) {
-            return StringValue::sprintf(env, "%S::%s", owner()->send(env, "inspect"), m_class_name);
+            return StringValue::sprintf(env, "%s::%s", owner()->inspect_str(env), m_class_name);
         } else {
             return new StringValue { env, m_class_name };
         }
@@ -274,14 +274,7 @@ ValuePtr ModuleValue::inspect(Env *env) {
     } else if (is_module() && m_class_name) {
         return new StringValue { env, m_class_name };
     } else {
-        // TODO: extract this somewhere?
-        StringValue *str = new StringValue { env, "#<" };
-        StringValue *inspected = klass()->send(env, "inspect")->as_string();
-        str->append_string(env, inspected);
-        str->append_char(env, ':');
-        str->append(env, pointer_id());
-        str->append_char(env, '>');
-        return str;
+        return StringValue::sprintf(env, "#<%s:%s>", klass()->inspect_str(env), pointer_id());
     }
 }
 
@@ -301,7 +294,7 @@ ValuePtr ModuleValue::attr_reader(Env *env, size_t argc, ValuePtr *args) {
         } else if (name_obj->type() == Value::Type::Symbol) {
             name_obj = name_obj->as_symbol()->to_s(env);
         } else {
-            env->raise("TypeError", "%s is not a symbol nor a string", name_obj->send(env, "inspect"));
+            env->raise("TypeError", "%s is not a symbol nor a string", name_obj->inspect_str(env));
         }
         Env block_env = Env::new_detatched_env(env);
         block_env.var_set("name", 0, true, name_obj);
@@ -326,7 +319,7 @@ ValuePtr ModuleValue::attr_writer(Env *env, size_t argc, ValuePtr *args) {
         } else if (name_obj->type() == Value::Type::Symbol) {
             name_obj = name_obj->as_symbol()->to_s(env);
         } else {
-            env->raise("TypeError", "%s is not a symbol nor a string", name_obj->send(env, "inspect"));
+            env->raise("TypeError", "%s is not a symbol nor a string", name_obj->inspect_str(env));
         }
         StringValue *method_name = new StringValue { env, name_obj->as_string()->c_str() };
         method_name->append_char(env, '=');
@@ -414,11 +407,11 @@ bool ModuleValue::const_defined(Env *env, ValuePtr name_value) {
 ValuePtr ModuleValue::alias_method(Env *env, ValuePtr new_name_value, ValuePtr old_name_value) {
     auto new_name = new_name_value->to_symbol(env, Value::Conversion::NullAllowed);
     if (!new_name) {
-        env->raise("TypeError", "%s is not a symbol", new_name_value->send(env, "inspect"));
+        env->raise("TypeError", "%s is not a symbol", new_name_value->inspect_str(env));
     }
     auto old_name = old_name_value->to_symbol(env, Value::Conversion::NullAllowed);
     if (!old_name) {
-        env->raise("TypeError", "%s is not a symbol", old_name_value->send(env, "inspect"));
+        env->raise("TypeError", "%s is not a symbol", old_name_value->inspect_str(env));
     }
     alias(env, new_name, old_name);
     return this;
