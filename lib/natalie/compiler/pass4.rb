@@ -414,7 +414,7 @@ module Natalie
 
       def process_declare_block(exp)
         (_, name, value) = exp
-        process_new(value, name, 'Block')
+        process_new(value, name, 'Block *')
         name
       end
 
@@ -609,10 +609,10 @@ module Natalie
         ''
       end
 
-      def process_new(exp, name = nil, type = 'Value')
+      def process_new(exp, name = nil, type = 'ValuePtr ')
         (_, klass, *args) = exp
         name = name || temp('new')
-        decl "#{type} *#{name} = new #{klass} { #{args.map { |a| process_atom(a) }.join(', ') } };"
+        decl "#{type}#{name} = new #{klass} { #{args.map { |a| process_atom(a) }.join(', ') } };"
         name
       end
 

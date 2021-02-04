@@ -252,7 +252,7 @@ module Natalie
                           method_body,
                           s(:cond,
                             s(:is_a, :exception, process(s(:const, :LocalJumpError))),
-                            process(s(:call, s(:l, :exception), :exit_value)),
+                            process(s(:call, s(:l, 'ValuePtr { exception }'), :exit_value)),
                             s(:else),
                             s(:raise_exception, :env, :exception)))
         end
