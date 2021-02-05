@@ -275,7 +275,6 @@ const char *int_to_hex_string(nat_int_t num, bool capitalize) {
 StringValue *StringValue::vsprintf(Env *env, const char *format, va_list args) {
     StringValue *out = new StringValue { env, "" };
     size_t len = strlen(format);
-    StringValue *inspected;
     for (size_t i = 0; i < len; i++) {
         char c = format[i];
         if (c == '%') {
@@ -301,8 +300,7 @@ StringValue *StringValue::vsprintf(Env *env, const char *format, va_list args) {
                 out->append(env, int_to_hex_string(va_arg(args, nat_int_t), true));
                 break;
             case 'v':
-                inspected = va_arg(args, ValuePtr)->send(env, "inspect")->as_string();
-                out->append_string(env, inspected);
+                out->append(env, va_arg(args, Value *)->inspect_str(env));
                 break;
             case '%':
                 out->append_char(env, '%');

@@ -1,5 +1,6 @@
 #include "natalie.hpp"
 #include "natalie/forward.hpp"
+#include "natalie/value_ptr.hpp"
 #include <ctype.h>
 #include <math.h>
 #include <stdarg.h>
@@ -280,9 +281,9 @@ void arg_spread(Env *env, size_t argc, ValuePtr *args, const char *arrangement, 
             optional = true;
             break;
         case 'o': {
-            ValuePtr *obj_ptr = va_arg(va_args, ValuePtr *);
+            Value **obj_ptr = va_arg(va_args, Value **);
             if (arg_index >= argc) env->raise("ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, arg_index + 1);
-            ValuePtr obj = args[arg_index++];
+            Value *obj = args[arg_index++].value();
             *obj_ptr = obj;
             break;
         }
