@@ -482,7 +482,7 @@ ValuePtr StringValue::encode(Env *env, ValuePtr encoding) {
                 StringValue zero_x { env, "0X" };
                 StringValue blank { env, "" };
                 message = message->as_string()->sub(env, &zero_x, &blank);
-                env->raise(Encoding->const_find(env, SymbolValue::intern(env, "UndefinedConversionError"))->as_class(), "%S", message);
+                env->raise(Encoding->const_find(env, SymbolValue::intern(env, "UndefinedConversionError"))->as_class(), "%S", message.value());
             }
         }
         return copy;

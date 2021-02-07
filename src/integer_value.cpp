@@ -211,7 +211,7 @@ ValuePtr IntegerValue::coerce(Env *env, ValuePtr arg) {
         abort();
         break;
     default:
-        env->raise("ArgumentError", "invalid value for Float(): %S", arg->inspect_str(env));
+        env->raise("ArgumentError", "invalid value for Float(): %s", arg->inspect_str(env));
     }
     return ary;
 }

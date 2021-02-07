@@ -19,7 +19,11 @@ struct ValuePtr {
     bool operator!() { return !m_value; }
     operator bool() { return !!m_value; }
 
+    Value *dummy() { return m_dummy; }
+
 private:
+    Value *m_dummy { nullptr }; // flush out any bugs with va_arg(args, Value*)
+
     Value *m_value { nullptr };
 };
 

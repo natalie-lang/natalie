@@ -229,7 +229,7 @@ ValuePtr ModuleValue::call_method(Env *env, ValuePtr instance_class, SymbolValue
     if (method && !method->is_undefined()) {
         return method->call(env, self, argc, args, block);
     } else if (self->is_module()) {
-        env->raise("NoMethodError", "undefined method `%s' for %s:%v", method_name->c_str(), self->as_module()->class_name(), instance_class);
+        env->raise("NoMethodError", "undefined method `%s' for %s:%v", method_name->c_str(), self->as_module()->class_name(), instance_class.value());
     } else if (method_name == SymbolValue::intern(env, "inspect")) {
         env->raise("NoMethodError", "undefined method `inspect' for #<%s:0x%x>", self->klass()->class_name(), self->object_id());
     } else {
@@ -307,7 +307,7 @@ ValuePtr ModuleValue::attr_reader(Env *env, size_t argc, ValuePtr *args) {
 ValuePtr ModuleValue::attr_reader_block_fn(Env *env, ValuePtr self, size_t argc, ValuePtr *args, Block *block) {
     ValuePtr name_obj = env->outer()->var_get("name", 0);
     assert(name_obj);
-    StringValue *ivar_name = StringValue::sprintf(env, "@%S", name_obj);
+    StringValue *ivar_name = StringValue::sprintf(env, "@%S", name_obj.value());
     return self->ivar_get(env, ivar_name->to_symbol(env));
 }
 
@@ -335,7 +335,7 @@ ValuePtr ModuleValue::attr_writer_block_fn(Env *env, ValuePtr self, size_t argc,
     ValuePtr val = args[0];
     ValuePtr name_obj = env->outer()->var_get("name", 0);
     assert(name_obj);
-    StringValue *ivar_name = StringValue::sprintf(env, "@%S", name_obj);
+    StringValue *ivar_name = StringValue::sprintf(env, "@%S", name_obj.value());
     self->ivar_set(env, ivar_name->to_symbol(env), val);
     return val;
 }
@@ -399,7 +399,7 @@ ValuePtr ModuleValue::public_method(Env *env, ValuePtr method_name) {
 bool ModuleValue::const_defined(Env *env, ValuePtr name_value) {
     auto name = name_value->to_symbol(env, Value::Conversion::NullAllowed);
     if (!name) {
-        env->raise("TypeError", "no implicit conversion of %v to String", name_value);
+        env->raise("TypeError", "no implicit conversion of %v to String", name_value.value());
     }
     return !!const_find(env, name, ConstLookupSearchMode::NotStrict, ConstLookupFailureMode::Null);
 }
