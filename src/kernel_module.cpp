@@ -16,7 +16,7 @@ ValuePtr KernelModule::Array(Env *env, ValuePtr value) {
     if (value->type() == Value::Type::Array) {
         return value;
     } else if (value->respond_to(env, "to_ary")) {
-        return value->send(env, "to_ary");
+        return value.send(env, "to_ary");
     } else if (value == env->nil_obj()) {
         return new ArrayValue { env };
     } else {
@@ -98,7 +98,7 @@ ValuePtr KernelModule::get_usage(Env *env) {
 }
 
 ValuePtr KernelModule::hash(Env *env) {
-    StringValue *inspected = send(env, "inspect")->as_string();
+    StringValue *inspected = _send(env, "inspect")->as_string();
     nat_int_t hash_value = hashmap_hash_string(inspected->c_str());
     return new IntegerValue { env, hash_value };
 }
@@ -190,14 +190,14 @@ ValuePtr KernelModule::p(Env *env, size_t argc, ValuePtr *args) {
     if (argc == 0) {
         return env->nil_obj();
     } else if (argc == 1) {
-        ValuePtr arg = args[0]->send(env, "inspect");
+        ValuePtr arg = args[0].send(env, "inspect");
         puts(env, 1, &arg);
         return arg;
     } else {
         ArrayValue *result = new ArrayValue { env };
         for (size_t i = 0; i < argc; i++) {
             result->push(args[i]);
-            args[i] = args[i]->send(env, "inspect");
+            args[i] = args[i].send(env, "inspect");
         }
         puts(env, argc, args);
         return result;

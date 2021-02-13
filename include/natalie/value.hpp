@@ -192,9 +192,9 @@ struct Value : public gc {
         return GC_STRDUP(buf);
     }
 
-    ValuePtr send(Env *, SymbolValue *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
-    ValuePtr send(Env *, const char *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
-    ValuePtr send(Env *, size_t, ValuePtr *, Block *);
+    ValuePtr _send(Env *, SymbolValue *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
+    ValuePtr _send(Env *, const char *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
+    ValuePtr _send(Env *, size_t, ValuePtr *, Block *);
 
     ValuePtr dup(Env *);
 
@@ -222,7 +222,7 @@ struct Value : public gc {
     }
 
     bool neq(Env *env, ValuePtr other) {
-        return send(env, "==", 1, &other)->is_falsey();
+        return _send(env, "==", 1, &other)->is_falsey();
     }
 
     ValuePtr instance_eval(Env *, ValuePtr, Block *);

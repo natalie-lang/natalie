@@ -395,7 +395,7 @@ SymbolValue *Value::undefine_method(Env *env, SymbolValue *name) {
     return name;
 }
 
-ValuePtr Value::send(Env *env, SymbolValue *name, size_t argc, ValuePtr *args, Block *block) {
+ValuePtr Value::_send(Env *env, SymbolValue *name, size_t argc, ValuePtr *args, Block *block) {
     auto singleton = singleton_class();
     if (singleton) {
         Method *method = singleton_class()->find_method(env, name);
@@ -408,13 +408,13 @@ ValuePtr Value::send(Env *env, SymbolValue *name, size_t argc, ValuePtr *args, B
     return m_klass->call_method(env, m_klass, name, this, argc, args, block);
 }
 
-ValuePtr Value::send(Env *env, const char *name, size_t argc, ValuePtr *args, Block *block) {
-    return send(env, SymbolValue::intern(env, name), argc, args, block);
+ValuePtr Value::_send(Env *env, const char *name, size_t argc, ValuePtr *args, Block *block) {
+    return _send(env, SymbolValue::intern(env, name), argc, args, block);
 }
 
-ValuePtr Value::send(Env *env, size_t argc, ValuePtr *args, Block *block) {
+ValuePtr Value::_send(Env *env, size_t argc, ValuePtr *args, Block *block) {
     auto name = args[0]->to_symbol(env, Value::Conversion::Strict);
-    return send(env->caller(), name, argc - 1, args + 1, block);
+    return _send(env->caller(), name, argc - 1, args + 1, block);
 }
 
 ValuePtr Value::dup(Env *env) {
@@ -505,7 +505,7 @@ ValuePtr Value::defined_obj(Env *env, SymbolValue *name, bool strict) {
 
 ProcValue *Value::to_proc(Env *env) {
     if (respond_to(env, "to_proc")) {
-        return send(env, "to_proc")->as_proc();
+        return _send(env, "to_proc")->as_proc();
     } else {
         env->raise("TypeError", "wrong argument type %s (expected Proc)", m_klass->class_name());
     }
@@ -539,6 +539,6 @@ void Value::assert_not_frozen(Env *env) {
 }
 
 const char *Value::inspect_str(Env *env) {
-    return send(env, "inspect")->as_string()->c_str();
+    return _send(env, "inspect")->as_string()->c_str();
 }
 }

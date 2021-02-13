@@ -29,7 +29,7 @@ bool FloatValue::eq(Env *env, ValuePtr other) {
     }
     if (other->respond_to(env, "==")) {
         ValuePtr args[] = { this };
-        return other->send(env, "==", 1, args)->is_truthy();
+        return other.send(env, "==", 1, args)->is_truthy();
     }
     return false;
 }
@@ -179,7 +179,7 @@ ValuePtr FloatValue::cmp(Env *env, ValuePtr other) {
         rhs = coerced.second;
     }
 
-    if (!lhs->is_float()) return lhs->send(env, "<=>", 1, &rhs);
+    if (!lhs->is_float()) return lhs.send(env, "<=>", 1, &rhs);
     if (!rhs->is_float()) return env->nil_obj();
 
     if (lhs->as_float()->is_nan() || rhs->as_float()->is_nan()) {
@@ -232,7 +232,7 @@ ValuePtr FloatValue::add(Env *env, ValuePtr rhs) {
         rhs = coerced.second;
     }
 
-    if (!lhs->is_float()) return lhs->send(env, "+", 1, &rhs);
+    if (!lhs->is_float()) return lhs.send(env, "+", 1, &rhs);
     if (!rhs->is_float()) rhs->assert_type(env, Value::Type::Float, "Float");
 
     double addend1 = to_double();
@@ -249,7 +249,7 @@ ValuePtr FloatValue::sub(Env *env, ValuePtr rhs) {
         rhs = coerced.second;
     }
 
-    if (!lhs->is_float()) return lhs->send(env, "-", 1, &rhs);
+    if (!lhs->is_float()) return lhs.send(env, "-", 1, &rhs);
     if (!rhs->is_float()) rhs->assert_type(env, Value::Type::Float, "Float");
 
     double minuend = to_double();
@@ -266,7 +266,7 @@ ValuePtr FloatValue::mul(Env *env, ValuePtr rhs) {
         rhs = coerced.second;
     }
 
-    if (!lhs->is_float()) return lhs->send(env, "*", 1, &rhs);
+    if (!lhs->is_float()) return lhs.send(env, "*", 1, &rhs);
     if (!rhs->is_float()) rhs->assert_type(env, Value::Type::Float, "Float");
 
     double multiplicand = to_double();
@@ -283,7 +283,7 @@ ValuePtr FloatValue::div(Env *env, ValuePtr rhs) {
         rhs = coerced.second;
     }
 
-    if (!lhs->is_float()) return lhs->send(env, "/", 1, &rhs);
+    if (!lhs->is_float()) return lhs.send(env, "/", 1, &rhs);
     if (!rhs->is_float()) rhs->assert_type(env, Value::Type::Float, "Float");
 
     double dividend = to_double();
@@ -306,7 +306,7 @@ ValuePtr FloatValue::mod(Env *env, ValuePtr rhs) {
         rhs = coerced.second;
     }
 
-    if (!lhs->is_float()) return lhs->send(env, "%", 1, &rhs);
+    if (!lhs->is_float()) return lhs.send(env, "%", 1, &rhs);
     if (!rhs->is_float()) rhs->assert_type(env, Value::Type::Float, "Float");
 
     double dividend = to_double();
@@ -345,7 +345,7 @@ ValuePtr FloatValue::pow(Env *env, ValuePtr rhs) {
         rhs = coerced.second;
     }
 
-    if (!lhs->is_float()) return lhs->send(env, "**", 1, &rhs);
+    if (!lhs->is_float()) return lhs.send(env, "**", 1, &rhs);
     if (!rhs->is_float()) rhs->assert_type(env, Value::Type::Float, "Float");
 
     double base = to_double();
@@ -393,7 +393,7 @@ ValuePtr FloatValue::arg(Env *env) {
             rhs = coerced.second;                                                                          \
         }                                                                                                  \
                                                                                                            \
-        if (!lhs->is_float()) return lhs->send(env, NAT_QUOTE(op), 1, &rhs);                               \
+        if (!lhs->is_float()) return lhs.send(env, NAT_QUOTE(op), 1, &rhs);                               \
         if (!rhs->is_float()) {                                                                            \
             env->raise("ArgumentError", "comparison of Float with %s failed", rhs->klass()->class_name()); \
         }                                                                                                  \

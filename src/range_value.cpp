@@ -13,9 +13,9 @@ ValuePtr RangeValue::to_a(Env *env) {
     ArrayValue *ary = new ArrayValue { env };
     ValuePtr item = m_begin;
     const char *op = m_exclude_end ? "<" : "<=";
-    while (item->send(env, op, 1, &m_end, nullptr)->is_truthy()) {
+    while (item.send(env, op, 1, &m_end, nullptr)->is_truthy()) {
         ary->push(item);
-        item = item->send(env, "succ");
+        item = item.send(env, "succ");
     }
     return ary;
 }
@@ -24,9 +24,9 @@ ValuePtr RangeValue::each(Env *env, Block *block) {
     env->assert_block_given(block);
     ValuePtr item = m_begin;
     const char *op = m_exclude_end ? "<" : "<=";
-    while (item->send(env, op, 1, &m_end, nullptr)->is_truthy()) {
+    while (item.send(env, op, 1, &m_end, nullptr)->is_truthy()) {
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
-        item = item->send(env, "succ");
+        item = item.send(env, "succ");
     }
     return this;
 }
@@ -44,8 +44,8 @@ ValuePtr RangeValue::eq(Env *env, ValuePtr other_value) {
         RangeValue *other = other_value->as_range();
         ValuePtr begin = other->begin();
         ValuePtr end = other->end();
-        bool begin_equal = m_begin->send(env, "==", 1, &begin, nullptr)->is_truthy();
-        bool end_equal = m_end->send(env, "==", 1, &end, nullptr)->is_truthy();
+        bool begin_equal = m_begin.send(env, "==", 1, &begin, nullptr)->is_truthy();
+        bool end_equal = m_end.send(env, "==", 1, &end, nullptr)->is_truthy();
         if (begin_equal && end_equal && m_exclude_end == other->m_exclude_end) {
             return env->true_obj();
         }
@@ -67,11 +67,11 @@ ValuePtr RangeValue::eqeqeq(Env *env, ValuePtr arg) {
         ValuePtr item = m_begin;
         const char *op = m_exclude_end ? "<" : "<=";
         ValuePtr end = m_end;
-        while (item->send(env, op, 1, &end, nullptr)->is_truthy()) {
-            if (item->send(env, "==", 1, &arg, nullptr)->is_truthy()) {
+        while (item.send(env, op, 1, &end, nullptr)->is_truthy()) {
+            if (item.send(env, "==", 1, &arg, nullptr)->is_truthy()) {
                 return env->true_obj();
             }
-            item = item->send(env, "succ");
+            item = item.send(env, "succ");
         }
     }
     return env->false_obj();

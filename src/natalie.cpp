@@ -72,7 +72,7 @@ ArrayValue *to_ary(Env *env, ValuePtr obj, bool raise_for_non_array) {
     if (obj->is_array()) {
         return obj->as_array();
     } else if (obj->respond_to(env, "to_ary")) {
-        ValuePtr ary = obj->send(env, "to_ary");
+        ValuePtr ary = obj.send(env, "to_ary");
         if (ary->is_array()) {
             return ary->as_array();
         } else if (ary->is_nil() || !raise_for_non_array) {
@@ -333,7 +333,7 @@ void arg_spread(Env *env, size_t argc, ValuePtr *args, const char *arrangement, 
 
 std::pair<ValuePtr, ValuePtr> coerce(Env *env, ValuePtr lhs, ValuePtr rhs) {
     if (lhs->respond_to(env, "coerce")) {
-        ValuePtr coerced = lhs->send(env, "coerce", 1, &rhs, nullptr);
+        ValuePtr coerced = lhs.send(env, "coerce", 1, &rhs, nullptr);
         if (!coerced->is_array()) {
             env->raise("TypeError", "coerce must return [x, y]");
         }
@@ -446,7 +446,7 @@ int pclose2(FILE *fp, pid_t pid) {
 }
 
 void set_status_object(Env *env, int pid, int status) {
-    auto status_obj = env->Object()->const_fetch(env, SymbolValue::intern(env, "Process"))->const_fetch(env, SymbolValue::intern(env, "Status"))->send(env, "new");
+    auto status_obj = env->Object()->const_fetch(env, SymbolValue::intern(env, "Process"))->const_fetch(env, SymbolValue::intern(env, "Status")).send(env, "new");
     status_obj->ivar_set(env, SymbolValue::intern(env, "@to_i"), new IntegerValue { env, status });
     status_obj->ivar_set(env, SymbolValue::intern(env, "@exitstatus"), new IntegerValue { env, WEXITSTATUS(status) });
     status_obj->ivar_set(env, SymbolValue::intern(env, "@pid"), new IntegerValue { env, pid });

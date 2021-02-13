@@ -21,7 +21,7 @@ struct SexpValue : ArrayValue {
         StringValue *out = new StringValue { env, "s(" };
         for (size_t i = 0; i < size(); i++) {
             ValuePtr obj = (*this)[i];
-            StringValue *repr = obj->send(env, "inspect")->as_string();
+            StringValue *repr = obj.send(env, "inspect")->as_string();
             out->append_string(env, repr);
             if (i < size() - 1) {
                 out->append(env, ", ");

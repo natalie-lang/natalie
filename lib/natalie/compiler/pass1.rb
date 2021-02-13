@@ -331,7 +331,7 @@ module Natalie
       def process_dsym(exp)
         str_node = process_dstr(exp)
         str = str_node.pop
-        str_node << exp.new(:l, "#{str}->as_string()->to_symbol(env)")
+        str_node << exp.new(:l, "ValuePtr { #{str}->as_string()->to_symbol(env) }")
         str_node
       end
 
@@ -457,7 +457,7 @@ module Natalie
         when Regexp
           exp.new(:new, :RegexpValue, :env, s(:s, lit.source), lit.options)
         when Symbol
-          exp.new(:intern, lit)
+          exp.new(:intern_value_ptr, lit)
         else
           raise "unknown lit: #{exp.inspect} (#{exp.file}\##{exp.line})"
         end

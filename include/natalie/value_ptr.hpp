@@ -21,6 +21,10 @@ struct ValuePtr {
 
     Value *dummy() { return m_dummy; }
 
+    ValuePtr send(Env *, SymbolValue *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
+    ValuePtr send(Env *, const char *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
+    ValuePtr send(Env *, size_t, ValuePtr *, Block *);
+
 private:
     Value *m_dummy { nullptr }; // flush out any bugs with va_arg(args, Value*)
 

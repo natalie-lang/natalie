@@ -267,7 +267,7 @@ gen.binding('Array', 'to_s', 'ArrayValue', 'inspect', argc: 0, pass_env: true, p
 gen.binding('Array', 'sample', 'ArrayValue', 'sample', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Array', 'uniq', 'ArrayValue', 'uniq', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 
-gen.binding('BasicObject', '__send__', 'Value', 'send', argc: 1.., pass_env: true, pass_block: true, return_type: :Value)
+gen.binding('BasicObject', '__send__', 'Value', '_send', argc: 1.., pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('BasicObject', '!', 'Value', 'is_falsey', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('BasicObject', '==', 'Value', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('BasicObject', 'equal?', 'Value', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
@@ -450,7 +450,7 @@ gen.binding('Kernel', 'proc', 'KernelModule', 'proc', argc: 0, pass_env: true, p
 gen.binding('Kernel', 'puts', 'KernelModule', 'puts', argc: :any, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Kernel', 'raise', 'KernelModule', 'raise', argc: 1..2, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Kernel', 'respond_to?', 'KernelModule', 'respond_to', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.binding('Kernel', 'send', 'Value', 'send', argc: 1.., pass_env: true, pass_block: true, return_type: :Value)
+gen.binding('Kernel', 'send', 'Value', '_send', argc: 1.., pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Kernel', 'singleton_class', 'KernelModule', 'singleton_class_obj', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Kernel', 'sleep', 'KernelModule', 'sleep', argc: 0..1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Kernel', 'spawn', 'KernelModule', 'spawn', argc: 1.., pass_env: true, pass_block: false, return_type: :Value)

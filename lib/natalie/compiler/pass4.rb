@@ -474,7 +474,7 @@ module Natalie
       end
 
       def process_false(_)
-        'env->false_obj()'
+        'ValuePtr { env->false_obj() }'
       end
 
       def process_fn(exp, arg_list = 6)
@@ -517,7 +517,8 @@ module Natalie
           args_count = 0
         end
         result_name = temp('call_result')
-        decl "ValuePtr #{result_name} = #{receiver_name}->#{fn}(env, #{process method}, #{args_count}, #{args_name}, #{block || 'nullptr'});"
+        connector = fn == :send ? '.' : '->'
+        decl "ValuePtr #{result_name} = #{receiver_name}#{connector}#{fn}(env, #{process method}, #{args_count}, #{args_name}, #{block || 'nullptr'});"
         result_name
       end
 
@@ -567,7 +568,7 @@ module Natalie
       end
 
       def process_nil(_)
-        'env->nil_obj()'
+        'ValuePtr { env->nil_obj() }'
       end
 
       def process_s(exp)
@@ -600,7 +601,7 @@ module Natalie
       end
 
       def process_true(_)
-        'env->true_obj()'
+        'ValuePtr { env->true_obj() }'
       end
 
       def process_set(exp)
@@ -662,6 +663,13 @@ module Natalie
       def process_intern(exp)
         (_, name) = exp
         "SymbolValue::intern(env, #{name.to_s.inspect})"
+      end
+
+      def process_intern_value_ptr(exp)
+        (_, name) = exp
+        temp_name = temp('symbol')
+        decl "ValuePtr #{temp_name} = SymbolValue::intern(env, #{name.to_s.inspect});"
+        temp_name
       end
 
       def temp(name)

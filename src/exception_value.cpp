@@ -20,7 +20,7 @@ ValuePtr ExceptionValue::initialize(Env *env, ValuePtr message) {
         set_message(m_klass->class_name());
     } else {
         if (!message->is_string()) {
-            message = message->send(env, "inspect");
+            message = message.send(env, "inspect");
         }
         set_message(message->as_string()->c_str());
     }

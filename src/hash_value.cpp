@@ -11,13 +11,13 @@ nat_int_t HashValue::hash(const void *key) {
 int HashValue::compare(Env *env, const void *a, const void *b) {
     Key *a_p = (Key *)a;
     Key *b_p = (Key *)b;
-    return a_p->key->send(env, "eql?", 1, &b_p->key)->is_truthy() ? 0 : 1; // return 0 for exact match
+    return a_p->key.send(env, "eql?", 1, &b_p->key)->is_truthy() ? 0 : 1; // return 0 for exact match
 }
 
 ValuePtr HashValue::get(Env *env, ValuePtr key) {
     Key key_container;
     key_container.key = key;
-    key_container.hash = key->send(env, "hash")->as_integer()->to_nat_int_t();
+    key_container.hash = key.send(env, "hash")->as_integer()->to_nat_int_t();
     Val *container = m_hashmap.get(env, &key_container);
     ValuePtr val = container ? container->val : nullptr;
     return val;
@@ -36,7 +36,7 @@ void HashValue::put(Env *env, ValuePtr key, ValuePtr val) {
     this->assert_not_frozen(env);
     Key key_container;
     key_container.key = key;
-    key_container.hash = key->send(env, "hash")->as_integer()->to_nat_int_t();
+    key_container.hash = key.send(env, "hash")->as_integer()->to_nat_int_t();
     Val *container = m_hashmap.get(env, &key_container);
     if (container) {
         container->key->val = val;
@@ -55,7 +55,7 @@ void HashValue::put(Env *env, ValuePtr key, ValuePtr val) {
 ValuePtr HashValue::remove(Env *env, ValuePtr key) {
     Key key_container;
     key_container.key = key;
-    key_container.hash = key->send(env, "hash")->as_integer()->to_nat_int_t();
+    key_container.hash = key.send(env, "hash")->as_integer()->to_nat_int_t();
     Val *container = m_hashmap.remove(env, &key_container);
     if (container) {
         key_list_remove_node(container->key);
@@ -89,7 +89,7 @@ HashValue::Key *HashValue::key_list_append(Env *env, ValuePtr key, ValuePtr val)
         // ^______________________________|
         new_last->prev = last;
         new_last->next = first;
-        new_last->hash = key->send(env, "hash")->as_integer()->to_nat_int_t();
+        new_last->hash = key.send(env, "hash")->as_integer()->to_nat_int_t();
         new_last->removed = false;
         first->prev = new_last;
         last->next = new_last;
@@ -100,7 +100,7 @@ HashValue::Key *HashValue::key_list_append(Env *env, ValuePtr key, ValuePtr val)
         node->val = val;
         node->prev = node;
         node->next = node;
-        node->hash = key->send(env, "hash")->as_integer()->to_nat_int_t();
+        node->hash = key.send(env, "hash")->as_integer()->to_nat_int_t();
         node->removed = false;
         m_key_list = node;
         return node;
@@ -183,10 +183,10 @@ ValuePtr HashValue::inspect(Env *env) {
     size_t last_index = size() - 1;
     size_t index = 0;
     for (HashValue::Key &node : *this) {
-        StringValue *key_repr = node.key->send(env, "inspect")->as_string();
+        StringValue *key_repr = node.key.send(env, "inspect")->as_string();
         out->append_string(env, key_repr);
         out->append(env, "=>");
-        StringValue *val_repr = node.val->send(env, "inspect")->as_string();
+        StringValue *val_repr = node.val.send(env, "inspect")->as_string();
         out->append_string(env, val_repr);
         if (index < last_index) {
             out->append(env, ", ");
@@ -239,7 +239,7 @@ ValuePtr HashValue::eq(Env *env, ValuePtr other_value) {
         if (!other_val) {
             return env->false_obj();
         }
-        if (!node.val->send(env, "==", 1, &other_val, nullptr)->is_truthy()) {
+        if (!node.val.send(env, "==", 1, &other_val, nullptr)->is_truthy()) {
             return env->false_obj();
         }
     }

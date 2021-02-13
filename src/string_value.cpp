@@ -329,7 +329,7 @@ ValuePtr StringValue::ltlt(Env *env, ValuePtr arg) {
     if (arg->is_string()) {
         append_string(env, arg->as_string());
     } else {
-        ValuePtr str_obj = arg->send(env, "to_s");
+        ValuePtr str_obj = arg.send(env, "to_s");
         str_obj->assert_type(env, Value::Type::String, "String");
         append_string(env, str_obj->as_string());
     }
@@ -341,7 +341,7 @@ ValuePtr StringValue::add(Env *env, ValuePtr arg) {
     if (arg->is_string()) {
         str = arg->as_string()->c_str();
     } else {
-        StringValue *str_obj = arg->send(env, "to_s")->as_string();
+        StringValue *str_obj = arg.send(env, "to_s")->as_string();
         str_obj->assert_type(env, Value::Type::String, "String");
         str = str_obj->c_str();
     }

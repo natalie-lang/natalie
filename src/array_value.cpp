@@ -25,7 +25,7 @@ ValuePtr ArrayValue::inspect(Env *env) {
     StringValue *out = new StringValue { env, "[" };
     for (size_t i = 0; i < size(); i++) {
         ValuePtr obj = (*this)[i];
-        StringValue *repr = obj->send(env, "inspect")->as_string();
+        StringValue *repr = obj.send(env, "inspect")->as_string();
         out->append_string(env, repr);
         if (i < size() - 1) {
             out->append(env, ", ");
@@ -54,7 +54,7 @@ ValuePtr ArrayValue::sub(Env *env, ValuePtr other) {
     for (auto &item : *this) {
         int found = 0;
         for (auto &compare_item : *other->as_array()) {
-            if (item->send(env, "==", 1, &compare_item, nullptr)->is_truthy()) {
+            if (item.send(env, "==", 1, &compare_item, nullptr)->is_truthy()) {
                 found = 1;
                 break;
             }
@@ -183,7 +183,7 @@ ValuePtr ArrayValue::eq(Env *env, ValuePtr other) {
     for (size_t i = 0; i < size(); i++) {
         // TODO: could easily be optimized for strings and numbers
         ValuePtr item = (*other_array)[i];
-        ValuePtr result = (*this)[i]->send(env, "==", 1, &item, nullptr);
+        ValuePtr result = (*this)[i].send(env, "==", 1, &item, nullptr);
         if (result->type() == Value::Type::False) return result;
     }
     return env->true_obj();
@@ -201,7 +201,7 @@ ValuePtr ArrayValue::eql(Env *env, ValuePtr other) {
 
     for (size_t i = 0; i < size(); ++i) {
         ValuePtr item = (*other_array)[i];
-        ValuePtr result = (*this)[i]->send(env, "eql?", 1, &item, nullptr);
+        ValuePtr result = (*this)[i].send(env, "eql?", 1, &item, nullptr);
         if (result->type() == Value::Type::False)
             return result;
     }
@@ -262,7 +262,7 @@ ValuePtr ArrayValue::include(Env *env, ValuePtr item) {
         return env->false_obj();
     } else {
         for (auto &compare_item : *this) {
-            if (item->send(env, "==", 1, &compare_item, nullptr)->is_truthy()) {
+            if (item.send(env, "==", 1, &compare_item, nullptr)->is_truthy()) {
                 return env->true_obj();
             }
         }
@@ -286,7 +286,7 @@ ValuePtr ArrayValue::index(Env *env, ValuePtr object, Block *block) {
         for (nat_int_t i = 0; i < length; i++) {
             auto item = m_vector[i];
             ValuePtr args[] = { object };
-            if (item->send(env, "==", 1, args)->is_truthy())
+            if (item.send(env, "==", 1, args)->is_truthy())
                 return new IntegerValue { env, i };
         }
         return env->nil_obj();
@@ -327,15 +327,15 @@ ValuePtr ArrayValue::join(Env *env, ValuePtr joiner) {
     if (size() == 0) {
         return new StringValue { env };
     } else if (size() == 1) {
-        return (*this)[0]->send(env, "to_s");
+        return (*this)[0].send(env, "to_s");
     } else {
         if (!joiner) joiner = new StringValue { env, "" };
         joiner->assert_type(env, Value::Type::String, "String");
-        StringValue *out = (*this)[0]->send(env, "to_s")->dup(env)->as_string();
+        StringValue *out = (*this)[0].send(env, "to_s")->dup(env)->as_string();
         for (size_t i = 1; i < size(); i++) {
             ValuePtr item = (*this)[i];
             out->append_string(env, joiner->as_string());
-            out->append_string(env, item->send(env, "to_s")->as_string());
+            out->append_string(env, item.send(env, "to_s")->as_string());
         }
         return out;
     }
@@ -349,7 +349,7 @@ ValuePtr ArrayValue::cmp(Env *env, ValuePtr other) {
             return new IntegerValue { env, 1 };
         }
         ValuePtr item = (*other_array)[i];
-        ValuePtr cmp_obj = (*this)[i]->send(env, "<=>", 1, &item, nullptr);
+        ValuePtr cmp_obj = (*this)[i].send(env, "<=>", 1, &item, nullptr);
         assert(cmp_obj->type() == Value::Type::Integer);
         nat_int_t cmp = cmp_obj->as_integer()->to_nat_int_t();
         if (cmp < 0) return new IntegerValue { env, -1 };
@@ -370,7 +370,7 @@ ValuePtr ArrayValue::push(Env *env, size_t argc, ValuePtr *args) {
 
 void ArrayValue::push_splat(Env *env, ValuePtr val) {
     if (!val->is_array() && val->respond_to(env, "to_a")) {
-        val = val->send(env, "to_a");
+        val = val.send(env, "to_a");
     }
     if (val->is_array()) {
         for (ValuePtr v : *val->as_array()) {
@@ -398,7 +398,7 @@ void ArrayValue::expand_with_nil(Env *env, size_t total) {
 void ArrayValue::sort_in_place(Env *env) {
     this->assert_not_frozen(env);
     auto cmp = [](void *env, ValuePtr a, ValuePtr b) {
-        ValuePtr compare = a->send(static_cast<Env *>(env), "<=>", 1, &b, nullptr);
+        ValuePtr compare = a.send(static_cast<Env *>(env), "<=>", 1, &b, nullptr);
         return compare->as_integer()->to_nat_int_t() < 0;
     };
     m_vector.sort(Vector<ValuePtr>::SortComparator { env, cmp });
@@ -433,7 +433,7 @@ ValuePtr ArrayValue::max(Env *env) {
         return env->nil_obj();
     ValuePtr max = nullptr;
     for (auto item : *this) {
-        if (!max || item->send(env, ">", 1, &max)->is_truthy())
+        if (!max || item.send(env, ">", 1, &max)->is_truthy())
             max = item;
     }
     return max;
@@ -444,7 +444,7 @@ ValuePtr ArrayValue::min(Env *env) {
         return env->nil_obj();
     ValuePtr min = nullptr;
     for (auto item : *this) {
-        if (!min || item->send(env, "<", 1, &min)->is_truthy())
+        if (!min || item.send(env, "<", 1, &min)->is_truthy())
             min = item;
     }
     return min;

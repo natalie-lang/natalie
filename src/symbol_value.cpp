@@ -40,7 +40,7 @@ ValuePtr SymbolValue::to_proc_block_fn(Env *env, ValuePtr self_value, size_t arg
     SymbolValue *name_obj = env->outer()->var_get("name", 0)->as_symbol();
     assert(name_obj);
     const char *name = name_obj->c_str();
-    return args[0]->send(env, name);
+    return args[0].send(env, name);
 }
 
 ValuePtr SymbolValue::cmp(Env *env, ValuePtr other_value) {
@@ -64,7 +64,7 @@ bool SymbolValue::start_with(Env *env, ValuePtr needle) {
 
 ValuePtr SymbolValue::ref(Env *env, ValuePtr index_obj) {
     ValuePtr args[] = { index_obj };
-    return to_s(env)->send(env, "[]", 1, args);
+    return to_s(env)->_send(env, "[]", 1, args);
 }
 
 }
