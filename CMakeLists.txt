@@ -40,6 +40,8 @@ foreach(PATH ${GENERATED_NAMES})
   add_custom_command(
     OUTPUT "${GENERATED_PATH}"
     DEPENDS "${PATH}"
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/lib/natalie/compiler/*
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/lib/natalie/compiler.rb
     DEPENDS make-generated-directory
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/bin/natalie --write-obj "${GENERATED_PATH}" ${PATH} VERBATIM)
   target_sources(natalie-base PRIVATE "${GENERATED_PATH}")
