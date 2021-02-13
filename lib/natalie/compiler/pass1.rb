@@ -451,7 +451,7 @@ module Natalie
         when Float
           exp.new(:new, :FloatValue, :env, lit)
         when Integer
-          exp.new(:new, :IntegerValue, :env, lit)
+          exp.new(:ValuePtr, s(:l, 'env->global_env()'), lit)
         when Range
           exp.new(:new, :RangeValue, :env, process_lit(s(:lit, lit.first)), process_lit(s(:lit, lit.last)), lit.exclude_end? ? 1 : 0)
         when Regexp

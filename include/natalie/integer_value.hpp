@@ -16,6 +16,10 @@ struct IntegerValue : Value {
         : Value { Value::Type::Integer, env->Integer() }
         , m_integer { integer } { }
 
+    IntegerValue(GlobalEnv *global_env, nat_int_t integer)
+        : Value { Value::Type::Integer, global_env->Integer() }
+        , m_integer { integer } { }
+
     nat_int_t to_nat_int_t() {
         return m_integer;
     }
@@ -63,6 +67,8 @@ struct IntegerValue : Value {
     bool lte(Env *, ValuePtr);
     bool gt(Env *, ValuePtr);
     bool gte(Env *, ValuePtr);
+
+    static bool optimized_method(SymbolValue *);
 
 private:
     nat_int_t m_integer { 0 };

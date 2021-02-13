@@ -1,29 +1,72 @@
 #pragma once
 
 #include "natalie/forward.hpp"
+#include "natalie/types.hpp"
+#include "natalie/value_type.hpp"
 
 namespace Natalie {
 
 struct ValuePtr {
+    enum class Type {
+        Integer,
+        Pointer,
+    };
+
     ValuePtr() { }
 
     ValuePtr(Value *value)
         : m_value { value } { }
 
-    Value &operator*() { return *m_value; }
-    Value *operator->() { return m_value; }
-    Value *value() { return m_value; }
+    ValuePtr(GlobalEnv *global_env, nat_int_t integer)
+        : m_type { Type::Integer }
+        , m_global_env { global_env }
+        , m_integer { integer } { }
 
-    bool operator==(Value *other) { return m_value == other; }
-    bool operator!=(Value *other) { return m_value != other; }
-    bool operator!() { return !m_value; }
-    operator bool() { return !!m_value; }
+    ValuePtr(Env *env, nat_int_t integer);
+
+    Value &operator*() {
+        hydrate();
+        return *m_value;
+    }
+
+    Value *operator->() {
+        hydrate();
+        return m_value;
+    }
+
+    Value *value() {
+        hydrate();
+        return m_value;
+    }
+
+    bool operator==(Value *other) {
+        hydrate();
+        return m_value == other;
+    }
+
+    bool operator!=(Value *other) {
+        hydrate();
+        return m_value != other;
+    }
+
+    bool operator!() { return m_type == Type::Pointer && !m_value; }
+
+    operator bool() { return m_type == Type::Integer || m_value; }
 
     ValuePtr send(Env *, SymbolValue *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
     ValuePtr send(Env *, const char *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
     ValuePtr send(Env *, size_t, ValuePtr *, Block *);
 
+    bool is_float();
+    void assert_type(Env *, ValueType, const char *);
+    nat_int_t to_nat_int_t();
+
 private:
+    void hydrate();
+
+    Type m_type { Type::Pointer };
+    GlobalEnv *m_global_env { nullptr };
+    nat_int_t m_integer { 0 };
     Value *m_value { nullptr };
 };
 

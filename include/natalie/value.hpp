@@ -9,6 +9,7 @@
 #include "natalie/hashmap.hpp"
 #include "natalie/macros.hpp"
 #include "natalie/value_ptr.hpp"
+#include "natalie/value_type.hpp"
 
 namespace Natalie {
 
@@ -17,30 +18,7 @@ extern "C" {
 }
 
 struct Value : public gc {
-    enum class Type {
-        Nil,
-        Array,
-        Class,
-        Encoding,
-        Exception,
-        False,
-        Fiber,
-        Float,
-        Hash,
-        Integer,
-        Io,
-        MatchData,
-        Method,
-        Module,
-        Object,
-        Proc,
-        Range,
-        Regexp,
-        String,
-        Symbol,
-        True,
-        VoidP,
-    };
+    using Type = ValueType;
 
     enum Flag {
         MainObject = 1,

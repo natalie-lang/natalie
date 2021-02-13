@@ -39,23 +39,23 @@ ValuePtr IntegerValue::to_i() {
 }
 
 ValuePtr IntegerValue::add(Env *env, ValuePtr arg) {
-    if (arg->is_float()) {
+    if (arg.is_float()) {
         double result = to_nat_int_t() + arg->as_float()->to_double();
         return new FloatValue { env, result };
     }
-    arg->assert_type(env, Value::Type::Integer, "Integer");
-    nat_int_t result = to_nat_int_t() + arg->as_integer()->to_nat_int_t();
-    return new IntegerValue { env, result };
+    arg.assert_type(env, Value::Type::Integer, "Integer");
+    nat_int_t result = to_nat_int_t() + arg.to_nat_int_t();
+    return ValuePtr { env, result };
 }
 
 ValuePtr IntegerValue::sub(Env *env, ValuePtr arg) {
-    if (arg->is_float()) {
+    if (arg.is_float()) {
         double result = to_nat_int_t() - arg->as_float()->to_double();
         return new FloatValue { env, result };
     }
-    arg->assert_type(env, Value::Type::Integer, "Integer");
-    nat_int_t result = to_nat_int_t() - arg->as_integer()->to_nat_int_t();
-    return new IntegerValue { env, result };
+    arg.assert_type(env, Value::Type::Integer, "Integer");
+    nat_int_t result = to_nat_int_t() - arg.to_nat_int_t();
+    return ValuePtr { env, result };
 }
 
 ValuePtr IntegerValue::mul(Env *env, ValuePtr arg) {
@@ -234,6 +234,11 @@ ValuePtr IntegerValue::chr(Env *env) {
     char str[] = " ";
     str[0] = c;
     return new StringValue { env, str };
+}
+
+bool IntegerValue::optimized_method(SymbolValue *method_name) {
+    const char *name = method_name->c_str();
+    return strcmp(name, "+") == 0 || strcmp(name, "-") == 0;
 }
 
 }
