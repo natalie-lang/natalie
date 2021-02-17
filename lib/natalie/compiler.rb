@@ -336,5 +336,13 @@ module Natalie
     def find_file_in_load_path(path)
       load_path.map { |d| File.join(d, path) }.detect { |p| File.exist?(p) }
     end
+
+    # FIXME: implement pp
+    if RUBY_ENGINE == 'natalie'
+      def pp(obj)
+        File.open('/tmp/pp.txt', 'w') { |f| f.write(obj.inspect) }
+        puts `ruby -r ruby_parser -r pp -e "pp eval(File.read('/tmp/pp.txt'))"`
+      end
+    end
   end
 end
