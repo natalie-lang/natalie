@@ -17,30 +17,31 @@ describe 'Natalie::Compiler' do
       compile_flags: [],
     }
 
-    fib = Parser.parse(File.read(File.expand_path('../../examples/fib.rb', __dir__)), 'examples/fib.rb')
+    path = File.expand_path('../../examples/fib.rb', __dir__)
+    ast = Parser.parse(File.read(path), path)
 
     pass1 = Natalie::Compiler::Pass1.new(context)
-    ast = pass1.go(fib)
-    actual = ast.inspect.gsub(/\s+/, "\n").strip
-    expected = `bin/natalie -d p1 examples/fib.rb`.gsub(/\s+/, "\n").strip
+    ast1 = pass1.go(ast)
+    actual = ast1.inspect.gsub(/\s+/, "\n").strip
+    expected = `bin/natalie -d p1 #{path}`.gsub(/\s+/, "\n").strip
     actual.should == expected
 
     pass2 = Natalie::Compiler::Pass2.new(context)
-    ast = pass2.go(ast)
-    actual = ast.inspect.gsub(/\s+/, "\n").strip
-    expected = `bin/natalie -d p2 examples/fib.rb`.gsub(/\s+/, "\n").strip
+    ast2 = pass2.go(ast1)
+    actual = ast2.inspect.gsub(/\s+/, "\n").strip
+    expected = `bin/natalie -d p2 #{path}`.gsub(/\s+/, "\n").strip
     actual.should == expected
 
     pass3 = Natalie::Compiler::Pass3.new(context)
-    ast = pass3.go(ast)
-    actual = ast.inspect.gsub(/\s+/, "\n").strip
-    expected = `bin/natalie -d p3 examples/fib.rb`.gsub(/\s+/, "\n").strip
+    ast3 = pass3.go(ast2)
+    actual = ast3.inspect.gsub(/\s+/, "\n").strip
+    expected = `bin/natalie -d p3 #{path}`.gsub(/\s+/, "\n").strip
     actual.should == expected
 
-    compiler = Natalie::Compiler.new(fib, 'examples/fib.rb')
+    compiler = Natalie::Compiler.new(ast, path)
     # FIXME: line numbers do not match between our Parser and the ruby_parser gem
     actual = compiler.to_c.gsub(/^.*set_file.*$/, '').strip
-    expected = `bin/natalie examples/fib.rb -d`.gsub(/^.*set_file.*$/, '').split('-' * 80).first.strip
+    expected = `bin/natalie #{path} -d`.gsub(/^.*set_file.*$/, '').split('-' * 80).first.strip
     actual.should == expected
   end
 end
