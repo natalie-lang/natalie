@@ -21,6 +21,20 @@ class SexpProcessor
       result = send(default_method, ast)
     elsif strict
       raise NoMethodError, "undefined method `#{method}' for #{inspect}"
+    elsif ast.is_a?(Array)
+      result = Parser::Sexp.new
+      result << ast.sexp_type
+      ast[1..-1].each do |item|
+        if item.is_a?(Array)
+          result << process(item)
+        else
+          result << item
+        end
+      end
+      if ast.is_a?(Parser::Sexp)
+        result.file = ast.file
+        result.line = ast.line
+      end
     else
       result = ast
     end
