@@ -17,7 +17,7 @@ describe 'Natalie::Compiler' do
       compile_flags: [],
     }
 
-    path = File.expand_path('../../examples/fib.rb', __dir__)
+    path = File.expand_path('../../examples/boardslam.rb', __dir__)
     ast = Parser.parse(File.read(path), path)
 
     pass1 = Natalie::Compiler::Pass1.new(context)
@@ -40,8 +40,8 @@ describe 'Natalie::Compiler' do
 
     compiler = Natalie::Compiler.new(ast, path)
     # FIXME: line numbers do not match between our Parser and the ruby_parser gem
-    actual = compiler.to_c.gsub(/^.*set_file.*$/, '').strip
-    expected = `bin/natalie #{path} -d`.gsub(/^.*set_file.*$/, '').split('-' * 80).first.strip
+    actual = compiler.to_c.gsub(/^.*set_line.*\n/, '').strip
+    expected = `bin/natalie #{path} -d`.gsub(/^.*set_line.*\n/, '').split('-' * 80).first.strip
     actual.should == expected
   end
 end
