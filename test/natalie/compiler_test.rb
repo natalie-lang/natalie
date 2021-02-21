@@ -1,3 +1,5 @@
+# skip-ruby
+
 require 'sexp_processor'
 
 require_relative '../spec_helper'
