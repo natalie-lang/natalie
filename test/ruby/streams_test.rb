@@ -8,7 +8,7 @@ describe 'Streams' do
     it 'can be read from' do
       out = `echo "hi" | bin/natalie -e "print \\$stdin.read"`
       expect(out).must_equal("hi\n")
-      out = `bash -c 'echo -n "hi" | bin/natalie -e "p \\$stdin.read"'`
+      out = `sh -c 'echo -n "hi" | bin/natalie -e "p \\$stdin.read"'`
       expect(out).must_equal("\"hi\"\n")
     end
   end
