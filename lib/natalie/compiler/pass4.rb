@@ -89,6 +89,7 @@ module Natalie
         ivar_set
         last_match
         prepend
+        public_send
         push
         push_splat
         put
@@ -424,7 +425,7 @@ module Natalie
         case name.sexp_type
         when :const, :gvar, :ivar
           decl "ValuePtr #{result} = self->defined_obj(env, SymbolValue::intern(env, #{name.last.to_s.inspect}));"
-        when :send
+        when :send, :public_send
           (_, receiver, name) = name
           receiver ||= 'self'
           decl "ValuePtr #{result};"
@@ -506,6 +507,10 @@ module Natalie
       alias process_class_fn process_fn2
       alias process_module_fn process_fn2
 
+      def process_public_send(exp)
+        process_send(exp)
+      end
+
       def process_send(exp)
         debug_info(exp)
         (fn, receiver, method, args, block) = exp
@@ -517,7 +522,7 @@ module Natalie
           args_count = 0
         end
         result_name = temp('call_result')
-        connector = fn == :send ? '.' : '->'
+        connector = [:send, :public_send].include?(fn) ? '.' : '->'
         decl "ValuePtr #{result_name} = #{receiver_name}#{connector}#{fn}(env, #{process method}, #{args_count}, #{args_name}, #{block || 'nullptr'});"
         result_name
       end

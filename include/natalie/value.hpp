@@ -170,6 +170,8 @@ struct Value : public gc {
         return GC_STRDUP(buf);
     }
 
+    ValuePtr _public_send(Env *, SymbolValue *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
+
     ValuePtr _send(Env *, SymbolValue *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
     ValuePtr _send(Env *, const char *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
     ValuePtr _send(Env *, size_t, ValuePtr *, Block *);

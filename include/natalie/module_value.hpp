@@ -8,6 +8,7 @@
 #include "natalie/global_env.hpp"
 #include "natalie/hashmap.hpp"
 #include "natalie/macros.hpp"
+#include "natalie/method_visibility.hpp"
 #include "natalie/value.hpp"
 
 namespace Natalie {
@@ -71,8 +72,8 @@ struct ModuleValue : Value {
     Method *find_method(Env *, SymbolValue *, ModuleValue ** = nullptr);
     Method *find_method(Env *, const char *, ModuleValue ** = nullptr);
 
-    ValuePtr call_method(Env *, ValuePtr, const char *, ValuePtr, size_t, ValuePtr *, Block *);
-    ValuePtr call_method(Env *, ValuePtr, SymbolValue *, ValuePtr, size_t, ValuePtr *, Block *);
+    ValuePtr call_method(Env *, ValuePtr, const char *, ValuePtr, size_t, ValuePtr *, Block *, MethodVisibility = MethodVisibility::Public);
+    ValuePtr call_method(Env *, ValuePtr, SymbolValue *, ValuePtr, size_t, ValuePtr *, Block *, MethodVisibility = MethodVisibility::Public);
 
     ArrayValue *ancestors(Env *);
 
@@ -110,6 +111,7 @@ protected:
     Hashmap<SymbolValue *, Method *> m_methods {};
     Hashmap<SymbolValue *, Value *> m_class_vars {};
     Vector<ModuleValue *> m_included_modules {};
+    MethodVisibility m_method_visibility { MethodVisibility::Public };
 };
 
 }

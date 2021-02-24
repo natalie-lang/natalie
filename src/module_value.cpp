@@ -162,13 +162,13 @@ ValuePtr ModuleValue::cvar_set(Env *env, SymbolValue *name, ValuePtr val) {
 }
 
 SymbolValue *ModuleValue::define_method(Env *env, SymbolValue *name, MethodFnPtr fn) {
-    Method *method = new Method { name->c_str(), this, fn };
+    Method *method = new Method { name->c_str(), this, fn, m_method_visibility };
     m_methods.put(env, name, method);
     return name;
 }
 
 SymbolValue *ModuleValue::define_method_with_block(Env *env, SymbolValue *name, Block *block) {
-    Method *method = new Method { name->c_str(), this, block };
+    Method *method = new Method { name->c_str(), this, block, m_method_visibility };
     m_methods.put(env, name, method);
     return name;
 }
@@ -224,10 +224,14 @@ Method *ModuleValue::find_method(Env *env, const char *method_name, ModuleValue 
     return find_method(env, SymbolValue::intern(env, method_name), matching_class_or_module);
 }
 
-ValuePtr ModuleValue::call_method(Env *env, ValuePtr instance_class, SymbolValue *method_name, ValuePtr self, size_t argc, ValuePtr *args, Block *block) {
+ValuePtr ModuleValue::call_method(Env *env, ValuePtr instance_class, SymbolValue *method_name, ValuePtr self, size_t argc, ValuePtr *args, Block *block, MethodVisibility visibility_at_least) {
     Method *method = find_method(env, method_name);
     if (method && !method->is_undefined()) {
-        return method->call(env, self, argc, args, block);
+        if (method->visibility() >= visibility_at_least) {
+            return method->call(env, self, argc, args, block);
+        } else {
+            env->raise("NoMethodError", "private method `%s' called for %s", method_name->c_str(), self->inspect_str(env));
+        }
     } else if (self->is_module()) {
         env->raise("NoMethodError", "undefined method `%s' for %s:%v", method_name->c_str(), self->as_module()->class_name(), instance_class.value());
     } else if (method_name == SymbolValue::intern(env, "inspect")) {
@@ -237,8 +241,8 @@ ValuePtr ModuleValue::call_method(Env *env, ValuePtr instance_class, SymbolValue
     }
 }
 
-ValuePtr ModuleValue::call_method(Env *env, ValuePtr instance_class, const char *method_name, ValuePtr self, size_t argc, ValuePtr *args, Block *block) {
-    return call_method(env, instance_class, SymbolValue::intern(env, method_name), self, argc, args, block);
+ValuePtr ModuleValue::call_method(Env *env, ValuePtr instance_class, const char *method_name, ValuePtr self, size_t argc, ValuePtr *args, Block *block, MethodVisibility visibility_at_least) {
+    return call_method(env, instance_class, SymbolValue::intern(env, method_name), self, argc, args, block, visibility_at_least);
 }
 
 ArrayValue *ModuleValue::ancestors(Env *env) {
@@ -382,17 +386,17 @@ ValuePtr ModuleValue::module_eval(Env *env, Block *block) {
 }
 
 ValuePtr ModuleValue::private_method(Env *env, ValuePtr method_name) {
-    // TODO: class private
+    m_method_visibility = MethodVisibility::Private;
     return env->nil_obj();
 }
 
 ValuePtr ModuleValue::protected_method(Env *env, ValuePtr method_name) {
-    // TODO: class protected
+    m_method_visibility = MethodVisibility::Protected;
     return env->nil_obj();
 }
 
 ValuePtr ModuleValue::public_method(Env *env, ValuePtr method_name) {
-    // TODO: class public
+    m_method_visibility = MethodVisibility::Public;
     return env->nil_obj();
 }
 

@@ -47,7 +47,7 @@ module Natalie
         (_, name) = exp
         if name.sexp_type == :lvar && find_var(name.last.to_s)
           exp.new(:new, :StringValue, :env, s(:s, 'local-variable'))
-        elsif name.sexp_type == :send
+        elsif [:send, :public_send].include?(name.sexp_type)
           (sexp, obj, sym, (_, *args), block) = exp
           exp.new(sexp, process(obj), sym, s(:args, *args.map { |a| process(a) }), block)
         else
@@ -63,6 +63,10 @@ module Natalie
         (env_name, var) = declare_var(bare_name)
         value = value ? process_atom(value) : s(:nil)
         exp.new(:var_set, env_name, var, repl?, value)
+      end
+
+      def process_public_send(exp)
+        process_send(exp)
       end
 
       # when using a REPL, variables are mistaken for method calls

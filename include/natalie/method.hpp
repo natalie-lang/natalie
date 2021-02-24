@@ -4,21 +4,24 @@
 #include "natalie/env.hpp"
 #include "natalie/forward.hpp"
 #include "natalie/gc.hpp"
+#include "natalie/method_visibility.hpp"
 #include "natalie/module_value.hpp"
 
 namespace Natalie {
 
 struct Method : public gc {
-    Method(const char *name, ModuleValue *owner, MethodFnPtr fn)
+    Method(const char *name, ModuleValue *owner, MethodFnPtr fn, MethodVisibility visibility)
         : m_name { name }
         , m_owner { owner }
         , m_fn { fn }
-        , m_undefined { !fn } { }
+        , m_undefined { !fn }
+        , m_visibility { visibility } { }
 
-    Method(const char *name, ModuleValue *owner, Block *block)
+    Method(const char *name, ModuleValue *owner, Block *block, MethodVisibility visibility)
         : m_name { name }
         , m_owner { owner }
-        , m_env { *block->env() } {
+        , m_env { *block->env() }
+        , m_visibility { visibility } {
         block->copy_fn_pointer_to_method(this);
         m_env.clear_caller();
     }
@@ -49,12 +52,14 @@ struct Method : public gc {
     const char *name() { return m_name; }
     ModuleValue *owner() { return m_owner; }
 
+    MethodVisibility visibility() { return m_visibility; }
+
 private:
     const char *m_name;
     ModuleValue *m_owner;
     MethodFnPtr m_fn;
     Env m_env {};
     bool m_undefined { false };
+    MethodVisibility m_visibility { MethodVisibility::Public };
 };
-
 }

@@ -7,6 +7,15 @@ ValuePtr::ValuePtr(Env *env, nat_int_t integer)
     , m_global_env { env->global_env() }
     , m_integer { integer } { }
 
+ValuePtr ValuePtr::public_send(Env *env, SymbolValue *name, size_t argc, ValuePtr *args, Block *block) {
+    if (m_type == Type::Integer && IntegerValue::optimized_method(name)) {
+        auto synthesized = IntegerValue { m_global_env, m_integer };
+        return synthesized._send(env, name, argc, args, block);
+    }
+
+    return value()->_public_send(env, name, argc, args, block);
+}
+
 ValuePtr ValuePtr::send(Env *env, SymbolValue *name, size_t argc, ValuePtr *args, Block *block) {
     if (m_type == Type::Integer && IntegerValue::optimized_method(name)) {
         auto synthesized = IntegerValue { m_global_env, m_integer };

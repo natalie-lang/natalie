@@ -395,6 +395,19 @@ SymbolValue *Value::undefine_method(Env *env, SymbolValue *name) {
     return name;
 }
 
+ValuePtr Value::_public_send(Env *env, SymbolValue *name, size_t argc, ValuePtr *args, Block *block) {
+    auto singleton = singleton_class();
+    if (singleton) {
+        Method *method = singleton_class()->find_method(env, name);
+        if (method) {
+            if (method->is_undefined())
+                env->raise("NoMethodError", "undefined method `%s' for %s:Class", name, m_klass->class_name());
+            return method->call(env, this, argc, args, block);
+        }
+    }
+    return m_klass->call_method(env, m_klass, name, this, argc, args, block, MethodVisibility::Public);
+}
+
 ValuePtr Value::_send(Env *env, SymbolValue *name, size_t argc, ValuePtr *args, Block *block) {
     auto singleton = singleton_class();
     if (singleton) {
@@ -405,7 +418,7 @@ ValuePtr Value::_send(Env *env, SymbolValue *name, size_t argc, ValuePtr *args, 
             return method->call(env, this, argc, args, block);
         }
     }
-    return m_klass->call_method(env, m_klass, name, this, argc, args, block);
+    return m_klass->call_method(env, m_klass, name, this, argc, args, block, MethodVisibility::Private);
 }
 
 ValuePtr Value::_send(Env *env, const char *name, size_t argc, ValuePtr *args, Block *block) {

@@ -51,7 +51,7 @@ module Natalie
         else
           args = s(:args, *args.map { |n| process(n) })
         end
-        exp.new(:send, process(receiver), s(:intern, method), args)
+        exp.new(:public_send, process(receiver), s(:intern, method), args)
       end
 
       def process_back_ref(exp)
@@ -60,7 +60,7 @@ module Natalie
         match = temp('match')
         exp.new(:block,
                 s(:declare, match, s(:last_match, :env)),
-                s(:c_if, s(:is_truthy, match), s(:send, match, s(:intern, :to_s)), s(:nil)))
+                s(:c_if, s(:is_truthy, match), s(:public_send, match, s(:intern, :to_s)), s(:nil)))
       end
 
       # bare begin without rescue
@@ -119,8 +119,10 @@ module Natalie
                  exp.new(:super, nil)
                elsif is_super
                  exp.new(:super, args)
-               else
+               elsif receiver == :self
                  exp.new(:send, receiver, s(:intern, method), args)
+               else
+                 exp.new(:public_send, receiver, s(:intern, method), args)
                end
         if block_pass
           proc_name = temp('proc_to_block')
@@ -144,7 +146,7 @@ module Natalie
             when_body = when_body.map { |w| process(w) }
             when_body = [s(:nil)] if when_body == [nil]
             matchers.each do |matcher|
-              cond << s(:is_truthy, s(:send, process(matcher), s(:intern, '==='), s(:args, value_name), 'nullptr'))
+              cond << s(:is_truthy, s(:public_send, process(matcher), s(:intern, '==='), s(:args, value_name), 'nullptr'))
               cond << s(:block, *when_body)
             end
           end
@@ -637,12 +639,12 @@ module Natalie
 
       def process_match2(exp)
         (_, regexp, string) = exp
-        s(:send, process(regexp), s(:intern, "=~"), s(:args, process(string)))
+        s(:public_send, process(regexp), s(:intern, "=~"), s(:args, process(string)))
       end
 
       def process_match3(exp)
         (_, string, regexp) = exp
-        s(:send, process(regexp), s(:intern, "=~"), s(:args, process(string)))
+        s(:public_send, process(regexp), s(:intern, "=~"), s(:args, process(string)))
       end
 
       def process_module(exp)
@@ -670,12 +672,12 @@ module Natalie
         match = temp('match')
         exp.new(:block,
                 s(:declare, match, s(:last_match, :env)),
-                s(:c_if, s(:is_truthy, match), s(:send, match, s(:intern, :[]), s(:args, s(:new, :IntegerValue, :env, num))), s(:nil)))
+                s(:c_if, s(:is_truthy, match), s(:public_send, match, s(:intern, :[]), s(:args, s(:new, :IntegerValue, :env, num))), s(:nil)))
       end
 
       def process_not(exp)
         (_, value) = exp
-        exp.new(:send, process(value), s(:intern, :!), s(:args))
+        exp.new(:public_send, process(value), s(:intern, :!), s(:args))
       end
 
       def process_op_asgn1(exp)
@@ -685,10 +687,10 @@ module Natalie
         if op == :"||"
           exp.new(:block,
                   s(:declare, obj_name, process(obj)),
-                  s(:declare, val, s(:send, obj_name, s(:intern, :[]), s(:args, *key_args.map { |a| process(a) }), 'nullptr')),
+                  s(:declare, val, s(:public_send, obj_name, s(:intern, :[]), s(:args, *key_args.map { |a| process(a) }), 'nullptr')),
                   s(:c_if, s(:is_truthy, val),
                     val,
-                    s(:send, obj_name, s(:intern, :[]=),
+                    s(:public_send, obj_name, s(:intern, :[]=),
                       s(:args,
                         *key_args.map { |a| process(a) },
                         *val_args.map { |a| process(a) }
@@ -698,12 +700,12 @@ module Natalie
           exp.new(:block,
                   s(:declare, obj_name, process(obj)),
                   s(:declare, val,
-                    s(:send,
-                      s(:send, obj_name, s(:intern, :[]), s(:args, *key_args.map { |a| process(a) }), 'nullptr'),
+                    s(:public_send,
+                      s(:public_send, obj_name, s(:intern, :[]), s(:args, *key_args.map { |a| process(a) }), 'nullptr'),
                       s(:intern, op),
                       s(:args, *val_args.map { |a| process(a) }),
                       'nullptr')),
-                     s(:send, obj_name, s(:intern, :[]=),
+                     s(:public_send, obj_name, s(:intern, :[]=),
                        s(:args,
                          *key_args.map { |a| process(a) },
                          val),
@@ -720,18 +722,18 @@ module Natalie
         if op == :"||"
           exp.new(:block,
                   s(:declare, obj_name, process(obj)),
-                  s(:declare, val, s(:send, obj_name, s(:intern, reader), s(:args))),
+                  s(:declare, val, s(:public_send, obj_name, s(:intern, reader), s(:args))),
                   s(:c_if, s(:is_truthy, val),
                     val,
-                    s(:send, obj_name, s(:intern, writer),
+                    s(:public_send, obj_name, s(:intern, writer),
                       s(:args,
                         *val_args.map { |a| process(a) }
                        ))))
         else
           exp.new(:block,
                   s(:declare, obj_name, process(obj)),
-                  s(:declare, val, s(:send, s(:send, obj_name, s(:intern, reader), s(:args)), s(:intern, op), s(:args, *val_args.map { |a| process(a) }))),
-                  s(:send, obj_name, s(:intern, writer), s(:args, val)))
+                  s(:declare, val, s(:public_send, s(:public_send, obj_name, s(:intern, reader), s(:args)), s(:intern, op), s(:args, *val_args.map { |a| process(a) }))),
+                  s(:public_send, obj_name, s(:intern, writer), s(:args, val)))
         end
       end
 
