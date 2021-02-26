@@ -1,7 +1,8 @@
 describe :enumeratorized_with_unknown_size, shared: true do
   describe "when no block is given" do
     describe "returned Enumerator" do
-      it "size returns nil" do
+      # NATFIXME
+      xit "size returns nil" do
         @object.send(*@method).size.should == nil
       end
     end
@@ -11,7 +12,8 @@ end
 describe :enumeratorized_with_origin_size, shared: true do
   describe "when no block is given" do
     describe "returned Enumerator" do
-      it "size returns the enumerable size" do
+      # NATFIXME
+      xit "size returns the enumerable size" do
         @object.send(*@method).size.should == @object.size
       end
     end

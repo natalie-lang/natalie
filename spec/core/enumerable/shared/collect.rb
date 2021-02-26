@@ -34,7 +34,8 @@ describe :enumerable_collect, shared: true do
     enum.each { |i| -i }.should == [-2, -5, -3, -6, -1, -4]
   end
 
-  it "reports the same arity as the given block" do
+  # NATFIXME
+  xit "reports the same arity as the given block" do
     entries = [0, 1, 3, 4, 5, 6]
     numerous = EnumerableSpecs::Numerous.new(*entries)
 
@@ -51,7 +52,8 @@ describe :enumerable_collect, shared: true do
     ScratchPad.recorded.should == [1]
   end
 
-  it "yields 2 arguments for a Hash" do
+  # NATFIXME
+  xit "yields 2 arguments for a Hash" do
     c = Class.new do
       def register(a, b)
         ScratchPad << [a, b]
