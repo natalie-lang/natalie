@@ -109,6 +109,7 @@ extern "C" Env *build_top_env() {
 
     ClassValue *Range = Object->subclass(env, "Range", Value::Type::Range);
     Object->const_set(env, SymbolValue::intern(env, "Range"), Range);
+    Range->include_once(env, Enumerable);
 
     ClassValue *MatchData = Object->subclass(env, "MatchData", Value::Type::MatchData);
     Object->const_set(env, SymbolValue::intern(env, "MatchData"), MatchData);
