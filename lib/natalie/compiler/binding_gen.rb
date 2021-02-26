@@ -383,6 +383,7 @@ gen.binding('Integer', '*', 'IntegerValue', 'mul', argc: 1, pass_env: true, pass
 gen.binding('Integer', '**', 'IntegerValue', 'pow', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Integer', '+', 'IntegerValue', 'add', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Integer', '-', 'IntegerValue', 'sub', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Integer', '-@', 'IntegerValue', 'negate', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Integer', '/', 'IntegerValue', 'div', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Integer', '<=>', 'IntegerValue', 'cmp', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Integer', '!=', 'Value', 'neq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)

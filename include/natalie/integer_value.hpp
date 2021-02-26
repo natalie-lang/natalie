@@ -60,6 +60,7 @@ struct IntegerValue : Value {
     ValuePtr coerce(Env *, ValuePtr);
     ValuePtr abs(Env *);
     ValuePtr chr(Env *);
+    ValuePtr negate(Env *);
 
     bool eq(Env *, ValuePtr);
     bool eql(Env *, ValuePtr);

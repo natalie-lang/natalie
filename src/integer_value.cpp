@@ -241,4 +241,8 @@ bool IntegerValue::optimized_method(SymbolValue *method_name) {
     return strcmp(name, "+") == 0 || strcmp(name, "-") == 0;
 }
 
+ValuePtr IntegerValue::negate(Env *env) {
+    return ValuePtr { env, -1 * m_integer };
+}
+
 }
