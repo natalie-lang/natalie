@@ -36,15 +36,15 @@ class ScratchPad
     @record = item
   end
 
-  def recorded
+  def self.recorded
     @record
   end
 
-  def clear
+  def self.clear
     @recorded = nil
   end
 
-  def <<(item)
+  def self.<<(item)
     @record << item
   end
 end
@@ -83,8 +83,8 @@ end
 
 def it_behaves_like(behavior, method, obj = nil)
   before :all do
-    @method = method
-    @object = obj
+    @method = method if method
+    @object = obj if obj
   end
 
   block = @shared[behavior]
@@ -97,7 +97,7 @@ end
 
 def it_should_behave_like(*shared_groups)
   shared_groups.each do |behavior|
-    it_behaves_like behavior, nil, nil
+    it_behaves_like behavior, @method, @object
   end
 end
 
