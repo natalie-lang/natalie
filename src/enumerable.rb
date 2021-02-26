@@ -187,6 +187,7 @@ module Enumerable
   end
 
   def map
+    return enum_for(:map) unless block_given?
     ary = []
     each do |*items|
       if items.size > 1

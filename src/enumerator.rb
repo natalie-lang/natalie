@@ -18,13 +18,17 @@ class Enumerator
     fiber = Fiber.new do
       @block.call yielder
     end
+    final = []
     loop do
       begin
         result = fiber.resume
-        yield result unless fiber.status == :terminated
+        unless fiber.status == :terminated
+          final << yield(result)
+        end
       rescue FiberError
         break
       end
     end
+    final
   end
 end
