@@ -152,12 +152,12 @@ struct Value : public gc {
     virtual ValuePtr cvar_get_or_null(Env *, SymbolValue *);
     virtual ValuePtr cvar_set(Env *, SymbolValue *, ValuePtr);
 
-    virtual SymbolValue *define_method(Env *, SymbolValue *, MethodFnPtr);
-    virtual SymbolValue *define_method_with_block(Env *, SymbolValue *, Block *);
+    virtual SymbolValue *define_method(Env *, SymbolValue *, MethodFnPtr, int arity);
+    virtual SymbolValue *define_method(Env *, SymbolValue *, Block *);
     virtual SymbolValue *undefine_method(Env *, SymbolValue *);
 
-    SymbolValue *define_singleton_method(Env *, SymbolValue *, ValuePtr (*)(Env *, ValuePtr, size_t, ValuePtr *, Block *block));
-    SymbolValue *define_singleton_method_with_block(Env *, SymbolValue *, Block *);
+    SymbolValue *define_singleton_method(Env *, SymbolValue *, MethodFnPtr, int);
+    SymbolValue *define_singleton_method(Env *, SymbolValue *, Block *);
     SymbolValue *undefine_singleton_method(Env *, SymbolValue *);
 
     virtual void alias(Env *, SymbolValue *, SymbolValue *);

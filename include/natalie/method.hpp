@@ -10,16 +10,18 @@
 namespace Natalie {
 
 struct Method : public gc {
-    Method(const char *name, ModuleValue *owner, MethodFnPtr fn, MethodVisibility visibility)
+    Method(const char *name, ModuleValue *owner, MethodFnPtr fn, int arity, MethodVisibility visibility)
         : m_name { name }
         , m_owner { owner }
         , m_fn { fn }
+        , m_arity { arity }
         , m_undefined { !fn }
         , m_visibility { visibility } { }
 
     Method(const char *name, ModuleValue *owner, Block *block, MethodVisibility visibility)
         : m_name { name }
         , m_owner { owner }
+        , m_arity { block->arity() }
         , m_env { *block->env() }
         , m_visibility { visibility } {
         block->copy_fn_pointer_to_method(this);
@@ -54,10 +56,13 @@ struct Method : public gc {
 
     MethodVisibility visibility() { return m_visibility; }
 
+    int arity() { return m_arity; }
+
 private:
     const char *m_name;
     ModuleValue *m_owner;
     MethodFnPtr m_fn;
+    int m_arity { 0 };
     Env m_env {};
     bool m_undefined { false };
     MethodVisibility m_visibility { MethodVisibility::Public };

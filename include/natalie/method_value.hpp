@@ -32,6 +32,8 @@ struct MethodValue : Value {
             return StringValue::sprintf(env, "#<Method: %s#%s(*)>", owner()->class_name(), m_method->name());
     }
 
+    int arity() { return m_method ? m_method->arity() : 0; }
+
 private:
     ValuePtr m_object { nullptr };
     Method *m_method { nullptr };

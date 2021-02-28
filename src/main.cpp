@@ -44,7 +44,7 @@ extern "C" Env *build_top_env() {
     ModuleValue *Enumerable = new ModuleValue { env, "Enumerable" };
     Object->const_set(env, SymbolValue::intern(env, "Enumerable"), Enumerable);
 
-    BasicObject->define_singleton_method(env, SymbolValue::intern(env, "new"), Value::_new);
+    BasicObject->define_singleton_method(env, SymbolValue::intern(env, "new"), Value::_new, -1);
 
     ClassValue *NilClass = Object->subclass(env, "NilClass", Value::Type::Nil);
     Object->const_set(env, SymbolValue::intern(env, "NilClass"), NilClass);

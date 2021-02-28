@@ -35,7 +35,7 @@ class BindingGen
         puts "    " + binding.get_object
         @consts[binding.rb_class] = true
       end
-      puts "    #{binding.rb_class_as_c_variable}->#{binding.define_method_name}(env, SymbolValue::intern(env, #{binding.rb_method.inspect}), #{binding.name});"
+      puts "    #{binding.rb_class_as_c_variable}->#{binding.define_method_name}(env, SymbolValue::intern(env, #{binding.rb_method.inspect}), #{binding.name}, #{binding.arity});"
     end
     @undefine_singleton_methods.each do |rb_class, method|
       puts "    #{rb_class}->undefine_singleton_method(env, SymbolValue::intern(env, #{method.inspect}));"
@@ -59,6 +59,19 @@ class BindingGen
     end
 
     attr_reader :rb_class, :rb_method, :cpp_class, :cpp_method, :argc, :pass_env, :pass_block, :return_type, :name
+
+    def arity
+      case argc
+      when :any
+        -1
+      when Range
+        (argc.begin * -1) - 1
+      when Integer
+        argc
+      else
+        raise "unknown argc: #{argc}"
+      end
+    end
 
     def write
       if @static
@@ -464,6 +477,7 @@ gen.binding('MatchData', '[]', 'MatchDataValue', 'ref', argc: 1, pass_env: true,
 
 gen.binding('Method', 'inspect', 'MethodValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Method', 'owner', 'MethodValue', 'owner', argc: 0, pass_env: false, pass_block: false, return_type: :Value)
+gen.binding('Method', 'arity', 'MethodValue', 'arity', argc: 0, pass_env: false, pass_block: false, return_type: :int)
 
 gen.binding('Module', '===', 'ModuleValue', 'eqeqeq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Module', 'alias_method', 'ModuleValue', 'alias_method', argc: 2, pass_env: true, pass_block: false, return_type: :Value)

@@ -64,8 +64,8 @@ struct ModuleValue : Value {
     virtual ValuePtr cvar_set(Env *, SymbolValue *, ValuePtr) override;
 
     ValuePtr define_method(Env *, ValuePtr, Block *);
-    virtual SymbolValue *define_method(Env *, SymbolValue *, MethodFnPtr) override;
-    virtual SymbolValue *define_method_with_block(Env *, SymbolValue *, Block *) override;
+    virtual SymbolValue *define_method(Env *, SymbolValue *, MethodFnPtr, int) override;
+    virtual SymbolValue *define_method(Env *, SymbolValue *, Block *) override;
     virtual SymbolValue *undefine_method(Env *, SymbolValue *) override;
 
     void methods(Env *, ArrayValue *);

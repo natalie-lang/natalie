@@ -161,13 +161,13 @@ ValuePtr ModuleValue::cvar_set(Env *env, SymbolValue *name, ValuePtr val) {
     return val;
 }
 
-SymbolValue *ModuleValue::define_method(Env *env, SymbolValue *name, MethodFnPtr fn) {
-    Method *method = new Method { name->c_str(), this, fn, m_method_visibility };
+SymbolValue *ModuleValue::define_method(Env *env, SymbolValue *name, MethodFnPtr fn, int arity) {
+    Method *method = new Method { name->c_str(), this, fn, arity, m_method_visibility };
     m_methods.put(env, name, method);
     return name;
 }
 
-SymbolValue *ModuleValue::define_method_with_block(Env *env, SymbolValue *name, Block *block) {
+SymbolValue *ModuleValue::define_method(Env *env, SymbolValue *name, Block *block) {
     Method *method = new Method { name->c_str(), this, block, m_method_visibility };
     m_methods.put(env, name, method);
     return name;
@@ -302,8 +302,8 @@ ValuePtr ModuleValue::attr_reader(Env *env, size_t argc, ValuePtr *args) {
         }
         Env block_env = Env::new_detatched_env(env);
         block_env.var_set("name", 0, true, name_obj);
-        Block *attr_block = new Block { block_env, this, ModuleValue::attr_reader_block_fn };
-        define_method_with_block(env, name_obj->as_string()->to_symbol(env), attr_block);
+        Block *attr_block = new Block { block_env, this, ModuleValue::attr_reader_block_fn, 0 };
+        define_method(env, name_obj->as_string()->to_symbol(env), attr_block);
     }
     return env->nil_obj();
 }
@@ -329,8 +329,8 @@ ValuePtr ModuleValue::attr_writer(Env *env, size_t argc, ValuePtr *args) {
         method_name->append_char(env, '=');
         Env block_env = Env::new_detatched_env(env);
         block_env.var_set("name", 0, true, name_obj);
-        Block *attr_block = new Block { block_env, this, ModuleValue::attr_writer_block_fn };
-        define_method_with_block(env, method_name->to_symbol(env), attr_block);
+        Block *attr_block = new Block { block_env, this, ModuleValue::attr_writer_block_fn, 0 };
+        define_method(env, method_name->to_symbol(env), attr_block);
     }
     return env->nil_obj();
 }
@@ -372,7 +372,7 @@ ValuePtr ModuleValue::define_method(Env *env, ValuePtr name_value, Block *block)
     if (!block) {
         env->raise("ArgumentError", "tried to create Proc object without a block");
     }
-    define_method_with_block(env, name, block);
+    define_method(env, name, block);
     return name;
 }
 

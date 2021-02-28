@@ -31,7 +31,7 @@ StringValue *SymbolValue::inspect(Env *env) {
 ProcValue *SymbolValue::to_proc(Env *env) {
     Env block_env = Env::new_detatched_env(env);
     block_env.var_set("name", 0, true, this);
-    Block *proc_block = new Block { block_env, this, SymbolValue::to_proc_block_fn };
+    Block *proc_block = new Block { block_env, this, SymbolValue::to_proc_block_fn, 1 };
     return new ProcValue { env, proc_block };
 }
 

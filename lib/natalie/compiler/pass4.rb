@@ -75,9 +75,7 @@ module Natalie
         cvar_get_or_null
         cvar_set
         define_method
-        define_method_with_block
         define_singleton_method
-        define_singleton_method_with_block
         eval_body
         freeze
         get
@@ -153,7 +151,7 @@ module Natalie
         fn = temp('fn')
         nl = "\n" # FIXME: parser issue with double quotes inside interpolation
         top "ValuePtr #{fn}(Env *env, ValuePtr self, size_t argc, ValuePtr *args, Block *block) {\n#{c.join(nl)}\n}"
-        process(s(:define_method, s(:l, "self->as_module()"), :env, s(:intern, name), fn))
+        process(s(:define_method, s(:l, "self->as_module()"), :env, s(:intern, name), fn, -1))
         "SymbolValue::intern(env, #{name.inspect})"
       end
 

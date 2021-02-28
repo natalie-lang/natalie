@@ -241,11 +241,14 @@ module Natalie
         end
         if args.any?
           args_name = temp('args_as_array')
+          prepared_args = prepare_args(args, args_name)
           assign_args = s(:block,
                           s(:declare, args_name, s(:args_to_array, :env, s(:l, 'argc'), s(:l, 'args'))),
-                          *prepare_args(args, args_name))
+                          *prepared_args.args)
+          arity = prepared_args.arity
         else
           assign_args = s(:block)
+          arity = 0
         end
         method_body = process(s(:block, *body))
         if raises_local_jump_error?(method_body)
@@ -258,29 +261,30 @@ module Natalie
                             s(:else),
                             s(:raise_exception, :env, :exception)))
         end
-        exp.new(:def_fn, fn_name,
+        fn = exp.new(:def_fn, fn_name,
                 s(:block,
                   s(:env_set_method_name, name),
                   prepare_argc_assertion(args),
                   assign_args,
                   block_arg || s(:block),
                   method_body))
+        [fn, arity]
       end
 
       def process_defn(exp)
         (_, name, args, *body) = exp
-        fn = process_defn_internal(exp)
+        (fn, arity) = process_defn_internal(exp)
         exp.new(:block,
                 fn,
-                s(:define_method, :self, :env, s(:intern, name), fn[1]))
+                s(:define_method, :self, :env, s(:intern, name), fn[1], arity))
       end
 
       def process_defs(exp)
         (_, owner, name, args, *body) = exp
-        fn = process_defn_internal(exp.new(:defs, name, args, *body))
+        (fn, arity) = process_defn_internal(exp.new(:defs, name, args, *body))
         exp.new(:block,
                 fn,
-                s(:define_singleton_method, process(owner), :env, s(:intern, name), fn[1]))
+                s(:define_singleton_method, process(owner), :env, s(:intern, name), fn[1], arity))
       end
 
       def process_dot2(exp)
@@ -406,11 +410,14 @@ module Natalie
         end
         if args.any?
           args_name = temp('args_as_array')
+          prepared_args = prepare_args(args, args_name)
           assign_args = s(:block,
                           s(:declare, args_name, s(:block_args_to_array, :env, args.size, s(:l, 'argc'), s(:l, 'args'))),
-                          *prepare_args(args, args_name))
+                          *prepared_args.args)
+          arity = prepared_args.arity
         else
           assign_args = s(:block)
+          arity = 0
         end
         exp.new(:block,
                 s(:block_fn, block_fn,
@@ -419,7 +426,7 @@ module Natalie
                     assign_args,
                     block_arg || s(:block),
                     process(s(:block, *body)))),
-        s(:declare_block, block, s(:new, :Block, s(:l, "*env"), :self, block_fn)),
+        s(:declare_block, block, s(:new, :Block, s(:l, "*env"), :self, block_fn, arity)),
         call)
       end
 
@@ -534,24 +541,52 @@ module Natalie
         end
       end
 
+      class Args < Struct.new(:args, :required_args, :optional_args, :required_keyword_args, :optional_keyword_args, keyword_init: true)
+        def arity
+          # TODO: add 1 if there is a single required keyword arg (I think)
+          if optional_args > 0
+            (required_args * -1) - 1
+          else
+            required_args
+          end
+        end
+      end
+
       def prepare_args(names, value_name)
         names = prepare_arg_names(names)
         args_have_default = names.map { |e| %i[iasgn lasgn].include?(e.sexp_type) && e.size == 3 }
         defaults = args_have_default.select { |d| d }
         defaults_on_right = defaults.any? && args_have_default.uniq == [false, true]
-        prepare_masgn_paths(s(:masgn, s(:array, *names))).map do |name, path_details|
+        required_args = 0
+        optional_args = 0
+        required_keyword_args = 0
+        optional_keyword_args = 0
+        args = prepare_masgn_paths(s(:masgn, s(:array, *names))).map do |name, path_details|
           path = path_details[:path]
           if name.is_a?(Sexp)
             case name.sexp_type
             when :splat
+              optional_args += 1
               value = s(:arg_value_by_path, :env, value_name, s(:nil), s(:l, :true), names.size, defaults.size, defaults_on_right ? s(:l, :true) : s(:l, :false), path_details[:offset_from_end], path.size, *path)
               prepare_masgn_set(name.last, value, arg: true)
             when :kwarg
-              default_value = name[2] ? process(name[2]) : 'nullptr'
+              if name[2]
+                optional_keyword_args += 1
+                default_value = process(name[2])
+              else
+                required_keyword_args += 1
+                default_value = 'nullptr'
+              end
               value = s(:kwarg_value_by_name, :env, value_name, s(:s, name[1]), default_value)
               prepare_masgn_set(name, value, arg: true)
             else
-              default_value = name.size == 3 ? process(name.pop) : s(:nil)
+              if name.size == 3
+                optional_args += 1
+                default_value = process(name.pop)
+              else
+                required_args += 1
+                default_value = s(:nil)
+              end
               non_kwargs = names.reject { |name| name.sexp_type == :kwarg }
               value = s(:arg_value_by_path, :env, value_name, default_value, s(:l, :false), non_kwargs.size, defaults.size, defaults_on_right ? s(:l, :true) : s(:l, :false), 0, path.size, *path)
               prepare_masgn_set(name, value, arg: true)
@@ -560,6 +595,13 @@ module Natalie
             raise "unknown masgn type: #{name.inspect} (#{exp.file}\##{exp.line})"
           end
         end
+        Args.new(
+          args: args,
+          required_args: required_args,
+          optional_args: optional_args,
+          required_keyword_args: required_keyword_args,
+          optional_keyword_args: optional_keyword_args,
+        )
       end
 
       def prepare_arg_names(names)

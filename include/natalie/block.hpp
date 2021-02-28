@@ -8,8 +8,9 @@ namespace Natalie {
 
 struct Block : public gc {
 
-    Block(Env &env, ValuePtr self, MethodFnPtr fn)
+    Block(Env &env, ValuePtr self, MethodFnPtr fn, int arity)
         : m_fn { fn }
+        , m_arity { arity }
         , m_env { env }
         , m_self { self } {
         m_env.clear_caller();
@@ -21,6 +22,8 @@ struct Block : public gc {
         return m_fn(&e, m_self, argc, args, block);
     }
 
+    int arity() { return m_arity; }
+
     Env *env() { return &m_env; }
 
     void set_self(ValuePtr self) { m_self = self; }
@@ -29,6 +32,7 @@ struct Block : public gc {
 
 private:
     MethodFnPtr m_fn;
+    int m_arity { 0 };
     Env m_env {};
     ValuePtr m_self { nullptr };
 };

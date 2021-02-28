@@ -360,7 +360,6 @@ def method_with_kwargs9(a = 1, b: 2)
   [a, b]
 end
 
-
 describe 'method with keyword args' do
   it 'accepts keyword args' do
     method_with_kwargs1(1, b: 2).should == [1, 2]
@@ -409,5 +408,16 @@ describe 'safe navigation operator' do
   it 'returns nil if the receiver is nil, otherwise calls the method' do
     returns_arg(nil)&.first.should be_nil
     returns_arg([1])&.first.should == 1
+  end
+end
+
+describe Method do
+  describe '#arity' do
+    method(:foo).arity.should == 0
+    method(:double).arity.should == 1
+    method(:default).arity.should == -1
+    method(:default_after_regular).arity.should == -2
+    method(:default_with_splat_last).arity.should == -2
+    method(:block_arg_test).arity.should == 2
   end
 end
