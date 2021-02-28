@@ -59,24 +59,24 @@ ValuePtr IntegerValue::sub(Env *env, ValuePtr arg) {
 }
 
 ValuePtr IntegerValue::mul(Env *env, ValuePtr arg) {
-    if (arg->is_float()) {
+    if (arg.is_float()) {
         double result = to_nat_int_t() * arg->as_float()->to_double();
         return new FloatValue { env, result };
     }
-    arg->assert_type(env, Value::Type::Integer, "Integer");
-    nat_int_t result = to_nat_int_t() * arg->as_integer()->to_nat_int_t();
-    return new IntegerValue { env, result };
+    arg.assert_type(env, Value::Type::Integer, "Integer");
+    nat_int_t result = to_nat_int_t() * arg.to_nat_int_t();
+    return ValuePtr { env, result };
 }
 
 ValuePtr IntegerValue::div(Env *env, ValuePtr arg) {
-    if (arg->is_integer()) {
+    if (arg.is_integer()) {
         nat_int_t dividend = to_nat_int_t();
-        nat_int_t divisor = arg->as_integer()->to_nat_int_t();
+        nat_int_t divisor = arg.to_nat_int_t();
         if (divisor == 0) {
             env->raise("ZeroDivisionError", "divided by 0");
         }
         nat_int_t result = dividend / divisor;
-        return new IntegerValue { env, result };
+        return ValuePtr { env, result };
 
     } else if (arg->respond_to(env, "coerce")) {
         ValuePtr args[] = { this };
@@ -92,33 +92,33 @@ ValuePtr IntegerValue::div(Env *env, ValuePtr arg) {
 }
 
 ValuePtr IntegerValue::mod(Env *env, ValuePtr arg) {
-    arg->assert_type(env, Value::Type::Integer, "Integer");
-    nat_int_t result = to_nat_int_t() % arg->as_integer()->to_nat_int_t();
-    return new IntegerValue { env, result };
+    arg.assert_type(env, Value::Type::Integer, "Integer");
+    nat_int_t result = to_nat_int_t() % arg.to_nat_int_t();
+    return ValuePtr { env, result };
 }
 
 ValuePtr IntegerValue::pow(Env *env, ValuePtr arg) {
-    arg->assert_type(env, Value::Type::Integer, "Integer");
-    nat_int_t result = ::pow(to_nat_int_t(), arg->as_integer()->to_nat_int_t());
-    return new IntegerValue { env, result };
+    arg.assert_type(env, Value::Type::Integer, "Integer");
+    nat_int_t result = ::pow(to_nat_int_t(), arg.to_nat_int_t());
+    return ValuePtr { env, result };
 }
 
 ValuePtr IntegerValue::cmp(Env *env, ValuePtr arg) {
-    if (arg->type() != Value::Type::Integer) return env->nil_obj();
+    if (!arg.is_integer()) return env->nil_obj();
     nat_int_t i1 = to_nat_int_t();
-    nat_int_t i2 = arg->as_integer()->to_nat_int_t();
+    nat_int_t i2 = arg.to_nat_int_t();
     if (i1 < i2) {
-        return new IntegerValue { env, -1 };
+        return ValuePtr { env, -1 };
     } else if (i1 == i2) {
-        return new IntegerValue { env, 0 };
+        return ValuePtr { env, 0 };
     } else {
-        return new IntegerValue { env, 1 };
+        return ValuePtr { env, 1 };
     }
 }
 
 bool IntegerValue::eq(Env *env, ValuePtr other) {
-    if (other->is_integer()) {
-        return to_nat_int_t() == other->as_integer()->to_nat_int_t();
+    if (other.is_integer()) {
+        return to_nat_int_t() == other.to_nat_int_t();
     } else if (other->is_float()) {
         return to_nat_int_t() == other->as_float()->to_double();
     }
@@ -126,8 +126,8 @@ bool IntegerValue::eq(Env *env, ValuePtr other) {
 }
 
 bool IntegerValue::lt(Env *env, ValuePtr other) {
-    if (other->is_integer()) {
-        return to_nat_int_t() < other->as_integer()->to_nat_int_t();
+    if (other.is_integer()) {
+        return to_nat_int_t() < other.to_nat_int_t();
     } else if (other->is_float()) {
         return to_nat_int_t() < other->as_float()->to_double();
     }
@@ -135,8 +135,8 @@ bool IntegerValue::lt(Env *env, ValuePtr other) {
 }
 
 bool IntegerValue::lte(Env *env, ValuePtr other) {
-    if (other->is_integer()) {
-        return to_nat_int_t() <= other->as_integer()->to_nat_int_t();
+    if (other.is_integer()) {
+        return to_nat_int_t() <= other.to_nat_int_t();
     } else if (other->is_float()) {
         return to_nat_int_t() <= other->as_float()->to_double();
     }
@@ -144,8 +144,8 @@ bool IntegerValue::lte(Env *env, ValuePtr other) {
 }
 
 bool IntegerValue::gt(Env *env, ValuePtr other) {
-    if (other->is_integer()) {
-        return to_nat_int_t() > other->as_integer()->to_nat_int_t();
+    if (other.is_integer()) {
+        return to_nat_int_t() > other.to_nat_int_t();
     } else if (other->is_float()) {
         return to_nat_int_t() > other->as_float()->to_double();
     }
@@ -153,16 +153,16 @@ bool IntegerValue::gt(Env *env, ValuePtr other) {
 }
 
 bool IntegerValue::gte(Env *env, ValuePtr other) {
-    if (other->is_integer()) {
-        return to_nat_int_t() >= other->as_integer()->to_nat_int_t();
-    } else if (other->is_float()) {
+    if (other.is_integer()) {
+        return to_nat_int_t() >= other.to_nat_int_t();
+    } else if (other.is_float()) {
         return to_nat_int_t() >= other->as_float()->to_double();
     }
     env->raise("ArgumentError", "comparison of Integer with %s failed", other->inspect_str(env));
 }
 
 ValuePtr IntegerValue::eqeqeq(Env *env, ValuePtr arg) {
-    if (arg->type() == Value::Type::Integer && to_nat_int_t() == arg->as_integer()->to_nat_int_t()) {
+    if (arg.is_integer() && to_nat_int_t() == arg.to_nat_int_t()) {
         return env->true_obj();
     } else {
         return env->false_obj();
@@ -174,25 +174,25 @@ ValuePtr IntegerValue::times(Env *env, Block *block) {
     assert(val >= 0);
     env->assert_block_given(block); // TODO: return Enumerator when no block given
     ValuePtr num;
-    for (long long i = 0; i < val; i++) {
-        num = new IntegerValue { env, i };
+    for (nat_int_t i = 0; i < val; i++) {
+        ValuePtr num { env, i };
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &num, nullptr);
     }
     return this;
 }
 
 ValuePtr IntegerValue::bitwise_and(Env *env, ValuePtr arg) {
-    arg->assert_type(env, Value::Type::Integer, "Integer");
-    return new IntegerValue { env, to_nat_int_t() & arg->as_integer()->to_nat_int_t() };
+    arg.assert_type(env, Value::Type::Integer, "Integer");
+    return ValuePtr { env, to_nat_int_t() & arg.to_nat_int_t() };
 }
 
 ValuePtr IntegerValue::bitwise_or(Env *env, ValuePtr arg) {
-    arg->assert_type(env, Value::Type::Integer, "Integer");
-    return new IntegerValue { env, to_nat_int_t() | arg->as_integer()->to_nat_int_t() };
+    arg.assert_type(env, Value::Type::Integer, "Integer");
+    return ValuePtr { env, to_nat_int_t() | arg.to_nat_int_t() };
 }
 
 ValuePtr IntegerValue::succ(Env *env) {
-    return new IntegerValue { env, to_nat_int_t() + 1 };
+    return ValuePtr { env, to_nat_int_t() + 1 };
 }
 
 ValuePtr IntegerValue::coerce(Env *env, ValuePtr arg) {
@@ -217,13 +217,13 @@ ValuePtr IntegerValue::coerce(Env *env, ValuePtr arg) {
 }
 
 bool IntegerValue::eql(Env *env, ValuePtr other) {
-    return other->is_integer() && other->as_integer()->to_nat_int_t() == to_nat_int_t();
+    return other.is_integer() && other.to_nat_int_t() == to_nat_int_t();
 }
 
 ValuePtr IntegerValue::abs(Env *env) {
     auto number = to_nat_int_t();
     if (number < 0) {
-        return new IntegerValue { env, -1 * number };
+        return ValuePtr { env, -1 * number };
     } else {
         return this;
     }
@@ -238,7 +238,25 @@ ValuePtr IntegerValue::chr(Env *env) {
 
 bool IntegerValue::optimized_method(SymbolValue *method_name) {
     const char *name = method_name->c_str();
-    return strcmp(name, "+") == 0 || strcmp(name, "-") == 0;
+    return strcmp(name, "+") == 0
+        || strcmp(name, "-") == 0
+        || strcmp(name, "*") == 0
+        || strcmp(name, "/") == 0
+        || strcmp(name, "%") == 0
+        || strcmp(name, "**") == 0
+        || strcmp(name, "<=>") == 0
+        || strcmp(name, "==") == 0
+        || strcmp(name, "===") == 0
+        || strcmp(name, "<") == 0
+        || strcmp(name, "<=") == 0
+        || strcmp(name, ">") == 0
+        || strcmp(name, ">=") == 0
+        || strcmp(name, "===") == 0
+        || strcmp(name, "eql?") == 0
+        || strcmp(name, "abs") == 0
+        || strcmp(name, "succ") == 0
+        || strcmp(name, "times") == 0
+        || strcmp(name, "chr") == 0;
 }
 
 ValuePtr IntegerValue::negate(Env *env) {

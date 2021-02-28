@@ -26,11 +26,7 @@ ValuePtr ValuePtr::send(Env *env, SymbolValue *name, size_t argc, ValuePtr *args
 }
 
 ValuePtr ValuePtr::send(Env *env, const char *name, size_t argc, ValuePtr *args, Block *block) {
-    return value()->_send(env, name, argc, args, block);
-}
-
-ValuePtr ValuePtr::send(Env *env, size_t argc, ValuePtr *args, Block *block) {
-    return value()->_send(env, argc, args, block);
+    return send(env, SymbolValue::intern(env, name), argc, args, block);
 }
 
 void ValuePtr::hydrate() {
@@ -43,6 +39,13 @@ void ValuePtr::hydrate() {
     case Type::Pointer:
         break;
     }
+}
+
+bool ValuePtr::is_integer() {
+    if (m_type == Type::Integer)
+        return true;
+
+    return value()->is_integer();
 }
 
 bool ValuePtr::is_float() {

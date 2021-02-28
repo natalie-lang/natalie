@@ -57,8 +57,8 @@ struct ValuePtr {
 
     ValuePtr send(Env *, SymbolValue *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
     ValuePtr send(Env *, const char *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
-    ValuePtr send(Env *, size_t, ValuePtr *, Block *);
 
+    bool is_integer();
     bool is_float();
     void assert_type(Env *, ValueType, const char *);
     nat_int_t to_nat_int_t();
