@@ -224,6 +224,7 @@ Method *ModuleValue::find_method(Env *env, const char *method_name, ModuleValue 
     return find_method(env, SymbolValue::intern(env, method_name), matching_class_or_module);
 }
 
+// TODO: remove this
 ValuePtr ModuleValue::call_method(Env *env, ValuePtr instance_class, SymbolValue *method_name, ValuePtr self, size_t argc, ValuePtr *args, Block *block, MethodVisibility visibility_at_least) {
     Method *method = find_method(env, method_name);
     if (method && !method->is_undefined()) {
@@ -241,6 +242,7 @@ ValuePtr ModuleValue::call_method(Env *env, ValuePtr instance_class, SymbolValue
     }
 }
 
+// TODO: remove this
 ValuePtr ModuleValue::call_method(Env *env, ValuePtr instance_class, const char *method_name, ValuePtr self, size_t argc, ValuePtr *args, Block *block, MethodVisibility visibility_at_least) {
     return call_method(env, instance_class, SymbolValue::intern(env, method_name), self, argc, args, block, visibility_at_least);
 }

@@ -8,6 +8,7 @@
 #include "natalie/global_env.hpp"
 #include "natalie/hashmap.hpp"
 #include "natalie/macros.hpp"
+#include "natalie/method_visibility.hpp"
 #include "natalie/value_ptr.hpp"
 #include "natalie/value_type.hpp"
 
@@ -175,6 +176,8 @@ struct Value : public gc {
     ValuePtr _send(Env *, SymbolValue *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
     ValuePtr _send(Env *, const char *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
     ValuePtr _send(Env *, size_t, ValuePtr *, Block *);
+
+    Method *find_method(Env *, SymbolValue *, MethodVisibility, ModuleValue ** = nullptr);
 
     ValuePtr dup(Env *);
 

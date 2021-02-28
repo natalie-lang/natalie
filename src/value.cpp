@@ -396,29 +396,13 @@ SymbolValue *Value::undefine_method(Env *env, SymbolValue *name) {
 }
 
 ValuePtr Value::_public_send(Env *env, SymbolValue *name, size_t argc, ValuePtr *args, Block *block) {
-    auto singleton = singleton_class();
-    if (singleton) {
-        Method *method = singleton_class()->find_method(env, name);
-        if (method) {
-            if (method->is_undefined())
-                env->raise("NoMethodError", "undefined method `%s' for %s:Class", name, m_klass->class_name());
-            return method->call(env, this, argc, args, block);
-        }
-    }
-    return m_klass->call_method(env, m_klass, name, this, argc, args, block, MethodVisibility::Public);
+    Method *method = find_method(env, name, MethodVisibility::Public);
+    return method->call(env, this, argc, args, block);
 }
 
 ValuePtr Value::_send(Env *env, SymbolValue *name, size_t argc, ValuePtr *args, Block *block) {
-    auto singleton = singleton_class();
-    if (singleton) {
-        Method *method = singleton_class()->find_method(env, name);
-        if (method) {
-            if (method->is_undefined())
-                env->raise("NoMethodError", "undefined method `%s' for %s:Class", name, m_klass->class_name());
-            return method->call(env, this, argc, args, block);
-        }
-    }
-    return m_klass->call_method(env, m_klass, name, this, argc, args, block, MethodVisibility::Private);
+    Method *method = find_method(env, name, MethodVisibility::Private);
+    return method->call(env, this, argc, args, block);
 }
 
 ValuePtr Value::_send(Env *env, const char *name, size_t argc, ValuePtr *args, Block *block) {
@@ -428,6 +412,33 @@ ValuePtr Value::_send(Env *env, const char *name, size_t argc, ValuePtr *args, B
 ValuePtr Value::_send(Env *env, size_t argc, ValuePtr *args, Block *block) {
     auto name = args[0]->to_symbol(env, Value::Conversion::Strict);
     return _send(env->caller(), name, argc - 1, args + 1, block);
+}
+
+Method *Value::find_method(Env *env, SymbolValue *method_name, MethodVisibility visibility_at_least, ModuleValue **matching_class_or_module) {
+    auto singleton = singleton_class();
+    if (singleton) {
+        Method *method = singleton_class()->find_method(env, method_name, matching_class_or_module);
+        if (method) {
+            if (method->is_undefined())
+                env->raise("NoMethodError", "undefined method `%s' for %s:Class", method_name, m_klass->class_name());
+            return method;
+        }
+    }
+    ModuleValue *klass = this->klass();
+    Method *method = klass->find_method(env, method_name, matching_class_or_module);
+    if (method && !method->is_undefined()) {
+        if (method->visibility() >= visibility_at_least) {
+            return method;
+        } else {
+            env->raise("NoMethodError", "private method `%s' called for %s", method_name->c_str(), inspect_str(env));
+        }
+    } else if (is_module()) {
+        env->raise("NoMethodError", "undefined method `%s' for %s:%v", method_name->c_str(), klass->as_module()->class_name(), klass);
+    } else if (method_name == SymbolValue::intern(env, "inspect")) {
+        env->raise("NoMethodError", "undefined method `inspect' for #<%s:0x%x>", klass->class_name(), object_id());
+    } else {
+        env->raise("NoMethodError", "undefined method `%s' for %s", method_name->c_str(), inspect_str(env));
+    }
 }
 
 ValuePtr Value::dup(Env *env) {
