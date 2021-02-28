@@ -60,4 +60,15 @@ describe 'Proc' do
       p.lambda?.should == true
     end
   end
+
+  describe '#arity' do
+    it 'returns the correct number of required arguments' do
+      Proc.new { }.arity.should == 0
+      Proc.new { |x| }.arity.should == 1
+      Proc.new { |x, y = 1| }.arity.should == 1
+      Proc.new { |x, y = 1, a:| }.arity.should == 2
+      Proc.new { |x, y = 1, a: nil, b:| }.arity.should == 2
+      Proc.new { |x, y = 1, a: nil, b: nil| }.arity.should == 1
+    end
+  end
 end

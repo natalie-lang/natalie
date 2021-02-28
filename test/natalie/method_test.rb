@@ -411,13 +411,24 @@ describe 'safe navigation operator' do
   end
 end
 
-describe Method do
+describe 'Method' do
   describe '#arity' do
-    method(:foo).arity.should == 0
-    method(:double).arity.should == 1
-    method(:default).arity.should == -1
-    method(:default_after_regular).arity.should == -2
-    method(:default_with_splat_last).arity.should == -2
-    method(:block_arg_test).arity.should == 2
+    it 'works' do
+      method(:foo).arity.should == 0
+      method(:double).arity.should == 1
+      method(:default).arity.should == -1
+      method(:default_after_regular).arity.should == -2
+      method(:default_with_splat_last).arity.should == -2
+      method(:block_arg_test).arity.should == 2
+      method(:method_with_kwargs1).arity.should == 2
+      method(:method_with_kwargs2).arity.should == 2
+      method(:method_with_kwargs3).arity.should == 2
+      method(:method_with_kwargs4).arity.should == 2
+      method(:method_with_kwargs5).arity.should == -2
+      method(:method_with_kwargs6).arity.should == -1
+      method(:method_with_kwargs7).arity.should == 1
+      method(:method_with_kwargs8).arity.should == 1
+      method(:method_with_kwargs9).arity.should == -1
+    end
   end
 end

@@ -515,6 +515,7 @@ gen.singleton_binding('Parser', 'parse', 'ParserValue', 'parse', argc: 1..2, pas
 gen.singleton_binding('Parser', 'tokens', 'ParserValue', 'tokens', argc: 1..2, pass_env: true, pass_block: false, return_type: :Value)
 
 gen.binding('Proc', 'initialize', 'ProcValue', 'initialize', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
+gen.binding('Proc', 'arity', 'ProcValue', 'arity', argc: 0, pass_env: false, pass_block: false, return_type: :int)
 gen.binding('Proc', 'call', 'ProcValue', 'call', argc: :any, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Proc', 'lambda?', 'ProcValue', 'is_lambda', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 

@@ -414,7 +414,7 @@ module Natalie
           assign_args = s(:block,
                           s(:declare, args_name, s(:block_args_to_array, :env, args.size, s(:l, 'argc'), s(:l, 'args'))),
                           *prepared_args.args)
-          arity = prepared_args.arity
+          arity = prepared_args.arity(is_proc: true)
         else
           assign_args = s(:block)
           arity = 0
@@ -542,13 +542,18 @@ module Natalie
       end
 
       class Args < Struct.new(:args, :required_args, :optional_args, :required_keyword_args, :optional_keyword_args, keyword_init: true)
-        def arity
-          # TODO: add 1 if there is a single required keyword arg (I think)
-          if optional_args > 0
-            (required_args * -1) - 1
-          else
-            required_args
+        def arity(is_proc: false)
+          num = required_args
+          opt = optional_args
+          if required_keyword_args > 0
+            num += 1
+          elsif optional_keyword_args > 0
+            opt += 1
           end
+          if opt > 0 && !is_proc
+            num = -num - 1
+          end
+          num
         end
       end
 
