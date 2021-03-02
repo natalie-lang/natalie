@@ -28,6 +28,15 @@ describe 'Proc' do
     end
   end
 
+  describe '-> operator' do
+    it 'creates a Proc object' do
+      p = -> {
+        'hello from proc'
+      }
+      p.should be_kind_of(Proc)
+    end
+  end
+
   describe '#call' do
     it 'evaluates the proc and returns the result' do
       p = Proc.new do
@@ -69,6 +78,17 @@ describe 'Proc' do
       Proc.new { |x, y = 1, a:| }.arity.should == 2
       Proc.new { |x, y = 1, a: nil, b:| }.arity.should == 2
       Proc.new { |x, y = 1, a: nil, b: nil| }.arity.should == 1
+    end
+  end
+
+  describe '#to_proc' do
+    it 'returns self' do
+      p = Proc.new { }
+      p.to_proc.object_id.should == p.object_id
+      p.to_proc.lambda?.should == false
+      l = -> { }
+      l.to_proc.object_id.should == l.object_id # does not convert
+      l.to_proc.lambda?.should == true # does not change to false
     end
   end
 end
