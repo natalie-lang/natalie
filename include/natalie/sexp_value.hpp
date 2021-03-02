@@ -22,12 +22,12 @@ struct SexpValue : ArrayValue {
         for (size_t i = 0; i < size(); i++) {
             ValuePtr obj = (*this)[i];
             StringValue *repr = obj.send(env, "inspect")->as_string();
-            out->append_string(env, repr);
+            out->append(env, repr);
             if (i < size() - 1) {
                 out->append(env, ", ");
             }
         }
-        out->append_char(env, ')');
+        out->append(env, ')');
         return out;
     }
 

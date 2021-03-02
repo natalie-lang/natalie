@@ -313,7 +313,7 @@ module Natalie
         segments = rest.map do |segment|
           case segment.sexp_type
           when :evstr
-            s(:append_string, s(:as_string, string), :env, process(s(:call, segment.last, :to_s)))
+            s(:append, s(:as_string, string), :env, process(s(:call, segment.last, :to_s)))
           when :str
             s(:append, s(:as_string, string), :env, s(:s, segment.last))
           else

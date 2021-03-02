@@ -23,7 +23,6 @@ module Natalie
         add_break_flag
         alias
         append
-        append_string
         array_expand_with_nil
         assert_argc
         assert_argc_at_least
@@ -46,9 +45,6 @@ module Natalie
         raise_local_jump_error
         remove_break_flag
         run_at_exit_handlers
-        string_append
-        string_append_char
-        string_append_string
         undefine_method
         undefine_singleton_method
       ]
@@ -61,7 +57,6 @@ module Natalie
       METHODS = %i[
         alias
         append
-        append_string
         add_break_flag
         as_class
         as_string

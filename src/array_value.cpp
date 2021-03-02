@@ -26,12 +26,12 @@ ValuePtr ArrayValue::inspect(Env *env) {
     for (size_t i = 0; i < size(); i++) {
         ValuePtr obj = (*this)[i];
         StringValue *repr = obj.send(env, "inspect")->as_string();
-        out->append_string(env, repr);
+        out->append(env, repr);
         if (i < size() - 1) {
             out->append(env, ", ");
         }
     }
-    out->append_char(env, ']');
+    out->append(env, ']');
     return out;
 }
 
@@ -334,8 +334,8 @@ ValuePtr ArrayValue::join(Env *env, ValuePtr joiner) {
         StringValue *out = (*this)[0].send(env, "to_s")->dup(env)->as_string();
         for (size_t i = 1; i < size(); i++) {
             ValuePtr item = (*this)[i];
-            out->append_string(env, joiner->as_string());
-            out->append_string(env, item.send(env, "to_s")->as_string());
+            out->append(env, joiner->as_string());
+            out->append(env, item.send(env, "to_s")->as_string());
         }
         return out;
     }

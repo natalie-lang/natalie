@@ -55,7 +55,7 @@ void StringValue::append(Env *env, std::string str) {
     m_length = total_length;
 }
 
-void StringValue::append_char(Env *env, char c) {
+void StringValue::append(Env *env, char c) {
     size_t total_length = m_length + 1;
     grow_at_least(env, total_length);
     m_str[total_length - 1] = c;
@@ -63,11 +63,11 @@ void StringValue::append_char(Env *env, char c) {
     m_length = total_length;
 }
 
-void StringValue::append_string(Env *env, ValuePtr value) {
-    append_string(env, value->as_string());
+void StringValue::append(Env *env, ValuePtr value) {
+    append(env, value->as_string());
 }
 
-void StringValue::append_string(Env *env, StringValue *string2) {
+void StringValue::append(Env *env, StringValue *string2) {
     if (string2->length() == 0) return;
     size_t total_length = m_length + string2->length();
     grow_at_least(env, total_length);
@@ -159,17 +159,17 @@ StringValue *StringValue::inspect(Env *env) {
         char c = m_str[i];
         char c2 = (i + 1) < m_length ? m_str[i + 1] : 0;
         if (c == '"' || c == '\\' || (c == '#' && c2 == '{')) {
-            out->append_char(env, '\\');
-            out->append_char(env, c);
+            out->append(env, '\\');
+            out->append(env, c);
         } else if (c == '\n') {
             out->append(env, "\\n");
         } else if (c == '\t') {
             out->append(env, "\\t");
         } else {
-            out->append_char(env, c);
+            out->append(env, c);
         }
     }
-    out->append_char(env, '"');
+    out->append(env, '"');
     return out;
 }
 
@@ -198,7 +198,7 @@ StringValue *StringValue::successive(Env *env) {
     return result;
 }
 
-void StringValue::increment_successive_char(Env *env, char append_char, char begin_char, char end_char) {
+void StringValue::increment_successive_char(Env *env, char append, char begin_char, char end_char) {
     assert(m_length > 0);
     nat_int_t index = m_length - 1;
     char last_char = m_str[index];
@@ -207,7 +207,7 @@ void StringValue::increment_successive_char(Env *env, char append_char, char beg
         last_char = m_str[--index];
     }
     if (index == -1) {
-        this->append_char(env, append_char);
+        this->append(env, append);
     } else {
         m_str[index]++;
     }
@@ -281,13 +281,13 @@ StringValue *StringValue::vsprintf(Env *env, const char *format, va_list args) {
             char c2 = format[++i];
             switch (c2) {
             case 'c':
-                out->append_char(env, va_arg(args, int));
+                out->append(env, va_arg(args, int));
                 break;
             case 's':
                 out->append(env, va_arg(args, char *));
                 break;
             case 'S':
-                out->append_string(env, va_arg(args, StringValue *));
+                out->append(env, va_arg(args, StringValue *));
                 break;
             case 'i':
             case 'd':
@@ -303,14 +303,14 @@ StringValue *StringValue::vsprintf(Env *env, const char *format, va_list args) {
                 out->append(env, va_arg(args, Value *)->inspect_str(env));
                 break;
             case '%':
-                out->append_char(env, '%');
+                out->append(env, '%');
                 break;
             default:
                 fprintf(stderr, "Unknown format specifier: %%%c", c2);
                 abort();
             }
         } else {
-            out->append_char(env, c);
+            out->append(env, c);
         }
     }
     return out;
@@ -327,11 +327,11 @@ ValuePtr StringValue::initialize(Env *env, ValuePtr arg) {
 ValuePtr StringValue::ltlt(Env *env, ValuePtr arg) {
     this->assert_not_frozen(env);
     if (arg->is_string()) {
-        append_string(env, arg->as_string());
+        append(env, arg->as_string());
     } else {
         ValuePtr str_obj = arg.send(env, "to_s");
         str_obj->assert_type(env, Value::Type::String, "String");
-        append_string(env, str_obj->as_string());
+        append(env, str_obj->as_string());
     }
     return this;
 }
@@ -354,7 +354,7 @@ ValuePtr StringValue::mul(Env *env, ValuePtr arg) {
     arg->assert_type(env, Value::Type::Integer, "Integer");
     StringValue *new_string = new StringValue { env, "" };
     for (nat_int_t i = 0; i < arg->as_integer()->to_nat_int_t(); i++) {
-        new_string->append_string(env, this);
+        new_string->append(env, this);
     }
     return new_string;
 }
@@ -548,7 +548,7 @@ ValuePtr StringValue::ref(Env *env, ValuePtr index_obj) {
         u_end = u_end > max ? max : u_end;
         StringValue *result = new StringValue { env };
         for (size_t i = begin; i < u_end; i++) {
-            result->append_string(env, (*chars)[i]);
+            result->append(env, (*chars)[i]);
         }
 
         return result;
@@ -571,9 +571,9 @@ ValuePtr StringValue::sub(Env *env, ValuePtr find, ValuePtr replacement, Block *
         if (block) {
             ValuePtr result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 0, nullptr, nullptr);
             result->assert_type(env, Value::Type::String, "String");
-            out->append_string(env, result->as_string());
+            out->append(env, result->as_string());
         } else {
-            out->append_string(env, replacement->as_string());
+            out->append(env, replacement->as_string());
         }
         out->append(env, &m_str[index + find->as_string()->length()]);
         return out;
@@ -623,7 +623,7 @@ StringValue *StringValue::regexp_sub(Env *env, RegexpValue *find, StringValue *r
     nat_int_t index = (*match)->as_match_data()->index(0);
     StringValue *out = new StringValue { env, m_str, static_cast<size_t>(index) };
     *expanded_replacement = expand_backrefs(env, replacement->as_string(), *match);
-    out->append_string(env, *expanded_replacement);
+    out->append(env, *expanded_replacement);
     out->append(env, &m_str[index + length]);
     return out;
 }
@@ -649,11 +649,11 @@ StringValue *StringValue::expand_backrefs(Env *env, StringValue *str, MatchDataV
             case '8':
             case '9': {
                 int num = c - 48;
-                expanded->append_string(env, match->group(env, num)->as_string());
+                expanded->append(env, match->group(env, num)->as_string());
                 break;
             }
             case '\\':
-                expanded->append_char(env, c);
+                expanded->append(env, c);
                 break;
             // TODO: there are other back references we need to handle, e.g. \&, \', \`, and \+
             default:
@@ -662,7 +662,7 @@ StringValue *StringValue::expand_backrefs(Env *env, StringValue *str, MatchDataV
             }
             break;
         default:
-            expanded->append_char(env, c);
+            expanded->append(env, c);
         }
     }
     return expanded;
@@ -754,7 +754,7 @@ ValuePtr StringValue::ljust(Env *env, ValuePtr length_obj, ValuePtr pad_obj) {
     StringValue *copy = dup(env)->as_string();
     while (copy->length() < length) {
         bool truncate = copy->length() + padstr->length() > length;
-        copy->append_string(env, padstr);
+        copy->append(env, padstr);
         if (truncate) {
             copy->truncate(length);
         }
@@ -792,13 +792,13 @@ ValuePtr StringValue::downcase(Env *env) {
     for (auto c_val : *ary) {
         auto c_str = c_val->as_string();
         if (c_str->bytesize() > 1) {
-            str->append_string(env, c_str);
+            str->append(env, c_str);
         } else {
             auto c = c_str->c_str()[0];
             if (c >= 65 && c <= 90) {
                 c += 32;
             }
-            str->append_char(env, c);
+            str->append(env, c);
         }
     }
     return str;
@@ -810,13 +810,13 @@ ValuePtr StringValue::upcase(Env *env) {
     for (auto c_val : *ary) {
         auto c_str = c_val->as_string();
         if (c_str->bytesize() > 1) {
-            str->append_string(env, c_str);
+            str->append(env, c_str);
         } else {
             auto c = c_str->c_str()[0];
             if (c >= 97 && c <= 122) {
                 c -= 32;
             }
-            str->append_char(env, c);
+            str->append(env, c);
         }
     }
     return str;

@@ -184,16 +184,16 @@ ValuePtr HashValue::inspect(Env *env) {
     size_t index = 0;
     for (HashValue::Key &node : *this) {
         StringValue *key_repr = node.key.send(env, "inspect")->as_string();
-        out->append_string(env, key_repr);
+        out->append(env, key_repr);
         out->append(env, "=>");
         StringValue *val_repr = node.val.send(env, "inspect")->as_string();
-        out->append_string(env, val_repr);
+        out->append(env, val_repr);
         if (index < last_index) {
             out->append(env, ", ");
         }
         index++;
     }
-    out->append_char(env, '}');
+    out->append(env, '}');
     return out;
 }
 

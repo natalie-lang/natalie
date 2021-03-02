@@ -21,7 +21,7 @@ StringValue *SymbolValue::inspect(Env *env) {
     bool quote = quote_regex->match(env, new StringValue { env, m_name })->is_falsey();
     if (quote) {
         StringValue *quoted = StringValue { env, m_name }.inspect(env);
-        string->append_string(env, quoted);
+        string->append(env, quoted);
     } else {
         string->append(env, m_name);
     }

@@ -973,7 +973,7 @@ Node *Parser::parse_word_array(Env *env, LocalsVectorPtr locals) {
                 string = new StringValue { env };
                 break;
             default:
-                string->append_char(env, c);
+                string->append(env, c);
             }
         }
         array->add_node(new StringNode { token, string });
@@ -997,7 +997,7 @@ Node *Parser::parse_word_symbol_array(Env *env, LocalsVectorPtr locals) {
                 string = new StringValue { env };
                 break;
             default:
-                string->append_char(env, c);
+                string->append(env, c);
             }
         }
         array->add_node(new LiteralNode { token, SymbolValue::intern(env, string->c_str()) });

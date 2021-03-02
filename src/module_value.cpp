@@ -328,7 +328,7 @@ ValuePtr ModuleValue::attr_writer(Env *env, size_t argc, ValuePtr *args) {
             env->raise("TypeError", "%s is not a symbol nor a string", name_obj->inspect_str(env));
         }
         StringValue *method_name = new StringValue { env, name_obj->as_string()->c_str() };
-        method_name->append_char(env, '=');
+        method_name->append(env, '=');
         Env block_env = Env::new_detatched_env(env);
         block_env.var_set("name", 0, true, name_obj);
         Block *attr_block = new Block { block_env, this, ModuleValue::attr_writer_block_fn, 0 };

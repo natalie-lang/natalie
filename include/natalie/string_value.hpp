@@ -77,11 +77,12 @@ struct StringValue : Value {
 
     void insert(Env *, size_t, char);
 
+    void append(Env *, char);
     void append(Env *, const char *);
     void append(Env *, std::string);
-    void append_char(Env *, char);
-    void append_string(Env *, ValuePtr);
-    void append_string(Env *, StringValue *);
+    void append(Env *, ValuePtr);
+    void append(Env *, StringValue *);
+
     StringValue *next_char(Env *, size_t *);
     ValuePtr each_char(Env *, Block *);
     ArrayValue *chars(Env *);

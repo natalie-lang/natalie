@@ -393,7 +393,7 @@ ValuePtr FloatValue::arg(Env *env) {
             rhs = coerced.second;                                                                          \
         }                                                                                                  \
                                                                                                            \
-        if (!lhs->is_float()) return lhs.send(env, NAT_QUOTE(op), 1, &rhs);                               \
+        if (!lhs->is_float()) return lhs.send(env, NAT_QUOTE(op), 1, &rhs);                                \
         if (!rhs->is_float()) {                                                                            \
             env->raise("ArgumentError", "comparison of Float with %s failed", rhs->klass()->class_name()); \
         }                                                                                                  \
