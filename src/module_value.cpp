@@ -96,9 +96,9 @@ ValuePtr ModuleValue::const_find(Env *env, SymbolValue *name, ConstLookupSearchM
     if (failure_mode == ConstLookupFailureMode::Null) return nullptr;
 
     if (search_mode == ConstLookupSearchMode::Strict) {
-        env->raise("NameError", "uninitialized constant %s::%s", this->inspect_str(env), name);
+        env->raise("NameError", "uninitialized constant %s::%s", this->inspect_str(env), name->c_str());
     } else {
-        env->raise("NameError", "uninitialized constant %s", name);
+        env->raise("NameError", "uninitialized constant %s", name->c_str());
     }
 }
 
