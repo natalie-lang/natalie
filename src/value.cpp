@@ -309,7 +309,6 @@ ValuePtr Value::instance_variables(Env *env) {
     if (m_type == Value::Type::Integer || m_type == Value::Type::Float) {
         return ary;
     }
-    struct hashmap_iter *iter;
     for (auto pair : m_ivars) {
         ary->push(pair.first);
     }
