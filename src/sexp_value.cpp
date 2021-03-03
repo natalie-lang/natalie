@@ -9,8 +9,8 @@ SexpValue::SexpValue(Env *env, Node *node, std::initializer_list<ValuePtr> list)
     m_klass = env->Object()->const_fetch(env, SymbolValue::intern(env, "Parser"))->const_fetch(env, SymbolValue::intern(env, "Sexp"))->as_class();
     if (node->file())
         ivar_set(env, SymbolValue::intern(env, "@file"), new StringValue { env, node->file() });
-    ivar_set(env, SymbolValue::intern(env, "@line"), new IntegerValue { env, static_cast<nat_int_t>(node->line()) });
-    ivar_set(env, SymbolValue::intern(env, "@column"), new IntegerValue { env, static_cast<nat_int_t>(node->column()) });
+    ivar_set(env, SymbolValue::intern(env, "@line"), ValuePtr { env, static_cast<nat_int_t>(node->line()) });
+    ivar_set(env, SymbolValue::intern(env, "@column"), ValuePtr { env, static_cast<nat_int_t>(node->column()) });
 }
 
 }

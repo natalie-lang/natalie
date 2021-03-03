@@ -13,7 +13,7 @@ namespace Natalie {
 
 struct KernelModule : Value {
     ValuePtr object_id(Env *env) {
-        return new IntegerValue { env, Value::object_id() };
+        return ValuePtr { env, Value::object_id() };
     }
 
     bool equal(ValuePtr other) {

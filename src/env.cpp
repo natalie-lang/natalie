@@ -88,7 +88,7 @@ void Env::raise_local_jump_error(ValuePtr exit_value, const char *message) {
 }
 
 void Env::raise_errno() {
-    ValuePtr exception_args[] = { new IntegerValue { this, errno } };
+    ValuePtr exception_args[] = { ValuePtr { this, errno } };
     ExceptionValue *error = Object()->const_find(this, SymbolValue::intern(this, "SystemCallError")).send(this, "exception", 1, exception_args, nullptr)->as_exception();
     raise_exception(error);
 }

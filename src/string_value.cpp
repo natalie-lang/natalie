@@ -237,7 +237,7 @@ ValuePtr StringValue::index(Env *env, ValuePtr needle, size_t start) {
     if (i == -1) {
         return env->nil_obj();
     }
-    return new IntegerValue { env, i };
+    return ValuePtr { env, i };
 }
 
 // FIXME: this does not honor multi-byte characters :-(
@@ -370,7 +370,7 @@ ValuePtr StringValue::cmp(Env *env, ValuePtr other) {
     } else {
         result = 0;
     }
-    return new IntegerValue { env, result };
+    return ValuePtr { env, result };
 }
 
 ValuePtr StringValue::eqtilde(Env *env, ValuePtr other) {
@@ -410,13 +410,13 @@ ValuePtr StringValue::ord(Env *env) {
     default:
         NAT_UNREACHABLE();
     }
-    return new IntegerValue { env, code };
+    return ValuePtr { env, code };
 }
 
 ValuePtr StringValue::bytes(Env *env) {
     ArrayValue *ary = new ArrayValue { env };
     for (size_t i = 0; i < m_length; i++) {
-        ary->push(new IntegerValue { env, m_str[i] });
+        ary->push(ValuePtr { env, m_str[i] });
     }
     return ary;
 }
@@ -675,7 +675,7 @@ ValuePtr StringValue::to_i(Env *env, ValuePtr base_obj) {
         base = base_obj->as_integer()->to_nat_int_t();
     }
     nat_int_t number = strtoll(m_str, nullptr, base);
-    return new IntegerValue { env, number };
+    return ValuePtr { env, number };
 }
 
 ValuePtr StringValue::split(Env *env, ValuePtr splitter, ValuePtr max_count_value) {

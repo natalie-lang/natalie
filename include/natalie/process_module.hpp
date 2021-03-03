@@ -13,7 +13,7 @@ struct ProcessModule : Value {
 
     static ValuePtr pid(Env *env) {
         pid_t pid = getpid();
-        return new IntegerValue { env, pid };
+        return ValuePtr { env, pid };
     }
 };
 

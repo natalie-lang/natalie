@@ -27,7 +27,7 @@ module Process
         if (result == -1)
             env->raise_errno();
         set_status_object(env, result, status);
-        return new IntegerValue { env, static_cast<nat_int_t>(result) };
+        return ValuePtr { env, static_cast<nat_int_t>(result) };
     END
   end
 end

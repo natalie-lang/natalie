@@ -11,9 +11,9 @@ namespace Natalie {
 
 ValuePtr FloatValue::is_infinite(Env *env) {
     if (is_positive_infinity()) {
-        return new IntegerValue { env, 1 };
+        return ValuePtr { env, 1 };
     } else if (is_negative_infinity()) {
-        return new IntegerValue { env, -1 };
+        return ValuePtr { env, -1 };
     } else {
         return env->nil_obj();
     }
@@ -190,11 +190,11 @@ ValuePtr FloatValue::cmp(Env *env, ValuePtr other) {
     double rhs_d = rhs->as_float()->to_double();
 
     if (lhs_d < rhs_d) {
-        return new IntegerValue { env, -1 };
+        return ValuePtr { env, -1 };
     } else if (lhs_d == rhs_d) {
-        return new IntegerValue { env, 0 };
+        return ValuePtr { env, 0 };
     } else {
-        return new IntegerValue { env, 1 };
+        return ValuePtr { env, 1 };
     }
 }
 
@@ -220,7 +220,7 @@ ValuePtr FloatValue::coerce(Env *env, ValuePtr arg) {
 }
 
 ValuePtr FloatValue::to_i(Env *env) {
-    return new IntegerValue { env, static_cast<nat_int_t>(::floor(to_double())) };
+    return ValuePtr { env, static_cast<nat_int_t>(::floor(to_double())) };
 }
 
 ValuePtr FloatValue::add(Env *env, ValuePtr rhs) {
@@ -376,7 +376,7 @@ ValuePtr FloatValue::prev_float(Env *env) {
 ValuePtr FloatValue::arg(Env *env) {
     if (is_nan()) return this;
     if (!signbit(m_double)) {
-        return new IntegerValue { env, 0 };
+        return ValuePtr { env, 0 };
     } else {
         ValuePtr Math = env->Object()->const_fetch(env, SymbolValue::intern(env, "Math"));
         return Math->const_fetch(env, SymbolValue::intern(env, "PI"));

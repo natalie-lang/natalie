@@ -753,7 +753,7 @@ Node *Parser::parse_lit(Env *env, LocalsVectorPtr locals) {
     auto token = current_token();
     switch (token->type()) {
     case Token::Type::Integer:
-        value = new IntegerValue { env, token->get_integer() };
+        value = ValuePtr { env, token->get_integer() };
         break;
     case Token::Type::Float:
         value = new FloatValue { env, token->get_double() };
@@ -1207,7 +1207,7 @@ Node *Parser::parse_infix_expression(Env *env, Node *left, LocalsVectorPtr local
     Node *right = nullptr;
     if (op->type() == Token::Type::Integer) {
         bool is_negative = op->get_integer() < 0;
-        right = new LiteralNode { token, new IntegerValue { env, op->get_integer() * (is_negative ? -1 : 1) } };
+        right = new LiteralNode { token, ValuePtr { env, op->get_integer() * (is_negative ? -1 : 1) } };
         op = new Token { is_negative ? Token::Type::Minus : Token::Type::Plus, op->file(), op->line(), op->column() };
     } else if (op->type() == Token::Type::Float) {
         bool is_negative = op->get_double() < 0;

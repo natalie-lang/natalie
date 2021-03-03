@@ -66,7 +66,7 @@ ValuePtr KernelModule::define_singleton_method(Env *env, ValuePtr name, Block *b
 
 ValuePtr KernelModule::exit(Env *env, ValuePtr status) {
     if (!status || status->type() != Value::Type::Integer) {
-        status = new IntegerValue { env, 0 };
+        status = ValuePtr { env, 0 };
     }
     ExceptionValue *exception = new ExceptionValue { env, env->Object()->const_find(env, SymbolValue::intern(env, "SystemExit"))->as_class(), "exit" };
     exception->ivar_set(env, SymbolValue::intern(env, "@status"), status);
@@ -80,27 +80,27 @@ ValuePtr KernelModule::get_usage(Env *env) {
         return env->nil_obj();
     }
     HashValue *hash = new HashValue { env };
-    hash->put(env, new StringValue { env, "maxrss" }, new IntegerValue { env, usage.ru_maxrss });
-    hash->put(env, new StringValue { env, "ixrss" }, new IntegerValue { env, usage.ru_ixrss });
-    hash->put(env, new StringValue { env, "idrss" }, new IntegerValue { env, usage.ru_idrss });
-    hash->put(env, new StringValue { env, "isrss" }, new IntegerValue { env, usage.ru_isrss });
-    hash->put(env, new StringValue { env, "minflt" }, new IntegerValue { env, usage.ru_minflt });
-    hash->put(env, new StringValue { env, "majflt" }, new IntegerValue { env, usage.ru_majflt });
-    hash->put(env, new StringValue { env, "nswap" }, new IntegerValue { env, usage.ru_nswap });
-    hash->put(env, new StringValue { env, "inblock" }, new IntegerValue { env, usage.ru_inblock });
-    hash->put(env, new StringValue { env, "oublock" }, new IntegerValue { env, usage.ru_oublock });
-    hash->put(env, new StringValue { env, "msgsnd" }, new IntegerValue { env, usage.ru_msgsnd });
-    hash->put(env, new StringValue { env, "msgrcv" }, new IntegerValue { env, usage.ru_msgrcv });
-    hash->put(env, new StringValue { env, "nsignals" }, new IntegerValue { env, usage.ru_nsignals });
-    hash->put(env, new StringValue { env, "nvcsw" }, new IntegerValue { env, usage.ru_nvcsw });
-    hash->put(env, new StringValue { env, "nivcsw" }, new IntegerValue { env, usage.ru_nivcsw });
+    hash->put(env, new StringValue { env, "maxrss" }, ValuePtr { env, usage.ru_maxrss });
+    hash->put(env, new StringValue { env, "ixrss" }, ValuePtr { env, usage.ru_ixrss });
+    hash->put(env, new StringValue { env, "idrss" }, ValuePtr { env, usage.ru_idrss });
+    hash->put(env, new StringValue { env, "isrss" }, ValuePtr { env, usage.ru_isrss });
+    hash->put(env, new StringValue { env, "minflt" }, ValuePtr { env, usage.ru_minflt });
+    hash->put(env, new StringValue { env, "majflt" }, ValuePtr { env, usage.ru_majflt });
+    hash->put(env, new StringValue { env, "nswap" }, ValuePtr { env, usage.ru_nswap });
+    hash->put(env, new StringValue { env, "inblock" }, ValuePtr { env, usage.ru_inblock });
+    hash->put(env, new StringValue { env, "oublock" }, ValuePtr { env, usage.ru_oublock });
+    hash->put(env, new StringValue { env, "msgsnd" }, ValuePtr { env, usage.ru_msgsnd });
+    hash->put(env, new StringValue { env, "msgrcv" }, ValuePtr { env, usage.ru_msgrcv });
+    hash->put(env, new StringValue { env, "nsignals" }, ValuePtr { env, usage.ru_nsignals });
+    hash->put(env, new StringValue { env, "nvcsw" }, ValuePtr { env, usage.ru_nvcsw });
+    hash->put(env, new StringValue { env, "nivcsw" }, ValuePtr { env, usage.ru_nivcsw });
     return hash;
 }
 
 ValuePtr KernelModule::hash(Env *env) {
     StringValue *inspected = _send(env, "inspect")->as_string();
     nat_int_t hash_value = hashmap_hash_string(inspected->c_str());
-    return new IntegerValue { env, hash_value };
+    return ValuePtr { env, hash_value };
 }
 
 ValuePtr KernelModule::inspect(Env *env) {
@@ -264,7 +264,7 @@ ValuePtr KernelModule::spawn(Env *env, size_t argc, ValuePtr *args) {
     cmd[argc] = nullptr;
     int result = posix_spawnp(&pid, cmd[0], NULL, NULL, cmd, environ);
     if (result == 0) {
-        return new IntegerValue { env, pid };
+        return ValuePtr { env, pid };
     } else {
         env->raise_errno();
     }

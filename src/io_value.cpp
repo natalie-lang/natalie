@@ -70,14 +70,14 @@ ValuePtr IoValue::write(Env *env, size_t argc, ValuePtr *args) {
         obj->assert_type(env, Value::Type::String, "String");
         int result = ::write(m_fileno, obj->as_string()->c_str(), obj->as_string()->length());
         if (result == -1) {
-            ValuePtr error_number = new IntegerValue { env, errno };
+            ValuePtr error_number = ValuePtr { env, errno };
             ExceptionValue *error = env->Object()->const_find(env, SymbolValue::intern(env, "SystemCallError")).send(env, "exception", 1, &error_number, nullptr)->as_exception();
             env->raise_exception(error);
         } else {
             bytes_written += result;
         }
     }
-    return new IntegerValue { env, bytes_written };
+    return ValuePtr { env, bytes_written };
 }
 
 ValuePtr IoValue::puts(Env *env, size_t argc, ValuePtr *args) {
@@ -109,7 +109,7 @@ ValuePtr IoValue::close(Env *env) {
         return env->nil_obj();
     int result = ::close(m_fileno);
     if (result == -1) {
-        ValuePtr error_number = new IntegerValue { env, errno };
+        ValuePtr error_number = ValuePtr { env, errno };
         ExceptionValue *error = env->Object()->const_find(env, SymbolValue::intern(env, "SystemCallError")).send(env, "exception", 1, &error_number, nullptr)->as_exception();
         env->raise_exception(error);
     } else {
@@ -146,11 +146,11 @@ ValuePtr IoValue::seek(Env *env, ValuePtr amount_value, ValuePtr whence_value) {
     }
     int result = lseek(m_fileno, amount, whence);
     if (result == -1) {
-        ValuePtr error_number = new IntegerValue { env, errno };
+        ValuePtr error_number = ValuePtr { env, errno };
         ExceptionValue *error = env->Object()->const_find(env, SymbolValue::intern(env, "SystemCallError")).send(env, "exception", 1, &error_number, nullptr)->as_exception();
         env->raise_exception(error);
     } else {
-        return new IntegerValue { env, 0 };
+        return ValuePtr { env, 0 };
     }
 }
 

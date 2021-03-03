@@ -36,9 +36,9 @@ struct IntegerValue : Value {
         return m_integer % 2 == 0;
     }
 
-    static IntegerValue *from_size_t(Env *env, size_t number) {
+    static ValuePtr from_size_t(Env *env, size_t number) {
         assert(number <= NAT_INT_MAX);
-        return new IntegerValue { env, static_cast<nat_int_t>(number) };
+        return { env, static_cast<nat_int_t>(number) };
     }
 
     ValuePtr inspect(Env *env) { return to_s(env); }

@@ -199,7 +199,7 @@ ValuePtr #{name}(Env *env, ValuePtr, size_t argc, ValuePtr *args, Block *block) 
       when :bool
         'if (return_value) { return env->true_obj(); } else { return env->false_obj(); }'
       when :int
-        'return new IntegerValue { env, return_value };'
+        'return ValuePtr { env, return_value };'
       when :size_t
         'return IntegerValue::from_size_t(env, return_value);'
       when :c_str
