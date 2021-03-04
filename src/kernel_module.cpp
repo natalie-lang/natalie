@@ -107,7 +107,7 @@ ValuePtr KernelModule::inspect(Env *env) {
     if (is_module() && as_module()->class_name()) {
         return new StringValue { env, as_module()->class_name() };
     } else {
-        return StringValue::sprintf(env, "#<%s:%s>", klass()->inspect_str(env), pointer_id());
+        return StringValue::format(env, "#<{}:{}>", klass()->inspect_str(env), pointer_id());
     }
 }
 

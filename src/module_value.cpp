@@ -271,16 +271,16 @@ bool ModuleValue::is_method_defined(Env *env, ValuePtr name_value) {
 ValuePtr ModuleValue::inspect(Env *env) {
     if (m_class_name) {
         if (owner() && owner() != env->Object()) {
-            return StringValue::sprintf(env, "%s::%s", owner()->inspect_str(env), m_class_name);
+            return StringValue::format(env, "{}::{}", owner()->inspect_str(env), m_class_name);
         } else {
             return new StringValue { env, m_class_name };
         }
     } else if (is_class()) {
-        return StringValue::sprintf(env, "#<Class:%s>", pointer_id());
+        return StringValue::format(env, "#<Class:{}>", pointer_id());
     } else if (is_module() && m_class_name) {
         return new StringValue { env, m_class_name };
     } else {
-        return StringValue::sprintf(env, "#<%s:%s>", klass()->inspect_str(env), pointer_id());
+        return StringValue::format(env, "#<{}:{}>", klass()->inspect_str(env), pointer_id());
     }
 }
 
@@ -313,7 +313,7 @@ ValuePtr ModuleValue::attr_reader(Env *env, size_t argc, ValuePtr *args) {
 ValuePtr ModuleValue::attr_reader_block_fn(Env *env, ValuePtr self, size_t argc, ValuePtr *args, Block *block) {
     ValuePtr name_obj = env->outer()->var_get("name", 0);
     assert(name_obj);
-    StringValue *ivar_name = StringValue::sprintf(env, "@%S", name_obj.value());
+    StringValue *ivar_name = StringValue::format(env, "@{}", name_obj.value());
     return self->ivar_get(env, ivar_name->to_symbol(env));
 }
 
@@ -341,7 +341,7 @@ ValuePtr ModuleValue::attr_writer_block_fn(Env *env, ValuePtr self, size_t argc,
     ValuePtr val = args[0];
     ValuePtr name_obj = env->outer()->var_get("name", 0);
     assert(name_obj);
-    StringValue *ivar_name = StringValue::sprintf(env, "@%S", name_obj.value());
+    StringValue *ivar_name = StringValue::format(env, "@{}", name_obj.value());
     self->ivar_set(env, ivar_name->to_symbol(env), val);
     return val;
 }

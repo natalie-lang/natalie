@@ -34,7 +34,7 @@ ArrayValue *EncodingValue::names(Env *env) {
 }
 
 ValuePtr EncodingValue::inspect(Env *env) {
-    return StringValue::sprintf(env, "#<Encoding:%S>", name());
+    return StringValue::format(env, "#<Encoding:{}>", name());
 }
 
 }

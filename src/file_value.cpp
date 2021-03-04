@@ -55,12 +55,12 @@ ValuePtr FileValue::expand_path(Env *env, ValuePtr path, ValuePtr root) {
         merged = path->as_string();
     } else if (root) {
         root = expand_path(env, root, nullptr);
-        merged = StringValue::sprintf(env, "%S/%S", root.value(), path.value());
+        merged = StringValue::format(env, "{}/{}", root.value(), path.value());
     } else {
         char root[MAXPATHLEN + 1];
         if (!getcwd(root, MAXPATHLEN + 1))
             env->raise_errno();
-        merged = StringValue::sprintf(env, "%s/%S", root, path.value());
+        merged = StringValue::format(env, "{}/{}", root, path.value());
     }
     // collapse ..
     RegexpValue dotdot { env, "[^/]*/\\.\\.(/|\\z)" };

@@ -27,9 +27,9 @@ struct MethodValue : Value {
     ValuePtr inspect(Env *env) {
         auto the_owner = owner();
         if (the_owner->is_class() && the_owner->as_class()->is_singleton())
-            return StringValue::sprintf(env, "#<Method: %s.%s(*)>", m_object->inspect_str(env), m_method->name());
+            return StringValue::format(env, "#<Method: {}.{}(*)>", m_object->inspect_str(env), m_method->name());
         else
-            return StringValue::sprintf(env, "#<Method: %s#%s(*)>", owner()->class_name(), m_method->name());
+            return StringValue::format(env, "#<Method: {}#{}(*)>", owner()->class_name(), m_method->name());
     }
 
     int arity() { return m_method ? m_method->arity() : 0; }

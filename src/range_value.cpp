@@ -33,9 +33,9 @@ ValuePtr RangeValue::each(Env *env, Block *block) {
 
 ValuePtr RangeValue::inspect(Env *env) {
     if (m_exclude_end) {
-        return StringValue::sprintf(env, "%v...%v", m_begin.value(), m_end.value());
+        return StringValue::format(env, "{}...{}", m_begin->inspect_str(env), m_end->inspect_str(env));
     } else {
-        return StringValue::sprintf(env, "%v..%v", m_begin.value(), m_end.value());
+        return StringValue::format(env, "{}..{}", m_begin->inspect_str(env), m_end->inspect_str(env));
     }
 }
 

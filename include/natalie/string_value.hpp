@@ -79,9 +79,9 @@ struct StringValue : Value {
 
     void append(Env *, char);
     void append(Env *, const char *);
-    void append(Env *, std::string);
+    void append(Env *, const std::string);
+    void append(Env *, const StringValue *);
     void append(Env *, ValuePtr);
-    void append(Env *, StringValue *);
 
     StringValue *next_char(Env *, size_t *);
     ValuePtr each_char(Env *, Block *);
@@ -145,6 +145,33 @@ struct StringValue : Value {
     ValuePtr strip(Env *);
     ValuePtr to_i(Env *, ValuePtr);
     ValuePtr upcase(Env *);
+
+    template <typename... Args>
+    static StringValue *format(Env *env, const char *fmt, Args... args) {
+        auto out = new StringValue { env };
+        format(env, out, fmt, args...);
+        return out;
+    }
+
+    static void format(Env *env, StringValue *out, const char *fmt) {
+        for (const char *c = fmt; *c != 0; c++) {
+            out->append(env, *c);
+        }
+    }
+
+    template <typename T, typename... Args>
+    static void format(Env *env, StringValue *out, const char *fmt, T first, Args... rest) {
+        for (const char *c = fmt; *c != 0; c++) {
+            if (*c == '{' && *(c + 1) == '}') {
+                c++;
+                out->append(env, first);
+                format(env, out, c + 1, rest...);
+                return;
+            } else {
+                out->append(env, *c);
+            }
+        }
+    }
 
 private:
     StringValue *expand_backrefs(Env *, StringValue *, MatchDataValue *);

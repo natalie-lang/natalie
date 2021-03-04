@@ -36,7 +36,7 @@ char *Env::build_code_location_name(Env *location_env) {
             if (strcmp(location_env->method_name(), "<block>") == 0) {
                 if (location_env->outer()) {
                     char *outer_name = build_code_location_name(location_env->outer());
-                    char *name = GC_STRDUP(StringValue::sprintf(this, "block in %s", outer_name)->c_str());
+                    char *name = GC_STRDUP(StringValue::format(this, "block in {}", outer_name)->c_str());
                     GC_FREE(outer_name);
                     return name;
                 } else {

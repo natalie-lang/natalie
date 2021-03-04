@@ -36,6 +36,14 @@ void StringValue::insert(Env *env, size_t position, char c) {
     m_str[position] = c;
 }
 
+void StringValue::append(Env *env, const char c) {
+    size_t total_length = m_length + 1;
+    grow_at_least(env, total_length);
+    m_str[total_length - 1] = c;
+    m_str[total_length] = 0;
+    m_length = total_length;
+}
+
 void StringValue::append(Env *env, const char *str) {
     if (str == nullptr) return;
     size_t new_length = strlen(str);
@@ -46,7 +54,7 @@ void StringValue::append(Env *env, const char *str) {
     m_length = total_length;
 }
 
-void StringValue::append(Env *env, std::string str) {
+void StringValue::append(Env *env, const std::string str) {
     size_t new_length = str.length();
     if (new_length == 0) return;
     size_t total_length = m_length + new_length;
@@ -55,19 +63,14 @@ void StringValue::append(Env *env, std::string str) {
     m_length = total_length;
 }
 
-void StringValue::append(Env *env, char c) {
-    size_t total_length = m_length + 1;
-    grow_at_least(env, total_length);
-    m_str[total_length - 1] = c;
-    m_str[total_length] = 0;
-    m_length = total_length;
-}
-
 void StringValue::append(Env *env, ValuePtr value) {
-    append(env, value->as_string());
+    if (value->is_string())
+        append(env, value->as_string());
+    else
+        append(env, value->inspect_str(env));
 }
 
-void StringValue::append(Env *env, StringValue *string2) {
+void StringValue::append(Env *env, const StringValue *string2) {
     if (string2->length() == 0) return;
     size_t total_length = m_length + string2->length();
     grow_at_least(env, total_length);
@@ -478,7 +481,7 @@ ValuePtr StringValue::encode(Env *env, ValuePtr encoding) {
             StringValue *char_obj = (*chars)[i]->as_string();
             if (char_obj->length() > 1) {
                 ValuePtr ord = char_obj->ord(env);
-                ValuePtr message = StringValue::sprintf(env, "U+%X from UTF-8 to ASCII-8BIT", ord->as_integer()->to_nat_int_t());
+                ValuePtr message = StringValue::format(env, "U+{} from UTF-8 to ASCII-8BIT", int_to_hex_string(ord->as_integer()->to_nat_int_t(), true));
                 StringValue zero_x { env, "0X" };
                 StringValue blank { env, "" };
                 message = message->as_string()->sub(env, &zero_x, &blank);
