@@ -49,9 +49,6 @@ struct StringValue : Value {
         m_string = str;
     }
 
-    static StringValue *sprintf(Env *, const char *, ...);
-    static StringValue *vsprintf(Env *, const char *, va_list);
-
     const char *c_str() const { return m_string.c_str(); }
     size_t bytesize() const { return m_string.length(); }
     size_t length() const { return m_string.length(); }

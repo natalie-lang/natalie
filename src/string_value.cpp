@@ -5,7 +5,7 @@
 namespace Natalie {
 
 void StringValue::raise_encoding_invalid_byte_sequence_error(Env *env, size_t index) {
-    StringValue *message = sprintf(env, "invalid byte sequence at index %i in string of size %i (string not long enough)", index, length());
+    StringValue *message = format(env, "invalid byte sequence at index %i in string of size %i (string not long enough)", index, length());
     ClassValue *Encoding = env->Object()->const_find(env, SymbolValue::intern(env, "Encoding"))->as_class();
     ClassValue *InvalidByteSequenceError = Encoding->const_find(env, SymbolValue::intern(env, "InvalidByteSequenceError"))->as_class();
     ExceptionValue *exception = new ExceptionValue { env, InvalidByteSequenceError, message->c_str() };
@@ -146,58 +146,6 @@ nat_int_t StringValue::index_int(Env *env, ValuePtr needle, size_t start) {
         return -1;
     }
     return ptr - c_str();
-}
-
-StringValue *StringValue::sprintf(Env *env, const char *format, ...) {
-    va_list args;
-    va_start(args, format);
-    StringValue *out = vsprintf(env, format, args);
-    va_end(args);
-    return out;
-}
-
-StringValue *StringValue::vsprintf(Env *env, const char *format, va_list args) {
-    StringValue *out = new StringValue { env, "" };
-    size_t len = strlen(format);
-    for (size_t i = 0; i < len; i++) {
-        char c = format[i];
-        if (c == '%') {
-            char c2 = format[++i];
-            switch (c2) {
-            case 'c':
-                out->append_char(env, va_arg(args, int));
-                break;
-            case 's':
-                out->append(env, va_arg(args, char *));
-                break;
-            case 'S':
-                out->append(env, va_arg(args, StringValue *));
-                break;
-            case 'i':
-            case 'd':
-                out->append(env, std::to_string(va_arg(args, nat_int_t)));
-                break;
-            case 'x':
-                out->append(env, int_to_hex_string(va_arg(args, nat_int_t), false));
-                break;
-            case 'X':
-                out->append(env, int_to_hex_string(va_arg(args, nat_int_t), true));
-                break;
-            case 'v':
-                out->append(env, va_arg(args, Value *)->inspect_str(env));
-                break;
-            case '%':
-                out->append_char(env, '%');
-                break;
-            default:
-                fprintf(stderr, "Unknown format specifier: %%%c", c2);
-                abort();
-            }
-        } else {
-            out->append_char(env, c);
-        }
-    }
-    return out;
 }
 
 ValuePtr StringValue::initialize(Env *env, ValuePtr arg) {
