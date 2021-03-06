@@ -4,80 +4,6 @@
 
 namespace Natalie {
 
-void StringValue::grow(Env *env, size_t new_capacity) {
-    assert(new_capacity >= m_length);
-    m_str = static_cast<char *>(GC_REALLOC(m_str, new_capacity + 1));
-    m_capacity = new_capacity;
-}
-
-void StringValue::grow_at_least(Env *env, size_t min_capacity) {
-    if (m_capacity >= min_capacity) return;
-    if (m_capacity > 0 && min_capacity <= m_capacity * STRING_GROW_FACTOR) {
-        grow(env, m_capacity * STRING_GROW_FACTOR);
-    } else {
-        grow(env, min_capacity);
-    }
-}
-
-void StringValue::prepend_char(Env *env, char c) {
-    size_t total_length = m_length + 1;
-    grow_at_least(env, total_length);
-    memmove(m_str + 1, m_str, m_length + 1); // 1 extra for null terminator
-    m_str[0] = c;
-    m_length = total_length;
-}
-
-void StringValue::insert(Env *env, size_t position, char c) {
-    assert(position < m_length);
-    grow_at_least(env, m_length + 1);
-    m_length++;
-    size_t nbytes = m_length - position + 1; // 1 extra for null terminator
-    memmove(m_str + position + 1, m_str + position, nbytes);
-    m_str[position] = c;
-}
-
-void StringValue::append(Env *env, const char c) {
-    size_t total_length = m_length + 1;
-    grow_at_least(env, total_length);
-    m_str[total_length - 1] = c;
-    m_str[total_length] = 0;
-    m_length = total_length;
-}
-
-void StringValue::append(Env *env, const char *str) {
-    if (str == nullptr) return;
-    size_t new_length = strlen(str);
-    if (new_length == 0) return;
-    size_t total_length = m_length + new_length;
-    grow_at_least(env, total_length);
-    strcat(m_str, str);
-    m_length = total_length;
-}
-
-void StringValue::append(Env *env, const std::string str) {
-    size_t new_length = str.length();
-    if (new_length == 0) return;
-    size_t total_length = m_length + new_length;
-    grow_at_least(env, total_length);
-    strcat(m_str, str.c_str());
-    m_length = total_length;
-}
-
-void StringValue::append(Env *env, ValuePtr value) {
-    if (value->is_string())
-        append(env, value->as_string());
-    else
-        append(env, value->inspect_str(env));
-}
-
-void StringValue::append(Env *env, const StringValue *string2) {
-    if (string2->length() == 0) return;
-    size_t total_length = m_length + string2->length();
-    grow_at_least(env, total_length);
-    strncat(m_str, string2->c_str(), string2->length());
-    m_length = total_length;
-}
-
 void StringValue::raise_encoding_invalid_byte_sequence_error(Env *env, size_t index) {
     StringValue *message = sprintf(env, "invalid byte sequence at index %i in string of size %i (string not long enough)", index, length());
     ClassValue *Encoding = env->Object()->const_find(env, SymbolValue::intern(env, "Encoding"))->as_class();
@@ -89,26 +15,28 @@ void StringValue::raise_encoding_invalid_byte_sequence_error(Env *env, size_t in
 StringValue *StringValue::next_char(Env *env, size_t *index) {
     StringValue *c;
     char buffer[5];
-    if (*index >= m_length)
+    size_t len = length();
+    if (*index >= len)
         return nullptr;
     size_t i = *index;
+    const char *str = m_string.c_str();
     switch (m_encoding) {
     case Encoding::UTF_8:
-        buffer[0] = m_str[i];
+        buffer[0] = str[i];
         if (((unsigned char)buffer[0] >> 3) == 30) { // 11110xxx, 4 bytes
-            if (i + 3 >= m_length) raise_encoding_invalid_byte_sequence_error(env, i);
-            buffer[1] = m_str[++i];
-            buffer[2] = m_str[++i];
-            buffer[3] = m_str[++i];
+            if (i + 3 >= len) raise_encoding_invalid_byte_sequence_error(env, i);
+            buffer[1] = str[++i];
+            buffer[2] = str[++i];
+            buffer[3] = str[++i];
             buffer[4] = 0;
         } else if (((unsigned char)buffer[0] >> 4) == 14) { // 1110xxxx, 3 bytes
-            if (i + 2 >= m_length) raise_encoding_invalid_byte_sequence_error(env, i);
-            buffer[1] = m_str[++i];
-            buffer[2] = m_str[++i];
+            if (i + 2 >= len) raise_encoding_invalid_byte_sequence_error(env, i);
+            buffer[1] = str[++i];
+            buffer[2] = str[++i];
             buffer[3] = 0;
         } else if (((unsigned char)buffer[0] >> 5) == 6) { // 110xxxxx, 2 bytes
-            if (i + 1 >= m_length) raise_encoding_invalid_byte_sequence_error(env, i);
-            buffer[1] = m_str[++i];
+            if (i + 1 >= len) raise_encoding_invalid_byte_sequence_error(env, i);
+            buffer[1] = str[++i];
             buffer[2] = 0;
         } else {
             buffer[1] = 0;
@@ -118,7 +46,7 @@ StringValue *StringValue::next_char(Env *env, size_t *index) {
         *index = i + 1;
         return c;
     case Encoding::ASCII_8BIT:
-        buffer[0] = m_str[i];
+        buffer[0] = str[i];
         buffer[1] = 0;
         c = new StringValue { env, buffer };
         c->set_encoding(Encoding::ASCII_8BIT);
@@ -149,7 +77,7 @@ ArrayValue *StringValue::chars(Env *env) {
 }
 
 SymbolValue *StringValue::to_symbol(Env *env) {
-    return SymbolValue::intern(env, m_str);
+    return SymbolValue::intern(env, c_str());
 }
 
 ValuePtr StringValue::to_sym(Env *env) {
@@ -157,10 +85,12 @@ ValuePtr StringValue::to_sym(Env *env) {
 }
 
 StringValue *StringValue::inspect(Env *env) {
+    size_t len = length();
+    const char *str = m_string.c_str();
     StringValue *out = new StringValue { env, "\"" };
-    for (size_t i = 0; i < m_length; i++) {
-        char c = m_str[i];
-        char c2 = (i + 1) < m_length ? m_str[i + 1] : 0;
+    for (size_t i = 0; i < len; i++) {
+        char c = str[i];
+        char c2 = (i + 1) < len ? str[i + 1] : 0;
         if (c == '"' || c == '\\' || (c == '#' && c2 == '{')) {
             out->append(env, '\\');
             out->append(env, c);
@@ -176,44 +106,9 @@ StringValue *StringValue::inspect(Env *env) {
     return out;
 }
 
-bool StringValue::operator==(const Value &other) const {
-    if (!other.is_string()) return false;
-    const StringValue *rhs_string = const_cast<Value &>(other).as_string();
-    return length() == rhs_string->length() && strcmp(c_str(), rhs_string->c_str()) == 0;
-}
-
 StringValue *StringValue::successive(Env *env) {
-    StringValue *result = new StringValue { env, m_str };
-    size_t index = m_length - 1;
-    char last_char = m_str[index];
-    if (last_char == 'z') {
-        result->increment_successive_char(env, 'a', 'a', 'z');
-    } else if (last_char == 'Z') {
-        result->increment_successive_char(env, 'A', 'A', 'Z');
-    } else if (last_char == '9') {
-        result->increment_successive_char(env, '0', '1', '9');
-    } else {
-        char *next = GC_STRDUP(result->c_str());
-        next[index]++;
-        result->set_str(next);
-        GC_FREE(next);
-    }
-    return result;
-}
-
-void StringValue::increment_successive_char(Env *env, char append, char begin_char, char end_char) {
-    assert(m_length > 0);
-    nat_int_t index = m_length - 1;
-    char last_char = m_str[index];
-    while (last_char == end_char) {
-        m_str[index] = begin_char;
-        last_char = m_str[--index];
-    }
-    if (index == -1) {
-        this->append(env, append);
-    } else {
-        m_str[index]++;
-    }
+    auto str = m_string.successive();
+    return new StringValue { env, str };
 }
 
 ValuePtr StringValue::index(Env *env, ValuePtr needle) {
@@ -227,9 +122,9 @@ bool StringValue::start_with(Env *env, ValuePtr needle) {
 
 bool StringValue::end_with(Env *env, ValuePtr needle) {
     needle->assert_type(env, Value::Type::String, "String");
-    if (m_length < needle->as_string()->length())
+    if (length() < needle->as_string()->length())
         return false;
-    auto from_end = new StringValue { env, m_str + m_length - needle->as_string()->length() };
+    auto from_end = new StringValue { env, c_str() + length() - needle->as_string()->length() };
     nat_int_t i = from_end->index_int(env, needle, 0);
     return i == 0;
 }
@@ -418,8 +313,8 @@ ValuePtr StringValue::ord(Env *env) {
 
 ValuePtr StringValue::bytes(Env *env) {
     ArrayValue *ary = new ArrayValue { env };
-    for (size_t i = 0; i < m_length; i++) {
-        ary->push(ValuePtr { env, m_str[i] });
+    for (size_t i = 0; i < length(); i++) {
+        ary->push(ValuePtr { env, c_str()[i] });
     }
     return ary;
 }
@@ -512,7 +407,7 @@ ValuePtr StringValue::force_encoding(Env *env, ValuePtr encoding) {
 
 ValuePtr StringValue::ref(Env *env, ValuePtr index_obj) {
     // not sure how we'd handle a string that big anyway
-    assert(m_length < NAT_INT_MAX);
+    assert(length() < NAT_INT_MAX);
 
     if (index_obj->is_integer()) {
         nat_int_t index = index_obj->as_integer()->to_nat_int_t();
@@ -570,7 +465,7 @@ ValuePtr StringValue::sub(Env *env, ValuePtr find, ValuePtr replacement, Block *
         if (index == -1) {
             return dup(env)->as_string();
         }
-        StringValue *out = new StringValue { env, m_str, static_cast<size_t>(index) };
+        StringValue *out = new StringValue { env, c_str(), static_cast<size_t>(index) };
         if (block) {
             ValuePtr result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 0, nullptr, nullptr);
             result->assert_type(env, Value::Type::String, "String");
@@ -578,7 +473,7 @@ ValuePtr StringValue::sub(Env *env, ValuePtr find, ValuePtr replacement, Block *
         } else {
             out->append(env, replacement->as_string());
         }
-        out->append(env, &m_str[index + find->as_string()->length()]);
+        out->append(env, &c_str()[index + find->as_string()->length()]);
         return out;
     } else if (find->is_regexp()) {
         if (block) {
@@ -624,10 +519,10 @@ StringValue *StringValue::regexp_sub(Env *env, RegexpValue *find, StringValue *r
     *match = match_result->as_match_data();
     size_t length = (*match)->as_match_data()->group(env, 0)->as_string()->length();
     nat_int_t index = (*match)->as_match_data()->index(0);
-    StringValue *out = new StringValue { env, m_str, static_cast<size_t>(index) };
+    StringValue *out = new StringValue { env, c_str(), static_cast<size_t>(index) };
     *expanded_replacement = expand_backrefs(env, replacement->as_string(), *match);
     out->append(env, *expanded_replacement);
-    out->append(env, &m_str[index + length]);
+    out->append(env, &c_str()[index + length]);
     return out;
 }
 
@@ -677,7 +572,7 @@ ValuePtr StringValue::to_i(Env *env, ValuePtr base_obj) {
         base_obj->assert_type(env, Value::Type::Integer, "Integer");
         base = base_obj->as_integer()->to_nat_int_t();
     }
-    nat_int_t number = strtoll(m_str, nullptr, base);
+    nat_int_t number = strtoll(c_str(), nullptr, base);
     return ValuePtr { env, number };
 }
 
@@ -691,7 +586,7 @@ ValuePtr StringValue::split(Env *env, ValuePtr splitter, ValuePtr max_count_valu
         max_count_value->assert_type(env, Value::Type::Integer, "Integer");
         max_count = max_count_value->as_integer()->to_nat_int_t();
     }
-    if (m_length == 0) {
+    if (length() == 0) {
         return ary;
     } else if (max_count == 1) {
         ary->push(dup(env));
@@ -700,23 +595,23 @@ ValuePtr StringValue::split(Env *env, ValuePtr splitter, ValuePtr max_count_valu
         size_t last_index = 0;
         size_t index, len;
         OnigRegion *region = onig_region_new();
-        int result = splitter->as_regexp()->search(m_str, region, ONIG_OPTION_NONE);
+        int result = splitter->as_regexp()->search(c_str(), region, ONIG_OPTION_NONE);
         if (result == ONIG_MISMATCH) {
             ary->push(dup(env));
         } else {
             do {
                 index = region->beg[0];
                 len = region->end[0] - region->beg[0];
-                ary->push(new StringValue { env, &m_str[last_index], index - last_index });
+                ary->push(new StringValue { env, &c_str()[last_index], index - last_index });
                 last_index = index + len;
                 if (max_count > 0 && ary->size() >= static_cast<size_t>(max_count) - 1) {
-                    ary->push(new StringValue { env, &m_str[last_index] });
+                    ary->push(new StringValue { env, &c_str()[last_index] });
                     onig_region_free(region, true);
                     return ary;
                 }
-                result = splitter->as_regexp()->search(m_str, last_index, region, ONIG_OPTION_NONE);
+                result = splitter->as_regexp()->search(c_str(), last_index, region, ONIG_OPTION_NONE);
             } while (result != ONIG_MISMATCH);
-            ary->push(new StringValue { env, &m_str[last_index] });
+            ary->push(new StringValue { env, &c_str()[last_index] });
         }
         onig_region_free(region, true);
         return ary;
@@ -728,15 +623,15 @@ ValuePtr StringValue::split(Env *env, ValuePtr splitter, ValuePtr max_count_valu
         } else {
             do {
                 size_t u_index = static_cast<size_t>(index);
-                ary->push(new StringValue { env, &m_str[last_index], u_index - last_index });
+                ary->push(new StringValue { env, &c_str()[last_index], u_index - last_index });
                 last_index = u_index + splitter->as_string()->length();
                 if (max_count > 0 && ary->size() >= static_cast<size_t>(max_count) - 1) {
-                    ary->push(new StringValue { env, &m_str[last_index] });
+                    ary->push(new StringValue { env, &c_str()[last_index] });
                     return ary;
                 }
                 index = index_int(env, splitter->as_string(), last_index);
             } while (index != -1);
-            ary->push(new StringValue { env, &m_str[last_index] });
+            ary->push(new StringValue { env, &c_str()[last_index] });
         }
         return ary;
     } else {
@@ -766,18 +661,18 @@ ValuePtr StringValue::ljust(Env *env, ValuePtr length_obj, ValuePtr pad_obj) {
 }
 
 ValuePtr StringValue::strip(Env *env) {
-    if (m_length == 0)
+    if (length() == 0)
         return new StringValue { env };
-    assert(m_length < NAT_INT_MAX);
+    assert(length() < NAT_INT_MAX);
     nat_int_t first_char, last_char;
-    nat_int_t length = static_cast<nat_int_t>(m_length);
-    for (first_char = 0; first_char < length; first_char++) {
-        char c = m_str[first_char];
+    nat_int_t len = static_cast<nat_int_t>(length());
+    for (first_char = 0; first_char < len; first_char++) {
+        char c = c_str()[first_char];
         if (c != ' ' && c != '\t' && c != '\n')
             break;
     }
-    for (last_char = length - 1; last_char >= 0; last_char--) {
-        char c = m_str[last_char];
+    for (last_char = len - 1; last_char >= 0; last_char--) {
+        char c = c_str()[last_char];
         if (c != ' ' && c != '\t' && c != '\n')
             break;
     }
@@ -785,7 +680,7 @@ ValuePtr StringValue::strip(Env *env) {
         return new StringValue { env };
     } else {
         size_t new_length = static_cast<size_t>(last_char - first_char + 1);
-        return new StringValue { env, m_str + first_char, new_length };
+        return new StringValue { env, c_str() + first_char, new_length };
     }
 }
 
@@ -826,7 +721,7 @@ ValuePtr StringValue::upcase(Env *env) {
 }
 
 ValuePtr StringValue::reverse(Env *env) {
-    if (m_length == 0)
+    if (length() == 0)
         return new StringValue { env };
     auto ary = new ArrayValue { env };
     auto characters = chars(env)->as_array();
@@ -835,6 +730,37 @@ ValuePtr StringValue::reverse(Env *env) {
         if (i == 0) break;
     }
     return ary->join(env, nullptr);
+}
+
+void StringValue::prepend_char(Env *env, char c) {
+    m_string.prepend_char(c);
+}
+
+void StringValue::insert(Env *, size_t position, char c) {
+    m_string.insert(position, c);
+}
+
+void StringValue::append(Env *, char c) {
+    m_string.append(c);
+}
+
+void StringValue::append(Env *, const char *str) {
+    m_string.append(str);
+}
+
+void StringValue::append(Env *, const std::string str) {
+    m_string.append(str);
+}
+
+void StringValue::append(Env *, const StringValue *str) {
+    m_string.append(str->c_str());
+}
+
+void StringValue::append(Env *env, ValuePtr val) {
+    if (val->is_string())
+        append(env, val->as_string()->c_str());
+    else
+        append(env, val->inspect_str(env));
 }
 
 }

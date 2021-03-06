@@ -10,6 +10,7 @@
 #include "natalie/forward.hpp"
 #include "natalie/global_env.hpp"
 #include "natalie/macros.hpp"
+#include "natalie/string.hpp"
 #include "natalie/value.hpp"
 
 namespace Natalie {
@@ -18,9 +19,7 @@ struct StringValue : Value {
     const int STRING_GROW_FACTOR = 2;
 
     StringValue(Env *env, ClassValue *klass)
-        : Value { Value::Type::String, klass } {
-        m_str = GC_STRDUP("");
-    }
+        : Value { Value::Type::String, klass } { }
 
     StringValue(Env *env)
         : StringValue { env, "" } { }
@@ -45,30 +44,26 @@ struct StringValue : Value {
         set_str(other.c_str(), other.length());
     }
 
+    StringValue(Env *env, const String &str)
+        : Value { Value::Type::String, env->String() } {
+        m_string = str;
+    }
+
     static StringValue *sprintf(Env *, const char *, ...);
     static StringValue *vsprintf(Env *, const char *, va_list);
 
-    const char *c_str() const { return m_str; }
-    size_t bytesize() const { return m_length; }
-    size_t length() const { return m_length; }
-    size_t capcity() const { return m_capacity; }
+    const char *c_str() const { return m_string.c_str(); }
+    size_t bytesize() const { return m_string.length(); }
+    size_t length() const { return m_string.length(); }
+    size_t capcity() const { return m_string.capacity(); }
     Encoding encoding() const { return m_encoding; }
 
     void set_str(const char *str) {
-        assert(str);
-        m_str = GC_STRDUP(str);
-        m_length = strlen(str);
-        m_capacity = m_length;
+        m_string.set_str(str);
     }
 
     void set_str(const char *str, size_t length) {
-        assert(str);
-        m_str = new char[length + 1];
-        assert(strlen(str) >= length);
-        strncpy(m_str, str, length);
-        m_str[length] = 0;
-        m_length = length;
-        m_capacity = length;
+        m_string.set_str(str, length);
     }
 
     void set_encoding(Encoding encoding) { m_encoding = encoding; }
@@ -94,7 +89,15 @@ struct StringValue : Value {
 
     StringValue *inspect(Env *);
 
-    bool operator==(const Value &) const;
+    bool operator==(const Value &value) const {
+        if (!value.is_string())
+            return false;
+        return *this == *const_cast<Value &>(value).as_string(); // FIXME: const
+    }
+
+    bool operator==(const StringValue &value) const {
+        return m_string == value.m_string;
+    }
 
     StringValue *successive(Env *);
 
@@ -103,9 +106,7 @@ struct StringValue : Value {
     nat_int_t index_int(Env *, ValuePtr, size_t start);
 
     void truncate(size_t length) {
-        assert(length <= m_length);
-        m_str[length] = 0;
-        m_length = length;
+        m_string.truncate(length);
     }
 
     ValuePtr initialize(Env *, ValuePtr);
@@ -121,7 +122,7 @@ struct StringValue : Value {
 
     bool start_with(Env *, ValuePtr);
     bool end_with(Env *, ValuePtr);
-    bool is_empty() { return m_length == 0; }
+    bool is_empty() { return m_string.is_empty(); }
 
     ValuePtr gsub(Env *, ValuePtr, ValuePtr = nullptr, Block *block = nullptr);
     ValuePtr sub(Env *, ValuePtr, ValuePtr = nullptr, Block *block = nullptr);
@@ -148,29 +149,8 @@ struct StringValue : Value {
 
     template <typename... Args>
     static StringValue *format(Env *env, const char *fmt, Args... args) {
-        auto out = new StringValue { env };
-        format(env, out, fmt, args...);
-        return out;
-    }
-
-    static void format(Env *env, StringValue *out, const char *fmt) {
-        for (const char *c = fmt; *c != 0; c++) {
-            out->append(env, *c);
-        }
-    }
-
-    template <typename T, typename... Args>
-    static void format(Env *env, StringValue *out, const char *fmt, T first, Args... rest) {
-        for (const char *c = fmt; *c != 0; c++) {
-            if (*c == '{' && *(c + 1) == '}') {
-                c++;
-                out->append(env, first);
-                format(env, out, c + 1, rest...);
-                return;
-            } else {
-                out->append(env, *c);
-            }
-        }
+        auto str = String::format(fmt, args...);
+        return new StringValue { env, *str };
     }
 
 private:
@@ -179,16 +159,9 @@ private:
 
     using Value::Value;
 
-    void grow(Env *, size_t);
-    void grow_at_least(Env *, size_t);
-
-    void increment_successive_char(Env *, char, char, char);
-
     void raise_encoding_invalid_byte_sequence_error(Env *, size_t);
 
-    char *m_str { nullptr };
-    size_t m_length { 0 };
-    size_t m_capacity { 0 };
+    String m_string {};
     Encoding m_encoding { Encoding::UTF_8 };
 };
 }

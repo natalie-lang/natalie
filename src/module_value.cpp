@@ -313,7 +313,8 @@ ValuePtr ModuleValue::attr_reader(Env *env, size_t argc, ValuePtr *args) {
 ValuePtr ModuleValue::attr_reader_block_fn(Env *env, ValuePtr self, size_t argc, ValuePtr *args, Block *block) {
     ValuePtr name_obj = env->outer()->var_get("name", 0);
     assert(name_obj);
-    StringValue *ivar_name = StringValue::format(env, "@{}", name_obj.value());
+    assert(name_obj->is_string());
+    StringValue *ivar_name = StringValue::format(env, "@{}", name_obj->as_string());
     return self->ivar_get(env, ivar_name->to_symbol(env));
 }
 
@@ -341,7 +342,8 @@ ValuePtr ModuleValue::attr_writer_block_fn(Env *env, ValuePtr self, size_t argc,
     ValuePtr val = args[0];
     ValuePtr name_obj = env->outer()->var_get("name", 0);
     assert(name_obj);
-    StringValue *ivar_name = StringValue::format(env, "@{}", name_obj.value());
+    assert(name_obj->is_string());
+    StringValue *ivar_name = StringValue::format(env, "@{}", name_obj->as_string());
     self->ivar_set(env, ivar_name->to_symbol(env), val);
     return val;
 }

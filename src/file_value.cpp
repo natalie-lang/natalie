@@ -54,13 +54,14 @@ ValuePtr FileValue::expand_path(Env *env, ValuePtr path, ValuePtr root) {
     if (path->as_string()->length() > 0 && path->as_string()->c_str()[0] == '/') {
         merged = path->as_string();
     } else if (root) {
+        root->assert_type(env, Value::Type::String, "String");
         root = expand_path(env, root, nullptr);
-        merged = StringValue::format(env, "{}/{}", root.value(), path.value());
+        merged = StringValue::format(env, "{}/{}", root->as_string(), path->as_string());
     } else {
         char root[MAXPATHLEN + 1];
         if (!getcwd(root, MAXPATHLEN + 1))
             env->raise_errno();
-        merged = StringValue::format(env, "{}/{}", root, path.value());
+        merged = StringValue::format(env, "{}/{}", root, path->as_string());
     }
     // collapse ..
     RegexpValue dotdot { env, "[^/]*/\\.\\.(/|\\z)" };
