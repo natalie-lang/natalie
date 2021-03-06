@@ -844,7 +844,6 @@ Node *Parser::parse_not(Env *env, LocalsVectorPtr locals) {
 
 Node *Parser::parse_regexp(Env *env, LocalsVectorPtr locals) {
     auto token = current_token();
-    printf("token = %s\n", token->to_ruby(env)->inspect_str(env));
     RegexpValue *value;
     try {
         value = new RegexpValue { env, token->literal() };
@@ -853,7 +852,6 @@ Node *Parser::parse_regexp(Env *env, LocalsVectorPtr locals) {
     }
     auto regexp = new RegexpNode { token, value };
     advance();
-    printf("token = %s\n", current_token()->to_ruby(env)->inspect_str(env));
     return regexp;
 };
 
