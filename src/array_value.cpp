@@ -31,7 +31,7 @@ ValuePtr ArrayValue::inspect(Env *env) {
             out->append(env, ", ");
         }
     }
-    out->append(env, ']');
+    out->append_char(env, ']');
     return out;
 }
 
@@ -122,7 +122,7 @@ ValuePtr ArrayValue::ref(Env *env, ValuePtr index_obj, ValuePtr size) {
         }
         return result;
     } else {
-        env->raise("TypeError", "no implicit conversion of %s into Integer", index_obj->klass()->class_name());
+        env->raise("TypeError", "no implicit conversion of {} into Integer", index_obj->klass()->class_name());
     }
 }
 

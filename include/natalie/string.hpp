@@ -75,12 +75,20 @@ struct String : public gc {
         m_str[position] = c;
     }
 
-    void append(char c) {
+    void append_char(char c) {
         size_t total_length = m_length + 1;
         grow_at_least(total_length);
         m_str[total_length - 1] = c;
         m_str[total_length] = 0;
         m_length = total_length;
+    }
+
+    void append(size_t i) {
+        append(std::to_string(i));
+    }
+
+    void append(long long i) {
+        append(std::to_string(i));
     }
 
     void append(const char *str) {
@@ -149,7 +157,7 @@ struct String : public gc {
 
     static void format(String *out, const char *fmt) {
         for (const char *c = fmt; *c != 0; c++) {
-            out->append(*c);
+            out->append_char(*c);
         }
     }
 
@@ -162,7 +170,7 @@ struct String : public gc {
                 format(out, c + 1, rest...);
                 return;
             } else {
-                out->append(*c);
+                out->append_char(*c);
             }
         }
     }
@@ -192,7 +200,7 @@ private:
             last_char = m_str[--index];
         }
         if (index == -1) {
-            this->append(append);
+            this->append_char(append);
         } else {
             m_str[index]++;
         }

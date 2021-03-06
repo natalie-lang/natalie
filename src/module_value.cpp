@@ -96,9 +96,9 @@ ValuePtr ModuleValue::const_find(Env *env, SymbolValue *name, ConstLookupSearchM
     if (failure_mode == ConstLookupFailureMode::Null) return nullptr;
 
     if (search_mode == ConstLookupSearchMode::Strict) {
-        env->raise("NameError", "uninitialized constant %s::%s", this->inspect_str(env), name->c_str());
+        env->raise("NameError", "uninitialized constant {}::{}", this->inspect_str(env), name->c_str());
     } else {
-        env->raise("NameError", "uninitialized constant %s", name->c_str());
+        env->raise("NameError", "uninitialized constant {}", name->c_str());
     }
 }
 
@@ -114,7 +114,7 @@ ValuePtr ModuleValue::const_set(Env *env, SymbolValue *name, ValuePtr val) {
 void ModuleValue::alias(Env *env, SymbolValue *new_name, SymbolValue *old_name) {
     Method *method = find_method(env, old_name);
     if (!method) {
-        env->raise("NameError", "undefined method `%s' for `%v'", old_name->c_str(), this);
+        env->raise("NameError", "undefined method `{}' for `{}'", old_name->c_str(), this->inspect_str(env));
     }
     m_methods.put(env, new_name, new Method { *method });
 }
@@ -129,7 +129,7 @@ ValuePtr ModuleValue::eval_body(Env *env, ValuePtr (*fn)(Env *, ValuePtr)) {
 
 ValuePtr ModuleValue::cvar_get_or_null(Env *env, SymbolValue *name) {
     if (!name->is_cvar_name())
-        env->raise("NameError", "`%s' is not allowed as a class variable name", name->c_str());
+        env->raise("NameError", "`{}' is not allowed as a class variable name", name->c_str());
 
     ModuleValue *module = this;
     ValuePtr val = nullptr;
@@ -144,7 +144,7 @@ ValuePtr ModuleValue::cvar_get_or_null(Env *env, SymbolValue *name) {
 
 ValuePtr ModuleValue::cvar_set(Env *env, SymbolValue *name, ValuePtr val) {
     if (!name->is_cvar_name())
-        env->raise("NameError", "`%s' is not allowed as a class variable name", name->c_str());
+        env->raise("NameError", "`{}' is not allowed as a class variable name", name->c_str());
 
     ModuleValue *current = this;
 
@@ -231,14 +231,14 @@ ValuePtr ModuleValue::call_method(Env *env, ValuePtr instance_class, SymbolValue
         if (method->visibility() >= visibility_at_least) {
             return method->call(env, self, argc, args, block);
         } else {
-            env->raise("NoMethodError", "private method `%s' called for %s", method_name->c_str(), self->inspect_str(env));
+            env->raise("NoMethodError", "private method `{}' called for {}", method_name->c_str(), self->inspect_str(env));
         }
     } else if (self->is_module()) {
-        env->raise("NoMethodError", "undefined method `%s' for %s:%v", method_name->c_str(), self->as_module()->class_name(), instance_class.value());
+        env->raise("NoMethodError", "undefined method `{}' for {}:{}", method_name->c_str(), self->as_module()->class_name(), instance_class->inspect_str(env));
     } else if (method_name == SymbolValue::intern(env, "inspect")) {
-        env->raise("NoMethodError", "undefined method `inspect' for #<%s:0x%x>", self->klass()->class_name(), self->object_id());
+        env->raise("NoMethodError", "undefined method `inspect' for #<{}:0x{}>", self->klass()->class_name(), int_to_hex_string(self->object_id(), false));
     } else {
-        env->raise("NoMethodError", "undefined method `%s' for %s", method_name->c_str(), self->inspect_str(env));
+        env->raise("NoMethodError", "undefined method `{}' for {}", method_name->c_str(), self->inspect_str(env));
     }
 }
 
@@ -300,7 +300,7 @@ ValuePtr ModuleValue::attr_reader(Env *env, size_t argc, ValuePtr *args) {
         } else if (name_obj->type() == Value::Type::Symbol) {
             name_obj = name_obj->as_symbol()->to_s(env);
         } else {
-            env->raise("TypeError", "%s is not a symbol nor a string", name_obj->inspect_str(env));
+            env->raise("TypeError", "{} is not a symbol nor a string", name_obj->inspect_str(env));
         }
         Env block_env = Env::new_detatched_env(env);
         block_env.var_set("name", 0, true, name_obj);
@@ -326,10 +326,10 @@ ValuePtr ModuleValue::attr_writer(Env *env, size_t argc, ValuePtr *args) {
         } else if (name_obj->type() == Value::Type::Symbol) {
             name_obj = name_obj->as_symbol()->to_s(env);
         } else {
-            env->raise("TypeError", "%s is not a symbol nor a string", name_obj->inspect_str(env));
+            env->raise("TypeError", "{} is not a symbol nor a string", name_obj->inspect_str(env));
         }
         StringValue *method_name = new StringValue { env, name_obj->as_string()->c_str() };
-        method_name->append(env, '=');
+        method_name->append_char(env, '=');
         Env block_env = Env::new_detatched_env(env);
         block_env.var_set("name", 0, true, name_obj);
         Block *attr_block = new Block { block_env, this, ModuleValue::attr_writer_block_fn, 0 };
@@ -407,7 +407,7 @@ ValuePtr ModuleValue::public_method(Env *env, ValuePtr method_name) {
 bool ModuleValue::const_defined(Env *env, ValuePtr name_value) {
     auto name = name_value->to_symbol(env, Value::Conversion::NullAllowed);
     if (!name) {
-        env->raise("TypeError", "no implicit conversion of %v to String", name_value.value());
+        env->raise("TypeError", "no implicit conversion of {} to String", name_value->inspect_str(env));
     }
     return !!const_find(env, name, ConstLookupSearchMode::NotStrict, ConstLookupFailureMode::Null);
 }
@@ -415,11 +415,11 @@ bool ModuleValue::const_defined(Env *env, ValuePtr name_value) {
 ValuePtr ModuleValue::alias_method(Env *env, ValuePtr new_name_value, ValuePtr old_name_value) {
     auto new_name = new_name_value->to_symbol(env, Value::Conversion::NullAllowed);
     if (!new_name) {
-        env->raise("TypeError", "%s is not a symbol", new_name_value->inspect_str(env));
+        env->raise("TypeError", "{} is not a symbol", new_name_value->inspect_str(env));
     }
     auto old_name = old_name_value->to_symbol(env, Value::Conversion::NullAllowed);
     if (!old_name) {
-        env->raise("TypeError", "%s is not a symbol", old_name_value->inspect_str(env));
+        env->raise("TypeError", "{} is not a symbol", old_name_value->inspect_str(env));
     }
     alias(env, new_name, old_name);
     return this;

@@ -141,7 +141,7 @@ ValuePtr IoValue::seek(Env *env, ValuePtr amount_value, ValuePtr whence_value) {
             break;
         }
         default:
-            env->raise("TypeError", "no implicit conversion of %s into Integer", whence_value->klass()->class_name());
+            env->raise("TypeError", "no implicit conversion of {} into Integer", whence_value->klass()->class_name());
         }
     }
     int result = lseek(m_fileno, amount, whence);

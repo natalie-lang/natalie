@@ -81,7 +81,7 @@ ArrayValue *to_ary(Env *env, ValuePtr obj, bool raise_for_non_array) {
             return ary->as_array();
         } else {
             const char *class_name = obj->klass()->class_name();
-            env->raise("TypeError", "can't convert %s to Array (%s#to_ary gives %s)", class_name, class_name, ary->klass()->class_name());
+            env->raise("TypeError", "can't convert {} to Array ({}#to_ary gives {})", class_name, class_name, ary->klass()->class_name());
         }
     } else {
         ArrayValue *ary = new ArrayValue { env };
@@ -243,7 +243,7 @@ ValuePtr kwarg_value_by_name(Env *env, ArrayValue *args, const char *name, Value
         if (default_value) {
             return default_value;
         } else {
-            env->raise("ArgumentError", "missing keyword: :%s", name);
+            env->raise("ArgumentError", "missing keyword: :{}", name);
         }
     }
     return value;
@@ -282,14 +282,14 @@ void arg_spread(Env *env, size_t argc, ValuePtr *args, const char *arrangement, 
             break;
         case 'o': {
             Value **obj_ptr = va_arg(va_args, Value **);
-            if (arg_index >= argc) env->raise("ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, arg_index + 1);
+            if (arg_index >= argc) env->raise("ArgumentError", "wrong number of arguments (given {}, expected {})", argc, arg_index + 1);
             Value *obj = args[arg_index++].value();
             *obj_ptr = obj;
             break;
         }
         case 'i': {
             int *int_ptr = va_arg(va_args, int *);
-            if (arg_index >= argc) env->raise("ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, arg_index + 1);
+            if (arg_index >= argc) env->raise("ArgumentError", "wrong number of arguments (given {}, expected {})", argc, arg_index + 1);
             ValuePtr obj = args[arg_index++];
             obj->assert_type(env, Value::Type::Integer, "Integer");
             *int_ptr = obj->as_integer()->to_nat_int_t();
@@ -297,7 +297,7 @@ void arg_spread(Env *env, size_t argc, ValuePtr *args, const char *arrangement, 
         }
         case 's': {
             const char **str_ptr = va_arg(va_args, const char **);
-            if (arg_index >= argc) env->raise("ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, arg_index + 1);
+            if (arg_index >= argc) env->raise("ArgumentError", "wrong number of arguments (given {}, expected {})", argc, arg_index + 1);
             ValuePtr obj = args[arg_index++];
             if (obj == env->nil_obj()) {
                 *str_ptr = nullptr;
@@ -309,14 +309,14 @@ void arg_spread(Env *env, size_t argc, ValuePtr *args, const char *arrangement, 
         }
         case 'b': {
             bool *bool_ptr = va_arg(va_args, bool *);
-            if (arg_index >= argc) env->raise("ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, arg_index + 1);
+            if (arg_index >= argc) env->raise("ArgumentError", "wrong number of arguments (given {}, expected {})", argc, arg_index + 1);
             ValuePtr obj = args[arg_index++];
             *bool_ptr = obj->is_truthy();
             break;
         }
         case 'v': {
             void **void_ptr = va_arg(va_args, void **);
-            if (arg_index >= argc) env->raise("ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, arg_index + 1);
+            if (arg_index >= argc) env->raise("ArgumentError", "wrong number of arguments (given {}, expected {})", argc, arg_index + 1);
             ValuePtr obj = args[arg_index++];
             obj = obj->ivar_get(env, SymbolValue::intern(env, "@_ptr"));
             assert(obj->type() == Value::Type::VoidP);
@@ -451,6 +451,20 @@ void set_status_object(Env *env, int pid, int status) {
     status_obj->ivar_set(env, SymbolValue::intern(env, "@exitstatus"), ValuePtr { env, WEXITSTATUS(status) });
     status_obj->ivar_set(env, SymbolValue::intern(env, "@pid"), ValuePtr { env, pid });
     env->global_set(SymbolValue::intern(env, "$?"), status_obj);
+}
+
+const char *int_to_hex_string(nat_int_t num, bool capitalize) {
+    if (num == 0) {
+        return GC_STRDUP("0");
+    } else {
+        char buf[100]; // ought to be enough for anybody ;-)
+        if (capitalize) {
+            snprintf(buf, 100, "0X%" PRIX64, num);
+        } else {
+            snprintf(buf, 100, "0x%" PRIx64, num);
+        }
+        return GC_STRDUP(buf);
+    }
 }
 
 }

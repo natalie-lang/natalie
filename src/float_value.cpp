@@ -214,7 +214,7 @@ ValuePtr FloatValue::coerce(Env *env, ValuePtr arg) {
         abort();
         break;
     default:
-        env->raise("ArgumentError", "invalid value for Float(): %s", arg->inspect_str(env));
+        env->raise("ArgumentError", "invalid value for Float(): {}", arg->inspect_str(env));
     }
     return ary;
 }
@@ -321,7 +321,7 @@ ValuePtr FloatValue::divmod(Env *env, ValuePtr arg) {
     if (is_nan()) env->raise("FloatDomainError", "NaN");
     if (is_infinity()) env->raise("FloatDomainError", "Infinity");
 
-    if (!arg->is_numeric()) env->raise("TypeError", "%s can't be coerced into Float", arg->klass()->class_name());
+    if (!arg->is_numeric()) env->raise("TypeError", "{} can't be coerced into Float", arg->klass()->class_name());
     if (arg->is_float() && arg->as_float()->is_nan()) env->raise("FloatDomainError", "NaN");
     if (arg->is_float() && arg->as_float()->is_zero()) env->raise("ZeroDivisionError", "divided by 0");
     if (arg->is_integer() && arg->as_integer()->is_zero()) env->raise("ZeroDivisionError", "divided by 0");
@@ -395,7 +395,7 @@ ValuePtr FloatValue::arg(Env *env) {
                                                                                                            \
         if (!lhs->is_float()) return lhs.send(env, NAT_QUOTE(op), 1, &rhs);                                \
         if (!rhs->is_float()) {                                                                            \
-            env->raise("ArgumentError", "comparison of Float with %s failed", rhs->klass()->class_name()); \
+            env->raise("ArgumentError", "comparison of Float with {} failed", rhs->klass()->class_name()); \
         }                                                                                                  \
                                                                                                            \
         if (lhs->as_float()->is_nan() || rhs->as_float()->is_nan()) {                                      \

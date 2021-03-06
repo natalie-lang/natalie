@@ -27,7 +27,7 @@ struct SexpValue : ArrayValue {
                 out->append(env, ", ");
             }
         }
-        out->append(env, ')');
+        out->append_char(env, ')');
         return out;
     }
 

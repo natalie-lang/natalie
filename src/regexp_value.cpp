@@ -27,13 +27,13 @@ ValuePtr RegexpValue::inspect(Env *env) {
             out->append(env, "\\t");
             break;
         default:
-            out->append(env, c);
+            out->append_char(env, c);
         }
     }
-    out->append(env, '/');
-    if ((options() & 4) != 0) out->append(env, 'm');
-    if ((options() & 1) != 0) out->append(env, 'i');
-    if ((options() & 2) != 0) out->append(env, 'x');
+    out->append_char(env, '/');
+    if ((options() & 4) != 0) out->append_char(env, 'm');
+    if ((options() & 1) != 0) out->append_char(env, 'i');
+    if ((options() & 2) != 0) out->append_char(env, 'x');
     return out;
 }
 

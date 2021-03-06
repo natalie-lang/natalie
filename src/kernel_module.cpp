@@ -165,7 +165,7 @@ ValuePtr KernelModule::method(Env *env, ValuePtr name) {
         Method *method = singleton_class()->find_method(env, name_symbol->c_str());
         if (method) {
             if (method->is_undefined()) {
-                env->raise("NoMethodError", "undefined method `%s' for %s:Class", name, m_klass->class_name());
+                env->raise("NoMethodError", "undefined method `{}' for {}:Class", name_symbol->inspect_str(env), m_klass->class_name());
             }
             return new MethodValue { env, this, method };
         }
@@ -173,7 +173,7 @@ ValuePtr KernelModule::method(Env *env, ValuePtr name) {
     Method *method = m_klass->find_method(env, name_symbol->c_str());
     if (method)
         return new MethodValue { env, this, method };
-    env->raise("NoMethodError", "undefined method `%s' for %s:Class", name, m_klass->class_name());
+    env->raise("NoMethodError", "undefined method `{}' for {}:Class", name_symbol->inspect_str(env), m_klass->class_name());
 }
 
 ValuePtr KernelModule::methods(Env *env) {

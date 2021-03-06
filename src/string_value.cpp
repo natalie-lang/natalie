@@ -92,17 +92,17 @@ StringValue *StringValue::inspect(Env *env) {
         char c = str[i];
         char c2 = (i + 1) < len ? str[i + 1] : 0;
         if (c == '"' || c == '\\' || (c == '#' && c2 == '{')) {
-            out->append(env, '\\');
-            out->append(env, c);
+            out->append_char(env, '\\');
+            out->append_char(env, c);
         } else if (c == '\n') {
             out->append(env, "\\n");
         } else if (c == '\t') {
             out->append(env, "\\t");
         } else {
-            out->append(env, c);
+            out->append_char(env, c);
         }
     }
-    out->append(env, '"');
+    out->append_char(env, '"');
     return out;
 }
 
@@ -156,20 +156,6 @@ StringValue *StringValue::sprintf(Env *env, const char *format, ...) {
     return out;
 }
 
-const char *int_to_hex_string(nat_int_t num, bool capitalize) {
-    if (num == 0) {
-        return GC_STRDUP("0");
-    } else {
-        char buf[100]; // ought to be enough for anybody ;-)
-        if (capitalize) {
-            snprintf(buf, 100, "0X%" PRIX64, num);
-        } else {
-            snprintf(buf, 100, "0x%" PRIx64, num);
-        }
-        return GC_STRDUP(buf);
-    }
-}
-
 StringValue *StringValue::vsprintf(Env *env, const char *format, va_list args) {
     StringValue *out = new StringValue { env, "" };
     size_t len = strlen(format);
@@ -179,7 +165,7 @@ StringValue *StringValue::vsprintf(Env *env, const char *format, va_list args) {
             char c2 = format[++i];
             switch (c2) {
             case 'c':
-                out->append(env, va_arg(args, int));
+                out->append_char(env, va_arg(args, int));
                 break;
             case 's':
                 out->append(env, va_arg(args, char *));
@@ -201,14 +187,14 @@ StringValue *StringValue::vsprintf(Env *env, const char *format, va_list args) {
                 out->append(env, va_arg(args, Value *)->inspect_str(env));
                 break;
             case '%':
-                out->append(env, '%');
+                out->append_char(env, '%');
                 break;
             default:
                 fprintf(stderr, "Unknown format specifier: %%%c", c2);
                 abort();
             }
         } else {
-            out->append(env, c);
+            out->append_char(env, c);
         }
     }
     return out;
@@ -360,7 +346,7 @@ static EncodingValue *find_encoding_by_name(Env *env, const char *name) {
         }
     }
     GC_FREE(lcase_name);
-    env->raise("ArgumentError", "unknown encoding name - %s", name);
+    env->raise("ArgumentError", "unknown encoding name - {}", name);
 }
 
 ValuePtr StringValue::encode(Env *env, ValuePtr encoding) {
@@ -380,7 +366,7 @@ ValuePtr StringValue::encode(Env *env, ValuePtr encoding) {
                 StringValue zero_x { env, "0X" };
                 StringValue blank { env, "" };
                 message = message->as_string()->sub(env, &zero_x, &blank);
-                env->raise(Encoding->const_find(env, SymbolValue::intern(env, "UndefinedConversionError"))->as_class(), "%S", message.value());
+                env->raise(Encoding->const_find(env, SymbolValue::intern(env, "UndefinedConversionError"))->as_class(), "{}", message->as_string());
             }
         }
         return copy;
@@ -400,7 +386,7 @@ ValuePtr StringValue::force_encoding(Env *env, ValuePtr encoding) {
         set_encoding(find_encoding_by_name(env, encoding->as_string()->c_str())->num());
         break;
     default:
-        env->raise("TypeError", "no implicit conversion of %s into String", encoding->klass()->class_name());
+        env->raise("TypeError", "no implicit conversion of {} into String", encoding->klass()->class_name());
     }
     return this;
 }
@@ -483,7 +469,7 @@ ValuePtr StringValue::sub(Env *env, ValuePtr find, ValuePtr replacement, Block *
         StringValue *expanded_replacement;
         return regexp_sub(env, find->as_regexp(), replacement->as_string(), &match, &expanded_replacement);
     } else {
-        env->raise("TypeError", "wrong argument type %s (expected Regexp)", find->klass()->class_name());
+        env->raise("TypeError", "wrong argument type {} (expected Regexp)", find->klass()->class_name());
     }
 }
 
@@ -508,7 +494,7 @@ ValuePtr StringValue::gsub(Env *env, ValuePtr find, ValuePtr replacement_value, 
         } while (match);
         return result;
     } else {
-        env->raise("TypeError", "wrong argument type %s (expected Regexp)", find->klass()->class_name());
+        env->raise("TypeError", "wrong argument type {} (expected Regexp)", find->klass()->class_name());
     }
 }
 
@@ -551,7 +537,7 @@ StringValue *StringValue::expand_backrefs(Env *env, StringValue *str, MatchDataV
                 break;
             }
             case '\\':
-                expanded->append(env, c);
+                expanded->append_char(env, c);
                 break;
             // TODO: there are other back references we need to handle, e.g. \&, \', \`, and \+
             default:
@@ -560,7 +546,7 @@ StringValue *StringValue::expand_backrefs(Env *env, StringValue *str, MatchDataV
             }
             break;
         default:
-            expanded->append(env, c);
+            expanded->append_char(env, c);
         }
     }
     return expanded;
@@ -635,7 +621,7 @@ ValuePtr StringValue::split(Env *env, ValuePtr splitter, ValuePtr max_count_valu
         }
         return ary;
     } else {
-        env->raise("TypeError", "wrong argument type %s (expected Regexp))", splitter->klass()->class_name());
+        env->raise("TypeError", "wrong argument type {} (expected Regexp))", splitter->klass()->class_name());
     }
 }
 
@@ -696,7 +682,7 @@ ValuePtr StringValue::downcase(Env *env) {
             if (c >= 65 && c <= 90) {
                 c += 32;
             }
-            str->append(env, c);
+            str->append_char(env, c);
         }
     }
     return str;
@@ -714,7 +700,7 @@ ValuePtr StringValue::upcase(Env *env) {
             if (c >= 97 && c <= 122) {
                 c -= 32;
             }
-            str->append(env, c);
+            str->append_char(env, c);
         }
     }
     return str;
@@ -740,8 +726,8 @@ void StringValue::insert(Env *, size_t position, char c) {
     m_string.insert(position, c);
 }
 
-void StringValue::append(Env *, char c) {
-    m_string.append(c);
+void StringValue::append_char(Env *, char c) {
+    m_string.append_char(c);
 }
 
 void StringValue::append(Env *, const char *str) {

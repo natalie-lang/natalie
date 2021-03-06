@@ -229,7 +229,7 @@ const char *Value::identifier_str(Env *env, Conversion conversion) {
     } else if (conversion == Conversion::NullAllowed) {
         return nullptr;
     } else {
-        env->raise("TypeError", "%s is not a symbol nor a string", inspect_str(env));
+        env->raise("TypeError", "{} is not a symbol nor a string", inspect_str(env));
     }
 }
 
@@ -241,7 +241,7 @@ SymbolValue *Value::to_symbol(Env *env, Conversion conversion) {
     } else if (conversion == Conversion::NullAllowed) {
         return nullptr;
     } else {
-        env->raise("TypeError", "%s is not a symbol nor a string", inspect_str(env));
+        env->raise("TypeError", "{} is not a symbol nor a string", inspect_str(env));
     }
 }
 
@@ -287,7 +287,7 @@ ValuePtr Value::const_set(Env *env, SymbolValue *name, ValuePtr val) {
 
 ValuePtr Value::ivar_get(Env *env, SymbolValue *name) {
     if (!name->is_ivar_name())
-        env->raise("NameError", "`%s' is not allowed as an instance variable name", name);
+        env->raise("NameError", "`{}' is not allowed as an instance variable name", name->c_str());
 
     auto val = m_ivars.get(env, name);
     if (val)
@@ -298,7 +298,7 @@ ValuePtr Value::ivar_get(Env *env, SymbolValue *name) {
 
 ValuePtr Value::ivar_set(Env *env, SymbolValue *name, ValuePtr val) {
     if (!name->is_ivar_name())
-        env->raise("NameError", "`%s' is not allowed as an instance variable name", name);
+        env->raise("NameError", "`{}' is not allowed as an instance variable name", name->c_str());
 
     m_ivars.put(env, name, val.value());
     return val;
@@ -326,7 +326,7 @@ ValuePtr Value::cvar_get(Env *env, SymbolValue *name) {
         } else {
             module = m_klass;
         }
-        env->raise("NameError", "uninitialized class variable %s in %s", name, module->class_name());
+        env->raise("NameError", "uninitialized class variable {} in {}", name->c_str(), module->class_name());
     }
 }
 
@@ -419,7 +419,7 @@ Method *Value::find_method(Env *env, SymbolValue *method_name, MethodVisibility 
         Method *method = singleton_class()->find_method(env, method_name, matching_class_or_module);
         if (method) {
             if (method->is_undefined())
-                env->raise("NoMethodError", "undefined method `%s' for %s:Class", method_name, m_klass->class_name());
+                env->raise("NoMethodError", "undefined method `{}' for {}:Class", method_name->c_str(), m_klass->class_name());
             return method;
         }
     }
@@ -429,14 +429,14 @@ Method *Value::find_method(Env *env, SymbolValue *method_name, MethodVisibility 
         if (method->visibility() >= visibility_at_least) {
             return method;
         } else {
-            env->raise("NoMethodError", "private method `%s' called for %s", method_name->c_str(), inspect_str(env));
+            env->raise("NoMethodError", "private method `{}' called for {}", method_name->c_str(), inspect_str(env));
         }
     } else if (is_module()) {
-        env->raise("NoMethodError", "undefined method `%s' for %s:%v", method_name->c_str(), klass->as_module()->class_name(), klass);
+        env->raise("NoMethodError", "undefined method `{}' for {}:{}", method_name->c_str(), klass->as_module()->class_name(), klass->inspect_str(env));
     } else if (method_name == SymbolValue::intern(env, "inspect")) {
-        env->raise("NoMethodError", "undefined method `inspect' for #<%s:0x%x>", klass->class_name(), object_id());
+        env->raise("NoMethodError", "undefined method `inspect' for #<{}:0x{}>", klass->class_name(), int_to_hex_string(object_id(), false));
     } else {
-        env->raise("NoMethodError", "undefined method `%s' for %s", method_name->c_str(), inspect_str(env));
+        env->raise("NoMethodError", "undefined method `{}' for {}", method_name->c_str(), inspect_str(env));
     }
 }
 
@@ -530,7 +530,7 @@ ProcValue *Value::to_proc(Env *env) {
     if (respond_to(env, "to_proc")) {
         return _send(env, "to_proc")->as_proc();
     } else {
-        env->raise("TypeError", "wrong argument type %s (expected Proc)", m_klass->class_name());
+        env->raise("TypeError", "wrong argument type {} (expected Proc)", m_klass->class_name());
     }
 }
 
@@ -551,13 +551,13 @@ ValuePtr Value::instance_eval(Env *env, ValuePtr string, Block *block) {
 
 void Value::assert_type(Env *env, Value::Type expected_type, const char *expected_class_name) {
     if ((type()) != expected_type) {
-        env->raise("TypeError", "no implicit conversion of %s into %s", (klass())->class_name(), expected_class_name);
+        env->raise("TypeError", "no implicit conversion of {} into {}", (klass())->class_name(), expected_class_name);
     }
 }
 
 void Value::assert_not_frozen(Env *env) {
     if (is_frozen()) {
-        env->raise("FrozenError", "can't modify frozen %s: %s", klass()->class_name(), inspect_str(env));
+        env->raise("FrozenError", "can't modify frozen {}: {}", klass()->class_name(), inspect_str(env));
     }
 }
 

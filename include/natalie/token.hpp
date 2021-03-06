@@ -331,7 +331,7 @@ struct Token : public gc {
         case Type::InterpolatedStringEnd:
             return "dstrend";
         case Type::Invalid:
-            env->raise("SyntaxError", "%d: syntax error, unexpected '%s'", m_line + 1, m_literal);
+            env->raise("SyntaxError", "{}: syntax error, unexpected '{}'", m_line + 1, m_literal);
         case Type::LCurlyBrace:
             return "{";
         case Type::LBracket:
@@ -445,7 +445,7 @@ struct Token : public gc {
         case Type::UnterminatedRegexp:
             env->raise("SyntaxError", "unterminated regexp meets end of file");
         case Type::UnterminatedString:
-            env->raise("SyntaxError", "unterminated string meets end of file at line %i and column %i: %s", m_line, m_column, m_literal);
+            env->raise("SyntaxError", "unterminated string meets end of file at line {} and column {}: {}", m_line, m_column, m_literal);
         case Type::UntilKeyword:
             return "until";
         case Type::WhenKeyword:

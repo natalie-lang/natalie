@@ -1,6 +1,7 @@
 #include <stdarg.h>
 
 #include "natalie.hpp"
+#include "natalie/string.hpp"
 
 namespace Natalie {
 
@@ -56,18 +57,12 @@ void Env::raise(ClassValue *klass, StringValue *message) {
     this->raise_exception(exception);
 }
 
-void Env::raise(ClassValue *klass, const char *message_format, ...) {
-    va_list args;
-    va_start(args, message_format);
-    StringValue *message = StringValue::vsprintf(this, message_format, args);
-    raise(klass, message);
+void Env::raise(ClassValue *klass, struct String *message) {
+    ExceptionValue *exception = new ExceptionValue { this, klass, message->c_str() };
+    this->raise_exception(exception);
 }
 
-void Env::raise(const char *class_name, const char *message_format, ...) {
-    va_list args;
-    va_start(args, message_format);
-    StringValue *message = StringValue::vsprintf(this, message_format, args);
-    va_end(args);
+void Env::raise(const char *class_name, struct String *message) {
     ClassValue *klass = Object()->const_fetch(this, SymbolValue::intern(this, class_name))->as_class();
     ExceptionValue *exception = new ExceptionValue { this, klass, message->c_str() };
     this->raise_exception(exception);
@@ -95,19 +90,19 @@ void Env::raise_errno() {
 
 void Env::assert_argc(size_t argc, size_t expected) {
     if (argc != expected) {
-        raise("ArgumentError", "wrong number of arguments (given %d, expected %d)", argc, expected);
+        raise("ArgumentError", "wrong number of arguments (given {}, expected {})", argc, expected);
     }
 }
 
 void Env::assert_argc(size_t argc, size_t expected_low, size_t expected_high) {
     if (argc < expected_low || argc > expected_high) {
-        raise("ArgumentError", "wrong number of arguments (given %d, expected %d..%d)", argc, expected_low, expected_high);
+        raise("ArgumentError", "wrong number of arguments (given {}, expected {}..{})", argc, expected_low, expected_high);
     }
 }
 
 void Env::assert_argc_at_least(size_t argc, size_t expected) {
     if (argc < expected) {
-        raise("ArgumentError", "wrong number of arguments (given %d, expected %d+)", argc, expected);
+        raise("ArgumentError", "wrong number of arguments (given {}, expected {}+)", argc, expected);
     }
 }
 

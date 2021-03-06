@@ -72,7 +72,7 @@ struct StringValue : Value {
 
     void insert(Env *, size_t, char);
 
-    void append(Env *, char);
+    void append_char(Env *, char);
     void append(Env *, const char *);
     void append(Env *, const std::string);
     void append(Env *, const StringValue *);

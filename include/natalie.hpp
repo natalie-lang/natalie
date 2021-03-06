@@ -94,4 +94,6 @@ int pclose2(FILE *, pid_t);
 
 void set_status_object(Env *, int, int);
 
+const char *int_to_hex_string(nat_int_t, bool);
+
 }

@@ -35,6 +35,7 @@ struct ProcValue;
 struct RangeValue;
 struct RegexpValue;
 struct SexpValue;
+struct String;
 struct StringValue;
 struct SymbolValue;
 struct Token;

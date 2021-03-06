@@ -5,6 +5,7 @@
 #include "natalie/forward.hpp"
 #include "natalie/gc.hpp"
 #include "natalie/global_env.hpp"
+#include "natalie/string.hpp"
 #include "natalie/value_ptr.hpp"
 #include "natalie/vector.hpp"
 
@@ -39,11 +40,23 @@ struct Env : public gc {
     ValuePtr var_set(const char *, size_t, bool, ValuePtr);
 
     [[noreturn]] void raise(ClassValue *, StringValue *);
-    [[noreturn]] void raise(ClassValue *, const char *, ...);
-    [[noreturn]] void raise(const char *, const char *, ...);
+    [[noreturn]] void raise(ClassValue *, String *);
+    [[noreturn]] void raise(const char *, String *);
     [[noreturn]] void raise_exception(ExceptionValue *);
     [[noreturn]] void raise_local_jump_error(ValuePtr, const char *);
     [[noreturn]] void raise_errno();
+
+    template <typename... Args>
+    [[noreturn]] void raise(ClassValue *klass, const char *format, Args... args) {
+        auto message = String::format(format, args...);
+        raise(klass, message);
+    }
+
+    template <typename... Args>
+    [[noreturn]] void raise(const char *class_name, const char *format, Args... args) {
+        auto message = String::format(format, args...);
+        raise(class_name, message);
+    }
 
     void assert_argc(size_t argc, size_t expected);
     void assert_argc(size_t argc, size_t expected_low, size_t expected_high);

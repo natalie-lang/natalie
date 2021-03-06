@@ -131,7 +131,7 @@ bool IntegerValue::lt(Env *env, ValuePtr other) {
     } else if (other->is_float()) {
         return to_nat_int_t() < other->as_float()->to_double();
     }
-    env->raise("ArgumentError", "comparison of Integer with %s failed", other->inspect_str(env));
+    env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
 }
 
 bool IntegerValue::lte(Env *env, ValuePtr other) {
@@ -140,7 +140,7 @@ bool IntegerValue::lte(Env *env, ValuePtr other) {
     } else if (other->is_float()) {
         return to_nat_int_t() <= other->as_float()->to_double();
     }
-    env->raise("ArgumentError", "comparison of Integer with %s failed", other->inspect_str(env));
+    env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
 }
 
 bool IntegerValue::gt(Env *env, ValuePtr other) {
@@ -149,7 +149,7 @@ bool IntegerValue::gt(Env *env, ValuePtr other) {
     } else if (other->is_float()) {
         return to_nat_int_t() > other->as_float()->to_double();
     }
-    env->raise("ArgumentError", "comparison of Integer with %s failed", other->inspect_str(env));
+    env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
 }
 
 bool IntegerValue::gte(Env *env, ValuePtr other) {
@@ -158,7 +158,7 @@ bool IntegerValue::gte(Env *env, ValuePtr other) {
     } else if (other.is_float()) {
         return to_nat_int_t() >= other->as_float()->to_double();
     }
-    env->raise("ArgumentError", "comparison of Integer with %s failed", other->inspect_str(env));
+    env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
 }
 
 ValuePtr IntegerValue::eqeqeq(Env *env, ValuePtr arg) {
@@ -211,7 +211,7 @@ ValuePtr IntegerValue::coerce(Env *env, ValuePtr arg) {
         abort();
         break;
     default:
-        env->raise("ArgumentError", "invalid value for Float(): %s", arg->inspect_str(env));
+        env->raise("ArgumentError", "invalid value for Float(): {}", arg->inspect_str(env));
     }
     return ary;
 }

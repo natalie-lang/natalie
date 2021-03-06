@@ -973,7 +973,7 @@ Node *Parser::parse_word_array(Env *env, LocalsVectorPtr locals) {
                 string = new StringValue { env };
                 break;
             default:
-                string->append(env, c);
+                string->append_char(env, c);
             }
         }
         array->add_node(new StringNode { token, string });
@@ -997,7 +997,7 @@ Node *Parser::parse_word_symbol_array(Env *env, LocalsVectorPtr locals) {
                 string = new StringValue { env };
                 break;
             default:
-                string->append(env, c);
+                string->append_char(env, c);
             }
         }
         array->add_node(new LiteralNode { token, SymbolValue::intern(env, string->c_str()) });
@@ -1684,11 +1684,11 @@ void Parser::raise_unexpected(Env *env, Token *token, const char *expected) {
     auto type = token->type_value(env);
     auto literal = token->literal();
     if (strcmp(type, "EOF") == 0)
-        env->raise("SyntaxError", "%s#%d: syntax error, unexpected end-of-input (expected: '%s')", file, line, expected);
+        env->raise("SyntaxError", "{}#{}: syntax error, unexpected end-of-input (expected: '{}')", file, line, expected);
     else if (literal)
-        env->raise("SyntaxError", "%s#%d: syntax error, unexpected %s '%s' (expected: '%s')", file, line, type, literal, expected);
+        env->raise("SyntaxError", "{}#{}: syntax error, unexpected {} '{}' (expected: '{}')", file, line, type, literal, expected);
     else
-        env->raise("SyntaxError", "%s#%d: syntax error, unexpected '%s' (expected: '%s')", file, line, type, expected);
+        env->raise("SyntaxError", "{}#{}: syntax error, unexpected '{}' (expected: '{}')", file, line, type, expected);
 }
 
 void Parser::raise_unexpected(Env *env, const char *expected) {

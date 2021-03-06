@@ -30,12 +30,12 @@ ValuePtr FileValue::initialize(Env *env, ValuePtr filename, ValuePtr flags_obj, 
             } else if (strcmp(flags_str, "a+") == 0) {
                 flags = O_RDWR | O_CREAT | O_APPEND;
             } else {
-                env->raise("ArgumentError", "invalid access mode %s", flags_str);
+                env->raise("ArgumentError", "invalid access mode {}", flags_str);
             }
             break;
         }
         default:
-            env->raise("TypeError", "no implicit conversion of %s into String", flags_obj->klass()->class_name());
+            env->raise("TypeError", "no implicit conversion of {} into String", flags_obj->klass()->class_name());
         }
     }
     int mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;

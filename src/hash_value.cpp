@@ -157,7 +157,7 @@ ValuePtr HashValue::square_new(Env *env, size_t argc, ValuePtr *args) {
                 }
                 size_t size = pair->as_array()->size();
                 if (size < 1 || size > 2) {
-                    env->raise("ArgumentError", "invalid number of elements (%d for 1..2)", size);
+                    env->raise("ArgumentError", "invalid number of elements ({} for 1..2)", size);
                 }
                 ValuePtr key = (*pair->as_array())[0];
                 ValuePtr value = size == 1 ? env->nil_obj() : (*pair->as_array())[1];
@@ -193,7 +193,7 @@ ValuePtr HashValue::inspect(Env *env) {
         }
         index++;
     }
-    out->append(env, '}');
+    out->append_char(env, '}');
     return out;
 }
 
