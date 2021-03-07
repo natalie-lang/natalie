@@ -12,9 +12,7 @@ void StringValue::raise_encoding_invalid_byte_sequence_error(Env *env, size_t in
     env->raise_exception(exception);
 }
 
-StringValue *StringValue::next_char(Env *env, size_t *index) {
-    StringValue *c;
-    char buffer[5];
+char *StringValue::next_char(Env *env, char *buffer, size_t *index) {
     size_t len = length();
     if (*index >= len)
         return nullptr;
@@ -41,25 +39,22 @@ StringValue *StringValue::next_char(Env *env, size_t *index) {
         } else {
             buffer[1] = 0;
         }
-        c = new StringValue { env, buffer };
-        c->set_encoding(Encoding::UTF_8);
         *index = i + 1;
-        return c;
+        return buffer;
     case Encoding::ASCII_8BIT:
         buffer[0] = str[i];
         buffer[1] = 0;
-        c = new StringValue { env, buffer };
-        c->set_encoding(Encoding::ASCII_8BIT);
         (*index)++;
-        return c;
+        return buffer;
     }
     NAT_UNREACHABLE();
 }
 
 ValuePtr StringValue::each_char(Env *env, Block *block) {
-    StringValue *c = nullptr;
     size_t index = 0;
-    while ((c = next_char(env, &index))) {
+    char buffer[5];
+    while (next_char(env, buffer, &index)) {
+        auto c = new StringValue { env, buffer, m_encoding };
         ValuePtr args[] = { c };
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, args, nullptr);
     }
@@ -68,9 +63,10 @@ ValuePtr StringValue::each_char(Env *env, Block *block) {
 
 ArrayValue *StringValue::chars(Env *env) {
     ArrayValue *ary = new ArrayValue { env };
-    StringValue *c = nullptr;
     size_t index = 0;
-    while ((c = next_char(env, &index))) {
+    char buffer[5];
+    while (next_char(env, buffer, &index)) {
+        auto c = new StringValue { env, buffer, m_encoding };
         ary->push(c);
     }
     return ary;
@@ -111,10 +107,6 @@ StringValue *StringValue::successive(Env *env) {
     return new StringValue { env, str };
 }
 
-ValuePtr StringValue::index(Env *env, ValuePtr needle) {
-    return index(env, needle, 0);
-}
-
 bool StringValue::start_with(Env *env, ValuePtr needle) {
     nat_int_t i = index_int(env, needle, 0);
     return i == 0;
@@ -129,22 +121,31 @@ bool StringValue::end_with(Env *env, ValuePtr needle) {
     return i == 0;
 }
 
-// FIXME: this does not honor multi-byte characters :-(
-ValuePtr StringValue::index(Env *env, ValuePtr needle, size_t start) {
-    nat_int_t i = index_int(env, needle, start);
-    if (i == -1) {
-        return env->nil_obj();
-    }
-    return ValuePtr { env, i };
+ValuePtr StringValue::index(Env *env, ValuePtr needle) {
+    return index(env, needle, 0);
 }
 
-// FIXME: this does not honor multi-byte characters :-(
+ValuePtr StringValue::index(Env *env, ValuePtr needle, size_t start) {
+    auto byte_index = index_int(env, needle, start);
+    if (byte_index == -1) {
+        return env->nil_obj();
+    }
+    size_t byte_index_size_t = static_cast<size_t>(byte_index);
+    size_t char_index = 0, i = 0;
+    char buffer[5];
+    while (next_char(env, buffer, &i)) {
+        if (i > byte_index_size_t)
+            return IntegerValue::from_size_t(env, char_index);
+        char_index++;
+    }
+    return ValuePtr { env, 0 };
+}
+
 nat_int_t StringValue::index_int(Env *env, ValuePtr needle, size_t start) {
     needle->assert_type(env, Value::Type::String, "String");
     const char *ptr = strstr(c_str() + start, needle->as_string()->c_str());
-    if (ptr == nullptr) {
+    if (ptr == nullptr)
         return -1;
-    }
     return ptr - c_str();
 }
 
@@ -216,11 +217,11 @@ ValuePtr StringValue::match(Env *env, ValuePtr other) {
 }
 
 ValuePtr StringValue::ord(Env *env) {
-    ArrayValue *chars = this->chars(env);
-    if (chars->size() == 0) {
+    size_t index = 0;
+    char buffer[5];
+    if (!next_char(env, buffer, &index))
         env->raise("ArgumentError", "empty string");
-    }
-    StringValue *c = (*chars)[0]->as_string();
+    auto c = new StringValue { env, buffer, m_encoding };
     assert(c->length() > 0);
     unsigned int code;
     const char *str = c->c_str();
@@ -254,7 +255,13 @@ ValuePtr StringValue::bytes(Env *env) {
 }
 
 ValuePtr StringValue::size(Env *env) {
-    return IntegerValue::from_size_t(env, chars(env)->size());
+    size_t index = 0;
+    size_t char_count = 0;
+    char buffer[5];
+    while (next_char(env, buffer, &index)) {
+        char_count++;
+    }
+    return IntegerValue::from_size_t(env, char_count);
 }
 
 ValuePtr StringValue::encoding(Env *env) {

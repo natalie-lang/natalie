@@ -34,6 +34,12 @@ struct StringValue : Value {
         set_str(str);
     }
 
+    StringValue(Env *env, const char *str, Encoding encoding)
+        : Value { Value::Type::String, env->String() }
+        , m_encoding { encoding } {
+        set_str(str);
+    }
+
     StringValue(Env *env, const char *str, size_t length)
         : Value { Value::Type::String, env->String() } {
         set_str(str, length);
@@ -75,7 +81,7 @@ struct StringValue : Value {
     void append(Env *, const StringValue *);
     void append(Env *, ValuePtr);
 
-    StringValue *next_char(Env *, size_t *);
+    char *next_char(Env *, char *, size_t *);
     ValuePtr each_char(Env *, Block *);
     ArrayValue *chars(Env *);
 

@@ -20,11 +20,17 @@ describe 'string' do
   end
 
   describe '#size' do
-    it 'returns the number of characters in the string'
+    it 'returns the number of characters in the string' do
+      '😉😉😉'.size.should == 3
+      'foo bar'.size.should == 7
+    end
   end
 
   describe '#length' do
-    it 'returns the number of characters in the string'
+    it 'returns the number of characters in the string' do
+      '😉😉😉'.size.should == 3
+      'foo bar'.size.should == 7
+    end
   end
 
   describe "#<=>" do
@@ -213,11 +219,12 @@ describe 'string' do
   end
 
   describe '#index' do
-    it 'returns the index of the substring' do
-      s = 'tim is ok'
+    it 'returns the character index of the substring' do
+      s = 'tim is 😉 ok'
       s.index('tim').should == 0
       s.index('is').should == 4
-      s.index('ok').should == 7
+      s.index('😉').should == 7
+      s.index('ok').should == 9
     end
 
     it 'returns nil if the substring cannot be found' do
