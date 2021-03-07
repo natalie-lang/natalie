@@ -224,29 +224,6 @@ Method *ModuleValue::find_method(Env *env, const char *method_name, ModuleValue 
     return find_method(env, SymbolValue::intern(env, method_name), matching_class_or_module);
 }
 
-// TODO: remove this
-ValuePtr ModuleValue::call_method(Env *env, ValuePtr instance_class, SymbolValue *method_name, ValuePtr self, size_t argc, ValuePtr *args, Block *block, MethodVisibility visibility_at_least) {
-    Method *method = find_method(env, method_name);
-    if (method && !method->is_undefined()) {
-        if (method->visibility() >= visibility_at_least) {
-            return method->call(env, self, argc, args, block);
-        } else {
-            env->raise("NoMethodError", "private method `{}' called for {}", method_name->c_str(), self->inspect_str(env));
-        }
-    } else if (self->is_module()) {
-        env->raise("NoMethodError", "undefined method `{}' for {}:{}", method_name->c_str(), self->as_module()->class_name(), instance_class->inspect_str(env));
-    } else if (method_name == SymbolValue::intern(env, "inspect")) {
-        env->raise("NoMethodError", "undefined method `inspect' for #<{}:0x{}>", self->klass()->class_name(), int_to_hex_string(self->object_id(), false));
-    } else {
-        env->raise("NoMethodError", "undefined method `{}' for {}", method_name->c_str(), self->inspect_str(env));
-    }
-}
-
-// TODO: remove this
-ValuePtr ModuleValue::call_method(Env *env, ValuePtr instance_class, const char *method_name, ValuePtr self, size_t argc, ValuePtr *args, Block *block, MethodVisibility visibility_at_least) {
-    return call_method(env, instance_class, SymbolValue::intern(env, method_name), self, argc, args, block, visibility_at_least);
-}
-
 ArrayValue *ModuleValue::ancestors(Env *env) {
     ModuleValue *klass = this;
     ArrayValue *ancestors = new ArrayValue { env };

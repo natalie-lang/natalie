@@ -553,9 +553,9 @@ module Natalie
         result_name = temp('call_result')
         if args
           args_name, args_count = process_atom(args).split(':')
-          decl "ValuePtr #{result_name} = self->klass()->superclass()->call_method(env, self->klass()->superclass(), env->find_current_method_name(), self, #{args_count}, #{args_name}, #{block || 'nullptr'});"
+          decl "ValuePtr #{result_name} = super(env, self, #{args_count}, #{args_name}, #{block || 'nullptr'});"
         else
-          decl "ValuePtr #{result_name} = self->klass()->superclass()->call_method(env, self->klass()->superclass(), env->find_current_method_name(), self, argc, args, #{block || 'nullptr'});"
+          decl "ValuePtr #{result_name} = super(env, self, argc, args, #{block || 'nullptr'});"
         end
         result_name
       end

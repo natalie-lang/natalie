@@ -72,9 +72,6 @@ struct ModuleValue : Value {
     Method *find_method(Env *, SymbolValue *, ModuleValue ** = nullptr);
     Method *find_method(Env *, const char *, ModuleValue ** = nullptr);
 
-    ValuePtr call_method(Env *, ValuePtr, const char *, ValuePtr, size_t, ValuePtr *, Block *, MethodVisibility = MethodVisibility::Public);
-    ValuePtr call_method(Env *, ValuePtr, SymbolValue *, ValuePtr, size_t, ValuePtr *, Block *, MethodVisibility = MethodVisibility::Public);
-
     ArrayValue *ancestors(Env *);
 
     bool is_method_defined(Env *, ValuePtr);

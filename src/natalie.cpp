@@ -467,4 +467,10 @@ const char *int_to_hex_string(nat_int_t num, bool capitalize) {
     }
 }
 
+// FIXME: this is very broken
+ValuePtr super(Env *env, ValuePtr self, size_t argc, ValuePtr *args, Block *block) {
+    auto method = self->klass()->superclass()->find_method(env, env->find_current_method_name());
+    return method->call(env, self, argc, args, block);
+}
+
 }
