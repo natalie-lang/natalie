@@ -245,8 +245,22 @@ ValuePtr KernelModule::sleep(Env *env, ValuePtr length) {
         }
         NAT_UNREACHABLE();
     }
-    length->assert_type(env, Value::Type::Integer, "Integer"); // TODO: float supported also
-    ::sleep(length->as_integer()->to_nat_int_t());
+    if (length->is_integer()) {
+        auto secs = length->as_integer()->to_nat_int_t();
+        if (secs < 0)
+            env->raise("ArgumentError", "time interval must not be negative");
+        ::sleep(length->as_integer()->to_nat_int_t());
+    } else if (length->is_float()) {
+        auto secs = length->as_float()->to_double();
+        if (secs < 0.0)
+            env->raise("ArgumentError", "time interval must not be negative");
+        struct timespec ts;
+        ts.tv_sec = ::floor(secs);
+        ts.tv_nsec = (secs - ts.tv_sec) * 1000000000;
+        nanosleep(&ts, nullptr);
+    } else {
+        env->raise("TypeError", "can't convert {} into time interval", length->klass()->inspect_str(env));
+    }
     return length;
 }
 
