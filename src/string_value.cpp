@@ -5,7 +5,7 @@
 namespace Natalie {
 
 void StringValue::raise_encoding_invalid_byte_sequence_error(Env *env, size_t index) {
-    StringValue *message = format(env, "invalid byte sequence at index %i in string of size %i (string not long enough)", index, length());
+    StringValue *message = format(env, "invalid byte sequence at index {} in string of size {} (string not long enough)", index, length());
     ClassValue *Encoding = env->Object()->const_find(env, SymbolValue::intern(env, "Encoding"))->as_class();
     ClassValue *InvalidByteSequenceError = Encoding->const_find(env, SymbolValue::intern(env, "InvalidByteSequenceError"))->as_class();
     ExceptionValue *exception = new ExceptionValue { env, InvalidByteSequenceError, message->c_str() };
