@@ -180,7 +180,7 @@ ValuePtr KernelModule::methods(Env *env) {
     ArrayValue *array = new ArrayValue { env };
     if (singleton_class()) {
         singleton_class()->methods(env, array);
-    } else { // FIXME: I don't think this else should be here. Shouldn't we *always* grab methods from the klass?
+    } else {
         klass()->methods(env, array);
     }
     return array;

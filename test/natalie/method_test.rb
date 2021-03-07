@@ -278,6 +278,30 @@ describe 'method' do
     method_name_from_block.should == [:method_name_from_block]
   end
 
+  describe '#methods' do
+    it 'returns all the methods defined on the object' do
+      module M1
+        def m1; end
+      end
+
+      class C1
+        include M1
+        def c1; end
+      end
+
+      class C2 < C1
+        def c2; end
+      end
+
+      o1 = C2.new
+      o1.methods.should include_all(:c1, :c2, :m1)
+
+      o2 = C2.new
+      def o2.s1; end
+      o2.methods.should include_all(:c1, :c2, :m1, :s1)
+    end
+  end
+
   describe '#method_defined?' do
     it 'returns true for regular methods' do
       Foo.method_defined?(:foo).should == true
