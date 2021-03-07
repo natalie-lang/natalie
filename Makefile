@@ -65,3 +65,6 @@ ctags:
 format:
 	find include -type f -name '*.hpp' -exec clang-format -i --style=file {} +
 	find src -type f -name '*.cpp' -exec clang-format -i --style=file {} +
+
+todo:
+	egrep -r "FIXME|TODO" src include
