@@ -451,21 +451,23 @@ end
 
 # what method does that need?
 class IncludeExpectation
-  def initialize(value)
-    @value = value
+  def initialize(values)
+    @values = values
   end
 
   def match(subject)
-    (start, stop) = subject.sort
-    if @value < start || @value > stop
-      raise SpecFailedException, "#{subject.inspect} should include #{@value.inspect}"
+    @values.each do |value|
+      unless subject.include?(value)
+        raise SpecFailedException, "#{subject.inspect} should include #{@value.inspect}"
+      end
     end
   end
 
   def inverted_match(subject)
-    (start, stop) = subject.sort
-    if @value >= start && @value <= stop
-      raise SpecFailedException, "#{subject.inspect} should not include #{@value.inspect}"
+    @values.each do |value|
+      if subject.include?(value)
+        raise SpecFailedException, "#{subject.inspect} should not include #{@value.inspect}"
+      end
     end
   end
 end
@@ -536,9 +538,14 @@ class Object
     end
   end
 
-  def include(value)
-    IncludeExpectation.new(value)
+  def include(*values)
+    IncludeExpectation.new(values)
   end
+
+  # FIXME: the above method is visible to tests in **Natalie** but not MRI, and I don't know why.
+  # This alias is here so that MRI can see it. We should figure out why Natalie can see 'include'
+  # but MRI cannot. (That's a bug.)
+  alias include_all include
 
   def stub!(message)
     Stub.new(self, message)
