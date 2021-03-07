@@ -147,15 +147,13 @@ ValuePtr KernelModule::lambda(Env *env, Block *block) {
 }
 
 ValuePtr KernelModule::loop(Env *env, Block *block) {
-    if (block) {
-        for (;;) {
-            NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 0, nullptr, nullptr);
-        }
-        return env->nil_obj();
-    } else {
-        // TODO: Enumerator?
-        env->raise("ArgumentError", "loop without block");
+    if (!block)
+        return this->enum_for(env, "loop");
+
+    for (;;) {
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 0, nullptr, nullptr);
     }
+    return env->nil_obj();
 }
 
 ValuePtr KernelModule::method(Env *env, ValuePtr name) {

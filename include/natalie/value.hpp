@@ -215,6 +215,8 @@ struct Value : public gc {
 
     const char *inspect_str(Env *);
 
+    ValuePtr enum_for(Env *env, const char *method, size_t argc = 0, ValuePtr *args = nullptr);
+
 protected:
     ClassValue *m_klass { nullptr };
 

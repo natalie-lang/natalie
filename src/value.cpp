@@ -563,4 +563,14 @@ void Value::assert_not_frozen(Env *env) {
 const char *Value::inspect_str(Env *env) {
     return _send(env, "inspect")->as_string()->c_str();
 }
+
+ValuePtr Value::enum_for(Env *env, const char *method, size_t argc, ValuePtr *args) {
+    ValuePtr args2[argc + 1];
+    args2[0] = SymbolValue::intern(env, method);
+    for (size_t i = 0; i < argc; i++) {
+        args2[i + 1] = args[i];
+    }
+    return this->_public_send(env, SymbolValue::intern(env, "enum_for"), argc + 1, args2);
+}
+
 }

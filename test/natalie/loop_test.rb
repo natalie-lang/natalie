@@ -82,4 +82,15 @@ describe 'loop' do
     s.should == 'hello'
     x.should == 4
   end
+
+  it 'returns an Enumerator when no block is given' do
+    x = 0
+    e = loop
+    e.should be_kind_of(Enumerator)
+    e.each do
+      x += 1
+      break if x > 3
+    end
+    x.should == 4
+  end
 end
