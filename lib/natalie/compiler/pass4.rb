@@ -459,14 +459,6 @@ module Natalie
         lit.to_s
       end
 
-      def process_env_set_method_name(exp)
-        (_, name) = exp
-        methods = "#{@compiler_context[:var_prefix]}source_methods"
-        index = @source_methods[name] ||= @source_methods.size
-        decl "env->set_method_name(#{methods}[#{index}]);"
-        ''
-      end
-
       def process_false(_)
         'ValuePtr { env->false_obj() }'
       end

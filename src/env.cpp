@@ -23,33 +23,24 @@ ValuePtr Env::global_set(SymbolValue *name, ValuePtr val) {
 
 const char *Env::find_current_method_name() {
     Env *env = this;
-    while ((!env->method_name() || strcmp(env->method_name(), "<block>") == 0) && env->outer()) {
+    while (!env->method() && env->outer()) {
         env = env->outer();
     }
-    if (strcmp(env->method_name(), "<main>") == 0) return nullptr;
-    return env->method_name();
+    return GC_STRDUP(env->method()->name());
 }
 
-// note: returns a heap pointer that the caller must free
 char *Env::build_code_location_name(Env *location_env) {
-    do {
-        if (location_env->method_name()) {
-            if (strcmp(location_env->method_name(), "<block>") == 0) {
-                if (location_env->outer()) {
-                    char *outer_name = build_code_location_name(location_env->outer());
-                    char *name = GC_STRDUP(StringValue::format(this, "block in {}", outer_name)->c_str());
-                    GC_FREE(outer_name);
-                    return name;
-                } else {
-                    return GC_STRDUP("block");
-                }
-            } else {
-                return GC_STRDUP(location_env->method_name());
-            }
-        }
-        location_env = location_env->outer();
-    } while (location_env);
-    return GC_STRDUP("(unknown)");
+    if (location_env->is_main())
+        return GC_STRDUP("<main>");
+    if (location_env->method())
+        return GC_STRDUP(location_env->method()->name());
+    if (location_env->outer()) {
+        char *outer_name = build_code_location_name(location_env->outer());
+        char *name = GC_STRDUP(StringValue::format(this, "block in {}", outer_name)->c_str());
+        GC_FREE(outer_name);
+        return name;
+    }
+    return GC_STRDUP("block");
 }
 
 void Env::raise(ClassValue *klass, StringValue *message) {

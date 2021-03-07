@@ -99,12 +99,15 @@ struct Env : public gc {
     size_t line() { return m_line; }
     void set_line(size_t line) { m_line = line; }
 
-    const char *method_name() { return m_method_name; }
-    void set_method_name(const char *name) { m_method_name = name; }
+    Method *method() { return m_method; }
+    void set_method(Method *method) { m_method = method; }
 
     ValuePtr match() { return m_match; }
     void set_match(ValuePtr match) { m_match = match; }
     void clear_match() { m_match = nullptr; }
+
+    bool is_main() { return m_is_main; }
+    void set_is_main(bool is_main) { m_is_main = is_main; }
 
 private:
     GlobalEnv *m_global_env { nullptr };
@@ -114,8 +117,9 @@ private:
     Env *m_caller { nullptr };
     const char *m_file { nullptr };
     size_t m_line { 0 };
-    const char *m_method_name { nullptr };
+    Method *m_method { nullptr };
     ValuePtr m_match { nullptr };
+    bool m_is_main { false };
 };
 
 }

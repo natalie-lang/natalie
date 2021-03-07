@@ -263,7 +263,6 @@ module Natalie
         end
         fn = exp.new(:def_fn, fn_name,
                 s(:block,
-                  s(:env_set_method_name, name),
                   prepare_argc_assertion(args),
                   assign_args,
                   block_arg || s(:block),
@@ -422,7 +421,6 @@ module Natalie
         exp.new(:block,
                 s(:block_fn, block_fn,
                   s(:block,
-                    s(:env_set_method_name, '<block>'),
                     assign_args,
                     block_arg || s(:block),
                     process(s(:block, *body)))),

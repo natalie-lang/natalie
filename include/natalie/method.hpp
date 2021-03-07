@@ -44,9 +44,10 @@ struct Method : public gc {
             closure_env = m_owner->env();
         }
         Env e = Env { closure_env, env };
+        e.set_method(this);
         e.set_file(env->file());
         e.set_line(env->line());
-        e.set_method_name(m_name);
+        e.set_method(this);
         e.set_block(block);
         return m_fn(&e, self, argc, args, block);
     }
