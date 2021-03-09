@@ -172,7 +172,7 @@ ValuePtr ArrayValue::refeq(Env *env, ValuePtr index_obj, ValuePtr size, ValuePtr
 
 ValuePtr ArrayValue::any(Env *env, size_t argc, ValuePtr *args, Block *block) {
     auto Enumerable = env->Object()->const_fetch(env, SymbolValue::intern(env, "Enumerable"))->as_module();
-    auto any_method = Enumerable->find_method(env, "any?");
+    auto any_method = Enumerable->find_method(env, SymbolValue::intern(env, "any?"));
     return any_method->call(env, this, argc, args, block);
 }
 

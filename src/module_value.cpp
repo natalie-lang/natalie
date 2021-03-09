@@ -193,35 +193,39 @@ void ModuleValue::methods(Env *env, ArrayValue *array) {
 }
 
 // returns the method and sets matching_class_or_module to where the method was found
-Method *ModuleValue::find_method(Env *env, SymbolValue *method_name, ModuleValue **matching_class_or_module) {
+Method *ModuleValue::find_method(Env *env, SymbolValue *method_name, ModuleValue **matching_class_or_module, Method *after_method) {
     Method *method;
     if (m_included_modules.is_empty()) {
         // no included modules, just search the class/module
         // note: if there are included modules, then the module chain will include this class/module
         method = m_methods.get(env, method_name);
         if (method) {
-            if (matching_class_or_module) *matching_class_or_module = m_klass;
-            return method;
+            if (method == after_method) {
+                after_method = nullptr;
+            } else if (after_method == nullptr) {
+                if (matching_class_or_module) *matching_class_or_module = m_klass;
+                return method;
+            }
         }
     }
 
     for (ModuleValue *module : m_included_modules) {
         method = module->m_methods.get(env, method_name);
         if (method) {
-            if (matching_class_or_module) *matching_class_or_module = module;
-            return method;
+            if (method == after_method) {
+                after_method = nullptr;
+            } else if (after_method == nullptr) {
+                if (matching_class_or_module) *matching_class_or_module = module;
+                return method;
+            }
         }
     }
 
     if (m_superclass) {
-        return m_superclass->find_method(env, method_name, matching_class_or_module);
+        return m_superclass->find_method(env, method_name, matching_class_or_module, after_method);
     } else {
         return nullptr;
     }
-}
-
-Method *ModuleValue::find_method(Env *env, const char *method_name, ModuleValue **matching_class_or_module) {
-    return find_method(env, SymbolValue::intern(env, method_name), matching_class_or_module);
 }
 
 ArrayValue *ModuleValue::ancestors(Env *env) {
@@ -241,7 +245,7 @@ ArrayValue *ModuleValue::ancestors(Env *env) {
 }
 
 bool ModuleValue::is_method_defined(Env *env, ValuePtr name_value) {
-    const char *name = name_value->identifier_str(env, Conversion::Strict);
+    auto name = name_value->to_symbol(env, Conversion::Strict);
     return !!find_method(env, name);
 }
 

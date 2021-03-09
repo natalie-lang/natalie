@@ -177,7 +177,7 @@ struct Value : public gc {
     ValuePtr _send(Env *, const char *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
     ValuePtr _send(Env *, size_t, ValuePtr *, Block *);
 
-    Method *find_method(Env *, SymbolValue *, MethodVisibility, ModuleValue ** = nullptr);
+    Method *find_method(Env *, SymbolValue *, MethodVisibility, ModuleValue ** = nullptr, Method * = nullptr);
 
     ValuePtr dup(Env *);
 

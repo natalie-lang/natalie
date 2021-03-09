@@ -21,12 +21,12 @@ ValuePtr Env::global_set(SymbolValue *name, ValuePtr val) {
     return m_global_env->global_set(this, name, val);
 }
 
-const char *Env::find_current_method_name() {
+Method *Env::current_method() {
     Env *env = this;
     while (!env->method() && env->outer()) {
         env = env->outer();
     }
-    return GC_STRDUP(env->method()->name());
+    return env->method();
 }
 
 char *Env::build_code_location_name(Env *location_env) {

@@ -160,7 +160,7 @@ ValuePtr KernelModule::method(Env *env, ValuePtr name) {
     auto name_symbol = name->to_symbol(env, Conversion::Strict);
     auto singleton = singleton_class();
     if (singleton) {
-        Method *method = singleton_class()->find_method(env, name_symbol->c_str());
+        Method *method = singleton_class()->find_method(env, name_symbol);
         if (method) {
             if (method->is_undefined()) {
                 env->raise("NoMethodError", "undefined method `{}' for {}:Class", name_symbol->inspect_str(env), m_klass->class_name());
@@ -168,7 +168,7 @@ ValuePtr KernelModule::method(Env *env, ValuePtr name) {
             return new MethodValue { env, this, method };
         }
     }
-    Method *method = m_klass->find_method(env, name_symbol->c_str());
+    Method *method = m_klass->find_method(env, name_symbol);
     if (method)
         return new MethodValue { env, this, method };
     env->raise("NoMethodError", "undefined method `{}' for {}:Class", name_symbol->inspect_str(env), m_klass->class_name());
@@ -289,9 +289,9 @@ ValuePtr KernelModule::tap(Env *env, Block *block) {
 }
 
 ValuePtr KernelModule::this_method(Env *env) {
-    const char *name = env->caller()->find_current_method_name();
-    if (name) {
-        return SymbolValue::intern(env, name);
+    auto method = env->caller()->current_method();
+    if (method->name()) {
+        return SymbolValue::intern(env, method->name());
     } else {
         return env->nil_obj();
     }

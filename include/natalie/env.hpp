@@ -33,7 +33,7 @@ struct Env : public gc {
     ValuePtr global_get(SymbolValue *);
     ValuePtr global_set(SymbolValue *, ValuePtr);
 
-    const char *find_current_method_name();
+    Method *current_method();
     char *build_code_location_name(Env *);
 
     ValuePtr var_get(const char *, size_t);

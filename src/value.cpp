@@ -88,7 +88,7 @@ ValuePtr Value::_new(Env *env, ValuePtr klass_value, size_t argc, ValuePtr *args
 }
 
 ValuePtr Value::initialize(Env *env, size_t argc, ValuePtr *args, Block *block) {
-    Method *method = m_klass->find_method(env, "initialize");
+    Method *method = m_klass->find_method(env, SymbolValue::intern(env, "initialize"));
     if (method && !method->is_undefined()) {
         method->call(env, this, argc, args, block);
     }
@@ -412,10 +412,10 @@ ValuePtr Value::_send(Env *env, size_t argc, ValuePtr *args, Block *block) {
     return _send(env->caller(), name, argc - 1, args + 1, block);
 }
 
-Method *Value::find_method(Env *env, SymbolValue *method_name, MethodVisibility visibility_at_least, ModuleValue **matching_class_or_module) {
+Method *Value::find_method(Env *env, SymbolValue *method_name, MethodVisibility visibility_at_least, ModuleValue **matching_class_or_module, Method *after_method) {
     auto singleton = singleton_class();
     if (singleton) {
-        Method *method = singleton_class()->find_method(env, method_name, matching_class_or_module);
+        Method *method = singleton_class()->find_method(env, method_name, matching_class_or_module, after_method);
         if (method) {
             if (method->is_undefined())
                 env->raise("NoMethodError", "undefined method `{}' for {}:Class", method_name->c_str(), m_klass->class_name());
@@ -480,9 +480,10 @@ bool Value::is_a(Env *env, ValuePtr val) {
 
 bool Value::respond_to(Env *env, const char *name) {
     Method *method;
-    if (singleton_class() && (method = singleton_class()->find_method(env, name))) {
+    auto name_symbol = SymbolValue::intern(env, name);
+    if (singleton_class() && (method = singleton_class()->find_method(env, name_symbol))) {
         return !method->is_undefined();
-    } else if ((method = m_klass->find_method(env, name))) {
+    } else if ((method = m_klass->find_method(env, name_symbol))) {
         return !method->is_undefined();
     }
     return false;

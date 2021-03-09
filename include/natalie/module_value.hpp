@@ -69,8 +69,7 @@ struct ModuleValue : Value {
     virtual SymbolValue *undefine_method(Env *, SymbolValue *) override;
 
     void methods(Env *, ArrayValue *);
-    Method *find_method(Env *, SymbolValue *, ModuleValue ** = nullptr);
-    Method *find_method(Env *, const char *, ModuleValue ** = nullptr);
+    Method *find_method(Env *, SymbolValue *, ModuleValue ** = nullptr, Method * = nullptr);
 
     ArrayValue *ancestors(Env *);
 

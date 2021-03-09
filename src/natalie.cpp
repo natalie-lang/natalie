@@ -467,10 +467,13 @@ const char *int_to_hex_string(nat_int_t num, bool capitalize) {
     }
 }
 
-// FIXME: this is very broken
 ValuePtr super(Env *env, ValuePtr self, size_t argc, ValuePtr *args, Block *block) {
-    auto method = self->klass()->superclass()->find_method(env, env->find_current_method_name());
-    return method->call(env, self, argc, args, block);
+    auto current_method = env->current_method();
+    auto super_method = self->klass()->find_method(env, SymbolValue::intern(env, env->current_method()->name()), nullptr, current_method);
+    if (!super_method)
+        env->raise("NoMethodError", "super: no superclass method `{}' for {}", current_method->name(), self->inspect_str(env));
+    assert(super_method != current_method);
+    return super_method->call(env, self, argc, args, block);
 }
 
 }

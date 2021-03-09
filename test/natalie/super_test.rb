@@ -1,6 +1,14 @@
 require_relative '../spec_helper'
 
+module GreetingModule
+  def greet_from_module
+    "Hello from a module."
+  end
+end
+
 class Greeter
+  include GreetingModule
+
   def greet
     "Hello."
   end
@@ -27,6 +35,14 @@ class Greeter
 
   def greet_using_block
     yield
+  end
+
+  def greet_from_module
+    super
+  end
+
+  def greet_without_super
+    super
   end
 end
 
@@ -71,6 +87,12 @@ class PirateGreeter < Greeter
   end
 end
 
+class UppercasePirateGreeter < PirateGreeter
+  def greet
+    super.upcase
+  end
+end
+
 describe 'super' do
   it 'works without args' do
     greeter = PirateGreeter.new
@@ -105,5 +127,20 @@ describe 'super' do
   it 'works using a block' do
     greeter = PirateGreeter.new
     greeter.greet_using_block.should == "ARRRR. Hello using a block."
+  end
+
+  it 'works with superclass of superclass' do
+    greeter = UppercasePirateGreeter.new
+    greeter.greet.should == "ARRRR. HELLO."
+  end
+
+  it 'works with modules' do
+    greeter = Greeter.new
+    greeter.greet_from_module.should == "Hello from a module."
+  end
+
+  it 'raises an error when there is no super' do
+    greeter = Greeter.new
+    -> { greeter.greet_without_super }.should raise_error(NoMethodError)
   end
 end

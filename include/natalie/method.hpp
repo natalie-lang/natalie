@@ -47,7 +47,6 @@ struct Method : public gc {
         e.set_method(this);
         e.set_file(env->file());
         e.set_line(env->line());
-        e.set_method(this);
         e.set_block(block);
         return m_fn(&e, self, argc, args, block);
     }
