@@ -210,7 +210,10 @@ Method *ModuleValue::find_method(Env *env, SymbolValue *method_name, ModuleValue
     }
 
     for (ModuleValue *module : m_included_modules) {
-        method = module->m_methods.get(env, method_name);
+        if (module == this)
+            method = module->m_methods.get(env, method_name);
+        else
+            method = module->find_method(env, method_name, matching_class_or_module, after_method);
         if (method) {
             if (method == after_method) {
                 after_method = nullptr;

@@ -278,6 +278,24 @@ describe 'method' do
     method_name_from_block.should == [:method_name_from_block]
   end
 
+  it 'can be called on a module included in a module included in a class' do
+    module A
+      def a
+        'a'
+      end
+    end
+
+    module B
+      include A
+    end
+
+    class C
+      include B
+    end
+
+    C.new.a.should == 'a'
+  end
+
   describe '#methods' do
     it 'returns all the methods defined on the object' do
       module M1
