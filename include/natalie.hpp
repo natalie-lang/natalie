@@ -61,8 +61,6 @@ void init_bindings(Env *);
 
 const char *find_current_method_name(Env *env);
 
-ValuePtr call_begin(Env *, ValuePtr, MethodFnPtr, size_t, ValuePtr *, Block *);
-
 ValuePtr splat(Env *env, ValuePtr obj);
 
 void run_at_exit_handlers(Env *env);

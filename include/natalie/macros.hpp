@@ -62,6 +62,15 @@
     _result;                                                              \
 })
 
+#define NAT_CALL_BEGIN(env, self, begin_fn, argc, args, block) ({      \
+    Env e { env, env };                                                \
+    Natalie::ValuePtr _result = begin_fn(&e, self, argc, args, block); \
+    if (_result->has_break_flag()) {                                   \
+        return _result;                                                \
+    }                                                                  \
+    _result;                                                           \
+})
+
 #define NAT_QUOTE(val) #val
 
 #ifdef __APPLE__

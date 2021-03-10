@@ -865,7 +865,7 @@ module Natalie
                             rescue_block)),
                         retry_name),
                        s(:NAT_UNREACHABLE))),
-                  s(:call_begin, :env, :self, begin_fn, :argc, :args, :block))
+                  s(:NAT_CALL_BEGIN, :env, :self, begin_fn, :argc, :args, :block))
         end
       end
 

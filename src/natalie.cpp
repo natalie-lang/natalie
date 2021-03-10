@@ -16,11 +16,6 @@ ValuePtr splat(Env *env, ValuePtr obj) {
     }
 }
 
-ValuePtr call_begin(Env *env, ValuePtr self, MethodFnPtr begin_fn, size_t argc, ValuePtr *args, Block *block) {
-    Env e = Env { env, env };
-    return begin_fn(&e, self, argc, args, block);
-}
-
 void run_at_exit_handlers(Env *env) {
     ArrayValue *at_exit_handlers = env->global_get(SymbolValue::intern(env, "$NAT_at_exit_handlers"))->as_array();
     assert(at_exit_handlers);

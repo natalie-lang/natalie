@@ -94,4 +94,18 @@ describe 'break' do
     }
     result.should == [1]
   end
+
+  it 'breaks out of a rescue inside a loop' do
+    x = 1
+    loop do
+      break if x > 1
+      begin
+        raise 'error'
+      rescue
+        break
+      end
+      x += 1
+    end
+    x.should == 1
+  end
 end
