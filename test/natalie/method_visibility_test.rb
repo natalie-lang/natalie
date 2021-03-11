@@ -20,12 +20,21 @@ class Foo
   def public_foo2
     'public'
   end
+
+  private
+end
+
+class Foo
+  def another_public_foo
+    'public'
+  end
 end
 
 describe 'method visibility' do
   describe 'public by default' do
     it 'is visible outside the class' do
       Foo.new.public_foo.should == 'public'
+      Foo.new.another_public_foo.should == 'public'
     end
   end
 

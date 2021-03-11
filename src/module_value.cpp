@@ -124,6 +124,7 @@ ValuePtr ModuleValue::eval_body(Env *env, ValuePtr (*fn)(Env *, ValuePtr)) {
     body_env.set_caller(env);
     ValuePtr result = fn(&body_env, this);
     body_env.clear_caller();
+    m_method_visibility = MethodVisibility::Public;
     return result;
 }
 
