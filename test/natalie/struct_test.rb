@@ -11,6 +11,20 @@ describe 'Struct' do
     s.new(1, 2)
   end
 
+  context 'keyword_init' do
+    it 'can be created' do
+      s = Struct.new(:a, :b, keyword_init: true)
+      s.superclass.should == Struct
+    end
+
+    it 'has an initializer that accepts argument keywords' do
+      s = Struct.new(:a, :b, keyword_init: true)
+      i = s.new(b: 1, a: 2)
+      i.a.should == 2
+      i.b.should == 1
+    end
+  end
+
   it 'has accessors' do
     s = Struct.new(:a, :b)
     i = s.new(1, 2)

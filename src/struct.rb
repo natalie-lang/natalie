@@ -5,6 +5,11 @@ class Struct
 
   def self.new(*attrs)
     if self == Struct
+      if attrs.last.is_a?(Hash)
+        options = attrs.pop
+      else
+        options = {}
+      end
       Class.new(Struct) do
         include Enumerable
 
@@ -12,9 +17,17 @@ class Struct
           attr_accessor attr
         end
 
-        define_method :initialize do |*vals|
-          attrs.each_with_index do |attr, index|
-            send("#{attr}=", vals[index])
+        if options[:keyword_init]
+          define_method :initialize do |args|
+            args.each do |attr, value|
+              send("#{attr}=", value)
+            end
+          end
+        else
+          define_method :initialize do |*vals|
+            attrs.each_with_index do |attr, index|
+              send("#{attr}=", vals[index])
+            end
           end
         end
 
