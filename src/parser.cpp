@@ -435,6 +435,16 @@ Node *Parser::parse_def(Env *env, LocalsVectorPtr) {
         expect(env, Token::Type::BareName, "def name");
         name = static_cast<IdentifierNode *>(parse_identifier(env, locals));
         break;
+    case Token::Type::Constant:
+        if (peek_token()->type() == Token::Type::Dot) {
+            self_node = parse_constant(env, locals);
+            advance();
+            expect(env, Token::Type::BareName, "def name");
+            name = static_cast<IdentifierNode *>(parse_identifier(env, locals));
+        } else {
+            name = static_cast<IdentifierNode *>(parse_identifier(env, locals));
+        }
+        break;
     default:
         raise_unexpected(env, "method name");
     }

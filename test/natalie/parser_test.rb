@@ -226,6 +226,7 @@ describe 'Parser' do
       Parser.parse("def foo=; end").should == s(:block, s(:defn, :foo=, s(:args), s(:nil)))
       Parser.parse("def self.foo=; end").should == s(:block, s(:defs, s(:self), :foo=, s(:args), s(:nil)))
       Parser.parse("def foo.bar=; end").should == s(:block, s(:defs, s(:call, nil, :foo), :bar=, s(:args), s(:nil)))
+      Parser.parse("def Foo.foo; end").should == s(:block, s(:defs, s(:const, :Foo), :foo, s(:args), s(:nil)))
       Parser.parse("def foo(*); end").should == s(:block, s(:defn, :foo, s(:args, :*), s(:nil)))
       Parser.parse("def foo(*x); end").should == s(:block, s(:defn, :foo, s(:args, :"*x"), s(:nil)))
       Parser.parse("def foo(x, *y, z); end").should == s(:block, s(:defn, :foo, s(:args, :x, :"*y", :z), s(:nil)))
