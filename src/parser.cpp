@@ -1096,7 +1096,7 @@ Node *Parser::parse_iter_expression(Env *env, Node *left, LocalsVectorPtr locals
         args = static_cast<StabbyProcNode *>(left)->args();
         break;
     default:
-        raise_unexpected(env, "call for left side of iter");
+        raise_unexpected(env, left->token(), "call for left side of iter");
     }
     auto end_token_type = curly_brace ? Token::Type::RCurlyBrace : Token::Type::EndKeyword;
     auto body = parse_body(env, locals, LOWEST, end_token_type);
@@ -1306,7 +1306,7 @@ Node *Parser::parse_op_assign_expression(Env *env, Node *left, LocalsVectorPtr l
     if (left->type() == Node::Type::Call)
         return parse_op_attr_assign_expression(env, left, locals);
     if (left->type() != Node::Type::Identifier)
-        raise_unexpected(env, "identifier");
+        raise_unexpected(env, left->token(), "identifier");
     auto left_identifier = static_cast<IdentifierNode *>(left);
     left_identifier->set_is_lvar(true);
     auto token = current_token();
@@ -1338,7 +1338,7 @@ Node *Parser::parse_op_assign_expression(Env *env, Node *left, LocalsVectorPtr l
 
 Node *Parser::parse_op_attr_assign_expression(Env *env, Node *left, LocalsVectorPtr locals) {
     if (left->type() != Node::Type::Call)
-        raise_unexpected(env, "call");
+        raise_unexpected(env, left->token(), "call");
     auto left_call = static_cast<CallNode *>(left);
     auto token = current_token();
     advance();
