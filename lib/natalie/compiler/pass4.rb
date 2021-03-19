@@ -657,8 +657,8 @@ module Natalie
 
       def process_intern(exp)
         (_, name) = exp
-        @symbols[name] ||= @symbols.size
-        "#{symbols_var_name}[#{@symbols[name]}]"
+        @symbols[name.to_s] ||= @symbols.size
+        "#{symbols_var_name}[#{@symbols[name.to_s]}]/*:#{name.to_s.gsub(/\*\/|\\/, '?')}*/"
       end
 
       def process_intern_value_ptr(exp)
