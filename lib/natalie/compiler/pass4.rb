@@ -13,6 +13,7 @@ module Natalie
         raise 'source path unknown!' unless compiler_context[:source_path]
         @source_files = { compiler_context[:source_path] => 0 }
         @source_methods = {}
+        @symbols = {}
         @top = []
         @decl = []
       end
@@ -106,6 +107,7 @@ module Natalie
           .sub('/*' + 'NAT_OBJ' + '*/') { obj_declarations.join("\n") }
           .sub('/*' + 'NAT_OBJ_INIT' + '*/') { obj_init_lines.join("\n") }
           .sub('/*' + 'NAT_TOP' + '*/') { top_matter }
+          .sub('/*' + 'NAT_SYMBOL_INIT' + '*/') { init_symbols }
           .sub('/*' + 'NAT_BODY' + '*/') { @decl.join("\n") + "\n" + result }
         reindent(out)
       end
@@ -114,6 +116,7 @@ module Natalie
         [
           source_files_to_c,
           source_methods_to_c,
+          declare_symbols,
           @top.join("\n")
         ].join("\n\n")
       end
@@ -650,15 +653,19 @@ module Natalie
         result
       end
 
+      def symbols_var_name
+        "#{@compiler_context[:var_prefix]}symbols"
+      end
+
       def process_intern(exp)
         (_, name) = exp
-        "SymbolValue::intern(env, #{name.to_s.inspect})"
+        @symbols[name] ||= @symbols.size
+        "#{symbols_var_name}[#{@symbols[name]}]"
       end
 
       def process_intern_value_ptr(exp)
-        (_, name) = exp
         temp_name = temp('symbol')
-        decl "ValuePtr #{temp_name} = SymbolValue::intern(env, #{name.to_s.inspect});"
+        decl "ValuePtr #{temp_name} = #{process_intern(exp)};"
         temp_name
       end
 
@@ -703,6 +710,16 @@ module Natalie
       def source_methods_to_c
         methods = "#{@compiler_context[:var_prefix]}source_methods"
         "const char *#{methods}[#{@source_methods.size}] = { #{@source_methods.keys.map(&:inspect).join(', ')} };"
+      end
+
+      def declare_symbols
+        "SymbolValue *#{symbols_var_name}[#{@symbols.size}] = {};"
+      end
+
+      def init_symbols
+        @symbols.map do |name, index|
+          "#{symbols_var_name}[#{index}] = SymbolValue::intern(env, #{name.to_s.inspect});"
+        end.join("\n")
       end
 
       def obj_files
