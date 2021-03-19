@@ -12,7 +12,6 @@ module Natalie
         @compiler_context = compiler_context
         raise 'source path unknown!' unless compiler_context[:source_path]
         @source_files = { compiler_context[:source_path] => 0 }
-        @source_methods = {}
         @symbols = {}
         @top = []
         @decl = []
@@ -115,7 +114,6 @@ module Natalie
       def top_matter
         [
           source_files_to_c,
-          source_methods_to_c,
           declare_symbols,
           @top.join("\n")
         ].join("\n\n")
@@ -705,11 +703,6 @@ module Natalie
       def source_files_to_c
         files = "#{@compiler_context[:var_prefix]}source_files"
         "const char *#{files}[#{@source_files.size}] = { #{@source_files.keys.map(&:inspect).join(', ')} };"
-      end
-
-      def source_methods_to_c
-        methods = "#{@compiler_context[:var_prefix]}source_methods"
-        "const char *#{methods}[#{@source_methods.size}] = { #{@source_methods.keys.map(&:inspect).join(', ')} };"
       end
 
       def declare_symbols
