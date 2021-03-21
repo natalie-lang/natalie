@@ -18,7 +18,7 @@ bootstrap: build
 	cmake --build build -t bootstrap -j
 
 clean:
-	if [ -d build ]; then make -C build -f CMakeFiles/Makefile2 CMakeFiles/natalie-base.dir/clean; fi
+	if [ -d build ]; then ${MAKE} -C build -f CMakeFiles/Makefile2 CMakeFiles/natalie-base.dir/clean; fi
 
 cleanall:
 	rm -rf build
@@ -27,7 +27,7 @@ test: build
 	bundle exec ruby test/all.rb
 
 test_valgrind:
-	NAT_CXX_FLAGS="-DNAT_GC_DISABLE" make clean build
+	NAT_CXX_FLAGS="-DNAT_GC_DISABLE" ${MAKE} clean build
 	NAT_CXX_FLAGS="-DNAT_GC_DISABLE" bin/natalie -c assign_test test/natalie/assign_test.rb
 	valgrind --leak-check=no --error-exitcode=1 ./assign_test
 	NAT_CXX_FLAGS="-DNAT_GC_DISABLE" bin/natalie -c block_spec spec/language/block_spec.rb
@@ -45,16 +45,16 @@ docker_build_clang:
 docker_test: docker_test_gcc docker_test_clang docker_test_valgrind docker_test_release
 
 docker_test_gcc: docker_build
-	docker run $(DOCKER_FLAGS) --rm --entrypoint make natalie test
+	docker run $(DOCKER_FLAGS) --rm --entrypoint ${MAKE} natalie test
 
 docker_test_clang: docker_build_clang
-	docker run $(DOCKER_FLAGS) --rm --entrypoint make natalie_clang test
+	docker run $(DOCKER_FLAGS) --rm --entrypoint ${MAKE} natalie_clang test
 
 docker_test_valgrind: docker_build
-	docker run $(DOCKER_FLAGS) --rm --entrypoint make natalie test_valgrind
+	docker run $(DOCKER_FLAGS) --rm --entrypoint ${MAKE} natalie test_valgrind
 
 docker_test_release: docker_build
-	docker run $(DOCKER_FLAGS) --rm --entrypoint make natalie clean build_release test
+	docker run $(DOCKER_FLAGS) --rm --entrypoint ${MAKE} natalie clean build_release test
 
 cloc:
 	cloc include lib src test
