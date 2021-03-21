@@ -24,6 +24,7 @@ module Natalie
     def go
       env = nil
       vars = {}
+      repl_num = 0
       multi_line_expr = []
       loop do
         break unless (line = get_line)
@@ -41,6 +42,7 @@ module Natalie
         temp = Tempfile.create('natalie.so')
         compiler = Compiler.new(ast, '(repl)')
         compiler.repl = true
+        compiler.repl_num = (repl_num += 1)
         compiler.vars = vars
         compiler.out_path = temp.path
         compiler.compile

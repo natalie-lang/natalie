@@ -48,7 +48,7 @@ module Natalie
       @required = {}
     end
 
-    attr_accessor :ast, :write_obj, :repl, :out_path, :context, :vars, :options, :c_path, :inline_cpp_enabled
+    attr_accessor :ast, :write_obj, :repl, :repl_num, :out_path, :context, :vars, :options, :c_path, :inline_cpp_enabled
 
     attr_writer :load_path
 
@@ -237,6 +237,8 @@ module Natalie
     def var_prefix
       if write_obj
         "#{obj_name}_"
+      elsif repl
+        "repl#{repl_num}_"
       else
         ''
       end

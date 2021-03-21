@@ -108,6 +108,7 @@ module Natalie
           .sub('/*' + 'NAT_TOP' + '*/') { top_matter }
           .sub('/*' + 'NAT_SYMBOL_INIT' + '*/') { init_symbols }
           .sub('/*' + 'NAT_BODY' + '*/') { @decl.join("\n") + "\n" + result }
+          .sub('"' + 'NAT_SOURCE_PATH' + '"') { @compiler_context[:source_path].inspect }
         reindent(out)
       end
 
