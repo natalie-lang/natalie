@@ -106,9 +106,8 @@ module Natalie
           .sub('/*' + 'NAT_OBJ' + '*/') { obj_declarations.join("\n") }
           .sub('/*' + 'NAT_OBJ_INIT' + '*/') { obj_init_lines.join("\n") }
           .sub('/*' + 'NAT_TOP' + '*/') { top_matter }
-          .sub('/*' + 'NAT_SYMBOL_INIT' + '*/') { init_symbols }
+          .sub('/*' + 'NAT_INIT' + '*/') { init_matter }
           .sub('/*' + 'NAT_BODY' + '*/') { @decl.join("\n") + "\n" + result }
-          .sub('"' + 'NAT_SOURCE_PATH' + '"') { @compiler_context[:source_path].inspect }
         reindent(out)
       end
 
@@ -118,6 +117,13 @@ module Natalie
           declare_symbols,
           @top.join("\n")
         ].join("\n\n")
+      end
+
+      def init_matter
+        [
+          init_symbols.join("\n"),
+          set_dollar_zero_global_to_c,
+        ].join("\n")
       end
 
       def process___cxx_flags__(exp)
@@ -713,7 +719,11 @@ module Natalie
       def init_symbols
         @symbols.map do |name, index|
           "#{symbols_var_name}[#{index}] = SymbolValue::intern(env, #{name.to_s.inspect});"
-        end.join("\n")
+        end
+      end
+
+      def set_dollar_zero_global_to_c
+        "env->global_set(SymbolValue::intern(env, \"$0\"), new StringValue { env, #{@compiler_context[:source_path].inspect} });"
       end
 
       def obj_files

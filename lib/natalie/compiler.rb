@@ -32,7 +32,7 @@ module Natalie
       /*NAT#{''}_TOP*/
 
       ValuePtr obj_%{name}(Env *env, ValuePtr self) {
-        /*NAT#{''}_SYMBOL_INIT*/
+        /*NAT#{''}_INIT*/
         /*NAT#{''}_BODY*/
         return env->nil_obj();
       }
