@@ -26,13 +26,14 @@ struct Parser : public gc {
         EXPRMODIFIER, // if/unless/while/until
         CASE, // case/when/else
         SPLAT, // *args
+        ITER_BLOCK, // do |n| ... end
         CALLARGS, // foo a, b
         COMPOSITION, // and/or
         ASSIGNMENT, // =
         OPASSIGNMENT, // += -= *= **= /= %= |= &= ^= >>= <<= ||= &&=
-        RANGE, // ..
         TERNARY, // ? :
-        ITER, // do/end {}
+        RANGE, // ..
+        ITER_CURLY, // { |n| ... }
         LOGICALNOT, // not
         LOGICALOR, // ||
         LOGICALAND, // &&
@@ -122,8 +123,9 @@ private:
         case Token::Type::UntilKeyword:
             return EXPRMODIFIER;
         case Token::Type::DoKeyword:
+            return ITER_BLOCK;
         case Token::Type::LCurlyBrace:
-            return ITER;
+            return ITER_CURLY;
         case Token::Type::LessThan:
         case Token::Type::LessThanOrEqual:
         case Token::Type::GreaterThan:

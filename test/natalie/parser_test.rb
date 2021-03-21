@@ -325,6 +325,8 @@ describe 'Parser' do
       Parser.parse("1 ? 2 : 3").should == s(:block, s(:if, s(:lit, 1), s(:lit, 2), s(:lit, 3)))
       Parser.parse("foo ?\nbar + baz\n :\n buz / 2").should == s(:block, s(:if, s(:call, nil, :foo), s(:call, s(:call, nil, :bar), :+, s(:call, nil, :baz)), s(:call, s(:call, nil, :buz), :/, s(:lit, 2))))
       Parser.parse("1 ? 2 : map { |n| n }").should == s(:block, s(:if, s(:lit, 1), s(:lit, 2), s(:iter, s(:call, nil, :map), s(:args, :n), s(:lvar, :n))))
+      # FIXME:
+      #Parser.parse("1 ? 2 : map do |n|\nn\nend").should == s(:block, s(:if, s(:lit, 1), s(:lit, 2), s(:iter, s(:call, nil, :map), s(:args, :n), s(:lvar, :n))))
     end
 
     it 'parses if/elsif/else' do
@@ -503,6 +505,10 @@ describe 'Parser' do
       Parser.parse("bar { |x, *y, z| y }").should == s(:block, s(:iter, s(:call, nil, :bar), s(:args, :x, :"*y", :z), s(:lvar, :y)))
       Parser.parse("bar { |a = nil, b = foo, c = FOO| b }").should == s(:block, s(:iter, s(:call, nil, :bar), s(:args, s(:lasgn, :a, s(:nil)), s(:lasgn, :b, s(:call, nil, :foo)), s(:lasgn, :c, s(:const, :FOO))), s(:lvar, :b)))
       Parser.parse("bar { |a, b: :c, d:| a }").should == s(:block, s(:iter, s(:call, nil, :bar), s(:args, :a, s(:kwarg, :b, s(:lit, :c)), s(:kwarg, :d)), s(:lvar, :a)))
+      Parser.parse("get 'foo', bar { 'baz' }").should == s(:block, s(:call, nil, :get, s(:str, "foo"), s(:iter, s(:call, nil, :bar), 0, s(:str, "baz"))))
+      Parser.parse("get 'foo', bar do\n'baz'\nend").should == s(:block, s(:iter, s(:call, nil, :get, s(:str, "foo"), s(:call, nil, :bar)), 0, s(:str, "baz")))
+      # FIXME: no newlines around block keyword
+      #Parser.parse("get 'foo', bar do 'baz' end").should == s(:block, s(:iter, s(:call, nil, :get, s(:str, "foo"), s(:call, nil, :bar)), 0, s(:str, "baz")))
     end
 
     it 'parses block pass' do
