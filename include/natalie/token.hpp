@@ -12,7 +12,7 @@
 
 namespace Natalie {
 
-struct Token : public gc {
+struct Token : public Cell {
     enum class Type {
         AliasKeyword,
         And,

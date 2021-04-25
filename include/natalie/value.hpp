@@ -18,7 +18,7 @@ extern "C" {
 #include "onigmo.h"
 }
 
-struct Value : public gc {
+struct Value : public Cell {
     using Type = ValueType;
 
     enum Flag {

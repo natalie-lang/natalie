@@ -1,6 +1,8 @@
 #pragma once
 
+#include <algorithm>
 #include <assert.h>
+#include <cstring>
 #include <string>
 
 #include "natalie/forward.hpp"
@@ -8,7 +10,7 @@
 
 namespace Natalie {
 
-struct String : public gc {
+struct String : public Cell {
     const int STRING_GROW_FACTOR = 2;
 
     String() {
@@ -29,6 +31,10 @@ struct String : public gc {
 
     String(const String &other) {
         set_str(other.c_str(), other.length());
+    }
+
+    ~String() {
+        delete[] m_str;
     }
 
     String &operator=(const String &other) {
@@ -178,7 +184,10 @@ struct String : public gc {
 private:
     void grow(size_t new_capacity) {
         assert(new_capacity >= m_length);
-        m_str = static_cast<char *>(GC_REALLOC(m_str, new_capacity + 1));
+        auto old_str = m_str;
+        m_str = new char[new_capacity + 1];
+        std::memcpy(m_str, old_str, sizeof(char) * (m_capacity + 1));
+        delete[] old_str;
         m_capacity = new_capacity;
     }
 

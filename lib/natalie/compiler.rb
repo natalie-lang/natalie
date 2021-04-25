@@ -12,7 +12,6 @@ module Natalie
     SRC_PATH = File.join(ROOT_DIR, 'src')
     INC_PATHS = [
       File.join(BUILD_DIR, 'include'),
-      File.join(BUILD_DIR, 'include/bdwgc'),
       File.join(BUILD_DIR, 'include/gdtoa'),
       File.join(BUILD_DIR, 'include/onigmo'),
     ]

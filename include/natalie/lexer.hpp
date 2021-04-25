@@ -7,7 +7,7 @@
 
 namespace Natalie {
 
-struct Lexer : public gc {
+struct Lexer : public Cell {
     Lexer(const char *input, const char *file)
         : m_input { input }
         , m_file { GC_STRDUP(file) }

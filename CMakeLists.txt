@@ -50,7 +50,6 @@ endforeach()
 target_include_directories(natalie-base PRIVATE
   include
   ${CMAKE_BINARY_DIR}/include
-  ${CMAKE_BINARY_DIR}/include/bdwgc
   ${CMAKE_BINARY_DIR}/include/gdtoa
   ${CMAKE_BINARY_DIR}/include/onigmo)
 
@@ -69,12 +68,10 @@ add_dependencies(natalie-base generate-platform)
 set_source_files_properties(${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/generated/platform.cpp PROPERTIES GENERATED TRUE)
 target_sources(natalie-base PRIVATE ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/generated/platform.cpp)
 
-include(ext/bdwgc.cmake)
 include(ext/gdtoa.cmake)
 include(ext/onigmo.cmake)
 
 add_dependencies(natalie-base
-  ${BDWGC_TARGET}
   ${GDTOA_TARGET}
   ${ONIGMO_TARGET})
 
@@ -89,13 +86,9 @@ add_custom_command(
   OUTPUT libnatalie.a
   COMMAND ${CMAKE_COMMAND} -E make_directory
     ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libnatalie-o
-    ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libgc-o
-    ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libgccpp-o
     ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libgdtoa-o
     ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libonigmo-o
   COMMAND cd ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libnatalie-o && ar x ${CMAKE_BINARY_DIR}/libnatalie-base.a && ar r ${CMAKE_BINARY_DIR}/libnatalie.a *.o
-  COMMAND cd ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libgc-o && ar x ../libgc.a && ar r ${CMAKE_BINARY_DIR}/libnatalie.a *.o
-  COMMAND cd ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libgccpp-o && ar x ../libgccpp.a && ar r ${CMAKE_BINARY_DIR}/libnatalie.a *.o
   COMMAND cd ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libgdtoa-o && ar x ../libgdtoa.a && ar r ${CMAKE_BINARY_DIR}/libnatalie.a *.o
   COMMAND cd ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libonigmo-o && ar x ../libonigmo.a && ar r ${CMAKE_BINARY_DIR}/libnatalie.a *.o
   DEPENDS natalie-base)

@@ -7,7 +7,7 @@
 
 namespace Natalie {
 
-struct Node : public gc {
+struct Node : public Cell {
     enum class Type {
         Alias,
         Arg,

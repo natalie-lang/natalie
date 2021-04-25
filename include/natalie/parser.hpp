@@ -9,7 +9,7 @@
 
 namespace Natalie {
 
-struct Parser : public gc {
+struct Parser : public Cell {
     Parser(const char *code, const char *file)
         : m_code { code }
         , m_file { file } {

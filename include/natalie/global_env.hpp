@@ -12,7 +12,7 @@ extern "C" {
 #include "onigmo.h"
 }
 
-struct GlobalEnv : public gc {
+struct GlobalEnv : public Cell {
     ClassValue *Array() { return m_Array; }
     void set_Array(ClassValue *Array) { m_Array = Array; }
 

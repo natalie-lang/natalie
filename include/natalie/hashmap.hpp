@@ -340,7 +340,7 @@ struct Hashmap : public gc {
         return iterator { &m_map, nullptr };
     }
 
-    //private:
+private:
     hashmap m_map {};
 };
 

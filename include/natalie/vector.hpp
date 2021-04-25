@@ -1,11 +1,8 @@
 #pragma once
 
-#include <assert.h>
+#include <algorithm>
+#include <cassert>
 #include <initializer_list>
-#include <stdio.h>
-#include <stdlib.h>
-
-#include "natalie/gc.hpp"
 
 #define NAT_VECTOR_GROW_FACTOR 2
 #define NAT_VECTOR_MIN_CAPACITY 10
@@ -13,15 +10,15 @@
 namespace Natalie {
 
 template <typename T>
-struct Vector : public gc {
+struct Vector {
     Vector()
         : m_capacity { NAT_VECTOR_MIN_CAPACITY }
-        , m_data { static_cast<T *>(GC_MALLOC(sizeof(T) * NAT_VECTOR_MIN_CAPACITY)) } { }
+        , m_data { new T[NAT_VECTOR_MIN_CAPACITY] } { }
 
     Vector(size_t initial_capacity)
         : m_size { initial_capacity }
         , m_capacity { initial_capacity }
-        , m_data { static_cast<T *>(GC_MALLOC(sizeof(T) * initial_capacity)) } { }
+        , m_data { new T[initial_capacity] } { }
 
     Vector(size_t initial_capacity, T filler)
         : Vector { initial_capacity } {
@@ -38,8 +35,12 @@ struct Vector : public gc {
     Vector(const Vector &other)
         : m_size { other.m_size }
         , m_capacity { other.m_size }
-        , m_data { static_cast<T *>(GC_MALLOC(sizeof(T) * m_size)) } {
+        , m_data { new T[m_size] } {
         memcpy(m_data, other.m_data, sizeof(T) * m_size);
+    }
+
+    ~Vector() {
+        delete[] m_data;
     }
 
     Vector slice(size_t offset, size_t count = 0) {
@@ -49,7 +50,7 @@ struct Vector : public gc {
         if (offset >= m_size || count == 0) {
             return {};
         }
-        T *data = static_cast<T *>(GC_MALLOC(sizeof(T) * count));
+        T *data = new T[count];
         memcpy(data, m_data + offset, sizeof(T) * count);
         return { count, count, data };
     }
@@ -183,7 +184,10 @@ private:
         , m_data(data) { }
 
     void grow(size_t capacity) {
-        m_data = static_cast<T *>(GC_REALLOC(m_data, sizeof(T) * capacity));
+        auto old_data = m_data;
+        m_data = new T[capacity];
+        memcpy(m_data, old_data, sizeof(T) * std::min(capacity, m_capacity));
+        delete[] old_data;
         m_capacity = capacity;
     }
 

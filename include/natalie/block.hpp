@@ -6,7 +6,7 @@
 
 namespace Natalie {
 
-struct Block : public gc {
+struct Block : public Cell {
 
     Block(Env &env, ValuePtr self, MethodFnPtr fn, int arity)
         : m_fn { fn }

@@ -3,7 +3,6 @@
 #include <assert.h>
 
 #include "natalie/class_value.hpp"
-#include "natalie/finalizer.hpp"
 #include "natalie/forward.hpp"
 #include "natalie/global_env.hpp"
 #include "natalie/macros.hpp"
@@ -16,7 +15,7 @@
 
 namespace Natalie {
 
-struct IoValue : Value, finalizer {
+struct IoValue : Value {
     IoValue(Env *env)
         : Value { Value::Type::Io, env->Object()->const_fetch(env, SymbolValue::intern(env, "IO"))->as_class() } { }
 
