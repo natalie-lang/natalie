@@ -49,9 +49,10 @@ struct String : public Cell {
 
     void set_str(const char *str) {
         assert(str);
-        m_str = GC_STRDUP(str);
         m_length = strlen(str);
         m_capacity = m_length;
+        m_str = new char[m_length + 1];
+        std::memcpy(m_str, str, sizeof(char) * (m_length + 1));
     }
 
     void set_str(const char *str, size_t length) {
