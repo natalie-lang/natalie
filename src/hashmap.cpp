@@ -158,9 +158,7 @@ static void hashmap_entry_remove(struct hashmap *map,
 
     /* Free the key */
     if (map->key_free) {
-        assert(map->key_free != free);
-        // TEMP remove
-        //map->key_free(removed_entry->key);
+        map->key_free(removed_entry->key);
     }
     --map->num_entries;
 
@@ -250,7 +248,6 @@ static void hashmap_free_keys(struct hashmap *map) {
     if (!map->key_free) {
         return;
     }
-    return; // TEMP
     for (iter = hashmap_iter(map); iter;
          iter = hashmap_iter_next(map, iter)) {
         map->key_free((void *)hashmap_iter_get_key(iter));
@@ -299,6 +296,21 @@ int hashmap_init(struct hashmap *map, nat_int_t (*hash_func)(const void *),
     map->key_alloc = NULL;
     map->key_free = NULL;
     return 0;
+}
+
+/*
+ * Free the hashmap and all associated memory.
+ */
+void hashmap_destroy(struct hashmap *map) {
+    if (!map) {
+        return;
+    }
+    hashmap_free_keys(map);
+    free(map->table);
+    map->table_size_init = 0;
+    map->table_size = 0;
+    map->num_entries = 0;
+    map->table = nullptr;
 }
 
 /*

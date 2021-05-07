@@ -67,7 +67,7 @@ struct hashmap_entry {
 /*
  * The hashmap state structure.
  */
-struct hashmap : public gc {
+struct hashmap {
     size_t table_size_init { 0 };
     size_t table_size { 0 };
     size_t num_entries { 0 };
@@ -101,6 +101,11 @@ typedef struct hashmap hashmap;
 int hashmap_init(struct hashmap *map, nat_int_t (*hash_func)(const void *),
     int (*key_compare_func)(Env *env, const void *, const void *),
     size_t initial_size);
+
+/*
+ * Free the hashmap and all associated memory.
+ */
+void hashmap_destroy(struct hashmap *map);
 
 /*
  * Enable internal memory allocation and management of hash keys.
@@ -250,7 +255,7 @@ using HashFn = nat_int_t(const void *);
 using CompareFn = int(Env *, const void *, const void *);
 
 template <typename KeyT, typename T>
-struct Hashmap : public gc {
+struct Hashmap {
     Hashmap(int initial_capacity = 10, HashmapKeyType key_type = HashmapKeyType::Pointer) {
         if (key_type == HashmapKeyType::String) {
             hashmap_init(&m_map, hashmap_hash_string, hashmap_compare_string, initial_capacity);
@@ -266,17 +271,21 @@ struct Hashmap : public gc {
 
     Hashmap(const Hashmap &other)
         : m_map { other.m_map } {
-        m_map.table = static_cast<struct hashmap_entry *>(GC_MALLOC(m_map.table_size * sizeof(struct hashmap_entry)));
+        m_map.table = static_cast<struct hashmap_entry *>(malloc(m_map.table_size * sizeof(struct hashmap_entry)));
         memcpy(m_map.table, other.m_map.table, m_map.table_size * sizeof(struct hashmap_entry));
     }
 
     Hashmap &operator=(const Hashmap &other) {
         assert(!m_map.key_free); // don't know how to free keys with copy constructor yet (not needed?)
-        GC_FREE(m_map.table);
+        free(m_map.table);
         m_map = other.m_map;
-        m_map.table = static_cast<struct hashmap_entry *>(GC_MALLOC(m_map.table_size * sizeof(struct hashmap_entry)));
+        m_map.table = static_cast<struct hashmap_entry *>(malloc(m_map.table_size * sizeof(struct hashmap_entry)));
         memcpy(m_map.table, other.m_map.table, m_map.table_size * sizeof(struct hashmap_entry));
         return *this;
+    }
+
+    ~Hashmap() {
+        hashmap_destroy(&m_map);
     }
 
     T get(Env *env, KeyT key) {
