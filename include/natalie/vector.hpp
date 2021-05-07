@@ -13,12 +13,12 @@ template <typename T>
 struct Vector {
     Vector()
         : m_capacity { NAT_VECTOR_MIN_CAPACITY }
-        , m_data { new T[NAT_VECTOR_MIN_CAPACITY] } { }
+        , m_data { new T[NAT_VECTOR_MIN_CAPACITY] {} } { }
 
     Vector(size_t initial_capacity)
         : m_size { initial_capacity }
         , m_capacity { initial_capacity }
-        , m_data { new T[initial_capacity] } { }
+        , m_data { new T[initial_capacity] {} } { }
 
     Vector(size_t initial_capacity, T filler)
         : Vector { initial_capacity } {
@@ -35,7 +35,7 @@ struct Vector {
     Vector(const Vector &other)
         : m_size { other.m_size }
         , m_capacity { other.m_size }
-        , m_data { new T[m_size] } {
+        , m_data { new T[m_size] {} } {
         memcpy(m_data, other.m_data, sizeof(T) * m_size);
     }
 
@@ -50,7 +50,7 @@ struct Vector {
         if (offset >= m_size || count == 0) {
             return {};
         }
-        T *data = new T[count];
+        T *data = new T[count] {};
         memcpy(data, m_data + offset, sizeof(T) * count);
         return { count, count, data };
     }
@@ -185,7 +185,7 @@ private:
 
     void grow(size_t capacity) {
         auto old_data = m_data;
-        m_data = new T[capacity];
+        m_data = new T[capacity] {};
         memcpy(m_data, old_data, sizeof(T) * std::min(capacity, m_capacity));
         delete[] old_data;
         m_capacity = capacity;
