@@ -6,11 +6,10 @@
 #include <string>
 
 #include "natalie/forward.hpp"
-#include "natalie/gc.hpp"
 
 namespace Natalie {
 
-struct String : public Cell {
+struct String {
     const int STRING_GROW_FACTOR = 2;
 
     String() {
