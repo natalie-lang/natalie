@@ -23,10 +23,16 @@ struct GC_stack_base {
 
 namespace Natalie {
 
-const int HEAP_BLOCK_CELL_SIZE = 32 * 1024;
-const int HEAP_CELL_COUNT_MAX = HEAP_BLOCK_CELL_SIZE / 16; // 16 bytes is the smallest cell we will allocate
+const int HEAP_BLOCK_SIZE = 32 * 1024;
+const int HEAP_CELL_COUNT_MAX = HEAP_BLOCK_SIZE / 16; // 16 bytes is the smallest cell we will allocate
 
-class Cell;
+class Cell {
+public:
+    Cell() { }
+    virtual ~Cell() { }
+
+    void *operator new(size_t size);
+};
 
 class HeapBlock {
 public:
@@ -34,9 +40,9 @@ public:
 
     HeapBlock(size_t size)
         : m_cell_size { size }
-        , m_total_count { HEAP_BLOCK_CELL_SIZE / m_cell_size }
+        , m_total_count { HEAP_BLOCK_SIZE / m_cell_size }
         , m_free_count { m_total_count } {
-        m_memory = new char[HEAP_BLOCK_CELL_SIZE] {};
+        m_memory = new char[HEAP_BLOCK_SIZE] {};
     }
 
     ~HeapBlock() {
@@ -45,7 +51,7 @@ public:
     }
 
     static HeapBlock *from_cell(const Cell *cell) {
-        return reinterpret_cast<HeapBlock *>((intptr_t)cell & ~(HEAP_BLOCK_CELL_SIZE - 1));
+        return reinterpret_cast<HeapBlock *>((intptr_t)cell & ~(HEAP_BLOCK_SIZE - 1));
     }
 
     bool has_free() {
@@ -58,7 +64,9 @@ public:
             if (!m_used_map[i]) {
                 m_used_map[i] = true;
                 --m_free_count;
-                return &m_memory[i * m_cell_size];
+                void *cell = &m_memory[i * m_cell_size];
+                //std::cerr << "cell = " << cell << ", block = " << this << "\n";
+                return cell;
             }
         }
         NAT_UNREACHABLE();
@@ -69,7 +77,7 @@ private:
     size_t m_total_count { 0 };
     size_t m_free_count { 0 };
     bool m_used_map[HEAP_CELL_COUNT_MAX] {};
-    char *m_memory { nullptr };
+    alignas(Cell) char *m_memory { nullptr };
 };
 
 class Allocator {
@@ -90,7 +98,7 @@ public:
     }
 
     size_t cell_count_per_block() {
-        return HEAP_BLOCK_CELL_SIZE / m_cell_size;
+        return HEAP_BLOCK_SIZE / m_cell_size;
     }
 
     size_t total_cells() {
@@ -118,9 +126,19 @@ public:
         return block->next_free();
     }
 
+    bool is_my_block(HeapBlock *candidate_block) {
+        for (auto block : m_blocks) {
+            if (candidate_block == block)
+                return true;
+        }
+        return false;
+    }
+
 private:
     HeapBlock *add_heap_block() {
-        auto *block = new HeapBlock(m_cell_size);
+        auto *block = reinterpret_cast<HeapBlock *>(aligned_alloc(HEAP_BLOCK_SIZE, HEAP_BLOCK_SIZE));
+        new (block) HeapBlock(m_cell_size);
+        //std::cerr << "new HeapBlock = " << block << "\n";
         m_blocks.push_back(block);
         m_free_cells += cell_count_per_block();
         return block;
@@ -155,13 +173,22 @@ public:
     void collect() {
         jmp_buf jump_buf;
         setjmp(jump_buf);
-        const void *raw_jump_buf = reinterpret_cast<const void *>(jump_buf);
+        void *raw_jump_buf = reinterpret_cast<void *>(jump_buf);
 
-        std::vector<const void *> possible_pointers;
+        std::vector<const Cell *> possible_cells;
 
         for (size_t i = 0; i < ((size_t)sizeof(jump_buf)) / sizeof(intptr_t); i += sizeof(intptr_t)) {
-            auto offset = reinterpret_cast<const char *>(raw_jump_buf)[i];
-            possible_pointers.push_back(reinterpret_cast<const void *>(offset));
+            void *offset = (reinterpret_cast<void **>(raw_jump_buf))[i];
+            if (offset == nullptr)
+                continue;
+            possible_cells.push_back(reinterpret_cast<const Cell *>(offset));
+        }
+
+        for (auto *candidate_cell : possible_cells) {
+            auto *candidate_block = HeapBlock::from_cell(candidate_cell);
+            //std::cerr << candidate_block << " (from cell " << candidate_cell << ")\n";
+            if (is_a_heap_block(candidate_block))
+                std::cerr << candidate_block << " is a heap block!\n";
         }
 
         //std::cerr << "possible: " << possible_pointers.size() << "\n";
@@ -195,18 +222,15 @@ private:
         abort();
     }
 
+    bool is_a_heap_block(HeapBlock *block) {
+        for (auto *allocator : m_allocators) {
+            if (allocator->is_my_block(block))
+                return true;
+        }
+        return false;
+    }
+
     std::vector<Allocator *> m_allocators;
 };
 
-class Cell {
-public:
-    Cell() { }
-    virtual ~Cell() { }
-
-    void *operator new(size_t size) {
-        auto *cell = Heap::the().allocate(size);
-        assert(cell);
-        return cell;
-    }
-};
 }
