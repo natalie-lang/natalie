@@ -23,15 +23,20 @@ struct GC_stack_base {
 
 namespace Natalie {
 
-const int HEAP_BLOCK_CELL_COUNT = 1024;
+const int HEAP_BLOCK_CELL_SIZE = 32 * 1024;
+const int HEAP_CELL_COUNT_MAX = HEAP_BLOCK_CELL_SIZE / 16; // 16 bytes is the smallest cell we will allocate
 
 class Cell;
 
 class HeapBlock {
 public:
+    NAT_MAKE_NONCOPYABLE(HeapBlock);
+
     HeapBlock(size_t size)
-        : m_cell_size { size } {
-        m_memory = new char[size * HEAP_BLOCK_CELL_COUNT];
+        : m_cell_size { size }
+        , m_total_count { HEAP_BLOCK_CELL_SIZE / m_cell_size }
+        , m_free_count { m_total_count } {
+        m_memory = new char[HEAP_BLOCK_CELL_SIZE] {};
     }
 
     ~HeapBlock() {
@@ -39,29 +44,21 @@ public:
         delete[] m_memory;
     }
 
-    NAT_MAKE_NONCOPYABLE(HeapBlock);
+    static HeapBlock *from_cell(const Cell *cell) {
+        return reinterpret_cast<HeapBlock *>((intptr_t)cell & ~(HEAP_BLOCK_CELL_SIZE - 1));
+    }
 
     bool has_free() {
         return m_free_count > 0;
     }
 
-    size_t free_cells() {
-        size_t free = 0;
-        for (size_t i = 0; i < HEAP_BLOCK_CELL_COUNT; i++) {
-            if (!m_used_map[i])
-                free += 1;
-        }
-        return free;
-    }
-
     void *next_free() {
         assert(has_free());
-        for (size_t i = 0; i < HEAP_BLOCK_CELL_COUNT; i++) {
+        for (size_t i = 0; i < m_total_count; ++i) {
             if (!m_used_map[i]) {
                 m_used_map[i] = true;
                 --m_free_count;
-                void *offset = &m_memory[i * m_cell_size];
-                return reinterpret_cast<void *>(offset);
+                return &m_memory[i * m_cell_size];
             }
         }
         NAT_UNREACHABLE();
@@ -69,8 +66,9 @@ public:
 
 private:
     size_t m_cell_size;
-    size_t m_free_count { HEAP_BLOCK_CELL_COUNT };
-    bool m_used_map[HEAP_BLOCK_CELL_COUNT] {};
+    size_t m_total_count { 0 };
+    size_t m_free_count { 0 };
+    bool m_used_map[HEAP_CELL_COUNT_MAX] {};
     char *m_memory { nullptr };
 };
 
@@ -79,8 +77,7 @@ public:
     NAT_MAKE_NONCOPYABLE(Allocator);
 
     Allocator(size_t cell_size)
-        : m_cell_size { cell_size } {
-    }
+        : m_cell_size { cell_size } { }
 
     ~Allocator() {
         for (auto &block : m_blocks) {
@@ -92,8 +89,12 @@ public:
         return m_cell_size;
     }
 
+    size_t cell_count_per_block() {
+        return HEAP_BLOCK_CELL_SIZE / m_cell_size;
+    }
+
     size_t total_cells() {
-        return m_blocks.size() * HEAP_BLOCK_CELL_COUNT;
+        return m_blocks.size() * cell_count_per_block();
     }
 
     size_t free_cells() {
@@ -114,7 +115,6 @@ public:
             }
         }
         auto *block = add_heap_block();
-        m_free_cells += HEAP_BLOCK_CELL_COUNT;
         return block->next_free();
     }
 
@@ -122,6 +122,7 @@ private:
     HeapBlock *add_heap_block() {
         auto *block = new HeapBlock(m_cell_size);
         m_blocks.push_back(block);
+        m_free_cells += cell_count_per_block();
         return block;
     }
 
@@ -145,7 +146,7 @@ public:
         auto &allocator = find_allocator_of_size(size);
         auto free = allocator.free_cells_percentage();
         if (free > 0 && free < 10) {
-            std::cerr << free << "% free in allocator of cell size " << size << "\n";
+            //std::cerr << free << "% free in allocator of cell size " << size << "\n";
             collect();
         }
         return allocator.allocate();
