@@ -5,6 +5,7 @@
 #include <cstring>
 #include <iostream>
 #include <memory>
+#include <setjmp.h>
 #include <vector>
 
 #include <natalie/macros.hpp>
@@ -44,6 +45,15 @@ public:
         return m_free_count > 0;
     }
 
+    size_t free_cells() {
+        size_t free = 0;
+        for (size_t i = 0; i < HEAP_BLOCK_CELL_COUNT; i++) {
+            if (!m_used_map[i])
+                free += 1;
+        }
+        return free;
+    }
+
     void *next_free() {
         assert(has_free());
         for (size_t i = 0; i < HEAP_BLOCK_CELL_COUNT; i++) {
@@ -68,8 +78,8 @@ class Allocator {
 public:
     NAT_MAKE_NONCOPYABLE(Allocator);
 
-    Allocator(size_t size)
-        : m_size { size } {
+    Allocator(size_t cell_size)
+        : m_cell_size { cell_size } {
     }
 
     ~Allocator() {
@@ -78,28 +88,45 @@ public:
         }
     }
 
-    size_t size() {
-        return m_size;
+    size_t cell_size() {
+        return m_cell_size;
+    }
+
+    size_t total_cells() {
+        return m_blocks.size() * HEAP_BLOCK_CELL_COUNT;
+    }
+
+    size_t free_cells() {
+        return m_free_cells;
+    }
+
+    short int free_cells_percentage() {
+        if (m_blocks.empty())
+            return 0;
+        return free_cells() * 100 / total_cells();
     }
 
     void *allocate() {
         for (auto block : m_blocks) {
             if (block->has_free()) {
+                --m_free_cells;
                 return block->next_free();
             }
         }
         auto *block = add_heap_block();
+        m_free_cells += HEAP_BLOCK_CELL_COUNT;
         return block->next_free();
     }
 
 private:
     HeapBlock *add_heap_block() {
-        auto *block = new HeapBlock(m_size);
+        auto *block = new HeapBlock(m_cell_size);
         m_blocks.push_back(block);
         return block;
     }
 
-    size_t m_size;
+    size_t m_cell_size;
+    size_t m_free_cells { 0 };
     std::vector<HeapBlock *> m_blocks;
 };
 
@@ -116,7 +143,27 @@ public:
 
     void *allocate(size_t size) {
         auto &allocator = find_allocator_of_size(size);
+        auto free = allocator.free_cells_percentage();
+        if (free > 0 && free < 10) {
+            std::cerr << free << "% free in allocator of cell size " << size << "\n";
+            collect();
+        }
         return allocator.allocate();
+    }
+
+    void collect() {
+        jmp_buf jump_buf;
+        setjmp(jump_buf);
+        const void *raw_jump_buf = reinterpret_cast<const void *>(jump_buf);
+
+        std::vector<const void *> possible_pointers;
+
+        for (size_t i = 0; i < ((size_t)sizeof(jump_buf)) / sizeof(intptr_t); i += sizeof(intptr_t)) {
+            auto offset = reinterpret_cast<const char *>(raw_jump_buf)[i];
+            possible_pointers.push_back(reinterpret_cast<const void *>(offset));
+        }
+
+        //std::cerr << "possible: " << possible_pointers.size() << "\n";
     }
 
 private:
@@ -140,7 +187,7 @@ private:
 
     Allocator &find_allocator_of_size(size_t size) {
         for (auto *allocator : m_allocators) {
-            if (allocator->size() >= size) {
+            if (allocator->cell_size() >= size) {
                 return *allocator;
             }
         }
@@ -161,5 +208,4 @@ public:
         return cell;
     }
 };
-
 }
