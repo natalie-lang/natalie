@@ -205,6 +205,8 @@ extern "C" Value *EVAL(Env *env) {
 }
 
 int main(int argc, char *argv[]) {
+    Heap::the().init(&argc);
+
     setvbuf(stdout, nullptr, _IOLBF, 1024);
     Env *env = build_top_env();
 
@@ -221,6 +223,8 @@ int main(int argc, char *argv[]) {
     ValuePtr result = EVAL(env);
 
     env->clear_global_env();
+
+    Heap::the().collect();
 
     if (result) {
         return 0;

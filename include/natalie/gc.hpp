@@ -254,7 +254,7 @@ public:
         auto free = allocator.free_cells_percentage();
         if (free > 0 && free < 10) {
             //std::cerr << free << "% free in allocator of cell size " << size << "\n";
-            collect();
+            //collect();
         }
 #endif
         return allocator.allocate();
@@ -267,6 +267,10 @@ public:
             cell->visit_children(visitor);
         }
         sweep();
+    }
+
+    void init(void *bottom_of_stack) {
+        m_bottom_of_stack = bottom_of_stack;
     }
 
 private:
@@ -289,6 +293,8 @@ private:
     }
 
     std::vector<Cell *> gather_conservative_roots() {
+        void *dummy;
+        void *top_of_stack = &dummy;
         std::vector<Cell *> possible_cells;
         std::vector<Cell *> roots;
 
@@ -301,6 +307,10 @@ private:
             if (offset == nullptr)
                 continue;
             possible_cells.push_back(reinterpret_cast<Cell *>(offset));
+        }
+
+        for (char *stack_address = reinterpret_cast<char *>(top_of_stack); stack_address < m_bottom_of_stack; stack_address += sizeof(intptr_t)) {
+            possible_cells.push_back(reinterpret_cast<Cell *>(stack_address));
         }
 
         for (auto *candidate_cell : possible_cells) {
@@ -337,6 +347,8 @@ private:
     }
 
     std::vector<Allocator *> m_allocators;
+
+    void *m_bottom_of_stack { nullptr };
 };
 
 }
