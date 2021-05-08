@@ -276,7 +276,7 @@ ValuePtr StringValue::encoding(Env *env) {
 }
 
 static char *lcase_string(const char *str) {
-    char *lcase_str = GC_STRDUP(str);
+    char *lcase_str = strdup(str);
     for (int i = 0; lcase_str[i]; i++) {
         lcase_str[i] = tolower(lcase_str[i]);
     }
@@ -293,14 +293,14 @@ static EncodingValue *find_encoding_by_name(Env *env, const char *name) {
             StringValue *name_obj = (*names)[n]->as_string();
             char *name = lcase_string(name_obj->c_str());
             if (strcmp(name, lcase_name) == 0) {
-                GC_FREE(name);
-                GC_FREE(lcase_name);
+                free(name);
+                free(lcase_name);
                 return encoding;
             }
-            GC_FREE(name);
+            free(name);
         }
     }
-    GC_FREE(lcase_name);
+    free(lcase_name);
     env->raise("ArgumentError", "unknown encoding name - {}", name);
 }
 

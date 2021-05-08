@@ -45,7 +45,7 @@ void HashValue::put(Env *env, ValuePtr key, ValuePtr val) {
         if (m_is_iterating) {
             env->raise("RuntimeError", "can't add a new key into hash during iteration");
         }
-        container = static_cast<Val *>(GC_MALLOC(sizeof(Val)));
+        container = static_cast<Val *>(malloc(sizeof(Val)));
         container->key = key_list_append(env, key, val);
         container->val = val;
         m_hashmap.put(env, container->key, container);
@@ -60,7 +60,7 @@ ValuePtr HashValue::remove(Env *env, ValuePtr key) {
     if (container) {
         key_list_remove_node(container->key);
         ValuePtr val = container->val;
-        GC_FREE(container);
+        free(container);
         return val;
     } else {
         return nullptr;
@@ -82,7 +82,7 @@ HashValue::Key *HashValue::key_list_append(Env *env, ValuePtr key, ValuePtr val)
     if (m_key_list) {
         Key *first = m_key_list;
         Key *last = m_key_list->prev;
-        Key *new_last = static_cast<Key *>(GC_MALLOC(sizeof(Key)));
+        Key *new_last = static_cast<Key *>(malloc(sizeof(Key)));
         new_last->key = key;
         new_last->val = val;
         // <first> ... <last> <new_last> -|
@@ -95,7 +95,7 @@ HashValue::Key *HashValue::key_list_append(Env *env, ValuePtr key, ValuePtr val)
         last->next = new_last;
         return new_last;
     } else {
-        Key *node = static_cast<Key *>(GC_MALLOC(sizeof(Key)));
+        Key *node = static_cast<Key *>(malloc(sizeof(Key)));
         node->key = key;
         node->val = val;
         node->prev = node;

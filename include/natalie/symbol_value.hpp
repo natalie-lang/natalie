@@ -49,7 +49,7 @@ struct SymbolValue : Value {
 private:
     SymbolValue(Env *env, const char *name)
         : Value { Value::Type::Symbol, env->Symbol() }
-        , m_name { GC_STRDUP(name) } {
+        , m_name { strdup(name) } {
         assert(m_name);
     }
 

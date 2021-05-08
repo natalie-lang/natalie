@@ -31,16 +31,16 @@ Method *Env::current_method() {
 
 char *Env::build_code_location_name(Env *location_env) {
     if (location_env->is_main())
-        return GC_STRDUP("<main>");
+        return strdup("<main>");
     if (location_env->method())
-        return GC_STRDUP(location_env->method()->name());
+        return strdup(location_env->method()->name());
     if (location_env->outer()) {
         char *outer_name = build_code_location_name(location_env->outer());
-        char *name = GC_STRDUP(StringValue::format(this, "block in {}", outer_name)->c_str());
-        GC_FREE(outer_name);
+        char *name = strdup(StringValue::format(this, "block in {}", outer_name)->c_str());
+        free(outer_name);
         return name;
     }
-    return GC_STRDUP("block");
+    return strdup("block");
 }
 
 void Env::raise(ClassValue *klass, StringValue *message) {

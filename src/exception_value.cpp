@@ -9,7 +9,7 @@ void ExceptionValue::build_backtrace(Env *env) {
         if (bt_env->file()) {
             char *method_name = env->build_code_location_name(bt_env);
             m_backtrace->push(StringValue::format(env, "{}:{}:in `{}'", bt_env->file(), bt_env->line(), method_name));
-            GC_FREE(method_name);
+            free(method_name);
         }
         bt_env = bt_env->caller();
     } while (bt_env);

@@ -205,7 +205,7 @@ extern "C" Value *EVAL(Env *env) {
 }
 
 int main(int argc, char *argv[]) {
-    Heap::the().init(&argc);
+    Heap::the().set_bottom_of_stack(&argc);
 
     setvbuf(stdout, nullptr, _IOLBF, 1024);
     Env *env = build_top_env();

@@ -202,7 +202,7 @@ static int hashmap_rehash(Env *env, struct hashmap *map, size_t new_size) {
     HASHMAP_ASSERT(new_size >= HASHMAP_SIZE_MIN);
     HASHMAP_ASSERT((new_size & (new_size - 1)) == 0);
 
-    new_table = (struct hashmap_entry *)GC_MALLOC(new_size * sizeof(struct hashmap_entry));
+    new_table = (struct hashmap_entry *)malloc(new_size * sizeof(struct hashmap_entry));
     memset(new_table, 0, new_size * sizeof(struct hashmap_entry));
     if (!new_table) {
         return -ENOMEM;
@@ -230,12 +230,12 @@ static int hashmap_rehash(Env *env, struct hashmap *map, size_t new_size) {
         new_entry->key = entry->key;
         new_entry->data = entry->data;
     }
-    GC_FREE(old_table);
+    free(old_table);
     return 0;
 revert:
     map->table_size = old_size;
     map->table = old_table;
-    GC_FREE(new_table);
+    free(new_table);
     return -EINVAL;
 }
 
@@ -286,7 +286,7 @@ int hashmap_init(struct hashmap *map, nat_int_t (*hash_func)(const void *),
     map->table_size_init = initial_size;
     map->table_size = initial_size;
     map->num_entries = 0;
-    map->table = (struct hashmap_entry *)GC_MALLOC(initial_size * sizeof(struct hashmap_entry));
+    map->table = (struct hashmap_entry *)malloc(initial_size * sizeof(struct hashmap_entry));
     memset(map->table, 0, initial_size * sizeof(struct hashmap_entry));
     if (!map->table) {
         return -ENOMEM;
@@ -431,7 +431,7 @@ void hashmap_reset(struct hashmap *map) {
     if (map->table_size == map->table_size_init) {
         return;
     }
-    new_table = (struct hashmap_entry *)GC_REALLOC(map->table, sizeof(struct hashmap_entry) * map->table_size_init);
+    new_table = (struct hashmap_entry *)realloc(map->table, sizeof(struct hashmap_entry) * map->table_size_init);
     if (!new_table) {
         return;
     }
@@ -621,7 +621,7 @@ int hashmap_compare_string(Env *, const void *a, const void *b) {
  * key_free_func.
  */
 void *hashmap_alloc_key_string(const void *key) {
-    return (void *)GC_STRDUP((const char *)key);
+    return (void *)strdup((const char *)key);
 }
 
 /*

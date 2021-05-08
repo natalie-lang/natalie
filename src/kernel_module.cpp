@@ -271,7 +271,7 @@ ValuePtr KernelModule::spawn(Env *env, size_t argc, ValuePtr *args) {
     for (size_t i = 0; i < argc; i++) {
         auto arg = args[i];
         arg->assert_type(env, Value::Type::String, "String");
-        cmd[i] = GC_STRDUP(arg->as_string()->c_str());
+        cmd[i] = strdup(arg->as_string()->c_str());
     }
     cmd[argc] = nullptr;
     int result = posix_spawnp(&pid, cmd[0], NULL, NULL, cmd, environ);

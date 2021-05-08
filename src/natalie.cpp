@@ -450,7 +450,7 @@ void set_status_object(Env *env, int pid, int status) {
 
 const char *int_to_hex_string(nat_int_t num, bool capitalize) {
     if (num == 0) {
-        return GC_STRDUP("0");
+        return strdup("0");
     } else {
         char buf[100]; // ought to be enough for anybody ;-)
         if (capitalize) {
@@ -458,7 +458,7 @@ const char *int_to_hex_string(nat_int_t num, bool capitalize) {
         } else {
             snprintf(buf, 100, "0x%" PRIx64, num);
         }
-        return GC_STRDUP(buf);
+        return strdup(buf);
     }
 }
 

@@ -148,14 +148,14 @@ struct Token : public Cell {
 
     Token(Type type, const char *file, size_t line, size_t column)
         : m_type { type }
-        , m_file { GC_STRDUP(file) }
+        , m_file { strdup(file) }
         , m_line { line }
         , m_column { column } { }
 
     Token(Type type, const char *literal, const char *file, size_t line, size_t column)
         : m_type { type }
-        , m_literal { GC_STRDUP(literal) }
-        , m_file { GC_STRDUP(file) }
+        , m_literal { strdup(literal) }
+        , m_file { strdup(file) }
         , m_line { line }
         , m_column { column } {
         assert(m_literal);
@@ -163,24 +163,24 @@ struct Token : public Cell {
 
     Token(Type type, char literal, const char *file, size_t line, size_t column)
         : m_type { type }
-        , m_file { GC_STRDUP(file) }
+        , m_file { strdup(file) }
         , m_line { line }
         , m_column { column } {
         char buf[2] = { literal, 0 };
-        m_literal = GC_STRDUP(buf);
+        m_literal = strdup(buf);
     }
 
     Token(Type type, nat_int_t integer, const char *file, size_t line, size_t column)
         : m_type { type }
         , m_integer { integer }
-        , m_file { GC_STRDUP(file) }
+        , m_file { strdup(file) }
         , m_line { line }
         , m_column { column } { }
 
     Token(Type type, double dbl, const char *file, size_t line, size_t column)
         : m_type { type }
         , m_double { dbl }
-        , m_file { GC_STRDUP(file) }
+        , m_file { strdup(file) }
         , m_line { line }
         , m_column { column } { }
 
@@ -191,7 +191,7 @@ struct Token : public Cell {
 
     const char *literal() { return m_literal; }
     void set_literal(const char *literal) { m_literal = literal; }
-    void set_literal(std::string literal) { m_literal = GC_STRDUP(literal.c_str()); }
+    void set_literal(std::string literal) { m_literal = strdup(literal.c_str()); }
 
     nat_int_t get_integer() { return m_integer; }
     double get_double() { return m_double; }

@@ -38,6 +38,9 @@ public:
     }
 
     void collect() {
+#ifdef NAT_GC_DISABLE
+        return;
+#endif
         MarkingVisitor visitor;
         auto roots = gather_conservative_roots();
         for (auto cell : roots) {
@@ -46,7 +49,11 @@ public:
         sweep();
     }
 
-    void init(void *bottom_of_stack) {
+    void *bottom_of_stack() {
+        return m_bottom_of_stack;
+    }
+
+    void set_bottom_of_stack(void *bottom_of_stack) {
         m_bottom_of_stack = bottom_of_stack;
     }
 

@@ -24,7 +24,7 @@ struct ModuleValue : Value {
     ModuleValue(Env *env, ModuleValue &other)
         : Value { other.type(), other.klass() }
         , m_constants { other.m_constants }
-        , m_class_name { GC_STRDUP(other.m_class_name) }
+        , m_class_name { strdup(other.m_class_name) }
         , m_superclass { other.m_superclass }
         , m_methods { other.m_methods } {
         for (ModuleValue *module : const_cast<ModuleValue &>(other).m_included_modules) {
@@ -51,7 +51,7 @@ struct ModuleValue : Value {
     ValuePtr eval_body(Env *, ValuePtr (*)(Env *, ValuePtr));
 
     const char *class_name() { return m_class_name; }
-    void set_class_name(const char *name) { m_class_name = name ? GC_STRDUP(name) : nullptr; }
+    void set_class_name(const char *name) { m_class_name = name ? strdup(name) : nullptr; }
 
     ClassValue *superclass() { return m_superclass; }
     void set_superclass_DANGEROUSLY(ClassValue *superclass) { m_superclass = superclass; }

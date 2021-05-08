@@ -22,7 +22,7 @@ struct MatchDataValue : Value {
     MatchDataValue(Env *env, OnigRegion *region, StringValue *string)
         : Value { Value::Type::MatchData, env->Object()->const_fetch(env, SymbolValue::intern(env, "MatchData"))->as_class() }
         , m_region { region }
-        , m_str { GC_STRDUP(string->c_str()) } { }
+        , m_str { strdup(string->c_str()) } { }
 
     const char *c_str() { return m_str; }
 

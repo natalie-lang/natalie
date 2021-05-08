@@ -31,15 +31,15 @@ ValuePtr IoValue::read(Env *env, ValuePtr count_value) {
     if (count_value) {
         count_value->assert_type(env, Value::Type::Integer, "Integer");
         int count = count_value->as_integer()->to_nat_int_t();
-        char *buf = static_cast<char *>(GC_MALLOC((count + 1) * sizeof(char)));
+        char *buf = static_cast<char *>(malloc((count + 1) * sizeof(char)));
         bytes_read = ::read(m_fileno, buf, count);
         if (bytes_read == 0) {
-            GC_FREE(buf);
+            free(buf);
             return env->nil_obj();
         } else {
             buf[bytes_read] = 0;
             ValuePtr result = new StringValue { env, buf };
-            GC_FREE(buf);
+            free(buf);
             return result;
         }
     }

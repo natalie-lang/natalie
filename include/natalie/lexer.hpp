@@ -10,7 +10,7 @@ namespace Natalie {
 struct Lexer : public Cell {
     Lexer(const char *input, const char *file)
         : m_input { input }
-        , m_file { GC_STRDUP(file) }
+        , m_file { strdup(file) }
         , m_size { strlen(input) } {
         assert(m_input);
     }
@@ -774,7 +774,7 @@ private:
                 break;
             }
         }
-        return new Token { Token::Type::Symbol, GC_STRDUP(buf.c_str()), m_file, m_token_line, m_token_column };
+        return new Token { Token::Type::Symbol, strdup(buf.c_str()), m_file, m_token_line, m_token_column };
     }
 
     Token *consume_word(Token::Type type) {
@@ -794,7 +794,7 @@ private:
         default:
             break;
         }
-        return new Token { type, GC_STRDUP(buf.c_str()), m_file, m_token_line, m_token_column };
+        return new Token { type, strdup(buf.c_str()), m_file, m_token_line, m_token_column };
     }
 
     Token *consume_bare_name() {
@@ -825,7 +825,7 @@ private:
             advance();
             auto buf = std::string("$") + current_char();
             advance();
-            return new Token { Token::Type::GlobalVariable, GC_STRDUP(buf.c_str()), m_file, m_token_line, m_token_column };
+            return new Token { Token::Type::GlobalVariable, strdup(buf.c_str()), m_file, m_token_line, m_token_column };
         }
         default: {
             return consume_word(Token::Type::GlobalVariable);
@@ -847,7 +847,7 @@ private:
         // start consuming the heredoc on the next line
         while (get_char() != '\n') {
             if (heredoc_index >= m_size)
-                return new Token { Token::Type::UnterminatedString, GC_STRDUP("heredoc"), m_file, m_token_line, m_token_column };
+                return new Token { Token::Type::UnterminatedString, strdup("heredoc"), m_file, m_token_line, m_token_column };
             heredoc_index++;
         }
         heredoc_index++;
@@ -858,7 +858,7 @@ private:
             delimiter = '\n' + delimiter;
         while (doc.find(delimiter) == std::string::npos) {
             if (heredoc_index >= m_size)
-                return new Token { Token::Type::UnterminatedString, GC_STRDUP(doc.c_str()), m_file, m_token_line, m_token_column };
+                return new Token { Token::Type::UnterminatedString, strdup(doc.c_str()), m_file, m_token_line, m_token_column };
             doc += get_char();
             heredoc_index++;
         }
@@ -872,7 +872,7 @@ private:
         // this index is used to do that
         m_index_after_heredoc = heredoc_index;
 
-        auto token = new Token { Token::Type::DoubleQuotedString, GC_STRDUP(doc.c_str()), m_file, m_token_line, m_token_column };
+        auto token = new Token { Token::Type::DoubleQuotedString, strdup(doc.c_str()), m_file, m_token_line, m_token_column };
         return token;
     }
 
@@ -1017,7 +1017,7 @@ private:
                 }
             } else if (c == delimiter) {
                 advance();
-                auto token = new Token { Token::Type::DoubleQuotedString, GC_STRDUP(buf.c_str()), m_file, m_token_line, m_token_column };
+                auto token = new Token { Token::Type::DoubleQuotedString, strdup(buf.c_str()), m_file, m_token_line, m_token_column };
                 return token;
             } else {
                 buf += c;
@@ -1025,7 +1025,7 @@ private:
             advance();
             c = current_char();
         }
-        return new Token { Token::Type::UnterminatedString, GC_STRDUP(buf.c_str()), m_file, m_token_line, m_token_column };
+        return new Token { Token::Type::UnterminatedString, strdup(buf.c_str()), m_file, m_token_line, m_token_column };
     }
 
     Token *consume_single_quoted_string(char delimiter) {
@@ -1047,14 +1047,14 @@ private:
                 }
             } else if (c == delimiter) {
                 advance();
-                return new Token { Token::Type::String, GC_STRDUP(buf.c_str()), m_file, m_token_line, m_token_column };
+                return new Token { Token::Type::String, strdup(buf.c_str()), m_file, m_token_line, m_token_column };
             } else {
                 buf += c;
             }
             advance();
             c = current_char();
         }
-        return new Token { Token::Type::UnterminatedString, GC_STRDUP(buf.c_str()), m_file, m_token_line, m_token_column };
+        return new Token { Token::Type::UnterminatedString, strdup(buf.c_str()), m_file, m_token_line, m_token_column };
     }
 
     Token *consume_quoted_array_without_interpolation(char delimiter, Token::Type type) {
@@ -1063,7 +1063,7 @@ private:
         bool seen_space = false;
         bool seen_start = false;
         for (;;) {
-            if (!c) return new Token { Token::Type::UnterminatedString, GC_STRDUP(buf.c_str()), m_file, m_token_line, m_token_column };
+            if (!c) return new Token { Token::Type::UnterminatedString, strdup(buf.c_str()), m_file, m_token_line, m_token_column };
             if (c == delimiter) {
                 advance();
                 break;
@@ -1084,7 +1084,7 @@ private:
             c = current_char();
         }
         if (buf[buf.length() - 1] == ' ') buf.erase(buf.length() - 1, 1);
-        return new Token { type, GC_STRDUP(buf.c_str()), m_file, m_token_line, m_token_column };
+        return new Token { type, strdup(buf.c_str()), m_file, m_token_line, m_token_column };
     }
 
     Token *consume_quoted_array_with_interpolation(char delimiter, Token::Type type) {
@@ -1093,7 +1093,7 @@ private:
         bool seen_space = false;
         bool seen_start = false;
         for (;;) {
-            if (!c) return new Token { Token::Type::UnterminatedString, GC_STRDUP(buf.c_str()), m_file, m_token_line, m_token_column };
+            if (!c) return new Token { Token::Type::UnterminatedString, strdup(buf.c_str()), m_file, m_token_line, m_token_column };
             if (c == delimiter) {
                 advance();
                 break;
@@ -1114,7 +1114,7 @@ private:
             c = current_char();
         }
         if (buf[buf.length() - 1] == ' ') buf.erase(buf.length() - 1, 1);
-        return new Token { type, GC_STRDUP(buf.c_str()), m_file, m_token_line, m_token_column };
+        return new Token { type, strdup(buf.c_str()), m_file, m_token_line, m_token_column };
     }
 
     Token *consume_regexp(char delimiter) {
@@ -1127,7 +1127,7 @@ private:
                 buf += current_char();
             } else if (c == delimiter) {
                 advance();
-                auto token = new Token { Token::Type::Regexp, GC_STRDUP(buf.c_str()), m_file, m_token_line, m_token_column };
+                auto token = new Token { Token::Type::Regexp, strdup(buf.c_str()), m_file, m_token_line, m_token_column };
                 return token;
             } else {
                 buf += c;
@@ -1135,7 +1135,7 @@ private:
             advance();
             c = current_char();
         }
-        return new Token { Token::Type::UnterminatedRegexp, GC_STRDUP(buf.c_str()), m_file, m_token_line, m_token_column };
+        return new Token { Token::Type::UnterminatedRegexp, strdup(buf.c_str()), m_file, m_token_line, m_token_column };
     }
 
     const char *consume_non_whitespace() {
@@ -1146,7 +1146,7 @@ private:
             advance();
             c = current_char();
         } while (c && c != ' ' && c != '\t' && c != '\n' && c != '\r');
-        return GC_STRDUP(buf.c_str());
+        return strdup(buf.c_str());
     }
 
     const char *m_input { nullptr };
@@ -1190,7 +1190,7 @@ struct InterpolatedStringLexer {
             char c = current_char();
             if (c == '#' && peek() == '{') {
                 if (!raw.empty() || tokens->is_empty()) {
-                    tokens->push(new Token { Token::Type::String, GC_STRDUP(raw.c_str()), m_file, m_line, m_column });
+                    tokens->push(new Token { Token::Type::String, strdup(raw.c_str()), m_file, m_line, m_column });
                     raw.clear();
                 }
                 m_index += 2;
@@ -1201,7 +1201,7 @@ struct InterpolatedStringLexer {
             }
         }
         if (!raw.empty())
-            tokens->push(new Token { Token::Type::String, GC_STRDUP(raw.c_str()), m_file, m_line, m_column });
+            tokens->push(new Token { Token::Type::String, strdup(raw.c_str()), m_file, m_line, m_column });
         return tokens;
     }
 
