@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <stdlib.h>
 
 #include "natalie/forward.hpp"
@@ -27,6 +28,31 @@ struct Env : public Cell {
 
     Env(GlobalEnv *global_env)
         : m_global_env { global_env } { }
+
+    /*
+    Env(Env &other)
+        : m_global_env { other.m_global_env }
+        , m_outer { other.m_outer }
+        , m_block { other.m_block }
+        , m_caller { other.m_caller }
+        , m_file { other.m_file }
+        , m_line { other.m_line }
+        , m_method { other.m_method }
+        , m_match { other.m_match }
+        , m_is_main { other.m_is_main } {
+        if (other.m_vars)
+            m_vars = new Vector<ValuePtr> { *other.m_vars };
+    }
+    */
+
+    Env &operator=(Env &other) = delete;
+
+    ~Env() { }
+
+    // no outer env
+    void init_detached(Env &outer) {
+        m_global_env = outer.global_env();
+    }
 
     static Env new_detatched_env(Env *);
 
@@ -109,9 +135,11 @@ struct Env : public Cell {
     bool is_main() { return m_is_main; }
     void set_is_main(bool is_main) { m_is_main = is_main; }
 
+    virtual void visit_children(Visitor &visitor) override final;
+
 private:
     GlobalEnv *m_global_env { nullptr };
-    Vector<ValuePtr> *m_vars { nullptr };
+    std::shared_ptr<Vector<ValuePtr>> m_vars;
     Env *m_outer { nullptr };
     Block *m_block { nullptr };
     Env *m_caller { nullptr };
@@ -121,5 +149,4 @@ private:
     ValuePtr m_match { nullptr };
     bool m_is_main { false };
 };
-
 }

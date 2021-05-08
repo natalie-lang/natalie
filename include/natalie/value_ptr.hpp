@@ -39,6 +39,13 @@ struct ValuePtr {
         return m_value;
     }
 
+    Value *value_or_null() {
+        if (m_type == Type::Pointer)
+            return m_value;
+        else
+            return nullptr;
+    }
+
     bool operator==(Value *other) {
         hydrate();
         return m_value == other;
@@ -57,6 +64,10 @@ struct ValuePtr {
 
     ValuePtr send(Env *, SymbolValue *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
     ValuePtr send(Env *, const char *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
+
+    bool is_pointer() {
+        return m_type == Type::Pointer;
+    }
 
     bool is_integer();
     bool is_float();

@@ -574,4 +574,13 @@ ValuePtr Value::enum_for(Env *env, const char *method, size_t argc, ValuePtr *ar
     return this->_public_send(env, SymbolValue::intern(env, "enum_for"), argc + 1, args2);
 }
 
+void Value::visit_children(Visitor &visitor) {
+    visitor.visit(m_singleton_class);
+    visitor.visit(m_owner);
+    for (auto pair : m_ivars) {
+        visitor.visit(pair.first);
+        visitor.visit(pair.second);
+    }
+}
+
 }

@@ -659,6 +659,9 @@ struct Token : public Cell {
         }
     }
 
+    virtual void visit_children(Visitor &visitor) override final {
+    }
+
 private:
     Type m_type { Type::Invalid };
     const char *m_literal { nullptr };

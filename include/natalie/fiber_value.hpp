@@ -170,6 +170,8 @@ struct FiberValue : Value {
         NAT_UNREACHABLE();
     }
 
+    virtual void visit_children(Visitor &) override final;
+
 private:
     Block *m_block { nullptr };
     ::fiber_stack_struct m_fiber {};

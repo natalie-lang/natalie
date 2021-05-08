@@ -37,4 +37,11 @@ ValuePtr EncodingValue::inspect(Env *env) {
     return StringValue::format(env, "#<Encoding:{}>", name());
 }
 
+void EncodingValue::visit_children(Visitor &visitor) {
+    Value::visit_children(visitor);
+    for (auto name : m_names) {
+        visitor.visit(name);
+    }
+}
+
 }

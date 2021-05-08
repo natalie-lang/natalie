@@ -34,6 +34,12 @@ struct MethodValue : Value {
 
     int arity() { return m_method ? m_method->arity() : 0; }
 
+    virtual void visit_children(Visitor &visitor) override final {
+        Value::visit_children(visitor);
+        visitor.visit(m_object);
+        visitor.visit(m_method);
+    }
+
 private:
     ValuePtr m_object { nullptr };
     Method *m_method { nullptr };

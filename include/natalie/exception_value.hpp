@@ -18,25 +18,30 @@ struct ExceptionValue : Value {
     ExceptionValue(Env *env, ClassValue *klass)
         : Value { Value::Type::Exception, klass } { }
 
-    ExceptionValue(Env *env, ClassValue *klass, const char *message)
+    ExceptionValue(Env *env, ClassValue *klass, StringValue *message)
         : Value { Value::Type::Exception, klass }
         , m_message { message } {
         assert(m_message);
     }
 
-    const char *message() { return m_message; }
-    void set_message(const char *message) { m_message = GC_STRDUP(message); }
+    StringValue *message() { return m_message; }
+    void set_message(StringValue *message) { m_message = message; }
 
     ValuePtr initialize(Env *, ValuePtr);
     ValuePtr inspect(Env *);
-    ValuePtr message(Env *);
+
+    ValuePtr message(Env *env) {
+        return m_message;
+    }
 
     const ArrayValue *backtrace() { return m_backtrace; }
     ValuePtr backtrace(Env *);
     void build_backtrace(Env *);
 
+    virtual void visit_children(Visitor &) override final;
+
 private:
-    const char *m_message { nullptr };
+    StringValue *m_message { nullptr };
     ArrayValue *m_backtrace { nullptr };
 };
 

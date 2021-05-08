@@ -52,6 +52,13 @@ void fiber_wrapper_func(Natalie::Env *env, Natalie::FiberValue *fiber) {
     fiber_asm_switch(main_fiber->fiber(), fiber->fiber(), 0, env, fiber);
 }
 
+void Natalie::FiberValue::visit_children(Visitor &visitor) {
+    Value::visit_children(visitor);
+    visitor.visit(m_block);
+    // TODO: need to visit fiber_stack_struct m_fiber
+    // ...and m_stack_base possibly too
+}
+
 #ifdef __x86_64
 /* arguments:
  * rdi: next fiber

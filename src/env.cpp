@@ -10,7 +10,7 @@ Env Env::new_detatched_env(Env *outer) {
 }
 
 void Env::build_vars(size_t size) {
-    m_vars = new Vector<ValuePtr> { size, static_cast<ValuePtr>(nil_obj()) };
+    m_vars = std::make_shared<Vector<ValuePtr>>(size, nil_obj());
 }
 
 ValuePtr Env::global_get(SymbolValue *name) {
@@ -44,18 +44,18 @@ char *Env::build_code_location_name(Env *location_env) {
 }
 
 void Env::raise(ClassValue *klass, StringValue *message) {
-    ExceptionValue *exception = new ExceptionValue { this, klass, message->c_str() };
+    ExceptionValue *exception = new ExceptionValue { this, klass, message };
     this->raise_exception(exception);
 }
 
 void Env::raise(ClassValue *klass, struct String *message) {
-    ExceptionValue *exception = new ExceptionValue { this, klass, message->c_str() };
+    ExceptionValue *exception = new ExceptionValue { this, klass, new StringValue { this, *message } };
     this->raise_exception(exception);
 }
 
 void Env::raise(const char *class_name, struct String *message) {
     ClassValue *klass = Object()->const_fetch(this, SymbolValue::intern(this, class_name))->as_class();
-    ExceptionValue *exception = new ExceptionValue { this, klass, message->c_str() };
+    ExceptionValue *exception = new ExceptionValue { this, klass, new StringValue { this, *message } };
     this->raise_exception(exception);
 }
 
@@ -68,7 +68,7 @@ void Env::raise_exception(ExceptionValue *exception) {
 }
 
 void Env::raise_local_jump_error(ValuePtr exit_value, const char *message) {
-    ExceptionValue *exception = new ExceptionValue { this, Object()->const_find(this, SymbolValue::intern(this, "LocalJumpError"))->as_class(), message };
+    ExceptionValue *exception = new ExceptionValue { this, Object()->const_find(this, SymbolValue::intern(this, "LocalJumpError"))->as_class(), new StringValue { this, message } };
     exception->ivar_set(this, SymbolValue::intern(this, "@exit_value"), exit_value);
     this->raise_exception(exception);
 }
@@ -130,7 +130,7 @@ ValuePtr Env::var_set(const char *name, size_t index, bool allocate, ValuePtr va
     if (needed > current_size) {
         if (allocate) {
             if (!m_vars) {
-                m_vars = new Vector<ValuePtr> { needed, nil_obj() };
+                m_vars = std::make_shared<Vector<ValuePtr>>(needed, nil_obj());
             } else {
                 m_vars->set_size(needed, nil_obj());
             }
@@ -141,6 +141,20 @@ ValuePtr Env::var_set(const char *name, size_t index, bool allocate, ValuePtr va
     }
     (*m_vars)[index] = val;
     return val;
+}
+
+void Env::visit_children(Visitor &visitor) {
+    visitor.visit(m_global_env);
+    if (m_vars) {
+        for (auto &val : *m_vars) {
+            visitor.visit(val);
+        }
+    }
+    visitor.visit(m_outer);
+    visitor.visit(m_block);
+    visitor.visit(m_caller);
+    visitor.visit(m_method);
+    visitor.visit(m_match);
 }
 
 }

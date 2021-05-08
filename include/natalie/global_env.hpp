@@ -67,6 +67,8 @@ struct GlobalEnv : public Cell {
 
     friend struct SymbolValue;
 
+    virtual void visit_children(Visitor &visitor) override final;
+
 private:
     SymbolValue *symbol_get(Env *, const char *);
     void symbol_set(Env *, const char *, SymbolValue *);

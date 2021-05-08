@@ -10,6 +10,12 @@
 
 #include <natalie/macros.hpp>
 
+/*
+ * TODO:
+ * - remove these stubs below
+ * - add destructors on every object
+ */
+
 class gc { };
 struct GC_stack_base {
     void *mem_base;
@@ -23,8 +29,11 @@ struct GC_stack_base {
 
 namespace Natalie {
 
-const int HEAP_BLOCK_SIZE = 32 * 1024;
-const int HEAP_CELL_COUNT_MAX = HEAP_BLOCK_SIZE / 16; // 16 bytes is the smallest cell we will allocate
+struct ValuePtr;
+
+constexpr const size_t HEAP_BLOCK_SIZE = 32 * 1024;
+constexpr const size_t HEAP_BLOCK_MASK = ~(HEAP_BLOCK_SIZE - 1);
+constexpr const size_t HEAP_CELL_COUNT_MAX = HEAP_BLOCK_SIZE / 16; // 16 bytes is the smallest cell we will allocate
 
 class Cell {
 public:
@@ -32,6 +41,40 @@ public:
     virtual ~Cell() { }
 
     void *operator new(size_t size);
+
+    class Visitor {
+    public:
+        virtual void visit(Cell *) = 0;
+        virtual void visit(ValuePtr) = 0;
+    };
+
+    void virtual visit_children(Visitor &) = 0;
+
+    bool marked() {
+        return m_marked;
+    }
+
+    void mark() {
+        m_marked = true;
+    }
+
+    void unmark() {
+        m_marked = false;
+    }
+
+private:
+    bool m_marked { false };
+};
+
+class MarkingVisitor : public Cell::Visitor {
+public:
+    virtual void visit(Cell *cell) override final {
+        if (!cell || cell->marked()) return;
+        cell->mark();
+        cell->visit_children(*this);
+    }
+
+    virtual void visit(ValuePtr val) override final;
 };
 
 class HeapBlock {
@@ -40,18 +83,15 @@ public:
 
     HeapBlock(size_t size)
         : m_cell_size { size }
-        , m_total_count { HEAP_BLOCK_SIZE / m_cell_size }
+        , m_total_count { (HEAP_BLOCK_SIZE - sizeof(HeapBlock)) / m_cell_size }
         , m_free_count { m_total_count } {
-        m_memory = new char[HEAP_BLOCK_SIZE] {};
+        memset(m_memory, 0, HEAP_BLOCK_SIZE - sizeof(HeapBlock));
     }
 
-    ~HeapBlock() {
-        // TODO: assert that all the objects are deleted already?
-        delete[] m_memory;
-    }
+    ~HeapBlock() { }
 
     static HeapBlock *from_cell(const Cell *cell) {
-        return reinterpret_cast<HeapBlock *>((intptr_t)cell & ~(HEAP_BLOCK_SIZE - 1));
+        return reinterpret_cast<HeapBlock *>((intptr_t)cell & HEAP_BLOCK_MASK);
     }
 
     bool has_free() {
@@ -65,11 +105,52 @@ public:
                 m_used_map[i] = true;
                 --m_free_count;
                 void *cell = &m_memory[i * m_cell_size];
-                //std::cerr << "cell = " << cell << ", block = " << this << "\n";
                 return cell;
             }
         }
         NAT_UNREACHABLE();
+    }
+
+    bool cell_in_use(const Cell *cell) const {
+        // FIXME: could use pointer arithmetic instead of iterating
+        for (size_t i = 0; i < m_total_count; ++i) {
+            const void *comparison_cell = &m_memory[i * m_cell_size];
+            if (cell == comparison_cell)
+                return m_used_map[i];
+        }
+        return false;
+    }
+
+    class iterator {
+    public:
+        iterator(HeapBlock *block, size_t index)
+            : m_block { block }
+            , m_index { index } { }
+
+        iterator operator++() {
+            ++m_index;
+            return *this;
+        }
+
+        friend bool operator==(const iterator &i1, const iterator &i2) {
+            return i1.m_block == i2.m_block && i1.m_index == i2.m_index;
+        }
+
+        friend bool operator!=(const iterator &i1, const iterator &i2) {
+            return i1.m_block != i2.m_block || i1.m_index != i2.m_index;
+        }
+
+    private:
+        HeapBlock *m_block;
+        size_t m_index { 0 };
+    };
+
+    iterator begin() {
+        return iterator { this, 0 };
+    }
+
+    iterator end() {
+        return iterator { this, HEAP_CELL_COUNT_MAX + 1 };
     }
 
 private:
@@ -77,7 +158,7 @@ private:
     size_t m_total_count { 0 };
     size_t m_free_count { 0 };
     bool m_used_map[HEAP_CELL_COUNT_MAX] {};
-    alignas(Cell) char *m_memory { nullptr };
+    alignas(Cell) char m_memory[];
 };
 
 class Allocator {
@@ -98,7 +179,7 @@ public:
     }
 
     size_t cell_count_per_block() {
-        return HEAP_BLOCK_SIZE / m_cell_size;
+        return (HEAP_BLOCK_SIZE - sizeof(HeapBlock)) / m_cell_size;
     }
 
     size_t total_cells() {
@@ -134,11 +215,18 @@ public:
         return false;
     }
 
+    auto begin() {
+        return m_blocks.begin();
+    }
+
+    auto end() {
+        return m_blocks.end();
+    }
+
 private:
     HeapBlock *add_heap_block() {
         auto *block = reinterpret_cast<HeapBlock *>(aligned_alloc(HEAP_BLOCK_SIZE, HEAP_BLOCK_SIZE));
         new (block) HeapBlock(m_cell_size);
-        //std::cerr << "new HeapBlock = " << block << "\n";
         m_blocks.push_back(block);
         m_free_cells += cell_count_per_block();
         return block;
@@ -162,36 +250,23 @@ public:
 
     void *allocate(size_t size) {
         auto &allocator = find_allocator_of_size(size);
+#ifndef NAT_GC_DISABLE
         auto free = allocator.free_cells_percentage();
         if (free > 0 && free < 10) {
             //std::cerr << free << "% free in allocator of cell size " << size << "\n";
             collect();
         }
+#endif
         return allocator.allocate();
     }
 
     void collect() {
-        jmp_buf jump_buf;
-        setjmp(jump_buf);
-        void *raw_jump_buf = reinterpret_cast<void *>(jump_buf);
-
-        std::vector<const Cell *> possible_cells;
-
-        for (size_t i = 0; i < ((size_t)sizeof(jump_buf)) / sizeof(intptr_t); i += sizeof(intptr_t)) {
-            void *offset = (reinterpret_cast<void **>(raw_jump_buf))[i];
-            if (offset == nullptr)
-                continue;
-            possible_cells.push_back(reinterpret_cast<const Cell *>(offset));
+        MarkingVisitor visitor;
+        auto roots = gather_conservative_roots();
+        for (auto cell : roots) {
+            cell->visit_children(visitor);
         }
-
-        for (auto *candidate_cell : possible_cells) {
-            auto *candidate_block = HeapBlock::from_cell(candidate_cell);
-            //std::cerr << candidate_block << " (from cell " << candidate_cell << ")\n";
-            if (is_a_heap_block(candidate_block))
-                std::cerr << candidate_block << " is a heap block!\n";
-        }
-
-        //std::cerr << "possible: " << possible_pointers.size() << "\n";
+        sweep();
     }
 
 private:
@@ -210,6 +285,37 @@ private:
     ~Heap() {
         for (auto *allocator : m_allocators) {
             delete allocator;
+        }
+    }
+
+    std::vector<Cell *> gather_conservative_roots() {
+        std::vector<Cell *> possible_cells;
+        std::vector<Cell *> roots;
+
+        jmp_buf jump_buf;
+        setjmp(jump_buf);
+        void *raw_jump_buf = reinterpret_cast<void *>(jump_buf);
+
+        for (size_t i = 0; i < ((size_t)sizeof(jump_buf)) / sizeof(intptr_t); i += sizeof(intptr_t)) {
+            void *offset = (reinterpret_cast<void **>(raw_jump_buf))[i];
+            if (offset == nullptr)
+                continue;
+            possible_cells.push_back(reinterpret_cast<Cell *>(offset));
+        }
+
+        for (auto *candidate_cell : possible_cells) {
+            auto *candidate_block = HeapBlock::from_cell(candidate_cell);
+            if (is_a_heap_block(candidate_block) && candidate_block->cell_in_use(candidate_cell))
+                roots.push_back(candidate_cell);
+        }
+
+        return roots;
+    }
+
+    void sweep() {
+        for (auto *allocator : m_allocators) {
+            for (auto block : *allocator) {
+            }
         }
     }
 

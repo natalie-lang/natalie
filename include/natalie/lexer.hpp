@@ -1170,6 +1170,9 @@ private:
 
     // the previously-matched token
     Token *m_last_token { nullptr };
+
+    virtual void visit_children(Visitor &) override final {
+    }
 };
 
 struct InterpolatedStringLexer {

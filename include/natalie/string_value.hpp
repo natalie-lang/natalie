@@ -58,7 +58,7 @@ struct StringValue : Value {
     const char *c_str() const { return m_string.c_str(); }
     size_t bytesize() const { return m_string.length(); }
     size_t length() const { return m_string.length(); }
-    size_t capcity() const { return m_string.capacity(); }
+    size_t capacity() const { return m_string.capacity(); }
     Encoding encoding() const { return m_encoding; }
 
     void set_str(const char *str) {

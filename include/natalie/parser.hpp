@@ -56,6 +56,13 @@ struct Parser : public Cell {
 
     Node *tree(Env *);
 
+    virtual void visit_children(Visitor &visitor) override {
+        if (m_tokens)
+            for (auto token : *m_tokens) {
+                visitor.visit(token);
+            }
+    }
+
 private:
     bool higher_precedence(Token *token, Node *left, Precedence current_precedence) {
         auto next_precedence = get_precedence(token, left);

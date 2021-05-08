@@ -35,6 +35,12 @@ struct RangeValue : Value {
     ValuePtr eq(Env *, ValuePtr);
     ValuePtr eqeqeq(Env *, ValuePtr);
 
+    virtual void visit_children(Visitor &visitor) override {
+        Value::visit_children(visitor);
+        visitor.visit(m_begin);
+        visitor.visit(m_end);
+    }
+
 private:
     ValuePtr m_begin { nullptr };
     ValuePtr m_end { nullptr };

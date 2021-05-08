@@ -29,9 +29,9 @@ test: build
 test_valgrind:
 	NAT_CXX_FLAGS="-DNAT_GC_DISABLE" ${MAKE} clean build
 	NAT_CXX_FLAGS="-DNAT_GC_DISABLE" bin/natalie -c assign_test test/natalie/assign_test.rb
-	valgrind --leak-check=no --error-exitcode=1 ./assign_test
+	valgrind --leak-check=no --track-origins=yes --error-exitcode=1 ./assign_test
 	NAT_CXX_FLAGS="-DNAT_GC_DISABLE" bin/natalie -c block_spec spec/language/block_spec.rb
-	valgrind --leak-check=no --error-exitcode=1 ./block_spec
+	valgrind --leak-check=no --track-origins=yes --error-exitcode=1 ./block_spec
 
 docker_build:
 	docker build -t natalie .

@@ -53,6 +53,11 @@ struct ProcValue : Value {
 
     int arity() { return m_block ? m_block->arity() : 0; }
 
+    virtual void visit_children(Visitor &visitor) override {
+        Value::visit_children(visitor);
+        visitor.visit(m_block);
+    }
+
 private:
     Block *m_block { nullptr };
     ProcType m_type { ProcType::Proc };

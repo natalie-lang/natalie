@@ -132,6 +132,8 @@ struct HashValue : Value {
     ValuePtr sort(Env *);
     ValuePtr values(Env *);
 
+    virtual void visit_children(Visitor &) override final;
+
 private:
     void key_list_remove_node(Key *);
     Key *key_list_append(Env *, ValuePtr, ValuePtr);

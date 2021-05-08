@@ -14,6 +14,12 @@ ValuePtr AliasNode::to_ruby(Env *env) {
     };
 }
 
+void AliasNode::visit_children(Visitor &visitor) {
+    Node::visit_children(visitor);
+    visitor.visit(m_new_name);
+    visitor.visit(m_existing_name);
+}
+
 ValuePtr ArgNode::to_ruby(Env *env) {
     if (m_value) {
         return new SexpValue {
@@ -102,6 +108,16 @@ ValuePtr BeginNode::to_ruby(Env *env) {
     return sexp;
 }
 
+void BeginNode::visit_children(Visitor &visitor) {
+    Node::visit_children(visitor);
+    visitor.visit(m_body);
+    visitor.visit(m_else_body);
+    visitor.visit(m_ensure_body);
+    for (auto node : m_rescue_nodes) {
+        visitor.visit(node);
+    }
+}
+
 Node *BeginRescueNode::name_to_node() {
     assert(m_name);
     return new AssignmentNode {
@@ -111,6 +127,15 @@ Node *BeginRescueNode::name_to_node() {
             new Token { Token::Type::GlobalVariable, "$!", file(), line(), column() },
             false },
     };
+}
+
+void BeginRescueNode::visit_children(Visitor &visitor) {
+    Node::visit_children(visitor);
+    visitor.visit(m_name);
+    visitor.visit(m_body);
+    for (auto node : m_exceptions) {
+        visitor.visit(node);
+    }
 }
 
 ValuePtr BeginRescueNode::to_ruby(Env *env) {
@@ -221,6 +246,13 @@ ValuePtr ClassNode::to_ruby(Env *env) {
     return sexp;
 }
 
+void ClassNode::visit_children(Visitor &visitor) {
+    Node::visit_children(visitor);
+    visitor.visit(m_name);
+    visitor.visit(m_superclass);
+    visitor.visit(m_body);
+}
+
 ValuePtr Colon2Node::to_ruby(Env *env) {
     return new SexpValue {
         env,
@@ -302,18 +334,30 @@ ValuePtr DefNode::to_ruby(Env *env) {
 
 SexpValue *DefNode::build_args_sexp(Env *env) {
     auto sexp = new SexpValue { env, this, { SymbolValue::intern(env, "args") } };
-    for (auto arg : *m_args) {
-        switch (arg->type()) {
-        case Node::Type::Arg:
-        case Node::Type::KeywordArg:
-        case Node::Type::MultipleAssignment:
-            sexp->push(arg->to_ruby(env));
-            break;
-        default:
-            NAT_UNREACHABLE();
+    if (m_args)
+        for (auto arg : *m_args) {
+            switch (arg->type()) {
+            case Node::Type::Arg:
+            case Node::Type::KeywordArg:
+            case Node::Type::MultipleAssignment:
+                sexp->push(arg->to_ruby(env));
+                break;
+            default:
+                NAT_UNREACHABLE();
+            }
         }
-    }
     return sexp;
+}
+
+void DefNode::visit_children(Visitor &visitor) {
+    Node::visit_children(visitor);
+    visitor.visit(m_self_node);
+    visitor.visit(m_name);
+    visitor.visit(m_body);
+    if (m_args)
+        for (auto arg : *m_args) {
+            visitor.visit(arg);
+        }
 }
 
 ValuePtr EvaluateToStringNode::to_ruby(Env *env) {
@@ -403,17 +447,18 @@ ValuePtr IterNode::to_ruby(Env *env) {
 
 SexpValue *IterNode::build_args_sexp(Env *env) {
     auto sexp = new SexpValue { env, this, { SymbolValue::intern(env, "args") } };
-    for (auto arg : *m_args) {
-        switch (arg->type()) {
-        case Node::Type::Arg:
-        case Node::Type::KeywordArg:
-        case Node::Type::MultipleAssignment:
-            sexp->push(arg->to_ruby(env));
-            break;
-        default:
-            NAT_UNREACHABLE();
+    if (m_args)
+        for (auto arg : *m_args) {
+            switch (arg->type()) {
+            case Node::Type::Arg:
+            case Node::Type::KeywordArg:
+            case Node::Type::MultipleAssignment:
+                sexp->push(arg->to_ruby(env));
+                break;
+            default:
+                NAT_UNREACHABLE();
+            }
         }
-    }
     return sexp;
 }
 
@@ -471,6 +516,11 @@ ValuePtr LiteralNode::to_ruby(Env *env) {
     return new SexpValue { env, this, { SymbolValue::intern(env, "lit"), m_value } };
 }
 
+void LiteralNode::visit_children(Visitor &visitor) {
+    Node::visit_children(visitor);
+    visitor.visit(m_value);
+}
+
 ValuePtr LogicalAndNode::to_ruby(Env *env) {
     auto sexp = new SexpValue {
         env,
@@ -509,6 +559,12 @@ ValuePtr MatchNode::to_ruby(Env *env) {
             m_arg->to_ruby(env),
         }
     };
+}
+
+void MatchNode::visit_children(Visitor &visitor) {
+    Node::visit_children(visitor);
+    visitor.visit(m_regexp);
+    visitor.visit(m_arg);
 }
 
 ValuePtr ModuleNode::to_ruby(Env *env) {

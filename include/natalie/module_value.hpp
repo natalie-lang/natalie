@@ -99,8 +99,10 @@ struct ModuleValue : Value {
 
     Env *env() { return &m_env; }
 
+    virtual void visit_children(Visitor &) override final;
+
 protected:
-    Env m_env;
+    Env m_env {};
     Hashmap<SymbolValue *, Value *> m_constants {};
     const char *m_class_name { nullptr };
     ClassValue *m_superclass { nullptr };

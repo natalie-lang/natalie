@@ -318,4 +318,15 @@ ValuePtr HashValue::merge_bang(Env *env, size_t argc, ValuePtr *args) {
     return this;
 }
 
+void HashValue::visit_children(Visitor &visitor) {
+    Value::visit_children(visitor);
+    for (auto pair : m_hashmap) {
+        visitor.visit(pair.first->key);
+        visitor.visit(pair.first->val);
+        visitor.visit(pair.second->val);
+    }
+    visitor.visit(m_default_value);
+    visitor.visit(m_default_block);
+}
+
 }

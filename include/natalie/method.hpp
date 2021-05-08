@@ -58,6 +58,11 @@ struct Method : public Cell {
 
     int arity() { return m_arity; }
 
+    virtual void visit_children(Visitor &visitor) override final {
+        visitor.visit(m_owner);
+        visitor.visit(&m_env);
+    }
+
 private:
     const char *m_name;
     ModuleValue *m_owner;

@@ -410,4 +410,25 @@ ValuePtr ModuleValue::alias_method(Env *env, ValuePtr new_name_value, ValuePtr o
     return this;
 }
 
+void ModuleValue::visit_children(Visitor &visitor) {
+    Value::visit_children(visitor);
+    visitor.visit(&m_env);
+    visitor.visit(m_superclass);
+    for (auto pair : m_constants) {
+        visitor.visit(pair.first);
+        visitor.visit(pair.second);
+    }
+    for (auto pair : m_methods) {
+        visitor.visit(pair.first);
+        visitor.visit(pair.second);
+    }
+    for (auto pair : m_class_vars) {
+        visitor.visit(pair.first);
+        visitor.visit(pair.second);
+    }
+    for (auto module : m_included_modules) {
+        visitor.visit(module);
+    }
+}
+
 }

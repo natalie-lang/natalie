@@ -37,6 +37,8 @@ struct EncodingValue : Value {
 
     static ArrayValue *list(Env *env);
 
+    virtual void visit_children(Visitor &) override final;
+
 private:
     Vector<StringValue *> m_names {};
     Encoding m_num;

@@ -217,6 +217,8 @@ struct Value : public Cell {
 
     ValuePtr enum_for(Env *env, const char *method, size_t argc = 0, ValuePtr *args = nullptr);
 
+    virtual void visit_children(Visitor &visitor) override;
+
 protected:
     ClassValue *m_klass { nullptr };
 

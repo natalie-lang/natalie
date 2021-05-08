@@ -17,12 +17,12 @@ void ExceptionValue::build_backtrace(Env *env) {
 
 ValuePtr ExceptionValue::initialize(Env *env, ValuePtr message) {
     if (!message) {
-        set_message(m_klass->class_name());
+        set_message(new StringValue { env, m_klass->class_name() });
     } else {
         if (!message->is_string()) {
             message = message.send(env, "inspect");
         }
-        set_message(message->as_string()->c_str());
+        set_message(message->as_string());
     }
     return this;
 }
@@ -31,12 +31,13 @@ ValuePtr ExceptionValue::inspect(Env *env) {
     return StringValue::format(env, "#<{}: {}>", m_klass->inspect_str(env), m_message);
 }
 
-ValuePtr ExceptionValue::message(Env *env) {
-    return new StringValue { env, m_message };
-}
-
 ValuePtr ExceptionValue::backtrace(Env *env) {
     return m_backtrace ? m_backtrace->dup(env) : env->nil_obj();
+}
+
+void ExceptionValue::visit_children(Visitor &visitor) {
+    Value::visit_children(visitor);
+    visitor.visit(m_backtrace);
 }
 
 }

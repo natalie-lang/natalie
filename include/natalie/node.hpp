@@ -87,6 +87,10 @@ struct Node : public Cell {
 
     Token *token() { return m_token; }
 
+    virtual void visit_children(Visitor &visitor) override {
+        visitor.visit(m_token);
+    }
+
 protected:
     Token *m_token { nullptr };
 };
@@ -100,6 +104,13 @@ struct NodeWithArgs : Node {
     }
 
     Vector<Node *> *args() { return &m_args; }
+
+    virtual void visit_children(Visitor &visitor) override {
+        Node::visit_children(visitor);
+        for (auto node : m_args) {
+            visitor.visit(node);
+        }
+    }
 
 protected:
     Vector<Node *> m_args {};
@@ -116,6 +127,8 @@ struct AliasNode : Node {
     virtual Type type() override { return Type::Alias; }
 
     virtual ValuePtr to_ruby(Env *) override;
+
+    virtual void visit_children(Visitor &visitor) override;
 
 private:
     SymbolNode *m_new_name { nullptr };
@@ -151,6 +164,11 @@ struct ArgNode : Node {
         locals->push(SymbolValue::intern(env, m_name));
     }
 
+    virtual void visit_children(Visitor &visitor) override {
+        Node::visit_children(visitor);
+        visitor.visit(m_value);
+    }
+
 protected:
     const char *m_name { nullptr };
     bool m_block_arg { false };
@@ -172,6 +190,13 @@ struct ArrayNode : Node {
 
     Vector<Node *> *nodes() { return &m_nodes; }
 
+    virtual void visit_children(Visitor &visitor) override {
+        Node::visit_children(visitor);
+        for (auto node : m_nodes) {
+            visitor.visit(node);
+        }
+    }
+
 protected:
     Vector<Node *> m_nodes {};
 };
@@ -187,6 +212,11 @@ struct BlockPassNode : Node {
 
     virtual ValuePtr to_ruby(Env *) override;
 
+    virtual void visit_children(Visitor &visitor) override {
+        Node::visit_children(visitor);
+        visitor.visit(m_node);
+    }
+
 protected:
     Node *m_node { nullptr };
 };
@@ -199,6 +229,11 @@ struct BreakNode : NodeWithArgs {
     virtual ValuePtr to_ruby(Env *) override;
 
     virtual Type type() override { return Type::Break; }
+
+    virtual void visit_children(Visitor &visitor) override {
+        Node::visit_children(visitor);
+        visitor.visit(m_arg);
+    }
 
 protected:
     Node *m_arg { nullptr };
@@ -218,6 +253,12 @@ struct AssignmentNode : Node {
     virtual Type type() override { return Type::Assignment; }
 
     virtual ValuePtr to_ruby(Env *) override;
+
+    virtual void visit_children(Visitor &visitor) override {
+        Node::visit_children(visitor);
+        visitor.visit(m_identifier);
+        visitor.visit(m_value);
+    }
 
 protected:
     Node *m_identifier { nullptr };
@@ -247,6 +288,8 @@ struct BeginNode : Node {
 
     BlockNode *body() { return m_body; }
 
+    virtual void visit_children(Visitor &visitor) override;
+
 protected:
     BlockNode *m_body { nullptr };
     BlockNode *m_else_body { nullptr };
@@ -273,6 +316,8 @@ struct BeginRescueNode : Node {
     void set_body(BlockNode *body) { m_body = body; }
 
     Node *name_to_node();
+
+    virtual void visit_children(Visitor &visitor) override;
 
 protected:
     IdentifierNode *m_name { nullptr };
@@ -310,6 +355,13 @@ struct BlockNode : Node {
             return this;
     }
 
+    virtual void visit_children(Visitor &visitor) override {
+        Node::visit_children(visitor);
+        for (auto node : m_nodes) {
+            visitor.visit(node);
+        }
+    }
+
 protected:
     Vector<Node *> m_nodes {};
 };
@@ -343,6 +395,11 @@ struct CallNode : NodeWithArgs {
     const char *message() { return m_message; }
     void set_message(const char *message) { m_message = message; }
 
+    virtual void visit_children(Visitor &visitor) override {
+        NodeWithArgs::visit_children(visitor);
+        visitor.visit(m_receiver);
+    }
+
 protected:
     Node *m_receiver { nullptr };
     const char *m_message { nullptr };
@@ -367,6 +424,15 @@ struct CaseNode : Node {
         m_else_node = node;
     }
 
+    virtual void visit_children(Visitor &visitor) override {
+        Node::visit_children(visitor);
+        visitor.visit(m_subject);
+        visitor.visit(m_else_node);
+        for (auto node : m_when_nodes) {
+            visitor.visit(node);
+        }
+    }
+
 protected:
     Node *m_subject { nullptr };
     Vector<Node *> m_when_nodes {};
@@ -385,6 +451,12 @@ struct CaseWhenNode : Node {
     virtual Type type() override { return Type::CaseWhen; }
 
     virtual ValuePtr to_ruby(Env *) override;
+
+    virtual void visit_children(Visitor &visitor) override {
+        Node::visit_children(visitor);
+        visitor.visit(m_condition);
+        visitor.visit(m_body);
+    }
 
 protected:
     Node *m_condition { nullptr };
@@ -428,6 +500,8 @@ struct ClassNode : Node {
 
     virtual ValuePtr to_ruby(Env *) override;
 
+    virtual void visit_children(Visitor &visitor) override;
+
 protected:
     ConstantNode *m_name { nullptr };
     Node *m_superclass { nullptr };
@@ -446,6 +520,11 @@ struct Colon2Node : Node {
     virtual Type type() override { return Type::Colon2; }
 
     virtual ValuePtr to_ruby(Env *) override;
+
+    virtual void visit_children(Visitor &visitor) override {
+        Node::visit_children(visitor);
+        visitor.visit(m_left);
+    }
 
 protected:
     Node *m_left { nullptr };
@@ -492,6 +571,8 @@ struct LiteralNode : Node {
     ValuePtr value() { return m_value; }
     Value::Type value_type() { return m_value->type(); }
 
+    virtual void visit_children(Visitor &visitor) override;
+
 protected:
     ValuePtr m_value { nullptr };
 };
@@ -506,6 +587,11 @@ struct DefinedNode : Node {
     virtual Type type() override { return Type::Defined; }
 
     virtual ValuePtr to_ruby(Env *) override;
+
+    virtual void visit_children(Visitor &visitor) override {
+        Node::visit_children(visitor);
+        visitor.visit(m_arg);
+    }
 
 protected:
     Node *m_arg { nullptr };
@@ -529,6 +615,8 @@ struct DefNode : Node {
 
     virtual ValuePtr to_ruby(Env *) override;
 
+    virtual void visit_children(Visitor &visitor) override;
+
 protected:
     SexpValue *build_args_sexp(Env *);
 
@@ -546,6 +634,11 @@ struct EvaluateToStringNode : Node {
     virtual ValuePtr to_ruby(Env *) override;
 
     virtual Type type() override { return Type::EvaluateToString; }
+
+    virtual void visit_children(Visitor &visitor) override {
+        Node::visit_children(visitor);
+        visitor.visit(m_node);
+    }
 
 protected:
     Node *m_node { nullptr };
@@ -570,6 +663,13 @@ struct HashNode : Node {
 
     void add_node(Node *node) {
         m_nodes.push(node);
+    }
+
+    virtual void visit_children(Visitor &visitor) override {
+        Node::visit_children(visitor);
+        for (auto node : m_nodes) {
+            visitor.visit(node);
+        }
     }
 
 protected:
@@ -674,6 +774,13 @@ struct IfNode : Node {
 
     virtual ValuePtr to_ruby(Env *) override;
 
+    virtual void visit_children(Visitor &visitor) override {
+        Node::visit_children(visitor);
+        visitor.visit(m_condition);
+        visitor.visit(m_true_expr);
+        visitor.visit(m_false_expr);
+    }
+
 protected:
     Node *m_condition { nullptr };
     Node *m_true_expr { nullptr };
@@ -695,6 +802,16 @@ struct IterNode : Node {
 
     virtual ValuePtr to_ruby(Env *) override;
 
+    virtual void visit_children(Visitor &visitor) override {
+        Node::visit_children(visitor);
+        visitor.visit(m_call);
+        visitor.visit(m_body);
+        if (m_args)
+            for (auto arg : *m_args) {
+                visitor.visit(arg);
+            }
+    }
+
 protected:
     SexpValue *build_args_sexp(Env *);
 
@@ -708,6 +825,13 @@ struct InterpolatedNode : Node {
         : Node { token } { }
 
     void add_node(Node *node) { m_nodes.push(node); };
+
+    virtual void visit_children(Visitor &visitor) override {
+        Node::visit_children(visitor);
+        for (auto node : m_nodes) {
+            visitor.visit(node);
+        }
+    }
 
 protected:
     Vector<Node *> m_nodes {};
@@ -765,6 +889,12 @@ struct LogicalAndNode : Node {
     Node *left() { return m_left; }
     Node *right() { return m_right; }
 
+    virtual void visit_children(Visitor &visitor) override {
+        Node::visit_children(visitor);
+        visitor.visit(m_left);
+        visitor.visit(m_right);
+    }
+
 protected:
     Node *m_left { nullptr };
     Node *m_right { nullptr };
@@ -786,6 +916,12 @@ struct LogicalOrNode : Node {
     Node *left() { return m_left; }
     Node *right() { return m_right; }
 
+    virtual void visit_children(Visitor &visitor) override {
+        Node::visit_children(visitor);
+        visitor.visit(m_left);
+        visitor.visit(m_right);
+    }
+
 protected:
     Node *m_left { nullptr };
     Node *m_right { nullptr };
@@ -804,6 +940,8 @@ struct MatchNode : Node {
 
     virtual ValuePtr to_ruby(Env *) override;
 
+    virtual void visit_children(Visitor &visitor) override;
+
 protected:
     RegexpNode *m_regexp { nullptr };
     Node *m_arg { nullptr };
@@ -819,6 +957,12 @@ struct ModuleNode : Node {
     virtual Type type() override { return Type::Module; }
 
     virtual ValuePtr to_ruby(Env *) override;
+
+    virtual void visit_children(Visitor &visitor) override {
+        Node::visit_children(visitor);
+        visitor.visit(m_name);
+        visitor.visit(m_body);
+    }
 
 protected:
     ConstantNode *m_name { nullptr };
@@ -846,6 +990,11 @@ struct NextNode : Node {
 
     virtual Type type() override { return Type::Next; }
 
+    virtual void visit_children(Visitor &visitor) override {
+        Node::visit_children(visitor);
+        visitor.visit(m_arg);
+    }
+
 protected:
     Node *m_arg { nullptr };
 };
@@ -869,6 +1018,11 @@ struct NotNode : Node {
     virtual ValuePtr to_ruby(Env *) override;
 
     virtual Type type() override { return Type::Not; }
+
+    virtual void visit_children(Visitor &visitor) override {
+        Node::visit_children(visitor);
+        visitor.visit(m_expression);
+    }
 
 protected:
     Node *m_expression { nullptr };
@@ -906,6 +1060,12 @@ struct OpAssignNode : Node {
 
     virtual Type type() override { return Type::OpAssign; }
 
+    virtual void visit_children(Visitor &visitor) override {
+        Node::visit_children(visitor);
+        visitor.visit(m_name);
+        visitor.visit(m_value);
+    }
+
 protected:
     const char *m_op { nullptr };
     IdentifierNode *m_name { nullptr };
@@ -928,6 +1088,12 @@ struct OpAssignAccessorNode : NodeWithArgs {
     virtual ValuePtr to_ruby(Env *) override;
 
     virtual Type type() override { return Type::OpAssignAccessor; }
+
+    virtual void visit_children(Visitor &visitor) override {
+        NodeWithArgs::visit_children(visitor);
+        visitor.visit(m_receiver);
+        visitor.visit(m_value);
+    }
 
 protected:
     const char *m_op { nullptr };
@@ -968,6 +1134,12 @@ struct RangeNode : Node {
 
     virtual ValuePtr to_ruby(Env *) override;
 
+    virtual void visit_children(Visitor &visitor) override {
+        Node::visit_children(visitor);
+        visitor.visit(m_first);
+        visitor.visit(m_last);
+    }
+
 protected:
     Node *m_first { nullptr };
     Node *m_last { nullptr };
@@ -987,6 +1159,11 @@ struct RegexpNode : Node {
 
     ValuePtr value() { return m_value; }
 
+    virtual void visit_children(Visitor &visitor) override {
+        Node::visit_children(visitor);
+        visitor.visit(m_value);
+    }
+
 protected:
     ValuePtr m_value { nullptr };
 };
@@ -999,6 +1176,11 @@ struct ReturnNode : Node {
     virtual Type type() override { return Type::Return; }
 
     virtual ValuePtr to_ruby(Env *) override;
+
+    virtual void visit_children(Visitor &visitor) override {
+        Node::visit_children(visitor);
+        visitor.visit(m_arg);
+    }
 
 protected:
     Node *m_arg { nullptr };
@@ -1013,6 +1195,12 @@ struct SclassNode : Node {
     virtual Type type() override { return Type::Sclass; }
 
     virtual ValuePtr to_ruby(Env *) override;
+
+    virtual void visit_children(Visitor &visitor) override {
+        Node::visit_children(visitor);
+        visitor.visit(m_klass);
+        visitor.visit(m_body);
+    }
 
 protected:
     Node *m_klass { nullptr };
@@ -1041,6 +1229,11 @@ struct ShellNode : Node {
 
     ValuePtr value() { return m_value; }
 
+    virtual void visit_children(Visitor &visitor) override {
+        Node::visit_children(visitor);
+        visitor.visit(m_value);
+    }
+
 protected:
     ValuePtr m_value { nullptr };
 };
@@ -1060,6 +1253,11 @@ struct SplatAssignmentNode : Node {
     virtual ValuePtr to_ruby(Env *) override;
 
     IdentifierNode *node() { return m_node; }
+
+    virtual void visit_children(Visitor &visitor) override {
+        Node::visit_children(visitor);
+        visitor.visit(m_node);
+    }
 
 protected:
     IdentifierNode *m_node { nullptr };
@@ -1081,6 +1279,11 @@ struct SplatNode : Node {
 
     Node *node() { return m_node; }
 
+    virtual void visit_children(Visitor &visitor) override {
+        Node::visit_children(visitor);
+        visitor.visit(m_node);
+    }
+
 protected:
     Node *m_node { nullptr };
 };
@@ -1097,6 +1300,14 @@ struct StabbyProcNode : Node {
     virtual ValuePtr to_ruby(Env *) override;
 
     Vector<Node *> *args() { return m_args; };
+
+    virtual void visit_children(Visitor &visitor) override {
+        Node::visit_children(visitor);
+        if (m_args)
+            for (auto arg : *m_args) {
+                visitor.visit(arg);
+            }
+    }
 
 protected:
     Vector<Node *> *m_args { nullptr };
@@ -1115,6 +1326,11 @@ struct StringNode : Node {
 
     ValuePtr value() { return m_value; }
 
+    virtual void visit_children(Visitor &visitor) override {
+        Node::visit_children(visitor);
+        visitor.visit(m_value);
+    }
+
 protected:
     ValuePtr m_value { nullptr };
 };
@@ -1129,6 +1345,11 @@ struct SymbolNode : Node {
     virtual Type type() override { return Type::Symbol; }
 
     virtual ValuePtr to_ruby(Env *) override;
+
+    virtual void visit_children(Visitor &visitor) override {
+        Node::visit_children(visitor);
+        visitor.visit(m_value);
+    }
 
 protected:
     ValuePtr m_value { nullptr };
@@ -1173,6 +1394,12 @@ struct WhileNode : Node {
     virtual ValuePtr to_ruby(Env *) override;
 
     virtual Type type() override { return Type::While; }
+
+    virtual void visit_children(Visitor &visitor) override {
+        Node::visit_children(visitor);
+        visitor.visit(m_condition);
+        visitor.visit(m_body);
+    }
 
 protected:
     Node *m_condition { nullptr };

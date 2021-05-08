@@ -30,6 +30,11 @@ struct Block : public Cell {
 
     void copy_fn_pointer_to_method(Method *);
 
+    virtual void visit_children(Visitor &visitor) override final {
+        visitor.visit(&m_env);
+        visitor.visit(m_self);
+    }
+
 private:
     MethodFnPtr m_fn;
     int m_arity { 0 };

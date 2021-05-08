@@ -120,6 +120,13 @@ struct ArrayValue : Value {
     ValuePtr sub(Env *, ValuePtr);
     ValuePtr uniq(Env *);
 
+    virtual void visit_children(Visitor &visitor) override final {
+        Value::visit_children(visitor);
+        for (auto val : m_vector) {
+            visitor.visit(val);
+        }
+    }
+
 private:
     ArrayValue(Env *env, Vector<ValuePtr> &&vector)
         : Value { Value::Type::Array, env->Array() }
