@@ -44,11 +44,11 @@ struct FileValue : IoValue {
         return stat(path->as_string()->c_str(), &sb) != -1;
     }
 
-    const char *path() { return m_path; }
-    void set_path(const char *path) { m_path = path; }
+    StringValue *path() { return m_path; }
+    void set_path(StringValue *path) { m_path = path; };
 
 private:
-    const char *m_path { nullptr };
+    StringValue *m_path { nullptr };
 };
 
 }

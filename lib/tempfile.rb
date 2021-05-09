@@ -12,8 +12,7 @@ class Tempfile
       basename->assert_type(env, Value::Type::String, "String");
       auto tmpdir = env->Object()->const_fetch(env, SymbolValue::intern(env, "Dir")).send(env, "tmpdir")->as_string();
       auto path_template = StringValue::format(env, "{}/{}XXXXXX", tmpdir, basename->as_string());
-      auto generated_path = strdup(path_template->c_str());
-      int fileno = mkstemp(generated_path);
+      int fileno = mkstemp(const_cast<char*>(path_template->c_str()));
       if (fileno == -1) {
           ValuePtr args[] = { ValuePtr { env, errno } };
           auto exception = env->Object()->const_fetch(env, SymbolValue::intern(env, "SystemCallError")).send(env, "exception", 1, args)->as_exception();
@@ -21,7 +20,7 @@ class Tempfile
       } else {
           auto file = new FileValue { env };
           file->set_fileno(fileno);
-          file->set_path(generated_path);
+          file->set_path(path_template);
           return file;
       }
     END
