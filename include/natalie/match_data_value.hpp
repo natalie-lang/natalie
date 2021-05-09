@@ -22,9 +22,13 @@ struct MatchDataValue : Value {
     MatchDataValue(Env *env, OnigRegion *region, StringValue *string)
         : Value { Value::Type::MatchData, env->Object()->const_fetch(env, SymbolValue::intern(env, "MatchData"))->as_class() }
         , m_region { region }
-        , m_str { strdup(string->c_str()) } { }
+        , m_string { string } { }
 
-    const char *c_str() { return m_str; }
+    ~MatchDataValue() {
+        onig_region_free(m_region, true);
+    }
+
+    const StringValue *string() { return m_string; }
 
     size_t size() { return m_region->num_regs; }
 
@@ -37,6 +41,6 @@ struct MatchDataValue : Value {
 
 private:
     OnigRegion *m_region { nullptr };
-    const char *m_str { nullptr };
+    const StringValue *m_string { nullptr };
 };
 }

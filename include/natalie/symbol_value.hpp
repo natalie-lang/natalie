@@ -14,6 +14,7 @@ namespace Natalie {
 
 struct SymbolValue : Value {
     static SymbolValue *intern(Env *, const char *);
+    static SymbolValue *intern(Env *, const String *);
 
     const char *c_str() { return m_name; }
 

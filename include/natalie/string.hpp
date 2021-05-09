@@ -48,20 +48,26 @@ struct String {
 
     void set_str(const char *str) {
         assert(str);
+        auto old_str = m_str;
         m_length = strlen(str);
         m_capacity = m_length;
         m_str = new char[m_length + 1];
         std::memcpy(m_str, str, sizeof(char) * (m_length + 1));
+        if (old_str)
+            delete[] old_str;
     }
 
     void set_str(const char *str, size_t length) {
         assert(str);
+        auto old_str = m_str;
         m_str = new char[length + 1];
         assert(strlen(str) >= length);
         strncpy(m_str, str, length);
         m_str[length] = 0;
         m_length = length;
         m_capacity = length;
+        if (old_str)
+            delete[] old_str;
     }
 
     void prepend_char(char c) {

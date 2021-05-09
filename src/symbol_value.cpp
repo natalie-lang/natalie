@@ -14,6 +14,11 @@ SymbolValue *SymbolValue::intern(Env *env, const char *name) {
     }
 }
 
+SymbolValue *SymbolValue::intern(Env *env, const String *name) {
+    assert(name);
+    return intern(env, name->c_str());
+}
+
 StringValue *SymbolValue::inspect(Env *env) {
     StringValue *string = new StringValue { env, ":" };
     size_t len = strlen(m_name);

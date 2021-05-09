@@ -51,7 +51,7 @@ struct Method : public Cell {
         return m_fn(&e, self, argc, args, block);
     }
 
-    const char *name() { return m_name; }
+    const String *name() { return &m_name; }
     ModuleValue *owner() { return m_owner; }
 
     MethodVisibility visibility() { return m_visibility; }
@@ -64,7 +64,7 @@ struct Method : public Cell {
     }
 
 private:
-    const char *m_name;
+    String m_name {};
     ModuleValue *m_owner;
     MethodFnPtr m_fn;
     int m_arity { 0 };

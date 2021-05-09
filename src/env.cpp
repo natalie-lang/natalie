@@ -33,7 +33,7 @@ char *Env::build_code_location_name(Env *location_env) {
     if (location_env->is_main())
         return strdup("<main>");
     if (location_env->method())
-        return strdup(location_env->method()->name());
+        return strdup(location_env->method()->name()->c_str());
     if (location_env->outer()) {
         char *outer_name = build_code_location_name(location_env->outer());
         char *name = strdup(StringValue::format(this, "block in {}", outer_name)->c_str());
