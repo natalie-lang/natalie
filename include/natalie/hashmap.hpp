@@ -259,7 +259,7 @@ struct Hashmap {
     Hashmap(int initial_capacity = 10, HashmapKeyType key_type = HashmapKeyType::Pointer) {
         if (key_type == HashmapKeyType::String) {
             hashmap_init(&m_map, hashmap_hash_string, hashmap_compare_string, initial_capacity);
-            hashmap_set_key_alloc_funcs(&m_map, hashmap_alloc_key_string, nullptr);
+            hashmap_set_key_alloc_funcs(&m_map, hashmap_alloc_key_string, free);
         } else {
             hashmap_init(&m_map, hashmap_hash_ptr, hashmap_compare_ptr, initial_capacity);
         }
