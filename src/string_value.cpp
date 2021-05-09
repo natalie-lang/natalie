@@ -341,7 +341,7 @@ ValuePtr StringValue::force_encoding(Env *env, ValuePtr encoding) {
         set_encoding(find_encoding_by_name(env, encoding->as_string()->c_str())->num());
         break;
     default:
-        env->raise("TypeError", "no implicit conversion of {} into String", encoding->klass()->class_name());
+        env->raise("TypeError", "no implicit conversion of {} into String", encoding->klass()->class_name_or_blank());
     }
     return this;
 }
@@ -424,7 +424,7 @@ ValuePtr StringValue::sub(Env *env, ValuePtr find, ValuePtr replacement, Block *
         StringValue *expanded_replacement;
         return regexp_sub(env, find->as_regexp(), replacement->as_string(), &match, &expanded_replacement);
     } else {
-        env->raise("TypeError", "wrong argument type {} (expected Regexp)", find->klass()->class_name());
+        env->raise("TypeError", "wrong argument type {} (expected Regexp)", find->klass()->class_name_or_blank());
     }
 }
 
@@ -449,7 +449,7 @@ ValuePtr StringValue::gsub(Env *env, ValuePtr find, ValuePtr replacement_value, 
         } while (match);
         return result;
     } else {
-        env->raise("TypeError", "wrong argument type {} (expected Regexp)", find->klass()->class_name());
+        env->raise("TypeError", "wrong argument type {} (expected Regexp)", find->klass()->class_name_or_blank());
     }
 }
 
@@ -576,7 +576,7 @@ ValuePtr StringValue::split(Env *env, ValuePtr splitter, ValuePtr max_count_valu
         }
         return ary;
     } else {
-        env->raise("TypeError", "wrong argument type {} (expected Regexp))", splitter->klass()->class_name());
+        env->raise("TypeError", "wrong argument type {} (expected Regexp))", splitter->klass()->class_name_or_blank());
     }
 }
 

@@ -256,14 +256,14 @@ bool ModuleValue::is_method_defined(Env *env, ValuePtr name_value) {
 ValuePtr ModuleValue::inspect(Env *env) {
     if (m_class_name) {
         if (owner() && owner() != env->Object()) {
-            return StringValue::format(env, "{}::{}", owner()->inspect_str(env), m_class_name);
+            return StringValue::format(env, "{}::{}", owner()->inspect_str(env), class_name_or_blank());
         } else {
-            return new StringValue { env, m_class_name };
+            return new StringValue { env, *class_name_or_blank() };
         }
     } else if (is_class()) {
         return StringValue::format(env, "#<Class:{}>", pointer_id());
     } else if (is_module() && m_class_name) {
-        return new StringValue { env, m_class_name };
+        return new StringValue { env, *class_name_or_blank() };
     } else {
         return StringValue::format(env, "#<{}:{}>", klass()->inspect_str(env), pointer_id());
     }
@@ -271,7 +271,7 @@ ValuePtr ModuleValue::inspect(Env *env) {
 
 ValuePtr ModuleValue::name(Env *env) {
     if (m_class_name) {
-        return new StringValue { env, m_class_name };
+        return new StringValue { env, *class_name_or_blank() };
     } else {
         return env->nil_obj();
     }

@@ -14,7 +14,8 @@ ClassValue *ClassValue::subclass(Env *env, const char *name, Type object_type) {
         ClassValue *singleton = singleton_class()->subclass(env, singleton_name->c_str());
         subclass->set_singleton_class(singleton);
     }
-    subclass->set_class_name(name);
+    if (name)
+        subclass->set_class_name(name);
     subclass->m_superclass = this;
     subclass->m_object_type = object_type;
     return subclass;

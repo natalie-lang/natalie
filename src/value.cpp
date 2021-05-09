@@ -267,7 +267,7 @@ ClassValue *Value::singleton_class(Env *env) {
     m_singleton_class = m_klass->subclass(env);
     m_singleton_class->set_is_singleton(true);
     if (is_module()) {
-        auto name = String::format("#<Class:{}>", as_module()->class_name());
+        auto name = String::format("#<Class:{}>", as_module()->class_name_or_blank());
         m_singleton_class->set_class_name(name->c_str());
     }
     return m_singleton_class;
@@ -330,7 +330,7 @@ ValuePtr Value::cvar_get(Env *env, SymbolValue *name) {
         } else {
             module = m_klass;
         }
-        env->raise("NameError", "uninitialized class variable {} in {}", name->c_str(), module->class_name());
+        env->raise("NameError", "uninitialized class variable {} in {}", name->c_str(), module->class_name_or_blank());
     }
 }
 
@@ -423,7 +423,7 @@ Method *Value::find_method(Env *env, SymbolValue *method_name, MethodVisibility 
         Method *method = singleton_class()->find_method(env, method_name, matching_class_or_module, after_method);
         if (method) {
             if (method->is_undefined())
-                env->raise("NoMethodError", "undefined method `{}' for {}:Class", method_name->c_str(), m_klass->class_name());
+                env->raise("NoMethodError", "undefined method `{}' for {}:Class", method_name->c_str(), m_klass->class_name_or_blank());
             return method;
         }
     }
@@ -436,9 +436,9 @@ Method *Value::find_method(Env *env, SymbolValue *method_name, MethodVisibility 
             env->raise("NoMethodError", "private method `{}' called for {}", method_name->c_str(), inspect_str(env));
         }
     } else if (is_module()) {
-        env->raise("NoMethodError", "undefined method `{}' for {}:{}", method_name->c_str(), klass->as_module()->class_name(), klass->inspect_str(env));
+        env->raise("NoMethodError", "undefined method `{}' for {}:{}", method_name->c_str(), klass->as_module()->class_name_or_blank(), klass->inspect_str(env));
     } else if (method_name == SymbolValue::intern(env, "inspect")) {
-        env->raise("NoMethodError", "undefined method `inspect' for #<{}:0x{}>", klass->class_name(), int_to_hex_string(object_id(), false));
+        env->raise("NoMethodError", "undefined method `inspect' for #<{}:0x{}>", klass->class_name_or_blank(), int_to_hex_string(object_id(), false));
     } else {
         env->raise("NoMethodError", "undefined method `{}' for {}", method_name->c_str(), inspect_str(env));
     }
@@ -462,7 +462,7 @@ ValuePtr Value::dup(Env *env) {
     case Value::Type::Object:
         return new Value { env, *this };
     default:
-        fprintf(stderr, "I don't know how to dup this kind of object yet %s (type = %d).\n", m_klass->class_name(), static_cast<int>(m_type));
+        fprintf(stderr, "I don't know how to dup this kind of object yet %s (type = %d).\n", m_klass->class_name_or_blank()->c_str(), static_cast<int>(m_type));
         abort();
     }
 }
@@ -535,7 +535,7 @@ ProcValue *Value::to_proc(Env *env) {
     if (respond_to(env, "to_proc")) {
         return _send(env, "to_proc")->as_proc();
     } else {
-        env->raise("TypeError", "wrong argument type {} (expected Proc)", m_klass->class_name());
+        env->raise("TypeError", "wrong argument type {} (expected Proc)", m_klass->class_name_or_blank());
     }
 }
 
@@ -556,13 +556,13 @@ ValuePtr Value::instance_eval(Env *env, ValuePtr string, Block *block) {
 
 void Value::assert_type(Env *env, Value::Type expected_type, const char *expected_class_name) {
     if ((type()) != expected_type) {
-        env->raise("TypeError", "no implicit conversion of {} into {}", (klass())->class_name(), expected_class_name);
+        env->raise("TypeError", "no implicit conversion of {} into {}", klass()->class_name_or_blank(), expected_class_name);
     }
 }
 
 void Value::assert_not_frozen(Env *env) {
     if (is_frozen()) {
-        env->raise("FrozenError", "can't modify frozen {}: {}", klass()->class_name(), inspect_str(env));
+        env->raise("FrozenError", "can't modify frozen {}: {}", klass()->class_name_or_blank(), inspect_str(env));
     }
 }
 

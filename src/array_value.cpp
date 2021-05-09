@@ -122,7 +122,7 @@ ValuePtr ArrayValue::ref(Env *env, ValuePtr index_obj, ValuePtr size) {
         }
         return result;
     } else {
-        env->raise("TypeError", "no implicit conversion of {} into Integer", index_obj->klass()->class_name());
+        env->raise("TypeError", "no implicit conversion of {} into Integer", index_obj->klass()->class_name_or_blank());
     }
 }
 

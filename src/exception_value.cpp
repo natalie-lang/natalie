@@ -17,7 +17,8 @@ void ExceptionValue::build_backtrace(Env *env) {
 
 ValuePtr ExceptionValue::initialize(Env *env, ValuePtr message) {
     if (!message) {
-        set_message(new StringValue { env, m_klass->class_name() });
+        auto name = m_klass->class_name_or_blank();
+        set_message(new StringValue { env, *name });
     } else {
         if (!message->is_string()) {
             message = message.send(env, "inspect");

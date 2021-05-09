@@ -32,7 +32,7 @@ struct ClassValue : ModuleValue {
     static ValuePtr new_method(Env *env, ValuePtr superclass, Block *block) {
         if (superclass) {
             if (!superclass->is_class()) {
-                env->raise("TypeError", "superclass must be a Class ({} given)", superclass->klass()->class_name());
+                env->raise("TypeError", "superclass must be a Class ({} given)", superclass->klass()->class_name_or_blank());
             }
         } else {
             superclass = env->Object();

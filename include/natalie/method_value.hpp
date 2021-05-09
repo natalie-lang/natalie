@@ -29,7 +29,7 @@ struct MethodValue : Value {
         if (the_owner->is_class() && the_owner->as_class()->is_singleton())
             return StringValue::format(env, "#<Method: {}.{}(*)>", m_object->inspect_str(env), m_method->name());
         else
-            return StringValue::format(env, "#<Method: {}#{}(*)>", owner()->class_name(), m_method->name());
+            return StringValue::format(env, "#<Method: {}#{}(*)>", owner()->class_name_or_blank(), m_method->name());
     }
 
     int arity() { return m_method ? m_method->arity() : 0; }

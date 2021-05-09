@@ -24,7 +24,7 @@ struct ModuleValue : Value {
     ModuleValue(Env *env, ModuleValue &other)
         : Value { other.type(), other.klass() }
         , m_constants { other.m_constants }
-        , m_class_name { strdup(other.m_class_name) }
+        , m_class_name { other.m_class_name }
         , m_superclass { other.m_superclass }
         , m_methods { other.m_methods } {
         for (ModuleValue *module : const_cast<ModuleValue &>(other).m_included_modules) {
@@ -50,8 +50,26 @@ struct ModuleValue : Value {
 
     ValuePtr eval_body(Env *, ValuePtr (*)(Env *, ValuePtr));
 
-    const char *class_name() { return m_class_name; }
-    void set_class_name(const char *name) { m_class_name = name ? strdup(name) : nullptr; }
+    std::optional<const String *> class_name() {
+        return m_class_name;
+    }
+
+    const String *class_name_or_blank() {
+        if (m_class_name)
+            return m_class_name.value();
+        else
+            return new String("");
+    }
+
+    void set_class_name(const String *name) {
+        assert(name);
+        m_class_name = name;
+    }
+
+    void set_class_name(const char *name) {
+        assert(name);
+        m_class_name = new String(name);
+    }
 
     ClassValue *superclass() { return m_superclass; }
     void set_superclass_DANGEROUSLY(ClassValue *superclass) { m_superclass = superclass; }
@@ -104,7 +122,7 @@ struct ModuleValue : Value {
 protected:
     Env m_env {};
     Hashmap<SymbolValue *, Value *> m_constants {};
-    const char *m_class_name { nullptr };
+    std::optional<const String *> m_class_name {};
     ClassValue *m_superclass { nullptr };
     Hashmap<SymbolValue *, Method *> m_methods {};
     Hashmap<SymbolValue *, Value *> m_class_vars {};

@@ -105,7 +105,7 @@ ValuePtr KernelModule::hash(Env *env) {
 
 ValuePtr KernelModule::inspect(Env *env) {
     if (is_module() && as_module()->class_name()) {
-        return new StringValue { env, as_module()->class_name() };
+        return new StringValue { env, *as_module()->class_name().value() };
     } else {
         return StringValue::format(env, "#<{}:{}>", klass()->inspect_str(env), pointer_id());
     }
@@ -163,7 +163,7 @@ ValuePtr KernelModule::method(Env *env, ValuePtr name) {
         Method *method = singleton_class()->find_method(env, name_symbol);
         if (method) {
             if (method->is_undefined()) {
-                env->raise("NoMethodError", "undefined method `{}' for {}:Class", name_symbol->inspect_str(env), m_klass->class_name());
+                env->raise("NoMethodError", "undefined method `{}' for {}:Class", name_symbol->inspect_str(env), m_klass->class_name_or_blank());
             }
             return new MethodValue { env, this, method };
         }
@@ -171,7 +171,7 @@ ValuePtr KernelModule::method(Env *env, ValuePtr name) {
     Method *method = m_klass->find_method(env, name_symbol);
     if (method)
         return new MethodValue { env, this, method };
-    env->raise("NoMethodError", "undefined method `{}' for {}:Class", name_symbol->inspect_str(env), m_klass->class_name());
+    env->raise("NoMethodError", "undefined method `{}' for {}:Class", name_symbol->inspect_str(env), m_klass->class_name_or_blank());
 }
 
 ValuePtr KernelModule::methods(Env *env) {
@@ -225,7 +225,7 @@ ValuePtr KernelModule::raise(Env *env, ValuePtr klass, ValuePtr message) {
         ValuePtr arg = klass;
         if (arg->is_class()) {
             klass = arg->as_class();
-            message = new StringValue { env, arg->as_class()->class_name() };
+            message = new StringValue { env, *arg->as_class()->class_name_or_blank() };
         } else if (arg->is_string()) {
             klass = env->Object()->const_find(env, SymbolValue::intern(env, "RuntimeError"))->as_class();
             message = arg;
