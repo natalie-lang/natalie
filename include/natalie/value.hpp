@@ -62,7 +62,7 @@ struct Value : public Cell {
 
     Value &operator=(const Value &) = delete;
 
-    virtual ~Value() { }
+    virtual ~Value() override { }
 
     static ValuePtr _new(Env *, ValuePtr, size_t, ValuePtr *, Block *);
 

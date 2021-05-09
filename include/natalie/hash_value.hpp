@@ -12,7 +12,6 @@
 
 namespace Natalie {
 
-// FIXME: struct Key and struct Val lifetimes are not managed
 struct HashValue : Value {
     struct Key {
         Key *prev { nullptr };
@@ -40,6 +39,10 @@ struct HashValue : Value {
         for (auto node : other) {
             put(env, node.key, node.val);
         }
+    }
+
+    virtual ~HashValue() override {
+        // FIXME: struct Key and struct Val lifetimes are not managed
     }
 
     static ValuePtr square_new(Env *, size_t argc, ValuePtr *args);

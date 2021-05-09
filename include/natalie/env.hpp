@@ -31,7 +31,7 @@ struct Env : public Cell {
 
     Env &operator=(Env &other) = delete;
 
-    ~Env() { }
+    virtual ~Env() override { }
 
     // no outer env
     void init_detached(Env &outer) {

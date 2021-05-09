@@ -13,6 +13,8 @@ extern "C" {
 }
 
 struct GlobalEnv : public Cell {
+    virtual ~GlobalEnv() override { }
+
     ClassValue *Array() { return m_Array; }
     void set_Array(ClassValue *Array) { m_Array = Array; }
 

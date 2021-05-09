@@ -6,10 +6,11 @@
 #include <string>
 
 #include "natalie/forward.hpp"
+#include "natalie/gc.hpp"
 
 namespace Natalie {
 
-struct String {
+struct String : public Cell {
     const int STRING_GROW_FACTOR = 2;
 
     String() {
@@ -32,7 +33,7 @@ struct String {
         set_str(other.c_str(), other.length());
     }
 
-    ~String() {
+    virtual ~String() override {
         delete[] m_str;
     }
 
@@ -185,6 +186,9 @@ struct String {
                 out->append_char(*c);
             }
         }
+    }
+
+    virtual void visit_children(Visitor &visitor) override final {
     }
 
 private:

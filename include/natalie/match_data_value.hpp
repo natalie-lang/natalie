@@ -24,7 +24,7 @@ struct MatchDataValue : Value {
         , m_region { region }
         , m_string { string } { }
 
-    ~MatchDataValue() {
+    virtual ~MatchDataValue() override {
         onig_region_free(m_region, true);
     }
 

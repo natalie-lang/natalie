@@ -26,7 +26,7 @@ struct IoValue : Value {
         : Value { Value::Type::Io, env->Object()->const_fetch(env, SymbolValue::intern(env, "IO"))->as_class() }
         , m_fileno { fileno } { }
 
-    virtual ~IoValue() {
+    virtual ~IoValue() override {
         if (!m_closed && m_fileno != -1) {
             ::close(m_fileno);
             m_closed = true;
