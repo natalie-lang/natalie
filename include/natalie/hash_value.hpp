@@ -12,6 +12,7 @@
 
 namespace Natalie {
 
+// FIXME: struct Key and struct Val lifetimes are not managed
 struct HashValue : Value {
     struct Key {
         Key *prev { nullptr };

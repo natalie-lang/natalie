@@ -29,22 +29,6 @@ struct Env : public Cell {
     Env(GlobalEnv *global_env)
         : m_global_env { global_env } { }
 
-    /*
-    Env(Env &other)
-        : m_global_env { other.m_global_env }
-        , m_outer { other.m_outer }
-        , m_block { other.m_block }
-        , m_caller { other.m_caller }
-        , m_file { other.m_file }
-        , m_line { other.m_line }
-        , m_method { other.m_method }
-        , m_match { other.m_match }
-        , m_is_main { other.m_is_main } {
-        if (other.m_vars)
-            m_vars = new Vector<ValuePtr> { *other.m_vars };
-    }
-    */
-
     Env &operator=(Env &other) = delete;
 
     ~Env() { }
