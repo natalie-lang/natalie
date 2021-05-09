@@ -197,22 +197,27 @@ ValuePtr #{name}(Env *env, ValuePtr, size_t argc, ValuePtr *args, Block *block) 
     def return_code
       case return_type
       when :bool
-        'if (return_value) { return env->true_obj(); } else { return env->false_obj(); }'
+        "if (!return_value) return env->false_obj();\n" +
+        'return env->true_obj();'
       when :int
         'return ValuePtr { env, return_value };'
       when :size_t
         'return IntegerValue::from_size_t(env, return_value);'
       when :c_str
-        "if (return_value) return new StringValue { env, return_value };\n" +
-        'else return env->nil_obj();'
+        "if (!return_value) return env->nil_obj();\n" +
+        'return new StringValue { env, return_value };'
       when :Value
+        "if (!return_value) return env->nil_obj();\n" +
         'return return_value;'
       when :NullableValue
-        'if (return_value) { return return_value; } else { return env->nil_obj(); }'
-      when :StringValue
+        "if (!return_value) return env->nil_obj();\n" +
         'return return_value;'
-      when :StringValueCopy
-        'return new StringValue { env, *return_value->as_string() };'
+      when :StringValue
+        "if (!return_value) return env->nil_obj();\n" +
+        'return return_value;'
+      when :String
+        "if (!return_value) return env->nil_obj();\n" +
+        'return new StringValue { env, *return_value };'
       else
         raise "Unknown return type: #{return_type.inspect}"
       end
@@ -321,7 +326,7 @@ gen.static_binding('File', 'expand_path', 'FileValue', 'expand_path', argc: 1..2
 gen.static_binding('File', 'open', 'FileValue', 'open', argc: 1..2, pass_env: true, pass_block: true, return_type: :Value)
 gen.static_binding('File', 'unlink', 'FileValue', 'unlink', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('File', 'initialize', 'FileValue', 'initialize', argc: 1..2, pass_env: true, pass_block: true, return_type: :Value)
-gen.binding('File', 'path', 'FileValue', 'path', argc: 0, pass_env: false, pass_block: false, return_type: :StringValueCopy)
+gen.binding('File', 'path', 'FileValue', 'path', argc: 0, pass_env: false, pass_block: false, return_type: :String)
 
 gen.undefine_singleton_method('Float', 'new')
 gen.binding('Float', '%', 'FloatValue', 'mod', argc: 1, pass_env: true, pass_block: false, return_type: :Value)

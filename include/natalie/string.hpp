@@ -110,7 +110,7 @@ struct String : public Cell {
         if (new_length == 0) return;
         size_t total_length = m_length + new_length;
         grow_at_least(total_length);
-        strcat(m_str, str);
+        strncat(m_str, str, new_length);
         m_length = total_length;
     }
 
@@ -119,7 +119,7 @@ struct String : public Cell {
         if (new_length == 0) return;
         size_t total_length = m_length + new_length;
         grow_at_least(total_length);
-        strcat(m_str, str.c_str());
+        strncat(m_str, str.c_str(), new_length);
         m_length = total_length;
     }
 
