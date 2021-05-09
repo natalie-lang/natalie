@@ -45,7 +45,7 @@ struct StringValue : Value {
         set_str(str, length);
     }
 
-    StringValue(Env *env, StringValue &other)
+    StringValue(Env *env, const StringValue &other)
         : Value { env, other } {
         set_str(other.c_str(), other.length());
     }

@@ -212,7 +212,7 @@ ValuePtr #{name}(Env *env, ValuePtr, size_t argc, ValuePtr *args, Block *block) 
       when :StringValue
         'return return_value;'
       when :StringValueCopy
-        'return new StringValue { env, *return_value };'
+        'return new StringValue { env, *return_value->as_string() };'
       else
         raise "Unknown return type: #{return_type.inspect}"
       end

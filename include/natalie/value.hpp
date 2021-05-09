@@ -121,6 +121,7 @@ struct Value : public Cell {
     RangeValue *as_range();
     RegexpValue *as_regexp();
     StringValue *as_string();
+    const StringValue *as_string() const;
     SymbolValue *as_symbol();
     TrueValue *as_true();
     VoidPValue *as_void_p();

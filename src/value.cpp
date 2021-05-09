@@ -190,6 +190,11 @@ StringValue *Value::as_string() {
     return static_cast<StringValue *>(this);
 }
 
+const StringValue *Value::as_string() const {
+    assert(is_string());
+    return static_cast<const StringValue *>(this);
+}
+
 SymbolValue *Value::as_symbol() {
     assert(is_symbol());
     return static_cast<SymbolValue *>(this);
