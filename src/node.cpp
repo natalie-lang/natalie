@@ -32,12 +32,16 @@ ValuePtr ArgNode::to_ruby(Env *env) {
             }
         };
     } else {
-        auto name = std::string(m_name ? m_name : "");
+        String *name;
+        if (m_name)
+            name = new String(m_name);
+        else
+            name = new String();
         if (m_splat)
-            name = '*' + name;
+            name->prepend_char('*');
         else if (m_block_arg)
-            name = '&' + name;
-        return SymbolValue::intern(env, name.c_str());
+            name->prepend_char('&');
+        return SymbolValue::intern(env, name->c_str());
     }
 }
 
@@ -661,14 +665,14 @@ ValuePtr NotNode::to_ruby(Env *env) {
 ValuePtr OpAssignNode::to_ruby(Env *env) {
     auto sexp = m_name->to_assignment_sexp(env);
     assert(m_op);
-    auto call = new CallNode { token(), m_name, m_op };
+    auto call = new CallNode { token(), m_name, m_op->c_str() };
     call->add_arg(m_value);
     sexp->push(call->to_ruby(env));
     return sexp;
 }
 
 ValuePtr OpAssignAccessorNode::to_ruby(Env *env) {
-    if (strcmp(m_message, "[]=") == 0) {
+    if (*m_message == "[]=") {
         auto arg_list = new SexpValue {
             env,
             this,

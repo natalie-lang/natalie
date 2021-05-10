@@ -144,43 +144,39 @@ struct Token : public Cell {
         YieldKeyword,
     };
 
-    Token() { }
-
-    Token(Type type, const char *file, size_t line, size_t column)
+    Token(Type type, const String *file, size_t line, size_t column)
         : m_type { type }
-        , m_file { strdup(file) }
+        , m_file { file }
         , m_line { line }
         , m_column { column } { }
 
-    Token(Type type, const char *literal, const char *file, size_t line, size_t column)
+    Token(Type type, const char *literal, const String *file, size_t line, size_t column)
         : m_type { type }
-        , m_literal { strdup(literal) }
-        , m_file { strdup(file) }
+        , m_literal { new String(literal) }
+        , m_file { file }
         , m_line { line }
-        , m_column { column } {
-        assert(m_literal);
-    }
+        , m_column { column } { }
 
-    Token(Type type, char literal, const char *file, size_t line, size_t column)
+    Token(Type type, char literal, const String *file, size_t line, size_t column)
         : m_type { type }
-        , m_file { strdup(file) }
+        , m_file { file }
         , m_line { line }
         , m_column { column } {
         char buf[2] = { literal, 0 };
-        m_literal = strdup(buf);
+        m_literal = new String(buf);
     }
 
-    Token(Type type, nat_int_t integer, const char *file, size_t line, size_t column)
+    Token(Type type, nat_int_t integer, const String *file, size_t line, size_t column)
         : m_type { type }
         , m_integer { integer }
-        , m_file { strdup(file) }
+        , m_file { file }
         , m_line { line }
         , m_column { column } { }
 
-    Token(Type type, double dbl, const char *file, size_t line, size_t column)
+    Token(Type type, double dbl, const String *file, size_t line, size_t column)
         : m_type { type }
         , m_double { dbl }
-        , m_file { strdup(file) }
+        , m_file { file }
         , m_line { line }
         , m_column { column } { }
 
@@ -189,9 +185,14 @@ struct Token : public Cell {
     Type type() { return m_type; }
     void set_type(Token::Type type) { m_type = type; }
 
-    const char *literal() { return m_literal; }
-    void set_literal(const char *literal) { m_literal = literal; }
-    void set_literal(std::string literal) { m_literal = strdup(literal.c_str()); }
+    const char *literal() {
+        if (!m_literal)
+            return nullptr;
+        return m_literal.value()->c_str();
+    }
+
+    void set_literal(const char *literal) { m_literal = new String(literal); }
+    void set_literal(std::string literal) { m_literal = new String(literal); }
 
     nat_int_t get_integer() { return m_integer; }
     double get_double() { return m_double; }
@@ -331,7 +332,7 @@ struct Token : public Cell {
         case Type::InterpolatedStringEnd:
             return "dstrend";
         case Type::Invalid:
-            env->raise("SyntaxError", "{}: syntax error, unexpected '{}'", m_line + 1, m_literal);
+            env->raise("SyntaxError", "{}: syntax error, unexpected '{}'", m_line + 1, m_literal.value());
         case Type::LCurlyBrace:
             return "{";
         case Type::LBracket:
@@ -445,7 +446,7 @@ struct Token : public Cell {
         case Type::UnterminatedRegexp:
             env->raise("SyntaxError", "unterminated regexp meets end of file");
         case Type::UnterminatedString:
-            env->raise("SyntaxError", "unterminated string meets end of file at line {} and column {}: {}", m_line, m_column, m_literal);
+            env->raise("SyntaxError", "unterminated string meets end of file at line {} and column {}: {}", m_line, m_column, m_literal.value());
         case Type::UntilKeyword:
             return "until";
         case Type::WhenKeyword:
@@ -471,7 +472,7 @@ struct Token : public Cell {
         case Type::PercentUpperW:
         case Type::Regexp:
         case Type::String:
-            hash->put(env, SymbolValue::intern(env, "literal"), new StringValue { env, m_literal });
+            hash->put(env, SymbolValue::intern(env, "literal"), new StringValue { env, m_literal.value() });
             break;
         case Type::BareName:
         case Type::ClassVariable:
@@ -480,7 +481,7 @@ struct Token : public Cell {
         case Type::InstanceVariable:
         case Type::Symbol:
         case Type::SymbolKey:
-            hash->put(env, SymbolValue::intern(env, "literal"), SymbolValue::intern(env, m_literal));
+            hash->put(env, SymbolValue::intern(env, "literal"), SymbolValue::intern(env, m_literal.value()));
             break;
         case Type::Float:
             hash->put(env, SymbolValue::intern(env, "literal"), new FloatValue { env, m_double });
@@ -597,7 +598,7 @@ struct Token : public Cell {
     bool has_sign() { return m_has_sign; }
     void set_has_sign(bool has_sign) { m_has_sign = has_sign; }
 
-    const char *file() { return m_file; }
+    const String *file() { return m_file; }
     size_t line() { return m_line; }
     size_t column() { return m_column; }
 
@@ -660,15 +661,18 @@ struct Token : public Cell {
     }
 
     virtual void visit_children(Visitor &visitor) override final {
+        if (m_literal)
+            visitor.visit(const_cast<String *>(m_literal.value()));
+        visitor.visit(const_cast<String *>(m_file));
     }
 
 private:
     Type m_type { Type::Invalid };
-    const char *m_literal { nullptr };
+    std::optional<const String *> m_literal {};
     nat_int_t m_integer { 0 };
     double m_double { 0 };
     bool m_has_sign { false };
-    const char *m_file { nullptr };
+    const String *m_file { nullptr };
     size_t m_line { 0 };
     size_t m_column { 0 };
     bool m_whitespace_precedes { false };

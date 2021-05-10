@@ -81,7 +81,7 @@ struct Node : public Cell {
 
     virtual bool is_callable() { return false; }
 
-    const char *file() { return m_token->file(); }
+    const String *file() { return m_token->file(); }
     size_t line() { return m_token->line(); }
     size_t column() { return m_token->column(); }
 
@@ -141,7 +141,7 @@ struct ArgNode : Node {
 
     ArgNode(Token *token, const char *name)
         : Node { token }
-        , m_name { name } {
+        , m_name { new String(name) } {
         assert(m_name);
     }
 
@@ -149,7 +149,7 @@ struct ArgNode : Node {
 
     virtual ValuePtr to_ruby(Env *) override;
 
-    const char *name() { return m_name; }
+    const char *name() { return m_name->c_str(); }
 
     bool splat() { return m_splat; }
     void set_splat(bool splat) { m_splat = splat; }
@@ -170,7 +170,7 @@ struct ArgNode : Node {
     }
 
 protected:
-    const char *m_name { nullptr };
+    const String *m_name { nullptr };
     bool m_block_arg { false };
     bool m_splat { false };
     Node *m_value { nullptr };
@@ -370,7 +370,7 @@ struct CallNode : NodeWithArgs {
     CallNode(Token *token, Node *receiver, const char *message)
         : NodeWithArgs { token }
         , m_receiver { receiver }
-        , m_message { message } {
+        , m_message { new String(message) } {
         assert(m_receiver);
         assert(m_message);
     }
@@ -392,8 +392,12 @@ struct CallNode : NodeWithArgs {
 
     Node *receiver() { return m_receiver; }
 
-    const char *message() { return m_message; }
-    void set_message(const char *message) { m_message = message; }
+    const char *message() { return m_message->c_str(); }
+
+    void set_message(const char *message) {
+        assert(message);
+        m_message = new String(message);
+    }
 
     virtual void visit_children(Visitor &visitor) override {
         NodeWithArgs::visit_children(visitor);
@@ -402,7 +406,7 @@ struct CallNode : NodeWithArgs {
 
 protected:
     Node *m_receiver { nullptr };
-    const char *m_message { nullptr };
+    const String *m_message { nullptr };
 };
 
 struct CaseNode : Node {
@@ -512,7 +516,7 @@ struct Colon2Node : Node {
     Colon2Node(Token *token, Node *left, const char *name)
         : Node { token }
         , m_left { left }
-        , m_name { name } {
+        , m_name { new String(name) } {
         assert(m_left);
         assert(m_name);
     }
@@ -528,13 +532,13 @@ struct Colon2Node : Node {
 
 protected:
     Node *m_left { nullptr };
-    const char *m_name { nullptr };
+    const String *m_name { nullptr };
 };
 
 struct Colon3Node : Node {
     Colon3Node(Token *token, const char *name)
         : Node { token }
-        , m_name { name } {
+        , m_name { new String(name) } {
         assert(m_name);
     }
 
@@ -543,7 +547,7 @@ struct Colon3Node : Node {
     virtual ValuePtr to_ruby(Env *) override;
 
 protected:
-    const char *m_name { nullptr };
+    const String *m_name { nullptr };
 };
 
 struct ConstantNode : Node {
@@ -1048,7 +1052,7 @@ struct OpAssignNode : Node {
 
     OpAssignNode(Token *token, const char *op, IdentifierNode *name, Node *value)
         : Node { token }
-        , m_op { op }
+        , m_op { new String(op) }
         , m_name { name }
         , m_value { value } {
         assert(m_op);
@@ -1067,7 +1071,7 @@ struct OpAssignNode : Node {
     }
 
 protected:
-    const char *m_op { nullptr };
+    const String *m_op { nullptr };
     IdentifierNode *m_name { nullptr };
     Node *m_value { nullptr };
 };
@@ -1075,9 +1079,9 @@ protected:
 struct OpAssignAccessorNode : NodeWithArgs {
     OpAssignAccessorNode(Token *token, const char *op, Node *receiver, const char *message, Node *value)
         : NodeWithArgs { token }
-        , m_op { op }
+        , m_op { new String(op) }
         , m_receiver { receiver }
-        , m_message { message }
+        , m_message { new String(message) }
         , m_value { value } {
         assert(m_op);
         assert(m_receiver);
@@ -1096,9 +1100,9 @@ struct OpAssignAccessorNode : NodeWithArgs {
     }
 
 protected:
-    const char *m_op { nullptr };
+    const String *m_op { nullptr };
     Node *m_receiver { nullptr };
-    const char *m_message { nullptr };
+    const String *m_message { nullptr };
     Node *m_value { nullptr };
 };
 

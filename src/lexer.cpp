@@ -37,9 +37,9 @@ Vector<Token *> *Lexer::tokens() {
                 begin_token_type = Token::Type::InterpolatedRegexpBegin;
                 end_token_type = Token::Type::InterpolatedRegexpEnd;
             }
-            auto string_lexer = new InterpolatedStringLexer { token };
+            auto string_lexer = InterpolatedStringLexer { token };
             tokens->push(new Token { begin_token_type, token->file(), token->line(), token->column() });
-            for (auto token : *string_lexer->tokens()) {
+            for (auto token : *string_lexer.tokens()) {
                 tokens->push(token);
             }
             tokens->push(new Token { end_token_type, token->file(), token->line(), token->column() });
@@ -77,12 +77,12 @@ void InterpolatedStringLexer::tokenize_interpolation(Vector<Token *> *tokens) {
         m_index++;
     }
     if (curly_brace_count > 0) {
-        fprintf(stderr, "missing } in string interpolation in %s#%zu\n", m_file, m_line + 1);
+        fprintf(stderr, "missing } in string interpolation in %s#%zu\n", m_file->c_str(), m_line + 1);
         abort();
     }
     size_t len = m_index - start_index;
-    char *part = new char[len];
-    strncpy(part, m_input + start_index, len);
+    char part[len];
+    strncpy(part, m_input->c_str() + start_index, len);
     part[len - 1] = 0;
     auto lexer = new Lexer { part, m_file };
     tokens->push(new Token { Token::Type::EvaluateToStringBegin, m_file, m_line, m_column });

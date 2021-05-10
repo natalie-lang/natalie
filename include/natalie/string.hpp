@@ -22,15 +22,22 @@ struct String : public Cell {
     }
 
     String(const char *str) {
+        assert(str);
         set_str(str);
     }
 
     String(const char *str, size_t length) {
+        assert(str);
         set_str(str, length);
     }
 
     String(const String &other) {
         set_str(other.c_str(), other.length());
+    }
+
+    String(const String *other) {
+        assert(other);
+        set_str(other->c_str(), other->length());
     }
 
     virtual ~String() override {
@@ -41,6 +48,13 @@ struct String : public Cell {
         set_str(other.c_str(), other.length());
         return *this;
     }
+
+    char at(size_t index) const {
+        assert(index < m_length);
+        return m_str[index];
+    }
+
+    String *clone() const { return new String { *this }; }
 
     const char *c_str() const { return m_str; }
     size_t bytesize() const { return m_length; }
@@ -137,6 +151,11 @@ struct String : public Cell {
         return length() == other.length() && strncmp(c_str(), other.c_str(), m_length) == 0;
     }
 
+    bool operator==(const char *other) const {
+        assert(other);
+        return length() == strlen(other) && strncmp(c_str(), other, m_length) == 0;
+    }
+
     void truncate(size_t length) {
         assert(length <= m_length);
         m_str[length] = 0;
@@ -229,4 +248,5 @@ private:
     size_t m_length { 0 };
     size_t m_capacity { 0 };
 };
+
 }

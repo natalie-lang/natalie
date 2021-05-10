@@ -8,9 +8,9 @@
 namespace Natalie {
 
 struct Lexer : public Cell {
-    Lexer(const char *input, const char *file)
-        : m_input { input }
-        , m_file { strdup(file) }
+    Lexer(const char *input, const String *file)
+        : m_input { new String(input) }
+        , m_file { file }
         , m_size { strlen(input) } {
         assert(m_input);
     }
@@ -30,14 +30,14 @@ private:
     char current_char() {
         if (m_index >= m_size)
             return 0;
-        return m_input[m_index];
+        return m_input->at(m_index);
     }
 
     bool match(size_t bytes, const char *compare) {
         if (m_index + bytes > m_size)
             return false;
-        if (strncmp(compare, m_input + m_index, bytes) == 0) {
-            if (m_index + bytes < m_size && is_identifier_char_or_message_suffix(m_input[m_index + bytes]))
+        if (strncmp(compare, m_input->c_str() + m_index, bytes) == 0) {
+            if (m_index + bytes < m_size && is_identifier_char_or_message_suffix(m_input->at(m_index + bytes)))
                 return false;
             advance(bytes);
             return true;
@@ -64,7 +64,7 @@ private:
 
     // NOTE: this does not work across lines
     void rewind(size_t bytes = 1) {
-        auto c = current_char();
+        current_char();
         m_cursor_column -= bytes;
         m_index -= bytes;
     }
@@ -72,7 +72,7 @@ private:
     char peek() {
         if (m_index + 1 >= m_size)
             return 0;
-        return m_input[m_index + 1];
+        return m_input->at(m_index + 1);
     }
 
     bool is_identifier_char(char c) {
@@ -714,8 +714,9 @@ private:
             } else if (c >= 'A' && c <= 'Z') {
                 return consume_constant();
             } else {
-                const char *buf = consume_non_whitespace();
-                return new Token { Token::Type::Invalid, buf, m_file, m_token_line, m_token_column };
+                auto *buf = consume_non_whitespace();
+                auto token = new Token { Token::Type::Invalid, buf->c_str(), m_file, m_token_line, m_token_column };
+                return token;
             }
         }
         NAT_UNREACHABLE();
@@ -742,21 +743,21 @@ private:
         case '+':
         case '-':
         case '/':
-            c = gobble(c);
+            gobble(c);
             break;
         case '*':
             c = gobble(c);
-            if (c == '*') c = gobble(c);
+            if (c == '*') gobble(c);
             break;
         case '=':
             c = gobble(c);
-            if (c == '=') c = gobble(c);
+            if (c == '=') gobble(c);
             break;
         case '[':
             if (peek() == ']') {
                 c = gobble(c);
                 c = gobble(c);
-                if (c == '=') c = gobble(c);
+                if (c == '=') gobble(c);
             } else {
                 return new Token { Token::Type::TernaryColon, m_file, m_token_line, m_token_column };
             }
@@ -774,7 +775,7 @@ private:
                 break;
             }
         }
-        return new Token { Token::Type::Symbol, strdup(buf.c_str()), m_file, m_token_line, m_token_column };
+        return new Token { Token::Type::Symbol, buf.c_str(), m_file, m_token_line, m_token_column };
     }
 
     Token *consume_word(Token::Type type) {
@@ -794,7 +795,7 @@ private:
         default:
             break;
         }
-        return new Token { type, strdup(buf.c_str()), m_file, m_token_line, m_token_column };
+        return new Token { type, buf.c_str(), m_file, m_token_line, m_token_column };
     }
 
     Token *consume_bare_name() {
@@ -825,7 +826,7 @@ private:
             advance();
             auto buf = std::string("$") + current_char();
             advance();
-            return new Token { Token::Type::GlobalVariable, strdup(buf.c_str()), m_file, m_token_line, m_token_column };
+            return new Token { Token::Type::GlobalVariable, buf.c_str(), m_file, m_token_line, m_token_column };
         }
         default: {
             return consume_word(Token::Type::GlobalVariable);
@@ -842,12 +843,12 @@ private:
         auto heredoc_name = consume_word(Token::Type::BareName);
         auto doc = std::string();
         size_t heredoc_index = m_index;
-        auto get_char = [&heredoc_index, this]() { return (heredoc_index >= m_size) ? 0 : m_input[heredoc_index]; };
+        auto get_char = [&heredoc_index, this]() { return (heredoc_index >= m_size) ? 0 : m_input->at(heredoc_index); };
 
         // start consuming the heredoc on the next line
         while (get_char() != '\n') {
             if (heredoc_index >= m_size)
-                return new Token { Token::Type::UnterminatedString, strdup("heredoc"), m_file, m_token_line, m_token_column };
+                return new Token { Token::Type::UnterminatedString, "heredoc", m_file, m_token_line, m_token_column };
             heredoc_index++;
         }
         heredoc_index++;
@@ -858,7 +859,7 @@ private:
             delimiter = '\n' + delimiter;
         while (doc.find(delimiter) == std::string::npos) {
             if (heredoc_index >= m_size)
-                return new Token { Token::Type::UnterminatedString, strdup(doc.c_str()), m_file, m_token_line, m_token_column };
+                return new Token { Token::Type::UnterminatedString, doc.c_str(), m_file, m_token_line, m_token_column };
             doc += get_char();
             heredoc_index++;
         }
@@ -872,7 +873,7 @@ private:
         // this index is used to do that
         m_index_after_heredoc = heredoc_index;
 
-        auto token = new Token { Token::Type::DoubleQuotedString, strdup(doc.c_str()), m_file, m_token_line, m_token_column };
+        auto token = new Token { Token::Type::DoubleQuotedString, doc.c_str(), m_file, m_token_line, m_token_column };
         return token;
     }
 
@@ -985,8 +986,8 @@ private:
                 advance();
             }
             char *endptr = nullptr;
-            double dbl = ::strtod(m_input + start_index, &endptr);
-            assert(endptr == m_input + m_index); // FIXME: return Invalid token?
+            double dbl = ::strtod(m_input->c_str() + start_index, &endptr);
+            assert(endptr == m_input->c_str() + m_index); // FIXME: return Invalid token?
             if (negative)
                 dbl *= -1;
             return new Token { Token::Type::Float, dbl, m_file, m_token_line, m_token_column };
@@ -1017,7 +1018,7 @@ private:
                 }
             } else if (c == delimiter) {
                 advance();
-                auto token = new Token { Token::Type::DoubleQuotedString, strdup(buf.c_str()), m_file, m_token_line, m_token_column };
+                auto token = new Token { Token::Type::DoubleQuotedString, buf.c_str(), m_file, m_token_line, m_token_column };
                 return token;
             } else {
                 buf += c;
@@ -1025,7 +1026,7 @@ private:
             advance();
             c = current_char();
         }
-        return new Token { Token::Type::UnterminatedString, strdup(buf.c_str()), m_file, m_token_line, m_token_column };
+        return new Token { Token::Type::UnterminatedString, buf.c_str(), m_file, m_token_line, m_token_column };
     }
 
     Token *consume_single_quoted_string(char delimiter) {
@@ -1047,14 +1048,14 @@ private:
                 }
             } else if (c == delimiter) {
                 advance();
-                return new Token { Token::Type::String, strdup(buf.c_str()), m_file, m_token_line, m_token_column };
+                return new Token { Token::Type::String, buf.c_str(), m_file, m_token_line, m_token_column };
             } else {
                 buf += c;
             }
             advance();
             c = current_char();
         }
-        return new Token { Token::Type::UnterminatedString, strdup(buf.c_str()), m_file, m_token_line, m_token_column };
+        return new Token { Token::Type::UnterminatedString, buf.c_str(), m_file, m_token_line, m_token_column };
     }
 
     Token *consume_quoted_array_without_interpolation(char delimiter, Token::Type type) {
@@ -1063,7 +1064,7 @@ private:
         bool seen_space = false;
         bool seen_start = false;
         for (;;) {
-            if (!c) return new Token { Token::Type::UnterminatedString, strdup(buf.c_str()), m_file, m_token_line, m_token_column };
+            if (!c) return new Token { Token::Type::UnterminatedString, buf.c_str(), m_file, m_token_line, m_token_column };
             if (c == delimiter) {
                 advance();
                 break;
@@ -1084,7 +1085,7 @@ private:
             c = current_char();
         }
         if (buf[buf.length() - 1] == ' ') buf.erase(buf.length() - 1, 1);
-        return new Token { type, strdup(buf.c_str()), m_file, m_token_line, m_token_column };
+        return new Token { type, buf.c_str(), m_file, m_token_line, m_token_column };
     }
 
     Token *consume_quoted_array_with_interpolation(char delimiter, Token::Type type) {
@@ -1093,7 +1094,7 @@ private:
         bool seen_space = false;
         bool seen_start = false;
         for (;;) {
-            if (!c) return new Token { Token::Type::UnterminatedString, strdup(buf.c_str()), m_file, m_token_line, m_token_column };
+            if (!c) return new Token { Token::Type::UnterminatedString, buf.c_str(), m_file, m_token_line, m_token_column };
             if (c == delimiter) {
                 advance();
                 break;
@@ -1114,7 +1115,7 @@ private:
             c = current_char();
         }
         if (buf[buf.length() - 1] == ' ') buf.erase(buf.length() - 1, 1);
-        return new Token { type, strdup(buf.c_str()), m_file, m_token_line, m_token_column };
+        return new Token { type, buf.c_str(), m_file, m_token_line, m_token_column };
     }
 
     Token *consume_regexp(char delimiter) {
@@ -1127,7 +1128,7 @@ private:
                 buf += current_char();
             } else if (c == delimiter) {
                 advance();
-                auto token = new Token { Token::Type::Regexp, strdup(buf.c_str()), m_file, m_token_line, m_token_column };
+                auto token = new Token { Token::Type::Regexp, buf.c_str(), m_file, m_token_line, m_token_column };
                 return token;
             } else {
                 buf += c;
@@ -1135,22 +1136,22 @@ private:
             advance();
             c = current_char();
         }
-        return new Token { Token::Type::UnterminatedRegexp, strdup(buf.c_str()), m_file, m_token_line, m_token_column };
+        return new Token { Token::Type::UnterminatedRegexp, buf.c_str(), m_file, m_token_line, m_token_column };
     }
 
-    const char *consume_non_whitespace() {
+    const String *consume_non_whitespace() {
         char c = current_char();
-        auto buf = std::string("");
+        auto buf = new String();
         do {
             buf += c;
             advance();
             c = current_char();
         } while (c && c != ' ' && c != '\t' && c != '\n' && c != '\r');
-        return strdup(buf.c_str());
+        return buf;
     }
 
-    const char *m_input { nullptr };
-    const char *m_file { nullptr };
+    const String *m_input { nullptr };
+    const String *m_file { nullptr };
     size_t m_size { 0 };
     size_t m_index { 0 };
 
@@ -1177,7 +1178,7 @@ private:
 
 struct InterpolatedStringLexer {
     InterpolatedStringLexer(Token *token)
-        : m_input { token->literal() }
+        : m_input { new String(token->literal()) }
         , m_file { token->file() }
         , m_line { token->line() }
         , m_column { token->column() }
@@ -1190,7 +1191,7 @@ struct InterpolatedStringLexer {
             char c = current_char();
             if (c == '#' && peek() == '{') {
                 if (!raw.empty() || tokens->is_empty()) {
-                    tokens->push(new Token { Token::Type::String, strdup(raw.c_str()), m_file, m_line, m_column });
+                    tokens->push(new Token { Token::Type::String, raw.c_str(), m_file, m_line, m_column });
                     raw.clear();
                 }
                 m_index += 2;
@@ -1201,7 +1202,7 @@ struct InterpolatedStringLexer {
             }
         }
         if (!raw.empty())
-            tokens->push(new Token { Token::Type::String, strdup(raw.c_str()), m_file, m_line, m_column });
+            tokens->push(new Token { Token::Type::String, raw.c_str(), m_file, m_line, m_column });
         return tokens;
     }
 
@@ -1211,17 +1212,17 @@ private:
     char current_char() {
         if (m_index >= m_size)
             return 0;
-        return m_input[m_index];
+        return m_input->at(m_index);
     }
 
     char peek() {
         if (m_index + 1 >= m_size)
             return 0;
-        return m_input[m_index + 1];
+        return m_input->at(m_index + 1);
     }
 
-    const char *m_input { nullptr };
-    const char *m_file { nullptr };
+    const String *m_input { nullptr };
+    const String *m_file { nullptr };
     size_t m_line { 0 };
     size_t m_column { 0 };
     size_t m_size { 0 };

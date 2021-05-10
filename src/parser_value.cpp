@@ -16,13 +16,13 @@ ValuePtr ParserValue::parse(Env *env, ValuePtr code, ValuePtr source_path) {
     else
         source_path = new StringValue { env, "(string)" };
     code->assert_type(env, Value::Type::String, "String");
-    auto parser = Parser { code->as_string()->c_str(), source_path->as_string()->c_str() };
+    auto parser = Parser { code->as_string()->c_str(), source_path->as_string()->to_string() };
     return parser.tree(env)->to_ruby(env);
 }
 
 ValuePtr ParserValue::tokens(Env *env, ValuePtr code, ValuePtr with_line_and_column_numbers) {
     code->assert_type(env, Value::Type::String, "String");
-    auto lexer = Lexer { code->as_string()->c_str(), "(string)" };
+    auto lexer = Lexer { code->as_string()->c_str(), new String("(string)") };
     auto array = new ArrayValue { env };
     auto the_tokens = lexer.tokens();
     auto include_line_and_column_numbers = with_line_and_column_numbers && with_line_and_column_numbers->is_truthy();

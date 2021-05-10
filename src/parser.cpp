@@ -1687,7 +1687,7 @@ void Parser::expect(Env *env, Token::Type type, const char *expected) {
 }
 
 void Parser::raise_unexpected(Env *env, Token *token, const char *expected) {
-    auto file = token->file() ? token->file() : "(unknown)";
+    auto file = token->file() ? token->file() : new String("(unknown)");
     auto line = token->line() + 1;
     auto type = token->type_value(env);
     auto literal = token->literal();
