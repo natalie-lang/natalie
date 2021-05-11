@@ -40,6 +40,11 @@ struct String : public Cell {
         set_str(other->c_str(), other->length());
     }
 
+    String(char c) {
+        char buf[2] = { c, 0 };
+        set_str(buf);
+    }
+
     virtual ~String() override {
         delete[] m_str;
     }
@@ -52,6 +57,11 @@ struct String : public Cell {
     char at(size_t index) const {
         assert(index < m_length);
         return m_str[index];
+    }
+
+    char last_char() const {
+        assert(m_length > 0);
+        return m_str[m_length - 1];
     }
 
     String *clone() const { return new String { *this }; }
@@ -162,10 +172,36 @@ struct String : public Cell {
         return length() == strlen(other) && strncmp(c_str(), other, m_length) == 0;
     }
 
+    ssize_t find(const String *needle) const {
+        const char *index = strstr(m_str, needle->c_str());
+        if (index == nullptr)
+            return -1;
+        return index - m_str;
+    }
+
     void truncate(size_t length) {
         assert(length <= m_length);
         m_str[length] = 0;
         m_length = length;
+    }
+
+    void clear() { truncate(0); }
+
+    void chomp() { truncate(m_length - 1); }
+
+    void strip_trailing_whitespace() {
+        while (m_length > 0) {
+            switch (m_str[m_length - 1]) {
+            case ' ':
+            case '\t':
+            case '\n':
+            case '\r':
+                chomp();
+                break;
+            default:
+                return;
+            }
+        }
     }
 
     bool is_empty() { return m_length == 0; }
