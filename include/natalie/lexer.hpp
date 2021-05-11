@@ -8,10 +8,10 @@
 namespace Natalie {
 
 struct Lexer : public Cell {
-    Lexer(const char *input, const String *file)
-        : m_input { new String(input) }
+    Lexer(const String *input, const String *file)
+        : m_input { input }
         , m_file { file }
-        , m_size { strlen(input) } {
+        , m_size { input->length() } {
         assert(m_input);
     }
 

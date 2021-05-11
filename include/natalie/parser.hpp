@@ -10,7 +10,7 @@
 namespace Natalie {
 
 struct Parser : public Cell {
-    Parser(const char *code, const String *file)
+    Parser(const String *code, const String *file)
         : m_code { code }
         , m_file { file } {
         assert(m_code);
@@ -278,7 +278,7 @@ private:
     void advance() { m_index++; }
     void rewind() { m_index--; }
 
-    const char *m_code { nullptr };
+    const String *m_code { nullptr };
     const String *m_file { nullptr };
     size_t m_index { 0 };
     Vector<Token *> *m_tokens { nullptr };

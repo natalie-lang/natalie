@@ -80,10 +80,12 @@ void InterpolatedStringLexer::tokenize_interpolation(Vector<Token *> *tokens) {
         fprintf(stderr, "missing } in string interpolation in %s#%zu\n", m_file->c_str(), m_line + 1);
         abort();
     }
-    size_t len = m_index - start_index;
-    char part[len];
-    strncpy(part, m_input->c_str() + start_index, len);
-    part[len - 1] = 0;
+    // m_input = "#{:foo} bar"
+    //                   ^ m_index = 7
+    //              ^ start_index = 2
+    // part = ":foo" (len = 4)
+    size_t len = m_index - start_index - 1;
+    auto part = m_input->substring(start_index, len);
     auto lexer = new Lexer { part, m_file };
     tokens->push(new Token { Token::Type::EvaluateToStringBegin, m_file, m_line, m_column });
     for (auto token : *lexer->tokens()) {

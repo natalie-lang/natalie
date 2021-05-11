@@ -32,16 +32,16 @@ ValuePtr ArgNode::to_ruby(Env *env) {
             }
         };
     } else {
-        String *name;
+        String name;
         if (m_name)
-            name = new String(m_name);
+            name = String(m_name);
         else
-            name = new String();
+            name = String();
         if (m_splat)
-            name->prepend_char('*');
+            name.prepend_char('*');
         else if (m_block_arg)
-            name->prepend_char('&');
-        return SymbolValue::intern(env, name->c_str());
+            name.prepend_char('&');
+        return SymbolValue::intern(env, name.c_str());
     }
 }
 

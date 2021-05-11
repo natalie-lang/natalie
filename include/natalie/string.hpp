@@ -56,6 +56,12 @@ struct String : public Cell {
 
     String *clone() const { return new String { *this }; }
 
+    String *substring(size_t start, size_t length) const {
+        assert(start < m_length);
+        assert(start + length <= m_length);
+        return new String(c_str() + start, length);
+    }
+
     const char *c_str() const { return m_str; }
     size_t bytesize() const { return m_length; }
     size_t length() const { return m_length; }
