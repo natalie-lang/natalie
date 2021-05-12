@@ -6,7 +6,6 @@
 #include <iostream>
 #include <memory>
 #include <setjmp.h>
-#include <vector>
 
 #include "natalie/gc/cell.hpp"
 #include "natalie/macros.hpp"
@@ -52,13 +51,13 @@ public:
     }
 
     bool cell_in_use(const Cell *cell) const {
-        // FIXME: could use pointer arithmetic instead of iterating
-        for (size_t i = 0; i < m_total_count; ++i) {
-            const void *comparison_cell = &m_memory[i * m_cell_size];
-            if (cell == comparison_cell)
-                return m_used_map[i];
-        }
-        return false;
+        auto index = cell_index(cell);
+        return m_used_map[index];
+    }
+
+    void free_cell(const Cell *cell) {
+        auto index = cell_index(cell);
+        m_used_map[index] = false;
     }
 
     class iterator {
@@ -94,6 +93,10 @@ public:
     }
 
 private:
+    size_t cell_index(const Cell *cell) const {
+        return (reinterpret_cast<const char *>(cell) - m_memory) / m_cell_size;
+    }
+
     size_t m_cell_size;
     size_t m_total_count { 0 };
     size_t m_free_count { 0 };

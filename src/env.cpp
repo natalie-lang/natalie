@@ -10,7 +10,7 @@ Env Env::new_detatched_env(Env *outer) {
 }
 
 void Env::build_vars(size_t size) {
-    m_vars = std::make_shared<Vector<ValuePtr>>(size, nil_obj());
+    m_vars = new Vector<ValuePtr>(size, nil_obj());
 }
 
 ValuePtr Env::global_get(SymbolValue *name) {
@@ -116,7 +116,7 @@ ValuePtr Env::var_get(const char *key, size_t index) {
         printf("Trying to get variable `%s' at index %zu which is not set.\n", key, index);
         abort();
     }
-    ValuePtr val = (*m_vars)[index];
+    ValuePtr val = m_vars->at(index);
     if (val) {
         return val;
     } else {
@@ -130,7 +130,7 @@ ValuePtr Env::var_set(const char *name, size_t index, bool allocate, ValuePtr va
     if (needed > current_size) {
         if (allocate) {
             if (!m_vars) {
-                m_vars = std::make_shared<Vector<ValuePtr>>(needed, nil_obj());
+                build_vars(needed);
             } else {
                 m_vars->set_size(needed, nil_obj());
             }
@@ -139,7 +139,7 @@ ValuePtr Env::var_set(const char *name, size_t index, bool allocate, ValuePtr va
             abort();
         }
     }
-    (*m_vars)[index] = val;
+    m_vars->at(index) = val;
     return val;
 }
 

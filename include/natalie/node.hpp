@@ -1,7 +1,5 @@
 #pragma once
 
-#include <string>
-
 #include "natalie/gc.hpp"
 #include "natalie/token.hpp"
 

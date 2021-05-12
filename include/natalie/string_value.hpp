@@ -3,7 +3,6 @@
 #include <assert.h>
 #include <stdarg.h>
 #include <string.h>
-#include <string>
 
 #include "natalie/class_value.hpp"
 #include "natalie/encoding_value.hpp"

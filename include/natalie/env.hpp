@@ -6,6 +6,7 @@
 #include "natalie/forward.hpp"
 #include "natalie/gc.hpp"
 #include "natalie/global_env.hpp"
+#include "natalie/shared_ptr.hpp"
 #include "natalie/string.hpp"
 #include "natalie/value_ptr.hpp"
 #include "natalie/vector.hpp"
@@ -123,7 +124,7 @@ struct Env : public Cell {
 
 private:
     GlobalEnv *m_global_env { nullptr };
-    std::shared_ptr<Vector<ValuePtr>> m_vars;
+    SharedPtr<Vector<ValuePtr>> m_vars {};
     Env *m_outer { nullptr };
     Block *m_block { nullptr };
     Env *m_caller { nullptr };

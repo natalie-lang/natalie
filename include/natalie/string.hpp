@@ -1,8 +1,7 @@
 #pragma once
 
 #include <assert.h>
-#include <cstring>
-#include <string>
+#include <string.h>
 
 #include "natalie/forward.hpp"
 #include "natalie/gc.hpp"
@@ -78,7 +77,7 @@ struct String : public Cell {
         m_length = strlen(str);
         m_capacity = m_length;
         m_str = new char[m_length + 1];
-        std::memcpy(m_str, str, sizeof(char) * (m_length + 1));
+        memcpy(m_str, str, sizeof(char) * (m_length + 1));
         if (old_str)
             delete[] old_str;
     }
@@ -258,7 +257,7 @@ private:
         assert(new_capacity >= m_length);
         auto old_str = m_str;
         m_str = new char[new_capacity + 1];
-        std::memcpy(m_str, old_str, sizeof(char) * (m_capacity + 1));
+        memcpy(m_str, old_str, sizeof(char) * (m_capacity + 1));
         delete[] old_str;
         m_capacity = new_capacity;
     }

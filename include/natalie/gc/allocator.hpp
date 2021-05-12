@@ -6,10 +6,10 @@
 #include <iostream>
 #include <memory>
 #include <setjmp.h>
-#include <vector>
 
 #include "natalie/gc/heap_block.hpp"
 #include "natalie/macros.hpp"
+#include "natalie/vector.hpp"
 
 namespace Natalie {
 
@@ -43,7 +43,7 @@ public:
     }
 
     short int free_cells_percentage() {
-        if (m_blocks.empty())
+        if (m_blocks.is_empty())
             return 0;
         return free_cells() * 100 / total_cells();
     }
@@ -79,14 +79,14 @@ private:
     HeapBlock *add_heap_block() {
         auto *block = reinterpret_cast<HeapBlock *>(aligned_alloc(HEAP_BLOCK_SIZE, HEAP_BLOCK_SIZE));
         new (block) HeapBlock(m_cell_size);
-        m_blocks.push_back(block);
+        m_blocks.push(block);
         m_free_cells += cell_count_per_block();
         return block;
     }
 
     size_t m_cell_size;
     size_t m_free_cells { 0 };
-    std::vector<HeapBlock *> m_blocks;
+    Vector<HeapBlock *> m_blocks;
 };
 
 }

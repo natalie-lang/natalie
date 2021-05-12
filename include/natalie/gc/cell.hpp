@@ -6,7 +6,6 @@
 #include <iostream>
 #include <memory>
 #include <setjmp.h>
-#include <vector>
 
 #include "natalie/forward.hpp"
 
@@ -18,6 +17,7 @@ public:
     virtual ~Cell() { }
 
     void *operator new(size_t size);
+    void operator delete(void *ptr);
 
     class Visitor {
     public:

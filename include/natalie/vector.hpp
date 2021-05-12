@@ -69,6 +69,11 @@ struct Vector {
         return m_data[index];
     }
 
+    T &at(size_t index) const {
+        assert(index < m_size);
+        return m_data[index];
+    }
+
     T last() {
         assert(m_size != 0);
         return m_data[m_size - 1];

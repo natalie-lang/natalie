@@ -9,6 +9,10 @@ void *Cell::operator new(size_t size) {
     return cell;
 }
 
+void Cell::operator delete(void *ptr) {
+    Heap::the().free_cell(static_cast<Cell *>(ptr));
+}
+
 void MarkingVisitor::visit(ValuePtr val) {
     visit(val.value_or_null());
 }

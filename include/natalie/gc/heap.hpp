@@ -6,11 +6,11 @@
 #include <iostream>
 #include <memory>
 #include <setjmp.h>
-#include <vector>
 
 #include "natalie/gc/allocator.hpp"
 #include "natalie/gc/marking_visitor.hpp"
 #include "natalie/macros.hpp"
+#include "natalie/vector.hpp"
 
 namespace Natalie {
 
@@ -57,17 +57,23 @@ public:
         m_bottom_of_stack = bottom_of_stack;
     }
 
+    void free_cell(Cell *cell) {
+        auto *block = HeapBlock::from_cell(cell);
+        assert(is_a_heap_block(block));
+        block->free_cell(cell);
+    }
+
 private:
     static Heap *s_instance;
 
     Heap() {
-        m_allocators.push_back(new Allocator(16));
-        m_allocators.push_back(new Allocator(32));
-        m_allocators.push_back(new Allocator(64));
-        m_allocators.push_back(new Allocator(128));
-        m_allocators.push_back(new Allocator(256));
-        m_allocators.push_back(new Allocator(512));
-        m_allocators.push_back(new Allocator(1024));
+        m_allocators.push(new Allocator(16));
+        m_allocators.push(new Allocator(32));
+        m_allocators.push(new Allocator(64));
+        m_allocators.push(new Allocator(128));
+        m_allocators.push(new Allocator(256));
+        m_allocators.push(new Allocator(512));
+        m_allocators.push(new Allocator(1024));
     }
 
     ~Heap() {
@@ -76,11 +82,11 @@ private:
         }
     }
 
-    std::vector<Cell *> gather_conservative_roots() {
+    Vector<Cell *> gather_conservative_roots() {
         void *dummy;
         void *top_of_stack = &dummy;
-        std::vector<Cell *> possible_cells;
-        std::vector<Cell *> roots;
+        Vector<Cell *> possible_cells;
+        Vector<Cell *> roots;
 
         jmp_buf jump_buf;
         setjmp(jump_buf);
@@ -90,17 +96,17 @@ private:
             void *offset = (reinterpret_cast<void **>(raw_jump_buf))[i];
             if (offset == nullptr)
                 continue;
-            possible_cells.push_back(reinterpret_cast<Cell *>(offset));
+            possible_cells.push(reinterpret_cast<Cell *>(offset));
         }
 
         for (char *stack_address = reinterpret_cast<char *>(top_of_stack); stack_address < m_bottom_of_stack; stack_address += sizeof(intptr_t)) {
-            possible_cells.push_back(reinterpret_cast<Cell *>(stack_address));
+            possible_cells.push(reinterpret_cast<Cell *>(stack_address));
         }
 
         for (auto *candidate_cell : possible_cells) {
             auto *candidate_block = HeapBlock::from_cell(candidate_cell);
             if (is_a_heap_block(candidate_block) && candidate_block->cell_in_use(candidate_cell))
-                roots.push_back(candidate_cell);
+                roots.push(candidate_cell);
         }
 
         return roots;
@@ -130,7 +136,7 @@ private:
         return false;
     }
 
-    std::vector<Allocator *> m_allocators;
+    Vector<Allocator *> m_allocators;
 
     void *m_bottom_of_stack { nullptr };
 };
