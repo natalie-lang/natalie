@@ -12,6 +12,8 @@
 
 namespace Natalie {
 
+using namespace TM;
+
 enum class Encoding {
     ASCII_8BIT = 1,
     UTF_8 = 2,

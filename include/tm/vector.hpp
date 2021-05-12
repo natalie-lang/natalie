@@ -4,16 +4,18 @@
 #include <initializer_list>
 #include <stddef.h>
 
-#define NAT_VECTOR_GROW_FACTOR 2
-#define NAT_VECTOR_MIN_CAPACITY 10
+#define TM_MIN(a, b) (a < b ? a : b)
 
-namespace Natalie {
+namespace TM {
 
 template <typename T>
 struct Vector {
+    const size_t VECTOR_GROW_FACTOR = 2;
+    const size_t VECTOR_MIN_CAPACITY = 10;
+
     Vector()
-        : m_capacity { NAT_VECTOR_MIN_CAPACITY }
-        , m_data { new T[NAT_VECTOR_MIN_CAPACITY] {} } { }
+        : m_capacity { VECTOR_MIN_CAPACITY }
+        , m_data { new T[VECTOR_MIN_CAPACITY] {} } { }
 
     Vector(size_t initial_capacity)
         : m_size { initial_capacity }
@@ -191,7 +193,7 @@ private:
     void grow(size_t capacity) {
         auto old_data = m_data;
         m_data = new T[capacity] {};
-        memcpy(m_data, old_data, sizeof(T) * NAT_MIN(capacity, m_capacity));
+        memcpy(m_data, old_data, sizeof(T) * TM_MIN(capacity, m_capacity));
         delete[] old_data;
         m_capacity = capacity;
     }
@@ -200,8 +202,8 @@ private:
         if (m_capacity >= min_capacity) {
             return;
         }
-        if (m_capacity > 0 && min_capacity <= m_capacity * NAT_VECTOR_GROW_FACTOR) {
-            grow(m_capacity * NAT_VECTOR_GROW_FACTOR);
+        if (m_capacity > 0 && min_capacity <= m_capacity * VECTOR_GROW_FACTOR) {
+            grow(m_capacity * VECTOR_GROW_FACTOR);
         } else {
             grow(min_capacity);
         }

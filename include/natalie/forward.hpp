@@ -47,7 +47,4 @@ struct ValuePtr;
 
 using MethodFnPtr = ValuePtr (*)(Env *, ValuePtr, size_t, ValuePtr *, Block *);
 
-template <typename T>
-struct Vector;
-
 }

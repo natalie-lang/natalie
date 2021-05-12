@@ -1,6 +1,6 @@
 #include "natalie.hpp"
 #include "natalie/env.hpp"
-#include "natalie/vector.hpp"
+#include "tm/vector.hpp"
 
 extern char **environ;
 

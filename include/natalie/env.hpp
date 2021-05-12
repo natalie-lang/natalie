@@ -6,12 +6,14 @@
 #include "natalie/forward.hpp"
 #include "natalie/gc.hpp"
 #include "natalie/global_env.hpp"
-#include "natalie/shared_ptr.hpp"
 #include "natalie/string.hpp"
 #include "natalie/value_ptr.hpp"
-#include "natalie/vector.hpp"
+#include "tm/shared_ptr.hpp"
+#include "tm/vector.hpp"
 
 namespace Natalie {
+
+using namespace TM;
 
 struct Env : public Cell {
     Env() { }

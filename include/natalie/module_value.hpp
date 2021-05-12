@@ -9,10 +9,12 @@
 #include "natalie/hashmap.hpp"
 #include "natalie/macros.hpp"
 #include "natalie/method_visibility.hpp"
-#include "natalie/optional.hpp"
 #include "natalie/value.hpp"
+#include "tm/optional.hpp"
 
 namespace Natalie {
+
+using namespace TM;
 
 struct ModuleValue : Value {
     ModuleValue(Env *);

@@ -5,6 +5,8 @@
 
 namespace Natalie {
 
+using namespace TM;
+
 Env Env::new_detatched_env(Env *outer) {
     return Env { outer->global_env() };
 }

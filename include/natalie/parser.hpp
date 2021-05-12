@@ -7,6 +7,8 @@
 
 namespace Natalie {
 
+using namespace TM;
+
 struct Parser : public Cell {
     Parser(const String *code, const String *file)
         : m_code { code }

@@ -8,9 +8,11 @@
 
 #include "natalie/gc/heap_block.hpp"
 #include "natalie/macros.hpp"
-#include "natalie/vector.hpp"
+#include "tm/vector.hpp"
 
 namespace Natalie {
+
+using namespace TM;
 
 class Allocator {
 public:

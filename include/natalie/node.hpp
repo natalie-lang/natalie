@@ -5,6 +5,8 @@
 
 namespace Natalie {
 
+using namespace TM;
+
 struct Node : public Cell {
     enum class Type {
         Alias,

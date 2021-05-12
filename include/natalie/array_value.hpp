@@ -8,9 +8,11 @@
 #include "natalie/global_env.hpp"
 #include "natalie/macros.hpp"
 #include "natalie/value.hpp"
-#include "natalie/vector.hpp"
+#include "tm/vector.hpp"
 
 namespace Natalie {
+
+using namespace TM;
 
 struct ArrayValue : Value {
     ArrayValue(Env *env)

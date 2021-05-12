@@ -1,10 +1,9 @@
 #pragma once
 
-#include "natalie/forward.hpp"
 #include <assert.h>
 #include <stdio.h>
 
-namespace Natalie {
+namespace TM {
 
 template <typename T>
 class Optional {
