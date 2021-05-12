@@ -1,7 +1,7 @@
 #pragma once
 
-#include <algorithm>
 #include <cassert>
+#include <cstddef>
 #include <initializer_list>
 
 #define NAT_VECTOR_GROW_FACTOR 2

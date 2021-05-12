@@ -687,7 +687,7 @@ struct Token : public Cell {
 
 private:
     Type m_type { Type::Invalid };
-    std::optional<const String *> m_literal {};
+    Optional<const String *> m_literal {};
     nat_int_t m_integer { 0 };
     double m_double { 0 };
     bool m_has_sign { false };

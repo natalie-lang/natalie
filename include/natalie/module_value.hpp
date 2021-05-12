@@ -9,6 +9,7 @@
 #include "natalie/hashmap.hpp"
 #include "natalie/macros.hpp"
 #include "natalie/method_visibility.hpp"
+#include "natalie/optional.hpp"
 #include "natalie/value.hpp"
 
 namespace Natalie {
@@ -50,7 +51,7 @@ struct ModuleValue : Value {
 
     ValuePtr eval_body(Env *, ValuePtr (*)(Env *, ValuePtr));
 
-    std::optional<const String *> class_name() {
+    Optional<const String *> class_name() {
         return m_class_name;
     }
 
@@ -122,7 +123,7 @@ struct ModuleValue : Value {
 protected:
     Env m_env {};
     Hashmap<SymbolValue *, Value *> m_constants {};
-    std::optional<const String *> m_class_name {};
+    Optional<const String *> m_class_name {};
     ClassValue *m_superclass { nullptr };
     Hashmap<SymbolValue *, Method *> m_methods {};
     Hashmap<SymbolValue *, Value *> m_class_vars {};
