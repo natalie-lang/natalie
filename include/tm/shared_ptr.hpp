@@ -32,7 +32,9 @@ public:
 
     SharedPtr(T *ptr)
         : m_ptr { ptr }
-        , m_count { new Counter(1) } { }
+        , m_count { new Counter(1) } {
+        assert(m_ptr);
+    }
 
     ~SharedPtr() {
         destroy();
@@ -41,6 +43,7 @@ public:
     SharedPtr(const SharedPtr &other)
         : m_ptr { other.m_ptr }
         , m_count { other.m_count } {
+        assert(valid());
         if (m_count)
             m_count->increment();
     }
@@ -49,6 +52,7 @@ public:
         destroy();
         m_ptr = other.m_ptr;
         m_count = other.m_count;
+        assert(valid());
         if (m_count)
             m_count->increment();
         return *this;
@@ -75,8 +79,15 @@ public:
     }
 
 private:
+    bool valid() {
+        return (m_ptr && m_count) || (!m_ptr && !m_count);
+    }
+
     void destroy() {
-        if (!m_ptr) return;
+        if (m_ptr == nullptr) {
+            delete m_count;
+            return;
+        }
         assert(m_count->count() > 0);
         m_count->decrement();
         if (m_count->count() == 0) {
