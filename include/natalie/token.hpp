@@ -148,22 +148,37 @@ struct Token : public Cell {
         : m_type { type }
         , m_file { file }
         , m_line { line }
-        , m_column { column } { }
+        , m_column { column } {
+        assert(file);
+    }
 
     Token(Type type, const char *literal, const String *file, size_t line, size_t column)
         : m_type { type }
         , m_literal { new String(literal) }
         , m_file { file }
         , m_line { line }
-        , m_column { column } { }
+        , m_column { column } {
+        assert(literal);
+        assert(file);
+    }
 
-    Token(Type type, char literal, const String *file, size_t line, size_t column)
+    Token(Type type, const String *literal, const String *file, size_t line, size_t column)
         : m_type { type }
+        , m_literal { literal }
         , m_file { file }
         , m_line { line }
         , m_column { column } {
-        char buf[2] = { literal, 0 };
-        m_literal = new String(buf);
+        assert(literal);
+        assert(file);
+    }
+
+    Token(Type type, char literal, const String *file, size_t line, size_t column)
+        : m_type { type }
+        , m_literal { new String(literal) }
+        , m_file { file }
+        , m_line { line }
+        , m_column { column } {
+        assert(file);
     }
 
     Token(Type type, nat_int_t integer, const String *file, size_t line, size_t column)
@@ -171,14 +186,18 @@ struct Token : public Cell {
         , m_integer { integer }
         , m_file { file }
         , m_line { line }
-        , m_column { column } { }
+        , m_column { column } {
+        assert(file);
+    }
 
     Token(Type type, double dbl, const String *file, size_t line, size_t column)
         : m_type { type }
         , m_double { dbl }
         , m_file { file }
         , m_line { line }
-        , m_column { column } { }
+        , m_column { column } {
+        assert(file);
+    }
 
     static Token *invalid() { return new Token { Token::Type::Invalid, nullptr, 0, 0 }; }
 
@@ -192,7 +211,7 @@ struct Token : public Cell {
     }
 
     void set_literal(const char *literal) { m_literal = new String(literal); }
-    void set_literal(std::string literal) { m_literal = new String(literal); }
+    void set_literal(const String *literal) { m_literal = literal; }
 
     nat_int_t get_integer() { return m_integer; }
     double get_double() { return m_double; }

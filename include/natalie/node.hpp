@@ -394,6 +394,11 @@ struct CallNode : NodeWithArgs {
 
     const char *message() { return m_message->c_str(); }
 
+    void set_message(const String *message) {
+        assert(message);
+        m_message = message;
+    }
+
     void set_message(const char *message) {
         assert(message);
         m_message = new String(message);
@@ -694,7 +699,9 @@ struct IdentifierNode : Node {
     const char *name() { return m_token->literal(); }
 
     void append_to_name(char c) {
-        m_token->set_literal(std::string(m_token->literal()) + c);
+        auto literal = new String(m_token->literal());
+        literal->append_char(c);
+        m_token->set_literal(literal);
     }
 
     virtual bool is_callable() override {
@@ -1050,9 +1057,9 @@ struct OpAssignNode : Node {
         assert(m_value);
     }
 
-    OpAssignNode(Token *token, const char *op, IdentifierNode *name, Node *value)
+    OpAssignNode(Token *token, const String *op, IdentifierNode *name, Node *value)
         : Node { token }
-        , m_op { new String(op) }
+        , m_op { op }
         , m_name { name }
         , m_value { value } {
         assert(m_op);
@@ -1077,11 +1084,11 @@ protected:
 };
 
 struct OpAssignAccessorNode : NodeWithArgs {
-    OpAssignAccessorNode(Token *token, const char *op, Node *receiver, const char *message, Node *value)
+    OpAssignAccessorNode(Token *token, const String *op, Node *receiver, const String *message, Node *value)
         : NodeWithArgs { token }
-        , m_op { new String(op) }
+        , m_op { op }
         , m_receiver { receiver }
-        , m_message { new String(message) }
+        , m_message { message }
         , m_value { value } {
         assert(m_op);
         assert(m_receiver);

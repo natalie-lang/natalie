@@ -7,8 +7,6 @@
 
 namespace Natalie {
 
-using std::string;
-
 ValuePtr ParserValue::parse(Env *env, ValuePtr code, ValuePtr source_path) {
     code->assert_type(env, Value::Type::String, "String");
     if (source_path)

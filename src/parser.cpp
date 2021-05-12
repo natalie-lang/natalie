@@ -1059,12 +1059,12 @@ Node *Parser::parse_assignment_expression(Env *env, Node *left, LocalsVectorPtr 
         advance();
         auto attr_assign_node = new AttrAssignNode { token, *static_cast<CallNode *>(left) };
         if (strcmp(attr_assign_node->message(), "[]") == 0) {
-            attr_assign_node->set_message(strdup("[]="));
+            attr_assign_node->set_message(new String("[]="));
             attr_assign_node->add_arg(parse_expression(env, ASSIGNMENT, locals));
         } else {
-            auto message = std::string(attr_assign_node->message());
-            message += '=';
-            attr_assign_node->set_message(strdup(message.c_str()));
+            auto message = new String(attr_assign_node->message());
+            message->append_char('=');
+            attr_assign_node->set_message(message);
             attr_assign_node->add_arg(parse_expression(env, ASSIGNMENT, locals));
         }
         return attr_assign_node;
@@ -1325,9 +1325,9 @@ Node *Parser::parse_op_assign_expression(Env *env, Node *left, LocalsVectorPtr l
     case Token::Type::MultiplyEqual:
     case Token::Type::PlusEqual:
     case Token::Type::RightShiftEqual: {
-        auto op = std::string(token->type_value(env));
-        op.resize(op.size() - 1);
-        return new OpAssignNode { token, strdup(op.c_str()), left_identifier, parse_expression(env, ASSIGNMENT, locals) };
+        auto op = new String(token->type_value(env));
+        op->chomp();
+        return new OpAssignNode { token, op, left_identifier, parse_expression(env, ASSIGNMENT, locals) };
     }
     case Token::Type::OrEqual:
         return new OpAssignOrNode { token, left_identifier, parse_expression(env, ASSIGNMENT, locals) };
@@ -1342,10 +1342,17 @@ Node *Parser::parse_op_attr_assign_expression(Env *env, Node *left, LocalsVector
     auto left_call = static_cast<CallNode *>(left);
     auto token = current_token();
     advance();
-    auto op = std::string(token->type_value(env));
-    op.resize(op.size() - 1);
-    auto message = std::string(left_call->message()) + '=';
-    auto node = new OpAssignAccessorNode { token, strdup(op.c_str()), left_call->receiver(), strdup(message.c_str()), parse_expression(env, OPASSIGNMENT, locals) };
+    auto op = new String(token->type_value(env));
+    op->chomp();
+    auto message = new String(left_call->message());
+    message->append_char('=');
+    auto node = new OpAssignAccessorNode {
+        token,
+        op,
+        left_call->receiver(),
+        message,
+        parse_expression(env, OPASSIGNMENT, locals)
+    };
     for (auto arg : *left_call->args()) {
         node->add_arg(arg);
     }

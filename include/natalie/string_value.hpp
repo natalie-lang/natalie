@@ -24,11 +24,6 @@ struct StringValue : Value {
     StringValue(Env *env)
         : StringValue { env, "" } { }
 
-    StringValue(Env *env, std::string str)
-        : Value { Value::Type::String, env->String() } {
-        set_str(str.c_str());
-    }
-
     StringValue(Env *env, const char *str)
         : Value { Value::Type::String, env->String() } {
         set_str(str);
@@ -78,7 +73,6 @@ struct StringValue : Value {
 
     void append_char(Env *, char);
     void append(Env *, const char *);
-    void append(Env *, const std::string);
     void append(Env *, const StringValue *);
     void append(Env *, ValuePtr);
 

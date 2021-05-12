@@ -689,10 +689,6 @@ void StringValue::append(Env *, const char *str) {
     m_string.append(str);
 }
 
-void StringValue::append(Env *, const std::string str) {
-    m_string.append(str);
-}
-
 void StringValue::append(Env *, const StringValue *str) {
     m_string.append(str->c_str());
 }

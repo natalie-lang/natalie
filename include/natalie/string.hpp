@@ -17,10 +17,6 @@ struct String : public Cell {
         set_str("");
     }
 
-    String(const std::string str) {
-        set_str(str.c_str());
-    }
-
     String(const char *str) {
         assert(str);
         set_str(str);
@@ -127,11 +123,17 @@ struct String : public Cell {
     }
 
     void append(size_t i) {
-        append(std::to_string(i));
+        int length = snprintf(NULL, 0, "%zu", i);
+        char buf[length + 1];
+        snprintf(buf, length + 1, "%zu", i);
+        append(buf);
     }
 
     void append(long long i) {
-        append(std::to_string(i));
+        int length = snprintf(NULL, 0, "%lli", i);
+        char buf[length + 1];
+        snprintf(buf, length + 1, "%lli", i);
+        append(buf);
     }
 
     void append(const char *str) {
@@ -141,15 +143,6 @@ struct String : public Cell {
         size_t total_length = m_length + new_length;
         grow_at_least(total_length);
         strncat(m_str, str, new_length);
-        m_length = total_length;
-    }
-
-    void append(const std::string str) {
-        size_t new_length = str.length();
-        if (new_length == 0) return;
-        size_t total_length = m_length + new_length;
-        grow_at_least(total_length);
-        strncat(m_str, str.c_str(), new_length);
         m_length = total_length;
     }
 
@@ -201,6 +194,15 @@ struct String : public Cell {
             default:
                 return;
             }
+        }
+    }
+
+    void strip_trailing_spaces() {
+        while (m_length > 0) {
+            if (m_str[m_length - 1] == ' ')
+                chomp();
+            else
+                return;
         }
     }
 
@@ -290,5 +292,4 @@ private:
     size_t m_length { 0 };
     size_t m_capacity { 0 };
 };
-
 }

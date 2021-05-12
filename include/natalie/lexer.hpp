@@ -531,7 +531,7 @@ private:
                 // kinda janky, but we gotta trick consume_word and then prepend the '@' back on the front
                 advance();
                 auto token = consume_word(Token::Type::ClassVariable);
-                token->set_literal(std::string(1, '@') + std::string(token->literal()));
+                token->set_literal(String::format("@{}", token->literal()));
                 return token;
             }
             default:
@@ -715,7 +715,7 @@ private:
                 return consume_constant();
             } else {
                 auto *buf = consume_non_whitespace();
-                auto token = new Token { Token::Type::Invalid, buf->c_str(), m_file, m_token_line, m_token_column };
+                auto token = new Token { Token::Type::Invalid, buf, m_file, m_token_line, m_token_column };
                 return token;
             }
         }
@@ -724,8 +724,8 @@ private:
 
     Token *consume_symbol() {
         char c = current_char();
-        auto buf = std::string("");
-        auto gobble = [&buf, this](char c) -> char { buf += c; advance(); return current_char(); };
+        auto buf = new String();
+        auto gobble = [&buf, this](char c) -> char { buf->append_char(c); advance(); return current_char(); };
         switch (c) {
         case '@':
             c = gobble(c);
@@ -775,14 +775,14 @@ private:
                 break;
             }
         }
-        return new Token { Token::Type::Symbol, buf.c_str(), m_file, m_token_line, m_token_column };
+        return new Token { Token::Type::Symbol, buf, m_file, m_token_line, m_token_column };
     }
 
     Token *consume_word(Token::Type type) {
         char c = current_char();
-        auto buf = std::string("");
+        auto buf = new String();
         do {
-            buf += c;
+            buf->append_char(c);
             advance();
             c = current_char();
         } while (is_identifier_char(c));
@@ -790,12 +790,12 @@ private:
         case '?':
         case '!':
             advance();
-            buf += c;
+            buf->append_char(c);
             break;
         default:
             break;
         }
-        return new Token { type, buf.c_str(), m_file, m_token_line, m_token_column };
+        return new Token { type, buf, m_file, m_token_line, m_token_column };
     }
 
     Token *consume_bare_name() {
@@ -824,9 +824,10 @@ private:
         case '!':
         case '=': {
             advance();
-            auto buf = std::string("$") + current_char();
+            auto buf = new String("$");
+            buf->append_char(current_char());
             advance();
-            return new Token { Token::Type::GlobalVariable, buf.c_str(), m_file, m_token_line, m_token_column };
+            return new Token { Token::Type::GlobalVariable, buf, m_file, m_token_line, m_token_column };
         }
         default: {
             return consume_word(Token::Type::GlobalVariable);
@@ -841,7 +842,7 @@ private:
             with_dash = true;
         }
         auto heredoc_name = consume_word(Token::Type::BareName);
-        auto doc = std::string();
+        auto doc = new String();
         size_t heredoc_index = m_index;
         auto get_char = [&heredoc_index, this]() { return (heredoc_index >= m_size) ? 0 : m_input->at(heredoc_index); };
 
@@ -854,26 +855,26 @@ private:
         heredoc_index++;
 
         // consume the heredoc until we find the delimiter, either "\nDELIM\n" (if << was used) or "DELIM\n" (if <<- was used)
-        auto delimiter = std::string(heredoc_name->literal()) + '\n';
+        auto delimiter = new String(heredoc_name->literal());
+        delimiter->append_char('\n');
         if (!with_dash)
-            delimiter = '\n' + delimiter;
-        while (doc.find(delimiter) == std::string::npos) {
+            delimiter->prepend_char('\n');
+        while (doc->find(delimiter) == -1) {
             if (heredoc_index >= m_size)
-                return new Token { Token::Type::UnterminatedString, doc.c_str(), m_file, m_token_line, m_token_column };
-            doc += get_char();
+                return new Token { Token::Type::UnterminatedString, doc, m_file, m_token_line, m_token_column };
+            doc->append_char(get_char());
             heredoc_index++;
         }
 
         // chop the delimiter and any trailing space off the string
-        doc.resize(doc.size() - delimiter.size() + (with_dash ? 0 : 1));
-        while (doc.size() > 0 && doc[doc.size() - 1] != '\n')
-            doc.resize(doc.size() - 1);
+        doc->truncate(doc->length() - delimiter->length() + (with_dash ? 0 : 1));
+        doc->strip_trailing_spaces();
 
         // we have to keep tokenizing on the line where the heredoc was started, and then jump to the line after the heredoc
         // this index is used to do that
         m_index_after_heredoc = heredoc_index;
 
-        auto token = new Token { Token::Type::DoubleQuotedString, doc.c_str(), m_file, m_token_line, m_token_column };
+        auto token = new Token { Token::Type::DoubleQuotedString, doc, m_file, m_token_line, m_token_column };
         return token;
     }
 
@@ -999,7 +1000,7 @@ private:
     }
 
     Token *consume_double_quoted_string(char delimiter) {
-        auto buf = std::string("");
+        auto buf = new String();
         char c = current_char();
         while (c) {
             if (c == '\\') {
@@ -1007,30 +1008,30 @@ private:
                 c = current_char();
                 switch (c) {
                 case 'n':
-                    buf += '\n';
+                    buf->append_char('\n');
                     break;
                 case 't':
-                    buf += '\t';
+                    buf->append_char('\t');
                     break;
                 default:
-                    buf += c;
+                    buf->append_char(c);
                     break;
                 }
             } else if (c == delimiter) {
                 advance();
-                auto token = new Token { Token::Type::DoubleQuotedString, buf.c_str(), m_file, m_token_line, m_token_column };
+                auto token = new Token { Token::Type::DoubleQuotedString, buf, m_file, m_token_line, m_token_column };
                 return token;
             } else {
-                buf += c;
+                buf->append_char(c);
             }
             advance();
             c = current_char();
         }
-        return new Token { Token::Type::UnterminatedString, buf.c_str(), m_file, m_token_line, m_token_column };
+        return new Token { Token::Type::UnterminatedString, buf, m_file, m_token_line, m_token_column };
     }
 
     Token *consume_single_quoted_string(char delimiter) {
-        auto buf = std::string("");
+        auto buf = new String();
         char c = current_char();
         while (c) {
             if (c == '\\') {
@@ -1039,32 +1040,32 @@ private:
                 switch (c) {
                 case '\\':
                 case '\'':
-                    buf += c;
+                    buf->append_char(c);
                     break;
                 default:
-                    buf += '\\';
-                    buf += c;
+                    buf->append_char('\\');
+                    buf->append_char(c);
                     break;
                 }
             } else if (c == delimiter) {
                 advance();
-                return new Token { Token::Type::String, buf.c_str(), m_file, m_token_line, m_token_column };
+                return new Token { Token::Type::String, buf, m_file, m_token_line, m_token_column };
             } else {
-                buf += c;
+                buf->append_char(c);
             }
             advance();
             c = current_char();
         }
-        return new Token { Token::Type::UnterminatedString, buf.c_str(), m_file, m_token_line, m_token_column };
+        return new Token { Token::Type::UnterminatedString, buf, m_file, m_token_line, m_token_column };
     }
 
     Token *consume_quoted_array_without_interpolation(char delimiter, Token::Type type) {
-        auto buf = std::string("");
+        auto buf = new String();
         char c = current_char();
         bool seen_space = false;
         bool seen_start = false;
         for (;;) {
-            if (!c) return new Token { Token::Type::UnterminatedString, buf.c_str(), m_file, m_token_line, m_token_column };
+            if (!c) return new Token { Token::Type::UnterminatedString, buf, m_file, m_token_line, m_token_column };
             if (c == delimiter) {
                 advance();
                 break;
@@ -1073,28 +1074,28 @@ private:
             case ' ':
             case '\t':
             case '\n':
-                if (!seen_space && seen_start) buf += ' ';
+                if (!seen_space && seen_start) buf->append_char(' ');
                 seen_space = true;
                 break;
             default:
-                buf += c;
+                buf->append_char(c);
                 seen_space = false;
                 seen_start = true;
             }
             advance();
             c = current_char();
         }
-        if (buf[buf.length() - 1] == ' ') buf.erase(buf.length() - 1, 1);
-        return new Token { type, buf.c_str(), m_file, m_token_line, m_token_column };
+        if (!buf->is_empty() && buf->last_char() == ' ') buf->chomp();
+        return new Token { type, buf, m_file, m_token_line, m_token_column };
     }
 
     Token *consume_quoted_array_with_interpolation(char delimiter, Token::Type type) {
-        auto buf = std::string("");
+        auto buf = new String();
         char c = current_char();
         bool seen_space = false;
         bool seen_start = false;
         for (;;) {
-            if (!c) return new Token { Token::Type::UnterminatedString, buf.c_str(), m_file, m_token_line, m_token_column };
+            if (!c) return new Token { Token::Type::UnterminatedString, buf, m_file, m_token_line, m_token_column };
             if (c == delimiter) {
                 advance();
                 break;
@@ -1103,47 +1104,47 @@ private:
             case ' ':
             case '\t':
             case '\n':
-                if (!seen_space && seen_start) buf += ' ';
+                if (!seen_space && seen_start) buf->append_char(' ');
                 seen_space = true;
                 break;
             default:
-                buf += c;
+                buf->append_char(c);
                 seen_space = false;
                 seen_start = true;
             }
             advance();
             c = current_char();
         }
-        if (buf[buf.length() - 1] == ' ') buf.erase(buf.length() - 1, 1);
-        return new Token { type, buf.c_str(), m_file, m_token_line, m_token_column };
+        if (!buf->is_empty() && buf->last_char() == ' ') buf->chomp();
+        return new Token { type, buf, m_file, m_token_line, m_token_column };
     }
 
     Token *consume_regexp(char delimiter) {
-        auto buf = std::string("");
+        auto buf = new String();
         char c = current_char();
         while (c) {
             if (c == '\\') {
-                buf += c;
+                buf->append_char(c);
                 advance();
-                buf += current_char();
+                buf->append_char(current_char());
             } else if (c == delimiter) {
                 advance();
-                auto token = new Token { Token::Type::Regexp, buf.c_str(), m_file, m_token_line, m_token_column };
+                auto token = new Token { Token::Type::Regexp, buf, m_file, m_token_line, m_token_column };
                 return token;
             } else {
-                buf += c;
+                buf->append_char(c);
             }
             advance();
             c = current_char();
         }
-        return new Token { Token::Type::UnterminatedRegexp, buf.c_str(), m_file, m_token_line, m_token_column };
+        return new Token { Token::Type::UnterminatedRegexp, buf, m_file, m_token_line, m_token_column };
     }
 
     const String *consume_non_whitespace() {
         char c = current_char();
         auto buf = new String();
         do {
-            buf += c;
+            buf->append_char(c);
             advance();
             c = current_char();
         } while (c && c != ' ' && c != '\t' && c != '\n' && c != '\r');
@@ -1186,23 +1187,23 @@ struct InterpolatedStringLexer {
 
     Vector<Token *> *tokens() {
         auto tokens = new Vector<Token *> {};
-        auto raw = std::string("");
+        auto raw = new String();
         while (m_index < m_size) {
             char c = current_char();
             if (c == '#' && peek() == '{') {
-                if (!raw.empty() || tokens->is_empty()) {
-                    tokens->push(new Token { Token::Type::String, raw.c_str(), m_file, m_line, m_column });
-                    raw.clear();
+                if (!raw->is_empty() || tokens->is_empty()) {
+                    tokens->push(new Token { Token::Type::String, raw->clone(), m_file, m_line, m_column });
+                    raw->clear();
                 }
                 m_index += 2;
                 tokenize_interpolation(tokens);
             } else {
-                raw += c;
+                raw->append_char(c);
                 m_index++;
             }
         }
-        if (!raw.empty())
-            tokens->push(new Token { Token::Type::String, raw.c_str(), m_file, m_line, m_column });
+        if (!raw->is_empty())
+            tokens->push(new Token { Token::Type::String, raw, m_file, m_line, m_column });
         return tokens;
     }
 
