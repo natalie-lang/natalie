@@ -1,11 +1,10 @@
 #pragma once
 
-#include <cassert>
-#include <cstdlib>
-#include <cstring>
-#include <iostream>
+#include <assert.h>
 #include <memory>
 #include <setjmp.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "natalie/gc/heap_block.hpp"
 #include "natalie/macros.hpp"

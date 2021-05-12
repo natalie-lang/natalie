@@ -83,11 +83,4 @@
     c(const c &) = delete;      \
     c &operator=(const c &) = delete
 
-#define NAT_LOG_LEVEL_NONE 0
-#define NAT_LOG_LEVEL_WARN 1
-#define NAT_LOG_LEVEL_INFO 2
-#define NAT_LOG_LEVEL_DEBUG 3
-
-#ifndef NAT_LOG_LEVEL
-#define NAT_LOG_LEVEL 0
-#endif
+#define NAT_MIN(a, b) (a < b ? a : b)

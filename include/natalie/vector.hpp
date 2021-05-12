@@ -1,8 +1,8 @@
 #pragma once
 
-#include <cassert>
-#include <cstddef>
+#include <assert.h>
 #include <initializer_list>
+#include <stddef.h>
 
 #define NAT_VECTOR_GROW_FACTOR 2
 #define NAT_VECTOR_MIN_CAPACITY 10
@@ -191,7 +191,7 @@ private:
     void grow(size_t capacity) {
         auto old_data = m_data;
         m_data = new T[capacity] {};
-        memcpy(m_data, old_data, sizeof(T) * std::min(capacity, m_capacity));
+        memcpy(m_data, old_data, sizeof(T) * NAT_MIN(capacity, m_capacity));
         delete[] old_data;
         m_capacity = capacity;
     }

@@ -1,11 +1,9 @@
 #pragma once
 
-#include <cassert>
-#include <cstdlib>
-#include <cstring>
-#include <iostream>
-#include <memory>
+#include <assert.h>
 #include <setjmp.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "natalie/gc/allocator.hpp"
 #include "natalie/gc/marking_visitor.hpp"

@@ -2,7 +2,7 @@
 
 #include "natalie/forward.hpp"
 #include <assert.h>
-#include <cstdio>
+#include <stdio.h>
 
 namespace Natalie {
 
