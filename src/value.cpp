@@ -268,7 +268,7 @@ ClassValue *Value::singleton_class(Env *env) {
     m_singleton_class->set_is_singleton(true);
     if (is_module()) {
         auto name = String::format("#<Class:{}>", as_module()->class_name_or_blank());
-        m_singleton_class->set_class_name(name->c_str());
+        m_singleton_class->set_class_name(name);
     }
     return m_singleton_class;
 }

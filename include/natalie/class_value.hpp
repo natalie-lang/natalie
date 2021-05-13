@@ -19,8 +19,19 @@ struct ClassValue : ModuleValue {
     ClassValue(Env *env, ClassValue *klass)
         : ModuleValue { env, Value::Type::Class, klass } { }
 
-    ClassValue *subclass(Env *, const char * = nullptr);
-    ClassValue *subclass(Env *, const char *, Type);
+    ClassValue *subclass(Env *env, const char *name) {
+        return subclass(env, name, m_object_type);
+    }
+
+    ClassValue *subclass(Env *env, const char *name, Type object_type) {
+        return subclass(env, new String(name), object_type);
+    }
+
+    ClassValue *subclass(Env *env, const String *name = nullptr) {
+        return subclass(env, name, m_object_type);
+    }
+
+    ClassValue *subclass(Env *, const String *, Type);
 
     static ClassValue *bootstrap_class_class(Env *);
     static ClassValue *bootstrap_basic_object(Env *, ClassValue *);

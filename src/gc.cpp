@@ -65,7 +65,7 @@ void Heap::sweep() {
         for (auto *block : *allocator) {
             for (Cell *cell : *block) {
                 if (!cell->marked()) {
-#ifdef GC_DEBUG
+#ifdef NAT_GC_DEBUG
                     char *repr = cell->gc_repr();
                     printf("TRASH: %s\n", repr);
                     delete[] repr;
