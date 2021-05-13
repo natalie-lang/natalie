@@ -5,8 +5,9 @@
 
 namespace Natalie {
 
-void String::append(const StringValue *string2) {
-    append(string2->c_str());
+void String::append(const StringValue *str) {
+    if (!str) return;
+    append(str->c_str());
 }
 
 }

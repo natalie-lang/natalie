@@ -135,6 +135,7 @@ struct String : public Cell {
     }
 
     void append(const char *str) {
+        if (!str) return;
         if (str == nullptr) return;
         size_t new_length = strlen(str);
         if (new_length == 0) return;
@@ -144,15 +145,16 @@ struct String : public Cell {
         m_length = total_length;
     }
 
-    void append(const String *string2) {
-        if (string2->length() == 0) return;
-        size_t total_length = m_length + string2->length();
+    void append(const String *str) {
+        if (!str) return;
+        if (str->length() == 0) return;
+        size_t total_length = m_length + str->length();
         grow_at_least(total_length);
-        strncat(m_str, string2->c_str(), string2->length());
+        strncat(m_str, str->c_str(), str->length());
         m_length = total_length;
     }
 
-    void append(const StringValue *string2);
+    void append(const StringValue *str);
 
     bool operator==(const String &other) const {
         return length() == other.length() && strncmp(c_str(), other.c_str(), m_length) == 0;
