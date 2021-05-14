@@ -150,10 +150,8 @@ struct StringValue : Value {
         return new StringValue { env, *str };
     }
 
-    virtual char *gc_repr() override {
-        char *buf = new char[100];
-        snprintf(buf, 100, "<StringValue %p str='%s'>", this, m_string.c_str());
-        return buf;
+    virtual void gc_print() override {
+        fprintf(stderr, "<StringValue %p str='%s'>", this, m_string.c_str());
     }
 
 private:

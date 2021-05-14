@@ -96,10 +96,8 @@ struct RegexpValue : Value {
     ValuePtr match(Env *env, ValuePtr, size_t = 0);
     ValuePtr source(Env *env);
 
-    virtual char *gc_repr() override {
-        char *buf = new char[100];
-        snprintf(buf, 100, "<RegexpValue %p>", this);
-        return buf;
+    virtual void gc_print() override {
+        fprintf(stderr, "<RegexpValue %p>", this);
     }
 
 private:

@@ -47,10 +47,8 @@ struct FileValue : IoValue {
     const String *path() { return m_path; }
     void set_path(String *path) { m_path = path; };
 
-    virtual char *gc_repr() override {
-        char *buf = new char[100];
-        snprintf(buf, 100, "<FileValue %p>", this);
-        return buf;
+    virtual void gc_print() override {
+        fprintf(stderr, "<FileValue %p>", this);
     }
 
 private:

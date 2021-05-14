@@ -35,10 +35,8 @@ struct Block : public Cell {
         visitor.visit(m_self);
     }
 
-    virtual char *gc_repr() override {
-        char *buf = new char[100];
-        snprintf(buf, 100, "<Block %p fn=%p>", this, m_fn);
-        return buf;
+    virtual void gc_print() override {
+        fprintf(stderr, "<Block %p fn=%p>", this, m_fn);
     }
 
 private:

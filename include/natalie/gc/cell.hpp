@@ -30,10 +30,8 @@ public:
     }
 
     // only for debugging the GC
-    virtual char *gc_repr() {
-        char *buf = new char[100];
-        snprintf(buf, 100, "<Cell %p size=%zu>", this, sizeof(*this));
-        return buf;
+    virtual void gc_print() {
+        fprintf(stderr, "<Cell %p size=%zu>", this, sizeof(*this));
     }
 
     bool marked() {

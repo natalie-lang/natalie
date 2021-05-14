@@ -220,10 +220,8 @@ struct Value : public Cell {
 
     virtual void visit_children(Visitor &visitor) override;
 
-    virtual char *gc_repr() override {
-        char *buf = new char[100];
-        snprintf(buf, 100, "<Value %p type=%d>", this, (int)m_type);
-        return buf;
+    virtual void gc_print() override {
+        fprintf(stderr, "<Value %p type=%d>", this, (int)m_type);
     }
 
 protected:

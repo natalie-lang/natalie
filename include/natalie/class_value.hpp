@@ -59,10 +59,8 @@ struct ClassValue : ModuleValue {
     bool is_singleton() { return m_is_singleton; }
     void set_is_singleton(bool is_singleton) { m_is_singleton = is_singleton; }
 
-    virtual char *gc_repr() override {
-        char *buf = new char[100];
-        snprintf(buf, 100, "<ClassValue %p name=%s>", this, m_class_name ? m_class_name.value()->c_str() : "null");
-        return buf;
+    virtual void gc_print() override {
+        fprintf(stderr, "<ClassValue %p name=%s>", this, m_class_name ? m_class_name.value()->c_str() : "null");
     }
 
 private:

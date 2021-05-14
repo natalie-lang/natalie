@@ -63,10 +63,8 @@ struct Method : public Cell {
         visitor.visit(&m_env);
     }
 
-    virtual char *gc_repr() override {
-        char *buf = new char[100];
-        snprintf(buf, 100, "<Method %p name='%s' fn=%p>", this, m_name.c_str(), m_fn);
-        return buf;
+    virtual void gc_print() override {
+        fprintf(stderr, "<Method %p name='%s' fn=%p>", this, m_name.c_str(), m_fn);
     }
 
 private:

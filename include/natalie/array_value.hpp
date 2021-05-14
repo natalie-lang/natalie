@@ -129,10 +129,17 @@ struct ArrayValue : Value {
         }
     }
 
-    virtual char *gc_repr() override {
-        char *buf = new char[100];
-        snprintf(buf, 100, "<ArrayValue %p size=%zu>", this, m_vector.size());
-        return buf;
+    virtual void gc_print() override {
+        size_t size = m_vector.size();
+        fprintf(stderr, "<ArrayValue %p size=%zu [", this, size);
+        size_t index = 0;
+        for (auto item : *this) {
+            item->gc_print();
+            if (index + 1 < size)
+                fprintf(stderr, ", ");
+            ++index;
+        }
+        fprintf(stderr, "]>");
     }
 
 private:

@@ -40,16 +40,14 @@ struct MethodValue : Value {
         visitor.visit(m_method);
     }
 
-    virtual char *gc_repr() override {
-        char *buf = new char[100];
+    virtual void gc_print() override {
         if (m_method) {
-            auto repr = m_method->gc_repr();
-            snprintf(buf, 100, "<MethodValue %p method=%s>", this, repr);
-            delete[] repr;
+            fprintf(stderr, "<MethodValue %p method=", this);
+            m_method->gc_print();
+            fprintf(stderr, ">");
         } else {
-            snprintf(buf, 100, "<MethodValue %p method=null>", this);
+            fprintf(stderr, "<MethodValue %p method=null>", this);
         }
-        return buf;
     }
 
 private:

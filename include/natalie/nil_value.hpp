@@ -23,10 +23,8 @@ struct NilValue : Value {
     ValuePtr to_i(Env *);
     ValuePtr inspect(Env *);
 
-    virtual char *gc_repr() override {
-        char *buf = new char[100];
-        snprintf(buf, 100, "<NilValue %p>", this);
-        return buf;
+    virtual void gc_print() override {
+        fprintf(stderr, "<NilValue %p>", this);
     }
 };
 

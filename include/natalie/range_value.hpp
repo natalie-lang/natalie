@@ -41,10 +41,8 @@ struct RangeValue : Value {
         visitor.visit(m_end);
     }
 
-    virtual char *gc_repr() override {
-        char *buf = new char[100];
-        snprintf(buf, 100, "<RangeValue %p>", this);
-        return buf;
+    virtual void gc_print() override {
+        fprintf(stderr, "<RangeValue %p>", this);
     }
 
 private:

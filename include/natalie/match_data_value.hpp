@@ -39,6 +39,10 @@ struct MatchDataValue : Value {
     ValuePtr to_s(Env *);
     ValuePtr ref(Env *, ValuePtr);
 
+    virtual void gc_print() override {
+        fprintf(stderr, "<MatchDataValue %p>", this);
+    }
+
 private:
     OnigRegion *m_region { nullptr };
     const StringValue *m_string { nullptr };

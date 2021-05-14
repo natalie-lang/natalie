@@ -123,10 +123,8 @@ struct Env : public Cell {
 
     virtual void visit_children(Visitor &visitor) override final;
 
-    virtual char *gc_repr() override {
-        char *buf = new char[100];
-        snprintf(buf, 100, "<Env %p>", this);
-        return buf;
+    virtual void gc_print() override {
+        fprintf(stderr, "<Env %p>", this);
     }
 
 private:

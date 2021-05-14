@@ -71,10 +71,8 @@ struct GlobalEnv : public Cell {
 
     virtual void visit_children(Visitor &visitor) override final;
 
-    virtual char *gc_repr() override {
-        char *buf = new char[100];
-        snprintf(buf, 100, "<GlobalEnv %p>", this);
-        return buf;
+    virtual void gc_print() override {
+        fprintf(stderr, "<GlobalEnv %p>", this);
     }
 
 private:

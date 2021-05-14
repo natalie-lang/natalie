@@ -41,10 +41,8 @@ struct EncodingValue : Value {
 
     virtual void visit_children(Visitor &) override final;
 
-    virtual char *gc_repr() override {
-        char *buf = new char[100];
-        snprintf(buf, 100, "<EncodingValue %p>", this);
-        return buf;
+    virtual void gc_print() override {
+        fprintf(stderr, "<EncodingValue %p>", this);
     }
 
 private:

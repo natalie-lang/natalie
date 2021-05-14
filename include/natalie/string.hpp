@@ -254,10 +254,8 @@ struct String : public Cell {
     virtual void visit_children(Visitor &visitor) override final {
     }
 
-    virtual char *gc_repr() override {
-        char *buf = new char[100];
-        snprintf(buf, 100, "<String %p str='%s'>", this, m_str);
-        return buf;
+    virtual void gc_print() override {
+        fprintf(stderr, "<String %p str='%s'>", this, m_str);
     }
 
 private:
