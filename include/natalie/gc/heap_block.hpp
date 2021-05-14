@@ -37,19 +37,19 @@ public:
         return static_cast<Cell *>(cell);
     }
 
-    ssize_t index_from_cell(const Cell *cell) const {
-        for (size_t i = 0; i < m_total_count; ++i) {
-            if (reinterpret_cast<const Cell *>(&m_memory[i * m_cell_size]) == cell)
-                return i;
-        }
-        return -1;
+    // returns true if the supposed Cell* belongs to this block and it's in use
+    bool is_my_cell_and_in_use(const Cell *cell) const {
+        auto index = index_from_cell(cell);
+        if (index == -1)
+            return false;
+        return m_used_map[index];
     }
 
     bool has_free() {
         return m_free_count > 0;
     }
 
-    void *next_free() {
+    Cell *find_next_free_cell() {
         assert(has_free());
         for (size_t i = 0; i < m_total_count; ++i) {
             if (!m_used_map[i]) {
@@ -57,35 +57,16 @@ public:
                 --m_free_count;
                 void *cell = &m_memory[i * m_cell_size];
                 //printf("Cell %p allocated from block %p (size %zu) at index %zu\n", cell, this, m_cell_size, i);
-                return cell;
+                return reinterpret_cast<Cell *>(cell);
             }
         }
         NAT_UNREACHABLE();
     }
 
-    bool is_cell_in_use(const Cell *cell) const {
-        for (size_t i = 0; i < m_total_count; ++i) {
-            if (reinterpret_cast<const Cell *>(&m_memory[i * m_cell_size]) == cell)
-                return m_used_map[i];
-        }
-        return false;
-    }
-
-    void add_cell_to_free_list(const Cell *cell) {
-        for (size_t i = 0; i < m_total_count; ++i) {
-            if (reinterpret_cast<const Cell *>(&m_memory[i * m_cell_size]) == cell)
-                m_used_map[i] = false;
-        }
-    }
-
-    // returns m_total_count if no more cells remain
-    size_t next_free_index_from(size_t index) {
-        while (index < m_total_count) {
-            if (m_used_map[index])
-                break;
-            ++index;
-        }
-        return index;
+    void return_cell_to_free_list(const Cell *cell) {
+        auto index = index_from_cell(cell);
+        assert(index > -1);
+        m_used_map[index] = false;
     }
 
     size_t total_count() const { return m_total_count; }
@@ -139,6 +120,24 @@ public:
     }
 
 private:
+    // returns -1 if it's a bad pointer or doesn't belong to this block
+    ssize_t index_from_cell(const Cell *cell) const {
+        auto diff = reinterpret_cast<const char *>(cell) - m_memory;
+        if (diff % m_cell_size != 0)
+            return -1;
+        return diff / m_cell_size;
+    }
+
+    // returns m_total_count if no more cells remain
+    size_t next_free_index_from(size_t index) {
+        while (index < m_total_count) {
+            if (m_used_map[index])
+                break;
+            ++index;
+        }
+        return index;
+    }
+
     size_t m_cell_size;
     size_t m_total_count { 0 };
     size_t m_free_count { 0 };

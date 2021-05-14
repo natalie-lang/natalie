@@ -53,11 +53,11 @@ public:
         for (auto block : m_blocks) {
             if (block->has_free()) {
                 --m_free_cells;
-                return block->next_free();
+                return block->find_next_free_cell();
             }
         }
         auto *block = add_heap_block();
-        return block->next_free();
+        return block->find_next_free_cell();
     }
 
     bool is_my_block(HeapBlock *candidate_block) {

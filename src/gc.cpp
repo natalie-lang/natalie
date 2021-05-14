@@ -11,7 +11,7 @@ void *Cell::operator new(size_t size) {
 }
 
 void Cell::operator delete(void *ptr) {
-    Heap::the().add_cell_to_free_list(static_cast<Cell *>(ptr));
+    Heap::the().return_cell_to_free_list(static_cast<Cell *>(ptr));
 }
 
 void MarkingVisitor::visit(ValuePtr val) {

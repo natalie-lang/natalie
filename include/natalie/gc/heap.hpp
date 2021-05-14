@@ -51,10 +51,10 @@ public:
         m_bottom_of_stack = bottom_of_stack;
     }
 
-    void add_cell_to_free_list(Cell *cell) {
+    void return_cell_to_free_list(Cell *cell) {
         auto *block = HeapBlock::from_cell(cell);
         assert(is_a_heap_block(block));
-        block->add_cell_to_free_list(cell);
+        block->return_cell_to_free_list(cell);
     }
 
 private:
