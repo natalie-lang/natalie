@@ -150,6 +150,12 @@ struct StringValue : Value {
         return new StringValue { env, *str };
     }
 
+    virtual char *gc_repr() override {
+        char *buf = new char[100];
+        snprintf(buf, 100, "<StringValue %p str='%s'>", this, m_string.c_str());
+        return buf;
+    }
+
 private:
     StringValue *expand_backrefs(Env *, StringValue *, MatchDataValue *);
     StringValue *regexp_sub(Env *, RegexpValue *, StringValue *, MatchDataValue **, StringValue **, size_t = 0);

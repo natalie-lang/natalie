@@ -71,6 +71,12 @@ struct IntegerValue : Value {
 
     static bool optimized_method(SymbolValue *);
 
+    virtual char *gc_repr() override {
+        char *buf = new char[100];
+        snprintf(buf, 100, "<IntegerValue %p int=%li>", this, m_integer);
+        return buf;
+    }
+
 private:
     nat_int_t m_integer { 0 };
 };

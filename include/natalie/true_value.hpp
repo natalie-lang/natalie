@@ -18,6 +18,12 @@ struct TrueValue : Value {
     }
 
     ValuePtr to_s(Env *);
+
+    virtual char *gc_repr() override {
+        char *buf = new char[100];
+        snprintf(buf, 100, "<TrueValue %p>", this);
+        return buf;
+    }
 };
 
 }

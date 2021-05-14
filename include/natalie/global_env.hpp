@@ -71,6 +71,12 @@ struct GlobalEnv : public Cell {
 
     virtual void visit_children(Visitor &visitor) override final;
 
+    virtual char *gc_repr() override {
+        char *buf = new char[100];
+        snprintf(buf, 100, "<GlobalEnv %p>", this);
+        return buf;
+    }
+
 private:
     SymbolValue *symbol_get(Env *, const char *);
     void symbol_set(Env *, const char *, SymbolValue *);

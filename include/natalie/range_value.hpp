@@ -41,6 +41,12 @@ struct RangeValue : Value {
         visitor.visit(m_end);
     }
 
+    virtual char *gc_repr() override {
+        char *buf = new char[100];
+        snprintf(buf, 100, "<RangeValue %p>", this);
+        return buf;
+    }
+
 private:
     ValuePtr m_begin { nullptr };
     ValuePtr m_end { nullptr };

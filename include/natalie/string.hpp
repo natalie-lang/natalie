@@ -252,6 +252,12 @@ struct String : public Cell {
     virtual void visit_children(Visitor &visitor) override final {
     }
 
+    virtual char *gc_repr() override {
+        char *buf = new char[100];
+        snprintf(buf, 100, "<String %p str='%s'>", this, m_str);
+        return buf;
+    }
+
 private:
     void grow(size_t new_capacity) {
         assert(new_capacity >= m_length);

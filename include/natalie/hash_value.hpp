@@ -138,6 +138,12 @@ struct HashValue : Value {
 
     virtual void visit_children(Visitor &) override final;
 
+    virtual char *gc_repr() override {
+        char *buf = new char[100];
+        snprintf(buf, 100, "<HashValue %p size=%zu>", this, m_hashmap.size());
+        return buf;
+    }
+
 private:
     void key_list_remove_node(Key *);
     Key *key_list_append(Env *, ValuePtr, ValuePtr);

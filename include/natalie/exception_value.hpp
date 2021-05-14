@@ -40,6 +40,12 @@ struct ExceptionValue : Value {
 
     virtual void visit_children(Visitor &) override final;
 
+    virtual char *gc_repr() override {
+        char *buf = new char[100];
+        snprintf(buf, 100, "<ExceptionValue %p message='%s'>", this, m_message->c_str());
+        return buf;
+    }
+
 private:
     StringValue *m_message { nullptr };
     ArrayValue *m_backtrace { nullptr };

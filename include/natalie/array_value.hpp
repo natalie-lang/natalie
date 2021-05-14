@@ -129,6 +129,12 @@ struct ArrayValue : Value {
         }
     }
 
+    virtual char *gc_repr() override {
+        char *buf = new char[100];
+        snprintf(buf, 100, "<ArrayValue %p size=%zu>", this, m_vector.size());
+        return buf;
+    }
+
 private:
     ArrayValue(Env *env, Vector<ValuePtr> &&vector)
         : Value { Value::Type::Array, env->Array() }

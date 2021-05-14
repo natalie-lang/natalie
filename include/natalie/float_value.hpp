@@ -166,6 +166,12 @@ struct FloatValue : Value {
         klass->const_set(env, SymbolValue::intern(env, "RADIX"), new FloatValue { env, double { std::numeric_limits<double>::radix } });
     }
 
+    virtual char *gc_repr() override {
+        char *buf = new char[100];
+        snprintf(buf, 100, "<FloatValue %p float=%f>", this, m_double);
+        return buf;
+    }
+
 private:
     double m_double { 0.0 };
 };

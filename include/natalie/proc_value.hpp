@@ -58,6 +58,12 @@ struct ProcValue : Value {
         visitor.visit(m_block);
     }
 
+    virtual char *gc_repr() override {
+        char *buf = new char[100];
+        snprintf(buf, 100, "<ProcValue %p>", this);
+        return buf;
+    }
+
 private:
     Block *m_block { nullptr };
     ProcType m_type { ProcType::Proc };

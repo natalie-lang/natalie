@@ -47,6 +47,12 @@ struct SymbolValue : Value {
 
     ValuePtr ref(Env *, ValuePtr);
 
+    virtual char *gc_repr() override {
+        char *buf = new char[100];
+        snprintf(buf, 100, "<SymbolValue %p name='%s'>", this, m_name);
+        return buf;
+    }
+
 private:
     SymbolValue(Env *env, const char *name)
         : Value { Value::Type::Symbol, env->Symbol() }

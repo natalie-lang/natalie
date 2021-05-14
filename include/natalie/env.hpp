@@ -124,6 +124,12 @@ struct Env : public Cell {
 
     virtual void visit_children(Visitor &visitor) override final;
 
+    virtual char *gc_repr() override {
+        char *buf = new char[100];
+        snprintf(buf, 100, "<Env %p>", this);
+        return buf;
+    }
+
 private:
     GlobalEnv *m_global_env { nullptr };
     SharedPtr<Vector<ValuePtr>> m_vars {};
