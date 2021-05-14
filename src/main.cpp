@@ -17,6 +17,7 @@ extern "C" Env *build_top_env() {
     ClassValue *BasicObject = ClassValue::bootstrap_basic_object(env, Class);
 
     ClassValue *Object = BasicObject->subclass(env, "Object");
+
     env->global_env()->set_Object(Object);
 
     ClassValue *Symbol = Object->subclass(env, "Symbol", Value::Type::Symbol);
@@ -221,8 +222,6 @@ int main(int argc, char *argv[]) {
     }
 
     ValuePtr result = EVAL(env);
-
-    env->clear_global_env();
 
     Heap::the().collect();
 

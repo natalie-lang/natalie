@@ -414,6 +414,8 @@ void ModuleValue::visit_children(Visitor &visitor) {
     Value::visit_children(visitor);
     visitor.visit(&m_env);
     visitor.visit(m_superclass);
+    if (m_class_name)
+        visitor.visit(const_cast<String *>(m_class_name.value()));
     for (auto pair : m_constants) {
         visitor.visit(pair.first);
         visitor.visit(pair.second);

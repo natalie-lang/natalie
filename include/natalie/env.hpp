@@ -93,7 +93,6 @@ struct Env : public Cell {
 
     GlobalEnv *global_env() { return m_global_env; }
     void set_global_env(GlobalEnv *global_env) { m_global_env = global_env; }
-    void clear_global_env() { m_global_env = nullptr; }
 
     void build_vars(size_t);
 

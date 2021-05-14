@@ -32,6 +32,19 @@ public:
         return reinterpret_cast<HeapBlock *>((intptr_t)cell & HEAP_BLOCK_MASK);
     }
 
+    Cell *cell_from_index(size_t index) {
+        void *cell = &m_memory[index * m_cell_size];
+        return static_cast<Cell *>(cell);
+    }
+
+    ssize_t index_from_cell(const Cell *cell) const {
+        for (size_t i = 0; i < m_total_count; ++i) {
+            if (reinterpret_cast<const Cell *>(&m_memory[i * m_cell_size]) == cell)
+                return i;
+        }
+        return -1;
+    }
+
     bool has_free() {
         return m_free_count > 0;
     }
@@ -43,31 +56,63 @@ public:
                 m_used_map[i] = true;
                 --m_free_count;
                 void *cell = &m_memory[i * m_cell_size];
+                //printf("Cell %p allocated from block %p (size %zu) at index %zu\n", cell, this, m_cell_size, i);
                 return cell;
             }
         }
         NAT_UNREACHABLE();
     }
 
-    bool cell_in_use(const Cell *cell) const {
-        auto index = cell_index(cell);
-        return m_used_map[index];
+    bool is_cell_in_use(const Cell *cell) const {
+        for (size_t i = 0; i < m_total_count; ++i) {
+            if (reinterpret_cast<const Cell *>(&m_memory[i * m_cell_size]) == cell)
+                return m_used_map[i];
+        }
+        return false;
     }
 
-    void free_cell(const Cell *cell) {
-        auto index = cell_index(cell);
-        m_used_map[index] = false;
+    void add_cell_to_free_list(const Cell *cell) {
+        for (size_t i = 0; i < m_total_count; ++i) {
+            if (reinterpret_cast<const Cell *>(&m_memory[i * m_cell_size]) == cell)
+                m_used_map[i] = false;
+        }
     }
+
+    // returns m_total_count if no more cells remain
+    size_t next_free_index_from(size_t index) {
+        while (index < m_total_count) {
+            if (m_used_map[index])
+                break;
+            ++index;
+        }
+        return index;
+    }
+
+    size_t total_count() const { return m_total_count; }
 
     class iterator {
     public:
         iterator(HeapBlock *block, size_t index)
             : m_block { block }
-            , m_index { index } { }
+            , m_index { index } {
+            m_ptr = m_block->cell_from_index(m_index);
+        }
 
         iterator operator++() {
-            ++m_index;
+            m_index = m_block->next_free_index_from(m_index + 1);
+            m_ptr = m_block->cell_from_index(m_index);
             return *this;
+        }
+
+        iterator operator++(int _) {
+            iterator i = *this;
+            m_index = m_block->next_free_index_from(m_index + 1);
+            m_ptr = m_block->cell_from_index(m_index);
+            return i;
+        }
+
+        Cell *&operator*() {
+            return m_ptr;
         }
 
         friend bool operator==(const iterator &i1, const iterator &i2) {
@@ -80,22 +125,20 @@ public:
 
     private:
         HeapBlock *m_block;
+        Cell *m_ptr { nullptr };
         size_t m_index { 0 };
     };
 
     iterator begin() {
-        return iterator { this, 0 };
+        auto index = next_free_index_from(0);
+        return iterator { this, index };
     }
 
     iterator end() {
-        return iterator { this, HEAP_CELL_COUNT_MAX + 1 };
+        return iterator { this, m_total_count };
     }
 
 private:
-    size_t cell_index(const Cell *cell) const {
-        return (reinterpret_cast<const char *>(cell) - m_memory) / m_cell_size;
-    }
-
     size_t m_cell_size;
     size_t m_total_count { 0 };
     size_t m_free_count { 0 };

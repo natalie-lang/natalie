@@ -42,10 +42,11 @@ public:
         return;
 #endif
         MarkingVisitor visitor;
-        auto roots = gather_conservative_roots();
-        for (auto cell : roots) {
+        auto *roots = gather_conservative_roots();
+        for (auto cell : *roots) {
             cell->visit_children(visitor);
         }
+        delete roots;
         sweep();
     }
 
@@ -57,10 +58,10 @@ public:
         m_bottom_of_stack = bottom_of_stack;
     }
 
-    void free_cell(Cell *cell) {
+    void add_cell_to_free_list(Cell *cell) {
         auto *block = HeapBlock::from_cell(cell);
         assert(is_a_heap_block(block));
-        block->free_cell(cell);
+        block->add_cell_to_free_list(cell);
     }
 
 private:
@@ -82,42 +83,9 @@ private:
         }
     }
 
-    Vector<Cell *> gather_conservative_roots() {
-        void *dummy;
-        void *top_of_stack = &dummy;
-        Vector<Cell *> possible_cells;
-        Vector<Cell *> roots;
+    Vector<Cell *> *gather_conservative_roots();
 
-        jmp_buf jump_buf;
-        setjmp(jump_buf);
-        void *raw_jump_buf = reinterpret_cast<void *>(jump_buf);
-
-        for (size_t i = 0; i < ((size_t)sizeof(jump_buf)) / sizeof(intptr_t); i += sizeof(intptr_t)) {
-            void *offset = (reinterpret_cast<void **>(raw_jump_buf))[i];
-            if (offset == nullptr)
-                continue;
-            possible_cells.push(reinterpret_cast<Cell *>(offset));
-        }
-
-        for (char *stack_address = reinterpret_cast<char *>(top_of_stack); stack_address < m_bottom_of_stack; stack_address += sizeof(intptr_t)) {
-            possible_cells.push(reinterpret_cast<Cell *>(stack_address));
-        }
-
-        for (auto *candidate_cell : possible_cells) {
-            auto *candidate_block = HeapBlock::from_cell(candidate_cell);
-            if (is_a_heap_block(candidate_block) && candidate_block->cell_in_use(candidate_cell))
-                roots.push(candidate_cell);
-        }
-
-        return roots;
-    }
-
-    void sweep() {
-        for (auto *allocator : m_allocators) {
-            for (auto block : *allocator) {
-            }
-        }
-    }
+    void sweep();
 
     Allocator &find_allocator_of_size(size_t size) {
         for (auto *allocator : m_allocators) {

@@ -2,10 +2,12 @@
 
 #include <assert.h>
 #include <setjmp.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "natalie/forward.hpp"
+#include "natalie/macros.hpp"
 
 namespace Natalie {
 

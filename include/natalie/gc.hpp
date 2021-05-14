@@ -5,11 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-/*
- * TODO:
- * - add destructors on every object
- */
-
 #include "natalie/gc/allocator.hpp"
 #include "natalie/gc/cell.hpp"
 #include "natalie/gc/heap.hpp"
