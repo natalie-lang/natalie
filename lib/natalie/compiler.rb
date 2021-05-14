@@ -25,17 +25,7 @@ module Natalie
     RB_LIB_PATH = File.expand_path('..', __dir__)
 
     MAIN_TEMPLATE = File.read(File.join(SRC_PATH, 'main.cpp'))
-    OBJ_TEMPLATE = <<-EOF
-      #{MAIN_TEMPLATE.split(/\/\* end of front matter \*\//).first}
-
-      /*NAT#{''}_TOP*/
-
-      ValuePtr obj_%{name}(Env *env, ValuePtr self) {
-        /*NAT#{''}_INIT*/
-        /*NAT#{''}_BODY*/
-        return env->nil_obj();
-      }
-    EOF
+    OBJ_TEMPLATE = File.read(File.join(SRC_PATH, 'obj_unit.cpp'))
 
     class CompileError < StandardError; end
 
@@ -249,7 +239,7 @@ module Natalie
 
     def template
       if write_obj
-        OBJ_TEMPLATE % { name: obj_name }
+        OBJ_TEMPLATE.sub(/init_obj/, "init_obj_#{obj_name}")
       else
         MAIN_TEMPLATE
       end

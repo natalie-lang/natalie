@@ -103,16 +103,16 @@ module Natalie
       def go(ast)
         result = process(ast)
         out = @compiler_context[:template]
-          .sub('/*' + 'NAT_OBJ' + '*/') { obj_declarations.join("\n") }
+          .sub('/*' + 'NAT_DECLARATIONS' + '*/') { declarations }
           .sub('/*' + 'NAT_OBJ_INIT' + '*/') { obj_init_lines.join("\n") }
-          .sub('/*' + 'NAT_TOP' + '*/') { top_matter }
-          .sub('/*' + 'NAT_INIT' + '*/') { init_matter }
-          .sub('/*' + 'NAT_BODY' + '*/') { @decl.join("\n") + "\n" + result }
+          .sub('/*' + 'NAT_EVAL_INIT' + '*/') { init_matter }
+          .sub('/*' + 'NAT_EVAL_BODY' + '*/') { @decl.join("\n") + "\n" + result }
         reindent(out)
       end
 
-      def top_matter
+      def declarations
         [
+          obj_declarations,
           source_files_to_c,
           declare_symbols,
           @top.join("\n")
@@ -736,13 +736,13 @@ module Natalie
 
       def obj_declarations
         obj_files.map do |name|
-          "ValuePtr obj_#{name}(Env *env, ValuePtr self);"
-        end
+          "ValuePtr init_obj_#{name}(Env *env, ValuePtr self);"
+        end.join("\n")
       end
 
       def obj_init_lines
         obj_files.map do |name|
-          "obj_#{name}(env, self);"
+          "init_obj_#{name}(env, self);"
         end
       end
 

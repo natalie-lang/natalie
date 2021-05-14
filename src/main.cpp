@@ -2,9 +2,7 @@
 
 using namespace Natalie;
 
-/* end of front matter */
-
-/*NAT_OBJ*/
+/*NAT_DECLARATIONS*/
 
 extern "C" Env *build_top_env() {
     GlobalEnv *global_env = new GlobalEnv {};
@@ -186,16 +184,14 @@ extern "C" Env *build_top_env() {
     return env;
 }
 
-/*NAT_TOP*/
-
 extern "C" Value *EVAL(Env *env) {
-    /*NAT_INIT*/
+    /*NAT_EVAL_INIT*/
 
     ValuePtr self = env->global_get(SymbolValue::intern(env, "$NAT_main_object"));
     (void)self; // don't warn about unused var
     volatile bool run_exit_handlers = true;
     try {
-        /*NAT_BODY*/
+        /*NAT_EVAL_BODY*/
         run_exit_handlers = false;
         run_at_exit_handlers(env);
         return env->nil_obj(); // just in case there's no return value
