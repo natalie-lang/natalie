@@ -19,6 +19,8 @@ extern "C" {
 }
 
 struct Value : public Cell {
+    NAT_MAKE_NONCOPYABLE(Value);
+
     using Type = ValueType;
 
     enum Flag {
@@ -57,10 +59,6 @@ struct Value : public Cell {
     }
 
     Value(Env *, const Value &);
-
-    Value(const Value &) = delete;
-
-    Value &operator=(const Value &) = delete;
 
     virtual ~Value() override { }
 
