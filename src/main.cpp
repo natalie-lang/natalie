@@ -219,8 +219,6 @@ int main(int argc, char *argv[]) {
 
     ValuePtr result = EVAL(env);
 
-    Heap::the().collect();
-
     if (result) {
         return 0;
     } else {

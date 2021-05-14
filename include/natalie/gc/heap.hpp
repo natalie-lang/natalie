@@ -31,7 +31,6 @@ public:
         auto free = allocator.free_cells_percentage();
         if (free > 0 && free < 10) {
             //std::cerr << free << "% free in allocator of cell size " << size << "\n";
-            //collect();
         }
 #endif
         return allocator.allocate();
@@ -41,13 +40,7 @@ public:
 #ifdef NAT_GC_DISABLE
         return;
 #endif
-        MarkingVisitor visitor;
-        auto *roots = gather_conservative_roots();
-        for (auto cell : *roots) {
-            cell->visit_children(visitor);
-        }
-        delete roots;
-        sweep();
+        // TODO
     }
 
     void *bottom_of_stack() {
@@ -83,7 +76,7 @@ private:
         }
     }
 
-    Vector<Cell *> *gather_conservative_roots();
+    Vector<Cell *> gather_conservative_roots();
 
     void sweep();
 
