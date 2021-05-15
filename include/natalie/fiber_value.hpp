@@ -63,41 +63,21 @@ public:
     FiberValue(Env *env)
         : Value { Value::Type::Fiber, env->Object()->const_fetch(env, SymbolValue::intern(env, "Fiber"))->as_class() } { }
 
+    // used for the "main" fiber
+    FiberValue(Env *env, void *stack_base)
+        : Value { Value::Type::Fiber, env->Object()->const_fetch(env, SymbolValue::intern(env, "Fiber"))->as_class() }
+        , m_stack_base { stack_base } {
+        assert(m_stack_base);
+    }
+
     FiberValue(Env *env, ClassValue *klass)
         : Value { Value::Type::Fiber, klass } { }
 
     const int STACK_SIZE = 1024 * 1024;
 
-    FiberValue *initialize(Env *env, Block *block) {
-        env->assert_block_given(block);
-        create_stack(env, STACK_SIZE);
-        set_current_stack_bottom();
-        m_block = block;
-        return this;
-    }
+    FiberValue *initialize(Env *env, Block *block);
 
-    void set_current_stack_bottom() {
-        m_stack_base = Natalie::Heap::the().bottom_of_stack();
-    }
-
-    static ValuePtr yield(Env *env, size_t argc, ValuePtr *args) {
-        auto main_fiber = env->global_env()->main_fiber(env);
-        auto current_fiber = env->global_env()->current_fiber();
-        current_fiber->set_status(Status::Suspended);
-        env->global_env()->reset_current_fiber();
-        env->global_env()->set_fiber_args(argc, args);
-        Heap::the().set_bottom_of_stack(main_fiber->stack_base());
-        fiber_asm_switch(main_fiber->fiber(), current_fiber->fiber(), 0, env, main_fiber);
-        argc = env->global_env()->fiber_argc();
-        args = env->global_env()->fiber_args();
-        if (argc == 0) {
-            return env->nil_obj();
-        } else if (argc == 1) {
-            return args[0];
-        } else {
-            return new ArrayValue { env, argc, args };
-        }
-    }
+    static ValuePtr yield(Env *env, size_t argc, ValuePtr *args);
 
     void create_stack(Env *env, int stack_size) {
 #ifdef __x86_64
@@ -134,7 +114,7 @@ public:
         auto main_fiber = env->global_env()->main_fiber(env);
         env->global_env()->set_current_fiber(this);
         env->global_env()->set_fiber_args(argc, args);
-        Heap::the().set_bottom_of_stack(stack_base());
+        Heap::the().set_start_of_stack(stack_base());
         fiber_asm_switch(fiber(), main_fiber->fiber(), 0, env, this);
         argc = env->global_env()->fiber_argc();
         args = env->global_env()->fiber_args();

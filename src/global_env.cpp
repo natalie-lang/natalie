@@ -5,7 +5,7 @@ namespace Natalie {
 
 FiberValue *GlobalEnv::main_fiber(Env *env) {
     if (m_main_fiber) return m_main_fiber;
-    m_main_fiber = new FiberValue { env };
+    m_main_fiber = new FiberValue { env, Heap::the().start_of_stack() };
     return m_main_fiber;
 }
 

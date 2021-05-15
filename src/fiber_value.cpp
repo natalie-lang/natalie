@@ -26,6 +26,38 @@
 
 #include "natalie.hpp"
 
+namespace Natalie {
+
+FiberValue *FiberValue::initialize(Env *env, Block *block) {
+    assert(this != env->global_env()->main_fiber(env)); // can never be main fiber
+    env->assert_block_given(block);
+    create_stack(env, STACK_SIZE);
+    m_stack_base = Natalie::Heap::the().start_of_stack();
+    m_block = block;
+    return this;
+}
+
+ValuePtr FiberValue::yield(Env *env, size_t argc, ValuePtr *args) {
+    auto main_fiber = env->global_env()->main_fiber(env);
+    auto current_fiber = env->global_env()->current_fiber();
+    current_fiber->set_status(Status::Suspended);
+    env->global_env()->reset_current_fiber();
+    env->global_env()->set_fiber_args(argc, args);
+    Heap::the().set_start_of_stack(main_fiber->stack_base());
+    fiber_asm_switch(main_fiber->fiber(), current_fiber->fiber(), 0, env, main_fiber);
+    argc = env->global_env()->fiber_argc();
+    args = env->global_env()->fiber_args();
+    if (argc == 0) {
+        return env->nil_obj();
+    } else if (argc == 1) {
+        return args[0];
+    } else {
+        return new ArrayValue { env, argc, args };
+    }
+}
+
+}
+
 extern "C" {
 
 void fiber_exit() {
@@ -34,7 +66,7 @@ void fiber_exit() {
 }
 
 void fiber_wrapper_func(Natalie::Env *env, Natalie::FiberValue *fiber) {
-    Natalie::Heap::the().set_bottom_of_stack(fiber->stack_base());
+    Natalie::Heap::the().set_start_of_stack(fiber->stack_base());
     fiber->set_status(Natalie::FiberValue::Status::Active);
     assert(fiber->block());
     Natalie::ValuePtr *return_args = new Natalie::ValuePtr[1];
@@ -48,7 +80,7 @@ void fiber_wrapper_func(Natalie::Env *env, Natalie::FiberValue *fiber) {
     env->global_env()->reset_current_fiber();
     env->global_env()->set_fiber_args(1, return_args);
     auto main_fiber = env->global_env()->main_fiber(env);
-    Natalie::Heap::the().set_bottom_of_stack(main_fiber->stack_base());
+    Natalie::Heap::the().set_start_of_stack(main_fiber->stack_base());
     fiber_asm_switch(main_fiber->fiber(), fiber->fiber(), 0, env, fiber);
 }
 
