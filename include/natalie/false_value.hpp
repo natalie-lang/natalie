@@ -11,7 +11,8 @@
 
 namespace Natalie {
 
-struct FalseValue : Value {
+class FalseValue : public Value {
+public:
     FalseValue(Env *env)
         : Value { Value::Type::False, env->Object()->const_fetch(env, SymbolValue::intern(env, "FalseClass"))->as_class() } {
         if (env->false_obj()) NAT_UNREACHABLE();

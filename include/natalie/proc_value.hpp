@@ -12,7 +12,8 @@
 
 namespace Natalie {
 
-struct ProcValue : Value {
+class ProcValue : public Value {
+public:
     enum class ProcType {
         Proc,
         Lambda

@@ -9,8 +9,8 @@
 
 namespace Natalie {
 
-struct ProcessModule : Value {
-
+class ProcessModule : public Value {
+public:
     static ValuePtr pid(Env *env) {
         pid_t pid = getpid();
         return ValuePtr { env, pid };

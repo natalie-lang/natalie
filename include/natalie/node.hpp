@@ -7,7 +7,8 @@ namespace Natalie {
 
 using namespace TM;
 
-struct Node : public Cell {
+class Node : public Cell {
+public:
     enum class Type {
         Alias,
         Arg,
@@ -95,7 +96,8 @@ protected:
     Token *m_token { nullptr };
 };
 
-struct NodeWithArgs : Node {
+class NodeWithArgs : public Node {
+public:
     NodeWithArgs(Token *token)
         : Node { token } { }
 
@@ -116,9 +118,10 @@ protected:
     Vector<Node *> m_args {};
 };
 
-struct SymbolNode;
+class SymbolNode;
 
-struct AliasNode : Node {
+class AliasNode : public Node {
+public:
     AliasNode(Token *token, SymbolNode *new_name, SymbolNode *existing_name)
         : Node { token }
         , m_new_name { new_name }
@@ -135,7 +138,8 @@ private:
     SymbolNode *m_existing_name { nullptr };
 };
 
-struct ArgNode : Node {
+class ArgNode : public Node {
+public:
     ArgNode(Token *token)
         : Node { token } { }
 
@@ -176,7 +180,8 @@ protected:
     Node *m_value { nullptr };
 };
 
-struct ArrayNode : Node {
+class ArrayNode : public Node {
+public:
     ArrayNode(Token *token)
         : Node { token } { }
 
@@ -201,7 +206,8 @@ protected:
     Vector<Node *> m_nodes {};
 };
 
-struct BlockPassNode : Node {
+class BlockPassNode : public Node {
+public:
     BlockPassNode(Token *token, Node *node)
         : Node { token }
         , m_node { node } {
@@ -221,7 +227,8 @@ protected:
     Node *m_node { nullptr };
 };
 
-struct BreakNode : NodeWithArgs {
+class BreakNode : public NodeWithArgs {
+public:
     BreakNode(Token *token, Node *arg = nullptr)
         : NodeWithArgs { token }
         , m_arg { arg } { }
@@ -239,9 +246,10 @@ protected:
     Node *m_arg { nullptr };
 };
 
-struct IdentifierNode;
+class IdentifierNode;
 
-struct AssignmentNode : Node {
+class AssignmentNode : public Node {
+public:
     AssignmentNode(Token *token, Node *identifier, Node *value)
         : Node { token }
         , m_identifier { identifier }
@@ -265,10 +273,11 @@ protected:
     Node *m_value { nullptr };
 };
 
-struct BlockNode;
-struct BeginRescueNode;
+class BlockNode;
+class BeginRescueNode;
 
-struct BeginNode : Node {
+class BeginNode : public Node {
+public:
     BeginNode(Token *token, BlockNode *body)
         : Node { token }
         , m_body { body } {
@@ -297,7 +306,8 @@ protected:
     Vector<BeginRescueNode *> m_rescue_nodes {};
 };
 
-struct BeginRescueNode : Node {
+class BeginRescueNode : public Node {
+public:
     BeginRescueNode(Token *token)
         : Node { token } { }
 
@@ -325,7 +335,8 @@ protected:
     BlockNode *m_body { nullptr };
 };
 
-struct BlockNode : Node {
+class BlockNode : public Node {
+public:
     BlockNode(Token *token)
         : Node { token } { }
 
@@ -366,7 +377,8 @@ protected:
     Vector<Node *> m_nodes {};
 };
 
-struct CallNode : NodeWithArgs {
+class CallNode : public NodeWithArgs {
+public:
     CallNode(Token *token, Node *receiver, const char *message)
         : NodeWithArgs { token }
         , m_receiver { receiver }
@@ -414,7 +426,8 @@ protected:
     const String *m_message { nullptr };
 };
 
-struct CaseNode : Node {
+class CaseNode : public Node {
+public:
     CaseNode(Token *token, Node *subject)
         : Node { token }
         , m_subject { subject } {
@@ -448,7 +461,8 @@ protected:
     BlockNode *m_else_node { nullptr };
 };
 
-struct CaseWhenNode : Node {
+class CaseWhenNode : public Node {
+public:
     CaseWhenNode(Token *token, Node *condition, BlockNode *body)
         : Node { token }
         , m_condition { condition }
@@ -472,7 +486,8 @@ protected:
     BlockNode *m_body { nullptr };
 };
 
-struct AttrAssignNode : CallNode {
+class AttrAssignNode : public CallNode {
+public:
     AttrAssignNode(Token *token, Node *receiver, const char *message)
         : CallNode { token, receiver, message } { }
 
@@ -484,7 +499,8 @@ struct AttrAssignNode : CallNode {
     virtual ValuePtr to_ruby(Env *) override;
 };
 
-struct SafeCallNode : CallNode {
+class SafeCallNode : public CallNode {
+public:
     SafeCallNode(Token *token, Node *receiver, const char *message)
         : CallNode { token, receiver, message } { }
 
@@ -496,9 +512,10 @@ struct SafeCallNode : CallNode {
     virtual ValuePtr to_ruby(Env *) override;
 };
 
-struct ConstantNode;
+class ConstantNode;
 
-struct ClassNode : Node {
+class ClassNode : public Node {
+public:
     ClassNode(Token *token, ConstantNode *name, Node *superclass, BlockNode *body)
         : Node { token }
         , m_name { name }
@@ -517,7 +534,8 @@ protected:
     BlockNode *m_body { nullptr };
 };
 
-struct Colon2Node : Node {
+class Colon2Node : public Node {
+public:
     Colon2Node(Token *token, Node *left, const char *name)
         : Node { token }
         , m_left { left }
@@ -540,7 +558,8 @@ protected:
     const String *m_name { nullptr };
 };
 
-struct Colon3Node : Node {
+class Colon3Node : public Node {
+public:
     Colon3Node(Token *token, const char *name)
         : Node { token }
         , m_name { new String(name) } {
@@ -555,7 +574,8 @@ protected:
     const String *m_name { nullptr };
 };
 
-struct ConstantNode : Node {
+class ConstantNode : public Node {
+public:
     ConstantNode(Token *token)
         : Node { token } { }
 
@@ -566,7 +586,8 @@ struct ConstantNode : Node {
     const char *name() { return m_token->literal(); }
 };
 
-struct LiteralNode : Node {
+class LiteralNode : public Node {
+public:
     LiteralNode(Token *token, ValuePtr value)
         : Node { token }
         , m_value { value } {
@@ -586,7 +607,8 @@ protected:
     ValuePtr m_value { nullptr };
 };
 
-struct DefinedNode : Node {
+class DefinedNode : public Node {
+public:
     DefinedNode(Token *token, Node *arg)
         : Node { token }
         , m_arg { arg } {
@@ -606,7 +628,8 @@ protected:
     Node *m_arg { nullptr };
 };
 
-struct DefNode : Node {
+class DefNode : public Node {
+public:
     DefNode(Token *token, Node *self_node, IdentifierNode *name, Vector<Node *> *args, BlockNode *body)
         : Node { token }
         , m_self_node { self_node }
@@ -635,7 +658,8 @@ protected:
     BlockNode *m_body { nullptr };
 };
 
-struct EvaluateToStringNode : Node {
+class EvaluateToStringNode : public Node {
+public:
     EvaluateToStringNode(Token *token, Node *node)
         : Node { token }
         , m_node { node } { }
@@ -653,7 +677,8 @@ protected:
     Node *m_node { nullptr };
 };
 
-struct FalseNode : Node {
+class FalseNode : public Node {
+public:
     FalseNode(Token *token)
         : Node { token } { }
 
@@ -662,7 +687,8 @@ struct FalseNode : Node {
     virtual Type type() override { return Type::False; }
 };
 
-struct HashNode : Node {
+class HashNode : public Node {
+public:
     HashNode(Token *token)
         : Node { token } { }
 
@@ -685,7 +711,8 @@ protected:
     Vector<Node *> m_nodes {};
 };
 
-struct IdentifierNode : Node {
+class IdentifierNode : public Node {
+public:
     IdentifierNode(Token *token, bool is_lvar)
         : Node { token }
         , m_is_lvar { is_lvar } { }
@@ -770,7 +797,8 @@ protected:
     bool m_is_lvar { false };
 };
 
-struct IfNode : Node {
+class IfNode : public Node {
+public:
     IfNode(Token *token, Node *condition, Node *true_expr, Node *false_expr)
         : Node { token }
         , m_condition { condition }
@@ -798,7 +826,8 @@ protected:
     Node *m_false_expr { nullptr };
 };
 
-struct IterNode : Node {
+class IterNode : public Node {
+public:
     IterNode(Token *token, Node *call, Vector<Node *> *args, BlockNode *body)
         : Node { token }
         , m_call { call }
@@ -831,7 +860,8 @@ protected:
     BlockNode *m_body { nullptr };
 };
 
-struct InterpolatedNode : Node {
+class InterpolatedNode : public Node {
+public:
     InterpolatedNode(Token *token)
         : Node { token } { }
 
@@ -848,7 +878,8 @@ protected:
     Vector<Node *> m_nodes {};
 };
 
-struct InterpolatedRegexpNode : InterpolatedNode {
+class InterpolatedRegexpNode : public InterpolatedNode {
+public:
     InterpolatedRegexpNode(Token *token)
         : InterpolatedNode { token } { }
 
@@ -857,7 +888,8 @@ struct InterpolatedRegexpNode : InterpolatedNode {
     virtual ValuePtr to_ruby(Env *) override;
 };
 
-struct InterpolatedShellNode : InterpolatedNode {
+class InterpolatedShellNode : public InterpolatedNode {
+public:
     InterpolatedShellNode(Token *token)
         : InterpolatedNode { token } { }
 
@@ -866,7 +898,8 @@ struct InterpolatedShellNode : InterpolatedNode {
     virtual ValuePtr to_ruby(Env *) override;
 };
 
-struct InterpolatedStringNode : InterpolatedNode {
+class InterpolatedStringNode : public InterpolatedNode {
+public:
     InterpolatedStringNode(Token *token)
         : InterpolatedNode { token } { }
 
@@ -875,7 +908,8 @@ struct InterpolatedStringNode : InterpolatedNode {
     virtual ValuePtr to_ruby(Env *) override;
 };
 
-struct KeywordArgNode : ArgNode {
+class KeywordArgNode : public ArgNode {
+public:
     KeywordArgNode(Token *token, const char *name)
         : ArgNode { token, name } { }
 
@@ -884,7 +918,8 @@ struct KeywordArgNode : ArgNode {
     virtual ValuePtr to_ruby(Env *) override;
 };
 
-struct LogicalAndNode : Node {
+class LogicalAndNode : public Node {
+public:
     LogicalAndNode(Token *token, Node *left, Node *right)
         : Node { token }
         , m_left { left }
@@ -911,7 +946,8 @@ protected:
     Node *m_right { nullptr };
 };
 
-struct LogicalOrNode : Node {
+class LogicalOrNode : public Node {
+public:
     LogicalOrNode(Token *token, Node *left, Node *right)
         : Node { token }
         , m_left { left }
@@ -938,9 +974,10 @@ protected:
     Node *m_right { nullptr };
 };
 
-struct RegexpNode;
+class RegexpNode;
 
-struct MatchNode : Node {
+class MatchNode : public Node {
+public:
     MatchNode(Token *token, RegexpNode *regexp, Node *arg, bool regexp_on_left)
         : Node { token }
         , m_regexp { regexp }
@@ -959,7 +996,8 @@ protected:
     bool m_regexp_on_left { false };
 };
 
-struct ModuleNode : Node {
+class ModuleNode : public Node {
+public:
     ModuleNode(Token *token, ConstantNode *name, BlockNode *body)
         : Node { token }
         , m_name { name }
@@ -980,7 +1018,8 @@ protected:
     BlockNode *m_body { nullptr };
 };
 
-struct MultipleAssignmentNode : ArrayNode {
+class MultipleAssignmentNode : public ArrayNode {
+public:
     MultipleAssignmentNode(Token *token)
         : ArrayNode { token } { }
 
@@ -992,7 +1031,8 @@ struct MultipleAssignmentNode : ArrayNode {
     void add_locals(Env *, Vector<SymbolValue *> *);
 };
 
-struct NextNode : Node {
+class NextNode : public Node {
+public:
     NextNode(Token *token, Node *arg = nullptr)
         : Node { token }
         , m_arg { arg } { }
@@ -1010,7 +1050,8 @@ protected:
     Node *m_arg { nullptr };
 };
 
-struct NilNode : Node {
+class NilNode : public Node {
+public:
     NilNode(Token *token)
         : Node { token } { }
 
@@ -1019,7 +1060,8 @@ struct NilNode : Node {
     virtual Type type() override { return Type::Nil; }
 };
 
-struct NotNode : Node {
+class NotNode : public Node {
+public:
     NotNode(Token *token, Node *expression)
         : Node { token }
         , m_expression { expression } {
@@ -1039,7 +1081,8 @@ protected:
     Node *m_expression { nullptr };
 };
 
-struct NilSexpNode : Node {
+class NilSexpNode : public Node {
+public:
     NilSexpNode(Token *token)
         : Node { token } { }
 
@@ -1048,7 +1091,8 @@ struct NilSexpNode : Node {
     virtual Type type() override { return Type::NilSexp; }
 };
 
-struct OpAssignNode : Node {
+class OpAssignNode : public Node {
+public:
     OpAssignNode(Token *token, IdentifierNode *name, Node *value)
         : Node { token }
         , m_name { name }
@@ -1083,7 +1127,8 @@ protected:
     Node *m_value { nullptr };
 };
 
-struct OpAssignAccessorNode : NodeWithArgs {
+class OpAssignAccessorNode : public NodeWithArgs {
+public:
     OpAssignAccessorNode(Token *token, const String *op, Node *receiver, const String *message, Node *value)
         : NodeWithArgs { token }
         , m_op { op }
@@ -1113,7 +1158,8 @@ protected:
     Node *m_value { nullptr };
 };
 
-struct OpAssignAndNode : OpAssignNode {
+class OpAssignAndNode : public OpAssignNode {
+public:
     OpAssignAndNode(Token *token, IdentifierNode *name, Node *value)
         : OpAssignNode { token, name, value } { }
 
@@ -1122,7 +1168,8 @@ struct OpAssignAndNode : OpAssignNode {
     virtual Type type() override { return Type::OpAssignAnd; }
 };
 
-struct OpAssignOrNode : OpAssignNode {
+class OpAssignOrNode : public OpAssignNode {
+public:
     OpAssignOrNode(Token *token, IdentifierNode *name, Node *value)
         : OpAssignNode { token, name, value } { }
 
@@ -1131,7 +1178,8 @@ struct OpAssignOrNode : OpAssignNode {
     virtual Type type() override { return Type::OpAssignOr; }
 };
 
-struct RangeNode : Node {
+class RangeNode : public Node {
+public:
     RangeNode(Token *token, Node *first, Node *last, bool exclude_end)
         : Node { token }
         , m_first { first }
@@ -1157,7 +1205,8 @@ protected:
     bool m_exclude_end { false };
 };
 
-struct RegexpNode : Node {
+class RegexpNode : public Node {
+public:
     RegexpNode(Token *token, ValuePtr value)
         : Node { token }
         , m_value { value } {
@@ -1179,7 +1228,8 @@ protected:
     ValuePtr m_value { nullptr };
 };
 
-struct ReturnNode : Node {
+class ReturnNode : public Node {
+public:
     ReturnNode(Token *token, Node *arg = nullptr)
         : Node { token }
         , m_arg { arg } { }
@@ -1197,7 +1247,8 @@ protected:
     Node *m_arg { nullptr };
 };
 
-struct SclassNode : Node {
+class SclassNode : public Node {
+public:
     SclassNode(Token *token, Node *klass, BlockNode *body)
         : Node { token }
         , m_klass { klass }
@@ -1218,7 +1269,8 @@ protected:
     BlockNode *m_body { nullptr };
 };
 
-struct SelfNode : Node {
+class SelfNode : public Node {
+public:
     SelfNode(Token *token)
         : Node { token } { }
 
@@ -1227,7 +1279,8 @@ struct SelfNode : Node {
     virtual ValuePtr to_ruby(Env *) override;
 };
 
-struct ShellNode : Node {
+class ShellNode : public Node {
+public:
     ShellNode(Token *token, ValuePtr value)
         : Node { token }
         , m_value { value } {
@@ -1249,7 +1302,8 @@ protected:
     ValuePtr m_value { nullptr };
 };
 
-struct SplatAssignmentNode : Node {
+class SplatAssignmentNode : public Node {
+public:
     SplatAssignmentNode(Token *token)
         : Node { token } { }
 
@@ -1274,7 +1328,8 @@ protected:
     IdentifierNode *m_node { nullptr };
 };
 
-struct SplatNode : Node {
+class SplatNode : public Node {
+public:
     SplatNode(Token *token)
         : Node { token } { }
 
@@ -1299,7 +1354,8 @@ protected:
     Node *m_node { nullptr };
 };
 
-struct StabbyProcNode : Node {
+class StabbyProcNode : public Node {
+public:
     StabbyProcNode(Token *token, Vector<Node *> *args)
         : Node { token }
         , m_args { args } {
@@ -1324,7 +1380,8 @@ protected:
     Vector<Node *> *m_args { nullptr };
 };
 
-struct StringNode : Node {
+class StringNode : public Node {
+public:
     StringNode(Token *token, ValuePtr value)
         : Node { token }
         , m_value { value } {
@@ -1346,7 +1403,8 @@ protected:
     ValuePtr m_value { nullptr };
 };
 
-struct SymbolNode : Node {
+class SymbolNode : public Node {
+public:
     SymbolNode(Token *token, ValuePtr value)
         : Node { token }
         , m_value { value } {
@@ -1366,7 +1424,8 @@ protected:
     ValuePtr m_value { nullptr };
 };
 
-struct TrueNode : Node {
+class TrueNode : public Node {
+public:
     TrueNode(Token *token)
         : Node { token } { }
 
@@ -1375,7 +1434,8 @@ struct TrueNode : Node {
     virtual Type type() override { return Type::True; }
 };
 
-struct SuperNode : NodeWithArgs {
+class SuperNode : public NodeWithArgs {
+public:
     SuperNode(Token *token)
         : NodeWithArgs { token } { }
 
@@ -1392,7 +1452,8 @@ protected:
     bool m_parens { false };
 };
 
-struct WhileNode : Node {
+class WhileNode : public Node {
+public:
     WhileNode(Token *token, Node *condition, BlockNode *body, bool pre)
         : Node { token }
         , m_condition { condition }
@@ -1418,7 +1479,8 @@ protected:
     bool m_pre { false };
 };
 
-struct UntilNode : WhileNode {
+class UntilNode : public WhileNode {
+public:
     UntilNode(Token *token, Node *condition, BlockNode *body, bool pre)
         : WhileNode { token, condition, body, pre } { }
 
@@ -1427,7 +1489,8 @@ struct UntilNode : WhileNode {
     virtual Type type() override { return Type::Until; }
 };
 
-struct YieldNode : NodeWithArgs {
+class YieldNode : public NodeWithArgs {
+public:
     YieldNode(Token *token)
         : NodeWithArgs { token } { }
 

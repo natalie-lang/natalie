@@ -13,7 +13,8 @@
 
 namespace Natalie {
 
-struct FileValue : IoValue {
+class FileValue : public IoValue {
+public:
     FileValue(Env *env)
         : IoValue { env, env->Object()->const_fetch(env, SymbolValue::intern(env, "File"))->as_class() } { }
 

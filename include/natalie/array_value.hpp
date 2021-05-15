@@ -14,7 +14,8 @@ namespace Natalie {
 
 using namespace TM;
 
-struct ArrayValue : Value {
+class ArrayValue : public Value {
+public:
     ArrayValue(Env *env)
         : Value { Value::Type::Array, env->Array() } { }
 

@@ -9,7 +9,8 @@
 
 namespace Natalie {
 
-struct Method : public Cell {
+class Method : public Cell {
+public:
     Method(const char *name, ModuleValue *owner, MethodFnPtr fn, int arity, MethodVisibility visibility)
         : m_name { name }
         , m_owner { owner }

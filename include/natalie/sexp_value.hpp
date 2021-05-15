@@ -4,7 +4,8 @@
 
 namespace Natalie {
 
-struct SexpValue : ArrayValue {
+class SexpValue : public ArrayValue {
+public:
     SexpValue(Env *, Node *, std::initializer_list<ValuePtr>);
 
     ValuePtr new_method(Env *env, size_t argc, ValuePtr *args) {

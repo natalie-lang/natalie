@@ -15,7 +15,8 @@
 
 namespace Natalie {
 
-struct IoValue : Value {
+class IoValue : public Value {
+public:
     IoValue(Env *env)
         : Value { Value::Type::Io, env->Object()->const_fetch(env, SymbolValue::intern(env, "IO"))->as_class() } { }
 

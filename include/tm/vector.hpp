@@ -9,7 +9,8 @@
 namespace TM {
 
 template <typename T>
-struct Vector {
+class Vector {
+public:
     const size_t VECTOR_GROW_FACTOR = 2;
     const size_t VECTOR_MIN_CAPACITY = 10;
 

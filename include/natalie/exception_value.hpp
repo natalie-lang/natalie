@@ -11,7 +11,8 @@
 
 namespace Natalie {
 
-struct ExceptionValue : Value {
+class ExceptionValue : public Value {
+public:
     ExceptionValue(Env *env)
         : Value { Value::Type::Exception, env->Object()->const_fetch(env, SymbolValue::intern(env, "Exception"))->as_class() } { }
 

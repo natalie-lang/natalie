@@ -11,7 +11,8 @@
 
 namespace Natalie {
 
-struct MethodValue : Value {
+class MethodValue : public Value {
+public:
     MethodValue(Env *env, ValuePtr object, Method *method)
         : Value { Value::Type::Method, env->Object()->const_fetch(env, SymbolValue::intern(env, "Method"))->as_class() }
         , m_object { object }

@@ -13,7 +13,8 @@
 
 namespace Natalie {
 
-struct Token : public Cell {
+class Token : public Cell {
+public:
     enum class Type {
         AliasKeyword,
         And,

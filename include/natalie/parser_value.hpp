@@ -9,7 +9,8 @@
 
 namespace Natalie {
 
-struct ParserValue : Value {
+class ParserValue : public Value {
+public:
     ValuePtr parse(Env *, ValuePtr, ValuePtr = nullptr);
     ValuePtr tokens(Env *, ValuePtr, ValuePtr);
 };

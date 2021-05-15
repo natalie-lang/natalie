@@ -12,7 +12,8 @@
 
 namespace Natalie {
 
-struct SymbolValue : Value {
+class SymbolValue : public Value {
+public:
     static SymbolValue *intern(Env *, const char *);
     static SymbolValue *intern(Env *, const String *);
 

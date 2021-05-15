@@ -16,7 +16,8 @@ extern "C" {
 
 namespace Natalie {
 
-struct RegexpValue : Value {
+class RegexpValue : public Value {
+public:
     RegexpValue(Env *env)
         : Value { Value::Type::Regexp, env->Regexp() } { }
 

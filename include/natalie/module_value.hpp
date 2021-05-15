@@ -16,7 +16,8 @@ namespace Natalie {
 
 using namespace TM;
 
-struct ModuleValue : Value {
+class ModuleValue : public Value {
+public:
     ModuleValue(Env *);
     ModuleValue(Env *, const char *);
     ModuleValue(Env *, Type, ClassValue *);

@@ -11,7 +11,8 @@
 
 namespace Natalie {
 
-struct KernelModule : Value {
+class KernelModule : public Value {
+public:
     ValuePtr object_id(Env *env) {
         return ValuePtr { env, Value::object_id() };
     }

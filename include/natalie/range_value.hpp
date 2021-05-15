@@ -11,7 +11,8 @@
 
 namespace Natalie {
 
-struct RangeValue : Value {
+class RangeValue : public Value {
+public:
     RangeValue(Env *env)
         : Value { Value::Type::Range, env->Object()->const_fetch(env, SymbolValue::intern(env, "Range"))->as_class() } { }
 

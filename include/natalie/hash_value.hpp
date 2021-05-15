@@ -12,7 +12,8 @@
 
 namespace Natalie {
 
-struct HashValue : Value {
+class HashValue : public Value {
+public:
     struct Key {
         Key *prev { nullptr };
         Key *next { nullptr };

@@ -6,7 +6,8 @@
 
 namespace Natalie {
 
-struct ValuePtr {
+class ValuePtr {
+public:
     enum class Type {
         Integer,
         Pointer,

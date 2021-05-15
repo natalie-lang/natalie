@@ -12,7 +12,8 @@
 
 namespace Natalie {
 
-struct EnvValue : Value {
+class EnvValue : public Value {
+public:
     ValuePtr inspect(Env *);
     ValuePtr ref(Env *, ValuePtr name);
     ValuePtr refeq(Env *, ValuePtr name, ValuePtr value);

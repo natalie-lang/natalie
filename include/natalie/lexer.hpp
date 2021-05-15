@@ -5,7 +5,8 @@
 
 namespace Natalie {
 
-struct Lexer : public Cell {
+class Lexer : public Cell {
+public:
     Lexer(const String *input, const String *file)
         : m_input { input }
         , m_file { file }
@@ -1175,7 +1176,8 @@ private:
     }
 };
 
-struct InterpolatedStringLexer {
+class InterpolatedStringLexer {
+public:
     InterpolatedStringLexer(Token *token)
         : m_input { new String(token->literal()) }
         , m_file { token->file() }

@@ -11,7 +11,8 @@
 
 namespace Natalie {
 
-struct VoidPValue : Value {
+class VoidPValue : public Value {
+public:
     VoidPValue(Env *env)
         : VoidPValue { env, nullptr } { }
 

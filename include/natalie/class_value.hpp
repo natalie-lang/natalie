@@ -12,7 +12,8 @@
 
 namespace Natalie {
 
-struct ClassValue : ModuleValue {
+class ClassValue : public ModuleValue {
+public:
     ClassValue(Env *env)
         : ClassValue { env, env->Class() } { }
 

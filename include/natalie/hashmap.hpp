@@ -41,7 +41,7 @@
 
 namespace Natalie {
 
-struct Env;
+class Env;
 
 /*
  * Define HASHMAP_METRICS to compile in performance analysis
@@ -255,7 +255,8 @@ using HashFn = nat_int_t(const void *);
 using CompareFn = int(Env *, const void *, const void *);
 
 template <typename KeyT, typename T>
-struct Hashmap {
+class Hashmap {
+public:
     Hashmap(int initial_capacity = 10, HashmapKeyType key_type = HashmapKeyType::Pointer) {
         if (key_type == HashmapKeyType::String) {
             hashmap_init(&m_map, hashmap_hash_string, hashmap_compare_string, initial_capacity);

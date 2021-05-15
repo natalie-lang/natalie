@@ -19,8 +19,8 @@ enum class Encoding {
     UTF_8 = 2,
 };
 
-struct EncodingValue : Value {
-
+class EncodingValue : public Value {
+public:
     EncodingValue(Env *env);
 
     EncodingValue(Env *env, ClassValue *klass)

@@ -51,7 +51,8 @@ extern void fiber_exit();
 
 namespace Natalie {
 
-struct FiberValue : Value {
+class FiberValue : public Value {
+public:
     enum class Status {
         Created,
         Active,

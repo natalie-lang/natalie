@@ -12,7 +12,8 @@
 
 namespace Natalie {
 
-struct MatchDataValue : Value {
+class MatchDataValue : public Value {
+public:
     MatchDataValue(Env *env)
         : Value { Value::Type::MatchData, env->Object()->const_fetch(env, SymbolValue::intern(env, "MatchData"))->as_class() } { }
 

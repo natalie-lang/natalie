@@ -12,7 +12,8 @@ extern "C" {
 #include "onigmo.h"
 }
 
-struct GlobalEnv : public Cell {
+class GlobalEnv : public Cell {
+public:
     virtual ~GlobalEnv() override { }
 
     ClassValue *Array() { return m_Array; }
@@ -67,7 +68,7 @@ struct GlobalEnv : public Cell {
     ValuePtr global_get(Env *, SymbolValue *);
     ValuePtr global_set(Env *, SymbolValue *, ValuePtr);
 
-    friend struct SymbolValue;
+    friend class SymbolValue;
 
     virtual void visit_children(Visitor &visitor) override final;
 

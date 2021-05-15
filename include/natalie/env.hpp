@@ -15,7 +15,8 @@ namespace Natalie {
 
 using namespace TM;
 
-struct Env : public Cell {
+class Env : public Cell {
+public:
     Env() { }
 
     Env(Env *outer)

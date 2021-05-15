@@ -14,7 +14,8 @@
 
 namespace Natalie {
 
-struct StringValue : Value {
+class StringValue : public Value {
+public:
     const int STRING_GROW_FACTOR = 2;
 
     StringValue(Env *env, ClassValue *klass)

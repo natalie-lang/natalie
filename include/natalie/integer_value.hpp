@@ -11,7 +11,8 @@
 
 namespace Natalie {
 
-struct IntegerValue : Value {
+class IntegerValue : public Value {
+public:
     IntegerValue(Env *env, nat_int_t integer)
         : Value { Value::Type::Integer, env->Integer() }
         , m_integer { integer } { }

@@ -8,7 +8,8 @@
 
 namespace Natalie {
 
-struct String : public Cell {
+class String : public Cell {
+public:
     const int STRING_GROW_FACTOR = 2;
 
     String() {

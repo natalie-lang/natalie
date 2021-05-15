@@ -18,7 +18,8 @@ extern "C" {
 #include "onigmo.h"
 }
 
-struct Value : public Cell {
+class Value : public Cell {
+public:
     NAT_MAKE_NONCOPYABLE(Value);
 
     using Type = ValueType;

@@ -14,7 +14,8 @@
 
 namespace Natalie {
 
-struct FloatValue : Value {
+class FloatValue : public Value {
+public:
     FloatValue(Env *env, double number)
         : Value { Value::Type::Float, env->Object()->const_fetch(env, SymbolValue::intern(env, "Float"))->as_class() }
         , m_double { number } { }
