@@ -76,6 +76,12 @@ public:
         return m_blocks.end();
     }
 
+    void unmark_all_cells_in_all_blocks() {
+        for (auto block : *this) {
+            block->unmark_all_cells();
+        }
+    }
+
 private:
     HeapBlock *add_heap_block() {
         auto *block = reinterpret_cast<HeapBlock *>(aligned_alloc(HEAP_BLOCK_SIZE, HEAP_BLOCK_SIZE));

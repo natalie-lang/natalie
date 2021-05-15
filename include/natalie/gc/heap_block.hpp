@@ -28,6 +28,7 @@ public:
 
     ~HeapBlock() { }
 
+    // returns a pointer to a *potential* block (you still have to check it!)
     static HeapBlock *from_cell(const Cell *cell) {
         return reinterpret_cast<HeapBlock *>((intptr_t)cell & HEAP_BLOCK_MASK);
     }
@@ -117,6 +118,12 @@ public:
 
     iterator end() {
         return iterator { this, m_total_count };
+    }
+
+    void unmark_all_cells() {
+        for (auto cell : *this) {
+            cell->unmark();
+        }
     }
 
 private:

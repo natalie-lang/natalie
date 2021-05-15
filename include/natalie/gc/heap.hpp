@@ -36,25 +36,25 @@ public:
         return allocator.allocate();
     }
 
-    void collect() {
-#ifdef NAT_GC_DISABLE
-        return;
-#endif
-        // TODO
+    void collect();
+
+    void *start_of_stack() {
+        return m_start_of_stack;
     }
 
-    void *bottom_of_stack() {
-        return m_bottom_of_stack;
-    }
-
-    void set_bottom_of_stack(void *bottom_of_stack) {
-        m_bottom_of_stack = bottom_of_stack;
+    void set_start_of_stack(void *start_of_stack) {
+        assert(start_of_stack);
+        m_start_of_stack = start_of_stack;
     }
 
     void return_cell_to_free_list(Cell *cell) {
         auto *block = HeapBlock::from_cell(cell);
         assert(is_a_heap_block(block));
         block->return_cell_to_free_list(cell);
+    }
+
+    void gc_disable() {
+        m_disabled = true;
     }
 
 private:
@@ -99,7 +99,10 @@ private:
 
     Vector<Allocator *> m_allocators;
 
-    void *m_bottom_of_stack { nullptr };
+    void *m_start_of_stack { nullptr };
+    bool m_disabled { false };
 };
 
 }
+
+extern "C" void GC_disable();

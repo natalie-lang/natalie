@@ -194,6 +194,9 @@ extern "C" Value *EVAL(Env *env) {
         /*NAT_EVAL_BODY*/
         run_exit_handlers = false;
         run_at_exit_handlers(env);
+
+        Heap::the().collect();
+
         return env->nil_obj(); // just in case there's no return value
     } catch (ExceptionValue *exception) {
         handle_top_level_exception(env, exception, run_exit_handlers);
@@ -202,7 +205,7 @@ extern "C" Value *EVAL(Env *env) {
 }
 
 int main(int argc, char *argv[]) {
-    Heap::the().set_bottom_of_stack(&argc);
+    Heap::the().set_start_of_stack(&argc);
 
     setvbuf(stdout, nullptr, _IOLBF, 1024);
     Env *env = build_top_env();

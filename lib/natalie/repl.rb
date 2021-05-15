@@ -48,7 +48,7 @@ module Natalie
         compiler.compile
         vars = compiler.context[:vars]
         lib = Fiddle.dlopen(temp.path)
-        #Fiddle::Function.new(lib['GC_disable'], [], Fiddle::TYPE_VOIDP).call
+        Fiddle::Function.new(lib['GC_disable'], [], Fiddle::TYPE_VOIDP).call
         env ||= Fiddle::Function.new(lib['build_top_env'], [], Fiddle::TYPE_VOIDP).call
         eval_func = Fiddle::Function.new(lib['EVAL'], [Fiddle::TYPE_VOIDP], Fiddle::TYPE_VOIDP)
         eval_func.call(env)
