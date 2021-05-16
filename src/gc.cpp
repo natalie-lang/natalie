@@ -29,7 +29,7 @@ Vector<Cell *> Heap::gather_conservative_roots() {
 }
 
 void Heap::collect() {
-    if (m_disabled) return;
+    if (m_gc_disabled) return;
 
     void *dummy;
     void *end_of_stack = &dummy;

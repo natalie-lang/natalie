@@ -54,7 +54,7 @@ public:
     }
 
     void gc_disable() {
-        m_disabled = true;
+        m_gc_disabled = true;
     }
 
 private:
@@ -100,7 +100,11 @@ private:
     Vector<Allocator *> m_allocators;
 
     void *m_start_of_stack { nullptr };
-    bool m_disabled { false };
+#ifdef NAT_GC_DISABLE
+    bool m_gc_disabled { true };
+#else
+    bool m_gc_disabled { false };
+#endif
 };
 
 }
