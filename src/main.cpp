@@ -207,6 +207,10 @@ extern "C" Value *EVAL(Env *env) {
 int main(int argc, char *argv[]) {
     Heap::the().set_start_of_stack(&argc);
 
+#ifdef NAT_GC_DISABLE
+    Heap::the().gc_disable();
+#endif
+
     setvbuf(stdout, nullptr, _IOLBF, 1024);
     Env *env = build_top_env();
 

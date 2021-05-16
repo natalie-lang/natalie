@@ -27,12 +27,12 @@ public:
 
     void *allocate(size_t size) {
         auto &allocator = find_allocator_of_size(size);
-#ifndef NAT_GC_DISABLE
+
         auto free = allocator.free_cells_percentage();
         if (free > 0 && free < 10) {
             //std::cerr << free << "% free in allocator of cell size " << size << "\n";
         }
-#endif
+
         return allocator.allocate();
     }
 
@@ -100,11 +100,7 @@ private:
     Vector<Allocator *> m_allocators;
 
     void *m_start_of_stack { nullptr };
-#ifdef NAT_GC_DISABLE
-    bool m_gc_disabled { true };
-#else
     bool m_gc_disabled { false };
-#endif
 };
 
 }

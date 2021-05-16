@@ -177,11 +177,7 @@ module Natalie
     end
 
     def libraries
-      libs = if ENV['NAT_CXX_FLAGS'] =~ /NAT_GC_DISABLE/
-        LIBRARIES - %w[-lgc -lgccpp]
-      else
-        LIBRARIES
-      end
+      libs = LIBRARIES
 
       if `uname -s`.strip == "Linux"
         libs.push "-ldl"
