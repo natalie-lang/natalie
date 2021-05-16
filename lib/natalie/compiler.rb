@@ -177,13 +177,7 @@ module Natalie
     end
 
     def libraries
-      libs = LIBRARIES
-
-      if `uname -s`.strip == "Linux"
-        libs.push "-ldl"
-      end
-
-      libs
+      LIBRARIES
     end
 
     def cc
