@@ -27,11 +27,13 @@ test: build
 	bundle exec ruby test/all.rb
 
 test_valgrind:
-	NAT_CXX_FLAGS="-DNAT_GC_DISABLE" ${MAKE} clean build
+	NAT_CXX_FLAGS="-DNAT_GC_DISABLE" ${MAKE} build
 	NAT_CXX_FLAGS="-DNAT_GC_DISABLE" bin/natalie -c assign_test test/natalie/assign_test.rb
 	valgrind --leak-check=no --track-origins=yes --error-exitcode=1 ./assign_test
 	NAT_CXX_FLAGS="-DNAT_GC_DISABLE" bin/natalie -c block_spec spec/language/block_spec.rb
 	valgrind --leak-check=no --track-origins=yes --error-exitcode=1 ./block_spec
+	NAT_CXX_FLAGS="-DNAT_GC_DISABLE" bin/natalie -c fiber_test test/natalie/fiber_test.rb
+	valgrind --leak-check=no --track-origins=yes --error-exitcode=1 ./fiber_test
 
 docker_build:
 	docker build -t natalie .
