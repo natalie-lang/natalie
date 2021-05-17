@@ -88,7 +88,7 @@ void Heap::sweep() {
                 if (!cell->marked()) {
                     //cell->gc_print();
                     //fprintf(stderr, "\n");
-                    return_cell_to_free_list(cell);
+                    block->return_cell_to_free_list(cell);
                 }
             }
         }
