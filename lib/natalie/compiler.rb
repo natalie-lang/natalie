@@ -37,12 +37,12 @@ module Natalie
       @required = {}
     end
 
-    attr_accessor :ast, :write_obj, :repl, :repl_num, :out_path, :context, :vars, :options, :c_path, :inline_cpp_enabled
+    attr_accessor :ast, :write_obj_path, :repl, :repl_num, :out_path, :context, :vars, :options, :c_path, :inline_cpp_enabled
 
     attr_writer :load_path
 
     def compile
-      return write_file if write_obj
+      return write_file if write_obj_path
       check_build
       write_file
       compile_c_to_binary
@@ -65,8 +65,8 @@ module Natalie
 
     def write_file
       c = to_c
-      if write_obj
-        File.write(write_obj, c)
+      if write_obj_path
+        File.write(write_obj_path, c)
       else
         temp_c = Tempfile.create('natalie.cpp')
         temp_c.write(c)
@@ -80,6 +80,7 @@ module Natalie
         var_prefix: var_prefix,
         var_num: 0,
         template: template,
+        is_obj: !!write_obj_path,
         repl: repl,
         vars: vars || {},
         inline_cpp_enabled: inline_cpp_enabled,
@@ -214,7 +215,7 @@ module Natalie
     end
 
     def var_prefix
-      if write_obj
+      if write_obj_path
         "#{obj_name}_"
       elsif repl
         "repl#{repl_num}_"
@@ -224,11 +225,11 @@ module Natalie
     end
 
     def obj_name
-      write_obj.sub(/\.cpp/, '').split('/').last
+      write_obj_path.sub(/\.cpp/, '').split('/').last
     end
 
     def template
-      if write_obj
+      if write_obj_path
         OBJ_TEMPLATE.sub(/init_obj/, "init_obj_#{obj_name}")
       else
         MAIN_TEMPLATE

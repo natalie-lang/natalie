@@ -122,8 +122,8 @@ module Natalie
       def init_matter
         [
           init_symbols.join("\n"),
-          set_dollar_zero_global_to_c,
-        ].join("\n")
+          set_dollar_zero_global_in_main_to_c,
+        ].compact.join("\n")
       end
 
       def process___cxx_flags__(exp)
@@ -722,7 +722,8 @@ module Natalie
         end
       end
 
-      def set_dollar_zero_global_to_c
+      def set_dollar_zero_global_in_main_to_c
+        return if @compiler_context[:is_obj]
         "env->global_set(SymbolValue::intern(env, \"$0\"), new StringValue { env, #{@compiler_context[:source_path].inspect} });"
       end
 

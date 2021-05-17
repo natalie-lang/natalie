@@ -45,7 +45,7 @@ OptionParser.new do |opts|
   end
 
   opts.on('--write-obj path', 'Write to C++ file for object file') do |path|
-    options[:write_obj] = path
+    options[:write_obj_path] = path
   end
 
   opts.on('-r library', 'Require the library before executing your script') do |library|
@@ -86,7 +86,7 @@ class Runner
     elsif options[:compile]
       compiler.out_path = options[:compile]
       compiler.compile
-    elsif options[:write_obj]
+    elsif options[:write_obj_path]
       compiler.compile
     elsif options[:debug] == 'cc-cmd'
       compiler.out_path = 'temp'
@@ -190,7 +190,7 @@ class Runner
   def compiler
     @compiler ||= Natalie::Compiler.new(ast, source_path, options).tap do |c|
       c.load_path = options[:load_path]
-      c.write_obj = options[:write_obj]
+      c.write_obj_path = options[:write_obj_path]
     end
   end
 
