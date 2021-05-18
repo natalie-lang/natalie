@@ -49,7 +49,7 @@ public:
     static ValuePtr square_new(Env *, size_t argc, ValuePtr *args);
 
     static nat_int_t hash(const void *);
-    static int compare(Env *env, const void *, const void *);
+    static int compare(const void *, const void *, Env *);
 
     size_t size() { return m_hashmap.size(); }
     ValuePtr size(Env *);

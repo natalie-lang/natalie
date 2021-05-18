@@ -111,8 +111,8 @@ static struct hashmap_entry *hashmap_entry_get_populated(
  * Find the hashmap entry with the specified key, or an empty slot.
  * Returns NULL if the entire table has been searched without finding a match.
  */
-static struct hashmap_entry *hashmap_entry_find(Env *env, const struct hashmap *map,
-    const void *key, bool find_empty) {
+static struct hashmap_entry *hashmap_entry_find(const struct hashmap *map,
+    const void *key, bool find_empty, Env *env) {
     size_t i;
     size_t index;
     size_t probe_len = HASHMAP_PROBE_LEN(map);
@@ -132,7 +132,7 @@ static struct hashmap_entry *hashmap_entry_find(Env *env, const struct hashmap *
             }
             return NULL;
         }
-        if (map->key_compare(env, key, entry->key) == 0) {
+        if (map->key_compare(key, entry->key, env) == 0) {
             return entry;
         }
         index = HASHMAP_PROBE_NEXT(map, index);
@@ -192,7 +192,7 @@ static void hashmap_entry_remove(struct hashmap *map,
  * new_size MUST be a power of 2.
  * Returns 0 on success and -errno on allocation or hash function failure.
  */
-static int hashmap_rehash(Env *env, struct hashmap *map, size_t new_size) {
+static int hashmap_rehash(struct hashmap *map, size_t new_size, Env *env) {
     size_t old_size;
     struct hashmap_entry *old_table;
     struct hashmap_entry *new_table;
@@ -218,7 +218,7 @@ static int hashmap_rehash(Env *env, struct hashmap *map, size_t new_size) {
             /* Only copy entries with data */
             continue;
         }
-        new_entry = hashmap_entry_find(env, map, entry->key, true);
+        new_entry = hashmap_entry_find(map, entry->key, true, env);
         if (!new_entry) {
             /*
              * The load factor is too high with the new table
@@ -273,7 +273,7 @@ static void hashmap_free_keys(struct hashmap *map) {
  * Returns 0 on success and -errno on failure.
  */
 int hashmap_init(struct hashmap *map, nat_int_t (*hash_func)(const void *),
-    int (*key_compare_func)(Env *env, const void *, const void *),
+    int (*key_compare_func)(const void *, const void *, Env *env),
     size_t initial_size) {
     HASHMAP_ASSERT(map != NULL);
 
@@ -330,7 +330,7 @@ void hashmap_set_key_alloc_funcs(struct hashmap *map,
  * exists, the existing data pointer is overwritten with the new data.
  * Returns NULL if memory allocation failed.
  */
-void *hashmap_put(Env *env, struct hashmap *map, const void *key, void *data) {
+void *hashmap_put(struct hashmap *map, const void *key, void *data, Env *env) {
     struct hashmap_entry *entry;
 
     HASHMAP_ASSERT(map != NULL);
@@ -338,19 +338,19 @@ void *hashmap_put(Env *env, struct hashmap *map, const void *key, void *data) {
 
     /* Rehash with 2x capacity if load factor is approaching 0.75 */
     if (map->table_size <= hashmap_table_min_size_calc(map->num_entries)) {
-        hashmap_rehash(env, map, map->table_size << 1);
+        hashmap_rehash(map, map->table_size << 1, env);
     }
-    entry = hashmap_entry_find(env, map, key, true);
+    entry = hashmap_entry_find(map, key, true, env);
     if (!entry) {
         /*
          * Cannot find an empty slot.  Either out of memory, or using
          * a poor hash function.  Attempt to rehash once to reduce
          * chain length.
          */
-        if (hashmap_rehash(env, map, map->table_size << 1) < 0) {
+        if (hashmap_rehash(map, map->table_size << 1, env) < 0) {
             return NULL;
         }
-        entry = hashmap_entry_find(env, map, key, true);
+        entry = hashmap_entry_find(map, key, true, env);
         if (!entry) {
             return NULL;
         }
@@ -374,13 +374,13 @@ void *hashmap_put(Env *env, struct hashmap *map, const void *key, void *data) {
 /*
  * Return the data pointer, or NULL if no entry exists.
  */
-void *hashmap_get(Env *env, const struct hashmap *map, const void *key) {
+void *hashmap_get(const struct hashmap *map, const void *key, Env *env) {
     struct hashmap_entry *entry;
 
     HASHMAP_ASSERT(map != NULL);
     HASHMAP_ASSERT(key != NULL);
 
-    entry = hashmap_entry_find(env, map, key, false);
+    entry = hashmap_entry_find(map, key, false, env);
     if (!entry) {
         return NULL;
     }
@@ -391,14 +391,14 @@ void *hashmap_get(Env *env, const struct hashmap *map, const void *key) {
  * Remove an entry with the specified key from the map.
  * Returns the data pointer, or NULL, if no entry was found.
  */
-void *hashmap_remove(Env *env, struct hashmap *map, const void *key) {
+void *hashmap_remove(struct hashmap *map, const void *key, Env *env) {
     struct hashmap_entry *entry;
     void *data;
 
     HASHMAP_ASSERT(map != NULL);
     HASHMAP_ASSERT(key != NULL);
 
-    entry = hashmap_entry_find(env, map, key, false);
+    entry = hashmap_entry_find(map, key, false, env);
     if (!entry) {
         return NULL;
     }
@@ -605,14 +605,14 @@ nat_int_t hashmap_hash_string(const void *key) {
     return hash;
 }
 
-int hashmap_compare_ptr(Env *, const void *a, const void *b) {
+int hashmap_compare_ptr(const void *a, const void *b, Env *env) {
     return (intptr_t)a - (intptr_t)b;
 }
 
 /*
  * Default key comparator function for string keys.
  */
-int hashmap_compare_string(Env *, const void *a, const void *b) {
+int hashmap_compare_string(const void *a, const void *b, Env *env) {
     return strcmp((const char *)a, (const char *)b);
 }
 

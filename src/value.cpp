@@ -293,7 +293,7 @@ ValuePtr Value::ivar_get(Env *env, SymbolValue *name) {
     if (!name->is_ivar_name())
         env->raise("NameError", "`{}' is not allowed as an instance variable name", name->c_str());
 
-    auto val = m_ivars.get(env, name);
+    auto val = m_ivars.get(name, env);
     if (val)
         return val;
     else
@@ -304,7 +304,7 @@ ValuePtr Value::ivar_set(Env *env, SymbolValue *name, ValuePtr val) {
     if (!name->is_ivar_name())
         env->raise("NameError", "`{}' is not allowed as an instance variable name", name->c_str());
 
-    m_ivars.put(env, name, val.value());
+    m_ivars.put(name, val.value(), env);
     return val;
 }
 

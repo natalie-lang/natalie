@@ -73,7 +73,7 @@ struct hashmap {
     size_t num_entries { 0 };
     struct hashmap_entry *table { nullptr };
     nat_int_t (*hash)(const void *) { nullptr };
-    int (*key_compare)(Env *, const void *, const void *) { nullptr };
+    int (*key_compare)(const void *, const void *, Env *) { nullptr };
     void *(*key_alloc)(const void *) { nullptr };
     void (*key_free)(void *) { nullptr };
 };
@@ -99,7 +99,7 @@ typedef struct hashmap hashmap;
  * Returns 0 on success and -errno on failure.
  */
 int hashmap_init(struct hashmap *map, nat_int_t (*hash_func)(const void *),
-    int (*key_compare_func)(Env *env, const void *, const void *),
+    int (*key_compare_func)(const void *, const void *, Env *),
     size_t initial_size);
 
 /*
@@ -119,18 +119,18 @@ void hashmap_set_key_alloc_funcs(struct hashmap *map,
  * exists, the existing data pointer is overwritten with the new data.
  * Returns NULL if memory allocation failed.
  */
-void *hashmap_put(Env *env, struct hashmap *map, const void *key, void *data);
+void *hashmap_put(struct hashmap *map, const void *key, void *data, Env *env);
 
 /*
  * Return the data pointer, or NULL if no entry exists.
  */
-void *hashmap_get(Env *env, const struct hashmap *map, const void *key);
+void *hashmap_get(const struct hashmap *map, const void *key, Env *env);
 
 /*
  * Remove an entry with the specified key from the map.
  * Returns the data pointer, or NULL, if no entry was found.
  */
-void *hashmap_remove(Env *env, struct hashmap *map, const void *key);
+void *hashmap_remove(struct hashmap *map, const void *key, Env *env);
 
 /*
  * Remove all entries.
@@ -204,12 +204,12 @@ nat_int_t hashmap_hash_ptr(const void *key);
  */
 nat_int_t hashmap_hash_string(const void *key);
 
-int hashmap_compare_ptr(Env *env, const void *a, const void *b);
+int hashmap_compare_ptr(const void *a, const void *b, Env *env);
 
 /*
  * Default key comparator function for string keys.
  */
-int hashmap_compare_string(Env *env, const void *a, const void *b);
+int hashmap_compare_string(const void *a, const void *b, Env *env);
 
 /*
  * Default key allocation function for string keys.  Use free() for the
@@ -252,9 +252,9 @@ enum class HashmapKeyType {
 };
 
 using HashFn = nat_int_t(const void *);
-using CompareFn = int(Env *, const void *, const void *);
+using CompareFn = int(const void *, const void *, Env *);
 
-template <typename KeyT, typename T>
+template <typename KeyT, typename T = void *>
 class Hashmap {
 public:
     Hashmap(int initial_capacity = 10, HashmapKeyType key_type = HashmapKeyType::Pointer) {
@@ -289,16 +289,20 @@ public:
         hashmap_destroy(&m_map);
     }
 
-    T get(Env *env, KeyT key) {
-        return static_cast<T>(hashmap_get(env, &m_map, key));
+    T get(KeyT key, Env *env = nullptr) {
+        return static_cast<T>(hashmap_get(&m_map, key, env));
     }
 
-    void put(Env *env, KeyT key, T val) {
-        assert(hashmap_put(env, &m_map, key, val));
+    void set(KeyT key) {
+        hashmap_put(&m_map, key, nullptr, nullptr);
     }
 
-    T remove(Env *env, KeyT key) {
-        return static_cast<T>(hashmap_remove(env, &m_map, key));
+    void put(KeyT key, T val, Env *env = nullptr) {
+        assert(hashmap_put(&m_map, key, val, env));
+    }
+
+    T remove(KeyT key, Env *env = nullptr) {
+        return static_cast<T>(hashmap_remove(&m_map, key, env));
     }
 
     size_t size() { return m_map.num_entries; }

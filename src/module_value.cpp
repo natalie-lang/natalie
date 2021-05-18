@@ -54,7 +54,7 @@ void ModuleValue::prepend_once(Env *env, ModuleValue *module) {
 }
 
 ValuePtr ModuleValue::const_get(Env *env, SymbolValue *name) {
-    return m_constants.get(env, name);
+    return m_constants.get(name, env);
 }
 
 ValuePtr ModuleValue::const_fetch(Env *env, SymbolValue *name) {
@@ -103,7 +103,7 @@ ValuePtr ModuleValue::const_find(Env *env, SymbolValue *name, ConstLookupSearchM
 }
 
 ValuePtr ModuleValue::const_set(Env *env, SymbolValue *name, ValuePtr val) {
-    m_constants.put(env, name, val.value());
+    m_constants.put(name, val.value(), env);
     if (val->is_module() && !val->owner()) {
         val->set_owner(this);
         if (val->singleton_class()) val->singleton_class()->set_owner(this);
@@ -116,7 +116,7 @@ void ModuleValue::alias(Env *env, SymbolValue *new_name, SymbolValue *old_name) 
     if (!method) {
         env->raise("NameError", "undefined method `{}' for `{}'", old_name->c_str(), this->inspect_str(env));
     }
-    m_methods.put(env, new_name, new Method { *method });
+    m_methods.put(new_name, new Method { *method }, env);
 }
 
 ValuePtr ModuleValue::eval_body(Env *env, ValuePtr (*fn)(Env *, ValuePtr)) {
@@ -135,7 +135,7 @@ ValuePtr ModuleValue::cvar_get_or_null(Env *env, SymbolValue *name) {
     ModuleValue *module = this;
     ValuePtr val = nullptr;
     while (module) {
-        val = module->m_class_vars.get(env, name);
+        val = module->m_class_vars.get(name, env);
         if (val)
             return val;
         module = module->m_superclass;
@@ -151,26 +151,26 @@ ValuePtr ModuleValue::cvar_set(Env *env, SymbolValue *name, ValuePtr val) {
 
     ValuePtr exists = nullptr;
     while (current) {
-        exists = current->m_class_vars.get(env, name);
+        exists = current->m_class_vars.get(name, env);
         if (exists) {
-            current->m_class_vars.put(env, name, val.value());
+            current->m_class_vars.put(name, val.value(), env);
             return val;
         }
         current = current->m_superclass;
     }
-    m_class_vars.put(env, name, val.value());
+    m_class_vars.put(name, val.value(), env);
     return val;
 }
 
 SymbolValue *ModuleValue::define_method(Env *env, SymbolValue *name, MethodFnPtr fn, int arity) {
     Method *method = new Method { name->c_str(), this, fn, arity, m_method_visibility };
-    m_methods.put(env, name, method);
+    m_methods.put(name, method, env);
     return name;
 }
 
 SymbolValue *ModuleValue::define_method(Env *env, SymbolValue *name, Block *block) {
     Method *method = new Method { name->c_str(), this, block, m_method_visibility };
-    m_methods.put(env, name, method);
+    m_methods.put(name, method, env);
     return name;
 }
 
@@ -199,7 +199,7 @@ Method *ModuleValue::find_method(Env *env, SymbolValue *method_name, ModuleValue
     if (m_included_modules.is_empty()) {
         // no included modules, just search the class/module
         // note: if there are included modules, then the module chain will include this class/module
-        method = m_methods.get(env, method_name);
+        method = m_methods.get(method_name, env);
         if (method) {
             if (method == after_method) {
                 after_method = nullptr;
@@ -212,7 +212,7 @@ Method *ModuleValue::find_method(Env *env, SymbolValue *method_name, ModuleValue
 
     for (ModuleValue *module : m_included_modules) {
         if (module == this)
-            method = module->m_methods.get(env, method_name);
+            method = module->m_methods.get(method_name, env);
         else
             method = module->find_method(env, method_name, matching_class_or_module, after_method);
         if (method) {

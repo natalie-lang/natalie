@@ -8,7 +8,8 @@ nat_int_t HashValue::hash(const void *key) {
 }
 
 // this is used by the hashmap library to compare keys
-int HashValue::compare(Env *env, const void *a, const void *b) {
+int HashValue::compare(const void *a, const void *b, Env *env) {
+    assert(env);
     Key *a_p = (Key *)a;
     Key *b_p = (Key *)b;
     return a_p->key.send(env, "eql?", 1, &b_p->key)->is_truthy() ? 0 : 1; // return 0 for exact match
@@ -18,7 +19,7 @@ ValuePtr HashValue::get(Env *env, ValuePtr key) {
     Key key_container;
     key_container.key = key;
     key_container.hash = key.send(env, "hash")->as_integer()->to_nat_int_t();
-    Val *container = m_hashmap.get(env, &key_container);
+    Val *container = m_hashmap.get(&key_container, env);
     ValuePtr val = container ? container->val : nullptr;
     return val;
 }
@@ -37,7 +38,7 @@ void HashValue::put(Env *env, ValuePtr key, ValuePtr val) {
     Key key_container;
     key_container.key = key;
     key_container.hash = key.send(env, "hash")->as_integer()->to_nat_int_t();
-    Val *container = m_hashmap.get(env, &key_container);
+    Val *container = m_hashmap.get(&key_container, env);
     if (container) {
         container->key->val = val;
         container->val = val;
@@ -48,7 +49,7 @@ void HashValue::put(Env *env, ValuePtr key, ValuePtr val) {
         container = static_cast<Val *>(malloc(sizeof(Val)));
         container->key = key_list_append(env, key, val);
         container->val = val;
-        m_hashmap.put(env, container->key, container);
+        m_hashmap.put(container->key, container, env);
     }
 }
 
@@ -56,7 +57,7 @@ ValuePtr HashValue::remove(Env *env, ValuePtr key) {
     Key key_container;
     key_container.key = key;
     key_container.hash = key.send(env, "hash")->as_integer()->to_nat_int_t();
-    Val *container = m_hashmap.remove(env, &key_container);
+    Val *container = m_hashmap.remove(&key_container, env);
     if (container) {
         key_list_remove_node(container->key);
         ValuePtr val = container->val;
