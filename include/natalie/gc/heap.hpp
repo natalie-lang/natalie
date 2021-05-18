@@ -7,6 +7,7 @@
 
 #include "natalie/gc/allocator.hpp"
 #include "natalie/gc/marking_visitor.hpp"
+#include "natalie/hashmap.hpp"
 #include "natalie/macros.hpp"
 #include "tm/vector.hpp"
 
@@ -76,7 +77,7 @@ private:
         }
     }
 
-    Vector<Cell *> gather_conservative_roots();
+    Hashmap<Cell *> gather_conservative_roots();
 
     void sweep();
 

@@ -22,21 +22,11 @@ void MarkingVisitor::visit(ValuePtr val) {
     visit(val.value_or_null());
 }
 
-Vector<Cell *> Heap::gather_conservative_roots() {
-    auto roots = Vector<Cell *> {};
-    // TODO
-    return roots;
-}
-
-void Heap::collect() {
-    if (m_gc_disabled) return;
+Hashmap<Cell *> Heap::gather_conservative_roots() {
+    Hashmap<Cell *> roots;
 
     void *dummy;
     void *end_of_stack = &dummy;
-
-    for (auto allocator : m_allocators) {
-        allocator->unmark_all_cells_in_all_blocks();
-    }
 
     Vector<Cell *> potential_cells;
 
@@ -64,20 +54,33 @@ void Heap::collect() {
     }
 
     // determine which pointers are actual Cells
-    MarkingVisitor visitor;
     for (auto potential_cell : potential_cells) {
         auto potential_block = HeapBlock::from_cell(potential_cell);
         if (is_a_heap_block(potential_block)) {
             auto block = potential_block;
             if (block->is_my_cell_and_in_use(potential_cell)) {
-                auto cell = potential_cell;
-                // walk the tree of all reachable Cells, marking them
-                visitor.visit(cell);
+                roots.set(potential_cell);
             }
         }
     }
 
-    // collect any Cells not marked
+    return roots;
+}
+
+void Heap::collect() {
+    if (m_gc_disabled) return;
+
+    for (auto allocator : m_allocators) {
+        allocator->unmark_all_cells_in_all_blocks();
+    }
+
+    MarkingVisitor visitor;
+
+    auto roots = gather_conservative_roots();
+    for (auto pair : roots) {
+        visitor.visit(pair.first);
+    }
+
     sweep();
 }
 
