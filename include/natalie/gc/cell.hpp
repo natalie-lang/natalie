@@ -34,7 +34,7 @@ public:
         fprintf(stderr, "<Cell %p size=%zu>", this, sizeof(*this));
     }
 
-    bool marked() {
+    bool is_marked() {
         return m_marked;
     }
 

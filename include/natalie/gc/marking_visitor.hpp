@@ -7,7 +7,7 @@ namespace Natalie {
 class MarkingVisitor : public Cell::Visitor {
 public:
     virtual void visit(Cell *cell) override final {
-        if (!cell || cell->marked()) return;
+        if (!cell || cell->is_marked()) return;
         cell->mark();
         cell->visit_children(*this);
     }

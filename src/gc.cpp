@@ -88,7 +88,7 @@ void Heap::sweep() {
     for (auto allocator : m_allocators) {
         for (auto block : *allocator) {
             for (auto cell : *block) {
-                if (!cell->marked()) {
+                if (!cell->is_marked()) {
                     //cell->gc_print();
                     //fprintf(stderr, "\n");
                     block->return_cell_to_free_list(cell);
