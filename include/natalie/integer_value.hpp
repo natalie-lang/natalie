@@ -1,6 +1,7 @@
 #pragma once
 
 #include <assert.h>
+#include <inttypes.h>
 
 #include "natalie/class_value.hpp"
 #include "natalie/forward.hpp"
@@ -73,7 +74,7 @@ public:
     static bool optimized_method(SymbolValue *);
 
     virtual void gc_print() override {
-        fprintf(stderr, "<IntegerValue %p int=%li>", this, m_integer);
+        fprintf(stderr, "<IntegerValue %p int=%" PRId64 ">", this, m_integer);
     }
 
 private:
