@@ -32,7 +32,6 @@ FiberValue *FiberValue::initialize(Env *env, Block *block) {
     assert(this != env->global_env()->main_fiber(env)); // can never be main fiber
     env->assert_block_given(block);
     create_stack(env, STACK_SIZE);
-    m_stack_base = Natalie::Heap::the().start_of_stack();
     m_block = block;
     return this;
 }
@@ -43,7 +42,7 @@ ValuePtr FiberValue::yield(Env *env, size_t argc, ValuePtr *args) {
     current_fiber->set_status(Status::Suspended);
     env->global_env()->reset_current_fiber();
     env->global_env()->set_fiber_args(argc, args);
-    Heap::the().set_start_of_stack(main_fiber->stack_base());
+    Heap::the().set_start_of_stack(main_fiber->start_of_stack());
     fiber_asm_switch(main_fiber->fiber(), current_fiber->fiber(), 0, env, main_fiber);
     argc = env->global_env()->fiber_argc();
     args = env->global_env()->fiber_args();
@@ -66,7 +65,7 @@ void fiber_exit() {
 }
 
 void fiber_wrapper_func(Natalie::Env *env, Natalie::FiberValue *fiber) {
-    Natalie::Heap::the().set_start_of_stack(fiber->stack_base());
+    Natalie::Heap::the().set_start_of_stack(fiber->start_of_stack());
     fiber->set_status(Natalie::FiberValue::Status::Active);
     assert(fiber->block());
     Natalie::ValuePtr *return_args = new Natalie::ValuePtr[1];
@@ -80,15 +79,23 @@ void fiber_wrapper_func(Natalie::Env *env, Natalie::FiberValue *fiber) {
     env->global_env()->reset_current_fiber();
     env->global_env()->set_fiber_args(1, return_args);
     auto main_fiber = env->global_env()->main_fiber(env);
-    Natalie::Heap::the().set_start_of_stack(main_fiber->stack_base());
+    Natalie::Heap::the().set_start_of_stack(main_fiber->start_of_stack());
     fiber_asm_switch(main_fiber->fiber(), fiber->fiber(), 0, env, fiber);
 }
 
 void Natalie::FiberValue::visit_children(Visitor &visitor) {
     Value::visit_children(visitor);
     visitor.visit(m_block);
-    // TODO: need to visit fiber_stack_struct m_fiber
-    // ...and m_stack_base possibly too
+    auto start = reinterpret_cast<char *>(m_start_of_stack);
+    if (!m_main_fiber) {
+        for (char *ptr = start; ptr < start + STACK_SIZE; ptr += sizeof(intptr_t)) {
+            Cell *potential_cell = *reinterpret_cast<Cell **>(ptr);
+            if (Heap::the().is_a_heap_cell_in_use(potential_cell)) {
+                visitor.visit(potential_cell);
+            } else {
+            }
+        }
+    }
 }
 
 #ifdef __x86_64

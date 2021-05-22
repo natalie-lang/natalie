@@ -54,6 +54,15 @@ public:
         block->return_cell_to_free_list(cell);
     }
 
+    bool is_a_heap_cell_in_use(Cell *potential_cell) {
+        auto potential_block = HeapBlock::from_cell(potential_cell);
+        if (is_a_heap_block(potential_block)) {
+            auto block = potential_block;
+            return block->is_my_cell_and_in_use(potential_cell);
+        }
+        return false;
+    }
+
     void gc_disable() {
         m_gc_disabled = true;
     }

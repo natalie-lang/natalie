@@ -66,17 +66,18 @@ public:
         : Value { Value::Type::Fiber, env->Object()->const_fetch(env, SymbolValue::intern(env, "Fiber"))->as_class() } { }
 
     // used for the "main" fiber
-    FiberValue(Env *env, void *stack_base)
+    FiberValue(Env *env, void *start_of_stack)
         : Value { Value::Type::Fiber, env->Object()->const_fetch(env, SymbolValue::intern(env, "Fiber"))->as_class() }
-        , m_stack_base { stack_base } {
-        assert(m_stack_base);
+        , m_start_of_stack { start_of_stack }
+        , m_main_fiber { true } {
+        assert(m_start_of_stack);
     }
 
     FiberValue(Env *env, ClassValue *klass)
         : Value { Value::Type::Fiber, klass } { }
 
     ~FiberValue() {
-        int err = munmap(m_stack_bottom, STACK_SIZE);
+        int err = munmap(m_start_of_stack, STACK_SIZE);
         if (err != 0) {
             fprintf(stderr, "unmapping failed (errno=%d)\n", errno);
             abort();
@@ -104,13 +105,13 @@ public:
 #else
         auto mmap_flags = MAP_PRIVATE | MAP_ANONYMOUS;
 #endif
-        m_stack_bottom = mmap(nullptr, stack_size, PROT_READ | PROT_WRITE, mmap_flags, -1, 0);
-        if (m_stack_bottom == MAP_FAILED) {
+        m_start_of_stack = mmap(nullptr, stack_size, PROT_READ | PROT_WRITE, mmap_flags, -1, 0);
+        if (m_start_of_stack == MAP_FAILED) {
             fprintf(stderr, "mapping failed (errno=%d)\n", errno);
             abort();
         }
 
-        m_fiber.stack = (void **)((char *)m_stack_bottom + stack_size);
+        m_fiber.stack = (void **)((char *)m_start_of_stack + stack_size);
 #ifdef __APPLE__
         assert((uintptr_t)m_fiber.stack % 16 == 0);
 #endif
@@ -132,7 +133,7 @@ public:
         auto main_fiber = env->global_env()->main_fiber(env);
         env->global_env()->set_current_fiber(this);
         env->global_env()->set_fiber_args(argc, args);
-        Heap::the().set_start_of_stack(stack_base());
+        Heap::the().set_start_of_stack(m_start_of_stack);
         fiber_asm_switch(fiber(), main_fiber->fiber(), 0, env, this);
         argc = env->global_env()->fiber_argc();
         args = env->global_env()->fiber_args();
@@ -145,15 +146,11 @@ public:
         }
     }
 
-    void *stack_bottom() { return m_stack_bottom; }
+    void *start_of_stack() { return m_start_of_stack; }
 
     fiber_stack_struct *fiber() { return &m_fiber; }
     Block *block() { return m_block; }
     void set_status(Status status) { m_status = status; }
-
-    void *stack_base() {
-        return m_stack_base;
-    }
 
     SymbolValue *status(Env *env) {
         switch (m_status) {
@@ -174,9 +171,9 @@ public:
 private:
     Block *m_block { nullptr };
     ::fiber_stack_struct m_fiber {};
-    void *m_stack_bottom { nullptr };
+    void *m_start_of_stack { nullptr };
     Status m_status { Status::Created };
-    void *m_stack_base;
+    bool m_main_fiber { false };
 };
 
 }

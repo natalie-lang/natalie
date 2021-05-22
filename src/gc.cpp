@@ -55,13 +55,8 @@ Hashmap<Cell *> Heap::gather_conservative_roots() {
 
     // determine which pointers are actual Cells
     for (auto potential_cell : potential_cells) {
-        auto potential_block = HeapBlock::from_cell(potential_cell);
-        if (is_a_heap_block(potential_block)) {
-            auto block = potential_block;
-            if (block->is_my_cell_and_in_use(potential_cell)) {
-                roots.set(potential_cell);
-            }
-        }
+        if (is_a_heap_cell_in_use(potential_cell))
+            roots.set(potential_cell);
     }
 
     return roots;
