@@ -27,7 +27,9 @@
 #pragma once
 
 #include <assert.h>
+#include <errno.h>
 #include <stdint.h>
+#include <sys/mman.h>
 
 #include "natalie/array_value.hpp"
 #include "natalie/class_value.hpp"
@@ -73,6 +75,14 @@ public:
     FiberValue(Env *env, ClassValue *klass)
         : Value { Value::Type::Fiber, klass } { }
 
+    ~FiberValue() {
+        int err = munmap(m_stack_bottom, STACK_SIZE);
+        if (err != 0) {
+            fprintf(stderr, "unmapping failed (errno=%d)\n", errno);
+            abort();
+        }
+    }
+
     const int STACK_SIZE = 1024 * 1024;
 
     FiberValue *initialize(Env *env, Block *block);
@@ -88,10 +98,18 @@ public:
         static const int NUM_REGISTERS = 4;
 #endif
         assert(stack_size % 16 == 0);
-        m_stack_bottom = malloc(stack_size);
-        if (m_stack_bottom == 0) {
-            env->raise("StandardError", "could not allocate stack for Fiber");
+
+#ifdef __OpenBSD__
+        auto mmap_flags = MAP_PRIVATE | MAP_ANONYMOUS | MAP_STACK;
+#else
+        auto mmap_flags = MAP_PRIVATE | MAP_ANONYMOUS;
+#endif
+        m_stack_bottom = mmap(nullptr, stack_size, PROT_READ | PROT_WRITE, mmap_flags, -1, 0);
+        if (m_stack_bottom == MAP_FAILED) {
+            fprintf(stderr, "mapping failed (errno=%d)\n", errno);
+            abort();
         }
+
         m_fiber.stack = (void **)((char *)m_stack_bottom + stack_size);
 #ifdef __APPLE__
         assert((uintptr_t)m_fiber.stack % 16 == 0);
