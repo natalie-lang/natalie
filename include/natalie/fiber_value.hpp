@@ -105,13 +105,18 @@ public:
 #else
         auto mmap_flags = MAP_PRIVATE | MAP_ANONYMOUS;
 #endif
-        m_start_of_stack = mmap(nullptr, stack_size, PROT_READ | PROT_WRITE, mmap_flags, -1, 0);
-        if (m_start_of_stack == MAP_FAILED) {
+        auto low_address = mmap(nullptr, stack_size, PROT_READ | PROT_WRITE, mmap_flags, -1, 0);
+        if (low_address == MAP_FAILED) {
             fprintf(stderr, "mapping failed (errno=%d)\n", errno);
             abort();
         }
 
-        m_fiber.stack = (void **)((char *)m_start_of_stack + stack_size);
+        // FIXME: Fibers only support stacks that grow toward lower addresses
+        void *comparison_ptr = &stack_size;
+        assert(comparison_ptr < Heap::the().start_of_stack());
+
+        m_start_of_stack = reinterpret_cast<char *>(low_address) + stack_size;
+        m_fiber.stack = reinterpret_cast<void **>(m_start_of_stack);
 #ifdef __APPLE__
         assert((uintptr_t)m_fiber.stack % 16 == 0);
 #endif
@@ -133,8 +138,11 @@ public:
         auto main_fiber = env->global_env()->main_fiber(env);
         env->global_env()->set_current_fiber(this);
         env->global_env()->set_fiber_args(argc, args);
+
+        // NOTE: *no* allocations can happen between these next two lines
         Heap::the().set_start_of_stack(m_start_of_stack);
         fiber_asm_switch(fiber(), main_fiber->fiber(), 0, env, this);
+
         argc = env->global_env()->fiber_argc();
         args = env->global_env()->fiber_args();
         if (argc == 0) {

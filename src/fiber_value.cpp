@@ -88,11 +88,10 @@ void Natalie::FiberValue::visit_children(Visitor &visitor) {
     visitor.visit(m_block);
     auto start = reinterpret_cast<char *>(m_start_of_stack);
     if (!m_main_fiber) {
-        for (char *ptr = start; ptr < start + STACK_SIZE; ptr += sizeof(intptr_t)) {
+        for (char *ptr = start - STACK_SIZE; ptr < start; ptr += sizeof(intptr_t)) {
             Cell *potential_cell = *reinterpret_cast<Cell **>(ptr);
             if (Heap::the().is_a_heap_cell_in_use(potential_cell)) {
                 visitor.visit(potential_cell);
-            } else {
             }
         }
     }
