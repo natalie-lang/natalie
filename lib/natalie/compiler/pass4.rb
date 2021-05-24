@@ -515,8 +515,7 @@ module Natalie
           args_count = 0
         end
         result_name = temp('call_result')
-        connector = [:send, :public_send].include?(fn) ? '.' : '->'
-        decl "ValuePtr #{result_name} = #{receiver_name}#{connector}#{fn}(env, #{process method}, #{args_count}, #{args_name}, #{block || 'nullptr'});"
+        decl "ValuePtr #{result_name} = #{receiver_name}.#{fn}(env, #{process method}, #{args_count}, #{args_name}, #{block || 'nullptr'});"
         result_name
       end
 
