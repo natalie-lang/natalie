@@ -26,16 +26,7 @@ public:
         return *s_instance;
     }
 
-    void *allocate(size_t size) {
-        auto &allocator = find_allocator_of_size(size);
-
-        auto free = allocator.free_cells_percentage();
-        if (free > 0 && free < 10) {
-            //std::cerr << free << "% free in allocator of cell size " << size << "\n";
-        }
-
-        return allocator.allocate();
-    }
+    void *allocate(size_t size);
 
     void collect();
 
@@ -63,8 +54,14 @@ public:
         return false;
     }
 
+    bool gc_enabled() { return m_gc_enabled; }
+
+    void gc_enable() {
+        m_gc_enabled = true;
+    }
+
     void gc_disable() {
-        m_gc_disabled = true;
+        m_gc_enabled = false;
     }
 
 private:
@@ -110,7 +107,7 @@ private:
     Vector<Allocator *> m_allocators;
 
     void *m_start_of_stack { nullptr };
-    bool m_gc_disabled { false };
+    bool m_gc_enabled { false };
 };
 
 }

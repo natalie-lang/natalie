@@ -63,7 +63,7 @@ Hashmap<Cell *> Heap::gather_conservative_roots() {
 }
 
 void Heap::collect() {
-    if (m_gc_disabled) return;
+    if (!m_gc_enabled) return;
 
     for (auto allocator : m_allocators) {
         allocator->unmark_all_cells_in_all_blocks();
@@ -91,6 +91,16 @@ void Heap::sweep() {
             }
         }
     }
+}
+
+void *Heap::allocate(size_t size) {
+    auto &allocator = find_allocator_of_size(size);
+
+    if (m_gc_enabled) {
+        //collect();
+    }
+
+    return allocator.allocate();
 }
 
 }
