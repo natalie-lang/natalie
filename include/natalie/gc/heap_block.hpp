@@ -68,6 +68,8 @@ public:
         auto index = index_from_cell(cell);
         assert(index > -1);
         m_used_map[index] = false;
+        cell->~Cell();
+        ++m_free_count;
     }
 
     size_t total_count() const { return m_total_count; }

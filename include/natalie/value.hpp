@@ -61,7 +61,9 @@ public:
 
     Value(Env *, const Value &);
 
-    virtual ~Value() override { }
+    virtual ~Value() override {
+        m_type = ValueType::Nil;
+    }
 
     static ValuePtr _new(Env *, ValuePtr, size_t, ValuePtr *, Block *);
 
