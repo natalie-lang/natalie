@@ -27,6 +27,10 @@ public:
     virtual void gc_print() override {
         fprintf(stderr, "<NilValue %p>", this);
     }
+
+    virtual bool is_collectible() override {
+        return false;
+    }
 };
 
 }

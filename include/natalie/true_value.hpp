@@ -23,6 +23,10 @@ public:
     virtual void gc_print() override {
         fprintf(stderr, "<TrueValue %p>", this);
     }
+
+    virtual bool is_collectible() override {
+        return false;
+    }
 };
 
 }
