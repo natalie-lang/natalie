@@ -31,11 +31,15 @@ ValuePtr ValuePtr::send(Env *env, const char *name, size_t argc, ValuePtr *args,
 
 void ValuePtr::hydrate() {
     switch (m_type) {
-    case Type::Integer:
+    case Type::Integer: {
         m_type = Type::Pointer;
+        bool was_gc_enabled = Heap::the().gc_enabled();
+        Heap::the().gc_disable();
         m_value = new IntegerValue { m_global_env, m_integer };
+        if (was_gc_enabled) Heap::the().gc_enable();
         m_integer = 0;
         break;
+    }
     case Type::Pointer:
         break;
     }
