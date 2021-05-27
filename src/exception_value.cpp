@@ -38,6 +38,7 @@ ValuePtr ExceptionValue::backtrace(Env *env) {
 
 void ExceptionValue::visit_children(Visitor &visitor) {
     Value::visit_children(visitor);
+    visitor.visit(m_message);
     visitor.visit(m_backtrace);
 }
 
