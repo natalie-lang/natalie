@@ -52,6 +52,10 @@ public:
         fprintf(stderr, "<SymbolValue %p name='%s'>", this, m_name);
     }
 
+    virtual bool is_collectible() override {
+        return false;
+    }
+
 private:
     SymbolValue(Env *env, const char *name)
         : Value { Value::Type::Symbol, env->Symbol() }

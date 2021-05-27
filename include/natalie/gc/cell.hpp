@@ -34,6 +34,10 @@ public:
         fprintf(stderr, "<Cell %p size=%zu>", this, sizeof(*this));
     }
 
+    virtual bool is_collectible() {
+        return true;
+    }
+
     bool is_marked() {
         return m_marked;
     }
