@@ -588,4 +588,10 @@ void Value::visit_children(Visitor &visitor) {
     }
 }
 
+void Value::gc_print() {
+    fprintf(stderr, "<Value %p type=%d class=", this, (int)m_type);
+    m_klass->gc_print();
+    fprintf(stderr, ">\n");
+}
+
 }

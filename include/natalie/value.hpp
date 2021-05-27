@@ -221,9 +221,7 @@ public:
 
     virtual void visit_children(Visitor &visitor) override;
 
-    virtual void gc_print() override {
-        fprintf(stderr, "<Value %p type=%d>", this, (int)m_type);
-    }
+    virtual void gc_print() override;
 
 protected:
     ClassValue *m_klass { nullptr };
