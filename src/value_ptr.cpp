@@ -10,18 +10,31 @@ ValuePtr::ValuePtr(Env *env, nat_int_t integer)
 ValuePtr ValuePtr::public_send(Env *env, SymbolValue *name, size_t argc, ValuePtr *args, Block *block) {
     if (m_type == Type::Integer && IntegerValue::optimized_method(name)) {
         auto synthesized = IntegerValue { m_global_env, m_integer };
+#ifdef NAT_DEBUG_SEND
+        fprintf(stderr, "_send(%s) (synthesized)\n", name->c_str());
+#endif
+        // FIXME: I think this should be _public_send??
         return synthesized._send(env, name, argc, args, block);
     }
 
+#ifdef NAT_DEBUG_SEND
+    fprintf(stderr, "_public_send(%s)\n", name->c_str());
+#endif
     return value()->_public_send(env, name, argc, args, block);
 }
 
 ValuePtr ValuePtr::send(Env *env, SymbolValue *name, size_t argc, ValuePtr *args, Block *block) {
     if (m_type == Type::Integer && IntegerValue::optimized_method(name)) {
         auto synthesized = IntegerValue { m_global_env, m_integer };
+#ifdef NAT_DEBUG_SEND
+        fprintf(stderr, "_send(%s) (synthesized)\n", name->c_str());
+#endif
         return synthesized._send(env, name, argc, args, block);
     }
 
+#ifdef NAT_DEBUG_SEND
+    fprintf(stderr, "_send(%s)\n", name->c_str());
+#endif
     return value()->_send(env, name, argc, args, block);
 }
 
