@@ -1040,20 +1040,14 @@ Node *Parser::parse_assignment_expression(Env *env, Node *left, LocalsVectorPtr 
         auto left_identifier = static_cast<IdentifierNode *>(left);
         left_identifier->add_to_locals(env, locals);
         advance();
-        return new AssignmentNode {
-            token,
-            left,
-            parse_expression(env, ASSIGNMENT, locals),
-        };
+        auto value = parse_expression(env, ASSIGNMENT, locals);
+        return new AssignmentNode { token, left, value };
     }
     case Node::Type::MultipleAssignment: {
         static_cast<MultipleAssignmentNode *>(left)->add_locals(env, locals);
         advance();
-        return new AssignmentNode {
-            token,
-            left,
-            parse_expression(env, ASSIGNMENT, locals),
-        };
+        auto value = parse_expression(env, ASSIGNMENT, locals);
+        return new AssignmentNode { token, left, value };
     }
     case Node::Type::Call: {
         advance();
