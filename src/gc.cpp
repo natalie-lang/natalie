@@ -15,7 +15,9 @@ void *Cell::operator new(size_t size) {
 }
 
 void Cell::operator delete(void *ptr) {
-    Heap::the().return_cell_to_free_list(static_cast<Cell *>(ptr));
+    // We may need this in the future, but for now, let's just get a big
+    // beautiful abort if anything is trying to delete a GC-allocated object.
+    NAT_UNREACHABLE();
 }
 
 void MarkingVisitor::visit(ValuePtr val) {
