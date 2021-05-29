@@ -9,6 +9,8 @@ using namespace TM;
 
 class Node : public Cell {
 public:
+    NAT_MAKE_NONCOPYABLE(Node);
+
     enum class Type {
         Alias,
         Arg,

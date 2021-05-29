@@ -15,6 +15,8 @@ namespace Natalie {
 
 class Token : public Cell {
 public:
+    NAT_MAKE_NONCOPYABLE(Token);
+
     enum class Type {
         AliasKeyword,
         And,
