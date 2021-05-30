@@ -14,7 +14,9 @@ extern "C" {
 
 class GlobalEnv : public Cell {
 public:
-    virtual ~GlobalEnv() override { }
+    virtual ~GlobalEnv() override {
+        NAT_UNREACHABLE();
+    }
 
     ClassValue *Array() { return m_Array; }
     void set_Array(ClassValue *Array) { m_Array = Array; }

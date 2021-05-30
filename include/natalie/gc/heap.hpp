@@ -93,7 +93,7 @@ private:
                 return *allocator;
             }
         }
-        abort();
+        NAT_UNREACHABLE();
     }
 
     bool is_a_heap_block(HeapBlock *block) {
