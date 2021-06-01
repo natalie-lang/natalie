@@ -30,20 +30,20 @@ Hashmap<Cell *> Heap::gather_conservative_roots() {
     void *dummy;
     void *end_of_stack = &dummy;
 
-    Vector<Cell *> potential_cells;
-
     // step over stack, saving potential pointers
     assert(m_start_of_stack);
     assert(end_of_stack);
     if (m_start_of_stack < end_of_stack) {
         for (char *ptr = reinterpret_cast<char *>(m_start_of_stack); ptr < end_of_stack; ptr += sizeof(intptr_t)) {
             Cell *potential_cell = *reinterpret_cast<Cell **>(ptr);
-            potential_cells.push(potential_cell);
+            if (is_a_heap_cell_in_use(potential_cell))
+                roots.set(potential_cell);
         }
     } else {
         for (char *ptr = reinterpret_cast<char *>(end_of_stack); ptr < m_start_of_stack; ptr += sizeof(intptr_t)) {
             Cell *potential_cell = *reinterpret_cast<Cell **>(ptr);
-            potential_cells.push(potential_cell);
+            if (is_a_heap_cell_in_use(potential_cell))
+                roots.set(potential_cell);
         }
     }
 
@@ -52,11 +52,6 @@ Hashmap<Cell *> Heap::gather_conservative_roots() {
     setjmp(jump_buf);
     for (size_t i = 0; i < sizeof(jump_buf); ++i) {
         Cell *potential_cell = reinterpret_cast<Cell **>(jump_buf)[i];
-        potential_cells.push(potential_cell);
-    }
-
-    // determine which pointers are actual Cells
-    for (auto potential_cell : potential_cells) {
         if (is_a_heap_cell_in_use(potential_cell))
             roots.set(potential_cell);
     }
