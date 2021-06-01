@@ -27,9 +27,11 @@ public:
 
     ProcValue(Env *env, Block *block, ProcType type = ProcType::Proc)
         : Value { Value::Type::Proc, env->Object()->const_fetch(env, SymbolValue::intern(env, "Proc"))->as_class() }
-        , m_block { block }
+        , m_block { new Block(*block) }
         , m_type { type } {
         assert(m_block);
+        m_block->m_env.clear_outer();
+        m_block->m_env.clear_caller();
     }
 
     static ValuePtr from_block_maybe(Env *env, Block *block) {

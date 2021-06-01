@@ -7,6 +7,8 @@
 namespace Natalie {
 
 class Block : public Cell {
+    friend ProcValue;
+
 public:
     Block(Env &env, ValuePtr self, MethodFnPtr fn, int arity)
         : m_fn { fn }

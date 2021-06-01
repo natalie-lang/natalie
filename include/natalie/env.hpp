@@ -98,6 +98,7 @@ public:
     void build_vars(size_t);
 
     Env *outer() { return m_outer; }
+    void clear_outer() { m_outer = nullptr; }
 
     Env *caller() { return m_caller; }
     void set_caller(Env *caller) { m_caller = caller; }
