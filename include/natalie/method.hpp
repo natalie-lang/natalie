@@ -61,7 +61,7 @@ public:
 
     virtual void visit_children(Visitor &visitor) override final {
         visitor.visit(m_owner);
-        visitor.visit(&m_env);
+        m_env.visit_children(visitor); // must call visit_children directly since we own this object
     }
 
     virtual void gc_print() override {

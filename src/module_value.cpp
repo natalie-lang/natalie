@@ -412,7 +412,7 @@ ValuePtr ModuleValue::alias_method(Env *env, ValuePtr new_name_value, ValuePtr o
 
 void ModuleValue::visit_children(Visitor &visitor) {
     Value::visit_children(visitor);
-    visitor.visit(&m_env);
+    m_env.visit_children(visitor); // must call visit_children directly since we own this object
     visitor.visit(m_superclass);
     if (m_class_name)
         visitor.visit(const_cast<String *>(m_class_name.value()));

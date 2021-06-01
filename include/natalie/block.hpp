@@ -31,8 +31,8 @@ public:
     void copy_fn_pointer_to_method(Method *);
 
     virtual void visit_children(Visitor &visitor) override final {
-        visitor.visit(&m_env);
         visitor.visit(m_self);
+        m_env.visit_children(visitor); // must call visit_children directly since we own this object
     }
 
     virtual void gc_print() override {
