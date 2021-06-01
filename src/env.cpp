@@ -12,6 +12,7 @@ Env Env::new_detatched_env(Env *outer) {
 }
 
 void Env::build_vars(size_t size) {
+    assert(!m_is_temp);
     m_vars = new Vector<ValuePtr>(size, nil_obj());
 }
 

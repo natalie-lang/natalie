@@ -44,6 +44,15 @@ public:
 
     static Env new_detatched_env(Env *);
 
+    Env *rebuild_if_temp() {
+        if (m_is_temp) {
+            auto *env = new Env(*this);
+            env->set_is_temp(false);
+            return env;
+        }
+        return this;
+    }
+
     ValuePtr global_get(SymbolValue *);
     ValuePtr global_set(SymbolValue *, ValuePtr);
 
@@ -123,6 +132,9 @@ public:
     bool is_main() { return m_is_main; }
     void set_is_main(bool is_main) { m_is_main = is_main; }
 
+    bool is_temp() { return m_is_temp; }
+    void set_is_temp(bool is_temp) { m_is_temp = is_temp; }
+
     virtual void visit_children(Visitor &visitor) override final;
 
     virtual void gc_print() override {
@@ -140,5 +152,6 @@ private:
     Method *m_method { nullptr };
     ValuePtr m_match { nullptr };
     bool m_is_main { false };
+    bool m_is_temp { false };
 };
 }

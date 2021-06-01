@@ -49,6 +49,7 @@ public:
         e.set_file(env->file());
         e.set_line(env->line());
         e.set_block(block);
+        e.set_is_temp(true);
         return m_fn(&e, self, argc, args, block);
     }
 

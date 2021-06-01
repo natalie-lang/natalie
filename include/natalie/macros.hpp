@@ -64,6 +64,7 @@
 
 #define NAT_CALL_BEGIN(env, self, begin_fn, argc, args, block) ({      \
     Env e { env, env };                                                \
+    e.set_is_temp(true);                                               \
     Natalie::ValuePtr _result = begin_fn(&e, self, argc, args, block); \
     if (_result->has_break_flag()) {                                   \
         return _result;                                                \
