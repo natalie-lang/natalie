@@ -62,6 +62,8 @@ public:
             for (auto token : *m_tokens) {
                 visitor.visit(token);
             }
+        visitor.visit(const_cast<String *>(m_code));
+        visitor.visit(const_cast<String *>(m_file));
     }
 
 private:

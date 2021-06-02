@@ -1172,7 +1172,10 @@ private:
     // the previously-matched token
     Token *m_last_token { nullptr };
 
-    virtual void visit_children(Visitor &) override final {
+    virtual void visit_children(Visitor &visitor) override final {
+        visitor.visit(const_cast<String *>(m_input));
+        visitor.visit(const_cast<String *>(m_file));
+        visitor.visit(m_last_token);
     }
 };
 
