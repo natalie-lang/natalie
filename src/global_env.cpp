@@ -41,9 +41,11 @@ void GlobalEnv::visit_children(Visitor &visitor) {
         visitor.visit(pair.first);
         visitor.visit(pair.second);
     }
+    /*
     for (auto pair : m_symbols) {
         visitor.visit(pair.second);
     }
+    */
     visitor.visit(m_Array);
     visitor.visit(m_Class);
     visitor.visit(m_Hash);

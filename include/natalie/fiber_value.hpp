@@ -68,8 +68,7 @@ public:
     // used for the "main" fiber
     FiberValue(Env *env, void *start_of_stack)
         : Value { Value::Type::Fiber, env->Object()->const_fetch(env, SymbolValue::intern(env, "Fiber"))->as_class() }
-        , m_start_of_stack { start_of_stack }
-        , m_main_fiber { true } {
+        , m_start_of_stack { start_of_stack } {
         assert(m_start_of_stack);
     }
 
@@ -185,7 +184,6 @@ private:
     ::fiber_stack_struct m_fiber {};
     void *m_start_of_stack { nullptr };
     Status m_status { Status::Created };
-    bool m_main_fiber { false };
 };
 
 }

@@ -50,10 +50,11 @@ Hashmap<Cell *> Heap::gather_conservative_roots() {
     // step over any registers, saving potential pointers
     jmp_buf jump_buf;
     setjmp(jump_buf);
-    for (size_t i = 0; i < sizeof(jump_buf); ++i) {
-        Cell *potential_cell = reinterpret_cast<Cell **>(jump_buf)[i];
-        if (is_a_heap_cell_in_use(potential_cell))
+    for (char *i = (char *)jump_buf; i < (char *)jump_buf + sizeof(jump_buf); ++i) {
+        Cell *potential_cell = *reinterpret_cast<Cell **>(i);
+        if (is_a_heap_cell_in_use(potential_cell)) {
             roots.set(potential_cell);
+        }
     }
 
     return roots;
