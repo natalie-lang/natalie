@@ -64,6 +64,16 @@ public:
         m_gc_enabled = false;
     }
 
+    template <typename F>
+    auto with_gc_disabled(F func) {
+        bool was_enabled = m_gc_enabled;
+        m_gc_enabled = false;
+        auto result = func();
+        if (was_enabled)
+            m_gc_enabled = true;
+        return result;
+    }
+
 private:
     static Heap *s_instance;
 

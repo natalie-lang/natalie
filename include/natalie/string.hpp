@@ -137,7 +137,6 @@ public:
 
     void append(const char *str) {
         if (!str) return;
-        if (str == nullptr) return;
         size_t new_length = strlen(str);
         if (new_length == 0) return;
         size_t total_length = m_length + new_length;
@@ -227,7 +226,12 @@ public:
 
     template <typename... Args>
     static String *format(const char *fmt, Args... args) {
-        auto out = new String {};
+        String *out = Heap::the().with_gc_disabled([]() {
+            // FIXME: there is a bug in our GC that causes this allocation
+            // trigger a collection that sweeps the args passed into the
+            // format function. So we'll disable the GC for a sec.
+            return new String {};
+        });
         format(out, fmt, args...);
         return out;
     }
