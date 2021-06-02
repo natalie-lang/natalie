@@ -20,9 +20,11 @@ public:
 
     // NOTE: This should only be called from one of the RUN_BLOCK_* macros!
     ValuePtr _run(Env *env, size_t argc = 0, ValuePtr *args = nullptr, Block *block = nullptr) {
-        Env e = Env { &m_env, env };
-        e.set_is_temp(true);
-        return m_fn(&e, m_self, argc, args, block);
+        auto *e = new Env { &m_env };
+        e->set_caller(env);
+        auto result = m_fn(e, m_self, argc, args, block);
+        e->clear_caller();
+        return result;
     }
 
     int arity() { return m_arity; }

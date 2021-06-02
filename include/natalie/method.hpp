@@ -44,13 +44,15 @@ public:
         } else {
             closure_env = m_owner->env();
         }
-        Env e = Env { closure_env, env };
-        e.set_method(this);
-        e.set_file(env->file());
-        e.set_line(env->line());
-        e.set_block(block);
-        e.set_is_temp(true);
-        return m_fn(&e, self, argc, args, block);
+        auto *e = new Env { closure_env };
+        e->set_caller(env);
+        e->set_method(this);
+        e->set_file(env->file());
+        e->set_line(env->line());
+        e->set_block(block);
+        auto result = m_fn(e, self, argc, args, block);
+        e->clear_caller();
+        return result;
     }
 
     const String *name() { return &m_name; }

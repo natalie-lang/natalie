@@ -641,7 +641,6 @@ module Natalie
       def process_var_alloc(exp)
         count = exp.last
         if count > 0
-          decl "env = env->rebuild_if_temp();"
           decl "env->build_vars(#{count});"
         end
         ''
