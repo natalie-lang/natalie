@@ -204,10 +204,7 @@ extern "C" Value *EVAL(Env *env) {
     }
 }
 
-int main(int argc, char *argv[]) {
-    Heap::the().set_start_of_stack(&argc);
-
-    setvbuf(stdout, nullptr, _IOLBF, 1024);
+ValuePtr _main(int argc, char *argv[]) {
     Env *env = build_top_env();
 
 #ifndef NAT_GC_DISABLE
@@ -224,11 +221,13 @@ int main(int argc, char *argv[]) {
         ARGV->push(new StringValue { env, argv[i] });
     }
 
-    ValuePtr result = EVAL(env);
+    return EVAL(env);
+}
 
-    if (result) {
+int main(int argc, char *argv[]) {
+    Heap::the().set_start_of_stack(&argv);
+    setvbuf(stdout, nullptr, _IOLBF, 1024);
+    if (_main(argc, argv))
         return 0;
-    } else {
-        return 1;
-    }
+    return 1;
 }
