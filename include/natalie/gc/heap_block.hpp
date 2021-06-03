@@ -135,10 +135,17 @@ public:
 private:
     // returns -1 if it's a bad pointer or doesn't belong to this block
     ssize_t index_from_cell(const Cell *cell) const {
+        /* FIXME: would rather use the math, but it's broken
         auto diff = reinterpret_cast<const char *>(cell) - m_memory;
         if (diff % m_cell_size != 0)
             return -1;
         return diff / m_cell_size;
+        */
+        for (size_t i = 0; i < m_total_count; ++i) {
+            if (cell == reinterpret_cast<const Cell *>(m_memory + (i * m_cell_size)))
+                return i;
+        }
+        return -1;
     }
 
     // returns m_total_count if no more cells remain
