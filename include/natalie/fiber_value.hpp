@@ -76,7 +76,8 @@ public:
         : Value { Value::Type::Fiber, klass } { }
 
     ~FiberValue() {
-        int err = munmap(m_start_of_stack, STACK_SIZE);
+        auto low_address = reinterpret_cast<char *>(m_start_of_stack) - STACK_SIZE;
+        int err = munmap(low_address, STACK_SIZE);
         if (err != 0) {
             fprintf(stderr, "unmapping failed (errno=%d)\n", errno);
             abort();
