@@ -46,7 +46,7 @@ public:
     short int free_cells_percentage() {
         if (m_blocks.is_empty())
             return 0;
-        return free_cells() * 100 / total_cells();
+        return m_free_cells * 100 / total_cells();
     }
 
     void *allocate() {
@@ -82,6 +82,17 @@ public:
         }
     }
 
+    void add_multiple_blocks(int count) {
+        for (int i = 0; i < count; ++i)
+            add_heap_block();
+    }
+
+    void add_blocks_until_percent_free_reached(short int desired) {
+        while (free_cells_percentage() < desired)
+            add_heap_block();
+    }
+
+private:
     HeapBlock *add_heap_block() {
         auto *block = reinterpret_cast<HeapBlock *>(aligned_alloc(HEAP_BLOCK_SIZE, HEAP_BLOCK_SIZE));
         new (block) HeapBlock(m_cell_size);
@@ -90,7 +101,6 @@ public:
         return block;
     }
 
-private:
     size_t m_cell_size;
     size_t m_free_cells { 0 };
     Vector<HeapBlock *> m_blocks;

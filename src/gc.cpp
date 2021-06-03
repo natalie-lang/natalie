@@ -126,12 +126,12 @@ void *Heap::allocate(size_t size) {
 #ifdef NAT_GC_DEBUG_ALWAYS_COLLECT
         collect();
 #else
-        auto percent_free = allocator.free_cells_percentage();
-        if (percent_free > 0 && percent_free < 5) {
+
+        if (allocator.total_cells() == 0) {
+            allocator.add_multiple_blocks(initial_blocks_per_allocator);
+        } else if (allocator.free_cells_percentage() < min_percent_free_triggers_collection) {
             collect();
-            percent_free = allocator.free_cells_percentage();
-            if (percent_free < 10)
-                allocator.add_heap_block();
+            allocator.add_blocks_until_percent_free_reached(min_percent_free_after_collection);
         }
 #endif
     }
