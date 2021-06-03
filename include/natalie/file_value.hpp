@@ -52,6 +52,11 @@ public:
         fprintf(stderr, "<FileValue %p>", this);
     }
 
+    virtual void visit_children(Visitor &visitor) override final {
+        Value::visit_children(visitor);
+        visitor.visit(const_cast<String *>(m_path));
+    }
+
 private:
     const String *m_path { nullptr };
 };

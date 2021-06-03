@@ -110,8 +110,15 @@ void Heap::sweep() {
         for (auto block : *allocator) {
             for (auto cell : *block) {
                 if (!cell->is_marked() && cell->is_collectible()) {
-                    //cell->gc_print();
-                    //fprintf(stderr, "\n");
+#ifdef NAT_GC_FIND_BUGS_PRINT_COLLECTED_CELLS
+                    cell->gc_print();
+                    fprintf(stderr, "\n");
+#endif
+#ifdef NAT_GC_FIND_BUGS_WRITE_BACKTRACE_FILES
+                    char path[100];
+                    snprintf(path, 100, "/tmp/collect_%p.txt", cell);
+                    write_backtrace_to_file(path);
+#endif
                     block->return_cell_to_free_list(cell);
                 }
             }
