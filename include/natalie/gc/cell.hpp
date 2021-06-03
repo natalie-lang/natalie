@@ -50,6 +50,10 @@ public:
         m_marked = false;
     }
 
+#ifdef NAT_GC_FIND_BUGS
+    bool m_collected { false };
+#endif
+
 private:
     bool m_marked { false };
 };

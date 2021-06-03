@@ -90,6 +90,9 @@ void Natalie::FiberValue::visit_children(Visitor &visitor) {
     for (char *ptr = start - STACK_SIZE; ptr < start; ptr += sizeof(intptr_t)) {
         Cell *potential_cell = *reinterpret_cast<Cell **>(ptr);
         if (Heap::the().is_a_heap_cell_in_use(potential_cell)) {
+#ifdef NAT_GC_FIND_BUGS
+            if (potential_cell->m_collected) continue;
+#endif
             visitor.visit(potential_cell);
         }
     }

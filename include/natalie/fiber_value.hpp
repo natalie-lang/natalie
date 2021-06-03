@@ -180,6 +180,15 @@ public:
         return false;
     }
 
+    virtual void gc_print() override {
+        fprintf(
+            stderr,
+            "<FiberValue %p stack=%p..%p>",
+            this,
+            reinterpret_cast<char *>(m_start_of_stack) - STACK_SIZE,
+            m_start_of_stack);
+    }
+
 private:
     Block *m_block { nullptr };
     ::fiber_stack_struct m_fiber {};

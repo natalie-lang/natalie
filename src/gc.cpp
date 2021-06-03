@@ -1,5 +1,10 @@
 #include "natalie.hpp"
 
+#ifdef NAT_GC_FIND_BUGS
+#include <execinfo.h>
+#include <fcntl.h>
+#endif
+
 extern "C" void GC_disable() {
     Natalie::Heap::the().gc_disable();
 }
@@ -11,6 +16,19 @@ Heap *Heap::s_instance = nullptr;
 void *Cell::operator new(size_t size) {
     auto *cell = Heap::the().allocate(size);
     assert(cell);
+#ifdef NAT_GC_FIND_BUGS_WRITE_GENESIS_FILES
+    void *array[1000];
+    size_t bt_size = backtrace(array, 1000);
+    char bt_name[100];
+    snprintf(bt_name, 100, "/tmp/%p.txt", cell);
+    auto fd = open(bt_name, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+    if (fd == -1) {
+        printf("error opening %s\n", bt_name);
+    } else {
+        backtrace_symbols_fd(array, bt_size, fd);
+        close(fd);
+    }
+#endif
     return cell;
 }
 
@@ -42,8 +60,12 @@ Hashmap<Cell *> Heap::gather_conservative_roots() {
     } else {
         for (char *ptr = reinterpret_cast<char *>(end_of_stack); ptr < m_start_of_stack; ptr += sizeof(intptr_t)) {
             Cell *potential_cell = *reinterpret_cast<Cell **>(ptr);
-            if (is_a_heap_cell_in_use(potential_cell))
+            if (is_a_heap_cell_in_use(potential_cell)) {
+#ifdef NAT_GC_FIND_BUGS
+                if (potential_cell->m_collected) continue;
+#endif
                 roots.set(potential_cell);
+            }
         }
     }
 
