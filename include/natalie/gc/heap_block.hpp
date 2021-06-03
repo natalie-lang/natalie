@@ -87,14 +87,14 @@ public:
         }
 
         iterator operator++() {
-            m_index = m_block->next_free_index_from(m_index + 1);
+            m_index = m_block->next_used_index_from(m_index + 1);
             m_ptr = m_block->cell_from_index(m_index);
             return *this;
         }
 
         iterator operator++(int _) {
             iterator i = *this;
-            m_index = m_block->next_free_index_from(m_index + 1);
+            m_index = m_block->next_used_index_from(m_index + 1);
             m_ptr = m_block->cell_from_index(m_index);
             return i;
         }
@@ -118,7 +118,7 @@ public:
     };
 
     iterator begin() {
-        auto index = next_free_index_from(0);
+        auto index = next_used_index_from(0);
         return iterator { this, index };
     }
 
@@ -142,7 +142,7 @@ private:
     }
 
     // returns m_total_count if no more cells remain
-    size_t next_free_index_from(size_t index) {
+    size_t next_used_index_from(size_t index) {
         while (index < m_total_count) {
             if (m_used_map[index])
                 break;
