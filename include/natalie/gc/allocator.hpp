@@ -82,7 +82,6 @@ public:
         }
     }
 
-private:
     HeapBlock *add_heap_block() {
         auto *block = reinterpret_cast<HeapBlock *>(aligned_alloc(HEAP_BLOCK_SIZE, HEAP_BLOCK_SIZE));
         new (block) HeapBlock(m_cell_size);
@@ -91,6 +90,7 @@ private:
         return block;
     }
 
+private:
     size_t m_cell_size;
     size_t m_free_cells { 0 };
     Vector<HeapBlock *> m_blocks;

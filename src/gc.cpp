@@ -123,7 +123,17 @@ void *Heap::allocate(size_t size) {
     auto &allocator = find_allocator_of_size(size);
 
     if (m_gc_enabled) {
-        //collect();
+#ifdef NAT_GC_DEBUG_ALWAYS_COLLECT
+        collect();
+#else
+        auto percent_free = allocator.free_cells_percentage();
+        if (percent_free > 0 && percent_free < 5) {
+            collect();
+            percent_free = allocator.free_cells_percentage();
+            if (percent_free < 10)
+                allocator.add_heap_block();
+        }
+#endif
     }
 
     return allocator.allocate();

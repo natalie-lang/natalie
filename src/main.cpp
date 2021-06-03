@@ -194,9 +194,6 @@ extern "C" Value *EVAL(Env *env) {
         /*NAT_EVAL_BODY*/
         run_exit_handlers = false;
         run_at_exit_handlers(env);
-
-        Heap::the().collect();
-
         return env->nil_obj(); // just in case there's no return value
     } catch (ExceptionValue *exception) {
         handle_top_level_exception(env, exception, run_exit_handlers);
