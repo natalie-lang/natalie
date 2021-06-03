@@ -39,11 +39,7 @@ public:
         m_start_of_stack = start_of_stack;
     }
 
-    void return_cell_to_free_list(Cell *cell) {
-        auto *block = HeapBlock::from_cell(cell);
-        assert(is_a_heap_block(block));
-        block->return_cell_to_free_list(cell);
-    }
+    void return_cell_to_free_list(Cell *cell);
 
     bool is_a_heap_cell_in_use(Cell *potential_cell) {
         auto potential_block = HeapBlock::from_cell(potential_cell);
