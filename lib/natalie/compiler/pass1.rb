@@ -424,7 +424,7 @@ module Natalie
                     assign_args,
                     block_arg || s(:block),
                     process(s(:block, *body)))),
-        s(:declare_block, block, s(:new, :Block, s(:l, "*env"), :self, block_fn, arity)),
+        s(:declare_block, block, s(:new, :Block, :env, :self, block_fn, arity)),
         call)
       end
 

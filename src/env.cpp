@@ -7,8 +7,8 @@ namespace Natalie {
 
 using namespace TM;
 
-Env Env::new_detatched_env(Env *outer) {
-    return Env { outer->global_env() };
+Env *Env::new_detatched_env(Env *outer) {
+    return new Env { outer->global_env() };
 }
 
 void Env::build_vars(size_t size) {

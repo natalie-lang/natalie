@@ -23,16 +23,16 @@ public:
         : m_name { name }
         , m_owner { owner }
         , m_arity { block->arity() }
-        , m_env { *block->env() }
+        , m_env { block->env() }
         , m_visibility { visibility } {
         block->copy_fn_pointer_to_method(this);
-        m_env.clear_caller();
+        m_env->clear_caller();
     }
 
     void set_fn(MethodFnPtr fn) { m_fn = fn; }
 
-    Env *env() { return &m_env; }
-    bool has_env() { return !!m_env.global_env(); }
+    bool has_env() { return !!m_env; }
+    Env *env() { return m_env; }
 
     bool is_undefined() { return m_undefined; }
 
@@ -64,7 +64,7 @@ public:
 
     virtual void visit_children(Visitor &visitor) override final {
         visitor.visit(m_owner);
-        m_env.visit_children(visitor); // must call visit_children directly since we own this object
+        visitor.visit(m_env);
     }
 
     virtual void gc_print() override {
@@ -76,7 +76,7 @@ private:
     ModuleValue *m_owner;
     MethodFnPtr m_fn;
     int m_arity { 0 };
-    Env m_env {};
+    Env *m_env { nullptr };
     bool m_undefined { false };
     MethodVisibility m_visibility { MethodVisibility::Public };
 };

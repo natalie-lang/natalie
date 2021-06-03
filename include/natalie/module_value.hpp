@@ -119,7 +119,8 @@ public:
         return other->is_a(env, this);
     }
 
-    Env *env() { return &m_env; }
+    bool has_env() { return !!m_env; }
+    Env *env() { return m_env; }
 
     virtual void visit_children(Visitor &) override final;
 
@@ -128,7 +129,7 @@ public:
     }
 
 protected:
-    Env m_env {};
+    Env *m_env { nullptr };
     Hashmap<SymbolValue *, Value *> m_constants {};
     Optional<const String *> m_class_name {};
     ClassValue *m_superclass { nullptr };

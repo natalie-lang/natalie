@@ -36,7 +36,7 @@ public:
         m_global_env = outer.global_env();
     }
 
-    static Env new_detatched_env(Env *);
+    static Env *new_detatched_env(Env *);
 
     ValuePtr global_get(SymbolValue *);
     ValuePtr global_set(SymbolValue *, ValuePtr);
