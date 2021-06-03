@@ -206,6 +206,7 @@ extern "C" Value *EVAL(Env *env) {
 
 ValuePtr _main(int argc, char *argv[]) {
     Env *env = build_top_env();
+    env->global_env()->main_fiber(env);
 
 #ifndef NAT_GC_DISABLE
     Heap::the().gc_enable();
