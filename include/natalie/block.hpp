@@ -13,7 +13,7 @@ public:
     Block(Env *env, ValuePtr self, MethodFnPtr fn, int arity)
         : m_fn { fn }
         , m_arity { arity }
-        , m_env { env }
+        , m_env { new Env(*env) }
         , m_self { self } {
         m_env->clear_caller();
     }
