@@ -43,6 +43,7 @@ ValuePtr FiberValue::yield(Env *env, size_t argc, ValuePtr *args) {
     env->global_env()->reset_current_fiber();
     env->global_env()->set_fiber_args(argc, args);
     Heap::the().set_start_of_stack(main_fiber->start_of_stack());
+    current_fiber->m_end_of_stack = &args; // TODO: do this in the ASM
     fiber_asm_switch(main_fiber->fiber(), current_fiber->fiber(), 0, env, main_fiber);
     argc = env->global_env()->fiber_argc();
     args = env->global_env()->fiber_args();
@@ -80,14 +81,17 @@ void fiber_wrapper_func(Natalie::Env *env, Natalie::FiberValue *fiber) {
     env->global_env()->set_fiber_args(1, return_args);
     auto main_fiber = env->global_env()->main_fiber(env);
     Natalie::Heap::the().set_start_of_stack(main_fiber->start_of_stack());
+    fiber->set_end_of_stack(&fiber); // TODO: do this in the ASM
     fiber_asm_switch(main_fiber->fiber(), fiber->fiber(), 0, env, fiber);
 }
 
 void Natalie::FiberValue::visit_children(Visitor &visitor) {
     Value::visit_children(visitor);
     visitor.visit(m_block);
-    auto start = reinterpret_cast<char *>(m_start_of_stack);
-    for (char *ptr = start - STACK_SIZE; ptr < start; ptr += sizeof(intptr_t)) {
+    if (m_start_of_stack == Heap::the().start_of_stack())
+        return; // this is the currently active fiber, so don't walk its stack a second time
+    assert(m_end_of_stack);
+    for (char *ptr = reinterpret_cast<char *>(m_end_of_stack); ptr < m_start_of_stack; ptr += sizeof(intptr_t)) {
         Cell *potential_cell = *reinterpret_cast<Cell **>(ptr);
         if (Heap::the().is_a_heap_cell_in_use(potential_cell)) {
 #ifdef NAT_GC_FIND_BUGS

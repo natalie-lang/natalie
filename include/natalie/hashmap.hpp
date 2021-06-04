@@ -294,8 +294,7 @@ public:
     }
 
     void set(KeyT key) {
-        auto fake_value = reinterpret_cast<void *>(1);
-        hashmap_put(&m_map, key, fake_value, nullptr);
+        hashmap_put(&m_map, key, this, nullptr);
     }
 
     void put(KeyT key, T val, Env *env = nullptr) {

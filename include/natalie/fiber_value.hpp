@@ -76,8 +76,7 @@ public:
         : Value { Value::Type::Fiber, klass } { }
 
     ~FiberValue() {
-        auto low_address = reinterpret_cast<char *>(m_start_of_stack) - STACK_SIZE;
-        int err = munmap(low_address, STACK_SIZE);
+        int err = munmap(m_start_of_stack, STACK_SIZE);
         if (err != 0) {
             fprintf(stderr, "unmapping failed (errno=%d)\n", errno);
             abort();
@@ -105,8 +104,8 @@ public:
 #else
         auto mmap_flags = MAP_PRIVATE | MAP_ANONYMOUS;
 #endif
-        auto low_address = mmap(nullptr, stack_size, PROT_READ | PROT_WRITE, mmap_flags, -1, 0);
-        if (low_address == MAP_FAILED) {
+        auto mapped_memory = mmap(nullptr, stack_size, PROT_READ | PROT_WRITE, mmap_flags, -1, 0);
+        if (mapped_memory == MAP_FAILED) {
             fprintf(stderr, "mapping failed (errno=%d)\n", errno);
             abort();
         }
@@ -115,7 +114,7 @@ public:
         void *comparison_ptr = &stack_size;
         assert(comparison_ptr < Heap::the().start_of_stack());
 
-        m_start_of_stack = reinterpret_cast<char *>(low_address) + stack_size;
+        m_start_of_stack = reinterpret_cast<char *>(mapped_memory) + stack_size;
         m_fiber.stack = reinterpret_cast<void **>(m_start_of_stack);
 #ifdef __APPLE__
         assert((uintptr_t)m_fiber.stack % 16 == 0);
@@ -141,6 +140,7 @@ public:
 
         // NOTE: *no* allocations can happen between these next two lines
         Heap::the().set_start_of_stack(m_start_of_stack);
+        main_fiber->m_end_of_stack = &args;
         fiber_asm_switch(fiber(), main_fiber->fiber(), 0, env, this);
 
         argc = env->global_env()->fiber_argc();
@@ -159,6 +159,7 @@ public:
     fiber_stack_struct *fiber() { return &m_fiber; }
     Block *block() { return m_block; }
     void set_status(Status status) { m_status = status; }
+    void set_end_of_stack(void *ptr) { m_end_of_stack = ptr; }
 
     SymbolValue *status(Env *env) {
         switch (m_status) {
@@ -185,14 +186,15 @@ public:
             stderr,
             "<FiberValue %p stack=%p..%p>",
             this,
-            reinterpret_cast<char *>(m_start_of_stack) - STACK_SIZE,
-            m_start_of_stack);
+            m_start_of_stack,
+            reinterpret_cast<char *>(m_start_of_stack) + STACK_SIZE);
     }
 
 private:
     Block *m_block { nullptr };
     ::fiber_stack_struct m_fiber {};
     void *m_start_of_stack { nullptr };
+    void *m_end_of_stack { nullptr };
     Status m_status { Status::Created };
 };
 

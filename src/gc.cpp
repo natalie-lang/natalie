@@ -57,21 +57,14 @@ Hashmap<Cell *> Heap::gather_conservative_roots() {
     // step over stack, saving potential pointers
     assert(m_start_of_stack);
     assert(end_of_stack);
-    if (m_start_of_stack < end_of_stack) {
-        for (char *ptr = reinterpret_cast<char *>(m_start_of_stack); ptr < end_of_stack; ptr += sizeof(intptr_t)) {
-            Cell *potential_cell = *reinterpret_cast<Cell **>(ptr);
-            if (is_a_heap_cell_in_use(potential_cell))
-                roots.set(potential_cell);
-        }
-    } else {
-        for (char *ptr = reinterpret_cast<char *>(end_of_stack); ptr < m_start_of_stack; ptr += sizeof(intptr_t)) {
-            Cell *potential_cell = *reinterpret_cast<Cell **>(ptr);
-            if (is_a_heap_cell_in_use(potential_cell)) {
+    assert(m_start_of_stack > end_of_stack);
+    for (char *ptr = reinterpret_cast<char *>(end_of_stack); ptr < m_start_of_stack; ptr += sizeof(intptr_t)) {
+        Cell *potential_cell = *reinterpret_cast<Cell **>(ptr);
+        if (is_a_heap_cell_in_use(potential_cell)) {
 #ifdef NAT_GC_FIND_BUGS
-                if (potential_cell->m_collected) continue;
+            if (potential_cell->m_collected) continue;
 #endif
-                roots.set(potential_cell);
-            }
+            roots.set(potential_cell);
         }
     }
 
@@ -81,6 +74,9 @@ Hashmap<Cell *> Heap::gather_conservative_roots() {
     for (char *i = (char *)jump_buf; i < (char *)jump_buf + sizeof(jump_buf); ++i) {
         Cell *potential_cell = *reinterpret_cast<Cell **>(i);
         if (is_a_heap_cell_in_use(potential_cell)) {
+#ifdef NAT_GC_FIND_BUGS
+            if (potential_cell->m_collected) continue;
+#endif
             roots.set(potential_cell);
         }
     }
