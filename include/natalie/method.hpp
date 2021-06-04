@@ -26,6 +26,7 @@ public:
         , m_env { block->env() }
         , m_visibility { visibility } {
         block->copy_fn_pointer_to_method(this);
+        assert(m_env);
         m_env->clear_caller();
     }
 
