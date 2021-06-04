@@ -31,11 +31,6 @@ public:
 
     virtual ~Env() override { }
 
-    // no outer env
-    void init_detached(Env &outer) {
-        m_global_env = outer.global_env();
-    }
-
     static Env *new_detatched_env(Env *);
 
     ValuePtr global_get(SymbolValue *);
