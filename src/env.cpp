@@ -55,7 +55,7 @@ void Env::raise(ClassValue *klass, class String *message) {
     this->raise_exception(exception);
 }
 
-void Env::raise(const char *class_name, class String *message) {
+void Env::raise(const char *class_name, const class String *message) {
     ClassValue *klass = Object()->const_fetch(this, SymbolValue::intern(this, class_name))->as_class();
     ExceptionValue *exception = new ExceptionValue { this, klass, new StringValue { this, *message } };
     this->raise_exception(exception);

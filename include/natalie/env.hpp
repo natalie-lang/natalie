@@ -44,7 +44,7 @@ public:
 
     [[noreturn]] void raise(ClassValue *, StringValue *);
     [[noreturn]] void raise(ClassValue *, String *);
-    [[noreturn]] void raise(const char *, String *);
+    [[noreturn]] void raise(const char *, const String *);
     [[noreturn]] void raise_exception(ExceptionValue *);
     [[noreturn]] void raise_local_jump_error(ValuePtr, const char *);
     [[noreturn]] void raise_errno();

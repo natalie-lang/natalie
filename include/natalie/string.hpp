@@ -226,8 +226,7 @@ public:
 
     template <typename... Args>
     static String *format(const char *fmt, Args... args) {
-        // FIXME: GC bug requires delaying collection here (not sure why; need to revisit)
-        String *out = new (AllocationStrategy::DelayCollection) String {};
+        String *out = new String {};
         format(out, fmt, args...);
         return out;
     }

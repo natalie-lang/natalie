@@ -215,7 +215,7 @@ public:
     void assert_type(Env *, Value::Type, const char *);
     void assert_not_frozen(Env *);
 
-    const char *inspect_str(Env *);
+    const String *inspect_str(Env *);
 
     ValuePtr enum_for(Env *env, const char *method, size_t argc = 0, ValuePtr *args = nullptr);
 

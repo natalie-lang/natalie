@@ -693,6 +693,10 @@ void StringValue::append(Env *, const StringValue *str) {
     m_string.append(str->c_str());
 }
 
+void StringValue::append(Env *, const String *str) {
+    m_string.append(str->c_str());
+}
+
 void StringValue::append(Env *env, ValuePtr val) {
     if (val->is_string())
         append(env, val->as_string()->c_str());

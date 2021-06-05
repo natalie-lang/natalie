@@ -587,7 +587,6 @@ ValuePtr MultipleAssignmentNode::to_ruby(Env *env) {
             sexp->push(node->to_ruby(env));
             break;
         default:
-            printf("node = %s\n", node->to_ruby(env)->inspect_str(env));
             NAT_NOT_YET_IMPLEMENTED(); // maybe not needed?
         }
     }

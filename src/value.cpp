@@ -566,8 +566,8 @@ void Value::assert_not_frozen(Env *env) {
     }
 }
 
-const char *Value::inspect_str(Env *env) {
-    return _send(env, "inspect")->as_string()->c_str();
+const String *Value::inspect_str(Env *env) {
+    return _send(env, "inspect")->as_string()->to_string();
 }
 
 ValuePtr Value::enum_for(Env *env, const char *method, size_t argc, ValuePtr *args) {

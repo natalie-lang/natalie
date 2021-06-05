@@ -4,7 +4,8 @@ namespace Natalie {
 
 Node *Parser::parse_expression(Env *env, Parser::Precedence precedence, LocalsVectorPtr locals) {
 #ifdef NAT_DEBUG_PARSER
-    printf("entering parse_expression with precedence = %d, current token = %s\n", precedence, current_token()->to_ruby(env)->inspect_str(env));
+    auto token_str = current_token()->to_ruby(env)->inspect_str(env);
+    printf("entering parse_expression with precedence = %d, current token = %s\n", precedence, token_str->c_str());
 #endif
     skip_newlines();
 
@@ -17,7 +18,8 @@ Node *Parser::parse_expression(Env *env, Parser::Precedence precedence, LocalsVe
 
     while (current_token()->is_valid() && higher_precedence(current_token(), left, precedence)) {
 #ifdef NAT_DEBUG_PARSER
-        printf("while loop: current token = %s\n", current_token()->to_ruby(env)->inspect_str(env));
+        token_str = current_token()->to_ruby(env)->inspect_str(env);
+        printf("while loop: current token = %s\n", token_str->c_str());
 #endif
         auto left_fn = left_denotation(current_token(), left);
         if (!left_fn)

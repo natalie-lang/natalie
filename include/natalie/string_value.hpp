@@ -74,6 +74,7 @@ public:
     void append_char(Env *, char);
     void append(Env *, const char *);
     void append(Env *, const StringValue *);
+    void append(Env *, const String *);
     void append(Env *, ValuePtr);
 
     char *next_char(Env *, char *, size_t *);
