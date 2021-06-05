@@ -59,8 +59,8 @@ public:
 
     virtual void visit_children(Visitor &visitor) override {
         visitor.visit(m_tokens);
-        visitor.visit(const_cast<String *>(m_code));
-        visitor.visit(const_cast<String *>(m_file));
+        visitor.visit(m_code);
+        visitor.visit(m_file);
     }
 
 private:

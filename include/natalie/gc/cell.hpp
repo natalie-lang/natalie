@@ -23,6 +23,7 @@ public:
     class Visitor {
     public:
         virtual void visit(Cell *) = 0;
+        virtual void visit(const Cell *) = 0;
         virtual void visit(ValuePtr) = 0;
     };
 

@@ -701,8 +701,8 @@ public:
 
     virtual void visit_children(Visitor &visitor) override final {
         if (m_literal)
-            visitor.visit(const_cast<String *>(m_literal.value()));
-        visitor.visit(const_cast<String *>(m_file));
+            visitor.visit(m_literal.value());
+        visitor.visit(m_file);
     }
 
 private:

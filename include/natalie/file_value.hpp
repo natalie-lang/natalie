@@ -54,7 +54,7 @@ public:
 
     virtual void visit_children(Visitor &visitor) override final {
         Value::visit_children(visitor);
-        visitor.visit(const_cast<String *>(m_path));
+        visitor.visit(m_path);
     }
 
 private:

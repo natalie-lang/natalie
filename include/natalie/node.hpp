@@ -173,7 +173,7 @@ public:
 
     virtual void visit_children(Visitor &visitor) override {
         Node::visit_children(visitor);
-        visitor.visit(const_cast<String *>(m_name));
+        visitor.visit(m_name);
         visitor.visit(m_value);
     }
 
@@ -423,7 +423,7 @@ public:
     virtual void visit_children(Visitor &visitor) override {
         NodeWithArgs::visit_children(visitor);
         visitor.visit(m_receiver);
-        visitor.visit(const_cast<String *>(m_message));
+        visitor.visit(m_message);
     }
 
 protected:
@@ -556,7 +556,7 @@ public:
     virtual void visit_children(Visitor &visitor) override {
         Node::visit_children(visitor);
         visitor.visit(m_left);
-        visitor.visit(const_cast<String *>(m_name));
+        visitor.visit(m_name);
     }
 
 protected:
@@ -578,7 +578,7 @@ public:
 
     virtual void visit_children(Visitor &visitor) override {
         Node::visit_children(visitor);
-        visitor.visit(const_cast<String *>(m_name));
+        visitor.visit(m_name);
     }
 
 protected:
@@ -1125,7 +1125,7 @@ public:
 
     virtual void visit_children(Visitor &visitor) override {
         Node::visit_children(visitor);
-        visitor.visit(const_cast<String *>(m_op));
+        visitor.visit(m_op);
         visitor.visit(m_name);
         visitor.visit(m_value);
     }
@@ -1156,9 +1156,9 @@ public:
 
     virtual void visit_children(Visitor &visitor) override {
         NodeWithArgs::visit_children(visitor);
-        visitor.visit(const_cast<String *>(m_op));
+        visitor.visit(m_op);
         visitor.visit(m_receiver);
-        visitor.visit(const_cast<String *>(m_message));
+        visitor.visit(m_message);
         visitor.visit(m_value);
     }
 

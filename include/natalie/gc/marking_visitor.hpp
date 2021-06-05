@@ -32,6 +32,10 @@ public:
 #endif
     }
 
+    virtual void visit(const Cell *cell) override final {
+        visit(const_cast<Cell *>(cell));
+    }
+
     virtual void visit(ValuePtr val) override final;
 
 private:

@@ -1174,8 +1174,8 @@ private:
     Token *m_last_token { nullptr };
 
     virtual void visit_children(Visitor &visitor) override final {
-        visitor.visit(const_cast<String *>(m_input));
-        visitor.visit(const_cast<String *>(m_file));
+        visitor.visit(m_input);
+        visitor.visit(m_file);
         visitor.visit(m_last_token);
     }
 };
