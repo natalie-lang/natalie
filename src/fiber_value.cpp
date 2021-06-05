@@ -90,7 +90,10 @@ void Natalie::FiberValue::visit_children(Visitor &visitor) {
     visitor.visit(m_block);
     if (m_start_of_stack == Heap::the().start_of_stack())
         return; // this is the currently active fiber, so don't walk its stack a second time
-    assert(m_end_of_stack);
+    if (!m_end_of_stack) {
+        assert(m_status == Status::Created);
+        return; // this fiber hasn't been started yet, so the stack shouldn't have anything on it
+    }
     for (char *ptr = reinterpret_cast<char *>(m_end_of_stack); ptr < m_start_of_stack; ptr += sizeof(intptr_t)) {
         Cell *potential_cell = *reinterpret_cast<Cell **>(ptr);
         if (Heap::the().is_a_heap_cell_in_use(potential_cell)) {
