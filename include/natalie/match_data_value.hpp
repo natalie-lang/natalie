@@ -44,6 +44,11 @@ public:
         fprintf(stderr, "<MatchDataValue %p>", this);
     }
 
+    virtual void visit_children(Visitor &visitor) override final {
+        Value::visit_children(visitor);
+        visitor.visit(m_string);
+    }
+
 private:
     OnigRegion *m_region { nullptr };
     const StringValue *m_string { nullptr };
