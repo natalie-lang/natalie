@@ -140,34 +140,18 @@ module Natalie
     end
 
     def compiler_command
-      if clang?
-        [
-          cc,
-          build_flags,
-          (shared? ? '-fPIC -shared' : ''),
-          inc_paths,
-          "-o #{out_path}",
-          "#{BUILD_DIR}/libnatalie.a",
-          LIB_PATHS.map { |path| "-L #{path}" }.join(' '),
-          libraries.join(' '),
-          "-x c++ -std=c++17",
-          (@c_path || 'code.cpp'),
-          link_flags,
-        ].map(&:to_s).join(' ')
-      else
-        [
-          cc,
-          build_flags,
-          (shared? ? '-fPIC -shared' : ''),
-          inc_paths,
-          "-o #{out_path}",
-          "-x c++ -std=c++17",
-          (@c_path || 'code.cpp'),
-          LIB_PATHS.map { |path| "-L #{path}" }.join(' '),
-          libraries.join(' '),
-          link_flags,
-        ].map(&:to_s).join(' ')
-      end
+      [
+        cc,
+        build_flags,
+        (shared? ? '-fPIC -shared' : ''),
+        inc_paths,
+        "-o #{out_path}",
+        "-x c++ -std=c++17",
+        (@c_path || 'code.cpp'),
+        LIB_PATHS.map { |path| "-L #{path}" }.join(' '),
+        libraries.join(' '),
+        link_flags,
+      ].map(&:to_s).join(' ')
     end
 
     private

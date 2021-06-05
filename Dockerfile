@@ -12,6 +12,8 @@ RUN bundle install
 
 ARG CC=gcc
 ENV CC=$CC
+ARG CXX=g++
+ENV CXX=$CXX
 
 COPY ext /natalie/ext
 COPY CMakeLists.txt /natalie/CMakeLists.txt
