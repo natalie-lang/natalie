@@ -1,6 +1,7 @@
 #pragma once
 
 #include "natalie/gc.hpp"
+#include "natalie/managed_vector.hpp"
 #include "natalie/token.hpp"
 
 namespace Natalie {
@@ -14,7 +15,7 @@ public:
         assert(m_input);
     }
 
-    Vector<Token *> *tokens();
+    ManagedVector<Token *> *tokens();
 
     Token *next_token() {
         m_whitespace_precedes = skip_whitespace();
@@ -1188,8 +1189,8 @@ public:
         , m_column { token->column() }
         , m_size { strlen(token->literal()) } { }
 
-    Vector<Token *> *tokens() {
-        auto tokens = new Vector<Token *> {};
+    ManagedVector<Token *> *tokens() {
+        auto tokens = new ManagedVector<Token *> {};
         auto raw = new String();
         while (m_index < m_size) {
             char c = current_char();

@@ -4,8 +4,8 @@
 
 namespace Natalie {
 
-Vector<Token *> *Lexer::tokens() {
-    auto tokens = new Vector<Token *> {};
+ManagedVector<Token *> *Lexer::tokens() {
+    auto tokens = new ManagedVector<Token *> {};
     bool skip_next_newline = false;
     for (;;) {
         auto token = next_token();

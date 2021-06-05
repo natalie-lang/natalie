@@ -358,10 +358,7 @@ void DefNode::visit_children(Visitor &visitor) {
     visitor.visit(m_self_node);
     visitor.visit(m_name);
     visitor.visit(m_body);
-    if (m_args)
-        for (auto arg : *m_args) {
-            visitor.visit(arg);
-        }
+    visitor.visit(m_args);
 }
 
 ValuePtr EvaluateToStringNode::to_ruby(Env *env) {
@@ -597,7 +594,7 @@ ValuePtr MultipleAssignmentNode::to_ruby(Env *env) {
     return sexp;
 }
 
-void MultipleAssignmentNode::add_locals(Env *env, Vector<SymbolValue *> *locals) {
+void MultipleAssignmentNode::add_locals(Env *env, ManagedVector<SymbolValue *> *locals) {
     for (auto node : m_nodes) {
         switch (node->type()) {
         case Node::Type::Identifier: {

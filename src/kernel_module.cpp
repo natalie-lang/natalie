@@ -266,7 +266,6 @@ ValuePtr KernelModule::sleep(Env *env, ValuePtr length) {
 
 ValuePtr KernelModule::spawn(Env *env, size_t argc, ValuePtr *args) {
     pid_t pid;
-    auto command = new Vector<const char *> {};
     char *cmd[argc + 1];
     for (size_t i = 0; i < argc; i++) {
         auto arg = args[i];

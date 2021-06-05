@@ -1,6 +1,7 @@
 #pragma once
 
 #include "natalie/gc.hpp"
+#include "natalie/managed_vector.hpp"
 #include "natalie/token.hpp"
 
 namespace Natalie {
@@ -166,7 +167,7 @@ public:
     Node *value() { return m_value; }
     void set_value(Node *value) { m_value = value; }
 
-    void add_to_locals(Env *env, Vector<SymbolValue *> *locals) {
+    void add_to_locals(Env *env, ManagedVector<SymbolValue *> *locals) {
         locals->push(SymbolValue::intern(env, m_name));
     }
 
@@ -640,14 +641,14 @@ protected:
 
 class DefNode : public Node {
 public:
-    DefNode(Token *token, Node *self_node, IdentifierNode *name, Vector<Node *> *args, BlockNode *body)
+    DefNode(Token *token, Node *self_node, IdentifierNode *name, ManagedVector<Node *> *args, BlockNode *body)
         : Node { token }
         , m_self_node { self_node }
         , m_name { name }
         , m_args { args }
         , m_body { body } { }
 
-    DefNode(Token *token, IdentifierNode *name, Vector<Node *> *args, BlockNode *body)
+    DefNode(Token *token, IdentifierNode *name, ManagedVector<Node *> *args, BlockNode *body)
         : Node { token }
         , m_name { name }
         , m_args { args }
@@ -664,7 +665,7 @@ protected:
 
     Node *m_self_node { nullptr };
     IdentifierNode *m_name { nullptr };
-    Vector<Node *> *m_args { nullptr };
+    ManagedVector<Node *> *m_args { nullptr };
     BlockNode *m_body { nullptr };
 };
 
@@ -798,7 +799,7 @@ public:
         return SymbolValue::intern(env, name());
     }
 
-    void add_to_locals(Env *env, Vector<SymbolValue *> *locals) {
+    void add_to_locals(Env *env, ManagedVector<SymbolValue *> *locals) {
         if (token_type() == Token::Type::BareName)
             locals->push(to_symbol(env));
     }
@@ -838,7 +839,7 @@ protected:
 
 class IterNode : public Node {
 public:
-    IterNode(Token *token, Node *call, Vector<Node *> *args, BlockNode *body)
+    IterNode(Token *token, Node *call, ManagedVector<Node *> *args, BlockNode *body)
         : Node { token }
         , m_call { call }
         , m_args { args }
@@ -856,17 +857,14 @@ public:
         Node::visit_children(visitor);
         visitor.visit(m_call);
         visitor.visit(m_body);
-        if (m_args)
-            for (auto arg : *m_args) {
-                visitor.visit(arg);
-            }
+        visitor.visit(m_args);
     }
 
 protected:
     SexpValue *build_args_sexp(Env *);
 
     Node *m_call { nullptr };
-    Vector<Node *> *m_args { nullptr };
+    ManagedVector<Node *> *m_args { nullptr };
     BlockNode *m_body { nullptr };
 };
 
@@ -1038,7 +1036,7 @@ public:
     virtual ValuePtr to_ruby(Env *) override;
     ArrayValue *to_ruby_with_array(Env *);
 
-    void add_locals(Env *, Vector<SymbolValue *> *);
+    void add_locals(Env *, ManagedVector<SymbolValue *> *);
 };
 
 class NextNode : public Node {
@@ -1369,7 +1367,7 @@ protected:
 
 class StabbyProcNode : public Node {
 public:
-    StabbyProcNode(Token *token, Vector<Node *> *args)
+    StabbyProcNode(Token *token, ManagedVector<Node *> *args)
         : Node { token }
         , m_args { args } {
         assert(m_args);
@@ -1379,18 +1377,15 @@ public:
 
     virtual ValuePtr to_ruby(Env *) override;
 
-    Vector<Node *> *args() { return m_args; };
+    ManagedVector<Node *> *args() { return m_args; };
 
     virtual void visit_children(Visitor &visitor) override {
         Node::visit_children(visitor);
-        if (m_args)
-            for (auto arg : *m_args) {
-                visitor.visit(arg);
-            }
+        visitor.visit(m_args);
     }
 
 protected:
-    Vector<Node *> *m_args { nullptr };
+    ManagedVector<Node *> *m_args { nullptr };
 };
 
 class StringNode : public Node {

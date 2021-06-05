@@ -18,7 +18,7 @@ public:
         m_tokens = Lexer { m_code, m_file }.tokens();
     }
 
-    using LocalsVectorPtr = Vector<SymbolValue *> *;
+    using LocalsVectorPtr = ManagedVector<SymbolValue *> *;
 
     enum Precedence {
         LOWEST,
@@ -58,10 +58,7 @@ public:
     Node *tree(Env *);
 
     virtual void visit_children(Visitor &visitor) override {
-        if (m_tokens)
-            for (auto token : *m_tokens) {
-                visitor.visit(token);
-            }
+        visitor.visit(m_tokens);
         visitor.visit(const_cast<String *>(m_code));
         visitor.visit(const_cast<String *>(m_file));
     }
@@ -196,7 +193,7 @@ private:
     Node *parse_constant(Env *, LocalsVectorPtr);
     Node *parse_def(Env *, LocalsVectorPtr);
     Node *parse_defined(Env *, LocalsVectorPtr);
-    Vector<Node *> *parse_def_args(Env *, LocalsVectorPtr);
+    ManagedVector<Node *> *parse_def_args(Env *, LocalsVectorPtr);
     Node *parse_def_single_arg(Env *, LocalsVectorPtr);
     Node *parse_file_constant(Env *, LocalsVectorPtr);
     Node *parse_group(Env *, LocalsVectorPtr);
@@ -238,7 +235,7 @@ private:
     Node *parse_infix_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_proc_call_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_iter_expression(Env *, Node *, LocalsVectorPtr);
-    Vector<Node *> *parse_iter_args(Env *, LocalsVectorPtr);
+    ManagedVector<Node *> *parse_iter_args(Env *, LocalsVectorPtr);
     Node *parse_logical_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_match_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_modifier_expression(Env *, Node *, LocalsVectorPtr);
@@ -284,6 +281,6 @@ private:
     const String *m_code { nullptr };
     const String *m_file { nullptr };
     size_t m_index { 0 };
-    Vector<Token *> *m_tokens { nullptr };
+    ManagedVector<Token *> *m_tokens { nullptr };
 };
 }

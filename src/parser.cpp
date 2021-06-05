@@ -32,7 +32,7 @@ Node *Parser::parse_expression(Env *env, Parser::Precedence precedence, LocalsVe
 Node *Parser::tree(Env *env) {
     auto tree = new BlockNode { current_token() };
     current_token()->validate(env);
-    auto locals = new Vector<SymbolValue *> {};
+    auto locals = new ManagedVector<SymbolValue *> {};
     skip_newlines();
     while (!current_token()->is_eof()) {
         auto exp = parse_expression(env, LOWEST, locals);
@@ -347,7 +347,7 @@ Node *Parser::parse_class(Env *env, LocalsVectorPtr locals) {
     if (peek_token()->type() == Token::Type::LeftShift)
         return parse_sclass(env, locals);
     advance();
-    locals = new Vector<SymbolValue *> {};
+    locals = new ManagedVector<SymbolValue *> {};
     if (current_token()->type() != Token::Type::Constant)
         env->raise("SyntaxError", "class/module name must be CONSTANT");
     auto name = static_cast<ConstantNode *>(parse_constant(env, locals));
@@ -413,7 +413,7 @@ Node *Parser::parse_constant(Env *env, LocalsVectorPtr locals) {
 Node *Parser::parse_def(Env *env, LocalsVectorPtr) {
     auto token = current_token();
     advance();
-    auto locals = new Vector<SymbolValue *> {};
+    auto locals = new ManagedVector<SymbolValue *> {};
     Node *self_node = nullptr;
     IdentifierNode *name;
     switch (current_token()->type()) {
@@ -452,7 +452,7 @@ Node *Parser::parse_def(Env *env, LocalsVectorPtr) {
         advance();
         name->append_to_name('=');
     }
-    Vector<Node *> *args;
+    ManagedVector<Node *> *args;
     if (current_token()->is_lparen()) {
         advance();
         args = parse_def_args(env, locals);
@@ -461,7 +461,7 @@ Node *Parser::parse_def(Env *env, LocalsVectorPtr) {
     } else if (current_token()->is_bare_name()) {
         args = parse_def_args(env, locals);
     } else {
-        args = new Vector<Node *> {};
+        args = new ManagedVector<Node *> {};
     }
     auto body = parse_def_body(env, locals);
     expect(env, Token::Type::EndKeyword, "def end");
@@ -476,8 +476,8 @@ Node *Parser::parse_defined(Env *env, LocalsVectorPtr locals) {
     return new DefinedNode { token, arg };
 }
 
-Vector<Node *> *Parser::parse_def_args(Env *env, LocalsVectorPtr locals) {
-    auto args = new Vector<Node *> {};
+ManagedVector<Node *> *Parser::parse_def_args(Env *env, LocalsVectorPtr locals) {
+    auto args = new ManagedVector<Node *> {};
     args->push(parse_def_single_arg(env, locals));
     while (current_token()->is_comma()) {
         advance();
@@ -802,7 +802,7 @@ Node *Parser::parse_keyword_args(Env *env, LocalsVectorPtr locals) {
 Node *Parser::parse_module(Env *env, LocalsVectorPtr) {
     auto token = current_token();
     advance();
-    auto locals = new Vector<SymbolValue *> {};
+    auto locals = new ManagedVector<SymbolValue *> {};
     if (current_token()->type() != Token::Type::Constant)
         env->raise("SyntaxError", "class/module name must be CONSTANT");
     auto name = static_cast<ConstantNode *>(parse_constant(env, locals));
@@ -899,7 +899,7 @@ Node *Parser::parse_splat(Env *env, LocalsVectorPtr locals) {
 Node *Parser::parse_stabby_proc(Env *env, LocalsVectorPtr locals) {
     auto token = current_token();
     advance();
-    Vector<Node *> *args;
+    ManagedVector<Node *> *args;
     if (current_token()->is_lparen()) {
         advance();
         args = parse_def_args(env, locals);
@@ -908,7 +908,7 @@ Node *Parser::parse_stabby_proc(Env *env, LocalsVectorPtr locals) {
     } else if (current_token()->is_bare_name()) {
         args = parse_def_args(env, locals);
     } else {
-        args = new Vector<Node *> {};
+        args = new ManagedVector<Node *> {};
     }
     if (current_token()->type() != Token::Type::DoKeyword && current_token()->type() != Token::Type::LCurlyBrace)
         raise_unexpected(env, "block");
@@ -1070,10 +1070,10 @@ Node *Parser::parse_assignment_expression(Env *env, Node *left, LocalsVectorPtr 
 
 Node *Parser::parse_iter_expression(Env *env, Node *left, LocalsVectorPtr locals) {
     auto token = current_token();
-    locals = new Vector<SymbolValue *> { *locals };
+    locals = new ManagedVector<SymbolValue *> { *locals };
     bool curly_brace = current_token()->type() == Token::Type::LCurlyBrace;
     advance();
-    Vector<Node *> *args;
+    ManagedVector<Node *> *args;
     switch (left->type()) {
     case Node::Type::Identifier:
     case Node::Type::Call:
@@ -1083,7 +1083,7 @@ Node *Parser::parse_iter_expression(Env *env, Node *left, LocalsVectorPtr locals
             expect(env, Token::Type::BitwiseOr, "end of block args");
             advance();
         } else {
-            args = new Vector<Node *> {};
+            args = new ManagedVector<Node *> {};
         }
         break;
     case Node::Type::StabbyProc:
@@ -1099,7 +1099,7 @@ Node *Parser::parse_iter_expression(Env *env, Node *left, LocalsVectorPtr locals
     return new IterNode { token, left, args, body };
 }
 
-Vector<Node *> *Parser::parse_iter_args(Env *env, LocalsVectorPtr locals) {
+ManagedVector<Node *> *Parser::parse_iter_args(Env *env, LocalsVectorPtr locals) {
     return parse_def_args(env, locals);
 }
 
@@ -1656,7 +1656,7 @@ bool Parser::is_first_arg_of_call_without_parens(Token *token, Node *left) {
 
 Token *Parser::current_token() {
     if (m_index < m_tokens->size()) {
-        return (*m_tokens)[m_index];
+        return m_tokens->at(m_index);
     } else {
         return Token::invalid();
     }
