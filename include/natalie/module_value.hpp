@@ -125,7 +125,10 @@ public:
     virtual void visit_children(Visitor &) override final;
 
     virtual void gc_print() override {
-        fprintf(stderr, "<ModuleValue %p name=%s>", this, m_class_name ? m_class_name.value()->c_str() : "null");
+        if (m_class_name)
+            fprintf(stderr, "<ModuleValue %p name=%p>", this, m_class_name.value());
+        else
+            fprintf(stderr, "<ModuleValue %p name=(none)>", this);
     }
 
 protected:

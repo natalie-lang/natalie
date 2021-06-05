@@ -61,7 +61,10 @@ public:
     void set_is_singleton(bool is_singleton) { m_is_singleton = is_singleton; }
 
     virtual void gc_print() override {
-        fprintf(stderr, "<ClassValue %p name=%s>", this, m_class_name ? m_class_name.value()->c_str() : "null");
+        if (m_class_name)
+            fprintf(stderr, "<ClassValue %p name=%p>", this, m_class_name.value());
+        else
+            fprintf(stderr, "<ClassValue %p name=(none)>", this);
     }
 
 private:

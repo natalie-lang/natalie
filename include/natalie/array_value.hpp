@@ -135,7 +135,7 @@ public:
         fprintf(stderr, "<ArrayValue %p size=%zu [", this, size);
         size_t index = 0;
         for (auto item : *this) {
-            item->gc_print();
+            fprintf(stderr, "%p", item.value());
             if (index + 1 < size)
                 fprintf(stderr, ", ");
             ++index;
