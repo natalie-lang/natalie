@@ -72,6 +72,7 @@ public:
 #else
         m_used_map[index] = false;
         cell->~Cell();
+        memset(&m_memory[index * m_cell_size], 0, m_cell_size);
         ++m_free_count;
 #endif
     }
