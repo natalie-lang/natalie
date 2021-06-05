@@ -214,6 +214,12 @@ public:
         return m_literal.value()->c_str();
     }
 
+    const char *literal_or_blank() {
+        if (!m_literal)
+            return "";
+        return m_literal.value()->c_str();
+    }
+
     void set_literal(const char *literal) { m_literal = new String(literal); }
     void set_literal(const String *literal) { m_literal = literal; }
 
@@ -354,8 +360,9 @@ public:
             return "dstr";
         case Type::InterpolatedStringEnd:
             return "dstrend";
-        case Type::Invalid:
-            env->raise("SyntaxError", "{}: syntax error, unexpected '{}'", m_line + 1, m_literal.value());
+        case Type::Invalid: {
+            env->raise("SyntaxError", "{}: syntax error, unexpected '{}'", m_line + 1, literal_or_blank());
+        }
         case Type::LCurlyBrace:
             return "{";
         case Type::LBracket:
@@ -469,7 +476,7 @@ public:
         case Type::UnterminatedRegexp:
             env->raise("SyntaxError", "unterminated regexp meets end of file");
         case Type::UnterminatedString:
-            env->raise("SyntaxError", "unterminated string meets end of file at line {} and column {}: {}", m_line, m_column, m_literal.value());
+            env->raise("SyntaxError", "unterminated string meets end of file at line {} and column {}: {}", m_line, m_column, literal_or_blank());
         case Type::UntilKeyword:
             return "until";
         case Type::WhenKeyword:
@@ -495,7 +502,7 @@ public:
         case Type::PercentUpperW:
         case Type::Regexp:
         case Type::String:
-            hash->put(env, SymbolValue::intern(env, "literal"), new StringValue { env, m_literal.value() });
+            hash->put(env, SymbolValue::intern(env, "literal"), new StringValue { env, literal_or_blank() });
             break;
         case Type::BareName:
         case Type::ClassVariable:
@@ -504,7 +511,7 @@ public:
         case Type::InstanceVariable:
         case Type::Symbol:
         case Type::SymbolKey:
-            hash->put(env, SymbolValue::intern(env, "literal"), SymbolValue::intern(env, m_literal.value()));
+            hash->put(env, SymbolValue::intern(env, "literal"), SymbolValue::intern(env, literal_or_blank()));
             break;
         case Type::Float:
             hash->put(env, SymbolValue::intern(env, "literal"), new FloatValue { env, m_double });
