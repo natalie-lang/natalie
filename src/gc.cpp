@@ -27,8 +27,8 @@ void write_backtrace_to_file(const char *path) {
 }
 #endif
 
-void *Cell::operator new(size_t size) {
-    auto *cell = Heap::the().allocate(size);
+void *Cell::operator new(size_t size, AllocationStrategy allocation_strategy) {
+    auto *cell = Heap::the().allocate(size, allocation_strategy);
     assert(cell);
 #ifdef NAT_GC_FIND_BUGS_WRITE_BACKTRACE_FILES
     char path[100];
@@ -122,10 +122,10 @@ void Heap::sweep() {
     }
 }
 
-void *Heap::allocate(size_t size) {
+void *Heap::allocate(size_t size, AllocationStrategy allocation_strategy) {
     auto &allocator = find_allocator_of_size(size);
 
-    if (m_gc_enabled) {
+    if (m_gc_enabled && allocation_strategy == AllocationStrategy::Automatic) {
 #ifdef NAT_GC_DEBUG_ALWAYS_COLLECT
         collect();
 #else

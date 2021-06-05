@@ -226,12 +226,8 @@ public:
 
     template <typename... Args>
     static String *format(const char *fmt, Args... args) {
-        String *out = Heap::the().with_gc_disabled([]() {
-            // FIXME: there is a bug in our GC that causes this allocation
-            // trigger a collection that sweeps the args passed into the
-            // format function. So we'll disable the GC for a sec.
-            return new String {};
-        });
+        // FIXME: GC bug requires delaying collection here (not sure why; need to revisit)
+        String *out = new (AllocationStrategy::DelayCollection) String {};
         format(out, fmt, args...);
         return out;
     }

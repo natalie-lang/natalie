@@ -1182,7 +1182,7 @@ private:
 class InterpolatedStringLexer {
 public:
     InterpolatedStringLexer(Token *token)
-        : m_input { new String(token->literal()) }
+        : m_input { new (AllocationStrategy::DelayCollection) String(token->literal()) }
         , m_file { token->file() }
         , m_line { token->line() }
         , m_column { token->column() }

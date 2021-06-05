@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "natalie/gc/allocation_strategy.hpp"
 #include "natalie/gc/allocator.hpp"
 #include "natalie/gc/marking_visitor.hpp"
 #include "natalie/hashmap.hpp"
@@ -30,7 +31,7 @@ public:
         return *s_instance;
     }
 
-    void *allocate(size_t size);
+    void *allocate(size_t size, AllocationStrategy allocation_strategy = AllocationStrategy::Automatic);
 
     void collect();
 

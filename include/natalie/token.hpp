@@ -158,7 +158,7 @@ public:
 
     Token(Type type, const char *literal, const String *file, size_t line, size_t column)
         : m_type { type }
-        , m_literal { new String(literal) }
+        , m_literal { new (AllocationStrategy::DelayCollection) String(literal) }
         , m_file { file }
         , m_line { line }
         , m_column { column } {
@@ -178,7 +178,7 @@ public:
 
     Token(Type type, char literal, const String *file, size_t line, size_t column)
         : m_type { type }
-        , m_literal { new String(literal) }
+        , m_literal { new (AllocationStrategy::DelayCollection) String(literal) }
         , m_file { file }
         , m_line { line }
         , m_column { column } {
