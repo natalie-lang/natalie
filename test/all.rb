@@ -1,6 +1,6 @@
 require 'fileutils'
 require 'minitest/reporters'
-Minitest::Reporters.use!(Minitest::Reporters::SpecReporter.new)
+Minitest::Reporters.use!(Minitest::Reporters::ProgressReporter.new(detailed_skip: false))
 
 FileUtils.mkdir_p(File.expand_path('tmp', __dir__))
 
