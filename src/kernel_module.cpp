@@ -15,7 +15,7 @@ namespace Natalie {
 ValuePtr KernelModule::Array(Env *env, ValuePtr value) {
     if (value->type() == Value::Type::Array) {
         return value;
-    } else if (value->respond_to(env, "to_ary")) {
+    } else if (value->respond_to(env, SymbolValue::intern(env, "to_ary"))) {
         return value.send(env, "to_ary");
     } else if (value == env->nil_obj()) {
         return new ArrayValue { env };

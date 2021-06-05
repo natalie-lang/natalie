@@ -78,7 +78,7 @@ ValuePtr IntegerValue::div(Env *env, ValuePtr arg) {
         nat_int_t result = dividend / divisor;
         return ValuePtr { env, result };
 
-    } else if (arg->respond_to(env, "coerce")) {
+    } else if (arg->respond_to(env, SymbolValue::intern(env, "coerce"))) {
         ValuePtr args[] = { this };
         ValuePtr coerced = arg.send(env, "coerce", 1, args, nullptr);
         ValuePtr dividend = (*coerced->as_array())[0];

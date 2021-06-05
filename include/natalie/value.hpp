@@ -134,7 +134,7 @@ public:
 
     SymbolValue *to_symbol(Env *, Conversion);
 
-    const char *identifier_str(Env *, Conversion);
+    const String *identifier_str(Env *, Conversion);
 
     ClassValue *singleton_class() { return m_singleton_class; }
     ClassValue *singleton_class(Env *);
@@ -184,7 +184,6 @@ public:
     ValuePtr dup(Env *);
 
     bool is_a(Env *, ValuePtr);
-    bool respond_to(Env *, const char *);
     bool respond_to(Env *, ValuePtr);
 
     const char *defined(Env *, SymbolValue *, bool);

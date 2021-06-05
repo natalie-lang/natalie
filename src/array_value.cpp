@@ -370,7 +370,7 @@ ValuePtr ArrayValue::push(Env *env, size_t argc, ValuePtr *args) {
 }
 
 void ArrayValue::push_splat(Env *env, ValuePtr val) {
-    if (!val->is_array() && val->respond_to(env, "to_a")) {
+    if (!val->is_array() && val->respond_to(env, SymbolValue::intern(env, "to_a"))) {
         val = val.send(env, "to_a");
     }
     if (val->is_array()) {

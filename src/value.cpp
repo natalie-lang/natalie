@@ -226,11 +226,11 @@ SexpValue *Value::as_sexp_value_for_method_binding() {
     return static_cast<SexpValue *>(this);
 }
 
-const char *Value::identifier_str(Env *env, Conversion conversion) {
+const String *Value::identifier_str(Env *env, Conversion conversion) {
     if (is_symbol()) {
-        return as_symbol()->c_str();
+        return as_symbol()->to_s(env)->to_string();
     } else if (is_string()) {
-        return as_string()->c_str();
+        return as_string()->to_string();
     } else if (conversion == Conversion::NullAllowed) {
         return nullptr;
     } else {
@@ -483,20 +483,15 @@ bool Value::is_a(Env *env, ValuePtr val) {
     }
 }
 
-bool Value::respond_to(Env *env, const char *name) {
+bool Value::respond_to(Env *env, ValuePtr name_val) {
     Method *method;
-    auto name_symbol = SymbolValue::intern(env, name);
+    auto name_symbol = name_val->to_symbol(env, Conversion::Strict);
     if (singleton_class() && (method = singleton_class()->find_method(env, name_symbol))) {
         return !method->is_undefined();
     } else if ((method = m_klass->find_method(env, name_symbol))) {
         return !method->is_undefined();
     }
     return false;
-}
-
-bool Value::respond_to(Env *env, ValuePtr name_val) {
-    const char *name = name_val->identifier_str(env, Value::Conversion::NullAllowed);
-    return !!(name && respond_to(env, name));
 }
 
 const char *Value::defined(Env *env, SymbolValue *name, bool strict) {
@@ -532,8 +527,9 @@ ValuePtr Value::defined_obj(Env *env, SymbolValue *name, bool strict) {
 }
 
 ProcValue *Value::to_proc(Env *env) {
-    if (respond_to(env, "to_proc")) {
-        return _send(env, "to_proc")->as_proc();
+    auto to_proc_symbol = SymbolValue::intern(env, "to_proc");
+    if (respond_to(env, to_proc_symbol)) {
+        return _send(env, to_proc_symbol)->as_proc();
     } else {
         env->raise("TypeError", "wrong argument type {} (expected Proc)", m_klass->class_name_or_blank());
     }

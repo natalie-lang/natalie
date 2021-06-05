@@ -64,10 +64,11 @@ void handle_top_level_exception(Env *env, ExceptionValue *exception, bool run_ex
 }
 
 ArrayValue *to_ary(Env *env, ValuePtr obj, bool raise_for_non_array) {
+    auto to_ary_symbol = SymbolValue::intern(env, "to_ary");
     if (obj->is_array()) {
         return obj->as_array();
-    } else if (obj->respond_to(env, "to_ary")) {
-        ValuePtr ary = obj.send(env, "to_ary");
+    } else if (obj->respond_to(env, to_ary_symbol)) {
+        ValuePtr ary = obj.send(env, to_ary_symbol);
         if (ary->is_array()) {
             return ary->as_array();
         } else if (ary->is_nil() || !raise_for_non_array) {
@@ -327,8 +328,9 @@ void arg_spread(Env *env, size_t argc, ValuePtr *args, const char *arrangement, 
 }
 
 std::pair<ValuePtr, ValuePtr> coerce(Env *env, ValuePtr lhs, ValuePtr rhs) {
-    if (lhs->respond_to(env, "coerce")) {
-        ValuePtr coerced = lhs.send(env, "coerce", 1, &rhs, nullptr);
+    auto coerce_symbol = SymbolValue::intern(env, "coerce");
+    if (lhs->respond_to(env, coerce_symbol)) {
+        ValuePtr coerced = lhs.send(env, coerce_symbol, 1, &rhs, nullptr);
         if (!coerced->is_array()) {
             env->raise("TypeError", "coerce must return [x, y]");
         }

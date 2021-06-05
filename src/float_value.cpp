@@ -27,9 +27,10 @@ bool FloatValue::eq(Env *env, ValuePtr other) {
         auto *f = other->as_float();
         return f->m_double == m_double;
     }
-    if (other->respond_to(env, "==")) {
+    auto equal_symbol = SymbolValue::intern(env, "==");
+    if (other->respond_to(env, equal_symbol)) {
         ValuePtr args[] = { this };
-        return other.send(env, "==", 1, args)->is_truthy();
+        return other.send(env, equal_symbol, 1, args)->is_truthy();
     }
     return false;
 }
