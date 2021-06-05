@@ -58,6 +58,7 @@ public:
                 --m_free_count;
                 void *cell = &m_memory[i * m_cell_size];
                 //printf("Cell %p allocated from block %p (size %zu) at index %zu\n", cell, this, m_cell_size, i);
+                new (cell) Cell();
                 return reinterpret_cast<Cell *>(cell);
             }
         }

@@ -18,6 +18,7 @@ public:
     virtual ~Cell() { }
 
     void *operator new(size_t size, AllocationStrategy allocation_strategy = AllocationStrategy::Automatic);
+    void *operator new(size_t size, void *cell) { return cell; }
     void operator delete(void *ptr);
 
     class Visitor {
@@ -28,7 +29,6 @@ public:
     };
 
     virtual void visit_children(Visitor &) {
-        NAT_UNREACHABLE();
     }
 
     // only for debugging the GC
