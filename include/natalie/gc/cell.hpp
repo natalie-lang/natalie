@@ -26,7 +26,7 @@ public:
         virtual void visit(ValuePtr) = 0;
     };
 
-    void virtual visit_children(Visitor &) {
+    virtual void visit_children(Visitor &) {
         NAT_UNREACHABLE();
     }
 
