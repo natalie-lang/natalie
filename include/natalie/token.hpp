@@ -690,6 +690,15 @@ public:
         }
     }
 
+    virtual void gc_print() override final {
+        fprintf(stderr, "<Token %p type=%d literal=", this, (int)m_type);
+        if (m_literal)
+            fprintf(stderr, "'%s'", m_literal.value()->c_str());
+        else
+            fprintf(stderr, "''");
+        fprintf(stderr, " m_integer=%zi m_double=%f m_has_sign=%d>", m_integer, m_double, m_has_sign);
+    }
+
     virtual void visit_children(Visitor &visitor) override final {
         if (m_literal)
             visitor.visit(const_cast<String *>(m_literal.value()));
