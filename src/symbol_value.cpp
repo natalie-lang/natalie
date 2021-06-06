@@ -4,12 +4,12 @@ namespace Natalie {
 
 SymbolValue *SymbolValue::intern(Env *env, const char *name) {
     assert(name);
-    SymbolValue *symbol = env->global_env()->symbol_get(env, name);
+    SymbolValue *symbol = GlobalEnv::the()->symbol_get(env, name);
     if (symbol) {
         return symbol;
     } else {
         symbol = new SymbolValue { env, name };
-        env->global_env()->symbol_set(env, name, symbol);
+        GlobalEnv::the()->symbol_set(env, name, symbol);
         return symbol;
     }
 }
@@ -34,7 +34,7 @@ StringValue *SymbolValue::inspect(Env *env) {
 }
 
 ProcValue *SymbolValue::to_proc(Env *env) {
-    auto block_env = Env::new_detatched_env(env);
+    auto block_env = new Env {};
     block_env->var_set("name", 0, true, this);
     Block *proc_block = new Block { block_env, this, SymbolValue::to_proc_block_fn, 1 };
     return new ProcValue { env, proc_block };

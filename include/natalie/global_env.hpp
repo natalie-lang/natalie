@@ -14,6 +14,13 @@ extern "C" {
 
 class GlobalEnv : public Cell {
 public:
+    static GlobalEnv *the() {
+        if (s_instance)
+            return s_instance;
+        s_instance = new GlobalEnv();
+        return s_instance;
+    }
+
     virtual ~GlobalEnv() override {
         NAT_UNREACHABLE();
     }
@@ -79,6 +86,10 @@ public:
     }
 
 private:
+    GlobalEnv() { }
+
+    inline static GlobalEnv *s_instance = nullptr;
+
     SymbolValue *symbol_get(Env *, const char *);
     void symbol_set(Env *, const char *, SymbolValue *);
 

@@ -7,20 +7,16 @@ namespace Natalie {
 
 using namespace TM;
 
-Env *Env::new_detatched_env(Env *outer) {
-    return new Env { outer->global_env() };
-}
-
 void Env::build_vars(size_t size) {
     m_vars = new Vector<ValuePtr>(size, nil_obj());
 }
 
 ValuePtr Env::global_get(SymbolValue *name) {
-    return m_global_env->global_get(this, name);
+    return GlobalEnv::the()->global_get(this, name);
 }
 
 ValuePtr Env::global_set(SymbolValue *name, ValuePtr val) {
-    return m_global_env->global_set(this, name, val);
+    return GlobalEnv::the()->global_set(this, name, val);
 }
 
 Method *Env::current_method() {
@@ -146,7 +142,6 @@ ValuePtr Env::var_set(const char *name, size_t index, bool allocate, ValuePtr va
 }
 
 void Env::visit_children(Visitor &visitor) {
-    visitor.visit(m_global_env);
     if (m_vars) {
         for (auto &val : *m_vars) {
             visitor.visit(val);

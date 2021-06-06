@@ -134,17 +134,17 @@ public:
         if (m_status == Status::Terminated) {
             env->raise("FiberError", "dead fiber called");
         }
-        auto main_fiber = env->global_env()->main_fiber(env);
-        env->global_env()->set_current_fiber(this);
-        env->global_env()->set_fiber_args(argc, args);
+        auto main_fiber = GlobalEnv::the()->main_fiber(env);
+        GlobalEnv::the()->set_current_fiber(this);
+        GlobalEnv::the()->set_fiber_args(argc, args);
 
         // NOTE: *no* allocations can happen between these next two lines
         Heap::the().set_start_of_stack(m_start_of_stack);
         main_fiber->m_end_of_stack = &args;
         fiber_asm_switch(fiber(), main_fiber->fiber(), 0, env, this);
 
-        argc = env->global_env()->fiber_argc();
-        args = env->global_env()->fiber_args();
+        argc = GlobalEnv::the()->fiber_argc();
+        args = GlobalEnv::the()->fiber_args();
         if (argc == 0) {
             return env->nil_obj();
         } else if (argc == 1) {

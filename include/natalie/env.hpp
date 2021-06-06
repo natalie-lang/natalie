@@ -20,18 +20,11 @@ public:
     Env() { }
 
     Env(Env *outer)
-        : m_outer { outer } {
-        m_global_env = outer->m_global_env;
-    }
-
-    Env(GlobalEnv *global_env)
-        : m_global_env { global_env } { }
+        : m_outer { outer } { }
 
     Env &operator=(Env &other) = delete;
 
     virtual ~Env() override { }
-
-    static Env *new_detatched_env(Env *);
 
     ValuePtr global_get(SymbolValue *);
     ValuePtr global_set(SymbolValue *, ValuePtr);
@@ -68,21 +61,18 @@ public:
 
     ValuePtr last_match();
 
-    ClassValue *Array() { return m_global_env->Array(); }
-    ClassValue *Class() { return m_global_env->Class(); }
-    ClassValue *Hash() { return m_global_env->Hash(); }
-    ClassValue *Integer() { return m_global_env->Integer(); }
-    ClassValue *Module() { return m_global_env->Module(); }
-    ClassValue *Object() { return m_global_env->Object(); }
-    ClassValue *Regexp() { return m_global_env->Regexp(); }
-    ClassValue *String() { return m_global_env->String(); }
-    ClassValue *Symbol() { return m_global_env->Symbol(); }
-    NilValue *nil_obj() { return m_global_env->nil_obj(); }
-    TrueValue *true_obj() { return m_global_env->true_obj(); }
-    FalseValue *false_obj() { return m_global_env->false_obj(); }
-
-    GlobalEnv *global_env() { return m_global_env; }
-    void set_global_env(GlobalEnv *global_env) { m_global_env = global_env; }
+    ClassValue *Array() { return GlobalEnv::the()->Array(); }
+    ClassValue *Class() { return GlobalEnv::the()->Class(); }
+    ClassValue *Hash() { return GlobalEnv::the()->Hash(); }
+    ClassValue *Integer() { return GlobalEnv::the()->Integer(); }
+    ClassValue *Module() { return GlobalEnv::the()->Module(); }
+    ClassValue *Object() { return GlobalEnv::the()->Object(); }
+    ClassValue *Regexp() { return GlobalEnv::the()->Regexp(); }
+    ClassValue *String() { return GlobalEnv::the()->String(); }
+    ClassValue *Symbol() { return GlobalEnv::the()->Symbol(); }
+    NilValue *nil_obj() { return GlobalEnv::the()->nil_obj(); }
+    TrueValue *true_obj() { return GlobalEnv::the()->true_obj(); }
+    FalseValue *false_obj() { return GlobalEnv::the()->false_obj(); }
 
     void build_vars(size_t);
 
@@ -119,7 +109,6 @@ public:
     }
 
 private:
-    GlobalEnv *m_global_env { nullptr };
     SharedPtr<Vector<ValuePtr>> m_vars {};
     Env *m_outer { nullptr };
     Block *m_block { nullptr };

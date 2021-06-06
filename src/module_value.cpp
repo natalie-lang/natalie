@@ -12,7 +12,7 @@ ModuleValue::ModuleValue(Env *env, const char *name)
 
 ModuleValue::ModuleValue(Env *env, Type type, ClassValue *klass)
     : Value { type, klass }
-    , m_env { Env::new_detatched_env(env) } { }
+    , m_env { new Env() } { }
 
 ValuePtr ModuleValue::extend(Env *env, size_t argc, ValuePtr *args) {
     for (size_t i = 0; i < argc; i++) {
@@ -287,7 +287,7 @@ ValuePtr ModuleValue::attr_reader(Env *env, size_t argc, ValuePtr *args) {
         } else {
             env->raise("TypeError", "{} is not a symbol nor a string", name_obj->inspect_str(env));
         }
-        auto block_env = Env::new_detatched_env(env);
+        auto block_env = new Env {};
         block_env->var_set("name", 0, true, name_obj);
         Block *attr_block = new Block { block_env, this, ModuleValue::attr_reader_block_fn, 0 };
         define_method(env, name_obj->as_string()->to_symbol(env), attr_block);
@@ -315,7 +315,7 @@ ValuePtr ModuleValue::attr_writer(Env *env, size_t argc, ValuePtr *args) {
         }
         StringValue *method_name = new StringValue { env, name_obj->as_string()->c_str() };
         method_name->append_char(env, '=');
-        auto block_env = Env::new_detatched_env(env);
+        auto block_env = new Env {};
         block_env->var_set("name", 0, true, name_obj);
         Block *attr_block = new Block { block_env, this, ModuleValue::attr_writer_block_fn, 0 };
         define_method(env, method_name->to_symbol(env), attr_block);

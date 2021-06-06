@@ -5,21 +5,21 @@ using namespace Natalie;
 /*NAT_DECLARATIONS*/
 
 extern "C" Env *build_top_env() {
-    GlobalEnv *global_env = new GlobalEnv {};
-    Env *env = new Env { global_env };
+    auto *global_env = GlobalEnv::the();
+    auto *env = new Env {};
     env->set_is_main(true);
 
     ClassValue *Class = ClassValue::bootstrap_class_class(env);
-    env->global_env()->set_Class(Class);
+    global_env->set_Class(Class);
 
     ClassValue *BasicObject = ClassValue::bootstrap_basic_object(env, Class);
 
     ClassValue *Object = BasicObject->subclass(env, "Object");
 
-    env->global_env()->set_Object(Object);
+    global_env->set_Object(Object);
 
     ClassValue *Symbol = Object->subclass(env, "Symbol", Value::Type::Symbol);
-    env->global_env()->set_Symbol(Symbol);
+    global_env->set_Symbol(Symbol);
     Object->const_set(env, SymbolValue::intern(env, "Symbol"), Symbol);
 
     // these must be defined after Object exists
@@ -28,7 +28,7 @@ extern "C" Env *build_top_env() {
     Object->const_set(env, SymbolValue::intern(env, "Object"), Object);
 
     ClassValue *Module = Object->subclass(env, "Module", Value::Type::Module);
-    env->global_env()->set_Module(Module);
+    global_env->set_Module(Module);
     Object->const_set(env, SymbolValue::intern(env, "Module"), Module);
     Class->set_superclass_DANGEROUSLY(Module);
     Class->set_singleton_class(Module->singleton_class()->subclass(env, "#<Class:Class>"));
@@ -48,19 +48,19 @@ extern "C" Env *build_top_env() {
     ClassValue *NilClass = Object->subclass(env, "NilClass", Value::Type::Nil);
     Object->const_set(env, SymbolValue::intern(env, "NilClass"), NilClass);
 
-    env->global_env()->set_nil_obj(new NilValue { env });
+    global_env->set_nil_obj(new NilValue { env });
     env->nil_obj()->set_singleton_class(NilClass);
 
     ClassValue *TrueClass = Object->subclass(env, "TrueClass", Value::Type::True);
     Object->const_set(env, SymbolValue::intern(env, "TrueClass"), TrueClass);
 
-    env->global_env()->set_true_obj(new TrueValue { env });
+    global_env->set_true_obj(new TrueValue { env });
     env->true_obj()->set_singleton_class(TrueClass);
 
     ClassValue *FalseClass = Object->subclass(env, "FalseClass", Value::Type::False);
     Object->const_set(env, SymbolValue::intern(env, "FalseClass"), FalseClass);
 
-    env->global_env()->set_false_obj(new FalseValue { env });
+    global_env->set_false_obj(new FalseValue { env });
     env->false_obj()->set_singleton_class(FalseClass);
 
     ClassValue *Fiber = Object->subclass(env, "Fiber", Value::Type::Fiber);
@@ -71,7 +71,7 @@ extern "C" Env *build_top_env() {
     Numeric->include_once(env, Comparable);
 
     ClassValue *Integer = Numeric->subclass(env, "Integer", Value::Type::Integer);
-    env->global_env()->set_Integer(Integer);
+    global_env->set_Integer(Integer);
     Object->const_set(env, SymbolValue::intern(env, "Integer"), Integer);
     Object->const_set(env, SymbolValue::intern(env, "Fixnum"), Integer);
 
@@ -85,22 +85,22 @@ extern "C" Env *build_top_env() {
     Math->const_set(env, SymbolValue::intern(env, "PI"), new FloatValue { env, M_PI });
 
     ClassValue *String = Object->subclass(env, "String", Value::Type::String);
-    env->global_env()->set_String(String);
+    global_env->set_String(String);
     Object->const_set(env, SymbolValue::intern(env, "String"), String);
     String->include_once(env, Comparable);
 
     ClassValue *Array = Object->subclass(env, "Array", Value::Type::Array);
-    env->global_env()->set_Array(Array);
+    global_env->set_Array(Array);
     Object->const_set(env, SymbolValue::intern(env, "Array"), Array);
     Array->include_once(env, Enumerable);
 
     ClassValue *Hash = Object->subclass(env, "Hash", Value::Type::Hash);
-    env->global_env()->set_Hash(Hash);
+    global_env->set_Hash(Hash);
     Object->const_set(env, SymbolValue::intern(env, "Hash"), Hash);
     Hash->include_once(env, Enumerable);
 
     ClassValue *Regexp = Object->subclass(env, "Regexp", Value::Type::Regexp);
-    env->global_env()->set_Regexp(Regexp);
+    global_env->set_Regexp(Regexp);
     Object->const_set(env, SymbolValue::intern(env, "Regexp"), Regexp);
     Regexp->const_set(env, SymbolValue::intern(env, "IGNORECASE"), ValuePtr { env, 1 });
     Regexp->const_set(env, SymbolValue::intern(env, "EXTENDED"), ValuePtr { env, 2 });
@@ -203,7 +203,7 @@ extern "C" Value *EVAL(Env *env) {
 
 ValuePtr _main(int argc, char *argv[]) {
     Env *env = build_top_env();
-    env->global_env()->main_fiber(env);
+    GlobalEnv::the()->main_fiber(env);
 
 #ifndef NAT_GC_DISABLE
     Heap::the().gc_enable();

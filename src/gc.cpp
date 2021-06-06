@@ -81,6 +81,8 @@ Hashmap<Cell *> Heap::gather_conservative_roots() {
         }
     }
 
+    roots.set(GlobalEnv::the());
+
     return roots;
 }
 

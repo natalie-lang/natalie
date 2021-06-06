@@ -4,7 +4,7 @@ namespace Natalie {
 
 ValuePtr::ValuePtr(Env *env, nat_int_t integer)
     : m_type { Type::Integer }
-    , m_global_env { env->global_env() }
+    , m_global_env { GlobalEnv::the() }
     , m_integer { integer } { }
 
 ValuePtr ValuePtr::public_send(Env *env, SymbolValue *name, size_t argc, ValuePtr *args, Block *block) {
