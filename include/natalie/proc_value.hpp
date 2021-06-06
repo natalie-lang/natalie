@@ -19,14 +19,14 @@ public:
         Lambda
     };
 
-    ProcValue(Env *env)
-        : Value { Value::Type::Proc, env->Object()->const_fetch(SymbolValue::intern("Proc"))->as_class() } { }
+    ProcValue()
+        : Value { Value::Type::Proc, GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("Proc"))->as_class() } { }
 
-    ProcValue(Env *env, ClassValue *klass)
+    ProcValue(ClassValue *klass)
         : Value { Value::Type::Proc, klass } { }
 
-    ProcValue(Env *env, Block *block, ProcType type = ProcType::Proc)
-        : Value { Value::Type::Proc, env->Object()->const_fetch(SymbolValue::intern("Proc"))->as_class() }
+    ProcValue(Block *block, ProcType type = ProcType::Proc)
+        : Value { Value::Type::Proc, GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("Proc"))->as_class() }
         , m_block { block }
         , m_type { type } {
         assert(m_block);
@@ -34,11 +34,11 @@ public:
         m_block->m_env->clear_caller();
     }
 
-    static ValuePtr from_block_maybe(Env *env, Block *block) {
+    static ValuePtr from_block_maybe(Block *block) {
         if (!block) {
             return NilValue::the();
         }
-        return new ProcValue { env, block };
+        return new ProcValue { block };
     }
 
     ValuePtr initialize(Env *, Block *);

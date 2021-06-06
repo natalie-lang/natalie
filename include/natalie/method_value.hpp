@@ -13,12 +13,12 @@ namespace Natalie {
 
 class MethodValue : public Value {
 public:
-    MethodValue(Env *env, ValuePtr object, Method *method)
-        : Value { Value::Type::Method, env->Object()->const_fetch(SymbolValue::intern("Method"))->as_class() }
+    MethodValue(ValuePtr object, Method *method)
+        : Value { Value::Type::Method, GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("Method"))->as_class() }
         , m_object { object }
         , m_method { method } { }
 
-    MethodValue(Env *env, ClassValue *klass)
+    MethodValue(ClassValue *klass)
         : Value { Value::Type::Method, klass } { }
 
     ModuleValue *owner() { return m_method->owner(); }

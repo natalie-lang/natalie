@@ -21,7 +21,6 @@ SymbolValue *SymbolValue::intern(const String *name) {
 
 StringValue *SymbolValue::inspect(Env *env) {
     StringValue *string = new StringValue { ":" };
-    size_t len = strlen(m_name);
     auto quote_regex = new RegexpValue { env, "\\A\\$(\\d|\\?|\\!|~)\\z|\\A(@{0,2}|\\$)[a-z_][a-z0-9_]*[\\?\\!=]?\\z|\\A(%|==|\\!|\\!=|\\+|\\-|/|\\*{1,2}|<<?|>>?|\\[\\]\\=?|&)\\z", 1 };
     bool quote = quote_regex->match(env, new StringValue { m_name })->is_falsey();
     if (quote) {
@@ -37,7 +36,7 @@ ProcValue *SymbolValue::to_proc(Env *env) {
     auto block_env = new Env {};
     block_env->var_set("name", 0, true, this);
     Block *proc_block = new Block { block_env, this, SymbolValue::to_proc_block_fn, 1 };
-    return new ProcValue { env, proc_block };
+    return new ProcValue { proc_block };
 }
 
 ValuePtr SymbolValue::to_proc_block_fn(Env *env, ValuePtr self_value, size_t argc, ValuePtr *args, Block *block) {

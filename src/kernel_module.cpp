@@ -29,7 +29,7 @@ ValuePtr KernelModule::Array(Env *env, ValuePtr value) {
 ValuePtr KernelModule::at_exit(Env *env, Block *block) {
     ArrayValue *at_exit_handlers = env->global_get(SymbolValue::intern("$NAT_at_exit_handlers"))->as_array();
     env->assert_block_given(block);
-    ValuePtr proc = new ProcValue { env, block };
+    ValuePtr proc = new ProcValue { block };
     at_exit_handlers->push(proc);
     return proc;
 }
@@ -140,7 +140,7 @@ bool KernelModule::is_a(Env *env, ValuePtr module) {
 
 ValuePtr KernelModule::lambda(Env *env, Block *block) {
     if (block) {
-        return new ProcValue(env, block, ProcValue::ProcType::Lambda);
+        return new ProcValue { block, ProcValue::ProcType::Lambda };
     } else {
         env->raise("ArgumentError", "tried to create Proc object without a block");
     }
@@ -165,12 +165,12 @@ ValuePtr KernelModule::method(Env *env, ValuePtr name) {
             if (method->is_undefined()) {
                 env->raise("NoMethodError", "undefined method `{}' for {}:Class", name_symbol->inspect_str(env), m_klass->class_name_or_blank());
             }
-            return new MethodValue { env, this, method };
+            return new MethodValue { this, method };
         }
     }
     Method *method = m_klass->find_method(env, name_symbol);
     if (method)
-        return new MethodValue { env, this, method };
+        return new MethodValue { this, method };
     env->raise("NoMethodError", "undefined method `{}' for {}:Class", name_symbol->inspect_str(env), m_klass->class_name_or_blank());
 }
 
@@ -209,7 +209,7 @@ ValuePtr KernelModule::print(Env *env, size_t argc, ValuePtr *args) {
 
 ValuePtr KernelModule::proc(Env *env, Block *block) {
     if (block) {
-        return new ProcValue { env, block };
+        return new ProcValue { block };
     } else {
         env->raise("ArgumentError", "tried to create Proc object without a block");
     }

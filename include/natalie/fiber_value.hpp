@@ -62,17 +62,17 @@ public:
         Terminated,
     };
 
-    FiberValue(Env *env)
-        : Value { Value::Type::Fiber, env->Object()->const_fetch(SymbolValue::intern("Fiber"))->as_class() } { }
+    FiberValue()
+        : Value { Value::Type::Fiber, GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("Fiber"))->as_class() } { }
 
     // used for the "main" fiber
-    FiberValue(Env *env, void *start_of_stack)
-        : Value { Value::Type::Fiber, env->Object()->const_fetch(SymbolValue::intern("Fiber"))->as_class() }
+    FiberValue(void *start_of_stack)
+        : Value { Value::Type::Fiber, GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("Fiber"))->as_class() }
         , m_start_of_stack { start_of_stack } {
         assert(m_start_of_stack);
     }
 
-    FiberValue(Env *env, ClassValue *klass)
+    FiberValue(ClassValue *klass)
         : Value { Value::Type::Fiber, klass } { }
 
     ~FiberValue() {

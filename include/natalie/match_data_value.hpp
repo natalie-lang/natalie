@@ -14,14 +14,14 @@ namespace Natalie {
 
 class MatchDataValue : public Value {
 public:
-    MatchDataValue(Env *env)
-        : Value { Value::Type::MatchData, env->Object()->const_fetch(SymbolValue::intern("MatchData"))->as_class() } { }
+    MatchDataValue()
+        : Value { Value::Type::MatchData, GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("MatchData"))->as_class() } { }
 
-    MatchDataValue(Env *env, ClassValue *klass)
+    MatchDataValue(ClassValue *klass)
         : Value { Value::Type::MatchData, klass } { }
 
-    MatchDataValue(Env *env, OnigRegion *region, StringValue *string)
-        : Value { Value::Type::MatchData, env->Object()->const_fetch(SymbolValue::intern("MatchData"))->as_class() }
+    MatchDataValue(OnigRegion *region, StringValue *string)
+        : Value { Value::Type::MatchData, GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("MatchData"))->as_class() }
         , m_region { region }
         , m_string { string } { }
 

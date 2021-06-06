@@ -735,7 +735,7 @@ ValuePtr RangeNode::to_ruby(Env *env) {
         return new SexpValue {
             env,
             this,
-            { SymbolValue::intern("lit"), new RangeValue { env, static_cast<LiteralNode *>(m_first)->value(), static_cast<LiteralNode *>(m_last)->value(), m_exclude_end } }
+            { SymbolValue::intern("lit"), new RangeValue { static_cast<LiteralNode *>(m_first)->value(), static_cast<LiteralNode *>(m_last)->value(), m_exclude_end } }
         };
     }
     return new SexpValue {

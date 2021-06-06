@@ -237,7 +237,7 @@ module Natalie
         fn_name = temp('fn')
         if args.last&.to_s&.start_with?('&')
           arg_name = args.pop.to_s[1..-1]
-          block_arg = exp.new(:var_set, :env, s(:s, arg_name), s(:"ProcValue::from_block_maybe", :env, 'block'))
+          block_arg = exp.new(:var_set, :env, s(:s, arg_name), s(:"ProcValue::from_block_maybe", 'block'))
         end
         if args.any?
           args_name = temp('args_as_array')
@@ -288,12 +288,12 @@ module Natalie
 
       def process_dot2(exp)
         (_, beginning, ending) = exp
-        exp.new(:new, :RangeValue, :env, process(beginning), process(ending), 0)
+        exp.new(:new, :RangeValue, process(beginning), process(ending), 0)
       end
 
       def process_dot3(exp)
         (_, beginning, ending) = exp
-        exp.new(:new, :RangeValue, :env, process(beginning), process(ending), 1)
+        exp.new(:new, :RangeValue, process(beginning), process(ending), 1)
       end
 
       def process_dregx(exp)
@@ -396,7 +396,7 @@ module Natalie
         (_, call, (_, *args), *body) = exp
         args = fix_unnecessary_nesting(args)
         if args.last&.to_s&.start_with?('&')
-          block_arg = exp.new(:arg_set, :env, s(:s, args.pop.to_s[1..-1]), s(:new, :ProcValue, :env, 'block'))
+          block_arg = exp.new(:arg_set, :env, s(:s, args.pop.to_s[1..-1]), s(:new, :ProcValue, 'block'))
         end
         block_fn = temp('block_fn')
         block = block_fn.sub(/_fn/, '')
@@ -444,7 +444,7 @@ module Natalie
 
       def process_lambda(exp)
         # note: the nullptr gets overwritten with an actual block by process_iter later
-        exp.new(:new, :ProcValue, :env, 'nullptr', :"ProcValue::ProcType::Lambda")
+        exp.new(:new, :ProcValue, 'nullptr', :"ProcValue::ProcType::Lambda")
       end
 
       def process_lasgn(exp)
@@ -460,7 +460,7 @@ module Natalie
         when Integer
           exp.new(:'ValuePtr::integer', lit)
         when Range
-          exp.new(:new, :RangeValue, :env, process_lit(s(:lit, lit.first)), process_lit(s(:lit, lit.last)), lit.exclude_end? ? 1 : 0)
+          exp.new(:new, :RangeValue, process_lit(s(:lit, lit.first)), process_lit(s(:lit, lit.last)), lit.exclude_end? ? 1 : 0)
         when Regexp
           exp.new(:new, :RegexpValue, :env, s(:s, lit.source), lit.options)
         when Symbol

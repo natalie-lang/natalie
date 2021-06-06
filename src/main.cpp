@@ -142,15 +142,15 @@ extern "C" Env *build_top_env() {
     self->add_main_object_flag();
     env->global_set(SymbolValue::intern("$NAT_main_object"), self);
 
-    ValuePtr _stdin = new IoValue { env, STDIN_FILENO };
+    ValuePtr _stdin = new IoValue { STDIN_FILENO };
     env->global_set(SymbolValue::intern("$stdin"), _stdin);
     Object->const_set(SymbolValue::intern("STDIN"), _stdin);
 
-    ValuePtr _stdout = new IoValue { env, STDOUT_FILENO };
+    ValuePtr _stdout = new IoValue { STDOUT_FILENO };
     env->global_set(SymbolValue::intern("$stdout"), _stdout);
     Object->const_set(SymbolValue::intern("STDOUT"), _stdout);
 
-    ValuePtr _stderr = new IoValue { env, STDERR_FILENO };
+    ValuePtr _stderr = new IoValue { STDERR_FILENO };
     env->global_set(SymbolValue::intern("$stderr"), _stderr);
     Object->const_set(SymbolValue::intern("STDERR"), _stderr);
 

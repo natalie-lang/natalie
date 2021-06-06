@@ -18,7 +18,7 @@ class Tempfile
           auto exception = env->Object()->const_fetch(SymbolValue::intern("SystemCallError")).send(env, "exception", 1, args)->as_exception();
           env->raise_exception(exception);
       } else {
-          auto file = new FileValue { env };
+          auto file = new FileValue {};
           file->set_fileno(fileno);
           file->set_path(path_template);
           return file;

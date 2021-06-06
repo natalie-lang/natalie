@@ -69,7 +69,7 @@ ValuePtr HashValue::remove(Env *env, ValuePtr key) {
 }
 
 ValuePtr HashValue::default_proc(Env *env) {
-    return ProcValue::from_block_maybe(env, m_default_block);
+    return ProcValue::from_block_maybe(m_default_block);
 }
 
 ValuePtr HashValue::default_value(Env *env) {

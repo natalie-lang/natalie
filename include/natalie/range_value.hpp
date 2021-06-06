@@ -13,14 +13,14 @@ namespace Natalie {
 
 class RangeValue : public Value {
 public:
-    RangeValue(Env *env)
-        : Value { Value::Type::Range, env->Object()->const_fetch(SymbolValue::intern("Range"))->as_class() } { }
+    RangeValue()
+        : Value { Value::Type::Range, GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("Range"))->as_class() } { }
 
-    RangeValue(Env *env, ClassValue *klass)
+    RangeValue(ClassValue *klass)
         : Value { Value::Type::Range, klass } { }
 
-    RangeValue(Env *env, ValuePtr begin, ValuePtr end, bool exclude_end)
-        : Value { Value::Type::Range, env->Object()->const_fetch(SymbolValue::intern("Range"))->as_class() }
+    RangeValue(ValuePtr begin, ValuePtr end, bool exclude_end)
+        : Value { Value::Type::Range, GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("Range"))->as_class() }
         , m_begin { begin }
         , m_end { end }
         , m_exclude_end { exclude_end } { }

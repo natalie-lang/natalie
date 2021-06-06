@@ -13,11 +13,8 @@ namespace Natalie {
 
 class VoidPValue : public Value {
 public:
-    VoidPValue(Env *env)
-        : VoidPValue { env, nullptr } { }
-
-    VoidPValue(Env *env, void *ptr)
-        : Value { Value::Type::VoidP, env->Object() }
+    VoidPValue(void *ptr)
+        : Value { Value::Type::VoidP, GlobalEnv::the()->Object() }
         , m_void_ptr { ptr } { }
 
     void *void_ptr() { return m_void_ptr; }

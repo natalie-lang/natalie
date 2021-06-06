@@ -18,10 +18,10 @@ namespace Natalie {
 
 class RegexpValue : public Value {
 public:
-    RegexpValue(Env *env)
-        : Value { Value::Type::Regexp, env->Regexp() } { }
+    RegexpValue()
+        : Value { Value::Type::Regexp, GlobalEnv::the()->Regexp() } { }
 
-    RegexpValue(Env *env, ClassValue *klass)
+    RegexpValue(ClassValue *klass)
         : Value { Value::Type::Regexp, klass } { }
 
     RegexpValue(Env *env, const char *pattern, int options = 0)

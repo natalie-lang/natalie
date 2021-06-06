@@ -15,8 +15,8 @@ namespace Natalie {
 
 class FileValue : public IoValue {
 public:
-    FileValue(Env *env)
-        : IoValue { env, env->Object()->const_fetch(SymbolValue::intern("File"))->as_class() } { }
+    FileValue()
+        : IoValue { GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("File"))->as_class() } { }
 
     ValuePtr initialize(Env *, ValuePtr, ValuePtr, Block *);
 

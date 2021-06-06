@@ -32,7 +32,7 @@ ValuePtr Value::_new(Env *env, ValuePtr klass_value, size_t argc, ValuePtr *args
         break;
 
     case Value::Type::Fiber:
-        obj = new FiberValue { env, klass };
+        obj = new FiberValue { klass };
         break;
 
     case Value::Type::Hash:
@@ -40,11 +40,11 @@ ValuePtr Value::_new(Env *env, ValuePtr klass_value, size_t argc, ValuePtr *args
         break;
 
     case Value::Type::Io:
-        obj = new IoValue { env, klass };
+        obj = new IoValue { klass };
         break;
 
     case Value::Type::MatchData:
-        obj = new MatchDataValue { env, klass };
+        obj = new MatchDataValue { klass };
         break;
 
     case Value::Type::Module:
@@ -56,15 +56,15 @@ ValuePtr Value::_new(Env *env, ValuePtr klass_value, size_t argc, ValuePtr *args
         break;
 
     case Value::Type::Proc:
-        obj = new ProcValue { env, klass };
+        obj = new ProcValue { klass };
         break;
 
     case Value::Type::Range:
-        obj = new RangeValue { env, klass };
+        obj = new RangeValue { klass };
         break;
 
     case Value::Type::Regexp:
-        obj = new RegexpValue { env, klass };
+        obj = new RegexpValue { klass };
         break;
 
     case Value::Type::String:
@@ -72,7 +72,7 @@ ValuePtr Value::_new(Env *env, ValuePtr klass_value, size_t argc, ValuePtr *args
         break;
 
     case Value::Type::VoidP:
-        obj = new VoidPValue { env, klass };
+        obj = new VoidPValue { klass };
         break;
 
     case Value::Type::Method:
