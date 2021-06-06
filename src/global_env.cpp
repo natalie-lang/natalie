@@ -28,14 +28,6 @@ ValuePtr GlobalEnv::global_set(Env *env, SymbolValue *name, ValuePtr val) {
     return val;
 }
 
-SymbolValue *GlobalEnv::symbol_get(Env *env, const char *name) {
-    return m_symbols.get(name, env);
-}
-
-void GlobalEnv::symbol_set(Env *env, const char *name, SymbolValue *val) {
-    m_symbols.put(name, val, env);
-}
-
 void GlobalEnv::visit_children(Visitor &visitor) {
     for (auto pair : m_globals) {
         visitor.visit(pair.first);

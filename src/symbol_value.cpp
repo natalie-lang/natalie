@@ -4,14 +4,12 @@ namespace Natalie {
 
 SymbolValue *SymbolValue::intern(const char *name) {
     assert(name);
-    SymbolValue *symbol = GlobalEnv::the()->symbol_get(nullptr, name);
-    if (symbol) {
+    SymbolValue *symbol = s_symbols.get(name);
+    if (symbol)
         return symbol;
-    } else {
-        symbol = new SymbolValue { name };
-        GlobalEnv::the()->symbol_set(nullptr, name, symbol);
-        return symbol;
-    }
+    symbol = new SymbolValue { name };
+    s_symbols.put(name, symbol);
+    return symbol;
 }
 
 SymbolValue *SymbolValue::intern(const String *name) {

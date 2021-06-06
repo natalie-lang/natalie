@@ -84,11 +84,7 @@ private:
 
     inline static GlobalEnv *s_instance = nullptr;
 
-    SymbolValue *symbol_get(Env *, const char *);
-    void symbol_set(Env *, const char *, SymbolValue *);
-
     Hashmap<SymbolValue *, Value *> m_globals {};
-    Hashmap<const char *, SymbolValue *> m_symbols { 1000, HashmapKeyType::String };
 
     ClassValue *m_Array { nullptr };
     ClassValue *m_Class { nullptr };
