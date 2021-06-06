@@ -91,7 +91,7 @@ public:
     bool operator==(const Value &value) const {
         if (!value.is_string())
             return false;
-        return *this == *const_cast<Value &>(value).as_string(); // FIXME: const
+        return *this == *value.as_string();
     }
 
     bool operator==(const StringValue &value) const {
