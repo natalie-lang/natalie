@@ -76,7 +76,7 @@ public:
     }
 
 private:
-    static Heap *s_instance;
+    inline static Heap *s_instance = nullptr;
 
     Heap() {
         m_allocators.push(new Allocator(16));

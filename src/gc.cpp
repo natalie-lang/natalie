@@ -11,8 +11,6 @@ extern "C" void GC_disable() {
 
 namespace Natalie {
 
-Heap *Heap::s_instance = nullptr;
-
 #ifdef NAT_GC_FIND_BUGS_WRITE_BACKTRACE_FILES
 void write_backtrace_to_file(const char *path) {
     void *array[1000];
