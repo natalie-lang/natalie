@@ -148,6 +148,12 @@ void hashmap_reset(struct hashmap *map);
 size_t hashmap_size(const struct hashmap *map);
 
 /*
+ * Return the internal data struct for holding the key and data.
+ */
+struct hashmap_entry *hashmap_entry_find(const struct hashmap *map,
+    const void *key, bool find_empty, Env *env);
+
+/*
  * Get a new hashmap iterator.  The iterator is an opaque
  * pointer that may be used with hashmap_iter_*() functions.
  * Hashmap iterators are INVALID after a put or remove operation is performed.
@@ -291,6 +297,10 @@ public:
 
     T get(KeyT key, Env *env = nullptr) {
         return static_cast<T>(hashmap_get(&m_map, key, env));
+    }
+
+    struct hashmap_entry *find_entry(KeyT key, Env *env = nullptr) {
+        return hashmap_entry_find(&m_map, key, false, env);
     }
 
     void set(KeyT key) {

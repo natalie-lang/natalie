@@ -111,7 +111,7 @@ static struct hashmap_entry *hashmap_entry_get_populated(
  * Find the hashmap entry with the specified key, or an empty slot.
  * Returns NULL if the entire table has been searched without finding a match.
  */
-static struct hashmap_entry *hashmap_entry_find(const struct hashmap *map,
+struct hashmap_entry *hashmap_entry_find(const struct hashmap *map,
     const void *key, bool find_empty, Env *env) {
     size_t i;
     size_t index;

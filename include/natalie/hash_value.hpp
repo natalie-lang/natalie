@@ -23,11 +23,6 @@ public:
         bool removed { false };
     };
 
-    struct Val {
-        Key *key { nullptr };
-        ValuePtr val { nullptr };
-    };
-
     HashValue()
         : HashValue { GlobalEnv::the()->Hash() } { }
 
@@ -170,7 +165,7 @@ private:
     }
 
     Key *m_key_list { nullptr };
-    Hashmap<Key *, Val *> m_hashmap { hash, compare, 256 };
+    Hashmap<Key *, Value *> m_hashmap { hash, compare, 256 };
     bool m_is_iterating { false };
     ValuePtr m_default_value { nullptr };
     Block *m_default_block { nullptr };
