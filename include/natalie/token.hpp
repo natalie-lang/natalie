@@ -517,14 +517,14 @@ public:
             hash->put(env, SymbolValue::intern(env, "literal"), new FloatValue { env, m_double });
             break;
         case Type::Integer:
-            hash->put(env, SymbolValue::intern(env, "literal"), ValuePtr { env, m_integer });
+            hash->put(env, SymbolValue::intern(env, "literal"), ValuePtr::integer(m_integer));
             break;
         default:
             void();
         }
         if (with_line_and_column_numbers) {
-            hash->put(env, SymbolValue::intern(env, "line"), ValuePtr { env, static_cast<nat_int_t>(m_line) });
-            hash->put(env, SymbolValue::intern(env, "column"), ValuePtr { env, static_cast<nat_int_t>(m_column) });
+            hash->put(env, SymbolValue::intern(env, "line"), ValuePtr::integer(static_cast<nat_int_t>(m_line)));
+            hash->put(env, SymbolValue::intern(env, "column"), ValuePtr::integer(static_cast<nat_int_t>(m_column)));
         }
         return hash;
     }

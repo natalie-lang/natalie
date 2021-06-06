@@ -60,7 +60,7 @@ ValuePtr SymbolValue::cmp(Env *env, ValuePtr other_value) {
     } else {
         result = 0;
     }
-    return ValuePtr { env, result };
+    return ValuePtr::integer(result);
 }
 
 bool SymbolValue::start_with(Env *env, ValuePtr needle) {

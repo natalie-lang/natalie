@@ -13,7 +13,7 @@ class ProcessModule : public Value {
 public:
     static ValuePtr pid(Env *env) {
         pid_t pid = getpid();
-        return ValuePtr { env, pid };
+        return ValuePtr::integer(pid);
     }
 };
 

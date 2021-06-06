@@ -138,7 +138,7 @@ ValuePtr StringValue::index(Env *env, ValuePtr needle, size_t start) {
             return IntegerValue::from_size_t(env, char_index);
         char_index++;
     }
-    return ValuePtr { env, 0 };
+    return ValuePtr::integer(0);
 }
 
 nat_int_t StringValue::index_int(Env *env, ValuePtr needle, size_t start) {
@@ -203,7 +203,7 @@ ValuePtr StringValue::cmp(Env *env, ValuePtr other) {
     } else {
         result = 0;
     }
-    return ValuePtr { env, result };
+    return ValuePtr::integer(result);
 }
 
 ValuePtr StringValue::eqtilde(Env *env, ValuePtr other) {
@@ -243,13 +243,13 @@ ValuePtr StringValue::ord(Env *env) {
     default:
         NAT_UNREACHABLE();
     }
-    return ValuePtr { env, code };
+    return ValuePtr::integer(code);
 }
 
 ValuePtr StringValue::bytes(Env *env) {
     ArrayValue *ary = new ArrayValue { env };
     for (size_t i = 0; i < length(); i++) {
-        ary->push(ValuePtr { env, c_str()[i] });
+        ary->push(ValuePtr::integer(c_str()[i]));
     }
     return ary;
 }
@@ -514,7 +514,7 @@ ValuePtr StringValue::to_i(Env *env, ValuePtr base_obj) {
         base = base_obj->as_integer()->to_nat_int_t();
     }
     nat_int_t number = strtoll(c_str(), nullptr, base);
-    return ValuePtr { env, number };
+    return ValuePtr::integer(number);
 }
 
 ValuePtr StringValue::split(Env *env, ValuePtr splitter, ValuePtr max_count_value) {

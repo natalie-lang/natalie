@@ -45,7 +45,7 @@ ValuePtr IntegerValue::add(Env *env, ValuePtr arg) {
     }
     arg.assert_type(env, Value::Type::Integer, "Integer");
     nat_int_t result = to_nat_int_t() + arg.to_nat_int_t();
-    return ValuePtr { env, result };
+    return ValuePtr::integer(result);
 }
 
 ValuePtr IntegerValue::sub(Env *env, ValuePtr arg) {
@@ -55,7 +55,7 @@ ValuePtr IntegerValue::sub(Env *env, ValuePtr arg) {
     }
     arg.assert_type(env, Value::Type::Integer, "Integer");
     nat_int_t result = to_nat_int_t() - arg.to_nat_int_t();
-    return ValuePtr { env, result };
+    return ValuePtr::integer(result);
 }
 
 ValuePtr IntegerValue::mul(Env *env, ValuePtr arg) {
@@ -65,7 +65,7 @@ ValuePtr IntegerValue::mul(Env *env, ValuePtr arg) {
     }
     arg.assert_type(env, Value::Type::Integer, "Integer");
     nat_int_t result = to_nat_int_t() * arg.to_nat_int_t();
-    return ValuePtr { env, result };
+    return ValuePtr::integer(result);
 }
 
 ValuePtr IntegerValue::div(Env *env, ValuePtr arg) {
@@ -76,7 +76,7 @@ ValuePtr IntegerValue::div(Env *env, ValuePtr arg) {
             env->raise("ZeroDivisionError", "divided by 0");
         }
         nat_int_t result = dividend / divisor;
-        return ValuePtr { env, result };
+        return ValuePtr::integer(result);
 
     } else if (arg->respond_to(env, SymbolValue::intern(env, "coerce"))) {
         ValuePtr args[] = { this };
@@ -94,13 +94,13 @@ ValuePtr IntegerValue::div(Env *env, ValuePtr arg) {
 ValuePtr IntegerValue::mod(Env *env, ValuePtr arg) {
     arg.assert_type(env, Value::Type::Integer, "Integer");
     nat_int_t result = to_nat_int_t() % arg.to_nat_int_t();
-    return ValuePtr { env, result };
+    return ValuePtr::integer(result);
 }
 
 ValuePtr IntegerValue::pow(Env *env, ValuePtr arg) {
     arg.assert_type(env, Value::Type::Integer, "Integer");
     nat_int_t result = ::pow(to_nat_int_t(), arg.to_nat_int_t());
-    return ValuePtr { env, result };
+    return ValuePtr::integer(result);
 }
 
 ValuePtr IntegerValue::cmp(Env *env, ValuePtr arg) {
@@ -108,11 +108,11 @@ ValuePtr IntegerValue::cmp(Env *env, ValuePtr arg) {
     nat_int_t i1 = to_nat_int_t();
     nat_int_t i2 = arg.to_nat_int_t();
     if (i1 < i2) {
-        return ValuePtr { env, -1 };
+        return ValuePtr::integer(-1);
     } else if (i1 == i2) {
-        return ValuePtr { env, 0 };
+        return ValuePtr::integer(0);
     } else {
-        return ValuePtr { env, 1 };
+        return ValuePtr::integer(1);
     }
 }
 
@@ -175,7 +175,7 @@ ValuePtr IntegerValue::times(Env *env, Block *block) {
     env->assert_block_given(block); // TODO: return Enumerator when no block given
     ValuePtr num;
     for (nat_int_t i = 0; i < val; i++) {
-        ValuePtr num { env, i };
+        ValuePtr num = ValuePtr::integer(i);
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &num, nullptr);
     }
     return this;
@@ -183,16 +183,16 @@ ValuePtr IntegerValue::times(Env *env, Block *block) {
 
 ValuePtr IntegerValue::bitwise_and(Env *env, ValuePtr arg) {
     arg.assert_type(env, Value::Type::Integer, "Integer");
-    return ValuePtr { env, to_nat_int_t() & arg.to_nat_int_t() };
+    return ValuePtr::integer(to_nat_int_t() & arg.to_nat_int_t());
 }
 
 ValuePtr IntegerValue::bitwise_or(Env *env, ValuePtr arg) {
     arg.assert_type(env, Value::Type::Integer, "Integer");
-    return ValuePtr { env, to_nat_int_t() | arg.to_nat_int_t() };
+    return ValuePtr::integer(to_nat_int_t() | arg.to_nat_int_t());
 }
 
 ValuePtr IntegerValue::succ(Env *env) {
-    return ValuePtr { env, to_nat_int_t() + 1 };
+    return ValuePtr::integer(to_nat_int_t() + 1);
 }
 
 ValuePtr IntegerValue::coerce(Env *env, ValuePtr arg) {
@@ -223,7 +223,7 @@ bool IntegerValue::eql(Env *env, ValuePtr other) {
 ValuePtr IntegerValue::abs(Env *env) {
     auto number = to_nat_int_t();
     if (number < 0) {
-        return ValuePtr { env, -1 * number };
+        return ValuePtr::integer(-1 * number);
     } else {
         return this;
     }
@@ -260,7 +260,7 @@ bool IntegerValue::optimized_method(SymbolValue *method_name) {
 }
 
 ValuePtr IntegerValue::negate(Env *env) {
-    return ValuePtr { env, -1 * m_integer };
+    return ValuePtr::integer(-1 * m_integer);
 }
 
 }

@@ -200,7 +200,7 @@ ValuePtr #{name}(Env *env, ValuePtr, size_t argc, ValuePtr *args, Block *block) 
         "if (!return_value) return env->false_obj();\n" +
         'return env->true_obj();'
       when :int
-        'return ValuePtr { env, return_value };'
+        'return ValuePtr::integer(return_value);'
       when :size_t
         'return IntegerValue::from_size_t(env, return_value);'
       when :c_str

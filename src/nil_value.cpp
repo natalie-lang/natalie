@@ -15,7 +15,7 @@ ValuePtr NilValue::to_a(Env *env) {
 }
 
 ValuePtr NilValue::to_i(Env *env) {
-    return ValuePtr { env, 0 };
+    return ValuePtr::integer(0);
 }
 
 ValuePtr NilValue::inspect(Env *env) {

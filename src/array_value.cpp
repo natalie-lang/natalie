@@ -280,7 +280,7 @@ ValuePtr ArrayValue::index(Env *env, ValuePtr object, Block *block) {
             ValuePtr args[] = { item };
             auto result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, args, nullptr);
             if (result->is_truthy())
-                return ValuePtr { env, i };
+                return ValuePtr::integer(i);
         }
         return env->nil_obj();
     } else if (object) {
@@ -288,7 +288,7 @@ ValuePtr ArrayValue::index(Env *env, ValuePtr object, Block *block) {
             auto item = m_vector[i];
             ValuePtr args[] = { object };
             if (item.send(env, "==", 1, args)->is_truthy())
-                return ValuePtr { env, i };
+                return ValuePtr::integer(i);
         }
         return env->nil_obj();
     } else {
@@ -347,19 +347,19 @@ ValuePtr ArrayValue::cmp(Env *env, ValuePtr other) {
     ArrayValue *other_array = other->as_array();
     for (size_t i = 0; i < size(); i++) {
         if (i >= other_array->size()) {
-            return ValuePtr { env, 1 };
+            return ValuePtr::integer(1);
         }
         ValuePtr item = (*other_array)[i];
         ValuePtr cmp_obj = (*this)[i].send(env, "<=>", 1, &item, nullptr);
         assert(cmp_obj->type() == Value::Type::Integer);
         nat_int_t cmp = cmp_obj->as_integer()->to_nat_int_t();
-        if (cmp < 0) return ValuePtr { env, -1 };
-        if (cmp > 0) return ValuePtr { env, 1 };
+        if (cmp < 0) return ValuePtr::integer(-1);
+        if (cmp > 0) return ValuePtr::integer(1);
     }
     if (other_array->size() > size()) {
-        return ValuePtr { env, -1 };
+        return ValuePtr::integer(-1);
     }
-    return ValuePtr { env, 0 };
+    return ValuePtr::integer(0);
 }
 
 ValuePtr ArrayValue::push(Env *env, size_t argc, ValuePtr *args) {

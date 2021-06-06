@@ -18,12 +18,13 @@ public:
     ValuePtr(Value *value)
         : m_value { value } { }
 
-    ValuePtr(GlobalEnv *global_env, nat_int_t integer)
-        : m_type { Type::Integer }
-        , m_global_env { global_env }
+    ValuePtr(Type type, nat_int_t integer)
+        : m_type { type }
         , m_integer { integer } { }
 
-    ValuePtr(Env *env, nat_int_t integer);
+    static ValuePtr integer(nat_int_t integer) {
+        return ValuePtr { Type::Integer, integer };
+    }
 
     Value &operator*() {
         hydrate();
@@ -79,7 +80,6 @@ private:
     void hydrate();
 
     Type m_type { Type::Pointer };
-    GlobalEnv *m_global_env { nullptr };
     nat_int_t m_integer { 0 };
     Value *m_value { nullptr };
 };

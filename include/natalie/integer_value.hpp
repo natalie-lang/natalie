@@ -40,7 +40,7 @@ public:
 
     static ValuePtr from_size_t(Env *env, size_t number) {
         assert(number <= NAT_INT_MAX);
-        return ValuePtr { env, static_cast<nat_int_t>(number) };
+        return ValuePtr::integer(static_cast<nat_int_t>(number));
     }
 
     ValuePtr inspect(Env *env) { return to_s(env); }

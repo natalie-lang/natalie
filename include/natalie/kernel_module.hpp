@@ -14,7 +14,7 @@ namespace Natalie {
 class KernelModule : public Value {
 public:
     ValuePtr object_id(Env *env) {
-        return ValuePtr { env, Value::object_id() };
+        return ValuePtr::integer(Value::object_id());
     }
 
     bool equal(ValuePtr other) {

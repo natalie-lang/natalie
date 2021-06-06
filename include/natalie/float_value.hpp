@@ -59,7 +59,7 @@ public:
     ValuePtr to_int_no_truncation(Env *env) {
         if (is_nan() || is_infinity()) return this;
         if (m_double == ::floor(m_double)) {
-            return ValuePtr { env, static_cast<nat_int_t>(m_double) };
+            return ValuePtr::integer(static_cast<nat_int_t>(m_double));
         }
         return this;
     }

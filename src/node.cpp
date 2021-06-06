@@ -392,7 +392,7 @@ ValuePtr IdentifierNode::to_ruby(Env *env) {
     case Token::Type::GlobalVariable: {
         auto ref = nth_ref();
         if (ref > 0)
-            return new SexpValue { env, this, { SymbolValue::intern(env, "nth_ref"), ValuePtr { env, ref } } };
+            return new SexpValue { env, this, { SymbolValue::intern(env, "nth_ref"), ValuePtr::integer(ref) } };
         else
             return new SexpValue { env, this, { SymbolValue::intern(env, "gvar"), SymbolValue::intern(env, name()) } };
     }
@@ -434,7 +434,7 @@ ValuePtr IterNode::to_ruby(Env *env) {
         }
     };
     if (m_args->is_empty())
-        sexp->push(ValuePtr { env, 0 });
+        sexp->push(ValuePtr::integer(0));
     else
         sexp->push(build_args_sexp(env));
     if (!m_body->is_empty()) {
