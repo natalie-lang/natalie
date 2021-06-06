@@ -14,9 +14,9 @@ ValuePtr EnvValue::inspect(Env *env) {
         char *eq = strchr(pair, '=');
         assert(eq);
         size_t index = eq - pair;
-        StringValue *name = new StringValue { env, pair };
+        StringValue *name = new StringValue { pair };
         name->truncate(index);
-        hash->put(env, name, new StringValue { env, getenv(name->c_str()) });
+        hash->put(env, name, new StringValue { getenv(name->c_str()) });
         pair = *(environ + i);
     }
     return hash->inspect(env);
@@ -26,7 +26,7 @@ ValuePtr EnvValue::ref(Env *env, ValuePtr name) {
     name->assert_type(env, Value::Type::String, "String");
     char *value = getenv(name->as_string()->c_str());
     if (value) {
-        return new StringValue { env, value };
+        return new StringValue { value };
     } else {
         return env->nil_obj();
     }

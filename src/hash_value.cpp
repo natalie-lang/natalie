@@ -180,7 +180,7 @@ ValuePtr HashValue::square_new(Env *env, size_t argc, ValuePtr *args) {
 }
 
 ValuePtr HashValue::inspect(Env *env) {
-    StringValue *out = new StringValue { env, "{" };
+    StringValue *out = new StringValue { "{" };
     size_t last_index = size() - 1;
     size_t index = 0;
     for (HashValue::Key &node : *this) {

@@ -12,7 +12,7 @@ ValuePtr ParserValue::parse(Env *env, ValuePtr code, ValuePtr source_path) {
     if (source_path)
         source_path->assert_type(env, Value::Type::String, "String");
     else
-        source_path = new StringValue { env, "(string)" };
+        source_path = new StringValue { "(string)" };
     code->assert_type(env, Value::Type::String, "String");
     auto parser = Parser { code->as_string()->to_string(), source_path->as_string()->to_string() };
     return parser.tree(env)->to_ruby(env);

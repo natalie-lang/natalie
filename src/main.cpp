@@ -169,13 +169,13 @@ extern "C" Env *build_top_env() {
     ClassValue *Sexp = Array->subclass(env, "Sexp", Value::Type::Array);
     Parser->const_set(SymbolValue::intern("Sexp"), Sexp);
 
-    ValuePtr RUBY_VERSION = new StringValue { env, "2.7.1" };
+    ValuePtr RUBY_VERSION = new StringValue { "2.7.1" };
     Object->const_set(SymbolValue::intern("RUBY_VERSION"), RUBY_VERSION);
 
-    ValuePtr RUBY_ENGINE = new StringValue { env, "natalie" };
+    ValuePtr RUBY_ENGINE = new StringValue { "natalie" };
     Object->const_set(SymbolValue::intern("RUBY_ENGINE"), RUBY_ENGINE);
 
-    StringValue *RUBY_PLATFORM = new StringValue { env, ruby_platform };
+    StringValue *RUBY_PLATFORM = new StringValue { ruby_platform };
     Object->const_set(SymbolValue::intern("RUBY_PLATFORM"), RUBY_PLATFORM);
 
     init_bindings(env);
@@ -211,13 +211,13 @@ ValuePtr _main(int argc, char *argv[]) {
 #endif
 
     assert(argc > 0);
-    ValuePtr exe = new StringValue { env, argv[0] };
+    ValuePtr exe = new StringValue { argv[0] };
     env->global_set(SymbolValue::intern("$exe"), exe);
 
     ArrayValue *ARGV = new ArrayValue {};
     env->Object()->const_set(SymbolValue::intern("ARGV"), ARGV);
     for (int i = 1; i < argc; i++) {
-        ARGV->push(new StringValue { env, argv[i] });
+        ARGV->push(new StringValue { argv[i] });
     }
 
     return EVAL(env);

@@ -126,11 +126,11 @@ ValuePtr FloatValue::truncate(Env *env, ValuePtr precision_value) {
 
 ValuePtr FloatValue::to_s(Env *env) {
     if (is_nan()) {
-        return new StringValue { env, "NaN" };
+        return new StringValue { "NaN" };
     } else if (is_positive_infinity()) {
-        return new StringValue { env, "Infinity" };
+        return new StringValue { "Infinity" };
     } else if (is_negative_infinity()) {
-        return new StringValue { env, "-Infinity" };
+        return new StringValue { "-Infinity" };
     }
 
     int decpt, sign;
@@ -140,17 +140,17 @@ ValuePtr FloatValue::to_s(Env *env) {
     StringValue *string;
 
     if (decpt == 0) {
-        string = new StringValue { env, "0." };
+        string = new StringValue { "0." };
         string->append(env, out);
 
     } else if (decpt < 0) {
-        string = new StringValue { env, "0." };
+        string = new StringValue { "0." };
         char *zeros = zero_string(::abs(decpt));
         string->append(env, zeros);
         string->append(env, out);
 
     } else {
-        string = new StringValue { env, out };
+        string = new StringValue { out };
         nat_int_t s_length = string->length();
         if (decpt == s_length) {
             string->append(env, ".0");

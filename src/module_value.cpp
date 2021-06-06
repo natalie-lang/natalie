@@ -258,12 +258,12 @@ ValuePtr ModuleValue::inspect(Env *env) {
         if (owner() && owner() != env->Object()) {
             return StringValue::format(env, "{}::{}", owner()->inspect_str(env), class_name_or_blank());
         } else {
-            return new StringValue { env, *class_name_or_blank() };
+            return new StringValue { *class_name_or_blank() };
         }
     } else if (is_class()) {
         return StringValue::format(env, "#<Class:{}>", pointer_id());
     } else if (is_module() && m_class_name) {
-        return new StringValue { env, *class_name_or_blank() };
+        return new StringValue { *class_name_or_blank() };
     } else {
         return StringValue::format(env, "#<{}:{}>", klass()->inspect_str(env), pointer_id());
     }
@@ -271,7 +271,7 @@ ValuePtr ModuleValue::inspect(Env *env) {
 
 ValuePtr ModuleValue::name(Env *env) {
     if (m_class_name) {
-        return new StringValue { env, *class_name_or_blank() };
+        return new StringValue { *class_name_or_blank() };
     } else {
         return env->nil_obj();
     }
@@ -313,7 +313,7 @@ ValuePtr ModuleValue::attr_writer(Env *env, size_t argc, ValuePtr *args) {
         } else {
             env->raise("TypeError", "{} is not a symbol nor a string", name_obj->inspect_str(env));
         }
-        StringValue *method_name = new StringValue { env, name_obj->as_string()->c_str() };
+        StringValue *method_name = new StringValue { name_obj->as_string()->c_str() };
         method_name->append_char(env, '=');
         auto block_env = new Env {};
         block_env->var_set("name", 0, true, name_obj);

@@ -14,7 +14,7 @@ ValuePtr RegexpValue::initialize(Env *env, ValuePtr arg) {
 }
 
 ValuePtr RegexpValue::inspect(Env *env) {
-    StringValue *out = new StringValue { env, "/" };
+    StringValue *out = new StringValue { "/" };
     const char *str = pattern();
     size_t len = strlen(str);
     for (size_t i = 0; i < len; i++) {
@@ -77,7 +77,7 @@ ValuePtr RegexpValue::match(Env *env, ValuePtr other, size_t start_index) {
 }
 
 ValuePtr RegexpValue::source(Env *env) {
-    return new StringValue { env, pattern() };
+    return new StringValue { pattern() };
 }
 
 }

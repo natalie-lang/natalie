@@ -22,7 +22,7 @@ ValuePtr ArrayValue::initialize(Env *env, ValuePtr size, ValuePtr value) {
 }
 
 ValuePtr ArrayValue::inspect(Env *env) {
-    StringValue *out = new StringValue { env, "[" };
+    StringValue *out = new StringValue { "[" };
     for (size_t i = 0; i < size(); i++) {
         ValuePtr obj = (*this)[i];
         StringValue *repr = obj.send(env, "inspect")->as_string();
@@ -326,11 +326,11 @@ ValuePtr ArrayValue::sort(Env *env) {
 
 ValuePtr ArrayValue::join(Env *env, ValuePtr joiner) {
     if (size() == 0) {
-        return new StringValue { env };
+        return new StringValue {};
     } else if (size() == 1) {
         return (*this)[0].send(env, "to_s");
     } else {
-        if (!joiner) joiner = new StringValue { env, "" };
+        if (!joiner) joiner = new StringValue { "" };
         joiner->assert_type(env, Value::Type::String, "String");
         StringValue *out = (*this)[0].send(env, "to_s")->dup(env)->as_string();
         for (size_t i = 1; i < size(); i++) {

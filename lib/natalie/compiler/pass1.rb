@@ -320,7 +320,7 @@ module Natalie
           end
         end
         exp.new(:block,
-                s(:declare, string, s(:new, :StringValue, :env, s(:s, start))),
+                s(:declare, string, s(:new, :StringValue, s(:s, start))),
                 *segments,
                 string)
       end
@@ -905,7 +905,7 @@ module Natalie
 
       def process_str(exp)
         (_, str) = exp
-        exp.new(:new, :StringValue, :env, s(:s, str))
+        exp.new(:new, :StringValue, s(:s, str))
       end
 
       def process_super(exp)

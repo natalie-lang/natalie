@@ -68,7 +68,7 @@ ValuePtr Value::_new(Env *env, ValuePtr klass_value, size_t argc, ValuePtr *args
         break;
 
     case Value::Type::String:
-        obj = new StringValue { env, klass };
+        obj = new StringValue { klass };
         break;
 
     case Value::Type::VoidP:
@@ -452,7 +452,7 @@ ValuePtr Value::dup(Env *env) {
     case Value::Type::Hash:
         return new HashValue { env, *as_hash() };
     case Value::Type::String:
-        return new StringValue { env, *as_string() };
+        return new StringValue { *as_string() };
     case Value::Type::False:
     case Value::Type::Float:
     case Value::Type::Integer:
@@ -521,7 +521,7 @@ const char *Value::defined(Env *env, SymbolValue *name, bool strict) {
 ValuePtr Value::defined_obj(Env *env, SymbolValue *name, bool strict) {
     const char *result = defined(env, name, strict);
     if (result) {
-        return new StringValue { env, result };
+        return new StringValue { result };
     } else {
         return env->nil_obj();
     }

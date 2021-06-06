@@ -17,7 +17,7 @@ EncodingValue::EncodingValue(Env *env, Encoding num, std::initializer_list<const
     : EncodingValue { env } {
     m_num = num;
     for (const char *name : names) {
-        m_names.push(new StringValue { env, name });
+        m_names.push(new StringValue { name });
     }
 }
 

@@ -205,7 +205,7 @@ ValuePtr #{name}(Env *env, ValuePtr, size_t argc, ValuePtr *args, Block *block) 
         'return IntegerValue::from_size_t(env, return_value);'
       when :c_str
         "if (!return_value) return env->nil_obj();\n" +
-        'return new StringValue { env, return_value };'
+        'return new StringValue { return_value };'
       when :Value
         "if (!return_value) return env->nil_obj();\n" +
         'return return_value;'
@@ -217,7 +217,7 @@ ValuePtr #{name}(Env *env, ValuePtr, size_t argc, ValuePtr *args, Block *block) 
         'return return_value;'
       when :String
         "if (!return_value) return env->nil_obj();\n" +
-        'return new StringValue { env, *return_value };'
+        'return new StringValue { *return_value };'
       else
         raise "Unknown return type: #{return_type.inspect}"
       end

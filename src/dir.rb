@@ -14,7 +14,7 @@ class Dir
       char buf[MAXPATHLEN + 1];
       if(!getcwd(buf, MAXPATHLEN + 1))
           env->raise_errno();
-      return new StringValue { env, buf };
+      return new StringValue { buf };
     END
 
     def each_child(dirname)
@@ -36,7 +36,7 @@ class Dir
           entry = readdir(dir);
           if (!entry) break;
           if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) continue;
-          array->push(new StringValue { env, entry->d_name });
+          array->push(new StringValue { entry->d_name });
       }
       if (errno) {
           closedir(dir);

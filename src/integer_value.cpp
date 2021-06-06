@@ -6,8 +6,8 @@ namespace Natalie {
 
 ValuePtr IntegerValue::to_s(Env *env, ValuePtr base_value) {
     if (m_integer == 0)
-        return new StringValue { env, "0" };
-    auto str = new StringValue { env };
+        return new StringValue { "0" };
+    auto str = new StringValue {};
     nat_int_t base = 10;
     if (base_value) {
         base_value->assert_type(env, Value::Type::Integer, "Integer");
@@ -233,7 +233,7 @@ ValuePtr IntegerValue::chr(Env *env) {
     char c = static_cast<char>(to_nat_int_t());
     char str[] = " ";
     str[0] = c;
-    return new StringValue { env, str };
+    return new StringValue { str };
 }
 
 bool IntegerValue::optimized_method(SymbolValue *method_name) {

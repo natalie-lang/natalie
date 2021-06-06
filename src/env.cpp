@@ -47,13 +47,13 @@ void Env::raise(ClassValue *klass, StringValue *message) {
 }
 
 void Env::raise(ClassValue *klass, class String *message) {
-    ExceptionValue *exception = new ExceptionValue { this, klass, new StringValue { this, *message } };
+    ExceptionValue *exception = new ExceptionValue { this, klass, new StringValue { *message } };
     this->raise_exception(exception);
 }
 
 void Env::raise(const char *class_name, const class String *message) {
     ClassValue *klass = Object()->const_fetch(SymbolValue::intern(class_name))->as_class();
-    ExceptionValue *exception = new ExceptionValue { this, klass, new StringValue { this, *message } };
+    ExceptionValue *exception = new ExceptionValue { this, klass, new StringValue { *message } };
     this->raise_exception(exception);
 }
 
@@ -66,7 +66,7 @@ void Env::raise_exception(ExceptionValue *exception) {
 }
 
 void Env::raise_local_jump_error(ValuePtr exit_value, const char *message) {
-    ExceptionValue *exception = new ExceptionValue { this, Object()->const_find(this, SymbolValue::intern("LocalJumpError"))->as_class(), new StringValue { this, message } };
+    ExceptionValue *exception = new ExceptionValue { this, Object()->const_find(this, SymbolValue::intern("LocalJumpError"))->as_class(), new StringValue { message } };
     exception->ivar_set(this, SymbolValue::intern("@exit_value"), exit_value);
     this->raise_exception(exception);
 }

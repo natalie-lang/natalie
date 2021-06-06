@@ -19,7 +19,7 @@ public:
 
     const char *c_str() { return m_name; }
 
-    StringValue *to_s(Env *env) { return new StringValue { env, m_name }; }
+    StringValue *to_s(Env *env) { return new StringValue { m_name }; }
     StringValue *inspect(Env *);
 
     virtual ProcValue *to_proc(Env *) override;

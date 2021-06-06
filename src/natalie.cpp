@@ -368,14 +368,14 @@ ValuePtr shell_backticks(Env *env, ValuePtr command) {
     auto result = fgets(buf, NAT_SHELL_READ_BYTES, process);
     StringValue *out;
     if (result) {
-        out = new StringValue { env, buf };
+        out = new StringValue { buf };
         while (1) {
             result = fgets(buf, NAT_SHELL_READ_BYTES, process);
             if (!result) break;
             out->append(env, buf);
         }
     } else {
-        out = new StringValue { env };
+        out = new StringValue {};
     }
     int status = pclose2(process, pid);
     set_status_object(env, pid, status);

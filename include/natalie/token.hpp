@@ -502,7 +502,7 @@ public:
         case Type::PercentUpperW:
         case Type::Regexp:
         case Type::String:
-            hash->put(env, SymbolValue::intern("literal"), new StringValue { env, literal_or_blank() });
+            hash->put(env, SymbolValue::intern("literal"), new StringValue { literal_or_blank() });
             break;
         case Type::BareName:
         case Type::ClassVariable:

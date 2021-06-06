@@ -54,7 +54,7 @@ ValuePtr StringValue::each_char(Env *env, Block *block) {
     size_t index = 0;
     char buffer[5];
     while (next_char(env, buffer, &index)) {
-        auto c = new StringValue { env, buffer, m_encoding };
+        auto c = new StringValue { buffer, m_encoding };
         ValuePtr args[] = { c };
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, args, nullptr);
     }
@@ -66,7 +66,7 @@ ArrayValue *StringValue::chars(Env *env) {
     size_t index = 0;
     char buffer[5];
     while (next_char(env, buffer, &index)) {
-        auto c = new StringValue { env, buffer, m_encoding };
+        auto c = new StringValue { buffer, m_encoding };
         ary->push(c);
     }
     return ary;
@@ -83,7 +83,7 @@ ValuePtr StringValue::to_sym(Env *env) {
 StringValue *StringValue::inspect(Env *env) {
     size_t len = length();
     const char *str = m_string.c_str();
-    StringValue *out = new StringValue { env, "\"" };
+    StringValue *out = new StringValue { "\"" };
     for (size_t i = 0; i < len; i++) {
         char c = str[i];
         char c2 = (i + 1) < len ? str[i + 1] : 0;
@@ -104,7 +104,7 @@ StringValue *StringValue::inspect(Env *env) {
 
 StringValue *StringValue::successive(Env *env) {
     auto str = m_string.successive();
-    return new StringValue { env, str };
+    return new StringValue { str };
 }
 
 bool StringValue::start_with(Env *env, ValuePtr needle) {
@@ -116,7 +116,7 @@ bool StringValue::end_with(Env *env, ValuePtr needle) {
     needle->assert_type(env, Value::Type::String, "String");
     if (length() < needle->as_string()->length())
         return false;
-    auto from_end = new StringValue { env, c_str() + length() - needle->as_string()->length() };
+    auto from_end = new StringValue { c_str() + length() - needle->as_string()->length() };
     nat_int_t i = from_end->index_int(env, needle, 0);
     return i == 0;
 }
@@ -178,14 +178,14 @@ ValuePtr StringValue::add(Env *env, ValuePtr arg) {
         str_obj->assert_type(env, Value::Type::String, "String");
         str = str_obj->c_str();
     }
-    StringValue *new_string = new StringValue { env, c_str() };
+    StringValue *new_string = new StringValue { c_str() };
     new_string->append(env, str);
     return new_string;
 }
 
 ValuePtr StringValue::mul(Env *env, ValuePtr arg) {
     arg->assert_type(env, Value::Type::Integer, "Integer");
-    StringValue *new_string = new StringValue { env, "" };
+    StringValue *new_string = new StringValue { "" };
     for (nat_int_t i = 0; i < arg->as_integer()->to_nat_int_t(); i++) {
         new_string->append(env, this);
     }
@@ -221,7 +221,7 @@ ValuePtr StringValue::ord(Env *env) {
     char buffer[5];
     if (!next_char(env, buffer, &index))
         env->raise("ArgumentError", "empty string");
-    auto c = new StringValue { env, buffer, m_encoding };
+    auto c = new StringValue { buffer, m_encoding };
     assert(c->length() > 0);
     unsigned int code;
     const char *str = c->c_str();
@@ -318,8 +318,8 @@ ValuePtr StringValue::encode(Env *env, ValuePtr encoding) {
             if (char_obj->length() > 1) {
                 ValuePtr ord = char_obj->ord(env);
                 ValuePtr message = StringValue::format(env, "U+{} from UTF-8 to ASCII-8BIT", int_to_hex_string(ord->as_integer()->to_nat_int_t(), true));
-                StringValue zero_x { env, "0X" };
-                StringValue blank { env, "" };
+                StringValue zero_x { "0X" };
+                StringValue blank { "" };
                 message = message->as_string()->sub(env, &zero_x, &blank);
                 env->raise(Encoding->const_find(env, SymbolValue::intern("UndefinedConversionError"))->as_class(), "{}", message->as_string());
             }
@@ -385,7 +385,7 @@ ValuePtr StringValue::ref(Env *env, ValuePtr index_obj) {
 
         size_t max = chars->size();
         u_end = u_end > max ? max : u_end;
-        StringValue *result = new StringValue { env };
+        StringValue *result = new StringValue {};
         for (size_t i = begin; i < u_end; i++) {
             result->append(env, (*chars)[i]);
         }
@@ -406,7 +406,7 @@ ValuePtr StringValue::sub(Env *env, ValuePtr find, ValuePtr replacement, Block *
         if (index == -1) {
             return dup(env)->as_string();
         }
-        StringValue *out = new StringValue { env, c_str(), static_cast<size_t>(index) };
+        StringValue *out = new StringValue { c_str(), static_cast<size_t>(index) };
         if (block) {
             ValuePtr result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 0, nullptr, nullptr);
             result->assert_type(env, Value::Type::String, "String");
@@ -460,7 +460,7 @@ StringValue *StringValue::regexp_sub(Env *env, RegexpValue *find, StringValue *r
     *match = match_result->as_match_data();
     size_t length = (*match)->as_match_data()->group(env, 0)->as_string()->length();
     nat_int_t index = (*match)->as_match_data()->index(0);
-    StringValue *out = new StringValue { env, c_str(), static_cast<size_t>(index) };
+    StringValue *out = new StringValue { c_str(), static_cast<size_t>(index) };
     *expanded_replacement = expand_backrefs(env, replacement->as_string(), *match);
     out->append(env, *expanded_replacement);
     out->append(env, &c_str()[index + length]);
@@ -470,7 +470,7 @@ StringValue *StringValue::regexp_sub(Env *env, RegexpValue *find, StringValue *r
 StringValue *StringValue::expand_backrefs(Env *env, StringValue *str, MatchDataValue *match) {
     const char *c_str = str->c_str();
     size_t len = strlen(c_str);
-    StringValue *expanded = new StringValue { env, "" };
+    StringValue *expanded = new StringValue { "" };
     for (size_t i = 0; i < len; i++) {
         auto c = c_str[i];
         switch (c) {
@@ -543,16 +543,16 @@ ValuePtr StringValue::split(Env *env, ValuePtr splitter, ValuePtr max_count_valu
             do {
                 index = region->beg[0];
                 len = region->end[0] - region->beg[0];
-                ary->push(new StringValue { env, &c_str()[last_index], index - last_index });
+                ary->push(new StringValue { &c_str()[last_index], index - last_index });
                 last_index = index + len;
                 if (max_count > 0 && ary->size() >= static_cast<size_t>(max_count) - 1) {
-                    ary->push(new StringValue { env, &c_str()[last_index] });
+                    ary->push(new StringValue { &c_str()[last_index] });
                     onig_region_free(region, true);
                     return ary;
                 }
                 result = splitter->as_regexp()->search(c_str(), last_index, region, ONIG_OPTION_NONE);
             } while (result != ONIG_MISMATCH);
-            ary->push(new StringValue { env, &c_str()[last_index] });
+            ary->push(new StringValue { &c_str()[last_index] });
         }
         onig_region_free(region, true);
         return ary;
@@ -564,15 +564,15 @@ ValuePtr StringValue::split(Env *env, ValuePtr splitter, ValuePtr max_count_valu
         } else {
             do {
                 size_t u_index = static_cast<size_t>(index);
-                ary->push(new StringValue { env, &c_str()[last_index], u_index - last_index });
+                ary->push(new StringValue { &c_str()[last_index], u_index - last_index });
                 last_index = u_index + splitter->as_string()->length();
                 if (max_count > 0 && ary->size() >= static_cast<size_t>(max_count) - 1) {
-                    ary->push(new StringValue { env, &c_str()[last_index] });
+                    ary->push(new StringValue { &c_str()[last_index] });
                     return ary;
                 }
                 index = index_int(env, splitter->as_string(), last_index);
             } while (index != -1);
-            ary->push(new StringValue { env, &c_str()[last_index] });
+            ary->push(new StringValue { &c_str()[last_index] });
         }
         return ary;
     } else {
@@ -588,7 +588,7 @@ ValuePtr StringValue::ljust(Env *env, ValuePtr length_obj, ValuePtr pad_obj) {
         pad_obj->assert_type(env, Value::Type::String, "String");
         padstr = pad_obj->as_string();
     } else {
-        padstr = new StringValue { env, " " };
+        padstr = new StringValue { " " };
     }
     StringValue *copy = dup(env)->as_string();
     while (copy->length() < length) {
@@ -603,7 +603,7 @@ ValuePtr StringValue::ljust(Env *env, ValuePtr length_obj, ValuePtr pad_obj) {
 
 ValuePtr StringValue::strip(Env *env) {
     if (length() == 0)
-        return new StringValue { env };
+        return new StringValue {};
     assert(length() < NAT_INT_MAX);
     nat_int_t first_char, last_char;
     nat_int_t len = static_cast<nat_int_t>(length());
@@ -618,16 +618,16 @@ ValuePtr StringValue::strip(Env *env) {
             break;
     }
     if (last_char < 0) {
-        return new StringValue { env };
+        return new StringValue {};
     } else {
         size_t new_length = static_cast<size_t>(last_char - first_char + 1);
-        return new StringValue { env, c_str() + first_char, new_length };
+        return new StringValue { c_str() + first_char, new_length };
     }
 }
 
 ValuePtr StringValue::downcase(Env *env) {
     auto ary = chars(env);
-    auto str = new StringValue { env };
+    auto str = new StringValue {};
     for (auto c_val : *ary) {
         auto c_str = c_val->as_string();
         if (c_str->bytesize() > 1) {
@@ -645,7 +645,7 @@ ValuePtr StringValue::downcase(Env *env) {
 
 ValuePtr StringValue::upcase(Env *env) {
     auto ary = chars(env);
-    auto str = new StringValue { env };
+    auto str = new StringValue {};
     for (auto c_val : *ary) {
         auto c_str = c_val->as_string();
         if (c_str->bytesize() > 1) {
@@ -663,7 +663,7 @@ ValuePtr StringValue::upcase(Env *env) {
 
 ValuePtr StringValue::reverse(Env *env) {
     if (length() == 0)
-        return new StringValue { env };
+        return new StringValue {};
     auto ary = new ArrayValue {};
     auto characters = chars(env)->as_array();
     for (size_t i = characters->size() - 1;; i--) {

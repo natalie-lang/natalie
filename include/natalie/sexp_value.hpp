@@ -19,7 +19,7 @@ public:
     }
 
     ValuePtr inspect(Env *env) {
-        StringValue *out = new StringValue { env, "s(" };
+        StringValue *out = new StringValue { "s(" };
         for (size_t i = 0; i < size(); i++) {
             ValuePtr obj = (*this)[i];
             StringValue *repr = obj.send(env, "inspect")->as_string();

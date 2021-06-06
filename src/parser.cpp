@@ -575,7 +575,7 @@ Node *Parser::parse_modifier_expression(Env *env, Node *left, LocalsVectorPtr lo
 Node *Parser::parse_file_constant(Env *env, LocalsVectorPtr locals) {
     auto token = current_token();
     advance();
-    return new StringNode { token, new StringValue { env, token->file() } };
+    return new StringNode { token, new StringValue { token->file() } };
 }
 
 Node *Parser::parse_group(Env *env, LocalsVectorPtr locals) {
@@ -691,7 +691,7 @@ void Parser::parse_interpolated_body(Env *env, LocalsVectorPtr locals, Interpola
             break;
         }
         case Token::Type::String:
-            node->add_node(new StringNode { current_token(), new StringValue { env, current_token()->literal() } });
+            node->add_node(new StringNode { current_token(), new StringValue { current_token()->literal() } });
             advance();
             break;
         default:
@@ -726,11 +726,11 @@ Node *Parser::parse_interpolated_shell(Env *env, LocalsVectorPtr locals) {
     auto token = current_token();
     advance();
     if (current_token()->type() == Token::Type::InterpolatedShellEnd) {
-        auto shell = new ShellNode { token, new StringValue { env } };
+        auto shell = new ShellNode { token, new StringValue {} };
         advance();
         return shell;
     } else if (current_token()->type() == Token::Type::String && peek_token()->type() == Token::Type::InterpolatedShellEnd) {
-        auto shell = new ShellNode { token, new StringValue { env, current_token()->literal() } };
+        auto shell = new ShellNode { token, new StringValue { current_token()->literal() } };
         advance();
         advance();
         return shell;
@@ -745,11 +745,11 @@ Node *Parser::parse_interpolated_string(Env *env, LocalsVectorPtr locals) {
     auto token = current_token();
     advance();
     if (current_token()->type() == Token::Type::InterpolatedStringEnd) {
-        auto string = new StringNode { token, new StringValue { env } };
+        auto string = new StringNode { token, new StringValue {} };
         advance();
         return string;
     } else if (current_token()->type() == Token::Type::String && peek_token()->type() == Token::Type::InterpolatedStringEnd) {
-        auto string = new StringNode { token, new StringValue { env, current_token()->literal() } };
+        auto string = new StringNode { token, new StringValue { current_token()->literal() } };
         advance();
         advance();
         return string;
@@ -919,7 +919,7 @@ Node *Parser::parse_stabby_proc(Env *env, LocalsVectorPtr locals) {
 
 Node *Parser::parse_string(Env *env, LocalsVectorPtr locals) {
     auto token = current_token();
-    auto string = new StringNode { token, new StringValue { env, token->literal() } };
+    auto string = new StringNode { token, new StringValue { token->literal() } };
     advance();
     return string;
 };
@@ -974,13 +974,13 @@ Node *Parser::parse_word_array(Env *env, LocalsVectorPtr locals) {
     auto literal = token->literal();
     size_t len = strlen(literal);
     if (len > 0) {
-        StringValue *string = new StringValue { env };
+        StringValue *string = new StringValue {};
         for (size_t i = 0; i < len; i++) {
             auto c = literal[i];
             switch (c) {
             case ' ':
                 array->add_node(new StringNode { token, string });
-                string = new StringValue { env };
+                string = new StringValue {};
                 break;
             default:
                 string->append_char(env, c);
@@ -998,13 +998,13 @@ Node *Parser::parse_word_symbol_array(Env *env, LocalsVectorPtr locals) {
     auto literal = token->literal();
     size_t len = strlen(literal);
     if (len > 0) {
-        StringValue *string = new StringValue { env };
+        StringValue *string = new StringValue {};
         for (size_t i = 0; i < len; i++) {
             auto c = literal[i];
             switch (c) {
             case ' ':
                 array->add_node(new LiteralNode { token, SymbolValue::intern(string->c_str()) });
-                string = new StringValue { env };
+                string = new StringValue {};
                 break;
             default:
                 string->append_char(env, c);

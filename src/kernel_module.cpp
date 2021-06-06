@@ -38,9 +38,9 @@ ValuePtr KernelModule::cur_dir(Env *env) {
     if (env->file() == nullptr) {
         env->raise("RuntimeError", "could not get current directory");
     } else if (strcmp(env->file(), "-e") == 0) {
-        return new StringValue { env, "." };
+        return new StringValue { "." };
     } else {
-        ValuePtr relative = new StringValue { env, env->file() };
+        ValuePtr relative = new StringValue { env->file() };
         StringValue *absolute = FileValue::expand_path(env, relative, nullptr)->as_string();
         size_t last_slash = 0;
         bool found = false;
@@ -68,7 +68,7 @@ ValuePtr KernelModule::exit(Env *env, ValuePtr status) {
     if (!status || status->type() != Value::Type::Integer) {
         status = ValuePtr::integer(0);
     }
-    ExceptionValue *exception = new ExceptionValue { env, env->Object()->const_find(env, SymbolValue::intern("SystemExit"))->as_class(), new StringValue { env, "exit" } };
+    ExceptionValue *exception = new ExceptionValue { env, env->Object()->const_find(env, SymbolValue::intern("SystemExit"))->as_class(), new StringValue { "exit" } };
     exception->ivar_set(env, SymbolValue::intern("@status"), status);
     env->raise_exception(exception);
     return env->nil_obj();
@@ -80,20 +80,20 @@ ValuePtr KernelModule::get_usage(Env *env) {
         return env->nil_obj();
     }
     HashValue *hash = new HashValue {};
-    hash->put(env, new StringValue { env, "maxrss" }, ValuePtr::integer(usage.ru_maxrss));
-    hash->put(env, new StringValue { env, "ixrss" }, ValuePtr::integer(usage.ru_ixrss));
-    hash->put(env, new StringValue { env, "idrss" }, ValuePtr::integer(usage.ru_idrss));
-    hash->put(env, new StringValue { env, "isrss" }, ValuePtr::integer(usage.ru_isrss));
-    hash->put(env, new StringValue { env, "minflt" }, ValuePtr::integer(usage.ru_minflt));
-    hash->put(env, new StringValue { env, "majflt" }, ValuePtr::integer(usage.ru_majflt));
-    hash->put(env, new StringValue { env, "nswap" }, ValuePtr::integer(usage.ru_nswap));
-    hash->put(env, new StringValue { env, "inblock" }, ValuePtr::integer(usage.ru_inblock));
-    hash->put(env, new StringValue { env, "oublock" }, ValuePtr::integer(usage.ru_oublock));
-    hash->put(env, new StringValue { env, "msgsnd" }, ValuePtr::integer(usage.ru_msgsnd));
-    hash->put(env, new StringValue { env, "msgrcv" }, ValuePtr::integer(usage.ru_msgrcv));
-    hash->put(env, new StringValue { env, "nsignals" }, ValuePtr::integer(usage.ru_nsignals));
-    hash->put(env, new StringValue { env, "nvcsw" }, ValuePtr::integer(usage.ru_nvcsw));
-    hash->put(env, new StringValue { env, "nivcsw" }, ValuePtr::integer(usage.ru_nivcsw));
+    hash->put(env, new StringValue { "maxrss" }, ValuePtr::integer(usage.ru_maxrss));
+    hash->put(env, new StringValue { "ixrss" }, ValuePtr::integer(usage.ru_ixrss));
+    hash->put(env, new StringValue { "idrss" }, ValuePtr::integer(usage.ru_idrss));
+    hash->put(env, new StringValue { "isrss" }, ValuePtr::integer(usage.ru_isrss));
+    hash->put(env, new StringValue { "minflt" }, ValuePtr::integer(usage.ru_minflt));
+    hash->put(env, new StringValue { "majflt" }, ValuePtr::integer(usage.ru_majflt));
+    hash->put(env, new StringValue { "nswap" }, ValuePtr::integer(usage.ru_nswap));
+    hash->put(env, new StringValue { "inblock" }, ValuePtr::integer(usage.ru_inblock));
+    hash->put(env, new StringValue { "oublock" }, ValuePtr::integer(usage.ru_oublock));
+    hash->put(env, new StringValue { "msgsnd" }, ValuePtr::integer(usage.ru_msgsnd));
+    hash->put(env, new StringValue { "msgrcv" }, ValuePtr::integer(usage.ru_msgrcv));
+    hash->put(env, new StringValue { "nsignals" }, ValuePtr::integer(usage.ru_nsignals));
+    hash->put(env, new StringValue { "nvcsw" }, ValuePtr::integer(usage.ru_nvcsw));
+    hash->put(env, new StringValue { "nivcsw" }, ValuePtr::integer(usage.ru_nivcsw));
     return hash;
 }
 
@@ -105,7 +105,7 @@ ValuePtr KernelModule::hash(Env *env) {
 
 ValuePtr KernelModule::inspect(Env *env) {
     if (is_module() && as_module()->class_name()) {
-        return new StringValue { env, *as_module()->class_name().value() };
+        return new StringValue { *as_module()->class_name().value() };
     } else {
         return StringValue::format(env, "#<{}:{}>", klass()->inspect_str(env), pointer_id());
     }
@@ -113,7 +113,7 @@ ValuePtr KernelModule::inspect(Env *env) {
 
 // Note: this method is only defined here in the C++ -- the method is actually attached directly to `main` in Ruby.
 ValuePtr KernelModule::main_obj_inspect(Env *env) {
-    return new StringValue { env, "main" };
+    return new StringValue { "main" };
 }
 
 ValuePtr KernelModule::instance_variable_get(Env *env, ValuePtr name_val) {
@@ -225,7 +225,7 @@ ValuePtr KernelModule::raise(Env *env, ValuePtr klass, ValuePtr message) {
         ValuePtr arg = klass;
         if (arg->is_class()) {
             klass = arg->as_class();
-            message = new StringValue { env, *arg->as_class()->class_name_or_blank() };
+            message = new StringValue { *arg->as_class()->class_name_or_blank() };
         } else if (arg->is_string()) {
             klass = env->Object()->const_find(env, SymbolValue::intern("RuntimeError"))->as_class();
             message = arg;

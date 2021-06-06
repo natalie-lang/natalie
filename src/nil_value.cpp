@@ -7,7 +7,7 @@ ValuePtr NilValue::eqtilde(Env *env, ValuePtr) {
 }
 
 ValuePtr NilValue::to_s(Env *env) {
-    return new StringValue { env, "" };
+    return new StringValue { "" };
 }
 
 ValuePtr NilValue::to_a(Env *env) {
@@ -19,7 +19,7 @@ ValuePtr NilValue::to_i(Env *env) {
 }
 
 ValuePtr NilValue::inspect(Env *env) {
-    return new StringValue { env, "nil" };
+    return new StringValue { "nil" };
 }
 
 }

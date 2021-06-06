@@ -18,35 +18,35 @@ class StringValue : public Value {
 public:
     const int STRING_GROW_FACTOR = 2;
 
-    StringValue(Env *env, ClassValue *klass)
+    StringValue(ClassValue *klass)
         : Value { Value::Type::String, klass } { }
 
-    StringValue(Env *env)
-        : StringValue { env, "" } { }
+    StringValue()
+        : StringValue { "" } { }
 
-    StringValue(Env *env, const char *str)
-        : Value { Value::Type::String, env->String() } {
+    StringValue(const char *str)
+        : Value { Value::Type::String, GlobalEnv::the()->String() } {
         set_str(str);
     }
 
-    StringValue(Env *env, const char *str, Encoding encoding)
-        : Value { Value::Type::String, env->String() }
+    StringValue(const char *str, Encoding encoding)
+        : Value { Value::Type::String, GlobalEnv::the()->String() }
         , m_encoding { encoding } {
         set_str(str);
     }
 
-    StringValue(Env *env, const char *str, size_t length)
-        : Value { Value::Type::String, env->String() } {
+    StringValue(const char *str, size_t length)
+        : Value { Value::Type::String, GlobalEnv::the()->String() } {
         set_str(str, length);
     }
 
-    StringValue(Env *env, const StringValue &other)
+    StringValue(const StringValue &other)
         : Value { other } {
         set_str(other.c_str(), other.length());
     }
 
-    StringValue(Env *env, const String &str)
-        : Value { Value::Type::String, env->String() } {
+    StringValue(const String &str)
+        : Value { Value::Type::String, GlobalEnv::the()->String() } {
         m_string = str;
     }
 
@@ -149,7 +149,7 @@ public:
     template <typename... Args>
     static StringValue *format(Env *env, const char *fmt, Args... args) {
         auto str = String::format(fmt, args...);
-        return new StringValue { env, *str };
+        return new StringValue { *str };
     }
 
     virtual void gc_print() override {

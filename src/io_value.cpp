@@ -38,7 +38,7 @@ ValuePtr IoValue::read(Env *env, ValuePtr count_value) {
             return env->nil_obj();
         } else {
             buf[bytes_read] = 0;
-            ValuePtr result = new StringValue { env, buf };
+            ValuePtr result = new StringValue { buf };
             free(buf);
             return result;
         }
@@ -46,10 +46,10 @@ ValuePtr IoValue::read(Env *env, ValuePtr count_value) {
     char buf[NAT_READ_BYTES + 1];
     bytes_read = ::read(m_fileno, buf, NAT_READ_BYTES);
     if (bytes_read == 0) {
-        return new StringValue { env, "" };
+        return new StringValue { "" };
     }
     buf[bytes_read] = 0;
-    StringValue *str = new StringValue { env, buf };
+    StringValue *str = new StringValue { buf };
     while (1) {
         bytes_read = ::read(m_fileno, buf, NAT_READ_BYTES);
         if (bytes_read == 0) break;

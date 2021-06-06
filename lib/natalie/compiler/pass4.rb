@@ -453,9 +453,9 @@ module Natalie
           decl "#{result} = #{process_atom s(:nil)};"
           decl '}'
         when :lit, :str
-          decl "ValuePtr #{result} = new StringValue { env, \"expression\" };"
+          decl "ValuePtr #{result} = new StringValue { \"expression\" };"
         when :nil
-          decl "ValuePtr #{result} = new StringValue { env, \"nil\" };"
+          decl "ValuePtr #{result} = new StringValue { \"nil\" };"
         else
           raise "unknown defined type: #{exp.inspect}"
         end
@@ -723,7 +723,7 @@ module Natalie
 
       def set_dollar_zero_global_in_main_to_c
         return if @compiler_context[:is_obj]
-        "env->global_set(SymbolValue::intern(\"$0\"), new StringValue { env, #{@compiler_context[:source_path].inspect} });"
+        "env->global_set(SymbolValue::intern(\"$0\"), new StringValue { #{@compiler_context[:source_path].inspect} });"
       end
 
       def obj_files

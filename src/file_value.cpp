@@ -65,13 +65,13 @@ ValuePtr FileValue::expand_path(Env *env, ValuePtr path, ValuePtr root) {
     }
     // collapse ..
     RegexpValue dotdot { env, "[^/]*/\\.\\.(/|\\z)" };
-    StringValue empty_string { env, "" };
+    StringValue empty_string { "" };
     do {
         merged = merged->sub(env, &dotdot, &empty_string)->as_string();
     } while (env->caller()->match());
     // collapse .
     RegexpValue dot { env, "/\\.(/|\\z)" };
-    StringValue slash { env, "/" };
+    StringValue slash { "/" };
     do {
         merged = merged->sub(env, &dot, &slash)->as_string();
     } while (env->caller()->match());
