@@ -6,8 +6,8 @@ namespace Natalie {
 
 void StringValue::raise_encoding_invalid_byte_sequence_error(Env *env, size_t index) {
     StringValue *message = format(env, "invalid byte sequence at index {} in string of size {} (string not long enough)", index, length());
-    ClassValue *Encoding = env->Object()->const_find(env, SymbolValue::intern(env, "Encoding"))->as_class();
-    ClassValue *InvalidByteSequenceError = Encoding->const_find(env, SymbolValue::intern(env, "InvalidByteSequenceError"))->as_class();
+    ClassValue *Encoding = env->Object()->const_find(env, SymbolValue::intern("Encoding"))->as_class();
+    ClassValue *InvalidByteSequenceError = Encoding->const_find(env, SymbolValue::intern("InvalidByteSequenceError"))->as_class();
     ExceptionValue *exception = new ExceptionValue { env, InvalidByteSequenceError, message };
     env->raise_exception(exception);
 }
@@ -62,7 +62,7 @@ ValuePtr StringValue::each_char(Env *env, Block *block) {
 }
 
 ArrayValue *StringValue::chars(Env *env) {
-    ArrayValue *ary = new ArrayValue { env };
+    ArrayValue *ary = new ArrayValue {};
     size_t index = 0;
     char buffer[5];
     while (next_char(env, buffer, &index)) {
@@ -73,7 +73,7 @@ ArrayValue *StringValue::chars(Env *env) {
 }
 
 SymbolValue *StringValue::to_symbol(Env *env) {
-    return SymbolValue::intern(env, c_str());
+    return SymbolValue::intern(c_str());
 }
 
 ValuePtr StringValue::to_sym(Env *env) {
@@ -247,7 +247,7 @@ ValuePtr StringValue::ord(Env *env) {
 }
 
 ValuePtr StringValue::bytes(Env *env) {
-    ArrayValue *ary = new ArrayValue { env };
+    ArrayValue *ary = new ArrayValue {};
     for (size_t i = 0; i < length(); i++) {
         ary->push(ValuePtr::integer(c_str()[i]));
     }
@@ -265,12 +265,12 @@ ValuePtr StringValue::size(Env *env) {
 }
 
 ValuePtr StringValue::encoding(Env *env) {
-    ClassValue *Encoding = env->Object()->const_find(env, SymbolValue::intern(env, "Encoding"))->as_class();
+    ClassValue *Encoding = env->Object()->const_find(env, SymbolValue::intern("Encoding"))->as_class();
     switch (m_encoding) {
     case Encoding::ASCII_8BIT:
-        return Encoding->const_find(env, SymbolValue::intern(env, "ASCII_8BIT"));
+        return Encoding->const_find(env, SymbolValue::intern("ASCII_8BIT"));
     case Encoding::UTF_8:
-        return Encoding->const_find(env, SymbolValue::intern(env, "UTF_8"));
+        return Encoding->const_find(env, SymbolValue::intern("UTF_8"));
     }
     NAT_UNREACHABLE();
 }
@@ -308,7 +308,7 @@ ValuePtr StringValue::encode(Env *env, ValuePtr encoding) {
     Encoding orig_encoding = m_encoding;
     StringValue *copy = dup(env)->as_string();
     copy->force_encoding(env, encoding);
-    ClassValue *Encoding = env->Object()->const_find(env, SymbolValue::intern(env, "Encoding"))->as_class();
+    ClassValue *Encoding = env->Object()->const_find(env, SymbolValue::intern("Encoding"))->as_class();
     if (orig_encoding == copy->encoding()) {
         return copy;
     } else if (orig_encoding == Encoding::UTF_8 && copy->encoding() == Encoding::ASCII_8BIT) {
@@ -321,14 +321,14 @@ ValuePtr StringValue::encode(Env *env, ValuePtr encoding) {
                 StringValue zero_x { env, "0X" };
                 StringValue blank { env, "" };
                 message = message->as_string()->sub(env, &zero_x, &blank);
-                env->raise(Encoding->const_find(env, SymbolValue::intern(env, "UndefinedConversionError"))->as_class(), "{}", message->as_string());
+                env->raise(Encoding->const_find(env, SymbolValue::intern("UndefinedConversionError"))->as_class(), "{}", message->as_string());
             }
         }
         return copy;
     } else if (orig_encoding == Encoding::ASCII_8BIT && copy->encoding() == Encoding::UTF_8) {
         return copy;
     } else {
-        env->raise(Encoding->const_find(env, SymbolValue::intern(env, "ConverterNotFoundError"))->as_class(), "code converter not found");
+        env->raise(Encoding->const_find(env, SymbolValue::intern("ConverterNotFoundError"))->as_class(), "code converter not found");
     }
 }
 
@@ -518,7 +518,7 @@ ValuePtr StringValue::to_i(Env *env, ValuePtr base_obj) {
 }
 
 ValuePtr StringValue::split(Env *env, ValuePtr splitter, ValuePtr max_count_value) {
-    ArrayValue *ary = new ArrayValue { env };
+    ArrayValue *ary = new ArrayValue {};
     if (!splitter) {
         splitter = new RegexpValue { env, "\\s+" };
     }
@@ -664,7 +664,7 @@ ValuePtr StringValue::upcase(Env *env) {
 ValuePtr StringValue::reverse(Env *env) {
     if (length() == 0)
         return new StringValue { env };
-    auto ary = new ArrayValue { env };
+    auto ary = new ArrayValue {};
     auto characters = chars(env)->as_array();
     for (size_t i = characters->size() - 1;; i--) {
         ary->push((*characters)[i]);

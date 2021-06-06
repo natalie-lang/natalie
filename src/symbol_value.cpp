@@ -2,21 +2,21 @@
 
 namespace Natalie {
 
-SymbolValue *SymbolValue::intern(Env *env, const char *name) {
+SymbolValue *SymbolValue::intern(const char *name) {
     assert(name);
-    SymbolValue *symbol = GlobalEnv::the()->symbol_get(env, name);
+    SymbolValue *symbol = GlobalEnv::the()->symbol_get(nullptr, name);
     if (symbol) {
         return symbol;
     } else {
-        symbol = new SymbolValue { env, name };
-        GlobalEnv::the()->symbol_set(env, name, symbol);
+        symbol = new SymbolValue { name };
+        GlobalEnv::the()->symbol_set(nullptr, name, symbol);
         return symbol;
     }
 }
 
-SymbolValue *SymbolValue::intern(Env *env, const String *name) {
+SymbolValue *SymbolValue::intern(const String *name) {
     assert(name);
-    return intern(env, name->c_str());
+    return intern(name->c_str());
 }
 
 StringValue *SymbolValue::inspect(Env *env) {

@@ -43,14 +43,14 @@ ValuePtr ArrayValue::ltlt(Env *env, ValuePtr arg) {
 
 ValuePtr ArrayValue::add(Env *env, ValuePtr other) {
     other->assert_type(env, Value::Type::Array, "Array");
-    ArrayValue *new_array = new ArrayValue { env, *this };
+    ArrayValue *new_array = new ArrayValue { *this };
     new_array->concat(*other->as_array());
     return new_array;
 }
 
 ValuePtr ArrayValue::sub(Env *env, ValuePtr other) {
     other->assert_type(env, Value::Type::Array, "Array");
-    ArrayValue *new_array = new ArrayValue { env };
+    ArrayValue *new_array = new ArrayValue {};
     for (auto &item : *this) {
         int found = 0;
         for (auto &compare_item : *other->as_array()) {
@@ -85,7 +85,7 @@ ValuePtr ArrayValue::ref(Env *env, ValuePtr index_obj, ValuePtr size) {
         size_t end = index + size->as_integer()->to_nat_int_t();
         size_t max = this->size();
         end = end > max ? max : end;
-        ArrayValue *result = new ArrayValue { env };
+        ArrayValue *result = new ArrayValue {};
         for (size_t i = index; i < end; i++) {
             result->push((*this)[i]);
         }
@@ -108,7 +108,7 @@ ValuePtr ArrayValue::ref(Env *env, ValuePtr index_obj, ValuePtr size) {
             if (begin_obj->as_integer()->is_zero()) {
                 // NOTE: not entirely sure about this, but range beginning with 0..
                 // seems to be a special case ¯\_(ツ)_/¯
-                return new ArrayValue { env };
+                return new ArrayValue {};
             }
             return env->nil_obj();
         }
@@ -116,7 +116,7 @@ ValuePtr ArrayValue::ref(Env *env, ValuePtr index_obj, ValuePtr size) {
         if (!range->exclude_end()) u_end++;
         size_t max = this->size();
         u_end = u_end > max ? max : u_end;
-        ArrayValue *result = new ArrayValue { env };
+        ArrayValue *result = new ArrayValue {};
         for (size_t i = begin; i < u_end; i++) {
             result->push((*this)[i]);
         }
@@ -146,7 +146,7 @@ ValuePtr ArrayValue::refeq(Env *env, ValuePtr index_obj, ValuePtr size, ValuePtr
     nat_int_t length = size->as_integer()->to_nat_int_t();
     assert(length >= 0);
     // PERF: inefficient for large arrays where changes are being made to only the right side
-    ArrayValue *ary2 = new ArrayValue { env };
+    ArrayValue *ary2 = new ArrayValue {};
     // stuff before the new entry/entries
     for (size_t i = 0; i < u_index; i++) {
         if (i >= this->size()) break;
@@ -171,8 +171,8 @@ ValuePtr ArrayValue::refeq(Env *env, ValuePtr index_obj, ValuePtr size, ValuePtr
 }
 
 ValuePtr ArrayValue::any(Env *env, size_t argc, ValuePtr *args, Block *block) {
-    auto Enumerable = env->Object()->const_fetch(env, SymbolValue::intern(env, "Enumerable"))->as_module();
-    auto any_method = Enumerable->find_method(env, SymbolValue::intern(env, "any?"));
+    auto Enumerable = env->Object()->const_fetch(SymbolValue::intern("Enumerable"))->as_module();
+    auto any_method = Enumerable->find_method(env, SymbolValue::intern("any?"));
     return any_method->call(env, this, argc, args, block);
 }
 
@@ -220,7 +220,7 @@ ValuePtr ArrayValue::each(Env *env, Block *block) {
 
 ValuePtr ArrayValue::map(Env *env, Block *block) {
     env->assert_block_given(block); // TODO: return Enumerator when no block given
-    ArrayValue *new_array = new ArrayValue { env };
+    ArrayValue *new_array = new ArrayValue {};
     for (auto &item : *this) {
         ValuePtr result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
         new_array->push(result);
@@ -306,9 +306,9 @@ ValuePtr ArrayValue::shift(Env *env, ValuePtr count) {
         count->assert_type(env, Value::Type::Integer, "Integer");
         shift_count = count->as_integer()->to_nat_int_t();
         if (shift_count == 0) {
-            return new ArrayValue { env };
+            return new ArrayValue {};
         }
-        result = new ArrayValue { env, m_vector.slice(0, shift_count) };
+        result = new ArrayValue { m_vector.slice(0, shift_count) };
     } else {
         result = m_vector[0];
     }
@@ -319,7 +319,7 @@ ValuePtr ArrayValue::shift(Env *env, ValuePtr count) {
 }
 
 ValuePtr ArrayValue::sort(Env *env) {
-    ArrayValue *copy = new ArrayValue { env, *this };
+    ArrayValue *copy = new ArrayValue { *this };
     copy->sort_in_place(env);
     return copy;
 }
@@ -370,7 +370,7 @@ ValuePtr ArrayValue::push(Env *env, size_t argc, ValuePtr *args) {
 }
 
 void ArrayValue::push_splat(Env *env, ValuePtr val) {
-    if (!val->is_array() && val->respond_to(env, SymbolValue::intern(env, "to_a"))) {
+    if (!val->is_array() && val->respond_to(env, SymbolValue::intern("to_a"))) {
         val = val.send(env, "to_a");
     }
     if (val->is_array()) {
@@ -407,7 +407,7 @@ void ArrayValue::sort_in_place(Env *env) {
 
 ValuePtr ArrayValue::select(Env *env, Block *block) {
     env->assert_block_given(block); // TODO: return Enumerator when no block given
-    ArrayValue *new_array = new ArrayValue { env };
+    ArrayValue *new_array = new ArrayValue {};
     for (auto &item : *this) {
         ValuePtr result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
         if (result->is_truthy()) {
@@ -419,7 +419,7 @@ ValuePtr ArrayValue::select(Env *env, Block *block) {
 
 ValuePtr ArrayValue::reject(Env *env, Block *block) {
     env->assert_block_given(block); // TODO: return Enumerator when no block given
-    ArrayValue *new_array = new ArrayValue { env };
+    ArrayValue *new_array = new ArrayValue {};
     for (auto &item : *this) {
         ValuePtr result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
         if (result->is_falsey()) {
@@ -452,7 +452,7 @@ ValuePtr ArrayValue::min(Env *env) {
 }
 
 ValuePtr ArrayValue::compact(Env *env) {
-    auto ary = new ArrayValue { env };
+    auto ary = new ArrayValue {};
     for (auto item : *this) {
         if (item->is_nil()) continue;
         ary->push(item);
@@ -461,7 +461,7 @@ ValuePtr ArrayValue::compact(Env *env) {
 }
 
 ValuePtr ArrayValue::uniq(Env *env) {
-    auto hash = new HashValue { env };
+    auto hash = new HashValue {};
     auto nil = env->nil_obj();
     for (auto item : *this) {
         hash->put(env, item, nil);

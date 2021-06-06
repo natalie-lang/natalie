@@ -117,7 +117,7 @@ SymbolNode *Parser::parse_alias_arg(Env *env, LocalsVectorPtr locals, const char
     switch (current_token()->type()) {
     case Token::Type::BareName: {
         auto identifier = static_cast<IdentifierNode *>(parse_identifier(env, locals));
-        return new SymbolNode { current_token(), SymbolValue::intern(env, identifier->name()) };
+        return new SymbolNode { current_token(), SymbolValue::intern(identifier->name()) };
     }
     case Token::Type::Symbol:
         return static_cast<SymbolNode *>(parse_symbol(env, locals));
@@ -620,7 +620,7 @@ Node *Parser::parse_hash(Env *env, LocalsVectorPtr locals) {
 
 Node *Parser::parse_identifier(Env *env, LocalsVectorPtr locals) {
     bool is_lvar = false;
-    auto name_symbol = SymbolValue::intern(env, current_token()->literal());
+    auto name_symbol = SymbolValue::intern(current_token()->literal());
     for (auto local : *locals) {
         if (local == name_symbol) {
             is_lvar = true;
@@ -768,7 +768,7 @@ Node *Parser::parse_lit(Env *env, LocalsVectorPtr locals) {
         value = ValuePtr::integer(token->get_integer());
         break;
     case Token::Type::Float:
-        value = new FloatValue { env, token->get_double() };
+        value = new FloatValue { token->get_double() };
         break;
     default:
         NAT_UNREACHABLE();
@@ -946,7 +946,7 @@ Node *Parser::parse_super(Env *env, LocalsVectorPtr locals) {
 
 Node *Parser::parse_symbol(Env *env, LocalsVectorPtr locals) {
     auto token = current_token();
-    auto symbol = new SymbolNode { token, SymbolValue::intern(env, current_token()->literal()) };
+    auto symbol = new SymbolNode { token, SymbolValue::intern(current_token()->literal()) };
     advance();
     return symbol;
 };
@@ -1003,14 +1003,14 @@ Node *Parser::parse_word_symbol_array(Env *env, LocalsVectorPtr locals) {
             auto c = literal[i];
             switch (c) {
             case ' ':
-                array->add_node(new LiteralNode { token, SymbolValue::intern(env, string->c_str()) });
+                array->add_node(new LiteralNode { token, SymbolValue::intern(string->c_str()) });
                 string = new StringValue { env };
                 break;
             default:
                 string->append_char(env, c);
             }
         }
-        array->add_node(new LiteralNode { token, SymbolValue::intern(env, string->c_str()) });
+        array->add_node(new LiteralNode { token, SymbolValue::intern(string->c_str()) });
     }
     advance();
     return array;
@@ -1215,7 +1215,7 @@ Node *Parser::parse_infix_expression(Env *env, Node *left, LocalsVectorPtr local
         op = new Token { is_negative ? Token::Type::Minus : Token::Type::Plus, op->file(), op->line(), op->column() };
     } else if (op->type() == Token::Type::Float) {
         bool is_negative = op->get_double() < 0;
-        right = new LiteralNode { token, new FloatValue { env, op->get_double() * (is_negative ? -1 : 1) } };
+        right = new LiteralNode { token, new FloatValue { op->get_double() * (is_negative ? -1 : 1) } };
         op = new Token { is_negative ? Token::Type::Minus : Token::Type::Plus, op->file(), op->line(), op->column() };
     } else {
         right = parse_expression(env, precedence, locals);

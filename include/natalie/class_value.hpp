@@ -14,11 +14,11 @@ namespace Natalie {
 
 class ClassValue : public ModuleValue {
 public:
-    ClassValue(Env *env)
-        : ClassValue { env, env->Class() } { }
+    ClassValue()
+        : ClassValue { GlobalEnv::the()->Class() } { }
 
-    ClassValue(Env *env, ClassValue *klass)
-        : ModuleValue { env, Value::Type::Class, klass } { }
+    ClassValue(ClassValue *klass)
+        : ModuleValue { Value::Type::Class, klass } { }
 
     ClassValue *subclass(Env *env, const char *name) {
         return subclass(env, name, m_object_type);

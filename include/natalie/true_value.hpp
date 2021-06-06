@@ -14,7 +14,7 @@ namespace Natalie {
 class TrueValue : public Value {
 public:
     TrueValue(Env *env)
-        : Value { Value::Type::True, env->Object()->const_fetch(env, SymbolValue::intern(env, "TrueClass"))->as_class() } {
+        : Value { Value::Type::True, env->Object()->const_fetch(SymbolValue::intern("TrueClass"))->as_class() } {
         if (env->true_obj()) NAT_UNREACHABLE();
     }
 

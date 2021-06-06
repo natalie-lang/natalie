@@ -14,12 +14,8 @@ namespace Natalie {
 
 class IntegerValue : public Value {
 public:
-    IntegerValue(Env *env, nat_int_t integer)
-        : Value { Value::Type::Integer, env->Integer() }
-        , m_integer { integer } { }
-
-    IntegerValue(GlobalEnv *global_env, nat_int_t integer)
-        : Value { Value::Type::Integer, global_env->Integer() }
+    IntegerValue(nat_int_t integer)
+        : Value { Value::Type::Integer, GlobalEnv::the()->Integer() }
         , m_integer { integer } { }
 
     nat_int_t to_nat_int_t() {

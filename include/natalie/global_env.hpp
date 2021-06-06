@@ -31,6 +31,9 @@ public:
     ClassValue *Class() { return m_Class; }
     void set_Class(ClassValue *Class) { m_Class = Class; }
 
+    ClassValue *Float() { return m_Float; }
+    void set_Float(ClassValue *Float) { m_Float = Float; }
+
     ClassValue *Hash() { return m_Hash; }
     void set_Hash(ClassValue *Hash) { m_Hash = Hash; }
 
@@ -98,6 +101,7 @@ private:
 
     ClassValue *m_Array { nullptr };
     ClassValue *m_Class { nullptr };
+    ClassValue *m_Float { nullptr };
     ClassValue *m_Hash { nullptr };
     ClassValue *m_Integer { nullptr };
     ClassValue *m_Module { nullptr };

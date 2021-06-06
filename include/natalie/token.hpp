@@ -493,8 +493,8 @@ public:
         if (m_type == Type::Eof)
             return env->nil_obj();
         const char *type = type_value(env);
-        auto hash = new HashValue { env };
-        hash->put(env, SymbolValue::intern(env, "type"), SymbolValue::intern(env, type));
+        auto hash = new HashValue {};
+        hash->put(env, SymbolValue::intern("type"), SymbolValue::intern(type));
         switch (m_type) {
         case Type::PercentLowerI:
         case Type::PercentUpperI:
@@ -502,7 +502,7 @@ public:
         case Type::PercentUpperW:
         case Type::Regexp:
         case Type::String:
-            hash->put(env, SymbolValue::intern(env, "literal"), new StringValue { env, literal_or_blank() });
+            hash->put(env, SymbolValue::intern("literal"), new StringValue { env, literal_or_blank() });
             break;
         case Type::BareName:
         case Type::ClassVariable:
@@ -511,20 +511,20 @@ public:
         case Type::InstanceVariable:
         case Type::Symbol:
         case Type::SymbolKey:
-            hash->put(env, SymbolValue::intern(env, "literal"), SymbolValue::intern(env, literal_or_blank()));
+            hash->put(env, SymbolValue::intern("literal"), SymbolValue::intern(literal_or_blank()));
             break;
         case Type::Float:
-            hash->put(env, SymbolValue::intern(env, "literal"), new FloatValue { env, m_double });
+            hash->put(env, SymbolValue::intern("literal"), new FloatValue { m_double });
             break;
         case Type::Integer:
-            hash->put(env, SymbolValue::intern(env, "literal"), ValuePtr::integer(m_integer));
+            hash->put(env, SymbolValue::intern("literal"), ValuePtr::integer(m_integer));
             break;
         default:
             void();
         }
         if (with_line_and_column_numbers) {
-            hash->put(env, SymbolValue::intern(env, "line"), ValuePtr::integer(static_cast<nat_int_t>(m_line)));
-            hash->put(env, SymbolValue::intern(env, "column"), ValuePtr::integer(static_cast<nat_int_t>(m_column)));
+            hash->put(env, SymbolValue::intern("line"), ValuePtr::integer(static_cast<nat_int_t>(m_line)));
+            hash->put(env, SymbolValue::intern("column"), ValuePtr::integer(static_cast<nat_int_t>(m_column)));
         }
         return hash;
     }

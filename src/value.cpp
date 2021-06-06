@@ -3,10 +3,10 @@
 
 namespace Natalie {
 
-Value::Value(Env *env, const Value &other)
+Value::Value(const Value &other)
     : m_klass { other.m_klass }
     , m_type { other.m_type }
-    , m_singleton_class { other.m_singleton_class ? new ClassValue { env, other.m_singleton_class } : nullptr }
+    , m_singleton_class { other.m_singleton_class ? new ClassValue { other.m_singleton_class } : nullptr }
     , m_owner { other.m_owner }
     , m_ivars { other.m_ivars } { }
 
@@ -15,11 +15,12 @@ ValuePtr Value::_new(Env *env, ValuePtr klass_value, size_t argc, ValuePtr *args
     ValuePtr obj;
     switch (klass->object_type()) {
     case Value::Type::Array:
-        obj = new ArrayValue { env, klass };
+        obj = new ArrayValue {};
+        obj->m_klass = klass;
         break;
 
     case Value::Type::Class:
-        obj = new ClassValue { env, klass };
+        obj = new ClassValue { klass };
         break;
 
     case Value::Type::Encoding:
@@ -35,7 +36,7 @@ ValuePtr Value::_new(Env *env, ValuePtr klass_value, size_t argc, ValuePtr *args
         break;
 
     case Value::Type::Hash:
-        obj = new HashValue { env, klass };
+        obj = new HashValue { klass };
         break;
 
     case Value::Type::Io:
@@ -47,7 +48,7 @@ ValuePtr Value::_new(Env *env, ValuePtr klass_value, size_t argc, ValuePtr *args
         break;
 
     case Value::Type::Module:
-        obj = new ModuleValue { env, klass };
+        obj = new ModuleValue { klass };
         break;
 
     case Value::Type::Object:
@@ -88,7 +89,7 @@ ValuePtr Value::_new(Env *env, ValuePtr klass_value, size_t argc, ValuePtr *args
 }
 
 ValuePtr Value::initialize(Env *env, size_t argc, ValuePtr *args, Block *block) {
-    Method *method = m_klass->find_method(env, SymbolValue::intern(env, "initialize"));
+    Method *method = m_klass->find_method(env, SymbolValue::intern("initialize"));
     if (method && !method->is_undefined()) {
         method->call(env, this, argc, args, block);
     }
@@ -273,20 +274,20 @@ ClassValue *Value::singleton_class(Env *env) {
     return m_singleton_class;
 }
 
-ValuePtr Value::const_get(Env *env, SymbolValue *name) {
-    return m_klass->const_get(env, name);
-}
-
-ValuePtr Value::const_fetch(Env *env, SymbolValue *name) {
-    return m_klass->const_fetch(env, name);
-}
-
 ValuePtr Value::const_find(Env *env, SymbolValue *name, ConstLookupSearchMode search_mode, ConstLookupFailureMode failure_mode) {
     return m_klass->const_find(env, name, search_mode, failure_mode);
 }
 
-ValuePtr Value::const_set(Env *env, SymbolValue *name, ValuePtr val) {
-    return m_klass->const_set(env, name, val);
+ValuePtr Value::const_get(SymbolValue *name) {
+    return m_klass->const_get(name);
+}
+
+ValuePtr Value::const_fetch(SymbolValue *name) {
+    return m_klass->const_fetch(name);
+}
+
+ValuePtr Value::const_set(SymbolValue *name, ValuePtr val) {
+    return m_klass->const_set(name, val);
 }
 
 ValuePtr Value::ivar_get(Env *env, SymbolValue *name) {
@@ -309,7 +310,7 @@ ValuePtr Value::ivar_set(Env *env, SymbolValue *name, ValuePtr val) {
 }
 
 ValuePtr Value::instance_variables(Env *env) {
-    ArrayValue *ary = new ArrayValue { env };
+    ArrayValue *ary = new ArrayValue {};
     if (m_type == Value::Type::Integer || m_type == Value::Type::Float) {
         return ary;
     }
@@ -409,7 +410,7 @@ ValuePtr Value::_send(Env *env, SymbolValue *name, size_t argc, ValuePtr *args, 
 }
 
 ValuePtr Value::_send(Env *env, const char *name, size_t argc, ValuePtr *args, Block *block) {
-    return _send(env, SymbolValue::intern(env, name), argc, args, block);
+    return _send(env, SymbolValue::intern(name), argc, args, block);
 }
 
 ValuePtr Value::_send(Env *env, size_t argc, ValuePtr *args, Block *block) {
@@ -437,7 +438,7 @@ Method *Value::find_method(Env *env, SymbolValue *method_name, MethodVisibility 
         }
     } else if (is_module()) {
         env->raise("NoMethodError", "undefined method `{}' for {}:{}", method_name->c_str(), klass->as_module()->class_name_or_blank(), klass->inspect_str(env));
-    } else if (method_name == SymbolValue::intern(env, "inspect")) {
+    } else if (method_name == SymbolValue::intern("inspect")) {
         env->raise("NoMethodError", "undefined method `inspect' for #<{}:0x{}>", klass->class_name_or_blank(), int_to_hex_string(object_id(), false));
     } else {
         env->raise("NoMethodError", "undefined method `{}' for {}", method_name->c_str(), inspect_str(env));
@@ -447,7 +448,7 @@ Method *Value::find_method(Env *env, SymbolValue *method_name, MethodVisibility 
 ValuePtr Value::dup(Env *env) {
     switch (m_type) {
     case Value::Type::Array:
-        return new ArrayValue { env, *as_array() };
+        return new ArrayValue { *as_array() };
     case Value::Type::Hash:
         return new HashValue { env, *as_hash() };
     case Value::Type::String:
@@ -460,7 +461,7 @@ ValuePtr Value::dup(Env *env) {
     case Value::Type::True:
         return this;
     case Value::Type::Object:
-        return new Value { env, *this };
+        return new Value { *this };
     default:
         fprintf(stderr, "I don't know how to dup this kind of object yet %s (type = %d).\n", m_klass->class_name_or_blank()->c_str(), static_cast<int>(m_type));
         abort();
@@ -499,7 +500,7 @@ const char *Value::defined(Env *env, SymbolValue *name, bool strict) {
     if (name->is_constant_name()) {
         if (strict) {
             if (is_module()) {
-                obj = as_module()->const_get(env, name);
+                obj = as_module()->const_get(name);
             }
         } else {
             obj = const_find(env, name, ConstLookupSearchMode::NotStrict, ConstLookupFailureMode::Null);
@@ -527,7 +528,7 @@ ValuePtr Value::defined_obj(Env *env, SymbolValue *name, bool strict) {
 }
 
 ProcValue *Value::to_proc(Env *env) {
-    auto to_proc_symbol = SymbolValue::intern(env, "to_proc");
+    auto to_proc_symbol = SymbolValue::intern("to_proc");
     if (respond_to(env, to_proc_symbol)) {
         return _send(env, to_proc_symbol)->as_proc();
     } else {
@@ -568,11 +569,11 @@ const String *Value::inspect_str(Env *env) {
 
 ValuePtr Value::enum_for(Env *env, const char *method, size_t argc, ValuePtr *args) {
     ValuePtr args2[argc + 1];
-    args2[0] = SymbolValue::intern(env, method);
+    args2[0] = SymbolValue::intern(method);
     for (size_t i = 0; i < argc; i++) {
         args2[i + 1] = args[i];
     }
-    return this->_public_send(env, SymbolValue::intern(env, "enum_for"), argc + 1, args2);
+    return this->_public_send(env, SymbolValue::intern("enum_for"), argc + 1, args2);
 }
 
 void Value::visit_children(Visitor &visitor) {

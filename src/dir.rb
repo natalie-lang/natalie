@@ -31,7 +31,7 @@ class Dir
           env->raise_errno();
       dirent *entry;
       errno = 0;
-      auto array = new ArrayValue { env };
+      auto array = new ArrayValue {};
       for (;;) {
           entry = readdir(dir);
           if (!entry) break;

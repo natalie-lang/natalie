@@ -155,7 +155,7 @@ module Natalie
         nl = "\n" # FIXME: parser issue with double quotes inside interpolation
         top "ValuePtr #{fn}(Env *env, ValuePtr self, size_t argc, ValuePtr *args, Block *block) {\n#{c.join(nl)}\n}"
         process(s(:define_method, s(:l, "self->as_module()"), :env, s(:intern, name), fn, -1))
-        "SymbolValue::intern(env, #{name.inspect})"
+        "SymbolValue::intern(#{name.inspect})"
       end
 
       def process___inline__(exp)
@@ -277,7 +277,7 @@ module Natalie
         default ||= s(:nil)
         if type == :rest
           rest = temp('rest')
-          decl "ArrayValue *#{rest} = new ArrayValue { env };"
+          decl "ArrayValue *#{rest} = new ArrayValue {};"
           decl "for (size_t i=#{index}; i<#{argc_name}; i++) {"
           decl "#{rest}->push(#{args_name}[i]);"
           decl '}'
@@ -425,7 +425,7 @@ module Natalie
         result = temp('defined_result')
         case name.sexp_type
         when :const, :gvar, :ivar
-          decl "ValuePtr #{result} = self->defined_obj(env, SymbolValue::intern(env, #{name.last.to_s.inspect}));"
+          decl "ValuePtr #{result} = self->defined_obj(env, SymbolValue::intern(#{name.last.to_s.inspect}));"
         when :send, :public_send
           (_, receiver, name) = name
           receiver ||= 'self'
@@ -440,7 +440,7 @@ module Natalie
           raise "expected const" unless namespace.first == :const
           decl "ValuePtr #{result};"
           decl 'try {'
-          decl "#{result} = env->Object()->const_find(env, SymbolValue::intern(env, #{namespace.last.to_s.inspect}), Value::ConstLookupSearchMode::NotStrict)->defined_obj(env, SymbolValue::intern(env, #{name.to_s.inspect}), true);"
+          decl "#{result} = env->Object()->const_find(env, SymbolValue::intern(#{namespace.last.to_s.inspect}), Value::ConstLookupSearchMode::NotStrict)->defined_obj(env, SymbolValue::intern(#{name.to_s.inspect}), true);"
           decl '} catch (ExceptionValue *) {'
           decl "#{result} = #{process_atom s(:nil)};"
           decl '}'
@@ -448,7 +448,7 @@ module Natalie
           (_, name) = name
           decl "ValuePtr #{result};"
           decl 'try {'
-          decl "#{result} = env->Object()->defined_obj(env, SymbolValue::intern(env, #{name.to_s.inspect}), true);"
+          decl "#{result} = env->Object()->defined_obj(env, SymbolValue::intern(#{name.to_s.inspect}), true);"
           decl '} catch (ExceptionValue *) {'
           decl "#{result} = #{process_atom s(:nil)};"
           decl '}'
@@ -528,7 +528,7 @@ module Natalie
           c += @decl
           c << "return #{result};" unless result.empty?
           c << '} catch (ExceptionValue *exception) {'
-          c << 'env->global_set(SymbolValue::intern(env, "$!"), exception);'
+          c << 'env->global_set(SymbolValue::intern("$!"), exception);'
           @decl = []
           result = process_atom(bottom)
           c += @decl
@@ -717,13 +717,13 @@ module Natalie
 
       def init_symbols
         @symbols.map do |name, index|
-          "#{symbols_var_name}[#{index}] = SymbolValue::intern(env, #{name.to_s.inspect});"
+          "#{symbols_var_name}[#{index}] = SymbolValue::intern(#{name.to_s.inspect});"
         end
       end
 
       def set_dollar_zero_global_in_main_to_c
         return if @compiler_context[:is_obj]
-        "env->global_set(SymbolValue::intern(env, \"$0\"), new StringValue { env, #{@compiler_context[:source_path].inspect} });"
+        "env->global_set(SymbolValue::intern(\"$0\"), new StringValue { env, #{@compiler_context[:source_path].inspect} });"
       end
 
       def obj_files

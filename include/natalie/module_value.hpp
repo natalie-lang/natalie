@@ -18,14 +18,14 @@ using namespace TM;
 
 class ModuleValue : public Value {
 public:
-    ModuleValue(Env *);
-    ModuleValue(Env *, const char *);
-    ModuleValue(Env *, Type, ClassValue *);
+    ModuleValue();
+    ModuleValue(const char *);
+    ModuleValue(Type, ClassValue *);
 
-    ModuleValue(Env *env, ClassValue *klass)
-        : ModuleValue { env, Type::Module, klass } { }
+    ModuleValue(ClassValue *klass)
+        : ModuleValue { Type::Module, klass } { }
 
-    ModuleValue(Env *env, ModuleValue &other)
+    ModuleValue(ModuleValue &other)
         : Value { other.type(), other.klass() }
         , m_constants { other.m_constants }
         , m_class_name { other.m_class_name }
@@ -45,10 +45,10 @@ public:
     ValuePtr prepend(Env *, size_t argc, ValuePtr *args);
     void prepend_once(Env *, ModuleValue *);
 
-    virtual ValuePtr const_get(Env *, SymbolValue *) override;
-    virtual ValuePtr const_fetch(Env *, SymbolValue *) override;
-    virtual ValuePtr const_find(Env *, SymbolValue *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::Raise) override;
-    virtual ValuePtr const_set(Env *, SymbolValue *, ValuePtr) override;
+    virtual ValuePtr const_find(Env *env, SymbolValue *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::Raise) override;
+    virtual ValuePtr const_get(SymbolValue *) override;
+    virtual ValuePtr const_fetch(SymbolValue *) override;
+    virtual ValuePtr const_set(SymbolValue *, ValuePtr) override;
 
     virtual void alias(Env *, SymbolValue *, SymbolValue *) override;
 

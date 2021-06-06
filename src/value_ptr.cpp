@@ -4,7 +4,7 @@ namespace Natalie {
 
 ValuePtr ValuePtr::public_send(Env *env, SymbolValue *name, size_t argc, ValuePtr *args, Block *block) {
     if (m_type == Type::Integer && IntegerValue::optimized_method(name)) {
-        auto synthesized = IntegerValue { GlobalEnv::the(), m_integer };
+        auto synthesized = IntegerValue { m_integer };
         // FIXME: I think this should be _public_send??
         return synthesized._public_send(env, name, argc, args, block);
     }
@@ -14,7 +14,7 @@ ValuePtr ValuePtr::public_send(Env *env, SymbolValue *name, size_t argc, ValuePt
 
 ValuePtr ValuePtr::send(Env *env, SymbolValue *name, size_t argc, ValuePtr *args, Block *block) {
     if (m_type == Type::Integer && IntegerValue::optimized_method(name)) {
-        auto synthesized = IntegerValue { GlobalEnv::the(), m_integer };
+        auto synthesized = IntegerValue { m_integer };
         return synthesized._send(env, name, argc, args, block);
     }
 
@@ -22,7 +22,7 @@ ValuePtr ValuePtr::send(Env *env, SymbolValue *name, size_t argc, ValuePtr *args
 }
 
 ValuePtr ValuePtr::send(Env *env, const char *name, size_t argc, ValuePtr *args, Block *block) {
-    return send(env, SymbolValue::intern(env, name), argc, args, block);
+    return send(env, SymbolValue::intern(name), argc, args, block);
 }
 
 void ValuePtr::hydrate() {
@@ -31,7 +31,7 @@ void ValuePtr::hydrate() {
         m_type = Type::Pointer;
         bool was_gc_enabled = Heap::the().gc_enabled();
         Heap::the().gc_disable();
-        m_value = new IntegerValue { GlobalEnv::the(), m_integer };
+        m_value = new IntegerValue { m_integer };
         if (was_gc_enabled) Heap::the().gc_enable();
         m_integer = 0;
         break;

@@ -14,8 +14,8 @@ namespace Natalie {
 
 class SymbolValue : public Value {
 public:
-    static SymbolValue *intern(Env *, const char *);
-    static SymbolValue *intern(Env *, const String *);
+    static SymbolValue *intern(const char *);
+    static SymbolValue *intern(const String *);
 
     const char *c_str() { return m_name; }
 
@@ -59,6 +59,12 @@ public:
 private:
     SymbolValue(Env *env, const char *name)
         : Value { Value::Type::Symbol, env->Symbol() }
+        , m_name { strdup(name) } {
+        assert(m_name);
+    }
+
+    SymbolValue(const char *name)
+        : Value { Value::Type::Symbol, GlobalEnv::the()->Symbol() }
         , m_name { strdup(name) } {
         assert(m_name);
     }

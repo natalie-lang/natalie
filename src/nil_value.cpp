@@ -11,7 +11,7 @@ ValuePtr NilValue::to_s(Env *env) {
 }
 
 ValuePtr NilValue::to_a(Env *env) {
-    return new ArrayValue { env };
+    return new ArrayValue {};
 }
 
 ValuePtr NilValue::to_i(Env *env) {

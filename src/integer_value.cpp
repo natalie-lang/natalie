@@ -41,7 +41,7 @@ ValuePtr IntegerValue::to_i() {
 ValuePtr IntegerValue::add(Env *env, ValuePtr arg) {
     if (arg.is_float()) {
         double result = to_nat_int_t() + arg->as_float()->to_double();
-        return new FloatValue { env, result };
+        return new FloatValue { result };
     }
     arg.assert_type(env, Value::Type::Integer, "Integer");
     nat_int_t result = to_nat_int_t() + arg.to_nat_int_t();
@@ -51,7 +51,7 @@ ValuePtr IntegerValue::add(Env *env, ValuePtr arg) {
 ValuePtr IntegerValue::sub(Env *env, ValuePtr arg) {
     if (arg.is_float()) {
         double result = to_nat_int_t() - arg->as_float()->to_double();
-        return new FloatValue { env, result };
+        return new FloatValue { result };
     }
     arg.assert_type(env, Value::Type::Integer, "Integer");
     nat_int_t result = to_nat_int_t() - arg.to_nat_int_t();
@@ -61,7 +61,7 @@ ValuePtr IntegerValue::sub(Env *env, ValuePtr arg) {
 ValuePtr IntegerValue::mul(Env *env, ValuePtr arg) {
     if (arg.is_float()) {
         double result = to_nat_int_t() * arg->as_float()->to_double();
-        return new FloatValue { env, result };
+        return new FloatValue { result };
     }
     arg.assert_type(env, Value::Type::Integer, "Integer");
     nat_int_t result = to_nat_int_t() * arg.to_nat_int_t();
@@ -78,7 +78,7 @@ ValuePtr IntegerValue::div(Env *env, ValuePtr arg) {
         nat_int_t result = dividend / divisor;
         return ValuePtr::integer(result);
 
-    } else if (arg->respond_to(env, SymbolValue::intern(env, "coerce"))) {
+    } else if (arg->respond_to(env, SymbolValue::intern("coerce"))) {
         ValuePtr args[] = { this };
         ValuePtr coerced = arg.send(env, "coerce", 1, args, nullptr);
         ValuePtr dividend = (*coerced->as_array())[0];
@@ -196,11 +196,11 @@ ValuePtr IntegerValue::succ(Env *env) {
 }
 
 ValuePtr IntegerValue::coerce(Env *env, ValuePtr arg) {
-    ArrayValue *ary = new ArrayValue { env };
+    ArrayValue *ary = new ArrayValue {};
     switch (arg->type()) {
     case Value::Type::Float:
         ary->push(arg);
-        ary->push(new FloatValue { env, to_nat_int_t() });
+        ary->push(new FloatValue { to_nat_int_t() });
         break;
     case Value::Type::Integer:
         ary->push(arg);

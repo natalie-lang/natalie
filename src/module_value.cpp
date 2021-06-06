@@ -2,15 +2,15 @@
 
 namespace Natalie {
 
-ModuleValue::ModuleValue(Env *env)
-    : ModuleValue { env, Value::Type::Module, env->Module() } { }
+ModuleValue::ModuleValue()
+    : ModuleValue { Value::Type::Module, GlobalEnv::the()->Module() } { }
 
-ModuleValue::ModuleValue(Env *env, const char *name)
-    : ModuleValue { env } {
+ModuleValue::ModuleValue(const char *name)
+    : ModuleValue {} {
     this->set_class_name(name);
 }
 
-ModuleValue::ModuleValue(Env *env, Type type, ClassValue *klass)
+ModuleValue::ModuleValue(Type type, ClassValue *klass)
     : Value { type, klass }
     , m_env { new Env() } { }
 
@@ -53,12 +53,12 @@ void ModuleValue::prepend_once(Env *env, ModuleValue *module) {
     m_included_modules.push_front(module);
 }
 
-ValuePtr ModuleValue::const_get(Env *env, SymbolValue *name) {
-    return m_constants.get(name, env);
+ValuePtr ModuleValue::const_get(SymbolValue *name) {
+    return m_constants.get(name);
 }
 
-ValuePtr ModuleValue::const_fetch(Env *env, SymbolValue *name) {
-    ValuePtr value = const_get(env, name);
+ValuePtr ModuleValue::const_fetch(SymbolValue *name) {
+    ValuePtr value = const_get(name);
     if (!value) {
         printf("Constant %s is missing!\n", name->c_str());
         abort();
@@ -73,7 +73,7 @@ ValuePtr ModuleValue::const_find(Env *env, SymbolValue *name, ConstLookupSearchM
     if (search_mode == ConstLookupSearchMode::NotStrict) {
         // first search in parent namespaces (not including global, i.e. Object namespace)
         search_parent = this;
-        while (!(val = search_parent->const_get(env, name)) && search_parent->owner() && search_parent->owner() != env->Object()) {
+        while (!(val = search_parent->const_get(name)) && search_parent->owner() && search_parent->owner() != env->Object()) {
             search_parent = search_parent->owner();
         }
         if (val) return val;
@@ -82,14 +82,14 @@ ValuePtr ModuleValue::const_find(Env *env, SymbolValue *name, ConstLookupSearchM
     // search in superclass hierarchy
     search_parent = this;
     do {
-        val = search_parent->const_get(env, name);
+        val = search_parent->const_get(name);
         if (val) return val;
         search_parent = search_parent->m_superclass;
     } while (search_parent);
 
     if (this != env->Object() && search_mode == ConstLookupSearchMode::NotStrict) {
         // lastly, search on the global, i.e. Object namespace
-        val = env->Object()->const_get(env, name);
+        val = env->Object()->const_get(name);
         if (val) return val;
     }
 
@@ -102,8 +102,8 @@ ValuePtr ModuleValue::const_find(Env *env, SymbolValue *name, ConstLookupSearchM
     }
 }
 
-ValuePtr ModuleValue::const_set(Env *env, SymbolValue *name, ValuePtr val) {
-    m_constants.put(name, val.value(), env);
+ValuePtr ModuleValue::const_set(SymbolValue *name, ValuePtr val) {
+    m_constants.put(name, val.value());
     if (val->is_module() && !val->owner()) {
         val->set_owner(this);
         if (val->singleton_class()) val->singleton_class()->set_owner(this);
@@ -234,7 +234,7 @@ Method *ModuleValue::find_method(Env *env, SymbolValue *method_name, ModuleValue
 
 ArrayValue *ModuleValue::ancestors(Env *env) {
     ModuleValue *klass = this;
-    ArrayValue *ancestors = new ArrayValue { env };
+    ArrayValue *ancestors = new ArrayValue {};
     do {
         if (klass->included_modules().is_empty()) {
             // note: if there are included modules, then they will include this klass
@@ -340,7 +340,7 @@ ValuePtr ModuleValue::attr_accessor(Env *env, size_t argc, ValuePtr *args) {
 }
 
 ValuePtr ModuleValue::included_modules(Env *env) {
-    ArrayValue *modules = new ArrayValue { env };
+    ArrayValue *modules = new ArrayValue {};
     for (ModuleValue *m : included_modules()) {
         modules->push(m);
     }

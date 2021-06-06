@@ -21,7 +21,7 @@ ValuePtr ParserValue::parse(Env *env, ValuePtr code, ValuePtr source_path) {
 ValuePtr ParserValue::tokens(Env *env, ValuePtr code, ValuePtr with_line_and_column_numbers) {
     code->assert_type(env, Value::Type::String, "String");
     auto lexer = Lexer { code->as_string()->to_string(), new String("(string)") };
-    auto array = new ArrayValue { env };
+    auto array = new ArrayValue {};
     auto the_tokens = lexer.tokens();
     auto include_line_and_column_numbers = with_line_and_column_numbers && with_line_and_column_numbers->is_truthy();
     for (auto token : *the_tokens) {

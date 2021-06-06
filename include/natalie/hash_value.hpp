@@ -28,15 +28,15 @@ public:
         ValuePtr val { nullptr };
     };
 
-    HashValue(Env *env)
-        : HashValue { env, env->Hash() } { }
+    HashValue()
+        : HashValue { GlobalEnv::the()->Hash() } { }
 
-    HashValue(Env *env, ClassValue *klass)
+    HashValue(ClassValue *klass)
         : Value { Value::Type::Hash, klass }
-        , m_default_value { env->nil_obj() } { }
+        , m_default_value { GlobalEnv::the()->nil_obj() } { }
 
     HashValue(Env *env, HashValue &other)
-        : Value { env, other } {
+        : Value { other } {
         for (auto node : other) {
             put(env, node.key, node.val);
         }

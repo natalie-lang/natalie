@@ -20,8 +20,6 @@ extern "C" {
 
 class Value : public Cell {
 public:
-    NAT_MAKE_NONCOPYABLE(Value);
-
     using Type = ValueType;
 
     enum Flag {
@@ -45,8 +43,8 @@ public:
         Raise,
     };
 
-    Value(Env *env)
-        : m_klass { env->Object() } { }
+    Value()
+        : m_klass { GlobalEnv::the()->Object() } { }
 
     Value(ClassValue *klass)
         : m_klass { klass } {
@@ -59,7 +57,9 @@ public:
         assert(klass);
     }
 
-    Value(Env *, const Value &);
+    Value(const Value &);
+
+    Value &operator=(const Value &) = delete;
 
     virtual ~Value() override {
         m_type = ValueType::Nil;
@@ -141,10 +141,10 @@ public:
 
     void set_singleton_class(ClassValue *);
 
-    virtual ValuePtr const_get(Env *, SymbolValue *);
-    virtual ValuePtr const_fetch(Env *, SymbolValue *);
     virtual ValuePtr const_find(Env *, SymbolValue *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::Raise);
-    virtual ValuePtr const_set(Env *, SymbolValue *, ValuePtr);
+    virtual ValuePtr const_get(SymbolValue *);
+    virtual ValuePtr const_fetch(SymbolValue *);
+    virtual ValuePtr const_set(SymbolValue *, ValuePtr);
 
     ValuePtr ivar_get(Env *, SymbolValue *);
     ValuePtr ivar_set(Env *, SymbolValue *, ValuePtr);

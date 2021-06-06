@@ -16,7 +16,7 @@ namespace Natalie {
 class FileValue : public IoValue {
 public:
     FileValue(Env *env)
-        : IoValue { env, env->Object()->const_fetch(env, SymbolValue::intern(env, "File"))->as_class() } { }
+        : IoValue { env, env->Object()->const_fetch(SymbolValue::intern("File"))->as_class() } { }
 
     ValuePtr initialize(Env *, ValuePtr, ValuePtr, Block *);
 
@@ -24,7 +24,7 @@ public:
         ValuePtr args[] = { filename, flags_obj };
         size_t argc = 1;
         if (flags_obj) argc++;
-        auto obj = _new(env, env->Object()->const_fetch(env, SymbolValue::intern(env, "File"))->as_class(), argc, args, nullptr);
+        auto obj = _new(env, env->Object()->const_fetch(SymbolValue::intern("File"))->as_class(), argc, args, nullptr);
         if (block) {
             ValuePtr block_args[] = { obj };
             ValuePtr result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK_WITH_CLEANUP(env, block, 1, block_args, nullptr, obj->as_file()->close(env));

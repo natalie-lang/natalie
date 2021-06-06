@@ -41,7 +41,7 @@ public:
     }
 
     StringValue(Env *env, const StringValue &other)
-        : Value { env, other } {
+        : Value { other } {
         set_str(other.c_str(), other.length());
     }
 

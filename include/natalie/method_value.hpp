@@ -14,7 +14,7 @@ namespace Natalie {
 class MethodValue : public Value {
 public:
     MethodValue(Env *env, ValuePtr object, Method *method)
-        : Value { Value::Type::Method, env->Object()->const_fetch(env, SymbolValue::intern(env, "Method"))->as_class() }
+        : Value { Value::Type::Method, env->Object()->const_fetch(SymbolValue::intern("Method"))->as_class() }
         , m_object { object }
         , m_method { method } { }
 
@@ -22,7 +22,7 @@ public:
         : Value { Value::Type::Method, klass } { }
 
     ModuleValue *owner() { return m_method->owner(); }
-    SymbolValue *name(Env *env) { return SymbolValue::intern(env, m_method->name()); }
+    SymbolValue *name(Env *env) { return SymbolValue::intern(m_method->name()); }
     Method *method() { return m_method; }
 
     ValuePtr inspect(Env *env) {

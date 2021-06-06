@@ -15,19 +15,19 @@ namespace Natalie {
 ValuePtr KernelModule::Array(Env *env, ValuePtr value) {
     if (value->type() == Value::Type::Array) {
         return value;
-    } else if (value->respond_to(env, SymbolValue::intern(env, "to_ary"))) {
+    } else if (value->respond_to(env, SymbolValue::intern("to_ary"))) {
         return value.send(env, "to_ary");
     } else if (value == env->nil_obj()) {
-        return new ArrayValue { env };
+        return new ArrayValue {};
     } else {
-        ArrayValue *ary = new ArrayValue { env };
+        ArrayValue *ary = new ArrayValue {};
         ary->push(value);
         return ary;
     }
 }
 
 ValuePtr KernelModule::at_exit(Env *env, Block *block) {
-    ArrayValue *at_exit_handlers = env->global_get(SymbolValue::intern(env, "$NAT_at_exit_handlers"))->as_array();
+    ArrayValue *at_exit_handlers = env->global_get(SymbolValue::intern("$NAT_at_exit_handlers"))->as_array();
     env->assert_block_given(block);
     ValuePtr proc = new ProcValue { env, block };
     at_exit_handlers->push(proc);
@@ -68,8 +68,8 @@ ValuePtr KernelModule::exit(Env *env, ValuePtr status) {
     if (!status || status->type() != Value::Type::Integer) {
         status = ValuePtr::integer(0);
     }
-    ExceptionValue *exception = new ExceptionValue { env, env->Object()->const_find(env, SymbolValue::intern(env, "SystemExit"))->as_class(), new StringValue { env, "exit" } };
-    exception->ivar_set(env, SymbolValue::intern(env, "@status"), status);
+    ExceptionValue *exception = new ExceptionValue { env, env->Object()->const_find(env, SymbolValue::intern("SystemExit"))->as_class(), new StringValue { env, "exit" } };
+    exception->ivar_set(env, SymbolValue::intern("@status"), status);
     env->raise_exception(exception);
     return env->nil_obj();
 }
@@ -79,7 +79,7 @@ ValuePtr KernelModule::get_usage(Env *env) {
     if (getrusage(RUSAGE_SELF, &usage) != 0) {
         return env->nil_obj();
     }
-    HashValue *hash = new HashValue { env };
+    HashValue *hash = new HashValue {};
     hash->put(env, new StringValue { env, "maxrss" }, ValuePtr::integer(usage.ru_maxrss));
     hash->put(env, new StringValue { env, "ixrss" }, ValuePtr::integer(usage.ru_ixrss));
     hash->put(env, new StringValue { env, "idrss" }, ValuePtr::integer(usage.ru_idrss));
@@ -175,7 +175,7 @@ ValuePtr KernelModule::method(Env *env, ValuePtr name) {
 }
 
 ValuePtr KernelModule::methods(Env *env) {
-    ArrayValue *array = new ArrayValue { env };
+    ArrayValue *array = new ArrayValue {};
     if (singleton_class()) {
         singleton_class()->methods(env, array);
     } else {
@@ -192,7 +192,7 @@ ValuePtr KernelModule::p(Env *env, size_t argc, ValuePtr *args) {
         puts(env, 1, &arg);
         return arg;
     } else {
-        ArrayValue *result = new ArrayValue { env };
+        ArrayValue *result = new ArrayValue {};
         for (size_t i = 0; i < argc; i++) {
             result->push(args[i]);
             args[i] = args[i].send(env, "inspect");
@@ -203,7 +203,7 @@ ValuePtr KernelModule::p(Env *env, size_t argc, ValuePtr *args) {
 }
 
 ValuePtr KernelModule::print(Env *env, size_t argc, ValuePtr *args) {
-    IoValue *_stdout = env->global_get(SymbolValue::intern(env, "$stdout"))->as_io();
+    IoValue *_stdout = env->global_get(SymbolValue::intern("$stdout"))->as_io();
     return _stdout->print(env, argc, args);
 }
 
@@ -216,7 +216,7 @@ ValuePtr KernelModule::proc(Env *env, Block *block) {
 }
 
 ValuePtr KernelModule::puts(Env *env, size_t argc, ValuePtr *args) {
-    IoValue *_stdout = env->global_get(SymbolValue::intern(env, "$stdout"))->as_io();
+    IoValue *_stdout = env->global_get(SymbolValue::intern("$stdout"))->as_io();
     return _stdout->puts(env, argc, args);
 }
 
@@ -227,7 +227,7 @@ ValuePtr KernelModule::raise(Env *env, ValuePtr klass, ValuePtr message) {
             klass = arg->as_class();
             message = new StringValue { env, *arg->as_class()->class_name_or_blank() };
         } else if (arg->is_string()) {
-            klass = env->Object()->const_find(env, SymbolValue::intern(env, "RuntimeError"))->as_class();
+            klass = env->Object()->const_find(env, SymbolValue::intern("RuntimeError"))->as_class();
             message = arg;
         } else if (arg->is_exception()) {
             env->raise_exception(arg->as_exception());
@@ -293,7 +293,7 @@ ValuePtr KernelModule::tap(Env *env, Block *block) {
 ValuePtr KernelModule::this_method(Env *env) {
     auto method = env->caller()->current_method();
     if (method->name()) {
-        return SymbolValue::intern(env, method->name());
+        return SymbolValue::intern(method->name());
     } else {
         return env->nil_obj();
     }

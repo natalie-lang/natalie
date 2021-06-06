@@ -3,13 +3,13 @@
 namespace Natalie {
 
 EncodingValue::EncodingValue(Env *env)
-    : Value { Value::Type::Encoding, env->Object()->const_fetch(env, SymbolValue::intern(env, "Encoding"))->as_class() } { }
+    : Value { Value::Type::Encoding, env->Object()->const_fetch(SymbolValue::intern("Encoding"))->as_class() } { }
 
 ArrayValue *EncodingValue::list(Env *env) {
-    ArrayValue *ary = new ArrayValue { env };
-    ValuePtr Encoding = env->Object()->const_fetch(env, SymbolValue::intern(env, "Encoding"));
-    ary->push(Encoding->const_fetch(env, SymbolValue::intern(env, "ASCII_8BIT")));
-    ary->push(Encoding->const_fetch(env, SymbolValue::intern(env, "UTF_8")));
+    ArrayValue *ary = new ArrayValue {};
+    ValuePtr Encoding = env->Object()->const_fetch(SymbolValue::intern("Encoding"));
+    ary->push(Encoding->const_fetch(SymbolValue::intern("ASCII_8BIT")));
+    ary->push(Encoding->const_fetch(SymbolValue::intern("UTF_8")));
     return ary;
 }
 
@@ -26,7 +26,7 @@ ValuePtr EncodingValue::name(Env *env) {
 }
 
 ArrayValue *EncodingValue::names(Env *env) {
-    auto array = new ArrayValue { env };
+    auto array = new ArrayValue {};
     for (StringValue *name : m_names) {
         array->push(name);
     }

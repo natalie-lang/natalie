@@ -3,7 +3,7 @@
 namespace Natalie {
 
 ClassValue *ClassValue::subclass(Env *env, const String *name, Type object_type) {
-    ClassValue *subclass = new ClassValue { env, klass() };
+    ClassValue *subclass = new ClassValue { klass() };
     subclass->m_env = new Env {};
     if (singleton_class()) {
         auto singleton_name = String::format("#<Class:{}>", name);
@@ -19,7 +19,6 @@ ClassValue *ClassValue::subclass(Env *env, const String *name, Type object_type)
 
 ClassValue *ClassValue::bootstrap_class_class(Env *env) {
     ClassValue *Class = new ClassValue {
-        env,
         reinterpret_cast<ClassValue *>(-1)
     };
     Class->m_klass = Class;
@@ -29,7 +28,6 @@ ClassValue *ClassValue::bootstrap_class_class(Env *env) {
 
 ClassValue *ClassValue::bootstrap_basic_object(Env *env, ClassValue *Class) {
     ClassValue *BasicObject = new ClassValue {
-        env,
         reinterpret_cast<ClassValue *>(-1)
     };
     BasicObject->m_klass = Class;

@@ -88,38 +88,38 @@ ValuePtr FileValue::unlink(Env *env, ValuePtr path) {
         return ValuePtr::integer(1);
     } else {
         ValuePtr args[] = { ValuePtr::integer(errno) };
-        auto exception = env->Object()->const_fetch(env, SymbolValue::intern(env, "SystemCallError")).send(env, "exception", 1, args)->as_exception();
+        auto exception = env->Object()->const_fetch(SymbolValue::intern("SystemCallError")).send(env, "exception", 1, args)->as_exception();
         env->raise_exception(exception);
     }
 }
 
 void FileValue::build_constants(Env *env, ClassValue *klass) {
-    ValuePtr Constants = new ModuleValue { env, "Constants" };
-    klass->const_set(env, SymbolValue::intern(env, "Constants"), Constants);
-    klass->const_set(env, SymbolValue::intern(env, "APPEND"), ValuePtr::integer(O_APPEND));
-    Constants->const_set(env, SymbolValue::intern(env, "APPEND"), ValuePtr::integer(O_APPEND));
-    klass->const_set(env, SymbolValue::intern(env, "RDONLY"), ValuePtr::integer(O_RDONLY));
-    Constants->const_set(env, SymbolValue::intern(env, "RDONLY"), ValuePtr::integer(O_RDONLY));
-    klass->const_set(env, SymbolValue::intern(env, "WRONLY"), ValuePtr::integer(O_WRONLY));
-    Constants->const_set(env, SymbolValue::intern(env, "WRONLY"), ValuePtr::integer(O_WRONLY));
-    klass->const_set(env, SymbolValue::intern(env, "TRUNC"), ValuePtr::integer(O_TRUNC));
-    Constants->const_set(env, SymbolValue::intern(env, "TRUNC"), ValuePtr::integer(O_TRUNC));
-    klass->const_set(env, SymbolValue::intern(env, "CREAT"), ValuePtr::integer(O_CREAT));
-    Constants->const_set(env, SymbolValue::intern(env, "CREAT"), ValuePtr::integer(O_CREAT));
-    klass->const_set(env, SymbolValue::intern(env, "DSYNC"), ValuePtr::integer(O_DSYNC));
-    Constants->const_set(env, SymbolValue::intern(env, "DSYNC"), ValuePtr::integer(O_DSYNC));
-    klass->const_set(env, SymbolValue::intern(env, "EXCL"), ValuePtr::integer(O_EXCL));
-    Constants->const_set(env, SymbolValue::intern(env, "EXCL"), ValuePtr::integer(O_EXCL));
-    klass->const_set(env, SymbolValue::intern(env, "NOCTTY"), ValuePtr::integer(O_NOCTTY));
-    Constants->const_set(env, SymbolValue::intern(env, "NOCTTY"), ValuePtr::integer(O_NOCTTY));
-    klass->const_set(env, SymbolValue::intern(env, "NOFOLLOW"), ValuePtr::integer(O_NOFOLLOW));
-    Constants->const_set(env, SymbolValue::intern(env, "NOFOLLOW"), ValuePtr::integer(O_NOFOLLOW));
-    klass->const_set(env, SymbolValue::intern(env, "NONBLOCK"), ValuePtr::integer(O_NONBLOCK));
-    Constants->const_set(env, SymbolValue::intern(env, "NONBLOCK"), ValuePtr::integer(O_NONBLOCK));
-    klass->const_set(env, SymbolValue::intern(env, "RDWR"), ValuePtr::integer(O_RDWR));
-    Constants->const_set(env, SymbolValue::intern(env, "RDWR"), ValuePtr::integer(O_RDWR));
-    klass->const_set(env, SymbolValue::intern(env, "SYNC"), ValuePtr::integer(O_SYNC));
-    Constants->const_set(env, SymbolValue::intern(env, "SYNC"), ValuePtr::integer(O_SYNC));
+    ValuePtr Constants = new ModuleValue { "Constants" };
+    klass->const_set(SymbolValue::intern("Constants"), Constants);
+    klass->const_set(SymbolValue::intern("APPEND"), ValuePtr::integer(O_APPEND));
+    Constants->const_set(SymbolValue::intern("APPEND"), ValuePtr::integer(O_APPEND));
+    klass->const_set(SymbolValue::intern("RDONLY"), ValuePtr::integer(O_RDONLY));
+    Constants->const_set(SymbolValue::intern("RDONLY"), ValuePtr::integer(O_RDONLY));
+    klass->const_set(SymbolValue::intern("WRONLY"), ValuePtr::integer(O_WRONLY));
+    Constants->const_set(SymbolValue::intern("WRONLY"), ValuePtr::integer(O_WRONLY));
+    klass->const_set(SymbolValue::intern("TRUNC"), ValuePtr::integer(O_TRUNC));
+    Constants->const_set(SymbolValue::intern("TRUNC"), ValuePtr::integer(O_TRUNC));
+    klass->const_set(SymbolValue::intern("CREAT"), ValuePtr::integer(O_CREAT));
+    Constants->const_set(SymbolValue::intern("CREAT"), ValuePtr::integer(O_CREAT));
+    klass->const_set(SymbolValue::intern("DSYNC"), ValuePtr::integer(O_DSYNC));
+    Constants->const_set(SymbolValue::intern("DSYNC"), ValuePtr::integer(O_DSYNC));
+    klass->const_set(SymbolValue::intern("EXCL"), ValuePtr::integer(O_EXCL));
+    Constants->const_set(SymbolValue::intern("EXCL"), ValuePtr::integer(O_EXCL));
+    klass->const_set(SymbolValue::intern("NOCTTY"), ValuePtr::integer(O_NOCTTY));
+    Constants->const_set(SymbolValue::intern("NOCTTY"), ValuePtr::integer(O_NOCTTY));
+    klass->const_set(SymbolValue::intern("NOFOLLOW"), ValuePtr::integer(O_NOFOLLOW));
+    Constants->const_set(SymbolValue::intern("NOFOLLOW"), ValuePtr::integer(O_NOFOLLOW));
+    klass->const_set(SymbolValue::intern("NONBLOCK"), ValuePtr::integer(O_NONBLOCK));
+    Constants->const_set(SymbolValue::intern("NONBLOCK"), ValuePtr::integer(O_NONBLOCK));
+    klass->const_set(SymbolValue::intern("RDWR"), ValuePtr::integer(O_RDWR));
+    Constants->const_set(SymbolValue::intern("RDWR"), ValuePtr::integer(O_RDWR));
+    klass->const_set(SymbolValue::intern("SYNC"), ValuePtr::integer(O_SYNC));
+    Constants->const_set(SymbolValue::intern("SYNC"), ValuePtr::integer(O_SYNC));
 }
 
 }

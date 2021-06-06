@@ -10,7 +10,7 @@ ValuePtr RangeValue::initialize(Env *env, ValuePtr begin, ValuePtr end, ValuePtr
 }
 
 ValuePtr RangeValue::to_a(Env *env) {
-    ArrayValue *ary = new ArrayValue { env };
+    ArrayValue *ary = new ArrayValue {};
     ValuePtr item = m_begin;
     const char *op = m_exclude_end ? "<" : "<=";
     while (item.send(env, op, 1, &m_end, nullptr)->is_truthy()) {

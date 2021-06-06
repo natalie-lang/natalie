@@ -16,14 +16,11 @@ using namespace TM;
 
 class ArrayValue : public Value {
 public:
-    ArrayValue(Env *env)
-        : Value { Value::Type::Array, env->Array() } { }
+    ArrayValue()
+        : Value { Value::Type::Array, GlobalEnv::the()->Array() } { }
 
-    ArrayValue(Env *env, ClassValue *klass)
-        : Value { Value::Type::Array, klass } { }
-
-    ArrayValue(Env *env, std::initializer_list<ValuePtr> list)
-        : ArrayValue { env } {
+    ArrayValue(std::initializer_list<ValuePtr> list)
+        : ArrayValue {} {
         m_vector.set_capacity(list.size());
         for (auto &v : list) {
             m_vector.push(v);
@@ -31,11 +28,11 @@ public:
     }
 
     ArrayValue(Env *env, ArrayValue &other)
-        : Value { env, other }
+        : Value { other }
         , m_vector { other.m_vector } { }
 
-    ArrayValue(Env *env, size_t argc, ValuePtr *args)
-        : ArrayValue { env } {
+    ArrayValue(size_t argc, ValuePtr *args)
+        : ArrayValue {} {
         for (size_t i = 0; i < argc; i++) {
             push(args[i]);
         }
@@ -43,7 +40,7 @@ public:
 
     // Array[]
     static ValuePtr square_new(Env *env, size_t argc, ValuePtr *args) {
-        return new ArrayValue { env, argc, args };
+        return new ArrayValue { argc, args };
     }
 
     ValuePtr to_ary() { return this; }
@@ -144,8 +141,8 @@ public:
     }
 
 private:
-    ArrayValue(Env *env, Vector<ValuePtr> &&vector)
-        : Value { Value::Type::Array, env->Array() }
+    ArrayValue(Vector<ValuePtr> &&vector)
+        : Value { Value::Type::Array, GlobalEnv::the()->Array() }
         , m_vector { std::move(vector) } { }
 
     Vector<ValuePtr> m_vector {};

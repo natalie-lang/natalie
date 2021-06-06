@@ -27,7 +27,7 @@ bool FloatValue::eq(Env *env, ValuePtr other) {
         auto *f = other->as_float();
         return f->m_double == m_double;
     }
-    auto equal_symbol = SymbolValue::intern(env, "==");
+    auto equal_symbol = SymbolValue::intern("==");
     if (other->respond_to(env, equal_symbol)) {
         ValuePtr args[] = { this };
         return other.send(env, equal_symbol, 1, args)->is_truthy();
@@ -50,11 +50,11 @@ ValuePtr FloatValue::ceil(Env *env, ValuePtr precision_value) {
     }
     FloatValue *result;
     if (precision == 0) {
-        result = new FloatValue { env, ::ceil(value) };
+        result = new FloatValue { ::ceil(value) };
     } else {
         double f = ::pow(10, precision);
         value = ::ceil(value * f) / f;
-        result = new FloatValue { env, value };
+        result = new FloatValue { value };
     }
     if (precision <= 0) {
         return result->to_int_no_truncation(env);
@@ -71,11 +71,11 @@ ValuePtr FloatValue::floor(Env *env, ValuePtr precision_value) {
     }
     FloatValue *result;
     if (precision == 0) {
-        result = new FloatValue { env, ::floor(value) };
+        result = new FloatValue { ::floor(value) };
     } else {
         double f = ::pow(10, precision);
         value = ::floor(value * f) / f;
-        result = new FloatValue { env, value };
+        result = new FloatValue { value };
     }
     if (precision <= 0) {
         return result->to_int_no_truncation(env);
@@ -97,18 +97,18 @@ ValuePtr FloatValue::round(Env *env, ValuePtr precision_value) {
         env->raise("FloatDomainError", this->inspect_str(env));
     }
     if (is_infinity()) {
-        return new FloatValue { env, value };
+        return new FloatValue { value };
     }
     FloatValue *result;
     if (precision == 0) {
-        result = new FloatValue { env, ::round(value) };
+        result = new FloatValue { ::round(value) };
     } else {
         double f = ::pow(10, precision);
         double rounded = ::round(value * f) / f;
         if (isinf(f) || isinf(rounded)) {
-            result = new FloatValue { env, value };
+            result = new FloatValue { value };
         } else {
-            result = new FloatValue { env, rounded };
+            result = new FloatValue { rounded };
         }
     }
     if (precision <= 0) {
@@ -200,14 +200,14 @@ ValuePtr FloatValue::cmp(Env *env, ValuePtr other) {
 }
 
 ValuePtr FloatValue::coerce(Env *env, ValuePtr arg) {
-    ArrayValue *ary = new ArrayValue { env };
+    ArrayValue *ary = new ArrayValue {};
     switch (arg->type()) {
     case Value::Type::Float:
         ary->push(arg);
         ary->push(this);
         break;
     case Value::Type::Integer:
-        ary->push(new FloatValue { env, arg->as_integer()->to_nat_int_t() });
+        ary->push(new FloatValue { arg->as_integer()->to_nat_int_t() });
         ary->push(this);
         break;
     case Value::Type::String:
@@ -238,7 +238,7 @@ ValuePtr FloatValue::add(Env *env, ValuePtr rhs) {
 
     double addend1 = to_double();
     double addend2 = rhs->as_float()->to_double();
-    return new FloatValue { env, addend1 + addend2 };
+    return new FloatValue { addend1 + addend2 };
 }
 
 ValuePtr FloatValue::sub(Env *env, ValuePtr rhs) {
@@ -255,7 +255,7 @@ ValuePtr FloatValue::sub(Env *env, ValuePtr rhs) {
 
     double minuend = to_double();
     double subtrahend = rhs->as_float()->to_double();
-    return new FloatValue { env, minuend - subtrahend };
+    return new FloatValue { minuend - subtrahend };
 }
 
 ValuePtr FloatValue::mul(Env *env, ValuePtr rhs) {
@@ -272,7 +272,7 @@ ValuePtr FloatValue::mul(Env *env, ValuePtr rhs) {
 
     double multiplicand = to_double();
     double mulitiplier = rhs->as_float()->to_double();
-    return new FloatValue { env, multiplicand * mulitiplier };
+    return new FloatValue { multiplicand * mulitiplier };
 }
 
 ValuePtr FloatValue::div(Env *env, ValuePtr rhs) {
@@ -290,7 +290,7 @@ ValuePtr FloatValue::div(Env *env, ValuePtr rhs) {
     double dividend = to_double();
     double divisor = rhs->as_float()->to_double();
 
-    return new FloatValue { env, dividend / divisor };
+    return new FloatValue { dividend / divisor };
 }
 
 ValuePtr FloatValue::mod(Env *env, ValuePtr rhs) {
@@ -315,7 +315,7 @@ ValuePtr FloatValue::mod(Env *env, ValuePtr rhs) {
 
     if (divisor == 0.0) env->raise("ZeroDivisionError", "divided by 0");
 
-    return new FloatValue { env, fmod(dividend, divisor) };
+    return new FloatValue { fmod(dividend, divisor) };
 }
 
 ValuePtr FloatValue::divmod(Env *env, ValuePtr arg) {
@@ -330,7 +330,7 @@ ValuePtr FloatValue::divmod(Env *env, ValuePtr arg) {
     ValuePtr division = div(env, arg);
     ValuePtr modulus = mod(env, arg);
 
-    ArrayValue *ary = new ArrayValue { env };
+    ArrayValue *ary = new ArrayValue {};
     ary->push(division->as_float()->floor(env, 0));
     ary->push(modulus);
 
@@ -352,7 +352,7 @@ ValuePtr FloatValue::pow(Env *env, ValuePtr rhs) {
     double base = to_double();
     double exponent = rhs->as_float()->to_double();
 
-    return new FloatValue { env, ::pow(base, exponent) };
+    return new FloatValue { ::pow(base, exponent) };
 }
 
 ValuePtr FloatValue::abs(Env *env) {
@@ -366,12 +366,12 @@ ValuePtr FloatValue::abs(Env *env) {
 
 ValuePtr FloatValue::next_float(Env *env) {
     double number = nextafter(to_double(), HUGE_VAL);
-    return new FloatValue { env, number };
+    return new FloatValue { number };
 }
 
 ValuePtr FloatValue::prev_float(Env *env) {
     double number = nextafter(to_double(), -HUGE_VAL);
-    return new FloatValue { env, number };
+    return new FloatValue { number };
 }
 
 ValuePtr FloatValue::arg(Env *env) {
@@ -379,8 +379,8 @@ ValuePtr FloatValue::arg(Env *env) {
     if (!signbit(m_double)) {
         return ValuePtr::integer(0);
     } else {
-        ValuePtr Math = env->Object()->const_fetch(env, SymbolValue::intern(env, "Math"));
-        return Math->const_fetch(env, SymbolValue::intern(env, "PI"));
+        ValuePtr Math = env->Object()->const_fetch(SymbolValue::intern("Math"));
+        return Math->const_fetch(SymbolValue::intern("PI"));
     }
 }
 

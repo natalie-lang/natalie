@@ -14,7 +14,7 @@ namespace Natalie {
 class NilValue : public Value {
 public:
     NilValue(Env *env)
-        : Value { Value::Type::Nil, env->Object()->const_fetch(env, SymbolValue::intern(env, "NilClass"))->as_class() } {
+        : Value { Value::Type::Nil, env->Object()->const_fetch(SymbolValue::intern("NilClass"))->as_class() } {
         if (env->nil_obj()) NAT_UNREACHABLE();
     }
 

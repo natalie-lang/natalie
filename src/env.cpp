@@ -52,7 +52,7 @@ void Env::raise(ClassValue *klass, class String *message) {
 }
 
 void Env::raise(const char *class_name, const class String *message) {
-    ClassValue *klass = Object()->const_fetch(this, SymbolValue::intern(this, class_name))->as_class();
+    ClassValue *klass = Object()->const_fetch(SymbolValue::intern(class_name))->as_class();
     ExceptionValue *exception = new ExceptionValue { this, klass, new StringValue { this, *message } };
     this->raise_exception(exception);
 }
@@ -66,14 +66,14 @@ void Env::raise_exception(ExceptionValue *exception) {
 }
 
 void Env::raise_local_jump_error(ValuePtr exit_value, const char *message) {
-    ExceptionValue *exception = new ExceptionValue { this, Object()->const_find(this, SymbolValue::intern(this, "LocalJumpError"))->as_class(), new StringValue { this, message } };
-    exception->ivar_set(this, SymbolValue::intern(this, "@exit_value"), exit_value);
+    ExceptionValue *exception = new ExceptionValue { this, Object()->const_find(this, SymbolValue::intern("LocalJumpError"))->as_class(), new StringValue { this, message } };
+    exception->ivar_set(this, SymbolValue::intern("@exit_value"), exit_value);
     this->raise_exception(exception);
 }
 
 void Env::raise_errno() {
     ValuePtr exception_args[] = { ValuePtr::integer(errno) };
-    ExceptionValue *error = Object()->const_find(this, SymbolValue::intern(this, "SystemCallError")).send(this, "exception", 1, exception_args, nullptr)->as_exception();
+    ExceptionValue *error = Object()->const_find(this, SymbolValue::intern("SystemCallError")).send(this, "exception", 1, exception_args, nullptr)->as_exception();
     raise_exception(error);
 }
 

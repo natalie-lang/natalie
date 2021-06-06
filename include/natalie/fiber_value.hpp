@@ -63,11 +63,11 @@ public:
     };
 
     FiberValue(Env *env)
-        : Value { Value::Type::Fiber, env->Object()->const_fetch(env, SymbolValue::intern(env, "Fiber"))->as_class() } { }
+        : Value { Value::Type::Fiber, env->Object()->const_fetch(SymbolValue::intern("Fiber"))->as_class() } { }
 
     // used for the "main" fiber
     FiberValue(Env *env, void *start_of_stack)
-        : Value { Value::Type::Fiber, env->Object()->const_fetch(env, SymbolValue::intern(env, "Fiber"))->as_class() }
+        : Value { Value::Type::Fiber, env->Object()->const_fetch(SymbolValue::intern("Fiber"))->as_class() }
         , m_start_of_stack { start_of_stack } {
         assert(m_start_of_stack);
     }
@@ -150,7 +150,7 @@ public:
         } else if (argc == 1) {
             return args[0];
         } else {
-            return new ArrayValue { env, argc, args };
+            return new ArrayValue { argc, args };
         }
     }
 
@@ -164,13 +164,13 @@ public:
     SymbolValue *status(Env *env) {
         switch (m_status) {
         case Status::Created:
-            return SymbolValue::intern(env, "created");
+            return SymbolValue::intern("created");
         case Status::Active:
-            return SymbolValue::intern(env, "active");
+            return SymbolValue::intern("active");
         case Status::Suspended:
-            return SymbolValue::intern(env, "suspended");
+            return SymbolValue::intern("suspended");
         case Status::Terminated:
-            return SymbolValue::intern(env, "terminated");
+            return SymbolValue::intern("terminated");
         }
         NAT_UNREACHABLE();
     }

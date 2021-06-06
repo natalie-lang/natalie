@@ -7,7 +7,7 @@ extern char **environ;
 namespace Natalie {
 
 ValuePtr EnvValue::inspect(Env *env) {
-    HashValue *hash = new HashValue { env };
+    HashValue *hash = new HashValue {};
     int i = 1;
     char *pair = *environ;
     for (; pair; i++) {

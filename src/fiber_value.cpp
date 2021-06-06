@@ -52,7 +52,7 @@ ValuePtr FiberValue::yield(Env *env, size_t argc, ValuePtr *args) {
     } else if (argc == 1) {
         return args[0];
     } else {
-        return new ArrayValue { env, argc, args };
+        return new ArrayValue { argc, args };
     }
 }
 

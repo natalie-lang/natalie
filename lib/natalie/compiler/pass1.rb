@@ -39,7 +39,7 @@ module Natalie
           end
         end
         exp.new(:block,
-                s(:declare, arr, s(:new, :ArrayValue, :env)),
+                s(:declare, arr, s(:new, :ArrayValue)),
                 *items.compact,
                 arr)
       end
@@ -174,7 +174,7 @@ module Natalie
 
       def process_cdecl(exp)
         (_, name, value) = exp
-        exp.new(:const_set, :self, :env, s(:intern, name), process(value))
+        exp.new(:const_set, :self, s(:intern, name), process(value))
       end
 
       def process_class(exp)
@@ -184,11 +184,11 @@ module Natalie
         klass = temp('class')
         exp.new(:block,
                 s(:class_fn, fn, process(s(:block, *body))),
-                s(:declare, klass, s(:const_get, :self, :env, s(:intern, name))),
+                s(:declare, klass, s(:const_get, :self, s(:intern, name))),
                 s(:c_if, s(:c_not, klass),
                   s(:block,
                     s(:set, klass, s(:subclass, s(:as_class, process(superclass)), :env, s(:s, name))),
-                    s(:const_set, :self, :env, s(:intern, name), klass))),
+                    s(:const_set, :self, s(:intern, name), klass))),
         s(:eval_body, s(:l, "#{klass}->as_class()"), :env, fn))
       end
 
@@ -373,7 +373,7 @@ module Natalie
           s(:put, s(:l, "#{hash}->as_hash()"), :env, process(key), process(val))
         end
         exp.new(:block,
-                s(:declare, hash, s(:new, :HashValue, :env)),
+                s(:declare, hash, s(:new, :HashValue)),
                 s(:block, *inserts),
                 hash)
       end
@@ -456,7 +456,7 @@ module Natalie
         lit = exp.last
         case lit
         when Float
-          exp.new(:new, :FloatValue, :env, lit)
+          exp.new(:new, :FloatValue, lit)
         when Integer
           exp.new(:'ValuePtr::integer', lit)
         when Range
@@ -643,7 +643,7 @@ module Natalie
       def prepare_masgn_set(exp, value, arg: false)
         case exp.sexp_type
         when :cdecl
-          s(:const_set, :self, :env, s(:intern, exp.last), value)
+          s(:const_set, :self, s(:intern, exp.last), value)
         when :gasgn
           s(:global_set, :env, s(:intern, exp.last), value)
         when :iasgn
@@ -698,11 +698,11 @@ module Natalie
         mod = temp('module')
         exp.new(:block,
                 s(:module_fn, fn, process(s(:block, *body))),
-                s(:declare, mod, s(:const_get, :self, :env, s(:intern, name))),
+                s(:declare, mod, s(:const_get, :self, s(:intern, name))),
                 s(:c_if, s(:c_not, mod),
                   s(:block,
-                    s(:set, mod, s(:new, :ModuleValue, :env, s(:s, name))),
-                    s(:const_set, :self, :env, s(:intern, name), mod))),
+                    s(:set, mod, s(:new, :ModuleValue, s(:s, name))),
+                    s(:const_set, :self, s(:intern, name), mod))),
         s(:eval_body, s(:l, "#{mod}->as_module()"), :env, fn))
       end
 
@@ -717,7 +717,7 @@ module Natalie
         match = temp('match')
         exp.new(:block,
                 s(:declare, match, s(:last_match, :env)),
-                s(:c_if, s(:is_truthy, match), s(:public_send, match, s(:intern, :[]), s(:args, s(:new, :IntegerValue, :env, num))), s(:nil)))
+                s(:c_if, s(:is_truthy, match), s(:public_send, match, s(:intern, :[]), s(:args, s(:new, :IntegerValue, num))), s(:nil)))
       end
 
       def process_not(exp)

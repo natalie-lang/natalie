@@ -16,12 +16,12 @@ namespace Natalie {
 
 class FloatValue : public Value {
 public:
-    FloatValue(Env *env, double number)
-        : Value { Value::Type::Float, env->Object()->const_fetch(env, SymbolValue::intern(env, "Float"))->as_class() }
+    FloatValue(double number)
+        : Value { Value::Type::Float, GlobalEnv::the()->Float() }
         , m_double { number } { }
 
-    FloatValue(Env *env, nat_int_t number)
-        : Value { Value::Type::Float, env->Object()->const_fetch(env, SymbolValue::intern(env, "Float"))->as_class() }
+    FloatValue(nat_int_t number)
+        : Value { Value::Type::Float, GlobalEnv::the()->Float() }
         , m_double { static_cast<double>(number) } { }
 
     FloatValue(const FloatValue &other)
@@ -29,27 +29,27 @@ public:
         , m_double { other.m_double } { }
 
     static FloatValue *nan(Env *env) {
-        return new FloatValue { env, 0.0 / 0.0 };
+        return new FloatValue { 0.0 / 0.0 };
     }
 
     static FloatValue *positive_infinity(Env *env) {
-        return new FloatValue { env, std::numeric_limits<double>::infinity() };
+        return new FloatValue { std::numeric_limits<double>::infinity() };
     }
 
     static FloatValue *negative_infinity(Env *env) {
-        return new FloatValue { env, -std::numeric_limits<double>::infinity() };
+        return new FloatValue { -std::numeric_limits<double>::infinity() };
     }
 
     static FloatValue *max(Env *env) {
-        return new FloatValue { env, DBL_MAX };
+        return new FloatValue { DBL_MAX };
     }
 
     static FloatValue *neg_max(Env *env) {
-        return new FloatValue { env, -DBL_MAX };
+        return new FloatValue { -DBL_MAX };
     }
 
     static FloatValue *min(Env *env) {
-        return new FloatValue { env, DBL_MIN };
+        return new FloatValue { DBL_MIN };
     }
 
     double to_double() {
@@ -152,19 +152,19 @@ public:
     }
 
     static void build_constants(Env *env, ClassValue *klass) {
-        klass->const_set(env, SymbolValue::intern(env, "DIG"), new FloatValue { env, double { DBL_DIG } });
-        klass->const_set(env, SymbolValue::intern(env, "EPSILON"), new FloatValue { env, std::numeric_limits<double>::epsilon() });
-        klass->const_set(env, SymbolValue::intern(env, "INFINITY"), FloatValue::positive_infinity(env));
-        klass->const_set(env, SymbolValue::intern(env, "MANT_DIG"), new FloatValue { env, double { DBL_MANT_DIG } });
-        klass->const_set(env, SymbolValue::intern(env, "MAX"), FloatValue::max(env));
-        klass->const_set(env, SymbolValue::intern(env, "MAX_10_EXP"), new FloatValue { env, double { DBL_MAX_10_EXP } });
-        klass->const_set(env, SymbolValue::intern(env, "MAX_EXP"), new FloatValue { env, double { DBL_MAX_EXP } });
-        klass->const_set(env, SymbolValue::intern(env, "MIN"), FloatValue::min(env));
-        klass->const_set(env, SymbolValue::intern(env, "MIN_10_EXP"), new FloatValue { env, double { DBL_MIN_10_EXP } });
-        klass->const_set(env, SymbolValue::intern(env, "MIN_EXP"), new FloatValue { env, double { DBL_MIN_EXP } });
-        klass->const_set(env, SymbolValue::intern(env, "NAN"), FloatValue::nan(env));
-        klass->const_set(env, SymbolValue::intern(env, "NAN"), FloatValue::nan(env));
-        klass->const_set(env, SymbolValue::intern(env, "RADIX"), new FloatValue { env, double { std::numeric_limits<double>::radix } });
+        klass->const_set(SymbolValue::intern("DIG"), new FloatValue { double { DBL_DIG } });
+        klass->const_set(SymbolValue::intern("EPSILON"), new FloatValue { std::numeric_limits<double>::epsilon() });
+        klass->const_set(SymbolValue::intern("INFINITY"), FloatValue::positive_infinity(env));
+        klass->const_set(SymbolValue::intern("MANT_DIG"), new FloatValue { double { DBL_MANT_DIG } });
+        klass->const_set(SymbolValue::intern("MAX"), FloatValue::max(env));
+        klass->const_set(SymbolValue::intern("MAX_10_EXP"), new FloatValue { double { DBL_MAX_10_EXP } });
+        klass->const_set(SymbolValue::intern("MAX_EXP"), new FloatValue { double { DBL_MAX_EXP } });
+        klass->const_set(SymbolValue::intern("MIN"), FloatValue::min(env));
+        klass->const_set(SymbolValue::intern("MIN_10_EXP"), new FloatValue { double { DBL_MIN_10_EXP } });
+        klass->const_set(SymbolValue::intern("MIN_EXP"), new FloatValue { double { DBL_MIN_EXP } });
+        klass->const_set(SymbolValue::intern("NAN"), FloatValue::nan(env));
+        klass->const_set(SymbolValue::intern("NAN"), FloatValue::nan(env));
+        klass->const_set(SymbolValue::intern("RADIX"), new FloatValue { double { std::numeric_limits<double>::radix } });
     }
 
     virtual void gc_print() override {

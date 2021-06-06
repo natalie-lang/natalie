@@ -3,7 +3,7 @@
 namespace Natalie {
 
 void ExceptionValue::build_backtrace(Env *env) {
-    m_backtrace = new ArrayValue { env };
+    m_backtrace = new ArrayValue {};
     Env *bt_env = env;
     do {
         if (bt_env->file()) {

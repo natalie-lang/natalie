@@ -168,7 +168,7 @@ public:
     void set_value(Node *value) { m_value = value; }
 
     void add_to_locals(Env *env, ManagedVector<SymbolValue *> *locals) {
-        locals->push(SymbolValue::intern(env, m_name));
+        locals->push(SymbolValue::intern(m_name));
     }
 
     virtual void visit_children(Visitor &visitor) override {
@@ -781,22 +781,22 @@ public:
     SymbolValue *assignment_type(Env *env) {
         switch (token_type()) {
         case Token::Type::BareName:
-            return SymbolValue::intern(env, "lasgn");
+            return SymbolValue::intern("lasgn");
         case Token::Type::ClassVariable:
-            return SymbolValue::intern(env, "cvdecl");
+            return SymbolValue::intern("cvdecl");
         case Token::Type::Constant:
-            return SymbolValue::intern(env, "cdecl");
+            return SymbolValue::intern("cdecl");
         case Token::Type::GlobalVariable:
-            return SymbolValue::intern(env, "gasgn");
+            return SymbolValue::intern("gasgn");
         case Token::Type::InstanceVariable:
-            return SymbolValue::intern(env, "iasgn");
+            return SymbolValue::intern("iasgn");
         default:
             NAT_UNREACHABLE();
         }
     }
 
     SymbolValue *to_symbol(Env *env) {
-        return SymbolValue::intern(env, name());
+        return SymbolValue::intern(name());
     }
 
     void add_to_locals(Env *env, ManagedVector<SymbolValue *> *locals) {

@@ -10,14 +10,14 @@ namespace Natalie {
 
 ValuePtr splat(Env *env, ValuePtr obj) {
     if (obj->is_array()) {
-        return new ArrayValue { env, *obj->as_array() };
+        return new ArrayValue { *obj->as_array() };
     } else {
         return to_ary(env, obj, false);
     }
 }
 
 void run_at_exit_handlers(Env *env) {
-    ArrayValue *at_exit_handlers = env->global_get(SymbolValue::intern(env, "$NAT_at_exit_handlers"))->as_array();
+    ArrayValue *at_exit_handlers = env->global_get(SymbolValue::intern("$NAT_at_exit_handlers"))->as_array();
     assert(at_exit_handlers);
     for (int i = at_exit_handlers->size() - 1; i >= 0; i--) {
         ValuePtr proc = (*at_exit_handlers)[i];
@@ -28,7 +28,7 @@ void run_at_exit_handlers(Env *env) {
 }
 
 void print_exception_with_backtrace(Env *env, ExceptionValue *exception) {
-    IoValue *_stderr = env->global_get(SymbolValue::intern(env, "$stderr"))->as_io();
+    IoValue *_stderr = env->global_get(SymbolValue::intern("$stderr"))->as_io();
     int fd = _stderr->fileno();
     const ArrayValue *backtrace = exception->backtrace();
     if (backtrace && backtrace->size() > 0) {
@@ -45,8 +45,8 @@ void print_exception_with_backtrace(Env *env, ExceptionValue *exception) {
 }
 
 void handle_top_level_exception(Env *env, ExceptionValue *exception, bool run_exit_handlers) {
-    if (exception->is_a(env, env->Object()->const_find(env, SymbolValue::intern(env, "SystemExit"))->as_class())) {
-        ValuePtr status_obj = exception->ivar_get(env, SymbolValue::intern(env, "@status"));
+    if (exception->is_a(env, env->Object()->const_find(env, SymbolValue::intern("SystemExit"))->as_class())) {
+        ValuePtr status_obj = exception->ivar_get(env, SymbolValue::intern("@status"));
         if (run_exit_handlers) run_at_exit_handlers(env);
         if (status_obj->type() == Value::Type::Integer) {
             nat_int_t val = status_obj->as_integer()->to_nat_int_t();
@@ -64,7 +64,7 @@ void handle_top_level_exception(Env *env, ExceptionValue *exception, bool run_ex
 }
 
 ArrayValue *to_ary(Env *env, ValuePtr obj, bool raise_for_non_array) {
-    auto to_ary_symbol = SymbolValue::intern(env, "to_ary");
+    auto to_ary_symbol = SymbolValue::intern("to_ary");
     if (obj->is_array()) {
         return obj->as_array();
     } else if (obj->respond_to(env, to_ary_symbol)) {
@@ -72,7 +72,7 @@ ArrayValue *to_ary(Env *env, ValuePtr obj, bool raise_for_non_array) {
         if (ary->is_array()) {
             return ary->as_array();
         } else if (ary->is_nil() || !raise_for_non_array) {
-            ary = new ArrayValue { env };
+            ary = new ArrayValue {};
             ary->as_array()->push(obj);
             return ary->as_array();
         } else {
@@ -80,14 +80,14 @@ ArrayValue *to_ary(Env *env, ValuePtr obj, bool raise_for_non_array) {
             env->raise("TypeError", "can't convert {} to Array ({}#to_ary gives {})", class_name, class_name, ary->klass()->class_name_or_blank());
         }
     } else {
-        ArrayValue *ary = new ArrayValue { env };
+        ArrayValue *ary = new ArrayValue {};
         ary->push(obj);
         return ary;
     }
 }
 
 static ValuePtr splat_value(Env *env, ValuePtr value, size_t index, size_t offset_from_end) {
-    ArrayValue *splat = new ArrayValue { env };
+    ArrayValue *splat = new ArrayValue {};
     if (value->is_array() && index < value->as_array()->size() - offset_from_end) {
         for (size_t s = index; s < value->as_array()->size() - offset_from_end; s++) {
             splat->push((*value->as_array())[s]);
@@ -227,14 +227,14 @@ ValuePtr kwarg_value_by_name(Env *env, ValuePtr args, const char *name, ValuePtr
 ValuePtr kwarg_value_by_name(Env *env, ArrayValue *args, const char *name, ValuePtr default_value) {
     ValuePtr hash;
     if (args->size() == 0) {
-        hash = new HashValue { env };
+        hash = new HashValue {};
     } else {
         hash = (*args)[args->size() - 1];
         if (hash->type() != Value::Type::Hash) {
-            hash = new HashValue { env };
+            hash = new HashValue {};
         }
     }
-    ValuePtr value = hash->as_hash()->get(env, SymbolValue::intern(env, name));
+    ValuePtr value = hash->as_hash()->get(env, SymbolValue::intern(name));
     if (!value) {
         if (default_value) {
             return default_value;
@@ -246,7 +246,7 @@ ValuePtr kwarg_value_by_name(Env *env, ArrayValue *args, const char *name, Value
 }
 
 ArrayValue *args_to_array(Env *env, size_t argc, ValuePtr *args) {
-    ArrayValue *ary = new ArrayValue { env };
+    ArrayValue *ary = new ArrayValue {};
     for (size_t i = 0; i < argc; i++) {
         ary->push(args[i]);
     }
@@ -314,7 +314,7 @@ void arg_spread(Env *env, size_t argc, ValuePtr *args, const char *arrangement, 
             void **void_ptr = va_arg(va_args, void **);
             if (arg_index >= argc) env->raise("ArgumentError", "wrong number of arguments (given {}, expected {})", argc, arg_index + 1);
             ValuePtr obj = args[arg_index++];
-            obj = obj->ivar_get(env, SymbolValue::intern(env, "@_ptr"));
+            obj = obj->ivar_get(env, SymbolValue::intern("@_ptr"));
             assert(obj->type() == Value::Type::VoidP);
             *void_ptr = obj->as_void_p()->void_ptr();
             break;
@@ -328,7 +328,7 @@ void arg_spread(Env *env, size_t argc, ValuePtr *args, const char *arrangement, 
 }
 
 std::pair<ValuePtr, ValuePtr> coerce(Env *env, ValuePtr lhs, ValuePtr rhs) {
-    auto coerce_symbol = SymbolValue::intern(env, "coerce");
+    auto coerce_symbol = SymbolValue::intern("coerce");
     if (lhs->respond_to(env, coerce_symbol)) {
         ValuePtr coerced = lhs.send(env, coerce_symbol, 1, &rhs, nullptr);
         if (!coerced->is_array()) {
@@ -443,11 +443,11 @@ int pclose2(FILE *fp, pid_t pid) {
 }
 
 void set_status_object(Env *env, int pid, int status) {
-    auto status_obj = env->Object()->const_fetch(env, SymbolValue::intern(env, "Process"))->const_fetch(env, SymbolValue::intern(env, "Status")).send(env, "new");
-    status_obj->ivar_set(env, SymbolValue::intern(env, "@to_i"), ValuePtr::integer(status));
-    status_obj->ivar_set(env, SymbolValue::intern(env, "@exitstatus"), ValuePtr::integer(WEXITSTATUS(status)));
-    status_obj->ivar_set(env, SymbolValue::intern(env, "@pid"), ValuePtr::integer(pid));
-    env->global_set(SymbolValue::intern(env, "$?"), status_obj);
+    auto status_obj = env->Object()->const_fetch(SymbolValue::intern("Process"))->const_fetch(SymbolValue::intern("Status")).send(env, "new");
+    status_obj->ivar_set(env, SymbolValue::intern("@to_i"), ValuePtr::integer(status));
+    status_obj->ivar_set(env, SymbolValue::intern("@exitstatus"), ValuePtr::integer(WEXITSTATUS(status)));
+    status_obj->ivar_set(env, SymbolValue::intern("@pid"), ValuePtr::integer(pid));
+    env->global_set(SymbolValue::intern("$?"), status_obj);
 }
 
 const char *int_to_hex_string(nat_int_t num, bool capitalize) {
@@ -466,7 +466,7 @@ const char *int_to_hex_string(nat_int_t num, bool capitalize) {
 
 ValuePtr super(Env *env, ValuePtr self, size_t argc, ValuePtr *args, Block *block) {
     auto current_method = env->current_method();
-    auto super_method = self->klass()->find_method(env, SymbolValue::intern(env, env->current_method()->name()), nullptr, current_method);
+    auto super_method = self->klass()->find_method(env, SymbolValue::intern(env->current_method()->name()), nullptr, current_method);
     if (!super_method)
         env->raise("NoMethodError", "super: no superclass method `{}' for {}", current_method->name(), self->inspect_str(env));
     assert(super_method != current_method);

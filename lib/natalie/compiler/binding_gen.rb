@@ -35,10 +35,10 @@ class BindingGen
         puts "    " + binding.get_object
         @consts[binding.rb_class] = true
       end
-      puts "    #{binding.rb_class_as_c_variable}->#{binding.define_method_name}(env, SymbolValue::intern(env, #{binding.rb_method.inspect}), #{binding.name}, #{binding.arity});"
+      puts "    #{binding.rb_class_as_c_variable}->#{binding.define_method_name}(env, SymbolValue::intern(#{binding.rb_method.inspect}), #{binding.name}, #{binding.arity});"
     end
     @undefine_singleton_methods.each do |rb_class, method|
-      puts "    #{rb_class}->undefine_singleton_method(env, SymbolValue::intern(env, #{method.inspect}));"
+      puts "    #{rb_class}->undefine_singleton_method(env, SymbolValue::intern(#{method.inspect}));"
     end
     puts '}'
   end
@@ -128,9 +128,9 @@ ValuePtr #{name}(Env *env, ValuePtr, size_t argc, ValuePtr *args, Block *block) 
 
     def get_object
       if rb_class.start_with?('$')
-        "ValuePtr #{rb_class} = env->global_get(SymbolValue::intern(env, #{rb_class.inspect}));"
+        "ValuePtr #{rb_class} = env->global_get(SymbolValue::intern(#{rb_class.inspect}));"
       else
-        "ValuePtr #{rb_class_as_c_variable} = env->Object()->#{rb_class.split('::').map { |c| %(const_find(env, SymbolValue::intern(env, #{c.inspect}))) }.join('->')};"
+        "ValuePtr #{rb_class_as_c_variable} = env->Object()->#{rb_class.split('::').map { |c| %(const_find(env, SymbolValue::intern(#{c.inspect}))) }.join('->')};"
       end
     end
 

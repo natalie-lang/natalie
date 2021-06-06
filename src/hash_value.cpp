@@ -145,13 +145,13 @@ ValuePtr HashValue::initialize(Env *env, ValuePtr default_value, Block *block) {
 // Hash[]
 ValuePtr HashValue::square_new(Env *env, size_t argc, ValuePtr *args) {
     if (argc == 0) {
-        return new HashValue { env };
+        return new HashValue {};
     } else if (argc == 1) {
         ValuePtr value = args[0];
         if (value->type() == Value::Type::Hash) {
             return value;
         } else if (value->type() == Value::Type::Array) {
-            HashValue *hash = new HashValue { env };
+            HashValue *hash = new HashValue {};
             for (auto &pair : *value->as_array()) {
                 if (pair->type() != Value::Type::Array) {
                     env->raise("ArgumentError", "wrong element in array to Hash[]");
@@ -170,7 +170,7 @@ ValuePtr HashValue::square_new(Env *env, size_t argc, ValuePtr *args) {
     if (argc % 2 != 0) {
         env->raise("ArgumentError", "odd number of arguments for Hash");
     }
-    HashValue *hash = new HashValue { env };
+    HashValue *hash = new HashValue {};
     for (size_t i = 0; i < argc; i += 2) {
         ValuePtr key = args[i];
         ValuePtr value = args[i + 1];
@@ -269,7 +269,7 @@ ValuePtr HashValue::each(Env *env, Block *block) {
 }
 
 ValuePtr HashValue::keys(Env *env) {
-    ArrayValue *array = new ArrayValue { env };
+    ArrayValue *array = new ArrayValue {};
     for (HashValue::Key &node : *this) {
         array->push(node.key);
     }
@@ -277,7 +277,7 @@ ValuePtr HashValue::keys(Env *env) {
 }
 
 ValuePtr HashValue::values(Env *env) {
-    ArrayValue *array = new ArrayValue { env };
+    ArrayValue *array = new ArrayValue {};
     for (HashValue::Key &node : *this) {
         array->push(node.val);
     }
@@ -285,9 +285,9 @@ ValuePtr HashValue::values(Env *env) {
 }
 
 ValuePtr HashValue::sort(Env *env) {
-    ArrayValue *ary = new ArrayValue { env };
+    ArrayValue *ary = new ArrayValue {};
     for (HashValue::Key &node : *this) {
-        ArrayValue *pair = new ArrayValue { env };
+        ArrayValue *pair = new ArrayValue {};
         pair->push(node.key);
         pair->push(node.val);
         ary->push(pair);
