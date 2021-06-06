@@ -36,7 +36,7 @@ public:
 
     static ValuePtr from_block_maybe(Env *env, Block *block) {
         if (!block) {
-            return env->nil_obj();
+            return NilValue::the();
         }
         return new ProcValue { env, block };
     }

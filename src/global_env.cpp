@@ -17,7 +17,7 @@ ValuePtr GlobalEnv::global_get(Env *env, SymbolValue *name) {
     if (val)
         return val;
     else
-        return nil_obj();
+        return NilValue::the();
 }
 
 ValuePtr GlobalEnv::global_set(Env *env, SymbolValue *name, ValuePtr val) {
@@ -55,9 +55,6 @@ void GlobalEnv::visit_children(Visitor &visitor) {
     visitor.visit(m_Regexp);
     visitor.visit(m_String);
     visitor.visit(m_Symbol);
-    visitor.visit(m_nil_obj);
-    visitor.visit(m_true_obj);
-    visitor.visit(m_false_obj);
     visitor.visit(m_main_fiber);
     visitor.visit(m_current_fiber);
     for (size_t i = 0; i < m_fiber_args.argc; ++i) {

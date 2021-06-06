@@ -28,7 +28,7 @@ ValuePtr EnvValue::ref(Env *env, ValuePtr name) {
     if (value) {
         return new StringValue { value };
     } else {
-        return env->nil_obj();
+        return NilValue::the();
     }
 }
 

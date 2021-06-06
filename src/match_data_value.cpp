@@ -8,7 +8,7 @@ size_t MatchDataValue::index(size_t index) {
 }
 
 ValuePtr MatchDataValue::group(Env *env, size_t index) {
-    if (index >= size()) return env->nil_obj();
+    if (index >= size()) return NilValue::the();
     const char *str = &m_string->c_str()[m_region->beg[index]];
     size_t length = m_region->end[index] - m_region->beg[index];
     return new StringValue { str, length };
@@ -29,7 +29,7 @@ ValuePtr MatchDataValue::ref(Env *env, ValuePtr index_value) {
         index = size() + index;
     }
     if (index < 0) {
-        return env->nil_obj();
+        return NilValue::the();
     } else {
         return group(env, index);
     }

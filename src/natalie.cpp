@@ -99,7 +99,7 @@ static ValuePtr splat_value(Env *env, ValuePtr value, size_t index, size_t offse
 ValuePtr arg_value_by_path(Env *env, ValuePtr value, ValuePtr default_value, bool splat, int total_count, int default_count, bool defaults_on_right, int offset_from_end, size_t path_size, ...) {
     va_list args;
     va_start(args, path_size);
-    bool has_default = default_value != env->nil_obj();
+    bool has_default = default_value != NilValue::the();
     bool defaults_on_left = !defaults_on_right;
     int required_count = total_count - default_count;
     ValuePtr return_value = value;
@@ -295,7 +295,7 @@ void arg_spread(Env *env, size_t argc, ValuePtr *args, const char *arrangement, 
             const char **str_ptr = va_arg(va_args, const char **);
             if (arg_index >= argc) env->raise("ArgumentError", "wrong number of arguments (given {}, expected {})", argc, arg_index + 1);
             ValuePtr obj = args[arg_index++];
-            if (obj == env->nil_obj()) {
+            if (obj == NilValue::the()) {
                 *str_ptr = nullptr;
             } else {
                 obj->assert_type(env, Value::Type::String, "String");

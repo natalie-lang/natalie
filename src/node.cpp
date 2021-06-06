@@ -220,7 +220,7 @@ ValuePtr CaseNode::to_ruby(Env *env) {
     if (m_else_node) {
         sexp->push(m_else_node->without_unnecessary_nesting()->to_ruby(env));
     } else {
-        sexp->push(env->nil_obj());
+        sexp->push(NilValue::the());
     }
     return sexp;
 }
@@ -383,7 +383,7 @@ ValuePtr IdentifierNode::to_ruby(Env *env) {
         if (m_is_lvar) {
             return new SexpValue { env, this, { SymbolValue::intern("lvar"), SymbolValue::intern(name()) } };
         } else {
-            return new SexpValue { env, this, { SymbolValue::intern("call"), env->nil_obj(), SymbolValue::intern(name()) } };
+            return new SexpValue { env, this, { SymbolValue::intern("call"), NilValue::the(), SymbolValue::intern(name()) } };
         }
     case Token::Type::ClassVariable:
         return new SexpValue { env, this, { SymbolValue::intern("cvar"), SymbolValue::intern(name()) } };
@@ -647,7 +647,7 @@ ValuePtr NextNode::to_ruby(Env *env) {
 }
 
 ValuePtr NilNode::to_ruby(Env *env) {
-    return env->nil_obj();
+    return NilValue::the();
 }
 
 ValuePtr NilSexpNode::to_ruby(Env *env) {
@@ -848,11 +848,11 @@ ValuePtr UntilNode::to_ruby(Env *env) {
 ValuePtr WhileNode::to_ruby(Env *env) {
     ValuePtr is_pre, body;
     if (m_pre)
-        is_pre = env->true_obj();
+        is_pre = TrueValue::the();
     else
-        is_pre = env->false_obj();
+        is_pre = FalseValue::the();
     if (m_body->is_empty())
-        body = env->nil_obj();
+        body = NilValue::the();
     else
         body = m_body->without_unnecessary_nesting()->to_ruby(env);
     return new SexpValue {

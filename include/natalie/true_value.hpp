@@ -13,9 +13,11 @@ namespace Natalie {
 
 class TrueValue : public Value {
 public:
-    TrueValue(Env *env)
-        : Value { Value::Type::True, env->Object()->const_fetch(SymbolValue::intern("TrueClass"))->as_class() } {
-        if (env->true_obj()) NAT_UNREACHABLE();
+    static TrueValue *the() {
+        if (s_instance)
+            return s_instance;
+        s_instance = new TrueValue();
+        return s_instance;
     }
 
     ValuePtr to_s(Env *);
@@ -27,6 +29,12 @@ public:
     virtual bool is_collectible() override {
         return false;
     }
+
+private:
+    inline static TrueValue *s_instance = nullptr;
+
+    TrueValue()
+        : Value { Value::Type::True, GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("TrueClass"))->as_class() } { }
 };
 
 }

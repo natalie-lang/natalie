@@ -47,10 +47,10 @@ ValuePtr RangeValue::eq(Env *env, ValuePtr other_value) {
         bool begin_equal = m_begin.send(env, "==", 1, &begin, nullptr)->is_truthy();
         bool end_equal = m_end.send(env, "==", 1, &end, nullptr)->is_truthy();
         if (begin_equal && end_equal && m_exclude_end == other->m_exclude_end) {
-            return env->true_obj();
+            return TrueValue::the();
         }
     }
-    return env->false_obj();
+    return FalseValue::the();
 }
 
 ValuePtr RangeValue::eqeqeq(Env *env, ValuePtr arg) {
@@ -60,7 +60,7 @@ ValuePtr RangeValue::eqeqeq(Env *env, ValuePtr arg) {
         nat_int_t end = m_end->as_integer()->to_nat_int_t();
         nat_int_t val = arg->as_integer()->to_nat_int_t();
         if (begin <= val && ((m_exclude_end && val < end) || (!m_exclude_end && val <= end))) {
-            return env->true_obj();
+            return TrueValue::the();
         }
     } else {
         // slower method that should work for any type of range
@@ -69,12 +69,12 @@ ValuePtr RangeValue::eqeqeq(Env *env, ValuePtr arg) {
         ValuePtr end = m_end;
         while (item.send(env, op, 1, &end, nullptr)->is_truthy()) {
             if (item.send(env, "==", 1, &arg, nullptr)->is_truthy()) {
-                return env->true_obj();
+                return TrueValue::the();
             }
             item = item.send(env, "succ");
         }
     }
-    return env->false_obj();
+    return FalseValue::the();
 }
 
 }

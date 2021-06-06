@@ -14,7 +14,7 @@ ValuePtr ArrayValue::initialize(Env *env, ValuePtr size, ValuePtr value) {
         return this;
     }
     size->assert_type(env, Value::Type::Integer, "Integer");
-    if (!value) value = env->nil_obj();
+    if (!value) value = NilValue::the();
     for (nat_int_t i = 0; i < size->as_integer()->to_nat_int_t(); i++) {
         push(value);
     }
@@ -73,11 +73,11 @@ ValuePtr ArrayValue::ref(Env *env, ValuePtr index_obj, ValuePtr size) {
             index = this->size() + index;
         }
         if (index < 0) {
-            return env->nil_obj();
+            return NilValue::the();
         }
         size_t sindex = static_cast<size_t>(index);
         if (sindex >= this->size()) {
-            return env->nil_obj();
+            return NilValue::the();
         } else if (!size) {
             return (*this)[index];
         }
@@ -110,7 +110,7 @@ ValuePtr ArrayValue::ref(Env *env, ValuePtr index_obj, ValuePtr size) {
                 // seems to be a special case ¯\_(ツ)_/¯
                 return new ArrayValue {};
             }
-            return env->nil_obj();
+            return NilValue::the();
         }
         size_t u_end = static_cast<size_t>(end);
         if (!range->exclude_end()) u_end++;
@@ -177,28 +177,28 @@ ValuePtr ArrayValue::any(Env *env, size_t argc, ValuePtr *args, Block *block) {
 }
 
 ValuePtr ArrayValue::eq(Env *env, ValuePtr other) {
-    if (!other->is_array()) return env->false_obj();
+    if (!other->is_array()) return FalseValue::the();
     ArrayValue *other_array = other->as_array();
-    if (size() != other_array->size()) return env->false_obj();
-    if (size() == 0) return env->true_obj();
+    if (size() != other_array->size()) return FalseValue::the();
+    if (size() == 0) return TrueValue::the();
     for (size_t i = 0; i < size(); i++) {
         // TODO: could easily be optimized for strings and numbers
         ValuePtr item = (*other_array)[i];
         ValuePtr result = (*this)[i].send(env, "==", 1, &item, nullptr);
         if (result->type() == Value::Type::False) return result;
     }
-    return env->true_obj();
+    return TrueValue::the();
 }
 
 ValuePtr ArrayValue::eql(Env *env, ValuePtr other) {
     if (other == this)
-        return env->true_obj();
+        return TrueValue::the();
     if (!other->is_array())
-        return env->false_obj();
+        return FalseValue::the();
 
     auto other_array = other->as_array();
     if (size() != other_array->size())
-        return env->false_obj();
+        return FalseValue::the();
 
     for (size_t i = 0; i < size(); ++i) {
         ValuePtr item = (*other_array)[i];
@@ -207,7 +207,7 @@ ValuePtr ArrayValue::eql(Env *env, ValuePtr other) {
             return result;
     }
 
-    return env->true_obj();
+    return TrueValue::the();
 }
 
 ValuePtr ArrayValue::each(Env *env, Block *block) {
@@ -233,7 +233,7 @@ ValuePtr ArrayValue::first(Env *env) {
     if (size() > 0) {
         return (*this)[0];
     } else {
-        return env->nil_obj();
+        return NilValue::the();
     }
 }
 
@@ -245,7 +245,7 @@ ValuePtr ArrayValue::sample(Env *env) {
     if (size() > 0) {
         return (*this)[random_number(rng) - 1];
     } else {
-        return env->nil_obj();
+        return NilValue::the();
     }
 }
 
@@ -254,20 +254,20 @@ ValuePtr ArrayValue::last(Env *env) {
     if (size() > 0) {
         return (*this)[size() - 1];
     } else {
-        return env->nil_obj();
+        return NilValue::the();
     }
 }
 
 ValuePtr ArrayValue::include(Env *env, ValuePtr item) {
     if (size() == 0) {
-        return env->false_obj();
+        return FalseValue::the();
     } else {
         for (auto &compare_item : *this) {
             if (item.send(env, "==", 1, &compare_item, nullptr)->is_truthy()) {
-                return env->true_obj();
+                return TrueValue::the();
             }
         }
-        return env->false_obj();
+        return FalseValue::the();
     }
 }
 
@@ -282,7 +282,7 @@ ValuePtr ArrayValue::index(Env *env, ValuePtr object, Block *block) {
             if (result->is_truthy())
                 return ValuePtr::integer(i);
         }
-        return env->nil_obj();
+        return NilValue::the();
     } else if (object) {
         for (nat_int_t i = 0; i < length; i++) {
             auto item = m_vector[i];
@@ -290,7 +290,7 @@ ValuePtr ArrayValue::index(Env *env, ValuePtr object, Block *block) {
             if (item.send(env, "==", 1, args)->is_truthy())
                 return ValuePtr::integer(i);
         }
-        return env->nil_obj();
+        return NilValue::the();
     } else {
         // TODO
         env->assert_block_given(block);
@@ -384,7 +384,7 @@ void ArrayValue::push_splat(Env *env, ValuePtr val) {
 
 ValuePtr ArrayValue::pop(Env *env) {
     this->assert_not_frozen(env);
-    if (size() == 0) return env->nil_obj();
+    if (size() == 0) return NilValue::the();
     ValuePtr val = m_vector[m_vector.size() - 1];
     m_vector.set_size(m_vector.size() - 1);
     return val;
@@ -392,7 +392,7 @@ ValuePtr ArrayValue::pop(Env *env) {
 
 void ArrayValue::expand_with_nil(Env *env, size_t total) {
     for (size_t i = size(); i < total; i++) {
-        push(*env->nil_obj());
+        push(*NilValue::the());
     }
 }
 
@@ -431,7 +431,7 @@ ValuePtr ArrayValue::reject(Env *env, Block *block) {
 
 ValuePtr ArrayValue::max(Env *env) {
     if (m_vector.size() == 0)
-        return env->nil_obj();
+        return NilValue::the();
     ValuePtr max = nullptr;
     for (auto item : *this) {
         if (!max || item.send(env, ">", 1, &max)->is_truthy())
@@ -442,7 +442,7 @@ ValuePtr ArrayValue::max(Env *env) {
 
 ValuePtr ArrayValue::min(Env *env) {
     if (m_vector.size() == 0)
-        return env->nil_obj();
+        return NilValue::the();
     ValuePtr min = nullptr;
     for (auto item : *this) {
         if (!min || item.send(env, "<", 1, &min)->is_truthy())
@@ -462,7 +462,7 @@ ValuePtr ArrayValue::compact(Env *env) {
 
 ValuePtr ArrayValue::uniq(Env *env) {
     auto hash = new HashValue {};
-    auto nil = env->nil_obj();
+    auto nil = NilValue::the();
     for (auto item : *this) {
         hash->put(env, item, nil);
     }

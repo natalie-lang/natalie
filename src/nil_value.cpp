@@ -3,7 +3,7 @@
 namespace Natalie {
 
 ValuePtr NilValue::eqtilde(Env *env, ValuePtr) {
-    return env->nil_obj();
+    return NilValue::the();
 }
 
 ValuePtr NilValue::to_s(Env *env) {

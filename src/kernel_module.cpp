@@ -17,7 +17,7 @@ ValuePtr KernelModule::Array(Env *env, ValuePtr value) {
         return value;
     } else if (value->respond_to(env, SymbolValue::intern("to_ary"))) {
         return value.send(env, "to_ary");
-    } else if (value == env->nil_obj()) {
+    } else if (value == NilValue::the()) {
         return new ArrayValue {};
     } else {
         ArrayValue *ary = new ArrayValue {};
@@ -71,13 +71,13 @@ ValuePtr KernelModule::exit(Env *env, ValuePtr status) {
     ExceptionValue *exception = new ExceptionValue { env->Object()->const_find(env, SymbolValue::intern("SystemExit"))->as_class(), new StringValue { "exit" } };
     exception->ivar_set(env, SymbolValue::intern("@status"), status);
     env->raise_exception(exception);
-    return env->nil_obj();
+    return NilValue::the();
 }
 
 ValuePtr KernelModule::get_usage(Env *env) {
     struct rusage usage;
     if (getrusage(RUSAGE_SELF, &usage) != 0) {
-        return env->nil_obj();
+        return NilValue::the();
     }
     HashValue *hash = new HashValue {};
     hash->put(env, new StringValue { "maxrss" }, ValuePtr::integer(usage.ru_maxrss));
@@ -118,7 +118,7 @@ ValuePtr KernelModule::main_obj_inspect(Env *env) {
 
 ValuePtr KernelModule::instance_variable_get(Env *env, ValuePtr name_val) {
     if (is_integer() || is_float()) {
-        return env->nil_obj();
+        return NilValue::the();
     }
     auto name = name_val->to_symbol(env, Value::Conversion::Strict);
     return ivar_get(env, name);
@@ -153,7 +153,7 @@ ValuePtr KernelModule::loop(Env *env, Block *block) {
     for (;;) {
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 0, nullptr, nullptr);
     }
-    return env->nil_obj();
+    return NilValue::the();
 }
 
 ValuePtr KernelModule::method(Env *env, ValuePtr name) {
@@ -186,7 +186,7 @@ ValuePtr KernelModule::methods(Env *env) {
 
 ValuePtr KernelModule::p(Env *env, size_t argc, ValuePtr *args) {
     if (argc == 0) {
-        return env->nil_obj();
+        return NilValue::the();
     } else if (argc == 1) {
         ValuePtr arg = args[0].send(env, "inspect");
         puts(env, 1, &arg);
@@ -295,7 +295,7 @@ ValuePtr KernelModule::this_method(Env *env) {
     if (method->name()) {
         return SymbolValue::intern(method->name());
     } else {
-        return env->nil_obj();
+        return NilValue::the();
     }
 }
 }

@@ -49,7 +49,7 @@ ValuePtr SymbolValue::to_proc_block_fn(Env *env, ValuePtr self_value, size_t arg
 }
 
 ValuePtr SymbolValue::cmp(Env *env, ValuePtr other_value) {
-    if (!other_value->is_symbol()) return env->nil_obj();
+    if (!other_value->is_symbol()) return NilValue::the();
     SymbolValue *other = other_value->as_symbol();
     int diff = strcmp(m_name, other->m_name);
     int result;

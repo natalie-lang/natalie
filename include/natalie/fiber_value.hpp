@@ -146,7 +146,7 @@ public:
         argc = GlobalEnv::the()->fiber_argc();
         args = GlobalEnv::the()->fiber_args();
         if (argc == 0) {
-            return env->nil_obj();
+            return NilValue::the();
         } else if (argc == 1) {
             return args[0];
         } else {

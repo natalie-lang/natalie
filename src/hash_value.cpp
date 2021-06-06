@@ -76,7 +76,7 @@ ValuePtr HashValue::default_value(Env *env) {
     if (m_default_value)
         return m_default_value;
 
-    return env->nil_obj();
+    return NilValue::the();
 }
 
 HashValue::Key *HashValue::key_list_append(Env *env, ValuePtr key, ValuePtr val) {
@@ -161,7 +161,7 @@ ValuePtr HashValue::square_new(Env *env, size_t argc, ValuePtr *args) {
                     env->raise("ArgumentError", "invalid number of elements ({} for 1..2)", size);
                 }
                 ValuePtr key = (*pair->as_array())[0];
-                ValuePtr value = size == 1 ? env->nil_obj() : (*pair->as_array())[1];
+                ValuePtr value = size == 1 ? NilValue::the() : (*pair->as_array())[1];
                 hash->put(env, key, value);
             }
             return hash;
@@ -218,7 +218,7 @@ ValuePtr HashValue::delete_key(Env *env, ValuePtr key) {
     if (val) {
         return val;
     } else {
-        return env->nil_obj();
+        return NilValue::the();
     }
 }
 
@@ -228,23 +228,23 @@ ValuePtr HashValue::size(Env *env) {
 
 ValuePtr HashValue::eq(Env *env, ValuePtr other_value) {
     if (!other_value->is_hash()) {
-        return env->false_obj();
+        return FalseValue::the();
     }
     HashValue *other = other_value->as_hash();
     if (size() != other->size()) {
-        return env->false_obj();
+        return FalseValue::the();
     }
     ValuePtr other_val;
     for (HashValue::Key &node : *this) {
         other_val = other->get(env, node.key);
         if (!other_val) {
-            return env->false_obj();
+            return FalseValue::the();
         }
         if (!node.val.send(env, "==", 1, &other_val, nullptr)->is_truthy()) {
-            return env->false_obj();
+            return FalseValue::the();
         }
     }
-    return env->true_obj();
+    return TrueValue::the();
 }
 
 #define NAT_RUN_BLOCK_AND_POSSIBLY_BREAK_WHILE_ITERATING_HASH(env, the_block, argc, args, block, hash) ({ \
@@ -298,9 +298,9 @@ ValuePtr HashValue::sort(Env *env) {
 ValuePtr HashValue::has_key(Env *env, ValuePtr key) {
     ValuePtr val = get(env, key);
     if (val) {
-        return env->true_obj();
+        return TrueValue::the();
     } else {
-        return env->false_obj();
+        return FalseValue::the();
     }
 }
 

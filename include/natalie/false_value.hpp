@@ -13,9 +13,11 @@ namespace Natalie {
 
 class FalseValue : public Value {
 public:
-    FalseValue(Env *env)
-        : Value { Value::Type::False, env->Object()->const_fetch(SymbolValue::intern("FalseClass"))->as_class() } {
-        if (env->false_obj()) NAT_UNREACHABLE();
+    static FalseValue *the() {
+        if (s_instance)
+            return s_instance;
+        s_instance = new FalseValue();
+        return s_instance;
     }
 
     ValuePtr to_s(Env *);
@@ -27,6 +29,12 @@ public:
     virtual bool is_collectible() override {
         return false;
     }
+
+private:
+    inline static FalseValue *s_instance = nullptr;
+
+    FalseValue()
+        : Value { Value::Type::False, GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("FalseClass"))->as_class() } { }
 };
 
 }

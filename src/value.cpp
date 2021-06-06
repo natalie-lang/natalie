@@ -298,7 +298,7 @@ ValuePtr Value::ivar_get(Env *env, SymbolValue *name) {
     if (val)
         return val;
     else
-        return env->nil_obj();
+        return NilValue::the();
 }
 
 ValuePtr Value::ivar_set(Env *env, SymbolValue *name, ValuePtr val) {
@@ -508,10 +508,10 @@ const char *Value::defined(Env *env, SymbolValue *name, bool strict) {
         if (obj) return "constant";
     } else if (name->is_global_name()) {
         obj = env->global_get(name);
-        if (obj != env->nil_obj()) return "global-variable";
+        if (obj != NilValue::the()) return "global-variable";
     } else if (name->is_ivar_name()) {
         obj = ivar_get(env, name);
-        if (obj != env->nil_obj()) return "instance-variable";
+        if (obj != NilValue::the()) return "instance-variable";
     } else if (respond_to(env, name)) {
         return "method";
     }
@@ -523,7 +523,7 @@ ValuePtr Value::defined_obj(Env *env, SymbolValue *name, bool strict) {
     if (result) {
         return new StringValue { result };
     } else {
-        return env->nil_obj();
+        return NilValue::the();
     }
 }
 
@@ -548,7 +548,7 @@ ValuePtr Value::instance_eval(Env *env, ValuePtr string, Block *block) {
         block->set_self(this);
     }
     NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 0, nullptr, nullptr);
-    return env->nil_obj();
+    return NilValue::the();
 }
 
 void Value::assert_type(Env *env, Value::Type expected_type, const char *expected_class_name) {

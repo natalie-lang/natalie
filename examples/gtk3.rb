@@ -112,7 +112,7 @@ module Gtk3
       GtkWidget *gtk_window;
       arg_spread(env, argc, args, "v", &gtk_window);
       gtk_widget_show_all(gtk_window);
-      return env->nil_obj();
+      return NilValue::the();
     END
 
     __define_method__ :window_set_title, <<-END
@@ -121,7 +121,7 @@ module Gtk3
       char *title;
       arg_spread(env, argc, args, "vs", &gtk_window, &title);
       gtk_window_set_title(GTK_WINDOW(gtk_window), title);
-      return env->nil_obj();
+      return NilValue::the();
     END
 
     __define_method__ :box_new, <<-END
@@ -141,7 +141,7 @@ module Gtk3
       GtkWidget *gtk_window, *gtk_container;
       arg_spread(env, argc, args, "vv", &gtk_window, &gtk_container);
       gtk_container_add(GTK_CONTAINER(gtk_window), gtk_container);
-      return env->nil_obj();
+      return NilValue::the();
     END
 
     __define_method__ :image_new_from_file, <<-END
@@ -163,7 +163,7 @@ module Gtk3
       int padding;
       arg_spread(env, argc, args, "vvbbi", &gtk_box, &gtk_child, &expand, &fill, &padding);
       gtk_box_pack_start(GTK_BOX(gtk_box), gtk_child, expand, fill, padding);
-      return env->nil_obj();
+      return NilValue::the();
     END
 
     __define_method__ :widget_set_halign, <<-END
@@ -172,7 +172,7 @@ module Gtk3
       int align;
       arg_spread(env, argc, args, "vi", &gtk_widget, &align);
       gtk_widget_set_halign(gtk_widget, (GtkAlign)align);
-      return env->nil_obj();
+      return NilValue::the();
     END
 
     __define_method__ :widget_set_valign, <<-END
@@ -181,7 +181,7 @@ module Gtk3
       int align;
       arg_spread(env, argc, args, "vi", &gtk_widget, &align);
       gtk_widget_set_valign(gtk_widget, (GtkAlign)align);
-      return env->nil_obj();
+      return NilValue::the();
     END
 
     __define_method__ :label_new, <<-END
@@ -206,7 +206,7 @@ module Gtk3
       char *markup;
       arg_spread(env, argc, args, "vs", &gtk_label, &markup);
       gtk_label_set_markup(GTK_LABEL(gtk_label), markup);
-      return env->nil_obj();
+      return NilValue::the();
     END
 
     __define_method__ :button_new_with_label, <<-END
@@ -227,7 +227,7 @@ module Gtk3
       int width;
       arg_spread(env, argc, args, "vi", &container, &width);
       gtk_container_set_border_width(GTK_CONTAINER(container), width);
-      return env->nil_obj();
+      return NilValue::the();
     END
 
     __define_method__ :g_signal_connect, <<-END
@@ -237,7 +237,7 @@ module Gtk3
       Value *callback;
       arg_spread(env, argc, args, "vso", &instance, &signal, &callback);
       g_signal_connect(instance, signal, G_CALLBACK(gtk3_signal_callback), callback);
-      return env->nil_obj();
+      return NilValue::the();
     END
 
     def main

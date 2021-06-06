@@ -33,7 +33,7 @@ ValuePtr ExceptionValue::inspect(Env *env) {
 }
 
 ValuePtr ExceptionValue::backtrace(Env *env) {
-    return m_backtrace ? m_backtrace->dup(env) : env->nil_obj();
+    return m_backtrace ? m_backtrace->dup(env) : NilValue::the();
 }
 
 void ExceptionValue::visit_children(Visitor &visitor) {

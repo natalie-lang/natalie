@@ -197,26 +197,26 @@ ValuePtr #{name}(Env *env, ValuePtr, size_t argc, ValuePtr *args, Block *block) 
     def return_code
       case return_type
       when :bool
-        "if (!return_value) return env->false_obj();\n" +
-        'return env->true_obj();'
+        "if (!return_value) return FalseValue::the();\n" +
+        'return TrueValue::the();'
       when :int
         'return ValuePtr::integer(return_value);'
       when :size_t
         'return IntegerValue::from_size_t(env, return_value);'
       when :c_str
-        "if (!return_value) return env->nil_obj();\n" +
+        "if (!return_value) return NilValue::the();\n" +
         'return new StringValue { return_value };'
       when :Value
-        "if (!return_value) return env->nil_obj();\n" +
+        "if (!return_value) return NilValue::the();\n" +
         'return return_value;'
       when :NullableValue
-        "if (!return_value) return env->nil_obj();\n" +
+        "if (!return_value) return NilValue::the();\n" +
         'return return_value;'
       when :StringValue
-        "if (!return_value) return env->nil_obj();\n" +
+        "if (!return_value) return NilValue::the();\n" +
         'return return_value;'
       when :String
-        "if (!return_value) return env->nil_obj();\n" +
+        "if (!return_value) return NilValue::the();\n" +
         'return new StringValue { *return_value };'
       else
         raise "Unknown return type: #{return_type.inspect}"

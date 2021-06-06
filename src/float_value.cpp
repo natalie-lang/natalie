@@ -15,7 +15,7 @@ ValuePtr FloatValue::is_infinite(Env *env) {
     } else if (is_negative_infinity()) {
         return ValuePtr::integer(-1);
     } else {
-        return env->nil_obj();
+        return NilValue::the();
     }
 }
 
@@ -181,10 +181,10 @@ ValuePtr FloatValue::cmp(Env *env, ValuePtr other) {
     }
 
     if (!lhs->is_float()) return lhs.send(env, "<=>", 1, &rhs);
-    if (!rhs->is_float()) return env->nil_obj();
+    if (!rhs->is_float()) return NilValue::the();
 
     if (lhs->as_float()->is_nan() || rhs->as_float()->is_nan()) {
-        return env->nil_obj();
+        return NilValue::the();
     }
 
     double lhs_d = lhs->as_float()->to_double();
@@ -400,7 +400,7 @@ ValuePtr FloatValue::arg(Env *env) {
         }                                                                                                           \
                                                                                                                     \
         if (lhs->as_float()->is_nan() || rhs->as_float()->is_nan()) {                                               \
-            return env->nil_obj();                                                                                  \
+            return NilValue::the();                                                                                 \
         }                                                                                                           \
                                                                                                                     \
         double lhs_d = lhs->as_float()->to_double();                                                                \

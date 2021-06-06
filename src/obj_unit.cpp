@@ -7,5 +7,5 @@ using namespace Natalie;
 ValuePtr init_obj(Env *env, ValuePtr self) {
     /*NAT_EVAL_INIT*/
     /*NAT_EVAL_BODY*/
-    return env->nil_obj();
+    return NilValue::the();
 }

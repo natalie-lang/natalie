@@ -33,7 +33,7 @@ public:
 
     HashValue(ClassValue *klass)
         : Value { Value::Type::Hash, klass }
-        , m_default_value { GlobalEnv::the()->nil_obj() } { }
+        , m_default_value { NilValue::the() } { }
 
     HashValue(Env *env, HashValue &other)
         : Value { other } {

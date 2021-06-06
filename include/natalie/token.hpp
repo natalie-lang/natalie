@@ -491,7 +491,7 @@ public:
 
     ValuePtr to_ruby(Env *env, bool with_line_and_column_numbers = false) {
         if (m_type == Type::Eof)
-            return env->nil_obj();
+            return NilValue::the();
         const char *type = type_value(env);
         auto hash = new HashValue {};
         hash->put(env, SymbolValue::intern("type"), SymbolValue::intern(type));

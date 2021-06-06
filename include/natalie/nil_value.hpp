@@ -13,9 +13,11 @@ namespace Natalie {
 
 class NilValue : public Value {
 public:
-    NilValue(Env *env)
-        : Value { Value::Type::Nil, env->Object()->const_fetch(SymbolValue::intern("NilClass"))->as_class() } {
-        if (env->nil_obj()) NAT_UNREACHABLE();
+    static NilValue *the() {
+        if (s_instance)
+            return s_instance;
+        s_instance = new NilValue();
+        return s_instance;
     }
 
     ValuePtr eqtilde(Env *, ValuePtr);
@@ -31,6 +33,12 @@ public:
     virtual bool is_collectible() override {
         return false;
     }
+
+private:
+    inline static NilValue *s_instance = nullptr;
+
+    NilValue()
+        : Value { Value::Type::Nil, GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("NilClass"))->as_class() } { }
 };
 
 }

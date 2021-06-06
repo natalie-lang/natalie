@@ -47,21 +47,15 @@ extern "C" Env *build_top_env() {
 
     ClassValue *NilClass = Object->subclass(env, "NilClass", Value::Type::Nil);
     Object->const_set(SymbolValue::intern("NilClass"), NilClass);
-
-    global_env->set_nil_obj(new NilValue { env });
-    env->nil_obj()->set_singleton_class(NilClass);
+    NilValue::the();
 
     ClassValue *TrueClass = Object->subclass(env, "TrueClass", Value::Type::True);
     Object->const_set(SymbolValue::intern("TrueClass"), TrueClass);
-
-    global_env->set_true_obj(new TrueValue { env });
-    env->true_obj()->set_singleton_class(TrueClass);
+    TrueValue::the();
 
     ClassValue *FalseClass = Object->subclass(env, "FalseClass", Value::Type::False);
     Object->const_set(SymbolValue::intern("FalseClass"), FalseClass);
-
-    global_env->set_false_obj(new FalseValue { env });
-    env->false_obj()->set_singleton_class(FalseClass);
+    FalseValue::the();
 
     ClassValue *Fiber = Object->subclass(env, "Fiber", Value::Type::Fiber);
     Object->const_set(SymbolValue::intern("Fiber"), Fiber);
@@ -195,10 +189,10 @@ extern "C" Value *EVAL(Env *env) {
         /*NAT_EVAL_BODY*/
         run_exit_handlers = false;
         run_at_exit_handlers(env);
-        return env->nil_obj(); // just in case there's no return value
+        return NilValue::the(); // just in case there's no return value
     } catch (ExceptionValue *exception) {
         handle_top_level_exception(env, exception, run_exit_handlers);
-        return env->nil_obj();
+        return NilValue::the();
     }
 }
 

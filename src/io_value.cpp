@@ -35,7 +35,7 @@ ValuePtr IoValue::read(Env *env, ValuePtr count_value) {
         bytes_read = ::read(m_fileno, buf, count);
         if (bytes_read == 0) {
             free(buf);
-            return env->nil_obj();
+            return NilValue::the();
         } else {
             buf[bytes_read] = 0;
             ValuePtr result = new StringValue { buf };
@@ -90,7 +90,7 @@ ValuePtr IoValue::puts(Env *env, size_t argc, ValuePtr *args) {
             dprintf(m_fileno, "%s\n", str->as_string()->c_str());
         }
     }
-    return env->nil_obj();
+    return NilValue::the();
 }
 
 ValuePtr IoValue::print(Env *env, size_t argc, ValuePtr *args) {
@@ -101,12 +101,12 @@ ValuePtr IoValue::print(Env *env, size_t argc, ValuePtr *args) {
             dprintf(m_fileno, "%s", str->as_string()->c_str());
         }
     }
-    return env->nil_obj();
+    return NilValue::the();
 }
 
 ValuePtr IoValue::close(Env *env) {
     if (m_closed)
-        return env->nil_obj();
+        return NilValue::the();
     int result = ::close(m_fileno);
     if (result == -1) {
         ValuePtr error_number = ValuePtr::integer(errno);
@@ -114,7 +114,7 @@ ValuePtr IoValue::close(Env *env) {
         env->raise_exception(error);
     } else {
         m_closed = true;
-        return env->nil_obj();
+        return NilValue::the();
     }
 }
 

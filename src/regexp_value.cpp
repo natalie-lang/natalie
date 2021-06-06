@@ -66,7 +66,7 @@ ValuePtr RegexpValue::match(Env *env, ValuePtr other, size_t start_index) {
     } else if (result == ONIG_MISMATCH) {
         caller_env->clear_match();
         onig_region_free(region, true);
-        return env->nil_obj();
+        return NilValue::the();
     } else {
         caller_env->clear_match();
         onig_region_free(region, true);

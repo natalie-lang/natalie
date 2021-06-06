@@ -273,7 +273,7 @@ ValuePtr ModuleValue::name(Env *env) {
     if (m_class_name) {
         return new StringValue { *class_name_or_blank() };
     } else {
-        return env->nil_obj();
+        return NilValue::the();
     }
 }
 
@@ -292,7 +292,7 @@ ValuePtr ModuleValue::attr_reader(Env *env, size_t argc, ValuePtr *args) {
         Block *attr_block = new Block { block_env, this, ModuleValue::attr_reader_block_fn, 0 };
         define_method(env, name_obj->as_string()->to_symbol(env), attr_block);
     }
-    return env->nil_obj();
+    return NilValue::the();
 }
 
 ValuePtr ModuleValue::attr_reader_block_fn(Env *env, ValuePtr self, size_t argc, ValuePtr *args, Block *block) {
@@ -320,7 +320,7 @@ ValuePtr ModuleValue::attr_writer(Env *env, size_t argc, ValuePtr *args) {
         Block *attr_block = new Block { block_env, this, ModuleValue::attr_writer_block_fn, 0 };
         define_method(env, method_name->to_symbol(env), attr_block);
     }
-    return env->nil_obj();
+    return NilValue::the();
 }
 
 ValuePtr ModuleValue::attr_writer_block_fn(Env *env, ValuePtr self, size_t argc, ValuePtr *args, Block *block) {
@@ -336,7 +336,7 @@ ValuePtr ModuleValue::attr_writer_block_fn(Env *env, ValuePtr self, size_t argc,
 ValuePtr ModuleValue::attr_accessor(Env *env, size_t argc, ValuePtr *args) {
     attr_reader(env, argc, args);
     attr_writer(env, argc, args);
-    return env->nil_obj();
+    return NilValue::the();
 }
 
 ValuePtr ModuleValue::included_modules(Env *env) {
@@ -371,22 +371,22 @@ ValuePtr ModuleValue::module_eval(Env *env, Block *block) {
     }
     block->set_self(this);
     NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 0, nullptr, nullptr);
-    return env->nil_obj();
+    return NilValue::the();
 }
 
 ValuePtr ModuleValue::private_method(Env *env, ValuePtr method_name) {
     m_method_visibility = MethodVisibility::Private;
-    return env->nil_obj();
+    return NilValue::the();
 }
 
 ValuePtr ModuleValue::protected_method(Env *env, ValuePtr method_name) {
     m_method_visibility = MethodVisibility::Protected;
-    return env->nil_obj();
+    return NilValue::the();
 }
 
 ValuePtr ModuleValue::public_method(Env *env, ValuePtr method_name) {
     m_method_visibility = MethodVisibility::Public;
-    return env->nil_obj();
+    return NilValue::the();
 }
 
 bool ModuleValue::const_defined(Env *env, ValuePtr name_value) {

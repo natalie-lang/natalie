@@ -167,7 +167,7 @@ module Natalie
         else
           top body
         end
-        'env->nil_obj()'
+        'NilValue::the()'
       end
 
       def process___ld_flags__(exp)
@@ -468,7 +468,7 @@ module Natalie
       end
 
       def process_false(_)
-        'ValuePtr { env->false_obj() }'
+        'ValuePtr { FalseValue::the() }'
       end
 
       def process_fn(exp, arg_list = 6)
@@ -565,7 +565,7 @@ module Natalie
       end
 
       def process_nil(_)
-        'ValuePtr { env->nil_obj() }'
+        'ValuePtr { NilValue::the() }'
       end
 
       def process_s(exp)
@@ -598,7 +598,7 @@ module Natalie
       end
 
       def process_true(_)
-        'ValuePtr { env->true_obj() }'
+        'ValuePtr { TrueValue::the() }'
       end
 
       def process_set(exp)

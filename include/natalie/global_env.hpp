@@ -55,15 +55,6 @@ public:
     ClassValue *Symbol() { return m_Symbol; }
     void set_Symbol(ClassValue *Symbol) { m_Symbol = Symbol; }
 
-    NilValue *nil_obj() { return m_nil_obj; }
-    void set_nil_obj(NilValue *nil_obj) { m_nil_obj = nil_obj; }
-
-    TrueValue *true_obj() { return m_true_obj; }
-    void set_true_obj(TrueValue *true_obj) { m_true_obj = true_obj; }
-
-    FalseValue *false_obj() { return m_false_obj; }
-    void set_false_obj(FalseValue *false_obj) { m_false_obj = false_obj; }
-
     FiberValue *main_fiber(Env *);
 
     FiberValue *current_fiber() { return m_current_fiber; }
@@ -109,9 +100,6 @@ private:
     ClassValue *m_Regexp { nullptr };
     ClassValue *m_String { nullptr };
     ClassValue *m_Symbol { nullptr };
-    NilValue *m_nil_obj { nullptr };
-    TrueValue *m_true_obj { nullptr };
-    FalseValue *m_false_obj { nullptr };
 
     FiberValue *m_main_fiber { nullptr };
     FiberValue *m_current_fiber { nullptr };

@@ -70,9 +70,6 @@ public:
     ClassValue *Regexp() { return GlobalEnv::the()->Regexp(); }
     ClassValue *String() { return GlobalEnv::the()->String(); }
     ClassValue *Symbol() { return GlobalEnv::the()->Symbol(); }
-    NilValue *nil_obj() { return GlobalEnv::the()->nil_obj(); }
-    TrueValue *true_obj() { return GlobalEnv::the()->true_obj(); }
-    FalseValue *false_obj() { return GlobalEnv::the()->false_obj(); }
 
     void build_vars(size_t);
 

@@ -25,7 +25,7 @@ public:
         if (klass()) {
             return klass();
         } else {
-            return env->nil_obj();
+            return NilValue::the();
         }
     }
 

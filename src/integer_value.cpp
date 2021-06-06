@@ -104,7 +104,7 @@ ValuePtr IntegerValue::pow(Env *env, ValuePtr arg) {
 }
 
 ValuePtr IntegerValue::cmp(Env *env, ValuePtr arg) {
-    if (!arg.is_integer()) return env->nil_obj();
+    if (!arg.is_integer()) return NilValue::the();
     nat_int_t i1 = to_nat_int_t();
     nat_int_t i2 = arg.to_nat_int_t();
     if (i1 < i2) {
@@ -163,9 +163,9 @@ bool IntegerValue::gte(Env *env, ValuePtr other) {
 
 ValuePtr IntegerValue::eqeqeq(Env *env, ValuePtr arg) {
     if (arg.is_integer() && to_nat_int_t() == arg.to_nat_int_t()) {
-        return env->true_obj();
+        return TrueValue::the();
     } else {
-        return env->false_obj();
+        return FalseValue::the();
     }
 }
 

@@ -58,7 +58,7 @@ ValuePtr StringValue::each_char(Env *env, Block *block) {
         ValuePtr args[] = { c };
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, args, nullptr);
     }
-    return env->nil_obj();
+    return NilValue::the();
 }
 
 ArrayValue *StringValue::chars(Env *env) {
@@ -128,7 +128,7 @@ ValuePtr StringValue::index(Env *env, ValuePtr needle) {
 ValuePtr StringValue::index(Env *env, ValuePtr needle, size_t start) {
     auto byte_index = index_int(env, needle, start);
     if (byte_index == -1) {
-        return env->nil_obj();
+        return NilValue::the();
     }
     size_t byte_index_size_t = static_cast<size_t>(byte_index);
     size_t char_index = 0, i = 0;
@@ -193,7 +193,7 @@ ValuePtr StringValue::mul(Env *env, ValuePtr arg) {
 }
 
 ValuePtr StringValue::cmp(Env *env, ValuePtr other) {
-    if (other->type() != Value::Type::String) return env->nil_obj();
+    if (other->type() != Value::Type::String) return NilValue::the();
     int diff = strcmp(c_str(), other->as_string()->c_str());
     int result;
     if (diff < 0) {
@@ -359,7 +359,7 @@ ValuePtr StringValue::ref(Env *env, ValuePtr index_obj) {
         }
 
         if (index < 0 || index >= (nat_int_t)chars->size()) {
-            return env->nil_obj();
+            return NilValue::the();
         }
         return (*chars)[index];
     } else if (index_obj->is_range()) {
@@ -376,10 +376,10 @@ ValuePtr StringValue::ref(Env *env, ValuePtr index_obj) {
         if (begin < 0) begin = chars->size() + begin;
         if (end < 0) end = chars->size() + end;
 
-        if (begin < 0 || end < 0) return env->nil_obj();
+        if (begin < 0 || end < 0) return NilValue::the();
         size_t u_begin = static_cast<size_t>(begin);
         size_t u_end = static_cast<size_t>(end);
-        if (u_begin > chars->size()) return env->nil_obj();
+        if (u_begin > chars->size()) return NilValue::the();
 
         if (!range->exclude_end()) u_end++;
 
@@ -455,7 +455,7 @@ ValuePtr StringValue::gsub(Env *env, ValuePtr find, ValuePtr replacement_value, 
 
 StringValue *StringValue::regexp_sub(Env *env, RegexpValue *find, StringValue *replacement, MatchDataValue **match, StringValue **expanded_replacement, size_t start_index) {
     ValuePtr match_result = find->as_regexp()->match(env, this, start_index);
-    if (match_result == env->nil_obj())
+    if (match_result == NilValue::the())
         return dup(env)->as_string();
     *match = match_result->as_match_data();
     size_t length = (*match)->as_match_data()->group(env, 0)->as_string()->length();

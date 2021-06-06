@@ -8,7 +8,7 @@ namespace Natalie {
 using namespace TM;
 
 void Env::build_vars(size_t size) {
-    m_vars = new Vector<ValuePtr>(size, nil_obj());
+    m_vars = new Vector<ValuePtr>(size, NilValue::the());
 }
 
 ValuePtr Env::global_get(SymbolValue *name) {
@@ -105,7 +105,7 @@ ValuePtr Env::last_match() {
     if (m_match) {
         return m_match;
     } else {
-        return nil_obj();
+        return NilValue::the();
     }
 }
 
@@ -118,7 +118,7 @@ ValuePtr Env::var_get(const char *key, size_t index) {
     if (val) {
         return val;
     } else {
-        return nil_obj();
+        return NilValue::the();
     }
 }
 
@@ -130,7 +130,7 @@ ValuePtr Env::var_set(const char *name, size_t index, bool allocate, ValuePtr va
             if (!m_vars) {
                 build_vars(needed);
             } else {
-                m_vars->set_size(needed, nil_obj());
+                m_vars->set_size(needed, NilValue::the());
             }
         } else {
             printf("Tried to set a variable without first allocating space for it.\n");
