@@ -13,13 +13,13 @@ namespace Natalie {
 
 class ExceptionValue : public Value {
 public:
-    ExceptionValue(Env *env)
-        : Value { Value::Type::Exception, env->Object()->const_fetch(SymbolValue::intern("Exception"))->as_class() } { }
+    ExceptionValue()
+        : Value { Value::Type::Exception, GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("Exception"))->as_class() } { }
 
-    ExceptionValue(Env *env, ClassValue *klass)
+    ExceptionValue(ClassValue *klass)
         : Value { Value::Type::Exception, klass } { }
 
-    ExceptionValue(Env *env, ClassValue *klass, StringValue *message)
+    ExceptionValue(ClassValue *klass, StringValue *message)
         : Value { Value::Type::Exception, klass }
         , m_message { message } {
         assert(m_message);

@@ -130,10 +130,10 @@ extern "C" Env *build_top_env() {
     ClassValue *Encoding = env->Object()->subclass(env, "Encoding");
     Object->const_set(SymbolValue::intern("Encoding"), Encoding);
 
-    EncodingValue *EncodingAscii8Bit = new EncodingValue { env, Encoding::ASCII_8BIT, { "ASCII-8BIT", "BINARY" } };
+    EncodingValue *EncodingAscii8Bit = new EncodingValue { Encoding::ASCII_8BIT, { "ASCII-8BIT", "BINARY" } };
     Encoding->const_set(SymbolValue::intern("ASCII_8BIT"), EncodingAscii8Bit);
 
-    ValuePtr EncodingUTF8 = new EncodingValue { env, Encoding::UTF_8, { "UTF-8" } };
+    ValuePtr EncodingUTF8 = new EncodingValue { Encoding::UTF_8, { "UTF-8" } };
     Encoding->const_set(SymbolValue::intern("UTF_8"), EncodingUTF8);
 
     ValuePtr Process = new ModuleValue { "Process" };

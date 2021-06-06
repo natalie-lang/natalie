@@ -21,12 +21,12 @@ enum class Encoding {
 
 class EncodingValue : public Value {
 public:
-    EncodingValue(Env *env);
+    EncodingValue();
 
-    EncodingValue(Env *env, ClassValue *klass)
+    EncodingValue(ClassValue *klass)
         : Value { Value::Type::Encoding, klass } { }
 
-    EncodingValue(Env *, Encoding, std::initializer_list<const char *>);
+    EncodingValue(Encoding, std::initializer_list<const char *>);
 
     Encoding num() { return m_num; }
 

@@ -24,11 +24,11 @@ ValuePtr Value::_new(Env *env, ValuePtr klass_value, size_t argc, ValuePtr *args
         break;
 
     case Value::Type::Encoding:
-        obj = new EncodingValue { env, klass };
+        obj = new EncodingValue { klass };
         break;
 
     case Value::Type::Exception:
-        obj = new ExceptionValue { env, klass };
+        obj = new ExceptionValue { klass };
         break;
 
     case Value::Type::Fiber:

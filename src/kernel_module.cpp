@@ -68,7 +68,7 @@ ValuePtr KernelModule::exit(Env *env, ValuePtr status) {
     if (!status || status->type() != Value::Type::Integer) {
         status = ValuePtr::integer(0);
     }
-    ExceptionValue *exception = new ExceptionValue { env, env->Object()->const_find(env, SymbolValue::intern("SystemExit"))->as_class(), new StringValue { "exit" } };
+    ExceptionValue *exception = new ExceptionValue { env->Object()->const_find(env, SymbolValue::intern("SystemExit"))->as_class(), new StringValue { "exit" } };
     exception->ivar_set(env, SymbolValue::intern("@status"), status);
     env->raise_exception(exception);
     return env->nil_obj();
