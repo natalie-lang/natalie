@@ -1,38 +1,14 @@
 #include "natalie.hpp"
 
-#ifdef NAT_GC_FIND_BUGS_WRITE_BACKTRACE_FILES
-#include <execinfo.h>
-#include <fcntl.h>
-#endif
-
 extern "C" void GC_disable() {
     Natalie::Heap::the().gc_disable();
 }
 
 namespace Natalie {
 
-#ifdef NAT_GC_FIND_BUGS_WRITE_BACKTRACE_FILES
-void write_backtrace_to_file(const char *path) {
-    void *array[1000];
-    size_t size = backtrace(array, 1000);
-    auto fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
-    if (fd == -1) {
-        printf("error opening %s\n", path);
-    } else {
-        backtrace_symbols_fd(array, size, fd);
-        close(fd);
-    }
-}
-#endif
-
 void *Cell::operator new(size_t size, AllocationStrategy allocation_strategy) {
     auto *cell = Heap::the().allocate(size, allocation_strategy);
     assert(cell);
-#ifdef NAT_GC_FIND_BUGS_WRITE_BACKTRACE_FILES
-    char path[100];
-    snprintf(path, 100, "/tmp/create_%p.txt", cell);
-    write_backtrace_to_file(path);
-#endif
     return cell;
 }
 
@@ -59,9 +35,6 @@ Hashmap<Cell *> Heap::gather_conservative_roots() {
     for (char *ptr = reinterpret_cast<char *>(end_of_stack); ptr < m_start_of_stack; ptr += sizeof(intptr_t)) {
         Cell *potential_cell = *reinterpret_cast<Cell **>(ptr);
         if (is_a_heap_cell_in_use(potential_cell)) {
-#ifdef NAT_GC_FIND_BUGS
-            if (potential_cell->m_collected) continue;
-#endif
             roots.set(potential_cell);
         }
     }
@@ -72,9 +45,6 @@ Hashmap<Cell *> Heap::gather_conservative_roots() {
     for (char *i = (char *)jump_buf; i < (char *)jump_buf + sizeof(jump_buf); ++i) {
         Cell *potential_cell = *reinterpret_cast<Cell **>(i);
         if (is_a_heap_cell_in_use(potential_cell)) {
-#ifdef NAT_GC_FIND_BUGS
-            if (potential_cell->m_collected) continue;
-#endif
             roots.set(potential_cell);
         }
     }
@@ -108,18 +78,8 @@ void Heap::sweep() {
     for (auto allocator : m_allocators) {
         for (auto block : *allocator) {
             for (auto cell : *block) {
-                if (!cell->is_marked() && cell->is_collectible()) {
-#ifdef NAT_GC_FIND_BUGS_PRINT_COLLECTED_CELLS
-                    cell->gc_print();
-                    fprintf(stderr, "\n");
-#endif
-#ifdef NAT_GC_FIND_BUGS_WRITE_BACKTRACE_FILES
-                    char path[100];
-                    snprintf(path, 100, "/tmp/collect_%p.txt", cell);
-                    write_backtrace_to_file(path);
-#endif
+                if (!cell->is_marked() && cell->is_collectible())
                     block->return_cell_to_free_list(cell);
-                }
             }
         }
     }
@@ -149,11 +109,6 @@ void Heap::return_cell_to_free_list(Cell *cell) {
     auto *block = HeapBlock::from_cell(cell);
     assert(is_a_heap_block(block));
     block->return_cell_to_free_list(cell);
-#ifdef NAT_GC_FIND_BUGS_WRITE_BACKTRACE_FILES
-    char path[100];
-    snprintf(path, 100, "/tmp/collect_%p.txt", cell);
-    write_backtrace_to_file(path);
-#endif
 }
 
 }

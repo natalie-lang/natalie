@@ -68,14 +68,10 @@ public:
     void return_cell_to_free_list(const Cell *cell) {
         auto index = index_from_cell(cell);
         assert(index > -1);
-#ifdef NAT_GC_FIND_BUGS
-        const_cast<Cell *>(cell)->m_collected = true;
-#else
         m_used_map[index] = false;
         cell->~Cell();
         memset(&m_memory[index * m_cell_size], 0, m_cell_size);
         ++m_free_count;
-#endif
     }
 
     size_t total_count() const { return m_total_count; }
