@@ -8,12 +8,12 @@
 
 namespace TM {
 
+const int VECTOR_GROW_FACTOR = 2;
+const int VECTOR_MIN_CAPACITY = 10;
+
 template <typename T>
 class Vector {
 public:
-    const size_t VECTOR_GROW_FACTOR = 2;
-    const size_t VECTOR_MIN_CAPACITY = 10;
-
     Vector()
         : m_capacity { VECTOR_MIN_CAPACITY }
         , m_data { new T[VECTOR_MIN_CAPACITY] {} } { }
