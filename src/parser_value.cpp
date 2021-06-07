@@ -14,13 +14,13 @@ ValuePtr ParserValue::parse(Env *env, ValuePtr code, ValuePtr source_path) {
     else
         source_path = new StringValue { "(string)" };
     code->assert_type(env, Value::Type::String, "String");
-    auto parser = Parser { code->as_string()->to_string(), source_path->as_string()->to_string() };
+    auto parser = Parser { code->as_string()->to_low_level_string(), source_path->as_string()->to_low_level_string() };
     return parser.tree(env)->to_ruby(env);
 }
 
 ValuePtr ParserValue::tokens(Env *env, ValuePtr code, ValuePtr with_line_and_column_numbers) {
     code->assert_type(env, Value::Type::String, "String");
-    auto lexer = Lexer { code->as_string()->to_string(), new String("(string)") };
+    auto lexer = Lexer { code->as_string()->to_low_level_string(), new String("(string)") };
     auto array = new ArrayValue {};
     auto the_tokens = lexer.tokens();
     auto include_line_and_column_numbers = with_line_and_column_numbers && with_line_and_column_numbers->is_truthy();

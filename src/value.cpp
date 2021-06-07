@@ -229,9 +229,9 @@ SexpValue *Value::as_sexp_value_for_method_binding() {
 
 const String *Value::identifier_str(Env *env, Conversion conversion) {
     if (is_symbol()) {
-        return as_symbol()->to_s(env)->to_string();
+        return as_symbol()->to_s(env)->to_low_level_string();
     } else if (is_string()) {
-        return as_string()->to_string();
+        return as_string()->to_low_level_string();
     } else if (conversion == Conversion::NullAllowed) {
         return nullptr;
     } else {
@@ -564,7 +564,7 @@ void Value::assert_not_frozen(Env *env) {
 }
 
 const String *Value::inspect_str(Env *env) {
-    return _send(env, "inspect")->as_string()->to_string();
+    return _send(env, "inspect")->as_string()->to_low_level_string();
 }
 
 ValuePtr Value::enum_for(Env *env, const char *method, size_t argc, ValuePtr *args) {
