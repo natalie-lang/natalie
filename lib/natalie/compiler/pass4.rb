@@ -440,7 +440,7 @@ module Natalie
           raise "expected const" unless namespace.first == :const
           decl "ValuePtr #{result};"
           decl 'try {'
-          decl "#{result} = env->Object()->const_find(env, SymbolValue::intern(#{namespace.last.to_s.inspect}), Value::ConstLookupSearchMode::NotStrict)->defined_obj(env, SymbolValue::intern(#{name.to_s.inspect}), true);"
+          decl "#{result} = GlobalEnv::the()->Object()->const_find(env, SymbolValue::intern(#{namespace.last.to_s.inspect}), Value::ConstLookupSearchMode::NotStrict)->defined_obj(env, SymbolValue::intern(#{name.to_s.inspect}), true);"
           decl '} catch (ExceptionValue *) {'
           decl "#{result} = #{process_atom s(:nil)};"
           decl '}'
@@ -448,7 +448,7 @@ module Natalie
           (_, name) = name
           decl "ValuePtr #{result};"
           decl 'try {'
-          decl "#{result} = env->Object()->defined_obj(env, SymbolValue::intern(#{name.to_s.inspect}), true);"
+          decl "#{result} = GlobalEnv::the()->Object()->defined_obj(env, SymbolValue::intern(#{name.to_s.inspect}), true);"
           decl '} catch (ExceptionValue *) {'
           decl "#{result} = #{process_atom s(:nil)};"
           decl '}'

@@ -130,7 +130,7 @@ ValuePtr #{name}(Env *env, ValuePtr, size_t argc, ValuePtr *args, Block *block) 
       if rb_class.start_with?('$')
         "ValuePtr #{rb_class} = env->global_get(SymbolValue::intern(#{rb_class.inspect}));"
       else
-        "ValuePtr #{rb_class_as_c_variable} = env->Object()->#{rb_class.split('::').map { |c| %(const_find(env, SymbolValue::intern(#{c.inspect}))) }.join('->')};"
+        "ValuePtr #{rb_class_as_c_variable} = GlobalEnv::the()->Object()->#{rb_class.split('::').map { |c| %(const_find(env, SymbolValue::intern(#{c.inspect}))) }.join('->')};"
       end
     end
 

@@ -25,7 +25,7 @@ public:
         : Value { Value::Type::Regexp, klass } { }
 
     RegexpValue(Env *env, const char *pattern, int options = 0)
-        : Value { Value::Type::Regexp, env->Regexp() } {
+        : Value { Value::Type::Regexp, GlobalEnv::the()->Regexp() } {
         assert(pattern);
         initialize(env, pattern, options);
     }

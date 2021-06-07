@@ -202,7 +202,7 @@ module Natalie
 
       def process_colon3(exp)
         (_, name) = exp
-        s(:const_find, s(:l, 'env->Object()'), :env, s(:intern, name))
+        s(:const_find, s(:l, 'GlobalEnv::the()->Object()'), :env, s(:intern, name))
       end
 
       def process_const(exp)

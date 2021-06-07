@@ -47,7 +47,7 @@ public:
                 env->raise("TypeError", "superclass must be a Class ({} given)", superclass->klass()->class_name_or_blank());
             }
         } else {
-            superclass = env->Object();
+            superclass = GlobalEnv::the()->Object();
         }
         ValuePtr klass = superclass->as_class()->subclass(env);
         if (block) {

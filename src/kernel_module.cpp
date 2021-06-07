@@ -68,7 +68,7 @@ ValuePtr KernelModule::exit(Env *env, ValuePtr status) {
     if (!status || status->type() != Value::Type::Integer) {
         status = ValuePtr::integer(0);
     }
-    ExceptionValue *exception = new ExceptionValue { env->Object()->const_find(env, SymbolValue::intern("SystemExit"))->as_class(), new StringValue { "exit" } };
+    ExceptionValue *exception = new ExceptionValue { GlobalEnv::the()->Object()->const_find(env, SymbolValue::intern("SystemExit"))->as_class(), new StringValue { "exit" } };
     exception->ivar_set(env, SymbolValue::intern("@status"), status);
     env->raise_exception(exception);
     return NilValue::the();
@@ -227,7 +227,7 @@ ValuePtr KernelModule::raise(Env *env, ValuePtr klass, ValuePtr message) {
             klass = arg->as_class();
             message = new StringValue { *arg->as_class()->class_name_or_blank() };
         } else if (arg->is_string()) {
-            klass = env->Object()->const_find(env, SymbolValue::intern("RuntimeError"))->as_class();
+            klass = GlobalEnv::the()->Object()->const_find(env, SymbolValue::intern("RuntimeError"))->as_class();
             message = arg;
         } else if (arg->is_exception()) {
             env->raise_exception(arg->as_exception());

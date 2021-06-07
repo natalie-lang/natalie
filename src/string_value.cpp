@@ -6,7 +6,7 @@ namespace Natalie {
 
 void StringValue::raise_encoding_invalid_byte_sequence_error(Env *env, size_t index) {
     StringValue *message = format(env, "invalid byte sequence at index {} in string of size {} (string not long enough)", index, length());
-    ClassValue *Encoding = env->Object()->const_find(env, SymbolValue::intern("Encoding"))->as_class();
+    ClassValue *Encoding = GlobalEnv::the()->Object()->const_find(env, SymbolValue::intern("Encoding"))->as_class();
     ClassValue *InvalidByteSequenceError = Encoding->const_find(env, SymbolValue::intern("InvalidByteSequenceError"))->as_class();
     ExceptionValue *exception = new ExceptionValue { InvalidByteSequenceError, message };
     env->raise_exception(exception);
@@ -265,7 +265,7 @@ ValuePtr StringValue::size(Env *env) {
 }
 
 ValuePtr StringValue::encoding(Env *env) {
-    ClassValue *Encoding = env->Object()->const_find(env, SymbolValue::intern("Encoding"))->as_class();
+    ClassValue *Encoding = GlobalEnv::the()->Object()->const_find(env, SymbolValue::intern("Encoding"))->as_class();
     switch (m_encoding) {
     case Encoding::ASCII_8BIT:
         return Encoding->const_find(env, SymbolValue::intern("ASCII_8BIT"));
@@ -308,7 +308,7 @@ ValuePtr StringValue::encode(Env *env, ValuePtr encoding) {
     Encoding orig_encoding = m_encoding;
     StringValue *copy = dup(env)->as_string();
     copy->force_encoding(env, encoding);
-    ClassValue *Encoding = env->Object()->const_find(env, SymbolValue::intern("Encoding"))->as_class();
+    ClassValue *Encoding = GlobalEnv::the()->Object()->const_find(env, SymbolValue::intern("Encoding"))->as_class();
     if (orig_encoding == copy->encoding()) {
         return copy;
     } else if (orig_encoding == Encoding::UTF_8 && copy->encoding() == Encoding::ASCII_8BIT) {

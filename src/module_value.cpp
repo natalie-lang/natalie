@@ -73,7 +73,7 @@ ValuePtr ModuleValue::const_find(Env *env, SymbolValue *name, ConstLookupSearchM
     if (search_mode == ConstLookupSearchMode::NotStrict) {
         // first search in parent namespaces (not including global, i.e. Object namespace)
         search_parent = this;
-        while (!(val = search_parent->const_get(name)) && search_parent->owner() && search_parent->owner() != env->Object()) {
+        while (!(val = search_parent->const_get(name)) && search_parent->owner() && search_parent->owner() != GlobalEnv::the()->Object()) {
             search_parent = search_parent->owner();
         }
         if (val) return val;
@@ -87,9 +87,9 @@ ValuePtr ModuleValue::const_find(Env *env, SymbolValue *name, ConstLookupSearchM
         search_parent = search_parent->m_superclass;
     } while (search_parent);
 
-    if (this != env->Object() && search_mode == ConstLookupSearchMode::NotStrict) {
+    if (this != GlobalEnv::the()->Object() && search_mode == ConstLookupSearchMode::NotStrict) {
         // lastly, search on the global, i.e. Object namespace
-        val = env->Object()->const_get(name);
+        val = GlobalEnv::the()->Object()->const_get(name);
         if (val) return val;
     }
 
@@ -255,7 +255,7 @@ bool ModuleValue::is_method_defined(Env *env, ValuePtr name_value) {
 
 ValuePtr ModuleValue::inspect(Env *env) {
     if (m_class_name) {
-        if (owner() && owner() != env->Object()) {
+        if (owner() && owner() != GlobalEnv::the()->Object()) {
             return StringValue::format(env, "{}::{}", owner()->inspect_str(env), class_name_or_blank());
         } else {
             return new StringValue { *class_name_or_blank() };

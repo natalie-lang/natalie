@@ -121,7 +121,7 @@ extern "C" Env *build_top_env() {
     ClassValue *Exception = Object->subclass(env, "Exception", Value::Type::Exception);
     Object->const_set(SymbolValue::intern("Exception"), Exception);
 
-    ClassValue *Encoding = env->Object()->subclass(env, "Encoding");
+    ClassValue *Encoding = GlobalEnv::the()->Object()->subclass(env, "Encoding");
     Object->const_set(SymbolValue::intern("Encoding"), Encoding);
 
     EncodingValue *EncodingAscii8Bit = new EncodingValue { Encoding::ASCII_8BIT, { "ASCII-8BIT", "BINARY" } };
@@ -157,7 +157,7 @@ extern "C" Env *build_top_env() {
     ValuePtr ENV = new Value {};
     Object->const_set(SymbolValue::intern("ENV"), ENV);
 
-    ClassValue *Parser = env->Object()->subclass(env, "Parser");
+    ClassValue *Parser = GlobalEnv::the()->Object()->subclass(env, "Parser");
     Object->const_set(SymbolValue::intern("Parser"), Parser);
 
     ClassValue *Sexp = Array->subclass(env, "Sexp", Value::Type::Array);
@@ -209,7 +209,7 @@ ValuePtr _main(int argc, char *argv[]) {
     env->global_set(SymbolValue::intern("$exe"), exe);
 
     ArrayValue *ARGV = new ArrayValue {};
-    env->Object()->const_set(SymbolValue::intern("ARGV"), ARGV);
+    GlobalEnv::the()->Object()->const_set(SymbolValue::intern("ARGV"), ARGV);
     for (int i = 1; i < argc; i++) {
         ARGV->push(new StringValue { argv[i] });
     }

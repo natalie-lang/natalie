@@ -61,16 +61,6 @@ public:
 
     ValuePtr last_match();
 
-    ClassValue *Array() { return GlobalEnv::the()->Array(); }
-    ClassValue *Class() { return GlobalEnv::the()->Class(); }
-    ClassValue *Hash() { return GlobalEnv::the()->Hash(); }
-    ClassValue *Integer() { return GlobalEnv::the()->Integer(); }
-    ClassValue *Module() { return GlobalEnv::the()->Module(); }
-    ClassValue *Object() { return GlobalEnv::the()->Object(); }
-    ClassValue *Regexp() { return GlobalEnv::the()->Regexp(); }
-    ClassValue *String() { return GlobalEnv::the()->String(); }
-    ClassValue *Symbol() { return GlobalEnv::the()->Symbol(); }
-
     void build_vars(size_t);
 
     Env *outer() { return m_outer; }

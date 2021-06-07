@@ -60,7 +60,7 @@ private:
     inline static Hashmap<const char *, SymbolValue *> s_symbols { 1000, HashmapKeyType::String };
 
     SymbolValue(Env *env, const char *name)
-        : Value { Value::Type::Symbol, env->Symbol() }
+        : Value { Value::Type::Symbol, GlobalEnv::the()->Symbol() }
         , m_name { strdup(name) } {
         assert(m_name);
     }

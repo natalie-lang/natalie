@@ -45,7 +45,7 @@ void print_exception_with_backtrace(Env *env, ExceptionValue *exception) {
 }
 
 void handle_top_level_exception(Env *env, ExceptionValue *exception, bool run_exit_handlers) {
-    if (exception->is_a(env, env->Object()->const_find(env, SymbolValue::intern("SystemExit"))->as_class())) {
+    if (exception->is_a(env, GlobalEnv::the()->Object()->const_find(env, SymbolValue::intern("SystemExit"))->as_class())) {
         ValuePtr status_obj = exception->ivar_get(env, SymbolValue::intern("@status"));
         if (run_exit_handlers) run_at_exit_handlers(env);
         if (status_obj->type() == Value::Type::Integer) {
@@ -443,7 +443,7 @@ int pclose2(FILE *fp, pid_t pid) {
 }
 
 void set_status_object(Env *env, int pid, int status) {
-    auto status_obj = env->Object()->const_fetch(SymbolValue::intern("Process"))->const_fetch(SymbolValue::intern("Status")).send(env, "new");
+    auto status_obj = GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("Process"))->const_fetch(SymbolValue::intern("Status")).send(env, "new");
     status_obj->ivar_set(env, SymbolValue::intern("@to_i"), ValuePtr::integer(status));
     status_obj->ivar_set(env, SymbolValue::intern("@exitstatus"), ValuePtr::integer(WEXITSTATUS(status)));
     status_obj->ivar_set(env, SymbolValue::intern("@pid"), ValuePtr::integer(pid));
