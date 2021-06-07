@@ -21,7 +21,7 @@ ValuePtr RangeValue::to_a(Env *env) {
 }
 
 ValuePtr RangeValue::each(Env *env, Block *block) {
-    env->assert_block_given(block);
+    env->ensure_block_given(block);
     ValuePtr item = m_begin;
     const char *op = m_exclude_end ? "<" : "<=";
     while (item.send(env, op, 1, &m_end, nullptr)->is_truthy()) {

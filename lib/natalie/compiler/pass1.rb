@@ -530,12 +530,12 @@ module Natalie
           if min.zero?
             s(:block)
           else
-            s(:assert_argc_at_least, :env, :argc, min)
+            s(:ensure_argc_at_least, :env, :argc, min)
           end
         elsif min == max
-          s(:assert_argc, :env, :argc, min)
+          s(:ensure_argc_is, :env, :argc, min)
         else
-          s(:assert_argc, :env, :argc, min, max)
+          s(:ensure_argc_between, :env, :argc, min, max)
         end
       end
 

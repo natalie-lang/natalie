@@ -398,7 +398,7 @@ ValuePtr StringValue::ref(Env *env, ValuePtr index_obj) {
 
 ValuePtr StringValue::sub(Env *env, ValuePtr find, ValuePtr replacement, Block *block) {
     if (!block && !replacement)
-        env->assert_argc(1, 2);
+        env->raise("ArgumentError", "wrong number of arguments (given 1, expected 2)");
     if (!block)
         replacement->assert_type(env, Value::Type::String, "String");
     if (find->is_string()) {

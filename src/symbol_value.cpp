@@ -38,7 +38,7 @@ ProcValue *SymbolValue::to_proc(Env *env) {
 }
 
 ValuePtr SymbolValue::to_proc_block_fn(Env *env, ValuePtr self_value, size_t argc, ValuePtr *args, Block *block) {
-    env->assert_argc(argc, 1);
+    env->ensure_argc_is(argc, 1);
     SymbolValue *name_obj = env->outer()->var_get("name", 0)->as_symbol();
     assert(name_obj);
     const char *name = name_obj->c_str();

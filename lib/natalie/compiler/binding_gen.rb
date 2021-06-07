@@ -146,12 +146,12 @@ ValuePtr #{name}(Env *env, ValuePtr, size_t argc, ValuePtr *args, Block *block) 
         ''
       when Range
         if argc.end
-          "env->assert_argc(argc, #{argc.begin}, #{argc.end});"
+          "env->ensure_argc_between(argc, #{argc.begin}, #{argc.end});"
         else
-          "env->assert_argc_at_least(argc, #{argc.begin});"
+          "env->ensure_argc_at_least(argc, #{argc.begin});"
         end
       when Integer
-        "env->assert_argc(argc, #{argc});"
+        "env->ensure_argc_is(argc, #{argc});"
       else
         raise "Unknown argc: #{argc.inspect}"
       end

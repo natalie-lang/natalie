@@ -60,7 +60,7 @@ ValuePtr IoValue::read(Env *env, ValuePtr count_value) {
 }
 
 ValuePtr IoValue::write(Env *env, size_t argc, ValuePtr *args) {
-    env->assert_argc_at_least(argc, 1);
+    env->ensure_argc_at_least(argc, 1);
     int bytes_written = 0;
     for (size_t i = 0; i < argc; i++) {
         ValuePtr obj = args[i];

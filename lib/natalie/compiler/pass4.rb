@@ -24,8 +24,9 @@ module Natalie
         alias
         append
         array_expand_with_nil
-        assert_argc
-        assert_argc_at_least
+        ensure_argc_between
+        ensure_argc_is
+        ensure_argc_at_least
         assert_type
         freeze
         grow_array
@@ -60,8 +61,9 @@ module Natalie
         add_break_flag
         as_class
         as_string
-        assert_argc
-        assert_argc_at_least
+        ensure_argc_between
+        ensure_argc_is
+        ensure_argc_at_least
         assert_type
         const_find
         const_get
@@ -144,7 +146,7 @@ module Natalie
         c = []
         if args
           (_, *args) = args
-          c << "env->assert_argc(argc, #{args.size});"
+          c << "env->ensure_argc_is(argc, #{args.size});"
           args.each_with_index do |arg, i|
             raise "Expected symbol arg name pass to __define_method__, but got: #{arg.inspect}" unless arg.sexp_type == :lit
             c << "ValuePtr #{arg.last} = args[#{i}];"

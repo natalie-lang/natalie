@@ -96,7 +96,7 @@ module Gtk3
     end
 
     __define_method__ :window_new, <<-END
-      env->assert_argc(argc, 1);
+      env->ensure_argc_is(argc, 1);
       int type;
       arg_spread(env, argc, args, "i", &type);
       GtkWidget *gtk_window = gtk_window_new((GtkWindowType)type);
@@ -108,7 +108,7 @@ module Gtk3
     END
 
     __define_method__ :widget_show_all, <<-END
-      env->assert_argc(argc, 1);
+      env->ensure_argc_is(argc, 1);
       GtkWidget *gtk_window;
       arg_spread(env, argc, args, "v", &gtk_window);
       gtk_widget_show_all(gtk_window);
@@ -116,7 +116,7 @@ module Gtk3
     END
 
     __define_method__ :window_set_title, <<-END
-      env->assert_argc(argc, 2);
+      env->ensure_argc_is(argc, 2);
       GtkWidget *gtk_window;
       char *title;
       arg_spread(env, argc, args, "vs", &gtk_window, &title);
@@ -125,7 +125,7 @@ module Gtk3
     END
 
     __define_method__ :box_new, <<-END
-      env->assert_argc(argc, 2);
+      env->ensure_argc_is(argc, 2);
       int orientation, spacing;
       arg_spread(env, argc, args, "ii", &orientation, &spacing);
       GtkWidget *gtk_box = gtk_box_new((GtkOrientation)orientation, spacing);
@@ -137,7 +137,7 @@ module Gtk3
     END
 
     __define_method__ :container_add, <<-END
-      env->assert_argc(argc, 2);
+      env->ensure_argc_is(argc, 2);
       GtkWidget *gtk_window, *gtk_container;
       arg_spread(env, argc, args, "vv", &gtk_window, &gtk_container);
       gtk_container_add(GTK_CONTAINER(gtk_window), gtk_container);
@@ -145,7 +145,7 @@ module Gtk3
     END
 
     __define_method__ :image_new_from_file, <<-END
-      env->assert_argc(argc, 1);
+      env->ensure_argc_is(argc, 1);
       char *filename;
       arg_spread(env, argc, args, "s", &filename);
       GtkWidget *gtk_image = gtk_image_new_from_file(filename);
@@ -157,7 +157,7 @@ module Gtk3
     END
 
     __define_method__ :box_pack_start, <<-END
-      env->assert_argc(argc, 5);
+      env->ensure_argc_is(argc, 5);
       GtkWidget *gtk_box, *gtk_child;
       bool expand, fill;
       int padding;
@@ -167,7 +167,7 @@ module Gtk3
     END
 
     __define_method__ :widget_set_halign, <<-END
-      env->assert_argc(argc, 2);
+      env->ensure_argc_is(argc, 2);
       GtkWidget *gtk_widget;
       int align;
       arg_spread(env, argc, args, "vi", &gtk_widget, &align);
@@ -176,7 +176,7 @@ module Gtk3
     END
 
     __define_method__ :widget_set_valign, <<-END
-      env->assert_argc(argc, 2);
+      env->ensure_argc_is(argc, 2);
       GtkWidget *gtk_widget;
       int align;
       arg_spread(env, argc, args, "vi", &gtk_widget, &align);
@@ -185,7 +185,7 @@ module Gtk3
     END
 
     __define_method__ :label_new, <<-END
-      env->assert_argc(argc, 1);
+      env->ensure_argc_is(argc, 1);
       GtkWidget *gtk_label;
       if (args[0]->is_nil()) {
           gtk_label = gtk_label_new(nullptr);
@@ -201,7 +201,7 @@ module Gtk3
     END
 
     __define_method__ :label_set_markup, <<-END
-      env->assert_argc(argc, 2);
+      env->ensure_argc_is(argc, 2);
       GtkWidget *gtk_label;
       char *markup;
       arg_spread(env, argc, args, "vs", &gtk_label, &markup);
@@ -210,7 +210,7 @@ module Gtk3
     END
 
     __define_method__ :button_new_with_label, <<-END
-      env->assert_argc(argc, 1);
+      env->ensure_argc_is(argc, 1);
       char *label;
       arg_spread(env, argc, args, "s", &label);
       GtkWidget *gtk_button = gtk_button_new_with_label(label);
@@ -222,7 +222,7 @@ module Gtk3
     END
 
     __define_method__ :container_set_border_width, <<-END
-      env->assert_argc(argc, 2);
+      env->ensure_argc_is(argc, 2);
       GtkWidget *container;
       int width;
       arg_spread(env, argc, args, "vi", &container, &width);
@@ -231,7 +231,7 @@ module Gtk3
     END
 
     __define_method__ :g_signal_connect, <<-END
-      env->assert_argc(argc, 3);
+      env->ensure_argc_is(argc, 3);
       GObject *instance;
       char *signal;
       Value *callback;

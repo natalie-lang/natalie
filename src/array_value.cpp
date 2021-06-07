@@ -211,7 +211,7 @@ ValuePtr ArrayValue::eql(Env *env, ValuePtr other) {
 }
 
 ValuePtr ArrayValue::each(Env *env, Block *block) {
-    env->assert_block_given(block); // TODO: return Enumerator when no block given
+    env->ensure_block_given(block); // TODO: return Enumerator when no block given
     for (auto &obj : *this) {
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &obj, nullptr);
     }
@@ -219,7 +219,7 @@ ValuePtr ArrayValue::each(Env *env, Block *block) {
 }
 
 ValuePtr ArrayValue::map(Env *env, Block *block) {
-    env->assert_block_given(block); // TODO: return Enumerator when no block given
+    env->ensure_block_given(block); // TODO: return Enumerator when no block given
     ArrayValue *new_array = new ArrayValue {};
     for (auto &item : *this) {
         ValuePtr result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
@@ -293,7 +293,7 @@ ValuePtr ArrayValue::index(Env *env, ValuePtr object, Block *block) {
         return NilValue::the();
     } else {
         // TODO
-        env->assert_block_given(block);
+        env->ensure_block_given(block);
         NAT_UNREACHABLE();
     }
 }
@@ -406,7 +406,7 @@ void ArrayValue::sort_in_place(Env *env) {
 }
 
 ValuePtr ArrayValue::select(Env *env, Block *block) {
-    env->assert_block_given(block); // TODO: return Enumerator when no block given
+    env->ensure_block_given(block); // TODO: return Enumerator when no block given
     ArrayValue *new_array = new ArrayValue {};
     for (auto &item : *this) {
         ValuePtr result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
@@ -418,7 +418,7 @@ ValuePtr ArrayValue::select(Env *env, Block *block) {
 }
 
 ValuePtr ArrayValue::reject(Env *env, Block *block) {
-    env->assert_block_given(block); // TODO: return Enumerator when no block given
+    env->ensure_block_given(block); // TODO: return Enumerator when no block given
     ArrayValue *new_array = new ArrayValue {};
     for (auto &item : *this) {
         ValuePtr result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);

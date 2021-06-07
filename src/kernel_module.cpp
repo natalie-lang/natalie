@@ -28,7 +28,7 @@ ValuePtr KernelModule::Array(Env *env, ValuePtr value) {
 
 ValuePtr KernelModule::at_exit(Env *env, Block *block) {
     ArrayValue *at_exit_handlers = env->global_get(SymbolValue::intern("$NAT_at_exit_handlers"))->as_array();
-    env->assert_block_given(block);
+    env->ensure_block_given(block);
     ValuePtr proc = new ProcValue { block };
     at_exit_handlers->push(proc);
     return proc;
@@ -58,7 +58,7 @@ ValuePtr KernelModule::cur_dir(Env *env) {
 }
 
 ValuePtr KernelModule::define_singleton_method(Env *env, ValuePtr name, Block *block) {
-    env->assert_block_given(block);
+    env->ensure_block_given(block);
     SymbolValue *name_obj = name->to_symbol(env, Value::Conversion::Strict);
     Value::define_singleton_method(env, name_obj, block);
     return name_obj;

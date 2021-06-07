@@ -30,7 +30,7 @@ namespace Natalie {
 
 FiberValue *FiberValue::initialize(Env *env, Block *block) {
     assert(this != GlobalEnv::the()->main_fiber(env)); // can never be main fiber
-    env->assert_block_given(block);
+    env->ensure_block_given(block);
     create_stack(env, STACK_SIZE);
     m_block = block;
     return this;
