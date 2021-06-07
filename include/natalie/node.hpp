@@ -148,7 +148,7 @@ public:
 
     ArgNode(Token *token, const char *name)
         : Node { token }
-        , m_name { new (AllocationStrategy::DelayCollection) String(name) } {
+        , m_name { new String(name) } {
         assert(m_name);
     }
 
@@ -386,7 +386,7 @@ public:
     CallNode(Token *token, Node *receiver, const char *message)
         : NodeWithArgs { token }
         , m_receiver { receiver }
-        , m_message { new (AllocationStrategy::DelayCollection) String(message) } {
+        , m_message { new String(message) } {
         assert(m_receiver);
         assert(m_message);
     }
@@ -544,7 +544,7 @@ public:
     Colon2Node(Token *token, Node *left, const char *name)
         : Node { token }
         , m_left { left }
-        , m_name { new (AllocationStrategy::DelayCollection) String(name) } {
+        , m_name { new String(name) } {
         assert(m_left);
         assert(m_name);
     }
@@ -568,7 +568,7 @@ class Colon3Node : public Node {
 public:
     Colon3Node(Token *token, const char *name)
         : Node { token }
-        , m_name { new (AllocationStrategy::DelayCollection) String(name) } {
+        , m_name { new String(name) } {
         assert(m_name);
     }
 

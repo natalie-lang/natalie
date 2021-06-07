@@ -7,7 +7,6 @@
 #include <string.h>
 
 #include "natalie/forward.hpp"
-#include "natalie/gc/allocation_strategy.hpp"
 #include "natalie/macros.hpp"
 
 namespace Natalie {
@@ -17,7 +16,7 @@ public:
     Cell() { }
     virtual ~Cell() { }
 
-    void *operator new(size_t size, AllocationStrategy allocation_strategy = AllocationStrategy::Automatic);
+    void *operator new(size_t size);
     void *operator new(size_t size, void *cell) { return cell; }
     void operator delete(void *ptr);
 

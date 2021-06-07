@@ -6,8 +6,8 @@ extern "C" void GC_disable() {
 
 namespace Natalie {
 
-void *Cell::operator new(size_t size, AllocationStrategy allocation_strategy) {
-    auto *cell = Heap::the().allocate(size, allocation_strategy);
+void *Cell::operator new(size_t size) {
+    auto *cell = Heap::the().allocate(size);
     assert(cell);
     return cell;
 }
@@ -85,10 +85,10 @@ void Heap::sweep() {
     }
 }
 
-void *Heap::allocate(size_t size, AllocationStrategy allocation_strategy) {
+void *Heap::allocate(size_t size) {
     auto &allocator = find_allocator_of_size(size);
 
-    if (m_gc_enabled && allocation_strategy == AllocationStrategy::Automatic) {
+    if (m_gc_enabled) {
 #ifdef NAT_GC_DEBUG_ALWAYS_COLLECT
         collect();
 #else

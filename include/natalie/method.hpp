@@ -23,7 +23,7 @@ public:
         : m_name { name }
         , m_owner { owner }
         , m_arity { block->arity() }
-        , m_env { new (AllocationStrategy::DelayCollection) Env(*block->env()) }
+        , m_env { new Env(*block->env()) }
         , m_visibility { visibility } {
         block->copy_fn_pointer_to_method(this);
         assert(m_env);
