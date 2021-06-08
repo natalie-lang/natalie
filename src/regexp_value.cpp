@@ -4,8 +4,8 @@ namespace Natalie {
 
 ValuePtr RegexpValue::initialize(Env *env, ValuePtr arg) {
     if (arg->is_regexp()) {
-        m_regex = arg->as_regexp()->m_regex;
-        m_pattern = arg->as_regexp()->m_pattern;
+        auto other = arg->as_regexp();
+        initialize(env, other->pattern(), other->options());
     } else {
         arg->assert_type(env, Value::Type::String, "String");
         initialize(env, arg->as_string()->c_str());

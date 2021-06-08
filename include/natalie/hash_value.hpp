@@ -138,18 +138,7 @@ public:
     virtual void visit_children(Visitor &) override final;
 
     virtual void gc_print() override {
-        size_t size = m_hashmap.size();
-        fprintf(stderr, "<HashValue %p size=%zu {", this, size);
-        size_t index = 0;
-        for (auto pair : *this) {
-            pair.key->gc_print();
-            fprintf(stderr, " => ");
-            pair.val->gc_print();
-            if (index + 1 < size)
-                fprintf(stderr, ", ");
-            ++index;
-        }
-        fprintf(stderr, "}>");
+        fprintf(stderr, "<HashValue %p size=%zu>", this, size());
     }
 
 private:

@@ -30,6 +30,11 @@ public:
         initialize(env, pattern, options);
     }
 
+    virtual ~RegexpValue() {
+        onig_free(m_regex);
+        free(const_cast<char *>(m_pattern));
+    }
+
     static ValuePtr compile(Env *env, ValuePtr pattern, ValuePtr flags) {
         pattern->assert_type(env, Value::Type::String, "String");
         int options = 0;
@@ -46,8 +51,9 @@ public:
     void initialize(Env *env, const char *pattern, int options = 0) {
         regex_t *regex;
         OnigErrorInfo einfo;
-        UChar *pat = (UChar *)pattern;
-        int result = onig_new(&regex, pat, pat + strlen((char *)pat),
+        m_pattern = strdup(pattern);
+        UChar *pat = (UChar *)m_pattern;
+        int result = onig_new(&regex, pat, pat + strlen(m_pattern),
             options, ONIG_ENCODING_ASCII, ONIG_SYNTAX_DEFAULT, &einfo);
         if (result != ONIG_NORMAL) {
             OnigUChar s[ONIG_MAX_ERROR_MESSAGE_LEN];
@@ -56,7 +62,6 @@ public:
         }
         m_regex = regex;
         m_options = options;
-        m_pattern = strdup(pattern);
     }
 
     const char *pattern() { return m_pattern; }
