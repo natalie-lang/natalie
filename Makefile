@@ -58,7 +58,7 @@ cloc:
 	cloc include lib src test
 
 ctags:
-	ctags -R --exclude=.cquery_cache --exclude=ext --append=no .
+	ctags -R --exclude=.cquery_cache --exclude=ext --exclude=build --append=no .
 
 format:
 	find include -type f -name '*.hpp' -exec clang-format -i --style=file {} +
