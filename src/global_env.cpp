@@ -28,6 +28,13 @@ ValuePtr GlobalEnv::global_set(Env *env, SymbolValue *name, ValuePtr val) {
     return val;
 }
 
+void GlobalEnv::set_fiber_args(size_t argc, ValuePtr *args) {
+    m_fiber_args.clear();
+    for (size_t i = 0; i < argc; ++i) {
+        m_fiber_args.push(args[i]);
+    }
+}
+
 void GlobalEnv::visit_children(Visitor &visitor) {
     for (auto pair : m_globals) {
         visitor.visit(pair.first);
@@ -44,8 +51,8 @@ void GlobalEnv::visit_children(Visitor &visitor) {
     visitor.visit(m_Symbol);
     visitor.visit(m_main_fiber);
     visitor.visit(m_current_fiber);
-    for (size_t i = 0; i < m_fiber_args.argc; ++i) {
-        visitor.visit(m_fiber_args.args[i]);
+    for (auto arg : m_fiber_args) {
+        visitor.visit(arg);
     }
 }
 

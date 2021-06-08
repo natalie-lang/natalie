@@ -46,6 +46,8 @@ public:
         delete[] m_data;
     }
 
+    void clear() { m_size = 0; }
+
     Vector slice(size_t offset, size_t count = 0) {
         if (count == 0 || offset + count > m_size) {
             count = m_size - offset;

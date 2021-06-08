@@ -59,12 +59,8 @@ public:
     void set_current_fiber(FiberValue *fiber) { m_current_fiber = fiber; }
     void reset_current_fiber() { m_current_fiber = m_main_fiber; }
 
-    size_t fiber_argc() { return m_fiber_args.argc; }
-    ValuePtr *fiber_args() { return m_fiber_args.args; }
-    void set_fiber_args(size_t argc, ValuePtr *args) {
-        m_fiber_args.argc = argc;
-        m_fiber_args.args = args;
-    }
+    Vector<ValuePtr> &fiber_args() { return m_fiber_args; }
+    void set_fiber_args(size_t argc, ValuePtr *args);
 
     ValuePtr global_get(Env *, SymbolValue *);
     ValuePtr global_set(Env *, SymbolValue *, ValuePtr);
@@ -97,9 +93,6 @@ private:
 
     FiberValue *m_main_fiber { nullptr };
     FiberValue *m_current_fiber { nullptr };
-    struct {
-        size_t argc { 0 };
-        ValuePtr *args { nullptr };
-    } m_fiber_args;
+    Vector<ValuePtr> m_fiber_args {};
 };
 }

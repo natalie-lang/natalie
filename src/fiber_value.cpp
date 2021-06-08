@@ -45,14 +45,14 @@ ValuePtr FiberValue::yield(Env *env, size_t argc, ValuePtr *args) {
     Heap::the().set_start_of_stack(main_fiber->start_of_stack());
     current_fiber->m_end_of_stack = &args; // TODO: do this in the ASM
     fiber_asm_switch(main_fiber->fiber(), current_fiber->fiber(), 0, env, main_fiber);
-    argc = GlobalEnv::the()->fiber_argc();
-    args = GlobalEnv::the()->fiber_args();
-    if (argc == 0) {
+
+    auto fiber_args = GlobalEnv::the()->fiber_args();
+    if (fiber_args.size() == 0) {
         return NilValue::the();
-    } else if (argc == 1) {
-        return args[0];
+    } else if (fiber_args.size() == 1) {
+        return fiber_args.at(0);
     } else {
-        return new ArrayValue { argc, args };
+        return new ArrayValue { fiber_args.size(), fiber_args.data() };
     }
 }
 
@@ -70,9 +70,9 @@ void fiber_wrapper_func(Natalie::Env *env, Natalie::FiberValue *fiber) {
     Natalie::Heap::the().set_start_of_stack(fiber->start_of_stack());
     fiber->set_status(Natalie::FiberValue::Status::Active);
     assert(fiber->block());
-    Natalie::ValuePtr *return_args = new Natalie::ValuePtr[1];
+    Natalie::ValuePtr return_args[1];
     try {
-        return_args[0] = NAT_RUN_BLOCK_WITHOUT_BREAK(env, fiber->block(), global_env->fiber_argc(), global_env->fiber_args(), nullptr);
+        return_args[0] = NAT_RUN_BLOCK_WITHOUT_BREAK(env, fiber->block(), global_env->fiber_args().size(), global_env->fiber_args().data(), nullptr);
     } catch (Natalie::ExceptionValue *exception) {
         Natalie::handle_top_level_exception(env, exception, false);
         exit(1);

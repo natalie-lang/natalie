@@ -146,14 +146,13 @@ public:
         main_fiber->m_end_of_stack = &args;
         fiber_asm_switch(fiber(), main_fiber->fiber(), 0, env, this);
 
-        argc = GlobalEnv::the()->fiber_argc();
-        args = GlobalEnv::the()->fiber_args();
-        if (argc == 0) {
+        auto fiber_args = GlobalEnv::the()->fiber_args();
+        if (fiber_args.size() == 0) {
             return NilValue::the();
-        } else if (argc == 1) {
-            return args[0];
+        } else if (fiber_args.size() == 1) {
+            return fiber_args.at(0);
         } else {
-            return new ArrayValue { argc, args };
+            return new ArrayValue { fiber_args.size(), fiber_args.data() };
         }
     }
 
