@@ -220,7 +220,9 @@ ValuePtr _main(int argc, char *argv[]) {
 int main(int argc, char *argv[]) {
     Heap::the().set_start_of_stack(&argv);
     setvbuf(stdout, nullptr, _IOLBF, 1024);
-    if (_main(argc, argv))
-        return 0;
-    return 1;
+    auto return_code = _main(argc, argv) ? 0 : 1;
+#ifdef NAT_GC_COLLECT_ALL_AT_EXIT
+    Heap::the().collect_all();
+#endif
+    return return_code;
 }

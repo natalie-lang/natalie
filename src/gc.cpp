@@ -74,6 +74,12 @@ void Heap::collect() {
     sweep();
 }
 
+void Heap::collect_all() {
+    for (auto allocator : m_allocators) {
+        delete allocator;
+    }
+}
+
 void Heap::sweep() {
     for (auto allocator : m_allocators) {
         for (auto block : *allocator) {

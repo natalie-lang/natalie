@@ -21,9 +21,7 @@ public:
         return s_instance;
     }
 
-    virtual ~GlobalEnv() override {
-        NAT_UNREACHABLE();
-    }
+    virtual ~GlobalEnv() override { }
 
     ClassValue *Array() { return m_Array; }
     void set_Array(ClassValue *Array) { m_Array = Array; }
