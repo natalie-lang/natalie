@@ -386,7 +386,10 @@ ValuePtr shell_backticks(Env *env, ValuePtr command) {
 FILE *popen2(const char *command, const char *type, int &pid) {
     pid_t child_pid;
     int fd[2];
-    pipe(fd);
+    if (pipe(fd) != 0) {
+        fprintf(stderr, "Unable to open pipe (errno=%d)", errno);
+        abort();
+    }
 
     const int read = 0;
     const int write = 1;
