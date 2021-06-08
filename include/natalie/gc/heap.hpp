@@ -30,10 +30,15 @@ public:
         return *s_instance;
     }
 
+    ~Heap() {
+        for (auto *allocator : m_allocators)
+            delete allocator;
+        m_allocators.clear();
+    }
+
     void *allocate(size_t size);
 
     void collect();
-    void collect_all();
 
     void *start_of_stack() {
         return m_start_of_stack;
@@ -86,12 +91,6 @@ private:
         m_allocators.push(new Allocator(256));
         m_allocators.push(new Allocator(512));
         m_allocators.push(new Allocator(1024));
-    }
-
-    ~Heap() {
-        for (auto *allocator : m_allocators) {
-            delete allocator;
-        }
     }
 
     Hashmap<Cell *> gather_conservative_roots();

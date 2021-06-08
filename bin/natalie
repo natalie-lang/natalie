@@ -120,7 +120,7 @@ class Runner
     when 'gdb', 'lldb'
       exec(options[:debug], out.path)
     when 'valgrind'
-      exec('valgrind', '--leak-check=full', '--track-origins=yes', '--error-exitcode=1', '--suppressions=test/valgrind-suppressions', out.path, *ARGV)
+      exec('valgrind', '--leak-check=full', '--show-leak-kinds=all', '--track-origins=yes', '--error-exitcode=1', '--suppressions=test/valgrind-suppressions', out.path, *ARGV)
     else
       begin
         pid = spawn(out.path, *ARGV)

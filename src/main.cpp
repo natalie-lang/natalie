@@ -222,7 +222,7 @@ int main(int argc, char *argv[]) {
     setvbuf(stdout, nullptr, _IOLBF, 1024);
     auto return_code = _main(argc, argv) ? 0 : 1;
 #ifdef NAT_GC_COLLECT_ALL_AT_EXIT
-    Heap::the().collect_all();
+    delete &Heap::the();
 #endif
     return return_code;
 }
