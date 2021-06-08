@@ -102,7 +102,7 @@ class Runner
     elsif options[:debug] == 'edit'
       edit_compile_run_loop
     elsif options[:debug] == 'valgrind'
-      ENV['NAT_CXX_FLAGS'] = '-DNAT_GC_DISABLE'
+      ENV['NAT_CXX_FLAGS'] = '-DNAT_GC_COLLECT_ALL_AT_EXIT'
       compile_and_run
     else
       compile_and_run
@@ -120,7 +120,7 @@ class Runner
     when 'gdb', 'lldb'
       exec(options[:debug], out.path)
     when 'valgrind'
-      exec('valgrind', '--leak-check=no', '--track-origins=yes', '--error-exitcode=1', out.path, *ARGV)
+      exec('valgrind', '--leak-check=full', '--track-origins=yes', '--error-exitcode=1', '--suppressions=test/valgrind-suppressions', out.path, *ARGV)
     else
       begin
         pid = spawn(out.path, *ARGV)
