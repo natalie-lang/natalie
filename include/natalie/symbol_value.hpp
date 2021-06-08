@@ -17,6 +17,10 @@ public:
     static SymbolValue *intern(const char *);
     static SymbolValue *intern(const String *);
 
+    virtual ~SymbolValue() {
+        free(const_cast<char *>(m_name));
+    }
+
     const char *c_str() { return m_name; }
 
     StringValue *to_s(Env *env) { return new StringValue { m_name }; }
