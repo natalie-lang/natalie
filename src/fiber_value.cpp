@@ -89,7 +89,7 @@ void fiber_wrapper_func(Natalie::Env *env, Natalie::FiberValue *fiber) {
 void Natalie::FiberValue::visit_children(Visitor &visitor) {
     Value::visit_children(visitor);
     visitor.visit(m_block);
-    if (m_status == Status::Active)
+    if (m_start_of_stack == Heap::the().start_of_stack())
         return; // this is the currently active fiber, so don't walk its stack a second time
     if (!m_end_of_stack) {
         assert(m_status == Status::Created);

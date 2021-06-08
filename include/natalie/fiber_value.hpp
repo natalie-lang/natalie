@@ -68,8 +68,7 @@ public:
     // used for the "main" fiber
     FiberValue(void *start_of_stack)
         : Value { Value::Type::Fiber, GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("Fiber"))->as_class() }
-        , m_start_of_stack { start_of_stack }
-        , m_status { Status::Active } {
+        , m_start_of_stack { start_of_stack } {
         assert(m_start_of_stack);
     }
 
@@ -77,8 +76,6 @@ public:
         : Value { Value::Type::Fiber, klass } { }
 
     ~FiberValue() {
-        if (m_status == Status::Active)
-            return;
         int err = munmap(m_start_of_stack, STACK_SIZE);
         if (err != 0) {
             fprintf(stderr, "unmapping failed (errno=%d)\n", errno);
