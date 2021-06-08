@@ -22,8 +22,9 @@ public:
         : m_cell_size { cell_size } { }
 
     ~Allocator() {
-        for (auto &block : m_blocks) {
-            delete block;
+        for (auto block : m_blocks) {
+            block->~HeapBlock();
+            free(block);
         }
     }
 

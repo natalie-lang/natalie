@@ -26,7 +26,11 @@ public:
         memset(m_memory, 0, HEAP_BLOCK_SIZE - sizeof(HeapBlock));
     }
 
-    ~HeapBlock() { }
+    ~HeapBlock() {
+        for (auto cell : *this) {
+            return_cell_to_free_list(cell);
+        }
+    }
 
     // returns a pointer to a *potential* block (you still have to check it!)
     static HeapBlock *from_cell(const Cell *cell) {
