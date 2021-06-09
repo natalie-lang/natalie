@@ -75,6 +75,6 @@ bin/natalie examples/hello.rb -c hello
 docker build -t natalie .                                            # build image
 docker run -it --rm natalie                                          # repl
 docker run -it --rm natalie -e "p 2 * 3"                             # immediate
-docker run -it --rm -v$(pwd)/myfile.rb:/myfile.rb natalie /myfile.rb # execute a local nat file
+docker run -it --rm -v$(pwd)/myfile.rb:/myfile.rb natalie /myfile.rb # execute a local rb file
 docker run -it --rm --entrypoint bash natalie                        # bash prompt
 ```
