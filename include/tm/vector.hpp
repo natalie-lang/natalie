@@ -174,7 +174,15 @@ public:
         return iterator { m_data };
     }
 
+    iterator begin() const {
+        return iterator { m_data };
+    }
+
     iterator end() {
+        return iterator { m_data + m_size };
+    }
+
+    iterator end() const {
         return iterator { m_data + m_size };
     }
 

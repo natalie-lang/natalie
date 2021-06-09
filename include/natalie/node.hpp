@@ -104,11 +104,21 @@ public:
     NodeWithArgs(Token *token)
         : Node { token } { }
 
+    NodeWithArgs(Token *token, ManagedVector<Node *> &args)
+        : Node { token } {
+        for (auto arg : args)
+            add_arg(arg);
+    }
+
     void add_arg(Node *arg) {
         m_args.push(arg);
     }
 
-    Vector<Node *> *args() { return &m_args; }
+    Vector<Node *> &args() { return m_args; }
+
+    ManagedVector<Node *> *managed_args() {
+        return new ManagedVector<Node *> { m_args };
+    }
 
     virtual void visit_children(Visitor &visitor) override {
         Node::visit_children(visitor);
@@ -197,7 +207,7 @@ public:
         m_nodes.push(node);
     }
 
-    Vector<Node *> *nodes() { return &m_nodes; }
+    Vector<Node *> nodes() { return m_nodes; }
 
     virtual void visit_children(Visitor &visitor) override {
         Node::visit_children(visitor);
@@ -358,7 +368,7 @@ public:
     virtual ValuePtr to_ruby(Env *) override;
     ValuePtr to_ruby_with_name(Env *, const char *);
 
-    Vector<Node *> *nodes() { return &m_nodes; }
+    Vector<Node *> nodes() { return m_nodes; }
     bool is_empty() { return m_nodes.is_empty(); }
 
     bool has_one_node() { return m_nodes.size() == 1; }
@@ -639,19 +649,17 @@ protected:
     Node *m_arg { nullptr };
 };
 
-class DefNode : public Node {
+class DefNode : public NodeWithArgs {
 public:
-    DefNode(Token *token, Node *self_node, IdentifierNode *name, ManagedVector<Node *> *args, BlockNode *body)
-        : Node { token }
+    DefNode(Token *token, Node *self_node, IdentifierNode *name, ManagedVector<Node *> &args, BlockNode *body)
+        : NodeWithArgs { token, args }
         , m_self_node { self_node }
         , m_name { name }
-        , m_args { args }
         , m_body { body } { }
 
-    DefNode(Token *token, IdentifierNode *name, ManagedVector<Node *> *args, BlockNode *body)
-        : Node { token }
+    DefNode(Token *token, IdentifierNode *name, ManagedVector<Node *> &args, BlockNode *body)
+        : NodeWithArgs { token, args }
         , m_name { name }
-        , m_args { args }
         , m_body { body } { }
 
     virtual Type type() override { return Type::Def; }
@@ -665,7 +673,6 @@ protected:
 
     Node *m_self_node { nullptr };
     IdentifierNode *m_name { nullptr };
-    ManagedVector<Node *> *m_args { nullptr };
     BlockNode *m_body { nullptr };
 };
 
@@ -837,15 +844,13 @@ protected:
     Node *m_false_expr { nullptr };
 };
 
-class IterNode : public Node {
+class IterNode : public NodeWithArgs {
 public:
-    IterNode(Token *token, Node *call, ManagedVector<Node *> *args, BlockNode *body)
-        : Node { token }
+    IterNode(Token *token, Node *call, ManagedVector<Node *> &args, BlockNode *body)
+        : NodeWithArgs { token, args }
         , m_call { call }
-        , m_args { args }
         , m_body { body } {
         assert(m_call);
-        assert(m_args);
         assert(m_body);
     }
 
@@ -854,17 +859,15 @@ public:
     virtual ValuePtr to_ruby(Env *) override;
 
     virtual void visit_children(Visitor &visitor) override {
-        Node::visit_children(visitor);
+        NodeWithArgs::visit_children(visitor);
         visitor.visit(m_call);
         visitor.visit(m_body);
-        visitor.visit(m_args);
     }
 
 protected:
     SexpValue *build_args_sexp(Env *);
 
     Node *m_call { nullptr };
-    ManagedVector<Node *> *m_args { nullptr };
     BlockNode *m_body { nullptr };
 };
 
@@ -1138,8 +1141,8 @@ protected:
 
 class OpAssignAccessorNode : public NodeWithArgs {
 public:
-    OpAssignAccessorNode(Token *token, const String *op, Node *receiver, const String *message, Node *value)
-        : NodeWithArgs { token }
+    OpAssignAccessorNode(Token *token, const String *op, Node *receiver, const String *message, Node *value, ManagedVector<Node *> &args)
+        : NodeWithArgs { token, args }
         , m_op { op }
         , m_receiver { receiver }
         , m_message { message }
@@ -1365,27 +1368,13 @@ protected:
     Node *m_node { nullptr };
 };
 
-class StabbyProcNode : public Node {
+class StabbyProcNode : public NodeWithArgs {
 public:
-    StabbyProcNode(Token *token, ManagedVector<Node *> *args)
-        : Node { token }
-        , m_args { args } {
-        assert(m_args);
-    }
+    using NodeWithArgs::NodeWithArgs;
 
     virtual Type type() override { return Type::StabbyProc; }
 
     virtual ValuePtr to_ruby(Env *) override;
-
-    ManagedVector<Node *> *args() { return m_args; };
-
-    virtual void visit_children(Visitor &visitor) override {
-        Node::visit_children(visitor);
-        visitor.visit(m_args);
-    }
-
-protected:
-    ManagedVector<Node *> *m_args { nullptr };
 };
 
 class StringNode : public Node {

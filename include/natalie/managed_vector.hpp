@@ -10,6 +10,12 @@ class ManagedVector : public Cell, public TM::Vector<T> {
 public:
     using TM::Vector<T>::Vector;
 
+    ManagedVector(const Vector<T> &other)
+        : ManagedVector {} {
+        for (auto item : other)
+            this->push(item);
+    }
+
     virtual ~ManagedVector() { }
 
     virtual void visit_children(Visitor &visitor) override final {

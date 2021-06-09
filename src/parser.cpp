@@ -468,7 +468,7 @@ Node *Parser::parse_def(Env *env, LocalsVectorPtr) {
     auto body = parse_def_body(env, locals);
     expect(env, Token::Type::EndKeyword, "def end");
     advance();
-    return new DefNode { token, self_node, name, args, body };
+    return new DefNode { token, self_node, name, *args, body };
 };
 
 Node *Parser::parse_defined(Env *env, LocalsVectorPtr locals) {
@@ -667,7 +667,7 @@ Node *Parser::parse_if_body(Env *env, LocalsVectorPtr locals) {
     }
     if (!current_token()->is_elsif_keyword() && !current_token()->is_else_keyword() && !current_token()->is_end_keyword())
         raise_unexpected(env, "if end");
-    return body->has_one_node() ? (*body->nodes())[0] : body;
+    return body->has_one_node() ? body->nodes()[0] : body;
 }
 
 void Parser::parse_interpolated_body(Env *env, LocalsVectorPtr locals, InterpolatedNode *node, Token::Type end_token) {
@@ -682,10 +682,10 @@ void Parser::parse_interpolated_body(Env *env, LocalsVectorPtr locals, Interpola
             }
             advance();
             if (block->has_one_node())
-                if ((*block->nodes())[0]->type() == Node::Type::String)
-                    node->add_node((*block->nodes())[0]);
+                if (block->nodes()[0]->type() == Node::Type::String)
+                    node->add_node(block->nodes()[0]);
                 else
-                    node->add_node(new EvaluateToStringNode { current_token(), (*block->nodes())[0] });
+                    node->add_node(new EvaluateToStringNode { current_token(), block->nodes()[0] });
             else
                 node->add_node(new EvaluateToStringNode { current_token(), block });
             break;
@@ -914,7 +914,7 @@ Node *Parser::parse_stabby_proc(Env *env, LocalsVectorPtr locals) {
     }
     if (current_token()->type() != Token::Type::DoKeyword && current_token()->type() != Token::Type::LCurlyBrace)
         raise_unexpected(env, "block");
-    return new StabbyProcNode { token, args };
+    return new StabbyProcNode { token, *args };
 };
 
 Node *Parser::parse_string(Env *env, LocalsVectorPtr locals) {
@@ -1089,7 +1089,7 @@ Node *Parser::parse_iter_expression(Env *env, Node *left, LocalsVectorPtr locals
         }
         break;
     case Node::Type::StabbyProc:
-        args = static_cast<StabbyProcNode *>(left)->args();
+        args = static_cast<StabbyProcNode *>(left)->managed_args();
         break;
     default:
         raise_unexpected(env, left->token(), "call for left side of iter");
@@ -1098,7 +1098,7 @@ Node *Parser::parse_iter_expression(Env *env, Node *left, LocalsVectorPtr locals
     auto body = parse_body(env, locals, LOWEST, end_token_type);
     expect(env, end_token_type, "block end");
     advance();
-    return new IterNode { token, left, args, body };
+    return new IterNode { token, left, *args, body };
 }
 
 ManagedVector<Node *> *Parser::parse_iter_args(Env *env, LocalsVectorPtr locals) {
@@ -1342,17 +1342,14 @@ Node *Parser::parse_op_attr_assign_expression(Env *env, Node *left, LocalsVector
     op->chomp();
     auto message = new String(left_call->message());
     message->append_char('=');
-    auto node = new OpAssignAccessorNode {
+    return new OpAssignAccessorNode {
         token,
         op,
         left_call->receiver(),
         message,
-        parse_expression(env, OPASSIGNMENT, locals)
+        parse_expression(env, OPASSIGNMENT, locals),
+        *left_call->managed_args(),
     };
-    for (auto arg : *left_call->args()) {
-        node->add_arg(arg);
-    }
-    return node;
 }
 
 Node *Parser::parse_proc_call_expression(Env *env, Node *left, LocalsVectorPtr locals) {
