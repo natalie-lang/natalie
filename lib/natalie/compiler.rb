@@ -35,9 +35,10 @@ module Natalie
       @path = path
       @options = options
       @required = {}
+      @cxx_flags = []
     end
 
-    attr_accessor :ast, :write_obj_path, :repl, :repl_num, :out_path, :context, :vars, :options, :c_path, :inline_cpp_enabled
+    attr_accessor :ast, :write_obj_path, :repl, :repl_num, :out_path, :context, :vars, :options, :c_path, :inline_cpp_enabled, :cxx_flags
 
     attr_writer :load_path
 
@@ -84,7 +85,7 @@ module Natalie
         repl: repl,
         vars: vars || {},
         inline_cpp_enabled: inline_cpp_enabled,
-        compile_cxx_flags: [],
+        compile_cxx_flags: cxx_flags,
         compile_ld_flags: [],
         source_path: @path,
       }

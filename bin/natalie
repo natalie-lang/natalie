@@ -24,7 +24,7 @@ OptionParser.new do |opts|
     case level
     when true
       options[:debug] = 'c'
-    when 'p1', 'p2', 'p3', 'c', 'S', 'edit', 'cc-cmd', 'valgrind'
+    when 'p1', 'p2', 'p3', 'c', 'S', 'edit', 'cc-cmd', 'valgrind', 'kcachegrind'
       options[:debug] = level
     when 'gdb', 'lldb'
       options[:debug] = level
@@ -104,9 +104,6 @@ class Runner
       show_assembly
     elsif options[:debug] == 'edit'
       edit_compile_run_loop
-    elsif options[:debug] == 'valgrind'
-      ENV['NAT_CXX_FLAGS'] = '-DNAT_GC_COLLECT_ALL_AT_EXIT'
-      compile_and_run
     else
       compile_and_run
     end
@@ -118,13 +115,22 @@ class Runner
     out = Tempfile.create("natalie#{extension}")
     out.close
     compiler.out_path = out.path
-    compiler.compile
     case options[:debug]
     when 'gdb', 'lldb'
+      compiler.compile
       exec(options[:debug], out.path)
     when 'valgrind'
+      compiler.cxx_flags << '-DNAT_GC_COLLECT_ALL_AT_EXIT'
+      compiler.compile
       exec('valgrind', '--leak-check=full', '--show-leak-kinds=all', '--track-origins=yes', '--error-exitcode=1', '--suppressions=test/valgrind-suppressions', out.path, *ARGV)
+    when 'kcachegrind'
+      callgrind_out = Tempfile.create('callgrind.out')
+      callgrind_out.close
+      compiler.compile
+      system('valgrind', '--tool=callgrind', "--callgrind-out-file=#{callgrind_out.path}", out.path, *ARGV)
+      exec('kcachegrind', callgrind_out.path)
     else
+      compiler.compile
       begin
         pid = spawn(out.path, *ARGV)
         Process.wait(pid)
