@@ -28,6 +28,17 @@ describe 'OptionParser' do
       parser.parse!(['-d', 'verbose', 'foo'])
       options.should == { debug: 'verbose' }
     end
+
+    it 'works with a block passed to initialize' do
+      options = {}
+      parser = OptionParser.new do |op|
+        op.on('-d [level]', 'enable debug mode') do |value|
+          options[:debug] = value
+        end
+      end
+      parser.parse!(['-d', 'verbose', 'foo'])
+      options.should == { debug: 'verbose' }
+    end
   end
 
   describe '#help' do

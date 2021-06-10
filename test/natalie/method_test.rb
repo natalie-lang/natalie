@@ -474,3 +474,21 @@ describe 'Method' do
     end
   end
 end
+
+describe 'method taking a block as a proc' do
+  def method1
+    yield
+  end
+
+  def method2(&block)
+    block.call
+  end
+
+  var = 1
+  result = method1 do
+    method2 do
+      var
+    end
+  end
+  result.should == 1
+end

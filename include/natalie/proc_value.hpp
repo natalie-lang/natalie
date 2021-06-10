@@ -30,7 +30,6 @@ public:
         , m_block { block }
         , m_type { type } {
         assert(m_block);
-        m_block->m_env->clear_outer();
         m_block->m_env->clear_caller();
     }
 
