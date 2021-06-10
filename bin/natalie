@@ -24,8 +24,11 @@ OptionParser.new do |opts|
     case level
     when true
       options[:debug] = 'c'
-    when 'p1', 'p2', 'p3', 'gdb', 'lldb', 'c', 'S', 'edit', 'cc-cmd', 'valgrind'
+    when 'p1', 'p2', 'p3', 'c', 'S', 'edit', 'cc-cmd', 'valgrind'
       options[:debug] = level
+    when 'gdb', 'lldb'
+      options[:debug] = level
+      options[:keep_cpp] = true
     else
       puts "Unrecognized -d value: #{level.inspect}"
       exit 1
