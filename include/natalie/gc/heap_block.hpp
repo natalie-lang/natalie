@@ -17,6 +17,11 @@ constexpr const size_t HEAP_CELL_COUNT_MAX = HEAP_BLOCK_SIZE / 16; // 16 bytes i
 
 class HeapBlock {
 public:
+    struct FreeCellNode {
+        FreeCellNode *next;
+        size_t index;
+    };
+
     NAT_MAKE_NONCOPYABLE(HeapBlock);
 
     HeapBlock(size_t size)
@@ -24,6 +29,12 @@ public:
         , m_total_count { (HEAP_BLOCK_SIZE - sizeof(HeapBlock)) / m_cell_size }
         , m_free_count { m_total_count } {
         memset(m_memory, 0, HEAP_BLOCK_SIZE - sizeof(HeapBlock));
+        for (int i = m_total_count - 1; i >= 0; --i) {
+            auto node = reinterpret_cast<FreeCellNode *>(cell_from_index(i));
+            node->next = m_free_list;
+            node->index = i;
+            m_free_list = node;
+        }
     }
 
     ~HeapBlock() {
@@ -54,29 +65,9 @@ public:
         return m_free_count > 0;
     }
 
-    Cell *find_next_free_cell() {
-        assert(has_free());
-        for (size_t i = 0; i < m_total_count; ++i) {
-            if (!m_used_map[i]) {
-                m_used_map[i] = true;
-                --m_free_count;
-                void *cell = &m_memory[i * m_cell_size];
-                //printf("Cell %p allocated from block %p (size %zu) at index %zu\n", cell, this, m_cell_size, i);
-                new (cell) Cell();
-                return reinterpret_cast<Cell *>(cell);
-            }
-        }
-        NAT_UNREACHABLE();
-    }
+    Cell *find_next_free_cell();
 
-    void return_cell_to_free_list(const Cell *cell) {
-        auto index = index_from_cell(cell);
-        assert(index > -1);
-        m_used_map[index] = false;
-        cell->~Cell();
-        memset(&m_memory[index * m_cell_size], 0, m_cell_size);
-        ++m_free_count;
-    }
+    void return_cell_to_free_list(const Cell *cell);
 
     size_t total_count() const { return m_total_count; }
 
@@ -156,6 +147,7 @@ private:
         return index;
     }
 
+    FreeCellNode *m_free_list { nullptr };
     size_t m_cell_size;
     size_t m_total_count { 0 };
     size_t m_free_count { 0 };

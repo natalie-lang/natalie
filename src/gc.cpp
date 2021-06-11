@@ -111,4 +111,31 @@ void Heap::return_cell_to_free_list(Cell *cell) {
     block->return_cell_to_free_list(cell);
 }
 
+Cell *HeapBlock::find_next_free_cell() {
+    assert(has_free());
+    --m_free_count;
+    auto node = m_free_list;
+    assert(node);
+    m_free_list = node->next;
+    assert(m_free_list || m_free_count == 0);
+    auto cell = reinterpret_cast<Cell *>(node);
+    m_used_map[node->index] = true;
+    //printf("Cell %p allocated from block %p (size %zu) at index %zu\n", cell, this, m_cell_size, i);
+    new (cell) Cell();
+    return cell;
+}
+
+void HeapBlock::return_cell_to_free_list(const Cell *cell) {
+    auto index = index_from_cell(cell);
+    assert(index > -1);
+    m_used_map[index] = false;
+    cell->~Cell();
+    memset(&m_memory[index * m_cell_size], 0, m_cell_size);
+    auto node = reinterpret_cast<FreeCellNode *>(cell_from_index(index));
+    node->next = m_free_list;
+    node->index = index;
+    m_free_list = node;
+    ++m_free_count;
+}
+
 }
