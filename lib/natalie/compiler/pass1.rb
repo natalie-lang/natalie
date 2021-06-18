@@ -234,7 +234,7 @@ module Natalie
       def process_defn_internal(exp)
         (_, name, (_, *args), *body) = exp
         name = name.to_s
-        fn_name = temp('fn')
+        fn_name = temp("def_#{name}_")
         if args.last&.to_s&.start_with?('&')
           arg_name = args.pop.to_s[1..-1]
           block_arg = exp.new(:var_set, :env, s(:s, arg_name), s(:"ProcValue::from_block_maybe", 'block'))
@@ -963,7 +963,7 @@ module Natalie
 
       def temp(name)
         n = @compiler_context[:var_num] += 1
-        "#{@compiler_context[:var_prefix]}#{name}#{n}"
+        "#{@compiler_context[:var_prefix]}#{name.gsub(/[^a-z0-9_]/i, '_')}#{n}"
       end
 
       def raises_local_jump_error?(exp, my_context: [])
