@@ -26,4 +26,13 @@ Traceback (most recent call last):
 test/ruby/fixtures/error.rb:2:in `method_with_error': undefined method `something_non_existent' for main (NoMethodError)
     EOF
   end
+
+  it 'works with a fiber' do
+    out = `bin/natalie test/ruby/fixtures/fiber_error.rb 2>&1`
+    expect(out).must_equal <<-EOF
+Traceback (most recent call last):
+        1: from test/ruby/fixtures/fiber_error.rb:4:in `block in make_fiber'
+test/ruby/fixtures/fiber_error.rb:4:in `/': divided by 0 (ZeroDivisionError)
+    EOF
+  end
 end
