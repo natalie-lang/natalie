@@ -72,7 +72,13 @@ void fiber_wrapper_func(Natalie::Env *env, Natalie::FiberValue *fiber) {
     assert(fiber->block());
     Natalie::ValuePtr return_args[1];
     try {
-        return_args[0] = NAT_RUN_BLOCK_WITHOUT_BREAK(env, fiber->block(), global_env->fiber_args().size(), global_env->fiber_args().data(), nullptr);
+        // NOTE: we cannot pass the env from this fiber (stack) across to another fiber (stack),
+        // because doing so can cause unexpected results when env->caller() is used. (Since that
+        // calling Env might have been overwritten in the other stack.)
+        // That means a backtrace built from inside the fiber will end abruptly.
+        // But that seems to be what Ruby does too.
+        Natalie::Env e {};
+        return_args[0] = NAT_RUN_BLOCK_WITHOUT_BREAK((&e), fiber->block(), global_env->fiber_args().size(), global_env->fiber_args().data(), nullptr);
     } catch (Natalie::ExceptionValue *exception) {
         Natalie::handle_top_level_exception(env, exception, false);
         exit(1);
