@@ -30,7 +30,7 @@ public:
     ValuePtr global_set(SymbolValue *, ValuePtr);
 
     Method *current_method();
-    char *build_code_location_name(Env *);
+    const String *build_code_location_name(Env *);
 
     ValuePtr var_get(const char *, size_t);
     ValuePtr var_set(const char *, size_t, bool, ValuePtr);

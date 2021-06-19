@@ -27,18 +27,18 @@ Method *Env::current_method() {
     return env->method();
 }
 
-char *Env::build_code_location_name(Env *location_env) {
+const String *Env::build_code_location_name(Env *location_env) {
     if (location_env->is_main())
-        return strdup("<main>");
+        return new String("<main>");
     if (location_env->method())
-        return strdup(location_env->method()->name()->c_str());
+        return new String(location_env->method()->name());
+    // we're in a block, so try to build a string like "block in foo", "block in block in foo", etc.
     if (location_env->outer()) {
-        char *outer_name = build_code_location_name(location_env->outer());
-        char *name = strdup(StringValue::format(this, "block in {}", outer_name)->c_str());
-        free(outer_name);
-        return name;
+        auto outer_name = build_code_location_name(location_env->outer());
+        return String::format("block in {}", outer_name);
     }
-    return strdup("block");
+    // fall back to just "block" if we don't know where this block came from
+    return new String("block");
 }
 
 void Env::raise(ClassValue *klass, StringValue *message) {
