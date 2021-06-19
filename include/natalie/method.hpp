@@ -45,14 +45,14 @@ public:
         } else {
             closure_env = m_owner->env();
         }
-        auto *e = new Env { closure_env };
-        e->set_caller(env);
-        e->set_method(this);
-        e->set_file(env->file());
-        e->set_line(env->line());
-        e->set_block(block);
-        auto result = m_fn(e, self, argc, args, block);
-        e->clear_caller();
+        Env e { closure_env };
+        e.set_caller(env);
+        e.set_method(this);
+        e.set_file(env->file());
+        e.set_line(env->line());
+        e.set_block(block);
+        auto result = m_fn(&e, self, argc, args, block);
+        e.clear_caller();
         return result;
     }
 

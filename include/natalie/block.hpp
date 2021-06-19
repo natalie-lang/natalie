@@ -21,10 +21,10 @@ public:
     // NOTE: This should only be called from one of the RUN_BLOCK_* macros!
     ValuePtr _run(Env *env, size_t argc = 0, ValuePtr *args = nullptr, Block *block = nullptr) {
         assert(has_env());
-        auto *e = new Env { m_env };
-        e->set_caller(env);
-        auto result = m_fn(e, m_self, argc, args, block);
-        e->clear_caller();
+        Env e { m_env };
+        e.set_caller(env);
+        auto result = m_fn(&e, m_self, argc, args, block);
+        e.clear_caller();
         return result;
     }
 
