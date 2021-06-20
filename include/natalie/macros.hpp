@@ -66,7 +66,6 @@
     Env e { env };                                                     \
     e.set_caller(env);                                                 \
     Natalie::ValuePtr _result = begin_fn(&e, self, argc, args, block); \
-    e.clear_caller();                                                  \
     if (_result->has_break_flag()) {                                   \
         return _result;                                                \
     }                                                                  \

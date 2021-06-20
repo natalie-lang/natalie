@@ -14,9 +14,7 @@ public:
         : m_fn { fn }
         , m_arity { arity }
         , m_env { new Env(*env) }
-        , m_self { self } {
-        m_env->clear_caller();
-    }
+        , m_self { self } { }
 
     // NOTE: This should only be called from one of the RUN_BLOCK_* macros!
     ValuePtr _run(Env *env, size_t argc = 0, ValuePtr *args = nullptr, Block *block = nullptr) {
@@ -24,7 +22,6 @@ public:
         Env e { m_env };
         e.set_caller(env);
         auto result = m_fn(&e, m_self, argc, args, block);
-        e.clear_caller();
         return result;
     }
 

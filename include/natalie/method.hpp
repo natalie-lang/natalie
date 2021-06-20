@@ -27,7 +27,6 @@ public:
         , m_visibility { visibility } {
         block->copy_fn_pointer_to_method(this);
         assert(m_env);
-        m_env->clear_caller();
     }
 
     void set_fn(MethodFnPtr fn) { m_fn = fn; }
@@ -52,7 +51,6 @@ public:
         e.set_line(env->line());
         e.set_block(block);
         auto result = m_fn(&e, self, argc, args, block);
-        e.clear_caller();
         return result;
     }
 

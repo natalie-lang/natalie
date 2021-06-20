@@ -22,6 +22,15 @@ public:
     Env(Env *outer)
         : m_outer { outer } { }
 
+    Env(const Env &other)
+        : m_vars { other.m_vars }
+        , m_outer { other.m_outer }
+        , m_block { other.m_block }
+        , m_caller { nullptr }
+        , m_file { other.m_file }
+        , m_line { other.m_line }
+        , m_method { other.m_method } { }
+
     Env &operator=(Env &other) = delete;
 
     virtual ~Env() override { }
@@ -68,7 +77,6 @@ public:
 
     Env *caller() { return m_caller; }
     void set_caller(Env *caller) { m_caller = caller; }
-    void clear_caller() { m_caller = nullptr; }
 
     Block *block() { return m_block; }
     void set_block(Block *block) { m_block = block; }
