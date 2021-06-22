@@ -5,7 +5,6 @@ namespace Natalie {
 ValuePtr ValuePtr::public_send(Env *env, SymbolValue *name, size_t argc, ValuePtr *args, Block *block) {
     if (m_type == Type::Integer && IntegerValue::optimized_method(name)) {
         auto synthesized = IntegerValue { m_integer };
-        // FIXME: I think this should be _public_send??
         return synthesized._public_send(env, name, argc, args, block);
     }
 
