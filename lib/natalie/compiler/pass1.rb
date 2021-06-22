@@ -570,7 +570,7 @@ module Natalie
             case name.sexp_type
             when :splat
               optional_args += 1
-              value = s(:arg_value_by_path, :env, value_name, s(:nil), s(:l, :true), names.size, defaults.size, defaults_on_right ? s(:l, :true) : s(:l, :false), path_details[:offset_from_end], path.size, *path)
+              value = s(:arg_value_by_path, :env, value_name, 'nullptr', s(:l, :true), names.size, defaults.size, defaults_on_right ? s(:l, :true) : s(:l, :false), path_details[:offset_from_end], path.size, *path)
               prepare_masgn_set(name.last, value, arg: true)
             when :kwarg
               if name[2]
@@ -588,7 +588,7 @@ module Natalie
                 default_value = process(name.pop)
               else
                 required_args += 1
-                default_value = s(:nil)
+                default_value = 'nullptr'
               end
               non_kwargs = names.reject { |name| name.sexp_type == :kwarg }
               value = s(:arg_value_by_path, :env, value_name, default_value, s(:l, :false), non_kwargs.size, defaults.size, defaults_on_right ? s(:l, :true) : s(:l, :false), 0, path.size, *path)

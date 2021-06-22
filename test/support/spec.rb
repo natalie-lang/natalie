@@ -521,8 +521,7 @@ class Object
     EqualExpectation.new(other)
   end
 
-  # FIXME: bug if klass has default value of nil
-  def raise_error(klass, message = nil)
+  def raise_error(klass = nil, message = nil)
     RaiseErrorExpectation.new(klass, message)
   end
 

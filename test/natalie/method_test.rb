@@ -57,6 +57,10 @@ def default_with_splat_last(x, y = 2, *rest)
   [x, y, rest]
 end
 
+def default_nils(x = nil, y = nil)
+  [x, y]
+end
+
 class Foo
   def foo
     'instance method foo'
@@ -184,6 +188,9 @@ describe 'method' do
     default_with_splat_last(2).should == [2, 2, []]
     default_calling_another_method.should == 1
     default_calling_another_method2.should == 2
+    default_nils().should == [nil, nil]
+    default_nils(1).should == [1, nil]
+    default_nils(1, 2).should == [1, 2]
   end
 
   def default_first1(x = 1)
