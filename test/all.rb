@@ -1,6 +1,12 @@
 require 'fileutils'
 require 'minitest/reporters'
-Minitest::Reporters.use!(Minitest::Reporters::ProgressReporter.new(detailed_skip: false))
+
+case ENV['REPORTER']
+when 'spec'
+  Minitest::Reporters.use!(Minitest::Reporters::SpecReporter.new)
+when 'progress', nil
+  Minitest::Reporters.use!(Minitest::Reporters::ProgressReporter.new(detailed_skip: false))
+end
 
 FileUtils.mkdir_p(File.expand_path('tmp', __dir__))
 
