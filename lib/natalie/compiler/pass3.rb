@@ -30,7 +30,7 @@ module Natalie
         if var[:captured]
           exp.new(:var_set, env, s(:s, var[:name]), var[:index], allocate, process(value))
         else
-          exp.new(:c_assign, "#{@compiler_context[:var_prefix]}#{var[:name]}#{var[:var_num]}", process(value))
+          exp.new(:set, "#{@compiler_context[:var_prefix]}#{var[:name]}#{var[:var_num]}", process(value))
         end
       end
 

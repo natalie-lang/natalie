@@ -293,12 +293,6 @@ module Natalie
         exp.last
       end
 
-      def process_c_assign(exp)
-        (_, name, value) = exp
-        decl "#{name} = #{process_atom value};"
-        name
-      end
-
       def process_c_break(_)
         decl 'break;'
         ''
@@ -606,7 +600,7 @@ module Natalie
       def process_set(exp)
         (fn, name, value) = exp
         decl "#{name} = #{process_atom value};"
-        ''
+        name
       end
 
       def process_new(exp, name = nil, type = 'ValuePtr ')
