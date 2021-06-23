@@ -7,7 +7,7 @@ using namespace Natalie;
 extern "C" Env *build_top_env() {
     auto *global_env = GlobalEnv::the();
     auto *env = new Env {};
-    env->set_is_main(true);
+    global_env->set_main_env(env);
 
     ClassValue *Class = ClassValue::bootstrap_class_class(env);
     global_env->set_Class(Class);

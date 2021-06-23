@@ -94,8 +94,7 @@ public:
     void set_match(ValuePtr match) { m_match = match; }
     void clear_match() { m_match = nullptr; }
 
-    bool is_main() { return m_is_main; }
-    void set_is_main(bool is_main) { m_is_main = is_main; }
+    bool is_main() { return this == GlobalEnv::the()->main_env(); }
 
     virtual void visit_children(Visitor &visitor) override final;
 
@@ -112,6 +111,5 @@ private:
     size_t m_line { 0 };
     Method *m_method { nullptr };
     ValuePtr m_match { nullptr };
-    bool m_is_main { false };
 };
 }

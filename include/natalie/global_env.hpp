@@ -65,6 +65,9 @@ public:
     ValuePtr global_get(Env *, SymbolValue *);
     ValuePtr global_set(Env *, SymbolValue *, ValuePtr);
 
+    void set_main_env(Env *main_env) { m_main_env = main_env; }
+    Env *main_env() { return m_main_env; }
+
     friend class SymbolValue;
 
     virtual void visit_children(Visitor &visitor) override final;
@@ -94,5 +97,7 @@ private:
     FiberValue *m_main_fiber { nullptr };
     FiberValue *m_current_fiber { nullptr };
     Vector<ValuePtr> m_fiber_args {};
+
+    Env *m_main_env { nullptr };
 };
 }
