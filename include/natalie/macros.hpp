@@ -62,6 +62,13 @@
     _result;                                                              \
 })
 
+#define NAT_CHECK_FOR_BREAK(value) ({ \
+    if (value->has_break_flag()) {    \
+        value->remove_break_flag();   \
+        return value;                 \
+    }                                 \
+})
+
 #define NAT_CALL_BEGIN(env, self, begin_fn, argc, args, block) ({      \
     Env e { env };                                                     \
     e.set_caller(env);                                                 \
