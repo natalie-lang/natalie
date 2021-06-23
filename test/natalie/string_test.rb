@@ -50,6 +50,22 @@ describe 'string' do
     end
   end
 
+  describe '#<' do
+    it 'returns true if lhs is alphabetically less than rhs' do
+      ('a' < 'b').should == true
+      ('a' < 'a').should == false
+      ('z' < 'aa').should == false
+    end
+  end
+
+  describe '#<=' do
+    it 'returns true if lhs is alphabetically less than rhs' do
+      ('a' < 'b').should == true
+      ('a' <= 'a').should == true
+      ('z' < 'aa').should == false
+    end
+  end
+
   describe '#bytes' do
     it 'returns an array of byte values' do
       'foo'.bytes.should == [102, 111, 111]
