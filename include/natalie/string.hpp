@@ -141,7 +141,7 @@ public:
         if (new_length == 0) return;
         size_t total_length = m_length + new_length;
         grow_at_least(total_length);
-        strncat(m_str, str, new_length);
+        strncat(m_str, str, total_length - m_length);
         m_length = total_length;
     }
 
