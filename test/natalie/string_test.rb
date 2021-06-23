@@ -60,9 +60,9 @@ describe 'string' do
 
   describe '#<=' do
     it 'returns true if lhs is alphabetically less than rhs' do
-      ('a' < 'b').should == true
+      ('a' <= 'b').should == true
       ('a' <= 'a').should == true
-      ('z' < 'aa').should == false
+      ('z' <= 'aa').should == false
     end
   end
 
