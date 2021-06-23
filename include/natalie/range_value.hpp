@@ -35,6 +35,7 @@ public:
     ValuePtr inspect(Env *);
     ValuePtr eq(Env *, ValuePtr);
     ValuePtr eqeqeq(Env *, ValuePtr);
+    ValuePtr include(Env *, ValuePtr);
 
     virtual void visit_children(Visitor &visitor) override {
         Value::visit_children(visitor);

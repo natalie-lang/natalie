@@ -94,4 +94,9 @@ ValuePtr RangeValue::eqeqeq(Env *env, ValuePtr arg) {
     return FalseValue::the();
 }
 
+ValuePtr RangeValue::include(Env *env, ValuePtr arg) {
+    auto ary = this->to_a(env);
+    return ary.send(env, "include?", 1, &arg);
+}
+
 }

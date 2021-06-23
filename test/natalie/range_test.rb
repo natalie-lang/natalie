@@ -187,4 +187,12 @@ describe 'range' do
       (r === 'aa').should == true
     end
   end
+
+  describe '#include?' do
+    it 'returns true if the given string is in the range' do
+      r = 'a'..'z'
+      r.include?('a').should == true
+      r.include?('aa').should == false
+    end
+  end
 end
