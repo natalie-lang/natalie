@@ -103,6 +103,11 @@ describe 'range' do
       r = 'a'...'d'
       r.to_a.should == ['a', 'b', 'c']
     end
+
+    it 'handles strings' do
+      r = 'a'..'z'
+      r.to_a.should == %w[a b c d e f g h i j k l m n o p q r s t u v w x y z]
+    end
   end
 
   describe '#each' do
@@ -116,6 +121,22 @@ describe 'range' do
       items = []
       ('a'..'d').each { |i| items << i }
       items.should == ['a', 'b', 'c', 'd']
+    end
+
+    it 'handles strings' do
+      ary = ->(r) { a = []; r.each { |i| a << i }; a }
+      r = 'a'..'z'
+      ary.(r).should == %w[a b c d e f g h i j k l m n o p q r s t u v w x y z]
+      r = 'z'..'a'
+      ary.(r).should == []
+      r = 'a'..'a'
+      ary.(r).should == ['a']
+      r = 'a'...'z'
+      ary.(r).should == %w[a b c d e f g h i j k l m n o p q r s t u v w x y]
+      r = 'z'...'a'
+      ary.(r).should == []
+      r = 'a'...'a'
+      ary.(r).should == []
     end
   end
 
@@ -158,6 +179,12 @@ describe 'range' do
       ((1..10) === 0).should == false
       ((1..10) === 11).should == false
       ((1...10) === 10).should == false
+    end
+
+    it 'returns true if the given string is between the first and last item of the range' do
+      r = 'a'..'z'
+      (r === 'a').should == true
+      (r === 'aa').should == true
     end
   end
 end

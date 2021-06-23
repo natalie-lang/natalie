@@ -12,10 +12,20 @@ ValuePtr RangeValue::initialize(Env *env, ValuePtr begin, ValuePtr end, ValuePtr
 ValuePtr RangeValue::to_a(Env *env) {
     ArrayValue *ary = new ArrayValue {};
     ValuePtr item = m_begin;
-    const char *op = m_exclude_end ? "<" : "<=";
-    while (item.send(env, op, 1, &m_end, nullptr)->is_truthy()) {
-        ary->push(item);
-        item = item.send(env, "succ");
+    if (m_begin.send(env, ">", 1, &m_end)->is_truthy())
+        return this;
+    if (m_exclude_end) {
+        while (!item.send(env, "==", 1, &m_end)->is_truthy()) {
+            ary->push(item);
+            item = item.send(env, "succ");
+        }
+    } else {
+        bool matches_end = false;
+        do {
+            matches_end = item.send(env, "==", 1, &m_end, nullptr)->is_truthy();
+            ary->push(item);
+            item = item.send(env, "succ");
+        } while (!matches_end);
     }
     return ary;
 }
@@ -23,10 +33,20 @@ ValuePtr RangeValue::to_a(Env *env) {
 ValuePtr RangeValue::each(Env *env, Block *block) {
     env->ensure_block_given(block);
     ValuePtr item = m_begin;
-    const char *op = m_exclude_end ? "<" : "<=";
-    while (item.send(env, op, 1, &m_end, nullptr)->is_truthy()) {
-        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
-        item = item.send(env, "succ");
+    if (m_begin.send(env, ">", 1, &m_end)->is_truthy())
+        return this;
+    if (m_exclude_end) {
+        while (!item.send(env, "==", 1, &m_end)->is_truthy()) {
+            NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
+            item = item.send(env, "succ");
+        }
+    } else {
+        bool matches_end = false;
+        do {
+            matches_end = item.send(env, "==", 1, &m_end, nullptr)->is_truthy();
+            NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
+            item = item.send(env, "succ");
+        } while (!matches_end);
     }
     return this;
 }
@@ -63,15 +83,12 @@ ValuePtr RangeValue::eqeqeq(Env *env, ValuePtr arg) {
             return TrueValue::the();
         }
     } else {
-        // slower method that should work for any type of range
-        ValuePtr item = m_begin;
-        const char *op = m_exclude_end ? "<" : "<=";
-        ValuePtr end = m_end;
-        while (item.send(env, op, 1, &end, nullptr)->is_truthy()) {
-            if (item.send(env, "==", 1, &arg, nullptr)->is_truthy()) {
+        if (m_exclude_end) {
+            if (arg.send(env, ">=", 1, &m_begin)->is_truthy() && arg.send(env, "<", 1, &m_end)->is_truthy())
                 return TrueValue::the();
-            }
-            item = item.send(env, "succ");
+        } else {
+            if (arg.send(env, ">=", 1, &m_begin)->is_truthy() && arg.send(env, "<=", 1, &m_end)->is_truthy())
+                return TrueValue::the();
         }
     }
     return FalseValue::the();
