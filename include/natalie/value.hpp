@@ -167,10 +167,10 @@ public:
 
     nat_int_t object_id() { return reinterpret_cast<nat_int_t>(this); }
 
-    const char *pointer_id() {
+    const String *pointer_id() {
         char buf[100]; // ought to be enough for anybody ;-)
         snprintf(buf, 100, "%p", this);
-        return strdup(buf);
+        return new String(buf);
     }
 
     ValuePtr _public_send(Env *, SymbolValue *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);

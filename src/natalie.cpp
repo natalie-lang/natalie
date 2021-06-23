@@ -454,9 +454,9 @@ void set_status_object(Env *env, int pid, int status) {
     env->global_set(SymbolValue::intern("$?"), status_obj);
 }
 
-const char *int_to_hex_string(nat_int_t num, bool capitalize) {
+const String *int_to_hex_string(nat_int_t num, bool capitalize) {
     if (num == 0) {
-        return strdup("0");
+        return new String("0");
     } else {
         char buf[100]; // ought to be enough for anybody ;-)
         if (capitalize) {
@@ -464,7 +464,7 @@ const char *int_to_hex_string(nat_int_t num, bool capitalize) {
         } else {
             snprintf(buf, 100, "0x%" PRIx64, num);
         }
-        return strdup(buf);
+        return new String(buf);
     }
 }
 

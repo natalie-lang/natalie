@@ -1,6 +1,7 @@
 #pragma once
 
 #include <assert.h>
+#include <ctype.h>
 #include <string.h>
 
 #include "natalie/forward.hpp"
@@ -256,6 +257,22 @@ public:
 
     virtual void gc_print() override {
         fprintf(stderr, "<String %p str='%s'>", this, m_str);
+    }
+
+    String *uppercase() const {
+        auto new_str = new String(this);
+        for (size_t i = 0; i < new_str->m_length; ++i) {
+            new_str->m_str[i] = toupper(new_str->m_str[i]);
+        }
+        return new_str;
+    }
+
+    String *lowercase() const {
+        auto new_str = new String(this);
+        for (size_t i = 0; i < new_str->m_length; ++i) {
+            new_str->m_str[i] = tolower(new_str->m_str[i]);
+        }
+        return new_str;
     }
 
 private:

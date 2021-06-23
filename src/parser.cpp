@@ -849,7 +849,7 @@ Node *Parser::parse_not(Env *env, LocalsVectorPtr locals) {
     auto node = new CallNode {
         token,
         parse_expression(env, precedence, locals),
-        strdup("!")
+        "!"
     };
     return node;
 }
@@ -1113,7 +1113,7 @@ Node *Parser::parse_call_expression_with_parens(Env *env, Node *left, LocalsVect
         call_node = new CallNode {
             token,
             new NilNode { token },
-            strdup(static_cast<IdentifierNode *>(left)->name()),
+            static_cast<IdentifierNode *>(left)->name(),
         };
         break;
     case Node::Type::Call:
@@ -1158,7 +1158,7 @@ Node *Parser::parse_call_expression_without_parens(Env *env, Node *left, LocalsV
         call_node = new CallNode {
             token,
             new NilNode { token },
-            strdup(static_cast<IdentifierNode *>(left)->name()),
+            static_cast<IdentifierNode *>(left)->name(),
         };
         break;
     case Node::Type::Call:
@@ -1223,7 +1223,7 @@ Node *Parser::parse_infix_expression(Env *env, Node *left, LocalsVectorPtr local
     auto *node = new CallNode {
         token,
         left,
-        strdup(op->type_value(env)),
+        op->type_value(env),
     };
     node->add_arg(right);
     return node;
@@ -1285,7 +1285,7 @@ Node *Parser::parse_match_expression(Env *env, Node *left, LocalsVectorPtr local
         auto *node = new CallNode {
             token,
             left,
-            strdup("=~"),
+            "=~",
         };
         node->add_arg(arg);
         return node;
@@ -1359,7 +1359,7 @@ Node *Parser::parse_proc_call_expression(Env *env, Node *left, LocalsVectorPtr l
     auto call_node = new CallNode {
         token,
         left,
-        strdup("call"),
+        "call",
     };
     if (!current_token()->is_rparen())
         parse_call_args(env, call_node, locals);
@@ -1380,7 +1380,7 @@ Node *Parser::parse_ref_expression(Env *env, Node *left, LocalsVectorPtr locals)
     auto call_node = new CallNode {
         token,
         left,
-        strdup("[]"),
+        "[]",
     };
     if (current_token()->type() != Token::Type::RBracket)
         parse_call_args(env, call_node, locals);
@@ -1397,7 +1397,7 @@ Node *Parser::parse_safe_send_expression(Env *env, Node *left, LocalsVectorPtr l
     auto call_node = new SafeCallNode {
         token,
         left,
-        strdup(name->name()),
+        name->name(),
     };
     return call_node;
 }
@@ -1410,7 +1410,7 @@ Node *Parser::parse_send_expression(Env *env, Node *left, LocalsVectorPtr locals
     return new CallNode {
         token,
         left,
-        strdup(name->name()),
+        name->name(),
     };
 }
 

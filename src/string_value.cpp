@@ -275,32 +275,20 @@ ValuePtr StringValue::encoding(Env *env) {
     NAT_UNREACHABLE();
 }
 
-static char *lcase_string(const char *str) {
-    char *lcase_str = strdup(str);
-    for (int i = 0; lcase_str[i]; i++) {
-        lcase_str[i] = tolower(lcase_str[i]);
-    }
-    return lcase_str;
-}
-
-static EncodingValue *find_encoding_by_name(Env *env, const char *name) {
-    char *lcase_name = lcase_string(name);
+static EncodingValue *find_encoding_by_name(Env *env, const String *name) {
+    String *lcase_name = name->lowercase();
     ArrayValue *list = EncodingValue::list(env);
     for (size_t i = 0; i < list->size(); i++) {
         EncodingValue *encoding = (*list)[i]->as_encoding();
         ArrayValue *names = encoding->names(env);
         for (size_t n = 0; n < names->size(); n++) {
             StringValue *name_obj = (*names)[n]->as_string();
-            char *name = lcase_string(name_obj->c_str());
-            if (strcmp(name, lcase_name) == 0) {
-                free(name);
-                free(lcase_name);
+            String *name = name_obj->to_low_level_string()->lowercase();
+            if (*name == *lcase_name) {
                 return encoding;
             }
-            free(name);
         }
     }
-    free(lcase_name);
     env->raise("ArgumentError", "unknown encoding name - {}", name);
 }
 
@@ -338,7 +326,7 @@ ValuePtr StringValue::force_encoding(Env *env, ValuePtr encoding) {
         set_encoding(encoding->as_encoding()->num());
         break;
     case Value::Type::String:
-        set_encoding(find_encoding_by_name(env, encoding->as_string()->c_str())->num());
+        set_encoding(find_encoding_by_name(env, encoding->as_string()->to_low_level_string())->num());
         break;
     default:
         env->raise("TypeError", "no implicit conversion of {} into String", encoding->klass()->class_name_or_blank());

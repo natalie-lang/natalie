@@ -266,6 +266,8 @@ ValuePtr KernelModule::sleep(Env *env, ValuePtr length) {
 
 ValuePtr KernelModule::spawn(Env *env, size_t argc, ValuePtr *args) {
     pid_t pid;
+    env->ensure_argc_at_least(argc, 1);
+    auto program = args[0]->as_string();
     char *cmd[argc + 1];
     for (size_t i = 0; i < argc; i++) {
         auto arg = args[i];
@@ -273,15 +275,13 @@ ValuePtr KernelModule::spawn(Env *env, size_t argc, ValuePtr *args) {
         cmd[i] = strdup(arg->as_string()->c_str());
     }
     cmd[argc] = nullptr;
-    int result = posix_spawnp(&pid, cmd[0], NULL, NULL, cmd, environ);
+    int result = posix_spawnp(&pid, program->c_str(), NULL, NULL, cmd, environ);
     for (size_t i = 0; i < argc; i++) {
         free(cmd[i]);
     }
-    if (result == 0) {
-        return ValuePtr::integer(pid);
-    } else {
+    if (result != 0)
         env->raise_errno();
-    }
+    return ValuePtr::integer(pid);
 }
 
 ValuePtr KernelModule::tap(Env *env, Block *block) {
