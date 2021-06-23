@@ -222,7 +222,7 @@ module Natalie
       def process_block(exp)
         (_, *body) = exp
         body[0..-2].each do |node|
-          result = process_atom(node)
+          process_atom(node)
         end
         result = if body.empty?
                    process(s(:nil))
@@ -339,7 +339,7 @@ module Natalie
         c = []
         in_decl_context do
           c << 'do {'
-          result = process_atom(body)
+          process_atom(body)
           c += @decl
           c << "} while (#{condition});"
         end
@@ -358,7 +358,7 @@ module Natalie
         c = []
         in_decl_context do
           c << "while (#{condition}) {"
-          result = process_atom(body)
+          process_atom(body)
           c += @decl
           c << '}'
         end
@@ -536,7 +536,7 @@ module Natalie
       end
 
       def process_NAT_RUN_BLOCK_FROM_ENV(exp)
-        (fn, args) = exp
+        (_, args) = exp
         args_name, args_count = process_atom(args).split(':')
         result_name = temp('block_result')
         decl "ValuePtr #{result_name} = NAT_RUN_BLOCK_FROM_ENV(env, #{args_count}, #{args_name});"
@@ -598,7 +598,7 @@ module Natalie
       end
 
       def process_set(exp)
-        (fn, name, value) = exp
+        (_, name, value) = exp
         decl "#{name} = #{process_atom value};"
         name
       end

@@ -271,7 +271,7 @@ module Natalie
       end
 
       def process_defn(exp)
-        (_, name, args, *body) = exp
+        (_, name, *) = exp
         (fn, arity) = process_defn_internal(exp)
         exp.new(:block,
                 fn,
@@ -668,7 +668,6 @@ module Natalie
         splatted = false
         names.each_with_index.each_with_object({}) do |(e, index), hash|
           raise 'destructuring assignment is too big' if index > MAX_MASGN_PATH_INDEX
-          has_default = %i[iasgn lasgn].include?(e.sexp_type) && e.size == 3
           if e.is_a?(Sexp) && e.sexp_type == :masgn
             hash.merge!(prepare_masgn_paths(e, prefix + [index]))
           elsif e.sexp_type == :splat
@@ -837,7 +836,6 @@ module Natalie
           else_body = rest.pop if rest.last.sexp_type != :resbody
           (body, resbodies) = rest.partition { |n| n.first != :resbody }
           begin_fn = temp('begin_fn')
-          rescue_fn = begin_fn.sub(/begin/, 'rescue')
           rescue_block = s(:cond)
           resbodies.each_with_index do |(_, (_, *match), *resbody), index|
             lasgn = match.pop if match.last&.sexp_type == :lasgn
