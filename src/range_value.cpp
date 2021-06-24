@@ -9,45 +9,53 @@ ValuePtr RangeValue::initialize(Env *env, ValuePtr begin, ValuePtr end, ValuePtr
     return this;
 }
 
+template <typename Function>
+ValuePtr RangeValue::iterate_over_range(Env *env, Function &&func) {
+    if (m_begin.send(env, ">", 1, &m_end)->is_truthy())
+        return nullptr;
+
+    ValuePtr item = m_begin;
+
+    bool done = item.send(env, "==", 1, &m_end)->is_truthy();
+    while (!done || !m_exclude_end) {
+        if constexpr (std::is_void_v<std::invoke_result_t<Function, ValuePtr>>) {
+            func(item);
+        } else {
+            if (ValuePtr ptr = func(item))
+                return ptr;
+        }
+
+        if (!m_exclude_end && done) {
+            break;
+        }
+
+        item = item.send(env, "succ");
+
+        done = item.send(env, "==", 1, &m_end)->is_truthy();
+    }
+
+    return nullptr;
+}
+
 ValuePtr RangeValue::to_a(Env *env) {
     ArrayValue *ary = new ArrayValue {};
-    ValuePtr item = m_begin;
-    if (m_begin.send(env, ">", 1, &m_end)->is_truthy())
-        return ary;
-    if (m_exclude_end) {
-        while (!item.send(env, "==", 1, &m_end)->is_truthy()) {
-            ary->push(item);
-            item = item.send(env, "succ");
-        }
-    } else {
-        bool matches_end = false;
-        do {
-            matches_end = item.send(env, "==", 1, &m_end, nullptr)->is_truthy();
-            ary->push(item);
-            item = item.send(env, "succ");
-        } while (!matches_end);
-    }
+    iterate_over_range(env, [&](ValuePtr item) {
+        ary->push(item);
+    });
     return ary;
 }
 
 ValuePtr RangeValue::each(Env *env, Block *block) {
     env->ensure_block_given(block);
-    ValuePtr item = m_begin;
-    if (m_begin.send(env, ">", 1, &m_end)->is_truthy())
-        return this;
-    if (m_exclude_end) {
-        while (!item.send(env, "==", 1, &m_end)->is_truthy()) {
-            NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
-            item = item.send(env, "succ");
-        }
-    } else {
-        bool matches_end = false;
-        do {
-            matches_end = item.send(env, "==", 1, &m_end, nullptr)->is_truthy();
-            NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
-            item = item.send(env, "succ");
-        } while (!matches_end);
+
+    ValuePtr break_value = iterate_over_range(env, [&](ValuePtr item) -> ValuePtr {
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
+        return nullptr;
+    });
+    if (break_value) {
+        return break_value;
     }
+
     return this;
 }
 
@@ -95,8 +103,16 @@ ValuePtr RangeValue::eqeqeq(Env *env, ValuePtr arg) {
 }
 
 ValuePtr RangeValue::include(Env *env, ValuePtr arg) {
-    auto ary = this->to_a(env);
-    return ary.send(env, "include?", 1, &arg);
+    ValuePtr found_item = iterate_over_range(env, [&](ValuePtr item) -> ValuePtr {
+        if (arg.send(env, "==", 1, &item, nullptr)->is_truthy())
+            return item;
+
+        return nullptr;
+    });
+    if (found_item)
+        return TrueValue::the();
+
+    return FalseValue::the();
 }
 
 }

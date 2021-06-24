@@ -133,6 +133,15 @@ describe 'range' do
       items.should == ['a', 'b', 'c', 'd']
     end
 
+    it 'has empty range when first less than last' do
+      items = []
+      (0...0).each { |i| items << i }
+      items.should == []
+      items = []
+      (0...-10).each { |i| items << i }
+      items.should == []
+    end
+
     it 'handles strings' do
       ary = ->(r) { a = []; r.each { |i| a << i }; a }
       r = 'a'..'z'
@@ -199,9 +208,17 @@ describe 'range' do
   end
 
   describe '#include?' do
-    it 'returns true if the given string is in the range' do
+    it 'returns true if the given string is in the range with end' do
       r = 'a'..'z'
       r.include?('a').should == true
+      r.include?('z').should == true
+      r.include?('aa').should == false
+    end
+
+    it 'returns true if the given string is in the range without' do
+      r = 'a'...'z'
+      r.include?('a').should == true
+      r.include?('z').should == false
       r.include?('aa').should == false
     end
   end
