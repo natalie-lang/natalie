@@ -51,6 +51,9 @@ private:
     ValuePtr m_begin { nullptr };
     ValuePtr m_end { nullptr };
     bool m_exclude_end { false };
+
+    template <typename Function>
+    ValuePtr iterate_over_range(Env *env, Function &&f);
 };
 
 }
