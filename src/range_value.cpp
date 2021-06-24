@@ -13,7 +13,7 @@ ValuePtr RangeValue::to_a(Env *env) {
     ArrayValue *ary = new ArrayValue {};
     ValuePtr item = m_begin;
     if (m_begin.send(env, ">", 1, &m_end)->is_truthy())
-        return this;
+        return ary;
     if (m_exclude_end) {
         while (!item.send(env, "==", 1, &m_end)->is_truthy()) {
             ary->push(item);
