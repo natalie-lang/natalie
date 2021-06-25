@@ -495,6 +495,50 @@ describe 'array' do
     end
   end
 
+  describe '#first(n)' do
+    it 'should return a new array of the first n elements' do
+      [1, 2, 3].first(1).should == [1]
+      [1, 2, 3].first(2).should == [1, 2]
+      [1, 2, 3].first(3).should == [1, 2, 3]
+      ['a', 'b'].first(1).should == ['a']
+    end
+
+   it 'returns an empty array if n == 0' do
+     [1, 2, 3].first(0).should == []
+     [].first(0).should == []
+   end
+
+    it 'returns empty array if the array is empty' do
+      [].first(2).should == []
+    end
+
+    it 'Should raise ArgumentError on negative n' do
+       { [].first(-1) }.should raise_error(ArgumentError, 'negative array size')
+    end
+  end
+
+  describe '#last(n)' do
+    it 'should return a new array of the last n elements' do
+      [1, 2, 3].last(1).should == [3]
+      [1, 2, 3].last(2).should == [2, 3]
+      [1, 2, 3].last(3).should == [1, 2, 3]
+      ['a', 'b'].last(1).should == ['b']
+    end
+
+   it 'returns an empty array if n <= 0' do
+     [1, 2, 3].last(0).should == []
+     [].last(0).should == []
+   end
+
+    it 'returns empty array if the array is empty' do
+      [].last(2).should == []
+    end
+
+    it 'Should raise ArgumentError on negative n' do
+       { [].last(-1) }.should raise_error(ArgumentError, 'negative array size')
+    end
+  end
+
   describe '#to_ary' do
     it 'returns itself' do
       [1, 2, 3].to_ary.should == [1, 2, 3]
