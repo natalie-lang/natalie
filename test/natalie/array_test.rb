@@ -496,7 +496,7 @@ describe 'array' do
   end
 
   describe '#first(n)' do
-    it 'should return a new array of the last n elements' do
+    it 'should return a new array of the first n elements' do
       [1, 2, 3].first(1).should == [1]
       [1, 2, 3].first(2).should == [1, 2]
       [1, 2, 3].first(3).should == [1, 2, 3]
