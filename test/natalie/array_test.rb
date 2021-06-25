@@ -513,13 +513,7 @@ describe 'array' do
     end
 
     it 'Should raise ArgumentError on negative n' do
-       r = begin
-             [].first(-1)
-             raise TestFailed 'Should raise'
-           rescue ArgumentError => e
-             e
-           end
-       r.message.should == 'negative array size'
+       { [].first(-1) }.should raise_error(ArgumentError, 'negative array size')
     end
   end
 
@@ -541,13 +535,7 @@ describe 'array' do
     end
 
     it 'Should raise ArgumentError on negative n' do
-       r = begin
-             [].last(-1)
-             raise TestFailed 'Should raise'
-           rescue ArgumentError => e
-             e
-           end
-       r.message.should == 'negative array size'
+       { [].first(-1) }.should raise_error(ArgumentError, 'negative array size')
     end
   end
 
