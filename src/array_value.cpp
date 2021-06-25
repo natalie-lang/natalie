@@ -228,13 +228,60 @@ ValuePtr ArrayValue::map(Env *env, Block *block) {
     return new_array;
 }
 
-// TODO: accept integer and return array
-ValuePtr ArrayValue::first(Env *env) {
-    if (size() > 0) {
+ValuePtr ArrayValue::first(Env *env, ValuePtr n) {
+    auto has_count = n != nullptr;
+
+    if (!has_count) {
+        if (is_empty())
+            return NilValue::the();
+
         return (*this)[0];
-    } else {
-        return NilValue::the();
     }
+
+    ArrayValue *array = new ArrayValue();
+
+    n->assert_type(env, Value::Type::Integer, "Integer");
+    nat_int_t n_value = n->as_integer()->to_nat_int_t();
+
+    if (n_value < 0) {
+        env->raise("ArgumentError", "negative array size");
+        return nullptr;
+    }
+
+    size_t end = std::min(size(), (size_t)n_value);
+
+    for (size_t k = 0; k < end; ++k) {
+        array->push((*this)[k]);
+    };
+
+    return array;
+}
+
+ValuePtr ArrayValue::last(Env *env, ValuePtr n) {
+    auto has_count = n != nullptr;
+
+    if (!has_count) {
+        if (is_empty())
+            return NilValue::the();
+
+        return (*this)[size() - 1];
+    }
+
+    ArrayValue *array = new ArrayValue();
+
+    n->assert_type(env, Value::Type::Integer, "Integer");
+    nat_int_t n_value = n->as_integer()->to_nat_int_t();
+
+    if (n_value < 0) {
+        env->raise("ArgumentError", "negative array size");
+        return nullptr;
+    }
+
+    for (size_t k = std::max(0ul, size() - n_value); k < size(); ++k) {
+        array->push((*this)[k]);
+    };
+
+    return array;
 }
 
 ValuePtr ArrayValue::sample(Env *env) {
@@ -244,15 +291,6 @@ ValuePtr ArrayValue::sample(Env *env) {
 
     if (size() > 0) {
         return (*this)[random_number(rng) - 1];
-    } else {
-        return NilValue::the();
-    }
-}
-
-// TODO: accept integer and return array
-ValuePtr ArrayValue::last(Env *env) {
-    if (size() > 0) {
-        return (*this)[size() - 1];
     } else {
         return NilValue::the();
     }

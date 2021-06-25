@@ -99,12 +99,12 @@ public:
     ValuePtr each(Env *, Block *);
     ValuePtr eq(Env *, ValuePtr);
     ValuePtr eql(Env *, ValuePtr);
-    ValuePtr first(Env *);
+    ValuePtr first(Env *, ValuePtr);
     ValuePtr include(Env *, ValuePtr);
     ValuePtr index(Env *, ValuePtr, Block *);
     ValuePtr inspect(Env *);
     ValuePtr join(Env *, ValuePtr);
-    ValuePtr last(Env *);
+    ValuePtr last(Env *, ValuePtr);
     ValuePtr ltlt(Env *, ValuePtr);
     ValuePtr map(Env *, Block *);
     ValuePtr max(Env *);
