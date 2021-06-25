@@ -513,7 +513,7 @@ describe 'array' do
     end
 
     it 'Should raise ArgumentError on negative n' do
-       { [].first(-1) }.should raise_error(ArgumentError, 'negative array size')
+      -> { [].first(-1) }.should raise_error(ArgumentError, 'negative array size')
     end
   end
 
@@ -535,7 +535,7 @@ describe 'array' do
     end
 
     it 'Should raise ArgumentError on negative n' do
-       { [].last(-1) }.should raise_error(ArgumentError, 'negative array size')
+      -> { [].last(-1) }.should raise_error(ArgumentError, 'negative array size')
     end
   end
 
