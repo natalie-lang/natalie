@@ -21,4 +21,45 @@ describe 'Kernel' do
       -> { sleep :foo }.should raise_error(TypeError, "can't convert Symbol into time interval")
     end
   end
+
+  describe '#redo' do
+    it 'works with loops' do
+      a = []
+      loop do
+        a << 1
+        redo if a.size < 2 # restart the loop
+        a << 2
+        break if a.size >= 3
+      end
+      a.should == [1, 1, 2]
+    end
+
+    it 'works with each' do
+      a = []
+      [1, 2, 3].each do |i|
+        a << i
+        redo if a.size < 2 # restart the loop
+      end
+      a.should == [1, 1, 2, 3]
+    end
+
+    it 'works within a File block' do
+      a = []
+      File.open('README.md') do
+        a << 1
+        redo if a.size < 2
+      end
+      a.should == [1, 1]
+    end
+
+    it 'works in a Proc' do
+      a = []
+      p = Proc.new do
+        a << 1
+        redo if a.size < 2
+      end
+      p.call
+      a.should == [1, 1]
+    end
+  end
 end

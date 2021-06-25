@@ -26,6 +26,7 @@ public:
         MainObject = 1,
         Frozen = 2,
         Break = 4,
+        Redo = 8,
     };
 
     enum class Conversion {
@@ -200,6 +201,10 @@ public:
     void add_break_flag() { m_flags = m_flags | Flag::Break; }
     void remove_break_flag() { m_flags = m_flags & ~Flag::Break; }
     bool has_break_flag() { return (m_flags & Flag::Break) == Flag::Break; }
+
+    void add_redo_flag() { m_flags = m_flags | Flag::Redo; }
+    void remove_redo_flag() { m_flags = m_flags & ~Flag::Redo; }
+    bool has_redo_flag() { return (m_flags & Flag::Redo) == Flag::Redo; }
 
     bool eq(Env *, ValuePtr other) {
         return other == this;

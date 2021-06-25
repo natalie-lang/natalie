@@ -21,6 +21,7 @@ module Natalie
         NAT_ASSERT_NOT_FROZEN
         NAT_UNREACHABLE
         add_break_flag
+        add_redo_flag
         alias
         append
         array_expand_with_nil
@@ -59,6 +60,7 @@ module Natalie
         alias
         append
         add_break_flag
+        add_redo_flag
         as_class
         as_string
         ensure_argc_between

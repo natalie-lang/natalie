@@ -867,6 +867,14 @@ module Natalie
         end
       end
 
+      def process_redo(exp)
+        redo_name = temp('redo')
+        exp.new(:block,
+                s(:declare, redo_name, s(:nil)),
+                s(:add_redo_flag, redo_name),
+                s(:c_return, redo_name))
+      end
+
       def process_retry(_)
         retry_name = @retry_context.last
         raise "No proper rescue context!" if retry_name.nil?
