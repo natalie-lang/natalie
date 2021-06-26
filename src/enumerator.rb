@@ -14,21 +14,45 @@ class Enumerator
   end
 
   def each
-    yielder = Yielder.new
-    fiber = Fiber.new do
-      @block.call yielder
-    end
+    rewind
     final = []
     loop do
       begin
-        result = fiber.resume
-        unless fiber.status == :terminated
-          final << yield(result)
-        end
-      rescue FiberError
+        result = self.next
+        final << yield(result)
+      rescue StopIteration
         break
       end
     end
     final
+  end
+
+  def next
+    rewind unless @fiber
+    if @peeked
+      @peeked = false
+      return @peeked_value
+    end
+    result = @fiber.resume
+    if @fiber.status == :terminated
+      raise StopIteration, 'iteration reached an end'
+    end
+    result
+  end
+
+  def peek
+    if @peeked
+      return @peeked_value
+    end
+    @peeked_value = self.next
+    @peeked = true
+    @peeked_value
+  end
+
+  def rewind
+    yielder = Yielder.new
+    @fiber = Fiber.new do
+      @block.call yielder
+    end
   end
 end
