@@ -756,6 +756,31 @@ describe 'array' do
     end
   end
 
+  describe '#rassoc' do
+      it 'should return nil on empty array' do
+        a = []
+        a.rassoc(0).should == nil
+      end
+
+      it 'should return nil on array without array with matching first element' do
+        a = [1, 2, [3, 4], [5, 6]]
+        a.rassoc(0).should == nil
+        a.rassoc(1).should == nil
+        a.rassoc(3).should == nil
+      end
+
+      it 'should return the array matching the first element' do
+        a = [[2, 1]]
+        a.rassoc(1).should == [2, 1]
+      end
+
+      it 'should return the first array with matching first element' do
+        a = [[2, 1], [1, 2], [2, 1, 3], [1, 2, 3]]
+        a.rassoc(1).should == [2, 1]
+        a.rassoc(2).should == [1, 2]
+      end
+    end
+
   describe '#compact' do
     specify do
       [].compact.should == []

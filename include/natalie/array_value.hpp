@@ -114,6 +114,7 @@ public:
     ValuePtr max(Env *);
     ValuePtr min(Env *);
     ValuePtr push(Env *, size_t, ValuePtr *);
+    ValuePtr rassoc(Env *, ValuePtr);
     ValuePtr ref(Env *, ValuePtr, ValuePtr);
     ValuePtr refeq(Env *, ValuePtr, ValuePtr, ValuePtr);
     ValuePtr reject(Env *, Block *);

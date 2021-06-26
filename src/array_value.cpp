@@ -537,6 +537,7 @@ ValuePtr ArrayValue::at(Env *env, ValuePtr n) {
 }
 
 ValuePtr ArrayValue::assoc(Env *env, ValuePtr needle) {
+    // TODO use common logic for this (see for example rassoc and index)
     for (auto &item : *this) {
         if (!item->is_array())
             continue;
@@ -546,6 +547,22 @@ ValuePtr ArrayValue::assoc(Env *env, ValuePtr needle) {
             continue;
 
         if (needle.send(env, "==", 1, &(*sub_array)[0], nullptr)->is_truthy())
+            return sub_array;
+    }
+
+    return NilValue::the();
+}
+
+ValuePtr ArrayValue::rassoc(Env *env, ValuePtr needle) {
+    for (auto &item : *this) {
+        if (!item->is_array())
+            continue;
+
+        ArrayValue* sub_array = item->as_array();
+        if (sub_array->size() < 2)
+            continue;
+
+        if (needle.send(env, "==", 1, &(*sub_array)[1], nullptr)->is_truthy())
             return sub_array;
     }
 
