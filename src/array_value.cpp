@@ -252,7 +252,24 @@ ValuePtr ArrayValue::first(Env *env, ValuePtr n) {
 
     for (size_t k = 0; k < end; ++k) {
         array->push((*this)[k]);
-    };
+    }
+
+    return array;
+}
+
+ValuePtr ArrayValue::drop(Env *env, ValuePtr n) {
+    n->assert_type(env, Value::Type::Integer, "Integer");
+    nat_int_t n_value = n->as_integer()->to_nat_int_t();
+
+    if (n_value < 0) {
+        env->raise("ArgumentError", "attempt to drop negative size");
+        return nullptr;
+    }
+
+    ArrayValue *array = new ArrayValue();
+    for (size_t k = n_value; k < size(); ++k) {
+        array->push((*this)[k]);
+    }
 
     return array;
 }
@@ -279,7 +296,7 @@ ValuePtr ArrayValue::last(Env *env, ValuePtr n) {
 
     for (size_t k = std::max(0ul, size() - n_value); k < size(); ++k) {
         array->push((*this)[k]);
-    };
+    }
 
     return array;
 }
@@ -505,6 +522,49 @@ ValuePtr ArrayValue::uniq(Env *env) {
         hash->put(env, item, nil);
     }
     return hash->keys(env);
+}
+
+ValuePtr ArrayValue::clear(Env *env) {
+    this->assert_not_frozen(env);
+    m_vector.clear();
+    return this;
+}
+
+ValuePtr ArrayValue::at(Env *env, ValuePtr n) {
+    return ref(env, n, nullptr);
+}
+
+ValuePtr ArrayValue::assoc(Env *env, ValuePtr needle) {
+    // TODO use common logic for this (see for example rassoc and index)
+    for (auto &item : *this) {
+        if (!item->is_array())
+            continue;
+
+        ArrayValue *sub_array = item->as_array();
+        if (sub_array->is_empty())
+            continue;
+
+        if (needle.send(env, "==", 1, &(*sub_array)[0], nullptr)->is_truthy())
+            return sub_array;
+    }
+
+    return NilValue::the();
+}
+
+ValuePtr ArrayValue::rassoc(Env *env, ValuePtr needle) {
+    for (auto &item : *this) {
+        if (!item->is_array())
+            continue;
+
+        ArrayValue *sub_array = item->as_array();
+        if (sub_array->size() < 2)
+            continue;
+
+        if (needle.send(env, "==", 1, &(*sub_array)[1], nullptr)->is_truthy())
+            return sub_array;
+    }
+
+    return NilValue::the();
 }
 
 }

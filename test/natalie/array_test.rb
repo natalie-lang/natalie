@@ -475,6 +475,15 @@ describe 'array' do
     end
   end
 
+  describe '#collect' do
+      it 'returns a new array of the result of evaluating the block for each item in the array' do
+        result = [1, 2, 3].collect do |i|
+          i * 2
+        end
+        result.should == [2, 4, 6]
+      end
+    end
+
   describe '#first' do
     it 'returns the first item in the array' do
       [1, 2, 3].first.should == 1
@@ -536,6 +545,39 @@ describe 'array' do
 
     it 'Should raise ArgumentError on negative n' do
       -> { [].last(-1) }.should raise_error(ArgumentError, 'negative array size')
+    end
+  end
+
+  describe '#drop(n)' do
+    it 'should return the same array for drop 0' do
+      a = []
+      a.drop(0).should == []
+      a.should == []
+
+      a = [1, 2, 3]
+      a.drop(0).should == [1, 2, 3]
+      a.should == [1, 2, 3]
+    end
+
+    it 'should throw error on negative index' do
+      -> { [].drop(-1) }.should raise_error(ArgumentError, 'attempt to drop negative size')
+      -> { [1, 2, 3].drop(-2) }.should raise_error(ArgumentError, 'attempt to drop negative size')
+    end
+
+    it 'should return the array with the first n elements removed' do
+      a = [1, 2, 3]
+      a.drop(1).should == [2, 3]
+      a.drop(2).should == [3]
+      a.drop(3).should == []
+      a.should == [1, 2, 3]
+    end
+
+    it 'should not throw if dropping more items than array size' do
+      a = [1, 2, 3]
+      a.drop(4).should == []
+      a.drop(5).should == []
+      a.drop(1000).should == []
+      a.should == [1, 2, 3]
     end
   end
 
@@ -658,6 +700,96 @@ describe 'array' do
     end
   end
 
+  describe '#clear' do
+    it 'should leave an empty array empty' do
+      a = []
+      a.clear.should equal(a)
+      a.should == []
+    end
+
+    it 'should clear a non empty array' do
+      a = [1, 2, 'bar']
+      a.clear.should equal(a)
+      a.should == []
+    end
+  end
+
+  describe '#at' do
+    it 'should return the item at the given index' do
+      a = [:foo, 'bar', 2]
+      a.at(0).should == :foo
+      a.at(1).should == 'bar'
+      a.at(2).should == 2
+    end
+
+    it 'negative index should give elements from the back' do
+      a = [1, 2, 3]
+      a.at(-1).should == 3
+      a.at(-2).should == 2
+      a.at(-3).should == 1
+    end
+
+    it 'should return nil on index out of bounds' do
+      a = [0]
+      a.at(1).should == nil
+      a.at(2).should == nil
+      a.at(-2).should == nil
+      a = []
+      a.at(0).should == nil
+      a.at(-1).should == nil
+    end
+  end
+
+  describe '#assoc' do
+    it 'should return nil on empty array' do
+      a = []
+      a.assoc(0).should == nil
+    end
+
+    it 'should return nil on array without array with matching first element' do
+      a = [1, 2, [3, 4], [5, 6]]
+      a.assoc(0).should == nil
+      a.assoc(1).should == nil
+      a.assoc(4).should == nil
+    end
+
+    it 'should return the array matching the first element' do
+      a = [[1]]
+      a.assoc(1).should == [1]
+    end
+
+    it 'should return the first array with matching first element' do
+      a = [[2, 1], [1, 2], [2, 1, 3], [1, 3]]
+      a.assoc(1).should == [1, 2]
+      a.assoc(2).should == [2, 1]
+    end
+  end
+
+  describe '#rassoc' do
+      it 'should return nil on empty array' do
+        a = []
+        a.rassoc(0).should == nil
+      end
+
+      it 'should return nil on array without array with matching first element' do
+        a = [1, 2, [3, 4], [5, 6]]
+        a.rassoc(0).should == nil
+        a.rassoc(1).should == nil
+        a.rassoc(3).should == nil
+      end
+
+      it 'should return the array matching the first element' do
+        a = [[2, 1]]
+        a.rassoc(1).should == [2, 1]
+      end
+
+      it 'should return the first array with matching first element' do
+        a = [[2, 1], [1, 2], [2, 1, 3], [1, 2, 3]]
+        a.rassoc(1).should == [2, 1]
+        a.rassoc(2).should == [1, 2]
+      end
+    end
+
   describe '#compact' do
     specify do
       [].compact.should == []
@@ -680,6 +812,18 @@ describe 'array' do
     end
   end
 
+  describe '#append' do
+      specify do
+        a = []
+        a.append
+        a.should == []
+        a.append(1, 2, 3)
+        a.should == [1, 2, 3]
+        a.append(4)
+        a.should == [1, 2, 3, 4]
+      end
+    end
+
   describe '#index' do
     specify do
       a = [1, 2, 3]
@@ -694,6 +838,21 @@ describe 'array' do
       #a.index.each { |i| i == 'c' }.should == 2
     end
   end
+
+  describe '#find_index' do
+      specify do
+        a = [1, 2, 3]
+        a.find_index(2).should == 1
+        a = ['a', 'b', 'c']
+        a.find_index('c').should == 2
+        a.find_index('d').should == nil
+        a.find_index(nil).should == nil
+        a.find_index { |i| i == 'a' }.should == 0
+        # TODO
+        #a.find_index.should be_an_instance_of(Enumerator)
+        #a.find_index.each { |i| i == 'c' }.should == 2
+      end
+    end
 
   describe '#uniq' do
     specify do

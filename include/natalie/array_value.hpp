@@ -94,8 +94,12 @@ public:
 
     ValuePtr add(Env *, ValuePtr);
     ValuePtr any(Env *, size_t, ValuePtr *, Block *);
+    ValuePtr at(Env *, ValuePtr);
+    ValuePtr assoc(Env *, ValuePtr);
     ValuePtr cmp(Env *, ValuePtr);
+    ValuePtr clear(Env *);
     ValuePtr compact(Env *);
+    ValuePtr drop(Env *, ValuePtr);
     ValuePtr each(Env *, Block *);
     ValuePtr eq(Env *, ValuePtr);
     ValuePtr eql(Env *, ValuePtr);
@@ -110,6 +114,7 @@ public:
     ValuePtr max(Env *);
     ValuePtr min(Env *);
     ValuePtr push(Env *, size_t, ValuePtr *);
+    ValuePtr rassoc(Env *, ValuePtr);
     ValuePtr ref(Env *, ValuePtr, ValuePtr);
     ValuePtr refeq(Env *, ValuePtr, ValuePtr, ValuePtr);
     ValuePtr reject(Env *, Block *);
