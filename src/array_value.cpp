@@ -513,4 +513,8 @@ ValuePtr ArrayValue::clear(Env *env) {
     return this;
 }
 
+ValuePtr ArrayValue::at(Env *env, ValuePtr n) {
+    return ref(env, n, nullptr);
+}
+
 }

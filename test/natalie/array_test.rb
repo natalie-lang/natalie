@@ -672,6 +672,32 @@ describe 'array' do
     end
   end
 
+  describe '#at' do
+    it 'should return the item at the given index' do
+      a = [:foo, 'bar', 2]
+      a.at(0).should == :foo
+      a.at(1).should == 'bar'
+      a.at(2).should == 2
+    end
+
+    it 'negative index should give elements from the back' do
+      a = [1, 2, 3]
+      a.at(-1).should == 3
+      a.at(-2).should == 2
+      a.at(-3).should == 1
+    end
+
+    it 'should return nil on index out of bounds' do
+      a = [0]
+      a.at(1).should == nil
+      a.at(2).should == nil
+      a.at(-2).should == nil
+      a = []
+      a.at(0).should == nil
+      a.at(-1).should == nil
+    end
+  end
+
   describe '#compact' do
     specify do
       [].compact.should == []
