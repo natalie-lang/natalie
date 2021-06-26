@@ -95,5 +95,3 @@
 #define NAT_MAKE_NONCOPYABLE(c) \
     c(const c &) = delete;      \
     c &operator=(const c &) = delete
-
-#define NAT_MIN(a, b) (a < b ? a : b)

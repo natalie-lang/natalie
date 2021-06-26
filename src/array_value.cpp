@@ -295,7 +295,9 @@ ValuePtr ArrayValue::last(Env *env, ValuePtr n) {
         return nullptr;
     }
 
-    for (size_t k = std::max(0ul, size() - n_value); k < size(); ++k) {
+    assert(size() <= NAT_INT_MAX);
+    nat_int_t signed_size = static_cast<nat_int_t>(size());
+    for (size_t k = std::max(static_cast<nat_int_t>(0), signed_size - n_value); k < size(); ++k) {
         array->push((*this)[k]);
     }
 
