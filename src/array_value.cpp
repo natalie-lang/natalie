@@ -507,4 +507,10 @@ ValuePtr ArrayValue::uniq(Env *env) {
     return hash->keys(env);
 }
 
+ValuePtr ArrayValue::clear(Env *env) {
+    this->assert_not_frozen(env);
+    m_vector.clear();
+    return this;
+}
+
 }

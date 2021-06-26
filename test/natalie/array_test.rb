@@ -658,6 +658,20 @@ describe 'array' do
     end
   end
 
+  describe '#clear' do
+    it 'should leave an empty array empty' do
+      a = []
+      a.clear.should equal(a)
+      a.should == []
+    end
+
+    it 'should clear a non empty array' do
+      a = [1, 2, 'bar']
+      a.clear.should equal(a)
+      a.should == []
+    end
+  end
+
   describe '#compact' do
     specify do
       [].compact.should == []
