@@ -1,4 +1,5 @@
 #include "natalie.hpp"
+#include <algorithm>
 #include <random>
 
 namespace Natalie {
