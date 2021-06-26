@@ -165,6 +165,45 @@ module Enumerable
     false
   end
 
+  def inject(*args)
+    gather = ->(item) { item.size <= 1 ? item.first : item }
+    if args.size == 0
+      enum = enum_for(:each)
+      memo = nil
+      begin
+        memo = enum.next
+        loop do
+          memo = yield memo, enum.next
+        end
+      rescue StopIteration
+      end
+      memo
+    elsif args.size == 1
+      if block_given?
+        memo = args.first
+        each do |*item|
+          memo = yield memo, gather.(item)
+        end
+        memo
+      elsif args.first.is_a?(Symbol)
+        sym = args.first
+        reduce do |memo, i|
+          memo.send(sym, i)
+        end
+      else
+        raise "don't know how to handle arg: #{args.first.inspect}"
+      end
+    else
+      (memo, sym) = args
+      each do |obj|
+        memo = memo.send(sym, obj)
+      end
+      memo
+    end
+  end
+
+  alias reduce inject
+
   def partition
     left = []
     right = []
