@@ -45,7 +45,7 @@ describe 'Kernel' do
 
     it 'works within a File block' do
       a = []
-      File.open('README.md') do
+      File.open('test/support/file.txt') do
         a << 1
         redo if a.size < 2
       end
