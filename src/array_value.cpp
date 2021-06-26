@@ -252,11 +252,10 @@ ValuePtr ArrayValue::first(Env *env, ValuePtr n) {
 
     for (size_t k = 0; k < end; ++k) {
         array->push((*this)[k]);
-    };
+    }
 
     return array;
 }
-
 
 ValuePtr ArrayValue::drop(Env *env, ValuePtr n) {
     n->assert_type(env, Value::Type::Integer, "Integer");
@@ -274,7 +273,6 @@ ValuePtr ArrayValue::drop(Env *env, ValuePtr n) {
 
     return array;
 }
-
 
 ValuePtr ArrayValue::last(Env *env, ValuePtr n) {
     auto has_count = n != nullptr;
@@ -298,7 +296,7 @@ ValuePtr ArrayValue::last(Env *env, ValuePtr n) {
 
     for (size_t k = std::max(0ul, size() - n_value); k < size(); ++k) {
         array->push((*this)[k]);
-    };
+    }
 
     return array;
 }
@@ -542,7 +540,7 @@ ValuePtr ArrayValue::assoc(Env *env, ValuePtr needle) {
         if (!item->is_array())
             continue;
 
-        ArrayValue* sub_array = item->as_array();
+        ArrayValue *sub_array = item->as_array();
         if (sub_array->is_empty())
             continue;
 
@@ -558,7 +556,7 @@ ValuePtr ArrayValue::rassoc(Env *env, ValuePtr needle) {
         if (!item->is_array())
             continue;
 
-        ArrayValue* sub_array = item->as_array();
+        ArrayValue *sub_array = item->as_array();
         if (sub_array->size() < 2)
             continue;
 
