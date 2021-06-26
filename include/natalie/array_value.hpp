@@ -95,6 +95,7 @@ public:
     ValuePtr add(Env *, ValuePtr);
     ValuePtr any(Env *, size_t, ValuePtr *, Block *);
     ValuePtr at(Env *, ValuePtr);
+    ValuePtr assoc(Env *, ValuePtr);
     ValuePtr cmp(Env *, ValuePtr);
     ValuePtr clear(Env *);
     ValuePtr compact(Env *);

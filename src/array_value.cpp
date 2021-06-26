@@ -517,4 +517,20 @@ ValuePtr ArrayValue::at(Env *env, ValuePtr n) {
     return ref(env, n, nullptr);
 }
 
+ValuePtr ArrayValue::assoc(Env *env, ValuePtr needle) {
+    for (auto &item : *this) {
+        if (!item->is_array())
+            continue;
+
+        ArrayValue* sub_array = item->as_array();
+        if (sub_array->is_empty())
+            continue;
+
+        if (needle.send(env, "==", 1, &(*sub_array)[0], nullptr)->is_truthy())
+            return sub_array;
+    }
+
+    return NilValue::the();
+}
+
 }

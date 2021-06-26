@@ -698,6 +698,31 @@ describe 'array' do
     end
   end
 
+  describe '#assoc' do
+    it 'should return nil on empty array' do
+      a = []
+      a.assoc(0).should == nil
+    end
+
+    it 'should return nil on array without array with matching first element' do
+      a = [1, 2, [3, 4], [5, 6]]
+      a.assoc(0).should == nil
+      a.assoc(1).should == nil
+      a.assoc(4).should == nil
+    end
+
+    it 'should return the array matching the first element' do
+      a = [[1]]
+      a.assoc(1).should == [1]
+    end
+
+    it 'should return the first array with matching first element' do
+      a = [[2, 1], [1, 2], [2, 1, 3], [1, 3]]
+      a.assoc(1).should == [1, 2]
+      a.assoc(2).should == [2, 1]
+    end
+  end
+
   describe '#compact' do
     specify do
       [].compact.should == []
