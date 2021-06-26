@@ -475,6 +475,15 @@ describe 'array' do
     end
   end
 
+  describe '#collect' do
+      it 'returns a new array of the result of evaluating the block for each item in the array' do
+        result = [1, 2, 3].collect do |i|
+          i * 2
+        end
+        result.should == [2, 4, 6]
+      end
+    end
+
   describe '#first' do
     it 'returns the first item in the array' do
       [1, 2, 3].first.should == 1
@@ -803,6 +812,18 @@ describe 'array' do
     end
   end
 
+  describe '#append' do
+      specify do
+        a = []
+        a.append
+        a.should == []
+        a.append(1, 2, 3)
+        a.should == [1, 2, 3]
+        a.append(4)
+        a.should == [1, 2, 3, 4]
+      end
+    end
+
   describe '#index' do
     specify do
       a = [1, 2, 3]
@@ -817,6 +838,21 @@ describe 'array' do
       #a.index.each { |i| i == 'c' }.should == 2
     end
   end
+
+  describe '#find_index' do
+      specify do
+        a = [1, 2, 3]
+        a.find_index(2).should == 1
+        a = ['a', 'b', 'c']
+        a.find_index('c').should == 2
+        a.find_index('d').should == nil
+        a.find_index(nil).should == nil
+        a.find_index { |i| i == 'a' }.should == 0
+        # TODO
+        #a.find_index.should be_an_instance_of(Enumerator)
+        #a.find_index.each { |i| i == 'c' }.should == 2
+      end
+    end
 
   describe '#uniq' do
     specify do
