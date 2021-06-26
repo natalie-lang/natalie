@@ -539,6 +539,39 @@ describe 'array' do
     end
   end
 
+  describe '#drop(n)' do
+    it 'should return the same array for drop 0' do
+      a = []
+      a.drop(0).should == []
+      a.should == []
+
+      a = [1, 2, 3]
+      a.drop(0).should == [1, 2, 3]
+      a.should == [1, 2, 3]
+    end
+
+    it 'should throw error on negative index' do
+      -> { [].drop(-1) }.should raise_error(ArgumentError, 'attempt to drop negative size')
+      -> { [1, 2, 3].drop(-2) }.should raise_error(ArgumentError, 'attempt to drop negative size')
+    end
+
+    it 'should return the array with the first n elements removed' do
+      a = [1, 2, 3]
+      a.drop(1).should == [2, 3]
+      a.drop(2).should == [3]
+      a.drop(3).should == []
+      a.should == [1, 2, 3]
+    end
+
+    it 'should not throw if dropping more items than array size' do
+      a = [1, 2, 3]
+      a.drop(4).should == []
+      a.drop(5).should == []
+      a.drop(1000).should == []
+      a.should == [1, 2, 3]
+    end
+  end
+
   describe '#to_ary' do
     it 'returns itself' do
       [1, 2, 3].to_ary.should == [1, 2, 3]
