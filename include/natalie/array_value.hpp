@@ -107,6 +107,8 @@ public:
     ValuePtr include(Env *, ValuePtr);
     ValuePtr index(Env *, ValuePtr, Block *);
     ValuePtr inspect(Env *);
+    ValuePtr intersection(Env *, ValuePtr);
+    ValuePtr intersection(Env *, size_t, ValuePtr*);
     ValuePtr join(Env *, ValuePtr);
     ValuePtr last(Env *, ValuePtr);
     ValuePtr ltlt(Env *, ValuePtr);
