@@ -257,7 +257,7 @@ module Enumerable
   def min(n = nil)
     has_block = block_given?
     cmp = ->(result) {
-      raise ArgumentError, "bad result from block" unless result.respond_to?(:>)
+      raise ArgumentError, "bad result from block" unless result.respond_to?(:<)
       result < 0
     }
     if n
