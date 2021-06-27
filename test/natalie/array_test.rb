@@ -919,4 +919,49 @@ describe 'array' do
       [o1, o1, o2].uniq.should == [o1, o2]
     end
   end
+
+  describe '#reverse' do
+    it 'should give the same array for empty or single element' do
+      [].reverse.should == []
+      [1].reverse.should == [1]
+      [:foo].reverse.should == [:foo]
+    end
+
+    it 'should swap the elements for arrays of size 2' do
+      [1, 2].reverse.should == [2, 1]
+      [2, 1].reverse.should == [1, 2]
+    end
+
+    it 'should reverse the entire array' do
+      [1, 2, 3].reverse.should == [3, 2, 1]
+      [1, 2, 3, 4].reverse.should == [4, 3, 2, 1]
+      [1, 2, 3, 4, 5].reverse.should == [5, 4, 3, 2, 1]
+    end
+
+    it 'should not reverse the original array' do
+      a = [1, 2, 3]
+      a.reverse.should == [3, 2, 1]
+      a.should == [1, 2, 3]
+    end
+  end
+
+  describe '#reverse!' do
+    it 'should give the same array for empty and singleton array' do
+      a = []
+      a.reverse!.should equal(a)
+      a = [1]
+      a.reverse!.should equal(a)
+      a.should == [1]
+    end
+
+    it 'should reverse the array in place' do
+      a = [1, 2, 3]
+      a.reverse!.should equal(a)
+      a.should == [3, 2, 1]
+
+      a = [1, 2, 3, 4]
+      a.reverse!.should equal(a)
+      a.should == [4, 3, 2, 1]
+    end
+  end
 end

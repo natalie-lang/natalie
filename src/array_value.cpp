@@ -605,4 +605,19 @@ ValuePtr ArrayValue::intersection(Env *env, size_t argc, ValuePtr *args) {
     return result;
 }
 
+ValuePtr ArrayValue::reverse(Env *env) {
+    ArrayValue* copy = new ArrayValue(env, *this);
+    copy->reverse_in_place(env);
+    return copy;
+}
+
+ValuePtr ArrayValue::reverse_in_place(Env *env) {
+    assert_not_frozen(env);
+
+    for (size_t i = 0; i < size() / 2; i++) {
+        std::swap(m_vector[i], m_vector[size() - 1 - i]);
+    }
+    return this;
+}
+
 }
