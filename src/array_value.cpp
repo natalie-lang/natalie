@@ -1,6 +1,8 @@
 #include "natalie.hpp"
 #include <algorithm>
 #include <random>
+#include <natalie/array_value.hpp>
+
 
 namespace Natalie {
 
@@ -568,6 +570,54 @@ ValuePtr ArrayValue::rassoc(Env *env, ValuePtr needle) {
     }
 
     return NilValue::the();
+}
+ValuePtr ArrayValue::intersection(Env *env, ValuePtr arg) {
+    if (!arg->is_array()) {
+        env->raise("TypeError", "no implicit conversion of {} into Array", arg->klass()->class_name_or_blank());
+        return nullptr;
+    }
+
+    auto* other_array = arg->as_array();
+
+    if (is_empty() || other_array->is_empty()) {
+        return new ArrayValue();
+    }
+
+    auto* result = new ArrayValue();
+    for (auto& val : *this) {
+        if (other_array->include(env, val)->is_truthy()) {
+            result->push(val);
+        }
+    }
+
+    return result;
+}
+
+ValuePtr ArrayValue::intersection(Env *env, size_t argc, ValuePtr *args) {
+    auto* result = new ArrayValue(env, *this);
+
+    // TODO: we probably want to make & call this instead of this way for optimization
+    for (size_t i = 0; i < argc; i++) {
+        auto& arg = args[i];
+        result = result->intersection(env, arg)->as_array();
+    }
+
+    return result;
+}
+
+ValuePtr ArrayValue::reverse(Env *env) {
+    ArrayValue* copy = new ArrayValue(env, *this);
+    copy->reverse_in_place(env);
+    return copy;
+}
+
+ValuePtr ArrayValue::reverse_in_place(Env *env) {
+    assert_not_frozen(env);
+
+    for (size_t i = 0; i < size() / 2; i++) {
+        std::swap(m_vector[i], m_vector[size() - 1 - i]);
+    }
+    return this;
 }
 
 }

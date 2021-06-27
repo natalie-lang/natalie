@@ -351,6 +351,62 @@ describe 'array' do
     end
   end
 
+  describe '&' do
+    it 'should give empty array if either is empty' do
+      ([] & []).should == []
+      ([1, 2, 3] & []).should == []
+      ([] & [1, 2, 3]).should == []
+    end
+
+    it 'should give an array with elements in both arrays' do
+      ([1, 2, 3] & [1, 2, 3]).should == [1, 2, 3]
+      ([1, 2, 3] & [1, 3, 2]).should == [1, 2, 3]
+      ([1, 2, 3] & [2, 2, 3, 3, 1]).should == [1, 2, 3]
+
+      ([1] & [2, 2, 3, 3, 1]).should == [1]
+      ([3, 2] & [2, 2, 3, 3, 1]).should == [3, 2] # is the order supposed to be fixed?
+      ([1, 2, 3] & [4, 5, 6, 7]).should == []
+      ([1, 2, 3, -1] & [4, 5, 6, -1, 7]).should == [-1]
+    end
+
+    it 'should not modify the original arrays' do
+      a = [1, 2, 3]
+      b = [2, 4, 6]
+      (a & b).should == [2]
+      a.should == [1, 2, 3]
+      b.should == [2, 4, 6]
+    end
+
+    it 'should throw on non array argument' do
+    -> { [] & -3 }.should raise_error(TypeError, 'no implicit conversion of Integer into Array')
+    -> { [] & :foo }.should raise_error(TypeError, 'no implicit conversion of Symbol into Array')
+    -> { [] & 'a' }.should raise_error(TypeError, 'no implicit conversion of String into Array')
+    end
+  end
+
+  describe '#intersection' do
+    it 'should give a copy of self when no arguments given' do
+      a = [1, 2, 3]
+      b = a.intersection()
+      a.should == b
+      a.should_not equal(b)
+    end
+
+    it 'should give an empty array if any array is empty' do
+      [].intersection([1]).should == []
+      [1, 2, 3].intersection([1], []).should == []
+      [1, 2, 3].intersection([]).should == []
+      [1, 2, 3].intersection([1, 2], [], []).should == []
+      [1, 2, 3].intersection([], [1, 2], []).should == []
+    end
+
+    it 'should throw on non array arguments' do
+      -> { [].intersection(-3, :foo) }.should raise_error(TypeError, 'no implicit conversion of Integer into Array')
+      -> { [].intersection(:foo, -3) }.should raise_error(TypeError, 'no implicit conversion of Symbol into Array')
+      -> { [].intersection('a', -3) }.should raise_error(TypeError, 'no implicit conversion of String into Array')
+    end
+  end
+
   describe '[]' do
     it 'returns the item at the given index' do
       a = [1, 2, 3, 4, 5, 6]
@@ -861,6 +917,51 @@ describe 'array' do
       o1 = Object.new
       o2 = Object.new
       [o1, o1, o2].uniq.should == [o1, o2]
+    end
+  end
+
+  describe '#reverse' do
+    it 'should give the same array for empty or single element' do
+      [].reverse.should == []
+      [1].reverse.should == [1]
+      [:foo].reverse.should == [:foo]
+    end
+
+    it 'should swap the elements for arrays of size 2' do
+      [1, 2].reverse.should == [2, 1]
+      [2, 1].reverse.should == [1, 2]
+    end
+
+    it 'should reverse the entire array' do
+      [1, 2, 3].reverse.should == [3, 2, 1]
+      [1, 2, 3, 4].reverse.should == [4, 3, 2, 1]
+      [1, 2, 3, 4, 5].reverse.should == [5, 4, 3, 2, 1]
+    end
+
+    it 'should not reverse the original array' do
+      a = [1, 2, 3]
+      a.reverse.should == [3, 2, 1]
+      a.should == [1, 2, 3]
+    end
+  end
+
+  describe '#reverse!' do
+    it 'should give the same array for empty and singleton array' do
+      a = []
+      a.reverse!.should equal(a)
+      a = [1]
+      a.reverse!.should equal(a)
+      a.should == [1]
+    end
+
+    it 'should reverse the array in place' do
+      a = [1, 2, 3]
+      a.reverse!.should equal(a)
+      a.should == [3, 2, 1]
+
+      a = [1, 2, 3, 4]
+      a.reverse!.should equal(a)
+      a.should == [4, 3, 2, 1]
     end
   end
 end

@@ -107,6 +107,8 @@ public:
     ValuePtr include(Env *, ValuePtr);
     ValuePtr index(Env *, ValuePtr, Block *);
     ValuePtr inspect(Env *);
+    ValuePtr intersection(Env *, ValuePtr);
+    ValuePtr intersection(Env *, size_t, ValuePtr*);
     ValuePtr join(Env *, ValuePtr);
     ValuePtr last(Env *, ValuePtr);
     ValuePtr ltlt(Env *, ValuePtr);
@@ -118,6 +120,8 @@ public:
     ValuePtr ref(Env *, ValuePtr, ValuePtr);
     ValuePtr refeq(Env *, ValuePtr, ValuePtr, ValuePtr);
     ValuePtr reject(Env *, Block *);
+    ValuePtr reverse(Env *);
+    ValuePtr reverse_in_place(Env *);
     ValuePtr sample(Env *);
     ValuePtr select(Env *, Block *);
     ValuePtr shift(Env *, ValuePtr);
