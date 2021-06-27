@@ -204,6 +204,104 @@ module Enumerable
 
   alias reduce inject
 
+  def max(n = nil)
+    has_block = block_given?
+    cmp = ->(result) {
+      raise ArgumentError, "bad result from block" unless result.respond_to?(:>)
+      result > 0
+    }
+    if n
+      raise ArgumentError, "negative size (#{n})" if n < 0
+      ary = []
+      enum = enum_for(:each)
+      begin
+        ary << enum.next
+        loop do
+          new_val = enum.next
+          if has_block
+            if ary.size < n || ary.any? { |v| cmp.(yield(new_val, v)) }
+              ary << new_val
+              ary = ary.sort.last(n)
+            end
+          else
+            if ary.size < n || ary.any? { |v| cmp.(new_val <=> v) }
+              ary << new_val
+              ary = ary.sort.last(n)
+            end
+          end
+        end
+      rescue StopIteration
+      end
+      # TODO: implement Array#reverse
+      rev = -> (a) { r = []; ary.each { |i| r = [i] + r }; r }
+      rev.(ary.sort)
+    else
+      val = nil
+      enum = enum_for(:each)
+      begin
+        val = enum.next
+        loop do
+          new_val = enum.next
+          if has_block
+            val = new_val if cmp.(yield(new_val, val))
+          else
+            val = new_val if cmp.(new_val <=> val)
+          end
+        end
+      rescue StopIteration
+      end
+      val
+    end
+  end
+
+  def min(n = nil)
+    has_block = block_given?
+    cmp = ->(result) {
+      raise ArgumentError, "bad result from block" unless result.respond_to?(:>)
+      result < 0
+    }
+    if n
+      raise ArgumentError, "negative size (#{n})" if n < 0
+      ary = []
+      enum = enum_for(:each)
+      begin
+        ary << enum.next
+        loop do
+          new_val = enum.next
+          if has_block
+            if ary.size < n || ary.any? { |v| cmp.(yield(new_val, v)) }
+              ary << new_val
+              ary = ary.sort.last(n)
+            end
+          else
+            if ary.size < n || ary.any? { |v| cmp.(new_val <=> v) }
+              ary << new_val
+              ary = ary.sort.last(n)
+            end
+          end
+        end
+      rescue StopIteration
+      end
+      ary.sort
+    else
+      val = nil
+      enum = enum_for(:each)
+      begin
+        val = enum.next
+        loop do
+          new_val = enum.next
+          if has_block
+            val = new_val if cmp.(yield(new_val, val))
+          else
+            val = new_val if cmp.(new_val <=> val)
+          end
+        end
+      rescue StopIteration
+      end
+      val
+    end
+  end
+
   def partition
     left = []
     right = []
