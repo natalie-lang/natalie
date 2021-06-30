@@ -636,4 +636,32 @@ ValuePtr ArrayValue::concat(Env *env, size_t argc, ValuePtr* args) {
     return this;
 }
 
+ValuePtr ArrayValue::rindex(Env *env, ValuePtr object, Block *block) {
+    // TODO make dry since this code is almost identical to index
+    assert(size() <= NAT_INT_MAX);
+    auto length = static_cast<nat_int_t>(size());
+    if (block) {
+        for (nat_int_t i = length - 1; i >= 0; i--) {
+            auto item = m_vector[i];
+            ValuePtr args[] = { item };
+            auto result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, args, nullptr);
+            if (result->is_truthy())
+                return ValuePtr::integer(i);
+        }
+        return NilValue::the();
+    } else if (object) {
+        for (nat_int_t i = length - 1; i >= 0; i--) {
+            auto item = m_vector[i];
+            ValuePtr args[] = { object };
+            if (item.send(env, "==", 1, args)->is_truthy())
+                return ValuePtr::integer(i);
+        }
+        return NilValue::the();
+    } else {
+        // TODO
+        env->ensure_block_given(block);
+        NAT_UNREACHABLE();
+    }
+}
+
 }

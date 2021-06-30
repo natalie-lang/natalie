@@ -893,6 +893,13 @@ describe 'array' do
       #a.index.should be_an_instance_of(Enumerator)
       #a.index.each { |i| i == 'c' }.should == 2
     end
+
+    it 'should return the first occurrence of object' do
+      a = [1, 2, 2, 3, 4, 1]
+      a.index(1).should == 0
+      a.index(2).should == 1
+      a.index {|i| i == 3 or i == 4}.should == 3
+    end
   end
 
   describe '#find_index' do
@@ -907,6 +914,13 @@ describe 'array' do
         # TODO
         #a.find_index.should be_an_instance_of(Enumerator)
         #a.find_index.each { |i| i == 'c' }.should == 2
+      end
+
+      it 'should return the first occurrence of object' do
+        a = [1, 2, 2, 3, 4, 1]
+        a.find_index(1).should == 0
+        a.find_index(2).should == 1
+        a.find_index {|i| i == 3 or i == 4}.should == 3
       end
     end
 
@@ -996,5 +1010,27 @@ describe 'array' do
       -> { [1].concat([2], 'a') }.should raise_error(TypeError, 'no implicit conversion of String into Array')
     end
   end
+
+  describe '#rindex' do
+      specify do
+        a = [1, 2, 3]
+        a.rindex(2).should == 1
+        a = ['a', 'b', 'c']
+        a.rindex('c').should == 2
+        a.rindex('d').should == nil
+        a.rindex(nil).should == nil
+        a.rindex { |i| i == 'a' }.should == 0
+        # TODO
+        #a.index.should be_an_instance_of(Enumerator)
+        #a.index.each { |i| i == 'c' }.should == 2
+      end
+
+      it 'should return the first occurrence of object' do
+        a = [1, 2, 2, 3, 4, 1]
+        a.rindex(1).should == 5
+        a.rindex(2).should == 2
+        a.rindex {|i| i == 3 or i == 4}.should == 4
+      end
+    end
 
 end
