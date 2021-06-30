@@ -99,6 +99,7 @@ public:
     ValuePtr cmp(Env *, ValuePtr);
     ValuePtr clear(Env *);
     ValuePtr compact(Env *);
+    ValuePtr concat(Env *, size_t, ValuePtr*);
     ValuePtr drop(Env *, ValuePtr);
     ValuePtr each(Env *, Block *);
     ValuePtr eq(Env *, ValuePtr);

@@ -620,4 +620,20 @@ ValuePtr ArrayValue::reverse_in_place(Env *env) {
     return this;
 }
 
+ValuePtr ArrayValue::concat(Env *env, size_t argc, ValuePtr* args) {
+    assert_not_frozen(env);
+
+    for (size_t i = 0; i < argc; i++) {
+        auto arg = args[i];
+        if (!arg->is_array()) {
+            env->raise("TypeError", "no implicit conversion of {} into Array", arg->klass()->class_name_or_blank());
+            return nullptr;
+        }
+
+        concat(*arg->as_array());
+    }
+
+    return this;
+}
+
 }

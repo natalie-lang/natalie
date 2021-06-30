@@ -964,4 +964,37 @@ describe 'array' do
       a.should == [4, 3, 2, 1]
     end
   end
+
+  describe '#concat' do
+    it 'should give itself even with no arguments' do
+      a = [1, 2, 3]
+      b = a.concat()
+      a.should equal(b)
+      b.should == [1, 2, 3]
+    end
+
+    it 'should give itself and not a copy when concatenating' do
+      a = [1, 2]
+      a.concat([3, 4]).should equal(a)
+      a.should == [1, 2, 3, 4]
+    end
+
+    it 'should give the concatonation of two arrays' do
+      [1, 2].concat([3, 4]).should == [1, 2, 3, 4]
+      [].concat([1, 2]).should == [1, 2]
+      [3, 4].concat([]).should == [3, 4]
+    end
+
+    it 'should concatonate all the arrays' do
+      [1].concat([999], [3, 4], [5, [6, 7]]).should == [1, 999, 3, 4, 5, [6, 7]]
+      [:foo].concat([:bar], [3], ["c"]).should == [:foo, :bar, 3, 'c']
+    end
+
+    it 'should raise error on non array argument' do
+      -> { [1].concat([2], 3) }.should raise_error(TypeError, 'no implicit conversion of Integer into Array')
+      -> { [1].concat([2], :foo) }.should raise_error(TypeError, 'no implicit conversion of Symbol into Array')
+      -> { [1].concat([2], 'a') }.should raise_error(TypeError, 'no implicit conversion of String into Array')
+    end
+  end
+
 end
