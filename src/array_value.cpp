@@ -174,6 +174,7 @@ ValuePtr ArrayValue::refeq(Env *env, ValuePtr index_obj, ValuePtr size, ValuePtr
 }
 
 ValuePtr ArrayValue::any(Env *env, size_t argc, ValuePtr *args, Block *block) {
+    // FIXME: this is not exactly the way ruby does it
     auto Enumerable = GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("Enumerable"))->as_module();
     auto any_method = Enumerable->find_method(env, SymbolValue::intern("any?"));
     return any_method->call(env, this, argc, args, block);
@@ -663,5 +664,20 @@ ValuePtr ArrayValue::rindex(Env *env, ValuePtr object, Block *block) {
         NAT_UNREACHABLE();
     }
 }
+
+ValuePtr ArrayValue::none(Env *env, size_t argc, ValuePtr *args, Block *block) {
+    // FIXME: this is not exactly the way ruby does it
+    auto Enumerable = GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("Enumerable"))->as_module();
+    auto any_method = Enumerable->find_method(env, SymbolValue::intern("none?"));
+    return any_method->call(env, this, argc, args, block);
+}
+
+ValuePtr ArrayValue::one(Env *env, size_t argc, ValuePtr *args, Block *block) {
+    // FIXME: this is not exactly the way ruby does it
+    auto Enumerable = GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("Enumerable"))->as_module();
+    auto any_method = Enumerable->find_method(env, SymbolValue::intern("one?"));
+    return any_method->call(env, this, argc, args, block);
+}
+
 
 }

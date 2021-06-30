@@ -39,6 +39,54 @@ module Enumerable
     end
   end
 
+  def none?(pattern = nil)
+    gather = ->(item) { item.size <= 1 ? item.first : item }
+    if pattern
+      each do |*item|
+        return false if pattern === gather.(item)
+      end
+    elsif block_given?
+      each do |*item|
+        return false if yield(*item)
+      end
+    else
+      each do |*item|
+        return false if gather.(item)
+      end
+    end
+    true
+  end
+
+  def one?(pattern = nil)
+    gather = ->(item) { item.size <= 1 ? item.first : item }
+    result = false
+    if pattern
+      each do |*item|
+        if pattern === gather.(item)
+          return false if result
+          result = true
+        end
+      end
+      result
+    elsif block_given?
+      each do |*item|
+        if yield(*item)
+          return false if result
+          result = true
+        end
+      end
+      result
+    else
+      each do |*item|
+        if gather.(item)
+          return false if result
+          result = true
+        end
+      end
+      result
+    end
+  end
+
   def detect
     each do |item|
       return item if yield(item)

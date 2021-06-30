@@ -116,6 +116,8 @@ public:
     ValuePtr map(Env *, Block *);
     ValuePtr max(Env *);
     ValuePtr min(Env *);
+    ValuePtr none(Env *, size_t, ValuePtr*, Block*);
+    ValuePtr one(Env *, size_t, ValuePtr*, Block*);
     ValuePtr push(Env *, size_t, ValuePtr *);
     ValuePtr rassoc(Env *, ValuePtr);
     ValuePtr ref(Env *, ValuePtr, ValuePtr);

@@ -485,6 +485,13 @@ describe 'array' do
         [1, 2, 3, 4, 5, 6].any?.should == true
       end
     end
+
+    context 'given block' do
+      it 'should use the condition of the block' do
+        [1, 2, 3].any? {|i| i == 2}.should == true
+        [1, 2, 3].any? {|i| i == 4}.should == false
+      end
+    end
   end
 
   describe '==' do
@@ -1032,5 +1039,58 @@ describe 'array' do
         a.rindex {|i| i == 3 or i == 4}.should == 4
       end
     end
+
+  describe '#none?' do
+    it 'returns true if the array has no items' do
+      [].none?.should == true
+    end
+
+    it 'returns true if the array has only falsy items' do
+      [nil, false].none?.should == true
+    end
+
+    it 'returns false if any item is truthy' do
+      [1].none?.should == false
+      [:foo].none?.should == false
+      [[]].none?.should == false
+      ['c'].none?.should == false
+    end
+
+    it 'should support block based condition' do
+      [1, 2, 3].none? {|i| i == 2}.should == false
+      [1, 2, 3].none? {|i| i == 4}.should == true
+    end
+  end
+
+  describe '#one?' do
+    it 'returns false if the array has no items' do
+      [].one?.should == false
+    end
+
+    it 'returns false if the array has only falsy items' do
+      [nil, false].one?.should == false
+      [nil].one?.should == false
+      [nil, false, nil, false, nil, false].one?.should == false
+    end
+
+    it 'returns true if the array has exactly one item which is truthy' do
+      [1].one?.should == true
+      [1, 2].one?.should == false
+
+      [:foo].one?.should == true
+      [:foo, :baar].one?.should == false
+
+      [[]].one?.should == true
+      [[], []].one?.should == false
+
+      ['c'].one?.should == true
+      ['c', 'z'].one?.should == false
+    end
+
+    it 'should support block based condition' do
+      [1, 2, 3].one? {|i| i == 2}.should == true
+      [1, 2, 3].one? {|i| i >= 2}.should == false
+    end
+  end
 
 end
