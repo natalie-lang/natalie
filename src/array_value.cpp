@@ -716,5 +716,57 @@ ValuePtr ArrayValue::one(Env *env, size_t argc, ValuePtr *args, Block *block) {
     return any_method->call(env, this, argc, args, block);
 }
 
+ValuePtr ArrayValue::rotate(Env *env, ValuePtr val) {
+    ArrayValue* copy = new ArrayValue(env, *this);
+    copy->rotate_in_place(env, val);
+    return copy;
+}
+
+ValuePtr ArrayValue::rotate_in_place(Env *env, ValuePtr val) {
+    assert_not_frozen(env);
+    nat_int_t count = 1;
+    if (val) {
+        if (!val->is_integer()) {
+            env->raise("TypeError", "no implicit conversion of {} into Integer", val->klass()->class_name_or_blank());
+            return nullptr;
+        }
+        count = val->as_integer()->to_nat_int_t();
+    }
+
+    if (size() == 0) {
+        // prevent
+        return this;
+    }
+
+    if (count == 0) {
+        return this;
+    }
+
+
+
+    if (count > 0) {
+        Vector<ValuePtr> stack;
+
+        count = count % size();
+
+        for (nat_int_t i = 0; i < count; i++)
+            stack.push(m_vector.pop_front());
+
+        for (auto& rotated_val : stack)
+            push(rotated_val);
+
+    } else if (count < 0) {
+        Vector<ValuePtr> stack;
+
+        count = -count % size();
+        for (nat_int_t i = 0; i < count; i++)
+            stack.push(m_vector.pop());
+
+        for (auto& rotated_val : stack)
+            m_vector.push_front(rotated_val);
+    }
+
+    return this;
+}
 
 }

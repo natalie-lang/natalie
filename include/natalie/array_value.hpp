@@ -126,6 +126,8 @@ public:
     ValuePtr reverse(Env *);
     ValuePtr reverse_in_place(Env *);
     ValuePtr rindex(Env *, ValuePtr, Block *);
+    ValuePtr rotate(Env *, ValuePtr);
+    ValuePtr rotate_in_place(Env *, ValuePtr);
     ValuePtr sample(Env *);
     ValuePtr select(Env *, Block *);
     ValuePtr shift(Env *, ValuePtr);

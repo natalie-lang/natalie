@@ -1173,4 +1173,138 @@ describe 'array' do
     end
   end
 
+
+  describe '#rotate' do
+    context 'given no arguments' do
+      it 'should return an new empty array when called on empty' do
+        [].rotate.should == []
+
+        a = []
+        a.rotate.should_not equal(a)
+      end
+
+      it 'should not modify the original array' do
+        a = [1, 2]
+        b = a.rotate
+        a.should == [1, 2]
+        b.should == [2, 1]
+      end
+
+      it 'should rotate the array' do
+        [1].rotate.should == [1]
+        [1, 2].rotate.should == [2, 1]
+        [1, :foo, 'bar', 4].rotate.should == [:foo, 'bar', 4, 1]
+      end
+    end
+
+    context 'given an argument' do
+      it 'should return a copy of the original array when count = 0' do
+        a = [1, 2, 3]
+        b = a.rotate(0)
+        b.should_not equal(a)
+        b.should == a
+      end
+
+      it 'should rotate the array count amount of times' do
+        [1, 2, 3].rotate(2).should == [3, 1, 2]
+        [:foo, 'bar', 3, 2].rotate(2).should == [3, 2, :foo, 'bar']
+      end
+
+      it 'should handle larger than or equal to size rotations' do
+        [1, 2, 3].rotate(3).should == [1, 2, 3]
+        [1, 2, 3].rotate(4).should == [2, 3, 1]
+        [1, 2, 3].rotate(5).should == [3, 1, 2]
+        [1, 2, 3].rotate(3000).should == [1, 2, 3]
+        [1, 2, 3].rotate(3001).should == [2, 3, 1]
+      end
+
+      it 'should handle negative numbers as right rotations' do
+        [1, 2, 3].rotate(-0).should == [1, 2, 3]
+        [1, 2, 3].rotate(-1).should == [3, 1, 2]
+        [1, 2, 3].rotate(-2).should == [2, 3, 1]
+        [1, 2, 3].rotate(-3).should == [1, 2, 3]
+        [1, 2, 3].rotate(-4).should == [3, 1, 2]
+      end
+
+      it 'should return a copy even with negative count' do
+        a = [1, 2, 3]
+        b = a.rotate(-2)
+        b.should_not equal(a)
+        b.should == [2, 3, 1]
+        a.should == [1, 2, 3]
+      end
+
+      it 'should raise an error if non number argument' do
+        -> { [].rotate(:foo) }.should raise_error(TypeError, 'no implicit conversion of Symbol into Integer')
+        -> { [].rotate([]) }.should raise_error(TypeError, 'no implicit conversion of Array into Integer')
+        -> { [].rotate('a') }.should raise_error(TypeError, 'no implicit conversion of String into Integer')
+      end
+    end
+  end
+
+  describe '#rotate!' do
+    context 'given no arguments' do
+      it 'should return itself even when called on empty' do
+        a = []
+        a.rotate!.should equal(a)
+        a.should == []
+      end
+
+      it 'should modify the original array' do
+        a = [1, 2]
+        b = a.rotate!
+        a.should == [2, 1]
+        b.should equal(a)
+      end
+
+      it 'should rotate the array' do
+        [1].rotate!.should == [1]
+        [1, 2].rotate!.should == [2, 1]
+        [1, :foo, 'bar', 4].rotate!.should == [:foo, 'bar', 4, 1]
+      end
+    end
+
+    context 'given an argument' do
+      it 'should return the original array when count = 0' do
+        a = [1, 2, 3]
+        b = a.rotate!(0)
+        b.should equal(a)
+        a.should == [1, 2, 3]
+      end
+
+      it 'should rotate the array count amount of times' do
+        [1, 2, 3].rotate!(2).should == [3, 1, 2]
+        [:foo, 'bar', 3, 2].rotate!(2).should == [3, 2, :foo, 'bar']
+      end
+
+      it 'should handle larger than or equal to size rotations' do
+        [1, 2, 3].rotate!(3).should == [1, 2, 3]
+        [1, 2, 3].rotate!(4).should == [2, 3, 1]
+        [1, 2, 3].rotate!(5).should == [3, 1, 2]
+        [1, 2, 3].rotate!(3000).should == [1, 2, 3]
+        [1, 2, 3].rotate!(3001).should == [2, 3, 1]
+      end
+
+      it 'should handle negative numbers as right rotations' do
+        [1, 2, 3].rotate!(-0).should == [1, 2, 3]
+        [1, 2, 3].rotate!(-1).should == [3, 1, 2]
+        [1, 2, 3].rotate!(-2).should == [2, 3, 1]
+        [1, 2, 3].rotate!(-3).should == [1, 2, 3]
+        [1, 2, 3].rotate!(-4).should == [3, 1, 2]
+      end
+
+      it 'should modify self even with negative count' do
+        a = [1, 2, 3]
+        a.rotate!(-2).should equal(a)
+        a.should == [2, 3, 1]
+      end
+
+      it 'should raise an error if non number argument' do
+        -> { [].rotate!(:foo) }.should raise_error(TypeError, 'no implicit conversion of Symbol into Integer')
+        -> { [].rotate!([]) }.should raise_error(TypeError, 'no implicit conversion of Array into Integer')
+        -> { [].rotate!('a') }.should raise_error(TypeError, 'no implicit conversion of String into Integer')
+      end
+    end
+  end
+
 end
