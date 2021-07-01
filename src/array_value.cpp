@@ -606,6 +606,43 @@ ValuePtr ArrayValue::intersection(Env *env, size_t argc, ValuePtr *args) {
     return result;
 }
 
+ValuePtr ArrayValue::union_of(Env *env, ValuePtr arg) {
+    if (!arg->is_array()) {
+        env->raise("TypeError", "no implicit conversion of {} into Array", arg->klass()->class_name_or_blank());
+        return nullptr;
+    }
+
+    auto* result = new ArrayValue();
+    auto add_value = [&result, &env](ValuePtr& val) {
+        if (result->include(env, val)->is_falsey()) {
+            result->push(val);
+        }
+    };
+
+    for (auto& val : *this) {
+        add_value(val);
+    }
+
+    auto* other_array = arg->as_array();
+    for (auto& val : *other_array) {
+        add_value(val);
+    }
+
+    return result;
+}
+
+ValuePtr ArrayValue::union_of(Env *env, size_t argc, ValuePtr *args) {
+    auto* result = new ArrayValue(env, *this);
+
+    // TODO: we probably want to make | call this instead of this way for optimization
+    for (size_t i = 0; i < argc; i++) {
+        auto& arg = args[i];
+        result = result->union_of(env, arg)->as_array();
+    }
+
+    return result;
+}
+
 ValuePtr ArrayValue::reverse(Env *env) {
     ArrayValue* copy = new ArrayValue(env, *this);
     copy->reverse_in_place(env);

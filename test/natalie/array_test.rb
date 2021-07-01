@@ -377,6 +377,12 @@ describe 'array' do
       b.should == [2, 4, 6]
     end
 
+    it 'should preserve the order of the left array' do
+      ([3, 2, 1] & [1, 2, 3]).should == [3, 2, 1]
+      ([2, 1] & [1, 2, 3]).should == [2, 1]
+      ([3, 2, 1] & [1, 2]).should == [2, 1]
+    end
+
     it 'should throw on non array argument' do
     -> { [] & -3 }.should raise_error(TypeError, 'no implicit conversion of Integer into Array')
     -> { [] & :foo }.should raise_error(TypeError, 'no implicit conversion of Symbol into Array')
@@ -1090,6 +1096,80 @@ describe 'array' do
     it 'should support block based condition' do
       [1, 2, 3].one? {|i| i == 2}.should == true
       [1, 2, 3].one? {|i| i >= 2}.should == false
+    end
+  end
+
+  describe '#union' do
+    it 'should give a copy of self when no arguments given' do
+      a = [1, 2, 3]
+      b = a.union()
+      a.should == b
+      a.should_not equal(b)
+    end
+
+    it 'should give empty array only if both empty' do
+      [].union([]).should == []
+      [].union([], []).should == []
+      [].union([], [], []).should == []
+    end
+
+    it 'should give an array with elements in either arrays' do
+      [1, 2].union([3, 4]).should == [1, 2, 3, 4]
+      [].union([1, 2, 3]).should == [1, 2, 3]
+      [3, 1, 2].union([]).should == [3, 1, 2]
+
+      [].union([], [1], [1], [1, 2], [], [2]).should == [1, 2]
+    end
+
+    it 'should preserve order' do
+      [1, 2].union([3, 4]).should == [1, 2, 3, 4]
+      [3, 4].union([1, 2]).should == [3, 4, 1, 2]
+      [0].union([1], [2], [3]).should == [0, 1, 2, 3]
+
+      [0].union([2], [1], [1], [1, 2], [], [2]).should == [0, 2, 1]
+    end
+
+    it 'should throw on non array arguments' do
+      -> { [].union(-3, :foo) }.should raise_error(TypeError, 'no implicit conversion of Integer into Array')
+      -> { [].union(:foo, -3) }.should raise_error(TypeError, 'no implicit conversion of Symbol into Array')
+      -> { [].union('a', -3) }.should raise_error(TypeError, 'no implicit conversion of String into Array')
+    end
+  end
+
+
+  describe '#|' do
+    it 'should give empty array only if both empty' do
+      ([] | []).should == []
+    end
+
+    it 'should give an array with elements in either array' do
+      ([1, 2] | [3, 4]).should == [1, 2, 3, 4]
+      ([] | [1, 2, 3]).should == [1, 2, 3]
+      ([3, 1, 2] | []).should == [3, 1, 2]
+    end
+
+    it 'should not duplicate elements' do
+      ([1, 1, 1, 1, 1, 1, 1] | [2, 2, 2, 2, 2, 2, 1, 2]).should == [1, 2]
+      ([:foo, 'bar', 3] | [:foo, 'bar', 3, :foo, 'bar', 3, :foo, 'bar', 3]).should == [:foo, 'bar', 3]
+    end
+
+    it 'should not modify the original array' do
+      a = [1, 2]
+      b = [2, 4]
+      (a | b).should == [1, 2, 4]
+      a.should == [1, 2]
+      b.should == [2, 4]
+    end
+
+    it 'should preserve order' do
+      ([1, 2] | [3, 4]).should == [1, 2, 3, 4]
+      ([3, 4] | [1, 2]).should == [3, 4, 1, 2]
+    end
+
+    it 'should throw on non array argument' do
+    -> { [] | -3 }.should raise_error(TypeError, 'no implicit conversion of Integer into Array')
+    -> { [] | :foo }.should raise_error(TypeError, 'no implicit conversion of Symbol into Array')
+    -> { [] | 'a' }.should raise_error(TypeError, 'no implicit conversion of String into Array')
     end
   end
 

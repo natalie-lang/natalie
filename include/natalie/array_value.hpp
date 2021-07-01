@@ -131,6 +131,8 @@ public:
     ValuePtr shift(Env *, ValuePtr);
     ValuePtr sort(Env *);
     ValuePtr sub(Env *, ValuePtr);
+    ValuePtr union_of(Env *, ValuePtr);
+    ValuePtr union_of(Env *, size_t, ValuePtr*);
     ValuePtr uniq(Env *);
 
     virtual void visit_children(Visitor &visitor) override final {
