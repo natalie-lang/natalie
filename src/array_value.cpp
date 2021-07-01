@@ -174,6 +174,7 @@ ValuePtr ArrayValue::refeq(Env *env, ValuePtr index_obj, ValuePtr size, ValuePtr
 }
 
 ValuePtr ArrayValue::any(Env *env, size_t argc, ValuePtr *args, Block *block) {
+    // FIXME: this is not exactly the way ruby does it
     auto Enumerable = GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("Enumerable"))->as_module();
     auto any_method = Enumerable->find_method(env, SymbolValue::intern("any?"));
     return any_method->call(env, this, argc, args, block);
@@ -605,6 +606,43 @@ ValuePtr ArrayValue::intersection(Env *env, size_t argc, ValuePtr *args) {
     return result;
 }
 
+ValuePtr ArrayValue::union_of(Env *env, ValuePtr arg) {
+    if (!arg->is_array()) {
+        env->raise("TypeError", "no implicit conversion of {} into Array", arg->klass()->class_name_or_blank());
+        return nullptr;
+    }
+
+    auto* result = new ArrayValue();
+    auto add_value = [&result, &env](ValuePtr& val) {
+        if (result->include(env, val)->is_falsey()) {
+            result->push(val);
+        }
+    };
+
+    for (auto& val : *this) {
+        add_value(val);
+    }
+
+    auto* other_array = arg->as_array();
+    for (auto& val : *other_array) {
+        add_value(val);
+    }
+
+    return result;
+}
+
+ValuePtr ArrayValue::union_of(Env *env, size_t argc, ValuePtr *args) {
+    auto* result = new ArrayValue(env, *this);
+
+    // TODO: we probably want to make | call this instead of this way for optimization
+    for (size_t i = 0; i < argc; i++) {
+        auto& arg = args[i];
+        result = result->union_of(env, arg)->as_array();
+    }
+
+    return result;
+}
+
 ValuePtr ArrayValue::reverse(Env *env) {
     ArrayValue* copy = new ArrayValue(env, *this);
     copy->reverse_in_place(env);
@@ -617,6 +655,117 @@ ValuePtr ArrayValue::reverse_in_place(Env *env) {
     for (size_t i = 0; i < size() / 2; i++) {
         std::swap(m_vector[i], m_vector[size() - 1 - i]);
     }
+    return this;
+}
+
+ValuePtr ArrayValue::concat(Env *env, size_t argc, ValuePtr* args) {
+    assert_not_frozen(env);
+
+    for (size_t i = 0; i < argc; i++) {
+        auto arg = args[i];
+        if (!arg->is_array()) {
+            env->raise("TypeError", "no implicit conversion of {} into Array", arg->klass()->class_name_or_blank());
+            return nullptr;
+        }
+
+        concat(*arg->as_array());
+    }
+
+    return this;
+}
+
+ValuePtr ArrayValue::rindex(Env *env, ValuePtr object, Block *block) {
+    // TODO make dry since this code is almost identical to index
+    assert(size() <= NAT_INT_MAX);
+    auto length = static_cast<nat_int_t>(size());
+    if (block) {
+        for (nat_int_t i = length - 1; i >= 0; i--) {
+            auto item = m_vector[i];
+            ValuePtr args[] = { item };
+            auto result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, args, nullptr);
+            if (result->is_truthy())
+                return ValuePtr::integer(i);
+        }
+        return NilValue::the();
+    } else if (object) {
+        for (nat_int_t i = length - 1; i >= 0; i--) {
+            auto item = m_vector[i];
+            ValuePtr args[] = { object };
+            if (item.send(env, "==", 1, args)->is_truthy())
+                return ValuePtr::integer(i);
+        }
+        return NilValue::the();
+    } else {
+        // TODO
+        env->ensure_block_given(block);
+        NAT_UNREACHABLE();
+    }
+}
+
+ValuePtr ArrayValue::none(Env *env, size_t argc, ValuePtr *args, Block *block) {
+    // FIXME: this is not exactly the way ruby does it
+    auto Enumerable = GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("Enumerable"))->as_module();
+    auto any_method = Enumerable->find_method(env, SymbolValue::intern("none?"));
+    return any_method->call(env, this, argc, args, block);
+}
+
+ValuePtr ArrayValue::one(Env *env, size_t argc, ValuePtr *args, Block *block) {
+    // FIXME: this is not exactly the way ruby does it
+    auto Enumerable = GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("Enumerable"))->as_module();
+    auto any_method = Enumerable->find_method(env, SymbolValue::intern("one?"));
+    return any_method->call(env, this, argc, args, block);
+}
+
+ValuePtr ArrayValue::rotate(Env *env, ValuePtr val) {
+    ArrayValue* copy = new ArrayValue(env, *this);
+    copy->rotate_in_place(env, val);
+    return copy;
+}
+
+ValuePtr ArrayValue::rotate_in_place(Env *env, ValuePtr val) {
+    assert_not_frozen(env);
+    nat_int_t count = 1;
+    if (val) {
+        if (!val->is_integer()) {
+            env->raise("TypeError", "no implicit conversion of {} into Integer", val->klass()->class_name_or_blank());
+            return nullptr;
+        }
+        count = val->as_integer()->to_nat_int_t();
+    }
+
+    if (size() == 0) {
+        // prevent
+        return this;
+    }
+
+    if (count == 0) {
+        return this;
+    }
+
+
+
+    if (count > 0) {
+        Vector<ValuePtr> stack;
+
+        count = count % size();
+
+        for (nat_int_t i = 0; i < count; i++)
+            stack.push(m_vector.pop_front());
+
+        for (auto& rotated_val : stack)
+            push(rotated_val);
+
+    } else if (count < 0) {
+        Vector<ValuePtr> stack;
+
+        count = -count % size();
+        for (nat_int_t i = 0; i < count; i++)
+            stack.push(m_vector.pop());
+
+        for (auto& rotated_val : stack)
+            m_vector.push_front(rotated_val);
+    }
+
     return this;
 }
 

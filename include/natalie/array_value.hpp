@@ -99,6 +99,7 @@ public:
     ValuePtr cmp(Env *, ValuePtr);
     ValuePtr clear(Env *);
     ValuePtr compact(Env *);
+    ValuePtr concat(Env *, size_t, ValuePtr*);
     ValuePtr drop(Env *, ValuePtr);
     ValuePtr each(Env *, Block *);
     ValuePtr eq(Env *, ValuePtr);
@@ -115,6 +116,8 @@ public:
     ValuePtr map(Env *, Block *);
     ValuePtr max(Env *);
     ValuePtr min(Env *);
+    ValuePtr none(Env *, size_t, ValuePtr*, Block*);
+    ValuePtr one(Env *, size_t, ValuePtr*, Block*);
     ValuePtr push(Env *, size_t, ValuePtr *);
     ValuePtr rassoc(Env *, ValuePtr);
     ValuePtr ref(Env *, ValuePtr, ValuePtr);
@@ -122,11 +125,16 @@ public:
     ValuePtr reject(Env *, Block *);
     ValuePtr reverse(Env *);
     ValuePtr reverse_in_place(Env *);
+    ValuePtr rindex(Env *, ValuePtr, Block *);
+    ValuePtr rotate(Env *, ValuePtr);
+    ValuePtr rotate_in_place(Env *, ValuePtr);
     ValuePtr sample(Env *);
     ValuePtr select(Env *, Block *);
     ValuePtr shift(Env *, ValuePtr);
     ValuePtr sort(Env *);
     ValuePtr sub(Env *, ValuePtr);
+    ValuePtr union_of(Env *, ValuePtr);
+    ValuePtr union_of(Env *, size_t, ValuePtr*);
     ValuePtr uniq(Env *);
 
     virtual void visit_children(Visitor &visitor) override final {

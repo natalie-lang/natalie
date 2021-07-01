@@ -109,6 +109,18 @@ public:
         m_data[0] = val;
     }
 
+    T pop_front() {
+        assert(m_size != 0);
+        T val = m_data[0];
+
+        for (size_t i = 1; i < m_size; i++) {
+            m_data[i - 1] = m_data[i];
+        }
+        --m_size;
+
+        return val;
+    }
+
     bool is_empty() const { return m_size == 0; }
 
     size_t size() const { return m_size; }

@@ -377,6 +377,12 @@ describe 'array' do
       b.should == [2, 4, 6]
     end
 
+    it 'should preserve the order of the left array' do
+      ([3, 2, 1] & [1, 2, 3]).should == [3, 2, 1]
+      ([2, 1] & [1, 2, 3]).should == [2, 1]
+      ([3, 2, 1] & [1, 2]).should == [2, 1]
+    end
+
     it 'should throw on non array argument' do
     -> { [] & -3 }.should raise_error(TypeError, 'no implicit conversion of Integer into Array')
     -> { [] & :foo }.should raise_error(TypeError, 'no implicit conversion of Symbol into Array')
@@ -483,6 +489,13 @@ describe 'array' do
       it 'returns true if the array has any items' do
         [].any?.should == false
         [1, 2, 3, 4, 5, 6].any?.should == true
+      end
+    end
+
+    context 'given block' do
+      it 'should use the condition of the block' do
+        [1, 2, 3].any? {|i| i == 2}.should == true
+        [1, 2, 3].any? {|i| i == 4}.should == false
       end
     end
   end
@@ -893,6 +906,13 @@ describe 'array' do
       #a.index.should be_an_instance_of(Enumerator)
       #a.index.each { |i| i == 'c' }.should == 2
     end
+
+    it 'should return the first occurrence of object' do
+      a = [1, 2, 2, 3, 4, 1]
+      a.index(1).should == 0
+      a.index(2).should == 1
+      a.index {|i| i == 3 or i == 4}.should == 3
+    end
   end
 
   describe '#find_index' do
@@ -907,6 +927,13 @@ describe 'array' do
         # TODO
         #a.find_index.should be_an_instance_of(Enumerator)
         #a.find_index.each { |i| i == 'c' }.should == 2
+      end
+
+      it 'should return the first occurrence of object' do
+        a = [1, 2, 2, 3, 4, 1]
+        a.find_index(1).should == 0
+        a.find_index(2).should == 1
+        a.find_index {|i| i == 3 or i == 4}.should == 3
       end
     end
 
@@ -964,4 +991,320 @@ describe 'array' do
       a.should == [4, 3, 2, 1]
     end
   end
+
+  describe '#concat' do
+    it 'should give itself even with no arguments' do
+      a = [1, 2, 3]
+      b = a.concat()
+      a.should equal(b)
+      b.should == [1, 2, 3]
+    end
+
+    it 'should give itself and not a copy when concatenating' do
+      a = [1, 2]
+      a.concat([3, 4]).should equal(a)
+      a.should == [1, 2, 3, 4]
+    end
+
+    it 'should give the concatonation of two arrays' do
+      [1, 2].concat([3, 4]).should == [1, 2, 3, 4]
+      [].concat([1, 2]).should == [1, 2]
+      [3, 4].concat([]).should == [3, 4]
+    end
+
+    it 'should concatonate all the arrays' do
+      [1].concat([999], [3, 4], [5, [6, 7]]).should == [1, 999, 3, 4, 5, [6, 7]]
+      [:foo].concat([:bar], [3], ["c"]).should == [:foo, :bar, 3, 'c']
+    end
+
+    it 'should raise error on non array argument' do
+      -> { [1].concat([2], 3) }.should raise_error(TypeError, 'no implicit conversion of Integer into Array')
+      -> { [1].concat([2], :foo) }.should raise_error(TypeError, 'no implicit conversion of Symbol into Array')
+      -> { [1].concat([2], 'a') }.should raise_error(TypeError, 'no implicit conversion of String into Array')
+    end
+  end
+
+  describe '#rindex' do
+      specify do
+        a = [1, 2, 3]
+        a.rindex(2).should == 1
+        a = ['a', 'b', 'c']
+        a.rindex('c').should == 2
+        a.rindex('d').should == nil
+        a.rindex(nil).should == nil
+        a.rindex { |i| i == 'a' }.should == 0
+        # TODO
+        #a.index.should be_an_instance_of(Enumerator)
+        #a.index.each { |i| i == 'c' }.should == 2
+      end
+
+      it 'should return the first occurrence of object' do
+        a = [1, 2, 2, 3, 4, 1]
+        a.rindex(1).should == 5
+        a.rindex(2).should == 2
+        a.rindex {|i| i == 3 or i == 4}.should == 4
+      end
+    end
+
+  describe '#none?' do
+    it 'returns true if the array has no items' do
+      [].none?.should == true
+    end
+
+    it 'returns true if the array has only falsy items' do
+      [nil, false].none?.should == true
+    end
+
+    it 'returns false if any item is truthy' do
+      [1].none?.should == false
+      [:foo].none?.should == false
+      [[]].none?.should == false
+      ['c'].none?.should == false
+    end
+
+    it 'should support block based condition' do
+      [1, 2, 3].none? {|i| i == 2}.should == false
+      [1, 2, 3].none? {|i| i == 4}.should == true
+    end
+  end
+
+  describe '#one?' do
+    it 'returns false if the array has no items' do
+      [].one?.should == false
+    end
+
+    it 'returns false if the array has only falsy items' do
+      [nil, false].one?.should == false
+      [nil].one?.should == false
+      [nil, false, nil, false, nil, false].one?.should == false
+    end
+
+    it 'returns true if the array has exactly one item which is truthy' do
+      [1].one?.should == true
+      [1, 2].one?.should == false
+
+      [:foo].one?.should == true
+      [:foo, :baar].one?.should == false
+
+      [[]].one?.should == true
+      [[], []].one?.should == false
+
+      ['c'].one?.should == true
+      ['c', 'z'].one?.should == false
+    end
+
+    it 'should support block based condition' do
+      [1, 2, 3].one? {|i| i == 2}.should == true
+      [1, 2, 3].one? {|i| i >= 2}.should == false
+    end
+  end
+
+  describe '#union' do
+    it 'should give a copy of self when no arguments given' do
+      a = [1, 2, 3]
+      b = a.union()
+      a.should == b
+      a.should_not equal(b)
+    end
+
+    it 'should give empty array only if both empty' do
+      [].union([]).should == []
+      [].union([], []).should == []
+      [].union([], [], []).should == []
+    end
+
+    it 'should give an array with elements in either arrays' do
+      [1, 2].union([3, 4]).should == [1, 2, 3, 4]
+      [].union([1, 2, 3]).should == [1, 2, 3]
+      [3, 1, 2].union([]).should == [3, 1, 2]
+
+      [].union([], [1], [1], [1, 2], [], [2]).should == [1, 2]
+    end
+
+    it 'should preserve order' do
+      [1, 2].union([3, 4]).should == [1, 2, 3, 4]
+      [3, 4].union([1, 2]).should == [3, 4, 1, 2]
+      [0].union([1], [2], [3]).should == [0, 1, 2, 3]
+
+      [0].union([2], [1], [1], [1, 2], [], [2]).should == [0, 2, 1]
+    end
+
+    it 'should throw on non array arguments' do
+      -> { [].union(-3, :foo) }.should raise_error(TypeError, 'no implicit conversion of Integer into Array')
+      -> { [].union(:foo, -3) }.should raise_error(TypeError, 'no implicit conversion of Symbol into Array')
+      -> { [].union('a', -3) }.should raise_error(TypeError, 'no implicit conversion of String into Array')
+    end
+  end
+
+
+  describe '#|' do
+    it 'should give empty array only if both empty' do
+      ([] | []).should == []
+    end
+
+    it 'should give an array with elements in either array' do
+      ([1, 2] | [3, 4]).should == [1, 2, 3, 4]
+      ([] | [1, 2, 3]).should == [1, 2, 3]
+      ([3, 1, 2] | []).should == [3, 1, 2]
+    end
+
+    it 'should not duplicate elements' do
+      ([1, 1, 1, 1, 1, 1, 1] | [2, 2, 2, 2, 2, 2, 1, 2]).should == [1, 2]
+      ([:foo, 'bar', 3] | [:foo, 'bar', 3, :foo, 'bar', 3, :foo, 'bar', 3]).should == [:foo, 'bar', 3]
+    end
+
+    it 'should not modify the original array' do
+      a = [1, 2]
+      b = [2, 4]
+      (a | b).should == [1, 2, 4]
+      a.should == [1, 2]
+      b.should == [2, 4]
+    end
+
+    it 'should preserve order' do
+      ([1, 2] | [3, 4]).should == [1, 2, 3, 4]
+      ([3, 4] | [1, 2]).should == [3, 4, 1, 2]
+    end
+
+    it 'should throw on non array argument' do
+    -> { [] | -3 }.should raise_error(TypeError, 'no implicit conversion of Integer into Array')
+    -> { [] | :foo }.should raise_error(TypeError, 'no implicit conversion of Symbol into Array')
+    -> { [] | 'a' }.should raise_error(TypeError, 'no implicit conversion of String into Array')
+    end
+  end
+
+
+  describe '#rotate' do
+    context 'given no arguments' do
+      it 'should return an new empty array when called on empty' do
+        [].rotate.should == []
+
+        a = []
+        a.rotate.should_not equal(a)
+      end
+
+      it 'should not modify the original array' do
+        a = [1, 2]
+        b = a.rotate
+        a.should == [1, 2]
+        b.should == [2, 1]
+      end
+
+      it 'should rotate the array' do
+        [1].rotate.should == [1]
+        [1, 2].rotate.should == [2, 1]
+        [1, :foo, 'bar', 4].rotate.should == [:foo, 'bar', 4, 1]
+      end
+    end
+
+    context 'given an argument' do
+      it 'should return a copy of the original array when count = 0' do
+        a = [1, 2, 3]
+        b = a.rotate(0)
+        b.should_not equal(a)
+        b.should == a
+      end
+
+      it 'should rotate the array count amount of times' do
+        [1, 2, 3].rotate(2).should == [3, 1, 2]
+        [:foo, 'bar', 3, 2].rotate(2).should == [3, 2, :foo, 'bar']
+      end
+
+      it 'should handle larger than or equal to size rotations' do
+        [1, 2, 3].rotate(3).should == [1, 2, 3]
+        [1, 2, 3].rotate(4).should == [2, 3, 1]
+        [1, 2, 3].rotate(5).should == [3, 1, 2]
+        [1, 2, 3].rotate(3000).should == [1, 2, 3]
+        [1, 2, 3].rotate(3001).should == [2, 3, 1]
+      end
+
+      it 'should handle negative numbers as right rotations' do
+        [1, 2, 3].rotate(-0).should == [1, 2, 3]
+        [1, 2, 3].rotate(-1).should == [3, 1, 2]
+        [1, 2, 3].rotate(-2).should == [2, 3, 1]
+        [1, 2, 3].rotate(-3).should == [1, 2, 3]
+        [1, 2, 3].rotate(-4).should == [3, 1, 2]
+      end
+
+      it 'should return a copy even with negative count' do
+        a = [1, 2, 3]
+        b = a.rotate(-2)
+        b.should_not equal(a)
+        b.should == [2, 3, 1]
+        a.should == [1, 2, 3]
+      end
+
+      it 'should raise an error if non number argument' do
+        -> { [].rotate(:foo) }.should raise_error(TypeError, 'no implicit conversion of Symbol into Integer')
+        -> { [].rotate([]) }.should raise_error(TypeError, 'no implicit conversion of Array into Integer')
+        -> { [].rotate('a') }.should raise_error(TypeError, 'no implicit conversion of String into Integer')
+      end
+    end
+  end
+
+  describe '#rotate!' do
+    context 'given no arguments' do
+      it 'should return itself even when called on empty' do
+        a = []
+        a.rotate!.should equal(a)
+        a.should == []
+      end
+
+      it 'should modify the original array' do
+        a = [1, 2]
+        b = a.rotate!
+        a.should == [2, 1]
+        b.should equal(a)
+      end
+
+      it 'should rotate the array' do
+        [1].rotate!.should == [1]
+        [1, 2].rotate!.should == [2, 1]
+        [1, :foo, 'bar', 4].rotate!.should == [:foo, 'bar', 4, 1]
+      end
+    end
+
+    context 'given an argument' do
+      it 'should return the original array when count = 0' do
+        a = [1, 2, 3]
+        b = a.rotate!(0)
+        b.should equal(a)
+        a.should == [1, 2, 3]
+      end
+
+      it 'should rotate the array count amount of times' do
+        [1, 2, 3].rotate!(2).should == [3, 1, 2]
+        [:foo, 'bar', 3, 2].rotate!(2).should == [3, 2, :foo, 'bar']
+      end
+
+      it 'should handle larger than or equal to size rotations' do
+        [1, 2, 3].rotate!(3).should == [1, 2, 3]
+        [1, 2, 3].rotate!(4).should == [2, 3, 1]
+        [1, 2, 3].rotate!(5).should == [3, 1, 2]
+        [1, 2, 3].rotate!(3000).should == [1, 2, 3]
+        [1, 2, 3].rotate!(3001).should == [2, 3, 1]
+      end
+
+      it 'should handle negative numbers as right rotations' do
+        [1, 2, 3].rotate!(-0).should == [1, 2, 3]
+        [1, 2, 3].rotate!(-1).should == [3, 1, 2]
+        [1, 2, 3].rotate!(-2).should == [2, 3, 1]
+        [1, 2, 3].rotate!(-3).should == [1, 2, 3]
+        [1, 2, 3].rotate!(-4).should == [3, 1, 2]
+      end
+
+      it 'should modify self even with negative count' do
+        a = [1, 2, 3]
+        a.rotate!(-2).should equal(a)
+        a.should == [2, 3, 1]
+      end
+
+      it 'should raise an error if non number argument' do
+        -> { [].rotate!(:foo) }.should raise_error(TypeError, 'no implicit conversion of Symbol into Integer')
+        -> { [].rotate!([]) }.should raise_error(TypeError, 'no implicit conversion of Array into Integer')
+        -> { [].rotate!('a') }.should raise_error(TypeError, 'no implicit conversion of String into Integer')
+      end
+    end
+  end
+
 end
