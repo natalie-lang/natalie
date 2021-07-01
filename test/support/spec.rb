@@ -224,6 +224,8 @@ class Matcher
   def any?; method_missing(:any?); end
   def finite?; method_missing(:finite?); end
   def nan?; method_missing(:nan?); end
+  def none?; method_missing(:none?); end
+  def one?; method_missing(:one?); end
   def zero?; method_missing(:zero?); end
 
   def method_missing(method, *args)
