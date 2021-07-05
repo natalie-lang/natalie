@@ -298,9 +298,7 @@ module Enumerable
         end
       rescue StopIteration
       end
-      # TODO: implement Array#reverse
-      rev = -> (a) { r = []; ary.each { |i| r = [i] + r }; r }
-      rev.(ary.sort)
+      ary.sort.reverse
     else
       val = nil
       enum = enum_for(:each)
