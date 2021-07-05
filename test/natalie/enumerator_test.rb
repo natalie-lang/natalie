@@ -1,5 +1,24 @@
 require_relative '../spec_helper'
 
+class Thing
+  include Enumerable
+
+  def each
+    yield 1
+    yield 2
+    yield 3
+  end
+end
+
+class YieldMultiple
+  include Enumerable
+
+  def each
+    yield 1, 2
+    yield 3, 4
+  end
+end
+
 describe 'Enumerator' do
   it 'works for infinite sequences' do
     fib = Enumerator.new do |y|
@@ -37,6 +56,19 @@ describe 'Enumerator' do
       numbers.next.should == 3
       -> { numbers.next }.should raise_error(StopIteration)
     end
+
+    it 'works for map' do
+      e = Thing.new.map
+      e.next.should == 1
+      e.next.should == 2
+      e.next.should == 3
+
+      e.rewind
+      r = e.each do |i|
+        i * 2
+      end
+      r.should == [2, 4, 6]
+    end
   end
 
   describe '#peek' do
@@ -71,5 +103,34 @@ describe 'Enumerator' do
       numbers.next.should == 1
       numbers.next.should == 2
     end
+  end
+
+  it 'returns the final result' do
+    t = Thing.new
+    fail_proc = -> { 'result' }
+    t.find(fail_proc) { |e| false }.should == 'result'
+    t.find(fail_proc).each {|e| false }.should == 'result'
+  end
+
+  it 'should break' do
+    x = 0
+    e = loop
+    e.each do
+      x += 1
+      break if x > 3
+    end
+    x.should == 4
+  end
+
+  it 'can be chained' do
+    e = [:a, :b].each_with_index
+    e.to_a.should == [[:a, 0], [:b, 1]]
+
+    r = [:a, :b].each_with_index.map { |x, i| [x, i] }
+    r.should == [[:a, 0], [:b, 1]]
+  end
+
+  it 'can yield multiple' do
+    YieldMultiple.new.max.should == [3, 4]
   end
 end

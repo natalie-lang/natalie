@@ -111,21 +111,16 @@ module Enumerable
   end
 
   def each_with_index(*args)
-    index = 0
-    if block_given?
-      each(*args) do |item|
-        yield item, index
-        index += 1
-      end
-      self
-    else
-      Enumerator.new do |y|
-        each(*args) do |item|
-          y << [item, index]
-          index += 1
-        end
-      end
+    unless block_given?
+      return enum_for(:each_with_index, *args)
     end
+
+    index = 0
+    each(*args) do |item|
+      yield item, index
+      index += 1
+    end
+    self
   end
 
   def each_with_object(obj)
@@ -151,6 +146,29 @@ module Enumerable
       end
     end
   end
+
+  def find(if_none = nil)
+    unless block_given?
+      return enum_for(:find, if_none)
+    end
+
+    gather = ->(item) { item.size <= 1 ? item.first : item }
+
+    each do |*i|
+      item = gather.(i)
+      if yield(item)
+        return item
+      end
+    end
+
+    if if_none
+      return if_none.()
+    end
+
+    nil
+  end
+
+  alias detect find
 
   def grep(pattern)
     if block_given?
@@ -421,8 +439,9 @@ module Enumerable
 
   def to_a(*args)
     result = []
-    each(*args) do |x|
-      result << x
+    gather = ->(item) { item.size <= 1 ? item.first : item }
+    each(*args) do |*item|
+      result << gather.(item)
     end
     result
   end

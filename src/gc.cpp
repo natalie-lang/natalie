@@ -1,3 +1,5 @@
+#include <stdexcept>
+
 #include "natalie.hpp"
 
 extern "C" void GC_disable() {
@@ -32,6 +34,7 @@ Hashmap<Cell *> Heap::gather_conservative_roots() {
     assert(m_start_of_stack);
     assert(end_of_stack);
     assert(m_start_of_stack > end_of_stack);
+
     for (char *ptr = reinterpret_cast<char *>(end_of_stack); ptr < m_start_of_stack; ptr += sizeof(intptr_t)) {
         Cell *potential_cell = *reinterpret_cast<Cell **>(ptr); // NOLINT
         if (is_a_heap_cell_in_use(potential_cell)) {
@@ -67,6 +70,7 @@ void Heap::collect() {
     MarkingVisitor visitor;
 
     auto roots = gather_conservative_roots();
+
     for (auto pair : roots) {
         visitor.visit(pair.first);
     }

@@ -2,29 +2,37 @@ class Enumerator
   include Enumerable
 
   class Yielder
+    def initialize(block = nil)
+      @block = block
+    end
+
     def yield(item)
       Fiber.yield(item)
     end
 
     alias << yield
+
+    def to_proc
+      @block
+    end
   end
 
-  def initialize(&block)
-    @block = block
+  def initialize(&enum_block)
+    @enum_block = enum_block
   end
 
-  def each
-    rewind
-    final = []
+  def each(&block)
+    @yielder = Yielder.new(block)
+    @fiber = Fiber.new do
+      @enum_block.call @yielder
+    end
     loop do
       begin
-        result = self.next
-        final << yield(result)
+        yield self.next
       rescue StopIteration
-        break
+        return @final_result
       end
     end
-    final
   end
 
   def next
@@ -33,11 +41,12 @@ class Enumerator
       @peeked = false
       return @peeked_value
     end
-    result = @fiber.resume
+    @last_result = @fiber.resume(@last_result)
     if @fiber.status == :terminated
+      @final_result = @last_result
       raise StopIteration, 'iteration reached an end'
     end
-    result
+    @last_result
   end
 
   def peek
@@ -50,9 +59,9 @@ class Enumerator
   end
 
   def rewind
-    yielder = Yielder.new
+    @yielder = Yielder.new
     @fiber = Fiber.new do
-      @block.call yielder
+      @enum_block.call @yielder
     end
   end
 end

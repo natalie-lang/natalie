@@ -1,4 +1,4 @@
-# skip-ruby
+# skip-test
 
 require 'sexp_processor'
 

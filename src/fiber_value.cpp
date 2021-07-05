@@ -39,6 +39,8 @@ FiberValue *FiberValue::initialize(Env *env, Block *block) {
 ValuePtr FiberValue::yield(Env *env, size_t argc, ValuePtr *args) {
     auto main_fiber = GlobalEnv::the()->main_fiber(env);
     auto current_fiber = GlobalEnv::the()->current_fiber();
+    if (!current_fiber)
+        env->raise("FiberError", "can't yield from root fiber");
     current_fiber->set_status(Status::Suspended);
     GlobalEnv::the()->reset_current_fiber();
     GlobalEnv::the()->set_fiber_args(argc, args);
