@@ -29,26 +29,31 @@
 namespace Natalie {
 
 FiberValue *FiberValue::initialize(Env *env, Block *block) {
-    assert(this != GlobalEnv::the()->main_fiber(env)); // can never be main fiber
+    assert(this != FiberValue::main()); // can never be main fiber
     env->ensure_block_given(block);
     create_stack(env, STACK_SIZE);
     m_block = block;
     return this;
 }
 
-ValuePtr FiberValue::yield(Env *env, size_t argc, ValuePtr *args) {
-    auto main_fiber = GlobalEnv::the()->main_fiber(env);
-    auto current_fiber = GlobalEnv::the()->current_fiber();
-    if (!current_fiber)
-        env->raise("FiberError", "can't yield from root fiber");
-    current_fiber->set_status(Status::Suspended);
-    GlobalEnv::the()->reset_current_fiber();
-    GlobalEnv::the()->set_fiber_args(argc, args);
-    Heap::the().set_start_of_stack(main_fiber->start_of_stack());
-    current_fiber->m_end_of_stack = &args; // TODO: do this in the ASM
-    fiber_asm_switch(main_fiber->fiber(), current_fiber->fiber(), 0, env, main_fiber);
+ValuePtr FiberValue::resume(Env *env, size_t argc, ValuePtr *args) {
+    if (m_status == Status::Terminated)
+        env->raise("FiberError", "dead fiber called");
+    if (m_previous_fiber)
+        env->raise("FiberError", "double resume");
+    auto previous_fiber = FiberValue::current();
+    m_previous_fiber = s_current;
+    s_current = this;
+    set_args(argc, args);
 
-    auto fiber_args = GlobalEnv::the()->fiber_args();
+    Heap::the().set_start_of_stack(m_start_of_stack);
+    previous_fiber->m_end_of_stack = &args;
+    fiber_asm_switch(fiber(), previous_fiber->fiber(), 0, env, this);
+
+    if (m_error)
+        env->raise_exception(m_error);
+
+    auto fiber_args = FiberValue::current()->args();
     if (fiber_args.size() == 0) {
         return NilValue::the();
     } else if (fiber_args.size() == 1) {
@@ -58,43 +63,34 @@ ValuePtr FiberValue::yield(Env *env, size_t argc, ValuePtr *args) {
     }
 }
 
-}
+ValuePtr FiberValue::yield(Env *env, size_t argc, ValuePtr *args) {
+    auto current_fiber = FiberValue::current();
+    if (!current_fiber)
+        env->raise("FiberError", "can't yield from root fiber");
+    current_fiber->set_status(Status::Suspended);
+    current_fiber->m_end_of_stack = &args;
+    current_fiber->yield_back(env, argc, args);
 
-extern "C" {
-
-void fiber_exit() {
-    // fiber_asm_switch should never return for an exiting fiber.
-    NAT_UNREACHABLE();
-}
-
-void fiber_wrapper_func(Natalie::Env *env, Natalie::FiberValue *fiber) {
-    auto global_env = Natalie::GlobalEnv::the();
-    Natalie::Heap::the().set_start_of_stack(fiber->start_of_stack());
-    fiber->set_status(Natalie::FiberValue::Status::Active);
-    assert(fiber->block());
-    Natalie::ValuePtr return_args[1];
-    try {
-        // NOTE: we cannot pass the env from this fiber (stack) across to another fiber (stack),
-        // because doing so can cause unexpected results when env->caller() is used. (Since that
-        // calling Env might have been overwritten in the other stack.)
-        // That means a backtrace built from inside the fiber will end abruptly.
-        // But that seems to be what Ruby does too.
-        Natalie::Env e {};
-        return_args[0] = NAT_RUN_BLOCK_WITHOUT_BREAK((&e), fiber->block(), global_env->fiber_args().size(), global_env->fiber_args().data(), nullptr);
-    } catch (Natalie::ExceptionValue *exception) {
-        Natalie::handle_top_level_exception(env, exception, false);
-        exit(1);
+    auto fiber_args = FiberValue::current()->args();
+    if (fiber_args.size() == 0) {
+        return NilValue::the();
+    } else if (fiber_args.size() == 1) {
+        return fiber_args.at(0);
+    } else {
+        return new ArrayValue { fiber_args.size(), fiber_args.data() };
     }
-    fiber->set_status(Natalie::FiberValue::Status::Terminated);
-    global_env->reset_current_fiber();
-    global_env->set_fiber_args(1, return_args);
-    auto main_fiber = global_env->main_fiber(env);
-    Natalie::Heap::the().set_start_of_stack(main_fiber->start_of_stack());
-    fiber->set_end_of_stack(&fiber); // TODO: do this in the ASM
-    fiber_asm_switch(main_fiber->fiber(), fiber->fiber(), 0, env, fiber);
 }
 
-void Natalie::FiberValue::visit_children(Visitor &visitor) {
+void FiberValue::yield_back(Env *env, size_t argc, ValuePtr *args) {
+    assert(m_previous_fiber);
+    s_current = m_previous_fiber;
+    s_current->set_args(argc, args);
+    m_previous_fiber = nullptr;
+    Heap::the().set_start_of_stack(s_current->start_of_stack());
+    fiber_asm_switch(s_current->fiber(), this->fiber(), 0, env, s_current);
+}
+
+void FiberValue::visit_children(Visitor &visitor) {
     Value::visit_children(visitor);
     visitor.visit(m_block);
     if (m_start_of_stack == Heap::the().start_of_stack())
@@ -109,6 +105,51 @@ void Natalie::FiberValue::visit_children(Visitor &visitor) {
             visitor.visit(potential_cell);
         }
     }
+    for (auto arg : m_args) {
+        visitor.visit(arg);
+    }
+    visitor.visit(m_previous_fiber);
+}
+
+void FiberValue::set_args(size_t argc, ValuePtr *args) {
+    m_args.clear();
+    for (size_t i = 0; i < argc; ++i) {
+        m_args.push(args[i]);
+    }
+}
+
+}
+
+extern "C" {
+
+void fiber_exit() {
+    // fiber_asm_switch should never return for an exiting fiber.
+    NAT_UNREACHABLE();
+}
+
+void fiber_wrapper_func(Natalie::Env *env, Natalie::FiberValue *fiber) {
+    Natalie::Heap::the().set_start_of_stack(fiber->start_of_stack());
+    fiber->set_status(Natalie::FiberValue::Status::Active);
+    assert(fiber->block());
+    Natalie::ValuePtr return_args[1];
+    try {
+        // NOTE: we cannot pass the env from this fiber (stack) across to another fiber (stack),
+        // because doing so can cause unexpected results when env->caller() is used. (Since that
+        // calling Env might have been overwritten in the other stack.)
+        // That means a backtrace built from inside the fiber will end abruptly.
+        // But that seems to be what Ruby does too.
+        Natalie::Env e {};
+        return_args[0] = NAT_RUN_BLOCK_WITHOUT_BREAK((&e), fiber->block(), fiber->args().size(), fiber->args().data(), nullptr);
+    } catch (Natalie::ExceptionValue *exception) {
+        fiber->set_status(Natalie::FiberValue::Status::Suspended);
+        fiber->set_end_of_stack(&fiber);
+        fiber->set_error(exception);
+        fiber->yield_back(env, 0, return_args);
+        NAT_UNREACHABLE();
+    }
+    fiber->set_status(Natalie::FiberValue::Status::Terminated);
+    fiber->set_end_of_stack(&fiber);
+    fiber->yield_back(env, 1, return_args);
 }
 
 #ifdef __x86_64
@@ -171,8 +212,6 @@ asm(".globl " NAT_ASM_PREFIX "fiber_asm_switch\n" NAT_ASM_PREFIX "fiber_asm_swit
     "\tpush %esi\n"
     "\tpush %edi\n"
     "\tmov %esp, (%ecx)\n"
-
-    // TODO: pass args
 
     // restore registers
     "\tmov (%edx), %esp\n"

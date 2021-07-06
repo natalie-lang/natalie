@@ -198,7 +198,7 @@ extern "C" Value *EVAL(Env *env) {
 
 ValuePtr _main(int argc, char *argv[]) {
     Env *env = build_top_env();
-    GlobalEnv::the()->main_fiber(env);
+    FiberValue::set_main(new FiberValue { Heap::the().start_of_stack() });
 
 #ifndef NAT_GC_DISABLE
     Heap::the().gc_enable();

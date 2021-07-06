@@ -41,4 +41,28 @@ describe 'Fiber' do
       789
     ]
   end
+
+  it 'can be resumed from another fiber' do
+    f2 = Fiber.new do
+      Fiber.yield 'hi from f2'
+    end
+
+    f = Fiber.new do
+      Fiber.yield f2.resume
+    end
+
+    f.resume.should == 'hi from f2'
+  end
+
+  it 'raises an error if resumed twice' do
+    f2 = Fiber.new do |f|
+      f.resume
+    end
+
+    f = Fiber.new do
+      f2.resume(f)
+    end
+
+    -> { f.resume }.should raise_error(FiberError, 'double resume')
+  end
 end

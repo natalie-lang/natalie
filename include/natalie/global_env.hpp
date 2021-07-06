@@ -53,15 +53,6 @@ public:
     ClassValue *Symbol() { return m_Symbol; }
     void set_Symbol(ClassValue *Symbol) { m_Symbol = Symbol; }
 
-    FiberValue *main_fiber(Env *);
-
-    FiberValue *current_fiber() { return m_current_fiber; }
-    void set_current_fiber(FiberValue *fiber) { m_current_fiber = fiber; }
-    void reset_current_fiber() { m_current_fiber = m_main_fiber; }
-
-    Vector<ValuePtr> &fiber_args() { return m_fiber_args; }
-    void set_fiber_args(size_t argc, ValuePtr *args);
-
     ValuePtr global_get(Env *, SymbolValue *);
     ValuePtr global_set(Env *, SymbolValue *, ValuePtr);
 
@@ -93,10 +84,6 @@ private:
     ClassValue *m_Regexp { nullptr };
     ClassValue *m_String { nullptr };
     ClassValue *m_Symbol { nullptr };
-
-    FiberValue *m_main_fiber { nullptr };
-    FiberValue *m_current_fiber { nullptr };
-    Vector<ValuePtr> m_fiber_args {};
 
     Env *m_main_env { nullptr };
 };

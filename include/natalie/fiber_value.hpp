@@ -68,8 +68,7 @@ public:
     // used for the "main" fiber
     FiberValue(void *start_of_stack)
         : Value { Value::Type::Fiber, GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("Fiber"))->as_class() }
-        , m_start_of_stack { start_of_stack }
-        , m_is_main_fiber { true } {
+        , m_start_of_stack { start_of_stack } {
         assert(m_start_of_stack);
     }
 
@@ -77,7 +76,7 @@ public:
         : Value { Value::Type::Fiber, klass } { }
 
     ~FiberValue() {
-        if (m_is_main_fiber)
+        if (this == s_main)
             return;
         int err = munmap(m_start_of_stack, STACK_SIZE);
         if (err != 0) {
@@ -133,28 +132,8 @@ public:
         }
     }
 
-    ValuePtr resume(Env *env, size_t argc, ValuePtr *args) {
-        if (m_status == Status::Terminated) {
-            env->raise("FiberError", "dead fiber called");
-        }
-        auto main_fiber = GlobalEnv::the()->main_fiber(env);
-        GlobalEnv::the()->set_current_fiber(this);
-        GlobalEnv::the()->set_fiber_args(argc, args);
-
-        // NOTE: *no* allocations can happen between these next two lines
-        Heap::the().set_start_of_stack(m_start_of_stack);
-        main_fiber->m_end_of_stack = &args;
-        fiber_asm_switch(fiber(), main_fiber->fiber(), 0, env, this);
-
-        auto fiber_args = GlobalEnv::the()->fiber_args();
-        if (fiber_args.size() == 0) {
-            return NilValue::the();
-        } else if (fiber_args.size() == 1) {
-            return fiber_args.at(0);
-        } else {
-            return new ArrayValue { fiber_args.size(), fiber_args.data() };
-        }
-    }
+    ValuePtr resume(Env *env, size_t argc, ValuePtr *args);
+    void yield_back(Env *env, size_t argc, ValuePtr *args);
 
     void *start_of_stack() { return m_start_of_stack; }
 
@@ -192,13 +171,32 @@ public:
             reinterpret_cast<char *>(m_start_of_stack) + STACK_SIZE);
     }
 
+    static FiberValue *current() { return s_current; }
+
+    static FiberValue *main() { return s_main; }
+    static void set_main(FiberValue *fiber) {
+        s_main = fiber;
+        s_current = fiber;
+    }
+
+    Vector<ValuePtr> &args() { return m_args; }
+    void set_args(size_t argc, ValuePtr *args);
+
+    ExceptionValue *error() { return m_error; }
+    void set_error(ExceptionValue *error) { m_error = error; }
+
 private:
     Block *m_block { nullptr };
     ::fiber_stack_struct m_fiber {};
     void *m_start_of_stack { nullptr };
     void *m_end_of_stack { nullptr };
     Status m_status { Status::Created };
-    bool m_is_main_fiber { false };
+    Vector<ValuePtr> m_args {};
+    FiberValue *m_previous_fiber { nullptr };
+    ExceptionValue *m_error { nullptr };
+
+    inline static FiberValue *s_current = nullptr;
+    inline static FiberValue *s_main = nullptr;
 };
 
 }

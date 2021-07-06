@@ -56,6 +56,10 @@ Hashmap<Cell *> Heap::gather_conservative_roots() {
     roots.set(NilValue::the());
     roots.set(TrueValue::the());
     roots.set(FalseValue::the());
+    roots.set(FiberValue::main());
+    FiberValue *current_fiber = FiberValue::current();
+    if (current_fiber)
+        roots.set(current_fiber);
 
     return roots;
 }
