@@ -109,6 +109,7 @@ void FiberValue::visit_children(Visitor &visitor) {
         visitor.visit(arg);
     }
     visitor.visit(m_previous_fiber);
+    visitor.visit(m_error);
 }
 
 void FiberValue::set_args(size_t argc, ValuePtr *args) {
