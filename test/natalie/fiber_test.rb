@@ -42,6 +42,17 @@ describe 'Fiber' do
     ]
   end
 
+  it 'bubbles up errors' do
+    f = Fiber.new do
+      raise 'error'
+    end
+
+    -> { f.resume }.should raise_error(StandardError, 'error')
+
+    # fiber is now dead:
+    -> { f.resume }.should raise_error(FiberError, 'dead fiber called')
+  end
+
   it 'can be resumed from another fiber' do
     f2 = Fiber.new do
       Fiber.yield 'hi from f2'

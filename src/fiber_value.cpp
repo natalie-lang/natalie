@@ -143,7 +143,7 @@ void fiber_wrapper_func(Natalie::Env *env, Natalie::FiberValue *fiber) {
         Natalie::Env e {};
         return_args[0] = NAT_RUN_BLOCK_WITHOUT_BREAK((&e), fiber->block(), fiber->args().size(), fiber->args().data(), nullptr);
     } catch (Natalie::ExceptionValue *exception) {
-        fiber->set_status(Natalie::FiberValue::Status::Suspended);
+        fiber->set_status(Natalie::FiberValue::Status::Terminated);
         fiber->set_end_of_stack(&fiber);
         fiber->set_error(exception);
         reraise = true;
