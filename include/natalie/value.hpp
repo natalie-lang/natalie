@@ -180,6 +180,10 @@ public:
     ValuePtr _send(Env *, const char *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
     ValuePtr _send(Env *, size_t, ValuePtr *, Block *);
 
+    ValuePtr _send(Env *env, SymbolValue *name, std::initializer_list<ValuePtr> args) {
+        return _send(env, name, args.size(), const_cast<ValuePtr *>(data(args)));
+    }
+
     Method *find_method(Env *, SymbolValue *, MethodVisibility, ModuleValue ** = nullptr, Method * = nullptr);
 
     ValuePtr dup(Env *);
