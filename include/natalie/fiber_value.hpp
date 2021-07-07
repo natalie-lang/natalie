@@ -65,24 +65,26 @@ public:
     FiberValue()
         : Value { Value::Type::Fiber, GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("Fiber"))->as_class() } { }
 
-    // used for the "main" fiber
-    FiberValue(void *start_of_stack)
-        : Value { Value::Type::Fiber, GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("Fiber"))->as_class() }
-        , m_start_of_stack { start_of_stack } {
-        assert(m_start_of_stack);
-    }
-
     FiberValue(ClassValue *klass)
         : Value { Value::Type::Fiber, klass } { }
 
     ~FiberValue() {
-        if (this == s_main)
+        if (!m_stack_memory)
             return;
-        int err = munmap(m_start_of_stack, STACK_SIZE);
+        int err = munmap(m_stack_memory, STACK_SIZE);
         if (err != 0) {
             fprintf(stderr, "unmapping failed (errno=%d)\n", errno);
             abort();
         }
+    }
+
+    static void build_main_fiber(void *start_of_stack) {
+        assert(!s_main); // can only be built once
+        auto fiber = new FiberValue;
+        assert(start_of_stack);
+        fiber->m_start_of_stack = start_of_stack;
+        s_main = fiber;
+        s_current = fiber;
     }
 
     const int STACK_SIZE = 1024 * 1024;
@@ -106,8 +108,8 @@ public:
 #else
         auto mmap_flags = MAP_PRIVATE | MAP_ANONYMOUS;
 #endif
-        auto mapped_memory = mmap(nullptr, stack_size, PROT_READ | PROT_WRITE, mmap_flags, -1, 0);
-        if (mapped_memory == MAP_FAILED) {
+        m_stack_memory = mmap(nullptr, stack_size, PROT_READ | PROT_WRITE, mmap_flags, -1, 0);
+        if (m_stack_memory == MAP_FAILED) {
             fprintf(stderr, "mapping failed (errno=%d)\n", errno);
             abort();
         }
@@ -116,7 +118,7 @@ public:
         void *comparison_ptr = &stack_size;
         assert(comparison_ptr < Heap::the().start_of_stack());
 
-        m_start_of_stack = reinterpret_cast<char *>(mapped_memory) + stack_size;
+        m_start_of_stack = reinterpret_cast<char *>(m_stack_memory) + stack_size;
         m_fiber.stack = reinterpret_cast<void **>(m_start_of_stack);
 #ifdef __APPLE__
         assert((uintptr_t)m_fiber.stack % 16 == 0);
@@ -174,10 +176,6 @@ public:
     static FiberValue *current() { return s_current; }
 
     static FiberValue *main() { return s_main; }
-    static void set_main(FiberValue *fiber) {
-        s_main = fiber;
-        s_current = fiber;
-    }
 
     Vector<ValuePtr> &args() { return m_args; }
     void set_args(size_t argc, ValuePtr *args);
@@ -188,6 +186,7 @@ public:
 private:
     Block *m_block { nullptr };
     ::fiber_stack_struct m_fiber {};
+    void *m_stack_memory { nullptr };
     void *m_start_of_stack { nullptr };
     void *m_end_of_stack { nullptr };
     Status m_status { Status::Created };
