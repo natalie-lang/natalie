@@ -65,7 +65,7 @@ ValuePtr FiberValue::resume(Env *env, size_t argc, ValuePtr *args) {
 
 ValuePtr FiberValue::yield(Env *env, size_t argc, ValuePtr *args) {
     auto current_fiber = FiberValue::current();
-    if (!current_fiber)
+    if (!current_fiber->m_previous_fiber)
         env->raise("FiberError", "can't yield from root fiber");
     current_fiber->set_status(Status::Suspended);
     current_fiber->m_end_of_stack = &args;

@@ -65,4 +65,8 @@ describe 'Fiber' do
 
     -> { f.resume }.should raise_error(FiberError, 'double resume')
   end
+
+  it 'raises an error when attempting to yield from the main fiber' do
+    -> { Fiber.yield 'foo' }.should raise_error(FiberError, "can't yield from root fiber")
+  end
 end
