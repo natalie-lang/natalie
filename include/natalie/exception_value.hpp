@@ -25,6 +25,12 @@ public:
         assert(m_message);
     }
 
+    ExceptionValue(Env *env, ExceptionValue &other)
+        : Value { other } {
+        m_message = other.m_message;
+        m_backtrace = other.m_backtrace;
+    }
+
     StringValue *message() { return m_message; }
     void set_message(StringValue *message) { m_message = message; }
 

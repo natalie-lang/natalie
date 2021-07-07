@@ -449,6 +449,8 @@ ValuePtr Value::dup(Env *env) {
     switch (m_type) {
     case Value::Type::Array:
         return new ArrayValue { *as_array() };
+    case Value::Type::Exception:
+        return new ExceptionValue { *as_exception() };
     case Value::Type::Hash:
         return new HashValue { env, *as_hash() };
     case Value::Type::String:
