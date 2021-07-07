@@ -29,7 +29,7 @@ test: build
 test_valgrind: build
 	bin/natalie -d valgrind test/natalie/assign_test.rb
 	bin/natalie -d valgrind spec/language/block_spec.rb
-	bin/natalie -d valgrind test/natalie/fiber_test.rb
+	#bin/natalie -d valgrind test/natalie/fiber_test.rb
 
 docker_build:
 	docker build -t natalie .
