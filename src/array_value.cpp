@@ -466,7 +466,9 @@ void ArrayValue::sort_in_place(Env *env) {
 }
 
 ValuePtr ArrayValue::select(Env *env, Block *block) {
-    env->ensure_block_given(block); // TODO: return Enumerator when no block given
+    if (!block)
+        return _send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("select") });
+
     ArrayValue *new_array = new ArrayValue {};
     for (auto &item : *this) {
         ValuePtr result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
@@ -478,7 +480,9 @@ ValuePtr ArrayValue::select(Env *env, Block *block) {
 }
 
 ValuePtr ArrayValue::reject(Env *env, Block *block) {
-    env->ensure_block_given(block); // TODO: return Enumerator when no block given
+    if (!block)
+        return _send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("reject") });
+
     ArrayValue *new_array = new ArrayValue {};
     for (auto &item : *this) {
         ValuePtr result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);

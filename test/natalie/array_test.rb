@@ -712,8 +712,26 @@ describe 'array' do
   end
 
   describe '#select' do
-    it 'works' do
+    it 'returns a new array containing items for which the block yielded true' do
       [1, 2, 3, 4].select { |i| i % 2 == 0 }.should == [2, 4]
+    end
+
+    it 'returns an enumerator when no block is given' do
+      e = [1, 2, 3, 4].select
+      e.should be_an_instance_of(Enumerator)
+      e.each { |i| i <= 2 }.should == [1, 2]
+    end
+  end
+
+  describe '#reject' do
+    it 'returns a new array containing items for which the block yielded false' do
+      [1, 2, 3, 4].reject { |i| i % 2 == 0 }.should == [1, 3]
+    end
+
+    it 'returns an enumerator when no block is given' do
+      e = [1, 2, 3, 4].reject
+      e.should be_an_instance_of(Enumerator)
+      e.each { |i| i <= 2 }.should == [3, 4]
     end
   end
 
