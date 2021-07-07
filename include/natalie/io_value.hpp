@@ -28,6 +28,8 @@ public:
         , m_fileno { fileno } { }
 
     virtual ~IoValue() override {
+        if (m_fileno == STDIN_FILENO || m_fileno == STDOUT_FILENO || m_fileno == STDERR_FILENO)
+            return;
         if (!m_closed && m_fileno != -1) {
             ::close(m_fileno);
             m_closed = true;
