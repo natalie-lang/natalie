@@ -1,8 +1,7 @@
 #include "natalie.hpp"
 #include <algorithm>
-#include <random>
 #include <natalie/array_value.hpp>
-
+#include <random>
 
 namespace Natalie {
 
@@ -578,14 +577,14 @@ ValuePtr ArrayValue::intersection(Env *env, ValuePtr arg) {
         return nullptr;
     }
 
-    auto* other_array = arg->as_array();
+    auto *other_array = arg->as_array();
 
     if (is_empty() || other_array->is_empty()) {
         return new ArrayValue();
     }
 
-    auto* result = new ArrayValue();
-    for (auto& val : *this) {
+    auto *result = new ArrayValue();
+    for (auto &val : *this) {
         if (other_array->include(env, val)->is_truthy()) {
             result->push(val);
         }
@@ -595,11 +594,11 @@ ValuePtr ArrayValue::intersection(Env *env, ValuePtr arg) {
 }
 
 ValuePtr ArrayValue::intersection(Env *env, size_t argc, ValuePtr *args) {
-    auto* result = new ArrayValue(env, *this);
+    auto *result = new ArrayValue(env, *this);
 
     // TODO: we probably want to make & call this instead of this way for optimization
     for (size_t i = 0; i < argc; i++) {
-        auto& arg = args[i];
+        auto &arg = args[i];
         result = result->intersection(env, arg)->as_array();
     }
 
@@ -612,19 +611,19 @@ ValuePtr ArrayValue::union_of(Env *env, ValuePtr arg) {
         return nullptr;
     }
 
-    auto* result = new ArrayValue();
-    auto add_value = [&result, &env](ValuePtr& val) {
+    auto *result = new ArrayValue();
+    auto add_value = [&result, &env](ValuePtr &val) {
         if (result->include(env, val)->is_falsey()) {
             result->push(val);
         }
     };
 
-    for (auto& val : *this) {
+    for (auto &val : *this) {
         add_value(val);
     }
 
-    auto* other_array = arg->as_array();
-    for (auto& val : *other_array) {
+    auto *other_array = arg->as_array();
+    for (auto &val : *other_array) {
         add_value(val);
     }
 
@@ -632,11 +631,11 @@ ValuePtr ArrayValue::union_of(Env *env, ValuePtr arg) {
 }
 
 ValuePtr ArrayValue::union_of(Env *env, size_t argc, ValuePtr *args) {
-    auto* result = new ArrayValue(env, *this);
+    auto *result = new ArrayValue(env, *this);
 
     // TODO: we probably want to make | call this instead of this way for optimization
     for (size_t i = 0; i < argc; i++) {
-        auto& arg = args[i];
+        auto &arg = args[i];
         result = result->union_of(env, arg)->as_array();
     }
 
@@ -644,7 +643,7 @@ ValuePtr ArrayValue::union_of(Env *env, size_t argc, ValuePtr *args) {
 }
 
 ValuePtr ArrayValue::reverse(Env *env) {
-    ArrayValue* copy = new ArrayValue(env, *this);
+    ArrayValue *copy = new ArrayValue(env, *this);
     copy->reverse_in_place(env);
     return copy;
 }
@@ -658,7 +657,7 @@ ValuePtr ArrayValue::reverse_in_place(Env *env) {
     return this;
 }
 
-ValuePtr ArrayValue::concat(Env *env, size_t argc, ValuePtr* args) {
+ValuePtr ArrayValue::concat(Env *env, size_t argc, ValuePtr *args) {
     assert_not_frozen(env);
 
     for (size_t i = 0; i < argc; i++) {
@@ -717,7 +716,7 @@ ValuePtr ArrayValue::one(Env *env, size_t argc, ValuePtr *args, Block *block) {
 }
 
 ValuePtr ArrayValue::rotate(Env *env, ValuePtr val) {
-    ArrayValue* copy = new ArrayValue(env, *this);
+    ArrayValue *copy = new ArrayValue(env, *this);
     copy->rotate_in_place(env, val);
     return copy;
 }
@@ -742,8 +741,6 @@ ValuePtr ArrayValue::rotate_in_place(Env *env, ValuePtr val) {
         return this;
     }
 
-
-
     if (count > 0) {
         Vector<ValuePtr> stack;
 
@@ -752,7 +749,7 @@ ValuePtr ArrayValue::rotate_in_place(Env *env, ValuePtr val) {
         for (nat_int_t i = 0; i < count; i++)
             stack.push(m_vector.pop_front());
 
-        for (auto& rotated_val : stack)
+        for (auto &rotated_val : stack)
             push(rotated_val);
 
     } else if (count < 0) {
@@ -762,7 +759,7 @@ ValuePtr ArrayValue::rotate_in_place(Env *env, ValuePtr val) {
         for (nat_int_t i = 0; i < count; i++)
             stack.push(m_vector.pop());
 
-        for (auto& rotated_val : stack)
+        for (auto &rotated_val : stack)
             m_vector.push_front(rotated_val);
     }
 

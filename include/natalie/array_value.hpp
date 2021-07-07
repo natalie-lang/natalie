@@ -99,7 +99,7 @@ public:
     ValuePtr cmp(Env *, ValuePtr);
     ValuePtr clear(Env *);
     ValuePtr compact(Env *);
-    ValuePtr concat(Env *, size_t, ValuePtr*);
+    ValuePtr concat(Env *, size_t, ValuePtr *);
     ValuePtr drop(Env *, ValuePtr);
     ValuePtr each(Env *, Block *);
     ValuePtr eq(Env *, ValuePtr);
@@ -109,15 +109,15 @@ public:
     ValuePtr index(Env *, ValuePtr, Block *);
     ValuePtr inspect(Env *);
     ValuePtr intersection(Env *, ValuePtr);
-    ValuePtr intersection(Env *, size_t, ValuePtr*);
+    ValuePtr intersection(Env *, size_t, ValuePtr *);
     ValuePtr join(Env *, ValuePtr);
     ValuePtr last(Env *, ValuePtr);
     ValuePtr ltlt(Env *, ValuePtr);
     ValuePtr map(Env *, Block *);
     ValuePtr max(Env *);
     ValuePtr min(Env *);
-    ValuePtr none(Env *, size_t, ValuePtr*, Block*);
-    ValuePtr one(Env *, size_t, ValuePtr*, Block*);
+    ValuePtr none(Env *, size_t, ValuePtr *, Block *);
+    ValuePtr one(Env *, size_t, ValuePtr *, Block *);
     ValuePtr push(Env *, size_t, ValuePtr *);
     ValuePtr rassoc(Env *, ValuePtr);
     ValuePtr ref(Env *, ValuePtr, ValuePtr);
@@ -134,7 +134,7 @@ public:
     ValuePtr sort(Env *);
     ValuePtr sub(Env *, ValuePtr);
     ValuePtr union_of(Env *, ValuePtr);
-    ValuePtr union_of(Env *, size_t, ValuePtr*);
+    ValuePtr union_of(Env *, size_t, ValuePtr *);
     ValuePtr uniq(Env *);
 
     virtual void visit_children(Visitor &visitor) override final {
