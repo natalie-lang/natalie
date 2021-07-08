@@ -454,19 +454,244 @@ describe 'array' do
       a = []
       a[0..-2].should == []
     end
-  end
 
-  describe '[]' do
-    it 'replaces the item at the given index' do
-      a = [1, 2, 3, 4, 5, 6]
-      a[1] = 'two'
-      a.should == [1, 'two', 3, 4, 5, 6]
+    it 'should return nil when given range starting after length of array' do
+      a = [1, 2, 3]
+      a[4..5].should == nil
+      a[4..3].should == nil
+      a[4..2].should == nil
+      a[4..-1].should == nil
+      a[-10..-1].should == nil
+
+      b = []
+      b[0..100].should == []
+      b[-0..100].should == []
+      b[1..100].should == nil
+      b[-1..100].should == nil
+
     end
 
-    it 'fills the array with nils when the index is larger than array' do
-      a = [1, 2, 3, 4, 5, 6]
-      a[10] = 11
-      a.should == [1, 2, 3, 4, 5, 6, nil, nil, nil, nil, 11]
+    it 'should throw an error on unknown argument types' do
+      a = [1, 2, 3]
+      -> { a['a'] }.should raise_error(TypeError, 'no implicit conversion of String into Integer')
+      -> { a['a', 'b'] }.should raise_error(TypeError, 'no implicit conversion of String into Integer')
+      -> { a['a'..'c'] }.should raise_error(TypeError, 'no implicit conversion of String into Integer')
+      -> { a[:foo] }.should raise_error(TypeError, 'no implicit conversion of Symbol into Integer')
+      -> { a[:foo, :bar] }.should raise_error(TypeError, 'no implicit conversion of Symbol into Integer')
+      -> { a[:foo..:bar] }.should raise_error(TypeError, 'no implicit conversion of Symbol into Integer')
+      -> { a[[]] }.should raise_error(TypeError, 'no implicit conversion of Array into Integer')
+      -> { a[[1]] }.should raise_error(TypeError, 'no implicit conversion of Array into Integer')
+      -> { a[nil] }.should raise_error(TypeError, 'no implicit conversion from nil to integer')
+      -> { a[1, nil] }.should raise_error(TypeError, 'no implicit conversion from nil to integer')
+    end
+  end
+
+  describe '[]=' do
+    context 'given a single number argument' do
+      it 'replaces the item at the given index' do
+        a = [1, 2, 3, 4, 5, 6]
+        a[1] = 'two'
+        a.should == [1, 'two', 3, 4, 5, 6]
+      end
+
+      it 'fills the array with nils when the index is larger than array' do
+        a = [1, 2, 3, 4, 5, 6]
+        a[10] = 11
+        a.should == [1, 2, 3, 4, 5, 6, nil, nil, nil, nil, 11]
+      end
+
+      it 'should start from the back for a negative number' do
+        a = [1, 2, 3]
+        a[-1] = 11
+        a.should == [1, 2, 11]
+      end
+
+      it 'should raise an error if negative index before beginning' do
+        a = [1, 2, 3]
+        -> { a[-4] = :foo }.should raise_error(IndexError, 'index -4 too small for array; minimum: -3')
+        -> { a[-100] = :foo }.should raise_error(IndexError, 'index -100 too small for array; minimum: -3')
+      end
+
+      it 'should extend and put nil' do
+        a = [1, 2, 3]
+        a[4] = nil
+        a.should == [1, 2, 3, nil, nil]
+
+        a[0] = nil
+        a.should == [nil, 2, 3, nil, nil]
+      end
+
+      it 'should not all items of an array as rhs but as array' do
+        a = [1, 2, 3]
+        a[1] = [9, 10]
+        a.should == [1, [9, 10], 3]
+      end
+    end
+
+    context 'given two number arguments' do
+      it 'should replace the item at the start position and remove all the ones after' do
+        a = [1, 2, 3]
+        (a[0, 2] = 'a').should == 'a'
+        a.should == ['a', 3]
+      end
+
+      it 'should insert a new item for length = 0' do
+        a = [1, 2, 3]
+        (a[1, 0] = 'x').should == 'x'
+        a.should == [1, 'x', 2, 3]
+      end
+
+      it 'should not extend the array if start + size beyond array size' do
+        a = [1, 2, 3]
+        a[2, 6] = 99
+        a.should == [1, 2, 99]
+      end
+
+      it 'should start from the back given a negative start' do
+        a = [1, 2, 3]
+        a[-2, 6] = 99
+        a.should == [1, 99]
+        a[-2, 0] = 101
+        a.should == [101, 1, 99]
+      end
+
+      it 'should extend and put nil' do
+        a = [1, 2, 3]
+        a[4, 2] = nil
+        a.should == [1, 2, 3, nil, nil]
+
+        a[0, 2] = nil
+        a.should == [nil, 3, nil, nil]
+      end
+
+      it 'should add all items of an separately for rhs array' do
+        a = [1, 2, 3]
+        a[1, 2] = [9, 10]
+        a.should == [1, 9, 10]
+
+        a = [1, 2, 3, 4]
+        a[1, 1] = [11, 12]
+        a.should == [1, 11, 12, 3, 4]
+      end
+
+      it 'should raise an error on negative length' do
+        a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        -> { a[-2, -1] = 99 }.should raise_error(IndexError, 'negative length (-1)')
+        -> { a[-2, -3] = 99 }.should raise_error(IndexError, 'negative length (-3)')
+        -> { a[0, -4] = 99 }.should raise_error(IndexError, 'negative length (-4)')
+        -> { a[100, -5] = 99 }.should raise_error(IndexError, 'negative length (-5)')
+        -> { a[1, -6] = 99 }.should raise_error(IndexError, 'negative length (-6)')
+      end
+    end
+
+    context 'given a range' do
+      it 'should remove all items in range and add value add start of range' do
+        a = [1, 2, 3]
+        a[2..3] = :foo
+        a.should == [1, 2, :foo]
+
+        a[1..1] = 'a'
+        a.should == [1, 'a', :foo]
+      end
+
+      it 'should only insert element if start and end are size of array' do
+        a = []
+        a[0...0] = 1
+        a.should == [1]
+        a[1...1] = '2'
+        a.should == [1, '2']
+
+        a[1...1] = :onepointfive
+        a.should == [1, :onepointfive, '2']
+      end
+
+      it 'should replace items if not excluding end and within array size' do
+        a = [1, 2, 3]
+        a[1..1] = :nottwo
+        a.should == [1, :nottwo, 3]
+      end
+
+      it 'should insert items when range is excluding end and start and end the same' do
+        a = [1, 2, 3]
+        a[1...1] = '1.5'
+        a.should == [1, '1.5', 2, 3]
+        a[-1...-1] = '2.5'
+        a.should == [1, '1.5', 2, '2.5', 3]
+      end
+
+      it 'should not extend the array past the original size even if end is larger' do
+        a = [1, 2, 3]
+        a[2..100] = 4
+        a.should == [1, 2, 4]
+      end
+
+      it 'should only extend the array until start and not end of range' do
+        a = [1, 2, 3]
+        a[5..100] = 'x'
+        a.should == [1, 2, 3, nil, nil, 'x']
+      end
+
+      it 'should replace only the items at negative start when range ends with negative' do
+        a = [1, 2, 3]
+        a[-1..-5] = 4
+        a.should == [1, 2, 4, 3]
+      end
+
+      it 'should replace the items if range goes from negative to positive' do
+        a = [1, 2, 3]
+        a[-2..3] = :foo
+        a.should == [1, :foo]
+
+        # end before start (after conversion)
+        a = [1, 2, 3, 4]
+        a[-2..1] = :foo
+        a.should == [1, 2, :foo, 3, 4]
+      end
+
+      it 'should add all items of an separately for rhs array' do
+        a = [1, 2, 3]
+        a[1..2] = [9, 10]
+        a.should == [1, 9, 10]
+
+        a = [1, 2, 3, 4]
+        a[1..1] = [11, 12]
+        a.should == [1, 11, 12, 3, 4]
+      end
+
+      it 'should?' do
+        a = [1, 2, 3]
+        -> { a[-4..-6] = 3 }.should raise_error(RangeError, '-4..-6 out of range')
+        -> { a[-4..0] = 3 }.should raise_error(RangeError, '-4..0 out of range')
+        -> { a[-4..2] = 3 }.should raise_error(RangeError, '-4..2 out of range')
+        -> { a[-4...-6] = 3 }.should raise_error(RangeError, '-4...-6 out of range')
+        -> { a[-4...0] = 3 }.should raise_error(RangeError, '-4...0 out of range')
+        -> { a[-4...2] = 3 }.should raise_error(RangeError, '-4...2 out of range')
+
+        -> { a[-100...100] = 3 }.should raise_error(RangeError, '-100...100 out of range')
+      end
+
+    end
+
+    it 'should throw an error on unknown argument types' do
+      a = [1, 2, 3]
+      -> { a['a'] = 1 }.should raise_error(TypeError, 'no implicit conversion of String into Integer')
+      -> { a['a', 'b'] = 'd' }.should raise_error(TypeError, 'no implicit conversion of String into Integer')
+      -> { a['a'..'c'] = :a }.should raise_error(TypeError, 'no implicit conversion of String into Integer')
+      -> { a[:foo] = 'v' }.should raise_error(TypeError, 'no implicit conversion of Symbol into Integer')
+      -> { a[:foo, :bar] = 'id' }.should raise_error(TypeError, 'no implicit conversion of Symbol into Integer')
+      -> { a[:foo..:bar] = 0 }.should raise_error(TypeError, 'no implicit conversion of Symbol into Integer')
+      -> { a[:foo...:bar] = 't' }.should raise_error(TypeError, 'no implicit conversion of Symbol into Integer')
+      -> { a[[]] = [1, 2] }.should raise_error(TypeError, 'no implicit conversion of Array into Integer')
+      -> { a[[1]] = [3, 4] }.should raise_error(TypeError, 'no implicit conversion of Array into Integer')
+
+      -> { a[nil] = [3, 4] }.should raise_error(TypeError, 'no implicit conversion from nil to integer')
+      -> { a[nil] = nil }.should raise_error(TypeError, 'no implicit conversion from nil to integer')
+      -> { a[nil, nil] = nil }.should raise_error(TypeError, 'no implicit conversion from nil to integer')
+      -> { a[3, nil] = nil }.should raise_error(TypeError, 'no implicit conversion from nil to integer')
+      -> { a[nil, 3] = nil }.should raise_error(TypeError, 'no implicit conversion from nil to integer')
+      -> { a[nil, nil] = 'a' }.should raise_error(TypeError, 'no implicit conversion from nil to integer')
+      -> { a[3, nil] = :foo }.should raise_error(TypeError, 'no implicit conversion from nil to integer')
+      -> { a[nil, 3] = -5 }.should raise_error(TypeError, 'no implicit conversion from nil to integer')
     end
   end
 
@@ -1322,6 +1547,252 @@ describe 'array' do
         -> { [].rotate!([]) }.should raise_error(TypeError, 'no implicit conversion of Array into Integer')
         -> { [].rotate!('a') }.should raise_error(TypeError, 'no implicit conversion of String into Integer')
       end
+    end
+  end
+
+  describe '#slice' do
+    it 'returns the item at the given index' do
+      a = [1, 2, 3, 4, 5, 6]
+      a.slice(0).should == 1
+      a.slice(1).should == 2
+    end
+
+    it 'returns the item offset from the end when given a negative index' do
+      a = [1, 2, 3, 4, 5, 6]
+      a.slice(-1).should == 6
+      a.slice(-2).should == 5
+    end
+
+    it 'returns nil when the index is out of range' do
+      a = [1, 2, 3, 4, 5, 6]
+      a.slice(10).should == nil
+      a.slice(-10).should == nil
+    end
+
+    it 'returns a sub-array when given a range' do
+      a = [1, 2, 3, 4, 5, 6]
+      a.slice(0..3).should == [1, 2, 3, 4]
+      a.slice(0...3).should == [1, 2, 3]
+      a.slice(1..1).should == [2]
+      a.slice(1..5).should == [2, 3, 4, 5, 6]
+      a.slice(1..6).should == [2, 3, 4, 5, 6]
+      a.slice(1..10).should == [2, 3, 4, 5, 6]
+      a.slice(6..10).should == []
+      a.slice(6..10).should == []
+      a.slice(-2..-1).should == [5, 6]
+      a.slice(-1..-1).should == [6]
+      a.slice(-6..-1).should == [1, 2, 3, 4, 5, 6]
+      a.slice(-1..-6).should == []
+      a.slice(-10..-9).should == nil
+      a.slice(1..-1).should == [2, 3, 4, 5, 6]
+      a.slice(1...-1).should == [2, 3, 4, 5]
+      a.slice(1...1).should == []
+      a.slice(-1...-1).should == []
+      a = []
+      a.slice(0..-2).should == []
+    end
+
+    it 'should return nil when given range starting after length of array' do
+      a = [1, 2, 3]
+      a.slice(4..5).should == nil
+      a.slice(4..3).should == nil
+      a.slice(4..2).should == nil
+      a.slice(4..-1).should == nil
+      a.slice(-10..-1).should == nil
+
+      b = []
+      b.slice(0..100).should == []
+      b.slice(-0..100).should == []
+      b.slice(1..100).should == nil
+      b.slice(-1..100).should == nil
+
+    end
+
+    it 'should throw an error on unknown argument types' do
+      a = [1, 2, 3]
+      -> { a.slice('a') }.should raise_error(TypeError, 'no implicit conversion of String into Integer')
+      -> { a.slice('a', 'b') }.should raise_error(TypeError, 'no implicit conversion of String into Integer')
+      -> { a.slice('a'..'c') }.should raise_error(TypeError, 'no implicit conversion of String into Integer')
+      -> { a.slice(:foo) }.should raise_error(TypeError, 'no implicit conversion of Symbol into Integer')
+      -> { a.slice(:foo, :bar) }.should raise_error(TypeError, 'no implicit conversion of Symbol into Integer')
+      -> { a.slice(:foo..:bar) }.should raise_error(TypeError, 'no implicit conversion of Symbol into Integer')
+      -> { a.slice([]) }.should raise_error(TypeError, 'no implicit conversion of Array into Integer')
+      -> { a.slice([1]) }.should raise_error(TypeError, 'no implicit conversion of Array into Integer')
+      -> { a.slice(nil) }.should raise_error(TypeError, 'no implicit conversion from nil to integer')
+      -> { a.slice(1, nil) }.should raise_error(TypeError, 'no implicit conversion from nil to integer')
+    end
+  end
+
+  describe '#slice!' do
+    context 'given one integer argument' do
+      it 'should give nil for out of range elements' do
+        a = []
+        a.slice!(1).should == nil
+        a.should == []
+
+        a.slice!(-1).should == nil
+        a.should == []
+
+        a = [1]
+        a.slice!(2).should == nil
+        a.should == [1]
+
+        a.slice!(-2).should == nil
+        a.should == [1]
+      end
+
+      it 'should remove and return the element at the index' do
+        a = [1, 2, 3]
+        a.slice!(0).should == 1
+        a.should == [2, 3]
+
+        a.slice!(1).should == 3
+        a.should == [2]
+      end
+    end
+
+    context 'given two number arguments' do
+      it 'should give nil for start value out of range' do
+        a = []
+        a.slice!(1, 10).should == nil
+        a.slice!(1, 2).should == nil
+        a.slice!(1, 3).should == nil
+        a.slice!(1, 0).should == nil
+        a.should == []
+
+        a.slice!(-1, 1).should == nil
+        a.slice!(-1, 0).should == nil
+        a.slice!(-1, 2).should == nil
+        a.should == []
+
+        a = [1]
+        a.slice!(2, 1).should == nil
+        a.slice!(2, 2).should == nil
+        a.slice!(2, 10).should == nil
+        a.slice!(2, 0).should == nil
+        a.should == [1]
+
+        a.slice!(-2, 5).should == nil
+        a.slice!(-2, 3).should == nil
+        a.slice!(-2, 1).should == nil
+        a.slice!(-2, 0).should == nil
+        a.should == [1]
+      end
+
+      it 'should return nil for negative lengths' do
+        a = [1, 2]
+
+        a.slice!(0, -1).should == nil
+        a.slice!(2, -1).should == nil
+        a.slice!(1, -1).should == nil
+        a.slice!(-1, -1).should == nil
+        a.slice!(-2, -1).should == nil
+
+        a.slice!(0, -1).should == nil
+        a.slice!(2, -10).should == nil
+        a.slice!(1, -12).should == nil
+      end
+
+      it 'should remove `length` elements from `start` always as array' do
+        a = [1, 2, 3]
+        a.slice!(1, 2).should == [2, 3]
+        a.should == [1]
+
+        a = [1, 2, 3]
+        a.slice!(1, 1).should == [2]
+        a.should == [1, 3]
+
+        a = [1, 2, 3]
+        a.slice!(0, 5).should == [1, 2, 3]
+        a.should == []
+
+        a = [1, 2, 3]
+        a.slice!(2, 5).should == [3]
+        a.should == [1, 2]
+
+        a = [1, 2, 3]
+        a.slice!(0, 0).should == []
+        a.slice!(1, 0).should == []
+        a.slice!(2, 0).should == []
+        a.should == [1, 2, 3]
+      end
+    end
+
+    context 'given a range' do
+      it 'should return nil for start out of range' do
+        a = []
+        a.slice!(1..1).should == nil
+        a.slice!(1...1).should == nil
+        a.slice!(1..2).should == nil
+        a.slice!(1..-1).should == nil
+        a.slice!(-1..2).should == nil
+        a.should == []
+
+        a.slice!(-1..1).should == nil
+        a.slice!(-1..0).should == nil
+        a.slice!(-1..2).should == nil
+        a.should == []
+
+        a = [1]
+        a.slice!(2..1).should == nil
+        a.slice!(2..2).should == nil
+        a.slice!(2..10).should == nil
+        a.slice!(2..0).should == nil
+        a.should == [1]
+
+        a.slice!(-2..5).should == nil
+        a.slice!(-2..3).should == nil
+        a.slice!(-2..1).should == nil
+        a.slice!(-2..0).should == nil
+        a.should == [1]
+      end
+
+      it 'should remove and return the items at the indices from the range' do
+        a = [1, 2, 3]
+        a.slice!(1..2).should == [2, 3]
+        a.should == [1]
+
+        a = [1, 2, 3]
+        a.slice!(1...2).should == [2]
+        a.should == [1, 3]
+
+        a = [1, 2, 3]
+        a.slice!(1..1).should == [2]
+        a.should == [1, 3]
+
+        a = [1, 2, 3]
+        a.slice!(1...1).should == []
+        a.should == [1, 2, 3]
+
+        a = [1, 2, 3]
+        a.slice!(0..5).should == [1, 2, 3]
+        a.should == []
+
+        a = [1, 2, 3]
+        a.slice!(2..5).should == [3]
+        a.should == [1, 2]
+      end
+    end
+
+    it 'should throw an error on unknown argument types' do
+      a = [1, 2, 3]
+      -> { a.slice!('a') }.should raise_error(TypeError, 'no implicit conversion of String into Integer')
+      -> { a.slice!('a', 'b') }.should raise_error(TypeError, 'no implicit conversion of String into Integer')
+      -> { a.slice!('a'..'c') }.should raise_error(TypeError, 'no implicit conversion of String into Integer')
+      -> { a.slice!(:foo) }.should raise_error(TypeError, 'no implicit conversion of Symbol into Integer')
+      -> { a.slice!(:foo, :bar) }.should raise_error(TypeError, 'no implicit conversion of Symbol into Integer')
+      -> { a.slice!(:foo..:bar) }.should raise_error(TypeError, 'no implicit conversion of Symbol into Integer')
+      -> { a.slice!([]) }.should raise_error(TypeError, 'no implicit conversion of Array into Integer')
+      -> { a.slice!([1]) }.should raise_error(TypeError, 'no implicit conversion of Array into Integer')
+      -> { a.slice!(nil) }.should raise_error(TypeError, 'no implicit conversion from nil to integer')
+      -> { a.slice!(1, nil) }.should raise_error(TypeError, 'no implicit conversion from nil to integer')
+
+      -> { a.slice!(1..2, nil) }.should raise_error(TypeError, 'no implicit conversion of Range into Integer')
+      -> { a.slice!(1..2, []) }.should raise_error(TypeError, 'no implicit conversion of Range into Integer')
+      -> { a.slice!(1..2, 'a') }.should raise_error(TypeError, 'no implicit conversion of Range into Integer')
+      -> { a.slice!(1..2, :foo) }.should raise_error(TypeError, 'no implicit conversion of Range into Integer')
+      -> { a.slice!(1..2, [[1, 2]]) }.should raise_error(TypeError, 'no implicit conversion of Range into Integer')
+      -> { a.slice!(1..2, 3..4) }.should raise_error(TypeError, 'no implicit conversion of Range into Integer')
     end
   end
 

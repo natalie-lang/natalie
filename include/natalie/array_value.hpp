@@ -131,6 +131,7 @@ public:
     ValuePtr sample(Env *);
     ValuePtr select(Env *, Block *);
     ValuePtr shift(Env *, ValuePtr);
+    ValuePtr slice_in_place(Env *, ValuePtr, ValuePtr);
     ValuePtr sort(Env *);
     ValuePtr sub(Env *, ValuePtr);
     ValuePtr union_of(Env *, ValuePtr);
