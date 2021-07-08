@@ -454,6 +454,36 @@ describe 'array' do
       a = []
       a[0..-2].should == []
     end
+
+    it 'should return nil when given range starting after length of array' do
+      a = [1, 2, 3]
+      a[4..5].should == nil
+      a[4..3].should == nil
+      a[4..2].should == nil
+      a[4..-1].should == nil
+      a[-10..-1].should == nil
+
+      b = []
+      b[0..100].should == []
+      b[-0..100].should == []
+      b[1..100].should == nil
+      b[-1..100].should == nil
+
+    end
+
+    it 'should throw an error on unknown argument types' do
+      a = [1, 2, 3]
+      -> { a['a'] }.should raise_error(TypeError, 'no implicit conversion of String into Integer')
+      -> { a['a', 'b'] }.should raise_error(TypeError, 'no implicit conversion of String into Integer')
+      -> { a['a'..'c'] }.should raise_error(TypeError, 'no implicit conversion of String into Integer')
+      -> { a[:foo] }.should raise_error(TypeError, 'no implicit conversion of Symbol into Integer')
+      -> { a[:foo, :bar] }.should raise_error(TypeError, 'no implicit conversion of Symbol into Integer')
+      -> { a[:foo..:bar] }.should raise_error(TypeError, 'no implicit conversion of Symbol into Integer')
+      -> { a[[]] }.should raise_error(TypeError, 'no implicit conversion of Array into Integer')
+      -> { a[[1]] }.should raise_error(TypeError, 'no implicit conversion of Array into Integer')
+      -> { a[nil] }.should raise_error(TypeError, 'no implicit conversion from nil to integer')
+      -> { a[1, nil] }.should raise_error(TypeError, 'no implicit conversion from nil to integer')
+    end
   end
 
   describe '[]' do

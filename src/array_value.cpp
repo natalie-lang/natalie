@@ -106,7 +106,7 @@ ValuePtr ArrayValue::ref(Env *env, ValuePtr index_obj, ValuePtr size) {
         if (end < 0) {
             end = this->size() + end;
         }
-        if (begin < 0 || end < 0) {
+        if (begin < 0 || end < 0 || (size_t(begin) > this->size())) {
             if (begin_obj->as_integer()->is_zero()) {
                 // NOTE: not entirely sure about this, but range beginning with 0..
                 // seems to be a special case ¯\_(ツ)_/¯
@@ -124,7 +124,9 @@ ValuePtr ArrayValue::ref(Env *env, ValuePtr index_obj, ValuePtr size) {
         }
         return result;
     } else {
-        env->raise("TypeError", "no implicit conversion of {} into Integer", index_obj->klass()->class_name_or_blank());
+        // will throw
+        index_obj->assert_type(env, ValueType::Integer, "Integer");
+        return nullptr;
     }
 }
 

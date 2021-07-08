@@ -1,5 +1,6 @@
 #include "natalie.hpp"
 #include "natalie/forward.hpp"
+#include <cctype>
 
 namespace Natalie {
 
@@ -555,7 +556,14 @@ ValuePtr Value::instance_eval(Env *env, ValuePtr string, Block *block) {
 
 void Value::assert_type(Env *env, Value::Type expected_type, const char *expected_class_name) {
     if ((type()) != expected_type) {
-        env->raise("TypeError", "no implicit conversion of {} into {}", klass()->class_name_or_blank(), expected_class_name);
+        if (type() == ValueType::Nil) {
+            // For some reason the errors with nil are slightly different...
+            char first_letter = std::tolower(expected_class_name[0]);
+            char const beginning[] = { first_letter, '\0' };
+            env->raise("TypeError", "no implicit conversion from nil to {}{}", beginning, expected_class_name + 1);
+        } else {
+            env->raise("TypeError", "no implicit conversion of {} into {}", klass()->class_name_or_blank(), expected_class_name);
+        }
     }
 }
 
