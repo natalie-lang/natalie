@@ -27,6 +27,7 @@ test: build
 	bundle exec ruby test/all.rb
 
 test_valgrind: build
+	mkdir -p test/tmp
 	bin/natalie -d valgrind test/natalie/assign_test.rb
 	bin/natalie -d valgrind spec/language/block_spec.rb
 	bin/natalie -d valgrind test/natalie/array_test.rb
