@@ -134,6 +134,7 @@ void fiber_wrapper_func(Natalie::Env *env, Natalie::FiberValue *fiber) {
     assert(fiber->block());
     Natalie::ValuePtr return_args[1];
     bool reraise = false;
+
     try {
         // NOTE: we cannot pass the env from this fiber (stack) across to another fiber (stack),
         // because doing so can cause unexpected results when env->caller() is used. (Since that
@@ -143,17 +144,17 @@ void fiber_wrapper_func(Natalie::Env *env, Natalie::FiberValue *fiber) {
         Natalie::Env e {};
         return_args[0] = NAT_RUN_BLOCK_WITHOUT_BREAK((&e), fiber->block(), fiber->args().size(), fiber->args().data(), nullptr);
     } catch (Natalie::ExceptionValue *exception) {
-        fiber->set_status(Natalie::FiberValue::Status::Terminated);
-        fiber->set_end_of_stack(&fiber);
         fiber->set_error(exception);
         reraise = true;
     }
-    // must do this outside the catch so the exception object copy can be cleaned up by C++
-    if (reraise)
-        fiber->yield_back(env, 0, nullptr);
+
     fiber->set_status(Natalie::FiberValue::Status::Terminated);
     fiber->set_end_of_stack(&fiber);
-    fiber->yield_back(env, 1, return_args);
+
+    if (reraise)
+        fiber->yield_back(env, 0, nullptr);
+    else
+        fiber->yield_back(env, 1, return_args);
 }
 
 #ifdef __x86_64
