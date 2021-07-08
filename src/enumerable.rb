@@ -87,6 +87,10 @@ module Enumerable
     end
   end
 
+  def chain(*enums)
+    Enumerator::Chain.new(self, *enums)
+  end
+
   def detect
     each do |item|
       return item if yield(item)

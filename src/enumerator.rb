@@ -1,6 +1,18 @@
 class Enumerator
   include Enumerable
 
+  class Chain < Enumerator
+    def initialize(*enumerables)
+      @enum_block = Proc.new do |yielder|
+        enumerables.each do |enumerable|
+          enumerable.each do |item|
+            yielder << item
+          end
+        end
+      end
+    end
+  end
+
   class Yielder
     def initialize(block = nil)
       @block = block
