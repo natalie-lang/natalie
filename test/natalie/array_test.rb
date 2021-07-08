@@ -1550,4 +1550,77 @@ describe 'array' do
     end
   end
 
+  describe '#slice' do
+    it 'returns the item at the given index' do
+      a = [1, 2, 3, 4, 5, 6]
+      a.slice(0).should == 1
+      a.slice(1).should == 2
+    end
+
+    it 'returns the item offset from the end when given a negative index' do
+      a = [1, 2, 3, 4, 5, 6]
+      a.slice(-1).should == 6
+      a.slice(-2).should == 5
+    end
+
+    it 'returns nil when the index is out of range' do
+      a = [1, 2, 3, 4, 5, 6]
+      a.slice(10).should == nil
+      a.slice(-10).should == nil
+    end
+
+    it 'returns a sub-array when given a range' do
+      a = [1, 2, 3, 4, 5, 6]
+      a.slice(0..3).should == [1, 2, 3, 4]
+      a.slice(0...3).should == [1, 2, 3]
+      a.slice(1..1).should == [2]
+      a.slice(1..5).should == [2, 3, 4, 5, 6]
+      a.slice(1..6).should == [2, 3, 4, 5, 6]
+      a.slice(1..10).should == [2, 3, 4, 5, 6]
+      a.slice(6..10).should == []
+      a.slice(6..10).should == []
+      a.slice(-2..-1).should == [5, 6]
+      a.slice(-1..-1).should == [6]
+      a.slice(-6..-1).should == [1, 2, 3, 4, 5, 6]
+      a.slice(-1..-6).should == []
+      a.slice(-10..-9).should == nil
+      a.slice(1..-1).should == [2, 3, 4, 5, 6]
+      a.slice(1...-1).should == [2, 3, 4, 5]
+      a.slice(1...1).should == []
+      a.slice(-1...-1).should == []
+      a = []
+      a.slice(0..-2).should == []
+    end
+
+    it 'should return nil when given range starting after length of array' do
+      a = [1, 2, 3]
+      a.slice(4..5).should == nil
+      a.slice(4..3).should == nil
+      a.slice(4..2).should == nil
+      a.slice(4..-1).should == nil
+      a.slice(-10..-1).should == nil
+
+      b = []
+      b.slice(0..100).should == []
+      b.slice(-0..100).should == []
+      b.slice(1..100).should == nil
+      b.slice(-1..100).should == nil
+
+    end
+
+    it 'should throw an error on unknown argument types' do
+      a = [1, 2, 3]
+      -> { a.slice('a') }.should raise_error(TypeError, 'no implicit conversion of String into Integer')
+      -> { a.slice('a', 'b') }.should raise_error(TypeError, 'no implicit conversion of String into Integer')
+      -> { a.slice('a'..'c') }.should raise_error(TypeError, 'no implicit conversion of String into Integer')
+      -> { a.slice(:foo) }.should raise_error(TypeError, 'no implicit conversion of Symbol into Integer')
+      -> { a.slice(:foo, :bar) }.should raise_error(TypeError, 'no implicit conversion of Symbol into Integer')
+      -> { a.slice(:foo..:bar) }.should raise_error(TypeError, 'no implicit conversion of Symbol into Integer')
+      -> { a.slice([]) }.should raise_error(TypeError, 'no implicit conversion of Array into Integer')
+      -> { a.slice([1]) }.should raise_error(TypeError, 'no implicit conversion of Array into Integer')
+      -> { a.slice(nil) }.should raise_error(TypeError, 'no implicit conversion from nil to integer')
+      -> { a.slice(1, nil) }.should raise_error(TypeError, 'no implicit conversion from nil to integer')
+    end
+  end
+
 end
