@@ -26,12 +26,16 @@ describe 'Enumerable' do
   end
 
   describe '#detect' do
-    i = [1, 2, 3, 4, 5].detect { |i| i > 2 }
-    i.should == 3
+    it 'returns the first item for which the block returns true' do
+      i = [1, 2, 3, 4, 5].detect { |i| i > 2 }
+      i.should == 3
+    end
   end
 
   describe '#partition' do
-    [1, 2, 3, 4].partition(&:odd?).should == [[1, 3], [2, 4]]
-    [1, 2, 3, 4].partition { |i| i <= 2 }.should == [[1, 2], [3, 4]]
+    it 'returns two arrays bucketed by the predicate block' do
+      [1, 2, 3, 4].partition(&:odd?).should == [[1, 3], [2, 4]]
+      [1, 2, 3, 4].partition { |i| i <= 2 }.should == [[1, 2], [3, 4]]
+    end
   end
 end
