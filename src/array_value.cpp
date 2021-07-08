@@ -841,9 +841,113 @@ ValuePtr ArrayValue::rotate_in_place(Env *env, ValuePtr val) {
     return this;
 }
 
-//ValuePtr ArrayValue::slice_in_place(Env *env, ValuePtr index_obj, ValuePtr size) {
-//
-//
-//}
+ValuePtr ArrayValue::slice_in_place(Env *env, ValuePtr index_obj, ValuePtr size) {
+    if (size) {
+        // a second argument means we must! take the integer branch
+        index_obj->assert_type(env, ValueType::Integer, "Integer");
+    }
+
+    if (index_obj->is_integer()) {
+        nat_int_t val = index_obj.to_nat_int_t();
+
+        if (val < 0 || val >= (nat_int_t)this->size()) {
+            return NilValue::the();
+        }
+
+        if (!size) {
+            ValuePtr item = (*this)[val];
+            for (size_t i = val; i < this->size() - 1; i++) {
+                (*this)[i] = (*this)[i + 1];
+            }
+            m_vector.pop();
+            return item;
+        }
+        size->assert_type(env, ValueType::Integer, "Integer");
+
+        nat_int_t length = size.to_nat_int_t();
+
+        if (length < 0) {
+            return NilValue::the();
+        }
+
+        ArrayValue *newArr = new ArrayValue();
+        if (length == 0) {
+            return newArr;
+        }
+
+        if (val + length > (nat_int_t)this->size()) {
+            length = this->size() - val;
+        }
+
+        for (nat_int_t i = val; i < val + length; i++) {
+            newArr->push((*this)[i]);
+        }
+
+        for (nat_int_t i = val + length; i < (nat_int_t)this->size(); i++) {
+            (*this)[i - length] = (*this)[i];
+        }
+
+        for (nat_int_t i = 0; i < length; i++) {
+            m_vector.pop();
+        }
+
+        return newArr;
+    } else if (index_obj->is_range()) {
+        RangeValue *range = index_obj->as_range();
+        ValuePtr begin_obj = range->begin();
+        ValuePtr end_obj = range->end();
+        begin_obj->assert_type(env, Value::Type::Integer, "Integer");
+        end_obj->assert_type(env, Value::Type::Integer, "Integer");
+
+        nat_int_t start = begin_obj.to_nat_int_t();
+
+        if (start < 0) {
+            if ((size_t)(-start) > this->size()) {
+                return NilValue::the();
+            }
+            start = this->size() + start;
+        }
+
+        nat_int_t length = end_obj.to_nat_int_t() - start + (range->exclude_end() ? 0 : 1);
+
+        if (length < 0) {
+            length = 0;
+        }
+        if (length + start > (nat_int_t)this->size()) {
+            length = this->size() - start;
+        }
+
+        if (length < 0) {
+            return NilValue::the();
+        }
+
+        ArrayValue *newArr = new ArrayValue();
+        if (length == 0) {
+            return newArr;
+        }
+
+        if (start + length > (nat_int_t)this->size()) {
+            length = this->size() - start;
+        }
+
+        for (nat_int_t i = start; i < start + length; i++) {
+            newArr->push((*this)[i]);
+        }
+
+        for (nat_int_t i = start + length; i < (nat_int_t)this->size(); i++) {
+            (*this)[i - length] = (*this)[i];
+        }
+
+        for (nat_int_t i = 0; i < length; i++) {
+            m_vector.pop();
+        }
+
+        return newArr;
+    } else {
+        // will throw
+        index_obj->assert_type(env, ValueType::Integer, "Integer");
+        return nullptr;
+    }
+}
 
 }

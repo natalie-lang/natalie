@@ -1623,4 +1623,177 @@ describe 'array' do
     end
   end
 
+  describe '#slice!' do
+    context 'given one integer argument' do
+      it 'should give nil for out of range elements' do
+        a = []
+        a.slice!(1).should == nil
+        a.should == []
+
+        a.slice!(-1).should == nil
+        a.should == []
+
+        a = [1]
+        a.slice!(2).should == nil
+        a.should == [1]
+
+        a.slice!(-2).should == nil
+        a.should == [1]
+      end
+
+      it 'should remove and return the element at the index' do
+        a = [1, 2, 3]
+        a.slice!(0).should == 1
+        a.should == [2, 3]
+
+        a.slice!(1).should == 3
+        a.should == [2]
+      end
+    end
+
+    context 'given two number arguments' do
+      it 'should give nil for start value out of range' do
+        a = []
+        a.slice!(1, 10).should == nil
+        a.slice!(1, 2).should == nil
+        a.slice!(1, 3).should == nil
+        a.slice!(1, 0).should == nil
+        a.should == []
+
+        a.slice!(-1, 1).should == nil
+        a.slice!(-1, 0).should == nil
+        a.slice!(-1, 2).should == nil
+        a.should == []
+
+        a = [1]
+        a.slice!(2, 1).should == nil
+        a.slice!(2, 2).should == nil
+        a.slice!(2, 10).should == nil
+        a.slice!(2, 0).should == nil
+        a.should == [1]
+
+        a.slice!(-2, 5).should == nil
+        a.slice!(-2, 3).should == nil
+        a.slice!(-2, 1).should == nil
+        a.slice!(-2, 0).should == nil
+        a.should == [1]
+      end
+
+      it 'should return nil for negative lengths' do
+        a = [1, 2]
+
+        a.slice!(0, -1).should == nil
+        a.slice!(2, -1).should == nil
+        a.slice!(1, -1).should == nil
+        a.slice!(-1, -1).should == nil
+        a.slice!(-2, -1).should == nil
+
+        a.slice!(0, -1).should == nil
+        a.slice!(2, -10).should == nil
+        a.slice!(1, -12).should == nil
+      end
+
+      it 'should remove `length` elements from `start` always as array' do
+        a = [1, 2, 3]
+        a.slice!(1, 2).should == [2, 3]
+        a.should == [1]
+
+        a = [1, 2, 3]
+        a.slice!(1, 1).should == [2]
+        a.should == [1, 3]
+
+        a = [1, 2, 3]
+        a.slice!(0, 5).should == [1, 2, 3]
+        a.should == []
+
+        a = [1, 2, 3]
+        a.slice!(2, 5).should == [3]
+        a.should == [1, 2]
+
+        a = [1, 2, 3]
+        a.slice!(0, 0).should == []
+        a.slice!(1, 0).should == []
+        a.slice!(2, 0).should == []
+        a.should == [1, 2, 3]
+      end
+    end
+
+    context 'given a range' do
+      it 'should return nil for start out of range' do
+        a = []
+        a.slice!(1..1).should == nil
+        a.slice!(1...1).should == nil
+        a.slice!(1..2).should == nil
+        a.slice!(1..-1).should == nil
+        a.slice!(-1..2).should == nil
+        a.should == []
+
+        a.slice!(-1..1).should == nil
+        a.slice!(-1..0).should == nil
+        a.slice!(-1..2).should == nil
+        a.should == []
+
+        a = [1]
+        a.slice!(2..1).should == nil
+        a.slice!(2..2).should == nil
+        a.slice!(2..10).should == nil
+        a.slice!(2..0).should == nil
+        a.should == [1]
+
+        a.slice!(-2..5).should == nil
+        a.slice!(-2..3).should == nil
+        a.slice!(-2..1).should == nil
+        a.slice!(-2..0).should == nil
+        a.should == [1]
+      end
+
+      it 'should remove and return the items at the indices from the range' do
+        a = [1, 2, 3]
+        a.slice!(1..2).should == [2, 3]
+        a.should == [1]
+
+        a = [1, 2, 3]
+        a.slice!(1...2).should == [2]
+        a.should == [1, 3]
+
+        a = [1, 2, 3]
+        a.slice!(1..1).should == [2]
+        a.should == [1, 3]
+
+        a = [1, 2, 3]
+        a.slice!(1...1).should == []
+        a.should == [1, 2, 3]
+
+        a = [1, 2, 3]
+        a.slice!(0..5).should == [1, 2, 3]
+        a.should == []
+
+        a = [1, 2, 3]
+        a.slice!(2..5).should == [3]
+        a.should == [1, 2]
+      end
+    end
+
+    it 'should throw an error on unknown argument types' do
+      a = [1, 2, 3]
+      -> { a.slice!('a') }.should raise_error(TypeError, 'no implicit conversion of String into Integer')
+      -> { a.slice!('a', 'b') }.should raise_error(TypeError, 'no implicit conversion of String into Integer')
+      -> { a.slice!('a'..'c') }.should raise_error(TypeError, 'no implicit conversion of String into Integer')
+      -> { a.slice!(:foo) }.should raise_error(TypeError, 'no implicit conversion of Symbol into Integer')
+      -> { a.slice!(:foo, :bar) }.should raise_error(TypeError, 'no implicit conversion of Symbol into Integer')
+      -> { a.slice!(:foo..:bar) }.should raise_error(TypeError, 'no implicit conversion of Symbol into Integer')
+      -> { a.slice!([]) }.should raise_error(TypeError, 'no implicit conversion of Array into Integer')
+      -> { a.slice!([1]) }.should raise_error(TypeError, 'no implicit conversion of Array into Integer')
+      -> { a.slice!(nil) }.should raise_error(TypeError, 'no implicit conversion from nil to integer')
+      -> { a.slice!(1, nil) }.should raise_error(TypeError, 'no implicit conversion from nil to integer')
+
+      -> { a.slice!(1..2, nil) }.should raise_error(TypeError, 'no implicit conversion of Range into Integer')
+      -> { a.slice!(1..2, []) }.should raise_error(TypeError, 'no implicit conversion of Range into Integer')
+      -> { a.slice!(1..2, 'a') }.should raise_error(TypeError, 'no implicit conversion of Range into Integer')
+      -> { a.slice!(1..2, :foo) }.should raise_error(TypeError, 'no implicit conversion of Range into Integer')
+      -> { a.slice!(1..2, [[1, 2]]) }.should raise_error(TypeError, 'no implicit conversion of Range into Integer')
+      -> { a.slice!(1..2, 3..4) }.should raise_error(TypeError, 'no implicit conversion of Range into Integer')
+    end
+  end
+
 end
