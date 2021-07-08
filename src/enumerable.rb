@@ -91,6 +91,34 @@ module Enumerable
     Enumerator::Chain.new(self, *enums)
   end
 
+  def chunk
+    return enum_for(:chunk) unless block_given?
+
+    Enumerator.new do |yielder|
+      last_block_result = nil
+      last_chunk = []
+      each do |item|
+        block_result = yield item
+        if block_result.nil? || block_result == :_separator
+          last_block_result = block_result
+        elsif block_result == :_alone
+          yielder << last_chunk unless last_chunk.empty?
+          last_chunk = [block_result, [item]]
+          last_block_result = block_result
+        elsif block_result.is_a?(Symbol) && block_result.start_with?('_')
+          raise RuntimeError, 'symbols beginning with an underscore are reserved'
+        elsif block_result != last_block_result
+          yielder << last_chunk unless last_chunk.empty?
+          last_chunk = [block_result, [item]]
+          last_block_result = block_result
+        else
+          last_chunk.last << item
+        end
+      end
+      yielder << last_chunk
+    end
+  end
+
   def detect
     each do |item|
       return item if yield(item)

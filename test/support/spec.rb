@@ -122,7 +122,7 @@ def platform_is_not(platform)
   yield # TODO
 end
 
-def before(type, &block)
+def before(type = :each, &block)
   if type == :each
     @context.last.add_before_each(block)
   elsif type == :all

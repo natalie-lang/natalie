@@ -29,7 +29,8 @@ class Enumerator
     end
   end
 
-  def initialize(&enum_block)
+  def initialize(size = nil, &enum_block)
+    @size = size
     @enum_block = enum_block
   end
 
@@ -75,5 +76,9 @@ class Enumerator
     @fiber = Fiber.new do
       @enum_block.call @yielder
     end
+  end
+
+  def size
+    @size
   end
 end
