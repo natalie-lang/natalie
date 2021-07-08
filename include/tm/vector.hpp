@@ -61,8 +61,9 @@ public:
     }
 
     Vector &operator=(Vector &&other) {
+        delete[] m_data;
         m_size = other.m_size;
-        m_capacity = other.m_size;
+        m_capacity = other.m_capacity;
         m_data = other.m_data;
         other.m_data = nullptr;
         other.m_size = 0;
