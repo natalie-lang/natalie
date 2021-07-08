@@ -136,6 +136,10 @@ public:
         append(buf);
     }
 
+    void append(nat_int_t i) {
+        append((long long)i);
+    }
+
     void append(const char *str) {
         if (!str) return;
         size_t new_length = strlen(str);

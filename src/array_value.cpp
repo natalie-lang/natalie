@@ -132,45 +132,114 @@ ValuePtr ArrayValue::ref(Env *env, ValuePtr index_obj, ValuePtr size) {
 
 ValuePtr ArrayValue::refeq(Env *env, ValuePtr index_obj, ValuePtr size, ValuePtr val) {
     this->assert_not_frozen(env);
-    index_obj->assert_type(env, Value::Type::Integer, "Integer"); // TODO: accept a range
-    nat_int_t index = index_obj->as_integer()->to_nat_int_t();
-    assert(index >= 0); // TODO: accept negative index
-    size_t u_index = static_cast<size_t>(index);
-    if (!val) {
-        val = size;
-        if (u_index < this->size()) {
-            (*this)[u_index] = val;
+    if (index_obj.is_integer()) {
+        nat_int_t index = index_obj->as_integer()->to_nat_int_t();
+        if (index < 0) {
+            if ((size_t)(-index) > this->size()) {
+                env->raise("IndexError", "index {} too small for array; minimum: -{}", index, this->size());
+                return nullptr;
+            }
+            index = this->size() + index;
+        }
+        size_t u_index = static_cast<size_t>(index);
+        if (!val) {
+            val = size;
+            if (u_index < this->size()) {
+                (*this)[u_index] = val;
+            } else {
+                expand_with_nil(env, u_index);
+                push(val);
+            }
+            return val;
+        }
+        size->assert_type(env, Value::Type::Integer, "Integer");
+        nat_int_t length = size->as_integer()->to_nat_int_t();
+        if (length < 0) {
+            env->raise("IndexError", "negative length ({})", length);
+            return nullptr;
+        }
+        // PERF: inefficient for large arrays where changes are being made to only the right side
+        ArrayValue *ary2 = new ArrayValue {};
+        // stuff before the new entry/entries
+        for (size_t i = 0; i < u_index; i++) {
+            if (i >= this->size()) break;
+            ary2->push((*this)[i]);
+        }
+        // extra nils if needed
+        ary2->expand_with_nil(env, u_index);
+        // the new entry/entries
+        if (val->is_array()) {
+            for (auto &v : *val->as_array()) {
+                ary2->push(v);
+            }
         } else {
-            expand_with_nil(env, u_index);
-            push(val);
+            ary2->push(val);
         }
-        return val;
-    }
-    size->assert_type(env, Value::Type::Integer, "Integer");
-    nat_int_t length = size->as_integer()->to_nat_int_t();
-    assert(length >= 0);
-    // PERF: inefficient for large arrays where changes are being made to only the right side
-    ArrayValue *ary2 = new ArrayValue {};
-    // stuff before the new entry/entries
-    for (size_t i = 0; i < u_index; i++) {
-        if (i >= this->size()) break;
-        ary2->push((*this)[i]);
-    }
-    // extra nils if needed
-    ary2->expand_with_nil(env, u_index);
-    // the new entry/entries
-    if (val->is_array()) {
-        for (auto &v : *val->as_array()) {
-            ary2->push(v);
+        // stuff after the new entry/entries
+        for (size_t i = u_index + length; i < this->size(); i++) {
+            ary2->push((*this)[i]);
         }
+        overwrite(*ary2);
+    } else if (index_obj->is_range()) {
+        RangeValue *range = index_obj->as_range();
+        ValuePtr begin_obj = range->begin();
+        ValuePtr end_obj = range->end();
+        begin_obj->assert_type(env, Value::Type::Integer, "Integer");
+        end_obj->assert_type(env, Value::Type::Integer, "Integer");
+
+        // ignore "size"
+        val = size;
+
+        nat_int_t start = begin_obj.to_nat_int_t();
+
+        if (start < 0) {
+            if ((size_t)(-start) > this->size()) {
+                env->raise("RangeError", "{}..{}{} out of range", start, range->exclude_end() ? "." : "", end_obj.to_nat_int_t());
+                return nullptr;
+            }
+            start = this->size() + start;
+        }
+
+        nat_int_t length = end_obj.to_nat_int_t() - start + (range->exclude_end() ? 0 : 1);
+
+        if (length < 0) {
+            length = 0;
+        }
+        if (length + start > (nat_int_t)this->size()) {
+            length = this->size() - start;
+        }
+
+        // PERF: inefficient for large arrays where changes are being made to only the right side
+        ArrayValue *ary2 = new ArrayValue {};
+        // stuff before the new entry/entries
+        for (nat_int_t i = 0; i < start; i++) {
+            if (i >= (nat_int_t)this->size()) break;
+            ary2->push((*this)[i]);
+        }
+
+        // extra nils if needed
+        ary2->expand_with_nil(env, start);
+
+        // the new entry/entries
+        if (val->is_array()) {
+            for (auto &v : *val->as_array()) {
+                ary2->push(v);
+            }
+        } else {
+            ary2->push(val);
+        }
+
+        // stuff after the new entry/entries
+        for (size_t i = start + length; i < this->size(); i++) {
+            ary2->push((*this)[i]);
+        }
+
+        overwrite(*ary2);
     } else {
-        ary2->push(val);
+        // will throw
+        index_obj->assert_type(env, ValueType::Integer, "Integer");
+        return nullptr;
     }
-    // stuff after the new entry/entries
-    for (size_t i = u_index + length; i < this->size(); i++) {
-        ary2->push((*this)[i]);
-    }
-    overwrite(*ary2);
     return val;
 }
 
@@ -771,5 +840,10 @@ ValuePtr ArrayValue::rotate_in_place(Env *env, ValuePtr val) {
 
     return this;
 }
+
+//ValuePtr ArrayValue::slice_in_place(Env *env, ValuePtr index_obj, ValuePtr size) {
+//
+//
+//}
 
 }

@@ -486,17 +486,212 @@ describe 'array' do
     end
   end
 
-  describe '[]' do
-    it 'replaces the item at the given index' do
-      a = [1, 2, 3, 4, 5, 6]
-      a[1] = 'two'
-      a.should == [1, 'two', 3, 4, 5, 6]
+  describe '[]=' do
+    context 'given a single number argument' do
+      it 'replaces the item at the given index' do
+        a = [1, 2, 3, 4, 5, 6]
+        a[1] = 'two'
+        a.should == [1, 'two', 3, 4, 5, 6]
+      end
+
+      it 'fills the array with nils when the index is larger than array' do
+        a = [1, 2, 3, 4, 5, 6]
+        a[10] = 11
+        a.should == [1, 2, 3, 4, 5, 6, nil, nil, nil, nil, 11]
+      end
+
+      it 'should start from the back for a negative number' do
+        a = [1, 2, 3]
+        a[-1] = 11
+        a.should == [1, 2, 11]
+      end
+
+      it 'should raise an error if negative index before beginning' do
+        a = [1, 2, 3]
+        -> { a[-4] = :foo }.should raise_error(IndexError, 'index -4 too small for array; minimum: -3')
+        -> { a[-100] = :foo }.should raise_error(IndexError, 'index -100 too small for array; minimum: -3')
+      end
+
+      it 'should extend and put nil' do
+        a = [1, 2, 3]
+        a[4] = nil
+        a.should == [1, 2, 3, nil, nil]
+
+        a[0] = nil
+        a.should == [nil, 2, 3, nil, nil]
+      end
+
+      it 'should not all items of an array as rhs but as array' do
+        a = [1, 2, 3]
+        a[1] = [9, 10]
+        a.should == [1, [9, 10], 3]
+      end
     end
 
-    it 'fills the array with nils when the index is larger than array' do
-      a = [1, 2, 3, 4, 5, 6]
-      a[10] = 11
-      a.should == [1, 2, 3, 4, 5, 6, nil, nil, nil, nil, 11]
+    context 'given two number arguments' do
+      it 'should replace the item at the start position and remove all the ones after' do
+        a = [1, 2, 3]
+        (a[0, 2] = 'a').should == 'a'
+        a.should == ['a', 3]
+      end
+
+      it 'should insert a new item for length = 0' do
+        a = [1, 2, 3]
+        (a[1, 0] = 'x').should == 'x'
+        a.should == [1, 'x', 2, 3]
+      end
+
+      it 'should not extend the array if start + size beyond array size' do
+        a = [1, 2, 3]
+        a[2, 6] = 99
+        a.should == [1, 2, 99]
+      end
+
+      it 'should start from the back given a negative start' do
+        a = [1, 2, 3]
+        a[-2, 6] = 99
+        a.should == [1, 99]
+        a[-2, 0] = 101
+        a.should == [101, 1, 99]
+      end
+
+      it 'should extend and put nil' do
+        a = [1, 2, 3]
+        a[4, 2] = nil
+        a.should == [1, 2, 3, nil, nil]
+
+        a[0, 2] = nil
+        a.should == [nil, 3, nil, nil]
+      end
+
+      it 'should add all items of an separately for rhs array' do
+        a = [1, 2, 3]
+        a[1, 2] = [9, 10]
+        a.should == [1, 9, 10]
+
+        a = [1, 2, 3, 4]
+        a[1, 1] = [11, 12]
+        a.should == [1, 11, 12, 3, 4]
+      end
+
+      it 'should raise an error on negative length' do
+        a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        -> { a[-2, -1] = 99 }.should raise_error(IndexError, 'negative length (-1)')
+        -> { a[-2, -3] = 99 }.should raise_error(IndexError, 'negative length (-3)')
+        -> { a[0, -4] = 99 }.should raise_error(IndexError, 'negative length (-4)')
+        -> { a[100, -5] = 99 }.should raise_error(IndexError, 'negative length (-5)')
+        -> { a[1, -6] = 99 }.should raise_error(IndexError, 'negative length (-6)')
+      end
+    end
+
+    context 'given a range' do
+      it 'should remove all items in range and add value add start of range' do
+        a = [1, 2, 3]
+        a[2..3] = :foo
+        a.should == [1, 2, :foo]
+
+        a[1..1] = 'a'
+        a.should == [1, 'a', :foo]
+      end
+
+      it 'should only insert element if start and end are size of array' do
+        a = []
+        a[0...0] = 1
+        a.should == [1]
+        a[1...1] = '2'
+        a.should == [1, '2']
+
+        a[1...1] = :onepointfive
+        a.should == [1, :onepointfive, '2']
+      end
+
+      it 'should replace items if not excluding end and within array size' do
+        a = [1, 2, 3]
+        a[1..1] = :nottwo
+        a.should == [1, :nottwo, 3]
+      end
+
+      it 'should insert items when range is excluding end and start and end the same' do
+        a = [1, 2, 3]
+        a[1...1] = '1.5'
+        a.should == [1, '1.5', 2, 3]
+        a[-1...-1] = '2.5'
+        a.should == [1, '1.5', 2, '2.5', 3]
+      end
+
+      it 'should not extend the array past the original size even if end is larger' do
+        a = [1, 2, 3]
+        a[2..100] = 4
+        a.should == [1, 2, 4]
+      end
+
+      it 'should only extend the array until start and not end of range' do
+        a = [1, 2, 3]
+        a[5..100] = 'x'
+        a.should == [1, 2, 3, nil, nil, 'x']
+      end
+
+      it 'should replace only the items at negative start when range ends with negative' do
+        a = [1, 2, 3]
+        a[-1..-5] = 4
+        a.should == [1, 2, 4, 3]
+      end
+
+      it 'should replace the items if range goes from negative to positive' do
+        a = [1, 2, 3]
+        a[-2..3] = :foo
+        a.should == [1, :foo]
+
+        # end before start (after conversion)
+        a = [1, 2, 3, 4]
+        a[-2..1] = :foo
+        a.should == [1, 2, :foo, 3, 4]
+      end
+
+      it 'should add all items of an separately for rhs array' do
+        a = [1, 2, 3]
+        a[1..2] = [9, 10]
+        a.should == [1, 9, 10]
+
+        a = [1, 2, 3, 4]
+        a[1..1] = [11, 12]
+        a.should == [1, 11, 12, 3, 4]
+      end
+
+      it 'should?' do
+        a = [1, 2, 3]
+        -> { a[-4..-6] = 3 }.should raise_error(RangeError, '-4..-6 out of range')
+        -> { a[-4..0] = 3 }.should raise_error(RangeError, '-4..0 out of range')
+        -> { a[-4..2] = 3 }.should raise_error(RangeError, '-4..2 out of range')
+        -> { a[-4...-6] = 3 }.should raise_error(RangeError, '-4...-6 out of range')
+        -> { a[-4...0] = 3 }.should raise_error(RangeError, '-4...0 out of range')
+        -> { a[-4...2] = 3 }.should raise_error(RangeError, '-4...2 out of range')
+
+        -> { a[-100...100] = 3 }.should raise_error(RangeError, '-100...100 out of range')
+      end
+
+    end
+
+    it 'should throw an error on unknown argument types' do
+      a = [1, 2, 3]
+      -> { a['a'] = 1 }.should raise_error(TypeError, 'no implicit conversion of String into Integer')
+      -> { a['a', 'b'] = 'd' }.should raise_error(TypeError, 'no implicit conversion of String into Integer')
+      -> { a['a'..'c'] = :a }.should raise_error(TypeError, 'no implicit conversion of String into Integer')
+      -> { a[:foo] = 'v' }.should raise_error(TypeError, 'no implicit conversion of Symbol into Integer')
+      -> { a[:foo, :bar] = 'id' }.should raise_error(TypeError, 'no implicit conversion of Symbol into Integer')
+      -> { a[:foo..:bar] = 0 }.should raise_error(TypeError, 'no implicit conversion of Symbol into Integer')
+      -> { a[:foo...:bar] = 't' }.should raise_error(TypeError, 'no implicit conversion of Symbol into Integer')
+      -> { a[[]] = [1, 2] }.should raise_error(TypeError, 'no implicit conversion of Array into Integer')
+      -> { a[[1]] = [3, 4] }.should raise_error(TypeError, 'no implicit conversion of Array into Integer')
+
+      -> { a[nil] = [3, 4] }.should raise_error(TypeError, 'no implicit conversion from nil to integer')
+      -> { a[nil] = nil }.should raise_error(TypeError, 'no implicit conversion from nil to integer')
+      -> { a[nil, nil] = nil }.should raise_error(TypeError, 'no implicit conversion from nil to integer')
+      -> { a[3, nil] = nil }.should raise_error(TypeError, 'no implicit conversion from nil to integer')
+      -> { a[nil, 3] = nil }.should raise_error(TypeError, 'no implicit conversion from nil to integer')
+      -> { a[nil, nil] = 'a' }.should raise_error(TypeError, 'no implicit conversion from nil to integer')
+      -> { a[3, nil] = :foo }.should raise_error(TypeError, 'no implicit conversion from nil to integer')
+      -> { a[nil, 3] = -5 }.should raise_error(TypeError, 'no implicit conversion from nil to integer')
     end
   end
 
