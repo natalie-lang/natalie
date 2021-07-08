@@ -51,12 +51,12 @@ void handle_top_level_exception(Env *env, ExceptionValue *exception, bool run_ex
         if (status_obj->type() == Value::Type::Integer) {
             nat_int_t val = status_obj->as_integer()->to_nat_int_t();
             if (val >= 0 && val <= 255) {
-                exit(val);
+                clean_up_and_exit(val);
             } else {
-                exit(1);
+                clean_up_and_exit(1);
             }
         } else {
-            exit(1);
+            clean_up_and_exit(1);
         }
     } else {
         print_exception_with_backtrace(env, exception);
@@ -399,7 +399,7 @@ FILE *popen2(const char *command, const char *type, int &pid) {
 
     if ((child_pid = fork()) == -1) {
         perror("fork");
-        exit(1);
+        clean_up_and_exit(1);
     }
 
     // child process
@@ -414,7 +414,7 @@ FILE *popen2(const char *command, const char *type, int &pid) {
 
         setpgid(child_pid, child_pid); // needed so negative PIDs can kill children of /bin/sh
         execl("/bin/sh", "/bin/sh", "-c", command, NULL);
-        exit(0);
+        clean_up_and_exit(0);
     } else {
         if (is_read) {
             close(fd[write]); // close the WRITE end of the pipe since parent's fd is read-only
@@ -475,6 +475,12 @@ ValuePtr super(Env *env, ValuePtr self, size_t argc, ValuePtr *args, Block *bloc
         env->raise("NoMethodError", "super: no superclass method `{}' for {}", current_method->name(), self->inspect_str(env));
     assert(super_method != current_method);
     return super_method->call(env, self, argc, args, block);
+}
+
+void clean_up_and_exit(int status) {
+    if (Heap::the().collect_all_at_exit())
+        delete &Heap::the();
+    exit(status);
 }
 
 }

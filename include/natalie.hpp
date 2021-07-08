@@ -96,4 +96,6 @@ const String *int_to_hex_string(nat_int_t, bool);
 
 ValuePtr super(Env *, ValuePtr, size_t, ValuePtr *, Block *);
 
+void clean_up_and_exit(int status);
+
 }

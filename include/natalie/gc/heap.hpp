@@ -80,6 +80,9 @@ public:
         return result;
     }
 
+    bool collect_all_at_exit() { return m_collect_all_at_exit; }
+    void set_collect_all_at_exit(bool collect) { m_collect_all_at_exit = collect; }
+
 private:
     inline static Heap *s_instance = nullptr;
 
@@ -118,6 +121,7 @@ private:
 
     void *m_start_of_stack { nullptr };
     bool m_gc_enabled { false };
+    bool m_collect_all_at_exit { false };
 };
 
 }
