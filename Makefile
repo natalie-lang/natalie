@@ -29,6 +29,10 @@ test: build
 test_valgrind: build
 	bin/natalie -d valgrind test/natalie/assign_test.rb
 	bin/natalie -d valgrind spec/language/block_spec.rb
+	bin/natalie -d valgrind test/natalie/array_test.rb
+	bin/natalie -d valgrind test/natalie/if_test.rb
+	bin/natalie -d valgrind test/natalie/file_test.rb
+	bin/natalie -d valgrind test/natalie/loop_test.rb
 	#bin/natalie -d valgrind test/natalie/fiber_test.rb
 
 docker_build:
