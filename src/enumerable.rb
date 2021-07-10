@@ -449,6 +449,29 @@ module Enumerable
 
   alias map collect
 
+  def count(*args)
+    count = 0
+    if args.size > 0
+      if block_given?
+        $stderr.puts("warning: given block not used")
+      end
+      gather = ->(obj) { obj.size <= 1 ? obj.first : obj }
+      item = args.first
+      each do |*obj|
+        count += 1 if gather.(obj) == item
+      end
+    elsif block_given?
+      each do |*obj|
+        count += 1 if yield(*obj)
+      end
+    else
+      each do
+        count += 1
+      end
+    end
+    count
+  end
+
   def take(count)
     if not count.is_a? Integer and count.respond_to? :to_int
       count = count.to_int

@@ -392,6 +392,70 @@ class RaiseErrorExpectation
   end
 end
 
+# TODO: implement StringIO
+class FakeStringIO
+  def initialize
+    @out = []
+  end
+
+  def <<(str)
+    @out << str.to_s
+  end
+
+  def puts(str)
+    self.<<(str + "\n")
+  end
+
+  def to_s
+    @out.join
+  end
+end
+
+class ComplainExpectation
+  def initialize(message)
+    @message = message
+  end
+
+  def match(subject)
+    out = run(subject)
+    case @message
+    when Regexp
+      unless out =~ @message
+        raise SpecFailedException,
+          "#{subject.inspect} should have printed a warning #{@message.inspect}, but the output was #{out.inspect}"
+      end
+    else
+      # TODO: might need to implement String matching
+      puts "Expected a Regexp to complain but got #{@message.inspect}"
+    end
+  end
+
+  def inverted_match(subject)
+    out = run(subject)
+    case @message
+    when Regexp
+      if out =~ @message
+        raise SpecFailedException,
+          "#{subject.inspect} should not have printed a warning #{out.inspect}"
+      end
+    else
+      # TODO: might need to implement String matching
+      puts "Expected a Regexp to complain but got #{@message.inspect}"
+    end
+  end
+
+  private
+
+  def run(subject)
+    old_stderr = $stderr
+    $stderr = FakeStringIO.new
+    subject.call
+    out = $stderr.to_s
+    $stderr = old_stderr
+    out
+  end
+end
+
 class Stub
   def initialize(subject, message)
     @subject = subject
@@ -525,6 +589,10 @@ class Object
 
   def raise_error(klass = nil, message = nil)
     RaiseErrorExpectation.new(klass, message)
+  end
+
+  def complain(message)
+    ComplainExpectation.new(message)
   end
 
   def should_receive(message)
