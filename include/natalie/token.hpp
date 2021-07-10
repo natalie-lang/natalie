@@ -696,7 +696,7 @@ public:
             fprintf(stderr, "'%s'", m_literal.value()->c_str());
         else
             fprintf(stderr, "''");
-        fprintf(stderr, " m_integer=%" PRId64 " m_double=%f m_has_sign=%d>", m_integer, m_double, m_has_sign);
+        fprintf(stderr, " m_integer=%lli m_double=%f m_has_sign=%d>", m_integer, m_double, m_has_sign);
     }
 
     virtual void visit_children(Visitor &visitor) override final {

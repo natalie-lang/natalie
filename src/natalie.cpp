@@ -460,9 +460,9 @@ const String *int_to_hex_string(nat_int_t num, bool capitalize) {
     } else {
         char buf[100]; // ought to be enough for anybody ;-)
         if (capitalize) {
-            snprintf(buf, 100, "0X%" PRIX64, num);
+            snprintf(buf, 100, "0X%llX", num);
         } else {
-            snprintf(buf, 100, "0x%" PRIx64, num);
+            snprintf(buf, 100, "0x%llX", num);
         }
         return new String(buf);
     }
