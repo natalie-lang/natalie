@@ -434,7 +434,7 @@ module Enumerable
     ary
   end
 
-  def map
+  def collect
     return enum_for(:map) unless block_given?
     ary = []
     each do |*items|
@@ -446,6 +446,8 @@ module Enumerable
     end
     ary
   end
+
+  alias map collect
 
   def take(count)
     if not count.is_a? Integer and count.respond_to? :to_int
