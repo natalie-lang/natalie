@@ -119,6 +119,32 @@ module Enumerable
     end
   end
 
+  def chunk_while
+    raise ArgumentError, 'tried to create Proc object without a block' unless block_given?
+
+    Enumerator.new do |yielder|
+      last_chunk = []
+      first = true
+      last_item = nil
+      each do |item|
+        if first
+          last_item = item
+          last_chunk << item
+          first = false
+          next
+        end
+        if yield last_item, item
+          last_chunk << item
+        else
+          yielder << last_chunk
+          last_chunk = [item]
+        end
+        last_item = item
+      end
+      yielder << last_chunk
+    end
+  end
+
   def detect
     each do |item|
       return item if yield(item)
