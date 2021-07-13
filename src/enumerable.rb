@@ -502,6 +502,68 @@ module Enumerable
     count
   end
 
+  def cycle(n = nil)
+    unless block_given?
+      return enum_for(:cycle, n) do
+        if n.is_a?(Integer) && respond_to?(:size)
+          [n * size, 0].max
+        else
+          Float::INFINITY
+        end
+      end
+    end
+
+    return if n.is_a?(Integer) && n <= 0
+
+    cache = []
+
+    if n
+      if n.respond_to?(:to_int)
+        n = n.to_int
+      else
+        raise TypeError, "could not coerce #{n.inspect} to Integer"
+      end
+    end
+
+    gather = ->(item) { item.size <= 1 ? item.first : item }
+    each do |*item|
+      item = gather.(item)
+      cache << item
+      yield item
+    end
+
+    n -= 1 if n
+
+    return if cache.empty?
+
+    e = cache.enum_for(:each)
+    loop do
+      begin
+        item = e.next
+      rescue StopIteration
+        if n
+          n -= 1
+          break if n <= 0
+        end
+        e.rewind
+        item = e.next
+      end
+      yield item
+    end
+  end
+
+  def first(n)
+    ary = []
+    while ary.size < n
+      begin
+        ary << self.next
+      rescue StopIteration
+        return ary
+      end
+    end
+    ary
+  end
+
   def take(count)
     if not count.is_a? Integer and count.respond_to? :to_int
       count = count.to_int
