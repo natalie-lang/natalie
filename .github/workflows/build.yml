@@ -2,28 +2,39 @@ name: Build
 
 on: [push, pull_request]
 
+env:
+  DOCKER_FLAGS: ""
+
 jobs:
-  build:
-    runs-on: ubuntu-18.04
+  gcc_test:
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v1
     - name: checkout submodules
       run: git submodule update --init --recursive
-      env:
-        DOCKER_FLAGS: ""
     - name: test with gcc
       run: make docker_test_gcc
-      env:
-        DOCKER_FLAGS: ""
+  clang_test:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v1
+    - name: checkout submodules
+      run: git submodule update --init --recursive
     - name: test with clang
       run: make docker_test_clang
-      env:
-        DOCKER_FLAGS: ""
+  valgrind_test:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v1
+    - name: checkout submodules
+      run: git submodule update --init --recursive
     - name: test with valgrind
       run: make docker_test_valgrind
-      env:
-        DOCKER_FLAGS: ""
+  release_build_test:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v1
+    - name: checkout submodules
+      run: git submodule update --init --recursive
     - name: test release build
       run: make docker_test_release
-      env:
-        DOCKER_FLAGS: ""
