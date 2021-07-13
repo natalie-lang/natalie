@@ -436,6 +436,7 @@ module Enumerable
 
   def collect
     return enum_for(:map) unless block_given?
+
     ary = []
     each do |*items|
       if items.size > 1
@@ -448,6 +449,35 @@ module Enumerable
   end
 
   alias map collect
+
+  def collect_concat
+    return enum_for(:collect_concat) unless block_given?
+
+    ary = []
+    each do |*items|
+      if items.size > 1
+        result = yield(*items)
+      else
+        result = yield(items.first)
+      end
+      if result.respond_to?(:to_ary)
+        a = result.to_ary
+        case a
+        when Array
+          ary += a
+        when nil
+          ary << result
+        else
+          raise TypeError, 'expected to_ary to return an Array or nil'
+        end
+      else
+        ary << result
+      end
+    end
+    ary
+  end
+
+  alias flat_map collect_concat
 
   def count(*args)
     count = 0
