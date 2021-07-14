@@ -152,6 +152,27 @@ module Enumerable
     nil
   end
 
+  def drop(n)
+    if n.respond_to?(:to_int)
+      n = n.to_int
+    else
+      raise TypeError, "no implicit conversion of #{n.class.name} into Integer"
+    end
+
+    raise ArgumentError, 'attempt to drop negative size' if n < 0
+
+    ary = []
+    each do |item|
+      if n == 0
+        ary << item
+      else
+        n -= 1
+      end
+    end
+
+    ary
+  end
+
   def each_slice(count)
     count = count.to_int
     raise ArgumentError, 'invalid slice size' if count < 1
