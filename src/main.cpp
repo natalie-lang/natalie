@@ -185,6 +185,12 @@ extern "C" Value *EVAL(Env *env) {
     ValuePtr self = env->global_get(SymbolValue::intern("$NAT_main_object"));
     (void)self; // don't warn about unused var
     volatile bool run_exit_handlers = true;
+
+    // kinda hacky, but needed for top-level begin/rescue
+    size_t argc = 0;
+    ValuePtr *args = nullptr;
+    Block *block = nullptr;
+
     try {
         /*NAT_EVAL_BODY*/
         run_exit_handlers = false;

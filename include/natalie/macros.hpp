@@ -78,8 +78,8 @@
     _result;                                                                     \
 })
 
-#define NAT_CALL_BEGIN_WITH_RETURN(env, self, begin_fn, argc, args, block) ({ \
-    NAT_CALL_BEGIN(env, self, begin_fn, argc, args, block, return _result);   \
+#define NAT_CALL_BEGIN_WITH_RETURN(env, self, begin_fn, argc, args, block) ({       \
+    NAT_CALL_BEGIN(env, self, begin_fn, argc, args, block, return _result.value()); \
 })
 
 #define NAT_CALL_BEGIN_WITH_C_BREAK(env, self, begin_fn, argc, args, block, result_name) ({ \
