@@ -77,6 +77,11 @@ module Natalie
       VALID_BREAK_CONTEXT = %i[iter while until]
       BREAK_LOOPS = %i[while until]
 
+      def rescue_inside_loop?
+        exprs = context.select { |e| (%i[rescue] + BREAK_LOOPS).include?(e) }
+        exprs[0] == :rescue && BREAK_LOOPS.include?(exprs[1])
+      end
+
       def process_break(exp)
         (_, value) = exp
         value ||= s(:nil)
@@ -86,7 +91,7 @@ module Natalie
           puts "#{exp.file}##{exp.line}"
           raise SyntaxError, "Invalid break"
         end
-        if BREAK_LOOPS.include?(container)
+        if BREAK_LOOPS.include?(container) && !rescue_inside_loop?
           result_name = @loop_context.last
           raise "No proper loop context!" if result_name.nil?
           exp.new(:block,
@@ -851,6 +856,14 @@ module Natalie
             body << else_body
           end
           body = body.empty? ? [s(:nil)] : body
+
+          # FIXME: This is gross. Split while/until/break stuff into a separate pass?
+          call_begin = if BREAK_LOOPS.include?(context[1])
+                         s(:NAT_CALL_BEGIN_WITH_C_BREAK, :env, :self, begin_fn, :argc, :args, :block, @loop_context.last)
+                       else
+                         s(:NAT_CALL_BEGIN_WITH_RETURN, :env, :self, begin_fn, :argc, :args, :block)
+                       end
+
           exp.new(:block,
                   s(:begin_fn, begin_fn,
                     s(:block,
@@ -863,7 +876,7 @@ module Natalie
                             rescue_block)),
                         retry_name),
                        s(:NAT_UNREACHABLE))),
-                  s(:NAT_CALL_BEGIN, :env, :self, begin_fn, :argc, :args, :block))
+                  call_begin)
         end
       end
 

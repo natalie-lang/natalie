@@ -45,6 +45,57 @@ describe 'begin/rescue/else' do
     end
     test.should == 'return from rescue'
   end
+
+  it 'can break out of a while/until loop' do
+    def test_while1
+      result = while true
+        begin
+          raise 'foo'
+        rescue
+          break 'bar'
+        end
+      end
+      "break in while works: #{result}"
+    end
+
+    def test_while2
+      while true
+        begin
+          raise 'foo'
+        rescue
+          break if true
+        end
+      end
+      "break in if in while works"
+    end
+
+    def test_until1
+      result = until false
+        begin
+          raise 'foo'
+        rescue
+          break 'bar'
+        end
+      end
+      "break in until works: #{result}"
+    end
+
+    def test_until2
+      until false
+        begin
+          raise 'foo'
+        rescue
+          break if true
+        end
+      end
+      "break in if in until works"
+    end
+
+    test_while1.should == 'break in while works: bar'
+    test_while2.should == 'break in if in while works'
+    test_until1.should == 'break in until works: bar'
+    test_until2.should == 'break in if in until works'
+  end
 end
 
 describe 'raise' do
