@@ -33,6 +33,18 @@ describe 'begin/rescue/else' do
       x.should == 2
     end
   end
+
+  it 'can return early' do
+    def test
+      begin
+        raise 'foo'
+      rescue
+        return 'return from rescue'
+      end
+      'not reached'
+    end
+    test.should == 'return from rescue'
+  end
 end
 
 describe 'raise' do

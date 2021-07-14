@@ -888,6 +888,12 @@ module Natalie
         enclosing = context.detect { |n| %i[defn defs iter].include?(n) }
         if enclosing == :iter
           exp.new(:raise_local_jump_error, :env, process(value), s(:s, "unexpected return"))
+        elsif context[1] == :rescue
+          return_name = temp('return_value')
+          exp.new(:block,
+                  s(:declare, return_name, process(value) || s(:nil)),
+                  s(:add_break_flag, return_name),
+                  s(:c_return, return_name))
         else
           exp.new(:c_return, process(value) || s(:nil))
         end
