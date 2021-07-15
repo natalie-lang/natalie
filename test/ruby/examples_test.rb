@@ -7,13 +7,13 @@ describe 'examples' do
 
   describe 'examples/fib.rb' do
     it 'computes the Nth fibonacci number' do
-      run_both_and_compare('examples/fib.rb', 5)
+      run_all_and_compare('examples/fib.rb', 5)
     end
   end
 
   describe 'examples/boardslam.rb' do
     it 'prints solutions to a 6x6 boardslam game card' do
-      run_both_and_compare('examples/boardslam.rb', 1, 2, 3)
+      run_all_and_compare('examples/boardslam.rb', 1, 2, 3)
     end
   end
 end
