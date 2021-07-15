@@ -173,6 +173,35 @@ module Enumerable
     ary
   end
 
+  def drop_while
+    return enum_for(:drop_while) unless block_given?
+
+    ary = []
+
+    e = enum_for(:each)
+    while true
+      begin
+        item = e.next
+      rescue StopIteration
+        return []
+      end
+      unless yield(item)
+        ary << item
+        break
+      end
+    end
+
+    while true
+      begin
+        ary << e.next
+      rescue StopIteration
+        break
+      end
+    end
+
+    ary
+  end
+
   def each_slice(count)
     count = count.to_int
     raise ArgumentError, 'invalid slice size' if count < 1
