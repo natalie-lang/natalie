@@ -13,7 +13,7 @@ __inline__ <<-END
   void gtk3_signal_callback(GtkWidget *widget, gpointer data) {
     ProcValue *callback = static_cast<Value*>(data)->as_proc();
     Env *env = callback->env();
-    callback->send(env, "call");
+    callback->_send(env, "call");
   }
 END
 
@@ -100,10 +100,10 @@ module Gtk3
       int type;
       arg_spread(env, argc, args, "i", &type);
       GtkWidget *gtk_window = gtk_window_new((GtkWindowType)type);
-      ClassValue *Window = self->const_fetch(env, SymbolValue::intern("Window"))->as_class();
+      ClassValue *Window = self->const_fetch(SymbolValue::intern("Window"))->as_class();
       Value *window_wrapper = new Value { Window };
       Value *ptr = new VoidPValue { gtk_window };
-      window_wrapper->ivar_set(env, "@_ptr", ptr);
+      window_wrapper->ivar_set(env, SymbolValue::intern("@_ptr"), ptr);
       return window_wrapper;
     END
 
@@ -129,10 +129,10 @@ module Gtk3
       int orientation, spacing;
       arg_spread(env, argc, args, "ii", &orientation, &spacing);
       GtkWidget *gtk_box = gtk_box_new((GtkOrientation)orientation, spacing);
-      ClassValue *Box = self->const_fetch(env, SymbolValue::intern("Box"))->as_class();
+      ClassValue *Box = self->const_fetch(SymbolValue::intern("Box"))->as_class();
       Value *box_wrapper = new Value { Box };
       Value *ptr = new VoidPValue { gtk_box };
-      box_wrapper->ivar_set(env, "@_ptr", ptr);
+      box_wrapper->ivar_set(env, SymbolValue::intern("@_ptr"), ptr);
       return box_wrapper;
     END
 
@@ -149,10 +149,10 @@ module Gtk3
       char *filename;
       arg_spread(env, argc, args, "s", &filename);
       GtkWidget *gtk_image = gtk_image_new_from_file(filename);
-      ClassValue *Image = self->const_fetch(env, SymbolValue::intern("Image"))->as_class();
+      ClassValue *Image = self->const_fetch(SymbolValue::intern("Image"))->as_class();
       Value *image_wrapper = new Value { Image };
       Value *ptr = new VoidPValue { gtk_image };
-      image_wrapper->ivar_set(env, "@_ptr", ptr);
+      image_wrapper->ivar_set(env, SymbolValue::intern("@_ptr"), ptr);
       return image_wrapper;
     END
 
@@ -193,10 +193,10 @@ module Gtk3
           const char *text = args[0]->as_string()->c_str();
           gtk_label = gtk_label_new(text);
       }
-      ClassValue *Label = self->const_fetch(env, SymbolValue::intern("Label"))->as_class();
+      ClassValue *Label = self->const_fetch(SymbolValue::intern("Label"))->as_class();
       Value *label_wrapper = new Value { Label };
       Value *ptr = new VoidPValue { gtk_label };
-      label_wrapper->ivar_set(env, "@_ptr", ptr);
+      label_wrapper->ivar_set(env, SymbolValue::intern("@_ptr"), ptr);
       return label_wrapper;
     END
 
@@ -214,10 +214,10 @@ module Gtk3
       char *label;
       arg_spread(env, argc, args, "s", &label);
       GtkWidget *gtk_button = gtk_button_new_with_label(label);
-      ClassValue *Button = self->const_fetch(env, SymbolValue::intern("Button"))->as_class();
+      ClassValue *Button = self->const_fetch(SymbolValue::intern("Button"))->as_class();
       Value *button_wrapper = new Value { Button };
       Value *ptr = new VoidPValue { gtk_button };
-      button_wrapper->ivar_set(env, "@_ptr", ptr);
+      button_wrapper->ivar_set(env, SymbolValue::intern("@_ptr"), ptr);
       return button_wrapper;
     END
 
