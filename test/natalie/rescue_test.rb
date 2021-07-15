@@ -35,7 +35,7 @@ describe 'begin/rescue/else' do
   end
 
   it 'can return early' do
-    def test
+    def test1
       begin
         raise 'foo'
       rescue
@@ -43,7 +43,18 @@ describe 'begin/rescue/else' do
       end
       'not reached'
     end
-    test.should == 'return from rescue'
+
+    def test2
+      begin
+        raise 'foo'
+      rescue
+        return 'return from rescue' if true
+      end
+      'not reached'
+    end
+
+    test1.should == 'return from rescue'
+    test2.should == 'return from rescue'
   end
 
   it 'can break out of a while/until loop' do

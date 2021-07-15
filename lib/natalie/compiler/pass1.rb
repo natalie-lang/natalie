@@ -896,12 +896,19 @@ module Natalie
           s(:c_continue))
       end
 
+      RETURN_CONTEXT = %i[defn defs iter]
+
+      def rescue_inside_return_context?
+        exprs = context.select { |e| (%i[rescue] + RETURN_CONTEXT).include?(e) }.uniq
+        exprs[0] == :rescue && RETURN_CONTEXT.include?(exprs[1])
+      end
+
       def process_return(exp)
         (_, value) = exp
-        enclosing = context.detect { |n| %i[defn defs iter].include?(n) }
+        enclosing = context.detect { |n| RETURN_CONTEXT.include?(n) }
         if enclosing == :iter
           exp.new(:raise_local_jump_error, :env, process(value), s(:s, "unexpected return"))
-        elsif context[1] == :rescue
+        elsif rescue_inside_return_context?
           return_name = temp('return_value')
           exp.new(:block,
                   s(:declare, return_name, process(value) || s(:nil)),
