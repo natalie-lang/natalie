@@ -77,11 +77,6 @@ module Natalie
       VALID_BREAK_CONTEXT = %i[iter while until]
       BREAK_LOOPS = %i[while until]
 
-      def rescue_inside_loop?
-        exprs = context.select { |e| (%i[rescue] + BREAK_LOOPS).include?(e) }
-        exprs[0] == :rescue && BREAK_LOOPS.include?(exprs[1])
-      end
-
       def process_break(exp)
         (_, value) = exp
         value ||= s(:nil)
@@ -91,7 +86,7 @@ module Natalie
           puts "#{exp.file}##{exp.line}"
           raise SyntaxError, "Invalid break"
         end
-        if BREAK_LOOPS.include?(container) && !rescue_inside_loop?
+        if BREAK_LOOPS.include?(container) && !match_context(:rescue, BREAK_LOOPS)
           result_name = @loop_context.last
           raise "No proper loop context!" if result_name.nil?
           exp.new(:block,
@@ -898,17 +893,12 @@ module Natalie
 
       RETURN_CONTEXT = %i[defn defs iter]
 
-      def rescue_inside_return_context?
-        exprs = context.select { |e| (%i[rescue] + RETURN_CONTEXT).include?(e) }.uniq
-        exprs[0] == :rescue && RETURN_CONTEXT.include?(exprs[1])
-      end
-
       def process_return(exp)
         (_, value) = exp
         enclosing = context.detect { |n| RETURN_CONTEXT.include?(n) }
         if enclosing == :iter
           exp.new(:raise_local_jump_error, :env, process(value), s(:s, "unexpected return"))
-        elsif rescue_inside_return_context?
+        elsif match_context(:rescue, RETURN_CONTEXT)
           return_name = temp('return_value')
           exp.new(:block,
                   s(:declare, return_name, process(value) || s(:nil)),
@@ -1026,6 +1016,13 @@ module Natalie
         exp = yield
         @retry_context.pop
         exp
+      end
+
+      def match_context(first, after)
+        first = Array(first)
+        after = Array(after)
+        exprs = context.select { |e| (first + after).include?(e) }.uniq
+        first.include?(exprs[0]) && after.include?(exprs[1])
       end
     end
   end
