@@ -38,6 +38,10 @@ describe 'REPL' do
     @repl.execute('x')
     @repl.execute('[y, @z]')
     @repl.execute('self')
+    @repl.execute('def foo; 2; end')
+    @repl.execute('def bar; 3; end')
+    @repl.execute('foo = foo') # does NOT call the function
+    @repl.execute('foo = bar') # DOES call the function
     @repl.quit
     expect(@repl.out).must_equal dedent(<<-EOF)
       100
@@ -46,6 +50,10 @@ describe 'REPL' do
       100
       [12, "z"]
       main
+      :foo
+      :bar
+      nil
+      3
     EOF
   end
 

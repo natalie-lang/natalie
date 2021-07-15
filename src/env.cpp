@@ -110,10 +110,8 @@ ValuePtr Env::last_match() {
 }
 
 ValuePtr Env::var_get(const char *key, size_t index) {
-    if (index >= m_vars->size()) {
-        printf("Trying to get variable `%s' at index %zu which is not set.\n", key, index);
-        abort();
-    }
+    if (index >= m_vars->size())
+        return NilValue::the();
     ValuePtr val = m_vars->at(index);
     if (val) {
         return val;
