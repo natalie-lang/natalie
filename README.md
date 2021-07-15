@@ -79,3 +79,19 @@ docker run -it --rm natalie -e "p 2 * 3"                             # immediate
 docker run -it --rm -v$(pwd)/myfile.rb:/myfile.rb natalie /myfile.rb # execute a local rb file
 docker run -it --rm --entrypoint bash natalie                        # bash prompt
 ```
+
+## Copyright & License
+
+Natalie is copyright 2021, Tim Morgan and contributors. Natalie is licensed
+under the MIT License; see the `LICENSE` file in this directory for the full text.
+
+Some parts of this program are copied from other sources, and the copyright
+belongs to the respective owner:
+
+| file(s)                         | copyright                         | license           |
+|---------------------------------|-----------------------------------|-------------------|
+| `dtoa.c`                        | David M. Gay, Lucent Technologies | custom permissive |
+| `hashmap.hpp` and `hashmap.cpp` | David Leeds                       | MIT               |
+| `spec/*` (see `spec/LICENSE`)   | Engine Yard, Inc.                 | MIT               |
+
+See each file above for full copyright and license text.

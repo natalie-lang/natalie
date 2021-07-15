@@ -25,6 +25,8 @@
  *
  * Large portions of this file were copied from David Leeds' hashmap library
  * made available at: https://github.com/DavidLeeds/hashmap
+ *
+ * Modifications to work better with Natalie made by Tim Morgan, 2021.
  */
 
 #include <ctype.h>
