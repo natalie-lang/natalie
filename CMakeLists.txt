@@ -17,7 +17,7 @@ add_custom_target(tests
     USES_TERMINAL
 )
 
-file(GLOB LIB_SOURCES "src/*.cpp")
+file(GLOB LIB_SOURCES "src/*.cpp" "src/*.c")
 file(GLOB GENERATED_NAMES "src/*.rb")
 
 list(FILTER LIB_SOURCES EXCLUDE REGEX ".*main.cpp$")
@@ -52,7 +52,6 @@ endforeach()
 target_include_directories(natalie-base PRIVATE
   include
   ${CMAKE_BINARY_DIR}/include
-  ${CMAKE_BINARY_DIR}/include/gdtoa
   ${CMAKE_BINARY_DIR}/include/onigmo)
 
 set_target_properties(natalie-base PROPERTIES CXX_STANDARD 17 POSITION_INDEPENDENT_CODE true)
@@ -70,11 +69,9 @@ add_dependencies(natalie-base generate-platform)
 set_source_files_properties(${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/generated/platform.cpp PROPERTIES GENERATED TRUE)
 target_sources(natalie-base PRIVATE ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/generated/platform.cpp)
 
-include(ext/gdtoa.cmake)
 include(ext/onigmo.cmake)
 
 add_dependencies(natalie-base
-  ${GDTOA_TARGET}
   ${ONIGMO_TARGET})
 
 file(GLOB_RECURSE HEADER_FILES "include/*.hpp")
@@ -88,10 +85,8 @@ add_custom_command(
   OUTPUT libnatalie.a
   COMMAND ${CMAKE_COMMAND} -E make_directory
     ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libnatalie-o
-    ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libgdtoa-o
     ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libonigmo-o
   COMMAND cd ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libnatalie-o && ar x ${CMAKE_BINARY_DIR}/libnatalie-base.a && ar r ${CMAKE_BINARY_DIR}/libnatalie.a *.o
-  COMMAND cd ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libgdtoa-o && ar x ../libgdtoa.a && ar r ${CMAKE_BINARY_DIR}/libnatalie.a *.o
   COMMAND cd ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/libonigmo-o && ar x ../libonigmo.a && ar r ${CMAKE_BINARY_DIR}/libnatalie.a *.o
   DEPENDS natalie-base)
 add_custom_target(combine-libraries ALL DEPENDS libnatalie.a)

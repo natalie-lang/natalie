@@ -3,9 +3,8 @@
 
 #include <math.h>
 
-extern "C" {
-#include "gdtoa.h"
-}
+// from dtoa.c by David Gay
+extern "C" char *dtoa(double d, int mode, int ndigits, int *decpt, int *sign, char **rve);
 
 namespace Natalie {
 
