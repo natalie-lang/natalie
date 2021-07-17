@@ -126,19 +126,17 @@ describe 'break' do
   end
 
   it 'breaks out of an else inside a loop' do
-    x = 1
-    loop do
-      break if x > 1
+    r = loop do
       begin
       rescue
       else
-        break
+        break :ok
       end
-      x += 1
+      break :bad
     end
-    x.should == 1
+    r.should == :ok
 
-    def foo
+    def break_in_else_in_loop
       x = 1
       loop do
         break if x > 1
@@ -153,5 +151,28 @@ describe 'break' do
     end
     result = foo { |x| break x }
     result.should == 1
+  end
+
+  it 'breaks out of a begin inside a while' do
+    r = while true
+      begin
+        break :ok
+      rescue
+      end
+      break :bad
+    end
+    r.should == :ok
+
+    def break_in_begin_in_while
+      while true
+        begin
+          yield if true
+        rescue
+        end
+        break :bad
+      end
+    end
+    result = break_in_begin_in_while { |x| break :ok }
+    result.should == :ok
   end
 end

@@ -853,7 +853,7 @@ module Natalie
           body = body.empty? ? [s(:nil)] : body
 
           # FIXME: This is gross. Split while/until/break stuff into a separate pass?
-          call_begin = if BREAK_LOOPS.include?(context[1])
+          call_begin = if match_context(:rescue, BREAK_LOOPS)
                          s(:NAT_CALL_BEGIN_WITH_C_BREAK, :env, :self, begin_fn, :argc, :args, :block, @loop_context.last)
                        else
                          s(:NAT_CALL_BEGIN_WITH_RETURN, :env, :self, begin_fn, :argc, :args, :block)
