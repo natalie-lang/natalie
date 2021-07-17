@@ -202,6 +202,42 @@ module Enumerable
     ary
   end
 
+  def each_cons(n)
+    n = n.to_int if n.respond_to?(:to_int)
+
+    raise ArgumentError, 'invalid size' if n <= 0
+
+    unless block_given?
+      return enum_for(:each_cons, n) do
+        if n.is_a?(Integer) && respond_to?(:size)
+          [size - n + 1, 0].max
+        else
+          Float::INFINITY
+        end
+      end
+    end
+
+    cons = []
+    e = enum_for(:each)
+    live = true
+    while live
+      begin
+        item = e.next
+      rescue StopIteration
+        live = false
+      end
+      if live
+        cons << item
+        if cons.size >= n
+          yield cons
+          cons = cons[1..-1]
+        end
+      end
+    end
+
+    nil
+  end
+
   def each_slice(count)
     count = count.to_int
     raise ArgumentError, 'invalid slice size' if count < 1
