@@ -107,5 +107,51 @@ describe 'break' do
       x += 1
     end
     x.should == 1
+
+    def foo
+      x = 1
+      loop do
+        break if x > 1
+        begin
+          raise 'error'
+        rescue
+          yield x
+        end
+        x += 1
+      end
+      x
+    end
+    result = foo { |x| break x }
+    result.should == 1
+  end
+
+  it 'breaks out of an else inside a loop' do
+    x = 1
+    loop do
+      break if x > 1
+      begin
+      rescue
+      else
+        break
+      end
+      x += 1
+    end
+    x.should == 1
+
+    def foo
+      x = 1
+      loop do
+        break if x > 1
+        begin
+        rescue
+        else
+          yield x
+        end
+        x += 1
+      end
+      x
+    end
+    result = foo { |x| break x }
+    result.should == 1
   end
 end
