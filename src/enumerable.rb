@@ -368,6 +368,8 @@ module Enumerable
     false
   end
 
+  alias member? include?
+
   def inject(*args)
     gather = ->(item) { item.size <= 1 ? item.first : item }
     if args.size == 0
