@@ -86,11 +86,12 @@ module Natalie
           puts "#{exp.file}##{exp.line}"
           raise SyntaxError, "Invalid break"
         end
-        if BREAK_LOOPS.include?(container) && !match_context(:rescue, BREAK_LOOPS)
+        if BREAK_LOOPS.include?(container)
           result_name = @loop_context.last
           raise "No proper loop context!" if result_name.nil?
           exp.new(:block,
                   s(:set, result_name, process(value)),
+                  s(:add_break_flag, result_name),
                   s(:c_break))
         else
           exp.new(:block,
@@ -835,8 +836,12 @@ module Natalie
         retry_context(retry_name) do
           else_body = rest.pop if rest.last.sexp_type != :resbody
           (body, resbodies) = rest.partition { |n| n.first != :resbody }
-          begin_fn = temp('begin_fn')
           rescue_block = s(:cond)
+
+          # handle LocalJumpError as a special case, re-raise
+          rescue_block << process(s(:is_a, :exception, s(:const, 'LocalJumpError')))
+          rescue_block << s(:raise_exception, :env, :exception)
+
           resbodies.each_with_index do |(_, (_, *match), *resbody), index|
             lasgn = match.pop if match.last&.sexp_type == :lasgn
             match << s(:const, 'StandardError') if match.empty?
@@ -852,26 +857,17 @@ module Natalie
           end
           body = body.empty? ? [s(:nil)] : body
 
-          # FIXME: This is gross. Split while/until/break stuff into a separate pass?
-          call_begin = if match_context(:rescue, BREAK_LOOPS)
-                         s(:NAT_CALL_BEGIN_WITH_C_BREAK, :env, :self, begin_fn, :argc, :args, :block, @loop_context.last)
-                       else
-                         s(:NAT_CALL_BEGIN_WITH_RETURN, :env, :self, begin_fn, :argc, :args, :block)
-                       end
+          do_name = temp('do_result')
 
           exp.new(:block,
-                  s(:begin_fn, begin_fn,
+                  s(:declare, retry_name, s(:l, :false), :bool),
+                  s(:c_do,
                     s(:block,
-                      s(:declare, retry_name, s(:l, :false), :bool),
-                      s(:c_do,
-                        s(:block,
-                          s(:set, retry_name, s(:l, :false)),
-                          s(:rescue,
-                            s(:block, *body.map { |n| process(n) }),
-                            rescue_block)),
-                        retry_name),
-                       s(:NAT_UNREACHABLE))),
-                  call_begin)
+                      s(:set, retry_name, s(:l, :false)),
+                      s(:rescue,
+                        s(:block, *body.map { |n| process(n) }),
+                        rescue_block)),
+                    retry_name))
         end
       end
 
@@ -943,16 +939,7 @@ module Natalie
 
       def process_until(exp)
         (_, condition, body, pre) = exp
-        body ||= s(:nil)
-        result_name = temp('until_result')
-        loop_context(result_name) do
-          cond = s(:c_if, s(:is_truthy, process(condition)), s(:c_break))
-          loop_body = pre ? s(:block, cond, process(body)) : s(:block, process(body), cond)
-          exp.new(:block,
-                  s(:declare, result_name, s(:nil)),
-                  s(:c_while, 'true', loop_body),
-          result_name)
-        end
+        process_while(exp.new(:while, s(:not, condition), body, pre))
       end
 
       def process_while(exp)
@@ -964,8 +951,11 @@ module Natalie
           loop_body = pre ? s(:block, cond, process(body)) : s(:block, process(body), cond)
           exp.new(:block,
                   s(:declare, result_name, s(:nil)),
-                  s(:c_while, 'true', loop_body),
-          result_name)
+                  s(:c_while, 'true',
+                    s(:block,
+                      loop_body,
+                      s(:NAT_HANDLE_BREAK, result_name, :break))),
+                  result_name)
         end
       end
 

@@ -61,11 +61,11 @@
     NAT_RUN_BLOCK_GENERIC(env, the_block, argc, args, block, {}, env->raise_local_jump_error(_result, "break from proc-closure")); \
 })
 
-#define NAT_CHECK_FOR_BREAK(value) ({ \
-    if (value->has_break_flag()) {    \
-        value->remove_break_flag();   \
-        return value;                 \
-    }                                 \
+#define NAT_HANDLE_BREAK(value, on_break_flag) ({ \
+    if (value->has_break_flag()) {                \
+        value->remove_break_flag();               \
+        on_break_flag;                            \
+    }                                             \
 })
 
 #define NAT_CALL_BEGIN(env, self, begin_fn, argc, args, block, on_break_flag) ({ \

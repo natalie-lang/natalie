@@ -19,6 +19,7 @@ module Natalie
 
       VOID_FUNCTIONS = %i[
         NAT_ASSERT_NOT_FROZEN
+        NAT_HANDLE_BREAK
         NAT_UNREACHABLE
         add_break_flag
         add_redo_flag
@@ -339,14 +340,17 @@ module Natalie
         (_, body, condition) = exp
         condition = process_atom(condition)
         c = []
+        result_name = temp('do_result')
+        decl "ValuePtr #{result_name} = nullptr;"
         in_decl_context do
           c << 'do {'
-          process_atom(body)
+          result = process_atom(body)
           c += @decl
+          c << "#{result_name} = #{result};"
           c << "} while (#{condition});"
         end
         decl c
-        ''
+        result_name
       end
 
       def process_c_not(exp)
@@ -520,21 +524,23 @@ module Natalie
       def process_rescue(exp)
         (_, top, bottom) = exp
         c = []
+        result_name = temp('rescue_result')
+        decl "ValuePtr #{result_name} = nullptr;"
         in_decl_context do
           c << 'try {'
           result = process_atom(top)
           c += @decl
-          c << "return #{result};" unless result.empty?
+          c << "#{result_name} = #{result};" unless result.empty?
           c << '} catch (ExceptionValue *exception) {'
           c << 'env->global_set(SymbolValue::intern("$!"), exception);'
           @decl = []
           result = process_atom(bottom)
           c += @decl
-          c << "return #{result};" unless result.empty?
+          c << "#{result_name} = #{result};" unless result.empty?
           c << '}'
         end
         decl c
-        ''
+        result_name
       end
 
       def process_NAT_RUN_BLOCK_FROM_ENV(exp)
