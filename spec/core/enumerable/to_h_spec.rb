@@ -1,5 +1,3 @@
-# skip-test
-
 require_relative '../../spec_helper'
 require_relative 'fixtures/classes'
 
@@ -27,12 +25,15 @@ describe "Enumerable#to_h" do
   end
 
   it "forwards arguments to #each" do
-    enum = Object.new
-    def enum.each(*args)
-      yield(*args)
-      yield([:b, 2])
+    class MyEnum
+      include Enumerable
+
+      def each(*args)
+        yield(*args)
+        yield([:b, 2])
+      end
     end
-    enum.extend Enumerable
+    enum = MyEnum.new
     enum.to_h(:a, 1).should == { a: 1, b: 2 }
   end
 

@@ -714,6 +714,40 @@ module Enumerable
     result
   end
 
+  def to_h(*args)
+    h = {}
+
+    block_given = block_given? # FIXME: bug in block_given? method
+
+    index = 0
+    each(*args) do |*item|
+      item = item.first if item.size == 1
+
+      if block_given
+        item = yield(item)
+      end
+
+      if item.respond_to?(:to_ary)
+        item = item.to_ary
+      end
+
+      if item.is_a?(Array)
+        if item.size == 2
+          (key, val) = item
+          h[key] = val
+        else
+          raise ArgumentError, "element has wrong array length at #{index} (expected 2, was #{item.size})"
+        end
+      else
+        raise TypeError, "wrong element type #{item.class.name} at #{index} (expected array)"
+      end
+
+      index += 1
+    end
+
+    h
+  end
+
   def zip(*args)
     has_block = block_given?
     args = args.map do |arg|

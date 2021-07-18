@@ -621,8 +621,11 @@ class Object
   end
 end
 
+class MockObject
+end
+
 def mock(name)
-  Object.new.tap do |obj|
+  MockObject.new.tap do |obj|
     obj.define_singleton_method(:inspect) do
       "<mock: #{name}>"
     end
