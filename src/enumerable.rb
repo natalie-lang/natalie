@@ -505,6 +505,20 @@ module Enumerable
     end
   end
 
+  def reject
+    return enum_for(:reject) unless block_given?
+
+    ary = []
+
+    gather = ->(obj) { obj.size <= 1 ? obj.first : obj }
+
+    each do |*item|
+      ary << gather.(item) unless yield(gather.(item))
+    end
+
+    ary
+  end
+
   def partition
     left = []
     right = []
