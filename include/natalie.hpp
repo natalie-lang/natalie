@@ -30,6 +30,7 @@
 #include "natalie/integer_value.hpp"
 #include "natalie/io_value.hpp"
 #include "natalie/kernel_module.hpp"
+#include "natalie/local_jump_error_type.hpp"
 #include "natalie/match_data_value.hpp"
 #include "natalie/method.hpp"
 #include "natalie/method_value.hpp"

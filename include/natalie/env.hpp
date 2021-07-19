@@ -6,6 +6,7 @@
 #include "natalie/forward.hpp"
 #include "natalie/gc.hpp"
 #include "natalie/global_env.hpp"
+#include "natalie/local_jump_error_type.hpp"
 #include "natalie/string.hpp"
 #include "natalie/value_ptr.hpp"
 #include "tm/shared_ptr.hpp"
@@ -48,7 +49,7 @@ public:
     [[noreturn]] void raise(ClassValue *, String *);
     [[noreturn]] void raise(const char *, const String *);
     [[noreturn]] void raise_exception(ExceptionValue *);
-    [[noreturn]] void raise_local_jump_error(ValuePtr, const char *);
+    [[noreturn]] void raise_local_jump_error(ValuePtr, LocalJumpErrorType);
     [[noreturn]] void raise_errno();
 
     template <typename... Args>
@@ -81,6 +82,9 @@ public:
     Block *block() { return m_block; }
     void set_block(Block *block) { m_block = block; }
 
+    Block *this_block() { return m_this_block; }
+    void set_this_block(Block *block) { m_this_block = block; }
+
     const char *file() { return m_file; }
     void set_file(const char *file) { m_file = file; }
 
@@ -106,6 +110,7 @@ private:
     SharedPtr<Vector<ValuePtr>> m_vars {};
     Env *m_outer { nullptr };
     Block *m_block { nullptr };
+    Block *m_this_block { nullptr };
     Env *m_caller { nullptr };
     const char *m_file { nullptr };
     size_t m_line { 0 };

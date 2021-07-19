@@ -14,8 +14,10 @@ namespace Natalie {
 class NilValue : public Value {
 public:
     static NilValue *the() {
-        if (s_instance)
+        if (s_instance) {
+            assert(s_instance->flags() == 0);
             return s_instance;
+        }
         s_instance = new NilValue();
         return s_instance;
     }

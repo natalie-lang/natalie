@@ -14,8 +14,10 @@ namespace Natalie {
 class FalseValue : public Value {
 public:
     static FalseValue *the() {
-        if (s_instance)
+        if (s_instance) {
+            assert(s_instance->flags() == 0);
             return s_instance;
+        }
         s_instance = new FalseValue();
         return s_instance;
     }

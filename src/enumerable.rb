@@ -179,8 +179,7 @@ module Enumerable
     ary = []
 
     e = enum_for(:each)
-    done = false
-    while !done
+    while true
       begin
         item = e.next
       rescue StopIteration
@@ -188,9 +187,7 @@ module Enumerable
       end
       unless yield(item)
         ary << item
-        # FIXME: break broken here
-        #break
-        done = true
+        break
       end
     end
 

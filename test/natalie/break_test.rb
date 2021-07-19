@@ -70,8 +70,7 @@ describe 'break' do
     Proc.new { break 'bad' }.call
   end
 
-  # FIXME: broken check for LocalJumpError
-  xit 'raises an error when breaking from a Proc' do
+  it 'raises an error when breaking from a Proc' do
     -> { break_from_proc_test }.should raise_error(LocalJumpError, 'break from proc-closure')
   end
 
@@ -155,8 +154,7 @@ describe 'break' do
     result.should == 1
   end
 
-  # FIXME
-  xit 'breaks out of a begin inside a while' do
+  it 'breaks out of a begin inside a while' do
     r = while true
       begin
         break :ok

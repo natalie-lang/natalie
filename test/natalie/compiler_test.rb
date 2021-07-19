@@ -6,7 +6,7 @@ require_relative '../spec_helper'
 require_relative '../../lib/natalie/compiler'
 
 describe 'Natalie::Compiler' do
-  it 'compiles from raw AST to pass1 AST' do
+  it 'compiles the AST in passes' do
     context = {
       var_prefix: '',
       var_num: 0,
@@ -26,8 +26,14 @@ describe 'Natalie::Compiler' do
     expected = `bin/natalie -d p1 #{path}`.gsub(/\s+/, "\n").strip
     actual.should == expected
 
+    pass1b = Natalie::Compiler::Pass1b.new(context)
+    ast1b = pass1b.go(ast1)
+    actual = ast1b.inspect.gsub(/\s+/, "\n").strip
+    expected = `bin/natalie -d p1b #{path}`.gsub(/\s+/, "\n").strip
+    actual.should == expected
+
     pass2 = Natalie::Compiler::Pass2.new(context)
-    ast2 = pass2.go(ast1)
+    ast2 = pass2.go(ast1b)
     actual = ast2.inspect.gsub(/\s+/, "\n").strip
     expected = `bin/natalie -d p2 #{path}`.gsub(/\s+/, "\n").strip
     actual.should == expected

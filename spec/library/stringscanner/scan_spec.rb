@@ -1,3 +1,6 @@
+# skip-test
+# This is broken in both MRI and Natalie
+
 require_relative '../../spec_helper'
 require 'strscan'
 

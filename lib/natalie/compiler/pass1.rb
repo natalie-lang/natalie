@@ -80,25 +80,7 @@ module Natalie
       def process_break(exp)
         (_, value) = exp
         value ||= s(:nil)
-        break_name = temp('break_value')
-        container = context.detect { |e| VALID_BREAK_CONTEXT.include?(e) }
-        unless container
-          puts "#{exp.file}##{exp.line}"
-          raise SyntaxError, "Invalid break"
-        end
-        if BREAK_LOOPS.include?(container)
-          result_name = @loop_context.last
-          raise "No proper loop context!" if result_name.nil?
-          exp.new(:block,
-                  s(:set, result_name, process(value)),
-                  s(:add_break_flag, result_name),
-                  s(:c_break))
-        else
-          exp.new(:block,
-                  s(:declare, break_name, process(value)),
-                  s(:add_break_flag, break_name),
-                  s(:c_return, break_name))
-        end
+        s(:break, process(value))
       end
 
       def process_call(exp, is_super: false)
@@ -208,7 +190,7 @@ module Natalie
 
       def process_const(exp)
         (_, name) = exp
-        exp.new(:const_find, :self, :env, s(:intern, name), s(:l, 'Value::ConstLookupSearchMode::NotStrict'))
+        exp.new(:const_find, :self, :env, s(:intern, name), 'Value::ConstLookupSearchMode::NotStrict')
       end
 
       def process_cvdecl(exp)
@@ -256,11 +238,7 @@ module Natalie
           # We only need to wrap method body in a rescue for LocalJumpError if there is a `return` inside a block.
           method_body = s(:rescue,
                           method_body,
-                          s(:cond,
-                            s(:is_a, :exception, process(s(:const, :LocalJumpError))),
-                            process(s(:call, s(:l, 'ValuePtr { exception }'), :exit_value)),
-                            s(:else),
-                            s(:raise_exception, :env, :exception)))
+                          s(:NAT_HANDLE_LOCAL_JUMP_ERROR, :env, :exception, :true))
         end
         fn = exp.new(:def_fn, fn_name,
                 s(:block,
@@ -405,7 +383,8 @@ module Natalie
         if (i = call.index('nullptr'))
           call[i] = block
         else
-          puts "#{exp.file}##{exp.line}: #{call.inspect}"
+          puts "#{exp.file}##{exp.line}"
+          pp call
           raise "cannot add block to call!"
         end
         if args.any?
@@ -419,7 +398,7 @@ module Natalie
           assign_args = s(:block)
           arity = 0
         end
-        exp.new(:block,
+        exp.new(:iter1,
                 s(:block_fn, block_fn,
                   s(:block,
                     assign_args,
@@ -836,38 +815,38 @@ module Natalie
         retry_context(retry_name) do
           else_body = rest.pop if rest.last.sexp_type != :resbody
           (body, resbodies) = rest.partition { |n| n.first != :resbody }
-          rescue_block = s(:cond)
-
-          # handle LocalJumpError as a special case, re-raise
-          rescue_block << process(s(:is_a, :exception, s(:const, 'LocalJumpError')))
-          rescue_block << s(:raise_exception, :env, :exception)
+          rescue_cond = s(:cond)
+          rescue_block = s(:block,
+                           s(:NAT_RERAISE_LOCAL_JUMP_ERROR, :env, :exception),
+                           rescue_cond)
 
           resbodies.each_with_index do |(_, (_, *match), *resbody), index|
             lasgn = match.pop if match.last&.sexp_type == :lasgn
             match << s(:const, 'StandardError') if match.empty?
             condition = s(:is_a, :exception, *match.map { |n| process(n) })
-            rescue_block << condition
+            rescue_cond << condition
             resbody = resbody == [nil] ? [s(:nil)] : resbody.map { |n| process(n) }
-            rescue_block << (lasgn ? s(:block, process(lasgn), *resbody) : s(:block, *resbody))
+            rescue_cond << (lasgn ? s(:block, process(lasgn), *resbody) : s(:block, *resbody))
           end
-          rescue_block << s(:else)
-          rescue_block << s(:block, s(:raise_exception, :env, :exception))
+          rescue_cond << s(:else)
+          rescue_cond << s(:block, s(:raise_exception, :env, :exception))
           if else_body
             body << else_body
           end
           body = body.empty? ? [s(:nil)] : body
 
-          do_name = temp('do_result')
+          result_name = temp('rescue_result')
 
           exp.new(:block,
                   s(:declare, retry_name, s(:l, :false), :bool),
-                  s(:c_do,
+                  s(:rescue_do,
                     s(:block,
                       s(:set, retry_name, s(:l, :false)),
                       s(:rescue,
                         s(:block, *body.map { |n| process(n) }),
                         rescue_block)),
-                    retry_name))
+                    retry_name,
+                    result_name))
         end
       end
 
@@ -893,7 +872,7 @@ module Natalie
         (_, value) = exp
         enclosing = context.detect { |n| RETURN_CONTEXT.include?(n) }
         if enclosing == :iter
-          exp.new(:raise_local_jump_error, :env, process(value), s(:s, "unexpected return"))
+          exp.new(:raise_local_jump_error, :env, process(value), s(:l, 'LocalJumpErrorType::Return'))
         elsif match_context(:rescue, RETURN_CONTEXT)
           return_name = temp('return_value')
           exp.new(:block,
@@ -946,17 +925,15 @@ module Natalie
         (_, condition, body, pre) = exp
         body ||= s(:nil)
         result_name = temp('while_result')
-        loop_context(result_name) do
-          cond = s(:c_if, s(:c_not, s(:is_truthy, process(condition))), s(:c_break))
-          loop_body = pre ? s(:block, cond, process(body)) : s(:block, process(body), cond)
-          exp.new(:block,
-                  s(:declare, result_name, s(:nil)),
-                  s(:c_while, 'true',
-                    s(:block,
-                      loop_body,
-                      s(:NAT_HANDLE_BREAK, result_name, :break))),
-                  result_name)
-        end
+        cond = s(:c_if, s(:c_not, s(:is_truthy, process(condition))), s(:c_break))
+        loop_body = pre ? s(:block, cond, process(body)) : s(:block, process(body), cond)
+        exp.new(:block,
+                s(:declare, result_name, s(:nil)),
+                s(:loop, result_name,
+                  s(:block,
+                    loop_body,
+                    s(:NAT_HANDLE_BREAK, result_name, :break))),
+                result_name)
       end
 
       def process_yield(exp)

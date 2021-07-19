@@ -20,6 +20,7 @@ module Natalie
       VOID_FUNCTIONS = %i[
         NAT_ASSERT_NOT_FROZEN
         NAT_HANDLE_BREAK
+        NAT_RERAISE_LOCAL_JUMP_ERROR
         NAT_UNREACHABLE
         add_break_flag
         add_redo_flag
@@ -44,6 +45,7 @@ module Natalie
         push
         push_splat
         put
+        raise
         raise_exception
         raise_local_jump_error
         remove_break_flag
@@ -55,9 +57,11 @@ module Natalie
       TYPES = {
         as_class: 'ClassValue *',
         as_string: 'StringValue *',
+        has_break_flag: 'bool ',
       }
 
       METHODS = %i[
+        _send
         alias
         append
         add_break_flag
@@ -336,11 +340,10 @@ module Natalie
         ''
       end
 
-      def process_c_do(exp)
-        (_, body, condition) = exp
+      def process_rescue_do(exp)
+        (_, body, condition, result_name) = exp
         condition = process_atom(condition)
         c = []
-        result_name = temp('do_result')
         decl "ValuePtr #{result_name} = nullptr;"
         in_decl_context do
           c << 'do {'
@@ -358,12 +361,11 @@ module Natalie
         "!#{process_atom cond}"
       end
 
-      def process_c_while(exp)
-        (_, condition, body) = exp
-        condition = process_atom(condition)
+      def process_loop(exp)
+        (_, _result_name, body) = exp
         c = []
         in_decl_context do
-          c << "while (#{condition}) {"
+          c << "for(;;) {"
           process_atom(body)
           c += @decl
           c << '}'

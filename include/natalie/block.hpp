@@ -21,6 +21,7 @@ public:
         assert(has_env());
         Env e { m_env };
         e.set_caller(env);
+        e.set_this_block(this);
         auto result = m_fn(&e, m_self, argc, args, block);
         return result;
     }
@@ -29,6 +30,10 @@ public:
 
     bool has_env() { return !!m_env; }
     Env *env() { return m_env; }
+
+    Env *calling_env() { return m_calling_env; }
+    void set_calling_env(Env *env) { m_calling_env = env; }
+    void clear_calling_env() { m_calling_env = nullptr; }
 
     void set_self(ValuePtr self) { m_self = self; }
 
@@ -47,6 +52,7 @@ private:
     MethodFnPtr m_fn;
     int m_arity { 0 };
     Env *m_env { nullptr };
+    Env *m_calling_env { nullptr };
     ValuePtr m_self { nullptr };
 };
 

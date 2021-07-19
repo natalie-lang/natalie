@@ -65,9 +65,18 @@ void Env::raise_exception(ExceptionValue *exception) {
     throw exception;
 }
 
-void Env::raise_local_jump_error(ValuePtr exit_value, const char *message) {
-    ExceptionValue *exception = new ExceptionValue { GlobalEnv::the()->Object()->const_find(this, SymbolValue::intern("LocalJumpError"))->as_class(), new StringValue { message } };
+void Env::raise_local_jump_error(ValuePtr exit_value, LocalJumpErrorType type) {
+    auto message = new StringValue { type == LocalJumpErrorType::Return ? "unexpected return" : "break from proc-closure" };
+    auto lje_class = GlobalEnv::the()->Object()->const_find(this, SymbolValue::intern("LocalJumpError"))->as_class();
+    ExceptionValue *exception = new ExceptionValue { lje_class, message };
+    exception->set_local_jump_error_type(type);
     exception->ivar_set(this, SymbolValue::intern("@exit_value"), exit_value);
+    if (type == LocalJumpErrorType::Break) {
+        assert(m_this_block);
+        exception->set_local_jump_error_env(m_this_block->calling_env());
+    } else {
+        exception->set_local_jump_error_env(this);
+    }
     this->raise_exception(exception);
 }
 
@@ -151,5 +160,4 @@ void Env::visit_children(Visitor &visitor) {
     visitor.visit(m_method);
     visitor.visit(m_match);
 }
-
 }

@@ -14,8 +14,10 @@ namespace Natalie {
 class TrueValue : public Value {
 public:
     static TrueValue *the() {
-        if (s_instance)
+        if (s_instance) {
+            assert(s_instance->flags() == 0);
             return s_instance;
+        }
         s_instance = new TrueValue();
         return s_instance;
     }

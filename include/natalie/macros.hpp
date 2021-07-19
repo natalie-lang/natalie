@@ -57,8 +57,8 @@
     NAT_RUN_BLOCK_GENERIC(env, the_block, argc, args, block, {}, return _result); \
 })
 
-#define NAT_RUN_BLOCK_WITHOUT_BREAK(env, the_block, argc, args, block) ({                                                          \
-    NAT_RUN_BLOCK_GENERIC(env, the_block, argc, args, block, {}, env->raise_local_jump_error(_result, "break from proc-closure")); \
+#define NAT_RUN_BLOCK_WITHOUT_BREAK(env, the_block, argc, args, block) ({                                                                   \
+    NAT_RUN_BLOCK_GENERIC(env, the_block, argc, args, block, {}, env->raise_local_jump_error(_result, Natalie::LocalJumpErrorType::Break)); \
 })
 
 #define NAT_HANDLE_BREAK(value, on_break_flag) ({ \
@@ -66,6 +66,30 @@
         value->remove_break_flag();               \
         on_break_flag;                            \
     }                                             \
+})
+
+#define NAT_HANDLE_LOCAL_JUMP_ERROR(env, exception, return_handler) ({                                                           \
+    auto LocalJumpError = self->const_find(env, SymbolValue::intern("LocalJumpError"), Value::ConstLookupSearchMode::NotStrict); \
+    ValuePtr result;                                                                                                             \
+    if (!exception->is_a(env, LocalJumpError)) {                                                                                 \
+        throw exception;                                                                                                         \
+    } else if (return_handler && exception->local_jump_error_type() == LocalJumpErrorType::Return) {                             \
+        result = exception->_send(env, SymbolValue::intern("exit_value"));                                                       \
+    } else if (env && exception->local_jump_error_env() == env) {                                                                \
+        result = exception->_send(env, SymbolValue::intern("exit_value"));                                                       \
+    } else {                                                                                                                     \
+        throw exception;                                                                                                         \
+    }                                                                                                                            \
+    result;                                                                                                                      \
+})
+
+// if a LocalJumpError does not belong to the current scope, then bubble it up higher
+#define NAT_RERAISE_LOCAL_JUMP_ERROR(env, exception) ({                                                                     \
+    if (exception->local_jump_error_env()) {                                                                                \
+        if (exception->local_jump_error_env() != env || exception->local_jump_error_type() == LocalJumpErrorType::Return) { \
+            throw exception;                                                                                                \
+        }                                                                                                                   \
+    }                                                                                                                       \
 })
 
 #define NAT_CALL_BEGIN(env, self, begin_fn, argc, args, block, on_break_flag) ({ \

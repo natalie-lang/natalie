@@ -24,7 +24,7 @@ OptionParser.new do |opts|
     case level
     when true
       options[:debug] = 'c'
-    when 'p1', 'p2', 'p3', 'c', 'S', 'edit', 'cc-cmd', 'valgrind', 'kcachegrind'
+    when 'p1', 'p1b', 'p2', 'p3', 'c', 'S', 'edit', 'cc-cmd', 'valgrind', 'kcachegrind'
       options[:debug] = level
     when 'gdb', 'lldb'
       options[:debug] = level

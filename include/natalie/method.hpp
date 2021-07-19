@@ -50,7 +50,11 @@ public:
         e.set_file(env->file());
         e.set_line(env->line());
         e.set_block(block);
+        if (block && !block->calling_env())
+            block->set_calling_env(env);
         auto result = m_fn(&e, self, argc, args, block);
+        if (block && block->calling_env() == env)
+            block->clear_calling_env();
         return result;
     }
 
