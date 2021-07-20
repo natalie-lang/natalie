@@ -168,6 +168,8 @@ public:
 
     nat_int_t object_id() { return reinterpret_cast<nat_int_t>(this); }
 
+    ValuePtr itself() { return this; }
+
     const String *pointer_id() {
         char buf[100]; // ought to be enough for anybody ;-)
         snprintf(buf, 100, "%p", this);
