@@ -527,13 +527,14 @@ void ArrayValue::expand_with_nil(Env *env, size_t total) {
     }
 }
 
-void ArrayValue::sort_in_place(Env *env) {
+ValuePtr ArrayValue::sort_in_place(Env *env) {
     this->assert_not_frozen(env);
     auto cmp = [](void *env, ValuePtr a, ValuePtr b) {
         ValuePtr compare = a.send(static_cast<Env *>(env), "<=>", 1, &b, nullptr);
         return compare->as_integer()->to_nat_int_t() < 0;
     };
     m_vector.sort(Vector<ValuePtr>::SortComparator { env, cmp });
+    return this;
 }
 
 ValuePtr ArrayValue::select(Env *env, Block *block) {

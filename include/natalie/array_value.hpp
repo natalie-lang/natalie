@@ -83,7 +83,7 @@ public:
         return m_vector.data();
     }
 
-    void sort_in_place(Env *);
+    ValuePtr sort_in_place(Env *);
 
     Vector<ValuePtr>::iterator begin() noexcept { return m_vector.begin(); }
     Vector<ValuePtr>::iterator end() noexcept { return m_vector.end(); }
