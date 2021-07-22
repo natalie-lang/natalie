@@ -539,6 +539,7 @@ gen.binding('NilClass', 'to_i', 'NilValue', 'to_i', argc: 0, pass_env: true, pas
 gen.binding('NilClass', 'to_s', 'NilValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 
 gen.binding('Object', 'nil?', 'Value', 'is_nil', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
+gen.binding('Object', 'itself', 'Value', 'itself', argc: 0, pass_env: false, pass_block: false, return_type: :Value)
 
 gen.singleton_binding('Parser', 'parse', 'ParserValue', 'parse', argc: 1..2, pass_env: true, pass_block: false, return_type: :Value)
 gen.singleton_binding('Parser', 'tokens', 'ParserValue', 'tokens', argc: 1..2, pass_env: true, pass_block: false, return_type: :Value)

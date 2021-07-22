@@ -705,6 +705,18 @@ module Enumerable
     broken_value
   end
 
+  def tally
+    hash = {}
+    gather = ->(item) { item.size <= 1 ? item.first : item }
+
+    each do |*item|
+      hash[gather.(item)] ||= 0
+      hash[gather.(item)] += 1
+    end
+
+    hash
+  end
+
   def to_a(*args)
     result = []
     gather = ->(item) { item.size <= 1 ? item.first : item }
