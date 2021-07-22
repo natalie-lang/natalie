@@ -533,9 +533,14 @@ module Enumerable
   end
 
   def select
+    return enum_for(:select) unless block_given?
+
     ary = []
-    each do |item|
-      ary << item if yield(item)
+
+    gather = ->(obj) { obj.size <= 1 ? obj.first : obj }
+
+    each do |*item|
+      ary << gather.(item) if yield(gather.(item))
     end
     ary
   end
