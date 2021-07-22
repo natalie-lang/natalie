@@ -505,6 +505,19 @@ module Enumerable
     end
   end
 
+  def min_by(n = nil)
+    return enum_for(:min_by) unless block_given?
+
+    ary = []
+
+    gather = ->(obj) { obj.size <= 1 ? obj.first : obj }
+    each do |*item|
+      ary << gather.(item)
+    end
+
+    ary.size == 0 ? nil : ary.min(n)
+  end
+
   def reject
     return enum_for(:reject) unless block_given?
 
