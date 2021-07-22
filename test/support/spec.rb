@@ -717,7 +717,7 @@ def run_specs
       end
     end
     puts
-    puts "#{@tested - @failures.size} spec(s) passed."
+    puts "#{@tested - @failures.size - @errors.size} spec(s) passed."
     puts "#{@failures.size} spec(s) failed."
     puts "#{@errors.size} spec(s) errored."
     puts "#{@skipped.size} spec(s) skipped." if @skipped.any?
