@@ -242,6 +242,18 @@ module Enumerable
     nil
   end
 
+  def each_entry(*args)
+    return enum_for(:each_entry, *args) unless block_given?
+
+    gather = ->(item) { item.size <= 1 ? item.first : item }
+
+    each(*args) do |*item|
+      yield gather.(item)
+    end
+
+    self
+  end
+
   def each_slice(count)
     count = count.to_int
     raise ArgumentError, 'invalid slice size' if count < 1
