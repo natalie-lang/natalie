@@ -167,6 +167,7 @@ void Env::visit_children(Visitor &visitor) {
     }
     visitor.visit(m_outer);
     visitor.visit(m_block);
+    visitor.visit(m_this_block);
     visitor.visit(m_caller);
     visitor.visit(m_method);
     visitor.visit(m_match);

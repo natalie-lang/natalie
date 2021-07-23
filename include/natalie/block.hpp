@@ -40,8 +40,9 @@ public:
     void copy_fn_pointer_to_method(Method *);
 
     virtual void visit_children(Visitor &visitor) override final {
-        visitor.visit(m_self);
         visitor.visit(m_env);
+        visitor.visit(m_calling_env);
+        visitor.visit(m_self);
     }
 
     virtual void gc_print() override {
