@@ -21,12 +21,7 @@ module Natalie
 
         case type
         when :fn
-          # FIXME: should be: Invalid break (SyntaxError)
-          var_name = temp('break_value')
-          exp.new(:block,
-            s(:declare, var_name, process(value)),
-            (containing_context && containing_context[:type] == :fn ? s(:block) : s(:add_break_flag, var_name)),
-            s(:c_return, var_name))
+          return process(exp.new(:invalid_break))
 
         when :iter
           break_context[:raises_local_jump_error] = true
