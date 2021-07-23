@@ -325,7 +325,7 @@ module Enumerable
     if block_given?
       ary = []
       each do |*item|
-        item = items.size > 1 ? items : items[0]
+        item = item.size > 1 ? item : item[0]
         if !(pattern === item)
           ary << yield(item)
         end

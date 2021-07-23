@@ -1,5 +1,3 @@
-# skip-test
-
 require_relative '../../spec_helper'
 require_relative 'fixtures/classes'
 
@@ -11,7 +9,8 @@ describe "Enumerable#grep_v" do
     end
   end
 
-  it "sets $~ in the block" do
+  # NATFIXME: reset back ref inside block somehow (not sure how)
+  xit "sets $~ in the block" do
     "z" =~ /z/ # Reset $~
     ["abc", "def"].grep_v(/e/) { |e|
       e.should == "abc"
@@ -22,7 +21,8 @@ describe "Enumerable#grep_v" do
     $&.should == "e"
   end
 
-  it "sets $~ to the last match when given no block" do
+  # NATFIXME: reset back ref inside block somehow (not sure how)
+  xit "sets $~ to the last match when given no block" do
     "z" =~ /z/ # Reset $~
     ["abc", "def"].grep_v(/e/).should == ["abc"]
 
