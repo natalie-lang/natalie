@@ -30,11 +30,11 @@ jobs:
       run: git submodule update --init --recursive
     - name: test with valgrind
       run: make docker_test_valgrind
-  release_build_test:
-    runs-on: ubuntu-20.04
-    steps:
-    - uses: actions/checkout@v1
-    - name: checkout submodules
-      run: git submodule update --init --recursive
-    - name: test release build
-      run: make docker_test_release
+  #release_build_test:
+    #runs-on: ubuntu-20.04
+    #steps:
+    #- uses: actions/checkout@v1
+    #- name: checkout submodules
+      #run: git submodule update --init --recursive
+    #- name: test release build
+      #run: make docker_test_release
