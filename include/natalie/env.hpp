@@ -70,6 +70,7 @@ public:
     void ensure_block_given(Block *);
 
     ValuePtr last_match();
+    void set_last_match(ValuePtr match);
 
     void build_vars(size_t);
 
@@ -78,6 +79,8 @@ public:
 
     Env *caller() { return m_caller; }
     void set_caller(Env *caller) { m_caller = caller; }
+
+    Env *non_block_env();
 
     Block *block() { return m_block; }
     void set_block(Block *block) { m_block = block; }

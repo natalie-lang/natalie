@@ -149,14 +149,71 @@ describe 'regexp' do
     end
   end
 
-  describe 'numbered references' do
-    it 'returns the most recent parenthesized submatch' do
+  describe 'magic global variables' do
+    it 'returns the most recent match' do
       'tim' =~ /t(i)(m)/
       $&.should == 'tim'
       $~.to_s.should == 'tim'
       $1.should == 'i'
       $2.should == 'm'
       $3.should == nil
+    end
+
+    it 'returns the most recent match from a block' do
+      [1].each do
+        [1].each do
+          'tim' =~ /t(i)(m)/
+        end
+      end
+      [1].each do
+        $&.should == 'tim'
+        $~.to_s.should == 'tim'
+        $1.should == 'i'
+        $2.should == 'm'
+        $3.should == nil
+      end
+    end
+
+    it 'does not return the most recent match from a different method' do
+      "" =~ /xxx/ # reset match
+      def m1
+        'tim' =~ /t(i)(m)/
+      end
+      m1
+      $&.should be_nil
+      $~.should be_nil
+      $1.should be_nil
+      $2.should be_nil
+      $3.should be_nil
+
+      "" =~ /xxx/ # reset match
+      def m2
+        'tim' =~ /t(i)(m)/
+      end
+      def m3
+        $&.should be_nil
+        $~.should be_nil
+        $1.should be_nil
+        $2.should be_nil
+        $3.should be_nil
+      end
+      m2
+      m3
+
+      'tim' =~ /t(i)(m)/
+      [1].each do
+        [1].each do
+          'tim' =~ /t(i)(m)/
+        end
+      end
+      def m4
+        $&.should be_nil
+        $~.should be_nil
+        $1.should be_nil
+        $2.should be_nil
+        $3.should be_nil
+      end
+      m4
     end
   end
 

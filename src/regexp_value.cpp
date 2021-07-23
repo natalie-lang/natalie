@@ -59,10 +59,13 @@ ValuePtr RegexpValue::match(Env *env, ValuePtr other, size_t start_index) {
 
     OnigRegion *region = onig_region_new();
     int result = search(str_obj->c_str(), start_index, region, ONIG_OPTION_NONE);
+
     Env *caller_env = env->caller();
+
     if (result >= 0) {
-        caller_env->set_match(new MatchDataValue { region, str_obj });
-        return caller_env->match();
+        auto match = new MatchDataValue { region, str_obj };
+        caller_env->set_last_match(match);
+        return match;
     } else if (result == ONIG_MISMATCH) {
         caller_env->clear_match();
         onig_region_free(region, true);

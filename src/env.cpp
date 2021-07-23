@@ -111,11 +111,14 @@ void Env::ensure_block_given(Block *block) {
 }
 
 ValuePtr Env::last_match() {
-    if (m_match) {
-        return m_match;
-    } else {
-        return NilValue::the();
-    }
+    Env *env = non_block_env();
+    if (env->m_match)
+        return env->m_match;
+    return NilValue::the();
+}
+
+void Env::set_last_match(ValuePtr match) {
+    non_block_env()->set_match(match);
 }
 
 ValuePtr Env::var_get(const char *key, size_t index) {
@@ -146,6 +149,14 @@ ValuePtr Env::var_set(const char *name, size_t index, bool allocate, ValuePtr va
     }
     m_vars->at(index) = val;
     return val;
+}
+
+Env *Env::non_block_env() {
+    Env *env = this;
+    while (env->m_this_block && env->m_this_block->calling_env())
+        env = env->m_this_block->calling_env();
+    assert(env);
+    return env;
 }
 
 void Env::visit_children(Visitor &visitor) {
