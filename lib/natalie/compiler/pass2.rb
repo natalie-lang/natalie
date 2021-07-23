@@ -1,14 +1,11 @@
+require_relative './base_pass'
+
 module Natalie
   class Compiler
     # Compute captured vs local-only variables and write pseudo C for variable get and set
-    class Pass2 < SexpProcessor
+    class Pass2 < BasePass
       def initialize(compiler_context)
-        super()
-        self.default_method = :process_sexp
-        self.warn_on_default = false
-        self.require_empty = false
-        self.strict = true
-        @compiler_context = compiler_context
+        super
         @env = {
           # pre-existing vars from the REPL are passed in here
           vars: @compiler_context[:vars]
@@ -117,11 +114,6 @@ module Natalie
         exp.new(:var_set, env_name, var, repl?, value)
       end
 
-      def process_sexp(exp)
-        (name, *args) = exp
-        exp.new(name, *args.map { |a| process_atom(a) })
-      end
-
       private
 
       def find_var(name, env_name: 'env', env: @env, capture: false)
@@ -148,17 +140,6 @@ module Natalie
           var = @env[:vars][name] = { name: name, index: @env[:vars].size, var_num: var_num }
           var[:captured] = true if repl?
           ['env', var]
-        end
-      end
-
-      def process_atom(exp)
-        case exp
-        when Sexp
-          process(exp)
-        when String, Symbol, Integer, Float, nil
-          exp
-        else
-          raise "unknown node type: #{exp.inspect}"
         end
       end
 

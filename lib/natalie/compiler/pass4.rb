@@ -1,15 +1,12 @@
+require_relative './base_pass'
+
 module Natalie
   class Compiler
     # Generate a C code from pseudo-C S-expressions
-    class Pass4 < SexpProcessor
+    class Pass4 < BasePass
       def initialize(compiler_context)
-        super()
-        self.default_method = :process_sexp
-        self.warn_on_default = false
-        self.require_empty = false
-        self.strict = true
+        super
         self.expected = String
-        @compiler_context = compiler_context
         raise 'source path unknown!' unless compiler_context[:source_path]
         @source_files = { compiler_context[:source_path] => 0 }
         @symbols = {}
@@ -677,12 +674,6 @@ module Natalie
         temp_name = temp('symbol')
         decl "ValuePtr #{temp_name} = #{process_intern(exp)};"
         temp_name
-      end
-
-      def temp(name)
-        name = name.to_s.gsub(/[^a-zA-Z]/, '')
-        n = @compiler_context[:var_num] += 1
-        "#{@compiler_context[:var_prefix]}#{name}#{n}"
       end
 
       def top(code)

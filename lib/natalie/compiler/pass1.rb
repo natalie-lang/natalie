@@ -6,7 +6,6 @@ module Natalie
         super()
         self.require_empty = false
         @compiler_context = compiler_context
-        @loop_context = []
         @retry_context = []
       end
 
@@ -455,7 +454,7 @@ module Natalie
         val = val.last if val.sexp_type == :to_ary
         value_name = temp('masgn_value')
         s(:block,
-          s(:declare, value_name, s(:to_ary, :env, process(val), s(:l, :false))),
+          s(:declare, value_name, s(:to_ary, :env, process(val), :false)),
           *prepare_masgn(exp, value_name))
       end
 
@@ -467,12 +466,12 @@ module Natalie
               if name.size == 1 # nameless splat
                 s(:block)
               else
-                value = s(:array_value_by_path, :env, value_name, s(:nil), s(:l, :true), path_details[:offset_from_end], path.size, *path)
+                value = s(:array_value_by_path, :env, value_name, s(:nil), :true, path_details[:offset_from_end], path.size, *path)
                 prepare_masgn_set(name.last, value)
               end
             else
               default_value = name.size == 3 ? process(name.pop) : s(:nil)
-              value = s(:array_value_by_path, :env, value_name, default_value, s(:l, :false), 0, path.size, *path)
+              value = s(:array_value_by_path, :env, value_name, default_value, :false, 0, path.size, *path)
               prepare_masgn_set(name, value)
             end
           else
@@ -544,7 +543,7 @@ module Natalie
             case name.sexp_type
             when :splat
               optional_args += 1
-              value = s(:arg_value_by_path, :env, value_name, 'nullptr', s(:l, :true), names.size, defaults.size, defaults_on_right ? s(:l, :true) : s(:l, :false), path_details[:offset_from_end], path.size, *path)
+              value = s(:arg_value_by_path, :env, value_name, 'nullptr', :true, names.size, defaults.size, defaults_on_right ? :true : :false, path_details[:offset_from_end], path.size, *path)
               prepare_masgn_set(name.last, value, arg: true)
             when :kwarg
               if name[2]
@@ -565,7 +564,7 @@ module Natalie
                 default_value = 'nullptr'
               end
               non_kwargs = names.reject { |name| name.sexp_type == :kwarg }
-              value = s(:arg_value_by_path, :env, value_name, default_value, s(:l, :false), non_kwargs.size, defaults.size, defaults_on_right ? s(:l, :true) : s(:l, :false), 0, path.size, *path)
+              value = s(:arg_value_by_path, :env, value_name, default_value, :false, non_kwargs.size, defaults.size, defaults_on_right ? :true : :false, 0, path.size, *path)
               prepare_masgn_set(name, value, arg: true)
             end
           else
@@ -829,10 +828,10 @@ module Natalie
           result_name = temp('rescue_result')
 
           exp.new(:block,
-                  s(:declare, retry_name, s(:l, :false), :bool),
+                  s(:declare, retry_name, :false, :bool),
                   s(:rescue_do,
                     s(:block,
-                      s(:set, retry_name, s(:l, :false)),
+                      s(:set, retry_name, :false),
                       s(:rescue1,
                         s(:block, *body.map { |n| process(n) }),
                         rescue_cond)),
@@ -853,7 +852,7 @@ module Natalie
         retry_name = @retry_context.last
         raise "No proper rescue context!" if retry_name.nil?
         s(:block,
-          s(:set, retry_name, s(:l, :true)),
+          s(:set, retry_name, :true),
           s(:c_continue))
       end
 
@@ -933,13 +932,6 @@ module Natalie
       def temp(name)
         n = @compiler_context[:var_num] += 1
         "#{@compiler_context[:var_prefix]}#{name.gsub(/[^a-z0-9_]/i, '_')}#{n}"
-      end
-
-      def loop_context(name)
-        @loop_context << name
-        exp = yield
-        @loop_context.pop
-        exp
       end
 
       def retry_context(name)

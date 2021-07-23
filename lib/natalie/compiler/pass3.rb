@@ -1,19 +1,12 @@
+require_relative './base_pass'
+
 module Natalie
   class Compiler
     # Replace non-captured variable references with local C variables
-    class Pass3 < SexpProcessor
+    class Pass3 < BasePass
       def initialize(compiler_context)
-        super()
-        self.default_method = :process_sexp
-        self.warn_on_default = false
-        self.require_empty = false
-        self.strict = true
-        @compiler_context = compiler_context
+        super
         @env = { vars: {} }
-      end
-
-      def go(ast)
-        process(ast)
       end
 
       def process_var_get(exp)
@@ -31,24 +24,6 @@ module Natalie
           exp.new(:var_set, env, s(:s, var[:name]), var[:index], allocate, process(value))
         else
           exp.new(:set, "#{@compiler_context[:var_prefix]}#{var[:name]}#{var[:var_num]}", process(value))
-        end
-      end
-
-      def process_sexp(exp)
-        (name, *args) = exp
-        exp.new(name, *args.map { |a| process_atom(a) })
-      end
-
-      private
-
-      def process_atom(exp)
-        case exp
-        when Sexp
-          process(exp)
-        when String, Symbol, Integer, Float, nil
-          exp
-        else
-          raise "unknown node type: #{exp.inspect}"
         end
       end
     end
