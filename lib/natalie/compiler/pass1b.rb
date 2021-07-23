@@ -79,14 +79,14 @@ module Natalie
       def process_iter1(exp)
         (_, block_fn, declare_block, call) = exp
         break_context(:iter) do
-          body = process(block_fn)
+          block_fn = process(block_fn)
           if @break_context.last[:raises_local_jump_error]
             call = s(:rescue,
                      call,
                      s(:NAT_HANDLE_LOCAL_JUMP_ERROR, :env, :exception, :false))
           end
-          exp.new(:block,
-                  body,
+          exp.new(:iter1b,
+                  block_fn,
                   process(declare_block),
                   process(call))
         end

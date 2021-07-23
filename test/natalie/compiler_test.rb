@@ -32,8 +32,14 @@ describe 'Natalie::Compiler' do
     expected = `bin/natalie -d p1b #{path}`.gsub(/\s+/, "\n").strip
     actual.should == expected
 
+    pass1r = Natalie::Compiler::Pass1r.new(context)
+    ast1r = pass1r.go(ast1b)
+    actual = ast1r.inspect.gsub(/\s+/, "\n").strip
+    expected = `bin/natalie -d p1r #{path}`.gsub(/\s+/, "\n").strip
+    actual.should == expected
+
     pass2 = Natalie::Compiler::Pass2.new(context)
-    ast2 = pass2.go(ast1b)
+    ast2 = pass2.go(ast1r)
     actual = ast2.inspect.gsub(/\s+/, "\n").strip
     expected = `bin/natalie -d p2 #{path}`.gsub(/\s+/, "\n").strip
     actual.should == expected

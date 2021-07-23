@@ -2,6 +2,7 @@ require 'tempfile'
 require 'sexp_processor'
 require_relative './compiler/pass1'
 require_relative './compiler/pass1b'
+require_relative './compiler/pass1r'
 require_relative './compiler/pass2'
 require_relative './compiler/pass3'
 require_relative './compiler/pass4'
@@ -102,6 +103,12 @@ module Natalie
 
       ast = Pass1b.new(@context).go(ast)
       if debug == 'p1b'
+        pp ast
+        exit
+      end
+
+      ast = Pass1r.new(@context).go(ast)
+      if debug == 'p1r'
         pp ast
         exit
       end

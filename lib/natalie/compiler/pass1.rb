@@ -234,12 +234,6 @@ module Natalie
           arity = 0
         end
         method_body = process(s(:block, *body))
-        if raises_local_jump_error?(method_body)
-          # We only need to wrap method body in a rescue for LocalJumpError if there is a `return` inside a block.
-          method_body = s(:rescue,
-                          method_body,
-                          s(:NAT_HANDLE_LOCAL_JUMP_ERROR, :env, :exception, :true))
-        end
         fn = exp.new(:def_fn, fn_name,
                 s(:block,
                   prepare_argc_assertion(args),
@@ -816,9 +810,6 @@ module Natalie
           else_body = rest.pop if rest.last.sexp_type != :resbody
           (body, resbodies) = rest.partition { |n| n.first != :resbody }
           rescue_cond = s(:cond)
-          rescue_block = s(:block,
-                           s(:NAT_RERAISE_LOCAL_JUMP_ERROR, :env, :exception),
-                           rescue_cond)
 
           resbodies.each_with_index do |(_, (_, *match), *resbody), index|
             lasgn = match.pop if match.last&.sexp_type == :lasgn
@@ -842,9 +833,9 @@ module Natalie
                   s(:rescue_do,
                     s(:block,
                       s(:set, retry_name, s(:l, :false)),
-                      s(:rescue,
+                      s(:rescue1,
                         s(:block, *body.map { |n| process(n) }),
-                        rescue_block)),
+                        rescue_cond)),
                     retry_name,
                     result_name))
         end
@@ -870,18 +861,7 @@ module Natalie
 
       def process_return(exp)
         (_, value) = exp
-        enclosing = context.detect { |n| RETURN_CONTEXT.include?(n) }
-        if enclosing == :iter
-          exp.new(:raise_local_jump_error, :env, process(value), s(:l, 'LocalJumpErrorType::Return'))
-        elsif match_context(:rescue, RETURN_CONTEXT)
-          return_name = temp('return_value')
-          exp.new(:block,
-                  s(:declare, return_name, process(value) || s(:nil)),
-                  s(:add_break_flag, return_name),
-                  s(:c_return, return_name))
-        else
-          exp.new(:c_return, process(value) || s(:nil))
-        end
+        exp.new(:return1, process(value))
       end
 
       def process_safe_call(exp)
@@ -955,22 +935,6 @@ module Natalie
         "#{@compiler_context[:var_prefix]}#{name.gsub(/[^a-z0-9_]/i, '_')}#{n}"
       end
 
-      def raises_local_jump_error?(exp, my_context: [])
-        if exp.is_a?(Sexp)
-          case exp.sexp_type
-          when :raise_local_jump_error
-            return true if my_context.include?(:block_fn)
-          when :def_fn # method within a method (unusual, but allowed!)
-            return false
-          else
-            my_context << exp.sexp_type
-            return true if exp[1..-1].any? { |e| raises_local_jump_error?(e, my_context: my_context) }
-            my_context.pop
-          end
-        end
-        return false
-      end
-
       def loop_context(name)
         @loop_context << name
         exp = yield
@@ -983,13 +947,6 @@ module Natalie
         exp = yield
         @retry_context.pop
         exp
-      end
-
-      def match_context(first, after)
-        first = Array(first)
-        after = Array(after)
-        exprs = context.select { |e| (first + after).include?(e) }.uniq
-        first.include?(exprs[0]) && after.include?(exprs[1])
       end
     end
   end
