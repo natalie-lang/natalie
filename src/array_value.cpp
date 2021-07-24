@@ -1,6 +1,8 @@
 #include "natalie.hpp"
 #include <algorithm>
 #include <natalie/array_value.hpp>
+#include <natalie/string_value.hpp>
+#include <natalie/symbol_value.hpp>
 #include <random>
 
 namespace Natalie {
@@ -449,9 +451,9 @@ ValuePtr ArrayValue::shift(Env *env, ValuePtr count) {
     return result;
 }
 
-ValuePtr ArrayValue::sort(Env *env) {
+ValuePtr ArrayValue::sort(Env *env, Block *block) {
     ArrayValue *copy = new ArrayValue { *this };
-    copy->sort_in_place(env);
+    copy->sort_in_place(env, block);
     return copy;
 }
 
@@ -527,14 +529,35 @@ void ArrayValue::expand_with_nil(Env *env, size_t total) {
     }
 }
 
-ValuePtr ArrayValue::sort_in_place(Env *env) {
+ValuePtr ArrayValue::sort_in_place(Env *env, Block *block) {
     this->assert_not_frozen(env);
-    auto cmp = [](void *env, ValuePtr a, ValuePtr b) {
-        ValuePtr compare = a.send(static_cast<Env *>(env), "<=>", 1, &b, nullptr);
-        return compare->as_integer()->to_nat_int_t() < 0;
-    };
-    m_vector.sort(Vector<ValuePtr>::SortComparator { env, cmp });
+    ArraySortComparator comparator(env, block);
+
+    m_vector.sort(&comparator);
+
     return this;
+}
+
+bool ArrayValue::ArraySortComparator::compare(void *data, ValuePtr a, ValuePtr b) {
+    Env *env = static_cast<Env *>(data);
+    if (block) {
+        ValuePtr args[2] = { a, b };
+        ValuePtr compare = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 2, args, nullptr);
+
+        if (compare->respond_to(env, SymbolValue::intern("<"))) {
+            ValuePtr zero = ValuePtr::integer(0);
+            return compare.send(env, "<", 1, &zero, nullptr)->is_truthy();
+        } else {
+            env->raise("ArgumentError", "comparison of {} with 0 failed", compare->klass()->class_name_or_blank());
+        }
+    } else {
+        ValuePtr compare = a.send(env, "<=>", 1, &b, nullptr);
+        if (compare->is_integer()) {
+            return compare->as_integer()->to_nat_int_t() < 0;
+        }
+        // TODO: Ruby sometimes prints b as the value (for example for integers) and sometimes as class
+        env->raise("ArgumentError", "comparison of {} with {} failed", a->klass()->class_name_or_blank(), b->klass()->class_name_or_blank());
+    }
 }
 
 ValuePtr ArrayValue::select(Env *env, Block *block) {
