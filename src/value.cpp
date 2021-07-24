@@ -539,6 +539,7 @@ ProcValue *Value::to_proc(Env *env) {
     }
 }
 
+// FIXME: this should actually live in the Kernel module which gets mixed into Object
 ValuePtr Value::cmp(Env *env, ValuePtr other) {
     if (_send(env, "==", 1, &other)->is_truthy()) {
         return ValuePtr::integer(0);
