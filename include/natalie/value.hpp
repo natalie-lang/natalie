@@ -220,6 +220,8 @@ public:
         return _send(env, "==", 1, &other)->is_falsey();
     }
 
+    ValuePtr cmp(Env *, ValuePtr);
+
     ValuePtr instance_eval(Env *, ValuePtr, Block *);
 
     void assert_type(Env *, Value::Type, const char *);

@@ -83,7 +83,7 @@ public:
         return m_vector.data();
     }
 
-    void sort_in_place(Env *);
+    ValuePtr sort_in_place(Env *, Block *);
 
     Vector<ValuePtr>::iterator begin() noexcept { return m_vector.begin(); }
     Vector<ValuePtr>::iterator end() noexcept { return m_vector.end(); }
@@ -132,7 +132,7 @@ public:
     ValuePtr select(Env *, Block *);
     ValuePtr shift(Env *, ValuePtr);
     ValuePtr slice_in_place(Env *, ValuePtr, ValuePtr);
-    ValuePtr sort(Env *);
+    ValuePtr sort(Env *, Block *);
     ValuePtr sub(Env *, ValuePtr);
     ValuePtr union_of(Env *, ValuePtr);
     ValuePtr union_of(Env *, size_t, ValuePtr *);
@@ -164,6 +164,17 @@ private:
         , m_vector { std::move(vector) } { }
 
     Vector<ValuePtr> m_vector {};
+
+    struct ArraySortComparator : Vector<ValuePtr>::SortComparator {
+        Block *block;
+
+        ArraySortComparator(void *env, Block *block)
+            : block(block) {
+            this->data = env;
+        }
+
+        virtual bool compare(void *, ValuePtr, ValuePtr);
+    };
 };
 
 }

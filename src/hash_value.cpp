@@ -288,7 +288,7 @@ ValuePtr HashValue::sort(Env *env) {
         pair->push(node.val);
         ary->push(pair);
     }
-    return ary->sort(env);
+    return ary->sort(env, nullptr);
 }
 
 ValuePtr HashValue::has_key(Env *env, ValuePtr key) {

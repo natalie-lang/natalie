@@ -684,6 +684,10 @@ module Enumerable
     ary
   end
 
+  def sort(&block)
+    to_a.sort(&block)
+  end
+
   def take(count)
     if not count.is_a? Integer and count.respond_to? :to_int
       count = count.to_int
