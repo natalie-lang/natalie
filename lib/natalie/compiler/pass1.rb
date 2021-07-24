@@ -79,7 +79,7 @@ module Natalie
       def process_break(exp)
         (_, value) = exp
         value ||= s(:nil)
-        s(:break, process(value))
+        exp.new(:break, process(value))
       end
 
       def process_call(exp, is_super: false)
@@ -138,7 +138,7 @@ module Natalie
                   s(:declare, value_name, process(value)),
                   cond)
         else # just a glorified if/elsif
-          cond = s(:cond)
+          cond = exp.new(:cond)
           whens.each do |when_exp|
             (_, (_, *matchers), *when_body) = when_exp
             when_body = when_body.map { |w| process(w) }
@@ -184,7 +184,7 @@ module Natalie
 
       def process_colon3(exp)
         (_, name) = exp
-        s(:const_find, s(:l, 'GlobalEnv::the()->Object()'), :env, s(:intern, name))
+        exp.new(:const_find, s(:l, 'GlobalEnv::the()->Object()'), :env, s(:intern, name))
       end
 
       def process_const(exp)
@@ -455,7 +455,7 @@ module Natalie
         names = names[1..-1]
         val = val.last if val.sexp_type == :to_ary
         value_name = temp('masgn_value')
-        s(:block,
+        exp.new(:block,
           s(:declare, value_name, s(:to_ary, :env, process(val), :false)),
           *prepare_masgn(exp, value_name))
       end
@@ -618,16 +618,16 @@ module Natalie
       def prepare_masgn_set(exp, value, arg: false)
         case exp.sexp_type
         when :cdecl
-          s(:const_set, :self, s(:intern, exp.last), value)
+          exp.new(:const_set, :self, s(:intern, exp.last), value)
         when :gasgn
-          s(:global_set, :env, s(:intern, exp.last), value)
+          exp.new(:global_set, :env, s(:intern, exp.last), value)
         when :iasgn
-          s(:ivar_set, :self, :env, s(:intern, exp.last), value)
+          exp.new(:ivar_set, :self, :env, s(:intern, exp.last), value)
         when :lasgn, :kwarg
           if arg
-            s(:arg_set, :env, s(:s, exp[1]), value)
+            exp.new(:arg_set, :env, s(:s, exp[1]), value)
           else
-            s(:var_set, :env, s(:s, exp[1]), value)
+            exp.new(:var_set, :env, s(:s, exp[1]), value)
           end
         else
           raise "unknown masgn type: #{exp.inspect} (#{exp.file}\##{exp.line})"
@@ -658,12 +658,12 @@ module Natalie
 
       def process_match2(exp)
         (_, regexp, string) = exp
-        s(:public_send, process(regexp), s(:intern, "=~"), s(:args, process(string)))
+        exp.new(:public_send, process(regexp), s(:intern, "=~"), s(:args, process(string)))
       end
 
       def process_match3(exp)
         (_, string, regexp) = exp
-        s(:public_send, process(regexp), s(:intern, "=~"), s(:args, process(string)))
+        exp.new(:public_send, process(regexp), s(:intern, "=~"), s(:args, process(string)))
       end
 
       def process_module(exp)
@@ -677,13 +677,13 @@ module Natalie
                   s(:block,
                     s(:set, mod, s(:new, :ModuleValue, s(:s, name))),
                     s(:const_set, :self, s(:intern, name), mod))),
-        s(:eval_body, s(:l, "#{mod}->as_module()"), :env, fn))
+        exp.new(:eval_body, s(:l, "#{mod}->as_module()"), :env, fn))
       end
 
       def process_next(exp)
         (_, value) = exp
         value ||= s(:nil)
-        s(:c_return, process(value))
+        exp.new(:c_return, process(value))
       end
 
       def process_nth_ref(exp)
@@ -850,10 +850,10 @@ module Natalie
                 s(:c_return, redo_name))
       end
 
-      def process_retry(_)
+      def process_retry(exp)
         retry_name = @retry_context.last
         raise "No proper rescue context!" if retry_name.nil?
-        s(:block,
+        exp.new(:block,
           s(:set, retry_name, :true),
           s(:c_continue))
       end
