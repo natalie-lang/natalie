@@ -366,6 +366,8 @@ module Natalie
 
       def process_iter(exp)
         (_, call, (_, *args), *body) = exp
+        return exp if call.sexp_type == :block_fn # already processed
+
         args = fix_unnecessary_nesting(args)
         if args.last&.to_s&.start_with?('&')
           block_arg = exp.new(:arg_set, :env, s(:s, args.pop.to_s[1..-1]), s(:new, :ProcValue, 'block'))
@@ -391,14 +393,14 @@ module Natalie
           assign_args = s(:block)
           arity = 0
         end
-        exp.new(:iter1,
+        exp.new(:iter,
                 s(:block_fn, block_fn,
                   s(:block,
                     assign_args,
                     block_arg || s(:block),
                     process(s(:block, *body)))),
-        s(:declare_block, block, s(:new, :Block, :env, :self, block_fn, arity)),
-        call)
+                s(:declare_block, block, s(:new, :Block, :env, :self, block_fn, arity)),
+                call)
       end
 
       # |(a, b)| should be treated as |a, b|
@@ -832,7 +834,7 @@ module Natalie
                   s(:rescue_do,
                     s(:block,
                       s(:set, retry_name, :false),
-                      s(:rescue1,
+                      s(:rescue,
                         s(:block, *body.map { |n| process(n) }),
                         rescue_cond)),
                     retry_name,
@@ -860,7 +862,7 @@ module Natalie
 
       def process_return(exp)
         (_, value) = exp
-        exp.new(:return1, process(value))
+        exp.new(:return, process(value))
       end
 
       def process_safe_call(exp)

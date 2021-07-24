@@ -76,7 +76,7 @@ module Natalie
                 process(s(:bubble_break, result_name)))
       end
 
-      def process_iter1(exp)
+      def process_iter(exp)
         (_, block_fn, declare_block, call) = exp
         break_context(:iter) do
           block_fn = process(block_fn)
@@ -85,7 +85,7 @@ module Natalie
                      call,
                      s(:NAT_HANDLE_LOCAL_JUMP_ERROR, :env, :exception, :false))
           end
-          exp.new(:iter1b,
+          exp.new(:iter,
                   block_fn,
                   process(declare_block),
                   process(call))

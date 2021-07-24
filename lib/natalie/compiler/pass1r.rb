@@ -26,7 +26,7 @@ module Natalie
       alias process_def_fn process_begin_fn
       alias process_module_fn process_begin_fn
 
-      def process_return1(exp)
+      def process_return(exp)
         (_, value) = exp
         return_context = @return_context.last
 
@@ -38,7 +38,7 @@ module Natalie
         end
       end
 
-      def process_iter1b(exp)
+      def process_iter(exp)
         (_, block_fn, declare_block, call) = exp
         return_context(:iter) do
           exp.new(:block,
@@ -48,7 +48,7 @@ module Natalie
         end
       end
 
-      def process_rescue1(exp)
+      def process_rescue(exp)
         (_, try_body, rescue_body) = exp
         rescue_body = process(rescue_body)
         exp.new(:rescue,
