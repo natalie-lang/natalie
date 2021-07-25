@@ -1,3 +1,6 @@
+require_relative './method_args'
+require_relative './multiple_assignment'
+
 module Natalie
   class Compiler
     # process S-expressions from Ruby to C
@@ -223,11 +226,11 @@ module Natalie
         end
         if args.any?
           args_name = temp('args_as_array')
-          prepared_args = prepare_args(args, args_name)
+          method_args = MethodArgs.new(args, args_name)
           assign_args = s(:block,
                           s(:declare, args_name, s(:args_to_array, :env, s(:l, 'argc'), s(:l, 'args'))),
-                          *prepared_args.args)
-          arity = prepared_args.arity
+                          process(method_args.set_args))
+          arity = method_args.arity
         else
           assign_args = s(:block)
           arity = 0
@@ -384,11 +387,11 @@ module Natalie
         end
         if args.any?
           args_name = temp('args_as_array')
-          prepared_args = prepare_args(args, args_name)
+          method_args = MethodArgs.new(args, args_name, is_proc: true)
           assign_args = s(:block,
                           s(:declare, args_name, s(:block_args_to_array, :env, args.size, s(:l, 'argc'), s(:l, 'args'))),
-                          *prepared_args.args)
-          arity = prepared_args.arity(is_proc: true)
+                          process(method_args.set_args))
+          arity = method_args.arity
         else
           assign_args = s(:block)
           arity = 0
@@ -451,35 +454,8 @@ module Natalie
       end
 
       def process_masgn(exp)
-        (_, names, val) = exp
-        names = names[1..-1]
-        val = val.last if val.sexp_type == :to_ary
         value_name = temp('masgn_value')
-        exp.new(:block,
-          s(:declare, value_name, s(:to_ary, :env, process(val), :false)),
-          *prepare_masgn(exp, value_name))
-      end
-
-      def prepare_masgn(exp, value_name)
-        prepare_masgn_paths(exp).map do |name, path_details|
-          path = path_details[:path]
-          if name.is_a?(Sexp)
-            if name.sexp_type == :splat
-              if name.size == 1 # nameless splat
-                s(:block)
-              else
-                value = s(:array_value_by_path, :env, value_name, s(:nil), :true, path_details[:offset_from_end], path.size, *path)
-                prepare_masgn_set(name.last, value)
-              end
-            else
-              default_value = name.size == 3 ? process(name.pop) : s(:nil)
-              value = s(:array_value_by_path, :env, value_name, default_value, :false, 0, path.size, *path)
-              prepare_masgn_set(name, value)
-            end
-          else
-            raise "unknown masgn type: #{name.inspect} (#{exp.file}\##{exp.line})"
-          end
-        end
+        process(MultipleAssignment.new(exp, value_name).generate)
       end
 
       def prepare_argc_assertion(args)
@@ -511,148 +487,6 @@ module Natalie
           s(:ensure_argc_is, :env, :argc, min)
         else
           s(:ensure_argc_between, :env, :argc, min, max)
-        end
-      end
-
-      class Args < Struct.new(:args, :required_args, :optional_args, :required_keyword_args, :optional_keyword_args, keyword_init: true)
-        def arity(is_proc: false)
-          num = required_args
-          opt = optional_args
-          if required_keyword_args > 0
-            num += 1
-          elsif optional_keyword_args > 0
-            opt += 1
-          end
-          if opt > 0 && !is_proc
-            num = -num - 1
-          end
-          num
-        end
-      end
-
-      def prepare_args(names, value_name)
-        names = prepare_arg_names(names)
-        args_have_default = names.map { |e| %i[iasgn lasgn].include?(e.sexp_type) && e.size == 3 }
-        defaults = args_have_default.select { |d| d }
-        defaults_on_right = defaults.any? && args_have_default.uniq == [false, true]
-        required_args = 0
-        optional_args = 0
-        required_keyword_args = 0
-        optional_keyword_args = 0
-        args = prepare_masgn_paths(s(:masgn, s(:array, *names))).map do |name, path_details|
-          path = path_details[:path]
-          if name.is_a?(Sexp)
-            case name.sexp_type
-            when :splat
-              optional_args += 1
-              value = s(:arg_value_by_path, :env, value_name, 'nullptr', :true, names.size, defaults.size, defaults_on_right ? :true : :false, path_details[:offset_from_end], path.size, *path)
-              prepare_masgn_set(name.last, value, arg: true)
-            when :kwarg
-              if name[2]
-                optional_keyword_args += 1
-                default_value = process(name[2])
-              else
-                required_keyword_args += 1
-                default_value = 'nullptr'
-              end
-              value = s(:kwarg_value_by_name, :env, value_name, s(:s, name[1]), default_value)
-              prepare_masgn_set(name, value, arg: true)
-            else
-              if name.size == 3
-                optional_args += 1
-                default_value = process(name.pop)
-              else
-                required_args += 1
-                default_value = 'nullptr'
-              end
-              non_kwargs = names.reject { |name| name.sexp_type == :kwarg }
-              value = s(:arg_value_by_path, :env, value_name, default_value, :false, non_kwargs.size, defaults.size, defaults_on_right ? :true : :false, 0, path.size, *path)
-              prepare_masgn_set(name, value, arg: true)
-            end
-          else
-            raise "unknown masgn type: #{name.inspect} (#{exp.file}\##{exp.line})"
-          end
-        end
-        Args.new(
-          args: args,
-          required_args: required_args,
-          optional_args: optional_args,
-          required_keyword_args: required_keyword_args,
-          optional_keyword_args: optional_keyword_args,
-        )
-      end
-
-      def prepare_arg_names(names)
-        names.map do |name|
-          case name
-          when Symbol
-            case name.to_s
-            when /^\*@(.+)/
-              s(:splat, s(:iasgn, name[1..-1].to_sym))
-            when /^\*(.+)/
-              s(:splat, s(:lasgn, name[1..-1].to_sym))
-            when /^\*/
-              s(:splat, s(:lasgn, :_))
-            when /^@/
-              s(:iasgn, name)
-            else
-              s(:lasgn, name)
-            end
-          when Sexp
-            case name.sexp_type
-            when :lasgn, :kwarg
-              name
-            when :masgn
-              s(:masgn, s(:array, *prepare_arg_names(name[1..-1])))
-            else
-              raise "unknown arg type: #{name.inspect}"
-            end
-          when nil
-            s(:lasgn, :_)
-          else
-            raise "unknown arg type: #{name.inspect}"
-          end
-        end
-      end
-
-      def prepare_masgn_set(exp, value, arg: false)
-        case exp.sexp_type
-        when :cdecl
-          exp.new(:const_set, :self, s(:intern, exp.last), value)
-        when :gasgn
-          exp.new(:global_set, :env, s(:intern, exp.last), value)
-        when :iasgn
-          exp.new(:ivar_set, :self, :env, s(:intern, exp.last), value)
-        when :lasgn, :kwarg
-          if arg
-            exp.new(:arg_set, :env, s(:s, exp[1]), value)
-          else
-            exp.new(:var_set, :env, s(:s, exp[1]), value)
-          end
-        else
-          raise "unknown masgn type: #{exp.inspect} (#{exp.file}\##{exp.line})"
-        end
-      end
-
-      # Ruby blows the stack at around this number, so let's limit Natalie as well.
-      # Anything over a few dozen is pretty crazy, actually.
-      MAX_MASGN_PATH_INDEX = 131_044
-
-      def prepare_masgn_paths(exp, prefix = [])
-        (_, (_, *names)) = exp
-        splatted = false
-        names.each_with_index.each_with_object({}) do |(e, index), hash|
-          raise 'destructuring assignment is too big' if index > MAX_MASGN_PATH_INDEX
-          if e.is_a?(Sexp) && e.sexp_type == :masgn
-            hash.merge!(prepare_masgn_paths(e, prefix + [index]))
-          elsif e.sexp_type == :splat
-            splatted = true
-            hash[e] = { path: prefix + [index], offset_from_end: names.size - index - 1 }
-          elsif splatted
-            hash[e] = { path: prefix + [(names.size - index) * -1] }
-          else
-            hash[e] = { path: prefix + [index] }
-          end
         end
       end
 
