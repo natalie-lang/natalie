@@ -4,7 +4,7 @@ project(Natalie)
 
 set(default_build_type "Debug")
 set(CMAKE_CXX_FLAGS_DEBUG "-pthread -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unknown-warning-option")
-set(CMAKE_CXX_FLAGS_RELEASE "-pthread -O2")
+set(CMAKE_CXX_FLAGS_RELEASE "-pthread -g -O2")
 
 find_program(CCACHE_FOUND ccache)
 if(CCACHE_FOUND)
