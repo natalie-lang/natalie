@@ -15,7 +15,8 @@ ValuePtr ParserValue::parse(Env *env, ValuePtr code, ValuePtr source_path) {
         source_path = new StringValue { "(string)" };
     code->assert_type(env, Value::Type::String, "String");
     auto parser = Parser { code->as_string()->to_low_level_string(), source_path->as_string()->to_low_level_string() };
-    return parser.tree(env)->to_ruby(env);
+    auto volatile tree = parser.tree(env); // GC cannot see this intermediate value unless it's volatile
+    return tree->to_ruby(env);
 }
 
 ValuePtr ParserValue::tokens(Env *env, ValuePtr code, ValuePtr with_line_and_column_numbers) {
