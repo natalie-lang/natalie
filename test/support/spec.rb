@@ -475,9 +475,10 @@ class Stub
   def and_return(result)
     should_receive_called = -> { @pass = @count_restriction === @count }
     increment = -> { @count += 1 }
+    expected_args = @args
     @subject.define_singleton_method(@message) do |*args|
       increment.()
-      if @args.nil? || args == @args
+      if expected_args.nil? || args == expected_args
         should_receive_called.()
         result
       else
