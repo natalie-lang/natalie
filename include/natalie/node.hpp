@@ -77,11 +77,9 @@ public:
     Node(Token *token)
         : m_token { token } { }
 
-    virtual ValuePtr to_ruby(Env *env) {
-        NAT_UNREACHABLE();
-    }
+    virtual ValuePtr to_ruby(Env *env) = 0;
 
-    virtual Type type() { NAT_UNREACHABLE(); }
+    virtual Type type() = 0;
 
     virtual bool is_callable() { return false; }
 
