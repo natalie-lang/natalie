@@ -688,6 +688,10 @@ module Enumerable
     to_a.sort(&block)
   end
 
+  def sort_by(&block)
+    to_a.sort_by!(&block)
+  end
+
   def take(count)
     if not count.is_a? Integer and count.respond_to? :to_int
       count = count.to_int
