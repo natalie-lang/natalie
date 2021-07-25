@@ -464,6 +464,7 @@ class Stub
     @args = nil
     @count = 0
     @count_restriction = Integer
+    @yield_values = []
   end
 
   def with(*args)
@@ -496,6 +497,26 @@ class Stub
     self
   end
 
+  def and_yield(value)
+    yields = @yield_values << value
+    should_receive_called = -> { @pass = @count_restriction === @count }
+    increment = -> { @count += 1 }
+    @subject.define_singleton_method(@message) do |*args|
+      increment.()
+
+      if (@args.nil? || args == @args) && block_given?
+        should_receive_called.()
+        yields.each do |yield_value|
+          yield yield_value
+        end
+      else
+        fail
+      end
+    end
+    self
+  end
+
+
   def at_most(n)
     case n
     when :once
@@ -505,6 +526,11 @@ class Stub
     else
       raise ArgumentError, "Unimplemented value #{n.inspect} for Stub#at_most"
     end
+    self
+  end
+
+  def once
+    @count_restriction = 1
     self
   end
 
