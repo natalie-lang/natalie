@@ -84,6 +84,7 @@ public:
     }
 
     ValuePtr sort_in_place(Env *, Block *);
+    ValuePtr sort_by_in_place(Env *, Block *);
 
     Vector<ValuePtr>::iterator begin() noexcept { return m_vector.begin(); }
     Vector<ValuePtr>::iterator end() noexcept { return m_vector.end(); }
@@ -171,6 +172,14 @@ private:
         ArraySortComparator(void *env, Block *block)
             : block(block) {
             this->data = env;
+        }
+
+        virtual bool compare(void *, ValuePtr, ValuePtr);
+    };
+
+    struct ArraySortByComparator : ArraySortComparator {
+        ArraySortByComparator(void *env, Block *block)
+            : ArraySortComparator(env, block) {
         }
 
         virtual bool compare(void *, ValuePtr, ValuePtr);

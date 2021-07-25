@@ -302,6 +302,7 @@ gen.binding('Array', 'slice', 'ArrayValue', 'ref', argc: 1..2, pass_env: true, p
 gen.binding('Array', 'slice!', 'ArrayValue', 'slice_in_place', argc: 1..2, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Array', 'sort', 'ArrayValue', 'sort', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Array', 'sort!', 'ArrayValue', 'sort_in_place', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
+gen.binding('Array', 'sort_by!', 'ArrayValue', 'sort_by_in_place', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Array', 'to_a', 'ArrayValue', 'to_ary', argc: 0, pass_env: false, pass_block: false, return_type: :Value)
 gen.binding('Array', 'to_ary', 'ArrayValue', 'to_ary', argc: 0, pass_env: false, pass_block: false, return_type: :Value)
 gen.binding('Array', 'to_s', 'ArrayValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)

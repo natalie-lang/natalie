@@ -560,6 +560,31 @@ bool ArrayValue::ArraySortComparator::compare(void *data, ValuePtr a, ValuePtr b
     }
 }
 
+ValuePtr ArrayValue::sort_by_in_place(Env *env, Block *block) {
+    if (!block)
+        return _send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("sort_by!") });
+
+    this->assert_not_frozen(env);
+
+    ArraySortByComparator comparator(env, block);
+    m_vector.sort(&comparator);
+
+    return this;
+}
+
+bool ArrayValue::ArraySortByComparator::compare(void *data, ValuePtr a, ValuePtr b) {
+    Env *env = static_cast<Env *>(data);
+
+    ValuePtr a_res = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 1, &a, nullptr);
+    ValuePtr b_res = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 1, &b, nullptr);
+
+    ValuePtr compare = a_res.send(env, "<=>", 1, &b_res, nullptr);
+    if (compare->is_integer()) {
+        return compare->as_integer()->to_nat_int_t() < 0;
+    }
+    env->raise("ArgumentError", "comparison of {} with {} failed", a_res->klass()->class_name_or_blank(), b_res->klass()->class_name_or_blank());
+}
+
 ValuePtr ArrayValue::select(Env *env, Block *block) {
     if (!block)
         return _send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("select") });
