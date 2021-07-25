@@ -366,7 +366,7 @@ public:
     virtual ValuePtr to_ruby(Env *) override;
     ValuePtr to_ruby_with_name(Env *, const char *);
 
-    Vector<Node *> nodes() { return m_nodes; }
+    Vector<Node *> &nodes() { return m_nodes; }
     bool is_empty() { return m_nodes.is_empty(); }
 
     bool has_one_node() { return m_nodes.size() == 1; }
