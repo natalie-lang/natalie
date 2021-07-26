@@ -41,14 +41,8 @@ public:
         visitor.visit(m_method);
     }
 
-    virtual void gc_print() override {
-        if (m_method) {
-            fprintf(stderr, "<MethodValue %p method=", this);
-            m_method->gc_print();
-            fprintf(stderr, ">");
-        } else {
-            fprintf(stderr, "<MethodValue %p method=null>", this);
-        }
+    virtual void gc_inspect(char *buf, size_t len) override {
+        snprintf(buf, len, "<MethodValue %p method=", this);
     }
 
 private:

@@ -48,8 +48,8 @@ public:
     const String *path() { return m_path; }
     void set_path(String *path) { m_path = path; };
 
-    virtual void gc_print() override {
-        fprintf(stderr, "<FileValue %p>", this);
+    virtual void gc_inspect(char *buf, size_t len) override {
+        snprintf(buf, len, "<FileValue %p>", this);
     }
 
     virtual void visit_children(Visitor &visitor) override final {

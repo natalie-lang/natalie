@@ -690,13 +690,16 @@ public:
         }
     }
 
-    virtual void gc_print() override final {
-        fprintf(stderr, "<Token %p type=%d literal=", this, (int)m_type);
+    virtual void gc_inspect(char *buf, size_t len) override final {
         if (m_literal)
-            fprintf(stderr, "'%s'", m_literal.value()->c_str());
-        else
-            fprintf(stderr, "''");
-        fprintf(stderr, " m_integer=%lli m_double=%f m_has_sign=%d>", m_integer, m_double, m_has_sign);
+            snprintf(buf, len,
+                "<Token %p type=%d literal='%s' m_integer=%lli m_double=%f m_has_sign=%d>",
+                this,
+                (int)m_type,
+                m_literal ? m_literal.value()->c_str() : "",
+                m_integer,
+                m_double,
+                m_has_sign);
     }
 
     virtual void visit_children(Visitor &visitor) override final {

@@ -24,8 +24,8 @@ public:
 
     ValuePtr to_s(Env *);
 
-    virtual void gc_print() override {
-        fprintf(stderr, "<TrueValue %p>", this);
+    virtual void gc_inspect(char *buf, size_t len) override {
+        snprintf(buf, len, "<TrueValue %p>", this);
     }
 
     virtual bool is_collectible() override {

@@ -73,8 +73,8 @@ public:
         visitor.visit(m_env);
     }
 
-    virtual void gc_print() override {
-        fprintf(stderr, "<Method %p name='%s' fn=%p>", this, m_name.c_str(), m_fn);
+    virtual void gc_inspect(char *buf, size_t len) override {
+        snprintf(buf, len, "<Method %p name='%s' fn=%p>", this, m_name.c_str(), m_fn);
     }
 
 private:

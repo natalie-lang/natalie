@@ -60,11 +60,11 @@ public:
     bool is_singleton() { return m_is_singleton; }
     void set_is_singleton(bool is_singleton) { m_is_singleton = is_singleton; }
 
-    virtual void gc_print() override {
+    virtual void gc_inspect(char *buf, size_t len) override {
         if (m_class_name)
-            fprintf(stderr, "<ClassValue %p name=%p>", this, m_class_name.value());
+            snprintf(buf, len, "<ClassValue %p name=%p>", this, m_class_name.value());
         else
-            fprintf(stderr, "<ClassValue %p name=(none)>", this);
+            snprintf(buf, len, "<ClassValue %p name=(none)>", this);
     }
 
 private:

@@ -40,8 +40,8 @@ public:
     ValuePtr to_s(Env *);
     ValuePtr ref(Env *, ValuePtr);
 
-    virtual void gc_print() override {
-        fprintf(stderr, "<MatchDataValue %p>", this);
+    virtual void gc_inspect(char *buf, size_t len) override {
+        snprintf(buf, len, "<MatchDataValue %p>", this);
     }
 
     virtual void visit_children(Visitor &visitor) override final {

@@ -24,18 +24,9 @@ public:
         }
     }
 
-    virtual void gc_print() override {
+    virtual void gc_inspect(char *buf, size_t len) override {
         size_t the_size = TM::Vector<T>::size();
-        fprintf(stderr, "<ManagedVector %p size=%zu [", this, the_size);
-        size_t index = 0;
-        for (auto it = TM::Vector<T>::begin(); it != TM::Vector<T>::end(); ++it) {
-            auto item = *it;
-            item->gc_print();
-            if (index + 1 < the_size)
-                fprintf(stderr, ", ");
-            ++index;
-        }
-        fprintf(stderr, "]>");
+        snprintf(buf, len, "<ManagedVector %p size=%zu>", this, the_size);
     }
 };
 

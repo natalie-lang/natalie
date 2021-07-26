@@ -152,8 +152,8 @@ public:
         return new StringValue { *str };
     }
 
-    virtual void gc_print() override {
-        fprintf(stderr, "<StringValue %p str='%s'>", this, m_string.c_str());
+    virtual void gc_inspect(char *buf, size_t len) override {
+        snprintf(buf, len, "<StringValue %p str='%s'>", this, m_string.c_str());
     }
 
 private:

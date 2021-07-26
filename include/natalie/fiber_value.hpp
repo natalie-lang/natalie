@@ -164,9 +164,10 @@ public:
         return false;
     }
 
-    virtual void gc_print() override {
-        fprintf(
-            stderr,
+    virtual void gc_inspect(char *buf, size_t len) override {
+        snprintf(
+            buf,
+            len,
             "<FiberValue %p stack=%p..%p>",
             this,
             m_start_of_stack,

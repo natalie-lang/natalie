@@ -137,8 +137,8 @@ public:
 
     virtual void visit_children(Visitor &) override final;
 
-    virtual void gc_print() override {
-        fprintf(stderr, "<HashValue %p size=%zu>", this, size());
+    virtual void gc_inspect(char *buf, size_t len) override {
+        snprintf(buf, len, "<HashValue %p size=%zu>", this, size());
     }
 
 private:

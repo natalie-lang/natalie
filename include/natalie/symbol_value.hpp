@@ -52,8 +52,8 @@ public:
 
     ValuePtr ref(Env *, ValuePtr);
 
-    virtual void gc_print() override {
-        fprintf(stderr, "<SymbolValue %p name='%s'>", this, m_name);
+    virtual void gc_inspect(char *buf, size_t len) override {
+        snprintf(buf, len, "<SymbolValue %p name='%s'>", this, m_name);
     }
 
     virtual bool is_collectible() override {

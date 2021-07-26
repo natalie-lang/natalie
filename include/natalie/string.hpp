@@ -255,8 +255,8 @@ public:
     virtual void visit_children(Visitor &visitor) override final {
     }
 
-    virtual void gc_print() override {
-        fprintf(stderr, "<String %p str='%s'>", this, m_str);
+    virtual void gc_inspect(char *buf, size_t len) override {
+        snprintf(buf, len, "<String %p str='%s'>", this, m_str);
     }
 
     String *uppercase() const {

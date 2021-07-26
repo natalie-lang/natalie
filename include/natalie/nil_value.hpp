@@ -28,8 +28,8 @@ public:
     ValuePtr to_i(Env *);
     ValuePtr inspect(Env *);
 
-    virtual void gc_print() override {
-        fprintf(stderr, "<NilValue %p>", this);
+    virtual void gc_inspect(char *buf, size_t len) override {
+        snprintf(buf, len, "<NilValue %p>", this);
     }
 
     virtual bool is_collectible() override {

@@ -146,17 +146,9 @@ public:
         }
     }
 
-    virtual void gc_print() override {
+    virtual void gc_inspect(char *buf, size_t len) override {
         size_t size = m_vector.size();
-        fprintf(stderr, "<ArrayValue %p size=%zu [", this, size);
-        size_t index = 0;
-        for (auto item : *this) {
-            fprintf(stderr, "%p", item.value());
-            if (index + 1 < size)
-                fprintf(stderr, ", ");
-            ++index;
-        }
-        fprintf(stderr, "]>");
+        snprintf(buf, len, "<ArrayValue %p size=%zu>", this, size);
     }
 
 private:

@@ -69,8 +69,8 @@ public:
 
     static bool optimized_method(SymbolValue *);
 
-    virtual void gc_print() override {
-        fprintf(stderr, "<IntegerValue %p int=%lli>", this, m_integer);
+    virtual void gc_inspect(char *buf, size_t len) override {
+        snprintf(buf, len, "<IntegerValue %p int=%lli>", this, m_integer);
     }
 
 private:

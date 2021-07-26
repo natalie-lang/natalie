@@ -47,8 +47,8 @@ public:
 
     virtual void visit_children(Visitor &) override final;
 
-    virtual void gc_print() override {
-        fprintf(stderr, "<ExceptionValue %p message='%s'>", this, m_message->c_str());
+    virtual void gc_inspect(char *buf, size_t len) override {
+        snprintf(buf, len, "<ExceptionValue %p message='%s'>", this, m_message->c_str());
     }
 
     void set_local_jump_error_env(Env *env) { m_local_jump_error_env = env; }

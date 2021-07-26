@@ -124,11 +124,11 @@ public:
 
     virtual void visit_children(Visitor &) override final;
 
-    virtual void gc_print() override {
+    virtual void gc_inspect(char *buf, size_t len) override {
         if (m_class_name)
-            fprintf(stderr, "<ModuleValue %p name=%p>", this, m_class_name.value());
+            snprintf(buf, len, "<ModuleValue %p name=%p>", this, m_class_name.value());
         else
-            fprintf(stderr, "<ModuleValue %p name=(none)>", this);
+            snprintf(buf, len, "<ModuleValue %p name=(none)>", this);
     }
 
 protected:

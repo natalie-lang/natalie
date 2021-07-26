@@ -45,8 +45,8 @@ public:
         visitor.visit(m_self);
     }
 
-    virtual void gc_print() override {
-        fprintf(stderr, "<Block %p fn=%p>", this, m_fn);
+    virtual void gc_inspect(char *buf, size_t len) override {
+        snprintf(buf, len, "<Block %p fn=%p>", this, m_fn);
     }
 
 private:

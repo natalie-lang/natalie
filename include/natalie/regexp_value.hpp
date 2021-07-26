@@ -102,8 +102,8 @@ public:
     ValuePtr match(Env *env, ValuePtr, size_t = 0);
     ValuePtr source(Env *env);
 
-    virtual void gc_print() override {
-        fprintf(stderr, "<RegexpValue %p>", this);
+    virtual void gc_inspect(char *buf, size_t len) override {
+        snprintf(buf, len, "<RegexpValue %p>", this);
     }
 
 private:
