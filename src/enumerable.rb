@@ -529,9 +529,11 @@ module Enumerable
   end
 
   def partition
+    return enum_for(:partition) unless block_given?
+
     left = []
     right = []
-    each do |item|
+    to_a.each do |item|
       if yield(item)
         left << item
       else
