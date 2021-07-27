@@ -92,6 +92,10 @@ void FiberValue::yield_back(Env *env, size_t argc, ValuePtr *args) {
 
 void FiberValue::visit_children(Visitor &visitor) {
     Value::visit_children(visitor);
+    for (auto arg : m_args)
+        visitor.visit(arg);
+    visitor.visit(m_previous_fiber);
+    visitor.visit(m_error);
     visitor.visit(m_block);
     if (m_start_of_stack == Heap::the().start_of_stack())
         return; // this is the currently active fiber, so don't walk its stack a second time
@@ -105,11 +109,6 @@ void FiberValue::visit_children(Visitor &visitor) {
             visitor.visit(potential_cell);
         }
     }
-    for (auto arg : m_args) {
-        visitor.visit(arg);
-    }
-    visitor.visit(m_previous_fiber);
-    visitor.visit(m_error);
 }
 
 void FiberValue::set_args(size_t argc, ValuePtr *args) {
