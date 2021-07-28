@@ -672,16 +672,14 @@ module Enumerable
     end
   end
 
-  def first(n)
-    ary = []
-    while ary.size < n
-      begin
-        ary << self.next
-      rescue StopIteration
-        return ary
+  def first(*args)
+    if args.length == 0
+      each do |*item|
+        return item.size <= 1 ? item.first : item
       end
+    else
+      take(*args)
     end
-    ary
   end
 
   def sort(&block)

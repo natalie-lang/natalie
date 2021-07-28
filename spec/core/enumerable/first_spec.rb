@@ -1,5 +1,3 @@
-# skip-test
-
 require_relative '../../spec_helper'
 require_relative 'fixtures/classes'
 require_relative 'shared/take'
@@ -19,7 +17,7 @@ describe "Enumerable#first" do
     EnumerableSpecs::YieldsMixed2.new.to_enum.first.should == nil
   end
 
-  it "raises a RangeError when passed a Bignum" do
+  xit "raises a RangeError when passed a Bignum" do
     enum = EnumerableSpecs::Empty.new
     -> { enum.first(bignum_value) }.should raise_error(RangeError)
   end
