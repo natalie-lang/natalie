@@ -1,6 +1,10 @@
+require 'timeout'
+
 module CompareRubies
+  PROCESS_TIMEOUT = 120
+
   def run_nat(path, *args)
-    out_nat = `bin/natalie -I test/support #{path} #{args.join(' ')} 2>&1`
+    out_nat = sh("bin/natalie -I test/support #{path} #{args.join(' ')} 2>&1")
     puts out_nat unless $?.success?
     expect($?).must_be :success?
     out_nat
@@ -10,7 +14,7 @@ module CompareRubies
     nat_path = File.expand_path('../tmp/nat', __dir__)
     libnat_path = File.expand_path('../../build/libnatalie.a', __dir__)
     if !File.exist?(nat_path) || File.stat(nat_path).mtime < File.stat(libnat_path).mtime
-      out_nat = `bin/natalie -c test/tmp/nat bin/natalie 2>&1`
+      out_nat = sh("bin/natalie -c test/tmp/nat bin/natalie 2>&1")
       puts out_nat unless $?.success?
     end
     # not quite ready for this yet... :-)
@@ -25,7 +29,7 @@ module CompareRubies
   end
 
   def run_ruby(path, *args)
-    out_ruby = `ruby -r ruby_parser -I test/support #{path} #{args.join(' ')} 2>&1`
+    out_ruby = sh("ruby -r ruby_parser -I test/support #{path} #{args.join(' ')} 2>&1")
     puts out_ruby unless $?.to_i == 0
     expect($?).must_be :success?
     out_ruby
@@ -43,5 +47,11 @@ module CompareRubies
     out_ruby = run_ruby(path, *args)
     expect(out_nat).must_equal(out_self_hosted_nat)
     expect(out_nat).must_equal(out_ruby)
+  end
+
+  def sh(command)
+    Timeout.timeout(PROCESS_TIMEOUT, nil, "execution expired running: #{command}") do
+      `#{command}`
+    end
   end
 end
