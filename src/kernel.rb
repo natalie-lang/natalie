@@ -6,4 +6,5 @@ module Kernel
       send(method, *args, &the_proc)
     end
   end
+  alias to_enum enum_for
 end
