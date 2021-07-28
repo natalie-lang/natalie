@@ -12,7 +12,7 @@ direction. If you are not sure about this, open an issue first so we can discuss
 
 * Use `clang-format` to automatically format C++ files. You can run `make format`.
 * Split your changes into separate, atomic commits (i.e. A commit per feature or fix, where the
-  build, tests and the system are all functioning).
+  tests all pass).
 * Wrap your commit messages at 72 characters (even the subject).
 * Write the commit message subject line in the imperative mood, starting with a capital letter
   ("Fix Array#first", not "fixed Array#first").
