@@ -1,5 +1,5 @@
 module Kernel
-  def enum_for(method, *args)
+  def enum_for(method = :each, *args)
     size = block_given? ? yield : nil
     Enumerator.new(size) do |yielder|
       the_proc = yielder.to_proc || ->(*i) { yielder << (i.size <= 1 ? i.first : i) }
