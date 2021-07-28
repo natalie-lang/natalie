@@ -529,17 +529,7 @@ void ArrayValue::expand_with_nil(Env *env, size_t total) {
     }
 }
 
-ValuePtr ArrayValue::sort_in_place(Env *env, Block *block) {
-    this->assert_not_frozen(env);
-    ArraySortComparator comparator(env, block);
-
-    m_vector.sort(&comparator);
-
-    return this;
-}
-
-bool ArrayValue::ArraySortComparator::compare(void *data, ValuePtr a, ValuePtr b) {
-    Env *env = static_cast<Env *>(data);
+bool array_sort_compare(Env *env, ValuePtr a, ValuePtr b, Block *block) {
     if (block) {
         ValuePtr args[2] = { a, b };
         ValuePtr compare = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 2, args, nullptr);
@@ -560,21 +550,17 @@ bool ArrayValue::ArraySortComparator::compare(void *data, ValuePtr a, ValuePtr b
     }
 }
 
-ValuePtr ArrayValue::sort_by_in_place(Env *env, Block *block) {
-    if (!block)
-        return _send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("sort_by!") });
-
+ValuePtr ArrayValue::sort_in_place(Env *env, Block *block) {
     this->assert_not_frozen(env);
 
-    ArraySortByComparator comparator(env, block);
-    m_vector.sort(&comparator);
+    m_vector.sort([env, block](ValuePtr a, ValuePtr b) {
+        return array_sort_compare(env, a, b, block);
+    });
 
     return this;
 }
 
-bool ArrayValue::ArraySortByComparator::compare(void *data, ValuePtr a, ValuePtr b) {
-    Env *env = static_cast<Env *>(data);
-
+bool array_sort_by_compare(Env *env, ValuePtr a, ValuePtr b, Block *block) {
     ValuePtr a_res = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 1, &a, nullptr);
     ValuePtr b_res = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 1, &b, nullptr);
 
@@ -583,6 +569,19 @@ bool ArrayValue::ArraySortByComparator::compare(void *data, ValuePtr a, ValuePtr
         return compare->as_integer()->to_nat_int_t() < 0;
     }
     env->raise("ArgumentError", "comparison of {} with {} failed", a_res->klass()->class_name_or_blank(), b_res->klass()->class_name_or_blank());
+}
+
+ValuePtr ArrayValue::sort_by_in_place(Env *env, Block *block) {
+    if (!block)
+        return _send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("sort_by!") });
+
+    this->assert_not_frozen(env);
+
+    m_vector.sort([env, block](ValuePtr a, ValuePtr b) {
+        return array_sort_by_compare(env, a, b, block);
+    });
+
+    return this;
 }
 
 ValuePtr ArrayValue::select(Env *env, Block *block) {

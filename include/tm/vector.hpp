@@ -199,17 +199,8 @@ public:
         return iterator { m_data + m_size };
     }
 
-    struct SortComparator {
-        void *data;
-        bool (*cmp)(void *, T, T);
-
-        virtual bool compare(void *env, T a, T b) {
-            assert(cmp);
-            return cmp(env, a, b);
-        }
-    };
-
-    void sort(SortComparator *cmp) {
+    template <typename F>
+    void sort(F cmp) {
         quicksort(0, m_size - 1, cmp);
     }
 
@@ -238,20 +229,22 @@ private:
         }
     }
 
-    void quicksort(int start, int end, SortComparator *cmp) {
+    template <typename F>
+    void quicksort(int start, int end, F cmp) {
         if (start >= end) return;
         int p_index = quicksort_partition(start, end, cmp);
         quicksort(start, p_index - 1, cmp);
         quicksort(p_index + 1, end, cmp);
     }
 
-    int quicksort_partition(int start, int end, SortComparator *cmp) {
+    template <typename F>
+    int quicksort_partition(int start, int end, F cmp) {
         T pivot = m_data[end];
         int p_index = start;
         T temp;
 
         for (int i = start; i < end; i++) {
-            if (cmp->compare(cmp->data, m_data[i], pivot)) {
+            if (cmp(m_data[i], pivot)) {
                 temp = m_data[i];
                 m_data[i] = m_data[p_index];
                 m_data[p_index] = temp;

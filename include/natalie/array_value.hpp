@@ -157,25 +157,6 @@ private:
         , m_vector { std::move(vector) } { }
 
     Vector<ValuePtr> m_vector {};
-
-    struct ArraySortComparator : Vector<ValuePtr>::SortComparator {
-        Block *block;
-
-        ArraySortComparator(void *env, Block *block)
-            : block(block) {
-            this->data = env;
-        }
-
-        virtual bool compare(void *, ValuePtr, ValuePtr);
-    };
-
-    struct ArraySortByComparator : ArraySortComparator {
-        ArraySortByComparator(void *env, Block *block)
-            : ArraySortComparator(env, block) {
-        }
-
-        virtual bool compare(void *, ValuePtr, ValuePtr);
-    };
 };
 
 }
