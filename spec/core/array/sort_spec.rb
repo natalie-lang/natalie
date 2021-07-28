@@ -90,8 +90,8 @@ describe "Array#sort" do
   end
 
   it "does not call #<=> on elements when invoked with a block even if Array is large (Rubinius #412)" do
-    a = Array.new(1500)
-    (0...1500).each {|i| a[i] = ArraySpecs::UFOSceptic.new }
+    a = Array.new(100)
+    (0...100).each {|i| a[i] = ArraySpecs::UFOSceptic.new }
 
     a.sort { -1 }.should be_an_instance_of(Array)
   end
@@ -225,8 +225,8 @@ describe "Array#sort!" do
   end
 
   it "does not call #<=> on elements when invoked with a block even if Array is large (Rubinius #412)" do
-    a = Array.new(1500)
-    (0...1500).each {|i| a[i] = ArraySpecs::UFOSceptic.new }
+    a = Array.new(100)
+    (0...100).each {|i| a[i] = ArraySpecs::UFOSceptic.new }
 
     a.sort! { -1 }.should be_an_instance_of(Array)
   end
