@@ -598,6 +598,8 @@ void MultipleAssignmentNode::add_locals(Env *env, ManagedVector<SymbolValue *> *
             identifier->add_to_locals(env, locals);
             break;
         }
+        case Node::Type::Splat:
+            break;
         case Node::Type::SplatAssignment: {
             auto splat = static_cast<SplatAssignmentNode *>(node);
             if (splat->node())
@@ -621,10 +623,10 @@ ArrayValue *MultipleAssignmentNode::to_ruby_with_array(Env *env) {
         case Node::Type::Identifier:
             array->push(static_cast<IdentifierNode *>(identifier)->to_assignment_sexp(env));
             break;
-        case Node::Type::SplatAssignment: {
+        case Node::Type::Splat:
+        case Node::Type::SplatAssignment:
             array->push(identifier->to_ruby(env));
             break;
-        }
         case Node::Type::MultipleAssignment:
             array->push(static_cast<MultipleAssignmentNode *>(identifier)->to_ruby_with_array(env));
             break;
