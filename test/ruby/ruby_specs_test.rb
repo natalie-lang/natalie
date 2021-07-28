@@ -6,7 +6,7 @@ require 'timeout'
 describe 'ruby/spec' do
   parallelize_me!
 
-  PROCESS_TIMEOUT = 120
+  SPEC_TIMEOUT = (ENV['SPEC_TIMEOUT'] || 120).to_i
 
   Dir.chdir File.expand_path('../..', __dir__)
   Dir['spec/**/*_spec.rb'].each do |path|
@@ -14,7 +14,7 @@ describe 'ruby/spec' do
     describe path do
       it 'passes all specs' do
         skip if code =~ /# skip-test/
-        out_nat = Timeout.timeout(PROCESS_TIMEOUT, nil, "execution expired running: #{path}") do
+        out_nat = Timeout.timeout(SPEC_TIMEOUT, nil, "execution expired running: #{path}") do
           `bin/natalie #{path} 2>&1`
         end
         puts out_nat unless $?.success?

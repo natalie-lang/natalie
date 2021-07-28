@@ -1,7 +1,7 @@
 require 'timeout'
 
 module CompareRubies
-  PROCESS_TIMEOUT = 120
+  SPEC_TIMEOUT = (ENV['SPEC_TIMEOUT'] || 120).to_i
 
   def run_nat(path, *args)
     out_nat = sh("bin/natalie -I test/support #{path} #{args.join(' ')} 2>&1")
@@ -50,7 +50,7 @@ module CompareRubies
   end
 
   def sh(command)
-    Timeout.timeout(PROCESS_TIMEOUT, nil, "execution expired running: #{command}") do
+    Timeout.timeout(SPEC_TIMEOUT, nil, "execution expired running: #{command}") do
       `#{command}`
     end
   end
