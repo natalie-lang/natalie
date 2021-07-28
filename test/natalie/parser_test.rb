@@ -507,6 +507,9 @@ describe 'Parser' do
       Parser.parse("bar { |a, b: :c, d:| a }").should == s(:block, s(:iter, s(:call, nil, :bar), s(:args, :a, s(:kwarg, :b, s(:lit, :c)), s(:kwarg, :d)), s(:lvar, :a)))
       Parser.parse("get 'foo', bar { 'baz' }").should == s(:block, s(:call, nil, :get, s(:str, "foo"), s(:iter, s(:call, nil, :bar), 0, s(:str, "baz"))))
       Parser.parse("get 'foo', bar do\n'baz'\nend").should == s(:block, s(:iter, s(:call, nil, :get, s(:str, "foo"), s(:call, nil, :bar)), 0, s(:str, "baz")))
+      Parser.parse("foo1 = foo do\n'foo'\nend").should == s(:block, s(:lasgn, :foo1, s(:iter, s(:call, nil, :foo), 0, s(:str, "foo"))))
+      Parser.parse("@foo = foo do\n'foo'\nend").should == s(:block, s(:iasgn, :@foo, s(:iter, s(:call, nil, :foo), 0, s(:str, "foo"))))
+      Parser.parse("@foo ||= foo do\n'foo'\nend").should == s(:block, s(:op_asgn_or, s(:ivar, :@foo), s(:iasgn, :@foo, s(:iter, s(:call, nil, :foo), 0, s(:str, "foo")))))
       # FIXME: no newlines around block keyword
       #Parser.parse("get 'foo', bar do 'baz' end").should == s(:block, s(:iter, s(:call, nil, :get, s(:str, "foo"), s(:call, nil, :bar)), 0, s(:str, "baz")))
     end

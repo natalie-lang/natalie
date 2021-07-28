@@ -27,10 +27,10 @@ public:
         EXPRMODIFIER, // if/unless/while/until
         CASE, // case/when/else
         SPLAT, // *args
+        ASSIGNMENT, // =
         ITER_BLOCK, // do |n| ... end
         CALLARGS, // foo a, b
         COMPOSITION, // and/or
-        ASSIGNMENT, // =
         OPASSIGNMENT, // += -= *= **= /= %= |= &= ^= >>= <<= ||= &&=
         TERNARY, // ? :
         RANGE, // ..
