@@ -223,6 +223,9 @@ public:
     void set_literal(const char *literal) { m_literal = new String(literal); }
     void set_literal(const String *literal) { m_literal = literal; }
 
+    const String *options() { return m_options ? m_options.value() : nullptr; }
+    void set_options(const String *options) { m_options = options; }
+
     nat_int_t get_integer() { return m_integer; }
     double get_double() { return m_double; }
 
@@ -519,6 +522,10 @@ public:
         case Type::Integer:
             hash->put(env, SymbolValue::intern("literal"), ValuePtr::integer(m_integer));
             break;
+        case Type::InterpolatedRegexpEnd:
+            if (m_options)
+                hash->put(env, SymbolValue::intern("options"), new StringValue { m_options.value() });
+            break;
         default:
             void();
         }
@@ -711,6 +718,7 @@ public:
 private:
     Type m_type { Type::Invalid };
     Optional<const String *> m_literal {};
+    Optional<const String *> m_options {};
     nat_int_t m_integer { 0 };
     double m_double { 0 };
     bool m_has_sign { false };

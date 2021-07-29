@@ -1129,7 +1129,18 @@ private:
                 buf->append_char(current_char());
             } else if (c == delimiter) {
                 advance();
+                auto options = new String();
+                while ((c = current_char())) {
+                    if (c == 'i' || c == 'm' || c == 'x' || c == 'o') {
+                        options->append_char(c);
+                        advance();
+                    } else {
+                        break;
+                    }
+                }
                 auto token = new Token { Token::Type::Regexp, buf, m_file, m_token_line, m_token_column };
+                if (!options->is_empty())
+                    token->set_options(options);
                 return token;
             } else {
                 buf->append_char(c);

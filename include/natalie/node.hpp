@@ -895,6 +895,12 @@ public:
     virtual Type type() override { return Type::InterpolatedRegexp; }
 
     virtual ValuePtr to_ruby(Env *) override;
+
+    int options() { return m_options; }
+    void set_options(int options) { m_options = options; }
+
+private:
+    int m_options { 0 };
 };
 
 class InterpolatedShellNode : public InterpolatedNode {

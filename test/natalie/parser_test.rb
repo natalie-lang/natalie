@@ -145,6 +145,9 @@ describe 'Parser' do
 
     it 'parses regexps' do
       Parser.parse('/foo/').should == s(:block, s(:lit, /foo/))
+      Parser.parse('/foo/i').should == s(:block, s(:lit, /foo/i))
+      Parser.parse('//mix').should == s(:block, s(:lit, //mix))
+      Parser.parse('/#{1+1}/mix').should == s(:block, s(:dregx, "", s(:evstr, s(:call, s(:lit, 1), :+, s(:lit, 1))), 7))
       Parser.parse('/foo #{1+1}/').should == s(:block, s(:dregx, "foo ", s(:evstr, s(:call, s(:lit, 1), :+, s(:lit, 1)))))
       Parser.parse('/^$(.)[.]{1}.*.+.?\^\$\.\(\)\[\]\{\}\w\W\d\D\h\H\s\S\R\*\+\?/').should == s(:block, s(:lit, /^$(.)[.]{1}.*.+.?\^\$\.\(\)\[\]\{\}\w\W\d\D\h\H\s\S\R\*\+\?/))
       Parser.parse("/\\n\\\\n/").should == s(:block, s(:lit, /\n\\n/))

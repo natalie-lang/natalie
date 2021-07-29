@@ -469,6 +469,8 @@ ValuePtr InterpolatedRegexpNode::to_ruby(Env *env) {
         else
             sexp->push(node->to_ruby(env));
     }
+    if (m_options != 0)
+        sexp->push(ValuePtr::integer(m_options));
     return sexp;
 }
 

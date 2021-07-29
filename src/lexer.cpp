@@ -42,7 +42,10 @@ ManagedVector<Token *> *Lexer::tokens() {
             for (auto token : *string_lexer.tokens()) {
                 tokens->push(token);
             }
-            tokens->push(new Token { end_token_type, token->file(), token->line(), token->column() });
+            auto end_token = new Token { end_token_type, token->file(), token->line(), token->column() };
+            if (token->options())
+                end_token->set_options(token->options());
+            tokens->push(end_token);
             continue;
         }
 

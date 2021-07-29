@@ -700,24 +700,39 @@ void Parser::parse_interpolated_body(Env *env, LocalsVectorPtr locals, Interpola
     }
     if (current_token()->type() != end_token)
         NAT_UNREACHABLE() // this shouldn't happen -- if it does, there is a bug in the Lexer
-    advance();
 };
 
 Node *Parser::parse_interpolated_regexp(Env *env, LocalsVectorPtr locals) {
     auto token = current_token();
     advance();
     if (current_token()->type() == Token::Type::InterpolatedRegexpEnd) {
-        auto regexp = new RegexpNode { token, new RegexpValue { env, "" } };
+        auto regexp_value = new RegexpValue { env, "" };
+        auto regexp_node = new RegexpNode { token, regexp_value };
+        auto options = current_token()->options();
+        if (options)
+            regexp_value->set_options(options);
         advance();
-        return regexp;
+        return regexp_node;
     } else if (current_token()->type() == Token::Type::String && peek_token()->type() == Token::Type::InterpolatedRegexpEnd) {
-        auto regexp = new RegexpNode { token, new RegexpValue { env, current_token()->literal() } };
+        auto regexp_value = new RegexpValue { env, current_token()->literal() };
+        auto regexp_node = new RegexpNode { token, regexp_value };
         advance();
+        auto options = current_token()->options();
+        if (options)
+            regexp_value->set_options(options);
         advance();
-        return regexp;
+        return regexp_node;
     } else {
         auto interpolated_regexp = new InterpolatedRegexpNode { token };
         parse_interpolated_body(env, locals, interpolated_regexp, Token::Type::InterpolatedRegexpEnd);
+        auto options = current_token()->options();
+        if (options) {
+            // use a RegexpValue to convert the options string to an int
+            RegexpValue temp_regexp { env, "" };
+            temp_regexp.set_options(options);
+            interpolated_regexp->set_options(temp_regexp.options());
+        }
+        advance();
         return interpolated_regexp;
     }
 };
@@ -737,6 +752,7 @@ Node *Parser::parse_interpolated_shell(Env *env, LocalsVectorPtr locals) {
     } else {
         auto interpolated_shell = new InterpolatedShellNode { token };
         parse_interpolated_body(env, locals, interpolated_shell, Token::Type::InterpolatedShellEnd);
+        advance();
         return interpolated_shell;
     }
 };
@@ -756,6 +772,7 @@ Node *Parser::parse_interpolated_string(Env *env, LocalsVectorPtr locals) {
     } else {
         auto interpolated_string = new InterpolatedStringNode { token };
         parse_interpolated_body(env, locals, interpolated_string, Token::Type::InterpolatedStringEnd);
+        advance();
         return interpolated_string;
     }
 };

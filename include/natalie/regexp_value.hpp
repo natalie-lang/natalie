@@ -65,7 +65,26 @@ public:
     }
 
     const char *pattern() { return m_pattern; }
+
     int options() { return m_options; }
+
+    void set_options(const String *options) {
+        for (char *c = const_cast<char *>(options->c_str()); *c != '\0'; ++c) {
+            switch (*c) {
+            case 'i':
+                m_options |= 1;
+                break;
+            case 'x':
+                m_options |= 2;
+                break;
+            case 'm':
+                m_options |= 4;
+                break;
+            default:
+                break;
+            }
+        }
+    }
 
     bool operator==(const Value &other) const {
         if (!other.is_regexp()) return false;
