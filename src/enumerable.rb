@@ -529,11 +529,18 @@ module Enumerable
   end
 
   def reverse_each(*args)
-    reversed_arr = to_a.reverse
-    return enum_for(:reverse_each, reversed_arr) unless block_given?
+    return enum_for(:reverse_each, *args) unless block_given?
 
-    reversed_arr.each do |item|
-      yield item
+    if args.size > 0
+      reversed = args.to_a.reverse
+      reversed.each do |item|
+        yield item
+      end
+    else
+      reversed = to_a.reverse
+      reversed.each do |item|
+        yield item
+      end
     end
   end
 
