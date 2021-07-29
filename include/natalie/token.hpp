@@ -711,6 +711,8 @@ public:
     virtual void visit_children(Visitor &visitor) override final {
         if (m_literal)
             visitor.visit(m_literal.value());
+        if (m_options)
+            visitor.visit(m_options.value());
         visitor.visit(m_file);
     }
 
