@@ -15,7 +15,7 @@ ValuePtr ParserValue::parse(Env *env, ValuePtr code, ValuePtr source_path) {
         source_path = new StringValue { "(string)" };
     code->assert_type(env, Value::Type::String, "String");
     auto parser = Parser { code->as_string()->to_low_level_string(), source_path->as_string()->to_low_level_string() };
-    auto volatile tree = parser.tree(env); // GC cannot see this intermediate value unless it's volatile
+    auto volatile tree = parser.tree(env); // GC cannot see this intermediate value in the release build unless it's volatile
     return tree->to_ruby(env);
 }
 
@@ -23,7 +23,7 @@ ValuePtr ParserValue::tokens(Env *env, ValuePtr code, ValuePtr with_line_and_col
     code->assert_type(env, Value::Type::String, "String");
     auto lexer = Lexer { code->as_string()->to_low_level_string(), new String("(string)") };
     auto array = new ArrayValue {};
-    auto the_tokens = lexer.tokens();
+    volatile auto the_tokens = lexer.tokens(); // another variable the GC misses in the release build :-(
     auto include_line_and_column_numbers = with_line_and_column_numbers && with_line_and_column_numbers->is_truthy();
     for (auto token : *the_tokens) {
         auto token_value = token->to_ruby(env, include_line_and_column_numbers);
