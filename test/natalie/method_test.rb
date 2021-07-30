@@ -57,6 +57,10 @@ def default_with_splat_last(x, y = 2, *rest)
   [x, y, rest]
 end
 
+def only_default_with_splat_last(x = 2, *rest)
+  [x, rest]
+end
+
 def default_nils(x = nil, y = nil)
   [x, y]
 end
@@ -186,6 +190,9 @@ describe 'method' do
     default_after_regular(2).should == [2, 2]
     default_after_regular(2, 3).should == [2, 3]
     default_with_splat_last(2).should == [2, 2, []]
+    default_with_splat_last(2, 3).should == [2, 3, []]
+    only_default_with_splat_last.should == [2, []]
+    only_default_with_splat_last(1).should == [1, []]
     default_calling_another_method.should == 1
     default_calling_another_method2.should == 2
     default_nils().should == [nil, nil]

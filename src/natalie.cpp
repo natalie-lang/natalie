@@ -143,7 +143,7 @@ ValuePtr arg_value_by_path(Env *env, ValuePtr value, ValuePtr default_value, boo
                     } else {
                         // not enough values to fill from the right
                         // also, assume there is a splat prior to this index
-                        index = total_count - 1 + index;
+                        index = total_count + index;
                     }
                 }
 
