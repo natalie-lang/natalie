@@ -63,8 +63,8 @@ module Natalie
                 @required_args += 1
                 default_value = 'nullptr'
               end
-              non_kwargs = names.reject { |name| name.sexp_type == :kwarg }
-              value = s(:arg_value_by_path, :env, value_name, default_value, :false, non_kwargs.size, defaults.size, defaults_on_right ? :true : :false, 0, path.size, *path)
+              total_argument_count = names.reject { |name| name.sexp_type == :kwarg || name.sexp_type == :splat }.size
+              value = s(:arg_value_by_path, :env, value_name, default_value, :false, total_argument_count, defaults.size, defaults_on_right ? :true : :false, 0, path.size, *path)
               masgn_set(name, value)
             end
           else
