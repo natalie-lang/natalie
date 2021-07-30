@@ -154,49 +154,51 @@ public:
 
     class iterator {
     public:
-        iterator(T *ptr)
-            : m_ptr { ptr } { }
+        iterator(const Vector<T> *vector, size_t index)
+            : m_vector { vector }
+            , m_index { index } { }
 
         iterator operator++() {
-            m_ptr++;
+            m_index++;
             return *this;
         }
 
         iterator operator++(int _) {
             iterator i = *this;
-            m_ptr++;
+            m_index++;
             return i;
         }
 
-        T &operator*() { return *m_ptr; }
-        T *operator->() { return m_ptr; }
+        T &operator*() { return m_vector->m_data[m_index]; }
+        T *operator->() { return m_vector->m_data[m_index]; }
 
         friend bool operator==(const iterator &i1, const iterator &i2) {
-            return i1.m_ptr == i2.m_ptr;
+            return i1.m_vector == i2.m_vector && i1.m_index == i2.m_index;
         }
 
         friend bool operator!=(const iterator &i1, const iterator &i2) {
-            return i1.m_ptr != i2.m_ptr;
+            return i1.m_vector != i2.m_vector || i1.m_index != i2.m_index;
         }
 
     private:
-        T *m_ptr;
+        const Vector<T> *m_vector;
+        size_t m_index { 0 };
     };
 
     iterator begin() {
-        return iterator { m_data };
+        return iterator { this, 0 };
     }
 
     iterator begin() const {
-        return iterator { m_data };
+        return iterator { this, 0 };
     }
 
     iterator end() {
-        return iterator { m_data + m_size };
+        return iterator { this, m_size };
     }
 
     iterator end() const {
-        return iterator { m_data + m_size };
+        return iterator { this, m_size };
     }
 
     template <typename F>
