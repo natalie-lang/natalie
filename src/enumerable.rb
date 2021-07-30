@@ -682,6 +682,37 @@ module Enumerable
     end
   end
 
+  def slice_when(&block)
+    block = proc(&block)
+    current_slice = []
+    enum = to_enum
+
+    Enumerator.new do |yielder|
+      index = 0
+      loop do
+        begin
+          a = enum.next
+          if index == 0
+            current_slice << a
+          end
+          b = enum.peek
+          if block.call(a, b)
+            yielder << current_slice
+            current_slice = []
+          end
+          current_slice << b
+          index += 1
+        rescue StopIteration
+          break
+        end
+      end
+
+      unless current_slice.empty?
+        yielder << current_slice
+      end
+    end
+  end
+
   def sort(&block)
     to_a.sort(&block)
   end
