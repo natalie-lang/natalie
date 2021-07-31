@@ -3,6 +3,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <spawn.h>
+#include <stdio.h>
 #include <sys/resource.h>
 #include <sys/stat.h>
 #include <sys/time.h>
@@ -72,6 +73,12 @@ ValuePtr KernelModule::exit(Env *env, ValuePtr status) {
     exception->ivar_set(env, SymbolValue::intern("@status"), status);
     env->raise_exception(exception);
     return NilValue::the();
+}
+
+ValuePtr KernelModule::gets(Env *env) {
+    char buf[2048];
+    fgets(buf, 2048, stdin);
+    return new StringValue { buf };
 }
 
 ValuePtr KernelModule::get_usage(Env *env) {

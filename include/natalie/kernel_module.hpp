@@ -43,6 +43,7 @@ public:
     ValuePtr cur_dir(Env *env);
     ValuePtr define_singleton_method(Env *env, ValuePtr name, Block *block);
     ValuePtr exit(Env *env, ValuePtr status);
+    ValuePtr gets(Env *env);
     ValuePtr get_usage(Env *env);
     ValuePtr hash(Env *env);
     ValuePtr inspect(Env *env);
