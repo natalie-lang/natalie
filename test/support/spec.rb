@@ -472,15 +472,16 @@ class Stub
     self
   end
 
-  def and_return(result)
+  def and_return(*results)
     should_receive_called = -> { @pass = @count_restriction === @count }
     increment = -> { @count += 1 }
+    result = -> { results.size > 1 ? results[@count - 1] : results[0] }
     expected_args = @args
     @subject.define_singleton_method(@message) do |*args|
       increment.()
       if expected_args.nil? || args == expected_args
         should_receive_called.()
-        result
+        result.()
       else
         puts 'TODO: make a way for the original method to be called from the stub'
         fail
