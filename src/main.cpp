@@ -172,6 +172,9 @@ extern "C" Env *build_top_env() {
     StringValue *RUBY_PLATFORM = new StringValue { ruby_platform };
     Object->const_set(SymbolValue::intern("RUBY_PLATFORM"), RUBY_PLATFORM);
 
+    ModuleValue *GC = new ModuleValue { "GC" };
+    Object->const_set(SymbolValue::intern("GC"), GC);
+
     init_bindings(env);
 
     /*NAT_OBJ_INIT*/
