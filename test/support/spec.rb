@@ -518,7 +518,6 @@ class Stub
     self
   end
 
-
   def at_most(n)
     case n
     when :once
@@ -532,7 +531,12 @@ class Stub
   end
 
   def once
-    @count_restriction = 1
+    exactly(1)
+    self
+  end
+
+  def exactly(n)
+    @count_restriction = n
     self
   end
 
