@@ -64,7 +64,7 @@ class Fiddle
 
     private
 
-    # NOTE: currently only supporting the two function signatures that we need for Natalie's REPL
+    # NOTE: currently only supporting the few function signatures that we need for Natalie's REPL
     # In the future, Natalie will have macros that will allow this to be generated at compile time.
 
     __define_method__ :void_no_args, [], <<-END
