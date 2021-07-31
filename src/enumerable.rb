@@ -672,16 +672,45 @@ module Enumerable
     end
   end
 
-  def first(n)
-    ary = []
-    while ary.size < n
-      begin
-        ary << self.next
-      rescue StopIteration
-        return ary
+  def first(*args)
+    if args.length == 0
+      each do |*item|
+        return item.size <= 1 ? item.first : item
+      end
+    else
+      take(*args)
+    end
+  end
+
+  def slice_when(&block)
+    block = proc(&block)
+    current_slice = []
+    enum = to_enum
+
+    Enumerator.new do |yielder|
+      index = 0
+      loop do
+        begin
+          a = enum.next
+          if index == 0
+            current_slice << a
+          end
+          b = enum.peek
+          if block.call(a, b)
+            yielder << current_slice
+            current_slice = []
+          end
+          current_slice << b
+          index += 1
+        rescue StopIteration
+          break
+        end
+      end
+
+      unless current_slice.empty?
+        yielder << current_slice
       end
     end
-    ary
   end
 
   def sort(&block)
