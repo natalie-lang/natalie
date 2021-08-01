@@ -3,6 +3,7 @@ require 'natalie/inline'
 __inline__ "#include <dirent.h>"
 __inline__ "#include <sys/param.h>"
 __inline__ "#include <sys/types.h>"
+__inline__ "#include <unistd.h>"
 
 class Dir
   class << self
@@ -44,6 +45,14 @@ class Dir
       }
       closedir(dir);
       return array;
+    END
+
+    __define_method__ :rmdir, [:dirname], <<-END
+      dirname->assert_type(env, Value::Type::String, "String");
+      auto result = rmdir(dirname->as_string()->c_str());
+      if (result == -1)
+          env->raise_errno();
+      return ValuePtr::integer(result);
     END
   end
 end

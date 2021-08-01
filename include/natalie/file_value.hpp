@@ -45,6 +45,9 @@ public:
         return stat(path->as_string()->c_str(), &sb) != -1;
     }
 
+    static bool file(Env *env, ValuePtr path);
+    static bool directory(Env *env, ValuePtr path);
+
     const String *path() { return m_path; }
     void set_path(String *path) { m_path = path; };
 
