@@ -3,8 +3,8 @@ require 'minitest/autorun'
 require 'open3'
 
 class ReplWrapper
-  def initialize
-    (@in, @out, @wait_thr) = Open3.popen2e(cmd)
+  def initialize(cmd)
+    (@in, @out, @wait_thr) = Open3.popen2e(*cmd)
   end
 
   def execute(input)
@@ -18,20 +18,11 @@ class ReplWrapper
   def quit
     @in.close
   end
-
-  private
-
-  def cmd
-    'bin/natalie'
-  end
 end
 
 describe 'REPL' do
-  before do
-    @repl = ReplWrapper.new
-  end
-
   it 'can execute expressions and affect the environment' do
+    @repl = ReplWrapper.new('bin/natalie')
     @repl.execute('x = 100')
     @repl.execute('y = 3 * 4')
     @repl.execute('@z = "z"')
@@ -44,16 +35,17 @@ describe 'REPL' do
     @repl.execute('foo = bar') # DOES call the function
     @repl.quit
     expect(@repl.out).must_equal dedent(<<-EOF)
-      100
-      12
-      "z"
-      100
-      [12, "z"]
-      main
-      :foo
-      :bar
-      nil
-      3
+      nat> 100
+      nat> 12
+      nat> "z"
+      nat> 100
+      nat> [12, "z"]
+      nat> main
+      nat> :foo
+      nat> :bar
+      nat> nil
+      nat> 3
+      nat>
     EOF
   end
 
