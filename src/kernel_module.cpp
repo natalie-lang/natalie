@@ -77,7 +77,8 @@ ValuePtr KernelModule::exit(Env *env, ValuePtr status) {
 
 ValuePtr KernelModule::gets(Env *env) {
     char buf[2048];
-    fgets(buf, 2048, stdin);
+    if (!fgets(buf, 2048, stdin))
+        return NilValue::the();
     return new StringValue { buf };
 }
 
