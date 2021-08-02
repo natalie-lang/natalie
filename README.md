@@ -88,10 +88,11 @@ under the MIT License; see the `LICENSE` file in this directory for the full tex
 Some parts of this program are copied from other sources, and the copyright
 belongs to the respective owner:
 
-| file(s)                         | copyright                         | license           |
-|---------------------------------|-----------------------------------|-------------------|
-| `dtoa.c`                        | David M. Gay, Lucent Technologies | custom permissive |
-| `hashmap.hpp` and `hashmap.cpp` | David Leeds                       | MIT               |
-| `spec/*` (see `spec/LICENSE`)   | Engine Yard, Inc.                 | MIT               |
+| file(s)                       | copyright                         | license           |
+|-------------------------------|-----------------------------------|-------------------|
+| `dtoa.c`                      | David M. Gay, Lucent Technologies | custom permissive |
+| `fiber_value.*`               | Evan Jones                        | MIT               |
+| `hashmap.*`                   | David Leeds                       | MIT               |
+| `spec/*` (see `spec/LICENSE`) | Engine Yard, Inc.                 | MIT               |
 
 See each file above for full copyright and license text.
