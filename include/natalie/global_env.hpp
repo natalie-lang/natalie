@@ -26,6 +26,9 @@ public:
     ClassValue *Array() { return m_Array; }
     void set_Array(ClassValue *Array) { m_Array = Array; }
 
+    ClassValue *Binding() { return m_Binding; }
+    void set_Binding(ClassValue *Binding) { m_Binding = Binding; }
+
     ClassValue *Class() { return m_Class; }
     void set_Class(ClassValue *Class) { m_Class = Class; }
 
@@ -75,6 +78,7 @@ private:
     Hashmap<SymbolValue *, Value *> m_globals {};
 
     ClassValue *m_Array { nullptr };
+    ClassValue *m_Binding { nullptr };
     ClassValue *m_Class { nullptr };
     ClassValue *m_Float { nullptr };
     ClassValue *m_Hash { nullptr };

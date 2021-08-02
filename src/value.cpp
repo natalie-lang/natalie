@@ -76,6 +76,7 @@ ValuePtr Value::_new(Env *env, ValuePtr klass_value, size_t argc, ValuePtr *args
         obj = new VoidPValue { klass };
         break;
 
+    case Value::Type::Binding:
     case Value::Type::Method:
     case Value::Type::Nil:
     case Value::Type::False:

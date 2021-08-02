@@ -89,6 +89,10 @@ extern "C" Env *build_top_env() {
     Object->const_set(SymbolValue::intern("Array"), Array);
     Array->include_once(env, Enumerable);
 
+    ClassValue *Binding = Object->subclass(env, "Binding", Value::Type::Binding);
+    global_env->set_Binding(Binding);
+    Object->const_set(SymbolValue::intern("Binding"), Binding);
+
     ClassValue *Hash = Object->subclass(env, "Hash", Value::Type::Hash);
     global_env->set_Hash(Hash);
     Object->const_set(SymbolValue::intern("Hash"), Hash);

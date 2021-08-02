@@ -35,6 +35,10 @@ ValuePtr KernelModule::at_exit(Env *env, Block *block) {
     return proc;
 }
 
+ValuePtr KernelModule::binding(Env *env) {
+    return new BindingValue { env };
+}
+
 ValuePtr KernelModule::cur_dir(Env *env) {
     if (env->file() == nullptr) {
         env->raise("RuntimeError", "could not get current directory");
