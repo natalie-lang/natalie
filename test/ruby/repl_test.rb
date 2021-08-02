@@ -21,8 +21,20 @@ class ReplWrapper
 end
 
 describe 'REPL' do
-  it 'can execute expressions and affect the environment' do
-    @repl = ReplWrapper.new('bin/natalie')
+  describe 'MRI-hosted' do
+    it 'can execute expressions and affect the environment' do
+      execute('bin/natalie')
+    end
+  end
+
+  describe 'self-hosted' do
+    it 'can execute expressions and affect the environment' do
+      execute('bin/natalie bin/natalie')
+    end
+  end
+
+  def execute(cmd)
+    @repl = ReplWrapper.new(cmd)
     @repl.execute('x = 100')
     @repl.execute('y = 3 * 4')
     @repl.execute('@z = "z"')
