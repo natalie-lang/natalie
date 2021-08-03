@@ -529,13 +529,17 @@ module Enumerable
   end
 
   def partition
+    return enum_for(:partition) unless block_given?
+
+    gather = ->(obj) { obj.size <= 1 ? obj.first : obj }
+
     left = []
     right = []
-    each do |item|
-      if yield(item)
-        left << item
+    each do |*item|
+      if yield(gather.(item))
+        left << gather.(item)
       else
-        right << item
+        right << gather.(item)
       end
     end
     [left, right]
