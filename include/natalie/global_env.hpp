@@ -66,7 +66,7 @@ public:
 
     virtual void visit_children(Visitor &visitor) override final;
 
-    virtual void gc_inspect(char *buf, size_t len) override {
+    virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<GlobalEnv %p>", this);
     }
 

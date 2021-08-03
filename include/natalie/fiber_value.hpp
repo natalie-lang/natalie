@@ -164,7 +164,7 @@ public:
         return false;
     }
 
-    virtual void gc_inspect(char *buf, size_t len) override {
+    virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(
             buf,
             len,

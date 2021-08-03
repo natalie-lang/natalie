@@ -49,7 +49,7 @@ public:
     static nat_int_t hash(const void *);
     static int compare(const void *, const void *, Env *);
 
-    size_t size() { return m_hashmap.size(); }
+    size_t size() const { return m_hashmap.size(); }
     ValuePtr size(Env *);
 
     bool is_empty() { return m_hashmap.size() == 0; }
@@ -137,7 +137,7 @@ public:
 
     virtual void visit_children(Visitor &) override final;
 
-    virtual void gc_inspect(char *buf, size_t len) override {
+    virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<HashValue %p size=%zu>", this, size());
     }
 

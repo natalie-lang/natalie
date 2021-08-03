@@ -38,6 +38,11 @@ public:
         return m_value;
     }
 
+    T const &value() const {
+        assert(m_present);
+        return m_value;
+    }
+
     T operator*() {
         assert(m_present);
         return m_value;

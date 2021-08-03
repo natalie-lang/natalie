@@ -146,7 +146,7 @@ public:
         }
     }
 
-    virtual void gc_inspect(char *buf, size_t len) override {
+    virtual void gc_inspect(char *buf, size_t len) const override {
         size_t size = m_vector.size();
         snprintf(buf, len, "<ArrayValue %p size=%zu>", this, size);
     }

@@ -51,7 +51,7 @@ public:
     const String *path() { return m_path; }
     void set_path(String *path) { m_path = path; };
 
-    virtual void gc_inspect(char *buf, size_t len) override {
+    virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<FileValue %p>", this);
     }
 

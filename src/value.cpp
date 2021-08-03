@@ -605,7 +605,7 @@ void Value::visit_children(Visitor &visitor) {
     }
 }
 
-void Value::gc_inspect(char *buf, size_t len) {
+void Value::gc_inspect(char *buf, size_t len) const {
     snprintf(buf, len, "<Value %p type=%d class=%p>", this, (int)m_type, m_klass);
 }
 

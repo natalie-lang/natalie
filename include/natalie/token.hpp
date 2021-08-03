@@ -697,7 +697,7 @@ public:
         }
     }
 
-    virtual void gc_inspect(char *buf, size_t len) override final {
+    virtual void gc_inspect(char *buf, size_t len) const override final {
         snprintf(buf, len,
             "<Token %p type=%d literal='%s' m_integer=%lli m_double=%f m_has_sign=%d>",
             this,

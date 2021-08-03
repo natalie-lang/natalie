@@ -31,12 +31,12 @@ public:
     }
 
     // only for debugging the GC
-    virtual void gc_inspect(char *buf, size_t len) {
+    virtual void gc_inspect(char *buf, size_t len) const {
         snprintf(buf, len, "<Cell %p size=%zu>", this, sizeof(*this));
     }
 
     // only for debugging the GC
-    virtual void gc_print() {
+    virtual void gc_print() const {
         char buf[1000];
         gc_inspect(buf, 1000);
         printf("%s\n", buf);

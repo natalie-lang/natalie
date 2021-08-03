@@ -52,7 +52,7 @@ public:
 
     ValuePtr ref(Env *, ValuePtr);
 
-    virtual void gc_inspect(char *buf, size_t len) override {
+    virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<SymbolValue %p name='%s'>", this, m_name);
     }
 

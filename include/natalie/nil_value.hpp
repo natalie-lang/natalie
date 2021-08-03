@@ -28,7 +28,7 @@ public:
     ValuePtr to_i(Env *);
     ValuePtr inspect(Env *);
 
-    virtual void gc_inspect(char *buf, size_t len) override {
+    virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<NilValue %p>", this);
     }
 

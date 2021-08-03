@@ -233,7 +233,7 @@ public:
 
     virtual void visit_children(Visitor &visitor) override;
 
-    virtual void gc_inspect(char *buf, size_t len) override;
+    virtual void gc_inspect(char *buf, size_t len) const override;
 
 protected:
     ClassValue *m_klass { nullptr };
