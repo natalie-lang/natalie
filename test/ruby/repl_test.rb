@@ -27,12 +27,12 @@ describe 'REPL' do
     end
   end
 
-  describe 'self-hosted' do
-    # FIXME: not passing on Clang
-    xit 'can execute expressions and affect the environment' do
-      execute('bin/natalie bin/natalie')
-    end
-  end
+  # FIXME: not passing on Clang
+  #describe 'self-hosted' do
+    #it 'can execute expressions and affect the environment' do
+      #execute('bin/natalie bin/natalie')
+    #end
+  #end
 
   def execute(cmd)
     @repl = ReplWrapper.new(cmd)
