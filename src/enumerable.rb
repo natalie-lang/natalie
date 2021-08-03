@@ -573,6 +573,9 @@ module Enumerable
     ary
   end
 
+  alias find_all select
+  alias filter select
+
   def collect
     return enum_for(:map) unless block_given?
 
