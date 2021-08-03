@@ -531,16 +531,15 @@ module Enumerable
   def reverse_each(*args)
     return enum_for(:reverse_each, *args) unless block_given?
 
-    if args.size > 0
-      reversed = args.to_a.reverse
-      reversed.each do |item|
-        yield item
-      end
-    else
-      reversed = to_a.reverse
-      reversed.each do |item|
-        yield item
-      end
+    ary = []
+    each(*args) do |*item|
+      ary << item
+    end
+
+    gather = ->(obj) { obj.size <= 1 ? obj.first : obj }
+
+    ary.reverse.each do |item|
+      yield gather.(item)
     end
   end
 
