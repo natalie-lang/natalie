@@ -2,7 +2,7 @@ require_relative './base_pass'
 
 module Natalie
   class Compiler
-    # Replace non-captured variable references with local C variables
+    # Replace non-captured variable references with local C++ variables.
     class Pass3 < BasePass
       def initialize(compiler_context)
         super

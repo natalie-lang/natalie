@@ -3,7 +3,7 @@ require_relative './multiple_assignment'
 
 module Natalie
   class Compiler
-    # process S-expressions from Ruby to C
+    # Process S-expressions from the Ruby parser.
     class Pass1 < SexpProcessor
       def initialize(compiler_context)
         super()
