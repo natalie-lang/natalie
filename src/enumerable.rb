@@ -314,6 +314,19 @@ module Enumerable
     nil
   end
 
+  def filter_map
+    return enum_for(:filter_map) unless block_given?
+
+    gather = ->(item) { item.size <= 1 ? item.first : item }
+
+    arr = []
+    each do |*item|
+      item = yield(gather.(item))
+      arr << item if item
+    end
+    arr
+  end
+
   alias detect find
 
   def grep(pattern)
