@@ -5,6 +5,7 @@ require_relative './compiler/pass1b'
 require_relative './compiler/pass1r'
 require_relative './compiler/pass2'
 require_relative './compiler/pass3'
+require_relative './compiler/pass3c'
 require_relative './compiler/pass4'
 
 module Natalie
@@ -32,7 +33,6 @@ module Natalie
 
     def initialize(ast, path, options = {})
       @ast = ast
-      @var_num = 0
       @path = path
       @options = options
       @required = {}
@@ -68,6 +68,7 @@ module Natalie
     def write_file
       c = to_c
       if write_obj_path
+        @c_path = write_obj_path
         File.write(write_obj_path, c)
       else
         temp_c = Tempfile.create('natalie.cpp')
@@ -81,6 +82,7 @@ module Natalie
       {
         var_prefix: var_prefix,
         var_num: 0,
+        call_site_num: 0,
         template: template,
         is_obj: !!write_obj_path,
         repl: repl,
@@ -121,6 +123,12 @@ module Natalie
 
       ast = Pass3.new(@context).go(ast)
       if debug == 'p3'
+        pp ast
+        exit
+      end
+
+      ast = Pass3c.new(@context).go(ast)
+      if debug == 'p3c'
         pp ast
         exit
       end

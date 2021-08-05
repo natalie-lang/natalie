@@ -103,3 +103,39 @@
 #define NAT_MAKE_NONCOPYABLE(c) \
     c(const c &) = delete;      \
     c &operator=(const c &) = delete
+
+#define NAT_SEND(env, receiver, method_name, argc, args, block, method_cache, call_site_index) ({            \
+    ValuePtr _result = nullptr;                                                                              \
+    if (!receiver.is_pointer()) {                                                                            \
+        _result = receiver.send(env, method_name, argc, args, block);                                        \
+    } else {                                                                                                 \
+        auto cached_method = method_cache[call_site_index];                                                  \
+        if (cached_method) {                                                                                 \
+            receiver->ensure_method_is_callable(env, method_name, cached_method, MethodVisibility::Private); \
+            _result = cached_method->call(env, receiver, argc, args, block);                                 \
+        } else {                                                                                             \
+            Method *method = receiver->find_method(env, method_name, MethodVisibility::Private);             \
+            method_cache[call_site_index] = method;                                                          \
+            _result = method->call(env, receiver, argc, args, block);                                        \
+        }                                                                                                    \
+    }                                                                                                        \
+    _result;                                                                                                 \
+})
+
+#define NAT_PUBLIC_SEND(env, receiver, method_name, argc, args, block, method_cache, call_site_index) ({    \
+    ValuePtr _result = nullptr;                                                                             \
+    if (!receiver.is_pointer()) {                                                                           \
+        _result = receiver.public_send(env, method_name, argc, args, block);                                \
+    } else {                                                                                                \
+        auto cached_method = method_cache[call_site_index];                                                 \
+        if (cached_method) {                                                                                \
+            receiver->ensure_method_is_callable(env, method_name, cached_method, MethodVisibility::Public); \
+            _result = cached_method->call(env, receiver, argc, args, block);                                \
+        } else {                                                                                            \
+            Method *method = receiver->find_method(env, method_name, MethodVisibility::Public);             \
+            method_cache[call_site_index] = method;                                                         \
+            _result = method->call(env, receiver, argc, args, block);                                       \
+        }                                                                                                   \
+    }                                                                                                       \
+    _result;                                                                                                \
+})

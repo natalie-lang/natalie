@@ -121,6 +121,7 @@ module Natalie
           obj_declarations,
           source_files_to_c,
           declare_symbols,
+          declare_method_cache,
           @top.join("\n")
         ].join("\n\n")
       end
@@ -507,7 +508,8 @@ module Natalie
 
       def process_send(exp)
         debug_info(exp)
-        (fn, receiver, method, args, block) = exp
+        (fn, receiver, method, args, block, (_, call_site_num)) = exp
+        raise "call_site_num not given for #{exp.inspect}" unless call_site_num
         receiver_name = process_atom(receiver)
         if args
           args_name, args_count = process_atom(args).split(':')
@@ -516,7 +518,7 @@ module Natalie
           args_count = 0
         end
         result_name = temp('call_result')
-        decl "ValuePtr #{result_name} = #{receiver_name}.#{fn}(env, #{process method}, #{args_count}, #{args_name}, #{block || 'nullptr'});"
+        decl "ValuePtr #{result_name} = NAT_#{fn.upcase}(env, #{receiver_name}, #{process method}, #{args_count}, #{args_name}, #{block || 'nullptr'}, #{var_prefix}method_cache, #{call_site_num});"
         result_name
       end
 
@@ -661,7 +663,7 @@ module Natalie
       end
 
       def symbols_var_name
-        "#{@compiler_context[:var_prefix]}symbols"
+        "#{var_prefix}symbols"
       end
 
       def process_intern(exp)
@@ -697,19 +699,23 @@ module Natalie
 
       def debug_info(exp)
         return unless exp.file
-        files = "#{@compiler_context[:var_prefix]}source_files"
+        files = "#{var_prefix}source_files"
         index = @source_files[exp.file] ||= @source_files.size
         line = "env->set_file(#{files}[#{index}]); env->set_line(#{exp.line || 0});"
         decl line unless @decl.last == line
       end
 
       def source_files_to_c
-        files = "#{@compiler_context[:var_prefix]}source_files"
+        files = "#{var_prefix}source_files"
         "const char *#{files}[#{@source_files.size}] = { #{@source_files.keys.map(&:inspect).join(', ')} };"
       end
 
       def declare_symbols
         "SymbolValue *#{symbols_var_name}[#{@symbols.size}] = {};"
+      end
+
+      def declare_method_cache
+        "Method *#{var_prefix}method_cache[#{@compiler_context[:call_site_num]}] = {};"
       end
 
       def init_symbols
@@ -753,6 +759,10 @@ module Natalie
           indent += 4 if line.end_with?('{')
         end
         out.join("\n")
+      end
+
+      def var_prefix
+        @compiler_context[:var_prefix]
       end
     end
   end

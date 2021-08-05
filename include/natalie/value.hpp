@@ -187,6 +187,7 @@ public:
     }
 
     Method *find_method(Env *, SymbolValue *, MethodVisibility, ModuleValue ** = nullptr, Method * = nullptr);
+    void ensure_method_is_callable(Env *env, SymbolValue *method_name, Method *method, MethodVisibility visibility_at_least);
 
     ValuePtr dup(Env *);
 

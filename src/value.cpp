@@ -430,18 +430,20 @@ Method *Value::find_method(Env *env, SymbolValue *method_name, MethodVisibility 
             return method;
         }
     }
-    ModuleValue *klass = this->klass();
-    Method *method = klass->find_method(env, method_name, matching_class_or_module);
+    Method *method = m_klass->find_method(env, method_name, matching_class_or_module);
+    ensure_method_is_callable(env, method_name, method, visibility_at_least);
+    return method;
+}
+
+void Value::ensure_method_is_callable(Env *env, SymbolValue *method_name, Method *method, MethodVisibility visibility_at_least) {
     if (method && !method->is_undefined()) {
-        if (method->visibility() >= visibility_at_least) {
-            return method;
-        } else {
+        if (method->visibility() < visibility_at_least) {
             env->raise("NoMethodError", "private method `{}' called for {}", method_name->c_str(), inspect_str(env));
         }
     } else if (method_name == SymbolValue::intern("inspect")) {
-        env->raise("NoMethodError", "undefined method `inspect' for #<{}:0x{}>", klass->class_name_or_blank(), int_to_hex_string(object_id(), false));
+        env->raise("NoMethodError", "undefined method `inspect' for #<{}:0x{}>", m_klass->class_name_or_blank(), int_to_hex_string(object_id(), false));
     } else if (is_module()) {
-        env->raise("NoMethodError", "undefined method `{}' for {}:{}", method_name->c_str(), klass->as_module()->class_name_or_blank(), klass->inspect_str(env));
+        env->raise("NoMethodError", "undefined method `{}' for {}:{}", method_name->c_str(), m_klass->as_module()->class_name_or_blank(), m_klass->inspect_str(env));
     } else {
         env->raise("NoMethodError", "undefined method `{}' for {}", method_name->c_str(), inspect_str(env));
     }

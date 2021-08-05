@@ -24,7 +24,7 @@ OptionParser.new do |opts|
     case level
     when true
       options[:debug] = 'c'
-    when 'p1', 'p1b', 'p1r', 'p2', 'p3', 'c', 'S', 'edit', 'cc-cmd', 'valgrind', 'kcachegrind'
+    when /^p\d/, 'c', 'S', 'edit', 'cc-cmd', 'valgrind', 'kcachegrind'
       options[:debug] = level
     when 'gdb', 'lldb'
       options[:debug] = level
@@ -89,8 +89,6 @@ class Runner
     elsif options[:compile]
       compiler.out_path = options[:compile]
       compiler.compile
-    elsif options[:write_obj_path]
-      compiler.compile
     elsif options[:debug] == 'cc-cmd'
       compiler.out_path = 'temp'
       compiler.to_c
@@ -104,6 +102,8 @@ class Runner
       show_assembly
     elsif options[:debug] == 'edit'
       edit_compile_run_loop
+    elsif options[:write_obj_path]
+      compiler.compile
     else
       compile_and_run
     end

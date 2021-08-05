@@ -77,6 +77,8 @@ private:
 
     Hashmap<SymbolValue *, Value *> m_globals {};
 
+    Vector<Method *> m_method_cache {};
+
     ClassValue *m_Array { nullptr };
     ClassValue *m_Binding { nullptr };
     ClassValue *m_Class { nullptr };
