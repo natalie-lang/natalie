@@ -717,6 +717,87 @@ module Enumerable
     end
   end
 
+  def slice_after(*args, &block)
+    enum = to_enum
+    current_slice = []
+    block_given = block_given?
+    gather = ->(item) { item.size <= 1 ? item.first : item }
+
+    if block_given
+      if !args.empty?
+        raise ArgumentError, "wrong number of arguments (given #{args.size}, expected 0)"
+      end
+    elsif args.size != 1
+      raise ArgumentError, "wrong number of arguments (given #{args.size}, expected 1)"
+    end
+
+    condition = ->(item) {
+      if block_given
+        block.(item)
+      else
+        args[0] === item
+      end
+    }
+
+    Enumerator.new do |yielder|
+      each do |*item|
+        item = gather.(item)
+        current_slice << item
+        if condition.(item)
+          yielder << current_slice
+          current_slice = []
+        end
+      end
+
+      unless current_slice.empty?
+        yielder << current_slice
+      end
+    end
+  end
+
+  def slice_before(*args, &block)
+    enum = to_enum
+    current_slice = []
+    block_given = block_given?
+    gather = ->(item) { item.size <= 1 ? item.first : item }
+
+    if block_given
+      if !args.empty?
+        raise ArgumentError, "wrong number of arguments (given #{args.size}, expected 0)"
+      end
+    elsif args.size != 1
+      raise ArgumentError, "wrong number of arguments (given #{args.size}, expected 1)"
+    end
+
+    condition = ->(item) {
+      if block_given
+        block.(item)
+      else
+        args[0] === item
+      end
+    }
+
+    Enumerator.new do |yielder|
+      index = 0
+      each do |*item|
+        item = gather.(item)
+        # FIXME: Putting this directly into the if condition does not work here?
+        condition_result = condition.(item)
+        if condition_result && index > 0
+          yielder << current_slice
+          current_slice = [item]
+        else
+          current_slice << item
+        end
+        index += 1
+      end
+
+      unless current_slice.empty?
+        yielder << current_slice
+      end
+    end
+  end
+
   def slice_when(&block)
     block = proc(&block)
     current_slice = []
