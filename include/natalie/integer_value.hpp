@@ -74,6 +74,8 @@ public:
     }
 
 private:
+    inline static Hashmap<SymbolValue *> s_optimized_methods {};
+
     nat_int_t m_integer { 0 };
 };
 

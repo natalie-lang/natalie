@@ -316,6 +316,7 @@ public:
     }
 
     size_t size() const { return m_map.num_entries; }
+    bool is_empty() const { return m_map.num_entries == 0; }
 
     class iterator {
     public:
