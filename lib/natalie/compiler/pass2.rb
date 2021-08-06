@@ -2,7 +2,7 @@ require_relative './base_pass'
 
 module Natalie
   class Compiler
-    # Compute captured vs local-only variables and write pseudo C for variable get and set
+    # Compute captured vs local-only variables.
     class Pass2 < BasePass
       def initialize(compiler_context)
         super
