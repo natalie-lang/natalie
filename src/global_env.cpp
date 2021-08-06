@@ -36,6 +36,7 @@ void GlobalEnv::visit_children(Visitor &visitor) {
     visitor.visit(m_Regexp);
     visitor.visit(m_String);
     visitor.visit(m_Symbol);
+    visitor.visit(m_main_obj);
 }
 
 }

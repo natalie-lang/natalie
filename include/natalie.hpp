@@ -62,6 +62,8 @@ extern "C" {
 
 void init_bindings(Env *);
 
+Env *build_top_env();
+
 const char *find_current_method_name(Env *env);
 
 ValuePtr splat(Env *env, ValuePtr obj);

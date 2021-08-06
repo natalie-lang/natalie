@@ -56,6 +56,9 @@ public:
     ClassValue *Symbol() { return m_Symbol; }
     void set_Symbol(ClassValue *Symbol) { m_Symbol = Symbol; }
 
+    Value *main_obj() { return m_main_obj; }
+    void set_main_obj(Value *main_obj) { m_main_obj = main_obj; }
+
     ValuePtr global_get(Env *, SymbolValue *);
     ValuePtr global_set(Env *, SymbolValue *, ValuePtr);
 
@@ -88,6 +91,7 @@ private:
     ClassValue *m_Regexp { nullptr };
     ClassValue *m_String { nullptr };
     ClassValue *m_Symbol { nullptr };
+    Value *m_main_obj { nullptr };
 
     Env *m_main_env { nullptr };
 };
