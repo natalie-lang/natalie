@@ -16,7 +16,10 @@ ValuePtr RangeValue::iterate_over_range(Env *env, Function &&func) {
 
     ValuePtr item = m_begin;
 
-    bool done = item.send(env, "==", 1, &m_end)->is_truthy();
+    auto eqeq = SymbolValue::intern("==");
+    auto succ = SymbolValue::intern("succ");
+
+    bool done = item.send(env, eqeq, 1, &m_end)->is_truthy();
     while (!done || !m_exclude_end) {
         if constexpr (std::is_void_v<std::invoke_result_t<Function, ValuePtr>>) {
             func(item);
@@ -29,9 +32,9 @@ ValuePtr RangeValue::iterate_over_range(Env *env, Function &&func) {
             break;
         }
 
-        item = item.send(env, "succ");
+        item = item.send(env, succ);
 
-        done = item.send(env, "==", 1, &m_end)->is_truthy();
+        done = item.send(env, eqeq, 1, &m_end)->is_truthy();
     }
 
     return nullptr;
@@ -103,8 +106,9 @@ ValuePtr RangeValue::eqeqeq(Env *env, ValuePtr arg) {
 }
 
 ValuePtr RangeValue::include(Env *env, ValuePtr arg) {
+    auto eqeq = SymbolValue::intern("==");
     ValuePtr found_item = iterate_over_range(env, [&](ValuePtr item) -> ValuePtr {
-        if (arg.send(env, "==", 1, &item, nullptr)->is_truthy())
+        if (arg.send(env, eqeq, 1, &item, nullptr)->is_truthy())
             return item;
 
         return nullptr;
