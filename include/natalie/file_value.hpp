@@ -45,10 +45,13 @@ public:
         return stat(path->as_string()->c_str(), &sb) != -1;
     }
 
+    static bool file(Env *env, ValuePtr path);
+    static bool directory(Env *env, ValuePtr path);
+
     const String *path() { return m_path; }
     void set_path(String *path) { m_path = path; };
 
-    virtual void gc_inspect(char *buf, size_t len) override {
+    virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<FileValue %p>", this);
     }
 

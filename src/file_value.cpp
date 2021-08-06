@@ -122,4 +122,20 @@ void FileValue::build_constants(Env *env, ClassValue *klass) {
     Constants->const_set(SymbolValue::intern("SYNC"), ValuePtr::integer(O_SYNC));
 }
 
+bool FileValue::file(Env *env, ValuePtr path) {
+    struct stat sb;
+    path->assert_type(env, Value::Type::String, "String");
+    if (stat(path->as_string()->c_str(), &sb) == -1)
+        return false;
+    return S_ISREG(sb.st_mode);
+}
+
+bool FileValue::directory(Env *env, ValuePtr path) {
+    struct stat sb;
+    path->assert_type(env, Value::Type::String, "String");
+    if (stat(path->as_string()->c_str(), &sb) == -1)
+        return false;
+    return S_ISDIR(sb.st_mode);
+}
+
 }

@@ -41,7 +41,7 @@ public:
 
     virtual void visit_children(Visitor &) override final;
 
-    virtual void gc_inspect(char *buf, size_t len) override {
+    virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<EncodingValue %p>", this);
     }
 

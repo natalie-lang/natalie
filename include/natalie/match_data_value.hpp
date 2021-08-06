@@ -40,7 +40,7 @@ public:
     ValuePtr to_s(Env *);
     ValuePtr ref(Env *, ValuePtr);
 
-    virtual void gc_inspect(char *buf, size_t len) override {
+    virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<MatchDataValue %p>", this);
     }
 

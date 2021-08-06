@@ -2,19 +2,23 @@ require 'fiddle'
 require 'fileutils'
 require 'tempfile'
 
-begin
-  if STDOUT.tty?
-    require 'readline'
-  else
-    raise LoadError
+if RUBY_ENGINE != 'natalie'
+  begin
+    if STDOUT.tty?
+      require 'readline'
+    end
+  rescue LoadError
   end
-rescue LoadError
+end
+
+unless defined?(Readline)
   class Readline
     def self.readline(prompt, _)
-      if !(i = gets)
+      print(prompt)
+      if !(line = gets)
         exit
       end
-      i
+      line
     end
   end
 end
@@ -22,6 +26,7 @@ end
 module Natalie
   class Repl
     def go
+      GC.disable
       env = nil
       vars = {}
       repl_num = 0

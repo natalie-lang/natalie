@@ -13,6 +13,7 @@
 #include <utility>
 
 #include "natalie/array_value.hpp"
+#include "natalie/binding_value.hpp"
 #include "natalie/block.hpp"
 #include "natalie/class_value.hpp"
 #include "natalie/encoding_value.hpp"
@@ -60,6 +61,8 @@ extern "C" {
 }
 
 void init_bindings(Env *);
+
+Env *build_top_env();
 
 const char *find_current_method_name(Env *env);
 

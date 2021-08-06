@@ -69,11 +69,13 @@ public:
 
     static bool optimized_method(SymbolValue *);
 
-    virtual void gc_inspect(char *buf, size_t len) override {
+    virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<IntegerValue %p int=%lli>", this, m_integer);
     }
 
 private:
+    inline static Hashmap<SymbolValue *> s_optimized_methods {};
+
     nat_int_t m_integer { 0 };
 };
 

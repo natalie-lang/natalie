@@ -26,6 +26,9 @@ public:
     ClassValue *Array() { return m_Array; }
     void set_Array(ClassValue *Array) { m_Array = Array; }
 
+    ClassValue *Binding() { return m_Binding; }
+    void set_Binding(ClassValue *Binding) { m_Binding = Binding; }
+
     ClassValue *Class() { return m_Class; }
     void set_Class(ClassValue *Class) { m_Class = Class; }
 
@@ -53,6 +56,9 @@ public:
     ClassValue *Symbol() { return m_Symbol; }
     void set_Symbol(ClassValue *Symbol) { m_Symbol = Symbol; }
 
+    Value *main_obj() { return m_main_obj; }
+    void set_main_obj(Value *main_obj) { m_main_obj = main_obj; }
+
     ValuePtr global_get(Env *, SymbolValue *);
     ValuePtr global_set(Env *, SymbolValue *, ValuePtr);
 
@@ -63,7 +69,7 @@ public:
 
     virtual void visit_children(Visitor &visitor) override final;
 
-    virtual void gc_inspect(char *buf, size_t len) override {
+    virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<GlobalEnv %p>", this);
     }
 
@@ -75,6 +81,7 @@ private:
     Hashmap<SymbolValue *, Value *> m_globals {};
 
     ClassValue *m_Array { nullptr };
+    ClassValue *m_Binding { nullptr };
     ClassValue *m_Class { nullptr };
     ClassValue *m_Float { nullptr };
     ClassValue *m_Hash { nullptr };
@@ -84,6 +91,7 @@ private:
     ClassValue *m_Regexp { nullptr };
     ClassValue *m_String { nullptr };
     ClassValue *m_Symbol { nullptr };
+    Value *m_main_obj { nullptr };
 
     Env *m_main_env { nullptr };
 };

@@ -89,12 +89,14 @@ class Fiddle
       auto symbol = self->ivar_get(env, SymbolValue::intern("@symbol"))->as_integer()->to_nat_int_t();
       auto fn = (void* (*)(void*))symbol;
       void *p1_ptr;
-      if (p1->is_void_p())
+      auto pointer_class = self->const_find(env, SymbolValue::intern("Pointer"), Value::ConstLookupSearchMode::NotStrict)->as_class();
+      if (p1->is_a(env, pointer_class))
+          p1_ptr = p1->ivar_get(env, SymbolValue::intern("@ptr"))->as_void_p()->void_ptr();
+      else if (p1->is_void_p())
           p1_ptr = p1->as_void_p()->void_ptr();
       else
           p1_ptr = (void*)(p1.value());
       auto result = fn(p1_ptr);
-      auto pointer_class = self->const_find(env, SymbolValue::intern("Pointer"), Value::ConstLookupSearchMode::NotStrict)->as_class();
       auto pointer_obj = new Value { Value::Type::Object, pointer_class };
       auto pointer_ptr = new VoidPValue { result };
       pointer_obj->ivar_set(env, SymbolValue::intern("@ptr"), pointer_ptr);

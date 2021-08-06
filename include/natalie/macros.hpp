@@ -92,24 +92,6 @@
     }                                                                                                                       \
 })
 
-#define NAT_CALL_BEGIN(env, self, begin_fn, argc, args, block, on_break_flag) ({ \
-    Env e { env };                                                               \
-    e.set_caller(env);                                                           \
-    Natalie::ValuePtr _result = begin_fn(&e, self, argc, args, block);           \
-    if (_result->has_break_flag()) {                                             \
-        on_break_flag;                                                           \
-    }                                                                            \
-    _result;                                                                     \
-})
-
-#define NAT_CALL_BEGIN_WITH_RETURN(env, self, begin_fn, argc, args, block) ({       \
-    NAT_CALL_BEGIN(env, self, begin_fn, argc, args, block, return _result.value()); \
-})
-
-#define NAT_CALL_BEGIN_WITH_C_BREAK(env, self, begin_fn, argc, args, block, result_name) ({ \
-    NAT_CALL_BEGIN(env, self, begin_fn, argc, args, block, { _result->remove_break_flag(); result_name = _result; break; });                            \
-})
-
 #define NAT_QUOTE(val) #val
 
 #ifdef __APPLE__

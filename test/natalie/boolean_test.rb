@@ -25,4 +25,44 @@ describe 'booleans' do
       false.inspect.should == 'false'
     end
   end
+
+  describe 'and' do
+    it 'only evaluates left side once' do
+      @x = 0
+      x = -> { @x += 1; false }
+      r = x.() and 1
+      r.should == false
+      @x.should == 1
+    end
+  end
+
+  describe '&&' do
+    it 'only evaluates left side once' do
+      @x = 0
+      x = -> { @x += 1; false }
+      r = x.() && 1
+      r.should == false
+      @x.should == 1
+    end
+  end
+
+  describe 'or' do
+    it 'only evaluates left side once' do
+      @x = 0
+      x = -> { @x += 1; true }
+      r = x.() or 1
+      r.should == true
+      @x.should == 1
+    end
+  end
+
+  describe '||' do
+    it 'only evaluates left side once' do
+      @x = 0
+      x = -> { @x += 1; true }
+      r = x.() || 1
+      r.should == true
+      @x.should == 1
+    end
+  end
 end

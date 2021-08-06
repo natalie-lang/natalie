@@ -2,7 +2,7 @@ require_relative './base_pass'
 
 module Natalie
   class Compiler
-    # Generate a C code from pseudo-C S-expressions
+    # Generate strings of C++ code and combine them with main.cpp to form the final C++ source file.
     class Pass4 < BasePass
       def initialize(compiler_context)
         super

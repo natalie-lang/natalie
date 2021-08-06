@@ -196,7 +196,15 @@ module Natalie
     end
 
     def link_flags
-      @context[:compile_ld_flags].join(' ')
+      (@context[:compile_ld_flags] - unnecessary_link_flags).join(' ')
+    end
+
+    def unnecessary_link_flags
+      if RUBY_PLATFORM =~ /openbsd/
+        ['-ldl']
+      else
+        []
+      end
     end
 
     def base_build_flags

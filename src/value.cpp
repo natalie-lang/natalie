@@ -76,6 +76,7 @@ ValuePtr Value::_new(Env *env, ValuePtr klass_value, size_t argc, ValuePtr *args
         obj = new VoidPValue { klass };
         break;
 
+    case Value::Type::Binding:
     case Value::Type::Method:
     case Value::Type::Nil:
     case Value::Type::False:
@@ -437,10 +438,10 @@ Method *Value::find_method(Env *env, SymbolValue *method_name, MethodVisibility 
         } else {
             env->raise("NoMethodError", "private method `{}' called for {}", method_name->c_str(), inspect_str(env));
         }
-    } else if (is_module()) {
-        env->raise("NoMethodError", "undefined method `{}' for {}:{}", method_name->c_str(), klass->as_module()->class_name_or_blank(), klass->inspect_str(env));
     } else if (method_name == SymbolValue::intern("inspect")) {
         env->raise("NoMethodError", "undefined method `inspect' for #<{}:0x{}>", klass->class_name_or_blank(), int_to_hex_string(object_id(), false));
+    } else if (is_module()) {
+        env->raise("NoMethodError", "undefined method `{}' for {}:{}", method_name->c_str(), klass->as_module()->class_name_or_blank(), klass->inspect_str(env));
     } else {
         env->raise("NoMethodError", "undefined method `{}' for {}", method_name->c_str(), inspect_str(env));
     }
@@ -604,7 +605,7 @@ void Value::visit_children(Visitor &visitor) {
     }
 }
 
-void Value::gc_inspect(char *buf, size_t len) {
+void Value::gc_inspect(char *buf, size_t len) const {
     snprintf(buf, len, "<Value %p type=%d class=%p>", this, (int)m_type, m_klass);
 }
 

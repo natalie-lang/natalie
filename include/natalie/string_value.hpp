@@ -152,7 +152,7 @@ public:
         return new StringValue { *str };
     }
 
-    virtual void gc_inspect(char *buf, size_t len) override {
+    virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<StringValue %p str='%s'>", this, m_string.c_str());
     }
 

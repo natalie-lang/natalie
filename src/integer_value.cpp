@@ -237,26 +237,28 @@ ValuePtr IntegerValue::chr(Env *env) {
 }
 
 bool IntegerValue::optimized_method(SymbolValue *method_name) {
-    const char *name = method_name->c_str();
-    return strcmp(name, "+") == 0
-        || strcmp(name, "-") == 0
-        || strcmp(name, "*") == 0
-        || strcmp(name, "/") == 0
-        || strcmp(name, "%") == 0
-        || strcmp(name, "**") == 0
-        || strcmp(name, "<=>") == 0
-        || strcmp(name, "==") == 0
-        || strcmp(name, "===") == 0
-        || strcmp(name, "<") == 0
-        || strcmp(name, "<=") == 0
-        || strcmp(name, ">") == 0
-        || strcmp(name, ">=") == 0
-        || strcmp(name, "===") == 0
-        || strcmp(name, "eql?") == 0
-        || strcmp(name, "abs") == 0
-        || strcmp(name, "succ") == 0
-        || strcmp(name, "times") == 0
-        || strcmp(name, "chr") == 0;
+    if (s_optimized_methods.is_empty()) {
+        s_optimized_methods.set(SymbolValue::intern("+"));
+        s_optimized_methods.set(SymbolValue::intern("-"));
+        s_optimized_methods.set(SymbolValue::intern("*"));
+        s_optimized_methods.set(SymbolValue::intern("/"));
+        s_optimized_methods.set(SymbolValue::intern("%"));
+        s_optimized_methods.set(SymbolValue::intern("**"));
+        s_optimized_methods.set(SymbolValue::intern("<=>"));
+        s_optimized_methods.set(SymbolValue::intern("=="));
+        s_optimized_methods.set(SymbolValue::intern("==="));
+        s_optimized_methods.set(SymbolValue::intern("<"));
+        s_optimized_methods.set(SymbolValue::intern("<="));
+        s_optimized_methods.set(SymbolValue::intern(">"));
+        s_optimized_methods.set(SymbolValue::intern(">="));
+        s_optimized_methods.set(SymbolValue::intern("==="));
+        s_optimized_methods.set(SymbolValue::intern("eql?"));
+        s_optimized_methods.set(SymbolValue::intern("abs"));
+        s_optimized_methods.set(SymbolValue::intern("succ"));
+        s_optimized_methods.set(SymbolValue::intern("times"));
+        s_optimized_methods.set(SymbolValue::intern("chr"));
+    }
+    return !!s_optimized_methods.get(method_name);
 }
 
 ValuePtr IntegerValue::negate(Env *env) {

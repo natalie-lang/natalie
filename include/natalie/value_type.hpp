@@ -5,6 +5,7 @@ namespace Natalie {
 enum class ValueType {
     Nil,
     Array,
+    Binding,
     Class,
     Encoding,
     Exception,

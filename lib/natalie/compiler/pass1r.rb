@@ -2,7 +2,7 @@ require_relative './base_pass'
 
 module Natalie
   class Compiler
-    # Convert 'return' into 'throw LocalJumpError' where necessary
+    # Convert 'return' into 'throw LocalJumpError' where necessary.
     class Pass1r < BasePass
       def initialize(context)
         super

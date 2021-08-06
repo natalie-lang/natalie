@@ -314,6 +314,19 @@ module Enumerable
     nil
   end
 
+  def filter_map
+    return enum_for(:filter_map) unless block_given?
+
+    gather = ->(item) { item.size <= 1 ? item.first : item }
+
+    arr = []
+    each do |*item|
+      item = yield(gather.(item))
+      arr << item if item
+    end
+    arr
+  end
+
   alias detect find
 
   def grep(pattern)
@@ -528,14 +541,33 @@ module Enumerable
     ary
   end
 
+  def reverse_each(*args)
+    return enum_for(:reverse_each, *args) unless block_given?
+
+    ary = []
+    each(*args) do |*item|
+      ary << item
+    end
+
+    gather = ->(obj) { obj.size <= 1 ? obj.first : obj }
+
+    ary.reverse.each do |item|
+      yield gather.(item)
+    end
+  end
+
   def partition
+    return enum_for(:partition) unless block_given?
+
+    gather = ->(obj) { obj.size <= 1 ? obj.first : obj }
+
     left = []
     right = []
-    each do |item|
-      if yield(item)
-        left << item
+    each do |*item|
+      if yield(gather.(item))
+        left << gather.(item)
       else
-        right << item
+        right << gather.(item)
       end
     end
     [left, right]
@@ -553,6 +585,9 @@ module Enumerable
     end
     ary
   end
+
+  alias find_all select
+  alias filter select
 
   def collect
     return enum_for(:map) unless block_given?

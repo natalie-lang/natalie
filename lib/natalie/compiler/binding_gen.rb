@@ -126,9 +126,24 @@ ValuePtr #{name}(Env *env, ValuePtr, size_t argc, ValuePtr *args, Block *block) 
       @name = @name.sub(/_binding(\d*)$/) { "_binding#{$1.to_i + 1}" }
     end
 
+    GLOBAL_ENV_ACCESSORS = %w[
+      Array
+      Binding
+      Class
+      Float
+      Hash
+      Integer
+      Module
+      Object
+      Regexp
+      String
+      Symbol
+      main_obj
+    ]
+
     def get_object
-      if rb_class.start_with?('$')
-        "ValuePtr #{rb_class} = env->global_get(SymbolValue::intern(#{rb_class.inspect}));"
+      if GLOBAL_ENV_ACCESSORS.include?(rb_class)
+        "ValuePtr #{rb_class} = GlobalEnv::the()->#{rb_class}();"
       else
         "ValuePtr #{rb_class_as_c_variable} = GlobalEnv::the()->Object()->#{rb_class.split('::').map { |c| %(const_find(env, SymbolValue::intern(#{c.inspect}))) }.join('->')};"
       end
@@ -345,6 +360,8 @@ gen.binding('Fiber', 'initialize', 'FiberValue', 'initialize', argc: 0, pass_env
 gen.binding('Fiber', 'resume', 'FiberValue', 'resume', argc: :any, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Fiber', 'status', 'FiberValue', 'status', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 
+gen.static_binding('File', 'directory?', 'FileValue', 'directory', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.static_binding('File', 'file?', 'FileValue', 'file', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.static_binding('File', 'exist?', 'FileValue', 'exist', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.static_binding('File', 'expand_path', 'FileValue', 'expand_path', argc: 1..2, pass_env: true, pass_block: false, return_type: :Value)
 gen.static_binding('File', 'open', 'FileValue', 'open', argc: 1..2, pass_env: true, pass_block: true, return_type: :Value)
@@ -467,6 +484,7 @@ gen.binding('IO', 'write', 'IoValue', 'write', argc: 1.., pass_env: true, pass_b
 
 gen.binding('Kernel', 'Array', 'KernelModule', 'Array', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Kernel', 'at_exit', 'KernelModule', 'at_exit', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
+gen.binding('Kernel', 'binding', 'KernelModule', 'binding', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Kernel', 'block_given?', 'KernelModule', 'block_given', argc: 0, pass_env: true, pass_block: true, return_type: :bool)
 gen.binding('Kernel', 'class', 'KernelModule', 'klass_obj', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Kernel', '__dir__', 'KernelModule', 'cur_dir', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
@@ -642,7 +660,7 @@ gen.undefine_singleton_method('TrueClass', 'new')
 gen.binding('TrueClass', 'inspect', 'TrueValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('TrueClass', 'to_s', 'TrueValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 
-gen.singleton_binding('$NAT_main_object', 'inspect', 'KernelModule', 'main_obj_inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.singleton_binding('main_obj', 'inspect', 'KernelModule', 'main_obj_inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 
 gen.init
 
