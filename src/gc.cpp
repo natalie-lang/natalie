@@ -52,15 +52,6 @@ Hashmap<Cell *> Heap::gather_conservative_roots() {
         }
     }
 
-    roots.set(GlobalEnv::the());
-    roots.set(NilValue::the());
-    roots.set(TrueValue::the());
-    roots.set(FalseValue::the());
-    roots.set(FiberValue::main());
-    FiberValue *current_fiber = FiberValue::current();
-    if (current_fiber)
-        roots.set(current_fiber);
-
     return roots;
 }
 
@@ -78,6 +69,13 @@ void Heap::collect() {
     for (auto pair : roots) {
         visitor.visit(pair.first);
     }
+
+    visitor.visit(GlobalEnv::the());
+    visitor.visit(NilValue::the());
+    visitor.visit(TrueValue::the());
+    visitor.visit(FalseValue::the());
+    visitor.visit(FiberValue::main());
+    visitor.visit(FiberValue::current());
 
     sweep();
 }
