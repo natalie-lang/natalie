@@ -718,7 +718,6 @@ module Enumerable
   end
 
   def slice_after(*args, &block)
-    enum = to_enum
     current_slice = []
     block_given = block_given?
     gather = ->(item) { item.size <= 1 ? item.first : item }
@@ -756,7 +755,6 @@ module Enumerable
   end
 
   def slice_before(*args, &block)
-    enum = to_enum
     current_slice = []
     block_given = block_given?
     gather = ->(item) { item.size <= 1 ? item.first : item }
