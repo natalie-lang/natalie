@@ -889,6 +889,8 @@ module Enumerable
     result
   end
 
+  alias entries to_a
+
   def to_h(*args)
     h = {}
 
