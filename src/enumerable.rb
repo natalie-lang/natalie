@@ -781,9 +781,7 @@ module Enumerable
       index = 0
       each do |*item|
         item = gather.(item)
-        # FIXME: Putting this directly into the if condition does not work here?
-        condition_result = condition.(item)
-        if condition_result && index > 0
+        if condition.(item) && index > 0
           yielder << current_slice
           current_slice = [item]
         else
