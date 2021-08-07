@@ -925,6 +925,11 @@ module Enumerable
     h
   end
 
+  def uniq(&block)
+    ary = to_a
+    ary.uniq!(&block) || ary
+  end
+
   def zip(*args)
     has_block = block_given?
     args = args.map do |arg|
