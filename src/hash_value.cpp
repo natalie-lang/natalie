@@ -34,14 +34,14 @@ ValuePtr HashValue::get_default(Env *env, ValuePtr key) {
 }
 
 ValuePtr HashValue::set_default(Env *env, ValuePtr value) {
-    this->assert_not_frozen(env);
+    assert_not_frozen(env);
     m_default_value = value;
     m_default_proc = nullptr;
     return value;
 }
 
 void HashValue::put(Env *env, ValuePtr key, ValuePtr val) {
-    this->assert_not_frozen(env);
+    assert_not_frozen(env);
     Key key_container;
     key_container.key = key;
     key_container.hash = key.send(env, "hash")->as_integer()->to_nat_int_t();
@@ -74,7 +74,7 @@ ValuePtr HashValue::remove(Env *env, ValuePtr key) {
 }
 
 ValuePtr HashValue::clear(Env *env) {
-    this->assert_not_frozen(env);
+    assert_not_frozen(env);
     Hashmap<Key *, Value *> blank_hashmap { hash, compare, 256 };
     m_hashmap = std::move(blank_hashmap);
     m_key_list = nullptr;
@@ -87,7 +87,7 @@ ValuePtr HashValue::default_proc(Env *env) {
 }
 
 ValuePtr HashValue::set_default_proc(Env *env, ValuePtr value) {
-    this->assert_not_frozen(env);
+    assert_not_frozen(env);
     if (value == NilValue::the()) {
         m_default_proc = nullptr;
         return value;
@@ -239,7 +239,7 @@ ValuePtr HashValue::refeq(Env *env, ValuePtr key, ValuePtr val) {
 }
 
 ValuePtr HashValue::delete_key(Env *env, ValuePtr key) {
-    this->assert_not_frozen(env);
+    assert_not_frozen(env);
     ValuePtr val = remove(env, key);
     if (val) {
         return val;
@@ -355,6 +355,31 @@ void HashValue::visit_children(Visitor &visitor) {
     }
     visitor.visit(m_default_value);
     visitor.visit(m_default_proc);
+}
+
+ValuePtr HashValue::compact(Env *env) {
+    auto new_hash = new HashValue {};
+    auto nil = NilValue::the();
+    for (auto pair : m_hashmap) {
+        if (pair.second != nil)
+            new_hash->put(env, pair.first->key, pair.second);
+    }
+    return new_hash;
+}
+
+ValuePtr HashValue::compact_in_place(Env *env) {
+    assert_not_frozen(env);
+    auto nil = NilValue::the();
+    bool changed = false;
+    for (auto pair : m_hashmap) {
+        if (pair.second == nil) {
+            remove(env, pair.first->key);
+            changed = true;
+        }
+    }
+    if (!changed)
+        return NilValue::the();
+    return this;
 }
 
 }

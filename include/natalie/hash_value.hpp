@@ -68,6 +68,9 @@ public:
 
     ValuePtr default_value() { return m_default_value; }
 
+    ValuePtr compact(Env *);
+    ValuePtr compact_in_place(Env *);
+
     bool is_iterating() { return m_is_iterating; }
     void set_is_iterating(bool is_iterating) { m_is_iterating = is_iterating; }
 
