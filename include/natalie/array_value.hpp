@@ -137,7 +137,7 @@ public:
     ValuePtr sub(Env *, ValuePtr);
     ValuePtr union_of(Env *, ValuePtr);
     ValuePtr union_of(Env *, size_t, ValuePtr *);
-    ValuePtr uniq(Env *);
+    ValuePtr uniq_in_place(Env *, Block *);
 
     virtual void visit_children(Visitor &visitor) override final {
         Value::visit_children(visitor);

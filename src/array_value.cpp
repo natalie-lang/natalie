@@ -650,13 +650,31 @@ ValuePtr ArrayValue::compact(Env *env) {
     return ary;
 }
 
-ValuePtr ArrayValue::uniq(Env *env) {
+ValuePtr ArrayValue::uniq_in_place(Env *env, Block *block) {
+    this->assert_not_frozen(env);
+
     auto hash = new HashValue {};
-    auto nil = NilValue::the();
     for (auto item : *this) {
-        hash->put(env, item, nil);
+        ValuePtr key = item;
+        if (block) {
+            key = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 1, &item, nullptr);
+        }
+        if (hash->has_key(env, key)->is_false()) {
+            hash->put(env, key, item);
+        }
     }
-    return hash->keys(env);
+
+    ArrayValue *values = hash->values(env)->as_array();
+
+    if (m_vector.size() == values->size())
+        return NilValue::the();
+
+    m_vector.clear();
+    for (auto item : *values) {
+        m_vector.push(item);
+    }
+
+    return this;
 }
 
 ValuePtr ArrayValue::clear(Env *env) {
