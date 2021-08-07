@@ -291,6 +291,15 @@ public:
         return *this;
     }
 
+    Hashmap &operator=(Hashmap &&other) {
+        assert(!m_map.key_free); // don't know how to free keys with copy constructor yet (not needed?)
+        hashmap_destroy(&m_map);
+        m_map = other.m_map;
+        other.m_map.table = nullptr;
+        assert(m_map.table);
+        return *this;
+    }
+
     ~Hashmap() {
         hashmap_destroy(&m_map);
     }

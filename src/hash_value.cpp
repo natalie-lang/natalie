@@ -73,8 +73,13 @@ ValuePtr HashValue::remove(Env *env, ValuePtr key) {
     }
 }
 
-ValuePtr HashValue::default_proc(Env *env) {
-    return ProcValue::from_block_maybe(m_default_block);
+ValuePtr HashValue::clear(Env *env) {
+    this->assert_not_frozen(env);
+    Hashmap<Key *, Value *> blank_hashmap { hash, compare, 256 };
+    m_hashmap = std::move(blank_hashmap);
+    m_key_list = nullptr;
+    m_is_iterating = false;
+    return this;
 }
 
 ValuePtr HashValue::default_proc(Env *env) {

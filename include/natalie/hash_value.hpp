@@ -60,6 +60,8 @@ public:
 
     void put(Env *, ValuePtr, ValuePtr);
     ValuePtr remove(Env *, ValuePtr);
+    ValuePtr clear(Env *);
+
     ValuePtr default_proc(Env *);
     ValuePtr set_default_proc(Env *, ValuePtr);
     void set_default_proc(ProcValue *proc) { m_default_proc = proc; }
