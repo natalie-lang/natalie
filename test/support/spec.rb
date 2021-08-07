@@ -530,6 +530,12 @@ class Stub
     self
   end
 
+  def at_least(n)
+    # FIXME: support endless ranges
+    @count_restriction = n..9999999
+    self
+  end
+
   def once
     exactly(1)
     self
