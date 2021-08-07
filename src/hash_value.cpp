@@ -12,6 +12,10 @@ int HashValue::compare(const void *a, const void *b, Env *env) {
     assert(env);
     Key *a_p = (Key *)a;
     Key *b_p = (Key *)b;
+
+    if (a_p->key->object_id() == b_p->key->object_id() && a_p->hash == b_p->hash)
+        return 0;
+
     return a_p->key.send(env, "eql?", 1, &b_p->key)->is_truthy() ? 0 : 1; // return 0 for exact match
 }
 
@@ -43,7 +47,11 @@ ValuePtr HashValue::set_default(Env *env, ValuePtr value) {
 void HashValue::put(Env *env, ValuePtr key, ValuePtr val) {
     assert_not_frozen(env);
     Key key_container;
+    if (key->is_string() && !key->is_frozen()) {
+        key = key->as_string()->dup(env);
+    }
     key_container.key = key;
+
     key_container.hash = key.send(env, "hash")->as_integer()->to_nat_int_t();
     auto entry = m_hashmap.find_entry(&key_container, env);
     if (entry) {

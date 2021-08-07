@@ -250,6 +250,15 @@ describe 'hash' do
     h[a].should_not == h[b]
   end
 
+  it "handles two identical keys when #eql? isn't reflexive" do
+    x = mock('x')
+    x.should_receive(:hash).at_least(1).and_return(42)
+    x.stub!(:eql?).and_return(false)
+    hash = { x => 1 }
+    hash[x] = 2
+    hash.should == { x => 2 }
+  end
+
   describe 'merge/update' do
     it 'creates a new copy of the hash with the given hashes merged in' do
       h = { 0 => 0, 1 => 1 }
