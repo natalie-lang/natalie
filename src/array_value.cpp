@@ -7,7 +7,7 @@
 
 namespace Natalie {
 
-ValuePtr ArrayValue::initialize(Env *env, ValuePtr size, ValuePtr value) {
+ValuePtr ArrayValue::initialize(Env *env, ValuePtr size, ValuePtr value, Block *block) {
     if (!size) {
         return this;
     }
@@ -18,9 +18,16 @@ ValuePtr ArrayValue::initialize(Env *env, ValuePtr size, ValuePtr value) {
         return this;
     }
     size->assert_type(env, Value::Type::Integer, "Integer");
-    if (!value) value = NilValue::the();
-    for (nat_int_t i = 0; i < size->as_integer()->to_nat_int_t(); i++) {
-        push(value);
+    if (block) {
+        for (nat_int_t i = 0; i < size->as_integer()->to_nat_int_t(); i++) {
+            ValuePtr args = new IntegerValue { i };
+            push(NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 1, &args, nullptr));
+        }
+    } else {
+        if (!value) value = NilValue::the();
+        for (nat_int_t i = 0; i < size->as_integer()->to_nat_int_t(); i++) {
+            push(value);
+        }
     }
     return this;
 }

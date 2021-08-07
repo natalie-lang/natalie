@@ -91,7 +91,7 @@ public:
 
     bool is_empty() { return m_vector.is_empty(); }
 
-    ValuePtr initialize(Env *, ValuePtr, ValuePtr);
+    ValuePtr initialize(Env *, ValuePtr, ValuePtr, Block *);
 
     ValuePtr add(Env *, ValuePtr);
     ValuePtr any(Env *, size_t, ValuePtr *, Block *);

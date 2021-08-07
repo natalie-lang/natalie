@@ -313,6 +313,10 @@ describe 'array' do
     it 'returns an array filled with the given value and given length' do
       Array.new(5, :foo).should == [:foo, :foo, :foo, :foo, :foo]
     end
+
+    it "handles block correctly" do
+      Array.new(2) { |i| i }.should == [0, 1]
+    end
   end
 
   describe '#inspect' do
