@@ -23,12 +23,21 @@ ValuePtr HashValue::get(Env *env, ValuePtr key) {
 }
 
 ValuePtr HashValue::get_default(Env *env, ValuePtr key) {
-    if (m_default_block) {
+    if (m_default_proc) {
+        if (!key)
+            return NilValue::the();
         ValuePtr args[2] = { this, key };
-        return NAT_RUN_BLOCK_WITHOUT_BREAK(env, m_default_block, 2, args, nullptr);
+        return m_default_proc->call(env, 2, args, nullptr);
     } else {
         return m_default_value;
     }
+}
+
+ValuePtr HashValue::set_default(Env *env, ValuePtr value) {
+    this->assert_not_frozen(env);
+    m_default_value = value;
+    m_default_proc = nullptr;
+    return value;
 }
 
 void HashValue::put(Env *env, ValuePtr key, ValuePtr val) {
@@ -68,11 +77,27 @@ ValuePtr HashValue::default_proc(Env *env) {
     return ProcValue::from_block_maybe(m_default_block);
 }
 
-ValuePtr HashValue::default_value(Env *env) {
-    if (m_default_value)
-        return m_default_value;
+ValuePtr HashValue::default_proc(Env *env) {
+    return m_default_proc;
+}
 
-    return NilValue::the();
+ValuePtr HashValue::set_default_proc(Env *env, ValuePtr value) {
+    this->assert_not_frozen(env);
+    if (value == NilValue::the()) {
+        m_default_proc = nullptr;
+        return value;
+    }
+    auto to_proc = SymbolValue::intern("to_proc");
+    auto to_proc_value = value;
+    if (value->respond_to(env, to_proc))
+        to_proc_value = value.send(env, to_proc);
+    to_proc_value->assert_type(env, Type::Proc, "Proc");
+    auto proc = to_proc_value->as_proc();
+    auto arity = proc->arity();
+    if (proc->is_lambda() && arity != 2)
+        env->raise("TypeError", "default_proc takes two arguments (2 for {})", (long long)arity);
+    m_default_proc = proc;
+    return value;
 }
 
 HashValue::Key *HashValue::key_list_append(Env *env, ValuePtr key, ValuePtr val) {
@@ -131,9 +156,9 @@ ValuePtr HashValue::initialize(Env *env, ValuePtr default_value, Block *block) {
         if (default_value) {
             env->raise("ArgumentError", "wrong number of arguments (given 1, expected 0)");
         }
-        set_default_block(block);
+        set_default_proc(new ProcValue { block });
     } else if (default_value) {
-        set_default_value(default_value);
+        set_default(env, default_value);
     }
     return this;
 }
@@ -324,7 +349,7 @@ void HashValue::visit_children(Visitor &visitor) {
         visitor.visit(pair.second);
     }
     visitor.visit(m_default_value);
-    visitor.visit(m_default_block);
+    visitor.visit(m_default_proc);
 }
 
 }

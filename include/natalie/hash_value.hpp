@@ -55,17 +55,16 @@ public:
     bool is_empty() { return m_hashmap.size() == 0; }
 
     ValuePtr get(Env *, ValuePtr);
-    ValuePtr get_default(Env *, ValuePtr);
+    ValuePtr get_default(Env *, ValuePtr = nullptr);
+    ValuePtr set_default(Env *, ValuePtr);
+
     void put(Env *, ValuePtr, ValuePtr);
     ValuePtr remove(Env *, ValuePtr);
     ValuePtr default_proc(Env *);
-    ValuePtr default_value(Env *);
+    ValuePtr set_default_proc(Env *, ValuePtr);
+    void set_default_proc(ProcValue *proc) { m_default_proc = proc; }
 
     ValuePtr default_value() { return m_default_value; }
-    void set_default_value(ValuePtr val) { m_default_value = val; }
-
-    const Block *default_block() { return m_default_block; }
-    void set_default_block(Block *block) { m_default_block = block; }
 
     bool is_iterating() { return m_is_iterating; }
     void set_is_iterating(bool is_iterating) { m_is_iterating = is_iterating; }
@@ -160,6 +159,6 @@ private:
     Hashmap<Key *, Value *> m_hashmap { hash, compare, 256 };
     bool m_is_iterating { false };
     ValuePtr m_default_value { nullptr };
-    Block *m_default_block { nullptr };
+    ProcValue *m_default_proc { nullptr };
 };
 }
