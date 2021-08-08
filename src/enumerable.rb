@@ -479,6 +479,19 @@ module Enumerable
     end
   end
 
+  def max_by(n = nil)
+    return enum_for(:max_by) unless block_given?
+    if n
+      to_a.sort_by { |a| yield a }.last(n).reverse
+    else
+      max(n) { |a, b|
+        fa = yield(a)
+        fb = yield(b)
+        fa <=> fb
+      }
+    end
+  end
+
   def min(n = nil)
     has_block = block_given?
     cmp = ->(result) {
@@ -524,6 +537,19 @@ module Enumerable
       rescue StopIteration
       end
       val
+    end
+  end
+
+  def min_by(n = nil)
+    return enum_for(:min_by) unless block_given?
+    if n
+      to_a.sort_by { |a| yield a }.take(n)
+    else
+      min(n) { |a, b|
+        fa = yield(a)
+        fb = yield(b)
+        fa <=> fb
+      }
     end
   end
 
