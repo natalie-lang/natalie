@@ -859,6 +859,18 @@ module Enumerable
     to_a.sort_by!(&block)
   end
 
+  def sum(init = 0)
+    block_given = block_given?
+    each do |item|
+      if block_given
+        init += yield item
+      else
+        init += item
+      end
+    end
+    init
+  end
+
   def take(count)
     if not count.is_a? Integer and count.respond_to? :to_int
       count = count.to_int
