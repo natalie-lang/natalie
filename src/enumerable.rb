@@ -776,6 +776,43 @@ module Enumerable
     end
   end
 
+  def find_index(*args)
+    if args.length == 0 && !block_given?
+      return enum_for(:find_index)
+    end
+
+    if args.length > 1
+      raise ArgumentError, "wrong number of arguments (given #{args.length}, expected 1)"
+    end
+
+    block_given = block_given?
+
+    if args.size != 0 && block_given
+      block_given = false
+      $stderr.puts("warning: given block not used")
+    end
+
+    gather = ->(item) { item.size <= 1 ? item.first : item }
+    index = 0
+    found = false
+
+    each do |*item|
+      if block_given
+        if yield(*item)
+          found = true
+          break
+        end
+      elsif args.first == gather.(item)
+        found = true
+        break
+      end
+
+      index += 1
+    end
+
+    found ? index : nil
+  end
+
   def first(*args)
     if args.length == 0
       each do |*item|
