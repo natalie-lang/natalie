@@ -13,10 +13,11 @@ class Context
     @description = description
     @before_each = []
     @before_all = []
+    @after_each = []
     @skip = skip
   end
 
-  attr_reader :description, :before_each, :before_all, :skip
+  attr_reader :description, :before_each, :before_all, :after_each, :skip
 
   def add_before_each(block)
     @before_each << block
@@ -24,6 +25,10 @@ class Context
 
   def add_before_all(block)
     @before_all << block
+  end
+
+  def add_after_each(block)
+    @after_each << block
   end
 
   def to_s
@@ -129,6 +134,14 @@ def before(type = :each, &block)
     @context.last.add_before_all(block)
   else
     raise "I don't know how to do before(#{type.inspect})"
+  end
+end
+
+def after(type = :each, &block)
+  if type == :each
+    @context.last.add_after_each(block)
+  else
+    raise "I don't know how to do after(#{type.inspect})"
   end
 end
 
@@ -712,6 +725,11 @@ def run_specs
         print '.'
       end
       $expectations = []
+      context.each do |con|
+        con.after_each.each do |a|
+          a.call
+        end
+      end
     else
       @skipped << [context, test]
       print '*'
