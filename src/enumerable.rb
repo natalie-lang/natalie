@@ -553,6 +553,49 @@ module Enumerable
     end
   end
 
+  def minmax(&block)
+    block_given = block_given?
+    gather = ->(*item) { item.size <= 1 ? item.first : item }
+    cmp = ->(result) {
+      raise ArgumentError, "bad result from block" unless result.respond_to?(:<)
+      result < 0
+    }
+
+    enumerator = enum_for(:each)
+
+    begin
+      min = max = enumerator.next
+
+      loop do
+        value = gather.(enumerator.next)
+        if block_given
+          if cmp.(yield(value, min))
+            min = value
+          elsif cmp.(yield(max, value))
+            max = value
+          end
+        else
+          if cmp.(value <=> min)
+            min = value
+          elsif cmp.(max <=> value)
+            max = value
+          end
+        end
+      end
+    rescue StopIteration
+    end
+
+    [min, max]
+  end
+
+  def minmax_by(&block)
+    return enum_for(:minmax_by) unless block_given?
+
+    minmax { |a, b|
+      yield(a) <=> yield(b)
+    }
+  end
+
   def reject
     return enum_for(:reject) unless block_given?
 
