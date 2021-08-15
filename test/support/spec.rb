@@ -476,8 +476,38 @@ class Stub
     @pass = false
     @args = nil
     @count = 0
-    @count_restriction = Integer
+    at_least(1)
     @yield_values = []
+    @results = []
+    @raises = []
+
+    increment = -> { @count += 1 }
+    expected_args = @args
+    should_receive_called = -> { @pass = @count_restriction === @count }
+    return_values = @results
+    result = -> { return_values.size > 1 ? return_values[@count - 1] : return_values[0] }
+    yields = @yield_values
+    exception_to_raise = @raises
+    @subject.define_singleton_method(@message) do |*args|
+      if expected_args.nil? || args == expected_args
+        increment.()
+        should_receive_called.()
+
+        unless exception_to_raise.empty?
+          raise exception_to_raise.first
+        end
+
+        if block_given? && !yields.empty?
+          yields.each do |yield_value|
+            yield yield_value
+          end
+        elsif !return_values.empty?
+          result.()
+        end
+      else
+        fail
+      end
+    end
   end
 
   def with(*args)
@@ -486,48 +516,17 @@ class Stub
   end
 
   def and_return(*results)
-    should_receive_called = -> { @pass = @count_restriction === @count }
-    increment = -> { @count += 1 }
-    result = -> { results.size > 1 ? results[@count - 1] : results[0] }
-    expected_args = @args
-    @subject.define_singleton_method(@message) do |*args|
-      increment.()
-      if expected_args.nil? || args == expected_args
-        should_receive_called.()
-        result.()
-      else
-        puts 'TODO: make a way for the original method to be called from the stub'
-        fail
-      end
-    end
+    @results.concat(results)
     self
   end
 
   def and_raise(exception)
-    should_receive_expectation_passed = -> { @pass = true }
-    @subject.define_singleton_method(@message) do |*|
-      should_receive_expectation_passed.()
-      raise exception
-    end
+    @raises << exception
     self
   end
 
   def and_yield(value)
-    yields = @yield_values << value
-    should_receive_called = -> { @pass = @count_restriction === @count }
-    increment = -> { @count += 1 }
-    @subject.define_singleton_method(@message) do |*args|
-      increment.()
-
-      if (@args.nil? || args == @args) && block_given?
-        should_receive_called.()
-        yields.each do |yield_value|
-          yield yield_value
-        end
-      else
-        fail
-      end
-    end
+    @yield_values << value
     self
   end
 
@@ -538,7 +537,7 @@ class Stub
     when :twice
       @count_restriction = 0..2
     else
-      raise ArgumentError, "Unimplemented value #{n.inspect} for Stub#at_most"
+      @count_restriction = 0..n
     end
     self
   end
