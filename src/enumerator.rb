@@ -3,6 +3,7 @@ class Enumerator
 
   class Chain < Enumerator
     def initialize(*enumerables)
+      @current_feed = []
       @enum_block = Proc.new do |yielder|
         enumerables.each do |enumerable|
           enumerable.each do |item|
@@ -14,31 +15,46 @@ class Enumerator
   end
 
   class Yielder
-    def initialize(block = nil)
+    def initialize(block = nil, appending_args = [])
       @block = block
+      @appending_args = appending_args
     end
 
-    def yield(item)
+    def yield(item = nil)
       Fiber.yield(item)
     end
 
     alias << yield
 
     def to_proc
-      @block
+      if @block
+        -> (*args) {
+          @block.call(*args.concat(@appending_args))
+        }
+      end
     end
   end
 
   def initialize(size = nil, &enum_block)
     @size = size
     @enum_block = enum_block
+    @current_feed = []
   end
 
-  def each(&block)
-    @yielder = Yielder.new(block)
+  def each(*appending_args, &block)
+    unless block_given?
+      if appending_args.empty?
+        return self
+      else
+        return enum_for(:each, *appending_args)
+      end
+    end
+
+    @yielder = Yielder.new(block, appending_args)
     @fiber = Fiber.new do
       @enum_block.call @yielder
     end
+
     loop do
       begin
         yield self.next
@@ -48,16 +64,51 @@ class Enumerator
     end
   end
 
+  def feed(arg)
+    unless @current_feed.empty?
+      raise TypeError, 'feed value already set'
+    end
+    @current_feed = [arg]
+    nil
+  end
+
   def next
-    rewind unless @fiber
+    unless @fiber
+      @yielder = Yielder.new
+      @fiber = Fiber.new do
+        @enum_block.call @yielder
+      end
+    end
+
     if @peeked
       @peeked = false
       return @peeked_value
     end
-    @last_result = @fiber.resume(@last_result)
+
+    raise_stop_iteration = ->() {
+      raise StopIteration, 'iteration reached and end'
+    }
+
+    if @fiber.status == :terminated
+      raise_stop_iteration.()
+    end
+
+    begin
+      yield_return_value = @last_result
+      if !@current_feed.empty? && @fiber.status != :created
+        yield_return_value = @current_feed[0]
+        @current_feed = []
+      end
+
+      @last_result = @fiber.resume(yield_return_value)
+    rescue Exception => e
+      rewind
+      raise e
+    end
+
     if @fiber.status == :terminated
       @final_result = @last_result
-      raise StopIteration, 'iteration reached an end'
+      raise_stop_iteration.()
     end
     @last_result
   end
@@ -76,6 +127,8 @@ class Enumerator
     @fiber = Fiber.new do
       @enum_block.call @yielder
     end
+    @current_feed = []
+    self
   end
 
   def size
