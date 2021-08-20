@@ -21,7 +21,7 @@ describe "Enumerable#group_by" do
     h.default.should be_nil
   end
 
-  xit "returns an Enumerator if called without a block" do
+  it "returns an Enumerator if called without a block" do
     EnumerableSpecs::Numerous.new.group_by.should be_an_instance_of(Enumerator)
   end
 
@@ -34,14 +34,14 @@ describe "Enumerable#group_by" do
   end
 
   ruby_version_is ''...'2.7' do
-    xit "returns a tainted hash if self is tainted" do
+    it "returns a tainted hash if self is tainted" do
       EnumerableSpecs::Empty.new.taint.group_by {}.tainted?.should be_true
     end
 
-    xit "returns an untrusted hash if self is untrusted" do
+    it "returns an untrusted hash if self is untrusted" do
       EnumerableSpecs::Empty.new.untrust.group_by {}.untrusted?.should be_true
     end
   end
 
-  # it_behaves_like :enumerable_enumeratorized_with_origin_size, :group_by
+  it_behaves_like :enumerable_enumeratorized_with_origin_size, :group_by
 end

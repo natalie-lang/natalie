@@ -374,7 +374,7 @@ module Enumerable
   end
 
   def group_by
-    raise ArgumentError, 'Support #group_by without block' unless block_given?
+    return enum_for(:group_by) unless block_given?
 
     result = Hash.new
     each do |*items|
