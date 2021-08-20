@@ -134,6 +134,10 @@ def not_supported_on(_)
   yield
 end
 
+def suppress_warning
+  yield
+end
+
 def before(type = :each, &block)
   if type == :each
     @context.last.add_before_each(block)
