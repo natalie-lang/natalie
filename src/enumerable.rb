@@ -254,7 +254,17 @@ module Enumerable
   def each_slice(count)
     count = count.to_int
     raise ArgumentError, 'invalid slice size' if count < 1
-    return enum_for(:each_slice, count) unless block_given?
+
+    unless block_given?
+      return enum_for(:each_slice, count) do
+        if count.is_a?(Integer) && respond_to?(:size)
+          (size / count.to_f).ceil
+        else
+          Float::INFINITY
+        end
+      end
+    end
+
     slice = []
     each do |*items|
       slice << (items.size == 1 ? items.first : items)
