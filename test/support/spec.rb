@@ -119,12 +119,19 @@ def infinity_value
   1/0.0
 end
 
-def ruby_version_is(_)
-  yield # TODO
+def ruby_version_is(version)
+  without_patch_number = RUBY_VERSION.sub(/\.\d+$/, '')
+  if version === without_patch_number
+    yield
+  end
 end
 
-def platform_is_not(platform)
-  yield # TODO
+def platform_is_not(_)
+  yield
+end
+
+def not_supported_on(_)
+  yield
 end
 
 def before(type = :each, &block)
