@@ -49,5 +49,5 @@ describe "Enumerable#each_with_index" do
     count.arguments_passed.should == [:foo, :bar]
   end
 
-  # it_behaves_like :enumerable_enumeratorized_with_origin_size, :each_with_index
+  it_behaves_like :enumerable_enumeratorized_with_origin_size, :each_with_index
 end

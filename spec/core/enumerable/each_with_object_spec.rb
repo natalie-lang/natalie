@@ -26,7 +26,7 @@ describe "Enumerable#each_with_object" do
       obj.should equal(@initial)
       obj = 42
       acc << elem
-    end # FIXME: .should equal(@initial)
+    end.should equal(@initial)
     acc.should == @values
   end
 
@@ -37,6 +37,5 @@ describe "Enumerable#each_with_object" do
     array.should == [[1, 2], [3, 4, 5], [6, 7, 8, 9]]
   end
 
-  # FIXME:
-  #it_behaves_like :enumerable_enumeratorized_with_origin_size, [:each_with_object, []]
+  it_behaves_like :enumerable_enumeratorized_with_origin_size, [:each_with_object, []]
 end
