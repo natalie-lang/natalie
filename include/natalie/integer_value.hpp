@@ -43,6 +43,7 @@ public:
 
     ValuePtr to_s(Env *, ValuePtr = nullptr);
     ValuePtr to_i();
+    ValuePtr to_f();
     ValuePtr add(Env *, ValuePtr);
     ValuePtr sub(Env *, ValuePtr);
     ValuePtr mul(Env *, ValuePtr);

@@ -38,6 +38,10 @@ ValuePtr IntegerValue::to_i() {
     return this;
 }
 
+ValuePtr IntegerValue::to_f() {
+    return new FloatValue { m_integer };
+}
+
 ValuePtr IntegerValue::add(Env *env, ValuePtr arg) {
     if (arg.is_float()) {
         double result = to_nat_int_t() + arg->as_float()->to_double();
