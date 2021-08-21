@@ -106,6 +106,7 @@ public:
     ValuePtr eq(Env *, ValuePtr);
     ValuePtr eql(Env *, ValuePtr);
     ValuePtr first(Env *, ValuePtr);
+    ValuePtr flatten(Env *, ValuePtr);
     ValuePtr include(Env *, ValuePtr);
     ValuePtr index(Env *, ValuePtr, Block *);
     ValuePtr inspect(Env *);

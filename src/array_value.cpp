@@ -340,6 +340,26 @@ ValuePtr ArrayValue::first(Env *env, ValuePtr n) {
     return array;
 }
 
+ValuePtr ArrayValue::flatten(Env *env, ValuePtr n) {
+    //TODO Implement this
+    ArrayValue *array = new ArrayValue();
+
+    for (size_t i = 0; i < size(); ++i) {
+        auto item = (*this)[i];
+        auto value = item.value_or_null();
+        if (value == nullptr || (!value->is_array())) {
+            array->push(item);
+        } else {
+            auto nested = value->as_array()->flatten(env, n)->as_array();
+            for(size_t j = 0; j < nested->size(); ++j) {
+                array->push((*nested)[j]);
+            }
+        }
+    }
+
+    return array;
+}
+
 ValuePtr ArrayValue::drop(Env *env, ValuePtr n) {
     n->assert_type(env, Value::Type::Integer, "Integer");
     nat_int_t n_value = n->as_integer()->to_nat_int_t();
