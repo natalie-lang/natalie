@@ -555,7 +555,14 @@ class Stub
 
   def at_least(n)
     # FIXME: support endless ranges
-    @count_restriction = n..9999999
+    case n
+    when :once
+      @count_restriction = 1..9999999
+    when :twice
+      @count_restriction = 2..9999999
+    else
+      @count_restriction = n..9999999
+    end
     self
   end
 
