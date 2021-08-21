@@ -340,19 +340,89 @@ ValuePtr ArrayValue::first(Env *env, ValuePtr n) {
     return array;
 }
 
-ValuePtr ArrayValue::flatten(Env *env, ValuePtr n) {
-    //TODO Implement this
-    ArrayValue *array = new ArrayValue();
+ValuePtr ArrayValue::flatten(Env *env, ValuePtr depth) {
+    Vector<ArrayValue *> visited;
+    ArrayValue *array = new ArrayValue(klass());
+
+    auto has_depth = depth != nullptr;
+    if (has_depth) {
+        auto sym_to_i = SymbolValue::intern("to_i");
+        auto sym_to_int = SymbolValue::intern("to_int");
+        if (!depth->is_integer()) {
+            if (depth->respond_to(env, sym_to_i)) {
+                depth = depth.send(env, sym_to_i);
+            } else if (depth->respond_to(env, sym_to_int)) {
+                depth = depth.send(env, sym_to_int);
+            } else {
+                env->raise("TypeError", "no implicit conversion of {} into Integer", depth->klass()->class_name_or_blank());
+                return nullptr;
+            }
+        }
+
+        depth->assert_type(env, Value::Type::Integer, "Integer");
+        nat_int_t depth_value = depth->as_integer()->to_nat_int_t();
+
+        return _flatten(env, depth_value, visited);
+    }
+
+    return _flatten(env, -1, visited);
+}
+
+ValuePtr ArrayValue::_flatten(Env *env, nat_int_t depth, Vector<ArrayValue *> visited_arrays) {
+    for (size_t i = 0; i < visited_arrays.size(); i++) {
+        if (visited_arrays.at(i) == this) {
+            env->raise("ArgumentError", "tried to flatten recursive array");
+            return nullptr;
+        }
+    }
+
+    ArrayValue *array = new ArrayValue(this->m_klass);
 
     for (size_t i = 0; i < size(); ++i) {
         auto item = (*this)[i];
-        auto value = item.value_or_null();
-        if (value == nullptr || (!value->is_array())) {
+
+        if (depth == 0 || item == nullptr) {
+            array->push(item);
+            continue;
+        }
+
+        if (!item->is_array()) {
+            auto sym_to_ary = SymbolValue::intern("to_ary");
+            auto sym_to_a = SymbolValue::intern("to_a");
+            auto original_item_class = item->klass();
+            ValuePtr new_item;
+
+            if (item->respond_to(env, sym_to_ary)) {
+                new_item = item.send(env, sym_to_ary);
+            } else if (item->respond_to(env, sym_to_a)) {
+                new_item = item.send(env, sym_to_a);
+            }
+
+            if (new_item != nullptr && !new_item->is_nil()) {
+                if (!new_item->is_array()) {
+                    auto original_item_class_name = original_item_class->class_name_or_blank();
+                    auto new_item_class_name = item->klass()->class_name_or_blank();
+                    env->raise(
+                        "TypeError",
+                        "can't convert {} to Array ({}#to_ary gives {})",
+                        original_item_class_name,
+                        original_item_class_name,
+                        new_item_class_name);
+                    return nullptr;
+                }
+
+                item = new_item;
+            }
+        }
+
+        if ((!item->is_array())) {
             array->push(item);
         } else {
-            auto nested = value->as_array()->flatten(env, n)->as_array();
-            for(size_t j = 0; j < nested->size(); ++j) {
-                array->push((*nested)[j]);
+            visited_arrays.push(this);
+
+            auto flattened = item->as_array()->_flatten(env, depth - 1, visited_arrays)->as_array();
+            for (size_t j = 0; j < flattened->size(); ++j) {
+                array->push((*flattened)[j]);
             }
         }
     }
