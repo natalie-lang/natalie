@@ -157,7 +157,12 @@ private:
         : Value { Value::Type::Array, GlobalEnv::the()->Array() }
         , m_vector { std::move(vector) } { }
 
+    ArrayValue(ClassValue *klass)
+        : Value { Value::Type::Array, klass } { }
+
     Vector<ValuePtr> m_vector {};
+
+    ValuePtr _flatten(Env *, nat_int_t depth, Vector<ArrayValue *> visited_arrays);
 };
 
 }
