@@ -151,6 +151,8 @@ class Enumerator
     end
 
     def map(&block)
+      raise ArgumentError, 'tried to call lazy select without a block' unless block_given?
+
       Lazy.new(self, @size) do |yielder|
         begin
           loop do
