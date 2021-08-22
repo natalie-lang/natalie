@@ -20,7 +20,7 @@ class Enumerator
       @appending_args = appending_args
     end
 
-    def yield(item = nil)
+    def yield(*item)
       Fiber.yield(item)
     end
 
@@ -73,16 +73,21 @@ class Enumerator
   end
 
   def next
+    if @peeked
+      @peeked = false
+      return @peeked_value
+    end
+
+    gather = ->(i) { i.size <= 1 ? i.first : i }
+    @last_result = gather.(self.next_values)
+  end
+
+  def next_values
     unless @fiber
       @yielder = Yielder.new
       @fiber = Fiber.new do
         @enum_block.call @yielder
       end
-    end
-
-    if @peeked
-      @peeked = false
-      return @peeked_value
     end
 
     raise_stop_iteration = ->() {
@@ -99,7 +104,6 @@ class Enumerator
         yield_return_value = @current_feed[0]
         @current_feed = []
       end
-
       @last_result = @fiber.resume(yield_return_value)
     rescue Exception => e
       rewind
