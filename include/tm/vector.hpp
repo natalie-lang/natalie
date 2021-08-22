@@ -115,10 +115,12 @@ public:
     }
 
     T pop_front() {
-        return pop_at(0);
+        T val = m_data[0];
+        remove(0);
+        return val;
     }
 
-    T pop_at(size_t index) {
+    void remove(size_t index) {
         assert(m_size > index);
         T val = m_data[index];
 
@@ -126,8 +128,6 @@ public:
             m_data[i - 1] = m_data[i];
         }
         --m_size;
-
-        return val;
     }
 
     bool is_empty() const { return m_size == 0; }

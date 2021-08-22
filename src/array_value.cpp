@@ -347,10 +347,7 @@ ValuePtr ArrayValue::flatten(Env *env, ValuePtr depth) {
 }
 
 ValuePtr ArrayValue::flatten_in_place(Env *env, ValuePtr depth) {
-    if (is_frozen()) {
-        env->raise("FrozenError", "can't modify frozen Array: {}", inspect_str(env));
-        return nullptr;
-    }
+    this->assert_not_frozen(env);
 
     bool changed { false };
 
@@ -427,7 +424,7 @@ bool ArrayValue::_flatten_in_place(Env *env, nat_int_t depth, Hashmap<ArrayValue
 
         if (item->is_array()) {
             changed = true;
-            m_vector.pop_at(i - 1);
+            m_vector.remove(i - 1);
 
             auto array_item = item->as_array();
 
