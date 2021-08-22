@@ -386,7 +386,8 @@ ValuePtr ArrayValue::flatten_in_place(Env *env, ValuePtr depth) {
 bool ArrayValue::_flatten_in_place(Env *env, nat_int_t depth, Hashmap<ArrayValue *> visited) {
     bool changed { false };
 
-    visited.set(this);
+    if (visited.is_empty())
+        visited.set(this);
 
     for (size_t i = size(); i > 0; --i) {
         auto item = (*this)[i - 1];
@@ -428,7 +429,6 @@ bool ArrayValue::_flatten_in_place(Env *env, nat_int_t depth, Hashmap<ArrayValue
             changed = true;
             m_vector.pop_at(i - 1);
 
-            // FIXME use a copy so we avoid altering the content of nested arrays
             auto array_item = item->as_array();
 
             if (visited.get(array_item) != nullptr) {
@@ -436,14 +436,21 @@ bool ArrayValue::_flatten_in_place(Env *env, nat_int_t depth, Hashmap<ArrayValue
                 return false;
             }
 
-            array_item->_flatten_in_place(env, depth - 1, visited);
-            for (size_t j = 0; j < array_item->size(); ++j) {
-                m_vector.insert(i + j - 1, (*array_item)[j]);
+            // add current array item so if it is referenced by any of its children a loop is detected
+            visited.set(array_item);
+
+            // use a copy so we avoid altering the content of nested arrays
+            ArrayValue *copy = new ArrayValue { *array_item };
+
+            copy->_flatten_in_place(env, depth - 1, visited);
+            for (size_t j = 0; j < copy->size(); ++j) {
+                m_vector.insert(i + j - 1, (*copy)[j]);
             }
+
+            // remove current array item as same reference siblings are valid
+            visited.remove(array_item);
         }
     }
-
-    visited.remove(this);
 
     return changed;
 }

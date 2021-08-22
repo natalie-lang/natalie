@@ -160,7 +160,7 @@ private:
 
     Vector<ValuePtr> m_vector {};
 
-    bool _flatten_in_place(Env *, nat_int_t depth, Hashmap<ArrayValue *> visited_arrays = Hashmap<ArrayValue *>{});
+    bool _flatten_in_place(Env *, nat_int_t depth, Hashmap<ArrayValue *> visited_arrays = Hashmap<ArrayValue *> {});
 };
 
 }
