@@ -353,7 +353,6 @@ ValuePtr ArrayValue::flatten_in_place(Env *env, ValuePtr depth) {
     }
 
     bool changed { false };
-    Vector<ArrayValue *> visited;
 
     auto has_depth = depth != nullptr;
     if (has_depth) {
@@ -373,9 +372,9 @@ ValuePtr ArrayValue::flatten_in_place(Env *env, ValuePtr depth) {
         depth->assert_type(env, Value::Type::Integer, "Integer");
         nat_int_t depth_value = depth->as_integer()->to_nat_int_t();
 
-        changed = _flatten_in_place(env, depth_value, visited);
+        changed = _flatten_in_place(env, depth_value);
     } else {
-        changed = _flatten_in_place(env, -1, visited);
+        changed = _flatten_in_place(env, -1);
     }
 
     if (changed)
@@ -384,14 +383,10 @@ ValuePtr ArrayValue::flatten_in_place(Env *env, ValuePtr depth) {
     return NilValue::the();
 }
 
-bool ArrayValue::_flatten_in_place(Env *env, nat_int_t depth, Vector<ArrayValue *> visited_arrays) {
+bool ArrayValue::_flatten_in_place(Env *env, nat_int_t depth, Hashmap<ArrayValue *> visited) {
     bool changed { false };
-    for (size_t i = 0; i < visited_arrays.size(); i++) {
-        if (visited_arrays.at(i) == this) {
-            env->raise("ArgumentError", "tried to flatten recursive array");
-            return false;
-        }
-    }
+
+    visited.set(this);
 
     for (size_t i = size(); i > 0; --i) {
         auto item = (*this)[i - 1];
@@ -432,16 +427,23 @@ bool ArrayValue::_flatten_in_place(Env *env, nat_int_t depth, Vector<ArrayValue 
         if (item->is_array()) {
             changed = true;
             m_vector.pop_at(i - 1);
-            visited_arrays.push(this);
 
             // FIXME use a copy so we avoid altering the content of nested arrays
             auto array_item = item->as_array();
-            array_item->_flatten_in_place(env, depth - 1, visited_arrays);
+
+            if (visited.get(array_item) != nullptr) {
+                env->raise("ArgumentError", "tried to flatten recursive array");
+                return false;
+            }
+
+            array_item->_flatten_in_place(env, depth - 1, visited);
             for (size_t j = 0; j < array_item->size(); ++j) {
                 m_vector.insert(i + j - 1, (*array_item)[j]);
             }
         }
     }
+
+    visited.remove(this);
 
     return changed;
 }
