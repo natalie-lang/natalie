@@ -75,7 +75,14 @@ ValuePtr ArrayValue::sub(Env *env, ValuePtr other) {
         }
     }
     return new_array;
-}
+} 
+
+ValuePtr ArrayValue::sum(Env *env, size_t argc, ValuePtr *args, Block *block) { 
+    // FIXME: this is not exactly the way ruby does it 
+    auto Enumerable = GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("Enumerable"))->as_module(); 
+    auto sum_method = Enumerable->find_method(env, SymbolValue::intern("sum")); 
+    return sum_method->call(env, this, argc, args, block); 
+} 
 
 ValuePtr ArrayValue::ref(Env *env, ValuePtr index_obj, ValuePtr size) {
     if (index_obj->type() == Value::Type::Integer) {
