@@ -49,7 +49,8 @@ ValuePtr RangeValue::to_a(Env *env) {
 }
 
 ValuePtr RangeValue::each(Env *env, Block *block) {
-    env->ensure_block_given(block);
+    if (!block)
+        return _send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("each") });
 
     ValuePtr break_value = iterate_over_range(env, [&](ValuePtr item) -> ValuePtr {
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
