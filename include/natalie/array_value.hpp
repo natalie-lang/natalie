@@ -100,6 +100,7 @@ public:
     ValuePtr cmp(Env *, ValuePtr);
     ValuePtr clear(Env *);
     ValuePtr compact(Env *);
+    ValuePtr compact_in_place(Env *);
     ValuePtr concat(Env *, size_t, ValuePtr *);
     ValuePtr dig(Env *, size_t, ValuePtr *);
     ValuePtr drop(Env *, ValuePtr);
