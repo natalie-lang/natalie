@@ -138,4 +138,42 @@ class Enumerator
   def size
     @size
   end
+
+  class Lazy < Enumerator
+    def initialize(obj, size = nil, &block)
+      unless block_given?
+        raise ArgumentError, 'tried to call lazy new without a block'
+      end
+
+      @obj = obj
+
+      super(size, &block)
+    end
+
+    def map(&block)
+      Lazy.new(self, @size) do |yielder|
+        begin
+          loop do
+            element = self.next_values
+            yielder << block.call(*element)
+          end
+        rescue StopIteration
+        end
+      end
+    end
+
+    def lazy
+      self
+    end
+
+    alias force to_a
+
+    private
+
+    # Add #with_index if implemented in Enumerator
+    %i(collect collect_concat drop drop_while filter filter_map find_all flat_map grep grep_v map reject select take take_while uniq zip).each do |meth|
+      alias_method "_enumerable_#{meth}", meth
+    end
+
+  end
 end
