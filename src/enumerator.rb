@@ -161,6 +161,7 @@ class Enumerator
         end
       end
     end
+    alias collect map
 
     def lazy
       self
