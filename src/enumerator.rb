@@ -165,6 +165,21 @@ class Enumerator
     end
     alias collect map
 
+    def select(&block)
+      raise ArgumentError, 'tried to call lazy select without a block' unless block_given?
+
+      Lazy.new(self) do |yielder|
+        begin
+          loop do
+            element = self.next
+            yielder.yield(*element) if block.call(element)
+          end
+        rescue StopIteration
+        end
+      end
+    end
+    alias filter select
+
     def lazy
       self
     end
