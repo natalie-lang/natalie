@@ -101,6 +101,7 @@ public:
     ValuePtr clear(Env *);
     ValuePtr compact(Env *);
     ValuePtr concat(Env *, size_t, ValuePtr *);
+    ValuePtr dig(Env *, size_t, ValuePtr *);
     ValuePtr drop(Env *, ValuePtr);
     ValuePtr each(Env *, Block *);
     ValuePtr eq(Env *, ValuePtr);
@@ -122,7 +123,7 @@ public:
     ValuePtr one(Env *, size_t, ValuePtr *, Block *);
     ValuePtr push(Env *, size_t, ValuePtr *);
     ValuePtr rassoc(Env *, ValuePtr);
-    ValuePtr ref(Env *, ValuePtr, ValuePtr);
+    ValuePtr ref(Env *, ValuePtr, ValuePtr = nullptr);
     ValuePtr refeq(Env *, ValuePtr, ValuePtr, ValuePtr);
     ValuePtr reject(Env *, Block *);
     ValuePtr reverse(Env *);

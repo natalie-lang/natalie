@@ -430,6 +430,22 @@ ValuePtr ArrayValue::_flatten(Env *env, nat_int_t depth, Vector<ArrayValue *> vi
     return array;
 }
 
+ValuePtr ArrayValue::dig(Env *env, size_t argc, ValuePtr *args) {
+    env->ensure_argc_at_least(argc, 1);
+    auto dig = SymbolValue::intern("dig");
+    ValuePtr val = ref(env, args[0]);
+    if (argc == 1)
+        return val;
+
+    if (val == NilValue::the())
+        return val;
+
+    if (!val->respond_to(env, dig))
+        env->raise("TypeError", "{} does not have #dig method", val->klass()->class_name_or_blank());
+
+    return val.send(env, dig, argc - 1, &args[1]);
+}
+
 ValuePtr ArrayValue::drop(Env *env, ValuePtr n) {
     n->assert_type(env, Value::Type::Integer, "Integer");
     nat_int_t n_value = n->as_integer()->to_nat_int_t();

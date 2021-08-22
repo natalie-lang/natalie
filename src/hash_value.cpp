@@ -256,6 +256,22 @@ ValuePtr HashValue::delete_key(Env *env, ValuePtr key) {
     }
 }
 
+ValuePtr HashValue::dig(Env *env, size_t argc, ValuePtr *args) {
+    env->ensure_argc_at_least(argc, 1);
+    auto dig = SymbolValue::intern("dig");
+    ValuePtr val = ref(env, args[0]);
+    if (argc == 1)
+        return val;
+
+    if (val == NilValue::the())
+        return val;
+
+    if (!val->respond_to(env, dig))
+        env->raise("TypeError", "{} does not have #dig method", val->klass()->class_name_or_blank());
+
+    return val.send(env, dig, argc - 1, &args[1]);
+}
+
 ValuePtr HashValue::size(Env *env) {
     return IntegerValue::from_size_t(env, size());
 }
