@@ -107,6 +107,7 @@ public:
     ValuePtr eql(Env *, ValuePtr);
     ValuePtr first(Env *, ValuePtr);
     ValuePtr flatten(Env *, ValuePtr);
+    ValuePtr flatten_in_place(Env *, ValuePtr);
     ValuePtr include(Env *, ValuePtr);
     ValuePtr index(Env *, ValuePtr, Block *);
     ValuePtr inspect(Env *);
@@ -157,12 +158,9 @@ private:
         : Value { Value::Type::Array, GlobalEnv::the()->Array() }
         , m_vector { std::move(vector) } { }
 
-    ArrayValue(ClassValue *klass)
-        : Value { Value::Type::Array, klass } { }
-
     Vector<ValuePtr> m_vector {};
 
-    ValuePtr _flatten(Env *, nat_int_t depth, Vector<ArrayValue *> visited_arrays);
+    bool _flatten_in_place(Env *, nat_int_t depth, Vector<ArrayValue *> visited_arrays);
 };
 
 }

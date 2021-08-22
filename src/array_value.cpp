@@ -341,8 +341,19 @@ ValuePtr ArrayValue::first(Env *env, ValuePtr n) {
 }
 
 ValuePtr ArrayValue::flatten(Env *env, ValuePtr depth) {
+    ArrayValue *copy = new ArrayValue { *this };
+    copy->flatten_in_place(env, depth);
+    return copy;
+}
+
+ValuePtr ArrayValue::flatten_in_place(Env *env, ValuePtr depth) {
+    if (is_frozen()) {
+        env->raise("FrozenError", "can't modify frozen Array: {}", inspect_str(env));
+        return nullptr;
+    }
+
+    bool changed { false };
     Vector<ArrayValue *> visited;
-    ArrayValue *array = new ArrayValue(klass());
 
     auto has_depth = depth != nullptr;
     if (has_depth) {
@@ -362,27 +373,30 @@ ValuePtr ArrayValue::flatten(Env *env, ValuePtr depth) {
         depth->assert_type(env, Value::Type::Integer, "Integer");
         nat_int_t depth_value = depth->as_integer()->to_nat_int_t();
 
-        return _flatten(env, depth_value, visited);
+        changed = _flatten_in_place(env, depth_value, visited);
+    } else {
+        changed = _flatten_in_place(env, -1, visited);
     }
 
-    return _flatten(env, -1, visited);
+    if (changed)
+        return this;
+
+    return NilValue::the();
 }
 
-ValuePtr ArrayValue::_flatten(Env *env, nat_int_t depth, Vector<ArrayValue *> visited_arrays) {
+bool ArrayValue::_flatten_in_place(Env *env, nat_int_t depth, Vector<ArrayValue *> visited_arrays) {
+    bool changed { false };
     for (size_t i = 0; i < visited_arrays.size(); i++) {
         if (visited_arrays.at(i) == this) {
             env->raise("ArgumentError", "tried to flatten recursive array");
-            return nullptr;
+            return false;
         }
     }
 
-    ArrayValue *array = new ArrayValue(this->m_klass);
-
-    for (size_t i = 0; i < size(); ++i) {
-        auto item = (*this)[i];
+    for (size_t i = size(); i > 0; --i) {
+        auto item = (*this)[i - 1];
 
         if (depth == 0 || item == nullptr) {
-            array->push(item);
             continue;
         }
 
@@ -408,26 +422,28 @@ ValuePtr ArrayValue::_flatten(Env *env, nat_int_t depth, Vector<ArrayValue *> vi
                         original_item_class_name,
                         original_item_class_name,
                         new_item_class_name);
-                    return nullptr;
+                    return false;
                 }
 
                 item = new_item;
             }
         }
 
-        if ((!item->is_array())) {
-            array->push(item);
-        } else {
+        if (item->is_array()) {
+            changed = true;
+            m_vector.pop_at(i - 1);
             visited_arrays.push(this);
 
-            auto flattened = item->as_array()->_flatten(env, depth - 1, visited_arrays)->as_array();
-            for (size_t j = 0; j < flattened->size(); ++j) {
-                array->push((*flattened)[j]);
+            // FIXME use a copy so we avoid altering the content of nested arrays
+            auto array_item = item->as_array();
+            array_item->_flatten_in_place(env, depth - 1, visited_arrays);
+            for (size_t j = 0; j < array_item->size(); ++j) {
+                m_vector.insert(i + j - 1, (*array_item)[j]);
             }
         }
     }
 
-    return array;
+    return changed;
 }
 
 ValuePtr ArrayValue::drop(Env *env, ValuePtr n) {
