@@ -441,6 +441,22 @@ module Enumerable
 
   alias reduce inject
 
+  def lazy(&block)
+    if block_given?
+      Enumerator::Lazy.new(self, &block)
+    else
+      Enumerator::Lazy.new(self) { |yielder|
+        enum = self.each
+        begin
+          loop do
+            yielder.yield(*enum.next_values)
+          end
+        rescue StopIteration
+        end
+      }
+    end
+  end
+
   def max(n = nil)
     has_block = block_given?
     cmp = ->(result) {
