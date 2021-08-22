@@ -786,6 +786,24 @@ ValuePtr ArrayValue::compact(Env *env) {
     return ary;
 }
 
+ValuePtr ArrayValue::compact_in_place(Env *env) {
+    this->assert_not_frozen(env);
+
+    bool changed { false };
+    for (size_t i = size(); i > 0; --i) {
+        auto item = (*this)[i - 1];
+        if (item->is_nil()) {
+            changed = true;
+            m_vector.remove(i - 1);
+        }
+    }
+
+    if (changed)
+        return this;
+
+    return NilValue::the();
+}
+
 ValuePtr ArrayValue::uniq_in_place(Env *env, Block *block) {
     this->assert_not_frozen(env);
 
