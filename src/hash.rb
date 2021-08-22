@@ -1,4 +1,8 @@
 class Hash
+  class << self
+    alias allocate new
+  end
+
   def key(value)
     each do |k, v|
       return k if v == value
