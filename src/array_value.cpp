@@ -302,7 +302,9 @@ ValuePtr ArrayValue::eql(Env *env, ValuePtr other) {
 }
 
 ValuePtr ArrayValue::each(Env *env, Block *block) {
-    env->ensure_block_given(block); // TODO: return Enumerator when no block given
+    if (!block)
+        return _send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("each") });
+
     for (auto &obj : *this) {
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &obj, nullptr);
     }
