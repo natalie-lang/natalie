@@ -44,7 +44,7 @@ public:
         }
     }
 
-    static ValuePtr square_new(Env *, size_t argc, ValuePtr *args);
+    static ValuePtr square_new(Env *, size_t argc, ValuePtr *args, ClassValue *klass);
 
     static nat_int_t hash(const void *);
     static int compare(const void *, const void *, Env *);

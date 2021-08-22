@@ -177,34 +177,42 @@ ValuePtr HashValue::initialize(Env *env, ValuePtr default_value, Block *block) {
 }
 
 // Hash[]
-ValuePtr HashValue::square_new(Env *env, size_t argc, ValuePtr *args) {
+ValuePtr HashValue::square_new(Env *env, size_t argc, ValuePtr *args, ClassValue *klass) {
     if (argc == 0) {
-        return new HashValue {};
+        return new HashValue { klass };
     } else if (argc == 1) {
         ValuePtr value = args[0];
-        if (value->type() == Value::Type::Hash) {
-            return value;
-        } else if (value->type() == Value::Type::Array) {
-            HashValue *hash = new HashValue {};
-            for (auto &pair : *value->as_array()) {
-                if (pair->type() != Value::Type::Array) {
-                    env->raise("ArgumentError", "wrong element in array to Hash[]");
-                }
-                size_t size = pair->as_array()->size();
-                if (size < 1 || size > 2) {
-                    env->raise("ArgumentError", "invalid number of elements ({} for 1..2)", size);
-                }
-                ValuePtr key = (*pair->as_array())[0];
-                ValuePtr value = size == 1 ? NilValue::the() : (*pair->as_array())[1];
-                hash->put(env, key, value);
-            }
+        if (!value->is_hash() && value->respond_to(env, SymbolValue::intern("to_hash")))
+            value = value.send(env, SymbolValue::intern("to_hash"));
+        if (value->is_hash()) {
+            auto hash = new HashValue { env, *value->as_hash() };
+            hash->m_klass = klass;
             return hash;
+        } else {
+            if (!value->is_array() && value->respond_to(env, SymbolValue::intern("to_ary")))
+                value = value.send(env, SymbolValue::intern("to_ary"));
+            if (value->is_array()) {
+                HashValue *hash = new HashValue { klass };
+                for (auto &pair : *value->as_array()) {
+                    if (pair->type() != Value::Type::Array) {
+                        env->raise("ArgumentError", "wrong element in array to Hash[]");
+                    }
+                    size_t size = pair->as_array()->size();
+                    if (size < 1 || size > 2) {
+                        env->raise("ArgumentError", "invalid number of elements ({} for 1..2)", size);
+                    }
+                    ValuePtr key = (*pair->as_array())[0];
+                    ValuePtr value = size == 1 ? NilValue::the() : (*pair->as_array())[1];
+                    hash->put(env, key, value);
+                }
+                return hash;
+            }
         }
     }
     if (argc % 2 != 0) {
         env->raise("ArgumentError", "odd number of arguments for Hash");
     }
-    HashValue *hash = new HashValue {};
+    HashValue *hash = new HashValue { klass };
     for (size_t i = 0; i < argc; i += 2) {
         ValuePtr key = args[i];
         ValuePtr value = args[i + 1];

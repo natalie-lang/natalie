@@ -44,7 +44,7 @@ class BindingGen
   end
 
   class Binding
-    def initialize(rb_class, rb_method, cpp_class, cpp_method, argc:, pass_env:, pass_block:, return_type:, singleton: false, static: false)
+    def initialize(rb_class, rb_method, cpp_class, cpp_method, argc:, pass_env:, pass_block:, return_type:, singleton: false, static: false, pass_klass: false)
       @rb_class = rb_class
       @rb_method = rb_method
       @cpp_class = cpp_class
@@ -52,13 +52,14 @@ class BindingGen
       @argc = argc
       @pass_env = pass_env
       @pass_block = pass_block
+      @pass_klass = pass_klass
       @return_type = return_type
       @singleton = singleton
       @static = static
       generate_name
     end
 
-    attr_reader :rb_class, :rb_method, :cpp_class, :cpp_method, :argc, :pass_env, :pass_block, :return_type, :name
+    attr_reader :rb_class, :rb_method, :cpp_class, :cpp_method, :argc, :pass_env, :pass_block, :pass_klass, :return_type, :name
 
     def arity
       case argc
@@ -95,7 +96,7 @@ ValuePtr #{name}(Env *env, ValuePtr self_value, size_t argc, ValuePtr *args, Blo
 
     def write_static_function
       puts <<-FUNC
-ValuePtr #{name}(Env *env, ValuePtr, size_t argc, ValuePtr *args, Block *block) {
+ValuePtr #{name}(Env *env, ValuePtr klass, size_t argc, ValuePtr *args, Block *block) {
     #{argc_assertion}
     auto return_value = #{cpp_class}::#{cpp_method}(#{args_to_pass});
     #{return_code}
@@ -106,15 +107,15 @@ ValuePtr #{name}(Env *env, ValuePtr, size_t argc, ValuePtr *args, Block *block) 
     def args_to_pass
       case argc
       when :any
-        [env_arg, 'argc', 'args', block_arg].compact.join(', ')
+        [env_arg, 'argc', 'args', block_arg, klass_arg].compact.join(', ')
       when Range
         if argc.end
-          ([env_arg] + args + [block_arg]).compact.join(', ')
+          ([env_arg] + args + [block_arg, klass_arg]).compact.join(', ')
         else
-          [env_arg, 'argc', 'args', block_arg].compact.join(', ')
+          [env_arg, 'argc', 'args', block_arg, klass_arg].compact.join(', ')
         end
       when Integer
-        ([env_arg] + args + [block_arg]).compact.join(', ')
+        ([env_arg] + args + [block_arg, klass_arg]).compact.join(', ')
       end
     end
 
@@ -187,6 +188,12 @@ ValuePtr #{name}(Env *env, ValuePtr, size_t argc, ValuePtr *args, Block *block) 
     def block_arg
       if pass_block
         'block'
+      end
+    end
+
+    def klass_arg
+      if pass_klass
+        'klass->as_class()'
       end
     end
 
@@ -422,7 +429,7 @@ gen.binding('Float', 'zero?', 'FloatValue', 'is_zero', argc: 0, pass_env: false,
 gen.static_binding('GC', 'enable', 'GCModule', 'enable', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.static_binding('GC', 'disable', 'GCModule', 'disable', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 
-gen.static_binding('Hash', '[]', 'HashValue', 'square_new', argc: :any, pass_env: true, pass_block: false, return_type: :Value)
+gen.static_binding('Hash', '[]', 'HashValue', 'square_new', argc: :any, pass_env: true, pass_block: false, pass_klass: true, return_type: :Value)
 gen.binding('Hash', '==', 'HashValue', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Hash', '===', 'HashValue', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Hash', '[]', 'HashValue', 'ref', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
