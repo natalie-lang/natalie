@@ -253,7 +253,8 @@ ValuePtr ArrayValue::refeq(Env *env, ValuePtr index_obj, ValuePtr size, ValuePtr
 }
 
 ValuePtr ArrayValue::any(Env *env, size_t argc, ValuePtr *args, Block *block) {
-    // FIXME: this is not exactly the way ruby does it
+    // FIXME: deletating to Enumerable#any? like this does not have the same semantics as MRI,
+    // i.e. one can override Enumerable#any? in MRI and it won't affect Array#any?.
     auto Enumerable = GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("Enumerable"))->as_module();
     auto any_method = Enumerable->find_method(env, SymbolValue::intern("any?"));
     return any_method->call(env, this, argc, args, block);
@@ -978,17 +979,19 @@ ValuePtr ArrayValue::rindex(Env *env, ValuePtr object, Block *block) {
 }
 
 ValuePtr ArrayValue::none(Env *env, size_t argc, ValuePtr *args, Block *block) {
-    // FIXME: this is not exactly the way ruby does it
+    // FIXME: deletating to Enumerable#none? like this does not have the same semantics as MRI,
+    // i.e. one can override Enumerable#none? in MRI and it won't affect Array#none?.
     auto Enumerable = GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("Enumerable"))->as_module();
-    auto any_method = Enumerable->find_method(env, SymbolValue::intern("none?"));
-    return any_method->call(env, this, argc, args, block);
+    auto none_method = Enumerable->find_method(env, SymbolValue::intern("none?"));
+    return none_method->call(env, this, argc, args, block);
 }
 
 ValuePtr ArrayValue::one(Env *env, size_t argc, ValuePtr *args, Block *block) {
-    // FIXME: this is not exactly the way ruby does it
+    // FIXME: deletating to Enumerable#one? like this does not have the same semantics as MRI,
+    // i.e. one can override Enumerable#one? in MRI and it won't affect Array#one?.
     auto Enumerable = GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("Enumerable"))->as_module();
-    auto any_method = Enumerable->find_method(env, SymbolValue::intern("one?"));
-    return any_method->call(env, this, argc, args, block);
+    auto one_method = Enumerable->find_method(env, SymbolValue::intern("one?"));
+    return one_method->call(env, this, argc, args, block);
 }
 
 ValuePtr ArrayValue::rotate(Env *env, ValuePtr val) {
