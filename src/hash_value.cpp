@@ -326,6 +326,29 @@ ValuePtr HashValue::keys(Env *env) {
     return array;
 }
 
+ValuePtr HashValue::to_h(Env *env, Block *block) {
+    if (!block)
+        return this;
+
+    auto copy = new HashValue {};
+    ValuePtr block_args[2];
+    for (auto &node : *this) {
+        block_args[0] = node.key;
+        block_args[1] = node.val;
+        auto result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK_WHILE_ITERATING_HASH(env, block, 2, block_args, nullptr, this);
+        if (!result->is_array() && result->respond_to(env, SymbolValue::intern("to_ary")))
+            result = result.send(env, SymbolValue::intern("to_ary"));
+        if (!result->is_array())
+            env->raise("TypeError", "wrong element type {} (expected array)", result->klass()->class_name_or_blank());
+        auto result_array = result->as_array();
+        if (result_array->size() != 2)
+            env->raise("ArgumentError", "element has wrong array length (expected 2, was {})", result_array->size());
+        copy->put(env, (*result_array)[0], (*result_array)[1]);
+    }
+
+    return copy;
+}
+
 ValuePtr HashValue::values(Env *env) {
     ArrayValue *array = new ArrayValue {};
     for (HashValue::Key &node : *this) {

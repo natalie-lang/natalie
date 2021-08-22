@@ -140,6 +140,9 @@ public:
     ValuePtr sort(Env *);
     ValuePtr values(Env *);
 
+    ValuePtr to_h(Env *, Block *);
+    ValuePtr to_hash() { return this; }
+
     virtual void visit_children(Visitor &) override final;
 
     virtual void gc_inspect(char *buf, size_t len) const override {
