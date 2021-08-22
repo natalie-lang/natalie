@@ -100,26 +100,34 @@ public:
     }
 
     void push_front(T val) {
+        insert(0, val);
+    }
+
+    void insert(size_t index, T val) {
         if (m_size >= m_capacity) {
             grow_at_least(m_size + 1);
         }
         m_size++;
-        for (size_t i = m_size - 1; i > 0; i--) {
+        for (size_t i = m_size - 1; i > index; i--) {
             m_data[i] = m_data[i - 1];
         }
-        m_data[0] = val;
+        m_data[index] = val;
     }
 
     T pop_front() {
-        assert(m_size != 0);
         T val = m_data[0];
+        remove(0);
+        return val;
+    }
 
-        for (size_t i = 1; i < m_size; i++) {
+    void remove(size_t index) {
+        assert(m_size > index);
+        T val = m_data[index];
+
+        for (size_t i = index + 1; i < m_size; i++) {
             m_data[i - 1] = m_data[i];
         }
         --m_size;
-
-        return val;
     }
 
     bool is_empty() const { return m_size == 0; }

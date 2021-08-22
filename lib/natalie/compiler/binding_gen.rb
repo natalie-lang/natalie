@@ -290,6 +290,7 @@ gen.binding('Array', 'filter', 'ArrayValue', 'select', argc: 0, pass_env: true, 
 gen.binding('Array', 'find_index', 'ArrayValue', 'index', argc: 0..1, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Array', 'first', 'ArrayValue', 'first', argc: 0..1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Array', 'flatten', 'ArrayValue', 'flatten', argc: 0..1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Array', 'flatten!', 'ArrayValue', 'flatten_in_place', argc: 0..1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Array', 'include?', 'ArrayValue', 'include', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Array', 'index', 'ArrayValue', 'index', argc: 0..1, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Array', 'intersection', 'ArrayValue', 'intersection', argc: :any, pass_env: true, pass_block: false, return_type: :Value)

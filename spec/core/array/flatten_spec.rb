@@ -182,58 +182,58 @@ describe "Array#flatten" do
 end
 
 describe "Array#flatten!" do
-  xit "modifies array to produce a one-dimensional flattening recursively" do
+  it "modifies array to produce a one-dimensional flattening recursively" do
     a = [[[1, [2, 3]],[2, 3, [4, [4, [5, 5]], [1, 2, 3]]], [4]], []]
     a.flatten!
     a.should == [1, 2, 3, 2, 3, 4, 4, 5, 5, 1, 2, 3, 4]
   end
 
-  xit "returns self if made some modifications" do
+  it "returns self if made some modifications" do
     a = [[[1, [2, 3]],[2, 3, [4, [4, [5, 5]], [1, 2, 3]]], [4]], []]
     a.flatten!.should equal(a)
   end
 
-  xit "returns nil if no modifications took place" do
+  it "returns nil if no modifications took place" do
     a = [1, 2, 3]
     a.flatten!.should == nil
     a = [1, [2, 3]]
     a.flatten!.should_not == nil
   end
 
-  xit "should not check modification by size" do
+  it "should not check modification by size" do
     a = [1, 2, [3]]
     a.flatten!.should_not == nil
     a.should == [1, 2, 3]
   end
 
-  xit "takes an optional argument that determines the level of recursion" do
+  it "takes an optional argument that determines the level of recursion" do
     [ 1, 2, [3, [4, 5] ] ].flatten!(1).should == [1, 2, 3, [4, 5]]
   end
 
   # redmine #1440
-  xit "returns nil when the level of recursion is 0" do
+  it "returns nil when the level of recursion is 0" do
     a = [ 1, 2, [3, [4, 5] ] ]
     a.flatten!(0).should == nil
   end
 
-  xit "treats negative levels as no arguments" do
+  it "treats negative levels as no arguments" do
     [ 1, 2, [ 3, 4, [5, 6] ] ].flatten!(-1).should == [1, 2, 3, 4, 5, 6]
     [ 1, 2, [ 3, 4, [5, 6] ] ].flatten!(-10).should == [1, 2, 3, 4, 5, 6]
   end
 
-  xit "tries to convert passed Objects to Integers using #to_int" do
+  it "tries to convert passed Objects to Integers using #to_int" do
     obj = mock("Converted to Integer")
     obj.should_receive(:to_int).and_return(1)
 
     [ 1, 2, [3, [4, 5] ] ].flatten!(obj).should == [1, 2, 3, [4, 5]]
   end
 
-  xit "raises a TypeError when the passed Object can't be converted to an Integer" do
+  it "raises a TypeError when the passed Object can't be converted to an Integer" do
     obj = mock("Not converted")
     -> { [ 1, 2, [3, [4, 5] ] ].flatten!(obj) }.should raise_error(TypeError)
   end
 
-  xit "does not call flatten! on elements" do
+  it "does not call flatten! on elements" do
     obj = mock('[1,2]')
     obj.should_not_receive(:flatten!)
     [obj, obj].flatten!.should == nil
@@ -243,7 +243,7 @@ describe "Array#flatten!" do
     [obj, obj].flatten!.should == [5, 4, 5, 4]
   end
 
-  xit "raises an ArgumentError on recursive arrays" do
+  it "raises an ArgumentError on recursive arrays" do
     x = []
     x << x
     -> { x.flatten! }.should raise_error(ArgumentError)
@@ -255,7 +255,7 @@ describe "Array#flatten!" do
     -> { x.flatten! }.should raise_error(ArgumentError)
   end
 
-  xit "flattens any elements which responds to #to_ary, using the return value of said method" do
+  it "flattens any elements which responds to #to_ary, using the return value of said method" do
     x = mock("[3,4]")
     x.should_receive(:to_ary).at_least(:once).and_return([3, 4])
     [1, 2, x, 5].flatten!.should == [1, 2, 3, 4, 5]
@@ -274,14 +274,14 @@ describe "Array#flatten!" do
     ary.should == [1, 2, 3]
   end
 
-  xit "raises a FrozenError on frozen arrays when the array is modified" do
+  it "raises a FrozenError on frozen arrays when the array is modified" do
     nested_ary = [1, 2, []]
     nested_ary.freeze
     -> { nested_ary.flatten! }.should raise_error(FrozenError)
   end
 
   # see [ruby-core:23663]
-  xit "raises a FrozenError on frozen arrays when the array would not be modified" do
+  it "raises a FrozenError on frozen arrays when the array would not be modified" do
     -> { ArraySpecs.frozen_array.flatten! }.should raise_error(FrozenError)
     -> { ArraySpecs.empty_frozen_array.flatten! }.should raise_error(FrozenError)
   end

@@ -341,8 +341,15 @@ ValuePtr ArrayValue::first(Env *env, ValuePtr n) {
 }
 
 ValuePtr ArrayValue::flatten(Env *env, ValuePtr depth) {
-    Vector<ArrayValue *> visited;
-    ArrayValue *array = new ArrayValue(klass());
+    ArrayValue *copy = new ArrayValue { *this };
+    copy->flatten_in_place(env, depth);
+    return copy;
+}
+
+ValuePtr ArrayValue::flatten_in_place(Env *env, ValuePtr depth) {
+    this->assert_not_frozen(env);
+
+    bool changed { false };
 
     auto has_depth = depth != nullptr;
     if (has_depth) {
@@ -362,27 +369,27 @@ ValuePtr ArrayValue::flatten(Env *env, ValuePtr depth) {
         depth->assert_type(env, Value::Type::Integer, "Integer");
         nat_int_t depth_value = depth->as_integer()->to_nat_int_t();
 
-        return _flatten(env, depth_value, visited);
+        changed = _flatten_in_place(env, depth_value);
+    } else {
+        changed = _flatten_in_place(env, -1);
     }
 
-    return _flatten(env, -1, visited);
+    if (changed)
+        return this;
+
+    return NilValue::the();
 }
 
-ValuePtr ArrayValue::_flatten(Env *env, nat_int_t depth, Vector<ArrayValue *> visited_arrays) {
-    for (size_t i = 0; i < visited_arrays.size(); i++) {
-        if (visited_arrays.at(i) == this) {
-            env->raise("ArgumentError", "tried to flatten recursive array");
-            return nullptr;
-        }
-    }
+bool ArrayValue::_flatten_in_place(Env *env, nat_int_t depth, Hashmap<ArrayValue *> visited) {
+    bool changed { false };
 
-    ArrayValue *array = new ArrayValue(this->m_klass);
+    if (visited.is_empty())
+        visited.set(this);
 
-    for (size_t i = 0; i < size(); ++i) {
-        auto item = (*this)[i];
+    for (size_t i = size(); i > 0; --i) {
+        auto item = (*this)[i - 1];
 
         if (depth == 0 || item == nullptr) {
-            array->push(item);
             continue;
         }
 
@@ -408,26 +415,41 @@ ValuePtr ArrayValue::_flatten(Env *env, nat_int_t depth, Vector<ArrayValue *> vi
                         original_item_class_name,
                         original_item_class_name,
                         new_item_class_name);
-                    return nullptr;
+                    return false;
                 }
 
                 item = new_item;
             }
         }
 
-        if ((!item->is_array())) {
-            array->push(item);
-        } else {
-            visited_arrays.push(this);
+        if (item->is_array()) {
+            changed = true;
+            m_vector.remove(i - 1);
 
-            auto flattened = item->as_array()->_flatten(env, depth - 1, visited_arrays)->as_array();
-            for (size_t j = 0; j < flattened->size(); ++j) {
-                array->push((*flattened)[j]);
+            auto array_item = item->as_array();
+
+            if (visited.get(array_item) != nullptr) {
+                env->raise("ArgumentError", "tried to flatten recursive array");
+                return false;
             }
+
+            // add current array item so if it is referenced by any of its children a loop is detected
+            visited.set(array_item);
+
+            // use a copy so we avoid altering the content of nested arrays
+            ArrayValue *copy = new ArrayValue { *array_item };
+
+            copy->_flatten_in_place(env, depth - 1, visited);
+            for (size_t j = 0; j < copy->size(); ++j) {
+                m_vector.insert(i + j - 1, (*copy)[j]);
+            }
+
+            // remove current array item as same reference siblings are valid
+            visited.remove(array_item);
         }
     }
 
-    return array;
+    return changed;
 }
 
 ValuePtr ArrayValue::dig(Env *env, size_t argc, ValuePtr *args) {
