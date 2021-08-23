@@ -150,6 +150,17 @@ class Enumerator
       super(size, &block)
     end
 
+    def chunk(&block)
+      return to_enum(:chunk) unless block
+
+      Lazy.new(self) do |yielder|
+        super(&block).each do |item|
+          yielder << item
+        end
+      end
+    end
+    alias chunk_while chunk
+
     def map(&block)
       raise ArgumentError, 'tried to call lazy select without a block' unless block_given?
 
