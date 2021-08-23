@@ -146,32 +146,35 @@ class Enumerator
       end
 
       @obj = obj
+      enum = @obj.is_a?(Enumerator) ? @obj : @obj.to_enum
+      enum_block = ->(yielder) {
+        loop do
+          block.call(yielder, *enum.next_values)
+        end
+      }
 
-      super(size, &block)
+      super(size, &enum_block)
     end
 
     def chunk(&block)
       return to_enum(:chunk) unless block
 
-      Lazy.new(self) do |yielder|
+      enum_block = ->(yielder) {
         super(&block).each do |item|
           yielder << item
         end
-      end
+      }
+      lazy = Lazy.new(self) {}
+      lazy.instance_variable_set(:@enum_block, enum_block)
+      lazy
     end
     alias chunk_while chunk
 
     def map(&block)
       raise ArgumentError, 'tried to call lazy select without a block' unless block_given?
 
-      Lazy.new(self, @size) do |yielder|
-        begin
-          loop do
-            element = self.next_values
-            yielder << block.call(*element)
-          end
-        rescue StopIteration
-        end
+      Lazy.new(self, @size) do |yielder, *element|
+        yielder << block.call(*element)
       end
     end
     alias collect map
@@ -179,24 +182,25 @@ class Enumerator
     def select(&block)
       raise ArgumentError, 'tried to call lazy select without a block' unless block_given?
 
-      Lazy.new(self) do |yielder|
-        begin
-          loop do
-            element = self.next
-            yielder.yield(*element) if block.call(element)
-          end
-        rescue StopIteration
-        end
+      gather = ->(item) { item.size <= 1 ? item.first : item }
+
+      Lazy.new(self) do |yielder, *values|
+        item = gather.(values)
+        yielder.yield(*item) if block.call(item)
       end
     end
     alias filter select
 
-    def to_enum(method = :each, *args)
+    def to_enum(method = :each, *args, &block)
       size = block_given? ? yield : nil
-      Lazy.new(self, size) do |yielder|
+      block = ->(yielder) {
         the_proc = yielder.to_proc || ->(*i) { yielder.yield(*i) }
         send(method, *args, &the_proc)
-      end
+      }
+
+      lazy = Lazy.new(self, size) {}
+      lazy.instance_variable_set(:@enum_block, block)
+      lazy
     end
     alias enum_for to_enum
 

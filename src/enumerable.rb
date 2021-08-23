@@ -446,14 +446,8 @@ module Enumerable
     if block_given?
       Enumerator::Lazy.new(self, enum_size, &block)
     else
-      Enumerator::Lazy.new(self, enum_size) { |yielder|
-        enum = self.each
-        begin
-          loop do
-            yielder.yield(*enum.next_values)
-          end
-        rescue StopIteration
-        end
+      Enumerator::Lazy.new(self, enum_size) { |yielder, *values|
+        yielder.yield(*values)
       }
     end
   end
