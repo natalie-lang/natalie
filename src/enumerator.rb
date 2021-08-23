@@ -170,6 +170,13 @@ class Enumerator
     end
     alias chunk_while chunk
 
+    def eager
+      Enumerator.new(@size) do |yielder|
+        the_proc = yielder.to_proc || ->(*i) { yielder.yield(*i) }
+        self.each(&the_proc)
+      end
+    end
+
     def map(&block)
       raise ArgumentError, 'tried to call lazy select without a block' unless block_given?
 
