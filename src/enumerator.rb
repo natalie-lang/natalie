@@ -180,6 +180,15 @@ class Enumerator
     end
     alias filter select
 
+    def to_enum(method = :each, *args)
+      size = block_given? ? yield : nil
+      Lazy.new(self, size) do |yielder|
+        the_proc = yielder.to_proc || ->(*i) { yielder.yield(*i) }
+        send(method, *args, &the_proc)
+      end
+    end
+    alias enum_for to_enum
+
     def lazy
       self
     end

@@ -210,7 +210,7 @@ module Enumerable
 
     unless block_given?
       return enum_for(:each_cons, n) do
-        if n.is_a?(Integer) && respond_to?(:size)
+        if n.is_a?(Integer) && respond_to?(:size) && size
           [size - n + 1, 0].max
         else
           Float::INFINITY
@@ -257,7 +257,7 @@ module Enumerable
 
     unless block_given?
       return enum_for(:each_slice, count) do
-        if count.is_a?(Integer) && respond_to?(:size)
+        if count.is_a?(Integer) && respond_to?(:size) && size
           (size / count.to_f).ceil
         else
           Float::INFINITY
@@ -755,7 +755,7 @@ module Enumerable
   def cycle(n = nil)
     unless block_given?
       return enum_for(:cycle, n) do
-        if n.is_a?(Integer) && respond_to?(:size)
+        if n.is_a?(Integer) && respond_to?(:size) && size
           [n * size, 0].max
         else
           Float::INFINITY
