@@ -444,6 +444,7 @@ gen.binding('Hash', 'default_proc=', 'HashValue', 'set_default_proc', argc: 1, p
 gen.binding('Hash', 'delete', 'HashValue', 'delete_key', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Hash', 'dig', 'HashValue', 'dig', argc: :any, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Hash', 'each', 'HashValue', 'each', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
+gen.binding('Hash', 'each_pair', 'HashValue', 'each', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Hash', 'empty?', 'HashValue', 'is_empty', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('Hash', 'has_key?', 'HashValue', 'has_key', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Hash', 'initialize', 'HashValue', 'initialize', argc: 0..1, pass_env: true, pass_block: true, return_type: :Value)
