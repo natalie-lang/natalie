@@ -316,7 +316,9 @@ ValuePtr HashValue::eq(Env *env, ValuePtr other_value) {
 })
 
 ValuePtr HashValue::each(Env *env, Block *block) {
-    env->ensure_block_given(block); // TODO: return Enumerator when no block given
+    if (!block)
+        return _send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("each") });
+
     ValuePtr block_args[2];
     for (HashValue::Key &node : *this) {
         block_args[0] = node.key;
