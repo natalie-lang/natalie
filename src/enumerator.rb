@@ -168,7 +168,6 @@ class Enumerator
       lazy.instance_variable_set(:@enum_block, enum_block)
       lazy
     end
-    alias chunk_while chunk
 
     def eager
       Enumerator.new(@size) do |yielder|
