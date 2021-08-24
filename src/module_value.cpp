@@ -116,7 +116,7 @@ void ModuleValue::alias(Env *env, SymbolValue *new_name, SymbolValue *old_name) 
     if (!method) {
         env->raise("NameError", "undefined method `{}' for `{}'", old_name->c_str(), this->inspect_str(env));
     }
-    m_methods.put(new_name, new Method { *method }, env);
+    m_methods.put(new_name, method, env);
 }
 
 ValuePtr ModuleValue::eval_body(Env *env, ValuePtr (*fn)(Env *, ValuePtr)) {

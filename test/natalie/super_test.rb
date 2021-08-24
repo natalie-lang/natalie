@@ -51,6 +51,8 @@ class PirateGreeter < Greeter
     "ARRRR. #{super}"
   end
 
+  alias aliased_greet greet
+
   def greet_no_arg(_arg)
     "ARRRR. #{super()}"
   end
@@ -142,5 +144,10 @@ describe 'super' do
   it 'raises an error when there is no super' do
     greeter = Greeter.new
     -> { greeter.greet_without_super }.should raise_error(NoMethodError)
+  end
+
+  it 'works with an aliased method' do
+    greeter = PirateGreeter.new
+    greeter.aliased_greet.should == "ARRRR. Hello."
   end
 end
