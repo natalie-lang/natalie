@@ -51,6 +51,9 @@ char *StringValue::next_char(Env *env, char *buffer, size_t *index) {
 }
 
 ValuePtr StringValue::each_char(Env *env, Block *block) {
+    if (!block)
+        return send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("each_char") });
+
     size_t index = 0;
     char buffer[5];
     while (next_char(env, buffer, &index)) {
