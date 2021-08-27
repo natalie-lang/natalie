@@ -197,6 +197,22 @@ class Enumerator
     end
     alias filter select
 
+    def take(n)
+      index = 0
+      size = @size ? [n, @size].min : n
+
+      enum_block = ->(yielder) {
+        size.times do
+          value = self.next_values
+          yielder.yield(*value)
+        end
+      }
+
+      lazy = Lazy.new(self, size) {}
+      lazy.instance_variable_set(:@enum_block, enum_block)
+      lazy
+    end
+
     def to_enum(method = :each, *args, &block)
       size = block_given? ? yield : nil
       block = ->(yielder) {
