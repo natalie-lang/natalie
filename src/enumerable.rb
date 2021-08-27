@@ -840,7 +840,24 @@ module Enumerable
         return item.size <= 1 ? item.first : item
       end
     else
-      take(*args)
+      count = args[0]
+      if not count.is_a? Integer and count.respond_to? :to_int
+        count = count.to_int
+      end
+      raise TypeError unless count.is_a? Integer
+      raise ArgumentError, 'negative array size' unless count >= 0
+
+      result = []
+      return result if count == 0
+
+      each do |*items|
+        item = items.size > 1 ? items : items[0]
+        result << item
+
+        break if result.size == count
+      end
+
+      result
     end
   end
 
