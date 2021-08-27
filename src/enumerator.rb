@@ -176,6 +176,26 @@ class Enumerator
       end
     end
 
+    def flat_map(&block)
+      raise ArgumentError, 'tried to call lazy flat_map without a block' unless block_given?
+
+      Lazy.new(self) do |yielder, *element|
+        element = block.call(*element)
+        if element.respond_to?(:each) && element.respond_to?(:force)
+          element = element.force
+        end
+
+        if element.is_a?(Array) || element.respond_to?(:to_ary)
+          element.each do |item|
+            yielder << item
+          end
+        else
+          yielder << element
+        end
+      end
+    end
+    alias collect_concat flat_map
+
     def map(&block)
       raise ArgumentError, 'tried to call lazy select without a block' unless block_given?
 
