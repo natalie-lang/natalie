@@ -176,14 +176,14 @@ public:
         return new String(buf);
     }
 
-    ValuePtr _public_send(Env *, SymbolValue *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
+    ValuePtr public_send(Env *, SymbolValue *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
 
-    ValuePtr _send(Env *, SymbolValue *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
-    ValuePtr _send(Env *, const char *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
-    ValuePtr _send(Env *, size_t, ValuePtr *, Block *);
+    ValuePtr send(Env *, SymbolValue *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
+    ValuePtr send(Env *, const char *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
+    ValuePtr send(Env *, size_t, ValuePtr *, Block *);
 
-    ValuePtr _send(Env *env, SymbolValue *name, std::initializer_list<ValuePtr> args) {
-        return _send(env, name, args.size(), const_cast<ValuePtr *>(data(args)));
+    ValuePtr send(Env *env, SymbolValue *name, std::initializer_list<ValuePtr> args) {
+        return send(env, name, args.size(), const_cast<ValuePtr *>(data(args)));
     }
 
     Method *find_method(Env *, SymbolValue *, MethodVisibility, ModuleValue ** = nullptr, Method * = nullptr);
@@ -217,7 +217,7 @@ public:
     }
 
     bool neq(Env *env, ValuePtr other) {
-        return _send(env, "==", 1, &other)->is_falsey();
+        return send(env, "==", 1, &other)->is_falsey();
     }
 
     ValuePtr cmp(Env *, ValuePtr);

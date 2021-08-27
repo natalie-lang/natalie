@@ -74,9 +74,9 @@
     if (!exception->is_a(env, LocalJumpError)) {                                                                                 \
         throw exception;                                                                                                         \
     } else if (return_handler && exception->local_jump_error_type() == LocalJumpErrorType::Return) {                             \
-        result = exception->_send(env, SymbolValue::intern("exit_value"));                                                       \
+        result = exception->send(env, SymbolValue::intern("exit_value"));                                                        \
     } else if (env && exception->local_jump_error_env() == env) {                                                                \
-        result = exception->_send(env, SymbolValue::intern("exit_value"));                                                       \
+        result = exception->send(env, SymbolValue::intern("exit_value"));                                                        \
     } else {                                                                                                                     \
         throw exception;                                                                                                         \
     }                                                                                                                            \

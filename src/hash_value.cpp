@@ -317,7 +317,7 @@ ValuePtr HashValue::eq(Env *env, ValuePtr other_value) {
 
 ValuePtr HashValue::each(Env *env, Block *block) {
     if (!block)
-        return _send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("each") });
+        return send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("each") });
 
     ValuePtr block_args[2];
     for (HashValue::Key &node : *this) {

@@ -58,7 +58,7 @@ module Natalie
       }
 
       METHODS = %i[
-        _send
+        send
         alias
         append
         add_break_flag

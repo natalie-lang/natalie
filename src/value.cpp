@@ -401,23 +401,23 @@ SymbolValue *Value::undefine_method(Env *env, SymbolValue *name) {
     return name;
 }
 
-ValuePtr Value::_public_send(Env *env, SymbolValue *name, size_t argc, ValuePtr *args, Block *block) {
+ValuePtr Value::public_send(Env *env, SymbolValue *name, size_t argc, ValuePtr *args, Block *block) {
     Method *method = find_method(env, name, MethodVisibility::Public);
     return method->call(env, this, argc, args, block);
 }
 
-ValuePtr Value::_send(Env *env, SymbolValue *name, size_t argc, ValuePtr *args, Block *block) {
+ValuePtr Value::send(Env *env, SymbolValue *name, size_t argc, ValuePtr *args, Block *block) {
     Method *method = find_method(env, name, MethodVisibility::Private);
     return method->call(env, this, argc, args, block);
 }
 
-ValuePtr Value::_send(Env *env, const char *name, size_t argc, ValuePtr *args, Block *block) {
-    return _send(env, SymbolValue::intern(name), argc, args, block);
+ValuePtr Value::send(Env *env, const char *name, size_t argc, ValuePtr *args, Block *block) {
+    return send(env, SymbolValue::intern(name), argc, args, block);
 }
 
-ValuePtr Value::_send(Env *env, size_t argc, ValuePtr *args, Block *block) {
+ValuePtr Value::send(Env *env, size_t argc, ValuePtr *args, Block *block) {
     auto name = args[0]->to_symbol(env, Value::Conversion::Strict);
-    return _send(env->caller(), name, argc - 1, args + 1, block);
+    return send(env->caller(), name, argc - 1, args + 1, block);
 }
 
 Method *Value::find_method(Env *env, SymbolValue *method_name, MethodVisibility visibility_at_least, ModuleValue **matching_class_or_module, Method *after_method) {
@@ -534,7 +534,7 @@ ValuePtr Value::defined_obj(Env *env, SymbolValue *name, bool strict) {
 ProcValue *Value::to_proc(Env *env) {
     auto to_proc_symbol = SymbolValue::intern("to_proc");
     if (respond_to(env, to_proc_symbol)) {
-        return _send(env, to_proc_symbol)->as_proc();
+        return send(env, to_proc_symbol)->as_proc();
     } else {
         env->raise("TypeError", "wrong argument type {} (expected Proc)", m_klass->class_name_or_blank());
     }
@@ -542,7 +542,7 @@ ProcValue *Value::to_proc(Env *env) {
 
 // FIXME: this should actually live in the Kernel module which gets mixed into Object
 ValuePtr Value::cmp(Env *env, ValuePtr other) {
-    if (_send(env, "==", 1, &other)->is_truthy()) {
+    if (send(env, "==", 1, &other)->is_truthy()) {
         return ValuePtr::integer(0);
     } else {
         return NilValue::the();
@@ -584,7 +584,7 @@ void Value::assert_not_frozen(Env *env) {
 }
 
 const String *Value::inspect_str(Env *env) {
-    return _send(env, "inspect")->as_string()->to_low_level_string();
+    return send(env, "inspect")->as_string()->to_low_level_string();
 }
 
 ValuePtr Value::enum_for(Env *env, const char *method, size_t argc, ValuePtr *args) {
@@ -593,7 +593,7 @@ ValuePtr Value::enum_for(Env *env, const char *method, size_t argc, ValuePtr *ar
     for (size_t i = 0; i < argc; i++) {
         args2[i + 1] = args[i];
     }
-    return this->_public_send(env, SymbolValue::intern("enum_for"), argc + 1, args2);
+    return this->public_send(env, SymbolValue::intern("enum_for"), argc + 1, args2);
 }
 
 void Value::visit_children(Visitor &visitor) {

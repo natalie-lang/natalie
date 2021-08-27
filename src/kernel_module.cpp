@@ -110,7 +110,7 @@ ValuePtr KernelModule::get_usage(Env *env) {
 }
 
 ValuePtr KernelModule::hash(Env *env) {
-    StringValue *inspected = _send(env, "inspect")->as_string();
+    StringValue *inspected = send(env, "inspect")->as_string();
     nat_int_t hash_value = hashmap_hash_string(inspected->c_str());
     return ValuePtr::integer(hash_value);
 }

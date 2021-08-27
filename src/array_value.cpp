@@ -303,7 +303,7 @@ ValuePtr ArrayValue::eql(Env *env, ValuePtr other) {
 
 ValuePtr ArrayValue::each(Env *env, Block *block) {
     if (!block)
-        return _send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("each") });
+        return send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("each") });
 
     for (auto &obj : *this) {
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &obj, nullptr);
@@ -718,7 +718,7 @@ bool array_sort_by_compare(Env *env, ValuePtr a, ValuePtr b, Block *block) {
 
 ValuePtr ArrayValue::sort_by_in_place(Env *env, Block *block) {
     if (!block)
-        return _send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("sort_by!") });
+        return send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("sort_by!") });
 
     this->assert_not_frozen(env);
 
@@ -731,7 +731,7 @@ ValuePtr ArrayValue::sort_by_in_place(Env *env, Block *block) {
 
 ValuePtr ArrayValue::select(Env *env, Block *block) {
     if (!block)
-        return _send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("select") });
+        return send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("select") });
 
     ArrayValue *new_array = new ArrayValue {};
     for (auto &item : *this) {
@@ -745,7 +745,7 @@ ValuePtr ArrayValue::select(Env *env, Block *block) {
 
 ValuePtr ArrayValue::reject(Env *env, Block *block) {
     if (!block)
-        return _send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("reject") });
+        return send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("reject") });
 
     ArrayValue *new_array = new ArrayValue {};
     for (auto &item : *this) {

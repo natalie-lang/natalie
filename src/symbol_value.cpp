@@ -66,7 +66,7 @@ bool SymbolValue::start_with(Env *env, ValuePtr needle) {
 
 ValuePtr SymbolValue::ref(Env *env, ValuePtr index_obj) {
     ValuePtr args[] = { index_obj };
-    return to_s(env)->_send(env, "[]", 1, args);
+    return to_s(env)->send(env, "[]", 1, args);
 }
 
 }
