@@ -82,7 +82,8 @@ void Env::raise_local_jump_error(ValuePtr exit_value, LocalJumpErrorType type) {
 
 void Env::raise_errno() {
     ValuePtr exception_args[] = { ValuePtr::integer(errno) };
-    ExceptionValue *error = GlobalEnv::the()->Object()->const_find(this, SymbolValue::intern("SystemCallError")).send(this, "exception", 1, exception_args, nullptr)->as_exception();
+    auto SystemCallError = GlobalEnv::the()->Object()->const_find(this, SymbolValue::intern("SystemCallError"));
+    ExceptionValue *error = SystemCallError.send(this, SymbolValue::intern("exception"), 1, exception_args, nullptr)->as_exception();
     raise_exception(error);
 }
 

@@ -17,7 +17,7 @@ ValuePtr KernelModule::Array(Env *env, ValuePtr value) {
     if (value->type() == Value::Type::Array) {
         return value;
     } else if (value->respond_to(env, SymbolValue::intern("to_ary"))) {
-        return value.send(env, "to_ary");
+        return value.send(env, SymbolValue::intern("to_ary"));
     } else if (value == NilValue::the()) {
         return new ArrayValue {};
     } else {
@@ -200,14 +200,14 @@ ValuePtr KernelModule::p(Env *env, size_t argc, ValuePtr *args) {
     if (argc == 0) {
         return NilValue::the();
     } else if (argc == 1) {
-        ValuePtr arg = args[0].send(env, "inspect");
+        ValuePtr arg = args[0].send(env, SymbolValue::intern("inspect"));
         puts(env, 1, &arg);
         return arg;
     } else {
         ArrayValue *result = new ArrayValue {};
         for (size_t i = 0; i < argc; i++) {
             result->push(args[i]);
-            args[i] = args[i].send(env, "inspect");
+            args[i] = args[i].send(env, SymbolValue::intern("inspect"));
         }
         puts(env, argc, args);
         return result;

@@ -84,10 +84,10 @@ ValuePtr IntegerValue::div(Env *env, ValuePtr arg) {
 
     } else if (arg->respond_to(env, SymbolValue::intern("coerce"))) {
         ValuePtr args[] = { this };
-        ValuePtr coerced = arg.send(env, "coerce", 1, args, nullptr);
+        ValuePtr coerced = arg.send(env, SymbolValue::intern("coerce"), 1, args, nullptr);
         ValuePtr dividend = (*coerced->as_array())[0];
         ValuePtr divisor = (*coerced->as_array())[1];
-        return dividend.send(env, "/", 1, &divisor, nullptr);
+        return dividend.send(env, SymbolValue::intern("/"), 1, &divisor, nullptr);
 
     } else {
         arg->assert_type(env, Value::Type::Integer, "Integer");

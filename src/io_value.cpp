@@ -65,13 +65,14 @@ ValuePtr IoValue::write(Env *env, size_t argc, ValuePtr *args) {
     for (size_t i = 0; i < argc; i++) {
         ValuePtr obj = args[i];
         if (obj->type() != Value::Type::String) {
-            obj = obj.send(env, "to_s");
+            obj = obj.send(env, SymbolValue::intern("to_s"));
         }
         obj->assert_type(env, Value::Type::String, "String");
         int result = ::write(m_fileno, obj->as_string()->c_str(), obj->as_string()->length());
         if (result == -1) {
             ValuePtr error_number = ValuePtr::integer(errno);
-            ExceptionValue *error = GlobalEnv::the()->Object()->const_find(env, SymbolValue::intern("SystemCallError")).send(env, "exception", 1, &error_number, nullptr)->as_exception();
+            auto SystemCallError = GlobalEnv::the()->Object()->const_find(env, SymbolValue::intern("SystemCallError"));
+            ExceptionValue *error = SystemCallError.send(env, SymbolValue::intern("exception"), 1, &error_number, nullptr)->as_exception();
             env->raise_exception(error);
         } else {
             bytes_written += result;
@@ -85,7 +86,7 @@ ValuePtr IoValue::puts(Env *env, size_t argc, ValuePtr *args) {
         dprintf(m_fileno, "\n");
     } else {
         for (size_t i = 0; i < argc; i++) {
-            ValuePtr str = args[i].send(env, "to_s");
+            ValuePtr str = args[i].send(env, SymbolValue::intern("to_s"));
             str->assert_type(env, Value::Type::String, "String");
             dprintf(m_fileno, "%s\n", str->as_string()->c_str());
         }
@@ -96,7 +97,7 @@ ValuePtr IoValue::puts(Env *env, size_t argc, ValuePtr *args) {
 ValuePtr IoValue::print(Env *env, size_t argc, ValuePtr *args) {
     if (argc > 0) {
         for (size_t i = 0; i < argc; i++) {
-            ValuePtr str = args[i].send(env, "to_s");
+            ValuePtr str = args[i].send(env, SymbolValue::intern("to_s"));
             str->assert_type(env, Value::Type::String, "String");
             dprintf(m_fileno, "%s", str->as_string()->c_str());
         }
@@ -110,7 +111,8 @@ ValuePtr IoValue::close(Env *env) {
     int result = ::close(m_fileno);
     if (result == -1) {
         ValuePtr error_number = ValuePtr::integer(errno);
-        ExceptionValue *error = GlobalEnv::the()->Object()->const_find(env, SymbolValue::intern("SystemCallError")).send(env, "exception", 1, &error_number, nullptr)->as_exception();
+        auto SystemCallError = GlobalEnv::the()->Object()->const_find(env, SymbolValue::intern("SystemCallError"));
+        ExceptionValue *error = SystemCallError.send(env, SymbolValue::intern("exception"), 1, &error_number, nullptr)->as_exception();
         env->raise_exception(error);
     } else {
         m_closed = true;
@@ -147,7 +149,7 @@ ValuePtr IoValue::seek(Env *env, ValuePtr amount_value, ValuePtr whence_value) {
     int result = lseek(m_fileno, amount, whence);
     if (result == -1) {
         ValuePtr error_number = ValuePtr::integer(errno);
-        ExceptionValue *error = GlobalEnv::the()->Object()->const_find(env, SymbolValue::intern("SystemCallError")).send(env, "exception", 1, &error_number, nullptr)->as_exception();
+        ExceptionValue *error = GlobalEnv::the()->Object()->const_find(env, SymbolValue::intern("SystemCallError")).send(env, SymbolValue::intern("exception"), 1, &error_number, nullptr)->as_exception();
         env->raise_exception(error);
     } else {
         return ValuePtr::integer(0);

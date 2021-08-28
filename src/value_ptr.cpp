@@ -20,10 +20,6 @@ ValuePtr ValuePtr::send(Env *env, SymbolValue *name, size_t argc, ValuePtr *args
     return value()->send(env, name, argc, args, block);
 }
 
-ValuePtr ValuePtr::send(Env *env, const char *name, size_t argc, ValuePtr *args, Block *block) {
-    return send(env, SymbolValue::intern(name), argc, args, block);
-}
-
 void ValuePtr::hydrate() {
     switch (m_type) {
     case Type::Integer: {

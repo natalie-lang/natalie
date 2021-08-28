@@ -627,7 +627,7 @@ int pclose2(FILE *fp, pid_t pid) {
 }
 
 void set_status_object(Env *env, int pid, int status) {
-    auto status_obj = GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("Process"))->const_fetch(SymbolValue::intern("Status")).send(env, "new");
+    auto status_obj = GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("Process"))->const_fetch(SymbolValue::intern("Status")).send(env, SymbolValue::intern("new"));
     status_obj->ivar_set(env, SymbolValue::intern("@to_i"), ValuePtr::integer(status));
     status_obj->ivar_set(env, SymbolValue::intern("@exitstatus"), ValuePtr::integer(WEXITSTATUS(status)));
     status_obj->ivar_set(env, SymbolValue::intern("@pid"), ValuePtr::integer(pid));

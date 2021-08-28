@@ -22,7 +22,7 @@ public:
         StringValue *out = new StringValue { "s(" };
         for (size_t i = 0; i < size(); i++) {
             ValuePtr obj = (*this)[i];
-            StringValue *repr = obj.send(env, "inspect")->as_string();
+            StringValue *repr = obj.send(env, SymbolValue::intern("inspect"))->as_string();
             out->append(env, repr);
             if (i < size() - 1) {
                 out->append(env, ", ");
