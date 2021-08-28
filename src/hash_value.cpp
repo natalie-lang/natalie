@@ -52,7 +52,8 @@ void HashValue::put(Env *env, ValuePtr key, ValuePtr val) {
     }
     key_container.key = key;
 
-    key_container.hash = key.send(env, SymbolValue::intern("hash"))->as_integer()->to_nat_int_t();
+    auto hash = key.send(env, SymbolValue::intern("hash"))->as_integer()->to_nat_int_t();
+    key_container.hash = hash;
     auto entry = m_hashmap.find_entry(&key_container, env);
     if (entry) {
         ((Key *)entry->key)->val = val;
@@ -61,7 +62,7 @@ void HashValue::put(Env *env, ValuePtr key, ValuePtr val) {
         if (m_is_iterating) {
             env->raise("RuntimeError", "can't add a new key into hash during iteration");
         }
-        auto *key_container = key_list_append(env, key, val);
+        auto *key_container = key_list_append(env, key, hash, val);
         m_hashmap.put(key_container, val.value(), env);
     }
 }
@@ -113,7 +114,7 @@ ValuePtr HashValue::set_default_proc(Env *env, ValuePtr value) {
     return value;
 }
 
-HashValue::Key *HashValue::key_list_append(Env *env, ValuePtr key, ValuePtr val) {
+HashValue::Key *HashValue::key_list_append(Env *env, ValuePtr key, nat_int_t hash, ValuePtr val) {
     if (m_key_list) {
         Key *first = m_key_list;
         Key *last = m_key_list->prev;
@@ -124,7 +125,7 @@ HashValue::Key *HashValue::key_list_append(Env *env, ValuePtr key, ValuePtr val)
         // ^______________________________|
         new_last->prev = last;
         new_last->next = first;
-        new_last->hash = key.send(env, SymbolValue::intern("hash"))->as_integer()->to_nat_int_t();
+        new_last->hash = hash;
         new_last->removed = false;
         first->prev = new_last;
         last->next = new_last;
@@ -135,7 +136,7 @@ HashValue::Key *HashValue::key_list_append(Env *env, ValuePtr key, ValuePtr val)
         node->val = val;
         node->prev = node;
         node->next = node;
-        node->hash = key.send(env, SymbolValue::intern("hash"))->as_integer()->to_nat_int_t();
+        node->hash = hash;
         node->removed = false;
         m_key_list = node;
         return node;

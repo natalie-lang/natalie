@@ -151,7 +151,7 @@ public:
 
 private:
     void key_list_remove_node(Key *);
-    Key *key_list_append(Env *, ValuePtr, ValuePtr);
+    Key *key_list_append(Env *, ValuePtr, nat_int_t, ValuePtr);
 
     void destroy_key_list() {
         if (!m_key_list) return;
