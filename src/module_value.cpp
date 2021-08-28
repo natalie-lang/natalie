@@ -374,17 +374,41 @@ ValuePtr ModuleValue::module_eval(Env *env, Block *block) {
 }
 
 ValuePtr ModuleValue::private_method(Env *env, ValuePtr method_name) {
-    m_method_visibility = MethodVisibility::Private;
+    if (method_name) {
+        auto name = method_name->to_symbol(env, Conversion::Strict);
+        auto method = find_method(env, name);
+        if (!method)
+            env->raise("NameError", "undefined method `{}' for `{}'", name->c_str(), class_name_or_blank());
+        method->set_visibility(MethodVisibility::Private);
+    } else {
+        m_method_visibility = MethodVisibility::Private;
+    }
     return NilValue::the();
 }
 
 ValuePtr ModuleValue::protected_method(Env *env, ValuePtr method_name) {
-    m_method_visibility = MethodVisibility::Protected;
+    if (method_name) {
+        auto name = method_name->to_symbol(env, Conversion::Strict);
+        auto method = find_method(env, name);
+        if (!method)
+            env->raise("NameError", "undefined method `{}' for `{}'", name->c_str(), class_name_or_blank());
+        method->set_visibility(MethodVisibility::Protected);
+    } else {
+        m_method_visibility = MethodVisibility::Protected;
+    }
     return NilValue::the();
 }
 
 ValuePtr ModuleValue::public_method(Env *env, ValuePtr method_name) {
-    m_method_visibility = MethodVisibility::Public;
+    if (method_name) {
+        auto name = method_name->to_symbol(env, Conversion::Strict);
+        auto method = find_method(env, name);
+        if (!method)
+            env->raise("NameError", "undefined method `{}' for `{}'", name->c_str(), class_name_or_blank());
+        method->set_visibility(MethodVisibility::Public);
+    } else {
+        m_method_visibility = MethodVisibility::Public;
+    }
     return NilValue::the();
 }
 

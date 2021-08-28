@@ -65,6 +65,7 @@ public:
     ModuleValue *owner() { return m_owner; }
 
     MethodVisibility visibility() { return m_visibility; }
+    void set_visibility(MethodVisibility visibility) { m_visibility = visibility; }
 
     int arity() { return m_arity; }
 
