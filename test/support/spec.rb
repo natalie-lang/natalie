@@ -701,6 +701,26 @@ def mock(name)
   end
 end
 
+class MockIntObject
+  def initialize(value)
+    @value = value
+  end
+
+  def to_int
+    @value.to_int
+  end
+
+  def inspect
+    "<mock_int: #{@value}>"
+  end
+end
+
+def mock_int(value)
+  mock("int #{value}").tap do |obj|
+    obj.should_receive(:to_int).at_least(:once).and_return(value.to_int)
+  end
+end
+
 def run_specs
   @failures = []
   @errors = []
