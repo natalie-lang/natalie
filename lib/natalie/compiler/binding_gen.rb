@@ -603,7 +603,6 @@ gen.static_binding('Process', 'pid', 'ProcessModule', 'pid', argc: 0, pass_env: 
 
 gen.binding('Range', 'initialize', 'RangeValue', 'initialize', argc: 2..3, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Range', 'begin', 'RangeValue', 'begin', argc: 0, pass_env: false, pass_block: false, return_type: :Value)
-gen.binding('Range', 'first', 'RangeValue', 'begin', argc: 0, pass_env: false, pass_block: false, return_type: :Value)
 gen.binding('Range', 'end', 'RangeValue', 'end', argc: 0, pass_env: false, pass_block: false, return_type: :Value)
 gen.binding('Range', 'last', 'RangeValue', 'end', argc: 0, pass_env: false, pass_block: false, return_type: :Value)
 gen.binding('Range', 'exclude_end?', 'RangeValue', 'exclude_end', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
