@@ -169,6 +169,18 @@ class Enumerator
       lazy
     end
 
+    def drop(n)
+      size = @size ? [0, @size - n].max : nil
+
+      Lazy.new(self, size) do |yielder, *element|
+        if n == 0
+          yielder.yield(*element)
+        else
+          n -= 1
+        end
+      end
+    end
+
     def eager
       Enumerator.new(@size) do |yielder|
         the_proc = yielder.to_proc || ->(*i) { yielder.yield(*i) }
