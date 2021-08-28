@@ -181,6 +181,19 @@ class Enumerator
       end
     end
 
+    def drop_while(&block)
+      raise ArgumentError, 'tried to call lazy drop_while without a block' unless block_given?
+
+      drop = true
+      Lazy.new(self) do |yielder, *elements|
+        unless block.call(*elements)
+          drop = false
+        end
+
+        yielder.yield(*elements) unless drop
+      end
+    end
+
     def eager
       Enumerator.new(@size) do |yielder|
         the_proc = yielder.to_proc || ->(*i) { yielder.yield(*i) }
