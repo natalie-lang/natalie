@@ -411,10 +411,6 @@ ValuePtr Value::send(Env *env, SymbolValue *name, size_t argc, ValuePtr *args, B
     return method->call(env, this, argc, args, block);
 }
 
-ValuePtr Value::send(Env *env, const char *name, size_t argc, ValuePtr *args, Block *block) {
-    return send(env, SymbolValue::intern(name), argc, args, block);
-}
-
 ValuePtr Value::send(Env *env, size_t argc, ValuePtr *args, Block *block) {
     auto name = args[0]->to_symbol(env, Value::Conversion::Strict);
     return send(env->caller(), name, argc - 1, args + 1, block);
@@ -542,7 +538,7 @@ ProcValue *Value::to_proc(Env *env) {
 
 // FIXME: this should actually live in the Kernel module which gets mixed into Object
 ValuePtr Value::cmp(Env *env, ValuePtr other) {
-    if (send(env, "==", 1, &other)->is_truthy()) {
+    if (send(env, SymbolValue::intern("=="), 1, &other)->is_truthy()) {
         return ValuePtr::integer(0);
     } else {
         return NilValue::the();
@@ -583,8 +579,12 @@ void Value::assert_not_frozen(Env *env) {
     }
 }
 
+bool Value::neq(Env *env, ValuePtr other) {
+    return send(env, SymbolValue::intern("=="), 1, &other)->is_falsey();
+}
+
 const String *Value::inspect_str(Env *env) {
-    return send(env, "inspect")->as_string()->to_low_level_string();
+    return send(env, SymbolValue::intern("inspect"))->as_string()->to_low_level_string();
 }
 
 ValuePtr Value::enum_for(Env *env, const char *method, size_t argc, ValuePtr *args) {

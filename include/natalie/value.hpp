@@ -179,7 +179,6 @@ public:
     ValuePtr public_send(Env *, SymbolValue *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
 
     ValuePtr send(Env *, SymbolValue *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
-    ValuePtr send(Env *, const char *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
     ValuePtr send(Env *, size_t, ValuePtr *, Block *);
 
     ValuePtr send(Env *env, SymbolValue *name, std::initializer_list<ValuePtr> args) {
@@ -216,9 +215,7 @@ public:
         return other == this;
     }
 
-    bool neq(Env *env, ValuePtr other) {
-        return send(env, "==", 1, &other)->is_falsey();
-    }
+    bool neq(Env *env, ValuePtr other);
 
     ValuePtr cmp(Env *, ValuePtr);
 
