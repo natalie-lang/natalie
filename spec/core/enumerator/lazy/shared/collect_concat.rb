@@ -72,7 +72,7 @@ describe :enumerator_lazy_collect_concat, shared: true do
     end
   end
 
-  # TODO: Implement Range#first(n) and +Integer
+  # TODO: Implement +Integer
   xit "works with an infinite enumerable" do
     s = 0..Float::INFINITY
     s.lazy.send(@method) { |n| [-n, +n] }.first(200).should ==

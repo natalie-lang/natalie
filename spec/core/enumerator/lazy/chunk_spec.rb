@@ -47,8 +47,7 @@ describe "Enumerator::Lazy#chunk" do
   end
 
   describe "on a nested Lazy" do
-    # Implement Enumerator::Lazy#take(n)
-    xit "sets #size to nil" do
+    it "sets #size to nil" do
       Enumerator::Lazy.new(Object.new, 100) {}.take(20).chunk { |v| v }.size.should == nil
     end
 
@@ -60,8 +59,7 @@ describe "Enumerator::Lazy#chunk" do
     end
   end
 
-  # TODO: Implement Range#first(n)
-  xit "works with an infinite enumerable" do
+  it "works with an infinite enumerable" do
     s = 0..Float::INFINITY
     s.lazy.chunk { |n| n.even? }.first(100).should ==
       s.first(100).chunk { |n| n.even? }.to_a

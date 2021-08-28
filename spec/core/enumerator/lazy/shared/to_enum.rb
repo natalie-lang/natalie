@@ -51,7 +51,7 @@ describe :enumerator_lazy_to_enum, shared: true do
     end
   end
 
-  # TODO: Enumerator::Lazy#with_index and Range#first(n) have to be implemented
+  # TODO: Enumerator::Lazy#with_index has to be implemented
   xit "works with an infinite enumerable" do
     s = 0..Float::INFINITY
     s.lazy.send(@method, :with_index).first(100).should ==
