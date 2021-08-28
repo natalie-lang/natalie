@@ -63,6 +63,34 @@ ValuePtr RangeValue::each(Env *env, Block *block) {
     return this;
 }
 
+ValuePtr RangeValue::first(Env *env, ValuePtr n) {
+    if (n) {
+        if (n->respond_to(env, SymbolValue::intern("to_int"))) {
+            n = n->send(env, SymbolValue::intern("to_int"));
+        }
+        n->assert_type(env, Value::Type::Integer, "Integer");
+
+        nat_int_t count = n->as_integer()->to_nat_int_t();
+        if (count < 0) {
+            env->raise("ArgumentError", "negative array size (or size too big)");
+            return nullptr;
+        }
+
+        ArrayValue *ary = new ArrayValue {};
+        iterate_over_range(env, [&](ValuePtr item) -> ValuePtr {
+            if (count == 0) return n;
+
+            ary->push(item);
+            count--;
+            return nullptr;
+        });
+
+        return ary;
+    } else {
+        return begin();
+    }
+}
+
 ValuePtr RangeValue::inspect(Env *env) {
     if (m_exclude_end) {
         return StringValue::format(env, "{}...{}", m_begin->inspect_str(env), m_end->inspect_str(env));
