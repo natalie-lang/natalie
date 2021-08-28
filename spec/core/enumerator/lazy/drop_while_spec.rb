@@ -58,8 +58,7 @@ describe "Enumerator::Lazy#drop_while" do
     end
   end
 
-  # TODO: Implement Range#first(n)
-  xit "works with an infinite enumerable" do
+  it "works with an infinite enumerable" do
     s = 0..Float::INFINITY
     s.lazy.drop_while { |n| n < 100 }.first(100).should ==
       s.first(200).drop_while { |n| n < 100 }
