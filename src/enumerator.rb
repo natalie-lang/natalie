@@ -222,6 +222,16 @@ class Enumerator
     end
     alias collect_concat flat_map
 
+    def grep(pattern, &block)
+      process = ->(item) { block ? block.call(item) : item }
+      Lazy.new(self) do |yielder, *item|
+        item = item.size > 1 ? item : item[0]
+        if pattern === item
+          yielder << process.(item)
+        end
+      end
+    end
+
     def map(&block)
       raise ArgumentError, 'tried to call lazy select without a block' unless block_given?
 
