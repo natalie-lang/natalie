@@ -148,6 +148,7 @@ class Enumerator
       @obj = obj
       enum = @obj.is_a?(Enumerator) ? @obj : @obj.to_enum
       enum_block = ->(yielder) {
+        enum.rewind
         loop do
           block.call(yielder, *enum.next_values)
         end

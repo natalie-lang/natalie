@@ -133,4 +133,13 @@ describe 'Enumerator' do
   it 'can yield multiple' do
     YieldMultiple.new.max.should == [3, 4]
   end
+
+  describe 'Lazy' do
+    it 'rewind enum before looping' do
+      enum = (1..5).lazy
+      select = enum.select { true }
+      select.force.should == [1, 2, 3, 4, 5]
+      enum.force.should == [1, 2, 3, 4, 5]
+    end
+  end
 end
