@@ -202,6 +202,15 @@ class Enumerator
       end
     end
 
+    def filter_map(&block)
+      raise ArgumentError, 'tried to call lazy filter_map without a block' unless block_given?
+
+      Lazy.new(self) do |yielder, *element|
+        result = block.call(*element)
+        yielder << result if result
+      end
+    end
+
     def flat_map(&block)
       raise ArgumentError, 'tried to call lazy flat_map without a block' unless block_given?
 
