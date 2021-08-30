@@ -260,6 +260,17 @@ class Enumerator
     end
     alias collect map
 
+    def reject(&block)
+      raise ArgumentError, 'tried to call lazy reject without a block' unless block_given?
+
+      gather = ->(item) { item.size <= 1 ? item.first : item }
+
+      Lazy.new(self) do |yielder, *values|
+        item = gather.(values)
+        yielder.yield(*item) unless block.call(item)
+      end
+    end
+
     def select(&block)
       raise ArgumentError, 'tried to call lazy select without a block' unless block_given?
 
