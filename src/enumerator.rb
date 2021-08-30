@@ -262,6 +262,7 @@ class Enumerator
       end
     end
     alias filter select
+    alias find_all select
 
     def take(n)
       index = 0
