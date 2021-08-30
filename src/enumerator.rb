@@ -300,6 +300,23 @@ class Enumerator
       lazy
     end
 
+    def take_while(&block)
+      raise ArgumentError, 'tried to call lazy take_while without a block' unless block_given?
+
+      pass = true
+      enum_block = ->(yielder) {
+        loop do
+          elements = self.next_values
+          break unless block.call(*elements)
+          yielder.yield(*elements)
+        end
+      }
+
+      lazy = Lazy.new(self) {}
+      lazy.instance_variable_set(:@enum_block, enum_block)
+      lazy
+    end
+
     def to_enum(method = :each, *args, &block)
       size = block_given? ? yield : nil
       block = ->(yielder) {
