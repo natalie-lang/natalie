@@ -877,6 +877,49 @@ ValuePtr ArrayValue::rassoc(Env *env, ValuePtr needle) {
 }
 
 ValuePtr ArrayValue::insert(Env *env, size_t argc, ValuePtr *args) {
+    this->assert_not_frozen(env);
+
+    if (argc == 1)
+        return this;
+
+    auto index_ptr = args[0];
+
+    if (!index_ptr.is_integer()) {
+        auto sym_to_int = SymbolValue::intern("to_int");
+
+        if (index_ptr->respond_to(env, sym_to_int)) {
+            index_ptr = index_ptr->send(env, sym_to_int);
+        }
+    }
+
+    if (!index_ptr.is_integer())
+        env->raise("TypeError", "no implicit conversion of {} into Integer", index_ptr->klass()->class_name_or_blank());
+
+    auto index = index_ptr.to_nat_int_t();
+    auto should_append = index < 0;
+
+    if (index < 0)
+        index += size();
+
+    if (should_append)
+        index += 1;
+
+    if (index < 0) {
+        env->raise("IndexError", "index {} too small for array; minimum: -{}",
+            index,
+            m_vector.size() + 1);
+    }
+
+    size_t size_t_index = static_cast<size_t>(index);
+
+    while (size_t_index > m_vector.size()) {
+        m_vector.push(NilValue::the());
+    }
+
+    for (size_t i = 1; i < argc; i++) {
+        m_vector.insert(i + size_t_index - 1, args[i]);
+    }
+
     return this;
 }
 
