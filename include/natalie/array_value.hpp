@@ -113,6 +113,7 @@ public:
     ValuePtr include(Env *, ValuePtr);
     ValuePtr index(Env *, ValuePtr, Block *);
     ValuePtr inspect(Env *);
+    ValuePtr insert(Env *, size_t, ValuePtr *);
     ValuePtr intersection(Env *, ValuePtr);
     ValuePtr intersection(Env *, size_t, ValuePtr *);
     ValuePtr join(Env *, ValuePtr);

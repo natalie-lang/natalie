@@ -875,6 +875,11 @@ ValuePtr ArrayValue::rassoc(Env *env, ValuePtr needle) {
 
     return NilValue::the();
 }
+
+ValuePtr ArrayValue::insert(Env *env, size_t argc, ValuePtr *args) {
+    return this;
+}
+
 ValuePtr ArrayValue::intersection(Env *env, ValuePtr arg) {
     if (!arg->is_array()) {
         env->raise("TypeError", "no implicit conversion of {} into Array", arg->klass()->class_name_or_blank());
