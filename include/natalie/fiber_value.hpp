@@ -160,10 +160,6 @@ public:
 
     virtual void visit_children(Visitor &) override final;
 
-    virtual bool is_collectible() override {
-        return false;
-    }
-
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(
             buf,
