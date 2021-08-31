@@ -242,6 +242,7 @@ ValuePtr IntegerValue::chr(Env *env) {
 
 bool IntegerValue::optimized_method(SymbolValue *method_name) {
     if (s_optimized_methods.is_empty()) {
+        // NOTE: No method that ever returns 'this' can be an "optimized" method. Trust me!
         s_optimized_methods.set(SymbolValue::intern("+"));
         s_optimized_methods.set(SymbolValue::intern("-"));
         s_optimized_methods.set(SymbolValue::intern("*"));
@@ -257,9 +258,7 @@ bool IntegerValue::optimized_method(SymbolValue *method_name) {
         s_optimized_methods.set(SymbolValue::intern(">="));
         s_optimized_methods.set(SymbolValue::intern("==="));
         s_optimized_methods.set(SymbolValue::intern("eql?"));
-        s_optimized_methods.set(SymbolValue::intern("abs"));
         s_optimized_methods.set(SymbolValue::intern("succ"));
-        s_optimized_methods.set(SymbolValue::intern("times"));
         s_optimized_methods.set(SymbolValue::intern("chr"));
     }
     return !!s_optimized_methods.get(method_name);
