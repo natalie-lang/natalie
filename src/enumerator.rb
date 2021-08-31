@@ -284,6 +284,55 @@ class Enumerator
     alias filter select
     alias find_all select
 
+    def slice_after(*args, &block)
+      if block
+        if !args.empty?
+          raise ArgumentError, "wrong number of arguments (given #{args.size}, expected 0)"
+        end
+      elsif args.size != 1
+        raise ArgumentError, "wrong number of arguments (given #{args.size}, expected 1)"
+      end
+
+      enum_block = ->(yielder) {
+        super(*args, &block).each do |item|
+          yielder << item
+        end
+      }
+      lazy = Lazy.new(self) {}
+      lazy.instance_variable_set(:@enum_block, enum_block)
+      lazy
+    end
+
+    def slice_before(*args, &block)
+      if block
+        if !args.empty?
+          raise ArgumentError, "wrong number of arguments (given #{args.size}, expected 0)"
+        end
+      elsif args.size != 1
+        raise ArgumentError, "wrong number of arguments (given #{args.size}, expected 1)"
+      end
+
+      enum_block = ->(yielder) {
+        super(*args, &block).each do |item|
+          yielder << item
+        end
+      }
+      lazy = Lazy.new(self) {}
+      lazy.instance_variable_set(:@enum_block, enum_block)
+      lazy
+    end
+
+    def slice_when(&block)
+      enum_block = ->(yielder) {
+        super(&block).each do |item|
+          yielder << item
+        end
+      }
+      lazy = Lazy.new(self) {}
+      lazy.instance_variable_set(:@enum_block, enum_block)
+      lazy
+    end
+
     def take(n)
       index = 0
       size = @size ? [n, @size].min : n
