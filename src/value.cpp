@@ -584,7 +584,10 @@ bool Value::neq(Env *env, ValuePtr other) {
 }
 
 const String *Value::inspect_str(Env *env) {
-    return send(env, SymbolValue::intern("inspect"))->as_string()->to_low_level_string();
+    auto inspected = send(env, SymbolValue::intern("inspect"));
+    if (!inspected->is_string())
+        return new String(""); // TODO: what to do here?
+    return inspected->as_string()->to_low_level_string();
 }
 
 ValuePtr Value::enum_for(Env *env, const char *method, size_t argc, ValuePtr *args) {

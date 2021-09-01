@@ -27,6 +27,7 @@ public:
         Frozen = 2,
         Break = 4,
         Redo = 8,
+        Inspecting = 16,
     };
 
     enum class Conversion {
@@ -210,6 +211,10 @@ public:
     void add_redo_flag() { m_flags = m_flags | Flag::Redo; }
     void remove_redo_flag() { m_flags = m_flags & ~Flag::Redo; }
     bool has_redo_flag() { return (m_flags & Flag::Redo) == Flag::Redo; }
+
+    void add_inspecting_flag() { m_flags = m_flags | Flag::Inspecting; }
+    void remove_inspecting_flag() { m_flags = m_flags & ~Flag::Inspecting; }
+    bool has_inspecting_flag() { return (m_flags & Flag::Inspecting) == Flag::Inspecting; }
 
     bool eq(Env *, ValuePtr other) {
         return other == this;
