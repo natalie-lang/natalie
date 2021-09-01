@@ -1092,7 +1092,11 @@ module Enumerable
       if arg.respond_to? :to_ary
         arg.to_ary
       elsif arg.respond_to? :to_enum
-        arg.to_enum :each
+        enumerable_value = arg.to_enum :each
+        unless enumerable_value.is_a? Array
+          enumerable_value = enumerable_value.to_a if enumerable_value.respond_to? :to_a
+        end
+        enumerable_value
       else
         arg
       end
