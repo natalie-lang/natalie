@@ -1000,6 +1000,21 @@ ValuePtr ArrayValue::reverse(Env *env) {
     return copy;
 }
 
+ValuePtr ArrayValue::reverse_each(Env *env, Block *block) {
+    if (!block) {
+        auto enumerator = send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("reverse_each") });
+        enumerator->ivar_set(env, SymbolValue::intern("@size"), ValuePtr::integer(m_vector.size()));
+        return enumerator;
+    }
+
+    for (size_t i = m_vector.size(); i > 0; --i) {
+        auto obj = (*this)[i - 1];
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &obj, nullptr);
+    }
+
+    return this;
+}
+
 ValuePtr ArrayValue::reverse_in_place(Env *env) {
     assert_not_frozen(env);
 
