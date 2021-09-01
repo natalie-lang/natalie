@@ -642,7 +642,7 @@ const String *int_to_hex_string(nat_int_t num, bool capitalize) {
         if (capitalize) {
             snprintf(buf, 100, "0X%llX", num);
         } else {
-            snprintf(buf, 100, "0x%llX", num);
+            snprintf(buf, 100, "0x%llx", num);
         }
         return new String(buf);
     }

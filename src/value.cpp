@@ -435,7 +435,7 @@ Method *Value::find_method(Env *env, SymbolValue *method_name, MethodVisibility 
             env->raise("NoMethodError", "private method `{}' called for {}", method_name->c_str(), inspect_str(env));
         }
     } else if (method_name == SymbolValue::intern("inspect")) {
-        env->raise("NoMethodError", "undefined method `inspect' for #<{}:0x{}>", klass->class_name_or_blank(), int_to_hex_string(object_id(), false));
+        env->raise("NoMethodError", "undefined method `inspect' for #<{}:{}>", klass->class_name_or_blank(), int_to_hex_string(object_id(), false));
     } else if (is_module()) {
         env->raise("NoMethodError", "undefined method `{}' for {}:{}", method_name->c_str(), klass->as_module()->class_name_or_blank(), klass->inspect_str(env));
     } else {
