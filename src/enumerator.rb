@@ -139,6 +139,39 @@ class Enumerator
     @size
   end
 
+  def with_index(offset = 0)
+    offset = 0 if offset == nil
+
+    # When no block is given, ruby checks the argument when executing
+    # the enumerator (e.g. when calling #to_a).
+    convert_offset = ->() {
+      if offset.respond_to?(:to_int)
+        offset = offset.to_int
+      else
+        raise TypeError, "no implicit conversion of #{offset.class.name} into Integer"
+      end
+    }
+
+    if block_given?
+      convert_offset.()
+      each do |item|
+        yield item, offset
+        offset += 1
+      end
+      self
+    else
+      Enumerator.new do |yielder|
+        convert_offset.()
+        the_proc = yielder.to_proc || ->(*i) { yielder.yield(*i) }
+
+        each do |item|
+          the_proc.(item, offset)
+          offset += 1
+        end
+      end
+    end
+  end
+
   class Lazy < Enumerator
     def initialize(obj, size = nil, &block)
       unless block_given?
