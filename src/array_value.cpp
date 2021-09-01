@@ -1266,4 +1266,8 @@ ValuePtr ArrayValue::try_convert(Env *env, ValuePtr val) {
         new_item_class_name);
 }
 
+ValuePtr ArrayValue::zip(Env *env, size_t argc, ValuePtr *args, Block *block) {
+    return nullptr;
+}
+
 }
