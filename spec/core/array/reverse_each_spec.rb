@@ -22,13 +22,13 @@ describe "Array#reverse_each" do
     a.reverse_each { |x| }.should equal(a)
   end
 
-  it "yields only the top level element of an empty recursive arrays" do
+  xit "yields only the top level element of an empty recursive arrays" do
     empty = ArraySpecs.empty_recursive_array
     empty.reverse_each { |i| ScratchPad << i }
     ScratchPad.recorded.should == [empty]
   end
 
-  it "yields only the top level element of a recursive array" do
+  xit "yields only the top level element of a recursive array" do
     array = ArraySpecs.recursive_array
     array.reverse_each { |i| ScratchPad << i }
     ScratchPad.recorded.should == [array, array, array, array, array, 3.0, 'two', 1]
