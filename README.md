@@ -22,6 +22,8 @@ The easiest way to get started right now would be to find a method on an object
 that is not yet implemented and make it yourself! Also take a look at
 [good first issues](https://github.com/seven1m/natalie/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
 
+We have a very quiet [Discord server](https://discord.gg/hnHp2tdQyn) -- come and hang out!
+
 ## Building
 
 Natalie is tested on macOS, OpenBSD, and Ubuntu Linux. Windows is not yet supported.
