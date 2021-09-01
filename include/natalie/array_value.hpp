@@ -141,6 +141,7 @@ public:
     ValuePtr slice_in_place(Env *, ValuePtr, ValuePtr);
     ValuePtr sort(Env *, Block *);
     ValuePtr sub(Env *, ValuePtr);
+    static ValuePtr try_convert(Env *, ValuePtr);
     ValuePtr sum(Env *, size_t, ValuePtr *, Block *);
     ValuePtr union_of(Env *, ValuePtr);
     ValuePtr union_of(Env *, size_t, ValuePtr *);

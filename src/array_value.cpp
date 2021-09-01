@@ -1244,4 +1244,26 @@ ValuePtr ArrayValue::slice_in_place(Env *env, ValuePtr index_obj, ValuePtr size)
     }
 }
 
+ValuePtr ArrayValue::try_convert(Env *env, ValuePtr val) {
+    auto to_ary = SymbolValue::intern("to_ary");
+    if (!val->respond_to(env, to_ary)) {
+        return NilValue::the();
+    }
+
+    auto conversion = val->send(env, to_ary);
+
+    if (conversion->is_array() || conversion->is_nil()) {
+        return conversion;
+    }
+
+    auto original_item_class_name = val->klass()->class_name_or_blank();
+    auto new_item_class_name = conversion->klass()->class_name_or_blank();
+    env->raise(
+        "TypeError",
+        "can't convert {} to Array ({}#to_ary gives {})",
+        original_item_class_name,
+        original_item_class_name,
+        new_item_class_name);
+}
+
 }
