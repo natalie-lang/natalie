@@ -1267,7 +1267,10 @@ ValuePtr ArrayValue::try_convert(Env *env, ValuePtr val) {
 }
 
 ValuePtr ArrayValue::zip(Env *env, size_t argc, ValuePtr *args, Block *block) {
-    return nullptr;
+    // FIXME: this is not exactly the way ruby does it
+    auto Enumerable = GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("Enumerable"))->as_module();
+    auto zip_method = Enumerable->find_method(env, SymbolValue::intern("zip"));
+    return zip_method->call(env, this, argc, args, block);
 }
 
 }
