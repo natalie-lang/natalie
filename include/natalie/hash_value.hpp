@@ -125,7 +125,7 @@ public:
         return iterator { nullptr, this };
     }
 
-    ValuePtr delete_key(Env *, ValuePtr);
+    ValuePtr delete_key(Env *, ValuePtr, Block *);
     ValuePtr dig(Env *, size_t, ValuePtr *);
     ValuePtr each(Env *, Block *);
     ValuePtr eq(Env *, ValuePtr);

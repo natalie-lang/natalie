@@ -289,14 +289,15 @@ ValuePtr HashValue::replace(Env *env, ValuePtr other) {
     return this;
 }
 
-ValuePtr HashValue::delete_key(Env *env, ValuePtr key) {
+ValuePtr HashValue::delete_key(Env *env, ValuePtr key, Block *block) {
     assert_not_frozen(env);
     ValuePtr val = remove(env, key);
-    if (val) {
+    if (val)
         return val;
-    } else {
+    else if (block)
+        return NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 0, nullptr, nullptr);
+    else
         return NilValue::the();
-    }
 }
 
 ValuePtr HashValue::dig(Env *env, size_t argc, ValuePtr *args) {
