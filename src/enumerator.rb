@@ -432,6 +432,27 @@ class Enumerator
       end
     end
 
+    def uniq(&block)
+      enum_block = ->(yielder) {
+        visited = {}
+        loop do
+          element = self.next
+          visiting = block ? block.call(element) : element
+
+          unless visited.include?(visiting)
+            yielder.yield(*element)
+          end
+
+          # We just care about the keys
+          visited[visiting] = 0
+        end
+      }
+
+      lazy = Lazy.new(self) {}
+      lazy.instance_variable_set(:@enum_block, enum_block)
+      lazy
+    end
+
     def lazy
       self
     end
