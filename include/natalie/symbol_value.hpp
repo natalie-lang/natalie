@@ -25,6 +25,8 @@ public:
 
     StringValue *to_s(Env *env) { return new StringValue { m_name }; }
     StringValue *inspect(Env *);
+    SymbolValue *succ(Env *);
+    SymbolValue *upcase(Env *);
 
     virtual ProcValue *to_proc(Env *) override;
 

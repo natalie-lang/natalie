@@ -30,6 +30,18 @@ StringValue *SymbolValue::inspect(Env *env) {
     return string;
 }
 
+SymbolValue *SymbolValue::succ(Env *env) {
+    auto string = to_s(env);
+    string = string->send(env, SymbolValue::intern("succ"))->as_string();
+    return string->to_symbol(env);
+}
+
+SymbolValue *SymbolValue::upcase(Env *env) {
+    auto string = to_s(env);
+    string = string->send(env, SymbolValue::intern("upcase"))->as_string();
+    return string->to_symbol(env);
+}
+
 ProcValue *SymbolValue::to_proc(Env *env) {
     auto block_env = new Env {};
     block_env->var_set("name", 0, true, this);

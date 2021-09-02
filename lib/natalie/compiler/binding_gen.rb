@@ -684,8 +684,10 @@ gen.binding('Symbol', 'id2name', 'SymbolValue', 'to_s', argc: 0, pass_env: true,
 gen.binding('Symbol', 'inspect', 'SymbolValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Symbol', '[]', 'SymbolValue', 'ref', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Symbol', 'start_with?', 'SymbolValue', 'start_with', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.binding('Symbol', 'succ', 'SymbolValue', 'succ', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Symbol', 'to_proc', 'SymbolValue', 'to_proc', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Symbol', 'to_s', 'SymbolValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Symbol', 'upcase', 'SymbolValue', 'upcase', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 
 gen.undefine_singleton_method('TrueClass', 'new')
 gen.binding('TrueClass', 'inspect', 'TrueValue', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
