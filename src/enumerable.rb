@@ -283,8 +283,9 @@ module Enumerable
     end
 
     index = 0
-    each(*args) do |item|
-      yield item, index
+    gather = ->(item) { item.size <= 1 ? item.first : item }
+    each(*args) do |*item|
+      yield gather.(item), index
       index += 1
     end
     self

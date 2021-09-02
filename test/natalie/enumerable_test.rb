@@ -38,4 +38,22 @@ describe 'Enumerable' do
       [1, 2, 3, 4].partition { |i| i <= 2 }.should == [[1, 2], [3, 4]]
     end
   end
+
+  describe '#each_with_index' do
+    it 'yields all values' do
+      class YieldsMulti
+        include Enumerable
+        def each
+          yield 1, 2
+          yield 3, 4
+        end
+      end
+      enum = YieldsMulti.new
+      values = []
+      enum.each_with_index do |item, index|
+        values << item
+      end
+      values.should == [[1, 2], [3, 4]]
+    end
+  end
 end
