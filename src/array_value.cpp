@@ -1244,6 +1244,13 @@ ValuePtr ArrayValue::slice_in_place(Env *env, ValuePtr index_obj, ValuePtr size)
     }
 }
 
+ValuePtr ArrayValue::to_h(Env *env, Block *block) {
+    // FIXME: this is not exactly the way ruby does it
+    auto Enumerable = GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("Enumerable"))->as_module();
+    auto to_h_method = Enumerable->find_method(env, SymbolValue::intern("to_h"));
+    return to_h_method->call(env, this, 0, nullptr, block);
+}
+
 ValuePtr ArrayValue::try_convert(Env *env, ValuePtr val) {
     auto to_ary = SymbolValue::intern("to_ary");
     if (!val->respond_to(env, to_ary)) {
