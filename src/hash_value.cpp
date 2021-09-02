@@ -274,6 +274,21 @@ ValuePtr HashValue::refeq(Env *env, ValuePtr key, ValuePtr val) {
     return val;
 }
 
+ValuePtr HashValue::replace(Env *env, ValuePtr other) {
+    if (!other->is_hash() && other->respond_to(env, SymbolValue::intern("to_hash")))
+        other = other->send(env, SymbolValue::intern("to_hash"));
+    other->assert_type(env, Type::Hash, "Hash");
+
+    auto other_hash = other->as_hash();
+    clear(env);
+    for (auto node : *other_hash) {
+        put(env, node.key, node.val);
+    }
+    m_default_value = other_hash->m_default_value;
+    m_default_proc = other_hash->m_default_proc;
+    return this;
+}
+
 ValuePtr HashValue::delete_key(Env *env, ValuePtr key) {
     assert_not_frozen(env);
     ValuePtr val = remove(env, key);

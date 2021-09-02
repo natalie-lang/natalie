@@ -137,6 +137,7 @@ public:
     ValuePtr merge_bang(Env *, size_t, ValuePtr *);
     ValuePtr ref(Env *, ValuePtr);
     ValuePtr refeq(Env *, ValuePtr, ValuePtr);
+    ValuePtr replace(Env *, ValuePtr);
     ValuePtr sort(Env *);
     ValuePtr values(Env *);
 
