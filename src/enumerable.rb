@@ -1091,34 +1091,28 @@ module Enumerable
     has_block = block_given?
     args = args.map do |arg|
       if arg.respond_to? :to_ary
-        arg.to_ary
-      elsif arg.respond_to? :to_enum
-        enumerable_value = arg.to_enum :each
-        unless enumerable_value.is_a? Array
-          enumerable_value = enumerable_value.to_a if enumerable_value.respond_to? :to_a
-        end
-        enumerable_value
-      else
-        arg
+        arg = arg.to_ary
       end
-    end
 
-    all_array = true
-    args.each do |arg|
-      all_array = arg.is_a? Array
-      break if not all_array
-    end
+      unless arg.respond_to? :each
+        raise TypeError, "wrong argument type #{arg.class.name} (must respond to :each)"
+      end
 
-    raise 'Support non-array args for #zip' unless all_array
+      arg.to_enum :each
+    end
 
     result = has_block ? nil : []
 
-    each_with_index do |item, index|
-      entry = [item]
-      if all_array
-        args.each do |arg|
-          entry << arg[index]
-        end
+    gather = ->(item) { item.size <= 1 ? item.first : item }
+    each do |*item|
+      entry = [gather.(item)]
+      args.each do |arg|
+        entry <<
+          begin
+            arg.next
+          rescue StopIteration
+            nil
+          end
       end
       if has_block
         yield entry

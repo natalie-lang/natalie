@@ -38,11 +38,12 @@ describe "Array#zip" do
     [1, 2].zip(obj).should == [[1, 3], [2, 4]]
   end
 
-  xit "stops at own size when given an infinite enumerator" do
-    [1, 2].zip(10.upto(Float::INFINITY)).should == [[1, 10], [2, 11]]
+  it "stops at own size when given an infinite enumerator" do
+    # [1, 2].zip(10.upto(Float::INFINITY)).should == [[1, 10], [2, 11]]
+    [1, 2].zip((10..Float::INFINITY).to_enum).should == [[1, 10], [2, 11]]
   end
 
-  xit "fills nil when the given enumerator is shorter than self" do
+  it "fills nil when the given enumerator is shorter than self" do
     obj = Object.new
     def obj.each
       yield 10

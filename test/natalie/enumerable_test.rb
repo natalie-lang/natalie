@@ -56,4 +56,10 @@ describe 'Enumerable' do
       values.should == [[1, 2], [3, 4]]
     end
   end
+
+  describe '#zip' do
+    it 'raises a TypeError if arguments contain non-list object' do
+      -> { [].zip [], Object.new, [] }.should raise_error(TypeError)
+    end
+  end
 end
