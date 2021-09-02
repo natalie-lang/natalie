@@ -412,6 +412,26 @@ class Enumerator
     end
     alias enum_for to_enum
 
+    def with_index(offset = 0, &block)
+      offset = 0 if offset == nil
+
+      Lazy.new(self, size) do |yielder, value|
+        if offset.respond_to?(:to_int)
+          offset = offset.to_int
+        else
+          raise TypeError, "no implicit conversion of #{offset.class.name} into Integer"
+        end
+
+        if block
+          block.call(value, offset)
+          yielder.yield(value)
+        else
+          yielder.yield(value, offset)
+        end
+        offset += 1
+      end
+    end
+
     def lazy
       self
     end
