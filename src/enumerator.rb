@@ -453,6 +453,31 @@ class Enumerator
       lazy
     end
 
+    def zip(*args, &block)
+      if block_given?
+        super(*args, &block)
+      else
+        args.each do |arg|
+          if arg.respond_to? :to_ary
+            arg = arg.to_ary
+          end
+
+          unless arg.respond_to?(:each)
+            raise TypeError, "wrong argument type #{arg.class.name} (must respond to :each)"
+          end
+        end
+
+        enum_block = ->(yielder) {
+          super(*args) do |item|
+            yielder << item
+          end
+        }
+        lazy = Lazy.new(self, size) {}
+        lazy.instance_variable_set(:@enum_block, enum_block)
+        lazy
+      end
+    end
+
     def lazy
       self
     end
