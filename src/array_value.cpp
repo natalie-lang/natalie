@@ -85,6 +85,10 @@ ValuePtr ArrayValue::sum(Env *env, size_t argc, ValuePtr *args, Block *block) {
 }
 
 ValuePtr ArrayValue::ref(Env *env, ValuePtr index_obj, ValuePtr size) {
+    auto sym_to_int = SymbolValue::intern("to_int");
+    if (index_obj->respond_to(env, sym_to_int)) {
+        index_obj = index_obj.send(env, sym_to_int);
+    }
     if (index_obj->type() == Value::Type::Integer) {
         nat_int_t index = index_obj->as_integer()->to_nat_int_t();
         if (index < 0) {
