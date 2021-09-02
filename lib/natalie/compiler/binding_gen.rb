@@ -435,8 +435,8 @@ gen.static_binding('GC', 'enable', 'GCModule', 'enable', argc: 0, pass_env: fals
 gen.static_binding('GC', 'disable', 'GCModule', 'disable', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 
 gen.static_binding('Hash', '[]', 'HashValue', 'square_new', argc: :any, pass_env: true, pass_block: false, pass_klass: true, return_type: :Value)
-gen.binding('Hash', '==', 'HashValue', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
-gen.binding('Hash', '===', 'HashValue', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Hash', '==', 'HashValue', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.binding('Hash', '===', 'HashValue', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Hash', '[]', 'HashValue', 'ref', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Hash', '[]=', 'HashValue', 'refeq', argc: 2, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Hash', 'clear', 'HashValue', 'clear', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
@@ -451,6 +451,7 @@ gen.binding('Hash', 'dig', 'HashValue', 'dig', argc: :any, pass_env: true, pass_
 gen.binding('Hash', 'each', 'HashValue', 'each', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Hash', 'each_pair', 'HashValue', 'each', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Hash', 'empty?', 'HashValue', 'is_empty', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
+gen.binding('Hash', 'eql?', 'HashValue', 'eql', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Hash', 'has_key?', 'HashValue', 'has_key', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Hash', 'initialize', 'HashValue', 'initialize', argc: 0..1, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Hash', 'inspect', 'HashValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)

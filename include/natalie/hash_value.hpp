@@ -128,7 +128,9 @@ public:
     ValuePtr delete_key(Env *, ValuePtr, Block *);
     ValuePtr dig(Env *, size_t, ValuePtr *);
     ValuePtr each(Env *, Block *);
-    ValuePtr eq(Env *, ValuePtr);
+    bool eq(Env *, ValuePtr, SymbolValue *);
+    bool eq(Env *, ValuePtr);
+    bool eql(Env *, ValuePtr);
     ValuePtr has_key(Env *, ValuePtr);
     ValuePtr initialize(Env *, ValuePtr, Block *);
     ValuePtr inspect(Env *);

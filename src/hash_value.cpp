@@ -320,25 +320,36 @@ ValuePtr HashValue::size(Env *env) {
     return IntegerValue::from_size_t(env, size());
 }
 
-ValuePtr HashValue::eq(Env *env, ValuePtr other_value) {
-    if (!other_value->is_hash()) {
-        return FalseValue::the();
-    }
+bool HashValue::eq(Env *env, ValuePtr other_value, SymbolValue *method_name) {
+    if (!other_value->is_hash())
+        return false;
+
     HashValue *other = other_value->as_hash();
-    if (size() != other->size()) {
-        return FalseValue::the();
-    }
+    if (size() != other->size())
+        return false;
+
     ValuePtr other_val;
     for (HashValue::Key &node : *this) {
         other_val = other->get(env, node.key);
-        if (!other_val) {
-            return FalseValue::the();
-        }
-        if (!node.val.send(env, SymbolValue::intern("=="), 1, &other_val, nullptr)->is_truthy()) {
-            return FalseValue::the();
-        }
+        if (!other_val)
+            return false;
+
+        if (node.val.value() == other_val.value())
+            continue;
+
+        if (node.val.send(env, method_name, 1, &other_val, nullptr)->is_falsey())
+            return false;
     }
-    return TrueValue::the();
+
+    return true;
+}
+
+bool HashValue::eq(Env *env, ValuePtr other_value) {
+    return eq(env, other_value, SymbolValue::intern("=="));
+}
+
+bool HashValue::eql(Env *env, ValuePtr other_value) {
+    return eq(env, other_value, SymbolValue::intern("eql?"));
 }
 
 #define NAT_RUN_BLOCK_AND_POSSIBLY_BREAK_WHILE_ITERATING_HASH(env, the_block, argc, args, block, hash) ({ \

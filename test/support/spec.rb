@@ -495,7 +495,7 @@ class Stub
 
     increment = -> { @count += 1 }
     expected_args = @args
-    should_receive_called = -> { @pass = @count_restriction === @count }
+    should_receive_called = -> { @pass = @count_restriction.nil? || @count_restriction === @count }
     return_values = @results
     result = -> { return_values.size > 1 ? return_values[@count - 1] : return_values[0] }
     yields = @yield_values
@@ -574,6 +574,11 @@ class Stub
 
   def exactly(n)
     @count_restriction = n
+    self
+  end
+
+  def any_number_of_times
+    @count_restriction = nil
     self
   end
 
