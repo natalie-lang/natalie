@@ -141,5 +141,16 @@ describe 'Enumerator' do
       select.force.should == [1, 2, 3, 4, 5]
       enum.force.should == [1, 2, 3, 4, 5]
     end
+
+    describe '#zip' do
+      it 'not raise TypeError if argument converted by to_ary responds to :each' do
+        class ArrayConvertible
+          def to_ary
+            []
+          end
+        end
+        -> { [].lazy.zip(ArrayConvertible.new) }.should_not raise_error(TypeError)
+      end
+    end
   end
 end
