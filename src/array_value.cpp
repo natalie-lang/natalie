@@ -33,24 +33,34 @@ ValuePtr ArrayValue::initialize(Env *env, ValuePtr size, ValuePtr value, Block *
 }
 
 ValuePtr ArrayValue::inspect(Env *env) {
+    return _inspect(env);
+}
+
+ValuePtr ArrayValue::_inspect(Env *env, Hashmap<ArrayValue *> visited) {
     StringValue *out = new StringValue { "[" };
+    visited.set(this);
     for (size_t i = 0; i < size(); i++) {
         ValuePtr obj = (*this)[i];
-        auto inspected_repr = obj.send(env, SymbolValue::intern("inspect"));
-        SymbolValue *to_s = SymbolValue::intern("to_s");
 
-        if (!inspected_repr->is_string()) {
-            if (inspected_repr->respond_to(env, to_s)) {
-                inspected_repr = obj.send(env, to_s);
-            }
-        }
-
-        if (inspected_repr->is_string()) {
-            out->append(env, inspected_repr->as_string());
+        if (obj->is_array() && visited.get(obj->as_array()) != nullptr) {
+            out->append(env, "[...]");
         } else {
-            char buf[1000];
-            sprintf(buf, "#<%s:%p>", inspected_repr->klass()->class_name_or_blank()->c_str(), (void *)&inspected_repr);
-            out->append(env, buf);
+            auto inspected_repr = obj.send(env, SymbolValue::intern("inspect"));
+            SymbolValue *to_s = SymbolValue::intern("to_s");
+
+            if (!inspected_repr->is_string()) {
+                if (inspected_repr->respond_to(env, to_s)) {
+                    inspected_repr = obj.send(env, to_s);
+                }
+            }
+
+            if (inspected_repr->is_string()) {
+                out->append(env, inspected_repr->as_string());
+            } else {
+                char buf[1000];
+                sprintf(buf, "#<%s:%p>", inspected_repr->klass()->class_name_or_blank()->c_str(), (void *)&inspected_repr);
+                out->append(env, buf);
+            }
         }
 
         if (i < size() - 1) {
@@ -58,6 +68,7 @@ ValuePtr ArrayValue::inspect(Env *env) {
         }
     }
     out->append_char(env, ']');
+    visited.remove(this);
     return out;
 }
 

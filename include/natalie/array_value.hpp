@@ -169,6 +169,7 @@ private:
     Vector<ValuePtr> m_vector {};
 
     bool _flatten_in_place(Env *, nat_int_t depth, Hashmap<ArrayValue *> visited_arrays = Hashmap<ArrayValue *> {});
+    ValuePtr _inspect(Env *, Hashmap<ArrayValue *> visited_arrays = Hashmap<ArrayValue *> {});
 };
 
 }
