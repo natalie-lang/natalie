@@ -99,11 +99,11 @@ describe :array_inspect, shared: true do
       Encoding.default_external = @default_external_encoding
     end
 
-    it "returns a US-ASCII string for an empty Array" do
+    xit "returns a US-ASCII string for an empty Array" do
       [].send(@method).encoding.should == Encoding::US_ASCII
     end
 
-    it "use the default external encoding if it is ascii compatible" do
+    xit "use the default external encoding if it is ascii compatible" do
       Encoding.default_external = Encoding.find('UTF-8')
 
       utf8 = "utf8".encode("UTF-8")
@@ -113,7 +113,7 @@ describe :array_inspect, shared: true do
       array.send(@method).encoding.name.should == "UTF-8"
     end
 
-    it "use US-ASCII encoding if the default external encoding is not ascii compatible" do
+    xit "use US-ASCII encoding if the default external encoding is not ascii compatible" do
       Encoding.default_external = Encoding.find('UTF-32')
 
       utf8 = "utf8".encode("UTF-8")
@@ -123,7 +123,7 @@ describe :array_inspect, shared: true do
       array.send(@method).encoding.name.should == "US-ASCII"
     end
 
-    it "does not raise if inspected result is not default external encoding" do
+    xit "does not raise if inspected result is not default external encoding" do
       utf_16be = mock("utf_16be")
       utf_16be.should_receive(:inspect).and_return(%<"utf_16be \u3042">.encode!(Encoding::UTF_16BE))
 
