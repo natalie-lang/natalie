@@ -458,6 +458,7 @@ gen.binding('Hash', 'inspect', 'HashValue', 'inspect', argc: 0, pass_env: true, 
 gen.binding('Hash', 'include?', 'HashValue', 'has_key', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Hash', 'key?', 'HashValue', 'has_key', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Hash', 'keys', 'HashValue', 'keys', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Hash', 'length', 'HashValue', 'size', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Hash', 'member?', 'HashValue', 'has_key', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Hash', 'merge', 'HashValue', 'merge', argc: :any, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Hash', 'merge!', 'HashValue', 'merge_bang', argc: :any, pass_env: true, pass_block: false, return_type: :Value)
