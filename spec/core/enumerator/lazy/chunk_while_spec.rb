@@ -1,4 +1,3 @@
-# skip-test
 require_relative '../../../spec_helper'
 
 describe "Enumerator::Lazy#chunk_while" do
