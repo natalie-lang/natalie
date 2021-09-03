@@ -203,6 +203,20 @@ class Enumerator
       lazy
     end
 
+    def chunk_while(&block)
+      raise ArgumentError, 'tried to create Proc object without a block' unless block_given?
+
+      enum_block = ->(yielder) {
+        super(&block).each do |item|
+          yielder << item
+        end
+      }
+      lazy = Lazy.new(self) {}
+      lazy.instance_variable_set(:@enum_block, enum_block)
+      lazy
+    end
+
+
     def drop(n)
       size = @size ? [0, @size - n].max : nil
 
