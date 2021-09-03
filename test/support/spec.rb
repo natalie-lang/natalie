@@ -1,6 +1,21 @@
+require_relative 'formatters/default_formatter'
+require_relative 'formatters/yaml_formatter'
+
 class SpecFailedException < StandardError; end
+class UnknownFormatterException < StandardError; end
 
 TOLERANCE = 0.00003
+FORMATTERS = ['default', 'yaml']
+
+if ARGV.include?('-f')
+  @formatter = ARGV[ARGV.index('-f') + 1]
+end
+
+@formatter ||= "default"
+
+unless FORMATTERS.include?(@formatter)
+  raise UnknownFormatterException, "#{@formatter} is not supported! Use #{FORMATTERS.join(', ')}"
+end
 
 @context = []
 @shared = {}
@@ -730,103 +745,66 @@ def run_specs
   @failures = []
   @errors = []
   @skipped = []
-  @tested = 0
+  @test_count = 0
 
   before_all_done = []
   any_focused = @specs.any? { |_, _, _, focus| focus }
+
+  formatter =
+    case @formatter
+    when 'yaml'
+      YamlFormatter.new
+    else
+      DefaultFormatter.new
+    end
 
   @specs.each do |test|
     (context, test, fn, focus) = test
     next if any_focused && !focus
     if fn
-      @tested += 1
-      context.each do |con|
-        con.before_all.each do |b|
-          unless before_all_done.include?(b)
-            b.call
-            before_all_done << b
+      @test_count += 1
+      begin
+        context.each do |con|
+          con.before_all.each do |b|
+            unless before_all_done.include?(b)
+              b.call
+              before_all_done << b
+            end
           end
         end
-      end
-      context.each do |con|
-        con.before_each.each do |b|
-          b.call
+        context.each do |con|
+          con.before_each.each do |b|
+            b.call
+          end
         end
-      end
-      begin
+
         fn.call
+
         $expectations.each do |expectation|
           expectation.validate!
         end
-      rescue SpecFailedException => e
-        print 'F'
-        @failures << [context, test, e]
-      rescue Exception => e
-        print 'E'
-        @errors << [context, test, e]
-      else
-        print '.'
-      end
-      $expectations = []
-      context.each do |con|
-        con.after_each.each do |a|
-          a.call
+        $expectations = []
+        context.each do |con|
+          con.after_each.each do |a|
+            a.call
+          end
         end
+      rescue SpecFailedException => e
+        @failures << [context, test, e]
+        formatter.print_failure(*@failures.last)
+      rescue Exception => e
+        @errors << [context, test, e]
+        formatter.print_error(*@errors.last)
+      else
+        formatter.print_success(context, test)
       end
     else
       @skipped << [context, test]
-      print '*'
+      formatter.print_skipped(*@skipped.last)
     end
   end
 
-  if @failures.any? || @errors.any?
-    puts
-    puts
-    puts 'Failed specs:'
-    (@failures + @errors).each do |failure|
-      (context, test, error) = failure
-      indent = 0
-      context.each do |con|
-        print ' ' * indent
-        puts con.to_s
-        indent += 2
-      end
-      if test # nil if using 'specify'
-        print ' ' * indent
-        puts test
-        indent += 2
-      end
-      print ' ' * indent
-      if error.is_a?(SpecFailedException)
-        line_num = nil
-        error.backtrace.each do |line|
-          if line !~ /support\/spec\.rb/
-            line_num = line.split(':')[1]
-            break
-          end
-        end
-        puts "#{error.message} (line #{line_num})"
-      else
-        puts "#{error.message} (#{error.class.name})"
-        indent += 2
-        error.backtrace.each do |line|
-          print ' ' * indent
-          puts line
-        end
-      end
-    end
-    puts
-    puts "#{@tested - @failures.size - @errors.size} spec(s) passed."
-    puts "#{@failures.size} spec(s) failed."
-    puts "#{@errors.size} spec(s) errored."
-    puts "#{@skipped.size} spec(s) skipped." if @skipped.any?
-    exit 1
-  else
-    puts
-    puts
-    puts "#{@tested} spec(s) passed."
-    puts @skipped.size.to_s + ' spec(s) skipped.' if @skipped.any?
-  end
+  formatter.print_finish(@test_count, @failures, @errors, @skipped)
 end
 
 at_exit do
