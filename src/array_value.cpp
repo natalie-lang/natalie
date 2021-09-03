@@ -42,8 +42,13 @@ ValuePtr ArrayValue::_inspect(Env *env, Hashmap<ArrayValue *> visited) {
     for (size_t i = 0; i < size(); i++) {
         ValuePtr obj = (*this)[i];
 
-        if (obj->is_array() && visited.get(obj->as_array()) != nullptr) {
-            out->append(env, "[...]");
+        if (obj->is_array()) {
+            auto array_val = obj->as_array();
+            if (visited.get(array_val) != nullptr) {
+                out->append(env, "[...]");
+            } else {
+                out->append(env, array_val->_inspect(env, visited));
+            }
         } else {
             auto inspected_repr = obj.send(env, SymbolValue::intern("inspect"));
             SymbolValue *to_s = SymbolValue::intern("to_s");
