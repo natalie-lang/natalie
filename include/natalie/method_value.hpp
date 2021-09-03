@@ -5,6 +5,7 @@
 #include "natalie/forward.hpp"
 #include "natalie/global_env.hpp"
 #include "natalie/method.hpp"
+#include "natalie/proc_value.hpp"
 #include "natalie/string_value.hpp"
 #include "natalie/symbol_value.hpp"
 #include "natalie/value.hpp"
@@ -34,6 +35,11 @@ public:
     }
 
     int arity() { return m_method ? m_method->arity() : 0; }
+
+    virtual ProcValue *to_proc(Env *env) override {
+        auto block = new Block { env, m_object, m_method->fn(), m_method->arity() };
+        return new ProcValue { block };
+    }
 
     virtual void visit_children(Visitor &visitor) override final {
         Value::visit_children(visitor);

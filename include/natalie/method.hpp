@@ -29,6 +29,7 @@ public:
         assert(m_env);
     }
 
+    MethodFnPtr fn() { return m_fn; }
     void set_fn(MethodFnPtr fn) { m_fn = fn; }
 
     bool has_env() { return !!m_env; }

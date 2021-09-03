@@ -564,6 +564,7 @@ gen.binding('MatchData', '[]', 'MatchDataValue', 'ref', argc: 1, pass_env: true,
 gen.binding('Method', 'inspect', 'MethodValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Method', 'owner', 'MethodValue', 'owner', argc: 0, pass_env: false, pass_block: false, return_type: :Value)
 gen.binding('Method', 'arity', 'MethodValue', 'arity', argc: 0, pass_env: false, pass_block: false, return_type: :int)
+gen.binding('Method', 'to_proc', 'MethodValue', 'to_proc', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 
 gen.binding('Module', '===', 'ModuleValue', 'eqeqeq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Module', 'alias_method', 'ModuleValue', 'alias_method', argc: 2, pass_env: true, pass_block: false, return_type: :Value)
