@@ -387,9 +387,10 @@ module Natalie
           pp call
           raise "cannot add block to call!"
         end
+        is_proc = !is_lambda_call?(call)
         if args.any?
           args_name = temp('args_as_array')
-          method_args = MethodArgs.new(args, args_name, is_proc: true)
+          method_args = MethodArgs.new(args, args_name, is_proc: is_proc)
           assign_args = s(:block,
                           s(:declare, args_name, s(:block_args_to_array, :env, args.size, s(:l, 'argc'), s(:l, 'args'))),
                           process(method_args.set_args))
@@ -406,6 +407,11 @@ module Natalie
                     process(s(:block, *body)))),
                 s(:declare_block, block, s(:new, :Block, :env, :self, block_fn, arity)),
                 call)
+      end
+
+      def is_lambda_call?(exp)
+        (send, _, (_, name)) = exp
+        send == :send && name == :lambda
       end
 
       # |(a, b)| should be treated as |a, b|

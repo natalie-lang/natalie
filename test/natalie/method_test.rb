@@ -467,12 +467,24 @@ describe 'safe navigation operator' do
   end
 end
 
+def splat(*args)
+end
+
+def splat_after_required(a, *args)
+end
+
+def splat_before_required(*args, a)
+end
+
 describe 'Method' do
   describe '#arity' do
     it 'works' do
       method(:foo).arity.should == 0
       method(:double).arity.should == 1
       method(:default).arity.should == -1
+      method(:splat).arity.should == -1
+      method(:splat_after_required).arity.should == -2
+      method(:splat_before_required).arity.should == -2
       method(:default_after_regular).arity.should == -2
       method(:default_with_splat_last).arity.should == -2
       method(:block_arg_test).arity.should == 2

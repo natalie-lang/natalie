@@ -79,4 +79,35 @@ describe 'block' do
       r.should == 'nope'
     end
   end
+
+  describe 'arity' do
+    def arity(&block)
+      block.arity
+    end
+
+    it 'works' do
+      proc   {}.arity.should == 0
+      proc   { || }.arity.should == 0
+      proc   { |a| }.arity.should == 1
+      proc   { |a, b| }.arity.should == 2
+      proc   { |a, b, c| }.arity.should == 3
+      proc   { |*a| }.arity.should == -1
+      proc   { |a, *b| }.arity.should == -2
+      proc   { |a, *b, c| }.arity.should == -3
+      proc   { |x:, y:, z:0| }.arity.should == 1
+      proc   { |*a, x:, y:0| }.arity.should == -2
+      proc   { |a=0| }.arity.should == 0
+      lambda { |abcdefghi=0| }.arity.should == -1
+      proc   { |a=0, b| }.arity.should == 1
+      lambda { |a=0, b| }.arity.should == -2
+      proc   { |a=0, b=0| }.arity.should == 0
+      lambda { |a=0, b=0| }.arity.should == -1
+      proc   { |a, b=0| }.arity.should == 1
+      lambda { |a, b=0| }.arity.should == -2
+      proc   { |(a, b), c=0| }.arity.should == 1
+      lambda { |(a, b), c=0| }.arity.should == -2
+      proc   { |a, x:0, y:0| }.arity.should == 1
+      lambda { |a, x:0, y:0| }.arity.should == -2
+    end
+  end
 end
