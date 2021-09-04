@@ -10,6 +10,7 @@
 #include "natalie/regexp_value.hpp"
 #include "natalie/string_value.hpp"
 #include "natalie/symbol_value.hpp"
+#include "tm/defer.hpp"
 
 namespace Natalie {
 
@@ -26,8 +27,11 @@ public:
         if (flags_obj) argc++;
         auto obj = _new(env, GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("File"))->as_class(), argc, args, nullptr);
         if (block) {
+            Defer close_file([&]() {
+                obj->as_file()->close(env);
+            });
             ValuePtr block_args[] = { obj };
-            ValuePtr result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK_WITH_CLEANUP(env, block, 1, block_args, nullptr, obj->as_file()->close(env));
+            ValuePtr result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, block_args, nullptr);
             return result;
         } else {
             return obj;

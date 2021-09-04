@@ -59,6 +59,20 @@ describe 'File' do
       -> { File.open('/tmp/should_not_exist/file.txt') }.should raise_error(Errno::ENOENT)
       -> { File.open('/tmp/should_not_exist.txt', 'r') }.should raise_error(Errno::ENOENT)
     end
+
+    it 'closes the file when the block has an exception' do
+      path = File.expand_path('../tmp/file.txt', __dir__)
+      file = nil
+      begin
+        File.open(path, 'w') do |f|
+          file = f
+          f.puts('hello world')
+          raise 'some error'
+        end
+      rescue
+      end
+      file.closed?.should == true
+    end
   end
 
   describe '#read' do
