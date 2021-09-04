@@ -506,6 +506,7 @@ gen.binding('Integer', 'zero?', 'IntegerValue', 'is_zero', argc: 0, pass_env: fa
 
 gen.static_binding('IO', 'read', 'IoValue', 'read_file', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('IO', 'close', 'IoValue', 'close', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('IO', 'closed?', 'IoValue', 'is_closed', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('IO', 'fileno', 'IoValue', 'fileno', argc: 0, pass_env: false, pass_block: false, return_type: :int)
 gen.binding('IO', 'initialize', 'IoValue', 'initialize', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('IO', 'print', 'IoValue', 'print', argc: :any, pass_env: true, pass_block: false, return_type: :Value)

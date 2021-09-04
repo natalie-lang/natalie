@@ -48,6 +48,7 @@ public:
     ValuePtr print(Env *, size_t, ValuePtr *);
     ValuePtr close(Env *);
     ValuePtr seek(Env *, ValuePtr, ValuePtr);
+    bool is_closed() { return m_closed; }
 
 private:
     int m_fileno { -1 };
