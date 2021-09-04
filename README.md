@@ -1,6 +1,6 @@
 # Natalie
 
-[![github build status](https://github.com/seven1m/natalie/workflows/Build/badge.svg)](https://github.com/seven1m/natalie/actions?workflow=Build)
+[![github build status](https://github.com/seven1m/natalie/actions/workflows/build.yml/badge.svg)](https://github.com/seven1m/natalie/actions?query=workflow%3ABuild+branch%3Amaster)
 [![builds.sr.ht status](https://builds.sr.ht/~tim/natalie.svg)](https://builds.sr.ht/~tim/natalie?)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue)](https://github.com/seven1m/natalie/blob/master/LICENSE)
 
