@@ -2,6 +2,7 @@
 
 [![github build status](https://github.com/seven1m/natalie/workflows/Build/badge.svg)](https://github.com/seven1m/natalie/actions?workflow=Build)
 [![builds.sr.ht status](https://builds.sr.ht/~tim/natalie.svg)](https://builds.sr.ht/~tim/natalie?)
+[![MIT License](https://img.shields.io/badge/license-MIT-blue)](https://github.com/seven1m/natalie/blob/master/LICENSE)
 
 Natalie is a very early-stage work-in-progress Ruby implementation.
 
