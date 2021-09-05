@@ -97,7 +97,7 @@ describe 'block' do
       proc   { |x:, y:, z:0| }.arity.should == 1
       proc   { |*a, x:, y:0| }.arity.should == -2
       proc   { |a=0| }.arity.should == 0
-      lambda { |abcdefghi=0| }.arity.should == -1
+      lambda { |a=0| }.arity.should == -1
       proc   { |a=0, b| }.arity.should == 1
       lambda { |a=0, b| }.arity.should == -2
       proc   { |a=0, b=0| }.arity.should == 0
