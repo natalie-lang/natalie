@@ -42,7 +42,6 @@
 #include "natalie/proc_value.hpp"
 #include "natalie/process_module.hpp"
 #include "natalie/range_value.hpp"
-#include "natalie/recursion_guard.hpp"
 #include "natalie/regexp_value.hpp"
 #include "natalie/sexp_value.hpp"
 #include "natalie/string_value.hpp"

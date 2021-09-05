@@ -33,7 +33,7 @@ ValuePtr ArrayValue::initialize(Env *env, ValuePtr size, ValuePtr value, Block *
 }
 
 ValuePtr ArrayValue::inspect(Env *env) {
-    RecursionGuard<StringValue *> guard { this };
+    RecursionGuard guard { this };
 
     return guard.run([&](bool is_recursive) {
         if (is_recursive)
