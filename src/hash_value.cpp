@@ -223,41 +223,42 @@ ValuePtr HashValue::square_new(Env *env, size_t argc, ValuePtr *args, ClassValue
 }
 
 ValuePtr HashValue::inspect(Env *env) {
-    if (has_inspecting_flag())
-        return new StringValue("{...}");
-    add_inspecting_flag();
+    RecursionGuard<StringValue*> guard { this };
 
-    StringValue *out = new StringValue { "{" };
-    size_t last_index = size() - 1;
-    size_t index = 0;
+    return guard.run([&] (bool is_recursive) {
+        if (is_recursive)
+            return new StringValue("{...}");
+            StringValue *out = new StringValue { "{" };
+        size_t last_index = size() - 1;
+        size_t index = 0;
 
-    auto to_s = [env](ValuePtr obj) {
-        if (obj->is_string())
+        auto to_s = [env](ValuePtr obj) {
+            if (obj->is_string())
+                return obj->as_string();
+            if (obj->respond_to(env, SymbolValue::intern("to_s")))
+                obj = obj->send(env, SymbolValue::intern("to_s"));
+            else
+                obj = new StringValue("?");
+            if (!obj->is_string())
+                obj = StringValue::format(env, "#<{}:{}>", obj->klass()->class_name_or_blank(), int_to_hex_string(obj->object_id(), false));
             return obj->as_string();
-        if (obj->respond_to(env, SymbolValue::intern("to_s")))
-            obj = obj->send(env, SymbolValue::intern("to_s"));
-        else
-            obj = new StringValue("?");
-        if (!obj->is_string())
-            obj = StringValue::format(env, "#<{}:{}>", obj->klass()->class_name_or_blank(), int_to_hex_string(obj->object_id(), false));
-        return obj->as_string();
-    };
+        };
 
-    for (HashValue::Key &node : *this) {
-        StringValue *key_repr = to_s(node.key.send(env, SymbolValue::intern("inspect")));
-        out->append(env, key_repr);
-        out->append(env, "=>");
-        StringValue *val_repr = to_s(node.val.send(env, SymbolValue::intern("inspect")));
-        out->append(env, val_repr);
-        if (index < last_index) {
-            out->append(env, ", ");
+        for (HashValue::Key &node : *this) {
+            StringValue *key_repr = to_s(node.key.send(env, SymbolValue::intern("inspect")));
+            out->append(env, key_repr);
+            out->append(env, "=>");
+            StringValue *val_repr = to_s(node.val.send(env, SymbolValue::intern("inspect")));
+            out->append(env, val_repr);
+            if (index < last_index) {
+                out->append(env, ", ");
+            }
+            index++;
         }
-        index++;
-    }
 
-    out->append_char(env, '}');
-    remove_inspecting_flag();
-    return out;
+        out->append_char(env, '}');
+        return out;
+    });
 }
 
 ValuePtr HashValue::ref(Env *env, ValuePtr key) {
