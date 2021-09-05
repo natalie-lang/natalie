@@ -9,6 +9,7 @@
 #include "natalie/macros.hpp"
 #include "natalie/nil_value.hpp"
 #include "natalie/value.hpp"
+#include "tm/recursion_guard.hpp"
 
 namespace Natalie {
 

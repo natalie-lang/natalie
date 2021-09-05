@@ -223,7 +223,7 @@ ValuePtr HashValue::square_new(Env *env, size_t argc, ValuePtr *args, ClassValue
 }
 
 ValuePtr HashValue::inspect(Env *env) {
-    RecursionGuard<StringValue *> guard { this };
+    RecursionGuard guard { this };
 
     return guard.run([&](bool is_recursive) {
         if (is_recursive)
