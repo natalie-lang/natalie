@@ -51,6 +51,7 @@
 #include "natalie/value.hpp"
 #include "natalie/value_ptr.hpp"
 #include "natalie/void_p_value.hpp"
+#include "natalie/recursion_guard.hpp"
 
 namespace Natalie {
 
