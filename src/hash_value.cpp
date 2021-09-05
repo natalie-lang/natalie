@@ -223,12 +223,12 @@ ValuePtr HashValue::square_new(Env *env, size_t argc, ValuePtr *args, ClassValue
 }
 
 ValuePtr HashValue::inspect(Env *env) {
-    RecursionGuard<StringValue*> guard { this };
+    RecursionGuard<StringValue *> guard { this };
 
-    return guard.run([&] (bool is_recursive) {
+    return guard.run([&](bool is_recursive) {
         if (is_recursive)
             return new StringValue("{...}");
-            StringValue *out = new StringValue { "{" };
+        StringValue *out = new StringValue { "{" };
         size_t last_index = size() - 1;
         size_t index = 0;
 

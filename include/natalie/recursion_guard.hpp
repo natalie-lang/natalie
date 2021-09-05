@@ -8,10 +8,10 @@
 namespace Natalie {
 static Hashmap<void *> did_run;
 
-template<typename ReturnType>
+template <typename ReturnType>
 class RecursionGuard {
 public:
-    RecursionGuard(void *instance) 
+    RecursionGuard(void *instance)
         : m_instance { instance } {
     }
 
@@ -20,7 +20,7 @@ public:
             return callback(true);
 
         mark();
-        Defer on_close([&] () { clear(); });
+        Defer on_close([&]() { clear(); });
         return callback(false);
     }
 
@@ -39,7 +39,5 @@ private:
         }
     }
 };
-
-
 
 }

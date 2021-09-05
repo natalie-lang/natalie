@@ -33,12 +33,12 @@ ValuePtr ArrayValue::initialize(Env *env, ValuePtr size, ValuePtr value, Block *
 }
 
 ValuePtr ArrayValue::inspect(Env *env) {
-    RecursionGuard<StringValue*> guard { this };
+    RecursionGuard<StringValue *> guard { this };
 
-    return guard.run([&] (bool is_recursive) {
-        if (is_recursive) 
+    return guard.run([&](bool is_recursive) {
+        if (is_recursive)
             return new StringValue { "[...]" };
-        
+
         StringValue *out = new StringValue { "[" };
         for (size_t i = 0; i < size(); i++) {
             ValuePtr obj = (*this)[i];
