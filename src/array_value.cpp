@@ -295,17 +295,47 @@ ValuePtr ArrayValue::any(Env *env, size_t argc, ValuePtr *args, Block *block) {
 }
 
 ValuePtr ArrayValue::eq(Env *env, ValuePtr other) {
-    if (!other->is_array()) return FalseValue::the();
-    ArrayValue *other_array = other->as_array();
-    if (size() != other_array->size()) return FalseValue::the();
-    if (size() == 0) return TrueValue::the();
-    for (size_t i = 0; i < size(); i++) {
-        // TODO: could easily be optimized for strings and numbers
-        ValuePtr item = (*other_array)[i];
-        ValuePtr result = (*this)[i].send(env, SymbolValue::intern("=="), { item });
-        if (result->type() == Value::Type::False) return result;
-    }
-    return TrueValue::the();
+    RecursionGuard guard { this };
+
+    return guard.run([&](bool is_recursive) -> ValuePtr {
+        if (other == this)
+            return TrueValue::the();
+
+        SymbolValue *equality = SymbolValue::intern("==");
+        if (!other->is_array()
+            && other->send(env, SymbolValue::intern("respond_to?"), { SymbolValue::intern("to_ary") })->is_true())
+            return other->send(env, equality, { this });
+
+        auto other_array = other->as_array();
+        if (size() != other_array->size())
+            return FalseValue::the(); 
+
+        if (is_recursive)
+            //since == is an & of all the == of each value, this will just leave the expression uneffected
+            return TrueValue::the();
+
+        SymbolValue *object_id = SymbolValue::intern("object_id");
+        for (size_t i = 0; i < size(); ++i) {
+            ValuePtr this_item = (*this)[i];
+            ValuePtr item = (*other_array)[i];
+
+            ValuePtr same_object_id = this_item
+                ->send(env, object_id)
+                ->send(env, equality, {
+                    item->send(env, object_id)
+                });
+
+            // This allows us to check NAN equality and other potentially similar constants
+            if (same_object_id->type() == Value::Type::True)
+                continue;
+
+            ValuePtr result = this_item.send(env, equality, 1, &item, nullptr);
+            if (result->type() == Value::Type::False)
+                return result;
+        }
+
+        return TrueValue::the();
+    });
 }
 
 ValuePtr ArrayValue::eql(Env *env, ValuePtr other) {
