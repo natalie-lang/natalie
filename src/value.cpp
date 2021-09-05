@@ -485,6 +485,14 @@ bool Value::is_a(Env *env, ValuePtr val) {
 }
 
 bool Value::respond_to(Env *env, ValuePtr name_val) {
+    if (respond_to_method(env, SymbolValue::intern("respond_to?")))
+        return send(env, SymbolValue::intern("respond_to?"), { name_val })->is_true();
+    
+    // Needed for BaseObject as it does not have an actual respond_to? method
+    return respond_to_method(env, name_val);
+}
+
+bool Value::respond_to_method(Env *env, ValuePtr name_val) {
     Method *method;
     auto name_symbol = name_val->to_symbol(env, Conversion::Strict);
     if (singleton_class() && (method = singleton_class()->find_method(env, name_symbol))) {
