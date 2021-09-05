@@ -309,23 +309,31 @@ ValuePtr ArrayValue::eq(Env *env, ValuePtr other) {
 }
 
 ValuePtr ArrayValue::eql(Env *env, ValuePtr other) {
-    if (other == this)
+    RecursionGuard guard { this };
+
+    return guard.run([&](bool is_recursive) -> ValuePtr {
+        if (other == this)
+            return TrueValue::the();
+        if (!other->is_array())
+            return FalseValue::the();
+
+        auto other_array = other->as_array();
+        if (size() != other_array->size())
+            return FalseValue::the();
+
+        if (is_recursive)
+            //since eql is an & of all the eql of each value, this will just leave the expression uneffected
+            return TrueValue::the();
+
+        for (size_t i = 0; i < size(); ++i) {
+            ValuePtr item = (*other_array)[i];
+            ValuePtr result = (*this)[i].send(env, SymbolValue::intern("eql?"), 1, &item, nullptr);
+            if (result->type() == Value::Type::False)
+                return result;
+        }
+
         return TrueValue::the();
-    if (!other->is_array())
-        return FalseValue::the();
-
-    auto other_array = other->as_array();
-    if (size() != other_array->size())
-        return FalseValue::the();
-
-    for (size_t i = 0; i < size(); ++i) {
-        ValuePtr item = (*other_array)[i];
-        ValuePtr result = (*this)[i].send(env, SymbolValue::intern("eql?"), { item });
-        if (result->type() == Value::Type::False)
-            return result;
-    }
-
-    return TrueValue::the();
+    });
 }
 
 ValuePtr ArrayValue::each(Env *env, Block *block) {
