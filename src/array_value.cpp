@@ -33,23 +33,16 @@ ValuePtr ArrayValue::initialize(Env *env, ValuePtr size, ValuePtr value, Block *
 }
 
 ValuePtr ArrayValue::inspect(Env *env) {
-    return _inspect(env);
-}
+    RecursionGuard<StringValue *> guard { this };
 
-ValuePtr ArrayValue::_inspect(Env *env, Hashmap<ArrayValue *> visited) {
-    StringValue *out = new StringValue { "[" };
-    visited.set(this);
-    for (size_t i = 0; i < size(); i++) {
-        ValuePtr obj = (*this)[i];
+    return guard.run([&](bool is_recursive) {
+        if (is_recursive)
+            return new StringValue { "[...]" };
 
-        if (obj->is_array()) {
-            auto array_val = obj->as_array();
-            if (visited.get(array_val) != nullptr) {
-                out->append(env, "[...]");
-            } else {
-                out->append(env, array_val->_inspect(env, visited));
-            }
-        } else {
+        StringValue *out = new StringValue { "[" };
+        for (size_t i = 0; i < size(); i++) {
+            ValuePtr obj = (*this)[i];
+
             auto inspected_repr = obj.send(env, SymbolValue::intern("inspect"));
             SymbolValue *to_s = SymbolValue::intern("to_s");
 
@@ -66,15 +59,14 @@ ValuePtr ArrayValue::_inspect(Env *env, Hashmap<ArrayValue *> visited) {
                 sprintf(buf, "#<%s:%p>", inspected_repr->klass()->class_name_or_blank()->c_str(), (void *)&inspected_repr);
                 out->append(env, buf);
             }
-        }
 
-        if (i < size() - 1) {
-            out->append(env, ", ");
+            if (i < size() - 1) {
+                out->append(env, ", ");
+            }
         }
-    }
-    out->append_char(env, ']');
-    visited.remove(this);
-    return out;
+        out->append_char(env, ']');
+        return out;
+    });
 }
 
 ValuePtr ArrayValue::ltlt(Env *env, ValuePtr arg) {
