@@ -16,7 +16,7 @@ int HashValue::compare(const void *a, const void *b, Env *env) {
     if (a_p->key->object_id() == b_p->key->object_id() && a_p->hash == b_p->hash)
         return 0;
 
-    return a_p->key.send(env, SymbolValue::intern("eql?"), 1, &b_p->key)->is_truthy() ? 0 : 1; // return 0 for exact match
+    return a_p->key.send(env, SymbolValue::intern("eql?"), { b_p->key })->is_truthy() ? 0 : 1; // return 0 for exact match
 }
 
 ValuePtr HashValue::get(Env *env, ValuePtr key) {
@@ -314,7 +314,7 @@ ValuePtr HashValue::dig(Env *env, size_t argc, ValuePtr *args) {
     if (!val->respond_to(env, dig))
         env->raise("TypeError", "{} does not have #dig method", val->klass()->class_name_or_blank());
 
-    return val.send(env, dig, argc - 1, &args[1]);
+    return val.send(env, dig, argc - 1, args + 1);
 }
 
 ValuePtr HashValue::size(Env *env) {
@@ -338,7 +338,7 @@ bool HashValue::eq(Env *env, ValuePtr other_value, SymbolValue *method_name) {
         if (node.val.value() == other_val.value())
             continue;
 
-        if (node.val.send(env, method_name, 1, &other_val, nullptr)->is_falsey())
+        if (node.val.send(env, method_name, { other_val })->is_falsey())
             return false;
     }
 

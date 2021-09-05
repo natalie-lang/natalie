@@ -546,7 +546,7 @@ ProcValue *Value::to_proc(Env *env) {
 
 // FIXME: this should actually live in the Kernel module which gets mixed into Object
 ValuePtr Value::cmp(Env *env, ValuePtr other) {
-    if (send(env, SymbolValue::intern("=="), 1, &other)->is_truthy()) {
+    if (send(env, SymbolValue::intern("=="), { other })->is_truthy()) {
         return ValuePtr::integer(0);
     } else {
         return NilValue::the();
@@ -588,7 +588,7 @@ void Value::assert_not_frozen(Env *env) {
 }
 
 bool Value::neq(Env *env, ValuePtr other) {
-    return send(env, SymbolValue::intern("=="), 1, &other)->is_falsey();
+    return send(env, SymbolValue::intern("=="), { other })->is_falsey();
 }
 
 const String *Value::inspect_str(Env *env) {

@@ -1,5 +1,8 @@
 #pragma once
 
+#include <initializer_list>
+#include <iterator>
+
 #include "natalie/forward.hpp"
 #include "natalie/types.hpp"
 #include "natalie/value_type.hpp"
@@ -65,6 +68,10 @@ public:
     ValuePtr public_send(Env *, SymbolValue *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
 
     ValuePtr send(Env *, SymbolValue *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
+
+    ValuePtr send(Env *env, SymbolValue *name, std::initializer_list<ValuePtr> args, Block *block = nullptr) {
+        return send(env, name, args.size(), const_cast<ValuePtr *>(std::data(args)), block);
+    }
 
     bool is_pointer() {
         return m_type == Type::Pointer;

@@ -88,7 +88,7 @@ ValuePtr ArrayValue::sub(Env *env, ValuePtr other) {
     for (auto &item : *this) {
         int found = 0;
         for (auto &compare_item : *other->as_array()) {
-            if (item.send(env, SymbolValue::intern("=="), 1, &compare_item, nullptr)->is_truthy()) {
+            if (item.send(env, SymbolValue::intern("=="), { compare_item })->is_truthy()) {
                 found = 1;
                 break;
             }
@@ -302,7 +302,7 @@ ValuePtr ArrayValue::eq(Env *env, ValuePtr other) {
     for (size_t i = 0; i < size(); i++) {
         // TODO: could easily be optimized for strings and numbers
         ValuePtr item = (*other_array)[i];
-        ValuePtr result = (*this)[i].send(env, SymbolValue::intern("=="), 1, &item, nullptr);
+        ValuePtr result = (*this)[i].send(env, SymbolValue::intern("=="), { item });
         if (result->type() == Value::Type::False) return result;
     }
     return TrueValue::the();
@@ -320,7 +320,7 @@ ValuePtr ArrayValue::eql(Env *env, ValuePtr other) {
 
     for (size_t i = 0; i < size(); ++i) {
         ValuePtr item = (*other_array)[i];
-        ValuePtr result = (*this)[i].send(env, SymbolValue::intern("eql?"), 1, &item, nullptr);
+        ValuePtr result = (*this)[i].send(env, SymbolValue::intern("eql?"), { item });
         if (result->type() == Value::Type::False)
             return result;
     }
@@ -502,7 +502,7 @@ ValuePtr ArrayValue::dig(Env *env, size_t argc, ValuePtr *args) {
     if (!val->respond_to(env, dig))
         env->raise("TypeError", "{} does not have #dig method", val->klass()->class_name_or_blank());
 
-    return val.send(env, dig, argc - 1, &args[1]);
+    return val.send(env, dig, argc - 1, args + 1);
 }
 
 ValuePtr ArrayValue::drop(Env *env, ValuePtr n) {
@@ -568,7 +568,7 @@ ValuePtr ArrayValue::include(Env *env, ValuePtr item) {
         return FalseValue::the();
     } else {
         for (auto &compare_item : *this) {
-            if (item.send(env, SymbolValue::intern("=="), 1, &compare_item, nullptr)->is_truthy()) {
+            if (item.send(env, SymbolValue::intern("=="), { compare_item })->is_truthy()) {
                 return TrueValue::the();
             }
         }
@@ -591,8 +591,7 @@ ValuePtr ArrayValue::index(Env *env, ValuePtr object, Block *block) {
     } else if (object) {
         for (nat_int_t i = 0; i < length; i++) {
             auto item = m_vector[i];
-            ValuePtr args[] = { object };
-            if (item.send(env, SymbolValue::intern("=="), 1, args)->is_truthy())
+            if (item.send(env, SymbolValue::intern("=="), { object })->is_truthy())
                 return ValuePtr::integer(i);
         }
         return NilValue::the();
@@ -655,7 +654,7 @@ ValuePtr ArrayValue::cmp(Env *env, ValuePtr other) {
             return ValuePtr::integer(1);
         }
         ValuePtr item = (*other_array)[i];
-        ValuePtr cmp_obj = (*this)[i].send(env, SymbolValue::intern("<=>"), 1, &item, nullptr);
+        ValuePtr cmp_obj = (*this)[i].send(env, SymbolValue::intern("<=>"), { item });
         assert(cmp_obj->type() == Value::Type::Integer);
         nat_int_t cmp = cmp_obj->as_integer()->to_nat_int_t();
         if (cmp < 0) return ValuePtr::integer(-1);
@@ -708,12 +707,12 @@ bool array_sort_compare(Env *env, ValuePtr a, ValuePtr b, Block *block) {
 
         if (compare->respond_to(env, SymbolValue::intern("<"))) {
             ValuePtr zero = ValuePtr::integer(0);
-            return compare.send(env, SymbolValue::intern("<"), 1, &zero, nullptr)->is_truthy();
+            return compare.send(env, SymbolValue::intern("<"), { zero })->is_truthy();
         } else {
             env->raise("ArgumentError", "comparison of {} with 0 failed", compare->klass()->class_name_or_blank());
         }
     } else {
-        ValuePtr compare = a.send(env, SymbolValue::intern("<=>"), 1, &b, nullptr);
+        ValuePtr compare = a.send(env, SymbolValue::intern("<=>"), { b });
         if (compare->is_integer()) {
             return compare->as_integer()->to_nat_int_t() < 0;
         }
@@ -736,7 +735,7 @@ bool array_sort_by_compare(Env *env, ValuePtr a, ValuePtr b, Block *block) {
     ValuePtr a_res = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 1, &a, nullptr);
     ValuePtr b_res = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 1, &b, nullptr);
 
-    ValuePtr compare = a_res.send(env, SymbolValue::intern("<=>"), 1, &b_res, nullptr);
+    ValuePtr compare = a_res.send(env, SymbolValue::intern("<=>"), { b_res });
     if (compare->is_integer()) {
         return compare->as_integer()->to_nat_int_t() < 0;
     }
@@ -789,7 +788,7 @@ ValuePtr ArrayValue::max(Env *env) {
         return NilValue::the();
     ValuePtr max = nullptr;
     for (auto item : *this) {
-        if (!max || item.send(env, SymbolValue::intern(">"), 1, &max)->is_truthy())
+        if (!max || item.send(env, SymbolValue::intern(">"), { max })->is_truthy())
             max = item;
     }
     return max;
@@ -800,7 +799,7 @@ ValuePtr ArrayValue::min(Env *env) {
         return NilValue::the();
     ValuePtr min = nullptr;
     for (auto item : *this) {
-        if (!min || item.send(env, SymbolValue::intern("<"), 1, &min)->is_truthy())
+        if (!min || item.send(env, SymbolValue::intern("<"), { min })->is_truthy())
             min = item;
     }
     return min;
@@ -880,7 +879,7 @@ ValuePtr ArrayValue::assoc(Env *env, ValuePtr needle) {
         if (sub_array->is_empty())
             continue;
 
-        if (needle.send(env, SymbolValue::intern("=="), 1, &(*sub_array)[0], nullptr)->is_truthy())
+        if (needle.send(env, SymbolValue::intern("=="), { (*sub_array)[0] })->is_truthy())
             return sub_array;
     }
 
@@ -896,7 +895,7 @@ ValuePtr ArrayValue::rassoc(Env *env, ValuePtr needle) {
         if (sub_array->size() < 2)
             continue;
 
-        if (needle.send(env, SymbolValue::intern("=="), 1, &(*sub_array)[1], nullptr)->is_truthy())
+        if (needle.send(env, SymbolValue::intern("=="), { (*sub_array)[1] })->is_truthy())
             return sub_array;
     }
 
@@ -1083,8 +1082,7 @@ ValuePtr ArrayValue::rindex(Env *env, ValuePtr object, Block *block) {
     } else if (object) {
         for (nat_int_t i = length - 1; i >= 0; i--) {
             auto item = m_vector[i];
-            ValuePtr args[] = { object };
-            if (item.send(env, SymbolValue::intern("=="), 1, args)->is_truthy())
+            if (item.send(env, SymbolValue::intern("=="), { object })->is_truthy())
                 return ValuePtr::integer(i);
         }
         return NilValue::the();

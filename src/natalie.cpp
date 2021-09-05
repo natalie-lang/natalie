@@ -511,7 +511,7 @@ void arg_spread(Env *env, size_t argc, ValuePtr *args, const char *arrangement, 
 std::pair<ValuePtr, ValuePtr> coerce(Env *env, ValuePtr lhs, ValuePtr rhs) {
     auto coerce_symbol = SymbolValue::intern("coerce");
     if (lhs->respond_to(env, coerce_symbol)) {
-        ValuePtr coerced = lhs.send(env, coerce_symbol, 1, &rhs, nullptr);
+        ValuePtr coerced = lhs.send(env, coerce_symbol, { rhs });
         if (!coerced->is_array()) {
             env->raise("TypeError", "coerce must return [x, y]");
         }

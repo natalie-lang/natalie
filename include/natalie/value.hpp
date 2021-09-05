@@ -182,8 +182,8 @@ public:
     ValuePtr send(Env *, SymbolValue *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
     ValuePtr send(Env *, size_t, ValuePtr *, Block *);
 
-    ValuePtr send(Env *env, SymbolValue *name, std::initializer_list<ValuePtr> args) {
-        return send(env, name, args.size(), const_cast<ValuePtr *>(data(args)));
+    ValuePtr send(Env *env, SymbolValue *name, std::initializer_list<ValuePtr> args, Block *block = nullptr) {
+        return send(env, name, args.size(), const_cast<ValuePtr *>(data(args)), block);
     }
 
     Method *find_method(Env *, SymbolValue *, MethodVisibility, ModuleValue ** = nullptr, Method * = nullptr);

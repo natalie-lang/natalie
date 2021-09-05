@@ -87,9 +87,8 @@ ValuePtr FileValue::unlink(Env *env, ValuePtr path) {
     if (result == 0) {
         return ValuePtr::integer(1);
     } else {
-        ValuePtr args[] = { ValuePtr::integer(errno) };
         auto SystemCallError = GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("SystemCallError"));
-        auto exception = SystemCallError.send(env, SymbolValue::intern("exception"), 1, args)->as_exception();
+        auto exception = SystemCallError.send(env, SymbolValue::intern("exception"), { ValuePtr::integer(errno) })->as_exception();
         env->raise_exception(exception);
     }
 }
