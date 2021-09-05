@@ -192,6 +192,7 @@ public:
 
     bool is_a(Env *, ValuePtr);
     bool respond_to(Env *, ValuePtr);
+    bool respond_to_method(Env *, ValuePtr);
 
     const char *defined(Env *, SymbolValue *, bool);
     ValuePtr defined_obj(Env *, SymbolValue *, bool = false);
