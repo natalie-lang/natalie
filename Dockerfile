@@ -1,7 +1,7 @@
 ARG IMAGE=ruby:2.7
 FROM $IMAGE
 
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y -q build-essential cmake autoconf libtool valgrind clang lcov
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y -q build-essential autoconf libtool clang lcov
 RUN gem install bundler --no-doc
 
 ENV LC_ALL C.UTF-8
@@ -17,15 +17,14 @@ ARG CXX=g++
 ENV CXX=$CXX
 
 COPY ext /natalie/ext
-COPY CMakeLists.txt /natalie/CMakeLists.txt
-COPY Makefile /natalie/Makefile
+COPY Rakefile /natalie/Rakefile
 
 COPY bin /natalie/bin
 COPY examples /natalie/examples
 COPY lib /natalie/lib
 COPY src /natalie/src
 COPY include /natalie/include
-RUN make
+RUN rake
 
 COPY spec /natalie/spec
 COPY test /natalie/test

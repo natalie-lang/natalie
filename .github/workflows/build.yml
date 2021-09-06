@@ -17,7 +17,7 @@ jobs:
     - name: checkout submodules
       run: git submodule update --init --recursive
     - name: test with gcc
-      run: make docker_test_gcc
+      run: rake docker_test_gcc
   clang:
     runs-on: ubuntu-20.04
     steps:
@@ -25,7 +25,7 @@ jobs:
     - name: checkout submodules
       run: git submodule update --init --recursive
     - name: test with clang
-      run: make docker_test_clang
+      run: rake docker_test_clang
   release_build:
     runs-on: ubuntu-20.04
     steps:
@@ -33,7 +33,7 @@ jobs:
     - name: checkout submodules
       run: git submodule update --init --recursive
     - name: test release build
-      run: make docker_test_release
+      run: rake docker_test_release
   ruby3:
     runs-on: ubuntu-20.04
     steps:
@@ -41,4 +41,4 @@ jobs:
     - name: checkout submodules
       run: git submodule update --init --recursive
     - name: test with Ruby 3.0
-      run: make docker_test_gcc
+      run: rake docker_test_gcc
