@@ -329,12 +329,12 @@ ValuePtr ArrayValue::eq(Env *env, ValuePtr other) {
                                               ->send(env, equality, { item->send(env, object_id) });
 
                 // This allows us to check NAN equality and other potentially similar constants
-                if (same_object_id->type() == Value::Type::True)
+                if (same_object_id->is_true())
                     continue;
             }
 
             ValuePtr result = this_item.send(env, equality, 1, &item, nullptr);
-            if (result->type() == Value::Type::False)
+            if (result->is_false())
                 return result;
         }
 
@@ -366,7 +366,7 @@ ValuePtr ArrayValue::eql(Env *env, ValuePtr other) {
         for (size_t i = 0; i < size(); ++i) {
             ValuePtr item = (*other_array)[i];
             ValuePtr result = (*this)[i].send(env, SymbolValue::intern("eql?"), 1, &item, nullptr);
-            if (result->type() == Value::Type::False)
+            if (result->is_false())
                 return result;
         }
 
