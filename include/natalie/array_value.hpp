@@ -44,6 +44,8 @@ public:
         return new ArrayValue { argc, args };
     }
 
+    static ValuePtr allocate(Env *, size_t, ValuePtr *);
+
     ValuePtr to_ary() { return this; }
 
     size_t size() const { return m_vector.size(); }

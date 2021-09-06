@@ -7,6 +7,14 @@
 
 namespace Natalie {
 
+ValuePtr ArrayValue::allocate(Env *env, size_t argc, ValuePtr *args) {
+    if (argc > 0)
+        env->raise("ArgumentError",
+            "wrong number of arguments (given {}, expected 0)",
+            argc);
+    return new ArrayValue {};
+}
+
 ValuePtr ArrayValue::initialize(Env *env, ValuePtr size, ValuePtr value, Block *block) {
     if (!size) {
         return this;
