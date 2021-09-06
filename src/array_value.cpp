@@ -306,6 +306,10 @@ ValuePtr ArrayValue::eq(Env *env, ValuePtr other) {
             && other->send(env, SymbolValue::intern("respond_to?"), { SymbolValue::intern("to_ary") })->is_true())
             return other->send(env, equality, { this });
 
+        if (! other->is_array()) {
+            return FalseValue::the();
+        }
+
         auto other_array = other->as_array();
         if (size() != other_array->size())
             return FalseValue::the(); 
@@ -346,6 +350,10 @@ ValuePtr ArrayValue::eql(Env *env, ValuePtr other) {
             return TrueValue::the();
         if (!other->is_array())
             return FalseValue::the();
+
+        if (! other->is_array()) {
+            return FalseValue::the();
+        }
 
         auto other_array = other->as_array();
         if (size() != other_array->size())
