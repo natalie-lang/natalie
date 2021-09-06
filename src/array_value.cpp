@@ -926,7 +926,7 @@ ValuePtr ArrayValue::assoc(Env *env, ValuePtr needle) {
         if (sub_array->is_empty())
             continue;
 
-        if (needle.send(env, SymbolValue::intern("=="), { (*sub_array)[0] })->is_truthy())
+        if ((*sub_array)[0].send(env, SymbolValue::intern("=="), { needle })->is_truthy())
             return sub_array;
     }
 
