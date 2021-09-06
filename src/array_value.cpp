@@ -713,6 +713,7 @@ ValuePtr ArrayValue::cmp(Env *env, ValuePtr other) {
 }
 
 ValuePtr ArrayValue::push(Env *env, size_t argc, ValuePtr *args) {
+    assert_not_frozen(env);
     for (size_t i = 0; i < argc; i++) {
         push(args[i]);
     }
