@@ -106,6 +106,7 @@ public:
     ValuePtr compact_in_place(Env *);
     ValuePtr concat(Env *, size_t, ValuePtr *);
     ValuePtr delete_if(Env *, Block *);
+    ValuePtr delete_item(Env *, ValuePtr, Block *);
     ValuePtr dig(Env *, size_t, ValuePtr *);
     ValuePtr drop(Env *, ValuePtr);
     ValuePtr each(Env *, Block *);
