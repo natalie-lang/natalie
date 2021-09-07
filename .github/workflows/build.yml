@@ -1,12 +1,16 @@
 name: Build
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - master
+  pull_request:
 
 env:
   DOCKER_FLAGS: ""
 
 jobs:
-  gcc_test:
+  gcc:
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v1
@@ -14,7 +18,7 @@ jobs:
       run: git submodule update --init --recursive
     - name: test with gcc
       run: make docker_test_gcc
-  clang_test:
+  clang:
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v1
@@ -22,15 +26,7 @@ jobs:
       run: git submodule update --init --recursive
     - name: test with clang
       run: make docker_test_clang
-  #valgrind_test:
-  #  runs-on: ubuntu-20.04
-  #  steps:
-  #  - uses: actions/checkout@v1
-  #  - name: checkout submodules
-  #    run: git submodule update --init --recursive
-  #  - name: test with valgrind
-  #    run: make docker_test_valgrind
-  release_build_test:
+  release_build:
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v1
@@ -38,3 +34,11 @@ jobs:
       run: git submodule update --init --recursive
     - name: test release build
       run: make docker_test_release
+  ruby3:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v1
+    - name: checkout submodules
+      run: git submodule update --init --recursive
+    - name: test with Ruby 3.0
+      run: make docker_test_gcc

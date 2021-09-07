@@ -49,6 +49,9 @@ docker_bash: docker_build
 docker_build_clang:
 	docker build -t natalie_clang --build-arg CC=clang --build-arg CXX=clang++ .
 
+docker_build_ruby3:
+	docker build -t natalie_ruby3 --build-arg IMAGE="ruby:3.0" .
+
 docker_test: docker_test_gcc docker_test_clang docker_test_valgrind
 
 docker_test_gcc: docker_build
@@ -62,6 +65,9 @@ docker_test_valgrind: docker_build
 
 docker_test_release: docker_build
 	docker run $(DOCKER_FLAGS) --rm --entrypoint ${MAKE} natalie clean build_release test
+
+docker_test_ruby3: docker_build_ruby3
+	docker run $(DOCKER_FLAGS) --rm --entrypoint ${MAKE} natalie_ruby3 test
 
 cloc:
 	cloc include lib src test

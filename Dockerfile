@@ -1,6 +1,7 @@
-FROM ubuntu:hirsute
+ARG IMAGE=ruby:2.7
+FROM $IMAGE
 
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y -q ruby ruby-dev build-essential cmake autoconf libtool valgrind clang lcov
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y -q build-essential cmake autoconf libtool valgrind clang lcov
 RUN gem install bundler --no-doc
 
 ENV LC_ALL C.UTF-8
