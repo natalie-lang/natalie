@@ -390,13 +390,25 @@ ValuePtr ArrayValue::each(Env *env, Block *block) {
 }
 
 ValuePtr ArrayValue::map(Env *env, Block *block) {
-    env->ensure_block_given(block); // TODO: return Enumerator when no block given
-    ArrayValue *new_array = new ArrayValue {};
-    for (auto &item : *this) {
-        ValuePtr result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
-        new_array->push(result);
+    if (!block)
+        return send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("map") });
+
+    ArrayValue *copy = new ArrayValue { *this };
+    copy->map_in_place(env, block);
+    return copy;
+}
+
+ValuePtr ArrayValue::map_in_place(Env *env, Block *block) {
+    if (!block)
+        return send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("map!") });
+
+    assert_not_frozen(env);
+
+    for (size_t i = 0; i < m_vector.size(); ++i) {
+        auto &item = (*this)[i];
+        m_vector.at(i) = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
     }
-    return new_array;
+    return this;
 }
 
 ValuePtr ArrayValue::first(Env *env, ValuePtr n) {

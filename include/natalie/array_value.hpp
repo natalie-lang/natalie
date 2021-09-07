@@ -124,6 +124,7 @@ public:
     ValuePtr last(Env *, ValuePtr);
     ValuePtr ltlt(Env *, ValuePtr);
     ValuePtr map(Env *, Block *);
+    ValuePtr map_in_place(Env *, Block *);
     ValuePtr max(Env *);
     ValuePtr min(Env *);
     ValuePtr none(Env *, size_t, ValuePtr *, Block *);
