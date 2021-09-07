@@ -334,7 +334,7 @@ class EqlExpectation
   end
 end
 
-class BeEmpyExpectation
+class BeEmptyExpectation
   def match(subject)
     if (subject.length > 0)
       raise SpecFailedException, subject.inspect + ' should be empty but has size ' + subject.length
@@ -687,7 +687,7 @@ class Object
   end  
   
   def be_empty()
-    BeEmpyExpectation.new
+    BeEmptyExpectation.new
   end
 
   def equal(other)
