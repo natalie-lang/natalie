@@ -334,6 +334,20 @@ class EqlExpectation
   end
 end
 
+class BeEmptyExpectation
+  def match(subject)
+    if (subject.length > 0)
+      raise SpecFailedException, subject.inspect + ' should be empty but has size ' + subject.length
+    end
+  end
+
+  def inverted_match(subject)
+    if (subject.length == 0)
+      raise SpecFailedException, subject.inspect + ' should not be empty'
+    end
+  end
+end
+
 class EqualExpectation
   def initialize(other)
     @other = other
@@ -670,6 +684,10 @@ class Object
 
   def eql(other)
     EqlExpectation.new(other)
+  end  
+  
+  def be_empty()
+    BeEmptyExpectation.new
   end
 
   def equal(other)
