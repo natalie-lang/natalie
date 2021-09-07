@@ -105,6 +105,7 @@ public:
     ValuePtr compact(Env *);
     ValuePtr compact_in_place(Env *);
     ValuePtr concat(Env *, size_t, ValuePtr *);
+    ValuePtr delete_at(Env *, ValuePtr);
     ValuePtr delete_if(Env *, Block *);
     ValuePtr delete_item(Env *, ValuePtr, Block *);
     ValuePtr dig(Env *, size_t, ValuePtr *);
@@ -174,6 +175,7 @@ private:
 
     Vector<ValuePtr> m_vector {};
 
+    nat_int_t _resolve_index(nat_int_t);
     bool _flatten_in_place(Env *, nat_int_t depth, Hashmap<ArrayValue *> visited_arrays = Hashmap<ArrayValue *> {});
 };
 
