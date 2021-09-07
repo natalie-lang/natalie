@@ -7,6 +7,11 @@
 
 namespace Natalie {
 
+ValuePtr ArrayValue::allocate(Env *env, size_t argc, ValuePtr *args) {
+    env->ensure_argc_is(argc, 0);
+    return new ArrayValue {};
+}
+
 ValuePtr ArrayValue::initialize(Env *env, ValuePtr size, ValuePtr value, Block *block) {
     if (!size) {
         return this;
