@@ -563,6 +563,30 @@ ValuePtr ArrayValue::delete_if(Env *env, Block *block) {
     return this;
 }
 
+ValuePtr ArrayValue::delete_item(Env *env, ValuePtr target, Block *block) {
+    ValuePtr deleted_item = NilValue::the();
+
+    for (size_t i = size(); i > 0; --i) {
+        auto item = (*this)[i - 1];
+        if (item->neq(env, target))
+            continue;
+
+        if (deleted_item->is_nil()) {
+            // frozen assertion only happens if any item needs to in fact be deleted
+            this->assert_not_frozen(env);
+            deleted_item = item;
+        }
+
+        m_vector.remove(i - 1);
+    }
+
+    if (deleted_item->is_nil() && block) {
+        return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 0, nullptr, nullptr);
+    }
+
+    return deleted_item;
+}
+
 ValuePtr ArrayValue::dig(Env *env, size_t argc, ValuePtr *args) {
     env->ensure_argc_at_least(argc, 1);
     auto dig = SymbolValue::intern("dig");
