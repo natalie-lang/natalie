@@ -50,7 +50,7 @@ describe 'Fiber' do
     -> { f.resume }.should raise_error(StandardError, 'error')
 
     # fiber is now dead:
-    -> { f.resume }.should raise_error(FiberError, 'dead fiber called')
+    -> { f.resume }.should raise_error(FiberError, /dead fiber called|attempt to resume a terminated fiber/)
   end
 
   it 'can be resumed from another fiber' do
@@ -74,10 +74,10 @@ describe 'Fiber' do
       f2.resume(f)
     end
 
-    -> { f.resume }.should raise_error(FiberError, 'double resume')
+    -> { f.resume }.should raise_error(FiberError, /double resume/)
   end
 
   it 'raises an error when attempting to yield from the main fiber' do
-    -> { Fiber.yield 'foo' }.should raise_error(FiberError, "can't yield from root fiber")
+    -> { Fiber.yield 'foo' }.should raise_error(FiberError, /can't yield from root fiber|attempt to yield on a not resumed fiber/)
   end
 end
