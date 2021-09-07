@@ -535,6 +535,29 @@ bool ArrayValue::_flatten_in_place(Env *env, nat_int_t depth, Hashmap<ArrayValue
     return changed;
 }
 
+ValuePtr ArrayValue::delete_if(Env *env, Block *block) {
+    if (!block)
+        return send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("delete_if") });
+
+    this->assert_not_frozen(env);
+
+    Vector<size_t> marked_indexes;
+
+    for (size_t i = 0; i < size(); ++i) {
+        auto item = (*this)[i];
+        ValuePtr result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
+        if (result->is_truthy()) {
+            marked_indexes.push(i);
+        }
+    }
+
+    while (!marked_indexes.is_empty()) {
+        m_vector.remove(marked_indexes.pop());
+    }
+
+    return this;
+}
+
 ValuePtr ArrayValue::dig(Env *env, size_t argc, ValuePtr *args) {
     env->ensure_argc_at_least(argc, 1);
     auto dig = SymbolValue::intern("dig");
