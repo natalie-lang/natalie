@@ -80,7 +80,7 @@ module Natalie
             else
               if name.size == 3
                 default_value = name.last
-                name = name[0..1]
+                name = Sexp.from_array(name[0..1])
               else
                 default_value = 'nullptr'
               end
