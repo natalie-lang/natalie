@@ -552,6 +552,27 @@ bool ArrayValue::_flatten_in_place(Env *env, nat_int_t depth, Hashmap<ArrayValue
     return changed;
 }
 
+ValuePtr ArrayValue::delete_at(Env *env, ValuePtr n) {
+    this->assert_not_frozen(env);
+
+    auto to_int = SymbolValue::intern("to_int");
+    if (!n->is_integer() && n->respond_to(env, to_int))
+        n = n->send(env, to_int);
+
+    if (!n->is_integer())
+        env->raise("TypeError", "no implicit conversion of {} into Integer", n->klass()->class_name_or_blank());
+
+    nat_int_t nat_resolved_index = _resolve_index(n->as_integer()->to_nat_int_t());
+
+    if (nat_resolved_index < 0)
+        return NilValue::the();
+
+    auto resolved_index = static_cast<size_t>(nat_resolved_index);
+    auto value = (*this)[resolved_index];
+    m_vector.remove(resolved_index);
+    return value;
+}
+
 ValuePtr ArrayValue::delete_if(Env *env, Block *block) {
     if (!block)
         return send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("delete_if") });
@@ -1175,6 +1196,21 @@ ValuePtr ArrayValue::concat(Env *env, size_t argc, ValuePtr *args) {
     }
 
     return this;
+}
+
+nat_int_t ArrayValue::_resolve_index(nat_int_t nat_index) {
+    nat_int_t index { nat_index };
+
+    if (nat_index < 0)
+        index += size();
+
+    if (index < 0)
+        return -1;
+
+    if (static_cast<size_t>(index) >= size())
+        return -1;
+
+    return index;
 }
 
 ValuePtr ArrayValue::rindex(Env *env, ValuePtr object, Block *block) {
