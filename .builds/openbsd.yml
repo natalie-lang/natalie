@@ -2,7 +2,6 @@ image: openbsd/6.8
 packages:
   - automake-1.13.4p2
   - cmake
-  - gmake
   - libatomic_ops
   - libtool
   - ruby-2.7.1p1
@@ -18,11 +17,12 @@ tasks:
       cd natalie
       doas ln -sf /usr/local/bin/ruby27 /usr/local/bin/ruby
       doas ln -sf /usr/local/bin/bundle27 /usr/local/bin/bundle
+      doas ln -sf /usr/local/bin/rake27 /usr/local/bin/rake
       bundle config set deployment 'true'
       bundle install
   - build: |
       cd natalie
-      gmake
+      rake
   - test: |
       cd natalie
-      gmake test
+      rake test
