@@ -22,12 +22,12 @@ describe "Array#values_at" do
   end
 
   describe "when passed ranges" do
-    it "returns an array of elements in the ranges" do
+    xit "returns an array of elements in the ranges" do
       [1, 2, 3, 4, 5].values_at(0..2, 1...3, 2..-2).should == [1, 2, 3, 2, 3, 3, 4]
       [1, 2, 3, 4, 5].values_at(6..4).should == []
     end
 
-    it "calls to_int on arguments of ranges" do
+    xit "calls to_int on arguments of ranges" do
       from = mock('from')
       to = mock('to')
 
@@ -44,30 +44,30 @@ describe "Array#values_at" do
   end
 
   describe "when passed a range" do
-    it "fills with nil if the index is out of the range" do
+    xit "fills with nil if the index is out of the range" do
       [0, 1].values_at(0..3).should == [0, 1, nil, nil]
       [0, 1].values_at(2..4).should == [nil, nil, nil]
     end
 
     describe "on an empty array" do
-      it "fills with nils if the index is out of the range" do
+      xit "fills with nils if the index is out of the range" do
         [].values_at(0..2).should == [nil, nil, nil]
         [].values_at(1..3).should == [nil, nil, nil]
       end
     end
   end
 
-  it "does not return subclass instance on Array subclasses" do
+  xit "does not return subclass instance on Array subclasses" do
     ArraySpecs::MyArray[1, 2, 3].values_at(0, 1..2, 1).should be_an_instance_of(Array)
   end
 
-  it "works when given endless ranges" do
+  xit "works when given endless ranges" do
     [1, 2, 3, 4].values_at(eval("(1..)")).should == [2, 3, 4]
     [1, 2, 3, 4].values_at(eval("(3...)")).should == [4]
   end
 
   ruby_version_is "2.7" do
-    it "works when given beginless ranges" do
+    xit "works when given beginless ranges" do
       [1, 2, 3, 4].values_at(eval("(..2)")).should == [1, 2, 3]
       [1, 2, 3, 4].values_at(eval("(...2)")).should == [1, 2]
     end

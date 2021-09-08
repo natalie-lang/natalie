@@ -154,6 +154,7 @@ public:
     ValuePtr union_of(Env *, size_t, ValuePtr *);
     ValuePtr uniq_in_place(Env *, Block *);
     ValuePtr to_h(Env *, Block *);
+    ValuePtr values_at(Env *, size_t, ValuePtr *);
     ValuePtr zip(Env *, size_t, ValuePtr *, Block *);
 
     virtual void visit_children(Visitor &visitor) override final {
