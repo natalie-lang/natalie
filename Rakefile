@@ -144,10 +144,11 @@ file 'build/libonigmo.a' do
   build_dir = File.expand_path('build/onigmo', __dir__)
   rm_rf build_dir
   cp_r 'ext/onigmo', build_dir
+  arch_conf = "--host #{ENV['ARCH']}" if ENV['ARCH']
   sh <<-SH
     cd #{build_dir} && \
     sh autogen.sh && \
-    ./configure --with-pic --prefix #{build_dir} && \
+    ./configure --with-pic #{arch_conf} --prefix #{build_dir} && \
     make -j 4 && \
     make install
   SH

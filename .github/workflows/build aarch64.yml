@@ -1,0 +1,47 @@
+name: Build and Test on aarch64
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+env:
+  DOCKER_FLAGS: ""
+  ARCH: "aarch64"
+  CXX: "aarch64-linux-gnu-g++" 
+  CC:  "aarch64-linux-gnu-gcc"
+
+jobs:
+  aarch64_gcc:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v1
+    - name: checkout submodules
+      run: git submodule update --init --recursive
+    - name: test with gcc
+      run: rake docker_test_gcc
+  aarch64_clang:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v1
+    - name: checkout submodules
+      run: git submodule update --init --recursive
+    - name: test with clang
+      run: rake docker_test_clang
+  aarch64_release_build:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v1
+    - name: checkout submodules
+      run: git submodule update --init --recursive
+    - name: test release build
+      run: rake docker_test_release
+  aarch64_ruby3:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v1
+    - name: checkout submodules
+      run: git submodule update --init --recursive
+    - name: test with Ruby 3.0
+      run: rake docker_test_gcc

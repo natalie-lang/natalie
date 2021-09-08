@@ -1,7 +1,7 @@
 ARG IMAGE=ruby:2.7
 FROM $IMAGE
 
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y -q build-essential autoconf libtool clang lcov
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y -q build-essential autoconf libtool clang lcov gcc-arm-linux-gnueabi
 RUN gem install bundler --no-doc
 
 ENV LC_ALL C.UTF-8
