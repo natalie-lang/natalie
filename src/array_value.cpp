@@ -1445,6 +1445,29 @@ ValuePtr ArrayValue::try_convert(Env *env, ValuePtr val) {
         new_item_class_name);
 }
 
+ValuePtr ArrayValue::values_at(Env *env, size_t argc, ValuePtr *args) {
+    auto accumulator = new ArrayValue {};
+    for (size_t i = 0; i < argc; i++) {
+        auto arg = args[i];
+        auto to_int = SymbolValue::intern("to_int");
+        if (!arg->is_integer() && arg->respond_to(env, to_int)) {
+            arg = arg.send(env, to_int);
+        }
+
+        if (!arg->is_integer())
+            env->raise("TypeError", "no implicit conversion of {} into Integer", arg->klass()->class_name_or_blank());
+
+        auto resolved_index = _resolve_index(arg->as_integer()->to_nat_int_t());
+        if (resolved_index < 0 || static_cast<size_t>(resolved_index) >= m_vector.size()) {
+            accumulator->push(NilValue::the());
+            continue;
+        }
+        accumulator->push((*this)[resolved_index]);
+    }
+
+    return accumulator;
+}
+
 ValuePtr ArrayValue::zip(Env *env, size_t argc, ValuePtr *args, Block *block) {
     // FIXME: this is not exactly the way ruby does it
     auto Enumerable = GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("Enumerable"))->as_module();
