@@ -37,7 +37,6 @@ Prerequisites:
 - autoconf
 - automake
 - libtool
-- cmake
 - GNU make
 - Ruby 2.7.x
 
@@ -49,7 +48,7 @@ cd natalie
 git submodule update --init
 gem install bundler
 bundle install
-make # or gmake if your system make isn't GNU make
+rake
 ```
 
 **NOTE:** Currently, the default build is the "debug" build.

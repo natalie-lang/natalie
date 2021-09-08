@@ -13,8 +13,8 @@ module Natalie
     BUILD_DIR = File.join(ROOT_DIR, 'build')
     SRC_PATH = File.join(ROOT_DIR, 'src')
     INC_PATHS = [
-      File.join(BUILD_DIR, 'include'),
-      File.join(BUILD_DIR, 'include/onigmo'),
+      File.join('include'),
+      File.join(BUILD_DIR, 'onigmo/include'),
     ]
     LIB_PATHS = [
       BUILD_DIR,
@@ -231,7 +231,7 @@ module Natalie
     end
 
     def obj_name
-      write_obj_path.sub(/\.cpp/, '').split('/').last
+      write_obj_path.sub(/\.rb\.cpp/, '').split('/').last
     end
 
     def template
