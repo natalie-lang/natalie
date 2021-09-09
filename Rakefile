@@ -23,7 +23,7 @@ end
 
 desc 'Run the test suite'
 task test: :build do
-  ruby 'test/all.rb'
+  sh 'bundle exec ruby test/all.rb'
 end
 
 desc 'Build the self-hosted version of Natalie at ./nat'
