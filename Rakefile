@@ -107,7 +107,7 @@ task(:set_build_release) { ENV['BUILD'] = 'release'; File.write('.build', 'relea
 
 task libnatalie: [
   :build_dir,
-  'build/libonigmo.a', 
+  'build/onigmo/lib/libonigmo.a',
   :primary_sources,
   :ruby_sources,
   :special_sources,
@@ -122,7 +122,7 @@ multitask primary_sources: PRIMARY_SOURCES.pathmap('build/%f.o')
 multitask ruby_sources: RUBY_SOURCES.pathmap('build/generated/%f.o')
 multitask special_sources: SPECIAL_SOURCES.pathmap('build/generated/%f.o')
 
-file 'build/libnatalie.a' => ['build/libnatalie_base.a', 'build/libonigmo.a'] do |t|
+file 'build/libnatalie.a' => ['build/libnatalie_base.a', 'build/onigmo/lib/libonigmo.a'] do |t|
   if RUBY_PLATFORM =~ /darwin/
     sh "libtool -static -o #{t.name} #{t.sources.join(' ')}"
   else
@@ -140,7 +140,7 @@ file 'build/libnatalie_base.a' => OBJECT_FILES do |t|
   sh "ar rcs #{t.name} #{OBJECT_FILES}"
 end
 
-file 'build/libonigmo.a' do
+file 'build/onigmo/lib/libonigmo.a' do
   build_dir = File.expand_path('build/onigmo', __dir__)
   rm_rf build_dir
   cp_r 'ext/onigmo', build_dir
@@ -151,7 +151,6 @@ file 'build/libonigmo.a' do
     make -j 4 && \
     make install
   SH
-  cp "#{build_dir}/lib/libonigmo.a", 'build'
 end
 
 file 'build/generated/platform.cpp.o' do |t|
