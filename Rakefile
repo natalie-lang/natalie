@@ -31,19 +31,19 @@ task bootstrap: [:build, :nat]
 
 desc 'Show line counts for the project'
 task :cloc do
-	sh 'cloc include lib src test'
+  sh 'cloc include lib src test'
 end
 
 desc 'Generate tags file for development'
 task :ctags do
-	sh 'ctags -R --exclude=.cquery_cache --exclude=ext --exclude=build --append=no .'
+  sh 'ctags -R --exclude=.cquery_cache --exclude=ext --exclude=build --append=no .'
 end
 task tags: :ctags
 
 desc 'Format C++ code with clang-format'
 task :format do
-	sh "find include -type f -name '*.hpp' -exec clang-format -i --style=file {} +"
-	sh "find src -type f -name '*.cpp' -exec clang-format -i --style=file {} +"
+  sh "find include -type f -name '*.hpp' -exec clang-format -i --style=file {} +"
+  sh "find src -type f -name '*.cpp' -exec clang-format -i --style=file {} +"
 end
 
 desc 'Show TODO and FIXME comments in the project'
@@ -88,7 +88,7 @@ end
 
 # NOTE: this tests that Natalie can be hosted by MRI 3.0 -- not Natalie under Ruby 3 specs
 task docker_test_ruby3: :docker_build_ruby3 do
-	sh "docker run #{DOCKER_FLAGS} --rm --entrypoint rake natalie_ruby3 test"
+  sh "docker run #{DOCKER_FLAGS} --rm --entrypoint rake natalie_ruby3 test"
 end
 
 
