@@ -12,8 +12,8 @@ task build_release: [:set_build_release, :libnatalie]
 desc 'Remove temporary files created during build'
 task :clean do
   rm_rf 'build/generated'
-  rm_rf 'build/*.o'
   rm_rf 'build/libnatalie_base.a'
+  rm_rf Rake::FileList['build/*.o']
 end
 
 desc 'Remove all generated files'
