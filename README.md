@@ -37,8 +37,8 @@ Prerequisites:
 - autoconf
 - automake
 - libtool
-- GNU make
-- Ruby 2.7.x
+- make
+- Ruby 2.7.x or Ruby 3.0.x
 
 Install the above prerequisites on your platform, then run:
 
