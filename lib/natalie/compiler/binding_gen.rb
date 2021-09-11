@@ -291,6 +291,7 @@ gen.binding('Array', 'bsearch', 'ArrayValue', 'bsearch', argc: 0, pass_env: true
 gen.binding('Array', 'bsearch_index', 'ArrayValue', 'bsearch_index', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Array', 'clear', 'ArrayValue', 'clear', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Array', 'collect', 'ArrayValue', 'map', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
+gen.binding('Array', 'collect!', 'ArrayValue', 'map_in_place', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Array', 'concat', 'ArrayValue', 'concat', argc: :any, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Array', 'compact', 'ArrayValue', 'compact', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Array', 'compact!', 'ArrayValue', 'compact_in_place', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
