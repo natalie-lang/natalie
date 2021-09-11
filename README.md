@@ -52,7 +52,8 @@ bundle install
 rake
 ```
 
-**NOTE:** Currently, the default build is the "debug" build.
+**NOTE:** Currently, the default build is the "debug" build, since Nataile is in active development.
+But you can build in release mode with `rake build_release`.
 
 ## Usage
 
