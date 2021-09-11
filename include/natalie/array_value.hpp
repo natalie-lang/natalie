@@ -100,6 +100,7 @@ public:
     ValuePtr any(Env *, size_t, ValuePtr *, Block *);
     ValuePtr at(Env *, ValuePtr);
     ValuePtr assoc(Env *, ValuePtr);
+    ValuePtr bsearch(Env *, Block *);
     ValuePtr bsearch_index(Env *, Block *);
     ValuePtr cmp(Env *, ValuePtr);
     ValuePtr clear(Env *);

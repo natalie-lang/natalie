@@ -1019,6 +1019,17 @@ ValuePtr ArrayValue::assoc(Env *env, ValuePtr needle) {
     return NilValue::the();
 }
 
+ValuePtr ArrayValue::bsearch(Env *env, Block *block) {
+    if (!block) {
+        return send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("bsearch") });
+    }
+    auto index = bsearch_index(env, block);
+    if (index->is_nil())
+        return index;
+
+    return (*this)[index->as_integer()->to_nat_int_t()];
+}
+
 ValuePtr ArrayValue::bsearch_index(Env *env, Block *block) {
     if (!block) {
         return send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("bsearch_index") });
@@ -1028,21 +1039,21 @@ ValuePtr ArrayValue::bsearch_index(Env *env, Block *block) {
     nat_int_t right = m_vector.size() - 1;
     nat_int_t last_index { -1 };
 
-    while (left < right) {
+    do {
         nat_int_t i = floor((left + right) / 2);
         auto outcome = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &(*this)[i], nullptr);
-
         if (! (
-            outcome->is_integer() ||
+            outcome->is_numeric() ||
             outcome->is_nil() || 
-            outcome->is_true() ||
-            outcome->is_false()
+            outcome->is_boolean()
         )) {
             env->raise("TypeError", "wrong argument type {} (must be numeric, true, false or nil)", outcome->klass()->class_name_or_blank());
         }
 
-        if (outcome.is_integer()) {
-            auto result = outcome->as_integer()->to_nat_int_t();
+        if (outcome->is_numeric()) {
+            auto result = (outcome.is_integer() ? 
+                outcome->as_integer()->to_nat_int_t()
+                : floor(outcome->as_float()->to_double()));
             if (result == 0) {
                 last_index = i;
                 break;
@@ -1061,7 +1072,7 @@ ValuePtr ArrayValue::bsearch_index(Env *env, Block *block) {
             }
             ++left;
         }
-    }
+    } while (left < right);
 
     if (last_index < 0)
         return NilValue::the();
