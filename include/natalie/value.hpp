@@ -104,6 +104,7 @@ public:
     bool is_truthy() const { return !is_false() && !is_nil(); }
     bool is_falsey() const { return !is_truthy(); }
     bool is_numeric() const { return is_integer() || is_float(); }
+    bool is_boolean() const { return is_true() || is_false(); }
 
     ArrayValue *as_array();
     ClassValue *as_class();
