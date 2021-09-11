@@ -270,7 +270,7 @@ puts
 
 gen = BindingGen.new
 
-gen.static_binding('Array', '[]', 'ArrayValue', 'square_new', argc: :any, pass_env: true, pass_block: false, return_type: :Value)
+gen.static_binding('Array', '[]', 'ArrayValue', 'square_new', argc: :any, pass_env: true, pass_block: false, pass_klass: true, return_type: :Value)
 gen.static_binding('Array', 'allocate', 'ArrayValue', 'allocate', argc: :any, pass_env: true, pass_block: false, return_type: :Value)
 gen.static_binding('Array', 'try_convert', 'ArrayValue', 'try_convert', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Array', '+', 'ArrayValue', 'add', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
