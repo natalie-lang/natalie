@@ -11,6 +11,7 @@ task build_release: [:set_build_release, :libnatalie]
 
 desc 'Remove temporary files created during build'
 task :clean do
+  rm_rf 'build/build.log'
   rm_rf 'build/generated'
   rm_rf 'build/libnatalie_base.a'
   rm_rf Rake::FileList['build/*.o']
@@ -92,6 +93,27 @@ task docker_test_ruby3: :docker_build_ruby3 do
 end
 
 
+# # # # Build Compile Database # # # #
+
+if system('which compiledb')
+  $compiledb_out = []
+
+  def $stderr.puts(str)
+    write(str + "\n")
+    $compiledb_out << str
+  end
+
+  task :write_compile_database do
+    File.write('build/build.log', $compiledb_out.join("\n"))
+    sh 'compiledb < build/build.log'
+  end
+else
+  task :write_compile_database do
+    # noop
+  end
+end
+
+
 # # # # Internal Tasks and Rules # # # #
 
 STANDARD = 'c++17'
@@ -113,6 +135,7 @@ task libnatalie: [
   :ruby_sources,
   :special_sources,
   'build/libnatalie.a',
+  :write_compile_database,
 ]
 
 task :build_dir do
