@@ -6,7 +6,7 @@ describe "Array#uniq" do
     ["a", "a", "b", "b", "c"].uniq.should == ["a", "b", "c"]
   end
 
-  xit "properly handles recursive arrays" do
+  it "properly handles recursive arrays" do
     empty = ArraySpecs.empty_recursive_array
     empty.uniq.should == [empty]
 
@@ -190,7 +190,7 @@ describe "Array#uniq!" do
     a.should equal(a.uniq!)
   end
 
-  xit "properly handles recursive arrays" do
+  it "properly handles recursive arrays" do
     empty = ArraySpecs.empty_recursive_array
     empty_dup = empty.dup
     empty.uniq!
