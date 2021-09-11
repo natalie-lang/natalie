@@ -95,6 +95,7 @@ end
 # # # # Internal Tasks and Rules # # # #
 
 STANDARD = 'c++17'
+HEADERS = Rake::FileList['include/**/{*.h,*.hpp}']
 PRIMARY_SOURCES = Rake::FileList['src/**/*.{c,cpp}'].exclude('src/main.cpp')
 RUBY_SOURCES = Rake::FileList['src/**/*.rb']
 SPECIAL_SOURCES = Rake::FileList['build/generated/platform.cpp', 'build/generated/bindings.cpp']
@@ -174,11 +175,11 @@ rule '.c.o' => 'src/%n' do |t|
   sh "#{cc} -g -fPIC -c -o #{t.name} #{t.source}"
 end
 
-rule '.cpp.o' => 'src/%n' do |t|
+rule '.cpp.o' => ['src/%n'] + HEADERS do |t|
   sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -c -o #{t.name} #{t.source}"
 end
 
-rule '.rb.o' => '.rb.cpp' do |t|
+rule '.rb.o' => ['.rb.cpp'] + HEADERS do |t|
   sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -c -o #{t.name} #{t.source}"
 end
 

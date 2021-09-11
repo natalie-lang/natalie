@@ -39,6 +39,7 @@ Prerequisites:
 - libtool
 - make
 - Ruby 2.7.x or Ruby 3.0.x
+- ccache (optional)
 
 Install the above prerequisites on your platform, then run:
 
