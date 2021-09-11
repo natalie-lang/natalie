@@ -11,7 +11,7 @@ describe "Array#to_ary" do
 
   # Recoursive equality is not guarded yet and this 
   # would result in an endless loop
-  xit "properly handles recursive arrays" do
+  it "properly handles recursive arrays" do
     empty = ArraySpecs.empty_recursive_array
     empty.to_ary.should == empty
 
