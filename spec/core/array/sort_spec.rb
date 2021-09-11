@@ -46,7 +46,7 @@ describe "Array#sort" do
   end
 
   # TODO: Natalie does not support recursive arrays yet
-  xit "properly handles recursive arrays" do
+  it "properly handles recursive arrays" do
     empty = ArraySpecs.empty_recursive_array
     empty.sort.should == empty
 
@@ -198,8 +198,7 @@ describe "Array#sort!" do
     a.should == [1, 2, 3, 4, 5]
   end
 
-  # TODO: Natalie does not support recursive arrays yet
-  xit "properly handles recursive arrays" do
+  it "properly handles recursive arrays" do
     empty = ArraySpecs.empty_recursive_array
     empty.sort!.should == empty
 
