@@ -1042,18 +1042,14 @@ ValuePtr ArrayValue::bsearch_index(Env *env, Block *block) {
     do {
         nat_int_t i = floor((left + right) / 2);
         auto outcome = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &(*this)[i], nullptr);
-        if (! (
-            outcome->is_numeric() ||
-            outcome->is_nil() || 
-            outcome->is_boolean()
-        )) {
+        if (!(
+                outcome->is_numeric() || outcome->is_nil() || outcome->is_boolean())) {
             env->raise("TypeError", "wrong argument type {} (must be numeric, true, false or nil)", outcome->klass()->class_name_or_blank());
         }
 
         if (outcome->is_numeric()) {
-            auto result = (outcome.is_integer() ? 
-                outcome->as_integer()->to_nat_int_t()
-                : floor(outcome->as_float()->to_double()));
+            auto result = (outcome.is_integer() ? outcome->as_integer()->to_nat_int_t()
+                                                : floor(outcome->as_float()->to_double()));
             if (result == 0) {
                 last_index = i;
                 break;
