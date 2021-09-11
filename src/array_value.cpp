@@ -1,5 +1,6 @@
 #include "natalie.hpp"
 #include <algorithm>
+#include <math.h>
 #include <natalie/array_value.hpp>
 #include <natalie/string_value.hpp>
 #include <natalie/symbol_value.hpp>
@@ -1016,6 +1017,55 @@ ValuePtr ArrayValue::assoc(Env *env, ValuePtr needle) {
     }
 
     return NilValue::the();
+}
+
+ValuePtr ArrayValue::bsearch_index(Env *env, Block *block) {
+    if (!block) {
+        return send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("bsearch_index") });
+    }
+
+    nat_int_t left = 0;
+    nat_int_t right = m_vector.size() - 1;
+    nat_int_t last_index { -1 };
+
+    while (left < right) {
+        nat_int_t i = floor((left + right) / 2);
+        auto outcome = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &(*this)[i], nullptr);
+
+        if (! (
+            outcome->is_integer() ||
+            outcome->is_nil() || 
+            outcome->is_true() ||
+            outcome->is_false()
+        )) {
+            env->raise("TypeError", "wrong argument type {} (must be numeric, true, false or nil)", outcome->klass()->class_name_or_blank());
+        }
+
+        if (outcome.is_integer()) {
+            auto result = outcome->as_integer()->to_nat_int_t();
+            if (result == 0) {
+                last_index = i;
+                break;
+            }
+            if (result < 0)
+                --right;
+            ++left;
+        } else {
+            if (outcome->is_true()) {
+                last_index = i;
+                --right;
+                continue;
+            }
+            if (last_index >= 0) {
+                break;
+            }
+            ++left;
+        }
+    }
+
+    if (last_index < 0)
+        return NilValue::the();
+    return new IntegerValue { last_index };
 }
 
 ValuePtr ArrayValue::rassoc(Env *env, ValuePtr needle) {
