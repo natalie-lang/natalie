@@ -31,7 +31,7 @@ extern "C" Value *EVAL(Env *env) {
         return NilValue::the(); // just in case there's no return value
     } catch (ExceptionValue *exception) {
         handle_top_level_exception(env, exception, run_exit_handlers);
-        return NilValue::the();
+        return nullptr;
     }
 }
 
