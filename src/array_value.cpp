@@ -1242,10 +1242,22 @@ ValuePtr ArrayValue::reverse_in_place(Env *env) {
 ValuePtr ArrayValue::concat(Env *env, size_t argc, ValuePtr *args) {
     assert_not_frozen(env);
 
+    ArrayValue *original = new ArrayValue(env, *this);
+
     for (size_t i = 0; i < argc; i++) {
         auto arg = args[i];
+
+        if (arg == this)
+            arg = original;
+
+        auto original_class_name = arg->klass()->class_name_or_blank();
+        auto to_ary = SymbolValue::intern("to_ary");
+        if (!arg->is_array() && arg->respond_to(env, to_ary)) {
+            arg = arg->send(env, to_ary);
+        }
+
         if (!arg->is_array()) {
-            env->raise("TypeError", "no implicit conversion of {} into Array", arg->klass()->class_name_or_blank());
+            env->raise("TypeError", "no implicit conversion of {} into Array", original_class_name);
             return nullptr;
         }
 
