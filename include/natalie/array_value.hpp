@@ -33,15 +33,18 @@ public:
         , m_vector { other.m_vector } { }
 
     ArrayValue(size_t argc, ValuePtr *args)
-        : ArrayValue {} {
+        : ArrayValue { argc, args, GlobalEnv::the()->Array() } { }
+
+    ArrayValue(size_t argc, ValuePtr *args, ClassValue *klass)
+        : Value { Value::Type::Array, klass } {
         for (size_t i = 0; i < argc; i++) {
             push(args[i]);
         }
     }
 
     // Array[]
-    static ValuePtr square_new(Env *env, size_t argc, ValuePtr *args) {
-        return new ArrayValue { argc, args };
+    static ValuePtr square_new(Env *env, size_t argc, ValuePtr *args, ClassValue *klass) {
+        return new ArrayValue { argc, args, klass };
     }
 
     static ValuePtr allocate(Env *, size_t, ValuePtr *);
