@@ -938,6 +938,10 @@ ValuePtr ArrayValue::min(Env *env) {
     return min;
 }
 
+ValuePtr ArrayValue::multiply(Env *env, ValuePtr factor) {
+    return this;
+}
+
 ValuePtr ArrayValue::compact(Env *env) {
     auto ary = new ArrayValue {};
     for (auto item : *this) {

@@ -275,6 +275,7 @@ gen.static_binding('Array', 'allocate', 'ArrayValue', 'allocate', argc: :any, pa
 gen.static_binding('Array', 'try_convert', 'ArrayValue', 'try_convert', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Array', '+', 'ArrayValue', 'add', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Array', '-', 'ArrayValue', 'sub', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Array', '*', 'ArrayValue', 'multiply', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Array', '&', 'ArrayValue', 'intersection', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Array', '<<', 'ArrayValue', 'ltlt', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Array', '<=>', 'ArrayValue', 'cmp', argc: 1, pass_env: true, pass_block: false, return_type: :Value)

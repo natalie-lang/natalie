@@ -134,6 +134,7 @@ public:
     ValuePtr map_in_place(Env *, Block *);
     ValuePtr max(Env *);
     ValuePtr min(Env *);
+    ValuePtr multiply(Env *, ValuePtr);
     ValuePtr none(Env *, size_t, ValuePtr *, Block *);
     ValuePtr one(Env *, size_t, ValuePtr *, Block *);
     ValuePtr push(Env *, size_t, ValuePtr *);
