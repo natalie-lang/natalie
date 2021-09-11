@@ -939,6 +939,37 @@ ValuePtr ArrayValue::min(Env *env) {
 }
 
 ValuePtr ArrayValue::multiply(Env *env, ValuePtr factor) {
+    auto to_str = SymbolValue::intern("to_str");
+
+    if (! factor->is_string() && factor->respond_to(env, to_str))
+        factor = factor.send(env, to_str);
+
+    if (factor->is_string()) {
+        return join(env, factor);
+    }
+
+    auto to_int = SymbolValue::intern("to_int");
+
+    if (! factor->is_integer() && factor->respond_to(env, to_int))
+        factor = factor.send(env, to_int);
+
+    if (factor->is_integer()) {
+        auto times = factor->as_integer()->to_nat_int_t();
+
+        if (times < 0)
+            env->raise("ArgumentError", "negative argument");
+
+        auto accumulator = new ArrayValue{ };
+        accumulator->m_klass = klass();
+
+        for (nat_int_t i = 0; i < times; ++i)
+            accumulator->push_splat(env, this);
+
+        return accumulator;
+    }
+
+    env->raise("TypeError", "no implicit conversion of {} into Integer", factor->klass()->class_name_or_blank());
+
     return this;
 }
 
