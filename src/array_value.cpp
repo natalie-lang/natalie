@@ -761,21 +761,50 @@ ValuePtr ArrayValue::sort(Env *env, Block *block) {
 }
 
 ValuePtr ArrayValue::join(Env *env, ValuePtr joiner) {
-    if (size() == 0) {
-        return new StringValue {};
-    } else if (size() == 1) {
-        return (*this)[0].send(env, SymbolValue::intern("to_s"));
-    } else {
-        if (!joiner) joiner = new StringValue { "" };
-        joiner->assert_type(env, Value::Type::String, "String");
-        StringValue *out = (*this)[0].send(env, SymbolValue::intern("to_s"))->dup(env)->as_string();
-        for (size_t i = 1; i < size(); i++) {
-            ValuePtr item = (*this)[i];
-            out->append(env, joiner->as_string());
-            out->append(env, item.send(env, SymbolValue::intern("to_s"))->as_string());
+    RecursionGuard guard { this };
+    return guard.run([&](bool is_recursive) {
+        if (is_recursive)
+            env->raise("ArgumentError", "recursive array join");
+        if (size() == 0) {
+            return (ValuePtr) new StringValue {};
+        } else if (size() == 1) {
+            return (*this)[0].send(env, SymbolValue::intern("to_s"));
+        } else {
+            if (!joiner || joiner->is_nil())
+                joiner = env->global_get(SymbolValue::intern("$,"));
+            if (!joiner || joiner->is_nil()) joiner = new StringValue { "" };
+
+            auto to_str = SymbolValue::intern("to_str");
+            auto to_s = SymbolValue::intern("to_s");
+            if (! joiner->is_string() && joiner->respond_to(env, to_str)) 
+                joiner = joiner->send(env, to_str);
+                
+
+            joiner->assert_type(env, Value::Type::String, "String");
+            StringValue *out = new StringValue{};
+            for (size_t i = 0; i < size(); i++) {
+                ValuePtr item = (*this)[i];
+                if (item->is_string())
+                    out->append(env, item->as_string());
+                else if (item->respond_to(env, to_str))
+                    out->append(env, item.send(env, to_str)->as_string());
+                else if (item->is_array())
+                    out->append(env, item->as_array()->join(env, joiner));
+                else if (item->respond_to(env, to_s))
+                    out->append(env, item.send(env, to_s)->as_string());
+                else {
+                    char *buf;
+                    asprintf(&buf, "#<%s:%p>", item->klass()->class_name_or_blank()->c_str(), (void *)&item);
+                    out->append(env, buf);
+                }
+
+
+                if (i < (size() - 1))
+                    out->append(env, joiner->as_string());
+            }
+            return (ValuePtr) out;
         }
-        return out;
-    }
+    });
 }
 
 ValuePtr ArrayValue::cmp(Env *env, ValuePtr other) {
