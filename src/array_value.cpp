@@ -776,12 +776,11 @@ ValuePtr ArrayValue::join(Env *env, ValuePtr joiner) {
 
             auto to_str = SymbolValue::intern("to_str");
             auto to_s = SymbolValue::intern("to_s");
-            if (! joiner->is_string() && joiner->respond_to(env, to_str)) 
+            if (!joiner->is_string() && joiner->respond_to(env, to_str))
                 joiner = joiner->send(env, to_str);
-                
 
             joiner->assert_type(env, Value::Type::String, "String");
-            StringValue *out = new StringValue{};
+            StringValue *out = new StringValue {};
             for (size_t i = 0; i < size(); i++) {
                 ValuePtr item = (*this)[i];
                 if (item->is_string())
@@ -798,11 +797,10 @@ ValuePtr ArrayValue::join(Env *env, ValuePtr joiner) {
                     out->append(env, buf);
                 }
 
-
                 if (i < (size() - 1))
                     out->append(env, joiner->as_string());
             }
-            return (ValuePtr) out;
+            return (ValuePtr)out;
         }
     });
 }
@@ -970,7 +968,7 @@ ValuePtr ArrayValue::min(Env *env) {
 ValuePtr ArrayValue::multiply(Env *env, ValuePtr factor) {
     auto to_str = SymbolValue::intern("to_str");
 
-    if (! factor->is_string() && factor->respond_to(env, to_str))
+    if (!factor->is_string() && factor->respond_to(env, to_str))
         factor = factor.send(env, to_str);
 
     if (factor->is_string()) {
@@ -979,7 +977,7 @@ ValuePtr ArrayValue::multiply(Env *env, ValuePtr factor) {
 
     auto to_int = SymbolValue::intern("to_int");
 
-    if (! factor->is_integer() && factor->respond_to(env, to_int))
+    if (!factor->is_integer() && factor->respond_to(env, to_int))
         factor = factor.send(env, to_int);
 
     if (factor->is_integer()) {
@@ -988,7 +986,7 @@ ValuePtr ArrayValue::multiply(Env *env, ValuePtr factor) {
         if (times < 0)
             env->raise("ArgumentError", "negative argument");
 
-        auto accumulator = new ArrayValue{ };
+        auto accumulator = new ArrayValue {};
         accumulator->m_klass = klass();
 
         for (nat_int_t i = 0; i < times; ++i)
