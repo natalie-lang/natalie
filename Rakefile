@@ -162,7 +162,7 @@ file 'build/libnatalie.a' => ['build/libnatalie_base.a', 'build/onigmo/lib/libon
   end
 end
 
-file 'build/libnatalie_base.a' => OBJECT_FILES do |t|
+file 'build/libnatalie_base.a' => OBJECT_FILES + HEADERS do |t|
   sh "ar rcs #{t.name} #{OBJECT_FILES}"
 end
 
@@ -187,7 +187,7 @@ file 'build/generated/platform.cpp.o' do |t|
   sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -c -o #{t.name} #{t.name.pathmap('%d/%n')}"
 end
 
-file 'build/generated/bindings.cpp.o' => 'lib/natalie/compiler/binding_gen.rb' do |t|
+file 'build/generated/bindings.cpp.o' => ['lib/natalie/compiler/binding_gen.rb'] + HEADERS do |t|
   sh "ruby lib/natalie/compiler/binding_gen.rb > #{t.name.pathmap('%d/%n')}"
   sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -c -o #{t.name} #{t.name.pathmap('%d/%n')}"
 end
