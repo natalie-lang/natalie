@@ -116,6 +116,7 @@ public:
     ValuePtr dig(Env *, size_t, ValuePtr *);
     ValuePtr drop(Env *, ValuePtr);
     ValuePtr each(Env *, Block *);
+    ValuePtr each_index(Env *, Block *);
     ValuePtr eq(Env *, ValuePtr);
     ValuePtr eql(Env *, ValuePtr);
     ValuePtr first(Env *, ValuePtr);
