@@ -384,8 +384,8 @@ ValuePtr ArrayValue::each(Env *env, Block *block) {
     if (!block)
         return send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("each") });
 
-    for (auto &obj : *this) {
-        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &obj, nullptr);
+    for (size_t i = 0; i < size(); ++i) {
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &(*this)[i], nullptr);
     }
     return this;
 }
