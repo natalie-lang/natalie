@@ -13,7 +13,7 @@ __inline__ <<-END
   void gtk3_signal_callback(GtkWidget *widget, gpointer data) {
     ProcValue *callback = static_cast<Value*>(data)->as_proc();
     Env *env = callback->env();
-    callback->_send(env, "call");
+    callback->send(env, SymbolValue::intern("call"));
   }
 END
 
