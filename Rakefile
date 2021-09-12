@@ -95,7 +95,7 @@ end
 
 # # # # Build Compile Database # # # #
 
-if system('which compiledb')
+if system('which compiledb 2>&1 >/dev/null')
   $compiledb_out = []
 
   def $stderr.puts(str)
@@ -104,8 +104,10 @@ if system('which compiledb')
   end
 
   task :write_compile_database do
-    File.write('build/build.log', $compiledb_out.join("\n"))
-    sh 'compiledb < build/build.log'
+    if $compiledb_out.any?
+      File.write('build/build.log', $compiledb_out.join("\n"))
+      sh 'compiledb < build/build.log'
+    end
   end
 else
   task :write_compile_database do
