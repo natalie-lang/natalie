@@ -639,7 +639,7 @@ ValuePtr ArrayValue::dig(Env *env, size_t argc, ValuePtr *args) {
 
 ValuePtr ArrayValue::drop(Env *env, ValuePtr n) {
     auto to_int = SymbolValue::intern("to_int");
-    if (! n.is_integer() && n->respond_to(env, to_int))
+    if (!n.is_integer() && n->respond_to(env, to_int))
         n = n->send(env, to_int);
 
     n->assert_type(env, Value::Type::Integer, "Integer");
@@ -659,7 +659,6 @@ ValuePtr ArrayValue::drop(Env *env, ValuePtr n) {
 
     return array;
 }
-
 
 ValuePtr ArrayValue::drop_while(Env *env, Block *block) {
     if (!block)
