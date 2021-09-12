@@ -710,6 +710,10 @@ ValuePtr ArrayValue::last(Env *env, ValuePtr n) {
 
     ArrayValue *array = new ArrayValue();
 
+    auto to_int = SymbolValue::intern("to_int");
+    if (!n.is_integer() && n->respond_to(env, to_int))
+        n = n->send(env, to_int);
+
     n->assert_type(env, Value::Type::Integer, "Integer");
     nat_int_t n_value = n->as_integer()->to_nat_int_t();
 
