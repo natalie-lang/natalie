@@ -117,6 +117,7 @@ public:
     ValuePtr drop(Env *, ValuePtr);
     ValuePtr drop_while(Env *, Block *);
     ValuePtr each(Env *, Block *);
+    ValuePtr each_index(Env *, Block *);
     ValuePtr eq(Env *, ValuePtr);
     ValuePtr eql(Env *, ValuePtr);
     ValuePtr first(Env *, ValuePtr);

@@ -390,6 +390,18 @@ ValuePtr ArrayValue::each(Env *env, Block *block) {
     return this;
 }
 
+ValuePtr ArrayValue::each_index(Env *env, Block *block) {
+    if (!block)
+        return send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("each_index") });
+
+    nat_int_t size_nat_int_t = static_cast<nat_int_t>(size());
+    for (nat_int_t i = 0; i < size_nat_int_t; i++) {
+        ValuePtr args = new IntegerValue { i };
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &args, nullptr);
+    }
+    return this;
+}
+
 ValuePtr ArrayValue::map(Env *env, Block *block) {
     if (!block)
         return send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("map") });
