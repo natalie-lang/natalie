@@ -123,6 +123,7 @@ public:
     ValuePtr first(Env *, ValuePtr);
     ValuePtr flatten(Env *, ValuePtr);
     ValuePtr flatten_in_place(Env *, ValuePtr);
+    ValuePtr hash(Env *);
     ValuePtr include(Env *, ValuePtr);
     ValuePtr index(Env *, ValuePtr, Block *);
     ValuePtr inspect(Env *);

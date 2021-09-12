@@ -1205,6 +1205,27 @@ ValuePtr ArrayValue::rassoc(Env *env, ValuePtr needle) {
     return NilValue::the();
 }
 
+ValuePtr ArrayValue::hash(Env *env) {
+    RecursionGuard guard { this };
+    return guard.run([&](bool is_recursive) {
+        if (is_recursive)
+            return ValuePtr::integer(0);
+        nat_int_t accumulator = 0;
+        auto hash_method = SymbolValue::intern("hash");
+        auto to_int = SymbolValue::intern("to_int");
+        for (auto &item : *this) {
+            auto current_hash = item->send(env, hash_method);
+
+            if (! current_hash->is_integer() && current_hash->respond_to(env, to_int))
+                current_hash = current_hash->send(env, to_int);
+
+            accumulator += current_hash->as_integer()->to_nat_int_t();
+        }
+
+        return ValuePtr::integer(accumulator);
+    });
+}
+
 ValuePtr ArrayValue::insert(Env *env, size_t argc, ValuePtr *args) {
     this->assert_not_frozen(env);
 

@@ -29,7 +29,8 @@ describe "Array#hash" do
     # Check the Array#eql? specs!
   end
 
-  it "returns the same hash for equal recursive arrays through hashes" do
+  #TODO add back once we implement Hash::hash from https://github.com/seven1m/natalie/issues/96
+  xit "returns the same hash for equal recursive arrays through hashes" do
     h = {} ; rec = [h] ; h[:x] = rec
     rec.hash.should == [h].hash
     rec.hash.should == [{x: rec}].hash
@@ -62,14 +63,16 @@ describe "Array#hash" do
     ArraySpecs::MyArray[1, 2].hash.should == [1, 2].hash
   end
 
-  it "returns same hash code for arrays with the same content" do
+  #TODO add back once we support Array::fill
+  xit "returns same hash code for arrays with the same content" do
     a = [1, 2, 3, 4]
     a.fill 'a', 0..3
     b = %w|a a a a|
     a.hash.should == b.hash
   end
 
-  it "returns the same value if arrays are #eql?" do
+  #TODO add back once we support Array::fill
+  xit "returns the same value if arrays are #eql?" do
     a = [1, 2, 3, 4]
     a.fill 'a', 0..3
     b = %w|a a a a|
