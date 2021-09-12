@@ -1,0 +1,29 @@
+name: Run all specs from ruby/spec
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+env:
+  BUNDLE_WITH: run_all_specs
+
+jobs:
+  specs:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+    - uses: ruby/setup-ruby@v1
+      with:
+        bundler-cache: true
+    - run: rake
+    - uses: actions/checkout@v2
+      with:
+        repository: ruby/spec
+        path: ruby_spec
+    - run: mv spec/support ruby_spec
+    - run: rm -rf spec/*/
+    - run: mv ruby_spec/*/ spec
+    - run: bundle exec ruby spec/support/ruby_spec_runner.rb
