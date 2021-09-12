@@ -5,6 +5,7 @@
 #include <natalie/string_value.hpp>
 #include <natalie/symbol_value.hpp>
 #include <random>
+#include <stdlib.h>
 
 namespace Natalie {
 
@@ -1210,6 +1211,7 @@ ValuePtr ArrayValue::hash(Env *env) {
     return guard.run([&](bool is_recursive) {
         if (is_recursive)
             return ValuePtr::integer(0);
+        srand(0);
         nat_int_t accumulator = 0;
         auto hash_method = SymbolValue::intern("hash");
         auto to_int = SymbolValue::intern("to_int");
@@ -1219,7 +1221,7 @@ ValuePtr ArrayValue::hash(Env *env) {
             if (! current_hash->is_integer() && current_hash->respond_to(env, to_int))
                 current_hash = current_hash->send(env, to_int);
 
-            accumulator += current_hash->as_integer()->to_nat_int_t();
+            accumulator += current_hash->as_integer()->to_nat_int_t() * (rand() % size() + 1);;
         }
 
         return ValuePtr::integer(accumulator);
