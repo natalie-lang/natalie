@@ -638,7 +638,12 @@ ValuePtr ArrayValue::dig(Env *env, size_t argc, ValuePtr *args) {
 }
 
 ValuePtr ArrayValue::drop(Env *env, ValuePtr n) {
+    auto to_int = SymbolValue::intern("to_int");
+    if (! n.is_integer() && n->respond_to(env, to_int))
+        n = n->send(env, to_int);
+
     n->assert_type(env, Value::Type::Integer, "Integer");
+
     nat_int_t n_value = n->as_integer()->to_nat_int_t();
 
     if (n_value < 0) {
@@ -647,8 +652,36 @@ ValuePtr ArrayValue::drop(Env *env, ValuePtr n) {
     }
 
     ArrayValue *array = new ArrayValue();
+    array->m_klass = klass();
     for (size_t k = n_value; k < size(); ++k) {
         array->push((*this)[k]);
+    }
+
+    return array;
+}
+
+
+ValuePtr ArrayValue::drop_while(Env *env, Block *block) {
+    if (!block)
+        return send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("drop_while") });
+
+    ArrayValue *array = new ArrayValue {};
+    array->m_klass = klass();
+
+    size_t i = 0;
+    while (i < m_vector.size()) {
+        ValuePtr args[] = { m_vector.at(i) };
+        ValuePtr result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, args, nullptr);
+        if (result->is_nil() || result->is_false()) {
+            break;
+        }
+
+        ++i;
+    }
+    while (i < m_vector.size()) {
+        array->push(m_vector.at(i));
+
+        ++i;
     }
 
     return array;
