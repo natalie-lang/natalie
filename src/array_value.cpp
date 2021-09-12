@@ -638,7 +638,12 @@ ValuePtr ArrayValue::dig(Env *env, size_t argc, ValuePtr *args) {
 }
 
 ValuePtr ArrayValue::drop(Env *env, ValuePtr n) {
+    auto to_int = SymbolValue::intern("to_int");
+    if (! n.is_integer() && n->respond_to(env, to_int))
+        n = n->send(env, to_int);
+
     n->assert_type(env, Value::Type::Integer, "Integer");
+
     nat_int_t n_value = n->as_integer()->to_nat_int_t();
 
     if (n_value < 0) {
@@ -647,6 +652,7 @@ ValuePtr ArrayValue::drop(Env *env, ValuePtr n) {
     }
 
     ArrayValue *array = new ArrayValue();
+    array->m_klass = klass();
     for (size_t k = n_value; k < size(); ++k) {
         array->push((*this)[k]);
     }
