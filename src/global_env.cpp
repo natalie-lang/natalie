@@ -23,9 +23,9 @@ ValuePtr GlobalEnv::global_set(Env *env, SymbolValue *name, ValuePtr val) {
 }
 
 void GlobalEnv::visit_children(Visitor &visitor) {
-    for (auto item : m_globals) {
-        visitor.visit(item->key);
-        visitor.visit(item->value);
+    for (auto pair : m_globals) {
+        visitor.visit(pair.first);
+        visitor.visit(pair.second);
     }
     visitor.visit(m_Array);
     visitor.visit(m_Class);

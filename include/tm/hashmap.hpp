@@ -248,8 +248,8 @@ public:
             return nullptr;
         }
 
-        Item *operator*() {
-            return m_item;
+        std::pair<KeyT, T> operator*() {
+            return std::pair<KeyT, T> { m_item->key, m_item->value };
         }
 
         friend bool operator==(const iterator &i1, const iterator &i2) {

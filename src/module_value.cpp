@@ -179,12 +179,12 @@ SymbolValue *ModuleValue::undefine_method(Env *env, SymbolValue *name) {
 
 // supply an empty array and it will be populated with the method names as symbols
 void ModuleValue::methods(Env *env, ArrayValue *array) {
-    for (auto item : m_methods) {
-        array->push(item->key);
+    for (auto pair : m_methods) {
+        array->push(pair.first);
     }
     for (ModuleValue *module : m_included_modules) {
-        for (auto item : module->m_methods) {
-            array->push(item->key);
+        for (auto pair : module->m_methods) {
+            array->push(pair.first);
         }
     }
     if (m_superclass) {
@@ -439,17 +439,17 @@ void ModuleValue::visit_children(Visitor &visitor) {
     visitor.visit(m_superclass);
     if (m_class_name)
         visitor.visit(m_class_name.value());
-    for (auto item : m_constants) {
-        visitor.visit(item->key);
-        visitor.visit(item->value);
+    for (auto pair : m_constants) {
+        visitor.visit(pair.first);
+        visitor.visit(pair.second);
     }
-    for (auto item : m_methods) {
-        visitor.visit(item->key);
-        visitor.visit(item->value);
+    for (auto pair : m_methods) {
+        visitor.visit(pair.first);
+        visitor.visit(pair.second);
     }
-    for (auto item : m_class_vars) {
-        visitor.visit(item->key);
-        visitor.visit(item->value);
+    for (auto pair : m_class_vars) {
+        visitor.visit(pair.first);
+        visitor.visit(pair.second);
     }
     for (auto module : m_included_modules) {
         visitor.visit(module);

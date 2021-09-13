@@ -316,8 +316,8 @@ ValuePtr Value::instance_variables(Env *env) {
     if (m_type == Value::Type::Integer || m_type == Value::Type::Float) {
         return ary;
     }
-    for (auto item : m_ivars) {
-        ary->push(item->key);
+    for (auto pair : m_ivars) {
+        ary->push(pair.first);
     }
     return ary;
 }
@@ -610,9 +610,9 @@ ValuePtr Value::enum_for(Env *env, const char *method, size_t argc, ValuePtr *ar
 void Value::visit_children(Visitor &visitor) {
     visitor.visit(m_singleton_class);
     visitor.visit(m_owner);
-    for (auto item : m_ivars) {
-        visitor.visit(item->key);
-        visitor.visit(item->value);
+    for (auto pair : m_ivars) {
+        visitor.visit(pair.first);
+        visitor.visit(pair.second);
     }
 }
 
