@@ -84,6 +84,7 @@ public:
         m_capacity = other.m_capacity;
         m_hash_fn = other.m_hash_fn;
         m_compare_fn = other.m_compare_fn;
+        clear();
         delete[] m_map;
         m_map = new Item *[m_capacity] {};
         copy_items_from(other);
@@ -91,6 +92,7 @@ public:
     }
 
     Hashmap &operator=(Hashmap &&other) {
+        clear();
         delete[] m_map;
         m_size = other.m_size;
         m_capacity = other.m_capacity;
@@ -104,16 +106,11 @@ public:
     }
 
     ~Hashmap() {
-        if (!m_map)
+        if (!m_map) {
+            // this can happen if the data was previously moved out with std::move()
             return;
-        for (size_t i = 0; i < m_capacity; i++) {
-            auto item = m_map[i];
-            while (item) {
-                auto next_item = item->next;
-                delete item;
-                item = next_item;
-            }
         }
+        clear();
         delete[] m_map;
     }
 
@@ -185,6 +182,18 @@ public:
             }
         }
         return nullptr;
+    }
+
+    void clear() {
+        for (size_t i = 0; i < m_capacity; i++) {
+            auto item = m_map[i];
+            m_map[i] = nullptr;
+            while (item) {
+                auto next_item = item->next;
+                delete item;
+                item = next_item;
+            }
+        }
     }
 
     size_t size() const { return m_size; }
