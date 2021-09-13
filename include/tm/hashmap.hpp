@@ -26,10 +26,17 @@ public:
     struct Item {
         KeyT key;
         T value;
+        // TODO: store hash here so it's faster to rehash
         Item *next { nullptr };
     };
 
-    Hashmap(HashType hash_type = HashType::Pointer, size_t initial_capacity = 10) {
+    Hashmap(HashFn hash_fn, CompareFn compare_fn, size_t initial_capacity = 10)
+        : m_capacity { calculate_map_size(initial_capacity) }
+        , m_hash_fn { hash_fn }
+        , m_compare_fn { compare_fn } { }
+
+    Hashmap(HashType hash_type = HashType::Pointer, size_t initial_capacity = 10)
+        : m_capacity { calculate_map_size(initial_capacity) } {
         switch (hash_type) {
         case HashType::Pointer:
             m_hash_fn = &Hashmap::hash_ptr;
@@ -40,8 +47,6 @@ public:
             m_compare_fn = &Hashmap::compare_str;
             break;
         }
-        m_capacity = calculate_map_size(initial_capacity);
-        m_map = new Item *[m_capacity] {};
     }
 
     // HashType::Pointer
@@ -71,8 +76,7 @@ public:
     }
 
     Hashmap(const Hashmap &other)
-        : m_size { other.m_size }
-        , m_capacity { other.m_capacity }
+        : m_capacity { other.m_capacity }
         , m_hash_fn { other.m_hash_fn }
         , m_compare_fn { other.m_compare_fn } {
         m_map = new Item *[m_capacity] {};
@@ -80,20 +84,23 @@ public:
     }
 
     Hashmap &operator=(const Hashmap &other) {
-        m_size = other.m_size;
         m_capacity = other.m_capacity;
         m_hash_fn = other.m_hash_fn;
         m_compare_fn = other.m_compare_fn;
-        clear();
-        delete[] m_map;
+        if (m_map) {
+            clear();
+            delete[] m_map;
+        }
         m_map = new Item *[m_capacity] {};
         copy_items_from(other);
         return *this;
     }
 
     Hashmap &operator=(Hashmap &&other) {
-        clear();
-        delete[] m_map;
+        if (m_map) {
+            clear();
+            delete[] m_map;
+        }
         m_size = other.m_size;
         m_capacity = other.m_capacity;
         m_map = other.m_map;
@@ -106,10 +113,7 @@ public:
     }
 
     ~Hashmap() {
-        if (!m_map) {
-            // this can happen if the data was previously moved out with std::move()
-            return;
-        }
+        if (!m_map) return;
         clear();
         delete[] m_map;
     }
@@ -140,7 +144,8 @@ public:
     }
 
     void put(KeyT key, T value, void *data = nullptr) {
-        assert(m_map);
+        if (!m_map)
+            m_map = new Item *[m_capacity] {};
         if (load_factor() > HASHMAP_MAX_LOAD_FACTOR)
             rehash();
         auto hash = m_hash_fn(key);
@@ -156,7 +161,7 @@ public:
     }
 
     T remove(KeyT key, void *data = nullptr) {
-        assert(m_map);
+        if (!m_map) return nullptr;
         auto hash = m_hash_fn(key);
         auto index = hash % m_capacity;
         auto item = m_map[index];
@@ -185,6 +190,7 @@ public:
     }
 
     void clear() {
+        if (!m_map) return;
         for (size_t i = 0; i < m_capacity; i++) {
             auto item = m_map[i];
             m_map[i] = nullptr;
@@ -194,6 +200,7 @@ public:
                 item = next_item;
             }
         }
+        m_size = 0;
     }
 
     size_t size() const { return m_size; }
@@ -341,15 +348,18 @@ private:
     }
 
     void copy_items_from(const Hashmap &other) {
+        if (!other.m_map) return;
         for (size_t i = 0; i < m_capacity; i++) {
             auto item = other.m_map[i];
             if (item) {
                 auto my_item = new Item { *item };
                 m_map[i] = my_item;
+                m_size++;
                 while (item->next) {
                     item = item->next;
                     my_item->next = new Item { *item };
                     my_item = my_item->next;
+                    m_size++;
                 }
             }
         }
