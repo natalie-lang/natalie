@@ -126,6 +126,7 @@ public:
     }
 
     Item *find_item(KeyT key, size_t hash, void *data = nullptr) {
+        if (m_size == 0) return nullptr;
         assert(m_map);
         auto index = hash % m_capacity;
         auto item = m_map[index];
@@ -252,6 +253,7 @@ public:
     };
 
     iterator begin() {
+        if (m_size == 0) return end();
         assert(m_map);
         Item *item = nullptr;
         size_t index;
@@ -264,7 +266,6 @@ public:
     }
 
     iterator end() {
-        assert(m_map);
         return iterator { *this, m_capacity, nullptr };
     }
 
