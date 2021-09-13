@@ -1,22 +1,23 @@
 #include "natalie.hpp"
+#include "tm/vector.hpp"
 
 namespace Natalie {
 
 // this is used by the hashmap library and assumes that obj->env has been set
-nat_int_t HashValue::hash(const void *key) {
+size_t HashValue::hash(const void *key) {
     return static_cast<const HashValue::Key *>(key)->hash;
 }
 
 // this is used by the hashmap library to compare keys
-int HashValue::compare(const void *a, const void *b, Env *env) {
+bool HashValue::compare(const void *a, const void *b, void *env) {
     assert(env);
     Key *a_p = (Key *)a;
     Key *b_p = (Key *)b;
 
     if (a_p->key->object_id() == b_p->key->object_id() && a_p->hash == b_p->hash)
-        return 0;
+        return true;
 
-    return a_p->key.send(env, SymbolValue::intern("eql?"), { b_p->key })->is_truthy() ? 0 : 1; // return 0 for exact match
+    return a_p->key.send((Env *)env, SymbolValue::intern("eql?"), { b_p->key })->is_truthy();
 }
 
 ValuePtr HashValue::get(Env *env, ValuePtr key) {
@@ -54,10 +55,10 @@ void HashValue::put(Env *env, ValuePtr key, ValuePtr val) {
 
     auto hash = key.send(env, SymbolValue::intern("hash"))->as_integer()->to_nat_int_t();
     key_container.hash = hash;
-    auto entry = m_hashmap.find_entry(&key_container, env);
+    auto entry = m_hashmap.find_item(&key_container, hash, env);
     if (entry) {
         ((Key *)entry->key)->val = val;
-        entry->data = val.value();
+        entry->value = val.value();
     } else {
         if (m_is_iterating) {
             env->raise("RuntimeError", "can't add a new key into hash during iteration");
@@ -70,11 +71,12 @@ void HashValue::put(Env *env, ValuePtr key, ValuePtr val) {
 ValuePtr HashValue::remove(Env *env, ValuePtr key) {
     Key key_container;
     key_container.key = key;
-    key_container.hash = key.send(env, SymbolValue::intern("hash"))->as_integer()->to_nat_int_t();
-    auto entry = m_hashmap.find_entry(&key_container, env);
+    auto hash = key.send(env, SymbolValue::intern("hash"))->as_integer()->to_nat_int_t();
+    key_container.hash = hash;
+    auto entry = m_hashmap.find_item(&key_container, hash, env);
     if (entry) {
         key_list_remove_node((Key *)entry->key);
-        auto val = (Value *)entry->data;
+        auto val = (Value *)entry->value;
         m_hashmap.remove(&key_container, env);
         return val;
     } else {
@@ -84,8 +86,7 @@ ValuePtr HashValue::remove(Env *env, ValuePtr key) {
 
 ValuePtr HashValue::clear(Env *env) {
     assert_not_frozen(env);
-    Hashmap<Key *, Value *> blank_hashmap { hash, compare, 256 };
-    m_hashmap = std::move(blank_hashmap);
+    m_hashmap.clear();
     m_key_list = nullptr;
     m_is_iterating = false;
     return this;
@@ -281,6 +282,7 @@ ValuePtr HashValue::replace(Env *env, ValuePtr other) {
     other->assert_type(env, Type::Hash, "Hash");
 
     auto other_hash = other->as_hash();
+
     clear(env);
     for (auto node : *other_hash) {
         put(env, node.key, node.val);
@@ -485,14 +487,15 @@ ValuePtr HashValue::compact(Env *env) {
 ValuePtr HashValue::compact_in_place(Env *env) {
     assert_not_frozen(env);
     auto nil = NilValue::the();
-    bool changed = false;
+    auto to_remove = TM::Vector<ValuePtr> {};
     for (auto pair : m_hashmap) {
         if (pair.second == nil) {
-            remove(env, pair.first->key);
-            changed = true;
+            to_remove.push(pair.first->key);
         }
     }
-    if (!changed)
+    for (auto key : to_remove)
+        remove(env, key);
+    if (to_remove.is_empty())
         return NilValue::the();
     return this;
 }
