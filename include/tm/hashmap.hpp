@@ -155,6 +155,7 @@ public:
             return;
         }
         auto index = hash % m_capacity;
+        key = duplicate_key(key);
         auto new_item = new Item { key, value };
         insert_item(m_map, index, new_item);
         m_size++;
@@ -196,6 +197,7 @@ public:
             m_map[i] = nullptr;
             while (item) {
                 auto next_item = item->next;
+                free_key(item->key);
                 delete item;
                 item = next_item;
             }
@@ -333,6 +335,7 @@ private:
 
     void delete_item(size_t index, Item *item) {
         m_map[index] = item->next;
+        free_key(item->key);
         delete item;
         m_size--;
         if (load_factor() < HASHMAP_MIN_LOAD_FACTOR)
@@ -341,6 +344,7 @@ private:
 
     void delete_item(Item *item_before, Item *item) {
         item_before->next = item->next;
+        free_key(item->key);
         delete item;
         m_size--;
         if (load_factor() < HASHMAP_MIN_LOAD_FACTOR)
@@ -362,6 +366,20 @@ private:
                     m_size++;
                 }
             }
+        }
+    }
+
+    KeyT duplicate_key(KeyT key) {
+        if constexpr (std::is_same_v<const char *, KeyT>) {
+            return strdup(key);
+        } else {
+            return key;
+        }
+    }
+
+    void free_key(KeyT key) {
+        if constexpr (std::is_same_v<const char *, KeyT>) {
+            free((char *)key);
         }
     }
 
