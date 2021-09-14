@@ -9,6 +9,7 @@
 #include "natalie/macros.hpp"
 #include "natalie/string_value.hpp"
 #include "natalie/value.hpp"
+#include "tm/hashmap.hpp"
 
 namespace Natalie {
 
@@ -63,7 +64,7 @@ public:
     }
 
 private:
-    inline static Hashmap<const char *, SymbolValue *> s_symbols { 1000, HashmapKeyType::String };
+    inline static TM::Hashmap<const char *, SymbolValue *> s_symbols { TM::HashType::String, 1000 };
 
     SymbolValue(Env *env, const char *name)
         : Value { Value::Type::Symbol, GlobalEnv::the()->Symbol() }
