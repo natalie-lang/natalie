@@ -26,7 +26,7 @@ public:
     struct Item {
         KeyT key;
         T value;
-        // TODO: store hash here so it's faster to rehash
+        size_t hash;
         Item *next { nullptr };
     };
 
@@ -132,7 +132,7 @@ public:
         auto index = hash % m_capacity;
         auto item = m_map[index];
         while (item) {
-            if (m_compare_fn(key, item->key, data))
+            if (hash == item->hash && m_compare_fn(key, item->key, data))
                 return item;
             item = item->next;
         }
@@ -156,7 +156,7 @@ public:
         }
         auto index = hash % m_capacity;
         key = duplicate_key(key);
-        auto new_item = new Item { key, value };
+        auto new_item = new Item { key, value, hash };
         insert_item(m_map, index, new_item);
         m_size++;
     }
@@ -169,7 +169,7 @@ public:
         if (item) {
             // m_map[index] = [item] -> item -> item
             //                ^ this one
-            if (m_compare_fn(key, item->key, data)) {
+            if (hash == item->hash && m_compare_fn(key, item->key, data)) {
                 auto value = item->value;
                 delete_item(index, item);
                 return value;
@@ -178,7 +178,7 @@ public:
             while (chained_item) {
                 // m_map[index] = item -> [item] -> item
                 //                        ^ this one
-                if (m_compare_fn(key, chained_item->key, data)) {
+                if (hash == chained_item->hash && m_compare_fn(key, chained_item->key, data)) {
                     auto value = chained_item->value;
                     delete_item(item, chained_item);
                     return value;
