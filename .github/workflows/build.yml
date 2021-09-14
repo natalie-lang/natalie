@@ -41,4 +41,4 @@ jobs:
     - name: checkout submodules
       run: git submodule update --init --recursive
     - name: test with Ruby 3.0
-      run: rake docker_test_gcc
+      run: rake docker_test_ruby3
