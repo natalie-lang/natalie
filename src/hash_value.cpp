@@ -446,10 +446,10 @@ ValuePtr HashValue::has_key(Env *env, ValuePtr key) {
 }
 
 ValuePtr HashValue::merge(Env *env, size_t argc, ValuePtr *args) {
-    return dup(env)->as_hash()->merge_bang(env, argc, args);
+    return dup(env)->as_hash()->merge_in_place(env, argc, args);
 }
 
-ValuePtr HashValue::merge_bang(Env *env, size_t argc, ValuePtr *args) {
+ValuePtr HashValue::merge_in_place(Env *env, size_t argc, ValuePtr *args) {
     for (size_t i = 0; i < argc; i++) {
         auto h = args[i];
         h->assert_type(env, Value::Type::Hash, "Hash");
