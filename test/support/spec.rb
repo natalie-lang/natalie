@@ -84,6 +84,8 @@ alias context describe
 
 def xdescribe(description, &block)
   @context << Context.new(description, skip: true)
+  yield
+  @context.pop
 end
 
 alias xcontext xdescribe
