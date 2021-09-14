@@ -45,4 +45,10 @@ class Hash
     end
     new_hash
   end
+
+  def to_proc
+    Proc.new do |*args|
+      self[*args]
+    end
+  end
 end

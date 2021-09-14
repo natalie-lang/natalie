@@ -265,6 +265,7 @@ class Matcher
   def any?; method_missing(:any?); end
   def empty?; method_missing(:empty?); end
   def finite?; method_missing(:finite?); end
+  def lambda?; method_missing(:lambda?); end
   def nan?; method_missing(:nan?); end
   def none?; method_missing(:none?); end
   def one?; method_missing(:one?); end
@@ -686,8 +687,8 @@ class Object
 
   def eql(other)
     EqlExpectation.new(other)
-  end  
-  
+  end
+
   def be_empty()
     BeEmptyExpectation.new
   end
