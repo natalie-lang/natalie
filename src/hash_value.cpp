@@ -445,16 +445,31 @@ ValuePtr HashValue::has_key(Env *env, ValuePtr key) {
     }
 }
 
-ValuePtr HashValue::merge(Env *env, size_t argc, ValuePtr *args) {
-    return dup(env)->as_hash()->merge_in_place(env, argc, args);
+ValuePtr HashValue::merge(Env *env, size_t argc, ValuePtr *args, Block *block) {
+    return dup(env)->as_hash()->merge_in_place(env, argc, args, block);
 }
 
-ValuePtr HashValue::merge_in_place(Env *env, size_t argc, ValuePtr *args) {
+ValuePtr HashValue::merge_in_place(Env *env, size_t argc, ValuePtr *args, Block *block) {
+    this->assert_not_frozen(env);
+
     for (size_t i = 0; i < argc; i++) {
         auto h = args[i];
+
+        if (!h->is_hash() && h->respond_to_method(env, SymbolValue::intern("to_hash")))
+            h = h->send(env, SymbolValue::intern("to_hash"));
+
         h->assert_type(env, Value::Type::Hash, "Hash");
+
         for (auto node : *h->as_hash()) {
-            put(env, node.key, node.val);
+            auto new_value = node.val;
+            if (block) {
+                auto old_value = get(env, node.key);
+                if (old_value) {
+                    ValuePtr args[3] = { node.key, old_value, new_value };
+                    new_value = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 3, args, nullptr);
+                }
+            }
+            put(env, node.key, new_value);
         }
     }
     return this;
