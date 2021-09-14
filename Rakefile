@@ -215,7 +215,7 @@ end
 def cc
   @cc ||= if ENV['CC']
     ENV['CC']
-  elsif system('which ccache')
+  elsif system('which ccache 2>&1 > /dev/null')
     'ccache cc'
   else
     'cc'
@@ -225,7 +225,7 @@ end
 def cxx
   @cxx ||= if ENV['CXX']
     ENV['CXX']
-  elsif system('which ccache')
+  elsif system('which ccache 2>&1 > /dev/null')
     'ccache c++'
   else
     'c++'
