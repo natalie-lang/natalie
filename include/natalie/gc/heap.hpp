@@ -7,8 +7,8 @@
 
 #include "natalie/gc/allocator.hpp"
 #include "natalie/gc/marking_visitor.hpp"
-#include "natalie/hashmap.hpp"
 #include "natalie/macros.hpp"
+#include "tm/hashmap.hpp"
 #include "tm/vector.hpp"
 
 namespace Natalie {
@@ -96,7 +96,7 @@ private:
         m_allocators.push(new Allocator(1024));
     }
 
-    Hashmap<Cell *> gather_conservative_roots();
+    TM::Hashmap<Cell *> gather_conservative_roots();
 
     void sweep();
 

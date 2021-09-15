@@ -114,12 +114,12 @@ ValuePtr KernelModule::hash(Env *env) {
     // NOTE: string "foo" and symbol :foo will get the same hash.
     // That's probably ok, but maybe worth revisiting.
     case Type::String:
-        return ValuePtr::integer(hashmap_hash_string(as_string()->c_str()));
+        return ValuePtr::integer(TM::Hashmap<void *>::hash_str(as_string()->c_str()));
     case Type::Symbol:
-        return ValuePtr::integer(hashmap_hash_string(as_symbol()->c_str()));
+        return ValuePtr::integer(TM::Hashmap<void *>::hash_str(as_symbol()->c_str()));
     default: {
         StringValue *inspected = send(env, SymbolValue::intern("inspect"))->as_string();
-        nat_int_t hash_value = hashmap_hash_string(inspected->c_str());
+        nat_int_t hash_value = TM::Hashmap<void *>::hash_str(inspected->c_str());
         return ValuePtr::integer(hash_value);
     }
     }
