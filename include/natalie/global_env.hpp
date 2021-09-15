@@ -4,7 +4,7 @@
 
 #include "natalie/forward.hpp"
 #include "natalie/gc.hpp"
-#include "natalie/hashmap.hpp"
+#include "tm/hashmap.hpp"
 
 namespace Natalie {
 
@@ -78,7 +78,7 @@ private:
 
     inline static GlobalEnv *s_instance = nullptr;
 
-    Hashmap<SymbolValue *, Value *> m_globals {};
+    TM::Hashmap<SymbolValue *, Value *> m_globals {};
 
     ClassValue *m_Array { nullptr };
     ClassValue *m_Binding { nullptr };

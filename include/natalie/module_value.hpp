@@ -6,7 +6,6 @@
 #include "natalie/env.hpp"
 #include "natalie/forward.hpp"
 #include "natalie/global_env.hpp"
-#include "natalie/hashmap.hpp"
 #include "natalie/macros.hpp"
 #include "natalie/method_visibility.hpp"
 #include "natalie/value.hpp"
@@ -133,11 +132,11 @@ public:
 
 protected:
     Env *m_env { nullptr };
-    Hashmap<SymbolValue *, Value *> m_constants {};
+    TM::Hashmap<SymbolValue *, Value *> m_constants {};
     Optional<const String *> m_class_name {};
     ClassValue *m_superclass { nullptr };
-    Hashmap<SymbolValue *, Method *> m_methods {};
-    Hashmap<SymbolValue *, Value *> m_class_vars {};
+    TM::Hashmap<SymbolValue *, Method *> m_methods {};
+    TM::Hashmap<SymbolValue *, Value *> m_class_vars {};
     Vector<ModuleValue *> m_included_modules {};
     MethodVisibility m_method_visibility { MethodVisibility::Public };
 };

@@ -20,7 +20,7 @@ public:
         Key *next { nullptr };
         ValuePtr key { nullptr };
         ValuePtr val { nullptr };
-        nat_int_t hash { 0 };
+        size_t hash { 0 };
         bool removed { false };
 
         virtual void visit_children(Visitor &visitor) override final {
@@ -47,8 +47,8 @@ public:
 
     static ValuePtr square_new(Env *, size_t argc, ValuePtr *args, ClassValue *klass);
 
-    static nat_int_t hash(const void *);
-    static int compare(const void *, const void *, Env *);
+    static size_t hash(const void *);
+    static bool compare(const void *, const void *, void *);
 
     size_t size() const { return m_hashmap.size(); }
     ValuePtr size(Env *);
@@ -169,7 +169,7 @@ private:
     }
 
     Key *m_key_list { nullptr };
-    Hashmap<Key *, Value *> m_hashmap { hash, compare, 256 };
+    TM::Hashmap<Key *, Value *> m_hashmap { hash, compare, 10 }; // TODO: profile and tune this initial capacity
     bool m_is_iterating { false };
     ValuePtr m_default_value { nullptr };
     ProcValue *m_default_proc { nullptr };

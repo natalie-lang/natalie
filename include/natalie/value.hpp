@@ -6,11 +6,11 @@
 #include "natalie/forward.hpp"
 #include "natalie/gc.hpp"
 #include "natalie/global_env.hpp"
-#include "natalie/hashmap.hpp"
 #include "natalie/macros.hpp"
 #include "natalie/method_visibility.hpp"
 #include "natalie/value_ptr.hpp"
 #include "natalie/value_type.hpp"
+#include "tm/hashmap.hpp"
 
 namespace Natalie {
 
@@ -250,7 +250,7 @@ private:
     ModuleValue *m_owner { nullptr };
     int m_flags { 0 };
 
-    Hashmap<SymbolValue *, Value *> m_ivars {};
+    TM::Hashmap<SymbolValue *, Value *> m_ivars {};
 };
 
 }

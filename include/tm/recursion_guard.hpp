@@ -1,7 +1,7 @@
 #pragma once
 
-#include "natalie/hashmap.hpp" // this will be moved into TM namespace someday real soon :-)
 #include "tm/defer.hpp"
+#include "tm/hashmap.hpp"
 
 namespace Natalie {
 
@@ -32,7 +32,7 @@ private:
         s_did_run.remove(m_instance);
     }
 
-    static inline Hashmap<void *> s_did_run {};
+    static inline TM::Hashmap<void *> s_did_run {};
 };
 
 }
