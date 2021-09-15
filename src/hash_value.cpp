@@ -397,6 +397,16 @@ ValuePtr HashValue::fetch(Env *env, ValuePtr key, ValuePtr default_value, Block 
     return value;
 }
 
+ValuePtr HashValue::fetch_values(Env *env, size_t argc, ValuePtr *args, Block *block) {
+    auto array = new ArrayValue {};
+    if (argc == 0) return array;
+
+    for (size_t i = 0; i < argc; ++i) {
+        array->push(fetch(env, args[i], nullptr, block));
+    }
+    return array;
+}
+
 ValuePtr HashValue::keys(Env *env) {
     ArrayValue *array = new ArrayValue {};
     for (HashValue::Key &node : *this) {
