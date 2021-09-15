@@ -56,3 +56,11 @@ end
 class LocalJumpError < StandardError
   attr_reader :exit_value
 end
+
+class KeyError < IndexError
+  attr_reader :receiver, :key
+  def initialize(message, receiver = nil, key = nil)
+    @receiver = receiver
+    @key = key
+  end
+end
