@@ -373,12 +373,16 @@ module Natalie
         (_, call, (_, *args), *body) = exp
         return exp if call.sexp_type == :block_fn # already processed
 
+        is_lambda = is_lambda_call?(call)
+        is_proc = !is_lambda
+
         args = fix_unnecessary_nesting(args)
         if args.last&.to_s&.start_with?('&')
           block_arg = exp.new(:arg_set, :env, s(:s, args.pop.to_s[1..-1]), s(:new, :ProcValue, 'block'))
         end
         block_fn = temp('block_fn')
         block = block_fn.sub(/_fn/, '')
+
         call = process(call)
         if (i = call.index('nullptr'))
           call[i] = block
@@ -387,7 +391,6 @@ module Natalie
           pp call
           raise "cannot add block to call!"
         end
-        is_proc = !is_lambda_call?(call)
         if args.any?
           args_name = temp('args_as_array')
           method_args = MethodArgs.new(args, args_name, is_proc: is_proc)
@@ -399,9 +402,11 @@ module Natalie
           assign_args = s(:block)
           arity = 0
         end
+        argc_assertion = prepare_argc_assertion(args) if is_lambda
         exp.new(:iter,
                 s(:block_fn, block_fn,
                   s(:block,
+                    argc_assertion || s(:block),
                     assign_args,
                     block_arg || s(:block),
                     process(s(:block, *body)))),
@@ -410,8 +415,7 @@ module Natalie
       end
 
       def is_lambda_call?(exp)
-        (send, _, (_, name)) = exp
-        send == :send && name == :lambda
+        exp == s(:lambda) || exp == s(:call, nil, :lambda)
       end
 
       # |(a, b)| should be treated as |a, b|
