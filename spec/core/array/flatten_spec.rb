@@ -76,7 +76,7 @@ describe "Array#flatten" do
   end
 
   ruby_version_is ''...'3.0' do
-    xit "returns subclass instance for Array subclasses" do
+    it "returns subclass instance for Array subclasses" do
       ArraySpecs::MyArray[].flatten.should be_an_instance_of(ArraySpecs::MyArray)
       ArraySpecs::MyArray[1, 2, 3].flatten.should be_an_instance_of(ArraySpecs::MyArray)
       ArraySpecs::MyArray[1, [2], 3].flatten.should be_an_instance_of(ArraySpecs::MyArray)
@@ -86,7 +86,7 @@ describe "Array#flatten" do
   end
 
   ruby_version_is '3.0' do
-    xit "returns Array instance for Array subclasses" do
+    it "returns Array instance for Array subclasses" do
       ArraySpecs::MyArray[].flatten.should be_an_instance_of(Array)
       ArraySpecs::MyArray[1, 2, 3].flatten.should be_an_instance_of(Array)
       ArraySpecs::MyArray[1, [2], 3].flatten.should be_an_instance_of(Array)

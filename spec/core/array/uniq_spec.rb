@@ -131,8 +131,7 @@ describe "Array#uniq" do
   end
 
   ruby_version_is ''...'3.0' do
-    # FIXME: Natalie returns an instance of Array when calling ArraySpecs::MyArray[]
-    xit "returns subclass instance on Array subclasses" do
+    it "returns subclass instance on Array subclasses" do
       ArraySpecs::MyArray[1, 2, 3].uniq.should be_an_instance_of(ArraySpecs::MyArray)
     end
   end

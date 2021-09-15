@@ -47,8 +47,8 @@ class Hash
   end
 
   def to_proc
-    Proc.new do |*args|
-      self[*args]
+    lambda do |arg|
+      self[*arg]
     end
   end
 end

@@ -10,9 +10,8 @@ describe 'built-in constants' do
   end
 
   describe 'RUBY_VERSION' do
-    it 'returns something fairly modern' do
-      # NOTE: This may change up or down depending on what we decide we want Natalie to be :-)
-      RUBY_VERSION.should == '2.7.1'
+    it 'returns the version Natalie tries to be compatible with' do
+      RUBY_VERSION.should =~ /^3\.\d+\.\d+$/
     end
   end
 

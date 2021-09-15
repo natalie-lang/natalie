@@ -369,21 +369,11 @@ ValuePtr HashValue::each(Env *env, Block *block) {
     if (!block)
         return send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("each") });
 
-    bool wrap_args_in_array = block->arity() == -1 || block->arity() == 1;
-
     ValuePtr block_args[2];
     for (HashValue::Key &node : *this) {
-        int block_argc;
-        if (wrap_args_in_array) {
-            block_argc = 1;
-            auto ary = new ArrayValue { { node.key, node.val } };
-            block_args[0] = ary;
-        } else {
-            block_argc = 2;
-            block_args[0] = node.key;
-            block_args[1] = node.val;
-        }
-        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK_WHILE_ITERATING_HASH(env, block, block_argc, block_args, nullptr, this);
+        auto ary = new ArrayValue { { node.key, node.val } };
+        ValuePtr block_args[1] = { ary };
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK_WHILE_ITERATING_HASH(env, block, 1, block_args, nullptr, this);
     }
     return this;
 }
