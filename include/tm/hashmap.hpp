@@ -308,8 +308,7 @@ private:
             auto item = m_map[i];
             while (item) {
                 auto next_item = item->next;
-                auto new_hash = m_hash_fn(item->key);
-                auto new_index = new_hash % new_capacity;
+                auto new_index = item->hash % new_capacity;
                 insert_item(new_map, new_index, item);
                 item = next_item;
             }
