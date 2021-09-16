@@ -382,10 +382,8 @@ ValuePtr HashValue::fetch(Env *env, ValuePtr key, ValuePtr default_value, Block 
     ValuePtr value = get(env, key);
     if (!value) {
         if (block) {
-            if (default_value) {
-                ValuePtr _stderr = env->global_get(SymbolValue::intern("$stderr"));
-                _stderr.send(env, SymbolValue::intern("puts"), { new StringValue { "block supersedes default value argument" } });
-            }
+            if (default_value)
+                env->warn("block supersedes default value argument");
 
             value = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 1, &key, nullptr);
         } else if (default_value) {

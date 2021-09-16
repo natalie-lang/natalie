@@ -65,6 +65,14 @@ public:
         raise(class_name, message);
     }
 
+    void warn(const String *);
+
+    template <typename... Args>
+    void warn(const char *format, Args... args) {
+        auto message = String::format(format, args...);
+        warn(message);
+    }
+
     void ensure_argc_is(size_t argc, size_t expected);
     void ensure_argc_between(size_t argc, size_t expected_low, size_t expected_high);
     void ensure_argc_at_least(size_t argc, size_t expected);

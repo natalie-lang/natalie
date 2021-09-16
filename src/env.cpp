@@ -95,6 +95,11 @@ void Env::raise_errno() {
     raise_exception(error);
 }
 
+void Env::warn(const String *message) {
+    ValuePtr _stderr = global_get(SymbolValue::intern("$stderr"));
+    _stderr.send(this, SymbolValue::intern("puts"), { new StringValue { message } });
+}
+
 void Env::ensure_argc_is(size_t argc, size_t expected) {
     if (argc != expected) {
         raise("ArgumentError", "wrong number of arguments (given {}, expected {})", argc, expected);
