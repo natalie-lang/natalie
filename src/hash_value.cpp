@@ -378,6 +378,18 @@ ValuePtr HashValue::each(Env *env, Block *block) {
     return this;
 }
 
+ValuePtr HashValue::except(Env *env, size_t argc, ValuePtr *args) {
+    HashValue *new_hash = new HashValue {};
+    for (auto &node : *this) {
+        new_hash->put(env, node.key, node.val);
+    }
+
+    for (size_t i = 0; i < argc; i++) {
+        new_hash->remove(env, args[i]);
+    }
+    return new_hash;
+}
+
 ValuePtr HashValue::fetch(Env *env, ValuePtr key, ValuePtr default_value, Block *block) {
     ValuePtr value = get(env, key);
     if (!value) {
@@ -531,5 +543,4 @@ ValuePtr HashValue::compact_in_place(Env *env) {
         return NilValue::the();
     return this;
 }
-
 }
