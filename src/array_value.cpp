@@ -5,6 +5,7 @@
 #include <natalie/string_value.hpp>
 #include <natalie/symbol_value.hpp>
 #include <random>
+#include <tm/hashmap.hpp>
 
 namespace Natalie {
 
@@ -1220,8 +1221,8 @@ ValuePtr ArrayValue::hash(Env *env) {
             if (! current_hash->is_integer() && current_hash->respond_to(env, to_int))
                 current_hash = current_hash->send(env, to_int);
 
-            auto pre_hash = current_hash->as_integer()->to_nat_int_t() + hashmap_hash_string(&i);
-            accumulator += hashmap_hash_string(&pre_hash);
+            auto pre_hash = current_hash->as_integer()->to_nat_int_t() + Hashmap<void *>::hash_str(&i);
+            accumulator += Hashmap<void *>::hash_str(&pre_hash);
         }
 
         return ValuePtr::integer(accumulator);

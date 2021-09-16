@@ -464,6 +464,45 @@ ValuePtr HashValue::has_key(Env *env, ValuePtr key) {
     }
 }
 
+ValuePtr HashValue::hash_method(Env *env) {
+    RecursionGuard guard { this };
+    return guard.run([&](bool is_recursive) {
+        if (is_recursive)
+            return ValuePtr::integer(0);
+        nat_int_t accumulator = 0;
+        auto hash_method = SymbolValue::intern("hash");
+        auto to_int = SymbolValue::intern("to_int");
+
+        for (auto pair : m_hashmap) {
+            auto key = pair.first->key;
+            auto value = pair.second;
+            auto value_hash = value->send(env, hash_method);
+
+            if (! value_hash->is_integer() && value_hash->respond_to(env, to_int))
+                value_hash = value_hash->send(env, to_int);
+
+            auto value_hash_nat_int_t = value_hash->as_integer()->to_nat_int_t();
+            if (value_hash_nat_int_t == 0)
+                continue; // value was recursive
+
+            auto key_hash = key->send(env, hash_method);
+            if (! key_hash->is_integer() && key_hash->respond_to(env, to_int))
+                key_hash = key_hash->send(env, to_int);
+
+            auto value_pre_hash = Hashmap<void *>::hash_str(&value_hash_nat_int_t);
+            
+            auto key_hash_nat_int_t = key_hash->as_integer()->to_nat_int_t();
+            auto key_pre_hash = Hashmap<void *>::hash_str(&key_hash_nat_int_t);
+
+            auto pre_hash = key_pre_hash * 2 - value_pre_hash;
+
+            accumulator += Hashmap<void *>::hash_str(&pre_hash);  
+        }
+
+        return ValuePtr::integer(accumulator);
+    });
+}
+
 ValuePtr HashValue::merge(Env *env, size_t argc, ValuePtr *args, Block *block) {
     return dup(env)->as_hash()->merge_in_place(env, argc, args, block);
 }

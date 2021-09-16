@@ -469,6 +469,7 @@ gen.binding('Hash', 'eql?', 'HashValue', 'eql', argc: 1, pass_env: true, pass_bl
 gen.binding('Hash', 'fetch', 'HashValue', 'fetch', argc: 1..2, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Hash', 'fetch_values', 'HashValue', 'fetch_values', argc: :any, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Hash', 'has_key?', 'HashValue', 'has_key', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Hash', 'hash', 'HashValue', 'hash_method', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Hash', 'initialize', 'HashValue', 'initialize', argc: 0..1, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Hash', 'inspect', 'HashValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Hash', 'include?', 'HashValue', 'has_key', argc: 1, pass_env: true, pass_block: false, return_type: :Value)

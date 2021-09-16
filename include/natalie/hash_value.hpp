@@ -135,6 +135,7 @@ public:
     ValuePtr fetch(Env *, ValuePtr, ValuePtr, Block *);
     ValuePtr fetch_values(Env *, size_t, ValuePtr *, Block *);
     ValuePtr has_key(Env *, ValuePtr);
+    ValuePtr hash_method(Env *);
     ValuePtr initialize(Env *, ValuePtr, Block *);
     ValuePtr inspect(Env *);
     ValuePtr keys(Env *);
