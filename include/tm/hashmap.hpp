@@ -379,6 +379,8 @@ private:
     void free_key(KeyT key) {
         if constexpr (std::is_same_v<const char *, KeyT>) {
             free((char *)key);
+        } else {
+            (void)key; // don't warn/error about unused parameter
         }
     }
 
