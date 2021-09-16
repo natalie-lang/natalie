@@ -12,6 +12,22 @@ class Hash
 
   alias index key
 
+  def each_key
+    return enum_for(:each_key) unless block_given?
+
+    each do |key, _|
+      yield key
+    end
+  end
+
+  def each_value
+    return enum_for(:each_value) unless block_given?
+
+    each do |_, value|
+      yield value
+    end
+  end
+
   def transform_keys
     return enum_for(:transform_keys) { size } unless block_given?
 
