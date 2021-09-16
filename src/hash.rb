@@ -1,6 +1,18 @@
 class Hash
   class << self
     alias allocate new
+
+    def try_convert(obj)
+      if obj.is_a? Hash
+        obj
+      elsif obj.respond_to?(:to_hash)
+        obj.to_hash.tap do |hash|
+          unless hash.nil? || hash.is_a?(Hash)
+            raise TypeError, "can't convert #{obj.inspect} to Hash (#{obj.inspect}#to_hash gives #{hash.inspect})"
+          end
+        end
+      end
+    end
   end
 
   def key(value)
