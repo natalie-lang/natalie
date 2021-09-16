@@ -378,6 +378,33 @@ ValuePtr HashValue::each(Env *env, Block *block) {
     return this;
 }
 
+ValuePtr HashValue::fetch(Env *env, ValuePtr key, ValuePtr default_value, Block *block) {
+    ValuePtr value = get(env, key);
+    if (!value) {
+        if (block) {
+            if (default_value)
+                env->warn("block supersedes default value argument");
+
+            value = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 1, &key, nullptr);
+        } else if (default_value) {
+            value = default_value;
+        } else {
+            env->raise_key_error(this, key);
+        }
+    }
+    return value;
+}
+
+ValuePtr HashValue::fetch_values(Env *env, size_t argc, ValuePtr *args, Block *block) {
+    auto array = new ArrayValue {};
+    if (argc == 0) return array;
+
+    for (size_t i = 0; i < argc; ++i) {
+        array->push(fetch(env, args[i], nullptr, block));
+    }
+    return array;
+}
+
 ValuePtr HashValue::keys(Env *env) {
     ArrayValue *array = new ArrayValue {};
     for (HashValue::Key &node : *this) {

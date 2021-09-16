@@ -65,6 +65,15 @@ void Env::raise_exception(ExceptionValue *exception) {
     throw exception;
 }
 
+void Env::raise_key_error(ValuePtr receiver, ValuePtr key) {
+    auto message = new StringValue { String::format("key not found: {}", key->inspect_str(this)) };
+    auto key_error_class = GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("KeyError"))->as_class();
+    ExceptionValue *exception = new ExceptionValue { key_error_class, message };
+    exception->ivar_set(this, SymbolValue::intern("@receiver"), receiver);
+    exception->ivar_set(this, SymbolValue::intern("@key"), key);
+    this->raise_exception(exception);
+}
+
 void Env::raise_local_jump_error(ValuePtr exit_value, LocalJumpErrorType type) {
     auto message = new StringValue { type == LocalJumpErrorType::Return ? "unexpected return" : "break from proc-closure" };
     auto lje_class = GlobalEnv::the()->Object()->const_find(this, SymbolValue::intern("LocalJumpError"))->as_class();
@@ -84,6 +93,11 @@ void Env::raise_errno() {
     auto SystemCallError = GlobalEnv::the()->Object()->const_find(this, SymbolValue::intern("SystemCallError"));
     ExceptionValue *error = SystemCallError.send(this, SymbolValue::intern("exception"), { ValuePtr::integer(errno) })->as_exception();
     raise_exception(error);
+}
+
+void Env::warn(const String *message) {
+    ValuePtr _stderr = global_get(SymbolValue::intern("$stderr"));
+    _stderr.send(this, SymbolValue::intern("puts"), { new StringValue { message } });
 }
 
 void Env::ensure_argc_is(size_t argc, size_t expected) {
