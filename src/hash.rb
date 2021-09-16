@@ -28,6 +28,14 @@ class Hash
     end
   end
 
+  def invert
+    new_hash = {}
+    each do |key, value|
+      new_hash[value] = key
+    end
+    new_hash
+  end
+
   def transform_keys
     return enum_for(:transform_keys) { size } unless block_given?
 
