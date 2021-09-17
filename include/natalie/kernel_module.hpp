@@ -41,6 +41,7 @@ public:
     ValuePtr Array(Env *env, ValuePtr value);
     ValuePtr at_exit(Env *env, Block *block);
     ValuePtr binding(Env *env);
+    ValuePtr clone(Env *env);
     ValuePtr cur_dir(Env *env);
     ValuePtr define_singleton_method(Env *env, ValuePtr name, Block *block);
     ValuePtr exit(Env *env, ValuePtr status);
