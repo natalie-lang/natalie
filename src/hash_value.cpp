@@ -292,6 +292,21 @@ ValuePtr HashValue::replace(Env *env, ValuePtr other) {
     return this;
 }
 
+ValuePtr HashValue::delete_if(Env *env, Block *block) {
+    if (!block)
+        return send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("each") });
+
+    assert_not_frozen(env);
+    for (auto &node : *this) {
+        ValuePtr args[2] = { node.key, node.val };
+        if (NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 2, args, nullptr)->is_truthy()) {
+            delete_key(env, node.key, nullptr);
+        }
+    }
+
+    return this;
+}
+
 ValuePtr HashValue::delete_key(Env *env, ValuePtr key, Block *block) {
     assert_not_frozen(env);
     ValuePtr val = remove(env, key);
