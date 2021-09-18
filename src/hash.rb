@@ -49,6 +49,10 @@ class Hash
     end
   end
 
+  def has_value?(value)
+    !!key(value)
+  end
+
   def invert
     new_hash = {}
     each do |key, value|
