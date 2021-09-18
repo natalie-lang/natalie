@@ -57,6 +57,30 @@ class Hash
     new_hash
   end
 
+  def select(&block)
+    return enum_for(:select) unless block_given?
+
+    dup.tap { |new_hash| new_hash.select!(&block) }
+  end
+  alias filter select
+
+  def select!(&block)
+    return enum_for(:select!) unless block_given?
+
+    raise FrozenError, "can't modify frozen #{self.class.name}: #{inspect}" if frozen?
+
+    modified = false
+    each do |key, value|
+      unless yield(key, value)
+        delete(key)
+        modified = true
+      end
+    end
+
+    modified ? self : nil
+  end
+  alias filter! select!
+
   def transform_keys
     return enum_for(:transform_keys) { size } unless block_given?
 
