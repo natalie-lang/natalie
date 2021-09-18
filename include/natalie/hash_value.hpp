@@ -145,7 +145,6 @@ public:
     ValuePtr ref(Env *, ValuePtr);
     ValuePtr refeq(Env *, ValuePtr, ValuePtr);
     ValuePtr replace(Env *, ValuePtr);
-    ValuePtr sort(Env *);
     ValuePtr values(Env *);
 
     ValuePtr to_h(Env *, Block *);
