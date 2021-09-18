@@ -52,6 +52,7 @@ class Hash
   def has_value?(value)
     !!key(value)
   end
+  alias value? has_value?
 
   def invert
     new_hash = {}
