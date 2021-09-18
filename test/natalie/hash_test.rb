@@ -274,4 +274,12 @@ describe 'hash' do
       h.should == { 0 => 0, 1 => 10, 2 => 2, 3 => 3 }
     end
   end
+
+  describe '#values_at' do
+    it "return default value of key not in hash" do
+      h = { a: 1, b: 2 }
+      h.default = 3
+      h.values_at(:a, :b, :c).should == [1, 2, 3]
+    end
+  end
 end
