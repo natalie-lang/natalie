@@ -62,6 +62,7 @@ class Hash
 
     dup.tap { |new_hash| new_hash.select!(&block) }
   end
+  alias filter select
 
   def select!(&block)
     return enum_for(:select!) unless block_given?
@@ -78,6 +79,7 @@ class Hash
 
     modified ? self : nil
   end
+  alias filter! select!
 
   def transform_keys
     return enum_for(:transform_keys) { size } unless block_given?
