@@ -96,4 +96,12 @@ class Hash
       self[*arg]
     end
   end
+
+  def values_at(*keys)
+    [].tap do |values|
+      keys.each do |key|
+        values << self[key]
+      end
+    end
+  end
 end
