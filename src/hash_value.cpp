@@ -267,7 +267,7 @@ ValuePtr HashValue::ref(Env *env, ValuePtr key) {
     if (val) {
         return val;
     } else {
-        return get_default(env, key);
+        return send(env, SymbolValue::intern("default"), { key });
     }
 }
 
