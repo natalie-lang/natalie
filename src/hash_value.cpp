@@ -471,17 +471,6 @@ ValuePtr HashValue::values(Env *env) {
     return array;
 }
 
-ValuePtr HashValue::sort(Env *env) {
-    ArrayValue *ary = new ArrayValue {};
-    for (HashValue::Key &node : *this) {
-        ArrayValue *pair = new ArrayValue {};
-        pair->push(node.key);
-        pair->push(node.val);
-        ary->push(pair);
-    }
-    return ary->sort(env, nullptr);
-}
-
 ValuePtr HashValue::has_key(Env *env, ValuePtr key) {
     ValuePtr val = get(env, key);
     if (val) {
