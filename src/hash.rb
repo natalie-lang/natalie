@@ -15,6 +15,15 @@ class Hash
     end
   end
 
+  def assoc(arg)
+    each do |key, value|
+      if arg == key
+        return [key, value]
+      end
+    end
+    nil
+  end
+
   def key(value)
     each do |k, v|
       return k if v == value
