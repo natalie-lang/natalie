@@ -5,6 +5,7 @@
 #include <natalie/string_value.hpp>
 #include <natalie/symbol_value.hpp>
 #include <random>
+#include <tm/hashmap.hpp>
 #include <tm/recursion_guard.hpp>
 
 namespace Natalie {
@@ -1207,25 +1208,34 @@ ValuePtr ArrayValue::rassoc(Env *env, ValuePtr needle) {
 }
 
 ValuePtr ArrayValue::hash(Env *env) {
-    RecursionGuard guard { this };
+    TM::RecursionGuard guard { this };
     return guard.run([&](bool is_recursive) {
         if (is_recursive)
-            return ValuePtr::integer(0);
-        nat_int_t accumulator = 0;
+            return ValuePtr { NilValue::the() };
+        nat_int_t hash = 100019; // just a prime number :-)
         auto hash_method = SymbolValue::intern("hash");
         auto to_int = SymbolValue::intern("to_int");
-        for (size_t i = 0; i < size(); ++i) {
-            auto item = (*this)[i];
-            auto current_hash = item->send(env, hash_method);
 
-            if (! current_hash->is_integer() && current_hash->respond_to(env, to_int))
-                current_hash = current_hash->send(env, to_int);
+        for (auto &item : *this) {
+            auto item_hash = item->send(env, hash_method);
 
-            auto pre_hash = current_hash->as_integer()->to_nat_int_t() + i;
-            accumulator += hashmap_hash_string(&pre_hash);
+            if (item_hash->is_nil())
+                continue;
+
+            // this allows us to return the same hash for recursive arrays:
+            // a = []; a << a; a.hash == [a].hash # => true
+            // a = []; a << a << a; a.hash == [a, a].hash # => true
+            if (item->is_array() && size() == item->as_array()->size() && eql(env, item))
+                continue;
+
+            if (!item_hash->is_integer() && item_hash->respond_to(env, to_int))
+                item_hash = item_hash->send(env, to_int);
+
+            nat_int_t h = item_hash->as_integer()->to_nat_int_t();
+            hash ^= h * 207269; // another prime number to prevent bias toward zero
         }
 
-        return ValuePtr::integer(accumulator);
+        return ValuePtr::integer(hash);
     });
 }
 
