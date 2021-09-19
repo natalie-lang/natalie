@@ -282,4 +282,11 @@ describe 'hash' do
       h.values_at(:a, :b, :c).should == [1, 2, 3]
     end
   end
+
+  describe '#value?' do
+    it "work with falsey values" do
+      h = { nil => :a }
+      h.value?(:a).should == true
+    end
+  end
 end

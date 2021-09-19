@@ -481,6 +481,15 @@ ValuePtr HashValue::has_key(Env *env, ValuePtr key) {
     }
 }
 
+ValuePtr HashValue::has_value(Env *env, ValuePtr value) {
+    for (auto &node : *this) {
+        if (node.val.send(env, SymbolValue::intern("=="), { value })->is_true()) {
+            return TrueValue::the();
+        }
+    }
+    return FalseValue::the();
+}
+
 ValuePtr HashValue::merge(Env *env, size_t argc, ValuePtr *args, Block *block) {
     return dup(env)->as_hash()->merge_in_place(env, argc, args, block);
 }

@@ -470,6 +470,7 @@ gen.binding('Hash', 'except', 'HashValue', 'except', argc: :any, pass_env: true,
 gen.binding('Hash', 'fetch', 'HashValue', 'fetch', argc: 1..2, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Hash', 'fetch_values', 'HashValue', 'fetch_values', argc: :any, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Hash', 'has_key?', 'HashValue', 'has_key', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Hash', 'has_value?', 'HashValue', 'has_value', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Hash', 'initialize', 'HashValue', 'initialize', argc: 0..1, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Hash', 'initialize_copy', 'HashValue', 'replace', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Hash', 'inspect', 'HashValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
@@ -488,6 +489,7 @@ gen.binding('Hash', 'to_h', 'HashValue', 'to_h', argc: 0, pass_env: true, pass_b
 gen.binding('Hash', 'to_hash', 'HashValue', 'to_hash', argc: 0, pass_env: false, pass_block: false, return_type: :Value)
 gen.binding('Hash', 'to_s', 'HashValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Hash', 'update', 'HashValue', 'merge_in_place', argc: :any, pass_env: true, pass_block: true, return_type: :Value)
+gen.binding('Hash', 'value?', 'HashValue', 'has_value', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Hash', 'values', 'HashValue', 'values', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 
 gen.undefine_singleton_method('Integer', 'new')
