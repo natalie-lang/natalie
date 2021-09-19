@@ -605,6 +605,11 @@ class Stub
     self
   end
 
+  def twice
+    exactly(2)
+    self
+  end
+
   def exactly(n)
     @count_restriction = n
     self
