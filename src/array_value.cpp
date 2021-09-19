@@ -5,6 +5,7 @@
 #include <natalie/string_value.hpp>
 #include <natalie/symbol_value.hpp>
 #include <random>
+#include <tm/recursion_guard.hpp>
 
 namespace Natalie {
 
@@ -301,7 +302,7 @@ ValuePtr ArrayValue::any(Env *env, size_t argc, ValuePtr *args, Block *block) {
 }
 
 ValuePtr ArrayValue::eq(Env *env, ValuePtr other) {
-    RecursionGuard guard { this };
+    TM::PairedRecursionGuard guard { this, other.value() };
 
     return guard.run([&](bool is_recursive) -> ValuePtr {
         if (other == this)
@@ -349,7 +350,7 @@ ValuePtr ArrayValue::eq(Env *env, ValuePtr other) {
 }
 
 ValuePtr ArrayValue::eql(Env *env, ValuePtr other) {
-    RecursionGuard guard { this };
+    TM::PairedRecursionGuard guard { this, other.value() };
 
     return guard.run([&](bool is_recursive) -> ValuePtr {
         if (other == this)
@@ -813,7 +814,7 @@ ValuePtr ArrayValue::sort(Env *env, Block *block) {
 }
 
 ValuePtr ArrayValue::join(Env *env, ValuePtr joiner) {
-    RecursionGuard guard { this };
+    TM::RecursionGuard guard { this };
     return guard.run([&](bool is_recursive) {
         if (is_recursive)
             env->raise("ArgumentError", "recursive array join");

@@ -1,4 +1,5 @@
 #include "natalie.hpp"
+#include "tm/recursion_guard.hpp"
 #include "tm/vector.hpp"
 
 namespace Natalie {
@@ -224,7 +225,7 @@ ValuePtr HashValue::square_new(Env *env, size_t argc, ValuePtr *args, ClassValue
 }
 
 ValuePtr HashValue::inspect(Env *env) {
-    RecursionGuard guard { this };
+    TM::RecursionGuard guard { this };
 
     return guard.run([&](bool is_recursive) {
         if (is_recursive)
