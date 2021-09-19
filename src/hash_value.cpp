@@ -387,6 +387,15 @@ bool HashValue::gte(Env *env, ValuePtr other) {
     return true;
 }
 
+bool HashValue::gt(Env *env, ValuePtr other) {
+    if (!other->is_hash() && other->respond_to_method(env, SymbolValue::intern("to_hash")))
+        other = other->send(env, SymbolValue::intern("to_hash"));
+
+    other->assert_type(env, Value::Type::Hash, "Hash");
+
+    return gte(env, other) && other->as_hash()->size() != size();
+}
+
 #define NAT_RUN_BLOCK_AND_POSSIBLY_BREAK_WHILE_ITERATING_HASH(env, the_block, argc, args, block, hash) ({ \
     ValuePtr _result = the_block->_run(env, argc, args, block);                                           \
     if (_result->has_break_flag()) {                                                                      \
