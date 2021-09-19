@@ -144,6 +144,7 @@ public:
     ValuePtr merge_in_place(Env *, size_t, ValuePtr *, Block *);
     ValuePtr ref(Env *, ValuePtr);
     ValuePtr refeq(Env *, ValuePtr, ValuePtr);
+    ValuePtr slice(Env *, size_t, ValuePtr *);
     ValuePtr replace(Env *, ValuePtr);
     ValuePtr values(Env *);
 
