@@ -453,6 +453,7 @@ gen.binding('Hash', '===', 'HashValue', 'eq', argc: 1, pass_env: true, pass_bloc
 gen.binding('Hash', '>=', 'HashValue', 'gte', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Hash', '>', 'HashValue', 'gt', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Hash', '<=', 'HashValue', 'lte', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.binding('Hash', '<', 'HashValue', 'lt', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Hash', '[]', 'HashValue', 'ref', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Hash', '[]=', 'HashValue', 'refeq', argc: 2, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Hash', 'clear', 'HashValue', 'clear', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
