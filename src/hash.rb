@@ -57,6 +57,30 @@ class Hash
     new_hash
   end
 
+  def reject(&block)
+    return enum_for(:reject) unless block_given?
+
+    dup.tap do |new_hash|
+      new_hash.reject!(&block)
+    end
+  end
+
+  def reject!(&block)
+    return enum_for(:reject!) unless block_given?
+
+    raise FrozenError, "can't modify frozen #{self.class.name}: #{inspect}" if frozen?
+
+    modified = false
+    each do |key, value|
+      if block.call(key, value)
+        delete(key)
+        modified = true
+      end
+    end
+
+    modified ? self : nil
+  end
+
   def select(&block)
     return enum_for(:select) unless block_given?
 
