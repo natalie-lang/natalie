@@ -39,7 +39,8 @@ public:
         , m_default_value { NilValue::the() } { }
 
     HashValue(Env *env, HashValue &other)
-        : Value { other } {
+        : Value { other }
+        , m_is_comparing_by_identity { other.m_is_comparing_by_identity } {
         for (auto node : other) {
             put(env, node.key, node.val);
         }
@@ -126,6 +127,8 @@ public:
         return iterator { nullptr, this };
     }
 
+    ValuePtr compare_by_identity(Env *);
+    ValuePtr is_comparing_by_identity();
     ValuePtr delete_if(Env *, Block *);
     ValuePtr delete_key(Env *, ValuePtr, Block *);
     ValuePtr dig(Env *, size_t, ValuePtr *);
@@ -162,6 +165,7 @@ public:
 private:
     void key_list_remove_node(Key *);
     Key *key_list_append(Env *, ValuePtr, nat_int_t, ValuePtr);
+    nat_int_t generate_key_hash(Env *, ValuePtr);
 
     void destroy_key_list() {
         if (!m_key_list) return;
@@ -177,6 +181,7 @@ private:
     Key *m_key_list { nullptr };
     TM::Hashmap<Key *, Value *> m_hashmap { hash, compare, 10 }; // TODO: profile and tune this initial capacity
     bool m_is_iterating { false };
+    bool m_is_comparing_by_identity { false };
     ValuePtr m_default_value { nullptr };
     ProcValue *m_default_proc { nullptr };
 };
