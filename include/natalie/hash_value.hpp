@@ -135,6 +135,7 @@ public:
     bool eql(Env *, ValuePtr);
     bool gte(Env *, ValuePtr);
     bool gt(Env *, ValuePtr);
+    bool lte(Env *, ValuePtr);
     ValuePtr except(Env *, size_t, ValuePtr *);
     ValuePtr fetch(Env *, ValuePtr, ValuePtr, Block *);
     ValuePtr fetch_values(Env *, size_t, ValuePtr *, Block *);
