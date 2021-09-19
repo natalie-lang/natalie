@@ -265,6 +265,7 @@ class Matcher
   def any?; method_missing(:any?); end
   def empty?; method_missing(:empty?); end
   def finite?; method_missing(:finite?); end
+  def include?(other); method_missing(:include?, other); end
   def lambda?; method_missing(:lambda?); end
   def nan?; method_missing(:nan?); end
   def none?; method_missing(:none?); end
