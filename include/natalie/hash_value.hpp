@@ -147,6 +147,7 @@ public:
     ValuePtr refeq(Env *, ValuePtr, ValuePtr);
     ValuePtr slice(Env *, size_t, ValuePtr *);
     ValuePtr replace(Env *, ValuePtr);
+    ValuePtr rehash(Env *);
     ValuePtr values(Env *);
 
     ValuePtr to_h(Env *, Block *);

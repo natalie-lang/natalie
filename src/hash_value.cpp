@@ -277,6 +277,19 @@ ValuePtr HashValue::refeq(Env *env, ValuePtr key, ValuePtr val) {
     return val;
 }
 
+ValuePtr HashValue::rehash(Env *env) {
+    assert_not_frozen(env);
+
+    auto old_hashmap = TM::Hashmap<Key *, Value *> { m_hashmap };
+    clear(env);
+
+    for (auto pair : old_hashmap) {
+        put(env, pair.first->key, pair.second);
+    }
+
+    return this;
+}
+
 ValuePtr HashValue::replace(Env *env, ValuePtr other) {
     if (!other->is_hash() && other->respond_to(env, SymbolValue::intern("to_hash")))
         other = other->send(env, SymbolValue::intern("to_hash"));
