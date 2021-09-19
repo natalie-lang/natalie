@@ -1,4 +1,5 @@
 #include "natalie.hpp"
+#include "tm/recursion_guard.hpp"
 #include "tm/vector.hpp"
 
 namespace Natalie {
@@ -224,7 +225,7 @@ ValuePtr HashValue::square_new(Env *env, size_t argc, ValuePtr *args, ClassValue
 }
 
 ValuePtr HashValue::inspect(Env *env) {
-    RecursionGuard guard { this };
+    TM::RecursionGuard guard { this };
 
     return guard.run([&](bool is_recursive) {
         if (is_recursive)
@@ -267,7 +268,7 @@ ValuePtr HashValue::ref(Env *env, ValuePtr key) {
     if (val) {
         return val;
     } else {
-        return get_default(env, key);
+        return send(env, SymbolValue::intern("default"), { key });
     }
 }
 
@@ -289,6 +290,21 @@ ValuePtr HashValue::replace(Env *env, ValuePtr other) {
     }
     m_default_value = other_hash->m_default_value;
     m_default_proc = other_hash->m_default_proc;
+    return this;
+}
+
+ValuePtr HashValue::delete_if(Env *env, Block *block) {
+    if (!block)
+        return send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("each") });
+
+    assert_not_frozen(env);
+    for (auto &node : *this) {
+        ValuePtr args[2] = { node.key, node.val };
+        if (NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 2, args, nullptr)->is_truthy()) {
+            delete_key(env, node.key, nullptr);
+        }
+    }
+
     return this;
 }
 
@@ -378,6 +394,45 @@ ValuePtr HashValue::each(Env *env, Block *block) {
     return this;
 }
 
+ValuePtr HashValue::except(Env *env, size_t argc, ValuePtr *args) {
+    HashValue *new_hash = new HashValue {};
+    for (auto &node : *this) {
+        new_hash->put(env, node.key, node.val);
+    }
+
+    for (size_t i = 0; i < argc; i++) {
+        new_hash->remove(env, args[i]);
+    }
+    return new_hash;
+}
+
+ValuePtr HashValue::fetch(Env *env, ValuePtr key, ValuePtr default_value, Block *block) {
+    ValuePtr value = get(env, key);
+    if (!value) {
+        if (block) {
+            if (default_value)
+                env->warn("block supersedes default value argument");
+
+            value = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 1, &key, nullptr);
+        } else if (default_value) {
+            value = default_value;
+        } else {
+            env->raise_key_error(this, key);
+        }
+    }
+    return value;
+}
+
+ValuePtr HashValue::fetch_values(Env *env, size_t argc, ValuePtr *args, Block *block) {
+    auto array = new ArrayValue {};
+    if (argc == 0) return array;
+
+    for (size_t i = 0; i < argc; ++i) {
+        array->push(fetch(env, args[i], nullptr, block));
+    }
+    return array;
+}
+
 ValuePtr HashValue::keys(Env *env) {
     ArrayValue *array = new ArrayValue {};
     for (HashValue::Key &node : *this) {
@@ -415,17 +470,6 @@ ValuePtr HashValue::values(Env *env) {
         array->push(node.val);
     }
     return array;
-}
-
-ValuePtr HashValue::sort(Env *env) {
-    ArrayValue *ary = new ArrayValue {};
-    for (HashValue::Key &node : *this) {
-        ArrayValue *pair = new ArrayValue {};
-        pair->push(node.key);
-        pair->push(node.val);
-        ary->push(pair);
-    }
-    return ary->sort(env, nullptr);
 }
 
 ValuePtr HashValue::has_key(Env *env, ValuePtr key) {
@@ -504,5 +548,4 @@ ValuePtr HashValue::compact_in_place(Env *env) {
         return NilValue::the();
     return this;
 }
-
 }

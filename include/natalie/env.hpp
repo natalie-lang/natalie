@@ -49,6 +49,7 @@ public:
     [[noreturn]] void raise(ClassValue *, String *);
     [[noreturn]] void raise(const char *, const String *);
     [[noreturn]] void raise_exception(ExceptionValue *);
+    [[noreturn]] void raise_key_error(ValuePtr, ValuePtr);
     [[noreturn]] void raise_local_jump_error(ValuePtr, LocalJumpErrorType);
     [[noreturn]] void raise_errno();
 
@@ -62,6 +63,14 @@ public:
     [[noreturn]] void raise(const char *class_name, const char *format, Args... args) {
         auto message = String::format(format, args...);
         raise(class_name, message);
+    }
+
+    void warn(const String *);
+
+    template <typename... Args>
+    void warn(const char *format, Args... args) {
+        auto message = String::format(format, args...);
+        warn(message);
     }
 
     void ensure_argc_is(size_t argc, size_t expected);

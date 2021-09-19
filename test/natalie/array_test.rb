@@ -736,6 +736,20 @@ describe 'array' do
       ([1, 2, 3] == [1, 2, 3]).should == true
       ([1, 2, 3] == [3, 2, 1]).should == false
     end
+
+    it 'does not return true always for recursive arrays' do
+      a = []
+      a << a
+      a.should_not == [[2]]
+    end
+  end
+
+  describe 'eql?' do
+    it 'does not return true always for recursive arrays' do
+      a = []
+      a << a
+      a.should_not eql [[2]]
+    end
   end
 
   describe '#each' do

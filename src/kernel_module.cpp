@@ -39,6 +39,10 @@ ValuePtr KernelModule::binding(Env *env) {
     return new BindingValue { env };
 }
 
+ValuePtr KernelModule::clone(Env *env) {
+    return this->dup(env);
+}
+
 ValuePtr KernelModule::cur_dir(Env *env) {
     if (env->file() == nullptr) {
         env->raise("RuntimeError", "could not get current directory");

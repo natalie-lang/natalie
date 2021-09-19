@@ -60,7 +60,7 @@ module Natalie
 
     def check_build
       unless File.exist?(File.join(BUILD_DIR, 'libnatalie.a'))
-        puts 'please run: make build'
+        puts 'please run: rake'
         exit 1
       end
     end

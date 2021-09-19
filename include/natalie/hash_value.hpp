@@ -126,12 +126,16 @@ public:
         return iterator { nullptr, this };
     }
 
+    ValuePtr delete_if(Env *, Block *);
     ValuePtr delete_key(Env *, ValuePtr, Block *);
     ValuePtr dig(Env *, size_t, ValuePtr *);
     ValuePtr each(Env *, Block *);
     bool eq(Env *, ValuePtr, SymbolValue *);
     bool eq(Env *, ValuePtr);
     bool eql(Env *, ValuePtr);
+    ValuePtr except(Env *, size_t, ValuePtr *);
+    ValuePtr fetch(Env *, ValuePtr, ValuePtr, Block *);
+    ValuePtr fetch_values(Env *, size_t, ValuePtr *, Block *);
     ValuePtr has_key(Env *, ValuePtr);
     ValuePtr initialize(Env *, ValuePtr, Block *);
     ValuePtr inspect(Env *);
@@ -141,7 +145,6 @@ public:
     ValuePtr ref(Env *, ValuePtr);
     ValuePtr refeq(Env *, ValuePtr, ValuePtr);
     ValuePtr replace(Env *, ValuePtr);
-    ValuePtr sort(Env *);
     ValuePtr values(Env *);
 
     ValuePtr to_h(Env *, Block *);
