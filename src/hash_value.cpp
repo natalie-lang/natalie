@@ -511,6 +511,18 @@ ValuePtr HashValue::merge_in_place(Env *env, size_t argc, ValuePtr *args, Block 
     return this;
 }
 
+ValuePtr HashValue::slice(Env *env, size_t argc, ValuePtr *args) {
+    auto new_hash = new HashValue {};
+    for (size_t i = 0; i < argc; i++) {
+        ValuePtr key = args[i];
+        ValuePtr value = this->get(env, key);
+        if (value) {
+            new_hash->put(env, key, value);
+        }
+    }
+    return new_hash;
+}
+
 void HashValue::visit_children(Visitor &visitor) {
     Value::visit_children(visitor);
     for (auto pair : m_hashmap) {
