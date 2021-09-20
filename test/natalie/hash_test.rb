@@ -289,4 +289,32 @@ describe 'hash' do
       h.value?(:a).should == true
     end
   end
+
+  describe '#each' do
+    it 'can return without leaving the hash in a bad state' do
+      def first_key(h)
+        h.each do |k, v|
+          return k
+        end
+      end
+      hash = { a: 1 }
+      first_key(hash)
+      -> { hash[:b] = 2 }.should_not raise_error
+    end
+
+    it 'can raise an exception without leaving the hash in a bad state' do
+      class IgnoreThisError < StandardError; end
+      def first_key(h)
+        h.each do |k, v|
+          raise IgnoreThisError
+        end
+      end
+      hash = { a: 1 }
+      begin
+        first_key(hash)
+      rescue
+      end
+      -> { hash[:b] = 2 }.should_not raise_error
+    end
+  end
 end

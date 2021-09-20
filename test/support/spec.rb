@@ -440,7 +440,7 @@ class RaiseErrorExpectation
     else
       begin
         subject.call
-      rescue
+      rescue => e
         # FIXME: same bug as above
         raise e if e.is_a?(SpecFailedException)
         raise SpecFailedException, "#{subject.inspect} should not have raised any errors"

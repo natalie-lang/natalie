@@ -79,14 +79,11 @@ public:
     public:
         iterator(Key *key, HashValue *hash)
             : m_key { key }
-            , m_hash { hash } {
-            if (m_key) m_hash->set_is_iterating(true);
-        }
+            , m_hash { hash } { }
 
         iterator operator++() {
             if (m_key->next == nullptr || (!m_key->removed && m_key->next == m_hash->m_key_list)) {
                 m_key = nullptr;
-                m_hash->set_is_iterating(false);
             } else if (m_key->next->removed) {
                 m_key = m_key->next;
                 return operator++();

@@ -421,25 +421,17 @@ bool HashValue::lt(Env *env, ValuePtr other) {
     return lte(env, other) && other->as_hash()->size() != size();
 }
 
-#define NAT_RUN_BLOCK_AND_POSSIBLY_BREAK_WHILE_ITERATING_HASH(env, the_block, argc, args, block, hash) ({ \
-    ValuePtr _result = the_block->_run(env, argc, args, block);                                           \
-    if (_result->has_break_flag()) {                                                                      \
-        _result->remove_break_flag();                                                                     \
-        hash->set_is_iterating(false);                                                                    \
-        return _result;                                                                                   \
-    }                                                                                                     \
-    _result;                                                                                              \
-})
-
 ValuePtr HashValue::each(Env *env, Block *block) {
     if (!block)
         return send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("each") });
 
     ValuePtr block_args[2];
+    set_is_iterating(true);
+    Defer no_longer_iterating([&]() { set_is_iterating(false); });
     for (HashValue::Key &node : *this) {
         auto ary = new ArrayValue { { node.key, node.val } };
         ValuePtr block_args[1] = { ary };
-        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK_WHILE_ITERATING_HASH(env, block, 1, block_args, nullptr, this);
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, block_args, nullptr);
     }
     return this;
 }
@@ -497,10 +489,12 @@ ValuePtr HashValue::to_h(Env *env, Block *block) {
 
     auto copy = new HashValue {};
     ValuePtr block_args[2];
+    set_is_iterating(true);
+    Defer no_longer_iterating([&]() { set_is_iterating(false); });
     for (auto &node : *this) {
         block_args[0] = node.key;
         block_args[1] = node.val;
-        auto result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK_WHILE_ITERATING_HASH(env, block, 2, block_args, nullptr, this);
+        auto result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 2, block_args, nullptr);
         if (!result->is_array() && result->respond_to(env, SymbolValue::intern("to_ary")))
             result = result.send(env, SymbolValue::intern("to_ary"));
         if (!result->is_array())
