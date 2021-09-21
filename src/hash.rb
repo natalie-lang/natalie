@@ -105,6 +105,16 @@ class Hash
   end
   alias filter! select!
 
+  def shift
+    raise FrozenError, "can't modify frozen #{self.class.name}: #{inspect}" if frozen?
+
+    return default(nil) if empty?
+
+    first.tap do |key, _|
+      delete(key)
+    end
+  end
+
   def transform_keys
     return enum_for(:transform_keys) { size } unless block_given?
 
