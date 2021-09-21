@@ -57,6 +57,15 @@ class Hash
     new_hash
   end
 
+  def rassoc(arg)
+    each do |key, value|
+      if arg == value
+        return [key, value]
+      end
+    end
+    nil
+  end
+
   def reject(&block)
     return enum_for(:reject) unless block_given?
 
