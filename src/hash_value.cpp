@@ -295,7 +295,7 @@ ValuePtr HashValue::replace(Env *env, ValuePtr other) {
 
 ValuePtr HashValue::delete_if(Env *env, Block *block) {
     if (!block)
-        return send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("each") });
+        return send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("delete_if") });
 
     assert_not_frozen(env);
     for (auto &node : *this) {
