@@ -141,6 +141,7 @@ public:
     ValuePtr has_value(Env *, ValuePtr);
     ValuePtr initialize(Env *, ValuePtr, Block *);
     ValuePtr inspect(Env *);
+    ValuePtr keep_if(Env *, Block *);
     ValuePtr keys(Env *);
     ValuePtr merge(Env *, size_t, ValuePtr *, Block *);
     ValuePtr merge_in_place(Env *, size_t, ValuePtr *, Block *);

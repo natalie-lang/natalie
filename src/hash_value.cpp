@@ -483,6 +483,21 @@ ValuePtr HashValue::keys(Env *env) {
     return array;
 }
 
+ValuePtr HashValue::keep_if(Env *env, Block *block) {
+    if (!block)
+        return send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("keep_if") });
+
+    assert_not_frozen(env);
+    for (auto &node : *this) {
+        ValuePtr args[2] = { node.key, node.val };
+        if (!NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 2, args, nullptr)->is_truthy()) {
+            delete_key(env, node.key, nullptr);
+        }
+    }
+
+    return this;
+}
+
 ValuePtr HashValue::to_h(Env *env, Block *block) {
     if (!block)
         return this;
