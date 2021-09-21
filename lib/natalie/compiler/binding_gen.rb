@@ -479,6 +479,7 @@ gen.binding('Hash', 'initialize', 'HashValue', 'initialize', argc: 0..1, pass_en
 gen.binding('Hash', 'initialize_copy', 'HashValue', 'replace', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Hash', 'inspect', 'HashValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Hash', 'include?', 'HashValue', 'has_key', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Hash', 'keep_if', 'HashValue', 'keep_if', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Hash', 'key?', 'HashValue', 'has_key', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Hash', 'keys', 'HashValue', 'keys', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Hash', 'length', 'HashValue', 'size', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
