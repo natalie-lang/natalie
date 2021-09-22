@@ -49,6 +49,10 @@ class Hash
     end
   end
 
+  def flatten(level = 1)
+    to_a.flatten(level)
+  end
+
   def invert
     new_hash = {}
     each do |key, value|
