@@ -789,12 +789,25 @@ ValuePtr ArrayValue::index(Env *env, ValuePtr object, Block *block) {
 }
 
 ValuePtr ArrayValue::shift(Env *env, ValuePtr count) {
+    assert_not_frozen(env);
     auto has_count = count != nullptr;
     size_t shift_count = 1;
     ValuePtr result = nullptr;
     if (has_count) {
+        auto sym_to_int = SymbolValue::intern("to_int");
+        if (count->respond_to(env, sym_to_int)) {
+            count = count.send(env, sym_to_int);
+        }
+
         count->assert_type(env, Value::Type::Integer, "Integer");
-        shift_count = count->as_integer()->to_nat_int_t();
+
+        auto count_signed = count->as_integer()->to_nat_int_t();
+
+        if (count_signed < 0)
+            env->raise("ArgumentError", "negative array size");
+
+        shift_count = count_signed;
+
         if (shift_count == 0) {
             return new ArrayValue {};
         }
