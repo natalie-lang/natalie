@@ -1,4 +1,6 @@
 class Array
+  alias prepend unshift
+
   def permutation(len = size)
     if len == 0
       return [[]]
