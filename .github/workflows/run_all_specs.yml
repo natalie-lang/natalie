@@ -27,3 +27,5 @@ jobs:
     - run: rm -rf spec/*/
     - run: mv ruby_spec/*/ spec
     - run: bundle exec ruby spec/support/ruby_spec_runner.rb
+      env:
+        STATS_API_SECRET: ${{ secrets.STATS_API_SECRET }}

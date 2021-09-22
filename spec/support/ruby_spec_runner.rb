@@ -1,6 +1,9 @@
 require 'concurrent'
 require 'yaml'
+require 'json'
 require 'io/wait'
+require 'uri'
+require 'net/http'
 
 pool = Concurrent::ThreadPoolExecutor.new(
   max_threads: 4,
@@ -55,9 +58,23 @@ end
 pool.shutdown
 pool.wait_for_termination
 
-puts "Success: #{success_count}"
-puts "Failures: #{failure_count}"
-puts "Errors: #{error_count}"
-puts "Compile Errors: #{compile_errors}"
-puts "Crashes: #{crashed_count}"
-puts "Timeouts: #{timed_out_count}"
+stats = {
+  "Successful Examples" => success_count,
+  "Failed Examples" => failure_count,
+  "Errored Examples" => error_count,
+  "Compile Errors" => compile_errors,
+  "Crashes" => crashed_count,
+  "Timeouts" => timed_out_count,
+}
+p stats
+
+uri = URI('https://natalie-lang.org/specs/stats')
+https = Net::HTTP.new(uri.host, uri.port)
+https.use_ssl = true
+https.post(
+  uri.path,
+  URI.encode_www_form(
+    'stats' => stats.to_json,
+    'secret' => ENV['STATS_API_SECRET']
+  )
+)
