@@ -63,6 +63,15 @@ public:
 
     Value &operator=(const Value &) = delete;
 
+    Value &operator=(Value &&other) {
+        m_type = other.m_type;
+        m_singleton_class = other.m_singleton_class;
+        m_owner = other.m_owner;
+        m_flags = other.m_flags;
+        m_ivars = std::move(other.m_ivars);
+        return *this;
+    }
+
     virtual ~Value() override {
         m_type = ValueType::Nil;
     }

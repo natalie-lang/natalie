@@ -986,21 +986,17 @@ ValuePtr ArrayValue::select_in_place(Env *env, Block *block) {
 
     bool changed { false };
 
-    Vector<size_t> marked_indexes;
+    ArrayValue new_array;
 
-    for (size_t i = 0; i < size(); ++i) {
-        auto item = (*this)[i];
+    for (auto &item : *this) {
         ValuePtr result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
-        if (result->is_falsey()) {
-            marked_indexes.push(i);
-        }
-    }
-
-    while (!marked_indexes.is_empty()) {
-        m_vector.remove(marked_indexes.pop());
-        if (!changed)
+        if (result->is_truthy())
+            new_array.push(item);
+        else
             changed = true;
     }
+
+    *this = std::move(new_array);
 
     if (changed)
         return this;

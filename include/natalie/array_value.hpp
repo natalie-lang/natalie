@@ -28,9 +28,15 @@ public:
         }
     }
 
-    ArrayValue(Env *env, ArrayValue &other)
+    ArrayValue(ArrayValue &other)
         : Value { other }
         , m_vector { other.m_vector } { }
+
+    ArrayValue &operator=(ArrayValue &&other) {
+        Value::operator=(std::move(other));
+        m_vector = std::move(other.m_vector);
+        return *this;
+    }
 
     ArrayValue(size_t argc, ValuePtr *args)
         : ArrayValue { argc, args, GlobalEnv::the()->Array() } { }
