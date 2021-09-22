@@ -46,6 +46,17 @@ public:
         }
     }
 
+    HashValue &operator=(HashValue &&other) {
+        m_hashmap.clear();
+        m_hashmap = other.m_hashmap;
+        m_key_list = other.m_key_list;
+        m_is_comparing_by_identity = other.m_is_comparing_by_identity;
+        m_default_value = other.m_default_value;
+        m_default_proc = other.m_default_proc;
+        other.m_key_list = nullptr;
+        return *this;
+    }
+
     static ValuePtr square_new(Env *, size_t argc, ValuePtr *args, ClassValue *klass);
 
     static size_t hash(const void *);

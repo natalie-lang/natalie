@@ -303,12 +303,8 @@ ValuePtr HashValue::refeq(Env *env, ValuePtr key, ValuePtr val) {
 ValuePtr HashValue::rehash(Env *env) {
     assert_not_frozen(env);
 
-    auto old_hashmap = TM::Hashmap<Key *, Value *> { m_hashmap };
-    clear(env);
-
-    for (auto pair : old_hashmap) {
-        put(env, pair.first->key, pair.second);
-    }
+    auto copy = new HashValue { env, *this };
+    HashValue::operator=(std::move(*copy));
 
     return this;
 }
