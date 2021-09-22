@@ -47,8 +47,9 @@ public:
     }
 
     HashValue &operator=(HashValue &&other) {
+        Value::operator=(std::move(other));
         m_hashmap.clear();
-        m_hashmap = other.m_hashmap;
+        m_hashmap = std::move(other.m_hashmap);
         m_key_list = other.m_key_list;
         m_is_comparing_by_identity = other.m_is_comparing_by_identity;
         m_default_value = other.m_default_value;
