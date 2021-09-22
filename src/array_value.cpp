@@ -1357,6 +1357,14 @@ ValuePtr ArrayValue::union_of(Env *env, size_t argc, ValuePtr *args) {
     return result;
 }
 
+ValuePtr ArrayValue::unshift(Env *env, size_t argc, ValuePtr *args) {
+    assert_not_frozen(env);
+    for (size_t i = 0; i < argc; i++) {
+        m_vector.insert(i, args[i]);
+    }
+    return this;
+}
+
 ValuePtr ArrayValue::reverse(Env *env) {
     ArrayValue *copy = new ArrayValue(env, *this);
     copy->reverse_in_place(env);
