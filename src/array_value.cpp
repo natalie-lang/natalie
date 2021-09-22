@@ -973,7 +973,7 @@ ValuePtr ArrayValue::select(Env *env, Block *block) {
     if (!block)
         return send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("select") });
 
-    ArrayValue *copy = new ArrayValue(env, *this);
+    ArrayValue *copy = new ArrayValue(*this);
     copy->select_in_place(env, block);
     return copy;
 }
@@ -1333,7 +1333,7 @@ ValuePtr ArrayValue::intersection(Env *env, ValuePtr arg) {
 }
 
 ValuePtr ArrayValue::intersection(Env *env, size_t argc, ValuePtr *args) {
-    auto *result = new ArrayValue(env, *this);
+    auto *result = new ArrayValue(*this);
 
     // TODO: we probably want to make & call this instead of this way for optimization
     for (size_t i = 0; i < argc; i++) {
@@ -1370,7 +1370,7 @@ ValuePtr ArrayValue::union_of(Env *env, ValuePtr arg) {
 }
 
 ValuePtr ArrayValue::union_of(Env *env, size_t argc, ValuePtr *args) {
-    auto *result = new ArrayValue(env, *this);
+    auto *result = new ArrayValue(*this);
 
     // TODO: we probably want to make | call this instead of this way for optimization
     for (size_t i = 0; i < argc; i++) {
@@ -1390,7 +1390,7 @@ ValuePtr ArrayValue::unshift(Env *env, size_t argc, ValuePtr *args) {
 }
 
 ValuePtr ArrayValue::reverse(Env *env) {
-    ArrayValue *copy = new ArrayValue(env, *this);
+    ArrayValue *copy = new ArrayValue(*this);
     copy->reverse_in_place(env);
     return copy;
 }
@@ -1422,7 +1422,7 @@ ValuePtr ArrayValue::reverse_in_place(Env *env) {
 ValuePtr ArrayValue::concat(Env *env, size_t argc, ValuePtr *args) {
     assert_not_frozen(env);
 
-    ArrayValue *original = new ArrayValue(env, *this);
+    ArrayValue *original = new ArrayValue(*this);
 
     for (size_t i = 0; i < argc; i++) {
         auto arg = args[i];
@@ -1506,7 +1506,7 @@ ValuePtr ArrayValue::one(Env *env, size_t argc, ValuePtr *args, Block *block) {
 }
 
 ValuePtr ArrayValue::rotate(Env *env, ValuePtr val) {
-    ArrayValue *copy = new ArrayValue(env, *this);
+    ArrayValue *copy = new ArrayValue(*this);
     copy->rotate_in_place(env, val);
     return copy;
 }
