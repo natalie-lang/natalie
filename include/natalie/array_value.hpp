@@ -153,6 +153,7 @@ public:
     ValuePtr rotate_in_place(Env *, ValuePtr);
     ValuePtr sample(Env *);
     ValuePtr select(Env *, Block *);
+    ValuePtr select_in_place(Env *, Block *);
     ValuePtr shift(Env *, ValuePtr);
     ValuePtr slice_in_place(Env *, ValuePtr, ValuePtr);
     ValuePtr sort(Env *, Block *);

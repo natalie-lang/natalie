@@ -973,14 +973,38 @@ ValuePtr ArrayValue::select(Env *env, Block *block) {
     if (!block)
         return send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("select") });
 
-    ArrayValue *new_array = new ArrayValue {};
-    for (auto &item : *this) {
+    ArrayValue *copy = new ArrayValue(env, *this);
+    copy->select_in_place(env, block);
+    return copy;
+}
+
+ValuePtr ArrayValue::select_in_place(Env *env, Block *block) {
+    if (!block)
+        return send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("select!") });
+
+    assert_not_frozen(env);
+
+    bool changed { false };
+
+    Vector<size_t> marked_indexes;
+
+    for (size_t i = 0; i < size(); ++i) {
+        auto item = (*this)[i];
         ValuePtr result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
-        if (result->is_truthy()) {
-            new_array->push(item);
+        if (result->is_falsey()) {
+            marked_indexes.push(i);
         }
     }
-    return new_array;
+
+    while (!marked_indexes.is_empty()) {
+        m_vector.remove(marked_indexes.pop());
+        if (!changed)
+            changed = true;
+    }
+
+    if (changed)
+        return this;
+    return NilValue::the();
 }
 
 ValuePtr ArrayValue::reject(Env *env, Block *block) {
