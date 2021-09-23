@@ -137,6 +137,7 @@ public:
     ValuePtr intersection(Env *, ValuePtr);
     ValuePtr intersection(Env *, size_t, ValuePtr *);
     ValuePtr join(Env *, ValuePtr);
+    ValuePtr keep_if(Env *, Block *);
     ValuePtr last(Env *, ValuePtr);
     ValuePtr ltlt(Env *, ValuePtr);
     ValuePtr map(Env *, Block *);

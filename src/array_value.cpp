@@ -828,6 +828,14 @@ ValuePtr ArrayValue::sort(Env *env, Block *block) {
     return copy;
 }
 
+ValuePtr ArrayValue::keep_if(Env *env, Block *block) {
+    if (!block)
+        return send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("keep_if") });
+
+    select_in_place(env, block);
+    return this;
+}
+
 ValuePtr ArrayValue::join(Env *env, ValuePtr joiner) {
     TM::RecursionGuard guard { this };
     return guard.run([&](bool is_recursive) {
