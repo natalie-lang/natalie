@@ -24,6 +24,10 @@ class Hash
     nil
   end
 
+  def deconstruct_keys(keys)
+    self
+  end
+
   def key(value)
     each do |k, v|
       return k if v == value
