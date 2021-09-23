@@ -21,11 +21,34 @@ bool HashValue::compare(const void *a, const void *b, void *env) {
     return a_p->key.send((Env *)env, SymbolValue::intern("eql?"), { b_p->key })->is_truthy();
 }
 
+ValuePtr HashValue::compare_by_identity(Env *env) {
+    assert_not_frozen(env);
+    this->m_is_comparing_by_identity = true;
+    this->rehash(env);
+    return this;
+}
+
+ValuePtr HashValue::is_comparing_by_identity() {
+    if (m_is_comparing_by_identity) {
+        return TrueValue::the();
+    } else {
+        return FalseValue::the();
+    }
+}
+
 ValuePtr HashValue::get(Env *env, ValuePtr key) {
     Key key_container;
     key_container.key = key;
-    key_container.hash = key.send(env, SymbolValue::intern("hash"))->as_integer()->to_nat_int_t();
+    key_container.hash = generate_key_hash(env, key);
     return m_hashmap.get(&key_container, env);
+}
+
+nat_int_t HashValue::generate_key_hash(Env *env, ValuePtr key) {
+    if (m_is_comparing_by_identity) {
+        return TM::Hashmap<void *>::hash_ptr(key.value());
+    } else {
+        return key.send(env, SymbolValue::intern("hash"))->as_integer()->to_nat_int_t();
+    }
 }
 
 ValuePtr HashValue::get_default(Env *env, ValuePtr key) {
@@ -49,12 +72,12 @@ ValuePtr HashValue::set_default(Env *env, ValuePtr value) {
 void HashValue::put(Env *env, ValuePtr key, ValuePtr val) {
     assert_not_frozen(env);
     Key key_container;
-    if (key->is_string() && !key->is_frozen()) {
+    if (!m_is_comparing_by_identity && key->is_string() && !key->is_frozen()) {
         key = key->as_string()->dup(env);
     }
     key_container.key = key;
 
-    auto hash = key.send(env, SymbolValue::intern("hash"))->as_integer()->to_nat_int_t();
+    auto hash = generate_key_hash(env, key);
     key_container.hash = hash;
     auto entry = m_hashmap.find_item(&key_container, hash, env);
     if (entry) {
@@ -72,7 +95,7 @@ void HashValue::put(Env *env, ValuePtr key, ValuePtr val) {
 ValuePtr HashValue::remove(Env *env, ValuePtr key) {
     Key key_container;
     key_container.key = key;
-    auto hash = key.send(env, SymbolValue::intern("hash"))->as_integer()->to_nat_int_t();
+    auto hash = generate_key_hash(env, key);
     key_container.hash = hash;
     auto entry = m_hashmap.find_item(&key_container, hash, env);
     if (entry) {
@@ -275,6 +298,15 @@ ValuePtr HashValue::ref(Env *env, ValuePtr key) {
 ValuePtr HashValue::refeq(Env *env, ValuePtr key, ValuePtr val) {
     put(env, key, val);
     return val;
+}
+
+ValuePtr HashValue::rehash(Env *env) {
+    assert_not_frozen(env);
+
+    auto copy = new HashValue { env, *this };
+    HashValue::operator=(std::move(*copy));
+
+    return this;
 }
 
 ValuePtr HashValue::replace(Env *env, ValuePtr other) {
