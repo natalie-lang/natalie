@@ -15,7 +15,7 @@ direction. If you are not sure about this, open an issue first so we can discuss
   tests all pass).
 * Wrap your commit messages at 72 characters (even the subject).
 * Write the commit message subject line in the imperative mood, starting with a capital letter
-  ("Fix Array#first", not "fixed Array#first").
+  ("Fix Array#first", not "fixed Array#first" and not just "Array#first").
 * Write your commit messages in proper English, with care and punctuation.
 * Squash your commits when making revisions after a PR review.
 * Check the spelling of your code, comments and commit messages.
