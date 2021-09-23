@@ -36,6 +36,9 @@ class BindingGen
         @consts[binding.rb_class] = true
       end
       puts "    #{binding.rb_class_as_c_variable}->#{binding.define_method_name}(env, SymbolValue::intern(#{binding.rb_method.inspect}), #{binding.name}, #{binding.arity});"
+      if binding.needs_to_set_visibility?
+        puts "    #{binding.rb_class_as_c_variable}->#{binding.set_visibility_method_name}(env, SymbolValue::intern(#{binding.rb_method.inspect}));"
+      end
     end
     @undefine_singleton_methods.each do |rb_class, method|
       puts "    #{rb_class}->undefine_singleton_method(env, SymbolValue::intern(#{method.inspect}));"
@@ -44,7 +47,7 @@ class BindingGen
   end
 
   class Binding
-    def initialize(rb_class, rb_method, cpp_class, cpp_method, argc:, pass_env:, pass_block:, return_type:, singleton: false, static: false, pass_klass: false)
+    def initialize(rb_class, rb_method, cpp_class, cpp_method, argc:, pass_env:, pass_block:, return_type:, singleton: false, static: false, pass_klass: false, visibility: :public)
       @rb_class = rb_class
       @rb_method = rb_method
       @cpp_class = cpp_class
@@ -56,10 +59,11 @@ class BindingGen
       @return_type = return_type
       @singleton = singleton
       @static = static
+      @visibility = visibility
       generate_name
     end
 
-    attr_reader :rb_class, :rb_method, :cpp_class, :cpp_method, :argc, :pass_env, :pass_block, :pass_klass, :return_type, :name
+    attr_reader :rb_class, :rb_method, :cpp_class, :cpp_method, :argc, :pass_env, :pass_block, :pass_klass, :return_type, :name, :visibility
 
     def arity
       case argc
@@ -152,6 +156,21 @@ ValuePtr #{name}(Env *env, ValuePtr klass, size_t argc, ValuePtr *args, Block *b
 
     def rb_class_as_c_variable
       rb_class.split('::').last
+    end
+
+    def needs_to_set_visibility?
+      visibility != :public
+    end
+
+    def set_visibility_method_name
+      case visibility
+      when :private
+        'private_method'
+      when :protected
+        'protected_method'
+      else
+        raise "Unknown visibility: #{visibility.inspect}"
+      end
     end
 
     private
@@ -254,7 +273,7 @@ ValuePtr #{name}(Env *env, ValuePtr klass, size_t argc, ValuePtr *args, Block *b
     end
 
     def generate_name
-      @name = "#{cpp_class}_#{cpp_method}#{@singleton ? '_singleton' : ''}#{@static ? '_static' : ''}_binding"
+      @name = "#{cpp_class}_#{cpp_method}#{@singleton ? '_singleton' : ''}#{@static ? '_static' : ''}_#{@visibility}_binding"
     end
   end
 end
@@ -481,7 +500,7 @@ gen.binding('Hash', 'fetch', 'HashValue', 'fetch', argc: 1..2, pass_env: true, p
 gen.binding('Hash', 'fetch_values', 'HashValue', 'fetch_values', argc: :any, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Hash', 'has_key?', 'HashValue', 'has_key', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Hash', 'has_value?', 'HashValue', 'has_value', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
-gen.binding('Hash', 'initialize', 'HashValue', 'initialize', argc: 0..1, pass_env: true, pass_block: true, return_type: :Value)
+gen.binding('Hash', 'initialize', 'HashValue', 'initialize', argc: 0..1, pass_env: true, pass_block: true, return_type: :Value, visibility: :private)
 gen.binding('Hash', 'initialize_copy', 'HashValue', 'replace', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Hash', 'inspect', 'HashValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Hash', 'include?', 'HashValue', 'has_key', argc: 1, pass_env: true, pass_block: false, return_type: :Value)

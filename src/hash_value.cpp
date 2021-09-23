@@ -191,12 +191,18 @@ void HashValue::key_list_remove_node(Key *node) {
 }
 
 ValuePtr HashValue::initialize(Env *env, ValuePtr default_value, Block *block) {
+    assert_not_frozen(env);
+
     if (block) {
         if (default_value) {
             env->raise("ArgumentError", "wrong number of arguments (given 1, expected 0)");
         }
         set_default_proc(new ProcValue { block });
-    } else if (default_value) {
+    } else {
+        if (!default_value) {
+            default_value = NilValue::the();
+        }
+
         set_default(env, default_value);
     }
     return this;

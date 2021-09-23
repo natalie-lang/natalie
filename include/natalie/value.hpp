@@ -175,6 +175,9 @@ public:
     SymbolValue *define_singleton_method(Env *, SymbolValue *, Block *);
     SymbolValue *undefine_singleton_method(Env *, SymbolValue *);
 
+    virtual ValuePtr private_method(Env *, ValuePtr method_name);
+    virtual ValuePtr protected_method(Env *, ValuePtr method_name);
+
     virtual void alias(Env *, SymbolValue *, SymbolValue *);
 
     nat_int_t object_id() { return reinterpret_cast<nat_int_t>(this); }

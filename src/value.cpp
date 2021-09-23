@@ -401,6 +401,22 @@ SymbolValue *Value::undefine_method(Env *env, SymbolValue *name) {
     return name;
 }
 
+ValuePtr Value::private_method(Env *env, ValuePtr name) {
+    if (!is_main_object()) {
+        printf("tried to call private_method on something that has no methods\n");
+        abort();
+    }
+    return m_klass->private_method(env, name);
+}
+
+ValuePtr Value::protected_method(Env *env, ValuePtr name) {
+    if (!is_main_object()) {
+        printf("tried to call protected_method on something that has no methods\n");
+        abort();
+    }
+    return m_klass->protected_method(env, name);
+}
+
 ValuePtr Value::public_send(Env *env, SymbolValue *name, size_t argc, ValuePtr *args, Block *block) {
     Method *method = find_method(env, name, MethodVisibility::Public);
     return method->call(env, this, argc, args, block);
