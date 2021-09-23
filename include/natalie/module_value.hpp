@@ -107,8 +107,8 @@ public:
 
     ValuePtr module_eval(Env *, Block *);
 
-    ValuePtr private_method(Env *, ValuePtr method_name);
-    ValuePtr protected_method(Env *, ValuePtr method_name);
+    virtual ValuePtr private_method(Env *, ValuePtr method_name) override;
+    virtual ValuePtr protected_method(Env *, ValuePtr method_name) override;
     ValuePtr public_method(Env *, ValuePtr method_name);
 
     bool const_defined(Env *, ValuePtr);
