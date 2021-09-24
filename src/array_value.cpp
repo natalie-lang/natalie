@@ -1258,7 +1258,8 @@ ValuePtr ArrayValue::hash(Env *env) {
         auto hash_method = SymbolValue::intern("hash");
         auto to_int = SymbolValue::intern("to_int");
 
-        for (auto &item : *this) {
+        for (size_t i = 0; i < size(); ++i) {
+            auto item = (*this)[i];
             auto item_hash = item->send(env, hash_method);
 
             if (item_hash->is_nil())
@@ -1274,7 +1275,7 @@ ValuePtr ArrayValue::hash(Env *env) {
                 item_hash = item_hash->send(env, to_int);
 
             nat_int_t h = item_hash->as_integer()->to_nat_int_t();
-            hash ^= h * 207269; // another prime number to prevent bias toward zero
+            hash ^= h << i * 207269; // another prime number to prevent bias toward zero
         }
 
         return ValuePtr::integer(hash);
