@@ -378,27 +378,34 @@ ValuePtr HashValue::size(Env *env) {
 }
 
 bool HashValue::eq(Env *env, ValuePtr other_value, SymbolValue *method_name) {
-    if (!other_value->is_hash())
-        return false;
+    TM::PairedRecursionGuard guard { this, other_value.value() };
 
-    HashValue *other = other_value->as_hash();
-    if (size() != other->size())
-        return false;
-
-    ValuePtr other_val;
-    for (HashValue::Key &node : *this) {
-        other_val = other->get(env, node.key);
-        if (!other_val)
+    return guard.run([&](bool is_recursive) -> bool {
+        if (!other_value->is_hash())
             return false;
 
-        if (node.val.value() == other_val.value())
-            continue;
-
-        if (node.val.send(env, method_name, { other_val })->is_falsey())
+        HashValue *other = other_value->as_hash();
+        if (size() != other->size())
             return false;
-    }
 
-    return true;
+        if (is_recursive)
+            return true;
+
+        ValuePtr other_val;
+        for (HashValue::Key &node : *this) {
+            other_val = other->get(env, node.key);
+            if (!other_val)
+                return false;
+
+            if (node.val.value() == other_val.value())
+                continue;
+
+            if (node.val.send(env, method_name, { other_val })->is_falsey())
+                return false;
+        }
+
+        return true;
+    });
 }
 
 bool HashValue::eq(Env *env, ValuePtr other_value) {

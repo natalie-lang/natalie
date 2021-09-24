@@ -38,8 +38,7 @@ describe :hash_eql, shared: true do
     { x => 1 }.send(@method, { y => 1 }).should be_false
   end
 
-  # NATFIXME
-  xit "computes equality for recursive hashes" do
+  it "computes equality for recursive hashes" do
     h = {}
     h[:a] = h
     h.send(@method, h[:a]).should be_true
@@ -52,8 +51,7 @@ describe :hash_eql, shared: true do
     {}.send(@method, mock_hash).should be_false
   end
 
-  # NATFIXME
-  xit "computes equality for complex recursive hashes" do
+  it "computes equality for complex recursive hashes" do
     a, b = {}, {}
     a.merge! self: a, other: b
     b.merge! self: b, other: a
@@ -72,8 +70,7 @@ describe :hash_eql, shared: true do
     c.send(@method, a).should be_true
   end
 
-  # NATFIXME
-  xit "computes equality for recursive hashes & arrays" do
+  it "computes equality for recursive hashes & arrays" do
     x, y, z = [], [], []
     a, b, c = {foo: x, bar: 42}, {foo: y, bar: 42}, {foo: z, bar: 42}
     x << a
@@ -89,7 +86,7 @@ describe :hash_eql, shared: true do
     y.send(@method, z).should be_true
 
     # NATFIXME: cannot parse this
-    #a[:foo], a[:bar] = a[:bar], a[:foo]
+    # a[:foo], a[:bar] = a[:bar], a[:foo]
     temp = a[:foo]
     a[:foo] = a[:bar]
     a[:bar] = temp
