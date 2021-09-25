@@ -25,4 +25,27 @@ class Array
     }
     perm.(self, 0)
   end
+
+  def repeated_combination(times)
+    unless block_given?
+      accumulator = []
+      repeated_combination(times) { |combo| accumulator << combo }
+      return Enumerator.new(accumulator.size) do |yielder| 
+        accumulator.each { |item| yielder << item }
+      end
+    end
+    if times == 0
+      yield []
+    elsif times == 1
+      each { |item| yield [item] }
+      return
+    elsif times > 0
+      repeated_combination(times - 1) do |combo|
+        (index(combo.last)..(size - 1)).each do |current|
+          yield combo + [at(current)]
+        end
+      end
+    end
+    self
+  end
 end
