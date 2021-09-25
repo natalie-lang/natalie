@@ -1254,7 +1254,8 @@ ValuePtr ArrayValue::hash(Env *env) {
     return guard.run([&](bool is_recursive) {
         if (is_recursive)
             return ValuePtr { NilValue::the() };
-        nat_int_t hash = 100019; // just a prime number :-)
+
+        HashBuilder hash {};
         auto hash_method = SymbolValue::intern("hash");
         auto to_int = SymbolValue::intern("to_int");
 
@@ -1274,12 +1275,10 @@ ValuePtr ArrayValue::hash(Env *env) {
             if (!item_hash->is_integer() && item_hash->respond_to(env, to_int))
                 item_hash = item_hash->send(env, to_int);
 
-            nat_int_t h = item_hash->as_integer()->to_nat_int_t();
-
-            hash += (hash << 5) ^ h;
+            hash.append(item_hash->as_integer()->to_nat_int_t());
         }
 
-        return ValuePtr::integer(hash);
+        return ValuePtr::integer(hash.digest());
     });
 }
 
