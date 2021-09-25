@@ -27,6 +27,7 @@
 #include "natalie/forward.hpp"
 #include "natalie/gc_module.hpp"
 #include "natalie/global_env.hpp"
+#include "natalie/hash_builder.hpp"
 #include "natalie/hash_value.hpp"
 #include "natalie/integer_value.hpp"
 #include "natalie/io_value.hpp"
