@@ -1815,8 +1815,9 @@ describe 'array' do
   end
 
   describe '#hash' do
-    it 'does not return the same value for two arrays of equal length' do
+    it 'does not return the same hash for two different arrays' do
       [1, 1].hash.should_not == [2, 2].hash
+      [[1, 2], [3, 2]].hash.should_not == [[1, 3], [2, 3]].hash
     end
   end
 end

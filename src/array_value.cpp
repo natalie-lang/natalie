@@ -1250,7 +1250,9 @@ ValuePtr ArrayValue::rassoc(Env *env, ValuePtr needle) {
 }
 
 ValuePtr ArrayValue::hash(Env *env) {
-    TM::RecursionGuard guard { this };
+    constexpr const int PRIME_COUNT = 10;
+    nat_int_t primes[PRIME_COUNT] = { 55108187, 37599817, 22555241, 54071879, 15925463, 35080337, 38524007, 19435781, 97744909, 32643563 };
+    TM::RecursionGuard guard { (void *)((intptr_t)this ^ 102934) };
     return guard.run([&](bool is_recursive) {
         if (is_recursive)
             return ValuePtr { NilValue::the() };
@@ -1268,14 +1270,15 @@ ValuePtr ArrayValue::hash(Env *env) {
             // this allows us to return the same hash for recursive arrays:
             // a = []; a << a; a.hash == [a].hash # => true
             // a = []; a << a << a; a.hash == [a, a].hash # => true
-            if (item->is_array() && size() == item->as_array()->size() && eql(env, item))
+            if (item->is_array() && size() == item->as_array()->size() && eql(env, item)->is_truthy())
                 continue;
 
             if (!item_hash->is_integer() && item_hash->respond_to(env, to_int))
                 item_hash = item_hash->send(env, to_int);
 
             nat_int_t h = item_hash->as_integer()->to_nat_int_t();
-            hash ^= h << i * 207269; // another prime number to prevent bias toward zero
+            hash ^= i;
+            hash ^= h * primes[i % PRIME_COUNT]; // another prime number to prevent bias toward zero
         }
 
         return ValuePtr::integer(hash);
