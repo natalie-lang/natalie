@@ -1250,8 +1250,6 @@ ValuePtr ArrayValue::rassoc(Env *env, ValuePtr needle) {
 }
 
 ValuePtr ArrayValue::hash(Env *env) {
-    constexpr const int PRIME_COUNT = 10;
-    nat_int_t primes[PRIME_COUNT] = { 55108187, 37599817, 22555241, 54071879, 15925463, 35080337, 38524007, 19435781, 97744909, 32643563 };
     TM::RecursionGuard guard { this };
     return guard.run([&](bool is_recursive) {
         if (is_recursive)
@@ -1277,8 +1275,8 @@ ValuePtr ArrayValue::hash(Env *env) {
                 item_hash = item_hash->send(env, to_int);
 
             nat_int_t h = item_hash->as_integer()->to_nat_int_t();
-            hash ^= i;
-            hash ^= h * primes[i % PRIME_COUNT]; // another prime number to prevent bias toward zero
+
+            hash += (hash << 5) ^ h;
         }
 
         return ValuePtr::integer(hash);
