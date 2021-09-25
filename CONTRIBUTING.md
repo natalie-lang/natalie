@@ -10,7 +10,7 @@ direction. If you are not sure about this, open an issue first so we can discuss
 
 ## Code submission policy
 
-* Use `clang-format` to automatically format C++ files. You can run `make format`.
+* Use `clang-format` to automatically format C++ files. You can run `rake format`.
 * Split your changes into separate, atomic commits (i.e. A commit per feature or fix, where the
   tests all pass).
 * Wrap your commit messages at 72 characters (even the subject).
