@@ -44,6 +44,20 @@ describe 'array' do
     end
   end
 
+  describe 'hash' do
+    it 'does not collide when array contains duplicate elements' do
+      found_hashes = []
+      (0..100).map do |length| 
+        current_hash = (0..length).to_a.map { |x| 0 }.hash 
+        if found_hashes.find_index current_hash
+          fail
+        else
+          found_hashes << current_hash
+        end 
+      end
+    end
+  end
+
   describe '<=>' do
     it 'returns -1, 0, or 1 depending on array elements' do
       ([] <=> []).should == 0
