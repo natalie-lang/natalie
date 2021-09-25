@@ -1819,16 +1819,13 @@ describe 'array' do
       [1, 1].hash.should_not == [2, 2].hash
       [[1, 2], [3, 2]].hash.should_not == [[1, 3], [2, 3]].hash
     end
-    
+
     it 'does not collide when array contains duplicate elements' do
       found_hashes = []
       (0..100).map do |length| 
         current_hash = (0..length).to_a.map { |x| 0 }.hash 
-        if found_hashes.find_index current_hash
-          fail
-        else
-          found_hashes << current_hash
-        end 
+        found_hashes.find_index(current_hash).should be_nil
+        found_hashes << current_hash
       end
     end
   end
