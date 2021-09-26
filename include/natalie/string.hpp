@@ -88,8 +88,7 @@ public:
         assert(str);
         auto old_str = m_str;
         m_str = new char[length + 1];
-        assert(strlen(str) >= length);
-        strncpy(m_str, str, length);
+        memcpy(m_str, str, length);
         m_str[length] = 0;
         m_length = length;
         m_capacity = length;

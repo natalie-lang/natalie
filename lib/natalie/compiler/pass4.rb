@@ -590,7 +590,7 @@ module Natalie
           when 32..126
             byte.chr
           else
-            "\\#{byte.to_s(8)}"
+            "\\%03o" % byte
           end
         end
         '"' + c_chars.join + '"'

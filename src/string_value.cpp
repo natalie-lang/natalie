@@ -88,7 +88,7 @@ StringValue *StringValue::inspect(Env *env) {
     const char *str = m_string.c_str();
     StringValue *out = new StringValue { "\"" };
     for (size_t i = 0; i < len; i++) {
-        char c = str[i];
+        unsigned char c = str[i];
         char c2 = (i + 1) < len ? str[i + 1] : 0;
         if (c == '"' || c == '\\' || (c == '#' && c2 == '{')) {
             out->append_char(env, '\\');
@@ -97,6 +97,21 @@ StringValue *StringValue::inspect(Env *env) {
             out->append(env, "\\n");
         } else if (c == '\t') {
             out->append(env, "\\t");
+        } else if ((int)c < 32) {
+            switch (m_encoding) {
+            case Encoding::UTF_8: {
+                char buf[7];
+                snprintf(buf, 7, "\\u%04llX", (long long)c);
+                out->append(env, buf);
+                break;
+            }
+            case Encoding::ASCII_8BIT: {
+                char buf[5];
+                snprintf(buf, 5, "\\x%02llX", (long long)c);
+                out->append(env, buf);
+                break;
+            }
+            }
         } else {
             out->append_char(env, c);
         }

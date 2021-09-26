@@ -729,7 +729,7 @@ module Natalie
 
       def process_str(exp)
         (_, str) = exp
-        exp.new(:new, :StringValue, s(:s, str))
+        exp.new(:new, :StringValue, s(:s, str), str.bytes.size)
       end
 
       def process_super(exp)

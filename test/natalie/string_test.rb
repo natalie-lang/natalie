@@ -13,6 +13,9 @@ describe 'string' do
       "foo\nbar".inspect.should == "\"foo\\nbar\""
       "foo#bar".inspect.should == '"foo#bar"'
       'foo#{1+1}'.inspect.should == '"foo\\#{1+1}"'
+      "foo\x1f".inspect.should == '"foo\\u001F"'
+      "foo\x00\x04".inspect.should == '"foo\\u0000\\u0004"'
+      "foo\x00\x04".encode('ascii-8bit').inspect.should == '"foo\\x00\\x04"'
       unless RUBY_PLATFORM =~ /openbsd/
         "😉🤷".inspect.should == "\"😉🤷\""
       end
