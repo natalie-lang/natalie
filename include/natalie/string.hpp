@@ -55,6 +55,10 @@ public:
         return m_str[index];
     }
 
+    char operator[](size_t index) const {
+        return m_str[index];
+    }
+
     char last_char() const {
         assert(m_length > 0);
         return m_str[m_length - 1];
