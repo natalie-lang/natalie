@@ -143,6 +143,12 @@ def ruby_version_is(version)
   end
 end
 
+def slow_test
+  if ENV['ENABLE_SLOW_TESTS']
+    yield
+  end
+end
+
 def platform_is_not(_)
   yield
 end
