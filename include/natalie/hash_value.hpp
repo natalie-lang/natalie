@@ -152,6 +152,7 @@ public:
     ValuePtr except(Env *, size_t, ValuePtr *);
     ValuePtr fetch(Env *, ValuePtr, ValuePtr, Block *);
     ValuePtr fetch_values(Env *, size_t, ValuePtr *, Block *);
+    ValuePtr hash(Env *);
     ValuePtr has_key(Env *, ValuePtr);
     ValuePtr has_value(Env *, ValuePtr);
     ValuePtr initialize(Env *, ValuePtr, Block *);

@@ -576,6 +576,54 @@ ValuePtr HashValue::values(Env *env) {
     return array;
 }
 
+ValuePtr HashValue::hash(Env *env) {
+    TM::RecursionGuard guard { this };
+    return guard.run([&](bool is_recursive) {
+        if (is_recursive)
+            return ValuePtr { NilValue::the() };
+
+        HashBuilder hash { 10889, false };
+        auto hash_method = SymbolValue::intern("hash");
+        auto to_int = SymbolValue::intern("to_int");
+
+        for (HashValue::Key &node : *this) {
+            HashBuilder entry_hash {};
+            bool any_change = false;
+
+            auto value = node.val;
+            if (!eql(env, value)) {
+                auto value_hash = value->send(env, hash_method);
+
+                if (!value_hash->is_nil()) {
+                    if (!value_hash->is_integer() && value_hash->respond_to(env, to_int))
+                        value_hash = value_hash->send(env, to_int);
+
+                    entry_hash.append(value_hash->as_integer()->to_nat_int_t());
+                    any_change = true;
+                }
+            }
+
+            auto key = node.key;
+            if (!eql(env, key)) {
+                auto key_hash = key->send(env, hash_method);
+
+                if (!key_hash->is_nil()) {
+                    if (!key_hash->is_integer() && key_hash->respond_to(env, to_int))
+                        key_hash = key_hash->send(env, to_int);
+
+                    entry_hash.append(key_hash->as_integer()->to_nat_int_t());
+                    any_change = true;
+                }
+            }
+
+            if (any_change)
+                hash.append(entry_hash.digest());
+        }
+
+        return ValuePtr::integer(hash.digest());
+    });
+}
+
 ValuePtr HashValue::has_key(Env *env, ValuePtr key) {
     ValuePtr val = get(env, key);
     if (val) {

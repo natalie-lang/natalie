@@ -15,7 +15,7 @@ public:
     void append(nat_int_t hash) {
         if (m_does_order_matter)
             m_digest += (m_digest << 5) ^ hash;
-        else 
+        else
             m_digest ^= hash;
     }
 
