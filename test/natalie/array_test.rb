@@ -1822,10 +1822,42 @@ describe 'array' do
 
     it 'does not collide when array contains duplicate elements' do
       found_hashes = []
-      (0..100).map do |length| 
+      (0..100).each do |length| 
         current_hash = (0..length).to_a.map { |x| 0 }.hash 
         found_hashes.find_index(current_hash).should be_nil
         found_hashes << current_hash
+      end
+    end
+
+    slow_test do 
+      fit 'has a collision rate lower or equal to MRI' do
+        # MRI Collision rate for this test suite is 0.11428571428571429%, rounded up to 0.115
+        found_hashes = {}
+        collisions = {}
+        numeric_literals = (0..9).to_a
+        string_literals = ["r", "u", "b", "y", "MRI", "ruby"]
+        bool_literals = [true, false]
+        floating_points = numeric_literals.map { |i| i / 2.2 }
+        literals = numeric_literals + string_literals + bool_literals + floating_points
+        (0..4).each do |length| 
+          literals.repeated_combination(length) do |combo|
+            current_hash = combo.hash
+            found_collision_combo = found_hashes[current_hash]
+            if found_collision_combo
+              next if found_collision_combo.eql? current_hash
+              collisions[current_hash] = combo
+            else            
+              found_hashes[current_hash] = combo
+            end
+          end
+        end
+
+        collisions_count = collisions.size
+        total_count = found_hashes.size + collisions_count
+        collision_rate = 1.0 * collisions_count / total_count
+        if collision_rate > 0.115
+          raise SpecFailedException, "collision rate is #{collision_rate} which is higher than MRI's collision rate of 0.115"
+        end
       end
     end
   end
