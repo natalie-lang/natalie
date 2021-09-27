@@ -1188,15 +1188,14 @@ ValuePtr ArrayValue::minmax(Env *env, Block *block) {
         return compare->as_integer()->to_nat_int_t();
     };
 
-
     ValuePtr max;
     ValuePtr min;
 
     for (auto item : *this) {
-       if (max == nullptr || compare(item, max) > 0)
-        max = item;
-       if (min == nullptr || compare(item, min) < 0)
-        min = item;
+        if (max == nullptr || compare(item, max) > 0)
+            max = item;
+        if (min == nullptr || compare(item, min) < 0)
+            min = item;
     }
     return new ArrayValue { min, max };
 }
