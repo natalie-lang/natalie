@@ -92,12 +92,16 @@ ValuePtr ArrayValue::add(Env *env, ValuePtr other) {
 }
 
 ValuePtr ArrayValue::sub(Env *env, ValuePtr other) {
+    auto to_ary = SymbolValue::intern("to_ary");
+    if (!other->is_array() && other->respond_to(env, to_ary))
+        other = other.send(env, to_ary);
     other->assert_type(env, Value::Type::Array, "Array");
     ArrayValue *new_array = new ArrayValue {};
     for (auto &item : *this) {
         int found = 0;
         for (auto &compare_item : *other->as_array()) {
-            if (item.send(env, SymbolValue::intern("=="), { compare_item })->is_truthy()) {
+            if ((item.send(env, SymbolValue::intern("eql?"), { compare_item })->is_truthy() && item.send(env, SymbolValue::intern("hash")) == compare_item.send(env, SymbolValue::intern("hash")))
+                || item.send(env, SymbolValue::intern("=="), { compare_item })->is_truthy()) {
                 found = 1;
                 break;
             }
@@ -638,6 +642,16 @@ ValuePtr ArrayValue::delete_item(Env *env, ValuePtr target, Block *block) {
     }
 
     return deleted_item;
+}
+
+ValuePtr ArrayValue::difference(Env *env, size_t argc, ValuePtr *args) {
+    ValuePtr last = new ArrayValue { *this };
+
+    for (size_t i = 0; i < argc; i++) {
+        last = last->as_array()->sub(env, args[i]);
+    }
+
+    return last;
 }
 
 ValuePtr ArrayValue::dig(Env *env, size_t argc, ValuePtr *args) {

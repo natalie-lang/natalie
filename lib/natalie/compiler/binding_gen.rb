@@ -318,6 +318,7 @@ gen.binding('Array', 'deconstruct', 'ArrayValue', 'itself', argc: 0, pass_env: f
 gen.binding('Array', 'delete', 'ArrayValue', 'delete_item', argc: 1, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Array', 'delete_at', 'ArrayValue', 'delete_at', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Array', 'delete_if', 'ArrayValue', 'delete_if', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
+gen.binding('Array', 'difference', 'ArrayValue', 'difference', argc: :any, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Array', 'dig', 'ArrayValue', 'dig', argc: :any, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Array', 'drop', 'ArrayValue', 'drop', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Array', 'drop_while', 'ArrayValue', 'drop_while', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
