@@ -124,6 +124,7 @@ public:
     ValuePtr delete_at(Env *, ValuePtr);
     ValuePtr delete_if(Env *, Block *);
     ValuePtr delete_item(Env *, ValuePtr, Block *);
+    ValuePtr difference(Env *, size_t, ValuePtr *);
     ValuePtr dig(Env *, size_t, ValuePtr *);
     ValuePtr drop(Env *, ValuePtr);
     ValuePtr drop_while(Env *, Block *);

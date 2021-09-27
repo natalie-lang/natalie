@@ -645,6 +645,16 @@ ValuePtr ArrayValue::delete_item(Env *env, ValuePtr target, Block *block) {
     return deleted_item;
 }
 
+ValuePtr ArrayValue::difference(Env *env, size_t argc, ValuePtr *args) {
+    ValuePtr last = new ArrayValue { *this };
+
+    for (size_t i = 0; i < argc; i++) {
+        last = last->as_array()->sub(env, args[i]);
+    }
+
+    return last;
+}
+
 ValuePtr ArrayValue::dig(Env *env, size_t argc, ValuePtr *args) {
     env->ensure_argc_at_least(argc, 1);
     auto dig = SymbolValue::intern("dig");
