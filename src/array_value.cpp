@@ -100,8 +100,7 @@ ValuePtr ArrayValue::sub(Env *env, ValuePtr other) {
     for (auto &item : *this) {
         int found = 0;
         for (auto &compare_item : *other->as_array()) {
-            if ((
-                    item.send(env, SymbolValue::intern("eql?"), { compare_item })->is_truthy() && item.send(env, SymbolValue::intern("hash")) == compare_item.send(env, SymbolValue::intern("hash")))
+            if ((item.send(env, SymbolValue::intern("eql?"), { compare_item })->is_truthy() && item.send(env, SymbolValue::intern("hash")) == compare_item.send(env, SymbolValue::intern("hash")))
                 || item.send(env, SymbolValue::intern("=="), { compare_item })->is_truthy()) {
                 found = 1;
                 break;
