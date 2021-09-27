@@ -20,7 +20,8 @@ describe :array_pack_string, shared: true do
     -> { [].pack(pack_format) }.should raise_error(ArgumentError)
   end
 
-  it "raises an ArgumentError when the Array has too few elements" do
+  # NATFIXME
+  xit "raises an ArgumentError when the Array has too few elements" do
     -> { ["a"].pack(pack_format(nil, 2)) }.should raise_error(ArgumentError)
   end
 
@@ -36,7 +37,8 @@ describe :array_pack_string, shared: true do
     -> { [obj].pack(pack_format) }.should raise_error(TypeError)
   end
 
-  it "returns a string in encoding of common to the concatenated results" do
+  # NATFIXME
+  xit "returns a string in encoding of common to the concatenated results" do
     f = pack_format("*")
     [ [["\u{3042 3044 3046 3048}", 0x2000B].pack(f+"U"),       Encoding::BINARY],
       [["abcde\xd1", "\xFF\xFe\x81\x82"].pack(f+"u"),          Encoding::BINARY],

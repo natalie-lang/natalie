@@ -69,8 +69,13 @@ public:
 
     ValuePtr pop(Env *);
 
-    ValuePtr &operator[](size_t index) const {
+    ValuePtr &at(size_t index) const {
         assert(index < m_vector.size());
+        return m_vector[index];
+    }
+
+    ValuePtr &operator[](size_t index) const {
+        assert(index < m_vector.size()); // TODO: remove this assertion (audit whats using this operator first though)
         return m_vector[index];
     }
 

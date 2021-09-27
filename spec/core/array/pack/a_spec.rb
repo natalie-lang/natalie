@@ -6,10 +6,12 @@ require_relative 'shared/string'
 require_relative 'shared/taint'
 
 describe "Array#pack with format 'A'" do
-  #it_behaves_like :array_pack_basic, 'A'
-  #it_behaves_like :array_pack_basic_non_float, 'A'
-  #it_behaves_like :array_pack_no_platform, 'A'
-  #it_behaves_like :array_pack_string, 'A'
+  it_behaves_like :array_pack_basic, 'A'
+  it_behaves_like :array_pack_basic_non_float, 'A'
+  it_behaves_like :array_pack_no_platform, 'A'
+  it_behaves_like :array_pack_string, 'A'
+
+  # NATFIXME
   #it_behaves_like :array_pack_taint, 'A'
 
   it "adds all the bytes to the output when passed the '*' modifier" do
@@ -34,10 +36,12 @@ describe "Array#pack with format 'A'" do
 end
 
 describe "Array#pack with format 'a'" do
-  #it_behaves_like :array_pack_basic, 'a'
-  #it_behaves_like :array_pack_basic_non_float, 'a'
-  #it_behaves_like :array_pack_no_platform, 'a'
-  #it_behaves_like :array_pack_string, 'a'
+  it_behaves_like :array_pack_basic, 'a'
+  it_behaves_like :array_pack_basic_non_float, 'a'
+  it_behaves_like :array_pack_no_platform, 'a'
+  it_behaves_like :array_pack_string, 'a'
+
+  # NATFIXME
   #it_behaves_like :array_pack_taint, 'a'
 
   it "adds all the bytes to the output when passed the '*' modifier" do

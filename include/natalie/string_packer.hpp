@@ -7,20 +7,24 @@ namespace Natalie {
 
 class StringPacker {
 public:
-    StringPacker(String *source, String *directives)
+    StringPacker(String *source, String *directives, size_t directive_index)
         : m_source { source }
         , m_directives { directives }
-        , m_packed { new String } { }
+        , m_packed { new String }
+        , m_directive_index { directive_index } { }
 
     String *pack(Env *env) {
         signed char directive = 0;
-        for (size_t i = 0; i < m_directives->length(); ++i) {
-            signed char d = (*m_directives)[i];
-            bool star = i + 1 < m_directives->length() && (*m_directives)[i + 1] == '*';
-            if (star) i++;
+        for (; m_directive_index < m_directives->length(); ++m_directive_index) {
+            signed char d = (*m_directives)[m_directive_index];
+            signed char next_d = m_directive_index + 1 < m_directives->length() ? (*m_directives)[m_directive_index + 1] : 0;
+            bool star = next_d == '*';
+            if (star) m_directive_index++;
             switch (d) {
             case 'a':
                 directive = d;
+                if (isdigit(next_d))
+                    break;
                 if (star) {
                     while (!at_end())
                         pack_a();
@@ -30,6 +34,8 @@ public:
                 break;
             case 'A':
                 directive = d;
+                if (isdigit(next_d))
+                    break;
                 if (star) {
                     while (!at_end())
                         pack_A();
@@ -54,25 +60,35 @@ public:
                     env->raise("StandardError", "no previous directive"); // FIXME
                     break;
                 case 'a':
-                    for (size_t i = 0; i < count - 1; ++i)
+                    for (size_t i = 0; i < count; ++i)
                         pack_a();
                     break;
                 case 'A':
-                    for (size_t i = 0; i < count - 1; ++i)
+                    for (size_t i = 0; i < count; ++i)
                         pack_A();
                     break;
                 default:
-                    env->raise("StandardError", "unknown directive"); // FIXME
+                    env->raise("StandardError", "unknown directive (string)"); // FIXME
                 }
                 break;
             }
+            case ' ':
+            case '\t':
+            case '\n':
+            case '\v':
+            case '\f':
+            case '\r':
+                // ignore whitespace
+                break;
             default:
-                env->raise("StandardError", "unknown directive"); // FIXME
+                env->raise("StandardError", "unknown directive (string)"); // FIXME
             }
         }
 
         return m_packed;
     }
+
+    size_t directive_index() { return m_directive_index; }
 
 private:
     void pack_a() {
@@ -95,6 +111,7 @@ private:
     String *m_directives;
     String *m_packed;
     size_t m_index { 0 };
+    size_t m_directive_index { 0 };
 };
 
 }

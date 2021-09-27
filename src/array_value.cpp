@@ -1,8 +1,8 @@
 #include "natalie.hpp"
 #include <algorithm>
 #include <math.h>
+#include <natalie/array_packer.hpp>
 #include <natalie/array_value.hpp>
-#include <natalie/string_packer.hpp>
 #include <natalie/string_value.hpp>
 #include <natalie/symbol_value.hpp>
 #include <random>
@@ -912,23 +912,7 @@ ValuePtr ArrayValue::pack(Env *env, ValuePtr directives) {
     if (directives_string->is_empty())
         return new StringValue;
 
-    if (is_empty())
-        env->raise("StandardError", "no items"); // FIXME
-
-    auto item = (*this)[0];
-    size_t index = 0;
-
-    String *string;
-    if (item->is_nil())
-        string = new String { "" };
-    else if (item->is_string())
-        string = item->as_string()->to_low_level_string();
-    else {
-        item->assert_type(env, Type::String, "String");
-        NAT_UNREACHABLE();
-    }
-
-    auto packed = StringPacker { string, directives_string }.pack(env);
+    auto packed = ArrayPacker { this, directives_string }.pack(env);
     return new StringValue { packed };
 }
 
