@@ -769,7 +769,7 @@ ValuePtr ArrayValue::include(Env *env, ValuePtr item) {
         return FalseValue::the();
     } else {
         for (auto &compare_item : *this) {
-            if (item.send(env, SymbolValue::intern("=="), { compare_item })->is_truthy()) {
+            if (compare_item.send(env, SymbolValue::intern("=="), { item })->is_truthy()) {
                 return TrueValue::the();
             }
         }
