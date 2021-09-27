@@ -1182,6 +1182,41 @@ ValuePtr ArrayValue::min(Env *env, ValuePtr count, Block *block) {
     return new ArrayValue { mins.slice(0, c) };
 }
 
+ValuePtr ArrayValue::minmax(Env *env, Block *block) {
+    if (m_vector.size() == 0)
+        return new ArrayValue { NilValue::the(), NilValue::the() };
+
+    auto to_int = SymbolValue::intern("to_int");
+    auto compare = [&](ValuePtr item, ValuePtr min) -> nat_int_t {
+        ValuePtr block_args[] = { item, min };
+        ValuePtr compare = (block) ? NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 2, block_args, nullptr) : item.send(env, SymbolValue::intern("<=>"), { min });
+
+        if (compare->is_nil())
+            env->raise(
+                "ArgumentError",
+                "comparison of {} with {} failed",
+                item->klass()->class_name_or_blank(),
+                min->klass()->class_name_or_blank());
+
+        if (!compare->is_integer() && compare->respond_to(env, to_int))
+            compare = compare.send(env, to_int);
+
+        return compare->as_integer()->to_nat_int_t();
+    };
+
+
+    ValuePtr max;
+    ValuePtr min;
+
+    for (auto item : *this) {
+       if (max == nullptr || compare(item, max) > 0)
+        max = item;
+       if (min == nullptr || compare(item, min) < 0)
+        min = item;
+    }
+    return new ArrayValue { min, max };
+}
+
 ValuePtr ArrayValue::multiply(Env *env, ValuePtr factor) {
     auto to_str = SymbolValue::intern("to_str");
 
