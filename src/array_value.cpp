@@ -1054,26 +1054,151 @@ ValuePtr ArrayValue::reject(Env *env, Block *block) {
     return new_array;
 }
 
-ValuePtr ArrayValue::max(Env *env) {
+ValuePtr ArrayValue::max(Env *env, ValuePtr count, Block *block) {
     if (m_vector.size() == 0)
         return NilValue::the();
-    ValuePtr max = nullptr;
-    for (auto item : *this) {
-        if (!max || item.send(env, SymbolValue::intern(">"), { max })->is_truthy())
-            max = item;
+
+    auto to_int = SymbolValue::intern("to_int");
+    auto is_more = [&](ValuePtr item, ValuePtr min) -> bool {
+        ValuePtr block_args[] = { item, min };
+        ValuePtr compare = (block) ? NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 2, block_args, nullptr) : item.send(env, SymbolValue::intern("<=>"), { min });
+
+        if (compare->is_nil())
+            env->raise(
+                "ArgumentError",
+                "comparison of {} with {} failed",
+                item->klass()->class_name_or_blank(),
+                min->klass()->class_name_or_blank());
+
+        if (!compare->is_integer() && compare->respond_to(env, to_int))
+            compare = compare.send(env, to_int);
+
+        return compare->as_integer()->to_nat_int_t() > 0;
+    };
+
+    auto has_implicit_count = !count || count->is_nil();
+    size_t c;
+
+    if (has_implicit_count) {
+        c = 1;
+    } else {
+        if (!count->is_integer() && count->respond_to(env, to_int))
+            count = count.send(env, to_int);
+
+        auto c_nat_int = count->as_integer()->to_nat_int_t();
+        if (c_nat_int < 0)
+            env->raise("ArgumentError", "negative size ({})", c_nat_int);
+
+        c = static_cast<size_t>(c_nat_int);
     }
-    return max;
+
+    Vector<ValuePtr> maxes {};
+
+    for (auto item : *this) {
+        for (size_t i = 0; i < maxes.size() && i < c; ++i) {
+            if (is_more(item, maxes[i])) {
+                maxes.insert(i, item);
+                goto next_item;
+            }
+        }
+        maxes.push(item);
+    next_item:
+        continue;
+    }
+    if (has_implicit_count)
+        return maxes[0];
+    return new ArrayValue { maxes.slice(0, c) };
 }
 
-ValuePtr ArrayValue::min(Env *env) {
+ValuePtr ArrayValue::min(Env *env, ValuePtr count, Block *block) {
     if (m_vector.size() == 0)
         return NilValue::the();
-    ValuePtr min = nullptr;
-    for (auto item : *this) {
-        if (!min || item.send(env, SymbolValue::intern("<"), { min })->is_truthy())
-            min = item;
+
+    auto to_int = SymbolValue::intern("to_int");
+    auto is_less = [&](ValuePtr item, ValuePtr min) -> bool {
+        ValuePtr block_args[] = { item, min };
+        ValuePtr compare = (block) ? NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 2, block_args, nullptr) : item.send(env, SymbolValue::intern("<=>"), { min });
+
+        if (compare->is_nil())
+            env->raise(
+                "ArgumentError",
+                "comparison of {} with {} failed",
+                item->klass()->class_name_or_blank(),
+                min->klass()->class_name_or_blank());
+
+        if (!compare->is_integer() && compare->respond_to(env, to_int))
+            compare = compare.send(env, to_int);
+
+        return compare->as_integer()->to_nat_int_t() < 0;
+    };
+
+    auto has_implicit_count = !count || count->is_nil();
+    size_t c;
+
+    if (has_implicit_count) {
+        c = 1;
+    } else {
+        if (!count->is_integer() && count->respond_to(env, to_int))
+            count = count.send(env, to_int);
+
+        auto c_nat_int = count->as_integer()->to_nat_int_t();
+        if (c_nat_int < 0)
+            env->raise("ArgumentError", "negative size ({})", c_nat_int);
+
+        c = static_cast<size_t>(c_nat_int);
     }
-    return min;
+
+    Vector<ValuePtr> mins {};
+
+    for (auto item : *this) {
+        for (size_t i = 0; i < mins.size() && i < c; ++i) {
+            if (is_less(item, mins[i])) {
+                mins.insert(i, item);
+                goto next_item;
+            }
+        }
+        mins.push(item);
+    next_item:
+        continue;
+    }
+    if (has_implicit_count)
+        return mins[0];
+    return new ArrayValue { mins.slice(0, c) };
+}
+
+ValuePtr ArrayValue::minmax(Env *env, Block *block) {
+    if (m_vector.size() == 0)
+        return new ArrayValue { NilValue::the(), NilValue::the() };
+
+    auto to_int = SymbolValue::intern("to_int");
+    auto compare = [&](ValuePtr item, ValuePtr min) -> nat_int_t {
+        ValuePtr block_args[] = { item, min };
+        ValuePtr compare = (block) ? NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 2, block_args, nullptr) : item.send(env, SymbolValue::intern("<=>"), { min });
+
+        if (compare->is_nil())
+            env->raise(
+                "ArgumentError",
+                "comparison of {} with {} failed",
+                item->klass()->class_name_or_blank(),
+                min->klass()->class_name_or_blank());
+
+        if (!compare->is_integer() && compare->respond_to(env, to_int))
+            compare = compare.send(env, to_int);
+
+        return compare->as_integer()->to_nat_int_t();
+    };
+
+
+    ValuePtr max;
+    ValuePtr min;
+
+    for (auto item : *this) {
+       if (max == nullptr || compare(item, max) > 0)
+        max = item;
+       if (min == nullptr || compare(item, min) < 0)
+        min = item;
+    }
+    return new ArrayValue { min, max };
 }
 
 ValuePtr ArrayValue::multiply(Env *env, ValuePtr factor) {
