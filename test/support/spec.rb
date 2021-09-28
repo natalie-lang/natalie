@@ -1,5 +1,6 @@
 require_relative 'formatters/default_formatter'
 require_relative 'formatters/yaml_formatter'
+require 'tempfile'
 
 class SpecFailedException < StandardError; end
 class UnknownFormatterException < StandardError; end

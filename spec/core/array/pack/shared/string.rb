@@ -20,8 +20,7 @@ describe :array_pack_string, shared: true do
     -> { [].pack(pack_format) }.should raise_error(ArgumentError)
   end
 
-  # NATFIXME
-  xit "raises an ArgumentError when the Array has too few elements" do
+  it "raises an ArgumentError when the Array has too few elements" do
     -> { ["a"].pack(pack_format(nil, 2)) }.should raise_error(ArgumentError)
   end
 

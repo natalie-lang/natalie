@@ -1,5 +1,6 @@
 #pragma once
 
+#include "natalie/array_packer/tokenizer.hpp"
 #include "natalie/array_value.hpp"
 #include "natalie/env.hpp"
 #include "natalie/string.hpp"
@@ -13,20 +14,20 @@ class ArrayPacker {
 public:
     ArrayPacker(ArrayValue *source, String *directives)
         : m_source { source }
-        , m_directives { directives }
+        , m_directives { ArrayPackerTokenizer { directives }.tokenize() }
         , m_packed { new String } { }
 
     String *pack(Env *env) {
-        validate(env);
         signed char directive = 0;
-        for (size_t i = 0; i < m_directives->length(); ++i) {
-            signed char d = (*m_directives)[i];
-            //bool star = i + 1 < m_directives->length() && (*m_directives)[i + 1] == '*';
-            //if (star) i++;
+        for (auto token : *m_directives) {
+            if (token.error)
+                env->raise("ArgumentError", token.error);
+
+            auto d = token.directive;
             switch (d) {
             case 'a':
             case 'A': {
-                if (m_source->is_empty())
+                if (m_index >= m_source->size())
                     env->raise("ArgumentError", "too few arguments");
 
                 String *string;
@@ -44,46 +45,27 @@ public:
                     NAT_UNREACHABLE();
                 }
 
-                auto packer = StringPacker { string, m_directives, i };
+                auto packer = StringPacker { string, token };
                 m_packed->append(packer.pack(env));
-                i = packer.directive_index();
+
+                m_index++;
                 break;
             }
             case 'x':
                 // TODO
                 break;
-            default:
-                env->raise("StandardError", "unknown directive"); // FIXME
+            default: {
+                char buf[2] = { d, '\0' };
+                env->raise("StandardError", "unknown directive: {}", buf); // FIXME
+            }
             }
         }
         return m_packed;
     }
 
-    void validate(Env *env) {
-        signed char directive = 0;
-        for (size_t i = 0; i < m_directives->length(); ++i) {
-            signed char d = (*m_directives)[i];
-            switch (d) {
-            case 'a':
-            case 'A':
-                directive = d;
-                break;
-            case '_':
-            case '!':
-                if (directive != 's' && directive != 'S' && directive != 'i' && directive != 'I' && directive != 'l' && directive != 'L' && directive != 'q' && directive != 'Q' && directive != 'j' && directive != 'J') {
-                    char buf[2] = { d, '\0' }; // FIXME: String::format needs some love :)
-                    env->raise("ArgumentError", "'{}' allowed only after types sSiIlLqQjJ", buf);
-                }
-                break;
-            default:
-                break;
-            }
-        }
-    }
-
 private:
     ArrayValue *m_source;
-    String *m_directives;
+    TM::Vector<ArrayPackerTokenizer::Token> *m_directives;
     String *m_packed;
     size_t m_index { 0 };
 };
