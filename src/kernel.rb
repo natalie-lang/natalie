@@ -7,4 +7,8 @@ module Kernel
     end
   end
   alias to_enum enum_for
+
+  def rand(*args)
+    Random::DEFAULT.rand(*args)
+  end
 end

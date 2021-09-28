@@ -21,6 +21,7 @@ enum class ValueType {
     Object,
     Proc,
     Range,
+    Random,
     Regexp,
     String,
     Symbol,

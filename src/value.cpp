@@ -60,6 +60,10 @@ ValuePtr Value::_new(Env *env, ValuePtr klass_value, size_t argc, ValuePtr *args
         obj = new ProcValue { klass };
         break;
 
+    case Value::Type::Random:
+        obj = new RandomValue { klass };
+        break;
+
     case Value::Type::Range:
         obj = new RangeValue { klass };
         break;
@@ -176,6 +180,11 @@ MatchDataValue *Value::as_match_data() {
 ProcValue *Value::as_proc() {
     assert(is_proc());
     return static_cast<ProcValue *>(this);
+}
+
+RandomValue *Value::as_random() {
+    assert(is_random());
+    return static_cast<RandomValue *>(this);
 }
 
 RangeValue *Value::as_range() {
