@@ -779,18 +779,6 @@ ValuePtr ArrayValue::last(Env *env, ValuePtr n) {
     return array;
 }
 
-ValuePtr ArrayValue::sample(Env *env) {
-    std::random_device dev;
-    std::mt19937 rng(dev());
-    std::uniform_int_distribution<std::mt19937::result_type> random_number(1, size());
-
-    if (size() > 0) {
-        return (*this)[random_number(rng) - 1];
-    } else {
-        return NilValue::the();
-    }
-}
-
 ValuePtr ArrayValue::include(Env *env, ValuePtr item) {
     if (size() == 0) {
         return FalseValue::the();
