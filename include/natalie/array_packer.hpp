@@ -26,7 +26,8 @@ public:
             auto d = token.directive;
             switch (d) {
             case 'a':
-            case 'A': {
+            case 'A':
+            case 'Z': {
                 if (m_index >= m_source->size())
                     env->raise("ArgumentError", "too few arguments");
 

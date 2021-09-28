@@ -38,6 +38,19 @@ public:
                 pack_A();
             }
             break;
+        case 'Z':
+            if (m_token.star) {
+                while (!at_end())
+                    pack_Z();
+                if (m_packed->length() == 0 || m_packed->last_char() != '\x00')
+                    m_packed->append_char('\x00');
+            } else if (m_token.count != -1) {
+                for (int i = 0; i < m_token.count; ++i)
+                    pack_Z();
+            } else {
+                pack_Z();
+            }
+            break;
         default: {
             char buf[2] = { d, '\0' };
             env->raise("ArgumentError", "unknown directive in string: {}", buf);
@@ -58,6 +71,13 @@ private:
     void pack_A() {
         if (at_end())
             m_packed->append_char(' ');
+        else
+            m_packed->append_char(m_source->at(m_index++));
+    }
+
+    void pack_Z() {
+        if (at_end())
+            m_packed->append_char('\x00');
         else
             m_packed->append_char(m_source->at(m_index++));
     }

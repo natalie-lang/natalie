@@ -154,19 +154,30 @@ public:
         if (str->length() == 0) return;
         size_t total_length = m_length + str->length();
         grow_at_least(total_length);
-        strncat(m_str, str->c_str(), str->length());
+        for (size_t i = 0; i < str->length(); ++i)
+            m_str[i + m_length] = (*str)[i];
         m_length = total_length;
     }
 
     void append(const StringValue *str);
 
     bool operator==(const String &other) const {
-        return length() == other.length() && strncmp(c_str(), other.c_str(), m_length) == 0;
+        if (length() != other.length())
+            return false;
+        for (size_t i = 0; i < m_length; ++i)
+            if (m_str[i] != other[i])
+                return false;
+        return true;
     }
 
     bool operator==(const char *other) const {
         assert(other);
-        return length() == strlen(other) && strncmp(c_str(), other, m_length) == 0;
+        if (length() != strlen(other))
+            return false;
+        for (size_t i = 0; i < m_length; ++i)
+            if (m_str[i] != other[i])
+                return false;
+        return true;
     }
 
     ssize_t find(const String *needle) const {

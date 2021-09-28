@@ -212,16 +212,20 @@ ValuePtr StringValue::mul(Env *env, ValuePtr arg) {
 
 ValuePtr StringValue::cmp(Env *env, ValuePtr other) {
     if (other->type() != Value::Type::String) return NilValue::the();
-    int diff = strcmp(c_str(), other->as_string()->c_str());
-    int result;
-    if (diff < 0) {
-        result = -1;
-    } else if (diff > 0) {
-        result = 1;
-    } else {
-        result = 0;
+    auto *str = c_str();
+    auto *other_str = other->as_string()->c_str();
+    size_t other_length = other->as_string()->length();
+    for (size_t i = 0; i < length(); ++i) {
+        if (i >= other_length)
+            return ValuePtr::integer(1);
+        if (str[i] < other_str[i])
+            return ValuePtr::integer(-1);
+        else if (str[i] > other_str[i])
+            return ValuePtr::integer(1);
     }
-    return ValuePtr::integer(result);
+    if (length() < other_length)
+        return ValuePtr::integer(-1);
+    return ValuePtr::integer(0);
 }
 
 ValuePtr StringValue::eqtilde(Env *env, ValuePtr other) {
