@@ -21,7 +21,7 @@ public:
     RandomValue()
         : Value { Value::Type::Random, GlobalEnv::the()->Random() } { }
 
-    ~RandomValue() { free(m_generator); }
+    ~RandomValue() { delete m_generator; }
 
     ValuePtr initialize(Env *, ValuePtr);
 
