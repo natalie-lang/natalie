@@ -1,7 +1,7 @@
 #include "natalie.hpp"
 #include <algorithm>
 #include <math.h>
-#include <natalie/array_packer.hpp>
+#include <natalie/array_packer/packer.hpp>
 #include <natalie/array_value.hpp>
 #include <natalie/string_value.hpp>
 #include <natalie/symbol_value.hpp>
@@ -926,7 +926,7 @@ ValuePtr ArrayValue::pack(Env *env, ValuePtr directives) {
     if (directives_string->is_empty())
         return new StringValue;
 
-    auto packed = ArrayPacker { this, directives_string }.pack(env);
+    auto packed = ArrayPacker::Packer { this, directives_string }.pack(env);
     return new StringValue { packed };
 }
 
