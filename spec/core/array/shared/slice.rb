@@ -99,7 +99,8 @@ describe :array_slice, shared: true do
     [ "a", "b", "c", "d", "e" ].send(@method, 0, 3).should == ["a", "b", "c"]
   end
 
-  it "returns the subarray which is independent to self with [index,count]" do
+  # FIXME add back when Array#replace has been implemented
+  xit "returns the subarray which is independent to self with [index,count]" do
     a = [1, 2, 3]
     sub = a.send(@method, 1,2)
     sub.replace([:a, :b])
@@ -262,7 +263,8 @@ describe :array_slice, shared: true do
     a.should == [1, 2, 3, 4]
   end
 
-  it "returns the subarray which is independent to self with [m..n]" do
+  # FIXME add back when Array#replace has been implemented
+  xit "returns the subarray which is independent to self with [m..n]" do
     a = [1, 2, 3]
     sub = a.send(@method, 1..2)
     sub.replace([:a, :b])
@@ -486,7 +488,8 @@ describe :array_slice, shared: true do
     end
   end
 
-  it "raises a RangeError when the start index is out of range of Fixnum" do
+  # FIXME add back once we get support for bignum
+  xit "raises a RangeError when the start index is out of range of Fixnum" do
     array = [1, 2, 3, 4, 5, 6]
     obj = mock('large value')
     obj.should_receive(:to_int).and_return(bignum_value)
@@ -502,7 +505,8 @@ describe :array_slice, shared: true do
     array.send(@method, max_long.to_f.prev_float).should == nil
   end
 
-  it "raises a RangeError when the length is out of range of Fixnum" do
+  # FIXME add back once we get support for bignum
+  xit "raises a RangeError when the length is out of range of Fixnum" do
     array = [1, 2, 3, 4, 5, 6]
     obj = mock('large value')
     obj.should_receive(:to_int).and_return(bignum_value)
@@ -516,12 +520,14 @@ describe :array_slice, shared: true do
     ->{ [1, 2, 3].send(@method, 1..2, 1) }.should raise_error(TypeError)
   end
 
-  it "raises a RangeError if passed a range with a bound that is too large" do
+  # FIXME add back once we get support for bignum
+  xit "raises a RangeError if passed a range with a bound that is too large" do
     -> { "hello".send(@method, bignum_value..(bignum_value + 1)) }.should raise_error(RangeError)
     -> { "hello".send(@method, 0..bignum_value) }.should raise_error(RangeError)
   end
 
-  it "can accept endless ranges" do
+  # FIXME add back once eval gets implemented
+  xit "can accept endless ranges" do
     a = [0, 1, 2, 3, 4, 5]
     a.send(@method, eval("(2..)")).should == [2, 3, 4, 5]
     a.send(@method, eval("(2...)")).should == [2, 3, 4, 5]

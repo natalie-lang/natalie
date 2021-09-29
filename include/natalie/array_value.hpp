@@ -170,6 +170,7 @@ public:
     ValuePtr select(Env *, Block *);
     ValuePtr select_in_place(Env *, Block *);
     ValuePtr shift(Env *, ValuePtr);
+    ValuePtr slice(Env *, ValuePtr, ValuePtr);
     ValuePtr slice_in_place(Env *, ValuePtr, ValuePtr);
     ValuePtr sort(Env *, Block *);
     ValuePtr sub(Env *, ValuePtr);
@@ -204,6 +205,7 @@ private:
 
     nat_int_t _resolve_index(nat_int_t);
     bool _flatten_in_place(Env *, nat_int_t depth, Hashmap<ArrayValue *> visited_arrays = Hashmap<ArrayValue *> {});
+    ValuePtr _slice_in_place(nat_int_t start, nat_int_t end, bool exclude_end);
 };
 
 }
