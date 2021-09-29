@@ -26,7 +26,7 @@ public:
     ValuePtr initialize(Env *, ValuePtr);
 
     ValuePtr rand(Env *, ValuePtr);
-    ValuePtr seed() { return new IntegerValue { m_seed }; }
+    ValuePtr seed() { return ValuePtr::integer(m_seed); }
 
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<Random %p seed=%lld>", this, m_seed);
@@ -45,7 +45,7 @@ private:
     ValuePtr generate_random(nat_int_t min, nat_int_t max) {
         assert(m_generator);
         std::uniform_int_distribution<nat_int_t> random_number(min, max);
-        return new IntegerValue { random_number(*m_generator) };
+        return ValuePtr::integer(random_number(*m_generator));
     }
 };
 
