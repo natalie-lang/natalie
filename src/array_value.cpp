@@ -1776,11 +1776,11 @@ ValuePtr ArrayValue::slice_in_place(Env *env, ValuePtr index_obj, ValuePtr size)
             return NilValue::the();
 
         if (start == (nat_int_t)m_vector.size())
-            return new ArrayValue{};
+            return new ArrayValue {};
 
         return _slice_in_place(start, _resolve_index(start) + length, true);
-    } 
-    
+    }
+
     if (index_obj->is_range()) {
         RangeValue *range = index_obj->as_range();
         ValuePtr begin_obj = range->begin();
