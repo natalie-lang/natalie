@@ -50,6 +50,12 @@ public:
         m_string = str;
     }
 
+    StringValue(const String &str, Encoding encoding)
+        : Value { Value::Type::String, GlobalEnv::the()->String() }
+        , m_encoding { encoding } {
+        m_string = str;
+    }
+
     String *to_low_level_string() const { return m_string.clone(); }
     const char *c_str() const { return m_string.c_str(); }
     size_t bytesize() const { return m_string.length(); }

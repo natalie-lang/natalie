@@ -271,7 +271,8 @@ ValuePtr StringValue::ord(Env *env) {
 ValuePtr StringValue::bytes(Env *env) {
     ArrayValue *ary = new ArrayValue {};
     for (size_t i = 0; i < length(); i++) {
-        ary->push(ValuePtr::integer(c_str()[i]));
+        unsigned char c = c_str()[i];
+        ary->push(ValuePtr::integer(c));
     }
     return ary;
 }

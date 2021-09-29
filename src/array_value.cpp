@@ -927,7 +927,7 @@ ValuePtr ArrayValue::pack(Env *env, ValuePtr directives) {
         return new StringValue;
 
     auto packed = ArrayPacker::Packer { this, directives_string }.pack(env);
-    return new StringValue { packed };
+    return new StringValue { packed, Encoding::ASCII_8BIT };
 }
 
 ValuePtr ArrayValue::push(Env *env, size_t argc, ValuePtr *args) {
