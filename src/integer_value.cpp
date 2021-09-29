@@ -173,9 +173,12 @@ ValuePtr IntegerValue::eqeqeq(Env *env, ValuePtr arg) {
 }
 
 ValuePtr IntegerValue::times(Env *env, Block *block) {
+    if (!block)
+        return send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("times") });
+
     nat_int_t val = to_nat_int_t();
     assert(val >= 0);
-    env->ensure_block_given(block); // TODO: return Enumerator when no block given
+    env->ensure_block_given(block);
     ValuePtr num;
     for (nat_int_t i = 0; i < val; i++) {
         ValuePtr num = ValuePtr::integer(i);

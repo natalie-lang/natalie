@@ -32,6 +32,7 @@ class Node;
 class Parser;
 class ParserValue;
 class ProcValue;
+class RandomValue;
 class RangeValue;
 class RegexpValue;
 class SexpValue;

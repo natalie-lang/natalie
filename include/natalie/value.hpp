@@ -104,6 +104,7 @@ public:
     bool is_io() const { return m_type == Type::Io; }
     bool is_match_data() const { return m_type == Type::MatchData; }
     bool is_proc() const { return m_type == Type::Proc; }
+    bool is_random() const { return m_type == Type::Random; }
     bool is_range() const { return m_type == Type::Range; }
     bool is_regexp() const { return m_type == Type::Regexp; }
     bool is_symbol() const { return m_type == Type::Symbol; }
@@ -131,6 +132,7 @@ public:
     ModuleValue *as_module();
     NilValue *as_nil();
     ProcValue *as_proc();
+    RandomValue *as_random();
     RangeValue *as_range();
     RegexpValue *as_regexp();
     StringValue *as_string();

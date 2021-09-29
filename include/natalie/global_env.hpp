@@ -47,6 +47,9 @@ public:
     ClassValue *Object() { return m_Object; }
     void set_Object(ClassValue *Object) { m_Object = Object; }
 
+    ClassValue *Random() { return m_Random; }
+    void set_Random(ClassValue *Random) { m_Random = Random; }
+
     ClassValue *Regexp() { return m_Regexp; }
     void set_Regexp(ClassValue *Regexp) { m_Regexp = Regexp; }
 
@@ -88,6 +91,7 @@ private:
     ClassValue *m_Integer { nullptr };
     ClassValue *m_Module { nullptr };
     ClassValue *m_Object { nullptr };
+    ClassValue *m_Random { nullptr };
     ClassValue *m_Regexp { nullptr };
     ClassValue *m_String { nullptr };
     ClassValue *m_Symbol { nullptr };

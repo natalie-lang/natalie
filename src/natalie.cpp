@@ -102,6 +102,11 @@ Env *build_top_env() {
     Object->const_set(SymbolValue::intern("Hash"), Hash);
     Hash->include_once(env, Enumerable);
 
+    ClassValue *Random = Object->subclass(env, "Random", Value::Type::Random);
+    global_env->set_Random(Random);
+    Object->const_set(SymbolValue::intern("Random"), Random);
+    Random->const_set(SymbolValue::intern("DEFAULT"), (new RandomValue)->initialize(env, nullptr));
+
     ClassValue *Regexp = Object->subclass(env, "Regexp", Value::Type::Regexp);
     global_env->set_Regexp(Regexp);
     Object->const_set(SymbolValue::intern("Regexp"), Regexp);

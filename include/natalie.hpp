@@ -41,6 +41,7 @@
 #include "natalie/parser_value.hpp"
 #include "natalie/proc_value.hpp"
 #include "natalie/process_module.hpp"
+#include "natalie/random_value.hpp"
 #include "natalie/range_value.hpp"
 #include "natalie/regexp_value.hpp"
 #include "natalie/sexp_value.hpp"
