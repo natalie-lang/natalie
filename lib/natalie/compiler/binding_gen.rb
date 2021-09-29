@@ -670,7 +670,7 @@ gen.binding('Proc', 'to_proc', 'ProcValue', 'to_proc', argc: 0, pass_env: true, 
 
 gen.static_binding('Process', 'pid', 'ProcessModule', 'pid', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 
-gen.binding('Random', 'initialize', 'RandomValue', 'initialize', argc: 0..1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Random', 'initialize', 'RandomValue', 'initialize', argc: 0..1, pass_env: true, pass_block: false, return_type: :Value, visibility: :private)
 gen.binding('Random', 'rand', 'RandomValue', 'rand', argc: 0..1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Random', 'seed', 'RandomValue', 'seed', argc: 0, pass_env: false, pass_block: false, return_type: :Value)
 
