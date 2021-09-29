@@ -43,14 +43,14 @@ namespace ArrayPacker {
             case 'Z':
                 if (m_token.star) {
                     while (!at_end())
-                        pack_Z();
+                        pack_a();
                     if (m_packed->length() == 0 || m_packed->last_char() != '\x00')
                         m_packed->append_char('\x00');
                 } else if (m_token.count != -1) {
                     for (int i = 0; i < m_token.count; ++i)
-                        pack_Z();
+                        pack_a();
                 } else {
-                    pack_Z();
+                    pack_a();
                 }
                 break;
             default: {
@@ -73,13 +73,6 @@ namespace ArrayPacker {
         void pack_A() {
             if (at_end())
                 m_packed->append_char(' ');
-            else
-                m_packed->append_char(m_source->at(m_index++));
-        }
-
-        void pack_Z() {
-            if (at_end())
-                m_packed->append_char('\x00');
             else
                 m_packed->append_char(m_source->at(m_index++));
         }
