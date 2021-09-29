@@ -397,6 +397,44 @@ class BeCloseExpectation
   end
 end
 
+class BeComputedByExpectation
+  def initialize(method, args)
+    @method = method
+    @args = args
+  end
+
+  def match(subject)
+    subject.each do |(target, expected)|
+      actual = target.send(@method, *@args)
+      if actual != expected
+        expected_bits = expected.bytes.map { |b| lzpad(b.to_s(2), 8) }.join(" ")
+        actual_bits = actual.bytes.map { |b| lzpad(b.to_s(2), 8) }.join(" ")
+        raise SpecFailedException, "#{target.inspect} should compute to #{expected_bits}, but it was #{actual_bits}"
+      end
+    end
+  end
+
+  def inverted_match(subject)
+    subject.each do |target, expected|
+      actual = target.send(@method, *@args)
+      if actual == expected
+        expected_bits = expected.bytes.map { |b| lzpad(b.to_s(2), 8) }.join(" ")
+        raise SpecFailedException, "#{target.inspect} should not compute to #{expected_bits}"
+      end
+    end
+  end
+
+  private
+
+  # TODO: Add % formatting to Natalie :-)
+  def lzpad(str, length)
+    until str.length == length
+      str = '0' + str
+    end
+    str
+  end
+end
+
 class BeNanExpectation
   def match(subject)
     if !subject.nan?
@@ -689,6 +727,10 @@ class Object
 
   def be_close(target, tolerance)
     BeCloseExpectation.new(target, tolerance)
+  end
+
+  def be_computed_by(method, *args)
+    BeComputedByExpectation.new(method, args)
   end
 
   def be_kind_of(klass)
