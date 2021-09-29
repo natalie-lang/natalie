@@ -23,10 +23,6 @@ public:
 
     ~RandomValue() { free(m_generator); }
 
-    virtual void visit_children(Visitor &visitor) override final {
-        Value::visit_children(visitor);
-    }
-
     ValuePtr initialize(Env *, ValuePtr);
 
     ValuePtr rand(Env *, ValuePtr);
