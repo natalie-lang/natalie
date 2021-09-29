@@ -94,9 +94,6 @@ private:
         m_allocators.push(new Allocator(256));
         m_allocators.push(new Allocator(512));
         m_allocators.push(new Allocator(1024));
-        m_allocators.push(new Allocator(2048));
-        m_allocators.push(new Allocator(4096));
-        m_allocators.push(new Allocator(6192));
     }
 
     TM::Hashmap<Cell *> gather_conservative_roots();

@@ -21,6 +21,8 @@ public:
     RandomValue()
         : Value { Value::Type::Random, GlobalEnv::the()->Random() } { }
 
+    ~RandomValue() { free(m_generator); }
+
     virtual void visit_children(Visitor &visitor) override final {
         Value::visit_children(visitor);
     }
@@ -36,16 +38,18 @@ public:
 
 private:
     nat_int_t m_seed;
-    std::mt19937 m_generator;
+    std::mt19937 *m_generator { nullptr };
 
     ValuePtr generate_random(double min, double max) {
+        assert(m_generator);
         std::uniform_real_distribution<double> random_number(min, max);
-        return new FloatValue { random_number(m_generator) };
+        return new FloatValue { random_number(*m_generator) };
     }
 
     ValuePtr generate_random(nat_int_t min, nat_int_t max) {
+        assert(m_generator);
         std::uniform_int_distribution<nat_int_t> random_number(min, max);
-        return new IntegerValue { random_number(m_generator) };
+        return new IntegerValue { random_number(*m_generator) };
     }
 };
 

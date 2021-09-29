@@ -18,7 +18,9 @@ ValuePtr RandomValue::initialize(Env *env, ValuePtr seed) {
 
         m_seed = seed->as_integer()->to_nat_int_t();
     }
-    m_generator = std::mt19937(m_seed);
+
+    if (m_generator) free(m_generator);
+    this->m_generator = new std::mt19937(m_seed);
     return this;
 }
 
