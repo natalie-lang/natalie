@@ -1728,113 +1728,137 @@ ValuePtr ArrayValue::rotate_in_place(Env *env, ValuePtr val) {
     return this;
 }
 
+ValuePtr ArrayValue::slice(Env *env, ValuePtr index_obj, ValuePtr size) {
+    ArrayValue *copy = new ArrayValue { *this };
+    return copy->slice_in_place(env, index_obj, size);
+}
+
 ValuePtr ArrayValue::slice_in_place(Env *env, ValuePtr index_obj, ValuePtr size) {
+    this->assert_not_frozen(env);
+    auto to_int = SymbolValue::intern("to_int");
+
     if (size) {
-        // a second argument means we must! take the integer branch
+        if (!index_obj->is_integer() && index_obj->respond_to(env, to_int))
+            index_obj = index_obj.send(env, to_int);
+
         index_obj->assert_type(env, ValueType::Integer, "Integer");
+
+        if (!size->is_integer() && size->respond_to(env, to_int))
+            size = size.send(env, to_int);
+
+        size->assert_type(env, ValueType::Integer, "Integer");
     }
 
     if (index_obj->is_integer()) {
-        nat_int_t val = index_obj.to_nat_int_t();
-
-        if (val < 0 || val >= (nat_int_t)this->size()) {
-            return NilValue::the();
-        }
+        auto start = index_obj.to_nat_int_t();
 
         if (!size) {
-            ValuePtr item = (*this)[val];
-            for (size_t i = val; i < this->size() - 1; i++) {
+            start = _resolve_index(start);
+            if (start < 0 || start >= (nat_int_t)m_vector.size())
+                return NilValue::the();
+
+            ValuePtr item = (*this)[start];
+            for (size_t i = start; i < this->size() - 1; i++) {
                 (*this)[i] = (*this)[i + 1];
             }
             m_vector.pop();
             return item;
         }
+
         size->assert_type(env, ValueType::Integer, "Integer");
 
         nat_int_t length = size.to_nat_int_t();
 
-        if (length < 0) {
+        if (length < 0)
             return NilValue::the();
-        }
 
-        ArrayValue *newArr = new ArrayValue();
-        if (length == 0) {
-            return newArr;
-        }
+        if (start > (nat_int_t)m_vector.size())
+            return NilValue::the();
 
-        if (val + length > (nat_int_t)this->size()) {
-            length = this->size() - val;
-        }
+        if (start == (nat_int_t)m_vector.size())
+            return new ArrayValue{};
 
-        for (nat_int_t i = val; i < val + length; i++) {
-            newArr->push((*this)[i]);
-        }
-
-        for (nat_int_t i = val + length; i < (nat_int_t)this->size(); i++) {
-            (*this)[i - length] = (*this)[i];
-        }
-
-        for (nat_int_t i = 0; i < length; i++) {
-            m_vector.pop();
-        }
-
-        return newArr;
-    } else if (index_obj->is_range()) {
+        return _slice_in_place(start, _resolve_index(start) + length, true);
+    } 
+    
+    if (index_obj->is_range()) {
         RangeValue *range = index_obj->as_range();
         ValuePtr begin_obj = range->begin();
+
+        if (!begin_obj->is_integer() && begin_obj->respond_to(env, to_int))
+            begin_obj = begin_obj.send(env, to_int);
+
+        begin_obj->assert_type(env, ValueType::Integer, "Integer");
+
         ValuePtr end_obj = range->end();
-        begin_obj->assert_type(env, Value::Type::Integer, "Integer");
-        end_obj->assert_type(env, Value::Type::Integer, "Integer");
+
+        if (!end_obj->is_integer() && end_obj->respond_to(env, to_int))
+            end_obj = end_obj.send(env, to_int);
+
+        end_obj->assert_type(env, ValueType::Integer, "Integer");
 
         nat_int_t start = begin_obj.to_nat_int_t();
+        nat_int_t end = end_obj.to_nat_int_t();
 
-        if (start < 0) {
-            if ((size_t)(-start) > this->size()) {
-                return NilValue::the();
-            }
-            start = this->size() + start;
-        }
-
-        nat_int_t length = end_obj.to_nat_int_t() - start + (range->exclude_end() ? 0 : 1);
-
-        if (length < 0) {
-            length = 0;
-        }
-        if (length + start > (nat_int_t)this->size()) {
-            length = this->size() - start;
-        }
-
-        if (length < 0) {
-            return NilValue::the();
-        }
-
-        ArrayValue *newArr = new ArrayValue();
-        if (length == 0) {
-            return newArr;
-        }
-
-        if (start + length > (nat_int_t)this->size()) {
-            length = this->size() - start;
-        }
-
-        for (nat_int_t i = start; i < start + length; i++) {
-            newArr->push((*this)[i]);
-        }
-
-        for (nat_int_t i = start + length; i < (nat_int_t)this->size(); i++) {
-            (*this)[i - length] = (*this)[i];
-        }
-
-        for (nat_int_t i = 0; i < length; i++) {
-            m_vector.pop();
-        }
-
-        return newArr;
-    } else {
-        // will throw
-        index_obj->assert_type(env, ValueType::Integer, "Integer");
-        return nullptr;
+        return _slice_in_place(start, end, range->exclude_end());
     }
+
+    if (!index_obj->is_integer() && index_obj->respond_to(env, to_int))
+        index_obj = index_obj.send(env, to_int);
+
+    index_obj->assert_type(env, ValueType::Integer, "Integer");
+
+    return slice_in_place(env, index_obj, size);
+}
+
+ValuePtr ArrayValue::_slice_in_place(nat_int_t start, nat_int_t end, bool exclude_end) {
+    if (start > (nat_int_t)m_vector.size())
+        return NilValue::the();
+
+    if (start == (nat_int_t)m_vector.size())
+        return new ArrayValue {};
+
+    start = _resolve_index(start);
+
+    if (start < 0)
+        return NilValue::the();
+
+    if (end < 0)
+        end = _resolve_index(end);
+
+    nat_int_t length = end - start + (exclude_end ? 0 : 1);
+
+    if (length < 0)
+        length = 0;
+
+    if (length + start > (nat_int_t)this->size())
+        length = this->size() - start;
+
+    if (length < 0)
+        return NilValue::the();
+
+    ArrayValue *newArr = new ArrayValue();
+    if (length == 0) {
+        return newArr;
+    }
+
+    if (start + length > (nat_int_t)this->size()) {
+        length = this->size() - start;
+    }
+
+    for (nat_int_t i = start; i < start + length; i++) {
+        newArr->push((*this)[i]);
+    }
+
+    for (nat_int_t i = start + length; i < (nat_int_t)this->size(); i++) {
+        (*this)[i - length] = (*this)[i];
+    }
+
+    for (nat_int_t i = 0; i < length; i++) {
+        m_vector.pop();
+    }
+
+    return newArr;
 }
 
 ValuePtr ArrayValue::to_h(Env *env, Block *block) {
