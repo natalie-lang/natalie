@@ -951,11 +951,32 @@ void ArrayValue::push_splat(Env *env, ValuePtr val) {
     }
 }
 
-ValuePtr ArrayValue::pop(Env *env) {
+ValuePtr ArrayValue::pop(Env *env, ValuePtr count) {
     this->assert_not_frozen(env);
+
+    if (count) {
+        auto to_int = SymbolValue::intern("to_int");
+
+        if (!count->is_integer() && count->respond_to(env, to_int))
+            count = count.send(env, to_int);
+
+        count->assert_type(env, ValueType::Integer, "Integer");
+        auto c = count->as_integer()->to_nat_int_t();
+
+        if (c < 0)
+            env->raise("ArgumentError", "negative array size");
+
+        if (c > (nat_int_t)size())
+            c = (nat_int_t)size();
+
+        auto pops = new ArrayValue();
+        for (nat_int_t i = 0; i < c; ++i)
+            pops->m_vector.push_front(m_vector.pop());
+
+        return pops;
+    }
     if (size() == 0) return NilValue::the();
-    ValuePtr val = m_vector[m_vector.size() - 1];
-    m_vector.set_size(m_vector.size() - 1);
+    ValuePtr val = m_vector.pop();
     return val;
 }
 
