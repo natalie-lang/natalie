@@ -6,7 +6,8 @@ describe "Array#initialize" do
     ScratchPad.clear
   end
 
-  it "is private" do
+  #FIXME add back once we support have_private_instance_method
+  xit "is private" do
     Array.should have_private_instance_method("initialize")
   end
 
@@ -107,7 +108,8 @@ describe "Array#initialize with (size, object=nil)" do
     -> { [].send(:initialize, -1) }.should raise_error(ArgumentError)
   end
 
-  it "raises an ArgumentError if size is too large" do
+  #FIXME add back once fixnum_max is supported
+  xit "raises an ArgumentError if size is too large" do
     -> { [].send(:initialize, fixnum_max+1) }.should raise_error(ArgumentError)
   end
 

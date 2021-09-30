@@ -17,24 +17,51 @@ ValuePtr ArrayValue::allocate(Env *env, size_t argc, ValuePtr *args) {
 }
 
 ValuePtr ArrayValue::initialize(Env *env, ValuePtr size, ValuePtr value, Block *block) {
+    this->assert_not_frozen(env);
+
     if (!size) {
+        ArrayValue new_array;
+        *this = std::move(new_array);
         return this;
     }
-    if (size->is_array()) {
-        for (auto &item : *size->as_array()) {
-            push(item);
+
+    if (!value) {
+        auto to_ary = SymbolValue::intern("to_ary");
+        if (!size->is_array() && size->respond_to(env, to_ary))
+            size = size->send(env, to_ary);
+
+        if (size->is_array()) {
+            auto target = *size->as_array();
+            *this = std::move(target);
+            return this;
         }
-        return this;
     }
+
+    auto to_int = SymbolValue::intern("to_int");
+    if (!size.is_integer() && size->respond_to(env, to_int))
+        size = size->send(env, to_int);
     size->assert_type(env, Value::Type::Integer, "Integer");
+
+    auto s = size->as_integer()->to_nat_int_t();
+
+    if (s < 0)
+        env->raise("ArgumentError", "negative argument");
+
     if (block) {
-        for (nat_int_t i = 0; i < size->as_integer()->to_nat_int_t(); i++) {
+        if (value)
+            env->warn("block supersedes default value argument");
+
+        ArrayValue new_array;
+        *this = std::move(new_array);
+
+        for (nat_int_t i = 0; i < s; i++) {
             ValuePtr args = new IntegerValue { i };
             push(NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 1, &args, nullptr));
         }
+
     } else {
         if (!value) value = NilValue::the();
-        for (nat_int_t i = 0; i < size->as_integer()->to_nat_int_t(); i++) {
+        for (nat_int_t i = 0; i < s; i++) {
             push(value);
         }
     }
