@@ -778,30 +778,8 @@ ValuePtr ArrayValue::include(Env *env, ValuePtr item) {
 }
 
 ValuePtr ArrayValue::index(Env *env, ValuePtr object, Block *block) {
-    assert(size() <= NAT_INT_MAX);
-    auto length = static_cast<nat_int_t>(size());
-    if (object) {
-        if (block)
-            env->warn("given block not used");
-
-        for (nat_int_t i = 0; i < length; i++) {
-            auto item = m_vector[i];
-            if (item.send(env, SymbolValue::intern("=="), { object })->is_truthy())
-                return ValuePtr::integer(i);
-        }
-        return NilValue::the();
-    } else if (block) {
-        for (nat_int_t i = 0; i < length; i++) {
-            auto item = m_vector[i];
-            ValuePtr args[] = { item };
-            auto result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, args, nullptr);
-            if (result->is_truthy())
-                return ValuePtr::integer(i);
-        }
-        return NilValue::the();
-    } else {
-        return send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("index") });
-    }
+    if (!block && !object) return send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("index") });
+    return find_index(env, object, block);
 }
 
 ValuePtr ArrayValue::shift(Env *env, ValuePtr count) {
@@ -1635,30 +1613,30 @@ nat_int_t ArrayValue::_resolve_index(nat_int_t nat_index) {
 }
 
 ValuePtr ArrayValue::rindex(Env *env, ValuePtr object, Block *block) {
-    // TODO make dry since this code is almost identical to index
+    if (!block && !object) return send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("rindex") });
+    return find_index(env, object, block, true);
+}
+
+ValuePtr ArrayValue::find_index(Env *env, ValuePtr object, Block *block, bool search_reverse) {
+    if (object && block) env->warn("given block not used");
     assert(size() <= NAT_INT_MAX);
+
     auto length = static_cast<nat_int_t>(size());
-    if (block) {
-        for (nat_int_t i = length - 1; i >= 0; i--) {
-            auto item = m_vector[i];
+    for (nat_int_t i = 0; i < length; i++) {
+        nat_int_t index = search_reverse ? length - i - 1 : i;
+        auto item = m_vector[index];
+        if (object) {
+            if (item.send(env, SymbolValue::intern("=="), { object })->is_truthy())
+                return ValuePtr::integer(index);
+        } else {
             ValuePtr args[] = { item };
             auto result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, args, nullptr);
+            length = static_cast<nat_int_t>(size());
             if (result->is_truthy())
-                return ValuePtr::integer(i);
+                return ValuePtr::integer(index);
         }
-        return NilValue::the();
-    } else if (object) {
-        for (nat_int_t i = length - 1; i >= 0; i--) {
-            auto item = m_vector[i];
-            if (item.send(env, SymbolValue::intern("=="), { object })->is_truthy())
-                return ValuePtr::integer(i);
-        }
-        return NilValue::the();
-    } else {
-        // TODO
-        env->ensure_block_given(block);
-        NAT_UNREACHABLE();
     }
+    return NilValue::the();
 }
 
 ValuePtr ArrayValue::none(Env *env, size_t argc, ValuePtr *args, Block *block) {
