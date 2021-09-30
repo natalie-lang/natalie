@@ -64,6 +64,11 @@ public:
         return m_str[m_length - 1];
     }
 
+    char pop_char() {
+        assert(m_length > 0);
+        return m_str[--m_length];
+    }
+
     String *clone() const { return new String { *this }; }
 
     String *substring(size_t start, size_t length) const {

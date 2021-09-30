@@ -1,5 +1,3 @@
-# skip-test
-
 # -*- encoding: binary -*-
 require_relative '../../../spec_helper'
 require_relative '../fixtures/classes'
@@ -49,7 +47,8 @@ describe "Array#pack with format 'B'" do
     ].should be_computed_by(:pack, "B*")
   end
 
-  it "returns a binary string" do
+  # NATFIXME: we don't have a BINARY encoding yet :-(
+  xit "returns a binary string" do
     ["1"].pack("B").encoding.should == Encoding::BINARY
   end
 
@@ -100,7 +99,8 @@ describe "Array#pack with format 'b'" do
     ].should be_computed_by(:pack, "b*")
   end
 
-  it "returns a binary string" do
+  # NATFIXME: we don't have a BINARY encoding yet :-(
+  xit "returns a binary string" do
     ["1"].pack("b").encoding.should == Encoding::BINARY
   end
 
