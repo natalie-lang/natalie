@@ -55,6 +55,9 @@ module Natalie
           elsif e.sexp_type == :splat
             splatted = true
             hash[e] = { path: prefix + [index], offset_from_end: names.size - index - 1 }
+          elsif e.sexp_type == :kwsplat
+            splatted = true
+            hash[e] = { path: prefix + [index], offset_from_end: names.size - index - 1 }
           elsif splatted
             hash[e] = { path: prefix + [(names.size - index) * -1] }
           else

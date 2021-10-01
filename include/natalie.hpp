@@ -77,6 +77,9 @@ ArrayValue *to_ary(Env *env, ValuePtr obj, bool raise_for_non_array);
 
 ValuePtr arg_value_by_path(Env *env, ValuePtr value, ValuePtr default_value, bool splat, int total_count, int default_count, bool defaults_on_right, int offset_from_end, size_t path_size, ...);
 ValuePtr array_value_by_path(Env *env, ValuePtr value, ValuePtr default_value, bool splat, int offset_from_end, size_t path_size, ...);
+
+HashValue *kwarg_hash(ValuePtr args);
+HashValue *kwarg_hash(ArrayValue *args);
 ValuePtr kwarg_value_by_name(Env *env, ValuePtr args, const char *name, ValuePtr default_value);
 ValuePtr kwarg_value_by_name(Env *env, ArrayValue *args, const char *name, ValuePtr default_value);
 

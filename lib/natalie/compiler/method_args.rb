@@ -69,6 +69,9 @@ module Natalie
             when :splat
               value = s(:arg_value_by_path, :env, @value_name, 'nullptr', :true, names.size, defaults.size, defaults_on_right ? :true : :false, path_details[:offset_from_end], path.size, *path)
               masgn_set(name.last, value)
+            when :kwsplat
+              value = s(:kwarg_hash, @value_name)
+              masgn_set(name.last, value)
             when :kwarg
               if name[2]
                 default_value = name[2]
@@ -99,11 +102,17 @@ module Natalie
           case name
           when Symbol
             case name.to_s
+            when /^\*\*@(.+)/
+              s(:kwsplat, s(:iasgn, name[2..-1].to_sym))
+            when /^\*\*(.+)/
+              s(:kwsplat, s(:lasgn, name[2..-1].to_sym))
+            when '**'
+              s(:kwsplat, s(:lasgn, :_))
             when /^\*@(.+)/
               s(:splat, s(:iasgn, name[1..-1].to_sym))
             when /^\*(.+)/
               s(:splat, s(:lasgn, name[1..-1].to_sym))
-            when /^\*/
+            when '*'
               s(:splat, s(:lasgn, :_))
             when /^@/
               s(:iasgn, name)

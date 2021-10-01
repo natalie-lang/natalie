@@ -410,16 +410,26 @@ ValuePtr kwarg_value_by_name(Env *env, ValuePtr args, const char *name, ValuePtr
     return kwarg_value_by_name(env, args->as_array(), name, default_value);
 }
 
-ValuePtr kwarg_value_by_name(Env *env, ArrayValue *args, const char *name, ValuePtr default_value) {
-    ValuePtr hash;
+HashValue *kwarg_hash(ValuePtr args) {
+    return kwarg_hash(args->as_array());
+}
+
+HashValue *kwarg_hash(ArrayValue *args) {
+    HashValue *hash;
     if (args->size() == 0) {
         hash = new HashValue {};
     } else {
-        hash = (*args)[args->size() - 1];
-        if (hash->type() != Value::Type::Hash) {
+        auto maybe_hash = (*args)[args->size() - 1];
+        if (maybe_hash->is_hash())
+            hash = maybe_hash->as_hash();
+        else
             hash = new HashValue {};
-        }
     }
+    return hash;
+}
+
+ValuePtr kwarg_value_by_name(Env *env, ArrayValue *args, const char *name, ValuePtr default_value) {
+    auto hash = kwarg_hash(args);
     ValuePtr value = hash->as_hash()->get(env, SymbolValue::intern(name));
     if (!value) {
         if (default_value) {
