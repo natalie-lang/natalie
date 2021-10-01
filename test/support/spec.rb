@@ -646,6 +646,10 @@ class Stub
     self
   end
 
+  def times
+    self
+  end
+
   def once
     exactly(1)
     self
