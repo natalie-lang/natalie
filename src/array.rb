@@ -30,7 +30,7 @@ class Array
     unless block_given?
       accumulator = []
       repeated_combination(times) { |combo| accumulator << combo }
-      return Enumerator.new(accumulator.size) do |yielder| 
+      return Enumerator.new(accumulator.size) do |yielder|
         accumulator.each { |item| yielder << item }
       end
     end
@@ -47,5 +47,44 @@ class Array
       end
     end
     self
+  end
+
+  def sample(n = 1, random: Random::DEFAULT)
+    if !n.is_a?(Integer) && n.respond_to?(:to_int)
+      n = n.to_int
+    end
+    raise ArgumentError, 'negative sample number' if n < 0
+    array_size = size
+
+    generate_index = ->() {
+      random.rand(array_size).tap do |index|
+        if !index.is_a?(Integer) && index.respond_to?(:to_int)
+          index = index.to_int
+        end
+
+        raise RangeError, "random number too small #{index}" if index < 0
+        raise RangeError, "random number too big #{index}" if index >= array_size
+      end
+    }
+
+    if n == 1
+      return if empty?
+
+      self[generate_index.()]
+    else
+      return [] if empty?
+
+      indexes = []
+      [].tap do |out|
+        while out.size != [n, size].min
+          index = generate_index.()
+
+          unless indexes.include?(index)
+            out << self[index]
+            indexes << index
+          end
+        end
+      end
+    end
   end
 end

@@ -235,6 +235,7 @@ public:
     bool eq(Env *, ValuePtr other) {
         return other == this;
     }
+    bool equal(ValuePtr);
 
     bool neq(Env *env, ValuePtr other);
 
