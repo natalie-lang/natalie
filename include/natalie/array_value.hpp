@@ -67,7 +67,7 @@ public:
         m_vector.push(val);
     }
 
-    ValuePtr pop(Env *);
+    ValuePtr pop(Env *, ValuePtr);
 
     ValuePtr &at(size_t index) const {
         assert(index < m_vector.size());
