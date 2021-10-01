@@ -15,6 +15,10 @@ module Process
     def ==(other)
       other.is_a?(Integer) && to_i == other
     end
+
+    def success?
+      exitstatus == 0
+    end
   end
 
   class << self
