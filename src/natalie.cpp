@@ -281,13 +281,13 @@ static ValuePtr splat_value(Env *env, ValuePtr value, size_t index, size_t offse
     return splat;
 }
 
-ValuePtr arg_value_by_path(Env *env, ValuePtr value, ValuePtr default_value, bool splat, int total_count, int default_count, bool defaults_on_right, int offset_from_end, size_t path_size, ...) {
+ValuePtr arg_value_by_path(Env *env, ValuePtr value, ValuePtr default_value, bool splat, bool has_kwargs, int total_count, int default_count, bool defaults_on_right, int offset_from_end, size_t path_size, ...) {
     va_list args;
     va_start(args, path_size);
     bool has_default = !!default_value;
     if (!default_value) default_value = NilValue::the();
     bool defaults_on_left = !defaults_on_right;
-    int required_count = total_count - default_count;
+    int required_count = total_count - default_count; // 0
     ValuePtr return_value = value;
     for (size_t i = 0; i < path_size; i++) {
         int index = va_arg(args, int);
@@ -297,7 +297,6 @@ ValuePtr arg_value_by_path(Env *env, ValuePtr value, ValuePtr default_value, boo
             return splat_value(env, return_value, index, offset_from_end);
         } else {
             if (return_value->is_array()) {
-
                 assert(return_value->as_array()->size() <= NAT_INT_MAX);
                 nat_int_t ary_len = return_value->as_array()->size();
 
@@ -339,6 +338,12 @@ ValuePtr arg_value_by_path(Env *env, ValuePtr value, ValuePtr default_value, boo
                 } else if (index < ary_len) {
                     // value available, yay!
                     return_value = (*return_value->as_array())[index];
+
+                    if (has_default && has_kwargs && i == path_size - 1) {
+                        if (return_value->is_hash()) {
+                            return_value = default_value;
+                        }
+                    }
 
                 } else {
                     // index past the end of the array, so use default
@@ -430,7 +435,7 @@ HashValue *kwarg_hash(ArrayValue *args) {
 
 ValuePtr kwarg_value_by_name(Env *env, ArrayValue *args, const char *name, ValuePtr default_value) {
     auto hash = kwarg_hash(args);
-    ValuePtr value = hash->as_hash()->get(env, SymbolValue::intern(name));
+    ValuePtr value = hash->as_hash()->remove(env, SymbolValue::intern(name));
     if (!value) {
         if (default_value) {
             return default_value;
