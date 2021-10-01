@@ -65,9 +65,10 @@ module Natalie
         @args = masgn_paths(s(:masgn, s(:array, *names))).map do |name, path_details|
           path = path_details[:path]
           if name.is_a?(Sexp)
+            has_kwargs = names.any? { |name| name.sexp_type == :kwarg || name.sexp_type == :kwsplat }
             case name.sexp_type
             when :splat
-              value = s(:arg_value_by_path, :env, @value_name, 'nullptr', :true, names.size, defaults.size, defaults_on_right ? :true : :false, path_details[:offset_from_end], path.size, *path)
+              value = s(:arg_value_by_path, :env, @value_name, 'nullptr', :true, has_kwargs ? :true : :false, names.size, defaults.size, defaults_on_right ? :true : :false, path_details[:offset_from_end], path.size, *path)
               masgn_set(name.last, value)
             when :kwsplat
               value = s(:kwarg_hash, @value_name)
@@ -88,7 +89,7 @@ module Natalie
                 default_value = 'nullptr'
               end
               total_argument_count = names.reject { |name| name.sexp_type == :kwarg || name.sexp_type == :splat }.size
-              value = s(:arg_value_by_path, :env, @value_name, default_value, :false, total_argument_count, defaults.size, defaults_on_right ? :true : :false, 0, path.size, *path)
+              value = s(:arg_value_by_path, :env, @value_name, default_value, :false, has_kwargs ? :true : :false, total_argument_count, defaults.size, defaults_on_right ? :true : :false, 0, path.size, *path)
               masgn_set(name, value)
             end
           else

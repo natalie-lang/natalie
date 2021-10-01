@@ -442,9 +442,9 @@ describe 'method with keyword args' do
     method_with_kwargs9('a', b: 'b').should == ['a', 'b']
     method_with_kwargs10(b: 'b').should == [1]
 
+    method_with_kwargs9(b: 'b').should == [1, 'b']
     # FIXME: failing:
-    #method_with_kwargs9(b: 'b').should == [1, 'b']
-    #method_with_kwargs11(a: 'a', b: 'b').should == ['a', { b: 'b' }]
+    # method_with_kwargs11(a: 'a', b: 'b').should == ['a', { b: 'b' }]
   end
 
   xit 'raises an error when there are too many positional arguments' do
