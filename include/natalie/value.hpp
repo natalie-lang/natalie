@@ -238,8 +238,6 @@ public:
 
     bool neq(Env *env, ValuePtr other);
 
-    ValuePtr cmp(Env *, ValuePtr);
-
     ValuePtr instance_eval(Env *, ValuePtr, Block *);
 
     void assert_type(Env *, Value::Type, const char *);

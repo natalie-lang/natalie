@@ -569,15 +569,6 @@ ProcValue *Value::to_proc(Env *env) {
     }
 }
 
-// FIXME: this should actually live in the Kernel module which gets mixed into Object
-ValuePtr Value::cmp(Env *env, ValuePtr other) {
-    if (send(env, SymbolValue::intern("=="), { other })->is_truthy()) {
-        return ValuePtr::integer(0);
-    } else {
-        return NilValue::the();
-    }
-}
-
 ValuePtr Value::instance_eval(Env *env, ValuePtr string, Block *block) {
     if (string || !block) {
         env->raise("ArgumentError", "Natalie only supports instance_eval with a block");
