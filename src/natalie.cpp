@@ -435,7 +435,7 @@ HashValue *kwarg_hash(ArrayValue *args) {
 
 ValuePtr kwarg_value_by_name(Env *env, ArrayValue *args, const char *name, ValuePtr default_value) {
     auto hash = kwarg_hash(args);
-    ValuePtr value = hash->as_hash()->get(env, SymbolValue::intern(name));
+    ValuePtr value = hash->as_hash()->remove(env, SymbolValue::intern(name));
     if (!value) {
         if (default_value) {
             return default_value;
