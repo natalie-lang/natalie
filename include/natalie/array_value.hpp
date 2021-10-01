@@ -206,6 +206,7 @@ private:
     nat_int_t _resolve_index(nat_int_t);
     bool _flatten_in_place(Env *, nat_int_t depth, Hashmap<ArrayValue *> visited_arrays = Hashmap<ArrayValue *> {});
     ValuePtr _slice_in_place(nat_int_t start, nat_int_t end, bool exclude_end);
+    ValuePtr find_index(Env *, ValuePtr, Block *, bool = false);
 };
 
 }
