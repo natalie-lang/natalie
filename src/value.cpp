@@ -603,6 +603,13 @@ void Value::assert_not_frozen(Env *env) {
     }
 }
 
+bool Value::equal(ValuePtr other) {
+    if (is_integer() && other->is_integer())
+        return as_integer()->to_nat_int_t() == other->as_integer()->to_nat_int_t();
+
+    return other == this;
+}
+
 bool Value::neq(Env *env, ValuePtr other) {
     return send(env, SymbolValue::intern("=="), { other })->is_falsey();
 }
