@@ -19,48 +19,16 @@ namespace ArrayPacker {
             signed char d = m_token.directive;
             switch (d) {
             case 'a':
-                if (m_token.star) {
-                    while (!at_end())
-                        pack_a();
-                } else if (m_token.count != -1) {
-                    for (int i = 0; i < m_token.count; ++i)
-                        pack_a();
-                } else {
-                    pack_a();
-                }
+                pack_with_loop(&StringHandler::pack_a);
                 break;
             case 'A':
-                if (m_token.star) {
-                    while (!at_end())
-                        pack_A();
-                } else if (m_token.count != -1) {
-                    for (int i = 0; i < m_token.count; ++i)
-                        pack_A();
-                } else {
-                    pack_A();
-                }
+                pack_with_loop(&StringHandler::pack_A);
                 break;
             case 'b':
-                if (m_token.star) {
-                    while (!at_end())
-                        pack_b();
-                } else if (m_token.count != -1) {
-                    for (int i = 0; i < m_token.count; ++i)
-                        pack_b();
-                } else {
-                    pack_b();
-                }
+                pack_with_loop(&StringHandler::pack_b);
                 break;
             case 'B':
-                if (m_token.star) {
-                    while (!at_end())
-                        pack_B();
-                } else if (m_token.count != -1) {
-                    for (int i = 0; i < m_token.count; ++i)
-                        pack_B();
-                } else {
-                    pack_B();
-                }
+                pack_with_loop(&StringHandler::pack_B);
                 break;
             case 'Z':
                 if (m_token.star) {
@@ -84,7 +52,21 @@ namespace ArrayPacker {
             return m_packed;
         }
 
+        using PackHandlerFn = void (StringHandler::*)();
+
     private:
+        void pack_with_loop(PackHandlerFn handler) {
+            if (m_token.star) {
+                while (!at_end())
+                    (this->*handler)();
+            } else if (m_token.count != -1) {
+                for (int i = 0; i < m_token.count; ++i)
+                    (this->*handler)();
+            } else {
+                (this->*handler)();
+            }
+        }
+
         void pack_a() {
             if (at_end())
                 m_packed->append_char('\x00');
