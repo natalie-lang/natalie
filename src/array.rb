@@ -87,4 +87,28 @@ class Array
       end
     end
   end
+
+  def shuffle(random: Random::DEFAULT)
+    dup.shuffle!(random: random)
+  end
+
+  def shuffle!(random: Random::DEFAULT)
+    raise FrozenError, "can't modify frozen #{self.class.name}: #{inspect}" if frozen?
+
+    array_size = size
+    (array_size - 1).downto(1) do |index|
+      new_index = random.rand(index)
+      if !new_index.is_a?(Integer) && new_index.respond_to?(:to_int)
+        new_index = new_index.to_int
+      end
+
+      raise RangeError, "random number too small #{new_index}" if new_index < 0
+      raise RangeError, "random number too big #{new_index}" if new_index >= index
+
+      tmp = self[index]
+      self[index] = self[new_index]
+      self[new_index] = tmp
+    end
+    self
+  end
 end
