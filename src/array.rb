@@ -1,6 +1,10 @@
 class Array
   alias prepend unshift
 
+  def |(other)
+    union(other)
+  end
+
   def permutation(len = size)
     if len == 0
       return [[]]
@@ -110,5 +114,9 @@ class Array
       self[new_index] = tmp
     end
     self
+  end
+
+  def union(*args)
+    dup.concat(*args).uniq
   end
 end
