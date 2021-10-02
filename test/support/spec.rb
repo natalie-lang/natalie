@@ -646,6 +646,10 @@ class Stub
     self
   end
 
+  def times
+    self
+  end
+
   def once
     exactly(1)
     self
@@ -844,13 +848,12 @@ def run_specs
             b.call
           end
         end
-
+        $expectations = []
         fn.call
 
         $expectations.each do |expectation|
           expectation.validate!
         end
-        $expectations = []
         context.each do |con|
           con.after_each.each do |a|
             a.call
