@@ -5,6 +5,7 @@
 namespace Natalie {
 
 ValuePtr IntegerValue::to_s(Env *env, ValuePtr base_value) {
+    if (is_bignum()) return new StringValue { m_bignum.to_string().c_str() };
     if (m_integer == 0)
         return new StringValue { "0" };
     auto str = new StringValue {};
@@ -52,7 +53,24 @@ ValuePtr IntegerValue::add(Env *env, ValuePtr arg) {
         return new FloatValue { result };
     }
     arg.assert_type(env, Value::Type::Integer, "Integer");
+
+    auto other = arg->as_integer();
+    if (is_bignum() || other->is_bignum()) {
+        auto result = to_bignum(env) + other->to_bignum(env);
+        return new IntegerValue { result };
+    }
+
     nat_int_t result = to_nat_int_t() + arg.to_nat_int_t();
+    bool overflowed = false;
+    if (to_nat_int_t() < 0 && arg.to_nat_int_t() < 0 && result > 0)
+        overflowed = true;
+    if (to_nat_int_t() > 0 && arg.to_nat_int_t() > 0 && result < 0)
+        overflowed = true;
+
+    if (overflowed) {
+        auto result = to_bignum(env) + other->to_bignum(env);
+        return new IntegerValue { result };
+    }
     return ValuePtr::integer(result);
 }
 
