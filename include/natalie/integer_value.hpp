@@ -20,11 +20,11 @@ public:
         : Value { Value::Type::Integer, GlobalEnv::the()->Integer() }
         , m_integer { integer } { }
 
-    IntegerValue(String &bignum_str)
+    IntegerValue(const char *bignum_str)
         : Value { Value::Type::Integer, GlobalEnv::the()->Integer() }
         , m_is_bignum(true)
         // TODO: make bignum use natalies strings?
-        , m_bignum(bignum(std::string(bignum_str.c_str()))) { }
+        , m_bignum(bignum(std::string(bignum_str))) { }
 
     IntegerValue(bignum &bignum)
         : Value { Value::Type::Integer, GlobalEnv::the()->Integer() }

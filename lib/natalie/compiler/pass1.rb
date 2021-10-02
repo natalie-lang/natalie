@@ -5,6 +5,8 @@ module Natalie
   class Compiler
     # Process S-expressions from the Ruby parser.
     class Pass1 < NatSexpProcessor
+      MAX_FIXNUM = 9_223_372_036_854_775_807.freeze
+
       def initialize(compiler_context)
         super()
         self.require_empty = false
@@ -448,7 +450,12 @@ module Natalie
         when Float
           exp.new(:new, :FloatValue, lit)
         when Integer
-          exp.new(:'ValuePtr::integer', lit)
+          if lit > MAX_FIXNUM
+            str = lit.to_s
+            exp.new(:new, :IntegerValue, s(:s, str));
+          else
+            exp.new(:'ValuePtr::integer', lit)
+          end
         when Range
           exp.new(:new, :RangeValue, process_lit(s(:lit, lit.first)), process_lit(s(:lit, lit.last)), lit.exclude_end? ? 1 : 0)
         when Regexp
