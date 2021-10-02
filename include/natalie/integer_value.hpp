@@ -3,10 +3,12 @@
 #include <assert.h>
 #include <inttypes.h>
 
+#include "natalie/bignum/bignum.hpp"
 #include "natalie/class_value.hpp"
 #include "natalie/forward.hpp"
 #include "natalie/global_env.hpp"
 #include "natalie/macros.hpp"
+#include "natalie/string_value.hpp"
 #include "natalie/types.hpp"
 #include "natalie/value.hpp"
 
@@ -17,6 +19,17 @@ public:
     IntegerValue(nat_int_t integer)
         : Value { Value::Type::Integer, GlobalEnv::the()->Integer() }
         , m_integer { integer } { }
+
+    IntegerValue(String &bignum_str)
+        : Value { Value::Type::Integer, GlobalEnv::the()->Integer() }
+        , m_is_bignum(true)
+        // TODO: make bignum use natalies strings?
+        , m_bignum(bignum(std::string(bignum_str.c_str()))) { }
+
+    IntegerValue(bignum &bignum)
+        : Value { Value::Type::Integer, GlobalEnv::the()->Integer() }
+        , m_is_bignum(true)
+        , m_bignum(std::move(bignum)) { }
 
     nat_int_t to_nat_int_t() {
         return m_integer;
@@ -68,17 +81,36 @@ public:
     bool lte(Env *, ValuePtr);
     bool gt(Env *, ValuePtr);
     bool gte(Env *, ValuePtr);
+    bool is_bignum() const { return m_is_bignum; }
+    bool is_fixnum() const { return !is_bignum(); }
+
+    bignum to_bignum(Env *env) {
+        if (is_fixnum()) {
+            return bignum(to_s(env)->as_string()->c_str());
+        }
+        return m_bignum;
+    }
+    void set_bignum(bignum &bignum) {
+        m_bignum = bignum;
+        m_is_bignum = true;
+    }
 
     static bool optimized_method(SymbolValue *);
 
     virtual void gc_inspect(char *buf, size_t len) const override {
-        snprintf(buf, len, "<IntegerValue %p int=%lli>", this, m_integer);
+        if (is_fixnum()) {
+            snprintf(buf, len, "<IntegerValue %p int=%lli>", this, m_integer);
+        } else {
+            snprintf(buf, len, "<IntegerValue %p bignum=%s>", this, m_bignum.to_string().c_str());
+        }
     }
 
 private:
     inline static Hashmap<SymbolValue *> s_optimized_methods {};
 
     nat_int_t m_integer { 0 };
+    bool m_is_bignum = false;
+    bignum m_bignum;
 };
 
 }
