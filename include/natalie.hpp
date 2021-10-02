@@ -44,7 +44,6 @@
 #include "natalie/random_value.hpp"
 #include "natalie/range_value.hpp"
 #include "natalie/regexp_value.hpp"
-#include "natalie/sexp_value.hpp"
 #include "natalie/string_value.hpp"
 #include "natalie/symbol_value.hpp"
 #include "natalie/true_value.hpp"

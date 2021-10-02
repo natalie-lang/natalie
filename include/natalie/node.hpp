@@ -667,7 +667,7 @@ public:
     virtual void visit_children(Visitor &visitor) override;
 
 protected:
-    SexpValue *build_args_sexp(Env *);
+    ArrayValue *build_args_sexp(Env *);
 
     Node *m_self_node { nullptr };
     IdentifierNode *m_name { nullptr };
@@ -781,7 +781,7 @@ public:
         return ref;
     }
 
-    SexpValue *to_assignment_sexp(Env *);
+    ArrayValue *to_assignment_sexp(Env *);
 
     SymbolValue *assignment_type(Env *env) {
         switch (token_type()) {
@@ -863,7 +863,7 @@ public:
     }
 
 protected:
-    SexpValue *build_args_sexp(Env *);
+    ArrayValue *build_args_sexp(Env *);
 
     Node *m_call { nullptr };
     BlockNode *m_body { nullptr };

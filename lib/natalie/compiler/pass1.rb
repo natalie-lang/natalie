@@ -4,7 +4,7 @@ require_relative './multiple_assignment'
 module Natalie
   class Compiler
     # Process S-expressions from the Ruby parser.
-    class Pass1 < SexpProcessor
+    class Pass1 < NatSexpProcessor
       def initialize(compiler_context)
         super()
         self.require_empty = false

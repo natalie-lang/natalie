@@ -220,7 +220,6 @@ ValuePtr #{name}(Env *env, ValuePtr klass, size_t argc, ValuePtr *args, Block *b
       EnvValue
       KernelModule
       ParserValue
-      SexpValue
     ]
 
     def as_type(value)
@@ -694,14 +693,6 @@ gen.binding('Regexp', 'inspect', 'RegexpValue', 'inspect', argc: 0, pass_env: tr
 gen.binding('Regexp', 'match', 'RegexpValue', 'match', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Regexp', 'options', 'RegexpValue', 'options', argc: 0, pass_env: false, pass_block: false, return_type: :int)
 gen.binding('Regexp', 'source', 'RegexpValue', 'source', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
-
-gen.binding('Parser::Sexp', 'new', 'SexpValue', 'new_method', argc: :any, pass_env: true, pass_block: false, return_type: :Value)
-gen.binding('Parser::Sexp', 'inspect', 'SexpValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
-gen.binding('Parser::Sexp', 'sexp_type', 'SexpValue', 'first', argc: 0..1, pass_env: true, pass_block: false, return_type: :Value)
-gen.binding('Parser::Sexp', 'file', 'SexpValue', 'file', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
-gen.binding('Parser::Sexp', 'file=', 'SexpValue', 'set_file', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
-gen.binding('Parser::Sexp', 'line', 'SexpValue', 'line', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
-gen.binding('Parser::Sexp', 'line=', 'SexpValue', 'set_line', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 
 gen.binding('String', '*', 'StringValue', 'mul', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('String', '+', 'StringValue', 'add', argc: 1, pass_env: true, pass_block: false, return_type: :Value)

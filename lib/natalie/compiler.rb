@@ -1,5 +1,5 @@
 require 'tempfile'
-require 'sexp_processor'
+require './lib/sexp_processor'
 require_relative './compiler/pass1'
 require_relative './compiler/pass1b'
 require_relative './compiler/pass1r'
