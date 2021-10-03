@@ -25,7 +25,6 @@ DEPENDENCIES
   minitest-reporters
   rake
   ruby_parser
-  sexp_processor
 
 BUNDLED WITH
    2.1.4
