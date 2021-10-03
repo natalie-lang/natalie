@@ -1,5 +1,4 @@
 require_relative '../spec_helper'
-require 'sexp'
 require 'sexp_processor'
 
 if RUBY_ENGINE != 'natalie'

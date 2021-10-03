@@ -1,5 +1,3 @@
-require 'sexp'
-
 # TODO: rename to just SexpProcessor once the ruby_parser gem is gone.
 class NatSexpProcessor
   attr_accessor :default_method

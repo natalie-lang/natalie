@@ -121,7 +121,7 @@ end
 STANDARD = 'c++17'
 HEADERS = Rake::FileList['include/**/{*.h,*.hpp}']
 PRIMARY_SOURCES = Rake::FileList['src/**/*.{c,cpp}'].exclude('src/main.cpp')
-RUBY_SOURCES = Rake::FileList['src/**/*.rb']
+RUBY_SOURCES = Rake::FileList['src/**/*.rb'].exclude('**/extconf.rb')
 SPECIAL_SOURCES = Rake::FileList['build/generated/platform.cpp', 'build/generated/bindings.cpp']
 OBJECT_FILES = PRIMARY_SOURCES.pathmap('build/%f.o') +
                RUBY_SOURCES.pathmap('build/generated/%f.o') +
