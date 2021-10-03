@@ -1,14 +1,13 @@
 #pragma once
 
+#include "natalie/big_int.hpp"
 #include <assert.h>
 #include <inttypes.h>
 
-#include "natalie/bignum/bignum.hpp"
 #include "natalie/class_value.hpp"
 #include "natalie/forward.hpp"
 #include "natalie/global_env.hpp"
 #include "natalie/macros.hpp"
-#include "natalie/string_value.hpp"
 #include "natalie/types.hpp"
 #include "natalie/value.hpp"
 
@@ -23,10 +22,9 @@ public:
     IntegerValue(const char *bignum_str)
         : Value { Value::Type::Integer, GlobalEnv::the()->Integer() }
         , m_is_bignum(true)
-        // TODO: make bignum use natalies strings?
-        , m_bignum(bignum(std::string(bignum_str))) { }
+        , m_bignum(BigInt(bignum_str)) { }
 
-    IntegerValue(bignum &bignum)
+    IntegerValue(BigInt &bignum)
         : Value { Value::Type::Integer, GlobalEnv::the()->Integer() }
         , m_is_bignum(true)
         , m_bignum(std::move(bignum)) { }
@@ -84,15 +82,11 @@ public:
     bool is_bignum() const { return m_is_bignum; }
     bool is_fixnum() const { return !is_bignum(); }
 
-    bignum to_bignum(Env *env) {
+    BigInt to_bignum() {
         if (is_fixnum()) {
-            return bignum(to_s(env)->as_string()->c_str());
+            return BigInt(to_nat_int_t());
         }
         return m_bignum;
-    }
-    void set_bignum(bignum &bignum) {
-        m_bignum = bignum;
-        m_is_bignum = true;
     }
 
     static bool optimized_method(SymbolValue *);
@@ -110,7 +104,7 @@ private:
 
     nat_int_t m_integer { 0 };
     bool m_is_bignum = false;
-    bignum m_bignum;
+    BigInt m_bignum;
 };
 
 }

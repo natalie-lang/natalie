@@ -59,7 +59,7 @@ ValuePtr IntegerValue::add(Env *env, ValuePtr arg) {
 
     auto other = arg->as_integer();
     if (is_bignum() || other->is_bignum()) {
-        auto result = to_bignum(env) + other->to_bignum(env);
+        auto result = to_bignum() + other->to_bignum();
         return new IntegerValue { result };
     }
 
@@ -71,7 +71,7 @@ ValuePtr IntegerValue::add(Env *env, ValuePtr arg) {
         overflowed = true;
 
     if (overflowed) {
-        auto result = to_bignum(env) + other->to_bignum(env);
+        auto result = to_bignum() + other->to_bignum();
         return new IntegerValue { result };
     }
     return ValuePtr::integer(result);

@@ -99,7 +99,7 @@ belongs to the respective owner:
 | ----------------------------- | --------------------------------- | ----------------- |
 | `dtoa.c`                      | David M. Gay, Lucent Technologies | custom permissive |
 | `fiber_value.*`               | Evan Jones                        | MIT               |
-| `bignum/*`                    | Micheal Clark                     | MIT               |
+| `big_int.*`                   | Syed Faheel Ahmad                 | MIT               |
 | `spec/*` (see `spec/LICENSE`) | Engine Yard, Inc.                 | MIT               |
 
 See each file above for full copyright and license text.
