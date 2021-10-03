@@ -51,7 +51,7 @@ ValuePtr IntegerValue::add(Env *env, ValuePtr arg) {
     if (arg.is_float()) {
         double result = to_nat_int_t() + arg->as_float()->to_double();
         return new FloatValue { result };
-    } else if (arg->respond_to(env, SymbolValue::intern("coerce"))) {
+    } else if (!arg->is_integer() && arg->respond_to(env, SymbolValue::intern("coerce"))) {
         auto array = arg->send(env, SymbolValue::intern("coerce"), { this });
         arg = array->as_array()->at(1);
     }
