@@ -234,6 +234,10 @@ ParserValue *Value::as_parser_value_for_method_binding() {
     return static_cast<ParserValue *>(this);
 }
 
+SexpValue *Value::as_sexp_value_for_method_binding() {
+    return static_cast<SexpValue *>(this);
+}
+
 const String *Value::identifier_str(Env *env, Conversion conversion) {
     if (is_symbol()) {
         return as_symbol()->to_s(env)->to_low_level_string();

@@ -5,25 +5,28 @@
 #include "ruby.h"
 #include "stdio.h"
 
-Natalie::ValuePtr init_obj_sexp(Natalie::Env *env, Natalie::ValuePtr self);
-
 Natalie::Env *env;
+VALUE Sexp;
 
 extern "C" {
 
 VALUE to_mri_ruby(Natalie::ValuePtr node) {
     switch (node->type()) {
     case Natalie::Value::Type::Array: {
-        VALUE ary = rb_ary_new();
+        VALUE sexp = rb_class_new_instance(0, nullptr, Sexp);
         for (auto item : *node->as_array())
-            rb_ary_push(ary, to_mri_ruby(item));
-        return ary;
+            rb_ary_push(sexp, to_mri_ruby(item));
+        return sexp;
         break;
     }
     case Natalie::Value::Type::Symbol:
         return ID2SYM(rb_intern(node->as_symbol()->c_str()));
     case Natalie::Value::Type::Nil:
         return Qnil;
+    case Natalie::Value::Type::Integer:
+        return rb_int_new(node->as_integer()->to_nat_int_t());
+    case Natalie::Value::Type::String:
+        return rb_str_new_cstr(node->as_string()->c_str());
     default:
         printf("Unknown Natalie node type: %d\n", (int)node->type());
         abort();
@@ -53,8 +56,9 @@ VALUE parse(int argc, VALUE *argv, VALUE self) {
 }
 
 void Init_parser() {
+    int error;
+    Sexp = rb_eval_string_protect("class Sexp < Array; def initialize(*items); items.each { |i| self << i }; end; def inspect; \"s(#{map(&:inspect).join(', ')})\"; end; end; Sexp", &error);
     env = Natalie::build_top_env();
-    init_obj_sexp(env, Natalie::GlobalEnv::the()->Object());
     VALUE Parser = rb_define_class("Parser", rb_cObject);
     rb_define_singleton_method(Parser, "parse", parse, -1);
 }

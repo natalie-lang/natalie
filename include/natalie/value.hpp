@@ -144,6 +144,7 @@ public:
     KernelModule *as_kernel_module_for_method_binding();
     EnvValue *as_env_value_for_method_binding();
     ParserValue *as_parser_value_for_method_binding();
+    SexpValue *as_sexp_value_for_method_binding();
 
     SymbolValue *to_symbol(Env *, Conversion);
 
