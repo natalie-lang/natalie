@@ -54,6 +54,7 @@ module Natalie
       cmd = compiler_command
       out = `#{cmd} 2>&1`
       File.unlink(@c_path) unless keep_cpp? || $? != 0
+      p "cpp file path is: #{c_path}" if keep_cpp?
       $stderr.puts out if out.strip != ''
       raise CompileError.new('There was an error compiling.') if $? != 0
     end
@@ -244,11 +245,16 @@ module Natalie
 
     def expand_macros(ast, path)
       ast.each_with_index do |node, i|
-        if macro?(node)
-          expanded = run_macro(node, path)
-          raise 'bad node' if expanded.sexp_type != :block
-          ast[i] = expanded
+        next unless node.is_a?(Sexp)
+        expanded = if macro?(node)
+          run_macro(node, path)
+        elsif node.size > 1
+          s(node[0], *expand_macros(node[1..-1], path))
+        else
+          node
         end
+        next if expanded === node
+        ast[i] = expanded
       end
       ast
     end
@@ -301,11 +307,15 @@ module Natalie
     end
 
     def load_file(path, require_once:)
-      return s(:block) if require_once && @required[path]
+      return s(:false) if require_once && @required[path] #TODO replace with runtime logic checking loaded modules
       @required[path] = true
       code = File.read(path)
       file_ast = Natalie::Parser.new(code, path).ast
-      expand_macros(file_ast, path)
+      s(:block, s(:if, s(:true), 
+        s(:block, 
+          expand_macros(file_ast, path), 
+          s(:true),
+        )))
     end
 
     def find_full_path(path, base:, search:)
