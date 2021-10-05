@@ -249,6 +249,7 @@ Node *Parser::parse_block_pass(Env *env, LocalsVectorPtr locals) {
     case Token::Type::Constant:
     case Token::Type::GlobalVariable:
     case Token::Type::InstanceVariable:
+    case Token::Type::NilKeyword:
         return new BlockPassNode { token, parse_expression(env, LOWEST, locals) };
     case Token::Type::Symbol:
         return new BlockPassNode { token, parse_symbol(env, locals) };

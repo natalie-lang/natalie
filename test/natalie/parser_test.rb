@@ -513,9 +513,10 @@ describe 'Parser' do
       #Parser.parse("get 'foo', bar do 'baz' end").should == s(:block, s(:iter, s(:call, nil, :get, s(:str, "foo"), s(:call, nil, :bar)), 0, s(:str, "baz")))
     end
 
-    it 'parses block pass' do
+    it 'parses block pass (ampersand operator)' do
       Parser.parse('map(&:foo)').should == s(:block, s(:call, nil, :map, s(:block_pass, s(:lit, :foo))))
-      Parser.parse('map(&block)').should == s(:block, s(:call, nil, :map, s(:block_pass, s(:call, nil, :block))))
+      Parser.parse('map(&myblock)').should == s(:block, s(:call, nil, :map, s(:block_pass, s(:call, nil, :myblock))))
+      Parser.parse('map(&nil)').should == s(:block, s(:call, nil, :map, s(:block_pass, s(:nil))))
     end
 
     it 'parses break, next, super, and yield' do
