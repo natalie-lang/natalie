@@ -555,7 +555,7 @@ public:
     bool is_else_keyword() { return m_type == Type::ElseKeyword; }
     bool is_elsif_keyword() { return m_type == Type::ElsifKeyword; }
     bool is_end_keyword() { return m_type == Type::EndKeyword; }
-    bool is_end_of_expression() { return m_type == Type::Eol || m_type == Type::Eof || is_expression_modifier(); }
+    bool is_end_of_expression() { return m_type == Type::EndKeyword || m_type == Type::Eol || m_type == Type::Eof || is_expression_modifier(); }
     bool is_eof() { return m_type == Type::Eof; }
     bool is_eol() { return m_type == Type::Eol; }
     bool is_expression_modifier() { return m_type == Type::IfKeyword || m_type == Type::UnlessKeyword || m_type == Type::WhileKeyword || m_type == Type::UntilKeyword; }
