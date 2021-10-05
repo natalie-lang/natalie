@@ -68,8 +68,7 @@ VALUE parse_on_instance(VALUE self) {
         tree_value = tree->to_ruby(env);
         return to_mri_ruby(tree_value);
     } catch (Natalie::ExceptionValue *exception) {
-        handle_top_level_exception(env, exception, false);
-        abort();
+        rb_raise(rb_eSyntaxError, "%s", exception->message()->c_str());
     }
 }
 

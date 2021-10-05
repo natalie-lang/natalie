@@ -133,6 +133,14 @@ Env *build_top_env() {
 
     ClassValue *Exception = Object->subclass(env, "Exception", Value::Type::Exception);
     Object->const_set(SymbolValue::intern("Exception"), Exception);
+    ClassValue *ScriptError = Exception->subclass(env, "ScriptError", Value::Type::Exception);
+    Object->const_set(SymbolValue::intern("ScriptError"), ScriptError);
+    ClassValue *SyntaxError = ScriptError->subclass(env, "SyntaxError", Value::Type::Exception);
+    Object->const_set(SymbolValue::intern("SyntaxError"), SyntaxError);
+    ClassValue *StandardError = Exception->subclass(env, "StandardError", Value::Type::Exception);
+    Object->const_set(SymbolValue::intern("StandardError"), StandardError);
+    ClassValue *NameError = StandardError->subclass(env, "NameError", Value::Type::Exception);
+    Object->const_set(SymbolValue::intern("NameError"), NameError);
 
     ClassValue *Encoding = GlobalEnv::the()->Object()->subclass(env, "Encoding");
     Object->const_set(SymbolValue::intern("Encoding"), Encoding);
