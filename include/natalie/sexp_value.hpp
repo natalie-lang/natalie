@@ -41,7 +41,7 @@ public:
 private:
     SexpValue(std::initializer_list<ValuePtr> list)
         : ArrayValue { list } {
-        m_klass = GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("Parser"))->const_fetch(SymbolValue::intern("Sexp"))->as_class();
+        m_klass = GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("Sexp"))->as_class();
     }
 };
 

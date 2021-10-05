@@ -174,7 +174,7 @@ Env *build_top_env() {
     Object->const_set(SymbolValue::intern("Parser"), Parser);
 
     ClassValue *Sexp = Array->subclass(env, "Sexp", Value::Type::Array);
-    Parser->const_set(SymbolValue::intern("Sexp"), Sexp);
+    Object->const_set(SymbolValue::intern("Sexp"), Sexp);
 
     ValuePtr RUBY_VERSION = new StringValue { "3.0.0" };
     Object->const_set(SymbolValue::intern("RUBY_VERSION"), RUBY_VERSION);

@@ -1,16 +1,18 @@
-#include "natalie/parser.hpp"
 #include "extconf.h"
 #include "natalie.hpp"
+#include "natalie/parser.hpp"
 #include "natalie/string.hpp"
 #include "ruby.h"
+#include "ruby/intern.h"
 #include "stdio.h"
 
 Natalie::Env *env;
-VALUE Sexp;
+VALUE Parser;
 
 extern "C" {
 
 VALUE to_mri_ruby(Natalie::ValuePtr value) {
+    VALUE Sexp = rb_const_get(rb_cObject, rb_intern("Sexp"));
     switch (value->type()) {
     case Natalie::Value::Type::Array: {
         VALUE sexp = rb_class_new_instance(0, nullptr, Sexp);
@@ -38,17 +40,24 @@ VALUE to_mri_ruby(Natalie::ValuePtr value) {
     }
 }
 
-VALUE parse(int argc, VALUE *argv, VALUE self) {
+VALUE initialize(int argc, VALUE *argv, VALUE self) {
     if (argc < 1 || argc > 2) {
         VALUE SyntaxError = rb_const_get(rb_cObject, rb_intern("SyntaxError"));
         rb_raise(SyntaxError, "wrong number of arguments (given %d, expected 1..2)", argc);
     }
-    auto code = argv[0];
+    rb_ivar_set(self, rb_intern("@code"), argv[0]);
     VALUE path;
     if (argc > 1)
         path = argv[1];
     else
         path = rb_str_new_cstr("(string)");
+    rb_ivar_set(self, rb_intern("@path"), path);
+    return self;
+}
+
+VALUE parse_on_instance(VALUE self) {
+    VALUE code = rb_ivar_get(self, rb_intern("@code"));
+    VALUE path = rb_ivar_get(self, rb_intern("@path"));
     auto code_nat_string = new Natalie::String { StringValueCStr(code) };
     auto path_nat_string = new Natalie::String { StringValueCStr(path) };
     auto parser = Natalie::Parser { code_nat_string, path_nat_string };
@@ -64,26 +73,26 @@ VALUE parse(int argc, VALUE *argv, VALUE self) {
     }
 }
 
-void Init_parser() {
+VALUE parse(int argc, VALUE *argv, VALUE self) {
+    VALUE parser = rb_class_new_instance(argc, argv, Parser);
+    return parse_on_instance(parser);
+}
+
+VALUE s(int argc, VALUE *argv, VALUE self) {
+    VALUE Sexp = rb_const_get(rb_cObject, rb_intern("Sexp"));
+    VALUE sexp = rb_class_new_instance(0, nullptr, Sexp);
+    for (size_t i = 0; i < argc; ++i)
+        rb_ary_push(sexp, argv[i]);
+    return sexp;
+}
+
+void Init_parser_c_ext() {
     int error;
-    Sexp = rb_eval_string_protect("class Sexp < Array \n\
-                                     def initialize(*items) \n\
-                                       items.each { |i| self << i } \n\
-                                     end \n\
-                                     def inspect \n\
-                                       \"s(#{map(&:inspect).join(', ')})\" \n\
-                                     end \n\
-                                     def pretty_print q \n\
-                                       nnd = \")\" \n\
-                                       q.group(1, \"s(\", nnd) do \n\
-                                         q.seplist(self) { |v| q.pp v } \n\
-                                       end \n\
-                                     end \n\
-                                   end \n\
-                                   Sexp",
-        &error);
     env = Natalie::build_top_env();
-    VALUE Parser = rb_define_class("Parser", rb_cObject);
+    Parser = rb_define_class("Parser", rb_cObject);
+    rb_define_method(Parser, "parse", parse_on_instance, 0);
+    rb_define_method(Parser, "initialize", initialize, -1);
     rb_define_singleton_method(Parser, "parse", parse, -1);
+    rb_define_method(rb_cObject, "s", s, -1);
 }
 }

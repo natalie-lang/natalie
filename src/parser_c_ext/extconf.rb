@@ -5,4 +5,4 @@ $INCFLAGS += " -I ../../build/onigmo/include"
 $LDFLAGS += " -L ../../build"
 $LIBS += ' -lnatalie'
 create_header
-create_makefile 'parser'
+create_makefile 'parser_c_ext'

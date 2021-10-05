@@ -120,7 +120,7 @@ end
 
 STANDARD = 'c++17'
 HEADERS = Rake::FileList['include/**/{*.h,*.hpp}']
-PRIMARY_SOURCES = Rake::FileList['src/**/*.{c,cpp}'].exclude('src/main.cpp')
+PRIMARY_SOURCES = Rake::FileList['src/**/*.{c,cpp}'].exclude('src/main.cpp', 'src/parser_c_ext/*')
 RUBY_SOURCES = Rake::FileList['src/**/*.rb'].exclude('**/extconf.rb')
 SPECIAL_SOURCES = Rake::FileList['build/generated/platform.cpp', 'build/generated/bindings.cpp']
 OBJECT_FILES = PRIMARY_SOURCES.pathmap('build/%f.o') +
@@ -210,6 +210,18 @@ end
 
 rule '.rb.cpp' => 'src/%n' do |t|
   sh "bin/natalie --write-obj #{t.name} #{t.source}"
+end
+
+file 'build/parser_c_ext.so' => :libnatalie do
+  build_dir = File.expand_path('build/parser_c_ext', __dir__)
+  rm_rf build_dir
+  cp_r 'src/parser_c_ext', build_dir
+  sh <<-SH
+    cd #{build_dir} && \
+    ruby extconf.rb && \
+    make && \
+    cp parser_c_ext.so ..
+  SH
 end
 
 def cc

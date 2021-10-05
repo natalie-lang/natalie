@@ -62,6 +62,10 @@ OptionParser.new do |opts|
   opts.on('--keep-cpp', 'Do not delete intermediate cpp file used for compilation') do
     options[:keep_cpp] = true
   end
+
+  opts.on('--nat-parser', "Enable use of Natalie's own Ruby parser (rather than the ruby_parser gem)") do
+    options[:nat_parser] = true
+  end
 end.parse!
 
 build_type_path = File.expand_path('../.build', __dir__)
@@ -204,7 +208,7 @@ class Runner
   end
 
   def parser
-    @parser ||= Natalie::Parser.new(code, source_path)
+    @parser ||= Natalie::Parser.new(code, source_path, nat_parser: options[:nat_parser])
   end
 
   def ast

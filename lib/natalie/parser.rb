@@ -1,18 +1,30 @@
-if RUBY_ENGINE != 'natalie'
-  require 'ruby_parser'
-end
-
 module Natalie
   class Parser
     class IncompleteExpression < StandardError; end
 
-    def initialize(code_str, path)
+    # enable dog-fooding our own parser by passing nat_parser: true
+    def initialize(code_str, path, nat_parser: false)
+      if RUBY_ENGINE != 'natalie'
+        require_relative './sexp'
+        if nat_parser
+          begin
+            require_relative '../../build/parser_c_ext'
+          rescue LoadError
+            puts "Error: You must build parser_c_ext.so by running: rake build/parser_c_ext.so"
+            exit 1
+          end
+        else
+          require 'ruby_parser'
+        end
+      end
+
       @code_str = code_str
       @path = path
+      @nat_parser = nat_parser
     end
 
     def ast
-      if RUBY_ENGINE == 'natalie'
+      if RUBY_ENGINE == 'natalie' || @nat_parser
         natalie_parse
       else
         ruby_parse

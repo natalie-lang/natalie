@@ -43,3 +43,11 @@ class NatSexpProcessor
     result
   end
 end
+
+def s(*items)
+  sexp = Sexp.new
+  items.each do |item|
+    sexp << item
+  end
+  sexp
+end
