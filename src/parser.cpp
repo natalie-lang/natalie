@@ -413,10 +413,10 @@ Node *Parser::parse_constant(Env *env, LocalsVectorPtr locals) {
     return node;
 };
 
-Node *Parser::parse_def(Env *env, LocalsVectorPtr) {
+Node *Parser::parse_def(Env *env, LocalsVectorPtr locals) {
     auto token = current_token();
     advance();
-    auto locals = new ManagedVector<SymbolValue *> {};
+    auto our_locals = new ManagedVector<SymbolValue *> {};
     Node *self_node = nullptr;
     IdentifierNode *name;
     switch (current_token()->type()) {
@@ -425,9 +425,9 @@ Node *Parser::parse_def(Env *env, LocalsVectorPtr) {
             self_node = parse_identifier(env, locals);
             advance();
             expect(env, Token::Type::BareName, "def name");
-            name = static_cast<IdentifierNode *>(parse_identifier(env, locals));
+            name = static_cast<IdentifierNode *>(parse_identifier(env, our_locals));
         } else {
-            name = static_cast<IdentifierNode *>(parse_identifier(env, locals));
+            name = static_cast<IdentifierNode *>(parse_identifier(env, our_locals));
         }
         break;
     case Token::Type::SelfKeyword:
@@ -436,16 +436,16 @@ Node *Parser::parse_def(Env *env, LocalsVectorPtr) {
         expect(env, Token::Type::Dot, "def obj dot");
         advance();
         expect(env, Token::Type::BareName, "def name");
-        name = static_cast<IdentifierNode *>(parse_identifier(env, locals));
+        name = static_cast<IdentifierNode *>(parse_identifier(env, our_locals));
         break;
     case Token::Type::Constant:
         if (peek_token()->type() == Token::Type::Dot) {
             self_node = parse_constant(env, locals);
             advance();
             expect(env, Token::Type::BareName, "def name");
-            name = static_cast<IdentifierNode *>(parse_identifier(env, locals));
+            name = static_cast<IdentifierNode *>(parse_identifier(env, our_locals));
         } else {
-            name = static_cast<IdentifierNode *>(parse_identifier(env, locals));
+            name = static_cast<IdentifierNode *>(parse_identifier(env, our_locals));
         }
         break;
     default:
@@ -458,15 +458,15 @@ Node *Parser::parse_def(Env *env, LocalsVectorPtr) {
     ManagedVector<Node *> *args;
     if (current_token()->is_lparen()) {
         advance();
-        args = parse_def_args(env, locals);
+        args = parse_def_args(env, our_locals);
         expect(env, Token::Type::RParen, "args closing paren");
         advance();
     } else if (current_token()->is_bare_name() || current_token()->is_splat()) {
-        args = parse_def_args(env, locals);
+        args = parse_def_args(env, our_locals);
     } else {
         args = new ManagedVector<Node *> {};
     }
-    auto body = parse_def_body(env, locals);
+    auto body = parse_def_body(env, our_locals);
     expect(env, Token::Type::EndKeyword, "def end");
     advance();
     return new DefNode { token, self_node, name, *args, body };
