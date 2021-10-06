@@ -112,6 +112,10 @@ ValuePtr ArrayValue::ltlt(Env *env, ValuePtr arg) {
 }
 
 ValuePtr ArrayValue::add(Env *env, ValuePtr other) {
+    auto to_ary = SymbolValue::intern("to_ary");
+    if (!other->is_array() && other->respond_to(env, to_ary))
+        other = other.send(env, to_ary);
+
     other->assert_type(env, Value::Type::Array, "Array");
     ArrayValue *new_array = new ArrayValue { *this };
     new_array->concat(*other->as_array());
