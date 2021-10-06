@@ -169,7 +169,6 @@ public:
     ValuePtr select(Env *, Block *);
     ValuePtr select_in_place(Env *, Block *);
     ValuePtr shift(Env *, ValuePtr);
-    ValuePtr slice(Env *, ValuePtr, ValuePtr);
     ValuePtr slice_in_place(Env *, ValuePtr, ValuePtr);
     ValuePtr sort(Env *, Block *);
     ValuePtr sub(Env *, ValuePtr);
