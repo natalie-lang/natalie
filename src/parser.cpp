@@ -1171,8 +1171,14 @@ Node *Parser::parse_call_expression_with_parens(Env *env, Node *left, LocalsVect
 }
 
 void Parser::parse_call_args(Env *env, NodeWithArgs *node, LocalsVectorPtr locals, bool bare) {
-    auto arg = parse_expression(env, bare ? BARECALLARGS : CALLARGS, locals);
-    node->add_arg(arg);
+    if ((current_token()->type() == Token::Type::Symbol && peek_token()->type() == Token::Type::HashRocket) || current_token()->type() == Token::Type::SymbolKey) {
+        auto hash = parse_keyword_args(env, locals);
+        node->add_arg(hash);
+    } else {
+        auto arg = parse_expression(env, bare ? BARECALLARGS : CALLARGS, locals);
+        node->add_arg(arg);
+    }
+
     while (current_token()->is_comma()) {
         advance();
         auto token = current_token();
