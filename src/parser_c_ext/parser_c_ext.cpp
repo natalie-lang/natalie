@@ -21,19 +21,23 @@ VALUE to_mri_ruby(Natalie::ValuePtr value) {
         return sexp;
         break;
     }
-    case Natalie::Value::Type::Symbol:
-        return ID2SYM(rb_intern(value->as_symbol()->c_str()));
-    case Natalie::Value::Type::Nil:
-        return Qnil;
     case Natalie::Value::Type::Integer:
         return rb_int_new(value->as_integer()->to_nat_int_t());
+    case Natalie::Value::Type::Nil:
+        return Qnil;
     case Natalie::Value::Type::Range:
         return rb_range_new(
             to_mri_ruby(value->as_range()->begin()),
             to_mri_ruby(value->as_range()->end()),
             value->as_range()->exclude_end());
+    case Natalie::Value::Type::Regexp: {
+        auto re = value->as_regexp();
+        return rb_reg_new(re->pattern(), strlen(re->pattern()), re->options());
+    }
     case Natalie::Value::Type::String:
         return rb_str_new_cstr(value->as_string()->c_str());
+    case Natalie::Value::Type::Symbol:
+        return ID2SYM(rb_intern(value->as_symbol()->c_str()));
     default:
         printf("Unknown Natalie value type: %d\n", (int)value->type());
         abort();
