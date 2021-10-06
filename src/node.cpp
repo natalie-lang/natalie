@@ -50,10 +50,14 @@ ValuePtr ArgNode::to_ruby(Env *env) {
             name = String(m_name);
         else
             name = String();
-        if (m_splat)
+        if (m_splat) {
             name.prepend_char('*');
-        else if (m_block_arg)
+        } else if (m_kwsplat) {
+            name.prepend_char('*');
+            name.prepend_char('*');
+        } else if (m_block_arg) {
             name.prepend_char('&');
+        }
         return SymbolValue::intern(name.c_str());
     }
 }
@@ -507,6 +511,15 @@ ValuePtr KeywordArgNode::to_ruby(Env *env) {
         });
     if (m_value)
         sexp->push(m_value->to_ruby(env));
+    return sexp;
+}
+
+ValuePtr KeywordSplatNode::to_ruby(Env *env) {
+    auto sexp = build_sexp(env, this, { SymbolValue::intern("hash") });
+    auto kwsplat_sexp = build_sexp(env, this, { SymbolValue::intern("kwsplat") });
+    if (m_node)
+        kwsplat_sexp->push(m_node->to_ruby(env));
+    sexp->push(kwsplat_sexp);
     return sexp;
 }
 

@@ -462,7 +462,7 @@ Node *Parser::parse_def(Env *env, LocalsVectorPtr) {
         args = parse_def_args(env, locals);
         expect(env, Token::Type::RParen, "args closing paren");
         advance();
-    } else if (current_token()->is_bare_name()) {
+    } else if (current_token()->is_bare_name() || current_token()->is_splat()) {
         args = parse_def_args(env, locals);
     } else {
         args = new ManagedVector<Node *> {};
@@ -525,6 +525,19 @@ Node *Parser::parse_def_single_arg(Env *env, LocalsVectorPtr locals) {
             arg = new ArgNode { token };
         }
         arg->set_splat(true);
+        return arg;
+    }
+    case Token::Type::Exponent: {
+        advance();
+        ArgNode *arg;
+        if (current_token()->is_bare_name()) {
+            arg = new ArgNode { token, current_token()->literal() };
+            advance();
+            arg->add_to_locals(env, locals);
+        } else {
+            arg = new ArgNode { token };
+        }
+        arg->set_kwsplat(true);
         return arg;
     }
     case Token::Type::BitwiseAnd: {
@@ -819,6 +832,12 @@ Node *Parser::parse_keyword_args(Env *env, LocalsVectorPtr locals) {
     }
     return hash;
 }
+
+Node *Parser::parse_keyword_splat(Env *env, LocalsVectorPtr locals) {
+    auto token = current_token();
+    advance();
+    return new KeywordSplatNode { token, parse_expression(env, SPLAT, locals) };
+};
 
 Node *Parser::parse_module(Env *env, LocalsVectorPtr) {
     auto token = current_token();
@@ -1548,6 +1567,8 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type, Precedence prece
         return &Parser::parse_self;
     case Type::Multiply:
         return &Parser::parse_splat;
+    case Type::Exponent:
+        return &Parser::parse_keyword_splat;
     case Type::Arrow:
         return &Parser::parse_stabby_proc;
     case Type::String:

@@ -553,7 +553,15 @@ describe 'Parser' do
     end
 
     it 'parses splat *' do
+      Parser.parse('def foo(*args); end').should == s(:block, s(:defn, :foo, s(:args, :"*args"), s(:nil)))
+      Parser.parse('def foo *args; end').should == s(:block, s(:defn, :foo, s(:args, :"*args"), s(:nil)))
       Parser.parse('foo(*args)').should == s(:block, s(:call, nil, :foo, s(:splat, s(:call, nil, :args))))
+    end
+
+    it 'parses keyword splat *' do
+      Parser.parse('def foo(**kwargs); end').should == s(:block, s(:defn, :foo, s(:args, :"**kwargs"), s(:nil)))
+      Parser.parse('def foo **kwargs; end').should == s(:block, s(:defn, :foo, s(:args, :"**kwargs"), s(:nil)))
+      Parser.parse('foo(**kwargs)').should == s(:block, s(:call, nil, :foo, s(:hash, s(:kwsplat, s(:call, nil, :kwargs)))))
     end
 
     it 'parses stabby proc' do

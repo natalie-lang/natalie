@@ -563,6 +563,7 @@ public:
     bool is_newline() { return m_type == Type::Eol; }
     bool is_rparen() { return m_type == Type::RParen; }
     bool is_semicolon() { return m_type == Type::Semicolon; }
+    bool is_splat() { return m_type == Type::Multiply || m_type == Type::Exponent; }
     bool is_valid() { return m_type != Type::Invalid; }
     bool is_when_keyword() { return m_type == Type::WhenKeyword; }
 

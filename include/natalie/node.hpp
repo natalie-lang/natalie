@@ -42,6 +42,7 @@ public:
         InterpolatedShell,
         InterpolatedString,
         KeywordArg,
+        KeywordSplat,
         Literal,
         LogicalAnd,
         LogicalOr,
@@ -169,6 +170,9 @@ public:
     bool splat() { return m_splat; }
     void set_splat(bool splat) { m_splat = splat; }
 
+    bool kwsplat() { return m_kwsplat; }
+    void set_kwsplat(bool kwsplat) { m_kwsplat = kwsplat; }
+
     bool block_arg() { return m_block_arg; }
     void set_block_arg(bool block_arg) { m_block_arg = block_arg; }
 
@@ -189,6 +193,7 @@ protected:
     const String *m_name { nullptr };
     bool m_block_arg { false };
     bool m_splat { false };
+    bool m_kwsplat { false };
     Node *m_value { nullptr };
 };
 
@@ -931,6 +936,32 @@ public:
     virtual Type type() override { return Type::KeywordArg; }
 
     virtual ValuePtr to_ruby(Env *) override;
+};
+
+class KeywordSplatNode : public Node {
+public:
+    KeywordSplatNode(Token *token)
+        : Node { token } { }
+
+    KeywordSplatNode(Token *token, Node *node)
+        : Node { token }
+        , m_node { node } {
+        assert(m_node);
+    }
+
+    virtual Type type() override { return Type::KeywordSplat; }
+
+    virtual ValuePtr to_ruby(Env *) override;
+
+    Node *node() { return m_node; }
+
+    virtual void visit_children(Visitor &visitor) override {
+        Node::visit_children(visitor);
+        visitor.visit(m_node);
+    }
+
+protected:
+    Node *m_node { nullptr };
 };
 
 class LogicalAndNode : public Node {

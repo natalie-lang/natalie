@@ -26,7 +26,7 @@ public:
         HASH, // {}
         EXPRMODIFIER, // if/unless/while/until
         CASE, // case/when/else
-        SPLAT, // *args
+        SPLAT, // *args, **kwargs
         ASSIGNMENT, // =
         ITER_BLOCK, // do |n| ... end
         CALLARGS, // foo a, b
@@ -206,6 +206,7 @@ private:
     Node *parse_interpolated_string(Env *, LocalsVectorPtr);
     Node *parse_lit(Env *, LocalsVectorPtr);
     Node *parse_keyword_args(Env *, LocalsVectorPtr);
+    Node *parse_keyword_splat(Env *, LocalsVectorPtr);
     Node *parse_module(Env *, LocalsVectorPtr);
     Node *parse_next(Env *, LocalsVectorPtr);
     Node *parse_nil(Env *, LocalsVectorPtr);
