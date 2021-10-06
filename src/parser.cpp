@@ -197,11 +197,11 @@ void Parser::parse_rest_of_begin(Env *env, BeginNode *begin_node, LocalsVectorPt
             auto rescue_node = new BeginRescueNode { current_token() };
             advance();
             if (!current_token()->is_eol() && current_token()->type() != Token::Type::HashRocket) {
-                auto name = parse_expression(env, CALLARGS, locals);
+                auto name = parse_expression(env, BARECALLARGS, locals);
                 rescue_node->add_exception_node(name);
                 while (current_token()->is_comma()) {
                     advance();
-                    auto name = parse_expression(env, CALLARGS, locals);
+                    auto name = parse_expression(env, BARECALLARGS, locals);
                     rescue_node->add_exception_node(name);
                 }
             }
@@ -281,7 +281,7 @@ Node *Parser::parse_break(Env *env, LocalsVectorPtr locals) {
             advance();
             return new BreakNode { token, new NilSexpNode { token } };
         } else {
-            auto arg = parse_expression(env, CALLARGS, locals);
+            auto arg = parse_expression(env, BARECALLARGS, locals);
             expect(env, Token::Type::RParen, "break closing paren");
             advance();
             return new BreakNode { token, arg };
@@ -475,7 +475,7 @@ Node *Parser::parse_def(Env *env, LocalsVectorPtr) {
 Node *Parser::parse_defined(Env *env, LocalsVectorPtr locals) {
     auto token = current_token();
     advance();
-    auto arg = parse_expression(env, CALLARGS, locals);
+    auto arg = parse_expression(env, BARECALLARGS, locals);
     return new DefinedNode { token, arg };
 }
 
@@ -860,7 +860,7 @@ Node *Parser::parse_next(Env *env, LocalsVectorPtr locals) {
             advance();
             return new NextNode { token, new NilSexpNode { token } };
         } else {
-            auto arg = parse_expression(env, CALLARGS, locals);
+            auto arg = parse_expression(env, BARECALLARGS, locals);
             expect(env, Token::Type::RParen, "break closing paren");
             advance();
             return new NextNode { token, arg };
@@ -909,14 +909,14 @@ Node *Parser::parse_return(Env *env, LocalsVectorPtr locals) {
     advance();
     if (current_token()->is_end_of_expression())
         return new ReturnNode { token };
-    return new ReturnNode { token, parse_expression(env, CALLARGS, locals) };
+    return new ReturnNode { token, parse_expression(env, BARECALLARGS, locals) };
 };
 
 Node *Parser::parse_sclass(Env *env, LocalsVectorPtr locals) {
     auto token = current_token();
     advance(); // class
     advance(); // <<
-    auto klass = parse_expression(env, CALLARGS, locals);
+    auto klass = parse_expression(env, BARECALLARGS, locals);
     auto body = parse_body(env, locals, LOWEST);
     expect(env, Token::Type::EndKeyword, "sclass end");
     advance();
@@ -971,12 +971,12 @@ Node *Parser::parse_super(Env *env, LocalsVectorPtr locals) {
         if (current_token()->is_rparen()) {
             advance();
         } else {
-            parse_call_args(env, node, locals);
+            parse_call_args(env, node, locals, false);
             expect(env, Token::Type::RParen, "super closing paren");
             advance();
         }
     } else if (!current_token()->is_end_of_expression()) {
-        parse_call_args(env, node, locals);
+        parse_call_args(env, node, locals, true);
     }
     return node;
 };
@@ -1062,12 +1062,12 @@ Node *Parser::parse_yield(Env *env, LocalsVectorPtr locals) {
         if (current_token()->is_rparen()) {
             advance();
         } else {
-            parse_call_args(env, node, locals);
+            parse_call_args(env, node, locals, false);
             expect(env, Token::Type::RParen, "yield closing paren");
             advance();
         }
     } else if (!current_token()->is_end_of_expression()) {
-        parse_call_args(env, node, locals);
+        parse_call_args(env, node, locals, true);
     }
     return node;
 };
@@ -1164,14 +1164,14 @@ Node *Parser::parse_call_expression_with_parens(Env *env, Node *left, LocalsVect
     }
     advance();
     if (!current_token()->is_rparen())
-        parse_call_args(env, call_node, locals);
+        parse_call_args(env, call_node, locals, false);
     expect(env, Token::Type::RParen, "call rparen");
     advance();
     return call_node;
 }
 
-void Parser::parse_call_args(Env *env, NodeWithArgs *node, LocalsVectorPtr locals) {
-    auto arg = parse_expression(env, CALLARGS, locals);
+void Parser::parse_call_args(Env *env, NodeWithArgs *node, LocalsVectorPtr locals, bool bare) {
+    auto arg = parse_expression(env, bare ? BARECALLARGS : CALLARGS, locals);
     node->add_arg(arg);
     while (current_token()->is_comma()) {
         advance();
@@ -1181,7 +1181,7 @@ void Parser::parse_call_args(Env *env, NodeWithArgs *node, LocalsVectorPtr local
             node->add_arg(hash);
             break;
         } else {
-            auto arg = parse_expression(env, CALLARGS, locals);
+            auto arg = parse_expression(env, bare ? BARECALLARGS : CALLARGS, locals);
             node->add_arg(arg);
         }
     }
@@ -1216,7 +1216,7 @@ Node *Parser::parse_call_expression_without_parens(Env *env, Node *left, LocalsV
     case Token::Type::RParen:
         break;
     default:
-        parse_call_args(env, call_node, locals);
+        parse_call_args(env, call_node, locals, true);
     }
     return call_node;
 }
@@ -1399,7 +1399,7 @@ Node *Parser::parse_proc_call_expression(Env *env, Node *left, LocalsVectorPtr l
         "call",
     };
     if (!current_token()->is_rparen())
-        parse_call_args(env, call_node, locals);
+        parse_call_args(env, call_node, locals, false);
     expect(env, Token::Type::RParen, "proc call right paren");
     advance();
     return call_node;
@@ -1420,7 +1420,7 @@ Node *Parser::parse_ref_expression(Env *env, Node *left, LocalsVectorPtr locals)
         "[]",
     };
     if (current_token()->type() != Token::Type::RBracket)
-        parse_call_args(env, call_node, locals);
+        parse_call_args(env, call_node, locals, false);
     expect(env, Token::Type::RBracket, "element reference right bracket");
     advance();
     return call_node;

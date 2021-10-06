@@ -28,11 +28,12 @@ public:
         CASE, // case/when/else
         SPLAT, // *args, **kwargs
         ASSIGNMENT, // =
-        ITER_BLOCK, // do |n| ... end
-        CALLARGS, // foo a, b
+        CALLARGS, // foo(a, b)
         COMPOSITION, // and/or
         OPASSIGNMENT, // += -= *= **= /= %= |= &= ^= >>= <<= ||= &&=
         TERNARY, // ? :
+        ITER_BLOCK, // do |n| ... end
+        BARECALLARGS, // foo a, b
         RANGE, // ..
         ITER_CURLY, // { |n| ... }
         LOGICALNOT, // not
@@ -231,7 +232,7 @@ private:
     Node *parse_assignment_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_call_expression_without_parens(Env *, Node *, LocalsVectorPtr);
     Node *parse_call_expression_with_parens(Env *, Node *, LocalsVectorPtr);
-    void parse_call_args(Env *, NodeWithArgs *, LocalsVectorPtr);
+    void parse_call_args(Env *, NodeWithArgs *, LocalsVectorPtr, bool = false);
     Node *parse_constant_resolution_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_infix_expression(Env *, Node *, LocalsVectorPtr);
     Node *parse_proc_call_expression(Env *, Node *, LocalsVectorPtr);

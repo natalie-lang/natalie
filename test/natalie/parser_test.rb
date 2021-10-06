@@ -323,8 +323,8 @@ describe 'Parser' do
       Parser.parse("1 ? 2 : 3").should == s(:block, s(:if, s(:lit, 1), s(:lit, 2), s(:lit, 3)))
       Parser.parse("foo ?\nbar + baz\n :\n buz / 2").should == s(:block, s(:if, s(:call, nil, :foo), s(:call, s(:call, nil, :bar), :+, s(:call, nil, :baz)), s(:call, s(:call, nil, :buz), :/, s(:lit, 2))))
       Parser.parse("1 ? 2 : map { |n| n }").should == s(:block, s(:if, s(:lit, 1), s(:lit, 2), s(:iter, s(:call, nil, :map), s(:args, :n), s(:lvar, :n))))
-      # FIXME:
-      #Parser.parse("1 ? 2 : map do |n|\nn\nend").should == s(:block, s(:if, s(:lit, 1), s(:lit, 2), s(:iter, s(:call, nil, :map), s(:args, :n), s(:lvar, :n))))
+      Parser.parse("1 ? 2 : map do |n|\nn\nend").should == s(:block, s(:if, s(:lit, 1), s(:lit, 2), s(:iter, s(:call, nil, :map), s(:args, :n), s(:lvar, :n))))
+      Parser.parse("fib(num ? num.to_i : 25)").should == s(:block, s(:call, nil, :fib, s(:if, s(:call, nil, :num), s(:call, s(:call, nil, :num), :to_i), s(:lit, 25))))
     end
 
     it 'parses if/elsif/else' do
