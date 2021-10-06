@@ -152,69 +152,15 @@ ValuePtr ArrayValue::sum(Env *env, size_t argc, ValuePtr *args, Block *block) {
 }
 
 ValuePtr ArrayValue::ref(Env *env, ValuePtr index_obj, ValuePtr size) {
-    auto sym_to_int = SymbolValue::intern("to_int");
-    if (index_obj->respond_to(env, sym_to_int)) {
-        index_obj = index_obj.send(env, sym_to_int);
+    if (!size && index_obj->is_integer()) {
+        auto index = _resolve_index(index_obj->as_integer()->to_nat_int_t());
+        if (index < 0 || index >= (nat_int_t)m_vector.size())
+            return NilValue::the();
+        return m_vector[index];
     }
-    if (index_obj->type() == Value::Type::Integer) {
-        nat_int_t index = index_obj->as_integer()->to_nat_int_t();
-        if (index < 0) {
-            index = this->size() + index;
-        }
-        if (index < 0) {
-            return NilValue::the();
-        }
-        size_t sindex = static_cast<size_t>(index);
-        if (sindex >= this->size()) {
-            return NilValue::the();
-        } else if (!size) {
-            return (*this)[index];
-        }
-        size->assert_type(env, Value::Type::Integer, "Integer");
-        size_t end = index + size->as_integer()->to_nat_int_t();
-        size_t max = this->size();
-        end = end > max ? max : end;
-        ArrayValue *result = new ArrayValue {};
-        for (size_t i = index; i < end; i++) {
-            result->push((*this)[i]);
-        }
-        return result;
-    } else if (index_obj->is_range()) {
-        RangeValue *range = index_obj->as_range();
-        ValuePtr begin_obj = range->begin();
-        ValuePtr end_obj = range->end();
-        begin_obj->assert_type(env, Value::Type::Integer, "Integer");
-        end_obj->assert_type(env, Value::Type::Integer, "Integer");
-        nat_int_t begin = begin_obj->as_integer()->to_nat_int_t();
-        nat_int_t end = end_obj->as_integer()->to_nat_int_t();
-        if (begin < 0) {
-            begin = this->size() + begin;
-        }
-        if (end < 0) {
-            end = this->size() + end;
-        }
-        if (begin < 0 || end < 0 || (size_t(begin) > this->size())) {
-            if (begin_obj->as_integer()->is_zero()) {
-                // NOTE: not entirely sure about this, but range beginning with 0..
-                // seems to be a special case ¯\_(ツ)_/¯
-                return new ArrayValue {};
-            }
-            return NilValue::the();
-        }
-        size_t u_end = static_cast<size_t>(end);
-        if (!range->exclude_end()) u_end++;
-        size_t max = this->size();
-        u_end = u_end > max ? max : u_end;
-        ArrayValue *result = new ArrayValue {};
-        for (size_t i = begin; i < u_end; i++) {
-            result->push((*this)[i]);
-        }
-        return result;
-    } else {
-        // will throw
-        index_obj->assert_type(env, ValueType::Integer, "Integer");
-        return nullptr;
-    }
+
+    ArrayValue *copy = new ArrayValue { *this };
+    return copy->slice_in_place(env, index_obj, size);
 }
 
 ValuePtr ArrayValue::refeq(Env *env, ValuePtr index_obj, ValuePtr size, ValuePtr val) {
@@ -1744,11 +1690,6 @@ ValuePtr ArrayValue::rotate_in_place(Env *env, ValuePtr val) {
     }
 
     return this;
-}
-
-ValuePtr ArrayValue::slice(Env *env, ValuePtr index_obj, ValuePtr size) {
-    ArrayValue *copy = new ArrayValue { *this };
-    return copy->slice_in_place(env, index_obj, size);
 }
 
 ValuePtr ArrayValue::slice_in_place(Env *env, ValuePtr index_obj, ValuePtr size) {
