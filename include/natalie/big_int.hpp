@@ -50,10 +50,10 @@
 
 #pragma once
 
-#include <iostream>
+#include "string.hpp"
 
 class BigInt {
-    std::string value;
+    Natalie::String value;
     char sign;
 
 public:
@@ -61,12 +61,12 @@ public:
     BigInt();
     BigInt(const BigInt &);
     BigInt(const long long &);
-    BigInt(const std::string &);
+    BigInt(const Natalie::String &);
 
     // Assignment operators:
     BigInt &operator=(const BigInt &);
     BigInt &operator=(const long long &);
-    BigInt &operator=(const std::string &);
+    BigInt &operator=(const Natalie::String &);
 
     // Unary arithmetic operators:
     BigInt operator+() const; // unary +
@@ -83,11 +83,11 @@ public:
     BigInt operator*(const long long &) const;
     BigInt operator/(const long long &) const;
     BigInt operator%(const long long &) const;
-    BigInt operator+(const std::string &) const;
-    BigInt operator-(const std::string &) const;
-    BigInt operator*(const std::string &) const;
-    BigInt operator/(const std::string &) const;
-    BigInt operator%(const std::string &) const;
+    BigInt operator+(const Natalie::String &) const;
+    BigInt operator-(const Natalie::String &) const;
+    BigInt operator*(const Natalie::String &) const;
+    BigInt operator/(const Natalie::String &) const;
+    BigInt operator%(const Natalie::String &) const;
 
     // Arithmetic-assignment operators:
     BigInt &operator+=(const BigInt &);
@@ -100,11 +100,11 @@ public:
     BigInt &operator*=(const long long &);
     BigInt &operator/=(const long long &);
     BigInt &operator%=(const long long &);
-    BigInt &operator+=(const std::string &);
-    BigInt &operator-=(const std::string &);
-    BigInt &operator*=(const std::string &);
-    BigInt &operator/=(const std::string &);
-    BigInt &operator%=(const std::string &);
+    BigInt &operator+=(const Natalie::String &);
+    BigInt &operator-=(const Natalie::String &);
+    BigInt &operator*=(const Natalie::String &);
+    BigInt &operator/=(const Natalie::String &);
+    BigInt &operator%=(const Natalie::String &);
 
     // Increment and decrement operators:
     BigInt &operator++(); // pre-increment
@@ -125,20 +125,15 @@ public:
     bool operator>=(const long long &) const;
     bool operator==(const long long &) const;
     bool operator!=(const long long &) const;
-    bool operator<(const std::string &) const;
-    bool operator>(const std::string &) const;
-    bool operator<=(const std::string &) const;
-    bool operator>=(const std::string &) const;
-    bool operator==(const std::string &) const;
-    bool operator!=(const std::string &) const;
-
-    // I/O stream operators:
-    friend std::istream &operator>>(std::istream &, BigInt &);
-    friend std::ostream &operator<<(std::ostream &, const BigInt &);
+    bool operator<(const Natalie::String &) const;
+    bool operator>(const Natalie::String &) const;
+    bool operator<=(const Natalie::String &) const;
+    bool operator>=(const Natalie::String &) const;
+    bool operator==(const Natalie::String &) const;
+    bool operator!=(const Natalie::String &) const;
 
     // Conversion functions:
-    std::string to_string() const;
-    int to_int() const;
+    Natalie::String to_string() const;
     long to_long() const;
     long long to_long_long() const;
 
