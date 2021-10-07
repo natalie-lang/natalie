@@ -22,12 +22,16 @@ public:
     IntegerValue(const char *bignum_str)
         : Value { Value::Type::Integer, GlobalEnv::the()->Integer() }
         , m_is_bignum(true)
-        , m_bignum(BigInt(bignum_str)) { }
+        , m_bignum(new BigInt(bignum_str)) { }
 
-    IntegerValue(BigInt &bignum)
+    IntegerValue(const BigInt &bignum)
         : Value { Value::Type::Integer, GlobalEnv::the()->Integer() }
         , m_is_bignum(true)
-        , m_bignum(std::move(bignum)) { }
+        , m_bignum(new BigInt { bignum }) { }
+
+    ~IntegerValue() {
+        if (is_bignum()) free(m_bignum);
+    }
 
     nat_int_t to_nat_int_t() {
         return m_integer;
@@ -86,7 +90,7 @@ public:
         if (is_fixnum()) {
             return BigInt(to_nat_int_t());
         }
-        return m_bignum;
+        return *m_bignum;
     }
 
     static bool optimized_method(SymbolValue *);
@@ -95,7 +99,7 @@ public:
         if (is_fixnum()) {
             snprintf(buf, len, "<IntegerValue %p int=%lli>", this, m_integer);
         } else {
-            snprintf(buf, len, "<IntegerValue %p bignum=%s>", this, m_bignum.to_string().c_str());
+            snprintf(buf, len, "<IntegerValue %p bignum=%s>", this, m_bignum->to_string().c_str());
         }
     }
 
@@ -104,7 +108,7 @@ private:
 
     nat_int_t m_integer { 0 };
     bool m_is_bignum = false;
-    BigInt m_bignum;
+    BigInt *m_bignum { nullptr };
 };
 
 }

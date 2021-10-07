@@ -5,7 +5,7 @@
 namespace Natalie {
 
 ValuePtr IntegerValue::to_s(Env *env, ValuePtr base_value) {
-    if (is_bignum()) return new StringValue { m_bignum.to_string().c_str() };
+    if (is_bignum()) return new StringValue { m_bignum->to_string().c_str() };
     if (m_integer == 0)
         return new StringValue { "0" };
     auto str = new StringValue {};
