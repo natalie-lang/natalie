@@ -453,7 +453,7 @@ module Natalie
         when Integer
           if lit > MAX_FIXNUM || lit < MIN_FIXNUM
             str = lit.to_s
-            exp.new(:new, :IntegerValue, s(:s, str));
+            exp.new(:new, :BignumValue, s(:s, str));
           else
             exp.new(:'ValuePtr::integer', lit)
           end

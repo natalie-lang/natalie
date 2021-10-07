@@ -13,6 +13,7 @@
 #include <utility>
 
 #include "natalie/array_value.hpp"
+#include "natalie/bignum_value.hpp"
 #include "natalie/binding_value.hpp"
 #include "natalie/block.hpp"
 #include "natalie/class_value.hpp"

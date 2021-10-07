@@ -19,21 +19,7 @@ public:
         : Value { Value::Type::Integer, GlobalEnv::the()->Integer() }
         , m_integer { integer } { }
 
-    IntegerValue(const char *bignum_str)
-        : Value { Value::Type::Integer, GlobalEnv::the()->Integer() }
-        , m_is_bignum(true)
-        , m_bignum(new BigInt(bignum_str)) { }
-
-    IntegerValue(const BigInt &bignum)
-        : Value { Value::Type::Integer, GlobalEnv::the()->Integer() }
-        , m_is_bignum(true)
-        , m_bignum(new BigInt { bignum }) { }
-
-    ~IntegerValue() {
-        if (is_bignum()) free(m_bignum);
-    }
-
-    nat_int_t to_nat_int_t() {
+    nat_int_t to_nat_int_t() const {
         return m_integer;
     }
 
@@ -56,10 +42,10 @@ public:
 
     ValuePtr inspect(Env *env) { return to_s(env); }
 
-    ValuePtr to_s(Env *, ValuePtr = nullptr);
+    virtual ValuePtr to_s(Env *, ValuePtr = nullptr);
     ValuePtr to_i();
     ValuePtr to_f();
-    ValuePtr add(Env *, ValuePtr);
+    virtual ValuePtr add(Env *, ValuePtr);
     ValuePtr sub(Env *, ValuePtr);
     ValuePtr mul(Env *, ValuePtr);
     ValuePtr div(Env *, ValuePtr);
@@ -83,32 +69,21 @@ public:
     bool lte(Env *, ValuePtr);
     bool gt(Env *, ValuePtr);
     bool gte(Env *, ValuePtr);
-    bool is_bignum() const { return m_is_bignum; }
+    virtual bool is_bignum() const { return false; }
     bool is_fixnum() const { return !is_bignum(); }
 
-    BigInt to_bignum() {
-        if (is_fixnum()) {
-            return BigInt(to_nat_int_t());
-        }
-        return *m_bignum;
-    }
+    virtual BigInt to_bignum() const { return BigInt(to_nat_int_t()); }
 
     static bool optimized_method(SymbolValue *);
 
     virtual void gc_inspect(char *buf, size_t len) const override {
-        if (is_fixnum()) {
-            snprintf(buf, len, "<IntegerValue %p int=%lli>", this, m_integer);
-        } else {
-            snprintf(buf, len, "<IntegerValue %p bignum=%s>", this, m_bignum->to_string().c_str());
-        }
+        snprintf(buf, len, "<IntegerValue %p int=%lli>", this, m_integer);
     }
 
 private:
     inline static Hashmap<SymbolValue *> s_optimized_methods {};
 
     nat_int_t m_integer { 0 };
-    bool m_is_bignum = false;
-    BigInt *m_bignum { nullptr };
 };
 
 }
