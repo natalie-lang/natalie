@@ -116,6 +116,31 @@ class Array
     self
   end
 
+  def transpose
+    ary = []
+    row_size = nil
+    each_with_index do |row, index|
+      if !row.is_a?(Array) && row.respond_to?(:to_ary)
+        row = row.to_ary
+      end
+
+      unless row.is_a?(Array)
+        raise TypeError, "no implicit conversion of #{row.class.inspect} into Array"
+      end
+
+      if row_size && row_size != row.size
+        raise IndexError, "element size differ (#{row.size} should be #{row_size}"
+      end
+      row_size = row.size
+
+      row.each_with_index do |element, offset|
+        ary[offset] ||= []
+        ary[offset] << element
+      end
+    end
+    ary
+  end
+
   def union(*args)
     dup.concat(*args).uniq
   end
