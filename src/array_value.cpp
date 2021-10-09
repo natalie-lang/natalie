@@ -1359,7 +1359,7 @@ ValuePtr ArrayValue::rassoc(Env *env, ValuePtr needle) {
         if (sub_array->size() < 2)
             continue;
 
-        if (needle.send(env, SymbolValue::intern("=="), { (*sub_array)[1] })->is_truthy())
+        if (sub_array->at(1)->send(env, SymbolValue::intern("=="), { needle })->is_truthy())
             return sub_array;
     }
 
