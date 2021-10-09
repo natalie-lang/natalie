@@ -325,6 +325,7 @@ gen.binding('Array', 'drop_while', 'ArrayValue', 'drop_while', argc: 0, pass_env
 gen.binding('Array', 'each', 'ArrayValue', 'each', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Array', 'each_index', 'ArrayValue', 'each_index', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Array', 'empty?', 'ArrayValue', 'is_empty', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
+gen.binding('Array', 'fetch', 'ArrayValue', 'fetch', argc: 1..2, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Array', 'filter', 'ArrayValue', 'select', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Array', 'filter!', 'ArrayValue', 'select_in_place', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Array', 'find_index', 'ArrayValue', 'index', argc: 0..1, pass_env: true, pass_block: true, return_type: :Value)

@@ -1603,6 +1603,42 @@ ValuePtr ArrayValue::rindex(Env *env, ValuePtr object, Block *block) {
     return find_index(env, object, block, true);
 }
 
+ValuePtr ArrayValue::fetch(Env *env, ValuePtr arg_index, ValuePtr default_value, Block *block) {
+    auto to_int = SymbolValue::intern("to_int");
+    ValuePtr index_obj = arg_index;
+
+    if (!arg_index.is_integer()) {
+        if (arg_index->respond_to(env, to_int)) {
+            index_obj = arg_index->send(env, to_int);
+            if (!index_obj.is_integer()) {
+                auto arg_index_class = arg_index->klass()->inspect_str(env);
+                env->raise("TypeError", "can't convert {} to Integer ({}#to_int gives {})", arg_index_class, arg_index_class, index_obj->klass()->inspect_str(env));
+            }
+        }
+    }
+    index_obj->assert_type(env, Type::Integer, "Integer");
+
+    ValuePtr value;
+    auto index_val = index_obj->as_integer()->to_nat_int_t();
+    auto index = _resolve_index(index_val);
+    if (index < 0) {
+        if (block) {
+            if (default_value)
+                env->warn("block supersedes default value argument");
+
+            value = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 1, &arg_index, nullptr);
+        } else if (default_value) {
+            value = default_value;
+        } else {
+            env->raise("IndexError", "index {} outside of array bounds: {}...{}", index_val, -(nat_int_t)size(), size());
+        }
+    } else {
+        value = m_vector[index];
+    }
+
+    return value;
+}
+
 ValuePtr ArrayValue::find_index(Env *env, ValuePtr object, Block *block, bool search_reverse) {
     if (object && block) env->warn("given block not used");
     assert(size() <= NAT_INT_MAX);

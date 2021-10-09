@@ -132,6 +132,7 @@ public:
     ValuePtr each_index(Env *, Block *);
     ValuePtr eq(Env *, ValuePtr);
     ValuePtr eql(Env *, ValuePtr);
+    ValuePtr fetch(Env *, ValuePtr, ValuePtr, Block *);
     ValuePtr first(Env *, ValuePtr);
     ValuePtr flatten(Env *, ValuePtr);
     ValuePtr flatten_in_place(Env *, ValuePtr);
