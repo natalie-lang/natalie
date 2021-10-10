@@ -107,12 +107,10 @@ ValuePtr IntegerValue::pow(Env *env, ValuePtr arg) {
 }
 
 ValuePtr IntegerValue::cmp(Env *env, ValuePtr arg) {
-    if (!arg.is_integer()) return NilValue::the();
-    nat_int_t i1 = to_nat_int_t();
-    nat_int_t i2 = arg.to_nat_int_t();
-    if (i1 < i2) {
+    if (!arg.is_integer() && !arg.is_float()) return NilValue::the();
+    if (lt(env, arg)) {
         return ValuePtr::integer(-1);
-    } else if (i1 == i2) {
+    } else if (eq(env, arg)) {
         return ValuePtr::integer(0);
     } else {
         return ValuePtr::integer(1);
