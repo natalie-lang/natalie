@@ -409,6 +409,94 @@ ValuePtr ArrayValue::map_in_place(Env *env, Block *block) {
     return this;
 }
 
+ValuePtr ArrayValue::fill(Env *env, ValuePtr obj, ValuePtr start_obj, ValuePtr length_obj, Block *block) {
+    assert_not_frozen(env);
+
+    if (block && length_obj) {
+        env->raise("ArgumentError", "wrong number of arguments (given 3, expected 0..2)");
+    }
+
+    if (!obj && !block) {
+        env->raise("ArgumentError", "wrong number of arguments (given 0, expected 1..3)");
+    }
+
+    if (!length_obj && block) {
+        length_obj = start_obj;
+        start_obj = obj;
+    }
+
+    auto to_int = SymbolValue::intern("to_int");
+    nat_int_t start = 0;
+    nat_int_t max = size();
+
+    if (start_obj && !start_obj->is_nil()) {
+        if (!length_obj && start_obj->is_range()) {
+            ValuePtr begin = start_obj->as_range()->begin();
+            if (!begin.is_integer() && begin->respond_to(env, to_int)) {
+                begin = begin->send(env, to_int);
+            }
+            begin->assert_type(env, Type::Integer, "Integer");
+            start = begin->as_integer()->to_nat_int_t();
+
+            if (start < 0)
+                start += size();
+            if (start < 0)
+                env->raise("RangeError", "{} out of range", start_obj->inspect_str(env)->c_str());
+
+            ValuePtr end = start_obj->as_range()->end();
+            if (!end.is_integer() && end->respond_to(env, to_int)) {
+                end = end->send(env, to_int);
+            }
+            end->assert_type(env, Type::Integer, "Integer");
+            max = end->as_integer()->to_nat_int_t();
+
+            if (max < 0)
+                max += size();
+            if (max != 0 && !start_obj->as_range()->exclude_end())
+                ++max;
+        } else {
+            if (!start_obj.is_integer() && start_obj->respond_to(env, to_int)) {
+                start_obj = start_obj->send(env, to_int);
+            }
+            start_obj->assert_type(env, Type::Integer, "Integer");
+            start = start_obj->as_integer()->to_nat_int_t();
+
+            if (start < 0)
+                start += size();
+            if (start < 0)
+                start = 0;
+
+            if (length_obj && !length_obj->is_nil()) {
+                if (!length_obj.is_integer() && length_obj->respond_to(env, to_int)) {
+                    length_obj = length_obj->send(env, to_int);
+                }
+                length_obj->assert_type(env, Type::Integer, "Integer");
+                auto length = length_obj->as_integer()->to_nat_int_t();
+
+                if (length <= 0)
+                    return this;
+
+                max = start + length;
+            }
+        }
+    }
+
+    if (start >= max)
+        return this;
+
+    if (max > (nat_int_t)size())
+        expand_with_nil(env, max);
+
+    for (size_t i = start; i < (size_t)max; ++i) {
+        if (block) {
+            ValuePtr args[1] = { ValuePtr::integer(i) };
+            m_vector[i] = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 1, args, nullptr);
+        } else
+            m_vector[i] = obj;
+    }
+    return this;
+}
+
 ValuePtr ArrayValue::first(Env *env, ValuePtr n) {
     auto has_count = n != nullptr;
 
