@@ -929,23 +929,39 @@ ValuePtr ArrayValue::join(Env *env, ValuePtr joiner) {
 }
 
 ValuePtr ArrayValue::cmp(Env *env, ValuePtr other) {
-    other->assert_type(env, Value::Type::Array, "Array");
+    auto to_ary = SymbolValue::intern("to_ary");
+    if (!other->is_array() && other->respond_to(env, to_ary))
+        other = other->send(env, to_ary);
+
+    if (!other->is_array())
+        return NilValue::the();
+
     ArrayValue *other_array = other->as_array();
-    for (size_t i = 0; i < size(); i++) {
-        if (i >= other_array->size()) {
-            return ValuePtr::integer(1);
+    TM::RecursionGuard guard { this };
+    return guard.run([&](bool is_recursive) {
+        if (is_recursive)
+            return ValuePtr::integer(0);
+
+        for (size_t i = 0; i < size(); i++) {
+            if (i >= other_array->size()) {
+                return ValuePtr::integer(1);
+            }
+            ValuePtr item = (*other_array)[i];
+            ValuePtr cmp_obj = (*this)[i].send(env, SymbolValue::intern("<=>"), { item });
+
+            if (!cmp_obj->is_integer()) {
+                return cmp_obj;
+            }
+
+            nat_int_t cmp = cmp_obj->as_integer()->to_nat_int_t();
+            if (cmp < 0) return ValuePtr::integer(-1);
+            if (cmp > 0) return ValuePtr::integer(1);
         }
-        ValuePtr item = (*other_array)[i];
-        ValuePtr cmp_obj = (*this)[i].send(env, SymbolValue::intern("<=>"), { item });
-        assert(cmp_obj->type() == Value::Type::Integer);
-        nat_int_t cmp = cmp_obj->as_integer()->to_nat_int_t();
-        if (cmp < 0) return ValuePtr::integer(-1);
-        if (cmp > 0) return ValuePtr::integer(1);
-    }
-    if (other_array->size() > size()) {
-        return ValuePtr::integer(-1);
-    }
-    return ValuePtr::integer(0);
+        if (other_array->size() > size()) {
+            return ValuePtr::integer(-1);
+        }
+        return ValuePtr::integer(0);
+    });
 }
 
 ValuePtr ArrayValue::pack(Env *env, ValuePtr directives) {
