@@ -30,6 +30,54 @@ class Array
     perm.(self, 0)
   end
 
+  def combination(num)
+    unless block_given?
+      accumulator = []
+      combination(num) { |combo| accumulator << combo }
+      return Enumerator.new(accumulator.size) do |yielder|
+        accumulator.each { |item| yielder << item }
+      end
+    end
+    if num == 0
+      yield [] # One empty combination
+    elsif num > size
+      return self # There are no combinations, don't yield anything
+    elsif num == 1
+      each { |item| yield [item] }
+      return
+    elsif num > 0
+      # A rough translation of combinate0 from MRI's ruby/array.c
+
+      stack = [0] * (num + 1)
+      stack[0] = -1
+
+      lev = 0
+
+      loop do
+        lev += 1
+
+        while lev < num
+          stack[lev + 1] = stack[lev] + 1
+
+          lev += 1
+        end
+
+        yield stack[1..-1].map { |i| self[i] }
+
+        loop do
+          return self if lev == 0
+
+          stack[lev] = stack[lev] + 1
+          lev -= 1
+
+          break unless stack[lev + 1] + num == size + lev + 1
+        end
+      end
+    end
+
+    self
+  end
+
   def repeated_combination(times)
     unless block_given?
       accumulator = []
