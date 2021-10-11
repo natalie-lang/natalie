@@ -1791,11 +1791,11 @@ ValuePtr ArrayValue::rotate(Env *env, ValuePtr val) {
 ValuePtr ArrayValue::rotate_in_place(Env *env, ValuePtr val) {
     assert_not_frozen(env);
     nat_int_t count = 1;
-	auto to_int = SymbolValue::intern("to_int");
+    auto to_int = SymbolValue::intern("to_int");
     if (val) {
-		if (!val->is_integer() && val->respond_to(env, to_int)) {
-			val = val->send(env, to_int);
-		} else if (!val->is_integer()) {
+        if (!val->is_integer() && val->respond_to(env, to_int)) {
+            val = val->send(env, to_int);
+        } else if (!val->is_integer()) {
             env->raise("TypeError", "no implicit conversion of {} into Integer", val->klass()->class_name_or_blank());
             return nullptr;
         }
