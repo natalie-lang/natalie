@@ -60,6 +60,7 @@ public:
     ValuePtr abs(Env *);
     ValuePtr chr(Env *);
     ValuePtr negate(Env *);
+    ValuePtr complement(Env *);
 
     bool eq(Env *, ValuePtr);
     bool eql(Env *, ValuePtr);
