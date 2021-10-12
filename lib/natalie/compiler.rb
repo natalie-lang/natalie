@@ -150,6 +150,10 @@ module Natalie
       !!(debug || options[:keep_cpp])
     end
 
+    def log_load_error
+      options[:log_load_error]
+    end
+
     def inc_paths
       INC_PATHS.map { |path| "-I #{path}" }.join(' ')
     end
@@ -283,7 +287,7 @@ module Natalie
       elsif (full_path = find_full_path(name, base: Dir.pwd, search: true))
         return load_file(full_path, require_once: true)
       end
-      raise LoadError, "cannot load such file #{name} at #{node.file}##{node.line}"
+      drop_load_error "cannot load such file #{name} at #{node.file}##{node.line}"
     end
 
     def macro_require_relative(node, current_path)
@@ -293,17 +297,28 @@ module Natalie
       elsif (full_path = find_full_path(name, base: File.dirname(current_path), search: false))
         return load_file(full_path, require_once: true)
       end
-      raise LoadError, "cannot load such file #{name} at #{node.file}##{node.line}"
+      drop_load_error "cannot load such file #{name} at #{node.file}##{node.line}"
     end
 
     def macro_load(node, _)
       path = node.last
       full_path = find_full_path(path, base: Dir.pwd, search: true)
       if full_path
-        load_file(full_path, require_once: false)
-      else
-        raise LoadError, "cannot load such file -- #{path}"
+        return load_file(full_path, require_once: false)
       end
+      drop_load_error "cannot load such file -- #{path}"
+    end
+
+    def drop_load_error(msg)
+      STDERR.puts load_error_msg if log_load_error
+      s(:block,
+        s(:call,
+          nil,
+          :raise,
+          s(:call,
+            s(:const, :LoadError),
+            :new,
+            s(:str, msg))))
     end
 
     def load_file(path, require_once:)
