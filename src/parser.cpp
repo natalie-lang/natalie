@@ -1266,7 +1266,7 @@ Node *Parser::parse_infix_expression(Env *env, Node *left, LocalsVectorPtr local
     auto *node = new CallNode {
         token,
         left,
-        op->type_value(env),
+        op->type_value(),
     };
     node->add_arg(right);
     return node;
@@ -1364,7 +1364,7 @@ Node *Parser::parse_op_assign_expression(Env *env, Node *left, LocalsVectorPtr l
     case Token::Type::MultiplyEqual:
     case Token::Type::PlusEqual:
     case Token::Type::RightShiftEqual: {
-        auto op = new String(token->type_value(env));
+        auto op = new String(token->type_value());
         op->chomp();
         return new OpAssignNode { token, op, left_identifier, parse_expression(env, ASSIGNMENT, locals) };
     }
@@ -1381,7 +1381,7 @@ Node *Parser::parse_op_attr_assign_expression(Env *env, Node *left, LocalsVector
     auto left_call = static_cast<CallNode *>(left);
     auto token = current_token();
     advance();
-    auto op = new String(token->type_value(env));
+    auto op = new String(token->type_value());
     op->chomp();
     auto message = new String(left_call->message());
     message->append_char('=');
@@ -1734,7 +1734,7 @@ void Parser::expect(Env *env, Token::Type type, const char *expected) {
 void Parser::raise_unexpected(Env *env, Token *token, const char *expected) {
     auto file = token->file() ? token->file() : new String("(unknown)");
     auto line = token->line() + 1;
-    auto type = token->type_value(env);
+    auto type = token->type_value();
     auto literal = token->literal();
     if (strcmp(type, "EOF") == 0)
         env->raise("SyntaxError", "{}#{}: syntax error, unexpected end-of-input (expected: '{}')", file, line, expected);

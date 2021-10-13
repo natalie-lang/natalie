@@ -229,7 +229,7 @@ public:
     nat_int_t get_integer() { return m_integer; }
     double get_double() { return m_double; }
 
-    const char *type_value(Env *env) {
+    const char *type_value() {
         switch (m_type) {
         case Type::AliasKeyword:
             return "alias";
@@ -363,9 +363,8 @@ public:
             return "dstr";
         case Type::InterpolatedStringEnd:
             return "dstrend";
-        case Type::Invalid: {
-            env->raise("SyntaxError", "{}: syntax error, unexpected '{}'", m_line + 1, literal_or_blank());
-        }
+        case Type::Invalid:
+            return nullptr;
         case Type::LCurlyBrace:
             return "{";
         case Type::LBracket:
@@ -477,9 +476,9 @@ public:
         case Type::UnlessKeyword:
             return "unless";
         case Type::UnterminatedRegexp:
-            env->raise("SyntaxError", "unterminated regexp meets end of file");
+            return nullptr;
         case Type::UnterminatedString:
-            env->raise("SyntaxError", "unterminated string meets end of file at line {} and column {}: {}", m_line, m_column, literal_or_blank());
+            return nullptr;
         case Type::UntilKeyword:
             return "until";
         case Type::WhenKeyword:
@@ -495,7 +494,7 @@ public:
     ValuePtr to_ruby(Env *env, bool with_line_and_column_numbers = false) {
         if (m_type == Type::Eof)
             return NilValue::the();
-        const char *type = type_value(env);
+        const char *type = type_value();
         auto hash = new HashValue {};
         hash->put(env, SymbolValue::intern("type"), SymbolValue::intern(type));
         switch (m_type) {
@@ -569,9 +568,16 @@ public:
     bool is_when_keyword() { return m_type == Type::WhenKeyword; }
 
     void validate(Env *env) {
-        if (!is_valid()) {
-            type_value(env);
-            NAT_UNREACHABLE();
+        switch (m_type) {
+        case Type::Invalid:
+            env->raise("SyntaxError", "{}: syntax error, unexpected '{}'", m_line + 1, literal_or_blank());
+        case Type::UnterminatedRegexp:
+            env->raise("SyntaxError", "unterminated regexp meets end of file");
+        case Type::UnterminatedString:
+            env->raise("SyntaxError", "unterminated string meets end of file at line {} and column {}: {}", m_line, m_column, literal_or_blank());
+        default:
+            assert(type_value()); // all other types should return a string for type_value()
+            return;
         }
     }
 
