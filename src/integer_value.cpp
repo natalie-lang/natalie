@@ -12,6 +12,10 @@ ValuePtr IntegerValue::to_s(Env *env, ValuePtr base_value) {
     if (base_value) {
         base_value->assert_type(env, Value::Type::Integer, "Integer");
         base = base_value->as_integer()->to_nat_int_t();
+
+        if (base < 2 || base > 36) {
+            env->raise("ArgumentError", "invalid radix {}", base);
+        }
     }
     auto num = m_integer;
     bool negative = false;
