@@ -1144,14 +1144,47 @@ ValuePtr ArrayValue::reject(Env *env, Block *block) {
     if (!block)
         return send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("reject") });
 
-    ArrayValue *new_array = new ArrayValue {};
-    for (auto &item : *this) {
-        ValuePtr result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
-        if (result->is_falsey()) {
-            new_array->push(item);
+    ArrayValue *copy = new ArrayValue(*this);
+    copy->reject_in_place(env, block);
+    return copy;
+}
+
+ValuePtr ArrayValue::reject_in_place(Env *env, Block *block) {
+    if (!block)
+        return send(env, SymbolValue::intern("enum_for"), { SymbolValue::intern("reject!") });
+
+    assert_not_frozen(env);
+
+    bool changed { false };
+
+    ArrayValue new_array;
+
+    for (auto it = begin(); it != end(); it++) {
+        auto item = *it;
+
+        try {
+            ValuePtr result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
+            if (result->is_falsey())
+                new_array.push(item);
+            else
+                changed = true;
+        } catch (ExceptionValue *exception) {
+            new_array.push(item);
+            for (it++; it != end(); it++) {
+                new_array.push(*it);
+            }
+
+            *this = std::move(new_array);
+
+            throw;
         }
     }
-    return new_array;
+
+    *this = std::move(new_array);
+
+    if (changed)
+        return this;
+    return NilValue::the();
 }
 
 ValuePtr ArrayValue::max(Env *env, ValuePtr count, Block *block) {

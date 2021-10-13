@@ -358,6 +358,7 @@ gen.binding('Array', 'pop', 'ArrayValue', 'pop', argc: 0..1, pass_env: true, pas
 gen.binding('Array', 'push', 'ArrayValue', 'push', argc: :any, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Array', 'rassoc', 'ArrayValue', 'rassoc', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Array', 'reject', 'ArrayValue', 'reject', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
+gen.binding('Array', 'reject!', 'ArrayValue', 'reject_in_place', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Array', 'replace', 'ArrayValue', 'initialize_copy', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Array', 'reverse', 'ArrayValue', 'reverse', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Array', 'reverse!', 'ArrayValue', 'reverse_in_place', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
