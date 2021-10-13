@@ -220,6 +220,11 @@ public:
         return m_literal.value()->c_str();
     }
 
+    const String *literal_string() {
+        assert(m_literal);
+        return m_literal.value();
+    }
+
     void set_literal(const char *literal) { m_literal = new String(literal); }
     void set_literal(const String *literal) { m_literal = literal; }
 

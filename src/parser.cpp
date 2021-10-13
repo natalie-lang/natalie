@@ -720,20 +720,18 @@ Node *Parser::parse_interpolated_regexp(Env *env, LocalsVectorPtr locals) {
     auto token = current_token();
     advance();
     if (current_token()->type() == Token::Type::InterpolatedRegexpEnd) {
-        auto regexp_value = new RegexpValue { env, "" };
-        auto regexp_node = new RegexpNode { token, regexp_value };
+        auto regexp_node = new RegexpNode { token, new String };
         auto options = current_token()->options();
         if (options)
-            regexp_value->set_options(options);
+            regexp_node->set_options(options);
         advance();
         return regexp_node;
     } else if (current_token()->type() == Token::Type::String && peek_token()->type() == Token::Type::InterpolatedRegexpEnd) {
-        auto regexp_value = new RegexpValue { env, current_token()->literal() };
-        auto regexp_node = new RegexpNode { token, regexp_value };
+        auto regexp_node = new RegexpNode { token, current_token()->literal_string() };
         advance();
         auto options = current_token()->options();
         if (options)
-            regexp_value->set_options(options);
+            regexp_node->set_options(options);
         advance();
         return regexp_node;
     } else {
@@ -742,7 +740,7 @@ Node *Parser::parse_interpolated_regexp(Env *env, LocalsVectorPtr locals) {
         auto options = current_token()->options();
         if (options) {
             // use a RegexpValue to convert the options string to an int
-            RegexpValue temp_regexp { env, "" };
+            RegexpValue temp_regexp;
             temp_regexp.set_options(options);
             interpolated_regexp->set_options(temp_regexp.options());
         }
@@ -893,13 +891,8 @@ Node *Parser::parse_not(Env *env, LocalsVectorPtr locals) {
 
 Node *Parser::parse_regexp(Env *env, LocalsVectorPtr locals) {
     auto token = current_token();
-    RegexpValue *value;
-    try {
-        value = new RegexpValue { env, token->literal() };
-    } catch (ExceptionValue *exception) {
-        raise_unexpected(env, "valid regexp");
-    }
-    auto regexp = new RegexpNode { token, value };
+    auto regexp = new RegexpNode { token, new String(token->literal()) };
+    regexp->set_options(token->options());
     advance();
     return regexp;
 };

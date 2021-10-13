@@ -1256,25 +1256,29 @@ protected:
 
 class RegexpNode : public Node {
 public:
-    RegexpNode(Token *token, ValuePtr value)
+    RegexpNode(Token *token, const String *pattern)
         : Node { token }
-        , m_value { value } {
-        assert(m_value);
+        , m_pattern { pattern } {
+        assert(m_pattern);
     }
 
     virtual Type type() override { return Type::Regexp; }
 
     virtual ValuePtr to_ruby(Env *) override;
 
-    ValuePtr value() { return m_value; }
+    const String *pattern() { return m_pattern; }
+
+    void set_options(const String *options) { m_options = options; }
 
     virtual void visit_children(Visitor &visitor) override {
         Node::visit_children(visitor);
-        visitor.visit(m_value);
+        visitor.visit(m_pattern);
+        visitor.visit(m_options);
     }
 
 protected:
-    ValuePtr m_value { nullptr };
+    const String *m_pattern { nullptr };
+    const String *m_options { nullptr };
 };
 
 class ReturnNode : public Node {

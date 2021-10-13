@@ -760,7 +760,10 @@ ValuePtr RangeNode::to_ruby(Env *env) {
 }
 
 ValuePtr RegexpNode::to_ruby(Env *env) {
-    return new SexpValue { env, this, { SymbolValue::intern("lit"), m_value } };
+    auto regexp = new RegexpValue { env, m_pattern->c_str() };
+    if (m_options)
+        regexp->set_options(m_options);
+    return new SexpValue { env, this, { SymbolValue::intern("lit"), regexp } };
 }
 
 ValuePtr ReturnNode::to_ruby(Env *env) {
