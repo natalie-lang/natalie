@@ -18,6 +18,7 @@ class StandardError < Exception; end
     class FrozenError < RuntimeError; end
   class TypeError < StandardError; end
   class ZeroDivisionError < StandardError; end
+  class LoadError < StandardError; end
 
 class Encoding
   class InvalidByteSequenceError < EncodingError; end

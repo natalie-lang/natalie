@@ -54,6 +54,7 @@ module Natalie
       cmd = compiler_command
       out = `#{cmd} 2>&1`
       File.unlink(@c_path) unless keep_cpp? || $? != 0
+      p "cpp file path is: #{c_path}" if keep_cpp?
       $stderr.puts out if out.strip != ''
       raise CompileError.new('There was an error compiling.') if $? != 0
     end
@@ -147,6 +148,10 @@ module Natalie
 
     def keep_cpp?
       !!(debug || options[:keep_cpp])
+    end
+
+    def log_load_error
+      options[:log_load_error]
     end
 
     def inc_paths
@@ -244,11 +249,16 @@ module Natalie
 
     def expand_macros(ast, path)
       ast.each_with_index do |node, i|
-        if macro?(node)
-          expanded = run_macro(node, path)
-          raise 'bad node' if expanded.sexp_type != :block
-          ast[i] = expanded
+        next unless node.is_a?(Sexp)
+        expanded = if macro?(node)
+          run_macro(node, path)
+        elsif node.size > 1
+          s(node[0], *expand_macros(node[1..-1], path))
+        else
+          node
         end
+        next if expanded === node
+        ast[i] = expanded
       end
       ast
     end
@@ -277,7 +287,7 @@ module Natalie
       elsif (full_path = find_full_path(name, base: Dir.pwd, search: true))
         return load_file(full_path, require_once: true)
       end
-      raise LoadError, "cannot load such file #{name} at #{node.file}##{node.line}"
+      drop_load_error "cannot load such file #{name} at #{node.file}##{node.line}"
     end
 
     def macro_require_relative(node, current_path)
@@ -287,25 +297,40 @@ module Natalie
       elsif (full_path = find_full_path(name, base: File.dirname(current_path), search: false))
         return load_file(full_path, require_once: true)
       end
-      raise LoadError, "cannot load such file #{name} at #{node.file}##{node.line}"
+      drop_load_error "cannot load such file #{name} at #{node.file}##{node.line}"
     end
 
     def macro_load(node, _)
       path = node.last
       full_path = find_full_path(path, base: Dir.pwd, search: true)
       if full_path
-        load_file(full_path, require_once: false)
-      else
-        raise LoadError, "cannot load such file -- #{path}"
+        return load_file(full_path, require_once: false)
       end
+      drop_load_error "cannot load such file -- #{path}"
+    end
+
+    def drop_load_error(msg)
+      STDERR.puts load_error_msg if log_load_error
+      s(:block,
+        s(:call,
+          nil,
+          :raise,
+          s(:call,
+            s(:const, :LoadError),
+            :new,
+            s(:str, msg))))
     end
 
     def load_file(path, require_once:)
-      return s(:block) if require_once && @required[path]
+      return s(:false) if require_once && @required[path] #TODO replace with runtime logic checking loaded modules
       @required[path] = true
       code = File.read(path)
       file_ast = Natalie::Parser.new(code, path).ast
-      expand_macros(file_ast, path)
+      s(:block, s(:if, s(:true), 
+        s(:block, 
+          expand_macros(file_ast, path), 
+          s(:true),
+        )))
     end
 
     def find_full_path(path, base:, search:)
