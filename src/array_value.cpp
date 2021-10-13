@@ -278,7 +278,7 @@ ValuePtr ArrayValue::refeq(Env *env, ValuePtr index_obj, ValuePtr size, ValuePtr
 }
 
 ValuePtr ArrayValue::any(Env *env, size_t argc, ValuePtr *args, Block *block) {
-    // FIXME: deletating to Enumerable#any? like this does not have the same semantics as MRI,
+    // FIXME: delegating to Enumerable#any? like this does not have the same semantics as MRI,
     // i.e. one can override Enumerable#any? in MRI and it won't affect Array#any?.
     auto Enumerable = GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("Enumerable"))->as_module();
     auto any_method = Enumerable->find_method(env, SymbolValue::intern("any?"));
@@ -1345,6 +1345,14 @@ ValuePtr ArrayValue::compact_in_place(Env *env) {
     return NilValue::the();
 }
 
+ValuePtr ArrayValue::cycle(Env *env, ValuePtr count, Block *block) {
+    // FIXME: delegating to Enumerable#cycle like this does not have the same semantics as MRI,
+    // i.e. one can override Enumerable#cycle in MRI and it won't affect Array#cycle.
+    auto Enumerable = GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("Enumerable"))->as_module();
+    auto none_method = Enumerable->find_method(env, SymbolValue::intern("cycle"));
+    return none_method->call(env, this, 1, &count, block);
+}
+
 ValuePtr ArrayValue::uniq_in_place(Env *env, Block *block) {
     this->assert_not_frozen(env);
 
@@ -1767,7 +1775,7 @@ ValuePtr ArrayValue::find_index(Env *env, ValuePtr object, Block *block, bool se
 }
 
 ValuePtr ArrayValue::none(Env *env, size_t argc, ValuePtr *args, Block *block) {
-    // FIXME: deletating to Enumerable#none? like this does not have the same semantics as MRI,
+    // FIXME: delegating to Enumerable#none? like this does not have the same semantics as MRI,
     // i.e. one can override Enumerable#none? in MRI and it won't affect Array#none?.
     auto Enumerable = GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("Enumerable"))->as_module();
     auto none_method = Enumerable->find_method(env, SymbolValue::intern("none?"));
@@ -1775,7 +1783,7 @@ ValuePtr ArrayValue::none(Env *env, size_t argc, ValuePtr *args, Block *block) {
 }
 
 ValuePtr ArrayValue::one(Env *env, size_t argc, ValuePtr *args, Block *block) {
-    // FIXME: deletating to Enumerable#one? like this does not have the same semantics as MRI,
+    // FIXME: delegating to Enumerable#one? like this does not have the same semantics as MRI,
     // i.e. one can override Enumerable#one? in MRI and it won't affect Array#one?.
     auto Enumerable = GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("Enumerable"))->as_module();
     auto one_method = Enumerable->find_method(env, SymbolValue::intern("one?"));

@@ -121,6 +121,7 @@ public:
     ValuePtr compact(Env *);
     ValuePtr compact_in_place(Env *);
     ValuePtr concat(Env *, size_t, ValuePtr *);
+    ValuePtr cycle(Env *, ValuePtr, Block *);
     ValuePtr delete_at(Env *, ValuePtr);
     ValuePtr delete_if(Env *, Block *);
     ValuePtr delete_item(Env *, ValuePtr, Block *);

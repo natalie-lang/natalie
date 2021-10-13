@@ -762,12 +762,15 @@ module Enumerable
     return if n.is_a?(Integer) && n <= 0
 
     cache = []
-
-    if n
+    cycles = n
+    unless n.nil?
       if n.respond_to?(:to_int)
-        n = n.to_int
+        cycles = n.to_int
+        unless cycles.is_a?(Integer)
+          raise TypeError, "can't convert #{n.class.inspect} to Integer (#{n.class.inspect}#to_int gives #{cycles.class.inspect})"
+        end
       else
-        raise TypeError, "could not coerce #{n.inspect} to Integer"
+        raise TypeError, "no implicit coversion of #{n.class.inspect} into Integer"
       end
     end
 
@@ -778,7 +781,7 @@ module Enumerable
       yield item
     end
 
-    n -= 1 if n
+    cycles -= 1 if cycles
 
     return if cache.empty?
 
@@ -787,9 +790,9 @@ module Enumerable
       begin
         item = e.next
       rescue StopIteration
-        if n
-          n -= 1
-          break if n <= 0
+        if cycles
+          cycles -= 1
+          break if cycles <= 0
         end
         e.rewind
         item = e.next
