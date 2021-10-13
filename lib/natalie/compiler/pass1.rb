@@ -6,7 +6,7 @@ module Natalie
     # Process S-expressions from the Ruby parser.
     class Pass1 < NatSexpProcessor
       MAX_FIXNUM = 9_223_372_036_854_775_807.freeze
-      MIN_FIXNUM = (MAX_FIXNUM * -1).freeze
+      MIN_FIXNUM = -9_223_372_036_854_775_808.freeze
 
       def initialize(compiler_context)
         super()
