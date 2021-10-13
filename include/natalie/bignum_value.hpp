@@ -16,7 +16,7 @@ public:
         , m_bignum(new BigInt(other)) { }
 
     ~BignumValue() {
-        if (m_bignum) free(m_bignum);
+        if (m_bignum) delete m_bignum;
     }
 
     ValuePtr add(Env *, ValuePtr) override;
