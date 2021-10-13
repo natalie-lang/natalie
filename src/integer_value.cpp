@@ -264,6 +264,7 @@ bool IntegerValue::optimized_method(SymbolValue *method_name) {
         s_optimized_methods.set(SymbolValue::intern("eql?"));
         s_optimized_methods.set(SymbolValue::intern("succ"));
         s_optimized_methods.set(SymbolValue::intern("chr"));
+        s_optimized_methods.set(SymbolValue::intern("~"));
     }
     return !!s_optimized_methods.get(method_name);
 }
@@ -272,4 +273,7 @@ ValuePtr IntegerValue::negate(Env *env) {
     return ValuePtr::integer(-1 * m_integer);
 }
 
+ValuePtr IntegerValue::complement(Env *env) {
+    return ValuePtr::integer(~m_integer);
+}
 }
