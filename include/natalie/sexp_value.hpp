@@ -28,7 +28,7 @@ public:
                 out->append(env, ", ");
             }
         }
-        out->append_char(env, ')');
+        out->append_char(')');
         return out;
     }
 

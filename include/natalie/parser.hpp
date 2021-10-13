@@ -11,6 +11,28 @@ using namespace TM;
 
 class Parser : public Cell {
 public:
+    class SyntaxError {
+    public:
+        NAT_MAKE_NONCOPYABLE(SyntaxError);
+
+        SyntaxError(const char *message)
+            : m_message { strdup(message) } {
+            assert(m_message);
+        }
+
+        SyntaxError(const String &message)
+            : SyntaxError { message.c_str() } { }
+
+        ~SyntaxError() {
+            free(m_message);
+        }
+
+        const char *message() { return m_message; }
+
+    private:
+        char *m_message { nullptr };
+    };
+
     Parser(const String *code, const String *file)
         : m_code { code }
         , m_file { file } {
@@ -56,7 +78,7 @@ public:
         REF, // foo[1] / foo[1] = 2
     };
 
-    Node *tree(Env *);
+    Node *tree();
 
     virtual void visit_children(Visitor &visitor) override {
         visitor.visit(m_tokens);
@@ -171,87 +193,87 @@ private:
 
     bool is_first_arg_of_call_without_parens(Token *, Node *);
 
-    Node *parse_expression(Env *, Precedence, LocalsVectorPtr);
+    Node *parse_expression(Precedence, LocalsVectorPtr);
 
-    BlockNode *parse_body(Env *, LocalsVectorPtr, Precedence, Token::Type = Token::Type::EndKeyword);
-    BlockNode *parse_body(Env *, LocalsVectorPtr, Precedence, Vector<Token::Type> *, const char *);
-    BlockNode *parse_case_when_body(Env *, LocalsVectorPtr);
-    Node *parse_if_body(Env *, LocalsVectorPtr);
-    BlockNode *parse_def_body(Env *, LocalsVectorPtr);
+    BlockNode *parse_body(LocalsVectorPtr, Precedence, Token::Type = Token::Type::EndKeyword);
+    BlockNode *parse_body(LocalsVectorPtr, Precedence, Vector<Token::Type> *, const char *);
+    BlockNode *parse_case_when_body(LocalsVectorPtr);
+    Node *parse_if_body(LocalsVectorPtr);
+    BlockNode *parse_def_body(LocalsVectorPtr);
 
-    Node *parse_alias(Env *, LocalsVectorPtr);
-    SymbolNode *parse_alias_arg(Env *, LocalsVectorPtr, const char *);
-    Node *parse_array(Env *, LocalsVectorPtr);
-    Node *parse_begin(Env *, LocalsVectorPtr);
-    void parse_rest_of_begin(Env *, BeginNode *, LocalsVectorPtr);
-    Node *parse_block_pass(Env *, LocalsVectorPtr);
-    Node *parse_bool(Env *, LocalsVectorPtr);
-    Node *parse_break(Env *, LocalsVectorPtr);
-    Node *parse_class(Env *, LocalsVectorPtr);
-    Node *parse_case(Env *, LocalsVectorPtr);
-    Node *parse_comma_separated_identifiers(Env *, LocalsVectorPtr);
-    void parse_comma_separated_expressions(Env *, ArrayNode *, LocalsVectorPtr);
-    Node *parse_constant(Env *, LocalsVectorPtr);
-    Node *parse_def(Env *, LocalsVectorPtr);
-    Node *parse_defined(Env *, LocalsVectorPtr);
-    ManagedVector<Node *> *parse_def_args(Env *, LocalsVectorPtr);
-    Node *parse_def_single_arg(Env *, LocalsVectorPtr);
-    Node *parse_file_constant(Env *, LocalsVectorPtr);
-    Node *parse_group(Env *, LocalsVectorPtr);
-    Node *parse_hash(Env *, LocalsVectorPtr);
-    Node *parse_identifier(Env *, LocalsVectorPtr);
-    Node *parse_if(Env *, LocalsVectorPtr);
-    void parse_interpolated_body(Env *, LocalsVectorPtr, InterpolatedNode *, Token::Type);
-    Node *parse_interpolated_regexp(Env *, LocalsVectorPtr);
-    Node *parse_interpolated_shell(Env *, LocalsVectorPtr);
-    Node *parse_interpolated_string(Env *, LocalsVectorPtr);
-    Node *parse_lit(Env *, LocalsVectorPtr);
-    Node *parse_keyword_args(Env *, LocalsVectorPtr);
-    Node *parse_keyword_splat(Env *, LocalsVectorPtr);
-    Node *parse_module(Env *, LocalsVectorPtr);
-    Node *parse_next(Env *, LocalsVectorPtr);
-    Node *parse_nil(Env *, LocalsVectorPtr);
-    Node *parse_not(Env *, LocalsVectorPtr);
-    Node *parse_regexp(Env *, LocalsVectorPtr);
-    Node *parse_return(Env *, LocalsVectorPtr);
-    Node *parse_sclass(Env *, LocalsVectorPtr);
-    Node *parse_self(Env *, LocalsVectorPtr);
-    Node *parse_splat(Env *, LocalsVectorPtr);
-    Node *parse_stabby_proc(Env *, LocalsVectorPtr);
-    Node *parse_string(Env *, LocalsVectorPtr);
-    Node *parse_super(Env *, LocalsVectorPtr);
-    Node *parse_symbol(Env *, LocalsVectorPtr);
-    Node *parse_statement_keyword(Env *, LocalsVectorPtr);
-    Node *parse_top_level_constant(Env *, LocalsVectorPtr);
-    Node *parse_unless(Env *, LocalsVectorPtr);
-    Node *parse_while(Env *, LocalsVectorPtr);
-    Node *parse_word_array(Env *, LocalsVectorPtr);
-    Node *parse_word_symbol_array(Env *, LocalsVectorPtr);
-    Node *parse_yield(Env *, LocalsVectorPtr);
+    Node *parse_alias(LocalsVectorPtr);
+    SymbolNode *parse_alias_arg(LocalsVectorPtr, const char *);
+    Node *parse_array(LocalsVectorPtr);
+    Node *parse_begin(LocalsVectorPtr);
+    void parse_rest_of_begin(BeginNode *, LocalsVectorPtr);
+    Node *parse_block_pass(LocalsVectorPtr);
+    Node *parse_bool(LocalsVectorPtr);
+    Node *parse_break(LocalsVectorPtr);
+    Node *parse_class(LocalsVectorPtr);
+    Node *parse_case(LocalsVectorPtr);
+    Node *parse_comma_separated_identifiers(LocalsVectorPtr);
+    void parse_comma_separated_expressions(ArrayNode *, LocalsVectorPtr);
+    Node *parse_constant(LocalsVectorPtr);
+    Node *parse_def(LocalsVectorPtr);
+    Node *parse_defined(LocalsVectorPtr);
+    ManagedVector<Node *> *parse_def_args(LocalsVectorPtr);
+    Node *parse_def_single_arg(LocalsVectorPtr);
+    Node *parse_file_constant(LocalsVectorPtr);
+    Node *parse_group(LocalsVectorPtr);
+    Node *parse_hash(LocalsVectorPtr);
+    Node *parse_identifier(LocalsVectorPtr);
+    Node *parse_if(LocalsVectorPtr);
+    void parse_interpolated_body(LocalsVectorPtr, InterpolatedNode *, Token::Type);
+    Node *parse_interpolated_regexp(LocalsVectorPtr);
+    Node *parse_interpolated_shell(LocalsVectorPtr);
+    Node *parse_interpolated_string(LocalsVectorPtr);
+    Node *parse_lit(LocalsVectorPtr);
+    Node *parse_keyword_args(LocalsVectorPtr);
+    Node *parse_keyword_splat(LocalsVectorPtr);
+    Node *parse_module(LocalsVectorPtr);
+    Node *parse_next(LocalsVectorPtr);
+    Node *parse_nil(LocalsVectorPtr);
+    Node *parse_not(LocalsVectorPtr);
+    Node *parse_regexp(LocalsVectorPtr);
+    Node *parse_return(LocalsVectorPtr);
+    Node *parse_sclass(LocalsVectorPtr);
+    Node *parse_self(LocalsVectorPtr);
+    Node *parse_splat(LocalsVectorPtr);
+    Node *parse_stabby_proc(LocalsVectorPtr);
+    Node *parse_string(LocalsVectorPtr);
+    Node *parse_super(LocalsVectorPtr);
+    Node *parse_symbol(LocalsVectorPtr);
+    Node *parse_statement_keyword(LocalsVectorPtr);
+    Node *parse_top_level_constant(LocalsVectorPtr);
+    Node *parse_unless(LocalsVectorPtr);
+    Node *parse_while(LocalsVectorPtr);
+    Node *parse_word_array(LocalsVectorPtr);
+    Node *parse_word_symbol_array(LocalsVectorPtr);
+    Node *parse_yield(LocalsVectorPtr);
 
-    Node *parse_assignment_expression(Env *, Node *, LocalsVectorPtr);
-    Node *parse_call_expression_without_parens(Env *, Node *, LocalsVectorPtr);
-    Node *parse_call_expression_with_parens(Env *, Node *, LocalsVectorPtr);
-    void parse_call_args(Env *, NodeWithArgs *, LocalsVectorPtr, bool = false);
-    Node *parse_constant_resolution_expression(Env *, Node *, LocalsVectorPtr);
-    Node *parse_infix_expression(Env *, Node *, LocalsVectorPtr);
-    Node *parse_proc_call_expression(Env *, Node *, LocalsVectorPtr);
-    Node *parse_iter_expression(Env *, Node *, LocalsVectorPtr);
-    ManagedVector<Node *> *parse_iter_args(Env *, LocalsVectorPtr);
-    Node *parse_logical_expression(Env *, Node *, LocalsVectorPtr);
-    Node *parse_match_expression(Env *, Node *, LocalsVectorPtr);
-    Node *parse_modifier_expression(Env *, Node *, LocalsVectorPtr);
-    Node *parse_not_match_expression(Env *, Node *, LocalsVectorPtr);
-    Node *parse_op_assign_expression(Env *, Node *, LocalsVectorPtr);
-    Node *parse_op_attr_assign_expression(Env *, Node *, LocalsVectorPtr);
-    Node *parse_range_expression(Env *, Node *, LocalsVectorPtr);
-    Node *parse_ref_expression(Env *, Node *, LocalsVectorPtr);
-    Node *parse_safe_send_expression(Env *, Node *, LocalsVectorPtr);
-    Node *parse_send_expression(Env *, Node *, LocalsVectorPtr);
-    Node *parse_ternary_expression(Env *, Node *, LocalsVectorPtr);
+    Node *parse_assignment_expression(Node *, LocalsVectorPtr);
+    Node *parse_call_expression_without_parens(Node *, LocalsVectorPtr);
+    Node *parse_call_expression_with_parens(Node *, LocalsVectorPtr);
+    void parse_call_args(NodeWithArgs *, LocalsVectorPtr, bool = false);
+    Node *parse_constant_resolution_expression(Node *, LocalsVectorPtr);
+    Node *parse_infix_expression(Node *, LocalsVectorPtr);
+    Node *parse_proc_call_expression(Node *, LocalsVectorPtr);
+    Node *parse_iter_expression(Node *, LocalsVectorPtr);
+    ManagedVector<Node *> *parse_iter_args(LocalsVectorPtr);
+    Node *parse_logical_expression(Node *, LocalsVectorPtr);
+    Node *parse_match_expression(Node *, LocalsVectorPtr);
+    Node *parse_modifier_expression(Node *, LocalsVectorPtr);
+    Node *parse_not_match_expression(Node *, LocalsVectorPtr);
+    Node *parse_op_assign_expression(Node *, LocalsVectorPtr);
+    Node *parse_op_attr_assign_expression(Node *, LocalsVectorPtr);
+    Node *parse_range_expression(Node *, LocalsVectorPtr);
+    Node *parse_ref_expression(Node *, LocalsVectorPtr);
+    Node *parse_safe_send_expression(Node *, LocalsVectorPtr);
+    Node *parse_send_expression(Node *, LocalsVectorPtr);
+    Node *parse_ternary_expression(Node *, LocalsVectorPtr);
 
-    using parse_null_fn = Node *(Parser::*)(Env *, LocalsVectorPtr);
-    using parse_left_fn = Node *(Parser::*)(Env *, Node *, LocalsVectorPtr);
+    using parse_null_fn = Node *(Parser::*)(LocalsVectorPtr);
+    using parse_left_fn = Node *(Parser::*)(Node *, LocalsVectorPtr);
 
     parse_null_fn null_denotation(Token::Type, Precedence);
     parse_left_fn left_denotation(Token *, Node *);
@@ -270,12 +292,12 @@ private:
     Token *current_token();
     Token *peek_token();
 
-    void next_expression(Env *);
+    void next_expression();
     void skip_newlines();
 
-    void expect(Env *, Token::Type, const char *);
-    [[noreturn]] void raise_unexpected(Env *, Token *, const char *);
-    [[noreturn]] void raise_unexpected(Env *, const char *);
+    void expect(Token::Type, const char *);
+    [[noreturn]] void throw_unexpected(Token *, const char *);
+    [[noreturn]] void throw_unexpected(const char *);
 
     void advance() { m_index++; }
     void rewind() { m_index--; }

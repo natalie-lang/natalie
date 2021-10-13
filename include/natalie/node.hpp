@@ -179,7 +179,7 @@ public:
     Node *value() { return m_value; }
     void set_value(Node *value) { m_value = value; }
 
-    void add_to_locals(Env *env, ManagedVector<SymbolValue *> *locals) {
+    void add_to_locals(ManagedVector<SymbolValue *> *locals) {
         locals->push(SymbolValue::intern(m_name));
     }
 
@@ -805,13 +805,13 @@ public:
         }
     }
 
-    SymbolValue *to_symbol(Env *env) {
+    SymbolValue *to_symbol() {
         return SymbolValue::intern(name());
     }
 
-    void add_to_locals(Env *env, ManagedVector<SymbolValue *> *locals) {
+    void add_to_locals(ManagedVector<SymbolValue *> *locals) {
         if (token_type() == Token::Type::BareName)
-            locals->push(to_symbol(env));
+            locals->push(to_symbol());
     }
 
 protected:
@@ -1074,7 +1074,7 @@ public:
     virtual ValuePtr to_ruby(Env *) override;
     ArrayValue *to_ruby_with_array(Env *);
 
-    void add_locals(Env *, ManagedVector<SymbolValue *> *);
+    void add_locals(ManagedVector<SymbolValue *> *);
 };
 
 class NextNode : public Node {

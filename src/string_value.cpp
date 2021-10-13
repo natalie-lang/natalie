@@ -91,8 +91,8 @@ StringValue *StringValue::inspect(Env *env) {
         unsigned char c = str[i];
         char c2 = (i + 1) < len ? str[i + 1] : 0;
         if (c == '"' || c == '\\' || (c == '#' && c2 == '{')) {
-            out->append_char(env, '\\');
-            out->append_char(env, c);
+            out->append_char('\\');
+            out->append_char(c);
         } else if (c == '\n') {
             out->append(env, "\\n");
         } else if (c == '\t') {
@@ -113,10 +113,10 @@ StringValue *StringValue::inspect(Env *env) {
             }
             }
         } else {
-            out->append_char(env, c);
+            out->append_char(c);
         }
     }
-    out->append_char(env, '"');
+    out->append_char('"');
     return out;
 }
 
@@ -503,7 +503,7 @@ StringValue *StringValue::expand_backrefs(Env *env, StringValue *str, MatchDataV
                 break;
             }
             case '\\':
-                expanded->append_char(env, c);
+                expanded->append_char(c);
                 break;
             // TODO: there are other back references we need to handle, e.g. \&, \', \`, and \+
             default:
@@ -512,7 +512,7 @@ StringValue *StringValue::expand_backrefs(Env *env, StringValue *str, MatchDataV
             }
             break;
         default:
-            expanded->append_char(env, c);
+            expanded->append_char(c);
         }
     }
     return expanded;
@@ -648,7 +648,7 @@ ValuePtr StringValue::downcase(Env *env) {
             if (c >= 65 && c <= 90) {
                 c += 32;
             }
-            str->append_char(env, c);
+            str->append_char(c);
         }
     }
     return str;
@@ -666,7 +666,7 @@ ValuePtr StringValue::upcase(Env *env) {
             if (c >= 97 && c <= 122) {
                 c -= 32;
             }
-            str->append_char(env, c);
+            str->append_char(c);
         }
     }
     return str;
@@ -692,7 +692,7 @@ void StringValue::insert(Env *, size_t position, char c) {
     m_string.insert(position, c);
 }
 
-void StringValue::append_char(Env *, char c) {
+void StringValue::append_char(char c) {
     m_string.append_char(c);
 }
 

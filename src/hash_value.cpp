@@ -287,7 +287,7 @@ ValuePtr HashValue::inspect(Env *env) {
             index++;
         }
 
-        out->append_char(env, '}');
+        out->append_char('}');
         return out;
     });
 }

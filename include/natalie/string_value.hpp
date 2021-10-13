@@ -77,7 +77,7 @@ public:
 
     void insert(Env *, size_t, char);
 
-    void append_char(Env *, char);
+    void append_char(char);
     void append(Env *, const char *);
     void append(Env *, const StringValue *);
     void append(Env *, const String *);

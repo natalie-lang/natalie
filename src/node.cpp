@@ -605,12 +605,12 @@ ValuePtr MultipleAssignmentNode::to_ruby(Env *env) {
     return sexp;
 }
 
-void MultipleAssignmentNode::add_locals(Env *env, ManagedVector<SymbolValue *> *locals) {
+void MultipleAssignmentNode::add_locals(ManagedVector<SymbolValue *> *locals) {
     for (auto node : m_nodes) {
         switch (node->type()) {
         case Node::Type::Identifier: {
             auto identifier = static_cast<IdentifierNode *>(node);
-            identifier->add_to_locals(env, locals);
+            identifier->add_to_locals(locals);
             break;
         }
         case Node::Type::Splat:
@@ -618,11 +618,11 @@ void MultipleAssignmentNode::add_locals(Env *env, ManagedVector<SymbolValue *> *
         case Node::Type::SplatAssignment: {
             auto splat = static_cast<SplatAssignmentNode *>(node);
             if (splat->node())
-                splat->node()->add_to_locals(env, locals);
+                splat->node()->add_to_locals(locals);
             break;
         }
         case Node::Type::MultipleAssignment:
-            static_cast<MultipleAssignmentNode *>(node)->add_locals(env, locals);
+            static_cast<MultipleAssignmentNode *>(node)->add_locals(locals);
             break;
         default:
             NAT_UNREACHABLE();

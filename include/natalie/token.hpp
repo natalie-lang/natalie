@@ -499,6 +499,7 @@ public:
     ValuePtr to_ruby(Env *env, bool with_line_and_column_numbers = false) {
         if (m_type == Type::Eof)
             return NilValue::the();
+        validate_or_raise(env);
         const char *type = type_value();
         auto hash = new HashValue {};
         hash->put(env, SymbolValue::intern("type"), SymbolValue::intern(type));
@@ -572,19 +573,8 @@ public:
     bool is_valid() { return m_type != Type::Invalid; }
     bool is_when_keyword() { return m_type == Type::WhenKeyword; }
 
-    void validate(Env *env) {
-        switch (m_type) {
-        case Type::Invalid:
-            env->raise("SyntaxError", "{}: syntax error, unexpected '{}'", m_line + 1, literal_or_blank());
-        case Type::UnterminatedRegexp:
-            env->raise("SyntaxError", "unterminated regexp meets end of file");
-        case Type::UnterminatedString:
-            env->raise("SyntaxError", "unterminated string meets end of file at line {} and column {}: {}", m_line, m_column, literal_or_blank());
-        default:
-            assert(type_value()); // all other types should return a string for type_value()
-            return;
-        }
-    }
+    void validate();
+    void validate_or_raise(Env *env);
 
     bool can_follow_collapsible_newline() {
         return m_type == Token::Type::Dot

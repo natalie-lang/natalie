@@ -15,7 +15,12 @@ ValuePtr ParserValue::parse(Env *env, ValuePtr code, ValuePtr source_path) {
         source_path = new StringValue { "(string)" };
     code->assert_type(env, Value::Type::String, "String");
     auto parser = Parser { code->as_string()->to_low_level_string(), source_path->as_string()->to_low_level_string() };
-    auto tree = parser.tree(env);
+    Node *tree;
+    try {
+        tree = parser.tree();
+    } catch (Parser::SyntaxError &e) {
+        env->raise("SyntaxError", e.message());
+    }
     return tree->to_ruby(env);
 }
 
