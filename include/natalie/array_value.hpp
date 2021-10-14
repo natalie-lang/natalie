@@ -164,6 +164,7 @@ public:
     ValuePtr ref(Env *, ValuePtr, ValuePtr = nullptr);
     ValuePtr refeq(Env *, ValuePtr, ValuePtr, ValuePtr);
     ValuePtr reject(Env *, Block *);
+    ValuePtr reject_in_place(Env *, Block *);
     ValuePtr reverse(Env *);
     ValuePtr reverse_each(Env *, Block *);
     ValuePtr reverse_in_place(Env *);
