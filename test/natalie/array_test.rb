@@ -388,9 +388,9 @@ describe 'array' do
     end
 
     it 'should throw on non array argument' do
-    -> { [] & -3 }.should raise_error(TypeError, 'no implicit conversion of Integer into Array')
-    -> { [] & :foo }.should raise_error(TypeError, 'no implicit conversion of Symbol into Array')
-    -> { [] & 'a' }.should raise_error(TypeError, 'no implicit conversion of String into Array')
+      -> { [] & -3 }.should raise_error(TypeError, 'no implicit conversion of Integer into Array')
+      -> { [] & :foo }.should raise_error(TypeError, 'no implicit conversion of Symbol into Array')
+      -> { [] & 'a' }.should raise_error(TypeError, 'no implicit conversion of String into Array')
     end
   end
 
@@ -1822,14 +1822,14 @@ describe 'array' do
 
     it 'does not collide when array contains duplicate elements' do
       found_hashes = []
-      (0..100).each do |length| 
-        current_hash = (0..length).to_a.map { |x| 0 }.hash 
+      (0..100).each do |length|
+        current_hash = (0..length).to_a.map { |x| 0 }.hash
         found_hashes.find_index(current_hash).should be_nil
         found_hashes << current_hash
       end
     end
 
-    slow_test do 
+    slow_test do
       fit 'has a collision rate lower or equal to MRI' do
         # MRI Collision rate for this test suite is 0.11428571428571429%, rounded up to 0.115
         found_hashes = {}
@@ -1839,14 +1839,14 @@ describe 'array' do
         bool_literals = [true, false]
         floating_points = numeric_literals.map { |i| i / 2.2 }
         literals = numeric_literals + string_literals + bool_literals + floating_points
-        (0..4).each do |length| 
+        (0..4).each do |length|
           literals.repeated_combination(length) do |combo|
             current_hash = combo.hash
             found_collision_combo = found_hashes[current_hash]
             if found_collision_combo
               next if found_collision_combo.eql? current_hash
               collisions[current_hash] = combo
-            else            
+            else
               found_hashes[current_hash] = combo
             end
           end

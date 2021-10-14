@@ -1577,34 +1577,48 @@ ValuePtr ArrayValue::insert(Env *env, size_t argc, ValuePtr *args) {
 }
 
 ValuePtr ArrayValue::intersection(Env *env, ValuePtr arg) {
-    if (!arg->is_array()) {
-        env->raise("TypeError", "no implicit conversion of {} into Array", arg->klass()->class_name_or_blank());
-        return nullptr;
-    }
+    return intersection(env, 1, &arg);
+}
 
-    auto *other_array = arg->as_array();
-
-    if (is_empty() || other_array->is_empty()) {
-        return new ArrayValue();
-    }
-
-    auto *result = new ArrayValue();
+bool ArrayValue::include_eql(Env *env, ValuePtr arg) {
+    auto eql = SymbolValue::intern("eql?");
     for (auto &val : *this) {
-        if (other_array->include(env, val)->is_truthy()) {
-            result->push(val);
-        }
+        if (arg->object_id() == val->object_id() || arg->send(env, eql, { val })->is_truthy())
+            return true;
     }
-
-    return result;
+    return false;
 }
 
 ValuePtr ArrayValue::intersection(Env *env, size_t argc, ValuePtr *args) {
-    auto *result = new ArrayValue(*this);
+    auto *result = new ArrayValue { *this };
+    result->uniq_in_place(env, nullptr);
 
-    // TODO: we probably want to make & call this instead of this way for optimization
-    for (size_t i = 0; i < argc; i++) {
+    TM::Vector<ArrayValue *> arrays;
+    auto to_ary = SymbolValue::intern("to_ary");
+
+    for (size_t i = 0; i < argc; ++i) {
         auto &arg = args[i];
-        result = result->intersection(env, arg)->as_array();
+        if (!arg->is_array() && arg->respond_to(env, to_ary)) {
+            arg = arg->send(env, to_ary);
+        }
+        arg->assert_type(env, Type::Array, "Array");
+
+        auto *other_array = arg->as_array();
+        if (!other_array->is_empty())
+            arrays.push(other_array);
+    }
+
+    if (result->is_empty()) return result;
+    if (arrays.size() != argc) return new ArrayValue;
+
+    for (size_t i = 0; i < result->size(); ++i) {
+        auto &item = result->at(i);
+        for (auto *array : arrays) {
+            if (!array->include_eql(env, item)) {
+                result->m_vector.remove(i--);
+                break;
+            }
+        }
     }
 
     return result;
