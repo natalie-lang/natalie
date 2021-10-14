@@ -386,6 +386,7 @@ gen.binding('Array', 'unshift', 'ArrayValue', 'unshift', argc: :any, pass_env: t
 gen.binding('Array', 'zip', 'ArrayValue', 'zip', argc: 0.., pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Array', 'values_at', 'ArrayValue', 'values_at', argc: 0.., pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Array', '|', 'ArrayValue', 'union_of', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Array', 'replace', 'ArrayValue', 'replace', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 
 gen.binding('BasicObject', '__send__', 'Value', 'send', argc: 1.., pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('BasicObject', '!', 'Value', 'is_falsey', argc: 0, pass_env: false, pass_block: false, return_type: :bool)

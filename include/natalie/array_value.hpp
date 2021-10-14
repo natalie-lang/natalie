@@ -186,6 +186,7 @@ public:
     ValuePtr to_h(Env *, Block *);
     ValuePtr values_at(Env *, size_t, ValuePtr *);
     ValuePtr zip(Env *, size_t, ValuePtr *, Block *);
+    ValuePtr replace(Env *, ValuePtr);
 
     virtual void visit_children(Visitor &visitor) override final {
         Value::visit_children(visitor);

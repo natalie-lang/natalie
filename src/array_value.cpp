@@ -2094,4 +2094,28 @@ ValuePtr ArrayValue::zip(Env *env, size_t argc, ValuePtr *args, Block *block) {
     auto zip_method = Enumerable->find_method(env, SymbolValue::intern("zip"));
     return zip_method->call(env, this, argc, args, block);
 }
+
+ValuePtr ArrayValue::replace(Env *env, ValuePtr val) {
+    assert_not_frozen(env);
+
+    if (!val->is_array()) {
+        auto original_class = val->klass()->class_name_or_blank();
+
+        if (!val->respond_to(env, SymbolValue::intern("to_ary"))) {
+            env->raise("TypeError", "no implicit conversion of {} into Array", original_class);
+        }
+
+        val = val.send(env, SymbolValue::intern("to_ary"));
+        if (!val->is_array()) {
+            env->raise("TypeError", "can't convert {} to Array ({}#to_ary gives {})", original_class, original_class, val->klass()->class_name_or_blank());
+        }
+    }
+
+    clear(env);
+    for (auto node : *val->as_array()) {
+        push(node);
+    }
+
+    return this;
+}
 }
