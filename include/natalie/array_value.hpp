@@ -141,6 +141,7 @@ public:
     ValuePtr hash(Env *);
     ValuePtr include(Env *, ValuePtr);
     ValuePtr index(Env *, ValuePtr, Block *);
+    ValuePtr initialize_copy(Env *, ValuePtr);
     ValuePtr inspect(Env *);
     ValuePtr insert(Env *, size_t, ValuePtr *);
     ValuePtr intersection(Env *, ValuePtr);

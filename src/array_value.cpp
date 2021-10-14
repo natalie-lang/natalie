@@ -68,6 +68,23 @@ ValuePtr ArrayValue::initialize(Env *env, ValuePtr size, ValuePtr value, Block *
     return this;
 }
 
+ValuePtr ArrayValue::initialize_copy(Env *env, ValuePtr other) {
+    assert_not_frozen(env);
+
+    auto to_ary = SymbolValue::intern("to_ary");
+    if (!other->is_array() && other->respond_to(env, to_ary)) {
+        other = other->send(env, to_ary);
+    }
+    other->assert_type(env, Type::Array, "Array");
+
+    ArrayValue *other_array = other->as_array();
+    clear(env);
+    for (auto &item : *other_array) {
+        m_vector.push(item);
+    }
+    return this;
+}
+
 ValuePtr ArrayValue::inspect(Env *env) {
     RecursionGuard guard { this };
 
