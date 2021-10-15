@@ -169,11 +169,18 @@ ValuePtr ArrayValue::sum(Env *env, size_t argc, ValuePtr *args, Block *block) {
 }
 
 ValuePtr ArrayValue::ref(Env *env, ValuePtr index_obj, ValuePtr size) {
-    if (!size && index_obj->is_integer()) {
-        auto index = _resolve_index(index_obj->as_integer()->to_nat_int_t());
-        if (index < 0 || index >= (nat_int_t)m_vector.size())
-            return NilValue::the();
-        return m_vector[index];
+    if (!size) {
+        if (!index_obj->is_integer() && index_obj->respond_to(env, SymbolValue::intern("to_int")))
+            index_obj = index_obj->send(env, SymbolValue::intern("to_int"));
+
+        if (index_obj->is_integer()) {
+            index_obj->as_integer()->assert_fixnum(env);
+
+            auto index = _resolve_index(index_obj->as_integer()->to_nat_int_t());
+            if (index < 0 || index >= (nat_int_t)m_vector.size())
+                return NilValue::the();
+            return m_vector[index];
+        }
     }
 
     ArrayValue *copy = new ArrayValue { *this };
@@ -1922,9 +1929,13 @@ ValuePtr ArrayValue::slice_in_place(Env *env, ValuePtr index_obj, ValuePtr size)
             size = size.send(env, to_int);
 
         size->assert_type(env, ValueType::Integer, "Integer");
+
+        size->as_integer()->assert_fixnum(env);
     }
 
     if (index_obj->is_integer()) {
+        index_obj->as_integer()->assert_fixnum(env);
+
         auto start = index_obj.to_nat_int_t();
 
         if (!size) {
@@ -1964,6 +1975,7 @@ ValuePtr ArrayValue::slice_in_place(Env *env, ValuePtr index_obj, ValuePtr size)
             begin_obj = begin_obj.send(env, to_int);
 
         begin_obj->assert_type(env, ValueType::Integer, "Integer");
+        begin_obj->as_integer()->assert_fixnum(env);
 
         ValuePtr end_obj = range->end();
 
@@ -1971,6 +1983,7 @@ ValuePtr ArrayValue::slice_in_place(Env *env, ValuePtr index_obj, ValuePtr size)
             end_obj = end_obj.send(env, to_int);
 
         end_obj->assert_type(env, ValueType::Integer, "Integer");
+        end_obj->as_integer()->assert_fixnum(env);
 
         nat_int_t start = begin_obj.to_nat_int_t();
         nat_int_t end = end_obj.to_nat_int_t();
