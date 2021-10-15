@@ -109,7 +109,7 @@ SymbolNode *Parser::parse_alias_arg(LocalsVectorPtr locals, const char *expected
     switch (current_token()->type()) {
     case Token::Type::BareName: {
         auto identifier = static_cast<IdentifierNode *>(parse_identifier(locals));
-        return new SymbolNode { current_token(), SymbolValue::intern(identifier->name()) };
+        return new SymbolNode { current_token(), new String(identifier->name()) };
     }
     case Token::Type::Symbol:
         return static_cast<SymbolNode *>(parse_symbol(locals));
@@ -786,16 +786,14 @@ Node *Parser::parse_lit(LocalsVectorPtr locals) {
     auto token = current_token();
     switch (token->type()) {
     case Token::Type::Integer:
-        value = ValuePtr::integer(token->get_integer());
-        break;
+        advance();
+        return new IntegerNode { token, token->get_integer() };
     case Token::Type::Float:
-        value = new FloatValue { token->get_double() };
-        break;
+        advance();
+        return new FloatNode { token, token->get_double() };
     default:
         NAT_UNREACHABLE();
     }
-    advance();
-    return new LiteralNode { token, value };
 };
 
 Node *Parser::parse_keyword_args(LocalsVectorPtr locals) {
@@ -968,7 +966,7 @@ Node *Parser::parse_super(LocalsVectorPtr locals) {
 
 Node *Parser::parse_symbol(LocalsVectorPtr locals) {
     auto token = current_token();
-    auto symbol = new SymbolNode { token, SymbolValue::intern(current_token()->literal()) };
+    auto symbol = new SymbolNode { token, new String(current_token()->literal()) };
     advance();
     return symbol;
 };
@@ -1020,19 +1018,19 @@ Node *Parser::parse_word_symbol_array(LocalsVectorPtr locals) {
     auto literal = token->literal();
     size_t len = strlen(literal);
     if (len > 0) {
-        StringValue *string = new StringValue {};
+        String *string = new String;
         for (size_t i = 0; i < len; i++) {
             auto c = literal[i];
             switch (c) {
             case ' ':
-                array->add_node(new LiteralNode { token, SymbolValue::intern(string->c_str()) });
-                string = new StringValue {};
+                array->add_node(new SymbolNode { token, string });
+                string = new String {};
                 break;
             default:
                 string->append_char(c);
             }
         }
-        array->add_node(new LiteralNode { token, SymbolValue::intern(string->c_str()) });
+        array->add_node(new SymbolNode { token, string });
     }
     advance();
     return array;
@@ -1239,11 +1237,11 @@ Node *Parser::parse_infix_expression(Node *left, LocalsVectorPtr locals) {
     Node *right = nullptr;
     if (op->type() == Token::Type::Integer) {
         bool is_negative = op->get_integer() < 0;
-        right = new LiteralNode { token, ValuePtr::integer(op->get_integer() * (is_negative ? -1 : 1)) };
+        right = new IntegerNode { token, op->get_integer() * (is_negative ? -1 : 1) };
         op = new Token { is_negative ? Token::Type::Minus : Token::Type::Plus, op->file(), op->line(), op->column() };
     } else if (op->type() == Token::Type::Float) {
         bool is_negative = op->get_double() < 0;
-        right = new LiteralNode { token, new FloatValue { op->get_double() * (is_negative ? -1 : 1) } };
+        right = new FloatNode { token, op->get_double() * (is_negative ? -1 : 1) };
         op = new Token { is_negative ? Token::Type::Minus : Token::Type::Plus, op->file(), op->line(), op->column() };
     } else {
         right = parse_expression(precedence, locals);

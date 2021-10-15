@@ -34,9 +34,11 @@ public:
         Defined,
         EvaluateToString,
         False,
+        Float,
         Hash,
         Identifier,
         If,
+        Integer,
         Iter,
         InterpolatedRegexp,
         InterpolatedShell,
@@ -610,25 +612,36 @@ public:
     const char *name() { return m_token->literal(); }
 };
 
-class LiteralNode : public Node {
+class IntegerNode : public Node {
 public:
-    LiteralNode(Token *token, ValuePtr value)
+    IntegerNode(Token *token, nat_int_t number)
         : Node { token }
-        , m_value { value } {
-        assert(m_value);
-    }
+        , m_number { number } { }
 
-    virtual Type type() override { return Type::Literal; }
+    virtual Type type() override { return Type::Integer; }
 
     virtual ValuePtr to_ruby(Env *) override;
 
-    ValuePtr value() { return m_value; }
-    Value::Type value_type() { return m_value->type(); }
-
-    virtual void visit_children(Visitor &visitor) override;
+    nat_int_t number() { return m_number; }
 
 protected:
-    ValuePtr m_value { nullptr };
+    nat_int_t m_number;
+};
+
+class FloatNode : public Node {
+public:
+    FloatNode(Token *token, double number)
+        : Node { token }
+        , m_number { number } { }
+
+    virtual Type type() override { return Type::Float; }
+
+    virtual ValuePtr to_ruby(Env *) override;
+
+    double number() { return m_number; }
+
+protected:
+    double m_number;
 };
 
 class DefinedNode : public Node {
@@ -1441,11 +1454,9 @@ protected:
 
 class SymbolNode : public Node {
 public:
-    SymbolNode(Token *token, ValuePtr value)
+    SymbolNode(Token *token, String *name)
         : Node { token }
-        , m_value { value } {
-        assert(m_value);
-    }
+        , m_name { name } { }
 
     virtual Type type() override { return Type::Symbol; }
 
@@ -1453,11 +1464,11 @@ public:
 
     virtual void visit_children(Visitor &visitor) override {
         Node::visit_children(visitor);
-        visitor.visit(m_value);
+        visitor.visit(m_name);
     }
 
 protected:
-    ValuePtr m_value { nullptr };
+    String *m_name { nullptr };
 };
 
 class TrueNode : public Node {

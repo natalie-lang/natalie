@@ -525,13 +525,12 @@ ValuePtr KeywordSplatNode::to_ruby(Env *env) {
     return sexp;
 }
 
-ValuePtr LiteralNode::to_ruby(Env *env) {
-    return new SexpValue { env, this, { SymbolValue::intern("lit"), m_value } };
+ValuePtr IntegerNode::to_ruby(Env *env) {
+    return new SexpValue { env, this, { SymbolValue::intern("lit"), ValuePtr::integer(m_number) } };
 }
 
-void LiteralNode::visit_children(Visitor &visitor) {
-    Node::visit_children(visitor);
-    visitor.visit(m_value);
+ValuePtr FloatNode::to_ruby(Env *env) {
+    return new SexpValue { env, this, { SymbolValue::intern("lit"), new FloatValue { m_number } } };
 }
 
 ValuePtr LogicalAndNode::to_ruby(Env *env) {
@@ -745,11 +744,17 @@ ValuePtr OpAssignOrNode::to_ruby(Env *env) {
 }
 
 ValuePtr RangeNode::to_ruby(Env *env) {
-    if (m_first->type() == Node::Type::Literal && static_cast<LiteralNode *>(m_first)->value_type() == Value::Type::Integer && m_last->type() == Node::Type::Literal && static_cast<LiteralNode *>(m_last)->value_type() == Value::Type::Integer) {
+    if (m_first->type() == Node::Type::Integer && m_last->type() == Node::Type::Integer) {
+        auto first = static_cast<IntegerNode *>(m_first)->number();
+        auto last = static_cast<IntegerNode *>(m_last)->number();
         return new SexpValue {
             env,
             this,
-            { SymbolValue::intern("lit"), new RangeValue { static_cast<LiteralNode *>(m_first)->value(), static_cast<LiteralNode *>(m_last)->value(), m_exclude_end } }
+            { SymbolValue::intern("lit"),
+                new RangeValue {
+                    ValuePtr::integer(first),
+                    ValuePtr::integer(last),
+                    m_exclude_end } }
         };
     }
     return new SexpValue {
@@ -836,7 +841,7 @@ ValuePtr StringNode::to_ruby(Env *env) {
 }
 
 ValuePtr SymbolNode::to_ruby(Env *env) {
-    return new SexpValue { env, this, { SymbolValue::intern("lit"), m_value } };
+    return new SexpValue { env, this, { SymbolValue::intern("lit"), SymbolValue::intern(m_name) } };
 }
 
 ValuePtr TrueNode::to_ruby(Env *env) {
