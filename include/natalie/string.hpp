@@ -214,6 +214,7 @@ public:
         for (size_t i = 0; i < n; ++i)
             m_str[i + m_length] = c;
         m_length = total_length;
+        m_str[m_length] = 0;
     }
 
     bool operator==(const String &other) const {
