@@ -127,12 +127,15 @@ OBJECT_FILES = PRIMARY_SOURCES.pathmap('build/%f.o') +
                RUBY_SOURCES.pathmap('build/generated/%f.o') +
                SPECIAL_SOURCES.pathmap('%p.o')
 
+require 'tempfile'
+
 task(:set_build_debug) { ENV['BUILD'] = 'debug'; File.write('.build', 'debug') }
 task(:set_build_release) { ENV['BUILD'] = 'release'; File.write('.build', 'release') }
 
 task libnatalie: [
   :build_dir,
   'build/onigmo/lib/libonigmo.a',
+  'build/generated/numbers.rb',
   :primary_sources,
   :ruby_sources,
   :special_sources,
@@ -177,6 +180,26 @@ file 'build/onigmo/lib/libonigmo.a' do
     make -j 4 && \
     make install
   SH
+end
+
+file 'build/generated/numbers.rb' do |t|
+  f1 = Tempfile.new('numbers.c')
+  f2 = Tempfile.create('numbers')
+  f2.close
+  begin
+    f1.puts "#include <limits.h>"
+    f1.puts "#include <stdio.h>"
+    f1.puts "int main() {"
+    f1.puts "  printf(\"NAT_MAX_FIXNUM = %lli\\n\", LLONG_MAX);"
+    f1.puts "  printf(\"NAT_MIN_FIXNUM = %lli - 1\\n\", LLONG_MIN + 1);"
+    f1.puts "}"
+    f1.close
+    sh "#{cc} -x c -o #{f2.path} #{f1.path}"
+    sh "#{f2.path} > #{t.name}"
+  ensure
+    File.unlink(f1.path)
+    File.unlink(f2.path)
+  end
 end
 
 file 'build/generated/platform.cpp.o' do |t|

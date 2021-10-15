@@ -1,12 +1,13 @@
 require_relative './method_args'
 require_relative './multiple_assignment'
+require_relative '../../../build/generated/numbers'
 
 module Natalie
   class Compiler
     # Process S-expressions from the Ruby parser.
     class Pass1 < NatSexpProcessor
-      MAX_FIXNUM = 9_223_372_036_854_775_807.freeze
-      MIN_FIXNUM = -9_223_372_036_854_775_808.freeze
+      MAX_FIXNUM = NAT_MAX_FIXNUM
+      MIN_FIXNUM = NAT_MIN_FIXNUM
 
       def initialize(compiler_context)
         super()
