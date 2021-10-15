@@ -99,8 +99,7 @@ describe :array_slice, shared: true do
     [ "a", "b", "c", "d", "e" ].send(@method, 0, 3).should == ["a", "b", "c"]
   end
 
-  # FIXME add back when Array#replace has been implemented
-  xit "returns the subarray which is independent to self with [index,count]" do
+  it "returns the subarray which is independent to self with [index,count]" do
     a = [1, 2, 3]
     sub = a.send(@method, 1,2)
     sub.replace([:a, :b])
@@ -263,8 +262,7 @@ describe :array_slice, shared: true do
     a.should == [1, 2, 3, 4]
   end
 
-  # FIXME add back when Array#replace has been implemented
-  xit "returns the subarray which is independent to self with [m..n]" do
+  it "returns the subarray which is independent to self with [m..n]" do
     a = [1, 2, 3]
     sub = a.send(@method, 1..2)
     sub.replace([:a, :b])
