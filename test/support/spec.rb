@@ -137,6 +137,10 @@ def infinity_value
   1/0.0
 end
 
+def bignum_value(plus = 0)
+  0x8000_0000_0000_0000 + plus
+end
+
 def ruby_version_is(version)
   without_patch_number = RUBY_VERSION.sub(/\.\d+$/, '')
   if version === without_patch_number

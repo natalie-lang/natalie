@@ -1,5 +1,6 @@
 #pragma once
 
+#include "natalie/big_int.hpp"
 #include <assert.h>
 #include <inttypes.h>
 
@@ -18,7 +19,7 @@ public:
         : Value { Value::Type::Integer, GlobalEnv::the()->Integer() }
         , m_integer { integer } { }
 
-    nat_int_t to_nat_int_t() {
+    nat_int_t to_nat_int_t() const {
         return m_integer;
     }
 
@@ -41,10 +42,10 @@ public:
 
     ValuePtr inspect(Env *env) { return to_s(env); }
 
-    ValuePtr to_s(Env *, ValuePtr = nullptr);
+    virtual ValuePtr to_s(Env *, ValuePtr = nullptr);
     ValuePtr to_i();
     ValuePtr to_f();
-    ValuePtr add(Env *, ValuePtr);
+    virtual ValuePtr add(Env *, ValuePtr);
     ValuePtr sub(Env *, ValuePtr);
     ValuePtr mul(Env *, ValuePtr);
     ValuePtr div(Env *, ValuePtr);
@@ -68,6 +69,10 @@ public:
     bool lte(Env *, ValuePtr);
     bool gt(Env *, ValuePtr);
     bool gte(Env *, ValuePtr);
+    virtual bool is_bignum() const { return false; }
+    bool is_fixnum() const { return !is_bignum(); }
+
+    virtual BigInt to_bignum() const { return BigInt(to_nat_int_t()); }
 
     static bool optimized_method(SymbolValue *);
 
