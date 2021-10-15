@@ -121,12 +121,14 @@ describe "Array#flatten" do
       -> { [@obj].flatten }.should raise_error(TypeError)
     end
 
+    # NATFIXME: Implement Kernel#respond_to_missing?
     xit "calls respond_to_missing?(:to_ary, true) to try coercing" do
       def @obj.respond_to_missing?(*args) ScratchPad << args; false end
       [@obj].flatten.should == [@obj]
       ScratchPad.recorded.should == [[:to_ary, true]]
     end
 
+    # NATFIXME: Implement Kernel#respond_to_missing?
     xit "does not call #to_ary if not defined when #respond_to_missing? returns false" do
       def @obj.respond_to_missing?(name, priv) ScratchPad << name; false end
 
@@ -134,6 +136,7 @@ describe "Array#flatten" do
       ScratchPad.recorded.should == [:to_ary]
     end
 
+    # NATFIXME: Implement Kernel#respond_to_missing?
     xit "calls #to_ary if not defined when #respond_to_missing? returns true" do
       def @obj.respond_to_missing?(name, priv) ScratchPad << name; true end
 
@@ -141,6 +144,7 @@ describe "Array#flatten" do
       ScratchPad.recorded.should == [:to_ary]
     end
 
+    # NATFIXME: Implement BasicObject#method_missing
     xit "calls #method_missing if defined" do
       @obj.should_receive(:method_missing).with(:to_ary).and_return([1, 2, 3])
       [@obj].flatten.should == [1, 2, 3]
@@ -157,6 +161,7 @@ describe "Array#flatten" do
     end
   end
 
+  # NATFIXME: Implement BasicObject#method_missing
   xit "performs respond_to? and method_missing-aware checks when coercing elements to array" do
     bo = BasicObject.new
     [bo].flatten.should == [bo]
