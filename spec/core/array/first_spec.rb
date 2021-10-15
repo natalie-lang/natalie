@@ -42,8 +42,7 @@ describe "Array#first" do
     [1, 2, 3, 4, 5, 9].first(10).should == [1, 2, 3, 4, 5, 9]
   end
 
-  # TODO add this test back once we have a replace method
-  xit "returns an array which is independent to the original when passed count" do
+  it "returns an array which is independent to the original when passed count" do
     ary = [1, 2, 3, 4, 5]
     ary.first(0).replace([1,2])
     ary.should == [1, 2, 3, 4, 5]
