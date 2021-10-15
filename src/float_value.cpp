@@ -3,9 +3,6 @@
 
 #include <math.h>
 
-// from dtoa.c by David Gay
-extern "C" char *dtoa(double d, int mode, int ndigits, int *decpt, int *sign, char **rve);
-
 namespace Natalie {
 
 ValuePtr FloatValue::is_infinite(Env *env) {
@@ -131,41 +128,7 @@ ValuePtr FloatValue::to_s(Env *env) {
         return new StringValue { "-Infinity" };
     }
 
-    int decpt, sign;
-    char *out, *e;
-    out = dtoa(to_double(), 0, 0, &decpt, &sign, &e);
-
-    StringValue *string;
-
-    if (decpt == 0) {
-        string = new StringValue { "0." };
-        string->append(env, out);
-
-    } else if (decpt < 0) {
-        string = new StringValue { "0." };
-        char *zeros = zero_string(::abs(decpt));
-        string->append(env, zeros);
-        string->append(env, out);
-
-    } else {
-        string = new StringValue { out };
-        nat_int_t s_length = string->length();
-        if (decpt == s_length) {
-            string->append(env, ".0");
-        } else if (decpt > s_length) {
-            char *zeros = zero_string(decpt - string->length());
-            string->append(env, zeros);
-            string->append(env, ".0");
-        } else {
-            string->insert(env, decpt, '.');
-        }
-    }
-
-    if (sign) {
-        string->prepend_char(env, '-');
-    }
-
-    return string;
+    return new StringValue { String::from_double(to_double()) };
 }
 
 ValuePtr FloatValue::cmp(Env *env, ValuePtr other) {
