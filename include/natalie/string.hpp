@@ -49,6 +49,13 @@ public:
         set_str(buf, length);
     }
 
+    String(long long number) {
+        int length = snprintf(NULL, 0, "%lli", number);
+        char buf[length + 1];
+        snprintf(buf, length + 1, "%lli", number);
+        set_str(buf);
+    }
+
     virtual ~String() override {
         delete[] m_str;
     }
