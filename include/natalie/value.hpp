@@ -252,6 +252,8 @@ public:
 
     virtual void gc_inspect(char *buf, size_t len) const override;
 
+    ArrayValue *to_ary(Env *env);
+
 protected:
     ClassValue *m_klass { nullptr };
 

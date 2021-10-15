@@ -71,13 +71,8 @@ ValuePtr ArrayValue::initialize(Env *env, ValuePtr size, ValuePtr value, Block *
 ValuePtr ArrayValue::initialize_copy(Env *env, ValuePtr other) {
     assert_not_frozen(env);
 
-    auto to_ary = SymbolValue::intern("to_ary");
-    if (!other->is_array() && other->respond_to(env, to_ary)) {
-        other = other->send(env, to_ary);
-    }
-    other->assert_type(env, Type::Array, "Array");
+    ArrayValue *other_array = other->to_ary(env);
 
-    ArrayValue *other_array = other->as_array();
     clear(env);
     for (auto &item : *other_array) {
         m_vector.push(item);
@@ -129,25 +124,20 @@ ValuePtr ArrayValue::ltlt(Env *env, ValuePtr arg) {
 }
 
 ValuePtr ArrayValue::add(Env *env, ValuePtr other) {
-    auto to_ary = SymbolValue::intern("to_ary");
-    if (!other->is_array() && other->respond_to(env, to_ary))
-        other = other.send(env, to_ary);
+    ArrayValue *other_array = other->to_ary(env);
 
-    other->assert_type(env, Value::Type::Array, "Array");
     ArrayValue *new_array = new ArrayValue { *this };
-    new_array->concat(*other->as_array());
+    new_array->concat(*other_array);
     return new_array;
 }
 
 ValuePtr ArrayValue::sub(Env *env, ValuePtr other) {
-    auto to_ary = SymbolValue::intern("to_ary");
-    if (!other->is_array() && other->respond_to(env, to_ary))
-        other = other.send(env, to_ary);
-    other->assert_type(env, Value::Type::Array, "Array");
+    ArrayValue *other_array = other->to_ary(env);
+
     ArrayValue *new_array = new ArrayValue {};
     for (auto &item : *this) {
         int found = 0;
-        for (auto &compare_item : *other->as_array()) {
+        for (auto &compare_item : *other_array) {
             if ((item.send(env, SymbolValue::intern("eql?"), { compare_item })->is_truthy() && item.send(env, SymbolValue::intern("hash")) == compare_item.send(env, SymbolValue::intern("hash")))
                 || item.send(env, SymbolValue::intern("=="), { compare_item })->is_truthy()) {
                 found = 1;
@@ -1627,16 +1617,11 @@ ValuePtr ArrayValue::intersection(Env *env, size_t argc, ValuePtr *args) {
     result->uniq_in_place(env, nullptr);
 
     TM::Vector<ArrayValue *> arrays;
-    auto to_ary = SymbolValue::intern("to_ary");
 
     for (size_t i = 0; i < argc; ++i) {
         auto &arg = args[i];
-        if (!arg->is_array() && arg->respond_to(env, to_ary)) {
-            arg = arg->send(env, to_ary);
-        }
-        arg->assert_type(env, Type::Array, "Array");
+        ArrayValue *other_array = arg->to_ary(env);
 
-        auto *other_array = arg->as_array();
         if (!other_array->is_empty())
             arrays.push(other_array);
     }
@@ -1743,18 +1728,7 @@ ValuePtr ArrayValue::concat(Env *env, size_t argc, ValuePtr *args) {
         if (arg == this)
             arg = original;
 
-        auto original_class_name = arg->klass()->class_name_or_blank();
-        auto to_ary = SymbolValue::intern("to_ary");
-        if (!arg->is_array() && arg->respond_to(env, to_ary)) {
-            arg = arg->send(env, to_ary);
-        }
-
-        if (!arg->is_array()) {
-            env->raise("TypeError", "no implicit conversion of {} into Array", original_class_name);
-            return nullptr;
-        }
-
-        concat(*arg->as_array());
+        concat(*arg->to_ary(env));
     }
 
     return this;
