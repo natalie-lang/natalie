@@ -45,7 +45,6 @@ describe "Array#sort" do
     sorted.should_not equal(a)
   end
 
-  # TODO: Natalie does not support recursive arrays yet
   it "properly handles recursive arrays" do
     empty = ArraySpecs.empty_recursive_array
     empty.sort.should == empty
@@ -129,9 +128,7 @@ describe "Array#sort" do
     end
   end
 
-  # TODO: Natalie has no Comparable module with results in "" <=> 0 raising a
-  # NoMethodError instead of a ArgumentError
-  xit "compares values returned by block with 0" do
+  it "compares values returned by block with 0" do
     a = [1, 2, 5, 10, 7, -4, 12]
     a.sort { |n, m| n - m }.should == [-4, 1, 2, 5, 7, 10, 12]
     a.sort { |n, m|
@@ -161,9 +158,8 @@ describe "Array#sort" do
     -> {a.sort}.should raise_error(ArgumentError)
   end
 
-  # TODO: support Array#delete_if
   # From a strange Rubinius bug
-  xit "handles a large array that has been pruned" do
+  it "handles a large array that has been pruned" do
     pruned = ArraySpecs::LargeArray.dup.delete_if { |n| n !~ /^test./ }
     pruned.sort.should == ArraySpecs::LargeTestArraySorted
   end
