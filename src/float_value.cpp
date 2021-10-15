@@ -182,7 +182,7 @@ ValuePtr FloatValue::coerce(Env *env, ValuePtr arg) {
 }
 
 ValuePtr FloatValue::to_i(Env *env) {
-    return ValuePtr::integer(static_cast<nat_int_t>(::floor(to_double())));
+    return floor(env, nullptr);
 }
 
 ValuePtr FloatValue::add(Env *env, ValuePtr rhs) {
