@@ -141,6 +141,10 @@ def bignum_value(plus = 0)
   0x8000_0000_0000_0000 + plus
 end
 
+def fixnum_max
+  9223372036854775807
+end
+
 def max_long
   # 2**(0.size * 8 - 1) - 1
   # NATFIXME: Support Integer#size
