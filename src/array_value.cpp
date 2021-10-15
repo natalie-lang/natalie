@@ -495,6 +495,7 @@ ValuePtr ArrayValue::fill(Env *env, ValuePtr obj, ValuePtr start_obj, ValuePtr l
                     length_obj = length_obj->send(env, to_int);
                 }
                 length_obj->assert_type(env, Type::Integer, "Integer");
+                length_obj->as_integer()->assert_fixnum(env);
                 auto length = length_obj->as_integer()->to_nat_int_t();
 
                 if (length <= 0)
