@@ -9,8 +9,6 @@ describe "Array#to_ary" do
     a.should equal(a.to_ary)
   end
 
-  # Recoursive equality is not guarded yet and this 
-  # would result in an endless loop
   it "properly handles recursive arrays" do
     empty = ArraySpecs.empty_recursive_array
     empty.to_ary.should == empty
