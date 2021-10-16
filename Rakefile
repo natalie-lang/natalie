@@ -58,7 +58,7 @@ end
 DOCKER_FLAGS = !ENV['CI'] && STDOUT.isatty ? '-i -t' : ''
 
 task :docker_build do
-  sh 'docker build -t natalie .'
+  sh "docker build #{ENV['DOCKER_BUILD_FLAGS']} -t natalie ."
 end
 
 task docker_bash: :docker_build do
@@ -170,10 +170,11 @@ file 'build/onigmo/lib/libonigmo.a' do
   build_dir = File.expand_path('build/onigmo', __dir__)
   rm_rf build_dir
   cp_r 'ext/onigmo', build_dir
+  arch_conf = "--host #{ENV['ARCH']}" if ENV['ARCH']
   sh <<-SH
     cd #{build_dir} && \
     sh autogen.sh && \
-    ./configure --with-pic --prefix #{build_dir} && \
+    ./configure --with-pic #{arch_conf} --prefix #{build_dir} && \
     make -j 4 && \
     make install
   SH

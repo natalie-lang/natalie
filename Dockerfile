@@ -24,7 +24,7 @@ COPY examples /natalie/examples
 COPY lib /natalie/lib
 COPY src /natalie/src
 COPY include /natalie/include
-RUN rake
+RUN rake --trace
 
 COPY spec /natalie/spec
 COPY test /natalie/test

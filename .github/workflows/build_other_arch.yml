@@ -1,0 +1,56 @@
+name: "Alternative arch: Build and Test"
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+env:
+  DOCKER_FLAGS: ""
+
+jobs:
+  build:
+    name: Build on ${{ matrix.distro }} ${{ matrix.arch }}
+    strategy:
+        matrix:
+          include:
+            - arch: aarch64
+              distro: ubuntu20.04
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v1
+    - name: checkout submodules
+      run: git submodule update --init --recursive
+    - uses: uraimo/run-on-arch-action@v2.0.5
+      name: test with gcc 
+      with:
+        arch: ${{ matrix.arch }}
+        distro: ${{ matrix.distro }}
+        githubToken: ${{ github.token }}
+        install:  |
+          apt-get update -q -y
+          apt-get install -q -y ruby2.7 rake
+        run: rake --trace docker_test_gcc
+  ruby3:
+    name: Build on ${{ matrix.distro }} ${{ matrix.arch }} - ruby3
+    strategy:
+        matrix:
+          include:
+            - arch: aarch64
+              distro: ubuntu20.04
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v1
+    - name: checkout submodules
+      run: git submodule update --init --recursive
+    - uses: uraimo/run-on-arch-action@v2.0.5
+      name: test with Ruby 3.0
+      with:
+        arch: ${{ matrix.arch }}
+        distro: ${{ matrix.distro }}
+        githubToken: ${{ github.token }}
+        install:  |
+          apt-get update -q -y
+          apt-get install -q -y ruby2.7 rake
+        run: rake docker_test_ruby3
