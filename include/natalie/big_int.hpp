@@ -127,12 +127,24 @@ public:
     bool operator>=(const long long &) const;
     bool operator==(const long long &) const;
     bool operator!=(const long long &) const;
+    bool operator<(const int &) const;
+    bool operator>(const int &) const;
+    bool operator<=(const int &) const;
+    bool operator>=(const int &) const;
+    bool operator==(const int &) const;
+    bool operator!=(const int &) const;
     bool operator<(const Natalie::String &) const;
     bool operator>(const Natalie::String &) const;
     bool operator<=(const Natalie::String &) const;
     bool operator>=(const Natalie::String &) const;
     bool operator==(const Natalie::String &) const;
     bool operator!=(const Natalie::String &) const;
+    bool operator<(const double &) const;
+    bool operator>(const double &) const;
+    bool operator<=(const double &) const;
+    bool operator>=(const double &) const;
+    bool operator==(const double &) const;
+    bool operator!=(const double &) const;
 
     // Conversion functions:
     Natalie::String to_string() const;
