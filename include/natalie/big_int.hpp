@@ -61,6 +61,8 @@ public:
     BigInt();
     BigInt(const BigInt &);
     BigInt(const long long &);
+    BigInt(const int &);
+    BigInt(const double &);
     BigInt(const Natalie::String &);
 
     // Assignment operators:

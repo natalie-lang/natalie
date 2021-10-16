@@ -206,6 +206,35 @@ BigInt::BigInt(const long long &num) {
 }
 
 /*
+    Integer to BigInt
+    -----------------
+*/
+
+BigInt::BigInt(const int &num) {
+    value = Natalie::String(std::abs(num));
+    if (num < 0)
+        sign = '-';
+    else
+        sign = '+';
+}
+
+/*
+    double to BigInt
+    -----------------
+*/
+
+BigInt::BigInt(const double &num) {
+    assert(floor(num) == num);
+
+    value = Natalie::String(num, 1);
+    value.truncate(value.size() - 2);
+    if (num < 0)
+        sign = '-';
+    else
+        sign = '+';
+}
+
+/*
     String to BigInt
     ----------------
 */

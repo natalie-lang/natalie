@@ -15,6 +15,10 @@ public:
         : IntegerValue { -1 }
         , m_bignum(new BigInt(other)) { }
 
+    BignumValue(const double &num)
+        : IntegerValue { -1 }
+        , m_bignum(new BigInt(num)) { }
+
     ~BignumValue() {
         if (m_bignum) delete m_bignum;
     }
