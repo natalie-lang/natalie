@@ -63,16 +63,14 @@ describe "Array#hash" do
     ArraySpecs::MyArray[1, 2].hash.should == [1, 2].hash
   end
 
-  #TODO add back once we support Array::fill
-  xit "returns same hash code for arrays with the same content" do
+  it "returns same hash code for arrays with the same content" do
     a = [1, 2, 3, 4]
     a.fill 'a', 0..3
     b = %w|a a a a|
     a.hash.should == b.hash
   end
 
-  #TODO add back once we support Array::fill
-  xit "returns the same value if arrays are #eql?" do
+  it "returns the same value if arrays are #eql?" do
     a = [1, 2, 3, 4]
     a.fill 'a', 0..3
     b = %w|a a a a|

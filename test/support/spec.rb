@@ -141,6 +141,16 @@ def bignum_value(plus = 0)
   0x8000_0000_0000_0000 + plus
 end
 
+def fixnum_max
+  9223372036854775807
+end
+
+def max_long
+  # 2**(0.size * 8 - 1) - 1
+  # NATFIXME: Support Integer#size
+  2**(8 * 8 - 1) - 1
+end
+
 def ruby_version_is(version)
   without_patch_number = RUBY_VERSION.sub(/\.\d+$/, '')
   if version === without_patch_number

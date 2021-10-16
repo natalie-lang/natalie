@@ -7,6 +7,9 @@
 #include "natalie/forward.hpp"
 #include "natalie/gc.hpp"
 
+// from dtoa.c by David Gay
+extern "C" char *dtoa(double d, int mode, int ndigits, int *decpt, int *sign, char **rve);
+
 namespace Natalie {
 
 class String : public Cell {
@@ -47,6 +50,13 @@ public:
             buf[i] = c;
         }
         set_str(buf, length);
+    }
+
+    String(long long number) {
+        int length = snprintf(NULL, 0, "%lli", number);
+        char buf[length + 1];
+        snprintf(buf, length + 1, "%lli", number);
+        set_str(buf);
     }
 
     virtual ~String() override {
@@ -204,6 +214,7 @@ public:
         for (size_t i = 0; i < n; ++i)
             m_str[i + m_length] = c;
         m_length = total_length;
+        m_str[m_length] = 0;
     }
 
     bool operator==(const String &other) const {
@@ -321,6 +332,42 @@ public:
                 out->append_char(*c);
             }
         }
+    }
+
+    static String *from_double(double value) {
+        int decpt, sign;
+        char *out, *e;
+        out = dtoa(value, 0, 0, &decpt, &sign, &e);
+
+        String *string;
+
+        if (decpt == 0) {
+            string = new String { "0." };
+            string->append(out);
+
+        } else if (decpt < 0) {
+            string = new String { "0." };
+            string->append(::abs(decpt), '0');
+            string->append(out);
+
+        } else {
+            string = new String { out };
+            long long s_length = string->length();
+            if (decpt == s_length) {
+                string->append(".0");
+            } else if (decpt > s_length) {
+                string->append(decpt - s_length, '0');
+                string->append(".0");
+            } else {
+                string->insert(decpt, '.');
+            }
+        }
+
+        if (sign) {
+            string->prepend_char('-');
+        }
+
+        return string;
     }
 
     virtual void visit_children(Visitor &visitor) override final {

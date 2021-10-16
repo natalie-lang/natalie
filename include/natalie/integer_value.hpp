@@ -72,6 +72,11 @@ public:
     virtual bool is_bignum() const { return false; }
     bool is_fixnum() const { return !is_bignum(); }
 
+    void assert_fixnum(Env *env) {
+        if (is_bignum())
+            env->raise("RangeError", "bignum too big to convert into `long'");
+    }
+
     virtual BigInt to_bignum() const { return BigInt(to_nat_int_t()); }
 
     static bool optimized_method(SymbolValue *);

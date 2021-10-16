@@ -99,8 +99,7 @@ describe :array_slice, shared: true do
     [ "a", "b", "c", "d", "e" ].send(@method, 0, 3).should == ["a", "b", "c"]
   end
 
-  # FIXME add back when Array#replace has been implemented
-  xit "returns the subarray which is independent to self with [index,count]" do
+  it "returns the subarray which is independent to self with [index,count]" do
     a = [1, 2, 3]
     sub = a.send(@method, 1,2)
     sub.replace([:a, :b])
@@ -263,8 +262,7 @@ describe :array_slice, shared: true do
     a.should == [1, 2, 3, 4]
   end
 
-  # FIXME add back when Array#replace has been implemented
-  xit "returns the subarray which is independent to self with [m..n]" do
+  it "returns the subarray which is independent to self with [m..n]" do
     a = [1, 2, 3]
     sub = a.send(@method, 1..2)
     sub.replace([:a, :b])
@@ -488,8 +486,7 @@ describe :array_slice, shared: true do
     end
   end
 
-  # FIXME add back once we get support for bignum
-  xit "raises a RangeError when the start index is out of range of Fixnum" do
+  it "raises a RangeError when the start index is out of range of Fixnum" do
     array = [1, 2, 3, 4, 5, 6]
     obj = mock('large value')
     obj.should_receive(:to_int).and_return(bignum_value)
@@ -505,8 +502,7 @@ describe :array_slice, shared: true do
     array.send(@method, max_long.to_f.prev_float).should == nil
   end
 
-  # FIXME add back once we get support for bignum
-  xit "raises a RangeError when the length is out of range of Fixnum" do
+  it "raises a RangeError when the length is out of range of Fixnum" do
     array = [1, 2, 3, 4, 5, 6]
     obj = mock('large value')
     obj.should_receive(:to_int).and_return(bignum_value)
@@ -520,13 +516,13 @@ describe :array_slice, shared: true do
     ->{ [1, 2, 3].send(@method, 1..2, 1) }.should raise_error(TypeError)
   end
 
-  # FIXME add back once we get support for bignum
-  xit "raises a RangeError if passed a range with a bound that is too large" do
-    -> { "hello".send(@method, bignum_value..(bignum_value + 1)) }.should raise_error(RangeError)
-    -> { "hello".send(@method, 0..bignum_value) }.should raise_error(RangeError)
+  it "raises a RangeError if passed a range with a bound that is too large" do
+    array = [1, 2, 3, 4, 5, 6]
+    -> { array.send(@method, bignum_value..(bignum_value + 1)) }.should raise_error(RangeError)
+    -> { array.send(@method, 0..bignum_value) }.should raise_error(RangeError)
   end
 
-  # FIXME add back once eval gets implemented
+  # NATFIXME add back once eval gets implemented
   xit "can accept endless ranges" do
     a = [0, 1, 2, 3, 4, 5]
     a.send(@method, eval("(2..)")).should == [2, 3, 4, 5]
@@ -537,6 +533,219 @@ describe :array_slice, shared: true do
     a.send(@method, eval("(9...)")).should == nil
     a.send(@method, eval("(-9..)")).should == nil
     a.send(@method, eval("(-9...)")).should == nil
+  end
+
+  ruby_version_is "3.0" do
+    # NATFIXME: Support eval
+    xdescribe "can be sliced with Enumerator::ArithmeticSequence" do
+      before :each do
+        @array = [0, 1, 2, 3, 4, 5]
+      end
+
+      it "has endless range and positive steps" do
+        @array.send(@method, eval("(0..).step(1)")).should == [0, 1, 2, 3, 4, 5]
+        @array.send(@method, eval("(0..).step(2)")).should == [0, 2, 4]
+        @array.send(@method, eval("(0..).step(10)")).should == [0]
+
+        @array.send(@method, eval("(2..).step(1)")).should == [2, 3, 4, 5]
+        @array.send(@method, eval("(2..).step(2)")).should == [2, 4]
+        @array.send(@method, eval("(2..).step(10)")).should == [2]
+
+        @array.send(@method, eval("(-3..).step(1)")).should == [3, 4, 5]
+        @array.send(@method, eval("(-3..).step(2)")).should == [3, 5]
+        @array.send(@method, eval("(-3..).step(10)")).should == [3]
+      end
+
+      it "has beginless range and positive steps" do
+        # end with zero index
+        @array.send(@method, eval("(..0).step(1)")).should == [0]
+        @array.send(@method, eval("(...0).step(1)")).should == []
+
+        @array.send(@method, eval("(..0).step(2)")).should == [0]
+        @array.send(@method, eval("(...0).step(2)")).should == []
+
+        @array.send(@method, eval("(..0).step(10)")).should == [0]
+        @array.send(@method, eval("(...0).step(10)")).should == []
+
+        # end with positive index
+        @array.send(@method, eval("(..3).step(1)")).should == [0, 1, 2, 3]
+        @array.send(@method, eval("(...3).step(1)")).should == [0, 1, 2]
+
+        @array.send(@method, eval("(..3).step(2)")).should == [0, 2]
+        @array.send(@method, eval("(...3).step(2)")).should == [0, 2]
+
+        @array.send(@method, eval("(..3).step(10)")).should == [0]
+        @array.send(@method, eval("(...3).step(10)")).should == [0]
+
+        # end with negative index
+        @array.send(@method, eval("(..-2).step(1)")).should == [0, 1, 2, 3, 4,]
+        @array.send(@method, eval("(...-2).step(1)")).should == [0, 1, 2, 3]
+
+        @array.send(@method, eval("(..-2).step(2)")).should == [0, 2, 4]
+        @array.send(@method, eval("(...-2).step(2)")).should == [0, 2]
+
+        @array.send(@method, eval("(..-2).step(10)")).should == [0]
+        @array.send(@method, eval("(...-2).step(10)")).should == [0]
+      end
+
+      it "has endless range and negative steps" do
+        @array.send(@method, eval("(0..).step(-1)")).should == [0]
+        @array.send(@method, eval("(0..).step(-2)")).should == [0]
+        @array.send(@method, eval("(0..).step(-10)")).should == [0]
+
+        @array.send(@method, eval("(2..).step(-1)")).should == [2, 1, 0]
+        @array.send(@method, eval("(2..).step(-2)")).should == [2, 0]
+
+        @array.send(@method, eval("(-3..).step(-1)")).should == [3, 2, 1, 0]
+        @array.send(@method, eval("(-3..).step(-2)")).should == [3, 1]
+      end
+
+      it "has closed range and positive steps" do
+        # start and end with 0
+        @array.send(@method, eval("(0..0).step(1)")).should == [0]
+        @array.send(@method, eval("(0...0).step(1)")).should == []
+
+        @array.send(@method, eval("(0..0).step(2)")).should == [0]
+        @array.send(@method, eval("(0...0).step(2)")).should == []
+
+        @array.send(@method, eval("(0..0).step(10)")).should == [0]
+        @array.send(@method, eval("(0...0).step(10)")).should == []
+
+        # start and end with positive index
+        @array.send(@method, eval("(1..3).step(1)")).should == [1, 2, 3]
+        @array.send(@method, eval("(1...3).step(1)")).should == [1, 2]
+
+        @array.send(@method, eval("(1..3).step(2)")).should == [1, 3]
+        @array.send(@method, eval("(1...3).step(2)")).should == [1]
+
+        @array.send(@method, eval("(1..3).step(10)")).should == [1]
+        @array.send(@method, eval("(1...3).step(10)")).should == [1]
+
+        # start with positive index, end with negative index
+        @array.send(@method, eval("(1..-2).step(1)")).should == [1, 2, 3, 4]
+        @array.send(@method, eval("(1...-2).step(1)")).should == [1, 2, 3]
+
+        @array.send(@method, eval("(1..-2).step(2)")).should ==  [1, 3]
+        @array.send(@method, eval("(1...-2).step(2)")).should ==  [1, 3]
+
+        @array.send(@method, eval("(1..-2).step(10)")).should == [1]
+        @array.send(@method, eval("(1...-2).step(10)")).should == [1]
+
+        # start with negative index, end with positive index
+        @array.send(@method, eval("(-4..4).step(1)")).should == [2, 3, 4]
+        @array.send(@method, eval("(-4...4).step(1)")).should == [2, 3]
+
+        @array.send(@method, eval("(-4..4).step(2)")).should == [2, 4]
+        @array.send(@method, eval("(-4...4).step(2)")).should == [2]
+
+        @array.send(@method, eval("(-4..4).step(10)")).should == [2]
+        @array.send(@method, eval("(-4...4).step(10)")).should == [2]
+
+        # start with negative index, end with negative index
+        @array.send(@method, eval("(-4..-2).step(1)")).should == [2, 3, 4]
+        @array.send(@method, eval("(-4...-2).step(1)")).should == [2, 3]
+
+        @array.send(@method, eval("(-4..-2).step(2)")).should == [2, 4]
+        @array.send(@method, eval("(-4...-2).step(2)")).should == [2]
+
+        @array.send(@method, eval("(-4..-2).step(10)")).should == [2]
+        @array.send(@method, eval("(-4...-2).step(10)")).should == [2]
+      end
+
+      it "has closed range and negative steps" do
+        # start and end with 0
+        @array.send(@method, eval("(0..0).step(-1)")).should == [0]
+        @array.send(@method, eval("(0...0).step(-1)")).should == []
+
+        @array.send(@method, eval("(0..0).step(-2)")).should == [0]
+        @array.send(@method, eval("(0...0).step(-2)")).should == []
+
+        @array.send(@method, eval("(0..0).step(-10)")).should == [0]
+        @array.send(@method, eval("(0...0).step(-10)")).should == []
+
+        # start and end with positive index
+        @array.send(@method, eval("(1..3).step(-1)")).should == []
+        @array.send(@method, eval("(1...3).step(-1)")).should == []
+
+        @array.send(@method, eval("(1..3).step(-2)")).should == []
+        @array.send(@method, eval("(1...3).step(-2)")).should == []
+
+        @array.send(@method, eval("(1..3).step(-10)")).should == []
+        @array.send(@method, eval("(1...3).step(-10)")).should == []
+
+        # start with positive index, end with negative index
+        @array.send(@method, eval("(1..-2).step(-1)")).should == []
+        @array.send(@method, eval("(1...-2).step(-1)")).should == []
+
+        @array.send(@method, eval("(1..-2).step(-2)")).should ==  []
+        @array.send(@method, eval("(1...-2).step(-2)")).should ==  []
+
+        @array.send(@method, eval("(1..-2).step(-10)")).should == []
+        @array.send(@method, eval("(1...-2).step(-10)")).should == []
+
+        # start with negative index, end with positive index
+        @array.send(@method, eval("(-4..4).step(-1)")).should == []
+        @array.send(@method, eval("(-4...4).step(-1)")).should == []
+
+        @array.send(@method, eval("(-4..4).step(-2)")).should == []
+        @array.send(@method, eval("(-4...4).step(-2)")).should == []
+
+        @array.send(@method, eval("(-4..4).step(-10)")).should == []
+        @array.send(@method, eval("(-4...4).step(-10)")).should == []
+
+        # start with negative index, end with negative index
+        @array.send(@method, eval("(-4..-2).step(-1)")).should == []
+        @array.send(@method, eval("(-4...-2).step(-1)")).should == []
+
+        @array.send(@method, eval("(-4..-2).step(-2)")).should == []
+        @array.send(@method, eval("(-4...-2).step(-2)")).should == []
+
+        @array.send(@method, eval("(-4..-2).step(-10)")).should == []
+        @array.send(@method, eval("(-4...-2).step(-10)")).should == []
+      end
+
+      it "has inverted closed range and positive steps" do
+        # start and end with positive index
+        @array.send(@method, eval("(3..1).step(1)")).should == []
+        @array.send(@method, eval("(3...1).step(1)")).should == []
+
+        @array.send(@method, eval("(3..1).step(2)")).should == []
+        @array.send(@method, eval("(3...1).step(2)")).should == []
+
+        @array.send(@method, eval("(3..1).step(10)")).should == []
+        @array.send(@method, eval("(3...1).step(10)")).should == []
+
+        # start with negative index, end with positive index
+        @array.send(@method, eval("(-2..1).step(1)")).should == []
+        @array.send(@method, eval("(-2...1).step(1)")).should == []
+
+        @array.send(@method, eval("(-2..1).step(2)")).should ==  []
+        @array.send(@method, eval("(-2...1).step(2)")).should ==  []
+
+        @array.send(@method, eval("(-2..1).step(10)")).should == []
+        @array.send(@method, eval("(-2...1).step(10)")).should == []
+
+        # start with positive index, end with negative index
+        @array.send(@method, eval("(4..-4).step(1)")).should == []
+        @array.send(@method, eval("(4...-4).step(1)")).should == []
+
+        @array.send(@method, eval("(4..-4).step(2)")).should == []
+        @array.send(@method, eval("(4...-4).step(2)")).should == []
+
+        @array.send(@method, eval("(4..-4).step(10)")).should == []
+        @array.send(@method, eval("(4...-4).step(10)")).should == []
+
+        # start with negative index, end with negative index
+        @array.send(@method, eval("(-2..-4).step(1)")).should == []
+        @array.send(@method, eval("(-2...-4).step(1)")).should == []
+
+        @array.send(@method, eval("(-2..-4).step(2)")).should == []
+        @array.send(@method, eval("(-2...-4).step(2)")).should == []
+
+        @array.send(@method, eval("(-2..-4).step(10)")).should == []
+        @array.send(@method, eval("(-2...-4).step(10)")).should == []
+      end
+    end
   end
 
   ruby_version_is "2.7" do

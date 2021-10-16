@@ -1639,6 +1639,12 @@ describe 'array' do
       -> { a.slice(nil) }.should raise_error(TypeError, 'no implicit conversion from nil to integer')
       -> { a.slice(1, nil) }.should raise_error(TypeError, 'no implicit conversion from nil to integer')
     end
+
+    it "raises a RangeError if passed a range with a bound that is too large" do
+      array = [1, 2, 3, 4, 5, 6]
+      -> { array.slice(bignum_value..(bignum_value + 1)) }.should raise_error(RangeError)
+      -> { array.slice(0..bignum_value) }.should raise_error(RangeError)
+    end
   end
 
   describe '#slice!' do

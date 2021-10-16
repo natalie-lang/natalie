@@ -68,7 +68,8 @@ describe "Float#round" do
     0.42.round(2.0**30).should == 0.42
   end
 
-  it "returns big values rounded to nearest" do
+  # NATFIXME: Implement Bignum support for Integer#**
+  xit "returns big values rounded to nearest" do
     +2.5e20.round(-20).should   eql( +3 * 10 ** 20  )
     -2.5e20.round(-20).should   eql( -3 * 10 ** 20  )
   end
