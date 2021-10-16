@@ -50,9 +50,8 @@ ValuePtr IntegerValue::add(Env *env, ValuePtr arg) {
     if (arg.is_float()) {
         double result = to_nat_int_t() + arg->as_float()->to_double();
         return new FloatValue { result };
-    } else if (!arg->is_integer() && arg->respond_to(env, SymbolValue::intern("coerce"))) {
-        auto array = arg->send(env, SymbolValue::intern("coerce"), { this });
-        arg = array->as_array()->at(1);
+    } else if (!arg.is_integer()) {
+        arg = Natalie::coerce(env, arg, this).second;
     }
     arg.assert_type(env, Value::Type::Integer, "Integer");
 
@@ -107,14 +106,14 @@ ValuePtr IntegerValue::div(Env *env, ValuePtr arg) {
         return ValuePtr::integer(result);
 
     } else if (arg->respond_to(env, SymbolValue::intern("coerce"))) {
-        ValuePtr coerced = arg.send(env, SymbolValue::intern("coerce"), { this });
-        ValuePtr dividend = (*coerced->as_array())[0];
-        ValuePtr divisor = (*coerced->as_array())[1];
-        return dividend.send(env, SymbolValue::intern("/"), { divisor });
+        auto coerce_result = Natalie::coerce(env, arg, this);
 
+        ValuePtr dividend = coerce_result.first;
+        ValuePtr divisor = coerce_result.second;
+        return dividend.send(env, SymbolValue::intern("/"), { divisor });
     } else {
         arg->assert_type(env, Value::Type::Integer, "Integer");
-        abort();
+        return nullptr;
     }
 }
 
@@ -142,46 +141,86 @@ ValuePtr IntegerValue::cmp(Env *env, ValuePtr arg) {
 }
 
 bool IntegerValue::eq(Env *env, ValuePtr other) {
-    if (other.is_integer()) {
-        return to_nat_int_t() == other.to_nat_int_t();
-    } else if (other->is_float()) {
+    if (other->is_float()) {
         return to_nat_int_t() == other->as_float()->to_double();
     }
-    return false;
+
+    if (!other.is_integer()) {
+        other = Natalie::coerce(env, other, this).second;
+    }
+
+    if (other.is_integer()) {
+        if (other->as_integer()->is_bignum())
+            return to_bignum() == other->as_integer()->to_bignum();
+        return to_nat_int_t() == other.to_nat_int_t();
+    }
+    return other->send(env, SymbolValue::intern("=="), { this })->is_truthy();
 }
 
 bool IntegerValue::lt(Env *env, ValuePtr other) {
-    if (other.is_integer()) {
-        return to_nat_int_t() < other.to_nat_int_t();
-    } else if (other->is_float()) {
+    if (other->is_float()) {
         return to_nat_int_t() < other->as_float()->to_double();
+    }
+
+    if (!other.is_integer()) {
+        other = Natalie::coerce(env, other, this).second;
+    }
+
+    if (other.is_integer()) {
+        if (other->as_integer()->is_bignum())
+            return to_bignum() < other->as_integer()->to_bignum();
+        return to_nat_int_t() < other.to_nat_int_t();
     }
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
 }
 
 bool IntegerValue::lte(Env *env, ValuePtr other) {
-    if (other.is_integer()) {
-        return to_nat_int_t() <= other.to_nat_int_t();
-    } else if (other->is_float()) {
+    if (other->is_float()) {
         return to_nat_int_t() <= other->as_float()->to_double();
+    }
+
+    if (!other.is_integer()) {
+        other = Natalie::coerce(env, other, this).second;
+    }
+
+    if (other.is_integer()) {
+        if (other->as_integer()->is_bignum())
+            return to_bignum() <= other->as_integer()->to_bignum();
+        return to_nat_int_t() <= other.to_nat_int_t();
     }
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
 }
 
 bool IntegerValue::gt(Env *env, ValuePtr other) {
-    if (other.is_integer()) {
-        return to_nat_int_t() > other.to_nat_int_t();
-    } else if (other->is_float()) {
+    if (other->is_float()) {
         return to_nat_int_t() > other->as_float()->to_double();
+    }
+
+    if (!other.is_integer()) {
+        other = Natalie::coerce(env, other, this).second;
+    }
+
+    if (other.is_integer()) {
+        if (other->as_integer()->is_bignum())
+            return to_bignum() > other->as_integer()->to_bignum();
+        return to_nat_int_t() > other.to_nat_int_t();
     }
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
 }
 
 bool IntegerValue::gte(Env *env, ValuePtr other) {
-    if (other.is_integer()) {
-        return to_nat_int_t() >= other.to_nat_int_t();
-    } else if (other.is_float()) {
+    if (other.is_float()) {
         return to_nat_int_t() >= other->as_float()->to_double();
+    }
+
+    if (!other.is_integer()) {
+        other = Natalie::coerce(env, other, this).second;
+    }
+
+    if (other.is_integer()) {
+        if (other->as_integer()->is_bignum())
+            return to_bignum() >= other->as_integer()->to_bignum();
+        return to_nat_int_t() >= other.to_nat_int_t();
     }
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
 }

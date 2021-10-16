@@ -15,12 +15,22 @@ public:
         : IntegerValue { -1 }
         , m_bignum(new BigInt(other)) { }
 
+    BignumValue(const double &num)
+        : IntegerValue { -1 }
+        , m_bignum(new BigInt(num)) { }
+
     ~BignumValue() {
         if (m_bignum) delete m_bignum;
     }
 
     ValuePtr add(Env *, ValuePtr) override;
     ValuePtr to_s(Env *, ValuePtr = nullptr) override;
+
+    bool eq(Env *, ValuePtr) override;
+    bool lt(Env *, ValuePtr) override;
+    bool lte(Env *, ValuePtr) override;
+    bool gt(Env *, ValuePtr) override;
+    bool gte(Env *, ValuePtr) override;
 
     bool is_bignum() const override { return true; }
     BigInt to_bignum() const override { return *m_bignum; }

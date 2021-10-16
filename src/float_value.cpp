@@ -128,7 +128,39 @@ ValuePtr FloatValue::to_s(Env *env) {
         return new StringValue { "-Infinity" };
     }
 
-    return new StringValue { String::from_double(to_double()) };
+    int decpt, sign;
+    char *out, *e;
+    out = dtoa(to_double(), 0, 0, &decpt, &sign, &e);
+
+    String *string;
+
+    if (decpt == 0) {
+        string = new String { "0." };
+        string->append(out);
+
+    } else if (decpt < 0) {
+        string = new String { "0." };
+        string->append(::abs(decpt), '0');
+        string->append(out);
+
+    } else {
+        string = new String { out };
+        long long s_length = string->length();
+        if (decpt == s_length) {
+            string->append(".0");
+        } else if (decpt > s_length) {
+            string->append(decpt - s_length, '0');
+            string->append(".0");
+        } else {
+            string->insert(decpt, '.');
+        }
+    }
+
+    if (sign) {
+        string->prepend_char('-');
+    }
+
+    return new StringValue { string };
 }
 
 ValuePtr FloatValue::cmp(Env *env, ValuePtr other) {

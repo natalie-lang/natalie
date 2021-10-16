@@ -193,12 +193,41 @@ BigInt::BigInt(const BigInt &num) {
 }
 
 /*
-    Integer to BigInt
+    Long to BigInt
     -----------------
 */
 
 BigInt::BigInt(const long long &num) {
     value = Natalie::String(std::abs(num));
+    if (num < 0)
+        sign = '-';
+    else
+        sign = '+';
+}
+
+/*
+    Integer to BigInt
+    -----------------
+*/
+
+BigInt::BigInt(const int &num) {
+    value = Natalie::String(std::abs(num));
+    if (num < 0)
+        sign = '-';
+    else
+        sign = '+';
+}
+
+/*
+    double to BigInt
+    -----------------
+*/
+
+BigInt::BigInt(const double &num) {
+    assert(floor(num) == num);
+
+    value = Natalie::String(num, 1);
+    value.truncate(value.size() - 2);
     if (num < 0)
         sign = '-';
     else
@@ -426,7 +455,7 @@ bool BigInt::operator>=(const BigInt &num) const {
 }
 
 /*
-    BigInt == Integer
+    BigInt == Long
     -----------------
 */
 
@@ -435,7 +464,7 @@ bool BigInt::operator==(const long long &num) const {
 }
 
 /*
-    Integer == BigInt
+    Long == BigInt
     -----------------
 */
 
@@ -444,7 +473,7 @@ bool operator==(const long long &lhs, const BigInt &rhs) {
 }
 
 /*
-    BigInt != Integer
+    BigInt != Long
     -----------------
 */
 
@@ -453,7 +482,7 @@ bool BigInt::operator!=(const long long &num) const {
 }
 
 /*
-    Integer != BigInt
+    Long != BigInt
     -----------------
 */
 
@@ -462,7 +491,7 @@ bool operator!=(const long long &lhs, const BigInt &rhs) {
 }
 
 /*
-    BigInt < Integer
+    BigInt < Long
     ----------------
 */
 
@@ -471,7 +500,7 @@ bool BigInt::operator<(const long long &num) const {
 }
 
 /*
-    Integer < BigInt
+    Long < BigInt
     ----------------
 */
 
@@ -480,7 +509,7 @@ bool operator<(const long long &lhs, const BigInt &rhs) {
 }
 
 /*
-    BigInt > Integer
+    BigInt > Long
     ----------------
 */
 
@@ -489,7 +518,7 @@ bool BigInt::operator>(const long long &num) const {
 }
 
 /*
-    Integer > BigInt
+    Long > BigInt
     ----------------
 */
 
@@ -498,7 +527,7 @@ bool operator>(const long long &lhs, const BigInt &rhs) {
 }
 
 /*
-    BigInt <= Integer
+    BigInt <= Long
     -----------------
 */
 
@@ -507,7 +536,7 @@ bool BigInt::operator<=(const long long &num) const {
 }
 
 /*
-    Integer <= BigInt
+    Long <= BigInt
     -----------------
 */
 
@@ -516,7 +545,7 @@ bool operator<=(const long long &lhs, const BigInt &rhs) {
 }
 
 /*
-    BigInt >= Integer
+    BigInt >= Long
     -----------------
 */
 
@@ -525,12 +554,120 @@ bool BigInt::operator>=(const long long &num) const {
 }
 
 /*
-    Integer >= BigInt
+    Long >= BigInt
     -----------------
 */
 
 bool operator>=(const long long &lhs, const BigInt &rhs) {
     return BigInt(lhs) >= rhs;
+}
+
+/*
+    BigInt == Integer
+    -----------------
+*/
+
+bool BigInt::operator==(const int &num) const {
+    return *this == BigInt(num);
+}
+
+/*
+    BigInt != Integer
+    -----------------
+*/
+
+bool BigInt::operator!=(const int &num) const {
+    return !(*this == BigInt(num));
+}
+
+/*
+    BigInt < Integer
+    ----------------
+*/
+
+bool BigInt::operator<(const int &num) const {
+    return *this < BigInt(num);
+}
+
+/*
+    BigInt > Integer
+    ----------------
+*/
+
+bool BigInt::operator>(const int &num) const {
+    return *this > BigInt(num);
+}
+
+/*
+    BigInt <= Integer
+    -----------------
+*/
+
+bool BigInt::operator<=(const int &num) const {
+    return !(*this > BigInt(num));
+}
+
+/*
+    BigInt >= Integer
+    -----------------
+*/
+
+bool BigInt::operator>=(const int &num) const {
+    return !(*this < BigInt(num));
+}
+
+/*
+    BigInt == double
+    ----------------
+*/
+
+bool BigInt::operator==(const double &num) const {
+    return *this == BigInt(floor(num));
+}
+
+/*
+    BigInt != double
+    ----------------
+*/
+
+bool BigInt::operator!=(const double &num) const {
+    return !(*this == num);
+}
+
+/*
+    BigInt < double
+    ---------------
+*/
+
+bool BigInt::operator<(const double &num) const {
+    return *this < BigInt(floor(num));
+}
+
+/*
+    BigInt > double
+    ---------------
+*/
+
+bool BigInt::operator>(const double &num) const {
+    return !((*this < num) or (*this == num));
+}
+
+/*
+    BigInt <= double
+    ----------------
+*/
+
+bool BigInt::operator<=(const double &num) const {
+    return (*this < num) or (*this == num);
+}
+
+/*
+    BigInt >= double
+    ----------------
+*/
+
+bool BigInt::operator>=(const double &num) const {
+    return !(*this < num);
 }
 
 /*

@@ -59,6 +59,20 @@ public:
         set_str(buf);
     }
 
+    String(int number) {
+        int length = snprintf(NULL, 0, "%d", number);
+        char buf[length + 1];
+        snprintf(buf, length + 1, "%d", number);
+        set_str(buf);
+    }
+
+    String(double number, int precision = 4) {
+        int length = snprintf(NULL, 0, "%.*f", precision, number);
+        char buf[length + 1];
+        snprintf(buf, length + 1, "%f", number);
+        set_str(buf);
+    }
+
     virtual ~String() override {
         delete[] m_str;
     }
@@ -332,42 +346,6 @@ public:
                 out->append_char(*c);
             }
         }
-    }
-
-    static String *from_double(double value) {
-        int decpt, sign;
-        char *out, *e;
-        out = dtoa(value, 0, 0, &decpt, &sign, &e);
-
-        String *string;
-
-        if (decpt == 0) {
-            string = new String { "0." };
-            string->append(out);
-
-        } else if (decpt < 0) {
-            string = new String { "0." };
-            string->append(::abs(decpt), '0');
-            string->append(out);
-
-        } else {
-            string = new String { out };
-            long long s_length = string->length();
-            if (decpt == s_length) {
-                string->append(".0");
-            } else if (decpt > s_length) {
-                string->append(decpt - s_length, '0');
-                string->append(".0");
-            } else {
-                string->insert(decpt, '.');
-            }
-        }
-
-        if (sign) {
-            string->prepend_char('-');
-        }
-
-        return string;
     }
 
     virtual void visit_children(Visitor &visitor) override final {
