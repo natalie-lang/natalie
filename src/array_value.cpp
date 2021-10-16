@@ -2067,17 +2067,41 @@ ValuePtr ArrayValue::try_convert(Env *env, ValuePtr val) {
 
 ValuePtr ArrayValue::values_at(Env *env, size_t argc, ValuePtr *args) {
     auto accumulator = new ArrayValue {};
-    for (size_t i = 0; i < argc; i++) {
-        auto arg = args[i];
-        auto to_int = SymbolValue::intern("to_int");
+    TM::Vector<nat_int_t> indices;
+
+    auto to_int = SymbolValue::intern("to_int");
+    auto convert_to_int = [&](ValuePtr arg) -> nat_int_t {
         if (!arg->is_integer() && arg->respond_to(env, to_int)) {
             arg = arg.send(env, to_int);
         }
+        arg->assert_type(env, Type::Integer, "Integer");
+        return arg->as_integer()->to_nat_int_t();
+    };
 
-        if (!arg->is_integer())
-            env->raise("TypeError", "no implicit conversion of {} into Integer", arg->klass()->class_name_or_blank());
+    for (size_t i = 0; i < argc; ++i) {
+        auto arg = args[i];
+        if (arg->is_range()) {
+            auto begin = convert_to_int(arg->as_range()->begin());
+            auto end = convert_to_int(arg->as_range()->end());
 
-        auto resolved_index = _resolve_index(arg->as_integer()->to_nat_int_t());
+            if (end < 0)
+                end += size();
+
+            if (end < begin || begin < 0)
+                break;
+
+            for (nat_int_t j = begin; j < end; ++j)
+                indices.push(j);
+
+            if (!arg->as_range()->exclude_end())
+                indices.push(end);
+        } else {
+            indices.push(convert_to_int(arg));
+        }
+    }
+
+    for (auto index : indices) {
+        auto resolved_index = _resolve_index(index);
         if (resolved_index < 0 || static_cast<size_t>(resolved_index) >= m_vector.size()) {
             accumulator->push(NilValue::the());
             continue;
