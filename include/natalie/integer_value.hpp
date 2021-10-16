@@ -63,12 +63,12 @@ public:
     ValuePtr negate(Env *);
     ValuePtr complement(Env *);
 
-    bool eq(Env *, ValuePtr);
-    bool eql(Env *, ValuePtr);
-    bool lt(Env *, ValuePtr);
-    bool lte(Env *, ValuePtr);
-    bool gt(Env *, ValuePtr);
-    bool gte(Env *, ValuePtr);
+    virtual bool eq(Env *, ValuePtr);
+    virtual bool eql(Env *, ValuePtr);
+    virtual bool lt(Env *, ValuePtr);
+    virtual bool lte(Env *, ValuePtr);
+    virtual bool gt(Env *, ValuePtr);
+    virtual bool gte(Env *, ValuePtr);
     virtual bool is_bignum() const { return false; }
     bool is_fixnum() const { return !is_bignum(); }
 

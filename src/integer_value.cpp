@@ -151,37 +151,65 @@ bool IntegerValue::eq(Env *env, ValuePtr other) {
 }
 
 bool IntegerValue::lt(Env *env, ValuePtr other) {
-    if (other.is_integer()) {
-        return to_nat_int_t() < other.to_nat_int_t();
-    } else if (other->is_float()) {
+    if (other->is_float()) {
         return to_nat_int_t() < other->as_float()->to_double();
+    } else if (!other->is_integer() && other->respond_to(env, SymbolValue::intern("coerce"))) {
+        auto array = other->send(env, SymbolValue::intern("coerce"), { this });
+        other = array->as_array()->at(1);
+    }
+
+    if (other.is_integer()) {
+        if (other->as_integer()->is_bignum())
+            return to_bignum() < other->as_integer()->to_bignum();
+        return to_nat_int_t() < other.to_nat_int_t();
     }
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
 }
 
 bool IntegerValue::lte(Env *env, ValuePtr other) {
-    if (other.is_integer()) {
-        return to_nat_int_t() <= other.to_nat_int_t();
-    } else if (other->is_float()) {
+    if (other->is_float()) {
         return to_nat_int_t() <= other->as_float()->to_double();
+    } else if (!other->is_integer() && other->respond_to(env, SymbolValue::intern("coerce"))) {
+        auto array = other->send(env, SymbolValue::intern("coerce"), { this });
+        other = array->as_array()->at(1);
+    }
+
+    if (other.is_integer()) {
+        if (other->as_integer()->is_bignum())
+            return to_bignum() <= other->as_integer()->to_bignum();
+        return to_nat_int_t() <= other.to_nat_int_t();
     }
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
 }
 
 bool IntegerValue::gt(Env *env, ValuePtr other) {
-    if (other.is_integer()) {
-        return to_nat_int_t() > other.to_nat_int_t();
-    } else if (other->is_float()) {
+    if (other->is_float()) {
         return to_nat_int_t() > other->as_float()->to_double();
+    } else if (!other->is_integer() && other->respond_to(env, SymbolValue::intern("coerce"))) {
+        auto array = other->send(env, SymbolValue::intern("coerce"), { this });
+        other = array->as_array()->at(1);
+    }
+
+    if (other.is_integer()) {
+        if (other->as_integer()->is_bignum())
+            return to_bignum() > other->as_integer()->to_bignum();
+        return to_nat_int_t() > other.to_nat_int_t();
     }
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
 }
 
 bool IntegerValue::gte(Env *env, ValuePtr other) {
-    if (other.is_integer()) {
-        return to_nat_int_t() >= other.to_nat_int_t();
-    } else if (other.is_float()) {
+    if (other.is_float()) {
         return to_nat_int_t() >= other->as_float()->to_double();
+    } else if (!other->is_integer() && other->respond_to(env, SymbolValue::intern("coerce"))) {
+        auto array = other->send(env, SymbolValue::intern("coerce"), { this });
+        other = array->as_array()->at(1);
+    }
+
+    if (other.is_integer()) {
+        if (other->as_integer()->is_bignum())
+            return to_bignum() >= other->as_integer()->to_bignum();
+        return to_nat_int_t() >= other.to_nat_int_t();
     }
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
 }
