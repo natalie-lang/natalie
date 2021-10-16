@@ -18,10 +18,11 @@ ValuePtr BignumValue::add(Env *env, ValuePtr arg) {
         auto result = current + arg->as_float()->to_double();
         return new FloatValue { result };
     }
-    if (!arg->is_integer() && arg->respond_to(env, SymbolValue::intern("coerce"))) {
-        auto array = arg->send(env, SymbolValue::intern("coerce"), { this });
-        arg = array->as_array()->at(1);
+
+    if (!arg.is_integer()) {
+        arg = Natalie::coerce(env, arg, this).second;
     }
+
     arg.assert_type(env, Value::Type::Integer, "Integer");
 
     auto other = arg->as_integer();
@@ -40,9 +41,10 @@ bool BignumValue::eq(Env *env, ValuePtr other) {
 bool BignumValue::lt(Env *env, ValuePtr other) {
     if (other->is_float()) {
         return to_bignum() < other->as_float()->to_double();
-    } else if (!other->is_integer() && other->respond_to(env, SymbolValue::intern("coerce"))) {
-        auto array = other->send(env, SymbolValue::intern("coerce"), { this });
-        other = array->as_array()->at(1);
+    }
+
+    if (!other.is_integer()) {
+        other = Natalie::coerce(env, other, this).second;
     }
 
     if (other.is_integer()) {
@@ -54,9 +56,10 @@ bool BignumValue::lt(Env *env, ValuePtr other) {
 bool BignumValue::lte(Env *env, ValuePtr other) {
     if (other->is_float()) {
         return to_bignum() <= other->as_float()->to_double();
-    } else if (!other->is_integer() && other->respond_to(env, SymbolValue::intern("coerce"))) {
-        auto array = other->send(env, SymbolValue::intern("coerce"), { this });
-        other = array->as_array()->at(1);
+    }
+
+    if (!other.is_integer()) {
+        other = Natalie::coerce(env, other, this).second;
     }
 
     if (other.is_integer()) {
@@ -68,9 +71,10 @@ bool BignumValue::lte(Env *env, ValuePtr other) {
 bool BignumValue::gt(Env *env, ValuePtr other) {
     if (other->is_float()) {
         return to_bignum() > other->as_float()->to_double();
-    } else if (!other->is_integer() && other->respond_to(env, SymbolValue::intern("coerce"))) {
-        auto array = other->send(env, SymbolValue::intern("coerce"), { this });
-        other = array->as_array()->at(1);
+    }
+
+    if (!other.is_integer()) {
+        other = Natalie::coerce(env, other, this).second;
     }
 
     if (other.is_integer()) {
@@ -82,9 +86,10 @@ bool BignumValue::gt(Env *env, ValuePtr other) {
 bool BignumValue::gte(Env *env, ValuePtr other) {
     if (other.is_float()) {
         return to_bignum() >= other->as_float()->to_double();
-    } else if (!other->is_integer() && other->respond_to(env, SymbolValue::intern("coerce"))) {
-        auto array = other->send(env, SymbolValue::intern("coerce"), { this });
-        other = array->as_array()->at(1);
+    }
+
+    if (!other.is_integer()) {
+        other = Natalie::coerce(env, other, this).second;
     }
 
     if (other.is_integer()) {
