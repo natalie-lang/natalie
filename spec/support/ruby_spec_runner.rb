@@ -46,6 +46,8 @@ Dir[specs].each do |path|
       end
     }
 
+    File.unlink(binary_name)
+
     status = $?
     # If the process did not exit normally it was probably shut down by the
     # `Process.kill` call when timeouting a spec
