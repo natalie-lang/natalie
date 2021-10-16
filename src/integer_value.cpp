@@ -141,12 +141,20 @@ ValuePtr IntegerValue::cmp(Env *env, ValuePtr arg) {
 }
 
 bool IntegerValue::eq(Env *env, ValuePtr other) {
-    if (other.is_integer()) {
-        return to_nat_int_t() == other.to_nat_int_t();
-    } else if (other->is_float()) {
+    if (other->is_float()) {
         return to_nat_int_t() == other->as_float()->to_double();
     }
-    return false;
+
+    if (!other.is_integer()) {
+        other = Natalie::coerce(env, other, this).second;
+    }
+
+    if (other.is_integer()) {
+        if (other->as_integer()->is_bignum())
+            return to_bignum() == other->as_integer()->to_bignum();
+        return to_nat_int_t() == other.to_nat_int_t();
+    }
+    return other->send(env, SymbolValue::intern("=="), { this })->is_truthy();
 }
 
 bool IntegerValue::lt(Env *env, ValuePtr other) {

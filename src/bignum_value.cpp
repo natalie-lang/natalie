@@ -30,12 +30,18 @@ ValuePtr BignumValue::add(Env *env, ValuePtr arg) {
 }
 
 bool BignumValue::eq(Env *env, ValuePtr other) {
-    if (other.is_integer()) {
-        return to_bignum() == other->as_integer()->to_bignum();
-    } else if (other->is_float()) {
+    if (other->is_float()) {
         return to_bignum() == other->as_float()->to_double();
     }
-    return false;
+
+    if (!other.is_integer()) {
+        other = Natalie::coerce(env, other, this).second;
+    }
+
+    if (other.is_integer()) {
+        return to_bignum() == other->as_integer()->to_bignum();
+    }
+    return other->send(env, SymbolValue::intern("=="), { this })->is_truthy();
 }
 
 bool BignumValue::lt(Env *env, ValuePtr other) {
