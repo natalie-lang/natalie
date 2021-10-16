@@ -61,8 +61,9 @@ public:
         if (is_nan() || is_infinity()) return this;
         if (m_double == ::floor(m_double)) {
             if (m_double >= (double)NAT_INT_MAX || m_double <= (double)NAT_INT_MAX) {
-                auto string = String::from_double(to_double());
-                auto bignum = new BignumValue { string->substring(0, string->size() - 2) };
+                auto *string = String::from_double(to_double());
+                string->truncate(string->size() - 2);
+                auto *bignum = new BignumValue { string };
                 if (bignum->has_to_be_bignum())
                     return bignum;
             }
