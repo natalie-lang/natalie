@@ -59,6 +59,20 @@ public:
         set_str(buf);
     }
 
+    String(int number) {
+        int length = snprintf(NULL, 0, "%d", number);
+        char buf[length + 1];
+        snprintf(buf, length + 1, "%d", number);
+        set_str(buf);
+    }
+
+    String(double number, int precision = 4) {
+        int length = snprintf(NULL, 0, "%.*f", precision, number);
+        char buf[length + 1];
+        snprintf(buf, length + 1, "%f", number);
+        set_str(buf);
+    }
+
     virtual ~String() override {
         delete[] m_str;
     }
