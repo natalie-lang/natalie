@@ -16,13 +16,14 @@ module CompareRubies
     if !File.exist?(nat_path) || File.stat(nat_path).mtime < File.stat(libnat_path).mtime
       out_nat = sh("bin/natalie -c test/tmp/nat bin/natalie 2>&1")
       puts out_nat unless $?.success?
+      expect($?).must_be :success?
     end
     # not quite ready for this yet... :-)
     #unless File.exist?(File.expand_path('../tmp/nat2', __dir__))
       #out_nat = `./test/tmp/nat -c test/tmp/nat2 bin/natalie 2>&1`
       #puts out_nat unless $?.success?
     #end
-    out_nat = `./test/tmp/nat #{path} #{args.join(' ')} 2>&1`
+    out_nat = sh("./test/tmp/nat #{path} #{args.join(' ')} 2>&1")
     puts out_nat unless $?.success?
     expect($?).must_be :success?
     out_nat
