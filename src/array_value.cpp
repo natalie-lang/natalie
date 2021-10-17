@@ -936,14 +936,13 @@ ValuePtr ArrayValue::join(Env *env, ValuePtr joiner) {
 }
 
 ValuePtr ArrayValue::cmp(Env *env, ValuePtr other) {
-    auto to_ary = SymbolValue::intern("to_ary");
-    if (!other->is_array() && other->respond_to(env, to_ary))
-        other = other->send(env, to_ary);
+    ValuePtr other_converted = try_convert(env, other);
 
-    if (!other->is_array())
-        return NilValue::the();
+    if (other_converted->is_nil()) {
+        return other_converted;
+    }
 
-    ArrayValue *other_array = other->as_array();
+    ArrayValue *other_array = other_converted->as_array();
     TM::RecursionGuard guard { this };
     return guard.run([&](bool is_recursive) {
         if (is_recursive)
@@ -2019,6 +2018,11 @@ ValuePtr ArrayValue::to_h(Env *env, Block *block) {
 
 ValuePtr ArrayValue::try_convert(Env *env, ValuePtr val) {
     auto to_ary = SymbolValue::intern("to_ary");
+
+    if (val->is_array()) {
+        return val;
+    }
+
     if (!val->respond_to(env, to_ary)) {
         return NilValue::the();
     }

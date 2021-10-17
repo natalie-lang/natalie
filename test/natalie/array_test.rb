@@ -59,6 +59,15 @@ describe 'array' do
       (['a', 'b', 'c'] <=> ['a', 'b']).should == 1
       (['a', 'b', 'C'] <=> ['a', 'b', 'c']).should == -1
     end
+
+    it 'raises TypeError if #to_ary returns a non-array' do
+      x = Object.new
+      def x.to_ary
+        :sym
+      end
+
+      ->{ [] <=> x }.should raise_error(TypeError, "can't convert Object to Array (Object#to_ary gives Symbol)")
+    end
   end
 
   describe '#to_a' do
