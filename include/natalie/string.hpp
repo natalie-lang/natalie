@@ -69,7 +69,7 @@ public:
     String(double number, int precision = 4) {
         int length = snprintf(NULL, 0, "%.*f", precision, number);
         char buf[length + 1];
-        snprintf(buf, length + 1, "%f", number);
+        snprintf(buf, length + 1, "%.*f", precision, number);
         set_str(buf);
     }
 
