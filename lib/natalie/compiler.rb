@@ -60,7 +60,7 @@ module Natalie
     end
 
     def check_build
-      unless File.exist?(File.join(BUILD_DIR, 'libnatalie.a'))
+      unless File.file?(File.join(BUILD_DIR, 'libnatalie.a'))
         puts 'please run: rake'
         exit 1
       end
@@ -335,20 +335,20 @@ module Natalie
 
     def find_full_path(path, base:, search:)
       if path.start_with?(File::SEPARATOR)
-        path if File.exist?(path)
+        path if File.file?(path)
       elsif path.start_with?('.' + File::SEPARATOR)
         path = File.expand_path(path, base)
-        path if File.exist?(path)
+        path if File.file?(path)
       elsif search
         find_file_in_load_path(path)
       else
         path = File.expand_path(path, base)
-        path if File.exist?(path)
+        path if File.file?(path)
       end
     end
 
     def find_file_in_load_path(path)
-      load_path.map { |d| File.join(d, path) }.detect { |p| File.exist?(p) }
+      load_path.map { |d| File.join(d, path) }.detect { |p| File.file?(p) }
     end
 
     # FIXME: implement pp

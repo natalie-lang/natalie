@@ -20,4 +20,15 @@ describe 'require' do
     foo3.should == 'foo3'
     Bar3.new.bar3.should == 'bar3'
   end
+
+  it 'raises an error when the path does not exist' do
+    ruby = RUBY_ENGINE == 'natalie' ? 'bin/natalie' : 'ruby'
+    `#{ruby} -e "require 'something_non_existent'" 2>&1`.should =~ /cannot load such file.*something_non_existent/
+  end
+
+  it 'raises an error when the path is a directory' do
+    ruby = RUBY_ENGINE == 'natalie' ? 'bin/natalie' : 'ruby'
+    File.directory?('./test').should be_true
+    `#{ruby} -e "require './test'" 2>&1`.should =~ /cannot load such file.*test/
+  end
 end
