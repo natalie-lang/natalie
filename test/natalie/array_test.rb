@@ -79,6 +79,35 @@ describe 'array' do
     end
   end
 
+  describe '#flatten' do
+    it 'raises TypeError if #to_ary of an element returns a non-array' do
+      x = Object.new
+      def x.to_ary
+        :sym
+      end
+
+      ->{ [x].flatten }.should raise_error(TypeError, "can't convert Object to Array (Object#to_ary gives Symbol)")
+    end
+
+    it 'keeps elements returning nil from #to_ary' do
+      x = Object.new
+      def x.to_ary
+        nil
+      end
+
+      [x].flatten.should == [x]
+    end
+
+    it "doesn't try #to_a" do
+      x = Object.new
+      def x.to_a
+        :sym
+      end
+
+      [x].flatten.should == [x]
+    end
+  end
+
   describe 'permutation' do
     it 'returns all non-repeating permutations of the array' do
       a = [1, 2, 3]

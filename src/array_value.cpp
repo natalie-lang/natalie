@@ -591,30 +591,9 @@ bool ArrayValue::_flatten_in_place(Env *env, nat_int_t depth, Hashmap<ArrayValue
         }
 
         if (!item->is_array()) {
-            auto sym_to_ary = SymbolValue::intern("to_ary");
-            auto sym_to_a = SymbolValue::intern("to_a");
-            auto original_item_class = item->klass();
-            ValuePtr new_item;
+            ValuePtr new_item = try_convert(env, item);
 
-            if (item->respond_to(env, sym_to_ary)) {
-                new_item = item.send(env, sym_to_ary);
-            } else if (item->respond_to(env, sym_to_a)) {
-                new_item = item.send(env, sym_to_a);
-            }
-
-            if (new_item != nullptr && !new_item->is_nil()) {
-                if (!new_item->is_array()) {
-                    auto original_item_class_name = original_item_class->class_name_or_blank();
-                    auto new_item_class_name = item->klass()->class_name_or_blank();
-                    env->raise(
-                        "TypeError",
-                        "can't convert {} to Array ({}#to_ary gives {})",
-                        original_item_class_name,
-                        original_item_class_name,
-                        new_item_class_name);
-                    return false;
-                }
-
+            if (!new_item->is_nil()) {
                 item = new_item;
             }
         }
