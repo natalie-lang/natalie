@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <ctype.h>
+#include <stdarg.h>
 #include <string.h>
 
 #include "natalie/forward.hpp"
@@ -208,6 +209,18 @@ public:
         grow_at_least(total_length);
         strncat(m_str, str, total_length - m_length);
         m_length = total_length;
+    }
+
+    void append_format(const char *format, ...) {
+        va_list args, args_copy;
+        va_start(args, format);
+        va_copy(args_copy, args);
+        int fmt_length = vsnprintf(nullptr, 0, format, args_copy);
+        va_end(args_copy);
+        char buf[fmt_length + 1];
+        vsnprintf(buf, fmt_length + 1, format, args);
+        va_end(args);
+        append(buf);
     }
 
     void append(const String *str) {
