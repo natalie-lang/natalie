@@ -469,7 +469,7 @@ ValuePtr InterpolatedRegexpNode::to_ruby(Env *env) {
     for (size_t i = 0; i < m_nodes.size(); i++) {
         auto node = m_nodes[i];
         if (i == 0 && node->type() == Node::Type::String)
-            sexp->push(static_cast<StringNode *>(node)->value());
+            sexp->push(static_cast<StringNode *>(node)->to_string_value());
         else
             sexp->push(node->to_ruby(env));
     }
@@ -483,7 +483,7 @@ ValuePtr InterpolatedShellNode::to_ruby(Env *env) {
     for (size_t i = 0; i < m_nodes.size(); i++) {
         auto node = m_nodes[i];
         if (i == 0 && node->type() == Node::Type::String)
-            sexp->push(static_cast<StringNode *>(node)->value());
+            sexp->push(static_cast<StringNode *>(node)->to_string_value());
         else
             sexp->push(node->to_ruby(env));
     }
@@ -495,7 +495,7 @@ ValuePtr InterpolatedStringNode::to_ruby(Env *env) {
     for (size_t i = 0; i < m_nodes.size(); i++) {
         auto node = m_nodes[i];
         if (i == 0 && node->type() == Node::Type::String)
-            sexp->push(static_cast<StringNode *>(node)->value());
+            sexp->push(static_cast<StringNode *>(node)->to_string_value());
         else
             sexp->push(node->to_ruby(env));
     }
@@ -815,7 +815,7 @@ ValuePtr SclassNode::to_ruby(Env *env) {
 }
 
 ValuePtr ShellNode::to_ruby(Env *env) {
-    return new SexpValue { env, this, { SymbolValue::intern("xstr"), m_value } };
+    return new SexpValue { env, this, { SymbolValue::intern("xstr"), new StringValue(m_string) } };
 }
 
 ValuePtr SplatAssignmentNode::to_ruby(Env *env) {
@@ -837,7 +837,7 @@ ValuePtr StabbyProcNode::to_ruby(Env *env) {
 }
 
 ValuePtr StringNode::to_ruby(Env *env) {
-    return new SexpValue { env, this, { SymbolValue::intern("str"), m_value } };
+    return new SexpValue { env, this, { SymbolValue::intern("str"), new StringValue(m_string) } };
 }
 
 ValuePtr SymbolNode::to_ruby(Env *env) {

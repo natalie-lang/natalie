@@ -1347,25 +1347,25 @@ public:
 
 class ShellNode : public Node {
 public:
-    ShellNode(Token *token, ValuePtr value)
+    ShellNode(Token *token, String *string)
         : Node { token }
-        , m_value { value } {
-        assert(m_value);
+        , m_string { string } {
+        assert(m_string);
     }
 
     virtual Type type() override { return Type::String; }
 
     virtual ValuePtr to_ruby(Env *) override;
 
-    ValuePtr value() { return m_value; }
+    String *string() { return m_string; }
 
     virtual void visit_children(Visitor &visitor) override {
         Node::visit_children(visitor);
-        visitor.visit(m_value);
+        visitor.visit(m_string);
     }
 
 protected:
-    ValuePtr m_value { nullptr };
+    String *m_string { nullptr };
 };
 
 class SplatAssignmentNode : public Node {
@@ -1431,25 +1431,26 @@ public:
 
 class StringNode : public Node {
 public:
-    StringNode(Token *token, ValuePtr value)
+    StringNode(Token *token, String *string)
         : Node { token }
-        , m_value { value } {
-        assert(m_value);
+        , m_string { string } {
+        assert(m_string);
     }
 
     virtual Type type() override { return Type::String; }
 
     virtual ValuePtr to_ruby(Env *) override;
 
-    ValuePtr value() { return m_value; }
+    String *string() { return m_string; }
+    StringValue *to_string_value() { return new StringValue(m_string); }
 
     virtual void visit_children(Visitor &visitor) override {
         Node::visit_children(visitor);
-        visitor.visit(m_value);
+        visitor.visit(m_string);
     }
 
 protected:
-    ValuePtr m_value { nullptr };
+    String *m_string { nullptr };
 };
 
 class SymbolNode : public Node {

@@ -581,7 +581,7 @@ Node *Parser::parse_modifier_expression(Node *left, LocalsHashmap &locals) {
 Node *Parser::parse_file_constant(LocalsHashmap &locals) {
     auto token = current_token();
     advance();
-    return new StringNode { token, new StringValue { token->file() } };
+    return new StringNode { token, new String { token->file() } };
 }
 
 Node *Parser::parse_group(LocalsHashmap &locals) {
@@ -691,7 +691,7 @@ void Parser::parse_interpolated_body(LocalsHashmap &locals, InterpolatedNode *no
             break;
         }
         case Token::Type::String:
-            node->add_node(new StringNode { current_token(), new StringValue { current_token()->literal() } });
+            node->add_node(new StringNode { current_token(), new String { current_token()->literal() } });
             advance();
             break;
         default:
@@ -739,11 +739,11 @@ Node *Parser::parse_interpolated_shell(LocalsHashmap &locals) {
     auto token = current_token();
     advance();
     if (current_token()->type() == Token::Type::InterpolatedShellEnd) {
-        auto shell = new ShellNode { token, new StringValue {} };
+        auto shell = new ShellNode { token, new String {} };
         advance();
         return shell;
     } else if (current_token()->type() == Token::Type::String && peek_token()->type() == Token::Type::InterpolatedShellEnd) {
-        auto shell = new ShellNode { token, new StringValue { current_token()->literal() } };
+        auto shell = new ShellNode { token, new String { current_token()->literal() } };
         advance();
         advance();
         return shell;
@@ -759,11 +759,11 @@ Node *Parser::parse_interpolated_string(LocalsHashmap &locals) {
     auto token = current_token();
     advance();
     if (current_token()->type() == Token::Type::InterpolatedStringEnd) {
-        auto string = new StringNode { token, new StringValue {} };
+        auto string = new StringNode { token, new String };
         advance();
         return string;
     } else if (current_token()->type() == Token::Type::String && peek_token()->type() == Token::Type::InterpolatedStringEnd) {
-        auto string = new StringNode { token, new StringValue { current_token()->literal() } };
+        auto string = new StringNode { token, new String { current_token()->literal() } };
         advance();
         advance();
         return string;
@@ -933,7 +933,7 @@ Node *Parser::parse_stabby_proc(LocalsHashmap &locals) {
 
 Node *Parser::parse_string(LocalsHashmap &locals) {
     auto token = current_token();
-    auto string = new StringNode { token, new StringValue { token->literal() } };
+    auto string = new StringNode { token, new String { token->literal() } };
     advance();
     return string;
 };
@@ -988,13 +988,13 @@ Node *Parser::parse_word_array(LocalsHashmap &locals) {
     auto literal = token->literal();
     size_t len = strlen(literal);
     if (len > 0) {
-        StringValue *string = new StringValue {};
+        String *string = new String;
         for (size_t i = 0; i < len; i++) {
             auto c = literal[i];
             switch (c) {
             case ' ':
                 array->add_node(new StringNode { token, string });
-                string = new StringValue {};
+                string = new String;
                 break;
             default:
                 string->append_char(c);
