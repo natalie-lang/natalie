@@ -59,6 +59,15 @@ describe 'array' do
       (['a', 'b', 'c'] <=> ['a', 'b']).should == 1
       (['a', 'b', 'C'] <=> ['a', 'b', 'c']).should == -1
     end
+
+    it 'raises TypeError if #to_ary returns a non-array' do
+      x = Object.new
+      def x.to_ary
+        :sym
+      end
+
+      ->{ [] <=> x }.should raise_error(TypeError, "can't convert Object to Array (Object#to_ary gives Symbol)")
+    end
   end
 
   describe '#to_a' do
@@ -67,6 +76,35 @@ describe 'array' do
       a2 = a.to_a
       a2.object_id.should == a.object_id
       a2.should == a
+    end
+  end
+
+  describe '#flatten' do
+    it 'raises TypeError if #to_ary of an element returns a non-array' do
+      x = Object.new
+      def x.to_ary
+        :sym
+      end
+
+      ->{ [x].flatten }.should raise_error(TypeError, "can't convert Object to Array (Object#to_ary gives Symbol)")
+    end
+
+    it 'keeps elements returning nil from #to_ary' do
+      x = Object.new
+      def x.to_ary
+        nil
+      end
+
+      [x].flatten.should == [x]
+    end
+
+    it "doesn't try #to_a" do
+      x = Object.new
+      def x.to_a
+        :sym
+      end
+
+      [x].flatten.should == [x]
     end
   end
 

@@ -55,7 +55,7 @@ public:
 
     static ValuePtr allocate(Env *, size_t, ValuePtr *);
 
-    ValuePtr to_ary() { return this; }
+    ValuePtr to_ary_method() { return this; }
 
     size_t size() const { return m_vector.size(); }
 

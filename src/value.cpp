@@ -643,4 +643,33 @@ void Value::gc_inspect(char *buf, size_t len) const {
     snprintf(buf, len, "<Value %p type=%d class=%p>", this, (int)m_type, m_klass);
 }
 
+ArrayValue *Value::to_ary(Env *env) {
+    if (is_array()) {
+        return as_array();
+    }
+
+    auto original_class = klass()->class_name_or_blank();
+
+    auto to_ary = SymbolValue::intern("to_ary");
+
+    if (!respond_to(env, to_ary)) {
+        if (is_nil()) {
+            env->raise("TypeError", "no implicit conversion of nil into Array");
+        }
+        env->raise("TypeError", "no implicit conversion of {} into Array", original_class);
+    }
+
+    ValuePtr val = send(env, to_ary);
+
+    if (val->is_array()) {
+        return val->as_array();
+    }
+
+    env->raise(
+        "TypeError", "can't convert {} to Array ({}#to_ary gives {})",
+        original_class,
+        original_class,
+        val->klass()->class_name_or_blank());
+}
+
 }
