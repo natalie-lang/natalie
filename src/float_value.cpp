@@ -134,26 +134,35 @@ ValuePtr FloatValue::to_s(Env *env) {
 
     String *string;
 
-    if (decpt == 0) {
-        string = new String { "0." };
-        string->append(out);
+    auto add_exp = [decpt](String *out) {
+        if (out->length() > 1) {
+            out->insert(1, '.');
+        } else {
+            out->append(".0");
+        }
+        out->append_format("e%+03d", decpt - 1);
+    };
 
-    } else if (decpt < 0) {
+    if (decpt > 0) {
+        string = new String { out };
+        long long s_length = string->length();
+        if (decpt < s_length) {
+            string->insert(decpt, '.');
+        } else if (decpt <= DBL_DIG) {
+            if (decpt > s_length) {
+                string->append(decpt - s_length, '0');
+            }
+            string->append(".0");
+        } else {
+            add_exp(string);
+        }
+    } else if (decpt > -4) {
         string = new String { "0." };
         string->append(::abs(decpt), '0');
         string->append(out);
-
     } else {
         string = new String { out };
-        long long s_length = string->length();
-        if (decpt == s_length) {
-            string->append(".0");
-        } else if (decpt > s_length) {
-            string->append(decpt - s_length, '0');
-            string->append(".0");
-        } else {
-            string->insert(decpt, '.');
-        }
+        add_exp(string);
     }
 
     if (sign) {
