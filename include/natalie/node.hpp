@@ -181,8 +181,8 @@ public:
     Node *value() { return m_value; }
     void set_value(Node *value) { m_value = value; }
 
-    void add_to_locals(ManagedVector<SymbolValue *> *locals) {
-        locals->push(SymbolValue::intern(m_name));
+    void add_to_locals(TM::Hashmap<const char *> &locals) {
+        locals.set(m_name->c_str());
     }
 
     virtual void visit_children(Visitor &visitor) override {
@@ -822,9 +822,9 @@ public:
         return SymbolValue::intern(name());
     }
 
-    void add_to_locals(ManagedVector<SymbolValue *> *locals) {
+    void add_to_locals(TM::Hashmap<const char *> &locals) {
         if (token_type() == Token::Type::BareName)
-            locals->push(to_symbol());
+            locals.set(name());
     }
 
 protected:
@@ -1087,7 +1087,7 @@ public:
     virtual ValuePtr to_ruby(Env *) override;
     ArrayValue *to_ruby_with_array(Env *);
 
-    void add_locals(ManagedVector<SymbolValue *> *);
+    void add_locals(TM::Hashmap<const char *> &);
 };
 
 class NextNode : public Node {

@@ -2,7 +2,7 @@
 
 namespace Natalie {
 
-Node *Parser::parse_expression(Parser::Precedence precedence, LocalsVectorPtr locals) {
+Node *Parser::parse_expression(Parser::Precedence precedence, LocalsHashmap &locals) {
     skip_newlines();
 
     auto null_fn = null_denotation(current_token()->type(), precedence);
@@ -26,7 +26,7 @@ Node *Parser::parse_expression(Parser::Precedence precedence, LocalsVectorPtr lo
 Node *Parser::tree() {
     auto tree = new BlockNode { current_token() };
     current_token()->validate();
-    auto locals = new ManagedVector<SymbolValue *> {};
+    LocalsHashmap locals { TM::HashType::String };
     skip_newlines();
     while (!current_token()->is_eof()) {
         auto exp = parse_expression(LOWEST, locals);
@@ -37,7 +37,7 @@ Node *Parser::tree() {
     return tree;
 }
 
-BlockNode *Parser::parse_body(LocalsVectorPtr locals, Precedence precedence, Token::Type end_token_type) {
+BlockNode *Parser::parse_body(LocalsHashmap &locals, Precedence precedence, Token::Type end_token_type) {
     auto body = new BlockNode { current_token() };
     current_token()->validate();
     skip_newlines();
@@ -57,7 +57,7 @@ BlockNode *Parser::parse_body(LocalsVectorPtr locals, Precedence precedence, Tok
     return body;
 }
 
-BlockNode *Parser::parse_body(LocalsVectorPtr locals, Precedence precedence, Vector<Token::Type> *end_tokens, const char *expected_message) {
+BlockNode *Parser::parse_body(LocalsHashmap &locals, Precedence precedence, Vector<Token::Type> *end_tokens, const char *expected_message) {
     auto body = new BlockNode { current_token() };
     current_token()->validate();
     skip_newlines();
@@ -79,7 +79,7 @@ BlockNode *Parser::parse_body(LocalsVectorPtr locals, Precedence precedence, Vec
     return body;
 }
 
-BlockNode *Parser::parse_def_body(LocalsVectorPtr locals) {
+BlockNode *Parser::parse_def_body(LocalsHashmap &locals) {
     auto token = current_token();
     auto body = new BlockNode { token };
     skip_newlines();
@@ -97,7 +97,7 @@ BlockNode *Parser::parse_def_body(LocalsVectorPtr locals) {
     return body;
 }
 
-Node *Parser::parse_alias(LocalsVectorPtr locals) {
+Node *Parser::parse_alias(LocalsHashmap &locals) {
     auto token = current_token();
     advance();
     auto new_name = parse_alias_arg(locals, "alias new name (first argument)");
@@ -105,7 +105,7 @@ Node *Parser::parse_alias(LocalsVectorPtr locals) {
     return new AliasNode { token, new_name, existing_name };
 }
 
-SymbolNode *Parser::parse_alias_arg(LocalsVectorPtr locals, const char *expected_message) {
+SymbolNode *Parser::parse_alias_arg(LocalsHashmap &locals, const char *expected_message) {
     switch (current_token()->type()) {
     case Token::Type::BareName: {
         auto identifier = static_cast<IdentifierNode *>(parse_identifier(locals));
@@ -118,7 +118,7 @@ SymbolNode *Parser::parse_alias_arg(LocalsVectorPtr locals, const char *expected
     }
 }
 
-Node *Parser::parse_array(LocalsVectorPtr locals) {
+Node *Parser::parse_array(LocalsHashmap &locals) {
     auto array = new ArrayNode { current_token() };
     advance();
     if (current_token()->type() != Token::Type::RBracket) {
@@ -135,7 +135,7 @@ Node *Parser::parse_array(LocalsVectorPtr locals) {
     return array;
 }
 
-void Parser::parse_comma_separated_expressions(ArrayNode *array, LocalsVectorPtr locals) {
+void Parser::parse_comma_separated_expressions(ArrayNode *array, LocalsHashmap &locals) {
     array->add_node(parse_expression(ARRAY, locals));
     while (current_token()->type() == Token::Type::Comma) {
         advance();
@@ -143,7 +143,7 @@ void Parser::parse_comma_separated_expressions(ArrayNode *array, LocalsVectorPtr
     }
 }
 
-Node *Parser::parse_begin(LocalsVectorPtr locals) {
+Node *Parser::parse_begin(LocalsHashmap &locals) {
     auto token = current_token();
     advance();
     next_expression();
@@ -180,7 +180,7 @@ Node *Parser::parse_begin(LocalsVectorPtr locals) {
     }
 }
 
-void Parser::parse_rest_of_begin(BeginNode *begin_node, LocalsVectorPtr locals) {
+void Parser::parse_rest_of_begin(BeginNode *begin_node, LocalsHashmap &locals) {
     auto rescue_ending_tokens = new Vector<Token::Type> { { Token::Type::RescueKeyword, Token::Type::ElseKeyword, Token::Type::EnsureKeyword, Token::Type::EndKeyword } };
     auto else_ending_tokens = new Vector<Token::Type> { { Token::Type::EnsureKeyword, Token::Type::EndKeyword } };
     while (!current_token()->is_eof() && !current_token()->is_end_keyword()) {
@@ -231,7 +231,7 @@ void Parser::parse_rest_of_begin(BeginNode *begin_node, LocalsVectorPtr locals) 
     advance();
 }
 
-Node *Parser::parse_block_pass(LocalsVectorPtr locals) {
+Node *Parser::parse_block_pass(LocalsHashmap &locals) {
     auto token = current_token();
     advance();
     switch (current_token()->type()) {
@@ -250,7 +250,7 @@ Node *Parser::parse_block_pass(LocalsVectorPtr locals) {
     NAT_UNREACHABLE();
 }
 
-Node *Parser::parse_bool(LocalsVectorPtr) {
+Node *Parser::parse_bool(LocalsHashmap &) {
     auto token = current_token();
     switch (current_token()->type()) {
     case Token::Type::TrueKeyword:
@@ -264,7 +264,7 @@ Node *Parser::parse_bool(LocalsVectorPtr) {
     }
 }
 
-Node *Parser::parse_break(LocalsVectorPtr locals) {
+Node *Parser::parse_break(LocalsHashmap &locals) {
     auto token = current_token();
     advance();
     if (current_token()->is_lparen()) {
@@ -286,7 +286,7 @@ Node *Parser::parse_break(LocalsVectorPtr locals) {
     return new BreakNode { token };
 }
 
-Node *Parser::parse_case(LocalsVectorPtr locals) {
+Node *Parser::parse_case(LocalsHashmap &locals) {
     auto case_token = current_token();
     advance();
     auto subject = parse_expression(CASE, locals);
@@ -322,7 +322,7 @@ Node *Parser::parse_case(LocalsVectorPtr locals) {
     return node;
 }
 
-BlockNode *Parser::parse_case_when_body(LocalsVectorPtr locals) {
+BlockNode *Parser::parse_case_when_body(LocalsHashmap &locals) {
     auto body = new BlockNode { current_token() };
     current_token()->validate();
     skip_newlines();
@@ -337,29 +337,29 @@ BlockNode *Parser::parse_case_when_body(LocalsVectorPtr locals) {
     return body;
 }
 
-Node *Parser::parse_class(LocalsVectorPtr locals) {
+Node *Parser::parse_class(LocalsHashmap &locals) {
     auto token = current_token();
     if (peek_token()->type() == Token::Type::LeftShift)
         return parse_sclass(locals);
     advance();
-    locals = new ManagedVector<SymbolValue *> {};
+    LocalsHashmap our_locals { TM::HashType::String };
     if (current_token()->type() != Token::Type::Constant)
         throw SyntaxError { "class/module name must be CONSTANT" };
-    auto name = static_cast<ConstantNode *>(parse_constant(locals));
+    auto name = static_cast<ConstantNode *>(parse_constant(our_locals));
     Node *superclass;
     if (current_token()->type() == Token::Type::LessThan) {
         advance();
-        superclass = parse_expression(LOWEST, locals);
+        superclass = parse_expression(LOWEST, our_locals);
     } else {
         superclass = new NilNode { token };
     }
-    auto body = parse_body(locals, LOWEST);
+    auto body = parse_body(our_locals, LOWEST);
     expect(Token::Type::EndKeyword, "class end");
     advance();
     return new ClassNode { token, name, superclass, body };
 };
 
-Node *Parser::parse_comma_separated_identifiers(LocalsVectorPtr locals) {
+Node *Parser::parse_comma_separated_identifiers(LocalsHashmap &locals) {
     auto list = new MultipleAssignmentNode { current_token() };
     list->add_node(parse_identifier(locals));
     while (current_token()->is_comma()) {
@@ -399,16 +399,16 @@ Node *Parser::parse_comma_separated_identifiers(LocalsVectorPtr locals) {
     return list;
 }
 
-Node *Parser::parse_constant(LocalsVectorPtr locals) {
+Node *Parser::parse_constant(LocalsHashmap &locals) {
     auto node = new ConstantNode { current_token() };
     advance();
     return node;
 };
 
-Node *Parser::parse_def(LocalsVectorPtr locals) {
+Node *Parser::parse_def(LocalsHashmap &locals) {
     auto token = current_token();
     advance();
-    auto our_locals = new ManagedVector<SymbolValue *> {};
+    LocalsHashmap our_locals { TM::HashType::String };
     Node *self_node = nullptr;
     IdentifierNode *name;
     switch (current_token()->type()) {
@@ -464,14 +464,14 @@ Node *Parser::parse_def(LocalsVectorPtr locals) {
     return new DefNode { token, self_node, name, *args, body };
 };
 
-Node *Parser::parse_defined(LocalsVectorPtr locals) {
+Node *Parser::parse_defined(LocalsHashmap &locals) {
     auto token = current_token();
     advance();
     auto arg = parse_expression(BARECALLARGS, locals);
     return new DefinedNode { token, arg };
 }
 
-ManagedVector<Node *> *Parser::parse_def_args(LocalsVectorPtr locals) {
+ManagedVector<Node *> *Parser::parse_def_args(LocalsHashmap &locals) {
     auto args = new ManagedVector<Node *> {};
     args->push(parse_def_single_arg(locals));
     while (current_token()->is_comma()) {
@@ -481,7 +481,7 @@ ManagedVector<Node *> *Parser::parse_def_args(LocalsVectorPtr locals) {
     return args;
 }
 
-Node *Parser::parse_def_single_arg(LocalsVectorPtr locals) {
+Node *Parser::parse_def_single_arg(LocalsHashmap &locals) {
     auto token = current_token();
     switch (token->type()) {
     case Token::Type::BareName: {
@@ -560,7 +560,7 @@ Node *Parser::parse_def_single_arg(LocalsVectorPtr locals) {
     }
 }
 
-Node *Parser::parse_modifier_expression(Node *left, LocalsVectorPtr locals) {
+Node *Parser::parse_modifier_expression(Node *left, LocalsHashmap &locals) {
     auto token = current_token();
     switch (token->type()) {
     case Token::Type::IfKeyword: {
@@ -578,13 +578,13 @@ Node *Parser::parse_modifier_expression(Node *left, LocalsVectorPtr locals) {
     }
 }
 
-Node *Parser::parse_file_constant(LocalsVectorPtr locals) {
+Node *Parser::parse_file_constant(LocalsHashmap &locals) {
     auto token = current_token();
     advance();
     return new StringNode { token, new StringValue { token->file() } };
 }
 
-Node *Parser::parse_group(LocalsVectorPtr locals) {
+Node *Parser::parse_group(LocalsHashmap &locals) {
     advance();
     auto exp = parse_expression(LOWEST, locals);
     expect(Token::Type::RParen, "group closing paren");
@@ -592,7 +592,7 @@ Node *Parser::parse_group(LocalsVectorPtr locals) {
     return exp;
 };
 
-Node *Parser::parse_hash(LocalsVectorPtr locals) {
+Node *Parser::parse_hash(LocalsHashmap &locals) {
     auto token = current_token();
     advance();
     auto hash = new HashNode { token };
@@ -624,21 +624,15 @@ Node *Parser::parse_hash(LocalsVectorPtr locals) {
     return hash;
 }
 
-Node *Parser::parse_identifier(LocalsVectorPtr locals) {
-    bool is_lvar = false;
-    auto name_symbol = SymbolValue::intern(current_token()->literal());
-    for (auto local : *locals) {
-        if (local == name_symbol) {
-            is_lvar = true;
-            break;
-        }
-    }
+Node *Parser::parse_identifier(LocalsHashmap &locals) {
+    auto name = current_token()->literal();
+    bool is_lvar = !!locals.get(name);
     auto identifier = new IdentifierNode { current_token(), is_lvar };
     advance();
     return identifier;
 };
 
-Node *Parser::parse_if(LocalsVectorPtr locals) {
+Node *Parser::parse_if(LocalsHashmap &locals) {
     auto token = current_token();
     advance();
     auto condition = parse_expression(LOWEST, locals);
@@ -661,7 +655,7 @@ Node *Parser::parse_if(LocalsVectorPtr locals) {
     }
 }
 
-Node *Parser::parse_if_body(LocalsVectorPtr locals) {
+Node *Parser::parse_if_body(LocalsHashmap &locals) {
     auto body = new BlockNode { current_token() };
     current_token()->validate();
     skip_newlines();
@@ -676,7 +670,7 @@ Node *Parser::parse_if_body(LocalsVectorPtr locals) {
     return body->has_one_node() ? body->nodes()[0] : body;
 }
 
-void Parser::parse_interpolated_body(LocalsVectorPtr locals, InterpolatedNode *node, Token::Type end_token) {
+void Parser::parse_interpolated_body(LocalsHashmap &locals, InterpolatedNode *node, Token::Type end_token) {
     while (current_token()->is_valid() && current_token()->type() != end_token) {
         switch (current_token()->type()) {
         case Token::Type::EvaluateToStringBegin: {
@@ -708,7 +702,7 @@ void Parser::parse_interpolated_body(LocalsVectorPtr locals, InterpolatedNode *n
         NAT_UNREACHABLE() // this shouldn't happen -- if it does, there is a bug in the Lexer
 };
 
-Node *Parser::parse_interpolated_regexp(LocalsVectorPtr locals) {
+Node *Parser::parse_interpolated_regexp(LocalsHashmap &locals) {
     auto token = current_token();
     advance();
     if (current_token()->type() == Token::Type::InterpolatedRegexpEnd) {
@@ -741,7 +735,7 @@ Node *Parser::parse_interpolated_regexp(LocalsVectorPtr locals) {
     }
 };
 
-Node *Parser::parse_interpolated_shell(LocalsVectorPtr locals) {
+Node *Parser::parse_interpolated_shell(LocalsHashmap &locals) {
     auto token = current_token();
     advance();
     if (current_token()->type() == Token::Type::InterpolatedShellEnd) {
@@ -761,7 +755,7 @@ Node *Parser::parse_interpolated_shell(LocalsVectorPtr locals) {
     }
 };
 
-Node *Parser::parse_interpolated_string(LocalsVectorPtr locals) {
+Node *Parser::parse_interpolated_string(LocalsHashmap &locals) {
     auto token = current_token();
     advance();
     if (current_token()->type() == Token::Type::InterpolatedStringEnd) {
@@ -781,7 +775,7 @@ Node *Parser::parse_interpolated_string(LocalsVectorPtr locals) {
     }
 };
 
-Node *Parser::parse_lit(LocalsVectorPtr locals) {
+Node *Parser::parse_lit(LocalsHashmap &locals) {
     ValuePtr value;
     auto token = current_token();
     switch (token->type()) {
@@ -796,7 +790,7 @@ Node *Parser::parse_lit(LocalsVectorPtr locals) {
     }
 };
 
-Node *Parser::parse_keyword_args(LocalsVectorPtr locals) {
+Node *Parser::parse_keyword_args(LocalsHashmap &locals) {
     auto hash = new HashNode { current_token() };
     if (current_token()->type() == Token::Type::SymbolKey) {
         hash->add_node(parse_symbol(locals));
@@ -820,26 +814,26 @@ Node *Parser::parse_keyword_args(LocalsVectorPtr locals) {
     return hash;
 }
 
-Node *Parser::parse_keyword_splat(LocalsVectorPtr locals) {
+Node *Parser::parse_keyword_splat(LocalsHashmap &locals) {
     auto token = current_token();
     advance();
     return new KeywordSplatNode { token, parse_expression(SPLAT, locals) };
 };
 
-Node *Parser::parse_module(LocalsVectorPtr) {
+Node *Parser::parse_module(LocalsHashmap &) {
     auto token = current_token();
     advance();
-    auto locals = new ManagedVector<SymbolValue *> {};
+    LocalsHashmap our_locals { TM::HashType::String };
     if (current_token()->type() != Token::Type::Constant)
         throw SyntaxError { "class/module name must be CONSTANT" };
-    auto name = static_cast<ConstantNode *>(parse_constant(locals));
-    auto body = parse_body(locals, LOWEST);
+    auto name = static_cast<ConstantNode *>(parse_constant(our_locals));
+    auto body = parse_body(our_locals, LOWEST);
     expect(Token::Type::EndKeyword, "module end");
     advance();
     return new ModuleNode { token, name, body };
 };
 
-Node *Parser::parse_next(LocalsVectorPtr locals) {
+Node *Parser::parse_next(LocalsHashmap &locals) {
     auto token = current_token();
     advance();
     if (current_token()->is_lparen()) {
@@ -861,13 +855,13 @@ Node *Parser::parse_next(LocalsVectorPtr locals) {
     return new NextNode { token };
 }
 
-Node *Parser::parse_nil(LocalsVectorPtr) {
+Node *Parser::parse_nil(LocalsHashmap &) {
     auto token = current_token();
     advance();
     return new NilSexpNode { token };
 }
 
-Node *Parser::parse_not(LocalsVectorPtr locals) {
+Node *Parser::parse_not(LocalsHashmap &locals) {
     auto token = current_token();
     auto precedence = get_precedence(current_token());
     advance();
@@ -879,7 +873,7 @@ Node *Parser::parse_not(LocalsVectorPtr locals) {
     return node;
 }
 
-Node *Parser::parse_regexp(LocalsVectorPtr locals) {
+Node *Parser::parse_regexp(LocalsHashmap &locals) {
     auto token = current_token();
     auto regexp = new RegexpNode { token, new String(token->literal()) };
     regexp->set_options(token->options());
@@ -887,7 +881,7 @@ Node *Parser::parse_regexp(LocalsVectorPtr locals) {
     return regexp;
 };
 
-Node *Parser::parse_return(LocalsVectorPtr locals) {
+Node *Parser::parse_return(LocalsHashmap &locals) {
     auto token = current_token();
     advance();
     if (current_token()->is_end_of_expression())
@@ -895,7 +889,7 @@ Node *Parser::parse_return(LocalsVectorPtr locals) {
     return new ReturnNode { token, parse_expression(BARECALLARGS, locals) };
 };
 
-Node *Parser::parse_sclass(LocalsVectorPtr locals) {
+Node *Parser::parse_sclass(LocalsHashmap &locals) {
     auto token = current_token();
     advance(); // class
     advance(); // <<
@@ -906,19 +900,19 @@ Node *Parser::parse_sclass(LocalsVectorPtr locals) {
     return new SclassNode { token, klass, body };
 }
 
-Node *Parser::parse_self(LocalsVectorPtr locals) {
+Node *Parser::parse_self(LocalsHashmap &locals) {
     auto token = current_token();
     advance();
     return new SelfNode { token };
 };
 
-Node *Parser::parse_splat(LocalsVectorPtr locals) {
+Node *Parser::parse_splat(LocalsHashmap &locals) {
     auto token = current_token();
     advance();
     return new SplatNode { token, parse_expression(SPLAT, locals) };
 };
 
-Node *Parser::parse_stabby_proc(LocalsVectorPtr locals) {
+Node *Parser::parse_stabby_proc(LocalsHashmap &locals) {
     auto token = current_token();
     advance();
     ManagedVector<Node *> *args;
@@ -937,14 +931,14 @@ Node *Parser::parse_stabby_proc(LocalsVectorPtr locals) {
     return new StabbyProcNode { token, *args };
 };
 
-Node *Parser::parse_string(LocalsVectorPtr locals) {
+Node *Parser::parse_string(LocalsHashmap &locals) {
     auto token = current_token();
     auto string = new StringNode { token, new StringValue { token->literal() } };
     advance();
     return string;
 };
 
-Node *Parser::parse_super(LocalsVectorPtr locals) {
+Node *Parser::parse_super(LocalsHashmap &locals) {
     auto token = current_token();
     advance();
     auto node = new SuperNode { token };
@@ -964,14 +958,14 @@ Node *Parser::parse_super(LocalsVectorPtr locals) {
     return node;
 };
 
-Node *Parser::parse_symbol(LocalsVectorPtr locals) {
+Node *Parser::parse_symbol(LocalsHashmap &locals) {
     auto token = current_token();
     auto symbol = new SymbolNode { token, new String(current_token()->literal()) };
     advance();
     return symbol;
 };
 
-Node *Parser::parse_top_level_constant(LocalsVectorPtr locals) {
+Node *Parser::parse_top_level_constant(LocalsHashmap &locals) {
     auto token = current_token();
     advance();
     const char *name;
@@ -988,7 +982,7 @@ Node *Parser::parse_top_level_constant(LocalsVectorPtr locals) {
     return new Colon3Node { token, name };
 }
 
-Node *Parser::parse_word_array(LocalsVectorPtr locals) {
+Node *Parser::parse_word_array(LocalsHashmap &locals) {
     auto token = current_token();
     auto array = new ArrayNode { token };
     auto literal = token->literal();
@@ -1012,7 +1006,7 @@ Node *Parser::parse_word_array(LocalsVectorPtr locals) {
     return array;
 }
 
-Node *Parser::parse_word_symbol_array(LocalsVectorPtr locals) {
+Node *Parser::parse_word_symbol_array(LocalsHashmap &locals) {
     auto token = current_token();
     auto array = new ArrayNode { token };
     auto literal = token->literal();
@@ -1036,7 +1030,7 @@ Node *Parser::parse_word_symbol_array(LocalsVectorPtr locals) {
     return array;
 }
 
-Node *Parser::parse_yield(LocalsVectorPtr locals) {
+Node *Parser::parse_yield(LocalsHashmap &locals) {
     auto token = current_token();
     advance();
     auto node = new YieldNode { token };
@@ -1055,7 +1049,7 @@ Node *Parser::parse_yield(LocalsVectorPtr locals) {
     return node;
 };
 
-Node *Parser::parse_assignment_expression(Node *left, LocalsVectorPtr locals) {
+Node *Parser::parse_assignment_expression(Node *left, LocalsHashmap &locals) {
     auto token = current_token();
     switch (left->type()) {
     case Node::Type::Identifier: {
@@ -1090,9 +1084,9 @@ Node *Parser::parse_assignment_expression(Node *left, LocalsVectorPtr locals) {
     }
 };
 
-Node *Parser::parse_iter_expression(Node *left, LocalsVectorPtr locals) {
+Node *Parser::parse_iter_expression(Node *left, LocalsHashmap &locals) {
     auto token = current_token();
-    locals = new ManagedVector<SymbolValue *> { *locals };
+    LocalsHashmap our_locals { locals }; // copy!
     bool curly_brace = current_token()->type() == Token::Type::LCurlyBrace;
     advance();
     ManagedVector<Node *> *args;
@@ -1101,7 +1095,7 @@ Node *Parser::parse_iter_expression(Node *left, LocalsVectorPtr locals) {
     case Node::Type::Call:
         if (current_token()->type() == Token::Type::BitwiseOr) {
             advance();
-            args = parse_iter_args(locals);
+            args = parse_iter_args(our_locals);
             expect(Token::Type::BitwiseOr, "end of block args");
             advance();
         } else {
@@ -1115,17 +1109,17 @@ Node *Parser::parse_iter_expression(Node *left, LocalsVectorPtr locals) {
         throw_unexpected(left->token(), "call for left side of iter");
     }
     auto end_token_type = curly_brace ? Token::Type::RCurlyBrace : Token::Type::EndKeyword;
-    auto body = parse_body(locals, LOWEST, end_token_type);
+    auto body = parse_body(our_locals, LOWEST, end_token_type);
     expect(end_token_type, "block end");
     advance();
     return new IterNode { token, left, *args, body };
 }
 
-ManagedVector<Node *> *Parser::parse_iter_args(LocalsVectorPtr locals) {
+ManagedVector<Node *> *Parser::parse_iter_args(LocalsHashmap &locals) {
     return parse_def_args(locals);
 }
 
-Node *Parser::parse_call_expression_with_parens(Node *left, LocalsVectorPtr locals) {
+Node *Parser::parse_call_expression_with_parens(Node *left, LocalsHashmap &locals) {
     auto token = current_token();
     CallNode *call_node;
     switch (left->type()) {
@@ -1153,7 +1147,7 @@ Node *Parser::parse_call_expression_with_parens(Node *left, LocalsVectorPtr loca
     return call_node;
 }
 
-void Parser::parse_call_args(NodeWithArgs *node, LocalsVectorPtr locals, bool bare) {
+void Parser::parse_call_args(NodeWithArgs *node, LocalsHashmap &locals, bool bare) {
     if ((current_token()->type() == Token::Type::Symbol && peek_token()->type() == Token::Type::HashRocket) || current_token()->type() == Token::Type::SymbolKey) {
         auto hash = parse_keyword_args(locals);
         node->add_arg(hash);
@@ -1176,7 +1170,7 @@ void Parser::parse_call_args(NodeWithArgs *node, LocalsVectorPtr locals, bool ba
     }
 }
 
-Node *Parser::parse_call_expression_without_parens(Node *left, LocalsVectorPtr locals) {
+Node *Parser::parse_call_expression_without_parens(Node *left, LocalsHashmap &locals) {
     auto token = current_token();
     CallNode *call_node;
     switch (left->type()) {
@@ -1210,7 +1204,7 @@ Node *Parser::parse_call_expression_without_parens(Node *left, LocalsVectorPtr l
     return call_node;
 }
 
-Node *Parser::parse_constant_resolution_expression(Node *left, LocalsVectorPtr locals) {
+Node *Parser::parse_constant_resolution_expression(Node *left, LocalsHashmap &locals) {
     auto token = current_token();
     advance();
     auto name_token = current_token();
@@ -1229,7 +1223,7 @@ Node *Parser::parse_constant_resolution_expression(Node *left, LocalsVectorPtr l
     }
 }
 
-Node *Parser::parse_infix_expression(Node *left, LocalsVectorPtr locals) {
+Node *Parser::parse_infix_expression(Node *left, LocalsHashmap &locals) {
     auto token = current_token();
     auto op = current_token();
     auto precedence = get_precedence(current_token(), left);
@@ -1255,7 +1249,7 @@ Node *Parser::parse_infix_expression(Node *left, LocalsVectorPtr locals) {
     return node;
 };
 
-Node *Parser::parse_logical_expression(Node *left, LocalsVectorPtr locals) {
+Node *Parser::parse_logical_expression(Node *left, LocalsHashmap &locals) {
     auto token = current_token();
     switch (current_token()->type()) {
     case Token::Type::And: {
@@ -1299,7 +1293,7 @@ Node *Parser::parse_logical_expression(Node *left, LocalsVectorPtr locals) {
     }
 }
 
-Node *Parser::parse_match_expression(Node *left, LocalsVectorPtr locals) {
+Node *Parser::parse_match_expression(Node *left, LocalsHashmap &locals) {
     auto token = current_token();
     advance();
     auto arg = parse_expression(EQUALITY, locals);
@@ -1318,13 +1312,13 @@ Node *Parser::parse_match_expression(Node *left, LocalsVectorPtr locals) {
     }
 }
 
-Node *Parser::parse_not_match_expression(Node *left, LocalsVectorPtr locals) {
+Node *Parser::parse_not_match_expression(Node *left, LocalsHashmap &locals) {
     auto token = current_token();
     auto match = parse_match_expression(left, locals);
     return new NotNode { token, match };
 }
 
-Node *Parser::parse_op_assign_expression(Node *left, LocalsVectorPtr locals) {
+Node *Parser::parse_op_assign_expression(Node *left, LocalsHashmap &locals) {
     if (left->type() == Node::Type::Call)
         return parse_op_attr_assign_expression(left, locals);
     if (left->type() != Node::Type::Identifier)
@@ -1358,7 +1352,7 @@ Node *Parser::parse_op_assign_expression(Node *left, LocalsVectorPtr locals) {
     }
 }
 
-Node *Parser::parse_op_attr_assign_expression(Node *left, LocalsVectorPtr locals) {
+Node *Parser::parse_op_attr_assign_expression(Node *left, LocalsHashmap &locals) {
     if (left->type() != Node::Type::Call)
         throw_unexpected(left->token(), "call");
     auto left_call = static_cast<CallNode *>(left);
@@ -1378,7 +1372,7 @@ Node *Parser::parse_op_attr_assign_expression(Node *left, LocalsVectorPtr locals
     };
 }
 
-Node *Parser::parse_proc_call_expression(Node *left, LocalsVectorPtr locals) {
+Node *Parser::parse_proc_call_expression(Node *left, LocalsHashmap &locals) {
     auto token = current_token();
     advance();
     advance();
@@ -1394,13 +1388,13 @@ Node *Parser::parse_proc_call_expression(Node *left, LocalsVectorPtr locals) {
     return call_node;
 }
 
-Node *Parser::parse_range_expression(Node *left, LocalsVectorPtr locals) {
+Node *Parser::parse_range_expression(Node *left, LocalsHashmap &locals) {
     auto token = current_token();
     advance();
     return new RangeNode { token, left, parse_expression(LOWEST, locals), token->type() == Token::Type::DotDotDot };
 }
 
-Node *Parser::parse_ref_expression(Node *left, LocalsVectorPtr locals) {
+Node *Parser::parse_ref_expression(Node *left, LocalsHashmap &locals) {
     auto token = current_token();
     advance();
     auto call_node = new CallNode {
@@ -1415,7 +1409,7 @@ Node *Parser::parse_ref_expression(Node *left, LocalsVectorPtr locals) {
     return call_node;
 }
 
-Node *Parser::parse_safe_send_expression(Node *left, LocalsVectorPtr locals) {
+Node *Parser::parse_safe_send_expression(Node *left, LocalsHashmap &locals) {
     auto token = current_token();
     advance();
     expect(Token::Type::BareName, "safe navigator method name");
@@ -1428,7 +1422,7 @@ Node *Parser::parse_safe_send_expression(Node *left, LocalsVectorPtr locals) {
     return call_node;
 }
 
-Node *Parser::parse_send_expression(Node *left, LocalsVectorPtr locals) {
+Node *Parser::parse_send_expression(Node *left, LocalsHashmap &locals) {
     auto token = current_token();
     advance();
     expect(Token::Type::BareName, "send method name");
@@ -1440,7 +1434,7 @@ Node *Parser::parse_send_expression(Node *left, LocalsVectorPtr locals) {
     };
 }
 
-Node *Parser::parse_ternary_expression(Node *left, LocalsVectorPtr locals) {
+Node *Parser::parse_ternary_expression(Node *left, LocalsHashmap &locals) {
     auto token = current_token();
     expect(Token::Type::TernaryQuestion, "ternary question");
     advance();
@@ -1451,7 +1445,7 @@ Node *Parser::parse_ternary_expression(Node *left, LocalsVectorPtr locals) {
     return new IfNode { token, left, true_expr, false_expr };
 }
 
-Node *Parser::parse_unless(LocalsVectorPtr locals) {
+Node *Parser::parse_unless(LocalsHashmap &locals) {
     auto token = current_token();
     advance();
     auto condition = parse_expression(LOWEST, locals);
@@ -1469,7 +1463,7 @@ Node *Parser::parse_unless(LocalsVectorPtr locals) {
     return new IfNode { token, condition, true_expr, false_expr };
 }
 
-Node *Parser::parse_while(LocalsVectorPtr locals) {
+Node *Parser::parse_while(LocalsHashmap &locals) {
     auto token = current_token();
     advance();
     auto condition = parse_expression(LOWEST, locals);

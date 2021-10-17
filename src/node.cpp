@@ -604,7 +604,7 @@ ValuePtr MultipleAssignmentNode::to_ruby(Env *env) {
     return sexp;
 }
 
-void MultipleAssignmentNode::add_locals(ManagedVector<SymbolValue *> *locals) {
+void MultipleAssignmentNode::add_locals(TM::Hashmap<const char *> &locals) {
     for (auto node : m_nodes) {
         switch (node->type()) {
         case Node::Type::Identifier: {
