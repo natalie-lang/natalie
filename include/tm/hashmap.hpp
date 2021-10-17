@@ -356,11 +356,13 @@ private:
             auto item = other.m_map[i];
             if (item) {
                 auto my_item = new Item { *item };
+                my_item->key = duplicate_key(item->key);
                 m_map[i] = my_item;
                 m_size++;
                 while (item->next) {
                     item = item->next;
                     my_item->next = new Item { *item };
+                    my_item->next->key = duplicate_key(item->key);
                     my_item = my_item->next;
                     m_size++;
                 }
