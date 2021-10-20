@@ -53,7 +53,7 @@ namespace ArrayPacker {
             case '!':
                 next_char();
                 if (d != 's' && d != 'S' && d != 'i' && d != 'I' && d != 'l' && d != 'L' && d != 'q' && d != 'Q' && d != 'j' && d != 'J') {
-                    char buf[2] = { d, '\0' }; // FIXME: String::format needs some love :)
+                    char buf[2] = { static_cast<char>(d), '\0' }; // FIXME: String::format needs some love :)
                     token.error = String::format("'{}' allowed only after types sSiIlLqQjJ", buf);
                 }
                 return token;

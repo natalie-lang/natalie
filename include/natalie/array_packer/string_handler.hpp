@@ -44,7 +44,7 @@ namespace ArrayPacker {
                 }
                 break;
             default: {
-                char buf[2] = { d, '\0' };
+                char buf[2] = { static_cast<char>(d), '\0' };
                 env->raise("ArgumentError", "unknown directive in string: {}", buf);
             }
             }

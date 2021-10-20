@@ -60,7 +60,7 @@ namespace ArrayPacker {
                     // TODO
                     break;
                 default: {
-                    char buf[2] = { d, '\0' };
+                    char buf[2] = { static_cast<char>(d), '\0' };
                     env->raise("StandardError", "unknown directive: {}", buf); // FIXME
                 }
                 }
