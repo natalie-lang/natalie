@@ -15,32 +15,71 @@ error_count = 0
 compile_errors = 0
 crashed_count = 0
 timed_out_count = 0
+details = {}
 
 specs = 'spec/**/*_spec.rb'
+
+def recursive_sort(hash)
+  hash.keys.sort.reduce({}) do |seed, key|
+    seed[key] = hash[key]
+    if seed[key].is_a?(Hash)
+      seed[key] = recursive_sort(seed[key])
+    end
+    seed
+  end
+end
 
 puts "Start running specs #{specs}"
 
 Dir[specs].each do |path|
   pool.post {
     binary_name = path[..-4]
+
+    splitted_path = path.split('/')
+    current = details
+    splitted_path.each do |part|
+      current = current[part] ||= {}
+    end
+
+    current.merge!(
+      compiled: false,
+      timeouted: false,
+      crashed: false,
+      success: 0,
+      failures: 0,
+      errors: 0,
+      error_messages: []
+    )
+
     unless system("bin/natalie #{path} -c #{binary_name} 2> /dev/null")
       compile_errors += 1
       puts "Spec #{path} could not be compiled"
       return
     end
 
+    current[:compiled] = true
+
     IO.popen(["./#{binary_name}", "-f", "yaml"], err: '/dev/null') { |f|
       if f.wait_readable(180)
         yaml = YAML.safe_load(f.read) || {}
         # If one of those is not given there is something wrong... (probably crashed)
         if yaml["examples"] && yaml["errors"] && yaml["failures"]
-          success_count += yaml["examples"] - yaml["errors"] - yaml["failures"]
-          failure_count += yaml["failures"]
-          error_count += yaml["errors"]
+          current.merge!(
+            success: yaml["examples"] - yaml["errors"] - yaml["failures"],
+            failures: yaml["failures"],
+            errors: yaml["errors"],
+            error_messages: yaml["exceptions"] || []
+          )
+
+          success_count += current[:success]
+          failure_count += current[:failures]
+          error_count += current[:errors]
+
           puts "Ran spec #{path}"
         end
       else
         puts "Spec #{path} timed out (after 3 seconds)"
+        current[:timeouted] = true
         timed_out_count += 1
         Process.kill('TERM', f.pid)
       end
@@ -53,8 +92,10 @@ Dir[specs].each do |path|
     # `Process.kill` call when timeouting a spec
     if status.exited? && !status.success?
       puts "Spec #{path} crashed"
+      current[:crashed] = true
       crashed_count += 1
     end
+
   }
 end
 pool.shutdown
@@ -67,8 +108,9 @@ stats = {
   "Compile Errors" => compile_errors,
   "Crashes" => crashed_count,
   "Timeouts" => timed_out_count,
+  "Details" => recursive_sort(details)
 }
-p stats
+p stats.reject { |k, _| k == "Details" }
 
 uri = URI('https://natalie-lang.org/specs/stats')
 https = Net::HTTP.new(uri.host, uri.port)
