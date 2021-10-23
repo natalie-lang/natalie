@@ -1818,13 +1818,8 @@ ValuePtr ArrayValue::product(Env *env, size_t argc, ValuePtr *args, Block *block
     Vector<ArrayValue *> arrays;
     arrays.push(this);
     auto to_ary = SymbolValue::intern("to_ary");
-    for (size_t i = 0; i < argc; ++i) {
-        auto item = args[i];
-        if (!item->is_array() && item->respond_to(env, to_ary))
-            item = item->send(env, to_ary);
-        item->assert_type(env, Value::Type::Array, "Array");
-        arrays.push(item->as_array());
-    }
+    for (size_t i = 0; i < argc; ++i)
+        arrays.push(args[i]->to_ary(env));
 
     constexpr size_t max_size_t = std::numeric_limits<size_t>::max();
     size_t number_of_combinations = 1;
