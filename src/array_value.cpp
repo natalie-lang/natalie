@@ -1814,6 +1814,60 @@ ValuePtr ArrayValue::one(Env *env, size_t argc, ValuePtr *args, Block *block) {
     return one_method->call(env, this, argc, args, block);
 }
 
+ValuePtr ArrayValue::product(Env *env, size_t argc, ValuePtr *args, Block *block) {
+    Vector<ArrayValue *> arrays;
+    arrays.push(this);
+    auto to_ary = SymbolValue::intern("to_ary");
+    for (size_t i = 0; i < argc; ++i) {
+        auto item = args[i];
+        if (!item->is_array() && item->respond_to(env, to_ary))
+            item = item->send(env, to_ary);
+        item->assert_type(env, Value::Type::Array, "Array");
+        arrays.push(item->as_array());
+    }
+
+    constexpr size_t max_size_t = std::numeric_limits<size_t>::max();
+    size_t number_of_combinations = 1;
+    for (auto &item : arrays) {
+        if (item->size() == 0) {
+            number_of_combinations = 0;
+            break;
+        }
+
+        if (max_size_t / number_of_combinations < item->size())
+            env->raise("RangeError", "too big to product");
+
+        number_of_combinations *= item->size();
+    }
+
+    ArrayValue *products = new ArrayValue {};
+    for (size_t iteration = 0; iteration < number_of_combinations; ++iteration) {
+        ArrayValue *product = new ArrayValue {};
+        size_t remaining_iterations = iteration;
+        size_t block_size = number_of_combinations;
+
+        for (size_t i = 0; i < arrays.size(); i++) {
+            auto item = arrays[i];
+
+            block_size /= item->size();
+            size_t times = remaining_iterations / block_size;
+            product->push(item->at(times));
+
+            remaining_iterations -= times * block_size;
+        }
+
+        products->push(product);
+    }
+
+    if (block) {
+        if (products->size() > 0)
+            products->each(env, block);
+        return this;
+    }
+
+    return products;
+}
+
 ValuePtr ArrayValue::rotate(Env *env, ValuePtr val) {
     ArrayValue *copy = new ArrayValue(*this);
     copy->rotate_in_place(env, val);
