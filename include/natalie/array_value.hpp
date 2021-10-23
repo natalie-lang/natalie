@@ -159,6 +159,7 @@ public:
     ValuePtr none(Env *, size_t, ValuePtr *, Block *);
     ValuePtr one(Env *, size_t, ValuePtr *, Block *);
     ValuePtr pack(Env *, ValuePtr);
+    ValuePtr product(Env *, size_t, ValuePtr *, Block *);
     ValuePtr push(Env *, size_t, ValuePtr *);
     ValuePtr rassoc(Env *, ValuePtr);
     ValuePtr ref(Env *, ValuePtr, ValuePtr = nullptr);
