@@ -6,9 +6,12 @@ RUN gem install bundler --no-doc
 
 ENV LC_ALL C.UTF-8
 
-WORKDIR '/natalie'
-COPY Gemfile /natalie/Gemfile
-COPY Gemfile.lock /natalie/Gemfile.lock
+WORKDIR natalie
+COPY .git/ .git/
+COPY .gitmodules .gitmodules
+RUN git submodule update --init
+
+COPY Gemfile* . 
 RUN bundle install
 
 ARG CC=gcc
@@ -16,17 +19,17 @@ ENV CC=$CC
 ARG CXX=g++
 ENV CXX=$CXX
 
-COPY ext /natalie/ext
-COPY Rakefile /natalie/Rakefile
+COPY ext ext
+COPY Rakefile Rakefile
 
-COPY bin /natalie/bin
-COPY examples /natalie/examples
-COPY lib /natalie/lib
-COPY src /natalie/src
-COPY include /natalie/include
+COPY bin bin
+COPY examples examples
+COPY lib lib
+COPY src src
+COPY include include
 RUN rake
 
-COPY spec /natalie/spec
-COPY test /natalie/test
+COPY spec spec
+COPY test test
 
 ENTRYPOINT ["/natalie/bin/natalie"]
