@@ -36,7 +36,7 @@ public:
     BigInt to_bignum() const override { return *m_bignum; }
 
     bool has_to_be_bignum() const {
-        return *m_bignum > MAX_BIGINT || *m_bignum < MIN_BIGINT;
+        return *m_bignum > MAX_INT || *m_bignum < MIN_INT;
     }
 
     virtual void gc_inspect(char *buf, size_t len) const override {
@@ -44,8 +44,8 @@ public:
     }
 
 private:
-    static const BigInt MAX_BIGINT;
-    static const BigInt MIN_BIGINT;
+    static inline const BigInt MAX_INT = NAT_INT_MAX;
+    static inline const BigInt MIN_INT = NAT_INT_MIN;
     BigInt *m_bignum { nullptr };
 };
 }

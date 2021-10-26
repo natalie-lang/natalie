@@ -1,8 +1,6 @@
 #include "natalie.hpp"
 
 namespace Natalie {
-const BigInt BignumValue::MAX_BIGINT { NAT_INT_MAX };
-const BigInt BignumValue::MIN_BIGINT { NAT_INT_MIN };
 
 ValuePtr BignumValue::to_s(Env *env, ValuePtr base_value) {
     if (base_value) {
