@@ -30,6 +30,22 @@ class Array
     perm.(self, 0)
   end
 
+  def repeated_permutation(len)
+    len = len.truncate if len.is_a? Float
+    unless block_given?
+      ary = self
+      return enum_for(:repeated_permutation, len) { [ary.size ** len, 0].max }
+    end
+    return if len < 0
+    if len == 0
+      yield []
+      return
+    end
+    copy = clone
+    copy.product(*(0..(len-2)).entries.map { |_| copy }) { |combo| yield combo }
+    self
+  end
+
   def combination(num)
     unless block_given?
       accumulator = []
