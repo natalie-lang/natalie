@@ -414,14 +414,19 @@ class Enumerator
     end
 
     def to_enum(method = :each, *args, &block)
-      size = block_given? ? yield : nil
-      block = ->(yielder) {
+      enum_block = ->(yielder) {
         the_proc = yielder.to_proc || ->(*i) { yielder.yield(*i) }
         send(method, *args, &the_proc)
       }
 
-      lazy = Lazy.new(self, size) {}
-      lazy.instance_variable_set(:@enum_block, block)
+      lazy = Lazy.new(self) {}
+      lazy.instance_variable_set(:@enum_block, enum_block)
+      if block_given?
+        lazy.instance_variable_set(:@size_block, block)
+        def lazy.size
+          @size_block.call
+        end
+      end
       lazy
     end
     alias enum_for to_enum

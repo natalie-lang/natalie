@@ -5,12 +5,18 @@ module Kernel
     end
   end
 
-  def enum_for(method = :each, *args)
-    size = block_given? ? yield : nil
-    Enumerator.new(size) do |yielder|
+  def enum_for(method = :each, *args, &block)
+    enum = Enumerator.new() do |yielder|
       the_proc = yielder.to_proc || ->(*i) { yielder.yield(*i) }
       send(method, *args, &the_proc)
     end
+    if block_given?
+      enum.instance_variable_set(:@size_block, block)
+      def enum.size
+        @size_block.call
+      end
+    end
+    enum
   end
   alias to_enum enum_for
 
