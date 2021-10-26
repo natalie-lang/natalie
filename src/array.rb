@@ -6,7 +6,17 @@ class Array
   end
 
   def permutation(len=nil)
-    return enum_for(:permutation, len) unless block_given?
+    unless block_given?
+      # FIXME there is most likely a much better way to do this
+      ary = self
+      enum = enum_for(:permutation, len)
+      enum.instance_variable_set(:@nat_underlying_perm_array, self)
+      enum.instance_variable_set(:@nat_underlying_perm_len, len)
+      def enum.size
+        @nat_underlying_perm_array.permutation(@nat_underlying_perm_len).entries.size
+      end
+      return enum
+    end
 
     len = len.truncate if len.is_a? Float 
     len ||= size
