@@ -11,7 +11,7 @@ COPY .git/ .git/
 COPY .gitmodules .gitmodules
 RUN git submodule update --init
 
-COPY Gemfile* . 
+COPY Gemfile Gemfile.lock /natalie/ 
 RUN bundle install
 
 ARG CC=gcc
