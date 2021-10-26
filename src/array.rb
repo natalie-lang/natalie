@@ -5,12 +5,23 @@ class Array
     union(other)
   end
 
-  def permutation(len = size)
-    if len == 0
-      return [[]]
-    elsif len > size
-      return []
+  def permutation(len=nil)
+    unless block_given?
+      ary = self
+      return enum_for(:permutation, len) { ary.permutation(len).entries.size }
     end
+
+    
+
+    len = len.truncate if len.is_a? Float 
+    len ||= size
+    return if len > size 
+
+    if len == 0
+      yield []
+      return
+    end
+
     perm = ->(ary, depth) {
       if ary.size > 1
         all = []
@@ -27,7 +38,9 @@ class Array
         [ary]
       end
     }
-    perm.(self, 0)
+    perm.(self, 0).each { |permutation| yield permutation }
+
+    self
   end
 
   def combination(num)
