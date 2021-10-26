@@ -136,10 +136,7 @@ class Enumerator
   end
 
   def size
-    return @size if @size
-    count = 0
-    each {|i| count += 1}
-    count
+    @size
   end
 
   def with_index(offset = 0)
