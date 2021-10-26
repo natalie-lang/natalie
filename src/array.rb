@@ -7,16 +7,11 @@ class Array
 
   def permutation(len=nil)
     unless block_given?
-      # FIXME there is most likely a much better way to do this
       ary = self
-      enum = enum_for(:permutation, len)
-      enum.instance_variable_set(:@nat_underlying_perm_array, self)
-      enum.instance_variable_set(:@nat_underlying_perm_len, len)
-      def enum.size
-        @nat_underlying_perm_array.permutation(@nat_underlying_perm_len).entries.size
-      end
-      return enum
+      return enum_for(:permutation, len) { ary.permutation(len).entries.size }
     end
+
+    
 
     len = len.truncate if len.is_a? Float 
     len ||= size
