@@ -117,7 +117,7 @@ public:
     ValuePtr initialize(Env *, ValuePtr);
     ValuePtr ltlt(Env *, ValuePtr);
 
-    bool eq(ValuePtr arg) {
+    bool eql(ValuePtr arg) {
         return *this == *arg;
     }
 
@@ -138,6 +138,7 @@ public:
     ValuePtr downcase(Env *);
     ValuePtr encode(Env *, ValuePtr);
     ValuePtr encoding(Env *);
+    bool eq(Env *, ValuePtr arg);
     ValuePtr eqtilde(Env *, ValuePtr);
     ValuePtr force_encoding(Env *, ValuePtr);
     ValuePtr ljust(Env *, ValuePtr, ValuePtr);

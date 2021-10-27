@@ -228,6 +228,12 @@ ValuePtr StringValue::cmp(Env *env, ValuePtr other) {
     return ValuePtr::integer(0);
 }
 
+bool StringValue::eq(Env *env, ValuePtr arg) {
+    if (!arg->is_string() && arg->respond_to(env, SymbolValue::intern("to_str")))
+        return arg->send(env, SymbolValue::intern("=="), { this });
+    return eql(arg);
+}
+
 ValuePtr StringValue::eqtilde(Env *env, ValuePtr other) {
     other->assert_type(env, Value::Type::Regexp, "Regexp");
     return other->as_regexp()->eqtilde(env, this);
