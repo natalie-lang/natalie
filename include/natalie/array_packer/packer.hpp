@@ -33,7 +33,8 @@ namespace ArrayPacker {
                 case 'B':
                 case 'Z':
                 case 'h':
-                case 'H': {
+                case 'H':
+                case 'u': {
                     if (m_index >= m_source->size())
                         env->raise("ArgumentError", "too few arguments");
 

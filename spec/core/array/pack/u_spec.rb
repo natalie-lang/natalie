@@ -1,5 +1,3 @@
-# skip-test
-
 # -*- encoding: binary -*-
 require_relative '../../../spec_helper'
 require_relative '../fixtures/classes'
@@ -24,15 +22,15 @@ describe "Array#pack with format 'u'" do
     [""].pack("u").should == ""
   end
 
-  it "appends a newline to the end of the encoded string" do
+  fit "appends a newline to the end of the encoded string" do
     ["a"].pack("u").should == "!80``\n"
   end
 
-  it "encodes one element per directive" do
+  fit "encodes one element per directive" do
     ["abc", "DEF"].pack("uu").should == "#86)C\n#1$5&\n"
   end
 
-  it "prepends the length of each segment of the input string as the first character (+32) in each line of the output" do
+  fit "prepends the length of each segment of the input string as the first character (+32) in each line of the output" do
     ["abcdefghijklm"].pack("u7").should == "&86)C9&5F\n&9VAI:FML\n!;0``\n"
   end
 

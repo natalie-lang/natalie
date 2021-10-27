@@ -36,6 +36,9 @@ namespace ArrayPacker {
             case 'H':
                 pack_with_loop(&StringHandler::pack_H);
                 break;
+            case 'u':
+                pack_u();
+                break;
             case 'Z':
                 if (m_token.star) {
                     while (!at_end())
@@ -148,6 +151,44 @@ namespace ArrayPacker {
             } else {
                 m_packed->append_char(hex_char_to_nibble(c) | m_packed->pop_char());
             }
+        }
+
+        unsigned char ascii_to_uu(unsigned char ascii) {
+            constexpr unsigned char six_bit_mask = 0b00111111;
+            unsigned char six_bit = ascii & six_bit_mask;
+            return six_bit == 0 ? '`' : (six_bit + 32);
+        }
+
+        void pack_u() {
+            while (true)
+            {
+                size_t local_uu_index = m_index % 3;
+                unsigned char c = next();
+                m_packed->append_char(c);
+
+                if (local_uu_index == 2 || at_end()) {
+                    char32_t clear = 0;
+                    for (size_t i = 0; i <= local_uu_index; ++i)
+                        clear |= (m_packed->pop_char() << (i * 8));
+
+                    for (size_t i = local_uu_index; i < 2; ++i)
+                        clear <<= 8;
+
+                    for (size_t i = 0; i < 4; ++i) {
+                        unsigned char current = (clear >> (6 * (3 - i)));
+                        m_packed->append_char(ascii_to_uu(current));
+                    }
+
+                    if (at_end())
+                        break;
+
+                    if (!m_token.star && m_token.count >= 0 && static_cast<size_t>(m_token.count) <= m_index)
+                        break;
+                }
+            }
+
+            m_packed->prepend_char(ascii_to_uu(m_index));
+            m_packed->append_char('\n');
         }
 
         bool at_end() { return m_index >= m_source->length(); }
