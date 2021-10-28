@@ -247,6 +247,11 @@ file 'build/parser_c_ext.so' => :libnatalie do
   SH
 end
 
+file 'bin/llvm' => ['src/llvm.cpp'] + HEADERS do |t|
+  llvm_flags = `llvm-config --cxxflags --ldflags --system-libs --libs --libs core`.gsub(/\n/, ' ')
+  sh "clang++ #{cxx_flags.join(' ')} #{llvm_flags} -fexceptions -std=#{STANDARD} -o #{t.name} #{t.source} -L build -lnatalie"
+end
+
 def cc
   @cc ||= if ENV['CC']
     ENV['CC']
