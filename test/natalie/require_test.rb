@@ -31,4 +31,11 @@ describe 'require' do
     File.directory?('./test').should be_true
     `#{ruby} -e "require './test'" 2>&1`.should =~ /cannot load such file.*test/
   end
+
+  it 'returns true when require loads a file and false when it\'s already loaded' do
+    ruby = RUBY_ENGINE == 'natalie' ? 'bin/natalie' : 'ruby'
+
+    `#{ruby} -e "p require 'tempfile'"`.should =~ /true/
+    `#{ruby} -e "require 'tempfile'; p require 'tempfile'"`.should =~ /false/
+  end
 end

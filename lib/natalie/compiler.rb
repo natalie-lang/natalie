@@ -35,7 +35,6 @@ module Natalie
       @var_num = 0
       @path = path
       @options = options
-      @required = {}
       @cxx_flags = []
     end
 
@@ -322,15 +321,29 @@ module Natalie
     end
 
     def load_file(path, require_once:)
-      return s(:false) if require_once && @required[path] #TODO replace with runtime logic checking loaded modules
-      @required[path] = true
       code = File.read(path)
       file_ast = Natalie::Parser.new(code, path).ast
-      s(:block, s(:if, s(:true), 
-        s(:block, 
+      path_h = path.hash.to_s # the only point of this is to obscure the paths of the host system where natalie is run
+      s(:block, s(:if, 
+        if require_once
+          s(:call,
+            s(:call,
+             s(:op_asgn_or, s(:gvar, :$NAT_LOADED_PATHS), s(:gasgn, :$NAT_LOADED_PATHS, s(:hash))),
+             :[],
+             s(:str, path_h)),
+            :!)
+        else
+          s(:true)
+        end, 
+        s(:block,
           expand_macros(file_ast, path), 
-          s(:true),
-        )))
+          if require_once
+            s(:attrasgn, s(:gvar, :$NAT_LOADED_PATHS), :[]=, s(:str, path_h), s(:true))
+          else
+            s(:true)
+          end,
+        ),
+        s(:false)))
     end
 
     def find_full_path(path, base:, search:)
