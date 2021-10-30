@@ -450,7 +450,7 @@ describe "Array#[]= with [m..n]" do
   end
 end
 
-# NATFIXME: Support eval and endless ranges
+# NATFIXME: Support endless ranges
 # describe "Array#[]= with [m..]" do
 #   it "just sets the section defined by range to nil even if the rhs is nil" do
 #     a = [1, 2, 3, 4, 5]

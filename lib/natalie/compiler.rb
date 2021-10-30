@@ -265,7 +265,7 @@ module Natalie
     def macro?(node)
       return false unless node.is_a?(Sexp)
       return false unless node[0..1] == s(:call, nil)
-      %i[require require_relative load].include?(node[2])
+      %i[require require_relative load eval].include?(node[2])
     end
 
     def run_macro(expr, path)
@@ -306,6 +306,14 @@ module Natalie
         return load_file(full_path, require_once: false)
       end
       drop_load_error "cannot load such file -- #{path}"
+    end
+
+    def macro_eval(node, path)
+      if node.sexp_type == :str
+        Natalie::Parser.new(node[1], path).ast
+      else
+        s(:call, nil, :raise, s(:const, :SyntaxError), s(:str, "eval() only works on static strings"))
+      end
     end
 
     def drop_load_error(msg)

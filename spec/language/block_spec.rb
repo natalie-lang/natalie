@@ -250,9 +250,7 @@ describe "A block" do
 
     ruby_version_is "2.5" do
       it "may include a rescue clause" do
-        # we don't support eval yet
-        #eval("@y.z do raise ArgumentError; rescue ArgumentError; 7; end").should == 7
-        (@y.z do raise ArgumentError; rescue ArgumentError; 7; end).should == 7
+        eval("@y.z do raise ArgumentError; rescue ArgumentError; 7; end").should == 7
       end
     end
   end
@@ -268,9 +266,7 @@ describe "A block" do
 
     ruby_version_is "2.5" do
       it "may include a rescue clause" do
-        # we don't support eval yet
-        #eval('@y.z do || raise ArgumentError; rescue ArgumentError; 7; end').should == 7
-        (@y.z do || raise ArgumentError; rescue ArgumentError; 7; end).should == 7
+        eval('@y.z do || raise ArgumentError; rescue ArgumentError; 7; end').should == 7
       end
     end
   end
@@ -301,9 +297,7 @@ describe "A block" do
 
     ruby_version_is "2.5" do
       it "may include a rescue clause" do
-        # we don't support eval yet
-        #eval('@y.s(1) do |x| raise ArgumentError; rescue ArgumentError; 7; end').should == 7
-        (@y.s(1) do |x| raise ArgumentError; rescue ArgumentError; 7; end).should == 7
+        eval('@y.s(1) do |x| raise ArgumentError; rescue ArgumentError; 7; end').should == 7
       end
     end
   end

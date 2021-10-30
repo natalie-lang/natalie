@@ -522,7 +522,7 @@ describe :array_slice, shared: true do
     -> { array.send(@method, 0..bignum_value) }.should raise_error(RangeError)
   end
 
-  # NATFIXME add back once eval gets implemented
+  # NATFIXME add back once endless ranges gets implemented
   xit "can accept endless ranges" do
     a = [0, 1, 2, 3, 4, 5]
     a.send(@method, eval("(2..)")).should == [2, 3, 4, 5]
@@ -536,7 +536,7 @@ describe :array_slice, shared: true do
   end
 
   ruby_version_is "3.0" do
-    # NATFIXME: Support eval
+    # NATFIXME: Support endless ranges
     xdescribe "can be sliced with Enumerator::ArithmeticSequence" do
       before :each do
         @array = [0, 1, 2, 3, 4, 5]
