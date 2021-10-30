@@ -269,11 +269,15 @@ module Natalie
 
       def process_dot2(exp)
         (_, beginning, ending) = exp
+        beginning = s(:nil) if beginning.nil?
+        ending = s(:nil) if ending.nil?
         exp.new(:new, :RangeValue, process(beginning), process(ending), 0)
       end
 
       def process_dot3(exp)
         (_, beginning, ending) = exp
+        beginning = s(:nil) if beginning.nil?
+        ending = s(:nil) if ending.nil?
         exp.new(:new, :RangeValue, process(beginning), process(ending), 1)
       end
 
