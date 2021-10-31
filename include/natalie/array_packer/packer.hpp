@@ -1,7 +1,7 @@
 #pragma once
 
-#include "natalie/array_packer/string_handler.hpp"
 #include "natalie/array_packer/integer_handler.hpp"
+#include "natalie/array_packer/string_handler.hpp"
 #include "natalie/array_packer/tokenizer.hpp"
 #include "natalie/array_value.hpp"
 #include "natalie/env.hpp"
@@ -111,12 +111,11 @@ namespace ArrayPacker {
 
                 size_t count = token.count != -1 ? token.count : 1;
                 bool is_complete = m_index - starting_index >= static_cast<size_t>(count);
-                if (!is_complete && at_end()) 
+                if (!is_complete && at_end())
                     env->raise("ArgumentError", "too few Arguments");
                 return is_complete;
             };
-            while (! is_complete())
-            {
+            while (!is_complete()) {
                 handler();
                 m_index++;
             }

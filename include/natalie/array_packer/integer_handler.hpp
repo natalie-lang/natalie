@@ -31,7 +31,6 @@ namespace ArrayPacker {
         }
 
     private:
-
         void pack_U() {
             if (m_source < 128) { // U+007F	    -> 1-byte last code-point
                 m_packed->append_char(static_cast<unsigned char>(m_source));

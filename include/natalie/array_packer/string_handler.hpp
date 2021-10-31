@@ -163,14 +163,13 @@ namespace ArrayPacker {
             bool has_valid_count = !m_token.star && m_token.count > 2;
             size_t count = has_valid_count ? (m_token.count - (m_token.count % 3)) : 45;
 
-            while (! at_end())
-            {
+            while (!at_end()) {
                 auto starting_index = m_index;
                 auto start_of_packed_string = m_packed->length();
-                auto compute_number_of_bytes = [&]() { 
+                auto compute_number_of_bytes = [&]() {
                     return std::min(m_index, m_source->length()) - starting_index;
                 };
-                while (! at_end() && compute_number_of_bytes() < count) {
+                while (!at_end() && compute_number_of_bytes() < count) {
                     unsigned char first = next();
                     unsigned char second = next();
                     unsigned char third = next();
@@ -179,7 +178,6 @@ namespace ArrayPacker {
                     m_packed->append_char(ascii_to_uu(first << 4 | second >> 4));
                     m_packed->append_char(ascii_to_uu(second << 2 | third >> 6));
                     m_packed->append_char(ascii_to_uu(third));
-
                 }
                 m_packed->insert(start_of_packed_string, ascii_to_uu(has_valid_count ? compute_number_of_bytes() : std::min(count, compute_number_of_bytes())));
                 m_packed->append_char('\n');
@@ -193,7 +191,7 @@ namespace ArrayPacker {
             auto i = m_index++;
             if (is_end)
                 return 0;
-            return m_source->at(i); 
+            return m_source->at(i);
         }
 
         String *m_source;
