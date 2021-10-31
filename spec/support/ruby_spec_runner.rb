@@ -112,7 +112,7 @@ stats = {
 }
 p stats.reject { |k, _| k == "Details" }
 
-uri = URI('https://natalie-lang.org/specs/stats')
+uri = URI('https://natalie-lang.org/specs-api/stats')
 https = Net::HTTP.new(uri.host, uri.port)
 https.use_ssl = true
 https.post(
