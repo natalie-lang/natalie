@@ -43,6 +43,8 @@ namespace ArrayPacker {
                     if (m_source->is_string()) {
                         string = item->as_string()->to_low_level_string();
                     } else if (item->is_nil()) {
+                        if (d == 'u')
+                            env->raise("TypeError", "no implicit conversion of nil into String");
                         string = new String("");
                     } else if (item->respond_to(env, SymbolValue::intern("to_str"))) {
                         auto str = item->send(env, SymbolValue::intern("to_str"));

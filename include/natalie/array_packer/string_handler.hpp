@@ -160,35 +160,30 @@ namespace ArrayPacker {
         }
 
         void pack_u() {
-            while (true)
+            bool has_valid_count = !m_token.star && m_token.count > 2;
+            size_t count = has_valid_count ? (m_token.count - (m_token.count % 3)) : 45;
+
+            while (! at_end())
             {
-                size_t local_uu_index = m_index % 3;
-                unsigned char c = next();
-                m_packed->append_char(c);
+                auto starting_index = m_index;
+                auto start_of_packed_string = m_packed->length();
+                auto compute_number_of_bytes = [&]() { 
+                    return std::min(m_index, m_source->length()) - starting_index;
+                };
+                while (! at_end() && compute_number_of_bytes() < count) {
+                    unsigned char first = next();
+                    unsigned char second = next();
+                    unsigned char third = next();
 
-                if (local_uu_index == 2 || at_end()) {
-                    char32_t clear = 0;
-                    for (size_t i = 0; i <= local_uu_index; ++i)
-                        clear |= (m_packed->pop_char() << (i * 8));
+                    m_packed->append_char(ascii_to_uu(first >> 2));
+                    m_packed->append_char(ascii_to_uu(first << 4 | second >> 4));
+                    m_packed->append_char(ascii_to_uu(second << 2 | third >> 6));
+                    m_packed->append_char(ascii_to_uu(third));
 
-                    for (size_t i = local_uu_index; i < 2; ++i)
-                        clear <<= 8;
-
-                    for (size_t i = 0; i < 4; ++i) {
-                        unsigned char current = (clear >> (6 * (3 - i)));
-                        m_packed->append_char(ascii_to_uu(current));
-                    }
-
-                    if (at_end())
-                        break;
-
-                    if (!m_token.star && m_token.count >= 0 && static_cast<size_t>(m_token.count) <= m_index)
-                        break;
                 }
+                m_packed->insert(start_of_packed_string, ascii_to_uu(has_valid_count ? compute_number_of_bytes() : std::min(count, compute_number_of_bytes())));
+                m_packed->append_char('\n');
             }
-
-            m_packed->prepend_char(ascii_to_uu(m_index));
-            m_packed->append_char('\n');
         }
 
         bool at_end() { return m_index >= m_source->length(); }
