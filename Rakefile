@@ -120,7 +120,7 @@ end
 
 STANDARD = 'c++17'
 HEADERS = Rake::FileList['include/**/{*.h,*.hpp}']
-PRIMARY_SOURCES = Rake::FileList['src/**/*.{c,cpp}'].exclude('src/main.cpp', 'src/parser_c_ext/*')
+PRIMARY_SOURCES = Rake::FileList['src/**/*.{c,cpp}'].exclude('src/main.cpp', 'src/parser_c_ext/*', 'src/llvm.cpp')
 RUBY_SOURCES = Rake::FileList['src/**/*.rb'].exclude('**/extconf.rb')
 SPECIAL_SOURCES = Rake::FileList['build/generated/platform.cpp', 'build/generated/bindings.cpp']
 OBJECT_FILES = PRIMARY_SOURCES.pathmap('build/%f.o') +
@@ -247,8 +247,8 @@ file 'build/parser_c_ext.so' => :libnatalie do
   SH
 end
 
-file 'bin/llvm' => ['src/llvm.cpp'] + HEADERS do |t|
-  llvm_flags = `llvm-config --cxxflags --ldflags --system-libs --libs --libs core`.gsub(/\n/, ' ')
+file 'bin/llvm' => ['src/llvm.cpp'] + HEADERS + [:libnatalie] do |t|
+  llvm_flags = `llvm-config --cxxflags --ldflags --system-libs --libs core`.gsub(/\n/, ' ')
   sh "clang++ #{cxx_flags.join(' ')} #{llvm_flags} -fexceptions -std=#{STANDARD} -o #{t.name} #{t.source} -L build -lnatalie"
 end
 
