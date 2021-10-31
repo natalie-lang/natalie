@@ -1,6 +1,7 @@
 #pragma once
 
 #include "natalie/array_packer/string_handler.hpp"
+#include "natalie/array_packer/integer_handler.hpp"
 #include "natalie/array_packer/tokenizer.hpp"
 #include "natalie/array_value.hpp"
 #include "natalie/env.hpp"
@@ -17,9 +18,10 @@ namespace ArrayPacker {
         Packer(ArrayValue *source, String *directives)
             : m_source { source }
             , m_directives { Tokenizer { directives }.tokenize() }
-            , m_packed { new String } { }
+            , m_packed { new String }
+            , m_encoding { Encoding::ASCII_8BIT } { }
 
-        String *pack(Env *env) {
+        StringValue *pack(Env *env) {
             signed char directive = 0;
             for (auto token : *m_directives) {
                 if (token.error)
@@ -35,7 +37,7 @@ namespace ArrayPacker {
                 case 'h':
                 case 'H':
                 case 'u': {
-                    if (m_index >= m_source->size())
+                    if (at_end())
                         env->raise("ArgumentError", "too few arguments");
 
                     String *string;
@@ -61,6 +63,32 @@ namespace ArrayPacker {
                     m_index++;
                     break;
                 }
+                case 'U': {
+                    pack_with_loop(env, token, [&]() {
+                        nat_int_t integer;
+                        auto item = m_source->at(m_index);
+                        if (m_source->is_string()) {
+                            integer = item->as_integer()->to_nat_int_t();
+                        } else if (item->is_nil()) { //TODO check if it is already implemented by the else branch at the end
+                            env->raise("TypeError", "no implicit conversion of nil into Integer");
+                        } else if (item->respond_to(env, SymbolValue::intern("to_int"))) {
+                            auto num = item->send(env, SymbolValue::intern("to_int"));
+                            num->assert_type(env, Value::Type::Integer, "Integer");
+                            integer = num->as_integer()->to_nat_int_t();
+                        } else {
+                            env->raise("TypeError", "no implicit conversion of {} into Integer", item->klass()->class_name_or_blank());
+                            NAT_UNREACHABLE();
+                        }
+
+                        if (integer > 0xffffffff || integer < 0)
+                            env->raise("RangeError", "pack(U): value out of range");
+
+                        auto packer = IntegerHandler { integer, token };
+                        m_packed->append(packer.pack(env));
+                    });
+                    m_encoding = Encoding::UTF_8;
+                    break;
+                }
                 case 'x':
                     // TODO
                     break;
@@ -70,13 +98,36 @@ namespace ArrayPacker {
                 }
                 }
             }
-            return m_packed;
+            return new StringValue { m_packed, m_encoding };
         }
 
     private:
+        template <typename Fn>
+        void pack_with_loop(Env *env, Token token, Fn handler) {
+            auto starting_index = m_index;
+            auto is_complete = [&]() {
+                if (token.star)
+                    return at_end();
+
+                size_t count = token.count != -1 ? token.count : 1;
+                bool is_complete = m_index - starting_index >= static_cast<size_t>(count);
+                if (!is_complete && at_end()) 
+                    env->raise("ArgumentError", "too few Arguments");
+                return is_complete;
+            };
+            while (! is_complete())
+            {
+                handler();
+                m_index++;
+            }
+        }
+
+        bool at_end() { return m_index >= m_source->size(); }
+
         ArrayValue *m_source;
         TM::Vector<Token> *m_directives;
         String *m_packed;
+        Encoding m_encoding;
         size_t m_index { 0 };
     };
 

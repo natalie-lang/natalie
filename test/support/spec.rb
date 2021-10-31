@@ -421,8 +421,18 @@ class BeComputedByExpectation
     subject.each do |(target, *args, expected)|
       actual = target.send(@method, *(@args + args))
       if actual != expected
-        expected_bits = expected.bytes.map { |b| lzpad(b.to_s(2), 8) }.join(" ")
-        actual_bits = actual.bytes.map { |b| lzpad(b.to_s(2), 8) }.join(" ")
+        expected_bits = if expected.methods.include?(:bytes) 
+          expected.bytes.map { |b| lzpad(b.to_s(2), 8) }.join(" ")  
+        else 
+          expected.inspect
+        end
+        
+        actual_bits = if actual.methods.include?(:bytes)
+          actual.bytes.map { |b| lzpad(b.to_s(2), 8) }.join(" ")  
+        else 
+          actual.inspect
+        end
+
         raise SpecFailedException, "#{target.inspect} should compute to #{expected_bits}, but it was #{actual_bits}"
       end
     end
