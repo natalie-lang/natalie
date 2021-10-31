@@ -418,8 +418,8 @@ class BeComputedByExpectation
   end
 
   def match(subject)
-    subject.each do |(target, expected)|
-      actual = target.send(@method, *@args)
+    subject.each do |(target, *args, expected)|
+      actual = target.send(@method, *(@args + args))
       if actual != expected
         expected_bits = expected.bytes.map { |b| lzpad(b.to_s(2), 8) }.join(" ")
         actual_bits = actual.bytes.map { |b| lzpad(b.to_s(2), 8) }.join(" ")
