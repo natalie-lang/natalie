@@ -35,6 +35,8 @@ namespace ArrayPacker {
 
             auto token = Token { d };
             d = peek_char();
+            if (d == 0)
+                next_char();
             if (isdigit(d)) {
                 d = next_char();
                 token.count = (int)d - 48;

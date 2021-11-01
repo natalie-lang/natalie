@@ -23,13 +23,15 @@ describe :array_pack_unicode, shared: true do
     ].should be_computed_by(:pack, "U")
   end
 
-  it "constructs strings with valid encodings" do
+  # FIXME: add this back once we get support for valid_encoding? in String
+  xit "constructs strings with valid encodings" do
     str = [0x85].pack("U*")
     str.should == "\xc2\x85"
     str.valid_encoding?.should be_true
   end
 
-  it "encodes values larger than UTF-8 max codepoints" do
+  # FIXME: add this back once we get support for the C directive
+  xit "encodes values larger than UTF-8 max codepoints" do
     [
       [[0x00110000], [244, 144, 128, 128].pack('C*').force_encoding('utf-8')],
       [[0x04000000], [252, 132, 128, 128, 128, 128].pack('C*').force_encoding('utf-8')],
