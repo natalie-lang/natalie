@@ -51,14 +51,21 @@ public:
     }
 
     void *allocate() {
-        for (auto block : m_blocks) {
-            if (block->has_free()) {
-                --m_free_cells;
-                return block->find_next_free_cell();
-            }
+
+        if (m_free_blocks.size() > 0) {
+            auto *block = m_free_blocks.last();
+            --m_free_cells;
+            auto *cell = block->find_next_free_cell();
+            if (!block->has_free())
+                m_free_blocks.pop();
+            return cell;
         }
         auto *block = add_heap_block();
         return block->find_next_free_cell();
+    }
+
+    void add_free_block(HeapBlock *block) {
+        m_free_blocks.push(block);
     }
 
     bool is_my_block(HeapBlock *candidate_block) {
@@ -98,6 +105,7 @@ private:
         auto *block = reinterpret_cast<HeapBlock *>(aligned_alloc(HEAP_BLOCK_SIZE, HEAP_BLOCK_SIZE));
         new (block) HeapBlock(m_cell_size);
         m_blocks.push(block);
+        add_free_block(block);
         m_free_cells += cell_count_per_block();
         return block;
     }
@@ -105,6 +113,7 @@ private:
     size_t m_cell_size;
     size_t m_free_cells { 0 };
     Vector<HeapBlock *> m_blocks;
+    Vector<HeapBlock *> m_free_blocks;
 };
 
 }

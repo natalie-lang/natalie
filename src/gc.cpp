@@ -84,8 +84,13 @@ void Heap::sweep() {
     for (auto allocator : m_allocators) {
         for (auto block : *allocator) {
             for (auto cell : *block) {
-                if (!cell->is_marked() && cell->is_collectible())
+                if (!cell->is_marked() && cell->is_collectible()) {
+                    bool had_free = block->has_free();
                     block->return_cell_to_free_list(cell);
+                    if (!had_free) {
+                        allocator->add_free_block(block);
+                    }
+                }
             }
         }
     }
