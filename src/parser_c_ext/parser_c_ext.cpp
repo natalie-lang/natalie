@@ -68,7 +68,7 @@ VALUE parse_on_instance(VALUE self) {
     Natalie::Node *tree;
     Natalie::ValuePtr tree_value;
     try {
-        tree = parser.tree(env);
+        tree = parser.tree();
         tree_value = tree->to_ruby(env);
         return to_mri_ruby(tree_value);
     } catch (Natalie::ExceptionValue *exception) {
