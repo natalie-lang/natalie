@@ -11,3 +11,11 @@ void String::append(const StringValue *str) {
 }
 
 }
+
+Natalie::String *nat_string(const char *str) {
+    return new Natalie::String { str };
+}
+
+const char *nat_string_to_c_str(const Natalie::String *string) {
+    return string->c_str();
+}

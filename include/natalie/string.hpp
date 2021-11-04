@@ -423,3 +423,8 @@ private:
     size_t m_capacity { 0 };
 };
 }
+
+extern "C" {
+Natalie::String *nat_string(const char *str);
+const char *nat_string_to_c_str(const Natalie::String *string);
+}

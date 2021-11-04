@@ -249,7 +249,7 @@ end
 
 file 'bin/llvm' => ['src/llvm.cpp'] + HEADERS + [:libnatalie] do |t|
   llvm_flags = `llvm-config --cxxflags --ldflags --system-libs --libs core`.gsub(/\n/, ' ')
-  sh "clang++ #{cxx_flags.join(' ')} #{llvm_flags} -fexceptions -std=#{STANDARD} -o #{t.name} #{t.source} -L build -lnatalie"
+  sh "clang++ #{cxx_flags.join(' ')} #{llvm_flags} -rdynamic -fexceptions -std=#{STANDARD} -o #{t.name} #{t.source} -L build -lnatalie"
 end
 
 def cc
