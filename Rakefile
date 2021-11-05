@@ -108,6 +108,7 @@ if system('which compiledb 2>&1 >/dev/null')
       File.write('build/build.log', $compiledb_out.join("\n"))
       sh 'compiledb < build/build.log'
     end
+    Rake::Task[:write_compile_database].reenable # always run this task
   end
 else
   task :write_compile_database do
@@ -246,6 +247,8 @@ file 'build/parser_c_ext.so' => :libnatalie do
     cp parser_c_ext.so ..
   SH
 end
+
+task llvm: ['bin/llvm', :write_compile_database]
 
 file 'bin/llvm' => ['src/llvm.cpp'] + HEADERS + [:libnatalie] do |t|
   llvm_flags = `llvm-config --cxxflags --ldflags --system-libs --libs core`.gsub(/\n/, ' ')
