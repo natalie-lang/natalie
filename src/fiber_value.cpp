@@ -1,15 +1,15 @@
 /* Copyright (c) 2020 Evan Jones
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -156,7 +156,7 @@ void fiber_wrapper_func(Natalie::Env *env, Natalie::FiberValue *fiber) {
         fiber->yield_back(env, 1, return_args);
 }
 
-#ifdef __x86_64
+#if defined(__x86_64)
 /* arguments:
  * rdi: next fiber
  * rsi: current fiber
@@ -200,31 +200,56 @@ asm(".globl " NAT_ASM_PREFIX "fiber_asm_switch\n" NAT_ASM_PREFIX "fiber_asm_swit
 
     // return to the "next" fiber with rax set to return_value
     "\tret\n");
-#else
+
+/* aarch64 arguments:
+ * x0: next fiber
+ * x1: current fiber
+ * x2: return value
+ * x3: Natalie::Env *
+ * x4: Natalie::Fiber *
+ * */
+#elif defined(__aarch64__)
 asm(".globl " NAT_ASM_PREFIX "fiber_asm_switch\n" NAT_ASM_PREFIX "fiber_asm_switch:\n"
 #ifndef __APPLE__
     "\t.type fiber_asm_switch, @function\n"
 #endif
-    // Move return value into eax, current pointer into ecx, next pointer into edx
-    "\tmov 12(%esp), %eax\n"
-    "\tmov 8(%esp), %ecx\n"
-    "\tmov 4(%esp), %edx\n"
+    // Move return value into x8
+    "\tmov x8, x2\n"
 
-    // save registers: ebx ebp esi edi (esp into structure)
-    "\tpush %ebx\n"
-    "\tpush %ebp\n"
-    "\tpush %esi\n"
-    "\tpush %edi\n"
-    "\tmov %esp, (%ecx)\n"
+    // save return address onto the stack
+    "\tstp x30, x29, [sp, #-16]!\n"
 
-    // restore registers
-    "\tmov (%edx), %esp\n"
-    "\tpop %edi\n"
-    "\tpop %esi\n"
-    "\tpop %ebp\n"
-    "\tpop %ebx\n"
+    // save registers to current stack
+    "\tstp x10, x9, [sp, #-16]!\n"
+    "\tstp x12, x11, [sp, #-16]!\n"
+    "\tstp x14, x13, [sp, #-16]!\n"
+    "\tstp x16, x15, [sp, #-16]!\n"
 
-    // return to the "next" fiber with eax set to return_value
+    // save current stack pointer into fiber struct
+    "\tmov x15, sp\n"
+    "\tstr x15, [x1]\n"
+
+    // move args for function
+    "\tmov x15, x0\n"
+    "\tmov x0, x3\n" // Env *
+    "\tmov x1, x4\n" // Fiber *
+
+    // swap stack
+    "\tldr x14, [x15]\n"
+    "\tmov sp, x14\n"
+
+    // restore registers from new stack
+    "\tldp x16, x15, [sp], #16\n"
+    "\tldp x14, x13, [sp], #16\n"
+    "\tldp x12, x11, [sp], #16\n"
+    "\tldp x10, x9, [sp], #16\n"
+
+    // restore return address register for `ret` instruction
+    "\tldp x30, x29, [sp], #16\n"
+
+    // return to the "next" fiber with x8 set to return_value
     "\tret\n");
+#else
+// TODO x86
 #endif
 }

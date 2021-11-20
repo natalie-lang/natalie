@@ -1,15 +1,15 @@
 /* Copyright (c) 2020 Evan Jones
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -94,9 +94,12 @@ public:
     static ValuePtr yield(Env *env, size_t argc, ValuePtr *args);
 
     void create_stack(Env *env, int stack_size) {
-#ifdef __x86_64
+#if defined(__x86_64)
         // x86-64: rbx, rbp, r12, r13, r14, r15
         static const int NUM_REGISTERS = 6;
+#elif defined(__aarch64__)
+        // aarch64: x9-x15 and x30
+        static const int NUM_REGISTERS = 8;
 #else
         // x86: ebx, ebp, edi, esi
         static const int NUM_REGISTERS = 4;
@@ -124,14 +127,17 @@ public:
         assert((uintptr_t)m_fiber.stack % 16 == 0);
 #endif
 
-        // 4 bytes below 16-byte alignment: mac os x wants return address here so this points to a call instruction.
+        // this is here in case there's a bug (we shouldn't ever call fiber_exit)
         *(--m_fiber.stack) = (void *)((uintptr_t)&fiber_exit);
-        // 8 bytes below 16-byte alignment: will "return" to start this function
-        *(--m_fiber.stack) = (void *)((uintptr_t)&fiber_wrapper_func); // Cast to avoid ISO C warnings.
+        // we'll "return" to this function
+        *(--m_fiber.stack) = (void *)((uintptr_t)&fiber_wrapper_func);
         // push NULL words to initialize the registers loaded by fiber_asm_switch
         for (int i = 0; i < NUM_REGISTERS; ++i) {
             *(--m_fiber.stack) = 0;
         }
+#ifdef __APPLE__
+        assert((uintptr_t)m_fiber.stack % 16 == 0);
+#endif
     }
 
     ValuePtr resume(Env *env, size_t argc, ValuePtr *args);
