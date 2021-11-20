@@ -47,7 +47,7 @@ class Array
     len = len.truncate if len.is_a? Float
     unless block_given?
       ary = self
-      return enum_for(:repeated_permutation, len) { [ary.size ** len, 0].max }
+      return enum_for(:repeated_permutation, len) { len < 0 ? 0 : (ary.size ** len) }
     end
     return if len < 0
     if len == 0
