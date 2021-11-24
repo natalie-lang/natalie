@@ -23,6 +23,16 @@ public:
         if (m_bignum) delete m_bignum;
     }
 
+    bool is_odd() override {
+        if (m_bignum->to_string().length() != 0) {
+            int last_digit = m_bignum->to_string().last_char() - '0';
+            bool is_odd = last_digit % 2 != 0;
+            return is_odd;
+        }
+        
+        return true;
+    }
+
     ValuePtr add(Env *, ValuePtr) override;
     ValuePtr to_s(Env *, ValuePtr = nullptr) override;
 
