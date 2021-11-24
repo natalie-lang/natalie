@@ -27,7 +27,7 @@ public:
         return m_integer == 0;
     }
 
-    bool is_odd() {
+    virtual bool is_odd() {
         return m_integer % 2 != 0;
     }
 
