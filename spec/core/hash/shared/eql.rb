@@ -85,11 +85,7 @@ describe :hash_eql, shared: true do
     z << x
     y.send(@method, z).should be_true
 
-    # NATFIXME: cannot parse this
-    # a[:foo], a[:bar] = a[:bar], a[:foo]
-    temp = a[:foo]
-    a[:foo] = a[:bar]
-    a[:bar] = temp
+    a[:foo], a[:bar] = a[:bar], a[:foo]
 
     a.send(@method, b).should be_false
     b[:bar] = b[:foo]

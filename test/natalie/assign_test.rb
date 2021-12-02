@@ -101,6 +101,12 @@ describe 'assignment' do
     end
   end
 
+  it 'does multiple assignment for attributes' do
+    h = { foo: 1, bar: 2}
+    h[:foo], h[:bar] = h[:bar], h[:foo]
+    h.should == { bar: 1, foo: 2 }
+  end
+
   it 'does not error when an object responds to to_ary but returns something else' do
     bal = BadArrayLike.new(1, 2)
     (a, b) = bal

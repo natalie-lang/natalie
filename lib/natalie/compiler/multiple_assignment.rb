@@ -76,6 +76,10 @@ module Natalie
           exp.new(:ivar_set, :self, :env, s(:intern, exp.last), value)
         when :lasgn, :kwarg
           exp.new(:var_set, :env, s(:s, exp[1]), value)
+        when :attrasgn
+          (_, receiver, message, attr) = exp
+          args = s(:args, attr, value)
+          exp.new(:public_send, receiver, s(:intern, message), args)
         else
           raise "unknown masgn type: #{exp.inspect} (#{exp.file}\##{exp.line})"
         end

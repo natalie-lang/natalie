@@ -53,13 +53,13 @@ module Natalie
       end
 
       def process_attrasgn(exp)
-        (_, receiver, method, *args) = exp
+        (_, receiver, message, *args) = exp
         if args.any? { |a| a.sexp_type == :splat }
           args = s(:args_array, process(s(:array, *args.map { |n| process(n) })))
         else
           args = s(:args, *args.map { |n| process(n) })
         end
-        exp.new(:public_send, process(receiver), s(:intern, method), args)
+        exp.new(:public_send, process(receiver), s(:intern, message), args)
       end
 
       def process_back_ref(exp)
