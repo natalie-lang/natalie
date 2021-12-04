@@ -79,9 +79,29 @@ ValuePtr IntegerValue::sub(Env *env, ValuePtr arg) {
     if (arg.is_float()) {
         double result = to_nat_int_t() - arg->as_float()->to_double();
         return new FloatValue { result };
+    } else if (!arg.is_integer()) {
+        arg = Natalie::coerce(env, arg, this).second;
     }
     arg.assert_type(env, Value::Type::Integer, "Integer");
+
+    auto other = arg->as_integer();
+    if (other->is_bignum()) {
+        auto result = to_bignum() - other->to_bignum();
+        return new BignumValue { result };
+    }
+
     nat_int_t result = to_nat_int_t() - arg.to_nat_int_t();
+    bool overflowed = false;
+    if (to_nat_int_t() < 0 && arg.to_nat_int_t() < 0 && result < to_nat_int_t())
+        overflowed = true;
+    if (to_nat_int_t() > 0 && arg.to_nat_int_t() > 0 && result > to_nat_int_t())
+        overflowed = true;
+
+    if (overflowed) {
+        auto result = to_bignum() - other->to_bignum();
+        return new BignumValue { result };
+    }
+
     return ValuePtr::integer(result);
 }
 
