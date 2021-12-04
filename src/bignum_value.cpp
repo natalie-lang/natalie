@@ -44,6 +44,23 @@ ValuePtr BignumValue::sub(Env *env, ValuePtr arg) {
     return new BignumValue { to_bignum() - other->to_bignum() };
 }
 
+ValuePtr BignumValue::mul(Env *env, ValuePtr arg) {
+    if (arg->is_float()) {
+        double current = strtod(m_bignum->to_string().c_str(), NULL);
+        auto result = current * arg->as_float()->to_double();
+        return new FloatValue { result };
+    }
+
+    if (!arg.is_integer()) {
+        arg = Natalie::coerce(env, arg, this).second;
+    }
+
+    arg.assert_type(env, Value::Type::Integer, "Integer");
+
+    auto other = arg->as_integer();
+    return new BignumValue { to_bignum() * other->to_bignum() };
+}
+
 bool BignumValue::eq(Env *env, ValuePtr other) {
     if (other->is_float()) {
         return to_bignum() == other->as_float()->to_double();

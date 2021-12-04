@@ -47,7 +47,7 @@ public:
     ValuePtr to_f();
     virtual ValuePtr add(Env *, ValuePtr);
     virtual ValuePtr sub(Env *, ValuePtr);
-    ValuePtr mul(Env *, ValuePtr);
+    virtual ValuePtr mul(Env *, ValuePtr);
     ValuePtr div(Env *, ValuePtr);
     ValuePtr mod(Env *, ValuePtr);
     ValuePtr pow(Env *, ValuePtr);
