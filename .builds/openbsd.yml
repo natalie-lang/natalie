@@ -1,23 +1,23 @@
-image: openbsd/6.8
+image: openbsd/7.0
 packages:
-  - automake-1.13.4p2
+  - automake-1.16.3
   - cmake
   - libatomic_ops
   - libtool
-  - ruby-2.7.1p1
+  - ruby-3.0.2p1
 sources:
   - https://git.sr.ht/~tim/natalie
 environment:
   AUTOCONF_VERSION: "2.69"
-  AUTOMAKE_VERSION: "1.13"
+  AUTOMAKE_VERSION: "1.16"
   CFLAGS: "-I/usr/local/include"
   LDFLAGS: "-L/usr/local/lib"
 tasks:
   - setup: |
       cd natalie
-      doas ln -sf /usr/local/bin/ruby27 /usr/local/bin/ruby
-      doas ln -sf /usr/local/bin/bundle27 /usr/local/bin/bundle
-      doas ln -sf /usr/local/bin/rake27 /usr/local/bin/rake
+      doas ln -sf /usr/local/bin/ruby30 /usr/local/bin/ruby
+      doas ln -sf /usr/local/bin/bundle30 /usr/local/bin/bundle
+      doas ln -sf /usr/local/bin/rake30 /usr/local/bin/rake
       bundle config set deployment 'true'
       bundle install
   - build: |
