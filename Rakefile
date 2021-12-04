@@ -69,11 +69,11 @@ task :docker_build_clang do
   sh 'docker build -t natalie_clang --build-arg CC=clang --build-arg CXX=clang++ .'
 end
 
-task :docker_build_ruby3 do
-  sh 'docker build -t natalie_ruby3 --build-arg IMAGE="ruby:3.0" .'
+task :docker_build_ruby27 do
+  sh 'docker build -t natalie_ruby27 --build-arg IMAGE="ruby:2.7" .'
 end
 
-task docker_test: [:docker_test_gcc, :docker_test_clang, :docker_test_release, :docker_test_ruby3]
+task docker_test: [:docker_test_gcc, :docker_test_clang, :docker_test_release, :docker_test_ruby27]
 
 task docker_test_gcc: :docker_build do
   sh "docker run #{DOCKER_FLAGS} --rm --entrypoint rake natalie test"
@@ -88,8 +88,8 @@ task docker_test_release: :docker_build do
 end
 
 # NOTE: this tests that Natalie can be hosted by MRI 3.0 -- not Natalie under Ruby 3 specs
-task docker_test_ruby3: :docker_build_ruby3 do
-  sh "docker run #{DOCKER_FLAGS} --rm --entrypoint rake natalie_ruby3 test"
+task docker_test_ruby27: :docker_build_ruby27 do
+  sh "docker run #{DOCKER_FLAGS} --rm --entrypoint rake natalie_ruby27 test"
 end
 
 

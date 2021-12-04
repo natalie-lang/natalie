@@ -1,4 +1,4 @@
-ARG IMAGE=ruby:2.7
+ARG IMAGE=ruby:3.0
 FROM $IMAGE
 
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y -q build-essential autoconf libtool clang lcov
