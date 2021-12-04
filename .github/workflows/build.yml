@@ -34,11 +34,11 @@ jobs:
       run: git submodule update --init --recursive
     - name: test release build
       run: rake docker_test_release
-  ruby3:
+  ruby27:
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v1
     - name: checkout submodules
       run: git submodule update --init --recursive
-    - name: test with Ruby 3.0
-      run: rake docker_test_ruby3
+    - name: test when hosted by Ruby 2.7
+      run: rake docker_test_ruby27
