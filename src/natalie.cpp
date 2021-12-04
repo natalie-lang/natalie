@@ -147,6 +147,7 @@ Env *build_top_env() {
 
     EncodingValue *EncodingAscii8Bit = new EncodingValue { Encoding::ASCII_8BIT, { "ASCII-8BIT", "BINARY" } };
     Encoding->const_set(SymbolValue::intern("ASCII_8BIT"), EncodingAscii8Bit);
+    Encoding->const_set(SymbolValue::intern("BINARY"), EncodingAscii8Bit);
 
     ValuePtr EncodingUTF8 = new EncodingValue { Encoding::UTF_8, { "UTF-8" } };
     Encoding->const_set(SymbolValue::intern("UTF_8"), EncodingUTF8);
