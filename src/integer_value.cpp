@@ -131,26 +131,36 @@ ValuePtr IntegerValue::mul(Env *env, ValuePtr arg) {
     return ValuePtr::integer(result);
 }
 
+nat_int_t IntegerValue::div_floor(nat_int_t b) {
+    nat_int_t a = to_nat_int_t();
+    nat_int_t res = a / b;
+    nat_int_t rem = a % b;
+    // Correct division result downwards if up-rounding happened,
+    // (for non-zero remainder of sign different than the divisor).
+    bool corr = (rem != 0 && ((rem < 0) != (b < 0)));
+    return res - corr;
+}
+
 ValuePtr IntegerValue::div(Env *env, ValuePtr arg) {
-    if (arg.is_integer()) {
-        nat_int_t dividend = to_nat_int_t();
-        nat_int_t divisor = arg.to_nat_int_t();
-        if (divisor == 0) {
-            env->raise("ZeroDivisionError", "divided by 0");
-        }
-        nat_int_t result = dividend / divisor;
-        return ValuePtr::integer(result);
-
-    } else if (arg->respond_to(env, SymbolValue::intern("coerce"))) {
-        auto coerce_result = Natalie::coerce(env, arg, this);
-
-        ValuePtr dividend = coerce_result.first;
-        ValuePtr divisor = coerce_result.second;
-        return dividend.send(env, SymbolValue::intern("/"), { divisor });
-    } else {
-        arg->assert_type(env, Value::Type::Integer, "Integer");
-        return nullptr;
+    if (arg.is_float()) {
+        double result = to_nat_int_t() / arg->as_float()->to_double();
+        return new FloatValue { result };
+    } else if (!arg.is_integer()) {
+        arg = Natalie::coerce(env, arg, this).second;
     }
+    arg.assert_type(env, Value::Type::Integer, "Integer");
+
+    auto other = arg->as_integer();
+    if (other->is_bignum()) {
+        auto result = to_bignum() / other->to_bignum();
+        return new BignumValue { result };
+    }
+
+    if (arg.to_nat_int_t() == 0)
+        env->raise("ZeroDivisionError", "divided by 0");
+
+    nat_int_t result = div_floor(arg.to_nat_int_t());
+    return ValuePtr::integer(result);
 }
 
 ValuePtr IntegerValue::mod(Env *env, ValuePtr arg) {

@@ -26,6 +26,7 @@ public:
     ValuePtr add(Env *, ValuePtr) override;
     ValuePtr sub(Env *, ValuePtr) override;
     ValuePtr mul(Env *, ValuePtr) override;
+    ValuePtr div(Env *, ValuePtr) override;
     ValuePtr to_s(Env *, ValuePtr = nullptr) override;
 
     bool eq(Env *, ValuePtr) override;

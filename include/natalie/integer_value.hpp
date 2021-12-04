@@ -48,7 +48,7 @@ public:
     virtual ValuePtr add(Env *, ValuePtr);
     virtual ValuePtr sub(Env *, ValuePtr);
     virtual ValuePtr mul(Env *, ValuePtr);
-    ValuePtr div(Env *, ValuePtr);
+    virtual ValuePtr div(Env *, ValuePtr);
     ValuePtr mod(Env *, ValuePtr);
     ValuePtr pow(Env *, ValuePtr);
     ValuePtr cmp(Env *, ValuePtr);
@@ -89,6 +89,8 @@ private:
     inline static Hashmap<SymbolValue *> s_optimized_methods {};
 
     nat_int_t m_integer { 0 };
+
+    nat_int_t div_floor(nat_int_t);
 };
 
 }
