@@ -287,7 +287,7 @@ Natalie::String BigInt::to_string() const {
 */
 
 long BigInt::to_long() const {
-    return strtol(this->to_string().c_str(), NULL, 2);
+    return strtol(this->to_string().c_str(), NULL, 10);
 }
 
 /*
@@ -299,7 +299,7 @@ long BigInt::to_long() const {
 */
 
 long long BigInt::to_long_long() const {
-    return strtoll(this->to_string().c_str(), NULL, 2);
+    return strtoll(this->to_string().c_str(), NULL, 10);
 }
 
 /*
@@ -1143,7 +1143,7 @@ BigInt BigInt::operator*(const BigInt &num) const {
 
     BigInt product;
     if (abs(*this) <= FLOOR_SQRT_LLONG_MAX and abs(num) <= FLOOR_SQRT_LLONG_MAX)
-        product = strtoll(this->value.c_str(), NULL, 2) * strtoll(num.value.c_str(), NULL, 2);
+        product = strtoll(this->value.c_str(), NULL, 10) * strtoll(num.value.c_str(), NULL, 10);
     else if (is_power_of_10(this->value)) { // if LHS is a power of 10 do optimised operation
         product.value = num.value;
         product.value.append(this->value.substring(1));
@@ -1243,7 +1243,7 @@ BigInt BigInt::operator/(const BigInt &num) const {
 
     BigInt quotient;
     if (abs_dividend <= LLONG_MAX and abs_divisor <= LLONG_MAX)
-        quotient = strtoll(abs_dividend.value.c_str(), NULL, 2) / strtoll(abs_divisor.value.c_str(), NULL, 2);
+        quotient = strtoll(abs_dividend.value.c_str(), NULL, 10) / strtoll(abs_divisor.value.c_str(), NULL, 10);
     else if (abs_dividend == abs_divisor)
         quotient = 1;
     else if (is_power_of_10(abs_divisor.value)) { // if divisor is a power of 10 do optimised calculation
@@ -1305,7 +1305,7 @@ BigInt BigInt::operator%(const BigInt &num) const {
 
     BigInt remainder;
     if (abs_dividend <= LLONG_MAX and abs_divisor <= LLONG_MAX)
-        remainder = strtoll(abs_dividend.value.c_str(), NULL, 2) % strtoll(abs_divisor.value.c_str(), NULL, 2);
+        remainder = strtoll(abs_dividend.value.c_str(), NULL, 10) % strtoll(abs_divisor.value.c_str(), NULL, 10);
     else if (abs_dividend < abs_divisor)
         remainder = abs_dividend;
     else if (is_power_of_10(num.value)) { // if num is a power of 10 use optimised calculation
