@@ -1180,6 +1180,17 @@ describe 'array' do
     end
   end
 
+  describe '#pack' do
+    describe 'c' do
+      fit 'handle bignums' do
+        [fixnum_max + 1].pack('c').should == "\x00".force_encoding(Encoding::BINARY)
+        [fixnum_max + 2].pack('c').should == "\x01".force_encoding(Encoding::BINARY)
+        [-fixnum_max - 1].pack('c').should == "\x00".force_encoding(Encoding::BINARY)
+        [-fixnum_max - 2].pack('c').should == "\xFF".force_encoding(Encoding::BINARY)
+      end
+    end
+  end
+
   describe '#append' do
       specify do
         a = []

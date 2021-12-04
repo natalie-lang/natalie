@@ -63,30 +63,32 @@ namespace ArrayPacker {
                     m_index++;
                     break;
                 }
+                case 'C':
+                case 'c':
                 case 'U': {
                     pack_with_loop(env, token, [&]() {
-                        nat_int_t integer;
+                        IntegerValue *integer;
                         auto item = m_source->at(m_index);
-                        if (m_source->is_string()) {
-                            integer = item->as_integer()->to_nat_int_t();
-                        } else if (item->is_nil()) { //TODO check if it is already implemented by the else branch at the end
+                        if (item->is_nil()) { //TODO check if it is already implemented by the else branch at the end
                             env->raise("TypeError", "no implicit conversion of nil into Integer");
                         } else if (item->respond_to(env, SymbolValue::intern("to_int"))) {
                             auto num = item->send(env, SymbolValue::intern("to_int"));
                             num->assert_type(env, Value::Type::Integer, "Integer");
-                            integer = num->as_integer()->to_nat_int_t();
+                            integer = num->as_integer();
                         } else {
                             env->raise("TypeError", "no implicit conversion of {} into Integer", item->klass()->class_name_or_blank());
                             NAT_UNREACHABLE();
                         }
 
-                        if (integer > 0xffffffff || integer < 0)
-                            env->raise("RangeError", "pack(U): value out of range");
-
                         auto packer = IntegerHandler { integer, token };
                         m_packed->append(packer.pack(env));
                     });
-                    m_encoding = Encoding::UTF_8;
+
+                    if (d == 'U')
+                        m_encoding = Encoding::UTF_8;
+                    else
+                        m_encoding = Encoding::ASCII_8BIT;
+
                     break;
                 }
                 case 'x':
