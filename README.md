@@ -29,7 +29,7 @@ We have a very quiet [Discord server](https://discord.gg/hnHp2tdQyn) -- come and
 
 Natalie is tested on macOS, OpenBSD, and Ubuntu Linux. Windows is not yet supported.
 
-The compiler and REPL require MRI Ruby. I only test with Ruby 2.7.x currently.
+Natalie requires a system Ruby (MRI) to host the compiler.
 
 Prerequisites:
 
@@ -39,7 +39,7 @@ Prerequisites:
 - libtool
 - make
 - gcc or clang
-- Ruby 2.7.x or Ruby 3.0.x
+- Ruby 2.7.x or Ruby 3.0.x ([rbenv](https://github.com/rbenv/rbenv) preferred)
 - ccache (optional)
 
 Install the above prerequisites on your platform, then run:
