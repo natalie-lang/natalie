@@ -148,7 +148,8 @@ end
 def max_long
   # 2**(0.size * 8 - 1) - 1
   # NATFIXME: Support Integer#size
-  2**(8 * 8 - 1) - 1
+  # NATFIXME: Make Integer#** spec compliant with bignums
+  (2**(8 * 8 - 2)) * 2  - 1
 end
 
 def ruby_version_is(version)
@@ -421,15 +422,15 @@ class BeComputedByExpectation
     subject.each do |(target, *args, expected)|
       actual = target.send(@method, *(@args + args))
       if actual != expected
-        expected_bits = if expected.methods.include?(:bytes) 
-          expected.bytes.map { |b| lzpad(b.to_s(2), 8) }.join(" ")  
-        else 
+        expected_bits = if expected.methods.include?(:bytes)
+          expected.bytes.map { |b| lzpad(b.to_s(2), 8) }.join(" ")
+        else
           expected.inspect
         end
-        
+
         actual_bits = if actual.methods.include?(:bytes)
-          actual.bytes.map { |b| lzpad(b.to_s(2), 8) }.join(" ")  
-        else 
+          actual.bytes.map { |b| lzpad(b.to_s(2), 8) }.join(" ")
+        else
           actual.inspect
         end
 
