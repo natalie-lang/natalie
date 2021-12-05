@@ -10,7 +10,7 @@ namespace ArrayPacker {
 
     class IntegerHandler {
     public:
-        IntegerHandler(nat_int_t source, Token token)
+        IntegerHandler(IntegerValue *source, Token token)
             : m_source { source }
             , m_token { token }
             , m_packed { new String } { }
@@ -19,7 +19,13 @@ namespace ArrayPacker {
             signed char d = m_token.directive;
             switch (d) {
             case 'U':
+                if (m_source->is_bignum() || m_source->to_nat_int_t() > 0xffffffff || m_source->to_nat_int_t() < 0)
+                    env->raise("RangeError", "pack(U): value out of range");
                 pack_U();
+                break;
+            case 'C':
+            case 'c':
+                pack_c();
                 break;
             default: {
                 char buf[2] = { d, '\0' };
@@ -32,28 +38,38 @@ namespace ArrayPacker {
 
     private:
         void pack_U() {
-            if (m_source < 128) { // U+007F	    -> 1-byte last code-point
-                m_packed->append_char(static_cast<unsigned char>(m_source));
+            auto source = m_source->to_nat_int_t();
+            if (source < 128) { // U+007F	    -> 1-byte last code-point
+                m_packed->append_char(static_cast<unsigned char>(source));
                 return;
             }
-            if (m_source < 2048) { // U+07FF	-> 2-bytes last code-point
-                m_packed->append_char(static_cast<unsigned char>(0b11000000 | (m_source >> 6 & 0b00011111)));
-                m_packed->append_char(static_cast<unsigned char>(0b10000000 | (m_source & 0b00111111)));
+            if (source < 2048) { // U+07FF	-> 2-bytes last code-point
+                m_packed->append_char(static_cast<unsigned char>(0b11000000 | (source >> 6 & 0b00011111)));
+                m_packed->append_char(static_cast<unsigned char>(0b10000000 | (source & 0b00111111)));
                 return;
             }
-            if (m_source < 65536) { // U+FFFF	-> 3-bytes last code-point
-                m_packed->append_char(static_cast<unsigned char>(0b11100000 | (m_source >> 12 & 0b00001111)));
-                m_packed->append_char(static_cast<unsigned char>(0b10000000 | (m_source >> 6 & 0b00111111)));
-                m_packed->append_char(static_cast<unsigned char>(0b10000000 | (m_source & 0b00111111)));
+            if (source < 65536) { // U+FFFF	-> 3-bytes last code-point
+                m_packed->append_char(static_cast<unsigned char>(0b11100000 | (source >> 12 & 0b00001111)));
+                m_packed->append_char(static_cast<unsigned char>(0b10000000 | (source >> 6 & 0b00111111)));
+                m_packed->append_char(static_cast<unsigned char>(0b10000000 | (source & 0b00111111)));
                 return;
             }
-            m_packed->append_char(static_cast<unsigned char>(0b11110000 | (m_source >> 18 & 0b00000111)));
-            m_packed->append_char(static_cast<unsigned char>(0b10000000 | (m_source >> 12 & 0b00111111)));
-            m_packed->append_char(static_cast<unsigned char>(0b10000000 | (m_source >> 6 & 0b00111111)));
-            m_packed->append_char(static_cast<unsigned char>(0b10000000 | (m_source & 0b00111111)));
+            m_packed->append_char(static_cast<unsigned char>(0b11110000 | (source >> 18 & 0b00000111)));
+            m_packed->append_char(static_cast<unsigned char>(0b10000000 | (source >> 12 & 0b00111111)));
+            m_packed->append_char(static_cast<unsigned char>(0b10000000 | (source >> 6 & 0b00111111)));
+            m_packed->append_char(static_cast<unsigned char>(0b10000000 | (source & 0b00111111)));
         }
 
-        nat_int_t m_source;
+        void pack_c() {
+            auto source = m_source->to_nat_int_t();
+            if (m_source->is_bignum()) {
+                source = (m_source->to_bignum() % 256).to_long_long();
+            }
+
+            m_packed->append_char(static_cast<signed char>(source));
+        }
+
+        IntegerValue *m_source;
         Token m_token;
         String *m_packed;
     };
