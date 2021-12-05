@@ -92,9 +92,9 @@ ValuePtr IntegerValue::sub(Env *env, ValuePtr arg) {
 
     nat_int_t result = to_nat_int_t() - arg.to_nat_int_t();
     bool overflowed = false;
-    if (to_nat_int_t() < 0 && arg.to_nat_int_t() < 0 && result < to_nat_int_t())
+    if (to_nat_int_t() > 0 && arg.to_nat_int_t() < 0 && result < 0)
         overflowed = true;
-    if (to_nat_int_t() > 0 && arg.to_nat_int_t() > 0 && result > to_nat_int_t())
+    if (to_nat_int_t() < 0 && arg.to_nat_int_t() > 0 && result > 0)
         overflowed = true;
 
     if (overflowed) {
@@ -122,11 +122,16 @@ ValuePtr IntegerValue::mul(Env *env, ValuePtr arg) {
 
     nat_int_t result = to_nat_int_t() * arg.to_nat_int_t();
     bool overflowed = false;
-    bool sign_different = (to_nat_int_t() ^ arg.to_nat_int_t()) >= 0;
-    if (sign_different && result > 0)
+    bool same_sign = (to_nat_int_t() ^ arg.to_nat_int_t()) >= 0;
+    if (!same_sign && result > 0)
         overflowed = true;
-    if (!sign_different && result < 0)
+    if (same_sign && result < 0)
         overflowed = true;
+
+    if (overflowed) {
+        auto result = to_bignum() * other->to_bignum();
+        return new BignumValue { result };
+    }
 
     return ValuePtr::integer(result);
 }

@@ -34,6 +34,13 @@ describe 'integer' do
     it 'works for floats' do
       (2 * 2.5).should == 5.0
     end
+
+    it 'detect overflows correctly' do
+      (fixnum_max * 2).should > fixnum_max
+      (2 * fixnum_max).should > fixnum_max
+      (-fixnum_max * 2).should < -fixnum_max
+      (-2 * fixnum_max).should < -fixnum_max
+    end
   end
 
   describe '+' do
@@ -43,6 +50,13 @@ describe 'integer' do
 
     it 'works for floats' do
       (2 + 2.5).should == 4.5
+    end
+
+    it 'detect overflows correctly' do
+      (fixnum_max + 2).should > fixnum_max
+      (2 + fixnum_max).should > fixnum_max
+      (-fixnum_max + -2).should < -fixnum_max
+      (-2 + -fixnum_max).should < -fixnum_max
     end
   end
 
@@ -55,6 +69,13 @@ describe 'integer' do
     it 'works for floats' do
       (2 - 1.0).should == 1.0
       (2 - 2.5).should == -0.5
+    end
+
+    it 'detect overflows correctly' do
+      (fixnum_max - -2).should > fixnum_max
+      (2 - -fixnum_max).should > fixnum_max
+      (-2 - fixnum_max).should < -fixnum_max
+      (-fixnum_max - 2).should < -fixnum_max
     end
   end
 
