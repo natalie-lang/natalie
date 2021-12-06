@@ -1182,7 +1182,7 @@ describe 'array' do
 
   describe '#pack' do
     describe 'c' do
-      fit 'handle bignums' do
+      it 'handle bignums' do
         [fixnum_max + 1].pack('c').should == "\x00".force_encoding(Encoding::BINARY)
         [fixnum_max + 2].pack('c').should == "\x01".force_encoding(Encoding::BINARY)
         [-fixnum_max - 1].pack('c').should == "\x00".force_encoding(Encoding::BINARY)
