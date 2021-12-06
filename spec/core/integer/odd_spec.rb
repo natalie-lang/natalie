@@ -10,7 +10,6 @@ describe "Integer#odd?" do
       1.odd?.should be_true
       2.odd?.should be_false
 
-      puts bignum_value(0)
       bignum_value(0).odd?.should be_false
       bignum_value(1).odd?.should be_true
 
