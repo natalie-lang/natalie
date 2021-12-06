@@ -8,6 +8,7 @@ on:
 
 env:
   DOCKER_FLAGS: ""
+  CI: 1
 
 jobs:
   gcc:
