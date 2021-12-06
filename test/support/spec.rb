@@ -70,6 +70,10 @@ class ScratchPad
   end
 end
 
+def ci?
+  !!ENV['CI']
+end
+
 def describe(description, shared: false, &block)
   if shared
     @shared[description] = block
@@ -97,6 +101,9 @@ def it(test, &block)
 end
 
 def fit(test, &block)
+  if ci?
+    raise 'Focused spec in CI detected. Please remove it!'
+  end
   @specs << [@context.dup, test, block, :focus]
 end
 
