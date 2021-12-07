@@ -142,11 +142,13 @@ public:
     ValuePtr eqtilde(Env *, ValuePtr);
     ValuePtr force_encoding(Env *, ValuePtr);
     ValuePtr ljust(Env *, ValuePtr, ValuePtr);
+    ValuePtr lstrip(Env *);
     ValuePtr match(Env *, ValuePtr);
     ValuePtr mul(Env *, ValuePtr);
     ValuePtr ord(Env *);
     ValuePtr ref(Env *, ValuePtr);
     ValuePtr reverse(Env *);
+    ValuePtr rstrip(Env *);
     ValuePtr size(Env *);
     ValuePtr split(Env *, ValuePtr, ValuePtr);
     ValuePtr strip(Env *);

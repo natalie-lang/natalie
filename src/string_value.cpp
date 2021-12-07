@@ -4,6 +4,16 @@
 
 namespace Natalie {
 
+constexpr bool is_strippable_whitespace(char c) {
+    return c == '\0'
+        || c == '\t'
+        || c == '\n'
+        || c == '\v'
+        || c == '\f'
+        || c == '\r'
+        || c == ' ';
+};
+
 void StringValue::raise_encoding_invalid_byte_sequence_error(Env *env, size_t index) {
     StringValue *message = format(env, "invalid byte sequence at index {} in string of size {} (string not long enough)", index, length());
     ClassValue *Encoding = GlobalEnv::the()->Object()->const_find(env, SymbolValue::intern("Encoding"))->as_class();
@@ -626,12 +636,12 @@ ValuePtr StringValue::strip(Env *env) {
     nat_int_t len = static_cast<nat_int_t>(length());
     for (first_char = 0; first_char < len; first_char++) {
         char c = c_str()[first_char];
-        if (c != ' ' && c != '\t' && c != '\n')
+        if (!is_strippable_whitespace(c))
             break;
     }
     for (last_char = len - 1; last_char >= 0; last_char--) {
         char c = c_str()[last_char];
-        if (c != ' ' && c != '\t' && c != '\n')
+        if (!is_strippable_whitespace(c))
             break;
     }
     if (last_char < 0) {
@@ -639,6 +649,44 @@ ValuePtr StringValue::strip(Env *env) {
     } else {
         size_t new_length = static_cast<size_t>(last_char - first_char + 1);
         return new StringValue { c_str() + first_char, new_length };
+    }
+}
+
+ValuePtr StringValue::lstrip(Env *env) {
+    if (length() == 0)
+        return new StringValue {};
+    assert(length() < NAT_INT_MAX);
+    nat_int_t first_char;
+    nat_int_t len = static_cast<nat_int_t>(length());
+    for (first_char = 0; first_char < len; first_char++) {
+        char c = c_str()[first_char];
+        if (!is_strippable_whitespace(c))
+            break;
+    }
+    if (first_char == len) {
+        return new StringValue {};
+    } else {
+        size_t new_length = static_cast<size_t>(len - first_char);
+        return new StringValue { c_str() + first_char, new_length };
+    }
+}
+
+ValuePtr StringValue::rstrip(Env *env) {
+    if (length() == 0)
+        return new StringValue {};
+    assert(length() < NAT_INT_MAX);
+    nat_int_t last_char;
+    nat_int_t len = static_cast<nat_int_t>(length());
+    for (last_char = len - 1; last_char >= 0; last_char--) {
+        char c = c_str()[last_char];
+        if (!is_strippable_whitespace(c))
+            break;
+    }
+    if (last_char < 0) {
+        return new StringValue {};
+    } else {
+        size_t new_length = static_cast<size_t>(last_char + 1);
+        return new StringValue { c_str(), new_length };
     }
 }
 
