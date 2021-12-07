@@ -1,0 +1,40 @@
+require_relative '../../spec_helper'
+
+describe "Integer#odd?" do
+  context "fixnum" do
+    it "returns true when self is an odd number" do
+      (-2).odd?.should be_false
+      (-1).odd?.should be_true
+
+      0.odd?.should be_false
+      1.odd?.should be_true
+      2.odd?.should be_false
+
+      bignum_value(0).odd?.should be_false
+      bignum_value(1).odd?.should be_true
+
+      # NATFIXME: need to work on IntegerValue::negate so it handles Bignum
+      #(-bignum_value(0)).odd?.should be_false
+      #(-bignum_value(1)).odd?.should be_true
+    end
+  end
+
+  # NATFIXME: need to work on IntegerValue::pow() so it handles Bignum
+  xcontext "bignum" do
+    it "returns true if self is odd and positive" do
+      (987_279**19).odd?.should be_true
+    end
+
+    it "returns true if self is odd and negative" do
+      (-9_873_389**97).odd?.should be_true
+    end
+
+    it "returns false if self is even and positive" do
+      (10_000_000**10).odd?.should be_false
+    end
+
+    it "returns false if self is even and negative" do
+      (-1_000_000**100).odd?.should be_false
+    end
+  end
+end
