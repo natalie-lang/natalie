@@ -29,7 +29,7 @@ public:
             bool is_odd = last_digit % 2 != 0;
             return is_odd;
         }
-        
+
         return true;
     }
 
