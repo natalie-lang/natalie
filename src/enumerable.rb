@@ -770,7 +770,7 @@ module Enumerable
           raise TypeError, "can't convert #{n.class.inspect} to Integer (#{n.class.inspect}#to_int gives #{cycles.class.inspect})"
         end
       else
-        raise TypeError, "no implicit coversion of #{n.class.inspect} into Integer"
+        raise TypeError, "no implicit conversion of #{n.class.inspect} into Integer"
       end
     end
 

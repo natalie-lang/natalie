@@ -107,7 +107,7 @@ describe 'class variable' do
     b.foo.should == 10
   end
 
-  it 'raises an exception when attempting to retreive a class variable not set' do
+  it 'raises an exception when attempting to retrieve a class variable not set' do
     -> { CvarTest5.foo }.should raise_error(NameError)
   end
 

@@ -75,7 +75,7 @@ public:
     }
 
     ValuePtr &operator[](size_t index) const {
-        assert(index < m_vector.size()); // TODO: remove this assertion (audit whats using this operator first though)
+        assert(index < m_vector.size()); // TODO: remove this assertion (audit what's using this operator first though)
         return m_vector[index];
     }
 

@@ -119,7 +119,7 @@ describe 'raise' do
     r.message.should == 'StandardError'
   end
 
-  it 'can raise a built-in exception class with a custom messsage string' do
+  it 'can raise a built-in exception class with a custom message string' do
     r = begin
           raise StandardError, 'foo'
         rescue => e
@@ -128,7 +128,7 @@ describe 'raise' do
     r.message.should == 'foo'
   end
 
-  it 'can raise a custom exception class with a custom messsage string' do
+  it 'can raise a custom exception class with a custom message string' do
     r = begin
           raise MyException, 'foo'
         rescue => e
