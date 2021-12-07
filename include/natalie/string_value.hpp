@@ -148,6 +148,7 @@ public:
     ValuePtr ord(Env *);
     ValuePtr ref(Env *, ValuePtr);
     ValuePtr reverse(Env *);
+    ValuePtr rstrip(Env *);
     ValuePtr size(Env *);
     ValuePtr split(Env *, ValuePtr, ValuePtr);
     ValuePtr strip(Env *);

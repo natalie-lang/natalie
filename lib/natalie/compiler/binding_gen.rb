@@ -739,6 +739,7 @@ gen.binding('String', 'lstrip', 'StringValue', 'lstrip', argc: 0, pass_env: true
 gen.binding('String', 'match', 'StringValue', 'match', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('String', 'ord', 'StringValue', 'ord', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('String', 'reverse', 'StringValue', 'reverse', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('String', 'rstrip', 'StringValue', 'rstrip', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('String', 'size', 'StringValue', 'size', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('String', 'split', 'StringValue', 'split', argc: 0..2, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('String', 'start_with?', 'StringValue', 'start_with', argc: 1, pass_env: true, pass_block: false, return_type: :bool)

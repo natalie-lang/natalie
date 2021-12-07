@@ -671,6 +671,25 @@ ValuePtr StringValue::lstrip(Env *env) {
     }
 }
 
+ValuePtr StringValue::rstrip(Env *env) {
+    if (length() == 0)
+        return new StringValue {};
+    assert(length() < NAT_INT_MAX);
+    nat_int_t last_char;
+    nat_int_t len = static_cast<nat_int_t>(length());
+    for (last_char = len - 1; last_char >= 0; last_char--) {
+        char c = c_str()[last_char];
+        if (!is_strippable_whitespace(c))
+            break;
+    }
+    if (last_char < 0) {
+        return new StringValue {};
+    } else {
+        size_t new_length = static_cast<size_t>(last_char + 1);
+        return new StringValue { c_str(), new_length };
+    }
+}
+
 ValuePtr StringValue::downcase(Env *env) {
     auto ary = chars(env);
     auto str = new StringValue {};
