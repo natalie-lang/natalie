@@ -142,6 +142,7 @@ public:
     ValuePtr eqtilde(Env *, ValuePtr);
     ValuePtr force_encoding(Env *, ValuePtr);
     ValuePtr ljust(Env *, ValuePtr, ValuePtr);
+    ValuePtr lstrip(Env *);
     ValuePtr match(Env *, ValuePtr);
     ValuePtr mul(Env *, ValuePtr);
     ValuePtr ord(Env *);
