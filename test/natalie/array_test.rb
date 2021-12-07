@@ -1322,7 +1322,7 @@ describe 'array' do
       [3, 4].concat([]).should == [3, 4]
     end
 
-    it 'should concatonate all the arrays' do
+    it 'should concatenate all the arrays' do
       [1].concat([999], [3, 4], [5, [6, 7]]).should == [1, 999, 3, 4, 5, [6, 7]]
       [:foo].concat([:bar], [3], ["c"]).should == [:foo, :bar, 3, 'c']
     end
