@@ -22,6 +22,7 @@ the [hacking session videos on YouTube](https://www.youtube.com/playlist?list=PL
 The easiest way to get started right now would be to find a method on an object
 that is not yet implemented and make it yourself! Also take a look at
 [good first issues](https://github.com/seven1m/natalie/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
+(See the 'Building' and 'Running Tests' sections below for some helpful steps.)
 
 We have a very quiet [Discord server](https://discord.gg/hnHp2tdQyn) -- come and hang out!
 
@@ -86,6 +87,43 @@ docker run -it --rm natalie -e "p 2 * 3"                             # immediate
 docker run -it --rm -v$(pwd)/myfile.rb:/myfile.rb natalie /myfile.rb # execute a local rb file
 docker run -it --rm --entrypoint bash natalie                        # bash prompt
 ```
+
+## Running Tests
+
+To run a test (or spec), you can run it like a normal Ruby script:
+
+```sh
+bin/natalie spec/core/string/strip_spec.rb
+```
+
+This will run the tests and tell you if there are any failures.
+
+If you want to run all the tests that we expect to pass, you can run:
+
+```sh
+rake test
+```
+
+Lastly, if you need to run a handful of tests locally, you can use the
+`test/runner.rb` helper script:
+
+```sh
+bin/natalie test/runner.rb test/natalie/if_test.rb test/natalie/loop_test.rb
+```
+
+### What's the difference between the 'spec/' and 'test/' directories?
+
+The files in `spec/` come from the excellent [ruby/spec](https://github.com/ruby/spec)
+project, which is a community-curated repo of test files that any Ruby
+implementation can use to compare its conformance to what MRI (Matz's Ruby
+Intepreter) does. We copy specs over as we implement the part of the language
+that they cover.
+
+Everything in `test/` is stuff we wrote while working on Natalie. These are
+tests that helped us bootstrap certain parts of the language and/or weren't
+covered as much as we would like by the official Ruby specs. We use this
+to supplement the specs in `spec/`.
+
 
 ## Copyright & License
 
