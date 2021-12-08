@@ -55,8 +55,8 @@ ValuePtr IntegerValue::add(Env *env, ValuePtr arg) {
     }
     arg.assert_type(env, Value::Type::Integer, "Integer");
 
-    auto other = arg->as_integer();
-    if (other->is_bignum()) {
+    if (arg.is_bignum()) {
+        auto other = arg->as_integer();
         auto result = to_bignum() + other->to_bignum();
         return new BignumValue { result };
     }
@@ -69,6 +69,7 @@ ValuePtr IntegerValue::add(Env *env, ValuePtr arg) {
         overflowed = true;
 
     if (overflowed) {
+        auto other = arg->as_integer();
         auto result = to_bignum() + other->to_bignum();
         return new BignumValue { result };
     }
@@ -84,8 +85,8 @@ ValuePtr IntegerValue::sub(Env *env, ValuePtr arg) {
     }
     arg.assert_type(env, Value::Type::Integer, "Integer");
 
-    auto other = arg->as_integer();
-    if (other->is_bignum()) {
+    if (arg.is_bignum()) {
+        auto other = arg->as_integer();
         auto result = to_bignum() - other->to_bignum();
         return new BignumValue { result };
     }
@@ -98,6 +99,7 @@ ValuePtr IntegerValue::sub(Env *env, ValuePtr arg) {
         overflowed = true;
 
     if (overflowed) {
+        auto other = arg->as_integer();
         auto result = to_bignum() - other->to_bignum();
         return new BignumValue { result };
     }
@@ -114,8 +116,8 @@ ValuePtr IntegerValue::mul(Env *env, ValuePtr arg) {
     }
     arg.assert_type(env, Value::Type::Integer, "Integer");
 
-    auto other = arg->as_integer();
-    if (other->is_bignum()) {
+    if (arg.is_bignum()) {
+        auto other = arg->as_integer();
         auto result = to_bignum() * other->to_bignum();
         return new BignumValue { result };
     }
@@ -129,6 +131,7 @@ ValuePtr IntegerValue::mul(Env *env, ValuePtr arg) {
         overflowed = true;
 
     if (overflowed) {
+        auto other = arg->as_integer();
         auto result = to_bignum() * other->to_bignum();
         return new BignumValue { result };
     }
@@ -155,8 +158,8 @@ ValuePtr IntegerValue::div(Env *env, ValuePtr arg) {
     }
     arg.assert_type(env, Value::Type::Integer, "Integer");
 
-    auto other = arg->as_integer();
-    if (other->is_bignum()) {
+    if (arg.is_bignum()) {
+        auto other = arg->as_integer();
         auto result = to_bignum() / other->to_bignum();
         return new BignumValue { result };
     }
@@ -192,7 +195,7 @@ ValuePtr IntegerValue::cmp(Env *env, ValuePtr arg) {
 }
 
 bool IntegerValue::eq(Env *env, ValuePtr other) {
-    if (other->is_float()) {
+    if (other.is_float()) {
         return to_nat_int_t() == other->as_float()->to_double();
     }
 
@@ -201,7 +204,7 @@ bool IntegerValue::eq(Env *env, ValuePtr other) {
     }
 
     if (other.is_integer()) {
-        if (other->as_integer()->is_bignum())
+        if (other.is_bignum())
             return to_bignum() == other->as_integer()->to_bignum();
         return to_nat_int_t() == other.to_nat_int_t();
     }
@@ -209,7 +212,7 @@ bool IntegerValue::eq(Env *env, ValuePtr other) {
 }
 
 bool IntegerValue::lt(Env *env, ValuePtr other) {
-    if (other->is_float()) {
+    if (other.is_float()) {
         return to_nat_int_t() < other->as_float()->to_double();
     }
 
@@ -218,7 +221,7 @@ bool IntegerValue::lt(Env *env, ValuePtr other) {
     }
 
     if (other.is_integer()) {
-        if (other->as_integer()->is_bignum())
+        if (other.is_bignum())
             return to_bignum() < other->as_integer()->to_bignum();
         return to_nat_int_t() < other.to_nat_int_t();
     }
@@ -226,7 +229,7 @@ bool IntegerValue::lt(Env *env, ValuePtr other) {
 }
 
 bool IntegerValue::lte(Env *env, ValuePtr other) {
-    if (other->is_float()) {
+    if (other.is_float()) {
         return to_nat_int_t() <= other->as_float()->to_double();
     }
 
@@ -235,7 +238,7 @@ bool IntegerValue::lte(Env *env, ValuePtr other) {
     }
 
     if (other.is_integer()) {
-        if (other->as_integer()->is_bignum())
+        if (other.is_bignum())
             return to_bignum() <= other->as_integer()->to_bignum();
         return to_nat_int_t() <= other.to_nat_int_t();
     }
@@ -243,7 +246,7 @@ bool IntegerValue::lte(Env *env, ValuePtr other) {
 }
 
 bool IntegerValue::gt(Env *env, ValuePtr other) {
-    if (other->is_float()) {
+    if (other.is_float()) {
         return to_nat_int_t() > other->as_float()->to_double();
     }
 
@@ -252,7 +255,7 @@ bool IntegerValue::gt(Env *env, ValuePtr other) {
     }
 
     if (other.is_integer()) {
-        if (other->as_integer()->is_bignum())
+        if (other.is_bignum())
             return to_bignum() > other->as_integer()->to_bignum();
         return to_nat_int_t() > other.to_nat_int_t();
     }
@@ -269,7 +272,7 @@ bool IntegerValue::gte(Env *env, ValuePtr other) {
     }
 
     if (other.is_integer()) {
-        if (other->as_integer()->is_bignum())
+        if (other.is_bignum())
             return to_bignum() >= other->as_integer()->to_bignum();
         return to_nat_int_t() >= other.to_nat_int_t();
     }

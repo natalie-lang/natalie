@@ -79,6 +79,7 @@ public:
 
     bool is_integer();
     bool is_float();
+    bool is_bignum();
     void assert_type(Env *, ValueType, const char *);
     nat_int_t to_nat_int_t();
 

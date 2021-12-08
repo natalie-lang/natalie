@@ -50,6 +50,13 @@ bool ValuePtr::is_float() {
     return value()->is_float();
 }
 
+bool ValuePtr::is_bignum() {
+    if (m_type == Type::Integer)
+        return false;
+
+    return value()->is_integer() && value()->as_integer()->is_bignum();
+}
+
 void ValuePtr::assert_type(Env *env, ValueType type, const char *type_name) {
     if (m_type == Type::Integer && type == ValueType::Integer)
         return;
