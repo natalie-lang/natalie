@@ -320,7 +320,7 @@ ValuePtr ArrayValue::eq(Env *env, ValuePtr other) {
             return FalseValue::the();
 
         if (is_recursive)
-            //since == is an & of all the == of each value, this will just leave the expression uneffected
+            // since == is an & of all the == of each value, this will just leave the expression uneffected
             return TrueValue::the();
 
         SymbolValue *object_id = SymbolValue::intern("object_id");
@@ -365,7 +365,7 @@ ValuePtr ArrayValue::eql(Env *env, ValuePtr other) {
             return FalseValue::the();
 
         if (is_recursive)
-            //since eql is an & of all the eql of each value, this will just leave the expression uneffected
+            // since eql is an & of all the eql of each value, this will just leave the expression uneffected
             return TrueValue::the();
 
         for (size_t i = 0; i < size(); ++i) {
@@ -908,11 +908,8 @@ ValuePtr ArrayValue::join(Env *env, ValuePtr joiner) {
                     out->append(env, item->as_array()->join(env, joiner));
                 else if (item->respond_to(env, to_s))
                     out->append(env, item.send(env, to_s)->as_string());
-                else {
-                    char *buf;
-                    asprintf(&buf, "#<%s:%p>", item->klass()->class_name_or_blank()->c_str(), (void *)&item);
-                    out->append(env, buf);
-                }
+                else
+                    out->append(env, String::format("#<{}:{}>", item->klass()->class_name_or_blank()->c_str(), static_cast<size_t>(item)));
 
                 if (i < (size() - 1))
                     out->append(env, joiner->as_string());
