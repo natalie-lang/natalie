@@ -187,6 +187,18 @@ public:
         m_length = total_length;
     }
 
+    void append(signed char c) {
+        size_t total_length = m_length + 1;
+        grow_at_least(total_length);
+        m_str[total_length - 1] = c;
+        m_str[total_length] = 0;
+        m_length = total_length;
+    }
+
+    void append(unsigned char c) {
+        append(static_cast<signed char>(c));
+    }
+
     void append(size_t i) {
         int length = snprintf(NULL, 0, "%zu", i);
         char buf[length + 1];

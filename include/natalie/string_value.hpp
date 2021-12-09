@@ -78,6 +78,8 @@ public:
     void insert(Env *, size_t, char);
 
     void append_char(char);
+    void append(signed char);
+    void append(unsigned char c) { append(static_cast<signed char>(c)); }
     void append(Env *, const char *);
     void append(Env *, const StringValue *);
     void append(Env *, const String *);

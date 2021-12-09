@@ -750,6 +750,10 @@ void StringValue::append_char(char c) {
     m_string.append_char(c);
 }
 
+void StringValue::append(signed char c) {
+    m_string.append_char(c);
+}
+
 void StringValue::append(Env *, const char *str) {
     m_string.append(str);
 }
