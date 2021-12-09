@@ -37,6 +37,7 @@ public:
     ValuePtr sub(Env *, ValuePtr) override;
     ValuePtr mul(Env *, ValuePtr) override;
     ValuePtr div(Env *, ValuePtr) override;
+    ValuePtr negate(Env *) override;
     ValuePtr to_s(Env *, ValuePtr = nullptr) override;
 
     bool eq(Env *, ValuePtr) override;

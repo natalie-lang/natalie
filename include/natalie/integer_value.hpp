@@ -60,7 +60,7 @@ public:
     ValuePtr coerce(Env *, ValuePtr);
     ValuePtr abs(Env *);
     ValuePtr chr(Env *);
-    ValuePtr negate(Env *);
+    virtual ValuePtr negate(Env *);
     ValuePtr complement(Env *);
 
     virtual bool eq(Env *, ValuePtr);

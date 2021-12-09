@@ -81,6 +81,10 @@ ValuePtr BignumValue::div(Env *env, ValuePtr arg) {
     return new BignumValue { to_bignum() / other->to_bignum() };
 }
 
+ValuePtr BignumValue::negate(Env *env) {
+    return new BignumValue { -to_bignum() };
+}
+
 bool BignumValue::eq(Env *env, ValuePtr other) {
     if (other->is_float()) {
         return to_bignum() == other->as_float()->to_double();
