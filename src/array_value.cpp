@@ -100,13 +100,10 @@ ValuePtr ArrayValue::inspect(Env *env) {
                 }
             }
 
-            if (inspected_repr->is_string()) {
+            if (inspected_repr->is_string())
                 out->append(env, inspected_repr->as_string());
-            } else {
-                char buf[1000];
-                sprintf(buf, "#<%s:%p>", inspected_repr->klass()->class_name_or_blank()->c_str(), (void *)&inspected_repr);
-                out->append(env, buf);
-            }
+            else
+                out->append(env, String::format("#<{}:{}>", inspected_repr->klass()->class_name_or_blank()->c_str(), static_cast<size_t>(inspected_repr)));
 
             if (i < size() - 1) {
                 out->append(env, ", ");

@@ -54,10 +54,8 @@ namespace ArrayPacker {
             case '_':
             case '!':
                 next_char();
-                if (d != 's' && d != 'S' && d != 'i' && d != 'I' && d != 'l' && d != 'L' && d != 'q' && d != 'Q' && d != 'j' && d != 'J') {
-                    char buf[2] = { d, '\0' }; // FIXME: String::format needs some love :)
-                    token.error = String::format("'{}' allowed only after types sSiIlLqQjJ", buf);
-                }
+                if (d != 's' && d != 'S' && d != 'i' && d != 'I' && d != 'l' && d != 'L' && d != 'q' && d != 'Q' && d != 'j' && d != 'J')
+                    token.error = String::format("'{}' allowed only after types sSiIlLqQjJ", d);
                 return token;
             default:
                 return token;
