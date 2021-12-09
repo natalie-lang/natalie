@@ -557,6 +557,7 @@ gen.binding('Integer', 'coerce', 'IntegerValue', 'coerce', argc: 1, pass_env: tr
 gen.binding('Integer', 'eql?', 'IntegerValue', 'eql', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Integer', 'even?', 'IntegerValue', 'is_even', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('Integer', 'inspect', 'IntegerValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Integer', 'magnitude', 'IntegerValue', 'abs', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Integer', 'odd?', 'IntegerValue', 'is_odd', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('Integer', 'succ', 'IntegerValue', 'succ', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Integer', 'times', 'IntegerValue', 'times', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
