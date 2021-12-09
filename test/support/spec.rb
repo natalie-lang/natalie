@@ -296,6 +296,7 @@ class Matcher
   def empty?; method_missing(:empty?); end
   def finite?; method_missing(:finite?); end
   def include?(other); method_missing(:include?, other); end
+  def integer?; method_missing(:integer?); end
   def lambda?; method_missing(:lambda?); end
   def nan?; method_missing(:nan?); end
   def none?; method_missing(:none?); end
