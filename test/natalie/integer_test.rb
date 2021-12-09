@@ -36,10 +36,10 @@ describe 'integer' do
     end
 
     it 'detect overflows correctly' do
-      (fixnum_max * 2).should > fixnum_max
-      (2 * fixnum_max).should > fixnum_max
-      (-fixnum_max * 2).should < -fixnum_max
-      (-2 * fixnum_max).should < -fixnum_max
+      (fixnum_max * fixnum_max).should > fixnum_max
+      (fixnum_max * -fixnum_max).should < -fixnum_max
+      (-fixnum_max * fixnum_max).should < -fixnum_max
+      (-fixnum_max * -fixnum_max).should > fixnum_max
     end
   end
 
