@@ -226,12 +226,17 @@ public:
     void append_sprintf(const char *format, ...) {
         va_list args, args_copy;
         va_start(args, format);
+        append_vsprintf(format, args);
+        va_end(args);
+    }
+
+    void append_vsprintf(const char *format, va_list args) {
+        va_list args_copy;
         va_copy(args_copy, args);
         int fmt_length = vsnprintf(nullptr, 0, format, args_copy);
         va_end(args_copy);
         char buf[fmt_length + 1];
         vsnprintf(buf, fmt_length + 1, format, args);
-        va_end(args);
         append(buf);
     }
 

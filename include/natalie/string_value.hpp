@@ -85,6 +85,13 @@ public:
     void append(Env *, const String *);
     void append(Env *, ValuePtr);
 
+    void append_sprintf(const char *format, ...) {
+        va_list args, args_copy;
+        va_start(args, format);
+        m_string.append_vsprintf(format, args);
+        va_end(args);
+    }
+
     char *next_char(Env *, char *, size_t *);
     ValuePtr each_char(Env *, Block *);
     ArrayValue *chars(Env *);
