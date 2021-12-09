@@ -187,14 +187,14 @@ file 'build/generated/numbers.rb' do |t|
   f2 = Tempfile.create('numbers')
   f2.close
   begin
-    f1.puts "#include <limits.h>"
     f1.puts "#include <stdio.h>"
+    f1.puts "#include \"natalie/constants.hpp\""
     f1.puts "int main() {"
-    f1.puts "  printf(\"NAT_MAX_FIXNUM = %lli\\n\", LLONG_MAX);"
-    f1.puts "  printf(\"NAT_MIN_FIXNUM = %lli - 1\\n\", LLONG_MIN + 1);"
+    f1.puts "  printf(\"NAT_MAX_FIXNUM = %lli\\n\", NAT_MAX_FIXNUM);"
+    f1.puts "  printf(\"NAT_MIN_FIXNUM = %lli\\n\", NAT_MIN_FIXNUM);"
     f1.puts "}"
     f1.close
-    sh "#{cc} -x c -o #{f2.path} #{f1.path}"
+    sh "#{cc} -Iinclude -x c -o #{f2.path} #{f1.path}"
     sh "#{f2.path} > #{t.name}"
   ensure
     File.unlink(f1.path)
