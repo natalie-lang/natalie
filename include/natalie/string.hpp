@@ -223,7 +223,7 @@ public:
         m_length = total_length;
     }
 
-    void append_format(const char *format, ...) {
+    void append_sprintf(const char *format, ...) {
         va_list args, args_copy;
         va_start(args, format);
         va_copy(args_copy, args);

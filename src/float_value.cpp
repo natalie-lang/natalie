@@ -140,7 +140,7 @@ ValuePtr FloatValue::to_s(Env *env) {
         } else {
             out->append(".0");
         }
-        out->append_format("e%+03d", decpt - 1);
+        out->append_sprintf("e%+03d", decpt - 1);
     };
 
     if (decpt > 0) {
