@@ -115,25 +115,26 @@ ValuePtr IntegerValue::mul(Env *env, ValuePtr arg) {
     } else if (!arg.is_integer()) {
         arg = Natalie::coerce(env, arg, this).second;
     }
+
     arg.assert_type(env, Value::Type::Integer, "Integer");
 
-    if (is_zero() || arg->as_integer()->is_zero())
-        return new IntegerValue { 0 };
+    if (to_nat_int_t() == 0 || arg.to_nat_int_t() == 0)
+        return ValuePtr::integer(0);
 
-    if (arg.is_bignum()) {
-        auto other = arg->as_integer();
-        auto result = to_bignum() * other->to_bignum();
-        return new BignumValue { result };
-    }
+    if (arg.is_bignum())
+        return (BignumValue { to_bignum() }).mul(env, arg);
 
     auto ll_this = to_nat_int_t();
     auto ll_arg = arg.to_nat_int_t();
 
-    auto min_fraction = (NAT_MIN_FIXNUM - (NAT_MIN_FIXNUM % ll_arg)) / ll_arg;
-    auto max_fraction = (NAT_MAX_FIXNUM - (NAT_MAX_FIXNUM % ll_arg)) / ll_arg;
-    if (
-        (ll_this > 0 && ll_arg > 0 && max_fraction <= ll_this) || (ll_this > 0 && ll_arg < 0 && min_fraction <= ll_this) || (ll_this < 0 && ll_arg > 0 && min_fraction >= ll_this) || (ll_this < 0 && ll_arg < 0 && max_fraction >= ll_this)) {
-        return (new BignumValue { to_bignum() })->mul(env, arg);
+    auto min_fraction = (NAT_MIN_FIXNUM) / ll_arg;
+    auto max_fraction = (NAT_MAX_FIXNUM) / ll_arg;
+
+    if ((ll_this > 0 && ll_arg > 0 && max_fraction <= ll_this)
+        || (ll_this > 0 && ll_arg < 0 && min_fraction <= ll_this)
+        || (ll_this < 0 && ll_arg > 0 && min_fraction >= ll_this)
+        || (ll_this < 0 && ll_arg < 0 && max_fraction >= ll_this)) {
+        return (BignumValue { to_bignum() }).mul(env, arg);
     }
 
     return ValuePtr::integer(ll_this * ll_arg);
