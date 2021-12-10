@@ -20,4 +20,8 @@ class Integer
 
     (self & int_mask) == int_mask
   end
+
+  def integer?
+    true
+  end
 end
