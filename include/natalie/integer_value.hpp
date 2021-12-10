@@ -62,6 +62,7 @@ public:
     ValuePtr chr(Env *);
     ValuePtr negate(Env *);
     ValuePtr complement(Env *);
+    ValuePtr ord() { return this; }
 
     virtual bool eq(Env *, ValuePtr);
     virtual bool eql(Env *, ValuePtr);
