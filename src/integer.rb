@@ -1,9 +1,13 @@
 class Integer
   def downto(n)
-    # NATFIXME: Return enumerator if no block given. We cannot store n yet.
+    unless block_given?
+      return enum_for(:downto, n) { self >= n ? (self - n + 1) : 0 }
+    end
 
-    (self - n + 1).times do |i|
-      yield self - i
+    i = self
+    until i < n
+      yield i
+      i -= 1
     end
   end
 
