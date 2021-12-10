@@ -349,9 +349,15 @@ ValuePtr ModuleValue::included_modules(Env *env) {
 bool ModuleValue::does_include_module(Env *env, ValuePtr module) {
     module->assert_type(env, Value::Type::Module, "Module");
     for (ModuleValue *m : included_modules()) {
-        if (m == this) continue;
-        if (module == m) return true;
+        if (this == m)
+            continue;
+        if (module == m)
+            return true;
+        if (m->does_include_module(env, module))
+            return true;
     }
+    if (m_superclass && m_superclass->does_include_module(env, module))
+        return true;
     return false;
 }
 
