@@ -1,3 +1,8 @@
+# This file is used to run the whole ruby/spec suite against Natalie. The results are
+# published on natalie-lang.org.
+#
+# Do not use this script to run specs locally.
+
 require 'concurrent'
 require 'yaml'
 require 'json'
