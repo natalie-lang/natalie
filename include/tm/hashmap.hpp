@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <math.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -19,9 +20,9 @@ public:
     using HashFn = size_t(const void *);
     using CompareFn = bool(const void *, const void *, void *);
 
-    static constexpr float HASHMAP_MIN_LOAD_FACTOR = 0.25;
-    static constexpr float HASHMAP_TARGET_LOAD_FACTOR = 0.5;
-    static constexpr float HASHMAP_MAX_LOAD_FACTOR = 0.75;
+    static constexpr size_t HASHMAP_MIN_LOAD_FACTOR = 25;
+    static constexpr size_t HASHMAP_TARGET_LOAD_FACTOR = 50;
+    static constexpr size_t HASHMAP_MAX_LOAD_FACTOR = 75;
 
     struct Item {
         KeyT key;
@@ -129,7 +130,7 @@ public:
     Item *find_item(KeyT key, size_t hash, void *data = nullptr) {
         if (m_size == 0) return nullptr;
         assert(m_map);
-        auto index = hash % m_capacity;
+        auto index = index_for_hash(hash);
         auto item = m_map[index];
         while (item) {
             if (hash == item->hash && m_compare_fn(key, item->key, data))
@@ -154,7 +155,7 @@ public:
             item->value = value;
             return;
         }
-        auto index = hash % m_capacity;
+        auto index = index_for_hash(hash);
         key = duplicate_key(key);
         auto new_item = new Item { key, value, hash };
         insert_item(m_map, index, new_item);
@@ -164,7 +165,7 @@ public:
     T remove(KeyT key, void *data = nullptr) {
         if (!m_map) return nullptr;
         auto hash = m_hash_fn(key);
-        auto index = hash % m_capacity;
+        auto index = index_for_hash(hash);
         auto item = m_map[index];
         if (item) {
             // m_map[index] = [item] -> item -> item
@@ -287,33 +288,42 @@ public:
         return iterator { *this, m_capacity, nullptr };
     }
 
-    class MaxCapacityException { };
-
 private:
-    float load_factor() { return (float)m_size / m_capacity; }
+    // Returns an integer from 0-100
+    size_t load_factor() { return m_size * 100 / m_capacity; }
+
+    size_t index_for_hash(size_t hash) {
+        // This is an optimization for hash % capacity that is only possible
+        // because capacity is always a power of two.
+        assert((m_capacity & (m_capacity - 1)) == 0);
+        return hash & (m_capacity - 1);
+    }
 
     size_t calculate_map_size(size_t num_items) {
-        for (size_t i = 4; i < 10000; ++i) {
-            auto size = pow(2, i) - 1;
-            if (num_items / size < HASHMAP_TARGET_LOAD_FACTOR)
-                return size;
+        size_t target_size = std::max<size_t>(4, num_items) * 100 / HASHMAP_TARGET_LOAD_FACTOR + 1;
+
+        // Round up to the next power of two (if the value is not already a power of two)
+        // TODO: This can be replaced by std::bit_ceil in C++20
+        target_size--;
+        for (size_t i = 1; i < sizeof(size_t) * 8; i *= 2) {
+            target_size |= target_size >> i;
         }
-        throw new MaxCapacityException;
+        return ++target_size;
     }
 
     void rehash() {
-        auto new_capacity = calculate_map_size(m_size);
-        auto new_map = new Item *[new_capacity] {};
-        for (size_t i = 0; i < m_capacity; i++) {
+        auto old_capacity = m_capacity;
+        m_capacity = calculate_map_size(m_size);
+        auto new_map = new Item *[m_capacity] {};
+        for (size_t i = 0; i < old_capacity; i++) {
             auto item = m_map[i];
             while (item) {
                 auto next_item = item->next;
-                auto new_index = item->hash % new_capacity;
+                auto new_index = index_for_hash(item->hash);
                 insert_item(new_map, new_index, item);
                 item = next_item;
             }
         }
-        m_capacity = new_capacity;
         auto old_map = m_map;
         m_map = new_map;
         delete[] old_map;
