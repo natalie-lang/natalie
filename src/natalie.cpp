@@ -72,7 +72,6 @@ Env *build_top_env() {
     global_env->set_Integer(Integer);
     Object->const_set(SymbolValue::intern("Integer"), Integer);
     Object->const_set(SymbolValue::intern("Fixnum"), Integer);
-    Integer->include_once(env, Comparable);
 
     ClassValue *Float = Numeric->subclass(env, "Float", Value::Type::Float);
     global_env->set_Float(Float);
