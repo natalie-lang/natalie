@@ -90,7 +90,7 @@ Dir[specs].each do |path|
     status = $?
     # If the process did not exit normally it was probably shut down by the
     # `Process.kill` call when timeouting a spec
-    if status.exited? && !status.success?
+    if !status.success? && !current[:timeouted]
       puts "Spec #{path} crashed"
       current[:crashed] = true
       crashed_count += 1
