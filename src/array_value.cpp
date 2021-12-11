@@ -1378,6 +1378,12 @@ ValuePtr ArrayValue::cycle(Env *env, ValuePtr count, Block *block) {
     return none_method->call(env, this, 1, &count, block);
 }
 
+ValuePtr ArrayValue::uniq(Env *env, Block *block) {
+    ArrayValue *copy = new ArrayValue(*this);
+    copy->uniq_in_place(env, block);
+    return copy;
+}
+
 ValuePtr ArrayValue::uniq_in_place(Env *env, Block *block) {
     this->assert_not_frozen(env);
 
