@@ -182,6 +182,7 @@ public:
     ValuePtr sum(Env *, size_t, ValuePtr *, Block *);
     ValuePtr union_of(Env *, ValuePtr);
     ValuePtr union_of(Env *, size_t, ValuePtr *);
+    ValuePtr uniq(Env *, Block *);
     ValuePtr uniq_in_place(Env *, Block *);
     ValuePtr unshift(Env *, size_t, ValuePtr *);
     ValuePtr to_h(Env *, Block *);

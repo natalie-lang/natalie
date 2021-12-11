@@ -383,6 +383,7 @@ gen.binding('Array', 'to_h', 'ArrayValue', 'to_h', argc: 0, pass_env: true, pass
 gen.binding('Array', 'to_s', 'ArrayValue', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Array', 'union', 'ArrayValue', 'union_of', argc: :any, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Array', 'uniq!', 'ArrayValue', 'uniq_in_place', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
+gen.binding('Array', 'uniq', 'ArrayValue', 'uniq', argc: 0, pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Array', 'unshift', 'ArrayValue', 'unshift', argc: :any, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Array', 'zip', 'ArrayValue', 'zip', argc: 0.., pass_env: true, pass_block: true, return_type: :Value)
 gen.binding('Array', 'values_at', 'ArrayValue', 'values_at', argc: 0.., pass_env: true, pass_block: false, return_type: :Value)
