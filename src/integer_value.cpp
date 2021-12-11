@@ -314,7 +314,7 @@ ValuePtr IntegerValue::bitwise_or(Env *env, ValuePtr arg) {
 }
 
 ValuePtr IntegerValue::succ(Env *env) {
-    return ValuePtr::integer(to_nat_int_t() + 1);
+    return add(env, ValuePtr::integer(1));
 }
 
 ValuePtr IntegerValue::coerce(Env *env, ValuePtr arg) {
