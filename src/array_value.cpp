@@ -455,16 +455,19 @@ ValuePtr ArrayValue::fill(Env *env, ValuePtr obj, ValuePtr start_obj, ValuePtr l
                 env->raise("RangeError", "{} out of range", start_obj->inspect_str(env)->c_str());
 
             ValuePtr end = start_obj->as_range()->end();
-            if (!end.is_integer() && end->respond_to(env, to_int)) {
-                end = end->send(env, to_int);
-            }
-            end->assert_type(env, Type::Integer, "Integer");
-            max = end->as_integer()->to_nat_int_t();
 
-            if (max < 0)
-                max += size();
-            if (max != 0 && !start_obj->as_range()->exclude_end())
-                ++max;
+            if (! end->is_nil()) {
+                if (!end.is_integer() && end->respond_to(env, to_int)) {
+                    end = end->send(env, to_int);
+                }
+                end->assert_type(env, Type::Integer, "Integer");
+                max = end->as_integer()->to_nat_int_t();
+
+                if (max < 0)
+                    max += size();
+                if (max != 0 && !start_obj->as_range()->exclude_end())
+                    ++max;
+            }
         } else {
             if (!start_obj.is_integer() && start_obj->respond_to(env, to_int)) {
                 start_obj = start_obj->send(env, to_int);
