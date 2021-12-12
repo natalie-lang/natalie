@@ -17,6 +17,7 @@
 #include "natalie/binding_value.hpp"
 #include "natalie/block.hpp"
 #include "natalie/class_value.hpp"
+#include "natalie/dsl.hpp"
 #include "natalie/encoding_value.hpp"
 #include "natalie/env.hpp"
 #include "natalie/env_value.hpp"
@@ -53,7 +54,6 @@
 #include "natalie/value.hpp"
 #include "natalie/value_ptr.hpp"
 #include "natalie/void_p_value.hpp"
-#include "natalie/dsl.hpp"
 
 namespace Natalie {
 

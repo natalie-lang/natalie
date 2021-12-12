@@ -23,7 +23,7 @@ bool FloatValue::eq(Env *env, ValuePtr other) {
         auto *f = other->as_float();
         return f->m_double == m_double;
     }
-    auto equal_symbol = SymbolValue::intern("==");
+    auto equal_symbol = "=="_s;
     if (other->respond_to(env, equal_symbol)) {
         return other.send(env, equal_symbol, { this })->is_truthy();
     }
@@ -182,7 +182,7 @@ ValuePtr FloatValue::cmp(Env *env, ValuePtr other) {
         rhs = coerced.second;
     }
 
-    if (!lhs->is_float()) return lhs.send(env, SymbolValue::intern("<=>"), { rhs });
+    if (!lhs->is_float()) return lhs.send(env, "<=>"_s, { rhs });
     if (!rhs->is_float()) return NilValue::the();
 
     if (lhs->as_float()->is_nan() || rhs->as_float()->is_nan()) {
@@ -235,7 +235,7 @@ ValuePtr FloatValue::add(Env *env, ValuePtr rhs) {
         rhs = coerced.second;
     }
 
-    if (!lhs->is_float()) return lhs.send(env, SymbolValue::intern("+"), { rhs });
+    if (!lhs->is_float()) return lhs.send(env, "+"_s, { rhs });
     if (!rhs->is_float()) rhs->assert_type(env, Value::Type::Float, "Float");
 
     double addend1 = to_double();
@@ -252,7 +252,7 @@ ValuePtr FloatValue::sub(Env *env, ValuePtr rhs) {
         rhs = coerced.second;
     }
 
-    if (!lhs->is_float()) return lhs.send(env, SymbolValue::intern("-"), { rhs });
+    if (!lhs->is_float()) return lhs.send(env, "-"_s, { rhs });
     if (!rhs->is_float()) rhs->assert_type(env, Value::Type::Float, "Float");
 
     double minuend = to_double();
@@ -269,7 +269,7 @@ ValuePtr FloatValue::mul(Env *env, ValuePtr rhs) {
         rhs = coerced.second;
     }
 
-    if (!lhs->is_float()) return lhs.send(env, SymbolValue::intern("*"), { rhs });
+    if (!lhs->is_float()) return lhs.send(env, "*"_s, { rhs });
     if (!rhs->is_float()) rhs->assert_type(env, Value::Type::Float, "Float");
 
     double multiplicand = to_double();
@@ -286,7 +286,7 @@ ValuePtr FloatValue::div(Env *env, ValuePtr rhs) {
         rhs = coerced.second;
     }
 
-    if (!lhs->is_float()) return lhs.send(env, SymbolValue::intern("/"), { rhs });
+    if (!lhs->is_float()) return lhs.send(env, "/"_s, { rhs });
     if (!rhs->is_float()) rhs->assert_type(env, Value::Type::Float, "Float");
 
     double dividend = to_double();
@@ -309,7 +309,7 @@ ValuePtr FloatValue::mod(Env *env, ValuePtr rhs) {
         rhs = coerced.second;
     }
 
-    if (!lhs->is_float()) return lhs.send(env, SymbolValue::intern("%"), { rhs });
+    if (!lhs->is_float()) return lhs.send(env, "%"_s, { rhs });
     if (!rhs->is_float()) rhs->assert_type(env, Value::Type::Float, "Float");
 
     double dividend = to_double();
@@ -348,7 +348,7 @@ ValuePtr FloatValue::pow(Env *env, ValuePtr rhs) {
         rhs = coerced.second;
     }
 
-    if (!lhs->is_float()) return lhs.send(env, SymbolValue::intern("**"), { rhs });
+    if (!lhs->is_float()) return lhs.send(env, "**"_s, { rhs });
     if (!rhs->is_float()) rhs->assert_type(env, Value::Type::Float, "Float");
 
     double base = to_double();
@@ -381,7 +381,7 @@ ValuePtr FloatValue::arg(Env *env) {
     if (!signbit(m_double)) {
         return ValuePtr::integer(0);
     } else {
-        return find_constant(env, { SymbolValue::intern("Math"), SymbolValue::intern("PI") });
+        return find_nested_const(env, { "Math"_s, "PI"_s });
     }
 }
 

@@ -83,7 +83,6 @@ private:
 
 }
 
-[[nodiscard]] __attribute__((always_inline)) inline Natalie::SymbolValue* operator"" _s(const char* cstring, size_t length)
-{
+[[nodiscard]] __attribute__((always_inline)) inline Natalie::SymbolValue *operator"" _s(const char *cstring, size_t length) {
     return Natalie::SymbolValue::intern(cstring);
 }
