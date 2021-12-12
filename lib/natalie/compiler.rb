@@ -273,8 +273,6 @@ module Natalie
       send("macro_#{macro}", *args, path)
     end
 
-    REQUIRE_EXTENSIONS = %w[nat rb]
-
     def macro_require(node, current_path)
       raise ArgumentError, "Expected a String, but got #{node.inspect}" unless node.sexp_type == :str
       name = node[1]
