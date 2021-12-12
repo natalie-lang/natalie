@@ -313,6 +313,10 @@ ValuePtr IntegerValue::bitwise_or(Env *env, ValuePtr arg) {
     return ValuePtr::integer(to_nat_int_t() | arg.to_nat_int_t());
 }
 
+ValuePtr IntegerValue::pred(Env *env) {
+    return sub(env, ValuePtr::integer(1));
+}
+
 ValuePtr IntegerValue::succ(Env *env) {
     return add(env, ValuePtr::integer(1));
 }
