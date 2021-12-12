@@ -43,7 +43,7 @@ ValuePtr ArrayValue::initialize(Env *env, ValuePtr size, ValuePtr value, Block *
 
     if (size.is_bignum())
         env->raise("RangeError", "bignum too big to convert into `long'");
-        
+
     size->assert_type(env, Value::Type::Integer, "Integer");
 
     auto s = size->as_integer()->to_nat_int_t();
@@ -1989,16 +1989,23 @@ ValuePtr ArrayValue::slice_in_place(Env *env, ValuePtr index_obj, ValuePtr size)
         begin_obj->assert_type(env, ValueType::Integer, "Integer");
         begin_obj->as_integer()->assert_fixnum(env);
 
+        nat_int_t start = begin_obj.to_nat_int_t();
+
+
         ValuePtr end_obj = range->end();
 
-        if (!end_obj->is_integer() && end_obj->respond_to(env, to_int))
-            end_obj = end_obj.send(env, to_int);
+        nat_int_t end;
 
-        end_obj->assert_type(env, ValueType::Integer, "Integer");
-        end_obj->as_integer()->assert_fixnum(env);
+        if (end_obj->is_nil()) {
+            end = this->size();
+        } else {
+            if (!end_obj->is_integer() && end_obj->respond_to(env, to_int))
+                end_obj = end_obj.send(env, to_int);
 
-        nat_int_t start = begin_obj.to_nat_int_t();
-        nat_int_t end = end_obj.to_nat_int_t();
+            end_obj->assert_type(env, ValueType::Integer, "Integer");
+            end_obj->as_integer()->assert_fixnum(env);
+            end = end_obj.to_nat_int_t();
+        }
 
         return _slice_in_place(start, end, range->exclude_end());
     }
