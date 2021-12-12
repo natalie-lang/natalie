@@ -529,6 +529,10 @@ ValuePtr ArrayValue::first(Env *env, ValuePtr n) {
         n = n->send(env, to_int);
 
     n->assert_type(env, Value::Type::Integer, "Integer");
+
+    if (n.is_bignum())
+        env->raise("RangeError", "bignum too big to convert into `long'");
+
     nat_int_t n_value = n->as_integer()->to_nat_int_t();
 
     if (n_value < 0) {
