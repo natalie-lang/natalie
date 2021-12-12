@@ -280,8 +280,10 @@ ArrayValue *to_ary(Env *env, ValuePtr obj, bool raise_for_non_array) {
     }
 }
 
-static ValuePtr splat_value(Env *env, ValuePtr value, size_t index, size_t offset_from_end) {
+static ValuePtr splat_value(Env *env, ValuePtr value, size_t index, size_t offset_from_end, bool has_kwargs) {
     ArrayValue *splat = new ArrayValue {};
+    if (has_kwargs && value->is_array() && value->as_array()->last()->is_hash())
+        offset_from_end += 1; // compensate for kwargs hash that was passed as the last argument
     if (value->is_array() && index < value->as_array()->size() - offset_from_end) {
         for (size_t s = index; s < value->as_array()->size() - offset_from_end; s++) {
             splat->push((*value->as_array())[s]);
@@ -303,7 +305,7 @@ ValuePtr arg_value_by_path(Env *env, ValuePtr value, ValuePtr default_value, boo
 
         if (splat && i == path_size - 1) {
             va_end(args);
-            return splat_value(env, return_value, index, offset_from_end);
+            return splat_value(env, return_value, index, offset_from_end, has_kwargs);
         } else {
             if (return_value->is_array()) {
                 assert(return_value->as_array()->size() <= NAT_INT_MAX);
@@ -381,7 +383,7 @@ ValuePtr array_value_by_path(Env *env, ValuePtr value, ValuePtr default_value, b
         int index = va_arg(args, int);
         if (splat && i == path_size - 1) {
             va_end(args);
-            return splat_value(env, return_value, index, offset_from_end);
+            return splat_value(env, return_value, index, offset_from_end, false);
         } else {
             if (return_value->is_array()) {
 

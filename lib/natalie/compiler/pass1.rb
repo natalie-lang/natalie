@@ -496,7 +496,7 @@ module Natalie
               max += 1 if max != :unlimited
             end
           elsif arg.sexp_type == :kwarg
-            max += 1 unless has_kwargs # FIXME: incrementing max here is wrong; it produces the wrong error message
+            max += 1 unless has_kwargs || max == :unlimited # FIXME: incrementing max here is wrong; it produces the wrong error message
             has_kwargs = true
           else
             max += 1 if max != :unlimited

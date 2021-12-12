@@ -48,13 +48,14 @@ module Natalie
       def masgn_paths(exp, prefix = [])
         (_, (_, *names)) = exp
         splatted = false
+        names_without_kwargs = names.reject { |n| n.is_a?(Sexp) && n.sexp_type == :kwarg }
         names.each_with_index.each_with_object({}) do |(e, index), hash|
           raise 'destructuring assignment is too big' if index > MAX_MASGN_PATH_INDEX
           if e.is_a?(Sexp) && e.sexp_type == :masgn
             hash.merge!(masgn_paths(e, prefix + [index]))
           elsif e.sexp_type == :splat
             splatted = true
-            hash[e] = { path: prefix + [index], offset_from_end: names.size - index - 1 }
+            hash[e] = { path: prefix + [index], offset_from_end: names_without_kwargs.size - index - 1 }
           elsif e.sexp_type == :kwsplat
             splatted = true
             hash[e] = { path: prefix + [index], offset_from_end: names.size - index - 1 }
