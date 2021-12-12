@@ -460,7 +460,7 @@ ValuePtr ArrayValue::fill(Env *env, ValuePtr obj, ValuePtr start_obj, ValuePtr l
 
             ValuePtr end = start_obj->as_range()->end();
 
-            if (! end->is_nil()) {
+            if (!end->is_nil()) {
                 if (!end.is_integer() && end->respond_to(env, to_int)) {
                     end = end->send(env, to_int);
                 }
@@ -1990,7 +1990,6 @@ ValuePtr ArrayValue::slice_in_place(Env *env, ValuePtr index_obj, ValuePtr size)
         begin_obj->as_integer()->assert_fixnum(env);
 
         nat_int_t start = begin_obj.to_nat_int_t();
-
 
         ValuePtr end_obj = range->end();
 
