@@ -276,6 +276,7 @@ module Natalie
     REQUIRE_EXTENSIONS = %w[nat rb]
 
     def macro_require(node, current_path)
+      raise ArgumentError, "Expected a String, but got #{node.inspect}" unless node.sexp_type == :str
       name = node[1]
       if name == 'natalie/inline'
         @inline_cpp_enabled = true
@@ -290,6 +291,7 @@ module Natalie
     end
 
     def macro_require_relative(node, current_path)
+      raise ArgumentError, "Expected a String, but got #{node.inspect}" unless node.sexp_type == :str
       name = node[1]
       if (full_path = find_full_path("#{name}.rb", base: File.dirname(current_path), search: false))
         return load_file(full_path, require_once: true)
@@ -300,6 +302,7 @@ module Natalie
     end
 
     def macro_load(node, _)
+      raise ArgumentError, "Expected a String, but got #{node.inspect}" unless node.sexp_type == :str
       path = node.last
       full_path = find_full_path(path, base: Dir.pwd, search: true)
       if full_path
