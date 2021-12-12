@@ -56,6 +56,7 @@ public:
     ValuePtr times(Env *, Block *);
     ValuePtr bitwise_and(Env *, ValuePtr);
     ValuePtr bitwise_or(Env *, ValuePtr);
+    ValuePtr pred(Env *);
     ValuePtr succ(Env *);
     ValuePtr coerce(Env *, ValuePtr);
     ValuePtr abs(Env *);
