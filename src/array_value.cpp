@@ -40,6 +40,10 @@ ValuePtr ArrayValue::initialize(Env *env, ValuePtr size, ValuePtr value, Block *
     auto to_int = SymbolValue::intern("to_int");
     if (!size.is_integer() && size->respond_to(env, to_int))
         size = size->send(env, to_int);
+
+    if (size.is_bignum())
+        env->raise("RangeError", "bignum too big to convert into `long'");
+        
     size->assert_type(env, Value::Type::Integer, "Integer");
 
     auto s = size->as_integer()->to_nat_int_t();
