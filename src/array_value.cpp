@@ -80,6 +80,18 @@ ValuePtr ArrayValue::initialize_copy(Env *env, ValuePtr other) {
     return this;
 }
 
+ValuePtr ArrayValue::first() {
+    if (m_vector.is_empty())
+        return NilValue::the();
+    return m_vector[0];
+}
+
+ValuePtr ArrayValue::last() {
+    if (m_vector.is_empty())
+        return NilValue::the();
+    return m_vector[m_vector.size() - 1];
+}
+
 ValuePtr ArrayValue::inspect(Env *env) {
     RecursionGuard guard { this };
 

@@ -67,6 +67,9 @@ public:
         m_vector.push(val);
     }
 
+    ValuePtr first();
+    ValuePtr last();
+
     ValuePtr pop(Env *, ValuePtr);
 
     ValuePtr &at(size_t index) const {
