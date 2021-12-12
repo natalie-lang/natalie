@@ -8,18 +8,17 @@
 
 namespace Natalie {
 
-ValuePtr find_constant(Env *env, Vector<String> paths) 
+ValuePtr find_constant(Env *env, std::initializer_list<SymbolValue *> paths) 
 {
     ValuePtr c;
     for (auto path : paths) {
         if (c == nullptr) {
-            c = GlobalEnv::the()->Object()->const_find(env, SymbolValue::intern(&path));
+            c = GlobalEnv::the()->Object()->const_find(env, path);
             continue;
         }
-        c = c->const_find(env, SymbolValue::intern(&path));
+        c = c->const_find(env, path);
     }
     return c;
 }
-}
 
-#define NAT_CONST(...) Natalie::find_constant(env, TM::Vector<Natalie::String> { __VA_ARGS__ })
+}

@@ -381,7 +381,7 @@ ValuePtr FloatValue::arg(Env *env) {
     if (!signbit(m_double)) {
         return ValuePtr::integer(0);
     } else {
-        return NAT_CONST("Math", "PI");
+        return find_constant(env, { SymbolValue::intern("Math"), SymbolValue::intern("PI") });
     }
 }
 
