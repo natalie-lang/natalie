@@ -71,7 +71,7 @@ describe "Array#uniq" do
 
   ruby_version_is ''...'2.7' do
     # FIXME: Object#tainted? seems to be deprecated in 2.7?
-    xit "compares elements with matching hash codes with #eql?" do
+    it "compares elements with matching hash codes with #eql?" do
       a = Array.new(2) do
         obj = mock('0')
         obj.should_receive(:hash).at_least(1).and_return(0)
