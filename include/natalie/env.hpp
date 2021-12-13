@@ -100,7 +100,7 @@ public:
     const char *file() { return m_file; }
     void set_file(const char *file) { m_file = file; }
 
-    size_t line() { return m_line; }
+    size_t line() const { return m_line; }
     void set_line(size_t line) { m_line = line; }
 
     Method *method() { return m_method; }

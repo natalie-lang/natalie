@@ -28,11 +28,11 @@ public:
         }
     }
 
-    size_t cell_size() {
+    size_t cell_size() const {
         return m_cell_size;
     }
 
-    size_t cell_count_per_block() {
+    size_t cell_count_per_block() const {
         return (HEAP_BLOCK_SIZE - sizeof(HeapBlock)) / m_cell_size;
     }
 
@@ -40,7 +40,7 @@ public:
         return m_blocks.size() * cell_count_per_block();
     }
 
-    size_t free_cells() {
+    size_t free_cells() const {
         return m_free_cells;
     }
 

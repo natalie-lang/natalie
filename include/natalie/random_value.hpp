@@ -3,6 +3,7 @@
 #include <utility>
 
 #include "natalie/class_value.hpp"
+#include "natalie/float_value.hpp"
 #include "natalie/forward.hpp"
 #include "natalie/global_env.hpp"
 #include "natalie/integer_value.hpp"
@@ -26,7 +27,7 @@ public:
     ValuePtr initialize(Env *, ValuePtr);
 
     ValuePtr rand(Env *, ValuePtr);
-    ValuePtr seed() { return ValuePtr::integer(m_seed); }
+    ValuePtr seed() const { return ValuePtr::integer(m_seed); }
 
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<Random %p seed=%lld>", this, m_seed);

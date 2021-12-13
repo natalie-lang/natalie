@@ -66,7 +66,7 @@ public:
 
     const char *pattern() { return m_pattern; }
 
-    int options() { return m_options; }
+    int options() const { return m_options; }
 
     void set_options(const String *options) {
         for (char *c = const_cast<char *>(options->c_str()); *c != '\0'; ++c) {
@@ -104,7 +104,7 @@ public:
         return onig_search(m_regex, unsigned_str, char_end, char_start, char_range, region, options);
     }
 
-    bool eq(Env *env, ValuePtr other) {
+    bool eq(Env *env, ValuePtr other) const {
         return *this == *other;
     }
 

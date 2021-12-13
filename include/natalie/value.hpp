@@ -84,7 +84,7 @@ public:
     ModuleValue *owner() { return m_owner; }
     void set_owner(ModuleValue *owner) { m_owner = owner; }
 
-    int flags() { return m_flags; }
+    int flags() const { return m_flags; }
 
     ValuePtr initialize(Env *, size_t, ValuePtr *, Block *);
 
@@ -214,23 +214,23 @@ public:
 
     virtual ProcValue *to_proc(Env *);
 
-    bool is_main_object() { return (m_flags & Flag::MainObject) == Flag::MainObject; }
+    bool is_main_object() const { return (m_flags & Flag::MainObject) == Flag::MainObject; }
     void add_main_object_flag() { m_flags = m_flags | Flag::MainObject; }
 
-    bool is_frozen() { return is_integer() || is_float() || (m_flags & Flag::Frozen) == Flag::Frozen; }
+    bool is_frozen() const { return is_integer() || is_float() || (m_flags & Flag::Frozen) == Flag::Frozen; }
     void freeze() { m_flags = m_flags | Flag::Frozen; }
 
     void add_break_flag() { m_flags = m_flags | Flag::Break; }
     void remove_break_flag() { m_flags = m_flags & ~Flag::Break; }
-    bool has_break_flag() { return (m_flags & Flag::Break) == Flag::Break; }
+    bool has_break_flag() const { return (m_flags & Flag::Break) == Flag::Break; }
 
     void add_redo_flag() { m_flags = m_flags | Flag::Redo; }
     void remove_redo_flag() { m_flags = m_flags & ~Flag::Redo; }
-    bool has_redo_flag() { return (m_flags & Flag::Redo) == Flag::Redo; }
+    bool has_redo_flag() const { return (m_flags & Flag::Redo) == Flag::Redo; }
 
     void add_inspecting_flag() { m_flags = m_flags | Flag::Inspecting; }
     void remove_inspecting_flag() { m_flags = m_flags & ~Flag::Inspecting; }
-    bool has_inspecting_flag() { return (m_flags & Flag::Inspecting) == Flag::Inspecting; }
+    bool has_inspecting_flag() const { return (m_flags & Flag::Inspecting) == Flag::Inspecting; }
 
     bool eq(Env *, ValuePtr other) {
         return other == this;

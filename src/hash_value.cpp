@@ -28,7 +28,7 @@ ValuePtr HashValue::compare_by_identity(Env *env) {
     return this;
 }
 
-ValuePtr HashValue::is_comparing_by_identity() {
+ValuePtr HashValue::is_comparing_by_identity() const {
     if (m_is_comparing_by_identity) {
         return TrueValue::the();
     } else {
@@ -43,7 +43,7 @@ ValuePtr HashValue::get(Env *env, ValuePtr key) {
     return m_hashmap.get(&key_container, env);
 }
 
-nat_int_t HashValue::generate_key_hash(Env *env, ValuePtr key) {
+nat_int_t HashValue::generate_key_hash(Env *env, ValuePtr key) const {
     if (m_is_comparing_by_identity) {
         return TM::Hashmap<void *>::hash_ptr(key.value());
     } else {
@@ -373,7 +373,7 @@ ValuePtr HashValue::dig(Env *env, size_t argc, ValuePtr *args) {
     return val.send(env, dig, argc - 1, args + 1);
 }
 
-ValuePtr HashValue::size(Env *env) {
+ValuePtr HashValue::size(Env *env) const {
     return IntegerValue::from_size_t(env, size());
 }
 

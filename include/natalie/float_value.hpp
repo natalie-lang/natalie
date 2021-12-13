@@ -53,7 +53,7 @@ public:
         return new FloatValue { DBL_MIN };
     }
 
-    double to_double() {
+    double to_double() const {
         return m_double;
     }
 
@@ -71,46 +71,46 @@ public:
         return this;
     }
 
-    bool is_zero() {
+    bool is_zero() const {
         return m_double == 0 && !is_nan();
     }
 
-    bool is_finite() {
+    bool is_finite() const {
         return !(is_negative_infinity() || is_positive_infinity() || is_nan());
     }
 
-    bool is_nan() {
+    bool is_nan() const {
         return isnan(m_double);
     }
 
-    bool is_infinity() {
+    bool is_infinity() const {
         return isinf(m_double);
     }
 
-    bool is_negative() {
+    bool is_negative() const {
         return m_double < 0.0;
     };
 
-    bool is_positive() {
+    bool is_positive() const {
         return m_double > 0.0;
     };
 
     // NOTE: even though this is a predicate method with a ? suffix, it returns an 1, -1, or nil.
-    ValuePtr is_infinite(Env *);
+    ValuePtr is_infinite(Env *) const;
 
-    bool is_positive_infinity() {
+    bool is_positive_infinity() const {
         return is_infinity() && m_double > 0;
     }
 
-    bool is_negative_infinity() {
+    bool is_negative_infinity() const {
         return is_infinity() && m_double < 0;
     }
 
-    bool is_positive_zero() {
+    bool is_positive_zero() const {
         return m_double == 0 && !signbit(m_double);
     }
 
-    bool is_negative_zero() {
+    bool is_negative_zero() const {
         return m_double == 0 && signbit(m_double);
     }
 
@@ -122,28 +122,28 @@ public:
 
     bool eq(Env *, ValuePtr);
 
-    bool eql(ValuePtr);
+    bool eql(ValuePtr) const;
 
     ValuePtr abs(Env *);
     ValuePtr add(Env *, ValuePtr);
     ValuePtr arg(Env *);
-    ValuePtr ceil(Env *, ValuePtr);
+    ValuePtr ceil(Env *, ValuePtr) const;
     ValuePtr cmp(Env *, ValuePtr);
     ValuePtr coerce(Env *, ValuePtr);
     ValuePtr div(Env *, ValuePtr);
     ValuePtr divmod(Env *, ValuePtr);
-    ValuePtr floor(Env *, ValuePtr);
+    ValuePtr floor(Env *, ValuePtr) const;
     ValuePtr mod(Env *, ValuePtr);
     ValuePtr mul(Env *, ValuePtr);
-    ValuePtr next_float(Env *);
+    ValuePtr next_float(Env *) const;
     ValuePtr pow(Env *, ValuePtr);
-    ValuePtr prev_float(Env *);
+    ValuePtr prev_float(Env *) const;
     ValuePtr round(Env *, ValuePtr);
     ValuePtr sub(Env *, ValuePtr);
     ValuePtr to_f() { return this; }
-    ValuePtr to_i(Env *);
-    ValuePtr to_s(Env *);
-    ValuePtr truncate(Env *, ValuePtr);
+    ValuePtr to_i(Env *) const;
+    ValuePtr to_s(Env *) const;
+    ValuePtr truncate(Env *, ValuePtr) const;
 
     bool lt(Env *, ValuePtr);
     bool lte(Env *, ValuePtr);

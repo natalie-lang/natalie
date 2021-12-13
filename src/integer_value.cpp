@@ -43,7 +43,7 @@ ValuePtr IntegerValue::to_i() {
     return this;
 }
 
-ValuePtr IntegerValue::to_f() {
+ValuePtr IntegerValue::to_f() const {
     return new FloatValue { m_integer };
 }
 
@@ -140,7 +140,7 @@ ValuePtr IntegerValue::mul(Env *env, ValuePtr arg) {
     return ValuePtr::integer(ll_this * ll_arg);
 }
 
-nat_int_t IntegerValue::div_floor(nat_int_t b) {
+nat_int_t IntegerValue::div_floor(nat_int_t b) const {
     nat_int_t a = to_nat_int_t();
     nat_int_t res = a / b;
     nat_int_t rem = a % b;
@@ -172,13 +172,13 @@ ValuePtr IntegerValue::div(Env *env, ValuePtr arg) {
     return ValuePtr::integer(result);
 }
 
-ValuePtr IntegerValue::mod(Env *env, ValuePtr arg) {
+ValuePtr IntegerValue::mod(Env *env, ValuePtr arg) const {
     arg.assert_type(env, Value::Type::Integer, "Integer");
     nat_int_t result = to_nat_int_t() % arg.to_nat_int_t();
     return ValuePtr::integer(result);
 }
 
-ValuePtr IntegerValue::pow(Env *env, ValuePtr arg) {
+ValuePtr IntegerValue::pow(Env *env, ValuePtr arg) const {
     arg.assert_type(env, Value::Type::Integer, "Integer");
     nat_int_t result = ::pow(to_nat_int_t(), arg.to_nat_int_t());
     return ValuePtr::integer(result);
@@ -280,7 +280,7 @@ bool IntegerValue::gte(Env *env, ValuePtr other) {
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
 }
 
-ValuePtr IntegerValue::eqeqeq(Env *env, ValuePtr arg) {
+ValuePtr IntegerValue::eqeqeq(Env *env, ValuePtr arg) const {
     if (arg.is_integer() && to_nat_int_t() == arg.to_nat_int_t()) {
         return TrueValue::the();
     } else {
@@ -303,12 +303,12 @@ ValuePtr IntegerValue::times(Env *env, Block *block) {
     return this;
 }
 
-ValuePtr IntegerValue::bitwise_and(Env *env, ValuePtr arg) {
+ValuePtr IntegerValue::bitwise_and(Env *env, ValuePtr arg) const {
     arg.assert_type(env, Value::Type::Integer, "Integer");
     return ValuePtr::integer(to_nat_int_t() & arg.to_nat_int_t());
 }
 
-ValuePtr IntegerValue::bitwise_or(Env *env, ValuePtr arg) {
+ValuePtr IntegerValue::bitwise_or(Env *env, ValuePtr arg) const {
     arg.assert_type(env, Value::Type::Integer, "Integer");
     return ValuePtr::integer(to_nat_int_t() | arg.to_nat_int_t());
 }
@@ -355,7 +355,7 @@ ValuePtr IntegerValue::abs(Env *env) {
     }
 }
 
-ValuePtr IntegerValue::chr(Env *env) {
+ValuePtr IntegerValue::chr(Env *env) const {
     char c = static_cast<char>(to_nat_int_t());
     char str[] = " ";
     str[0] = c;
@@ -391,7 +391,7 @@ ValuePtr IntegerValue::negate(Env *env) {
     return ValuePtr::integer(-1 * m_integer);
 }
 
-ValuePtr IntegerValue::complement(Env *env) {
+ValuePtr IntegerValue::complement(Env *env) const {
     return ValuePtr::integer(~m_integer);
 }
 }

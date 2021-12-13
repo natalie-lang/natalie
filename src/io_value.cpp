@@ -24,7 +24,7 @@ ValuePtr IoValue::read_file(Env *env, ValuePtr filename) {
 
 #define NAT_READ_BYTES 1024
 
-ValuePtr IoValue::read(Env *env, ValuePtr count_value) {
+ValuePtr IoValue::read(Env *env, ValuePtr count_value) const {
     if (m_closed)
         env->raise("IOError", "closed stream");
     size_t bytes_read;
@@ -59,7 +59,7 @@ ValuePtr IoValue::read(Env *env, ValuePtr count_value) {
     return str;
 }
 
-ValuePtr IoValue::write(Env *env, size_t argc, ValuePtr *args) {
+ValuePtr IoValue::write(Env *env, size_t argc, ValuePtr *args) const {
     env->ensure_argc_at_least(argc, 1);
     int bytes_written = 0;
     for (size_t i = 0; i < argc; i++) {
@@ -81,7 +81,7 @@ ValuePtr IoValue::write(Env *env, size_t argc, ValuePtr *args) {
     return ValuePtr::integer(bytes_written);
 }
 
-ValuePtr IoValue::puts(Env *env, size_t argc, ValuePtr *args) {
+ValuePtr IoValue::puts(Env *env, size_t argc, ValuePtr *args) const {
     if (argc == 0) {
         dprintf(m_fileno, "\n");
     } else {
@@ -94,7 +94,7 @@ ValuePtr IoValue::puts(Env *env, size_t argc, ValuePtr *args) {
     return NilValue::the();
 }
 
-ValuePtr IoValue::print(Env *env, size_t argc, ValuePtr *args) {
+ValuePtr IoValue::print(Env *env, size_t argc, ValuePtr *args) const {
     if (argc > 0) {
         for (size_t i = 0; i < argc; i++) {
             ValuePtr str = args[i].send(env, SymbolValue::intern("to_s"));
@@ -120,7 +120,7 @@ ValuePtr IoValue::close(Env *env) {
     }
 }
 
-ValuePtr IoValue::seek(Env *env, ValuePtr amount_value, ValuePtr whence_value) {
+ValuePtr IoValue::seek(Env *env, ValuePtr amount_value, ValuePtr whence_value) const {
     amount_value->assert_type(env, Value::Type::Integer, "Integer");
     int amount = amount_value->as_integer()->to_nat_int_t();
     int whence = 0;
