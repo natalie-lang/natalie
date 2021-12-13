@@ -38,17 +38,17 @@ public:
 
     static ValuePtr read_file(Env *, ValuePtr);
 
-    int fileno() { return m_fileno; }
+    int fileno() const { return m_fileno; }
     void set_fileno(int fileno) { m_fileno = fileno; }
 
     ValuePtr initialize(Env *, ValuePtr);
-    ValuePtr read(Env *, ValuePtr);
-    ValuePtr write(Env *, size_t, ValuePtr *);
-    ValuePtr puts(Env *, size_t, ValuePtr *);
-    ValuePtr print(Env *, size_t, ValuePtr *);
+    ValuePtr read(Env *, ValuePtr) const;
+    ValuePtr write(Env *, size_t, ValuePtr *) const;
+    ValuePtr puts(Env *, size_t, ValuePtr *) const;
+    ValuePtr print(Env *, size_t, ValuePtr *) const;
     ValuePtr close(Env *);
-    ValuePtr seek(Env *, ValuePtr, ValuePtr);
-    bool is_closed() { return m_closed; }
+    ValuePtr seek(Env *, ValuePtr, ValuePtr) const;
+    bool is_closed() const { return m_closed; }
 
 private:
     int m_fileno { -1 };

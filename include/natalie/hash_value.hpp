@@ -64,7 +64,7 @@ public:
     static bool compare(const void *, const void *, void *);
 
     size_t size() const { return m_hashmap.size(); }
-    ValuePtr size(Env *);
+    ValuePtr size(Env *) const;
 
     bool is_empty() { return m_hashmap.size() == 0; }
 
@@ -85,7 +85,7 @@ public:
     ValuePtr compact(Env *);
     ValuePtr compact_in_place(Env *);
 
-    bool is_iterating() { return m_is_iterating; }
+    bool is_iterating() const { return m_is_iterating; }
     void set_is_iterating(bool is_iterating) { m_is_iterating = is_iterating; }
 
     class iterator {
@@ -137,7 +137,7 @@ public:
     }
 
     ValuePtr compare_by_identity(Env *);
-    ValuePtr is_comparing_by_identity();
+    ValuePtr is_comparing_by_identity() const;
     ValuePtr delete_if(Env *, Block *);
     ValuePtr delete_key(Env *, ValuePtr, Block *);
     ValuePtr dig(Env *, size_t, ValuePtr *);
@@ -180,7 +180,7 @@ public:
 private:
     void key_list_remove_node(Key *);
     Key *key_list_append(Env *, ValuePtr, nat_int_t, ValuePtr);
-    nat_int_t generate_key_hash(Env *, ValuePtr);
+    nat_int_t generate_key_hash(Env *, ValuePtr) const;
 
     void destroy_key_list() {
         if (!m_key_list) return;

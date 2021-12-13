@@ -169,13 +169,13 @@ public:
 
     const char *name() { return m_name->c_str(); }
 
-    bool splat() { return m_splat; }
+    bool splat() const { return m_splat; }
     void set_splat(bool splat) { m_splat = splat; }
 
-    bool kwsplat() { return m_kwsplat; }
+    bool kwsplat() const { return m_kwsplat; }
     void set_kwsplat(bool kwsplat) { m_kwsplat = kwsplat; }
 
-    bool block_arg() { return m_block_arg; }
+    bool block_arg() const { return m_block_arg; }
     void set_block_arg(bool block_arg) { m_block_arg = block_arg; }
 
     Node *value() { return m_value; }
@@ -622,7 +622,7 @@ public:
 
     virtual ValuePtr to_ruby(Env *) override;
 
-    nat_int_t number() { return m_number; }
+    nat_int_t number() const { return m_number; }
 
 protected:
     nat_int_t m_number;
@@ -638,7 +638,7 @@ public:
 
     virtual ValuePtr to_ruby(Env *) override;
 
-    double number() { return m_number; }
+    double number() const { return m_number; }
 
 protected:
     double m_number;
@@ -775,7 +775,7 @@ public:
         }
     }
 
-    bool is_lvar() { return m_is_lvar; }
+    bool is_lvar() const { return m_is_lvar; }
     void set_is_lvar(bool is_lvar) { m_is_lvar = is_lvar; }
 
     nat_int_t nth_ref() {
@@ -914,7 +914,7 @@ public:
 
     virtual ValuePtr to_ruby(Env *) override;
 
-    int options() { return m_options; }
+    int options() const { return m_options; }
     void set_options(int options) { m_options = options; }
 
 private:
@@ -1491,7 +1491,7 @@ public:
 
     virtual Type type() override { return Type::Super; }
 
-    bool parens() { return m_parens; }
+    bool parens() const { return m_parens; }
     void set_parens(bool parens) { m_parens = parens; }
 
     bool empty_parens() { return m_parens && m_args.is_empty(); }

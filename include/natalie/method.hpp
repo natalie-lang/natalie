@@ -35,7 +35,7 @@ public:
     bool has_env() { return !!m_env; }
     Env *env() { return m_env; }
 
-    bool is_undefined() { return m_undefined; }
+    bool is_undefined() const { return m_undefined; }
 
     ValuePtr call(Env *env, ValuePtr self, size_t argc, ValuePtr *args, Block *block) {
         assert(!is_undefined());
@@ -68,7 +68,7 @@ public:
     MethodVisibility visibility() { return m_visibility; }
     void set_visibility(MethodVisibility visibility) { m_visibility = visibility; }
 
-    int arity() { return m_arity; }
+    int arity() const { return m_arity; }
 
     virtual void visit_children(Visitor &visitor) override final {
         visitor.visit(m_owner);

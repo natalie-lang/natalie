@@ -26,7 +26,7 @@ public:
         return result;
     }
 
-    int arity() { return m_arity; }
+    int arity() const { return m_arity; }
 
     bool has_env() { return !!m_env; }
     Env *env() { return m_env; }

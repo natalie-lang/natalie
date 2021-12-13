@@ -14,7 +14,7 @@ constexpr bool is_strippable_whitespace(char c) {
         || c == ' ';
 };
 
-void StringValue::raise_encoding_invalid_byte_sequence_error(Env *env, size_t index) {
+void StringValue::raise_encoding_invalid_byte_sequence_error(Env *env, size_t index) const {
     StringValue *message = format(env, "invalid byte sequence at index {} in string of size {} (string not long enough)", index, length());
     ClassValue *Encoding = GlobalEnv::the()->Object()->const_find(env, SymbolValue::intern("Encoding"))->as_class();
     ClassValue *InvalidByteSequenceError = Encoding->const_find(env, SymbolValue::intern("InvalidByteSequenceError"))->as_class();
@@ -85,11 +85,11 @@ ArrayValue *StringValue::chars(Env *env) {
     return ary;
 }
 
-SymbolValue *StringValue::to_symbol(Env *env) {
+SymbolValue *StringValue::to_symbol(Env *env) const {
     return SymbolValue::intern(c_str());
 }
 
-ValuePtr StringValue::to_sym(Env *env) {
+ValuePtr StringValue::to_sym(Env *env) const {
     return to_symbol(env);
 }
 
@@ -135,12 +135,12 @@ StringValue *StringValue::successive(Env *env) {
     return new StringValue { str };
 }
 
-bool StringValue::start_with(Env *env, ValuePtr needle) {
+bool StringValue::start_with(Env *env, ValuePtr needle) const {
     nat_int_t i = index_int(env, needle, 0);
     return i == 0;
 }
 
-bool StringValue::end_with(Env *env, ValuePtr needle) {
+bool StringValue::end_with(Env *env, ValuePtr needle) const {
     needle->assert_type(env, Value::Type::String, "String");
     if (length() < needle->as_string()->length())
         return false;
@@ -169,7 +169,7 @@ ValuePtr StringValue::index(Env *env, ValuePtr needle, size_t start) {
     return ValuePtr::integer(0);
 }
 
-nat_int_t StringValue::index_int(Env *env, ValuePtr needle, size_t start) {
+nat_int_t StringValue::index_int(Env *env, ValuePtr needle, size_t start) const {
     needle->assert_type(env, Value::Type::String, "String");
     const char *ptr = strstr(c_str() + start, needle->as_string()->c_str());
     if (ptr == nullptr)
@@ -197,7 +197,7 @@ ValuePtr StringValue::ltlt(Env *env, ValuePtr arg) {
     return this;
 }
 
-ValuePtr StringValue::add(Env *env, ValuePtr arg) {
+ValuePtr StringValue::add(Env *env, ValuePtr arg) const {
     const char *str;
     if (arg->is_string()) {
         str = arg->as_string()->c_str();
@@ -211,7 +211,7 @@ ValuePtr StringValue::add(Env *env, ValuePtr arg) {
     return new_string;
 }
 
-ValuePtr StringValue::mul(Env *env, ValuePtr arg) {
+ValuePtr StringValue::mul(Env *env, ValuePtr arg) const {
     arg->assert_type(env, Value::Type::Integer, "Integer");
     StringValue *new_string = new StringValue { "" };
     for (nat_int_t i = 0; i < arg->as_integer()->to_nat_int_t(); i++) {
@@ -220,7 +220,7 @@ ValuePtr StringValue::mul(Env *env, ValuePtr arg) {
     return new_string;
 }
 
-ValuePtr StringValue::cmp(Env *env, ValuePtr other) {
+ValuePtr StringValue::cmp(Env *env, ValuePtr other) const {
     if (other->type() != Value::Type::String) return NilValue::the();
     auto *str = c_str();
     auto *other_str = other->as_string()->c_str();
@@ -284,7 +284,7 @@ ValuePtr StringValue::ord(Env *env) {
     return ValuePtr::integer(code);
 }
 
-ValuePtr StringValue::bytes(Env *env) {
+ValuePtr StringValue::bytes(Env *env) const {
     ArrayValue *ary = new ArrayValue {};
     for (size_t i = 0; i < length(); i++) {
         unsigned char c = c_str()[i];
@@ -534,7 +534,7 @@ StringValue *StringValue::expand_backrefs(Env *env, StringValue *str, MatchDataV
     return expanded;
 }
 
-ValuePtr StringValue::to_i(Env *env, ValuePtr base_obj) {
+ValuePtr StringValue::to_i(Env *env, ValuePtr base_obj) const {
     int base = 10;
     if (base_obj) {
         base_obj->assert_type(env, Value::Type::Integer, "Integer");
@@ -628,7 +628,7 @@ ValuePtr StringValue::ljust(Env *env, ValuePtr length_obj, ValuePtr pad_obj) {
     return copy;
 }
 
-ValuePtr StringValue::strip(Env *env) {
+ValuePtr StringValue::strip(Env *env) const {
     if (length() == 0)
         return new StringValue {};
     assert(length() < NAT_INT_MAX);
@@ -652,7 +652,7 @@ ValuePtr StringValue::strip(Env *env) {
     }
 }
 
-ValuePtr StringValue::lstrip(Env *env) {
+ValuePtr StringValue::lstrip(Env *env) const {
     if (length() == 0)
         return new StringValue {};
     assert(length() < NAT_INT_MAX);
@@ -671,7 +671,7 @@ ValuePtr StringValue::lstrip(Env *env) {
     }
 }
 
-ValuePtr StringValue::rstrip(Env *env) {
+ValuePtr StringValue::rstrip(Env *env) const {
     if (length() == 0)
         return new StringValue {};
     assert(length() < NAT_INT_MAX);

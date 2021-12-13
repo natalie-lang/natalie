@@ -333,7 +333,7 @@ public:
         }
     }
 
-    bool is_empty() { return m_length == 0; }
+    bool is_empty() const { return m_length == 0; }
 
     String successive() {
         auto result = String { *this };

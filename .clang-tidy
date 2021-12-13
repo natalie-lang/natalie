@@ -1,0 +1,11 @@
+Checks: |
+  clang-diagnostic-*,
+  clang-analyzer-*,
+  readability-make-member-function-const,
+  readability-const-return-type,
+  readability-non-const-parameter,
+  misc-misplaced-const,
+  readability-avoid-const-params-in-decls,
+  -clang-analyzer-valist.Uninitialized,
+  -clang-analyzer-core.CallAndMessage,
+FormatStyle: file

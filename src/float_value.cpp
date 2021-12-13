@@ -5,7 +5,7 @@
 
 namespace Natalie {
 
-ValuePtr FloatValue::is_infinite(Env *env) {
+ValuePtr FloatValue::is_infinite(Env *env) const {
     if (is_positive_infinity()) {
         return ValuePtr::integer(1);
     } else if (is_negative_infinity()) {
@@ -30,13 +30,13 @@ bool FloatValue::eq(Env *env, ValuePtr other) {
     return false;
 }
 
-bool FloatValue::eql(ValuePtr other) {
+bool FloatValue::eql(ValuePtr other) const {
     if (!other->is_float()) return false;
     auto *f = other->as_float();
     return f->m_double == m_double;
 }
 
-ValuePtr FloatValue::ceil(Env *env, ValuePtr precision_value) {
+ValuePtr FloatValue::ceil(Env *env, ValuePtr precision_value) const {
     double value = this->to_double();
     nat_int_t precision = 0;
     if (precision_value) {
@@ -57,7 +57,7 @@ ValuePtr FloatValue::ceil(Env *env, ValuePtr precision_value) {
     return result;
 }
 
-ValuePtr FloatValue::floor(Env *env, ValuePtr precision_value) {
+ValuePtr FloatValue::floor(Env *env, ValuePtr precision_value) const {
     double value = this->to_double();
     nat_int_t precision = 0;
     if (precision_value) {
@@ -112,14 +112,14 @@ ValuePtr FloatValue::round(Env *env, ValuePtr precision_value) {
     return result;
 }
 
-ValuePtr FloatValue::truncate(Env *env, ValuePtr precision_value) {
+ValuePtr FloatValue::truncate(Env *env, ValuePtr precision_value) const {
     if (is_negative()) {
         return ceil(env, precision_value);
     }
     return floor(env, precision_value);
 }
 
-ValuePtr FloatValue::to_s(Env *env) {
+ValuePtr FloatValue::to_s(Env *env) const {
     if (is_nan()) {
         return new StringValue { "NaN" };
     } else if (is_positive_infinity()) {
@@ -222,7 +222,7 @@ ValuePtr FloatValue::coerce(Env *env, ValuePtr arg) {
     return ary;
 }
 
-ValuePtr FloatValue::to_i(Env *env) {
+ValuePtr FloatValue::to_i(Env *env) const {
     return floor(env, nullptr);
 }
 
@@ -366,12 +366,12 @@ ValuePtr FloatValue::abs(Env *env) {
     }
 }
 
-ValuePtr FloatValue::next_float(Env *env) {
+ValuePtr FloatValue::next_float(Env *env) const {
     double number = nextafter(to_double(), HUGE_VAL);
     return new FloatValue { number };
 }
 
-ValuePtr FloatValue::prev_float(Env *env) {
+ValuePtr FloatValue::prev_float(Env *env) const {
     double number = nextafter(to_double(), -HUGE_VAL);
     return new FloatValue { number };
 }

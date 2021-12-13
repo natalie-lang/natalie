@@ -231,8 +231,8 @@ public:
     const String *options() { return m_options ? m_options.value() : nullptr; }
     void set_options(const String *options) { m_options = options; }
 
-    nat_int_t get_integer() { return m_integer; }
-    double get_double() { return m_double; }
+    nat_int_t get_integer() const { return m_integer; }
+    double get_double() const { return m_double; }
 
     const char *type_value() {
         switch (m_type) {
@@ -634,14 +634,14 @@ public:
             || m_type == Token::Type::TernaryQuestion;
     }
 
-    bool has_sign() { return m_has_sign; }
+    bool has_sign() const { return m_has_sign; }
     void set_has_sign(bool has_sign) { m_has_sign = has_sign; }
 
     const String *file() { return m_file; }
-    size_t line() { return m_line; }
-    size_t column() { return m_column; }
+    size_t line() const { return m_line; }
+    size_t column() const { return m_column; }
 
-    bool whitespace_precedes() { return m_whitespace_precedes; }
+    bool whitespace_precedes() const { return m_whitespace_precedes; }
     void set_whitespace_precedes(bool whitespace_precedes) { m_whitespace_precedes = whitespace_precedes; }
 
     bool can_have_interpolation() {

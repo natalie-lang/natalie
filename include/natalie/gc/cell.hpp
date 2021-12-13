@@ -46,7 +46,7 @@ public:
         return true;
     }
 
-    bool is_marked() {
+    bool is_marked() const {
         return m_marked;
     }
 

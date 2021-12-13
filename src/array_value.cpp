@@ -1731,7 +1731,7 @@ ValuePtr ArrayValue::concat(Env *env, size_t argc, ValuePtr *args) {
     return this;
 }
 
-nat_int_t ArrayValue::_resolve_index(nat_int_t nat_index) {
+nat_int_t ArrayValue::_resolve_index(nat_int_t nat_index) const {
     nat_int_t index { nat_index };
 
     if (nat_index < 0)

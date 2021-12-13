@@ -96,8 +96,8 @@ public:
     ValuePtr each_char(Env *, Block *);
     ArrayValue *chars(Env *);
 
-    SymbolValue *to_symbol(Env *);
-    ValuePtr to_sym(Env *);
+    SymbolValue *to_symbol(Env *) const;
+    ValuePtr to_sym(Env *) const;
 
     StringValue *to_str() { return this; }
 
@@ -117,7 +117,7 @@ public:
 
     ValuePtr index(Env *, ValuePtr);
     ValuePtr index(Env *, ValuePtr, size_t start);
-    nat_int_t index_int(Env *, ValuePtr, size_t start);
+    nat_int_t index_int(Env *, ValuePtr, size_t start) const;
 
     void truncate(size_t length) {
         m_string.truncate(length);
@@ -126,7 +126,7 @@ public:
     ValuePtr initialize(Env *, ValuePtr);
     ValuePtr ltlt(Env *, ValuePtr);
 
-    bool eql(ValuePtr arg) {
+    bool eql(ValuePtr arg) const {
         return *this == *arg;
     }
 
@@ -134,16 +134,16 @@ public:
         return this;
     }
 
-    bool start_with(Env *, ValuePtr);
-    bool end_with(Env *, ValuePtr);
-    bool is_empty() { return m_string.is_empty(); }
+    bool start_with(Env *, ValuePtr) const;
+    bool end_with(Env *, ValuePtr) const;
+    bool is_empty() const { return m_string.is_empty(); }
 
     ValuePtr gsub(Env *, ValuePtr, ValuePtr = nullptr, Block *block = nullptr);
     ValuePtr sub(Env *, ValuePtr, ValuePtr = nullptr, Block *block = nullptr);
 
-    ValuePtr add(Env *, ValuePtr);
-    ValuePtr bytes(Env *);
-    ValuePtr cmp(Env *, ValuePtr);
+    ValuePtr add(Env *, ValuePtr) const;
+    ValuePtr bytes(Env *) const;
+    ValuePtr cmp(Env *, ValuePtr) const;
     ValuePtr downcase(Env *);
     ValuePtr encode(Env *, ValuePtr);
     ValuePtr encoding(Env *);
@@ -151,17 +151,17 @@ public:
     ValuePtr eqtilde(Env *, ValuePtr);
     ValuePtr force_encoding(Env *, ValuePtr);
     ValuePtr ljust(Env *, ValuePtr, ValuePtr);
-    ValuePtr lstrip(Env *);
+    ValuePtr lstrip(Env *) const;
     ValuePtr match(Env *, ValuePtr);
-    ValuePtr mul(Env *, ValuePtr);
+    ValuePtr mul(Env *, ValuePtr) const;
     ValuePtr ord(Env *);
     ValuePtr ref(Env *, ValuePtr);
     ValuePtr reverse(Env *);
-    ValuePtr rstrip(Env *);
+    ValuePtr rstrip(Env *) const;
     ValuePtr size(Env *);
     ValuePtr split(Env *, ValuePtr, ValuePtr);
-    ValuePtr strip(Env *);
-    ValuePtr to_i(Env *, ValuePtr);
+    ValuePtr strip(Env *) const;
+    ValuePtr to_i(Env *, ValuePtr) const;
     ValuePtr upcase(Env *);
 
     template <typename... Args>
@@ -180,7 +180,7 @@ private:
 
     using Value::Value;
 
-    void raise_encoding_invalid_byte_sequence_error(Env *, size_t);
+    void raise_encoding_invalid_byte_sequence_error(Env *, size_t) const;
 
     String m_string {};
     Encoding m_encoding { Encoding::UTF_8 };

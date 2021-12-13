@@ -27,7 +27,7 @@ public:
 
     ValuePtr begin() { return m_begin; }
     ValuePtr end() { return m_end; }
-    bool exclude_end() { return m_exclude_end; }
+    bool exclude_end() const { return m_exclude_end; }
 
     ValuePtr initialize(Env *, ValuePtr, ValuePtr, ValuePtr);
     ValuePtr to_a(Env *);

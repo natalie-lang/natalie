@@ -23,7 +23,7 @@ public:
         return m_integer;
     }
 
-    bool is_zero() {
+    bool is_zero() const {
         return m_integer == 0;
     }
 
@@ -31,7 +31,7 @@ public:
         return m_integer % 2 != 0;
     }
 
-    bool is_even() {
+    bool is_even() const {
         return m_integer % 2 == 0;
     }
 
@@ -44,25 +44,25 @@ public:
 
     virtual ValuePtr to_s(Env *, ValuePtr = nullptr);
     ValuePtr to_i();
-    ValuePtr to_f();
+    ValuePtr to_f() const;
     virtual ValuePtr add(Env *, ValuePtr);
     virtual ValuePtr sub(Env *, ValuePtr);
     virtual ValuePtr mul(Env *, ValuePtr);
     virtual ValuePtr div(Env *, ValuePtr);
-    ValuePtr mod(Env *, ValuePtr);
-    ValuePtr pow(Env *, ValuePtr);
+    ValuePtr mod(Env *, ValuePtr) const;
+    ValuePtr pow(Env *, ValuePtr) const;
     ValuePtr cmp(Env *, ValuePtr);
-    ValuePtr eqeqeq(Env *, ValuePtr);
+    ValuePtr eqeqeq(Env *, ValuePtr) const;
     ValuePtr times(Env *, Block *);
-    ValuePtr bitwise_and(Env *, ValuePtr);
-    ValuePtr bitwise_or(Env *, ValuePtr);
+    ValuePtr bitwise_and(Env *, ValuePtr) const;
+    ValuePtr bitwise_or(Env *, ValuePtr) const;
     ValuePtr pred(Env *);
     ValuePtr succ(Env *);
     ValuePtr coerce(Env *, ValuePtr);
     ValuePtr abs(Env *);
-    ValuePtr chr(Env *);
+    ValuePtr chr(Env *) const;
     virtual ValuePtr negate(Env *);
-    ValuePtr complement(Env *);
+    ValuePtr complement(Env *) const;
     ValuePtr ord() { return this; }
 
     virtual bool eq(Env *, ValuePtr);
@@ -74,7 +74,7 @@ public:
     virtual bool is_bignum() const { return false; }
     bool is_fixnum() const { return !is_bignum(); }
 
-    void assert_fixnum(Env *env) {
+    void assert_fixnum(Env *env) const {
         if (is_bignum())
             env->raise("RangeError", "bignum too big to convert into `long'");
     }
@@ -92,7 +92,7 @@ private:
 
     nat_int_t m_integer { 0 };
 
-    nat_int_t div_floor(nat_int_t);
+    nat_int_t div_floor(nat_int_t) const;
 };
 
 }

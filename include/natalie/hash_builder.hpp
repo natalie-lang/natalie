@@ -1,6 +1,7 @@
 #pragma once
 
 #include "natalie/forward.hpp"
+#include "natalie/types.hpp"
 
 namespace Natalie {
 class HashBuilder {
@@ -19,7 +20,7 @@ public:
             m_digest ^= hash;
     }
 
-    nat_int_t digest() { return m_digest; }
+    nat_int_t digest() const { return m_digest; }
 
 private:
     nat_int_t m_digest;
