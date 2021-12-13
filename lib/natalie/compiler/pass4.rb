@@ -641,6 +641,13 @@ module Natalie
         end
       end
 
+      def process_struct(exp)
+        (_, hash) = exp
+        '{ ' +
+          hash.map { |k, v| ".#{k} = #{process_atom(v)}" }.join(', ') +
+          ' }'
+      end
+
       def process_var_alloc(exp)
         count = exp.last
         if count > 0
