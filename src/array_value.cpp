@@ -1828,7 +1828,6 @@ ValuePtr ArrayValue::one(Env *env, size_t argc, ValuePtr *args, Block *block) {
 ValuePtr ArrayValue::product(Env *env, size_t argc, ValuePtr *args, Block *block) {
     Vector<ArrayValue *> arrays;
     arrays.push(this);
-    auto to_ary = SymbolValue::intern("to_ary");
     for (size_t i = 0; i < argc; ++i)
         arrays.push(args[i]->to_ary(env));
 
