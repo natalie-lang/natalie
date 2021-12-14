@@ -1,3 +1,4 @@
+require_relative './base_pass'
 require_relative './method_args'
 require_relative './multiple_assignment'
 require_relative '../../../build/generated/numbers'
@@ -5,14 +6,16 @@ require_relative '../../../build/generated/numbers'
 module Natalie
   class Compiler
     # Process S-expressions from the Ruby parser.
-    class Pass1 < NatSexpProcessor
+    class Pass1 < BasePass
       MAX_FIXNUM = NAT_MAX_FIXNUM
       MIN_FIXNUM = NAT_MIN_FIXNUM
 
       def initialize(compiler_context)
-        super()
+        super
+        self.default_method = nil
+        self.warn_on_default = true
         self.require_empty = false
-        @compiler_context = compiler_context
+        self.strict = false
         @retry_context = []
       end
 
@@ -743,6 +746,11 @@ module Natalie
       def process_str(exp)
         (_, str) = exp
         exp.new(:new, :StringValue, s(:s, str), str.bytes.size)
+      end
+
+      def process_struct(exp)
+        (_, hash) = exp
+        exp.new(:struct, process_atom(hash))
       end
 
       def process_super(exp)

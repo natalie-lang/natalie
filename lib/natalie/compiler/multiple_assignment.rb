@@ -27,12 +27,22 @@ module Natalie
               if name.size == 1 # nameless splat
                 s(:block)
               else
-                value = s(:array_value_by_path, :env, value_name, s(:nil), :true, path_details[:offset_from_end], path.size, *path)
+                options = s(:struct,
+                            value: value_name,
+                            default_value: s(:nil),
+                            splat: true,
+                            offset_from_end: path_details[:offset_from_end])
+                value = s(:array_value_by_path, :env, options, path.size, *path)
                 masgn_set(name.last, value)
               end
             else
               default_value = name.size == 3 ? name.pop : s(:nil)
-              value = s(:array_value_by_path, :env, value_name, default_value, :false, 0, path.size, *path)
+              options = s(:struct,
+                          value: value_name,
+                          default_value: default_value,
+                          splat: false,
+                          offset_from_end: 0)
+              value = s(:array_value_by_path, :env, options, path.size, *path)
               masgn_set(name, value)
             end
           else

@@ -292,26 +292,26 @@ static ValuePtr splat_value(Env *env, ValuePtr value, size_t index, size_t offse
     return splat;
 }
 
-ValuePtr arg_value_by_path(Env *env, ValuePtr value, ValuePtr default_value, bool splat, bool has_kwargs, int total_count, int default_count, bool defaults_on_right, int offset_from_end, size_t path_size, ...) {
+ValuePtr arg_value_by_path(Env *env, ArgValueByPathOptions options, size_t path_size, ...) {
     va_list args;
     va_start(args, path_size);
-    bool has_default = !!default_value;
-    if (!default_value) default_value = NilValue::the();
-    bool defaults_on_left = !defaults_on_right;
-    int required_count = total_count - default_count; // 0
-    ValuePtr return_value = value;
+    bool has_default = !!options.default_value;
+    auto default_value = options.default_value ?: NilValue::the();
+    bool defaults_on_left = !options.defaults_on_right;
+    int required_count = options.total_count - options.default_count;
+    ValuePtr return_value = options.value;
     for (size_t i = 0; i < path_size; i++) {
         int index = va_arg(args, int);
 
-        if (splat && i == path_size - 1) {
+        if (options.splat && i == path_size - 1) {
             va_end(args);
-            return splat_value(env, return_value, index, offset_from_end, has_kwargs);
+            return splat_value(env, return_value, index, options.offset_from_end, options.has_kwargs);
         } else {
             if (return_value->is_array()) {
                 assert(return_value->as_array()->size() <= NAT_INT_MAX);
                 nat_int_t ary_len = return_value->as_array()->size();
 
-                int first_required = default_count;
+                int first_required = options.default_count;
                 int remain = ary_len - required_count;
 
                 if (has_default && index >= remain && index < first_required && defaults_on_left) {
@@ -324,21 +324,21 @@ ValuePtr arg_value_by_path(Env *env, ValuePtr value, ValuePtr default_value, boo
                 if (i == 0 && path_size == 1) {
                     // shift index left if needed
                     int extra_count = ary_len - required_count;
-                    if (defaults_on_left && extra_count > 0 && default_count >= extra_count && index >= extra_count) {
-                        index -= (default_count - extra_count);
+                    if (defaults_on_left && extra_count > 0 && options.default_count >= extra_count && index >= extra_count) {
+                        index -= (options.default_count - extra_count);
                     } else if (ary_len <= required_count && defaults_on_left) {
-                        index -= (default_count);
+                        index -= (options.default_count);
                     }
                 }
 
                 if (index < 0) {
                     // negative offset index should go from the right
-                    if (ary_len >= total_count) {
+                    if (ary_len >= options.total_count) {
                         index = ary_len + index;
                     } else {
                         // not enough values to fill from the right
                         // also, assume there is a splat prior to this index
-                        index = total_count + index;
+                        index = options.total_count + index;
                     }
                 }
 
@@ -350,7 +350,7 @@ ValuePtr arg_value_by_path(Env *env, ValuePtr value, ValuePtr default_value, boo
                     // value available, yay!
                     return_value = (*return_value->as_array())[index];
 
-                    if (has_default && has_kwargs && i == path_size - 1) {
+                    if (has_default && options.has_kwargs && i == path_size - 1) {
                         if (return_value->is_hash()) {
                             return_value = default_value;
                         }
@@ -375,15 +375,15 @@ ValuePtr arg_value_by_path(Env *env, ValuePtr value, ValuePtr default_value, boo
     return return_value;
 }
 
-ValuePtr array_value_by_path(Env *env, ValuePtr value, ValuePtr default_value, bool splat, int offset_from_end, size_t path_size, ...) {
+ValuePtr array_value_by_path(Env *env, ArrayValueByPathOptions options, size_t path_size, ...) {
     va_list args;
     va_start(args, path_size);
-    ValuePtr return_value = value;
+    ValuePtr return_value = options.value;
     for (size_t i = 0; i < path_size; i++) {
         int index = va_arg(args, int);
-        if (splat && i == path_size - 1) {
+        if (options.splat && i == path_size - 1) {
             va_end(args);
-            return splat_value(env, return_value, index, offset_from_end, false);
+            return splat_value(env, return_value, index, options.offset_from_end, false);
         } else {
             if (return_value->is_array()) {
 
@@ -397,7 +397,7 @@ ValuePtr array_value_by_path(Env *env, ValuePtr value, ValuePtr default_value, b
 
                 if (index < 0) {
                     // not enough values in the array, so use default
-                    return_value = default_value;
+                    return_value = options.default_value;
 
                 } else if (index < ary_len) {
                     // value available, yay!
@@ -405,7 +405,7 @@ ValuePtr array_value_by_path(Env *env, ValuePtr value, ValuePtr default_value, b
 
                 } else {
                     // index past the end of the array, so use default
-                    return_value = default_value;
+                    return_value = options.default_value;
                 }
 
             } else if (index == 0) {
@@ -414,7 +414,7 @@ ValuePtr array_value_by_path(Env *env, ValuePtr value, ValuePtr default_value, b
 
             } else {
                 // not an array, and index isn't zero
-                return_value = default_value;
+                return_value = options.default_value;
             }
         }
     }
