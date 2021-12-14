@@ -164,10 +164,10 @@ public:
         if (!str) return;
         size_t new_length = strlen(str);
         if (new_length == 0) return;
-        char old[m_length + 1];
-        strcpy(old, m_str);
+        char buf[m_length + 1];
+        memcpy(buf, m_str, m_length + 1);
         set_str(str);
-        append(old);
+        append(buf);
     }
 
     void insert(size_t position, char c) {
