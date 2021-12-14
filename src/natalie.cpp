@@ -292,7 +292,7 @@ static ValuePtr splat_value(Env *env, ValuePtr value, size_t index, size_t offse
     return splat;
 }
 
-ValuePtr arg_value_by_path(Env *env, ValueByPathOptions options, size_t path_size, ...) {
+ValuePtr arg_value_by_path(Env *env, ArgValueByPathOptions options, size_t path_size, ...) {
     va_list args;
     va_start(args, path_size);
     bool has_default = !!options.default_value;
@@ -375,7 +375,7 @@ ValuePtr arg_value_by_path(Env *env, ValueByPathOptions options, size_t path_siz
     return return_value;
 }
 
-ValuePtr array_value_by_path(Env *env, ValueByPathOptions options, size_t path_size, ...) {
+ValuePtr array_value_by_path(Env *env, ArrayValueByPathOptions options, size_t path_size, ...) {
     va_list args;
     va_start(args, path_size);
     ValuePtr return_value = options.value;

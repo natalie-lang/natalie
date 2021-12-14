@@ -76,7 +76,7 @@ void handle_top_level_exception(Env *, ExceptionValue *, bool);
 
 ArrayValue *to_ary(Env *env, ValuePtr obj, bool raise_for_non_array);
 
-struct ValueByPathOptions {
+struct ArgValueByPathOptions {
     ValuePtr value;
     ValuePtr default_value;
     bool splat;
@@ -86,9 +86,15 @@ struct ValueByPathOptions {
     bool defaults_on_right;
     int offset_from_end;
 };
+ValuePtr arg_value_by_path(Env *env, ArgValueByPathOptions options, size_t path_size, ...);
 
-ValuePtr arg_value_by_path(Env *env, ValueByPathOptions options, size_t path_size, ...);
-ValuePtr array_value_by_path(Env *env, ValueByPathOptions options, size_t path_size, ...);
+struct ArrayValueByPathOptions {
+    ValuePtr value;
+    ValuePtr default_value;
+    bool splat;
+    int offset_from_end;
+};
+ValuePtr array_value_by_path(Env *env, ArrayValueByPathOptions options, size_t path_size, ...);
 
 HashValue *kwarg_hash(ValuePtr args);
 HashValue *kwarg_hash(ArrayValue *args);
