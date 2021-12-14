@@ -357,12 +357,12 @@ ValuePtr FloatValue::pow(Env *env, ValuePtr rhs) {
     return new FloatValue { ::pow(base, exponent) };
 }
 
-ValuePtr FloatValue::abs(Env *env) {
+ValuePtr FloatValue::abs(Env *env) const {
     auto number = to_double();
     if (number == -0.0 || number < 0.0) {
         return negate();
     } else {
-        return this;
+        return new FloatValue { *this };
     }
 }
 

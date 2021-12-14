@@ -517,7 +517,7 @@ bool Value::respond_to(Env *env, ValuePtr name_val) {
     return respond_to_method(env, name_val);
 }
 
-bool Value::respond_to_method(Env *env, ValuePtr name_val) {
+bool Value::respond_to_method(Env *env, ValuePtr name_val) const {
     Method *method;
     auto name_symbol = name_val->to_symbol(env, Conversion::Strict);
     if (singleton_class() && (method = singleton_class()->find_method(env, name_symbol))) {

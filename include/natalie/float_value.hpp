@@ -114,7 +114,7 @@ public:
         return m_double == 0 && signbit(m_double);
     }
 
-    FloatValue *negate() {
+    FloatValue *negate() const {
         FloatValue *copy = new FloatValue { *this };
         copy->m_double *= -1;
         return copy;
@@ -124,7 +124,7 @@ public:
 
     bool eql(ValuePtr) const;
 
-    ValuePtr abs(Env *);
+    ValuePtr abs(Env *) const;
     ValuePtr add(Env *, ValuePtr);
     ValuePtr arg(Env *);
     ValuePtr ceil(Env *, ValuePtr) const;
@@ -150,12 +150,12 @@ public:
     bool gt(Env *, ValuePtr);
     bool gte(Env *, ValuePtr);
 
-    ValuePtr uminus() {
+    ValuePtr uminus() const {
         return negate();
     }
 
-    ValuePtr uplus() {
-        return this;
+    ValuePtr uplus() const {
+        return new FloatValue { *this };
     }
 
     static void build_constants(Env *env, ClassValue *klass) {

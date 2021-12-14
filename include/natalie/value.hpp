@@ -150,7 +150,7 @@ public:
 
     const String *identifier_str(Env *, Conversion);
 
-    ClassValue *singleton_class() { return m_singleton_class; }
+    ClassValue *singleton_class() const { return m_singleton_class; }
     ClassValue *singleton_class(Env *);
 
     void set_singleton_class(ClassValue *);
@@ -207,7 +207,7 @@ public:
 
     bool is_a(Env *, ValuePtr);
     bool respond_to(Env *, ValuePtr);
-    bool respond_to_method(Env *, ValuePtr);
+    bool respond_to_method(Env *, ValuePtr) const;
 
     const char *defined(Env *, SymbolValue *, bool);
     ValuePtr defined_obj(Env *, SymbolValue *, bool = false);

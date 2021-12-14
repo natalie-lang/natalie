@@ -90,7 +90,7 @@ public:
     virtual SymbolValue *undefine_method(Env *, SymbolValue *) override;
 
     void methods(Env *, ArrayValue *);
-    Method *find_method(Env *, SymbolValue *, ModuleValue ** = nullptr, Method * = nullptr);
+    Method *find_method(Env *, SymbolValue *, ModuleValue ** = nullptr, Method * = nullptr) const;
 
     ArrayValue *ancestors(Env *);
 

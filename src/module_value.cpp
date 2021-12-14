@@ -193,7 +193,7 @@ void ModuleValue::methods(Env *env, ArrayValue *array) {
 }
 
 // returns the method and sets matching_class_or_module to where the method was found
-Method *ModuleValue::find_method(Env *env, SymbolValue *method_name, ModuleValue **matching_class_or_module, Method *after_method) {
+Method *ModuleValue::find_method(Env *env, SymbolValue *method_name, ModuleValue **matching_class_or_module, Method *after_method) const {
     Method *method;
     if (m_included_modules.is_empty()) {
         // no included modules, just search the class/module
