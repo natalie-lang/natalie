@@ -57,12 +57,12 @@ BlockNode *Parser::parse_body(LocalsHashmap &locals, Precedence precedence, Toke
     return body;
 }
 
-BlockNode *Parser::parse_body(LocalsHashmap &locals, Precedence precedence, Vector<Token::Type> *end_tokens, const char *expected_message) {
+BlockNode *Parser::parse_body(LocalsHashmap &locals, Precedence precedence, Vector<Token::Type> &end_tokens, const char *expected_message) {
     auto body = new BlockNode { current_token() };
     current_token()->validate();
     skip_newlines();
     auto finished = [this, end_tokens] {
-        for (auto end_token : *end_tokens) {
+        for (auto end_token : end_tokens) {
             if (current_token()->type() == end_token)
                 return true;
         }
@@ -147,7 +147,7 @@ Node *Parser::parse_begin(LocalsHashmap &locals) {
     auto token = current_token();
     advance();
     next_expression();
-    auto begin_ending_tokens = new Vector<Token::Type> { { Token::Type::RescueKeyword, Token::Type::ElseKeyword, Token::Type::EnsureKeyword, Token::Type::EndKeyword } };
+    auto begin_ending_tokens = Vector<Token::Type> { { Token::Type::RescueKeyword, Token::Type::ElseKeyword, Token::Type::EnsureKeyword, Token::Type::EndKeyword } };
     auto body = parse_body(locals, LOWEST, begin_ending_tokens, "case: rescue, else, ensure, or end");
 
     auto begin_node = new BeginNode { token, body };
@@ -181,8 +181,8 @@ Node *Parser::parse_begin(LocalsHashmap &locals) {
 }
 
 void Parser::parse_rest_of_begin(BeginNode *begin_node, LocalsHashmap &locals) {
-    auto rescue_ending_tokens = new Vector<Token::Type> { { Token::Type::RescueKeyword, Token::Type::ElseKeyword, Token::Type::EnsureKeyword, Token::Type::EndKeyword } };
-    auto else_ending_tokens = new Vector<Token::Type> { { Token::Type::EnsureKeyword, Token::Type::EndKeyword } };
+    auto rescue_ending_tokens = Vector<Token::Type> { { Token::Type::RescueKeyword, Token::Type::ElseKeyword, Token::Type::EnsureKeyword, Token::Type::EndKeyword } };
+    auto else_ending_tokens = Vector<Token::Type> { { Token::Type::EnsureKeyword, Token::Type::EndKeyword } };
     while (!current_token()->is_eof() && !current_token()->is_end_keyword()) {
         switch (current_token()->type()) {
         case Token::Type::RescueKeyword: {
