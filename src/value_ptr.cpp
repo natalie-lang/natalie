@@ -4,6 +4,8 @@ namespace Natalie {
 
 ValuePtr ValuePtr::public_send(Env *env, SymbolValue *name, size_t argc, ValuePtr *args, Block *block) {
     if (m_type == Type::Integer && IntegerValue::optimized_method(name)) {
+        if (argc > 0 && args[0].is_fast_integer())
+            args[0].guard();
         auto synthesized = IntegerValue { m_integer };
         return synthesized.public_send(env, name, argc, args, block);
     }
@@ -13,6 +15,8 @@ ValuePtr ValuePtr::public_send(Env *env, SymbolValue *name, size_t argc, ValuePt
 
 ValuePtr ValuePtr::send(Env *env, SymbolValue *name, size_t argc, ValuePtr *args, Block *block) {
     if (m_type == Type::Integer && IntegerValue::optimized_method(name)) {
+        if (argc > 0 && args[0].is_fast_integer())
+            args[0].guard();
         auto synthesized = IntegerValue { m_integer };
         return synthesized.send(env, name, argc, args, block);
     }

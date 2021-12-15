@@ -70,7 +70,7 @@ ValuePtr IntegerValue::add(Env *env, ValuePtr arg) {
         overflowed = true;
 
     if (overflowed) {
-        auto other = arg->as_integer();
+        auto other = arg.unguard()->as_integer();
         auto result = to_bignum() + other->to_bignum();
         return new BignumValue { result };
     }
@@ -100,7 +100,7 @@ ValuePtr IntegerValue::sub(Env *env, ValuePtr arg) {
         overflowed = true;
 
     if (overflowed) {
-        auto other = arg->as_integer();
+        auto other = arg.unguard()->as_integer();
         auto result = to_bignum() - other->to_bignum();
         return new BignumValue { result };
     }
@@ -134,7 +134,7 @@ ValuePtr IntegerValue::mul(Env *env, ValuePtr arg) {
         || (ll_this > 0 && ll_arg < 0 && min_fraction <= ll_this)
         || (ll_this < 0 && ll_arg > 0 && min_fraction >= ll_this)
         || (ll_this < 0 && ll_arg < 0 && max_fraction >= ll_this)) {
-        return (BignumValue { to_bignum() }).mul(env, arg);
+        return (BignumValue { to_bignum() }).mul(env, arg.unguard());
     }
 
     return ValuePtr::integer(ll_this * ll_arg);

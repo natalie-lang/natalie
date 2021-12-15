@@ -30,17 +30,17 @@ public:
     }
 
     Value &operator*() {
-        hydrate();
+        auto_hydrate();
         return *m_value;
     }
 
     Value *operator->() {
-        hydrate();
+        auto_hydrate();
         return m_value;
     }
 
     Value *value() {
-        hydrate();
+        auto_hydrate();
         return m_value;
     }
 
@@ -52,12 +52,12 @@ public:
     }
 
     bool operator==(Value *other) {
-        hydrate();
+        auto_hydrate();
         return m_value == other;
     }
 
     bool operator!=(Value *other) {
-        hydrate();
+        auto_hydrate();
         return m_value != other;
     }
 
@@ -73,8 +73,12 @@ public:
         return send(env, name, args.size(), const_cast<ValuePtr *>(std::data(args)), block);
     }
 
-    bool is_pointer() {
+    bool is_pointer() const {
         return m_type == Type::Pointer;
+    }
+
+    bool is_fast_integer() const {
+        return m_type == Type::Integer;
     }
 
     bool is_integer();
@@ -83,10 +87,32 @@ public:
     void assert_type(Env *, ValueType, const char *);
     nat_int_t to_nat_int_t();
 
+    ValuePtr guard() {
+        m_guarded = true;
+        return *this;
+    }
+
+    ValuePtr unguard() {
+        m_guarded = false;
+        return *this;
+    }
+
 private:
+    void auto_hydrate() {
+        if (m_guarded) {
+            printf("%p is a guarded ValuePtr, which means you must call unguard() on it before using the arrow operator.\n", this);
+            abort();
+        }
+        if (m_type != Type::Pointer)
+            hydrate();
+    }
+
     void hydrate();
 
+    bool m_guarded { false };
+
     Type m_type { Type::Pointer };
+
     nat_int_t m_integer { 0 };
     Value *m_value { nullptr };
 };
