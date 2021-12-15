@@ -1,0 +1,465 @@
+#include "natalie.hpp"
+
+namespace Natalie {
+
+ModuleObject::ModuleObject()
+    : ModuleObject { Object::Type::Module, GlobalEnv::the()->Module() } { }
+
+ModuleObject::ModuleObject(const char *name)
+    : ModuleObject {} {
+    this->set_class_name(name);
+}
+
+ModuleObject::ModuleObject(Type type, ClassObject *klass)
+    : Object { type, klass }
+    , m_env { new Env() } { }
+
+ValuePtr ModuleObject::extend(Env *env, size_t argc, ValuePtr *args) {
+    for (size_t i = 0; i < argc; i++) {
+        extend_once(env, args[i]->as_module());
+    }
+    return this;
+}
+
+void ModuleObject::extend_once(Env *env, ModuleObject *module) {
+    singleton_class(env)->include_once(env, module);
+}
+
+ValuePtr ModuleObject::include(Env *env, size_t argc, ValuePtr *args) {
+    for (size_t i = 0; i < argc; i++) {
+        include_once(env, args[i]->as_module());
+    }
+    return this;
+}
+
+void ModuleObject::include_once(Env *env, ModuleObject *module) {
+    if (m_included_modules.is_empty()) {
+        m_included_modules.push(this);
+    }
+    m_included_modules.push(module);
+}
+
+ValuePtr ModuleObject::prepend(Env *env, size_t argc, ValuePtr *args) {
+    for (int i = argc - 1; i >= 0; i--) {
+        prepend_once(env, args[i]->as_module());
+    }
+    return this;
+}
+
+void ModuleObject::prepend_once(Env *env, ModuleObject *module) {
+    if (m_included_modules.is_empty()) {
+        m_included_modules.push(this);
+    }
+    m_included_modules.push_front(module);
+}
+
+ValuePtr ModuleObject::const_get(SymbolObject *name) {
+    return m_constants.get(name);
+}
+
+ValuePtr ModuleObject::const_fetch(SymbolObject *name) {
+    ValuePtr value = const_get(name);
+    if (!value) {
+        printf("Constant %s is missing!\n", name->c_str());
+        abort();
+    }
+    return value;
+}
+
+ValuePtr ModuleObject::const_find(Env *env, SymbolObject *name, ConstLookupSearchMode search_mode, ConstLookupFailureMode failure_mode) {
+    ModuleObject *search_parent;
+    ValuePtr val;
+
+    if (search_mode == ConstLookupSearchMode::NotStrict) {
+        // first search in parent namespaces (not including global, i.e. Object namespace)
+        search_parent = this;
+        while (!(val = search_parent->const_get(name)) && search_parent->owner() && search_parent->owner() != GlobalEnv::the()->Object()) {
+            search_parent = search_parent->owner();
+        }
+        if (val) return val;
+    }
+
+    // search in superclass hierarchy
+    search_parent = this;
+    do {
+        val = search_parent->const_get(name);
+        if (val) return val;
+        search_parent = search_parent->m_superclass;
+    } while (search_parent);
+
+    if (this != GlobalEnv::the()->Object() && search_mode == ConstLookupSearchMode::NotStrict) {
+        // lastly, search on the global, i.e. Object namespace
+        val = GlobalEnv::the()->Object()->const_get(name);
+        if (val) return val;
+    }
+
+    if (failure_mode == ConstLookupFailureMode::Null) return nullptr;
+
+    if (search_mode == ConstLookupSearchMode::Strict) {
+        env->raise("NameError", "uninitialized constant {}::{}", this->inspect_str(env), name->c_str());
+    } else {
+        env->raise("NameError", "uninitialized constant {}", name->c_str());
+    }
+}
+
+ValuePtr ModuleObject::const_set(SymbolObject *name, ValuePtr val) {
+    m_constants.put(name, val.value());
+    if (val->is_module() && !val->owner()) {
+        val->set_owner(this);
+        if (val->singleton_class()) val->singleton_class()->set_owner(this);
+    }
+    return val;
+}
+
+void ModuleObject::alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
+    Method *method = find_method(env, old_name);
+    if (!method) {
+        env->raise("NameError", "undefined method `{}' for `{}'", old_name->c_str(), this->inspect_str(env));
+    }
+    m_methods.put(new_name, method, env);
+}
+
+ValuePtr ModuleObject::eval_body(Env *env, ValuePtr (*fn)(Env *, ValuePtr)) {
+    Env body_env { m_env };
+    body_env.set_caller(env);
+    ValuePtr result = fn(&body_env, this);
+    m_method_visibility = MethodVisibility::Public;
+    return result;
+}
+
+ValuePtr ModuleObject::cvar_get_or_null(Env *env, SymbolObject *name) {
+    if (!name->is_cvar_name())
+        env->raise("NameError", "`{}' is not allowed as a class variable name", name->c_str());
+
+    ModuleObject *module = this;
+    ValuePtr val = nullptr;
+    while (module) {
+        val = module->m_class_vars.get(name, env);
+        if (val)
+            return val;
+        module = module->m_superclass;
+    }
+    return nullptr;
+}
+
+ValuePtr ModuleObject::cvar_set(Env *env, SymbolObject *name, ValuePtr val) {
+    if (!name->is_cvar_name())
+        env->raise("NameError", "`{}' is not allowed as a class variable name", name->c_str());
+
+    ModuleObject *current = this;
+
+    ValuePtr exists = nullptr;
+    while (current) {
+        exists = current->m_class_vars.get(name, env);
+        if (exists) {
+            current->m_class_vars.put(name, val.value(), env);
+            return val;
+        }
+        current = current->m_superclass;
+    }
+    m_class_vars.put(name, val.value(), env);
+    return val;
+}
+
+SymbolObject *ModuleObject::define_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity) {
+    Method *method = new Method { name->c_str(), this, fn, arity, m_method_visibility };
+    m_methods.put(name, method, env);
+    return name;
+}
+
+SymbolObject *ModuleObject::define_method(Env *env, SymbolObject *name, Block *block) {
+    Method *method = new Method { name->c_str(), this, block, m_method_visibility };
+    m_methods.put(name, method, env);
+    return name;
+}
+
+SymbolObject *ModuleObject::undefine_method(Env *env, SymbolObject *name) {
+    return define_method(env, name, nullptr);
+}
+
+// supply an empty array and it will be populated with the method names as symbols
+void ModuleObject::methods(Env *env, ArrayObject *array) {
+    for (auto pair : m_methods) {
+        array->push(pair.first);
+    }
+    for (ModuleObject *module : m_included_modules) {
+        for (auto pair : module->m_methods) {
+            array->push(pair.first);
+        }
+    }
+    if (m_superclass) {
+        return m_superclass->methods(env, array);
+    }
+}
+
+// returns the method and sets matching_class_or_module to where the method was found
+Method *ModuleObject::find_method(Env *env, SymbolObject *method_name, ModuleObject **matching_class_or_module, Method *after_method) const {
+    Method *method;
+    if (m_included_modules.is_empty()) {
+        // no included modules, just search the class/module
+        // note: if there are included modules, then the module chain will include this class/module
+        method = m_methods.get(method_name, env);
+        if (method) {
+            if (method == after_method) {
+                after_method = nullptr;
+            } else if (after_method == nullptr) {
+                if (matching_class_or_module) *matching_class_or_module = m_klass;
+                return method;
+            }
+        }
+    }
+
+    for (ModuleObject *module : m_included_modules) {
+        if (module == this)
+            method = module->m_methods.get(method_name, env);
+        else
+            method = module->find_method(env, method_name, matching_class_or_module, after_method);
+        if (method) {
+            if (method == after_method) {
+                after_method = nullptr;
+            } else if (after_method == nullptr) {
+                if (matching_class_or_module) *matching_class_or_module = module;
+                return method;
+            }
+        }
+    }
+
+    if (m_superclass) {
+        return m_superclass->find_method(env, method_name, matching_class_or_module, after_method);
+    } else {
+        return nullptr;
+    }
+}
+
+ArrayObject *ModuleObject::ancestors(Env *env) {
+    ModuleObject *klass = this;
+    ArrayObject *ancestors = new ArrayObject {};
+    do {
+        if (klass->included_modules().is_empty()) {
+            // note: if there are included modules, then they will include this klass
+            ancestors->push(klass);
+        }
+        for (ModuleObject *m : klass->included_modules()) {
+            ancestors->push(m);
+        }
+        klass = klass->superclass();
+    } while (klass);
+    return ancestors;
+}
+
+bool ModuleObject::is_method_defined(Env *env, ValuePtr name_value) {
+    auto name = name_value->to_symbol(env, Conversion::Strict);
+    return !!find_method(env, name);
+}
+
+ValuePtr ModuleObject::inspect(Env *env) {
+    if (m_class_name) {
+        if (owner() && owner() != GlobalEnv::the()->Object()) {
+            return StringObject::format(env, "{}::{}", owner()->inspect_str(env), class_name_or_blank());
+        } else {
+            return new StringObject { *class_name_or_blank() };
+        }
+    } else if (is_class()) {
+        return StringObject::format(env, "#<Class:{}>", pointer_id());
+    } else if (is_module() && m_class_name) {
+        return new StringObject { *class_name_or_blank() };
+    } else {
+        return StringObject::format(env, "#<{}:{}>", klass()->inspect_str(env), pointer_id());
+    }
+}
+
+ValuePtr ModuleObject::name(Env *env) {
+    if (m_class_name) {
+        return new StringObject { *class_name_or_blank() };
+    } else {
+        return NilObject::the();
+    }
+}
+
+ValuePtr ModuleObject::attr_reader(Env *env, size_t argc, ValuePtr *args) {
+    for (size_t i = 0; i < argc; i++) {
+        ValuePtr name_obj = args[i];
+        if (name_obj->type() == Object::Type::String) {
+            // we're good!
+        } else if (name_obj->type() == Object::Type::Symbol) {
+            name_obj = name_obj->as_symbol()->to_s(env);
+        } else {
+            env->raise("TypeError", "{} is not a symbol nor a string", name_obj->inspect_str(env));
+        }
+        auto block_env = new Env {};
+        block_env->var_set("name", 0, true, name_obj);
+        Block *attr_block = new Block { block_env, this, ModuleObject::attr_reader_block_fn, 0 };
+        define_method(env, name_obj->as_string()->to_symbol(env), attr_block);
+    }
+    return NilObject::the();
+}
+
+ValuePtr ModuleObject::attr_reader_block_fn(Env *env, ValuePtr self, size_t argc, ValuePtr *args, Block *block) {
+    ValuePtr name_obj = env->outer()->var_get("name", 0);
+    assert(name_obj);
+    assert(name_obj->is_string());
+    StringObject *ivar_name = StringObject::format(env, "@{}", name_obj->as_string());
+    return self->ivar_get(env, ivar_name->to_symbol(env));
+}
+
+ValuePtr ModuleObject::attr_writer(Env *env, size_t argc, ValuePtr *args) {
+    for (size_t i = 0; i < argc; i++) {
+        ValuePtr name_obj = args[i];
+        if (name_obj->type() == Object::Type::String) {
+            // we're good!
+        } else if (name_obj->type() == Object::Type::Symbol) {
+            name_obj = name_obj->as_symbol()->to_s(env);
+        } else {
+            env->raise("TypeError", "{} is not a symbol nor a string", name_obj->inspect_str(env));
+        }
+        StringObject *method_name = new StringObject { name_obj->as_string()->c_str() };
+        method_name->append_char('=');
+        auto block_env = new Env {};
+        block_env->var_set("name", 0, true, name_obj);
+        Block *attr_block = new Block { block_env, this, ModuleObject::attr_writer_block_fn, 0 };
+        define_method(env, method_name->to_symbol(env), attr_block);
+    }
+    return NilObject::the();
+}
+
+ValuePtr ModuleObject::attr_writer_block_fn(Env *env, ValuePtr self, size_t argc, ValuePtr *args, Block *block) {
+    ValuePtr val = args[0];
+    ValuePtr name_obj = env->outer()->var_get("name", 0);
+    assert(name_obj);
+    assert(name_obj->is_string());
+    StringObject *ivar_name = StringObject::format(env, "@{}", name_obj->as_string());
+    self->ivar_set(env, ivar_name->to_symbol(env), val);
+    return val;
+}
+
+ValuePtr ModuleObject::attr_accessor(Env *env, size_t argc, ValuePtr *args) {
+    attr_reader(env, argc, args);
+    attr_writer(env, argc, args);
+    return NilObject::the();
+}
+
+ValuePtr ModuleObject::included_modules(Env *env) {
+    ArrayObject *modules = new ArrayObject {};
+    for (ModuleObject *m : included_modules()) {
+        modules->push(m);
+    }
+    return modules;
+}
+
+bool ModuleObject::does_include_module(Env *env, ValuePtr module) {
+    module->assert_type(env, Object::Type::Module, "Module");
+    for (ModuleObject *m : included_modules()) {
+        if (this == m)
+            continue;
+        if (module == m)
+            return true;
+        if (m->does_include_module(env, module))
+            return true;
+    }
+    if (m_superclass && m_superclass->does_include_module(env, module))
+        return true;
+    return false;
+}
+
+ValuePtr ModuleObject::define_method(Env *env, ValuePtr name_value, Block *block) {
+    auto name = name_value->to_symbol(env, Object::Conversion::Strict);
+    if (!block) {
+        env->raise("ArgumentError", "tried to create Proc object without a block");
+    }
+    define_method(env, name, block);
+    return name;
+}
+
+ValuePtr ModuleObject::module_eval(Env *env, Block *block) {
+    if (!block) {
+        env->raise("ArgumentError", "Natalie only supports module_eval with a block");
+    }
+    block->set_self(this);
+    NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 0, nullptr, nullptr);
+    return NilObject::the();
+}
+
+ValuePtr ModuleObject::private_method(Env *env, ValuePtr method_name) {
+    if (method_name) {
+        auto name = method_name->to_symbol(env, Conversion::Strict);
+        auto method = find_method(env, name);
+        if (!method)
+            env->raise("NameError", "undefined method `{}' for `{}'", name->c_str(), class_name_or_blank());
+        method->set_visibility(MethodVisibility::Private);
+    } else {
+        m_method_visibility = MethodVisibility::Private;
+    }
+    return NilObject::the();
+}
+
+ValuePtr ModuleObject::protected_method(Env *env, ValuePtr method_name) {
+    if (method_name) {
+        auto name = method_name->to_symbol(env, Conversion::Strict);
+        auto method = find_method(env, name);
+        if (!method)
+            env->raise("NameError", "undefined method `{}' for `{}'", name->c_str(), class_name_or_blank());
+        method->set_visibility(MethodVisibility::Protected);
+    } else {
+        m_method_visibility = MethodVisibility::Protected;
+    }
+    return NilObject::the();
+}
+
+ValuePtr ModuleObject::public_method(Env *env, ValuePtr method_name) {
+    if (method_name) {
+        auto name = method_name->to_symbol(env, Conversion::Strict);
+        auto method = find_method(env, name);
+        if (!method)
+            env->raise("NameError", "undefined method `{}' for `{}'", name->c_str(), class_name_or_blank());
+        method->set_visibility(MethodVisibility::Public);
+    } else {
+        m_method_visibility = MethodVisibility::Public;
+    }
+    return NilObject::the();
+}
+
+bool ModuleObject::const_defined(Env *env, ValuePtr name_value) {
+    auto name = name_value->to_symbol(env, Object::Conversion::NullAllowed);
+    if (!name) {
+        env->raise("TypeError", "no implicit conversion of {} to String", name_value->inspect_str(env));
+    }
+    return !!const_find(env, name, ConstLookupSearchMode::NotStrict, ConstLookupFailureMode::Null);
+}
+
+ValuePtr ModuleObject::alias_method(Env *env, ValuePtr new_name_value, ValuePtr old_name_value) {
+    auto new_name = new_name_value->to_symbol(env, Object::Conversion::NullAllowed);
+    if (!new_name) {
+        env->raise("TypeError", "{} is not a symbol", new_name_value->inspect_str(env));
+    }
+    auto old_name = old_name_value->to_symbol(env, Object::Conversion::NullAllowed);
+    if (!old_name) {
+        env->raise("TypeError", "{} is not a symbol", old_name_value->inspect_str(env));
+    }
+    alias(env, new_name, old_name);
+    return this;
+}
+
+void ModuleObject::visit_children(Visitor &visitor) {
+    Object::visit_children(visitor);
+    visitor.visit(m_env);
+    visitor.visit(m_superclass);
+    if (m_class_name)
+        visitor.visit(m_class_name.value());
+    for (auto pair : m_constants) {
+        visitor.visit(pair.first);
+        visitor.visit(pair.second);
+    }
+    for (auto pair : m_methods) {
+        visitor.visit(pair.first);
+        visitor.visit(pair.second);
+    }
+    for (auto pair : m_class_vars) {
+        visitor.visit(pair.first);
+        visitor.visit(pair.second);
+    }
+    for (auto module : m_included_modules) {
+        visitor.visit(module);
+    }
+}
+
+}

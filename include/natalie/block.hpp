@@ -7,7 +7,7 @@
 namespace Natalie {
 
 class Block : public Cell {
-    friend ProcValue;
+    friend ProcObject;
 
 public:
     Block(Env *env, ValuePtr self, MethodFnPtr fn, int arity)
@@ -41,7 +41,7 @@ public:
 
     virtual void visit_children(Visitor &visitor) override final {
         visitor.visit(m_env);
-        //visitor.visit(m_calling_env); memory access bug :-(
+        // visitor.visit(m_calling_env); memory access bug :-(
         visitor.visit(m_self);
     }
 

@@ -8,14 +8,14 @@ namespace Natalie {
 using namespace TM;
 
 void Env::build_vars(size_t size) {
-    m_vars = new Vector<ValuePtr>(size, NilValue::the());
+    m_vars = new Vector<ValuePtr>(size, NilObject::the());
 }
 
-ValuePtr Env::global_get(SymbolValue *name) {
+ValuePtr Env::global_get(SymbolObject *name) {
     return GlobalEnv::the()->global_get(this, name);
 }
 
-ValuePtr Env::global_set(SymbolValue *name, ValuePtr val) {
+ValuePtr Env::global_set(SymbolObject *name, ValuePtr val) {
     return GlobalEnv::the()->global_set(this, name, val);
 }
 
@@ -41,23 +41,23 @@ const String *Env::build_code_location_name(Env *location_env) {
     return new String("block");
 }
 
-void Env::raise(ClassValue *klass, StringValue *message) {
-    ExceptionValue *exception = new ExceptionValue { klass, message };
+void Env::raise(ClassObject *klass, StringObject *message) {
+    ExceptionObject *exception = new ExceptionObject { klass, message };
     this->raise_exception(exception);
 }
 
-void Env::raise(ClassValue *klass, class String *message) {
-    ExceptionValue *exception = new ExceptionValue { klass, new StringValue { *message } };
+void Env::raise(ClassObject *klass, class String *message) {
+    ExceptionObject *exception = new ExceptionObject { klass, new StringObject { *message } };
     this->raise_exception(exception);
 }
 
 void Env::raise(const char *class_name, const class String *message) {
-    ClassValue *klass = GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern(class_name))->as_class();
-    ExceptionValue *exception = new ExceptionValue { klass, new StringValue { *message } };
+    ClassObject *klass = GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern(class_name))->as_class();
+    ExceptionObject *exception = new ExceptionObject { klass, new StringObject { *message } };
     this->raise_exception(exception);
 }
 
-void Env::raise_exception(ExceptionValue *exception) {
+void Env::raise_exception(ExceptionObject *exception) {
     if (!exception->backtrace()) {
         // only build a backtrace the first time the exception is raised (not on a re-raise)
         exception->build_backtrace(this);
@@ -66,20 +66,20 @@ void Env::raise_exception(ExceptionValue *exception) {
 }
 
 void Env::raise_key_error(ValuePtr receiver, ValuePtr key) {
-    auto message = new StringValue { String::format("key not found: {}", key->inspect_str(this)) };
-    auto key_error_class = GlobalEnv::the()->Object()->const_fetch(SymbolValue::intern("KeyError"))->as_class();
-    ExceptionValue *exception = new ExceptionValue { key_error_class, message };
-    exception->ivar_set(this, SymbolValue::intern("@receiver"), receiver);
-    exception->ivar_set(this, SymbolValue::intern("@key"), key);
+    auto message = new StringObject { String::format("key not found: {}", key->inspect_str(this)) };
+    auto key_error_class = GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern("KeyError"))->as_class();
+    ExceptionObject *exception = new ExceptionObject { key_error_class, message };
+    exception->ivar_set(this, SymbolObject::intern("@receiver"), receiver);
+    exception->ivar_set(this, SymbolObject::intern("@key"), key);
     this->raise_exception(exception);
 }
 
 void Env::raise_local_jump_error(ValuePtr exit_value, LocalJumpErrorType type) {
-    auto message = new StringValue { type == LocalJumpErrorType::Return ? "unexpected return" : "break from proc-closure" };
-    auto lje_class = GlobalEnv::the()->Object()->const_find(this, SymbolValue::intern("LocalJumpError"))->as_class();
-    ExceptionValue *exception = new ExceptionValue { lje_class, message };
+    auto message = new StringObject { type == LocalJumpErrorType::Return ? "unexpected return" : "break from proc-closure" };
+    auto lje_class = GlobalEnv::the()->Object()->const_find(this, SymbolObject::intern("LocalJumpError"))->as_class();
+    ExceptionObject *exception = new ExceptionObject { lje_class, message };
     exception->set_local_jump_error_type(type);
-    exception->ivar_set(this, SymbolValue::intern("@exit_value"), exit_value);
+    exception->ivar_set(this, SymbolObject::intern("@exit_value"), exit_value);
     if (type == LocalJumpErrorType::Break) {
         assert(m_this_block);
         exception->set_local_jump_error_env(m_this_block->calling_env());
@@ -90,14 +90,14 @@ void Env::raise_local_jump_error(ValuePtr exit_value, LocalJumpErrorType type) {
 }
 
 void Env::raise_errno() {
-    auto SystemCallError = GlobalEnv::the()->Object()->const_find(this, SymbolValue::intern("SystemCallError"));
-    ExceptionValue *error = SystemCallError.send(this, SymbolValue::intern("exception"), { ValuePtr::integer(errno) })->as_exception();
+    auto SystemCallError = GlobalEnv::the()->Object()->const_find(this, SymbolObject::intern("SystemCallError"));
+    ExceptionObject *error = SystemCallError.send(this, SymbolObject::intern("exception"), { ValuePtr::integer(errno) })->as_exception();
     raise_exception(error);
 }
 
 void Env::warn(const String *message) {
-    ValuePtr _stderr = global_get(SymbolValue::intern("$stderr"));
-    _stderr.send(this, SymbolValue::intern("puts"), { new StringValue { message } });
+    ValuePtr _stderr = global_get(SymbolObject::intern("$stderr"));
+    _stderr.send(this, SymbolObject::intern("puts"), { new StringObject { message } });
 }
 
 void Env::ensure_argc_is(size_t argc, size_t expected) {
@@ -128,7 +128,7 @@ ValuePtr Env::last_match() {
     Env *env = non_block_env();
     if (env->m_match)
         return env->m_match;
-    return NilValue::the();
+    return NilObject::the();
 }
 
 void Env::set_last_match(ValuePtr match) {
@@ -137,12 +137,12 @@ void Env::set_last_match(ValuePtr match) {
 
 ValuePtr Env::var_get(const char *key, size_t index) {
     if (index >= m_vars->size())
-        return NilValue::the();
+        return NilObject::the();
     ValuePtr val = m_vars->at(index);
     if (val) {
         return val;
     } else {
-        return NilValue::the();
+        return NilObject::the();
     }
 }
 
@@ -154,7 +154,7 @@ ValuePtr Env::var_set(const char *name, size_t index, bool allocate, ValuePtr va
             if (!m_vars) {
                 build_vars(needed);
             } else {
-                m_vars->set_size(needed, NilValue::the());
+                m_vars->set_size(needed, NilObject::the());
             }
         } else {
             printf("Tried to set a variable without first allocating space for it.\n");

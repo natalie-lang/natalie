@@ -5,8 +5,8 @@
 #include <iterator>
 
 #include "natalie/forward.hpp"
+#include "natalie/object_type.hpp"
 #include "natalie/types.hpp"
-#include "natalie/value_type.hpp"
 
 namespace Natalie {
 
@@ -19,7 +19,7 @@ public:
 
     ValuePtr() { }
 
-    ValuePtr(Value *value)
+    ValuePtr(Object *value)
         : m_value { value } { }
 
     ValuePtr(Type type, nat_int_t integer)
@@ -30,34 +30,34 @@ public:
         return ValuePtr { Type::Integer, integer };
     }
 
-    Value &operator*() {
+    Object &operator*() {
         auto_hydrate();
         return *m_value;
     }
 
-    Value *operator->() {
+    Object *operator->() {
         auto_hydrate();
         return m_value;
     }
 
-    Value *value() {
+    Object *value() {
         auto_hydrate();
         return m_value;
     }
 
-    Value *value_or_null() {
+    Object *value_or_null() {
         if (m_type == Type::Pointer)
             return m_value;
         else
             return nullptr;
     }
 
-    bool operator==(Value *other) {
+    bool operator==(Object *other) {
         auto_hydrate();
         return m_value == other;
     }
 
-    bool operator!=(Value *other) {
+    bool operator!=(Object *other) {
         auto_hydrate();
         return m_value != other;
     }
@@ -66,11 +66,11 @@ public:
 
     operator bool() { return m_type == Type::Integer || m_value; }
 
-    ValuePtr public_send(Env *, SymbolValue *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
+    ValuePtr public_send(Env *, SymbolObject *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
 
-    ValuePtr send(Env *, SymbolValue *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
+    ValuePtr send(Env *, SymbolObject *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
 
-    ValuePtr send(Env *env, SymbolValue *name, std::initializer_list<ValuePtr> args, Block *block = nullptr) {
+    ValuePtr send(Env *env, SymbolObject *name, std::initializer_list<ValuePtr> args, Block *block = nullptr) {
         return send(env, name, args.size(), const_cast<ValuePtr *>(std::data(args)), block);
     }
 
@@ -114,7 +114,7 @@ private:
     Type m_type { Type::Pointer };
 
     nat_int_t m_integer { 0 };
-    Value *m_value { nullptr };
+    Object *m_value { nullptr };
 };
 
 }

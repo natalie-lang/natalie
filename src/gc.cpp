@@ -71,11 +71,11 @@ void Heap::collect() {
     }
 
     visitor.visit(GlobalEnv::the());
-    visitor.visit(NilValue::the());
-    visitor.visit(TrueValue::the());
-    visitor.visit(FalseValue::the());
-    visitor.visit(FiberValue::main());
-    visitor.visit(FiberValue::current());
+    visitor.visit(NilObject::the());
+    visitor.visit(TrueObject::the());
+    visitor.visit(FalseObject::the());
+    visitor.visit(FiberObject::main());
+    visitor.visit(FiberObject::current());
 
     sweep();
 }
@@ -131,7 +131,7 @@ Cell *HeapBlock::find_next_free_cell() {
     assert(m_free_list || m_free_count == 0);
     auto cell = reinterpret_cast<Cell *>(node);
     m_used_map[node->index] = true;
-    //printf("Cell %p allocated from block %p (size %zu) at index %zu\n", cell, this, m_cell_size, i);
+    // printf("Cell %p allocated from block %p (size %zu) at index %zu\n", cell, this, m_cell_size, i);
     new (cell) Cell();
     return cell;
 }

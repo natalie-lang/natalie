@@ -15,7 +15,7 @@ class Dir
       char buf[MAXPATHLEN + 1];
       if(!getcwd(buf, MAXPATHLEN + 1))
           env->raise_errno();
-      return new StringValue { buf };
+      return new StringObject { buf };
     END
 
     def each_child(dirname)
@@ -26,18 +26,18 @@ class Dir
     end
 
     __define_method__ :children, [:dirname], <<-END
-      dirname->assert_type(env, Value::Type::String, "String");
+      dirname->assert_type(env, Object::Type::String, "String");
       auto dir = opendir(dirname->as_string()->c_str());
       if (!dir)
           env->raise_errno();
       dirent *entry;
       errno = 0;
-      auto array = new ArrayValue {};
+      auto array = new ArrayObject {};
       for (;;) {
           entry = readdir(dir);
           if (!entry) break;
           if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) continue;
-          array->push(new StringValue { entry->d_name });
+          array->push(new StringObject { entry->d_name });
       }
       if (errno) {
           closedir(dir);
@@ -48,7 +48,7 @@ class Dir
     END
 
     __define_method__ :rmdir, [:dirname], <<-END
-      dirname->assert_type(env, Value::Type::String, "String");
+      dirname->assert_type(env, Object::Type::String, "String");
       auto result = rmdir(dirname->as_string()->c_str());
       if (result == -1)
           env->raise_errno();

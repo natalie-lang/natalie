@@ -36,8 +36,8 @@ public:
 
     virtual ~Env() override { }
 
-    ValuePtr global_get(SymbolValue *);
-    ValuePtr global_set(SymbolValue *, ValuePtr);
+    ValuePtr global_get(SymbolObject *);
+    ValuePtr global_set(SymbolObject *, ValuePtr);
 
     Method *current_method();
     const String *build_code_location_name(Env *);
@@ -45,16 +45,16 @@ public:
     ValuePtr var_get(const char *, size_t);
     ValuePtr var_set(const char *, size_t, bool, ValuePtr);
 
-    [[noreturn]] void raise(ClassValue *, StringValue *);
-    [[noreturn]] void raise(ClassValue *, String *);
+    [[noreturn]] void raise(ClassObject *, StringObject *);
+    [[noreturn]] void raise(ClassObject *, String *);
     [[noreturn]] void raise(const char *, const String *);
-    [[noreturn]] void raise_exception(ExceptionValue *);
+    [[noreturn]] void raise_exception(ExceptionObject *);
     [[noreturn]] void raise_key_error(ValuePtr, ValuePtr);
     [[noreturn]] void raise_local_jump_error(ValuePtr, LocalJumpErrorType);
     [[noreturn]] void raise_errno();
 
     template <typename... Args>
-    [[noreturn]] void raise(ClassValue *klass, const char *format, Args... args) {
+    [[noreturn]] void raise(ClassObject *klass, const char *format, Args... args) {
         auto message = String::format(format, args...);
         raise(klass, message);
     }

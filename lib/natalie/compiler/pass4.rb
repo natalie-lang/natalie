@@ -52,8 +52,8 @@ module Natalie
       ]
 
       TYPES = {
-        as_class: 'ClassValue *',
-        as_string: 'StringValue *',
+        as_class: 'ClassObject *',
+        as_string: 'StringObject *',
         has_break_flag: 'bool ',
       }
 
@@ -161,7 +161,7 @@ module Natalie
         nl = "\n" # FIXME: parser issue with double quotes inside interpolation
         top "ValuePtr #{fn}(Env *env, ValuePtr self, size_t argc, ValuePtr *args, Block *block) {\n#{c.join(nl)}\n}"
         process(s(:define_method, s(:l, "self->as_module()"), :env, s(:intern, name), fn, -1))
-        "SymbolValue::intern(#{name.inspect})"
+        "SymbolObject::intern(#{name.inspect})"
       end
 
       def process___inline__(exp)
@@ -173,7 +173,7 @@ module Natalie
         else
           top body
         end
-        'NilValue::the()'
+        'NilObject::the()'
       end
 
       def process___ld_flags__(exp)
@@ -283,7 +283,7 @@ module Natalie
         default ||= s(:nil)
         if type == :rest
           rest = temp('rest')
-          decl "ArrayValue *#{rest} = new ArrayValue {};"
+          decl "ArrayObject *#{rest} = new ArrayObject {};"
           decl "for (size_t i=#{index}; i<#{argc_name}; i++) {"
           decl "#{rest}->push(#{args_name}[i]);"
           decl '}'
@@ -426,14 +426,14 @@ module Natalie
         result = temp('defined_result')
         case name.sexp_type
         when :const, :gvar, :ivar
-          decl "ValuePtr #{result} = self->defined_obj(env, SymbolValue::intern(#{name.last.to_s.inspect}));"
+          decl "ValuePtr #{result} = self->defined_obj(env, SymbolObject::intern(#{name.last.to_s.inspect}));"
         when :send, :public_send
           (_, receiver, name) = name
           receiver ||= 'self'
           decl "ValuePtr #{result};"
           decl 'try {'
           decl "#{result} = #{process_atom receiver}->defined_obj(env, #{process name}, true);"
-          decl '} catch (ExceptionValue *) {'
+          decl '} catch (ExceptionObject *) {'
           decl "#{result} = #{process_atom s(:nil)};"
           decl '}'
         when :colon2
@@ -441,22 +441,22 @@ module Natalie
           raise "expected const" unless namespace.first == :const
           decl "ValuePtr #{result};"
           decl 'try {'
-          decl "#{result} = GlobalEnv::the()->Object()->const_find(env, SymbolValue::intern(#{namespace.last.to_s.inspect}), Value::ConstLookupSearchMode::NotStrict)->defined_obj(env, SymbolValue::intern(#{name.to_s.inspect}), true);"
-          decl '} catch (ExceptionValue *) {'
+          decl "#{result} = GlobalEnv::the()->Object()->const_find(env, SymbolObject::intern(#{namespace.last.to_s.inspect}), Object::ConstLookupSearchMode::NotStrict)->defined_obj(env, SymbolObject::intern(#{name.to_s.inspect}), true);"
+          decl '} catch (ExceptionObject *) {'
           decl "#{result} = #{process_atom s(:nil)};"
           decl '}'
         when :colon3
           (_, name) = name
           decl "ValuePtr #{result};"
           decl 'try {'
-          decl "#{result} = GlobalEnv::the()->Object()->defined_obj(env, SymbolValue::intern(#{name.to_s.inspect}), true);"
-          decl '} catch (ExceptionValue *) {'
+          decl "#{result} = GlobalEnv::the()->Object()->defined_obj(env, SymbolObject::intern(#{name.to_s.inspect}), true);"
+          decl '} catch (ExceptionObject *) {'
           decl "#{result} = #{process_atom s(:nil)};"
           decl '}'
         when :lit, :str
-          decl "ValuePtr #{result} = new StringValue { \"expression\" };"
+          decl "ValuePtr #{result} = new StringObject { \"expression\" };"
         when :nil
-          decl "ValuePtr #{result} = new StringValue { \"nil\" };"
+          decl "ValuePtr #{result} = new StringObject { \"nil\" };"
         else
           raise "unknown defined type: #{exp.inspect}"
         end
@@ -469,7 +469,7 @@ module Natalie
       end
 
       def process_false(_)
-        'ValuePtr { FalseValue::the() }'
+        'ValuePtr { FalseObject::the() }'
       end
 
       def process_fn(exp, arg_list = 6)
@@ -530,8 +530,8 @@ module Natalie
           result = process_atom(top)
           c += @decl
           c << "#{result_name} = #{result};" unless result.empty?
-          c << '} catch (ExceptionValue *exception) {'
-          c << 'env->global_set(SymbolValue::intern("$!"), exception);'
+          c << '} catch (ExceptionObject *exception) {'
+          c << 'env->global_set(SymbolObject::intern("$!"), exception);'
           @decl = []
           result = process_atom(bottom)
           c += @decl
@@ -568,7 +568,7 @@ module Natalie
       end
 
       def process_nil(_)
-        'ValuePtr { NilValue::the() }'
+        'ValuePtr { NilObject::the() }'
       end
 
       def process_s(exp)
@@ -601,7 +601,7 @@ module Natalie
       end
 
       def process_true(_)
-        'ValuePtr { TrueValue::the() }'
+        'ValuePtr { TrueObject::the() }'
       end
 
       def process_set(exp)
@@ -716,18 +716,18 @@ module Natalie
       end
 
       def declare_symbols
-        "SymbolValue *#{symbols_var_name}[#{@symbols.size}] = {};"
+        "SymbolObject *#{symbols_var_name}[#{@symbols.size}] = {};"
       end
 
       def init_symbols
         @symbols.map do |name, index|
-          "#{symbols_var_name}[#{index}] = SymbolValue::intern(#{name.to_s.inspect});"
+          "#{symbols_var_name}[#{index}] = SymbolObject::intern(#{name.to_s.inspect});"
         end
       end
 
       def set_dollar_zero_global_in_main_to_c
         return if @compiler_context[:is_obj]
-        "env->global_set(SymbolValue::intern(\"$0\"), new StringValue { #{@compiler_context[:source_path].inspect} });"
+        "env->global_set(SymbolObject::intern(\"$0\"), new StringObject { #{@compiler_context[:source_path].inspect} });"
       end
 
       def obj_files

@@ -725,8 +725,8 @@ Node *Parser::parse_interpolated_regexp(LocalsHashmap &locals) {
         parse_interpolated_body(locals, interpolated_regexp, Token::Type::InterpolatedRegexpEnd);
         auto options = current_token()->options();
         if (options) {
-            // use a RegexpValue to convert the options string to an int
-            RegexpValue temp_regexp;
+            // use a RegexpObject to convert the options string to an int
+            RegexpObject temp_regexp;
             temp_regexp.set_options(options);
             interpolated_regexp->set_options(temp_regexp.options());
         }

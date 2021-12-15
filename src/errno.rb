@@ -84,7 +84,7 @@ class SystemCallError < StandardError
       72 => [Errno::EMULTIHOP, "Multihop attempted"],
       73 => [Errno::EDOTDOT, "RFS specific error"],
       74 => [Errno::EBADMSG, "Bad message"],
-      75 => [Errno::EOVERFLOW, "Value too large for defined data type"],
+      75 => [Errno::EOVERFLOW, "Object too large for defined data type"],
       76 => [Errno::ENOTUNIQ, "Name not unique on network"],
       77 => [Errno::EBADFD, "File descriptor in bad state"],
       78 => [Errno::EREMCHG, "Remote address changed"],

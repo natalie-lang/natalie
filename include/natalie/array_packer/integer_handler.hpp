@@ -2,7 +2,7 @@
 
 #include "natalie/array_packer/tokenizer.hpp"
 #include "natalie/env.hpp"
-#include "natalie/integer_value.hpp"
+#include "natalie/integer_object.hpp"
 #include "natalie/string.hpp"
 
 namespace Natalie {
@@ -11,7 +11,7 @@ namespace ArrayPacker {
 
     class IntegerHandler {
     public:
-        IntegerHandler(IntegerValue *source, Token token)
+        IntegerHandler(IntegerObject *source, Token token)
             : m_source { source }
             , m_token { token }
             , m_packed { new String } { }
@@ -70,7 +70,7 @@ namespace ArrayPacker {
             m_packed->append_char(static_cast<signed char>(source));
         }
 
-        IntegerValue *m_source;
+        IntegerObject *m_source;
         Token m_token;
         String *m_packed;
     };

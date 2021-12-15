@@ -62,19 +62,19 @@
     }                                             \
 })
 
-#define NAT_HANDLE_LOCAL_JUMP_ERROR(env, exception, return_handler) ({                                                           \
-    auto LocalJumpError = self->const_find(env, SymbolValue::intern("LocalJumpError"), Value::ConstLookupSearchMode::NotStrict); \
-    ValuePtr result;                                                                                                             \
-    if (!exception->is_a(env, LocalJumpError)) {                                                                                 \
-        throw exception;                                                                                                         \
-    } else if (return_handler && exception->local_jump_error_type() == LocalJumpErrorType::Return) {                             \
-        result = exception->send(env, SymbolValue::intern("exit_value"));                                                        \
-    } else if (env && exception->local_jump_error_env() == env) {                                                                \
-        result = exception->send(env, SymbolValue::intern("exit_value"));                                                        \
-    } else {                                                                                                                     \
-        throw exception;                                                                                                         \
-    }                                                                                                                            \
-    result;                                                                                                                      \
+#define NAT_HANDLE_LOCAL_JUMP_ERROR(env, exception, return_handler) ({                                                             \
+    auto LocalJumpError = self->const_find(env, SymbolObject::intern("LocalJumpError"), Object::ConstLookupSearchMode::NotStrict); \
+    ValuePtr result;                                                                                                               \
+    if (!exception->is_a(env, LocalJumpError)) {                                                                                   \
+        throw exception;                                                                                                           \
+    } else if (return_handler && exception->local_jump_error_type() == LocalJumpErrorType::Return) {                               \
+        result = exception->send(env, SymbolObject::intern("exit_value"));                                                         \
+    } else if (env && exception->local_jump_error_env() == env) {                                                                  \
+        result = exception->send(env, SymbolObject::intern("exit_value"));                                                         \
+    } else {                                                                                                                       \
+        throw exception;                                                                                                           \
+    }                                                                                                                              \
+    result;                                                                                                                        \
 })
 
 // if a LocalJumpError does not belong to the current scope, then bubble it up higher

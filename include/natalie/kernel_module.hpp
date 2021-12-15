@@ -5,16 +5,16 @@
 #include <sys/stat.h>
 
 #include "natalie/forward.hpp"
-#include "natalie/integer_value.hpp"
-#include "natalie/nil_value.hpp"
-#include "natalie/value.hpp"
+#include "natalie/integer_object.hpp"
+#include "natalie/nil_object.hpp"
+#include "natalie/object.hpp"
 
 namespace Natalie {
 
-class KernelModule : public Value {
+class KernelModule : public Object {
 public:
     ValuePtr object_id(Env *env) {
-        return ValuePtr::integer(Value::object_id());
+        return ValuePtr::integer(Object::object_id());
     }
 
     bool equal(ValuePtr other) {
@@ -25,7 +25,7 @@ public:
         if (klass()) {
             return klass();
         } else {
-            return NilValue::the();
+            return NilObject::the();
         }
     }
 

@@ -12,7 +12,7 @@ extern "C" Env *build_top_env() {
     return env;
 }
 
-extern "C" Value *EVAL(Env *env) {
+extern "C" Object *EVAL(Env *env) {
     /*NAT_EVAL_INIT*/
 
     ValuePtr self = GlobalEnv::the()->main_obj();
@@ -28,8 +28,8 @@ extern "C" Value *EVAL(Env *env) {
         /*NAT_EVAL_BODY*/
         run_exit_handlers = false;
         run_at_exit_handlers(env);
-        return NilValue::the(); // just in case there's no return value
-    } catch (ExceptionValue *exception) {
+        return NilObject::the(); // just in case there's no return value
+    } catch (ExceptionObject *exception) {
         handle_top_level_exception(env, exception, run_exit_handlers);
         return nullptr;
     }
@@ -37,20 +37,20 @@ extern "C" Value *EVAL(Env *env) {
 
 ValuePtr _main(int argc, char *argv[]) {
     Env *env = ::build_top_env();
-    FiberValue::build_main_fiber(Heap::the().start_of_stack());
+    FiberObject::build_main_fiber(Heap::the().start_of_stack());
 
 #ifndef NAT_GC_DISABLE
     Heap::the().gc_enable();
 #endif
 
     assert(argc > 0);
-    ValuePtr exe = new StringValue { argv[0] };
-    env->global_set(SymbolValue::intern("$exe"), exe);
+    ValuePtr exe = new StringObject { argv[0] };
+    env->global_set(SymbolObject::intern("$exe"), exe);
 
-    ArrayValue *ARGV = new ArrayValue {};
-    GlobalEnv::the()->Object()->const_set(SymbolValue::intern("ARGV"), ARGV);
+    ArrayObject *ARGV = new ArrayObject {};
+    GlobalEnv::the()->Object()->const_set(SymbolObject::intern("ARGV"), ARGV);
     for (int i = 1; i < argc; i++) {
-        ARGV->push(new StringValue { argv[i] });
+        ARGV->push(new StringObject { argv[i] });
     }
 
     return EVAL(env);

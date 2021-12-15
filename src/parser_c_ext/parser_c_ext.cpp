@@ -14,29 +14,29 @@ extern "C" {
 VALUE to_mri_ruby(Natalie::ValuePtr value) {
     VALUE Sexp = rb_const_get(rb_cObject, rb_intern("Sexp"));
     switch (value->type()) {
-    case Natalie::Value::Type::Array: {
+    case Natalie::Object::Type::Array: {
         VALUE sexp = rb_class_new_instance(0, nullptr, Sexp);
         for (auto item : *value->as_array())
             rb_ary_push(sexp, to_mri_ruby(item));
         return sexp;
         break;
     }
-    case Natalie::Value::Type::Integer:
+    case Natalie::Object::Type::Integer:
         return rb_int_new(value->as_integer()->to_nat_int_t());
-    case Natalie::Value::Type::Nil:
+    case Natalie::Object::Type::Nil:
         return Qnil;
-    case Natalie::Value::Type::Range:
+    case Natalie::Object::Type::Range:
         return rb_range_new(
             to_mri_ruby(value->as_range()->begin()),
             to_mri_ruby(value->as_range()->end()),
             value->as_range()->exclude_end());
-    case Natalie::Value::Type::Regexp: {
+    case Natalie::Object::Type::Regexp: {
         auto re = value->as_regexp();
         return rb_reg_new(re->pattern(), strlen(re->pattern()), re->options());
     }
-    case Natalie::Value::Type::String:
+    case Natalie::Object::Type::String:
         return rb_str_new_cstr(value->as_string()->c_str());
-    case Natalie::Value::Type::Symbol:
+    case Natalie::Object::Type::Symbol:
         return ID2SYM(rb_intern(value->as_symbol()->c_str()));
     default:
         printf("Unknown Natalie value type: %d\n", (int)value->type());
@@ -71,7 +71,7 @@ VALUE parse_on_instance(VALUE self) {
         tree = parser.tree();
         tree_value = tree->to_ruby(env);
         return to_mri_ruby(tree_value);
-    } catch (Natalie::ExceptionValue *exception) {
+    } catch (Natalie::ExceptionObject *exception) {
         rb_raise(rb_eSyntaxError, "%s", exception->message()->c_str());
     }
 }

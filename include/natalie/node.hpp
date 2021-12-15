@@ -685,7 +685,7 @@ public:
     virtual void visit_children(Visitor &visitor) override;
 
 protected:
-    SexpValue *build_args_sexp(Env *);
+    SexpObject *build_args_sexp(Env *);
 
     Node *m_self_node { nullptr };
     IdentifierNode *m_name { nullptr };
@@ -799,27 +799,27 @@ public:
         return ref;
     }
 
-    SexpValue *to_assignment_sexp(Env *);
+    SexpObject *to_assignment_sexp(Env *);
 
-    SymbolValue *assignment_type(Env *env) {
+    SymbolObject *assignment_type(Env *env) {
         switch (token_type()) {
         case Token::Type::BareName:
-            return SymbolValue::intern("lasgn");
+            return SymbolObject::intern("lasgn");
         case Token::Type::ClassVariable:
-            return SymbolValue::intern("cvdecl");
+            return SymbolObject::intern("cvdecl");
         case Token::Type::Constant:
-            return SymbolValue::intern("cdecl");
+            return SymbolObject::intern("cdecl");
         case Token::Type::GlobalVariable:
-            return SymbolValue::intern("gasgn");
+            return SymbolObject::intern("gasgn");
         case Token::Type::InstanceVariable:
-            return SymbolValue::intern("iasgn");
+            return SymbolObject::intern("iasgn");
         default:
             NAT_UNREACHABLE();
         }
     }
 
-    SymbolValue *to_symbol() {
-        return SymbolValue::intern(name());
+    SymbolObject *to_symbol() {
+        return SymbolObject::intern(name());
     }
 
     void add_to_locals(TM::Hashmap<const char *> &locals) {
@@ -881,7 +881,7 @@ public:
     }
 
 protected:
-    SexpValue *build_args_sexp(Env *);
+    SexpObject *build_args_sexp(Env *);
 
     Node *m_call { nullptr };
     BlockNode *m_body { nullptr };
@@ -1085,7 +1085,7 @@ public:
     virtual Type type() override { return Type::MultipleAssignment; }
 
     virtual ValuePtr to_ruby(Env *) override;
-    ArrayValue *to_ruby_with_array(Env *);
+    ArrayObject *to_ruby_with_array(Env *);
 
     void add_locals(TM::Hashmap<const char *> &);
 };
@@ -1442,7 +1442,7 @@ public:
     virtual ValuePtr to_ruby(Env *) override;
 
     String *string() { return m_string; }
-    StringValue *to_string_value() { return new StringValue(m_string); }
+    StringObject *to_string_value() { return new StringObject(m_string); }
 
     virtual void visit_children(Visitor &visitor) override {
         Node::visit_children(visitor);

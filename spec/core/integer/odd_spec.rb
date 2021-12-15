@@ -13,13 +13,13 @@ describe "Integer#odd?" do
       bignum_value(0).odd?.should be_false
       bignum_value(1).odd?.should be_true
 
-      # NATFIXME: need to work on IntegerValue::negate so it handles Bignum
+      # NATFIXME: need to work on IntegerObject::negate so it handles Bignum
       #(-bignum_value(0)).odd?.should be_false
       #(-bignum_value(1)).odd?.should be_true
     end
   end
 
-  # NATFIXME: need to work on IntegerValue::pow() so it handles Bignum
+  # NATFIXME: need to work on IntegerObject::pow() so it handles Bignum
   xcontext "bignum" do
     it "returns true if self is odd and positive" do
       (987_279**19).odd?.should be_true

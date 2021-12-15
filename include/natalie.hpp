@@ -12,47 +12,47 @@
 #include <unistd.h>
 #include <utility>
 
-#include "natalie/array_value.hpp"
-#include "natalie/bignum_value.hpp"
-#include "natalie/binding_value.hpp"
+#include "natalie/array_object.hpp"
+#include "natalie/bignum_object.hpp"
+#include "natalie/binding_object.hpp"
 #include "natalie/block.hpp"
-#include "natalie/class_value.hpp"
-#include "natalie/encoding_value.hpp"
+#include "natalie/class_object.hpp"
+#include "natalie/encoding_object.hpp"
 #include "natalie/env.hpp"
-#include "natalie/env_value.hpp"
-#include "natalie/exception_value.hpp"
-#include "natalie/false_value.hpp"
-#include "natalie/fiber_value.hpp"
-#include "natalie/file_value.hpp"
-#include "natalie/float_value.hpp"
+#include "natalie/env_object.hpp"
+#include "natalie/exception_object.hpp"
+#include "natalie/false_object.hpp"
+#include "natalie/fiber_object.hpp"
+#include "natalie/file_object.hpp"
+#include "natalie/float_object.hpp"
 #include "natalie/forward.hpp"
 #include "natalie/gc_module.hpp"
 #include "natalie/global_env.hpp"
 #include "natalie/hash_builder.hpp"
-#include "natalie/hash_value.hpp"
-#include "natalie/integer_value.hpp"
-#include "natalie/io_value.hpp"
+#include "natalie/hash_object.hpp"
+#include "natalie/integer_object.hpp"
+#include "natalie/io_object.hpp"
 #include "natalie/kernel_module.hpp"
 #include "natalie/local_jump_error_type.hpp"
-#include "natalie/match_data_value.hpp"
+#include "natalie/match_data_object.hpp"
 #include "natalie/method.hpp"
-#include "natalie/method_value.hpp"
-#include "natalie/module_value.hpp"
-#include "natalie/nil_value.hpp"
-#include "natalie/parser_value.hpp"
-#include "natalie/proc_value.hpp"
+#include "natalie/method_object.hpp"
+#include "natalie/module_object.hpp"
+#include "natalie/nil_object.hpp"
+#include "natalie/object.hpp"
+#include "natalie/parser_object.hpp"
+#include "natalie/proc_object.hpp"
 #include "natalie/process_module.hpp"
-#include "natalie/random_value.hpp"
-#include "natalie/range_value.hpp"
-#include "natalie/regexp_value.hpp"
-#include "natalie/sexp_value.hpp"
-#include "natalie/string_value.hpp"
-#include "natalie/symbol_value.hpp"
-#include "natalie/true_value.hpp"
+#include "natalie/random_object.hpp"
+#include "natalie/range_object.hpp"
+#include "natalie/regexp_object.hpp"
+#include "natalie/sexp_object.hpp"
+#include "natalie/string_object.hpp"
+#include "natalie/symbol_object.hpp"
+#include "natalie/true_object.hpp"
 #include "natalie/types.hpp"
-#include "natalie/value.hpp"
 #include "natalie/value_ptr.hpp"
-#include "natalie/void_p_value.hpp"
+#include "natalie/void_p_object.hpp"
 
 namespace Natalie {
 
@@ -71,10 +71,10 @@ const char *find_current_method_name(Env *env);
 ValuePtr splat(Env *env, ValuePtr obj);
 
 void run_at_exit_handlers(Env *env);
-void print_exception_with_backtrace(Env *env, ExceptionValue *exception);
-void handle_top_level_exception(Env *, ExceptionValue *, bool);
+void print_exception_with_backtrace(Env *env, ExceptionObject *exception);
+void handle_top_level_exception(Env *, ExceptionObject *, bool);
 
-ArrayValue *to_ary(Env *env, ValuePtr obj, bool raise_for_non_array);
+ArrayObject *to_ary(Env *env, ValuePtr obj, bool raise_for_non_array);
 
 struct ArgValueByPathOptions {
     ValuePtr value;
@@ -96,13 +96,13 @@ struct ArrayValueByPathOptions {
 };
 ValuePtr array_value_by_path(Env *env, ArrayValueByPathOptions options, size_t path_size, ...);
 
-HashValue *kwarg_hash(ValuePtr args);
-HashValue *kwarg_hash(ArrayValue *args);
+HashObject *kwarg_hash(ValuePtr args);
+HashObject *kwarg_hash(ArrayObject *args);
 ValuePtr kwarg_value_by_name(Env *env, ValuePtr args, const char *name, ValuePtr default_value);
-ValuePtr kwarg_value_by_name(Env *env, ArrayValue *args, const char *name, ValuePtr default_value);
+ValuePtr kwarg_value_by_name(Env *env, ArrayObject *args, const char *name, ValuePtr default_value);
 
-ArrayValue *args_to_array(Env *env, size_t argc, ValuePtr *args);
-ArrayValue *block_args_to_array(Env *env, size_t signature_size, size_t argc, ValuePtr *args);
+ArrayObject *args_to_array(Env *env, size_t argc, ValuePtr *args);
+ArrayObject *block_args_to_array(Env *env, size_t signature_size, size_t argc, ValuePtr *args);
 
 void arg_spread(Env *env, size_t argc, ValuePtr *args, const char *arrangement, ...);
 
