@@ -32,14 +32,14 @@ public:
         assert(m_block);
     }
 
-    static ValuePtr from_block_maybe(Block *block) {
+    static Value from_block_maybe(Block *block) {
         if (!block) {
             return NilObject::the();
         }
         return new ProcObject { block };
     }
 
-    ValuePtr initialize(Env *, Block *);
+    Value initialize(Env *, Block *);
 
     Block *block() { return m_block; }
     bool is_lambda() { return m_type == ProcType::Lambda; }
@@ -48,7 +48,7 @@ public:
         return this;
     }
 
-    ValuePtr call(Env *, size_t, ValuePtr *, Block *);
+    Value call(Env *, size_t, Value *, Block *);
 
     Env *env() { return m_block->env(); }
 

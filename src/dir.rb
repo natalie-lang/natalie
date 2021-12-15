@@ -52,7 +52,7 @@ class Dir
       auto result = rmdir(dirname->as_string()->c_str());
       if (result == -1)
           env->raise_errno();
-      return ValuePtr::integer(result);
+      return Value::integer(result);
     END
   end
 end

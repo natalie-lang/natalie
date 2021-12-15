@@ -18,8 +18,8 @@ public:
     struct Key : public Cell {
         Key *prev { nullptr };
         Key *next { nullptr };
-        ValuePtr key { nullptr };
-        ValuePtr val { nullptr };
+        Value key { nullptr };
+        Value val { nullptr };
         size_t hash { 0 };
         bool removed { false };
 
@@ -58,32 +58,32 @@ public:
         return *this;
     }
 
-    static ValuePtr square_new(Env *, size_t argc, ValuePtr *args, ClassObject *klass);
+    static Value square_new(Env *, size_t argc, Value *args, ClassObject *klass);
 
     static size_t hash(const void *);
     static bool compare(const void *, const void *, void *);
 
     size_t size() const { return m_hashmap.size(); }
-    ValuePtr size(Env *) const;
+    Value size(Env *) const;
 
     bool is_empty() { return m_hashmap.size() == 0; }
 
-    ValuePtr get(Env *, ValuePtr);
-    ValuePtr get_default(Env *, ValuePtr = nullptr);
-    ValuePtr set_default(Env *, ValuePtr);
+    Value get(Env *, Value);
+    Value get_default(Env *, Value = nullptr);
+    Value set_default(Env *, Value);
 
-    void put(Env *, ValuePtr, ValuePtr);
-    ValuePtr remove(Env *, ValuePtr);
-    ValuePtr clear(Env *);
+    void put(Env *, Value, Value);
+    Value remove(Env *, Value);
+    Value clear(Env *);
 
-    ValuePtr default_proc(Env *);
-    ValuePtr set_default_proc(Env *, ValuePtr);
+    Value default_proc(Env *);
+    Value set_default_proc(Env *, Value);
     void set_default_proc(ProcObject *proc) { m_default_proc = proc; }
 
-    ValuePtr default_value() { return m_default_value; }
+    Value default_value() { return m_default_value; }
 
-    ValuePtr compact(Env *);
-    ValuePtr compact_in_place(Env *);
+    Value compact(Env *);
+    Value compact_in_place(Env *);
 
     bool is_iterating() const { return m_is_iterating; }
     void set_is_iterating(bool is_iterating) { m_is_iterating = is_iterating; }
@@ -136,40 +136,40 @@ public:
         return iterator { nullptr, this };
     }
 
-    ValuePtr compare_by_identity(Env *);
-    ValuePtr is_comparing_by_identity() const;
-    ValuePtr delete_if(Env *, Block *);
-    ValuePtr delete_key(Env *, ValuePtr, Block *);
-    ValuePtr dig(Env *, size_t, ValuePtr *);
-    ValuePtr each(Env *, Block *);
-    bool eq(Env *, ValuePtr, SymbolObject *);
-    bool eq(Env *, ValuePtr);
-    bool eql(Env *, ValuePtr);
-    bool gte(Env *, ValuePtr);
-    bool gt(Env *, ValuePtr);
-    bool lte(Env *, ValuePtr);
-    bool lt(Env *, ValuePtr);
-    ValuePtr except(Env *, size_t, ValuePtr *);
-    ValuePtr fetch(Env *, ValuePtr, ValuePtr, Block *);
-    ValuePtr fetch_values(Env *, size_t, ValuePtr *, Block *);
-    ValuePtr hash(Env *);
-    ValuePtr has_key(Env *, ValuePtr);
-    ValuePtr has_value(Env *, ValuePtr);
-    ValuePtr initialize(Env *, ValuePtr, Block *);
-    ValuePtr inspect(Env *);
-    ValuePtr keep_if(Env *, Block *);
-    ValuePtr keys(Env *);
-    ValuePtr merge(Env *, size_t, ValuePtr *, Block *);
-    ValuePtr merge_in_place(Env *, size_t, ValuePtr *, Block *);
-    ValuePtr ref(Env *, ValuePtr);
-    ValuePtr refeq(Env *, ValuePtr, ValuePtr);
-    ValuePtr slice(Env *, size_t, ValuePtr *);
-    ValuePtr replace(Env *, ValuePtr);
-    ValuePtr rehash(Env *);
-    ValuePtr values(Env *);
+    Value compare_by_identity(Env *);
+    Value is_comparing_by_identity() const;
+    Value delete_if(Env *, Block *);
+    Value delete_key(Env *, Value, Block *);
+    Value dig(Env *, size_t, Value *);
+    Value each(Env *, Block *);
+    bool eq(Env *, Value, SymbolObject *);
+    bool eq(Env *, Value);
+    bool eql(Env *, Value);
+    bool gte(Env *, Value);
+    bool gt(Env *, Value);
+    bool lte(Env *, Value);
+    bool lt(Env *, Value);
+    Value except(Env *, size_t, Value *);
+    Value fetch(Env *, Value, Value, Block *);
+    Value fetch_values(Env *, size_t, Value *, Block *);
+    Value hash(Env *);
+    Value has_key(Env *, Value);
+    Value has_value(Env *, Value);
+    Value initialize(Env *, Value, Block *);
+    Value inspect(Env *);
+    Value keep_if(Env *, Block *);
+    Value keys(Env *);
+    Value merge(Env *, size_t, Value *, Block *);
+    Value merge_in_place(Env *, size_t, Value *, Block *);
+    Value ref(Env *, Value);
+    Value refeq(Env *, Value, Value);
+    Value slice(Env *, size_t, Value *);
+    Value replace(Env *, Value);
+    Value rehash(Env *);
+    Value values(Env *);
 
-    ValuePtr to_h(Env *, Block *);
-    ValuePtr to_hash() { return this; }
+    Value to_h(Env *, Block *);
+    Value to_hash() { return this; }
 
     virtual void visit_children(Visitor &) override final;
 
@@ -179,8 +179,8 @@ public:
 
 private:
     void key_list_remove_node(Key *);
-    Key *key_list_append(Env *, ValuePtr, nat_int_t, ValuePtr);
-    nat_int_t generate_key_hash(Env *, ValuePtr) const;
+    Key *key_list_append(Env *, Value, nat_int_t, Value);
+    nat_int_t generate_key_hash(Env *, Value) const;
 
     void destroy_key_list() {
         if (!m_key_list) return;
@@ -197,7 +197,7 @@ private:
     TM::Hashmap<Key *, Object *> m_hashmap { hash, compare, 10 }; // TODO: profile and tune this initial capacity
     bool m_is_iterating { false };
     bool m_is_comparing_by_identity { false };
-    ValuePtr m_default_value { nullptr };
+    Value m_default_value { nullptr };
     ProcObject *m_default_proc { nullptr };
 };
 }

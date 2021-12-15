@@ -5,17 +5,17 @@
 
 namespace Natalie {
 
-ValuePtr FloatObject::is_infinite(Env *env) const {
+Value FloatObject::is_infinite(Env *env) const {
     if (is_positive_infinity()) {
-        return ValuePtr::integer(1);
+        return Value::integer(1);
     } else if (is_negative_infinity()) {
-        return ValuePtr::integer(-1);
+        return Value::integer(-1);
     } else {
         return NilObject::the();
     }
 }
 
-bool FloatObject::eq(Env *env, ValuePtr other) {
+bool FloatObject::eq(Env *env, Value other) {
     if (other->is_integer()) {
         return m_double == other->as_integer()->to_nat_int_t();
     }
@@ -30,13 +30,13 @@ bool FloatObject::eq(Env *env, ValuePtr other) {
     return false;
 }
 
-bool FloatObject::eql(ValuePtr other) const {
+bool FloatObject::eql(Value other) const {
     if (!other->is_float()) return false;
     auto *f = other->as_float();
     return f->m_double == m_double;
 }
 
-ValuePtr FloatObject::ceil(Env *env, ValuePtr precision_value) const {
+Value FloatObject::ceil(Env *env, Value precision_value) const {
     double value = this->to_double();
     nat_int_t precision = 0;
     if (precision_value) {
@@ -57,7 +57,7 @@ ValuePtr FloatObject::ceil(Env *env, ValuePtr precision_value) const {
     return result;
 }
 
-ValuePtr FloatObject::floor(Env *env, ValuePtr precision_value) const {
+Value FloatObject::floor(Env *env, Value precision_value) const {
     double value = this->to_double();
     nat_int_t precision = 0;
     if (precision_value) {
@@ -78,7 +78,7 @@ ValuePtr FloatObject::floor(Env *env, ValuePtr precision_value) const {
     return result;
 }
 
-ValuePtr FloatObject::round(Env *env, ValuePtr precision_value) {
+Value FloatObject::round(Env *env, Value precision_value) {
     double value = this->to_double();
     nat_int_t precision = 0;
     if (precision_value) {
@@ -112,14 +112,14 @@ ValuePtr FloatObject::round(Env *env, ValuePtr precision_value) {
     return result;
 }
 
-ValuePtr FloatObject::truncate(Env *env, ValuePtr precision_value) const {
+Value FloatObject::truncate(Env *env, Value precision_value) const {
     if (is_negative()) {
         return ceil(env, precision_value);
     }
     return floor(env, precision_value);
 }
 
-ValuePtr FloatObject::to_s(Env *env) const {
+Value FloatObject::to_s(Env *env) const {
     if (is_nan()) {
         return new StringObject { "NaN" };
     } else if (is_positive_infinity()) {
@@ -172,9 +172,9 @@ ValuePtr FloatObject::to_s(Env *env) const {
     return new StringObject { string };
 }
 
-ValuePtr FloatObject::cmp(Env *env, ValuePtr other) {
-    ValuePtr lhs = this;
-    ValuePtr rhs = other;
+Value FloatObject::cmp(Env *env, Value other) {
+    Value lhs = this;
+    Value rhs = other;
 
     if (!rhs->is_float()) {
         auto coerced = Natalie::coerce(env, rhs, lhs);
@@ -193,15 +193,15 @@ ValuePtr FloatObject::cmp(Env *env, ValuePtr other) {
     double rhs_d = rhs->as_float()->to_double();
 
     if (lhs_d < rhs_d) {
-        return ValuePtr::integer(-1);
+        return Value::integer(-1);
     } else if (lhs_d == rhs_d) {
-        return ValuePtr::integer(0);
+        return Value::integer(0);
     } else {
-        return ValuePtr::integer(1);
+        return Value::integer(1);
     }
 }
 
-ValuePtr FloatObject::coerce(Env *env, ValuePtr arg) {
+Value FloatObject::coerce(Env *env, Value arg) {
     ArrayObject *ary = new ArrayObject {};
     switch (arg->type()) {
     case Object::Type::Float:
@@ -222,12 +222,12 @@ ValuePtr FloatObject::coerce(Env *env, ValuePtr arg) {
     return ary;
 }
 
-ValuePtr FloatObject::to_i(Env *env) const {
+Value FloatObject::to_i(Env *env) const {
     return floor(env, nullptr);
 }
 
-ValuePtr FloatObject::add(Env *env, ValuePtr rhs) {
-    ValuePtr lhs = this;
+Value FloatObject::add(Env *env, Value rhs) {
+    Value lhs = this;
 
     if (!rhs->is_float()) {
         auto coerced = Natalie::coerce(env, rhs, lhs);
@@ -243,8 +243,8 @@ ValuePtr FloatObject::add(Env *env, ValuePtr rhs) {
     return new FloatObject { addend1 + addend2 };
 }
 
-ValuePtr FloatObject::sub(Env *env, ValuePtr rhs) {
-    ValuePtr lhs = this;
+Value FloatObject::sub(Env *env, Value rhs) {
+    Value lhs = this;
 
     if (!rhs->is_float()) {
         auto coerced = Natalie::coerce(env, rhs, lhs);
@@ -260,8 +260,8 @@ ValuePtr FloatObject::sub(Env *env, ValuePtr rhs) {
     return new FloatObject { minuend - subtrahend };
 }
 
-ValuePtr FloatObject::mul(Env *env, ValuePtr rhs) {
-    ValuePtr lhs = this;
+Value FloatObject::mul(Env *env, Value rhs) {
+    Value lhs = this;
 
     if (!rhs->is_float()) {
         auto coerced = Natalie::coerce(env, rhs, lhs);
@@ -277,8 +277,8 @@ ValuePtr FloatObject::mul(Env *env, ValuePtr rhs) {
     return new FloatObject { multiplicand * mulitiplier };
 }
 
-ValuePtr FloatObject::div(Env *env, ValuePtr rhs) {
-    ValuePtr lhs = this;
+Value FloatObject::div(Env *env, Value rhs) {
+    Value lhs = this;
 
     if (!rhs->is_float()) {
         auto coerced = Natalie::coerce(env, rhs, lhs);
@@ -295,8 +295,8 @@ ValuePtr FloatObject::div(Env *env, ValuePtr rhs) {
     return new FloatObject { dividend / divisor };
 }
 
-ValuePtr FloatObject::mod(Env *env, ValuePtr rhs) {
-    ValuePtr lhs = this;
+Value FloatObject::mod(Env *env, Value rhs) {
+    Value lhs = this;
 
     bool rhs_is_non_zero = (rhs->is_float() && !rhs->as_float()->is_zero()) || (rhs->is_integer() && !rhs->as_integer()->is_zero());
 
@@ -320,7 +320,7 @@ ValuePtr FloatObject::mod(Env *env, ValuePtr rhs) {
     return new FloatObject { fmod(dividend, divisor) };
 }
 
-ValuePtr FloatObject::divmod(Env *env, ValuePtr arg) {
+Value FloatObject::divmod(Env *env, Value arg) {
     if (is_nan()) env->raise("FloatDomainError", "NaN");
     if (is_infinity()) env->raise("FloatDomainError", "Infinity");
 
@@ -329,8 +329,8 @@ ValuePtr FloatObject::divmod(Env *env, ValuePtr arg) {
     if (arg->is_float() && arg->as_float()->is_zero()) env->raise("ZeroDivisionError", "divided by 0");
     if (arg->is_integer() && arg->as_integer()->is_zero()) env->raise("ZeroDivisionError", "divided by 0");
 
-    ValuePtr division = div(env, arg);
-    ValuePtr modulus = mod(env, arg);
+    Value division = div(env, arg);
+    Value modulus = mod(env, arg);
 
     ArrayObject *ary = new ArrayObject {};
     ary->push(division->as_float()->floor(env, 0));
@@ -339,8 +339,8 @@ ValuePtr FloatObject::divmod(Env *env, ValuePtr arg) {
     return ary;
 }
 
-ValuePtr FloatObject::pow(Env *env, ValuePtr rhs) {
-    ValuePtr lhs = this;
+Value FloatObject::pow(Env *env, Value rhs) {
+    Value lhs = this;
 
     if (!rhs->is_float()) {
         auto coerced = Natalie::coerce(env, rhs, lhs);
@@ -357,7 +357,7 @@ ValuePtr FloatObject::pow(Env *env, ValuePtr rhs) {
     return new FloatObject { ::pow(base, exponent) };
 }
 
-ValuePtr FloatObject::abs(Env *env) const {
+Value FloatObject::abs(Env *env) const {
     auto number = to_double();
     if (number == -0.0 || number < 0.0) {
         return negate();
@@ -366,29 +366,29 @@ ValuePtr FloatObject::abs(Env *env) const {
     }
 }
 
-ValuePtr FloatObject::next_float(Env *env) const {
+Value FloatObject::next_float(Env *env) const {
     double number = nextafter(to_double(), HUGE_VAL);
     return new FloatObject { number };
 }
 
-ValuePtr FloatObject::prev_float(Env *env) const {
+Value FloatObject::prev_float(Env *env) const {
     double number = nextafter(to_double(), -HUGE_VAL);
     return new FloatObject { number };
 }
 
-ValuePtr FloatObject::arg(Env *env) {
+Value FloatObject::arg(Env *env) {
     if (is_nan()) return this;
     if (!signbit(m_double)) {
-        return ValuePtr::integer(0);
+        return Value::integer(0);
     } else {
-        ValuePtr Math = GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern("Math"));
+        Value Math = GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern("Math"));
         return Math->const_fetch(SymbolObject::intern("PI"));
     }
 }
 
 #define NAT_DEFINE_FLOAT_COMPARISON_METHOD(name, op)                                                                \
-    bool FloatObject::name(Env *env, ValuePtr rhs) {                                                                \
-        ValuePtr lhs = this;                                                                                        \
+    bool FloatObject::name(Env *env, Value rhs) {                                                                   \
+        Value lhs = this;                                                                                           \
                                                                                                                     \
         if (!rhs->is_float()) {                                                                                     \
             auto coerced = Natalie::coerce(env, rhs, lhs);                                                          \

@@ -36,18 +36,18 @@ public:
         }
     }
 
-    static ValuePtr read_file(Env *, ValuePtr);
+    static Value read_file(Env *, Value);
 
     int fileno() const { return m_fileno; }
     void set_fileno(int fileno) { m_fileno = fileno; }
 
-    ValuePtr initialize(Env *, ValuePtr);
-    ValuePtr read(Env *, ValuePtr) const;
-    ValuePtr write(Env *, size_t, ValuePtr *) const;
-    ValuePtr puts(Env *, size_t, ValuePtr *) const;
-    ValuePtr print(Env *, size_t, ValuePtr *) const;
-    ValuePtr close(Env *);
-    ValuePtr seek(Env *, ValuePtr, ValuePtr) const;
+    Value initialize(Env *, Value);
+    Value read(Env *, Value) const;
+    Value write(Env *, size_t, Value *) const;
+    Value puts(Env *, size_t, Value *) const;
+    Value print(Env *, size_t, Value *) const;
+    Value close(Env *);
+    Value seek(Env *, Value, Value) const;
     bool is_closed() const { return m_closed; }
 
 private:

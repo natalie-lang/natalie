@@ -23,7 +23,7 @@
 })
 
 #define NAT_RUN_BLOCK_AND_PROPAGATE_BREAK(env, env_with_block, the_block, argc, args, block) ({ \
-    ValuePtr _result = the_block->_run(env, argc, args, block);                                 \
+    Value _result = the_block->_run(env, argc, args, block);                                    \
     if (_result->has_break_flag()) {                                                            \
         if (env == env_with_block) {                                                            \
             _result->remove_break_flag();                                                       \
@@ -34,7 +34,7 @@
 })
 
 #define NAT_RUN_BLOCK_GENERIC(env, the_block, argc, args, block, on_break_flag) ({ \
-    Natalie::ValuePtr _result = nullptr;                                           \
+    Natalie::Value _result = nullptr;                                              \
     do {                                                                           \
         if (_result)                                                               \
             _result->remove_redo_flag();                                           \
@@ -64,7 +64,7 @@
 
 #define NAT_HANDLE_LOCAL_JUMP_ERROR(env, exception, return_handler) ({                                                             \
     auto LocalJumpError = self->const_find(env, SymbolObject::intern("LocalJumpError"), Object::ConstLookupSearchMode::NotStrict); \
-    ValuePtr result;                                                                                                               \
+    Value result;                                                                                                                  \
     if (!exception->is_a(env, LocalJumpError)) {                                                                                   \
         throw exception;                                                                                                           \
     } else if (return_handler && exception->local_jump_error_type() == LocalJumpErrorType::Return) {                               \

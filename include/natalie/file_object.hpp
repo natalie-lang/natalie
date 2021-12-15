@@ -19,10 +19,10 @@ public:
     FileObject()
         : IoObject { GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern("File"))->as_class() } { }
 
-    ValuePtr initialize(Env *, ValuePtr, ValuePtr, Block *);
+    Value initialize(Env *, Value, Value, Block *);
 
-    static ValuePtr open(Env *env, ValuePtr filename, ValuePtr flags_obj, Block *block) {
-        ValuePtr args[] = { filename, flags_obj };
+    static Value open(Env *env, Value filename, Value flags_obj, Block *block) {
+        Value args[] = { filename, flags_obj };
         size_t argc = 1;
         if (flags_obj) argc++;
         auto obj = _new(env, GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern("File"))->as_class(), argc, args, nullptr);
@@ -30,27 +30,27 @@ public:
             Defer close_file([&]() {
                 obj->as_file()->close(env);
             });
-            ValuePtr block_args[] = { obj };
-            ValuePtr result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, block_args, nullptr);
+            Value block_args[] = { obj };
+            Value result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, block_args, nullptr);
             return result;
         } else {
             return obj;
         }
     }
 
-    static ValuePtr expand_path(Env *env, ValuePtr path, ValuePtr root);
-    static ValuePtr unlink(Env *env, ValuePtr path);
+    static Value expand_path(Env *env, Value path, Value root);
+    static Value unlink(Env *env, Value path);
 
     static void build_constants(Env *env, ClassObject *klass);
 
-    static bool exist(Env *env, ValuePtr path) {
+    static bool exist(Env *env, Value path) {
         struct stat sb;
         path->assert_type(env, Object::Type::String, "String");
         return stat(path->as_string()->c_str(), &sb) != -1;
     }
 
-    static bool file(Env *env, ValuePtr path);
-    static bool directory(Env *env, ValuePtr path);
+    static bool file(Env *env, Value path);
+    static bool directory(Env *env, Value path);
 
     const String *path() { return m_path; }
     void set_path(String *path) { m_path = path; };

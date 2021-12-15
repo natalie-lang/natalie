@@ -14,7 +14,7 @@ namespace Natalie {
 
 class MethodObject : public Object {
 public:
-    MethodObject(ValuePtr object, Method *method)
+    MethodObject(Value object, Method *method)
         : Object { Object::Type::Method, GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern("Method"))->as_class() }
         , m_object { object }
         , m_method { method } { }
@@ -26,7 +26,7 @@ public:
     SymbolObject *name(Env *env) { return SymbolObject::intern(m_method->name()); }
     Method *method() { return m_method; }
 
-    ValuePtr inspect(Env *env) {
+    Value inspect(Env *env) {
         auto the_owner = owner();
         if (the_owner->is_class() && the_owner->as_class()->is_singleton())
             return StringObject::format(env, "#<Method: {}.{}(*)>", m_object->inspect_str(env), m_method->name());
@@ -52,7 +52,7 @@ public:
     }
 
 private:
-    ValuePtr m_object { nullptr };
+    Value m_object { nullptr };
     Method *m_method { nullptr };
 };
 }

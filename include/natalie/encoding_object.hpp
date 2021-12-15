@@ -31,11 +31,11 @@ public:
     Encoding num() { return m_num; }
 
     const StringObject *name() { return m_names[0]; }
-    ValuePtr name(Env *);
+    Value name(Env *);
 
     ArrayObject *names(Env *);
 
-    ValuePtr inspect(Env *);
+    Value inspect(Env *);
 
     static ArrayObject *list(Env *env);
 

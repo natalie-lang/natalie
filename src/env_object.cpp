@@ -6,7 +6,7 @@ extern char **environ;
 
 namespace Natalie {
 
-ValuePtr EnvObject::inspect(Env *env) {
+Value EnvObject::inspect(Env *env) {
     HashObject *hash = new HashObject {};
     int i = 1;
     char *pair = *environ;
@@ -22,7 +22,7 @@ ValuePtr EnvObject::inspect(Env *env) {
     return hash->inspect(env);
 }
 
-ValuePtr EnvObject::ref(Env *env, ValuePtr name) {
+Value EnvObject::ref(Env *env, Value name) {
     name->assert_type(env, Object::Type::String, "String");
     char *value = getenv(name->as_string()->c_str());
     if (value) {
@@ -32,7 +32,7 @@ ValuePtr EnvObject::ref(Env *env, ValuePtr name) {
     }
 }
 
-ValuePtr EnvObject::refeq(Env *env, ValuePtr name, ValuePtr value) {
+Value EnvObject::refeq(Env *env, Value name, Value value) {
     name->assert_type(env, Object::Type::String, "String");
     value->assert_type(env, Object::Type::String, "String");
     setenv(name->as_string()->c_str(), value->as_string()->c_str(), 1);

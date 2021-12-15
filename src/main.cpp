@@ -6,7 +6,7 @@ using namespace Natalie;
 
 extern "C" Env *build_top_env() {
     auto env = Natalie::build_top_env();
-    ValuePtr self = GlobalEnv::the()->main_obj();
+    Value self = GlobalEnv::the()->main_obj();
     (void)self; // don't warn about unused var
     /*NAT_OBJ_INIT*/
     return env;
@@ -15,13 +15,13 @@ extern "C" Env *build_top_env() {
 extern "C" Object *EVAL(Env *env) {
     /*NAT_EVAL_INIT*/
 
-    ValuePtr self = GlobalEnv::the()->main_obj();
+    Value self = GlobalEnv::the()->main_obj();
     (void)self; // don't warn about unused var
     volatile bool run_exit_handlers = true;
 
     // kinda hacky, but needed for top-level begin/rescue
     size_t argc = 0;
-    ValuePtr *args = nullptr;
+    Value *args = nullptr;
     Block *block = nullptr;
 
     try {
@@ -35,7 +35,7 @@ extern "C" Object *EVAL(Env *env) {
     }
 }
 
-ValuePtr _main(int argc, char *argv[]) {
+Value _main(int argc, char *argv[]) {
     Env *env = ::build_top_env();
     FiberObject::build_main_fiber(Heap::the().start_of_stack());
 
@@ -44,7 +44,7 @@ ValuePtr _main(int argc, char *argv[]) {
 #endif
 
     assert(argc > 0);
-    ValuePtr exe = new StringObject { argv[0] };
+    Value exe = new StringObject { argv[0] };
     env->global_set(SymbolObject::intern("$exe"), exe);
 
     ArrayObject *ARGV = new ArrayObject {};

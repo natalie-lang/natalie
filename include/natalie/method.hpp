@@ -37,7 +37,7 @@ public:
 
     bool is_undefined() const { return m_undefined; }
 
-    ValuePtr call(Env *env, ValuePtr self, size_t argc, ValuePtr *args, Block *block) {
+    Value call(Env *env, Value self, size_t argc, Value *args, Block *block) {
         assert(!is_undefined());
         Env *closure_env;
         if (has_env()) {
@@ -51,7 +51,7 @@ public:
         e.set_file(env->file());
         e.set_line(env->line());
         e.set_block(block);
-        ValuePtr result;
+        Value result;
         if (block && !block->calling_env()) {
             block->set_calling_env(env);
             result = m_fn(&e, self, argc, args, block);

@@ -2,7 +2,7 @@
 
 namespace Natalie {
 
-ValuePtr BignumObject::to_s(Env *env, ValuePtr base_value) {
+Value BignumObject::to_s(Env *env, Value base_value) {
     if (base_value) {
         // NATFIXME
         NAT_UNREACHABLE();
@@ -10,7 +10,7 @@ ValuePtr BignumObject::to_s(Env *env, ValuePtr base_value) {
     return new StringObject { m_bignum->to_string().c_str() };
 }
 
-ValuePtr BignumObject::add(Env *env, ValuePtr arg) {
+Value BignumObject::add(Env *env, Value arg) {
     if (arg->is_float()) {
         double current = strtod(m_bignum->to_string().c_str(), NULL);
         auto result = current + arg->as_float()->to_double();
@@ -27,7 +27,7 @@ ValuePtr BignumObject::add(Env *env, ValuePtr arg) {
     return new BignumObject { to_bignum() + other->to_bignum() };
 }
 
-ValuePtr BignumObject::sub(Env *env, ValuePtr arg) {
+Value BignumObject::sub(Env *env, Value arg) {
     if (arg->is_float()) {
         double current = strtod(m_bignum->to_string().c_str(), NULL);
         auto result = current - arg->as_float()->to_double();
@@ -44,7 +44,7 @@ ValuePtr BignumObject::sub(Env *env, ValuePtr arg) {
     return new BignumObject { to_bignum() - other->to_bignum() };
 }
 
-ValuePtr BignumObject::mul(Env *env, ValuePtr arg) {
+Value BignumObject::mul(Env *env, Value arg) {
     if (arg->is_float()) {
         double current = strtod(m_bignum->to_string().c_str(), NULL);
         auto result = current * arg->as_float()->to_double();
@@ -61,7 +61,7 @@ ValuePtr BignumObject::mul(Env *env, ValuePtr arg) {
     return new BignumObject { to_bignum() * other->to_bignum() };
 }
 
-ValuePtr BignumObject::div(Env *env, ValuePtr arg) {
+Value BignumObject::div(Env *env, Value arg) {
     if (arg->is_float()) {
         double current = strtod(m_bignum->to_string().c_str(), NULL);
         auto result = current / arg->as_float()->to_double();
@@ -81,11 +81,11 @@ ValuePtr BignumObject::div(Env *env, ValuePtr arg) {
     return new BignumObject { to_bignum() / other->to_bignum() };
 }
 
-ValuePtr BignumObject::negate(Env *env) {
+Value BignumObject::negate(Env *env) {
     return new BignumObject { -to_bignum() };
 }
 
-bool BignumObject::eq(Env *env, ValuePtr other) {
+bool BignumObject::eq(Env *env, Value other) {
     if (other->is_float()) {
         return to_bignum() == other->as_float()->to_double();
     }
@@ -100,7 +100,7 @@ bool BignumObject::eq(Env *env, ValuePtr other) {
     return other->send(env, SymbolObject::intern("=="), { this })->is_truthy();
 }
 
-bool BignumObject::lt(Env *env, ValuePtr other) {
+bool BignumObject::lt(Env *env, Value other) {
     if (other->is_float()) {
         return to_bignum() < other->as_float()->to_double();
     }
@@ -115,7 +115,7 @@ bool BignumObject::lt(Env *env, ValuePtr other) {
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
 }
 
-bool BignumObject::lte(Env *env, ValuePtr other) {
+bool BignumObject::lte(Env *env, Value other) {
     if (other->is_float()) {
         return to_bignum() <= other->as_float()->to_double();
     }
@@ -130,7 +130,7 @@ bool BignumObject::lte(Env *env, ValuePtr other) {
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
 }
 
-bool BignumObject::gt(Env *env, ValuePtr other) {
+bool BignumObject::gt(Env *env, Value other) {
     if (other->is_float()) {
         return to_bignum() > other->as_float()->to_double();
     }
@@ -145,7 +145,7 @@ bool BignumObject::gt(Env *env, ValuePtr other) {
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
 }
 
-bool BignumObject::gte(Env *env, ValuePtr other) {
+bool BignumObject::gte(Env *env, Value other) {
     if (other->is_float()) {
         return to_bignum() >= other->as_float()->to_double();
     }

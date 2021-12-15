@@ -4,7 +4,7 @@ using namespace Natalie;
 
 /*NAT_DECLARATIONS*/
 
-ValuePtr init_obj(Env *env, ValuePtr self) {
+Value init_obj(Env *env, Value self) {
     /*NAT_EVAL_INIT*/
     /*NAT_EVAL_BODY*/
     return NilObject::the();

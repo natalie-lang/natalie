@@ -35,7 +35,7 @@ public:
         free(const_cast<char *>(m_pattern));
     }
 
-    static ValuePtr compile(Env *env, ValuePtr pattern, ValuePtr flags) {
+    static Value compile(Env *env, Value pattern, Value flags) {
         pattern->assert_type(env, Object::Type::String, "String");
         int options = 0;
         if (flags) {
@@ -104,22 +104,22 @@ public:
         return onig_search(m_regex, unsigned_str, char_end, char_start, char_range, region, options);
     }
 
-    bool eq(Env *env, ValuePtr other) const {
+    bool eq(Env *env, Value other) const {
         return *this == *other;
     }
 
-    bool eqeqeq(Env *env, ValuePtr other) {
+    bool eqeqeq(Env *env, Value other) {
         if (!other->is_string() && !other->is_symbol()) {
             return false;
         }
         return match(env, other)->is_truthy();
     }
 
-    ValuePtr initialize(Env *, ValuePtr);
-    ValuePtr inspect(Env *env);
-    ValuePtr eqtilde(Env *env, ValuePtr);
-    ValuePtr match(Env *env, ValuePtr, size_t = 0);
-    ValuePtr source(Env *env);
+    Value initialize(Env *, Value);
+    Value inspect(Env *env);
+    Value eqtilde(Env *env, Value);
+    Value match(Env *env, Value, size_t = 0);
+    Value source(Env *env);
 
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<RegexpObject %p>", this);

@@ -14,7 +14,7 @@ class Tempfile
       auto path_template = String::format("{}/{}XXXXXX", tmpdir, basename->as_string());
       int fileno = mkstemp(const_cast<char*>(path_template->c_str()));
       if (fileno == -1) {
-          ValuePtr args[] = { ValuePtr::integer(errno) };
+          Value args[] = { Value::integer(errno) };
           auto exception = GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern("SystemCallError")).send(env, SymbolObject::intern("exception"), 1, args)->as_exception();
           env->raise_exception(exception);
       } else {

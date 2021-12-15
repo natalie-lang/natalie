@@ -10,24 +10,24 @@
 
 namespace Natalie {
 
-class ValuePtr {
+class Value {
 public:
     enum class Type {
         Integer,
         Pointer,
     };
 
-    ValuePtr() { }
+    Value() { }
 
-    ValuePtr(Object *value)
+    Value(Object *value)
         : m_value { value } { }
 
-    ValuePtr(Type type, nat_int_t integer)
+    Value(Type type, nat_int_t integer)
         : m_type { type }
         , m_integer { integer } { }
 
-    static ValuePtr integer(nat_int_t integer) {
-        return ValuePtr { Type::Integer, integer };
+    static Value integer(nat_int_t integer) {
+        return Value { Type::Integer, integer };
     }
 
     Object &operator*() {
@@ -66,12 +66,12 @@ public:
 
     operator bool() { return m_type == Type::Integer || m_value; }
 
-    ValuePtr public_send(Env *, SymbolObject *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
+    Value public_send(Env *, SymbolObject *, size_t = 0, Value * = nullptr, Block * = nullptr);
 
-    ValuePtr send(Env *, SymbolObject *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
+    Value send(Env *, SymbolObject *, size_t = 0, Value * = nullptr, Block * = nullptr);
 
-    ValuePtr send(Env *env, SymbolObject *name, std::initializer_list<ValuePtr> args, Block *block = nullptr) {
-        return send(env, name, args.size(), const_cast<ValuePtr *>(std::data(args)), block);
+    Value send(Env *env, SymbolObject *name, std::initializer_list<Value> args, Block *block = nullptr) {
+        return send(env, name, args.size(), const_cast<Value *>(std::data(args)), block);
     }
 
     bool is_pointer() const {
@@ -87,12 +87,12 @@ public:
         return m_integer;
     }
 
-    ValuePtr guard() {
+    Value guard() {
         m_guarded = true;
         return *this;
     }
 
-    ValuePtr unguard() {
+    Value unguard() {
         m_guarded = false;
         return *this;
     }
@@ -100,7 +100,7 @@ public:
 private:
     void auto_hydrate() {
         if (m_guarded) {
-            printf("%p is a guarded ValuePtr, which means you must call unguard() on it before using the arrow operator.\n", this);
+            printf("%p is a guarded Value, which means you must call unguard() on it before using the arrow operator.\n", this);
             abort();
         }
         if (m_type != Type::Pointer)

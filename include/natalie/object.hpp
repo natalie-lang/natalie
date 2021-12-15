@@ -9,7 +9,7 @@
 #include "natalie/macros.hpp"
 #include "natalie/method_visibility.hpp"
 #include "natalie/object_type.hpp"
-#include "natalie/value_ptr.hpp"
+#include "natalie/value.hpp"
 #include "tm/hashmap.hpp"
 
 namespace Natalie {
@@ -76,7 +76,7 @@ public:
         m_type = ObjectType::Nil;
     }
 
-    static ValuePtr _new(Env *, ValuePtr, size_t, ValuePtr *, Block *);
+    static Value _new(Env *, Value, size_t, Value *, Block *);
 
     Type type() { return m_type; }
     ClassObject *klass() { return m_klass; }
@@ -86,7 +86,7 @@ public:
 
     int flags() const { return m_flags; }
 
-    ValuePtr initialize(Env *, size_t, ValuePtr *, Block *);
+    Value initialize(Env *, size_t, Value *, Block *);
 
     bool is_nil() const { return m_type == Type::Nil; }
     bool is_true() const { return m_type == Type::True; }
@@ -155,19 +155,19 @@ public:
 
     void set_singleton_class(ClassObject *);
 
-    virtual ValuePtr const_find(Env *, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::Raise);
-    virtual ValuePtr const_get(SymbolObject *);
-    virtual ValuePtr const_fetch(SymbolObject *);
-    virtual ValuePtr const_set(SymbolObject *, ValuePtr);
+    virtual Value const_find(Env *, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::Raise);
+    virtual Value const_get(SymbolObject *);
+    virtual Value const_fetch(SymbolObject *);
+    virtual Value const_set(SymbolObject *, Value);
 
-    ValuePtr ivar_get(Env *, SymbolObject *);
-    ValuePtr ivar_set(Env *, SymbolObject *, ValuePtr);
+    Value ivar_get(Env *, SymbolObject *);
+    Value ivar_set(Env *, SymbolObject *, Value);
 
-    ValuePtr instance_variables(Env *);
+    Value instance_variables(Env *);
 
-    ValuePtr cvar_get(Env *, SymbolObject *);
-    virtual ValuePtr cvar_get_or_null(Env *, SymbolObject *);
-    virtual ValuePtr cvar_set(Env *, SymbolObject *, ValuePtr);
+    Value cvar_get(Env *, SymbolObject *);
+    virtual Value cvar_get_or_null(Env *, SymbolObject *);
+    virtual Value cvar_set(Env *, SymbolObject *, Value);
 
     virtual SymbolObject *define_method(Env *, SymbolObject *, MethodFnPtr, int arity);
     virtual SymbolObject *define_method(Env *, SymbolObject *, Block *);
@@ -177,14 +177,14 @@ public:
     SymbolObject *define_singleton_method(Env *, SymbolObject *, Block *);
     SymbolObject *undefine_singleton_method(Env *, SymbolObject *);
 
-    virtual ValuePtr private_method(Env *, ValuePtr method_name);
-    virtual ValuePtr protected_method(Env *, ValuePtr method_name);
+    virtual Value private_method(Env *, Value method_name);
+    virtual Value protected_method(Env *, Value method_name);
 
     virtual void alias(Env *, SymbolObject *, SymbolObject *);
 
     nat_int_t object_id() { return reinterpret_cast<nat_int_t>(this); }
 
-    ValuePtr itself() { return this; }
+    Value itself() { return this; }
 
     const String *pointer_id() {
         char buf[100]; // ought to be enough for anybody ;-)
@@ -192,25 +192,25 @@ public:
         return new String(buf);
     }
 
-    ValuePtr public_send(Env *, SymbolObject *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
+    Value public_send(Env *, SymbolObject *, size_t = 0, Value * = nullptr, Block * = nullptr);
 
-    ValuePtr send(Env *, SymbolObject *, size_t = 0, ValuePtr * = nullptr, Block * = nullptr);
-    ValuePtr send(Env *, size_t, ValuePtr *, Block *);
+    Value send(Env *, SymbolObject *, size_t = 0, Value * = nullptr, Block * = nullptr);
+    Value send(Env *, size_t, Value *, Block *);
 
-    ValuePtr send(Env *env, SymbolObject *name, std::initializer_list<ValuePtr> args, Block *block = nullptr) {
-        return send(env, name, args.size(), const_cast<ValuePtr *>(data(args)), block);
+    Value send(Env *env, SymbolObject *name, std::initializer_list<Value> args, Block *block = nullptr) {
+        return send(env, name, args.size(), const_cast<Value *>(data(args)), block);
     }
 
     Method *find_method(Env *, SymbolObject *, MethodVisibility, ModuleObject ** = nullptr, Method * = nullptr);
 
-    ValuePtr dup(Env *);
+    Value dup(Env *);
 
-    bool is_a(Env *, ValuePtr);
-    bool respond_to(Env *, ValuePtr);
-    bool respond_to_method(Env *, ValuePtr) const;
+    bool is_a(Env *, Value);
+    bool respond_to(Env *, Value);
+    bool respond_to_method(Env *, Value) const;
 
     const char *defined(Env *, SymbolObject *, bool);
-    ValuePtr defined_obj(Env *, SymbolObject *, bool = false);
+    Value defined_obj(Env *, SymbolObject *, bool = false);
 
     virtual ProcObject *to_proc(Env *);
 
@@ -232,21 +232,21 @@ public:
     void remove_inspecting_flag() { m_flags = m_flags & ~Flag::Inspecting; }
     bool has_inspecting_flag() const { return (m_flags & Flag::Inspecting) == Flag::Inspecting; }
 
-    bool eq(Env *, ValuePtr other) {
+    bool eq(Env *, Value other) {
         return other == this;
     }
-    bool equal(ValuePtr);
+    bool equal(Value);
 
-    bool neq(Env *env, ValuePtr other);
+    bool neq(Env *env, Value other);
 
-    ValuePtr instance_eval(Env *, ValuePtr, Block *);
+    Value instance_eval(Env *, Value, Block *);
 
     void assert_type(Env *, Object::Type, const char *);
     void assert_not_frozen(Env *);
 
     const String *inspect_str(Env *);
 
-    ValuePtr enum_for(Env *env, const char *method, size_t argc = 0, ValuePtr *args = nullptr);
+    Value enum_for(Env *env, const char *method, size_t argc = 0, Value *args = nullptr);
 
     virtual void visit_children(Visitor &visitor) override;
 

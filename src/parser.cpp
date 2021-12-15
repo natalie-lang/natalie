@@ -776,7 +776,7 @@ Node *Parser::parse_interpolated_string(LocalsHashmap &locals) {
 };
 
 Node *Parser::parse_lit(LocalsHashmap &locals) {
-    ValuePtr value;
+    Value value;
     auto token = current_token();
     switch (token->type()) {
     case Token::Type::Integer:

@@ -34,15 +34,15 @@ public:
     StringObject *message() { return m_message; }
     void set_message(StringObject *message) { m_message = message; }
 
-    ValuePtr initialize(Env *, ValuePtr);
-    ValuePtr inspect(Env *);
+    Value initialize(Env *, Value);
+    Value inspect(Env *);
 
-    ValuePtr message(Env *env) {
+    Value message(Env *env) {
         return m_message;
     }
 
     const ArrayObject *backtrace() { return m_backtrace; }
-    ValuePtr backtrace(Env *);
+    Value backtrace(Env *);
     void build_backtrace(Env *);
 
     virtual void visit_children(Visitor &) override final;

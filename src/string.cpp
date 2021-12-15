@@ -1,7 +1,7 @@
 #include "natalie/string.hpp"
 #include "natalie/object.hpp"
 #include "natalie/string_object.hpp"
-#include "natalie/value_ptr.hpp"
+#include "natalie/value.hpp"
 
 namespace Natalie {
 

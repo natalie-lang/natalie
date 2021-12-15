@@ -51,7 +51,7 @@
 #include "natalie/symbol_object.hpp"
 #include "natalie/true_object.hpp"
 #include "natalie/types.hpp"
-#include "natalie/value_ptr.hpp"
+#include "natalie/value.hpp"
 #include "natalie/void_p_object.hpp"
 
 namespace Natalie {
@@ -68,17 +68,17 @@ Env *build_top_env();
 
 const char *find_current_method_name(Env *env);
 
-ValuePtr splat(Env *env, ValuePtr obj);
+Value splat(Env *env, Value obj);
 
 void run_at_exit_handlers(Env *env);
 void print_exception_with_backtrace(Env *env, ExceptionObject *exception);
 void handle_top_level_exception(Env *, ExceptionObject *, bool);
 
-ArrayObject *to_ary(Env *env, ValuePtr obj, bool raise_for_non_array);
+ArrayObject *to_ary(Env *env, Value obj, bool raise_for_non_array);
 
 struct ArgValueByPathOptions {
-    ValuePtr value;
-    ValuePtr default_value;
+    Value value;
+    Value default_value;
     bool splat;
     bool has_kwargs;
     int total_count;
@@ -86,33 +86,33 @@ struct ArgValueByPathOptions {
     bool defaults_on_right;
     int offset_from_end;
 };
-ValuePtr arg_value_by_path(Env *env, ArgValueByPathOptions options, size_t path_size, ...);
+Value arg_value_by_path(Env *env, ArgValueByPathOptions options, size_t path_size, ...);
 
 struct ArrayValueByPathOptions {
-    ValuePtr value;
-    ValuePtr default_value;
+    Value value;
+    Value default_value;
     bool splat;
     int offset_from_end;
 };
-ValuePtr array_value_by_path(Env *env, ArrayValueByPathOptions options, size_t path_size, ...);
+Value array_value_by_path(Env *env, ArrayValueByPathOptions options, size_t path_size, ...);
 
-HashObject *kwarg_hash(ValuePtr args);
+HashObject *kwarg_hash(Value args);
 HashObject *kwarg_hash(ArrayObject *args);
-ValuePtr kwarg_value_by_name(Env *env, ValuePtr args, const char *name, ValuePtr default_value);
-ValuePtr kwarg_value_by_name(Env *env, ArrayObject *args, const char *name, ValuePtr default_value);
+Value kwarg_value_by_name(Env *env, Value args, const char *name, Value default_value);
+Value kwarg_value_by_name(Env *env, ArrayObject *args, const char *name, Value default_value);
 
-ArrayObject *args_to_array(Env *env, size_t argc, ValuePtr *args);
-ArrayObject *block_args_to_array(Env *env, size_t signature_size, size_t argc, ValuePtr *args);
+ArrayObject *args_to_array(Env *env, size_t argc, Value *args);
+ArrayObject *block_args_to_array(Env *env, size_t signature_size, size_t argc, Value *args);
 
-void arg_spread(Env *env, size_t argc, ValuePtr *args, const char *arrangement, ...);
+void arg_spread(Env *env, size_t argc, Value *args, const char *arrangement, ...);
 
-std::pair<ValuePtr, ValuePtr> coerce(Env *, ValuePtr, ValuePtr);
+std::pair<Value, Value> coerce(Env *, Value, Value);
 
 char *zero_string(int);
 
-Block *proc_to_block_arg(Env *, ValuePtr);
+Block *proc_to_block_arg(Env *, Value);
 
-ValuePtr shell_backticks(Env *, ValuePtr);
+Value shell_backticks(Env *, Value);
 
 FILE *popen2(const char *, const char *, int &);
 int pclose2(FILE *, pid_t);
@@ -121,7 +121,7 @@ void set_status_object(Env *, int, int);
 
 const String *int_to_hex_string(nat_int_t, bool);
 
-ValuePtr super(Env *, ValuePtr, size_t, ValuePtr *, Block *);
+Value super(Env *, Value, size_t, Value *, Block *);
 
 void clean_up_and_exit(int status);
 

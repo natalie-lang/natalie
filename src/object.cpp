@@ -11,9 +11,9 @@ Object::Object(const Object &other)
     , m_owner { other.m_owner }
     , m_ivars { other.m_ivars } { }
 
-ValuePtr Object::_new(Env *env, ValuePtr klass_value, size_t argc, ValuePtr *args, Block *block) {
+Value Object::_new(Env *env, Value klass_value, size_t argc, Value *args, Block *block) {
     ClassObject *klass = klass_value->as_class();
-    ValuePtr obj;
+    Value obj;
     switch (klass->object_type()) {
     case Object::Type::Array:
         obj = new ArrayObject {};
@@ -94,7 +94,7 @@ ValuePtr Object::_new(Env *env, ValuePtr klass_value, size_t argc, ValuePtr *arg
     return obj->initialize(env, argc, args, block);
 }
 
-ValuePtr Object::initialize(Env *env, size_t argc, ValuePtr *args, Block *block) {
+Value Object::initialize(Env *env, size_t argc, Value *args, Block *block) {
     Method *method = m_klass->find_method(env, SymbolObject::intern("initialize"));
     if (method && !method->is_undefined()) {
         method->call(env, this, argc, args, block);
@@ -285,23 +285,23 @@ ClassObject *Object::singleton_class(Env *env) {
     return m_singleton_class;
 }
 
-ValuePtr Object::const_find(Env *env, SymbolObject *name, ConstLookupSearchMode search_mode, ConstLookupFailureMode failure_mode) {
+Value Object::const_find(Env *env, SymbolObject *name, ConstLookupSearchMode search_mode, ConstLookupFailureMode failure_mode) {
     return m_klass->const_find(env, name, search_mode, failure_mode);
 }
 
-ValuePtr Object::const_get(SymbolObject *name) {
+Value Object::const_get(SymbolObject *name) {
     return m_klass->const_get(name);
 }
 
-ValuePtr Object::const_fetch(SymbolObject *name) {
+Value Object::const_fetch(SymbolObject *name) {
     return m_klass->const_fetch(name);
 }
 
-ValuePtr Object::const_set(SymbolObject *name, ValuePtr val) {
+Value Object::const_set(SymbolObject *name, Value val) {
     return m_klass->const_set(name, val);
 }
 
-ValuePtr Object::ivar_get(Env *env, SymbolObject *name) {
+Value Object::ivar_get(Env *env, SymbolObject *name) {
     if (!name->is_ivar_name())
         env->raise("NameError", "`{}' is not allowed as an instance variable name", name->c_str());
 
@@ -312,7 +312,7 @@ ValuePtr Object::ivar_get(Env *env, SymbolObject *name) {
         return NilObject::the();
 }
 
-ValuePtr Object::ivar_set(Env *env, SymbolObject *name, ValuePtr val) {
+Value Object::ivar_set(Env *env, SymbolObject *name, Value val) {
     if (!name->is_ivar_name())
         env->raise("NameError", "`{}' is not allowed as an instance variable name", name->c_str());
 
@@ -320,7 +320,7 @@ ValuePtr Object::ivar_set(Env *env, SymbolObject *name, ValuePtr val) {
     return val;
 }
 
-ValuePtr Object::instance_variables(Env *env) {
+Value Object::instance_variables(Env *env) {
     ArrayObject *ary = new ArrayObject {};
     if (m_type == Object::Type::Integer || m_type == Object::Type::Float) {
         return ary;
@@ -331,8 +331,8 @@ ValuePtr Object::instance_variables(Env *env) {
     return ary;
 }
 
-ValuePtr Object::cvar_get(Env *env, SymbolObject *name) {
-    ValuePtr val = cvar_get_or_null(env, name);
+Value Object::cvar_get(Env *env, SymbolObject *name) {
+    Value val = cvar_get_or_null(env, name);
     if (val) {
         return val;
     } else {
@@ -346,11 +346,11 @@ ValuePtr Object::cvar_get(Env *env, SymbolObject *name) {
     }
 }
 
-ValuePtr Object::cvar_get_or_null(Env *env, SymbolObject *name) {
+Value Object::cvar_get_or_null(Env *env, SymbolObject *name) {
     return m_klass->cvar_get_or_null(env, name);
 }
 
-ValuePtr Object::cvar_set(Env *env, SymbolObject *name, ValuePtr val) {
+Value Object::cvar_set(Env *env, SymbolObject *name, Value val) {
     return m_klass->cvar_set(env, name, val);
 }
 
@@ -410,7 +410,7 @@ SymbolObject *Object::undefine_method(Env *env, SymbolObject *name) {
     return name;
 }
 
-ValuePtr Object::private_method(Env *env, ValuePtr name) {
+Value Object::private_method(Env *env, Value name) {
     if (!is_main_object()) {
         printf("tried to call private_method on something that has no methods\n");
         abort();
@@ -418,7 +418,7 @@ ValuePtr Object::private_method(Env *env, ValuePtr name) {
     return m_klass->private_method(env, name);
 }
 
-ValuePtr Object::protected_method(Env *env, ValuePtr name) {
+Value Object::protected_method(Env *env, Value name) {
     if (!is_main_object()) {
         printf("tried to call protected_method on something that has no methods\n");
         abort();
@@ -426,17 +426,17 @@ ValuePtr Object::protected_method(Env *env, ValuePtr name) {
     return m_klass->protected_method(env, name);
 }
 
-ValuePtr Object::public_send(Env *env, SymbolObject *name, size_t argc, ValuePtr *args, Block *block) {
+Value Object::public_send(Env *env, SymbolObject *name, size_t argc, Value *args, Block *block) {
     Method *method = find_method(env, name, MethodVisibility::Public);
     return method->call(env, this, argc, args, block);
 }
 
-ValuePtr Object::send(Env *env, SymbolObject *name, size_t argc, ValuePtr *args, Block *block) {
+Value Object::send(Env *env, SymbolObject *name, size_t argc, Value *args, Block *block) {
     Method *method = find_method(env, name, MethodVisibility::Private);
     return method->call(env, this, argc, args, block);
 }
 
-ValuePtr Object::send(Env *env, size_t argc, ValuePtr *args, Block *block) {
+Value Object::send(Env *env, size_t argc, Value *args, Block *block) {
     auto name = args[0]->to_symbol(env, Object::Conversion::Strict);
     return send(env->caller(), name, argc - 1, args + 1, block);
 }
@@ -468,7 +468,7 @@ Method *Object::find_method(Env *env, SymbolObject *method_name, MethodVisibilit
     }
 }
 
-ValuePtr Object::dup(Env *env) {
+Value Object::dup(Env *env) {
     switch (m_type) {
     case Object::Type::Array:
         return new ArrayObject { *as_array() };
@@ -493,14 +493,14 @@ ValuePtr Object::dup(Env *env) {
     }
 }
 
-bool Object::is_a(Env *env, ValuePtr val) {
+bool Object::is_a(Env *env, Value val) {
     if (!val->is_module()) return false;
     ModuleObject *module = val->as_module();
     if (this == module) {
         return true;
     } else {
         ArrayObject *ancestors = m_klass->ancestors(env);
-        for (ValuePtr m : *ancestors) {
+        for (Value m : *ancestors) {
             if (module == m->as_module()) {
                 return true;
             }
@@ -509,7 +509,7 @@ bool Object::is_a(Env *env, ValuePtr val) {
     }
 }
 
-bool Object::respond_to(Env *env, ValuePtr name_val) {
+bool Object::respond_to(Env *env, Value name_val) {
     if (respond_to_method(env, SymbolObject::intern("respond_to?")))
         return send(env, SymbolObject::intern("respond_to?"), { name_val })->is_true();
 
@@ -517,7 +517,7 @@ bool Object::respond_to(Env *env, ValuePtr name_val) {
     return respond_to_method(env, name_val);
 }
 
-bool Object::respond_to_method(Env *env, ValuePtr name_val) const {
+bool Object::respond_to_method(Env *env, Value name_val) const {
     Method *method;
     auto name_symbol = name_val->to_symbol(env, Conversion::Strict);
     if (singleton_class() && (method = singleton_class()->find_method(env, name_symbol))) {
@@ -529,7 +529,7 @@ bool Object::respond_to_method(Env *env, ValuePtr name_val) const {
 }
 
 const char *Object::defined(Env *env, SymbolObject *name, bool strict) {
-    ValuePtr obj = nullptr;
+    Value obj = nullptr;
     if (name->is_constant_name()) {
         if (strict) {
             if (is_module()) {
@@ -551,7 +551,7 @@ const char *Object::defined(Env *env, SymbolObject *name, bool strict) {
     return nullptr;
 }
 
-ValuePtr Object::defined_obj(Env *env, SymbolObject *name, bool strict) {
+Value Object::defined_obj(Env *env, SymbolObject *name, bool strict) {
     const char *result = defined(env, name, strict);
     if (result) {
         return new StringObject { result };
@@ -569,7 +569,7 @@ ProcObject *Object::to_proc(Env *env) {
     }
 }
 
-ValuePtr Object::instance_eval(Env *env, ValuePtr string, Block *block) {
+Value Object::instance_eval(Env *env, Value string, Block *block) {
     if (string || !block) {
         env->raise("ArgumentError", "Natalie only supports instance_eval with a block");
     }
@@ -603,14 +603,14 @@ void Object::assert_not_frozen(Env *env) {
     }
 }
 
-bool Object::equal(ValuePtr other) {
+bool Object::equal(Value other) {
     if (is_integer() && other->is_integer())
         return as_integer()->to_nat_int_t() == other->as_integer()->to_nat_int_t();
 
     return other == this;
 }
 
-bool Object::neq(Env *env, ValuePtr other) {
+bool Object::neq(Env *env, Value other) {
     return send(env, SymbolObject::intern("=="), { other })->is_falsey();
 }
 
@@ -621,8 +621,8 @@ const String *Object::inspect_str(Env *env) {
     return inspected->as_string()->to_low_level_string();
 }
 
-ValuePtr Object::enum_for(Env *env, const char *method, size_t argc, ValuePtr *args) {
-    ValuePtr args2[argc + 1];
+Value Object::enum_for(Env *env, const char *method, size_t argc, Value *args) {
+    Value args2[argc + 1];
     args2[0] = SymbolObject::intern(method);
     for (size_t i = 0; i < argc; i++) {
         args2[i + 1] = args[i];
@@ -659,7 +659,7 @@ ArrayObject *Object::to_ary(Env *env) {
         env->raise("TypeError", "no implicit conversion of {} into Array", original_class);
     }
 
-    ValuePtr val = send(env, to_ary);
+    Value val = send(env, to_ary);
 
     if (val->is_array()) {
         return val->as_array();

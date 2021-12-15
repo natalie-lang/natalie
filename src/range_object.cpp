@@ -2,7 +2,7 @@
 
 namespace Natalie {
 
-ValuePtr RangeObject::initialize(Env *env, ValuePtr begin, ValuePtr end, ValuePtr exclude_end_value) {
+Value RangeObject::initialize(Env *env, Value begin, Value end, Value exclude_end_value) {
     m_begin = begin;
     m_end = end;
     m_exclude_end = exclude_end_value && exclude_end_value->is_truthy();
@@ -10,21 +10,21 @@ ValuePtr RangeObject::initialize(Env *env, ValuePtr begin, ValuePtr end, ValuePt
 }
 
 template <typename Function>
-ValuePtr RangeObject::iterate_over_range(Env *env, Function &&func) {
+Value RangeObject::iterate_over_range(Env *env, Function &&func) {
     if (m_begin.send(env, SymbolObject::intern(">"), { m_end })->is_truthy())
         return nullptr;
 
-    ValuePtr item = m_begin;
+    Value item = m_begin;
 
     auto eqeq = SymbolObject::intern("==");
     auto succ = SymbolObject::intern("succ");
 
     bool done = item.send(env, eqeq, { m_end })->is_truthy();
     while (!done || !m_exclude_end) {
-        if constexpr (std::is_void_v<std::invoke_result_t<Function, ValuePtr>>) {
+        if constexpr (std::is_void_v<std::invoke_result_t<Function, Value>>) {
             func(item);
         } else {
-            if (ValuePtr ptr = func(item))
+            if (Value ptr = func(item))
                 return ptr;
         }
 
@@ -40,19 +40,19 @@ ValuePtr RangeObject::iterate_over_range(Env *env, Function &&func) {
     return nullptr;
 }
 
-ValuePtr RangeObject::to_a(Env *env) {
+Value RangeObject::to_a(Env *env) {
     ArrayObject *ary = new ArrayObject {};
-    iterate_over_range(env, [&](ValuePtr item) {
+    iterate_over_range(env, [&](Value item) {
         ary->push(item);
     });
     return ary;
 }
 
-ValuePtr RangeObject::each(Env *env, Block *block) {
+Value RangeObject::each(Env *env, Block *block) {
     if (!block)
         return send(env, SymbolObject::intern("enum_for"), { SymbolObject::intern("each") });
 
-    ValuePtr break_value = iterate_over_range(env, [&](ValuePtr item) -> ValuePtr {
+    Value break_value = iterate_over_range(env, [&](Value item) -> Value {
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
         return nullptr;
     });
@@ -63,7 +63,7 @@ ValuePtr RangeObject::each(Env *env, Block *block) {
     return this;
 }
 
-ValuePtr RangeObject::first(Env *env, ValuePtr n) {
+Value RangeObject::first(Env *env, Value n) {
     if (n) {
         if (n->respond_to(env, SymbolObject::intern("to_int"))) {
             n = n->send(env, SymbolObject::intern("to_int"));
@@ -77,7 +77,7 @@ ValuePtr RangeObject::first(Env *env, ValuePtr n) {
         }
 
         ArrayObject *ary = new ArrayObject {};
-        iterate_over_range(env, [&](ValuePtr item) -> ValuePtr {
+        iterate_over_range(env, [&](Value item) -> Value {
             if (count == 0) return n;
 
             ary->push(item);
@@ -91,7 +91,7 @@ ValuePtr RangeObject::first(Env *env, ValuePtr n) {
     }
 }
 
-ValuePtr RangeObject::inspect(Env *env) {
+Value RangeObject::inspect(Env *env) {
     if (m_exclude_end) {
         return StringObject::format(env, "{}...{}", m_begin->inspect_str(env), m_end->inspect_str(env));
     } else {
@@ -99,11 +99,11 @@ ValuePtr RangeObject::inspect(Env *env) {
     }
 }
 
-ValuePtr RangeObject::eq(Env *env, ValuePtr other_value) {
+Value RangeObject::eq(Env *env, Value other_value) {
     if (other_value->is_range()) {
         RangeObject *other = other_value->as_range();
-        ValuePtr begin = other->begin();
-        ValuePtr end = other->end();
+        Value begin = other->begin();
+        Value end = other->end();
         bool begin_equal = m_begin.send(env, SymbolObject::intern("=="), { begin })->is_truthy();
         bool end_equal = m_end.send(env, SymbolObject::intern("=="), { end })->is_truthy();
         if (begin_equal && end_equal && m_exclude_end == other->m_exclude_end) {
@@ -113,7 +113,7 @@ ValuePtr RangeObject::eq(Env *env, ValuePtr other_value) {
     return FalseObject::the();
 }
 
-ValuePtr RangeObject::eqeqeq(Env *env, ValuePtr arg) {
+Value RangeObject::eqeqeq(Env *env, Value arg) {
     if (m_begin->type() == Object::Type::Integer && arg->is_integer()) {
         // optimized path for integer ranges
         nat_int_t begin = m_begin->as_integer()->to_nat_int_t();
@@ -134,9 +134,9 @@ ValuePtr RangeObject::eqeqeq(Env *env, ValuePtr arg) {
     return FalseObject::the();
 }
 
-ValuePtr RangeObject::include(Env *env, ValuePtr arg) {
+Value RangeObject::include(Env *env, Value arg) {
     auto eqeq = SymbolObject::intern("==");
-    ValuePtr found_item = iterate_over_range(env, [&](ValuePtr item) -> ValuePtr {
+    Value found_item = iterate_over_range(env, [&](Value item) -> Value {
         if (arg.send(env, eqeq, { item })->is_truthy())
             return item;
 

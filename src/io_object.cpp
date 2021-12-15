@@ -6,7 +6,7 @@
 
 namespace Natalie {
 
-ValuePtr IoObject::initialize(Env *env, ValuePtr file_number) {
+Value IoObject::initialize(Env *env, Value file_number) {
     file_number->assert_type(env, Object::Type::Integer, "Integer");
     nat_int_t fileno = file_number->as_integer()->to_nat_int_t();
     assert(fileno >= INT_MIN && fileno <= INT_MAX);
@@ -14,8 +14,8 @@ ValuePtr IoObject::initialize(Env *env, ValuePtr file_number) {
     return this;
 }
 
-ValuePtr IoObject::read_file(Env *env, ValuePtr filename) {
-    ValuePtr args[] = { filename };
+Value IoObject::read_file(Env *env, Value filename) {
+    Value args[] = { filename };
     FileObject *file = _new(env, GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern("File"))->as_class(), 1, args, nullptr)->as_file();
     auto data = file->read(env, nullptr);
     file->close(env);
@@ -24,7 +24,7 @@ ValuePtr IoObject::read_file(Env *env, ValuePtr filename) {
 
 #define NAT_READ_BYTES 1024
 
-ValuePtr IoObject::read(Env *env, ValuePtr count_value) const {
+Value IoObject::read(Env *env, Value count_value) const {
     if (m_closed)
         env->raise("IOError", "closed stream");
     size_t bytes_read;
@@ -38,7 +38,7 @@ ValuePtr IoObject::read(Env *env, ValuePtr count_value) const {
             return NilObject::the();
         } else {
             buf[bytes_read] = 0;
-            ValuePtr result = new StringObject { buf };
+            Value result = new StringObject { buf };
             free(buf);
             return result;
         }
@@ -59,18 +59,18 @@ ValuePtr IoObject::read(Env *env, ValuePtr count_value) const {
     return str;
 }
 
-ValuePtr IoObject::write(Env *env, size_t argc, ValuePtr *args) const {
+Value IoObject::write(Env *env, size_t argc, Value *args) const {
     env->ensure_argc_at_least(argc, 1);
     int bytes_written = 0;
     for (size_t i = 0; i < argc; i++) {
-        ValuePtr obj = args[i];
+        Value obj = args[i];
         if (obj->type() != Object::Type::String) {
             obj = obj.send(env, SymbolObject::intern("to_s"));
         }
         obj->assert_type(env, Object::Type::String, "String");
         int result = ::write(m_fileno, obj->as_string()->c_str(), obj->as_string()->length());
         if (result == -1) {
-            ValuePtr error_number = ValuePtr::integer(errno);
+            Value error_number = Value::integer(errno);
             auto SystemCallError = GlobalEnv::the()->Object()->const_find(env, SymbolObject::intern("SystemCallError"));
             ExceptionObject *error = SystemCallError.send(env, SymbolObject::intern("exception"), { error_number })->as_exception();
             env->raise_exception(error);
@@ -78,15 +78,15 @@ ValuePtr IoObject::write(Env *env, size_t argc, ValuePtr *args) const {
             bytes_written += result;
         }
     }
-    return ValuePtr::integer(bytes_written);
+    return Value::integer(bytes_written);
 }
 
-ValuePtr IoObject::puts(Env *env, size_t argc, ValuePtr *args) const {
+Value IoObject::puts(Env *env, size_t argc, Value *args) const {
     if (argc == 0) {
         dprintf(m_fileno, "\n");
     } else {
         for (size_t i = 0; i < argc; i++) {
-            ValuePtr str = args[i].send(env, SymbolObject::intern("to_s"));
+            Value str = args[i].send(env, SymbolObject::intern("to_s"));
             str->assert_type(env, Object::Type::String, "String");
             dprintf(m_fileno, "%s\n", str->as_string()->c_str());
         }
@@ -94,10 +94,10 @@ ValuePtr IoObject::puts(Env *env, size_t argc, ValuePtr *args) const {
     return NilObject::the();
 }
 
-ValuePtr IoObject::print(Env *env, size_t argc, ValuePtr *args) const {
+Value IoObject::print(Env *env, size_t argc, Value *args) const {
     if (argc > 0) {
         for (size_t i = 0; i < argc; i++) {
-            ValuePtr str = args[i].send(env, SymbolObject::intern("to_s"));
+            Value str = args[i].send(env, SymbolObject::intern("to_s"));
             str->assert_type(env, Object::Type::String, "String");
             dprintf(m_fileno, "%s", str->as_string()->c_str());
         }
@@ -105,12 +105,12 @@ ValuePtr IoObject::print(Env *env, size_t argc, ValuePtr *args) const {
     return NilObject::the();
 }
 
-ValuePtr IoObject::close(Env *env) {
+Value IoObject::close(Env *env) {
     if (m_closed)
         return NilObject::the();
     int result = ::close(m_fileno);
     if (result == -1) {
-        ValuePtr error_number = ValuePtr::integer(errno);
+        Value error_number = Value::integer(errno);
         auto SystemCallError = GlobalEnv::the()->Object()->const_find(env, SymbolObject::intern("SystemCallError"));
         ExceptionObject *error = SystemCallError.send(env, SymbolObject::intern("exception"), { error_number })->as_exception();
         env->raise_exception(error);
@@ -120,7 +120,7 @@ ValuePtr IoObject::close(Env *env) {
     }
 }
 
-ValuePtr IoObject::seek(Env *env, ValuePtr amount_value, ValuePtr whence_value) const {
+Value IoObject::seek(Env *env, Value amount_value, Value whence_value) const {
     amount_value->assert_type(env, Object::Type::Integer, "Integer");
     int amount = amount_value->as_integer()->to_nat_int_t();
     int whence = 0;
@@ -148,11 +148,11 @@ ValuePtr IoObject::seek(Env *env, ValuePtr amount_value, ValuePtr whence_value) 
     }
     int result = lseek(m_fileno, amount, whence);
     if (result == -1) {
-        ValuePtr error_number = ValuePtr::integer(errno);
+        Value error_number = Value::integer(errno);
         ExceptionObject *error = GlobalEnv::the()->Object()->const_find(env, SymbolObject::intern("SystemCallError")).send(env, SymbolObject::intern("exception"), { error_number })->as_exception();
         env->raise_exception(error);
     } else {
-        return ValuePtr::integer(0);
+        return Value::integer(0);
     }
 }
 

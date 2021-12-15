@@ -14,9 +14,9 @@ namespace Natalie {
 
 class EnvObject : public Object {
 public:
-    ValuePtr inspect(Env *);
-    ValuePtr ref(Env *, ValuePtr name);
-    ValuePtr refeq(Env *, ValuePtr name, ValuePtr value);
+    Value inspect(Env *);
+    Value ref(Env *, Value name);
+    Value refeq(Env *, Value name, Value value);
 };
 
 }

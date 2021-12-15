@@ -22,11 +22,11 @@ public:
         return s_instance;
     }
 
-    ValuePtr eqtilde(Env *, ValuePtr);
-    ValuePtr to_s(Env *);
-    ValuePtr to_a(Env *);
-    ValuePtr to_i(Env *);
-    ValuePtr inspect(Env *);
+    Value eqtilde(Env *, Value);
+    Value to_s(Env *);
+    Value to_a(Env *);
+    Value to_i(Env *);
+    Value inspect(Env *);
 
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<NilObject %p>", this);

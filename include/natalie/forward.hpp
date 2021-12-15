@@ -44,8 +44,8 @@ class TrueObject;
 class Object;
 class VoidPObject;
 
-class ValuePtr;
+class Value;
 
-using MethodFnPtr = ValuePtr (*)(Env *, ValuePtr, size_t, ValuePtr *, Block *);
+using MethodFnPtr = Value (*)(Env *, Value, size_t, Value *, Block *);
 
 }

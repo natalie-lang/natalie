@@ -2,23 +2,23 @@
 
 namespace Natalie {
 
-ValuePtr NilObject::eqtilde(Env *env, ValuePtr) {
+Value NilObject::eqtilde(Env *env, Value) {
     return NilObject::the();
 }
 
-ValuePtr NilObject::to_s(Env *env) {
+Value NilObject::to_s(Env *env) {
     return new StringObject { "" };
 }
 
-ValuePtr NilObject::to_a(Env *env) {
+Value NilObject::to_a(Env *env) {
     return new ArrayObject {};
 }
 
-ValuePtr NilObject::to_i(Env *env) {
-    return ValuePtr::integer(0);
+Value NilObject::to_i(Env *env) {
+    return Value::integer(0);
 }
 
-ValuePtr NilObject::inspect(Env *env) {
+Value NilObject::inspect(Env *env) {
     return new StringObject { "nil" };
 }
 

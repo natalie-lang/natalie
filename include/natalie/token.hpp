@@ -496,7 +496,7 @@ public:
         NAT_UNREACHABLE();
     }
 
-    ValuePtr to_ruby(Env *env, bool with_line_and_column_numbers = false) {
+    Value to_ruby(Env *env, bool with_line_and_column_numbers = false) {
         if (m_type == Type::Eof)
             return NilObject::the();
         validate_or_raise(env);
@@ -525,7 +525,7 @@ public:
             hash->put(env, SymbolObject::intern("literal"), new FloatObject { m_double });
             break;
         case Type::Integer:
-            hash->put(env, SymbolObject::intern("literal"), ValuePtr::integer(m_integer));
+            hash->put(env, SymbolObject::intern("literal"), Value::integer(m_integer));
             break;
         case Type::InterpolatedRegexpEnd:
             if (m_options)
@@ -535,8 +535,8 @@ public:
             void();
         }
         if (with_line_and_column_numbers) {
-            hash->put(env, SymbolObject::intern("line"), ValuePtr::integer(static_cast<nat_int_t>(m_line)));
-            hash->put(env, SymbolObject::intern("column"), ValuePtr::integer(static_cast<nat_int_t>(m_column)));
+            hash->put(env, SymbolObject::intern("line"), Value::integer(static_cast<nat_int_t>(m_line)));
+            hash->put(env, SymbolObject::intern("column"), Value::integer(static_cast<nat_int_t>(m_column)));
         }
         return hash;
     }

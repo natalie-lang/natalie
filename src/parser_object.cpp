@@ -7,7 +7,7 @@
 
 namespace Natalie {
 
-ValuePtr ParserObject::parse(Env *env, ValuePtr code, ValuePtr source_path) {
+Value ParserObject::parse(Env *env, Value code, Value source_path) {
     code->assert_type(env, Object::Type::String, "String");
     if (source_path)
         source_path->assert_type(env, Object::Type::String, "String");
@@ -24,7 +24,7 @@ ValuePtr ParserObject::parse(Env *env, ValuePtr code, ValuePtr source_path) {
     return tree->to_ruby(env);
 }
 
-ValuePtr ParserObject::tokens(Env *env, ValuePtr code, ValuePtr with_line_and_column_numbers) {
+Value ParserObject::tokens(Env *env, Value code, Value with_line_and_column_numbers) {
     code->assert_type(env, Object::Type::String, "String");
     auto lexer = Lexer { code->as_string()->to_low_level_string(), new String("(string)") };
     auto array = new ArrayObject {};

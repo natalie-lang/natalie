@@ -21,14 +21,14 @@ bool HashObject::compare(const void *a, const void *b, void *env) {
     return a_p->key.send((Env *)env, SymbolObject::intern("eql?"), { b_p->key })->is_truthy();
 }
 
-ValuePtr HashObject::compare_by_identity(Env *env) {
+Value HashObject::compare_by_identity(Env *env) {
     assert_not_frozen(env);
     this->m_is_comparing_by_identity = true;
     this->rehash(env);
     return this;
 }
 
-ValuePtr HashObject::is_comparing_by_identity() const {
+Value HashObject::is_comparing_by_identity() const {
     if (m_is_comparing_by_identity) {
         return TrueObject::the();
     } else {
@@ -36,14 +36,14 @@ ValuePtr HashObject::is_comparing_by_identity() const {
     }
 }
 
-ValuePtr HashObject::get(Env *env, ValuePtr key) {
+Value HashObject::get(Env *env, Value key) {
     Key key_container;
     key_container.key = key;
     key_container.hash = generate_key_hash(env, key);
     return m_hashmap.get(&key_container, env);
 }
 
-nat_int_t HashObject::generate_key_hash(Env *env, ValuePtr key) const {
+nat_int_t HashObject::generate_key_hash(Env *env, Value key) const {
     if (m_is_comparing_by_identity) {
         return TM::Hashmap<void *>::hash_ptr(key.value());
     } else {
@@ -51,25 +51,25 @@ nat_int_t HashObject::generate_key_hash(Env *env, ValuePtr key) const {
     }
 }
 
-ValuePtr HashObject::get_default(Env *env, ValuePtr key) {
+Value HashObject::get_default(Env *env, Value key) {
     if (m_default_proc) {
         if (!key)
             return NilObject::the();
-        ValuePtr args[2] = { this, key };
+        Value args[2] = { this, key };
         return m_default_proc->call(env, 2, args, nullptr);
     } else {
         return m_default_value;
     }
 }
 
-ValuePtr HashObject::set_default(Env *env, ValuePtr value) {
+Value HashObject::set_default(Env *env, Value value) {
     assert_not_frozen(env);
     m_default_value = value;
     m_default_proc = nullptr;
     return value;
 }
 
-void HashObject::put(Env *env, ValuePtr key, ValuePtr val) {
+void HashObject::put(Env *env, Value key, Value val) {
     assert_not_frozen(env);
     Key key_container;
     if (!m_is_comparing_by_identity && key->is_string() && !key->is_frozen()) {
@@ -92,7 +92,7 @@ void HashObject::put(Env *env, ValuePtr key, ValuePtr val) {
     }
 }
 
-ValuePtr HashObject::remove(Env *env, ValuePtr key) {
+Value HashObject::remove(Env *env, Value key) {
     Key key_container;
     key_container.key = key;
     auto hash = generate_key_hash(env, key);
@@ -108,7 +108,7 @@ ValuePtr HashObject::remove(Env *env, ValuePtr key) {
     }
 }
 
-ValuePtr HashObject::clear(Env *env) {
+Value HashObject::clear(Env *env) {
     assert_not_frozen(env);
     m_hashmap.clear();
     m_key_list = nullptr;
@@ -116,11 +116,11 @@ ValuePtr HashObject::clear(Env *env) {
     return this;
 }
 
-ValuePtr HashObject::default_proc(Env *env) {
+Value HashObject::default_proc(Env *env) {
     return m_default_proc;
 }
 
-ValuePtr HashObject::set_default_proc(Env *env, ValuePtr value) {
+Value HashObject::set_default_proc(Env *env, Value value) {
     assert_not_frozen(env);
     if (value == NilObject::the()) {
         m_default_proc = nullptr;
@@ -139,7 +139,7 @@ ValuePtr HashObject::set_default_proc(Env *env, ValuePtr value) {
     return value;
 }
 
-HashObject::Key *HashObject::key_list_append(Env *env, ValuePtr key, nat_int_t hash, ValuePtr val) {
+HashObject::Key *HashObject::key_list_append(Env *env, Value key, nat_int_t hash, Value val) {
     if (m_key_list) {
         Key *first = m_key_list;
         Key *last = m_key_list->prev;
@@ -190,7 +190,7 @@ void HashObject::key_list_remove_node(Key *node) {
     next->prev = prev;
 }
 
-ValuePtr HashObject::initialize(Env *env, ValuePtr default_value, Block *block) {
+Value HashObject::initialize(Env *env, Value default_value, Block *block) {
     assert_not_frozen(env);
 
     if (block) {
@@ -209,11 +209,11 @@ ValuePtr HashObject::initialize(Env *env, ValuePtr default_value, Block *block) 
 }
 
 // Hash[]
-ValuePtr HashObject::square_new(Env *env, size_t argc, ValuePtr *args, ClassObject *klass) {
+Value HashObject::square_new(Env *env, size_t argc, Value *args, ClassObject *klass) {
     if (argc == 0) {
         return new HashObject { klass };
     } else if (argc == 1) {
-        ValuePtr value = args[0];
+        Value value = args[0];
         if (!value->is_hash() && value->respond_to(env, SymbolObject::intern("to_hash")))
             value = value.send(env, SymbolObject::intern("to_hash"));
         if (value->is_hash()) {
@@ -233,8 +233,8 @@ ValuePtr HashObject::square_new(Env *env, size_t argc, ValuePtr *args, ClassObje
                     if (size < 1 || size > 2) {
                         env->raise("ArgumentError", "invalid number of elements ({} for 1..2)", size);
                     }
-                    ValuePtr key = (*pair->as_array())[0];
-                    ValuePtr value = size == 1 ? NilObject::the() : (*pair->as_array())[1];
+                    Value key = (*pair->as_array())[0];
+                    Value value = size == 1 ? NilObject::the() : (*pair->as_array())[1];
                     hash->put(env, key, value);
                 }
                 return hash;
@@ -246,14 +246,14 @@ ValuePtr HashObject::square_new(Env *env, size_t argc, ValuePtr *args, ClassObje
     }
     HashObject *hash = new HashObject { klass };
     for (size_t i = 0; i < argc; i += 2) {
-        ValuePtr key = args[i];
-        ValuePtr value = args[i + 1];
+        Value key = args[i];
+        Value value = args[i + 1];
         hash->put(env, key, value);
     }
     return hash;
 }
 
-ValuePtr HashObject::inspect(Env *env) {
+Value HashObject::inspect(Env *env) {
     TM::RecursionGuard guard { this };
 
     return guard.run([&](bool is_recursive) {
@@ -263,7 +263,7 @@ ValuePtr HashObject::inspect(Env *env) {
         size_t last_index = size() - 1;
         size_t index = 0;
 
-        auto to_s = [env](ValuePtr obj) {
+        auto to_s = [env](Value obj) {
             if (obj->is_string())
                 return obj->as_string();
             if (obj->respond_to(env, SymbolObject::intern("to_s")))
@@ -292,8 +292,8 @@ ValuePtr HashObject::inspect(Env *env) {
     });
 }
 
-ValuePtr HashObject::ref(Env *env, ValuePtr key) {
-    ValuePtr val = get(env, key);
+Value HashObject::ref(Env *env, Value key) {
+    Value val = get(env, key);
     if (val) {
         return val;
     } else {
@@ -301,12 +301,12 @@ ValuePtr HashObject::ref(Env *env, ValuePtr key) {
     }
 }
 
-ValuePtr HashObject::refeq(Env *env, ValuePtr key, ValuePtr val) {
+Value HashObject::refeq(Env *env, Value key, Value val) {
     put(env, key, val);
     return val;
 }
 
-ValuePtr HashObject::rehash(Env *env) {
+Value HashObject::rehash(Env *env) {
     assert_not_frozen(env);
 
     auto copy = new HashObject { env, *this };
@@ -315,7 +315,7 @@ ValuePtr HashObject::rehash(Env *env) {
     return this;
 }
 
-ValuePtr HashObject::replace(Env *env, ValuePtr other) {
+Value HashObject::replace(Env *env, Value other) {
     if (!other->is_hash() && other->respond_to(env, SymbolObject::intern("to_hash")))
         other = other->send(env, SymbolObject::intern("to_hash"));
     other->assert_type(env, Type::Hash, "Hash");
@@ -331,13 +331,13 @@ ValuePtr HashObject::replace(Env *env, ValuePtr other) {
     return this;
 }
 
-ValuePtr HashObject::delete_if(Env *env, Block *block) {
+Value HashObject::delete_if(Env *env, Block *block) {
     if (!block)
         return send(env, SymbolObject::intern("enum_for"), { SymbolObject::intern("delete_if") });
 
     assert_not_frozen(env);
     for (auto &node : *this) {
-        ValuePtr args[2] = { node.key, node.val };
+        Value args[2] = { node.key, node.val };
         if (NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 2, args, nullptr)->is_truthy()) {
             delete_key(env, node.key, nullptr);
         }
@@ -346,9 +346,9 @@ ValuePtr HashObject::delete_if(Env *env, Block *block) {
     return this;
 }
 
-ValuePtr HashObject::delete_key(Env *env, ValuePtr key, Block *block) {
+Value HashObject::delete_key(Env *env, Value key, Block *block) {
     assert_not_frozen(env);
-    ValuePtr val = remove(env, key);
+    Value val = remove(env, key);
     if (val)
         return val;
     else if (block)
@@ -357,10 +357,10 @@ ValuePtr HashObject::delete_key(Env *env, ValuePtr key, Block *block) {
         return NilObject::the();
 }
 
-ValuePtr HashObject::dig(Env *env, size_t argc, ValuePtr *args) {
+Value HashObject::dig(Env *env, size_t argc, Value *args) {
     env->ensure_argc_at_least(argc, 1);
     auto dig = SymbolObject::intern("dig");
-    ValuePtr val = ref(env, args[0]);
+    Value val = ref(env, args[0]);
     if (argc == 1)
         return val;
 
@@ -373,11 +373,11 @@ ValuePtr HashObject::dig(Env *env, size_t argc, ValuePtr *args) {
     return val.send(env, dig, argc - 1, args + 1);
 }
 
-ValuePtr HashObject::size(Env *env) const {
+Value HashObject::size(Env *env) const {
     return IntegerObject::from_size_t(env, size());
 }
 
-bool HashObject::eq(Env *env, ValuePtr other_value, SymbolObject *method_name) {
+bool HashObject::eq(Env *env, Value other_value, SymbolObject *method_name) {
     TM::PairedRecursionGuard guard { this, other_value.value() };
 
     return guard.run([&](bool is_recursive) -> bool {
@@ -391,7 +391,7 @@ bool HashObject::eq(Env *env, ValuePtr other_value, SymbolObject *method_name) {
         if (is_recursive)
             return true;
 
-        ValuePtr other_val;
+        Value other_val;
         for (HashObject::Key &node : *this) {
             other_val = other->get(env, node.key);
             if (!other_val)
@@ -408,15 +408,15 @@ bool HashObject::eq(Env *env, ValuePtr other_value, SymbolObject *method_name) {
     });
 }
 
-bool HashObject::eq(Env *env, ValuePtr other_value) {
+bool HashObject::eq(Env *env, Value other_value) {
     return eq(env, other_value, SymbolObject::intern("=="));
 }
 
-bool HashObject::eql(Env *env, ValuePtr other_value) {
+bool HashObject::eql(Env *env, Value other_value) {
     return eq(env, other_value, SymbolObject::intern("eql?"));
 }
 
-bool HashObject::gte(Env *env, ValuePtr other) {
+bool HashObject::gte(Env *env, Value other) {
     if (!other->is_hash() && other->respond_to_method(env, SymbolObject::intern("to_hash")))
         other = other->send(env, SymbolObject::intern("to_hash"));
 
@@ -424,7 +424,7 @@ bool HashObject::gte(Env *env, ValuePtr other) {
     auto other_hash = other->as_hash();
 
     for (auto &node : *other_hash) {
-        ValuePtr value = get(env, node.key);
+        Value value = get(env, node.key);
         if (!value || value.send(env, SymbolObject::intern("=="), { node.val })->is_false()) {
             return false;
         }
@@ -432,7 +432,7 @@ bool HashObject::gte(Env *env, ValuePtr other) {
     return true;
 }
 
-bool HashObject::gt(Env *env, ValuePtr other) {
+bool HashObject::gt(Env *env, Value other) {
     if (!other->is_hash() && other->respond_to_method(env, SymbolObject::intern("to_hash")))
         other = other->send(env, SymbolObject::intern("to_hash"));
 
@@ -441,7 +441,7 @@ bool HashObject::gt(Env *env, ValuePtr other) {
     return gte(env, other) && other->as_hash()->size() != size();
 }
 
-bool HashObject::lte(Env *env, ValuePtr other) {
+bool HashObject::lte(Env *env, Value other) {
     if (!other->is_hash() && other->respond_to_method(env, SymbolObject::intern("to_hash")))
         other = other->send(env, SymbolObject::intern("to_hash"));
 
@@ -449,7 +449,7 @@ bool HashObject::lte(Env *env, ValuePtr other) {
     auto other_hash = other->as_hash();
 
     for (auto &node : *this) {
-        ValuePtr value = other_hash->get(env, node.key);
+        Value value = other_hash->get(env, node.key);
         if (!value || value.send(env, SymbolObject::intern("=="), { node.val })->is_false()) {
             return false;
         }
@@ -457,7 +457,7 @@ bool HashObject::lte(Env *env, ValuePtr other) {
     return true;
 }
 
-bool HashObject::lt(Env *env, ValuePtr other) {
+bool HashObject::lt(Env *env, Value other) {
     if (!other->is_hash() && other->respond_to_method(env, SymbolObject::intern("to_hash")))
         other = other->send(env, SymbolObject::intern("to_hash"));
 
@@ -466,22 +466,22 @@ bool HashObject::lt(Env *env, ValuePtr other) {
     return lte(env, other) && other->as_hash()->size() != size();
 }
 
-ValuePtr HashObject::each(Env *env, Block *block) {
+Value HashObject::each(Env *env, Block *block) {
     if (!block)
         return send(env, SymbolObject::intern("enum_for"), { SymbolObject::intern("each") });
 
-    ValuePtr block_args[2];
+    Value block_args[2];
     set_is_iterating(true);
     Defer no_longer_iterating([&]() { set_is_iterating(false); });
     for (HashObject::Key &node : *this) {
         auto ary = new ArrayObject { { node.key, node.val } };
-        ValuePtr block_args[1] = { ary };
+        Value block_args[1] = { ary };
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, block_args, nullptr);
     }
     return this;
 }
 
-ValuePtr HashObject::except(Env *env, size_t argc, ValuePtr *args) {
+Value HashObject::except(Env *env, size_t argc, Value *args) {
     HashObject *new_hash = new HashObject {};
     for (auto &node : *this) {
         new_hash->put(env, node.key, node.val);
@@ -493,8 +493,8 @@ ValuePtr HashObject::except(Env *env, size_t argc, ValuePtr *args) {
     return new_hash;
 }
 
-ValuePtr HashObject::fetch(Env *env, ValuePtr key, ValuePtr default_value, Block *block) {
-    ValuePtr value = get(env, key);
+Value HashObject::fetch(Env *env, Value key, Value default_value, Block *block) {
+    Value value = get(env, key);
     if (!value) {
         if (block) {
             if (default_value)
@@ -510,7 +510,7 @@ ValuePtr HashObject::fetch(Env *env, ValuePtr key, ValuePtr default_value, Block
     return value;
 }
 
-ValuePtr HashObject::fetch_values(Env *env, size_t argc, ValuePtr *args, Block *block) {
+Value HashObject::fetch_values(Env *env, size_t argc, Value *args, Block *block) {
     auto array = new ArrayObject {};
     if (argc == 0) return array;
 
@@ -520,7 +520,7 @@ ValuePtr HashObject::fetch_values(Env *env, size_t argc, ValuePtr *args, Block *
     return array;
 }
 
-ValuePtr HashObject::keys(Env *env) {
+Value HashObject::keys(Env *env) {
     ArrayObject *array = new ArrayObject {};
     for (HashObject::Key &node : *this) {
         array->push(node.key);
@@ -528,13 +528,13 @@ ValuePtr HashObject::keys(Env *env) {
     return array;
 }
 
-ValuePtr HashObject::keep_if(Env *env, Block *block) {
+Value HashObject::keep_if(Env *env, Block *block) {
     if (!block)
         return send(env, SymbolObject::intern("enum_for"), { SymbolObject::intern("keep_if") });
 
     assert_not_frozen(env);
     for (auto &node : *this) {
-        ValuePtr args[2] = { node.key, node.val };
+        Value args[2] = { node.key, node.val };
         if (!NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 2, args, nullptr)->is_truthy()) {
             delete_key(env, node.key, nullptr);
         }
@@ -543,12 +543,12 @@ ValuePtr HashObject::keep_if(Env *env, Block *block) {
     return this;
 }
 
-ValuePtr HashObject::to_h(Env *env, Block *block) {
+Value HashObject::to_h(Env *env, Block *block) {
     if (!block)
         return this;
 
     auto copy = new HashObject {};
-    ValuePtr block_args[2];
+    Value block_args[2];
     set_is_iterating(true);
     Defer no_longer_iterating([&]() { set_is_iterating(false); });
     for (auto &node : *this) {
@@ -568,7 +568,7 @@ ValuePtr HashObject::to_h(Env *env, Block *block) {
     return copy;
 }
 
-ValuePtr HashObject::values(Env *env) {
+Value HashObject::values(Env *env) {
     ArrayObject *array = new ArrayObject {};
     for (HashObject::Key &node : *this) {
         array->push(node.val);
@@ -576,11 +576,11 @@ ValuePtr HashObject::values(Env *env) {
     return array;
 }
 
-ValuePtr HashObject::hash(Env *env) {
+Value HashObject::hash(Env *env) {
     TM::RecursionGuard guard { this };
     return guard.run([&](bool is_recursive) {
         if (is_recursive)
-            return ValuePtr { NilObject::the() };
+            return Value { NilObject::the() };
 
         HashBuilder hash { 10889, false };
         auto hash_method = SymbolObject::intern("hash");
@@ -620,12 +620,12 @@ ValuePtr HashObject::hash(Env *env) {
                 hash.append(entry_hash.digest());
         }
 
-        return ValuePtr::integer(hash.digest());
+        return Value::integer(hash.digest());
     });
 }
 
-ValuePtr HashObject::has_key(Env *env, ValuePtr key) {
-    ValuePtr val = get(env, key);
+Value HashObject::has_key(Env *env, Value key) {
+    Value val = get(env, key);
     if (val) {
         return TrueObject::the();
     } else {
@@ -633,7 +633,7 @@ ValuePtr HashObject::has_key(Env *env, ValuePtr key) {
     }
 }
 
-ValuePtr HashObject::has_value(Env *env, ValuePtr value) {
+Value HashObject::has_value(Env *env, Value value) {
     for (auto &node : *this) {
         if (node.val.send(env, SymbolObject::intern("=="), { value })->is_true()) {
             return TrueObject::the();
@@ -642,11 +642,11 @@ ValuePtr HashObject::has_value(Env *env, ValuePtr value) {
     return FalseObject::the();
 }
 
-ValuePtr HashObject::merge(Env *env, size_t argc, ValuePtr *args, Block *block) {
+Value HashObject::merge(Env *env, size_t argc, Value *args, Block *block) {
     return dup(env)->as_hash()->merge_in_place(env, argc, args, block);
 }
 
-ValuePtr HashObject::merge_in_place(Env *env, size_t argc, ValuePtr *args, Block *block) {
+Value HashObject::merge_in_place(Env *env, size_t argc, Value *args, Block *block) {
     this->assert_not_frozen(env);
 
     for (size_t i = 0; i < argc; i++) {
@@ -662,7 +662,7 @@ ValuePtr HashObject::merge_in_place(Env *env, size_t argc, ValuePtr *args, Block
             if (block) {
                 auto old_value = get(env, node.key);
                 if (old_value) {
-                    ValuePtr args[3] = { node.key, old_value, new_value };
+                    Value args[3] = { node.key, old_value, new_value };
                     new_value = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 3, args, nullptr);
                 }
             }
@@ -672,11 +672,11 @@ ValuePtr HashObject::merge_in_place(Env *env, size_t argc, ValuePtr *args, Block
     return this;
 }
 
-ValuePtr HashObject::slice(Env *env, size_t argc, ValuePtr *args) {
+Value HashObject::slice(Env *env, size_t argc, Value *args) {
     auto new_hash = new HashObject {};
     for (size_t i = 0; i < argc; i++) {
-        ValuePtr key = args[i];
-        ValuePtr value = this->get(env, key);
+        Value key = args[i];
+        Value value = this->get(env, key);
         if (value) {
             new_hash->put(env, key, value);
         }
@@ -696,7 +696,7 @@ void HashObject::visit_children(Visitor &visitor) {
     visitor.visit(m_default_proc);
 }
 
-ValuePtr HashObject::compact(Env *env) {
+Value HashObject::compact(Env *env) {
     auto new_hash = new HashObject {};
     auto nil = NilObject::the();
     for (auto pair : m_hashmap) {
@@ -706,10 +706,10 @@ ValuePtr HashObject::compact(Env *env) {
     return new_hash;
 }
 
-ValuePtr HashObject::compact_in_place(Env *env) {
+Value HashObject::compact_in_place(Env *env) {
     assert_not_frozen(env);
     auto nil = NilObject::the();
-    auto to_remove = TM::Vector<ValuePtr> {};
+    auto to_remove = TM::Vector<Value> {};
     for (auto pair : m_hashmap) {
         if (pair.second == nil) {
             to_remove.push(pair.first->key);

@@ -3,7 +3,7 @@
 #include <random>
 
 namespace Natalie {
-ValuePtr RandomObject::initialize(Env *env, ValuePtr seed) {
+Value RandomObject::initialize(Env *env, Value seed) {
     if (!seed) {
         m_seed = (nat_int_t)std::random_device()();
     } else {
@@ -24,7 +24,7 @@ ValuePtr RandomObject::initialize(Env *env, ValuePtr seed) {
     return this;
 }
 
-ValuePtr RandomObject::rand(Env *env, ValuePtr arg) {
+Value RandomObject::rand(Env *env, Value arg) {
     if (arg) {
         if (arg->is_float()) {
             double max = arg->as_float()->to_double();
@@ -33,8 +33,8 @@ ValuePtr RandomObject::rand(Env *env, ValuePtr arg) {
             }
             return generate_random(0.0, max);
         } else if (arg->is_range()) {
-            ValuePtr min = arg->as_range()->begin();
-            ValuePtr max = arg->as_range()->end();
+            Value min = arg->as_range()->begin();
+            Value max = arg->as_range()->end();
             // TODO: There can be different types of objects that respond to + and - (according to the docs)
             // I'm not sure how we should handle those though (coerce via to_int or to_f?)
             if (min->is_numeric() && max->is_numeric()) {

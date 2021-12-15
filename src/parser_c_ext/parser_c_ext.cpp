@@ -11,7 +11,7 @@ VALUE Parser;
 
 extern "C" {
 
-VALUE to_mri_ruby(Natalie::ValuePtr value) {
+VALUE to_mri_ruby(Natalie::Value value) {
     VALUE Sexp = rb_const_get(rb_cObject, rb_intern("Sexp"));
     switch (value->type()) {
     case Natalie::Object::Type::Array: {
@@ -66,7 +66,7 @@ VALUE parse_on_instance(VALUE self) {
     auto path_nat_string = new Natalie::String { StringValueCStr(path) };
     auto parser = Natalie::Parser { code_nat_string, path_nat_string };
     Natalie::Node *tree;
-    Natalie::ValuePtr tree_value;
+    Natalie::Value tree_value;
     try {
         tree = parser.tree();
         tree_value = tree->to_ruby(env);

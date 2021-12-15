@@ -91,7 +91,7 @@ public:
 
     FiberObject *initialize(Env *env, Block *block);
 
-    static ValuePtr yield(Env *env, size_t argc, ValuePtr *args);
+    static Value yield(Env *env, size_t argc, Value *args);
 
     void create_stack(Env *env, int stack_size) {
 #if defined(__x86_64)
@@ -140,8 +140,8 @@ public:
 #endif
     }
 
-    ValuePtr resume(Env *env, size_t argc, ValuePtr *args);
-    void yield_back(Env *env, size_t argc, ValuePtr *args);
+    Value resume(Env *env, size_t argc, Value *args);
+    void yield_back(Env *env, size_t argc, Value *args);
 
     void *start_of_stack() { return m_start_of_stack; }
 
@@ -180,8 +180,8 @@ public:
 
     static FiberObject *main() { return s_main; }
 
-    Vector<ValuePtr> &args() { return m_args; }
-    void set_args(size_t argc, ValuePtr *args);
+    Vector<Value> &args() { return m_args; }
+    void set_args(size_t argc, Value *args);
 
     ExceptionObject *error() { return m_error; }
     void set_error(ExceptionObject *error) { m_error = error; }
@@ -193,7 +193,7 @@ private:
     void *m_start_of_stack { nullptr };
     void *m_end_of_stack { nullptr };
     Status m_status { Status::Created };
-    Vector<ValuePtr> m_args {};
+    Vector<Value> m_args {};
     FiberObject *m_previous_fiber { nullptr };
     ExceptionObject *m_error { nullptr };
 

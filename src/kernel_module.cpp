@@ -13,7 +13,7 @@ extern char **environ;
 
 namespace Natalie {
 
-ValuePtr KernelModule::Array(Env *env, ValuePtr value) {
+Value KernelModule::Array(Env *env, Value value) {
     if (value->type() == Object::Type::Array) {
         return value;
     } else if (value->respond_to(env, SymbolObject::intern("to_ary"))) {
@@ -27,19 +27,19 @@ ValuePtr KernelModule::Array(Env *env, ValuePtr value) {
     }
 }
 
-ValuePtr KernelModule::at_exit(Env *env, Block *block) {
+Value KernelModule::at_exit(Env *env, Block *block) {
     ArrayObject *at_exit_handlers = env->global_get(SymbolObject::intern("$NAT_at_exit_handlers"))->as_array();
     env->ensure_block_given(block);
-    ValuePtr proc = new ProcObject { block };
+    Value proc = new ProcObject { block };
     at_exit_handlers->push(proc);
     return proc;
 }
 
-ValuePtr KernelModule::binding(Env *env) {
+Value KernelModule::binding(Env *env) {
     return new BindingObject { env };
 }
 
-ValuePtr KernelModule::clone(Env *env) {
+Value KernelModule::clone(Env *env) {
     auto duplicate = this->dup(env);
     auto s_class = singleton_class();
     if (s_class) {
@@ -58,13 +58,13 @@ ValuePtr KernelModule::clone(Env *env) {
     return duplicate;
 }
 
-ValuePtr KernelModule::cur_dir(Env *env) {
+Value KernelModule::cur_dir(Env *env) {
     if (env->file() == nullptr) {
         env->raise("RuntimeError", "could not get current directory");
     } else if (strcmp(env->file(), "-e") == 0) {
         return new StringObject { "." };
     } else {
-        ValuePtr relative = new StringObject { env->file() };
+        Value relative = new StringObject { env->file() };
         StringObject *absolute = FileObject::expand_path(env, relative, nullptr)->as_string();
         size_t last_slash = 0;
         bool found = false;
@@ -81,16 +81,16 @@ ValuePtr KernelModule::cur_dir(Env *env) {
     }
 }
 
-ValuePtr KernelModule::define_singleton_method(Env *env, ValuePtr name, Block *block) {
+Value KernelModule::define_singleton_method(Env *env, Value name, Block *block) {
     env->ensure_block_given(block);
     SymbolObject *name_obj = name->to_symbol(env, Object::Conversion::Strict);
     Object::define_singleton_method(env, name_obj, block);
     return name_obj;
 }
 
-ValuePtr KernelModule::exit(Env *env, ValuePtr status) {
+Value KernelModule::exit(Env *env, Value status) {
     if (!status || status->type() != Object::Type::Integer) {
-        status = ValuePtr::integer(0);
+        status = Value::integer(0);
     }
     ExceptionObject *exception = new ExceptionObject { GlobalEnv::the()->Object()->const_find(env, SymbolObject::intern("SystemExit"))->as_class(), new StringObject { "exit" } };
     exception->ivar_set(env, SymbolObject::intern("@status"), status);
@@ -98,53 +98,53 @@ ValuePtr KernelModule::exit(Env *env, ValuePtr status) {
     return NilObject::the();
 }
 
-ValuePtr KernelModule::gets(Env *env) {
+Value KernelModule::gets(Env *env) {
     char buf[2048];
     if (!fgets(buf, 2048, stdin))
         return NilObject::the();
     return new StringObject { buf };
 }
 
-ValuePtr KernelModule::get_usage(Env *env) {
+Value KernelModule::get_usage(Env *env) {
     struct rusage usage;
     if (getrusage(RUSAGE_SELF, &usage) != 0) {
         return NilObject::the();
     }
     HashObject *hash = new HashObject {};
-    hash->put(env, new StringObject { "maxrss" }, ValuePtr::integer(usage.ru_maxrss));
-    hash->put(env, new StringObject { "ixrss" }, ValuePtr::integer(usage.ru_ixrss));
-    hash->put(env, new StringObject { "idrss" }, ValuePtr::integer(usage.ru_idrss));
-    hash->put(env, new StringObject { "isrss" }, ValuePtr::integer(usage.ru_isrss));
-    hash->put(env, new StringObject { "minflt" }, ValuePtr::integer(usage.ru_minflt));
-    hash->put(env, new StringObject { "majflt" }, ValuePtr::integer(usage.ru_majflt));
-    hash->put(env, new StringObject { "nswap" }, ValuePtr::integer(usage.ru_nswap));
-    hash->put(env, new StringObject { "inblock" }, ValuePtr::integer(usage.ru_inblock));
-    hash->put(env, new StringObject { "oublock" }, ValuePtr::integer(usage.ru_oublock));
-    hash->put(env, new StringObject { "msgsnd" }, ValuePtr::integer(usage.ru_msgsnd));
-    hash->put(env, new StringObject { "msgrcv" }, ValuePtr::integer(usage.ru_msgrcv));
-    hash->put(env, new StringObject { "nsignals" }, ValuePtr::integer(usage.ru_nsignals));
-    hash->put(env, new StringObject { "nvcsw" }, ValuePtr::integer(usage.ru_nvcsw));
-    hash->put(env, new StringObject { "nivcsw" }, ValuePtr::integer(usage.ru_nivcsw));
+    hash->put(env, new StringObject { "maxrss" }, Value::integer(usage.ru_maxrss));
+    hash->put(env, new StringObject { "ixrss" }, Value::integer(usage.ru_ixrss));
+    hash->put(env, new StringObject { "idrss" }, Value::integer(usage.ru_idrss));
+    hash->put(env, new StringObject { "isrss" }, Value::integer(usage.ru_isrss));
+    hash->put(env, new StringObject { "minflt" }, Value::integer(usage.ru_minflt));
+    hash->put(env, new StringObject { "majflt" }, Value::integer(usage.ru_majflt));
+    hash->put(env, new StringObject { "nswap" }, Value::integer(usage.ru_nswap));
+    hash->put(env, new StringObject { "inblock" }, Value::integer(usage.ru_inblock));
+    hash->put(env, new StringObject { "oublock" }, Value::integer(usage.ru_oublock));
+    hash->put(env, new StringObject { "msgsnd" }, Value::integer(usage.ru_msgsnd));
+    hash->put(env, new StringObject { "msgrcv" }, Value::integer(usage.ru_msgrcv));
+    hash->put(env, new StringObject { "nsignals" }, Value::integer(usage.ru_nsignals));
+    hash->put(env, new StringObject { "nvcsw" }, Value::integer(usage.ru_nvcsw));
+    hash->put(env, new StringObject { "nivcsw" }, Value::integer(usage.ru_nivcsw));
     return hash;
 }
 
-ValuePtr KernelModule::hash(Env *env) {
+Value KernelModule::hash(Env *env) {
     switch (type()) {
     // NOTE: string "foo" and symbol :foo will get the same hash.
     // That's probably ok, but maybe worth revisiting.
     case Type::String:
-        return ValuePtr::integer(TM::Hashmap<void *>::hash_str(as_string()->c_str()));
+        return Value::integer(TM::Hashmap<void *>::hash_str(as_string()->c_str()));
     case Type::Symbol:
-        return ValuePtr::integer(TM::Hashmap<void *>::hash_str(as_symbol()->c_str()));
+        return Value::integer(TM::Hashmap<void *>::hash_str(as_symbol()->c_str()));
     default: {
         StringObject *inspected = send(env, SymbolObject::intern("inspect"))->as_string();
         nat_int_t hash_value = TM::Hashmap<void *>::hash_str(inspected->c_str());
-        return ValuePtr::integer(hash_value);
+        return Value::integer(hash_value);
     }
     }
 }
 
-ValuePtr KernelModule::inspect(Env *env) {
+Value KernelModule::inspect(Env *env) {
     if (is_module() && as_module()->class_name()) {
         return new StringObject { *as_module()->class_name().value() };
     } else {
@@ -153,11 +153,11 @@ ValuePtr KernelModule::inspect(Env *env) {
 }
 
 // Note: this method is only defined here in the C++ -- the method is actually attached directly to `main` in Ruby.
-ValuePtr KernelModule::main_obj_inspect(Env *env) {
+Value KernelModule::main_obj_inspect(Env *env) {
     return new StringObject { "main" };
 }
 
-ValuePtr KernelModule::instance_variable_get(Env *env, ValuePtr name_val) {
+Value KernelModule::instance_variable_get(Env *env, Value name_val) {
     if (is_integer() || is_float()) {
         return NilObject::the();
     }
@@ -165,21 +165,21 @@ ValuePtr KernelModule::instance_variable_get(Env *env, ValuePtr name_val) {
     return ivar_get(env, name);
 }
 
-ValuePtr KernelModule::instance_variable_set(Env *env, ValuePtr name_val, ValuePtr value) {
+Value KernelModule::instance_variable_set(Env *env, Value name_val, Value value) {
     this->assert_not_frozen(env);
     auto name = name_val->to_symbol(env, Object::Conversion::Strict);
     ivar_set(env, name, value);
     return value;
 }
 
-bool KernelModule::is_a(Env *env, ValuePtr module) {
+bool KernelModule::is_a(Env *env, Value module) {
     if (!module->is_module()) {
         env->raise("TypeError", "class or module required");
     }
     return Object::is_a(env, module->as_module());
 }
 
-ValuePtr KernelModule::lambda(Env *env, Block *block) {
+Value KernelModule::lambda(Env *env, Block *block) {
     if (block) {
         return new ProcObject { block, ProcObject::ProcType::Lambda };
     } else {
@@ -187,7 +187,7 @@ ValuePtr KernelModule::lambda(Env *env, Block *block) {
     }
 }
 
-ValuePtr KernelModule::loop(Env *env, Block *block) {
+Value KernelModule::loop(Env *env, Block *block) {
     if (!block)
         return this->enum_for(env, "loop");
 
@@ -197,7 +197,7 @@ ValuePtr KernelModule::loop(Env *env, Block *block) {
     return NilObject::the();
 }
 
-ValuePtr KernelModule::method(Env *env, ValuePtr name) {
+Value KernelModule::method(Env *env, Value name) {
     auto name_symbol = name->to_symbol(env, Conversion::Strict);
     auto singleton = singleton_class();
     if (singleton) {
@@ -215,7 +215,7 @@ ValuePtr KernelModule::method(Env *env, ValuePtr name) {
     env->raise("NoMethodError", "undefined method `{}' for {}:Class", name_symbol->inspect_str(env), m_klass->class_name_or_blank());
 }
 
-ValuePtr KernelModule::methods(Env *env) {
+Value KernelModule::methods(Env *env) {
     ArrayObject *array = new ArrayObject {};
     if (singleton_class()) {
         singleton_class()->methods(env, array);
@@ -225,11 +225,11 @@ ValuePtr KernelModule::methods(Env *env) {
     return array;
 }
 
-ValuePtr KernelModule::p(Env *env, size_t argc, ValuePtr *args) {
+Value KernelModule::p(Env *env, size_t argc, Value *args) {
     if (argc == 0) {
         return NilObject::the();
     } else if (argc == 1) {
-        ValuePtr arg = args[0].send(env, SymbolObject::intern("inspect"));
+        Value arg = args[0].send(env, SymbolObject::intern("inspect"));
         puts(env, 1, &arg);
         return arg;
     } else {
@@ -243,12 +243,12 @@ ValuePtr KernelModule::p(Env *env, size_t argc, ValuePtr *args) {
     }
 }
 
-ValuePtr KernelModule::print(Env *env, size_t argc, ValuePtr *args) {
+Value KernelModule::print(Env *env, size_t argc, Value *args) {
     IoObject *_stdout = env->global_get(SymbolObject::intern("$stdout"))->as_io();
     return _stdout->print(env, argc, args);
 }
 
-ValuePtr KernelModule::proc(Env *env, Block *block) {
+Value KernelModule::proc(Env *env, Block *block) {
     if (block) {
         return new ProcObject { block };
     } else {
@@ -256,14 +256,14 @@ ValuePtr KernelModule::proc(Env *env, Block *block) {
     }
 }
 
-ValuePtr KernelModule::puts(Env *env, size_t argc, ValuePtr *args) {
+Value KernelModule::puts(Env *env, size_t argc, Value *args) {
     IoObject *_stdout = env->global_get(SymbolObject::intern("$stdout"))->as_io();
     return _stdout->puts(env, argc, args);
 }
 
-ValuePtr KernelModule::raise(Env *env, ValuePtr klass, ValuePtr message) {
+Value KernelModule::raise(Env *env, Value klass, Value message) {
     if (!message) {
-        ValuePtr arg = klass;
+        Value arg = klass;
         if (arg->is_class()) {
             klass = arg->as_class();
             message = new StringObject { *arg->as_class()->class_name_or_blank() };
@@ -279,7 +279,7 @@ ValuePtr KernelModule::raise(Env *env, ValuePtr klass, ValuePtr message) {
     env->raise(klass->as_class(), message->as_string());
 }
 
-ValuePtr KernelModule::sleep(Env *env, ValuePtr length) {
+Value KernelModule::sleep(Env *env, Value length) {
     if (!length) {
         while (true) {
             ::sleep(1000);
@@ -305,7 +305,7 @@ ValuePtr KernelModule::sleep(Env *env, ValuePtr length) {
     return length;
 }
 
-ValuePtr KernelModule::spawn(Env *env, size_t argc, ValuePtr *args) {
+Value KernelModule::spawn(Env *env, size_t argc, Value *args) {
     pid_t pid;
     env->ensure_argc_at_least(argc, 1);
     auto program = args[0]->as_string();
@@ -322,16 +322,16 @@ ValuePtr KernelModule::spawn(Env *env, size_t argc, ValuePtr *args) {
     }
     if (result != 0)
         env->raise_errno();
-    return ValuePtr::integer(pid);
+    return Value::integer(pid);
 }
 
-ValuePtr KernelModule::tap(Env *env, Block *block) {
-    ValuePtr self = this;
+Value KernelModule::tap(Env *env, Block *block) {
+    Value self = this;
     NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &self, nullptr);
     return this;
 }
 
-ValuePtr KernelModule::this_method(Env *env) {
+Value KernelModule::this_method(Env *env) {
     auto method = env->caller()->current_method();
     if (method->name()) {
         return SymbolObject::intern(method->name());

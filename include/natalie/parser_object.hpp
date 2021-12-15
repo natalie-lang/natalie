@@ -11,8 +11,8 @@ namespace Natalie {
 
 class ParserObject : public Object {
 public:
-    ValuePtr parse(Env *, ValuePtr, ValuePtr = nullptr);
-    ValuePtr tokens(Env *, ValuePtr, ValuePtr);
+    Value parse(Env *, Value, Value = nullptr);
+    Value tokens(Env *, Value, Value);
 };
 
 }

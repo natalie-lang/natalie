@@ -87,9 +87,9 @@ class BindingGen
     end
 
     def write_function
-      type = cpp_class == 'Object' ? 'ValuePtr ' : "#{cpp_class} *"
+      type = cpp_class == 'Object' ? 'Value ' : "#{cpp_class} *"
       puts <<-FUNC
-ValuePtr #{name}(Env *env, ValuePtr self_value, size_t argc, ValuePtr *args, Block *block) {
+Value #{name}(Env *env, Value self_value, size_t argc, Value *args, Block *block) {
     #{argc_assertion}
     #{type}self = #{as_type 'self_value'};
     auto return_value = self->#{cpp_method}(#{args_to_pass});
@@ -100,7 +100,7 @@ ValuePtr #{name}(Env *env, ValuePtr self_value, size_t argc, ValuePtr *args, Blo
 
     def write_static_function
       puts <<-FUNC
-ValuePtr #{name}(Env *env, ValuePtr klass, size_t argc, ValuePtr *args, Block *block) {
+Value #{name}(Env *env, Value klass, size_t argc, Value *args, Block *block) {
     #{argc_assertion}
     auto return_value = #{cpp_class}::#{cpp_method}(#{args_to_pass});
     #{return_code}
@@ -148,9 +148,9 @@ ValuePtr #{name}(Env *env, ValuePtr klass, size_t argc, ValuePtr *args, Block *b
 
     def get_object
       if GLOBAL_ENV_ACCESSORS.include?(rb_class)
-        "ValuePtr #{rb_class} = GlobalEnv::the()->#{rb_class}();"
+        "Value #{rb_class} = GlobalEnv::the()->#{rb_class}();"
       else
-        "ValuePtr #{rb_class_as_c_variable} = GlobalEnv::the()->Object()->#{rb_class.split('::').map { |c| %(const_find(env, SymbolObject::intern(#{c.inspect}))) }.join('->')};"
+        "Value #{rb_class_as_c_variable} = GlobalEnv::the()->Object()->#{rb_class.split('::').map { |c| %(const_find(env, SymbolObject::intern(#{c.inspect}))) }.join('->')};"
       end
     end
 
@@ -241,7 +241,7 @@ ValuePtr #{name}(Env *env, ValuePtr klass, size_t argc, ValuePtr *args, Block *b
         "if (!return_value) return FalseObject::the();\n" +
         'return TrueObject::the();'
       when :int
-        'return ValuePtr::integer(return_value);'
+        'return Value::integer(return_value);'
       when :size_t
         'return IntegerObject::from_size_t(env, return_value);'
       when :c_str

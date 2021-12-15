@@ -62,8 +62,8 @@ public:
     Natalie::Object *main_obj() { return m_main_obj; }
     void set_main_obj(Natalie::Object *main_obj) { m_main_obj = main_obj; }
 
-    ValuePtr global_get(Env *, SymbolObject *);
-    ValuePtr global_set(Env *, SymbolObject *, ValuePtr);
+    Value global_get(Env *, SymbolObject *);
+    Value global_set(Env *, SymbolObject *, Value);
 
     void set_main_env(Env *main_env) { m_main_env = main_env; }
     Env *main_env() { return m_main_env; }

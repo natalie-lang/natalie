@@ -83,7 +83,7 @@ public:
     void append(Env *, const char *);
     void append(Env *, const StringObject *);
     void append(Env *, const String *);
-    void append(Env *, ValuePtr);
+    void append(Env *, Value);
 
     void append_sprintf(const char *format, ...) {
         va_list args, args_copy;
@@ -93,11 +93,11 @@ public:
     }
 
     char *next_char(Env *, char *, size_t *);
-    ValuePtr each_char(Env *, Block *);
+    Value each_char(Env *, Block *);
     ArrayObject *chars(Env *);
 
     SymbolObject *to_symbol(Env *) const;
-    ValuePtr to_sym(Env *) const;
+    Value to_sym(Env *) const;
 
     StringObject *to_str() { return this; }
 
@@ -115,54 +115,54 @@ public:
 
     StringObject *successive(Env *);
 
-    ValuePtr index(Env *, ValuePtr);
-    ValuePtr index(Env *, ValuePtr, size_t start);
-    nat_int_t index_int(Env *, ValuePtr, size_t start) const;
+    Value index(Env *, Value);
+    Value index(Env *, Value, size_t start);
+    nat_int_t index_int(Env *, Value, size_t start) const;
 
     void truncate(size_t length) {
         m_string.truncate(length);
     }
 
-    ValuePtr initialize(Env *, ValuePtr);
-    ValuePtr ltlt(Env *, ValuePtr);
+    Value initialize(Env *, Value);
+    Value ltlt(Env *, Value);
 
-    bool eql(ValuePtr arg) const {
+    bool eql(Value arg) const {
         return *this == *arg;
     }
 
-    ValuePtr to_s() {
+    Value to_s() {
         return this;
     }
 
-    bool start_with(Env *, ValuePtr) const;
-    bool end_with(Env *, ValuePtr) const;
+    bool start_with(Env *, Value) const;
+    bool end_with(Env *, Value) const;
     bool is_empty() const { return m_string.is_empty(); }
 
-    ValuePtr gsub(Env *, ValuePtr, ValuePtr = nullptr, Block *block = nullptr);
-    ValuePtr sub(Env *, ValuePtr, ValuePtr = nullptr, Block *block = nullptr);
+    Value gsub(Env *, Value, Value = nullptr, Block *block = nullptr);
+    Value sub(Env *, Value, Value = nullptr, Block *block = nullptr);
 
-    ValuePtr add(Env *, ValuePtr) const;
-    ValuePtr bytes(Env *) const;
-    ValuePtr cmp(Env *, ValuePtr) const;
-    ValuePtr downcase(Env *);
-    ValuePtr encode(Env *, ValuePtr);
-    ValuePtr encoding(Env *);
-    bool eq(Env *, ValuePtr arg);
-    ValuePtr eqtilde(Env *, ValuePtr);
-    ValuePtr force_encoding(Env *, ValuePtr);
-    ValuePtr ljust(Env *, ValuePtr, ValuePtr);
-    ValuePtr lstrip(Env *) const;
-    ValuePtr match(Env *, ValuePtr);
-    ValuePtr mul(Env *, ValuePtr) const;
-    ValuePtr ord(Env *);
-    ValuePtr ref(Env *, ValuePtr);
-    ValuePtr reverse(Env *);
-    ValuePtr rstrip(Env *) const;
-    ValuePtr size(Env *);
-    ValuePtr split(Env *, ValuePtr, ValuePtr);
-    ValuePtr strip(Env *) const;
-    ValuePtr to_i(Env *, ValuePtr) const;
-    ValuePtr upcase(Env *);
+    Value add(Env *, Value) const;
+    Value bytes(Env *) const;
+    Value cmp(Env *, Value) const;
+    Value downcase(Env *);
+    Value encode(Env *, Value);
+    Value encoding(Env *);
+    bool eq(Env *, Value arg);
+    Value eqtilde(Env *, Value);
+    Value force_encoding(Env *, Value);
+    Value ljust(Env *, Value, Value);
+    Value lstrip(Env *) const;
+    Value match(Env *, Value);
+    Value mul(Env *, Value) const;
+    Value ord(Env *);
+    Value ref(Env *, Value);
+    Value reverse(Env *);
+    Value rstrip(Env *) const;
+    Value size(Env *);
+    Value split(Env *, Value, Value);
+    Value strip(Env *) const;
+    Value to_i(Env *, Value) const;
+    Value upcase(Env *);
 
     template <typename... Args>
     static StringObject *format(Env *env, const char *fmt, Args... args) {

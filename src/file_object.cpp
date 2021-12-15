@@ -7,7 +7,7 @@
 
 namespace Natalie {
 
-ValuePtr FileObject::initialize(Env *env, ValuePtr filename, ValuePtr flags_obj, Block *block) {
+Value FileObject::initialize(Env *env, Value filename, Value flags_obj, Block *block) {
     filename->assert_type(env, Object::Type::String, "String");
     int flags = O_RDONLY;
     if (flags_obj) {
@@ -48,7 +48,7 @@ ValuePtr FileObject::initialize(Env *env, ValuePtr filename, ValuePtr flags_obj,
     }
 }
 
-ValuePtr FileObject::expand_path(Env *env, ValuePtr path, ValuePtr root) {
+Value FileObject::expand_path(Env *env, Value path, Value root) {
     path->assert_type(env, Object::Type::String, "String");
     StringObject *merged;
     if (path->as_string()->length() > 0 && path->as_string()->c_str()[0] == '/') {
@@ -82,47 +82,47 @@ ValuePtr FileObject::expand_path(Env *env, ValuePtr path, ValuePtr root) {
     return merged;
 }
 
-ValuePtr FileObject::unlink(Env *env, ValuePtr path) {
+Value FileObject::unlink(Env *env, Value path) {
     int result = ::unlink(path->as_string()->c_str());
     if (result == 0) {
-        return ValuePtr::integer(1);
+        return Value::integer(1);
     } else {
         auto SystemCallError = GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern("SystemCallError"));
-        auto exception = SystemCallError.send(env, SymbolObject::intern("exception"), { ValuePtr::integer(errno) })->as_exception();
+        auto exception = SystemCallError.send(env, SymbolObject::intern("exception"), { Value::integer(errno) })->as_exception();
         env->raise_exception(exception);
     }
 }
 
 void FileObject::build_constants(Env *env, ClassObject *klass) {
-    ValuePtr Constants = new ModuleObject { "Constants" };
+    Value Constants = new ModuleObject { "Constants" };
     klass->const_set(SymbolObject::intern("Constants"), Constants);
-    klass->const_set(SymbolObject::intern("APPEND"), ValuePtr::integer(O_APPEND));
-    Constants->const_set(SymbolObject::intern("APPEND"), ValuePtr::integer(O_APPEND));
-    klass->const_set(SymbolObject::intern("RDONLY"), ValuePtr::integer(O_RDONLY));
-    Constants->const_set(SymbolObject::intern("RDONLY"), ValuePtr::integer(O_RDONLY));
-    klass->const_set(SymbolObject::intern("WRONLY"), ValuePtr::integer(O_WRONLY));
-    Constants->const_set(SymbolObject::intern("WRONLY"), ValuePtr::integer(O_WRONLY));
-    klass->const_set(SymbolObject::intern("TRUNC"), ValuePtr::integer(O_TRUNC));
-    Constants->const_set(SymbolObject::intern("TRUNC"), ValuePtr::integer(O_TRUNC));
-    klass->const_set(SymbolObject::intern("CREAT"), ValuePtr::integer(O_CREAT));
-    Constants->const_set(SymbolObject::intern("CREAT"), ValuePtr::integer(O_CREAT));
-    klass->const_set(SymbolObject::intern("DSYNC"), ValuePtr::integer(O_DSYNC));
-    Constants->const_set(SymbolObject::intern("DSYNC"), ValuePtr::integer(O_DSYNC));
-    klass->const_set(SymbolObject::intern("EXCL"), ValuePtr::integer(O_EXCL));
-    Constants->const_set(SymbolObject::intern("EXCL"), ValuePtr::integer(O_EXCL));
-    klass->const_set(SymbolObject::intern("NOCTTY"), ValuePtr::integer(O_NOCTTY));
-    Constants->const_set(SymbolObject::intern("NOCTTY"), ValuePtr::integer(O_NOCTTY));
-    klass->const_set(SymbolObject::intern("NOFOLLOW"), ValuePtr::integer(O_NOFOLLOW));
-    Constants->const_set(SymbolObject::intern("NOFOLLOW"), ValuePtr::integer(O_NOFOLLOW));
-    klass->const_set(SymbolObject::intern("NONBLOCK"), ValuePtr::integer(O_NONBLOCK));
-    Constants->const_set(SymbolObject::intern("NONBLOCK"), ValuePtr::integer(O_NONBLOCK));
-    klass->const_set(SymbolObject::intern("RDWR"), ValuePtr::integer(O_RDWR));
-    Constants->const_set(SymbolObject::intern("RDWR"), ValuePtr::integer(O_RDWR));
-    klass->const_set(SymbolObject::intern("SYNC"), ValuePtr::integer(O_SYNC));
-    Constants->const_set(SymbolObject::intern("SYNC"), ValuePtr::integer(O_SYNC));
+    klass->const_set(SymbolObject::intern("APPEND"), Value::integer(O_APPEND));
+    Constants->const_set(SymbolObject::intern("APPEND"), Value::integer(O_APPEND));
+    klass->const_set(SymbolObject::intern("RDONLY"), Value::integer(O_RDONLY));
+    Constants->const_set(SymbolObject::intern("RDONLY"), Value::integer(O_RDONLY));
+    klass->const_set(SymbolObject::intern("WRONLY"), Value::integer(O_WRONLY));
+    Constants->const_set(SymbolObject::intern("WRONLY"), Value::integer(O_WRONLY));
+    klass->const_set(SymbolObject::intern("TRUNC"), Value::integer(O_TRUNC));
+    Constants->const_set(SymbolObject::intern("TRUNC"), Value::integer(O_TRUNC));
+    klass->const_set(SymbolObject::intern("CREAT"), Value::integer(O_CREAT));
+    Constants->const_set(SymbolObject::intern("CREAT"), Value::integer(O_CREAT));
+    klass->const_set(SymbolObject::intern("DSYNC"), Value::integer(O_DSYNC));
+    Constants->const_set(SymbolObject::intern("DSYNC"), Value::integer(O_DSYNC));
+    klass->const_set(SymbolObject::intern("EXCL"), Value::integer(O_EXCL));
+    Constants->const_set(SymbolObject::intern("EXCL"), Value::integer(O_EXCL));
+    klass->const_set(SymbolObject::intern("NOCTTY"), Value::integer(O_NOCTTY));
+    Constants->const_set(SymbolObject::intern("NOCTTY"), Value::integer(O_NOCTTY));
+    klass->const_set(SymbolObject::intern("NOFOLLOW"), Value::integer(O_NOFOLLOW));
+    Constants->const_set(SymbolObject::intern("NOFOLLOW"), Value::integer(O_NOFOLLOW));
+    klass->const_set(SymbolObject::intern("NONBLOCK"), Value::integer(O_NONBLOCK));
+    Constants->const_set(SymbolObject::intern("NONBLOCK"), Value::integer(O_NONBLOCK));
+    klass->const_set(SymbolObject::intern("RDWR"), Value::integer(O_RDWR));
+    Constants->const_set(SymbolObject::intern("RDWR"), Value::integer(O_RDWR));
+    klass->const_set(SymbolObject::intern("SYNC"), Value::integer(O_SYNC));
+    Constants->const_set(SymbolObject::intern("SYNC"), Value::integer(O_SYNC));
 }
 
-bool FileObject::file(Env *env, ValuePtr path) {
+bool FileObject::file(Env *env, Value path) {
     struct stat sb;
     path->assert_type(env, Object::Type::String, "String");
     if (stat(path->as_string()->c_str(), &sb) == -1)
@@ -130,7 +130,7 @@ bool FileObject::file(Env *env, ValuePtr path) {
     return S_ISREG(sb.st_mode);
 }
 
-bool FileObject::directory(Env *env, ValuePtr path) {
+bool FileObject::directory(Env *env, Value path) {
     struct stat sb;
     path->assert_type(env, Object::Type::String, "String");
     if (stat(path->as_string()->c_str(), &sb) == -1)

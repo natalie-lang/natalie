@@ -36,7 +36,7 @@ FiberObject *FiberObject::initialize(Env *env, Block *block) {
     return this;
 }
 
-ValuePtr FiberObject::resume(Env *env, size_t argc, ValuePtr *args) {
+Value FiberObject::resume(Env *env, size_t argc, Value *args) {
     if (m_status == Status::Terminated)
         env->raise("FiberError", "dead fiber called");
     if (m_previous_fiber)
@@ -63,7 +63,7 @@ ValuePtr FiberObject::resume(Env *env, size_t argc, ValuePtr *args) {
     }
 }
 
-ValuePtr FiberObject::yield(Env *env, size_t argc, ValuePtr *args) {
+Value FiberObject::yield(Env *env, size_t argc, Value *args) {
     auto current_fiber = FiberObject::current();
     if (!current_fiber->m_previous_fiber)
         env->raise("FiberError", "can't yield from root fiber");
@@ -81,7 +81,7 @@ ValuePtr FiberObject::yield(Env *env, size_t argc, ValuePtr *args) {
     }
 }
 
-void FiberObject::yield_back(Env *env, size_t argc, ValuePtr *args) {
+void FiberObject::yield_back(Env *env, size_t argc, Value *args) {
     assert(m_previous_fiber);
     s_current = m_previous_fiber;
     s_current->set_args(argc, args);
@@ -111,7 +111,7 @@ void FiberObject::visit_children(Visitor &visitor) {
     }
 }
 
-void FiberObject::set_args(size_t argc, ValuePtr *args) {
+void FiberObject::set_args(size_t argc, Value *args) {
     m_args.clear();
     for (size_t i = 0; i < argc; ++i) {
         m_args.push(args[i]);
@@ -131,7 +131,7 @@ void fiber_wrapper_func(Natalie::Env *env, Natalie::FiberObject *fiber) {
     Natalie::Heap::the().set_start_of_stack(fiber->start_of_stack());
     fiber->set_status(Natalie::FiberObject::Status::Active);
     assert(fiber->block());
-    Natalie::ValuePtr return_args[1];
+    Natalie::Value return_args[1];
     bool reraise = false;
 
     try {

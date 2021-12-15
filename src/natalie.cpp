@@ -1,6 +1,6 @@
 #include "natalie.hpp"
 #include "natalie/forward.hpp"
-#include "natalie/value_ptr.hpp"
+#include "natalie/value.hpp"
 #include <ctype.h>
 #include <math.h>
 #include <stdarg.h>
@@ -79,7 +79,7 @@ Env *build_top_env() {
     Float->include_once(env, Comparable);
     FloatObject::build_constants(env, Float);
 
-    ValuePtr Math = new ModuleObject { "Math" };
+    Value Math = new ModuleObject { "Math" };
     Object->const_set(SymbolObject::intern("Math"), Math);
     Math->const_set(SymbolObject::intern("PI"), new FloatObject { M_PI });
 
@@ -110,9 +110,9 @@ Env *build_top_env() {
     ClassObject *Regexp = Object->subclass(env, "Regexp", Object::Type::Regexp);
     global_env->set_Regexp(Regexp);
     Object->const_set(SymbolObject::intern("Regexp"), Regexp);
-    Regexp->const_set(SymbolObject::intern("IGNORECASE"), ValuePtr::integer(1));
-    Regexp->const_set(SymbolObject::intern("EXTENDED"), ValuePtr::integer(2));
-    Regexp->const_set(SymbolObject::intern("MULTILINE"), ValuePtr::integer(4));
+    Regexp->const_set(SymbolObject::intern("IGNORECASE"), Value::integer(1));
+    Regexp->const_set(SymbolObject::intern("EXTENDED"), Value::integer(2));
+    Regexp->const_set(SymbolObject::intern("MULTILINE"), Value::integer(4));
 
     ClassObject *Range = Object->subclass(env, "Range", Object::Type::Range);
     Object->const_set(SymbolObject::intern("Range"), Range);
@@ -149,10 +149,10 @@ Env *build_top_env() {
     Encoding->const_set(SymbolObject::intern("ASCII_8BIT"), EncodingAscii8Bit);
     Encoding->const_set(SymbolObject::intern("BINARY"), EncodingAscii8Bit);
 
-    ValuePtr EncodingUTF8 = new EncodingObject { Encoding::UTF_8, { "UTF-8" } };
+    Value EncodingUTF8 = new EncodingObject { Encoding::UTF_8, { "UTF-8" } };
     Encoding->const_set(SymbolObject::intern("UTF_8"), EncodingUTF8);
 
-    ValuePtr Process = new ModuleObject { "Process" };
+    Value Process = new ModuleObject { "Process" };
     Object->const_set(SymbolObject::intern("Process"), Process);
 
     ClassObject *Method = Object->subclass(env, "Method", Object::Type::Method);
@@ -164,19 +164,19 @@ Env *build_top_env() {
     main_obj->add_main_object_flag();
     GlobalEnv::the()->set_main_obj(main_obj);
 
-    ValuePtr _stdin = new IoObject { STDIN_FILENO };
+    Value _stdin = new IoObject { STDIN_FILENO };
     env->global_set(SymbolObject::intern("$stdin"), _stdin);
     Object->const_set(SymbolObject::intern("STDIN"), _stdin);
 
-    ValuePtr _stdout = new IoObject { STDOUT_FILENO };
+    Value _stdout = new IoObject { STDOUT_FILENO };
     env->global_set(SymbolObject::intern("$stdout"), _stdout);
     Object->const_set(SymbolObject::intern("STDOUT"), _stdout);
 
-    ValuePtr _stderr = new IoObject { STDERR_FILENO };
+    Value _stderr = new IoObject { STDERR_FILENO };
     env->global_set(SymbolObject::intern("$stderr"), _stderr);
     Object->const_set(SymbolObject::intern("STDERR"), _stderr);
 
-    ValuePtr ENV = new Natalie::Object {};
+    Value ENV = new Natalie::Object {};
     Object->const_set(SymbolObject::intern("ENV"), ENV);
 
     ClassObject *Parser = GlobalEnv::the()->Object()->subclass(env, "Parser");
@@ -185,10 +185,10 @@ Env *build_top_env() {
     ClassObject *Sexp = Array->subclass(env, "Sexp", Object::Type::Array);
     Object->const_set(SymbolObject::intern("Sexp"), Sexp);
 
-    ValuePtr RUBY_VERSION = new StringObject { "3.0.0" };
+    Value RUBY_VERSION = new StringObject { "3.0.0" };
     Object->const_set(SymbolObject::intern("RUBY_VERSION"), RUBY_VERSION);
 
-    ValuePtr RUBY_ENGINE = new StringObject { "natalie" };
+    Value RUBY_ENGINE = new StringObject { "natalie" };
     Object->const_set(SymbolObject::intern("RUBY_ENGINE"), RUBY_ENGINE);
 
     StringObject *RUBY_PLATFORM = new StringObject { ruby_platform };
@@ -202,7 +202,7 @@ Env *build_top_env() {
     return env;
 }
 
-ValuePtr splat(Env *env, ValuePtr obj) {
+Value splat(Env *env, Value obj) {
     if (obj->is_array()) {
         return new ArrayObject { *obj->as_array() };
     } else {
@@ -214,7 +214,7 @@ void run_at_exit_handlers(Env *env) {
     ArrayObject *at_exit_handlers = env->global_get(SymbolObject::intern("$NAT_at_exit_handlers"))->as_array();
     assert(at_exit_handlers);
     for (int i = at_exit_handlers->size() - 1; i >= 0; i--) {
-        ValuePtr proc = (*at_exit_handlers)[i];
+        Value proc = (*at_exit_handlers)[i];
         assert(proc);
         assert(proc->is_proc());
         NAT_RUN_BLOCK_WITHOUT_BREAK(env, proc->as_proc()->block(), 0, nullptr, nullptr);
@@ -240,7 +240,7 @@ void print_exception_with_backtrace(Env *env, ExceptionObject *exception) {
 
 void handle_top_level_exception(Env *env, ExceptionObject *exception, bool run_exit_handlers) {
     if (exception->is_a(env, GlobalEnv::the()->Object()->const_find(env, SymbolObject::intern("SystemExit"))->as_class())) {
-        ValuePtr status_obj = exception->ivar_get(env, SymbolObject::intern("@status"));
+        Value status_obj = exception->ivar_get(env, SymbolObject::intern("@status"));
         if (run_exit_handlers) run_at_exit_handlers(env);
         if (status_obj->type() == Object::Type::Integer) {
             nat_int_t val = status_obj->as_integer()->to_nat_int_t();
@@ -257,12 +257,12 @@ void handle_top_level_exception(Env *env, ExceptionObject *exception, bool run_e
     }
 }
 
-ArrayObject *to_ary(Env *env, ValuePtr obj, bool raise_for_non_array) {
+ArrayObject *to_ary(Env *env, Value obj, bool raise_for_non_array) {
     auto to_ary_symbol = SymbolObject::intern("to_ary");
     if (obj->is_array()) {
         return obj->as_array();
     } else if (obj->respond_to(env, to_ary_symbol)) {
-        ValuePtr ary = obj.send(env, to_ary_symbol);
+        Value ary = obj.send(env, to_ary_symbol);
         if (ary->is_array()) {
             return ary->as_array();
         } else if (ary->is_nil() || !raise_for_non_array) {
@@ -280,7 +280,7 @@ ArrayObject *to_ary(Env *env, ValuePtr obj, bool raise_for_non_array) {
     }
 }
 
-static ValuePtr splat_value(Env *env, ValuePtr value, size_t index, size_t offset_from_end, bool has_kwargs) {
+static Value splat_value(Env *env, Value value, size_t index, size_t offset_from_end, bool has_kwargs) {
     ArrayObject *splat = new ArrayObject {};
     if (has_kwargs && value->is_array() && value->as_array()->last()->is_hash())
         offset_from_end += 1; // compensate for kwargs hash that was passed as the last argument
@@ -292,14 +292,14 @@ static ValuePtr splat_value(Env *env, ValuePtr value, size_t index, size_t offse
     return splat;
 }
 
-ValuePtr arg_value_by_path(Env *env, ArgValueByPathOptions options, size_t path_size, ...) {
+Value arg_value_by_path(Env *env, ArgValueByPathOptions options, size_t path_size, ...) {
     va_list args;
     va_start(args, path_size);
     bool has_default = !!options.default_value;
     auto default_value = options.default_value ?: NilObject::the();
     bool defaults_on_left = !options.defaults_on_right;
     int required_count = options.total_count - options.default_count;
-    ValuePtr return_value = options.value;
+    Value return_value = options.value;
     for (size_t i = 0; i < path_size; i++) {
         int index = va_arg(args, int);
 
@@ -375,10 +375,10 @@ ValuePtr arg_value_by_path(Env *env, ArgValueByPathOptions options, size_t path_
     return return_value;
 }
 
-ValuePtr array_value_by_path(Env *env, ArrayValueByPathOptions options, size_t path_size, ...) {
+Value array_value_by_path(Env *env, ArrayValueByPathOptions options, size_t path_size, ...) {
     va_list args;
     va_start(args, path_size);
-    ValuePtr return_value = options.value;
+    Value return_value = options.value;
     for (size_t i = 0; i < path_size; i++) {
         int index = va_arg(args, int);
         if (options.splat && i == path_size - 1) {
@@ -422,11 +422,11 @@ ValuePtr array_value_by_path(Env *env, ArrayValueByPathOptions options, size_t p
     return return_value;
 }
 
-ValuePtr kwarg_value_by_name(Env *env, ValuePtr args, const char *name, ValuePtr default_value) {
+Value kwarg_value_by_name(Env *env, Value args, const char *name, Value default_value) {
     return kwarg_value_by_name(env, args->as_array(), name, default_value);
 }
 
-HashObject *kwarg_hash(ValuePtr args) {
+HashObject *kwarg_hash(Value args) {
     return kwarg_hash(args->as_array());
 }
 
@@ -444,9 +444,9 @@ HashObject *kwarg_hash(ArrayObject *args) {
     return hash;
 }
 
-ValuePtr kwarg_value_by_name(Env *env, ArrayObject *args, const char *name, ValuePtr default_value) {
+Value kwarg_value_by_name(Env *env, ArrayObject *args, const char *name, Value default_value) {
     auto hash = kwarg_hash(args);
-    ValuePtr value = hash->as_hash()->remove(env, SymbolObject::intern(name));
+    Value value = hash->as_hash()->remove(env, SymbolObject::intern(name));
     if (!value) {
         if (default_value) {
             return default_value;
@@ -457,7 +457,7 @@ ValuePtr kwarg_value_by_name(Env *env, ArrayObject *args, const char *name, Valu
     return value;
 }
 
-ArrayObject *args_to_array(Env *env, size_t argc, ValuePtr *args) {
+ArrayObject *args_to_array(Env *env, size_t argc, Value *args) {
     ArrayObject *ary = new ArrayObject {};
     for (size_t i = 0; i < argc; i++) {
         ary->push(args[i]);
@@ -467,14 +467,14 @@ ArrayObject *args_to_array(Env *env, size_t argc, ValuePtr *args) {
 
 // much like args_to_array above, but when a block is given a single arg,
 // and the block wants multiple args, call to_ary on the first arg and return that
-ArrayObject *block_args_to_array(Env *env, size_t signature_size, size_t argc, ValuePtr *args) {
+ArrayObject *block_args_to_array(Env *env, size_t signature_size, size_t argc, Value *args) {
     if (argc == 1 && signature_size > 1) {
         return to_ary(env, args[0], true);
     }
     return args_to_array(env, argc, args);
 }
 
-void arg_spread(Env *env, size_t argc, ValuePtr *args, const char *arrangement, ...) {
+void arg_spread(Env *env, size_t argc, Value *args, const char *arrangement, ...) {
     va_list va_args;
     va_start(va_args, arrangement);
     size_t len = strlen(arrangement);
@@ -498,7 +498,7 @@ void arg_spread(Env *env, size_t argc, ValuePtr *args, const char *arrangement, 
         case 'i': {
             int *int_ptr = va_arg(va_args, int *);
             if (arg_index >= argc) env->raise("ArgumentError", "wrong number of arguments (given {}, expected {})", argc, arg_index + 1);
-            ValuePtr obj = args[arg_index++];
+            Value obj = args[arg_index++];
             obj->assert_type(env, Object::Type::Integer, "Integer");
             *int_ptr = obj->as_integer()->to_nat_int_t();
             break;
@@ -506,7 +506,7 @@ void arg_spread(Env *env, size_t argc, ValuePtr *args, const char *arrangement, 
         case 's': {
             const char **str_ptr = va_arg(va_args, const char **);
             if (arg_index >= argc) env->raise("ArgumentError", "wrong number of arguments (given {}, expected {})", argc, arg_index + 1);
-            ValuePtr obj = args[arg_index++];
+            Value obj = args[arg_index++];
             if (obj == NilObject::the()) {
                 *str_ptr = nullptr;
             } else {
@@ -518,14 +518,14 @@ void arg_spread(Env *env, size_t argc, ValuePtr *args, const char *arrangement, 
         case 'b': {
             bool *bool_ptr = va_arg(va_args, bool *);
             if (arg_index >= argc) env->raise("ArgumentError", "wrong number of arguments (given {}, expected {})", argc, arg_index + 1);
-            ValuePtr obj = args[arg_index++];
+            Value obj = args[arg_index++];
             *bool_ptr = obj->is_truthy();
             break;
         }
         case 'v': {
             void **void_ptr = va_arg(va_args, void **);
             if (arg_index >= argc) env->raise("ArgumentError", "wrong number of arguments (given {}, expected {})", argc, arg_index + 1);
-            ValuePtr obj = args[arg_index++];
+            Value obj = args[arg_index++];
             obj = obj->ivar_get(env, SymbolObject::intern("@_ptr"));
             assert(obj->type() == Object::Type::VoidP);
             *void_ptr = obj->as_void_p()->void_ptr();
@@ -539,10 +539,10 @@ void arg_spread(Env *env, size_t argc, ValuePtr *args, const char *arrangement, 
     va_end(va_args);
 }
 
-std::pair<ValuePtr, ValuePtr> coerce(Env *env, ValuePtr lhs, ValuePtr rhs) {
+std::pair<Value, Value> coerce(Env *env, Value lhs, Value rhs) {
     auto coerce_symbol = SymbolObject::intern("coerce");
     if (lhs->respond_to(env, coerce_symbol)) {
-        ValuePtr coerced = lhs.send(env, coerce_symbol, { rhs });
+        Value coerced = lhs.send(env, coerce_symbol, { rhs });
         if (!coerced->is_array()) {
             env->raise("TypeError", "coerce must return [x, y]");
         }
@@ -561,7 +561,7 @@ char *zero_string(int size) {
     return buf;
 }
 
-Block *proc_to_block_arg(Env *env, ValuePtr proc_or_nil) {
+Block *proc_to_block_arg(Env *env, Value proc_or_nil) {
     if (proc_or_nil->is_nil()) {
         return nullptr;
     }
@@ -570,7 +570,7 @@ Block *proc_to_block_arg(Env *env, ValuePtr proc_or_nil) {
 
 #define NAT_SHELL_READ_BYTES 1024
 
-ValuePtr shell_backticks(Env *env, ValuePtr command) {
+Value shell_backticks(Env *env, Value command) {
     command->assert_type(env, Object::Type::String, "String");
     int pid;
     auto process = popen2(command->as_string()->c_str(), "r", pid);
@@ -659,9 +659,9 @@ int pclose2(FILE *fp, pid_t pid) {
 
 void set_status_object(Env *env, int pid, int status) {
     auto status_obj = GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern("Process"))->const_fetch(SymbolObject::intern("Status")).send(env, SymbolObject::intern("new"));
-    status_obj->ivar_set(env, SymbolObject::intern("@to_i"), ValuePtr::integer(status));
-    status_obj->ivar_set(env, SymbolObject::intern("@exitstatus"), ValuePtr::integer(WEXITSTATUS(status)));
-    status_obj->ivar_set(env, SymbolObject::intern("@pid"), ValuePtr::integer(pid));
+    status_obj->ivar_set(env, SymbolObject::intern("@to_i"), Value::integer(status));
+    status_obj->ivar_set(env, SymbolObject::intern("@exitstatus"), Value::integer(WEXITSTATUS(status)));
+    status_obj->ivar_set(env, SymbolObject::intern("@pid"), Value::integer(pid));
     env->global_set(SymbolObject::intern("$?"), status_obj);
 }
 
@@ -679,7 +679,7 @@ const String *int_to_hex_string(nat_int_t num, bool capitalize) {
     }
 }
 
-ValuePtr super(Env *env, ValuePtr self, size_t argc, ValuePtr *args, Block *block) {
+Value super(Env *env, Value self, size_t argc, Value *args, Block *block) {
     auto current_method = env->current_method();
     auto super_method = self->klass()->find_method(env, SymbolObject::intern(current_method->name()), nullptr, current_method);
     if (!super_method)

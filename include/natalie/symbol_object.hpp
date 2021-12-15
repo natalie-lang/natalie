@@ -31,9 +31,9 @@ public:
 
     virtual ProcObject *to_proc(Env *) override;
 
-    static ValuePtr to_proc_block_fn(Env *, ValuePtr, size_t, ValuePtr *, Block *);
+    static Value to_proc_block_fn(Env *, Value, size_t, Value *, Block *);
 
-    ValuePtr cmp(Env *, ValuePtr);
+    Value cmp(Env *, Value);
 
     bool is_constant_name() {
         return strlen(m_name) > 0 && isupper(m_name[0]);
@@ -51,9 +51,9 @@ public:
         return strlen(m_name) > 1 && m_name[0] == '@' && m_name[1] == '@';
     }
 
-    bool start_with(Env *, ValuePtr);
+    bool start_with(Env *, Value);
 
-    ValuePtr ref(Env *, ValuePtr);
+    Value ref(Env *, Value);
 
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<SymbolObject %p name='%s'>", this, m_name);

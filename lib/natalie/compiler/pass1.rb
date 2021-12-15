@@ -324,7 +324,7 @@ module Natalie
       def process_dsym(exp)
         str_node = process_dstr(exp)
         str = str_node.pop
-        str_node << exp.new(:l, "ValuePtr { #{str}->as_string()->to_symbol(env) }")
+        str_node << exp.new(:l, "Value { #{str}->as_string()->to_symbol(env) }")
         str_node
       end
 
@@ -463,14 +463,14 @@ module Natalie
             str = lit.to_s
             exp.new(:new, :BignumObject, s(:s, str));
           else
-            exp.new(:'ValuePtr::integer', lit)
+            exp.new(:'Value::integer', lit)
           end
         when Range
           exp.new(:new, :RangeObject, process_lit(s(:lit, lit.first)), process_lit(s(:lit, lit.last)), lit.exclude_end? ? 1 : 0)
         when Regexp
           exp.new(:new, :RegexpObject, :env, s(:s, lit.source), lit.options)
         when Symbol
-          exp.new(:intern_value_ptr, lit)
+          exp.new(:intern_value, lit)
         else
           raise "unknown lit: #{exp.inspect} (#{exp.file}\##{exp.line})"
         end

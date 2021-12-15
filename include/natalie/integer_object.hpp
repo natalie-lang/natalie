@@ -35,42 +35,42 @@ public:
         return m_integer % 2 == 0;
     }
 
-    static ValuePtr from_size_t(Env *env, size_t number) {
+    static Value from_size_t(Env *env, size_t number) {
         assert(number <= NAT_INT_MAX);
-        return ValuePtr::integer(static_cast<nat_int_t>(number));
+        return Value::integer(static_cast<nat_int_t>(number));
     }
 
-    ValuePtr inspect(Env *env) { return to_s(env); }
+    Value inspect(Env *env) { return to_s(env); }
 
-    virtual ValuePtr to_s(Env *, ValuePtr = nullptr);
-    ValuePtr to_i();
-    ValuePtr to_f() const;
-    virtual ValuePtr add(Env *, ValuePtr);
-    virtual ValuePtr sub(Env *, ValuePtr);
-    virtual ValuePtr mul(Env *, ValuePtr);
-    virtual ValuePtr div(Env *, ValuePtr);
-    ValuePtr mod(Env *, ValuePtr) const;
-    ValuePtr pow(Env *, ValuePtr) const;
-    ValuePtr cmp(Env *, ValuePtr);
-    bool eqeqeq(Env *, ValuePtr) const;
-    ValuePtr times(Env *, Block *);
-    ValuePtr bitwise_and(Env *, ValuePtr) const;
-    ValuePtr bitwise_or(Env *, ValuePtr) const;
-    ValuePtr pred(Env *);
-    ValuePtr succ(Env *);
-    ValuePtr coerce(Env *, ValuePtr);
-    ValuePtr abs(Env *);
-    ValuePtr chr(Env *) const;
-    virtual ValuePtr negate(Env *);
-    ValuePtr complement(Env *) const;
-    ValuePtr ord() { return this; }
+    virtual Value to_s(Env *, Value = nullptr);
+    Value to_i();
+    Value to_f() const;
+    virtual Value add(Env *, Value);
+    virtual Value sub(Env *, Value);
+    virtual Value mul(Env *, Value);
+    virtual Value div(Env *, Value);
+    Value mod(Env *, Value) const;
+    Value pow(Env *, Value) const;
+    Value cmp(Env *, Value);
+    bool eqeqeq(Env *, Value) const;
+    Value times(Env *, Block *);
+    Value bitwise_and(Env *, Value) const;
+    Value bitwise_or(Env *, Value) const;
+    Value pred(Env *);
+    Value succ(Env *);
+    Value coerce(Env *, Value);
+    Value abs(Env *);
+    Value chr(Env *) const;
+    virtual Value negate(Env *);
+    Value complement(Env *) const;
+    Value ord() { return this; }
 
-    virtual bool eq(Env *, ValuePtr);
-    virtual bool eql(Env *, ValuePtr);
-    virtual bool lt(Env *, ValuePtr);
-    virtual bool lte(Env *, ValuePtr);
-    virtual bool gt(Env *, ValuePtr);
-    virtual bool gte(Env *, ValuePtr);
+    virtual bool eq(Env *, Value);
+    virtual bool eql(Env *, Value);
+    virtual bool lt(Env *, Value);
+    virtual bool lte(Env *, Value);
+    virtual bool gt(Env *, Value);
+    virtual bool gte(Env *, Value);
     virtual bool is_bignum() const { return false; }
     bool is_fixnum() const { return !is_bignum(); }
 

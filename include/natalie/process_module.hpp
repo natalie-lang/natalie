@@ -11,9 +11,9 @@ namespace Natalie {
 
 class ProcessModule : public Object {
 public:
-    static ValuePtr pid(Env *env) {
+    static Value pid(Env *env) {
         pid_t pid = getpid();
-        return ValuePtr::integer(pid);
+        return Value::integer(pid);
     }
 };
 

@@ -11,12 +11,12 @@
 
 namespace Natalie {
 
-ValuePtr ArrayObject::allocate(Env *env, size_t argc, ValuePtr *args) {
+Value ArrayObject::allocate(Env *env, size_t argc, Value *args) {
     env->ensure_argc_is(argc, 0);
     return new ArrayObject {};
 }
 
-ValuePtr ArrayObject::initialize(Env *env, ValuePtr size, ValuePtr value, Block *block) {
+Value ArrayObject::initialize(Env *env, Value size, Value value, Block *block) {
     this->assert_not_frozen(env);
 
     if (!size) {
@@ -55,7 +55,7 @@ ValuePtr ArrayObject::initialize(Env *env, ValuePtr size, ValuePtr value, Block 
         *this = std::move(new_array);
 
         for (nat_int_t i = 0; i < s; i++) {
-            ValuePtr args = new IntegerObject { i };
+            Value args = new IntegerObject { i };
             push(NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 1, &args, nullptr));
         }
 
@@ -68,7 +68,7 @@ ValuePtr ArrayObject::initialize(Env *env, ValuePtr size, ValuePtr value, Block 
     return this;
 }
 
-ValuePtr ArrayObject::initialize_copy(Env *env, ValuePtr other) {
+Value ArrayObject::initialize_copy(Env *env, Value other) {
     assert_not_frozen(env);
 
     ArrayObject *other_array = other->to_ary(env);
@@ -80,19 +80,19 @@ ValuePtr ArrayObject::initialize_copy(Env *env, ValuePtr other) {
     return this;
 }
 
-ValuePtr ArrayObject::first() {
+Value ArrayObject::first() {
     if (m_vector.is_empty())
         return NilObject::the();
     return m_vector[0];
 }
 
-ValuePtr ArrayObject::last() {
+Value ArrayObject::last() {
     if (m_vector.is_empty())
         return NilObject::the();
     return m_vector[m_vector.size() - 1];
 }
 
-ValuePtr ArrayObject::inspect(Env *env) {
+Value ArrayObject::inspect(Env *env) {
     RecursionGuard guard { this };
 
     return guard.run([&](bool is_recursive) {
@@ -101,7 +101,7 @@ ValuePtr ArrayObject::inspect(Env *env) {
 
         StringObject *out = new StringObject { "[" };
         for (size_t i = 0; i < size(); i++) {
-            ValuePtr obj = (*this)[i];
+            Value obj = (*this)[i];
 
             auto inspected_repr = obj.send(env, SymbolObject::intern("inspect"));
             SymbolObject *to_s = SymbolObject::intern("to_s");
@@ -126,13 +126,13 @@ ValuePtr ArrayObject::inspect(Env *env) {
     });
 }
 
-ValuePtr ArrayObject::ltlt(Env *env, ValuePtr arg) {
+Value ArrayObject::ltlt(Env *env, Value arg) {
     this->assert_not_frozen(env);
     push(arg);
     return this;
 }
 
-ValuePtr ArrayObject::add(Env *env, ValuePtr other) {
+Value ArrayObject::add(Env *env, Value other) {
     ArrayObject *other_array = other->to_ary(env);
 
     ArrayObject *new_array = new ArrayObject { *this };
@@ -140,7 +140,7 @@ ValuePtr ArrayObject::add(Env *env, ValuePtr other) {
     return new_array;
 }
 
-ValuePtr ArrayObject::sub(Env *env, ValuePtr other) {
+Value ArrayObject::sub(Env *env, Value other) {
     ArrayObject *other_array = other->to_ary(env);
 
     ArrayObject *new_array = new ArrayObject {};
@@ -160,14 +160,14 @@ ValuePtr ArrayObject::sub(Env *env, ValuePtr other) {
     return new_array;
 }
 
-ValuePtr ArrayObject::sum(Env *env, size_t argc, ValuePtr *args, Block *block) {
+Value ArrayObject::sum(Env *env, size_t argc, Value *args, Block *block) {
     // FIXME: this is not exactly the way ruby does it
     auto Enumerable = GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern("Enumerable"))->as_module();
     auto sum_method = Enumerable->find_method(env, SymbolObject::intern("sum"));
     return sum_method->call(env, this, argc, args, block);
 }
 
-ValuePtr ArrayObject::ref(Env *env, ValuePtr index_obj, ValuePtr size) {
+Value ArrayObject::ref(Env *env, Value index_obj, Value size) {
     if (!size) {
         if (!index_obj->is_integer() && index_obj->respond_to(env, SymbolObject::intern("to_int")))
             index_obj = index_obj->send(env, SymbolObject::intern("to_int"));
@@ -186,14 +186,14 @@ ValuePtr ArrayObject::ref(Env *env, ValuePtr index_obj, ValuePtr size) {
     return copy->slice_in_place(env, index_obj, size);
 }
 
-ValuePtr ArrayObject::refeq(Env *env, ValuePtr index_obj, ValuePtr size, ValuePtr val) {
+Value ArrayObject::refeq(Env *env, Value index_obj, Value size, Value val) {
     this->assert_not_frozen(env);
     auto to_int = SymbolObject::intern("to_int");
     nat_int_t start, width;
     if (index_obj->is_range()) {
         RangeObject *range = index_obj->as_range();
-        ValuePtr begin_obj = range->begin();
-        ValuePtr end_obj = range->end();
+        Value begin_obj = range->begin();
+        Value end_obj = range->end();
 
         // Ignore "size"
         val = size;
@@ -300,7 +300,7 @@ ValuePtr ArrayObject::refeq(Env *env, ValuePtr index_obj, ValuePtr size, ValuePt
     return val;
 }
 
-ValuePtr ArrayObject::any(Env *env, size_t argc, ValuePtr *args, Block *block) {
+Value ArrayObject::any(Env *env, size_t argc, Value *args, Block *block) {
     // FIXME: delegating to Enumerable#any? like this does not have the same semantics as MRI,
     // i.e. one can override Enumerable#any? in MRI and it won't affect Array#any?.
     auto Enumerable = GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern("Enumerable"))->as_module();
@@ -308,10 +308,10 @@ ValuePtr ArrayObject::any(Env *env, size_t argc, ValuePtr *args, Block *block) {
     return any_method->call(env, this, argc, args, block);
 }
 
-ValuePtr ArrayObject::eq(Env *env, ValuePtr other) {
+Value ArrayObject::eq(Env *env, Value other) {
     TM::PairedRecursionGuard guard { this, other.value() };
 
-    return guard.run([&](bool is_recursive) -> ValuePtr {
+    return guard.run([&](bool is_recursive) -> Value {
         if (other == this)
             return TrueObject::the();
 
@@ -334,20 +334,20 @@ ValuePtr ArrayObject::eq(Env *env, ValuePtr other) {
 
         SymbolObject *object_id = SymbolObject::intern("object_id");
         for (size_t i = 0; i < size(); ++i) {
-            ValuePtr this_item = (*this)[i];
-            ValuePtr item = (*other_array)[i];
+            Value this_item = (*this)[i];
+            Value item = (*other_array)[i];
 
             if (this_item->respond_to(env, object_id) && item->respond_to(env, object_id)) {
-                ValuePtr same_object_id = this_item
-                                              ->send(env, object_id)
-                                              ->send(env, equality, { item->send(env, object_id) });
+                Value same_object_id = this_item
+                                           ->send(env, object_id)
+                                           ->send(env, equality, { item->send(env, object_id) });
 
                 // This allows us to check NAN equality and other potentially similar constants
                 if (same_object_id->is_true())
                     continue;
             }
 
-            ValuePtr result = this_item.send(env, equality, 1, &item, nullptr);
+            Value result = this_item.send(env, equality, 1, &item, nullptr);
             if (result->is_false())
                 return result;
         }
@@ -356,10 +356,10 @@ ValuePtr ArrayObject::eq(Env *env, ValuePtr other) {
     });
 }
 
-ValuePtr ArrayObject::eql(Env *env, ValuePtr other) {
+Value ArrayObject::eql(Env *env, Value other) {
     TM::PairedRecursionGuard guard { this, other.value() };
 
-    return guard.run([&](bool is_recursive) -> ValuePtr {
+    return guard.run([&](bool is_recursive) -> Value {
         if (other == this)
             return TrueObject::the();
         if (!other->is_array())
@@ -378,8 +378,8 @@ ValuePtr ArrayObject::eql(Env *env, ValuePtr other) {
             return TrueObject::the();
 
         for (size_t i = 0; i < size(); ++i) {
-            ValuePtr item = (*other_array)[i];
-            ValuePtr result = (*this)[i].send(env, SymbolObject::intern("eql?"), 1, &item, nullptr);
+            Value item = (*other_array)[i];
+            Value result = (*this)[i].send(env, SymbolObject::intern("eql?"), 1, &item, nullptr);
             if (result->is_false())
                 return result;
         }
@@ -388,7 +388,7 @@ ValuePtr ArrayObject::eql(Env *env, ValuePtr other) {
     });
 }
 
-ValuePtr ArrayObject::each(Env *env, Block *block) {
+Value ArrayObject::each(Env *env, Block *block) {
     if (!block)
         return send(env, SymbolObject::intern("enum_for"), { SymbolObject::intern("each") });
 
@@ -398,19 +398,19 @@ ValuePtr ArrayObject::each(Env *env, Block *block) {
     return this;
 }
 
-ValuePtr ArrayObject::each_index(Env *env, Block *block) {
+Value ArrayObject::each_index(Env *env, Block *block) {
     if (!block)
         return send(env, SymbolObject::intern("enum_for"), { SymbolObject::intern("each_index") });
 
     nat_int_t size_nat_int_t = static_cast<nat_int_t>(size());
     for (nat_int_t i = 0; i < size_nat_int_t; i++) {
-        ValuePtr args = new IntegerObject { i };
+        Value args = new IntegerObject { i };
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &args, nullptr);
     }
     return this;
 }
 
-ValuePtr ArrayObject::map(Env *env, Block *block) {
+Value ArrayObject::map(Env *env, Block *block) {
     if (!block)
         return send(env, SymbolObject::intern("enum_for"), { SymbolObject::intern("map") });
 
@@ -419,7 +419,7 @@ ValuePtr ArrayObject::map(Env *env, Block *block) {
     return copy;
 }
 
-ValuePtr ArrayObject::map_in_place(Env *env, Block *block) {
+Value ArrayObject::map_in_place(Env *env, Block *block) {
     if (!block)
         return send(env, SymbolObject::intern("enum_for"), { SymbolObject::intern("map!") });
 
@@ -432,7 +432,7 @@ ValuePtr ArrayObject::map_in_place(Env *env, Block *block) {
     return this;
 }
 
-ValuePtr ArrayObject::fill(Env *env, ValuePtr obj, ValuePtr start_obj, ValuePtr length_obj, Block *block) {
+Value ArrayObject::fill(Env *env, Value obj, Value start_obj, Value length_obj, Block *block) {
     assert_not_frozen(env);
 
     if (block && length_obj) {
@@ -454,7 +454,7 @@ ValuePtr ArrayObject::fill(Env *env, ValuePtr obj, ValuePtr start_obj, ValuePtr 
 
     if (start_obj && !start_obj->is_nil()) {
         if (!length_obj && start_obj->is_range()) {
-            ValuePtr begin = start_obj->as_range()->begin();
+            Value begin = start_obj->as_range()->begin();
             if (!begin->is_integer() && begin->respond_to(env, to_int)) {
                 begin = begin->send(env, to_int);
             }
@@ -466,7 +466,7 @@ ValuePtr ArrayObject::fill(Env *env, ValuePtr obj, ValuePtr start_obj, ValuePtr 
             if (start < 0)
                 env->raise("RangeError", "{} out of range", start_obj->inspect_str(env)->c_str());
 
-            ValuePtr end = start_obj->as_range()->end();
+            Value end = start_obj->as_range()->end();
             if (!end->is_integer() && end->respond_to(env, to_int)) {
                 end = end->send(env, to_int);
             }
@@ -513,7 +513,7 @@ ValuePtr ArrayObject::fill(Env *env, ValuePtr obj, ValuePtr start_obj, ValuePtr 
 
     for (size_t i = start; i < (size_t)max; ++i) {
         if (block) {
-            ValuePtr args[1] = { ValuePtr::integer(i) };
+            Value args[1] = { Value::integer(i) };
             m_vector[i] = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 1, args, nullptr);
         } else
             m_vector[i] = obj;
@@ -521,7 +521,7 @@ ValuePtr ArrayObject::fill(Env *env, ValuePtr obj, ValuePtr start_obj, ValuePtr 
     return this;
 }
 
-ValuePtr ArrayObject::first(Env *env, ValuePtr n) {
+Value ArrayObject::first(Env *env, Value n) {
     auto has_count = n != nullptr;
 
     if (!has_count) {
@@ -554,13 +554,13 @@ ValuePtr ArrayObject::first(Env *env, ValuePtr n) {
     return array;
 }
 
-ValuePtr ArrayObject::flatten(Env *env, ValuePtr depth) {
+Value ArrayObject::flatten(Env *env, Value depth) {
     ArrayObject *copy = new ArrayObject { *this };
     copy->flatten_in_place(env, depth);
     return copy;
 }
 
-ValuePtr ArrayObject::flatten_in_place(Env *env, ValuePtr depth) {
+Value ArrayObject::flatten_in_place(Env *env, Value depth) {
     this->assert_not_frozen(env);
 
     bool changed { false };
@@ -608,7 +608,7 @@ bool ArrayObject::_flatten_in_place(Env *env, nat_int_t depth, Hashmap<ArrayObje
         }
 
         if (!item->is_array()) {
-            ValuePtr new_item = try_convert(env, item);
+            Value new_item = try_convert(env, item);
 
             if (!new_item->is_nil()) {
                 item = new_item;
@@ -645,7 +645,7 @@ bool ArrayObject::_flatten_in_place(Env *env, nat_int_t depth, Hashmap<ArrayObje
     return changed;
 }
 
-ValuePtr ArrayObject::delete_at(Env *env, ValuePtr n) {
+Value ArrayObject::delete_at(Env *env, Value n) {
     this->assert_not_frozen(env);
 
     auto to_int = SymbolObject::intern("to_int");
@@ -666,7 +666,7 @@ ValuePtr ArrayObject::delete_at(Env *env, ValuePtr n) {
     return value;
 }
 
-ValuePtr ArrayObject::delete_if(Env *env, Block *block) {
+Value ArrayObject::delete_if(Env *env, Block *block) {
     if (!block)
         return send(env, SymbolObject::intern("enum_for"), { SymbolObject::intern("delete_if") });
 
@@ -676,7 +676,7 @@ ValuePtr ArrayObject::delete_if(Env *env, Block *block) {
 
     for (size_t i = 0; i < size(); ++i) {
         auto item = (*this)[i];
-        ValuePtr result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
+        Value result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
         if (result->is_truthy()) {
             marked_indexes.push(i);
         }
@@ -689,8 +689,8 @@ ValuePtr ArrayObject::delete_if(Env *env, Block *block) {
     return this;
 }
 
-ValuePtr ArrayObject::delete_item(Env *env, ValuePtr target, Block *block) {
-    ValuePtr deleted_item = NilObject::the();
+Value ArrayObject::delete_item(Env *env, Value target, Block *block) {
+    Value deleted_item = NilObject::the();
 
     for (size_t i = size(); i > 0; --i) {
         auto item = (*this)[i - 1];
@@ -713,8 +713,8 @@ ValuePtr ArrayObject::delete_item(Env *env, ValuePtr target, Block *block) {
     return deleted_item;
 }
 
-ValuePtr ArrayObject::difference(Env *env, size_t argc, ValuePtr *args) {
-    ValuePtr last = new ArrayObject { *this };
+Value ArrayObject::difference(Env *env, size_t argc, Value *args) {
+    Value last = new ArrayObject { *this };
 
     for (size_t i = 0; i < argc; i++) {
         last = last->as_array()->sub(env, args[i]);
@@ -723,10 +723,10 @@ ValuePtr ArrayObject::difference(Env *env, size_t argc, ValuePtr *args) {
     return last;
 }
 
-ValuePtr ArrayObject::dig(Env *env, size_t argc, ValuePtr *args) {
+Value ArrayObject::dig(Env *env, size_t argc, Value *args) {
     env->ensure_argc_at_least(argc, 1);
     auto dig = SymbolObject::intern("dig");
-    ValuePtr val = ref(env, args[0]);
+    Value val = ref(env, args[0]);
     if (argc == 1)
         return val;
 
@@ -739,7 +739,7 @@ ValuePtr ArrayObject::dig(Env *env, size_t argc, ValuePtr *args) {
     return val.send(env, dig, argc - 1, args + 1);
 }
 
-ValuePtr ArrayObject::drop(Env *env, ValuePtr n) {
+Value ArrayObject::drop(Env *env, Value n) {
     auto to_int = SymbolObject::intern("to_int");
     if (!n->is_integer() && n->respond_to(env, to_int))
         n = n->send(env, to_int);
@@ -762,7 +762,7 @@ ValuePtr ArrayObject::drop(Env *env, ValuePtr n) {
     return array;
 }
 
-ValuePtr ArrayObject::drop_while(Env *env, Block *block) {
+Value ArrayObject::drop_while(Env *env, Block *block) {
     if (!block)
         return send(env, SymbolObject::intern("enum_for"), { SymbolObject::intern("drop_while") });
 
@@ -771,8 +771,8 @@ ValuePtr ArrayObject::drop_while(Env *env, Block *block) {
 
     size_t i = 0;
     while (i < m_vector.size()) {
-        ValuePtr args[] = { m_vector.at(i) };
-        ValuePtr result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, args, nullptr);
+        Value args[] = { m_vector.at(i) };
+        Value result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, args, nullptr);
         if (result->is_nil() || result->is_false()) {
             break;
         }
@@ -788,7 +788,7 @@ ValuePtr ArrayObject::drop_while(Env *env, Block *block) {
     return array;
 }
 
-ValuePtr ArrayObject::last(Env *env, ValuePtr n) {
+Value ArrayObject::last(Env *env, Value n) {
     auto has_count = n != nullptr;
 
     if (!has_count) {
@@ -821,7 +821,7 @@ ValuePtr ArrayObject::last(Env *env, ValuePtr n) {
     return array;
 }
 
-ValuePtr ArrayObject::include(Env *env, ValuePtr item) {
+Value ArrayObject::include(Env *env, Value item) {
     if (size() == 0) {
         return FalseObject::the();
     } else {
@@ -834,16 +834,16 @@ ValuePtr ArrayObject::include(Env *env, ValuePtr item) {
     }
 }
 
-ValuePtr ArrayObject::index(Env *env, ValuePtr object, Block *block) {
+Value ArrayObject::index(Env *env, Value object, Block *block) {
     if (!block && !object) return send(env, SymbolObject::intern("enum_for"), { SymbolObject::intern("index") });
     return find_index(env, object, block);
 }
 
-ValuePtr ArrayObject::shift(Env *env, ValuePtr count) {
+Value ArrayObject::shift(Env *env, Value count) {
     assert_not_frozen(env);
     auto has_count = count != nullptr;
     size_t shift_count = 1;
-    ValuePtr result = nullptr;
+    Value result = nullptr;
     if (has_count) {
         auto sym_to_int = SymbolObject::intern("to_int");
         if (count->respond_to(env, sym_to_int)) {
@@ -872,13 +872,13 @@ ValuePtr ArrayObject::shift(Env *env, ValuePtr count) {
     return result;
 }
 
-ValuePtr ArrayObject::sort(Env *env, Block *block) {
+Value ArrayObject::sort(Env *env, Block *block) {
     ArrayObject *copy = new ArrayObject { *this };
     copy->sort_in_place(env, block);
     return copy;
 }
 
-ValuePtr ArrayObject::keep_if(Env *env, Block *block) {
+Value ArrayObject::keep_if(Env *env, Block *block) {
     if (!block)
         return send(env, SymbolObject::intern("enum_for"), { SymbolObject::intern("keep_if") });
 
@@ -886,13 +886,13 @@ ValuePtr ArrayObject::keep_if(Env *env, Block *block) {
     return this;
 }
 
-ValuePtr ArrayObject::join(Env *env, ValuePtr joiner) {
+Value ArrayObject::join(Env *env, Value joiner) {
     TM::RecursionGuard guard { this };
     return guard.run([&](bool is_recursive) {
         if (is_recursive)
             env->raise("ArgumentError", "recursive array join");
         if (size() == 0) {
-            return (ValuePtr) new StringObject {};
+            return (Value) new StringObject {};
         } else if (size() == 1) {
             return (*this)[0].send(env, SymbolObject::intern("to_s"));
         } else {
@@ -908,7 +908,7 @@ ValuePtr ArrayObject::join(Env *env, ValuePtr joiner) {
             joiner->assert_type(env, Object::Type::String, "String");
             StringObject *out = new StringObject {};
             for (size_t i = 0; i < size(); i++) {
-                ValuePtr item = (*this)[i];
+                Value item = (*this)[i];
                 if (item->is_string())
                     out->append(env, item->as_string());
                 else if (item->respond_to(env, to_str))
@@ -923,13 +923,13 @@ ValuePtr ArrayObject::join(Env *env, ValuePtr joiner) {
                 if (i < (size() - 1))
                     out->append(env, joiner->as_string());
             }
-            return (ValuePtr)out;
+            return (Value)out;
         }
     });
 }
 
-ValuePtr ArrayObject::cmp(Env *env, ValuePtr other) {
-    ValuePtr other_converted = try_convert(env, other);
+Value ArrayObject::cmp(Env *env, Value other) {
+    Value other_converted = try_convert(env, other);
 
     if (other_converted->is_nil()) {
         return other_converted;
@@ -939,31 +939,31 @@ ValuePtr ArrayObject::cmp(Env *env, ValuePtr other) {
     TM::RecursionGuard guard { this };
     return guard.run([&](bool is_recursive) {
         if (is_recursive)
-            return ValuePtr::integer(0);
+            return Value::integer(0);
 
         for (size_t i = 0; i < size(); i++) {
             if (i >= other_array->size()) {
-                return ValuePtr::integer(1);
+                return Value::integer(1);
             }
-            ValuePtr item = (*other_array)[i];
-            ValuePtr cmp_obj = (*this)[i].send(env, SymbolObject::intern("<=>"), { item });
+            Value item = (*other_array)[i];
+            Value cmp_obj = (*this)[i].send(env, SymbolObject::intern("<=>"), { item });
 
             if (!cmp_obj->is_integer()) {
                 return cmp_obj;
             }
 
             nat_int_t cmp = cmp_obj->as_integer()->to_nat_int_t();
-            if (cmp < 0) return ValuePtr::integer(-1);
-            if (cmp > 0) return ValuePtr::integer(1);
+            if (cmp < 0) return Value::integer(-1);
+            if (cmp > 0) return Value::integer(1);
         }
         if (other_array->size() > size()) {
-            return ValuePtr::integer(-1);
+            return Value::integer(-1);
         }
-        return ValuePtr::integer(0);
+        return Value::integer(0);
     });
 }
 
-ValuePtr ArrayObject::pack(Env *env, ValuePtr directives) {
+Value ArrayObject::pack(Env *env, Value directives) {
     if (!directives->is_string() && directives->respond_to(env, SymbolObject::intern("to_str")))
         directives = directives->send(env, SymbolObject::intern("to_str"));
 
@@ -976,7 +976,7 @@ ValuePtr ArrayObject::pack(Env *env, ValuePtr directives) {
     return ArrayPacker::Packer { this, directives_string }.pack(env);
 }
 
-ValuePtr ArrayObject::push(Env *env, size_t argc, ValuePtr *args) {
+Value ArrayObject::push(Env *env, size_t argc, Value *args) {
     assert_not_frozen(env);
     for (size_t i = 0; i < argc; i++) {
         push(args[i]);
@@ -984,12 +984,12 @@ ValuePtr ArrayObject::push(Env *env, size_t argc, ValuePtr *args) {
     return this;
 }
 
-void ArrayObject::push_splat(Env *env, ValuePtr val) {
+void ArrayObject::push_splat(Env *env, Value val) {
     if (!val->is_array() && val->respond_to(env, SymbolObject::intern("to_a"))) {
         val = val.send(env, SymbolObject::intern("to_a"));
     }
     if (val->is_array()) {
-        for (ValuePtr v : *val->as_array()) {
+        for (Value v : *val->as_array()) {
             push(*v);
         }
     } else {
@@ -997,7 +997,7 @@ void ArrayObject::push_splat(Env *env, ValuePtr val) {
     }
 }
 
-ValuePtr ArrayObject::pop(Env *env, ValuePtr count) {
+Value ArrayObject::pop(Env *env, Value count) {
     this->assert_not_frozen(env);
 
     if (count) {
@@ -1022,7 +1022,7 @@ ValuePtr ArrayObject::pop(Env *env, ValuePtr count) {
         return pops;
     }
     if (size() == 0) return NilObject::the();
-    ValuePtr val = m_vector.pop();
+    Value val = m_vector.pop();
     return val;
 }
 
@@ -1032,19 +1032,19 @@ void ArrayObject::expand_with_nil(Env *env, size_t total) {
     }
 }
 
-bool array_sort_compare(Env *env, ValuePtr a, ValuePtr b, Block *block) {
+bool array_sort_compare(Env *env, Value a, Value b, Block *block) {
     if (block) {
-        ValuePtr args[2] = { a, b };
-        ValuePtr compare = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 2, args, nullptr);
+        Value args[2] = { a, b };
+        Value compare = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 2, args, nullptr);
 
         if (compare->respond_to(env, SymbolObject::intern("<"))) {
-            ValuePtr zero = ValuePtr::integer(0);
+            Value zero = Value::integer(0);
             return compare.send(env, SymbolObject::intern("<"), { zero })->is_truthy();
         } else {
             env->raise("ArgumentError", "comparison of {} with 0 failed", compare->klass()->class_name_or_blank());
         }
     } else {
-        ValuePtr compare = a.send(env, SymbolObject::intern("<=>"), { b });
+        Value compare = a.send(env, SymbolObject::intern("<=>"), { b });
         if (compare->is_integer()) {
             return compare->as_integer()->to_nat_int_t() < 0;
         }
@@ -1053,41 +1053,41 @@ bool array_sort_compare(Env *env, ValuePtr a, ValuePtr b, Block *block) {
     }
 }
 
-ValuePtr ArrayObject::sort_in_place(Env *env, Block *block) {
+Value ArrayObject::sort_in_place(Env *env, Block *block) {
     this->assert_not_frozen(env);
 
-    m_vector.sort([env, block](ValuePtr a, ValuePtr b) {
+    m_vector.sort([env, block](Value a, Value b) {
         return array_sort_compare(env, a, b, block);
     });
 
     return this;
 }
 
-bool array_sort_by_compare(Env *env, ValuePtr a, ValuePtr b, Block *block) {
-    ValuePtr a_res = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 1, &a, nullptr);
-    ValuePtr b_res = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 1, &b, nullptr);
+bool array_sort_by_compare(Env *env, Value a, Value b, Block *block) {
+    Value a_res = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 1, &a, nullptr);
+    Value b_res = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 1, &b, nullptr);
 
-    ValuePtr compare = a_res.send(env, SymbolObject::intern("<=>"), { b_res });
+    Value compare = a_res.send(env, SymbolObject::intern("<=>"), { b_res });
     if (compare->is_integer()) {
         return compare->as_integer()->to_nat_int_t() < 0;
     }
     env->raise("ArgumentError", "comparison of {} with {} failed", a_res->klass()->class_name_or_blank(), b_res->klass()->class_name_or_blank());
 }
 
-ValuePtr ArrayObject::sort_by_in_place(Env *env, Block *block) {
+Value ArrayObject::sort_by_in_place(Env *env, Block *block) {
     if (!block)
         return send(env, SymbolObject::intern("enum_for"), { SymbolObject::intern("sort_by!") });
 
     this->assert_not_frozen(env);
 
-    m_vector.sort([env, block](ValuePtr a, ValuePtr b) {
+    m_vector.sort([env, block](Value a, Value b) {
         return array_sort_by_compare(env, a, b, block);
     });
 
     return this;
 }
 
-ValuePtr ArrayObject::select(Env *env, Block *block) {
+Value ArrayObject::select(Env *env, Block *block) {
     if (!block)
         return send(env, SymbolObject::intern("enum_for"), { SymbolObject::intern("select") });
 
@@ -1096,7 +1096,7 @@ ValuePtr ArrayObject::select(Env *env, Block *block) {
     return copy;
 }
 
-ValuePtr ArrayObject::select_in_place(Env *env, Block *block) {
+Value ArrayObject::select_in_place(Env *env, Block *block) {
     if (!block)
         return send(env, SymbolObject::intern("enum_for"), { SymbolObject::intern("select!") });
 
@@ -1107,7 +1107,7 @@ ValuePtr ArrayObject::select_in_place(Env *env, Block *block) {
     ArrayObject new_array;
 
     for (auto &item : *this) {
-        ValuePtr result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
+        Value result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
         if (result->is_truthy())
             new_array.push(item);
         else
@@ -1121,7 +1121,7 @@ ValuePtr ArrayObject::select_in_place(Env *env, Block *block) {
     return NilObject::the();
 }
 
-ValuePtr ArrayObject::reject(Env *env, Block *block) {
+Value ArrayObject::reject(Env *env, Block *block) {
     if (!block)
         return send(env, SymbolObject::intern("enum_for"), { SymbolObject::intern("reject") });
 
@@ -1130,7 +1130,7 @@ ValuePtr ArrayObject::reject(Env *env, Block *block) {
     return copy;
 }
 
-ValuePtr ArrayObject::reject_in_place(Env *env, Block *block) {
+Value ArrayObject::reject_in_place(Env *env, Block *block) {
     if (!block)
         return send(env, SymbolObject::intern("enum_for"), { SymbolObject::intern("reject!") });
 
@@ -1144,7 +1144,7 @@ ValuePtr ArrayObject::reject_in_place(Env *env, Block *block) {
         auto item = *it;
 
         try {
-            ValuePtr result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
+            Value result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
             if (result->is_falsey())
                 new_array.push(item);
             else
@@ -1168,14 +1168,14 @@ ValuePtr ArrayObject::reject_in_place(Env *env, Block *block) {
     return NilObject::the();
 }
 
-ValuePtr ArrayObject::max(Env *env, ValuePtr count, Block *block) {
+Value ArrayObject::max(Env *env, Value count, Block *block) {
     if (m_vector.size() == 0)
         return NilObject::the();
 
     auto to_int = SymbolObject::intern("to_int");
-    auto is_more = [&](ValuePtr item, ValuePtr min) -> bool {
-        ValuePtr block_args[] = { item, min };
-        ValuePtr compare = (block) ? NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 2, block_args, nullptr) : item.send(env, SymbolObject::intern("<=>"), { min });
+    auto is_more = [&](Value item, Value min) -> bool {
+        Value block_args[] = { item, min };
+        Value compare = (block) ? NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 2, block_args, nullptr) : item.send(env, SymbolObject::intern("<=>"), { min });
 
         if (compare->is_nil())
             env->raise(
@@ -1206,7 +1206,7 @@ ValuePtr ArrayObject::max(Env *env, ValuePtr count, Block *block) {
         c = static_cast<size_t>(c_nat_int);
     }
 
-    Vector<ValuePtr> maxes {};
+    Vector<Value> maxes {};
 
     for (auto item : *this) {
         for (size_t i = 0; i < maxes.size() && i < c; ++i) {
@@ -1224,14 +1224,14 @@ ValuePtr ArrayObject::max(Env *env, ValuePtr count, Block *block) {
     return new ArrayObject { maxes.slice(0, c) };
 }
 
-ValuePtr ArrayObject::min(Env *env, ValuePtr count, Block *block) {
+Value ArrayObject::min(Env *env, Value count, Block *block) {
     if (m_vector.size() == 0)
         return NilObject::the();
 
     auto to_int = SymbolObject::intern("to_int");
-    auto is_less = [&](ValuePtr item, ValuePtr min) -> bool {
-        ValuePtr block_args[] = { item, min };
-        ValuePtr compare = (block) ? NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 2, block_args, nullptr) : item.send(env, SymbolObject::intern("<=>"), { min });
+    auto is_less = [&](Value item, Value min) -> bool {
+        Value block_args[] = { item, min };
+        Value compare = (block) ? NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 2, block_args, nullptr) : item.send(env, SymbolObject::intern("<=>"), { min });
 
         if (compare->is_nil())
             env->raise(
@@ -1262,7 +1262,7 @@ ValuePtr ArrayObject::min(Env *env, ValuePtr count, Block *block) {
         c = static_cast<size_t>(c_nat_int);
     }
 
-    Vector<ValuePtr> mins {};
+    Vector<Value> mins {};
 
     for (auto item : *this) {
         for (size_t i = 0; i < mins.size() && i < c; ++i) {
@@ -1280,14 +1280,14 @@ ValuePtr ArrayObject::min(Env *env, ValuePtr count, Block *block) {
     return new ArrayObject { mins.slice(0, c) };
 }
 
-ValuePtr ArrayObject::minmax(Env *env, Block *block) {
+Value ArrayObject::minmax(Env *env, Block *block) {
     if (m_vector.size() == 0)
         return new ArrayObject { NilObject::the(), NilObject::the() };
 
     auto to_int = SymbolObject::intern("to_int");
-    auto compare = [&](ValuePtr item, ValuePtr min) -> nat_int_t {
-        ValuePtr block_args[] = { item, min };
-        ValuePtr compare = (block) ? NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 2, block_args, nullptr) : item.send(env, SymbolObject::intern("<=>"), { min });
+    auto compare = [&](Value item, Value min) -> nat_int_t {
+        Value block_args[] = { item, min };
+        Value compare = (block) ? NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 2, block_args, nullptr) : item.send(env, SymbolObject::intern("<=>"), { min });
 
         if (compare->is_nil())
             env->raise(
@@ -1302,8 +1302,8 @@ ValuePtr ArrayObject::minmax(Env *env, Block *block) {
         return compare->as_integer()->to_nat_int_t();
     };
 
-    ValuePtr max;
-    ValuePtr min;
+    Value max;
+    Value min;
 
     for (auto item : *this) {
         if (max == nullptr || compare(item, max) > 0)
@@ -1314,7 +1314,7 @@ ValuePtr ArrayObject::minmax(Env *env, Block *block) {
     return new ArrayObject { min, max };
 }
 
-ValuePtr ArrayObject::multiply(Env *env, ValuePtr factor) {
+Value ArrayObject::multiply(Env *env, Value factor) {
     auto to_str = SymbolObject::intern("to_str");
 
     if (!factor->is_string() && factor->respond_to(env, to_str))
@@ -1349,7 +1349,7 @@ ValuePtr ArrayObject::multiply(Env *env, ValuePtr factor) {
     return this;
 }
 
-ValuePtr ArrayObject::compact(Env *env) {
+Value ArrayObject::compact(Env *env) {
     auto ary = new ArrayObject {};
     for (auto item : *this) {
         if (item->is_nil()) continue;
@@ -1358,7 +1358,7 @@ ValuePtr ArrayObject::compact(Env *env) {
     return ary;
 }
 
-ValuePtr ArrayObject::compact_in_place(Env *env) {
+Value ArrayObject::compact_in_place(Env *env) {
     this->assert_not_frozen(env);
 
     bool changed { false };
@@ -1376,7 +1376,7 @@ ValuePtr ArrayObject::compact_in_place(Env *env) {
     return NilObject::the();
 }
 
-ValuePtr ArrayObject::cycle(Env *env, ValuePtr count, Block *block) {
+Value ArrayObject::cycle(Env *env, Value count, Block *block) {
     // FIXME: delegating to Enumerable#cycle like this does not have the same semantics as MRI,
     // i.e. one can override Enumerable#cycle in MRI and it won't affect Array#cycle.
     auto Enumerable = GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern("Enumerable"))->as_module();
@@ -1384,18 +1384,18 @@ ValuePtr ArrayObject::cycle(Env *env, ValuePtr count, Block *block) {
     return none_method->call(env, this, 1, &count, block);
 }
 
-ValuePtr ArrayObject::uniq(Env *env, Block *block) {
+Value ArrayObject::uniq(Env *env, Block *block) {
     ArrayObject *copy = new ArrayObject(*this);
     copy->uniq_in_place(env, block);
     return copy;
 }
 
-ValuePtr ArrayObject::uniq_in_place(Env *env, Block *block) {
+Value ArrayObject::uniq_in_place(Env *env, Block *block) {
     this->assert_not_frozen(env);
 
     auto hash = new HashObject {};
     for (auto item : *this) {
-        ValuePtr key = item;
+        Value key = item;
         if (block) {
             key = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 1, &item, nullptr);
         }
@@ -1417,17 +1417,17 @@ ValuePtr ArrayObject::uniq_in_place(Env *env, Block *block) {
     return this;
 }
 
-ValuePtr ArrayObject::clear(Env *env) {
+Value ArrayObject::clear(Env *env) {
     this->assert_not_frozen(env);
     m_vector.clear();
     return this;
 }
 
-ValuePtr ArrayObject::at(Env *env, ValuePtr n) {
+Value ArrayObject::at(Env *env, Value n) {
     return ref(env, n, nullptr);
 }
 
-ValuePtr ArrayObject::assoc(Env *env, ValuePtr needle) {
+Value ArrayObject::assoc(Env *env, Value needle) {
     // TODO use common logic for this (see for example rassoc and index)
     for (auto &item : *this) {
         if (!item->is_array())
@@ -1444,7 +1444,7 @@ ValuePtr ArrayObject::assoc(Env *env, ValuePtr needle) {
     return NilObject::the();
 }
 
-ValuePtr ArrayObject::bsearch(Env *env, Block *block) {
+Value ArrayObject::bsearch(Env *env, Block *block) {
     if (!block) {
         return send(env, SymbolObject::intern("enum_for"), { SymbolObject::intern("bsearch") });
     }
@@ -1455,7 +1455,7 @@ ValuePtr ArrayObject::bsearch(Env *env, Block *block) {
     return (*this)[index->as_integer()->to_nat_int_t()];
 }
 
-ValuePtr ArrayObject::bsearch_index(Env *env, Block *block) {
+Value ArrayObject::bsearch_index(Env *env, Block *block) {
     if (!block) {
         return send(env, SymbolObject::intern("enum_for"), { SymbolObject::intern("bsearch_index") });
     }
@@ -1500,7 +1500,7 @@ ValuePtr ArrayObject::bsearch_index(Env *env, Block *block) {
     return new IntegerObject { last_index };
 }
 
-ValuePtr ArrayObject::rassoc(Env *env, ValuePtr needle) {
+Value ArrayObject::rassoc(Env *env, Value needle) {
     for (auto &item : *this) {
         if (!item->is_array())
             continue;
@@ -1516,11 +1516,11 @@ ValuePtr ArrayObject::rassoc(Env *env, ValuePtr needle) {
     return NilObject::the();
 }
 
-ValuePtr ArrayObject::hash(Env *env) {
+Value ArrayObject::hash(Env *env) {
     TM::RecursionGuard guard { this };
     return guard.run([&](bool is_recursive) {
         if (is_recursive)
-            return ValuePtr { NilObject::the() };
+            return Value { NilObject::the() };
 
         HashBuilder hash {};
         auto hash_method = SymbolObject::intern("hash");
@@ -1545,11 +1545,11 @@ ValuePtr ArrayObject::hash(Env *env) {
             hash.append(item_hash->as_integer()->to_nat_int_t());
         }
 
-        return ValuePtr::integer(hash.digest());
+        return Value::integer(hash.digest());
     });
 }
 
-ValuePtr ArrayObject::insert(Env *env, size_t argc, ValuePtr *args) {
+Value ArrayObject::insert(Env *env, size_t argc, Value *args) {
     this->assert_not_frozen(env);
 
     if (argc == 1)
@@ -1596,11 +1596,11 @@ ValuePtr ArrayObject::insert(Env *env, size_t argc, ValuePtr *args) {
     return this;
 }
 
-ValuePtr ArrayObject::intersection(Env *env, ValuePtr arg) {
+Value ArrayObject::intersection(Env *env, Value arg) {
     return intersection(env, 1, &arg);
 }
 
-bool ArrayObject::include_eql(Env *env, ValuePtr arg) {
+bool ArrayObject::include_eql(Env *env, Value arg) {
     auto eql = SymbolObject::intern("eql?");
     for (auto &val : *this) {
         if (arg->object_id() == val->object_id() || arg->send(env, eql, { val })->is_truthy())
@@ -1609,7 +1609,7 @@ bool ArrayObject::include_eql(Env *env, ValuePtr arg) {
     return false;
 }
 
-ValuePtr ArrayObject::intersection(Env *env, size_t argc, ValuePtr *args) {
+Value ArrayObject::intersection(Env *env, size_t argc, Value *args) {
     auto *result = new ArrayObject { *this };
     result->uniq_in_place(env, nullptr);
 
@@ -1639,14 +1639,14 @@ ValuePtr ArrayObject::intersection(Env *env, size_t argc, ValuePtr *args) {
     return result;
 }
 
-ValuePtr ArrayObject::union_of(Env *env, ValuePtr arg) {
+Value ArrayObject::union_of(Env *env, Value arg) {
     if (!arg->is_array()) {
         env->raise("TypeError", "no implicit conversion of {} into Array", arg->klass()->class_name_or_blank());
         return nullptr;
     }
 
     auto *result = new ArrayObject();
-    auto add_value = [&result, &env](ValuePtr &val) {
+    auto add_value = [&result, &env](Value &val) {
         if (result->include(env, val)->is_falsey()) {
             result->push(val);
         }
@@ -1664,7 +1664,7 @@ ValuePtr ArrayObject::union_of(Env *env, ValuePtr arg) {
     return result;
 }
 
-ValuePtr ArrayObject::union_of(Env *env, size_t argc, ValuePtr *args) {
+Value ArrayObject::union_of(Env *env, size_t argc, Value *args) {
     auto *result = new ArrayObject(*this);
 
     // TODO: we probably want to make | call this instead of this way for optimization
@@ -1676,7 +1676,7 @@ ValuePtr ArrayObject::union_of(Env *env, size_t argc, ValuePtr *args) {
     return result;
 }
 
-ValuePtr ArrayObject::unshift(Env *env, size_t argc, ValuePtr *args) {
+Value ArrayObject::unshift(Env *env, size_t argc, Value *args) {
     assert_not_frozen(env);
     for (size_t i = 0; i < argc; i++) {
         m_vector.insert(i, args[i]);
@@ -1684,16 +1684,16 @@ ValuePtr ArrayObject::unshift(Env *env, size_t argc, ValuePtr *args) {
     return this;
 }
 
-ValuePtr ArrayObject::reverse(Env *env) {
+Value ArrayObject::reverse(Env *env) {
     ArrayObject *copy = new ArrayObject(*this);
     copy->reverse_in_place(env);
     return copy;
 }
 
-ValuePtr ArrayObject::reverse_each(Env *env, Block *block) {
+Value ArrayObject::reverse_each(Env *env, Block *block) {
     if (!block) {
         auto enumerator = send(env, SymbolObject::intern("enum_for"), { SymbolObject::intern("reverse_each") });
-        enumerator->ivar_set(env, SymbolObject::intern("@size"), ValuePtr::integer(m_vector.size()));
+        enumerator->ivar_set(env, SymbolObject::intern("@size"), Value::integer(m_vector.size()));
         return enumerator;
     }
 
@@ -1705,7 +1705,7 @@ ValuePtr ArrayObject::reverse_each(Env *env, Block *block) {
     return this;
 }
 
-ValuePtr ArrayObject::reverse_in_place(Env *env) {
+Value ArrayObject::reverse_in_place(Env *env) {
     assert_not_frozen(env);
 
     for (size_t i = 0; i < size() / 2; i++) {
@@ -1714,7 +1714,7 @@ ValuePtr ArrayObject::reverse_in_place(Env *env) {
     return this;
 }
 
-ValuePtr ArrayObject::concat(Env *env, size_t argc, ValuePtr *args) {
+Value ArrayObject::concat(Env *env, size_t argc, Value *args) {
     assert_not_frozen(env);
 
     ArrayObject *original = new ArrayObject(*this);
@@ -1746,14 +1746,14 @@ nat_int_t ArrayObject::_resolve_index(nat_int_t nat_index) const {
     return index;
 }
 
-ValuePtr ArrayObject::rindex(Env *env, ValuePtr object, Block *block) {
+Value ArrayObject::rindex(Env *env, Value object, Block *block) {
     if (!block && !object) return send(env, SymbolObject::intern("enum_for"), { SymbolObject::intern("rindex") });
     return find_index(env, object, block, true);
 }
 
-ValuePtr ArrayObject::fetch(Env *env, ValuePtr arg_index, ValuePtr default_value, Block *block) {
+Value ArrayObject::fetch(Env *env, Value arg_index, Value default_value, Block *block) {
     auto to_int = SymbolObject::intern("to_int");
-    ValuePtr index_obj = arg_index;
+    Value index_obj = arg_index;
 
     if (!arg_index->is_integer()) {
         if (arg_index->respond_to(env, to_int)) {
@@ -1766,7 +1766,7 @@ ValuePtr ArrayObject::fetch(Env *env, ValuePtr arg_index, ValuePtr default_value
     }
     index_obj->assert_type(env, Type::Integer, "Integer");
 
-    ValuePtr value;
+    Value value;
     auto index_val = index_obj->as_integer()->to_nat_int_t();
     auto index = _resolve_index(index_val);
     if (index < 0) {
@@ -1787,7 +1787,7 @@ ValuePtr ArrayObject::fetch(Env *env, ValuePtr arg_index, ValuePtr default_value
     return value;
 }
 
-ValuePtr ArrayObject::find_index(Env *env, ValuePtr object, Block *block, bool search_reverse) {
+Value ArrayObject::find_index(Env *env, Value object, Block *block, bool search_reverse) {
     if (object && block) env->warn("given block not used");
     assert(size() <= NAT_INT_MAX);
 
@@ -1797,19 +1797,19 @@ ValuePtr ArrayObject::find_index(Env *env, ValuePtr object, Block *block, bool s
         auto item = m_vector[index];
         if (object) {
             if (item.send(env, SymbolObject::intern("=="), { object })->is_truthy())
-                return ValuePtr::integer(index);
+                return Value::integer(index);
         } else {
-            ValuePtr args[] = { item };
+            Value args[] = { item };
             auto result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, args, nullptr);
             length = static_cast<nat_int_t>(size());
             if (result->is_truthy())
-                return ValuePtr::integer(index);
+                return Value::integer(index);
         }
     }
     return NilObject::the();
 }
 
-ValuePtr ArrayObject::none(Env *env, size_t argc, ValuePtr *args, Block *block) {
+Value ArrayObject::none(Env *env, size_t argc, Value *args, Block *block) {
     // FIXME: delegating to Enumerable#none? like this does not have the same semantics as MRI,
     // i.e. one can override Enumerable#none? in MRI and it won't affect Array#none?.
     auto Enumerable = GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern("Enumerable"))->as_module();
@@ -1817,7 +1817,7 @@ ValuePtr ArrayObject::none(Env *env, size_t argc, ValuePtr *args, Block *block) 
     return none_method->call(env, this, argc, args, block);
 }
 
-ValuePtr ArrayObject::one(Env *env, size_t argc, ValuePtr *args, Block *block) {
+Value ArrayObject::one(Env *env, size_t argc, Value *args, Block *block) {
     // FIXME: delegating to Enumerable#one? like this does not have the same semantics as MRI,
     // i.e. one can override Enumerable#one? in MRI and it won't affect Array#one?.
     auto Enumerable = GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern("Enumerable"))->as_module();
@@ -1825,7 +1825,7 @@ ValuePtr ArrayObject::one(Env *env, size_t argc, ValuePtr *args, Block *block) {
     return one_method->call(env, this, argc, args, block);
 }
 
-ValuePtr ArrayObject::product(Env *env, size_t argc, ValuePtr *args, Block *block) {
+Value ArrayObject::product(Env *env, size_t argc, Value *args, Block *block) {
     Vector<ArrayObject *> arrays;
     arrays.push(this);
     for (size_t i = 0; i < argc; ++i)
@@ -1873,13 +1873,13 @@ ValuePtr ArrayObject::product(Env *env, size_t argc, ValuePtr *args, Block *bloc
     return products;
 }
 
-ValuePtr ArrayObject::rotate(Env *env, ValuePtr val) {
+Value ArrayObject::rotate(Env *env, Value val) {
     ArrayObject *copy = new ArrayObject(*this);
     copy->rotate_in_place(env, val);
     return copy;
 }
 
-ValuePtr ArrayObject::rotate_in_place(Env *env, ValuePtr val) {
+Value ArrayObject::rotate_in_place(Env *env, Value val) {
     assert_not_frozen(env);
     nat_int_t count = 1;
     auto to_int = SymbolObject::intern("to_int");
@@ -1903,7 +1903,7 @@ ValuePtr ArrayObject::rotate_in_place(Env *env, ValuePtr val) {
     }
 
     if (count > 0) {
-        Vector<ValuePtr> stack;
+        Vector<Value> stack;
 
         count = count % size();
 
@@ -1914,7 +1914,7 @@ ValuePtr ArrayObject::rotate_in_place(Env *env, ValuePtr val) {
             push(rotated_val);
 
     } else if (count < 0) {
-        Vector<ValuePtr> stack;
+        Vector<Value> stack;
 
         count = -count % size();
         for (nat_int_t i = 0; i < count; i++)
@@ -1927,7 +1927,7 @@ ValuePtr ArrayObject::rotate_in_place(Env *env, ValuePtr val) {
     return this;
 }
 
-ValuePtr ArrayObject::slice_in_place(Env *env, ValuePtr index_obj, ValuePtr size) {
+Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
     this->assert_not_frozen(env);
     auto to_int = SymbolObject::intern("to_int");
 
@@ -1955,7 +1955,7 @@ ValuePtr ArrayObject::slice_in_place(Env *env, ValuePtr index_obj, ValuePtr size
             if (start < 0 || start >= (nat_int_t)m_vector.size())
                 return NilObject::the();
 
-            ValuePtr item = (*this)[start];
+            Value item = (*this)[start];
             for (size_t i = start; i < this->size() - 1; i++) {
                 (*this)[i] = (*this)[i + 1];
             }
@@ -1981,7 +1981,7 @@ ValuePtr ArrayObject::slice_in_place(Env *env, ValuePtr index_obj, ValuePtr size
 
     if (index_obj->is_range()) {
         RangeObject *range = index_obj->as_range();
-        ValuePtr begin_obj = range->begin();
+        Value begin_obj = range->begin();
 
         if (!begin_obj->is_integer() && begin_obj->respond_to(env, to_int))
             begin_obj = begin_obj.send(env, to_int);
@@ -1989,7 +1989,7 @@ ValuePtr ArrayObject::slice_in_place(Env *env, ValuePtr index_obj, ValuePtr size
         begin_obj->assert_type(env, ObjectType::Integer, "Integer");
         begin_obj->as_integer()->assert_fixnum(env);
 
-        ValuePtr end_obj = range->end();
+        Value end_obj = range->end();
 
         if (!end_obj->is_integer() && end_obj->respond_to(env, to_int))
             end_obj = end_obj.send(env, to_int);
@@ -2011,7 +2011,7 @@ ValuePtr ArrayObject::slice_in_place(Env *env, ValuePtr index_obj, ValuePtr size
     return slice_in_place(env, index_obj, size);
 }
 
-ValuePtr ArrayObject::_slice_in_place(nat_int_t start, nat_int_t end, bool exclude_end) {
+Value ArrayObject::_slice_in_place(nat_int_t start, nat_int_t end, bool exclude_end) {
     if (start > (nat_int_t)m_vector.size())
         return NilObject::the();
 
@@ -2061,14 +2061,14 @@ ValuePtr ArrayObject::_slice_in_place(nat_int_t start, nat_int_t end, bool exclu
     return newArr;
 }
 
-ValuePtr ArrayObject::to_h(Env *env, Block *block) {
+Value ArrayObject::to_h(Env *env, Block *block) {
     // FIXME: this is not exactly the way ruby does it
     auto Enumerable = GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern("Enumerable"))->as_module();
     auto to_h_method = Enumerable->find_method(env, SymbolObject::intern("to_h"));
     return to_h_method->call(env, this, 0, nullptr, block);
 }
 
-ValuePtr ArrayObject::try_convert(Env *env, ValuePtr val) {
+Value ArrayObject::try_convert(Env *env, Value val) {
     auto to_ary = SymbolObject::intern("to_ary");
 
     if (val->is_array()) {
@@ -2095,12 +2095,12 @@ ValuePtr ArrayObject::try_convert(Env *env, ValuePtr val) {
         new_item_class_name);
 }
 
-ValuePtr ArrayObject::values_at(Env *env, size_t argc, ValuePtr *args) {
+Value ArrayObject::values_at(Env *env, size_t argc, Value *args) {
     auto accumulator = new ArrayObject {};
     TM::Vector<nat_int_t> indices;
 
     auto to_int = SymbolObject::intern("to_int");
-    auto convert_to_int = [&](ValuePtr arg) -> nat_int_t {
+    auto convert_to_int = [&](Value arg) -> nat_int_t {
         if (!arg->is_integer() && arg->respond_to(env, to_int)) {
             arg = arg.send(env, to_int);
         }
@@ -2142,7 +2142,7 @@ ValuePtr ArrayObject::values_at(Env *env, size_t argc, ValuePtr *args) {
     return accumulator;
 }
 
-ValuePtr ArrayObject::zip(Env *env, size_t argc, ValuePtr *args, Block *block) {
+Value ArrayObject::zip(Env *env, size_t argc, Value *args, Block *block) {
     // FIXME: this is not exactly the way ruby does it
     auto Enumerable = GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern("Enumerable"))->as_module();
     auto zip_method = Enumerable->find_method(env, SymbolObject::intern("zip"));

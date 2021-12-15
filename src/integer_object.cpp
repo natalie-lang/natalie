@@ -5,7 +5,7 @@
 
 namespace Natalie {
 
-ValuePtr IntegerObject::to_s(Env *env, ValuePtr base_value) {
+Value IntegerObject::to_s(Env *env, Value base_value) {
     if (m_integer == 0)
         return new StringObject { "0" };
     auto str = new StringObject {};
@@ -39,15 +39,15 @@ ValuePtr IntegerObject::to_s(Env *env, ValuePtr base_value) {
     return str;
 }
 
-ValuePtr IntegerObject::to_i() {
+Value IntegerObject::to_i() {
     return this;
 }
 
-ValuePtr IntegerObject::to_f() const {
+Value IntegerObject::to_f() const {
     return new FloatObject { m_integer };
 }
 
-ValuePtr add_fast(nat_int_t a, nat_int_t b) {
+Value add_fast(nat_int_t a, nat_int_t b) {
     nat_int_t result = a + b;
 
     bool overflowed = false;
@@ -60,10 +60,10 @@ ValuePtr add_fast(nat_int_t a, nat_int_t b) {
         return new BignumObject { result };
     }
 
-    return ValuePtr::integer(result);
+    return Value::integer(result);
 }
 
-ValuePtr IntegerObject::add(Env *env, ValuePtr arg) {
+Value IntegerObject::add(Env *env, Value arg) {
     if (arg.is_fast_integer())
         return add_fast(m_integer, arg.get_fast_integer());
 
@@ -86,7 +86,7 @@ ValuePtr IntegerObject::add(Env *env, ValuePtr arg) {
     return add_fast(m_integer, other->to_nat_int_t());
 }
 
-ValuePtr sub_fast(nat_int_t a, nat_int_t b) {
+Value sub_fast(nat_int_t a, nat_int_t b) {
     nat_int_t result = a - b;
 
     bool overflowed = false;
@@ -99,10 +99,10 @@ ValuePtr sub_fast(nat_int_t a, nat_int_t b) {
         return new BignumObject { result };
     }
 
-    return ValuePtr::integer(result);
+    return Value::integer(result);
 }
 
-ValuePtr IntegerObject::sub(Env *env, ValuePtr arg) {
+Value IntegerObject::sub(Env *env, Value arg) {
     if (arg.is_fast_integer())
         return sub_fast(m_integer, arg.get_fast_integer());
 
@@ -125,9 +125,9 @@ ValuePtr IntegerObject::sub(Env *env, ValuePtr arg) {
     return sub_fast(m_integer, other->to_nat_int_t());
 }
 
-ValuePtr mul_fast(nat_int_t a, nat_int_t b) {
+Value mul_fast(nat_int_t a, nat_int_t b) {
     if (a == 0 || b == 0)
-        return ValuePtr::integer(0);
+        return Value::integer(0);
 
     auto min_fraction = (NAT_MIN_FIXNUM) / b;
     auto max_fraction = (NAT_MAX_FIXNUM) / b;
@@ -140,9 +140,9 @@ ValuePtr mul_fast(nat_int_t a, nat_int_t b) {
         return new BignumObject { result };
     }
 
-    return ValuePtr::integer(a * b);
+    return Value::integer(a * b);
 }
-ValuePtr IntegerObject::mul(Env *env, ValuePtr arg) {
+Value IntegerObject::mul(Env *env, Value arg) {
     if (arg.is_fast_integer())
         return mul_fast(m_integer, arg.get_fast_integer());
 
@@ -158,7 +158,7 @@ ValuePtr IntegerObject::mul(Env *env, ValuePtr arg) {
     arg->assert_type(env, Object::Type::Integer, "Integer");
 
     if (m_integer == 0 || arg->as_integer()->to_nat_int_t() == 0)
-        return ValuePtr::integer(0);
+        return Value::integer(0);
 
     auto other = arg->as_integer();
     if (other->is_bignum()) {
@@ -169,16 +169,16 @@ ValuePtr IntegerObject::mul(Env *env, ValuePtr arg) {
     return mul_fast(m_integer, other->to_nat_int_t());
 }
 
-ValuePtr div_fast(nat_int_t a, nat_int_t b) {
+Value div_fast(nat_int_t a, nat_int_t b) {
     nat_int_t res = a / b;
     nat_int_t rem = a % b;
     // Correct division result downwards if up-rounding happened,
     // (for non-zero remainder of sign different than the divisor).
     bool corr = (rem != 0 && ((rem < 0) != (b < 0)));
-    return ValuePtr::integer(res - corr);
+    return Value::integer(res - corr);
 }
 
-ValuePtr IntegerObject::div(Env *env, ValuePtr arg) {
+Value IntegerObject::div(Env *env, Value arg) {
     if (arg.is_fast_integer() && arg.get_fast_integer() != 0)
         return div_fast(m_integer, arg.get_fast_integer());
 
@@ -205,27 +205,27 @@ ValuePtr IntegerObject::div(Env *env, ValuePtr arg) {
     return div_fast(m_integer, other->to_nat_int_t());
 }
 
-ValuePtr IntegerObject::mod(Env *env, ValuePtr arg) const {
+Value IntegerObject::mod(Env *env, Value arg) const {
     if (arg.is_fast_integer())
-        return ValuePtr::integer(m_integer % arg.get_fast_integer());
+        return Value::integer(m_integer % arg.get_fast_integer());
 
     arg.unguard();
     arg->assert_type(env, Object::Type::Integer, "Integer");
     auto result = m_integer % arg->as_integer()->to_nat_int_t();
-    return ValuePtr::integer(result);
+    return Value::integer(result);
 }
 
-ValuePtr IntegerObject::pow(Env *env, ValuePtr arg) const {
+Value IntegerObject::pow(Env *env, Value arg) const {
     if (arg.is_fast_integer())
-        return ValuePtr::integer(::pow(m_integer, arg.get_fast_integer()));
+        return Value::integer(::pow(m_integer, arg.get_fast_integer()));
 
     arg.unguard();
     arg->assert_type(env, Object::Type::Integer, "Integer");
     auto result = ::pow(m_integer, arg->as_integer()->to_nat_int_t());
-    return ValuePtr::integer(result);
+    return Value::integer(result);
 }
 
-ValuePtr IntegerObject::cmp(Env *env, ValuePtr arg) {
+Value IntegerObject::cmp(Env *env, Value arg) {
     if (!arg.is_fast_integer()) {
         arg.unguard();
         if (!arg->is_integer() && !arg->is_float())
@@ -233,15 +233,15 @@ ValuePtr IntegerObject::cmp(Env *env, ValuePtr arg) {
     }
 
     if (lt(env, arg)) {
-        return ValuePtr::integer(-1);
+        return Value::integer(-1);
     } else if (eq(env, arg)) {
-        return ValuePtr::integer(0);
+        return Value::integer(0);
     } else {
-        return ValuePtr::integer(1);
+        return Value::integer(1);
     }
 }
 
-bool IntegerObject::eq(Env *env, ValuePtr other) {
+bool IntegerObject::eq(Env *env, Value other) {
     if (other.is_fast_integer())
         return m_integer == other.get_fast_integer();
 
@@ -263,7 +263,7 @@ bool IntegerObject::eq(Env *env, ValuePtr other) {
     return other->send(env, SymbolObject::intern("=="), { this })->is_truthy();
 }
 
-bool IntegerObject::lt(Env *env, ValuePtr other) {
+bool IntegerObject::lt(Env *env, Value other) {
     if (other.is_fast_integer())
         return m_integer < other.get_fast_integer();
 
@@ -285,7 +285,7 @@ bool IntegerObject::lt(Env *env, ValuePtr other) {
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
 }
 
-bool IntegerObject::lte(Env *env, ValuePtr other) {
+bool IntegerObject::lte(Env *env, Value other) {
     if (other.is_fast_integer())
         return m_integer <= other.get_fast_integer();
 
@@ -307,7 +307,7 @@ bool IntegerObject::lte(Env *env, ValuePtr other) {
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
 }
 
-bool IntegerObject::gt(Env *env, ValuePtr other) {
+bool IntegerObject::gt(Env *env, Value other) {
     if (other.is_fast_integer())
         return m_integer > other.get_fast_integer();
 
@@ -329,7 +329,7 @@ bool IntegerObject::gt(Env *env, ValuePtr other) {
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
 }
 
-bool IntegerObject::gte(Env *env, ValuePtr other) {
+bool IntegerObject::gte(Env *env, Value other) {
     if (other.is_fast_integer())
         return m_integer >= other.get_fast_integer();
 
@@ -351,7 +351,7 @@ bool IntegerObject::gte(Env *env, ValuePtr other) {
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
 }
 
-bool IntegerObject::eqeqeq(Env *env, ValuePtr arg) const {
+bool IntegerObject::eqeqeq(Env *env, Value arg) const {
     if (arg.is_fast_integer())
         return m_integer == arg.get_fast_integer();
 
@@ -360,40 +360,40 @@ bool IntegerObject::eqeqeq(Env *env, ValuePtr arg) const {
     return arg->is_integer() && to_nat_int_t() == arg->as_integer()->to_nat_int_t();
 }
 
-ValuePtr IntegerObject::times(Env *env, Block *block) {
+Value IntegerObject::times(Env *env, Block *block) {
     if (!block)
         return send(env, SymbolObject::intern("enum_for"), { SymbolObject::intern("times") });
 
     nat_int_t val = to_nat_int_t();
     assert(val >= 0);
     env->ensure_block_given(block);
-    ValuePtr num;
+    Value num;
     for (nat_int_t i = 0; i < val; i++) {
-        ValuePtr num = ValuePtr::integer(i);
+        Value num = Value::integer(i);
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &num, nullptr);
     }
     return this;
 }
 
-ValuePtr IntegerObject::bitwise_and(Env *env, ValuePtr arg) const {
+Value IntegerObject::bitwise_and(Env *env, Value arg) const {
     arg->assert_type(env, Object::Type::Integer, "Integer");
-    return ValuePtr::integer(to_nat_int_t() & arg->as_integer()->to_nat_int_t());
+    return Value::integer(to_nat_int_t() & arg->as_integer()->to_nat_int_t());
 }
 
-ValuePtr IntegerObject::bitwise_or(Env *env, ValuePtr arg) const {
+Value IntegerObject::bitwise_or(Env *env, Value arg) const {
     arg->assert_type(env, Object::Type::Integer, "Integer");
-    return ValuePtr::integer(to_nat_int_t() | arg->as_integer()->to_nat_int_t());
+    return Value::integer(to_nat_int_t() | arg->as_integer()->to_nat_int_t());
 }
 
-ValuePtr IntegerObject::pred(Env *env) {
-    return sub(env, ValuePtr::integer(1));
+Value IntegerObject::pred(Env *env) {
+    return sub(env, Value::integer(1));
 }
 
-ValuePtr IntegerObject::succ(Env *env) {
-    return add(env, ValuePtr::integer(1));
+Value IntegerObject::succ(Env *env) {
+    return add(env, Value::integer(1));
 }
 
-ValuePtr IntegerObject::coerce(Env *env, ValuePtr arg) {
+Value IntegerObject::coerce(Env *env, Value arg) {
     ArrayObject *ary = new ArrayObject {};
     switch (arg->type()) {
     case Object::Type::Float:
@@ -414,7 +414,7 @@ ValuePtr IntegerObject::coerce(Env *env, ValuePtr arg) {
     return ary;
 }
 
-bool IntegerObject::eql(Env *env, ValuePtr other) {
+bool IntegerObject::eql(Env *env, Value other) {
     if (other.is_fast_integer())
         return m_integer == other.get_fast_integer();
 
@@ -423,16 +423,16 @@ bool IntegerObject::eql(Env *env, ValuePtr other) {
     return other->is_integer() && other->as_integer()->to_nat_int_t() == to_nat_int_t();
 }
 
-ValuePtr IntegerObject::abs(Env *env) {
+Value IntegerObject::abs(Env *env) {
     auto number = to_nat_int_t();
     if (number < 0) {
-        return ValuePtr::integer(-1 * number);
+        return Value::integer(-1 * number);
     } else {
         return this;
     }
 }
 
-ValuePtr IntegerObject::chr(Env *env) const {
+Value IntegerObject::chr(Env *env) const {
     char c = static_cast<char>(to_nat_int_t());
     char str[] = " ";
     str[0] = c;
@@ -464,11 +464,11 @@ bool IntegerObject::optimized_method(SymbolObject *method_name) {
     return !!s_optimized_methods.get(method_name);
 }
 
-ValuePtr IntegerObject::negate(Env *env) {
-    return ValuePtr::integer(-1 * m_integer);
+Value IntegerObject::negate(Env *env) {
+    return Value::integer(-1 * m_integer);
 }
 
-ValuePtr IntegerObject::complement(Env *env) const {
-    return ValuePtr::integer(~m_integer);
+Value IntegerObject::complement(Env *env) const {
+    return Value::integer(~m_integer);
 }
 }

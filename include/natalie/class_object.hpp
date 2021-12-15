@@ -39,9 +39,9 @@ public:
 
     Type object_type() { return m_object_type; }
 
-    ValuePtr initialize(Env *, ValuePtr, Block *);
+    Value initialize(Env *, Value, Block *);
 
-    static ValuePtr new_method(Env *env, ValuePtr superclass, Block *block) {
+    static Value new_method(Env *env, Value superclass, Block *block) {
         if (superclass) {
             if (!superclass->is_class()) {
                 env->raise("TypeError", "superclass must be a Class ({} given)", superclass->klass()->class_name_or_blank());
@@ -49,7 +49,7 @@ public:
         } else {
             superclass = GlobalEnv::the()->Object();
         }
-        ValuePtr klass = superclass->as_class()->subclass(env);
+        Value klass = superclass->as_class()->subclass(env);
         if (block) {
             block->set_self(klass);
             NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 0, nullptr, nullptr);

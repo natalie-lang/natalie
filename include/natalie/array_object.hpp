@@ -20,7 +20,7 @@ public:
     ArrayObject()
         : Object { Object::Type::Array, GlobalEnv::the()->Array() } { }
 
-    ArrayObject(std::initializer_list<ValuePtr> list)
+    ArrayObject(std::initializer_list<Value> list)
         : ArrayObject {} {
         m_vector.set_capacity(list.size());
         for (auto &v : list) {
@@ -38,10 +38,10 @@ public:
         return *this;
     }
 
-    ArrayObject(size_t argc, ValuePtr *args)
+    ArrayObject(size_t argc, Value *args)
         : ArrayObject { argc, args, GlobalEnv::the()->Array() } { }
 
-    ArrayObject(size_t argc, ValuePtr *args, ClassObject *klass)
+    ArrayObject(size_t argc, Value *args, ClassObject *klass)
         : Object { Object::Type::Array, klass } {
         for (size_t i = 0; i < argc; i++) {
             push(args[i]);
@@ -49,13 +49,13 @@ public:
     }
 
     // Array[]
-    static ValuePtr square_new(Env *env, size_t argc, ValuePtr *args, ClassObject *klass) {
+    static Value square_new(Env *env, size_t argc, Value *args, ClassObject *klass) {
         return new ArrayObject { argc, args, klass };
     }
 
-    static ValuePtr allocate(Env *, size_t, ValuePtr *);
+    static Value allocate(Env *, size_t, Value *);
 
-    ValuePtr to_ary_method() { return this; }
+    Value to_ary_method() { return this; }
 
     size_t size() const { return m_vector.size(); }
 
@@ -63,134 +63,134 @@ public:
         m_vector.push(&val);
     }
 
-    void push(ValuePtr val) {
+    void push(Value val) {
         m_vector.push(val);
     }
 
-    ValuePtr first();
-    ValuePtr last();
+    Value first();
+    Value last();
 
-    ValuePtr pop(Env *, ValuePtr);
+    Value pop(Env *, Value);
 
-    ValuePtr &at(size_t index) const {
+    Value &at(size_t index) const {
         assert(index < m_vector.size());
         return m_vector[index];
     }
 
-    ValuePtr &operator[](size_t index) const {
+    Value &operator[](size_t index) const {
         assert(index < m_vector.size()); // TODO: remove this assertion (audit what's using this operator first though)
         return m_vector[index];
     }
 
     void concat(ArrayObject &other) {
-        for (ValuePtr v : other) {
+        for (Value v : other) {
             push(v);
         }
     }
 
-    void push_splat(Env *, ValuePtr);
+    void push_splat(Env *, Value);
 
     void expand_with_nil(Env *, size_t);
 
     void overwrite(ArrayObject &other) {
         m_vector.set_size(0);
-        for (ValuePtr v : other) {
+        for (Value v : other) {
             push(v);
         }
     }
 
-    ValuePtr *data() {
+    Value *data() {
         return m_vector.data();
     }
 
-    ValuePtr sort_in_place(Env *, Block *);
-    ValuePtr sort_by_in_place(Env *, Block *);
+    Value sort_in_place(Env *, Block *);
+    Value sort_by_in_place(Env *, Block *);
 
-    Vector<ValuePtr>::iterator begin() noexcept { return m_vector.begin(); }
-    Vector<ValuePtr>::iterator end() noexcept { return m_vector.end(); }
+    Vector<Value>::iterator begin() noexcept { return m_vector.begin(); }
+    Vector<Value>::iterator end() noexcept { return m_vector.end(); }
 
     bool is_empty() { return m_vector.is_empty(); }
 
-    ValuePtr initialize(Env *, ValuePtr, ValuePtr, Block *);
+    Value initialize(Env *, Value, Value, Block *);
 
-    ValuePtr add(Env *, ValuePtr);
-    ValuePtr any(Env *, size_t, ValuePtr *, Block *);
-    ValuePtr at(Env *, ValuePtr);
-    ValuePtr assoc(Env *, ValuePtr);
-    ValuePtr bsearch(Env *, Block *);
-    ValuePtr bsearch_index(Env *, Block *);
-    ValuePtr cmp(Env *, ValuePtr);
-    ValuePtr clear(Env *);
-    ValuePtr compact(Env *);
-    ValuePtr compact_in_place(Env *);
-    ValuePtr concat(Env *, size_t, ValuePtr *);
-    ValuePtr cycle(Env *, ValuePtr, Block *);
-    ValuePtr delete_at(Env *, ValuePtr);
-    ValuePtr delete_if(Env *, Block *);
-    ValuePtr delete_item(Env *, ValuePtr, Block *);
-    ValuePtr difference(Env *, size_t, ValuePtr *);
-    ValuePtr dig(Env *, size_t, ValuePtr *);
-    ValuePtr drop(Env *, ValuePtr);
-    ValuePtr drop_while(Env *, Block *);
-    ValuePtr each(Env *, Block *);
-    ValuePtr each_index(Env *, Block *);
-    ValuePtr eq(Env *, ValuePtr);
-    ValuePtr eql(Env *, ValuePtr);
-    ValuePtr fetch(Env *, ValuePtr, ValuePtr, Block *);
-    ValuePtr fill(Env *, ValuePtr, ValuePtr, ValuePtr, Block *);
-    ValuePtr first(Env *, ValuePtr);
-    ValuePtr flatten(Env *, ValuePtr);
-    ValuePtr flatten_in_place(Env *, ValuePtr);
-    ValuePtr hash(Env *);
-    ValuePtr include(Env *, ValuePtr);
-    ValuePtr index(Env *, ValuePtr, Block *);
-    ValuePtr initialize_copy(Env *, ValuePtr);
-    ValuePtr inspect(Env *);
-    ValuePtr insert(Env *, size_t, ValuePtr *);
-    ValuePtr intersection(Env *, ValuePtr);
-    ValuePtr intersection(Env *, size_t, ValuePtr *);
-    ValuePtr join(Env *, ValuePtr);
-    ValuePtr keep_if(Env *, Block *);
-    ValuePtr last(Env *, ValuePtr);
-    ValuePtr ltlt(Env *, ValuePtr);
-    ValuePtr map(Env *, Block *);
-    ValuePtr map_in_place(Env *, Block *);
-    ValuePtr max(Env *, ValuePtr, Block *);
-    ValuePtr min(Env *, ValuePtr, Block *);
-    ValuePtr minmax(Env *, Block *);
-    ValuePtr multiply(Env *, ValuePtr);
-    ValuePtr none(Env *, size_t, ValuePtr *, Block *);
-    ValuePtr one(Env *, size_t, ValuePtr *, Block *);
-    ValuePtr pack(Env *, ValuePtr);
-    ValuePtr product(Env *, size_t, ValuePtr *, Block *);
-    ValuePtr push(Env *, size_t, ValuePtr *);
-    ValuePtr rassoc(Env *, ValuePtr);
-    ValuePtr ref(Env *, ValuePtr, ValuePtr = nullptr);
-    ValuePtr refeq(Env *, ValuePtr, ValuePtr, ValuePtr);
-    ValuePtr reject(Env *, Block *);
-    ValuePtr reject_in_place(Env *, Block *);
-    ValuePtr reverse(Env *);
-    ValuePtr reverse_each(Env *, Block *);
-    ValuePtr reverse_in_place(Env *);
-    ValuePtr rindex(Env *, ValuePtr, Block *);
-    ValuePtr rotate(Env *, ValuePtr);
-    ValuePtr rotate_in_place(Env *, ValuePtr);
-    ValuePtr select(Env *, Block *);
-    ValuePtr select_in_place(Env *, Block *);
-    ValuePtr shift(Env *, ValuePtr);
-    ValuePtr slice_in_place(Env *, ValuePtr, ValuePtr);
-    ValuePtr sort(Env *, Block *);
-    ValuePtr sub(Env *, ValuePtr);
-    static ValuePtr try_convert(Env *, ValuePtr);
-    ValuePtr sum(Env *, size_t, ValuePtr *, Block *);
-    ValuePtr union_of(Env *, ValuePtr);
-    ValuePtr union_of(Env *, size_t, ValuePtr *);
-    ValuePtr uniq(Env *, Block *);
-    ValuePtr uniq_in_place(Env *, Block *);
-    ValuePtr unshift(Env *, size_t, ValuePtr *);
-    ValuePtr to_h(Env *, Block *);
-    ValuePtr values_at(Env *, size_t, ValuePtr *);
-    ValuePtr zip(Env *, size_t, ValuePtr *, Block *);
+    Value add(Env *, Value);
+    Value any(Env *, size_t, Value *, Block *);
+    Value at(Env *, Value);
+    Value assoc(Env *, Value);
+    Value bsearch(Env *, Block *);
+    Value bsearch_index(Env *, Block *);
+    Value cmp(Env *, Value);
+    Value clear(Env *);
+    Value compact(Env *);
+    Value compact_in_place(Env *);
+    Value concat(Env *, size_t, Value *);
+    Value cycle(Env *, Value, Block *);
+    Value delete_at(Env *, Value);
+    Value delete_if(Env *, Block *);
+    Value delete_item(Env *, Value, Block *);
+    Value difference(Env *, size_t, Value *);
+    Value dig(Env *, size_t, Value *);
+    Value drop(Env *, Value);
+    Value drop_while(Env *, Block *);
+    Value each(Env *, Block *);
+    Value each_index(Env *, Block *);
+    Value eq(Env *, Value);
+    Value eql(Env *, Value);
+    Value fetch(Env *, Value, Value, Block *);
+    Value fill(Env *, Value, Value, Value, Block *);
+    Value first(Env *, Value);
+    Value flatten(Env *, Value);
+    Value flatten_in_place(Env *, Value);
+    Value hash(Env *);
+    Value include(Env *, Value);
+    Value index(Env *, Value, Block *);
+    Value initialize_copy(Env *, Value);
+    Value inspect(Env *);
+    Value insert(Env *, size_t, Value *);
+    Value intersection(Env *, Value);
+    Value intersection(Env *, size_t, Value *);
+    Value join(Env *, Value);
+    Value keep_if(Env *, Block *);
+    Value last(Env *, Value);
+    Value ltlt(Env *, Value);
+    Value map(Env *, Block *);
+    Value map_in_place(Env *, Block *);
+    Value max(Env *, Value, Block *);
+    Value min(Env *, Value, Block *);
+    Value minmax(Env *, Block *);
+    Value multiply(Env *, Value);
+    Value none(Env *, size_t, Value *, Block *);
+    Value one(Env *, size_t, Value *, Block *);
+    Value pack(Env *, Value);
+    Value product(Env *, size_t, Value *, Block *);
+    Value push(Env *, size_t, Value *);
+    Value rassoc(Env *, Value);
+    Value ref(Env *, Value, Value = nullptr);
+    Value refeq(Env *, Value, Value, Value);
+    Value reject(Env *, Block *);
+    Value reject_in_place(Env *, Block *);
+    Value reverse(Env *);
+    Value reverse_each(Env *, Block *);
+    Value reverse_in_place(Env *);
+    Value rindex(Env *, Value, Block *);
+    Value rotate(Env *, Value);
+    Value rotate_in_place(Env *, Value);
+    Value select(Env *, Block *);
+    Value select_in_place(Env *, Block *);
+    Value shift(Env *, Value);
+    Value slice_in_place(Env *, Value, Value);
+    Value sort(Env *, Block *);
+    Value sub(Env *, Value);
+    static Value try_convert(Env *, Value);
+    Value sum(Env *, size_t, Value *, Block *);
+    Value union_of(Env *, Value);
+    Value union_of(Env *, size_t, Value *);
+    Value uniq(Env *, Block *);
+    Value uniq_in_place(Env *, Block *);
+    Value unshift(Env *, size_t, Value *);
+    Value to_h(Env *, Block *);
+    Value values_at(Env *, size_t, Value *);
+    Value zip(Env *, size_t, Value *, Block *);
 
     virtual void visit_children(Visitor &visitor) override final {
         Object::visit_children(visitor);
@@ -205,17 +205,17 @@ public:
     }
 
 private:
-    ArrayObject(Vector<ValuePtr> &&vector)
+    ArrayObject(Vector<Value> &&vector)
         : Object { Object::Type::Array, GlobalEnv::the()->Array() }
         , m_vector { std::move(vector) } { }
 
-    Vector<ValuePtr> m_vector {};
+    Vector<Value> m_vector {};
 
     nat_int_t _resolve_index(nat_int_t) const;
     bool _flatten_in_place(Env *, nat_int_t depth, Hashmap<ArrayObject *> visited_arrays = Hashmap<ArrayObject *> {});
-    ValuePtr _slice_in_place(nat_int_t start, nat_int_t end, bool exclude_end);
-    ValuePtr find_index(Env *, ValuePtr, Block *, bool = false);
-    bool include_eql(Env *, ValuePtr);
+    Value _slice_in_place(nat_int_t start, nat_int_t end, bool exclude_end);
+    Value find_index(Env *, Value, Block *, bool = false);
+    bool include_eql(Env *, Value);
 };
 
 }

@@ -14,7 +14,7 @@ void ExceptionObject::build_backtrace(Env *env) {
     } while (bt_env);
 }
 
-ValuePtr ExceptionObject::initialize(Env *env, ValuePtr message) {
+Value ExceptionObject::initialize(Env *env, Value message) {
     if (!message) {
         auto name = m_klass->class_name_or_blank();
         set_message(new StringObject { *name });
@@ -27,11 +27,11 @@ ValuePtr ExceptionObject::initialize(Env *env, ValuePtr message) {
     return this;
 }
 
-ValuePtr ExceptionObject::inspect(Env *env) {
+Value ExceptionObject::inspect(Env *env) {
     return StringObject::format(env, "#<{}: {}>", m_klass->inspect_str(env), m_message);
 }
 
-ValuePtr ExceptionObject::backtrace(Env *env) {
+Value ExceptionObject::backtrace(Env *env) {
     return m_backtrace ? m_backtrace->dup(env) : NilObject::the();
 }
 

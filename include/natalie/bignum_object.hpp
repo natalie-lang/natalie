@@ -33,18 +33,18 @@ public:
         return true;
     }
 
-    ValuePtr add(Env *, ValuePtr) override;
-    ValuePtr sub(Env *, ValuePtr) override;
-    ValuePtr mul(Env *, ValuePtr) override;
-    ValuePtr div(Env *, ValuePtr) override;
-    ValuePtr negate(Env *) override;
-    ValuePtr to_s(Env *, ValuePtr = nullptr) override;
+    Value add(Env *, Value) override;
+    Value sub(Env *, Value) override;
+    Value mul(Env *, Value) override;
+    Value div(Env *, Value) override;
+    Value negate(Env *) override;
+    Value to_s(Env *, Value = nullptr) override;
 
-    bool eq(Env *, ValuePtr) override;
-    bool lt(Env *, ValuePtr) override;
-    bool lte(Env *, ValuePtr) override;
-    bool gt(Env *, ValuePtr) override;
-    bool gte(Env *, ValuePtr) override;
+    bool eq(Env *, Value) override;
+    bool lt(Env *, Value) override;
+    bool lte(Env *, Value) override;
+    bool gt(Env *, Value) override;
+    bool gte(Env *, Value) override;
 
     bool is_bignum() const override { return true; }
     BigInt to_bignum() const override { return *m_bignum; }

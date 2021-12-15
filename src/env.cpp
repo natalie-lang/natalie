@@ -8,14 +8,14 @@ namespace Natalie {
 using namespace TM;
 
 void Env::build_vars(size_t size) {
-    m_vars = new Vector<ValuePtr>(size, NilObject::the());
+    m_vars = new Vector<Value>(size, NilObject::the());
 }
 
-ValuePtr Env::global_get(SymbolObject *name) {
+Value Env::global_get(SymbolObject *name) {
     return GlobalEnv::the()->global_get(this, name);
 }
 
-ValuePtr Env::global_set(SymbolObject *name, ValuePtr val) {
+Value Env::global_set(SymbolObject *name, Value val) {
     return GlobalEnv::the()->global_set(this, name, val);
 }
 
@@ -65,7 +65,7 @@ void Env::raise_exception(ExceptionObject *exception) {
     throw exception;
 }
 
-void Env::raise_key_error(ValuePtr receiver, ValuePtr key) {
+void Env::raise_key_error(Value receiver, Value key) {
     auto message = new StringObject { String::format("key not found: {}", key->inspect_str(this)) };
     auto key_error_class = GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern("KeyError"))->as_class();
     ExceptionObject *exception = new ExceptionObject { key_error_class, message };
@@ -74,7 +74,7 @@ void Env::raise_key_error(ValuePtr receiver, ValuePtr key) {
     this->raise_exception(exception);
 }
 
-void Env::raise_local_jump_error(ValuePtr exit_value, LocalJumpErrorType type) {
+void Env::raise_local_jump_error(Value exit_value, LocalJumpErrorType type) {
     auto message = new StringObject { type == LocalJumpErrorType::Return ? "unexpected return" : "break from proc-closure" };
     auto lje_class = GlobalEnv::the()->Object()->const_find(this, SymbolObject::intern("LocalJumpError"))->as_class();
     ExceptionObject *exception = new ExceptionObject { lje_class, message };
@@ -91,12 +91,12 @@ void Env::raise_local_jump_error(ValuePtr exit_value, LocalJumpErrorType type) {
 
 void Env::raise_errno() {
     auto SystemCallError = GlobalEnv::the()->Object()->const_find(this, SymbolObject::intern("SystemCallError"));
-    ExceptionObject *error = SystemCallError.send(this, SymbolObject::intern("exception"), { ValuePtr::integer(errno) })->as_exception();
+    ExceptionObject *error = SystemCallError.send(this, SymbolObject::intern("exception"), { Value::integer(errno) })->as_exception();
     raise_exception(error);
 }
 
 void Env::warn(const String *message) {
-    ValuePtr _stderr = global_get(SymbolObject::intern("$stderr"));
+    Value _stderr = global_get(SymbolObject::intern("$stderr"));
     _stderr.send(this, SymbolObject::intern("puts"), { new StringObject { message } });
 }
 
@@ -124,21 +124,21 @@ void Env::ensure_block_given(Block *block) {
     }
 }
 
-ValuePtr Env::last_match() {
+Value Env::last_match() {
     Env *env = non_block_env();
     if (env->m_match)
         return env->m_match;
     return NilObject::the();
 }
 
-void Env::set_last_match(ValuePtr match) {
+void Env::set_last_match(Value match) {
     non_block_env()->set_match(match);
 }
 
-ValuePtr Env::var_get(const char *key, size_t index) {
+Value Env::var_get(const char *key, size_t index) {
     if (index >= m_vars->size())
         return NilObject::the();
-    ValuePtr val = m_vars->at(index);
+    Value val = m_vars->at(index);
     if (val) {
         return val;
     } else {
@@ -146,7 +146,7 @@ ValuePtr Env::var_get(const char *key, size_t index) {
     }
 }
 
-ValuePtr Env::var_set(const char *name, size_t index, bool allocate, ValuePtr val) {
+Value Env::var_set(const char *name, size_t index, bool allocate, Value val) {
     size_t needed = index + 1;
     size_t current_size = m_vars ? m_vars->size() : 0;
     if (needed > current_size) {

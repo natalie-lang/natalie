@@ -35,23 +35,23 @@ public:
         }
     }
 
-    ValuePtr extend(Env *, size_t argc, ValuePtr *args);
+    Value extend(Env *, size_t argc, Value *args);
     void extend_once(Env *, ModuleObject *);
 
-    ValuePtr include(Env *, size_t argc, ValuePtr *args);
+    Value include(Env *, size_t argc, Value *args);
     void include_once(Env *, ModuleObject *);
 
-    ValuePtr prepend(Env *, size_t argc, ValuePtr *args);
+    Value prepend(Env *, size_t argc, Value *args);
     void prepend_once(Env *, ModuleObject *);
 
-    virtual ValuePtr const_find(Env *env, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::Raise) override;
-    virtual ValuePtr const_get(SymbolObject *) override;
-    virtual ValuePtr const_fetch(SymbolObject *) override;
-    virtual ValuePtr const_set(SymbolObject *, ValuePtr) override;
+    virtual Value const_find(Env *env, SymbolObject *, ConstLookupSearchMode = ConstLookupSearchMode::Strict, ConstLookupFailureMode = ConstLookupFailureMode::Raise) override;
+    virtual Value const_get(SymbolObject *) override;
+    virtual Value const_fetch(SymbolObject *) override;
+    virtual Value const_set(SymbolObject *, Value) override;
 
     virtual void alias(Env *, SymbolObject *, SymbolObject *) override;
 
-    ValuePtr eval_body(Env *, ValuePtr (*)(Env *, ValuePtr));
+    Value eval_body(Env *, Value (*)(Env *, Value));
 
     Optional<const String *> class_name() {
         return m_class_name;
@@ -77,14 +77,14 @@ public:
     ClassObject *superclass() { return m_superclass; }
     void set_superclass_DANGEROUSLY(ClassObject *superclass) { m_superclass = superclass; }
 
-    ValuePtr included_modules(Env *);
+    Value included_modules(Env *);
     Vector<ModuleObject *> included_modules() { return m_included_modules; }
-    bool does_include_module(Env *, ValuePtr);
+    bool does_include_module(Env *, Value);
 
-    virtual ValuePtr cvar_get_or_null(Env *, SymbolObject *) override;
-    virtual ValuePtr cvar_set(Env *, SymbolObject *, ValuePtr) override;
+    virtual Value cvar_get_or_null(Env *, SymbolObject *) override;
+    virtual Value cvar_set(Env *, SymbolObject *, Value) override;
 
-    ValuePtr define_method(Env *, ValuePtr, Block *);
+    Value define_method(Env *, Value, Block *);
     virtual SymbolObject *define_method(Env *, SymbolObject *, MethodFnPtr, int) override;
     virtual SymbolObject *define_method(Env *, SymbolObject *, Block *) override;
     virtual SymbolObject *undefine_method(Env *, SymbolObject *) override;
@@ -94,27 +94,27 @@ public:
 
     ArrayObject *ancestors(Env *);
 
-    bool is_method_defined(Env *, ValuePtr);
+    bool is_method_defined(Env *, Value);
 
-    ValuePtr inspect(Env *);
-    ValuePtr name(Env *);
-    ValuePtr attr_reader(Env *, size_t, ValuePtr *);
-    ValuePtr attr_writer(Env *, size_t, ValuePtr *);
-    ValuePtr attr_accessor(Env *, size_t, ValuePtr *);
+    Value inspect(Env *);
+    Value name(Env *);
+    Value attr_reader(Env *, size_t, Value *);
+    Value attr_writer(Env *, size_t, Value *);
+    Value attr_accessor(Env *, size_t, Value *);
 
-    static ValuePtr attr_reader_block_fn(Env *, ValuePtr, size_t, ValuePtr *, Block *);
-    static ValuePtr attr_writer_block_fn(Env *, ValuePtr, size_t, ValuePtr *, Block *);
+    static Value attr_reader_block_fn(Env *, Value, size_t, Value *, Block *);
+    static Value attr_writer_block_fn(Env *, Value, size_t, Value *, Block *);
 
-    ValuePtr module_eval(Env *, Block *);
+    Value module_eval(Env *, Block *);
 
-    virtual ValuePtr private_method(Env *, ValuePtr method_name) override;
-    virtual ValuePtr protected_method(Env *, ValuePtr method_name) override;
-    ValuePtr public_method(Env *, ValuePtr method_name);
+    virtual Value private_method(Env *, Value method_name) override;
+    virtual Value protected_method(Env *, Value method_name) override;
+    Value public_method(Env *, Value method_name);
 
-    bool const_defined(Env *, ValuePtr);
-    ValuePtr alias_method(Env *, ValuePtr, ValuePtr);
+    bool const_defined(Env *, Value);
+    Value alias_method(Env *, Value, Value);
 
-    bool eqeqeq(Env *env, ValuePtr other) {
+    bool eqeqeq(Env *env, Value other) {
         return other->is_a(env, this);
     }
 

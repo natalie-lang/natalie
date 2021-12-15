@@ -3,7 +3,7 @@
 
 namespace Natalie {
 
-ValuePtr GlobalEnv::global_get(Env *env, SymbolObject *name) {
+Value GlobalEnv::global_get(Env *env, SymbolObject *name) {
     if (!name->is_global_name())
         env->raise("NameError", "`{}' is not allowed as an global variable name", name->c_str());
 
@@ -14,7 +14,7 @@ ValuePtr GlobalEnv::global_get(Env *env, SymbolObject *name) {
         return NilObject::the();
 }
 
-ValuePtr GlobalEnv::global_set(Env *env, SymbolObject *name, ValuePtr val) {
+Value GlobalEnv::global_set(Env *env, SymbolObject *name, Value val) {
     if (!name->is_global_name())
         env->raise("NameError", "`{}' is not allowed as an global variable name", name->c_str());
 

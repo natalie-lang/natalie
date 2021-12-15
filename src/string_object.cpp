@@ -60,7 +60,7 @@ char *StringObject::next_char(Env *env, char *buffer, size_t *index) {
     NAT_UNREACHABLE();
 }
 
-ValuePtr StringObject::each_char(Env *env, Block *block) {
+Value StringObject::each_char(Env *env, Block *block) {
     if (!block)
         return send(env, SymbolObject::intern("enum_for"), { SymbolObject::intern("each_char") });
 
@@ -68,7 +68,7 @@ ValuePtr StringObject::each_char(Env *env, Block *block) {
     char buffer[5];
     while (next_char(env, buffer, &index)) {
         auto c = new StringObject { buffer, m_encoding };
-        ValuePtr args[] = { c };
+        Value args[] = { c };
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, args, nullptr);
     }
     return NilObject::the();
@@ -89,7 +89,7 @@ SymbolObject *StringObject::to_symbol(Env *env) const {
     return SymbolObject::intern(c_str());
 }
 
-ValuePtr StringObject::to_sym(Env *env) const {
+Value StringObject::to_sym(Env *env) const {
     return to_symbol(env);
 }
 
@@ -135,12 +135,12 @@ StringObject *StringObject::successive(Env *env) {
     return new StringObject { str };
 }
 
-bool StringObject::start_with(Env *env, ValuePtr needle) const {
+bool StringObject::start_with(Env *env, Value needle) const {
     nat_int_t i = index_int(env, needle, 0);
     return i == 0;
 }
 
-bool StringObject::end_with(Env *env, ValuePtr needle) const {
+bool StringObject::end_with(Env *env, Value needle) const {
     needle->assert_type(env, Object::Type::String, "String");
     if (length() < needle->as_string()->length())
         return false;
@@ -149,11 +149,11 @@ bool StringObject::end_with(Env *env, ValuePtr needle) const {
     return i == 0;
 }
 
-ValuePtr StringObject::index(Env *env, ValuePtr needle) {
+Value StringObject::index(Env *env, Value needle) {
     return index(env, needle, 0);
 }
 
-ValuePtr StringObject::index(Env *env, ValuePtr needle, size_t start) {
+Value StringObject::index(Env *env, Value needle, size_t start) {
     auto byte_index = index_int(env, needle, start);
     if (byte_index == -1) {
         return NilObject::the();
@@ -166,10 +166,10 @@ ValuePtr StringObject::index(Env *env, ValuePtr needle, size_t start) {
             return IntegerObject::from_size_t(env, char_index);
         char_index++;
     }
-    return ValuePtr::integer(0);
+    return Value::integer(0);
 }
 
-nat_int_t StringObject::index_int(Env *env, ValuePtr needle, size_t start) const {
+nat_int_t StringObject::index_int(Env *env, Value needle, size_t start) const {
     needle->assert_type(env, Object::Type::String, "String");
     const char *ptr = strstr(c_str() + start, needle->as_string()->c_str());
     if (ptr == nullptr)
@@ -177,7 +177,7 @@ nat_int_t StringObject::index_int(Env *env, ValuePtr needle, size_t start) const
     return ptr - c_str();
 }
 
-ValuePtr StringObject::initialize(Env *env, ValuePtr arg) {
+Value StringObject::initialize(Env *env, Value arg) {
     if (arg) {
         arg->assert_type(env, Object::Type::String, "String");
         set_str(arg->as_string()->c_str());
@@ -185,19 +185,19 @@ ValuePtr StringObject::initialize(Env *env, ValuePtr arg) {
     return this;
 }
 
-ValuePtr StringObject::ltlt(Env *env, ValuePtr arg) {
+Value StringObject::ltlt(Env *env, Value arg) {
     this->assert_not_frozen(env);
     if (arg->is_string()) {
         append(env, arg->as_string());
     } else {
-        ValuePtr str_obj = arg.send(env, SymbolObject::intern("to_s"));
+        Value str_obj = arg.send(env, SymbolObject::intern("to_s"));
         str_obj->assert_type(env, Object::Type::String, "String");
         append(env, str_obj->as_string());
     }
     return this;
 }
 
-ValuePtr StringObject::add(Env *env, ValuePtr arg) const {
+Value StringObject::add(Env *env, Value arg) const {
     const char *str;
     if (arg->is_string()) {
         str = arg->as_string()->c_str();
@@ -211,7 +211,7 @@ ValuePtr StringObject::add(Env *env, ValuePtr arg) const {
     return new_string;
 }
 
-ValuePtr StringObject::mul(Env *env, ValuePtr arg) const {
+Value StringObject::mul(Env *env, Value arg) const {
     arg->assert_type(env, Object::Type::Integer, "Integer");
     StringObject *new_string = new StringObject { "" };
     for (nat_int_t i = 0; i < arg->as_integer()->to_nat_int_t(); i++) {
@@ -220,41 +220,41 @@ ValuePtr StringObject::mul(Env *env, ValuePtr arg) const {
     return new_string;
 }
 
-ValuePtr StringObject::cmp(Env *env, ValuePtr other) const {
+Value StringObject::cmp(Env *env, Value other) const {
     if (other->type() != Object::Type::String) return NilObject::the();
     auto *str = c_str();
     auto *other_str = other->as_string()->c_str();
     size_t other_length = other->as_string()->length();
     for (size_t i = 0; i < length(); ++i) {
         if (i >= other_length)
-            return ValuePtr::integer(1);
+            return Value::integer(1);
         if (str[i] < other_str[i])
-            return ValuePtr::integer(-1);
+            return Value::integer(-1);
         else if (str[i] > other_str[i])
-            return ValuePtr::integer(1);
+            return Value::integer(1);
     }
     if (length() < other_length)
-        return ValuePtr::integer(-1);
-    return ValuePtr::integer(0);
+        return Value::integer(-1);
+    return Value::integer(0);
 }
 
-bool StringObject::eq(Env *env, ValuePtr arg) {
+bool StringObject::eq(Env *env, Value arg) {
     if (!arg->is_string() && arg->respond_to(env, SymbolObject::intern("to_str")))
         return arg->send(env, SymbolObject::intern("=="), { this });
     return eql(arg);
 }
 
-ValuePtr StringObject::eqtilde(Env *env, ValuePtr other) {
+Value StringObject::eqtilde(Env *env, Value other) {
     other->assert_type(env, Object::Type::Regexp, "Regexp");
     return other->as_regexp()->eqtilde(env, this);
 }
 
-ValuePtr StringObject::match(Env *env, ValuePtr other) {
+Value StringObject::match(Env *env, Value other) {
     other->assert_type(env, Object::Type::Regexp, "Regexp");
     return other->as_regexp()->match(env, this);
 }
 
-ValuePtr StringObject::ord(Env *env) {
+Value StringObject::ord(Env *env) {
     size_t index = 0;
     char buffer[5];
     if (!next_char(env, buffer, &index))
@@ -281,19 +281,19 @@ ValuePtr StringObject::ord(Env *env) {
     default:
         NAT_UNREACHABLE();
     }
-    return ValuePtr::integer(code);
+    return Value::integer(code);
 }
 
-ValuePtr StringObject::bytes(Env *env) const {
+Value StringObject::bytes(Env *env) const {
     ArrayObject *ary = new ArrayObject {};
     for (size_t i = 0; i < length(); i++) {
         unsigned char c = c_str()[i];
-        ary->push(ValuePtr::integer(c));
+        ary->push(Value::integer(c));
     }
     return ary;
 }
 
-ValuePtr StringObject::size(Env *env) {
+Value StringObject::size(Env *env) {
     size_t index = 0;
     size_t char_count = 0;
     char buffer[5];
@@ -303,7 +303,7 @@ ValuePtr StringObject::size(Env *env) {
     return IntegerObject::from_size_t(env, char_count);
 }
 
-ValuePtr StringObject::encoding(Env *env) {
+Value StringObject::encoding(Env *env) {
     ClassObject *Encoding = GlobalEnv::the()->Object()->const_find(env, SymbolObject::intern("Encoding"))->as_class();
     switch (m_encoding) {
     case Encoding::ASCII_8BIT:
@@ -331,7 +331,7 @@ static EncodingObject *find_encoding_by_name(Env *env, const String *name) {
     env->raise("ArgumentError", "unknown encoding name - {}", name);
 }
 
-ValuePtr StringObject::encode(Env *env, ValuePtr encoding) {
+Value StringObject::encode(Env *env, Value encoding) {
     Encoding orig_encoding = m_encoding;
     StringObject *copy = dup(env)->as_string();
     copy->force_encoding(env, encoding);
@@ -343,8 +343,8 @@ ValuePtr StringObject::encode(Env *env, ValuePtr encoding) {
         for (size_t i = 0; i < chars->size(); i++) {
             StringObject *char_obj = (*chars)[i]->as_string();
             if (char_obj->length() > 1) {
-                ValuePtr ord = char_obj->ord(env);
-                ValuePtr message = StringObject::format(env, "U+{} from UTF-8 to ASCII-8BIT", int_to_hex_string(ord->as_integer()->to_nat_int_t(), true));
+                Value ord = char_obj->ord(env);
+                Value message = StringObject::format(env, "U+{} from UTF-8 to ASCII-8BIT", int_to_hex_string(ord->as_integer()->to_nat_int_t(), true));
                 StringObject zero_x { "0X" };
                 StringObject blank { "" };
                 message = message->as_string()->sub(env, &zero_x, &blank);
@@ -359,7 +359,7 @@ ValuePtr StringObject::encode(Env *env, ValuePtr encoding) {
     }
 }
 
-ValuePtr StringObject::force_encoding(Env *env, ValuePtr encoding) {
+Value StringObject::force_encoding(Env *env, Value encoding) {
     switch (encoding->type()) {
     case Object::Type::Encoding:
         set_encoding(encoding->as_encoding()->num());
@@ -373,7 +373,7 @@ ValuePtr StringObject::force_encoding(Env *env, ValuePtr encoding) {
     return this;
 }
 
-ValuePtr StringObject::ref(Env *env, ValuePtr index_obj) {
+Value StringObject::ref(Env *env, Value index_obj) {
     // not sure how we'd handle a string that big anyway
     assert(length() < NAT_INT_MAX);
 
@@ -423,7 +423,7 @@ ValuePtr StringObject::ref(Env *env, ValuePtr index_obj) {
     abort();
 }
 
-ValuePtr StringObject::sub(Env *env, ValuePtr find, ValuePtr replacement, Block *block) {
+Value StringObject::sub(Env *env, Value find, Value replacement, Block *block) {
     if (!block && !replacement)
         env->raise("ArgumentError", "wrong number of arguments (given 1, expected 2)");
     if (!block)
@@ -435,7 +435,7 @@ ValuePtr StringObject::sub(Env *env, ValuePtr find, ValuePtr replacement, Block 
         }
         StringObject *out = new StringObject { c_str(), static_cast<size_t>(index) };
         if (block) {
-            ValuePtr result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 0, nullptr, nullptr);
+            Value result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 0, nullptr, nullptr);
             result->assert_type(env, Object::Type::String, "String");
             out->append(env, result->as_string());
         } else {
@@ -455,7 +455,7 @@ ValuePtr StringObject::sub(Env *env, ValuePtr find, ValuePtr replacement, Block 
     }
 }
 
-ValuePtr StringObject::gsub(Env *env, ValuePtr find, ValuePtr replacement_value, Block *block) {
+Value StringObject::gsub(Env *env, Value find, Value replacement_value, Block *block) {
     if (!replacement_value || block) {
         NAT_NOT_YET_IMPLEMENTED("String#gsub(/regex/) { block }")
     }
@@ -481,7 +481,7 @@ ValuePtr StringObject::gsub(Env *env, ValuePtr find, ValuePtr replacement_value,
 }
 
 StringObject *StringObject::regexp_sub(Env *env, RegexpObject *find, StringObject *replacement, MatchDataObject **match, StringObject **expanded_replacement, size_t start_index) {
-    ValuePtr match_result = find->as_regexp()->match(env, this, start_index);
+    Value match_result = find->as_regexp()->match(env, this, start_index);
     if (match_result == NilObject::the())
         return dup(env)->as_string();
     *match = match_result->as_match_data();
@@ -534,17 +534,17 @@ StringObject *StringObject::expand_backrefs(Env *env, StringObject *str, MatchDa
     return expanded;
 }
 
-ValuePtr StringObject::to_i(Env *env, ValuePtr base_obj) const {
+Value StringObject::to_i(Env *env, Value base_obj) const {
     int base = 10;
     if (base_obj) {
         base_obj->assert_type(env, Object::Type::Integer, "Integer");
         base = base_obj->as_integer()->to_nat_int_t();
     }
     nat_int_t number = strtoll(c_str(), nullptr, base);
-    return ValuePtr::integer(number);
+    return Value::integer(number);
 }
 
-ValuePtr StringObject::split(Env *env, ValuePtr splitter, ValuePtr max_count_value) {
+Value StringObject::split(Env *env, Value splitter, Value max_count_value) {
     ArrayObject *ary = new ArrayObject {};
     if (!splitter) {
         splitter = new RegexpObject { env, "\\s+" };
@@ -607,7 +607,7 @@ ValuePtr StringObject::split(Env *env, ValuePtr splitter, ValuePtr max_count_val
     }
 }
 
-ValuePtr StringObject::ljust(Env *env, ValuePtr length_obj, ValuePtr pad_obj) {
+Value StringObject::ljust(Env *env, Value length_obj, Value pad_obj) {
     length_obj->assert_type(env, Object::Type::Integer, "Integer");
     size_t length = length_obj->as_integer()->to_nat_int_t() < 0 ? 0 : length_obj->as_integer()->to_nat_int_t();
     StringObject *padstr;
@@ -628,7 +628,7 @@ ValuePtr StringObject::ljust(Env *env, ValuePtr length_obj, ValuePtr pad_obj) {
     return copy;
 }
 
-ValuePtr StringObject::strip(Env *env) const {
+Value StringObject::strip(Env *env) const {
     if (length() == 0)
         return new StringObject {};
     assert(length() < NAT_INT_MAX);
@@ -652,7 +652,7 @@ ValuePtr StringObject::strip(Env *env) const {
     }
 }
 
-ValuePtr StringObject::lstrip(Env *env) const {
+Value StringObject::lstrip(Env *env) const {
     if (length() == 0)
         return new StringObject {};
     assert(length() < NAT_INT_MAX);
@@ -671,7 +671,7 @@ ValuePtr StringObject::lstrip(Env *env) const {
     }
 }
 
-ValuePtr StringObject::rstrip(Env *env) const {
+Value StringObject::rstrip(Env *env) const {
     if (length() == 0)
         return new StringObject {};
     assert(length() < NAT_INT_MAX);
@@ -690,7 +690,7 @@ ValuePtr StringObject::rstrip(Env *env) const {
     }
 }
 
-ValuePtr StringObject::downcase(Env *env) {
+Value StringObject::downcase(Env *env) {
     auto ary = chars(env);
     auto str = new StringObject {};
     for (auto c_val : *ary) {
@@ -708,7 +708,7 @@ ValuePtr StringObject::downcase(Env *env) {
     return str;
 }
 
-ValuePtr StringObject::upcase(Env *env) {
+Value StringObject::upcase(Env *env) {
     auto ary = chars(env);
     auto str = new StringObject {};
     for (auto c_val : *ary) {
@@ -726,7 +726,7 @@ ValuePtr StringObject::upcase(Env *env) {
     return str;
 }
 
-ValuePtr StringObject::reverse(Env *env) {
+Value StringObject::reverse(Env *env) {
     if (length() == 0)
         return new StringObject {};
     auto ary = new ArrayObject {};
@@ -766,7 +766,7 @@ void StringObject::append(Env *, const String *str) {
     m_string.append(str->c_str());
 }
 
-void StringObject::append(Env *env, ValuePtr val) {
+void StringObject::append(Env *env, Value val) {
     if (val->is_string())
         append(env, val->as_string()->c_str());
     else

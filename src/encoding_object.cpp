@@ -7,7 +7,7 @@ EncodingObject::EncodingObject()
 
 ArrayObject *EncodingObject::list(Env *) {
     ArrayObject *ary = new ArrayObject {};
-    ValuePtr Encoding = GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern("Encoding"));
+    Value Encoding = GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern("Encoding"));
     ary->push(Encoding->const_fetch(SymbolObject::intern("ASCII_8BIT")));
     ary->push(Encoding->const_fetch(SymbolObject::intern("UTF_8")));
     return ary;
@@ -21,7 +21,7 @@ EncodingObject::EncodingObject(Encoding num, std::initializer_list<const char *>
     }
 }
 
-ValuePtr EncodingObject::name(Env *env) {
+Value EncodingObject::name(Env *env) {
     return m_names[0]->dup(env);
 }
 
@@ -33,7 +33,7 @@ ArrayObject *EncodingObject::names(Env *env) {
     return array;
 }
 
-ValuePtr EncodingObject::inspect(Env *env) {
+Value EncodingObject::inspect(Env *env) {
     return StringObject::format(env, "#<Encoding:{}>", name());
 }
 

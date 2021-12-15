@@ -19,24 +19,24 @@ public:
     RangeObject(ClassObject *klass)
         : Object { Object::Type::Range, klass } { }
 
-    RangeObject(ValuePtr begin, ValuePtr end, bool exclude_end)
+    RangeObject(Value begin, Value end, bool exclude_end)
         : Object { Object::Type::Range, GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern("Range"))->as_class() }
         , m_begin { begin }
         , m_end { end }
         , m_exclude_end { exclude_end } { }
 
-    ValuePtr begin() { return m_begin; }
-    ValuePtr end() { return m_end; }
+    Value begin() { return m_begin; }
+    Value end() { return m_end; }
     bool exclude_end() const { return m_exclude_end; }
 
-    ValuePtr initialize(Env *, ValuePtr, ValuePtr, ValuePtr);
-    ValuePtr to_a(Env *);
-    ValuePtr each(Env *, Block *);
-    ValuePtr first(Env *, ValuePtr);
-    ValuePtr inspect(Env *);
-    ValuePtr eq(Env *, ValuePtr);
-    ValuePtr eqeqeq(Env *, ValuePtr);
-    ValuePtr include(Env *, ValuePtr);
+    Value initialize(Env *, Value, Value, Value);
+    Value to_a(Env *);
+    Value each(Env *, Block *);
+    Value first(Env *, Value);
+    Value inspect(Env *);
+    Value eq(Env *, Value);
+    Value eqeqeq(Env *, Value);
+    Value include(Env *, Value);
 
     virtual void visit_children(Visitor &visitor) override {
         Object::visit_children(visitor);
@@ -49,12 +49,12 @@ public:
     }
 
 private:
-    ValuePtr m_begin { nullptr };
-    ValuePtr m_end { nullptr };
+    Value m_begin { nullptr };
+    Value m_end { nullptr };
     bool m_exclude_end { false };
 
     template <typename Function>
-    ValuePtr iterate_over_range(Env *env, Function &&f);
+    Value iterate_over_range(Env *env, Function &&f);
 };
 
 }

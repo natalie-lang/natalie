@@ -2,7 +2,7 @@
 
 namespace Natalie {
 
-ValuePtr ValuePtr::public_send(Env *env, SymbolObject *name, size_t argc, ValuePtr *args, Block *block) {
+Value Value::public_send(Env *env, SymbolObject *name, size_t argc, Value *args, Block *block) {
     if (m_type == Type::Integer && IntegerObject::optimized_method(name)) {
         if (argc > 0 && args[0].is_fast_integer())
             args[0].guard();
@@ -13,7 +13,7 @@ ValuePtr ValuePtr::public_send(Env *env, SymbolObject *name, size_t argc, ValueP
     return value()->public_send(env, name, argc, args, block);
 }
 
-ValuePtr ValuePtr::send(Env *env, SymbolObject *name, size_t argc, ValuePtr *args, Block *block) {
+Value Value::send(Env *env, SymbolObject *name, size_t argc, Value *args, Block *block) {
     if (m_type == Type::Integer && IntegerObject::optimized_method(name)) {
         if (argc > 0 && args[0].is_fast_integer())
             args[0].guard();
@@ -24,7 +24,7 @@ ValuePtr ValuePtr::send(Env *env, SymbolObject *name, size_t argc, ValuePtr *arg
     return value()->send(env, name, argc, args, block);
 }
 
-void ValuePtr::hydrate() {
+void Value::hydrate() {
     switch (m_type) {
     case Type::Integer: {
         m_type = Type::Pointer;

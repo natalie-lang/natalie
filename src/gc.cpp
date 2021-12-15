@@ -20,7 +20,7 @@ void Cell::operator delete(void *ptr) {
     NAT_UNREACHABLE();
 }
 
-void MarkingVisitor::visit(ValuePtr val) {
+void MarkingVisitor::visit(Value val) {
     visit(val.value_or_null());
 }
 

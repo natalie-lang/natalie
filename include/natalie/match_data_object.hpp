@@ -35,10 +35,10 @@ public:
 
     size_t index(size_t);
 
-    ValuePtr group(Env *, size_t);
+    Value group(Env *, size_t);
 
-    ValuePtr to_s(Env *);
-    ValuePtr ref(Env *, ValuePtr);
+    Value to_s(Env *);
+    Value ref(Env *, Value);
 
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<MatchDataObject %p>", this);
