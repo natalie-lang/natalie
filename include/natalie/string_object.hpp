@@ -163,6 +163,7 @@ public:
     Value strip(Env *) const;
     Value to_i(Env *, Value) const;
     Value upcase(Env *);
+    Value uplus(Env *);
 
     template <typename... Args>
     static StringObject *format(Env *env, const char *fmt, Args... args) {
