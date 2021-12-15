@@ -726,6 +726,14 @@ Value StringObject::upcase(Env *env) {
     return str;
 }
 
+Value StringObject::uplus(Env *env) {
+    if (this->is_frozen()) {
+        return this->dup(env);
+    } else {
+        return this;
+    }
+}
+
 Value StringObject::reverse(Env *env) {
     if (length() == 0)
         return new StringObject {};
