@@ -155,7 +155,7 @@ describe "Array#slice!" do
   end
 
   # FIXME add back once eval gets implemented
-  xit "works with endless ranges" do
+  it "works with endless ranges" do
     a = [1, 2, 3]
     a.slice!(eval("(1..)")).should == [2, 3]
     a.should == [1]

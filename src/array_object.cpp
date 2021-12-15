@@ -40,7 +40,11 @@ Value ArrayObject::initialize(Env *env, Value size, Value value, Block *block) {
     auto to_int = SymbolObject::intern("to_int");
     if (!size->is_integer() && size->respond_to(env, to_int))
         size = size->send(env, to_int);
+
     size->assert_type(env, Object::Type::Integer, "Integer");
+
+    if (size->as_integer()->is_bignum())
+        env->raise("ArgumentError", "array size too big");
 
     auto s = size->as_integer()->to_nat_int_t();
 
@@ -466,17 +470,20 @@ Value ArrayObject::fill(Env *env, Value obj, Value start_obj, Value length_obj, 
             if (start < 0)
                 env->raise("RangeError", "{} out of range", start_obj->inspect_str(env)->c_str());
 
-            Value end = start_obj->as_range()->end();
-            if (!end->is_integer() && end->respond_to(env, to_int)) {
-                end = end->send(env, to_int);
-            }
-            end->assert_type(env, Type::Integer, "Integer");
-            max = end->as_integer()->to_nat_int_t();
+            auto end = start_obj->as_range()->end();
 
-            if (max < 0)
-                max += size();
-            if (max != 0 && !start_obj->as_range()->exclude_end())
-                ++max;
+            if (!end->is_nil()) {
+                if (!end->is_integer() && end->respond_to(env, to_int)) {
+                    end = end->send(env, to_int);
+                }
+                end->assert_type(env, Type::Integer, "Integer");
+                max = end->as_integer()->to_nat_int_t();
+
+                if (max < 0)
+                    max += size();
+                if (max != 0 && !start_obj->as_range()->exclude_end())
+                    ++max;
+            }
         } else {
             if (!start_obj->is_integer() && start_obj->respond_to(env, to_int)) {
                 start_obj = start_obj->send(env, to_int);
@@ -538,6 +545,10 @@ Value ArrayObject::first(Env *env, Value n) {
         n = n->send(env, to_int);
 
     n->assert_type(env, Object::Type::Integer, "Integer");
+
+    if (n->as_integer()->is_bignum())
+        env->raise("RangeError", "bignum too big to convert into `long'");
+
     nat_int_t n_value = n->as_integer()->to_nat_int_t();
 
     if (n_value < 0) {
@@ -1989,16 +2000,22 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
         begin_obj->assert_type(env, ObjectType::Integer, "Integer");
         begin_obj->as_integer()->assert_fixnum(env);
 
+        nat_int_t start = begin_obj->as_integer()->to_nat_int_t();
+
         Value end_obj = range->end();
 
-        if (!end_obj->is_integer() && end_obj->respond_to(env, to_int))
-            end_obj = end_obj.send(env, to_int);
+        nat_int_t end;
 
-        end_obj->assert_type(env, ObjectType::Integer, "Integer");
-        end_obj->as_integer()->assert_fixnum(env);
+        if (end_obj->is_nil()) {
+            end = this->size();
+        } else {
+            if (!end_obj->is_integer() && end_obj->respond_to(env, to_int))
+                end_obj = end_obj.send(env, to_int);
 
-        nat_int_t start = begin_obj->as_integer()->to_nat_int_t();
-        nat_int_t end = end_obj->as_integer()->to_nat_int_t();
+            end_obj->assert_type(env, Type::Integer, "Integer");
+            end_obj->as_integer()->assert_fixnum(env);
+            end = end_obj->as_integer()->to_nat_int_t();
+        }
 
         return _slice_in_place(start, end, range->exclude_end());
     }

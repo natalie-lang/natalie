@@ -317,8 +317,7 @@ describe "Array#fill with (filler, range)" do
     -> { [].fill('a', obj..obj) }.should raise_error(TypeError)
   end
 
-  # NATFIXME: Implement eval
-  xit "works with endless ranges" do
+  it "works with endless ranges" do
     [1, 2, 3, 4].fill('x', eval("(1..)")).should == [1, 'x', 'x', 'x']
     [1, 2, 3, 4].fill('x', eval("(3...)")).should == [1, 2, 3, 'x']
     [1, 2, 3, 4].fill(eval("(1..)")) { |x| x + 2 }.should == [1, 3, 4, 5]
