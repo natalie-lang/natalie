@@ -64,7 +64,7 @@ namespace ArrayPacker {
         void pack_c() {
             auto source = m_source->to_nat_int_t();
             if (m_source->is_bignum()) {
-                source = (m_source->to_bignum() % 256).to_long_long();
+                source = (m_source->to_bigint() % 256).to_long_long();
             }
 
             m_packed->append_char(static_cast<signed char>(source));

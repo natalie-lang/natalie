@@ -79,7 +79,7 @@ public:
             env->raise("RangeError", "bignum too big to convert into `long'");
     }
 
-    virtual BigInt to_bignum() const { return BigInt(to_nat_int_t()); }
+    virtual BigInt to_bigint() const { return BigInt(to_nat_int_t()); }
 
     static bool optimized_method(SymbolObject *);
 

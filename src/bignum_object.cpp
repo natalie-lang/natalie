@@ -7,12 +7,12 @@ Value BignumObject::to_s(Env *env, Value base_value) {
         // NATFIXME
         NAT_UNREACHABLE();
     }
-    return new StringObject { m_bignum->to_string().c_str() };
+    return new StringObject { m_bigint->to_string().c_str() };
 }
 
 Value BignumObject::add(Env *env, Value arg) {
     if (arg->is_float()) {
-        double current = strtod(m_bignum->to_string().c_str(), NULL);
+        double current = strtod(m_bigint->to_string().c_str(), NULL);
         auto result = current + arg->as_float()->to_double();
         return new FloatObject { result };
     }
@@ -24,12 +24,12 @@ Value BignumObject::add(Env *env, Value arg) {
     arg->assert_type(env, Object::Type::Integer, "Integer");
 
     auto other = arg->as_integer();
-    return new BignumObject { to_bignum() + other->to_bignum() };
+    return new BignumObject { to_bigint() + other->to_bigint() };
 }
 
 Value BignumObject::sub(Env *env, Value arg) {
     if (arg->is_float()) {
-        double current = strtod(m_bignum->to_string().c_str(), NULL);
+        double current = strtod(m_bigint->to_string().c_str(), NULL);
         auto result = current - arg->as_float()->to_double();
         return new FloatObject { result };
     }
@@ -41,12 +41,12 @@ Value BignumObject::sub(Env *env, Value arg) {
     arg->assert_type(env, Object::Type::Integer, "Integer");
 
     auto other = arg->as_integer();
-    return new BignumObject { to_bignum() - other->to_bignum() };
+    return new BignumObject { to_bigint() - other->to_bigint() };
 }
 
 Value BignumObject::mul(Env *env, Value arg) {
     if (arg->is_float()) {
-        double current = strtod(m_bignum->to_string().c_str(), NULL);
+        double current = strtod(m_bigint->to_string().c_str(), NULL);
         auto result = current * arg->as_float()->to_double();
         return new FloatObject { result };
     }
@@ -58,12 +58,12 @@ Value BignumObject::mul(Env *env, Value arg) {
     arg->assert_type(env, Object::Type::Integer, "Integer");
 
     auto other = arg->as_integer();
-    return new BignumObject { to_bignum() * other->to_bignum() };
+    return new BignumObject { to_bigint() * other->to_bigint() };
 }
 
 Value BignumObject::div(Env *env, Value arg) {
     if (arg->is_float()) {
-        double current = strtod(m_bignum->to_string().c_str(), NULL);
+        double current = strtod(m_bigint->to_string().c_str(), NULL);
         auto result = current / arg->as_float()->to_double();
         return new FloatObject { result };
     }
@@ -78,16 +78,16 @@ Value BignumObject::div(Env *env, Value arg) {
     if (other->is_fixnum() && arg->as_integer()->to_nat_int_t() == 0)
         env->raise("ZeroDivisionError", "divided by 0");
 
-    return new BignumObject { to_bignum() / other->to_bignum() };
+    return new BignumObject { to_bigint() / other->to_bigint() };
 }
 
 Value BignumObject::negate(Env *env) {
-    return new BignumObject { -to_bignum() };
+    return new BignumObject { -to_bigint() };
 }
 
 bool BignumObject::eq(Env *env, Value other) {
     if (other->is_float()) {
-        return to_bignum() == other->as_float()->to_double();
+        return to_bigint() == other->as_float()->to_double();
     }
 
     if (!other->is_integer()) {
@@ -95,14 +95,14 @@ bool BignumObject::eq(Env *env, Value other) {
     }
 
     if (other->is_integer()) {
-        return to_bignum() == other->as_integer()->to_bignum();
+        return to_bigint() == other->as_integer()->to_bigint();
     }
     return other->send(env, SymbolObject::intern("=="), { this })->is_truthy();
 }
 
 bool BignumObject::lt(Env *env, Value other) {
     if (other->is_float()) {
-        return to_bignum() < other->as_float()->to_double();
+        return to_bigint() < other->as_float()->to_double();
     }
 
     if (!other->is_integer()) {
@@ -110,14 +110,14 @@ bool BignumObject::lt(Env *env, Value other) {
     }
 
     if (other->is_integer()) {
-        return to_bignum() < other->as_integer()->to_bignum();
+        return to_bigint() < other->as_integer()->to_bigint();
     }
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
 }
 
 bool BignumObject::lte(Env *env, Value other) {
     if (other->is_float()) {
-        return to_bignum() <= other->as_float()->to_double();
+        return to_bigint() <= other->as_float()->to_double();
     }
 
     if (!other->is_integer()) {
@@ -125,14 +125,14 @@ bool BignumObject::lte(Env *env, Value other) {
     }
 
     if (other->is_integer()) {
-        return to_bignum() <= other->as_integer()->to_bignum();
+        return to_bigint() <= other->as_integer()->to_bigint();
     }
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
 }
 
 bool BignumObject::gt(Env *env, Value other) {
     if (other->is_float()) {
-        return to_bignum() > other->as_float()->to_double();
+        return to_bigint() > other->as_float()->to_double();
     }
 
     if (!other->is_integer()) {
@@ -140,14 +140,14 @@ bool BignumObject::gt(Env *env, Value other) {
     }
 
     if (other->is_integer()) {
-        return to_bignum() > other->as_integer()->to_bignum();
+        return to_bigint() > other->as_integer()->to_bigint();
     }
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
 }
 
 bool BignumObject::gte(Env *env, Value other) {
     if (other->is_float()) {
-        return to_bignum() >= other->as_float()->to_double();
+        return to_bigint() >= other->as_float()->to_double();
     }
 
     if (!other->is_integer()) {
@@ -155,7 +155,7 @@ bool BignumObject::gte(Env *env, Value other) {
     }
 
     if (other->is_integer()) {
-        return to_bignum() >= other->as_integer()->to_bignum();
+        return to_bigint() >= other->as_integer()->to_bigint();
     }
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
 }

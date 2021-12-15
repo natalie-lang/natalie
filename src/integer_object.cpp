@@ -79,7 +79,7 @@ Value IntegerObject::add(Env *env, Value arg) {
 
     auto other = arg->as_integer();
     if (other->is_bignum()) {
-        auto result = to_bignum() + other->to_bignum();
+        auto result = to_bigint() + other->to_bigint();
         return new BignumObject { result };
     }
 
@@ -118,7 +118,7 @@ Value IntegerObject::sub(Env *env, Value arg) {
 
     auto other = arg->as_integer();
     if (other->is_bignum()) {
-        auto result = to_bignum() - other->to_bignum();
+        auto result = to_bigint() - other->to_bigint();
         return new BignumObject { result };
     }
 
@@ -162,7 +162,7 @@ Value IntegerObject::mul(Env *env, Value arg) {
 
     auto other = arg->as_integer();
     if (other->is_bignum()) {
-        auto result = to_bignum() * other->to_bignum();
+        auto result = to_bigint() * other->to_bigint();
         return new BignumObject { result };
     }
 
@@ -195,7 +195,7 @@ Value IntegerObject::div(Env *env, Value arg) {
     auto other = arg->as_integer();
     if (other->is_bignum()) {
         auto other = arg->as_integer();
-        auto result = to_bignum() / other->to_bignum();
+        auto result = to_bigint() / other->to_bigint();
         return new BignumObject { result };
     }
 
@@ -257,7 +257,7 @@ bool IntegerObject::eq(Env *env, Value other) {
 
     if (other->is_integer()) {
         if (other->as_integer()->is_bignum())
-            return to_bignum() == other->as_integer()->to_bignum();
+            return to_bigint() == other->as_integer()->to_bigint();
         return to_nat_int_t() == other->as_integer()->to_nat_int_t();
     }
     return other->send(env, SymbolObject::intern("=="), { this })->is_truthy();
@@ -279,7 +279,7 @@ bool IntegerObject::lt(Env *env, Value other) {
 
     if (other->is_integer()) {
         if (other->as_integer()->is_bignum())
-            return to_bignum() < other->as_integer()->to_bignum();
+            return to_bigint() < other->as_integer()->to_bigint();
         return to_nat_int_t() < other->as_integer()->to_nat_int_t();
     }
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
@@ -301,7 +301,7 @@ bool IntegerObject::lte(Env *env, Value other) {
 
     if (other->is_integer()) {
         if (other->as_integer()->is_bignum())
-            return to_bignum() <= other->as_integer()->to_bignum();
+            return to_bigint() <= other->as_integer()->to_bigint();
         return to_nat_int_t() <= other->as_integer()->to_nat_int_t();
     }
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
@@ -323,7 +323,7 @@ bool IntegerObject::gt(Env *env, Value other) {
 
     if (other->is_integer()) {
         if (other->as_integer()->is_bignum())
-            return to_bignum() > other->as_integer()->to_bignum();
+            return to_bigint() > other->as_integer()->to_bigint();
         return to_nat_int_t() > other->as_integer()->to_nat_int_t();
     }
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
@@ -345,7 +345,7 @@ bool IntegerObject::gte(Env *env, Value other) {
 
     if (other->is_integer()) {
         if (other->as_integer()->is_bignum())
-            return to_bignum() >= other->as_integer()->to_bignum();
+            return to_bigint() >= other->as_integer()->to_bigint();
         return to_nat_int_t() >= other->as_integer()->to_nat_int_t();
     }
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
