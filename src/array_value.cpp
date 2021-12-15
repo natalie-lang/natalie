@@ -42,7 +42,7 @@ ValuePtr ArrayValue::initialize(Env *env, ValuePtr size, ValuePtr value, Block *
         size = size->send(env, to_int);
 
     if (size.is_bignum())
-        env->raise("RangeError", "bignum too big to convert into `long'");
+        env->raise("ArgumentError", "array size too big");
 
     size->assert_type(env, Value::Type::Integer, "Integer");
 
