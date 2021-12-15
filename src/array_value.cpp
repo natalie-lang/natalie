@@ -1474,7 +1474,7 @@ ValuePtr ArrayValue::bsearch_index(Env *env, Block *block) {
 
         if (outcome->is_numeric()) {
             auto result = (outcome->is_integer() ? outcome->as_integer()->to_nat_int_t()
-                                                : floor(outcome->as_float()->to_double()));
+                                                 : floor(outcome->as_float()->to_double()));
             if (result == 0) {
                 last_index = i;
                 break;
