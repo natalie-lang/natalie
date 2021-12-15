@@ -551,7 +551,7 @@ gen.binding('Integer', '<=', 'IntegerValue', 'lte', argc: 1, pass_env: true, pas
 gen.binding('Integer', '>', 'IntegerValue', 'gt', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Integer', '>=', 'IntegerValue', 'gte', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Integer', '==', 'IntegerValue', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.binding('Integer', '===', 'IntegerValue', 'eqeqeq', argc: 1, pass_env: true, pass_block: false, return_type: :Value)
+gen.binding('Integer', '===', 'IntegerValue', 'eqeqeq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Integer', 'abs', 'IntegerValue', 'abs', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Integer', 'chr', 'IntegerValue', 'chr', argc: 0, pass_env: true, pass_block: false, return_type: :Value)
 gen.binding('Integer', 'coerce', 'IntegerValue', 'coerce', argc: 1, pass_env: true, pass_block: false, return_type: :Value)

@@ -38,7 +38,7 @@ ValuePtr ArrayValue::initialize(Env *env, ValuePtr size, ValuePtr value, Block *
     }
 
     auto to_int = SymbolValue::intern("to_int");
-    if (!size.is_integer() && size->respond_to(env, to_int))
+    if (!size->is_integer() && size->respond_to(env, to_int))
         size = size->send(env, to_int);
     size->assert_type(env, Value::Type::Integer, "Integer");
 
@@ -198,24 +198,24 @@ ValuePtr ArrayValue::refeq(Env *env, ValuePtr index_obj, ValuePtr size, ValuePtr
         // Ignore "size"
         val = size;
 
-        if (!begin_obj.is_integer() && begin_obj->respond_to(env, to_int))
+        if (!begin_obj->is_integer() && begin_obj->respond_to(env, to_int))
             begin_obj = begin_obj->send(env, to_int);
         begin_obj->assert_type(env, Value::Type::Integer, "Integer");
 
-        if (!end_obj.is_integer() && end_obj->respond_to(env, to_int))
+        if (!end_obj->is_integer() && end_obj->respond_to(env, to_int))
             end_obj = end_obj->send(env, to_int);
         end_obj->assert_type(env, Value::Type::Integer, "Integer");
 
-        start = begin_obj.to_nat_int_t();
+        start = begin_obj->as_integer()->to_nat_int_t();
         if (start < 0) {
             if ((size_t)(-start) > this->size()) {
-                env->raise("RangeError", "{}..{}{} out of range", start, range->exclude_end() ? "." : "", end_obj.to_nat_int_t());
+                env->raise("RangeError", "{}..{}{} out of range", start, range->exclude_end() ? "." : "", end_obj->as_integer()->to_nat_int_t());
                 return nullptr;
             }
             start = this->size() + start;
         }
 
-        nat_int_t end = end_obj.to_nat_int_t();
+        nat_int_t end = end_obj->as_integer()->to_nat_int_t();
         if (end < 0) {
             end = this->size() + end;
         }
@@ -228,7 +228,7 @@ ValuePtr ArrayValue::refeq(Env *env, ValuePtr index_obj, ValuePtr size, ValuePtr
             width = this->size() - start;
         }
     } else {
-        if (!index_obj.is_integer() && index_obj->respond_to(env, to_int))
+        if (!index_obj->is_integer() && index_obj->respond_to(env, to_int))
             index_obj = index_obj->send(env, to_int);
         index_obj->assert_type(env, ValueType::Integer, "Integer");
 
@@ -252,7 +252,7 @@ ValuePtr ArrayValue::refeq(Env *env, ValuePtr index_obj, ValuePtr size, ValuePtr
             return val;
         }
 
-        if (!size.is_integer() && size->respond_to(env, to_int))
+        if (!size->is_integer() && size->respond_to(env, to_int))
             size = size->send(env, to_int);
 
         size->assert_type(env, Value::Type::Integer, "Integer");
@@ -455,7 +455,7 @@ ValuePtr ArrayValue::fill(Env *env, ValuePtr obj, ValuePtr start_obj, ValuePtr l
     if (start_obj && !start_obj->is_nil()) {
         if (!length_obj && start_obj->is_range()) {
             ValuePtr begin = start_obj->as_range()->begin();
-            if (!begin.is_integer() && begin->respond_to(env, to_int)) {
+            if (!begin->is_integer() && begin->respond_to(env, to_int)) {
                 begin = begin->send(env, to_int);
             }
             begin->assert_type(env, Type::Integer, "Integer");
@@ -467,7 +467,7 @@ ValuePtr ArrayValue::fill(Env *env, ValuePtr obj, ValuePtr start_obj, ValuePtr l
                 env->raise("RangeError", "{} out of range", start_obj->inspect_str(env)->c_str());
 
             ValuePtr end = start_obj->as_range()->end();
-            if (!end.is_integer() && end->respond_to(env, to_int)) {
+            if (!end->is_integer() && end->respond_to(env, to_int)) {
                 end = end->send(env, to_int);
             }
             end->assert_type(env, Type::Integer, "Integer");
@@ -478,7 +478,7 @@ ValuePtr ArrayValue::fill(Env *env, ValuePtr obj, ValuePtr start_obj, ValuePtr l
             if (max != 0 && !start_obj->as_range()->exclude_end())
                 ++max;
         } else {
-            if (!start_obj.is_integer() && start_obj->respond_to(env, to_int)) {
+            if (!start_obj->is_integer() && start_obj->respond_to(env, to_int)) {
                 start_obj = start_obj->send(env, to_int);
             }
             start_obj->assert_type(env, Type::Integer, "Integer");
@@ -490,7 +490,7 @@ ValuePtr ArrayValue::fill(Env *env, ValuePtr obj, ValuePtr start_obj, ValuePtr l
                 start = 0;
 
             if (length_obj && !length_obj->is_nil()) {
-                if (!length_obj.is_integer() && length_obj->respond_to(env, to_int)) {
+                if (!length_obj->is_integer() && length_obj->respond_to(env, to_int)) {
                     length_obj = length_obj->send(env, to_int);
                 }
                 length_obj->assert_type(env, Type::Integer, "Integer");
@@ -534,7 +534,7 @@ ValuePtr ArrayValue::first(Env *env, ValuePtr n) {
     ArrayValue *array = new ArrayValue();
 
     auto to_int = SymbolValue::intern("to_int");
-    if (!n.is_integer() && n->respond_to(env, to_int))
+    if (!n->is_integer() && n->respond_to(env, to_int))
         n = n->send(env, to_int);
 
     n->assert_type(env, Value::Type::Integer, "Integer");
@@ -741,7 +741,7 @@ ValuePtr ArrayValue::dig(Env *env, size_t argc, ValuePtr *args) {
 
 ValuePtr ArrayValue::drop(Env *env, ValuePtr n) {
     auto to_int = SymbolValue::intern("to_int");
-    if (!n.is_integer() && n->respond_to(env, to_int))
+    if (!n->is_integer() && n->respond_to(env, to_int))
         n = n->send(env, to_int);
 
     n->assert_type(env, Value::Type::Integer, "Integer");
@@ -801,7 +801,7 @@ ValuePtr ArrayValue::last(Env *env, ValuePtr n) {
     ArrayValue *array = new ArrayValue();
 
     auto to_int = SymbolValue::intern("to_int");
-    if (!n.is_integer() && n->respond_to(env, to_int))
+    if (!n->is_integer() && n->respond_to(env, to_int))
         n = n->send(env, to_int);
 
     n->assert_type(env, Value::Type::Integer, "Integer");
@@ -1473,7 +1473,7 @@ ValuePtr ArrayValue::bsearch_index(Env *env, Block *block) {
         }
 
         if (outcome->is_numeric()) {
-            auto result = (outcome.is_integer() ? outcome->as_integer()->to_nat_int_t()
+            auto result = (outcome->is_integer() ? outcome->as_integer()->to_nat_int_t()
                                                 : floor(outcome->as_float()->to_double()));
             if (result == 0) {
                 last_index = i;
@@ -1557,7 +1557,7 @@ ValuePtr ArrayValue::insert(Env *env, size_t argc, ValuePtr *args) {
 
     auto index_ptr = args[0];
 
-    if (!index_ptr.is_integer()) {
+    if (!index_ptr->is_integer()) {
         auto sym_to_int = SymbolValue::intern("to_int");
 
         if (index_ptr->respond_to(env, sym_to_int)) {
@@ -1565,10 +1565,10 @@ ValuePtr ArrayValue::insert(Env *env, size_t argc, ValuePtr *args) {
         }
     }
 
-    if (!index_ptr.is_integer())
+    if (!index_ptr->is_integer())
         env->raise("TypeError", "no implicit conversion of {} into Integer", index_ptr->klass()->class_name_or_blank());
 
-    auto index = index_ptr.to_nat_int_t();
+    auto index = index_ptr->as_integer()->to_nat_int_t();
     auto should_append = index < 0;
 
     if (index < 0)
@@ -1755,10 +1755,10 @@ ValuePtr ArrayValue::fetch(Env *env, ValuePtr arg_index, ValuePtr default_value,
     auto to_int = SymbolValue::intern("to_int");
     ValuePtr index_obj = arg_index;
 
-    if (!arg_index.is_integer()) {
+    if (!arg_index->is_integer()) {
         if (arg_index->respond_to(env, to_int)) {
             index_obj = arg_index->send(env, to_int);
-            if (!index_obj.is_integer()) {
+            if (!index_obj->is_integer()) {
                 auto arg_index_class = arg_index->klass()->inspect_str(env);
                 env->raise("TypeError", "can't convert {} to Integer ({}#to_int gives {})", arg_index_class, arg_index_class, index_obj->klass()->inspect_str(env));
             }
@@ -1948,7 +1948,7 @@ ValuePtr ArrayValue::slice_in_place(Env *env, ValuePtr index_obj, ValuePtr size)
     if (index_obj->is_integer()) {
         index_obj->as_integer()->assert_fixnum(env);
 
-        auto start = index_obj.to_nat_int_t();
+        auto start = index_obj->as_integer()->to_nat_int_t();
 
         if (!size) {
             start = _resolve_index(start);
@@ -1965,7 +1965,7 @@ ValuePtr ArrayValue::slice_in_place(Env *env, ValuePtr index_obj, ValuePtr size)
 
         size->assert_type(env, ValueType::Integer, "Integer");
 
-        nat_int_t length = size.to_nat_int_t();
+        nat_int_t length = size->as_integer()->to_nat_int_t();
 
         if (length < 0)
             return NilValue::the();
@@ -1997,8 +1997,8 @@ ValuePtr ArrayValue::slice_in_place(Env *env, ValuePtr index_obj, ValuePtr size)
         end_obj->assert_type(env, ValueType::Integer, "Integer");
         end_obj->as_integer()->assert_fixnum(env);
 
-        nat_int_t start = begin_obj.to_nat_int_t();
-        nat_int_t end = end_obj.to_nat_int_t();
+        nat_int_t start = begin_obj->as_integer()->to_nat_int_t();
+        nat_int_t end = end_obj->as_integer()->to_nat_int_t();
 
         return _slice_in_place(start, end, range->exclude_end());
     }

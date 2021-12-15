@@ -28,51 +28,13 @@ void ValuePtr::hydrate() {
     switch (m_type) {
     case Type::Integer: {
         m_type = Type::Pointer;
-        bool was_gc_enabled = Heap::the().gc_enabled();
-        Heap::the().gc_disable();
         m_value = new IntegerValue { m_integer };
-        if (was_gc_enabled) Heap::the().gc_enable();
         m_integer = 0;
         break;
     }
     case Type::Pointer:
         break;
     }
-}
-
-bool ValuePtr::is_integer() {
-    if (m_type == Type::Integer)
-        return true;
-
-    return value()->is_integer();
-}
-
-bool ValuePtr::is_float() {
-    if (m_type == Type::Integer)
-        return false;
-
-    return value()->is_float();
-}
-
-bool ValuePtr::is_bignum() {
-    if (m_type == Type::Integer)
-        return false;
-
-    return value()->is_integer() && value()->as_integer()->is_bignum();
-}
-
-void ValuePtr::assert_type(Env *env, ValueType type, const char *type_name) {
-    if (m_type == Type::Integer && type == ValueType::Integer)
-        return;
-
-    value()->assert_type(env, type, type_name);
-}
-
-nat_int_t ValuePtr::to_nat_int_t() {
-    if (m_type == Type::Integer)
-        return m_integer;
-
-    return value()->as_integer()->to_nat_int_t();
 }
 
 }

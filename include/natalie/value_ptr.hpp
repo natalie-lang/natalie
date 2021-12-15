@@ -1,5 +1,6 @@
 #pragma once
 
+#include <assert.h>
 #include <initializer_list>
 #include <iterator>
 
@@ -81,11 +82,10 @@ public:
         return m_type == Type::Integer;
     }
 
-    bool is_integer();
-    bool is_float();
-    bool is_bignum();
-    void assert_type(Env *, ValueType, const char *);
-    nat_int_t to_nat_int_t();
+    nat_int_t get_fast_integer() const {
+        assert(m_type == Type::Integer);
+        return m_integer;
+    }
 
     ValuePtr guard() {
         m_guarded = true;

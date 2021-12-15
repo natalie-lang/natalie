@@ -52,7 +52,7 @@ public:
     ValuePtr mod(Env *, ValuePtr) const;
     ValuePtr pow(Env *, ValuePtr) const;
     ValuePtr cmp(Env *, ValuePtr);
-    ValuePtr eqeqeq(Env *, ValuePtr) const;
+    bool eqeqeq(Env *, ValuePtr) const;
     ValuePtr times(Env *, Block *);
     ValuePtr bitwise_and(Env *, ValuePtr) const;
     ValuePtr bitwise_or(Env *, ValuePtr) const;
@@ -91,8 +91,6 @@ private:
     inline static Hashmap<SymbolValue *> s_optimized_methods {};
 
     nat_int_t m_integer { 0 };
-
-    nat_int_t div_floor(nat_int_t) const;
 };
 
 }

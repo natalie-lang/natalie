@@ -47,145 +47,191 @@ ValuePtr IntegerValue::to_f() const {
     return new FloatValue { m_integer };
 }
 
+ValuePtr add_fast(nat_int_t a, nat_int_t b) {
+    nat_int_t result = a + b;
+
+    bool overflowed = false;
+    if (a < 0 && b < 0 && result > 0)
+        overflowed = true;
+    if (a > 0 && b > 0 && result < 0)
+        overflowed = true;
+    if (overflowed) {
+        auto result = BigInt(a) + BigInt(b);
+        return new BignumValue { result };
+    }
+
+    return ValuePtr::integer(result);
+}
+
 ValuePtr IntegerValue::add(Env *env, ValuePtr arg) {
-    if (arg.is_float()) {
+    if (arg.is_fast_integer())
+        return add_fast(m_integer, arg.get_fast_integer());
+
+    arg.unguard();
+
+    if (arg->is_float()) {
         double result = to_nat_int_t() + arg->as_float()->to_double();
         return new FloatValue { result };
-    } else if (!arg.is_integer()) {
+    } else if (!arg->is_integer()) {
         arg = Natalie::coerce(env, arg, this).second;
     }
-    arg.assert_type(env, Value::Type::Integer, "Integer");
+    arg->assert_type(env, Value::Type::Integer, "Integer");
 
-    if (arg.is_bignum()) {
-        auto other = arg->as_integer();
+    auto other = arg->as_integer();
+    if (other->is_bignum()) {
         auto result = to_bignum() + other->to_bignum();
         return new BignumValue { result };
     }
 
-    nat_int_t result = to_nat_int_t() + arg.to_nat_int_t();
+    return add_fast(m_integer, other->to_nat_int_t());
+}
+
+ValuePtr sub_fast(nat_int_t a, nat_int_t b) {
+    nat_int_t result = a - b;
+
     bool overflowed = false;
-    if (to_nat_int_t() < 0 && arg.to_nat_int_t() < 0 && result > 0)
+    if (a > 0 && b < 0 && result < 0)
         overflowed = true;
-    if (to_nat_int_t() > 0 && arg.to_nat_int_t() > 0 && result < 0)
+    if (a < 0 && b > 0 && result > 0)
         overflowed = true;
-
     if (overflowed) {
-        auto other = arg.unguard()->as_integer();
-        auto result = to_bignum() + other->to_bignum();
+        auto result = BigInt(a) - BigInt(b);
         return new BignumValue { result };
     }
+
     return ValuePtr::integer(result);
 }
 
 ValuePtr IntegerValue::sub(Env *env, ValuePtr arg) {
-    if (arg.is_float()) {
+    if (arg.is_fast_integer())
+        return sub_fast(m_integer, arg.get_fast_integer());
+
+    arg.unguard();
+
+    if (arg->is_float()) {
         double result = to_nat_int_t() - arg->as_float()->to_double();
         return new FloatValue { result };
-    } else if (!arg.is_integer()) {
+    } else if (!arg->is_integer()) {
         arg = Natalie::coerce(env, arg, this).second;
     }
-    arg.assert_type(env, Value::Type::Integer, "Integer");
+    arg->assert_type(env, Value::Type::Integer, "Integer");
 
-    if (arg.is_bignum()) {
-        auto other = arg->as_integer();
+    auto other = arg->as_integer();
+    if (other->is_bignum()) {
         auto result = to_bignum() - other->to_bignum();
         return new BignumValue { result };
     }
 
-    nat_int_t result = to_nat_int_t() - arg.to_nat_int_t();
-    bool overflowed = false;
-    if (to_nat_int_t() > 0 && arg.to_nat_int_t() < 0 && result < 0)
-        overflowed = true;
-    if (to_nat_int_t() < 0 && arg.to_nat_int_t() > 0 && result > 0)
-        overflowed = true;
-
-    if (overflowed) {
-        auto other = arg.unguard()->as_integer();
-        auto result = to_bignum() - other->to_bignum();
-        return new BignumValue { result };
-    }
-
-    return ValuePtr::integer(result);
+    return sub_fast(m_integer, other->to_nat_int_t());
 }
 
-ValuePtr IntegerValue::mul(Env *env, ValuePtr arg) {
-    if (arg.is_float()) {
-        double result = to_nat_int_t() * arg->as_float()->to_double();
-        return new FloatValue { result };
-    } else if (!arg.is_integer()) {
-        arg = Natalie::coerce(env, arg, this).second;
-    }
-
-    arg.assert_type(env, Value::Type::Integer, "Integer");
-
-    if (to_nat_int_t() == 0 || arg.to_nat_int_t() == 0)
+ValuePtr mul_fast(nat_int_t a, nat_int_t b) {
+    if (a == 0 || b == 0)
         return ValuePtr::integer(0);
 
-    if (arg.is_bignum())
-        return (BignumValue { to_bignum() }).mul(env, arg);
+    auto min_fraction = (NAT_MIN_FIXNUM) / b;
+    auto max_fraction = (NAT_MAX_FIXNUM) / b;
 
-    auto ll_this = to_nat_int_t();
-    auto ll_arg = arg.to_nat_int_t();
-
-    auto min_fraction = (NAT_MIN_FIXNUM) / ll_arg;
-    auto max_fraction = (NAT_MAX_FIXNUM) / ll_arg;
-
-    if ((ll_this > 0 && ll_arg > 0 && max_fraction <= ll_this)
-        || (ll_this > 0 && ll_arg < 0 && min_fraction <= ll_this)
-        || (ll_this < 0 && ll_arg > 0 && min_fraction >= ll_this)
-        || (ll_this < 0 && ll_arg < 0 && max_fraction >= ll_this)) {
-        return (BignumValue { to_bignum() }).mul(env, arg.unguard());
+    if ((a > 0 && b > 0 && max_fraction <= a)
+        || (a > 0 && b < 0 && min_fraction <= a)
+        || (a < 0 && b > 0 && min_fraction >= a)
+        || (a < 0 && b < 0 && max_fraction >= a)) {
+        auto result = BigInt(a) * BigInt(b);
+        return new BignumValue { result };
     }
 
-    return ValuePtr::integer(ll_this * ll_arg);
+    return ValuePtr::integer(a * b);
+}
+ValuePtr IntegerValue::mul(Env *env, ValuePtr arg) {
+    if (arg.is_fast_integer())
+        return mul_fast(m_integer, arg.get_fast_integer());
+
+    arg.unguard();
+
+    if (arg->is_float()) {
+        double result = to_nat_int_t() * arg->as_float()->to_double();
+        return new FloatValue { result };
+    } else if (!arg->is_integer()) {
+        arg = Natalie::coerce(env, arg, this).second;
+    }
+
+    arg->assert_type(env, Value::Type::Integer, "Integer");
+
+    if (m_integer == 0 || arg->as_integer()->to_nat_int_t() == 0)
+        return ValuePtr::integer(0);
+
+    auto other = arg->as_integer();
+    if (other->is_bignum()) {
+        auto result = to_bignum() * other->to_bignum();
+        return new BignumValue { result };
+    }
+
+    return mul_fast(m_integer, other->to_nat_int_t());
 }
 
-nat_int_t IntegerValue::div_floor(nat_int_t b) const {
-    nat_int_t a = to_nat_int_t();
+ValuePtr div_fast(nat_int_t a, nat_int_t b) {
     nat_int_t res = a / b;
     nat_int_t rem = a % b;
     // Correct division result downwards if up-rounding happened,
     // (for non-zero remainder of sign different than the divisor).
     bool corr = (rem != 0 && ((rem < 0) != (b < 0)));
-    return res - corr;
+    return ValuePtr::integer(res - corr);
 }
 
 ValuePtr IntegerValue::div(Env *env, ValuePtr arg) {
-    if (arg.is_float()) {
+    if (arg.is_fast_integer() && arg.get_fast_integer() != 0)
+        return div_fast(m_integer, arg.get_fast_integer());
+
+    arg.unguard();
+
+    if (arg->is_float()) {
         double result = to_nat_int_t() / arg->as_float()->to_double();
         return new FloatValue { result };
-    } else if (!arg.is_integer()) {
+    } else if (!arg->is_integer()) {
         arg = Natalie::coerce(env, arg, this).second;
     }
-    arg.assert_type(env, Value::Type::Integer, "Integer");
+    arg->assert_type(env, Value::Type::Integer, "Integer");
 
-    if (arg.is_bignum()) {
+    auto other = arg->as_integer();
+    if (other->is_bignum()) {
         auto other = arg->as_integer();
         auto result = to_bignum() / other->to_bignum();
         return new BignumValue { result };
     }
 
-    if (arg.to_nat_int_t() == 0)
+    if (other->to_nat_int_t() == 0)
         env->raise("ZeroDivisionError", "divided by 0");
 
-    nat_int_t result = div_floor(arg.to_nat_int_t());
-    return ValuePtr::integer(result);
+    return div_fast(m_integer, other->to_nat_int_t());
 }
 
 ValuePtr IntegerValue::mod(Env *env, ValuePtr arg) const {
-    arg.assert_type(env, Value::Type::Integer, "Integer");
-    nat_int_t result = to_nat_int_t() % arg.to_nat_int_t();
+    if (arg.is_fast_integer())
+        return ValuePtr::integer(m_integer % arg.get_fast_integer());
+
+    arg.unguard();
+    arg->assert_type(env, Value::Type::Integer, "Integer");
+    auto result = m_integer % arg->as_integer()->to_nat_int_t();
     return ValuePtr::integer(result);
 }
 
 ValuePtr IntegerValue::pow(Env *env, ValuePtr arg) const {
-    arg.assert_type(env, Value::Type::Integer, "Integer");
-    nat_int_t result = ::pow(to_nat_int_t(), arg.to_nat_int_t());
+    if (arg.is_fast_integer())
+        return ValuePtr::integer(::pow(m_integer, arg.get_fast_integer()));
+
+    arg.unguard();
+    arg->assert_type(env, Value::Type::Integer, "Integer");
+    auto result = ::pow(m_integer, arg->as_integer()->to_nat_int_t());
     return ValuePtr::integer(result);
 }
 
 ValuePtr IntegerValue::cmp(Env *env, ValuePtr arg) {
-    if (!arg.is_integer() && !arg.is_float()) return NilValue::the();
+    if (!arg.is_fast_integer()) {
+        arg.unguard();
+        if (!arg->is_integer() && !arg->is_float())
+            return NilValue::the();
+    }
+
     if (lt(env, arg)) {
         return ValuePtr::integer(-1);
     } else if (eq(env, arg)) {
@@ -196,96 +242,122 @@ ValuePtr IntegerValue::cmp(Env *env, ValuePtr arg) {
 }
 
 bool IntegerValue::eq(Env *env, ValuePtr other) {
-    if (other.is_float()) {
+    if (other.is_fast_integer())
+        return m_integer == other.get_fast_integer();
+
+    other.unguard();
+
+    if (other->is_float()) {
         return to_nat_int_t() == other->as_float()->to_double();
     }
 
-    if (!other.is_integer()) {
+    if (!other->is_integer()) {
         other = Natalie::coerce(env, other, this).second;
     }
 
-    if (other.is_integer()) {
-        if (other.is_bignum())
+    if (other->is_integer()) {
+        if (other->as_integer()->is_bignum())
             return to_bignum() == other->as_integer()->to_bignum();
-        return to_nat_int_t() == other.to_nat_int_t();
+        return to_nat_int_t() == other->as_integer()->to_nat_int_t();
     }
     return other->send(env, SymbolValue::intern("=="), { this })->is_truthy();
 }
 
 bool IntegerValue::lt(Env *env, ValuePtr other) {
-    if (other.is_float()) {
+    if (other.is_fast_integer())
+        return m_integer < other.get_fast_integer();
+
+    other.unguard();
+
+    if (other->is_float()) {
         return to_nat_int_t() < other->as_float()->to_double();
     }
 
-    if (!other.is_integer()) {
+    if (!other->is_integer()) {
         other = Natalie::coerce(env, other, this).second;
     }
 
-    if (other.is_integer()) {
-        if (other.is_bignum())
+    if (other->is_integer()) {
+        if (other->as_integer()->is_bignum())
             return to_bignum() < other->as_integer()->to_bignum();
-        return to_nat_int_t() < other.to_nat_int_t();
+        return to_nat_int_t() < other->as_integer()->to_nat_int_t();
     }
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
 }
 
 bool IntegerValue::lte(Env *env, ValuePtr other) {
-    if (other.is_float()) {
+    if (other.is_fast_integer())
+        return m_integer <= other.get_fast_integer();
+
+    other.unguard();
+
+    if (other->is_float()) {
         return to_nat_int_t() <= other->as_float()->to_double();
     }
 
-    if (!other.is_integer()) {
+    if (!other->is_integer()) {
         other = Natalie::coerce(env, other, this).second;
     }
 
-    if (other.is_integer()) {
-        if (other.is_bignum())
+    if (other->is_integer()) {
+        if (other->as_integer()->is_bignum())
             return to_bignum() <= other->as_integer()->to_bignum();
-        return to_nat_int_t() <= other.to_nat_int_t();
+        return to_nat_int_t() <= other->as_integer()->to_nat_int_t();
     }
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
 }
 
 bool IntegerValue::gt(Env *env, ValuePtr other) {
-    if (other.is_float()) {
+    if (other.is_fast_integer())
+        return m_integer > other.get_fast_integer();
+
+    other.unguard();
+
+    if (other->is_float()) {
         return to_nat_int_t() > other->as_float()->to_double();
     }
 
-    if (!other.is_integer()) {
+    if (!other->is_integer()) {
         other = Natalie::coerce(env, other, this).second;
     }
 
-    if (other.is_integer()) {
-        if (other.is_bignum())
+    if (other->is_integer()) {
+        if (other->as_integer()->is_bignum())
             return to_bignum() > other->as_integer()->to_bignum();
-        return to_nat_int_t() > other.to_nat_int_t();
+        return to_nat_int_t() > other->as_integer()->to_nat_int_t();
     }
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
 }
 
 bool IntegerValue::gte(Env *env, ValuePtr other) {
-    if (other.is_float()) {
+    if (other.is_fast_integer())
+        return m_integer >= other.get_fast_integer();
+
+    other.unguard();
+
+    if (other->is_float()) {
         return to_nat_int_t() >= other->as_float()->to_double();
     }
 
-    if (!other.is_integer()) {
+    if (!other->is_integer()) {
         other = Natalie::coerce(env, other, this).second;
     }
 
-    if (other.is_integer()) {
-        if (other.is_bignum())
+    if (other->is_integer()) {
+        if (other->as_integer()->is_bignum())
             return to_bignum() >= other->as_integer()->to_bignum();
-        return to_nat_int_t() >= other.to_nat_int_t();
+        return to_nat_int_t() >= other->as_integer()->to_nat_int_t();
     }
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
 }
 
-ValuePtr IntegerValue::eqeqeq(Env *env, ValuePtr arg) const {
-    if (arg.is_integer() && to_nat_int_t() == arg.to_nat_int_t()) {
-        return TrueValue::the();
-    } else {
-        return FalseValue::the();
-    }
+bool IntegerValue::eqeqeq(Env *env, ValuePtr arg) const {
+    if (arg.is_fast_integer())
+        return m_integer == arg.get_fast_integer();
+
+    arg.unguard();
+
+    return arg->is_integer() && to_nat_int_t() == arg->as_integer()->to_nat_int_t();
 }
 
 ValuePtr IntegerValue::times(Env *env, Block *block) {
@@ -304,13 +376,13 @@ ValuePtr IntegerValue::times(Env *env, Block *block) {
 }
 
 ValuePtr IntegerValue::bitwise_and(Env *env, ValuePtr arg) const {
-    arg.assert_type(env, Value::Type::Integer, "Integer");
-    return ValuePtr::integer(to_nat_int_t() & arg.to_nat_int_t());
+    arg->assert_type(env, Value::Type::Integer, "Integer");
+    return ValuePtr::integer(to_nat_int_t() & arg->as_integer()->to_nat_int_t());
 }
 
 ValuePtr IntegerValue::bitwise_or(Env *env, ValuePtr arg) const {
-    arg.assert_type(env, Value::Type::Integer, "Integer");
-    return ValuePtr::integer(to_nat_int_t() | arg.to_nat_int_t());
+    arg->assert_type(env, Value::Type::Integer, "Integer");
+    return ValuePtr::integer(to_nat_int_t() | arg->as_integer()->to_nat_int_t());
 }
 
 ValuePtr IntegerValue::pred(Env *env) {
@@ -343,7 +415,12 @@ ValuePtr IntegerValue::coerce(Env *env, ValuePtr arg) {
 }
 
 bool IntegerValue::eql(Env *env, ValuePtr other) {
-    return other.is_integer() && other.to_nat_int_t() == to_nat_int_t();
+    if (other.is_fast_integer())
+        return m_integer == other.get_fast_integer();
+
+    other.unguard();
+
+    return other->is_integer() && other->as_integer()->to_nat_int_t() == to_nat_int_t();
 }
 
 ValuePtr IntegerValue::abs(Env *env) {
