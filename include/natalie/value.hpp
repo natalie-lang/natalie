@@ -113,8 +113,10 @@ private:
 
     Type m_type { Type::Pointer };
 
-    nat_int_t m_integer { 0 };
-    Object *m_object { nullptr };
+    union {
+        nat_int_t m_integer { 0 };
+        Object *m_object;
+    };
 };
 
 }

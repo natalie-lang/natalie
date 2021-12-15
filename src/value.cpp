@@ -29,7 +29,6 @@ void Value::hydrate() {
     case Type::Integer: {
         m_type = Type::Pointer;
         m_object = new IntegerObject { m_integer };
-        m_integer = 0;
         break;
     }
     case Type::Pointer:
