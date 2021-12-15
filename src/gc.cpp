@@ -21,7 +21,7 @@ void Cell::operator delete(void *ptr) {
 }
 
 void MarkingVisitor::visit(Value val) {
-    visit(val.value_or_null());
+    visit(val.object_or_null());
 }
 
 TM::Hashmap<Cell *> Heap::gather_conservative_roots() {

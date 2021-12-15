@@ -309,7 +309,7 @@ Value ArrayObject::any(Env *env, size_t argc, Value *args, Block *block) {
 }
 
 Value ArrayObject::eq(Env *env, Value other) {
-    TM::PairedRecursionGuard guard { this, other.value() };
+    TM::PairedRecursionGuard guard { this, other.object() };
 
     return guard.run([&](bool is_recursive) -> Value {
         if (other == this)
@@ -357,7 +357,7 @@ Value ArrayObject::eq(Env *env, Value other) {
 }
 
 Value ArrayObject::eql(Env *env, Value other) {
-    TM::PairedRecursionGuard guard { this, other.value() };
+    TM::PairedRecursionGuard guard { this, other.object() };
 
     return guard.run([&](bool is_recursive) -> Value {
         if (other == this)

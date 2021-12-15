@@ -19,8 +19,8 @@ public:
 
     Value() { }
 
-    Value(Object *value)
-        : m_value { value } { }
+    Value(Object *object)
+        : m_object { object } { }
 
     Value(Type type, nat_int_t integer)
         : m_type { type }
@@ -32,39 +32,39 @@ public:
 
     Object &operator*() {
         auto_hydrate();
-        return *m_value;
+        return *m_object;
     }
 
     Object *operator->() {
         auto_hydrate();
-        return m_value;
+        return m_object;
     }
 
-    Object *value() {
+    Object *object() {
         auto_hydrate();
-        return m_value;
+        return m_object;
     }
 
-    Object *value_or_null() {
+    Object *object_or_null() {
         if (m_type == Type::Pointer)
-            return m_value;
+            return m_object;
         else
             return nullptr;
     }
 
     bool operator==(Object *other) {
         auto_hydrate();
-        return m_value == other;
+        return m_object == other;
     }
 
     bool operator!=(Object *other) {
         auto_hydrate();
-        return m_value != other;
+        return m_object != other;
     }
 
-    bool operator!() { return m_type == Type::Pointer && !m_value; }
+    bool operator!() { return m_type == Type::Pointer && !m_object; }
 
-    operator bool() { return m_type == Type::Integer || m_value; }
+    operator bool() { return m_type == Type::Integer || m_object; }
 
     Value public_send(Env *, SymbolObject *, size_t = 0, Value * = nullptr, Block * = nullptr);
 
@@ -114,7 +114,7 @@ private:
     Type m_type { Type::Pointer };
 
     nat_int_t m_integer { 0 };
-    Object *m_value { nullptr };
+    Object *m_object { nullptr };
 };
 
 }

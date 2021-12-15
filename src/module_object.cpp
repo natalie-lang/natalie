@@ -103,7 +103,7 @@ Value ModuleObject::const_find(Env *env, SymbolObject *name, ConstLookupSearchMo
 }
 
 Value ModuleObject::const_set(SymbolObject *name, Value val) {
-    m_constants.put(name, val.value());
+    m_constants.put(name, val.object());
     if (val->is_module() && !val->owner()) {
         val->set_owner(this);
         if (val->singleton_class()) val->singleton_class()->set_owner(this);
@@ -152,12 +152,12 @@ Value ModuleObject::cvar_set(Env *env, SymbolObject *name, Value val) {
     while (current) {
         exists = current->m_class_vars.get(name, env);
         if (exists) {
-            current->m_class_vars.put(name, val.value(), env);
+            current->m_class_vars.put(name, val.object(), env);
             return val;
         }
         current = current->m_superclass;
     }
-    m_class_vars.put(name, val.value(), env);
+    m_class_vars.put(name, val.object(), env);
     return val;
 }
 

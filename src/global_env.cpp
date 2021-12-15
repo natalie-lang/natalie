@@ -18,7 +18,7 @@ Value GlobalEnv::global_set(Env *env, SymbolObject *name, Value val) {
     if (!name->is_global_name())
         env->raise("NameError", "`{}' is not allowed as an global variable name", name->c_str());
 
-    m_globals.put(name, val.value(), env);
+    m_globals.put(name, val.object(), env);
     return val;
 }
 

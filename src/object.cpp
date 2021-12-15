@@ -316,7 +316,7 @@ Value Object::ivar_set(Env *env, SymbolObject *name, Value val) {
     if (!name->is_ivar_name())
         env->raise("NameError", "`{}' is not allowed as an instance variable name", name->c_str());
 
-    m_ivars.put(name, val.value(), env);
+    m_ivars.put(name, val.object(), env);
     return val;
 }
 

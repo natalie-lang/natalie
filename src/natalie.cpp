@@ -491,7 +491,7 @@ void arg_spread(Env *env, size_t argc, Value *args, const char *arrangement, ...
         case 'o': {
             Object **obj_ptr = va_arg(va_args, Object **);
             if (arg_index >= argc) env->raise("ArgumentError", "wrong number of arguments (given {}, expected {})", argc, arg_index + 1);
-            Object *obj = args[arg_index++].value();
+            Object *obj = args[arg_index++].object();
             *obj_ptr = obj;
             break;
         }

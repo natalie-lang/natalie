@@ -10,7 +10,7 @@ Value Value::public_send(Env *env, SymbolObject *name, size_t argc, Value *args,
         return synthesized.public_send(env, name, argc, args, block);
     }
 
-    return value()->public_send(env, name, argc, args, block);
+    return object()->public_send(env, name, argc, args, block);
 }
 
 Value Value::send(Env *env, SymbolObject *name, size_t argc, Value *args, Block *block) {
@@ -21,14 +21,14 @@ Value Value::send(Env *env, SymbolObject *name, size_t argc, Value *args, Block 
         return synthesized.send(env, name, argc, args, block);
     }
 
-    return value()->send(env, name, argc, args, block);
+    return object()->send(env, name, argc, args, block);
 }
 
 void Value::hydrate() {
     switch (m_type) {
     case Type::Integer: {
         m_type = Type::Pointer;
-        m_value = new IntegerObject { m_integer };
+        m_object = new IntegerObject { m_integer };
         m_integer = 0;
         break;
     }

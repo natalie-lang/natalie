@@ -45,7 +45,7 @@ Value HashObject::get(Env *env, Value key) {
 
 nat_int_t HashObject::generate_key_hash(Env *env, Value key) const {
     if (m_is_comparing_by_identity) {
-        return TM::Hashmap<void *>::hash_ptr(key.value());
+        return TM::Hashmap<void *>::hash_ptr(key.object());
     } else {
         return key.send(env, SymbolObject::intern("hash"))->as_integer()->to_nat_int_t();
     }
@@ -82,13 +82,13 @@ void HashObject::put(Env *env, Value key, Value val) {
     auto entry = m_hashmap.find_item(&key_container, hash, env);
     if (entry) {
         ((Key *)entry->key)->val = val;
-        entry->value = val.value();
+        entry->value = val.object();
     } else {
         if (m_is_iterating) {
             env->raise("RuntimeError", "can't add a new key into hash during iteration");
         }
         auto *key_container = key_list_append(env, key, hash, val);
-        m_hashmap.put(key_container, val.value(), env);
+        m_hashmap.put(key_container, val.object(), env);
     }
 }
 
@@ -378,7 +378,7 @@ Value HashObject::size(Env *env) const {
 }
 
 bool HashObject::eq(Env *env, Value other_value, SymbolObject *method_name) {
-    TM::PairedRecursionGuard guard { this, other_value.value() };
+    TM::PairedRecursionGuard guard { this, other_value.object() };
 
     return guard.run([&](bool is_recursive) -> bool {
         if (!other_value->is_hash())
@@ -397,7 +397,7 @@ bool HashObject::eq(Env *env, Value other_value, SymbolObject *method_name) {
             if (!other_val)
                 return false;
 
-            if (node.val.value() == other_val.value())
+            if (node.val.object() == other_val.object())
                 continue;
 
             if (node.val.send(env, method_name, { other_val })->is_falsey())

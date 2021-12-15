@@ -95,7 +95,7 @@ class Fiddle
       else if (p1->is_void_p())
           p1_ptr = p1->as_void_p()->void_ptr();
       else
-          p1_ptr = (void*)(p1.value());
+          p1_ptr = (void*)(p1.object());
       auto result = fn(p1_ptr);
       auto pointer_obj = new Object { Object::Type::Object, pointer_class };
       auto pointer_ptr = new VoidPObject { result };
