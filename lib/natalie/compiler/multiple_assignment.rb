@@ -27,12 +27,22 @@ module Natalie
               if name.size == 1 # nameless splat
                 s(:block)
               else
-                value = s(:array_value_by_path, :env, value_name, s(:nil), :true, path_details[:offset_from_end], path.size, *path)
+                options = s(:struct,
+                            value: value_name,
+                            default_value: s(:nil),
+                            splat: true,
+                            offset_from_end: path_details[:offset_from_end])
+                value = s(:array_value_by_path, :env, options, path.size, *path)
                 masgn_set(name.last, value)
               end
             else
               default_value = name.size == 3 ? name.pop : s(:nil)
-              value = s(:array_value_by_path, :env, value_name, default_value, :false, 0, path.size, *path)
+              options = s(:struct,
+                          value: value_name,
+                          default_value: default_value,
+                          splat: false,
+                          offset_from_end: 0)
+              value = s(:array_value_by_path, :env, options, path.size, *path)
               masgn_set(name, value)
             end
           else
@@ -48,13 +58,14 @@ module Natalie
       def masgn_paths(exp, prefix = [])
         (_, (_, *names)) = exp
         splatted = false
+        names_without_kwargs = names.reject { |n| n.is_a?(Sexp) && n.sexp_type == :kwarg }
         names.each_with_index.each_with_object({}) do |(e, index), hash|
           raise 'destructuring assignment is too big' if index > MAX_MASGN_PATH_INDEX
           if e.is_a?(Sexp) && e.sexp_type == :masgn
             hash.merge!(masgn_paths(e, prefix + [index]))
           elsif e.sexp_type == :splat
             splatted = true
-            hash[e] = { path: prefix + [index], offset_from_end: names.size - index - 1 }
+            hash[e] = { path: prefix + [index], offset_from_end: names_without_kwargs.size - index - 1 }
           elsif e.sexp_type == :kwsplat
             splatted = true
             hash[e] = { path: prefix + [index], offset_from_end: names.size - index - 1 }

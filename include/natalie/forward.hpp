@@ -4,48 +4,48 @@
 
 namespace Natalie {
 
-class ArrayValue;
+class ArrayObject;
 class Block;
-class ClassValue;
-class EncodingValue;
+class ClassObject;
+class EncodingObject;
 class Env;
-class EnvValue;
-class ExceptionValue;
-class FalseValue;
-class FiberValue;
-class FileValue;
-class FloatValue;
+class EnvObject;
+class ExceptionObject;
+class FalseObject;
+class FiberObject;
+class FileObject;
+class FloatObject;
 class GlobalEnv;
 class HashKey;
 class HashVal;
-class HashValue;
-class IntegerValue;
-class IoValue;
+class HashObject;
+class IntegerObject;
+class IoObject;
 class KernelModule;
 class Lexer;
-class MatchDataValue;
+class MatchDataObject;
 class Method;
-class MethodValue;
-class ModuleValue;
-class NilValue;
+class MethodObject;
+class ModuleObject;
+class NilObject;
 class Node;
 class Parser;
-class ParserValue;
-class ProcValue;
-class RandomValue;
-class RangeValue;
-class RegexpValue;
-class SexpValue;
+class ParserObject;
+class ProcObject;
+class RandomObject;
+class RangeObject;
+class RegexpObject;
+class SexpObject;
 class String;
-class StringValue;
-class SymbolValue;
+class StringObject;
+class SymbolObject;
 class Token;
-class TrueValue;
+class TrueObject;
+class Object;
+class VoidPObject;
+
 class Value;
-class VoidPValue;
 
-class ValuePtr;
-
-using MethodFnPtr = ValuePtr (*)(Env *, ValuePtr, size_t, ValuePtr *, Block *);
+using MethodFnPtr = Value (*)(Env *, Value, size_t, Value *, Block *);
 
 }

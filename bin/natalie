@@ -20,17 +20,28 @@ OptionParser.new do |opts|
   opts.program_name = 'Natalie'
   opts.version = '0.1'
 
-  opts.on('-d [level]', '--debug [level]', 'Show debug output') do |level|
-    case level
-    when true
-      options[:debug] = 'c'
-    when 'p1', 'p1b', 'p1r', 'p2', 'p3', 'c', 'S', 'edit', 'cc-cmd', 'valgrind', 'kcachegrind'
-      options[:debug] = level
+  opts.on(
+    '-d [type]', '--debug [type]',
+    'Show debug output (specify option below)',
+    options: {
+      '{p1,p1b,p1r,p2,p3}' => 'print intermediate AST from individual compiler pass',
+      'cpp'                => 'print generated C++',
+      'cc-cmd'             => 'show the gcc/clang compiler command that will be run',
+      'valgrind'           => 'run the resulting binary with valgrind',
+      'kcachegrind'        => 'run the resulting binary with valgrind (callgrind) and open the profile in kcachegrind',
+      '{gdb,lldb}'         => 'run the resulting binary with gdb or lldb',
+    }
+  ) do |type|
+    case type
+    when true, 'c', 'cpp', 'c++'
+      options[:debug] = 'cpp'
+    when /^p\d/, 'S', 'edit', 'cc-cmd', 'valgrind', 'kcachegrind'
+      options[:debug] = type
     when 'gdb', 'lldb'
-      options[:debug] = level
+      options[:debug] = type
       options[:keep_cpp] = true
     else
-      puts "Unrecognized -d value: #{level.inspect}"
+      puts "Unrecognized -d argument: #{type.inspect}"
       exit 1
     end
   end
@@ -103,7 +114,7 @@ class Runner
       compiler.out_path = 'temp'
       compiler.to_c
       puts compiler.compiler_command
-    elsif options[:debug] == 'c'
+    elsif options[:debug] == 'cpp'
       compiler.write_file
       puts File.read(compiler.c_path)
       puts '-' * 80

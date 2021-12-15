@@ -11,26 +11,26 @@ class Fiddle
 
   class << self
     __define_method__ :dlopen, [:path], <<-END
-      path->assert_type(env, Value::Type::String, "String");
+      path->assert_type(env, Object::Type::String, "String");
       auto handle = dlopen(path->as_string()->c_str(), RTLD_LAZY);
       if (!handle) {
-          auto dl_error = self->const_find(env, SymbolValue::intern("DLError"), Value::ConstLookupSearchMode::NotStrict)->as_class();
+          auto dl_error = self->const_find(env, SymbolObject::intern("DLError"), Object::ConstLookupSearchMode::NotStrict)->as_class();
           env->raise(dl_error, "{}", dlerror());
       }
-      auto handle_class = self->const_find(env, SymbolValue::intern("Handle"), Value::ConstLookupSearchMode::NotStrict)->as_class();
-      auto handle_obj = new Value { Value::Type::Object, handle_class };
-      auto handle_ptr = new VoidPValue { handle };
-      handle_obj->ivar_set(env, SymbolValue::intern("@ptr"), handle_ptr);
+      auto handle_class = self->const_find(env, SymbolObject::intern("Handle"), Object::ConstLookupSearchMode::NotStrict)->as_class();
+      auto handle_obj = new Object { Object::Type::Object, handle_class };
+      auto handle_ptr = new VoidPObject { handle };
+      handle_obj->ivar_set(env, SymbolObject::intern("@ptr"), handle_ptr);
       return handle_obj;
     END
   end
 
   class Handle
     __define_method__ :[], [:name], <<-END
-      auto handle = self->ivar_get(env, SymbolValue::intern("@ptr"))->as_void_p()->void_ptr();
-      name->assert_type(env, Value::Type::String, "String");
+      auto handle = self->ivar_get(env, SymbolObject::intern("@ptr"))->as_void_p()->void_ptr();
+      name->assert_type(env, Object::Type::String, "String");
       auto symbol = dlsym(handle, name->as_string()->c_str());
-      return new IntegerValue { (long long)symbol };
+      return new IntegerObject { (long long)symbol };
     END
   end
 
@@ -68,38 +68,38 @@ class Fiddle
     # In the future, Natalie will have macros that will allow this to be generated at compile time.
 
     __define_method__ :void_no_args, [], <<-END
-      auto symbol = self->ivar_get(env, SymbolValue::intern("@symbol"))->as_integer()->to_nat_int_t();
+      auto symbol = self->ivar_get(env, SymbolObject::intern("@symbol"))->as_integer()->to_nat_int_t();
       auto fn = (void* (*)())symbol;
       fn();
-      return NilValue::the();
+      return NilObject::the();
     END
 
     __define_method__ :voidp_no_args, [], <<-END
-      auto symbol = self->ivar_get(env, SymbolValue::intern("@symbol"))->as_integer()->to_nat_int_t();
+      auto symbol = self->ivar_get(env, SymbolObject::intern("@symbol"))->as_integer()->to_nat_int_t();
       auto fn = (void* (*)())symbol;
       auto result = fn();
-      auto pointer_class = self->const_find(env, SymbolValue::intern("Pointer"), Value::ConstLookupSearchMode::NotStrict)->as_class();
-      auto pointer_obj = new Value { Value::Type::Object, pointer_class };
-      auto pointer_ptr = new VoidPValue { result };
-      pointer_obj->ivar_set(env, SymbolValue::intern("@ptr"), pointer_ptr);
+      auto pointer_class = self->const_find(env, SymbolObject::intern("Pointer"), Object::ConstLookupSearchMode::NotStrict)->as_class();
+      auto pointer_obj = new Object { Object::Type::Object, pointer_class };
+      auto pointer_ptr = new VoidPObject { result };
+      pointer_obj->ivar_set(env, SymbolObject::intern("@ptr"), pointer_ptr);
       return pointer_obj;
     END
 
     __define_method__ :voidp_args_voidp, [:p1], <<-END
-      auto symbol = self->ivar_get(env, SymbolValue::intern("@symbol"))->as_integer()->to_nat_int_t();
+      auto symbol = self->ivar_get(env, SymbolObject::intern("@symbol"))->as_integer()->to_nat_int_t();
       auto fn = (void* (*)(void*))symbol;
       void *p1_ptr;
-      auto pointer_class = self->const_find(env, SymbolValue::intern("Pointer"), Value::ConstLookupSearchMode::NotStrict)->as_class();
+      auto pointer_class = self->const_find(env, SymbolObject::intern("Pointer"), Object::ConstLookupSearchMode::NotStrict)->as_class();
       if (p1->is_a(env, pointer_class))
-          p1_ptr = p1->ivar_get(env, SymbolValue::intern("@ptr"))->as_void_p()->void_ptr();
+          p1_ptr = p1->ivar_get(env, SymbolObject::intern("@ptr"))->as_void_p()->void_ptr();
       else if (p1->is_void_p())
           p1_ptr = p1->as_void_p()->void_ptr();
       else
-          p1_ptr = (void*)(p1.value());
+          p1_ptr = (void*)(p1.object());
       auto result = fn(p1_ptr);
-      auto pointer_obj = new Value { Value::Type::Object, pointer_class };
-      auto pointer_ptr = new VoidPValue { result };
-      pointer_obj->ivar_set(env, SymbolValue::intern("@ptr"), pointer_ptr);
+      auto pointer_obj = new Object { Object::Type::Object, pointer_class };
+      auto pointer_ptr = new VoidPObject { result };
+      pointer_obj->ivar_set(env, SymbolObject::intern("@ptr"), pointer_ptr);
       return pointer_obj;
     END
   end

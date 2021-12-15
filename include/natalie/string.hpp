@@ -164,10 +164,10 @@ public:
         if (!str) return;
         size_t new_length = strlen(str);
         if (new_length == 0) return;
-        char old[m_length + 1];
-        strcpy(old, m_str);
+        char buf[m_length + 1];
+        memcpy(buf, m_str, m_length + 1);
         set_str(str);
-        append(old);
+        append(buf);
     }
 
     void insert(size_t position, char c) {
@@ -250,7 +250,7 @@ public:
         m_length = total_length;
     }
 
-    void append(const StringValue *str);
+    void append(const StringObject *str);
 
     void append(size_t n, char c) {
         size_t total_length = m_length + n;
@@ -333,7 +333,7 @@ public:
         }
     }
 
-    bool is_empty() { return m_length == 0; }
+    bool is_empty() const { return m_length == 0; }
 
     String successive() {
         auto result = String { *this };

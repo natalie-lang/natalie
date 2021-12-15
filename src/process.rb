@@ -31,7 +31,7 @@ module Process
         if (result == -1)
             env->raise_errno();
         set_status_object(env, result, status);
-        return ValuePtr::integer(static_cast<nat_int_t>(result));
+        return Value::integer(static_cast<nat_int_t>(result));
     END
   end
 end

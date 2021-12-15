@@ -11,9 +11,9 @@ __inline__ <<-END
   #include <gtk/gtk.h>
 
   void gtk3_signal_callback(GtkWidget *widget, gpointer data) {
-    ProcValue *callback = static_cast<Value*>(data)->as_proc();
+    ProcObject *callback = static_cast<Object*>(data)->as_proc();
     Env *env = callback->env();
-    callback->send(env, SymbolValue::intern("call"));
+    callback->send(env, SymbolObject::intern("call"));
   }
 END
 
@@ -100,10 +100,10 @@ module Gtk3
       int type;
       arg_spread(env, argc, args, "i", &type);
       GtkWidget *gtk_window = gtk_window_new((GtkWindowType)type);
-      ClassValue *Window = self->const_fetch(SymbolValue::intern("Window"))->as_class();
-      Value *window_wrapper = new Value { Window };
-      Value *ptr = new VoidPValue { gtk_window };
-      window_wrapper->ivar_set(env, SymbolValue::intern("@_ptr"), ptr);
+      ClassObject *Window = self->const_fetch(SymbolObject::intern("Window"))->as_class();
+      Object *window_wrapper = new Object { Window };
+      Object *ptr = new VoidPObject { gtk_window };
+      window_wrapper->ivar_set(env, SymbolObject::intern("@_ptr"), ptr);
       return window_wrapper;
     END
 
@@ -112,7 +112,7 @@ module Gtk3
       GtkWidget *gtk_window;
       arg_spread(env, argc, args, "v", &gtk_window);
       gtk_widget_show_all(gtk_window);
-      return NilValue::the();
+      return NilObject::the();
     END
 
     __define_method__ :window_set_title, <<-END
@@ -121,7 +121,7 @@ module Gtk3
       char *title;
       arg_spread(env, argc, args, "vs", &gtk_window, &title);
       gtk_window_set_title(GTK_WINDOW(gtk_window), title);
-      return NilValue::the();
+      return NilObject::the();
     END
 
     __define_method__ :box_new, <<-END
@@ -129,10 +129,10 @@ module Gtk3
       int orientation, spacing;
       arg_spread(env, argc, args, "ii", &orientation, &spacing);
       GtkWidget *gtk_box = gtk_box_new((GtkOrientation)orientation, spacing);
-      ClassValue *Box = self->const_fetch(SymbolValue::intern("Box"))->as_class();
-      Value *box_wrapper = new Value { Box };
-      Value *ptr = new VoidPValue { gtk_box };
-      box_wrapper->ivar_set(env, SymbolValue::intern("@_ptr"), ptr);
+      ClassObject *Box = self->const_fetch(SymbolObject::intern("Box"))->as_class();
+      Object *box_wrapper = new Object { Box };
+      Object *ptr = new VoidPObject { gtk_box };
+      box_wrapper->ivar_set(env, SymbolObject::intern("@_ptr"), ptr);
       return box_wrapper;
     END
 
@@ -141,7 +141,7 @@ module Gtk3
       GtkWidget *gtk_window, *gtk_container;
       arg_spread(env, argc, args, "vv", &gtk_window, &gtk_container);
       gtk_container_add(GTK_CONTAINER(gtk_window), gtk_container);
-      return NilValue::the();
+      return NilObject::the();
     END
 
     __define_method__ :image_new_from_file, <<-END
@@ -149,10 +149,10 @@ module Gtk3
       char *filename;
       arg_spread(env, argc, args, "s", &filename);
       GtkWidget *gtk_image = gtk_image_new_from_file(filename);
-      ClassValue *Image = self->const_fetch(SymbolValue::intern("Image"))->as_class();
-      Value *image_wrapper = new Value { Image };
-      Value *ptr = new VoidPValue { gtk_image };
-      image_wrapper->ivar_set(env, SymbolValue::intern("@_ptr"), ptr);
+      ClassObject *Image = self->const_fetch(SymbolObject::intern("Image"))->as_class();
+      Object *image_wrapper = new Object { Image };
+      Object *ptr = new VoidPObject { gtk_image };
+      image_wrapper->ivar_set(env, SymbolObject::intern("@_ptr"), ptr);
       return image_wrapper;
     END
 
@@ -163,7 +163,7 @@ module Gtk3
       int padding;
       arg_spread(env, argc, args, "vvbbi", &gtk_box, &gtk_child, &expand, &fill, &padding);
       gtk_box_pack_start(GTK_BOX(gtk_box), gtk_child, expand, fill, padding);
-      return NilValue::the();
+      return NilObject::the();
     END
 
     __define_method__ :widget_set_halign, <<-END
@@ -172,7 +172,7 @@ module Gtk3
       int align;
       arg_spread(env, argc, args, "vi", &gtk_widget, &align);
       gtk_widget_set_halign(gtk_widget, (GtkAlign)align);
-      return NilValue::the();
+      return NilObject::the();
     END
 
     __define_method__ :widget_set_valign, <<-END
@@ -181,7 +181,7 @@ module Gtk3
       int align;
       arg_spread(env, argc, args, "vi", &gtk_widget, &align);
       gtk_widget_set_valign(gtk_widget, (GtkAlign)align);
-      return NilValue::the();
+      return NilObject::the();
     END
 
     __define_method__ :label_new, <<-END
@@ -193,10 +193,10 @@ module Gtk3
           const char *text = args[0]->as_string()->c_str();
           gtk_label = gtk_label_new(text);
       }
-      ClassValue *Label = self->const_fetch(SymbolValue::intern("Label"))->as_class();
-      Value *label_wrapper = new Value { Label };
-      Value *ptr = new VoidPValue { gtk_label };
-      label_wrapper->ivar_set(env, SymbolValue::intern("@_ptr"), ptr);
+      ClassObject *Label = self->const_fetch(SymbolObject::intern("Label"))->as_class();
+      Object *label_wrapper = new Object { Label };
+      Object *ptr = new VoidPObject { gtk_label };
+      label_wrapper->ivar_set(env, SymbolObject::intern("@_ptr"), ptr);
       return label_wrapper;
     END
 
@@ -206,7 +206,7 @@ module Gtk3
       char *markup;
       arg_spread(env, argc, args, "vs", &gtk_label, &markup);
       gtk_label_set_markup(GTK_LABEL(gtk_label), markup);
-      return NilValue::the();
+      return NilObject::the();
     END
 
     __define_method__ :button_new_with_label, <<-END
@@ -214,10 +214,10 @@ module Gtk3
       char *label;
       arg_spread(env, argc, args, "s", &label);
       GtkWidget *gtk_button = gtk_button_new_with_label(label);
-      ClassValue *Button = self->const_fetch(SymbolValue::intern("Button"))->as_class();
-      Value *button_wrapper = new Value { Button };
-      Value *ptr = new VoidPValue { gtk_button };
-      button_wrapper->ivar_set(env, SymbolValue::intern("@_ptr"), ptr);
+      ClassObject *Button = self->const_fetch(SymbolObject::intern("Button"))->as_class();
+      Object *button_wrapper = new Object { Button };
+      Object *ptr = new VoidPObject { gtk_button };
+      button_wrapper->ivar_set(env, SymbolObject::intern("@_ptr"), ptr);
       return button_wrapper;
     END
 
@@ -227,17 +227,17 @@ module Gtk3
       int width;
       arg_spread(env, argc, args, "vi", &container, &width);
       gtk_container_set_border_width(GTK_CONTAINER(container), width);
-      return NilValue::the();
+      return NilObject::the();
     END
 
     __define_method__ :g_signal_connect, <<-END
       env->ensure_argc_is(argc, 3);
       GObject *instance;
       char *signal;
-      Value *callback;
+      Object *callback;
       arg_spread(env, argc, args, "vso", &instance, &signal, &callback);
       g_signal_connect(instance, signal, G_CALLBACK(gtk3_signal_callback), callback);
-      return NilValue::the();
+      return NilObject::the();
     END
 
     def main

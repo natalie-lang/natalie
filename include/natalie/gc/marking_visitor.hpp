@@ -17,7 +17,7 @@ public:
         visit(const_cast<Cell *>(cell));
     }
 
-    virtual void visit(ValuePtr val) override final;
+    virtual void visit(Value val) override final;
 };
 
 }

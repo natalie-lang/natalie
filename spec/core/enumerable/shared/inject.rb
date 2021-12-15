@@ -1,5 +1,5 @@
 describe :enumerable_inject, shared: true do
-  it "with argument takes a block with an accumulator (with argument as initial value) and the current element. Value of block becomes new accumulator" do
+  it "with argument takes a block with an accumulator (with argument as initial value) and the current element. Object of block becomes new accumulator" do
     a = []
     EnumerableSpecs::Numerous.new.send(@method, 0) { |memo, i| a << [memo, i]; i }
     a.should == [[0, 2], [2, 5], [5, 3], [3, 6], [6, 1], [1, 4]]
@@ -24,7 +24,7 @@ describe :enumerable_inject, shared: true do
     EnumerableSpecs::Numerous.new(10, 1, 2, 3).send(@method, :-).should == 4
   end
 
-  it "without argument takes a block with an accumulator (with first element as initial value) and the current element. Value of block becomes new accumulator" do
+  it "without argument takes a block with an accumulator (with first element as initial value) and the current element. Object of block becomes new accumulator" do
     a = []
     EnumerableSpecs::Numerous.new.send(@method) { |memo, i| a << [memo, i]; i }
     a.should == [[2, 5], [5, 3], [3, 6], [6, 1], [1, 4]]
