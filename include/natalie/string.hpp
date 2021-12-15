@@ -250,7 +250,7 @@ public:
         m_length = total_length;
     }
 
-    void append(const StringValue *str);
+    void append(const StringObject *str);
 
     void append(size_t n, char c) {
         size_t total_length = m_length + n;

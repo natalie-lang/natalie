@@ -5,13 +5,13 @@
 #include "natalie/forward.hpp"
 #include "natalie/gc.hpp"
 #include "natalie/method_visibility.hpp"
-#include "natalie/module_value.hpp"
+#include "natalie/module_object.hpp"
 
 namespace Natalie {
 
 class Method : public Cell {
 public:
-    Method(const char *name, ModuleValue *owner, MethodFnPtr fn, int arity, MethodVisibility visibility)
+    Method(const char *name, ModuleObject *owner, MethodFnPtr fn, int arity, MethodVisibility visibility)
         : m_name { name }
         , m_owner { owner }
         , m_fn { fn }
@@ -19,7 +19,7 @@ public:
         , m_undefined { !fn }
         , m_visibility { visibility } { }
 
-    Method(const char *name, ModuleValue *owner, Block *block, MethodVisibility visibility)
+    Method(const char *name, ModuleObject *owner, Block *block, MethodVisibility visibility)
         : m_name { name }
         , m_owner { owner }
         , m_arity { block->arity() }
@@ -37,7 +37,7 @@ public:
 
     bool is_undefined() const { return m_undefined; }
 
-    ValuePtr call(Env *env, ValuePtr self, size_t argc, ValuePtr *args, Block *block) {
+    Value call(Env *env, Value self, size_t argc, Value *args, Block *block) {
         assert(!is_undefined());
         Env *closure_env;
         if (has_env()) {
@@ -51,7 +51,7 @@ public:
         e.set_file(env->file());
         e.set_line(env->line());
         e.set_block(block);
-        ValuePtr result;
+        Value result;
         if (block && !block->calling_env()) {
             block->set_calling_env(env);
             result = m_fn(&e, self, argc, args, block);
@@ -63,7 +63,7 @@ public:
     }
 
     const String *name() { return &m_name; }
-    ModuleValue *owner() { return m_owner; }
+    ModuleObject *owner() { return m_owner; }
 
     MethodVisibility visibility() { return m_visibility; }
     void set_visibility(MethodVisibility visibility) { m_visibility = visibility; }
@@ -81,7 +81,7 @@ public:
 
 private:
     String m_name {};
-    ModuleValue *m_owner;
+    ModuleObject *m_owner;
     MethodFnPtr m_fn;
     int m_arity { 0 };
     Env *m_env { nullptr };

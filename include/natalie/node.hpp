@@ -80,7 +80,7 @@ public:
     Node(Token *token)
         : m_token { token } { }
 
-    virtual ValuePtr to_ruby(Env *env) = 0;
+    virtual Value to_ruby(Env *env) = 0;
 
     virtual Type type() = 0;
 
@@ -143,7 +143,7 @@ public:
 
     virtual Type type() override { return Type::Alias; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     virtual void visit_children(Visitor &visitor) override;
 
@@ -165,7 +165,7 @@ public:
 
     virtual Type type() override { return Type::Arg; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     const char *name() { return m_name->c_str(); }
 
@@ -206,7 +206,7 @@ public:
 
     virtual Type type() override { return Type::Array; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     void add_node(Node *node) {
         m_nodes.push(node);
@@ -235,7 +235,7 @@ public:
 
     virtual Type type() override { return Type::BlockPass; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     virtual void visit_children(Visitor &visitor) override {
         Node::visit_children(visitor);
@@ -252,7 +252,7 @@ public:
         : NodeWithArgs { token }
         , m_arg { arg } { }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     virtual Type type() override { return Type::Break; }
 
@@ -279,7 +279,7 @@ public:
 
     virtual Type type() override { return Type::Assignment; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     virtual void visit_children(Visitor &visitor) override {
         Node::visit_children(visitor);
@@ -305,7 +305,7 @@ public:
 
     virtual Type type() override { return Type::Begin; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     void add_rescue_node(BeginRescueNode *node) { m_rescue_nodes.push(node); }
     bool no_rescue_nodes() { return m_rescue_nodes.size() == 0; }
@@ -332,7 +332,7 @@ public:
 
     virtual Type type() override { return Type::BeginRescue; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     void add_exception_node(Node *node) {
         m_exceptions.push(node);
@@ -370,8 +370,8 @@ public:
 
     virtual Type type() override { return Type::Block; }
 
-    virtual ValuePtr to_ruby(Env *) override;
-    ValuePtr to_ruby_with_name(Env *, const char *);
+    virtual Value to_ruby(Env *) override;
+    Value to_ruby_with_name(Env *, const char *);
 
     Vector<Node *> &nodes() { return m_nodes; }
     bool is_empty() { return m_nodes.is_empty(); }
@@ -417,7 +417,7 @@ public:
 
     virtual Type type() override { return Type::Call; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     virtual bool is_callable() override { return true; }
 
@@ -456,7 +456,7 @@ public:
 
     virtual Type type() override { return Type::Case; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     void add_when_node(Node *node) {
         m_when_nodes.push(node);
@@ -493,7 +493,7 @@ public:
 
     virtual Type type() override { return Type::CaseWhen; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     virtual void visit_children(Visitor &visitor) override {
         Node::visit_children(visitor);
@@ -516,7 +516,7 @@ public:
 
     virtual Type type() override { return Type::AttrAssign; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 };
 
 class SafeCallNode : public CallNode {
@@ -529,7 +529,7 @@ public:
 
     virtual Type type() override { return Type::SafeCall; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 };
 
 class ConstantNode;
@@ -544,7 +544,7 @@ public:
 
     virtual Type type() override { return Type::Class; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     virtual void visit_children(Visitor &visitor) override;
 
@@ -566,7 +566,7 @@ public:
 
     virtual Type type() override { return Type::Colon2; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     virtual void visit_children(Visitor &visitor) override {
         Node::visit_children(visitor);
@@ -589,7 +589,7 @@ public:
 
     virtual Type type() override { return Type::Colon3; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     virtual void visit_children(Visitor &visitor) override {
         Node::visit_children(visitor);
@@ -607,7 +607,7 @@ public:
 
     virtual Type type() override { return Type::Constant; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     const char *name() { return m_token->literal(); }
 };
@@ -620,7 +620,7 @@ public:
 
     virtual Type type() override { return Type::Integer; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     nat_int_t number() const { return m_number; }
 
@@ -636,7 +636,7 @@ public:
 
     virtual Type type() override { return Type::Float; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     double number() const { return m_number; }
 
@@ -654,7 +654,7 @@ public:
 
     virtual Type type() override { return Type::Defined; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     virtual void visit_children(Visitor &visitor) override {
         Node::visit_children(visitor);
@@ -680,12 +680,12 @@ public:
 
     virtual Type type() override { return Type::Def; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     virtual void visit_children(Visitor &visitor) override;
 
 protected:
-    SexpValue *build_args_sexp(Env *);
+    SexpObject *build_args_sexp(Env *);
 
     Node *m_self_node { nullptr };
     IdentifierNode *m_name { nullptr };
@@ -698,7 +698,7 @@ public:
         : Node { token }
         , m_node { node } { }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     virtual Type type() override { return Type::EvaluateToString; }
 
@@ -716,7 +716,7 @@ public:
     FalseNode(Token *token)
         : Node { token } { }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     virtual Type type() override { return Type::False; }
 };
@@ -728,7 +728,7 @@ public:
 
     virtual Type type() override { return Type::Array; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     void add_node(Node *node) {
         m_nodes.push(node);
@@ -753,7 +753,7 @@ public:
 
     virtual Type type() override { return Type::Identifier; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     Token::Type token_type() { return m_token->type(); }
 
@@ -799,27 +799,27 @@ public:
         return ref;
     }
 
-    SexpValue *to_assignment_sexp(Env *);
+    SexpObject *to_assignment_sexp(Env *);
 
-    SymbolValue *assignment_type(Env *env) {
+    SymbolObject *assignment_type(Env *env) {
         switch (token_type()) {
         case Token::Type::BareName:
-            return SymbolValue::intern("lasgn");
+            return SymbolObject::intern("lasgn");
         case Token::Type::ClassVariable:
-            return SymbolValue::intern("cvdecl");
+            return SymbolObject::intern("cvdecl");
         case Token::Type::Constant:
-            return SymbolValue::intern("cdecl");
+            return SymbolObject::intern("cdecl");
         case Token::Type::GlobalVariable:
-            return SymbolValue::intern("gasgn");
+            return SymbolObject::intern("gasgn");
         case Token::Type::InstanceVariable:
-            return SymbolValue::intern("iasgn");
+            return SymbolObject::intern("iasgn");
         default:
             NAT_UNREACHABLE();
         }
     }
 
-    SymbolValue *to_symbol() {
-        return SymbolValue::intern(name());
+    SymbolObject *to_symbol() {
+        return SymbolObject::intern(name());
     }
 
     void add_to_locals(TM::Hashmap<const char *> &locals) {
@@ -845,7 +845,7 @@ public:
 
     virtual Type type() override { return Type::If; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     virtual void visit_children(Visitor &visitor) override {
         Node::visit_children(visitor);
@@ -872,7 +872,7 @@ public:
 
     virtual Type type() override { return Type::Iter; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     virtual void visit_children(Visitor &visitor) override {
         NodeWithArgs::visit_children(visitor);
@@ -881,7 +881,7 @@ public:
     }
 
 protected:
-    SexpValue *build_args_sexp(Env *);
+    SexpObject *build_args_sexp(Env *);
 
     Node *m_call { nullptr };
     BlockNode *m_body { nullptr };
@@ -912,7 +912,7 @@ public:
 
     virtual Type type() override { return Type::InterpolatedRegexp; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     int options() const { return m_options; }
     void set_options(int options) { m_options = options; }
@@ -928,7 +928,7 @@ public:
 
     virtual Type type() override { return Type::InterpolatedShell; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 };
 
 class InterpolatedStringNode : public InterpolatedNode {
@@ -938,7 +938,7 @@ public:
 
     virtual Type type() override { return Type::InterpolatedString; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 };
 
 class KeywordArgNode : public ArgNode {
@@ -948,7 +948,7 @@ public:
 
     virtual Type type() override { return Type::KeywordArg; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 };
 
 class KeywordSplatNode : public Node {
@@ -964,7 +964,7 @@ public:
 
     virtual Type type() override { return Type::KeywordSplat; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     Node *node() { return m_node; }
 
@@ -989,7 +989,7 @@ public:
 
     virtual Type type() override { return Type::LogicalAnd; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     Node *left() { return m_left; }
     Node *right() { return m_right; }
@@ -1017,7 +1017,7 @@ public:
 
     virtual Type type() override { return Type::LogicalOr; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     Node *left() { return m_left; }
     Node *right() { return m_right; }
@@ -1045,7 +1045,7 @@ public:
 
     virtual Type type() override { return Type::Match; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     virtual void visit_children(Visitor &visitor) override;
 
@@ -1064,7 +1064,7 @@ public:
 
     virtual Type type() override { return Type::Module; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     virtual void visit_children(Visitor &visitor) override {
         Node::visit_children(visitor);
@@ -1084,8 +1084,8 @@ public:
 
     virtual Type type() override { return Type::MultipleAssignment; }
 
-    virtual ValuePtr to_ruby(Env *) override;
-    ArrayValue *to_ruby_with_array(Env *);
+    virtual Value to_ruby(Env *) override;
+    ArrayObject *to_ruby_with_array(Env *);
 
     void add_locals(TM::Hashmap<const char *> &);
 };
@@ -1096,7 +1096,7 @@ public:
         : Node { token }
         , m_arg { arg } { }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     virtual Type type() override { return Type::Next; }
 
@@ -1114,7 +1114,7 @@ public:
     NilNode(Token *token)
         : Node { token } { }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     virtual Type type() override { return Type::Nil; }
 };
@@ -1127,7 +1127,7 @@ public:
         assert(m_expression);
     }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     virtual Type type() override { return Type::Not; }
 
@@ -1145,7 +1145,7 @@ public:
     NilSexpNode(Token *token)
         : Node { token } { }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     virtual Type type() override { return Type::NilSexp; }
 };
@@ -1170,7 +1170,7 @@ public:
         assert(m_value);
     }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     virtual Type type() override { return Type::OpAssign; }
 
@@ -1201,7 +1201,7 @@ public:
         assert(m_value);
     }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     virtual Type type() override { return Type::OpAssignAccessor; }
 
@@ -1225,7 +1225,7 @@ public:
     OpAssignAndNode(Token *token, IdentifierNode *name, Node *value)
         : OpAssignNode { token, name, value } { }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     virtual Type type() override { return Type::OpAssignAnd; }
 };
@@ -1235,7 +1235,7 @@ public:
     OpAssignOrNode(Token *token, IdentifierNode *name, Node *value)
         : OpAssignNode { token, name, value } { }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     virtual Type type() override { return Type::OpAssignOr; }
 };
@@ -1253,7 +1253,7 @@ public:
 
     virtual Type type() override { return Type::Range; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     virtual void visit_children(Visitor &visitor) override {
         Node::visit_children(visitor);
@@ -1277,7 +1277,7 @@ public:
 
     virtual Type type() override { return Type::Regexp; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     const String *pattern() { return m_pattern; }
 
@@ -1302,7 +1302,7 @@ public:
 
     virtual Type type() override { return Type::Return; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     virtual void visit_children(Visitor &visitor) override {
         Node::visit_children(visitor);
@@ -1322,7 +1322,7 @@ public:
 
     virtual Type type() override { return Type::Sclass; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     virtual void visit_children(Visitor &visitor) override {
         Node::visit_children(visitor);
@@ -1342,7 +1342,7 @@ public:
 
     virtual Type type() override { return Type::Self; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 };
 
 class ShellNode : public Node {
@@ -1355,7 +1355,7 @@ public:
 
     virtual Type type() override { return Type::String; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     String *string() { return m_string; }
 
@@ -1381,7 +1381,7 @@ public:
 
     virtual Type type() override { return Type::SplatAssignment; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     IdentifierNode *node() { return m_node; }
 
@@ -1407,7 +1407,7 @@ public:
 
     virtual Type type() override { return Type::Splat; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     Node *node() { return m_node; }
 
@@ -1426,7 +1426,7 @@ public:
 
     virtual Type type() override { return Type::StabbyProc; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 };
 
 class StringNode : public Node {
@@ -1439,10 +1439,10 @@ public:
 
     virtual Type type() override { return Type::String; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     String *string() { return m_string; }
-    StringValue *to_string_value() { return new StringValue(m_string); }
+    StringObject *to_string_value() { return new StringObject(m_string); }
 
     virtual void visit_children(Visitor &visitor) override {
         Node::visit_children(visitor);
@@ -1461,7 +1461,7 @@ public:
 
     virtual Type type() override { return Type::Symbol; }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     virtual void visit_children(Visitor &visitor) override {
         Node::visit_children(visitor);
@@ -1477,7 +1477,7 @@ public:
     TrueNode(Token *token)
         : Node { token } { }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     virtual Type type() override { return Type::True; }
 };
@@ -1487,7 +1487,7 @@ public:
     SuperNode(Token *token)
         : NodeWithArgs { token } { }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     virtual Type type() override { return Type::Super; }
 
@@ -1511,7 +1511,7 @@ public:
         assert(m_body);
     }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     virtual Type type() override { return Type::While; }
 
@@ -1532,7 +1532,7 @@ public:
     UntilNode(Token *token, Node *condition, BlockNode *body, bool pre)
         : WhileNode { token, condition, body, pre } { }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     virtual Type type() override { return Type::Until; }
 };
@@ -1542,7 +1542,7 @@ public:
     YieldNode(Token *token)
         : NodeWithArgs { token } { }
 
-    virtual ValuePtr to_ruby(Env *) override;
+    virtual Value to_ruby(Env *) override;
 
     virtual Type type() override { return Type::Yield; }
 };

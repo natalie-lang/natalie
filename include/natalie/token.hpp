@@ -1,14 +1,14 @@
 #pragma once
 
-#include "natalie/float_value.hpp"
+#include "natalie/float_object.hpp"
 #include "natalie/gc.hpp"
-#include "natalie/hash_value.hpp"
-#include "natalie/integer_value.hpp"
-#include "natalie/regexp_value.hpp"
-#include "natalie/sexp_value.hpp"
-#include "natalie/string_value.hpp"
-#include "natalie/symbol_value.hpp"
-#include "natalie/value.hpp"
+#include "natalie/hash_object.hpp"
+#include "natalie/integer_object.hpp"
+#include "natalie/object.hpp"
+#include "natalie/regexp_object.hpp"
+#include "natalie/sexp_object.hpp"
+#include "natalie/string_object.hpp"
+#include "natalie/symbol_object.hpp"
 #include "tm/optional.hpp"
 
 namespace Natalie {
@@ -496,13 +496,13 @@ public:
         NAT_UNREACHABLE();
     }
 
-    ValuePtr to_ruby(Env *env, bool with_line_and_column_numbers = false) {
+    Value to_ruby(Env *env, bool with_line_and_column_numbers = false) {
         if (m_type == Type::Eof)
-            return NilValue::the();
+            return NilObject::the();
         validate_or_raise(env);
         const char *type = type_value();
-        auto hash = new HashValue {};
-        hash->put(env, SymbolValue::intern("type"), SymbolValue::intern(type));
+        auto hash = new HashObject {};
+        hash->put(env, SymbolObject::intern("type"), SymbolObject::intern(type));
         switch (m_type) {
         case Type::PercentLowerI:
         case Type::PercentUpperI:
@@ -510,7 +510,7 @@ public:
         case Type::PercentUpperW:
         case Type::Regexp:
         case Type::String:
-            hash->put(env, SymbolValue::intern("literal"), new StringValue { literal_or_blank() });
+            hash->put(env, SymbolObject::intern("literal"), new StringObject { literal_or_blank() });
             break;
         case Type::BareName:
         case Type::ClassVariable:
@@ -519,24 +519,24 @@ public:
         case Type::InstanceVariable:
         case Type::Symbol:
         case Type::SymbolKey:
-            hash->put(env, SymbolValue::intern("literal"), SymbolValue::intern(literal_or_blank()));
+            hash->put(env, SymbolObject::intern("literal"), SymbolObject::intern(literal_or_blank()));
             break;
         case Type::Float:
-            hash->put(env, SymbolValue::intern("literal"), new FloatValue { m_double });
+            hash->put(env, SymbolObject::intern("literal"), new FloatObject { m_double });
             break;
         case Type::Integer:
-            hash->put(env, SymbolValue::intern("literal"), ValuePtr::integer(m_integer));
+            hash->put(env, SymbolObject::intern("literal"), Value::integer(m_integer));
             break;
         case Type::InterpolatedRegexpEnd:
             if (m_options)
-                hash->put(env, SymbolValue::intern("options"), new StringValue { m_options.value() });
+                hash->put(env, SymbolObject::intern("options"), new StringObject { m_options.value() });
             break;
         default:
             void();
         }
         if (with_line_and_column_numbers) {
-            hash->put(env, SymbolValue::intern("line"), ValuePtr::integer(static_cast<nat_int_t>(m_line)));
-            hash->put(env, SymbolValue::intern("column"), ValuePtr::integer(static_cast<nat_int_t>(m_column)));
+            hash->put(env, SymbolObject::intern("line"), Value::integer(static_cast<nat_int_t>(m_line)));
+            hash->put(env, SymbolObject::intern("column"), Value::integer(static_cast<nat_int_t>(m_column)));
         }
         return hash;
     }

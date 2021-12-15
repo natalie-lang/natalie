@@ -8,7 +8,7 @@
 #include "natalie/global_env.hpp"
 #include "natalie/local_jump_error_type.hpp"
 #include "natalie/string.hpp"
-#include "natalie/value_ptr.hpp"
+#include "natalie/value.hpp"
 #include "tm/shared_ptr.hpp"
 #include "tm/vector.hpp"
 
@@ -36,25 +36,25 @@ public:
 
     virtual ~Env() override { }
 
-    ValuePtr global_get(SymbolValue *);
-    ValuePtr global_set(SymbolValue *, ValuePtr);
+    Value global_get(SymbolObject *);
+    Value global_set(SymbolObject *, Value);
 
     Method *current_method();
     const String *build_code_location_name(Env *);
 
-    ValuePtr var_get(const char *, size_t);
-    ValuePtr var_set(const char *, size_t, bool, ValuePtr);
+    Value var_get(const char *, size_t);
+    Value var_set(const char *, size_t, bool, Value);
 
-    [[noreturn]] void raise(ClassValue *, StringValue *);
-    [[noreturn]] void raise(ClassValue *, String *);
+    [[noreturn]] void raise(ClassObject *, StringObject *);
+    [[noreturn]] void raise(ClassObject *, String *);
     [[noreturn]] void raise(const char *, const String *);
-    [[noreturn]] void raise_exception(ExceptionValue *);
-    [[noreturn]] void raise_key_error(ValuePtr, ValuePtr);
-    [[noreturn]] void raise_local_jump_error(ValuePtr, LocalJumpErrorType);
+    [[noreturn]] void raise_exception(ExceptionObject *);
+    [[noreturn]] void raise_key_error(Value, Value);
+    [[noreturn]] void raise_local_jump_error(Value, LocalJumpErrorType);
     [[noreturn]] void raise_errno();
 
     template <typename... Args>
-    [[noreturn]] void raise(ClassValue *klass, const char *format, Args... args) {
+    [[noreturn]] void raise(ClassObject *klass, const char *format, Args... args) {
         auto message = String::format(format, args...);
         raise(klass, message);
     }
@@ -78,8 +78,8 @@ public:
     void ensure_argc_at_least(size_t argc, size_t expected);
     void ensure_block_given(Block *);
 
-    ValuePtr last_match();
-    void set_last_match(ValuePtr match);
+    Value last_match();
+    void set_last_match(Value match);
 
     void build_vars(size_t);
 
@@ -106,8 +106,8 @@ public:
     Method *method() { return m_method; }
     void set_method(Method *method) { m_method = method; }
 
-    ValuePtr match() { return m_match; }
-    void set_match(ValuePtr match) { m_match = match; }
+    Value match() { return m_match; }
+    void set_match(Value match) { m_match = match; }
     void clear_match() { m_match = nullptr; }
 
     bool is_main() { return this == GlobalEnv::the()->main_env(); }
@@ -119,7 +119,7 @@ public:
     }
 
 private:
-    SharedPtr<Vector<ValuePtr>> m_vars {};
+    SharedPtr<Vector<Value>> m_vars {};
     Env *m_outer { nullptr };
     Block *m_block { nullptr };
     Block *m_this_block { nullptr };
@@ -127,6 +127,6 @@ private:
     const char *m_file { nullptr };
     size_t m_line { 0 };
     Method *m_method { nullptr };
-    ValuePtr m_match { nullptr };
+    Value m_match { nullptr };
 };
 }

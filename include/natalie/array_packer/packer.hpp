@@ -1,13 +1,13 @@
 #pragma once
 
+#include "natalie/array_object.hpp"
 #include "natalie/array_packer/integer_handler.hpp"
 #include "natalie/array_packer/string_handler.hpp"
 #include "natalie/array_packer/tokenizer.hpp"
-#include "natalie/array_value.hpp"
 #include "natalie/env.hpp"
 #include "natalie/string.hpp"
-#include "natalie/string_value.hpp"
-#include "natalie/symbol_value.hpp"
+#include "natalie/string_object.hpp"
+#include "natalie/symbol_object.hpp"
 
 namespace Natalie {
 
@@ -15,13 +15,13 @@ namespace ArrayPacker {
 
     class Packer {
     public:
-        Packer(ArrayValue *source, String *directives)
+        Packer(ArrayObject *source, String *directives)
             : m_source { source }
             , m_directives { Tokenizer { directives }.tokenize() }
             , m_packed { new String }
             , m_encoding { Encoding::ASCII_8BIT } { }
 
-        StringValue *pack(Env *env) {
+        StringObject *pack(Env *env) {
             signed char directive = 0;
             for (auto token : *m_directives) {
                 if (token.error)
@@ -48,9 +48,9 @@ namespace ArrayPacker {
                         if (d == 'u')
                             env->raise("TypeError", "no implicit conversion of nil into String");
                         string = new String("");
-                    } else if (item->respond_to(env, SymbolValue::intern("to_str"))) {
-                        auto str = item->send(env, SymbolValue::intern("to_str"));
-                        str->assert_type(env, Value::Type::String, "String");
+                    } else if (item->respond_to(env, SymbolObject::intern("to_str"))) {
+                        auto str = item->send(env, SymbolObject::intern("to_str"));
+                        str->assert_type(env, Object::Type::String, "String");
                         string = str->as_string()->to_low_level_string();
                     } else {
                         env->raise("TypeError", "no implicit conversion of {} into String", item->klass()->class_name_or_blank());
@@ -67,13 +67,13 @@ namespace ArrayPacker {
                 case 'c':
                 case 'U': {
                     pack_with_loop(env, token, [&]() {
-                        IntegerValue *integer;
+                        IntegerObject *integer;
                         auto item = m_source->at(m_index);
-                        if (item->is_nil()) { //TODO check if it is already implemented by the else branch at the end
+                        if (item->is_nil()) { // TODO check if it is already implemented by the else branch at the end
                             env->raise("TypeError", "no implicit conversion of nil into Integer");
-                        } else if (item->respond_to(env, SymbolValue::intern("to_int"))) {
-                            auto num = item->send(env, SymbolValue::intern("to_int"));
-                            num->assert_type(env, Value::Type::Integer, "Integer");
+                        } else if (item->respond_to(env, SymbolObject::intern("to_int"))) {
+                            auto num = item->send(env, SymbolObject::intern("to_int"));
+                            num->assert_type(env, Object::Type::Integer, "Integer");
                             integer = num->as_integer();
                         } else {
                             env->raise("TypeError", "no implicit conversion of {} into Integer", item->klass()->class_name_or_blank());
@@ -100,7 +100,7 @@ namespace ArrayPacker {
                 }
                 }
             }
-            return new StringValue { m_packed, m_encoding };
+            return new StringObject { m_packed, m_encoding };
         }
 
     private:
@@ -125,7 +125,7 @@ namespace ArrayPacker {
 
         bool at_end() { return m_index >= m_source->size(); }
 
-        ArrayValue *m_source;
+        ArrayObject *m_source;
         TM::Vector<Token> *m_directives;
         String *m_packed;
         Encoding m_encoding;
