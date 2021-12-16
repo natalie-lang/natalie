@@ -333,7 +333,7 @@ Value FloatObject::divmod(Env *env, Value arg) {
     Value modulus = mod(env, arg);
 
     return new ArrayObject {
-        division->as_float()->floor(env, 0),
+        division->as_float()->floor(env, 0ll),
         modulus
     };
 }

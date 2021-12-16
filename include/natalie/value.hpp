@@ -18,17 +18,19 @@ public:
         Pointer,
     };
 
-    Value() { }
+    Value() = default;
 
     Value(Object *object)
-        : m_object { object } { }
+        : m_type { Type::Pointer }
+        , m_object { object } { }
 
-    Value(Type type, nat_int_t integer)
-        : m_type { type }
+    Value(nat_int_t integer)
+        : m_type { Type::Integer }
         , m_integer { integer } { }
 
     static Value integer(nat_int_t integer) {
-        return Value { Type::Integer, integer };
+        // FIXME: Remove this
+        return Value { integer };
     }
 
     Object &operator*() {
