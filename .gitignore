@@ -10,3 +10,4 @@ coverage-report
 compile_commands.json
 tags
 .gdb_history
+.vscode
