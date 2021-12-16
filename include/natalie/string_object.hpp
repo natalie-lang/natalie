@@ -159,6 +159,7 @@ public:
     Value ref(Env *, Value);
     Value reverse(Env *);
     Value rstrip(Env *) const;
+    Value rstrip_bang(Env *);
     Value size(Env *);
     Value split(Env *, Value, Value);
     Value strip(Env *) const;

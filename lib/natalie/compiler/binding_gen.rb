@@ -747,6 +747,7 @@ gen.binding('String', 'match', 'StringObject', 'match', argc: 1, pass_env: true,
 gen.binding('String', 'ord', 'StringObject', 'ord', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'reverse', 'StringObject', 'reverse', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'rstrip', 'StringObject', 'rstrip', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('String', 'rstrip!', 'StringObject', 'rstrip_bang', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'size', 'StringObject', 'size', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'split', 'StringObject', 'split', argc: 0..2, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'start_with?', 'StringObject', 'start_with', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
