@@ -742,6 +742,7 @@ gen.binding('String', 'inspect', 'StringObject', 'inspect', argc: 0, pass_env: t
 gen.binding('String', 'length', 'StringObject', 'length', argc: 0, pass_env: false, pass_block: false, return_type: :size_t)
 gen.binding('String', 'ljust', 'StringObject', 'ljust', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'lstrip', 'StringObject', 'lstrip', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('String', 'lstrip!', 'StringObject', 'lstrip_bang', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'match', 'StringObject', 'match', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'ord', 'StringObject', 'ord', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'reverse', 'StringObject', 'reverse', argc: 0, pass_env: true, pass_block: false, return_type: :Object)

@@ -152,6 +152,7 @@ public:
     Value force_encoding(Env *, Value);
     Value ljust(Env *, Value, Value);
     Value lstrip(Env *) const;
+    Value lstrip_bang(Env *);
     Value match(Env *, Value);
     Value mul(Env *, Value) const;
     Value ord(Env *);

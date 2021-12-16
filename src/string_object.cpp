@@ -671,6 +671,32 @@ Value StringObject::lstrip(Env *env) const {
     }
 }
 
+Value StringObject::lstrip_bang(Env *env) {
+    if (is_frozen()) {
+        auto frozenError = GlobalEnv::the()->Object()->const_find(env, SymbolObject::intern("FrozenError"))->as_class();
+        env->raise_exception(new ExceptionObject(frozenError));
+    }
+
+    if (length() == 0)
+        return NilObject::the();
+
+    assert(length() < NAT_INT_MAX);
+    nat_int_t first_char;
+    nat_int_t len = static_cast<nat_int_t>(length());
+    for (first_char = 0; first_char < len; first_char++) {
+        char c = c_str()[first_char];
+        if (!is_strippable_whitespace(c))
+            break;
+    }
+
+    if (first_char == 0)
+        return NilObject::the();
+
+    memcpy(&m_string[0], &m_string[0] + first_char, len - first_char);
+    m_string.truncate(len - first_char);
+    return this;
+}
+
 Value StringObject::rstrip(Env *env) const {
     if (length() == 0)
         return new StringObject {};
