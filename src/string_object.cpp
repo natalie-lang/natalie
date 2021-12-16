@@ -652,13 +652,12 @@ Value StringObject::strip(Env *env) const {
     }
 }
 
-Value StringObject::strip_bang(Env *env)
-{
-	// right side needs to go first beacuse then we have less to move in
-	// on the left side
-	auto r = rstrip_bang(env);
-	auto l = lstrip_bang(env);
-	return l->is_nil() && r->is_nil() ? Value(NilObject::the()) : Value(this);
+Value StringObject::strip_bang(Env *env) {
+    // right side needs to go first beacuse then we have less to move in
+    // on the left side
+    auto r = rstrip_bang(env);
+    auto l = lstrip_bang(env);
+    return l->is_nil() && r->is_nil() ? Value(NilObject::the()) : Value(this);
 }
 
 Value StringObject::lstrip(Env *env) const {
@@ -734,7 +733,7 @@ Value StringObject::rstrip_bang(Env *env) {
     if (length() == 0)
         return NilObject::the();
 
-		assert(length() < NAT_INT_MAX);
+    assert(length() < NAT_INT_MAX);
     nat_int_t last_char;
     nat_int_t len = static_cast<nat_int_t>(length());
     for (last_char = len - 1; last_char >= 0; last_char--) {
@@ -743,10 +742,10 @@ Value StringObject::rstrip_bang(Env *env) {
             break;
     }
 
-		if (last_char == len - 1)
-			return NilObject::the();
+    if (last_char == len - 1)
+        return NilObject::the();
 
-		m_string.truncate(last_char < 0 ? 0 : last_char + 1);
+    m_string.truncate(last_char < 0 ? 0 : last_char + 1);
     return this;
 }
 
