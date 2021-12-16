@@ -652,6 +652,15 @@ Value StringObject::strip(Env *env) const {
     }
 }
 
+Value StringObject::strip_bang(Env *env)
+{
+	// right side needs to go first beacuse then we have less to move in
+	// on the left side
+	auto r = rstrip_bang(env);
+	auto l = lstrip_bang(env);
+	return l->is_nil() && r->is_nil() ? Value(NilObject::the()) : Value(this);
+}
+
 Value StringObject::lstrip(Env *env) const {
     if (length() == 0)
         return new StringObject {};

@@ -752,6 +752,7 @@ gen.binding('String', 'size', 'StringObject', 'size', argc: 0, pass_env: true, p
 gen.binding('String', 'split', 'StringObject', 'split', argc: 0..2, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'start_with?', 'StringObject', 'start_with', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('String', 'strip', 'StringObject', 'strip', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('String', 'strip!', 'StringObject', 'strip_bang', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'sub', 'StringObject', 'sub', argc: 1..2, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('String', 'succ', 'StringObject', 'successive', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'to_i', 'StringObject', 'to_i', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
