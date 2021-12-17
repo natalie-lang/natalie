@@ -16,8 +16,7 @@ describe "Random.rand" do
     floats.max.should < 1
   end
 
-  # NATFIXME: Implement Range::srand
-  xit "returns the same sequence for a given seed if no max argument is passed" do
+  it "returns the same sequence for a given seed if no max argument is passed" do
     Random.srand 33
     floats_a = 20.times.map { Random.rand }
     Random.srand 33
@@ -35,8 +34,7 @@ describe "Random.rand" do
     ints.max.should < 55
   end
 
-  # NATFIXME: Implement Range::srand
-  xit "returns the same sequence for a given seed if an Integer argument is passed" do
+  it "returns the same sequence for a given seed if an Integer argument is passed" do
     Random.srand 33
     floats_a = 20.times.map { Random.rand(90) }
     Random.srand 33

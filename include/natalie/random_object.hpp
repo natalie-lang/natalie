@@ -33,6 +33,22 @@ public:
         snprintf(buf, len, "<Random %p seed=%lld>", this, m_seed);
     }
 
+    static Value new_seed(Env *env) {
+        return Value::integer(std::random_device()());
+    }
+
+    static Value srand(Env *env, Value seed) {
+        if (!seed || seed->is_nil())
+            seed = new_seed(env);
+        seed->assert_type(env, Type::Integer, "Integer");
+        auto default_random = GlobalEnv::the()->Random()->const_fetch(SymbolObject::intern("DEFAULT"))->as_random();
+        auto old_seed = default_random->seed();
+        auto new_seed = seed->as_integer()->to_nat_int_t();
+        default_random->m_seed = new_seed;
+        default_random->m_generator = new std::mt19937(new_seed);
+        return old_seed;
+    }
+
 private:
     nat_int_t m_seed;
     std::mt19937 *m_generator { nullptr };
