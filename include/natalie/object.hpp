@@ -177,8 +177,11 @@ public:
     SymbolObject *define_singleton_method(Env *, SymbolObject *, Block *);
     SymbolObject *undefine_singleton_method(Env *, SymbolObject *);
 
-    virtual Value private_method(Env *, Value method_name);
-    virtual Value protected_method(Env *, Value method_name);
+    virtual Value private_method(Env *, size_t, Value *);
+    virtual Value protected_method(Env *, size_t, Value *);
+
+    void private_method(Env *, SymbolObject *);
+    void protected_method(Env *, SymbolObject *);
 
     virtual void alias(Env *, SymbolObject *, SymbolObject *);
 

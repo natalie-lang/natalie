@@ -107,9 +107,9 @@ public:
 
     Value module_eval(Env *, Block *);
 
-    virtual Value private_method(Env *, Value method_name) override;
-    virtual Value protected_method(Env *, Value method_name) override;
-    Value public_method(Env *, Value method_name);
+    virtual Value private_method(Env *, size_t, Value *) override;
+    virtual Value protected_method(Env *, size_t, Value *) override;
+    Value public_method(Env *, size_t, Value *);
 
     bool const_defined(Env *, Value);
     Value alias_method(Env *, Value, Value);

@@ -410,20 +410,30 @@ SymbolObject *Object::undefine_method(Env *env, SymbolObject *name) {
     return name;
 }
 
-Value Object::private_method(Env *env, Value name) {
+void Object::private_method(Env *env, SymbolObject *name) {
+    Value args[] = { name };
+    private_method(env, 1, args);
+}
+
+void Object::protected_method(Env *env, SymbolObject *name) {
+    Value args[] = { name };
+    protected_method(env, 1, args);
+}
+
+Value Object::private_method(Env *env, size_t argc, Value *args) {
     if (!is_main_object()) {
         printf("tried to call private_method on something that has no methods\n");
         abort();
     }
-    return m_klass->private_method(env, name);
+    return m_klass->private_method(env, argc, args);
 }
 
-Value Object::protected_method(Env *env, Value name) {
+Value Object::protected_method(Env *env, size_t argc, Value *args) {
     if (!is_main_object()) {
         printf("tried to call protected_method on something that has no methods\n");
         abort();
     }
-    return m_klass->protected_method(env, name);
+    return m_klass->protected_method(env, argc, args);
 }
 
 Value Object::public_send(Env *env, SymbolObject *name, size_t argc, Value *args, Block *block) {

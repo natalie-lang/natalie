@@ -656,9 +656,9 @@ gen.binding('Module', 'method_defined?', 'ModuleObject', 'is_method_defined', ar
 gen.binding('Module', 'module_eval', 'ModuleObject', 'module_eval', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('Module', 'name', 'ModuleObject', 'name', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Module', 'prepend', 'ModuleObject', 'prepend', argc: 1.., pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Module', 'private', 'ModuleObject', 'private_method', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Module', 'protected', 'ModuleObject', 'protected_method', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Module', 'public', 'ModuleObject', 'public_method', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Module', 'private', 'ModuleObject', 'private_method', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Module', 'protected', 'ModuleObject', 'protected_method', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Module', 'public', 'ModuleObject', 'public_method', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
 
 gen.undefine_singleton_method('NilClass', 'new')
 gen.binding('NilClass', '=~', 'NilObject', 'eqtilde', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
