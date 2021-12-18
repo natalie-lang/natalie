@@ -67,19 +67,19 @@ void Env::raise_exception(ExceptionObject *exception) {
 
 void Env::raise_key_error(Value receiver, Value key) {
     auto message = new StringObject { String::format("key not found: {}", key->inspect_str(this)) };
-    auto key_error_class = GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern("KeyError"))->as_class();
+    auto key_error_class = GlobalEnv::the()->Object()->const_fetch("KeyError"_s)->as_class();
     ExceptionObject *exception = new ExceptionObject { key_error_class, message };
-    exception->ivar_set(this, SymbolObject::intern("@receiver"), receiver);
-    exception->ivar_set(this, SymbolObject::intern("@key"), key);
+    exception->ivar_set(this, "@receiver"_s, receiver);
+    exception->ivar_set(this, "@key"_s, key);
     this->raise_exception(exception);
 }
 
 void Env::raise_local_jump_error(Value exit_value, LocalJumpErrorType type) {
     auto message = new StringObject { type == LocalJumpErrorType::Return ? "unexpected return" : "break from proc-closure" };
-    auto lje_class = GlobalEnv::the()->Object()->const_find(this, SymbolObject::intern("LocalJumpError"))->as_class();
+    auto lje_class = GlobalEnv::the()->Object()->const_find(this, "LocalJumpError"_s)->as_class();
     ExceptionObject *exception = new ExceptionObject { lje_class, message };
     exception->set_local_jump_error_type(type);
-    exception->ivar_set(this, SymbolObject::intern("@exit_value"), exit_value);
+    exception->ivar_set(this, "@exit_value"_s, exit_value);
     if (type == LocalJumpErrorType::Break) {
         assert(m_this_block);
         exception->set_local_jump_error_env(m_this_block->calling_env());
@@ -90,14 +90,14 @@ void Env::raise_local_jump_error(Value exit_value, LocalJumpErrorType type) {
 }
 
 void Env::raise_errno() {
-    auto SystemCallError = GlobalEnv::the()->Object()->const_find(this, SymbolObject::intern("SystemCallError"));
-    ExceptionObject *error = SystemCallError.send(this, SymbolObject::intern("exception"), { Value::integer(errno) })->as_exception();
+    auto SystemCallError = GlobalEnv::the()->Object()->const_find(this, "SystemCallError"_s);
+    ExceptionObject *error = SystemCallError.send(this, "exception"_s, { Value::integer(errno) })->as_exception();
     raise_exception(error);
 }
 
 void Env::warn(const String *message) {
-    Value _stderr = global_get(SymbolObject::intern("$stderr"));
-    _stderr.send(this, SymbolObject::intern("puts"), { new StringObject { message } });
+    Value _stderr = global_get("$stderr"_s);
+    _stderr.send(this, "puts"_s, { new StringObject { message } });
 }
 
 void Env::ensure_argc_is(size_t argc, size_t expected) {

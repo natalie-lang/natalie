@@ -63,7 +63,7 @@ public:
     };
 
     FiberObject()
-        : Object { Object::Type::Fiber, GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern("Fiber"))->as_class() } { }
+        : Object { Object::Type::Fiber, GlobalEnv::the()->Object()->const_fetch("Fiber"_s)->as_class() } { }
 
     FiberObject(ClassObject *klass)
         : Object { Object::Type::Fiber, klass } { }
@@ -153,13 +153,13 @@ public:
     SymbolObject *status(Env *env) {
         switch (m_status) {
         case Status::Created:
-            return SymbolObject::intern("created");
+            return "created"_s;
         case Status::Active:
-            return SymbolObject::intern("active");
+            return "active"_s;
         case Status::Suspended:
-            return SymbolObject::intern("suspended");
+            return "suspended"_s;
         case Status::Terminated:
-            return SymbolObject::intern("terminated");
+            return "terminated"_s;
         }
         NAT_UNREACHABLE();
     }

@@ -41,7 +41,7 @@ public:
         if (!seed || seed->is_nil())
             seed = new_seed(env);
         seed->assert_type(env, Type::Integer, "Integer");
-        auto default_random = GlobalEnv::the()->Random()->const_fetch(SymbolObject::intern("DEFAULT"))->as_random();
+        auto default_random = GlobalEnv::the()->Random()->const_fetch("DEFAULT"_s)->as_random();
         auto old_seed = default_random->seed();
         auto new_seed = seed->as_integer()->to_nat_int_t();
         default_random->m_seed = new_seed;

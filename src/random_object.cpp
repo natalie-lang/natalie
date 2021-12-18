@@ -10,8 +10,8 @@ Value RandomObject::initialize(Env *env, Value seed) {
         if (seed->is_float()) {
             seed = seed->as_float()->to_i(env);
         }
-        if (!seed->is_integer() && seed->respond_to(env, SymbolObject::intern("to_int"))) {
-            seed = seed.send(env, SymbolObject::intern("to_int"));
+        if (!seed->is_integer() && seed->respond_to(env, "to_int"_s)) {
+            seed = seed.send(env, "to_int"_s);
         }
 
         seed->assert_type(env, Type::Integer, "Integer");
@@ -38,7 +38,7 @@ Value RandomObject::rand(Env *env, Value arg) {
             // TODO: There can be different types of objects that respond to + and - (according to the docs)
             // I'm not sure how we should handle those though (coerce via to_int or to_f?)
             if (min->is_numeric() && max->is_numeric()) {
-                if (min.send(env, SymbolObject::intern(">"), { max })->is_true()) {
+                if (min.send(env, ">"_s, { max })->is_true()) {
                     env->raise("ArgumentError", "invalid argument - {}", arg->inspect_str(env));
                 }
 
@@ -69,8 +69,8 @@ Value RandomObject::rand(Env *env, Value arg) {
                 }
             }
             env->raise("ArgumentError", "bad value for range");
-        } else if (!arg->is_integer() && arg->respond_to(env, SymbolObject::intern("to_int"))) {
-            arg = arg->send(env, SymbolObject::intern("to_int"));
+        } else if (!arg->is_integer() && arg->respond_to(env, "to_int"_s)) {
+            arg = arg->send(env, "to_int"_s);
         }
         arg->assert_type(env, Type::Integer, "Integer");
 

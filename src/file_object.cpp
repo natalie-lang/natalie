@@ -87,39 +87,39 @@ Value FileObject::unlink(Env *env, Value path) {
     if (result == 0) {
         return Value::integer(1);
     } else {
-        auto SystemCallError = GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern("SystemCallError"));
-        auto exception = SystemCallError.send(env, SymbolObject::intern("exception"), { Value::integer(errno) })->as_exception();
+        auto SystemCallError = GlobalEnv::the()->Object()->const_fetch("SystemCallError"_s);
+        auto exception = SystemCallError.send(env, "exception"_s, { Value::integer(errno) })->as_exception();
         env->raise_exception(exception);
     }
 }
 
 void FileObject::build_constants(Env *env, ClassObject *klass) {
     Value Constants = new ModuleObject { "Constants" };
-    klass->const_set(SymbolObject::intern("Constants"), Constants);
-    klass->const_set(SymbolObject::intern("APPEND"), Value::integer(O_APPEND));
-    Constants->const_set(SymbolObject::intern("APPEND"), Value::integer(O_APPEND));
-    klass->const_set(SymbolObject::intern("RDONLY"), Value::integer(O_RDONLY));
-    Constants->const_set(SymbolObject::intern("RDONLY"), Value::integer(O_RDONLY));
-    klass->const_set(SymbolObject::intern("WRONLY"), Value::integer(O_WRONLY));
-    Constants->const_set(SymbolObject::intern("WRONLY"), Value::integer(O_WRONLY));
-    klass->const_set(SymbolObject::intern("TRUNC"), Value::integer(O_TRUNC));
-    Constants->const_set(SymbolObject::intern("TRUNC"), Value::integer(O_TRUNC));
-    klass->const_set(SymbolObject::intern("CREAT"), Value::integer(O_CREAT));
-    Constants->const_set(SymbolObject::intern("CREAT"), Value::integer(O_CREAT));
-    klass->const_set(SymbolObject::intern("DSYNC"), Value::integer(O_DSYNC));
-    Constants->const_set(SymbolObject::intern("DSYNC"), Value::integer(O_DSYNC));
-    klass->const_set(SymbolObject::intern("EXCL"), Value::integer(O_EXCL));
-    Constants->const_set(SymbolObject::intern("EXCL"), Value::integer(O_EXCL));
-    klass->const_set(SymbolObject::intern("NOCTTY"), Value::integer(O_NOCTTY));
-    Constants->const_set(SymbolObject::intern("NOCTTY"), Value::integer(O_NOCTTY));
-    klass->const_set(SymbolObject::intern("NOFOLLOW"), Value::integer(O_NOFOLLOW));
-    Constants->const_set(SymbolObject::intern("NOFOLLOW"), Value::integer(O_NOFOLLOW));
-    klass->const_set(SymbolObject::intern("NONBLOCK"), Value::integer(O_NONBLOCK));
-    Constants->const_set(SymbolObject::intern("NONBLOCK"), Value::integer(O_NONBLOCK));
-    klass->const_set(SymbolObject::intern("RDWR"), Value::integer(O_RDWR));
-    Constants->const_set(SymbolObject::intern("RDWR"), Value::integer(O_RDWR));
-    klass->const_set(SymbolObject::intern("SYNC"), Value::integer(O_SYNC));
-    Constants->const_set(SymbolObject::intern("SYNC"), Value::integer(O_SYNC));
+    klass->const_set("Constants"_s, Constants);
+    klass->const_set("APPEND"_s, Value::integer(O_APPEND));
+    Constants->const_set("APPEND"_s, Value::integer(O_APPEND));
+    klass->const_set("RDONLY"_s, Value::integer(O_RDONLY));
+    Constants->const_set("RDONLY"_s, Value::integer(O_RDONLY));
+    klass->const_set("WRONLY"_s, Value::integer(O_WRONLY));
+    Constants->const_set("WRONLY"_s, Value::integer(O_WRONLY));
+    klass->const_set("TRUNC"_s, Value::integer(O_TRUNC));
+    Constants->const_set("TRUNC"_s, Value::integer(O_TRUNC));
+    klass->const_set("CREAT"_s, Value::integer(O_CREAT));
+    Constants->const_set("CREAT"_s, Value::integer(O_CREAT));
+    klass->const_set("DSYNC"_s, Value::integer(O_DSYNC));
+    Constants->const_set("DSYNC"_s, Value::integer(O_DSYNC));
+    klass->const_set("EXCL"_s, Value::integer(O_EXCL));
+    Constants->const_set("EXCL"_s, Value::integer(O_EXCL));
+    klass->const_set("NOCTTY"_s, Value::integer(O_NOCTTY));
+    Constants->const_set("NOCTTY"_s, Value::integer(O_NOCTTY));
+    klass->const_set("NOFOLLOW"_s, Value::integer(O_NOFOLLOW));
+    Constants->const_set("NOFOLLOW"_s, Value::integer(O_NOFOLLOW));
+    klass->const_set("NONBLOCK"_s, Value::integer(O_NONBLOCK));
+    Constants->const_set("NONBLOCK"_s, Value::integer(O_NONBLOCK));
+    klass->const_set("RDWR"_s, Value::integer(O_RDWR));
+    Constants->const_set("RDWR"_s, Value::integer(O_RDWR));
+    klass->const_set("SYNC"_s, Value::integer(O_SYNC));
+    Constants->const_set("SYNC"_s, Value::integer(O_SYNC));
 }
 
 bool FileObject::file(Env *env, Value path) {

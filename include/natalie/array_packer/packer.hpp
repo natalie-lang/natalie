@@ -48,8 +48,8 @@ namespace ArrayPacker {
                         if (d == 'u')
                             env->raise("TypeError", "no implicit conversion of nil into String");
                         string = new String("");
-                    } else if (item->respond_to(env, SymbolObject::intern("to_str"))) {
-                        auto str = item->send(env, SymbolObject::intern("to_str"));
+                    } else if (item->respond_to(env, "to_str"_s)) {
+                        auto str = item->send(env, "to_str"_s);
                         str->assert_type(env, Object::Type::String, "String");
                         string = str->as_string()->to_low_level_string();
                     } else {
@@ -71,8 +71,8 @@ namespace ArrayPacker {
                         auto item = m_source->at(m_index);
                         if (item->is_nil()) { // TODO check if it is already implemented by the else branch at the end
                             env->raise("TypeError", "no implicit conversion of nil into Integer");
-                        } else if (item->respond_to(env, SymbolObject::intern("to_int"))) {
-                            auto num = item->send(env, SymbolObject::intern("to_int"));
+                        } else if (item->respond_to(env, "to_int"_s)) {
+                            auto num = item->send(env, "to_int"_s);
                             num->assert_type(env, Object::Type::Integer, "Integer");
                             integer = num->as_integer();
                         } else {

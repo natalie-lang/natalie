@@ -97,7 +97,7 @@ bool BignumObject::eq(Env *env, Value other) {
     if (other->is_integer()) {
         return to_bigint() == other->as_integer()->to_bigint();
     }
-    return other->send(env, SymbolObject::intern("=="), { this })->is_truthy();
+    return other->send(env, "=="_s, { this })->is_truthy();
 }
 
 bool BignumObject::lt(Env *env, Value other) {

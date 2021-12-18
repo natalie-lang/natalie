@@ -17,7 +17,7 @@ namespace Natalie {
 class FileObject : public IoObject {
 public:
     FileObject()
-        : IoObject { GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern("File"))->as_class() } { }
+        : IoObject { GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class() } { }
 
     Value initialize(Env *, Value, Value, Block *);
 
@@ -25,7 +25,7 @@ public:
         Value args[] = { filename, flags_obj };
         size_t argc = 1;
         if (flags_obj) argc++;
-        auto obj = _new(env, GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern("File"))->as_class(), argc, args, nullptr);
+        auto obj = _new(env, GlobalEnv::the()->Object()->const_fetch("File"_s)->as_class(), argc, args, nullptr);
         if (block) {
             Defer close_file([&]() {
                 obj->as_file()->close(env);

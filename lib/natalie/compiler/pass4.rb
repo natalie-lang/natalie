@@ -161,7 +161,7 @@ module Natalie
         nl = "\n" # FIXME: parser issue with double quotes inside interpolation
         top "Value #{fn}(Env *env, Value self, size_t argc, Value *args, Block *block) {\n#{c.join(nl)}\n}"
         process(s(:define_method, s(:l, "self->as_module()"), :env, s(:intern, name), fn, -1))
-        "SymbolObject::intern(#{name.inspect})"
+        "#{name.inspect}_s"
       end
 
       def process___inline__(exp)
@@ -426,7 +426,7 @@ module Natalie
         result = temp('defined_result')
         case name.sexp_type
         when :const, :gvar, :ivar
-          decl "Value #{result} = self->defined_obj(env, SymbolObject::intern(#{name.last.to_s.inspect}));"
+          decl "Value #{result} = self->defined_obj(env, #{name.last.to_s.inspect}_s);"
         when :send, :public_send
           (_, receiver, name) = name
           receiver ||= 'self'
@@ -441,7 +441,7 @@ module Natalie
           raise "expected const" unless namespace.first == :const
           decl "Value #{result};"
           decl 'try {'
-          decl "#{result} = GlobalEnv::the()->Object()->const_find(env, SymbolObject::intern(#{namespace.last.to_s.inspect}), Object::ConstLookupSearchMode::NotStrict)->defined_obj(env, SymbolObject::intern(#{name.to_s.inspect}), true);"
+          decl "#{result} = GlobalEnv::the()->Object()->const_find(env, #{namespace.last.to_s.inspect}_s, Object::ConstLookupSearchMode::NotStrict)->defined_obj(env, #{name.to_s.inspect}_s, true);"
           decl '} catch (ExceptionObject *) {'
           decl "#{result} = #{process_atom s(:nil)};"
           decl '}'
@@ -449,7 +449,7 @@ module Natalie
           (_, name) = name
           decl "Value #{result};"
           decl 'try {'
-          decl "#{result} = GlobalEnv::the()->Object()->defined_obj(env, SymbolObject::intern(#{name.to_s.inspect}), true);"
+          decl "#{result} = GlobalEnv::the()->Object()->defined_obj(env, #{name.to_s.inspect}_s, true);"
           decl '} catch (ExceptionObject *) {'
           decl "#{result} = #{process_atom s(:nil)};"
           decl '}'
@@ -531,7 +531,7 @@ module Natalie
           c += @decl
           c << "#{result_name} = #{result};" unless result.empty?
           c << '} catch (ExceptionObject *exception) {'
-          c << 'env->global_set(SymbolObject::intern("$!"), exception);'
+          c << 'env->global_set("$!"_s, exception);'
           @decl = []
           result = process_atom(bottom)
           c += @decl
@@ -721,13 +721,13 @@ module Natalie
 
       def init_symbols
         @symbols.map do |name, index|
-          "#{symbols_var_name}[#{index}] = SymbolObject::intern(#{name.to_s.inspect});"
+          "#{symbols_var_name}[#{index}] = #{name.to_s.inspect}_s;"
         end
       end
 
       def set_dollar_zero_global_in_main_to_c
         return if @compiler_context[:is_obj]
-        "env->global_set(SymbolObject::intern(\"$0\"), new StringObject { #{@compiler_context[:source_path].inspect} });"
+        "env->global_set(\"$0\"_s, new StringObject { #{@compiler_context[:source_path].inspect} });"
       end
 
       def obj_files

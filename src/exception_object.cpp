@@ -20,7 +20,7 @@ Value ExceptionObject::initialize(Env *env, Value message) {
         set_message(new StringObject { *name });
     } else {
         if (!message->is_string()) {
-            message = message.send(env, SymbolObject::intern("inspect"));
+            message = message.send(env, "inspect"_s);
         }
         set_message(message->as_string());
     }

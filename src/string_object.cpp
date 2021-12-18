@@ -16,8 +16,8 @@ constexpr bool is_strippable_whitespace(char c) {
 
 void StringObject::raise_encoding_invalid_byte_sequence_error(Env *env, size_t index) const {
     StringObject *message = format(env, "invalid byte sequence at index {} in string of size {} (string not long enough)", index, length());
-    ClassObject *Encoding = GlobalEnv::the()->Object()->const_find(env, SymbolObject::intern("Encoding"))->as_class();
-    ClassObject *InvalidByteSequenceError = Encoding->const_find(env, SymbolObject::intern("InvalidByteSequenceError"))->as_class();
+    ClassObject *Encoding = GlobalEnv::the()->Object()->const_find(env, "Encoding"_s)->as_class();
+    ClassObject *InvalidByteSequenceError = Encoding->const_find(env, "InvalidByteSequenceError"_s)->as_class();
     ExceptionObject *exception = new ExceptionObject { InvalidByteSequenceError, message };
     env->raise_exception(exception);
 }
@@ -62,7 +62,7 @@ char *StringObject::next_char(Env *env, char *buffer, size_t *index) {
 
 Value StringObject::each_char(Env *env, Block *block) {
     if (!block)
-        return send(env, SymbolObject::intern("enum_for"), { SymbolObject::intern("each_char") });
+        return send(env, "enum_for"_s, { "each_char"_s });
 
     size_t index = 0;
     char buffer[5];
@@ -190,7 +190,7 @@ Value StringObject::ltlt(Env *env, Value arg) {
     if (arg->is_string()) {
         append(env, arg->as_string());
     } else {
-        Value str_obj = arg.send(env, SymbolObject::intern("to_s"));
+        Value str_obj = arg.send(env, "to_s"_s);
         str_obj->assert_type(env, Object::Type::String, "String");
         append(env, str_obj->as_string());
     }
@@ -202,7 +202,7 @@ Value StringObject::add(Env *env, Value arg) const {
     if (arg->is_string()) {
         str = arg->as_string()->c_str();
     } else {
-        StringObject *str_obj = arg.send(env, SymbolObject::intern("to_s"))->as_string();
+        StringObject *str_obj = arg.send(env, "to_s"_s)->as_string();
         str_obj->assert_type(env, Object::Type::String, "String");
         str = str_obj->c_str();
     }
@@ -239,8 +239,8 @@ Value StringObject::cmp(Env *env, Value other) const {
 }
 
 bool StringObject::eq(Env *env, Value arg) {
-    if (!arg->is_string() && arg->respond_to(env, SymbolObject::intern("to_str")))
-        return arg->send(env, SymbolObject::intern("=="), { this });
+    if (!arg->is_string() && arg->respond_to(env, "to_str"_s))
+        return arg->send(env, "=="_s, { this });
     return eql(arg);
 }
 
@@ -304,12 +304,12 @@ Value StringObject::size(Env *env) {
 }
 
 Value StringObject::encoding(Env *env) {
-    ClassObject *Encoding = GlobalEnv::the()->Object()->const_find(env, SymbolObject::intern("Encoding"))->as_class();
+    ClassObject *Encoding = GlobalEnv::the()->Object()->const_find(env, "Encoding"_s)->as_class();
     switch (m_encoding) {
     case Encoding::ASCII_8BIT:
-        return Encoding->const_find(env, SymbolObject::intern("ASCII_8BIT"));
+        return Encoding->const_find(env, "ASCII_8BIT"_s);
     case Encoding::UTF_8:
-        return Encoding->const_find(env, SymbolObject::intern("UTF_8"));
+        return Encoding->const_find(env, "UTF_8"_s);
     }
     NAT_UNREACHABLE();
 }
@@ -335,7 +335,7 @@ Value StringObject::encode(Env *env, Value encoding) {
     Encoding orig_encoding = m_encoding;
     StringObject *copy = dup(env)->as_string();
     copy->force_encoding(env, encoding);
-    ClassObject *Encoding = GlobalEnv::the()->Object()->const_find(env, SymbolObject::intern("Encoding"))->as_class();
+    ClassObject *Encoding = GlobalEnv::the()->Object()->const_find(env, "Encoding"_s)->as_class();
     if (orig_encoding == copy->encoding()) {
         return copy;
     } else if (orig_encoding == Encoding::UTF_8 && copy->encoding() == Encoding::ASCII_8BIT) {
@@ -348,14 +348,14 @@ Value StringObject::encode(Env *env, Value encoding) {
                 StringObject zero_x { "0X" };
                 StringObject blank { "" };
                 message = message->as_string()->sub(env, &zero_x, &blank);
-                env->raise(Encoding->const_find(env, SymbolObject::intern("UndefinedConversionError"))->as_class(), "{}", message->as_string());
+                env->raise(Encoding->const_find(env, "UndefinedConversionError"_s)->as_class(), "{}", message->as_string());
             }
         }
         return copy;
     } else if (orig_encoding == Encoding::ASCII_8BIT && copy->encoding() == Encoding::UTF_8) {
         return copy;
     } else {
-        env->raise(Encoding->const_find(env, SymbolObject::intern("ConverterNotFoundError"))->as_class(), "code converter not found");
+        env->raise(Encoding->const_find(env, "ConverterNotFoundError"_s)->as_class(), "code converter not found");
     }
 }
 

@@ -35,13 +35,13 @@ class BindingGen
         puts "    " + binding.get_object
         @consts[binding.rb_class] = true
       end
-      puts "    #{binding.rb_class_as_c_variable}->#{binding.define_method_name}(env, SymbolObject::intern(#{binding.rb_method.inspect}), #{binding.name}, #{binding.arity});"
+      puts "    #{binding.rb_class_as_c_variable}->#{binding.define_method_name}(env, #{binding.rb_method.inspect}_s, #{binding.name}, #{binding.arity});"
       if binding.needs_to_set_visibility?
-        puts "    #{binding.rb_class_as_c_variable}->#{binding.set_visibility_method_name}(env, SymbolObject::intern(#{binding.rb_method.inspect}));"
+        puts "    #{binding.rb_class_as_c_variable}->#{binding.set_visibility_method_name}(env, #{binding.rb_method.inspect}_s);"
       end
     end
     @undefine_singleton_methods.each do |rb_class, method|
-      puts "    #{rb_class}->undefine_singleton_method(env, SymbolObject::intern(#{method.inspect}));"
+      puts "    #{rb_class}->undefine_singleton_method(env, #{method.inspect}_s);"
     end
     puts '}'
   end
@@ -150,7 +150,7 @@ Value #{name}(Env *env, Value klass, size_t argc, Value *args, Block *block) {
       if GLOBAL_ENV_ACCESSORS.include?(rb_class)
         "Value #{rb_class} = GlobalEnv::the()->#{rb_class}();"
       else
-        "Value #{rb_class_as_c_variable} = GlobalEnv::the()->Object()->#{rb_class.split('::').map { |c| %(const_find(env, SymbolObject::intern(#{c.inspect}))) }.join('->')};"
+        "Value #{rb_class_as_c_variable} = GlobalEnv::the()->Object()->#{rb_class.split('::').map { |c| %(const_find(env, #{c.inspect}_s)) }.join('->')};"
       end
     end
 
