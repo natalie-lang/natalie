@@ -119,7 +119,7 @@ public:
         delete[] m_map;
     }
 
-    T get(KeyT key, void *data = nullptr) {
+    T get(KeyT key, void *data = nullptr) const {
         auto hash = m_hash_fn(key);
         auto item = find_item(key, hash, data);
         if (item)
@@ -127,7 +127,7 @@ public:
         return nullptr;
     }
 
-    Item *find_item(KeyT key, size_t hash, void *data = nullptr) {
+    Item *find_item(KeyT key, size_t hash, void *data = nullptr) const {
         if (m_size == 0) return nullptr;
         assert(m_map);
         auto index = index_for_hash(hash);
@@ -292,7 +292,7 @@ private:
     // Returns an integer from 0-100
     size_t load_factor() { return m_size * 100 / m_capacity; }
 
-    size_t index_for_hash(size_t hash) {
+    size_t index_for_hash(size_t hash) const {
         // This is an optimization for hash % capacity that is only possible
         // because capacity is always a power of two.
         assert((m_capacity & (m_capacity - 1)) == 0);

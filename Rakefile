@@ -52,6 +52,8 @@ task :todo do
   sh "egrep -r 'FIXME|TODO' src include lib"
 end
 
+desc 'Run clang-tidy'
+task tidy: [:build, :tidy_internal]
 
 # # # # Docker Tasks (used for CI) # # # #
 
@@ -245,6 +247,11 @@ file 'build/parser_c_ext.so' => :libnatalie do
     make && \
     cp parser_c_ext.so ..
   SH
+end
+
+task :tidy_internal do
+  # FIXME: excluding big_int.cpp for now since clang-tidy thinks it has memory leaks (need to check that).
+  sh "clang-tidy --fix #{HEADERS} #{PRIMARY_SOURCES.exclude('src/dtoa.c', 'src/big_int.cpp')}"
 end
 
 def cc

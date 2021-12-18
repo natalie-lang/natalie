@@ -11,6 +11,18 @@ class Integer
     end
   end
 
+  def upto(n)
+    unless block_given?
+      return enum_for(:upto, n) { self <= n ? (n - self + 1) : 0 }
+    end
+
+    i = self
+    until i > n
+      yield i
+      i += 1
+    end
+  end
+
   def allbits?(mask)
     unless mask.respond_to?(:to_int)
       raise TypeError, "No implicit conversion of #{mask.class} into Integer"

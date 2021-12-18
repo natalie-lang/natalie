@@ -33,6 +33,12 @@ module Natalie
           process(exp)
         when String, Symbol, Integer, Float, nil
           exp
+        when true, false
+          exp.inspect.to_sym
+        when Hash
+          exp.transform_values do |e|
+            process_atom(e)
+          end
         else
           raise "unknown node type: #{exp.inspect}"
         end

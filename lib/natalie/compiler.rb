@@ -268,14 +268,14 @@ module Natalie
       %i[require require_relative load eval].include?(node[2])
     end
 
-    def run_macro(expr, path)
+    def run_macro(expr, current_path)
       (_, _, macro, *args) = expr
-      send("macro_#{macro}", *args, path)
+      send("macro_#{macro}", args: args, current_path: current_path)
     end
 
-    REQUIRE_EXTENSIONS = %w[nat rb]
-
-    def macro_require(node, current_path)
+    def macro_require(args:, current_path:)
+      node = args.first
+      raise ArgumentError, "Expected a String, but got #{node.inspect}" unless node.sexp_type == :str
       name = node[1]
       if name == 'natalie/inline'
         @inline_cpp_enabled = true
@@ -289,7 +289,9 @@ module Natalie
       drop_load_error "cannot load such file #{name} at #{node.file}##{node.line}"
     end
 
-    def macro_require_relative(node, current_path)
+    def macro_require_relative(args:, current_path:)
+      node = args.first
+      raise ArgumentError, "Expected a String, but got #{node.inspect}" unless node.sexp_type == :str
       name = node[1]
       if (full_path = find_full_path("#{name}.rb", base: File.dirname(current_path), search: false))
         return load_file(full_path, require_once: true)
@@ -299,7 +301,9 @@ module Natalie
       drop_load_error "cannot load such file #{name} at #{node.file}##{node.line}"
     end
 
-    def macro_load(node, _)
+    def macro_load(args:, current_path:)
+      node = args.first
+      raise ArgumentError, "Expected a String, but got #{node.inspect}" unless node.sexp_type == :str
       path = node.last
       full_path = find_full_path(path, base: Dir.pwd, search: true)
       if full_path
@@ -308,9 +312,11 @@ module Natalie
       drop_load_error "cannot load such file -- #{path}"
     end
 
-    def macro_eval(node, path)
+    def macro_eval(args:, current_path:)
+      node = args.first
+      $stderr.puts "FIXME: binding passed to eval() will be ignored." if args.size > 1
       if node.sexp_type == :str
-        Natalie::Parser.new(node[1], path).ast
+        Natalie::Parser.new(node[1], current_path).ast
       else
         s(:call, nil, :raise, s(:const, :SyntaxError), s(:str, "eval() only works on static strings"))
       end

@@ -1,8 +1,11 @@
+# NOTE: This library is not internally compatible with the optparse library in MRI.
+# since the API for OptionParser::Switch is changed. Though, you probably shouldn't
+# be using it directly anyway.
 class OptionParser
   class Switch
     attr_accessor :short_name, :long_name, :value_label, :value_type, :description, :value
 
-    def initialize(short_name, long_name, value_label, description, block)
+    def initialize(short_name:, long_name:, block:, value_label: nil, description: nil, options: nil)
       @short_name = short_name&.sub(/^\-/, '')&.to_sym
       @long_name = long_name&.sub(/^\-\-/, '')&.to_sym
       @value_label = value_label
@@ -13,6 +16,7 @@ class OptionParser
                    end
       @description = description
       @block = block
+      @options = options
     end
 
     def match?(arg)
@@ -34,12 +38,20 @@ class OptionParser
       end
     end
 
+    COL_SIZE = 33
+
     def help
-      str = [short_name_formatted, long_name_formatted].compact.join(', ')
+      summary = [short_name_formatted, long_name_formatted].compact.join(', ')
       if value_label
-        str << " #{value_label}"
+        summary << " #{value_label}"
       end
-      str.ljust(33) + description
+      out = [summary.ljust(COL_SIZE) + description]
+      if @options
+        @options.each do |value, value_description|
+          out << "    #{value}".ljust(COL_SIZE) + value_description
+        end
+      end
+      out.map { |line| '    ' + line }.join("\n")
     end
 
     private
@@ -60,8 +72,8 @@ class OptionParser
   def initialize
     parser = self
     @base_switches = [
-      Switch.new('-h', '--help', nil, nil, -> (*) { print parser.help; exit }),
-      Switch.new('-v', '--version', nil, nil, -> (*) { puts parser.version; exit }),
+      Switch.new(short_name: '-h', long_name: '--help', block: -> (*) { print parser.help; exit }),
+      Switch.new(short_name: '-v', long_name: '--version', block: -> (*) { puts parser.version; exit }),
     ]
     @switches = []
     yield self if block_given?
@@ -69,12 +81,12 @@ class OptionParser
 
   attr_accessor :banner, :program_name, :version
 
-  def on(*args, &block)
+  def on(*args, options: nil, &block)
     (short_name, short_value) = args.grep(/^\-[^\-]/).first&.split(/[ =]/, 2)
     (long_name, long_value) = args.grep(/^\-\-/).first&.split(/[ =]/, 2)
-    value = short_value || long_value
+    value_label = short_value || long_value
     description = args.grep_v(/^\-/).first
-    @switches << Switch.new(short_name, long_name, value, description, block)
+    @switches << Switch.new(short_name: short_name, long_name: long_name, value_label: value_label, description: description, block: block, options: options)
   end
 
   def parse(argv = ARGV, into: {})
@@ -106,11 +118,11 @@ class OptionParser
   end
 
   def help
-    str = "#{banner}\n"
+    out = [banner]
     @switches.each do |switch|
-      str << "    #{switch.help}\n"
+      out << switch.help
     end
-    str
+    out.join("\n") + "\n"
   end
 
   def version

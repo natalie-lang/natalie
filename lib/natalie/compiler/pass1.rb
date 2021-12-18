@@ -1,3 +1,4 @@
+require_relative './base_pass'
 require_relative './method_args'
 require_relative './multiple_assignment'
 require_relative '../../../build/generated/numbers'
@@ -5,14 +6,16 @@ require_relative '../../../build/generated/numbers'
 module Natalie
   class Compiler
     # Process S-expressions from the Ruby parser.
-    class Pass1 < NatSexpProcessor
+    class Pass1 < BasePass
       MAX_FIXNUM = NAT_MAX_FIXNUM
       MIN_FIXNUM = NAT_MIN_FIXNUM
 
       def initialize(compiler_context)
-        super()
+        super
+        self.default_method = nil
+        self.warn_on_default = true
         self.require_empty = false
-        @compiler_context = compiler_context
+        self.strict = false
         @retry_context = []
       end
 
@@ -47,7 +50,7 @@ module Natalie
           end
         end
         exp.new(:block,
-                s(:declare, arr, s(:new, :ArrayValue)),
+                s(:declare, arr, s(:new, :ArrayObject)),
                 *items.compact,
                 arr)
       end
@@ -198,7 +201,7 @@ module Natalie
 
       def process_const(exp)
         (_, name) = exp
-        exp.new(:const_find, :self, :env, s(:intern, name), 'Value::ConstLookupSearchMode::NotStrict')
+        exp.new(:const_find, :self, :env, s(:intern, name), 'Object::ConstLookupSearchMode::NotStrict')
       end
 
       def process_cvdecl(exp)
@@ -228,7 +231,7 @@ module Natalie
         fn_name = temp("def_#{name}_")
         if args.last&.to_s&.start_with?('&')
           arg_name = args.pop.to_s[1..-1]
-          block_arg = exp.new(:var_set, :env, s(:s, arg_name), s(:"ProcValue::from_block_maybe", 'block'))
+          block_arg = exp.new(:var_set, :env, s(:s, arg_name), s(:"ProcObject::from_block_maybe", 'block'))
         end
         if args.any?
           args_name = temp('args_as_array')
@@ -271,20 +274,20 @@ module Natalie
         (_, beginning, ending) = exp
         beginning = s(:nil) if beginning.nil?
         ending = s(:nil) if ending.nil?
-        exp.new(:new, :RangeValue, process(beginning), process(ending), 0)
+        exp.new(:new, :RangeObject, process(beginning), process(ending), 0)
       end
 
       def process_dot3(exp)
         (_, beginning, ending) = exp
         beginning = s(:nil) if beginning.nil?
         ending = s(:nil) if ending.nil?
-        exp.new(:new, :RangeValue, process(beginning), process(ending), 1)
+        exp.new(:new, :RangeObject, process(beginning), process(ending), 1)
       end
 
       def process_dregx(exp)
         str_node = process_dstr(exp)
         str = str_node.pop
-        str_node << exp.new(:new, :RegexpValue, :env, s(:l, "#{str}->as_string()->c_str()"))
+        str_node << exp.new(:new, :RegexpObject, :env, s(:l, "#{str}->as_string()->c_str()"))
         str_node
       end
 
@@ -305,7 +308,7 @@ module Natalie
           end
         end
         exp.new(:block,
-                s(:declare, string, s(:new, :StringValue, s(:s, start))),
+                s(:declare, string, s(:new, :StringObject, s(:s, start))),
                 *segments,
                 string)
       end
@@ -321,7 +324,7 @@ module Natalie
       def process_dsym(exp)
         str_node = process_dstr(exp)
         str = str_node.pop
-        str_node << exp.new(:l, "ValuePtr { #{str}->as_string()->to_symbol(env) }")
+        str_node << exp.new(:l, "Value { #{str}->as_string()->to_symbol(env) }")
         str_node
       end
 
@@ -358,7 +361,7 @@ module Natalie
           s(:put, s(:l, "#{hash}->as_hash()"), :env, process(key), process(val))
         end
         exp.new(:block,
-                s(:declare, hash, s(:new, :HashValue)),
+                s(:declare, hash, s(:new, :HashObject)),
                 s(:block, *inserts),
                 hash)
       end
@@ -386,7 +389,7 @@ module Natalie
 
         args = fix_unnecessary_nesting(args)
         if args.last&.to_s&.start_with?('&')
-          block_arg = exp.new(:arg_set, :env, s(:s, args.pop.to_s[1..-1]), s(:new, :ProcValue, 'block'))
+          block_arg = exp.new(:arg_set, :env, s(:s, args.pop.to_s[1..-1]), s(:new, :ProcObject, 'block'))
         end
         block_fn = temp('block_fn')
         block = block_fn.sub(/_fn/, '')
@@ -442,7 +445,7 @@ module Natalie
 
       def process_lambda(exp)
         # note: the nullptr gets overwritten with an actual block by process_iter later
-        exp.new(:new, :ProcValue, 'nullptr', :"ProcValue::ProcType::Lambda")
+        exp.new(:new, :ProcObject, 'nullptr', :"ProcObject::ProcType::Lambda")
       end
 
       def process_lasgn(exp)
@@ -454,20 +457,20 @@ module Natalie
         lit = exp.last
         case lit
         when Float
-          exp.new(:new, :FloatValue, lit)
+          exp.new(:new, :FloatObject, lit)
         when Integer
           if lit > MAX_FIXNUM || lit < MIN_FIXNUM
             str = lit.to_s
-            exp.new(:new, :BignumValue, s(:s, str));
+            exp.new(:new, :BignumObject, s(:s, str));
           else
-            exp.new(:'ValuePtr::integer', lit)
+            exp.new(:'Value::integer', lit)
           end
         when Range
-          exp.new(:new, :RangeValue, process_lit(s(:lit, lit.first)), process_lit(s(:lit, lit.last)), lit.exclude_end? ? 1 : 0)
+          exp.new(:new, :RangeObject, process_lit(s(:lit, lit.first)), process_lit(s(:lit, lit.last)), lit.exclude_end? ? 1 : 0)
         when Regexp
-          exp.new(:new, :RegexpValue, :env, s(:s, lit.source), lit.options)
+          exp.new(:new, :RegexpObject, :env, s(:s, lit.source), lit.options)
         when Symbol
-          exp.new(:intern_value_ptr, lit)
+          exp.new(:intern_value, lit)
         else
           raise "unknown lit: #{exp.inspect} (#{exp.file}\##{exp.line})"
         end
@@ -496,7 +499,7 @@ module Natalie
               max += 1 if max != :unlimited
             end
           elsif arg.sexp_type == :kwarg
-            max += 1 unless has_kwargs # FIXME: incrementing max here is wrong; it produces the wrong error message
+            max += 1 unless has_kwargs || max == :unlimited # FIXME: incrementing max here is wrong; it produces the wrong error message
             has_kwargs = true
           else
             max += 1 if max != :unlimited
@@ -534,7 +537,7 @@ module Natalie
                 s(:declare, mod, s(:const_get, :self, s(:intern, name))),
                 s(:c_if, s(:c_not, mod),
                   s(:block,
-                    s(:set, mod, s(:new, :ModuleValue, s(:s, name))),
+                    s(:set, mod, s(:new, :ModuleObject, s(:s, name))),
                     s(:const_set, :self, s(:intern, name), mod))),
         exp.new(:eval_body, s(:l, "#{mod}->as_module()"), :env, fn))
       end
@@ -550,7 +553,7 @@ module Natalie
         match = temp('match')
         exp.new(:block,
                 s(:declare, match, s(:last_match, :env)),
-                s(:c_if, s(:is_truthy, match), s(:public_send, match, s(:intern, :[]), s(:args, s(:new, :IntegerValue, num))), s(:nil)))
+                s(:c_if, s(:is_truthy, match), s(:public_send, match, s(:intern, :[]), s(:args, s(:new, :IntegerObject, num))), s(:nil)))
       end
 
       def process_not(exp)
@@ -742,7 +745,12 @@ module Natalie
 
       def process_str(exp)
         (_, str) = exp
-        exp.new(:new, :StringValue, s(:s, str), str.bytes.size)
+        exp.new(:new, :StringObject, s(:s, str), str.bytes.size)
+      end
+
+      def process_struct(exp)
+        (_, hash) = exp
+        exp.new(:struct, process_atom(hash))
       end
 
       def process_super(exp)

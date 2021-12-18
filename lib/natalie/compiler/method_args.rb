@@ -68,7 +68,16 @@ module Natalie
             has_kwargs = names.any? { |name| name.sexp_type == :kwarg || name.sexp_type == :kwsplat }
             case name.sexp_type
             when :splat
-              value = s(:arg_value_by_path, :env, @value_name, 'nullptr', :true, has_kwargs ? :true : :false, names.size, defaults.size, defaults_on_right ? :true : :false, path_details[:offset_from_end], path.size, *path)
+              options = s(:struct,
+                          value: @value_name,
+                          default_value: 'nullptr',
+                          splat: true,
+                          has_kwargs: has_kwargs,
+                          total_count: names.size,
+                          default_count: defaults.size,
+                          defaults_on_right: defaults_on_right,
+                          offset_from_end: path_details[:offset_from_end])
+              value = s(:arg_value_by_path, :env, options, path.size, *path)
               masgn_set(name.last, value)
             when :kwsplat
               value = s(:kwarg_hash, @value_name)
@@ -89,7 +98,16 @@ module Natalie
                 default_value = 'nullptr'
               end
               total_argument_count = names.reject { |name| name.sexp_type == :kwarg || name.sexp_type == :splat }.size
-              value = s(:arg_value_by_path, :env, @value_name, default_value, :false, has_kwargs ? :true : :false, total_argument_count, defaults.size, defaults_on_right ? :true : :false, 0, path.size, *path)
+              options = s(:struct,
+                          value: @value_name,
+                          default_value: default_value,
+                          splat: false,
+                          has_kwargs: has_kwargs,
+                          total_count: total_argument_count,
+                          default_count: defaults.size,
+                          defaults_on_right: defaults_on_right,
+                          offset_from_end: 0)
+              value = s(:arg_value_by_path, :env, options, path.size, *path)
               masgn_set(name, value)
             end
           else

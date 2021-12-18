@@ -24,7 +24,7 @@ public:
     public:
         virtual void visit(Cell *) = 0;
         virtual void visit(const Cell *) = 0;
-        virtual void visit(ValuePtr) = 0;
+        virtual void visit(Value) = 0;
     };
 
     virtual void visit_children(Visitor &) {
@@ -46,7 +46,7 @@ public:
         return true;
     }
 
-    bool is_marked() {
+    bool is_marked() const {
         return m_marked;
     }
 

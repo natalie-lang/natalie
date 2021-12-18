@@ -487,12 +487,23 @@ class BeNanExpectation
 end
 
 class RaiseErrorExpectation
-  def initialize(klass, message = nil)
+  def initialize(klass, message = nil, &block)
     @klass = klass
     @message = message
+    @block = block
   end
 
   def match(subject)
+    if @block
+      # given a block, we rescue everything!
+      begin
+        subject.call
+      rescue Exception => e
+        @block.call(e)
+      end
+      return
+    end
+
     begin
       subject.call
     rescue @klass => e
@@ -533,8 +544,7 @@ class RaiseErrorExpectation
   end
 end
 
-# TODO: implement StringIO
-class FakeStringIO
+class IOStub
   def initialize
     @out = []
   end
@@ -542,6 +552,7 @@ class FakeStringIO
   def <<(str)
     @out << str.to_s
   end
+  alias write <<
 
   def puts(str)
     self.<<(str + "\n")
@@ -549,6 +560,10 @@ class FakeStringIO
 
   def to_s
     @out.join
+  end
+
+  def =~(r)
+    r =~ to_s
   end
 end
 
@@ -589,7 +604,7 @@ class ComplainExpectation
 
   def run(subject)
     old_stderr = $stderr
-    $stderr = FakeStringIO.new
+    $stderr = IOStub.new
     subject.call
     out = $stderr.to_s
     $stderr = old_stderr
@@ -795,8 +810,8 @@ class Object
     EqualExpectation.new(other)
   end
 
-  def raise_error(klass = nil, message = nil)
-    RaiseErrorExpectation.new(klass, message)
+  def raise_error(klass = nil, message = nil, &block)
+    RaiseErrorExpectation.new(klass, message, &block)
   end
 
   def complain(message)

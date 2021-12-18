@@ -26,8 +26,7 @@ describe "String#strip" do
   end
 end
 
-# NATFIXME: implement mutating strip! method
-xdescribe "String#strip!" do
+describe "String#strip!" do
   it "modifies self in place and returns self" do
     a = "   hello   "
     a.strip!.should equal(a)

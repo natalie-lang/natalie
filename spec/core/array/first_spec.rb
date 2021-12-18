@@ -33,8 +33,7 @@ describe "Array#first" do
     -> { [1, 2].first(-1) }.should raise_error(ArgumentError)
   end
 
-  # FIXME currently the value of bignum_value would be too large for natalie to build, add this back once fixed
-  xit "raises a RangeError when count is a Bignum" do
+  it "raises a RangeError when count is a Bignum" do
     -> { [].first(bignum_value) }.should raise_error(RangeError)
   end
 

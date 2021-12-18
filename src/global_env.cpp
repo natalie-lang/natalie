@@ -1,9 +1,9 @@
 #include "natalie.hpp"
-#include "natalie/fiber_value.hpp"
+#include "natalie/fiber_object.hpp"
 
 namespace Natalie {
 
-ValuePtr GlobalEnv::global_get(Env *env, SymbolValue *name) {
+Value GlobalEnv::global_get(Env *env, SymbolObject *name) {
     if (!name->is_global_name())
         env->raise("NameError", "`{}' is not allowed as an global variable name", name->c_str());
 
@@ -11,14 +11,14 @@ ValuePtr GlobalEnv::global_get(Env *env, SymbolValue *name) {
     if (val)
         return val;
     else
-        return NilValue::the();
+        return NilObject::the();
 }
 
-ValuePtr GlobalEnv::global_set(Env *env, SymbolValue *name, ValuePtr val) {
+Value GlobalEnv::global_set(Env *env, SymbolObject *name, Value val) {
     if (!name->is_global_name())
         env->raise("NameError", "`{}' is not allowed as an global variable name", name->c_str());
 
-    m_globals.put(name, val.value(), env);
+    m_globals.put(name, val.object(), env);
     return val;
 }
 

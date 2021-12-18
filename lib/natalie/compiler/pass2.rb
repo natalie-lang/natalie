@@ -43,7 +43,7 @@ module Natalie
       def process_defined(exp)
         (_, name) = exp
         if name.sexp_type == :lvar && find_var(name.last.to_s)
-          exp.new(:new, :StringValue, s(:s, 'local-variable'))
+          exp.new(:new, :StringObject, s(:s, 'local-variable'))
         elsif [:send, :public_send].include?(name.sexp_type)
           (sexp, obj, sym, (_, *args), block) = exp
           exp.new(sexp, process(obj), sym, s(:args, *args.map { |a| process(a) }), block)

@@ -61,7 +61,7 @@ public:
         return m_used_map[index];
     }
 
-    bool has_free() {
+    bool has_free() const {
         return m_free_count > 0;
     }
 

@@ -28,8 +28,7 @@ describe "String#lstrip" do
   end
 end
 
-# NATFIXME: implement mutating lstrip! method
-xdescribe "String#lstrip!" do
+describe "String#lstrip!" do
   it "modifies self in place and returns self" do
     a = "  hello  "
     a.lstrip!.should equal(a)

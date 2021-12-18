@@ -60,7 +60,7 @@ public:
         return false;
     }
 
-    bool gc_enabled() { return m_gc_enabled; }
+    bool gc_enabled() const { return m_gc_enabled; }
 
     void gc_enable() {
         m_gc_enabled = true;
@@ -80,7 +80,7 @@ public:
         return result;
     }
 
-    bool collect_all_at_exit() { return m_collect_all_at_exit; }
+    bool collect_all_at_exit() const { return m_collect_all_at_exit; }
     void set_collect_all_at_exit(bool collect) { m_collect_all_at_exit = collect; }
 
 private:

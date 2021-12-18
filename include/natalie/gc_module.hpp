@@ -1,11 +1,11 @@
 #pragma once
 
 #include "natalie/forward.hpp"
-#include "natalie/value.hpp"
+#include "natalie/object.hpp"
 
 namespace Natalie {
 
-class GCModule : public Value {
+class GCModule : public Object {
 public:
     static bool enable() {
         Heap::the().gc_enable();
