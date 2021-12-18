@@ -16,8 +16,7 @@ constexpr bool is_strippable_whitespace(char c) {
 
 void StringObject::raise_encoding_invalid_byte_sequence_error(Env *env, size_t index) const {
     StringObject *message = format(env, "invalid byte sequence at index {} in string of size {} (string not long enough)", index, length());
-    ClassObject *Encoding = GlobalEnv::the()->Object()->const_find(env, "Encoding"_s)->as_class();
-    ClassObject *InvalidByteSequenceError = Encoding->const_find(env, "InvalidByteSequenceError"_s)->as_class();
+    ClassObject *InvalidByteSequenceError = find_nested_const(env, { "Encoding"_s, "InvalidByteSequenceError"_s })->as_class();
     ExceptionObject *exception = new ExceptionObject { InvalidByteSequenceError, message };
     env->raise_exception(exception);
 }
@@ -304,7 +303,7 @@ Value StringObject::size(Env *env) {
 }
 
 Value StringObject::encoding(Env *env) {
-    ClassObject *Encoding = GlobalEnv::the()->Object()->const_find(env, "Encoding"_s)->as_class();
+    ClassObject *Encoding = find_top_level_const(env, "Encoding"_s)->as_class();
     switch (m_encoding) {
     case Encoding::ASCII_8BIT:
         return Encoding->const_find(env, "ASCII_8BIT"_s);
@@ -335,7 +334,7 @@ Value StringObject::encode(Env *env, Value encoding) {
     Encoding orig_encoding = m_encoding;
     StringObject *copy = dup(env)->as_string();
     copy->force_encoding(env, encoding);
-    ClassObject *Encoding = GlobalEnv::the()->Object()->const_find(env, "Encoding"_s)->as_class();
+    ClassObject *Encoding = find_top_level_const(env, "Encoding"_s)->as_class();
     if (orig_encoding == copy->encoding()) {
         return copy;
     } else if (orig_encoding == Encoding::UTF_8 && copy->encoding() == Encoding::ASCII_8BIT) {

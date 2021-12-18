@@ -71,7 +71,7 @@ Value IoObject::write(Env *env, size_t argc, Value *args) const {
         int result = ::write(m_fileno, obj->as_string()->c_str(), obj->as_string()->length());
         if (result == -1) {
             Value error_number = Value::integer(errno);
-            auto SystemCallError = GlobalEnv::the()->Object()->const_find(env, "SystemCallError"_s);
+            auto SystemCallError = find_top_level_const(env, "SystemCallError"_s);
             ExceptionObject *error = SystemCallError.send(env, "exception"_s, { error_number })->as_exception();
             env->raise_exception(error);
         } else {
@@ -111,7 +111,7 @@ Value IoObject::close(Env *env) {
     int result = ::close(m_fileno);
     if (result == -1) {
         Value error_number = Value::integer(errno);
-        auto SystemCallError = GlobalEnv::the()->Object()->const_find(env, "SystemCallError"_s);
+        auto SystemCallError = find_top_level_const(env, "SystemCallError"_s);
         ExceptionObject *error = SystemCallError.send(env, "exception"_s, { error_number })->as_exception();
         env->raise_exception(error);
     } else {
@@ -149,7 +149,7 @@ Value IoObject::seek(Env *env, Value amount_value, Value whence_value) const {
     int result = lseek(m_fileno, amount, whence);
     if (result == -1) {
         Value error_number = Value::integer(errno);
-        ExceptionObject *error = GlobalEnv::the()->Object()->const_find(env, "SystemCallError"_s).send(env, "exception"_s, { error_number })->as_exception();
+        ExceptionObject *error = find_top_level_const(env, "SystemCallError"_s).send(env, "exception"_s, { error_number })->as_exception();
         env->raise_exception(error);
     } else {
         return Value::integer(0);

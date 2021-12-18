@@ -239,7 +239,7 @@ void print_exception_with_backtrace(Env *env, ExceptionObject *exception) {
 }
 
 void handle_top_level_exception(Env *env, ExceptionObject *exception, bool run_exit_handlers) {
-    if (exception->is_a(env, GlobalEnv::the()->Object()->const_find(env, "SystemExit"_s)->as_class())) {
+    if (exception->is_a(env, find_top_level_const(env, "SystemExit"_s)->as_class())) {
         Value status_obj = exception->ivar_get(env, "@status"_s);
         if (run_exit_handlers) run_at_exit_handlers(env);
         if (status_obj->type() == Object::Type::Integer) {

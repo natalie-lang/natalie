@@ -116,7 +116,7 @@ Value KernelModule::exit(Env *env, Value status) {
     if (!status || status->type() != Object::Type::Integer) {
         status = Value::integer(0);
     }
-    ExceptionObject *exception = new ExceptionObject { GlobalEnv::the()->Object()->const_find(env, "SystemExit"_s)->as_class(), new StringObject { "exit" } };
+    ExceptionObject *exception = new ExceptionObject { find_top_level_const(env, "SystemExit"_s)->as_class(), new StringObject { "exit" } };
     exception->ivar_set(env, "@status"_s, status);
     env->raise_exception(exception);
     return NilObject::the();
@@ -292,7 +292,7 @@ Value KernelModule::raise(Env *env, Value klass, Value message) {
             klass = arg->as_class();
             message = new StringObject { *arg->as_class()->class_name_or_blank() };
         } else if (arg->is_string()) {
-            klass = GlobalEnv::the()->Object()->const_find(env, "RuntimeError"_s)->as_class();
+            klass = find_top_level_const(env, "RuntimeError"_s)->as_class();
             message = arg;
         } else if (arg->is_exception()) {
             env->raise_exception(arg->as_exception());

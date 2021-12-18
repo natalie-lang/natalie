@@ -76,7 +76,7 @@ void Env::raise_key_error(Value receiver, Value key) {
 
 void Env::raise_local_jump_error(Value exit_value, LocalJumpErrorType type) {
     auto message = new StringObject { type == LocalJumpErrorType::Return ? "unexpected return" : "break from proc-closure" };
-    auto lje_class = GlobalEnv::the()->Object()->const_find(this, "LocalJumpError"_s)->as_class();
+    auto lje_class = find_top_level_const(this, "LocalJumpError"_s)->as_class();
     ExceptionObject *exception = new ExceptionObject { lje_class, message };
     exception->set_local_jump_error_type(type);
     exception->ivar_set(this, "@exit_value"_s, exit_value);
@@ -90,7 +90,7 @@ void Env::raise_local_jump_error(Value exit_value, LocalJumpErrorType type) {
 }
 
 void Env::raise_errno() {
-    auto SystemCallError = GlobalEnv::the()->Object()->const_find(this, "SystemCallError"_s);
+    auto SystemCallError = find_top_level_const(this, "SystemCallError"_s);
     ExceptionObject *error = SystemCallError.send(this, "exception"_s, { Value::integer(errno) })->as_exception();
     raise_exception(error);
 }
