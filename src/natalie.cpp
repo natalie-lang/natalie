@@ -458,7 +458,7 @@ Value kwarg_value_by_name(Env *env, ArrayObject *args, const char *name, Value d
 }
 
 ArrayObject *args_to_array(Env *env, size_t argc, Value *args) {
-    ArrayObject *ary = new ArrayObject {};
+    ArrayObject *ary = new ArrayObject { argc };
     for (size_t i = 0; i < argc; i++) {
         ary->push(args[i]);
     }
