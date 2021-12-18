@@ -533,8 +533,7 @@ class RaiseErrorExpectation
   end
 end
 
-# TODO: implement StringIO
-class FakeStringIO
+class IOStub
   def initialize
     @out = []
   end
@@ -542,6 +541,7 @@ class FakeStringIO
   def <<(str)
     @out << str.to_s
   end
+  alias write <<
 
   def puts(str)
     self.<<(str + "\n")
@@ -549,6 +549,10 @@ class FakeStringIO
 
   def to_s
     @out.join
+  end
+
+  def =~(r)
+    r =~ to_s
   end
 end
 
@@ -589,7 +593,7 @@ class ComplainExpectation
 
   def run(subject)
     old_stderr = $stderr
-    $stderr = FakeStringIO.new
+    $stderr = IOStub.new
     subject.call
     out = $stderr.to_s
     $stderr = old_stderr
