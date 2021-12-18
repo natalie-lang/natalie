@@ -15,13 +15,13 @@ namespace Natalie {
 class MatchDataObject : public Object {
 public:
     MatchDataObject()
-        : Object { Object::Type::MatchData, GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern("MatchData"))->as_class() } { }
+        : Object { Object::Type::MatchData, GlobalEnv::the()->Object()->const_fetch("MatchData"_s)->as_class() } { }
 
     MatchDataObject(ClassObject *klass)
         : Object { Object::Type::MatchData, klass } { }
 
     MatchDataObject(OnigRegion *region, StringObject *string)
-        : Object { Object::Type::MatchData, GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern("MatchData"))->as_class() }
+        : Object { Object::Type::MatchData, GlobalEnv::the()->Object()->const_fetch("MatchData"_s)->as_class() }
         , m_region { region }
         , m_string { string } { }
 

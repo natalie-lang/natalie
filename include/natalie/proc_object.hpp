@@ -20,13 +20,13 @@ public:
     };
 
     ProcObject()
-        : Object { Object::Type::Proc, GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern("Proc"))->as_class() } { }
+        : Object { Object::Type::Proc, GlobalEnv::the()->Object()->const_fetch("Proc"_s)->as_class() } { }
 
     ProcObject(ClassObject *klass)
         : Object { Object::Type::Proc, klass } { }
 
     ProcObject(Block *block, ProcType type = ProcType::Proc)
-        : Object { Object::Type::Proc, GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern("Proc"))->as_class() }
+        : Object { Object::Type::Proc, GlobalEnv::the()->Object()->const_fetch("Proc"_s)->as_class() }
         , m_block { block }
         , m_type { type } {
         assert(m_block);

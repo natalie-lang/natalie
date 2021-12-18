@@ -159,19 +159,19 @@ public:
     }
 
     static void build_constants(Env *env, ClassObject *klass) {
-        klass->const_set(SymbolObject::intern("DIG"), new FloatObject { double { DBL_DIG } });
-        klass->const_set(SymbolObject::intern("EPSILON"), new FloatObject { std::numeric_limits<double>::epsilon() });
-        klass->const_set(SymbolObject::intern("INFINITY"), FloatObject::positive_infinity(env));
-        klass->const_set(SymbolObject::intern("MANT_DIG"), new FloatObject { double { DBL_MANT_DIG } });
-        klass->const_set(SymbolObject::intern("MAX"), FloatObject::max(env));
-        klass->const_set(SymbolObject::intern("MAX_10_EXP"), new FloatObject { double { DBL_MAX_10_EXP } });
-        klass->const_set(SymbolObject::intern("MAX_EXP"), new FloatObject { double { DBL_MAX_EXP } });
-        klass->const_set(SymbolObject::intern("MIN"), FloatObject::min(env));
-        klass->const_set(SymbolObject::intern("MIN_10_EXP"), new FloatObject { double { DBL_MIN_10_EXP } });
-        klass->const_set(SymbolObject::intern("MIN_EXP"), new FloatObject { double { DBL_MIN_EXP } });
-        klass->const_set(SymbolObject::intern("NAN"), FloatObject::nan(env));
-        klass->const_set(SymbolObject::intern("NAN"), FloatObject::nan(env));
-        klass->const_set(SymbolObject::intern("RADIX"), new FloatObject { double { std::numeric_limits<double>::radix } });
+        klass->const_set("DIG"_s, new FloatObject { double { DBL_DIG } });
+        klass->const_set("EPSILON"_s, new FloatObject { std::numeric_limits<double>::epsilon() });
+        klass->const_set("INFINITY"_s, FloatObject::positive_infinity(env));
+        klass->const_set("MANT_DIG"_s, new FloatObject { double { DBL_MANT_DIG } });
+        klass->const_set("MAX"_s, FloatObject::max(env));
+        klass->const_set("MAX_10_EXP"_s, new FloatObject { double { DBL_MAX_10_EXP } });
+        klass->const_set("MAX_EXP"_s, new FloatObject { double { DBL_MAX_EXP } });
+        klass->const_set("MIN"_s, FloatObject::min(env));
+        klass->const_set("MIN_10_EXP"_s, new FloatObject { double { DBL_MIN_10_EXP } });
+        klass->const_set("MIN_EXP"_s, new FloatObject { double { DBL_MIN_EXP } });
+        klass->const_set("NAN"_s, FloatObject::nan(env));
+        klass->const_set("NAN"_s, FloatObject::nan(env));
+        klass->const_set("RADIX"_s, new FloatObject { double { std::numeric_limits<double>::radix } });
     }
 
     virtual void gc_inspect(char *buf, size_t len) const override {

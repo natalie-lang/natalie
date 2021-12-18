@@ -125,4 +125,20 @@ Value super(Env *, Value, size_t, Value *, Block *);
 
 void clean_up_and_exit(int status);
 
+inline Value find_top_level_const(Env *env, SymbolObject *name) {
+    return GlobalEnv::the()->Object()->const_find(env, name);
+}
+
+inline Value find_nested_const(Env *env, std::initializer_list<SymbolObject *> names) {
+    Value c;
+    for (auto name : names) {
+        if (c == nullptr) {
+            c = find_top_level_const(env, name);
+            continue;
+        }
+        c = c->const_find(env, name);
+    }
+    return c;
+}
+
 }

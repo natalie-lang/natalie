@@ -11,13 +11,13 @@ Value RangeObject::initialize(Env *env, Value begin, Value end, Value exclude_en
 
 template <typename Function>
 Value RangeObject::iterate_over_range(Env *env, Function &&func) {
-    if (m_begin.send(env, SymbolObject::intern(">"), { m_end })->is_truthy())
+    if (m_begin.send(env, ">"_s, { m_end })->is_truthy())
         return nullptr;
 
     Value item = m_begin;
 
-    auto eqeq = SymbolObject::intern("==");
-    auto succ = SymbolObject::intern("succ");
+    auto eqeq = "=="_s;
+    auto succ = "succ"_s;
 
     bool done = item.send(env, eqeq, { m_end })->is_truthy();
     while (!done || !m_exclude_end) {
@@ -50,7 +50,7 @@ Value RangeObject::to_a(Env *env) {
 
 Value RangeObject::each(Env *env, Block *block) {
     if (!block)
-        return send(env, SymbolObject::intern("enum_for"), { SymbolObject::intern("each") });
+        return send(env, "enum_for"_s, { "each"_s });
 
     Value break_value = iterate_over_range(env, [&](Value item) -> Value {
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
@@ -65,8 +65,8 @@ Value RangeObject::each(Env *env, Block *block) {
 
 Value RangeObject::first(Env *env, Value n) {
     if (n) {
-        if (n->respond_to(env, SymbolObject::intern("to_int"))) {
-            n = n->send(env, SymbolObject::intern("to_int"));
+        if (n->respond_to(env, "to_int"_s)) {
+            n = n->send(env, "to_int"_s);
         }
         n->assert_type(env, Object::Type::Integer, "Integer");
 
@@ -104,8 +104,8 @@ Value RangeObject::eq(Env *env, Value other_value) {
         RangeObject *other = other_value->as_range();
         Value begin = other->begin();
         Value end = other->end();
-        bool begin_equal = m_begin.send(env, SymbolObject::intern("=="), { begin })->is_truthy();
-        bool end_equal = m_end.send(env, SymbolObject::intern("=="), { end })->is_truthy();
+        bool begin_equal = m_begin.send(env, "=="_s, { begin })->is_truthy();
+        bool end_equal = m_end.send(env, "=="_s, { end })->is_truthy();
         if (begin_equal && end_equal && m_exclude_end == other->m_exclude_end) {
             return TrueObject::the();
         }
@@ -124,10 +124,10 @@ Value RangeObject::eqeqeq(Env *env, Value arg) {
         }
     } else {
         if (m_exclude_end) {
-            if (arg.send(env, SymbolObject::intern(">="), { m_begin })->is_truthy() && arg.send(env, SymbolObject::intern("<"), 1, &m_end)->is_truthy())
+            if (arg.send(env, ">="_s, { m_begin })->is_truthy() && arg.send(env, "<"_s, 1, &m_end)->is_truthy())
                 return TrueObject::the();
         } else {
-            if (arg.send(env, SymbolObject::intern(">="), { m_begin })->is_truthy() && arg.send(env, SymbolObject::intern("<="), 1, &m_end)->is_truthy())
+            if (arg.send(env, ">="_s, { m_begin })->is_truthy() && arg.send(env, "<="_s, 1, &m_end)->is_truthy())
                 return TrueObject::the();
         }
     }
@@ -135,7 +135,7 @@ Value RangeObject::eqeqeq(Env *env, Value arg) {
 }
 
 Value RangeObject::include(Env *env, Value arg) {
-    auto eqeq = SymbolObject::intern("==");
+    auto eqeq = "=="_s;
     Value found_item = iterate_over_range(env, [&](Value item) -> Value {
         if (arg.send(env, eqeq, { item })->is_truthy())
             return item;

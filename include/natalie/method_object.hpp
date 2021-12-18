@@ -15,7 +15,7 @@ namespace Natalie {
 class MethodObject : public Object {
 public:
     MethodObject(Value object, Method *method)
-        : Object { Object::Type::Method, GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern("Method"))->as_class() }
+        : Object { Object::Type::Method, GlobalEnv::the()->Object()->const_fetch("Method"_s)->as_class() }
         , m_object { object }
         , m_method { method } { }
 

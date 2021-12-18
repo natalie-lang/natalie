@@ -3,13 +3,13 @@
 namespace Natalie {
 
 EncodingObject::EncodingObject()
-    : Object { Object::Type::Encoding, GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern("Encoding"))->as_class() } { }
+    : Object { Object::Type::Encoding, GlobalEnv::the()->Object()->const_fetch("Encoding"_s)->as_class() } { }
 
 ArrayObject *EncodingObject::list(Env *) {
     ArrayObject *ary = new ArrayObject {};
-    Value Encoding = GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern("Encoding"));
-    ary->push(Encoding->const_fetch(SymbolObject::intern("ASCII_8BIT")));
-    ary->push(Encoding->const_fetch(SymbolObject::intern("UTF_8")));
+    Value Encoding = GlobalEnv::the()->Object()->const_fetch("Encoding"_s);
+    ary->push(Encoding->const_fetch("ASCII_8BIT"_s));
+    ary->push(Encoding->const_fetch("UTF_8"_s));
     return ary;
 }
 

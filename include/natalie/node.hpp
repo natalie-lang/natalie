@@ -804,15 +804,15 @@ public:
     SymbolObject *assignment_type(Env *env) {
         switch (token_type()) {
         case Token::Type::BareName:
-            return SymbolObject::intern("lasgn");
+            return "lasgn"_s;
         case Token::Type::ClassVariable:
-            return SymbolObject::intern("cvdecl");
+            return "cvdecl"_s;
         case Token::Type::Constant:
-            return SymbolObject::intern("cdecl");
+            return "cdecl"_s;
         case Token::Type::GlobalVariable:
-            return SymbolObject::intern("gasgn");
+            return "gasgn"_s;
         case Token::Type::InstanceVariable:
-            return SymbolObject::intern("iasgn");
+            return "iasgn"_s;
         default:
             NAT_UNREACHABLE();
         }

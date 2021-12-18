@@ -23,7 +23,7 @@ bool FloatObject::eq(Env *env, Value other) {
         auto *f = other->as_float();
         return f->m_double == m_double;
     }
-    auto equal_symbol = SymbolObject::intern("==");
+    auto equal_symbol = "=="_s;
     if (other->respond_to(env, equal_symbol)) {
         return other.send(env, equal_symbol, { this })->is_truthy();
     }
@@ -182,7 +182,7 @@ Value FloatObject::cmp(Env *env, Value other) {
         rhs = coerced.second;
     }
 
-    if (!lhs->is_float()) return lhs.send(env, SymbolObject::intern("<=>"), { rhs });
+    if (!lhs->is_float()) return lhs.send(env, "<=>"_s, { rhs });
     if (!rhs->is_float()) return NilObject::the();
 
     if (lhs->as_float()->is_nan() || rhs->as_float()->is_nan()) {
@@ -235,7 +235,7 @@ Value FloatObject::add(Env *env, Value rhs) {
         rhs = coerced.second;
     }
 
-    if (!lhs->is_float()) return lhs.send(env, SymbolObject::intern("+"), { rhs });
+    if (!lhs->is_float()) return lhs.send(env, "+"_s, { rhs });
     if (!rhs->is_float()) rhs->assert_type(env, Object::Type::Float, "Float");
 
     double addend1 = to_double();
@@ -252,7 +252,7 @@ Value FloatObject::sub(Env *env, Value rhs) {
         rhs = coerced.second;
     }
 
-    if (!lhs->is_float()) return lhs.send(env, SymbolObject::intern("-"), { rhs });
+    if (!lhs->is_float()) return lhs.send(env, "-"_s, { rhs });
     if (!rhs->is_float()) rhs->assert_type(env, Object::Type::Float, "Float");
 
     double minuend = to_double();
@@ -269,7 +269,7 @@ Value FloatObject::mul(Env *env, Value rhs) {
         rhs = coerced.second;
     }
 
-    if (!lhs->is_float()) return lhs.send(env, SymbolObject::intern("*"), { rhs });
+    if (!lhs->is_float()) return lhs.send(env, "*"_s, { rhs });
     if (!rhs->is_float()) rhs->assert_type(env, Object::Type::Float, "Float");
 
     double multiplicand = to_double();
@@ -286,7 +286,7 @@ Value FloatObject::div(Env *env, Value rhs) {
         rhs = coerced.second;
     }
 
-    if (!lhs->is_float()) return lhs.send(env, SymbolObject::intern("/"), { rhs });
+    if (!lhs->is_float()) return lhs.send(env, "/"_s, { rhs });
     if (!rhs->is_float()) rhs->assert_type(env, Object::Type::Float, "Float");
 
     double dividend = to_double();
@@ -309,7 +309,7 @@ Value FloatObject::mod(Env *env, Value rhs) {
         rhs = coerced.second;
     }
 
-    if (!lhs->is_float()) return lhs.send(env, SymbolObject::intern("%"), { rhs });
+    if (!lhs->is_float()) return lhs.send(env, "%"_s, { rhs });
     if (!rhs->is_float()) rhs->assert_type(env, Object::Type::Float, "Float");
 
     double dividend = to_double();
@@ -348,7 +348,7 @@ Value FloatObject::pow(Env *env, Value rhs) {
         rhs = coerced.second;
     }
 
-    if (!lhs->is_float()) return lhs.send(env, SymbolObject::intern("**"), { rhs });
+    if (!lhs->is_float()) return lhs.send(env, "**"_s, { rhs });
     if (!rhs->is_float()) rhs->assert_type(env, Object::Type::Float, "Float");
 
     double base = to_double();
@@ -381,8 +381,7 @@ Value FloatObject::arg(Env *env) {
     if (!signbit(m_double)) {
         return Value::integer(0);
     } else {
-        Value Math = GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern("Math"));
-        return Math->const_fetch(SymbolObject::intern("PI"));
+        return find_nested_const(env, { "Math"_s, "PI"_s });
     }
 }
 

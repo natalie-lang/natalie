@@ -32,13 +32,13 @@ StringObject *SymbolObject::inspect(Env *env) {
 
 SymbolObject *SymbolObject::succ(Env *env) {
     auto string = to_s(env);
-    string = string->send(env, SymbolObject::intern("succ"))->as_string();
+    string = string->send(env, "succ"_s)->as_string();
     return string->to_symbol(env);
 }
 
 SymbolObject *SymbolObject::upcase(Env *env) {
     auto string = to_s(env);
-    string = string->send(env, SymbolObject::intern("upcase"))->as_string();
+    string = string->send(env, "upcase"_s)->as_string();
     return string->to_symbol(env);
 }
 
