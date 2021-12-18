@@ -696,7 +696,7 @@ Value StringObject::lstrip_in_place(Env *env) {
     if (first_char == 0)
         return NilObject::the();
 
-    memcpy(&m_string[0], &m_string[0] + first_char, len - first_char);
+    memmove(&m_string[0], &m_string[0] + first_char, len - first_char);
     m_string.truncate(len - first_char);
     return this;
 }
