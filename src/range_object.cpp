@@ -135,6 +135,15 @@ Value RangeObject::eqeqeq(Env *env, Value arg) {
 }
 
 Value RangeObject::include(Env *env, Value arg) {
+    if (arg.is_fast_integer() && m_begin.is_fast_integer() && m_end.is_fast_integer()) {
+        const auto begin = m_begin.get_fast_integer();
+        const auto end = m_end.get_fast_integer();
+        const auto i = arg.get_fast_integer();
+        if (begin <= i && i <= end)
+            return TrueObject::the();
+        return FalseObject::the();
+    }
+
     auto eqeq = "=="_s;
     Value found_item = iterate_over_range(env, [&](Value item) -> Value {
         if (arg.send(env, eqeq, { item })->is_truthy())
