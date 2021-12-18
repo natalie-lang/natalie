@@ -329,6 +329,7 @@ describe 'Parser' do
     end
 
     it 'tokenizes method names' do
+      Parser.tokens("def foo()").should == [{type: :def}, {type: :name, literal: :foo}, {type: :"("}, {type: :")"}]
       Parser.tokens("def foo?").should == [{type: :def}, {type: :name, literal: :foo?}]
       Parser.tokens("def foo!").should == [{type: :def}, {type: :name, literal: :foo!}]
       Parser.tokens("def foo=").should == [{:type=>:def}, {:type=>:name, :literal=>:foo}, {:type=>:"="}]

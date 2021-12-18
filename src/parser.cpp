@@ -450,9 +450,14 @@ Node *Parser::parse_def(LocalsHashmap &locals) {
     ManagedVector<Node *> *args;
     if (current_token()->is_lparen()) {
         advance();
-        args = parse_def_args(our_locals);
-        expect(Token::Type::RParen, "args closing paren");
-        advance();
+        if (current_token()->is_rparen()) {
+            args = new ManagedVector<Node *> {};
+            advance();
+        } else {
+            args = parse_def_args(our_locals);
+            expect(Token::Type::RParen, "args closing paren");
+            advance();
+        }
     } else if (current_token()->is_bare_name() || current_token()->is_splat()) {
         args = parse_def_args(our_locals);
     } else {
