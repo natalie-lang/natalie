@@ -81,8 +81,8 @@ private:
     const char *m_name { nullptr };
 };
 
+[[nodiscard]] __attribute__((always_inline)) inline SymbolObject *operator"" _s(const char *cstring, size_t length) {
+    return SymbolObject::intern(cstring);
 }
 
-[[nodiscard]] __attribute__((always_inline)) inline Natalie::SymbolObject *operator"" _s(const char *cstring, size_t length) {
-    return Natalie::SymbolObject::intern(cstring);
 }
