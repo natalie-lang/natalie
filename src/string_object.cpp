@@ -652,6 +652,14 @@ Value StringObject::strip(Env *env) const {
     }
 }
 
+Value StringObject::strip_in_place(Env *env) {
+    // right side needs to go first beacuse then we have less to move in
+    // on the left side
+    auto r = rstrip_in_place(env);
+    auto l = lstrip_in_place(env);
+    return l->is_nil() && r->is_nil() ? Value(NilObject::the()) : Value(this);
+}
+
 Value StringObject::lstrip(Env *env) const {
     if (length() == 0)
         return new StringObject {};
@@ -671,6 +679,28 @@ Value StringObject::lstrip(Env *env) const {
     }
 }
 
+Value StringObject::lstrip_in_place(Env *env) {
+    assert_not_frozen(env);
+    if (length() == 0)
+        return NilObject::the();
+
+    assert(length() < NAT_INT_MAX);
+    nat_int_t first_char;
+    nat_int_t len = static_cast<nat_int_t>(length());
+    for (first_char = 0; first_char < len; first_char++) {
+        char c = c_str()[first_char];
+        if (!is_strippable_whitespace(c))
+            break;
+    }
+
+    if (first_char == 0)
+        return NilObject::the();
+
+    memmove(&m_string[0], &m_string[0] + first_char, len - first_char);
+    m_string.truncate(len - first_char);
+    return this;
+}
+
 Value StringObject::rstrip(Env *env) const {
     if (length() == 0)
         return new StringObject {};
@@ -688,6 +718,27 @@ Value StringObject::rstrip(Env *env) const {
         size_t new_length = static_cast<size_t>(last_char + 1);
         return new StringObject { c_str(), new_length };
     }
+}
+
+Value StringObject::rstrip_in_place(Env *env) {
+    assert_not_frozen(env);
+    if (length() == 0)
+        return NilObject::the();
+
+    assert(length() < NAT_INT_MAX);
+    nat_int_t last_char;
+    nat_int_t len = static_cast<nat_int_t>(length());
+    for (last_char = len - 1; last_char >= 0; last_char--) {
+        char c = c_str()[last_char];
+        if (!is_strippable_whitespace(c))
+            break;
+    }
+
+    if (last_char == len - 1)
+        return NilObject::the();
+
+    m_string.truncate(last_char < 0 ? 0 : last_char + 1);
+    return this;
 }
 
 Value StringObject::downcase(Env *env) {
