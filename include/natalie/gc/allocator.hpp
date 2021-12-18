@@ -101,7 +101,7 @@ private:
     HeapBlock *add_heap_block() {
         auto *block = reinterpret_cast<HeapBlock *>(aligned_alloc(HEAP_BLOCK_SIZE, HEAP_BLOCK_SIZE));
         new (block) HeapBlock(m_cell_size);
-        m_blocks.put(block, block);
+        m_blocks.set(block);
         add_free_block(block);
         m_free_cells += cell_count_per_block();
         return block;
@@ -109,7 +109,7 @@ private:
 
     size_t m_cell_size;
     size_t m_free_cells { 0 };
-    Hashmap<HeapBlock *, HeapBlock *> m_blocks;
+    Hashmap<HeapBlock *> m_blocks;
     Vector<HeapBlock *> m_free_blocks;
 };
 
