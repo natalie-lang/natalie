@@ -8,6 +8,7 @@
 
 #include "natalie/gc/heap_block.hpp"
 #include "natalie/macros.hpp"
+#include "tm/hashmap.hpp"
 #include "tm/vector.hpp"
 
 namespace Natalie {
@@ -23,8 +24,8 @@ public:
 
     ~Allocator() {
         for (auto block : m_blocks) {
-            block->~HeapBlock();
-            free(block);
+            block.first->~HeapBlock();
+            free(block.first);
         }
     }
 
@@ -69,11 +70,7 @@ public:
     }
 
     bool is_my_block(HeapBlock *candidate_block) {
-        for (auto block : m_blocks) {
-            if (candidate_block == block)
-                return true;
-        }
-        return false;
+        return m_blocks.get(candidate_block) != nullptr;
     }
 
     auto begin() {
@@ -86,7 +83,7 @@ public:
 
     void unmark_all_cells_in_all_blocks() {
         for (auto block : *this) {
-            block->unmark_all_cells();
+            block.first->unmark_all_cells();
         }
     }
 
@@ -104,7 +101,7 @@ private:
     HeapBlock *add_heap_block() {
         auto *block = reinterpret_cast<HeapBlock *>(aligned_alloc(HEAP_BLOCK_SIZE, HEAP_BLOCK_SIZE));
         new (block) HeapBlock(m_cell_size);
-        m_blocks.push(block);
+        m_blocks.put(block, block);
         add_free_block(block);
         m_free_cells += cell_count_per_block();
         return block;
@@ -112,7 +109,7 @@ private:
 
     size_t m_cell_size;
     size_t m_free_cells { 0 };
-    Vector<HeapBlock *> m_blocks;
+    Hashmap<HeapBlock *, HeapBlock *> m_blocks;
     Vector<HeapBlock *> m_free_blocks;
 };
 
