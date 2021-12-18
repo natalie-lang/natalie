@@ -39,6 +39,7 @@ public:
     }
 
     Value Array(Env *env, Value value);
+    Value abort_method(Env *env, Value message);
     Value at_exit(Env *env, Block *block);
     Value binding(Env *env);
     Value clone(Env *env);

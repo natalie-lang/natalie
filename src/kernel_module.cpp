@@ -27,6 +27,30 @@ Value KernelModule::Array(Env *env, Value value) {
     }
 }
 
+Value KernelModule::abort_method(Env *env, Value message) {
+    auto SystemExit = GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern("SystemExit"));
+    ExceptionObject *exception;
+
+    if (message) {
+        auto to_str = SymbolObject::intern("to_str");
+        if (!message->is_string() && message->respond_to(env, to_str))
+            message = message->send(env, to_str);
+
+        message->assert_type(env, Type::String, "String");
+
+        exception = SystemExit.send(env, SymbolObject::intern("new"), { message, Value::integer(1) })->as_exception();
+
+        auto out = env->global_get(SymbolObject::intern("$stderr"));
+        out->send(env, SymbolObject::intern("write"), { message });
+    } else {
+        exception = SystemExit.send(env, SymbolObject::intern("new"), { Value::integer(1) })->as_exception();
+    }
+
+    env->raise_exception(exception);
+
+    return NilObject::the();
+}
+
 Value KernelModule::at_exit(Env *env, Block *block) {
     ArrayObject *at_exit_handlers = env->global_get(SymbolObject::intern("$NAT_at_exit_handlers"))->as_array();
     env->ensure_block_given(block);
