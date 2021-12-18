@@ -680,11 +680,7 @@ Value StringObject::lstrip(Env *env) const {
 }
 
 Value StringObject::lstrip_bang(Env *env) {
-    if (is_frozen()) {
-        auto frozenError = GlobalEnv::the()->Object()->const_find(env, SymbolObject::intern("FrozenError"))->as_class();
-        env->raise_exception(new ExceptionObject(frozenError));
-    }
-
+		assert_not_frozen(env);
     if (length() == 0)
         return NilObject::the();
 
@@ -725,10 +721,7 @@ Value StringObject::rstrip(Env *env) const {
 }
 
 Value StringObject::rstrip_bang(Env *env) {
-    if (is_frozen()) {
-        auto frozenError = GlobalEnv::the()->Object()->const_find(env, SymbolObject::intern("FrozenError"))->as_class();
-        env->raise_exception(new ExceptionObject(frozenError));
-    }
+		assert_not_frozen(env);
 
     if (length() == 0)
         return NilObject::the();
