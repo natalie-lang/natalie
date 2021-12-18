@@ -680,7 +680,7 @@ Value StringObject::lstrip(Env *env) const {
 }
 
 Value StringObject::lstrip_in_place(Env *env) {
-		assert_not_frozen(env);
+    assert_not_frozen(env);
     if (length() == 0)
         return NilObject::the();
 
@@ -721,7 +721,7 @@ Value StringObject::rstrip(Env *env) const {
 }
 
 Value StringObject::rstrip_in_place(Env *env) {
-		assert_not_frozen(env);
+    assert_not_frozen(env);
     if (length() == 0)
         return NilObject::the();
 
