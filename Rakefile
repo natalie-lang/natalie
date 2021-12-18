@@ -22,6 +22,8 @@ task :clobber do
   rm_rf 'build'
 end
 
+task distclean: :clobber
+
 desc 'Run the test suite'
 task test: :build do
   sh 'bundle exec ruby test/all.rb'
