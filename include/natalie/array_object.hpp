@@ -20,6 +20,11 @@ public:
     ArrayObject()
         : Object { Object::Type::Array, GlobalEnv::the()->Array() } { }
 
+    ArrayObject(size_t initial_capacity)
+        : ArrayObject {} {
+        m_vector.set_capacity(initial_capacity);
+    }
+
     ArrayObject(std::initializer_list<Value> list)
         : ArrayObject {} {
         m_vector.set_capacity(list.size());
