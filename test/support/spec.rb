@@ -487,12 +487,23 @@ class BeNanExpectation
 end
 
 class RaiseErrorExpectation
-  def initialize(klass, message = nil)
+  def initialize(klass, message = nil, &block)
     @klass = klass
     @message = message
+    @block = block
   end
 
   def match(subject)
+    if @block
+      # given a block, we rescue everything!
+      begin
+        subject.call
+      rescue Exception => e
+        @block.call(e)
+      end
+      return
+    end
+
     begin
       subject.call
     rescue @klass => e
@@ -799,8 +810,8 @@ class Object
     EqualExpectation.new(other)
   end
 
-  def raise_error(klass = nil, message = nil)
-    RaiseErrorExpectation.new(klass, message)
+  def raise_error(klass = nil, message = nil, &block)
+    RaiseErrorExpectation.new(klass, message, &block)
   end
 
   def complain(message)
