@@ -441,7 +441,7 @@ module Natalie
           raise "expected const" unless namespace.first == :const
           decl "Value #{result};"
           decl 'try {'
-          decl "#{result} = find_top_level_const(env, #{namespace.last.to_s.inspect}_s, Object::ConstLookupSearchMode::NotStrict)->defined_obj(env, #{name.to_s.inspect}_s, true);"
+          decl "#{result} = GlobalEnv::the()->Object()->const_find(env, #{namespace.last.to_s.inspect}_s, Object::ConstLookupSearchMode::NotStrict)->defined_obj(env, #{name.to_s.inspect}_s, true);"
           decl '} catch (ExceptionObject *) {'
           decl "#{result} = #{process_atom s(:nil)};"
           decl '}'
