@@ -7,13 +7,13 @@ module Comparable
 
   def <(other)
     result = (self <=> other)
-    raise ArgumentError, "comparison of #{self.class} with #{other.class} failed" if result.nil?
+    raise ArgumentError, "comparison of #{self.class} with #{other.inspect} failed" if result.nil?
     result < 0
   end
 
   def <=(other)
     result = (self <=> other)
-    raise ArgumentError, "comparison of #{self.class} with #{other.class} failed" if result.nil?
+    raise ArgumentError, "comparison of #{self.class} with #{other.inspect} failed" if result.nil?
     result <= 0
   end
 
