@@ -652,11 +652,11 @@ Value StringObject::strip(Env *env) const {
     }
 }
 
-Value StringObject::strip_bang(Env *env) {
+Value StringObject::strip_in_place(Env *env) {
     // right side needs to go first beacuse then we have less to move in
     // on the left side
-    auto r = rstrip_bang(env);
-    auto l = lstrip_bang(env);
+    auto r = rstrip_in_place(env);
+    auto l = lstrip_in_place(env);
     return l->is_nil() && r->is_nil() ? Value(NilObject::the()) : Value(this);
 }
 
@@ -679,7 +679,7 @@ Value StringObject::lstrip(Env *env) const {
     }
 }
 
-Value StringObject::lstrip_bang(Env *env) {
+Value StringObject::lstrip_in_place(Env *env) {
 		assert_not_frozen(env);
     if (length() == 0)
         return NilObject::the();
@@ -720,9 +720,8 @@ Value StringObject::rstrip(Env *env) const {
     }
 }
 
-Value StringObject::rstrip_bang(Env *env) {
+Value StringObject::rstrip_in_place(Env *env) {
 		assert_not_frozen(env);
-
     if (length() == 0)
         return NilObject::the();
 
