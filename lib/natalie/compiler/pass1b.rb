@@ -27,12 +27,13 @@ module Natalie
           break_context[:raises_local_jump_error] = true
           exp.new(:raise_local_jump_error, :env, process(value), s(:l, 'LocalJumpErrorType::Break'))
 
-        when :loop, :rescue_do
+        when :loop
+          exp.new(:block, s(:set, var_name, process(value)), s(:c_break))
+        when :rescue_do
           exp.new(:block,
             s(:set, var_name, process(value)),
             (containing_context && containing_context[:type] == :fn ? s(:block) : s(:add_break_flag, var_name)),
             s(:c_break))
-
         else
           raise "unknown break context: #{type}"
         end
