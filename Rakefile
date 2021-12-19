@@ -59,7 +59,11 @@ task tidy: [:build, :tidy_internal]
 
 # # # # Docker Tasks (used for CI) # # # #
 
-DOCKER_FLAGS = !ENV['CI'] && STDOUT.isatty ? '-i -t' : ''
+DOCKER_FLAGS = if !ENV['CI'] && STDOUT.isatty
+                 '-i -t'
+               elsif ENV['CI']
+                 "-e CI=#{ENV['CI']}"
+               end
 
 task :docker_build do
   sh 'docker build -t natalie .'
