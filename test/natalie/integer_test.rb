@@ -184,6 +184,24 @@ describe 'integer' do
     end
   end
 
+  describe '#times' do
+    fit 'handles bignums correctly' do
+      bignum_value.times.size.should == bignum_value
+
+      # We just test if the loop "starts" (iterating until we reach bignum sizes would take ages)
+      i = 0
+      bignum_value.times do |n|
+        i += 1
+        break if i == 5
+      end
+      i.should == 5
+
+      (-bignum_value).times.size.should == 0
+      i = (-bignum_value).times {}
+      i.should == -bignum_value
+    end
+  end
+
   describe '#to_s' do
     it 'returns a base-10 string representation' do
       -10.to_s.should == '-10'
