@@ -22,6 +22,8 @@ task :clobber do
   rm_rf 'build'
 end
 
+task distclean: :clobber
+
 desc 'Run the test suite'
 task test: :build do
   sh 'bundle exec ruby test/all.rb'
@@ -135,6 +137,8 @@ task(:set_build_debug) { ENV['BUILD'] = 'debug'; File.write('.build', 'debug') }
 task(:set_build_release) { ENV['BUILD'] = 'release'; File.write('.build', 'release') }
 
 task libnatalie: [
+  :update_submodules,
+  :bundle_install,
   :build_dir,
   'build/onigmo/lib/libonigmo.a',
   'build/generated/numbers.rb',
@@ -252,6 +256,14 @@ end
 task :tidy_internal do
   # FIXME: excluding big_int.cpp for now since clang-tidy thinks it has memory leaks (need to check that).
   sh "clang-tidy --fix #{HEADERS} #{PRIMARY_SOURCES.exclude('src/dtoa.c', 'src/big_int.cpp')}"
+end
+
+task :bundle_install do
+  sh "bundle check || bundle install"
+end
+
+task :update_submodules do
+  sh "git submodule update --init"
 end
 
 def cc
