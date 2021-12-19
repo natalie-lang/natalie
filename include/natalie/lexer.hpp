@@ -239,8 +239,11 @@ private:
                 advance();
                 return new Token { Token::Type::ModulusEqual, m_file, m_token_line, m_token_column };
             case '/':
+            case '|': {
+                char c = current_char();
                 advance();
-                return consume_single_quoted_string('/');
+                return consume_single_quoted_string(c);
+            }
             case '[':
                 advance();
                 return consume_single_quoted_string(']');
@@ -316,8 +319,12 @@ private:
             case 'w':
                 switch (peek()) {
                 case '/':
-                    advance(2);
-                    return consume_quoted_array_without_interpolation('/', Token::Type::PercentLowerW);
+                case '|': {
+                    advance();
+                    char c = current_char();
+                    advance();
+                    return consume_quoted_array_without_interpolation(c, Token::Type::PercentLowerW);
+                }
                 case '[':
                     advance(2);
                     return consume_quoted_array_without_interpolation(']', Token::Type::PercentLowerW);
@@ -333,8 +340,12 @@ private:
             case 'W':
                 switch (peek()) {
                 case '/':
-                    advance(2);
-                    return consume_quoted_array_with_interpolation('/', Token::Type::PercentUpperW);
+                case '|': {
+                    advance();
+                    char c = current_char();
+                    advance();
+                    return consume_quoted_array_without_interpolation(c, Token::Type::PercentUpperW);
+                }
                 case '[':
                     advance(2);
                     return consume_quoted_array_with_interpolation(']', Token::Type::PercentUpperW);
