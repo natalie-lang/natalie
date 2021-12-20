@@ -1885,7 +1885,7 @@ describe 'array' do
     end
 
     slow_test do
-      fit 'has a collision rate lower or equal to MRI' do
+      it 'has a collision rate lower or equal to MRI' do
         # MRI Collision rate for this test suite is 0.11428571428571429%, rounded up to 0.115
         found_hashes = {}
         collisions = {}
