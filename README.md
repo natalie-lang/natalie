@@ -46,9 +46,7 @@ Prerequisites:
 Install the above prerequisites on your platform, then run:
 
 ```sh
-git clone https://github.com/seven1m/natalie
-cd natalie
-rake
+sh -c ${curl -c https://raw.githubusercontent.com/seven1m/natalie/187048fb3e12322bbddaf89e16635e5e4ea838cf/install.sh}
 ```
 
 **NOTE:** Currently, the default build is the "debug" build, since Nataile is in active development.
@@ -59,19 +57,19 @@ But you can build in release mode with `rake build_release`.
 **REPL:**
 
 ```sh
-bin/natalie
+natalie
 ```
 
 **Run a Ruby script:**
 
 ```sh
-bin/natalie examples/hello.rb
+natalie examples/hello.rb
 ```
 
 **Compile a file to an executable:**
 
 ```sh
-bin/natalie examples/hello.rb -c hello
+natalie examples/hello.rb -c hello
 ./hello
 ```
 
@@ -90,7 +88,7 @@ docker run -it --rm --entrypoint bash natalie                        # bash prom
 To run a test (or spec), you can run it like a normal Ruby script:
 
 ```sh
-bin/natalie spec/core/string/strip_spec.rb
+natalie spec/core/string/strip_spec.rb
 ```
 
 This will run the tests and tell you if there are any failures.
@@ -105,7 +103,7 @@ Lastly, if you need to run a handful of tests locally, you can use the
 `test/runner.rb` helper script:
 
 ```sh
-bin/natalie test/runner.rb test/natalie/if_test.rb test/natalie/loop_test.rb
+natalie test/runner.rb test/natalie/if_test.rb test/natalie/loop_test.rb
 ```
 
 ### What's the difference between the 'spec/' and 'test/' directories?
