@@ -17,9 +17,10 @@ class SymbolObject : public Object {
 public:
     static SymbolObject *intern(const char *);
     static SymbolObject *intern(const String *);
+    static SymbolObject *intern_static_string(const char *, size_t);
 
     virtual ~SymbolObject() {
-        free(const_cast<char *>(m_name));
+        if (m_owned_string) free(const_cast<char *>(m_name));
     }
 
     const char *c_str() { return m_name; }
@@ -68,21 +69,24 @@ private:
 
     SymbolObject(Env *env, const char *name)
         : Object { Object::Type::Symbol, GlobalEnv::the()->Symbol() }
+        , m_should_free { true }
         , m_name { strdup(name) } {
         assert(m_name);
     }
 
-    SymbolObject(const char *name)
+    SymbolObject(const char *name, bool owned_string = false)
         : Object { Object::Type::Symbol, GlobalEnv::the()->Symbol() }
-        , m_name { strdup(name) } {
+        , m_owned_string { owned_string }
+        , m_name { owned_string ? name : strdup(name) } {
         assert(m_name);
     }
 
+    bool m_owned_string { false };
     const char *m_name { nullptr };
 };
 
 [[nodiscard]] __attribute__((always_inline)) inline SymbolObject *operator"" _s(const char *cstring, size_t length) {
-    return SymbolObject::intern(cstring);
+    return SymbolObject::intern_static_string(cstring, length);
 }
 
 }

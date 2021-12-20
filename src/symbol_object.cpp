@@ -12,6 +12,16 @@ SymbolObject *SymbolObject::intern(const char *name) {
     return symbol;
 }
 
+SymbolObject *SymbolObject::intern_static_string(const char *name, size_t) {
+    assert(name);
+    SymbolObject *symbol = s_symbols.get(name);
+    if (symbol)
+        return symbol;
+    symbol = new SymbolObject { name, true };
+    s_symbols.put(name, symbol);
+    return symbol;
+}
+
 SymbolObject *SymbolObject::intern(const String *name) {
     assert(name);
     return intern(name->c_str());
