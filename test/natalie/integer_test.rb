@@ -185,7 +185,7 @@ describe 'integer' do
   end
 
   describe '#times' do
-    fit 'handles bignums correctly' do
+    it 'handles bignums correctly' do
       bignum_value.times.size.should == bignum_value
 
       # We just test if the loop "starts" (iterating until we reach bignum sizes would take ages)

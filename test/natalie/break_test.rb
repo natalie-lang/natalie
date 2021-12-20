@@ -177,7 +177,7 @@ describe 'break' do
     result.should == :ok
   end
 
-  fit 'should not leak break flag' do
+  it 'should not leak break flag' do
     x = 0
     while x < 2
       while true
