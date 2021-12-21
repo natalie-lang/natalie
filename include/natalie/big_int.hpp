@@ -150,6 +150,7 @@ public:
     Natalie::String to_string() const;
     long to_long() const;
     long long to_long_long() const;
+    double to_double() const;
 
     // Random number generating functions:
     friend BigInt big_random(size_t);
