@@ -361,13 +361,16 @@ bool IntegerObject::eqeqeq(Env *env, Value arg) const {
 }
 
 Value IntegerObject::times(Env *env, Block *block) {
-    if (!block)
-        return send(env, "enum_for"_s, { "times"_s });
+    auto val = to_nat_int_t();
+    if (!block) {
+        auto enumerator = send(env, "enum_for"_s, { "times"_s });
+        enumerator->ivar_set(env, "@size"_s, val < 0 ? Value::integer(0) : this);
+        return enumerator;
+    }
 
-    nat_int_t val = to_nat_int_t();
-    assert(val >= 0);
-    env->ensure_block_given(block);
-    Value num;
+    if (val <= 0)
+        return this;
+
     for (nat_int_t i = 0; i < val; i++) {
         Value num = Value::integer(i);
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &num, nullptr);
