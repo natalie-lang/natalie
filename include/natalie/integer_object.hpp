@@ -52,7 +52,6 @@ public:
     Value mod(Env *, Value) const;
     Value pow(Env *, Value) const;
     Value cmp(Env *, Value);
-    bool eqeqeq(Env *, Value) const;
     virtual Value times(Env *, Block *);
     Value bitwise_and(Env *, Value) const;
     Value bitwise_or(Env *, Value) const;

@@ -351,15 +351,6 @@ bool IntegerObject::gte(Env *env, Value other) {
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
 }
 
-bool IntegerObject::eqeqeq(Env *env, Value arg) const {
-    if (arg.is_fast_integer())
-        return m_integer == arg.get_fast_integer();
-
-    arg.unguard();
-
-    return arg->is_integer() && to_nat_int_t() == arg->as_integer()->to_nat_int_t();
-}
-
 Value IntegerObject::times(Env *env, Block *block) {
     auto val = to_nat_int_t();
     if (!block) {
