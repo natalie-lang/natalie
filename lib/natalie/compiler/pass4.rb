@@ -283,10 +283,7 @@ module Natalie
         default ||= s(:nil)
         if type == :rest
           rest = temp('rest')
-          decl "ArrayObject *#{rest} = new ArrayObject {};"
-          decl "for (size_t i=#{index}; i<#{argc_name}; i++) {"
-          decl "#{rest}->push(#{args_name}[i]);"
-          decl '}'
+          decl "ArrayObject *#{rest} = new ArrayObject { #{argc_name}, #{args_name} };"
           rest
         else
           "#{index} < #{argc_name} ? #{args_name}[#{index}] : #{process_atom(default)}"

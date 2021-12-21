@@ -76,7 +76,7 @@ Value RangeObject::first(Env *env, Value n) {
             return nullptr;
         }
 
-        ArrayObject *ary = new ArrayObject {};
+        ArrayObject *ary = new ArrayObject { (size_t)count };
         iterate_over_range(env, [&](Value item) -> Value {
             if (count == 0) return n;
 

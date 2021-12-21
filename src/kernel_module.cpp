@@ -19,11 +19,9 @@ Value KernelModule::Array(Env *env, Value value) {
     } else if (value->respond_to(env, "to_ary"_s)) {
         return value.send(env, "to_ary"_s);
     } else if (value == NilObject::the()) {
-        return new ArrayObject {};
+        return new ArrayObject;
     } else {
-        ArrayObject *ary = new ArrayObject {};
-        ary->push(value);
-        return ary;
+        return new ArrayObject { value };
     }
 }
 
@@ -257,7 +255,7 @@ Value KernelModule::p(Env *env, size_t argc, Value *args) {
         puts(env, 1, &arg);
         return arg;
     } else {
-        ArrayObject *result = new ArrayObject {};
+        ArrayObject *result = new ArrayObject { argc };
         for (size_t i = 0; i < argc; i++) {
             result->push(args[i]);
             args[i] = args[i].send(env, "inspect"_s);

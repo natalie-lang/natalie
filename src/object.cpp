@@ -321,10 +321,10 @@ Value Object::ivar_set(Env *env, SymbolObject *name, Value val) {
 }
 
 Value Object::instance_variables(Env *env) {
-    ArrayObject *ary = new ArrayObject {};
     if (m_type == Object::Type::Integer || m_type == Object::Type::Float) {
-        return ary;
+        return new ArrayObject;
     }
+    ArrayObject *ary = new ArrayObject { m_ivars.size() };
     for (auto pair : m_ivars) {
         ary->push(pair.first);
     }

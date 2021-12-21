@@ -266,17 +266,14 @@ ArrayObject *to_ary(Env *env, Value obj, bool raise_for_non_array) {
         if (ary->is_array()) {
             return ary->as_array();
         } else if (ary->is_nil() || !raise_for_non_array) {
-            ary = new ArrayObject {};
-            ary->as_array()->push(obj);
+            ary = new ArrayObject { obj };
             return ary->as_array();
         } else {
             auto *class_name = obj->klass()->class_name_or_blank();
             env->raise("TypeError", "can't convert {} to Array ({}#to_ary gives {})", class_name, class_name, ary->klass()->class_name_or_blank());
         }
     } else {
-        ArrayObject *ary = new ArrayObject {};
-        ary->push(obj);
-        return ary;
+        return new ArrayObject { obj };
     }
 }
 

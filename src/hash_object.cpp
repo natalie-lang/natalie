@@ -511,9 +511,9 @@ Value HashObject::fetch(Env *env, Value key, Value default_value, Block *block) 
 }
 
 Value HashObject::fetch_values(Env *env, size_t argc, Value *args, Block *block) {
-    auto array = new ArrayObject {};
-    if (argc == 0) return array;
+    if (argc == 0) return new ArrayObject;
 
+    auto array = new ArrayObject { argc };
     for (size_t i = 0; i < argc; ++i) {
         array->push(fetch(env, args[i], nullptr, block));
     }
@@ -521,7 +521,7 @@ Value HashObject::fetch_values(Env *env, size_t argc, Value *args, Block *block)
 }
 
 Value HashObject::keys(Env *env) {
-    ArrayObject *array = new ArrayObject {};
+    ArrayObject *array = new ArrayObject { size() };
     for (HashObject::Key &node : *this) {
         array->push(node.key);
     }
@@ -569,7 +569,7 @@ Value HashObject::to_h(Env *env, Block *block) {
 }
 
 Value HashObject::values(Env *env) {
-    ArrayObject *array = new ArrayObject {};
+    ArrayObject *array = new ArrayObject { size() };
     for (HashObject::Key &node : *this) {
         array->push(node.val);
     }

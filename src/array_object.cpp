@@ -538,8 +538,6 @@ Value ArrayObject::first(Env *env, Value n) {
         return (*this)[0];
     }
 
-    ArrayObject *array = new ArrayObject();
-
     auto to_int = "to_int"_s;
     if (!n->is_integer() && n->respond_to(env, to_int))
         n = n->send(env, to_int);
@@ -557,6 +555,7 @@ Value ArrayObject::first(Env *env, Value n) {
     }
 
     size_t end = std::min(size(), (size_t)n_value);
+    ArrayObject *array = new ArrayObject { end };
 
     for (size_t k = 0; k < end; ++k) {
         array->push((*this)[k]);
@@ -764,7 +763,7 @@ Value ArrayObject::drop(Env *env, Value n) {
         return nullptr;
     }
 
-    ArrayObject *array = new ArrayObject();
+    ArrayObject *array = new ArrayObject { (size_t)std::max((nat_int_t)size() - n_value, (nat_int_t)0) };
     array->m_klass = klass();
     for (size_t k = n_value; k < size(); ++k) {
         array->push((*this)[k]);
@@ -809,8 +808,6 @@ Value ArrayObject::last(Env *env, Value n) {
         return (*this)[size() - 1];
     }
 
-    ArrayObject *array = new ArrayObject();
-
     auto to_int = "to_int"_s;
     if (!n->is_integer() && n->respond_to(env, to_int))
         n = n->send(env, to_int);
@@ -825,7 +822,10 @@ Value ArrayObject::last(Env *env, Value n) {
 
     assert(size() <= NAT_INT_MAX);
     nat_int_t signed_size = static_cast<nat_int_t>(size());
-    for (size_t k = std::max(static_cast<nat_int_t>(0), signed_size - n_value); k < size(); ++k) {
+    size_t start = std::max(static_cast<nat_int_t>(0), signed_size - n_value);
+    ArrayObject *array = new ArrayObject(size() - start);
+
+    for (size_t k = start; k < size(); ++k) {
         array->push((*this)[k]);
     }
 
@@ -1026,7 +1026,7 @@ Value ArrayObject::pop(Env *env, Value count) {
         if (c > (nat_int_t)size())
             c = (nat_int_t)size();
 
-        auto pops = new ArrayObject();
+        auto pops = new ArrayObject { (size_t)c };
         for (nat_int_t i = 0; i < c; ++i)
             pops->m_vector.push_front(m_vector.pop());
 
@@ -1346,7 +1346,7 @@ Value ArrayObject::multiply(Env *env, Value factor) {
         if (times < 0)
             env->raise("ArgumentError", "negative argument");
 
-        auto accumulator = new ArrayObject {};
+        auto accumulator = new ArrayObject { times * size() };
         accumulator->m_klass = klass();
 
         for (nat_int_t i = 0; i < times; ++i)
@@ -1856,9 +1856,9 @@ Value ArrayObject::product(Env *env, size_t argc, Value *args, Block *block) {
         number_of_combinations *= item->size();
     }
 
-    ArrayObject *products = new ArrayObject {};
+    ArrayObject *products = new ArrayObject { number_of_combinations };
     for (size_t iteration = 0; iteration < number_of_combinations; ++iteration) {
-        ArrayObject *product = new ArrayObject {};
+        ArrayObject *product = new ArrayObject { arrays.size() };
         size_t remaining_iterations = iteration;
         size_t block_size = number_of_combinations;
 
@@ -2063,6 +2063,7 @@ Value ArrayObject::_slice_in_place(nat_int_t start, nat_int_t end, bool exclude_
         length = this->size() - start;
     }
 
+    newArr->m_vector.set_capacity(length);
     for (nat_int_t i = start; i < start + length; i++) {
         newArr->push((*this)[i]);
     }
@@ -2113,7 +2114,6 @@ Value ArrayObject::try_convert(Env *env, Value val) {
 }
 
 Value ArrayObject::values_at(Env *env, size_t argc, Value *args) {
-    auto accumulator = new ArrayObject {};
     TM::Vector<nat_int_t> indices;
 
     auto to_int = "to_int"_s;
@@ -2147,6 +2147,7 @@ Value ArrayObject::values_at(Env *env, size_t argc, Value *args) {
         }
     }
 
+    auto accumulator = new ArrayObject { indices.size() };
     for (auto index : indices) {
         auto resolved_index = _resolve_index(index);
         if (resolved_index < 0 || static_cast<size_t>(resolved_index) >= m_vector.size()) {
