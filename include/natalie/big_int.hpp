@@ -146,6 +146,8 @@ public:
     bool operator==(const double &) const;
     bool operator!=(const double &) const;
 
+    bool is_negative() const { return sign == '-'; }
+
     // Conversion functions:
     Natalie::String to_string() const;
     long to_long() const;
