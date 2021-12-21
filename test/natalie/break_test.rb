@@ -176,4 +176,16 @@ describe 'break' do
     result = break_in_begin_in_while { |x| break :ok }
     result.should == :ok
   end
+
+  it 'should not leak break flag' do
+    x = 0
+    while x < 2
+      while true
+        break
+      end
+      x += 1
+    end
+    x.should == 2
+  end
+
 end
