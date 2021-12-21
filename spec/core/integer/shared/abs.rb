@@ -9,11 +9,10 @@ describe :integer_abs, shared: true do
     end
   end
 
-  # NATFIXME: Implement Bignums
   context "bignum" do
     it "returns the absolute bignum value" do
-      # bignum_value(39).send(@method).should == 9223372036854775847
-      # (-bignum_value(18)).send(@method).should == 9223372036854775826
+      bignum_value(39).send(@method).should == 9223372036854775847
+      (-bignum_value(18)).send(@method).should == 9223372036854775826
     end
   end
 end
