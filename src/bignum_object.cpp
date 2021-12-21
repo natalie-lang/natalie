@@ -1,4 +1,5 @@
 #include "natalie.hpp"
+#include "natalie/constants.hpp"
 
 namespace Natalie {
 
@@ -83,6 +84,25 @@ Value BignumObject::div(Env *env, Value arg) {
 
 Value BignumObject::negate(Env *env) {
     return new BignumObject { -to_bigint() };
+}
+
+Value BignumObject::times(Env *env, Block *block) {
+    if (!block) {
+        auto enumerator = send(env, "enum_for"_s, { "times"_s });
+        enumerator->ivar_set(env, "@size"_s, *m_bigint < 0 ? Value::integer(0) : this);
+        return enumerator;
+    }
+
+    if (*m_bigint <= 0)
+        return this;
+
+    // Performance: We could yield fixnums for the first NAT_MAX_FIXNUM numbers
+    for (BigInt i = 0; i <= *m_bigint; i++) {
+        Value num = new BignumObject { i };
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &num, nullptr);
+    }
+
+    return this;
 }
 
 bool BignumObject::eq(Env *env, Value other) {
