@@ -67,13 +67,6 @@ public:
 private:
     inline static TM::Hashmap<const char *, SymbolObject *> s_symbols { TM::HashType::String, 1000 };
 
-    SymbolObject(Env *env, const char *name)
-        : Object { Object::Type::Symbol, GlobalEnv::the()->Symbol() }
-        , m_should_free { true }
-        , m_name { strdup(name) } {
-        assert(m_name);
-    }
-
     SymbolObject(const char *name, bool owned_string = false)
         : Object { Object::Type::Symbol, GlobalEnv::the()->Symbol() }
         , m_owned_string { owned_string }
