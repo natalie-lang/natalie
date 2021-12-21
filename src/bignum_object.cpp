@@ -3,6 +3,10 @@
 
 namespace Natalie {
 
+Value BignumObject::to_f() const {
+    return new FloatObject { m_bigint->to_double() };
+}
+
 Value BignumObject::to_s(Env *env, Value base_value) {
     if (base_value) {
         // NATFIXME
