@@ -33,6 +33,7 @@ public:
         return true;
     }
 
+    Value abs(Env *) override;
     Value add(Env *, Value) override;
     Value sub(Env *, Value) override;
     Value mul(Env *, Value) override;

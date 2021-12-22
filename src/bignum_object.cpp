@@ -11,6 +11,14 @@ Value BignumObject::to_s(Env *env, Value base_value) {
     return new StringObject { m_bigint->to_string().c_str() };
 }
 
+Value BignumObject::abs(Env *env) {
+    if (m_bigint->is_negative()) {
+        return new BignumObject { -to_bigint() };
+    } else {
+        return this;
+    }
+}
+
 Value BignumObject::add(Env *env, Value arg) {
     if (arg->is_float()) {
         double current = strtod(m_bigint->to_string().c_str(), NULL);
