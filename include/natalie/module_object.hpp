@@ -94,7 +94,7 @@ public:
 
     ArrayObject *ancestors(Env *);
 
-    bool is_method_defined(Env *, Value);
+    bool is_method_defined(Env *, Value) const;
 
     Value inspect(Env *);
     Value name(Env *);

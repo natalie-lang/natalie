@@ -247,7 +247,7 @@ ArrayObject *ModuleObject::ancestors(Env *env) {
     return ancestors;
 }
 
-bool ModuleObject::is_method_defined(Env *env, Value name_value) {
+bool ModuleObject::is_method_defined(Env *env, Value name_value) const {
     auto name = name_value->to_symbol(env, Conversion::Strict);
     return !!find_method(env, name);
 }
