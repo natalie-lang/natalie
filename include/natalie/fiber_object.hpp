@@ -98,8 +98,8 @@ public:
         // x86-64: rbx, rbp, r12, r13, r14, r15
         static const int NUM_REGISTERS = 6;
 #elif defined(__aarch64__)
-        // aarch64: x9-x15 and x30
-        static const int NUM_REGISTERS = 8;
+        // aarch64: x9-x28
+        static const int NUM_REGISTERS = 20;
 #else
         // x86: ebx, ebp, edi, esi
         static const int NUM_REGISTERS = 4;
