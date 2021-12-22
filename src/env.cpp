@@ -8,7 +8,7 @@ namespace Natalie {
 using namespace TM;
 
 void Env::build_vars(size_t size) {
-    m_vars = new Vector<Value>(size, NilObject::the());
+    m_vars = new ManagedVector<Value>(size, NilObject::the());
 }
 
 Value Env::global_get(SymbolObject *name) {
@@ -174,11 +174,7 @@ Env *Env::non_block_env() {
 }
 
 void Env::visit_children(Visitor &visitor) {
-    if (m_vars) {
-        for (auto &val : *m_vars) {
-            visitor.visit(val);
-        }
-    }
+    visitor.visit(m_vars);
     visitor.visit(m_outer);
     visitor.visit(m_block);
     visitor.visit(m_this_block);
