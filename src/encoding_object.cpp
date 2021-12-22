@@ -6,11 +6,11 @@ EncodingObject::EncodingObject()
     : Object { Object::Type::Encoding, GlobalEnv::the()->Object()->const_fetch("Encoding"_s)->as_class() } { }
 
 ArrayObject *EncodingObject::list(Env *) {
-    ArrayObject *ary = new ArrayObject {};
     Value Encoding = GlobalEnv::the()->Object()->const_fetch("Encoding"_s);
-    ary->push(Encoding->const_fetch("ASCII_8BIT"_s));
-    ary->push(Encoding->const_fetch("UTF_8"_s));
-    return ary;
+    return new ArrayObject {
+        Encoding->const_fetch("ASCII_8BIT"_s),
+        Encoding->const_fetch("UTF_8"_s)
+    };
 }
 
 EncodingObject::EncodingObject(Encoding num, std::initializer_list<const char *> names)
@@ -26,8 +26,8 @@ Value EncodingObject::name(Env *env) {
 }
 
 ArrayObject *EncodingObject::names(Env *env) {
-    auto array = new ArrayObject {};
-    for (StringObject *name : m_names) {
+    auto array = new ArrayObject { m_names.size() };
+    for (auto name : m_names) {
         array->push(name);
     }
     return array;

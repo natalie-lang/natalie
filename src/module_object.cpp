@@ -339,7 +339,7 @@ Value ModuleObject::attr_accessor(Env *env, size_t argc, Value *args) {
 }
 
 Value ModuleObject::included_modules(Env *env) {
-    ArrayObject *modules = new ArrayObject {};
+    ArrayObject *modules = new ArrayObject { included_modules().size() };
     for (ModuleObject *m : included_modules()) {
         modules->push(m);
     }

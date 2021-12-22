@@ -284,7 +284,7 @@ Value StringObject::ord(Env *env) {
 }
 
 Value StringObject::bytes(Env *env) const {
-    ArrayObject *ary = new ArrayObject {};
+    ArrayObject *ary = new ArrayObject { length() };
     for (size_t i = 0; i < length(); i++) {
         unsigned char c = c_str()[i];
         ary->push(Value::integer(c));
@@ -787,7 +787,7 @@ Value StringObject::uplus(Env *env) {
 Value StringObject::reverse(Env *env) {
     if (length() == 0)
         return new StringObject {};
-    auto ary = new ArrayObject {};
+    auto ary = new ArrayObject { length() };
     auto characters = chars(env)->as_array();
     for (size_t i = characters->size() - 1;; i--) {
         ary->push((*characters)[i]);

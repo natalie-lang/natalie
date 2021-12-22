@@ -48,6 +48,7 @@ public:
 
     ArrayObject(size_t argc, Value *args, ClassObject *klass)
         : Object { Object::Type::Array, klass } {
+        m_vector.set_capacity(argc);
         for (size_t i = 0; i < argc; i++) {
             push(args[i]);
         }

@@ -332,11 +332,10 @@ Value FloatObject::divmod(Env *env, Value arg) {
     Value division = div(env, arg);
     Value modulus = mod(env, arg);
 
-    ArrayObject *ary = new ArrayObject {};
-    ary->push(division->as_float()->floor(env, 0));
-    ary->push(modulus);
-
-    return ary;
+    return new ArrayObject {
+        division->as_float()->floor(env, 0),
+        modulus
+    };
 }
 
 Value FloatObject::pow(Env *env, Value rhs) {
