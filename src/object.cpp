@@ -503,7 +503,7 @@ Value Object::dup(Env *env) {
     }
 }
 
-bool Object::is_a(Env *env, Value val) {
+bool Object::is_a(Env *env, Value val) const {
     if (!val->is_module()) return false;
     ModuleObject *module = val->as_module();
     if (this == module) {

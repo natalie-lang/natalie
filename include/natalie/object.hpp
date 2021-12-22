@@ -79,7 +79,7 @@ public:
     static Value _new(Env *, Value, size_t, Value *, Block *);
 
     Type type() { return m_type; }
-    ClassObject *klass() { return m_klass; }
+    ClassObject *klass() const { return m_klass; }
 
     ModuleObject *owner() { return m_owner; }
     void set_owner(ModuleObject *owner) { m_owner = owner; }
@@ -208,7 +208,7 @@ public:
 
     Value dup(Env *);
 
-    bool is_a(Env *, Value);
+    bool is_a(Env *, Value) const;
     bool respond_to(Env *, Value);
     bool respond_to_method(Env *, Value) const;
 

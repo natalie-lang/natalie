@@ -38,7 +38,7 @@ public:
         : Object { Object::Type::Hash, klass }
         , m_default_value { NilObject::the() } { }
 
-    HashObject(Env *env, HashObject &other)
+    HashObject(Env *env, const HashObject &other)
         : Object { other }
         , m_is_comparing_by_identity { other.m_is_comparing_by_identity } {
         for (auto node : other) {
@@ -90,7 +90,7 @@ public:
 
     class iterator {
     public:
-        iterator(Key *key, HashObject *hash)
+        iterator(Key *key, const HashObject *hash)
             : m_key { key }
             , m_hash { hash } { }
 
@@ -125,14 +125,14 @@ public:
 
     private:
         Key *m_key;
-        HashObject *m_hash;
+        const HashObject *m_hash;
     };
 
-    iterator begin() {
+    iterator begin() const {
         return iterator { m_key_list, this };
     }
 
-    iterator end() {
+    iterator end() const {
         return iterator { nullptr, this };
     }
 

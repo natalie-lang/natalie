@@ -33,7 +33,7 @@ public:
         }
     }
 
-    ArrayObject(ArrayObject &other)
+    ArrayObject(const ArrayObject &other)
         : Object { other }
         , m_vector { other.m_vector } { }
 

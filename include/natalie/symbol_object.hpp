@@ -22,7 +22,7 @@ public:
         free(const_cast<char *>(m_name));
     }
 
-    const char *c_str() { return m_name; }
+    const char *c_str() const { return m_name; }
 
     StringObject *to_s(Env *env) { return new StringObject { m_name }; }
     StringObject *inspect(Env *);

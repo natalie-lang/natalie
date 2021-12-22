@@ -26,7 +26,7 @@ public:
         , m_double { static_cast<double>(number) } { }
 
     FloatObject(const FloatObject &other)
-        : Object { Object::Type::Float, const_cast<FloatObject &>(other).klass() }
+        : Object { Object::Type::Float, other.klass() }
         , m_double { other.m_double } { }
 
     static FloatObject *nan(Env *env) {
