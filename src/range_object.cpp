@@ -139,13 +139,16 @@ Value RangeObject::include(Env *env, Value arg) {
         const auto begin = m_begin.get_fast_integer();
         const auto end = m_end.get_fast_integer();
         const auto i = arg.get_fast_integer();
-        if (begin <= i && i <= end)
+
+        const auto larger_than_begin = begin <= i;
+        const auto smaller_than_end = m_exclude_end ? i < end : i <= end;
+        if (larger_than_begin && smaller_than_end)
             return TrueObject::the();
         return FalseObject::the();
     } else if (m_begin->is_numeric() && m_end->is_numeric()) {
-        const auto leq = "<="_s, geq = ">="_s;
+        const auto lt = "<"_s, leq = "<="_s, geq = ">="_s;
         const auto larger_than_begin = arg.send(env, geq, { m_begin })->is_truthy();
-        const auto smaller_than_end = arg.send(env, leq, { m_end })->is_truthy();
+        const auto smaller_than_end = arg.send(env, m_exclude_end ? lt : leq, { m_end })->is_truthy();
         if (larger_than_begin && smaller_than_end)
             return TrueObject::the();
         return FalseObject::the();
