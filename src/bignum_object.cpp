@@ -1,6 +1,11 @@
 #include "natalie.hpp"
+#include "natalie/constants.hpp"
 
 namespace Natalie {
+
+Value BignumObject::to_f() const {
+    return new FloatObject { m_bigint->to_double() };
+}
 
 Value BignumObject::to_s(Env *env, Value base_value) {
     if (base_value) {
@@ -8,6 +13,14 @@ Value BignumObject::to_s(Env *env, Value base_value) {
         NAT_UNREACHABLE();
     }
     return new StringObject { m_bigint->to_string().c_str() };
+}
+
+Value BignumObject::abs(Env *env) {
+    if (m_bigint->is_negative()) {
+        return new BignumObject { -to_bigint() };
+    } else {
+        return this;
+    }
 }
 
 Value BignumObject::add(Env *env, Value arg) {
@@ -85,6 +98,25 @@ Value BignumObject::negate(Env *env) {
     return new BignumObject { -to_bigint() };
 }
 
+Value BignumObject::times(Env *env, Block *block) {
+    if (!block) {
+        auto enumerator = send(env, "enum_for"_s, { "times"_s });
+        enumerator->ivar_set(env, "@size"_s, *m_bigint < 0 ? Value::integer(0) : this);
+        return enumerator;
+    }
+
+    if (*m_bigint <= 0)
+        return this;
+
+    // Performance: We could yield fixnums for the first NAT_MAX_FIXNUM numbers
+    for (BigInt i = 0; i <= *m_bigint; i++) {
+        Value num = new BignumObject { i };
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &num, nullptr);
+    }
+
+    return this;
+}
+
 bool BignumObject::eq(Env *env, Value other) {
     if (other->is_float()) {
         return to_bigint() == other->as_float()->to_double();
@@ -97,7 +129,7 @@ bool BignumObject::eq(Env *env, Value other) {
     if (other->is_integer()) {
         return to_bigint() == other->as_integer()->to_bigint();
     }
-    return other->send(env, SymbolObject::intern("=="), { this })->is_truthy();
+    return other->send(env, "=="_s, { this })->is_truthy();
 }
 
 bool BignumObject::lt(Env *env, Value other) {

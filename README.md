@@ -48,9 +48,6 @@ Install the above prerequisites on your platform, then run:
 ```sh
 git clone https://github.com/seven1m/natalie
 cd natalie
-git submodule update --init
-gem install bundler
-bundle install
 rake
 ```
 

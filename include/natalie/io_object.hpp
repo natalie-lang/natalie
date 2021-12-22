@@ -18,13 +18,13 @@ namespace Natalie {
 class IoObject : public Object {
 public:
     IoObject()
-        : Object { Object::Type::Io, GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern("IO"))->as_class() } { }
+        : Object { Object::Type::Io, GlobalEnv::the()->Object()->const_fetch("IO"_s)->as_class() } { }
 
     IoObject(ClassObject *klass)
         : Object { Object::Type::Io, klass } { }
 
     IoObject(int fileno)
-        : Object { Object::Type::Io, GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern("IO"))->as_class() }
+        : Object { Object::Type::Io, GlobalEnv::the()->Object()->const_fetch("IO"_s)->as_class() }
         , m_fileno { fileno } { }
 
     virtual ~IoObject() override {

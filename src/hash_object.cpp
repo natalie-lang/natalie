@@ -18,7 +18,7 @@ bool HashObject::compare(const void *a, const void *b, void *env) {
     if (a_p->key->object_id() == b_p->key->object_id() && a_p->hash == b_p->hash)
         return true;
 
-    return a_p->key.send((Env *)env, SymbolObject::intern("eql?"), { b_p->key })->is_truthy();
+    return a_p->key.send((Env *)env, "eql?"_s, { b_p->key })->is_truthy();
 }
 
 Value HashObject::compare_by_identity(Env *env) {
@@ -47,7 +47,7 @@ nat_int_t HashObject::generate_key_hash(Env *env, Value key) const {
     if (m_is_comparing_by_identity) {
         return TM::Hashmap<void *>::hash_ptr(key.object());
     } else {
-        return key.send(env, SymbolObject::intern("hash"))->as_integer()->to_nat_int_t();
+        return key.send(env, "hash"_s)->as_integer()->to_nat_int_t();
     }
 }
 
@@ -126,7 +126,7 @@ Value HashObject::set_default_proc(Env *env, Value value) {
         m_default_proc = nullptr;
         return value;
     }
-    auto to_proc = SymbolObject::intern("to_proc");
+    auto to_proc = "to_proc"_s;
     auto to_proc_value = value;
     if (value->respond_to(env, to_proc))
         to_proc_value = value.send(env, to_proc);
@@ -214,15 +214,15 @@ Value HashObject::square_new(Env *env, size_t argc, Value *args, ClassObject *kl
         return new HashObject { klass };
     } else if (argc == 1) {
         Value value = args[0];
-        if (!value->is_hash() && value->respond_to(env, SymbolObject::intern("to_hash")))
-            value = value.send(env, SymbolObject::intern("to_hash"));
+        if (!value->is_hash() && value->respond_to(env, "to_hash"_s))
+            value = value.send(env, "to_hash"_s);
         if (value->is_hash()) {
             auto hash = new HashObject { env, *value->as_hash() };
             hash->m_klass = klass;
             return hash;
         } else {
-            if (!value->is_array() && value->respond_to(env, SymbolObject::intern("to_ary")))
-                value = value.send(env, SymbolObject::intern("to_ary"));
+            if (!value->is_array() && value->respond_to(env, "to_ary"_s))
+                value = value.send(env, "to_ary"_s);
             if (value->is_array()) {
                 HashObject *hash = new HashObject { klass };
                 for (auto &pair : *value->as_array()) {
@@ -266,8 +266,8 @@ Value HashObject::inspect(Env *env) {
         auto to_s = [env](Value obj) {
             if (obj->is_string())
                 return obj->as_string();
-            if (obj->respond_to(env, SymbolObject::intern("to_s")))
-                obj = obj->send(env, SymbolObject::intern("to_s"));
+            if (obj->respond_to(env, "to_s"_s))
+                obj = obj->send(env, "to_s"_s);
             else
                 obj = new StringObject("?");
             if (!obj->is_string())
@@ -276,10 +276,10 @@ Value HashObject::inspect(Env *env) {
         };
 
         for (HashObject::Key &node : *this) {
-            StringObject *key_repr = to_s(node.key.send(env, SymbolObject::intern("inspect")));
+            StringObject *key_repr = to_s(node.key.send(env, "inspect"_s));
             out->append(env, key_repr);
             out->append(env, "=>");
-            StringObject *val_repr = to_s(node.val.send(env, SymbolObject::intern("inspect")));
+            StringObject *val_repr = to_s(node.val.send(env, "inspect"_s));
             out->append(env, val_repr);
             if (index < last_index) {
                 out->append(env, ", ");
@@ -297,7 +297,7 @@ Value HashObject::ref(Env *env, Value key) {
     if (val) {
         return val;
     } else {
-        return send(env, SymbolObject::intern("default"), { key });
+        return send(env, "default"_s, { key });
     }
 }
 
@@ -316,8 +316,8 @@ Value HashObject::rehash(Env *env) {
 }
 
 Value HashObject::replace(Env *env, Value other) {
-    if (!other->is_hash() && other->respond_to(env, SymbolObject::intern("to_hash")))
-        other = other->send(env, SymbolObject::intern("to_hash"));
+    if (!other->is_hash() && other->respond_to(env, "to_hash"_s))
+        other = other->send(env, "to_hash"_s);
     other->assert_type(env, Type::Hash, "Hash");
 
     auto other_hash = other->as_hash();
@@ -333,7 +333,7 @@ Value HashObject::replace(Env *env, Value other) {
 
 Value HashObject::delete_if(Env *env, Block *block) {
     if (!block)
-        return send(env, SymbolObject::intern("enum_for"), { SymbolObject::intern("delete_if") });
+        return send(env, "enum_for"_s, { "delete_if"_s });
 
     assert_not_frozen(env);
     for (auto &node : *this) {
@@ -359,7 +359,7 @@ Value HashObject::delete_key(Env *env, Value key, Block *block) {
 
 Value HashObject::dig(Env *env, size_t argc, Value *args) {
     env->ensure_argc_at_least(argc, 1);
-    auto dig = SymbolObject::intern("dig");
+    auto dig = "dig"_s;
     Value val = ref(env, args[0]);
     if (argc == 1)
         return val;
@@ -409,23 +409,23 @@ bool HashObject::eq(Env *env, Value other_value, SymbolObject *method_name) {
 }
 
 bool HashObject::eq(Env *env, Value other_value) {
-    return eq(env, other_value, SymbolObject::intern("=="));
+    return eq(env, other_value, "=="_s);
 }
 
 bool HashObject::eql(Env *env, Value other_value) {
-    return eq(env, other_value, SymbolObject::intern("eql?"));
+    return eq(env, other_value, "eql?"_s);
 }
 
 bool HashObject::gte(Env *env, Value other) {
-    if (!other->is_hash() && other->respond_to_method(env, SymbolObject::intern("to_hash")))
-        other = other->send(env, SymbolObject::intern("to_hash"));
+    if (!other->is_hash() && other->respond_to_method(env, "to_hash"_s))
+        other = other->send(env, "to_hash"_s);
 
     other->assert_type(env, Object::Type::Hash, "Hash");
     auto other_hash = other->as_hash();
 
     for (auto &node : *other_hash) {
         Value value = get(env, node.key);
-        if (!value || value.send(env, SymbolObject::intern("=="), { node.val })->is_false()) {
+        if (!value || value.send(env, "=="_s, { node.val })->is_false()) {
             return false;
         }
     }
@@ -433,8 +433,8 @@ bool HashObject::gte(Env *env, Value other) {
 }
 
 bool HashObject::gt(Env *env, Value other) {
-    if (!other->is_hash() && other->respond_to_method(env, SymbolObject::intern("to_hash")))
-        other = other->send(env, SymbolObject::intern("to_hash"));
+    if (!other->is_hash() && other->respond_to_method(env, "to_hash"_s))
+        other = other->send(env, "to_hash"_s);
 
     other->assert_type(env, Object::Type::Hash, "Hash");
 
@@ -442,15 +442,15 @@ bool HashObject::gt(Env *env, Value other) {
 }
 
 bool HashObject::lte(Env *env, Value other) {
-    if (!other->is_hash() && other->respond_to_method(env, SymbolObject::intern("to_hash")))
-        other = other->send(env, SymbolObject::intern("to_hash"));
+    if (!other->is_hash() && other->respond_to_method(env, "to_hash"_s))
+        other = other->send(env, "to_hash"_s);
 
     other->assert_type(env, Object::Type::Hash, "Hash");
     auto other_hash = other->as_hash();
 
     for (auto &node : *this) {
         Value value = other_hash->get(env, node.key);
-        if (!value || value.send(env, SymbolObject::intern("=="), { node.val })->is_false()) {
+        if (!value || value.send(env, "=="_s, { node.val })->is_false()) {
             return false;
         }
     }
@@ -458,8 +458,8 @@ bool HashObject::lte(Env *env, Value other) {
 }
 
 bool HashObject::lt(Env *env, Value other) {
-    if (!other->is_hash() && other->respond_to_method(env, SymbolObject::intern("to_hash")))
-        other = other->send(env, SymbolObject::intern("to_hash"));
+    if (!other->is_hash() && other->respond_to_method(env, "to_hash"_s))
+        other = other->send(env, "to_hash"_s);
 
     other->assert_type(env, Object::Type::Hash, "Hash");
 
@@ -468,7 +468,7 @@ bool HashObject::lt(Env *env, Value other) {
 
 Value HashObject::each(Env *env, Block *block) {
     if (!block)
-        return send(env, SymbolObject::intern("enum_for"), { SymbolObject::intern("each") });
+        return send(env, "enum_for"_s, { "each"_s });
 
     Value block_args[2];
     set_is_iterating(true);
@@ -511,9 +511,9 @@ Value HashObject::fetch(Env *env, Value key, Value default_value, Block *block) 
 }
 
 Value HashObject::fetch_values(Env *env, size_t argc, Value *args, Block *block) {
-    auto array = new ArrayObject {};
-    if (argc == 0) return array;
+    if (argc == 0) return new ArrayObject;
 
+    auto array = new ArrayObject { argc };
     for (size_t i = 0; i < argc; ++i) {
         array->push(fetch(env, args[i], nullptr, block));
     }
@@ -521,7 +521,7 @@ Value HashObject::fetch_values(Env *env, size_t argc, Value *args, Block *block)
 }
 
 Value HashObject::keys(Env *env) {
-    ArrayObject *array = new ArrayObject {};
+    ArrayObject *array = new ArrayObject { size() };
     for (HashObject::Key &node : *this) {
         array->push(node.key);
     }
@@ -530,7 +530,7 @@ Value HashObject::keys(Env *env) {
 
 Value HashObject::keep_if(Env *env, Block *block) {
     if (!block)
-        return send(env, SymbolObject::intern("enum_for"), { SymbolObject::intern("keep_if") });
+        return send(env, "enum_for"_s, { "keep_if"_s });
 
     assert_not_frozen(env);
     for (auto &node : *this) {
@@ -555,8 +555,8 @@ Value HashObject::to_h(Env *env, Block *block) {
         block_args[0] = node.key;
         block_args[1] = node.val;
         auto result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 2, block_args, nullptr);
-        if (!result->is_array() && result->respond_to(env, SymbolObject::intern("to_ary")))
-            result = result.send(env, SymbolObject::intern("to_ary"));
+        if (!result->is_array() && result->respond_to(env, "to_ary"_s))
+            result = result.send(env, "to_ary"_s);
         if (!result->is_array())
             env->raise("TypeError", "wrong element type {} (expected array)", result->klass()->class_name_or_blank());
         auto result_array = result->as_array();
@@ -569,7 +569,7 @@ Value HashObject::to_h(Env *env, Block *block) {
 }
 
 Value HashObject::values(Env *env) {
-    ArrayObject *array = new ArrayObject {};
+    ArrayObject *array = new ArrayObject { size() };
     for (HashObject::Key &node : *this) {
         array->push(node.val);
     }
@@ -583,8 +583,8 @@ Value HashObject::hash(Env *env) {
             return Value { NilObject::the() };
 
         HashBuilder hash { 10889, false };
-        auto hash_method = SymbolObject::intern("hash");
-        auto to_int = SymbolObject::intern("to_int");
+        auto hash_method = "hash"_s;
+        auto to_int = "to_int"_s;
 
         for (HashObject::Key &node : *this) {
             HashBuilder entry_hash {};
@@ -635,7 +635,7 @@ Value HashObject::has_key(Env *env, Value key) {
 
 Value HashObject::has_value(Env *env, Value value) {
     for (auto &node : *this) {
-        if (node.val.send(env, SymbolObject::intern("=="), { value })->is_true()) {
+        if (node.val.send(env, "=="_s, { value })->is_true()) {
             return TrueObject::the();
         }
     }
@@ -652,8 +652,8 @@ Value HashObject::merge_in_place(Env *env, size_t argc, Value *args, Block *bloc
     for (size_t i = 0; i < argc; i++) {
         auto h = args[i];
 
-        if (!h->is_hash() && h->respond_to_method(env, SymbolObject::intern("to_hash")))
-            h = h->send(env, SymbolObject::intern("to_hash"));
+        if (!h->is_hash() && h->respond_to_method(env, "to_hash"_s))
+            h = h->send(env, "to_hash"_s);
 
         h->assert_type(env, Object::Type::Hash, "Hash");
 

@@ -95,7 +95,7 @@ Value Object::_new(Env *env, Value klass_value, size_t argc, Value *args, Block 
 }
 
 Value Object::initialize(Env *env, size_t argc, Value *args, Block *block) {
-    Method *method = m_klass->find_method(env, SymbolObject::intern("initialize"));
+    Method *method = m_klass->find_method(env, "initialize"_s);
     if (method && !method->is_undefined()) {
         method->call(env, this, argc, args, block);
     }
@@ -321,10 +321,10 @@ Value Object::ivar_set(Env *env, SymbolObject *name, Value val) {
 }
 
 Value Object::instance_variables(Env *env) {
-    ArrayObject *ary = new ArrayObject {};
     if (m_type == Object::Type::Integer || m_type == Object::Type::Float) {
-        return ary;
+        return new ArrayObject;
     }
+    ArrayObject *ary = new ArrayObject { m_ivars.size() };
     for (auto pair : m_ivars) {
         ary->push(pair.first);
     }
@@ -410,20 +410,30 @@ SymbolObject *Object::undefine_method(Env *env, SymbolObject *name) {
     return name;
 }
 
-Value Object::private_method(Env *env, Value name) {
+void Object::private_method(Env *env, SymbolObject *name) {
+    Value args[] = { name };
+    private_method(env, 1, args);
+}
+
+void Object::protected_method(Env *env, SymbolObject *name) {
+    Value args[] = { name };
+    protected_method(env, 1, args);
+}
+
+Value Object::private_method(Env *env, size_t argc, Value *args) {
     if (!is_main_object()) {
         printf("tried to call private_method on something that has no methods\n");
         abort();
     }
-    return m_klass->private_method(env, name);
+    return m_klass->private_method(env, argc, args);
 }
 
-Value Object::protected_method(Env *env, Value name) {
+Value Object::protected_method(Env *env, size_t argc, Value *args) {
     if (!is_main_object()) {
         printf("tried to call protected_method on something that has no methods\n");
         abort();
     }
-    return m_klass->protected_method(env, name);
+    return m_klass->protected_method(env, argc, args);
 }
 
 Value Object::public_send(Env *env, SymbolObject *name, size_t argc, Value *args, Block *block) {
@@ -459,7 +469,7 @@ Method *Object::find_method(Env *env, SymbolObject *method_name, MethodVisibilit
         } else {
             env->raise("NoMethodError", "private method `{}' called for {}", method_name->c_str(), inspect_str(env));
         }
-    } else if (method_name == SymbolObject::intern("inspect")) {
+    } else if (method_name == "inspect"_s) {
         env->raise("NoMethodError", "undefined method `inspect' for #<{}:{}>", klass->class_name_or_blank(), int_to_hex_string(object_id(), false));
     } else if (is_module()) {
         env->raise("NoMethodError", "undefined method `{}' for {}:{}", method_name->c_str(), klass->as_module()->class_name_or_blank(), klass->inspect_str(env));
@@ -510,8 +520,8 @@ bool Object::is_a(Env *env, Value val) {
 }
 
 bool Object::respond_to(Env *env, Value name_val) {
-    if (respond_to_method(env, SymbolObject::intern("respond_to?")))
-        return send(env, SymbolObject::intern("respond_to?"), { name_val })->is_true();
+    if (respond_to_method(env, "respond_to?"_s))
+        return send(env, "respond_to?"_s, { name_val })->is_true();
 
     // Needed for BaseObject as it does not have an actual respond_to? method
     return respond_to_method(env, name_val);
@@ -561,7 +571,7 @@ Value Object::defined_obj(Env *env, SymbolObject *name, bool strict) {
 }
 
 ProcObject *Object::to_proc(Env *env) {
-    auto to_proc_symbol = SymbolObject::intern("to_proc");
+    auto to_proc_symbol = "to_proc"_s;
     if (respond_to(env, to_proc_symbol)) {
         return send(env, to_proc_symbol)->as_proc();
     } else {
@@ -611,11 +621,11 @@ bool Object::equal(Value other) {
 }
 
 bool Object::neq(Env *env, Value other) {
-    return send(env, SymbolObject::intern("=="), { other })->is_falsey();
+    return send(env, "=="_s, { other })->is_falsey();
 }
 
 const String *Object::inspect_str(Env *env) {
-    auto inspected = send(env, SymbolObject::intern("inspect"));
+    auto inspected = send(env, "inspect"_s);
     if (!inspected->is_string())
         return new String(""); // TODO: what to do here?
     return inspected->as_string()->to_low_level_string();
@@ -627,7 +637,7 @@ Value Object::enum_for(Env *env, const char *method, size_t argc, Value *args) {
     for (size_t i = 0; i < argc; i++) {
         args2[i + 1] = args[i];
     }
-    return this->public_send(env, SymbolObject::intern("enum_for"), argc + 1, args2);
+    return this->public_send(env, "enum_for"_s, argc + 1, args2);
 }
 
 void Object::visit_children(Visitor &visitor) {
@@ -650,7 +660,7 @@ ArrayObject *Object::to_ary(Env *env) {
 
     auto original_class = klass()->class_name_or_blank();
 
-    auto to_ary = SymbolObject::intern("to_ary");
+    auto to_ary = "to_ary"_s;
 
     if (!respond_to(env, to_ary)) {
         if (is_nil()) {

@@ -210,6 +210,8 @@ describe 'Parser' do
       Parser.parse("def foo;end").should == s(:block, s(:defn, :foo, s(:args), s(:nil)))
       Parser.parse("def foo\n1\nend").should == s(:block, s(:defn, :foo, s(:args), s(:lit, 1)))
       Parser.parse("def foo;1;end").should == s(:block, s(:defn, :foo, s(:args), s(:lit, 1)))
+      Parser.parse("def foo();1;end").should == s(:block, s(:defn, :foo, s(:args), s(:lit, 1)))
+      Parser.parse("def foo() 1 end").should == s(:block, s(:defn, :foo, s(:args), s(:lit, 1)))
       Parser.parse("def foo;1;2 + 2;'foo';end").should == s(:block, s(:defn, :foo, s(:args), s(:lit, 1), s(:call, s(:lit, 2), :+, s(:lit, 2)), s(:str, 'foo')))
       Parser.parse("def foo x, y\nend").should == s(:block, s(:defn, :foo, s(:args, :x, :y), s(:nil)))
       Parser.parse("def foo x,\ny\nend").should == s(:block, s(:defn, :foo, s(:args, :x, :y), s(:nil)))
@@ -439,6 +441,7 @@ describe 'Parser' do
 
     it 'parses word array' do
       Parser.parse('%w[]').should == s(:block, s(:array))
+      Parser.parse('%w|1 2 3|').should == s(:block, s(:array, s(:str, "1"), s(:str, "2"), s(:str, "3")))
       Parser.parse("%w[  1 2\t  3\n \n4 ]").should == s(:block, s(:array, s(:str, "1"), s(:str, "2"), s(:str, "3"), s(:str, "4")))
       Parser.parse("%W[  1 2\t  3\n \n4 ]").should == s(:block, s(:array, s(:str, "1"), s(:str, "2"), s(:str, "3"), s(:str, "4")))
       Parser.parse("%i[ foo bar ]").should == s(:block, s(:array, s(:lit, :foo), s(:lit, :bar)))

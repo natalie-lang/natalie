@@ -7,10 +7,10 @@
 #include "natalie/gc.hpp"
 #include "natalie/global_env.hpp"
 #include "natalie/local_jump_error_type.hpp"
+#include "natalie/managed_vector.hpp"
 #include "natalie/string.hpp"
 #include "natalie/value.hpp"
 #include "tm/shared_ptr.hpp"
-#include "tm/vector.hpp"
 
 namespace Natalie {
 
@@ -119,7 +119,7 @@ public:
     }
 
 private:
-    SharedPtr<Vector<Value>> m_vars {};
+    ManagedVector<Value> *m_vars { nullptr };
     Env *m_outer { nullptr };
     Block *m_block { nullptr };
     Block *m_this_block { nullptr };

@@ -63,7 +63,7 @@ public:
     };
 
     FiberObject()
-        : Object { Object::Type::Fiber, GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern("Fiber"))->as_class() } { }
+        : Object { Object::Type::Fiber, GlobalEnv::the()->Object()->const_fetch("Fiber"_s)->as_class() } { }
 
     FiberObject(ClassObject *klass)
         : Object { Object::Type::Fiber, klass } { }
@@ -98,8 +98,8 @@ public:
         // x86-64: rbx, rbp, r12, r13, r14, r15
         static const int NUM_REGISTERS = 6;
 #elif defined(__aarch64__)
-        // aarch64: x9-x15 and x30
-        static const int NUM_REGISTERS = 8;
+        // aarch64: x9-x28
+        static const int NUM_REGISTERS = 20;
 #else
         // x86: ebx, ebp, edi, esi
         static const int NUM_REGISTERS = 4;
@@ -153,13 +153,13 @@ public:
     SymbolObject *status(Env *env) {
         switch (m_status) {
         case Status::Created:
-            return SymbolObject::intern("created");
+            return "created"_s;
         case Status::Active:
-            return SymbolObject::intern("active");
+            return "active"_s;
         case Status::Suspended:
-            return SymbolObject::intern("suspended");
+            return "suspended"_s;
         case Status::Terminated:
-            return SymbolObject::intern("terminated");
+            return "terminated"_s;
         }
         NAT_UNREACHABLE();
     }

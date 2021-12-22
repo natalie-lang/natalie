@@ -16,19 +16,41 @@ namespace Natalie {
 Value KernelModule::Array(Env *env, Value value) {
     if (value->type() == Object::Type::Array) {
         return value;
-    } else if (value->respond_to(env, SymbolObject::intern("to_ary"))) {
-        return value.send(env, SymbolObject::intern("to_ary"));
+    } else if (value->respond_to(env, "to_ary"_s)) {
+        return value.send(env, "to_ary"_s);
     } else if (value == NilObject::the()) {
-        return new ArrayObject {};
+        return new ArrayObject;
     } else {
-        ArrayObject *ary = new ArrayObject {};
-        ary->push(value);
-        return ary;
+        return new ArrayObject { value };
     }
 }
 
+Value KernelModule::abort_method(Env *env, Value message) {
+    auto SystemExit = GlobalEnv::the()->Object()->const_fetch("SystemExit"_s);
+    ExceptionObject *exception;
+
+    if (message) {
+        auto to_str = "to_str"_s;
+        if (!message->is_string() && message->respond_to(env, to_str))
+            message = message->send(env, to_str);
+
+        message->assert_type(env, Type::String, "String");
+
+        exception = SystemExit.send(env, "new"_s, { message, Value::integer(1) })->as_exception();
+
+        auto out = env->global_get("$stderr"_s);
+        out->send(env, "write"_s, { message });
+    } else {
+        exception = SystemExit.send(env, "new"_s, { Value::integer(1) })->as_exception();
+    }
+
+    env->raise_exception(exception);
+
+    return NilObject::the();
+}
+
 Value KernelModule::at_exit(Env *env, Block *block) {
-    ArrayObject *at_exit_handlers = env->global_get(SymbolObject::intern("$NAT_at_exit_handlers"))->as_array();
+    ArrayObject *at_exit_handlers = env->global_get("$NAT_at_exit_handlers"_s)->as_array();
     env->ensure_block_given(block);
     Value proc = new ProcObject { block };
     at_exit_handlers->push(proc);
@@ -92,8 +114,8 @@ Value KernelModule::exit(Env *env, Value status) {
     if (!status || status->type() != Object::Type::Integer) {
         status = Value::integer(0);
     }
-    ExceptionObject *exception = new ExceptionObject { GlobalEnv::the()->Object()->const_find(env, SymbolObject::intern("SystemExit"))->as_class(), new StringObject { "exit" } };
-    exception->ivar_set(env, SymbolObject::intern("@status"), status);
+    ExceptionObject *exception = new ExceptionObject { find_top_level_const(env, "SystemExit"_s)->as_class(), new StringObject { "exit" } };
+    exception->ivar_set(env, "@status"_s, status);
     env->raise_exception(exception);
     return NilObject::the();
 }
@@ -137,7 +159,7 @@ Value KernelModule::hash(Env *env) {
     case Type::Symbol:
         return Value::integer(TM::Hashmap<void *>::hash_str(as_symbol()->c_str()));
     default: {
-        StringObject *inspected = send(env, SymbolObject::intern("inspect"))->as_string();
+        StringObject *inspected = send(env, "inspect"_s)->as_string();
         nat_int_t hash_value = TM::Hashmap<void *>::hash_str(inspected->c_str());
         return Value::integer(hash_value);
     }
@@ -229,14 +251,14 @@ Value KernelModule::p(Env *env, size_t argc, Value *args) {
     if (argc == 0) {
         return NilObject::the();
     } else if (argc == 1) {
-        Value arg = args[0].send(env, SymbolObject::intern("inspect"));
+        Value arg = args[0].send(env, "inspect"_s);
         puts(env, 1, &arg);
         return arg;
     } else {
-        ArrayObject *result = new ArrayObject {};
+        ArrayObject *result = new ArrayObject { argc };
         for (size_t i = 0; i < argc; i++) {
             result->push(args[i]);
-            args[i] = args[i].send(env, SymbolObject::intern("inspect"));
+            args[i] = args[i].send(env, "inspect"_s);
         }
         puts(env, argc, args);
         return result;
@@ -244,7 +266,7 @@ Value KernelModule::p(Env *env, size_t argc, Value *args) {
 }
 
 Value KernelModule::print(Env *env, size_t argc, Value *args) {
-    IoObject *_stdout = env->global_get(SymbolObject::intern("$stdout"))->as_io();
+    IoObject *_stdout = env->global_get("$stdout"_s)->as_io();
     return _stdout->print(env, argc, args);
 }
 
@@ -257,7 +279,7 @@ Value KernelModule::proc(Env *env, Block *block) {
 }
 
 Value KernelModule::puts(Env *env, size_t argc, Value *args) {
-    IoObject *_stdout = env->global_get(SymbolObject::intern("$stdout"))->as_io();
+    IoObject *_stdout = env->global_get("$stdout"_s)->as_io();
     return _stdout->puts(env, argc, args);
 }
 
@@ -268,7 +290,7 @@ Value KernelModule::raise(Env *env, Value klass, Value message) {
             klass = arg->as_class();
             message = new StringObject { *arg->as_class()->class_name_or_blank() };
         } else if (arg->is_string()) {
-            klass = GlobalEnv::the()->Object()->const_find(env, SymbolObject::intern("RuntimeError"))->as_class();
+            klass = find_top_level_const(env, "RuntimeError"_s)->as_class();
             message = arg;
         } else if (arg->is_exception()) {
             env->raise_exception(arg->as_exception());

@@ -36,7 +36,7 @@ private:
     inline static TrueObject *s_instance = nullptr;
 
     TrueObject()
-        : Object { Object::Type::True, GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern("TrueClass"))->as_class() } { }
+        : Object { Object::Type::True, GlobalEnv::the()->Object()->const_fetch("TrueClass"_s)->as_class() } { }
 };
 
 }

@@ -6,6 +6,7 @@ coverage-report
 
 # Editor tools
 .ccls
+.ccls-cache
 compile_commands.json
 tags
 .gdb_history

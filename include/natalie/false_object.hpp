@@ -36,7 +36,7 @@ private:
     inline static FalseObject *s_instance = nullptr;
 
     FalseObject()
-        : Object { Object::Type::False, GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern("FalseClass"))->as_class() } { }
+        : Object { Object::Type::False, GlobalEnv::the()->Object()->const_fetch("FalseClass"_s)->as_class() } { }
 };
 
 }

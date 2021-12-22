@@ -32,13 +32,13 @@ StringObject *SymbolObject::inspect(Env *env) {
 
 SymbolObject *SymbolObject::succ(Env *env) {
     auto string = to_s(env);
-    string = string->send(env, SymbolObject::intern("succ"))->as_string();
+    string = string->send(env, "succ"_s)->as_string();
     return string->to_symbol(env);
 }
 
 SymbolObject *SymbolObject::upcase(Env *env) {
     auto string = to_s(env);
-    string = string->send(env, SymbolObject::intern("upcase"))->as_string();
+    string = string->send(env, "upcase"_s)->as_string();
     return string->to_symbol(env);
 }
 
@@ -59,6 +59,8 @@ Value SymbolObject::to_proc_block_fn(Env *env, Value self_value, size_t argc, Va
 Value SymbolObject::cmp(Env *env, Value other_value) {
     if (!other_value->is_symbol()) return NilObject::the();
     SymbolObject *other = other_value->as_symbol();
+    if (this == other)
+        return Value::integer(0);
     int diff = strcmp(m_name, other->m_name);
     int result;
     if (diff < 0) {
@@ -66,7 +68,7 @@ Value SymbolObject::cmp(Env *env, Value other_value) {
     } else if (diff > 0) {
         result = 1;
     } else {
-        result = 0;
+        NAT_UNREACHABLE();
     }
     return Value::integer(result);
 }

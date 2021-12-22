@@ -26,8 +26,7 @@ describe "String#rstrip" do
   end
 end
 
-# NATFIXME: implement mutating rstrip! method
-xdescribe "String#rstrip!" do
+describe "String#rstrip!" do
   it "modifies self in place and returns self" do
     a = "  hello  "
     a.rstrip!.should equal(a)

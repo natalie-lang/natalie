@@ -7,7 +7,7 @@ Value AliasNode::to_ruby(Env *env) {
         env,
         this,
         {
-            SymbolObject::intern("alias"),
+            "alias"_s,
             m_new_name->to_ruby(env),
             m_existing_name->to_ruby(env),
         }
@@ -26,7 +26,7 @@ Value ArgNode::to_ruby(Env *env) {
             env,
             this,
             {
-                SymbolObject::intern("lasgn"),
+                "lasgn"_s,
                 SymbolObject::intern(m_name),
                 m_value->to_ruby(env),
             }
@@ -50,7 +50,7 @@ Value ArgNode::to_ruby(Env *env) {
 }
 
 Value ArrayNode::to_ruby(Env *env) {
-    auto sexp = new SexpObject { env, this, { SymbolObject::intern("array") } };
+    auto sexp = new SexpObject { env, this, { "array"_s } };
     for (auto node : m_nodes) {
         sexp->push(node->to_ruby(env));
     }
@@ -64,7 +64,7 @@ Value AssignmentNode::to_ruby(Env *env) {
     case Node::Type::MultipleAssignment: {
         auto masgn = static_cast<MultipleAssignmentNode *>(m_identifier);
         auto sexp = masgn->to_ruby_with_array(env);
-        auto value = new SexpObject { env, this, { SymbolObject::intern("to_ary") } };
+        auto value = new SexpObject { env, this, { "to_ary"_s } };
         value->push(m_value->to_ruby(env));
         sexp->push(value);
         return sexp;
@@ -84,7 +84,7 @@ Value AttrAssignNode::to_ruby(Env *env) {
         env,
         this,
         {
-            SymbolObject::intern("attrasgn"),
+            "attrasgn"_s,
             m_receiver->to_ruby(env),
             SymbolObject::intern(m_message),
         }
@@ -98,7 +98,7 @@ Value AttrAssignNode::to_ruby(Env *env) {
 
 Value BeginNode::to_ruby(Env *env) {
     assert(m_body);
-    auto *sexp = new SexpObject { env, this, { SymbolObject::intern("rescue") } };
+    auto *sexp = new SexpObject { env, this, { "rescue"_s } };
     if (!m_body->is_empty())
         sexp->push(m_body->without_unnecessary_nesting()->to_ruby(env));
     for (auto rescue_node : m_rescue_nodes) {
@@ -108,9 +108,9 @@ Value BeginNode::to_ruby(Env *env) {
         sexp->push(m_else_body->without_unnecessary_nesting()->to_ruby(env));
     if (m_ensure_body) {
         if (m_rescue_nodes.is_empty())
-            (*sexp)[0] = SymbolObject::intern("ensure");
+            (*sexp)[0] = "ensure"_s;
         else
-            sexp = new SexpObject { env, this, { SymbolObject::intern("ensure"), sexp } };
+            sexp = new SexpObject { env, this, { "ensure"_s, sexp } };
         sexp->push(m_ensure_body->without_unnecessary_nesting()->to_ruby(env));
     }
     return sexp;
@@ -157,7 +157,7 @@ Value BeginRescueNode::to_ruby(Env *env) {
         env,
         this,
         {
-            SymbolObject::intern("resbody"),
+            "resbody"_s,
             array->to_ruby(env),
         }
     };
@@ -180,13 +180,13 @@ Value BlockNode::to_ruby_with_name(Env *env, const char *name) {
 }
 
 Value BlockPassNode::to_ruby(Env *env) {
-    auto *sexp = new SexpObject { env, this, { SymbolObject::intern("block_pass") } };
+    auto *sexp = new SexpObject { env, this, { "block_pass"_s } };
     sexp->push(m_node->to_ruby(env));
     return sexp;
 }
 
 Value BreakNode::to_ruby(Env *env) {
-    auto sexp = new SexpObject { env, this, { SymbolObject::intern("break") } };
+    auto sexp = new SexpObject { env, this, { "break"_s } };
     if (m_arg)
         sexp->push(m_arg->to_ruby(env));
     return sexp;
@@ -197,7 +197,7 @@ Value CallNode::to_ruby(Env *env) {
         env,
         this,
         {
-            SymbolObject::intern("call"),
+            "call"_s,
             m_receiver->to_ruby(env),
             SymbolObject::intern(m_message),
         }
@@ -214,7 +214,7 @@ Value CaseNode::to_ruby(Env *env) {
         env,
         this,
         {
-            SymbolObject::intern("case"),
+            "case"_s,
             m_subject->to_ruby(env),
         }
     };
@@ -234,7 +234,7 @@ Value CaseWhenNode::to_ruby(Env *env) {
         env,
         this,
         {
-            SymbolObject::intern("when"),
+            "when"_s,
             m_condition->to_ruby(env),
         }
     };
@@ -245,7 +245,7 @@ Value CaseWhenNode::to_ruby(Env *env) {
 }
 
 Value ClassNode::to_ruby(Env *env) {
-    auto sexp = new SexpObject { env, this, { SymbolObject::intern("class"), SymbolObject::intern(m_name->name()), m_superclass->to_ruby(env) } };
+    auto sexp = new SexpObject { env, this, { "class"_s, SymbolObject::intern(m_name->name()), m_superclass->to_ruby(env) } };
     if (!m_body->is_empty()) {
         for (auto node : m_body->nodes()) {
             sexp->push(node->to_ruby(env));
@@ -266,7 +266,7 @@ Value Colon2Node::to_ruby(Env *env) {
         env,
         this,
         {
-            SymbolObject::intern("colon2"),
+            "colon2"_s,
             m_left->to_ruby(env),
             SymbolObject::intern(m_name),
         }
@@ -278,7 +278,7 @@ Value Colon3Node::to_ruby(Env *env) {
         env,
         this,
         {
-            SymbolObject::intern("colon3"),
+            "colon3"_s,
             SymbolObject::intern(m_name),
         }
     };
@@ -289,7 +289,7 @@ Value ConstantNode::to_ruby(Env *env) {
         env,
         this,
         {
-            SymbolObject::intern("const"),
+            "const"_s,
             SymbolObject::intern(m_token->literal()),
         }
     };
@@ -300,7 +300,7 @@ Value DefinedNode::to_ruby(Env *env) {
         env,
         this,
         {
-            SymbolObject::intern("defined"),
+            "defined"_s,
             m_arg->to_ruby(env),
         }
     };
@@ -313,7 +313,7 @@ Value DefNode::to_ruby(Env *env) {
             env,
             this,
             {
-                SymbolObject::intern("defs"),
+                "defs"_s,
                 m_self_node->to_ruby(env),
                 SymbolObject::intern(m_name->name()),
                 build_args_sexp(env),
@@ -324,14 +324,14 @@ Value DefNode::to_ruby(Env *env) {
             env,
             this,
             {
-                SymbolObject::intern("defn"),
+                "defn"_s,
                 SymbolObject::intern(m_name->name()),
                 build_args_sexp(env),
             }
         };
     }
     if (m_body->is_empty()) {
-        sexp->push(new SexpObject { env, this, { SymbolObject::intern("nil") } });
+        sexp->push(new SexpObject { env, this, { "nil"_s } });
     } else {
         for (auto node : m_body->nodes()) {
             sexp->push(node->to_ruby(env));
@@ -341,7 +341,7 @@ Value DefNode::to_ruby(Env *env) {
 }
 
 SexpObject *DefNode::build_args_sexp(Env *env) {
-    auto sexp = new SexpObject { env, this, { SymbolObject::intern("args") } };
+    auto sexp = new SexpObject { env, this, { "args"_s } };
     for (auto arg : m_args) {
         switch (arg->type()) {
         case Node::Type::Arg:
@@ -364,15 +364,15 @@ void DefNode::visit_children(Visitor &visitor) {
 }
 
 Value EvaluateToStringNode::to_ruby(Env *env) {
-    return new SexpObject { env, this, { SymbolObject::intern("evstr"), m_node->to_ruby(env) } };
+    return new SexpObject { env, this, { "evstr"_s, m_node->to_ruby(env) } };
 }
 
 Value FalseNode::to_ruby(Env *env) {
-    return new SexpObject { env, this, { SymbolObject::intern("false") } };
+    return new SexpObject { env, this, { "false"_s } };
 }
 
 Value HashNode::to_ruby(Env *env) {
-    auto sexp = new SexpObject { env, this, { SymbolObject::intern("hash") } };
+    auto sexp = new SexpObject { env, this, { "hash"_s } };
     for (auto node : m_nodes) {
         sexp->push(node->to_ruby(env));
     }
@@ -383,23 +383,23 @@ Value IdentifierNode::to_ruby(Env *env) {
     switch (token_type()) {
     case Token::Type::BareName:
         if (m_is_lvar) {
-            return new SexpObject { env, this, { SymbolObject::intern("lvar"), SymbolObject::intern(name()) } };
+            return new SexpObject { env, this, { "lvar"_s, SymbolObject::intern(name()) } };
         } else {
-            return new SexpObject { env, this, { SymbolObject::intern("call"), NilObject::the(), SymbolObject::intern(name()) } };
+            return new SexpObject { env, this, { "call"_s, NilObject::the(), SymbolObject::intern(name()) } };
         }
     case Token::Type::ClassVariable:
-        return new SexpObject { env, this, { SymbolObject::intern("cvar"), SymbolObject::intern(name()) } };
+        return new SexpObject { env, this, { "cvar"_s, SymbolObject::intern(name()) } };
     case Token::Type::Constant:
-        return new SexpObject { env, this, { SymbolObject::intern("const"), SymbolObject::intern(name()) } };
+        return new SexpObject { env, this, { "const"_s, SymbolObject::intern(name()) } };
     case Token::Type::GlobalVariable: {
         auto ref = nth_ref();
         if (ref > 0)
-            return new SexpObject { env, this, { SymbolObject::intern("nth_ref"), Value::integer(ref) } };
+            return new SexpObject { env, this, { "nth_ref"_s, Value::integer(ref) } };
         else
-            return new SexpObject { env, this, { SymbolObject::intern("gvar"), SymbolObject::intern(name()) } };
+            return new SexpObject { env, this, { "gvar"_s, SymbolObject::intern(name()) } };
     }
     case Token::Type::InstanceVariable:
-        return new SexpObject { env, this, { SymbolObject::intern("ivar"), SymbolObject::intern(name()) } };
+        return new SexpObject { env, this, { "ivar"_s, SymbolObject::intern(name()) } };
     default:
         NAT_NOT_YET_IMPLEMENTED();
     }
@@ -418,7 +418,7 @@ Value IfNode::to_ruby(Env *env) {
         env,
         this,
         {
-            SymbolObject::intern("if"),
+            "if"_s,
             m_condition->to_ruby(env),
             m_true_expr->to_ruby(env),
             m_false_expr->to_ruby(env),
@@ -431,7 +431,7 @@ Value IterNode::to_ruby(Env *env) {
         env,
         this,
         {
-            SymbolObject::intern("iter"),
+            "iter"_s,
             m_call->to_ruby(env),
         }
     };
@@ -449,7 +449,7 @@ Value IterNode::to_ruby(Env *env) {
 }
 
 SexpObject *IterNode::build_args_sexp(Env *env) {
-    auto sexp = new SexpObject { env, this, { SymbolObject::intern("args") } };
+    auto sexp = new SexpObject { env, this, { "args"_s } };
     for (auto arg : m_args) {
         switch (arg->type()) {
         case Node::Type::Arg:
@@ -465,7 +465,7 @@ SexpObject *IterNode::build_args_sexp(Env *env) {
 }
 
 Value InterpolatedRegexpNode::to_ruby(Env *env) {
-    auto sexp = new SexpObject { env, this, { SymbolObject::intern("dregx") } };
+    auto sexp = new SexpObject { env, this, { "dregx"_s } };
     for (size_t i = 0; i < m_nodes.size(); i++) {
         auto node = m_nodes[i];
         if (i == 0 && node->type() == Node::Type::String)
@@ -479,7 +479,7 @@ Value InterpolatedRegexpNode::to_ruby(Env *env) {
 }
 
 Value InterpolatedShellNode::to_ruby(Env *env) {
-    auto sexp = new SexpObject { env, this, { SymbolObject::intern("dxstr") } };
+    auto sexp = new SexpObject { env, this, { "dxstr"_s } };
     for (size_t i = 0; i < m_nodes.size(); i++) {
         auto node = m_nodes[i];
         if (i == 0 && node->type() == Node::Type::String)
@@ -491,7 +491,7 @@ Value InterpolatedShellNode::to_ruby(Env *env) {
 }
 
 Value InterpolatedStringNode::to_ruby(Env *env) {
-    auto sexp = new SexpObject { env, this, { SymbolObject::intern("dstr") } };
+    auto sexp = new SexpObject { env, this, { "dstr"_s } };
     for (size_t i = 0; i < m_nodes.size(); i++) {
         auto node = m_nodes[i];
         if (i == 0 && node->type() == Node::Type::String)
@@ -507,7 +507,7 @@ Value KeywordArgNode::to_ruby(Env *env) {
         env,
         this,
         {
-            SymbolObject::intern("kwarg"),
+            "kwarg"_s,
             SymbolObject::intern(m_name),
         }
     };
@@ -517,8 +517,8 @@ Value KeywordArgNode::to_ruby(Env *env) {
 }
 
 Value KeywordSplatNode::to_ruby(Env *env) {
-    auto sexp = new SexpObject { env, this, { SymbolObject::intern("hash") } };
-    auto kwsplat_sexp = new SexpObject { env, this, { SymbolObject::intern("kwsplat") } };
+    auto sexp = new SexpObject { env, this, { "hash"_s } };
+    auto kwsplat_sexp = new SexpObject { env, this, { "kwsplat"_s } };
     if (m_node)
         kwsplat_sexp->push(m_node->to_ruby(env));
     sexp->push(kwsplat_sexp);
@@ -526,11 +526,11 @@ Value KeywordSplatNode::to_ruby(Env *env) {
 }
 
 Value IntegerNode::to_ruby(Env *env) {
-    return new SexpObject { env, this, { SymbolObject::intern("lit"), Value::integer(m_number) } };
+    return new SexpObject { env, this, { "lit"_s, Value::integer(m_number) } };
 }
 
 Value FloatNode::to_ruby(Env *env) {
-    return new SexpObject { env, this, { SymbolObject::intern("lit"), new FloatObject { m_number } } };
+    return new SexpObject { env, this, { "lit"_s, new FloatObject { m_number } } };
 }
 
 Value LogicalAndNode::to_ruby(Env *env) {
@@ -538,7 +538,7 @@ Value LogicalAndNode::to_ruby(Env *env) {
         env,
         this,
         {
-            SymbolObject::intern("and"),
+            "and"_s,
             m_left->to_ruby(env),
             m_right->to_ruby(env),
         }
@@ -552,7 +552,7 @@ Value LogicalOrNode::to_ruby(Env *env) {
         env,
         this,
         {
-            SymbolObject::intern("or"),
+            "or"_s,
             m_left->to_ruby(env),
             m_right->to_ruby(env),
         }
@@ -566,7 +566,7 @@ Value MatchNode::to_ruby(Env *env) {
         env,
         this,
         {
-            SymbolObject::intern(m_regexp_on_left ? "match2" : "match3"),
+            m_regexp_on_left ? "match2"_s : "match3"_s,
             m_regexp->to_ruby(env),
             m_arg->to_ruby(env),
         }
@@ -580,7 +580,7 @@ void MatchNode::visit_children(Visitor &visitor) {
 }
 
 Value ModuleNode::to_ruby(Env *env) {
-    auto sexp = new SexpObject { env, this, { SymbolObject::intern("module"), SymbolObject::intern(m_name->name()) } };
+    auto sexp = new SexpObject { env, this, { "module"_s, SymbolObject::intern(m_name->name()) } };
     if (!m_body->is_empty()) {
         for (auto node : m_body->nodes()) {
             sexp->push(node->to_ruby(env));
@@ -590,7 +590,7 @@ Value ModuleNode::to_ruby(Env *env) {
 }
 
 Value MultipleAssignmentNode::to_ruby(Env *env) {
-    auto sexp = new SexpObject { env, this, { SymbolObject::intern("masgn") } };
+    auto sexp = new SexpObject { env, this, { "masgn"_s } };
     for (auto node : m_nodes) {
         switch (node->type()) {
         case Node::Type::Arg:
@@ -630,8 +630,8 @@ void MultipleAssignmentNode::add_locals(TM::Hashmap<const char *> &locals) {
 }
 
 ArrayObject *MultipleAssignmentNode::to_ruby_with_array(Env *env) {
-    auto sexp = new SexpObject { env, this, { SymbolObject::intern("masgn") } };
-    auto array = new SexpObject { env, this, { SymbolObject::intern("array") } };
+    auto sexp = new SexpObject { env, this, { "masgn"_s } };
+    auto array = new SexpObject { env, this, { "array"_s } };
     for (auto identifier : m_nodes) {
         switch (identifier->type()) {
         case Node::Type::Identifier:
@@ -653,7 +653,7 @@ ArrayObject *MultipleAssignmentNode::to_ruby_with_array(Env *env) {
 }
 
 Value NextNode::to_ruby(Env *env) {
-    auto sexp = new SexpObject { env, this, { SymbolObject::intern("next") } };
+    auto sexp = new SexpObject { env, this, { "next"_s } };
     if (m_arg)
         sexp->push(m_arg->to_ruby(env));
     return sexp;
@@ -664,11 +664,11 @@ Value NilNode::to_ruby(Env *env) {
 }
 
 Value NilSexpNode::to_ruby(Env *env) {
-    return new SexpObject { env, this, { SymbolObject::intern("nil") } };
+    return new SexpObject { env, this, { "nil"_s } };
 }
 
 Value NotNode::to_ruby(Env *env) {
-    return new SexpObject { env, this, { SymbolObject::intern("not"), m_expression->to_ruby(env) } };
+    return new SexpObject { env, this, { "not"_s, m_expression->to_ruby(env) } };
 }
 
 Value OpAssignNode::to_ruby(Env *env) {
@@ -686,7 +686,7 @@ Value OpAssignAccessorNode::to_ruby(Env *env) {
             env,
             this,
             {
-                SymbolObject::intern("arglist"),
+                "arglist"_s,
             }
         };
         for (auto arg : m_args) {
@@ -696,7 +696,7 @@ Value OpAssignAccessorNode::to_ruby(Env *env) {
             env,
             this,
             {
-                SymbolObject::intern("op_asgn1"),
+                "op_asgn1"_s,
                 m_receiver->to_ruby(env),
                 arg_list,
                 SymbolObject::intern(m_op),
@@ -709,7 +709,7 @@ Value OpAssignAccessorNode::to_ruby(Env *env) {
             env,
             this,
             {
-                SymbolObject::intern("op_asgn2"),
+                "op_asgn2"_s,
                 m_receiver->to_ruby(env),
                 SymbolObject::intern(m_message),
                 SymbolObject::intern(m_op),
@@ -724,7 +724,7 @@ Value OpAssignAndNode::to_ruby(Env *env) {
         env,
         this,
         {
-            SymbolObject::intern("op_asgn_and"),
+            "op_asgn_and"_s,
             m_name->to_ruby(env),
             (new AssignmentNode { token(), m_name, m_value })->to_ruby(env),
         },
@@ -736,7 +736,7 @@ Value OpAssignOrNode::to_ruby(Env *env) {
         env,
         this,
         {
-            SymbolObject::intern("op_asgn_or"),
+            "op_asgn_or"_s,
             m_name->to_ruby(env),
             (new AssignmentNode { token(), m_name, m_value })->to_ruby(env),
         },
@@ -750,7 +750,7 @@ Value RangeNode::to_ruby(Env *env) {
         return new SexpObject {
             env,
             this,
-            { SymbolObject::intern("lit"),
+            { "lit"_s,
                 new RangeObject {
                     Value::integer(first),
                     Value::integer(last),
@@ -760,7 +760,7 @@ Value RangeNode::to_ruby(Env *env) {
     return new SexpObject {
         env,
         this,
-        { SymbolObject::intern(m_exclude_end ? "dot3" : "dot2"), m_first->to_ruby(env), m_last->to_ruby(env) }
+        { m_exclude_end ? "dot3"_s : "dot2"_s, m_first->to_ruby(env), m_last->to_ruby(env) }
     };
 }
 
@@ -768,14 +768,14 @@ Value RegexpNode::to_ruby(Env *env) {
     auto regexp = new RegexpObject { env, m_pattern->c_str() };
     if (m_options)
         regexp->set_options(m_options);
-    return new SexpObject { env, this, { SymbolObject::intern("lit"), regexp } };
+    return new SexpObject { env, this, { "lit"_s, regexp } };
 }
 
 Value ReturnNode::to_ruby(Env *env) {
     if (m_arg) {
-        return new SexpObject { env, this, { SymbolObject::intern("return"), m_arg->to_ruby(env) } };
+        return new SexpObject { env, this, { "return"_s, m_arg->to_ruby(env) } };
     }
-    return new SexpObject { env, this, { SymbolObject::intern("return") } };
+    return new SexpObject { env, this, { "return"_s } };
 }
 
 Value SafeCallNode::to_ruby(Env *env) {
@@ -783,7 +783,7 @@ Value SafeCallNode::to_ruby(Env *env) {
         env,
         this,
         {
-            SymbolObject::intern("safe_call"),
+            "safe_call"_s,
             m_receiver->to_ruby(env),
             SymbolObject::intern(m_message),
         }
@@ -796,7 +796,7 @@ Value SafeCallNode::to_ruby(Env *env) {
 }
 
 Value SelfNode::to_ruby(Env *env) {
-    return new SexpObject { env, this, { SymbolObject::intern("self") } };
+    return new SexpObject { env, this, { "self"_s } };
 }
 
 Value SclassNode::to_ruby(Env *env) {
@@ -804,7 +804,7 @@ Value SclassNode::to_ruby(Env *env) {
         env,
         this,
         {
-            SymbolObject::intern("sclass"),
+            "sclass"_s,
             m_klass->to_ruby(env),
         }
     };
@@ -815,46 +815,46 @@ Value SclassNode::to_ruby(Env *env) {
 }
 
 Value ShellNode::to_ruby(Env *env) {
-    return new SexpObject { env, this, { SymbolObject::intern("xstr"), new StringObject(m_string) } };
+    return new SexpObject { env, this, { "xstr"_s, new StringObject(m_string) } };
 }
 
 Value SplatAssignmentNode::to_ruby(Env *env) {
-    auto sexp = new SexpObject { env, this, { SymbolObject::intern("splat") } };
+    auto sexp = new SexpObject { env, this, { "splat"_s } };
     if (m_node)
         sexp->push(m_node->to_assignment_sexp(env));
     return sexp;
 }
 
 Value SplatNode::to_ruby(Env *env) {
-    auto sexp = new SexpObject { env, this, { SymbolObject::intern("splat") } };
+    auto sexp = new SexpObject { env, this, { "splat"_s } };
     if (m_node)
         sexp->push(m_node->to_ruby(env));
     return sexp;
 }
 
 Value StabbyProcNode::to_ruby(Env *env) {
-    return new SexpObject { env, this, { SymbolObject::intern("lambda") } };
+    return new SexpObject { env, this, { "lambda"_s } };
 }
 
 Value StringNode::to_ruby(Env *env) {
-    return new SexpObject { env, this, { SymbolObject::intern("str"), new StringObject(m_string) } };
+    return new SexpObject { env, this, { "str"_s, new StringObject(m_string) } };
 }
 
 Value SymbolNode::to_ruby(Env *env) {
-    return new SexpObject { env, this, { SymbolObject::intern("lit"), SymbolObject::intern(m_name) } };
+    return new SexpObject { env, this, { "lit"_s, SymbolObject::intern(m_name) } };
 }
 
 Value TrueNode::to_ruby(Env *env) {
-    return new SexpObject { env, this, { SymbolObject::intern("true") } };
+    return new SexpObject { env, this, { "true"_s } };
 }
 
 Value SuperNode::to_ruby(Env *env) {
     if (empty_parens()) {
-        return new SexpObject { env, this, { SymbolObject::intern("super") } };
+        return new SexpObject { env, this, { "super"_s } };
     } else if (m_args.is_empty()) {
-        return new SexpObject { env, this, { SymbolObject::intern("zsuper") } };
+        return new SexpObject { env, this, { "zsuper"_s } };
     }
-    auto sexp = new SexpObject { env, this, { SymbolObject::intern("super") } };
+    auto sexp = new SexpObject { env, this, { "super"_s } };
     for (auto arg : m_args) {
         sexp->push(arg->to_ruby(env));
     }
@@ -863,7 +863,7 @@ Value SuperNode::to_ruby(Env *env) {
 
 Value UntilNode::to_ruby(Env *env) {
     auto sexp = WhileNode::to_ruby(env);
-    (*sexp->as_array())[0] = SymbolObject::intern("until");
+    (*sexp->as_array())[0] = "until"_s;
     return sexp;
 }
 
@@ -881,7 +881,7 @@ Value WhileNode::to_ruby(Env *env) {
         env,
         this,
         {
-            SymbolObject::intern("while"),
+            "while"_s,
             m_condition->to_ruby(env),
             body,
             is_pre,
@@ -890,7 +890,7 @@ Value WhileNode::to_ruby(Env *env) {
 }
 
 Value YieldNode::to_ruby(Env *env) {
-    auto sexp = new SexpObject { env, this, { SymbolObject::intern("yield") } };
+    auto sexp = new SexpObject { env, this, { "yield"_s } };
     if (m_args.is_empty())
         return sexp;
     for (auto arg : m_args) {

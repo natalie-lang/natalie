@@ -339,7 +339,7 @@ Value ModuleObject::attr_accessor(Env *env, size_t argc, Value *args) {
 }
 
 Value ModuleObject::included_modules(Env *env) {
-    ArrayObject *modules = new ArrayObject {};
+    ArrayObject *modules = new ArrayObject { included_modules().size() };
     for (ModuleObject *m : included_modules()) {
         modules->push(m);
     }
@@ -379,39 +379,45 @@ Value ModuleObject::module_eval(Env *env, Block *block) {
     return NilObject::the();
 }
 
-Value ModuleObject::private_method(Env *env, Value method_name) {
-    if (method_name) {
-        auto name = method_name->to_symbol(env, Conversion::Strict);
-        auto method = find_method(env, name);
-        if (!method)
-            env->raise("NameError", "undefined method `{}' for `{}'", name->c_str(), class_name_or_blank());
-        method->set_visibility(MethodVisibility::Private);
+Value ModuleObject::private_method(Env *env, size_t argc, Value *args) {
+    if (argc > 0) {
+        for (size_t i = 0; i < argc; ++i) {
+            auto name = args[i]->to_symbol(env, Conversion::Strict);
+            auto method = find_method(env, name);
+            if (!method)
+                env->raise("NameError", "undefined method `{}' for `{}'", name->c_str(), class_name_or_blank());
+            method->set_visibility(MethodVisibility::Private);
+        }
     } else {
         m_method_visibility = MethodVisibility::Private;
     }
     return NilObject::the();
 }
 
-Value ModuleObject::protected_method(Env *env, Value method_name) {
-    if (method_name) {
-        auto name = method_name->to_symbol(env, Conversion::Strict);
-        auto method = find_method(env, name);
-        if (!method)
-            env->raise("NameError", "undefined method `{}' for `{}'", name->c_str(), class_name_or_blank());
-        method->set_visibility(MethodVisibility::Protected);
+Value ModuleObject::protected_method(Env *env, size_t argc, Value *args) {
+    if (argc > 0) {
+        for (size_t i = 0; i < argc; ++i) {
+            auto name = args[i]->to_symbol(env, Conversion::Strict);
+            auto method = find_method(env, name);
+            if (!method)
+                env->raise("NameError", "undefined method `{}' for `{}'", name->c_str(), class_name_or_blank());
+            method->set_visibility(MethodVisibility::Protected);
+        }
     } else {
         m_method_visibility = MethodVisibility::Protected;
     }
     return NilObject::the();
 }
 
-Value ModuleObject::public_method(Env *env, Value method_name) {
-    if (method_name) {
-        auto name = method_name->to_symbol(env, Conversion::Strict);
-        auto method = find_method(env, name);
-        if (!method)
-            env->raise("NameError", "undefined method `{}' for `{}'", name->c_str(), class_name_or_blank());
-        method->set_visibility(MethodVisibility::Public);
+Value ModuleObject::public_method(Env *env, size_t argc, Value *args) {
+    if (argc > 0) {
+        for (size_t i = 0; i < argc; ++i) {
+            auto name = args[i]->to_symbol(env, Conversion::Strict);
+            auto method = find_method(env, name);
+            if (!method)
+                env->raise("NameError", "undefined method `{}' for `{}'", name->c_str(), class_name_or_blank());
+            method->set_visibility(MethodVisibility::Public);
+        }
     } else {
         m_method_visibility = MethodVisibility::Public;
     }

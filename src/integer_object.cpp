@@ -260,7 +260,7 @@ bool IntegerObject::eq(Env *env, Value other) {
             return to_bigint() == other->as_integer()->to_bigint();
         return to_nat_int_t() == other->as_integer()->to_nat_int_t();
     }
-    return other->send(env, SymbolObject::intern("=="), { this })->is_truthy();
+    return other->send(env, "=="_s, { this })->is_truthy();
 }
 
 bool IntegerObject::lt(Env *env, Value other) {
@@ -351,23 +351,17 @@ bool IntegerObject::gte(Env *env, Value other) {
     env->raise("ArgumentError", "comparison of Integer with {} failed", other->inspect_str(env));
 }
 
-bool IntegerObject::eqeqeq(Env *env, Value arg) const {
-    if (arg.is_fast_integer())
-        return m_integer == arg.get_fast_integer();
-
-    arg.unguard();
-
-    return arg->is_integer() && to_nat_int_t() == arg->as_integer()->to_nat_int_t();
-}
-
 Value IntegerObject::times(Env *env, Block *block) {
-    if (!block)
-        return send(env, SymbolObject::intern("enum_for"), { SymbolObject::intern("times") });
+    auto val = to_nat_int_t();
+    if (!block) {
+        auto enumerator = send(env, "enum_for"_s, { "times"_s });
+        enumerator->ivar_set(env, "@size"_s, val < 0 ? Value::integer(0) : this);
+        return enumerator;
+    }
 
-    nat_int_t val = to_nat_int_t();
-    assert(val >= 0);
-    env->ensure_block_given(block);
-    Value num;
+    if (val <= 0)
+        return this;
+
     for (nat_int_t i = 0; i < val; i++) {
         Value num = Value::integer(i);
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &num, nullptr);
@@ -442,24 +436,24 @@ Value IntegerObject::chr(Env *env) const {
 bool IntegerObject::optimized_method(SymbolObject *method_name) {
     if (s_optimized_methods.is_empty()) {
         // NOTE: No method that ever returns 'this' can be an "optimized" method. Trust me!
-        s_optimized_methods.set(SymbolObject::intern("+"));
-        s_optimized_methods.set(SymbolObject::intern("-"));
-        s_optimized_methods.set(SymbolObject::intern("*"));
-        s_optimized_methods.set(SymbolObject::intern("/"));
-        s_optimized_methods.set(SymbolObject::intern("%"));
-        s_optimized_methods.set(SymbolObject::intern("**"));
-        s_optimized_methods.set(SymbolObject::intern("<=>"));
-        s_optimized_methods.set(SymbolObject::intern("=="));
-        s_optimized_methods.set(SymbolObject::intern("==="));
-        s_optimized_methods.set(SymbolObject::intern("<"));
-        s_optimized_methods.set(SymbolObject::intern("<="));
-        s_optimized_methods.set(SymbolObject::intern(">"));
-        s_optimized_methods.set(SymbolObject::intern(">="));
-        s_optimized_methods.set(SymbolObject::intern("==="));
-        s_optimized_methods.set(SymbolObject::intern("eql?"));
-        s_optimized_methods.set(SymbolObject::intern("succ"));
-        s_optimized_methods.set(SymbolObject::intern("chr"));
-        s_optimized_methods.set(SymbolObject::intern("~"));
+        s_optimized_methods.set("+"_s);
+        s_optimized_methods.set("-"_s);
+        s_optimized_methods.set("*"_s);
+        s_optimized_methods.set("/"_s);
+        s_optimized_methods.set("%"_s);
+        s_optimized_methods.set("**"_s);
+        s_optimized_methods.set("<=>"_s);
+        s_optimized_methods.set("=="_s);
+        s_optimized_methods.set("==="_s);
+        s_optimized_methods.set("<"_s);
+        s_optimized_methods.set("<="_s);
+        s_optimized_methods.set(">"_s);
+        s_optimized_methods.set(">="_s);
+        s_optimized_methods.set("==="_s);
+        s_optimized_methods.set("eql?"_s);
+        s_optimized_methods.set("succ"_s);
+        s_optimized_methods.set("chr"_s);
+        s_optimized_methods.set("~"_s);
     }
     return !!s_optimized_methods.get(method_name);
 }

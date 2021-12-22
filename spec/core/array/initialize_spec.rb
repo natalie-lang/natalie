@@ -108,8 +108,7 @@ describe "Array#initialize with (size, object=nil)" do
     -> { [].send(:initialize, -1) }.should raise_error(ArgumentError)
   end
 
-  # NATFIXME: Support max array sizes
-  xit "raises an ArgumentError if size is too large" do
+  it "raises an ArgumentError if size is too large" do
     -> { [].send(:initialize, fixnum_max+1) }.should raise_error(ArgumentError)
   end
 

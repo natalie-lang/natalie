@@ -40,7 +40,7 @@ private:
     inline static NilObject *s_instance = nullptr;
 
     NilObject()
-        : Object { Object::Type::Nil, GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern("NilClass"))->as_class() } { }
+        : Object { Object::Type::Nil, GlobalEnv::the()->Object()->const_fetch("NilClass"_s)->as_class() } { }
 };
 
 }

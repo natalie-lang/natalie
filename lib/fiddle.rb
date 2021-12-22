@@ -14,20 +14,20 @@ class Fiddle
       path->assert_type(env, Object::Type::String, "String");
       auto handle = dlopen(path->as_string()->c_str(), RTLD_LAZY);
       if (!handle) {
-          auto dl_error = self->const_find(env, SymbolObject::intern("DLError"), Object::ConstLookupSearchMode::NotStrict)->as_class();
+          auto dl_error = self->const_find(env, "DLError"_s, Object::ConstLookupSearchMode::NotStrict)->as_class();
           env->raise(dl_error, "{}", dlerror());
       }
-      auto handle_class = self->const_find(env, SymbolObject::intern("Handle"), Object::ConstLookupSearchMode::NotStrict)->as_class();
+      auto handle_class = self->const_find(env, "Handle"_s, Object::ConstLookupSearchMode::NotStrict)->as_class();
       auto handle_obj = new Object { Object::Type::Object, handle_class };
       auto handle_ptr = new VoidPObject { handle };
-      handle_obj->ivar_set(env, SymbolObject::intern("@ptr"), handle_ptr);
+      handle_obj->ivar_set(env, "@ptr"_s, handle_ptr);
       return handle_obj;
     END
   end
 
   class Handle
     __define_method__ :[], [:name], <<-END
-      auto handle = self->ivar_get(env, SymbolObject::intern("@ptr"))->as_void_p()->void_ptr();
+      auto handle = self->ivar_get(env, "@ptr"_s)->as_void_p()->void_ptr();
       name->assert_type(env, Object::Type::String, "String");
       auto symbol = dlsym(handle, name->as_string()->c_str());
       return new IntegerObject { (long long)symbol };
@@ -68,30 +68,30 @@ class Fiddle
     # In the future, Natalie will have macros that will allow this to be generated at compile time.
 
     __define_method__ :void_no_args, [], <<-END
-      auto symbol = self->ivar_get(env, SymbolObject::intern("@symbol"))->as_integer()->to_nat_int_t();
+      auto symbol = self->ivar_get(env, "@symbol"_s)->as_integer()->to_nat_int_t();
       auto fn = (void* (*)())symbol;
       fn();
       return NilObject::the();
     END
 
     __define_method__ :voidp_no_args, [], <<-END
-      auto symbol = self->ivar_get(env, SymbolObject::intern("@symbol"))->as_integer()->to_nat_int_t();
+      auto symbol = self->ivar_get(env, "@symbol"_s)->as_integer()->to_nat_int_t();
       auto fn = (void* (*)())symbol;
       auto result = fn();
-      auto pointer_class = self->const_find(env, SymbolObject::intern("Pointer"), Object::ConstLookupSearchMode::NotStrict)->as_class();
+      auto pointer_class = self->const_find(env, "Pointer"_s, Object::ConstLookupSearchMode::NotStrict)->as_class();
       auto pointer_obj = new Object { Object::Type::Object, pointer_class };
       auto pointer_ptr = new VoidPObject { result };
-      pointer_obj->ivar_set(env, SymbolObject::intern("@ptr"), pointer_ptr);
+      pointer_obj->ivar_set(env, "@ptr"_s, pointer_ptr);
       return pointer_obj;
     END
 
     __define_method__ :voidp_args_voidp, [:p1], <<-END
-      auto symbol = self->ivar_get(env, SymbolObject::intern("@symbol"))->as_integer()->to_nat_int_t();
+      auto symbol = self->ivar_get(env, "@symbol"_s)->as_integer()->to_nat_int_t();
       auto fn = (void* (*)(void*))symbol;
       void *p1_ptr;
-      auto pointer_class = self->const_find(env, SymbolObject::intern("Pointer"), Object::ConstLookupSearchMode::NotStrict)->as_class();
+      auto pointer_class = self->const_find(env, "Pointer"_s, Object::ConstLookupSearchMode::NotStrict)->as_class();
       if (p1->is_a(env, pointer_class))
-          p1_ptr = p1->ivar_get(env, SymbolObject::intern("@ptr"))->as_void_p()->void_ptr();
+          p1_ptr = p1->ivar_get(env, "@ptr"_s)->as_void_p()->void_ptr();
       else if (p1->is_void_p())
           p1_ptr = p1->as_void_p()->void_ptr();
       else
@@ -99,7 +99,7 @@ class Fiddle
       auto result = fn(p1_ptr);
       auto pointer_obj = new Object { Object::Type::Object, pointer_class };
       auto pointer_ptr = new VoidPObject { result };
-      pointer_obj->ivar_set(env, SymbolObject::intern("@ptr"), pointer_ptr);
+      pointer_obj->ivar_set(env, "@ptr"_s, pointer_ptr);
       return pointer_obj;
     END
   end

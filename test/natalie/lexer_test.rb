@@ -129,6 +129,7 @@ describe 'Parser' do
       Parser.tokens("%(foo)").should == [{type: :string, literal: 'foo'}]
       Parser.tokens("%[foo]").should == [{type: :string, literal: 'foo'}]
       Parser.tokens("%/foo/").should == [{type: :string, literal: 'foo'}]
+      Parser.tokens("%|foo|").should == [{type: :string, literal: 'foo'}]
       Parser.tokens("%q(foo)").should == [{type: :string, literal: 'foo'}]
       Parser.tokens("%Q(foo)").should == [{type: :dstr}, {type: :string, literal: 'foo'}, {type: :dstrend}]
       Parser.tokens('"#{:foo} bar #{1 + 1}"').should == [
@@ -239,7 +240,9 @@ describe 'Parser' do
       Parser.tokens("['foo']").should == [{type: :"["}, {type: :string, literal: 'foo'}, {type: :"]"}]
       Parser.tokens("['foo', 1]").should == [{type: :"["}, {type: :string, literal: 'foo'}, {type: :","}, {type: :integer, literal: 1}, {type: :"]"}]
       Parser.tokens("%w[    foo\n 1\t 2  ]").should == [{type: :"%w", literal: "foo 1 2"}]
+      Parser.tokens("%w|    foo\n 1\t 2  |").should == [{type: :"%w", literal: "foo 1 2"}]
       Parser.tokens("%W[    foo\n 1\t 2  ]").should == [{type: :"%W", literal: "foo 1 2"}]
+      Parser.tokens("%W|    foo\n 1\t 2  |").should == [{type: :"%W", literal: "foo 1 2"}]
       Parser.tokens("%i[    foo\n 1\t 2  ]").should == [{type: :"%i", literal: "foo 1 2"}]
       Parser.tokens("%I[    foo\n 1\t 2  ]").should == [{type: :"%I", literal: "foo 1 2"}]
     end
@@ -329,6 +332,7 @@ describe 'Parser' do
     end
 
     it 'tokenizes method names' do
+      Parser.tokens("def foo()").should == [{type: :def}, {type: :name, literal: :foo}, {type: :"("}, {type: :")"}]
       Parser.tokens("def foo?").should == [{type: :def}, {type: :name, literal: :foo?}]
       Parser.tokens("def foo!").should == [{type: :def}, {type: :name, literal: :foo!}]
       Parser.tokens("def foo=").should == [{:type=>:def}, {:type=>:name, :literal=>:foo}, {:type=>:"="}]

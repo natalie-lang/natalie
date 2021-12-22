@@ -82,7 +82,8 @@ void Heap::collect() {
 
 void Heap::sweep() {
     for (auto allocator : m_allocators) {
-        for (auto block : *allocator) {
+        for (auto block_pair : *allocator) {
+            auto *block = block_pair.first;
             for (auto cell : *block) {
                 if (!cell->is_marked() && cell->is_collectible()) {
                     bool had_free = block->has_free();

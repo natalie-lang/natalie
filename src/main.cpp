@@ -45,10 +45,10 @@ Value _main(int argc, char *argv[]) {
 
     assert(argc > 0);
     Value exe = new StringObject { argv[0] };
-    env->global_set(SymbolObject::intern("$exe"), exe);
+    env->global_set("$exe"_s, exe);
 
-    ArrayObject *ARGV = new ArrayObject {};
-    GlobalEnv::the()->Object()->const_set(SymbolObject::intern("ARGV"), ARGV);
+    ArrayObject *ARGV = new ArrayObject { (size_t)argc };
+    GlobalEnv::the()->Object()->const_set("ARGV"_s, ARGV);
     for (int i = 1; i < argc; i++) {
         ARGV->push(new StringObject { argv[i] });
     }

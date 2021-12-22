@@ -152,17 +152,21 @@ public:
     Value force_encoding(Env *, Value);
     Value ljust(Env *, Value, Value);
     Value lstrip(Env *) const;
+    Value lstrip_in_place(Env *);
     Value match(Env *, Value);
     Value mul(Env *, Value) const;
     Value ord(Env *);
     Value ref(Env *, Value);
     Value reverse(Env *);
     Value rstrip(Env *) const;
+    Value rstrip_in_place(Env *);
     Value size(Env *);
     Value split(Env *, Value, Value);
     Value strip(Env *) const;
+    Value strip_in_place(Env *);
     Value to_i(Env *, Value) const;
     Value upcase(Env *);
+    Value uplus(Env *);
 
     template <typename... Args>
     static StringObject *format(Env *env, const char *fmt, Args... args) {

@@ -44,7 +44,7 @@ public:
 
     virtual Value to_s(Env *, Value = nullptr);
     Value to_i();
-    Value to_f() const;
+    virtual Value to_f() const;
     virtual Value add(Env *, Value);
     virtual Value sub(Env *, Value);
     virtual Value mul(Env *, Value);
@@ -52,14 +52,13 @@ public:
     Value mod(Env *, Value) const;
     Value pow(Env *, Value) const;
     Value cmp(Env *, Value);
-    bool eqeqeq(Env *, Value) const;
-    Value times(Env *, Block *);
+    virtual Value times(Env *, Block *);
     Value bitwise_and(Env *, Value) const;
     Value bitwise_or(Env *, Value) const;
     Value pred(Env *);
     Value succ(Env *);
     Value coerce(Env *, Value);
-    Value abs(Env *);
+    virtual Value abs(Env *);
     Value chr(Env *) const;
     virtual Value negate(Env *);
     Value complement(Env *) const;

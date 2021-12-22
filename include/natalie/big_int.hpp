@@ -146,10 +146,13 @@ public:
     bool operator==(const double &) const;
     bool operator!=(const double &) const;
 
+    bool is_negative() const { return sign == '-'; }
+
     // Conversion functions:
     Natalie::String to_string() const;
     long to_long() const;
     long long to_long_long() const;
+    double to_double() const;
 
     // Random number generating functions:
     friend BigInt big_random(size_t);

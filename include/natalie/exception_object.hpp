@@ -14,7 +14,7 @@ namespace Natalie {
 class ExceptionObject : public Object {
 public:
     ExceptionObject()
-        : Object { Object::Type::Exception, GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern("Exception"))->as_class() } { }
+        : Object { Object::Type::Exception, GlobalEnv::the()->Object()->const_fetch("Exception"_s)->as_class() } { }
 
     ExceptionObject(ClassObject *klass)
         : Object { Object::Type::Exception, klass } { }
