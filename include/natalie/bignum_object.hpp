@@ -23,7 +23,7 @@ public:
         if (m_bigint) delete m_bigint;
     }
 
-    bool is_odd() override {
+    bool is_odd() const override {
         if (m_bigint->to_string().length() != 0) {
             int last_digit = m_bigint->to_string().last_char() - '0';
             bool is_odd = last_digit % 2 != 0;
