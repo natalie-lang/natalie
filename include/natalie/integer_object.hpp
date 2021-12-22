@@ -44,7 +44,7 @@ public:
 
     virtual Value to_s(Env *, Value = nullptr);
     Value to_i();
-    Value to_f() const;
+    virtual Value to_f() const;
     virtual Value add(Env *, Value);
     virtual Value sub(Env *, Value);
     virtual Value mul(Env *, Value);

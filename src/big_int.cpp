@@ -30,6 +30,7 @@
  */
 
 #include "natalie/big_int.hpp"
+#include <float.h>
 #include <tuple>
 
 /*
@@ -300,6 +301,24 @@ long BigInt::to_long() const {
 
 long long BigInt::to_long_long() const {
     return strtoll(this->to_string().c_str(), NULL, 10);
+}
+
+/*
+    to_double
+    ------------
+    Converts a BigInt to a double.
+    NOTE: If the BigInt is out of range of a double, we return positive
+    or negative infinity.
+*/
+
+double BigInt::to_double() const {
+    if (*this < std::numeric_limits<double>::lowest()) {
+        return -std::numeric_limits<double>::infinity();
+    } else if (*this > DBL_MAX) {
+        return std::numeric_limits<double>::infinity();
+    } else {
+        return strtod(this->to_string().c_str(), NULL);
+    }
 }
 
 /*

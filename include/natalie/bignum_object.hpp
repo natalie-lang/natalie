@@ -40,6 +40,7 @@ public:
     Value div(Env *, Value) override;
     Value negate(Env *) override;
     Value times(Env *, Block *) override;
+    Value to_f() const override;
     Value to_s(Env *, Value = nullptr) override;
 
     bool eq(Env *, Value) override;
