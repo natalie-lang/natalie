@@ -31,9 +31,9 @@ void Value::hydrate() {
         // debugging VERY confusing. Maybe someday we can remove this GC stuff...
         bool was_gc_enabled = Heap::the().gc_enabled();
         Heap::the().gc_disable();
+        auto i = m_integer;
+        m_object = new IntegerObject { i };
         m_type = Type::Pointer;
-        m_object = new IntegerObject { m_integer };
-        m_integer = 0;
         if (was_gc_enabled) Heap::the().gc_enable();
         break;
     }
