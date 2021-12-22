@@ -27,9 +27,14 @@ Value Value::send(Env *env, SymbolObject *name, size_t argc, Value *args, Block 
 void Value::hydrate() {
     switch (m_type) {
     case Type::Integer: {
+        // Running GC while we're in the processes of hydrating this Value makes
+        // debugging VERY confusing. Maybe someday we can remove this GC stuff...
+        bool was_gc_enabled = Heap::the().gc_enabled();
+        Heap::the().gc_disable();
         m_type = Type::Pointer;
         m_object = new IntegerObject { m_integer };
         m_integer = 0;
+        if (was_gc_enabled) Heap::the().gc_enable();
         break;
     }
     case Type::Pointer:

@@ -224,6 +224,12 @@ asm(".globl " NAT_ASM_PREFIX "fiber_asm_switch\n" NAT_ASM_PREFIX "fiber_asm_swit
     "\tstp x12, x11, [sp, #-16]!\n"
     "\tstp x14, x13, [sp, #-16]!\n"
     "\tstp x16, x15, [sp, #-16]!\n"
+    "\tstp x18, x17, [sp, #-16]!\n"
+    "\tstp x20, x19, [sp, #-16]!\n"
+    "\tstp x22, x21, [sp, #-16]!\n"
+    "\tstp x24, x23, [sp, #-16]!\n"
+    "\tstp x26, x25, [sp, #-16]!\n"
+    "\tstp x28, x27, [sp, #-16]!\n"
 
     // save current stack pointer into fiber struct
     "\tmov x15, sp\n"
@@ -239,6 +245,12 @@ asm(".globl " NAT_ASM_PREFIX "fiber_asm_switch\n" NAT_ASM_PREFIX "fiber_asm_swit
     "\tmov sp, x14\n"
 
     // restore registers from new stack
+    "\tldp x28, x27, [sp], #16\n"
+    "\tldp x26, x25, [sp], #16\n"
+    "\tldp x24, x23, [sp], #16\n"
+    "\tldp x22, x21, [sp], #16\n"
+    "\tldp x20, x19, [sp], #16\n"
+    "\tldp x18, x17, [sp], #16\n"
     "\tldp x16, x15, [sp], #16\n"
     "\tldp x14, x13, [sp], #16\n"
     "\tldp x12, x11, [sp], #16\n"
