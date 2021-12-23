@@ -63,6 +63,7 @@ public:
     virtual Value negate(Env *);
     Value complement(Env *) const;
     Value ord() { return this; }
+    Value denominator() { return Value::integer(1); }
 
     virtual bool eq(Env *, Value);
     virtual bool eql(Env *, Value);
