@@ -1,9 +1,8 @@
 #!/usr/bin/env ruby
 require 'io/console'
+require_relative 'highlight'
 
 module Natalie
-
-RUBY_KEYWORDS = %w(class def end begin loop while true false)
 
 class StyledString
     def initialize(str, color)
@@ -24,6 +23,11 @@ end
 class GenericRepl
 def initialize
     @history = []
+    @highlighters = [
+      Natalie::KEYWORD_HIGHLIGHT,
+      Natalie::PASCAL_CASE_HIGLIGHT,
+      Natalie::CAMEL_CASE_HIGLIGHT,
+    ]
     reset 
 end
 
@@ -147,9 +151,8 @@ def reset_cursor
     echo "\u001B[u"
 end
 
-def highlighted_input # Just an idea rather than an actual implementation
-    @in.gsub("class", "\u001b[36mclass\u001b[0m")
-        .gsub("def", "\u001b[34mdef\u001b[0m")
+def highlighted_input
+  Natalie::HighlightingRule.evaluate_all(@highlighters, @in)
 end
 
 def formatted_input 
@@ -168,22 +171,11 @@ def get_line
     row, col = cursor
     reset_cursor
     echo "\u001b[0J" # Clear
-    # echo "#{ps1}#{highlighted_input}"
     echo formatted_input
     reset_cursor
     if row > 0
         echo "\u001b[#{row}B"
     end
-    
-    # hor_shift = if row == 0
-    #     ps1.length
-    # else
-    #     0
-    # end + col
-
-    # if hor_shift > 0
-    #     echo "\u001b[#{hor_shift}C"
-    # end
 
 
     hor_shift = ps1.length + col
