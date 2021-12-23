@@ -221,5 +221,25 @@ describe 'range' do
       r.include?('z').should == false
       r.include?('aa').should == false
     end
+
+    it 'returns true if the given number is in the range with end' do
+      r = 1..10
+      r.include?(9).should == true
+      r.include?(9.9).should == true
+      r.include?(10).should == true
+      r.include?(10.0).should == true
+      r.include?(11).should == false
+      r.include?(10.1).should == false
+    end
+
+    it 'returns true if the given number is in the range without' do
+      r = 1...10
+      r.include?(9).should == true
+      r.include?(9.9).should == true
+      r.include?(10).should == false
+      r.include?(10.0).should == false
+      r.include?(11).should == false
+      r.include?(10.1).should == false
+    end
   end
 end
