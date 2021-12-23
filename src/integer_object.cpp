@@ -226,11 +226,13 @@ Value IntegerObject::pow(Env *env, Value arg) const {
 }
 
 Value IntegerObject::cmp(Env *env, Value arg) {
-    if (!arg.is_fast_integer()) {
-        arg.unguard();
-        if (!arg->is_integer() && !arg->is_float())
-            return NilObject::the();
-    }
+    // Check if we might want to coerce the value
+    if (!arg.is_fast_integer() && !arg->is_integer() && !arg->is_float())
+        arg = Natalie::coerce(env, arg, this, Natalie::CoerceInvalidReturnValueMode::Allow).second;
+
+    // Check if compareable
+    if (!arg.is_fast_integer() && !arg->is_integer() && !arg->is_float())
+        return NilObject::the();
 
     if (lt(env, arg)) {
         return Value::integer(-1);
