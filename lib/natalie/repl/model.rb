@@ -10,6 +10,10 @@ module Natalie
     def input
       @in
     end
+
+    def index
+      @index
+    end
   
     def reset
       @in = ""

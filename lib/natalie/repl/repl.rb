@@ -2,6 +2,7 @@
 require 'io/console'
 require_relative 'highlight'
 require_relative 'model'
+require_relative 'suggestions'
 
 module Natalie
 
@@ -22,13 +23,14 @@ class StyledString
 end
 
 class GenericRepl
-def initialize
+def initialize(vars)
     @highlighters = [
       Natalie::KEYWORD_HIGHLIGHT,
       Natalie::PASCAL_CASE_HIGLIGHT,
       Natalie::CAMEL_CASE_HIGLIGHT,
     ]
     @model = Natalie::ReplModel.new
+    @suggestions = Natalie::SuggestionProvider.new(vars)
     reset 
 end
 
@@ -84,11 +86,12 @@ def reset_cursor
 end
 
 def highlighted_input
-  Natalie::HighlightingRule.evaluate_all(@highlighters, @model.input)
 end
 
 def display 
-  input = highlighted_input
+  input = @model.input
+  input = Natalie::HighlightingRule.evaluate_all(@highlighters, input)
+  input = @suggestions.suggest(input, @model.index)
   return "#{ps1}#{input}" unless input && input != "" 
   input.lines.each.with_index.map do |line, index|
       if index == 0

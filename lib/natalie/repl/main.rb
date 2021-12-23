@@ -11,7 +11,7 @@ module Natalie
       vars = {}
       repl_num = 0
       multi_line_expr = []
-      Natalie::GenericRepl.new.get_command do |cmd|
+      Natalie::GenericRepl.new(vars).get_command do |cmd|
         begin
           ast = Natalie::Parser.new(cmd, '(repl)').ast
         rescue Parser::IncompleteExpression
