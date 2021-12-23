@@ -641,6 +641,8 @@ bool BigInt::operator>=(const int &num) const {
 */
 
 bool BigInt::operator==(const double &num) const {
+    if (isinf(num)) return false;
+
     return *this == BigInt(floor(num));
 }
 
@@ -659,6 +661,8 @@ bool BigInt::operator!=(const double &num) const {
 */
 
 bool BigInt::operator<(const double &num) const {
+    if (isinf(num)) return num > 0;
+
     return *this < BigInt(floor(num));
 }
 
