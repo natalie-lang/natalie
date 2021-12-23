@@ -106,7 +106,12 @@ ArrayObject *block_args_to_array(Env *env, size_t signature_size, size_t argc, V
 
 void arg_spread(Env *env, size_t argc, Value *args, const char *arrangement, ...);
 
-std::pair<Value, Value> coerce(Env *, Value, Value);
+enum class CoerceInvalidReturnValueMode {
+    Raise,
+    Allow,
+};
+
+std::pair<Value, Value> coerce(Env *, Value, Value, CoerceInvalidReturnValueMode = CoerceInvalidReturnValueMode::Raise);
 
 char *zero_string(int);
 
