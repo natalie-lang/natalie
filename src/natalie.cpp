@@ -536,12 +536,15 @@ void arg_spread(Env *env, size_t argc, Value *args, const char *arrangement, ...
     va_end(va_args);
 }
 
-std::pair<Value, Value> coerce(Env *env, Value lhs, Value rhs) {
+std::pair<Value, Value> coerce(Env *env, Value lhs, Value rhs, CoerceInvalidReturnValueMode invalid_return_value_mode) {
     auto coerce_symbol = "coerce"_s;
     if (lhs->respond_to(env, coerce_symbol)) {
         Value coerced = lhs.send(env, coerce_symbol, { rhs });
         if (!coerced->is_array()) {
-            env->raise("TypeError", "coerce must return [x, y]");
+            if (invalid_return_value_mode == CoerceInvalidReturnValueMode::Raise)
+                env->raise("TypeError", "coerce must return [x, y]");
+            else
+                return { rhs, lhs };
         }
         lhs = (*coerced->as_array())[0];
         rhs = (*coerced->as_array())[1];

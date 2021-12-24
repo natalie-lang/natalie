@@ -226,11 +226,17 @@ Value IntegerObject::pow(Env *env, Value arg) const {
 }
 
 Value IntegerObject::cmp(Env *env, Value arg) {
-    if (!arg.is_fast_integer()) {
-        arg.unguard();
-        if (!arg->is_integer() && !arg->is_float())
-            return NilObject::the();
-    }
+    auto is_comparable_with = [](Value arg) -> bool {
+        return arg.is_fast_integer() || arg->is_integer() || arg->is_float();
+    };
+
+    // Check if we might want to coerce the value
+    if (!is_comparable_with(arg))
+        arg = Natalie::coerce(env, arg, this, Natalie::CoerceInvalidReturnValueMode::Allow).second;
+
+    // Check if compareable
+    if (!is_comparable_with(arg))
+        return NilObject::the();
 
     if (lt(env, arg)) {
         return Value::integer(-1);

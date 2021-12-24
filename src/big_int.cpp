@@ -227,7 +227,7 @@ BigInt::BigInt(const int &num) {
 BigInt::BigInt(const double &num) {
     assert(floor(num) == num);
 
-    value = Natalie::String(num, 1);
+    value = Natalie::String(std::abs(num), 1);
     value.truncate(value.size() - 2);
     if (num < 0)
         sign = '-';
@@ -641,6 +641,8 @@ bool BigInt::operator>=(const int &num) const {
 */
 
 bool BigInt::operator==(const double &num) const {
+    if (isinf(num)) return false;
+
     return *this == BigInt(floor(num));
 }
 
@@ -659,6 +661,8 @@ bool BigInt::operator!=(const double &num) const {
 */
 
 bool BigInt::operator<(const double &num) const {
+    if (isinf(num)) return num > 0;
+
     return *this < BigInt(floor(num));
 }
 
