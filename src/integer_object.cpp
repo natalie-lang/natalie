@@ -417,9 +417,9 @@ Value IntegerObject::coerce(Env *env, Value arg) {
 Value IntegerObject::floor(Env *env, Value arg) {
     if (arg == nullptr)
         return this;
-    
+
     arg->assert_type(env, Object::Type::Integer, "Integer");
-    
+
     auto precision = arg->as_integer()->to_nat_int_t();
     if (precision >= 0)
         return this;
