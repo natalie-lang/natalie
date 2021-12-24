@@ -210,6 +210,9 @@ Value IntegerObject::mod(Env *env, Value arg) const {
         return Value::integer(m_integer % arg.get_fast_integer());
 
     arg.unguard();
+    if (arg->is_float())
+        arg = arg->as_float()->to_int_no_truncation(env);
+        
     arg->assert_type(env, Object::Type::Integer, "Integer");
     auto result = m_integer % arg->as_integer()->to_nat_int_t();
     return Value::integer(result);
