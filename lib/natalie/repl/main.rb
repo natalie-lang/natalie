@@ -4,7 +4,7 @@ require 'tempfile'
 require_relative 'repl'
 
 module Natalie
-  class Repl
+  class ExperimentalReplV2
     def go
       GC.disable
       env = nil

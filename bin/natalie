@@ -81,6 +81,10 @@ OptionParser.new do |opts|
   opts.on('--log-load-error', 'Log a message when natalie cannot load a required file') do
     options[:log_load_error] = true
   end
+  
+  opts.on('--experimental-repl-v2', 'Enable the new REPL (not available with self-hosted Natalie)') do
+    options[:experimental_repl_v2] = true
+  end
 end.parse!
 
 build_type_path = File.expand_path('../.build', __dir__)
@@ -100,7 +104,7 @@ class Runner
   def run
     load_code
     if @repl
-      repl = Natalie::Repl.new
+      repl = if options[:experimental_repl_v2] then Natalie::ExperimentalReplV2.new else Natalie::Repl.new end
       repl.go
     elsif options[:ast]
       require 'pp'
