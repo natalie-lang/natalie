@@ -414,6 +414,22 @@ Value IntegerObject::coerce(Env *env, Value arg) {
     return ary;
 }
 
+Value IntegerObject::floor(Env *env, Value arg) {
+    if (arg == nullptr)
+        return this;
+    
+    arg->assert_type(env, Object::Type::Integer, "Integer");
+    
+    auto precision = arg->as_integer()->to_nat_int_t();
+    if (precision >= 0)
+        return this;
+
+    double f = ::pow(10, precision);
+    auto result = ::floor(to_nat_int_t() * f) / f;
+
+    return Value::integer(result);
+}
+
 bool IntegerObject::eql(Env *env, Value other) {
     if (other.is_fast_integer())
         return m_integer == other.get_fast_integer();

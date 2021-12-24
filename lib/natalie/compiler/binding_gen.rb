@@ -558,6 +558,7 @@ gen.binding('Integer', 'coerce', 'IntegerObject', 'coerce', argc: 1, pass_env: t
 gen.binding('Integer', 'denominator', 'IntegerObject', 'denominator', argc: 0, pass_env: false, pass_block: false, return_type: :Object)
 gen.binding('Integer', 'eql?', 'IntegerObject', 'eql', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Integer', 'even?', 'IntegerObject', 'is_even', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
+gen.binding('Integer', 'floor', 'IntegerObject', 'floor', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Integer', 'inspect', 'IntegerObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Integer', 'magnitude', 'IntegerObject', 'abs', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Integer', 'next', 'IntegerObject', 'succ', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
