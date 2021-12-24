@@ -19,7 +19,7 @@ class SuggestionProvider
   end
 
   def token_with_suggestion(token, suggestion) 
-    "#{token}\u001b[38;5;241m#{suggestion[(token.length)..]}\u001b[0m"
+    "#{token}\u001b[38;5;241m#{suggestion[(token.length)..]}#{RESET_STYLE_ASCCI_CODE}"
   end
 end
 end

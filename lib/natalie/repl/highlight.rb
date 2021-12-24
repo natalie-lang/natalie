@@ -33,7 +33,7 @@ module Natalie
     end
 
     def highlight(token, prev_token)
-      token.gsub(@regex, "#{@out_pattern}\u001b[0m")
+      token.gsub(@regex, "#{@out_pattern}#{RESET_STYLE_ASCCI_CODE}")
     end
   end
 
