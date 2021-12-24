@@ -58,6 +58,7 @@ public:
     Value pred(Env *);
     Value succ(Env *);
     Value coerce(Env *, Value);
+    Value floor(Env *, Value);
     virtual Value abs(Env *);
     Value chr(Env *) const;
     virtual Value negate(Env *);
