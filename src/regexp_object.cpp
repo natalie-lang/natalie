@@ -2,13 +2,24 @@
 
 namespace Natalie {
 
-Value RegexpObject::initialize(Env *env, Value arg) {
-    if (arg->is_regexp()) {
-        auto other = arg->as_regexp();
+Value RegexpObject::initialize(Env *env, Value pattern, Value opts) {
+    if (pattern->is_regexp()) {
+        auto other = pattern->as_regexp();
         initialize(env, other->pattern(), other->options());
     } else {
-        arg->assert_type(env, Object::Type::String, "String");
-        initialize(env, arg->as_string()->c_str());
+        pattern->assert_type(env, Object::Type::String, "String");
+        nat_int_t options = 0;
+        if (opts != nullptr) {
+            if (opts.is_fast_integer()) {
+                options = opts.get_fast_integer();
+            } else if(opts->is_integer()) {
+                options = opts->as_integer()->to_nat_int_t();
+            } else if (opts->is_truthy()) {
+                options = 1;
+            }
+        }
+
+        initialize(env, pattern->as_string()->c_str(), static_cast<int>(options));
     }
     return this;
 }

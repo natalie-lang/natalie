@@ -41,16 +41,10 @@ public:
         free(const_cast<char *>(m_pattern));
     }
 
-    static Value compile(Env *env, Value pattern, Value flags) {
+    static Value compile(Env *env, Value pattern, Value flags, ClassObject *klass) {
         pattern->assert_type(env, Object::Type::String, "String");
-        int options = 0;
-        if (flags) {
-            if (flags->is_integer())
-                options = flags->as_integer()->to_nat_int_t();
-            else if (flags->is_truthy())
-                options = 1;
-        }
-        RegexpObject *regexp = new RegexpObject { env, pattern->as_string()->c_str(), options };
+        RegexpObject *regexp = new RegexpObject { klass };
+        regexp->send(env, "initialize"_s, { pattern, flags });
         return regexp;
     }
 
@@ -127,7 +121,7 @@ public:
         return match(env, other)->is_truthy();
     }
 
-    Value initialize(Env *, Value);
+    Value initialize(Env *, Value, Value);
     Value inspect(Env *env);
     Value eqtilde(Env *env, Value);
     Value match(Env *env, Value, size_t = 0);
