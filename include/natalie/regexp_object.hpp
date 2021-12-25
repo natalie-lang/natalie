@@ -20,9 +20,8 @@ enum RegexOpts {
     IgnoreCase = 1,
     Extended = 2,
     MultiLine = 4,
-
-    // Missing a few encodings
-    Ascii8Bit = 32,
+    FixedEncoding = 16,
+    NoEncoding = 32,
 };
 
 class RegexpObject : public Object {
@@ -99,7 +98,7 @@ public:
         if (!other.is_regexp()) return false;
         RegexpObject *other_regexp = const_cast<Object &>(other).as_regexp();
         return strcmp(m_pattern, other_regexp->m_pattern) == 0 && 
-            (m_options | RegexOpts::Ascii8Bit) == (other_regexp->m_options | RegexOpts::Ascii8Bit); 
+            (m_options | RegexOpts::NoEncoding) == (other_regexp->m_options | RegexOpts::NoEncoding); 
             // /n encoding option is ignored when doing == in ruby MRI
     }
 

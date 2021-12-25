@@ -113,6 +113,8 @@ Env *build_top_env() {
     Regexp->const_set("IGNORECASE"_s, Value::integer(1));
     Regexp->const_set("EXTENDED"_s, Value::integer(2));
     Regexp->const_set("MULTILINE"_s, Value::integer(4));
+    Regexp->const_set("FIXEDENCODING"_s, Value::integer(16));
+    Regexp->const_set("NOENCODING"_s, Value::integer(32));
 
     ClassObject *Range = Object->subclass(env, "Range", Object::Type::Range);
     Object->const_set("Range"_s, Range);

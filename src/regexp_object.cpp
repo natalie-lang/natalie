@@ -57,9 +57,7 @@ Value RegexpObject::inspect(Env *env) {
     if (options() & RegexOpts::MultiLine) out->append_char('m');
     if (options() & RegexOpts::IgnoreCase) out->append_char('i');
     if (options() & RegexOpts::Extended) out->append_char('x');
-
-    // NATFIXME: There are way more encodings to support and not covered by the specs.
-    if (options() & RegexOpts::Ascii8Bit) out->append_char('n');
+    if (options() & RegexOpts::NoEncoding) out->append_char('n');
     return out;
 }
 
