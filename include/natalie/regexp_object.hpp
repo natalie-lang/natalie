@@ -16,6 +16,12 @@ extern "C" {
 
 namespace Natalie {
 
+enum RegexOpts {
+    IgnoreCase = 1,
+    Extended = 2,
+    MultiLine = 4
+};
+
 class RegexpObject : public Object {
 public:
     RegexpObject()
@@ -72,13 +78,13 @@ public:
         for (char *c = const_cast<char *>(options->c_str()); *c != '\0'; ++c) {
             switch (*c) {
             case 'i':
-                m_options |= 1;
+                m_options |= RegexOpts::IgnoreCase;
                 break;
             case 'x':
-                m_options |= 2;
+                m_options |= RegexOpts::Extended;
                 break;
             case 'm':
-                m_options |= 4;
+                m_options |= RegexOpts::MultiLine;
                 break;
             default:
                 break;
@@ -90,6 +96,10 @@ public:
         if (!other.is_regexp()) return false;
         RegexpObject *other_regexp = const_cast<Object &>(other).as_regexp();
         return strcmp(m_pattern, other_regexp->m_pattern) == 0 && m_options == other_regexp->m_options;
+    }
+
+    bool casefold() const {
+        return m_options && RegexOpts::IgnoreCase;
     }
 
     int search(const char *str, OnigRegion *region, OnigOptionType options) {

@@ -297,6 +297,7 @@ class Matcher
   def all?; method_missing(:all?); end
   def any?; method_missing(:any?); end
   def compare_by_identity?; method_missing(:compare_by_identity?); end
+  def casefold?; method_missing(:casefold?); end
   def empty?; method_missing(:empty?); end
   def finite?; method_missing(:finite?); end
   def include?(other); method_missing(:include?, other); end
