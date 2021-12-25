@@ -15,11 +15,16 @@ namespace Natalie {
 
 class SymbolObject : public Object {
 public:
-    static SymbolObject *intern(const char *);
+    enum class Ownedness {
+        OwnedString,
+        DuplicatedString,
+    };
+
+    static SymbolObject *intern(const char *, Ownedness ownedness = Ownedness::DuplicatedString);
     static SymbolObject *intern(const String *);
 
     virtual ~SymbolObject() {
-        free(const_cast<char *>(m_name));
+        if (m_owned_string) free(const_cast<char *>(m_name));
     }
 
     const char *c_str() const { return m_name; }
@@ -66,23 +71,19 @@ public:
 private:
     inline static TM::Hashmap<const char *, SymbolObject *> s_symbols { TM::HashType::String, 1000 };
 
-    SymbolObject(Env *env, const char *name)
+    SymbolObject(const char *name, Ownedness ownedness)
         : Object { Object::Type::Symbol, GlobalEnv::the()->Symbol() }
-        , m_name { strdup(name) } {
+        , m_owned_string { ownedness == Ownedness::OwnedString }
+        , m_name { m_owned_string ? name : strdup(name) } {
         assert(m_name);
     }
 
-    SymbolObject(const char *name)
-        : Object { Object::Type::Symbol, GlobalEnv::the()->Symbol() }
-        , m_name { strdup(name) } {
-        assert(m_name);
-    }
-
+    bool m_owned_string { false };
     const char *m_name { nullptr };
 };
 
-[[nodiscard]] __attribute__((always_inline)) inline SymbolObject *operator"" _s(const char *cstring, size_t length) {
-    return SymbolObject::intern(cstring);
+[[nodiscard]] __attribute__((always_inline)) inline SymbolObject *operator"" _s(const char *cstring, size_t) {
+    return SymbolObject::intern(cstring, SymbolObject::Ownedness::OwnedString);
 }
 
 }

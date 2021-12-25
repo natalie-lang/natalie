@@ -2,19 +2,19 @@
 
 namespace Natalie {
 
-SymbolObject *SymbolObject::intern(const char *name) {
+SymbolObject *SymbolObject::intern(const char *name, Ownedness ownedness) {
     assert(name);
     SymbolObject *symbol = s_symbols.get(name);
     if (symbol)
         return symbol;
-    symbol = new SymbolObject { name };
+    symbol = new SymbolObject { name, ownedness };
     s_symbols.put(name, symbol);
     return symbol;
 }
 
 SymbolObject *SymbolObject::intern(const String *name) {
     assert(name);
-    return intern(name->c_str());
+    return intern(name->c_str(), Ownedness::DuplicatedString);
 }
 
 StringObject *SymbolObject::inspect(Env *env) {
