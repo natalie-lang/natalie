@@ -40,14 +40,26 @@ Value RegexpObject::inspect(Env *env) {
         case '\t':
             out->append(env, "\\t");
             break;
+        case '/':
+            out->append(env, "\\/");
+            break;
+        case '\\':
+            if (i < (len - 1) && str[i + 1] == '/') {
+                break;
+            }
+            out->append(env, "\\\\");
+            break;
         default:
             out->append_char(c);
         }
     }
     out->append_char('/');
-    if ((options() & 4) != 0) out->append_char('m');
-    if ((options() & 1) != 0) out->append_char('i');
-    if ((options() & 2) != 0) out->append_char('x');
+    if (options() & RegexOpts::MultiLine) out->append_char('m');
+    if (options() & RegexOpts::IgnoreCase) out->append_char('i');
+    if (options() & RegexOpts::Extended) out->append_char('x');
+
+    // NATFIXME: There are way more encodings to support and not covered by the specs.
+    if (options() & RegexOpts::Ascii8Bit) out->append_char('n');
     return out;
 }
 
