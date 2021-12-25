@@ -36,18 +36,13 @@ module Natalie
 
     def hello_natalie
       puts "\u001b[32m
-    @@@@@@@@@@@@@@@@@@@
-    @                 @
-    @   N         N   @     AA     TTTTTTTTT     AA     L       I    EEEEE
-    @   N N       N   @    A  A        T        A  A    L       I    E
-    @   N N N     N   @   A    A       T       A    A   L       I    EEE
-    @   N     N   N   @   AAAAAA       T       AAAAAA   L       I    E
-    @   N       N N   @   A    A       T       A    A   LLLLL   I    EEEEE
-    @                 @ 
-    @@@@@@@@@@@@@@@@@@@
-    \ \ \ \ \ \ \ :::
-    @@@@@@@@@@@@@@@@@@@#{RESET_STYLE_ASCCI_CODE}
-    \n
+       ⡎⠉⣉⣉⣉⣉⣉⣉⣉⣉⠉⢱
+       ⡇⢸ ⡢⡢⡀ ⠠⡢ ⡇⢸
+       ⡇⢸ ⡪⡊⠪⡢⡨⡪ ⡇⢸
+       ⡇⢸ ⠊⠂ ⠈⠊⠊ ⡇⢸
+       ⣇⣀⣉⣉⣉⣉⣉⣉⣉⣉⣀⣸
+     ⡔⣒⠒⠒⠒⠒⠚⠒⠒⠓⠒⠒⠒⠒⠒⢢
+     ⢇⣉⣀⣀⣀⣀⣀⣀⣀⣀⣁⣉⣉⣉⣁⡸#{RESET_STYLE_ASCCI_CODE}
     "
     end
 

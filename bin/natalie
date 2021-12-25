@@ -104,7 +104,7 @@ class Runner
   def run
     load_code
     if @repl
-      repl = if options[:experimental_repl_v2] then Natalie::ExperimentalReplV2.new else Natalie::Repl.new end
+      repl = options[:experimental_repl_v2] ? Natalie::ExperimentalReplV2.new : Natalie::Repl.new
       repl.go
     elsif options[:ast]
       require 'pp'
