@@ -190,7 +190,7 @@ module Natalie
           process(exp)
         when String
           exp
-        when Symbol, Integer, Float, true, false
+        when Symbol, Integer, Float, true, false, nil
           exp.to_s
         else
           raise "unknown node type: #{exp.inspect} (last sexp: #{@last_sexp.inspect})"

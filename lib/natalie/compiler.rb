@@ -265,7 +265,7 @@ module Natalie
     def macro?(node)
       return false unless node.is_a?(Sexp)
       return false unless node[0..1] == s(:call, nil)
-      %i[require require_relative load eval].include?(node[2])
+      %i[require require_relative load eval nat_ignore_require_relative nat_ignore_require].include?(node[2])
     end
 
     def run_macro(expr, current_path)
@@ -320,6 +320,14 @@ module Natalie
       else
         s(:call, nil, :raise, s(:const, :SyntaxError), s(:str, "eval() only works on static strings"))
       end
+    end
+
+    def macro_nat_ignore_require(args:, current_path:)
+      s(:false) # Script has not been loaded
+    end
+
+    def macro_nat_ignore_require_relative(args:, current_path:)
+      s(:false) # Script has not been loaded
     end
 
     def drop_load_error(msg)
