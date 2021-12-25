@@ -12,9 +12,9 @@ SymbolObject *SymbolObject::intern(const char *name, Ownedness ownedness) {
     return symbol;
 }
 
-SymbolObject *SymbolObject::intern(const String *name, Ownedness ownedness) {
+SymbolObject *SymbolObject::intern(const String *name) {
     assert(name);
-    return intern(name->c_str(), ownedness);
+    return intern(name->c_str(), Ownedness::DuplicatedString);
 }
 
 StringObject *SymbolObject::inspect(Env *env) {
