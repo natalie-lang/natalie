@@ -110,7 +110,9 @@ public:
 
     bool eqeqeq(Env *env, Value other) {
         if (!other->is_string() && !other->is_symbol()) {
-            return false;
+            if (! other->respond_to(env, "to_str"_s))
+                return false;
+            other = other->send(env, "to_str"_s);
         }
         return match(env, other)->is_truthy();
     }
