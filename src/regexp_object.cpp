@@ -3,6 +3,9 @@
 namespace Natalie {
 
 Value RegexpObject::initialize(Env *env, Value pattern, Value opts) {
+    assert_not_frozen(env);
+    if (m_pattern != nullptr)
+        env->raise("TypeError", "already initialized regexp");
     if (pattern->is_regexp()) {
         auto other = pattern->as_regexp();
         initialize(env, other->pattern(), other->options());

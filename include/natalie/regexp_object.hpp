@@ -51,6 +51,12 @@ public:
         return regexp;
     }
 
+    static Value literal(Env *env, const char *pattern, int options = 0) {
+        auto regex = new RegexpObject(env, pattern, options);
+        regex->freeze();
+        return regex;
+    }
+
     void initialize(Env *env, const char *pattern, int options = 0) {
         regex_t *regex;
         OnigErrorInfo einfo;
