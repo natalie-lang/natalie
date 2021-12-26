@@ -141,6 +141,7 @@ public:
     Value eqtilde(Env *env, Value);
     Value match(Env *env, Value, size_t = 0);
     Value source(Env *env);
+    Value to_s(Env *env);
 
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<RegexpObject %p>", this);

@@ -714,6 +714,7 @@ gen.binding('Regexp', 'inspect', 'RegexpObject', 'inspect', argc: 0, pass_env: t
 gen.binding('Regexp', 'match', 'RegexpObject', 'match', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Regexp', 'options', 'RegexpObject', 'options', argc: 0, pass_env: false, pass_block: false, return_type: :int)
 gen.binding('Regexp', 'source', 'RegexpObject', 'source', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Regexp', 'to_s', 'RegexpObject', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 
 gen.binding('Sexp', 'new', 'SexpObject', 'new_method', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Sexp', 'inspect', 'SexpObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)

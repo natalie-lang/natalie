@@ -107,4 +107,108 @@ Value RegexpObject::source(Env *env) {
     return new StringObject { pattern() };
 }
 
+Value RegexpObject::to_s(Env *env) {
+    StringObject *out = new StringObject { "(" };
+
+    auto is_m = options() & RegexOpts::MultiLine;
+    auto is_i = options() & RegexOpts::IgnoreCase;
+    auto is_x = options() & RegexOpts::Extended;
+
+    const char *str = pattern();
+    size_t len = strlen(str);
+    size_t start = 0;
+
+    if (str[start] == '(' && (start + 1) < len && str[start + 1] == '?' && str[len - 1]) {
+        /*
+        if there is only a single group fully-enclosing the regex, then
+        we won't need to wrap it all in another group to specify the options
+        */
+        bool active = true;
+        size_t i;
+        bool will_be_m = is_m;
+        bool will_be_i = is_i;
+        bool will_be_x = is_x;
+        for (i = start + 2; i < len && str[i] != ':'; i++) {
+            auto c = str[i];
+            switch (c)
+            {
+            case 'm':
+                will_be_m = active;
+                break;
+            case 'i':
+                will_be_i = active;
+                break;
+            case 'x':
+                will_be_x = active;
+                break;
+            case '-':
+                if (! active) // this means we've already encountered a '-' which is illegal, so we just to append_options;
+                    goto append_options;
+                active = false;
+                break;
+            default:
+                goto append_options;
+                break;
+            }
+        }
+        {
+            size_t open_parentheses = 1;
+            // check that the first group is the only top-level group
+            for (size_t j = i; j < len; ++j) {
+                if (str[j] == ')') 
+                    open_parentheses--;
+                if (str[j] == '(')
+                    open_parentheses++;
+                if (open_parentheses == 0 && j != (len - 1))
+                    goto append_options;
+            }
+        }
+        is_i = will_be_i;
+        is_m = will_be_m;
+        is_x = will_be_x;
+        len--;
+        start = i + 1;
+    }
+    
+    append_options:
+    out->append_char('?');
+    
+    if (is_m) out->append_char('m');
+    if (is_i) out->append_char('i');
+    if (is_x) out->append_char('x');
+
+    if (! (is_m && is_i && is_x)) out->append_char('-');
+
+    if (! is_m) out->append_char('m');
+    if (! is_i) out->append_char('i');
+    if (! is_x) out->append_char('x');
+
+    out->append_char(':');
+
+    for (size_t i = start; i < len; i++) {
+        char c = str[i];
+        switch (c) {
+        case '\n':
+            out->append(env, "\\n");
+            break;
+        case '\t':
+            out->append(env, "\\t");
+            break;
+        case '/':
+            out->append(env, "\\/");
+            break;
+        case '\\':
+            if (i < (len - 1) && str[i + 1] == '/') {
+                break;
+            }
+            out->append(env, "\\\\");
+            break;
+        default:
+            out->append_char(c);
+        }
+    }
+    out->append_char(')');
+    return out;
+}
+
 }
