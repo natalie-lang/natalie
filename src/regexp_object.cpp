@@ -2,6 +2,13 @@
 
 namespace Natalie {
 
+Value RegexpObject::last_match(Env *env, Value ref) {
+    auto match = env->caller()->last_match();
+    if (ref && match->is_match_data())
+        return match->as_match_data()->ref(env, ref);
+    return match;
+}
+
 Value RegexpObject::initialize(Env *env, Value pattern, Value opts) {
     assert_not_frozen(env);
     if (m_pattern != nullptr)

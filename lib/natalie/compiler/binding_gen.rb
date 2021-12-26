@@ -704,7 +704,7 @@ gen.binding('Range', '===', 'RangeObject', 'eqeqeq', argc: 1, pass_env: true, pa
 gen.binding('Range', 'include?', 'RangeObject', 'include', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 
 gen.static_binding('Regexp', 'compile', 'RegexpObject', 'compile', argc: 1..2, pass_env: true, pass_block: false, pass_klass: true, return_type: :Object)
-gen.static_binding('Regexp', 'last_match', 'RegexpObject', 'last_match', argc: 0, pass_env: true, pass_block: false, pass_klass: false, return_type: :Object)
+gen.static_binding('Regexp', 'last_match', 'RegexpObject', 'last_match', argc: 0..1, pass_env: true, pass_block: false, pass_klass: false, return_type: :Object)
 gen.binding('Regexp', '==', 'RegexpObject', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Regexp', 'eql?', 'RegexpObject', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Regexp', '===', 'RegexpObject', 'eqeqeq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)

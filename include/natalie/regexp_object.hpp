@@ -55,9 +55,7 @@ public:
         return regexp;
     }
 
-    static Value last_match(Env *env) {
-        return env->caller()->last_match();
-    }
+    static Value last_match(Env *, Value);
 
     static Value literal(Env *env, const char *pattern, int options = 0) {
         auto regex = new RegexpObject(env, pattern, options);
