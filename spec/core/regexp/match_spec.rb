@@ -34,40 +34,48 @@ describe "Regexp#match" do
     /(.)(.)(.)/.match(:abc).should be_kind_of(MatchData)
   end
 
-  it "raises a TypeError on an uninitialized Regexp" do
+  # NATFIXME fix this once we implement allocate in Class
+  xit "raises a TypeError on an uninitialized Regexp" do
     -> { Regexp.allocate.match('foo') }.should raise_error(TypeError)
   end
 
-  it "raises TypeError on an uninitialized Regexp" do
+  # NATFIXME fix this once we implement allocate in Class
+  xit "raises TypeError on an uninitialized Regexp" do
     -> { Regexp.allocate.match('foo'.encode("UTF-16LE")) }.should raise_error(TypeError)
   end
 
   describe "with [string, position]" do
     describe "when given a positive position" do
-      it "matches the input at a given position" do
+      # NATFIXME MatchObject is missing captures
+      xit "matches the input at a given position" do
         /(.).(.)/.match("01234", 1).captures.should == ["1", "3"]
       end
 
-      it "uses the start as a character offset" do
+      # NATFIXME MatchObject is missing captures
+      xit "uses the start as a character offset" do
         /(.).(.)/.match("零一二三四", 1).captures.should == ["一", "三"]
       end
 
-      it "raises an ArgumentError for an invalid encoding" do
+      # NATFIXME encoding isn't quite handled properly just yet
+      xit "raises an ArgumentError for an invalid encoding" do
         x96 = ([150].pack('C')).force_encoding('utf-8')
         -> { /(.).(.)/.match("Hello, #{x96} world!", 1) }.should raise_error(ArgumentError)
       end
     end
 
     describe "when given a negative position" do
-      it "matches the input at a given position" do
+      # NATFIXME MatchObject is missing captures
+      xit "matches the input at a given position" do
         /(.).(.)/.match("01234", -4).captures.should == ["1", "3"]
       end
 
-      it "uses the start as a character offset" do
+      # NATFIXME MatchObject is missing captures
+      xit "uses the start as a character offset" do
         /(.).(.)/.match("零一二三四", -4).captures.should == ["一", "三"]
       end
 
-      it "raises an ArgumentError for an invalid encoding" do
+      # NATFIXME encoding isn't quite handled properly just yet
+      xit "raises an ArgumentError for an invalid encoding" do
         x96 = ([150].pack('C')).force_encoding('utf-8')
         -> { /(.).(.)/.match("Hello, #{x96} world!", -1) }.should raise_error(ArgumentError)
       end

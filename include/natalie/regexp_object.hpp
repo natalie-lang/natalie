@@ -55,6 +55,10 @@ public:
         return regexp;
     }
 
+    static Value last_match(Env *env) {
+        return env->caller()->last_match();
+    }
+
     static Value literal(Env *env, const char *pattern, int options = 0) {
         auto regex = new RegexpObject(env, pattern, options);
         regex->freeze();
@@ -140,10 +144,11 @@ public:
         return this->send(env, "=~"_s, { env->global_get("$_"_s) });
     }
 
+    bool has_match(Env *env, Value, Value);
     Value initialize(Env *, Value, Value);
     Value inspect(Env *env);
     Value eqtilde(Env *env, Value);
-    Value match(Env *env, Value, size_t = 0);
+    Value match(Env *env, Value, Value = nullptr, Block* = nullptr);
     Value source(Env *env);
     Value to_s(Env *env);
 

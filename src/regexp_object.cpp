@@ -62,9 +62,6 @@ Value RegexpObject::inspect(Env *env) {
 }
 
 Value RegexpObject::eqtilde(Env *env, Value other) {
-    if (other->is_symbol())
-        other = other->as_symbol()->to_s(env);
-    other->assert_type(env, Object::Type::String, "String");
     Value result = match(env, other);
     if (result->is_nil()) {
         return result;
@@ -75,20 +72,40 @@ Value RegexpObject::eqtilde(Env *env, Value other) {
     }
 }
 
-Value RegexpObject::match(Env *env, Value other, size_t start_index) {
+Value RegexpObject::match(Env *env, Value other, Value start, Block *block) {
+    Env *caller_env = env->caller();
+    if (other->is_nil()) {
+        caller_env->clear_match();
+        return NilObject::the();
+    }
     if (other->is_symbol())
         other = other->as_symbol()->to_s(env);
     other->assert_type(env, Object::Type::String, "String");
     StringObject *str_obj = other->as_string();
 
+    nat_int_t start_index = 0;
+    if (start != nullptr) {
+        if (start.is_fast_integer()) {
+            start_index = start.get_fast_integer();
+        } else if (start->is_integer()) {
+            start_index = start->as_integer()->to_nat_int_t();
+        }
+    }
+    if (start_index < 0) {
+        start_index += str_obj->length();
+    }
+
     OnigRegion *region = onig_region_new();
     int result = search(str_obj->c_str(), start_index, region, ONIG_OPTION_NONE);
-
-    Env *caller_env = env->caller();
 
     if (result >= 0) {
         auto match = new MatchDataObject { region, str_obj };
         caller_env->set_last_match(match);
+
+        if (block) {
+            Value args = match;
+            return NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 1, &args, nullptr);
+        }
         return match;
     } else if (result == ONIG_MISMATCH) {
         caller_env->clear_match();
@@ -96,6 +113,45 @@ Value RegexpObject::match(Env *env, Value other, size_t start_index) {
         return NilObject::the();
     } else {
         caller_env->clear_match();
+        onig_region_free(region, true);
+        OnigUChar s[ONIG_MAX_ERROR_MESSAGE_LEN];
+        onig_error_code_to_str(s, result);
+        env->raise("RuntimeError", (char *)s);
+    }
+}
+
+bool RegexpObject::has_match(Env *env, Value other, Value start) {
+    if (other->is_nil())
+        return false;
+    if (other->is_symbol())
+        other = other->as_symbol()->to_s(env);
+
+    other->assert_type(env, Object::Type::String, "String");
+    StringObject *str_obj = other->as_string();
+
+    nat_int_t start_index = 0;
+    if (start != nullptr) {
+        if (start.is_fast_integer()) {
+            start_index = start.get_fast_integer();
+        } else if (start->is_integer()) {
+            start_index = start->as_integer()->to_nat_int_t();
+        }
+    }
+    if (start_index < 0) {
+        start_index += str_obj->length();
+    }
+
+    OnigRegion *region = onig_region_new();
+    int result = search(str_obj->c_str(), start_index, region, ONIG_OPTION_NONE);
+
+    Env *caller_env = env->caller();
+
+    if (result >= 0) {
+        return true;
+    } else if (result == ONIG_MISMATCH) {
+        onig_region_free(region, true);
+        return false;
+    } else {
         onig_region_free(region, true);
         OnigUChar s[ONIG_MAX_ERROR_MESSAGE_LEN];
         onig_error_code_to_str(s, result);

@@ -704,6 +704,7 @@ gen.binding('Range', '===', 'RangeObject', 'eqeqeq', argc: 1, pass_env: true, pa
 gen.binding('Range', 'include?', 'RangeObject', 'include', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 
 gen.static_binding('Regexp', 'compile', 'RegexpObject', 'compile', argc: 1..2, pass_env: true, pass_block: false, pass_klass: true, return_type: :Object)
+gen.static_binding('Regexp', 'last_match', 'RegexpObject', 'last_match', argc: 0, pass_env: true, pass_block: false, pass_klass: false, return_type: :Object)
 gen.binding('Regexp', '==', 'RegexpObject', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Regexp', 'eql?', 'RegexpObject', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Regexp', '===', 'RegexpObject', 'eqeqeq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
@@ -712,7 +713,8 @@ gen.binding('Regexp', '~', 'RegexpObject', 'tilde', argc: 0, pass_env: true, pas
 gen.binding('Regexp', 'casefold?', 'RegexpObject', 'casefold', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('Regexp', 'initialize', 'RegexpObject', 'initialize', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Regexp', 'inspect', 'RegexpObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Regexp', 'match', 'RegexpObject', 'match', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Regexp', 'match', 'RegexpObject', 'match', argc: 1..2, pass_env: true, pass_block: true, return_type: :Object)
+gen.binding('Regexp', 'match?', 'RegexpObject', 'has_match', argc: 1..2, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Regexp', 'options', 'RegexpObject', 'options', argc: 0, pass_env: false, pass_block: false, return_type: :int)
 gen.binding('Regexp', 'source', 'RegexpObject', 'source', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Regexp', 'to_s', 'RegexpObject', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Object)

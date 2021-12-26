@@ -132,6 +132,7 @@ Value Env::last_match() {
 }
 
 void Env::set_last_match(Value match) {
+    global_set("$~"_s, match);
     non_block_env()->set_match(match);
 }
 

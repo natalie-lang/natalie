@@ -480,7 +480,7 @@ Value StringObject::gsub(Env *env, Value find, Value replacement_value, Block *b
 }
 
 StringObject *StringObject::regexp_sub(Env *env, RegexpObject *find, StringObject *replacement, MatchDataObject **match, StringObject **expanded_replacement, size_t start_index) {
-    Value match_result = find->as_regexp()->match(env, this, start_index);
+    Value match_result = find->send(env, "match"_s, { this, Value::integer(start_index) });
     if (match_result == NilObject::the())
         return dup(env)->as_string();
     *match = match_result->as_match_data();
