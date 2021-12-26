@@ -136,6 +136,10 @@ public:
         return match(env, other)->is_truthy();
     }
 
+    Value tilde(Env *env) {
+        return this->send(env, "=~"_s, { env->global_get("$_"_s) });
+    }
+
     Value initialize(Env *, Value, Value);
     Value inspect(Env *env);
     Value eqtilde(Env *env, Value);
