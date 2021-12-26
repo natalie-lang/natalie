@@ -14,14 +14,19 @@ extern "C" {
 #include "onigmo.h"
 }
 
+#define ENUMERATE_REGEX_OPTS(C) \
+    C(IgnoreCase, IGNORECASE, 1) \
+    C(Extended, EXTENDED, 2) \
+    C(MultiLine, MULTILINE, 4) \
+    C(FixedEncoding, FIXEDENCODING, 16) \
+    C(NoEncoding, NOENCODING, 32)
+
 namespace Natalie {
 
 enum RegexOpts {
-    IgnoreCase = 1,
-    Extended = 2,
-    MultiLine = 4,
-    FixedEncoding = 16,
-    NoEncoding = 32,
+#define REGEX_OPTS_ENUM_VALUES(cpp_name, ruby_name, bits) cpp_name = bits,
+ENUMERATE_REGEX_OPTS(REGEX_OPTS_ENUM_VALUES)
+#undef REGEX_OPTS_ENUM_VALUES
 };
 
 class RegexpObject : public Object {
