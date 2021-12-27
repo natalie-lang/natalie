@@ -114,7 +114,7 @@ public:
     }
 
     bool casefold() const {
-        return m_options && RegexOpts::IgnoreCase;
+        return m_options & RegexOpts::IgnoreCase;
     }
 
     int search(const char *str, OnigRegion *region, OnigOptionType options) {
