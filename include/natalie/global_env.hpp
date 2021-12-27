@@ -81,7 +81,7 @@ private:
 
     inline static GlobalEnv *s_instance = nullptr;
 
-    TM::Hashmap<SymbolObject *, Natalie::Object *> m_globals {};
+    TM::Hashmap<SymbolObject *, Value> m_globals {};
 
     ClassObject *m_Array { nullptr };
     ClassObject *m_Binding { nullptr };

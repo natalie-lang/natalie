@@ -268,7 +268,7 @@ private:
     ModuleObject *m_owner { nullptr };
     int m_flags { 0 };
 
-    TM::Hashmap<SymbolObject *, Object *> m_ivars {};
+    TM::Hashmap<SymbolObject *, Value> m_ivars {};
 };
 
 }

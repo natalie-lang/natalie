@@ -5,6 +5,7 @@
 #include <iterator>
 
 #include "natalie/forward.hpp"
+#include "natalie/gc/heap.hpp"
 #include "natalie/object_type.hpp"
 #include "natalie/types.hpp"
 
@@ -52,9 +53,25 @@ public:
             return nullptr;
     }
 
+    bool operator==(Value other) {
+        if (is_fast_integer() && other.is_fast_integer())
+            return get_fast_integer() == other.get_fast_integer();
+
+        auto_hydrate();
+        return m_object == other.object();
+    }
+
     bool operator==(Object *other) {
         auto_hydrate();
         return m_object == other;
+    }
+
+    bool operator!=(Value other) {
+        if (is_fast_integer() && other.is_fast_integer())
+            return get_fast_integer() != other.get_fast_integer();
+
+        auto_hydrate();
+        return m_object != other.object();
     }
 
     bool operator!=(Object *other) {

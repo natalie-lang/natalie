@@ -132,11 +132,11 @@ public:
 
 protected:
     Env *m_env { nullptr };
-    TM::Hashmap<SymbolObject *, Object *> m_constants {};
+    TM::Hashmap<SymbolObject *, Value> m_constants {};
     Optional<const String *> m_class_name {};
     ClassObject *m_superclass { nullptr };
     TM::Hashmap<SymbolObject *, Method *> m_methods {};
-    TM::Hashmap<SymbolObject *, Object *> m_class_vars {};
+    TM::Hashmap<SymbolObject *, Value> m_class_vars {};
     Vector<ModuleObject *> m_included_modules {};
     MethodVisibility m_method_visibility { MethodVisibility::Public };
 };

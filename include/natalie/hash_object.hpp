@@ -194,7 +194,7 @@ private:
     }
 
     Key *m_key_list { nullptr };
-    TM::Hashmap<Key *, Object *> m_hashmap { hash, compare, 10 }; // TODO: profile and tune this initial capacity
+    TM::Hashmap<Key *, Value> m_hashmap { hash, compare, 10 }; // TODO: profile and tune this initial capacity
     bool m_is_iterating { false };
     bool m_is_comparing_by_identity { false };
     Value m_default_value { nullptr };

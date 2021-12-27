@@ -82,13 +82,13 @@ void HashObject::put(Env *env, Value key, Value val) {
     auto entry = m_hashmap.find_item(&key_container, hash, env);
     if (entry) {
         ((Key *)entry->key)->val = val;
-        entry->value = val.object();
+        entry->value = val;
     } else {
         if (m_is_iterating) {
             env->raise("RuntimeError", "can't add a new key into hash during iteration");
         }
         auto *key_container = key_list_append(env, key, hash, val);
-        m_hashmap.put(key_container, val.object(), env);
+        m_hashmap.put(key_container, val, env);
     }
 }
 
@@ -100,7 +100,7 @@ Value HashObject::remove(Env *env, Value key) {
     auto entry = m_hashmap.find_item(&key_container, hash, env);
     if (entry) {
         key_list_remove_node((Key *)entry->key);
-        auto val = (Object *)entry->value;
+        auto val = entry->value;
         m_hashmap.remove(&key_container, env);
         return val;
     } else {
@@ -397,7 +397,7 @@ bool HashObject::eq(Env *env, Value other_value, SymbolObject *method_name) {
             if (!other_val)
                 return false;
 
-            if (node.val.object() == other_val.object())
+            if (node.val == other_val)
                 continue;
 
             if (node.val.send(env, method_name, { other_val })->is_falsey())
