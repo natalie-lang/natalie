@@ -47,7 +47,7 @@ class StringScanner
   alias empty? eos?
 
   def check(pattern)
-    anchored_pattern = Regexp.new('^' + pattern.inspect[1...-1])
+    anchored_pattern = Regexp.new('^' + pattern.source, pattern.options)
     if (@match = rest.match(anchored_pattern))
       @matched = @match.to_s
     else
@@ -67,7 +67,7 @@ class StringScanner
   end
 
   def scan(pattern)
-    anchored_pattern = Regexp.new('^' + pattern.inspect[1...-1])
+    anchored_pattern = Regexp.new('^' + pattern.source, pattern.options)
     if (@match = rest.match(anchored_pattern))
       @matched = @match.to_s
       @prev_pos = @pos
@@ -88,7 +88,7 @@ class StringScanner
   end
 
   def skip(pattern)
-    anchored_pattern = Regexp.new('^' + pattern.inspect[1...-1])
+    anchored_pattern = Regexp.new('^' + pattern.source, pattern.options)
     if (match = rest.match(anchored_pattern))
       matched = match.to_s
       @pos += matched.size
@@ -106,7 +106,7 @@ class StringScanner
   end
 
   def match?(pattern)
-    anchored_pattern = Regexp.new('^' + pattern.inspect[1...-1])
+    anchored_pattern = Regexp.new('^' + pattern.source, pattern.options)
     @prev_pos = @pos
     if (@match = rest.match(anchored_pattern))
       @matched = @match.to_s
