@@ -27,10 +27,10 @@ Value MatchDataObject::ref(Env *env, Value index_value) {
     if (index_value.is_fast_integer()) {
         index = index_value.get_fast_integer();
     } else {
-        if (! index_value->is_integer() && index_value->respond_to(env, "to_int"_s))
+        if (!index_value->is_integer() && index_value->respond_to(env, "to_int"_s))
             index_value = index_value->send(env, "to_int"_s);
         index_value->assert_type(env, Object::Type::Integer, "Integer");
-        index = index_value->as_integer()->to_nat_int_t();   
+        index = index_value->as_integer()->to_nat_int_t();
     }
     if (index < 0) {
         index = size() + index;

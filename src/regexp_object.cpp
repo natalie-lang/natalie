@@ -22,7 +22,7 @@ Value RegexpObject::initialize(Env *env, Value pattern, Value opts) {
         if (opts != nullptr) {
             if (opts.is_fast_integer()) {
                 options = opts.get_fast_integer();
-            } else if(opts->is_integer()) {
+            } else if (opts->is_integer()) {
                 options = opts->as_integer()->to_nat_int_t();
             } else if (opts->is_truthy()) {
                 options = 1;
@@ -193,8 +193,7 @@ Value RegexpObject::to_s(Env *env) {
         bool will_be_x = is_x;
         for (i = start + 2; i < len && str[i] != ':'; i++) {
             auto c = str[i];
-            switch (c)
-            {
+            switch (c) {
             case 'm':
                 will_be_m = active;
                 break;
@@ -205,7 +204,7 @@ Value RegexpObject::to_s(Env *env) {
                 will_be_x = active;
                 break;
             case '-':
-                if (! active) // this means we've already encountered a '-' which is illegal, so we just to append_options;
+                if (!active) // this means we've already encountered a '-' which is illegal, so we just to append_options;
                     goto append_options;
                 active = false;
                 break;
@@ -218,7 +217,7 @@ Value RegexpObject::to_s(Env *env) {
             size_t open_parentheses = 1;
             // check that the first group is the only top-level group
             for (size_t j = i; j < len; ++j) {
-                if (str[j] == ')') 
+                if (str[j] == ')')
                     open_parentheses--;
                 if (str[j] == '(')
                     open_parentheses++;
@@ -232,19 +231,19 @@ Value RegexpObject::to_s(Env *env) {
         len--;
         start = i + 1;
     }
-    
-    append_options:
+
+append_options:
     out->append_char('?');
-    
+
     if (is_m) out->append_char('m');
     if (is_i) out->append_char('i');
     if (is_x) out->append_char('x');
 
-    if (! (is_m && is_i && is_x)) out->append_char('-');
+    if (!(is_m && is_i && is_x)) out->append_char('-');
 
-    if (! is_m) out->append_char('m');
-    if (! is_i) out->append_char('i');
-    if (! is_x) out->append_char('x');
+    if (!is_m) out->append_char('m');
+    if (!is_i) out->append_char('i');
+    if (!is_x) out->append_char('x');
 
     out->append_char(':');
 

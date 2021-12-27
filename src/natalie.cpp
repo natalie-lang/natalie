@@ -110,9 +110,9 @@ Env *build_top_env() {
     ClassObject *Regexp = Object->subclass(env, "Regexp", Object::Type::Regexp);
     global_env->set_Regexp(Regexp);
     Object->const_set("Regexp"_s, Regexp);
-    #define REGEXP_CONSTS(cpp_name, ruby_name, bits) Regexp->const_set(SymbolObject::intern(#ruby_name), Value::integer(bits));
+#define REGEXP_CONSTS(cpp_name, ruby_name, bits) Regexp->const_set(SymbolObject::intern(#ruby_name), Value::integer(bits));
     ENUMERATE_REGEX_OPTS(REGEXP_CONSTS)
-    #undef REGEXP_CONSTS
+#undef REGEXP_CONSTS
 
     ClassObject *Range = Object->subclass(env, "Range", Object::Type::Range);
     Object->const_set("Range"_s, Range);

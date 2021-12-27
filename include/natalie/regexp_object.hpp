@@ -14,10 +14,10 @@ extern "C" {
 #include "onigmo.h"
 }
 
-#define ENUMERATE_REGEX_OPTS(C) \
-    C(IgnoreCase, IGNORECASE, 1) \
-    C(Extended, EXTENDED, 2) \
-    C(MultiLine, MULTILINE, 4) \
+#define ENUMERATE_REGEX_OPTS(C)         \
+    C(IgnoreCase, IGNORECASE, 1)        \
+    C(Extended, EXTENDED, 2)            \
+    C(MultiLine, MULTILINE, 4)          \
     C(FixedEncoding, FIXEDENCODING, 16) \
     C(NoEncoding, NOENCODING, 32)
 
@@ -25,7 +25,7 @@ namespace Natalie {
 
 enum RegexOpts {
 #define REGEX_OPTS_ENUM_VALUES(cpp_name, ruby_name, bits) cpp_name = bits,
-ENUMERATE_REGEX_OPTS(REGEX_OPTS_ENUM_VALUES)
+    ENUMERATE_REGEX_OPTS(REGEX_OPTS_ENUM_VALUES)
 #undef REGEX_OPTS_ENUM_VALUES
 };
 
@@ -61,6 +61,11 @@ public:
         auto regex = new RegexpObject(env, pattern, options);
         regex->freeze();
         return regex;
+    }
+
+    Value hash() {
+        auto hash = (m_options & ~RegexOpts::NoEncoding) + TM::Hashmap<void *>::hash_str(m_pattern);
+        return Value::integer(hash);
     }
 
     void initialize(Env *env, const char *pattern, int options = 0) {
@@ -104,9 +109,8 @@ public:
     bool operator==(const Object &other) const {
         if (!other.is_regexp()) return false;
         RegexpObject *other_regexp = const_cast<Object &>(other).as_regexp();
-        return strcmp(m_pattern, other_regexp->m_pattern) == 0 && 
-            (m_options | RegexOpts::NoEncoding) == (other_regexp->m_options | RegexOpts::NoEncoding); 
-            // /n encoding option is ignored when doing == in ruby MRI
+        return strcmp(m_pattern, other_regexp->m_pattern) == 0 && (m_options | RegexOpts::NoEncoding) == (other_regexp->m_options | RegexOpts::NoEncoding);
+        // /n encoding option is ignored when doing == in ruby MRI
     }
 
     bool casefold() const {
@@ -131,7 +135,7 @@ public:
 
     bool eqeqeq(Env *env, Value other) {
         if (!other->is_string() && !other->is_symbol()) {
-            if (! other->respond_to(env, "to_str"_s))
+            if (!other->respond_to(env, "to_str"_s))
                 return false;
             other = other->send(env, "to_str"_s);
         }
@@ -146,7 +150,7 @@ public:
     Value initialize(Env *, Value, Value);
     Value inspect(Env *env);
     Value eqtilde(Env *env, Value);
-    Value match(Env *env, Value, Value = nullptr, Block* = nullptr);
+    Value match(Env *env, Value, Value = nullptr, Block * = nullptr);
     Value source(Env *env);
     Value to_s(Env *env);
 
