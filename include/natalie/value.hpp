@@ -53,35 +53,33 @@ public:
             return nullptr;
     }
 
-    bool operator==(Value other) {
-        if (is_fast_integer() && other.is_fast_integer())
-            return get_fast_integer() == other.get_fast_integer();
+    bool operator==(Value other) const {
+        if (is_fast_integer()) {
+            if (other.is_fast_integer())
+                return get_fast_integer() == other.get_fast_integer();
+            else
+                return false;
+        }
 
-        auto_hydrate();
         return m_object == other.object();
     }
 
-    bool operator==(Object *other) {
-        auto_hydrate();
-        return m_object == other;
-    }
+    bool operator!=(Value other) const {
+        if (is_fast_integer()) {
+            if (other.is_fast_integer())
+                return get_fast_integer() != other.get_fast_integer();
+            else
+                return true;
+        }
 
-    bool operator!=(Value other) {
-        if (is_fast_integer() && other.is_fast_integer())
-            return get_fast_integer() != other.get_fast_integer();
-
-        auto_hydrate();
         return m_object != other.object();
     }
 
-    bool operator!=(Object *other) {
-        auto_hydrate();
-        return m_object != other;
-    }
+    bool is_null() const { return m_type == Type::Pointer && !m_object; }
 
-    bool operator!() { return m_type == Type::Pointer && !m_object; }
+    bool operator!() const { return is_null(); }
 
-    operator bool() { return m_type == Type::Integer || m_object; }
+    operator bool() const { return !is_null(); }
 
     Value public_send(Env *, SymbolObject *, size_t = 0, Value * = nullptr, Block * = nullptr);
 
