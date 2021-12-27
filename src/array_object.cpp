@@ -151,7 +151,7 @@ Value ArrayObject::sub(Env *env, Value other) {
     for (auto &item : *this) {
         int found = 0;
         for (auto &compare_item : *other_array) {
-            if ((item.send(env, "eql?"_s, { compare_item })->is_truthy() && item.send(env, "hash"_s) == compare_item.send(env, "hash"_s))
+            if ((item.send(env, "eql?"_s, { compare_item })->is_truthy() && item.send(env, "hash"_s).send(env, "eql?"_s, { compare_item.send(env, "hash"_s) }))
                 || item.send(env, "=="_s, { compare_item })->is_truthy()) {
                 found = 1;
                 break;
