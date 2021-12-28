@@ -181,58 +181,60 @@ Value RegexpObject::to_s(Env *env) {
     size_t len = strlen(str);
     size_t start = 0;
 
-    if (str[start] == '(' && (start + 1) < len && str[start + 1] == '?' && str[len - 1]) {
-        /*
-        if there is only a single group fully-enclosing the regex, then
-        we won't need to wrap it all in another group to specify the options
-        */
-        bool active = true;
-        size_t i;
-        bool will_be_m = is_m;
-        bool will_be_i = is_i;
-        bool will_be_x = is_x;
-        for (i = start + 2; i < len && str[i] != ':'; i++) {
-            auto c = str[i];
-            switch (c) {
-            case 'm':
-                will_be_m = active;
-                break;
-            case 'i':
-                will_be_i = active;
-                break;
-            case 'x':
-                will_be_x = active;
-                break;
-            case '-':
-                if (!active) // this means we've already encountered a '-' which is illegal, so we just to append_options;
-                    goto append_options;
-                active = false;
-                break;
-            default:
-                goto append_options;
-                break;
+    auto maybe_parse_opts = [&]() {
+        if (str[start] == '(' && (start + 1) < len && str[start + 1] == '?' && str[len - 1]) {
+            /*
+            if there is only a single group fully-enclosing the regex, then
+            we won't need to wrap it all in another group to specify the options
+            */
+            bool active = true;
+            size_t i;
+            bool will_be_m = is_m;
+            bool will_be_i = is_i;
+            bool will_be_x = is_x;
+            for (i = start + 2; i < len && str[i] != ':'; i++) {
+                auto c = str[i];
+                switch (c) {
+                case 'm':
+                    will_be_m = active;
+                    break;
+                case 'i':
+                    will_be_i = active;
+                    break;
+                case 'x':
+                    will_be_x = active;
+                    break;
+                case '-':
+                    if (!active) // this means we've already encountered a '-' which is illegal, so we just to append_options;
+                        return;
+                    active = false;
+                    break;
+                default:
+                    return;
+                }
             }
-        }
-        {
-            size_t open_parentheses = 1;
-            // check that the first group is the only top-level group
-            for (size_t j = i; j < len; ++j) {
-                if (str[j] == ')')
-                    open_parentheses--;
-                if (str[j] == '(')
-                    open_parentheses++;
-                if (open_parentheses == 0 && j != (len - 1))
-                    goto append_options;
+            {
+                size_t open_parentheses = 1;
+                // check that the first group is the only top-level group
+                for (size_t j = i; j < len; ++j) {
+                    if (str[j] == ')')
+                        open_parentheses--;
+                    if (str[j] == '(')
+                        open_parentheses++;
+                    if (open_parentheses == 0 && j != (len - 1))
+                        return;
+                }
             }
+            is_i = will_be_i;
+            is_m = will_be_m;
+            is_x = will_be_x;
+            len--;
+            start = i + 1;
         }
-        is_i = will_be_i;
-        is_m = will_be_m;
-        is_x = will_be_x;
-        len--;
-        start = i + 1;
-    }
+    };
 
-append_options:
+    maybe_parse_opts();
+
     out->append_char('?');
 
     if (is_m) out->append_char('m');
