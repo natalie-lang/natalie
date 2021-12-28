@@ -292,8 +292,8 @@ public:
         return strcmp(m_str, other.c_str()) < 0;
     }
 
-    ssize_t find(const String *needle) const {
-        const char *index = strstr(m_str, needle->c_str());
+    ssize_t find(const String &needle) const {
+        const char *index = strstr(m_str, needle.c_str());
         if (index == nullptr)
             return -1;
         return index - m_str;
