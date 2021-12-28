@@ -168,6 +168,8 @@ public:
     Value upcase(Env *);
     Value uplus(Env *);
 
+    Value convert_float();
+
     template <typename... Args>
     static StringObject *format(Env *env, const char *fmt, Args... args) {
         auto str = String::format(fmt, args...);

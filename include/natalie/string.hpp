@@ -292,11 +292,18 @@ public:
         return strcmp(m_str, other.c_str()) < 0;
     }
 
-    ssize_t find(const String *needle) const {
-        const char *index = strstr(m_str, needle->c_str());
+    ssize_t find(const String &needle) const {
+        const char *index = strstr(m_str, needle.c_str());
         if (index == nullptr)
             return -1;
         return index - m_str;
+    }
+
+    ssize_t find(const char c) const {
+        for (size_t i = 0; i < m_length; ++i) {
+            if (c == m_str[i]) return i;
+        }
+        return -1;
     }
 
     void truncate(size_t length) {
@@ -331,6 +338,21 @@ public:
             else
                 return;
         }
+    }
+
+    void remove(char character) {
+        size_t i;
+        int offset = 0;
+        for (i = 0; i < m_length; ++i) {
+            if (m_str[i] == character) {
+                for (size_t j = i; j < m_length; ++j)
+                    m_str[j] = m_str[j + 1];
+
+                --m_length;
+                --i;
+            }
+        }
+        m_str[m_length] = '\0';
     }
 
     bool is_empty() const { return m_length == 0; }

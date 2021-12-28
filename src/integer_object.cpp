@@ -396,20 +396,26 @@ Value IntegerObject::succ(Env *env) {
 Value IntegerObject::coerce(Env *env, Value arg) {
     ArrayObject *ary = new ArrayObject {};
     switch (arg->type()) {
-    case Object::Type::Float:
-        ary->push(arg);
-        ary->push(new FloatObject { to_nat_int_t() });
-        break;
     case Object::Type::Integer:
         ary->push(arg);
         ary->push(this);
         break;
     case Object::Type::String:
-        printf("TODO\n");
-        abort();
+        ary->push(send(env, "Float"_s, { arg }));
+        ary->push(send(env, "to_f"_s));
         break;
     default:
-        env->raise("ArgumentError", "invalid value for Float(): {}", arg->inspect_str(env));
+        if (!arg->is_float() && arg->respond_to(env, "to_f"_s)) {
+            arg = arg.send(env, "to_f"_s);
+        }
+
+        if (arg->is_float()) {
+            ary->push(arg);
+            ary->push(send(env, "to_f"_s));
+            break;
+        }
+
+        env->raise("TypeError", "can't convert {} into Float", arg->inspect_str(env));
     }
     return ary;
 }

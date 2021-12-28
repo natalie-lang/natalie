@@ -831,4 +831,41 @@ void StringObject::append(Env *env, Value val) {
         append(env, val->inspect_str(env));
 }
 
+Value StringObject::convert_float() {
+    if (m_string[0] == '_' || m_string.last_char() == '_') return nullptr;
+
+    auto check_underscores = [this](char delimiter) -> bool {
+        ssize_t p = m_string.find(delimiter);
+        if (p == -1)
+            p = m_string.find((char)toupper(delimiter));
+
+        if (p != -1 && (m_string[p - 1] == '_' || m_string[p + 1] == '_'))
+            return false;
+
+        return true;
+    };
+
+    if (m_string[0] == '0' && (m_string[1] == 'x' || m_string[1] == 'X') && m_string[2] == '_')
+        return nullptr;
+
+    if (!check_underscores('p') || !check_underscores('e')) return nullptr;
+
+    if (m_string.find(0) != -1) return nullptr;
+
+    char *endptr = nullptr;
+    String string = String(m_string);
+
+    string.remove('_');
+    string.strip_trailing_whitespace();
+    if (string.length() == 0) return nullptr;
+
+    double value = strtod(string.c_str(), &endptr);
+
+    if (endptr[0] == '\0') {
+        return new FloatObject { value };
+    } else {
+        return nullptr;
+    }
+}
+
 }

@@ -46,6 +46,7 @@ public:
     Value cur_dir(Env *env);
     Value define_singleton_method(Env *env, Value name, Block *block);
     Value exit(Env *env, Value status);
+    Value Float(Env *env, Value value, Value kwargs);
     Value gets(Env *env);
     Value get_usage(Env *env);
     Value hash(Env *env);
