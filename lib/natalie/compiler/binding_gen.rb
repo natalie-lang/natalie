@@ -400,6 +400,7 @@ gen.static_binding('Class', 'new', 'ClassObject', 'new_method', argc: 0..1, pass
 gen.binding('Class', 'superclass', 'ClassObject', 'superclass', argc: 0, pass_env: false, pass_block: false, return_type: :NullableValue)
 gen.binding('Class', 'singleton_class?', 'ClassObject', 'is_singleton', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 
+gen.static_binding('Encoding', 'aliases', 'EncodingObject', 'aliases', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('Encoding', 'list', 'EncodingObject', 'list', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Encoding', 'inspect', 'EncodingObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Encoding', 'name', 'EncodingObject', 'name', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
