@@ -299,6 +299,13 @@ public:
         return index - m_str;
     }
 
+    ssize_t find(const char c) const {
+        for (size_t i = 0; i < m_length; ++i) {
+            if (c == m_str[i]) return i;
+        }
+        return -1;
+    }
+
     void truncate(size_t length) {
         assert(length <= m_length);
         m_str[length] = 0;
