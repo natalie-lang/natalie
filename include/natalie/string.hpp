@@ -340,6 +340,21 @@ public:
         }
     }
 
+    void remove(char character) {
+        size_t i;
+        int offset = 0;
+        for (i = 0; i < m_length; ++i) {
+            if (m_str[i] == character) {
+                for (size_t j = i; j < m_length; ++j)
+                    m_str[j] = m_str[j + 1];
+
+                --m_length;
+                --i;
+            }
+        }
+        m_str[m_length] = '\0';
+    }
+
     bool is_empty() const { return m_length == 0; }
 
     String successive() {
