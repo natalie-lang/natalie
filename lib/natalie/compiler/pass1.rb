@@ -468,7 +468,7 @@ module Natalie
         when Range
           exp.new(:new, :RangeObject, process_lit(s(:lit, lit.first)), process_lit(s(:lit, lit.last)), lit.exclude_end? ? 1 : 0)
         when Regexp
-          exp.new(:new, :RegexpObject, :env, s(:s, lit.source), lit.options)
+          exp.new(:'RegexpObject::literal', :env, s(:s, lit.source), lit.options)
         when Symbol
           exp.new(:intern_value, lit)
         else

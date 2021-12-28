@@ -23,8 +23,15 @@ Value MatchDataObject::ref(Env *env, Value index_value) {
     if (index_value->type() == Object::Type::String || index_value->type() == Object::Type::Symbol) {
         NAT_NOT_YET_IMPLEMENTED("group name support in Regexp MatchData#[]");
     }
-    index_value->assert_type(env, Object::Type::Integer, "Integer");
-    nat_int_t index = index_value->as_integer()->to_nat_int_t();
+    nat_int_t index;
+    if (index_value.is_fast_integer()) {
+        index = index_value.get_fast_integer();
+    } else {
+        if (!index_value->is_integer() && index_value->respond_to(env, "to_int"_s))
+            index_value = index_value->send(env, "to_int"_s);
+        index_value->assert_type(env, Object::Type::Integer, "Integer");
+        index = index_value->as_integer()->to_nat_int_t();
+    }
     if (index < 0) {
         index = size() + index;
     }
