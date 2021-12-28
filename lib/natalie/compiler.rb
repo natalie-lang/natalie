@@ -6,6 +6,7 @@ require_relative './compiler/pass1r'
 require_relative './compiler/pass2'
 require_relative './compiler/pass3'
 require_relative './compiler/pass4'
+require_relative './compiler/pass4i'
 
 module Natalie
   class Compiler
@@ -42,6 +43,7 @@ module Natalie
 
     attr_writer :load_path
 
+    # FIXME: this is only used for cpp right now
     def compile
       return write_file if write_obj_path
       check_build
@@ -66,12 +68,12 @@ module Natalie
     end
 
     def write_file
-      c = to_c
+      cpp = instructions
       if write_obj_path
-        File.write(write_obj_path, c)
+        File.write(write_obj_path, cpp)
       else
         temp_c = Tempfile.create('natalie.cpp')
-        temp_c.write(c)
+        temp_c.write(cpp)
         temp_c.close
         @c_path = temp_c.path
       end
@@ -125,10 +127,14 @@ module Natalie
         exit
       end
 
-      Pass4.new(@context).go(ast)
+      if interpret?
+        Pass4i.new(@context).go(ast)
+      else
+        Pass4.new(@context).go(ast)
+      end
     end
 
-    def to_c
+    def instructions
       @ast = expand_macros(@ast, @path)
       transform(@ast)
     end
@@ -151,6 +157,10 @@ module Natalie
 
     def log_load_error
       options[:log_load_error]
+    end
+
+    def interpret?
+      !!options[:interpret]
     end
 
     def inc_paths
