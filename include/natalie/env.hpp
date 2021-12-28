@@ -79,6 +79,7 @@ public:
     void ensure_block_given(Block *);
 
     Value last_match();
+    bool has_last_match();
     void set_last_match(Value match);
 
     void build_vars(size_t);

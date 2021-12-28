@@ -131,8 +131,12 @@ Value Env::last_match() {
     return NilObject::the();
 }
 
+bool Env::has_last_match() {
+    return non_block_env()->m_match;
+}
+
 void Env::set_last_match(Value match) {
-    global_set("$~"_s, match);
+    non_block_env()->global_set("$~"_s, match);
     non_block_env()->set_match(match);
 }
 

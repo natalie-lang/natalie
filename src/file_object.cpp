@@ -68,13 +68,13 @@ Value FileObject::expand_path(Env *env, Value path, Value root) {
     StringObject empty_string { "" };
     do {
         merged = merged->sub(env, &dotdot, &empty_string)->as_string();
-    } while (env->caller()->match());
+    } while (env->has_last_match());
     // collapse .
     RegexpObject dot { env, "/\\.(/|\\z)" };
     StringObject slash { "/" };
     do {
         merged = merged->sub(env, &dot, &slash)->as_string();
-    } while (env->caller()->match());
+    } while (env->has_last_match());
     // remove trailing slash
     if (merged->length() > 1 && merged->c_str()[merged->length() - 1] == '/') {
         merged->truncate(merged->length() - 1);
