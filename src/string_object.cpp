@@ -223,8 +223,7 @@ Value StringObject::mul(Env *env, Value arg) const {
     if (arg->as_integer()->has_to_be_bignum())
         arg->as_integer()->assert_fixnum(env);
 
-    // TODO: copy encoding?
-    StringObject *new_string = new StringObject { "" };
+    StringObject *new_string = new StringObject { "", m_encoding };
     if (this->is_empty())
         return new_string;
 
