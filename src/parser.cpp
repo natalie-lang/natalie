@@ -410,42 +410,39 @@ Node *Parser::parse_def(LocalsHashmap &locals) {
     advance();
     LocalsHashmap our_locals { TM::HashType::String };
     Node *self_node = nullptr;
-    IdentifierNode *name;
+    String *name;
     switch (current_token()->type()) {
     case Token::Type::BareName:
         if (peek_token()->type() == Token::Type::Dot) {
             self_node = parse_identifier(locals);
             advance();
-            expect(Token::Type::BareName, "def name");
-            name = static_cast<IdentifierNode *>(parse_identifier(our_locals));
-        } else {
-            name = static_cast<IdentifierNode *>(parse_identifier(our_locals));
         }
+        name = parse_method_name(locals);
         break;
     case Token::Type::SelfKeyword:
         advance();
         self_node = new SelfNode { current_token() };
         expect(Token::Type::Dot, "def obj dot");
         advance();
-        expect(Token::Type::BareName, "def name");
-        name = static_cast<IdentifierNode *>(parse_identifier(our_locals));
+        name = parse_method_name(locals);
         break;
     case Token::Type::Constant:
         if (peek_token()->type() == Token::Type::Dot) {
             self_node = parse_constant(locals);
             advance();
-            expect(Token::Type::BareName, "def name");
-            name = static_cast<IdentifierNode *>(parse_identifier(our_locals));
-        } else {
-            name = static_cast<IdentifierNode *>(parse_identifier(our_locals));
         }
+        name = parse_method_name(locals);
+        break;
+    case Token::Type::LeftShift:
+    case Token::Type::RightShift:
+        name = parse_method_name(locals);
         break;
     default:
         throw_unexpected("method name");
     }
     if (current_token()->type() == Token::Type::Equal && !current_token()->whitespace_precedes()) {
         advance();
-        name->append_to_name('=');
+        name->append_char('=');
     }
     ManagedVector<Node *> *args;
     if (current_token()->is_lparen()) {
@@ -823,7 +820,24 @@ Node *Parser::parse_keyword_splat(LocalsHashmap &locals) {
     auto token = current_token();
     advance();
     return new KeywordSplatNode { token, parse_expression(SPLAT, locals) };
-};
+}
+
+String *Parser::parse_method_name(LocalsHashmap &) {
+    String *name;
+    switch (current_token()->type()) {
+    case Token::Type::BareName:
+        name = new String { current_token()->literal() };
+        break;
+    case Token::Type::LeftShift:
+    case Token::Type::RightShift:
+        name = new String { current_token()->type_value() };
+        break;
+    default:
+        throw_unexpected("method name");
+    }
+    advance();
+    return name;
+}
 
 Node *Parser::parse_module(LocalsHashmap &) {
     auto token = current_token();
@@ -836,7 +850,7 @@ Node *Parser::parse_module(LocalsHashmap &) {
     expect(Token::Type::EndKeyword, "module end");
     advance();
     return new ModuleNode { token, name, body };
-};
+}
 
 Node *Parser::parse_next(LocalsHashmap &locals) {
     auto token = current_token();
