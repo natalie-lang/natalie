@@ -632,6 +632,8 @@ gen.binding('Kernel', 'spawn', 'KernelModule', 'spawn', argc: 1.., pass_env: tru
 gen.binding('Kernel', 'tap', 'KernelModule', 'tap', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('Kernel', 'to_s', 'KernelModule', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 
+gen.undefine_singleton_method('MatchData', 'new')
+gen.undefine_singleton_method('MatchData', 'allocate')
 gen.binding('MatchData', 'size', 'MatchDataObject', 'size', argc: 0, pass_env: false, pass_block: false, return_type: :size_t)
 gen.binding('MatchData', 'length', 'MatchDataObject', 'size', argc: 0, pass_env: false, pass_block: false, return_type: :size_t)
 gen.binding('MatchData', 'to_s', 'MatchDataObject', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Object)

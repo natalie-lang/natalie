@@ -133,8 +133,9 @@ belongs to the respective owner:
 | file(s)                       | copyright                         | license           |
 | ----------------------------- | --------------------------------- | ----------------- |
 | `dtoa.c`                      | David M. Gay, Lucent Technologies | custom permissive |
-| `fiber_value.*`               | Evan Jones                        | MIT               |
+| `fiber_object.*`              | Evan Jones                        | MIT               |
 | `big_int.*`                   | Syed Faheel Ahmad                 | MIT               |
 | `spec/*` (see `spec/LICENSE`) | Engine Yard, Inc.                 | MIT               |
+| `version.rb`                  | Engine Yard, Inc.                 | MIT               |
 
 See each file above for full copyright and license text.

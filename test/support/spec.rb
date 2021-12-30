@@ -1,5 +1,6 @@
 require_relative 'formatters/default_formatter'
 require_relative 'formatters/yaml_formatter'
+require_relative 'version'
 require 'tempfile'
 
 class SpecFailedException < StandardError; end
@@ -171,9 +172,17 @@ def min_long
 end
 
 def ruby_version_is(version)
-  without_patch_number = RUBY_VERSION.sub(/\.\d+$/, '')
-  if version === without_patch_number
-    yield
+  ruby_version = SpecVersion.new RUBY_VERSION
+  case version
+  when String
+    requirement = SpecVersion.new version
+    yield if ruby_version >= requirement
+  when Range
+    a = SpecVersion.new version.begin
+    b = SpecVersion.new version.end
+    yield if ruby_version >= a && (version.exclude_end? ? ruby_version < b : ruby_version <= b)
+  else
+    raise "version must be a String or Range but was a #{version.class}"
   end
 end
 
