@@ -76,7 +76,9 @@ public:
         m_type = ObjectType::Nil;
     }
 
+    static Value create(ClassObject *);
     static Value _new(Env *, Value, size_t, Value *, Block *);
+    static Value allocate(Env *, Value, size_t, Value *, Block *);
 
     Type type() { return m_type; }
     ClassObject *klass() const { return m_klass; }

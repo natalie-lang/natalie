@@ -11,8 +11,7 @@ Object::Object(const Object &other)
     , m_owner { other.m_owner }
     , m_ivars { other.m_ivars } { }
 
-Value Object::_new(Env *env, Value klass_value, size_t argc, Value *args, Block *block) {
-    ClassObject *klass = klass_value->as_class();
+Value Object::create(ClassObject *klass) {
     Value obj;
     switch (klass->object_type()) {
     case Object::Type::Array:
@@ -88,16 +87,41 @@ Value Object::_new(Env *env, Value klass_value, size_t argc, Value *args, Block 
     case Object::Type::Integer:
     case Object::Type::Float:
     case Object::Type::Symbol:
-        NAT_UNREACHABLE();
+        obj = nullptr;
+        break;
     }
 
+    return obj;
+}
+
+Value Object::_new(Env *env, Value klass_value, size_t argc, Value *args, Block *block) {
+    Value obj = create(klass_value->as_class());
+    if (!obj)
+        NAT_UNREACHABLE();
+
     return obj->initialize(env, argc, args, block);
+}
+
+Value Object::allocate(Env *env, Value klass_value, size_t argc, Value *args, Block *block) {
+    env->ensure_argc_is(argc, 0);
+
+    ClassObject *klass = klass_value->as_class();
+    if (!klass->respond_to_method(env, "allocate"_s))
+        env->raise("TypeError", "calling {}.allocate is prohibited", klass->class_name_or_blank());
+
+    Value obj = create(klass);
+    if (!obj)
+        env->raise("TypeError", "allocator undefined for {}", klass->class_name_or_blank());
+
+    return obj;
 }
 
 Value Object::initialize(Env *env, size_t argc, Value *args, Block *block) {
     Method *method = m_klass->find_method(env, "initialize"_s);
     if (method && !method->is_undefined()) {
         method->call(env, this, argc, args, block);
+    } else {
+        env->ensure_argc_is(argc, 0);
     }
     return this;
 }

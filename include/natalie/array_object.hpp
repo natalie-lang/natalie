@@ -59,8 +59,6 @@ public:
         return new ArrayObject { argc, args, klass };
     }
 
-    static Value allocate(Env *, size_t, Value *);
-
     Value to_ary_method() { return this; }
 
     size_t size() const { return m_vector.size(); }
