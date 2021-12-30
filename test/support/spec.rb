@@ -582,13 +582,18 @@ class IOStub
 end
 
 class ComplainExpectation
-  def initialize(message)
+  def initialize(message = nil, verbose: false)
     @message = message
+    @verbose = verbose
   end
 
   def match(subject)
     out = run(subject)
     case @message
+    when nil
+      if out.empty?
+        raise SpecFailedException, "Expected a warning but received none"
+      end
     when Regexp
       unless out =~ @message
         raise SpecFailedException,
@@ -603,6 +608,10 @@ class ComplainExpectation
   def inverted_match(subject)
     out = run(subject)
     case @message
+    when nil
+      unless out.empty?
+        raise SpecFailedException, "Unexpected warning: #{out}"
+      end
     when Regexp
       if out =~ @message
         raise SpecFailedException,
@@ -618,10 +627,13 @@ class ComplainExpectation
 
   def run(subject)
     old_stderr = $stderr
+    old_verbose = $VERBOSE
     $stderr = IOStub.new
+    $VERBOSE = @verbose
     subject.call
     out = $stderr.to_s
     $stderr = old_stderr
+    $VERBOSE = old_verbose
     out
   end
 end
@@ -828,8 +840,8 @@ class Object
     RaiseErrorExpectation.new(klass, message, &block)
   end
 
-  def complain(message)
-    ComplainExpectation.new(message)
+  def complain(message = nil, verbose: false)
+    ComplainExpectation.new(message, verbose: verbose)
   end
 
   def should_receive(message)
