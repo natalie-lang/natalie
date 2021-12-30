@@ -1,5 +1,6 @@
 require 'tempfile'
 require_relative '../sexp_processor'
+require_relative './compiler/pass0c'
 require_relative './compiler/pass1'
 require_relative './compiler/pass1b'
 require_relative './compiler/pass1r'
@@ -94,6 +95,12 @@ module Natalie
 
     def transform(ast)
       @context = build_context
+
+      ast = Pass0c.new(@context).go(ast)
+      if debug == 'p0c'
+        pp ast
+        exit
+      end
 
       ast = Pass1.new(@context).go(ast)
       if debug == 'p1'

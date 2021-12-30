@@ -24,4 +24,11 @@ class Sexp < Array
       q.seplist(self) { |v| q.pp v }
     end
   end
+  
+  def s(*args)
+    res = Sexp.new(*args)
+    res.line=line
+    res.file=file
+    res
+  end
 end
