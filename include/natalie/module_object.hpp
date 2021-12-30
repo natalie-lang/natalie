@@ -74,7 +74,7 @@ public:
         m_class_name = new String(name);
     }
 
-    ClassObject *superclass() { return m_superclass; }
+    virtual ClassObject *superclass(Env *) { return m_superclass; }
     void set_superclass_DANGEROUSLY(ClassObject *superclass) { m_superclass = superclass; }
 
     Value included_modules(Env *);

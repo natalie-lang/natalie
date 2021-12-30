@@ -329,6 +329,7 @@ class Matcher
   def none?; method_missing(:none?); end
   def one?; method_missing(:one?); end
   def zero?; method_missing(:zero?); end
+  def initialized?; method_missing(:initialized?); end
 
   def method_missing(method, *args)
     if args.any?
