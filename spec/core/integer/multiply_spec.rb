@@ -29,8 +29,7 @@ describe "Integer#*" do
       @bignum = bignum_value(772)
     end
 
-    # NATFIXME: Make Integer#to_f spec compliant with bignums
-    xit "returns self multiplied by the given Integer" do
+    it "returns self multiplied by the given Integer" do
       (@bignum * (1/bignum_value(0xffff).to_f)).should be_close(1.0, TOLERANCE)
       (@bignum * (1/bignum_value(0xffff).to_f)).should be_close(1.0, TOLERANCE)
       (@bignum * 10).should == 92233720368547765800

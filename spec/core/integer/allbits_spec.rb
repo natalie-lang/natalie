@@ -8,14 +8,13 @@ describe "Integer#allbits?" do
     0b1000_0010.allbits?(0b1010_1010).should == false
   end
 
-
+  # NATFIXME: Implement Bignum
   xit "returns true if and only if all the bits of the argument are set in the receiver" do
     (0b1010_1010 | bignum_value).allbits?(0b1000_0010 | bignum_value).should == true
     (0b1010_1010 | bignum_value).allbits?(0b1000_0001 | bignum_value).should == false
     (0b1000_0010 | bignum_value).allbits?(0b1010_1010 | bignum_value).should == false
   end
 
-  # NATFIXME: Implement Bignum
   it "handles negative values using two's complement notation" do
     (~0b1).allbits?(42).should == true
     (-42).allbits?(-42).should == true
