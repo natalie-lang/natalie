@@ -211,8 +211,23 @@ Value StringObject::add(Env *env, Value arg) const {
 }
 
 Value StringObject::mul(Env *env, Value arg) const {
+    auto to_int = "to_int"_s;
+    if (!arg->is_integer() && arg->respond_to(env, to_int))
+        arg = arg->send(env, to_int);
+
     arg->assert_type(env, Object::Type::Integer, "Integer");
+
+    if (arg->as_integer()->is_negative())
+        env->raise("ArgumentError", "negative argument");
+
+    if (arg->as_integer()->has_to_be_bignum())
+        arg->as_integer()->assert_fixnum(env);
+
+    // TODO: copy encoding?
     StringObject *new_string = new StringObject { "" };
+    if (this->is_empty())
+        return new_string;
+
     for (nat_int_t i = 0; i < arg->as_integer()->to_nat_int_t(); i++) {
         new_string->append(env, this);
     }

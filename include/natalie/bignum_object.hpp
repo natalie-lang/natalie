@@ -23,6 +23,14 @@ public:
         if (m_bigint) delete m_bigint;
     }
 
+    nat_int_t to_nat_int_t() const override {
+        return m_bigint->to_long_long();
+    }
+
+    bool is_negative() const override {
+        return m_bigint->is_negative();
+    }
+
     bool is_odd() const override {
         if (m_bigint->to_string().length() != 0) {
             int last_digit = m_bigint->to_string().last_char() - '0';
@@ -52,7 +60,7 @@ public:
     bool is_bignum() const override { return true; }
     BigInt to_bigint() const override { return *m_bigint; }
 
-    bool has_to_be_bignum() const {
+    bool has_to_be_bignum() const override {
         return *m_bigint > MAX_INT || *m_bigint < MIN_INT;
     }
 

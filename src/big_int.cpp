@@ -283,8 +283,7 @@ Natalie::String BigInt::to_string() const {
     to_long
     -------
     Converts a BigInt to a long int.
-    NOTE: If the BigInt is out of range of a long int, stol() will throw an
-    out_of_range exception.
+    NOTE: If the BigInt is out of range of a long int, errno is set to ERANGE.
 */
 
 long BigInt::to_long() const {
@@ -295,8 +294,7 @@ long BigInt::to_long() const {
     to_long_long
     ------------
     Converts a BigInt to a long long int.
-    NOTE: If the BigInt is out of range of a long long int, stoll() will throw
-    an out_of_range exception.
+    NOTE: If the BigInt is out of range of a long long int, errno is set to ERANGE.
 */
 
 long long BigInt::to_long_long() const {
