@@ -206,7 +206,7 @@ Value IntegerObject::div(Env *env, Value arg) {
 }
 
 Value IntegerObject::mod(Env *env, Value arg) const {
-    if (arg.is_fast_integer())
+    if (arg.is_fast_integer() && arg.get_fast_integer() != 0)
         return Value::integer(m_integer % arg.get_fast_integer());
 
     arg.unguard();
@@ -214,7 +214,12 @@ Value IntegerObject::mod(Env *env, Value arg) const {
         arg = arg->as_float()->to_int_no_truncation(env);
         
     arg->assert_type(env, Object::Type::Integer, "Integer");
-    auto result = m_integer % arg->as_integer()->to_nat_int_t();
+
+    auto nat_int = arg->as_integer()->to_nat_int_t();
+    if (nat_int == 0)
+        env->raise("ZeroDivisionError", "divided by 0");
+
+    auto result = m_integer % nat_int;
     return Value::integer(result);
 }
 
