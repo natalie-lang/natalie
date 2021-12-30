@@ -109,7 +109,17 @@ Value Object::allocate(Env *env, Value klass_value, size_t argc, Value *args, Bl
     if (!klass->respond_to_method(env, "allocate"_s))
         env->raise("TypeError", "calling {}.allocate is prohibited", klass->class_name_or_blank());
 
-    Value obj = create(klass);
+    Value obj;
+    switch (klass->object_type()) {
+    case Object::Type::Proc:
+        obj = nullptr;
+        break;
+
+    default:
+        obj = create(klass);
+        break;
+    }
+
     if (!obj)
         env->raise("TypeError", "allocator undefined for {}", klass->class_name_or_blank());
 
