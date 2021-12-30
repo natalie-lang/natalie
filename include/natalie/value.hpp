@@ -24,12 +24,13 @@ public:
         : m_type { Type::Pointer }
         , m_object { object } { }
 
-    Value(nat_int_t integer)
+    explicit Value(nat_int_t integer)
         : m_type { Type::Integer }
         , m_integer { integer } { }
 
     static Value integer(nat_int_t integer) {
-        // FIXME: Remove this
+        // This is still required, beacause initialization by a literal is often
+        // ambiguous.
         return Value { integer };
     }
 
