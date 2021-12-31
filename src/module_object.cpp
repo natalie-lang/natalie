@@ -111,6 +111,10 @@ Value ModuleObject::const_set(SymbolObject *name, Value val) {
     return val;
 }
 
+Value ModuleObject::const_set(Env *env, Value name, Value val) {
+    return const_set(name->to_symbol(env, Object::Conversion::Strict), val);
+}
+
 void ModuleObject::alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
     Method *method = find_method(env, old_name);
     if (!method) {

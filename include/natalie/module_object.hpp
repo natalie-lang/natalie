@@ -49,6 +49,8 @@ public:
     virtual Value const_fetch(SymbolObject *) override;
     virtual Value const_set(SymbolObject *, Value) override;
 
+    Value const_set(Env *, Value, Value);
+
     virtual void alias(Env *, SymbolObject *, SymbolObject *) override;
 
     Value eval_body(Env *, Value (*)(Env *, Value));
