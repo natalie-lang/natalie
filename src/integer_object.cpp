@@ -206,9 +206,6 @@ Value IntegerObject::div(Env *env, Value arg) {
 }
 
 Value IntegerObject::mod(Env *env, Value arg) const {
-    if (arg.is_fast_integer() && arg.get_fast_integer() != 0)
-        return Value::integer(m_integer % arg.get_fast_integer());
-
     arg.unguard();
     if (arg->is_float())
         arg = arg->as_float()->to_int_no_truncation(env);
