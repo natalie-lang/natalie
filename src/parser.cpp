@@ -882,8 +882,8 @@ Node *Parser::parse_nil(LocalsHashmap &) {
 
 Node *Parser::parse_not(LocalsHashmap &locals) {
     auto token = current_token();
-    auto precedence = get_precedence(current_token());
     advance();
+    auto precedence = get_precedence(token);
     auto node = new CallNode {
         token,
         parse_expression(precedence, locals),
@@ -999,6 +999,29 @@ Node *Parser::parse_top_level_constant(LocalsHashmap &locals) {
         throw_unexpected(name_token, ":: identifier name");
     }
     return new Colon3Node { token, name };
+}
+
+Node *Parser::parse_unary_operator(LocalsHashmap &locals) {
+    auto token = current_token();
+    advance();
+    auto precedence = get_precedence(token);
+    const char *message;
+    switch (token->type()) {
+    case Token::Type::Minus:
+        message = "-@";
+        break;
+    case Token::Type::Plus:
+        message = "+@";
+        break;
+    default:
+        NAT_UNREACHABLE();
+    }
+    auto node = new CallNode {
+        token,
+        parse_expression(precedence, locals),
+        message,
+    };
+    return node;
 }
 
 Node *Parser::parse_word_array(LocalsHashmap &locals) {
@@ -1551,6 +1574,9 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type, Precedence prece
     case Type::Integer:
     case Type::Float:
         return &Parser::parse_lit;
+    case Type::Minus:
+    case Type::Plus:
+        return &Parser::parse_unary_operator;
     case Type::ModuleKeyword:
         return &Parser::parse_module;
     case Type::NextKeyword:

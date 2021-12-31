@@ -246,6 +246,7 @@ private:
     Node *parse_symbol(LocalsHashmap &);
     Node *parse_statement_keyword(LocalsHashmap &);
     Node *parse_top_level_constant(LocalsHashmap &);
+    Node *parse_unary_operator(LocalsHashmap &);
     Node *parse_unless(LocalsHashmap &);
     Node *parse_while(LocalsHashmap &);
     Node *parse_word_array(LocalsHashmap &);
