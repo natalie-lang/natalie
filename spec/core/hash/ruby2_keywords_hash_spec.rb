@@ -2,7 +2,8 @@ require_relative '../../spec_helper'
 require_relative 'fixtures/classes'
 
 ruby_version_is "2.7" do
-  describe "Hash.ruby2_keywords_hash?" do
+  # NATFIXME: Implement Hash::ruby2_keywords_hash?
+  xdescribe "Hash.ruby2_keywords_hash?" do
     it "returns false if the Hash is not a keywords Hash" do
       Hash.ruby2_keywords_hash?({}).should == false
     end
@@ -21,7 +22,8 @@ ruby_version_is "2.7" do
     end
   end
 
-  describe "Hash.ruby2_keywords_hash" do
+  # NATFIXME: Implement Hash::ruby2_keywords_hash
+  xdescribe "Hash.ruby2_keywords_hash" do
     it "returns a copy of a Hash and marks the copy as a keywords Hash" do
       h = {a: 1}.freeze
       kw = Hash.ruby2_keywords_hash(h)

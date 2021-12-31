@@ -23,6 +23,7 @@ describe 'Dir' do
         'require_sub4.foo',
         'require_sub4.foo.rb',
         'spec.rb',
+        'version.rb',
       ]
     end
 
@@ -41,6 +42,7 @@ describe 'Dir' do
         'require_sub4.foo',
         'require_sub4.foo.rb',
         'spec.rb',
+        'version.rb',
       ]
     end
   end

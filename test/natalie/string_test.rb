@@ -13,8 +13,8 @@ describe 'string' do
       "foo\nbar".inspect.should == "\"foo\\nbar\""
       "foo#bar".inspect.should == '"foo#bar"'
       'foo#{1+1}'.inspect.should == '"foo\\#{1+1}"'
-      "foo\x1f".inspect.should == '"foo\\u001F"'
-      "foo\x00\x04".inspect.should == '"foo\\u0000\\u0004"'
+      "foo\x1f".encode('utf-8').inspect.should == '"foo\\u001F"'
+      "foo\x00\x04".encode('utf-8').inspect.should == '"foo\\u0000\\u0004"'
       "foo\x00\x04".encode('ascii-8bit').inspect.should == '"foo\\x00\\x04"'
       unless RUBY_PLATFORM =~ /openbsd/
         "😉🤷".inspect.should == "\"😉🤷\""
@@ -24,14 +24,14 @@ describe 'string' do
 
   describe '#size' do
     it 'returns the number of characters in the string' do
-      '😉😉😉'.size.should == 3
+      '😉😉😉'.encode('utf-8').size.should == 3
       'foo bar'.size.should == 7
     end
   end
 
   describe '#length' do
     it 'returns the number of characters in the string' do
-      '😉😉😉'.size.should == 3
+      '😉😉😉'.encode('utf-8').size.should == 3
       'foo bar'.size.should == 7
     end
   end
@@ -80,10 +80,10 @@ describe 'string' do
       ' '.ord.should == 32
       'a'.ord.should == 97
       'abc'.ord.should == 97
-      'ă'.ord.should == 259
-      '”'.ord.should == 8221
-      '😉'.ord.should == 128521
-      '😉😉😉'.ord.should == 128521
+      'ă'.encode('utf-8').ord.should == 259
+      '”'.encode('utf-8').ord.should == 8221
+      '😉'.encode('utf-8').ord.should == 128521
+      '😉😉😉'.encode('utf-8').ord.should == 128521
     end
 
     it 'raises an error if the string is empty' do
@@ -93,7 +93,7 @@ describe 'string' do
 
   describe '#encode' do
     it 'changes the encoding while reinterpreting the characters' do
-      s = 'abc123'
+      s = 'abc123'.encode 'utf-8'
       s.encoding.should == Encoding::UTF_8
       s2 = s.encode 'ascii-8bit'
       s2.encoding.should == Encoding::ASCII_8BIT
@@ -104,23 +104,23 @@ describe 'string' do
     end
 
     it 'raises an error if a character cannot be converted to the new encoding' do
-      s = 'abc 😢'
+      s = 'abc 😢'.encode 'utf-8'
       s.encoding.should == Encoding::UTF_8
       -> { s.encode 'ascii-8bit' }.should raise_error(Encoding::UndefinedConversionError, 'U+1F622 from UTF-8 to ASCII-8BIT')
-      s = 'xyz 🥺'
+      s = 'xyz 🥺'.encode 'utf-8'
       s.encoding.should == Encoding::UTF_8
       -> { s.encode 'ascii-8bit' }.should raise_error(Encoding::UndefinedConversionError, 'U+1F97A from UTF-8 to ASCII-8BIT')
     end
 
     it 'raises an error if the encoding converter does not exist' do
-      s = 'abc 😢'
+      s = 'abc 😢'.encode 'utf-8'
       -> { s.encode 'bogus-fake-encoding' }.should raise_error(StandardError) # TODO: not actually the right error ;-)
     end
   end
 
   describe '#force_encoding' do
     it 'changes the encoding without reinterpreting the characters' do
-      s = ''
+      s = ''.encode 'utf-8'
       s.encoding.should == Encoding::UTF_8
       s.force_encoding 'ascii-8bit'
       s.encoding.should == Encoding::ASCII_8BIT
@@ -140,7 +140,7 @@ describe 'string' do
   describe '#chars' do
     it 'returns an array of characters' do
       'foo'.chars.should == ['f', 'o', 'o']
-      s = "😉”ăa"
+      s = "😉”ăa".encode 'utf-8'
       s.chars.should == ["😉", "”", "ă", "a"]
       s.force_encoding 'ascii-8bit'
       s.chars.map { |c| c.ord }.should == [240, 159, 152, 137, 226, 128, 157, 196, 131, 97]
@@ -149,7 +149,7 @@ describe 'string' do
 
   describe '#[]' do
     it 'returns the character at the given index' do
-      s = "😉”ăa"
+      s = "😉”ăa".encode 'utf-8'
       s[0].should == "😉"
       s[1].should == "”"
       s[2].should == "ă"
@@ -157,12 +157,12 @@ describe 'string' do
     end
 
     it 'returns nil if the index is past the end' do
-      s = "😉”ăa"
+      s = "😉”ăa".encode 'utf-8'
       s[4].should == nil
     end
 
     it 'returns the character from the end given a negative index' do
-      s = "😉”ăa"
+      s = "😉”ăa".encode 'utf-8'
       s[-1].should == "a"
       s[-2].should == "ă"
       s[-3].should == "”"
@@ -170,13 +170,13 @@ describe 'string' do
     end
 
     it 'returns nil if the negative index is too small' do
-      s = "😉”ăa"
+      s = "😉”ăa".encode 'utf-8'
       s[-5].should == nil
     end
 
     context 'given a range' do
       it 'returns a substring' do
-        s = "😉”ăa"
+        s = "😉”ăa".encode 'utf-8'
         s[1..-1].should == "”ăa"
         s = 'hello'
         s[1..-1].should == 'ello'
@@ -239,7 +239,7 @@ describe 'string' do
 
   describe '#index' do
     it 'returns the character index of the substring' do
-      s = 'tim is 😉 ok'
+      s = 'tim is 😉 ok'.encode 'utf-8'
       s.index('tim').should == 0
       s.index('is').should == 4
       s.index('😉').should == 7

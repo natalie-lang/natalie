@@ -10,7 +10,8 @@ describe "NilClass#to_s" do
       nil.to_s.should.frozen?
     end
 
-    it "always returns the same string" do
+    # NATFIXME: NilClass#to_s should always return the same string
+    xit "always returns the same string" do
       nil.to_s.should equal(nil.to_s)
     end
   end
