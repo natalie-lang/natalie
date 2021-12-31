@@ -216,7 +216,10 @@ Value IntegerObject::mod(Env *env, Value arg) const {
     if (nat_int == 0)
         env->raise("ZeroDivisionError", "divided by 0");
 
-    auto result = m_integer % nat_int;
+    // Cast operands to floats to get decimal result from division.
+    auto f = ::floor((float)m_integer / (float)nat_int);
+    auto result = m_integer - (nat_int * f);
+
     return Value::integer(result);
 }
 
