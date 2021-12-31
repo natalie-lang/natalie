@@ -57,20 +57,6 @@ public:
         return m_double;
     }
 
-    Value to_int_no_truncation(Env *env) {
-        if (is_nan() || is_infinity()) return this;
-        if (m_double == ::floor(m_double)) {
-            if (m_double >= (double)NAT_INT_MAX || m_double <= (double)NAT_INT_MAX) {
-                auto *bignum = new BignumObject { to_double() };
-                if (bignum->has_to_be_bignum())
-                    return bignum;
-            }
-
-            return Value::integer(static_cast<nat_int_t>(m_double));
-        }
-        return this;
-    }
-
     bool is_zero() const {
         return m_double == 0 && !is_nan();
     }
