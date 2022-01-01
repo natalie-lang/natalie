@@ -25,8 +25,7 @@ Value BignumObject::abs(Env *env) {
 
 Value BignumObject::add(Env *env, Value arg) {
     if (arg->is_float()) {
-        double current = strtod(m_bigint->to_string().c_str(), NULL);
-        auto result = current + arg->as_float()->to_double();
+        auto result = m_bigint->to_double() + arg->as_float()->to_double();
         return new FloatObject { result };
     }
 
@@ -42,8 +41,7 @@ Value BignumObject::add(Env *env, Value arg) {
 
 Value BignumObject::sub(Env *env, Value arg) {
     if (arg->is_float()) {
-        double current = strtod(m_bigint->to_string().c_str(), NULL);
-        auto result = current - arg->as_float()->to_double();
+        auto result = m_bigint->to_double() - arg->as_float()->to_double();
         return new FloatObject { result };
     }
 
@@ -59,8 +57,7 @@ Value BignumObject::sub(Env *env, Value arg) {
 
 Value BignumObject::mul(Env *env, Value arg) {
     if (arg->is_float()) {
-        double current = strtod(m_bigint->to_string().c_str(), NULL);
-        auto result = current * arg->as_float()->to_double();
+        auto result = m_bigint->to_double() * arg->as_float()->to_double();
         return new FloatObject { result };
     }
 
@@ -76,8 +73,7 @@ Value BignumObject::mul(Env *env, Value arg) {
 
 Value BignumObject::div(Env *env, Value arg) {
     if (arg->is_float()) {
-        double current = strtod(m_bigint->to_string().c_str(), NULL);
-        auto result = current / arg->as_float()->to_double();
+        auto result = m_bigint->to_double() / arg->as_float()->to_double();
         return new FloatObject { result };
     }
 
