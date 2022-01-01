@@ -750,6 +750,7 @@ gen.binding('String', '=~', 'StringObject', 'eqtilde', argc: 1, pass_env: true, 
 gen.binding('String', '[]', 'StringObject', 'ref', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'bytes', 'StringObject', 'bytes', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'chars', 'StringObject', 'chars', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('String', 'concat', 'StringObject', 'concat', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'downcase', 'StringObject', 'downcase', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'each_char', 'StringObject', 'each_char', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('String', 'empty?', 'StringObject', 'is_empty', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
