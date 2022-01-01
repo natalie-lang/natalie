@@ -60,6 +60,7 @@ public:
     Value bitwise_and(Env *, Value) const;
     Value bitwise_or(Env *, Value) const;
     Value pred(Env *);
+    Value size(Env *);
     Value succ(Env *);
     Value ceil(Env *, Value);
     Value coerce(Env *, Value);
