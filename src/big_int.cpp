@@ -834,7 +834,7 @@ BigInt big_pow10(size_t exp) {
     Returns a BigInt equal to base^exp.
 */
 
-BigInt pow(const BigInt &base, int exp) {
+BigInt pow(const BigInt &base, long long exp) {
     if (exp < 0) {
         // Cannot divide by zero
         assert(base != 0);
