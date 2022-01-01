@@ -93,8 +93,14 @@ public:
     virtual SymbolObject *define_method(Env *, SymbolObject *, Block *) override;
     virtual SymbolObject *undefine_method(Env *, SymbolObject *) override;
 
-    void methods(Env *, ArrayObject *);
+    void methods(Env *, ArrayObject *, bool = true);
     Method *find_method(Env *, SymbolObject *, ModuleObject ** = nullptr, Method * = nullptr) const;
+
+    Value instance_methods(Env *, Value, std::function<bool(Method *)>);
+    Value instance_methods(Env *, Value);
+    Value private_instance_methods(Env *, Value);
+    Value protected_instance_methods(Env *, Value);
+    Value public_instance_methods(Env *, Value);
 
     ArrayObject *ancestors(Env *);
 

@@ -1107,13 +1107,23 @@ Value ArrayObject::select_in_place(Env *env, Block *block) {
 
     assert_not_frozen(env);
 
+    bool changed = select_in_place([env, block](Value &item) -> bool {
+        Value result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
+        return result->is_truthy();
+    });
+
+    if (changed)
+        return this;
+    return NilObject::the();
+}
+
+bool ArrayObject::select_in_place(std::function<bool(Value &)> predicate) {
     bool changed { false };
 
     ArrayObject new_array;
 
     for (auto &item : *this) {
-        Value result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &item, nullptr);
-        if (result->is_truthy())
+        if (predicate(item))
             new_array.push(item);
         else
             changed = true;
@@ -1121,9 +1131,7 @@ Value ArrayObject::select_in_place(Env *env, Block *block) {
 
     *this = std::move(new_array);
 
-    if (changed)
-        return this;
-    return NilObject::the();
+    return changed;
 }
 
 Value ArrayObject::reject(Env *env, Block *block) {

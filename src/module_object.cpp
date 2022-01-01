@@ -197,9 +197,12 @@ SymbolObject *ModuleObject::undefine_method(Env *env, SymbolObject *name) {
 }
 
 // supply an empty array and it will be populated with the method names as symbols
-void ModuleObject::methods(Env *env, ArrayObject *array) {
+void ModuleObject::methods(Env *env, ArrayObject *array, bool include_super) {
     for (auto pair : m_methods) {
         array->push(pair.first);
+    }
+    if (!include_super) {
+        return;
     }
     for (ModuleObject *module : m_included_modules) {
         for (auto pair : module->m_methods) {
@@ -207,7 +210,7 @@ void ModuleObject::methods(Env *env, ArrayObject *array) {
         }
     }
     if (m_superclass) {
-        return m_superclass->methods(env, array);
+        m_superclass->methods(env, array);
     }
 }
 
@@ -248,6 +251,42 @@ Method *ModuleObject::find_method(Env *env, SymbolObject *method_name, ModuleObj
     } else {
         return nullptr;
     }
+}
+
+Value ModuleObject::instance_methods(Env *env, Value include_super_value, std::function<bool(Method *)> predicate) {
+    bool include_super = !include_super_value || include_super_value->is_truthy();
+    ArrayObject *array = new ArrayObject {};
+    methods(env, array, include_super);
+    array->uniq_in_place(env, nullptr);
+    array->select_in_place([this, env, predicate](Value &name_value) -> bool {
+        auto method = find_method(env, name_value->as_symbol());
+        return method && !method->is_undefined() && predicate(method);
+    });
+    return array;
+}
+
+Value ModuleObject::instance_methods(Env *env, Value include_super_value) {
+    return instance_methods(env, include_super_value, [](Method *method) {
+        return method->visibility() == MethodVisibility::Public || method->visibility() == MethodVisibility::Protected;
+    });
+}
+
+Value ModuleObject::private_instance_methods(Env *env, Value include_super_value) {
+    return instance_methods(env, include_super_value, [](Method *method) {
+        return method->visibility() == MethodVisibility::Private;
+    });
+}
+
+Value ModuleObject::protected_instance_methods(Env *env, Value include_super_value) {
+    return instance_methods(env, include_super_value, [](Method *method) {
+        return method->visibility() == MethodVisibility::Protected;
+    });
+}
+
+Value ModuleObject::public_instance_methods(Env *env, Value include_super_value) {
+    return instance_methods(env, include_super_value, [](Method *method) {
+        return method->visibility() == MethodVisibility::Public;
+    });
 }
 
 ArrayObject *ModuleObject::ancestors(Env *env) {
