@@ -90,6 +90,52 @@ Value BignumObject::div(Env *env, Value arg) {
     return new BignumObject { to_bigint() / other->to_bigint() };
 }
 
+Value BignumObject::pow(Env *env, Value arg) {
+    nat_int_t nat_int;
+    if (arg.is_fast_integer()) {
+        nat_int = arg.get_fast_integer();
+    } else {
+        arg.unguard();
+
+        if (arg->is_float())
+            return FloatObject { m_bigint->to_double() }.pow(env, arg);
+
+        if (!arg->is_integer()) {
+            auto coerced = Natalie::coerce(env, arg, this);
+            arg = coerced.second;
+            if (!coerced.first->is_integer()) {
+                return coerced.first->send(env, "**"_s, { arg });
+            }
+        }
+
+        arg->assert_type(env, Object::Type::Integer, "Integer");
+        if (arg->as_integer()->is_bignum()) {
+            env->warn("warning: in a**b, b may be too big");
+            return FloatObject { m_bigint->to_double() }.pow(env, arg);
+        }
+
+        nat_int = arg->as_integer()->to_nat_int_t();
+    }
+
+    if (to_bigint() == 0 && nat_int < 0)
+        env->raise("ZeroDivisionError", "divided by 0");
+
+    // NATFIXME: If a negative number is passed we want to return a Rational
+    if (nat_int < 0)
+        NAT_NOT_YET_IMPLEMENTED();
+
+    // NATFIXME: Ruby has a really weird max bignum value that is calculated by the words needed to store a bignum
+    // The calculation that we do is pretty much guessed to be in the direction of ruby. However, we should do more research about this limit...
+    size_t length = m_bigint->to_string().length();
+    constexpr const size_t BIGINT_LIMIT = 8 * 1024 * 1024;
+    if (length > BIGINT_LIMIT || length * nat_int > BIGINT_LIMIT) {
+        env->warn("warning: in a**b, b may be too big");
+        return FloatObject { m_bigint->to_double() }.pow(env, arg);
+    }
+
+    return new BignumObject { ::pow(to_bigint(), nat_int) };
+}
+
 Value BignumObject::negate(Env *env) {
     return new BignumObject { -to_bigint() };
 }

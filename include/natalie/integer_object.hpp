@@ -54,7 +54,7 @@ public:
     virtual Value mul(Env *, Value);
     virtual Value div(Env *, Value);
     Value mod(Env *, Value) const;
-    Value pow(Env *, Value) const;
+    virtual Value pow(Env *, Value);
     Value cmp(Env *, Value);
     virtual Value times(Env *, Block *);
     Value bitwise_and(Env *, Value) const;
