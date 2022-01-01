@@ -544,8 +544,7 @@ Value ArrayObject::first(Env *env, Value n) {
 
     n->assert_type(env, Object::Type::Integer, "Integer");
 
-    if (n->as_integer()->is_bignum())
-        env->raise("RangeError", "bignum too big to convert into `long'");
+    n->as_integer()->assert_fixnum(env);
 
     nat_int_t n_value = n->as_integer()->to_nat_int_t();
 

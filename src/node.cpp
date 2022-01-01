@@ -315,7 +315,7 @@ Value DefNode::to_ruby(Env *env) {
             {
                 "defs"_s,
                 m_self_node->to_ruby(env),
-                SymbolObject::intern(m_name->name()),
+                SymbolObject::intern(m_name),
                 build_args_sexp(env),
             }
         };
@@ -325,7 +325,7 @@ Value DefNode::to_ruby(Env *env) {
             this,
             {
                 "defn"_s,
-                SymbolObject::intern(m_name->name()),
+                SymbolObject::intern(m_name),
                 build_args_sexp(env),
             }
         };

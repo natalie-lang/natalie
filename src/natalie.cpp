@@ -72,6 +72,7 @@ Env *build_top_env() {
     global_env->set_Integer(Integer);
     Object->const_set("Integer"_s, Integer);
     Object->const_set("Fixnum"_s, Integer);
+    Object->const_set("Bignum"_s, Integer);
 
     ClassObject *Float = Numeric->subclass(env, "Float", Object::Type::Float);
     global_env->set_Float(Float);
@@ -110,9 +111,9 @@ Env *build_top_env() {
     ClassObject *Regexp = Object->subclass(env, "Regexp", Object::Type::Regexp);
     global_env->set_Regexp(Regexp);
     Object->const_set("Regexp"_s, Regexp);
-    Regexp->const_set("IGNORECASE"_s, Value::integer(1));
-    Regexp->const_set("EXTENDED"_s, Value::integer(2));
-    Regexp->const_set("MULTILINE"_s, Value::integer(4));
+#define REGEXP_CONSTS(cpp_name, ruby_name, bits) Regexp->const_set(SymbolObject::intern(#ruby_name), Value::integer(bits));
+    ENUMERATE_REGEX_OPTS(REGEXP_CONSTS)
+#undef REGEXP_CONSTS
 
     ClassObject *Range = Object->subclass(env, "Range", Object::Type::Range);
     Object->const_set("Range"_s, Range);

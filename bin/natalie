@@ -70,6 +70,10 @@ OptionParser.new do |opts|
     options[:load_path].unshift(p)
   end
 
+  opts.on('-i', '--interpret', 'Interpret Ruby code instead of compiling it') do
+    options[:interpret] = true
+  end
+
   opts.on('--keep-cpp', 'Do not delete intermediate cpp file used for compilation') do
     options[:keep_cpp] = true
   end
@@ -116,13 +120,17 @@ class Runner
       compiler.compile
     elsif options[:debug] == 'cc-cmd'
       compiler.out_path = 'temp'
-      compiler.to_c
+      compiler.instructions # trigger copmilation
       puts compiler.compiler_command
     elsif options[:debug] == 'cpp'
-      compiler.write_file
-      puts File.read(compiler.c_path)
-      puts '-' * 80
-      puts compiler.c_path
+      if options[:interpret]
+        puts compiler.instructions.map(&:to_s)
+      else
+        compiler.write_file
+        puts File.read(compiler.c_path)
+        puts '-' * 80
+        puts compiler.c_path
+      end
     elsif options[:debug] == 'S'
       show_assembly
     elsif options[:debug] == 'edit'
@@ -153,13 +161,17 @@ class Runner
       system('valgrind', '--tool=callgrind', "--callgrind-out-file=#{callgrind_out.path}", out.path, *ARGV)
       exec('kcachegrind', callgrind_out.path)
     else
-      compiler.compile
-      begin
-        pid = spawn(out.path, *ARGV)
-        Process.wait(pid)
-        exit $?.exitstatus || 1
-      ensure
-        File.unlink(out.path)
+      if options[:interpret]
+        Natalie::VM.new(compiler.instructions).run
+      else
+        compiler.compile
+        begin
+          pid = spawn(out.path, *ARGV)
+          Process.wait(pid)
+          exit $?.exitstatus || 1
+        ensure
+          File.unlink(out.path)
+        end
       end
     end
   end

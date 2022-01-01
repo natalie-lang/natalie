@@ -37,6 +37,7 @@ public:
 
     Value inspect(Env *);
 
+    static HashObject *aliases(Env *);
     static ArrayObject *list(Env *env);
 
     virtual void visit_children(Visitor &) override final;

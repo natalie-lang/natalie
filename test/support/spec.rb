@@ -163,6 +163,13 @@ def max_long
   (2**(8 * 8 - 2)) * 2  - 1
 end
 
+def min_long
+  # -(2**(0.size * 8 - 1))
+  # NATFIXME: Support Integer#size
+  # NATFIXME: Make Integer#** spec compliant with bignums
+  -((2**(8 * 8 - 2)) * 2)
+end
+
 def ruby_version_is(version)
   without_patch_number = RUBY_VERSION.sub(/\.\d+$/, '')
   if version === without_patch_number
@@ -172,6 +179,12 @@ end
 
 def slow_test
   if ENV['ENABLE_SLOW_TESTS']
+    yield
+  end
+end
+
+def platform_is(wordsize:)
+  if wordsize == 64
     yield
   end
 end
@@ -297,6 +310,7 @@ class Matcher
   def all?; method_missing(:all?); end
   def any?; method_missing(:any?); end
   def compare_by_identity?; method_missing(:compare_by_identity?); end
+  def casefold?; method_missing(:casefold?); end
   def empty?; method_missing(:empty?); end
   def finite?; method_missing(:finite?); end
   def include?(other); method_missing(:include?, other); end

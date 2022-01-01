@@ -15,20 +15,28 @@ class Value {
 public:
     enum class Type {
         Integer,
+        Double,
         Pointer,
     };
 
-    Value() { }
+    Value() = default;
 
     Value(Object *object)
-        : m_object { object } { }
+        : m_type { Type::Pointer }
+        , m_object { object } { }
 
-    Value(Type type, nat_int_t integer)
-        : m_type { type }
+    explicit Value(nat_int_t integer)
+        : m_type { Type::Integer }
         , m_integer { integer } { }
 
+    explicit Value(double value)
+        : m_type { Type::Double }
+        , m_double { value } { }
+
     static Value integer(nat_int_t integer) {
-        return Value { Type::Integer, integer };
+        // This is still required, beacause initialization by a literal is often
+        // ambiguous.
+        return Value { integer };
     }
 
     Object &operator*() {
@@ -57,22 +65,22 @@ public:
         if (is_fast_integer()) {
             if (other.is_fast_integer())
                 return get_fast_integer() == other.get_fast_integer();
-            else
-                return false;
+            if (other.is_fast_float())
+                return get_fast_integer() == other.get_fast_float();
+            return false;
         }
-
+        if (is_fast_float()) {
+            if (other.is_fast_integer())
+                return get_fast_integer() == other.get_fast_integer();
+            if (other.is_fast_float())
+                return get_fast_float() == other.get_fast_float();
+            return false;
+        }
         return m_object == other.object();
     }
 
     bool operator!=(Value other) const {
-        if (is_fast_integer()) {
-            if (other.is_fast_integer())
-                return get_fast_integer() != other.get_fast_integer();
-            else
-                return true;
-        }
-
-        return m_object != other.object();
+        return !(*this == other);
     }
 
     bool is_null() const { return m_type == Type::Pointer && !m_object; }
@@ -97,9 +105,18 @@ public:
         return m_type == Type::Integer;
     }
 
+    bool is_fast_float() const {
+        return m_type == Type::Double;
+    }
+
     nat_int_t get_fast_integer() const {
         assert(m_type == Type::Integer);
         return m_integer;
+    }
+
+    double get_fast_float() const {
+        assert(m_type == Type::Double);
+        return m_double;
     }
 
     Value guard() {
@@ -130,6 +147,7 @@ private:
 
     union {
         nat_int_t m_integer { 0 };
+        double m_double;
         Object *m_object;
     };
 };

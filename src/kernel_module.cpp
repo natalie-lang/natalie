@@ -120,6 +120,36 @@ Value KernelModule::exit(Env *env, Value status) {
     return NilObject::the();
 }
 
+Value KernelModule::Float(Env *env, Value value, Value kwargs) {
+    bool exception = true;
+    // NATFIXME: Improve keyword argument handling.
+    if (kwargs) {
+        if (kwargs->is_hash()) {
+            auto value = kwargs->as_hash()->get(env, "exception"_s);
+            if (value) exception = value->is_true();
+        }
+    }
+
+    if (value->is_float()) {
+        return value;
+    } else if (value->is_string()) {
+        auto result = value->as_string()->convert_float();
+        if (!result && exception) {
+            env->raise("ArgumentError", "invalid value for Float(): {}", value->inspect_str(env));
+        }
+        return result;
+    } else if (!value->is_nil() && value->respond_to(env, "to_f"_s)) {
+        auto result = value.send(env, "to_f"_s);
+        if (result->is_float()) {
+            return result;
+        }
+    }
+    if (exception)
+        env->raise("TypeError", "can't convert {} into Float", value->klass()->inspect_str(env));
+    else
+        return nullptr;
+}
+
 Value KernelModule::gets(Env *env) {
     char buf[2048];
     if (!fgets(buf, 2048, stdin))
@@ -148,6 +178,24 @@ Value KernelModule::get_usage(Env *env) {
     hash->put(env, new StringObject { "nvcsw" }, Value::integer(usage.ru_nvcsw));
     hash->put(env, new StringObject { "nivcsw" }, Value::integer(usage.ru_nivcsw));
     return hash;
+}
+
+Value KernelModule::Hash(Env *env, Value value) {
+    if (value->is_hash()) {
+        return value;
+    }
+
+    if (value->is_nil() || (value->is_array() && value->as_array()->is_empty())) {
+        return new HashObject;
+    }
+
+    if (!value->respond_to(env, "to_hash"_s)) {
+        env->raise("TypeError", "can't convert {} into Hash", value->klass()->inspect_str(env));
+    }
+
+    value = value.send(env, "to_hash"_s);
+    value->assert_type(env, Object::Type::Hash, "Hash");
+    return value;
 }
 
 Value KernelModule::hash(Env *env) {

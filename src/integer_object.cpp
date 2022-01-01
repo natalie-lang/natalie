@@ -44,7 +44,7 @@ Value IntegerObject::to_i() {
 }
 
 Value IntegerObject::to_f() const {
-    return new FloatObject { m_integer };
+    return Value { static_cast<double>(m_integer) };
 }
 
 Value add_fast(nat_int_t a, nat_int_t b) {
@@ -66,6 +66,8 @@ Value add_fast(nat_int_t a, nat_int_t b) {
 Value IntegerObject::add(Env *env, Value arg) {
     if (arg.is_fast_integer())
         return add_fast(m_integer, arg.get_fast_integer());
+    if (arg.is_fast_float())
+        return Value { m_integer + arg.get_fast_float() };
 
     arg.unguard();
 
@@ -105,6 +107,8 @@ Value sub_fast(nat_int_t a, nat_int_t b) {
 Value IntegerObject::sub(Env *env, Value arg) {
     if (arg.is_fast_integer())
         return sub_fast(m_integer, arg.get_fast_integer());
+    if (arg.is_fast_float())
+        return Value { m_integer - arg.get_fast_float() };
 
     arg.unguard();
 
@@ -145,6 +149,8 @@ Value mul_fast(nat_int_t a, nat_int_t b) {
 Value IntegerObject::mul(Env *env, Value arg) {
     if (arg.is_fast_integer())
         return mul_fast(m_integer, arg.get_fast_integer());
+    if (arg.is_fast_float())
+        return Value { m_integer * arg.get_fast_float() };
 
     arg.unguard();
 
@@ -181,6 +187,8 @@ Value div_fast(nat_int_t a, nat_int_t b) {
 Value IntegerObject::div(Env *env, Value arg) {
     if (arg.is_fast_integer() && arg.get_fast_integer() != 0)
         return div_fast(m_integer, arg.get_fast_integer());
+    if (arg.is_fast_float())
+        return Value { m_integer / arg.get_fast_float() };
 
     arg.unguard();
 
@@ -227,7 +235,7 @@ Value IntegerObject::pow(Env *env, Value arg) const {
 
 Value IntegerObject::cmp(Env *env, Value arg) {
     auto is_comparable_with = [](Value arg) -> bool {
-        return arg.is_fast_integer() || arg->is_integer() || arg->is_float();
+        return arg.is_fast_integer() || arg.is_fast_float() || arg->is_integer() || arg->is_float();
     };
 
     // Check if we might want to coerce the value
@@ -250,6 +258,8 @@ Value IntegerObject::cmp(Env *env, Value arg) {
 bool IntegerObject::eq(Env *env, Value other) {
     if (other.is_fast_integer())
         return m_integer == other.get_fast_integer();
+    if (other.is_fast_float())
+        return m_integer == other.get_fast_float();
 
     other.unguard();
 
@@ -272,6 +282,8 @@ bool IntegerObject::eq(Env *env, Value other) {
 bool IntegerObject::lt(Env *env, Value other) {
     if (other.is_fast_integer())
         return m_integer < other.get_fast_integer();
+    if (other.is_fast_float())
+        return m_integer < other.get_fast_float();
 
     other.unguard();
 
@@ -294,6 +306,8 @@ bool IntegerObject::lt(Env *env, Value other) {
 bool IntegerObject::lte(Env *env, Value other) {
     if (other.is_fast_integer())
         return m_integer <= other.get_fast_integer();
+    if (other.is_fast_float())
+        return m_integer <= other.get_fast_float();
 
     other.unguard();
 
@@ -316,6 +330,8 @@ bool IntegerObject::lte(Env *env, Value other) {
 bool IntegerObject::gt(Env *env, Value other) {
     if (other.is_fast_integer())
         return m_integer > other.get_fast_integer();
+    if (other.is_fast_float())
+        return m_integer > other.get_fast_float();
 
     other.unguard();
 
@@ -338,6 +354,8 @@ bool IntegerObject::gt(Env *env, Value other) {
 bool IntegerObject::gte(Env *env, Value other) {
     if (other.is_fast_integer())
         return m_integer >= other.get_fast_integer();
+    if (other.is_fast_float())
+        return m_integer >= other.get_fast_float();
 
     other.unguard();
 
@@ -396,20 +414,26 @@ Value IntegerObject::succ(Env *env) {
 Value IntegerObject::coerce(Env *env, Value arg) {
     ArrayObject *ary = new ArrayObject {};
     switch (arg->type()) {
-    case Object::Type::Float:
-        ary->push(arg);
-        ary->push(new FloatObject { to_nat_int_t() });
-        break;
     case Object::Type::Integer:
         ary->push(arg);
         ary->push(this);
         break;
     case Object::Type::String:
-        printf("TODO\n");
-        abort();
+        ary->push(send(env, "Float"_s, { arg }));
+        ary->push(send(env, "to_f"_s));
         break;
     default:
-        env->raise("ArgumentError", "invalid value for Float(): {}", arg->inspect_str(env));
+        if (!arg->is_float() && arg->respond_to(env, "to_f"_s)) {
+            arg = arg.send(env, "to_f"_s);
+        }
+
+        if (arg->is_float()) {
+            ary->push(arg);
+            ary->push(send(env, "to_f"_s));
+            break;
+        }
+
+        env->raise("TypeError", "can't convert {} into Float", arg->inspect_str(env));
     }
     return ary;
 }
@@ -433,6 +457,8 @@ Value IntegerObject::floor(Env *env, Value arg) {
 bool IntegerObject::eql(Env *env, Value other) {
     if (other.is_fast_integer())
         return m_integer == other.get_fast_integer();
+    if (other.is_fast_float())
+        return false;
 
     other.unguard();
 

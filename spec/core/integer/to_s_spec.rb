@@ -53,9 +53,9 @@ describe "Integer#to_s" do
     end
   end
 
-  # NATFIXME: Implement Bignums
-  xcontext "bignum" do
-    describe "when given a base" do
+  context "bignum" do
+    # NATFIXME: Implement Integer#to_s with given base for bignums
+    xdescribe "when given a base" do
       it "returns self converted to a String using the given base" do
         a = 2**64
         a.to_s(2).should == "10000000000000000000000000000000000000000000000000000000000000000"
@@ -72,7 +72,7 @@ describe "Integer#to_s" do
       end
     end
 
-    xdescribe "when given no base" do
+    describe "when given no base" do
       it "returns self converted to a String using base 10" do
         bignum_value(9).to_s.should == "9223372036854775817"
         bignum_value.to_s.should == "9223372036854775808"
@@ -80,21 +80,23 @@ describe "Integer#to_s" do
       end
     end
 
-    before :each do
-      @internal = Encoding.default_internal
-    end
+    # NATFIXME: Implement Encoding#default_internal
+    # before :each do
+    #   @internal = Encoding.default_internal
+    # end
 
-    after :each do
-      Encoding.default_internal = @internal
-    end
+    # after :each do
+    #   Encoding.default_internal = @internal
+    # end
 
-
-    it "returns a String in US-ASCII encoding when Encoding.default_internal is nil" do
+    # NATFIXME: Implement Encoding::US_ASCII
+    xit "returns a String in US-ASCII encoding when Encoding.default_internal is nil" do
       Encoding.default_internal = nil
       bignum_value.to_s.encoding.should equal(Encoding::US_ASCII)
     end
 
-    it "returns a String in US-ASCII encoding when Encoding.default_internal is not nil" do
+    # NATFIXME: Implement Encoding::US_ASCII and Encoding::IBM437
+    xit "returns a String in US-ASCII encoding when Encoding.default_internal is not nil" do
       Encoding.default_internal = Encoding::IBM437
       bignum_value.to_s.encoding.should equal(Encoding::US_ASCII)
     end

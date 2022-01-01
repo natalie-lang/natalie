@@ -667,13 +667,13 @@ protected:
 
 class DefNode : public NodeWithArgs {
 public:
-    DefNode(Token *token, Node *self_node, IdentifierNode *name, ManagedVector<Node *> &args, BlockNode *body)
+    DefNode(Token *token, Node *self_node, String *name, ManagedVector<Node *> &args, BlockNode *body)
         : NodeWithArgs { token, args }
         , m_self_node { self_node }
         , m_name { name }
         , m_body { body } { }
 
-    DefNode(Token *token, IdentifierNode *name, ManagedVector<Node *> &args, BlockNode *body)
+    DefNode(Token *token, String *name, ManagedVector<Node *> &args, BlockNode *body)
         : NodeWithArgs { token, args }
         , m_name { name }
         , m_body { body } { }
@@ -688,7 +688,7 @@ protected:
     SexpObject *build_args_sexp(Env *);
 
     Node *m_self_node { nullptr };
-    IdentifierNode *m_name { nullptr };
+    String *m_name { nullptr };
     BlockNode *m_body { nullptr };
 };
 

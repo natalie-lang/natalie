@@ -211,8 +211,23 @@ Value StringObject::add(Env *env, Value arg) const {
 }
 
 Value StringObject::mul(Env *env, Value arg) const {
+    auto to_int = "to_int"_s;
+    if (!arg->is_integer() && arg->respond_to(env, to_int))
+        arg = arg->send(env, to_int);
+
     arg->assert_type(env, Object::Type::Integer, "Integer");
+
+    if (arg->as_integer()->is_negative())
+        env->raise("ArgumentError", "negative argument");
+
+    if (arg->as_integer()->has_to_be_bignum())
+        arg->as_integer()->assert_fixnum(env);
+
+    // TODO: copy encoding?
     StringObject *new_string = new StringObject { "" };
+    if (this->is_empty())
+        return new_string;
+
     for (nat_int_t i = 0; i < arg->as_integer()->to_nat_int_t(); i++) {
         new_string->append(env, this);
     }
@@ -480,7 +495,7 @@ Value StringObject::gsub(Env *env, Value find, Value replacement_value, Block *b
 }
 
 StringObject *StringObject::regexp_sub(Env *env, RegexpObject *find, StringObject *replacement, MatchDataObject **match, StringObject **expanded_replacement, size_t start_index) {
-    Value match_result = find->as_regexp()->match(env, this, start_index);
+    Value match_result = find->send(env, "match"_s, { this, Value::integer(start_index) });
     if (match_result == NilObject::the())
         return dup(env)->as_string();
     *match = match_result->as_match_data();
@@ -829,6 +844,43 @@ void StringObject::append(Env *env, Value val) {
         append(env, val->as_string()->c_str());
     else
         append(env, val->inspect_str(env));
+}
+
+Value StringObject::convert_float() {
+    if (m_string[0] == '_' || m_string.last_char() == '_') return nullptr;
+
+    auto check_underscores = [this](char delimiter) -> bool {
+        ssize_t p = m_string.find(delimiter);
+        if (p == -1)
+            p = m_string.find((char)toupper(delimiter));
+
+        if (p != -1 && (m_string[p - 1] == '_' || m_string[p + 1] == '_'))
+            return false;
+
+        return true;
+    };
+
+    if (m_string[0] == '0' && (m_string[1] == 'x' || m_string[1] == 'X') && m_string[2] == '_')
+        return nullptr;
+
+    if (!check_underscores('p') || !check_underscores('e')) return nullptr;
+
+    if (m_string.find(0) != -1) return nullptr;
+
+    char *endptr = nullptr;
+    String string = String(m_string);
+
+    string.remove('_');
+    string.strip_trailing_whitespace();
+    if (string.length() == 0) return nullptr;
+
+    double value = strtod(string.c_str(), &endptr);
+
+    if (endptr[0] == '\0') {
+        return new FloatObject { value };
+    } else {
+        return nullptr;
+    }
 }
 
 }

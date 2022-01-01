@@ -31,8 +31,7 @@ describe :integer_equal, shared: true do
 
     it "returns true if self has the same value as the given argument" do
       @bignum.send(@method, @bignum).should == true
-      # NATFIXME: Implement Integer#to_f for bignums
-      # @bignum.send(@method, @bignum.to_f).should == true
+      @bignum.send(@method, @bignum.to_f).should == true
 
       @bignum.send(@method, @bignum + 1).should == false
       (@bignum + 1).send(@method, @bignum).should == false

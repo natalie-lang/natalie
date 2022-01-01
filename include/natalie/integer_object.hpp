@@ -19,8 +19,12 @@ public:
         : Object { Object::Type::Integer, GlobalEnv::the()->Integer() }
         , m_integer { integer } { }
 
-    nat_int_t to_nat_int_t() const {
+    virtual nat_int_t to_nat_int_t() const {
         return m_integer;
+    }
+
+    virtual bool is_negative() const {
+        return m_integer < 0;
     }
 
     bool is_zero() const {
@@ -32,7 +36,7 @@ public:
     }
 
     bool is_even() const {
-        return m_integer % 2 == 0;
+        return !is_odd();
     }
 
     static Value from_size_t(Env *env, size_t number) {
@@ -73,6 +77,7 @@ public:
     virtual bool gt(Env *, Value);
     virtual bool gte(Env *, Value);
     virtual bool is_bignum() const { return false; }
+    virtual bool has_to_be_bignum() const { return false; }
     bool is_fixnum() const { return !is_bignum(); }
 
     void assert_fixnum(Env *env) const {

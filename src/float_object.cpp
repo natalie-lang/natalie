@@ -5,6 +5,16 @@
 
 namespace Natalie {
 
+Value f_to_i_or_bigint(double value) {
+    assert(value == ::round(value));
+    if (value >= (double)NAT_INT_MAX || value <= (double)NAT_INT_MAX) {
+        auto *bignum = new BignumObject { value };
+        if (bignum->has_to_be_bignum())
+            return bignum;
+    }
+    return Value::integer(value);
+}
+
 Value FloatObject::is_infinite(Env *env) const {
     if (is_positive_infinity()) {
         return Value::integer(1);
@@ -16,6 +26,11 @@ Value FloatObject::is_infinite(Env *env) const {
 }
 
 bool FloatObject::eq(Env *env, Value other) {
+    if (other.is_fast_integer())
+        return m_double == other.get_fast_integer();
+    if (other.is_fast_float())
+        return m_double == other.get_fast_float();
+
     if (other->is_integer()) {
         return m_double == other->as_integer()->to_nat_int_t();
     }
@@ -31,93 +46,53 @@ bool FloatObject::eq(Env *env, Value other) {
 }
 
 bool FloatObject::eql(Value other) const {
+    if (other.is_fast_float())
+        return m_double == other.get_fast_float();
+    if (other.is_fast_integer())
+        return false;
+    other.unguard();
+
     if (!other->is_float()) return false;
     auto *f = other->as_float();
     return f->m_double == m_double;
 }
 
-Value FloatObject::ceil(Env *env, Value precision_value) const {
-    double value = this->to_double();
-    nat_int_t precision = 0;
-    if (precision_value) {
-        precision_value->assert_type(env, Object::Type::Integer, "Integer");
-        precision = precision_value->as_integer()->to_nat_int_t();
+#define ROUNDING_OPERATION(name, libm_name)                                      \
+    Value FloatObject::name(Env *env, Value precision_value) {                   \
+        nat_int_t precision = 0;                                                 \
+        if (precision_value) {                                                   \
+            if (precision_value->is_float()) {                                   \
+                precision_value = precision_value->as_float()->to_i(env);        \
+            }                                                                    \
+            precision_value->assert_type(env, Object::Type::Integer, "Integer"); \
+            precision = precision_value->as_integer()->to_nat_int_t();           \
+        }                                                                        \
+        if (precision <= 0 && (is_nan() || is_infinity()))                       \
+            env->raise("FloatDomainError", this->inspect_str(env));              \
+                                                                                 \
+        if (is_infinity())                                                       \
+            return Value { m_double };                                           \
+                                                                                 \
+        FloatObject *result;                                                     \
+        if (precision == 0)                                                      \
+            return f_to_i_or_bigint(::libm_name(m_double));                      \
+                                                                                 \
+        double f = ::pow(10, precision);                                         \
+        double rounded = ::libm_name(m_double * f) / f;                          \
+        if (isinf(f) || isinf(rounded)) {                                        \
+            return Value { m_double };                                           \
+        }                                                                        \
+        if (precision < 0)                                                       \
+            return f_to_i_or_bigint(rounded);                                    \
+                                                                                 \
+        /* precision > 0 */                                                      \
+        return new FloatObject { rounded };                                      \
     }
-    FloatObject *result;
-    if (precision == 0) {
-        result = new FloatObject { ::ceil(value) };
-    } else {
-        double f = ::pow(10, precision);
-        value = ::ceil(value * f) / f;
-        result = new FloatObject { value };
-    }
-    if (precision <= 0) {
-        return result->to_int_no_truncation(env);
-    }
-    return result;
-}
 
-Value FloatObject::floor(Env *env, Value precision_value) const {
-    double value = this->to_double();
-    nat_int_t precision = 0;
-    if (precision_value) {
-        precision_value->assert_type(env, Object::Type::Integer, "Integer");
-        precision = precision_value->as_integer()->to_nat_int_t();
-    }
-    FloatObject *result;
-    if (precision == 0) {
-        result = new FloatObject { ::floor(value) };
-    } else {
-        double f = ::pow(10, precision);
-        value = ::floor(value * f) / f;
-        result = new FloatObject { value };
-    }
-    if (precision <= 0) {
-        return result->to_int_no_truncation(env);
-    }
-    return result;
-}
-
-Value FloatObject::round(Env *env, Value precision_value) {
-    double value = this->to_double();
-    nat_int_t precision = 0;
-    if (precision_value) {
-        if (precision_value->is_float()) {
-            precision_value = precision_value->as_float()->to_i(env);
-        }
-        precision_value->assert_type(env, Object::Type::Integer, "Integer");
-        precision = precision_value->as_integer()->to_nat_int_t();
-    }
-    if (precision <= 0 && (is_nan() || is_infinity())) {
-        env->raise("FloatDomainError", this->inspect_str(env));
-    }
-    if (is_infinity()) {
-        return new FloatObject { value };
-    }
-    FloatObject *result;
-    if (precision == 0) {
-        result = new FloatObject { ::round(value) };
-    } else {
-        double f = ::pow(10, precision);
-        double rounded = ::round(value * f) / f;
-        if (isinf(f) || isinf(rounded)) {
-            result = new FloatObject { value };
-        } else {
-            result = new FloatObject { rounded };
-        }
-    }
-    if (precision <= 0) {
-        return result->to_int_no_truncation(env);
-    }
-    return result;
-}
-
-Value FloatObject::truncate(Env *env, Value precision_value) const {
-    if (is_negative()) {
-        return ceil(env, precision_value);
-    }
-    return floor(env, precision_value);
-}
+ROUNDING_OPERATION(floor, floor)
+ROUNDING_OPERATION(round, round)
+ROUNDING_OPERATION(ceil, ceil)
+ROUNDING_OPERATION(truncate, trunc)
 
 Value FloatObject::to_s(Env *env) const {
     if (is_nan()) {
@@ -172,9 +147,34 @@ Value FloatObject::to_s(Env *env) const {
     return new StringObject { string };
 }
 
-Value FloatObject::cmp(Env *env, Value other) {
+Value FloatObject::cmp(Env *env, Value rhs) {
+    if (rhs.is_fast_float()) {
+        double lhs_d = m_double;
+        double rhs_d = rhs.get_fast_float();
+
+        if (lhs_d < rhs_d) {
+            return Value::integer(-1);
+        } else if (lhs_d == rhs_d) {
+            return Value::integer(0);
+        } else {
+            return Value::integer(1);
+        }
+    }
+    if (rhs.is_fast_integer()) {
+        double lhs_d = m_double;
+        nat_int_t rhs_i = rhs.get_fast_integer();
+
+        if (lhs_d < rhs_i) {
+            return Value::integer(-1);
+        } else if (lhs_d == rhs_i) {
+            return Value::integer(0);
+        } else {
+            return Value::integer(1);
+        }
+    }
+    rhs.unguard();
+
     Value lhs = this;
-    Value rhs = other;
 
     if (!rhs->is_float()) {
         auto coerced = Natalie::coerce(env, rhs, lhs);
@@ -223,10 +223,18 @@ Value FloatObject::coerce(Env *env, Value arg) {
 }
 
 Value FloatObject::to_i(Env *env) const {
-    return floor(env, nullptr);
+    return f_to_i_or_bigint(::floor(m_double));
 }
 
 Value FloatObject::add(Env *env, Value rhs) {
+    if (rhs.is_fast_integer()) {
+        return Value { m_double + rhs.get_fast_integer() };
+    }
+    if (rhs.is_fast_float()) {
+        return Value { m_double + rhs.get_fast_float() };
+    }
+    rhs.unguard();
+
     Value lhs = this;
 
     if (!rhs->is_float()) {
@@ -240,10 +248,18 @@ Value FloatObject::add(Env *env, Value rhs) {
 
     double addend1 = to_double();
     double addend2 = rhs->as_float()->to_double();
-    return new FloatObject { addend1 + addend2 };
+    return Value { addend1 + addend2 };
 }
 
 Value FloatObject::sub(Env *env, Value rhs) {
+    if (rhs.is_fast_integer()) {
+        return Value { m_double - rhs.get_fast_integer() };
+    }
+    if (rhs.is_fast_float()) {
+        return Value { m_double - rhs.get_fast_float() };
+    }
+    rhs.unguard();
+
     Value lhs = this;
 
     if (!rhs->is_float()) {
@@ -257,10 +273,18 @@ Value FloatObject::sub(Env *env, Value rhs) {
 
     double minuend = to_double();
     double subtrahend = rhs->as_float()->to_double();
-    return new FloatObject { minuend - subtrahend };
+    return Value { minuend - subtrahend };
 }
 
 Value FloatObject::mul(Env *env, Value rhs) {
+    if (rhs.is_fast_integer()) {
+        return Value { m_double * rhs.get_fast_integer() };
+    }
+    if (rhs.is_fast_float()) {
+        return Value { m_double * rhs.get_fast_float() };
+    }
+    rhs.unguard();
+
     Value lhs = this;
 
     if (!rhs->is_float()) {
@@ -273,11 +297,19 @@ Value FloatObject::mul(Env *env, Value rhs) {
     if (!rhs->is_float()) rhs->assert_type(env, Object::Type::Float, "Float");
 
     double multiplicand = to_double();
-    double mulitiplier = rhs->as_float()->to_double();
-    return new FloatObject { multiplicand * mulitiplier };
+    double multiplier = rhs->as_float()->to_double();
+    return Value { multiplicand * multiplier };
 }
 
 Value FloatObject::div(Env *env, Value rhs) {
+    if (rhs.is_fast_integer()) {
+        return Value { m_double / rhs.get_fast_integer() };
+    }
+    if (rhs.is_fast_float()) {
+        return Value { m_double / rhs.get_fast_float() };
+    }
+    rhs.unguard();
+
     Value lhs = this;
 
     if (!rhs->is_float()) {
@@ -292,10 +324,21 @@ Value FloatObject::div(Env *env, Value rhs) {
     double dividend = to_double();
     double divisor = rhs->as_float()->to_double();
 
-    return new FloatObject { dividend / divisor };
+    return Value { dividend / divisor };
 }
 
 Value FloatObject::mod(Env *env, Value rhs) {
+    if (rhs.is_fast_integer()) {
+        if (rhs.get_fast_integer() == 0) env->raise("ZeroDivisionError", "divided by 0");
+        return Value { fmod(m_double, rhs.get_fast_integer()) };
+    }
+    if (rhs.is_fast_float()) {
+        if (rhs.get_fast_float() == 0) env->raise("ZeroDivisionError", "divided by 0");
+        if (rhs.get_fast_float() == -INFINITY) return rhs;
+        return Value { fmod(m_double, rhs.get_fast_float()) };
+    }
+    rhs.unguard();
+
     Value lhs = this;
 
     bool rhs_is_non_zero = (rhs->is_float() && !rhs->as_float()->is_zero()) || (rhs->is_integer() && !rhs->as_integer()->is_zero());
@@ -315,14 +358,31 @@ Value FloatObject::mod(Env *env, Value rhs) {
     double dividend = to_double();
     double divisor = rhs->as_float()->to_double();
 
-    if (divisor == 0.0) env->raise("ZeroDivisionError", "divided by 0");
+    if (divisor == 0) env->raise("ZeroDivisionError", "divided by 0");
 
-    return new FloatObject { fmod(dividend, divisor) };
+    return Value { fmod(dividend, divisor) };
 }
 
 Value FloatObject::divmod(Env *env, Value arg) {
     if (is_nan()) env->raise("FloatDomainError", "NaN");
     if (is_infinity()) env->raise("FloatDomainError", "Infinity");
+
+    if (arg.is_fast_integer()) {
+        if (arg.get_fast_integer() == 0) env->raise("ZeroDivisionError", "divided by 0");
+        return new ArrayObject {
+            Value { f_to_i_or_bigint(::floor(m_double / arg.get_fast_integer())) },
+            Value { ::fmod(m_double, arg.get_fast_integer()) }
+        };
+    }
+    if (arg.is_fast_float()) {
+        if (arg.get_fast_float() == 0) env->raise("ZeroDivisionError", "divided by 0");
+        if (isnan(arg.get_fast_float())) env->raise("FloatDomainError", "NaN");
+        return new ArrayObject {
+            Value { f_to_i_or_bigint(::floor(m_double / arg.get_fast_float())) },
+            Value { arg.get_fast_float() == -INFINITY ? ::fmod(m_double, arg.get_fast_integer()) : -INFINITY }
+        };
+    }
+    arg.unguard();
 
     if (!arg->is_numeric()) env->raise("TypeError", "{} can't be coerced into Float", arg->klass()->class_name_or_blank());
     if (arg->is_float() && arg->as_float()->is_nan()) env->raise("FloatDomainError", "NaN");
@@ -333,12 +393,20 @@ Value FloatObject::divmod(Env *env, Value arg) {
     Value modulus = mod(env, arg);
 
     return new ArrayObject {
-        division->as_float()->floor(env, 0),
+        f_to_i_or_bigint(::floor(division.get_fast_float())),
         modulus
     };
 }
 
 Value FloatObject::pow(Env *env, Value rhs) {
+    if (rhs.is_fast_integer()) {
+        return Value { ::pow(m_double, rhs.get_fast_integer()) };
+    }
+    if (rhs.is_fast_float()) {
+        return Value { ::pow(m_double, rhs.get_fast_float()) };
+    }
+    rhs.unguard();
+
     Value lhs = this;
 
     if (!rhs->is_float()) {
@@ -353,26 +421,19 @@ Value FloatObject::pow(Env *env, Value rhs) {
     double base = to_double();
     double exponent = rhs->as_float()->to_double();
 
-    return new FloatObject { ::pow(base, exponent) };
+    return Value { ::pow(base, exponent) };
 }
 
 Value FloatObject::abs(Env *env) const {
-    auto number = to_double();
-    if (number == -0.0 || number < 0.0) {
-        return negate();
-    } else {
-        return new FloatObject { *this };
-    }
+    return Value { fabs(m_double) };
 }
 
 Value FloatObject::next_float(Env *env) const {
-    double number = nextafter(to_double(), HUGE_VAL);
-    return new FloatObject { number };
+    return Value { ::nextafter(to_double(), HUGE_VAL) };
 }
 
 Value FloatObject::prev_float(Env *env) const {
-    double number = nextafter(to_double(), -HUGE_VAL);
-    return new FloatObject { number };
+    return Value { ::nextafter(to_double(), -HUGE_VAL) };
 }
 
 Value FloatObject::arg(Env *env) {
@@ -384,8 +445,37 @@ Value FloatObject::arg(Env *env) {
     }
 }
 
+bool FloatObject::optimized_method(SymbolObject *method_name) {
+    if (s_optimized_methods.is_empty()) {
+        // NOTE: No method that ever returns 'this' can be an "optimized" method. Trust me!
+        // FIXME: Is this list correct?
+        //        Can it be expanded?
+        s_optimized_methods.set("+"_s);
+        s_optimized_methods.set("-"_s);
+        s_optimized_methods.set("*"_s);
+        s_optimized_methods.set("/"_s);
+        s_optimized_methods.set("%"_s);
+        s_optimized_methods.set("**"_s);
+        s_optimized_methods.set("<=>"_s);
+        s_optimized_methods.set("=="_s);
+        s_optimized_methods.set("==="_s);
+        s_optimized_methods.set("<"_s);
+        s_optimized_methods.set("<="_s);
+        s_optimized_methods.set(">"_s);
+        s_optimized_methods.set(">="_s);
+        s_optimized_methods.set("eql?"_s);
+    }
+    return !!s_optimized_methods.get(method_name);
+}
+
 #define NAT_DEFINE_FLOAT_COMPARISON_METHOD(name, op)                                                                \
     bool FloatObject::name(Env *env, Value rhs) {                                                                   \
+        if (rhs.is_fast_float())                                                                                    \
+            return m_double op rhs.get_fast_float();                                                                \
+        if (rhs.is_fast_integer())                                                                                  \
+            return m_double op rhs.get_fast_integer();                                                              \
+        rhs.unguard();                                                                                              \
+                                                                                                                    \
         Value lhs = this;                                                                                           \
                                                                                                                     \
         if (!rhs->is_float()) {                                                                                     \
@@ -413,5 +503,4 @@ NAT_DEFINE_FLOAT_COMPARISON_METHOD(lt, <)
 NAT_DEFINE_FLOAT_COMPARISON_METHOD(lte, <=)
 NAT_DEFINE_FLOAT_COMPARISON_METHOD(gt, >)
 NAT_DEFINE_FLOAT_COMPARISON_METHOD(gte, >=)
-
 }

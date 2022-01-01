@@ -14,7 +14,20 @@ extern "C" {
 #include "onigmo.h"
 }
 
+#define ENUMERATE_REGEX_OPTS(C)         \
+    C(IgnoreCase, IGNORECASE, 1)        \
+    C(Extended, EXTENDED, 2)            \
+    C(MultiLine, MULTILINE, 4)          \
+    C(FixedEncoding, FIXEDENCODING, 16) \
+    C(NoEncoding, NOENCODING, 32)
+
 namespace Natalie {
+
+enum RegexOpts {
+#define REGEX_OPTS_ENUM_VALUES(cpp_name, ruby_name, bits) cpp_name = bits,
+    ENUMERATE_REGEX_OPTS(REGEX_OPTS_ENUM_VALUES)
+#undef REGEX_OPTS_ENUM_VALUES
+};
 
 class RegexpObject : public Object {
 public:
@@ -35,17 +48,24 @@ public:
         free(const_cast<char *>(m_pattern));
     }
 
-    static Value compile(Env *env, Value pattern, Value flags) {
+    static Value compile(Env *env, Value pattern, Value flags, ClassObject *klass) {
         pattern->assert_type(env, Object::Type::String, "String");
-        int options = 0;
-        if (flags) {
-            if (flags->is_integer())
-                options = flags->as_integer()->to_nat_int_t();
-            else if (flags->is_truthy())
-                options = 1;
-        }
-        RegexpObject *regexp = new RegexpObject { env, pattern->as_string()->c_str(), options };
+        RegexpObject *regexp = new RegexpObject { klass };
+        regexp->send(env, "initialize"_s, { pattern, flags });
         return regexp;
+    }
+
+    static Value last_match(Env *, Value);
+
+    static Value literal(Env *env, const char *pattern, int options = 0) {
+        auto regex = new RegexpObject(env, pattern, options);
+        regex->freeze();
+        return regex;
+    }
+
+    Value hash() {
+        auto hash = (m_options & ~RegexOpts::NoEncoding) + TM::Hashmap<void *>::hash_str(m_pattern);
+        return Value::integer(hash);
     }
 
     void initialize(Env *env, const char *pattern, int options = 0) {
@@ -72,13 +92,13 @@ public:
         for (char *c = const_cast<char *>(options->c_str()); *c != '\0'; ++c) {
             switch (*c) {
             case 'i':
-                m_options |= 1;
+                m_options |= RegexOpts::IgnoreCase;
                 break;
             case 'x':
-                m_options |= 2;
+                m_options |= RegexOpts::Extended;
                 break;
             case 'm':
-                m_options |= 4;
+                m_options |= RegexOpts::MultiLine;
                 break;
             default:
                 break;
@@ -89,7 +109,12 @@ public:
     bool operator==(const Object &other) const {
         if (!other.is_regexp()) return false;
         RegexpObject *other_regexp = const_cast<Object &>(other).as_regexp();
-        return strcmp(m_pattern, other_regexp->m_pattern) == 0 && m_options == other_regexp->m_options;
+        return strcmp(m_pattern, other_regexp->m_pattern) == 0 && (m_options | RegexOpts::NoEncoding) == (other_regexp->m_options | RegexOpts::NoEncoding);
+        // /n encoding option is ignored when doing == in ruby MRI
+    }
+
+    bool casefold() const {
+        return m_options & RegexOpts::IgnoreCase;
     }
 
     int search(const char *str, OnigRegion *region, OnigOptionType options) {
@@ -110,16 +135,24 @@ public:
 
     bool eqeqeq(Env *env, Value other) {
         if (!other->is_string() && !other->is_symbol()) {
-            return false;
+            if (!other->respond_to(env, "to_str"_s))
+                return false;
+            other = other->send(env, "to_str"_s);
         }
         return match(env, other)->is_truthy();
     }
 
-    Value initialize(Env *, Value);
+    Value tilde(Env *env) {
+        return this->send(env, "=~"_s, { env->global_get("$_"_s) });
+    }
+
+    bool has_match(Env *env, Value, Value);
+    Value initialize(Env *, Value, Value);
     Value inspect(Env *env);
     Value eqtilde(Env *env, Value);
-    Value match(Env *env, Value, size_t = 0);
+    Value match(Env *env, Value, Value = nullptr, Block * = nullptr);
     Value source(Env *env);
+    Value to_s(Env *env);
 
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<RegexpObject %p>", this);

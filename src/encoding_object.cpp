@@ -5,6 +5,22 @@ namespace Natalie {
 EncodingObject::EncodingObject()
     : Object { Object::Type::Encoding, GlobalEnv::the()->Object()->const_fetch("Encoding"_s)->as_class() } { }
 
+HashObject *EncodingObject::aliases(Env *env) {
+    auto aliases = new HashObject();
+    for (auto encoding : *list(env)) {
+        auto enc = encoding->as_encoding();
+        auto names = enc->m_names;
+
+        if (names.size() < 2)
+            continue;
+
+        auto original = names[0]->dup(env);
+        for (size_t i = 1; i < names.size(); ++i)
+            aliases->put(env, names[i]->dup(env), original);
+    }
+    return aliases;
+}
+
 ArrayObject *EncodingObject::list(Env *) {
     Value Encoding = GlobalEnv::the()->Object()->const_fetch("Encoding"_s);
     return new ArrayObject {
