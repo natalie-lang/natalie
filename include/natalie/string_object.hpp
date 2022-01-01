@@ -145,6 +145,7 @@ public:
     Value add(Env *, Value) const;
     Value bytes(Env *) const;
     Value cmp(Env *, Value) const;
+    Value concat(Env *env, size_t argc, Value *args);
     Value downcase(Env *);
     Value encode(Env *, Value);
     Value encoding(Env *);

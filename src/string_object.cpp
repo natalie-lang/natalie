@@ -251,6 +251,39 @@ Value StringObject::cmp(Env *env, Value other) const {
     return Value::integer(0);
 }
 
+Value StringObject::concat(Env *env, size_t argc, Value *args) {
+    assert_not_frozen(env);
+
+    StringObject *original = new StringObject(*this);
+    
+    auto to_str = "to_str"_s;
+    for (size_t i = 0; i < argc; i++) {
+        auto arg = args[i];
+
+        if (arg == this)
+            arg = original;
+
+        StringObject *str_obj;
+        if (arg->is_string()) {
+            str_obj = arg->as_string();
+        } else if (arg->is_integer() && arg->as_integer()->to_nat_int_t() < 0) {
+            env->raise("RangeError", "less than 0");
+        } else if (arg->is_integer()) {
+            str_obj = arg.send(env, "chr"_s)->as_string();
+        } else if (arg->respond_to(env, to_str)) {
+            str_obj = arg.send(env, to_str)->as_string();
+        } else {
+            env->raise("TypeError", "cannot call to_str", arg->inspect_str(env));
+        }
+
+        str_obj->assert_type(env, Object::Type::String, "String");
+
+        append(env, str_obj->c_str());
+    }
+
+    return this;
+}
+
 bool StringObject::eq(Env *env, Value arg) {
     if (!arg->is_string() && arg->respond_to(env, "to_str"_s))
         return arg->send(env, "=="_s, { this });
