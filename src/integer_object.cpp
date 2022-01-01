@@ -408,6 +408,7 @@ Value IntegerObject::pred(Env *env) {
 }
 
 Value IntegerObject::size(Env *env) {
+    // NATFIXME: add Bignum support.
     return Value::integer(sizeof m_integer);
 }
 
