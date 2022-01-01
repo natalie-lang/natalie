@@ -24,12 +24,15 @@ public:
         , m_data { new T[initial_capacity] {} } { }
 
     Vector(size_t initial_capacity, T filler)
-        : Vector { initial_capacity } {
+        : m_size { initial_capacity }
+        , m_capacity { initial_capacity }
+        , m_data { new T[initial_capacity] {} } {
         fill(0, initial_capacity, filler);
     }
 
     Vector(std::initializer_list<T> list)
-        : Vector { list.size() } {
+        : m_capacity { list.size() }
+        , m_data { new T[list.size()] } {
         for (auto v : list) {
             push(v);
         }

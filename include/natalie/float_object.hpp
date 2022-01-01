@@ -57,20 +57,6 @@ public:
         return m_double;
     }
 
-    Value to_int_no_truncation(Env *env) {
-        if (is_nan() || is_infinity()) return this;
-        if (m_double == ::floor(m_double)) {
-            if (m_double >= (double)NAT_INT_MAX || m_double <= (double)NAT_INT_MAX) {
-                auto *bignum = new BignumObject { to_double() };
-                if (bignum->has_to_be_bignum())
-                    return bignum;
-            }
-
-            return Value::integer(static_cast<nat_int_t>(m_double));
-        }
-        return this;
-    }
-
     bool is_zero() const {
         return m_double == 0 && !is_nan();
     }
@@ -127,12 +113,12 @@ public:
     Value abs(Env *) const;
     Value add(Env *, Value);
     Value arg(Env *);
-    Value ceil(Env *, Value) const;
+    Value ceil(Env *, Value);
     Value cmp(Env *, Value);
     Value coerce(Env *, Value);
     Value div(Env *, Value);
     Value divmod(Env *, Value);
-    Value floor(Env *, Value) const;
+    Value floor(Env *, Value);
     Value mod(Env *, Value);
     Value mul(Env *, Value);
     Value next_float(Env *) const;
@@ -143,7 +129,7 @@ public:
     Value to_f() { return this; }
     Value to_i(Env *) const;
     Value to_s(Env *) const;
-    Value truncate(Env *, Value) const;
+    Value truncate(Env *, Value);
 
     bool lt(Env *, Value);
     bool lte(Env *, Value);
@@ -151,11 +137,11 @@ public:
     bool gte(Env *, Value);
 
     Value uminus() const {
-        return negate();
+        return Value { -m_double };
     }
 
     Value uplus() const {
-        return new FloatObject { *this };
+        return Value { m_double };
     }
 
     static void build_constants(Env *env, ClassObject *klass) {
@@ -174,11 +160,15 @@ public:
         klass->const_set("RADIX"_s, new FloatObject { double { std::numeric_limits<double>::radix } });
     }
 
+    static bool optimized_method(SymbolObject *);
+
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<FloatObject %p float=%f>", this, m_double);
     }
 
 private:
+    inline static Hashmap<SymbolObject *> s_optimized_methods {};
+
     double m_double { 0.0 };
 };
 }
