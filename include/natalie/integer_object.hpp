@@ -65,6 +65,7 @@ public:
     Value ceil(Env *, Value);
     Value coerce(Env *, Value);
     Value floor(Env *, Value);
+    Value gcd(Env *, Value);
     virtual Value abs(Env *);
     Value chr(Env *) const;
     virtual Value negate(Env *);
