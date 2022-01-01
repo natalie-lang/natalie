@@ -682,6 +682,7 @@ module Natalie
         fn, *args = exp
 
         return "Value::integer(#{args.map { |a| process_atom(a) }.join(', ')})" if fn == :'Value::integer'
+        return "Value::floatingpoint(#{args.map { |a| process_atom(a) }.join(', ')})" if fn == :'Value::integer'
 
         if VOID_FUNCTIONS.include?(fn)
           if METHODS.include?(fn)

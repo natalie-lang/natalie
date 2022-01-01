@@ -499,7 +499,7 @@ module Natalie
         lit = exp.last
         case lit
         when Float
-          exp.new(:new, :FloatObject, lit)
+          exp.new(:'Value::floatingpoint', lit)
         when Integer
           if lit > MAX_FIXNUM || lit < MIN_FIXNUM
             str = lit.to_s
