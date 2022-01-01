@@ -119,6 +119,9 @@ public:
     virtual Value private_method(Env *, size_t, Value *) override;
     virtual Value protected_method(Env *, size_t, Value *) override;
     Value public_method(Env *, size_t, Value *);
+    Value private_class_method(Env *, size_t, Value *);
+    Value public_class_method(Env *, size_t, Value *);
+    void set_method_visibility(Env *, size_t, Value *, MethodVisibility);
 
     Value private_constant(Env *, size_t, Value *);
     Value public_constant(Env *, size_t, Value *);
