@@ -28,15 +28,21 @@ public:
     explicit Value(nat_int_t integer)
         : m_type { Type::Integer }
         , m_integer { integer } { }
-
     explicit Value(double value)
         : m_type { Type::Double }
         , m_double { value } { }
 
     static Value integer(nat_int_t integer) {
-        // This is still required, beacause initialization by a literal is often
+        // This is required, beacause initialization by a literal is often
         // ambiguous.
         return Value { integer };
+    }
+    static Value floatingpoint(double value) {
+        // This is used in the code gen
+        // auto v =  Value { value };
+        // v.hydrate();
+        // return v;
+        return Value { value };
     }
 
     Object &operator*() {
@@ -80,7 +86,21 @@ public:
     }
 
     bool operator!=(Value other) const {
-        return !(*this == other);
+        if (is_fast_integer()) {
+            if (other.is_fast_integer())
+                return get_fast_integer() != other.get_fast_integer();
+            if (other.is_fast_float())
+                return get_fast_integer() != other.get_fast_float();
+            return true;
+        }
+        if (is_fast_float()) {
+            if (other.is_fast_integer())
+                return get_fast_integer() != other.get_fast_integer();
+            if (other.is_fast_float())
+                return get_fast_float() != other.get_fast_float();
+            return true;
+        }
+        return m_object != other.object();
     }
 
     bool is_null() const { return m_type == Type::Pointer && !m_object; }

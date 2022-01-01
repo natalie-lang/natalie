@@ -25,6 +25,7 @@ bool FloatObject::eq(Env *env, Value other) {
         return m_double == other.get_fast_integer();
     if (other.is_fast_float())
         return m_double == other.get_fast_float();
+    other.unguard();
 
     if (other->is_integer()) {
         auto integer = other->as_integer();
@@ -150,7 +151,8 @@ Value FloatObject::cmp(Env *env, Value rhs) {
     if (rhs.is_fast_float()) {
         double lhs_d = m_double;
         double rhs_d = rhs.get_fast_float();
-
+        if (is_nan() || isnan(rhs_d))
+            return NilObject::the();
         if (lhs_d < rhs_d) {
             return Value::integer(-1);
         } else if (lhs_d == rhs_d) {
@@ -393,7 +395,7 @@ Value FloatObject::divmod(Env *env, Value arg) {
         if (isnan(arg.get_fast_float())) env->raise("FloatDomainError", "NaN");
         return new ArrayObject {
             Value { f_to_i_or_bigint(::floor(m_double / arg.get_fast_float())) },
-            Value { arg.get_fast_float() == -INFINITY ? ::fmod(m_double, arg.get_fast_integer()) : -INFINITY }
+            Value { arg.get_fast_float() == -INFINITY ? -INFINITY : ::fmod(m_double, arg.get_fast_integer()) }
         };
     }
     arg.unguard();
@@ -460,6 +462,7 @@ Value FloatObject::arg(Env *env) {
 }
 
 bool FloatObject::optimized_method(SymbolObject *method_name) {
+    // return false;
     if (s_optimized_methods.is_empty()) {
         // NOTE: No method that ever returns 'this' can be an "optimized" method. Trust me!
         // FIXME: Is this list correct?

@@ -40,6 +40,12 @@ Value Value::public_send(Env *env, SymbolObject *name, size_t argc, Value *args,
         auto synthesized = IntegerObject { m_integer };
         return synthesized.public_send(env, name, argc, args, block);
     }
+    if (m_type == Type::Double && FloatObject::optimized_method(name)) {
+        if (argc > 0 && args[0].is_fast_float())
+            args[0].guard();
+        auto synthesized = FloatObject { m_double };
+        return synthesized.public_send(env, name, argc, args, block);
+    }
 
     return object()->public_send(env, name, argc, args, block);
 }
@@ -75,10 +81,15 @@ void Value::hydrate() {
         if (was_gc_enabled) Heap::the().gc_enable();
         break;
     }
-    case Type::Double:
+    case Type::Double: {
+        bool was_gc_enabled = Heap::the().gc_enabled();
+        Heap::the().gc_disable();
+        auto d = m_double;
+        m_object = new FloatObject { d };
         m_type = Type::Pointer;
-        m_object = new FloatObject { m_double };
+        if (was_gc_enabled) Heap::the().gc_enable();
         break;
+    }
     case Type::Pointer:
         break;
     }

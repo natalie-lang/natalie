@@ -784,6 +784,9 @@ void Object::assert_not_frozen(Env *env) {
 bool Object::equal(Value other) {
     if (is_integer() && other->is_integer())
         return as_integer()->to_nat_int_t() == other->as_integer()->to_nat_int_t();
+    // We still need the pointer compare for the identical NaN equality
+    if (is_float() && other->is_float())
+        return this == other.object() || as_float()->to_double() == other->as_float()->to_double();
 
     return other == this;
 }
