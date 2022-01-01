@@ -562,6 +562,10 @@ Value IntegerObject::floor(Env *env, Value arg) {
     return Value::integer(result);
 }
 
+Value IntegerObject::gcd(Env *env, Value divisor) {
+    return this;
+}
+
 bool IntegerObject::eql(Env *env, Value other) {
     if (other.is_fast_integer())
         return m_integer == other.get_fast_integer();
