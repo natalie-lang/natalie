@@ -255,7 +255,7 @@ Value StringObject::concat(Env *env, size_t argc, Value *args) {
     assert_not_frozen(env);
 
     StringObject *original = new StringObject(*this);
-    
+
     auto to_str = "to_str"_s;
     for (size_t i = 0; i < argc; i++) {
         auto arg = args[i];
