@@ -61,6 +61,7 @@ public:
     Value bitwise_or(Env *, Value) const;
     Value pred(Env *);
     Value succ(Env *);
+    Value ceil(Env *, Value);
     Value coerce(Env *, Value);
     Value floor(Env *, Value);
     virtual Value abs(Env *);

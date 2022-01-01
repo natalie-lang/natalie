@@ -438,6 +438,13 @@ Value IntegerObject::coerce(Env *env, Value arg) {
     return ary;
 }
 
+Value IntegerObject::ceil(Env *env, Value arg) {
+    if (arg == nullptr)
+        return this;
+
+    return this;
+}
+
 Value IntegerObject::floor(Env *env, Value arg) {
     if (arg == nullptr)
         return this;
