@@ -69,6 +69,7 @@ public:
     Value remove_instance_variable(Env *env, Value name_val);
     Value sleep(Env *env, Value length);
     Value spawn(Env *, size_t, Value *);
+    Value String(Env *env, Value value);
     Value tap(Env *env, Block *block);
     Value this_method(Env *env);
     bool is_a(Env *env, Value module);
