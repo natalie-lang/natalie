@@ -117,6 +117,20 @@ SymbolNode *Parser::parse_alias_arg(LocalsHashmap &locals, const char *expected_
     default:
         if (token->is_operator()) {
             advance();
+            if (token->can_precede_collapsible_newline()) {
+                // Some operators at the end of a line cause the newlines to be collapsed:
+                //
+                //     foo <<
+                //       bar
+                //
+                // ...but in this case (an alias), collapsing the newline was a mistake:
+                //
+                //     alias foo <<
+                //     def bar; end
+                //
+                // So, we'll put the newline back.
+                m_tokens->insert(m_index, new Token { Token::Type::Eol, token->file(), token->line(), token->column() });
+            }
             return new SymbolNode { token, new String(token->type_value()) };
         } else {
             throw_unexpected(expected_message);
