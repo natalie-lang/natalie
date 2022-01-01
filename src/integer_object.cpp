@@ -563,6 +563,8 @@ Value IntegerObject::floor(Env *env, Value arg) {
 }
 
 Value IntegerObject::gcd(Env *env, Value divisor) {
+    divisor->assert_type(env, Object::Type::Integer, "Integer");
+    
     return this;
 }
 
