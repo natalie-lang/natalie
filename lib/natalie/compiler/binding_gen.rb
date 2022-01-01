@@ -1,6 +1,7 @@
 class BindingGen
   def initialize
     @bindings = {}
+    @undefine_methods = []
     @undefine_singleton_methods = []
   end
 
@@ -10,6 +11,11 @@ class BindingGen
     b.increment_name while @bindings[b.name]
     @bindings[b.name] = b
     b.write
+  end
+
+  # mark a method as undefined on the Ruby class
+  def undefine_instance_method(rb_class, method)
+    @undefine_methods << [rb_class, method]
   end
 
   # define a method on the Ruby *SINGLETON* class and link it to a method on the C++ class
@@ -39,6 +45,9 @@ class BindingGen
       if binding.needs_to_set_visibility?
         puts "    #{binding.rb_class_as_c_variable}->#{binding.set_visibility_method_name}(env, #{binding.rb_method.inspect}_s);"
       end
+    end
+    @undefine_methods.each do |rb_class, method|
+      puts "    #{rb_class}->undefine_method(env, #{method.inspect}_s);"
     end
     @undefine_singleton_methods.each do |rb_class, method|
       puts "    #{rb_class}->undefine_singleton_method(env, #{method.inspect}_s);"
