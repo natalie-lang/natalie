@@ -120,6 +120,8 @@ public:
 
     bool const_defined(Env *, Value);
     Value alias_method(Env *, Value, Value);
+    Value remove_method(Env *, size_t, Value *);
+    Value undef_method(Env *, size_t, Value *);
 
     bool eqeqeq(Env *env, Value other) {
         return other->is_a(env, this);

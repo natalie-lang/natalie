@@ -167,8 +167,7 @@ module KernelSpecs
     def pub_method; :public_method; end
 
     def undefed_method; :undefed_method; end
-    # NATFIXME
-    #undef_method :undefed_method
+    undef_method :undefed_method
 
     protected
     def protected_method; :protected_method; end
@@ -325,13 +324,11 @@ module KernelSpecs
   end
 
   class Child < Parent
-    # NATFIXME
-    #undef_method :parent_method
+    undef_method :parent_method
   end
 
   class Grandchild < Child
-    # NATFIXME
-    #undef_method :parent_mixin_method
+    undef_method :parent_mixin_method
   end
 
   # for testing lambda
