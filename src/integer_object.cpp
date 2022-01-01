@@ -129,17 +129,25 @@ Value IntegerObject::sub(Env *env, Value arg) {
     return sub_fast(m_integer, other->to_nat_int_t());
 }
 
-Value mul_fast(nat_int_t a, nat_int_t b) {
-    if (a == 0 || b == 0)
-        return Value::integer(0);
+bool will_multiplication_overflow(nat_int_t a, nat_int_t b) {
+    if (a == b) {
+        return a > NAT_MAX_FIXNUM_SQRT || a < -NAT_MAX_FIXNUM_SQRT;
+    }
 
     auto min_fraction = (NAT_MIN_FIXNUM) / b;
     auto max_fraction = (NAT_MAX_FIXNUM) / b;
 
-    if ((a > 0 && b > 0 && max_fraction <= a)
+    return ((a > 0 && b > 0 && max_fraction <= a)
         || (a > 0 && b < 0 && min_fraction <= a)
         || (a < 0 && b > 0 && min_fraction >= a)
-        || (a < 0 && b < 0 && max_fraction >= a)) {
+        || (a < 0 && b < 0 && max_fraction >= a));
+}
+
+Value mul_fast(nat_int_t a, nat_int_t b) {
+    if (a == 0 || b == 0)
+        return Value::integer(0);
+
+    if (will_multiplication_overflow(a, b)) {
         auto result = BigInt(a) * BigInt(b);
         return new BignumObject { result };
     }
