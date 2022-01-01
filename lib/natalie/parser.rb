@@ -5,7 +5,6 @@ module Natalie
     # enable dog-fooding our own parser by passing nat_parser: true
     def initialize(code_str, path, nat_parser: false)
       if RUBY_ENGINE != 'natalie'
-        require_relative './sexp'
         if nat_parser
           begin
             require_relative '../../build/parser_c_ext'
