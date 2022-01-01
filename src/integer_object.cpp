@@ -408,7 +408,7 @@ Value IntegerObject::pred(Env *env) {
 }
 
 Value IntegerObject::size(Env *env) {
-    return this;
+    return Value::integer(sizeof m_integer);
 }
 
 Value IntegerObject::succ(Env *env) {
