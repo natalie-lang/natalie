@@ -160,7 +160,6 @@ public:
     }
 
     static bool optimized_method(SymbolObject *);
-
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<FloatObject %p float=%f>", this, m_double);
     }
