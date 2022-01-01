@@ -175,6 +175,7 @@ private:
         case Token::Type::DotDotDot:
             return RANGE;
         case Token::Type::LBracket:
+        case Token::Type::LBracketRBracket:
             if (left && treat_left_bracket_as_element_reference(left, current_token()))
                 return REF;
             break;

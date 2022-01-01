@@ -572,9 +572,23 @@ private:
             return new Token { Token::Type::LCurlyBrace, m_file, m_token_line, m_token_column };
         case '[': {
             advance();
-            auto token = new Token { Token::Type::LBracket, m_file, m_token_line, m_token_column };
-            token->set_whitespace_precedes(m_whitespace_precedes);
-            return token;
+            switch (current_char()) {
+            case ']':
+                advance();
+                switch (current_char()) {
+                case '=':
+                    advance();
+                    return new Token { Token::Type::LBracketRBracketEqual, m_file, m_token_line, m_token_column };
+                default:
+                    auto token = new Token { Token::Type::LBracketRBracket, m_file, m_token_line, m_token_column };
+                    token->set_whitespace_precedes(m_whitespace_precedes);
+                    return token;
+                }
+            default:
+                auto token = new Token { Token::Type::LBracket, m_file, m_token_line, m_token_column };
+                token->set_whitespace_precedes(m_whitespace_precedes);
+                return token;
+            }
         }
         case '(':
             advance();

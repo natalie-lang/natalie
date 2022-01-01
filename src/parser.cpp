@@ -126,6 +126,10 @@ SymbolNode *Parser::parse_alias_arg(LocalsHashmap &locals, const char *expected_
 
 Node *Parser::parse_array(LocalsHashmap &locals) {
     auto array = new ArrayNode { current_token() };
+    if (current_token()->type() == Token::Type::LBracketRBracket) {
+        advance();
+        return array;
+    }
     advance();
     if (current_token()->type() != Token::Type::RBracket) {
         array->add_node(parse_expression(ARRAY, locals));
@@ -1450,6 +1454,8 @@ Node *Parser::parse_ref_expression(Node *left, LocalsHashmap &locals) {
         left,
         "[]",
     };
+    if (token->type() == Token::Type::LBracketRBracket)
+        return call_node;
     if (current_token()->type() != Token::Type::RBracket)
         parse_call_args(call_node, locals, false);
     expect(Token::Type::RBracket, "element reference right bracket");
@@ -1545,6 +1551,7 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type, Precedence prece
     case Type::AliasKeyword:
         return &Parser::parse_alias;
     case Type::LBracket:
+    case Type::LBracketRBracket:
         return &Parser::parse_array;
     case Type::BeginKeyword:
         return &Parser::parse_begin;
@@ -1711,6 +1718,7 @@ Parser::parse_left_fn Parser::left_denotation(Token *token, Node *left) {
     case Type::DotDotDot:
         return &Parser::parse_range_expression;
     case Type::LBracket:
+    case Type::LBracketRBracket:
         if (treat_left_bracket_as_element_reference(left, current_token()))
             return &Parser::parse_ref_expression;
         break;

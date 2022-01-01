@@ -239,7 +239,7 @@ describe 'Parser' do
     end
 
     it 'parses operator method definitions' do
-      operators = %w[+ - * ** / % == === != =~ !~ > >= < <= <=> & | ^ ~ << >>]
+      operators = %w(+ - * ** / % == === != =~ !~ > >= < <= <=> & | ^ ~ << >> [] []=)
       operators.each do |operator|
         Parser.parse("def #{operator}; end").should == s(:block, s(:defn, operator.to_sym, s(:args), s(:nil)))
         Parser.parse("def self.#{operator}; end").should == s(:block, s(:defs, s(:self), operator.to_sym, s(:args), s(:nil)))
