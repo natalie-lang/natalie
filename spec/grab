@@ -1,0 +1,35 @@
+#!/usr/bin/env ruby
+
+require_relative '../lib/optparse'
+require 'uri'
+require 'net/http'
+
+options = { force: false }
+OptionParser.new do |opts|
+  opts.banner = 'Usage: grab [options] spec'
+  
+  opts.program_name = 'Ruby Specification Grabber'
+  opts.version = '0.1'
+
+  opts.on('--force', 'Overwrite existing specification files.') do
+    options[:force] = true
+  end
+end.parse!
+
+file = ARGV[0]
+uri = URI("https://raw.githubusercontent.com/ruby/spec/master/#{file}")
+res = Net::HTTP.get_response(uri)
+
+if res.code == '404'
+  abort("Spec file not found at #{uri}.")
+end
+
+path = "#{__dir__}/#{file}"
+
+if File.file?(path) && ! options[:force]
+  abort("Spec file already exists at #{path}.")
+end
+
+File.write(path, res.body)
+
+puts "Spec file created at #{path}."
