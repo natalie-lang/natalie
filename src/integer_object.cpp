@@ -442,7 +442,16 @@ Value IntegerObject::ceil(Env *env, Value arg) {
     if (arg == nullptr)
         return this;
 
-    return this;
+    arg->assert_type(env, Object::Type::Integer, "Integer");
+
+    auto precision = arg->as_integer()->to_nat_int_t();
+    if (precision >= 0)
+        return this;
+
+    double f = ::pow(10, precision);
+    auto result = ::ceil(to_nat_int_t() * f) / f;
+
+    return Value::integer(result);
 }
 
 Value IntegerObject::floor(Env *env, Value arg) {
