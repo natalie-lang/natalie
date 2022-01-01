@@ -1,0 +1,22 @@
+#!/usr/bin/env ruby
+
+require 'uri'
+require 'net/http'
+
+file = ARGV[0]
+uri = URI("https://raw.githubusercontent.com/ruby/spec/master/#{file}_spec.rb")
+res = Net::HTTP.get_response(uri)
+
+if res.code == '404'
+  abort("Spec file not found at #{uri}.")
+end
+
+path = "#{__dir__}/#{file}_spec.rb"
+
+if File.file?(path)
+  abort("Spec file already exists at #{path}.")
+end
+
+File.write(path, res.body)
+
+puts "Spec file created at #{path}."
