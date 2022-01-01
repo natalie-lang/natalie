@@ -180,6 +180,24 @@ Value KernelModule::get_usage(Env *env) {
     return hash;
 }
 
+Value KernelModule::Hash(Env *env, Value value) {
+    if (value->is_hash()) {
+        return value;
+    }
+
+    if (value->is_nil() || (value->is_array() && value->as_array()->is_empty())) {
+        return new HashObject;
+    }
+
+    if (!value->respond_to(env, "to_hash"_s)) {
+        env->raise("TypeError", "can't convert {} into Hash", value->klass()->inspect_str(env));
+    }
+
+    value = value.send(env, "to_hash"_s);
+    value->assert_type(env, Object::Type::Hash, "Hash");
+    return value;
+}
+
 Value KernelModule::hash(Env *env) {
     switch (type()) {
     // NOTE: string "foo" and symbol :foo will get the same hash.
