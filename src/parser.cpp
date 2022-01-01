@@ -1491,22 +1491,28 @@ Node *Parser::parse_safe_send_expression(Node *left, LocalsHashmap &locals) {
 }
 
 Node *Parser::parse_send_expression(Node *left, LocalsHashmap &locals) {
-    auto token = current_token();
+    auto dot_token = current_token();
     advance();
+    auto name_token = current_token();
     const char *name;
-    switch (current_token()->type()) {
+    switch (name_token->type()) {
     case Token::Type::BareName:
         name = static_cast<IdentifierNode *>(parse_identifier(locals))->name();
         break;
     case Token::Type::ClassKeyword:
-        name = current_token()->type_value();
+        name = name_token->type_value();
         advance();
         break;
     default:
-        throw_unexpected("send method name");
+        if (name_token->is_operator()) {
+            name = name_token->type_value();
+            advance();
+        } else {
+            throw_unexpected("send method name");
+        }
     };
     return new CallNode {
-        token,
+        dot_token,
         left,
         name,
     };

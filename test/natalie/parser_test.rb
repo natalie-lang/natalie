@@ -326,6 +326,13 @@ describe 'Parser' do
       Parser.parse("self.class").should == s(:block, s(:call, s(:self), :class))
     end
 
+    it 'parses operator method calls' do
+      operators = %w(+ - * ** / % == === != =~ !~ > >= < <= <=> & | ^ ~ << >> [] []=)
+      operators.each do |operator|
+        Parser.parse("self.#{operator}").should == s(:block, s(:call, s(:self), operator.to_sym))
+      end
+    end
+
     it 'parses method calls with a receiver' do
       Parser.parse("foo.bar").should == s(:block, s(:call, s(:call, nil, :foo), :bar))
       Parser.parse("foo.bar.baz").should == s(:block, s(:call, s(:call, s(:call, nil, :foo), :bar), :baz))
