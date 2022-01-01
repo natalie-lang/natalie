@@ -151,6 +151,7 @@ Value ModuleObject::eval_body(Env *env, Value (*fn)(Env *, Value)) {
     body_env.set_caller(env);
     Value result = fn(&body_env, this);
     m_method_visibility = MethodVisibility::Public;
+    m_module_function = false;
     return result;
 }
 
@@ -191,12 +192,16 @@ Value ModuleObject::cvar_set(Env *env, SymbolObject *name, Value val) {
 SymbolObject *ModuleObject::define_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity) {
     Method *method = new Method { name->c_str(), this, fn, arity };
     define_method(env, name, method, m_method_visibility);
+    if (m_module_function)
+        define_singleton_method(env, name, fn, arity);
     return name;
 }
 
 SymbolObject *ModuleObject::define_method(Env *env, SymbolObject *name, Block *block) {
     Method *method = new Method { name->c_str(), this, block };
     define_method(env, name, method, m_method_visibility);
+    if (m_module_function)
+        define_singleton_method(env, name, block);
     return name;
 }
 
@@ -583,9 +588,14 @@ Value ModuleObject::module_eval(Env *env, Block *block) {
     if (!block) {
         env->raise("ArgumentError", "Natalie only supports module_eval with a block");
     }
-    block->set_self(this);
-    NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 0, nullptr, nullptr);
-    return NilObject::the();
+    Value self = this;
+    block->set_self(self);
+    auto old_method_visibility = m_method_visibility;
+    auto old_module_function = m_module_function;
+    Value result = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &self, nullptr);
+    m_method_visibility = old_method_visibility;
+    m_module_function = old_module_function;
+    return result;
 }
 
 Value ModuleObject::private_method(Env *env, size_t argc, Value *args) {
@@ -628,7 +638,27 @@ void ModuleObject::set_method_visibility(Env *env, size_t argc, Value *args, Met
         }
     } else {
         m_method_visibility = visibility;
+        m_module_function = false;
     }
+}
+
+Value ModuleObject::module_function(Env *env, size_t argc, Value *args) {
+    if (is_class()) {
+        env->raise("TypeError", "module_function must be called for modules");
+    }
+    if (argc > 0) {
+        for (size_t i = 0; i < argc; ++i) {
+            auto name = args[i]->to_symbol(env, Conversion::Strict);
+            auto method = find_method(env, name);
+            assert_method_defined(env, name, method);
+            define_singleton_method(env, name, method->fn(), method->arity());
+            set_method_visibility(env, name, MethodVisibility::Private);
+        }
+    } else {
+        m_method_visibility = MethodVisibility::Private;
+        m_module_function = true;
+    }
+    return this;
 }
 
 Value ModuleObject::deprecate_constant(Env *env, size_t argc, Value *args) {
