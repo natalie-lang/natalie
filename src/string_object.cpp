@@ -269,7 +269,7 @@ Value StringObject::concat(Env *env, size_t argc, Value *args) {
         } else if (arg->is_integer() && arg->as_integer()->to_nat_int_t() < 0) {
             env->raise("RangeError", "less than 0");
         } else if (arg->is_integer()) {
-            str_obj = arg->as_integer()->to_s(env)->as_string();
+            str_obj = arg.send(env, "chr"_s)->as_string();
         } else if (arg->respond_to(env, to_str)) {
             str_obj = arg.send(env, to_str)->as_string();
         } else {
