@@ -1473,12 +1473,22 @@ Node *Parser::parse_safe_send_expression(Node *left, LocalsHashmap &locals) {
 Node *Parser::parse_send_expression(Node *left, LocalsHashmap &locals) {
     auto token = current_token();
     advance();
-    expect(Token::Type::BareName, "send method name");
-    auto name = static_cast<IdentifierNode *>(parse_identifier(locals));
+    const char *name;
+    switch (current_token()->type()) {
+    case Token::Type::BareName:
+        name = static_cast<IdentifierNode *>(parse_identifier(locals))->name();
+        break;
+    case Token::Type::ClassKeyword:
+        name = current_token()->type_value();
+        advance();
+        break;
+    default:
+        throw_unexpected("send method name");
+    };
     return new CallNode {
         token,
         left,
-        name->name(),
+        name,
     };
 }
 
