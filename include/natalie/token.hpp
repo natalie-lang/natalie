@@ -87,6 +87,8 @@ public:
         Invalid,
         LCurlyBrace,
         LBracket,
+        LBracketRBracket,
+        LBracketRBracketEqual,
         LeftShift,
         LeftShiftEqual,
         LessThan,
@@ -374,6 +376,10 @@ public:
             return "{";
         case Type::LBracket:
             return "[";
+        case Type::LBracketRBracket:
+            return "[]";
+        case Type::LBracketRBracketEqual:
+            return "[]=";
         case Type::LeftShift:
             return "<<";
         case Type::LeftShiftEqual:
@@ -567,6 +573,8 @@ public:
         case Token::Type::Exponent:
         case Token::Type::GreaterThan:
         case Token::Type::GreaterThanOrEqual:
+        case Token::Type::LBracketRBracket:
+        case Token::Type::LBracketRBracketEqual:
         case Token::Type::LeftShift:
         case Token::Type::LessThan:
         case Token::Type::LessThanOrEqual:
@@ -705,6 +713,7 @@ public:
         case Token::Type::InterpolatedStringBegin:
         case Token::Type::LCurlyBrace:
         case Token::Type::LBracket:
+        case Token::Type::LBracketRBracket:
         case Token::Type::LINEKeyword:
         case Token::Type::LParen:
         case Token::Type::Multiply:
