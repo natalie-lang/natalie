@@ -2,6 +2,7 @@
 
 #include "natalie/constants.hpp"
 #include <math.h>
+#include "natalie/big_int.hpp"
 
 namespace Natalie {
 
@@ -477,8 +478,18 @@ Value IntegerObject::floor(Env *env, Value arg) {
 
 Value IntegerObject::gcd(Env *env, Value divisor) {
     divisor->assert_type(env, Object::Type::Integer, "Integer");
+
+    auto this_abs = ::abs(m_integer);
+    auto divisor_abs = ::abs(divisor->as_integer()->to_nat_int_t());
+    auto remainder = divisor_abs;
+
+    while (remainder != 0) {
+        remainder = this_abs % divisor_abs;
+        this_abs = divisor_abs;
+        divisor_abs = remainder;
+    }
     
-    return this;
+    return Value::integer(this_abs);
 }
 
 bool IntegerObject::eql(Env *env, Value other) {
