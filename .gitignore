@@ -3,6 +3,7 @@ build
 test/tmp
 coverage-report
 .cache
+bin/nat
 
 # Editor tools
 .ccls
