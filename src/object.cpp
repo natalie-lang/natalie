@@ -514,6 +514,8 @@ Method *Object::find_method(Env *env, SymbolObject *method_name, MethodVisibilit
                 MethodVisibility visibility = singleton_class()->get_method_visibility(env, method_name);
                 if (visibility >= visibility_at_least) {
                     return method;
+                } else if (visibility == MethodVisibility::Protected) {
+                    env->raise("NoMethodError", "protected method `{}' called for {}:Class", method_name->c_str(), m_klass->inspect_str());
                 } else {
                     env->raise("NoMethodError", "private method `{}' called for {}:Class", method_name->c_str(), m_klass->inspect_str());
                 }
@@ -528,6 +530,8 @@ Method *Object::find_method(Env *env, SymbolObject *method_name, MethodVisibilit
         MethodVisibility visibility = klass->get_method_visibility(env, method_name);
         if (visibility >= visibility_at_least) {
             return method;
+        } else if (visibility == MethodVisibility::Protected) {
+            env->raise("NoMethodError", "protected method `{}' called for {}", method_name->c_str(), inspect_str(env));
         } else {
             env->raise("NoMethodError", "private method `{}' called for {}", method_name->c_str(), inspect_str(env));
         }
