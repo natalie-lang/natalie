@@ -337,6 +337,7 @@ describe 'Parser' do
       Parser.tokens("def foo!").should == [{type: :def}, {type: :name, literal: :foo!}]
       Parser.tokens("def foo=").should == [{:type=>:def}, {:type=>:name, :literal=>:foo}, {:type=>:"="}]
       Parser.tokens("def self.foo=").should == [{:type=>:def}, {:type=>:self}, {:type=>:"."}, {:type=>:name, :literal=>:foo}, {:type=>:"="}]
+      Parser.tokens("def /").should == [{type: :def}, {type: :/}]
       Parser.tokens("foo.bar=").should == [{:type=>:name, :literal=>:foo}, {:type=>:"."}, {:type=>:name, :literal=>:bar}, {:type=>:"="}]
       Parser.tokens("foo::bar!").should == [{type: :name, literal: :foo}, {type: :"::"}, {type: :name, literal: :bar!}]
       Parser.tokens("Foo::bar!").should == [{type: :constant, literal: :Foo}, {type: :"::"}, {type: :name, literal: :bar!}]

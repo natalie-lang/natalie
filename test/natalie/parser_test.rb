@@ -227,10 +227,6 @@ describe 'Parser' do
       Parser.parse("def foo?; end").should == s(:block, s(:defn, :foo?, s(:args), s(:nil)))
       Parser.parse("def foo=; end").should == s(:block, s(:defn, :foo=, s(:args), s(:nil)))
       Parser.parse("def self.foo=; end").should == s(:block, s(:defs, s(:self), :foo=, s(:args), s(:nil)))
-      Parser.parse("def <<; end").should == s(:block, s(:defn, :<<, s(:args), s(:nil)))
-      Parser.parse("def >>; end").should == s(:block, s(:defn, :>>, s(:args), s(:nil)))
-      Parser.parse("def self.<<; end").should == s(:block, s(:defs, s(:self), :<<, s(:args), s(:nil)))
-      Parser.parse("def self.>>; end").should == s(:block, s(:defs, s(:self), :>>, s(:args), s(:nil)))
       Parser.parse("def foo.bar=; end").should == s(:block, s(:defs, s(:call, nil, :foo), :bar=, s(:args), s(:nil)))
       Parser.parse("def Foo.foo; end").should == s(:block, s(:defs, s(:const, :Foo), :foo, s(:args), s(:nil)))
       Parser.parse("foo=o; def foo.bar; end").should == s(:block, s(:lasgn, :foo, s(:call, nil, :o)), s(:defs, s(:lvar, :foo), :bar, s(:args), s(:nil)))
@@ -240,6 +236,14 @@ describe 'Parser' do
       Parser.parse("def foo(a, &b); end").should == s(:block, s(:defn, :foo, s(:args, :a, :"&b"), s(:nil)))
       Parser.parse("def foo(a = nil, b = foo, c = FOO); end").should == s(:block, s(:defn, :foo, s(:args, s(:lasgn, :a, s(:nil)), s(:lasgn, :b, s(:call, nil, :foo)), s(:lasgn, :c, s(:const, :FOO))), s(:nil)))
       Parser.parse("def foo(a, b: :c, d:); end").should == s(:block, s(:defn, :foo, s(:args, :a, s(:kwarg, :b, s(:lit, :c)), s(:kwarg, :d)), s(:nil)))
+    end
+
+    it 'parses operator method definitions' do
+      operators = %w[+ - * ** / % == === != =~ !~ > >= < <= <=> & | ^ ~ << >>]
+      operators.each do |operator|
+        Parser.parse("def #{operator}; end").should == s(:block, s(:defn, operator.to_sym, s(:args), s(:nil)))
+        Parser.parse("def self.#{operator}; end").should == s(:block, s(:defs, s(:self), operator.to_sym, s(:args), s(:nil)))
+      end
     end
 
     it 'parses method calls vs local variable lookup' do

@@ -411,7 +411,8 @@ Node *Parser::parse_def(LocalsHashmap &locals) {
     LocalsHashmap our_locals { TM::HashType::String };
     Node *self_node = nullptr;
     String *name;
-    switch (current_token()->type()) {
+    token = current_token();
+    switch (token->type()) {
     case Token::Type::BareName:
         if (peek_token()->type() == Token::Type::Dot) {
             self_node = parse_identifier(locals);
@@ -433,12 +434,11 @@ Node *Parser::parse_def(LocalsHashmap &locals) {
         }
         name = parse_method_name(locals);
         break;
-    case Token::Type::LeftShift:
-    case Token::Type::RightShift:
-        name = parse_method_name(locals);
-        break;
     default:
-        throw_unexpected("method name");
+        if (token->is_operator())
+            name = parse_method_name(locals);
+        else
+            throw_unexpected("method name");
     }
     if (current_token()->type() == Token::Type::Equal && !current_token()->whitespace_precedes()) {
         advance();
@@ -824,16 +824,16 @@ Node *Parser::parse_keyword_splat(LocalsHashmap &locals) {
 
 String *Parser::parse_method_name(LocalsHashmap &) {
     String *name;
-    switch (current_token()->type()) {
+    auto token = current_token();
+    switch (token->type()) {
     case Token::Type::BareName:
         name = new String { current_token()->literal() };
         break;
-    case Token::Type::LeftShift:
-    case Token::Type::RightShift:
-        name = new String { current_token()->type_value() };
-        break;
     default:
-        throw_unexpected("method name");
+        if (token->is_operator())
+            name = new String { current_token()->type_value() };
+        else
+            throw_unexpected("method name");
     }
     advance();
     return name;
@@ -1758,7 +1758,9 @@ void Parser::throw_unexpected(Token *token, const char *expected) {
     auto line = token->line() + 1;
     auto type = token->type_value();
     auto literal = token->literal();
-    if (strcmp(type, "EOF") == 0)
+    if (!type)
+        throw SyntaxError { String::format("{}#{}: syntax error, expected '{}' (token type: {})", file, line, expected, (long long)token->type()) };
+    else if (strcmp(type, "EOF") == 0)
         throw SyntaxError { String::format("{}#{}: syntax error, unexpected end-of-input (expected: '{}')", file, line, expected) };
     else if (literal)
         throw SyntaxError { String::format("{}#{}: syntax error, unexpected {} '{}' (expected: '{}')", file, line, type, literal, expected) };

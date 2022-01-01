@@ -541,13 +541,43 @@ public:
         return hash;
     }
 
-    bool is_assignable() {
+    bool is_assignable() const {
         switch (m_type) {
         case Type::BareName:
         case Type::ClassVariable:
         case Type::Constant:
         case Type::GlobalVariable:
         case Type::InstanceVariable:
+            return true;
+        default:
+            return false;
+        }
+    }
+
+    bool is_operator() const {
+        switch (m_type) {
+        case Token::Type::BinaryOnesComplement:
+        case Token::Type::BitwiseAnd:
+        case Token::Type::BitwiseOr:
+        case Token::Type::BitwiseXor:
+        case Token::Type::Comparison:
+        case Token::Type::Divide:
+        case Token::Type::EqualEqual:
+        case Token::Type::EqualEqualEqual:
+        case Token::Type::Exponent:
+        case Token::Type::GreaterThan:
+        case Token::Type::GreaterThanOrEqual:
+        case Token::Type::LeftShift:
+        case Token::Type::LessThan:
+        case Token::Type::LessThanOrEqual:
+        case Token::Type::Match:
+        case Token::Type::Minus:
+        case Token::Type::Modulus:
+        case Token::Type::Multiply:
+        case Token::Type::NotEqual:
+        case Token::Type::NotMatch:
+        case Token::Type::Plus:
+        case Token::Type::RightShift:
             return true;
         default:
             return false;

@@ -210,11 +210,13 @@ private:
                 return consume_regexp('/');
             switch (m_last_token->type()) {
             case Token::Type::Comma:
-            case Token::Type::LCurlyBrace:
             case Token::Type::LBracket:
+            case Token::Type::LCurlyBrace:
             case Token::Type::LParen:
             case Token::Type::Match:
                 return consume_regexp('/');
+            case Token::Type::DefKeyword:
+                return new Token { Token::Type::Divide, m_file, m_token_line, m_token_column };
             default: {
                 switch (current_char()) {
                 case ' ':
