@@ -16,7 +16,7 @@ module Natalie
 
       def process_iter(exp)
         (call_type, call, args, *body) = exp
-        return exp.s(
+        return exp.new(
           :iter,
           process_call(call, block_fn=[args,body]),
           args,
@@ -36,21 +36,21 @@ module Natalie
             end
           end
         end
-        exp.s(*exp.map {|sub_exp| sub_exp.is_a?(Sexp) ? process(sub_exp) : sub_exp})
+        exp.new(*exp.map {|sub_exp| sub_exp.is_a?(Sexp) ? process(sub_exp) : sub_exp})
       end
 
       def canary_array_min(exp, values)
-        return exp.s(:nil) if values.empty?
+        return exp.new(:nil) if values.empty?
         return values[0] if values.length == 1
         first, second, *rest = values
-        return exp.s(:if, exp.s(:call, first, :<, second), canary_array_min(exp, [first, *rest]), canary_array_min(exp, [second, *rest]))
+        return exp.new(:if, exp.new(:call, first, :<, second), canary_array_min(exp, [first, *rest]), canary_array_min(exp, [second, *rest]))
       end
 
       def canary_array_max(exp, values)
-        return exp.s(:nil) if values.empty?
+        return exp.new(:nil) if values.empty?
         return values[0] if values.length == 1
         first, second, *rest = values
-        return exp.s(:if, exp.s(:call, first, :>, second), canary_array_max(exp, [first, *rest]), canary_array_max(exp, [second, *rest]))
+        return exp.new(:if, exp.new(:call, first, :>, second), canary_array_max(exp, [first, *rest]), canary_array_max(exp, [second, *rest]))
       end
 
     end
