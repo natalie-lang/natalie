@@ -49,6 +49,7 @@ public:
     Value Float(Env *env, Value value, Value kwargs);
     Value gets(Env *env);
     Value get_usage(Env *env);
+    Value Hash(Env *env, Value value);
     Value hash(Env *env);
     Value inspect(Env *env);
     Value main_obj_inspect(Env *);
