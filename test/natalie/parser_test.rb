@@ -616,6 +616,7 @@ describe 'Parser' do
     it 'parses alias' do
       Parser.parse('alias foo bar').should == s(:block, s(:alias, s(:lit, :foo), s(:lit, :bar)))
       Parser.parse('alias :foo :bar').should == s(:block, s(:alias, s(:lit, :foo), s(:lit, :bar)))
+      Parser.parse('alias write <<').should == s(:block, s(:alias, s(:lit, :write), s(:lit, :<<)))
     end
 
     it 'parses defined?' do

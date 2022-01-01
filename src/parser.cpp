@@ -106,15 +106,21 @@ Node *Parser::parse_alias(LocalsHashmap &locals) {
 }
 
 SymbolNode *Parser::parse_alias_arg(LocalsHashmap &locals, const char *expected_message) {
-    switch (current_token()->type()) {
+    auto token = current_token();
+    switch (token->type()) {
     case Token::Type::BareName: {
         auto identifier = static_cast<IdentifierNode *>(parse_identifier(locals));
-        return new SymbolNode { current_token(), new String(identifier->name()) };
+        return new SymbolNode { token, new String(identifier->name()) };
     }
     case Token::Type::Symbol:
         return static_cast<SymbolNode *>(parse_symbol(locals));
     default:
-        throw_unexpected(expected_message);
+        if (token->is_operator()) {
+            advance();
+            return new SymbolNode { token, new String(token->type_value()) };
+        } else {
+            throw_unexpected(expected_message);
+        }
     }
 }
 
