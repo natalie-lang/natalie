@@ -266,12 +266,17 @@ Value StringObject::concat(Env *env, size_t argc, Value *args) {
         StringObject *str_obj;
         if (arg->is_string()) {
             str_obj = arg->as_string();
+        } else if (arg->is_integer() && arg->as_integer()->to_nat_int_t() < 0) {
+            env->raise("RangeError", "less than 0");
+        } else if (arg->is_integer()) {
+            str_obj = arg->as_integer()->to_s(env)->as_string();
         } else if (arg->respond_to(env, to_str)) {
             str_obj = arg.send(env, to_str)->as_string();
-            str_obj->assert_type(env, Object::Type::String, "String");
         } else {
             env->raise("TypeError", "cannot call to_str", arg->inspect_str(env));
         }
+
+        str_obj->assert_type(env, Object::Type::String, "String");
 
         append(env, str_obj->c_str());
     }
