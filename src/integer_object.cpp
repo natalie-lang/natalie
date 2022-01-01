@@ -423,7 +423,7 @@ Value IntegerObject::coerce(Env *env, Value arg) {
         ary->push(send(env, "to_f"_s));
         break;
     default:
-        if (!arg->is_float() && arg->respond_to(env, "to_f"_s)) {
+        if (!arg->is_nil() && !arg->is_float() && arg->respond_to(env, "to_f"_s)) {
             arg = arg.send(env, "to_f"_s);
         }
 

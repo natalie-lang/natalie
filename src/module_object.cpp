@@ -242,7 +242,7 @@ ArrayObject *ModuleObject::ancestors(Env *env) {
         for (ModuleObject *m : klass->included_modules()) {
             ancestors->push(m);
         }
-        klass = klass->superclass();
+        klass = klass->superclass(env);
     } while (klass);
     return ancestors;
 }

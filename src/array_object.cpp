@@ -11,11 +11,6 @@
 
 namespace Natalie {
 
-Value ArrayObject::allocate(Env *env, size_t argc, Value *args) {
-    env->ensure_argc_is(argc, 0);
-    return new ArrayObject {};
-}
-
 Value ArrayObject::initialize(Env *env, Value size, Value value, Block *block) {
     this->assert_not_frozen(env);
 

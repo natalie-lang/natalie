@@ -1,5 +1,6 @@
 require_relative 'formatters/default_formatter'
 require_relative 'formatters/yaml_formatter'
+require_relative 'version'
 require 'tempfile'
 
 class SpecFailedException < StandardError; end
@@ -171,9 +172,17 @@ def min_long
 end
 
 def ruby_version_is(version)
-  without_patch_number = RUBY_VERSION.sub(/\.\d+$/, '')
-  if version === without_patch_number
-    yield
+  ruby_version = SpecVersion.new RUBY_VERSION
+  case version
+  when String
+    requirement = SpecVersion.new version
+    yield if ruby_version >= requirement
+  when Range
+    a = SpecVersion.new version.begin
+    b = SpecVersion.new version.end
+    yield if ruby_version >= a && (version.exclude_end? ? ruby_version < b : ruby_version <= b)
+  else
+    raise "version must be a String or Range but was a #{version.class}"
   end
 end
 
@@ -320,6 +329,7 @@ class Matcher
   def none?; method_missing(:none?); end
   def one?; method_missing(:one?); end
   def zero?; method_missing(:zero?); end
+  def initialized?; method_missing(:initialized?); end
 
   def method_missing(method, *args)
     if args.any?
@@ -582,13 +592,18 @@ class IOStub
 end
 
 class ComplainExpectation
-  def initialize(message)
+  def initialize(message = nil, verbose: false)
     @message = message
+    @verbose = verbose
   end
 
   def match(subject)
     out = run(subject)
     case @message
+    when nil
+      if out.empty?
+        raise SpecFailedException, "Expected a warning but received none"
+      end
     when Regexp
       unless out =~ @message
         raise SpecFailedException,
@@ -603,6 +618,10 @@ class ComplainExpectation
   def inverted_match(subject)
     out = run(subject)
     case @message
+    when nil
+      unless out.empty?
+        raise SpecFailedException, "Unexpected warning: #{out}"
+      end
     when Regexp
       if out =~ @message
         raise SpecFailedException,
@@ -618,10 +637,13 @@ class ComplainExpectation
 
   def run(subject)
     old_stderr = $stderr
+    old_verbose = $VERBOSE
     $stderr = IOStub.new
+    $VERBOSE = @verbose
     subject.call
     out = $stderr.to_s
     $stderr = old_stderr
+    $VERBOSE = old_verbose
     out
   end
 end
@@ -828,8 +850,8 @@ class Object
     RaiseErrorExpectation.new(klass, message, &block)
   end
 
-  def complain(message)
-    ComplainExpectation.new(message)
+  def complain(message = nil, verbose: false)
+    ComplainExpectation.new(message, verbose: verbose)
   end
 
   def should_receive(message)

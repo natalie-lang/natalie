@@ -19,7 +19,8 @@ public:
     const int STRING_GROW_FACTOR = 2;
 
     StringObject(ClassObject *klass)
-        : Object { Object::Type::String, klass } { }
+        : Object { Object::Type::String, klass }
+        , m_encoding { Encoding::ASCII_8BIT } { }
 
     StringObject()
         : StringObject { "" } { }

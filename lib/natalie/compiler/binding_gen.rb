@@ -289,7 +289,6 @@ puts
 gen = BindingGen.new
 
 gen.static_binding('Array', '[]', 'ArrayObject', 'square_new', argc: :any, pass_env: true, pass_block: false, pass_klass: true, return_type: :Object)
-gen.static_binding('Array', 'allocate', 'ArrayObject', 'allocate', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
 gen.static_binding('Array', 'try_convert', 'ArrayObject', 'try_convert', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Array', '+', 'ArrayObject', 'add', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Array', '-', 'ArrayObject', 'sub', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
@@ -396,8 +395,8 @@ gen.binding('BasicObject', 'equal?', 'Object', 'equal', argc: 1, pass_env: false
 gen.binding('BasicObject', '!=', 'Object', 'neq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('BasicObject', 'instance_eval', 'Object', 'instance_eval', argc: 0..1, pass_env: true, pass_block: true, return_type: :Object)
 
-gen.static_binding('Class', 'new', 'ClassObject', 'new_method', argc: 0..1, pass_env: true, pass_block: true, return_type: :Object)
-gen.binding('Class', 'superclass', 'ClassObject', 'superclass', argc: 0, pass_env: false, pass_block: false, return_type: :NullableValue)
+gen.binding('Class', 'initialize', 'ClassObject', 'initialize', argc: 0..1, pass_env: true, pass_block: true, return_type: :Object, visibility: :private)
+gen.binding('Class', 'superclass', 'ClassObject', 'superclass', argc: 0, pass_env: true, pass_block: false, return_type: :NullableValue)
 gen.binding('Class', 'singleton_class?', 'ClassObject', 'is_singleton', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
 
 gen.static_binding('Encoding', 'aliases', 'EncodingObject', 'aliases', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
@@ -633,6 +632,8 @@ gen.binding('Kernel', 'spawn', 'KernelModule', 'spawn', argc: 1.., pass_env: tru
 gen.binding('Kernel', 'tap', 'KernelModule', 'tap', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('Kernel', 'to_s', 'KernelModule', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 
+gen.undefine_singleton_method('MatchData', 'new')
+gen.undefine_singleton_method('MatchData', 'allocate')
 gen.binding('MatchData', 'size', 'MatchDataObject', 'size', argc: 0, pass_env: false, pass_block: false, return_type: :size_t)
 gen.binding('MatchData', 'length', 'MatchDataObject', 'size', argc: 0, pass_env: false, pass_block: false, return_type: :size_t)
 gen.binding('MatchData', 'to_s', 'MatchDataObject', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
@@ -667,9 +668,15 @@ gen.binding('Module', 'protected', 'ModuleObject', 'protected_method', argc: :an
 gen.binding('Module', 'public', 'ModuleObject', 'public_method', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
 
 gen.undefine_singleton_method('NilClass', 'new')
+gen.binding('NilClass', '&', 'NilObject', 'and_method', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.binding('NilClass', '|', 'NilObject', 'or_method', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.binding('NilClass', '^', 'NilObject', 'or_method', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.binding('NilClass', '===', 'NilObject', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('NilClass', '=~', 'NilObject', 'eqtilde', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('NilClass', 'inspect', 'NilObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('NilClass', 'to_a', 'NilObject', 'to_a', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('NilClass', 'to_f', 'NilObject', 'to_f', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('NilClass', 'to_h', 'NilObject', 'to_h', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('NilClass', 'to_i', 'NilObject', 'to_i', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('NilClass', 'to_s', 'NilObject', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 

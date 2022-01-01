@@ -22,9 +22,14 @@ public:
         return s_instance;
     }
 
+    bool and_method(Env *, Value);
+    bool or_method(Env *, Value);
+    bool eq(Env *, Value);
     Value eqtilde(Env *, Value);
     Value to_s(Env *);
     Value to_a(Env *);
+    Value to_h(Env *);
+    Value to_f(Env *);
     Value to_i(Env *);
     Value inspect(Env *);
 
