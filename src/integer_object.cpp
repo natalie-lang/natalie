@@ -407,6 +407,10 @@ Value IntegerObject::pred(Env *env) {
     return sub(env, Value::integer(1));
 }
 
+Value IntegerObject::size(Env *env) {
+    return this;
+}
+
 Value IntegerObject::succ(Env *env) {
     return add(env, Value::integer(1));
 }
