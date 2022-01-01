@@ -40,6 +40,7 @@ module Natalie
             process_atom(e)
           end
         else
+          puts exp.to_s
           raise "unknown node type: #{exp.inspect}"
         end
       end

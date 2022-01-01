@@ -24,7 +24,7 @@ OptionParser.new do |opts|
     '-d [type]', '--debug [type]',
     'Show debug output (specify option below)',
     options: {
-      '{p1,p1b,p1r,p2,p3}' => 'print intermediate AST from individual compiler pass',
+      '{p0c,p1,p1b,p1r,p2,p3}' => 'print intermediate AST from individual compiler pass',
       'cpp'                => 'print generated C++',
       'cc-cmd'             => 'show the gcc/clang compiler command that will be run',
       'valgrind'           => 'run the resulting binary with valgrind',
