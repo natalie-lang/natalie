@@ -6,8 +6,7 @@ describe "Array#initialize" do
     ScratchPad.clear
   end
 
-  #FIXME add back once we support have_private_instance_method
-  xit "is private" do
+  it "is private" do
     Array.should have_private_instance_method("initialize")
   end
 

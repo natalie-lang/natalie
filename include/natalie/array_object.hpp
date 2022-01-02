@@ -181,6 +181,7 @@ public:
     Value rotate_in_place(Env *, Value);
     Value select(Env *, Block *);
     Value select_in_place(Env *, Block *);
+    bool select_in_place(std::function<bool(Value &)>);
     Value shift(Env *, Value);
     Value slice_in_place(Env *, Value, Value);
     Value sort(Env *, Block *);

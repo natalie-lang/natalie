@@ -789,6 +789,90 @@ class IncludeExpectation
   end
 end
 
+class HaveInstanceMethodExpectation
+  def initialize(method, include_super)
+    @method = method.to_sym
+    @include_super = include_super
+  end
+
+  def match(subject)
+    unless subject.instance_methods(@include_super).include?(@method)
+      raise SpecFailedException,
+        "Expected #{subject} to have instance method '#{@method.to_s}' but it does not"
+    end
+  end
+
+  def inverted_match(subject)
+    if subject.instance_methods(@include_super).include?(@method)
+      raise SpecFailedException,
+        "Expected #{subject} NOT to have instance method '#{@method.to_s}' but it does"
+    end
+  end
+end
+
+class HavePrivateInstanceMethodExpectation
+  def initialize(method, include_super)
+    @method = method.to_sym
+    @include_super = include_super
+  end
+
+  def match(subject)
+    unless subject.private_instance_methods(@include_super).include?(@method)
+      raise SpecFailedException,
+        "Expected #{subject} to have private instance method '#{@method.to_s}' but it does not"
+    end
+  end
+
+  def inverted_match(subject)
+    if subject.private_instance_methods(@include_super).include?(@method)
+      raise SpecFailedException,
+        "Expected #{subject} NOT to have private instance method '#{@method.to_s}' but it does"
+    end
+  end
+end
+
+class HaveProtectedInstanceMethodExpectation
+  def initialize(method, include_super)
+    @method = method.to_sym
+    @include_super = include_super
+  end
+
+  def match(subject)
+    unless subject.protected_instance_methods(@include_super).include?(@method)
+      raise SpecFailedException,
+        "Expected #{subject} to have protected instance method '#{@method.to_s}' but it does not"
+    end
+  end
+
+  def inverted_match(subject)
+    if subject.protected_instance_methods(@include_super).include?(@method)
+      raise SpecFailedException,
+        "Expected #{subject} NOT to have protected instance method '#{@method.to_s}' but it does"
+    end
+  end
+end
+
+class HavePublicInstanceMethodExpectation
+  def initialize(method, include_super)
+    @method = method.to_sym
+    @include_super = include_super
+  end
+
+  def match(subject)
+    unless subject.public_instance_methods(@include_super).include?(@method)
+      raise SpecFailedException,
+        "Expected #{subject} to have public instance method '#{@method.to_s}' but it does not"
+    end
+  end
+
+  def inverted_match(subject)
+    if subject.public_instance_methods(@include_super).include?(@method)
+      raise SpecFailedException,
+        "Expected #{subject} NOT to have public instance method '#{@method.to_s}' but it does"
+    end
+  end
+end
+
 class Object
   def should(*args)
     Matcher.new(self, false, args)
@@ -874,6 +958,22 @@ class Object
   # This alias is here so that MRI can see it. We should figure out why Natalie can see 'include'
   # but MRI cannot. (That's a bug.)
   alias include_all include
+
+  def have_instance_method(method, include_super = true)
+    HaveInstanceMethodExpectation.new(method, include_super)
+  end
+
+  def have_private_instance_method(method, include_super = true)
+    HavePrivateInstanceMethodExpectation.new(method, include_super)
+  end
+
+  def have_protected_instance_method(method, include_super = true)
+    HaveProtectedInstanceMethodExpectation.new(method, include_super)
+  end
+
+  def have_public_instance_method(method, include_super = true)
+    HavePublicInstanceMethodExpectation.new(method, include_super)
+  end
 
   def stub!(message)
     Stub.new(self, message)
