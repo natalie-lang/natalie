@@ -14,6 +14,15 @@ ModuleObject::ModuleObject(Type type, ClassObject *klass)
     : Object { type, klass }
     , m_env { new Env() } { }
 
+Value ModuleObject::initialize(Env *env, Block *block) {
+    if (block) {
+        Value self = this;
+        block->set_self(self);
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &self, nullptr);
+    }
+    return this;
+}
+
 Value ModuleObject::extend(Env *env, size_t argc, Value *args) {
     for (size_t i = 0; i < argc; i++) {
         extend_once(env, args[i]->as_module());

@@ -11,10 +11,7 @@ Value ClassObject::initialize(Env *env, Value superclass, Block *block) {
         superclass = GlobalEnv::the()->Object();
     }
     superclass->as_class()->initialize_subclass(this, env, nullptr, superclass->as_class()->object_type());
-    if (block) {
-        block->set_self(this);
-        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 0, nullptr, nullptr);
-    }
+    ModuleObject::initialize(env, block);
     return this;
 }
 
