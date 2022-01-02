@@ -655,6 +655,7 @@ gen.binding('Module', 'attr_reader', 'ModuleObject', 'attr_reader', argc: 1.., p
 gen.binding('Module', 'attr_writer', 'ModuleObject', 'attr_writer', argc: 1.., pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Module', 'class_eval', 'ModuleObject', 'module_eval', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('Module', 'const_defined?', 'ModuleObject', 'const_defined', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.binding('Module', 'const_set', 'ModuleObject', 'const_set', argc: 2, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Module', 'define_method', 'ModuleObject', 'define_method', argc: 1, pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('Module', 'extend', 'ModuleObject', 'extend', argc: 1.., pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Module', 'include', 'ModuleObject', 'include', argc: 1.., pass_env: true, pass_block: false, return_type: :Object)
@@ -666,8 +667,10 @@ gen.binding('Module', 'module_eval', 'ModuleObject', 'module_eval', argc: 0, pas
 gen.binding('Module', 'name', 'ModuleObject', 'name', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Module', 'prepend', 'ModuleObject', 'prepend', argc: 1.., pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Module', 'private', 'ModuleObject', 'private_method', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Module', 'private_constant', 'ModuleObject', 'private_constant', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Module', 'protected', 'ModuleObject', 'protected_method', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Module', 'public', 'ModuleObject', 'public_method', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Module', 'public_constant', 'ModuleObject', 'public_constant', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
 
 gen.undefine_singleton_method('NilClass', 'new')
 gen.binding('NilClass', '&', 'NilObject', 'and_method', argc: 1, pass_env: true, pass_block: false, return_type: :bool)

@@ -83,9 +83,15 @@ Value ModuleObject::const_find(Env *env, SymbolObject *name, ConstLookupSearchMo
     search_parent = this;
     do {
         val = search_parent->const_get(name);
-        if (val) return val;
+        if (val) break;
         search_parent = search_parent->m_superclass;
     } while (search_parent);
+
+    if (val) {
+        if (search_mode == ConstLookupSearchMode::Strict && search_parent->m_private_constants.get(name))
+            env->raise("NameError", "private constant {}::{} referenced", search_parent->inspect_str(env), name->c_str());
+        return val;
+    }
 
     if (this != GlobalEnv::the()->Object() && search_mode == ConstLookupSearchMode::NotStrict) {
         // lastly, search on the global, i.e. Object namespace
@@ -109,6 +115,10 @@ Value ModuleObject::const_set(SymbolObject *name, Value val) {
         if (val->singleton_class()) val->singleton_class()->set_owner(this);
     }
     return val;
+}
+
+Value ModuleObject::const_set(Env *env, Value name, Value val) {
+    return const_set(name->to_symbol(env, Object::Conversion::Strict), val);
 }
 
 void ModuleObject::alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
@@ -422,6 +432,26 @@ Value ModuleObject::public_method(Env *env, size_t argc, Value *args) {
         m_method_visibility = MethodVisibility::Public;
     }
     return NilObject::the();
+}
+
+Value ModuleObject::private_constant(Env *env, size_t argc, Value *args) {
+    for (size_t i = 0; i < argc; ++i) {
+        auto name = args[i]->to_symbol(env, Conversion::Strict);
+        if (!m_constants.get(name))
+            env->raise("NameError", "constant {}::{} not defined", class_name_or_blank(), name->c_str());
+        m_private_constants.set(name);
+    }
+    return this;
+}
+
+Value ModuleObject::public_constant(Env *env, size_t argc, Value *args) {
+    for (size_t i = 0; i < argc; ++i) {
+        auto name = args[i]->to_symbol(env, Conversion::Strict);
+        if (!m_constants.get(name))
+            env->raise("NameError", "constant {}::{} not defined", class_name_or_blank(), name->c_str());
+        m_private_constants.remove(name);
+    }
+    return this;
 }
 
 bool ModuleObject::const_defined(Env *env, Value name_value) {

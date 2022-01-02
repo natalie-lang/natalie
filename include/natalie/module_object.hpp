@@ -49,6 +49,8 @@ public:
     virtual Value const_fetch(SymbolObject *) override;
     virtual Value const_set(SymbolObject *, Value) override;
 
+    Value const_set(Env *, Value, Value);
+
     virtual void alias(Env *, SymbolObject *, SymbolObject *) override;
 
     Value eval_body(Env *, Value (*)(Env *, Value));
@@ -111,6 +113,9 @@ public:
     virtual Value protected_method(Env *, size_t, Value *) override;
     Value public_method(Env *, size_t, Value *);
 
+    Value private_constant(Env *, size_t, Value *);
+    Value public_constant(Env *, size_t, Value *);
+
     bool const_defined(Env *, Value);
     Value alias_method(Env *, Value, Value);
 
@@ -133,6 +138,7 @@ public:
 protected:
     Env *m_env { nullptr };
     TM::Hashmap<SymbolObject *, Value> m_constants {};
+    TM::Hashmap<SymbolObject *> m_private_constants {};
     Optional<const String *> m_class_name {};
     ClassObject *m_superclass { nullptr };
     TM::Hashmap<SymbolObject *, Method *> m_methods {};
