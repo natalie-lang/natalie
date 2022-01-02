@@ -1500,6 +1500,8 @@ Node *Parser::parse_send_expression(Node *left, LocalsHashmap &locals) {
         name = static_cast<IdentifierNode *>(parse_identifier(locals))->name();
         break;
     case Token::Type::ClassKeyword:
+    case Token::Type::BeginKeyword:
+    case Token::Type::EndKeyword:
         name = name_token->type_value();
         advance();
         break;

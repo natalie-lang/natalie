@@ -324,6 +324,8 @@ describe 'Parser' do
       Parser.parse("foo 0, a: 1, b: 'two'").should == s(:block, s(:call, nil, :foo, s(:lit, 0), s(:hash, s(:lit, :a), s(:lit, 1), s(:lit, :b), s(:str, "two"))))
       Parser.parse("foo :a, :b").should == s(:block, s(:call, nil, :foo, s(:lit, :a), s(:lit, :b)))
       Parser.parse("self.class").should == s(:block, s(:call, s(:self), :class))
+      Parser.parse("self.begin").should == s(:block, s(:call, s(:self), :begin))
+      Parser.parse("self.end").should == s(:block, s(:call, s(:self), :end))
     end
 
     it 'parses operator method calls' do
