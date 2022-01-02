@@ -35,7 +35,7 @@ Value FileObject::initialize(Env *env, Value filename, Value flags_obj, Block *b
             break;
         }
         default:
-            env->raise("TypeError", "no implicit conversion of {} into String", flags_obj->klass()->class_name_or_blank());
+            env->raise("TypeError", "no implicit conversion of {} into String", flags_obj->klass()->inspect_str());
         }
     }
     int mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;

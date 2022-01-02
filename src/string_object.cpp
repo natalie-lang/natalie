@@ -414,7 +414,7 @@ Value StringObject::force_encoding(Env *env, Value encoding) {
         set_encoding(find_encoding_by_name(env, encoding->as_string()->to_low_level_string())->num());
         break;
     default:
-        env->raise("TypeError", "no implicit conversion of {} into String", encoding->klass()->class_name_or_blank());
+        env->raise("TypeError", "no implicit conversion of {} into String", encoding->klass()->inspect_str());
     }
     return this;
 }
@@ -497,7 +497,7 @@ Value StringObject::sub(Env *env, Value find, Value replacement, Block *block) {
         StringObject *expanded_replacement;
         return regexp_sub(env, find->as_regexp(), replacement->as_string(), &match, &expanded_replacement);
     } else {
-        env->raise("TypeError", "wrong argument type {} (expected Regexp)", find->klass()->class_name_or_blank());
+        env->raise("TypeError", "wrong argument type {} (expected Regexp)", find->klass()->inspect_str());
     }
 }
 
@@ -522,7 +522,7 @@ Value StringObject::gsub(Env *env, Value find, Value replacement_value, Block *b
         } while (match);
         return result;
     } else {
-        env->raise("TypeError", "wrong argument type {} (expected Regexp)", find->klass()->class_name_or_blank());
+        env->raise("TypeError", "wrong argument type {} (expected Regexp)", find->klass()->inspect_str());
     }
 }
 
@@ -649,7 +649,7 @@ Value StringObject::split(Env *env, Value splitter, Value max_count_value) {
         }
         return ary;
     } else {
-        env->raise("TypeError", "wrong argument type {} (expected Regexp))", splitter->klass()->class_name_or_blank());
+        env->raise("TypeError", "wrong argument type {} (expected Regexp))", splitter->klass()->inspect_str());
     }
 }
 

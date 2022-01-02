@@ -237,7 +237,7 @@ void print_exception_with_backtrace(Env *env, ExceptionObject *exception) {
         StringObject *line = (*backtrace)[0]->as_string();
         dprintf(fd, "%s: ", line->c_str());
     }
-    dprintf(fd, "%s (%s)\n", exception->message()->c_str(), exception->klass()->class_name_or_blank()->c_str());
+    dprintf(fd, "%s (%s)\n", exception->message()->c_str(), exception->klass()->inspect_str()->c_str());
 }
 
 void handle_top_level_exception(Env *env, ExceptionObject *exception, bool run_exit_handlers) {
@@ -271,8 +271,8 @@ ArrayObject *to_ary(Env *env, Value obj, bool raise_for_non_array) {
             ary = new ArrayObject { obj };
             return ary->as_array();
         } else {
-            auto *class_name = obj->klass()->class_name_or_blank();
-            env->raise("TypeError", "can't convert {} to Array ({}#to_ary gives {})", class_name, class_name, ary->klass()->class_name_or_blank());
+            auto *class_name = obj->klass()->inspect_str();
+            env->raise("TypeError", "can't convert {} to Array ({}#to_ary gives {})", class_name, class_name, ary->klass()->inspect_str());
         }
     } else {
         return new ArrayObject { obj };

@@ -5,7 +5,7 @@ namespace Natalie {
 Value ClassObject::initialize(Env *env, Value superclass, Block *block) {
     if (superclass) {
         if (!superclass->is_class()) {
-            env->raise("TypeError", "superclass must be a Class ({} given)", superclass->klass()->class_name_or_blank());
+            env->raise("TypeError", "superclass must be a Class ({} given)", superclass->klass()->inspect_str());
         }
     } else {
         superclass = GlobalEnv::the()->Object();

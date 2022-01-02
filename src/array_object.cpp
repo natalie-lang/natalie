@@ -114,7 +114,7 @@ Value ArrayObject::inspect(Env *env) {
             if (inspected_repr->is_string())
                 out->append(env, inspected_repr->as_string());
             else
-                out->append_sprintf("#<%s:%#x>", inspected_repr->klass()->class_name_or_blank()->c_str(), static_cast<uintptr_t>(inspected_repr));
+                out->append_sprintf("#<%s:%#x>", inspected_repr->klass()->inspect_str()->c_str(), static_cast<uintptr_t>(inspected_repr));
 
             if (i < size() - 1) {
                 out->append(env, ", ");
@@ -579,7 +579,7 @@ Value ArrayObject::flatten_in_place(Env *env, Value depth) {
             } else if (depth->respond_to(env, sym_to_int)) {
                 depth = depth.send(env, sym_to_int);
             } else {
-                env->raise("TypeError", "no implicit conversion of {} into Integer", depth->klass()->class_name_or_blank());
+                env->raise("TypeError", "no implicit conversion of {} into Integer", depth->klass()->inspect_str());
                 return nullptr;
             }
         }
@@ -657,7 +657,7 @@ Value ArrayObject::delete_at(Env *env, Value n) {
         n = n->send(env, to_int);
 
     if (!n->is_integer())
-        env->raise("TypeError", "no implicit conversion of {} into Integer", n->klass()->class_name_or_blank());
+        env->raise("TypeError", "no implicit conversion of {} into Integer", n->klass()->inspect_str());
 
     nat_int_t nat_resolved_index = _resolve_index(n->as_integer()->to_nat_int_t());
 
@@ -738,7 +738,7 @@ Value ArrayObject::dig(Env *env, size_t argc, Value *args) {
         return val;
 
     if (!val->respond_to(env, dig))
-        env->raise("TypeError", "{} does not have #dig method", val->klass()->class_name_or_blank());
+        env->raise("TypeError", "{} does not have #dig method", val->klass()->inspect_str());
 
     return val.send(env, dig, argc - 1, args + 1);
 }
@@ -923,7 +923,7 @@ Value ArrayObject::join(Env *env, Value joiner) {
                 else if (item->respond_to(env, to_s))
                     out->append(env, item.send(env, to_s)->as_string());
                 else
-                    out->append(env, String::format("#<{}:{}>", item->klass()->class_name_or_blank()->c_str(), static_cast<size_t>(item)));
+                    out->append(env, String::format("#<{}:{}>", item->klass()->inspect_str()->c_str(), static_cast<size_t>(item)));
 
                 if (i < (size() - 1))
                     out->append(env, joiner->as_string());
@@ -1046,7 +1046,7 @@ bool array_sort_compare(Env *env, Value a, Value b, Block *block) {
             Value zero = Value::integer(0);
             return compare.send(env, "<"_s, { zero })->is_truthy();
         } else {
-            env->raise("ArgumentError", "comparison of {} with 0 failed", compare->klass()->class_name_or_blank());
+            env->raise("ArgumentError", "comparison of {} with 0 failed", compare->klass()->inspect_str());
         }
     } else {
         Value compare = a.send(env, "<=>"_s, { b });
@@ -1054,7 +1054,7 @@ bool array_sort_compare(Env *env, Value a, Value b, Block *block) {
             return compare->as_integer()->to_nat_int_t() < 0;
         }
         // TODO: Ruby sometimes prints b as the value (for example for integers) and sometimes as class
-        env->raise("ArgumentError", "comparison of {} with {} failed", a->klass()->class_name_or_blank(), b->klass()->class_name_or_blank());
+        env->raise("ArgumentError", "comparison of {} with {} failed", a->klass()->inspect_str(), b->klass()->inspect_str());
     }
 }
 
@@ -1076,7 +1076,7 @@ bool array_sort_by_compare(Env *env, Value a, Value b, Block *block) {
     if (compare->is_integer()) {
         return compare->as_integer()->to_nat_int_t() < 0;
     }
-    env->raise("ArgumentError", "comparison of {} with {} failed", a_res->klass()->class_name_or_blank(), b_res->klass()->class_name_or_blank());
+    env->raise("ArgumentError", "comparison of {} with {} failed", a_res->klass()->inspect_str(), b_res->klass()->inspect_str());
 }
 
 Value ArrayObject::sort_by_in_place(Env *env, Block *block) {
@@ -1186,8 +1186,8 @@ Value ArrayObject::max(Env *env, Value count, Block *block) {
             env->raise(
                 "ArgumentError",
                 "comparison of {} with {} failed",
-                item->klass()->class_name_or_blank(),
-                min->klass()->class_name_or_blank());
+                item->klass()->inspect_str(),
+                min->klass()->inspect_str());
 
         if (!compare->is_integer() && compare->respond_to(env, to_int))
             compare = compare.send(env, to_int);
@@ -1242,8 +1242,8 @@ Value ArrayObject::min(Env *env, Value count, Block *block) {
             env->raise(
                 "ArgumentError",
                 "comparison of {} with {} failed",
-                item->klass()->class_name_or_blank(),
-                min->klass()->class_name_or_blank());
+                item->klass()->inspect_str(),
+                min->klass()->inspect_str());
 
         if (!compare->is_integer() && compare->respond_to(env, to_int))
             compare = compare.send(env, to_int);
@@ -1298,8 +1298,8 @@ Value ArrayObject::minmax(Env *env, Block *block) {
             env->raise(
                 "ArgumentError",
                 "comparison of {} with {} failed",
-                item->klass()->class_name_or_blank(),
-                min->klass()->class_name_or_blank());
+                item->klass()->inspect_str(),
+                min->klass()->inspect_str());
 
         if (!compare->is_integer() && compare->respond_to(env, to_int))
             compare = compare.send(env, to_int);
@@ -1349,7 +1349,7 @@ Value ArrayObject::multiply(Env *env, Value factor) {
         return accumulator;
     }
 
-    env->raise("TypeError", "no implicit conversion of {} into Integer", factor->klass()->class_name_or_blank());
+    env->raise("TypeError", "no implicit conversion of {} into Integer", factor->klass()->inspect_str());
 
     return this;
 }
@@ -1474,7 +1474,7 @@ Value ArrayObject::bsearch_index(Env *env, Block *block) {
         auto outcome = NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &(*this)[i], nullptr);
         if (!(
                 outcome->is_numeric() || outcome->is_nil() || outcome->is_boolean())) {
-            env->raise("TypeError", "wrong argument type {} (must be numeric, true, false or nil)", outcome->klass()->class_name_or_blank());
+            env->raise("TypeError", "wrong argument type {} (must be numeric, true, false or nil)", outcome->klass()->inspect_str());
         }
 
         if (outcome->is_numeric()) {
@@ -1571,7 +1571,7 @@ Value ArrayObject::insert(Env *env, size_t argc, Value *args) {
     }
 
     if (!index_ptr->is_integer())
-        env->raise("TypeError", "no implicit conversion of {} into Integer", index_ptr->klass()->class_name_or_blank());
+        env->raise("TypeError", "no implicit conversion of {} into Integer", index_ptr->klass()->inspect_str());
 
     auto index = index_ptr->as_integer()->to_nat_int_t();
     auto should_append = index < 0;
@@ -1646,7 +1646,7 @@ Value ArrayObject::intersection(Env *env, size_t argc, Value *args) {
 
 Value ArrayObject::union_of(Env *env, Value arg) {
     if (!arg->is_array()) {
-        env->raise("TypeError", "no implicit conversion of {} into Array", arg->klass()->class_name_or_blank());
+        env->raise("TypeError", "no implicit conversion of {} into Array", arg->klass()->inspect_str());
         return nullptr;
     }
 
@@ -1764,8 +1764,8 @@ Value ArrayObject::fetch(Env *env, Value arg_index, Value default_value, Block *
         if (arg_index->respond_to(env, to_int)) {
             index_obj = arg_index->send(env, to_int);
             if (!index_obj->is_integer()) {
-                auto arg_index_class = arg_index->klass()->inspect_str(env);
-                env->raise("TypeError", "can't convert {} to Integer ({}#to_int gives {})", arg_index_class, arg_index_class, index_obj->klass()->inspect_str(env));
+                auto arg_index_class = arg_index->klass()->inspect_str();
+                env->raise("TypeError", "can't convert {} to Integer ({}#to_int gives {})", arg_index_class, arg_index_class, index_obj->klass()->inspect_str());
             }
         }
     }
@@ -1892,7 +1892,7 @@ Value ArrayObject::rotate_in_place(Env *env, Value val) {
         if (!val->is_integer() && val->respond_to(env, to_int)) {
             val = val->send(env, to_int);
         } else if (!val->is_integer()) {
-            env->raise("TypeError", "no implicit conversion of {} into Integer", val->klass()->class_name_or_blank());
+            env->raise("TypeError", "no implicit conversion of {} into Integer", val->klass()->inspect_str());
             return nullptr;
         }
         count = val->as_integer()->to_nat_int_t();
@@ -2097,8 +2097,8 @@ Value ArrayObject::try_convert(Env *env, Value val) {
         return conversion;
     }
 
-    auto original_item_class_name = val->klass()->class_name_or_blank();
-    auto new_item_class_name = conversion->klass()->class_name_or_blank();
+    auto original_item_class_name = val->klass()->inspect_str();
+    auto new_item_class_name = conversion->klass()->inspect_str();
     env->raise(
         "TypeError",
         "can't convert {} to Array ({}#to_ary gives {})",
