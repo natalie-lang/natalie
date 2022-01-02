@@ -156,6 +156,7 @@ private:
             return ITER_BLOCK;
         case Token::Type::LCurlyBrace:
             return ITER_CURLY;
+        case Token::Type::Comparison:
         case Token::Type::LessThan:
         case Token::Type::LessThanOrEqual:
         case Token::Type::GreaterThan:

@@ -1681,6 +1681,7 @@ Parser::parse_left_fn Parser::left_denotation(Token *token, Node *left) {
     case Type::BitwiseAnd:
     case Type::BitwiseOr:
     case Type::BitwiseXor:
+    case Type::Comparison:
     case Type::Divide:
     case Type::EqualEqual:
     case Type::EqualEqualEqual:

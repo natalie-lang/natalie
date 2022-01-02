@@ -89,6 +89,7 @@ describe 'Parser' do
       Parser.parse('foo&.bar x').should == s(:block, s(:safe_call, s(:call, nil, :foo), :bar, s(:call, nil, :x)))
       Parser.parse('-(2*8)').should == s(:block, s(:call, s(:call, s(:lit, 2), :*, s(:lit, 8)), :-@))
       Parser.parse('+(2*8)').should == s(:block, s(:call, s(:call, s(:lit, 2), :*, s(:lit, 8)), :+@))
+      Parser.parse('foo <=> bar').should == s(:block, s(:call, s(:call, nil, :foo), :<=>, s(:call, nil, :bar)))
     end
 
     it 'parses and/or' do
