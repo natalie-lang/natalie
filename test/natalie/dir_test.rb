@@ -8,42 +8,16 @@ describe 'Dir' do
 
     it 'yields each entry in the named directory except . and ..' do
       entries = []
-      Dir.each_child(File.expand_path('../support', __dir__)) do |entry|
+      Dir.each_child(File.expand_path('../support/dir_test', __dir__)) do |entry|
         entries << entry
       end
-      entries.sort.should == [
-        'compare_rubies.rb',
-        'dollar_exe.rb',
-        'dollar_zero.rb',
-        'file.txt',
-        'formatters',
-        'require_sub1.rb',
-        'require_sub2.rb',
-        'require_sub3.rb',
-        'require_sub4.foo',
-        'require_sub4.foo.rb',
-        'spec.rb',
-        'version.rb',
-      ]
+      entries.sort.should == %w[bar.txt foo.txt]
     end
 
     it 'returns an Enumerator when no block is given' do
-      dir = Dir.each_child(File.expand_path('../support', __dir__))
+      dir = Dir.each_child(File.expand_path('../support/dir_test', __dir__))
       dir.should be_an_instance_of(Enumerator)
-      dir.to_a.sort.should == [
-        'compare_rubies.rb',
-        'dollar_exe.rb',
-        'dollar_zero.rb',
-        'file.txt',
-        'formatters',
-        'require_sub1.rb',
-        'require_sub2.rb',
-        'require_sub3.rb',
-        'require_sub4.foo',
-        'require_sub4.foo.rb',
-        'spec.rb',
-        'version.rb',
-      ]
+      dir.to_a.sort.should == %w[bar.txt foo.txt]
     end
   end
 
