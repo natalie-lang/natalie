@@ -800,6 +800,7 @@ gen.binding('Symbol', 'start_with?', 'SymbolObject', 'start_with', argc: 1, pass
 gen.binding('Symbol', 'succ', 'SymbolObject', 'succ', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Symbol', 'to_proc', 'SymbolObject', 'to_proc', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Symbol', 'to_s', 'SymbolObject', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+gen.binding('Symbol', 'to_sym', 'SymbolObject', 'to_sym', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Symbol', 'upcase', 'SymbolObject', 'upcase', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 
 gen.undefine_singleton_method('TrueClass', 'new')
