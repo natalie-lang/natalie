@@ -193,7 +193,7 @@ SymbolObject *ModuleObject::define_method(Env *env, SymbolObject *name, Block *b
 }
 
 SymbolObject *ModuleObject::undefine_method(Env *env, SymbolObject *name) {
-    return define_method(env, name, nullptr);
+    return define_method(env, name, nullptr, 0);
 }
 
 // supply an empty array and it will be populated with the method names as symbols
@@ -481,6 +481,34 @@ Value ModuleObject::alias_method(Env *env, Value new_name_value, Value old_name_
         env->raise("TypeError", "{} is not a symbol", old_name_value->inspect_str(env));
     }
     alias(env, new_name, old_name);
+    return this;
+}
+
+Value ModuleObject::remove_method(Env *env, size_t argc, Value *args) {
+    for (size_t i = 0; i < argc; ++i) {
+        auto name = args[i]->to_symbol(env, Conversion::Strict);
+        auto method = m_methods.get(name, env);
+        if (!method || method->is_undefined()) {
+            env->raise("NameError", "method `{}' not defined in {}", name->c_str(), this->inspect_str(env));
+        }
+        m_methods.remove(name, env);
+    }
+    return this;
+}
+
+Value ModuleObject::undef_method(Env *env, size_t argc, Value *args) {
+    for (size_t i = 0; i < argc; ++i) {
+        auto name = args[i]->to_symbol(env, Conversion::Strict);
+        auto method = find_method(env, name);
+        if (!method || method->is_undefined()) {
+            if (is_class()) {
+                env->raise("NameError", "undefined method `{}' for class `{}'", name->c_str(), this->inspect_str(env));
+            } else {
+                env->raise("NameError", "undefined method `{}' for module `{}'", name->c_str(), this->inspect_str(env));
+            }
+        }
+        undefine_method(env, name);
+    }
     return this;
 }
 

@@ -414,7 +414,9 @@ SymbolObject *Object::define_singleton_method(Env *env, SymbolObject *name, Bloc
 }
 
 SymbolObject *Object::undefine_singleton_method(Env *env, SymbolObject *name) {
-    return define_singleton_method(env, name, nullptr, 0);
+    ClassObject *klass = singleton_class(env);
+    klass->undefine_method(env, name);
+    return name;
 }
 
 SymbolObject *Object::define_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity) {
@@ -437,7 +439,7 @@ SymbolObject *Object::define_method(Env *env, SymbolObject *name, Block *block) 
 
 SymbolObject *Object::undefine_method(Env *env, SymbolObject *name) {
     if (!is_main_object()) {
-        printf("tried to call define_method on something that has no methods\n");
+        printf("tried to call undefine_method on something that has no methods\n");
         abort();
     }
     m_klass->undefine_method(env, name);
