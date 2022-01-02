@@ -1,7 +1,7 @@
 class StringScanner
   class Error < StandardError; end
 
-  def initialize(string)
+  private def initialize(string)
     @string = string.to_str
     @pos = 0
     @prev_pos = nil
