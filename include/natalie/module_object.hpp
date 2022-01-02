@@ -61,13 +61,6 @@ public:
         return m_class_name;
     }
 
-    const String *class_name_or_blank() {
-        if (m_class_name)
-            return m_class_name.value();
-        else
-            return new String("");
-    }
-
     void set_class_name(const String *name) {
         assert(name);
         m_class_name = name;
@@ -100,6 +93,7 @@ public:
 
     bool is_method_defined(Env *, Value) const;
 
+    const String *inspect_str();
     Value inspect(Env *);
     Value name(Env *);
     Value attr_reader(Env *, size_t, Value *);

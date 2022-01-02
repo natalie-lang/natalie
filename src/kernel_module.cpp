@@ -157,7 +157,7 @@ Value KernelModule::Float(Env *env, Value value, Value kwargs) {
         }
     }
     if (exception)
-        env->raise("TypeError", "can't convert {} into Float", value->klass()->inspect_str(env));
+        env->raise("TypeError", "can't convert {} into Float", value->klass()->inspect_str());
     else
         return nullptr;
 }
@@ -202,7 +202,7 @@ Value KernelModule::Hash(Env *env, Value value) {
     }
 
     if (!value->respond_to(env, "to_hash"_s)) {
-        env->raise("TypeError", "can't convert {} into Hash", value->klass()->inspect_str(env));
+        env->raise("TypeError", "can't convert {} into Hash", value->klass()->inspect_str());
     }
 
     value = value.send(env, "to_hash"_s);
@@ -230,7 +230,7 @@ Value KernelModule::inspect(Env *env) {
     if (is_module() && as_module()->class_name()) {
         return new StringObject { *as_module()->class_name().value() };
     } else {
-        return StringObject::format(env, "#<{}:{}>", klass()->inspect_str(env), pointer_id());
+        return StringObject::format(env, "#<{}:{}>", klass()->inspect_str(), pointer_id());
     }
 }
 
@@ -286,7 +286,7 @@ Value KernelModule::method(Env *env, Value name) {
         Method *method = singleton_class()->find_method(env, name_symbol);
         if (method) {
             if (method->is_undefined()) {
-                env->raise("NoMethodError", "undefined method `{}' for {}:Class", name_symbol->inspect_str(env), m_klass->class_name_or_blank());
+                env->raise("NoMethodError", "undefined method `{}' for {}:Class", name_symbol->inspect_str(env), m_klass->inspect_str());
             }
             return new MethodObject { this, method };
         }
@@ -294,7 +294,7 @@ Value KernelModule::method(Env *env, Value name) {
     Method *method = m_klass->find_method(env, name_symbol);
     if (method)
         return new MethodObject { this, method };
-    env->raise("NoMethodError", "undefined method `{}' for {}:Class", name_symbol->inspect_str(env), m_klass->class_name_or_blank());
+    env->raise("NoMethodError", "undefined method `{}' for {}:Class", name_symbol->inspect_str(env), m_klass->inspect_str());
 }
 
 Value KernelModule::methods(Env *env) {
@@ -348,7 +348,7 @@ Value KernelModule::raise(Env *env, Value klass, Value message) {
         Value arg = klass;
         if (arg->is_class()) {
             klass = arg->as_class();
-            message = new StringObject { *arg->as_class()->class_name_or_blank() };
+            message = new StringObject { *arg->as_class()->inspect_str() };
         } else if (arg->is_string()) {
             klass = find_top_level_const(env, "RuntimeError"_s)->as_class();
             message = arg;
@@ -382,7 +382,7 @@ Value KernelModule::sleep(Env *env, Value length) {
         ts.tv_nsec = (secs - ts.tv_sec) * 1000000000;
         nanosleep(&ts, nullptr);
     } else {
-        env->raise("TypeError", "can't convert {} into time interval", length->klass()->inspect_str(env));
+        env->raise("TypeError", "can't convert {} into time interval", length->klass()->inspect_str());
     }
     return length;
 }

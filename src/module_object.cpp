@@ -98,7 +98,7 @@ Value ModuleObject::const_find(Env *env, SymbolObject *name, ConstLookupSearchMo
 
     if (val) {
         if (search_mode == ConstLookupSearchMode::Strict && search_parent->m_private_constants.get(name))
-            env->raise("NameError", "private constant {}::{} referenced", search_parent->inspect_str(env), name->c_str());
+            env->raise("NameError", "private constant {}::{} referenced", search_parent->inspect_str(), name->c_str());
         return val;
     }
 
@@ -111,7 +111,7 @@ Value ModuleObject::const_find(Env *env, SymbolObject *name, ConstLookupSearchMo
     if (failure_mode == ConstLookupFailureMode::Null) return nullptr;
 
     if (search_mode == ConstLookupSearchMode::Strict) {
-        env->raise("NameError", "uninitialized constant {}::{}", this->inspect_str(env), name->c_str());
+        env->raise("NameError", "uninitialized constant {}::{}", this->inspect_str(), name->c_str());
     } else {
         env->raise("NameError", "uninitialized constant {}", name->c_str());
     }
@@ -133,7 +133,7 @@ Value ModuleObject::const_set(Env *env, Value name, Value val) {
 void ModuleObject::alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
     Method *method = find_method(env, old_name);
     if (!method) {
-        env->raise("NameError", "undefined method `{}' for `{}'", old_name->c_str(), this->inspect_str(env));
+        env->raise("NameError", "undefined method `{}' for `{}'", old_name->c_str(), this->inspect_str());
     }
     m_methods.put(new_name, method, env);
 }
@@ -271,25 +271,29 @@ bool ModuleObject::is_method_defined(Env *env, Value name_value) const {
     return !!find_method(env, name);
 }
 
-Value ModuleObject::inspect(Env *env) {
+const String *ModuleObject::inspect_str() {
     if (m_class_name) {
         if (owner() && owner() != GlobalEnv::the()->Object()) {
-            return StringObject::format(env, "{}::{}", owner()->inspect_str(env), class_name_or_blank());
+            return String::format("{}::{}", owner()->inspect_str(), m_class_name.value());
         } else {
-            return new StringObject { *class_name_or_blank() };
+            return m_class_name.value();
         }
     } else if (is_class()) {
-        return StringObject::format(env, "#<Class:{}>", pointer_id());
+        return String::format("#<Class:{}>", pointer_id());
     } else if (is_module() && m_class_name) {
-        return new StringObject { *class_name_or_blank() };
+        return m_class_name.value();
     } else {
-        return StringObject::format(env, "#<{}:{}>", klass()->inspect_str(env), pointer_id());
+        return String::format("#<{}:{}>", klass()->inspect_str(), pointer_id());
     }
+}
+
+Value ModuleObject::inspect(Env *env) {
+    return new StringObject { *inspect_str() };
 }
 
 Value ModuleObject::name(Env *env) {
     if (m_class_name) {
-        return new StringObject { *class_name_or_blank() };
+        return new StringObject { *m_class_name.value() };
     } else {
         return NilObject::the();
     }
@@ -404,7 +408,7 @@ Value ModuleObject::private_method(Env *env, size_t argc, Value *args) {
             auto name = args[i]->to_symbol(env, Conversion::Strict);
             auto method = find_method(env, name);
             if (!method)
-                env->raise("NameError", "undefined method `{}' for `{}'", name->c_str(), class_name_or_blank());
+                env->raise("NameError", "undefined method `{}' for `{}'", name->c_str(), inspect_str());
             method->set_visibility(MethodVisibility::Private);
         }
     } else {
@@ -419,7 +423,7 @@ Value ModuleObject::protected_method(Env *env, size_t argc, Value *args) {
             auto name = args[i]->to_symbol(env, Conversion::Strict);
             auto method = find_method(env, name);
             if (!method)
-                env->raise("NameError", "undefined method `{}' for `{}'", name->c_str(), class_name_or_blank());
+                env->raise("NameError", "undefined method `{}' for `{}'", name->c_str(), inspect_str());
             method->set_visibility(MethodVisibility::Protected);
         }
     } else {
@@ -434,7 +438,7 @@ Value ModuleObject::public_method(Env *env, size_t argc, Value *args) {
             auto name = args[i]->to_symbol(env, Conversion::Strict);
             auto method = find_method(env, name);
             if (!method)
-                env->raise("NameError", "undefined method `{}' for `{}'", name->c_str(), class_name_or_blank());
+                env->raise("NameError", "undefined method `{}' for `{}'", name->c_str(), inspect_str());
             method->set_visibility(MethodVisibility::Public);
         }
     } else {
@@ -447,7 +451,7 @@ Value ModuleObject::private_constant(Env *env, size_t argc, Value *args) {
     for (size_t i = 0; i < argc; ++i) {
         auto name = args[i]->to_symbol(env, Conversion::Strict);
         if (!m_constants.get(name))
-            env->raise("NameError", "constant {}::{} not defined", class_name_or_blank(), name->c_str());
+            env->raise("NameError", "constant {}::{} not defined", inspect_str(), name->c_str());
         m_private_constants.set(name);
     }
     return this;
@@ -457,7 +461,7 @@ Value ModuleObject::public_constant(Env *env, size_t argc, Value *args) {
     for (size_t i = 0; i < argc; ++i) {
         auto name = args[i]->to_symbol(env, Conversion::Strict);
         if (!m_constants.get(name))
-            env->raise("NameError", "constant {}::{} not defined", class_name_or_blank(), name->c_str());
+            env->raise("NameError", "constant {}::{} not defined", inspect_str(), name->c_str());
         m_private_constants.remove(name);
     }
     return this;
@@ -489,7 +493,7 @@ Value ModuleObject::remove_method(Env *env, size_t argc, Value *args) {
         auto name = args[i]->to_symbol(env, Conversion::Strict);
         auto method = m_methods.get(name, env);
         if (!method || method->is_undefined()) {
-            env->raise("NameError", "method `{}' not defined in {}", name->c_str(), this->inspect_str(env));
+            env->raise("NameError", "method `{}' not defined in {}", name->c_str(), this->inspect_str());
         }
         m_methods.remove(name, env);
     }
@@ -502,9 +506,9 @@ Value ModuleObject::undef_method(Env *env, size_t argc, Value *args) {
         auto method = find_method(env, name);
         if (!method || method->is_undefined()) {
             if (is_class()) {
-                env->raise("NameError", "undefined method `{}' for class `{}'", name->c_str(), this->inspect_str(env));
+                env->raise("NameError", "undefined method `{}' for class `{}'", name->c_str(), this->inspect_str());
             } else {
-                env->raise("NameError", "undefined method `{}' for module `{}'", name->c_str(), this->inspect_str(env));
+                env->raise("NameError", "undefined method `{}' for module `{}'", name->c_str(), this->inspect_str());
             }
         }
         undefine_method(env, name);

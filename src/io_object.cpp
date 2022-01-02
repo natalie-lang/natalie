@@ -143,7 +143,7 @@ Value IoObject::seek(Env *env, Value amount_value, Value whence_value) const {
             break;
         }
         default:
-            env->raise("TypeError", "no implicit conversion of {} into Integer", whence_value->klass()->class_name_or_blank());
+            env->raise("TypeError", "no implicit conversion of {} into Integer", whence_value->klass()->inspect_str());
         }
     }
     int result = lseek(m_fileno, amount, whence);
