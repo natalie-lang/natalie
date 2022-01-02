@@ -2,7 +2,7 @@ name: Run all tests with the bootstrapped self-hosted compiler
 
 on:
   schedule:
-    - cron: "10 1 * * *"
+    - cron: "40 2 * * *"
 
 jobs:
   specs:
