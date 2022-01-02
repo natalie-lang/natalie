@@ -32,10 +32,10 @@ char *StringObject::next_char(Env *env, char *buffer, size_t *index) {
         buffer[0] = str[i];
         if (((unsigned char)buffer[0] >> 3) == 30) { // 11110xxx, 4 bytes
             if (i + 3 >= len) raise_encoding_invalid_byte_sequence_error(env, i);
-            buffer[1] = str[++i];
-            buffer[2] = str[++i];
-            buffer[3] = str[++i];
-            buffer[4] = 0;
+            for (size_t j = 1; j < 5; j++)
+            {
+                buffer[j] = str[j];
+            }
         } else if (((unsigned char)buffer[0] >> 4) == 14) { // 1110xxxx, 3 bytes
             if (i + 2 >= len) raise_encoding_invalid_byte_sequence_error(env, i);
             buffer[1] = str[++i];
