@@ -1,0 +1,20 @@
+name: Run all tests with the bootstrapped self-hosted compiler
+
+on:
+  schedule:
+    - cron: "10 1 * * *"
+
+jobs:
+  specs:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+      - uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+      - run: rake bootstrap
+      - run: bundle exec ruby test/all.rb || :
+        env:
+          NAT_BINARY: bin/nat
