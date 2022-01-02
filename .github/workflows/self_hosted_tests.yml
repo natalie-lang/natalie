@@ -15,6 +15,6 @@ jobs:
         with:
           bundler-cache: true
       - run: rake bootstrap
-      - run: bundle exec ruby test/all.rb || :
+      - run: bash -c 'bundle exec ruby test/all.rb || :'
         env:
           NAT_BINARY: bin/nat
