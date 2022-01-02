@@ -72,8 +72,7 @@ describe "Array#bsearch_index" do
         [1, 2].should include(@array.bsearch_index { |x| (1 - x / 4) * (2**100) })
       end
 
-      # NATFIXME: Make Integer#** spec compliant to work with bignums
-      xit "returns nil when block never returns 0" do
+      it "returns nil when block never returns 0" do
         @array.bsearch_index { |x| 1 * (2**100) }.should be_nil
         @array.bsearch_index { |x| (-1) * (2**100) }.should be_nil
       end
