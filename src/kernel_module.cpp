@@ -25,7 +25,7 @@ Value KernelModule::Array(Env *env, Value value) {
             return array;
         }
     }
-    
+
     if (value->respond_to(env, "to_a"_s)) {
         auto array = value.send(env, "to_a"_s);
         if (!array->is_nil()) {
