@@ -35,6 +35,8 @@ public:
         }
     }
 
+    Value initialize(Env *, Block *);
+
     Value extend(Env *, size_t argc, Value *args);
     void extend_once(Env *, ModuleObject *);
 
