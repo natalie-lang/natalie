@@ -1,6 +1,7 @@
 require 'minitest/spec'
 require 'minitest/autorun'
 require 'open3'
+require_relative '../support/nat_binary'
 
 class ReplWrapper
   def initialize(cmd)
@@ -23,16 +24,9 @@ end
 describe 'REPL' do
   describe 'MRI-hosted' do
     it 'can execute expressions and affect the environment' do
-      execute('bin/natalie')
+      execute(NAT_BINARY)
     end
   end
-
-  # FIXME: not passing on Clang
-  #describe 'self-hosted' do
-    #it 'can execute expressions and affect the environment' do
-      #execute('bin/natalie bin/natalie')
-    #end
-  #end
 
   def execute(cmd)
     @repl = ReplWrapper.new(cmd)
