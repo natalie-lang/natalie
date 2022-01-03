@@ -531,6 +531,10 @@ Value IntegerObject::negate(Env *env) {
     return Value::integer(-1 * m_integer);
 }
 
+Value IntegerObject::numerator() {
+    return this;
+}
+
 Value IntegerObject::complement(Env *env) const {
     return Value::integer(~m_integer);
 }
