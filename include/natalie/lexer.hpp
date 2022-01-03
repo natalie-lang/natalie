@@ -1014,7 +1014,7 @@ private:
             double dbl = number;
             int place = 10; // tenths
             do {
-                dbl += (double)(c - 48) / 1 / place;
+                dbl += (double)(c - 48) / place;
                 place *= 10;
                 advance();
                 c = current_char();
