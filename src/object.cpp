@@ -312,10 +312,18 @@ ClassObject *Object::singleton_class(Env *env) {
 
     m_singleton_class = m_klass->subclass(env);
     m_singleton_class->set_is_singleton(true);
+
+    const String *inspect_string = nullptr;
     if (is_module()) {
-        auto name = String::format("#<Class:{}>", as_module()->inspect_str());
+        inspect_string = as_module()->inspect_str();
+    } else if (respond_to(env, "inspect"_s)) {
+        inspect_string = inspect_str(env);
+    }
+    if (inspect_string) {
+        auto name = String::format("#<Class:{}>", inspect_string);
         m_singleton_class->set_class_name(name);
     }
+
     return m_singleton_class;
 }
 

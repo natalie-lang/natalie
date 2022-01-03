@@ -43,4 +43,9 @@ describe 'singleton_class' do
     Bar.singleton_class.singleton_class?.should == true
     Bar.singleton_class?.should == false
   end
+
+  it 'has the correct name if not a module or class' do
+    o = Object.new
+    o.singleton_class.inspect.should == "#<Class:#{o.inspect}>"
+  end
 end
