@@ -761,15 +761,9 @@ Value Object::instance_eval(Env *env, Value string, Block *block) {
     if (string || !block) {
         env->raise("ArgumentError", "Natalie only supports instance_eval with a block");
     }
-    if (is_module()) {
-        // I *think* this is right... instance_eval, when called on a class/module,
-        // evals with self set to the singleton class
-        block->set_self(singleton_class(env));
-    } else {
-        block->set_self(this);
-    }
-    NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 0, nullptr, nullptr);
-    return NilObject::the();
+    Value self = this;
+    block->set_self(self);
+    return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &self, nullptr);
 }
 
 void Object::assert_type(Env *env, Object::Type expected_type, const char *expected_class_name) {

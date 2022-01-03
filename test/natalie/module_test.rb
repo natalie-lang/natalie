@@ -54,4 +54,13 @@ describe 'Module' do
       M3.const_get('A').should == M3::A
     end
   end
+
+  describe '#instance_eval' do
+    it 'works' do
+      M1.instance_eval do |m1|
+        self.should == M1
+        m1.should == M1
+      end
+    end
+  end
 end
