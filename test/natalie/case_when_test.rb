@@ -129,4 +129,20 @@ describe 'case/when' do
              end
     result.should == 'yep'
   end
+
+  it 'does not compile the same when body more than once' do
+    # the compiler will error if we are compiling the when body twice
+    code = <<-END.gsub(/\n/, '; ')
+      x = 1
+      case x
+      when 1, 2
+        [1].each do
+          puts 'hi'
+        end
+      end
+    END
+    result = `bin/natalie -e #{code.inspect} 2>&1`
+    result.strip.should == "hi"
+    $?.to_i.should == 0
+  end
 end
