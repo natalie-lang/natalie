@@ -34,7 +34,7 @@ public:
         return subclass(env, new String(name), object_type);
     }
 
-    ClassObject *subclass(Env *env, const String *name = nullptr) {
+    ClassObject *subclass(Env *env, const String *name) {
         return subclass(env, name, m_object_type);
     }
 

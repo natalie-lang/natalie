@@ -46,6 +46,8 @@ describe 'singleton_class' do
 
   it 'has the correct name if not a module or class' do
     o = Object.new
-    o.singleton_class.inspect.should == "#<Class:#{o.inspect}>"
+    klass = o.singleton_class
+    klass.inspect.should == "#<Class:#{o.inspect}>"
+    klass.singleton_class.inspect.should == "#<Class:#<Class:#{o.inspect}>>"
   end
 end
