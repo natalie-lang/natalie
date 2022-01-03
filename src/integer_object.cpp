@@ -1,6 +1,5 @@
 #include "natalie.hpp"
 
-#include "natalie/constants.hpp"
 #include <math.h>
 
 namespace Natalie {

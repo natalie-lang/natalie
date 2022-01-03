@@ -5,6 +5,7 @@
 #include <inttypes.h>
 
 #include "natalie/class_object.hpp"
+#include "natalie/constants.hpp"
 #include "natalie/forward.hpp"
 #include "natalie/global_env.hpp"
 #include "natalie/macros.hpp"
