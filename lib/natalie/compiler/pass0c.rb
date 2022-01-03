@@ -40,9 +40,6 @@ module Natalie
       def type_is_always_falsey(arg)
         return [:false, :nil].include?(arg)
       end
-      def type_is_const_evaluable(arg)
-        return [:true, :str, :lit, :array, :false, :nil].include?(arg)
-      end
 
       def process_if(exp, block_with_args=nil)
         exp = exp.new(*exp.map { |e| process_atom(e) })
@@ -98,46 +95,18 @@ module Natalie
             class_arg2 = args[0][1].class
             if [Integer, Float].include?(class_arg1) && [Integer, Float].include?(class_arg2)
               case method
-              when :+
-                return canary_const_addition(exp, values)
-              when :-
-                return canary_const_subtraction(exp, values)
-              when :*
-                return canary_const_multiplication(exp, values)
-              when :/
-                # FIXME: We could propagate NaNs and INFINITIES in the float case
-                return canary_const_division(exp, values) unless args[0][1] == 0
-              when :%
-                return canary_const_modulo(exp, values) unless args[0][1] == 0
+              when :+, :-, :*, :<=>
+                return canary_const_op(exp, values)
+              when :/, :%
+                # FIXME: We could propagate NaNs and INFINITIES in the float-division case
+                return canary_const_op(exp, values) unless args[0][1] == 0
               # FIXME: This one makes String#* timeout
               # when :**
-              #   return canary_const_exp(exp, values) unless values[0] < 0
-              when :&
-                return canary_const_and(exp, values) if [class_arg1, class_arg2].all? {|x| x == Integer}
-              when :|
-                return canary_const_or(exp, values) if [class_arg1, class_arg2].all? {|x| x == Integer}
-              when :^
-                return canary_const_xor(exp, values) if [class_arg1, class_arg2].all? {|x| x == Integer}
-              when :<<
-                return canary_const_shl(exp, values) if [class_arg1, class_arg2].all? {|x| x == Integer}
-              when :>>
-                return canary_const_shr(exp, values) if [class_arg1, class_arg2].all? {|x| x == Integer}
-              when :==
-                return canary_const_eq(exp, values)
-              when :!=
-                return canary_const_neq(exp,values)
-              when :>
-                return canary_const_gt(exp, values)
-              when :>=
-                return canary_const_geq(exp, values)
-              when :<
-                return canary_const_lt(exp, values)
-              when :<=
-                return canary_const_leq(exp, values)
-              when :===
-                return canary_const_eqeq(exp, values)
-              when :<=>
-                return canary_const_cmp(exp, values)
+              #   return canary_const_op(exp, values) unless values[0] < 0
+              when :&, :|, :^, :<<, :>>
+                return canary_const_op(exp, values) if [class_arg1, class_arg2].all? {|x| x == Integer}
+              when :==, :!=, :>, :>=, :<, :<=, :===
+                return canary_const_bool_op(exp, values)
               end
             end
           elsif args.length == 0
@@ -164,89 +133,14 @@ module Natalie
         return exp.new(:if, exp.new(:call, first, :>, second), canary_array_max(exp, [first, *rest]), canary_array_max(exp, [second, *rest]))
       end
 
-      # FIXME: These are pretty repetitive, maybe do these with meta programming
-      def canary_const_addition(exp, values)
-        _, (_, summand1), op, (_, summand2) = exp
-        return s(:lit, summand1 + summand2)
-      end
-      def canary_const_subtraction(exp, values)
-        _, (_, minuend), op, (_, subtrahend) = exp
-        return s(:lit, minuend - subtrahend)
-      end
-      def canary_const_multiplication(exp, values)
-        _, (_, factor1), op, (_, factor2) = exp
-        return s(:lit, factor1 * factor2)
-      end
-      def canary_const_division(exp, values)
-        _, (_, numerator), op, (_, denominator) = exp
-        return s(:lit, numerator / denominator)
-      end
-      def canary_const_modulo(exp, values)
-        _, (_, numerator), op, (_, denominator) = exp
-        return s(:lit, numerator % denominator)
-      end
-      def canary_const_exp(exp, values)
-        _, (_, base), op, (_, power) = exp
-        return s(:lit, base ** power)
-      end
-      def canary_const_and(exp, values)
+      def canary_const_op(exp, values)
         _, (_, arg1), op, (_, arg2) = exp
-        return s(:lit, arg1 & arg2)
+        return exp.new(:lit, arg1.send(op, arg2))
       end
-      def canary_const_or(exp, values)
+      def canary_const_bool_op(exp,values)
         _, (_, arg1), op, (_, arg2) = exp
-        return s(:lit, arg1 | arg2)
-      end
-      def canary_const_xor(exp, values)
-        _, (_, arg1), op, (_, arg2) = exp
-        return s(:lit, arg1 ^ arg2)
-      end
-      def canary_const_shl(exp, values)
-        _, (_, arg1), op, (_, arg2) = exp
-        return s(:lit, arg1 << arg2)
-      end
-      def canary_const_shr(exp, values)
-        _, (_, arg1), op, (_, arg2) = exp
-        return s(:lit, arg1 >> arg2)
-      end
-      def canary_const_eq(exp,values)
-        _, (_, arg1), leq, (_, arg2) = exp
-        return s(:true) if arg1 == arg2
-        return s(:false)
-      end
-      def canary_const_neq(exp,values)
-        _, (_, arg1), leq, (_, arg2) = exp
-        return s(:true) if arg1 != arg2
-        return s(:false)
-      end
-      def canary_const_gt(exp,values)
-        _, (_, arg1), leq, (_, arg2) = exp
-        return s(:true) if arg1 > arg2
-        return s(:false)
-      end
-      def canary_const_geq(exp,values)
-        _, (_, arg1), leq, (_, arg2) = exp
-        return s(:true) if arg1 >= arg2
-        return s(:false)
-      end
-      def canary_const_lt(exp,values)
-        _, (_,arg1), leq, (_,arg2) = exp
-        return s(:true) if arg1 < arg2
-        return s(:false)
-      end
-      def canary_const_leq(exp,values)
-        _, (_, arg1), leq, (_, arg2) = exp
-        return s(:true) if arg1 <= arg2
-        return s(:false)
-      end
-      def canary_const_eqeq(exp,values)
-        _, (_, arg1), eqeq, (_, arg2) = exp
-        return s(:true) if arg1 === arg2
-        return s(:false)
-      end
-      def canary_const_cmp(exp,values)
-        _, (_, arg1), cmp, (_, arg2) = exp
-        return s(:lit, arg1 <=> arg2)
+        return exp.new(:true) if arg1.send(op, arg2)
+        return exp.new(:false)
       end
 
       def canary_const_not(exp, values)
