@@ -52,15 +52,15 @@ Env *build_top_env() {
 
     ClassObject *NilClass = Object->subclass(env, "NilClass", Object::Type::Nil);
     Object->const_set("NilClass"_s, NilClass);
-    NilObject::the();
+    NilObject::the()->set_singleton_class(NilClass);
 
     ClassObject *TrueClass = Object->subclass(env, "TrueClass", Object::Type::True);
     Object->const_set("TrueClass"_s, TrueClass);
-    TrueObject::the();
+    TrueObject::the()->set_singleton_class(TrueClass);
 
     ClassObject *FalseClass = Object->subclass(env, "FalseClass", Object::Type::False);
     Object->const_set("FalseClass"_s, FalseClass);
-    FalseObject::the();
+    FalseObject::the()->set_singleton_class(FalseClass);
 
     ClassObject *Fiber = Object->subclass(env, "Fiber", Object::Type::Fiber);
     Object->const_set("Fiber"_s, Fiber);
