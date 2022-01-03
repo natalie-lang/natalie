@@ -139,10 +139,14 @@ module Natalie
             (_, (_, *matchers), *when_body) = when_exp
             when_body = when_body.map { |w| process(w) }
             when_body = [s(:nil)] if when_body == [nil]
-            matchers.each do |matcher|
-              cond << s(:is_truthy, s(:public_send, process(matcher), s(:intern, '==='), s(:args, value_name), 'nullptr'))
-              cond << s(:block, *when_body)
-            end
+            full_condition = s(
+              :is_truthy,
+              # FIXME: Get rid of the :nil here
+              # FIXME: This is still a bit hacky
+              matchers.reduce(s(:nil)) {|new_cond, matcher| process_or(s(:or, new_cond, s(:public_send, process(matcher), s(:intern, '==='), s(:args, value_name), 'nullptr'))) }
+            )
+            cond << full_condition
+            cond << s(:block, *when_body)
           end
           cond << s(:else)
           cond << process(else_body || s(:nil))
