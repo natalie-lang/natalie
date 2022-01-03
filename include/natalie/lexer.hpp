@@ -1010,12 +1010,19 @@ private:
         } while (isdigit(c));
         if (c == '.' && isdigit(peek())) {
             advance();
-            while (isdigit(current_char())) {
+            c = current_char();
+            double dbl = number;
+            int place = 10; // tenths
+            do {
+                dbl += (double)(c - 48) / 1 / place;
+                place *= 10;
                 advance();
-            }
-            char *endptr = nullptr;
-            double dbl = ::strtod(m_input->c_str() + start_index, &endptr);
-            assert(endptr == m_input->c_str() + m_index); // FIXME: return Invalid token?
+                c = current_char();
+                if (c == '_') {
+                    advance();
+                    c = current_char();
+                }
+            } while (isdigit(c));
             if (negative)
                 dbl *= -1;
             return new Token { Token::Type::Float, dbl, m_file, m_token_line, m_token_column };

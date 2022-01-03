@@ -111,6 +111,7 @@ describe 'Parser' do
       Parser.tokens('-1.234').should == [{type: :float, literal: -1.234}]
       Parser.tokens('0.1').should == [{type: :float, literal: 0.1}]
       Parser.tokens('-0.1').should == [{type: :float, literal: -0.1}]
+      Parser.tokens('123_456.00').should == [{type: :float, literal: 123456.0}]
       -> { Parser.tokens('0.1a') }.should raise_error(SyntaxError, "1: syntax error, unexpected 'a'")
       -> { Parser.tokens('0bb') }.should raise_error(SyntaxError, "1: syntax error, unexpected 'b'")
       -> { Parser.tokens('0dc') }.should raise_error(SyntaxError, "1: syntax error, unexpected 'c'")

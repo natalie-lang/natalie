@@ -1805,7 +1805,9 @@ void Parser::throw_unexpected(Token *token, const char *expected) {
     auto line = token->line() + 1;
     auto type = token->type_value();
     auto literal = token->literal();
-    if (!type)
+    if (token->type() == Token::Type::Invalid)
+        throw SyntaxError { String::format("{}#{}: syntax error, unexpected '{}' (expected: '{}')", file, line, token->literal(), expected) };
+    else if (!type)
         throw SyntaxError { String::format("{}#{}: syntax error, expected '{}' (token type: {})", file, line, expected, (long long)token->type()) };
     else if (strcmp(type, "EOF") == 0)
         throw SyntaxError { String::format("{}#{}: syntax error, unexpected end-of-input (expected: '{}')", file, line, expected) };
