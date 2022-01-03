@@ -80,7 +80,7 @@ public:
     virtual Value cvar_get_or_null(Env *, SymbolObject *) override;
     virtual Value cvar_set(Env *, SymbolObject *, Value) override;
 
-    Value define_method(Env *, Value, Block *);
+    Value define_method(Env *, Value, Value, Block *);
     virtual SymbolObject *define_method(Env *, SymbolObject *, MethodFnPtr, int) override;
     virtual SymbolObject *define_method(Env *, SymbolObject *, Block *) override;
     virtual SymbolObject *undefine_method(Env *, SymbolObject *) override;
@@ -104,6 +104,7 @@ public:
     Value public_instance_methods(Env *, Value);
 
     ArrayObject *ancestors(Env *);
+    bool is_subclass_of(ModuleObject *);
 
     bool is_method_defined(Env *, Value) const;
 
