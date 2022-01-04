@@ -18,8 +18,7 @@ describe "Integer#odd?" do
     end
   end
 
-  # NATFIXME: need to work on IntegerObject::pow() so it handles Bignum
-  xcontext "bignum" do
+  context "bignum" do
     it "returns true if self is odd and positive" do
       (987_279**19).odd?.should be_true
     end

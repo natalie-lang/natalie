@@ -223,11 +223,15 @@ Value StringObject::mul(Env *env, Value arg) const {
     if (arg->as_integer()->has_to_be_bignum())
         arg->as_integer()->assert_fixnum(env);
 
+    auto nat_int = arg->as_integer()->to_nat_int_t();
+    if (nat_int && (std::numeric_limits<size_t>::max() / nat_int) < length())
+        env->raise("ArgumentError", "argument too big");
+
     StringObject *new_string = new StringObject { "", m_encoding };
     if (this->is_empty())
         return new_string;
 
-    for (nat_int_t i = 0; i < arg->as_integer()->to_nat_int_t(); i++) {
+    for (nat_int_t i = 0; i < nat_int; i++) {
         new_string->append(env, this);
     }
     return new_string;

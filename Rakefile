@@ -193,7 +193,7 @@ file 'build/onigmo/lib/libonigmo.a' do
 end
 
 file 'build/generated/numbers.rb' do |t|
-  f1 = Tempfile.new('numbers.c')
+  f1 = Tempfile.new(['numbers', '.cpp'])
   f2 = Tempfile.create('numbers')
   f2.close
   begin
@@ -204,7 +204,7 @@ file 'build/generated/numbers.rb' do |t|
     f1.puts "  printf(\"NAT_MIN_FIXNUM = %lli\\n\", NAT_MIN_FIXNUM);"
     f1.puts "}"
     f1.close
-    sh "#{cc} -Iinclude -x c -o #{f2.path} #{f1.path}"
+    sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -o #{f2.path} #{f1.path}"
     sh "#{f2.path} > #{t.name}"
   ensure
     File.unlink(f1.path)

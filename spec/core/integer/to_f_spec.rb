@@ -17,11 +17,7 @@ describe "Integer#to_f" do
     end
 
     it "converts number close to Float::MAX without exceeding MAX or producing NaN" do
-      # NATFIXME: Implement Integer#** to support overflows to bignums
-      # (10**308).to_f.should == 10.0 ** 308
-      x = 10
-      307.times { x *= 10 }
-      x.to_f.should == 10.0 ** 308
+      (10**308).to_f.should == 10.0 ** 308
     end
   end
 end
