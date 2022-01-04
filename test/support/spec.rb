@@ -775,7 +775,7 @@ class IncludeExpectation
   def match(subject)
     @values.each do |value|
       unless subject.include?(value)
-        raise SpecFailedException, "#{subject.inspect} should include #{@value.inspect}"
+        raise SpecFailedException, "#{subject.inspect} should include #{value.inspect}"
       end
     end
   end
@@ -783,7 +783,7 @@ class IncludeExpectation
   def inverted_match(subject)
     @values.each do |value|
       if subject.include?(value)
-        raise SpecFailedException, "#{subject.inspect} should not include #{@value.inspect}"
+        raise SpecFailedException, "#{subject.inspect} should not include #{value.inspect}"
       end
     end
   end
