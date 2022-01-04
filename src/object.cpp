@@ -310,20 +310,19 @@ ClassObject *Object::singleton_class(Env *env) {
         env->raise("TypeError", "can't define singleton");
     }
 
-    m_singleton_class = m_klass->subclass(env);
-    m_singleton_class->set_is_singleton(true);
-
     const String *inspect_string = nullptr;
     if (is_module()) {
         inspect_string = as_module()->inspect_str();
     } else if (respond_to(env, "inspect"_s)) {
         inspect_string = inspect_str(env);
     }
+    const String *name = nullptr;
     if (inspect_string) {
-        auto name = String::format("#<Class:{}>", inspect_string);
-        m_singleton_class->set_class_name(name);
+        name = String::format("#<Class:{}>", inspect_string);
     }
 
+    m_singleton_class = m_klass->subclass(env, name);
+    m_singleton_class->set_is_singleton(true);
     return m_singleton_class;
 }
 

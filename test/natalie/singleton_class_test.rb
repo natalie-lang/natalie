@@ -46,6 +46,14 @@ describe 'singleton_class' do
 
   it 'has the correct name if not a module or class' do
     o = Object.new
-    o.singleton_class.inspect.should == "#<Class:#{o.inspect}>"
+    klass = o.singleton_class
+    klass.inspect.should == "#<Class:#{o.inspect}>"
+    klass.singleton_class.inspect.should == "#<Class:#<Class:#{o.inspect}>>"
+  end
+
+  it 'schrodingers singleton classes' do
+    nil.singleton_class.singleton_class?.should == false
+    true.singleton_class.singleton_class?.should == false
+    false.singleton_class.singleton_class?.should == false
   end
 end
