@@ -12,7 +12,11 @@ namespace Natalie {
 class Method : public Cell {
 public:
     Method(const char *name, ModuleObject *owner, MethodFnPtr fn, int arity, MethodVisibility visibility)
+        : Method { name, name, owner, fn, arity, visibility } { }
+
+    Method(const char *name, const char *original_name, ModuleObject *owner, MethodFnPtr fn, int arity, MethodVisibility visibility)
         : m_name { name }
+        , m_original_name { original_name }
         , m_owner { owner }
         , m_fn { fn }
         , m_arity { arity }
@@ -20,13 +24,23 @@ public:
         , m_visibility { visibility } { }
 
     Method(const char *name, ModuleObject *owner, Block *block, MethodVisibility visibility)
+        : Method { name, name, owner, block, visibility } { }
+
+    Method(const char *name, const char *original_name, ModuleObject *owner, Block *block, MethodVisibility visibility)
         : m_name { name }
+        , m_original_name { original_name }
         , m_owner { owner }
         , m_arity { block->arity() }
         , m_env { new Env(*block->env()) }
         , m_visibility { visibility } {
         block->copy_fn_pointer_to_method(this);
         assert(m_env);
+    }
+
+    Method *create_alias(const char *new_name) {
+        Method *method = new Method { new_name, m_name.c_str(), m_owner, m_fn, m_arity, m_visibility };
+        method->m_env = m_env;
+        return method;
     }
 
     MethodFnPtr fn() { return m_fn; }
@@ -63,6 +77,7 @@ public:
     }
 
     const String *name() { return &m_name; }
+    const String *original_name() { return &m_original_name; }
     ModuleObject *owner() { return m_owner; }
 
     MethodVisibility visibility() { return m_visibility; }
@@ -81,6 +96,7 @@ public:
 
 private:
     String m_name {};
+    String m_original_name {};
     ModuleObject *m_owner;
     MethodFnPtr m_fn;
     int m_arity { 0 };

@@ -131,11 +131,12 @@ Value ModuleObject::const_set(Env *env, Value name, Value val) {
 }
 
 void ModuleObject::alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
-    Method *method = find_method(env, old_name);
-    if (!method) {
+    Method *old_method = find_method(env, old_name);
+    if (!old_method) {
         env->raise("NameError", "undefined method `{}' for `{}'", old_name->c_str(), this->inspect_str());
     }
-    m_methods.put(new_name, method, env);
+    Method *new_method = old_method->create_alias(new_name->c_str());
+    m_methods.put(new_name, new_method, env);
 }
 
 Value ModuleObject::eval_body(Env *env, Value (*fn)(Env *, Value)) {

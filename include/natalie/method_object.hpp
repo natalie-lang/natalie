@@ -24,15 +24,10 @@ public:
 
     ModuleObject *owner() { return m_method->owner(); }
     SymbolObject *name(Env *env) { return SymbolObject::intern(m_method->name()); }
+    SymbolObject *original_name(Env *env) { return SymbolObject::intern(m_method->original_name()); }
     Method *method() { return m_method; }
 
-    Value inspect(Env *env) {
-        auto the_owner = owner();
-        if (the_owner->is_class() && the_owner->as_class()->is_singleton())
-            return StringObject::format(env, "#<Method: {}.{}(*)>", m_object->inspect_str(env), m_method->name());
-        else
-            return StringObject::format(env, "#<Method: {}#{}(*)>", owner()->inspect_str(), m_method->name());
-    }
+    Value inspect(Env *env);
 
     int arity() { return m_method ? m_method->arity() : 0; }
 

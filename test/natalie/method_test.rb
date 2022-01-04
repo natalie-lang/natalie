@@ -516,6 +516,18 @@ describe 'Method' do
       method(:method_with_kwargs9).arity.should == -1
     end
   end
+
+  describe '#original_name' do
+    it 'works' do
+      klass = Class.new do
+        def foo; end
+        alias bar foo
+      end
+      obj = klass.new
+      obj.method(:bar).name.should == :bar
+      obj.method(:bar).original_name.should == :foo
+    end
+  end
 end
 
 describe 'method taking a block as a proc' do
