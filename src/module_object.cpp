@@ -85,7 +85,12 @@ Value ModuleObject::const_find(Env *env, SymbolObject *name, ConstLookupSearchMo
         while (!(val = search_parent->const_get(name)) && search_parent->owner() && search_parent->owner() != GlobalEnv::the()->Object()) {
             search_parent = search_parent->owner();
         }
-        if (val) return val;
+        if (val) {
+            if (search_parent->m_deprecated_constants.get(name)) {
+                env->warn("constant ::{} is deprecated", name->c_str());
+            }
+            return val;
+        }
     }
 
     // search in superclass hierarchy
@@ -99,6 +104,9 @@ Value ModuleObject::const_find(Env *env, SymbolObject *name, ConstLookupSearchMo
     if (val) {
         if (search_mode == ConstLookupSearchMode::Strict && search_parent->m_private_constants.get(name))
             env->raise("NameError", "private constant {}::{} referenced", search_parent->inspect_str(), name->c_str());
+        if (search_parent->m_deprecated_constants.get(name)) {
+            env->warn("warning: constant {}::{} is deprecated", search_parent->inspect_str(), name->c_str());
+        }
         return val;
     }
 
@@ -484,6 +492,16 @@ Value ModuleObject::public_method(Env *env, size_t argc, Value *args) {
         m_method_visibility = MethodVisibility::Public;
     }
     return NilObject::the();
+}
+
+Value ModuleObject::deprecate_constant(Env *env, size_t argc, Value *args) {
+    for (size_t i = 0; i < argc; ++i) {
+        auto name = args[i]->to_symbol(env, Conversion::Strict);
+        if (!m_constants.get(name))
+            env->raise("NameError", "constant {}::{} not defined", inspect_str(), name->c_str());
+        m_deprecated_constants.set(name);
+    }
+    return this;
 }
 
 Value ModuleObject::private_constant(Env *env, size_t argc, Value *args) {

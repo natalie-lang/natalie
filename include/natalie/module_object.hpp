@@ -115,6 +115,7 @@ public:
     virtual Value protected_method(Env *, size_t, Value *) override;
     Value public_method(Env *, size_t, Value *);
 
+    Value deprecate_constant(Env *, size_t, Value *);
     Value private_constant(Env *, size_t, Value *);
     Value public_constant(Env *, size_t, Value *);
 
@@ -143,6 +144,7 @@ protected:
     Env *m_env { nullptr };
     TM::Hashmap<SymbolObject *, Value> m_constants {};
     TM::Hashmap<SymbolObject *> m_private_constants {};
+    TM::Hashmap<SymbolObject *> m_deprecated_constants {};
     Optional<const String *> m_class_name {};
     ClassObject *m_superclass { nullptr };
     TM::Hashmap<SymbolObject *, Method *> m_methods {};
