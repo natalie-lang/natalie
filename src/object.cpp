@@ -499,15 +499,23 @@ Method *Object::find_method(Env *env, SymbolObject *method_name, MethodVisibilit
     if (singleton) {
         Method *method = singleton_class()->find_method(env, method_name, matching_class_or_module, after_method);
         if (method) {
-            if (method->is_undefined())
+            if (!method->is_undefined()) {
+                MethodVisibility visibility = singleton_class()->get_method_visibility(env, method_name);
+                if (visibility >= visibility_at_least) {
+                    return method;
+                } else {
+                    env->raise("NoMethodError", "private method `{}' called for {}:Class", method_name->c_str(), m_klass->inspect_str());
+                }
+            } else {
                 env->raise("NoMethodError", "undefined method `{}' for {}:Class", method_name->c_str(), m_klass->inspect_str());
-            return method;
+            }
         }
     }
     ModuleObject *klass = this->klass();
     Method *method = klass->find_method(env, method_name, matching_class_or_module);
     if (method && !method->is_undefined()) {
-        if (method->visibility() >= visibility_at_least) {
+        MethodVisibility visibility = klass->get_method_visibility(env, method_name);
+        if (visibility >= visibility_at_least) {
             return method;
         } else {
             env->raise("NoMethodError", "private method `{}' called for {}", method_name->c_str(), inspect_str(env));
