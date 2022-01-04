@@ -110,7 +110,7 @@ Value BignumObject::pow(Env *env, Value arg) {
 
         arg->assert_type(env, Object::Type::Integer, "Integer");
         if (arg->as_integer()->is_bignum()) {
-            env->warn("warning: in a**b, b may be too big");
+            env->warn("in a**b, b may be too big");
             return FloatObject { m_bigint->to_double() }.pow(env, arg);
         }
 
@@ -129,7 +129,7 @@ Value BignumObject::pow(Env *env, Value arg) {
     size_t length = m_bigint->to_string().length();
     constexpr const size_t BIGINT_LIMIT = 8 * 1024 * 1024;
     if (length > BIGINT_LIMIT || length * nat_int > BIGINT_LIMIT) {
-        env->warn("warning: in a**b, b may be too big");
+        env->warn("in a**b, b may be too big");
         return FloatObject { m_bigint->to_double() }.pow(env, arg);
     }
 

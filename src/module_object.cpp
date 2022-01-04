@@ -105,7 +105,7 @@ Value ModuleObject::const_find(Env *env, SymbolObject *name, ConstLookupSearchMo
         if (search_mode == ConstLookupSearchMode::Strict && search_parent->m_private_constants.get(name))
             env->raise("NameError", "private constant {}::{} referenced", search_parent->inspect_str(), name->c_str());
         if (search_parent->m_deprecated_constants.get(name)) {
-            env->warn("warning: constant {}::{} is deprecated", search_parent->inspect_str(), name->c_str());
+            env->warn("constant {}::{} is deprecated", search_parent->inspect_str(), name->c_str());
         }
         return val;
     }
