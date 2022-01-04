@@ -34,12 +34,11 @@ describe "Regexp#match" do
     /(.)(.)(.)/.match(:abc).should be_kind_of(MatchData)
   end
 
-  # NATFIXME fix this once we implement allocate in Class
-  xit "raises a TypeError on an uninitialized Regexp" do
+  it "raises a TypeError on an uninitialized Regexp" do
     -> { Regexp.allocate.match('foo') }.should raise_error(TypeError)
   end
 
-  # NATFIXME fix this once we implement allocate in Class
+  # NATFIXME: Implement UTF-16LE encoding
   xit "raises TypeError on an uninitialized Regexp" do
     -> { Regexp.allocate.match('foo'.encode("UTF-16LE")) }.should raise_error(TypeError)
   end
