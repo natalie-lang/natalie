@@ -207,7 +207,10 @@ def not_supported_on(_)
 end
 
 def suppress_warning
+  old_stderr = $stderr
+  $stderr = IOStub.new
   yield
+  $stderr = old_stderr
 end
 
 def before(type = :each, &block)
