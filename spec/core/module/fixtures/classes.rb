@@ -586,13 +586,12 @@ module ModuleSpecs
     end
   end
 
-  # NATFIXME: Implement Module#instance_method
-  # m = Module.new do
-  #   def foo
-  #   end
-  #   private :foo
-  # end
-  # EmptyFooMethod = m.instance_method(:foo)
+  m = Module.new do
+    def foo
+    end
+    private :foo
+  end
+  EmptyFooMethod = m.instance_method(:foo)
 end
 
 # NATFIXME: Allow Kernel to change access modifier of Object instance method

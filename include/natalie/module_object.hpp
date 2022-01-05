@@ -93,6 +93,10 @@ public:
     MethodVisibility get_method_visibility(Env *, SymbolObject *);
     MethodInfo *find_method_info(Env *, SymbolObject *);
     Method *find_method(Env *, SymbolObject *, ModuleObject ** = nullptr, Method * = nullptr) const;
+    void assert_method_defined(Env *, SymbolObject *, Method *);
+
+    Value instance_method(Env *, Value);
+    Value public_instance_method(Env *, Value);
 
     Value instance_methods(Env *, Value, std::function<bool(MethodVisibility)>);
     Value instance_methods(Env *, Value);
