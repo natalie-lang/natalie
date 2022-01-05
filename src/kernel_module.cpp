@@ -227,10 +227,14 @@ Value KernelModule::hash(Env *env) {
 }
 
 Value KernelModule::inspect(Env *env) {
-    if (is_module() && as_module()->class_name()) {
-        return new StringObject { *as_module()->class_name().value() };
+    return inspect(env, this);
+}
+
+Value KernelModule::inspect(Env *env, Value value) {
+    if (value->is_module() && value->as_module()->class_name()) {
+        return new StringObject { *value->as_module()->class_name().value() };
     } else {
-        return StringObject::format(env, "#<{}:{}>", klass()->inspect_str(), pointer_id());
+        return StringObject::format(env, "#<{}:{}>", value->klass()->inspect_str(), value->pointer_id());
     }
 }
 

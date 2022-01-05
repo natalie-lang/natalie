@@ -28,8 +28,7 @@ describe "Regexp#options" do
     /abc/.options.should == 0
   end
 
-  # NATFIXME: Allocate does not exist yet, please fix this test after implementing Class#allocate
-  xit "raises a TypeError on an uninitialized Regexp" do
+  it "raises a TypeError on an uninitialized Regexp" do
     -> { Regexp.allocate.options }.should raise_error(TypeError)
   end
 
