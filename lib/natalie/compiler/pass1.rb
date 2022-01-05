@@ -172,22 +172,41 @@ module Natalie
 
       def process_cdecl(exp)
         (_, name, value) = exp
-        exp.new(:const_set, :self, s(:intern, name), process(value))
+        (namespace, name) = constant_name(name)
+        exp.new(:const_set, namespace, s(:intern, name), process(value))
       end
 
       def process_class(exp)
         (_, name, superclass, *body) = exp
+        (namespace, name) = constant_name(name)
         superclass ||= s(:const, 'Object')
         fn = temp('class_body')
+        ns = temp('class_namespace')
         klass = temp('class')
         exp.new(:block,
                 s(:class_fn, fn, process(s(:block, *body))),
-                s(:declare, klass, s(:const_get, :self, s(:intern, name))),
+                s(:declare, ns, namespace),
+                s(:declare, klass, s(:const_get, ns, s(:intern, name))),
                 s(:c_if, s(:c_not, klass),
                   s(:block,
                     s(:set, klass, s(:subclass, s(:as_class, process(superclass)), :env, s(:s, name))),
-                    s(:const_set, :self, s(:intern, name), klass))),
+                    s(:const_set, ns, s(:intern, name), klass))),
         s(:eval_body, s(:l, "#{klass}->as_class()"), :env, fn))
+      end
+
+      def constant_name(name)
+        if name.is_a?(Symbol)
+          namespace = :self
+        elsif name.sexp_type == :colon2
+          (_, namespace, name) = name
+          namespace = process(namespace)
+        elsif name.sexp_type == :colon3
+          (_, name) = name
+          namespace = s(:l, 'GlobalEnv::the()->Object()')
+        else
+          raise "Unknown constant name type #{name.sexp_type.inspect}"
+        end
+        [namespace, name]
       end
 
       def process_colon2(exp)
@@ -534,15 +553,18 @@ module Natalie
 
       def process_module(exp)
         (_, name, *body) = exp
+        (namespace, name) = constant_name(name)
         fn = temp('module_body')
+        ns = temp('module_namespace')
         mod = temp('module')
         exp.new(:block,
                 s(:module_fn, fn, process(s(:block, *body))),
-                s(:declare, mod, s(:const_get, :self, s(:intern, name))),
+                s(:declare, ns, namespace),
+                s(:declare, mod, s(:const_get, ns, s(:intern, name))),
                 s(:c_if, s(:c_not, mod),
                   s(:block,
                     s(:set, mod, s(:new, :ModuleObject, s(:s, name))),
-                    s(:const_set, :self, s(:intern, name), mod))),
+                    s(:const_set, ns, s(:intern, name), mod))),
         exp.new(:eval_body, s(:l, "#{mod}->as_module()"), :env, fn))
       end
 
