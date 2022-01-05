@@ -14,15 +14,27 @@ extern char **environ;
 namespace Natalie {
 
 Value KernelModule::Array(Env *env, Value value) {
-    if (value->type() == Object::Type::Array) {
+    if (value->is_array()) {
         return value;
-    } else if (value->respond_to(env, "to_ary"_s)) {
-        return value.send(env, "to_ary"_s);
-    } else if (value == NilObject::the()) {
-        return new ArrayObject;
-    } else {
-        return new ArrayObject { value };
     }
+
+    if (value->respond_to(env, "to_ary"_s)) {
+        auto array = value.send(env, "to_ary"_s);
+        if (!array->is_nil()) {
+            array->assert_type(env, Object::Type::Array, "Array");
+            return array;
+        }
+    }
+
+    if (value->respond_to(env, "to_a"_s)) {
+        auto array = value.send(env, "to_a"_s);
+        if (!array->is_nil()) {
+            array->assert_type(env, Object::Type::Array, "Array");
+            return array;
+        }
+    }
+
+    return new ArrayObject { value };
 }
 
 Value KernelModule::abort_method(Env *env, Value message) {
@@ -145,7 +157,7 @@ Value KernelModule::Float(Env *env, Value value, Value kwargs) {
         }
     }
     if (exception)
-        env->raise("TypeError", "can't convert {} into Float", value->klass()->inspect_str(env));
+        env->raise("TypeError", "can't convert {} into Float", value->klass()->inspect_str());
     else
         return nullptr;
 }
@@ -180,6 +192,24 @@ Value KernelModule::get_usage(Env *env) {
     return hash;
 }
 
+Value KernelModule::Hash(Env *env, Value value) {
+    if (value->is_hash()) {
+        return value;
+    }
+
+    if (value->is_nil() || (value->is_array() && value->as_array()->is_empty())) {
+        return new HashObject;
+    }
+
+    if (!value->respond_to(env, "to_hash"_s)) {
+        env->raise("TypeError", "can't convert {} into Hash", value->klass()->inspect_str());
+    }
+
+    value = value.send(env, "to_hash"_s);
+    value->assert_type(env, Object::Type::Hash, "Hash");
+    return value;
+}
+
 Value KernelModule::hash(Env *env) {
     switch (type()) {
     // NOTE: string "foo" and symbol :foo will get the same hash.
@@ -197,16 +227,28 @@ Value KernelModule::hash(Env *env) {
 }
 
 Value KernelModule::inspect(Env *env) {
-    if (is_module() && as_module()->class_name()) {
-        return new StringObject { *as_module()->class_name().value() };
+    return inspect(env, this);
+}
+
+Value KernelModule::inspect(Env *env, Value value) {
+    if (value->is_module() && value->as_module()->class_name()) {
+        return new StringObject { *value->as_module()->class_name().value() };
     } else {
-        return StringObject::format(env, "#<{}:{}>", klass()->inspect_str(env), pointer_id());
+        return StringObject::format(env, "#<{}:{}>", value->klass()->inspect_str(), value->pointer_id());
     }
 }
 
 // Note: this method is only defined here in the C++ -- the method is actually attached directly to `main` in Ruby.
 Value KernelModule::main_obj_inspect(Env *env) {
     return new StringObject { "main" };
+}
+
+Value KernelModule::instance_variable_defined(Env *env, Value name_val) {
+    if (is_nil() || is_boolean() || is_integer() || is_float() || is_symbol()) {
+        return FalseObject::the();
+    }
+    auto name = name_val->to_symbol(env, Object::Conversion::Strict);
+    return ivar_defined(env, name);
 }
 
 Value KernelModule::instance_variable_get(Env *env, Value name_val) {
@@ -256,7 +298,7 @@ Value KernelModule::method(Env *env, Value name) {
         Method *method = singleton_class()->find_method(env, name_symbol);
         if (method) {
             if (method->is_undefined()) {
-                env->raise("NoMethodError", "undefined method `{}' for {}:Class", name_symbol->inspect_str(env), m_klass->class_name_or_blank());
+                env->raise("NoMethodError", "undefined method `{}' for {}:Class", name_symbol->inspect_str(env), m_klass->inspect_str());
             }
             return new MethodObject { this, method };
         }
@@ -264,7 +306,7 @@ Value KernelModule::method(Env *env, Value name) {
     Method *method = m_klass->find_method(env, name_symbol);
     if (method)
         return new MethodObject { this, method };
-    env->raise("NoMethodError", "undefined method `{}' for {}:Class", name_symbol->inspect_str(env), m_klass->class_name_or_blank());
+    env->raise("NoMethodError", "undefined method `{}' for {}:Class", name_symbol->inspect_str(env), m_klass->inspect_str());
 }
 
 Value KernelModule::methods(Env *env) {
@@ -318,7 +360,7 @@ Value KernelModule::raise(Env *env, Value klass, Value message) {
         Value arg = klass;
         if (arg->is_class()) {
             klass = arg->as_class();
-            message = new StringObject { *arg->as_class()->class_name_or_blank() };
+            message = new StringObject { *arg->as_class()->inspect_str() };
         } else if (arg->is_string()) {
             klass = find_top_level_const(env, "RuntimeError"_s)->as_class();
             message = arg;
@@ -352,7 +394,7 @@ Value KernelModule::sleep(Env *env, Value length) {
         ts.tv_nsec = (secs - ts.tv_sec) * 1000000000;
         nanosleep(&ts, nullptr);
     } else {
-        env->raise("TypeError", "can't convert {} into time interval", length->klass()->inspect_str(env));
+        env->raise("TypeError", "can't convert {} into time interval", length->klass()->inspect_str());
     }
     return length;
 }

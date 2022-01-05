@@ -16,7 +16,7 @@ void ExceptionObject::build_backtrace(Env *env) {
 
 Value ExceptionObject::initialize(Env *env, Value message) {
     if (!message) {
-        auto name = m_klass->class_name_or_blank();
+        auto name = m_klass->inspect_str();
         set_message(new StringObject { *name });
     } else {
         if (!message->is_string()) {
@@ -28,7 +28,7 @@ Value ExceptionObject::initialize(Env *env, Value message) {
 }
 
 Value ExceptionObject::inspect(Env *env) {
-    return StringObject::format(env, "#<{}: {}>", m_klass->inspect_str(env), m_message);
+    return StringObject::format(env, "#<{}: {}>", m_klass->inspect_str(), m_message);
 }
 
 Value ExceptionObject::backtrace(Env *env) {

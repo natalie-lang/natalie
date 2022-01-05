@@ -4,12 +4,15 @@
 #
 #     bin/natalie test/runner.rb spec/core/array/pack/{a,b}_spec.rb
 #
+
+require_relative 'support/nat_binary'
+
 ARGV.each do |path|
   if File.directory?(path)
     $stderr.puts "WARNING: skipping directory #{path}"
     next
   end
-  pid = spawn('bin/natalie', path)
+  pid = spawn(NAT_BINARY, path)
   Process.wait(pid)
   unless $?.success?
     exit $?.exitstatus

@@ -11,8 +11,7 @@ Object::Object(const Object &other)
     , m_owner { other.m_owner }
     , m_ivars { other.m_ivars } { }
 
-Value Object::_new(Env *env, Value klass_value, size_t argc, Value *args, Block *block) {
-    ClassObject *klass = klass_value->as_class();
+Value Object::create(ClassObject *klass) {
     Value obj;
     switch (klass->object_type()) {
     case Object::Type::Array:
@@ -88,16 +87,51 @@ Value Object::_new(Env *env, Value klass_value, size_t argc, Value *args, Block 
     case Object::Type::Integer:
     case Object::Type::Float:
     case Object::Type::Symbol:
-        NAT_UNREACHABLE();
+        obj = nullptr;
+        break;
     }
 
+    return obj;
+}
+
+Value Object::_new(Env *env, Value klass_value, size_t argc, Value *args, Block *block) {
+    Value obj = create(klass_value->as_class());
+    if (!obj)
+        NAT_UNREACHABLE();
+
     return obj->initialize(env, argc, args, block);
+}
+
+Value Object::allocate(Env *env, Value klass_value, size_t argc, Value *args, Block *block) {
+    env->ensure_argc_is(argc, 0);
+
+    ClassObject *klass = klass_value->as_class();
+    if (!klass->respond_to_method(env, "allocate"_s))
+        env->raise("TypeError", "calling {}.allocate is prohibited", klass->inspect_str());
+
+    Value obj;
+    switch (klass->object_type()) {
+    case Object::Type::Proc:
+        obj = nullptr;
+        break;
+
+    default:
+        obj = create(klass);
+        break;
+    }
+
+    if (!obj)
+        env->raise("TypeError", "allocator undefined for {}", klass->inspect_str());
+
+    return obj;
 }
 
 Value Object::initialize(Env *env, size_t argc, Value *args, Block *block) {
     Method *method = m_klass->find_method(env, "initialize"_s);
     if (method && !method->is_undefined()) {
         method->call(env, this, argc, args, block);
+    } else {
+        env->ensure_argc_is(argc, 0);
     }
     return this;
 }
@@ -276,12 +310,19 @@ ClassObject *Object::singleton_class(Env *env) {
         env->raise("TypeError", "can't define singleton");
     }
 
-    m_singleton_class = m_klass->subclass(env);
-    m_singleton_class->set_is_singleton(true);
+    const String *inspect_string = nullptr;
     if (is_module()) {
-        auto name = String::format("#<Class:{}>", as_module()->class_name_or_blank());
-        m_singleton_class->set_class_name(name);
+        inspect_string = as_module()->inspect_str();
+    } else if (respond_to(env, "inspect"_s)) {
+        inspect_string = inspect_str(env);
     }
+    const String *name = nullptr;
+    if (inspect_string) {
+        name = String::format("#<Class:{}>", inspect_string);
+    }
+
+    m_singleton_class = m_klass->subclass(env, name);
+    m_singleton_class->set_is_singleton(true);
     return m_singleton_class;
 }
 
@@ -299,6 +340,17 @@ Value Object::const_fetch(SymbolObject *name) {
 
 Value Object::const_set(SymbolObject *name, Value val) {
     return m_klass->const_set(name, val);
+}
+
+Value Object::ivar_defined(Env *env, SymbolObject *name) {
+    if (!name->is_ivar_name())
+        env->raise("NameError", "`{}' is not allowed as an instance variable name", name->c_str());
+
+    auto val = m_ivars.get(name, env);
+    if (val)
+        return TrueObject::the();
+    else
+        return FalseObject::the();
 }
 
 Value Object::ivar_get(Env *env, SymbolObject *name) {
@@ -342,7 +394,7 @@ Value Object::cvar_get(Env *env, SymbolObject *name) {
         } else {
             module = m_klass;
         }
-        env->raise("NameError", "uninitialized class variable {} in {}", name->c_str(), module->class_name_or_blank());
+        env->raise("NameError", "uninitialized class variable {} in {}", name->c_str(), module->inspect_str());
     }
 }
 
@@ -380,7 +432,9 @@ SymbolObject *Object::define_singleton_method(Env *env, SymbolObject *name, Bloc
 }
 
 SymbolObject *Object::undefine_singleton_method(Env *env, SymbolObject *name) {
-    return define_singleton_method(env, name, nullptr, 0);
+    ClassObject *klass = singleton_class(env);
+    klass->undefine_method(env, name);
+    return name;
 }
 
 SymbolObject *Object::define_method(Env *env, SymbolObject *name, MethodFnPtr fn, int arity) {
@@ -403,7 +457,7 @@ SymbolObject *Object::define_method(Env *env, SymbolObject *name, Block *block) 
 
 SymbolObject *Object::undefine_method(Env *env, SymbolObject *name) {
     if (!is_main_object()) {
-        printf("tried to call define_method on something that has no methods\n");
+        printf("tried to call undefine_method on something that has no methods\n");
         abort();
     }
     m_klass->undefine_method(env, name);
@@ -456,23 +510,31 @@ Method *Object::find_method(Env *env, SymbolObject *method_name, MethodVisibilit
     if (singleton) {
         Method *method = singleton_class()->find_method(env, method_name, matching_class_or_module, after_method);
         if (method) {
-            if (method->is_undefined())
-                env->raise("NoMethodError", "undefined method `{}' for {}:Class", method_name->c_str(), m_klass->class_name_or_blank());
-            return method;
+            if (!method->is_undefined()) {
+                MethodVisibility visibility = singleton_class()->get_method_visibility(env, method_name);
+                if (visibility >= visibility_at_least) {
+                    return method;
+                } else {
+                    env->raise("NoMethodError", "private method `{}' called for {}:Class", method_name->c_str(), m_klass->inspect_str());
+                }
+            } else {
+                env->raise("NoMethodError", "undefined method `{}' for {}:Class", method_name->c_str(), m_klass->inspect_str());
+            }
         }
     }
     ModuleObject *klass = this->klass();
     Method *method = klass->find_method(env, method_name, matching_class_or_module);
     if (method && !method->is_undefined()) {
-        if (method->visibility() >= visibility_at_least) {
+        MethodVisibility visibility = klass->get_method_visibility(env, method_name);
+        if (visibility >= visibility_at_least) {
             return method;
         } else {
             env->raise("NoMethodError", "private method `{}' called for {}", method_name->c_str(), inspect_str(env));
         }
     } else if (method_name == "inspect"_s) {
-        env->raise("NoMethodError", "undefined method `inspect' for #<{}:{}>", klass->class_name_or_blank(), int_to_hex_string(object_id(), false));
+        env->raise("NoMethodError", "undefined method `inspect' for #<{}:{}>", klass->inspect_str(), int_to_hex_string(object_id(), false));
     } else if (is_module()) {
-        env->raise("NoMethodError", "undefined method `{}' for {}:{}", method_name->c_str(), klass->as_module()->class_name_or_blank(), klass->inspect_str(env));
+        env->raise("NoMethodError", "undefined method `{}' for {}:{}", method_name->c_str(), klass->as_module()->inspect_str(), klass->inspect_str());
     } else {
         env->raise("NoMethodError", "undefined method `{}' for {}", method_name->c_str(), inspect_str(env));
     }
@@ -498,7 +560,7 @@ Value Object::dup(Env *env) {
     case Object::Type::Object:
         return new Object { *this };
     default:
-        fprintf(stderr, "I don't know how to dup this kind of object yet %s (type = %d).\n", m_klass->class_name_or_blank()->c_str(), static_cast<int>(m_type));
+        fprintf(stderr, "I don't know how to dup this kind of object yet %s (type = %d).\n", m_klass->inspect_str()->c_str(), static_cast<int>(m_type));
         abort();
     }
 }
@@ -575,7 +637,7 @@ ProcObject *Object::to_proc(Env *env) {
     if (respond_to(env, to_proc_symbol)) {
         return send(env, to_proc_symbol)->as_proc();
     } else {
-        env->raise("TypeError", "wrong argument type {} (expected Proc)", m_klass->class_name_or_blank());
+        env->raise("TypeError", "wrong argument type {} (expected Proc)", m_klass->inspect_str());
     }
 }
 
@@ -602,14 +664,14 @@ void Object::assert_type(Env *env, Object::Type expected_type, const char *expec
             char const beginning[] = { first_letter, '\0' };
             env->raise("TypeError", "no implicit conversion from nil to {}{}", beginning, expected_class_name + 1);
         } else {
-            env->raise("TypeError", "no implicit conversion of {} into {}", klass()->class_name_or_blank(), expected_class_name);
+            env->raise("TypeError", "no implicit conversion of {} into {}", klass()->inspect_str(), expected_class_name);
         }
     }
 }
 
 void Object::assert_not_frozen(Env *env) {
     if (is_frozen()) {
-        env->raise("FrozenError", "can't modify frozen {}: {}", klass()->class_name_or_blank(), inspect_str(env));
+        env->raise("FrozenError", "can't modify frozen {}: {}", klass()->inspect_str(), inspect_str(env));
     }
 }
 
@@ -658,7 +720,7 @@ ArrayObject *Object::to_ary(Env *env) {
         return as_array();
     }
 
-    auto original_class = klass()->class_name_or_blank();
+    auto original_class = klass()->inspect_str();
 
     auto to_ary = "to_ary"_s;
 
@@ -679,7 +741,7 @@ ArrayObject *Object::to_ary(Env *env) {
         "TypeError", "can't convert {} to Array ({}#to_ary gives {})",
         original_class,
         original_class,
-        val->klass()->class_name_or_blank());
+        val->klass()->inspect_str());
 }
 
 }

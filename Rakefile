@@ -29,8 +29,8 @@ task test: :build do
   sh 'bundle exec ruby test/all.rb'
 end
 
-desc 'Build the self-hosted version of Natalie at ./nat'
-task bootstrap: [:build, :nat]
+desc 'Build the self-hosted version of Natalie at bin/nat'
+task bootstrap: [:build, 'bin/nat']
 
 desc 'Show line counts for the project'
 task :cloc do
@@ -193,7 +193,7 @@ file 'build/onigmo/lib/libonigmo.a' do
 end
 
 file 'build/generated/numbers.rb' do |t|
-  f1 = Tempfile.new('numbers.c')
+  f1 = Tempfile.new(['numbers', '.cpp'])
   f2 = Tempfile.create('numbers')
   f2.close
   begin
@@ -204,7 +204,7 @@ file 'build/generated/numbers.rb' do |t|
     f1.puts "  printf(\"NAT_MIN_FIXNUM = %lli\\n\", NAT_MIN_FIXNUM);"
     f1.puts "}"
     f1.close
-    sh "#{cc} -Iinclude -x c -o #{f2.path} #{f1.path}"
+    sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -o #{f2.path} #{f1.path}"
     sh "#{f2.path} > #{t.name}"
   ensure
     File.unlink(f1.path)
@@ -225,8 +225,8 @@ file 'build/generated/bindings.cpp.o' => ['lib/natalie/compiler/binding_gen.rb']
   sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -c -o #{t.name} #{t.name.pathmap('%d/%n')}"
 end
 
-file 'nat' => OBJECT_FILES do
-  sh 'bin/natalie -c nat bin/natalie'
+file 'bin/nat' => OBJECT_FILES + ['bin/natalie'] do
+  sh 'bin/natalie -c bin/nat bin/natalie'
 end
 
 rule '.c.o' => 'src/%n' do |t|

@@ -20,6 +20,12 @@ public:
     ClassObject(ClassObject *klass)
         : ModuleObject { Object::Type::Class, klass } { }
 
+    ClassObject *superclass(Env *env) override {
+        if (!m_is_initialized)
+            env->raise("TypeError", "uninitialized class");
+        return m_superclass;
+    }
+
     ClassObject *subclass(Env *env, const char *name) {
         return subclass(env, name, m_object_type);
     }
@@ -28,11 +34,13 @@ public:
         return subclass(env, new String(name), object_type);
     }
 
-    ClassObject *subclass(Env *env, const String *name = nullptr) {
+    ClassObject *subclass(Env *env, const String *name) {
         return subclass(env, name, m_object_type);
     }
 
     ClassObject *subclass(Env *, const String *, Type);
+
+    void initialize_subclass(ClassObject *, Env *, const String *, Type);
 
     static ClassObject *bootstrap_class_class(Env *);
     static ClassObject *bootstrap_basic_object(Env *, ClassObject *);
@@ -40,22 +48,6 @@ public:
     Type object_type() { return m_object_type; }
 
     Value initialize(Env *, Value, Block *);
-
-    static Value new_method(Env *env, Value superclass, Block *block) {
-        if (superclass) {
-            if (!superclass->is_class()) {
-                env->raise("TypeError", "superclass must be a Class ({} given)", superclass->klass()->class_name_or_blank());
-            }
-        } else {
-            superclass = GlobalEnv::the()->Object();
-        }
-        Value klass = superclass->as_class()->subclass(env);
-        if (block) {
-            block->set_self(klass);
-            NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 0, nullptr, nullptr);
-        }
-        return klass;
-    }
 
     bool is_singleton() const { return m_is_singleton; }
     void set_is_singleton(bool is_singleton) { m_is_singleton = is_singleton; }
@@ -70,6 +62,7 @@ public:
 private:
     Type m_object_type { Type::Object };
     bool m_is_singleton { false };
+    bool m_is_initialized { false };
 };
 
 }

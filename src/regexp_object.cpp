@@ -11,7 +11,7 @@ Value RegexpObject::last_match(Env *env, Value ref) {
 
 Value RegexpObject::initialize(Env *env, Value pattern, Value opts) {
     assert_not_frozen(env);
-    if (m_pattern != nullptr)
+    if (is_initialized())
         env->raise("TypeError", "already initialized regexp");
     if (pattern->is_regexp()) {
         auto other = pattern->as_regexp();
@@ -35,6 +35,8 @@ Value RegexpObject::initialize(Env *env, Value pattern, Value opts) {
 }
 
 Value RegexpObject::inspect(Env *env) {
+    if (!is_initialized())
+        return KernelModule::inspect(env, this);
     StringObject *out = new StringObject { "/" };
     const char *str = pattern();
     size_t len = strlen(str);
@@ -80,6 +82,7 @@ Value RegexpObject::eqtilde(Env *env, Value other) {
 }
 
 Value RegexpObject::match(Env *env, Value other, Value start, Block *block) {
+    assert_initialized(env);
     Env *caller_env = env->caller();
     if (other->is_nil()) {
         caller_env->clear_match();
@@ -128,6 +131,7 @@ Value RegexpObject::match(Env *env, Value other, Value start, Block *block) {
 }
 
 bool RegexpObject::has_match(Env *env, Value other, Value start) {
+    assert_initialized(env);
     if (other->is_nil())
         return false;
     if (other->is_symbol())
@@ -167,10 +171,12 @@ bool RegexpObject::has_match(Env *env, Value other, Value start) {
 }
 
 Value RegexpObject::source(Env *env) {
+    assert_initialized(env);
     return new StringObject { pattern() };
 }
 
 Value RegexpObject::to_s(Env *env) {
+    assert_initialized(env);
     StringObject *out = new StringObject { "(" };
 
     auto is_m = options() & RegexOpts::MultiLine;

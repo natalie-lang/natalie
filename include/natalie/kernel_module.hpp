@@ -49,9 +49,12 @@ public:
     Value Float(Env *env, Value value, Value kwargs);
     Value gets(Env *env);
     Value get_usage(Env *env);
+    Value Hash(Env *env, Value value);
     Value hash(Env *env);
     Value inspect(Env *env);
+    static Value inspect(Env *env, Value value);
     Value main_obj_inspect(Env *);
+    Value instance_variable_defined(Env *env, Value name_val);
     Value instance_variable_get(Env *env, Value name_val);
     Value instance_variable_set(Env *env, Value name_val, Value value);
     Value lambda(Env *env, Block *block);

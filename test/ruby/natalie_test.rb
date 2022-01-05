@@ -2,6 +2,7 @@ require 'minitest/spec'
 require 'minitest/autorun'
 require 'time'
 require_relative '../support/compare_rubies'
+require_relative '../support/nat_binary'
 
 describe 'Natalie tests' do
   include CompareRubies

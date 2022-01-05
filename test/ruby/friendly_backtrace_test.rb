@@ -1,11 +1,12 @@
 require 'minitest/spec'
 require 'minitest/autorun'
+require_relative '../support/nat_binary'
 
 describe 'friendly backtrace' do
   parallelize_me!
 
   it 'works with -e' do
-    out = `bin/natalie -e "def bar; xxx; end; def foo; bar; end; foo" 2>&1`
+    out = `#{NAT_BINARY} -e "def bar; xxx; end; def foo; bar; end; foo" 2>&1`
     expect(out).must_equal <<-EOF
 Traceback (most recent call last):
         2: from -e:1:in `<main>'
@@ -15,7 +16,7 @@ Traceback (most recent call last):
   end
 
   it 'works with a file' do
-    out = `bin/natalie test/ruby/fixtures/error.rb 2>&1`
+    out = `#{NAT_BINARY} test/ruby/fixtures/error.rb 2>&1`
     expect(out).must_equal <<-EOF
 Traceback (most recent call last):
         5: from test/ruby/fixtures/error.rb:15:in `<main>'
@@ -28,7 +29,7 @@ test/ruby/fixtures/error.rb:2:in `method_with_error': undefined method `somethin
   end
 
   it 'works with a fiber' do
-    out = `bin/natalie test/ruby/fixtures/fiber_error.rb 2>&1`
+    out = `#{NAT_BINARY} test/ruby/fixtures/fiber_error.rb 2>&1`
     expect(out).must_equal <<-EOF
 Traceback (most recent call last):
         1: from test/ruby/fixtures/fiber_error.rb:4:in `block in make_fiber'

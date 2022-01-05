@@ -59,8 +59,6 @@ public:
         return new ArrayObject { argc, args, klass };
     }
 
-    static Value allocate(Env *, size_t, Value *);
-
     Value to_ary_method() { return this; }
 
     size_t size() const { return m_vector.size(); }
@@ -183,6 +181,7 @@ public:
     Value rotate_in_place(Env *, Value);
     Value select(Env *, Block *);
     Value select_in_place(Env *, Block *);
+    bool select_in_place(std::function<bool(Value &)>);
     Value shift(Env *, Value);
     Value slice_in_place(Env *, Value, Value);
     Value sort(Env *, Block *);

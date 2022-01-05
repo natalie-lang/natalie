@@ -156,6 +156,7 @@ private:
             return ITER_BLOCK;
         case Token::Type::LCurlyBrace:
             return ITER_CURLY;
+        case Token::Type::Comparison:
         case Token::Type::LessThan:
         case Token::Type::LessThanOrEqual:
         case Token::Type::GreaterThan:
@@ -175,6 +176,7 @@ private:
         case Token::Type::DotDotDot:
             return RANGE;
         case Token::Type::LBracket:
+        case Token::Type::LBracketRBracket:
             if (left && treat_left_bracket_as_element_reference(left, current_token()))
                 return REF;
             break;
@@ -246,6 +248,7 @@ private:
     Node *parse_symbol(LocalsHashmap &);
     Node *parse_statement_keyword(LocalsHashmap &);
     Node *parse_top_level_constant(LocalsHashmap &);
+    Node *parse_unary_operator(LocalsHashmap &);
     Node *parse_unless(LocalsHashmap &);
     Node *parse_while(LocalsHashmap &);
     Node *parse_word_array(LocalsHashmap &);

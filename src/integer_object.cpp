@@ -1,6 +1,5 @@
 #include "natalie.hpp"
 
-#include "natalie/constants.hpp"
 #include <math.h>
 
 namespace Natalie {
@@ -44,7 +43,7 @@ Value IntegerObject::to_i() {
 }
 
 Value IntegerObject::to_f() const {
-    return new FloatObject { m_integer };
+    return Value { static_cast<double>(m_integer) };
 }
 
 Value add_fast(nat_int_t a, nat_int_t b) {
@@ -66,6 +65,8 @@ Value add_fast(nat_int_t a, nat_int_t b) {
 Value IntegerObject::add(Env *env, Value arg) {
     if (arg.is_fast_integer())
         return add_fast(m_integer, arg.get_fast_integer());
+    if (arg.is_fast_float())
+        return Value { m_integer + arg.get_fast_float() };
 
     arg.unguard();
 
@@ -105,6 +106,8 @@ Value sub_fast(nat_int_t a, nat_int_t b) {
 Value IntegerObject::sub(Env *env, Value arg) {
     if (arg.is_fast_integer())
         return sub_fast(m_integer, arg.get_fast_integer());
+    if (arg.is_fast_float())
+        return Value { m_integer - arg.get_fast_float() };
 
     arg.unguard();
 
@@ -125,17 +128,25 @@ Value IntegerObject::sub(Env *env, Value arg) {
     return sub_fast(m_integer, other->to_nat_int_t());
 }
 
-Value mul_fast(nat_int_t a, nat_int_t b) {
-    if (a == 0 || b == 0)
-        return Value::integer(0);
+bool will_multiplication_overflow(nat_int_t a, nat_int_t b) {
+    if (a == b) {
+        return a > NAT_MAX_FIXNUM_SQRT || a < -NAT_MAX_FIXNUM_SQRT;
+    }
 
     auto min_fraction = (NAT_MIN_FIXNUM) / b;
     auto max_fraction = (NAT_MAX_FIXNUM) / b;
 
-    if ((a > 0 && b > 0 && max_fraction <= a)
+    return ((a > 0 && b > 0 && max_fraction <= a)
         || (a > 0 && b < 0 && min_fraction <= a)
         || (a < 0 && b > 0 && min_fraction >= a)
-        || (a < 0 && b < 0 && max_fraction >= a)) {
+        || (a < 0 && b < 0 && max_fraction >= a));
+}
+
+Value mul_fast(nat_int_t a, nat_int_t b) {
+    if (a == 0 || b == 0)
+        return Value::integer(0);
+
+    if (will_multiplication_overflow(a, b)) {
         auto result = BigInt(a) * BigInt(b);
         return new BignumObject { result };
     }
@@ -145,6 +156,8 @@ Value mul_fast(nat_int_t a, nat_int_t b) {
 Value IntegerObject::mul(Env *env, Value arg) {
     if (arg.is_fast_integer())
         return mul_fast(m_integer, arg.get_fast_integer());
+    if (arg.is_fast_float())
+        return Value { m_integer * arg.get_fast_float() };
 
     arg.unguard();
 
@@ -181,6 +194,8 @@ Value div_fast(nat_int_t a, nat_int_t b) {
 Value IntegerObject::div(Env *env, Value arg) {
     if (arg.is_fast_integer() && arg.get_fast_integer() != 0)
         return div_fast(m_integer, arg.get_fast_integer());
+    if (arg.is_fast_float())
+        return Value { m_integer / arg.get_fast_float() };
 
     arg.unguard();
 
@@ -225,19 +240,89 @@ Value IntegerObject::mod(Env *env, Value arg) {
     return Value::integer(result);
 }
 
-Value IntegerObject::pow(Env *env, Value arg) const {
-    if (arg.is_fast_integer())
-        return Value::integer(::pow(m_integer, arg.get_fast_integer()));
+Value fast_pow(Env *env, nat_int_t a, nat_int_t b) {
+    if (b == 0)
+        return Value::integer(1);
+    if (b == 1)
+        return Value::integer(a);
+    if (a == 0)
+        return Value::integer(0);
 
-    arg.unguard();
-    arg->assert_type(env, Object::Type::Integer, "Integer");
-    auto result = ::pow(m_integer, arg->as_integer()->to_nat_int_t());
-    return Value::integer(result);
+    auto handle_overflow = [env, &a, &b](nat_int_t last_result, bool should_be_negative) -> Value {
+        auto result = BignumObject(a).pow(env, Value::integer(b));
+
+        // Check if the bignum pow overflowed.
+        if (result->is_float() && result->as_float()->is_infinite(env)) {
+            return result;
+        }
+
+        result = result->as_integer()->mul(env, Value::integer(should_be_negative ? -last_result : last_result));
+        return result;
+    };
+
+    nat_int_t result = 1;
+
+    bool negative = a < 0;
+    if (negative) a = -a;
+    negative = negative && (b % 2);
+
+    while (b != 0) {
+        while (b % 2 == 0) {
+            if (a > NAT_MAX_FIXNUM_SQRT) {
+                return handle_overflow(result, negative);
+            }
+            b >>= 1;
+            a *= a;
+        }
+
+        if (will_multiplication_overflow(result, a)) {
+            return handle_overflow(result, negative);
+        }
+        result *= a;
+        --b;
+    }
+    return Value::integer(negative ? -result : result);
+}
+
+Value IntegerObject::pow(Env *env, Value arg) {
+    nat_int_t nat_int;
+    if (arg.is_fast_integer()) {
+        nat_int = arg.get_fast_integer();
+    } else {
+        arg.unguard();
+
+        if (arg->is_float())
+            return FloatObject { to_nat_int_t() }.pow(env, arg);
+
+        if (!arg->is_integer()) {
+            auto coerced = Natalie::coerce(env, arg, this);
+            arg = coerced.second;
+            if (!coerced.first->is_integer()) {
+                return coerced.first->send(env, "**"_s, { arg });
+            }
+        }
+
+        arg->assert_type(env, Object::Type::Integer, "Integer");
+
+        if (arg->as_integer()->is_bignum())
+            return BignumObject { to_nat_int_t() }.pow(env, arg);
+
+        nat_int = arg->as_integer()->to_nat_int_t();
+    }
+
+    if (m_integer == 0 && nat_int < 0)
+        env->raise("ZeroDivisionError", "divided by 0");
+
+    // NATFIXME: If a negative number is passed we want to return a Rational
+    if (nat_int < 0)
+        NAT_NOT_YET_IMPLEMENTED();
+
+    return fast_pow(env, m_integer, nat_int);
 }
 
 Value IntegerObject::cmp(Env *env, Value arg) {
     auto is_comparable_with = [](Value arg) -> bool {
-        return arg.is_fast_integer() || arg->is_integer() || arg->is_float();
+        return arg.is_fast_integer() || arg.is_fast_float() || arg->is_integer() || arg->is_float();
     };
 
     // Check if we might want to coerce the value
@@ -260,6 +345,8 @@ Value IntegerObject::cmp(Env *env, Value arg) {
 bool IntegerObject::eq(Env *env, Value other) {
     if (other.is_fast_integer())
         return m_integer == other.get_fast_integer();
+    if (other.is_fast_float())
+        return m_integer == other.get_fast_float();
 
     other.unguard();
 
@@ -282,6 +369,8 @@ bool IntegerObject::eq(Env *env, Value other) {
 bool IntegerObject::lt(Env *env, Value other) {
     if (other.is_fast_integer())
         return m_integer < other.get_fast_integer();
+    if (other.is_fast_float())
+        return m_integer < other.get_fast_float();
 
     other.unguard();
 
@@ -304,6 +393,8 @@ bool IntegerObject::lt(Env *env, Value other) {
 bool IntegerObject::lte(Env *env, Value other) {
     if (other.is_fast_integer())
         return m_integer <= other.get_fast_integer();
+    if (other.is_fast_float())
+        return m_integer <= other.get_fast_float();
 
     other.unguard();
 
@@ -326,6 +417,8 @@ bool IntegerObject::lte(Env *env, Value other) {
 bool IntegerObject::gt(Env *env, Value other) {
     if (other.is_fast_integer())
         return m_integer > other.get_fast_integer();
+    if (other.is_fast_float())
+        return m_integer > other.get_fast_float();
 
     other.unguard();
 
@@ -348,6 +441,8 @@ bool IntegerObject::gt(Env *env, Value other) {
 bool IntegerObject::gte(Env *env, Value other) {
     if (other.is_fast_integer())
         return m_integer >= other.get_fast_integer();
+    if (other.is_fast_float())
+        return m_integer >= other.get_fast_float();
 
     other.unguard();
 
@@ -399,6 +494,11 @@ Value IntegerObject::pred(Env *env) {
     return sub(env, Value::integer(1));
 }
 
+Value IntegerObject::size(Env *env) {
+    // NATFIXME: add Bignum support.
+    return Value::integer(sizeof m_integer);
+}
+
 Value IntegerObject::succ(Env *env) {
     return add(env, Value::integer(1));
 }
@@ -415,7 +515,7 @@ Value IntegerObject::coerce(Env *env, Value arg) {
         ary->push(send(env, "to_f"_s));
         break;
     default:
-        if (!arg->is_float() && arg->respond_to(env, "to_f"_s)) {
+        if (!arg->is_nil() && !arg->is_float() && arg->respond_to(env, "to_f"_s)) {
             arg = arg.send(env, "to_f"_s);
         }
 
@@ -428,6 +528,22 @@ Value IntegerObject::coerce(Env *env, Value arg) {
         env->raise("TypeError", "can't convert {} into Float", arg->inspect_str(env));
     }
     return ary;
+}
+
+Value IntegerObject::ceil(Env *env, Value arg) {
+    if (arg == nullptr)
+        return this;
+
+    arg->assert_type(env, Object::Type::Integer, "Integer");
+
+    auto precision = arg->as_integer()->to_nat_int_t();
+    if (precision >= 0)
+        return this;
+
+    double f = ::pow(10, precision);
+    auto result = ::ceil(to_nat_int_t() * f) / f;
+
+    return Value::integer(result);
 }
 
 Value IntegerObject::floor(Env *env, Value arg) {
@@ -449,6 +565,8 @@ Value IntegerObject::floor(Env *env, Value arg) {
 bool IntegerObject::eql(Env *env, Value other) {
     if (other.is_fast_integer())
         return m_integer == other.get_fast_integer();
+    if (other.is_fast_float())
+        return false;
 
     other.unguard();
 
@@ -498,6 +616,10 @@ bool IntegerObject::optimized_method(SymbolObject *method_name) {
 
 Value IntegerObject::negate(Env *env) {
     return Value::integer(-1 * m_integer);
+}
+
+Value IntegerObject::numerator() {
+    return this;
 }
 
 Value IntegerObject::complement(Env *env) const {

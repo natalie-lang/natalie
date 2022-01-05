@@ -53,7 +53,7 @@ namespace ArrayPacker {
                         str->assert_type(env, Object::Type::String, "String");
                         string = str->as_string()->to_low_level_string();
                     } else {
-                        env->raise("TypeError", "no implicit conversion of {} into String", item->klass()->class_name_or_blank());
+                        env->raise("TypeError", "no implicit conversion of {} into String", item->klass()->inspect_str());
                         NAT_UNREACHABLE();
                     }
 
@@ -76,7 +76,7 @@ namespace ArrayPacker {
                             num->assert_type(env, Object::Type::Integer, "Integer");
                             integer = num->as_integer();
                         } else {
-                            env->raise("TypeError", "no implicit conversion of {} into Integer", item->klass()->class_name_or_blank());
+                            env->raise("TypeError", "no implicit conversion of {} into Integer", item->klass()->inspect_str());
                             NAT_UNREACHABLE();
                         }
 

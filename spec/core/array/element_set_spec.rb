@@ -488,7 +488,8 @@ end
 # end
 
 ruby_version_is "2.7" do
-  describe "Array#[]= with [..n] and [...n]" do
+  # NATFIXME: Array#[]= with [..n] and [...n]
+  xdescribe "Array#[]= with [..n] and [...n]" do
     it "just sets the section defined by range to nil even if the rhs is nil" do
       a = [1, 2, 3, 4, 5]
       a[eval("(..2)")] = nil

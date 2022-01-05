@@ -8,6 +8,14 @@ class SexpObject : public ArrayObject {
 public:
     SexpObject(Env *, Node *, std::initializer_list<Value>);
 
+    static Value from_array(Env *env, Value array) {
+        array->assert_type(env, Object::Type::Array, "Array");
+        auto sexp = new SexpObject {};
+        for (auto item : *array->as_array())
+            sexp->push(item);
+        return sexp;
+    }
+
     Value new_method(Env *env, size_t argc, Value *args) {
         auto sexp = new SexpObject {};
         sexp->ivar_set(env, "@file"_s, ivar_get(env, "@file"_s));

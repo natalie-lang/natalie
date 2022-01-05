@@ -63,7 +63,8 @@ public:
         return regex;
     }
 
-    Value hash() {
+    Value hash(Env *env) {
+        assert_initialized(env);
         auto hash = (m_options & ~RegexOpts::NoEncoding) + TM::Hashmap<void *>::hash_str(m_pattern);
         return Value::integer(hash);
     }
@@ -84,21 +85,37 @@ public:
         m_options = options;
     }
 
+    bool is_initialized() const { return m_pattern != nullptr; }
+
+    void assert_initialized(Env *env) const {
+        if (!is_initialized())
+            env->raise("TypeError", "uninitialized Regexp");
+    }
+
     const char *pattern() { return m_pattern; }
 
     int options() const { return m_options; }
 
+    int options(Env *env) {
+        assert_initialized(env);
+        return m_options;
+    }
+
     void set_options(const String *options) {
-        for (char *c = const_cast<char *>(options->c_str()); *c != '\0'; ++c) {
+        parse_options(options, &m_options);
+    }
+
+    static void parse_options(const String *options_string, int *options) {
+        for (char *c = const_cast<char *>(options_string->c_str()); *c != '\0'; ++c) {
             switch (*c) {
             case 'i':
-                m_options |= RegexOpts::IgnoreCase;
+                *options |= RegexOpts::IgnoreCase;
                 break;
             case 'x':
-                m_options |= RegexOpts::Extended;
+                *options |= RegexOpts::Extended;
                 break;
             case 'm':
-                m_options |= RegexOpts::MultiLine;
+                *options |= RegexOpts::MultiLine;
                 break;
             default:
                 break;
@@ -106,14 +123,13 @@ public:
         }
     }
 
-    bool operator==(const Object &other) const {
-        if (!other.is_regexp()) return false;
-        RegexpObject *other_regexp = const_cast<Object &>(other).as_regexp();
-        return strcmp(m_pattern, other_regexp->m_pattern) == 0 && (m_options | RegexOpts::NoEncoding) == (other_regexp->m_options | RegexOpts::NoEncoding);
+    bool operator==(const RegexpObject &other) const {
+        return strcmp(m_pattern, other.m_pattern) == 0 && (m_options | RegexOpts::NoEncoding) == (other.m_options | RegexOpts::NoEncoding);
         // /n encoding option is ignored when doing == in ruby MRI
     }
 
-    bool casefold() const {
+    bool casefold(Env *env) const {
+        assert_initialized(env);
         return m_options & RegexOpts::IgnoreCase;
     }
 
@@ -130,10 +146,15 @@ public:
     }
 
     bool eq(Env *env, Value other) const {
-        return *this == *other;
+        assert_initialized(env);
+        if (!other->is_regexp()) return false;
+        RegexpObject *other_regexp = other->as_regexp();
+        other_regexp->assert_initialized(env);
+        return *this == *other_regexp;
     }
 
     bool eqeqeq(Env *env, Value other) {
+        assert_initialized(env);
         if (!other->is_string() && !other->is_symbol()) {
             if (!other->respond_to(env, "to_str"_s))
                 return false;

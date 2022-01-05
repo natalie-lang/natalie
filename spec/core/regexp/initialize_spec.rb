@@ -1,9 +1,9 @@
 require_relative '../../spec_helper'
 
 describe "Regexp#initialize" do
-  # NATFIXME: this is not possible just yet...
-  xit "is a private method" do
-    Regexp.should have_private_method(:initialize)
+  # NATFIXME: bug in spec; have_private_method should be have_private_instance_method
+  it "is a private method" do
+    Regexp.should have_private_instance_method(:initialize)
   end
 
   ruby_version_is ""..."3.0" do

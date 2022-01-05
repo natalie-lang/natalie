@@ -87,6 +87,9 @@ describe 'Parser' do
       Parser.parse('foo&.bar').should == s(:block, s(:safe_call, s(:call, nil, :foo), :bar))
       Parser.parse('foo&.bar 1').should == s(:block, s(:safe_call, s(:call, nil, :foo), :bar, s(:lit, 1)))
       Parser.parse('foo&.bar x').should == s(:block, s(:safe_call, s(:call, nil, :foo), :bar, s(:call, nil, :x)))
+      Parser.parse('-(2*8)').should == s(:block, s(:call, s(:call, s(:lit, 2), :*, s(:lit, 8)), :-@))
+      Parser.parse('+(2*8)').should == s(:block, s(:call, s(:call, s(:lit, 2), :*, s(:lit, 8)), :+@))
+      Parser.parse('foo <=> bar').should == s(:block, s(:call, s(:call, nil, :foo), :<=>, s(:call, nil, :bar)))
     end
 
     it 'parses and/or' do
@@ -225,10 +228,6 @@ describe 'Parser' do
       Parser.parse("def foo?; end").should == s(:block, s(:defn, :foo?, s(:args), s(:nil)))
       Parser.parse("def foo=; end").should == s(:block, s(:defn, :foo=, s(:args), s(:nil)))
       Parser.parse("def self.foo=; end").should == s(:block, s(:defs, s(:self), :foo=, s(:args), s(:nil)))
-      Parser.parse("def <<; end").should == s(:block, s(:defn, :<<, s(:args), s(:nil)))
-      Parser.parse("def >>; end").should == s(:block, s(:defn, :>>, s(:args), s(:nil)))
-      Parser.parse("def self.<<; end").should == s(:block, s(:defs, s(:self), :<<, s(:args), s(:nil)))
-      Parser.parse("def self.>>; end").should == s(:block, s(:defs, s(:self), :>>, s(:args), s(:nil)))
       Parser.parse("def foo.bar=; end").should == s(:block, s(:defs, s(:call, nil, :foo), :bar=, s(:args), s(:nil)))
       Parser.parse("def Foo.foo; end").should == s(:block, s(:defs, s(:const, :Foo), :foo, s(:args), s(:nil)))
       Parser.parse("foo=o; def foo.bar; end").should == s(:block, s(:lasgn, :foo, s(:call, nil, :o)), s(:defs, s(:lvar, :foo), :bar, s(:args), s(:nil)))
@@ -238,6 +237,14 @@ describe 'Parser' do
       Parser.parse("def foo(a, &b); end").should == s(:block, s(:defn, :foo, s(:args, :a, :"&b"), s(:nil)))
       Parser.parse("def foo(a = nil, b = foo, c = FOO); end").should == s(:block, s(:defn, :foo, s(:args, s(:lasgn, :a, s(:nil)), s(:lasgn, :b, s(:call, nil, :foo)), s(:lasgn, :c, s(:const, :FOO))), s(:nil)))
       Parser.parse("def foo(a, b: :c, d:); end").should == s(:block, s(:defn, :foo, s(:args, :a, s(:kwarg, :b, s(:lit, :c)), s(:kwarg, :d)), s(:nil)))
+    end
+
+    it 'parses operator method definitions' do
+      operators = %w(+ - * ** / % == === != =~ !~ > >= < <= <=> & | ^ ~ << >> [] []=)
+      operators.each do |operator|
+        Parser.parse("def #{operator}; end").should == s(:block, s(:defn, operator.to_sym, s(:args), s(:nil)))
+        Parser.parse("def self.#{operator}; end").should == s(:block, s(:defs, s(:self), operator.to_sym, s(:args), s(:nil)))
+      end
     end
 
     it 'parses method calls vs local variable lookup' do
@@ -317,6 +324,16 @@ describe 'Parser' do
       Parser.parse("foo a: 1").should == s(:block, s(:call, nil, :foo, s(:hash, s(:lit, :a), s(:lit, 1))))
       Parser.parse("foo 0, a: 1, b: 'two'").should == s(:block, s(:call, nil, :foo, s(:lit, 0), s(:hash, s(:lit, :a), s(:lit, 1), s(:lit, :b), s(:str, "two"))))
       Parser.parse("foo :a, :b").should == s(:block, s(:call, nil, :foo, s(:lit, :a), s(:lit, :b)))
+      Parser.parse("self.class").should == s(:block, s(:call, s(:self), :class))
+      Parser.parse("self.begin").should == s(:block, s(:call, s(:self), :begin))
+      Parser.parse("self.end").should == s(:block, s(:call, s(:self), :end))
+    end
+
+    it 'parses operator method calls' do
+      operators = %w(+ - * ** / % == === != =~ !~ > >= < <= <=> & | ^ ~ << >> [] []=)
+      operators.each do |operator|
+        Parser.parse("self.#{operator}").should == s(:block, s(:call, s(:self), operator.to_sym))
+      end
     end
 
     it 'parses method calls with a receiver' do
@@ -610,6 +627,7 @@ describe 'Parser' do
     it 'parses alias' do
       Parser.parse('alias foo bar').should == s(:block, s(:alias, s(:lit, :foo), s(:lit, :bar)))
       Parser.parse('alias :foo :bar').should == s(:block, s(:alias, s(:lit, :foo), s(:lit, :bar)))
+      Parser.parse("alias write <<\ndef foo; end").should == s(:block, s(:alias, s(:lit, :write), s(:lit, :<<)), s(:defn, :foo, s(:args), s(:nil)))
     end
 
     it 'parses defined?' do

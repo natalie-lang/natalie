@@ -106,20 +106,44 @@ Node *Parser::parse_alias(LocalsHashmap &locals) {
 }
 
 SymbolNode *Parser::parse_alias_arg(LocalsHashmap &locals, const char *expected_message) {
-    switch (current_token()->type()) {
+    auto token = current_token();
+    switch (token->type()) {
     case Token::Type::BareName: {
         auto identifier = static_cast<IdentifierNode *>(parse_identifier(locals));
-        return new SymbolNode { current_token(), new String(identifier->name()) };
+        return new SymbolNode { token, new String(identifier->name()) };
     }
     case Token::Type::Symbol:
         return static_cast<SymbolNode *>(parse_symbol(locals));
     default:
-        throw_unexpected(expected_message);
+        if (token->is_operator()) {
+            advance();
+            if (token->can_precede_collapsible_newline()) {
+                // Some operators at the end of a line cause the newlines to be collapsed:
+                //
+                //     foo <<
+                //       bar
+                //
+                // ...but in this case (an alias), collapsing the newline was a mistake:
+                //
+                //     alias foo <<
+                //     def bar; end
+                //
+                // So, we'll put the newline back.
+                m_tokens->insert(m_index, new Token { Token::Type::Eol, token->file(), token->line(), token->column() });
+            }
+            return new SymbolNode { token, new String(token->type_value()) };
+        } else {
+            throw_unexpected(expected_message);
+        }
     }
 }
 
 Node *Parser::parse_array(LocalsHashmap &locals) {
     auto array = new ArrayNode { current_token() };
+    if (current_token()->type() == Token::Type::LBracketRBracket) {
+        advance();
+        return array;
+    }
     advance();
     if (current_token()->type() != Token::Type::RBracket) {
         array->add_node(parse_expression(ARRAY, locals));
@@ -411,7 +435,8 @@ Node *Parser::parse_def(LocalsHashmap &locals) {
     LocalsHashmap our_locals { TM::HashType::String };
     Node *self_node = nullptr;
     String *name;
-    switch (current_token()->type()) {
+    token = current_token();
+    switch (token->type()) {
     case Token::Type::BareName:
         if (peek_token()->type() == Token::Type::Dot) {
             self_node = parse_identifier(locals);
@@ -433,12 +458,11 @@ Node *Parser::parse_def(LocalsHashmap &locals) {
         }
         name = parse_method_name(locals);
         break;
-    case Token::Type::LeftShift:
-    case Token::Type::RightShift:
-        name = parse_method_name(locals);
-        break;
     default:
-        throw_unexpected("method name");
+        if (token->is_operator())
+            name = parse_method_name(locals);
+        else
+            throw_unexpected("method name");
     }
     if (current_token()->type() == Token::Type::Equal && !current_token()->whitespace_precedes()) {
         advance();
@@ -727,10 +751,9 @@ Node *Parser::parse_interpolated_regexp(LocalsHashmap &locals) {
         parse_interpolated_body(locals, interpolated_regexp, Token::Type::InterpolatedRegexpEnd);
         auto options = current_token()->options();
         if (options) {
-            // use a RegexpObject to convert the options string to an int
-            RegexpObject temp_regexp;
-            temp_regexp.set_options(options);
-            interpolated_regexp->set_options(temp_regexp.options());
+            int temp_options = 0;
+            RegexpObject::parse_options(options, &temp_options);
+            interpolated_regexp->set_options(temp_options);
         }
         advance();
         return interpolated_regexp;
@@ -824,16 +847,16 @@ Node *Parser::parse_keyword_splat(LocalsHashmap &locals) {
 
 String *Parser::parse_method_name(LocalsHashmap &) {
     String *name;
-    switch (current_token()->type()) {
+    auto token = current_token();
+    switch (token->type()) {
     case Token::Type::BareName:
         name = new String { current_token()->literal() };
         break;
-    case Token::Type::LeftShift:
-    case Token::Type::RightShift:
-        name = new String { current_token()->type_value() };
-        break;
     default:
-        throw_unexpected("method name");
+        if (token->is_operator())
+            name = new String { current_token()->type_value() };
+        else
+            throw_unexpected("method name");
     }
     advance();
     return name;
@@ -882,8 +905,8 @@ Node *Parser::parse_nil(LocalsHashmap &) {
 
 Node *Parser::parse_not(LocalsHashmap &locals) {
     auto token = current_token();
-    auto precedence = get_precedence(current_token());
     advance();
+    auto precedence = get_precedence(token);
     auto node = new CallNode {
         token,
         parse_expression(precedence, locals),
@@ -999,6 +1022,29 @@ Node *Parser::parse_top_level_constant(LocalsHashmap &locals) {
         throw_unexpected(name_token, ":: identifier name");
     }
     return new Colon3Node { token, name };
+}
+
+Node *Parser::parse_unary_operator(LocalsHashmap &locals) {
+    auto token = current_token();
+    advance();
+    auto precedence = get_precedence(token);
+    const char *message;
+    switch (token->type()) {
+    case Token::Type::Minus:
+        message = "-@";
+        break;
+    case Token::Type::Plus:
+        message = "+@";
+        break;
+    default:
+        NAT_UNREACHABLE();
+    }
+    auto node = new CallNode {
+        token,
+        parse_expression(precedence, locals),
+        message,
+    };
+    return node;
 }
 
 Node *Parser::parse_word_array(LocalsHashmap &locals) {
@@ -1421,6 +1467,8 @@ Node *Parser::parse_ref_expression(Node *left, LocalsHashmap &locals) {
         left,
         "[]",
     };
+    if (token->type() == Token::Type::LBracketRBracket)
+        return call_node;
     if (current_token()->type() != Token::Type::RBracket)
         parse_call_args(call_node, locals, false);
     expect(Token::Type::RBracket, "element reference right bracket");
@@ -1442,14 +1490,32 @@ Node *Parser::parse_safe_send_expression(Node *left, LocalsHashmap &locals) {
 }
 
 Node *Parser::parse_send_expression(Node *left, LocalsHashmap &locals) {
-    auto token = current_token();
+    auto dot_token = current_token();
     advance();
-    expect(Token::Type::BareName, "send method name");
-    auto name = static_cast<IdentifierNode *>(parse_identifier(locals));
+    auto name_token = current_token();
+    const char *name;
+    switch (name_token->type()) {
+    case Token::Type::BareName:
+        name = static_cast<IdentifierNode *>(parse_identifier(locals))->name();
+        break;
+    case Token::Type::ClassKeyword:
+    case Token::Type::BeginKeyword:
+    case Token::Type::EndKeyword:
+        name = name_token->type_value();
+        advance();
+        break;
+    default:
+        if (name_token->is_operator()) {
+            name = name_token->type_value();
+            advance();
+        } else {
+            throw_unexpected("send method name");
+        }
+    };
     return new CallNode {
-        token,
+        dot_token,
         left,
-        name->name(),
+        name,
     };
 }
 
@@ -1506,6 +1572,7 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type, Precedence prece
     case Type::AliasKeyword:
         return &Parser::parse_alias;
     case Type::LBracket:
+    case Type::LBracketRBracket:
         return &Parser::parse_array;
     case Type::BeginKeyword:
         return &Parser::parse_begin;
@@ -1551,6 +1618,9 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type, Precedence prece
     case Type::Integer:
     case Type::Float:
         return &Parser::parse_lit;
+    case Type::Minus:
+    case Type::Plus:
+        return &Parser::parse_unary_operator;
     case Type::ModuleKeyword:
         return &Parser::parse_module;
     case Type::NextKeyword:
@@ -1610,6 +1680,7 @@ Parser::parse_left_fn Parser::left_denotation(Token *token, Node *left) {
     case Type::BitwiseAnd:
     case Type::BitwiseOr:
     case Type::BitwiseXor:
+    case Type::Comparison:
     case Type::Divide:
     case Type::EqualEqual:
     case Type::EqualEqualEqual:
@@ -1669,6 +1740,7 @@ Parser::parse_left_fn Parser::left_denotation(Token *token, Node *left) {
     case Type::DotDotDot:
         return &Parser::parse_range_expression;
     case Type::LBracket:
+    case Type::LBracketRBracket:
         if (treat_left_bracket_as_element_reference(left, current_token()))
             return &Parser::parse_ref_expression;
         break;
@@ -1732,7 +1804,11 @@ void Parser::throw_unexpected(Token *token, const char *expected) {
     auto line = token->line() + 1;
     auto type = token->type_value();
     auto literal = token->literal();
-    if (strcmp(type, "EOF") == 0)
+    if (token->type() == Token::Type::Invalid)
+        throw SyntaxError { String::format("{}#{}: syntax error, unexpected '{}' (expected: '{}')", file, line, token->literal(), expected) };
+    else if (!type)
+        throw SyntaxError { String::format("{}#{}: syntax error, expected '{}' (token type: {})", file, line, expected, (long long)token->type()) };
+    else if (strcmp(type, "EOF") == 0)
         throw SyntaxError { String::format("{}#{}: syntax error, unexpected end-of-input (expected: '{}')", file, line, expected) };
     else if (literal)
         throw SyntaxError { String::format("{}#{}: syntax error, unexpected {} '{}' (expected: '{}')", file, line, type, literal, expected) };

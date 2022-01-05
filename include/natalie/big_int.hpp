@@ -157,3 +157,5 @@ public:
     // Random number generating functions:
     friend BigInt big_random(size_t);
 };
+
+BigInt pow(const BigInt &base, long long exp);

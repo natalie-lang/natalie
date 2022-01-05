@@ -76,7 +76,9 @@ public:
         m_type = ObjectType::Nil;
     }
 
+    static Value create(ClassObject *);
     static Value _new(Env *, Value, size_t, Value *, Block *);
+    static Value allocate(Env *, Value, size_t, Value *, Block *);
 
     Type type() { return m_type; }
     ClassObject *klass() const { return m_klass; }
@@ -160,6 +162,7 @@ public:
     virtual Value const_fetch(SymbolObject *);
     virtual Value const_set(SymbolObject *, Value);
 
+    Value ivar_defined(Env *, SymbolObject *);
     Value ivar_get(Env *, SymbolObject *);
     Value ivar_set(Env *, SymbolObject *, Value);
 

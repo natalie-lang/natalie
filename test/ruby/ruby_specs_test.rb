@@ -2,6 +2,7 @@ require 'minitest/spec'
 require 'minitest/autorun'
 require 'time'
 require 'timeout'
+require_relative '../support/nat_binary'
 
 describe 'ruby/spec' do
   parallelize_me!
@@ -15,7 +16,7 @@ describe 'ruby/spec' do
       it 'passes all specs' do
         skip if code =~ /# skip-test/
         out_nat = Timeout.timeout(SPEC_TIMEOUT, nil, "execution expired running: #{path}") do
-          `bin/natalie #{path} 2>&1`
+          `#{NAT_BINARY} #{path} 2>&1`
         end
         puts out_nat unless $?.success?
         expect($?).must_be :success?

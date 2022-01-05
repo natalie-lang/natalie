@@ -31,7 +31,7 @@ public:
         if (the_owner->is_class() && the_owner->as_class()->is_singleton())
             return StringObject::format(env, "#<Method: {}.{}(*)>", m_object->inspect_str(env), m_method->name());
         else
-            return StringObject::format(env, "#<Method: {}#{}(*)>", owner()->class_name_or_blank(), m_method->name());
+            return StringObject::format(env, "#<Method: {}#{}(*)>", owner()->inspect_str(), m_method->name());
     }
 
     int arity() { return m_method ? m_method->arity() : 0; }

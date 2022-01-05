@@ -22,18 +22,18 @@ describe 'require' do
   end
 
   it 'raises an error when the path does not exist' do
-    ruby = RUBY_ENGINE == 'natalie' ? 'bin/natalie' : 'ruby'
+    ruby = RUBY_ENGINE == 'natalie' ? NAT_BINARY : 'ruby'
     `#{ruby} -e "require 'something_non_existent'" 2>&1`.should =~ /cannot load such file.*something_non_existent/
   end
 
   it 'raises an error when the path is a directory' do
-    ruby = RUBY_ENGINE == 'natalie' ? 'bin/natalie' : 'ruby'
+    ruby = RUBY_ENGINE == 'natalie' ? NAT_BINARY : 'ruby'
     File.directory?('./test').should be_true
     `#{ruby} -e "require './test'" 2>&1`.should =~ /cannot load such file.*test/
   end
 
   it 'returns true when require loads a file and false when it\'s already loaded' do
-    ruby = RUBY_ENGINE == 'natalie' ? 'bin/natalie' : 'ruby'
+    ruby = RUBY_ENGINE == 'natalie' ? NAT_BINARY : 'ruby'
 
     `#{ruby} -e "p require 'tempfile'"`.should =~ /true/
     `#{ruby} -e "require 'tempfile'; p require 'tempfile'"`.should =~ /false/

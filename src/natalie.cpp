@@ -48,18 +48,22 @@ Env *build_top_env() {
     Object->const_set("Enumerable"_s, Enumerable);
 
     BasicObject->define_singleton_method(env, "new"_s, Object::_new, -1);
+    BasicObject->define_singleton_method(env, "allocate"_s, Object::allocate, -1);
 
     ClassObject *NilClass = Object->subclass(env, "NilClass", Object::Type::Nil);
     Object->const_set("NilClass"_s, NilClass);
-    NilObject::the();
+    NilObject::the()->set_singleton_class(NilClass);
+    NilClass->set_is_singleton(false);
 
     ClassObject *TrueClass = Object->subclass(env, "TrueClass", Object::Type::True);
     Object->const_set("TrueClass"_s, TrueClass);
-    TrueObject::the();
+    TrueObject::the()->set_singleton_class(TrueClass);
+    TrueClass->set_is_singleton(false);
 
     ClassObject *FalseClass = Object->subclass(env, "FalseClass", Object::Type::False);
     Object->const_set("FalseClass"_s, FalseClass);
-    FalseObject::the();
+    FalseObject::the()->set_singleton_class(FalseClass);
+    FalseClass->set_is_singleton(false);
 
     ClassObject *Fiber = Object->subclass(env, "Fiber", Object::Type::Fiber);
     Object->const_set("Fiber"_s, Fiber);
@@ -236,7 +240,7 @@ void print_exception_with_backtrace(Env *env, ExceptionObject *exception) {
         StringObject *line = (*backtrace)[0]->as_string();
         dprintf(fd, "%s: ", line->c_str());
     }
-    dprintf(fd, "%s (%s)\n", exception->message()->c_str(), exception->klass()->class_name_or_blank()->c_str());
+    dprintf(fd, "%s (%s)\n", exception->message()->c_str(), exception->klass()->inspect_str()->c_str());
 }
 
 void handle_top_level_exception(Env *env, ExceptionObject *exception, bool run_exit_handlers) {
@@ -270,8 +274,8 @@ ArrayObject *to_ary(Env *env, Value obj, bool raise_for_non_array) {
             ary = new ArrayObject { obj };
             return ary->as_array();
         } else {
-            auto *class_name = obj->klass()->class_name_or_blank();
-            env->raise("TypeError", "can't convert {} to Array ({}#to_ary gives {})", class_name, class_name, ary->klass()->class_name_or_blank());
+            auto *class_name = obj->klass()->inspect_str();
+            env->raise("TypeError", "can't convert {} to Array ({}#to_ary gives {})", class_name, class_name, ary->klass()->inspect_str());
         }
     } else {
         return new ArrayObject { obj };

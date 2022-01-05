@@ -1,5 +1,6 @@
 require 'minitest/spec'
 require 'minitest/autorun'
+require_relative '../support/nat_binary'
 
 describe 'object_id' do
   describe 'inspect' do
@@ -17,7 +18,7 @@ describe 'object_id' do
     }
 
     before do
-      @output = `bin/natalie -e #{TESTS.keys.join(';').inspect}`.strip.split(/\n/)
+      @output = `#{NAT_BINARY} -e #{TESTS.keys.join(';').inspect}`.strip.split(/\n/)
       expect($?).must_be :success?
     end
 
