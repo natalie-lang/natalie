@@ -304,7 +304,7 @@ Value KernelModule::method(Env *env, Value name) {
         }
     }
     Method *method = m_klass->find_method(env, name_symbol);
-    if (method)
+    if (method && !method->is_undefined())
         return new MethodObject { this, method };
     env->raise("NoMethodError", "undefined method `{}' for {}:Class", name_symbol->inspect_str(env), m_klass->inspect_str());
 }

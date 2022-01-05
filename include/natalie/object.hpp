@@ -111,6 +111,7 @@ public:
     bool is_regexp() const { return m_type == Type::Regexp; }
     bool is_symbol() const { return m_type == Type::Symbol; }
     bool is_string() const { return m_type == Type::String; }
+    bool is_unbound_method() const { return m_type == Type::UnboundMethod; }
     bool is_void_p() const { return m_type == Type::VoidP; }
 
     bool is_truthy() const { return !is_false() && !is_nil(); }
@@ -141,6 +142,7 @@ public:
     const StringObject *as_string() const;
     SymbolObject *as_symbol();
     TrueObject *as_true();
+    UnboundMethodObject *as_unbound_method();
     VoidPObject *as_void_p();
 
     KernelModule *as_kernel_module_for_method_binding();

@@ -26,6 +26,7 @@ enum class ObjectType {
     String,
     Symbol,
     True,
+    UnboundMethod,
     VoidP,
 };
 

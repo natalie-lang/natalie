@@ -163,6 +163,9 @@ Env *build_top_env() {
     ClassObject *Method = Object->subclass(env, "Method", Object::Type::Method);
     Object->const_set("Method"_s, Method);
 
+    ClassObject *UnboundMethod = Object->subclass(env, "UnboundMethod", Object::Type::UnboundMethod);
+    Object->const_set("UnboundMethod"_s, UnboundMethod);
+
     env->global_set("$NAT_at_exit_handlers"_s, new ArrayObject {});
 
     auto main_obj = new Natalie::Object {};
