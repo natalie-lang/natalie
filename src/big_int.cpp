@@ -1340,7 +1340,12 @@ BigInt BigInt::operator%(const BigInt &num) const {
     }
     strip_leading_zeroes(remainder.value);
 
-    if (num.sign == '-')
+    // remainder has the same sign as that of the dividend
+    remainder.sign = this->sign;
+    if (remainder.value == "0") // except if its zero
+        remainder.sign = '+';
+
+    if (num.sign != this->sign)
         remainder += num;
 
     return remainder;
