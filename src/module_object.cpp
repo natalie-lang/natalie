@@ -94,7 +94,7 @@ Value ModuleObject::const_find(Env *env, SymbolObject *name, ConstLookupSearchMo
         val = search_parent->const_get(name);
         if (val) break;
         search_parent = search_parent->m_superclass;
-    } while (search_parent);
+    } while (search_parent && search_parent != GlobalEnv::the()->Object());
 
     if (val) {
         if (search_mode == ConstLookupSearchMode::Strict && search_parent->m_private_constants.get(name))

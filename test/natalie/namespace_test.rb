@@ -112,6 +112,19 @@ class Colon3
   end
 end
 
+module NestedTest; end
+NestedTest::NESTED_CONSTANT = nil
+class NestedTest::NestedClass; end
+module NestedTest::NestedModule; end
+
+module GlobalTest
+  ::NESTED_GLOBAL_CONSTANT = nil
+  class ::NestedGlobalClass; end
+  module ::NestedGlobalModule; end
+end
+
+GLOBAL_CONSTANT = nil
+
 describe 'namespace' do
   it 'resolves top-level constants' do
     NUM.should == 1
@@ -160,5 +173,30 @@ describe 'namespace' do
     Colon3.new.top_foo.should == Foo
     Colon3.top_foo_num.should == 2
     Colon3.new.top_foo_num.should == 2
+  end
+
+  it 'allows defining nested constants from outside the namespace' do
+    -> { NestedTest::NESTED_CONSTANT }.should_not raise_error
+    -> { NestedTest::NestedClass }.should_not raise_error
+    -> { NestedTest::NestedModule }.should_not raise_error
+  end
+
+  it 'allows defining global constants from inside a namespace' do
+    -> { NESTED_GLOBAL_CONSTANT }.should_not raise_error
+    -> { NestedGlobalClass }.should_not raise_error
+    -> { NestedGlobalModule }.should_not raise_error
+    -> { GlobalTest::NESTED_GLOBAL_CONSTANT }.should raise_error(NameError, /uninitialized constant GlobalTest::NESTED_GLOBAL_CONSTANT/)
+    -> { GlobalTest::NestedGlobalClass }.should raise_error(NameError, /uninitialized constant GlobalTest::NestedGlobalClass/)
+    -> { GlobalTest::NestedGlobalModule }.should raise_error(NameError, /uninitialized constant GlobalTest::NestedGlobalModule/)
+  end
+
+  it 'stores global constants in Object class' do
+    -> { Object::GLOBAL_CONSTANT }.should_not raise_error
+    -> { GlobalTest::GLOBAL_CONSTANT }.should raise_error(NameError, /uninitialized constant GlobalTest::GLOBAL_CONSTANT/)
+  end
+
+  it 'raises a NameError when the given namespace is not initialized' do
+    -> { class NonexistentNamespace::Foo; end }.should raise_error(NameError, /uninitialized constant NonexistentNamespace/)
+    -> { module NonexistentNamespace::Foo; end }.should raise_error(NameError, /uninitialized constant NonexistentNamespace/)
   end
 end

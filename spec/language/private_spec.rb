@@ -46,8 +46,7 @@ describe "The private keyword" do
     -> { f.foo }.should raise_error(NoMethodError)
   end
 
-  # NATFIXME: Update compiler/pass1 to support namespaced module/class declarations
-  xit "changes visibility of previously called methods with same send/call site" do
+  it "changes visibility of previously called methods with same send/call site" do
     g = ::Private::G.new
     -> {
       2.times do
