@@ -93,9 +93,17 @@ Value RangeObject::first(Env *env, Value n) {
 
 Value RangeObject::inspect(Env *env) {
     if (m_exclude_end) {
-        return StringObject::format(env, "{}...{}", m_begin->inspect_str(env), m_end->inspect_str(env));
+        if (m_end->is_nil()) {
+            return StringObject::format(env, "{}...", m_begin->inspect_str(env));
+        } else {
+            return StringObject::format(env, "{}...{}", m_begin->inspect_str(env), m_end->inspect_str(env));
+        }
     } else {
-        return StringObject::format(env, "{}..{}", m_begin->inspect_str(env), m_end->inspect_str(env));
+        if (m_end->is_nil()) {
+            return StringObject::format(env, "{}..", m_begin->inspect_str(env));
+        } else {
+            return StringObject::format(env, "{}..{}", m_begin->inspect_str(env), m_end->inspect_str(env));
+        }
     }
 }
 

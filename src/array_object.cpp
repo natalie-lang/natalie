@@ -197,26 +197,35 @@ Value ArrayObject::refeq(Env *env, Value index_obj, Value size, Value val) {
         // Ignore "size"
         val = size;
 
-        if (!begin_obj->is_integer() && begin_obj->respond_to(env, to_int))
-            begin_obj = begin_obj->send(env, to_int);
-        begin_obj->assert_type(env, Object::Type::Integer, "Integer");
+        if (begin_obj->is_nil()) {
+            start = 0;
+        } else {
+            if (!begin_obj->is_integer() && begin_obj->respond_to(env, to_int))
+                begin_obj = begin_obj->send(env, to_int);
+            begin_obj->assert_type(env, Object::Type::Integer, "Integer");
 
-        if (!end_obj->is_integer() && end_obj->respond_to(env, to_int))
-            end_obj = end_obj->send(env, to_int);
-        end_obj->assert_type(env, Object::Type::Integer, "Integer");
-
-        start = begin_obj->as_integer()->to_nat_int_t();
-        if (start < 0) {
-            if ((size_t)(-start) > this->size()) {
-                env->raise("RangeError", "{}..{}{} out of range", start, range->exclude_end() ? "." : "", end_obj->as_integer()->to_nat_int_t());
-                return nullptr;
+            start = begin_obj->as_integer()->to_nat_int_t();
+            if (start < 0) {
+                if ((size_t)(-start) > this->size()) {
+                    env->raise("RangeError", "{} out of range", range->inspect_str(env));
+                    return nullptr;
+                }
+                start = this->size() + start;
             }
-            start = this->size() + start;
         }
 
-        nat_int_t end = end_obj->as_integer()->to_nat_int_t();
-        if (end < 0) {
-            end = this->size() + end;
+        nat_int_t end;
+        if (end_obj->is_nil()) {
+            end = this->size();
+        } else {
+            if (!end_obj->is_integer() && end_obj->respond_to(env, to_int))
+                end_obj = end_obj->send(env, to_int);
+            end_obj->assert_type(env, Object::Type::Integer, "Integer");
+
+            end = end_obj->as_integer()->to_nat_int_t();
+            if (end < 0) {
+                end = this->size() + end;
+            }
         }
 
         width = end - start + (range->exclude_end() ? 0 : 1);
