@@ -7,6 +7,7 @@
 #include "natalie/forward.hpp"
 #include "natalie/global_env.hpp"
 #include "natalie/macros.hpp"
+#include "natalie/method_info.hpp"
 #include "natalie/method_visibility.hpp"
 #include "natalie/object.hpp"
 #include "tm/optional.hpp"
@@ -87,9 +88,13 @@ public:
     virtual SymbolObject *undefine_method(Env *, SymbolObject *) override;
 
     void methods(Env *, ArrayObject *, bool = true);
+    void define_method(Env *, SymbolObject *, Method *, MethodVisibility);
+    void set_method_visibility(Env *, SymbolObject *, MethodVisibility);
+    MethodVisibility get_method_visibility(Env *, SymbolObject *);
+    MethodInfo *find_method_info(Env *, SymbolObject *);
     Method *find_method(Env *, SymbolObject *, ModuleObject ** = nullptr, Method * = nullptr) const;
 
-    Value instance_methods(Env *, Value, std::function<bool(Method *)>);
+    Value instance_methods(Env *, Value, std::function<bool(MethodVisibility)>);
     Value instance_methods(Env *, Value);
     Value private_instance_methods(Env *, Value);
     Value protected_instance_methods(Env *, Value);
@@ -146,6 +151,7 @@ protected:
     Optional<const String *> m_class_name {};
     ClassObject *m_superclass { nullptr };
     TM::Hashmap<SymbolObject *, Method *> m_methods {};
+    TM::Hashmap<SymbolObject *, MethodInfo *> m_method_info {};
     TM::Hashmap<SymbolObject *, Value> m_class_vars {};
     Vector<ModuleObject *> m_included_modules {};
     MethodVisibility m_method_visibility { MethodVisibility::Public };

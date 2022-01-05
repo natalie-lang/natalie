@@ -4,27 +4,24 @@
 #include "natalie/env.hpp"
 #include "natalie/forward.hpp"
 #include "natalie/gc.hpp"
-#include "natalie/method_visibility.hpp"
 #include "natalie/module_object.hpp"
 
 namespace Natalie {
 
 class Method : public Cell {
 public:
-    Method(const char *name, ModuleObject *owner, MethodFnPtr fn, int arity, MethodVisibility visibility)
+    Method(const char *name, ModuleObject *owner, MethodFnPtr fn, int arity)
         : m_name { name }
         , m_owner { owner }
         , m_fn { fn }
         , m_arity { arity }
-        , m_undefined { !fn }
-        , m_visibility { visibility } { }
+        , m_undefined { !fn } { }
 
-    Method(const char *name, ModuleObject *owner, Block *block, MethodVisibility visibility)
+    Method(const char *name, ModuleObject *owner, Block *block)
         : m_name { name }
         , m_owner { owner }
         , m_arity { block->arity() }
-        , m_env { new Env(*block->env()) }
-        , m_visibility { visibility } {
+        , m_env { new Env(*block->env()) } {
         block->copy_fn_pointer_to_method(this);
         assert(m_env);
     }
@@ -65,9 +62,6 @@ public:
     const String *name() { return &m_name; }
     ModuleObject *owner() { return m_owner; }
 
-    MethodVisibility visibility() { return m_visibility; }
-    void set_visibility(MethodVisibility visibility) { m_visibility = visibility; }
-
     int arity() const { return m_arity; }
 
     virtual void visit_children(Visitor &visitor) override final {
@@ -86,6 +80,5 @@ private:
     int m_arity { 0 };
     Env *m_env { nullptr };
     bool m_undefined { false };
-    MethodVisibility m_visibility { MethodVisibility::Public };
 };
 }
