@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <string.h>
 
+#include "natalie/constant.hpp"
 #include "natalie/env.hpp"
 #include "natalie/forward.hpp"
 #include "natalie/global_env.hpp"
@@ -123,6 +124,7 @@ public:
     Value public_class_method(Env *, size_t, Value *);
     void set_method_visibility(Env *, size_t, Value *, MethodVisibility);
 
+    Value deprecate_constant(Env *, size_t, Value *);
     Value private_constant(Env *, size_t, Value *);
     Value public_constant(Env *, size_t, Value *);
 
@@ -149,8 +151,7 @@ public:
 
 protected:
     Env *m_env { nullptr };
-    TM::Hashmap<SymbolObject *, Value> m_constants {};
-    TM::Hashmap<SymbolObject *> m_private_constants {};
+    TM::Hashmap<SymbolObject *, Constant *> m_constants {};
     Optional<const String *> m_class_name {};
     ClassObject *m_superclass { nullptr };
     TM::Hashmap<SymbolObject *, Method *> m_methods {};

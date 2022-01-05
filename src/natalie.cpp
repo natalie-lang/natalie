@@ -75,8 +75,11 @@ Env *build_top_env() {
     ClassObject *Integer = Numeric->subclass(env, "Integer", Object::Type::Integer);
     global_env->set_Integer(Integer);
     Object->const_set("Integer"_s, Integer);
-    Object->const_set("Fixnum"_s, Integer);
-    Object->const_set("Bignum"_s, Integer);
+    Value old_integer_constants[2] = { "Fixnum"_s, "Bignum"_s };
+    for (auto name : old_integer_constants) {
+        Object->const_set(name->as_symbol(), Integer);
+    }
+    Object->deprecate_constant(env, 2, old_integer_constants);
 
     ClassObject *Float = Numeric->subclass(env, "Float", Object::Type::Float);
     global_env->set_Float(Float);
