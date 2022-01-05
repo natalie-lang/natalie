@@ -50,7 +50,7 @@ public:
     }
 
     bool is_ivar_name() {
-        return strlen(m_name) > 0 && m_name[0] == '@';
+        return strlen(m_name) > 1 && m_name[0] == '@' && isalpha(m_name[1]);
     }
 
     bool is_cvar_name() {

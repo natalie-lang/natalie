@@ -255,7 +255,7 @@ Value KernelModule::instance_variable_get(Env *env, Value name_val) {
     if (is_integer() || is_float()) {
         return NilObject::the();
     }
-    auto name = name_val->to_symbol(env, Object::Conversion::Strict);
+    auto name = name_val->to_instance_variable_name(env);
     return ivar_get(env, name);
 }
 

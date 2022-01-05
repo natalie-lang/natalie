@@ -149,6 +149,7 @@ public:
     SexpObject *as_sexp_object_for_method_binding();
 
     SymbolObject *to_symbol(Env *, Conversion);
+    SymbolObject *to_instance_variable_name(Env *);
 
     const String *identifier_str(Env *, Conversion);
 
