@@ -16,6 +16,16 @@ describe 'integer' do
       (6 % 4).should == 2
       (6 % 5).should == 1
     end
+
+    it 'handles bignums correctly' do
+      bignum = bignum_value
+      (bignum % -50).should == -42
+      (bignum % -500).should == -192
+      (bignum % -999).should == -919
+      (bignum % -1009).should == -817
+      (-bignum % 999).should == 919
+      (-bignum % -999).should == -80
+    end
   end
 
   describe '** (exponentiation)' do
