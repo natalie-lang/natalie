@@ -94,6 +94,22 @@ Value BignumObject::div(Env *env, Value arg) {
     return new BignumObject { to_bigint() / other->to_bigint() };
 }
 
+Value BignumObject::mod(Env *env, Value arg) {
+    if (arg->is_float())
+        arg = Value::integer(arg->as_float()->to_double());
+
+    if (!arg->is_integer())
+        arg = Natalie::coerce(env, arg, this).second;
+
+    arg->assert_type(env, Object::Type::Integer, "Integer");
+
+    auto other = arg->as_integer();
+    if (other->is_fixnum() && arg->as_integer()->to_nat_int_t() == 0)
+        env->raise("ZeroDivisionError", "divided by 0");
+
+    return new BignumObject { to_bigint() % other->to_bigint() };
+}
+
 Value BignumObject::negate(Env *env) {
     return new BignumObject { -to_bigint() };
 }

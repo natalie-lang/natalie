@@ -205,11 +205,13 @@ Value IntegerObject::div(Env *env, Value arg) {
     return div_fast(m_integer, other->to_nat_int_t());
 }
 
-Value IntegerObject::mod(Env *env, Value arg) const {
+Value IntegerObject::mod(Env *env, Value arg) {
+    // FIXME: add mod_fast, like div_fast
     arg.unguard();
+
     if (arg->is_float())
-        arg = arg->as_float()->to_int_no_truncation(env);
-        
+        arg = Value::integer(arg->as_float()->to_double());
+
     arg->assert_type(env, Object::Type::Integer, "Integer");
 
     auto nat_int = arg->as_integer()->to_nat_int_t();

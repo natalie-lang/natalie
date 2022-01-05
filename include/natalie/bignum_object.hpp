@@ -46,6 +46,7 @@ public:
     Value sub(Env *, Value) override;
     Value mul(Env *, Value) override;
     Value div(Env *, Value) override;
+    Value mod(Env *, Value) override;
     Value negate(Env *) override;
     Value times(Env *, Block *) override;
     Value to_f() const override;

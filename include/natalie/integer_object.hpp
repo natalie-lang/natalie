@@ -53,7 +53,7 @@ public:
     virtual Value sub(Env *, Value);
     virtual Value mul(Env *, Value);
     virtual Value div(Env *, Value);
-    Value mod(Env *, Value) const;
+    virtual Value mod(Env *, Value);
     Value pow(Env *, Value) const;
     Value cmp(Env *, Value);
     virtual Value times(Env *, Block *);
