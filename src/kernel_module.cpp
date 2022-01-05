@@ -243,6 +243,14 @@ Value KernelModule::main_obj_inspect(Env *env) {
     return new StringObject { "main" };
 }
 
+Value KernelModule::instance_variable_defined(Env *env, Value name_val) {
+    if (is_nil() || is_boolean() || is_integer() || is_float() || is_symbol()) {
+        return FalseObject::the();
+    }
+    auto name = name_val->to_symbol(env, Object::Conversion::Strict);
+    return ivar_defined(env, name);
+}
+
 Value KernelModule::instance_variable_get(Env *env, Value name_val) {
     if (is_integer() || is_float()) {
         return NilObject::the();
