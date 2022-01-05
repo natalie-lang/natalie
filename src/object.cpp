@@ -332,6 +332,22 @@ ClassObject *Object::singleton_class(Env *env) {
     return m_singleton_class;
 }
 
+Value Object::extend(Env *env, size_t argc, Value *args) {
+    assert_not_frozen(env);
+    for (size_t i = 0; i < argc; i++) {
+        if (args[i]->type() == Object::Type::Module) {
+            extend_once(env, args[i]->as_module());
+        } else {
+            env->raise("TypeError", "wrong argument type {} (expected Module)", args[i]->klass()->inspect_str());
+        }
+    }
+    return this;
+}
+
+void Object::extend_once(Env *env, ModuleObject *module) {
+    singleton_class(env)->include_once(env, module);
+}
+
 Value Object::const_find(Env *env, SymbolObject *name, ConstLookupSearchMode search_mode, ConstLookupFailureMode failure_mode) {
     return m_klass->const_find(env, name, search_mode, failure_mode);
 }
@@ -581,6 +597,14 @@ bool Object::is_a(Env *env, Value val) const {
     if (this == module) {
         return true;
     } else {
+        if (singleton_class()) {
+            ArrayObject *ancestors = singleton_class()->ancestors(env);
+            for (Value m : *ancestors) {
+                if (module == m->as_module()) {
+                    return true;
+                }
+            }
+        }
         ArrayObject *ancestors = m_klass->ancestors(env);
         for (Value m : *ancestors) {
             if (module == m->as_module()) {
