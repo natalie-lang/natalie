@@ -763,9 +763,16 @@ module Natalie
       end
 
       def process_svalue(exp)
-        (_, (type, value)) = exp
-        raise "Unknown svalue type #{type.inspect}" unless type == :splat
-        exp.new(:splat, :env, process(value))
+        (_, svalue) = exp
+        case svalue.sexp_type
+        when :splat
+          (_, value) = svalue
+          exp.new(:splat, :env, process(value))
+        when :array
+          process_array(svalue)
+        else
+          raise "Unknown svalue type #{svalue.sexp_type.inspect}"
+        end
       end
 
       def process_until(exp)

@@ -37,12 +37,11 @@ describe "Array#[]=" do
     a.should == [2, 2, 3, "a", "b", "c", "d", 6]
   end
 
-  # NATFIXME: Support parallel assignment
-  # it "replaces the section defined by [start,length] with the given values" do
-  #   a = [1, 2, 3, 4, 5, 6]
-  #   a[3, 2] = 'a', 'b', 'c', 'd'
-  #   a.should == [1, 2, 3, "a", "b", "c", "d", 6]
-  # end
+  it "replaces the section defined by [start,length] with the given values" do
+    a = [1, 2, 3, 4, 5, 6]
+    a[3, 2] = 'a', 'b', 'c', 'd'
+    a.should == [1, 2, 3, "a", "b", "c", "d", 6]
+  end
 
   it "just sets the section defined by [start,length] to other even if other is nil" do
     a = ['a', 'b', 'c', 'd', 'e']
@@ -63,12 +62,11 @@ describe "Array#[]=" do
     a.should == [6, 9, 4, 6, 6, 6]
   end
 
-  # NATFIXME: Support parallel assignment
-  # it "replaces the section defined by range with the given values" do
-  #   a = [6, 5, 4, 3, 2, 1]
-  #   a[3..6] = :a, :b, :c
-  #   a.should == [6, 5, 4, :a, :b, :c]
-  # end
+  it "replaces the section defined by range with the given values" do
+    a = [6, 5, 4, 3, 2, 1]
+    a[3..6] = :a, :b, :c
+    a.should == [6, 5, 4, :a, :b, :c]
+  end
 
   it "just sets the section defined by range to other even if other is nil" do
     a = [1, 2, 3, 4, 5]
@@ -129,9 +127,8 @@ describe "Array#[]=" do
     ary.should == [1, 0, 2, 3]
     ary[1...1] = [5]
     ary.should == [1, 5, 0, 2, 3]
-    # NATFIXME: Support parallel assignment
-    # ary[1...1] = :a, :b, :c
-    # ary.should == [1, :a, :b, :c, 5, 0, 2, 3]
+    ary[1...1] = :a, :b, :c
+    ary.should == [1, :a, :b, :c, 5, 0, 2, 3]
   end
 
   it "inserts the given elements with [start, length] which length is zero" do
@@ -140,9 +137,8 @@ describe "Array#[]=" do
     ary.should == [1, 0, 2, 3]
     ary[1, 0] = [5]
     ary.should == [1, 5, 0, 2, 3]
-    # NATFIXME: Support parallel assignment
-    # ary[1, 0] = :a, :b, :c
-    # ary.should == [1, :a, :b, :c, 5, 0, 2, 3]
+    ary[1, 0] = :a, :b, :c
+    ary.should == [1, :a, :b, :c, 5, 0, 2, 3]
   end
 
   # Now we only have to test cases where the start, length interface would
@@ -153,9 +149,8 @@ describe "Array#[]=" do
     ary.should == [1, 0, 2, 3]
     ary[1..0] = [4, 3]
     ary.should == [1, 4, 3, 0, 2, 3]
-    # NATFIXME: Support parallel assignment
-    # ary[1..0] = :a, :b, :c
-    # ary.should == [1, :a, :b, :c, 4, 3, 0, 2, 3]
+    ary[1..0] = :a, :b, :c
+    ary.should == [1, :a, :b, :c, 4, 3, 0, 2, 3]
   end
 
   it "just inserts nil if the section defined by range is zero-width and the rhs is nil" do
