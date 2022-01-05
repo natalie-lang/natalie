@@ -35,14 +35,16 @@ class DefaultFormatter
         end
         print ' ' * indent
         if error.is_a?(SpecFailedException)
-          line_num = nil
+          location = nil
           error.backtrace.each do |line|
             if line !~ /support\/spec\.rb/
-              line_num = line.split(':')[1]
+              location = line
               break
             end
           end
-          puts "#{error.message} (line #{line_num})"
+          puts error.message
+          print ' ' * indent
+          puts "(#{location})"
         else
           puts "#{error.message} (#{error.class.name})"
           indent += 2
