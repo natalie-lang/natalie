@@ -405,7 +405,11 @@ module Natalie
         (_, name, value, type) = exp
         type ||= 'Value'
         if value
-          decl "#{type} #{name} = #{process_atom value};"
+          if value[0] == :new
+            process_new(value, name, type); # -> name
+          else
+            decl "#{type} #{name} = #{process_atom value};"
+          end
         else
           decl "#{type} #{name};"
         end
@@ -607,10 +611,10 @@ module Natalie
         name
       end
 
-      def process_new(exp, name = nil, type = 'Value ')
+      def process_new(exp, name = nil, type = 'Value')
         (_, klass, *args) = exp
         name = name || temp('new')
-        decl "#{type}#{name} = new #{klass} { #{args.map { |a| process_atom(a) }.join(', ') } };"
+        decl "#{type} #{name} = new #{klass} { #{args.map { |a| process_atom(a) }.join(', ') } };"
         name
       end
 
