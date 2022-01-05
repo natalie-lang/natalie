@@ -145,9 +145,7 @@ Value ModuleObject::const_set(Env *env, Value name, Value val) {
 
 void ModuleObject::alias(Env *env, SymbolObject *new_name, SymbolObject *old_name) {
     Method *method = find_method(env, old_name);
-    if (!method) {
-        env->raise("NameError", "undefined method `{}' for `{}'", old_name->c_str(), this->inspect_str());
-    }
+    assert_method_defined(env, old_name, method);
     define_method(env, new_name, method, get_method_visibility(env, old_name));
 }
 
@@ -312,6 +310,49 @@ Method *ModuleObject::find_method(Env *env, SymbolObject *method_name, ModuleObj
         return m_superclass->find_method(env, method_name, matching_class_or_module, after_method);
     } else {
         return nullptr;
+    }
+}
+
+void ModuleObject::assert_method_defined(Env *env, SymbolObject *name, Method *method) {
+    if (!method || method->is_undefined()) {
+        if (is_class()) {
+            env->raise("NameError", "undefined method `{}' for class `{}'", name->c_str(), inspect_str());
+        } else {
+            env->raise("NameError", "undefined method `{}' for module `{}'", name->c_str(), inspect_str());
+        }
+    }
+}
+
+Value ModuleObject::instance_method(Env *env, Value name_value) {
+    auto name = name_value->to_symbol(env, Object::Conversion::Strict);
+    auto method = find_method(env, name);
+    assert_method_defined(env, name, method);
+    return new UnboundMethodObject { this, method };
+}
+
+Value ModuleObject::public_instance_method(Env *env, Value name_value) {
+    auto name = name_value->to_symbol(env, Object::Conversion::Strict);
+    auto method = find_method(env, name);
+    assert_method_defined(env, name, method);
+
+    auto visibility = get_method_visibility(env, name);
+    switch (visibility) {
+    case MethodVisibility::Public:
+        return new UnboundMethodObject { this, method };
+    case MethodVisibility::Protected:
+        if (is_class()) {
+            env->raise("NameError", "method `{}' for class `{}' is protected", name->c_str(), inspect_str());
+        } else {
+            env->raise("NameError", "method `{}' for module `{}' is protected", name->c_str(), inspect_str());
+        }
+    case MethodVisibility::Private:
+        if (is_class()) {
+            env->raise("NameError", "method `{}' for class `{}' is private", name->c_str(), inspect_str());
+        } else {
+            env->raise("NameError", "method `{}' for module `{}' is private", name->c_str(), inspect_str());
+        }
+    default:
+        NAT_UNREACHABLE();
     }
 }
 
@@ -539,13 +580,7 @@ void ModuleObject::set_method_visibility(Env *env, size_t argc, Value *args, Met
         for (size_t i = 0; i < argc; ++i) {
             auto name = args[i]->to_symbol(env, Conversion::Strict);
             auto method = find_method(env, name);
-            if (!method || method->is_undefined()) {
-                if (is_class()) {
-                    env->raise("NameError", "undefined method `{}' for class `{}'", name->c_str(), inspect_str());
-                } else {
-                    env->raise("NameError", "undefined method `{}' for module `{}'", name->c_str(), inspect_str());
-                }
-            }
+            assert_method_defined(env, name, method);
             set_method_visibility(env, name, visibility);
         }
     } else {
@@ -624,13 +659,7 @@ Value ModuleObject::undef_method(Env *env, size_t argc, Value *args) {
     for (size_t i = 0; i < argc; ++i) {
         auto name = args[i]->to_symbol(env, Conversion::Strict);
         auto method = find_method(env, name);
-        if (!method || method->is_undefined()) {
-            if (is_class()) {
-                env->raise("NameError", "undefined method `{}' for class `{}'", name->c_str(), this->inspect_str());
-            } else {
-                env->raise("NameError", "undefined method `{}' for module `{}'", name->c_str(), this->inspect_str());
-            }
-        }
+        assert_method_defined(env, name, method);
         undefine_method(env, name);
     }
     return this;

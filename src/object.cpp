@@ -87,6 +87,7 @@ Value Object::create(ClassObject *klass) {
     case Object::Type::Integer:
     case Object::Type::Float:
     case Object::Type::Symbol:
+    case Object::Type::UnboundMethod:
         obj = nullptr;
         break;
     }
@@ -249,6 +250,11 @@ SymbolObject *Object::as_symbol() {
 TrueObject *Object::as_true() {
     assert(is_true());
     return static_cast<TrueObject *>(this);
+}
+
+UnboundMethodObject *Object::as_unbound_method() {
+    assert(is_unbound_method());
+    return static_cast<UnboundMethodObject *>(this);
 }
 
 VoidPObject *Object::as_void_p() {

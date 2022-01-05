@@ -42,6 +42,7 @@ class SymbolObject;
 class Token;
 class TrueObject;
 class Object;
+class UnboundMethodObject;
 class VoidPObject;
 
 class Value;

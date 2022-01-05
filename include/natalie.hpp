@@ -51,6 +51,7 @@
 #include "natalie/symbol_object.hpp"
 #include "natalie/true_object.hpp"
 #include "natalie/types.hpp"
+#include "natalie/unbound_method_object.hpp"
 #include "natalie/value.hpp"
 #include "natalie/void_p_object.hpp"
 
