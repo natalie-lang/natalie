@@ -66,6 +66,7 @@ public:
     Value proc(Env *env, Block *block);
     Value puts(Env *env, size_t argc, Value *args);
     Value raise(Env *env, Value klass, Value message);
+    Value remove_instance_variable(Env *env, Value name_val);
     Value sleep(Env *env, Value length);
     Value spawn(Env *, size_t, Value *);
     Value tap(Env *env, Block *block);

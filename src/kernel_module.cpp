@@ -373,6 +373,11 @@ Value KernelModule::raise(Env *env, Value klass, Value message) {
     env->raise(klass->as_class(), message->as_string());
 }
 
+Value KernelModule::remove_instance_variable(Env *env, Value name_val) {
+    auto name = name_val->to_instance_variable_name(env);
+    return ivar_remove(env, name);
+}
+
 Value KernelModule::sleep(Env *env, Value length) {
     if (!length) {
         while (true) {
