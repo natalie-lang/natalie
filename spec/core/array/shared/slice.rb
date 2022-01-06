@@ -535,7 +535,7 @@ describe :array_slice, shared: true do
   end
 
   ruby_version_is "3.0" do
-    # NATFIXME: Support endless ranges
+    # NATFIXME: Implement Range#step
     xdescribe "can be sliced with Enumerator::ArithmeticSequence" do
       before :each do
         @array = [0, 1, 2, 3, 4, 5]
@@ -748,8 +748,7 @@ describe :array_slice, shared: true do
   end
 
   ruby_version_is "2.7" do
-    # NATFIXME: Array slice with beginless range
-    xit "can accept beginless ranges" do
+    it "can accept beginless ranges" do
       a = [0, 1, 2, 3, 4, 5]
       a.send(@method, eval("(..3)")).should == [0, 1, 2, 3]
       a.send(@method, eval("(...3)")).should == [0, 1, 2]
@@ -763,8 +762,7 @@ describe :array_slice, shared: true do
       a.send(@method, eval("(...-9)")).should == []
     end
 
-    # NATFIXME: Array slice with nil...nil range
-    xit "can accept nil...nil ranges" do
+    it "can accept nil...nil ranges" do
       a = [0, 1, 2, 3, 4, 5]
       a.send(@method, eval("(nil...nil)")).should == a
       a.send(@method, eval("(...nil)")).should == a

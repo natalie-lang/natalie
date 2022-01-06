@@ -61,14 +61,13 @@ describe "Array#values_at" do
     ArraySpecs::MyArray[1, 2, 3].values_at(0, 1..2, 1).should be_an_instance_of(Array)
   end
 
-  # NATFIXME: Implement endless ranges and eval
-  xit "works when given endless ranges" do
+  it "works when given endless ranges" do
     [1, 2, 3, 4].values_at(eval("(1..)")).should == [2, 3, 4]
     [1, 2, 3, 4].values_at(eval("(3...)")).should == [4]
   end
 
   ruby_version_is "2.7" do
-    xit "works when given beginless ranges" do
+    it "works when given beginless ranges" do
       [1, 2, 3, 4].values_at(eval("(..2)")).should == [1, 2, 3]
       [1, 2, 3, 4].values_at(eval("(...2)")).should == [1, 2]
     end

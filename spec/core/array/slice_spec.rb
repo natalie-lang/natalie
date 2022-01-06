@@ -173,8 +173,7 @@ describe "Array#slice!" do
   end
 
   ruby_version_is "2.7" do
-    # NATFIXME: Array#slice! with beginless ranges
-    xit "works with beginless ranges" do
+    it "works with beginless ranges" do
       a = [0,1,2,3,4]
       a.slice!(eval("(..3)")).should == [0, 1, 2, 3]
       a.should == [4]
