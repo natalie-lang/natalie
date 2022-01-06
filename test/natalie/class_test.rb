@@ -68,6 +68,8 @@ describe 'class' do
   end
 end
 
+module M0; end
+
 module M1
   def m1
     'm1'
@@ -79,6 +81,8 @@ module M2
     'm2'
   end
 end
+
+module M3; end
 
 # reopen module
 module M1
@@ -92,7 +96,9 @@ class ExtendTest
 end
 
 class IncludeTest
+  prepend M0
   include M1, M2
+  include M3
 end
 
 class IncludeTestOverride
@@ -126,7 +132,7 @@ describe 'class' do
 
   describe 'include' do
     it 'includes methods from a module' do
-      IncludeTest.ancestors.should == [IncludeTest, M1, M2, Object, Kernel, BasicObject]
+      IncludeTest.ancestors.should == [M0, IncludeTest, M3, M1, M2, Object, Kernel, BasicObject]
       IncludeTest.new.m1.should == 'm1'
       IncludeTest.new.m1b.should == 'm1b'
       IncludeTestOverride.new.m1.should == 'my m1'
