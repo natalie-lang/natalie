@@ -19,8 +19,7 @@ describe "Module.new" do
     test_mod.should == m
   end
 
-  # NATFIXME: Implement Object#extend
-  xit "evaluates a passed block in the context of the module" do
+  it "evaluates a passed block in the context of the module" do
     fred = Module.new do
       def hello() "hello" end
       def bye()   "bye"   end

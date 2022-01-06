@@ -23,17 +23,6 @@ Value ModuleObject::initialize(Env *env, Block *block) {
     return this;
 }
 
-Value ModuleObject::extend(Env *env, size_t argc, Value *args) {
-    for (size_t i = 0; i < argc; i++) {
-        extend_once(env, args[i]->as_module());
-    }
-    return this;
-}
-
-void ModuleObject::extend_once(Env *env, ModuleObject *module) {
-    singleton_class(env)->include_once(env, module);
-}
-
 Value ModuleObject::include(Env *env, size_t argc, Value *args) {
     for (size_t i = 0; i < argc; i++) {
         include_once(env, args[i]->as_module());
