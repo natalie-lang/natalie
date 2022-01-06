@@ -24,7 +24,7 @@ Value ModuleObject::initialize(Env *env, Block *block) {
 }
 
 Value ModuleObject::include(Env *env, size_t argc, Value *args) {
-    for (size_t i = 0; i < argc; i++) {
+    for (int i = argc - 1; i >= 0; i--) {
         include_once(env, args[i]->as_module());
     }
     return this;
@@ -33,8 +33,14 @@ Value ModuleObject::include(Env *env, size_t argc, Value *args) {
 void ModuleObject::include_once(Env *env, ModuleObject *module) {
     if (m_included_modules.is_empty()) {
         m_included_modules.push(this);
+        m_included_modules.push(module);
+    } else {
+        int index = 0;
+        while (m_included_modules[index] != this) {
+            index += 1;
+        }
+        m_included_modules.insert(index + 1, module);
     }
-    m_included_modules.push(module);
 }
 
 Value ModuleObject::prepend(Env *env, size_t argc, Value *args) {
@@ -46,9 +52,11 @@ Value ModuleObject::prepend(Env *env, size_t argc, Value *args) {
 
 void ModuleObject::prepend_once(Env *env, ModuleObject *module) {
     if (m_included_modules.is_empty()) {
+        m_included_modules.push(module);
         m_included_modules.push(this);
+    } else {
+        m_included_modules.push_front(module);
     }
-    m_included_modules.push_front(module);
 }
 
 Value ModuleObject::const_get(SymbolObject *name) {
@@ -264,16 +272,16 @@ MethodInfo *ModuleObject::find_method_info(Env *env, SymbolObject *method_name) 
 }
 
 // returns the method and sets matching_class_or_module to where the method was found
-Method *ModuleObject::find_method(Env *env, SymbolObject *method_name, ModuleObject **matching_class_or_module, Method *after_method) const {
+Method *ModuleObject::find_method(Env *env, SymbolObject *method_name, ModuleObject **matching_class_or_module, Method **after_method) const {
     Method *method;
     if (m_included_modules.is_empty()) {
         // no included modules, just search the class/module
         // note: if there are included modules, then the module chain will include this class/module
         method = m_methods.get(method_name, env);
         if (method) {
-            if (method == after_method) {
-                after_method = nullptr;
-            } else if (after_method == nullptr) {
+            if (after_method != nullptr && method == *after_method) {
+                *after_method = nullptr;
+            } else if (after_method == nullptr || *after_method == nullptr) {
                 if (matching_class_or_module) *matching_class_or_module = m_klass;
                 return method;
             }
@@ -286,9 +294,9 @@ Method *ModuleObject::find_method(Env *env, SymbolObject *method_name, ModuleObj
         else
             method = module->find_method(env, method_name, matching_class_or_module, after_method);
         if (method) {
-            if (method == after_method) {
-                after_method = nullptr;
-            } else if (after_method == nullptr) {
+            if (after_method != nullptr && method == *after_method) {
+                *after_method = nullptr;
+            } else if (after_method == nullptr || *after_method == nullptr) {
                 if (matching_class_or_module) *matching_class_or_module = module;
                 return method;
             }
@@ -300,6 +308,10 @@ Method *ModuleObject::find_method(Env *env, SymbolObject *method_name, ModuleObj
     } else {
         return nullptr;
     }
+}
+
+Method *ModuleObject::find_method(Env *env, SymbolObject *method_name, Method *after_method) const {
+    return find_method(env, method_name, nullptr, &after_method);
 }
 
 void ModuleObject::assert_method_defined(Env *env, SymbolObject *name, Method *method) {

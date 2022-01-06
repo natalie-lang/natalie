@@ -527,10 +527,10 @@ Value Object::send(Env *env, size_t argc, Value *args, Block *block) {
     return send(env->caller(), name, argc - 1, args + 1, block);
 }
 
-Method *Object::find_method(Env *env, SymbolObject *method_name, MethodVisibility visibility_at_least, ModuleObject **matching_class_or_module, Method *after_method) {
+Method *Object::find_method(Env *env, SymbolObject *method_name, MethodVisibility visibility_at_least) {
     auto singleton = singleton_class();
     if (singleton) {
-        Method *method = singleton_class()->find_method(env, method_name, matching_class_or_module, after_method);
+        Method *method = singleton_class()->find_method(env, method_name);
         if (method) {
             if (!method->is_undefined()) {
                 MethodVisibility visibility = singleton_class()->get_method_visibility(env, method_name);
@@ -547,7 +547,7 @@ Method *Object::find_method(Env *env, SymbolObject *method_name, MethodVisibilit
         }
     }
     ModuleObject *klass = this->klass();
-    Method *method = klass->find_method(env, method_name, matching_class_or_module);
+    Method *method = klass->find_method(env, method_name);
     if (method && !method->is_undefined()) {
         MethodVisibility visibility = klass->get_method_visibility(env, method_name);
         if (visibility >= visibility_at_least) {
@@ -560,7 +560,7 @@ Method *Object::find_method(Env *env, SymbolObject *method_name, MethodVisibilit
     } else if (method_name == "inspect"_s) {
         env->raise("NoMethodError", "undefined method `inspect' for #<{}:{}>", klass->inspect_str(), int_to_hex_string(object_id(), false));
     } else if (is_module()) {
-        env->raise("NoMethodError", "undefined method `{}' for {}:{}", method_name->c_str(), klass->as_module()->inspect_str(), klass->inspect_str());
+        env->raise("NoMethodError", "undefined method `{}' for {}:{}", method_name->c_str(), as_module()->inspect_str(), klass->inspect_str());
     } else {
         env->raise("NoMethodError", "undefined method `{}' for {}", method_name->c_str(), inspect_str(env));
     }

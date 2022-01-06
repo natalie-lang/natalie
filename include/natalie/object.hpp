@@ -212,7 +212,7 @@ public:
         return send(env, name, args.size(), const_cast<Value *>(data(args)), block);
     }
 
-    Method *find_method(Env *, SymbolObject *, MethodVisibility, ModuleObject ** = nullptr, Method * = nullptr);
+    Method *find_method(Env *, SymbolObject *, MethodVisibility);
 
     Value dup(Env *);
 

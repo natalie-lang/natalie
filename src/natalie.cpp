@@ -692,7 +692,7 @@ const String *int_to_hex_string(nat_int_t num, bool capitalize) {
 
 Value super(Env *env, Value self, size_t argc, Value *args, Block *block) {
     auto current_method = env->current_method();
-    auto super_method = self->klass()->find_method(env, SymbolObject::intern(current_method->name()), nullptr, current_method);
+    auto super_method = self->klass()->find_method(env, SymbolObject::intern(current_method->name()), current_method);
     if (!super_method)
         env->raise("NoMethodError", "super: no superclass method `{}' for {}", current_method->name(), self->inspect_str(env));
     assert(super_method != current_method);

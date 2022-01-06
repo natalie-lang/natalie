@@ -90,7 +90,8 @@ public:
     void set_method_visibility(Env *, SymbolObject *, MethodVisibility);
     MethodVisibility get_method_visibility(Env *, SymbolObject *);
     MethodInfo *find_method_info(Env *, SymbolObject *);
-    Method *find_method(Env *, SymbolObject *, ModuleObject ** = nullptr, Method * = nullptr) const;
+    Method *find_method(Env *, SymbolObject *, ModuleObject ** = nullptr, Method ** = nullptr) const;
+    Method *find_method(Env *, SymbolObject *, Method *) const;
     void assert_method_defined(Env *, SymbolObject *, Method *);
 
     Value instance_method(Env *, Value);
