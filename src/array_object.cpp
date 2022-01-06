@@ -463,16 +463,18 @@ Value ArrayObject::fill(Env *env, Value obj, Value start_obj, Value length_obj, 
     if (start_obj && !start_obj->is_nil()) {
         if (!length_obj && start_obj->is_range()) {
             Value begin = start_obj->as_range()->begin();
-            if (!begin->is_integer() && begin->respond_to(env, to_int)) {
-                begin = begin->send(env, to_int);
-            }
-            begin->assert_type(env, Type::Integer, "Integer");
-            start = begin->as_integer()->to_nat_int_t();
+            if (!begin->is_nil()) {
+                if (!begin->is_integer() && begin->respond_to(env, to_int)) {
+                    begin = begin->send(env, to_int);
+                }
+                begin->assert_type(env, Type::Integer, "Integer");
+                start = begin->as_integer()->to_nat_int_t();
 
-            if (start < 0)
-                start += size();
-            if (start < 0)
-                env->raise("RangeError", "{} out of range", start_obj->inspect_str(env)->c_str());
+                if (start < 0)
+                    start += size();
+                if (start < 0)
+                    env->raise("RangeError", "{} out of range", start_obj->inspect_str(env)->c_str());
+            }
 
             auto end = start_obj->as_range()->end();
 
@@ -2004,14 +2006,19 @@ Value ArrayObject::slice_in_place(Env *env, Value index_obj, Value size) {
     if (index_obj->is_range()) {
         RangeObject *range = index_obj->as_range();
         Value begin_obj = range->begin();
+        nat_int_t start;
 
-        if (!begin_obj->is_integer() && begin_obj->respond_to(env, to_int))
-            begin_obj = begin_obj.send(env, to_int);
+        if (begin_obj->is_nil()) {
+            start = 0;
+        } else {
+            if (!begin_obj->is_integer() && begin_obj->respond_to(env, to_int))
+                begin_obj = begin_obj.send(env, to_int);
 
-        begin_obj->assert_type(env, ObjectType::Integer, "Integer");
-        begin_obj->as_integer()->assert_fixnum(env);
+            begin_obj->assert_type(env, ObjectType::Integer, "Integer");
+            begin_obj->as_integer()->assert_fixnum(env);
 
-        nat_int_t start = begin_obj->as_integer()->to_nat_int_t();
+            start = begin_obj->as_integer()->to_nat_int_t();
+        }
 
         Value end_obj = range->end();
 
@@ -2139,20 +2146,32 @@ Value ArrayObject::values_at(Env *env, size_t argc, Value *args) {
     for (size_t i = 0; i < argc; ++i) {
         auto arg = args[i];
         if (arg->is_range()) {
-            auto begin = convert_to_int(arg->as_range()->begin());
-            auto end = convert_to_int(arg->as_range()->end());
+            auto begin_value = arg->as_range()->begin();
+            auto end_value = arg->as_range()->end();
+            nat_int_t begin, end;
 
-            if (end < 0)
-                end += size();
+            if (begin_value->is_nil()) {
+                begin = 0;
+            } else {
+                begin = convert_to_int(begin_value);
+                if (begin < 0)
+                    break;
+            }
 
-            if (end < begin || begin < 0)
-                break;
+            if (end_value->is_nil()) {
+                end = size();
+            } else {
+                end = convert_to_int(end_value);
+                if (!arg->as_range()->exclude_end())
+                    end += 1;
+                if (end < 0)
+                    end += size();
+                if (end < begin)
+                    break;
+            }
 
             for (nat_int_t j = begin; j < end; ++j)
                 indices.push(j);
-
-            if (!arg->as_range()->exclude_end())
-                indices.push(end);
         } else {
             indices.push(convert_to_int(arg));
         }

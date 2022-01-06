@@ -47,8 +47,7 @@ describe "Array#pack with format 'B'" do
     ].should be_computed_by(:pack, "B*")
   end
 
-  # NATFIXME: we don't have a BINARY encoding yet :-(
-  xit "returns a binary string" do
+  it "returns a binary string" do
     ["1"].pack("B").encoding.should == Encoding::BINARY
   end
 
