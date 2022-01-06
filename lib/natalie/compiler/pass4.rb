@@ -12,6 +12,7 @@ module Natalie
         @symbols = {}
         @top = []
         @decl = []
+        @inline_functions = {}
       end
 
       VOID_FUNCTIONS = %i[
@@ -174,6 +175,59 @@ module Natalie
           top body
         end
         'NilObject::the()'
+      end
+
+      def comptime_string(exp)
+        unless exp.sexp_type == :str
+          raise "Expected string at compile time, but got: #{exp.inspect}"
+        end
+        exp.last
+      end
+
+      def comptime_array_of_strings(exp)
+        unless exp.sexp_type == :array
+          raise "Expected array at compile time, but got: #{exp.inspect}"
+        end
+        exp[1..-1].map do |item|
+          comptime_string(item)
+        end
+      end
+
+      def process___function__(exp)
+        (_, name, args, return_type) = exp
+        name = comptime_string(name)
+        @inline_functions[name] = {
+          args: comptime_array_of_strings(args),
+          return_type: comptime_string(return_type),
+        }
+        'NilObject::the()'
+      end
+
+      def process___call__(exp)
+        (_, fn_name, *args) = exp
+        fn_name = comptime_string(fn_name)
+        fn = @inline_functions.fetch(fn_name)
+        cast_value_to_cpp = ->(v, t) {
+          case t
+          when 'double'
+            "#{process(v)}->as_float()->to_double()"
+          else
+            raise "I don't yet know how to cast arg type #{t}"
+          end
+        }
+        cast_value_from_cpp = ->(v, t) {
+          case t
+          when 'double'
+            "Value { #{v} }"
+          else
+            raise "I don't yet know how to cast return type #{t}"
+          end
+        }
+        casted_args = args.each_with_index.map do |arg, index|
+          type = fn[:args][index]
+          cast_value_to_cpp.(arg, type)
+        end
+        cast_value_from_cpp.("#{fn_name}(#{casted_args.join(', ')})", fn[:return_type])
       end
 
       def process___ld_flags__(exp)
