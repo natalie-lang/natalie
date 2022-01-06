@@ -57,6 +57,10 @@ public:
         return strlen(m_name) > 1 && m_name[0] == '@' && m_name[1] == '@';
     }
 
+    bool is_empty() {
+        return strlen(m_name) == 0;
+    }
+
     bool start_with(Env *, Value);
 
     Value ref(Env *, Value);
