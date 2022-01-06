@@ -302,6 +302,34 @@ SymbolObject *Object::to_symbol(Env *env, Conversion conversion) {
     }
 }
 
+SymbolObject *Object::to_instance_variable_name(Env *env) {
+    StringObject *name = nullptr;
+
+    if (is_symbol()) {
+        name = as_symbol()->to_s(env);
+    } else if (is_string()) {
+        name = as_string();
+    } else if (respond_to(env, "to_str"_s)) {
+        auto value = send(env, "to_str"_s);
+
+        if (value->is_string()) {
+            name = value->as_string();
+        }
+    }
+
+    if (!name) {
+        env->raise("TypeError", "{} is not a symbol nor a string", inspect_str(env));
+    }
+
+    SymbolObject *symbol = name->to_symbol(env);
+
+    if (!symbol->is_ivar_name()) {
+        env->raise("NameError", "`{}' is not allowed as an instance variable name", name->c_str());
+    }
+
+    return symbol;
+}
+
 void Object::set_singleton_class(ClassObject *klass) {
     klass->set_is_singleton(true);
     m_singleton_class = klass;
