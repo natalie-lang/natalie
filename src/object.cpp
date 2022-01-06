@@ -414,6 +414,17 @@ Value Object::ivar_get(Env *env, SymbolObject *name) {
         return NilObject::the();
 }
 
+Value Object::ivar_remove(Env *env, SymbolObject *name) {
+    if (!name->is_ivar_name())
+        env->raise("NameError", "`{}' is not allowed as an instance variable name", name->c_str());
+
+    auto val = m_ivars.remove(name, env);
+    if (val)
+        return val;
+    else
+        env->raise("NameError", "instance variable {} not defined", name->c_str());
+}
+
 Value Object::ivar_set(Env *env, SymbolObject *name, Value val) {
     if (!name->is_ivar_name())
         env->raise("NameError", "`{}' is not allowed as an instance variable name", name->c_str());

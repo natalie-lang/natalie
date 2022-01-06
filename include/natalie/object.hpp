@@ -170,6 +170,7 @@ public:
 
     Value ivar_defined(Env *, SymbolObject *);
     Value ivar_get(Env *, SymbolObject *);
+    Value ivar_remove(Env *, SymbolObject *);
     Value ivar_set(Env *, SymbolObject *, Value);
 
     Value instance_variables(Env *);
