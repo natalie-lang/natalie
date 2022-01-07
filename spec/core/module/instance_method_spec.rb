@@ -16,20 +16,17 @@ describe "Module#instance_method" do
     Module.new.method(:instance_method).arity.should == 1
   end
 
-  # NATFIXME: Implement Method#call
-  xit "returns an UnboundMethod corresponding to the given name" do
+  it "returns an UnboundMethod corresponding to the given name" do
     @parent_um.should be_kind_of(UnboundMethod)
     @parent_um.bind(ModuleSpecs::InstanceMeth.new).call.should == :foo
   end
 
-  # NATFIXME: Implement Method#call
-  xit "returns an UnboundMethod corresponding to the given name from a superclass" do
+  it "returns an UnboundMethod corresponding to the given name from a superclass" do
     @child_um.should be_kind_of(UnboundMethod)
     @child_um.bind(ModuleSpecs::InstanceMethChild.new).call.should == :foo
   end
 
-  # NATFIXME: Implement Method#call
-  xit "returns an UnboundMethod corresponding to the given name from an included Module" do
+  it "returns an UnboundMethod corresponding to the given name from an included Module" do
     @mod_um.should be_kind_of(UnboundMethod)
     @mod_um.bind(ModuleSpecs::InstanceMethChild.new).call.should == :bar
   end

@@ -405,9 +405,28 @@ ArrayObject *ModuleObject::ancestors(Env *env) {
         for (ModuleObject *m : klass->included_modules()) {
             ancestors->push(m);
         }
-        klass = klass->superclass(env);
+        klass = klass->m_superclass;
     } while (klass);
     return ancestors;
+}
+
+bool ModuleObject::is_subclass_of(ModuleObject *other) {
+    if (other == this) {
+        return false;
+    }
+    ModuleObject *klass = this;
+    do {
+        if (other == klass->m_superclass) {
+            return true;
+        }
+        for (ModuleObject *m : klass->included_modules()) {
+            if (other == m) {
+                return true;
+            }
+        }
+        klass = klass->m_superclass;
+    } while (klass);
+    return false;
 }
 
 bool ModuleObject::is_method_defined(Env *env, Value name_value) const {
@@ -528,12 +547,35 @@ bool ModuleObject::does_include_module(Env *env, Value module) {
     return false;
 }
 
-Value ModuleObject::define_method(Env *env, Value name_value, Block *block) {
+Value ModuleObject::define_method(Env *env, Value name_value, Value method_value, Block *block) {
     auto name = name_value->to_symbol(env, Object::Conversion::Strict);
-    if (!block) {
+    if (method_value) {
+        if (method_value->is_proc()) {
+            define_method(env, name, method_value->as_proc()->block());
+        } else {
+            Method *method;
+            if (method_value->is_method()) {
+                method = method_value->as_method()->method();
+            } else if (method_value->is_unbound_method()) {
+                method = method_value->as_unbound_method()->method();
+            } else {
+                env->raise("TypeError", "wrong argument type {} (expected Proc/Method/UnboundMethod)", method_value->klass()->inspect_str());
+            }
+            ModuleObject *owner = method->owner();
+            if (owner != this && owner->is_class() && !owner->is_subclass_of(this)) {
+                if (owner->as_class()->is_singleton()) {
+                    env->raise("TypeError", "can't bind singleton method to a different class");
+                } else {
+                    env->raise("TypeError", "bind argument must be a subclass of {}", owner->inspect_str());
+                }
+            }
+            define_method(env, name, method->fn(), method->arity());
+        }
+    } else if (block) {
+        define_method(env, name, block);
+    } else {
         env->raise("ArgumentError", "tried to create Proc object without a block");
     }
-    define_method(env, name, block);
     return name;
 }
 
