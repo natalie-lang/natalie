@@ -46,12 +46,12 @@ void Env::raise(ClassObject *klass, StringObject *message) {
     this->raise_exception(exception);
 }
 
-void Env::raise(ClassObject *klass, class String *message) {
+void Env::raise(ClassObject *klass, const String *message) {
     ExceptionObject *exception = new ExceptionObject { klass, new StringObject { *message } };
     this->raise_exception(exception);
 }
 
-void Env::raise(const char *class_name, const class String *message) {
+void Env::raise(const char *class_name, const String *message) {
     ClassObject *klass = GlobalEnv::the()->Object()->const_fetch(SymbolObject::intern(class_name))->as_class();
     ExceptionObject *exception = new ExceptionObject { klass, new StringObject { *message } };
     this->raise_exception(exception);
@@ -93,6 +93,13 @@ void Env::raise_errno() {
     auto SystemCallError = find_top_level_const(this, "SystemCallError"_s);
     ExceptionObject *error = SystemCallError.send(this, "exception"_s, { Value::integer(errno) })->as_exception();
     raise_exception(error);
+}
+
+void Env::raise_name_error(SymbolObject *name, const String *message) {
+    auto NameError = find_top_level_const(this, "NameError"_s)->as_class();
+    ExceptionObject *exception = new ExceptionObject { NameError, new StringObject { *message } };
+    exception->ivar_set(this, "@name"_s, name);
+    this->raise_exception(exception);
 }
 
 void Env::warn(const String *message) {

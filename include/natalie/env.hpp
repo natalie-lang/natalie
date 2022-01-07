@@ -46,12 +46,19 @@ public:
     Value var_set(const char *, size_t, bool, Value);
 
     [[noreturn]] void raise(ClassObject *, StringObject *);
-    [[noreturn]] void raise(ClassObject *, String *);
+    [[noreturn]] void raise(ClassObject *, const String *);
     [[noreturn]] void raise(const char *, const String *);
     [[noreturn]] void raise_exception(ExceptionObject *);
     [[noreturn]] void raise_key_error(Value, Value);
     [[noreturn]] void raise_local_jump_error(Value, LocalJumpErrorType);
     [[noreturn]] void raise_errno();
+    [[noreturn]] void raise_name_error(SymbolObject *name, const String *);
+
+    template <typename... Args>
+    [[noreturn]] void raise_name_error(SymbolObject *name, const char *format, Args... args) {
+        auto message = String::format(format, args...);
+        raise_name_error(name, message);
+    }
 
     template <typename... Args>
     [[noreturn]] void raise(ClassObject *klass, const char *format, Args... args) {

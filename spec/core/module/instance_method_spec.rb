@@ -75,8 +75,7 @@ describe "Module#instance_method" do
     -> { Object.instance_method(:missing) }.should raise_error(NameError)
   end
 
-  # NATFIXME: Implement NameError#name
-  xit "sets the NameError#name attribute to the name of the missing method" do
+  it "sets the NameError#name attribute to the name of the missing method" do
     begin
       Object.instance_method(:missing)
     rescue NameError => e

@@ -55,8 +55,7 @@ describe "Module#public_instance_method" do
     end.should raise_error(NameError)
   end
 
-  # NATFIXME: Implement NameError#name
-  xit "sets the NameError#name attribute to the name of the missing method" do
+  it "sets the NameError#name attribute to the name of the missing method" do
     begin
       Module.new.public_instance_method(:missing)
     rescue NameError => e
