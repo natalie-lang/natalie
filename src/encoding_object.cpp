@@ -21,6 +21,18 @@ HashObject *EncodingObject::aliases(Env *env) {
     return aliases;
 }
 
+EncodingObject *EncodingObject::find(Env *env, Value name) {
+    for (auto value : *list(env)) {
+        auto encoding = value->as_encoding();
+        for (auto encodingName : encoding->m_names) {
+            auto string = name->as_string();
+            if (strcasecmp(string->c_str(), encodingName->c_str()) == 0)
+                return encoding;
+        }
+    }
+    env->raise("ArgumentError", "unknown encoding name - {}", name->inspect_str(env));
+}
+
 ArrayObject *EncodingObject::list(Env *) {
     Value Encoding = GlobalEnv::the()->Object()->const_fetch("Encoding"_s);
     return new ArrayObject {
