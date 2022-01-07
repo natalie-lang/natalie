@@ -192,17 +192,25 @@ def slow_test
   end
 end
 
-def platform_is(wordsize:)
-  if wordsize == 64
+def platform_is(platform)
+  if platform.is_a?(Hash)
+    if platform[:wordsize] == 64
+      yield
+    end
+  elsif platform == :linux
     yield
   end
 end
 
-def platform_is_not(_)
+def platform_is_not(*)
   yield
 end
 
-def not_supported_on(_)
+def not_supported_on(*)
+  yield
+end
+
+def as_user
   yield
 end
 
@@ -229,6 +237,10 @@ def after(type = :each, &block)
   else
     raise "I don't know how to do after(#{type.inspect})"
   end
+end
+
+def guard(proc)
+  yield if proc.call
 end
 
 class Matcher
