@@ -144,6 +144,7 @@ public:
 
     Value add(Env *, Value) const;
     Value bytes(Env *) const;
+    Value chr(Env *);
     Value cmp(Env *, Value) const;
     Value concat(Env *env, size_t argc, Value *args);
     Value downcase(Env *);
