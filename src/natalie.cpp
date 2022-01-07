@@ -43,6 +43,7 @@ Env *build_top_env() {
 
     ModuleObject *Comparable = new ModuleObject { "Comparable" };
     Object->const_set("Comparable"_s, Comparable);
+    Symbol->include_once(env, Comparable);
 
     ModuleObject *Enumerable = new ModuleObject { "Enumerable" };
     Object->const_set("Enumerable"_s, Enumerable);
