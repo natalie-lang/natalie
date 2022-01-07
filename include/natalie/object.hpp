@@ -219,8 +219,9 @@ public:
     Value dup(Env *);
 
     bool is_a(Env *, Value) const;
-    bool respond_to(Env *, Value);
-    bool respond_to_method(Env *, Value) const;
+    bool respond_to(Env *, Value, bool = true);
+    bool respond_to_method(Env *, Value, Value) const;
+    bool respond_to_method(Env *, Value, bool) const;
 
     const char *defined(Env *, SymbolObject *, bool);
     Value defined_obj(Env *, SymbolObject *, bool = false);
