@@ -84,6 +84,16 @@ ArrayObject *StringObject::chars(Env *env) {
     return ary;
 }
 
+Value StringObject::chr(Env *env) {
+    if (this->is_empty()) {
+        return new StringObject { "", m_encoding };
+    }
+    size_t index = 0;
+    char buffer[5];
+    next_char(env, buffer, &index);
+    return new StringObject { buffer, m_encoding };
+}
+
 SymbolObject *StringObject::to_symbol(Env *env) const {
     return SymbolObject::intern(c_str());
 }
