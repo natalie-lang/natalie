@@ -105,7 +105,7 @@ Value ModuleObject::const_find(Env *env, SymbolObject *name, ConstLookupSearchMo
 
     if (constant) {
         if (search_mode == ConstLookupSearchMode::Strict && constant->is_private())
-            env->raise("NameError", "private constant {}::{} referenced", search_parent->inspect_str(), name->c_str());
+            env->raise_name_error(name, "private constant {}::{} referenced", search_parent->inspect_str(), name->c_str());
         if (constant->is_deprecated()) {
             env->warn("constant {}::{} is deprecated", search_parent->inspect_str(), name->c_str());
         }
@@ -121,9 +121,9 @@ Value ModuleObject::const_find(Env *env, SymbolObject *name, ConstLookupSearchMo
     if (failure_mode == ConstLookupFailureMode::Null) return nullptr;
 
     if (search_mode == ConstLookupSearchMode::Strict) {
-        env->raise("NameError", "uninitialized constant {}::{}", this->inspect_str(), name->c_str());
+        env->raise_name_error(name, "uninitialized constant {}::{}", this->inspect_str(), name->c_str());
     } else {
-        env->raise("NameError", "uninitialized constant {}", name->c_str());
+        env->raise_name_error(name, "uninitialized constant {}", name->c_str());
     }
 }
 
@@ -156,7 +156,7 @@ Value ModuleObject::eval_body(Env *env, Value (*fn)(Env *, Value)) {
 
 Value ModuleObject::cvar_get_or_null(Env *env, SymbolObject *name) {
     if (!name->is_cvar_name())
-        env->raise("NameError", "`{}' is not allowed as a class variable name", name->c_str());
+        env->raise_name_error(name, "`{}' is not allowed as a class variable name", name->c_str());
 
     ModuleObject *module = this;
     Value val = nullptr;
@@ -171,7 +171,7 @@ Value ModuleObject::cvar_get_or_null(Env *env, SymbolObject *name) {
 
 Value ModuleObject::cvar_set(Env *env, SymbolObject *name, Value val) {
     if (!name->is_cvar_name())
-        env->raise("NameError", "`{}' is not allowed as a class variable name", name->c_str());
+        env->raise_name_error(name, "`{}' is not allowed as a class variable name", name->c_str());
 
     ModuleObject *current = this;
 
@@ -240,7 +240,7 @@ void ModuleObject::set_method_visibility(Env *env, SymbolObject *name, MethodVis
 MethodVisibility ModuleObject::get_method_visibility(Env *env, SymbolObject *name) {
     auto info = find_method_info(env, name);
     if (!info) {
-        env->raise("NameError", "undefined method `{}' for `{}'", name->c_str(), inspect_str());
+        env->raise_name_error(name, "undefined method `{}' for `{}'", name->c_str(), inspect_str());
     }
     return info->visibility();
 }
@@ -317,9 +317,9 @@ Method *ModuleObject::find_method(Env *env, SymbolObject *method_name, Method *a
 void ModuleObject::assert_method_defined(Env *env, SymbolObject *name, Method *method) {
     if (!method || method->is_undefined()) {
         if (is_class()) {
-            env->raise("NameError", "undefined method `{}' for class `{}'", name->c_str(), inspect_str());
+            env->raise_name_error(name, "undefined method `{}' for class `{}'", name->c_str(), inspect_str());
         } else {
-            env->raise("NameError", "undefined method `{}' for module `{}'", name->c_str(), inspect_str());
+            env->raise_name_error(name, "undefined method `{}' for module `{}'", name->c_str(), inspect_str());
         }
     }
 }
@@ -342,15 +342,15 @@ Value ModuleObject::public_instance_method(Env *env, Value name_value) {
         return new UnboundMethodObject { this, method };
     case MethodVisibility::Protected:
         if (is_class()) {
-            env->raise("NameError", "method `{}' for class `{}' is protected", name->c_str(), inspect_str());
+            env->raise_name_error(name, "method `{}' for class `{}' is protected", name->c_str(), inspect_str());
         } else {
-            env->raise("NameError", "method `{}' for module `{}' is protected", name->c_str(), inspect_str());
+            env->raise_name_error(name, "method `{}' for module `{}' is protected", name->c_str(), inspect_str());
         }
     case MethodVisibility::Private:
         if (is_class()) {
-            env->raise("NameError", "method `{}' for class `{}' is private", name->c_str(), inspect_str());
+            env->raise_name_error(name, "method `{}' for class `{}' is private", name->c_str(), inspect_str());
         } else {
-            env->raise("NameError", "method `{}' for module `{}' is private", name->c_str(), inspect_str());
+            env->raise_name_error(name, "method `{}' for module `{}' is private", name->c_str(), inspect_str());
         }
     default:
         NAT_UNREACHABLE();
@@ -636,7 +636,7 @@ Value ModuleObject::deprecate_constant(Env *env, size_t argc, Value *args) {
         auto name = args[i]->to_symbol(env, Conversion::Strict);
         auto constant = m_constants.get(name);
         if (!constant)
-            env->raise("NameError", "constant {}::{} not defined", inspect_str(), name->c_str());
+            env->raise_name_error(name, "constant {}::{} not defined", inspect_str(), name->c_str());
         constant->set_deprecated(true);
     }
     return this;
@@ -647,7 +647,7 @@ Value ModuleObject::private_constant(Env *env, size_t argc, Value *args) {
         auto name = args[i]->to_symbol(env, Conversion::Strict);
         auto constant = m_constants.get(name);
         if (!constant)
-            env->raise("NameError", "constant {}::{} not defined", inspect_str(), name->c_str());
+            env->raise_name_error(name, "constant {}::{} not defined", inspect_str(), name->c_str());
         constant->set_private(true);
     }
     return this;
@@ -658,7 +658,7 @@ Value ModuleObject::public_constant(Env *env, size_t argc, Value *args) {
         auto name = args[i]->to_symbol(env, Conversion::Strict);
         auto constant = m_constants.get(name);
         if (!constant)
-            env->raise("NameError", "constant {}::{} not defined", inspect_str(), name->c_str());
+            env->raise_name_error(name, "constant {}::{} not defined", inspect_str(), name->c_str());
         constant->set_private(false);
     }
     return this;
@@ -690,7 +690,7 @@ Value ModuleObject::remove_method(Env *env, size_t argc, Value *args) {
         auto name = args[i]->to_symbol(env, Conversion::Strict);
         auto info = m_method_info.get(name, env);
         if (!info) {
-            env->raise("NameError", "method `{}' not defined in {}", name->c_str(), this->inspect_str());
+            env->raise_name_error(name, "method `{}' not defined in {}", name->c_str(), this->inspect_str());
         }
         m_methods.remove(name, env);
         m_method_info.remove(name, env);

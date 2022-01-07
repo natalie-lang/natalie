@@ -8,7 +8,7 @@ class StandardError < Exception; end
   class FiberError < StandardError; end
   class IndexError < StandardError; end
     class StopIteration < IndexError; end
-  class NameError < StandardError; end
+  class NameError < StandardError; attr_reader :name; end
     class NoMethodError < NameError; end
   class IOError < StandardError; end
   class RangeError < StandardError; end

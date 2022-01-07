@@ -324,7 +324,7 @@ SymbolObject *Object::to_instance_variable_name(Env *env) {
     SymbolObject *symbol = name->to_symbol(env);
 
     if (!symbol->is_ivar_name()) {
-        env->raise("NameError", "`{}' is not allowed as an instance variable name", name->c_str());
+        env->raise_name_error(symbol, "`{}' is not allowed as an instance variable name", name->c_str());
     }
 
     return symbol;
@@ -394,7 +394,7 @@ Value Object::const_set(SymbolObject *name, Value val) {
 
 Value Object::ivar_defined(Env *env, SymbolObject *name) {
     if (!name->is_ivar_name())
-        env->raise("NameError", "`{}' is not allowed as an instance variable name", name->c_str());
+        env->raise_name_error(name, "`{}' is not allowed as an instance variable name", name->c_str());
 
     auto val = m_ivars.get(name, env);
     if (val)
@@ -405,7 +405,7 @@ Value Object::ivar_defined(Env *env, SymbolObject *name) {
 
 Value Object::ivar_get(Env *env, SymbolObject *name) {
     if (!name->is_ivar_name())
-        env->raise("NameError", "`{}' is not allowed as an instance variable name", name->c_str());
+        env->raise_name_error(name, "`{}' is not allowed as an instance variable name", name->c_str());
 
     auto val = m_ivars.get(name, env);
     if (val)
@@ -427,7 +427,7 @@ Value Object::ivar_remove(Env *env, SymbolObject *name) {
 
 Value Object::ivar_set(Env *env, SymbolObject *name, Value val) {
     if (!name->is_ivar_name())
-        env->raise("NameError", "`{}' is not allowed as an instance variable name", name->c_str());
+        env->raise_name_error(name, "`{}' is not allowed as an instance variable name", name->c_str());
 
     m_ivars.put(name, val.object(), env);
     return val;
@@ -455,7 +455,7 @@ Value Object::cvar_get(Env *env, SymbolObject *name) {
         } else {
             module = m_klass;
         }
-        env->raise("NameError", "uninitialized class variable {} in {}", name->c_str(), module->inspect_str());
+        env->raise_name_error(name, "uninitialized class variable {} in {}", name->c_str(), module->inspect_str());
     }
 }
 
