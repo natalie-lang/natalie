@@ -47,9 +47,7 @@ public:
 
     String(size_t length, char c) {
         char buf[length];
-        for (size_t i = 0; i < length; ++i) {
-            buf[i] = c;
-        }
+        memset(buf, c, sizeof(char) * length);
         set_str(buf, length);
     }
 
@@ -137,7 +135,7 @@ public:
         assert(str);
         auto old_str = m_str;
         m_str = new char[length + 1];
-        memcpy(m_str, str, length);
+        memcpy(m_str, str, sizeof(char) * length);
         m_str[length] = 0;
         m_length = length;
         m_capacity = length;
@@ -165,7 +163,7 @@ public:
         size_t new_length = strlen(str);
         if (new_length == 0) return;
         char buf[m_length + 1];
-        memcpy(buf, m_str, m_length + 1);
+        memcpy(buf, m_str, sizeof(char) * (m_length + 1));
         set_str(str);
         append(buf);
     }
@@ -245,8 +243,7 @@ public:
         if (str->length() == 0) return;
         size_t total_length = m_length + str->length();
         grow_at_least(total_length);
-        for (size_t i = 0; i < str->length(); ++i)
-            m_str[i + m_length] = (*str)[i];
+        memcpy(m_str + m_length, str->m_str, sizeof(char) * str->length());
         m_length = total_length;
     }
 
@@ -255,8 +252,7 @@ public:
     void append(size_t n, char c) {
         size_t total_length = m_length + n;
         grow_at_least(total_length);
-        for (size_t i = 0; i < n; ++i)
-            m_str[i + m_length] = c;
+        memset(m_str + m_length, c, sizeof(char) * n);
         m_length = total_length;
         m_str[m_length] = 0;
     }
@@ -264,20 +260,14 @@ public:
     bool operator==(const String &other) const {
         if (length() != other.length())
             return false;
-        for (size_t i = 0; i < m_length; ++i)
-            if (m_str[i] != other[i])
-                return false;
-        return true;
+        return memcmp(m_str, other.c_str(), sizeof(char) * m_length) == 0;
     }
 
     bool operator==(const char *other) const {
         assert(other);
         if (length() != strlen(other))
             return false;
-        for (size_t i = 0; i < m_length; ++i)
-            if (m_str[i] != other[i])
-                return false;
-        return true;
+        return memcmp(m_str, other, sizeof(char) * m_length) == 0;
     }
 
     bool operator!=(const String &other) const {
