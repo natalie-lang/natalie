@@ -97,7 +97,7 @@ module Natalie
       def process_call(exp, is_super: false)
         (_, receiver, method, *args) = exp
         if @compiler_context[:inline_cpp_enabled]
-          if %i[__inline__ __define_method__ __cxx_flags__ __ld_flags__ __function__].include?(method)
+          if %i[__inline__ __define_method__ __cxx_flags__ __ld_flags__ __function__ __constant__].include?(method)
             return exp.new(method, *args)
           end
           if method == :__call__

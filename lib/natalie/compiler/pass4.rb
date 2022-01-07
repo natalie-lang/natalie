@@ -230,6 +230,18 @@ module Natalie
         cast_value_from_cpp.("#{fn_name}(#{casted_args.join(', ')})", fn[:return_type])
       end
 
+      def process___constant__(exp)
+        (_, name, type) = exp
+        name = comptime_string(name)
+        type = comptime_string(type)
+        case type
+        when 'int', 'unsigned short'
+          "Value::integer(#{name})"
+        else
+          raise "I don't yet know how to handle constant of type #{type.inspect}"
+        end
+      end
+
       def process___ld_flags__(exp)
         (_, flags) = exp
         raise "Expected string passed to __ld_flags__, but got: #{flags.inspect}" unless flags.sexp_type == :str
