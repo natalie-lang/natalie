@@ -107,7 +107,7 @@ Value RangeObject::inspect(Env *env) {
     }
 }
 
-Value RangeObject::eq(Env *env, Value other_value) {
+bool RangeObject::eq(Env *env, Value other_value) {
     if (other_value->is_range()) {
         RangeObject *other = other_value->as_range();
         Value begin = other->begin();
@@ -115,34 +115,34 @@ Value RangeObject::eq(Env *env, Value other_value) {
         bool begin_equal = m_begin.send(env, "=="_s, { begin })->is_truthy();
         bool end_equal = m_end.send(env, "=="_s, { end })->is_truthy();
         if (begin_equal && end_equal && m_exclude_end == other->m_exclude_end) {
-            return TrueObject::the();
+            return true;
         }
     }
-    return FalseObject::the();
+    return false;
 }
 
-Value RangeObject::eqeqeq(Env *env, Value arg) {
+bool RangeObject::eqeqeq(Env *env, Value arg) {
     if (m_begin->type() == Object::Type::Integer && arg->is_integer()) {
         // optimized path for integer ranges
         nat_int_t begin = m_begin->as_integer()->to_nat_int_t();
         nat_int_t end = m_end->as_integer()->to_nat_int_t();
         nat_int_t val = arg->as_integer()->to_nat_int_t();
         if (begin <= val && ((m_exclude_end && val < end) || (!m_exclude_end && val <= end))) {
-            return TrueObject::the();
+            return true;
         }
     } else {
         if (m_exclude_end) {
             if (arg.send(env, ">="_s, { m_begin })->is_truthy() && arg.send(env, "<"_s, 1, &m_end)->is_truthy())
-                return TrueObject::the();
+                return true;
         } else {
             if (arg.send(env, ">="_s, { m_begin })->is_truthy() && arg.send(env, "<="_s, 1, &m_end)->is_truthy())
-                return TrueObject::the();
+                return true;
         }
     }
-    return FalseObject::the();
+    return false;
 }
 
-Value RangeObject::include(Env *env, Value arg) {
+bool RangeObject::include(Env *env, Value arg) {
     if (arg.is_fast_integer() && m_begin.is_fast_integer() && m_end.is_fast_integer()) {
         const auto begin = m_begin.get_fast_integer();
         const auto end = m_end.get_fast_integer();
@@ -151,15 +151,15 @@ Value RangeObject::include(Env *env, Value arg) {
         const auto larger_than_begin = begin <= i;
         const auto smaller_than_end = m_exclude_end ? i < end : i <= end;
         if (larger_than_begin && smaller_than_end)
-            return TrueObject::the();
-        return FalseObject::the();
+            return true;
+        return false;
     } else if (m_begin->is_numeric() && m_end->is_numeric()) {
         const auto lt = "<"_s, leq = "<="_s, geq = ">="_s;
         const auto larger_than_begin = arg.send(env, geq, { m_begin })->is_truthy();
         const auto smaller_than_end = arg.send(env, m_exclude_end ? lt : leq, { m_end })->is_truthy();
         if (larger_than_begin && smaller_than_end)
-            return TrueObject::the();
-        return FalseObject::the();
+            return true;
+        return false;
     }
 
     auto eqeq = "=="_s;
@@ -170,9 +170,9 @@ Value RangeObject::include(Env *env, Value arg) {
         return nullptr;
     });
     if (found_item)
-        return TrueObject::the();
+        return true;
 
-    return FalseObject::the();
+    return false;
 }
 
 }

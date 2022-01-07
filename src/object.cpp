@@ -382,15 +382,15 @@ Value Object::const_set(SymbolObject *name, Value val) {
     return m_klass->const_set(name, val);
 }
 
-Value Object::ivar_defined(Env *env, SymbolObject *name) {
+bool Object::ivar_defined(Env *env, SymbolObject *name) {
     if (!name->is_ivar_name())
         env->raise_name_error(name, "`{}' is not allowed as an instance variable name", name->c_str());
 
     auto val = m_ivars.get(name, env);
     if (val)
-        return TrueObject::the();
+        return true;
     else
-        return FalseObject::the();
+        return false;
 }
 
 Value Object::ivar_get(Env *env, SymbolObject *name) {

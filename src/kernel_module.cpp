@@ -243,9 +243,9 @@ Value KernelModule::main_obj_inspect(Env *env) {
     return new StringObject { "main" };
 }
 
-Value KernelModule::instance_variable_defined(Env *env, Value name_val) {
+bool KernelModule::instance_variable_defined(Env *env, Value name_val) {
     if (is_nil() || is_boolean() || is_integer() || is_float() || is_symbol()) {
-        return FalseObject::the();
+        return false;
     }
     auto name = name_val->to_instance_variable_name(env);
     return ivar_defined(env, name);

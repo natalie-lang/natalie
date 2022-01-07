@@ -316,10 +316,10 @@ Value ArrayObject::any(Env *env, size_t argc, Value *args, Block *block) {
     return any_method->call(env, this, argc, args, block);
 }
 
-Value ArrayObject::eq(Env *env, Value other) {
+bool ArrayObject::eq(Env *env, Value other) {
     TM::PairedRecursionGuard guard { this, other.object() };
 
-    return guard.run([&](bool is_recursive) -> Value {
+    Value result = guard.run([&](bool is_recursive) -> Value { // don't return bool in recursion guard
         if (other == this)
             return TrueObject::the();
 
@@ -362,12 +362,14 @@ Value ArrayObject::eq(Env *env, Value other) {
 
         return TrueObject::the();
     });
+
+    return result->is_true();
 }
 
-Value ArrayObject::eql(Env *env, Value other) {
+bool ArrayObject::eql(Env *env, Value other) {
     TM::PairedRecursionGuard guard { this, other.object() };
 
-    return guard.run([&](bool is_recursive) -> Value {
+    Value result = guard.run([&](bool is_recursive) -> Value { // don't return bool in recursion guard
         if (other == this)
             return TrueObject::the();
         if (!other->is_array())
@@ -394,6 +396,8 @@ Value ArrayObject::eql(Env *env, Value other) {
 
         return TrueObject::the();
     });
+
+    return result->is_true();
 }
 
 Value ArrayObject::each(Env *env, Block *block) {
@@ -837,16 +841,16 @@ Value ArrayObject::last(Env *env, Value n) {
     return array;
 }
 
-Value ArrayObject::include(Env *env, Value item) {
+bool ArrayObject::include(Env *env, Value item) {
     if (size() == 0) {
-        return FalseObject::the();
+        return false;
     } else {
         for (auto &compare_item : *this) {
             if (compare_item.send(env, "=="_s, { item })->is_truthy()) {
-                return TrueObject::the();
+                return true;
             }
         }
-        return FalseObject::the();
+        return false;
     }
 }
 
@@ -1423,7 +1427,7 @@ Value ArrayObject::uniq_in_place(Env *env, Block *block) {
         if (block) {
             key = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 1, &item, nullptr);
         }
-        if (hash->has_key(env, key)->is_false()) {
+        if (!hash->has_key(env, key)) {
             hash->put(env, key, item);
         }
     }
@@ -1560,7 +1564,7 @@ Value ArrayObject::hash(Env *env) {
             // this allows us to return the same hash for recursive arrays:
             // a = []; a << a; a.hash == [a].hash # => true
             // a = []; a << a << a; a.hash == [a, a].hash # => true
-            if (item->is_array() && size() == item->as_array()->size() && eql(env, item)->is_truthy())
+            if (item->is_array() && size() == item->as_array()->size() && eql(env, item))
                 continue;
 
             if (!item_hash->is_integer() && item_hash->respond_to(env, to_int))
@@ -1671,7 +1675,7 @@ Value ArrayObject::union_of(Env *env, Value arg) {
 
     auto *result = new ArrayObject();
     auto add_value = [&result, &env](Value &val) {
-        if (result->include(env, val)->is_falsey()) {
+        if (!result->include(env, val)) {
             result->push(val);
         }
     };

@@ -137,7 +137,7 @@ public:
     }
 
     Value compare_by_identity(Env *);
-    Value is_comparing_by_identity() const;
+    bool is_comparing_by_identity() const;
     Value delete_if(Env *, Block *);
     Value delete_key(Env *, Value, Block *);
     Value dig(Env *, size_t, Value *);
@@ -153,8 +153,8 @@ public:
     Value fetch(Env *, Value, Value, Block *);
     Value fetch_values(Env *, size_t, Value *, Block *);
     Value hash(Env *);
-    Value has_key(Env *, Value);
-    Value has_value(Env *, Value);
+    bool has_key(Env *, Value);
+    bool has_value(Env *, Value);
     Value initialize(Env *, Value, Block *);
     Value inspect(Env *);
     Value keep_if(Env *, Block *);

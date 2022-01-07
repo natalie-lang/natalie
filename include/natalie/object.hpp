@@ -168,7 +168,7 @@ public:
     virtual Value const_fetch(SymbolObject *);
     virtual Value const_set(SymbolObject *, Value);
 
-    Value ivar_defined(Env *, SymbolObject *);
+    bool ivar_defined(Env *, SymbolObject *);
     Value ivar_get(Env *, SymbolObject *);
     Value ivar_remove(Env *, SymbolObject *);
     Value ivar_set(Env *, SymbolObject *, Value);

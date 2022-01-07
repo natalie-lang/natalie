@@ -34,9 +34,9 @@ public:
     Value each(Env *, Block *);
     Value first(Env *, Value);
     Value inspect(Env *);
-    Value eq(Env *, Value);
-    Value eqeqeq(Env *, Value);
-    Value include(Env *, Value);
+    bool eq(Env *, Value);
+    bool eqeqeq(Env *, Value);
+    bool include(Env *, Value);
 
     virtual void visit_children(Visitor &visitor) override {
         Object::visit_children(visitor);
