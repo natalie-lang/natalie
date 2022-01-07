@@ -65,7 +65,7 @@ class Socket < BasicSocket
           env->raise("SocketError", "getaddrinfo: Name or service not known");
 
       auto port_unsigned = (unsigned short)port->as_integer()->to_nat_int_t();
-      struct sockaddr_in in { AF_INET, port_unsigned, a, 0 };
+      struct sockaddr_in in { AF_INET, port_unsigned, a, {0} };
       return new StringObject { (const char*)&in, sizeof(in) };
     END
 
