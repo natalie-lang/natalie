@@ -254,8 +254,6 @@ module ModuleSpecs
   end
 
 
-# NATFIXME: Implement Module#module_function
-=begin
   module ReopeningModule
     def foo; true; end
     module_function :foo
@@ -267,7 +265,6 @@ module ModuleSpecs
     alias :foo2 :foo
     module_function :foo2
   end
-=end
 
 # NATFIXME: Implement Module.nesting
 =begin

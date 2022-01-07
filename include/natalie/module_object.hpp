@@ -126,6 +126,7 @@ public:
     Value private_class_method(Env *, size_t, Value *);
     Value public_class_method(Env *, size_t, Value *);
     void set_method_visibility(Env *, size_t, Value *, MethodVisibility);
+    Value module_function(Env *, size_t, Value *);
 
     Value deprecate_constant(Env *, size_t, Value *);
     Value private_constant(Env *, size_t, Value *);
@@ -162,6 +163,7 @@ protected:
     TM::Hashmap<SymbolObject *, Value> m_class_vars {};
     Vector<ModuleObject *> m_included_modules {};
     MethodVisibility m_method_visibility { MethodVisibility::Public };
+    bool m_module_function { false };
 };
 
 }

@@ -295,6 +295,14 @@ SymbolObject *Object::to_symbol(Env *env, Conversion conversion) {
         return as_symbol();
     } else if (is_string()) {
         return as_string()->to_symbol(env);
+    } else if (respond_to(env, "to_str"_s)) {
+        Value str = send(env, "to_str"_s);
+        if (str->is_string()) {
+            return str->as_string()->to_symbol(env);
+        } else {
+            auto *class_name = klass()->inspect_str();
+            env->raise("TypeError", "can't convert {} to String ({}#to_str gives {})", class_name, class_name, str->klass()->inspect_str());
+        }
     } else if (conversion == Conversion::NullAllowed) {
         return nullptr;
     } else {
@@ -303,28 +311,10 @@ SymbolObject *Object::to_symbol(Env *env, Conversion conversion) {
 }
 
 SymbolObject *Object::to_instance_variable_name(Env *env) {
-    StringObject *name = nullptr;
-
-    if (is_symbol()) {
-        name = as_symbol()->to_s(env);
-    } else if (is_string()) {
-        name = as_string();
-    } else if (respond_to(env, "to_str"_s)) {
-        auto value = send(env, "to_str"_s);
-
-        if (value->is_string()) {
-            name = value->as_string();
-        }
-    }
-
-    if (!name) {
-        env->raise("TypeError", "{} is not a symbol nor a string", inspect_str(env));
-    }
-
-    SymbolObject *symbol = name->to_symbol(env);
+    SymbolObject *symbol = to_symbol(env, Conversion::Strict);
 
     if (!symbol->is_ivar_name()) {
-        env->raise_name_error(symbol, "`{}' is not allowed as an instance variable name", name->c_str());
+        env->raise_name_error(symbol, "`{}' is not allowed as an instance variable name", symbol->c_str());
     }
 
     return symbol;
