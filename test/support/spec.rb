@@ -19,7 +19,7 @@ unless FORMATTERS.include?(@formatter)
   raise UnknownFormatterException, "#{@formatter} is not supported! Use #{FORMATTERS.join(', ')}"
 end
 
-@context = []
+$context = []
 @shared = {}
 @specs = []
 
@@ -79,37 +79,37 @@ def describe(description, shared: false, &block)
   if shared
     @shared[description] = block
   else
-    parent = @context.last
-    @context << Context.new(description, skip: parent && parent.skip)
+    parent = $context.last
+    $context << Context.new(description, skip: parent && parent.skip)
     yield
-    @context.pop
+    $context.pop
   end
 end
 
 alias context describe
 
 def xdescribe(description, &block)
-  @context << Context.new(description, skip: true)
+  $context << Context.new(description, skip: true)
   yield
-  @context.pop
+  $context.pop
 end
 
 alias xcontext xdescribe
 
 def it(test, &block)
-  return xit(test, &block) if @context.last.skip || block.nil?
-  @specs << [@context.dup, test, block]
+  return xit(test, &block) if $context.last.skip || block.nil?
+  @specs << [$context.dup, test, block]
 end
 
 def fit(test, &block)
   if ci?
     raise 'Focused spec in CI detected. Please remove it!'
   end
-  @specs << [@context.dup, test, block, :focus]
+  @specs << [$context.dup, test, block, :focus]
 end
 
 def xit(test, &block)
-  @specs << [@context.dup, test, nil]
+  @specs << [$context.dup, test, nil]
 end
 
 def it_behaves_like(behavior, method, obj = nil)
@@ -133,8 +133,8 @@ def it_should_behave_like(*shared_groups)
 end
 
 def specify(&block)
-  return xit(nil, &block) if @context.last.skip
-  @specs << [@context.dup, nil, block]
+  return xit(nil, &block) if $context.last.skip
+  @specs << [$context.dup, nil, block]
 end
 
 def nan_value
@@ -215,9 +215,9 @@ end
 
 def before(type = :each, &block)
   if type == :each
-    @context.last.add_before_each(block)
+    $context.last.add_before_each(block)
   elsif type == :all
-    @context.last.add_before_all(block)
+    $context.last.add_before_all(block)
   else
     raise "I don't know how to do before(#{type.inspect})"
   end
@@ -225,7 +225,7 @@ end
 
 def after(type = :each, &block)
   if type == :each
-    @context.last.add_after_each(block)
+    $context.last.add_after_each(block)
   else
     raise "I don't know how to do after(#{type.inspect})"
   end
