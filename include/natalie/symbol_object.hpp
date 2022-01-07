@@ -29,6 +29,7 @@ public:
 
     const char *c_str() const { return m_name; }
 
+    static ArrayObject *all_symbols(Env *);
     StringObject *to_s(Env *env) { return new StringObject { m_name }; }
     SymbolObject *to_sym(Env *env) { return this; }
     StringObject *inspect(Env *);

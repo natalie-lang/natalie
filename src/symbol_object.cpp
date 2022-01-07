@@ -17,6 +17,15 @@ SymbolObject *SymbolObject::intern(const String *name) {
     return intern(name->c_str(), Ownedness::DuplicatedString);
 }
 
+ArrayObject *SymbolObject::all_symbols(Env *env) {
+    ArrayObject *array = new ArrayObject(s_symbols.size());
+    for (auto pair : s_symbols) {
+        Value symbol_value = pair.second;
+        array->push(env, 1, &symbol_value);
+    }
+    return array;
+}
+
 StringObject *SymbolObject::inspect(Env *env) {
     StringObject *string = new StringObject { ":" };
     auto quote_regex = new RegexpObject { env, "\\A\\$(\\d|\\?|\\!|~)\\z|\\A(@{0,2}|\\$)[a-z_][a-z0-9_]*[\\?\\!=]?\\z|\\A(%|==|\\!|\\!=|\\+|\\-|/|\\*{1,2}|<<?|>>?|\\[\\]\\=?|&)\\z", 1 };
