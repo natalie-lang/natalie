@@ -673,7 +673,13 @@ module Natalie
 
       def process_set(exp)
         (_, name, value) = exp
-        decl "#{name} = #{process_atom value};"
+        case value[0]
+        when :new
+          (_, klass, *args) = value
+          decl "#{name} = new #{klass} { #{args.map { |a| process_atom(a) }.join(', ') } };"
+        else
+          decl "#{name} = #{process_atom value};"
+        end
         name
       end
 
@@ -687,6 +693,11 @@ module Natalie
       def process_sexp(exp, name = nil, type = 'Value ')
         debug_info(exp)
         (fn, *args) = exp
+        
+        if fn == :"Value::integer"
+          return "Value::integer(#{args.map { |a| process_atom(a) }.join(', ') })"
+        end
+
         if VOID_FUNCTIONS.include?(fn)
           if METHODS.include?(fn)
             (obj, *args) = args
