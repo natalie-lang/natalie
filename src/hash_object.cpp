@@ -28,11 +28,11 @@ Value HashObject::compare_by_identity(Env *env) {
     return this;
 }
 
-Value HashObject::is_comparing_by_identity() const {
+bool HashObject::is_comparing_by_identity() const {
     if (m_is_comparing_by_identity) {
-        return TrueObject::the();
+        return true;
     } else {
-        return FalseObject::the();
+        return false;
     }
 }
 
@@ -624,22 +624,22 @@ Value HashObject::hash(Env *env) {
     });
 }
 
-Value HashObject::has_key(Env *env, Value key) {
+bool HashObject::has_key(Env *env, Value key) {
     Value val = get(env, key);
     if (val) {
-        return TrueObject::the();
+        return true;
     } else {
-        return FalseObject::the();
+        return false;
     }
 }
 
-Value HashObject::has_value(Env *env, Value value) {
+bool HashObject::has_value(Env *env, Value value) {
     for (auto &node : *this) {
         if (node.val.send(env, "=="_s, { value })->is_true()) {
-            return TrueObject::the();
+            return true;
         }
     }
-    return FalseObject::the();
+    return false;
 }
 
 Value HashObject::merge(Env *env, size_t argc, Value *args, Block *block) {

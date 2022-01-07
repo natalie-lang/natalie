@@ -138,15 +138,15 @@ public:
     Value drop_while(Env *, Block *);
     Value each(Env *, Block *);
     Value each_index(Env *, Block *);
-    Value eq(Env *, Value);
-    Value eql(Env *, Value);
+    bool eq(Env *, Value);
+    bool eql(Env *, Value);
     Value fetch(Env *, Value, Value, Block *);
     Value fill(Env *, Value, Value, Value, Block *);
     Value first(Env *, Value);
     Value flatten(Env *, Value);
     Value flatten_in_place(Env *, Value);
     Value hash(Env *);
-    Value include(Env *, Value);
+    bool include(Env *, Value);
     Value index(Env *, Value, Block *);
     Value initialize_copy(Env *, Value);
     Value inspect(Env *);
