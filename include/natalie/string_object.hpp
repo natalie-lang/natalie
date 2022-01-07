@@ -153,6 +153,7 @@ public:
     bool eq(Env *, Value arg);
     Value eqtilde(Env *, Value);
     Value force_encoding(Env *, Value);
+    bool include(Env *, Value);
     Value ljust(Env *, Value, Value);
     Value lstrip(Env *) const;
     Value lstrip_in_place(Env *);

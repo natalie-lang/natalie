@@ -283,10 +283,15 @@ public:
     }
 
     ssize_t find(const String &needle) const {
-        const char *index = strstr(m_str, needle.c_str());
-        if (index == nullptr)
+        if (m_length < needle.length())
             return -1;
-        return index - m_str;
+        size_t max_index = m_length - needle.length();
+        size_t byte_count = sizeof(char) * needle.length();
+        for (size_t index = 0; index <= max_index; ++index) {
+            if (memcmp(m_str + index, needle.c_str(), byte_count) == 0)
+                return index;
+        }
+        return -1;
     }
 
     ssize_t find(const char c) const {
