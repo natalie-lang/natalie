@@ -172,6 +172,10 @@ class Addrinfo
     Addrinfo.new # TODO
   end
 
+  def self.unix(path)
+    Addrinfo.new(Socket.pack_sockaddr_un(path))
+  end
+
   def afamily
     # TODO
   end
