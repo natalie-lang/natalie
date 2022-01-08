@@ -206,7 +206,9 @@ def platform_is(platform)
       yield
     end
   elsif platform == :linux
-    yield
+    if RUBY_PLATFORM =~ /linux/
+      yield
+    end
   end
 end
 
