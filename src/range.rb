@@ -1,4 +1,12 @@
 class Range
+  def count(*args, &block)
+    if args.empty? && block.nil?
+      return Float::INFINITY if self.begin.nil?
+      return Float::INFINITY if self.end.nil?
+    end
+    super(*args, &block)
+  end
+
   def size
     return Float::INFINITY if self.begin.nil?
     return unless self.begin.is_a?(Numeric)
