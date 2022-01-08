@@ -12,8 +12,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-        with:
-          ref: ${{ github.head_ref }}
       - uses: DoozyX/clang-format-lint-action@v0.12
         with:
           source: "."
@@ -31,8 +29,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-        with:
-          ref: ${{ github.head_ref }}
       - uses: seven1m/prettier_action@v4.1.2
         with:
           prettier_plugins: "@prettier/plugin-ruby"
