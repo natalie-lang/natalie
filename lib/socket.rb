@@ -142,6 +142,9 @@ class Socket < BasicSocket
     END
 
     __define_method__ :unpack_sockaddr_un, [:sockaddr], <<-END
+      if (sockaddr->is_a(env, self->const_find(env, "Addrinfo"_s, Object::ConstLookupSearchMode::NotStrict)))
+          sockaddr = sockaddr->send(env, "sockaddr"_s);
+
       sockaddr->assert_type(env, Object::Type::String, "String");
 
       if (sockaddr->as_string()->length() != sizeof(struct sockaddr_un))
@@ -162,7 +165,7 @@ class Addrinfo
     @protocol = protocol
   end
 
-  attr_reader :sockaddr
+  attr_reader :sockaddr, :family
 
   def self.tcp(ip, port)
     Addrinfo.new(Socket.pack_sockaddr_in(port, ip))
