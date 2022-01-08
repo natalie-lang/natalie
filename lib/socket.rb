@@ -65,7 +65,13 @@ class Socket < BasicSocket
           env->raise("SocketError", "getaddrinfo: Name or service not known");
 
       auto port_unsigned = (unsigned short)port->as_integer()->to_nat_int_t();
-      struct sockaddr_in in { AF_INET, port_unsigned, a, {0} };
+      struct sockaddr_in in {};
+#if defined(__OpenBSD__) or defined(__APPLE__)
+      in.sin_len = sizeof(in);
+#endif
+      in.sin_family = AF_INET;
+      in.sin_port = port_unsigned;
+      in.sin_addr = a;
       return new StringObject { (const char*)&in, sizeof(in) };
     END
 
