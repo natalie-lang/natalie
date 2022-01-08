@@ -86,8 +86,7 @@ describe "Module#module_function with specific method names" do
     c.call_test.should == "goodbye"
   end
 
-  # NATFIXME: Make Kernel#respond_to? spec-compliant
-  xit "makes the instance methods private" do
+  it "makes the instance methods private" do
     m = Module.new do
       def test() "hello" end
       module_function :test

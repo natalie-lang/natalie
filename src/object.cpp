@@ -107,7 +107,7 @@ Value Object::allocate(Env *env, Value klass_value, size_t argc, Value *args, Bl
     env->ensure_argc_is(argc, 0);
 
     ClassObject *klass = klass_value->as_class();
-    if (!klass->respond_to_method(env, "allocate"_s))
+    if (!klass->respond_to(env, "allocate"_s))
         env->raise("TypeError", "calling {}.allocate is prohibited", klass->inspect_str());
 
     Value obj;
@@ -644,23 +644,42 @@ bool Object::is_a(Env *env, Value val) const {
     }
 }
 
-bool Object::respond_to(Env *env, Value name_val) {
-    if (respond_to_method(env, "respond_to?"_s))
-        return send(env, "respond_to?"_s, { name_val })->is_true();
+bool Object::respond_to(Env *env, Value name_val, bool include_all) {
+    if (respond_to_method(env, "respond_to?"_s, true)) {
+        Value include_all_val;
+        if (include_all) {
+            include_all_val = TrueObject::the();
+        } else {
+            include_all_val = FalseObject::the();
+        }
+        return send(env, "respond_to?"_s, { name_val, include_all_val })->is_truthy();
+    }
 
     // Needed for BaseObject as it does not have an actual respond_to? method
-    return respond_to_method(env, name_val);
+    return respond_to_method(env, name_val, include_all);
 }
 
-bool Object::respond_to_method(Env *env, Value name_val) const {
-    Method *method;
+bool Object::respond_to_method(Env *env, Value name_val, bool include_all) const {
     auto name_symbol = name_val->to_symbol(env, Conversion::Strict);
-    if (singleton_class() && (method = singleton_class()->find_method(env, name_symbol))) {
-        return !method->is_undefined();
-    } else if ((method = m_klass->find_method(env, name_symbol))) {
-        return !method->is_undefined();
-    }
-    return false;
+
+    ClassObject *klass = singleton_class();
+    if (!klass)
+        klass = m_klass;
+
+    Method *method = klass->find_method(env, name_symbol);
+    if (!method || method->is_undefined())
+        return false;
+
+    if (include_all)
+        return true;
+
+    MethodVisibility visibility = klass->get_method_visibility(env, name_symbol);
+    return visibility == MethodVisibility::Public;
+}
+
+bool Object::respond_to_method(Env *env, Value name_val, Value include_all_val) const {
+    bool include_all = include_all_val ? include_all_val->is_truthy() : false;
+    return respond_to_method(env, name_val, include_all);
 }
 
 const char *Object::defined(Env *env, SymbolObject *name, bool strict) {

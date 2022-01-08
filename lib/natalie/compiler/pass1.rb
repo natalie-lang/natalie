@@ -148,7 +148,7 @@ module Natalie
               :is_truthy,
               # FIXME: Get rid of the :nil here
               # FIXME: This is still a bit hacky
-              matchers.reduce(s(:nil)) {|new_cond, matcher| process_or(s(:or, new_cond, s(:public_send, process(matcher), s(:intern, '==='), s(:args, value_name), 'nullptr'))) }
+              matchers.reduce(s(:nil)) {|new_cond, matcher| process_or(s(:or, new_cond, s(:send, process(matcher), s(:intern, '==='), s(:args, value_name), 'nullptr'))) }
             )
             cond << full_condition
             cond << s(:block, *when_body)

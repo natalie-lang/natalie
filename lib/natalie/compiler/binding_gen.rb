@@ -641,7 +641,7 @@ gen.binding('Kernel', 'proc', 'KernelModule', 'proc', argc: 0, pass_env: true, p
 gen.binding('Kernel', 'puts', 'KernelModule', 'puts', argc: :any, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Kernel', 'raise', 'KernelModule', 'raise', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Kernel', 'remove_instance_variable', 'KernelModule', 'remove_instance_variable', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
-gen.binding('Kernel', 'respond_to?', 'KernelModule', 'respond_to_method', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.binding('Kernel', 'respond_to?', 'KernelModule', 'respond_to_method', argc: 1..2, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('Kernel', 'send', 'Object', 'send', argc: 1.., pass_env: true, pass_block: true, return_type: :Object)
 gen.binding('Kernel', 'singleton_class', 'KernelModule', 'singleton_class_obj', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('Kernel', 'sleep', 'KernelModule', 'sleep', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)

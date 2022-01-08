@@ -13,6 +13,13 @@ class CaseTestObj
   end
 end
 
+class PrivateCaseTestObj
+  def ===(other)
+    true
+  end
+  private :===
+end
+
 describe 'case/when' do
   it 'matches on equality' do
     result = case 'one'
@@ -144,5 +151,16 @@ describe 'case/when' do
     result = `bin/natalie -e #{code.inspect} 2>&1`
     result.strip.should == "hi"
     $?.to_i.should == 0
+  end
+
+  it 'calls #=== even if it is private' do
+    o1 = PrivateCaseTestObj.new
+    o2 = PrivateCaseTestObj.new
+    -> do
+      case 1
+      when o1 then 'one'
+      when o2 then 'two'
+      end
+    end.should_not raise_error
   end
 end

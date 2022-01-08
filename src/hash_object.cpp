@@ -417,7 +417,7 @@ bool HashObject::eql(Env *env, Value other_value) {
 }
 
 bool HashObject::gte(Env *env, Value other) {
-    if (!other->is_hash() && other->respond_to_method(env, "to_hash"_s))
+    if (!other->is_hash() && other->respond_to(env, "to_hash"_s))
         other = other->send(env, "to_hash"_s);
 
     other->assert_type(env, Object::Type::Hash, "Hash");
@@ -433,7 +433,7 @@ bool HashObject::gte(Env *env, Value other) {
 }
 
 bool HashObject::gt(Env *env, Value other) {
-    if (!other->is_hash() && other->respond_to_method(env, "to_hash"_s))
+    if (!other->is_hash() && other->respond_to(env, "to_hash"_s))
         other = other->send(env, "to_hash"_s);
 
     other->assert_type(env, Object::Type::Hash, "Hash");
@@ -442,7 +442,7 @@ bool HashObject::gt(Env *env, Value other) {
 }
 
 bool HashObject::lte(Env *env, Value other) {
-    if (!other->is_hash() && other->respond_to_method(env, "to_hash"_s))
+    if (!other->is_hash() && other->respond_to(env, "to_hash"_s))
         other = other->send(env, "to_hash"_s);
 
     other->assert_type(env, Object::Type::Hash, "Hash");
@@ -458,7 +458,7 @@ bool HashObject::lte(Env *env, Value other) {
 }
 
 bool HashObject::lt(Env *env, Value other) {
-    if (!other->is_hash() && other->respond_to_method(env, "to_hash"_s))
+    if (!other->is_hash() && other->respond_to(env, "to_hash"_s))
         other = other->send(env, "to_hash"_s);
 
     other->assert_type(env, Object::Type::Hash, "Hash");
@@ -652,7 +652,7 @@ Value HashObject::merge_in_place(Env *env, size_t argc, Value *args, Block *bloc
     for (size_t i = 0; i < argc; i++) {
         auto h = args[i];
 
-        if (!h->is_hash() && h->respond_to_method(env, "to_hash"_s))
+        if (!h->is_hash() && h->respond_to(env, "to_hash"_s))
             h = h->send(env, "to_hash"_s);
 
         h->assert_type(env, Object::Type::Hash, "Hash");
