@@ -12,23 +12,17 @@ module Natalie
       end
 
       def process_block(exp)
-        (_, *body) = exp
-        body[0..-2].each do |node|
-          process_atom(node)
-        end
-        if body.empty?
-          process(s(:nil))
-        else
-          process_atom(body.last)
-        end
+        _, *body = exp
+        body[0..-2].each { |node| process_atom(node) }
+        body.empty? ? process(s(:nil)) : process_atom(body.last)
       end
 
       def process_new(exp)
-        (_, obj) = exp
+        _, obj = exp
         case obj
         when :StringObject
           # FIXME: maybe handle length
-          (_, _obj, (_, str), _length) = exp
+          _, _obj, (_, str), _length = exp
           VM::PushStringInstruction.new(str)
         else
           raise "I don't yet know how to handle new #{obj.inspect}"
@@ -36,7 +30,7 @@ module Natalie
       end
 
       def process_send(exp)
-        (_, receiver, (_, message), (_, *args), block) = exp
+        _, receiver, (_, message), (_, *args), block = exp
         instructions = args.map { |arg| process(arg) }
         instructions << VM::PushIntInstruction.new(args.size)
         if receiver == :self
@@ -52,7 +46,7 @@ module Natalie
       end
 
       define_method 'process_Value::integer' do |exp|
-        (_, int) = exp
+        _, int = exp
         VM::PushIntInstruction.new(int)
       end
     end

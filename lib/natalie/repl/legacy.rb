@@ -4,9 +4,7 @@ require 'tempfile'
 
 if RUBY_ENGINE != 'natalie'
   begin
-    if STDOUT.tty?
-      require 'readline'
-    end
+    require 'readline' if STDOUT.tty?
   rescue LoadError
   end
 end
@@ -58,7 +56,7 @@ module Natalie
         eval_func = Fiddle::Function.new(lib['EVAL'], [Fiddle::TYPE_VOIDP], Fiddle::TYPE_VOIDP)
         eval_func.call(env)
         File.unlink(temp.path)
-        clang_dir = temp.path + ".dSYM"
+        clang_dir = temp.path + '.dSYM'
         FileUtils.rm_rf(clang_dir) if File.directory?(clang_dir)
       end
     end

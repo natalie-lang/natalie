@@ -5,7 +5,7 @@ require_relative '../support/nat_binary'
 
 class ReplWrapper
   def initialize(cmd)
-    (@in, @out, @wait_thr) = Open3.popen2e(*cmd)
+    @in, @out, @wait_thr = Open3.popen2e(*cmd)
   end
 
   def execute(input)

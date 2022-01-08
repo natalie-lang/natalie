@@ -15,7 +15,7 @@ module Natalie
       end
 
       def process_sexp(exp)
-        (name, *args) = exp
+        name, *args = exp
         exp.new(name, *args.map { |a| process_atom(a) })
       end
 
@@ -36,9 +36,7 @@ module Natalie
         when true, false
           exp.inspect.to_sym
         when Hash
-          exp.transform_values do |e|
-            process_atom(e)
-          end
+          exp.transform_values { |e| process_atom(e) }
         else
           puts exp.to_s
           raise "unknown node type: #{exp.inspect}"

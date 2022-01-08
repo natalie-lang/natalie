@@ -5,19 +5,11 @@ def method_that_yields(n)
 end
 
 def method_containing_a_block_that_yields(n)
-  [n].each do |i|
-    yield i
-  end
+  [n].each { |i| yield i }
 end
 
 def method_containing_a_deeply_nested_block_that_yields(n)
-  [n].each do
-    [n].each do
-      [n].each do |i|
-        yield i
-      end
-    end
-  end
+  [n].each { [n].each { [n].each { |i| yield i } } }
 end
 
 describe 'yield' do

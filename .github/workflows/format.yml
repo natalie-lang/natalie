@@ -1,4 +1,4 @@
-name: Run clang-format
+name: Format Code
 
 on:
   push:
@@ -11,15 +11,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - uses: DoozyX/clang-format-lint-action@v0.12
-      with:
-        source: '.'
-        extensions: 'hpp,cpp'
-        clangFormatVersion: 12
-        inplace: True
-    - uses: EndBug/add-and-commit@v4
-      with:
-        author_name: Tim Morgan
-        author_email: tim@timmorgan.org
-        message: 'Format code with clang-format (automated)'
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.head_ref }}
+      - uses: DoozyX/clang-format-lint-action@v0.12
+        with:
+          source: "."
+          extensions: "hpp,cpp"
+          clangFormatVersion: 12
+          inplace: True
+      - uses: EndBug/add-and-commit@v4
+        with:
+          author_name: Tim Morgan
+          author_email: tim@timmorgan.org
+          message: "Format code with clang-format (automated)"
+
+  prettier:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.head_ref }}
+      - uses: seven1m/prettier_action@v4.1.2
+        with:
+          prettier_plugins: "@prettier/plugin-ruby"
+          prettier_options: "--write ."

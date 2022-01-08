@@ -47,9 +47,7 @@ end
 describe 'each' do
   it 'can set variables outside the block' do
     x = 0
-    [1, 2, 3].each do |i|
-      x = i
-    end
+    [1, 2, 3].each { |i| x = i }
     x.should == 3
   end
 end
@@ -75,10 +73,11 @@ describe 'loop' do
 
   it 'can handle break expr' do
     x = 0
-    s = loop do
-      x += 1
-      break 'hello' if x > 3
-    end
+    s =
+      loop do
+        x += 1
+        break 'hello' if x > 3
+      end
     s.should == 'hello'
     x.should == 4
   end

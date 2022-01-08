@@ -10,7 +10,7 @@ module Natalie
       end
 
       def process_var_get(exp)
-        (_, env, var) = exp
+        _, env, var = exp
         if var[:captured]
           exp.new(:var_get, env, s(:s, var[:name]), var[:index])
         else
@@ -19,7 +19,7 @@ module Natalie
       end
 
       def process_var_set(exp)
-        (_, env, var, allocate, value) = exp
+        _, env, var, allocate, value = exp
         if var[:captured]
           exp.new(:var_set, env, s(:s, var[:name]), var[:index], allocate, process(value))
         else

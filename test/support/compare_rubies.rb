@@ -24,8 +24,6 @@ module CompareRubies
   end
 
   def sh(command)
-    Timeout.timeout(SPEC_TIMEOUT, nil, "execution expired running: #{command}") do
-      `#{command}`
-    end
+    Timeout.timeout(SPEC_TIMEOUT, nil, "execution expired running: #{command}") { `#{command}` }
   end
 end

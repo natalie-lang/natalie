@@ -48,7 +48,7 @@ class Socket < BasicSocket
   end
 
   class << self
-    __define_method__ :pack_sockaddr_in, [:port, :host], <<-END
+    __define_method__ :pack_sockaddr_in, %i[port host], <<-END
       if (host->is_nil())
           host = new StringObject { "127.0.0.1" };
       if (host->is_string() && host->as_string()->is_empty())

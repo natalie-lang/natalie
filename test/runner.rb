@@ -14,7 +14,5 @@ ARGV.each do |path|
   end
   pid = spawn(NAT_BINARY, path)
   Process.wait(pid)
-  unless $?.success?
-    exit $?.exitstatus
-  end
+  exit $?.exitstatus unless $?.success?
 end

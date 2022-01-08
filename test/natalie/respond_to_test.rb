@@ -1,16 +1,17 @@
 require_relative '../spec_helper'
 
-class RespondToTest; end
+class RespondToTest
+end
 
 describe 'Kernel#respond_to?' do
   %i[>= > <= <].each do |method|
     it "is used by Hash##{method}" do
-      hash = {baz: "qux"}
+      hash = { baz: 'qux' }
 
       [true, 1].each do |truthy_value|
         o1 = Object.new
         o1.should_receive(:respond_to?).with(:to_hash, true).and_return(truthy_value)
-        o1.should_receive(:to_hash).and_return({foo: "bar"})
+        o1.should_receive(:to_hash).and_return({ foo: 'bar' })
         -> { hash.send(method, o1) }.should_not raise_error
       end
 
@@ -23,7 +24,7 @@ describe 'Kernel#respond_to?' do
     end
   end
 
-  it "is used by BasicObject#allocate" do
+  it 'is used by BasicObject#allocate' do
     [true, 1].each do |truthy_value|
       RespondToTest.should_receive(:respond_to?).with(:allocate, true).and_return(truthy_value)
       -> { RespondToTest.allocate }.should_not raise_error
@@ -35,11 +36,11 @@ describe 'Kernel#respond_to?' do
     end
   end
 
-  it "is used by Array#initialize" do
+  it 'is used by Array#initialize' do
     [true, 1].each do |truthy_value|
       o1 = Object.new
       o1.should_receive(:respond_to?).with(:to_ary, true).and_return(truthy_value)
-      o1.should_receive(:to_ary).and_return(["foo", "bar"])
+      o1.should_receive(:to_ary).and_return(%w[foo bar])
       -> { Array.new(o1) }.should_not raise_error
     end
 
@@ -51,12 +52,12 @@ describe 'Kernel#respond_to?' do
     end
   end
 
-  it "is used by Kernel#Array" do
+  it 'is used by Kernel#Array' do
     [true, 1].each do |truthy_value|
       o1 = Object.new
       o1.should_receive(:respond_to?).with(:to_ary, true).and_return(truthy_value)
-      o1.should_receive(:to_ary).and_return(["foo", "bar"])
-      Array(o1).should == ["foo", "bar"]
+      o1.should_receive(:to_ary).and_return(%w[foo bar])
+      Array(o1).should == %w[foo bar]
     end
 
     [false, nil].each do |falsey_value|

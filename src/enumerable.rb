@@ -2,19 +2,13 @@ module Enumerable
   def all?(pattern = nil)
     gather = ->(item) { item.size <= 1 ? item.first : item }
     if pattern
-      each do |*item|
-        return false unless pattern === gather.(item)
-      end
+      each { |*item| return false unless pattern === gather.(item) }
       true
     elsif block_given?
-      each do |*item|
-        return false unless yield(*item)
-      end
+      each { |*item| return false unless yield(*item) }
       true
     else
-      each do |*item|
-        return false unless gather.(item)
-      end
+      each { |*item| return false unless gather.(item) }
       true
     end
   end
@@ -22,19 +16,13 @@ module Enumerable
   def any?(pattern = nil)
     gather = ->(item) { item.size <= 1 ? item.first : item }
     if pattern
-      each do |*item|
-        return true if pattern === gather.(item)
-      end
+      each { |*item| return true if pattern === gather.(item) }
       false
     elsif block_given?
-      each do |*item|
-        return true if yield(*item)
-      end
+      each { |*item| return true if yield(*item) }
       false
     else
-      each do |*item|
-        return true if gather.(item)
-      end
+      each { |*item| return true if gather.(item) }
       false
     end
   end
@@ -42,17 +30,11 @@ module Enumerable
   def none?(pattern = nil)
     gather = ->(item) { item.size <= 1 ? item.first : item }
     if pattern
-      each do |*item|
-        return false if pattern === gather.(item)
-      end
+      each { |*item| return false if pattern === gather.(item) }
     elsif block_given?
-      each do |*item|
-        return false if yield(*item)
-      end
+      each { |*item| return false if yield(*item) }
     else
-      each do |*item|
-        return false if gather.(item)
-      end
+      each { |*item| return false if gather.(item) }
     end
     true
   end
@@ -146,9 +128,7 @@ module Enumerable
   end
 
   def detect
-    each do |item|
-      return item if yield(item)
-    end
+    each { |item| return item if yield(item) }
     nil
   end
 
@@ -191,7 +171,6 @@ module Enumerable
       end
     end
 
-
     while true
       begin
         ary << e.next
@@ -209,13 +188,11 @@ module Enumerable
     raise ArgumentError, 'invalid size' if n <= 0
 
     unless block_given?
-      return enum_for(:each_cons, n) do
-        if n.is_a?(Integer) && respond_to?(:size) && size
-          [size - n + 1, 0].max
-        else
-          Float::INFINITY
+      return(
+        enum_for(:each_cons, n) do
+          n.is_a?(Integer) && respond_to?(:size) && size ? [size - n + 1, 0].max : Float::INFINITY
         end
-      end
+      )
     end
 
     cons = []
@@ -244,9 +221,7 @@ module Enumerable
 
     gather = ->(item) { item.size <= 1 ? item.first : item }
 
-    each(*args) do |*item|
-      yield gather.(item)
-    end
+    each(*args) { |*item| yield gather.(item) }
 
     self
   end
@@ -256,13 +231,11 @@ module Enumerable
     raise ArgumentError, 'invalid slice size' if count < 1
 
     unless block_given?
-      return enum_for(:each_slice, count) do
-        if count.is_a?(Integer) && respond_to?(:size) && size
-          (size / count.to_f).ceil
-        else
-          Float::INFINITY
+      return(
+        enum_for(:each_slice, count) do
+          count.is_a?(Integer) && respond_to?(:size) && size ? (size / count.to_f).ceil : Float::INFINITY
         end
-      end
+      )
     end
 
     slice = []
@@ -278,9 +251,7 @@ module Enumerable
   end
 
   def each_with_index(*args)
-    unless block_given?
-      return enum_for(:each_with_index, *args)
-    end
+    return enum_for(:each_with_index, *args) unless block_given?
 
     index = 0
     gather = ->(item) { item.size <= 1 ? item.first : item }
@@ -305,22 +276,16 @@ module Enumerable
   end
 
   def find(if_none = nil)
-    unless block_given?
-      return enum_for(:find, if_none)
-    end
+    return enum_for(:find, if_none) unless block_given?
 
     gather = ->(item) { item.size <= 1 ? item.first : item }
 
     each do |*i|
       item = gather.(i)
-      if yield(item)
-        return item
-      end
+      return item if yield(item)
     end
 
-    if if_none
-      return if_none.()
-    end
+    return if_none.() if if_none
 
     nil
   end
@@ -345,15 +310,11 @@ module Enumerable
       ary = []
       each do |*item|
         item = item.size > 1 ? item : item[0]
-        if pattern === item
-          ary << yield(item)
-        end
+        ary << yield(item) if pattern === item
       end
       ary
     else
-      select do |item|
-        pattern === item
-      end
+      select { |item| pattern === item }
     end
   end
 
@@ -362,15 +323,11 @@ module Enumerable
       ary = []
       each do |*item|
         item = item.size > 1 ? item : item[0]
-        if !(pattern === item)
-          ary << yield(item)
-        end
+        ary << yield(item) if !(pattern === item)
       end
       ary
     else
-      select do |item|
-        !(pattern === item)
-      end
+      select { |item| !(pattern === item) }
     end
   end
 
@@ -394,9 +351,7 @@ module Enumerable
   def include?(obj)
     each do |*items|
       item = items.size > 1 ? items : items[0]
-      if obj == item || item == obj
-        return true
-      end
+      return true if obj == item || item == obj
     end
     false
   end
@@ -410,32 +365,24 @@ module Enumerable
       memo = nil
       begin
         memo = enum.next
-        loop do
-          memo = yield memo, enum.next
-        end
+        loop { memo = yield memo, enum.next }
       rescue StopIteration
       end
       memo
     elsif args.size == 1
       if block_given?
         memo = args.first
-        each do |*item|
-          memo = yield memo, gather.(item)
-        end
+        each { |*item| memo = yield memo, gather.(item) }
         memo
       elsif args.first.is_a?(Symbol)
         sym = args.first
-        reduce do |memo, i|
-          memo.send(sym, i)
-        end
+        reduce { |memo, i| memo.send(sym, i) }
       else
         raise "don't know how to handle arg: #{args.first.inspect}"
       end
     else
-      (memo, sym) = args
-      each do |obj|
-        memo = memo.send(sym, obj)
-      end
+      memo, sym = args
+      each { |obj| memo = memo.send(sym, obj) }
       memo
     end
   end
@@ -447,18 +394,16 @@ module Enumerable
     if block_given?
       Enumerator::Lazy.new(self, enum_size, &block)
     else
-      Enumerator::Lazy.new(self, enum_size) { |yielder, *values|
-        yielder.yield(*values)
-      }
+      Enumerator::Lazy.new(self, enum_size) { |yielder, *values| yielder.yield(*values) }
     end
   end
 
   def max(n = nil)
     has_block = block_given?
-    cmp = ->(result) {
-      raise ArgumentError, "bad result from block" unless result.respond_to?(:>)
+    cmp = ->(result) do
+      raise ArgumentError, 'bad result from block' unless result.respond_to?(:>)
       result > 0
-    }
+    end
     if n
       raise ArgumentError, "negative size (#{n})" if n < 0
       ary = []
@@ -506,20 +451,20 @@ module Enumerable
     if n
       to_a.sort_by { |a| yield a }.last(n).reverse
     else
-      max(n) { |a, b|
+      max(n) do |a, b|
         fa = yield(a)
         fb = yield(b)
         fa <=> fb
-      }
+      end
     end
   end
 
   def min(n = nil)
     has_block = block_given?
-    cmp = ->(result) {
-      raise ArgumentError, "bad result from block" unless result.respond_to?(:<)
+    cmp = ->(result) do
+      raise ArgumentError, 'bad result from block' unless result.respond_to?(:<)
       result < 0
-    }
+    end
     if n
       raise ArgumentError, "negative size (#{n})" if n < 0
       ary = []
@@ -567,21 +512,21 @@ module Enumerable
     if n
       to_a.sort_by { |a| yield a }.take(n)
     else
-      min(n) { |a, b|
+      min(n) do |a, b|
         fa = yield(a)
         fb = yield(b)
         fa <=> fb
-      }
+      end
     end
   end
 
   def minmax(&block)
     block_given = block_given?
     gather = ->(*item) { item.size <= 1 ? item.first : item }
-    cmp = ->(result) {
-      raise ArgumentError, "bad result from block" unless result.respond_to?(:<)
+    cmp = ->(result) do
+      raise ArgumentError, 'bad result from block' unless result.respond_to?(:<)
       result < 0
-    }
+    end
 
     enumerator = enum_for(:each)
 
@@ -613,9 +558,7 @@ module Enumerable
   def minmax_by(&block)
     return enum_for(:minmax_by) unless block_given?
 
-    minmax { |a, b|
-      yield(a) <=> yield(b)
-    }
+    minmax { |a, b| yield(a) <=> yield(b) }
   end
 
   def reject
@@ -625,9 +568,7 @@ module Enumerable
 
     gather = ->(obj) { obj.size <= 1 ? obj.first : obj }
 
-    each do |*item|
-      ary << gather.(item) unless yield(gather.(item))
-    end
+    each { |*item| ary << gather.(item) unless yield(gather.(item)) }
 
     ary
   end
@@ -636,15 +577,11 @@ module Enumerable
     return enum_for(:reverse_each, *args) unless block_given?
 
     ary = []
-    each(*args) do |*item|
-      ary << item
-    end
+    each(*args) { |*item| ary << item }
 
     gather = ->(obj) { obj.size <= 1 ? obj.first : obj }
 
-    ary.reverse.each do |item|
-      yield gather.(item)
-    end
+    ary.reverse.each { |item| yield gather.(item) }
   end
 
   def partition
@@ -654,13 +591,7 @@ module Enumerable
 
     left = []
     right = []
-    each do |*item|
-      if yield(gather.(item))
-        left << gather.(item)
-      else
-        right << gather.(item)
-      end
-    end
+    each { |*item| yield(gather.(item)) ? left << gather.(item) : right << gather.(item) }
     [left, right]
   end
 
@@ -671,9 +602,7 @@ module Enumerable
 
     gather = ->(obj) { obj.size <= 1 ? obj.first : obj }
 
-    each do |*item|
-      ary << gather.(item) if yield(gather.(item))
-    end
+    each { |*item| ary << gather.(item) if yield(gather.(item)) }
     ary
   end
 
@@ -684,13 +613,7 @@ module Enumerable
     return enum_for(:map) unless block_given?
 
     ary = []
-    each do |*items|
-      if items.size > 1
-        ary << yield(*items)
-      else
-        ary << yield(items.first)
-      end
-    end
+    each { |*items| items.size > 1 ? ary << yield(*items) : ary << yield(items.first) }
     ary
   end
 
@@ -728,35 +651,23 @@ module Enumerable
   def count(*args)
     count = 0
     if args.size > 0
-      if block_given?
-        $stderr.puts("warning: given block not used")
-      end
+      $stderr.puts('warning: given block not used') if block_given?
       gather = ->(obj) { obj.size <= 1 ? obj.first : obj }
       item = args.first
-      each do |*obj|
-        count += 1 if gather.(obj) == item
-      end
+      each { |*obj| count += 1 if gather.(obj) == item }
     elsif block_given?
-      each do |*obj|
-        count += 1 if yield(*obj)
-      end
+      each { |*obj| count += 1 if yield(*obj) }
     else
-      each do
-        count += 1
-      end
+      each { count += 1 }
     end
     count
   end
 
   def cycle(n = nil)
     unless block_given?
-      return enum_for(:cycle, n) do
-        if n.is_a?(Integer) && respond_to?(:size) && size
-          [n * size, 0].max
-        else
-          Float::INFINITY
-        end
-      end
+      return(
+        enum_for(:cycle, n) { n.is_a?(Integer) && respond_to?(:size) && size ? [n * size, 0].max : Float::INFINITY }
+      )
     end
 
     return if n.is_a?(Integer) && n <= 0
@@ -767,7 +678,8 @@ module Enumerable
       if n.respond_to?(:to_int)
         cycles = n.to_int
         unless cycles.is_a?(Integer)
-          raise TypeError, "can't convert #{n.class.inspect} to Integer (#{n.class.inspect}#to_int gives #{cycles.class.inspect})"
+          raise TypeError,
+                "can't convert #{n.class.inspect} to Integer (#{n.class.inspect}#to_int gives #{cycles.class.inspect})"
         end
       else
         raise TypeError, "no implicit conversion of #{n.class.inspect} into Integer"
@@ -802,19 +714,15 @@ module Enumerable
   end
 
   def find_index(*args)
-    if args.length == 0 && !block_given?
-      return enum_for(:find_index)
-    end
+    return enum_for(:find_index) if args.length == 0 && !block_given?
 
-    if args.length > 1
-      raise ArgumentError, "wrong number of arguments (given #{args.length}, expected 1)"
-    end
+    raise ArgumentError, "wrong number of arguments (given #{args.length}, expected 1)" if args.length > 1
 
     block_given = block_given?
 
     if args.size != 0 && block_given
       block_given = false
-      $stderr.puts("warning: given block not used")
+      $stderr.puts('warning: given block not used')
     end
 
     gather = ->(item) { item.size <= 1 ? item.first : item }
@@ -840,14 +748,10 @@ module Enumerable
 
   def first(*args)
     if args.length == 0
-      each do |*item|
-        return item.size <= 1 ? item.first : item
-      end
+      each { |*item| return item.size <= 1 ? item.first : item }
     else
       count = args[0]
-      if not count.is_a? Integer and count.respond_to? :to_int
-        count = count.to_int
-      end
+      count = count.to_int if not count.is_a? Integer and count.respond_to? :to_int
       raise TypeError unless count.is_a? Integer
       raise ArgumentError, 'negative array size' unless count >= 0
 
@@ -871,20 +775,12 @@ module Enumerable
     gather = ->(item) { item.size <= 1 ? item.first : item }
 
     if block_given
-      if !args.empty?
-        raise ArgumentError, "wrong number of arguments (given #{args.size}, expected 0)"
-      end
+      raise ArgumentError, "wrong number of arguments (given #{args.size}, expected 0)" if !args.empty?
     elsif args.size != 1
       raise ArgumentError, "wrong number of arguments (given #{args.size}, expected 1)"
     end
 
-    condition = ->(item) {
-      if block_given
-        block.(item)
-      else
-        args[0] === item
-      end
-    }
+    condition = ->(item) { block_given ? block.(item) : args[0] === item }
 
     Enumerator.new do |yielder|
       each do |*item|
@@ -896,9 +792,7 @@ module Enumerable
         end
       end
 
-      unless current_slice.empty?
-        yielder << current_slice
-      end
+      yielder << current_slice unless current_slice.empty?
     end
   end
 
@@ -908,20 +802,12 @@ module Enumerable
     gather = ->(item) { item.size <= 1 ? item.first : item }
 
     if block_given
-      if !args.empty?
-        raise ArgumentError, "wrong number of arguments (given #{args.size}, expected 0)"
-      end
+      raise ArgumentError, "wrong number of arguments (given #{args.size}, expected 0)" if !args.empty?
     elsif args.size != 1
       raise ArgumentError, "wrong number of arguments (given #{args.size}, expected 1)"
     end
 
-    condition = ->(item) {
-      if block_given
-        block.(item)
-      else
-        args[0] === item
-      end
-    }
+    condition = ->(item) { block_given ? block.(item) : args[0] === item }
 
     Enumerator.new do |yielder|
       index = 0
@@ -936,9 +822,7 @@ module Enumerable
         index += 1
       end
 
-      unless current_slice.empty?
-        yielder << current_slice
-      end
+      yielder << current_slice unless current_slice.empty?
     end
   end
 
@@ -952,9 +836,7 @@ module Enumerable
       loop do
         begin
           a = enum.next
-          if index == 0
-            current_slice << a
-          end
+          current_slice << a if index == 0
           b = enum.peek
           if block.call(a, b)
             yielder << current_slice
@@ -967,9 +849,7 @@ module Enumerable
         end
       end
 
-      unless current_slice.empty?
-        yielder << current_slice
-      end
+      yielder << current_slice unless current_slice.empty?
     end
   end
 
@@ -994,12 +874,9 @@ module Enumerable
   end
 
   def take(count)
-    if not count.is_a? Integer and count.respond_to? :to_int
-      count = count.to_int
-    end
+    count = count.to_int if not count.is_a? Integer and count.respond_to? :to_int
     raise TypeError unless count.is_a? Integer
-    raise ArgumentError,
-      'Attempted to take a negative number of values' unless count >= 0
+    raise ArgumentError, 'Attempted to take a negative number of values' unless count >= 0
 
     result = []
     return result if count == 0
@@ -1019,10 +896,11 @@ module Enumerable
     raise ArgumentError, 'called without a block' unless has_block
 
     result = []
-    broken_value = each do |item|
-      break self unless yield item
-      result << item
-    end
+    broken_value =
+      each do |item|
+        break self unless yield item
+        result << item
+      end
 
     return result if broken_value.equal? self
     broken_value
@@ -1043,9 +921,7 @@ module Enumerable
   def to_a(*args)
     result = []
     gather = ->(item) { item.size <= 1 ? item.first : item }
-    each(*args) do |*item|
-      result << gather.(item)
-    end
+    each(*args) { |*item| result << gather.(item) }
     result
   end
 
@@ -1060,17 +936,13 @@ module Enumerable
     each(*args) do |*item|
       item = item.first if item.size == 1
 
-      if block_given
-        item = yield(item)
-      end
+      item = yield(item) if block_given
 
-      if item.respond_to?(:to_ary)
-        item = item.to_ary
-      end
+      item = item.to_ary if item.respond_to?(:to_ary)
 
       if item.is_a?(Array)
         if item.size == 2
-          (key, val) = item
+          key, val = item
           h[key] = val
         else
           raise ArgumentError, "element has wrong array length at #{index} (expected 2, was #{item.size})"
@@ -1092,17 +964,14 @@ module Enumerable
 
   def zip(*args)
     has_block = block_given?
-    args = args.map do |arg|
-      if arg.respond_to? :to_ary
-        arg = arg.to_ary
-      end
+    args =
+      args.map do |arg|
+        arg = arg.to_ary if arg.respond_to? :to_ary
 
-      unless arg.respond_to? :each
-        raise TypeError, "wrong argument type #{arg.class.name} (must respond to :each)"
-      end
+        raise TypeError, "wrong argument type #{arg.class.name} (must respond to :each)" unless arg.respond_to? :each
 
-      arg.to_enum :each
-    end
+        arg.to_enum :each
+      end
 
     result = has_block ? nil : []
 

@@ -4,13 +4,7 @@ class Enumerator
   class Chain < Enumerator
     def initialize(*enumerables)
       @current_feed = []
-      @enum_block = Proc.new do |yielder|
-        enumerables.each do |enumerable|
-          enumerable.each do |item|
-            yielder << item
-          end
-        end
-      end
+      @enum_block = Proc.new { |yielder| enumerables.each { |enumerable| enumerable.each { |item| yielder << item } } }
     end
   end
 
@@ -27,11 +21,7 @@ class Enumerator
     alias << yield
 
     def to_proc
-      if @block
-        -> (*args) {
-          @block.call(*args.concat(@appending_args))
-        }
-      end
+      ->(*args) { @block.call(*args.concat(@appending_args)) } if @block
     end
   end
 
@@ -51,9 +41,7 @@ class Enumerator
     end
 
     @yielder = Yielder.new(block, appending_args)
-    @fiber = Fiber.new do
-      @enum_block.call @yielder
-    end
+    @fiber = Fiber.new { @enum_block.call @yielder }
 
     loop do
       begin
@@ -65,9 +53,7 @@ class Enumerator
   end
 
   def feed(arg)
-    unless @current_feed.empty?
-      raise TypeError, 'feed value already set'
-    end
+    raise TypeError, 'feed value already set' unless @current_feed.empty?
     @current_feed = [arg]
     nil
   end
@@ -85,18 +71,12 @@ class Enumerator
   def next_values
     unless @fiber
       @yielder = Yielder.new
-      @fiber = Fiber.new do
-        @enum_block.call @yielder
-      end
+      @fiber = Fiber.new { @enum_block.call @yielder }
     end
 
-    raise_stop_iteration = ->() {
-      raise StopIteration, 'iteration reached and end'
-    }
+    raise_stop_iteration = -> { raise StopIteration, 'iteration reached and end' }
 
-    if @fiber.status == :terminated
-      raise_stop_iteration.()
-    end
+    raise_stop_iteration.() if @fiber.status == :terminated
 
     begin
       yield_return_value = @last_result
@@ -118,9 +98,7 @@ class Enumerator
   end
 
   def peek
-    if @peeked
-      return @peeked_value
-    end
+    return @peeked_value if @peeked
     @peeked_value = self.next
     @peeked = true
     @peeked_value
@@ -128,9 +106,7 @@ class Enumerator
 
   def rewind
     @yielder = Yielder.new
-    @fiber = Fiber.new do
-      @enum_block.call @yielder
-    end
+    @fiber = Fiber.new { @enum_block.call @yielder }
     @current_feed = []
     self
   end
@@ -144,13 +120,13 @@ class Enumerator
 
     # When no block is given, ruby checks the argument when executing
     # the enumerator (e.g. when calling #to_a).
-    convert_offset = ->() {
+    convert_offset = -> do
       if offset.respond_to?(:to_int)
         offset = offset.to_int
       else
         raise TypeError, "no implicit conversion of #{offset.class.name} into Integer"
       end
-    }
+    end
 
     if block_given?
       convert_offset.()
@@ -174,18 +150,14 @@ class Enumerator
 
   class Lazy < Enumerator
     def initialize(obj, size = nil, &block)
-      unless block_given?
-        raise ArgumentError, 'tried to call lazy new without a block'
-      end
+      raise ArgumentError, 'tried to call lazy new without a block' unless block_given?
 
       @obj = obj
       enum = @obj.is_a?(Enumerator) ? @obj : @obj.to_enum
-      enum_block = ->(yielder) {
+      enum_block = ->(yielder) do
         enum.rewind
-        loop do
-          block.call(yielder, *enum.next_values)
-        end
-      }
+        loop { block.call(yielder, *enum.next_values) }
+      end
 
       super(size, &enum_block)
     end
@@ -193,11 +165,7 @@ class Enumerator
     def chunk(&block)
       return to_enum(:chunk) unless block
 
-      enum_block = ->(yielder) {
-        super(&block).each do |item|
-          yielder << item
-        end
-      }
+      enum_block = ->(yielder) { super(&block).each { |item| yielder << item } }
       lazy = Lazy.new(self) {}
       lazy.instance_variable_set(:@enum_block, enum_block)
       lazy
@@ -206,16 +174,11 @@ class Enumerator
     def chunk_while(&block)
       raise ArgumentError, 'tried to create Proc object without a block' unless block_given?
 
-      enum_block = ->(yielder) {
-        super(&block).each do |item|
-          yielder << item
-        end
-      }
+      enum_block = ->(yielder) { super(&block).each { |item| yielder << item } }
       lazy = Lazy.new(self) {}
       lazy.instance_variable_set(:@enum_block, enum_block)
       lazy
     end
-
 
     def drop(n)
       size = @size ? [0, @size - n].max : nil
@@ -234,9 +197,7 @@ class Enumerator
 
       drop = true
       Lazy.new(self) do |yielder, *elements|
-        unless block.call(*elements)
-          drop = false
-        end
+        drop = false unless block.call(*elements)
 
         yielder.yield(*elements) unless drop
       end
@@ -263,14 +224,10 @@ class Enumerator
 
       Lazy.new(self) do |yielder, *element|
         element = block.call(*element)
-        if element.respond_to?(:each) && element.respond_to?(:force)
-          element = element.force
-        end
+        element = element.force if element.respond_to?(:each) && element.respond_to?(:force)
 
         if element.is_a?(Array) || element.respond_to?(:to_ary)
-          element.each do |item|
-            yielder << item
-          end
+          element.each { |item| yielder << item }
         else
           yielder << element
         end
@@ -282,9 +239,7 @@ class Enumerator
       process = ->(item) { block ? block.call(item) : item }
       Lazy.new(self) do |yielder, *item|
         item = item.size > 1 ? item : item[0]
-        if pattern === item
-          yielder << process.(item)
-        end
+        yielder << process.(item) if pattern === item
       end
     end
 
@@ -292,18 +247,14 @@ class Enumerator
       process = ->(item) { block ? block.call(item) : item }
       Lazy.new(self) do |yielder, *item|
         item = item.size > 1 ? item : item[0]
-        unless pattern === item
-          yielder << process.(item)
-        end
+        yielder << process.(item) unless pattern === item
       end
     end
 
     def map(&block)
       raise ArgumentError, 'tried to call lazy select without a block' unless block_given?
 
-      Lazy.new(self, @size) do |yielder, *element|
-        yielder << block.call(*element)
-      end
+      Lazy.new(self, @size) { |yielder, *element| yielder << block.call(*element) }
     end
     alias collect map
 
@@ -333,18 +284,12 @@ class Enumerator
 
     def slice_after(*args, &block)
       if block
-        if !args.empty?
-          raise ArgumentError, "wrong number of arguments (given #{args.size}, expected 0)"
-        end
+        raise ArgumentError, "wrong number of arguments (given #{args.size}, expected 0)" if !args.empty?
       elsif args.size != 1
         raise ArgumentError, "wrong number of arguments (given #{args.size}, expected 1)"
       end
 
-      enum_block = ->(yielder) {
-        super(*args, &block).each do |item|
-          yielder << item
-        end
-      }
+      enum_block = ->(yielder) { super(*args, &block).each { |item| yielder << item } }
       lazy = Lazy.new(self) {}
       lazy.instance_variable_set(:@enum_block, enum_block)
       lazy
@@ -352,29 +297,19 @@ class Enumerator
 
     def slice_before(*args, &block)
       if block
-        if !args.empty?
-          raise ArgumentError, "wrong number of arguments (given #{args.size}, expected 0)"
-        end
+        raise ArgumentError, "wrong number of arguments (given #{args.size}, expected 0)" if !args.empty?
       elsif args.size != 1
         raise ArgumentError, "wrong number of arguments (given #{args.size}, expected 1)"
       end
 
-      enum_block = ->(yielder) {
-        super(*args, &block).each do |item|
-          yielder << item
-        end
-      }
+      enum_block = ->(yielder) { super(*args, &block).each { |item| yielder << item } }
       lazy = Lazy.new(self) {}
       lazy.instance_variable_set(:@enum_block, enum_block)
       lazy
     end
 
     def slice_when(&block)
-      enum_block = ->(yielder) {
-        super(&block).each do |item|
-          yielder << item
-        end
-      }
+      enum_block = ->(yielder) { super(&block).each { |item| yielder << item } }
       lazy = Lazy.new(self) {}
       lazy.instance_variable_set(:@enum_block, enum_block)
       lazy
@@ -384,12 +319,12 @@ class Enumerator
       index = 0
       size = @size ? [n, @size].min : n
 
-      enum_block = ->(yielder) {
+      enum_block = ->(yielder) do
         size.times do
           value = self.next_values
           yielder.yield(*value)
         end
-      }
+      end
 
       lazy = Lazy.new(self, size) {}
       lazy.instance_variable_set(:@enum_block, enum_block)
@@ -400,13 +335,13 @@ class Enumerator
       raise ArgumentError, 'tried to call lazy take_while without a block' unless block_given?
 
       pass = true
-      enum_block = ->(yielder) {
+      enum_block = ->(yielder) do
         loop do
           elements = self.next_values
           break unless block.call(*elements)
           yielder.yield(*elements)
         end
-      }
+      end
 
       lazy = Lazy.new(self) {}
       lazy.instance_variable_set(:@enum_block, enum_block)
@@ -414,10 +349,10 @@ class Enumerator
     end
 
     def to_enum(method = :each, *args, &block)
-      enum_block = ->(yielder) {
+      enum_block = ->(yielder) do
         the_proc = yielder.to_proc || ->(*i) { yielder.yield(*i) }
         send(method, *args, &the_proc)
-      }
+      end
 
       lazy = Lazy.new(self) {}
       lazy.instance_variable_set(:@enum_block, enum_block)
@@ -452,20 +387,18 @@ class Enumerator
     end
 
     def uniq(&block)
-      enum_block = ->(yielder) {
+      enum_block = ->(yielder) do
         visited = {}
         loop do
           element = self.next
           visiting = block ? block.call(element) : element
 
-          unless visited.include?(visiting)
-            yielder.yield(*element)
-          end
+          yielder.yield(*element) unless visited.include?(visiting)
 
           # We just care about the keys
           visited[visiting] = 0
         end
-      }
+      end
 
       lazy = Lazy.new(self) {}
       lazy.instance_variable_set(:@enum_block, enum_block)
@@ -477,20 +410,12 @@ class Enumerator
         super(*args, &block)
       else
         args.each do |arg|
-          if arg.respond_to? :to_ary
-            arg = arg.to_ary
-          end
+          arg = arg.to_ary if arg.respond_to? :to_ary
 
-          unless arg.respond_to?(:each)
-            raise TypeError, "wrong argument type #{arg.class.name} (must respond to :each)"
-          end
+          raise TypeError, "wrong argument type #{arg.class.name} (must respond to :each)" unless arg.respond_to?(:each)
         end
 
-        enum_block = ->(yielder) {
-          super(*args) do |item|
-            yielder << item
-          end
-        }
+        enum_block = ->(yielder) { super(*args) { |item| yielder << item } }
         lazy = Lazy.new(self, size) {}
         lazy.instance_variable_set(:@enum_block, enum_block)
         lazy
@@ -506,9 +431,24 @@ class Enumerator
     private
 
     # Add #with_index if implemented in Enumerator
-    %i(collect collect_concat drop drop_while filter filter_map find_all flat_map grep grep_v map reject select take take_while uniq zip).each do |meth|
-      alias_method "_enumerable_#{meth}", meth
-    end
-
+    %i[
+      collect
+      collect_concat
+      drop
+      drop_while
+      filter
+      filter_map
+      find_all
+      flat_map
+      grep
+      grep_v
+      map
+      reject
+      select
+      take
+      take_while
+      uniq
+      zip
+    ].each { |meth| alias_method "_enumerable_#{meth}", meth }
   end
 end

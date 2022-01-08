@@ -13,37 +13,29 @@ class Struct
       Class.new(Struct) do
         include Enumerable
 
-        attrs.each do |attr|
-          attr_accessor attr
-        end
+        attrs.each { |attr| attr_accessor attr }
 
         if options[:keyword_init]
           define_method :initialize do |args|
-            args.each do |attr, value|
-              send("#{attr}=", value)
-            end
+            args.each { |attr, value| send("#{attr}=", value) }
           end
         else
           define_method :initialize do |*vals|
-            attrs.each_with_index do |attr, index|
-              send("#{attr}=", vals[index])
-            end
+            attrs.each_with_index { |attr, index| send("#{attr}=", vals[index]) }
           end
         end
 
         define_method :each do
-          attrs.each do |attr|
-            yield send(attr)
-          end
+          attrs.each { |attr| yield send(attr) }
         end
 
         define_method :inspect do
-          str = "#<struct "
+          str = '#<struct '
           attrs.each_with_index do |attr, index|
             str << "#{attr}=#{send(attr).inspect}"
-            str << ", " unless index == attrs.size - 1
+            str << ', ' unless index == attrs.size - 1
           end
-          str << ">"
+          str << '>'
         end
       end
     else

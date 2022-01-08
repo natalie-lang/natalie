@@ -38,7 +38,7 @@ class SpecVersion
   # digits fill in missing parts. (See e.g. VersionGuard and BugGuard.)
   def initialize(version, ceil = false)
     @version = version
-    @ceil    = ceil
+    @ceil = ceil
     @integer = nil
   end
 
@@ -55,14 +55,15 @@ class SpecVersion
   # "2.2.10" < "2.2.2" would be false if compared as strings.
   def to_i
     unless @integer
-      major, minor, tiny = @version.split "."
+      major, minor, tiny = @version.split '.'
       if @ceil
         tiny = 99 unless tiny
       end
-      parts = [major, minor, tiny].map do |x|
-        x = x.to_i
-        x < 10 ? "0#{x}" : x.to_s
-      end
+      parts =
+        [major, minor, tiny].map do |x|
+          x = x.to_i
+          x < 10 ? "0#{x}" : x.to_s
+        end
       @integer = "1#{parts.join}".to_i
       # NATFIXME: Implement String#%
       # parts = [major, minor, tiny].map { |x| x.to_i }

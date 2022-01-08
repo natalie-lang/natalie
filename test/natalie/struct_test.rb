@@ -38,9 +38,7 @@ describe 'Struct' do
     s = Struct.new(:a, :b, :c)
     i = s.new(1, 2, 3)
     collected = []
-    i.each do |val|
-      collected << val
-    end
+    i.each { |val| collected << val }
     collected.should == [1, 2, 3]
   end
 
@@ -52,7 +50,7 @@ describe 'Struct' do
 
   it 'can be inspected' do
     s = Struct.new(:a, :b, :c, :d)
-    i = s.new(1, 2.3, "foo", nil)
+    i = s.new(1, 2.3, 'foo', nil)
     i.inspect.should == "#<struct a=1, b=2.3, c=\"foo\", d=nil>"
   end
 end

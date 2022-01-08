@@ -16,16 +16,11 @@ module Natalie
       end
 
       def process_iter(exp)
-        (call_type, call, args, *body) = exp
-        return exp.new(
-          :iter,
-          process_call(call, block_fn=[args,body]),
-          args,
-          *body.map { |e| process_atom(e) }
-        )
+        call_type, call, args, *body = exp
+        return exp.new(:iter, process_call(call, block_fn = [args, body]), args, *body.map { |e| process_atom(e) })
       end
 
-      def process_defined(exp, block_with_args=nil)
+      def process_defined(exp, block_with_args = nil)
         # Note: This might fail on nested defined?s, but who's gonna do that
         @in_defined_statement = true
         exp = exp.new(*exp.map { |e| process_atom(e) })
@@ -35,13 +30,13 @@ module Natalie
 
       def type_is_always_truthy(arg)
         # FIXME: Are there any other types that are always truthy?
-        return [:true, :str, :lit, :array].include?(arg)
+        return %i[true str lit array].include?(arg)
       end
       def type_is_always_falsey(arg)
-        return [:false, :nil].include?(arg)
+        return %i[false nil].include?(arg)
       end
 
-      def process_if(exp, block_with_args=nil)
+      def process_if(exp, block_with_args = nil)
         exp = exp.new(*exp.map { |e| process_atom(e) })
         if exp.flatten.include?(:lasgn)
           # This is required for now because
@@ -52,14 +47,14 @@ module Natalie
           # taken branch, which makes x undefined
           return exp
         end
-        (_, (boolean, *), true_case, false_case) = exp
-        return true_case  if type_is_always_truthy(boolean)
+        _, (boolean, *), true_case, false_case = exp
+        return true_case if type_is_always_truthy(boolean)
         return false_case if type_is_always_falsey(boolean)
 
         return exp
       end
 
-      def process_or(exp, block_with_args=nil)
+      def process_or(exp, block_with_args = nil)
         exp = exp.new(*exp.map { |e| process_atom(e) })
         _, (t1, *arg1), (t2, *arg2) = exp
         return exp.new(t2, *arg2) if type_is_always_falsey(t1)
@@ -68,18 +63,19 @@ module Natalie
         return exp
       end
 
-      def process_and(exp, block_with_args=nil)
+      def process_and(exp, block_with_args = nil)
         exp = exp.new(*exp.map { |e| process_atom(e) })
         _, (t1, *arg1), (t2, *arg2) = exp
         return s(t1, *arg1) if type_is_always_falsey(t1)
-        return exp          if !type_is_always_truthy(t1) # t1 is not const-evaluable
+        return exp if !type_is_always_truthy(t1) # t1 is not const-evaluable
+
         # t2 will be returned even if it is falsey, so we don't have to check it
         return exp.new(t2, *arg2)
       end
 
-      def process_call(exp, block_with_args=nil)
+      def process_call(exp, block_with_args = nil)
         exp = exp.new(*exp.map { |e| process_atom(e) })
-        (_, receiver, method, *args) = exp
+        _, receiver, method, *args = exp
         if receiver && !receiver.empty?
           t, *values = receiver
           if t == :array
@@ -100,11 +96,11 @@ module Natalie
               when :/, :%
                 # FIXME: We could propagate NaNs and INFINITIES in the float-division case
                 return canary_const_op(exp, values) unless args[0][1] == 0
-              # FIXME: This one makes String#* timeout
-              # when :**
-              #   return canary_const_op(exp, values) unless values[0] < 0
+                # FIXME: This one makes String#* timeout
+                # when :**
+                #   return canary_const_op(exp, values) unless values[0] < 0
               when :&, :|, :^, :<<, :>>
-                return canary_const_op(exp, values) if [class_arg1, class_arg2].all? {|x| x == Integer}
+                return canary_const_op(exp, values) if [class_arg1, class_arg2].all? { |x| x == Integer }
               when :==, :!=, :>, :>=, :<, :<=, :===
                 return canary_const_bool_op(exp, values)
               end
@@ -123,28 +119,42 @@ module Natalie
         return exp.new(:nil) if values.empty?
         return values[0] if values.length == 1
         first, second, *rest = values
-        return exp.new(:if, exp.new(:call, first, :<, second), canary_array_min(exp, [first, *rest]), canary_array_min(exp, [second, *rest]))
+        return(
+          exp.new(
+            :if,
+            exp.new(:call, first, :<, second),
+            canary_array_min(exp, [first, *rest]),
+            canary_array_min(exp, [second, *rest]),
+          )
+        )
       end
 
       def canary_array_max(exp, values)
         return exp.new(:nil) if values.empty?
         return values[0] if values.length == 1
         first, second, *rest = values
-        return exp.new(:if, exp.new(:call, first, :>, second), canary_array_max(exp, [first, *rest]), canary_array_max(exp, [second, *rest]))
+        return(
+          exp.new(
+            :if,
+            exp.new(:call, first, :>, second),
+            canary_array_max(exp, [first, *rest]),
+            canary_array_max(exp, [second, *rest]),
+          )
+        )
       end
 
       def canary_const_op(exp, values)
         _, (_, arg1), op, (_, arg2) = exp
         return exp.new(:lit, arg1.send(op, arg2))
       end
-      def canary_const_bool_op(exp,values)
+      def canary_const_bool_op(exp, values)
         _, (_, arg1), op, (_, arg2) = exp
         return exp.new(:true) if arg1.send(op, arg2)
         return exp.new(:false)
       end
 
       def canary_const_not(exp, values)
-        _, (type,*), _not = exp
+        _, (type, *), _not = exp
         return exp.new(:false) if type_is_always_truthy(type)
         return exp.new(:true) if type_is_always_falsey(type)
         return exp

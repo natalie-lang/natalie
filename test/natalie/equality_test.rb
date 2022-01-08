@@ -15,13 +15,13 @@ describe 'equality' do
     r.should == true
     r = 1 === 1
     r.should == true
-    r = "hi" == "hi"
+    r = 'hi' == 'hi'
     r.should == true
-    r = "hi" === "hi"
+    r = 'hi' === 'hi'
     r.should == true
-    r = "" == ""
+    r = '' == ''
     r.should == true
-    r = "" === ""
+    r = '' === ''
     r.should == true
     r = :foo == :foo
     r.should == true
@@ -72,21 +72,21 @@ describe 'equality' do
     r.should == false
     r = 1 === nil
     r.should == false
-    r = 1 == "1"
+    r = 1 == '1'
     r.should == false
-    r = 1 === "1"
+    r = 1 === '1'
     r.should == false
-    r = "hi" == "hi there"
+    r = 'hi' == 'hi there'
     r.should == false
-    r = "hi" === "hi there"
+    r = 'hi' === 'hi there'
     r.should == false
-    r = "hi" == nil
+    r = 'hi' == nil
     r.should == false
-    r = "hi" === nil
+    r = 'hi' === nil
     r.should == false
-    r = "hi" == 0
+    r = 'hi' == 0
     r.should == false
-    r = "hi" === 0
+    r = 'hi' === 0
     r.should == false
     r = :foo == :bar
     r.should == false

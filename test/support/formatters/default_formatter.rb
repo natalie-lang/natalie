@@ -21,14 +21,15 @@ class DefaultFormatter
       puts
       puts 'Failed specs:'
       (failures + errors).each do |failure|
-        (context, test, error) = failure
+        context, test, error = failure
         indent = 0
         context.each do |con|
           print ' ' * indent
           puts con.to_s
           indent += 2
         end
-        if test # nil if using 'specify'
+        if test
+          # nil if using 'specify'
           print ' ' * indent
           puts test
           indent += 2
@@ -37,7 +38,7 @@ class DefaultFormatter
         if error.is_a?(SpecFailedException)
           location = nil
           error.backtrace.each do |line|
-            if line !~ /support\/spec\.rb/
+            if line !~ %r{support\/spec\.rb}
               location = line
               break
             end

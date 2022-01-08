@@ -8,9 +8,7 @@ describe 'File' do
   end
 
   it 'raises ENOENT when opening a file that does not exist' do
-    -> {
-      File.new('file_does_not_exist.txt')
-    }.should raise_error(Errno::ENOENT)
+    -> { File.new('file_does_not_exist.txt') }.should raise_error(Errno::ENOENT)
   end
 
   describe 'SEPARATOR' do
@@ -69,7 +67,7 @@ describe 'File' do
           f.puts('hello world')
           raise 'some error'
         end
-      rescue
+      rescue StandardError
       end
       file.closed?.should == true
     end
@@ -95,10 +93,10 @@ describe 'File' do
 
   describe '#write' do
     it 'writes to the file using an integer mode' do
-      f = File.new('test/tmp/file_write_test.txt', File::CREAT|File::WRONLY|File::TRUNC)
+      f = File.new('test/tmp/file_write_test.txt', File::CREAT | File::WRONLY | File::TRUNC)
       f.write('write ')
       f.close
-      f = File.new('test/tmp/file_write_test.txt', File::CREAT|File::WRONLY|File::APPEND)
+      f = File.new('test/tmp/file_write_test.txt', File::CREAT | File::WRONLY | File::APPEND)
       f.write('append')
       f.close
       f = File.new('test/tmp/file_write_test.txt')

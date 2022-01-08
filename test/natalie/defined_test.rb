@@ -9,8 +9,7 @@ class Foo
   end
 end
 
-def foo
-end
+def foo; end
 
 describe 'defined?' do
   it 'recognizes constants' do

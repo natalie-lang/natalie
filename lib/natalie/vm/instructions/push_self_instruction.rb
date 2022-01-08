@@ -2,7 +2,7 @@ module Natalie
   class VM
     class PushSelfInstruction
       def to_s
-        "push_self"
+        'push_self'
       end
 
       def execute(vm)

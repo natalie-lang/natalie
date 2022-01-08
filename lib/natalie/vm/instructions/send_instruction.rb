@@ -13,9 +13,7 @@ module Natalie
         receiver = vm.pop
         arg_count = vm.pop
         args = []
-        arg_count.times do
-          args << vm.pop
-        end
+        arg_count.times { args << vm.pop }
         receiver.send(@message, *args)
       end
     end
