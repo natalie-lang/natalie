@@ -333,6 +333,9 @@ class Matcher
   def include?(other)
     method_missing(:include?, other)
   end
+  def initialized?
+    method_missing(:initialized?)
+  end
   def integer?
     method_missing(:integer?)
   end
@@ -351,11 +354,11 @@ class Matcher
   def start_with?(other)
     method_missing(:start_with?, other)
   end
+  def success?
+    method_missing(:success?)
+  end
   def zero?
     method_missing(:zero?)
-  end
-  def initialized?
-    method_missing(:initialized?)
   end
 
   def method_missing(method, *args)
