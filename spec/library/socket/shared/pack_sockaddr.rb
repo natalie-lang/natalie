@@ -29,14 +29,18 @@ describe :socket_pack_sockaddr_in, shared: true do
   end
 
   platform_is_not :solaris do
-    # NATFIXME: ipv6
-    xdescribe 'using an IPv6 address' do
+    describe 'using an IPv6 address' do
       it 'returns a String of 28 bytes' do
         str = Socket.send(@method, 80, '::1')
 
         str.should be_an_instance_of(String)
         str.bytesize.should == 28
       end
+    end
+
+    it "packs and unpacks" do
+      sockaddr_in = Socket.send(@method, nil, '::1')
+      Socket.unpack_sockaddr_in(sockaddr_in).should == [0, '::1']
     end
   end
 
