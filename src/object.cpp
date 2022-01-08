@@ -634,17 +634,14 @@ bool Object::is_a(Env *env, Value val) const {
     if (!val->is_module()) return false;
     ModuleObject *module = val->as_module();
     if (this == module) {
+        return false;
+    } else if (m_klass == module || singleton_class() == module) {
         return true;
     } else {
-        if (singleton_class()) {
-            ArrayObject *ancestors = singleton_class()->ancestors(env);
-            for (Value m : *ancestors) {
-                if (module == m->as_module()) {
-                    return true;
-                }
-            }
-        }
-        ArrayObject *ancestors = m_klass->ancestors(env);
+        ClassObject *klass = singleton_class();
+        if (!klass)
+            klass = m_klass;
+        ArrayObject *ancestors = klass->ancestors(env);
         for (Value m : *ancestors) {
             if (module == m->as_module()) {
                 return true;

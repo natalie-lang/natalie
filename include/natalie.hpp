@@ -70,6 +70,7 @@ Env *build_top_env();
 const char *find_current_method_name(Env *env);
 
 Value splat(Env *env, Value obj);
+Value is_case_equal(Env *env, Value case_value, Value when_value, bool is_splat);
 
 void run_at_exit_handlers(Env *env);
 void print_exception_with_backtrace(Env *env, ExceptionObject *exception);

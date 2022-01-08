@@ -222,6 +222,27 @@ Value splat(Env *env, Value obj) {
     }
 }
 
+Value is_case_equal(Env *env, Value case_value, Value when_value, bool is_splat) {
+    if (is_splat) {
+        if (!when_value->is_array() && when_value->respond_to(env, "to_a"_s)) {
+            auto original_class = when_value->klass();
+            when_value = when_value->send(env, "to_a"_s);
+            if (!when_value->is_array()) {
+                env->raise("TypeError", "can't convert {} to Array ({}#to_a gives {})", original_class->inspect_str(), original_class->inspect_str(), when_value->klass()->inspect_str());
+            }
+        }
+        if (when_value->is_array()) {
+            for (auto item : *when_value->as_array()) {
+                if (item->send(env, "==="_s, { case_value })->is_truthy()) {
+                    return TrueObject::the();
+                }
+            }
+            return FalseObject::the();
+        }
+    }
+    return when_value->send(env, "==="_s, { case_value });
+}
+
 void run_at_exit_handlers(Env *env) {
     ArrayObject *at_exit_handlers = env->global_get("$NAT_at_exit_handlers"_s)->as_array();
     assert(at_exit_handlers);
