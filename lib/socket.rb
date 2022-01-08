@@ -47,7 +47,7 @@ class Socket < BasicSocket
   end
 
   class << self
-    __define_method__ :sockaddr_in, [:port, :host], <<-END
+    __define_method__ :pack_sockaddr_in, [:port, :host], <<-END
       if (host->is_nil())
           host = new StringObject { "127.0.0.1" };
       if (host->is_string() && host->as_string()->is_empty())
@@ -120,10 +120,8 @@ class Socket < BasicSocket
           env->raise("ArgumentError", "not an AF_INET/AF_INET6 sockaddr");
       }
     END
-  end
 
-  def self.pack_sockaddr_in(port, host)
-    # TODO
+    alias sockaddr_in pack_sockaddr_in
   end
 end
 
