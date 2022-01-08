@@ -19,11 +19,11 @@ Traceback (most recent call last):
     out = `#{NAT_BINARY} test/ruby/fixtures/error.rb 2>&1`
     expect(out).must_equal <<-EOF
 Traceback (most recent call last):
-        5: from test/ruby/fixtures/error.rb:15:in `<main>'
-        4: from test/ruby/fixtures/error.rb:12:in `method1'
+        5: from test/ruby/fixtures/error.rb:13:in `<main>'
+        4: from test/ruby/fixtures/error.rb:10:in `method1'
         3: from test/ruby/fixtures/error.rb:6:in `method2'
         2: from test/ruby/fixtures/error.rb:6:in `each'
-        1: from test/ruby/fixtures/error.rb:7:in `block in method2'
+        1: from test/ruby/fixtures/error.rb:6:in `block in method2'
 test/ruby/fixtures/error.rb:2:in `method_with_error': undefined method `something_non_existent' for main (NoMethodError)
     EOF
   end
