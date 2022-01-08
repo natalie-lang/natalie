@@ -22,6 +22,9 @@ public:
         return s_instance;
     }
 
+    bool and_method(Env *, Value);
+    bool or_method(Env *, Value);
+    bool xor_method(Env *, Value);
     Value to_s(Env *);
 
     virtual void gc_inspect(char *buf, size_t len) const override {

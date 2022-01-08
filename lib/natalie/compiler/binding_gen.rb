@@ -425,6 +425,9 @@ gen.binding('Exception', 'inspect', 'ExceptionObject', 'inspect', argc: 0, pass_
 gen.binding('Exception', 'message', 'ExceptionObject', 'message', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 
 gen.undefine_singleton_method('FalseClass', 'new')
+gen.binding('FalseClass', '&', 'FalseObject', 'and_method', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.binding('FalseClass', '|', 'FalseObject', 'or_method', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.binding('FalseClass', '^', 'FalseObject', 'or_method', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('FalseClass', 'inspect', 'FalseObject', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('FalseClass', 'to_s', 'FalseObject', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 
@@ -706,7 +709,6 @@ gen.undefine_singleton_method('NilClass', 'new')
 gen.binding('NilClass', '&', 'NilObject', 'and_method', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('NilClass', '|', 'NilObject', 'or_method', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('NilClass', '^', 'NilObject', 'or_method', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
-gen.binding('NilClass', '===', 'NilObject', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('NilClass', '=~', 'NilObject', 'eqtilde', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('NilClass', 'inspect', 'NilObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('NilClass', 'to_a', 'NilObject', 'to_a', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
@@ -839,6 +841,9 @@ gen.binding('Symbol', 'to_sym', 'SymbolObject', 'to_sym', argc: 0, pass_env: tru
 gen.binding('Symbol', 'upcase', 'SymbolObject', 'upcase', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 
 gen.undefine_singleton_method('TrueClass', 'new')
+gen.binding('TrueClass', '&', 'TrueObject', 'and_method', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.binding('TrueClass', '|', 'TrueObject', 'or_method', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+gen.binding('TrueClass', '^', 'TrueObject', 'xor_method', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('TrueClass', 'inspect', 'TrueObject', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('TrueClass', 'to_s', 'TrueObject', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 

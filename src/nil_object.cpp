@@ -10,10 +10,6 @@ bool NilObject::or_method(Env *env, Value other) {
     return other->is_truthy();
 }
 
-bool NilObject::eq(Env *env, Value other) {
-    return other->is_nil();
-}
-
 Value NilObject::eqtilde(Env *env, Value) {
     return NilObject::the();
 }
