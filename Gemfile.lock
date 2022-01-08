@@ -10,6 +10,7 @@ GEM
       builder
       minitest (>= 5.0)
       ruby-progressbar
+    prettier (2.0.0)
     rake (13.0.6)
     ruby-progressbar (1.11.0)
     ruby_parser (3.16.0)
@@ -23,8 +24,9 @@ DEPENDENCIES
   concurrent-ruby
   minitest
   minitest-reporters
+  prettier
   rake
   ruby_parser
 
 BUNDLED WITH
-   2.1.4
+   2.2.32

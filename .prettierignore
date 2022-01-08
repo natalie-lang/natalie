@@ -1,0 +1,9 @@
+# makes it harder to see the hierarchy of exceptions when prettier-formatted
+src/exception.rb
+
+# not our stuff...
+spec/*
+ext/*
+
+# build artifacts
+build/*
