@@ -31,7 +31,9 @@ ClassObject *ClassObject::subclass(Env *env, const String *name, Type object_typ
 void ClassObject::initialize_subclass(ClassObject *subclass, Env *env, const String *name, Type object_type) {
     subclass->m_env = new Env {};
     if (singleton_class()) {
-        auto singleton_name = String::format("#<Class:{}>", name);
+        const String *singleton_name = nullptr;
+        if (name)
+            singleton_name = String::format("#<Class:{}>", name);
         ClassObject *singleton = singleton_class()->subclass(env, singleton_name);
         subclass->set_singleton_class(singleton);
     }

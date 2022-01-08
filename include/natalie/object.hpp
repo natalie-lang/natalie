@@ -76,7 +76,7 @@ public:
         m_type = ObjectType::Nil;
     }
 
-    static Value create(ClassObject *);
+    static Value create(Env *, ClassObject *);
     static Value _new(Env *, Value, size_t, Value *, Block *);
     static Value allocate(Env *, Value, size_t, Value *, Block *);
 
