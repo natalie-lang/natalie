@@ -675,6 +675,10 @@ bool StringObject::include(Env *env, Value arg) {
     return m_string.find(arg->as_string()->m_string) != -1;
 }
 
+bool StringObject::include(const char *arg) const {
+    return m_string.find(arg) != -1;
+}
+
 Value StringObject::ljust(Env *env, Value length_obj, Value pad_obj) {
     length_obj->assert_type(env, Object::Type::Integer, "Integer");
     size_t length = length_obj->as_integer()->to_nat_int_t() < 0 ? 0 : length_obj->as_integer()->to_nat_int_t();

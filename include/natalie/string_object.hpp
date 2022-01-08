@@ -154,6 +154,7 @@ public:
     Value eqtilde(Env *, Value);
     Value force_encoding(Env *, Value);
     bool include(Env *, Value);
+    bool include(const char *) const;
     Value ljust(Env *, Value, Value);
     Value lstrip(Env *) const;
     Value lstrip_in_place(Env *);
