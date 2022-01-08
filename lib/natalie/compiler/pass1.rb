@@ -42,17 +42,24 @@ module Natalie
       def process_array(exp)
         (_, *items) = exp
         arr = temp('arr')
-        items = items.map do |item|
-          if item.sexp_type == :splat
-            s(:push_splat, s(:l, "#{arr}->as_array()"), :env, process(item.last))
-          else
-            s(:push, s(:l, "#{arr}->as_array()"), process(item))
+
+        if !items.any? {|item| item.sexp_type == :splat}
+          return exp.new(:block,
+                        s(:declare, arr, s(:new, :ArrayObject, *items.map { |a| process(a) })),
+                        arr)
+        else 
+          items = items.map do |item|
+            if item.sexp_type == :splat
+              s(:push_splat, s(:l, "#{arr}->as_array()"), :env, process(item.last))
+            else
+              s(:push, s(:l, "#{arr}->as_array()"), process(item))
+            end
           end
+          return exp.new(:block,
+                         s(:declare, arr, s(:new, :ArrayObject)),
+                         *items.compact,
+                         arr)
         end
-        exp.new(:block,
-                s(:declare, arr, s(:new, :ArrayObject)),
-                *items.compact,
-                arr)
       end
 
       def process_attrasgn(exp)
