@@ -2340,6 +2340,8 @@ gen.binding(
   return_type: :Object,
 )
 
+gen.undefine_singleton_method('Method', 'new')
+gen.binding('Method', '==', 'MethodObject', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding(
   'Method',
   'inspect',
@@ -2376,6 +2378,16 @@ gen.binding(
   'to_proc',
   'MethodObject',
   'to_proc',
+  argc: 0,
+  pass_env: true,
+  pass_block: false,
+  return_type: :Object,
+)
+gen.binding(
+  'Method',
+  'unbind',
+  'MethodObject',
+  'unbind',
   argc: 0,
   pass_env: true,
   pass_block: false,

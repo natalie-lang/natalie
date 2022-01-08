@@ -11,10 +11,10 @@ public:
         , m_module_or_class { module_or_class } { }
 
     Value bind(Env *env, Value obj) {
-        if (obj->is_a(env, m_module_or_class)) {
+        if (!owner()->is_class() || obj->is_a(env, owner())) {
             return new MethodObject { obj, m_method };
         } else {
-            env->raise("TypeError", "bind argument must be an instance of {}", m_module_or_class->inspect_str());
+            env->raise("TypeError", "bind argument must be an instance of {}", owner()->inspect_str());
         }
     }
 
