@@ -92,19 +92,35 @@ Value RangeObject::first(Env *env, Value n) {
 }
 
 Value RangeObject::inspect(Env *env) {
-    StringObject *string = new StringObject {};
-    if (!m_begin->is_nil() || m_end->is_nil()) {
-        string->append(env, m_begin->inspect_str(env));
-    }
     if (m_exclude_end) {
-        string->append(env, "...");
+        if (m_end->is_nil()) {
+            if (m_begin->is_nil()) {
+                return new StringObject { "nil...nil" };
+            } else {
+                return StringObject::format(env, "{}...", m_begin->inspect_str(env));
+            }
+        } else {
+            if (m_begin->is_nil()) {
+                return StringObject::format(env, "...{}", m_end->inspect_str(env));
+            } else {
+                return StringObject::format(env, "{}...{}", m_begin->inspect_str(env), m_end->inspect_str(env));
+            }
+        }
     } else {
-        string->append(env, "..");
+        if (m_end->is_nil()) {
+            if (m_begin->is_nil()) {
+                return new StringObject { "nil..nil" };
+            } else {
+                return StringObject::format(env, "{}..", m_begin->inspect_str(env));
+            }
+        } else {
+            if (m_begin->is_nil()) {
+                return StringObject::format(env, "..{}", m_end->inspect_str(env));
+            } else {
+                return StringObject::format(env, "{}..{}", m_begin->inspect_str(env), m_end->inspect_str(env));
+            }
+        }
     }
-    if (!m_end->is_nil() || m_begin->is_nil()) {
-        string->append(env, m_end->inspect_str(env));
-    }
-    return string;
 }
 
 bool RangeObject::eq(Env *env, Value other_value) {
