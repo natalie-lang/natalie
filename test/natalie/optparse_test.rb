@@ -7,7 +7,7 @@ describe 'OptionParser' do
       parser = OptionParser.new
       parser.on('-d', '--debug', 'enable debug mode')
       hash = {}
-      parser.parse!(['foo', 'bar', '-d'], into: hash)
+      parser.parse!(%w[foo bar -d], into: hash)
       hash.should == { debug: true }
     end
 
@@ -15,39 +15,34 @@ describe 'OptionParser' do
       parser = OptionParser.new
       parser.on('-d [level]', 'enable debug mode')
       hash = {}
-      parser.parse!(['foo', '-d', 'verbose'], into: hash)
+      parser.parse!(%w[foo -d verbose], into: hash)
       hash.should == { 'd': 'verbose' }
     end
 
     it 'calls the block when matched' do
       options = {}
       parser = OptionParser.new
-      parser.on('-d [level]', 'enable debug mode') do |value|
-        options[:debug] = value
-      end
-      parser.parse!(['-d', 'verbose', 'foo'])
+      parser.on('-d [level]', 'enable debug mode') { |value| options[:debug] = value }
+      parser.parse!(%w[-d verbose foo])
       options.should == { debug: 'verbose' }
     end
 
     it 'works with a block passed to initialize' do
       options = {}
-      parser = OptionParser.new do |op|
-        op.on('-d [level]', 'enable debug mode') do |value|
-          options[:debug] = value
-        end
-      end
-      parser.parse!(['-d', 'verbose', 'foo'])
+      parser = OptionParser.new { |op| op.on('-d [level]', 'enable debug mode') { |value| options[:debug] = value } }
+      parser.parse!(%w[-d verbose foo])
       options.should == { debug: 'verbose' }
     end
   end
 
   describe '#help' do
     it 'returns the help documentation' do
-      parser = OptionParser.new do |opts|
-        opts.banner = 'This is my test parser'
-        opts.on('-d', '--debug [level]', 'enable debug mode')
-        opts.on('-i', '--interactive', 'enable interactive mode')
-      end
+      parser =
+        OptionParser.new do |opts|
+          opts.banner = 'This is my test parser'
+          opts.on('-d', '--debug [level]', 'enable debug mode')
+          opts.on('-i', '--interactive', 'enable interactive mode')
+        end
       expected = <<-END
 This is my test parser
     -d, --debug [level]              enable debug mode
@@ -64,10 +59,10 @@ END
       parser.on('-d', 'enable debug mode')
       parser.on('-i', 'enable interactive mode')
       hash = {}
-      args = ['-d', 'foo', '--', '-i', 'bar']
+      args = %w[-d foo -- -i bar]
       parser.parse!(args, into: hash)
       hash.should == { 'd': true }
-      args.should == ['foo', '-i', 'bar']
+      args.should == %w[foo -i bar]
     end
   end
 end

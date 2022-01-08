@@ -15,9 +15,8 @@ describe 'ruby/spec' do
     describe path do
       it 'passes all specs' do
         skip if code =~ /# skip-test/
-        out_nat = Timeout.timeout(SPEC_TIMEOUT, nil, "execution expired running: #{path}") do
-          `#{NAT_BINARY} #{path} 2>&1`
-        end
+        out_nat =
+          Timeout.timeout(SPEC_TIMEOUT, nil, "execution expired running: #{path}") { `#{NAT_BINARY} #{path} 2>&1` }
         puts out_nat unless $?.success?
         expect($?).must_be :success?
         expect(out_nat).wont_match(/traceback|error/i)

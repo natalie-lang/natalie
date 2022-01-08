@@ -18,10 +18,7 @@ describe 'Enumerable' do
 
     it 'works with a hash' do
       h = { 1 => 2, 3 => 4 }
-      h.map { |k, v| [k, v] }.should == [
-        [1, 2],
-        [3, 4],
-      ]
+      h.map { |k, v| [k, v] }.should == [[1, 2], [3, 4]]
     end
   end
 
@@ -50,9 +47,7 @@ describe 'Enumerable' do
       end
       enum = YieldsMulti.new
       values = []
-      enum.each_with_index do |item, index|
-        values << item
-      end
+      enum.each_with_index { |item, index| values << item }
       values.should == [[1, 2], [3, 4]]
     end
   end

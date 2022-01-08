@@ -1,9 +1,9 @@
 require 'natalie/inline'
 
-__inline__ "#include <dirent.h>"
-__inline__ "#include <sys/param.h>"
-__inline__ "#include <sys/types.h>"
-__inline__ "#include <unistd.h>"
+__inline__ '#include <dirent.h>'
+__inline__ '#include <sys/param.h>'
+__inline__ '#include <sys/types.h>'
+__inline__ '#include <unistd.h>'
 
 class Dir
   class << self
@@ -20,9 +20,7 @@ class Dir
 
     def each_child(dirname)
       return enum_for(:each_child, dirname) unless block_given?
-      children(dirname).each do |name|
-        yield name
-      end
+      children(dirname).each { |name| yield name }
     end
 
     __define_method__ :children, [:dirname], <<-END

@@ -99,9 +99,9 @@ describe 'range' do
       r = 1...10
       r.to_a.should == [1, 2, 3, 4, 5, 6, 7, 8, 9]
       r = 'a'..'d'
-      r.to_a.should == ['a', 'b', 'c', 'd']
+      r.to_a.should == %w[a b c d]
       r = 'a'...'d'
-      r.to_a.should == ['a', 'b', 'c']
+      r.to_a.should == %w[a b c]
     end
 
     it 'handles strings' do
@@ -130,7 +130,7 @@ describe 'range' do
       items.should == [1, 2, 3, 4, 5, 6, 7, 8, 9]
       items = []
       ('a'..'d').each { |i| items << i }
-      items.should == ['a', 'b', 'c', 'd']
+      items.should == %w[a b c d]
     end
 
     it 'has empty range when first less than last' do
@@ -143,7 +143,11 @@ describe 'range' do
     end
 
     it 'handles strings' do
-      ary = ->(r) { a = []; r.each { |i| a << i }; a }
+      ary = ->(r) do
+        a = []
+        r.each { |i| a << i }
+        a
+      end
       r = 'a'..'z'
       ary.(r).should == %w[a b c d e f g h i j k l m n o p q r s t u v w x y z]
       r = 'z'..'a'

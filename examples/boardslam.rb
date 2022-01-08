@@ -46,7 +46,7 @@
 
 class BoardSlam
   BOARD = 1..36
-  OPERATIONS = %w(+ - * /)
+  OPERATIONS = %w[+ - * /]
 
   def initialize(x, y, z)
     @numbers = [x, y, z]
@@ -62,7 +62,7 @@ class BoardSlam
   def expand(num)
     return num if num.is_a?(Integer)
     num, exp = num.split('^').map(&:to_i)
-    num ** exp
+    num**exp
   end
 
   def results
@@ -74,7 +74,8 @@ class BoardSlam
           result2 = result1.send(op2, z)
           next if op2 == '/' && result1 % z != 0
           if BOARD.include?(result2) and !answers.key?(result2)
-            answers[result2] = "#{x_pretty.to_s.ljust(3)} #{op1} #{y_pretty.to_s.ljust(3)} #{op2} #{z_pretty.to_s.ljust(3)}"
+            answers[result2] =
+              "#{x_pretty.to_s.ljust(3)} #{op1} #{y_pretty.to_s.ljust(3)} #{op2} #{z_pretty.to_s.ljust(3)}"
           end
         end
       end
@@ -83,9 +84,7 @@ class BoardSlam
   end
 
   def each_order
-    @numbers.permutation.each do |(x, y, z)|
-      yield x, y, z
-    end
+    @numbers.permutation.each { |(x, y, z)| yield x, y, z }
   end
 
   def each_variant(x_base, y_base, z_base)
@@ -121,13 +120,11 @@ if $0 == __FILE__
     exit
   end
   board = BoardSlam.new(*ARGV.map(&:to_i))
-  board.results.sort.each do |result, equation|
-    puts equation.ljust(15) + ' = ' + result.to_s
-  end
+  board.results.sort.each { |result, equation| puts equation.ljust(15) + ' = ' + result.to_s }
   puts
   if board.missing.any?
     puts "missing answers: #{board.missing.join(', ')}"
   else
-    puts "all answers possible!"
+    puts 'all answers possible!'
   end
 end

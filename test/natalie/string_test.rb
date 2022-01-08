@@ -4,21 +4,19 @@ require_relative '../spec_helper'
 
 describe 'string' do
   it 'processes backslashes properly' do
-    "foo\\bar".should == "foo" + "\\" + "bar"
+    "foo\\bar".should == 'foo' + "\\" + 'bar'
   end
 
   describe '#inspect' do
     it 'returns a code representation of the string' do
       'foo'.inspect.should == '"foo"'
       "foo\nbar".inspect.should == "\"foo\\nbar\""
-      "foo#bar".inspect.should == '"foo#bar"'
+      'foo#bar'.inspect.should == '"foo#bar"'
       'foo#{1+1}'.inspect.should == '"foo\\#{1+1}"'
       "foo\x1f".encode('utf-8').inspect.should == '"foo\\u001F"'
       "foo\x00\x04".encode('utf-8').inspect.should == '"foo\\u0000\\u0004"'
       "foo\x00\x04".encode('ascii-8bit').inspect.should == '"foo\\x00\\x04"'
-      unless RUBY_PLATFORM =~ /openbsd/
-        "😉🤷".inspect.should == "\"😉🤷\""
-      end
+      '😉🤷'.inspect.should == "\"😉🤷\"" unless RUBY_PLATFORM =~ /openbsd/
     end
   end
 
@@ -36,18 +34,18 @@ describe 'string' do
     end
   end
 
-  describe "#<=>" do
-    it "should return -1 if lhs is less than rhs" do
+  describe '#<=>' do
+    it 'should return -1 if lhs is less than rhs' do
       ('a' <=> 'b').should == -1
       ('a' <=> 'z').should == -1
     end
 
-    it "should return 1 if lhs is greater than rhs" do
+    it 'should return 1 if lhs is greater than rhs' do
       ('b' <=> 'a').should == 1
       ('z' <=> 'a').should == 1
     end
 
-    it "should return 0 if both sides are equal" do
+    it 'should return 0 if both sides are equal' do
       ('a' <=> 'a').should == 0
       ('z' <=> 'z').should == 0
     end
@@ -82,8 +80,8 @@ describe 'string' do
       'abc'.ord.should == 97
       'ă'.encode('utf-8').ord.should == 259
       '”'.encode('utf-8').ord.should == 8221
-      '😉'.encode('utf-8').ord.should == 128521
-      '😉😉😉'.encode('utf-8').ord.should == 128521
+      '😉'.encode('utf-8').ord.should == 128_521
+      '😉😉😉'.encode('utf-8').ord.should == 128_521
     end
 
     it 'raises an error if the string is empty' do
@@ -106,10 +104,16 @@ describe 'string' do
     it 'raises an error if a character cannot be converted to the new encoding' do
       s = 'abc 😢'.encode 'utf-8'
       s.encoding.should == Encoding::UTF_8
-      -> { s.encode 'ascii-8bit' }.should raise_error(Encoding::UndefinedConversionError, 'U+1F622 from UTF-8 to ASCII-8BIT')
+      -> { s.encode 'ascii-8bit' }.should raise_error(
+                                            Encoding::UndefinedConversionError,
+                                            'U+1F622 from UTF-8 to ASCII-8BIT',
+                                          )
       s = 'xyz 🥺'.encode 'utf-8'
       s.encoding.should == Encoding::UTF_8
-      -> { s.encode 'ascii-8bit' }.should raise_error(Encoding::UndefinedConversionError, 'U+1F97A from UTF-8 to ASCII-8BIT')
+      -> { s.encode 'ascii-8bit' }.should raise_error(
+                                            Encoding::UndefinedConversionError,
+                                            'U+1F97A from UTF-8 to ASCII-8BIT',
+                                          )
     end
 
     it 'raises an error if the encoding converter does not exist' do
@@ -130,18 +134,16 @@ describe 'string' do
   describe '#each_char' do
     it 'yields to the block each character' do
       result = []
-      'foo'.each_char do |char|
-        result << char
-      end
-      result.should == ['f', 'o', 'o']
+      'foo'.each_char { |char| result << char }
+      result.should == %w[f o o]
     end
   end
 
   describe '#chars' do
     it 'returns an array of characters' do
-      'foo'.chars.should == ['f', 'o', 'o']
-      s = "😉”ăa".encode 'utf-8'
-      s.chars.should == ["😉", "”", "ă", "a"]
+      'foo'.chars.should == %w[f o o]
+      s = '😉”ăa'.encode 'utf-8'
+      s.chars.should == %w[😉 ” ă a]
       s.force_encoding 'ascii-8bit'
       s.chars.map { |c| c.ord }.should == [240, 159, 152, 137, 226, 128, 157, 196, 131, 97]
     end
@@ -149,35 +151,35 @@ describe 'string' do
 
   describe '#[]' do
     it 'returns the character at the given index' do
-      s = "😉”ăa".encode 'utf-8'
-      s[0].should == "😉"
-      s[1].should == "”"
-      s[2].should == "ă"
-      s[3].should == "a"
+      s = '😉”ăa'.encode 'utf-8'
+      s[0].should == '😉'
+      s[1].should == '”'
+      s[2].should == 'ă'
+      s[3].should == 'a'
     end
 
     it 'returns nil if the index is past the end' do
-      s = "😉”ăa".encode 'utf-8'
+      s = '😉”ăa'.encode 'utf-8'
       s[4].should == nil
     end
 
     it 'returns the character from the end given a negative index' do
-      s = "😉”ăa".encode 'utf-8'
-      s[-1].should == "a"
-      s[-2].should == "ă"
-      s[-3].should == "”"
-      s[-4].should == "😉"
+      s = '😉”ăa'.encode 'utf-8'
+      s[-1].should == 'a'
+      s[-2].should == 'ă'
+      s[-3].should == '”'
+      s[-4].should == '😉'
     end
 
     it 'returns nil if the negative index is too small' do
-      s = "😉”ăa".encode 'utf-8'
+      s = '😉”ăa'.encode 'utf-8'
       s[-5].should == nil
     end
 
     context 'given a range' do
       it 'returns a substring' do
-        s = "😉”ăa".encode 'utf-8'
-        s[1..-1].should == "”ăa"
+        s = '😉”ăa'.encode 'utf-8'
+        s[1..-1].should == '”ăa'
         s = 'hello'
         s[1..-1].should == 'ello'
         s = 'n'
@@ -185,13 +187,13 @@ describe 'string' do
       end
 
       it 'returns proper result for a range out of bounds' do
-        s = "hello"
-        s[-2..0].should == ""
-        s[2..100].should == "llo"
+        s = 'hello'
+        s[-2..0].should == ''
+        s[2..100].should == 'llo'
       end
 
       it 'returns nil for a range that starts beyond the end of the string' do
-        s = "hello"
+        s = 'hello'
         s[90..100].should == nil
       end
     end
@@ -226,9 +228,7 @@ describe 'string' do
         'aaz'.succ.should == 'aba'
         'zzz'.succ.should == 'aaaa'
       end
-    end
-
-    # TODO: handle mixed case, e.g. 'Az' and 'Zz'
+    end # TODO: handle mixed case, e.g. 'Az' and 'Zz'
 
     context 'given a character outside alphanumeric range' do
       it 'returns the next character' do
@@ -318,11 +318,7 @@ describe 'string' do
     end
 
     it 'replaces with the result of calling the block if a block is given' do
-      'ruby is fun'.sub('ruby') { 'RUBY' }.should == 'RUBY is fun'
-      # TODO: accept block for regex sub
-      #'ruby is fun'.sub(/ruby/) { 'RUBY' }.should == 'RUBY is fun'
-      # TODO: pass match object into block
-      #'ruby is fun'.sub(/ruby/) { |m| m.to_s.upcase }.should == 'RUBY is fun'
+      'ruby is fun'.sub('ruby') { 'RUBY' }.should == 'RUBY is fun' # TODO: accept block for regex sub #'ruby is fun'.sub(/ruby/) { 'RUBY' }.should == 'RUBY is fun' # TODO: pass match object into block #'ruby is fun'.sub(/ruby/) { |m| m.to_s.upcase }.should == 'RUBY is fun'
     end
   end
 
@@ -338,8 +334,8 @@ describe 'string' do
 
   describe '#to_i' do
     it 'returns an Integer by recognizing digits in the string' do
-      '12345'.to_i.should == 12345
-      ' 12345'.to_i.should == 12345
+      '12345'.to_i.should == 12_345
+      ' 12345'.to_i.should == 12_345
       ' 123 45'.to_i.should == 123
       '99 red balloons'.to_i.should == 99
       '0a'.to_i.should == 0
@@ -347,9 +343,9 @@ describe 'string' do
       '0A'.to_i(16).should == 10
       'hello'.to_i.should == 0
       '1100101'.to_i(2).should == 101
-      '1100101'.to_i(8).should == 294977
-      '1100101'.to_i(10).should == 1100101
-      '1100101'.to_i(16).should == 17826049
+      '1100101'.to_i(8).should == 294_977
+      '1100101'.to_i(10).should == 1_100_101
+      '1100101'.to_i(16).should == 17_826_049
     end
   end
 
@@ -358,23 +354,23 @@ describe 'string' do
       ''.split(',').should == []
       ' '.split(',').should == [' ']
       'tim'.split(',').should == ['tim']
-      'tim,morgan,rocks'.split(',').should == ['tim', 'morgan', 'rocks']
-      'tim morgan rocks'.split(' morgan ').should == ['tim', 'rocks']
+      'tim,morgan,rocks'.split(',').should == %w[tim morgan rocks]
+      'tim morgan rocks'.split(' morgan ').should == %w[tim rocks]
     end
 
     it 'splits a string into an array of smaller strings using a regexp match' do
       ''.split(/,/).should == []
       ' '.split(/,/).should == [' ']
       'tim'.split(/,/).should == ['tim']
-      'tim,morgan,rocks'.split(/,/).should == ['tim', 'morgan', 'rocks']
-      'tim     morgan rocks'.split(/\s+/).should == ['tim', 'morgan', 'rocks']
-      'tim morgan rocks'.split(/ mo[a-z]+ /).should == ['tim', 'rocks']
+      'tim,morgan,rocks'.split(/,/).should == %w[tim morgan rocks]
+      'tim     morgan rocks'.split(/\s+/).should == %w[tim morgan rocks]
+      'tim morgan rocks'.split(/ mo[a-z]+ /).should == %w[tim rocks]
     end
 
     it 'only splits into the specified number of pieces' do
       'tim,morgan,rocks'.split(/,/, 1).should == ['tim,morgan,rocks']
-      'tim,morgan,rocks'.split(/,/, 2).should == ['tim', 'morgan,rocks']
-      'tim,morgan,rocks'.split(',', 2).should == ['tim', 'morgan,rocks']
+      'tim,morgan,rocks'.split(/,/, 2).should == %w[tim morgan,rocks]
+      'tim,morgan,rocks'.split(',', 2).should == %w[tim morgan,rocks]
     end
   end
 

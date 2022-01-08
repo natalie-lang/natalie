@@ -14,7 +14,7 @@ describe 'object_id' do
       'p([:foo.object_id, :foo.object_id])' => /^\[([0-9]+), \1\]$/,
       'p([true.object_id, true.object_id])' => /^\[([0-9]+), \1\]$/,
       'p([false.object_id, false.object_id])' => /^\[([0-9]+), \1\]$/,
-      'p([nil.object_id, nil.object_id])' => /^\[([0-9]+), \1\]$/
+      'p([nil.object_id, nil.object_id])' => /^\[([0-9]+), \1\]$/,
     }
 
     before do
@@ -22,10 +22,6 @@ describe 'object_id' do
       expect($?).must_be :success?
     end
 
-    specify do
-      TESTS.values.each_with_index do |output_match, index|
-        expect(@output[index]).must_match(output_match)
-      end
-    end
+    specify { TESTS.values.each_with_index { |output_match, index| expect(@output[index]).must_match(output_match) } }
   end
 end

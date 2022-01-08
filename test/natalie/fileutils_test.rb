@@ -20,9 +20,7 @@ describe 'FileUtils' do
     end
 
     it 'does not error when given a non-existent path' do
-      -> {
-        FileUtils.rm_rf('path/to/absolutely/nothing')
-      }.should_not raise_error
+      -> { FileUtils.rm_rf('path/to/absolutely/nothing') }.should_not raise_error
     end
   end
 end

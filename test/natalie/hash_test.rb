@@ -47,13 +47,13 @@ describe 'hash' do
     end
 
     it 'returns a hash if given an array of pairs' do
-      h = Hash[ [ ['a', 100], ['b', 200], ['c'] ] ]
+      h = Hash[[['a', 100], ['b', 200], ['c']]]
       h.should == { 'a' => 100, 'b' => 200, 'c' => nil }
     end
 
     it 'raises an error if given an array of pairs where a pair has the wrong number of items' do
-      -> { Hash[ [ [] ] ] }.should raise_error(ArgumentError, 'invalid number of elements (0 for 1..2)')
-      -> { Hash[ [ [1, 2, 3] ] ] }.should raise_error(ArgumentError, 'invalid number of elements (3 for 1..2)')
+      -> { Hash[[[]]] }.should raise_error(ArgumentError, 'invalid number of elements (0 for 1..2)')
+      -> { Hash[[[1, 2, 3]]] }.should raise_error(ArgumentError, 'invalid number of elements (3 for 1..2)')
     end
 
     it 'raises an error if given an odd number of arguments' do
@@ -75,14 +75,14 @@ describe 'hash' do
 
   it 'can use any object as a key' do
     { 1 => 'val' }[1].should == 'val'
-    { :sym => 'val' }[:sym].should == 'val'
+    { sym: 'val' }[:sym].should == 'val'
     { 'str' => 'val' }['str'].should == 'val'
     key = Object.new
     { key => 'val' }[key].should == 'val'
   end
 
   it 'maintains insertion order' do
-    hash = { 1 => 1, 2 => 2, 3 => 3, 'four' => 4, five: 5 }
+    hash = { 1 => 1, 2 => 2, 3 => 3, 'four' => 4, :five => 5 }
     hash.inspect.should == '{1=>1, 2=>2, 3=>3, "four"=>4, :five=>5}'
     hash['six'] = 6
     hash.inspect.should == '{1=>1, 2=>2, 3=>3, "four"=>4, :five=>5, "six"=>6}'
@@ -113,9 +113,9 @@ describe 'hash' do
   it 'can be compared for equality' do
     {}.should == {}
     { 1 => 1 }.should == { 1 => 1 }
-    hash = { 1 => 'one', two: 2, 'three' => 3 }
+    hash = { 1 => 'one', :two => 2, 'three' => 3 }
     hash.should == hash
-    hash.should == { 1 => 'one', two: 2, 'three' => 3 }
+    hash.should == { 1 => 'one', :two => 2, 'three' => 3 }
     hash.delete(1)
     hash.delete(:two)
     hash.delete('three')
@@ -126,22 +126,22 @@ describe 'hash' do
     hash = { 1 => 'one', 2 => 'two', 3 => 'three' }
     keys = []
     vals = []
-    r = hash.each do |key, val|
-      keys << key
-      vals << val
-    end
+    r =
+      hash.each do |key, val|
+        keys << key
+        vals << val
+      end
     keys.should == [1, 2, 3]
-    vals.should == ['one', 'two', 'three']
+    vals.should == %w[one two three]
     r.should == hash
   end
 
   it 'raises an error when adding a new key while iterating' do
     hash = { 1 => 'one', 2 => 'two', 3 => 'three' }
-    -> {
-      hash.each do |key, val|
-        hash[4] = 'four'
-      end
-    }.should raise_error(RuntimeError, "can't add a new key into hash during iteration")
+    -> { hash.each { |key, val| hash[4] = 'four' } }.should raise_error(
+                                                              RuntimeError,
+                                                              "can't add a new key into hash during iteration",
+                                                            )
   end
 
   it 'an entry can be modified during iteration' do
@@ -175,7 +175,7 @@ describe 'hash' do
       hash.delete(1)
       vals << val
     end
-    vals.should == ['one', 'two', 'three']
+    vals.should == %w[one two three]
     hash.should == { 2 => 'two', 3 => 'three' }
     hash.size.should == 2
   end
@@ -187,7 +187,7 @@ describe 'hash' do
       hash.delete(2)
       vals << val
     end
-    vals.should == ['one', 'three']
+    vals.should == %w[one three]
     hash.should == { 1 => 'one', 3 => 'three' }
     hash.size.should == 2
   end
@@ -213,7 +213,7 @@ describe 'hash' do
 
   it 'can return its values' do
     hash = { 1 => 'one', 2 => 'two', 3 => 'three' }
-    hash.values.should == ['one', 'two', 'three']
+    hash.values.should == %w[one two three]
   end
 
   describe '#key?' do
@@ -276,7 +276,7 @@ describe 'hash' do
   end
 
   describe '#values_at' do
-    it "return default value of key not in hash" do
+    it 'return default value of key not in hash' do
       h = { a: 1, b: 2 }
       h.default = 3
       h.values_at(:a, :b, :c).should == [1, 2, 3]
@@ -284,7 +284,7 @@ describe 'hash' do
   end
 
   describe '#value?' do
-    it "work with falsey values" do
+    it 'work with falsey values' do
       h = { nil => :a }
       h.value?(:a).should == true
     end
@@ -293,9 +293,7 @@ describe 'hash' do
   describe '#each' do
     it 'can return without leaving the hash in a bad state' do
       def first_key(h)
-        h.each do |k, v|
-          return k
-        end
+        h.each { |k, v| return k }
       end
       hash = { a: 1 }
       first_key(hash)
@@ -303,16 +301,15 @@ describe 'hash' do
     end
 
     it 'can raise an exception without leaving the hash in a bad state' do
-      class IgnoreThisError < StandardError; end
+      class IgnoreThisError < StandardError
+      end
       def first_key(h)
-        h.each do |k, v|
-          raise IgnoreThisError
-        end
+        h.each { |k, v| raise IgnoreThisError }
       end
       hash = { a: 1 }
       begin
         first_key(hash)
-      rescue
+      rescue StandardError
       end
       -> { hash[:b] = 2 }.should_not raise_error
     end

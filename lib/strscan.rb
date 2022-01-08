@@ -1,5 +1,6 @@
 class StringScanner
-  class Error < StandardError; end
+  class Error < StandardError
+  end
 
   private def initialize(string)
     @string = string.to_str
@@ -15,15 +16,15 @@ class StringScanner
       '#<StringScanner fin>'
     else
       before = @pos == 0 ? nil : "#{@string[0...@pos].inspect} "
-      after = " #{@string[@pos...@pos+5].inspect[0..-2]}...\""
+      after = " #{@string[@pos...@pos + 5].inspect[0..-2]}...\""
       "#<StringScanner #{@pos}/#{@string.size} #{before}@#{after}>"
     end
   end
 
   def pos=(index)
     index = @string.size + index if index < 0
-    raise RangeError, "pos negative" if index < 0
-    raise RangeError, "pos too far" if index > @string.size
+    raise RangeError, 'pos negative' if index < 0
+    raise RangeError, 'pos too far' if index > @string.size
     @pos = index
   end
 
@@ -122,13 +123,13 @@ class StringScanner
       @match = nil
       @matched = nil
     else
-      raise ScanError, "no previous match"
+      raise ScanError, 'no previous match'
     end
   end
 
   def peek(length)
-    raise ArgumentError, "length is negative" if length < 0
-    @string.bytes[@pos...(@pos+length)].map(&:chr).join
+    raise ArgumentError, 'length is negative' if length < 0
+    @string.bytes[@pos...(@pos + length)].map(&:chr).join
   end
 
   alias peep peek
@@ -138,11 +139,7 @@ class StringScanner
     scan(pattern)
     distance = @pos - start
     @pos = start unless advance_pointer_p
-    if return_string_p
-      @matched
-    else
-      distance
-    end
+    return_string_p ? @matched : distance
   end
 
   alias search_full scan_full
@@ -191,9 +188,7 @@ class StringScanner
   end
 
   def pre_match
-    if @prev_pos
-      @string[0...@prev_pos]
-    end
+    @string[0...@prev_pos] if @prev_pos
   end
 
   def post_match
@@ -210,9 +205,7 @@ class StringScanner
   end
 
   def <<(str)
-    unless str.is_a?(String)
-      raise TypeError, 'cannot convert argument to string'
-    end
+    raise TypeError, 'cannot convert argument to string' unless str.is_a?(String)
     @string << str
     self
   end

@@ -54,9 +54,7 @@ end
 
 class Baz < Foo
   def foo
-    if true
-      super + ' baz'
-    end
+    super + ' baz' if true
   end
 end
 
@@ -68,7 +66,8 @@ describe 'class' do
   end
 end
 
-module M0; end
+module M0
+end
 
 module M1
   def m1
@@ -82,7 +81,8 @@ module M2
   end
 end
 
-module M3; end
+module M3
+end
 
 # reopen module
 module M1
@@ -177,9 +177,7 @@ class IvarTest
 
   def block_test
     result = []
-    [1].each do |i|
-      result << @z
-    end
+    [1].each { |i| result << @z }
     result
   end
 
@@ -330,10 +328,11 @@ describe 'alias' do
   AliasTest.new.baz.should == 'foo'
 end
 
-BrokenClass = Class.new do
-  1
-  break
-end
+BrokenClass =
+  Class.new do
+    1
+    break
+  end
 
 describe 'break inside new block' do
   it 'causes the returned value to be nil' do

@@ -6,7 +6,6 @@ require_relative 'suggestions'
 require_relative 'constants'
 
 module Natalie
-
   class StyledString
     def initialize(str, style)
       @str = str
@@ -24,14 +23,10 @@ module Natalie
 
   class GenericRepl
     def initialize(vars)
-      @highlighters = [
-        Natalie::KEYWORD_HIGHLIGHT,
-        Natalie::PASCAL_CASE_HIGLIGHT,
-        Natalie::CAMEL_CASE_HIGLIGHT,
-      ]
+      @highlighters = [Natalie::KEYWORD_HIGHLIGHT, Natalie::PASCAL_CASE_HIGLIGHT, Natalie::CAMEL_CASE_HIGLIGHT]
       @model = Natalie::ReplModel.new
       @suggestions = Natalie::SuggestionProvider.new(vars)
-      reset 
+      reset
     end
 
     def hello_natalie
@@ -46,9 +41,9 @@ module Natalie
     "
     end
 
-    def reset 
+    def reset
       @index = 0
-      @in = ""
+      @in = ''
       @hist_offset = 0
     end
 
@@ -65,7 +60,7 @@ module Natalie
     end
 
     def ps1
-      StyledString.new("nat>", "\u001b[32m")
+      StyledString.new('nat>', "\u001b[32m")
     end
 
     def tab
@@ -80,18 +75,19 @@ module Natalie
       echo "\u001B[u"
     end
 
-    def display 
+    def display
       input = @model.input
       input = Natalie::HighlightingRule.evaluate_all(@highlighters, input)
       input = @suggestions.suggest(input, @model.index)
-      return "#{ps1}#{input}" unless input && input != "" 
-      input.lines.each.with_index.map do |line, index|
-        if index == 0
-          "#{ps1} #{line}"
-        else
-          "\u001b[38;5;241m#{"%#{ps1.length}d" % (index + 1)}\u001b[0m #{line}"
+      return "#{ps1}#{input}" unless input && input != ''
+      input
+        .lines
+        .each
+        .with_index
+        .map do |line, index|
+          index == 0 ? "#{ps1} #{line}" : "\u001b[38;5;241m#{"%#{ps1.length}d" % (index + 1)}\u001b[0m #{line}"
         end
-      end.join
+        .join
     end
 
     def get_line
@@ -100,9 +96,7 @@ module Natalie
       echo "\u001b[0J" # Clear
       echo display
       reset_cursor
-      if row > 0
-          echo "\u001b[#{row}B"
-      end
+      echo "\u001b[#{row}B" if row > 0
 
       hor_shift = ps1.length + col + 1
       echo "\u001b[#{hor_shift}C"
@@ -117,7 +111,8 @@ module Natalie
         case c.ord
         when 32..126
           @model.append(c)
-        when 127 # backspace
+        when 127
+          # backspace
           @model.backspace
         when 10..13
           outcome = yield @model.input
@@ -132,7 +127,8 @@ module Natalie
           when :abort
             return nil
           end
-        when 27 # maybe left or right, we need to check the next 2 chars
+        when 27
+          # maybe left or right, we need to check the next 2 chars
           first = getch
           second = getch
           if first.ord == 91
@@ -146,14 +142,17 @@ module Natalie
               @model.go_left
             end
           end
-        when 9 # tab
+        when 9
+          # tab
           @model.append(tab)
-        when 3 # ctrl+c
-          return nil if @in == ""
+        when 3
+          # ctrl+c
+          return nil if @in == ''
           puts "\nPress ctrl+c again or ctrl+d anytime to quit"
-          save_cursor            
+          save_cursor
           @model.reset
-        when 4 # ctrl+d
+        when 4
+          # ctrl+d
           return nil
         else
           puts c.ord

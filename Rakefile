@@ -4,10 +4,10 @@ desc 'Build Natalie (same as build_debug)'
 task build: :build_debug
 
 desc 'Build Natalie with no optimization and all warnings (default)'
-task build_debug: [:set_build_debug, :libnatalie]
+task build_debug: %i[set_build_debug libnatalie]
 
 desc 'Build Natalie with release optimizations enabled and warnings off'
-task build_release: [:set_build_release, :libnatalie]
+task build_release: %i[set_build_release libnatalie]
 
 desc 'Remove temporary files created during build'
 task :clean do
@@ -56,15 +56,16 @@ task :todo do
 end
 
 desc 'Run clang-tidy'
-task tidy: [:build, :tidy_internal]
+task tidy: %i[build tidy_internal]
 
 # # # # Docker Tasks (used for CI) # # # #
 
-DOCKER_FLAGS = if !ENV['CI'] && STDOUT.isatty
-                 '-i -t'
-               elsif ENV['CI']
-                 "-e CI=#{ENV['CI']}"
-               end
+DOCKER_FLAGS =
+  if !ENV['CI'] && STDOUT.isatty
+    '-i -t'
+  elsif ENV['CI']
+    "-e CI=#{ENV['CI']}"
+  end
 
 task :docker_build do
   sh 'docker build -t natalie .'
@@ -82,7 +83,7 @@ task :docker_build_ruby27 do
   sh 'docker build -t natalie_ruby27 --build-arg IMAGE="ruby:2.7" .'
 end
 
-task docker_test: [:docker_test_gcc, :docker_test_clang, :docker_test_release, :docker_test_ruby27]
+task docker_test: %i[docker_test_gcc docker_test_clang docker_test_release docker_test_ruby27]
 
 task docker_test_gcc: :docker_build do
   sh "docker run #{DOCKER_FLAGS} --rm --entrypoint rake natalie test"
@@ -100,7 +101,6 @@ end
 task docker_test_ruby27: :docker_build_ruby27 do
   sh "docker run #{DOCKER_FLAGS} --rm --entrypoint rake natalie_ruby27 test"
 end
-
 
 # # # # Build Compile Database # # # #
 
@@ -124,7 +124,6 @@ else
   end
 end
 
-
 # # # # Internal Tasks and Rules # # # #
 
 STANDARD = 'c++17'
@@ -132,27 +131,32 @@ HEADERS = Rake::FileList['include/**/{*.h,*.hpp}']
 PRIMARY_SOURCES = Rake::FileList['src/**/*.{c,cpp}'].exclude('src/main.cpp', 'src/parser_c_ext/*')
 RUBY_SOURCES = Rake::FileList['src/**/*.rb'].exclude('**/extconf.rb')
 SPECIAL_SOURCES = Rake::FileList['build/generated/platform.cpp', 'build/generated/bindings.cpp']
-OBJECT_FILES = PRIMARY_SOURCES.pathmap('build/%f.o') +
-               RUBY_SOURCES.pathmap('build/generated/%f.o') +
-               SPECIAL_SOURCES.pathmap('%p.o')
+OBJECT_FILES =
+  PRIMARY_SOURCES.pathmap('build/%f.o') + RUBY_SOURCES.pathmap('build/generated/%f.o') + SPECIAL_SOURCES.pathmap('%p.o')
 
 require 'tempfile'
 
-task(:set_build_debug) { ENV['BUILD'] = 'debug'; File.write('.build', 'debug') }
-task(:set_build_release) { ENV['BUILD'] = 'release'; File.write('.build', 'release') }
+task(:set_build_debug) do
+  ENV['BUILD'] = 'debug'
+  File.write('.build', 'debug')
+end
+task(:set_build_release) do
+  ENV['BUILD'] = 'release'
+  File.write('.build', 'release')
+end
 
 task libnatalie: [
-  :update_submodules,
-  :bundle_install,
-  :build_dir,
-  'build/onigmo/lib/libonigmo.a',
-  'build/generated/numbers.rb',
-  :primary_sources,
-  :ruby_sources,
-  :special_sources,
-  'build/libnatalie.a',
-  :write_compile_database,
-]
+       :update_submodules,
+       :bundle_install,
+       :build_dir,
+       'build/onigmo/lib/libonigmo.a',
+       'build/generated/numbers.rb',
+       :primary_sources,
+       :ruby_sources,
+       :special_sources,
+       'build/libnatalie.a',
+       :write_compile_database,
+     ]
 
 task :build_dir do
   mkdir_p 'build/generated' unless File.exist?('build/generated')
@@ -162,14 +166,12 @@ multitask primary_sources: PRIMARY_SOURCES.pathmap('build/%f.o')
 multitask ruby_sources: RUBY_SOURCES.pathmap('build/generated/%f.o')
 multitask special_sources: SPECIAL_SOURCES.pathmap('build/generated/%f.o')
 
-file 'build/libnatalie.a' => ['build/libnatalie_base.a', 'build/onigmo/lib/libonigmo.a'] do |t|
+file 'build/libnatalie.a' => %w[build/libnatalie_base.a build/onigmo/lib/libonigmo.a] do |t|
   if RUBY_PLATFORM =~ /darwin/
     sh "libtool -static -o #{t.name} #{t.sources.join(' ')}"
   else
     ar_script = ["create #{t.name}"]
-    t.sources.each do |source|
-      ar_script << "addlib #{source}"
-    end
+    t.sources.each { |source| ar_script << "addlib #{source}" }
     ar_script << 'save'
     ENV['AR_SCRIPT'] = ar_script.join("\n")
     sh 'echo "$AR_SCRIPT" | ar -M'
@@ -194,16 +196,16 @@ file 'build/onigmo/lib/libonigmo.a' do
 end
 
 file 'build/generated/numbers.rb' do |t|
-  f1 = Tempfile.new(['numbers', '.cpp'])
+  f1 = Tempfile.new(%w[numbers .cpp])
   f2 = Tempfile.create('numbers')
   f2.close
   begin
-    f1.puts "#include <stdio.h>"
+    f1.puts '#include <stdio.h>'
     f1.puts "#include \"natalie/constants.hpp\""
-    f1.puts "int main() {"
+    f1.puts 'int main() {'
     f1.puts "  printf(\"NAT_MAX_FIXNUM = %lli\\n\", NAT_MAX_FIXNUM);"
     f1.puts "  printf(\"NAT_MIN_FIXNUM = %lli\\n\", NAT_MIN_FIXNUM);"
-    f1.puts "}"
+    f1.puts '}'
     f1.close
     sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -o #{f2.path} #{f1.path}"
     sh "#{f2.path} > #{t.name}"
@@ -264,62 +266,57 @@ task :tidy_internal do
 end
 
 task :bundle_install do
-  sh "bundle check || bundle install"
+  sh 'bundle check || bundle install'
 end
 
 task :update_submodules do
-  sh "git submodule update --init"
+  sh 'git submodule update --init'
 end
 
 def cc
-  @cc ||= if ENV['CC']
-    ENV['CC']
-  elsif system('which ccache 2>&1 > /dev/null')
-    'ccache cc'
-  else
-    'cc'
-  end
+  @cc ||=
+    if ENV['CC']
+      ENV['CC']
+    elsif system('which ccache 2>&1 > /dev/null')
+      'ccache cc'
+    else
+      'cc'
+    end
 end
 
 def cxx
-  @cxx ||= if ENV['CXX']
-    ENV['CXX']
-  elsif system('which ccache 2>&1 > /dev/null')
-    'ccache c++'
-  else
-    'c++'
-  end
+  @cxx ||=
+    if ENV['CXX']
+      ENV['CXX']
+    elsif system('which ccache 2>&1 > /dev/null')
+      'ccache c++'
+    else
+      'c++'
+    end
 end
 
 def cxx_flags
-  base_flags = case ENV['BUILD']
-  when 'release'
-    [
-      '-pthread',
-      '-fPIC',
-      '-g',
-      '-O2',
-    ]
-  else
-    [
-      '-pthread',
-      '-fPIC',
-      '-g',
-      '-Wall',
-      '-Wextra',
-      '-Werror',
-      '-Wno-unused-parameter',
-      '-Wno-unused-variable',
-      '-Wno-unused-but-set-variable',
-      '-Wno-unknown-warning-option',
-    ]
-  end
+  base_flags =
+    case ENV['BUILD']
+    when 'release'
+      %w[-pthread -fPIC -g -O2]
+    else
+      %w[
+        -pthread
+        -fPIC
+        -g
+        -Wall
+        -Wextra
+        -Werror
+        -Wno-unused-parameter
+        -Wno-unused-variable
+        -Wno-unused-but-set-variable
+        -Wno-unknown-warning-option
+      ]
+    end
   base_flags + include_paths.map { |path| "-I #{path}" }
 end
 
 def include_paths
-  [
-    File.expand_path('include', __dir__),
-    File.expand_path('build/onigmo/include', __dir__),
-  ]
+  [File.expand_path('include', __dir__), File.expand_path('build/onigmo/include', __dir__)]
 end

@@ -14,23 +14,17 @@ module Natalie
     ROOT_DIR = File.expand_path('../../', __dir__)
     BUILD_DIR = File.join(ROOT_DIR, 'build')
     SRC_PATH = File.join(ROOT_DIR, 'src')
-    INC_PATHS = [
-      File.join(ROOT_DIR, 'include'),
-      File.join(BUILD_DIR, 'onigmo/include'),
-    ]
-    LIB_PATHS = [
-      BUILD_DIR,
-    ]
-    LIBRARIES = %W[
-      -lnatalie
-    ]
+    INC_PATHS = [File.join(ROOT_DIR, 'include'), File.join(BUILD_DIR, 'onigmo/include')]
+    LIB_PATHS = [BUILD_DIR]
+    LIBRARIES = %W[-lnatalie]
 
     RB_LIB_PATH = File.expand_path('..', __dir__)
 
     MAIN_TEMPLATE = File.read(File.join(SRC_PATH, 'main.cpp'))
     OBJ_TEMPLATE = File.read(File.join(SRC_PATH, 'obj_unit.cpp'))
 
-    class CompileError < StandardError; end
+    class CompileError < StandardError
+    end
 
     def initialize(ast, path, options = {})
       @ast = ast
@@ -40,7 +34,17 @@ module Natalie
       @cxx_flags = []
     end
 
-    attr_accessor :ast, :write_obj_path, :repl, :repl_num, :out_path, :context, :vars, :options, :c_path, :inline_cpp_enabled, :cxx_flags
+    attr_accessor :ast,
+                  :write_obj_path,
+                  :repl,
+                  :repl_num,
+                  :out_path,
+                  :context,
+                  :vars,
+                  :options,
+                  :c_path,
+                  :inline_cpp_enabled,
+                  :cxx_flags
 
     attr_writer :load_path
 
@@ -134,11 +138,7 @@ module Natalie
         exit
       end
 
-      if interpret?
-        Pass4i.new(@context).go(ast)
-      else
-        Pass4.new(@context).go(ast)
-      end
+      interpret? ? Pass4i.new(@context).go(ast) : Pass4.new(@context).go(ast)
     end
 
     def instructions
@@ -181,7 +181,7 @@ module Natalie
         (shared? ? '-fPIC -shared' : ''),
         inc_paths,
         "-o #{out_path}",
-        "-x c++ -std=c++17",
+        '-x c++ -std=c++17',
         (@c_path || 'code.cpp'),
         LIB_PATHS.map { |path| "-L #{path}" }.join(' '),
         libraries.join(' '),
@@ -209,7 +209,8 @@ module Natalie
     end
 
     RELEASE_FLAGS = '-pthread -O1'
-    DEBUG_FLAGS = '-pthread -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unknown-warning-option'
+    DEBUG_FLAGS =
+      '-pthread -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unknown-warning-option'
     COVERAGE_FLAGS = '-fprofile-arcs -ftest-coverage'
 
     def build_flags
@@ -221,11 +222,7 @@ module Natalie
     end
 
     def unnecessary_link_flags
-      if RUBY_PLATFORM =~ /openbsd/
-        ['-ldl']
-      else
-        []
-      end
+      RUBY_PLATFORM =~ /openbsd/ ? ['-ldl'] : []
     end
 
     def base_build_flags
@@ -256,23 +253,20 @@ module Natalie
     end
 
     def template
-      if write_obj_path
-        OBJ_TEMPLATE.sub(/init_obj/, "init_obj_#{obj_name}")
-      else
-        MAIN_TEMPLATE
-      end
+      write_obj_path ? OBJ_TEMPLATE.sub(/init_obj/, "init_obj_#{obj_name}") : MAIN_TEMPLATE
     end
 
     def expand_macros(ast, path)
       ast.each_with_index do |node, i|
         next unless node.is_a?(Sexp)
-        expanded = if macro?(node)
-          run_macro(node, path)
-        elsif node.size > 1
-          s(node[0], *expand_macros(node[1..-1], path))
-        else
-          node
-        end
+        expanded =
+          if macro?(node)
+            run_macro(node, path)
+          elsif node.size > 1
+            s(node[0], *expand_macros(node[1..-1], path))
+          else
+            node
+          end
         next if expanded === node
         ast[i] = expanded
       end
@@ -286,7 +280,7 @@ module Natalie
     end
 
     def run_macro(expr, current_path)
-      (_, _, macro, *args) = expr
+      _, _, macro, *args = expr
       send("macro_#{macro}", args: args, current_path: current_path)
     end
 
@@ -323,19 +317,17 @@ module Natalie
       raise ArgumentError, "Expected a String, but got #{node.inspect}" unless node.sexp_type == :str
       path = node.last
       full_path = find_full_path(path, base: Dir.pwd, search: true)
-      if full_path
-        return load_file(full_path, require_once: false)
-      end
+      return load_file(full_path, require_once: false) if full_path
       drop_load_error "cannot load such file -- #{path}"
     end
 
     def macro_eval(args:, current_path:)
       node = args.first
-      $stderr.puts "FIXME: binding passed to eval() will be ignored." if args.size > 1
+      $stderr.puts 'FIXME: binding passed to eval() will be ignored.' if args.size > 1
       if node.sexp_type == :str
         Natalie::Parser.new(node[1], current_path).ast
       else
-        s(:call, nil, :raise, s(:const, :SyntaxError), s(:str, "eval() only works on static strings"))
+        s(:call, nil, :raise, s(:const, :SyntaxError), s(:str, 'eval() only works on static strings'))
       end
     end
 
@@ -349,40 +341,39 @@ module Natalie
 
     def drop_load_error(msg)
       STDERR.puts load_error_msg if log_load_error
-      s(:block,
-        s(:call,
-          nil,
-          :raise,
-          s(:call,
-            s(:const, :LoadError),
-            :new,
-            s(:str, msg))))
+      s(:block, s(:call, nil, :raise, s(:call, s(:const, :LoadError), :new, s(:str, msg))))
     end
 
     def load_file(path, require_once:)
       code = File.read(path)
       file_ast = Natalie::Parser.new(code, path).ast
       path_h = path.hash.to_s # the only point of this is to obscure the paths of the host system where natalie is run
-      s(:block, s(:if, 
-        if require_once
-          s(:call,
-            s(:call,
-             s(:op_asgn_or, s(:gvar, :$NAT_LOADED_PATHS), s(:gasgn, :$NAT_LOADED_PATHS, s(:hash))),
-             :[],
-             s(:str, path_h)),
-            :!)
-        else
-          s(:true)
-        end, 
-        s(:block,
-          expand_macros(file_ast, path), 
+      s(
+        :block,
+        s(
+          :if,
           if require_once
-            s(:attrasgn, s(:gvar, :$NAT_LOADED_PATHS), :[]=, s(:str, path_h), s(:true))
+            s(
+              :call,
+              s(
+                :call,
+                s(:op_asgn_or, s(:gvar, :$NAT_LOADED_PATHS), s(:gasgn, :$NAT_LOADED_PATHS, s(:hash))),
+                :[],
+                s(:str, path_h),
+              ),
+              :!,
+            )
           else
             s(:true)
           end,
+          s(
+            :block,
+            expand_macros(file_ast, path),
+            require_once ? s(:attrasgn, s(:gvar, :$NAT_LOADED_PATHS), :[]=, s(:str, path_h), s(:true)) : s(:true),
+          ),
+          s(:false),
         ),
-        s(:false)))
+      )
     end
 
     def find_full_path(path, base:, search:)

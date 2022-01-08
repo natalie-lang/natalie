@@ -8,7 +8,7 @@ module Natalie
         super
         @env = {
           # pre-existing vars from the REPL are passed in here
-          vars: @compiler_context[:vars]
+          vars: @compiler_context[:vars],
         }
       end
 
@@ -20,14 +20,16 @@ module Natalie
         body = process_sexp(exp)
         var_count = @env[:vars].size # FIXME: this is overkill -- there are variables not captured in this count, i.e. "holes" in the array :-(
         to_declare = @env[:vars].values.select { |v| !v[:captured] }
-        exp.new(:block,
-                repl? ? s(:block) : s(:var_alloc, var_count),
-                *to_declare.map { |v| s(:declare, "#{@compiler_context[:var_prefix]}#{v[:name]}#{v[:var_num]}", s(:nil)) },
-                body)
+        exp.new(
+          :block,
+          repl? ? s(:block) : s(:var_alloc, var_count),
+          *to_declare.map { |v| s(:declare, "#{@compiler_context[:var_prefix]}#{v[:name]}#{v[:var_num]}", s(:nil)) },
+          body,
+        )
       end
 
       def process_block_fn(exp)
-        (sexp_type, name, body) = exp
+        sexp_type, name, body = exp
         is_block = %i[block_fn begin_fn].include?(sexp_type)
         should_hoist = sexp_type == :begin_fn
         @env = { parent: @env, vars: {}, block: is_block, hoist: should_hoist }
@@ -41,11 +43,11 @@ module Natalie
       alias process_module_fn process_block_fn
 
       def process_defined(exp)
-        (_, name) = exp
+        _, name = exp
         if name.sexp_type == :lvar && find_var(name.last.to_s)
           exp.new(:new, :StringObject, s(:s, 'local-variable'))
-        elsif [:send, :public_send].include?(name.sexp_type)
-          (sexp, obj, sym, (_, *args), block) = exp
+        elsif %i[send public_send].include?(name.sexp_type)
+          sexp, obj, sym, (_, *args), block = exp
           exp.new(sexp, process(obj), sym, s(:args, *args.map { |a| process(a) }), block)
         else
           exp
@@ -53,11 +55,11 @@ module Natalie
       end
 
       def process_arg_set(exp)
-        (_, _, name, value) = exp
+        _, _, name, value = exp
         raise "bad name: #{name.inspect}" unless name.is_a?(Sexp) && name.sexp_type == :s
         name = name.last.to_s
         bare_name = name.sub(/^[\*\&]/, '')
-        (env_name, var) = declare_var(bare_name)
+        env_name, var = declare_var(bare_name)
         value = value ? process_atom(value) : s(:nil)
         exp.new(:var_set, env_name, var, repl?, value)
       end
@@ -69,33 +71,29 @@ module Natalie
       # when using a REPL, variables are mistaken for method calls
       def process_send(exp)
         return process_sexp(exp) unless repl?
-        (_, receiver, (_, name), *args) = exp
+        _, receiver, (_, name), *args = exp
         return process_sexp(exp) unless receiver == :self && args.last == 'nullptr'
-        if find_var(name.to_s)
-          process_var_get(exp.new(:var_get, :env, s(:s, name)))
-        else
-          process_sexp(exp)
-        end
+        find_var(name.to_s) ? process_var_get(exp.new(:var_get, :env, s(:s, name))) : process_sexp(exp)
       end
 
       def process_var_declare(exp)
-        (_, _, name) = exp
+        _, _, name = exp
         raise "bad name: #{name.inspect}" unless name.is_a?(Sexp) && name.sexp_type == :s
         name = name.last.to_s
-        (env_name, var) = find_var(name)
+        env_name, var = find_var(name)
         if var
           exp.new(:var_get, env_name, var)
         else
-          (env_name, var) = declare_var(name)
+          env_name, var = declare_var(name)
           exp.new(:var_set, env_name, var, repl?, s(:nil))
         end
       end
 
       def process_var_get(exp)
-        (_, _, name) = exp
+        _, _, name = exp
         raise "bad name: #{name.inspect}" unless name.is_a?(Sexp) && name.sexp_type == :s
         name = name.last.to_s
-        (env_name, var) = find_var(name)
+        env_name, var = find_var(name)
         unless var
           puts "Compile Error: undefined local variable `#{name}'"
           puts "#{exp.file}##{exp.line}"
@@ -105,11 +103,11 @@ module Natalie
       end
 
       def process_var_set(exp)
-        (_, _, name, value) = exp
+        _, _, name, value = exp
         raise "bad name: #{name.inspect}" unless name.is_a?(Sexp) && name.sexp_type == :s
         name = name.last.to_s
         bare_name = name.sub(/^[\*\&]/, '')
-        (env_name, var) = find_var(bare_name) || declare_var(bare_name)
+        env_name, var = find_var(bare_name) || declare_var(bare_name)
         value = value ? process_atom(value) : s(:nil)
         exp.new(:var_set, env_name, var, repl?, value)
       end

@@ -8,8 +8,7 @@ def double(x)
   x * 2
 end
 
-def mul(x, y,
-        z)
+def mul(x, y, z)
   x * y * z
 end
 
@@ -114,16 +113,17 @@ describe 'method' do
 
   it 'raises an error when there are too many arguments' do
     -> { double(1, 2) }.should raise_error(ArgumentError, 'wrong number of arguments (given 2, expected 1)')
-    -> { default_after_regular(1, 2, 3) }.should raise_error(ArgumentError, 'wrong number of arguments (given 3, expected 1..2)')
+    -> { default_after_regular(1, 2, 3) }.should raise_error(
+                                                   ArgumentError,
+                                                   'wrong number of arguments (given 3, expected 1..2)',
+                                                 )
   end
 
   it 'can receive and yield to a block' do
     r = block_test { 1 }
     r.should == 1
     x = 2
-    r = block_test do
-      x
-    end
+    r = block_test { x }
     r.should == 2
   end
 
@@ -151,22 +151,16 @@ describe 'method' do
   xit 'can call super with a block arg' do
     t = BlockPassTest.new
     it_worked = false
-    t.yield_to_block do
-      it_worked = true
-    end
+    t.yield_to_block { it_worked = true }
     it_worked.should == true
   end
 
   it 'can yield args to a block' do
     r = block_with_args_test { |x, y, z| [x, y, z] }
     r.should == [1, 2, 3]
-    r = block_with_args_test2 do |x, y, z|
-      [x, y, z]
-    end
+    r = block_with_args_test2 { |x, y, z| [x, y, z] }
     r.should == [4, 5, nil]
-    r = block_with_args_test2 do |x|
-      [x]
-    end
+    r = block_with_args_test2 { |x| [x] }
     r.should == [4]
   end
 
@@ -195,7 +189,7 @@ describe 'method' do
     only_default_with_splat_last(1).should == [1, []]
     default_calling_another_method.should == 1
     default_calling_another_method2.should == 2
-    default_nils().should == [nil, nil]
+    default_nils.should == [nil, nil]
     default_nils(1).should == [1, nil]
     default_nils(1, 2).should == [1, 2]
   end
@@ -281,9 +275,7 @@ describe 'method' do
   end
 
   def method_name_from_block
-    [1].map do
-      __method__
-    end
+    [1].map { __method__ }
   end
 
   it 'knows its own name' do
@@ -437,14 +429,14 @@ describe 'method with keyword args' do
     method_with_kwargs4(1, b: 2, c: 3).should == [1, 2, 3]
     method_with_kwargs4(1, c: 3).should == [1, 'b', 3]
     method_with_kwargs5({ z: 1 }).should == [{ z: 1 }, 'b']
-    method_with_kwargs6.should == ['a', 'b']
+    method_with_kwargs6.should == %w[a b]
     method_with_kwargs6(a: 1).should == [1, 'b']
     method_with_kwargs6(a: 1, b: 2).should == [1, 2]
     method_with_kwargs8(a: 1).should == [1, nil]
     method_with_kwargs9.should == [1, 2]
     method_with_kwargs9('a').should == ['a', 2]
     method_with_kwargs9(b: 'b').should == [1, 'b']
-    method_with_kwargs9('a', b: 'b').should == ['a', 'b']
+    method_with_kwargs9('a', b: 'b').should == %w[a b]
     method_with_kwargs10(b: 'b').should == [1]
     method_with_kwargs11(a: 'a', b: 'b').should == ['a', { b: 'b' }]
     method_with_kwargs12(1, 2).should == [[1, 2], nil]
@@ -452,24 +444,31 @@ describe 'method with keyword args' do
   end
 
   xit 'raises an error when there are too many positional arguments' do
-    -> { method_with_kwargs1(1, 2, b: 3) }.should raise_error(ArgumentError, 'wrong number of arguments (given 2, expected 1; required keyword: b)')
+    -> { method_with_kwargs1(1, 2, b: 3) }.should raise_error(
+                                                    ArgumentError,
+                                                    'wrong number of arguments (given 2, expected 1; required keyword: b)',
+                                                  )
   end
 
   it 'raises an error when a required keyword argument is not supplied' do
-    -> { method_with_kwargs7 }.should raise_error(ArgumentError, "missing keyword: :a")
+    -> { method_with_kwargs7 }.should raise_error(ArgumentError, 'missing keyword: :a')
   end
 
   xit 'raises an error when an extra keyword argument is supplied' do
-    -> { method_with_kwargs6(a: 1, b: 2, c: 3) }.should raise_error(ArgumentError, "unknown keyword: :c")
+    -> { method_with_kwargs6(a: 1, b: 2, c: 3) }.should raise_error(ArgumentError, 'unknown keyword: :c')
   end
 
   it 'raises an error when the method is not defined' do
-    class Foo; end
+    class Foo
+    end
     -> { Foo.new.not_a_method }.should raise_error(NoMethodError, /undefined method `not_a_method' for #<Foo:0x.+>/)
   end
 
   it 'does not loop infinitely when trying to call inspect on BasicObject' do
-    -> { BasicObject.new.inspect }.should raise_error(NoMethodError, /undefined method `inspect' for #<BasicObject:0x.+>/)
+    -> { BasicObject.new.inspect }.should raise_error(
+                                            NoMethodError,
+                                            /undefined method `inspect' for #<BasicObject:0x.+>/,
+                                          )
   end
 end
 
@@ -484,14 +483,11 @@ describe 'safe navigation operator' do
   end
 end
 
-def splat(*args)
-end
+def splat(*args); end
 
-def splat_after_required(a, *args)
-end
+def splat_after_required(a, *args); end
 
-def splat_before_required(*args, a)
-end
+def splat_before_required(*args, a); end
 
 describe 'Method' do
   describe '#arity' do
@@ -528,10 +524,6 @@ describe 'method taking a block as a proc' do
   end
 
   var = 1
-  result = method1 do
-    method2 do
-      var
-    end
-  end
+  result = method1 { method2 { var } }
   result.should == 1
 end

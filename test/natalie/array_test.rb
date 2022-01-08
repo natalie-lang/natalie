@@ -54,10 +54,10 @@ describe 'array' do
       ([2] <=> [1]).should == 1
       ([1, 2] <=> [1]).should == 1
       ([1] <=> [1, 2]).should == -1
-      (['a', 'b', 'c'] <=> ['a', 'b', 'c']).should == 0
-      (['a', 'b'] <=> ['a', 'b', 'c']).should == -1
-      (['a', 'b', 'c'] <=> ['a', 'b']).should == 1
-      (['a', 'b', 'C'] <=> ['a', 'b', 'c']).should == -1
+      (%w[a b c] <=> %w[a b c]).should == 0
+      (%w[a b] <=> %w[a b c]).should == -1
+      (%w[a b c] <=> %w[a b]).should == 1
+      (%w[a b C] <=> %w[a b c]).should == -1
     end
 
     it 'raises TypeError if #to_ary returns a non-array' do
@@ -66,7 +66,7 @@ describe 'array' do
         :sym
       end
 
-      ->{ [] <=> x }.should raise_error(TypeError, "can't convert Object to Array (Object#to_ary gives Symbol)")
+      -> { [] <=> x }.should raise_error(TypeError, "can't convert Object to Array (Object#to_ary gives Symbol)")
     end
   end
 
@@ -86,7 +86,7 @@ describe 'array' do
         :sym
       end
 
-      ->{ [x].flatten }.should raise_error(TypeError, "can't convert Object to Array (Object#to_ary gives Symbol)")
+      -> { [x].flatten }.should raise_error(TypeError, "can't convert Object to Array (Object#to_ary gives Symbol)")
     end
 
     it 'keeps elements returning nil from #to_ary' do
@@ -111,218 +111,218 @@ describe 'array' do
   describe 'permutation' do
     it 'returns all non-repeating permutations of the array' do
       a = [1, 2, 3]
-      a.permutation.to_a.should == [[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]
-      a.permutation(1).to_a.should == [[1],[2],[3]]
-      a.permutation(2).to_a.should == [[1,2],[1,3],[2,1],[2,3],[3,1],[3,2]]
-      a.permutation(3).to_a.should == [[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]
+      a.permutation.to_a.should == [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
+      a.permutation(1).to_a.should == [[1], [2], [3]]
+      a.permutation(2).to_a.should == [[1, 2], [1, 3], [2, 1], [2, 3], [3, 1], [3, 2]]
+      a.permutation(3).to_a.should == [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1]]
       a.permutation(0).to_a.should == [[]] # one permutation of length 0
-      a.permutation(4).to_a.should == []   # no permutations of length 4
+      a.permutation(4).to_a.should == [] # no permutations of length 4
       a = ('a'..'e').to_a
       a.permutation(2).to_a.should == [
-        ["a", "b"],
-        ["a", "c"],
-        ["a", "d"],
-        ["a", "e"],
-        ["b", "a"],
-        ["b", "c"],
-        ["b", "d"],
-        ["b", "e"],
-        ["c", "a"],
-        ["c", "b"],
-        ["c", "d"],
-        ["c", "e"],
-        ["d", "a"],
-        ["d", "b"],
-        ["d", "c"],
-        ["d", "e"],
-        ["e", "a"],
-        ["e", "b"],
-        ["e", "c"],
-        ["e", "d"]
+        %w[a b],
+        %w[a c],
+        %w[a d],
+        %w[a e],
+        %w[b a],
+        %w[b c],
+        %w[b d],
+        %w[b e],
+        %w[c a],
+        %w[c b],
+        %w[c d],
+        %w[c e],
+        %w[d a],
+        %w[d b],
+        %w[d c],
+        %w[d e],
+        %w[e a],
+        %w[e b],
+        %w[e c],
+        %w[e d],
       ]
       a.permutation(3).to_a.should == [
-        ["a", "b", "c"],
-        ["a", "b", "d"],
-        ["a", "b", "e"],
-        ["a", "c", "b"],
-        ["a", "c", "d"],
-        ["a", "c", "e"],
-        ["a", "d", "b"],
-        ["a", "d", "c"],
-        ["a", "d", "e"],
-        ["a", "e", "b"],
-        ["a", "e", "c"],
-        ["a", "e", "d"],
-        ["b", "a", "c"],
-        ["b", "a", "d"],
-        ["b", "a", "e"],
-        ["b", "c", "a"],
-        ["b", "c", "d"],
-        ["b", "c", "e"],
-        ["b", "d", "a"],
-        ["b", "d", "c"],
-        ["b", "d", "e"],
-        ["b", "e", "a"],
-        ["b", "e", "c"],
-        ["b", "e", "d"],
-        ["c", "a", "b"],
-        ["c", "a", "d"],
-        ["c", "a", "e"],
-        ["c", "b", "a"],
-        ["c", "b", "d"],
-        ["c", "b", "e"],
-        ["c", "d", "a"],
-        ["c", "d", "b"],
-        ["c", "d", "e"],
-        ["c", "e", "a"],
-        ["c", "e", "b"],
-        ["c", "e", "d"],
-        ["d", "a", "b"],
-        ["d", "a", "c"],
-        ["d", "a", "e"],
-        ["d", "b", "a"],
-        ["d", "b", "c"],
-        ["d", "b", "e"],
-        ["d", "c", "a"],
-        ["d", "c", "b"],
-        ["d", "c", "e"],
-        ["d", "e", "a"],
-        ["d", "e", "b"],
-        ["d", "e", "c"],
-        ["e", "a", "b"],
-        ["e", "a", "c"],
-        ["e", "a", "d"],
-        ["e", "b", "a"],
-        ["e", "b", "c"],
-        ["e", "b", "d"],
-        ["e", "c", "a"],
-        ["e", "c", "b"],
-        ["e", "c", "d"],
-        ["e", "d", "a"],
-        ["e", "d", "b"],
-        ["e", "d", "c"]
+        %w[a b c],
+        %w[a b d],
+        %w[a b e],
+        %w[a c b],
+        %w[a c d],
+        %w[a c e],
+        %w[a d b],
+        %w[a d c],
+        %w[a d e],
+        %w[a e b],
+        %w[a e c],
+        %w[a e d],
+        %w[b a c],
+        %w[b a d],
+        %w[b a e],
+        %w[b c a],
+        %w[b c d],
+        %w[b c e],
+        %w[b d a],
+        %w[b d c],
+        %w[b d e],
+        %w[b e a],
+        %w[b e c],
+        %w[b e d],
+        %w[c a b],
+        %w[c a d],
+        %w[c a e],
+        %w[c b a],
+        %w[c b d],
+        %w[c b e],
+        %w[c d a],
+        %w[c d b],
+        %w[c d e],
+        %w[c e a],
+        %w[c e b],
+        %w[c e d],
+        %w[d a b],
+        %w[d a c],
+        %w[d a e],
+        %w[d b a],
+        %w[d b c],
+        %w[d b e],
+        %w[d c a],
+        %w[d c b],
+        %w[d c e],
+        %w[d e a],
+        %w[d e b],
+        %w[d e c],
+        %w[e a b],
+        %w[e a c],
+        %w[e a d],
+        %w[e b a],
+        %w[e b c],
+        %w[e b d],
+        %w[e c a],
+        %w[e c b],
+        %w[e c d],
+        %w[e d a],
+        %w[e d b],
+        %w[e d c],
       ]
       a.permutation(5).to_a.should == [
-        ["a", "b", "c", "d", "e"],
-        ["a", "b", "c", "e", "d"],
-        ["a", "b", "d", "c", "e"],
-        ["a", "b", "d", "e", "c"],
-        ["a", "b", "e", "c", "d"],
-        ["a", "b", "e", "d", "c"],
-        ["a", "c", "b", "d", "e"],
-        ["a", "c", "b", "e", "d"],
-        ["a", "c", "d", "b", "e"],
-        ["a", "c", "d", "e", "b"],
-        ["a", "c", "e", "b", "d"],
-        ["a", "c", "e", "d", "b"],
-        ["a", "d", "b", "c", "e"],
-        ["a", "d", "b", "e", "c"],
-        ["a", "d", "c", "b", "e"],
-        ["a", "d", "c", "e", "b"],
-        ["a", "d", "e", "b", "c"],
-        ["a", "d", "e", "c", "b"],
-        ["a", "e", "b", "c", "d"],
-        ["a", "e", "b", "d", "c"],
-        ["a", "e", "c", "b", "d"],
-        ["a", "e", "c", "d", "b"],
-        ["a", "e", "d", "b", "c"],
-        ["a", "e", "d", "c", "b"],
-        ["b", "a", "c", "d", "e"],
-        ["b", "a", "c", "e", "d"],
-        ["b", "a", "d", "c", "e"],
-        ["b", "a", "d", "e", "c"],
-        ["b", "a", "e", "c", "d"],
-        ["b", "a", "e", "d", "c"],
-        ["b", "c", "a", "d", "e"],
-        ["b", "c", "a", "e", "d"],
-        ["b", "c", "d", "a", "e"],
-        ["b", "c", "d", "e", "a"],
-        ["b", "c", "e", "a", "d"],
-        ["b", "c", "e", "d", "a"],
-        ["b", "d", "a", "c", "e"],
-        ["b", "d", "a", "e", "c"],
-        ["b", "d", "c", "a", "e"],
-        ["b", "d", "c", "e", "a"],
-        ["b", "d", "e", "a", "c"],
-        ["b", "d", "e", "c", "a"],
-        ["b", "e", "a", "c", "d"],
-        ["b", "e", "a", "d", "c"],
-        ["b", "e", "c", "a", "d"],
-        ["b", "e", "c", "d", "a"],
-        ["b", "e", "d", "a", "c"],
-        ["b", "e", "d", "c", "a"],
-        ["c", "a", "b", "d", "e"],
-        ["c", "a", "b", "e", "d"],
-        ["c", "a", "d", "b", "e"],
-        ["c", "a", "d", "e", "b"],
-        ["c", "a", "e", "b", "d"],
-        ["c", "a", "e", "d", "b"],
-        ["c", "b", "a", "d", "e"],
-        ["c", "b", "a", "e", "d"],
-        ["c", "b", "d", "a", "e"],
-        ["c", "b", "d", "e", "a"],
-        ["c", "b", "e", "a", "d"],
-        ["c", "b", "e", "d", "a"],
-        ["c", "d", "a", "b", "e"],
-        ["c", "d", "a", "e", "b"],
-        ["c", "d", "b", "a", "e"],
-        ["c", "d", "b", "e", "a"],
-        ["c", "d", "e", "a", "b"],
-        ["c", "d", "e", "b", "a"],
-        ["c", "e", "a", "b", "d"],
-        ["c", "e", "a", "d", "b"],
-        ["c", "e", "b", "a", "d"],
-        ["c", "e", "b", "d", "a"],
-        ["c", "e", "d", "a", "b"],
-        ["c", "e", "d", "b", "a"],
-        ["d", "a", "b", "c", "e"],
-        ["d", "a", "b", "e", "c"],
-        ["d", "a", "c", "b", "e"],
-        ["d", "a", "c", "e", "b"],
-        ["d", "a", "e", "b", "c"],
-        ["d", "a", "e", "c", "b"],
-        ["d", "b", "a", "c", "e"],
-        ["d", "b", "a", "e", "c"],
-        ["d", "b", "c", "a", "e"],
-        ["d", "b", "c", "e", "a"],
-        ["d", "b", "e", "a", "c"],
-        ["d", "b", "e", "c", "a"],
-        ["d", "c", "a", "b", "e"],
-        ["d", "c", "a", "e", "b"],
-        ["d", "c", "b", "a", "e"],
-        ["d", "c", "b", "e", "a"],
-        ["d", "c", "e", "a", "b"],
-        ["d", "c", "e", "b", "a"],
-        ["d", "e", "a", "b", "c"],
-        ["d", "e", "a", "c", "b"],
-        ["d", "e", "b", "a", "c"],
-        ["d", "e", "b", "c", "a"],
-        ["d", "e", "c", "a", "b"],
-        ["d", "e", "c", "b", "a"],
-        ["e", "a", "b", "c", "d"],
-        ["e", "a", "b", "d", "c"],
-        ["e", "a", "c", "b", "d"],
-        ["e", "a", "c", "d", "b"],
-        ["e", "a", "d", "b", "c"],
-        ["e", "a", "d", "c", "b"],
-        ["e", "b", "a", "c", "d"],
-        ["e", "b", "a", "d", "c"],
-        ["e", "b", "c", "a", "d"],
-        ["e", "b", "c", "d", "a"],
-        ["e", "b", "d", "a", "c"],
-        ["e", "b", "d", "c", "a"],
-        ["e", "c", "a", "b", "d"],
-        ["e", "c", "a", "d", "b"],
-        ["e", "c", "b", "a", "d"],
-        ["e", "c", "b", "d", "a"],
-        ["e", "c", "d", "a", "b"],
-        ["e", "c", "d", "b", "a"],
-        ["e", "d", "a", "b", "c"],
-        ["e", "d", "a", "c", "b"],
-        ["e", "d", "b", "a", "c"],
-        ["e", "d", "b", "c", "a"],
-        ["e", "d", "c", "a", "b"],
-        ["e", "d", "c", "b", "a"]
+        %w[a b c d e],
+        %w[a b c e d],
+        %w[a b d c e],
+        %w[a b d e c],
+        %w[a b e c d],
+        %w[a b e d c],
+        %w[a c b d e],
+        %w[a c b e d],
+        %w[a c d b e],
+        %w[a c d e b],
+        %w[a c e b d],
+        %w[a c e d b],
+        %w[a d b c e],
+        %w[a d b e c],
+        %w[a d c b e],
+        %w[a d c e b],
+        %w[a d e b c],
+        %w[a d e c b],
+        %w[a e b c d],
+        %w[a e b d c],
+        %w[a e c b d],
+        %w[a e c d b],
+        %w[a e d b c],
+        %w[a e d c b],
+        %w[b a c d e],
+        %w[b a c e d],
+        %w[b a d c e],
+        %w[b a d e c],
+        %w[b a e c d],
+        %w[b a e d c],
+        %w[b c a d e],
+        %w[b c a e d],
+        %w[b c d a e],
+        %w[b c d e a],
+        %w[b c e a d],
+        %w[b c e d a],
+        %w[b d a c e],
+        %w[b d a e c],
+        %w[b d c a e],
+        %w[b d c e a],
+        %w[b d e a c],
+        %w[b d e c a],
+        %w[b e a c d],
+        %w[b e a d c],
+        %w[b e c a d],
+        %w[b e c d a],
+        %w[b e d a c],
+        %w[b e d c a],
+        %w[c a b d e],
+        %w[c a b e d],
+        %w[c a d b e],
+        %w[c a d e b],
+        %w[c a e b d],
+        %w[c a e d b],
+        %w[c b a d e],
+        %w[c b a e d],
+        %w[c b d a e],
+        %w[c b d e a],
+        %w[c b e a d],
+        %w[c b e d a],
+        %w[c d a b e],
+        %w[c d a e b],
+        %w[c d b a e],
+        %w[c d b e a],
+        %w[c d e a b],
+        %w[c d e b a],
+        %w[c e a b d],
+        %w[c e a d b],
+        %w[c e b a d],
+        %w[c e b d a],
+        %w[c e d a b],
+        %w[c e d b a],
+        %w[d a b c e],
+        %w[d a b e c],
+        %w[d a c b e],
+        %w[d a c e b],
+        %w[d a e b c],
+        %w[d a e c b],
+        %w[d b a c e],
+        %w[d b a e c],
+        %w[d b c a e],
+        %w[d b c e a],
+        %w[d b e a c],
+        %w[d b e c a],
+        %w[d c a b e],
+        %w[d c a e b],
+        %w[d c b a e],
+        %w[d c b e a],
+        %w[d c e a b],
+        %w[d c e b a],
+        %w[d e a b c],
+        %w[d e a c b],
+        %w[d e b a c],
+        %w[d e b c a],
+        %w[d e c a b],
+        %w[d e c b a],
+        %w[e a b c d],
+        %w[e a b d c],
+        %w[e a c b d],
+        %w[e a c d b],
+        %w[e a d b c],
+        %w[e a d c b],
+        %w[e b a c d],
+        %w[e b a d c],
+        %w[e b c a d],
+        %w[e b c d a],
+        %w[e b d a c],
+        %w[e b d c a],
+        %w[e c a b d],
+        %w[e c a d b],
+        %w[e c b a d],
+        %w[e c b d a],
+        %w[e c d a b],
+        %w[e c d b a],
+        %w[e d a b c],
+        %w[e d a c b],
+        %w[e d b a c],
+        %w[e d b c a],
+        %w[e d c a b],
+        %w[e d c b a],
       ]
     end
   end
@@ -349,23 +349,23 @@ describe 'array' do
     end
 
     it 'returns an array filled with the given value and given length' do
-      Array.new(5, :foo).should == [:foo, :foo, :foo, :foo, :foo]
+      Array.new(5, :foo).should == %i[foo foo foo foo foo]
     end
 
-    it "handles block correctly" do
+    it 'handles block correctly' do
       Array.new(2) { |i| i }.should == [0, 1]
     end
   end
 
   describe '#inspect' do
     it 'returns the syntax representation' do
-      [1, 2, 3].inspect.should == "[1, 2, 3]"
+      [1, 2, 3].inspect.should == '[1, 2, 3]'
     end
   end
 
   describe '#to_s' do
     it 'returns the syntax representation' do
-      [1, 2, 3].to_s.should == "[1, 2, 3]"
+      [1, 2, 3].to_s.should == '[1, 2, 3]'
     end
   end
 
@@ -435,7 +435,7 @@ describe 'array' do
   describe '#intersection' do
     it 'should give a copy of self when no arguments given' do
       a = [1, 2, 3]
-      b = a.intersection()
+      b = a.intersection
       a.should == b
       a.should_not equal(b)
     end
@@ -510,7 +510,6 @@ describe 'array' do
       b[-0..100].should == []
       b[1..100].should == nil
       b[-1..100].should == nil
-
     end
 
     it 'should throw an error on unknown argument types' do
@@ -711,7 +710,6 @@ describe 'array' do
 
         -> { a[-100...100] = 3 }.should raise_error(RangeError, '-100...100 out of range')
       end
-
     end
 
     it 'should throw an error on unknown argument types' do
@@ -761,8 +759,8 @@ describe 'array' do
 
     context 'given block' do
       it 'should use the condition of the block' do
-        [1, 2, 3].any? {|i| i == 2}.should == true
-        [1, 2, 3].any? {|i| i == 4}.should == false
+        [1, 2, 3].any? { |i| i == 2 }.should == true
+        [1, 2, 3].any? { |i| i == 4 }.should == false
       end
     end
   end
@@ -793,9 +791,7 @@ describe 'array' do
   describe '#each' do
     it 'evaluates the block for each item in the array' do
       result = []
-      [1, 2, 3].each do |i|
-        result << i * 2
-      end
+      [1, 2, 3].each { |i| result << i * 2 }
       result.should == [2, 4, 6]
     end
   end
@@ -803,14 +799,12 @@ describe 'array' do
   describe '#each_with_index' do
     it 'evaluates the block for each item in the array, passing along an index too' do
       result = []
-      ['a', 'b', 'c'].each_with_index do |c, i|
-        result << [c, i]
-      end
+      %w[a b c].each_with_index { |c, i| result << [c, i] }
       result.should == [['a', 0], ['b', 1], ['c', 2]]
     end
 
     it 'returns an enumerator' do
-      enum = ['a', 'b', 'c'].each_with_index
+      enum = %w[a b c].each_with_index
       enum.should be_an_instance_of(Enumerator)
       enum.to_a.should == [['a', 0], ['b', 1], ['c', 2]]
     end
@@ -818,21 +812,17 @@ describe 'array' do
 
   describe '#map' do
     it 'returns a new array of the result of evaluating the block for each item in the array' do
-      result = [1, 2, 3].map do |i|
-        i * 2
-      end
+      result = [1, 2, 3].map { |i| i * 2 }
       result.should == [2, 4, 6]
     end
   end
 
   describe '#collect' do
-      it 'returns a new array of the result of evaluating the block for each item in the array' do
-        result = [1, 2, 3].collect do |i|
-          i * 2
-        end
-        result.should == [2, 4, 6]
-      end
+    it 'returns a new array of the result of evaluating the block for each item in the array' do
+      result = [1, 2, 3].collect { |i| i * 2 }
+      result.should == [2, 4, 6]
     end
+  end
 
   describe '#first' do
     it 'returns the first item in the array' do
@@ -859,13 +849,13 @@ describe 'array' do
       [1, 2, 3].first(1).should == [1]
       [1, 2, 3].first(2).should == [1, 2]
       [1, 2, 3].first(3).should == [1, 2, 3]
-      ['a', 'b'].first(1).should == ['a']
+      %w[a b].first(1).should == ['a']
     end
 
-   it 'returns an empty array if n == 0' do
-     [1, 2, 3].first(0).should == []
-     [].first(0).should == []
-   end
+    it 'returns an empty array if n == 0' do
+      [1, 2, 3].first(0).should == []
+      [].first(0).should == []
+    end
 
     it 'returns empty array if the array is empty' do
       [].first(2).should == []
@@ -881,13 +871,13 @@ describe 'array' do
       [1, 2, 3].last(1).should == [3]
       [1, 2, 3].last(2).should == [2, 3]
       [1, 2, 3].last(3).should == [1, 2, 3]
-      ['a', 'b'].last(1).should == ['b']
+      %w[a b].last(1).should == ['b']
     end
 
-   it 'returns an empty array if n <= 0' do
-     [1, 2, 3].last(0).should == []
-     [].last(0).should == []
-   end
+    it 'returns an empty array if n <= 0' do
+      [1, 2, 3].last(0).should == []
+      [].last(0).should == []
+    end
 
     it 'returns empty array if the array is empty' do
       [].last(2).should == []
@@ -965,7 +955,7 @@ describe 'array' do
       a2 = a.sort
       a2.should == [1, 2, 3, 5, 7, 9]
       a.should == [5, 3, 2, 1, 7, 9]
-      ['a', 'z', 'c', 'foo', 'bar'].sort.should == ['a', 'bar', 'c', 'foo', 'z']
+      %w[a z c foo bar].sort.should == %w[a bar c foo z]
     end
   end
 
@@ -980,15 +970,15 @@ describe 'array' do
     end
 
     it 'returns the items joined together in a string' do
-      ['foo', 'bar'].join('').should == 'foobar'
-      ['foo', 'bar'].join(',').should == 'foo,bar'
-      [:foo, 2, nil, 'bar', {baz: :buz}].join(',').should == 'foo,2,,bar,{:baz=>:buz}'
+      %w[foo bar].join('').should == 'foobar'
+      %w[foo bar].join(',').should == 'foo,bar'
+      [:foo, 2, nil, 'bar', { baz: :buz }].join(',').should == 'foo,2,,bar,{:baz=>:buz}'
     end
 
     it 'does not mutate anything' do
-      a = ['foo', 'bar']
+      a = %w[foo bar]
       a.join(' ')
-      a.should == ['foo', 'bar']
+      a.should == %w[foo bar]
     end
   end
 
@@ -1038,9 +1028,7 @@ describe 'array' do
         occurrences << sample unless occurrences.include?(sample)
       end
 
-      a.each do |e|
-        occurrences.include?(e).should == true
-      end
+      a.each { |e| occurrences.include?(e).should == true }
     end
 
     it 'returns nil for empty arrays' do
@@ -1054,7 +1042,7 @@ describe 'array' do
       [10].max.should == 10
       [1, 3].max.should == 3
       [1, 0, -1].max.should == 1
-      ['abc', 'mno', 'xyz'].max.should == 'xyz'
+      %w[abc mno xyz].max.should == 'xyz'
     end
   end
 
@@ -1064,7 +1052,7 @@ describe 'array' do
       [10].min.should == 10
       [1, 3].min.should == 1
       [1, 0, -1].min.should == -1
-      ['abc', 'mno', 'xyz'].min.should == 'abc'
+      %w[abc mno xyz].min.should == 'abc'
     end
   end
 
@@ -1134,29 +1122,29 @@ describe 'array' do
   end
 
   describe '#rassoc' do
-      it 'should return nil on empty array' do
-        a = []
-        a.rassoc(0).should == nil
-      end
-
-      it 'should return nil on array without array with matching first element' do
-        a = [1, 2, [3, 4], [5, 6]]
-        a.rassoc(0).should == nil
-        a.rassoc(1).should == nil
-        a.rassoc(3).should == nil
-      end
-
-      it 'should return the array matching the first element' do
-        a = [[2, 1]]
-        a.rassoc(1).should == [2, 1]
-      end
-
-      it 'should return the first array with matching first element' do
-        a = [[2, 1], [1, 2], [2, 1, 3], [1, 2, 3]]
-        a.rassoc(1).should == [2, 1]
-        a.rassoc(2).should == [1, 2]
-      end
+    it 'should return nil on empty array' do
+      a = []
+      a.rassoc(0).should == nil
     end
+
+    it 'should return nil on array without array with matching first element' do
+      a = [1, 2, [3, 4], [5, 6]]
+      a.rassoc(0).should == nil
+      a.rassoc(1).should == nil
+      a.rassoc(3).should == nil
+    end
+
+    it 'should return the array matching the first element' do
+      a = [[2, 1]]
+      a.rassoc(1).should == [2, 1]
+    end
+
+    it 'should return the first array with matching first element' do
+      a = [[2, 1], [1, 2], [2, 1, 3], [1, 2, 3]]
+      a.rassoc(1).should == [2, 1]
+      a.rassoc(2).should == [1, 2]
+    end
+  end
 
   describe '#compact' do
     specify do
@@ -1192,22 +1180,22 @@ describe 'array' do
   end
 
   describe '#append' do
-      specify do
-        a = []
-        a.append
-        a.should == []
-        a.append(1, 2, 3)
-        a.should == [1, 2, 3]
-        a.append(4)
-        a.should == [1, 2, 3, 4]
-      end
+    specify do
+      a = []
+      a.append
+      a.should == []
+      a.append(1, 2, 3)
+      a.should == [1, 2, 3]
+      a.append(4)
+      a.should == [1, 2, 3, 4]
     end
+  end
 
   describe '#index' do
     specify do
       a = [1, 2, 3]
       a.index(2).should == 1
-      a = ['a', 'b', 'c']
+      a = %w[a b c]
       a.index('c').should == 2
       a.index('d').should == nil
       a.index(nil).should == nil
@@ -1221,36 +1209,36 @@ describe 'array' do
       a = [1, 2, 2, 3, 4, 1]
       a.index(1).should == 0
       a.index(2).should == 1
-      a.index {|i| i == 3 or i == 4}.should == 3
+      a.index { |i| i == 3 or i == 4 }.should == 3
     end
   end
 
   describe '#find_index' do
-      specify do
-        a = [1, 2, 3]
-        a.find_index(2).should == 1
-        a = ['a', 'b', 'c']
-        a.find_index('c').should == 2
-        a.find_index('d').should == nil
-        a.find_index(nil).should == nil
-        a.find_index { |i| i == 'a' }.should == 0
-        # TODO
-        #a.find_index.should be_an_instance_of(Enumerator)
-        #a.find_index.each { |i| i == 'c' }.should == 2
-      end
-
-      it 'should return the first occurrence of object' do
-        a = [1, 2, 2, 3, 4, 1]
-        a.find_index(1).should == 0
-        a.find_index(2).should == 1
-        a.find_index {|i| i == 3 or i == 4}.should == 3
-      end
+    specify do
+      a = [1, 2, 3]
+      a.find_index(2).should == 1
+      a = %w[a b c]
+      a.find_index('c').should == 2
+      a.find_index('d').should == nil
+      a.find_index(nil).should == nil
+      a.find_index { |i| i == 'a' }.should == 0
+      # TODO
+      #a.find_index.should be_an_instance_of(Enumerator)
+      #a.find_index.each { |i| i == 'c' }.should == 2
     end
+
+    it 'should return the first occurrence of object' do
+      a = [1, 2, 2, 3, 4, 1]
+      a.find_index(1).should == 0
+      a.find_index(2).should == 1
+      a.find_index { |i| i == 3 or i == 4 }.should == 3
+    end
+  end
 
   describe '#uniq' do
     specify do
       [1, 1, 2, 1, 3, 3, 1.0].uniq.should == [1, 2, 3, 1.0]
-      ['a', 'b', 'b', 'a'].uniq.should == ['a', 'b']
+      %w[a b b a].uniq.should == %w[a b]
       o1 = Object.new
       o2 = Object.new
       [o1, o1, o2].uniq.should == [o1, o2]
@@ -1305,7 +1293,7 @@ describe 'array' do
   describe '#concat' do
     it 'should give itself even with no arguments' do
       a = [1, 2, 3]
-      b = a.concat()
+      b = a.concat
       a.should equal(b)
       b.should == [1, 2, 3]
     end
@@ -1324,7 +1312,7 @@ describe 'array' do
 
     it 'should concatenate all the arrays' do
       [1].concat([999], [3, 4], [5, [6, 7]]).should == [1, 999, 3, 4, 5, [6, 7]]
-      [:foo].concat([:bar], [3], ["c"]).should == [:foo, :bar, 3, 'c']
+      [:foo].concat([:bar], [3], ['c']).should == [:foo, :bar, 3, 'c']
     end
 
     it 'should raise error on non array argument' do
@@ -1335,26 +1323,26 @@ describe 'array' do
   end
 
   describe '#rindex' do
-      specify do
-        a = [1, 2, 3]
-        a.rindex(2).should == 1
-        a = ['a', 'b', 'c']
-        a.rindex('c').should == 2
-        a.rindex('d').should == nil
-        a.rindex(nil).should == nil
-        a.rindex { |i| i == 'a' }.should == 0
-        # TODO
-        #a.index.should be_an_instance_of(Enumerator)
-        #a.index.each { |i| i == 'c' }.should == 2
-      end
-
-      it 'should return the first occurrence of object' do
-        a = [1, 2, 2, 3, 4, 1]
-        a.rindex(1).should == 5
-        a.rindex(2).should == 2
-        a.rindex {|i| i == 3 or i == 4}.should == 4
-      end
+    specify do
+      a = [1, 2, 3]
+      a.rindex(2).should == 1
+      a = %w[a b c]
+      a.rindex('c').should == 2
+      a.rindex('d').should == nil
+      a.rindex(nil).should == nil
+      a.rindex { |i| i == 'a' }.should == 0
+      # TODO
+      #a.index.should be_an_instance_of(Enumerator)
+      #a.index.each { |i| i == 'c' }.should == 2
     end
+
+    it 'should return the first occurrence of object' do
+      a = [1, 2, 2, 3, 4, 1]
+      a.rindex(1).should == 5
+      a.rindex(2).should == 2
+      a.rindex { |i| i == 3 or i == 4 }.should == 4
+    end
+  end
 
   describe '#none?' do
     it 'returns true if the array has no items' do
@@ -1373,8 +1361,8 @@ describe 'array' do
     end
 
     it 'should support block based condition' do
-      [1, 2, 3].none? {|i| i == 2}.should == false
-      [1, 2, 3].none? {|i| i == 4}.should == true
+      [1, 2, 3].none? { |i| i == 2 }.should == false
+      [1, 2, 3].none? { |i| i == 4 }.should == true
     end
   end
 
@@ -1394,25 +1382,25 @@ describe 'array' do
       [1, 2].one?.should == false
 
       [:foo].one?.should == true
-      [:foo, :baar].one?.should == false
+      %i[foo baar].one?.should == false
 
       [[]].one?.should == true
       [[], []].one?.should == false
 
       ['c'].one?.should == true
-      ['c', 'z'].one?.should == false
+      %w[c z].one?.should == false
     end
 
     it 'should support block based condition' do
-      [1, 2, 3].one? {|i| i == 2}.should == true
-      [1, 2, 3].one? {|i| i >= 2}.should == false
+      [1, 2, 3].one? { |i| i == 2 }.should == true
+      [1, 2, 3].one? { |i| i >= 2 }.should == false
     end
   end
 
   describe '#union' do
     it 'should give a copy of self when no arguments given' do
       a = [1, 2, 3]
-      b = a.union()
+      b = a.union
       a.should == b
       a.should_not equal(b)
     end
@@ -1446,7 +1434,6 @@ describe 'array' do
     end
   end
 
-
   describe '#|' do
     it 'should give empty array only if both empty' do
       ([] | []).should == []
@@ -1477,12 +1464,11 @@ describe 'array' do
     end
 
     it 'should throw on non array argument' do
-    -> { [] | -3 }.should raise_error(TypeError, 'no implicit conversion of Integer into Array')
-    -> { [] | :foo }.should raise_error(TypeError, 'no implicit conversion of Symbol into Array')
-    -> { [] | 'a' }.should raise_error(TypeError, 'no implicit conversion of String into Array')
+      -> { [] | -3 }.should raise_error(TypeError, 'no implicit conversion of Integer into Array')
+      -> { [] | :foo }.should raise_error(TypeError, 'no implicit conversion of Symbol into Array')
+      -> { [] | 'a' }.should raise_error(TypeError, 'no implicit conversion of String into Array')
     end
   end
-
 
   describe '#rotate' do
     context 'given no arguments' do
@@ -1672,7 +1658,6 @@ describe 'array' do
       b.slice(-0..100).should == []
       b.slice(1..100).should == nil
       b.slice(-1..100).should == nil
-
     end
 
     it 'should throw an error on unknown argument types' do
@@ -1689,7 +1674,7 @@ describe 'array' do
       -> { a.slice(1, nil) }.should raise_error(TypeError, 'no implicit conversion from nil to integer')
     end
 
-    it "raises a RangeError if passed a range with a bound that is too large" do
+    it 'raises a RangeError if passed a range with a bound that is too large' do
       array = [1, 2, 3, 4, 5, 6]
       -> { array.slice(bignum_value..(bignum_value + 1)) }.should raise_error(RangeError)
       -> { array.slice(0..bignum_value) }.should raise_error(RangeError)
@@ -1890,7 +1875,7 @@ describe 'array' do
         found_hashes = {}
         collisions = {}
         numeric_literals = (0..9).to_a
-        string_literals = ["r", "u", "b", "y", "MRI", "ruby"]
+        string_literals = %w[r u b y MRI ruby]
         bool_literals = [true, false]
         floating_points = numeric_literals.map { |i| i / 2.2 }
         literals = numeric_literals + string_literals + bool_literals + floating_points
@@ -1911,7 +1896,8 @@ describe 'array' do
         total_count = found_hashes.size + collisions_count
         collision_rate = 1.0 * collisions_count / total_count
         if collision_rate > 0.115
-          raise SpecFailedException, "collision rate is #{collision_rate} which is higher than MRI's collision rate of 0.115"
+          raise SpecFailedException,
+                "collision rate is #{collision_rate} which is higher than MRI's collision rate of 0.115"
         end
       end
     end

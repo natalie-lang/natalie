@@ -4,7 +4,8 @@ __inline__ '#include <dlfcn.h>'
 __ld_flags__ '-ldl'
 
 class Fiddle
-  class DLError; end
+  class DLError
+  end
 
   TYPE_VOID = :void
   TYPE_VOIDP = :voidp

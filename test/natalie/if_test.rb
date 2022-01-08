@@ -2,53 +2,43 @@ require_relative '../spec_helper'
 
 describe 'if' do
   it 'handles the true case' do
-    r = if true
-          1
-        end
+    r = (1 if true)
     r.should == 1
-    r = if true
-          1
-        else
-          2
-        end
+    r = true ? 1 : 2
     r.should == 1
   end
 
   it 'handles the else case' do
-    r = if false
-          1
-        else
-          2
-        end
+    r = false ? 1 : 2
     r.should == 2
   end
 
   it 'handles the elsif case' do
-    r = if false
-          1
-        elsif true
-          2
-        else
-          3
-        end
+    r =
+      if false
+        1
+      elsif true
+        2
+      else
+        3
+      end
     r.should == 2
-    r = if false
-          1
-        elsif nil
-          2
-        elsif 1
-          3
-        else
-          4
-        end
+    r =
+      if false
+        1
+      elsif nil
+        2
+      elsif 1
+        3
+      else
+        4
+      end
     r.should == 3
   end
 
   it 'can see variables outside of it' do
     outside = 10
-    r = if true
-          outside
-        end
+    r = (outside if true)
     r.should == 10
   end
 
@@ -63,17 +53,9 @@ describe 'if' do
 
   describe 'not' do
     it 'negates the boolean value of the expression' do
-      r = if not true
-            1
-          else
-            2
-          end
+      r = (not true) ? 1 : 2
       r.should == 2
-      r = if !true
-            3
-          else
-            4
-          end
+      r = !true ? 3 : 4
       r.should == 4
     end
   end
@@ -81,32 +63,20 @@ end
 
 describe 'unless' do
   it 'handles the true case' do
-    r = unless false
-          1
-        end
+    r = (1 unless false)
     r.should == 1
-    r = unless false
-          1
-        else
-          2
-        end
+    r = false ? 2 : 1
     r.should == 1
   end
 
   it 'handles the else case' do
-    r = unless true
-          1
-        else
-          2
-        end
+    r = true ? 2 : 1
     r.should == 2
   end
 
   it 'can see variables outside of it' do
     outside = 10
-    r = unless false
-          outside
-        end
+    r = (outside unless false)
     r.should == 10
   end
 
@@ -121,17 +91,9 @@ describe 'unless' do
 
   describe 'not' do
     it 'negates the boolean value of the expression' do
-      r = unless not false
-            1
-          else
-            2
-          end
+      r = (not false) ? 2 : 1
       r.should == 2
-      r = unless !false
-            3
-          else
-            4
-          end
+      r = !false ? 4 : 3
       r.should == 4
     end
   end

@@ -2,7 +2,7 @@ require_relative '../spec_helper'
 
 module GreetingModule
   def greet_from_module
-    "Hello from a module."
+    'Hello from a module.'
   end
 end
 
@@ -10,11 +10,11 @@ class Greeter
   include GreetingModule
 
   def greet
-    "Hello."
+    'Hello.'
   end
 
   def greet_no_arg
-    "Hello."
+    'Hello.'
   end
 
   def greet_by_name(name)
@@ -26,11 +26,11 @@ class Greeter
   end
 
   def greet_in_rescue
-    "Hello."
+    'Hello.'
   end
 
   def greet_in_block
-    "Hello from the block."
+    'Hello from the block.'
   end
 
   def greet_using_block
@@ -68,7 +68,7 @@ class PirateGreeter < Greeter
   def greet_in_rescue
     begin
       "ARRRR. #{super}"
-    rescue
+    rescue StandardError
     end
   end
 
@@ -77,15 +77,11 @@ class PirateGreeter < Greeter
   end
 
   def greet_in_block
-    yield_to_block do
-      "ARRRR. #{super}"
-    end
+    yield_to_block { "ARRRR. #{super}" }
   end
 
   def greet_using_block
-    super do
-      "ARRRR. Hello using a block."
-    end
+    super { 'ARRRR. Hello using a block.' }
   end
 end
 
@@ -98,47 +94,47 @@ end
 describe 'super' do
   it 'works without args' do
     greeter = PirateGreeter.new
-    greeter.greet.should == "ARRRR. Hello."
+    greeter.greet.should == 'ARRRR. Hello.'
   end
 
   it 'works with args' do
     greeter = PirateGreeter.new
-    greeter.greet_by_name('Tim').should == "ARRRR. Hello, Tim."
+    greeter.greet_by_name('Tim').should == 'ARRRR. Hello, Tim.'
   end
 
   it 'works with implicit args' do
     greeter = PirateGreeter.new
-    greeter.greet_by_name_implicitly('Tim').should == "ARRRR. Hello, Tim."
+    greeter.greet_by_name_implicitly('Tim').should == 'ARRRR. Hello, Tim.'
   end
 
   it 'works with explicit empty args' do
     greeter = PirateGreeter.new
-    greeter.greet_no_arg('Tim').should == "ARRRR. Hello."
+    greeter.greet_no_arg('Tim').should == 'ARRRR. Hello.'
   end
 
   it 'works inside a rescue block' do
     greeter = PirateGreeter.new
-    greeter.greet_in_rescue.should == "ARRRR. Hello."
+    greeter.greet_in_rescue.should == 'ARRRR. Hello.'
   end
 
   it 'works inside a block' do
     greeter = PirateGreeter.new
-    greeter.greet_in_block.should == "ARRRR. Hello from the block."
+    greeter.greet_in_block.should == 'ARRRR. Hello from the block.'
   end
 
   it 'works using a block' do
     greeter = PirateGreeter.new
-    greeter.greet_using_block.should == "ARRRR. Hello using a block."
+    greeter.greet_using_block.should == 'ARRRR. Hello using a block.'
   end
 
   it 'works with superclass of superclass' do
     greeter = UppercasePirateGreeter.new
-    greeter.greet.should == "ARRRR. HELLO."
+    greeter.greet.should == 'ARRRR. HELLO.'
   end
 
   it 'works with modules' do
     greeter = Greeter.new
-    greeter.greet_from_module.should == "Hello from a module."
+    greeter.greet_from_module.should == 'Hello from a module.'
   end
 
   it 'raises an error when there is no super' do
@@ -148,6 +144,6 @@ describe 'super' do
 
   it 'works with an aliased method' do
     greeter = PirateGreeter.new
-    greeter.aliased_greet.should == "ARRRR. Hello."
+    greeter.aliased_greet.should == 'ARRRR. Hello.'
   end
 end

@@ -82,17 +82,13 @@ describe 'break' do
   end
 
   it 'returns early from a method that yielded' do
-    result = yield_test do
-      break 'from block'
-    end
+    result = yield_test { break 'from block' }
     result.should == 'from block'
   end
 
   it 'propagates the break to the env where the block was passed' do
     result = []
-    break_propagates([1, 2, 3], result) {
-      break
-    }
+    break_propagates([1, 2, 3], result) { break }
     result.should == [1]
   end
 
@@ -102,7 +98,7 @@ describe 'break' do
       break if x > 1
       begin
         raise 'error'
-      rescue
+      rescue StandardError
         break
       end
       x += 1
@@ -115,7 +111,7 @@ describe 'break' do
         break if x > 1
         begin
           raise 'error'
-        rescue
+        rescue StandardError
           yield x
         end
         x += 1
@@ -127,14 +123,16 @@ describe 'break' do
   end
 
   it 'breaks out of an else inside a loop' do
-    r = loop do
-      begin
-      rescue
-      else
-        break :ok
+    r =
+      loop do
+        begin
+
+        rescue StandardError
+        else
+          break :ok
+        end
+        break :bad
       end
-      break :bad
-    end
     r.should == :ok
 
     def break_in_else_in_loop
@@ -142,7 +140,8 @@ describe 'break' do
       loop do
         break if x > 1
         begin
-        rescue
+
+        rescue StandardError
         else
           yield x
         end
@@ -155,20 +154,21 @@ describe 'break' do
   end
 
   it 'breaks out of a begin inside a while' do
-    r = while true
-      begin
-        break :ok
-      rescue
+    r =
+      while true
+        begin
+          break :ok
+        rescue StandardError
+        end
+        break :bad
       end
-      break :bad
-    end
     r.should == :ok
 
     def break_in_begin_in_while
       while true
         begin
           yield if true
-        rescue
+        rescue StandardError
         end
         break :bad
       end
@@ -180,12 +180,9 @@ describe 'break' do
   it 'should not leak break flag' do
     x = 0
     while x < 2
-      while true
-        break
-      end
+      break while true
       x += 1
     end
     x.should == 2
   end
-
 end

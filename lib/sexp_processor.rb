@@ -25,13 +25,7 @@ class NatSexpProcessor
     elsif ast.is_a?(Array)
       result = Sexp.new
       result << ast.sexp_type
-      ast[1..-1].each do |item|
-        if item.is_a?(Array)
-          result << process(item)
-        else
-          result << item
-        end
-      end
+      ast[1..-1].each { |item| item.is_a?(Array) ? result << process(item) : result << item }
       if ast.is_a?(Sexp)
         result.file = ast.file
         result.line = ast.line
@@ -46,8 +40,6 @@ end
 
 def s(*items)
   sexp = Sexp.new
-  items.each do |item|
-    sexp << item
-  end
+  items.each { |item| sexp << item }
   sexp
 end

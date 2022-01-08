@@ -12,7 +12,7 @@ end
 describe 'instance variables' do
   describe '#instance_variables' do
     it 'returns an array of all instance variable names' do
-      Foo.new(1).instance_variables.sort.should == [:@x, :@y]
+      Foo.new(1).instance_variables.sort.should == %i[@x @y]
     end
 
     it 'returns an empty array when the object is an integer' do
@@ -46,7 +46,10 @@ describe 'instance variables' do
       o = Object.new
       o.instance_variable_set(:@x, 10)
       o.freeze
-      -> { o.instance_variable_set(:@x, 20) }.should raise_error(FrozenError, "can't modify frozen Object: #{o.inspect}")
+      -> { o.instance_variable_set(:@x, 20) }.should raise_error(
+                                                       FrozenError,
+                                                       "can't modify frozen Object: #{o.inspect}",
+                                                     )
     end
   end
 end

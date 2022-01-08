@@ -2,7 +2,7 @@ require_relative '../spec_helper'
 
 describe 'symbol' do
   it 'can be built dynamically' do
-    :"foo #{1 + 1}".should == :"foo 2"
+    :"foo #{1 + 1}".should == :'foo 2'
   end
 
   describe '#inspect' do
@@ -10,19 +10,19 @@ describe 'symbol' do
       :foo.inspect.should == ':foo'
       :FooBar123.inspect.should == ':FooBar123'
       :foo_bar.inspect.should == ':foo_bar'
-      :"foo bar".inspect.should == ':"foo bar"'
+      :'foo bar'.inspect.should == ':"foo bar"'
       :"foo\nbar".inspect.should == ":\"foo\\nbar\""
       :foo=.inspect.should == ':foo='
       :foo?.inspect.should == ':foo?'
-      :"?foo".inspect.should == ':"?foo"'
+      :'?foo'.inspect.should == ':"?foo"'
       :foo!.inspect.should == ':foo!'
-      :"!foo".inspect.should == ':"!foo"'
-      :"@".inspect.should == ':"@"'
+      :'!foo'.inspect.should == ':"!foo"'
+      :'@'.inspect.should == ':"@"'
       :@foo.inspect.should == ':@foo'
       :@@foo.inspect.should == ':@@foo'
-      :"foo@".inspect.should == ':"foo@"'
+      :'foo@'.inspect.should == ':"foo@"'
       :$foo.inspect.should == ':$foo'
-      :"foo$".inspect.should == ':"foo$"'
+      :'foo$'.inspect.should == ':"foo$"'
       :+.inspect.should == ':+'
       :-.inspect.should == ':-'
       :*.inspect.should == ':*'
@@ -31,7 +31,7 @@ describe 'symbol' do
       :==.inspect.should == ':=='
       :!=.inspect.should == ':!='
       :!.inspect.should == ':!'
-      :"=".inspect.should == ':"="'
+      :'='.inspect.should == ':"="'
       :%.inspect.should == ':%'
       :$0.inspect.should == ':$0'
       :[].inspect.should == ':[]'
@@ -50,7 +50,7 @@ describe 'symbol' do
   describe '#to_s' do
     it 'returns the symbol as a string' do
       :foo.to_s.should == 'foo'
-      :"foo bar".to_s.should == 'foo bar'
+      :'foo bar'.to_s.should == 'foo bar'
       :"foo\nbar".to_s.should == "foo\nbar"
     end
   end

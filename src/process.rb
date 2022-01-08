@@ -1,6 +1,6 @@
 require 'natalie/inline'
 
-__inline__ "#include <sys/wait.h>"
+__inline__ '#include <sys/wait.h>'
 
 module Process
   class Status

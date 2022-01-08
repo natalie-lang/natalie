@@ -14,32 +14,32 @@ jobs:
   gcc:
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v1
-    - name: checkout submodules
-      run: git submodule update --init --recursive
-    - name: test with gcc
-      run: rake docker_test_gcc
+      - uses: actions/checkout@v1
+      - name: checkout submodules
+        run: git submodule update --init --recursive
+      - name: test with gcc
+        run: rake docker_test_gcc
   clang:
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v1
-    - name: checkout submodules
-      run: git submodule update --init --recursive
-    - name: test with clang
-      run: rake docker_test_clang
+      - uses: actions/checkout@v1
+      - name: checkout submodules
+        run: git submodule update --init --recursive
+      - name: test with clang
+        run: rake docker_test_clang
   release_build:
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v1
-    - name: checkout submodules
-      run: git submodule update --init --recursive
-    - name: test release build
-      run: rake docker_test_release
+      - uses: actions/checkout@v1
+      - name: checkout submodules
+        run: git submodule update --init --recursive
+      - name: test release build
+        run: rake docker_test_release
   ruby27:
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v1
-    - name: checkout submodules
-      run: git submodule update --init --recursive
-    - name: test when hosted by Ruby 2.7
-      run: rake docker_test_ruby27
+      - uses: actions/checkout@v1
+      - name: checkout submodules
+        run: git submodule update --init --recursive
+      - name: test when hosted by Ruby 2.7
+        run: rake docker_test_ruby27

@@ -1,11 +1,12 @@
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # see about.rb in this directory for instructions using this.
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 require 'natalie/inline'
 
-__cxx_flags__ "$(pkg-config --cflags gtk+-3.0)"
-__ld_flags__ "$(pkg-config --libs gtk+-3.0)"
+__cxx_flags__ '$(pkg-config --cflags gtk+-3.0)'
+__ld_flags__ '$(pkg-config --libs gtk+-3.0)'
 
 __inline__ <<-END
   #include <gtk/gtk.h>
@@ -28,11 +29,11 @@ module Gtk3
 
   class Widget
     def set_halign(align)
-      Gtk3::widget_set_halign(self, align)
+      Gtk3.widget_set_halign(self, align)
     end
 
     def set_valign(align)
-      Gtk3::widget_set_valign(self, align)
+      Gtk3.widget_set_valign(self, align)
     end
 
     def signal_connect(signal, callback)
@@ -86,13 +87,13 @@ module Gtk3
 
   class Button < Widget
     def self.new_with_label(label)
-      Gtk3::button_new_with_label(label)
+      Gtk3.button_new_with_label(label)
     end
   end
 
   class << self
     def init
-      __inline__ "gtk_init(0, nullptr);"
+      __inline__ 'gtk_init(0, nullptr);'
     end
 
     __define_method__ :window_new, <<-END

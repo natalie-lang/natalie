@@ -3,9 +3,7 @@ def method_with_error
 end
 
 def method2
-  [1, 2].each do |i|
-    method_with_error
-  end
+  [1, 2].each { |i| method_with_error }
 end
 
 def method1

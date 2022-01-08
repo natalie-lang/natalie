@@ -29,7 +29,10 @@ describe 'booleans' do
   describe 'and' do
     it 'only evaluates left side once' do
       @x = 0
-      x = -> { @x += 1; false }
+      x = -> do
+        @x += 1
+        false
+      end
       r = x.() and 1
       r.should == false
       @x.should == 1
@@ -39,7 +42,10 @@ describe 'booleans' do
   describe '&&' do
     it 'only evaluates left side once' do
       @x = 0
-      x = -> { @x += 1; false }
+      x = -> do
+        @x += 1
+        false
+      end
       r = x.() && 1
       r.should == false
       @x.should == 1
@@ -49,7 +55,10 @@ describe 'booleans' do
   describe 'or' do
     it 'only evaluates left side once' do
       @x = 0
-      x = -> { @x += 1; true }
+      x = -> do
+        @x += 1
+        true
+      end
       r = x.() or 1
       r.should == true
       @x.should == 1
@@ -59,7 +68,10 @@ describe 'booleans' do
   describe '||' do
     it 'only evaluates left side once' do
       @x = 0
-      x = -> { @x += 1; true }
+      x = -> do
+        @x += 1
+        true
+      end
       r = x.() || 1
       r.should == true
       @x.should == 1

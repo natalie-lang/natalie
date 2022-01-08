@@ -6,7 +6,7 @@ describe 'regexp' do
     r.should be_kind_of(Regexp)
     r = /foo/ixm
     r.should be_kind_of(Regexp)
-    r.inspect.should == "/foo/mix"
+    r.inspect.should == '/foo/mix'
   end
 
   it 'can be created dynamically' do
@@ -38,7 +38,7 @@ describe 'regexp' do
   describe '#inspect' do
     it 'returns a string representation' do
       r = /foo/
-      r.inspect.should == "/foo/"
+      r.inspect.should == '/foo/'
     end
   end
 
@@ -160,11 +160,7 @@ describe 'regexp' do
     end
 
     it 'returns the most recent match from a block' do
-      [1].each do
-        [1].each do
-          'tim' =~ /t(i)(m)/
-        end
-      end
+      [1].each { [1].each { 'tim' =~ /t(i)(m)/ } }
       [1].each do
         $&.should == 'tim'
         $~.to_s.should == 'tim'
@@ -175,7 +171,7 @@ describe 'regexp' do
     end
 
     it 'does not return the most recent match from a different method' do
-      "" =~ /xxx/ # reset match
+      '' =~ /xxx/ # reset match
       def m1
         'tim' =~ /t(i)(m)/
       end
@@ -186,7 +182,7 @@ describe 'regexp' do
       $2.should be_nil
       $3.should be_nil
 
-      "" =~ /xxx/ # reset match
+      '' =~ /xxx/ # reset match
       def m2
         'tim' =~ /t(i)(m)/
       end
@@ -201,11 +197,7 @@ describe 'regexp' do
       m3
 
       'tim' =~ /t(i)(m)/
-      [1].each do
-        [1].each do
-          'tim' =~ /t(i)(m)/
-        end
-      end
+      [1].each { [1].each { 'tim' =~ /t(i)(m)/ } }
       def m4
         $&.should be_nil
         $~.should be_nil
@@ -219,12 +211,12 @@ describe 'regexp' do
 
   describe '.compile' do
     it 'creates a regexp from a string' do
-      r = Regexp.compile("t(i)m+", true)
+      r = Regexp.compile('t(i)m+', true)
       r.should == /t(i)m+/i
     end
 
     it 'creates a regexp from a string with options' do
-      r = Regexp.compile("tim", Regexp::EXTENDED | Regexp::IGNORECASE)
+      r = Regexp.compile('tim', Regexp::EXTENDED | Regexp::IGNORECASE)
       r.should == /tim/ix
     end
   end

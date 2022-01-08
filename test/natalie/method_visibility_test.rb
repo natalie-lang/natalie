@@ -49,8 +49,14 @@ describe 'method visibility' do
 
   describe 'explicit private' do
     it 'is not visible outside the class' do
-      -> { Foo.new.private_foo }.should raise_error(NoMethodError, /^private method `private_foo' called for #<Foo:0x\X+>/)
-      -> { Foo.new.private_foo2 }.should raise_error(NoMethodError, /^private method `private_foo2' called for #<Foo:0x\X+>/)
+      -> { Foo.new.private_foo }.should raise_error(
+                                          NoMethodError,
+                                          /^private method `private_foo' called for #<Foo:0x\X+>/,
+                                        )
+      -> { Foo.new.private_foo2 }.should raise_error(
+                                           NoMethodError,
+                                           /^private method `private_foo2' called for #<Foo:0x\X+>/,
+                                         )
     end
 
     it 'is visible inside the class' do

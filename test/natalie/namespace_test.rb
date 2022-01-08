@@ -112,15 +112,20 @@ class Colon3
   end
 end
 
-module NestedTest; end
+module NestedTest
+end
 NestedTest::NESTED_CONSTANT = nil
-class NestedTest::NestedClass; end
-module NestedTest::NestedModule; end
+class NestedTest::NestedClass
+end
+module NestedTest::NestedModule
+end
 
 module GlobalTest
   ::NESTED_GLOBAL_CONSTANT = nil
-  class ::NestedGlobalClass; end
-  module ::NestedGlobalModule; end
+  class ::NestedGlobalClass
+  end
+  module ::NestedGlobalModule
+  end
 end
 
 GLOBAL_CONSTANT = nil
@@ -132,15 +137,15 @@ describe 'namespace' do
 
   it 'resolves constants on a class' do
     Foo::NUM.should == 2
-    Foo::num.should == 2
+    Foo.num.should == 2
     Foo.num.should == 2
     Foo.new.num.should == 2
     Bar::NUM.should == 3
-    Bar::num.should == 3
+    Bar.num.should == 3
     Bar.num.should == 3
     Bar.new.num.should == 3
     Baz::NUM.should == 3
-    Baz::num.should == 3
+    Baz.num.should == 3
     Baz.num.should == 3
     Baz.new.num.should == 3
   end
@@ -185,18 +190,36 @@ describe 'namespace' do
     -> { NESTED_GLOBAL_CONSTANT }.should_not raise_error
     -> { NestedGlobalClass }.should_not raise_error
     -> { NestedGlobalModule }.should_not raise_error
-    -> { GlobalTest::NESTED_GLOBAL_CONSTANT }.should raise_error(NameError, /uninitialized constant GlobalTest::NESTED_GLOBAL_CONSTANT/)
-    -> { GlobalTest::NestedGlobalClass }.should raise_error(NameError, /uninitialized constant GlobalTest::NestedGlobalClass/)
-    -> { GlobalTest::NestedGlobalModule }.should raise_error(NameError, /uninitialized constant GlobalTest::NestedGlobalModule/)
+    -> { GlobalTest::NESTED_GLOBAL_CONSTANT }.should raise_error(
+                                                       NameError,
+                                                       /uninitialized constant GlobalTest::NESTED_GLOBAL_CONSTANT/,
+                                                     )
+    -> { GlobalTest::NestedGlobalClass }.should raise_error(
+                                                  NameError,
+                                                  /uninitialized constant GlobalTest::NestedGlobalClass/,
+                                                )
+    -> { GlobalTest::NestedGlobalModule }.should raise_error(
+                                                   NameError,
+                                                   /uninitialized constant GlobalTest::NestedGlobalModule/,
+                                                 )
   end
 
   it 'stores global constants in Object class' do
     -> { Object::GLOBAL_CONSTANT }.should_not raise_error
-    -> { GlobalTest::GLOBAL_CONSTANT }.should raise_error(NameError, /uninitialized constant GlobalTest::GLOBAL_CONSTANT/)
+    -> { GlobalTest::GLOBAL_CONSTANT }.should raise_error(
+                                                NameError,
+                                                /uninitialized constant GlobalTest::GLOBAL_CONSTANT/,
+                                              )
   end
 
   it 'raises a NameError when the given namespace is not initialized' do
-    -> { class NonexistentNamespace::Foo; end }.should raise_error(NameError, /uninitialized constant NonexistentNamespace/)
-    -> { module NonexistentNamespace::Foo; end }.should raise_error(NameError, /uninitialized constant NonexistentNamespace/)
+    -> {
+      class NonexistentNamespace::Foo
+      end
+    }.should raise_error(NameError, /uninitialized constant NonexistentNamespace/)
+    -> {
+      module NonexistentNamespace::Foo
+      end
+    }.should raise_error(NameError, /uninitialized constant NonexistentNamespace/)
   end
 end

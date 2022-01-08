@@ -54,10 +54,11 @@ describe 'Kernel' do
 
     it 'works in a Proc' do
       a = []
-      p = Proc.new do
-        a << 1
-        redo if a.size < 2
-      end
+      p =
+        Proc.new do
+          a << 1
+          redo if a.size < 2
+        end
       p.call
       a.should == [1, 1]
     end

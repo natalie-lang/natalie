@@ -9,11 +9,12 @@ class OptionParser
       @short_name = short_name&.sub(/^\-/, '')&.to_sym
       @long_name = long_name&.sub(/^\-\-/, '')&.to_sym
       @value_label = value_label
-      @value_type = if value_label =~ /^\[.+\]$/
-                     :optional
-                   elsif value_label
-                     :required
-                   end
+      @value_type =
+        if value_label =~ /^\[.+\]$/
+          :optional
+        elsif value_label
+          :required
+        end
       @description = description
       @block = block
       @options = options
@@ -26,38 +27,26 @@ class OptionParser
 
     def consume!(args)
       arg = args.shift
-      (arg, @value) = arg.split('=', 2)
-      if @value.nil? && consume_value?(args.first)
-        @value = args.shift
-      end
-      if @value.nil?
-        @value = true
-      end
-      if @block
-        @block.call(@value)
-      end
+      arg, @value = arg.split('=', 2)
+      @value = args.shift if @value.nil? && consume_value?(args.first)
+      @value = true if @value.nil?
+      @block.call(@value) if @block
     end
 
     COL_SIZE = 33
 
     def help
       summary = [short_name_formatted, long_name_formatted].compact.join(', ')
-      if value_label
-        summary << " #{value_label}"
-      end
+      summary << " #{value_label}" if value_label
       out = [summary.ljust(COL_SIZE) + description]
-      if @options
-        @options.each do |value, value_description|
-          out << "    #{value}".ljust(COL_SIZE) + value_description
-        end
-      end
+      @options.each { |value, value_description| out << "    #{value}".ljust(COL_SIZE) + value_description } if @options
       out.map { |line| '    ' + line }.join("\n")
     end
 
     private
 
     def consume_value?(arg)
-      [:required, :optional].include?(value_type) && arg !~ /^\-/
+      %i[required optional].include?(value_type) && arg !~ /^\-/
     end
 
     def short_name_formatted
@@ -72,8 +61,22 @@ class OptionParser
   def initialize
     parser = self
     @base_switches = [
-      Switch.new(short_name: '-h', long_name: '--help', block: -> (*) { print parser.help; exit }),
-      Switch.new(short_name: '-v', long_name: '--version', block: -> (*) { puts parser.version; exit }),
+      Switch.new(
+        short_name: '-h',
+        long_name: '--help',
+        block: ->(*) do
+          print parser.help
+          exit
+        end,
+      ),
+      Switch.new(
+        short_name: '-v',
+        long_name: '--version',
+        block: ->(*) do
+          puts parser.version
+          exit
+        end,
+      ),
     ]
     @switches = []
     yield self if block_given?
@@ -82,11 +85,19 @@ class OptionParser
   attr_accessor :banner, :program_name, :version
 
   def on(*args, options: nil, &block)
-    (short_name, short_value) = args.grep(/^\-[^\-]/).first&.split(/[ =]/, 2)
-    (long_name, long_value) = args.grep(/^\-\-/).first&.split(/[ =]/, 2)
+    short_name, short_value = args.grep(/^\-[^\-]/).first&.split(/[ =]/, 2)
+    long_name, long_value = args.grep(/^\-\-/).first&.split(/[ =]/, 2)
     value_label = short_value || long_value
     description = args.grep_v(/^\-/).first
-    @switches << Switch.new(short_name: short_name, long_name: long_name, value_label: value_label, description: description, block: block, options: options)
+    @switches <<
+      Switch.new(
+        short_name: short_name,
+        long_name: long_name,
+        value_label: value_label,
+        description: description,
+        block: block,
+        options: options,
+      )
   end
 
   def parse(argv = ARGV, into: {})
@@ -100,9 +111,7 @@ class OptionParser
     while argv.any?
       if argv.first == '--'
         argv.shift
-        while argv.any?
-          position_argv << argv.shift
-        end
+        position_argv << argv.shift while argv.any?
       elsif (switch = all_switches.detect { |s| s.match?(argv.first) })
         switch.consume!(argv)
         matched << switch
@@ -110,18 +119,14 @@ class OptionParser
         position_argv << argv.shift
       end
     end
-    matched.each do |switch|
-      into[switch.long_name || switch.short_name] = switch.value
-    end
+    matched.each { |switch| into[switch.long_name || switch.short_name] = switch.value }
     position_argv.each { |a| argv << a }
     argv
   end
 
   def help
     out = [banner]
-    @switches.each do |switch|
-      out << switch.help
-    end
+    @switches.each { |switch| out << switch.help }
     out.join("\n") + "\n"
   end
 

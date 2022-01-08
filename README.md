@@ -121,7 +121,6 @@ tests that helped us bootstrap certain parts of the language and/or weren't
 covered as much as we would like by the official Ruby specs. We use this
 to supplement the specs in `spec/`.
 
-
 ## Copyright & License
 
 Natalie is copyright 2021, Tim Morgan and contributors. Natalie is licensed

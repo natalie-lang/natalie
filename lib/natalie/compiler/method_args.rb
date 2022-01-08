@@ -18,9 +18,7 @@ module Natalie
         elsif optional_keyword_arg_count > 0
           opt += 1
         end
-        if opt > 0
-          num = -num - 1
-        end
+        num = -num - 1 if opt > 0
         num
       end
 
@@ -62,58 +60,65 @@ module Natalie
         args_have_default = names.map { |e| %i[iasgn lasgn].include?(e.sexp_type) && e.size == 3 }
         defaults = args_have_default.select { |d| d }
         defaults_on_right = defaults.any? && args_have_default.uniq == [false, true]
-        @args = masgn_paths(s(:masgn, s(:array, *names))).map do |name, path_details|
-          path = path_details[:path]
-          if name.is_a?(Sexp)
-            has_kwargs = names.any? { |name| name.sexp_type == :kwarg || name.sexp_type == :kwsplat }
-            case name.sexp_type
-            when :splat
-              options = s(:struct,
-                          value: @value_name,
-                          default_value: 'nullptr',
-                          splat: true,
-                          has_kwargs: has_kwargs,
-                          total_count: names.size,
-                          default_count: defaults.size,
-                          defaults_on_right: defaults_on_right,
-                          offset_from_end: path_details[:offset_from_end])
-              value = s(:arg_value_by_path, :env, options, path.size, *path)
-              masgn_set(name.last, value)
-            when :kwsplat
-              value = s(:kwarg_hash, @value_name)
-              masgn_set(name.last, value)
-            when :kwarg
-              if name[2]
-                default_value = name[2]
+        @args =
+          masgn_paths(s(:masgn, s(:array, *names))).map do |name, path_details|
+            path = path_details[:path]
+            if name.is_a?(Sexp)
+              has_kwargs = names.any? { |name| name.sexp_type == :kwarg || name.sexp_type == :kwsplat }
+              case name.sexp_type
+              when :splat
+                options =
+                  s(
+                    :struct,
+                    value: @value_name,
+                    default_value: 'nullptr',
+                    splat: true,
+                    has_kwargs: has_kwargs,
+                    total_count: names.size,
+                    default_count: defaults.size,
+                    defaults_on_right: defaults_on_right,
+                    offset_from_end: path_details[:offset_from_end],
+                  )
+                value = s(:arg_value_by_path, :env, options, path.size, *path)
+                masgn_set(name.last, value)
+              when :kwsplat
+                value = s(:kwarg_hash, @value_name)
+                masgn_set(name.last, value)
+              when :kwarg
+                if name[2]
+                  default_value = name[2]
+                else
+                  default_value = 'nullptr'
+                end
+                value = s(:kwarg_value_by_name, :env, @value_name, s(:s, name[1]), default_value)
+                masgn_set(name, value)
               else
-                default_value = 'nullptr'
+                if name.size == 3
+                  default_value = name.last
+                  name = Sexp.from_array(name[0..1])
+                else
+                  default_value = 'nullptr'
+                end
+                total_argument_count = names.reject { |name| name.sexp_type == :kwarg || name.sexp_type == :splat }.size
+                options =
+                  s(
+                    :struct,
+                    value: @value_name,
+                    default_value: default_value,
+                    splat: false,
+                    has_kwargs: has_kwargs,
+                    total_count: total_argument_count,
+                    default_count: defaults.size,
+                    defaults_on_right: defaults_on_right,
+                    offset_from_end: 0,
+                  )
+                value = s(:arg_value_by_path, :env, options, path.size, *path)
+                masgn_set(name, value)
               end
-              value = s(:kwarg_value_by_name, :env, @value_name, s(:s, name[1]), default_value)
-              masgn_set(name, value)
             else
-              if name.size == 3
-                default_value = name.last
-                name = Sexp.from_array(name[0..1])
-              else
-                default_value = 'nullptr'
-              end
-              total_argument_count = names.reject { |name| name.sexp_type == :kwarg || name.sexp_type == :splat }.size
-              options = s(:struct,
-                          value: @value_name,
-                          default_value: default_value,
-                          splat: false,
-                          has_kwargs: has_kwargs,
-                          total_count: total_argument_count,
-                          default_count: defaults.size,
-                          defaults_on_right: defaults_on_right,
-                          offset_from_end: 0)
-              value = s(:arg_value_by_path, :env, options, path.size, *path)
-              masgn_set(name, value)
+              raise "unknown masgn type: #{name.inspect} (#{exp.file}\##{exp.line})"
             end
-          else
-            raise "unknown masgn type: #{name.inspect} (#{exp.file}\##{exp.line})"
           end
-        end
       end
 
       def arg_names_as_sexps(names)
@@ -157,9 +162,7 @@ module Natalie
 
       def masgn_set(exp, value)
         exp = super(exp, value)
-        if exp.sexp_type == :var_set
-          exp[0] = :arg_set
-        end
+        exp[0] = :arg_set if exp.sexp_type == :var_set
         exp
       end
     end

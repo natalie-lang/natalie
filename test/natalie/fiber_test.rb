@@ -3,21 +3,23 @@ require_relative '../spec_helper'
 describe 'Fiber' do
   it 'works' do
     result = []
-    f1 = Fiber.new do |*args|
-      result << args
-      result << 123
-      result << Fiber.yield(6, 7)
-      result << 456
-      :end1
-    end
+    f1 =
+      Fiber.new do |*args|
+        result << args
+        result << 123
+        result << Fiber.yield(6, 7)
+        result << 456
+        :end1
+      end
 
-    f2 = Fiber.new do |*args|
-      result << args
-      result << 'abc'
-      result << Fiber.yield(8, 9)
-      result << 'def'
-      :end2
-    end
+    f2 =
+      Fiber.new do |*args|
+        result << args
+        result << 'abc'
+        result << Fiber.yield(8, 9)
+        result << 'def'
+        :end2
+      end
 
     result << f1.resume(1, 2)
     result << f2.resume(3)
@@ -25,27 +27,11 @@ describe 'Fiber' do
     result << f2.resume(5)
     result << 789
 
-    result.should == [
-      [1, 2],
-      123,
-      [6, 7],
-      [3],
-      'abc',
-      [8, 9],
-      4,
-      456,
-      :end1,
-      5,
-      'def',
-      :end2,
-      789
-    ]
+    result.should == [[1, 2], 123, [6, 7], [3], 'abc', [8, 9], 4, 456, :end1, 5, 'def', :end2, 789]
   end
 
   it 'bubbles up errors' do
-    f = Fiber.new do
-      raise 'error'
-    end
+    f = Fiber.new { raise 'error' }
 
     -> { f.resume }.should raise_error(StandardError, 'error')
 
@@ -54,30 +40,25 @@ describe 'Fiber' do
   end
 
   it 'can be resumed from another fiber' do
-    f2 = Fiber.new do
-      Fiber.yield 'hi from f2'
-    end
+    f2 = Fiber.new { Fiber.yield 'hi from f2' }
 
-    f = Fiber.new do
-      Fiber.yield f2.resume
-    end
+    f = Fiber.new { Fiber.yield f2.resume }
 
     f.resume.should == 'hi from f2'
   end
 
   it 'raises an error if resumed twice' do
-    f2 = Fiber.new do |f|
-      f.resume
-    end
+    f2 = Fiber.new { |f| f.resume }
 
-    f = Fiber.new do
-      f2.resume(f)
-    end
+    f = Fiber.new { f2.resume(f) }
 
     -> { f.resume }.should raise_error(FiberError, /double resume/)
   end
 
   it 'raises an error when attempting to yield from the main fiber' do
-    -> { Fiber.yield 'foo' }.should raise_error(FiberError, /can't yield from root fiber|attempt to yield on a not resumed fiber/)
+    -> { Fiber.yield 'foo' }.should raise_error(
+                                      FiberError,
+                                      /can't yield from root fiber|attempt to yield on a not resumed fiber/,
+                                    )
   end
 end

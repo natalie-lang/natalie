@@ -11,20 +11,14 @@ describe 'return' do
 
   it 'returns early from a block' do
     def one
-      [1, 2, 3].each do |i|
-        [1, 2, 3].each do |i|
-          return i if i == 1
-        end
-      end
+      [1, 2, 3].each { |i| [1, 2, 3].each { |i| return i if i == 1 } }
     end
     one.should == 1
   end
 
   it 'handles other errors properly' do
     def foo(x)
-      [1].each do |i|
-        return i if x == i
-      end
+      [1].each { |i| return i if x == i }
       raise 'foo'
     end
     -> { foo(2) }.should raise_error(StandardError)
@@ -35,9 +29,7 @@ describe 'return' do
     def foo
       loop do
         while true
-          until false
-            return 1
-          end
+          return 1 until false
           return :not_this_one
         end
         return :not_this_one
@@ -50,19 +42,21 @@ describe 'return' do
   it 'can return from a begin in a deeply nested loop' do
     def foo
       loop do
-        begin # => fn
+        begin
+          # => fn
           while true
             until false
-              begin # => fn
+              begin
+                # => fn
                 return 2
-              rescue
+              rescue StandardError
               end
               return :not_this_one1
             end
             return :not_this_one2
           end
           return :not_this_one3
-        rescue
+        rescue StandardError
         end
         return :not_this_one4
       end
@@ -76,12 +70,12 @@ describe 'return' do
       loop do
         begin
           raise :foo
-        rescue
+        rescue StandardError
           while true
             until false
               begin
                 raise :foo
-              rescue
+              rescue StandardError
                 return 3
               end
             end
@@ -98,13 +92,15 @@ describe 'return' do
   it 'can return from a begin/rescue/else in a deeply nested loop' do
     def foo
       begin
-      rescue
+
+      rescue StandardError
       else
         loop do
           while true
             until false
               begin
-              rescue
+
+              rescue StandardError
               else
                 return 4
               end

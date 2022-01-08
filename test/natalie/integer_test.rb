@@ -30,9 +30,9 @@ describe 'integer' do
 
   describe '** (exponentiation)' do
     it 'raises the number to the given power' do
-      (2 ** 2).should == 4
-      (2 ** 3).should == 8
-      (2 ** 4).should == 16
+      (2**2).should == 4
+      (2**3).should == 8
+      (2**4).should == 16
     end
   end
 

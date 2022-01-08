@@ -16,11 +16,7 @@ class Hash
   end
 
   def assoc(arg)
-    each do |key, value|
-      if arg == key
-        return [key, value]
-      end
-    end
+    each { |key, value| return key, value if arg == key }
     nil
   end
 
@@ -29,9 +25,7 @@ class Hash
   end
 
   def key(value)
-    each do |k, v|
-      return k if v == value
-    end
+    each { |k, v| return k if v == value }
     nil
   end
 
@@ -40,17 +34,13 @@ class Hash
   def each_key
     return enum_for(:each_key) unless block_given?
 
-    each do |key, _|
-      yield key
-    end
+    each { |key, _| yield key }
   end
 
   def each_value
     return enum_for(:each_value) unless block_given?
 
-    each do |_, value|
-      yield value
-    end
+    each { |_, value| yield value }
   end
 
   def flatten(level = 1)
@@ -59,27 +49,19 @@ class Hash
 
   def invert
     new_hash = {}
-    each do |key, value|
-      new_hash[value] = key
-    end
+    each { |key, value| new_hash[value] = key }
     new_hash
   end
 
   def rassoc(arg)
-    each do |key, value|
-      if arg == value
-        return [key, value]
-      end
-    end
+    each { |key, value| return key, value if arg == value }
     nil
   end
 
   def reject(&block)
     return enum_for(:reject) unless block_given?
 
-    dup.tap do |new_hash|
-      new_hash.reject!(&block)
-    end
+    dup.tap { |new_hash| new_hash.reject!(&block) }
   end
 
   def reject!(&block)
@@ -127,18 +109,14 @@ class Hash
 
     return default(nil) if empty?
 
-    first.tap do |key, _|
-      delete(key)
-    end
+    first.tap { |key, _| delete(key) }
   end
 
   def transform_keys
     return enum_for(:transform_keys) { size } unless block_given?
 
     new_hash = {}
-    each do |key, value|
-      new_hash[yield(key)] = value
-    end
+    each { |key, value| new_hash[yield(key)] = value }
     new_hash
   end
 
@@ -150,9 +128,7 @@ class Hash
     # NOTE: have to do it this way due to behavior of break
     duped = dup
     clear
-    duped.each do |key, value|
-      self[yield(key)] = value
-    end
+    duped.each { |key, value| self[yield(key)] = value }
     self
   end
 
@@ -160,23 +136,15 @@ class Hash
     return enum_for(:transform_values) { size } unless block_given?
 
     new_hash = {}
-    each do |key, value|
-      new_hash[key] = yield(value)
-    end
+    each { |key, value| new_hash[key] = yield(value) }
     new_hash
   end
 
   def to_proc
-    lambda do |arg|
-      self[*arg]
-    end
+    lambda { |arg| self[*arg] }
   end
 
   def values_at(*keys)
-    [].tap do |values|
-      keys.each do |key|
-        values << self[key]
-      end
-    end
+    [].tap { |values| keys.each { |key| values << self[key] } }
   end
 end

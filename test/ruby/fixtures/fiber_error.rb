@@ -7,9 +7,7 @@ end
 
 def method2
   f = make_fiber
-  [1, 2].each do |i|
-    f.resume(i)
-  end
+  [1, 2].each { |i| f.resume(i) }
 end
 
 def method1

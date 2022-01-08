@@ -9,9 +9,7 @@ module Natalie
     attr_accessor :self
 
     def run
-      @instructions.each do |instruction|
-        instruction.execute(self)
-      end
+      @instructions.each { |instruction| instruction.execute(self) }
     end
 
     def push(object)

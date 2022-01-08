@@ -13,7 +13,7 @@ describe 'Object#dup' do
 
   it 'copies the data' do
     [1, 2].dup.should == [1, 2]
-    {1 => 2}.dup.should == {1 => 2}
+    { 1 => 2 }.dup.should == { 1 => 2 }
     'foo'.dup.should == 'foo'
   end
 
