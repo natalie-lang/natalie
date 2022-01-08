@@ -1,5 +1,6 @@
 require_relative 'formatters/default_formatter'
 require_relative 'formatters/yaml_formatter'
+require_relative 'mspec'
 require_relative 'platform_guard'
 require_relative 'version'
 require 'tempfile'
@@ -136,6 +137,12 @@ end
 def specify(&block)
   return xit(nil, &block) if $context.last.skip
   @specs << [$context.dup, nil, block]
+end
+
+def with_feature(name)
+  if MSpec.features[name]
+    yield
+  end
 end
 
 def nan_value
