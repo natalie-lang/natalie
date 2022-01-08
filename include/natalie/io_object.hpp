@@ -37,6 +37,7 @@ public:
     }
 
     static Value read_file(Env *, Value);
+    static Value write_file(Env *, Value, Value);
 
     int fileno() const { return m_fileno; }
     void set_fileno(int fileno) { m_fileno = fileno; }
