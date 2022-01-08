@@ -110,7 +110,7 @@ module Natalie
           @compiler_context[:template]
             .sub('/*' + 'NAT_DECLARATIONS' + '*/') { declarations }
             .sub('/*' + 'NAT_OBJ_INIT' + '*/') { obj_init_lines.join("\n") }
-            .sub('/*' + 'NAT_EVAL_INIT' + '*/') {
+            .sub('/*' + 'NAT_EVAL_INIT' + '*/') do
               if @profile
                 "
                 NativeProfiler::the()->enable(env->global_get(\"$exe\"_s)->inspect_str(env)->c_str());
@@ -119,9 +119,9 @@ module Natalie
                 });
                 " + init_matter
               else
-                init_matter 
+                init_matter
               end
-            }
+            end
             .sub('/*' + 'NAT_EVAL_BODY' + '*/') { @decl.join("\n") + "\n" + result }
         reindent(out)
       end

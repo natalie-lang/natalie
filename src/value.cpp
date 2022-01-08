@@ -1,36 +1,32 @@
 #include "natalie.hpp"
-#include <chrono>
-#include <ctime>
 
 namespace Natalie {
 
-#define PROFILED_SEND(category)                                                            \
-    auto classnameOf = [](Value val) {                                                     \
-        return (val.m_type == Type::Integer) ? "FastInteger"                               \
-            : (val.m_type == Type::Double)   ? "FastDouble"                                \
+#define PROFILED_SEND(type)                                                               \
+    auto classnameOf = [](Value val) {                                                    \
+        return (val.m_type == Type::Integer) ? "FastInteger"                              \
+            : (val.m_type == Type::Double)   ? "FastDouble"                               \
                                              : val->klass()->class_name().value()->c_str(); \
-    };                                                                                     \
-    auto type = classnameOf(*this);                                                        \
-    auto event_name = new String();                                                        \
-    event_name->append_sprintf("%s.%s(", type, name->c_str());                             \
-    for (size_t i = 0; i < argc; ++i) {                                                    \
-        if (i > 0)                                                                         \
-            event_name->append_char(',');                                                  \
-        event_name->append(classnameOf(args[i]));                                          \
-    }                                                                                      \
-    event_name->append_char(')');                                                          \
-    auto event = NativeProfilerEvent::named(event_name)                                    \
-                     ->tid(gettid())                                                       \
-                     ->start(std::chrono::system_clock::now());                            \
-    Defer logEvent([&]() {                                                                 \
-        auto source_filename = env->file();                                                \
-        auto source_line = env->line();                                                    \
-        if (NativeProfiler::the()->enabled())                                              \
-            NativeProfiler::the()->push(event->end(std::chrono::system_clock::now()));     \
+    };                                                                                    \
+    auto event_name = new String();                                                       \
+    event_name->append_sprintf("%s.%s(", classnameOf(*this), name->c_str());              \
+    for (size_t i = 0; i < argc; ++i) {                                                   \
+        if (i > 0)                                                                        \
+            event_name->append_char(',');                                                 \
+        event_name->append(classnameOf(args[i]));                                         \
+    }                                                                                     \
+    event_name->append_char(')');                                                         \
+    auto event = NativeProfilerEvent::named(type, event_name)                             \
+                     ->tid(gettid())                                                      \
+                     ->start_now();                                                       \
+    Defer log_event([&]() {                                                               \
+        auto source_filename = env->file();                                               \
+        auto source_line = env->line();                                                   \
+        NativeProfiler::the()->push(event->end_now());                                    \
     });
 
 Value Value::public_send(Env *env, SymbolObject *name, size_t argc, Value *args, Block *block) {
-    PROFILED_SEND(public_send)
+    PROFILED_SEND(NativeProfilerEvent::Type::PUBLIC_SEND)
     if (m_type == Type::Integer && IntegerObject::optimized_method(name)) {
         if (argc > 0 && args[0].is_fast_integer())
             args[0].guard();
@@ -42,7 +38,7 @@ Value Value::public_send(Env *env, SymbolObject *name, size_t argc, Value *args,
 }
 
 Value Value::send(Env *env, SymbolObject *name, size_t argc, Value *args, Block *block) {
-    PROFILED_SEND(send)
+    PROFILED_SEND(NativeProfilerEvent::Type::SEND)
     if (m_type == Type::Integer && IntegerObject::optimized_method(name)) {
         if (argc > 0 && args[0].is_fast_integer())
             args[0].guard();

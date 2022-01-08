@@ -13,10 +13,21 @@ namespace Natalie {
 class NativeProfiler;
 
 class NativeProfilerEvent {
-
 public:
-    static NativeProfilerEvent *named(const String *name) {
-        return new NativeProfilerEvent(strdup(name->c_str()));
+    enum class Type {
+        SEND,
+        PUBLIC_SEND,
+        GC,
+        ALLOCATE,
+        RUNTIME,
+    };
+
+    static NativeProfilerEvent *named(const Type type, const String *name) {
+        return named(type, name->c_str());
+    }
+
+    static NativeProfilerEvent *named(const Type type, const char *name) {
+        return new NativeProfilerEvent(type, strdup(name));
     }
 
     NativeProfilerEvent *tid(int tid) {
@@ -24,9 +35,17 @@ public:
         return this;
     }
 
+    NativeProfilerEvent *start_now() {
+        return start(std::chrono::system_clock::now());
+    }
+
     NativeProfilerEvent *start(std::chrono::time_point<std::chrono::system_clock> start) {
         m_start = std::chrono::duration_cast<std::chrono::microseconds>(start.time_since_epoch()).count();
         return this;
+    }
+
+    NativeProfilerEvent *end_now() {
+        return end(std::chrono::system_clock::now());
     }
 
     NativeProfilerEvent *end(std::chrono::time_point<std::chrono::system_clock> end) {
@@ -35,10 +54,26 @@ public:
     }
 
 private:
-    NativeProfilerEvent() = default;
-    NativeProfilerEvent(const char *name)
-        : m_name(name) { }
+    NativeProfilerEvent() = delete;
+    NativeProfilerEvent(const NativeProfilerEvent::Type type, const char *name)
+        : m_type(type)
+        , m_name(name) { }
 
+    const char *google_trace_type() const {
+        switch (m_type) {
+        case Type::SEND:
+            return "send";
+        case Type::PUBLIC_SEND:
+            return "public_send";
+        case Type::GC:
+        case Type::ALLOCATE:
+        case Type::RUNTIME:
+            return "system";
+        };
+        NAT_UNREACHABLE();
+    }
+
+    const NativeProfilerEvent::Type m_type;
     const char *m_name;
     int m_tid;
     std::time_t m_start;
@@ -78,7 +113,7 @@ public:
         if (!m_is_enabled)
             return;
         String path("profile-");
-        path.append_sprintf("%ld", std::chrono::system_clock::now().time_since_epoch());
+        path.append_sprintf("%lld", std::chrono::system_clock::now().time_since_epoch());
         path.append(".json");
 
         FILE *fp = fopen(path.c_str(), "w+");
@@ -92,7 +127,7 @@ public:
             event.append_char('{');
 
             event.append_sprintf("\"name\":\"%s\"", e->m_name);
-            event.append(",\"cat\": \"send\"");
+            event.append_sprintf(",\"cat\": \"%s\"", e->google_trace_type());
             event.append(",\"ph\": \"X\"");
             event.append_sprintf(",\"ts\": \"%lld\"", e->m_start);
             event.append_sprintf(",\"dur\": \"%lld\"", e->m_end - e->m_start);

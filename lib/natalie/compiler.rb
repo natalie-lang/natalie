@@ -96,7 +96,7 @@ module Natalie
         compile_cxx_flags: cxx_flags,
         compile_ld_flags: [],
         source_path: @path,
-        profile: options[:profile]
+        profile: options[:profile],
       }
     end
 
