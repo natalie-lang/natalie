@@ -1,10 +1,10 @@
 require 'natalie/inline'
 
 __inline__ <<-END
-  #include <arpa/inet.h>
-  #include <netinet/in.h>
-  #include <sys/socket.h>
-  #include <linux/un.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <sys/un.h>
 END
 
 class SocketError < StandardError
@@ -98,10 +98,13 @@ class Socket < BasicSocket
     __define_method__ :pack_sockaddr_un, [:path], <<-END
       path->assert_type(env, Object::Type::String, "String");
       auto path_string = path->as_string();
-      if (path_string->length() >= UNIX_PATH_MAX)
-          env->raise("ArgumentError", "too long unix socket path ({} bytes given but {} bytes max))", path_string->length(), UNIX_PATH_MAX);
 
       struct sockaddr_un un {};
+      constexpr auto unix_path_max = sizeof(un.sun_path);
+
+      if (path_string->length() >= unix_path_max)
+          env->raise("ArgumentError", "too long unix socket path ({} bytes given but {} bytes max))", path_string->length(), unix_path_max);
+
       un.sun_family = AF_UNIX;
       memcpy(un.sun_path, path_string->c_str(), path_string->length());
       return new StringObject { (const char*)&un, sizeof(un) };
