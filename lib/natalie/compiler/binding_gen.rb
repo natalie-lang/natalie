@@ -797,6 +797,7 @@ gen.binding('String', 'end_with?', 'StringObject', 'end_with', argc: 1, pass_env
 gen.binding('String', 'eql?', 'StringObject', 'eql', argc: 1, pass_env: false, pass_block: false, return_type: :bool)
 gen.binding('String', 'force_encoding', 'StringObject', 'force_encoding', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'gsub', 'StringObject', 'gsub', argc: 1..2, pass_env: true, pass_block: true, return_type: :Object)
+gen.binding('String', 'include?', 'StringObject', 'include', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
 gen.binding('String', 'index', 'StringObject', 'index', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'initialize', 'StringObject', 'initialize', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
 gen.binding('String', 'inspect', 'StringObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)

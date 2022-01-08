@@ -449,4 +449,11 @@ describe 'string' do
       'tim'.reverse.should == 'mit'
     end
   end
+
+  describe '#include?' do
+    it 'works on strings containing null character' do
+      "foo\x00bar".include?('bar').should == true
+      'foo'.include?("foo\x00bar").should == false
+    end
+  end
 end

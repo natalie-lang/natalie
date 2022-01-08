@@ -667,6 +667,14 @@ Value StringObject::split(Env *env, Value splitter, Value max_count_value) {
     }
 }
 
+bool StringObject::include(Env *env, Value arg) {
+    auto to_str = "to_str"_s;
+    if (!arg->is_string() && arg->respond_to(env, to_str))
+        arg = arg->send(env, to_str);
+    arg->assert_type(env, Object::Type::String, "String");
+    return m_string.find(arg->as_string()->m_string) != -1;
+}
+
 Value StringObject::ljust(Env *env, Value length_obj, Value pad_obj) {
     length_obj->assert_type(env, Object::Type::Integer, "Integer");
     size_t length = length_obj->as_integer()->to_nat_int_t() < 0 ? 0 : length_obj->as_integer()->to_nat_int_t();
