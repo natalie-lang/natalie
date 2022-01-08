@@ -1,9 +1,10 @@
 require 'natalie/inline'
 
 __inline__ <<-END
-  #include <sys/socket.h>
-  #include <netinet/in.h>
   #include <arpa/inet.h>
+  #include <netinet/in.h>
+  #include <sys/socket.h>
+  #include <linux/un.h>
 END
 
 class SocketError < StandardError
@@ -47,7 +48,7 @@ class Socket < BasicSocket
   end
 
   class << self
-    __define_method__ :sockaddr_in, [:port, :host], <<-END
+    __define_method__ :pack_sockaddr_in, [:port, :host], <<-END
       if (host->is_nil())
           host = new StringObject { "127.0.0.1" };
       if (host->is_string() && host->as_string()->is_empty())
@@ -92,7 +93,26 @@ class Socket < BasicSocket
       }
     END
 
+    alias sockaddr_in pack_sockaddr_in
+
+    __define_method__ :pack_sockaddr_un, [:path], <<-END
+      path->assert_type(env, Object::Type::String, "String");
+      auto path_string = path->as_string();
+      if (path_string->length() >= UNIX_PATH_MAX)
+          env->raise("ArgumentError", "too long unix socket path ({} bytes given but {} bytes max))", path_string->length(), UNIX_PATH_MAX);
+
+      struct sockaddr_un un {};
+      un.sun_family = AF_UNIX;
+      memcpy(un.sun_path, path_string->c_str(), path_string->length());
+      return new StringObject { (const char*)&un, sizeof(un) };
+    END
+
+    alias sockaddr_un pack_sockaddr_un
+
     __define_method__ :unpack_sockaddr_in, [:sockaddr], <<-END
+      if (sockaddr->is_a(env, self->const_find(env, "Addrinfo"_s, Object::ConstLookupSearchMode::NotStrict)))
+          sockaddr = sockaddr->send(env, "sockaddr"_s);
+
       sockaddr->assert_type(env, Object::Type::String, "String");
 
       if (sockaddr->as_string()->length() == sizeof(struct sockaddr_in6)) {
@@ -120,20 +140,43 @@ class Socket < BasicSocket
           env->raise("ArgumentError", "not an AF_INET/AF_INET6 sockaddr");
       }
     END
-  end
 
-  def self.pack_sockaddr_in(port, host)
-    # TODO
+    __define_method__ :unpack_sockaddr_un, [:sockaddr], <<-END
+      if (sockaddr->is_a(env, self->const_find(env, "Addrinfo"_s, Object::ConstLookupSearchMode::NotStrict)))
+          sockaddr = sockaddr->send(env, "sockaddr"_s);
+
+      sockaddr->assert_type(env, Object::Type::String, "String");
+
+      if (sockaddr->as_string()->length() != sizeof(struct sockaddr_un))
+          env->raise("ArgumentError", "not an AF_UNIX sockaddr");
+
+      const char *str = sockaddr->as_string()->c_str();
+      auto un = (struct sockaddr_un *)str;
+      return new StringObject { un->sun_path };
+    END
   end
 end
 
 class Addrinfo
+  def initialize(sockaddr, family = nil, socktype = nil, protocol = nil)
+    @sockaddr = sockaddr
+    @family = family
+    @socktype = socktype
+    @protocol = protocol
+  end
+
+  attr_reader :sockaddr, :family
+
   def self.tcp(ip, port)
-    Addrinfo.new # TODO
+    Addrinfo.new(Socket.pack_sockaddr_in(port, ip))
   end
 
   def self.udp(ip, port)
     Addrinfo.new # TODO
+  end
+
+  def self.unix(path)
+    Addrinfo.new(Socket.pack_sockaddr_un(path))
   end
 
   def afamily

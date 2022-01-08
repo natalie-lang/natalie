@@ -211,6 +211,13 @@ public:
         append(buf);
     }
 
+    void append(int i) {
+        int length = snprintf(NULL, 0, "%i", i);
+        char buf[length + 1];
+        snprintf(buf, length + 1, "%i", i);
+        append(buf);
+    }
+
     void append(const char *str) {
         if (!str) return;
         size_t new_length = strlen(str);
