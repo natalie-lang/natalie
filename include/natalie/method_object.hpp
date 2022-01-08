@@ -10,6 +10,9 @@ public:
         : AbstractMethodObject { Object::Type::Method, GlobalEnv::the()->Object()->const_fetch("Method"_s)->as_class(), method }
         , m_object { object } { }
 
+    Value unbind(Env *);
+    bool eq(Env *, Value);
+
     Value inspect(Env *env) {
         auto the_owner = owner();
         if (the_owner->is_class() && the_owner->as_class()->is_singleton())

@@ -130,9 +130,9 @@ def it_should_behave_like(*shared_groups)
   shared_groups.each { |behavior| it_behaves_like behavior, @method, @object }
 end
 
-def specify(&block)
-  return xit(nil, &block) if $context.last.skip
-  @specs << [$context.dup, nil, block]
+def specify(test = nil, &block)
+  return xit(test, &block) if $context.last.skip
+  @specs << [$context.dup, test, block]
 end
 
 def with_feature(name)
@@ -347,6 +347,9 @@ class Matcher
   end
   def one?
     method_missing(:one?)
+  end
+  def start_with?(other)
+    method_missing(:start_with?, other)
   end
   def zero?
     method_missing(:zero?)
