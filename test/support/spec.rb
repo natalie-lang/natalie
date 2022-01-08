@@ -1,5 +1,6 @@
 require_relative 'formatters/default_formatter'
 require_relative 'formatters/yaml_formatter'
+require_relative 'platform_guard'
 require_relative 'version'
 require 'tempfile'
 
