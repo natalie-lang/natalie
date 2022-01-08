@@ -3,6 +3,7 @@
 require_relative '../lib/optparse'
 require 'uri'
 require 'net/http'
+require 'fileutils'
 
 options = { force: false }
 OptionParser.new do |opts|
@@ -29,6 +30,9 @@ path = "#{__dir__}/#{file}"
 if File.file?(path) && ! options[:force]
   abort("Spec file already exists at #{path}.")
 end
+
+dir = File.dirname(path)
+FileUtils.mkdir_p(dir) unless File.exist?(dir)
 
 File.write(path, res.body)
 
