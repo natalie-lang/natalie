@@ -11,7 +11,10 @@ Object::Object(const Object &other)
     , m_owner { other.m_owner }
     , m_ivars { other.m_ivars } { }
 
-Value Object::create(ClassObject *klass) {
+Value Object::create(Env *env, ClassObject *klass) {
+    if (klass->is_singleton())
+        env->raise("TypeError", "can't create instance of singleton class");
+
     Value obj;
     switch (klass->object_type()) {
     case Object::Type::Array:
@@ -96,7 +99,7 @@ Value Object::create(ClassObject *klass) {
 }
 
 Value Object::_new(Env *env, Value klass_value, size_t argc, Value *args, Block *block) {
-    Value obj = create(klass_value->as_class());
+    Value obj = create(env, klass_value->as_class());
     if (!obj)
         NAT_UNREACHABLE();
 
@@ -117,7 +120,7 @@ Value Object::allocate(Env *env, Value klass_value, size_t argc, Value *args, Bl
         break;
 
     default:
-        obj = create(klass);
+        obj = create(env, klass);
         break;
     }
 
@@ -345,8 +348,13 @@ ClassObject *Object::singleton_class(Env *env) {
         name = String::format("#<Class:{}>", inspect_string);
     }
 
-    m_singleton_class = m_klass->subclass(env, name);
-    m_singleton_class->set_is_singleton(true);
+    ClassObject *singleton_superclass;
+    if (is_class()) {
+        singleton_superclass = as_class()->superclass(env)->singleton_class(env);
+    } else {
+        singleton_superclass = m_klass;
+    }
+    set_singleton_class(singleton_superclass->subclass(env, name));
     return m_singleton_class;
 }
 

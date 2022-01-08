@@ -395,6 +395,24 @@ class BeKindOfExpectation
   end
 end
 
+class BeAncestorOfExpectation
+  def initialize(klass)
+    @klass = klass
+  end
+
+  def match(subject)
+    unless @klass.ancestors.include?(subject)
+      raise SpecFailedException, subject.inspect + ' should be an ancestor of ' + @klass.inspect
+    end
+  end
+
+  def inverted_match(subject)
+    if @klass.ancestors.include?(subject)
+      raise SpecFailedException, subject.inspect + ' should not to be an ancestor of ' + @klass.inspect
+    end
+  end
+end
+
 class EqlExpectation
   def initialize(other)
     @other = other
@@ -805,6 +823,26 @@ class IncludeExpectation
   end
 end
 
+class HaveMethodExpectation
+  def initialize(method)
+    @method = method.to_sym
+  end
+
+  def match(subject)
+    unless subject.methods.include?(@method)
+      raise SpecFailedException,
+        "Expected #{subject} to have method '#{@method.to_s}' but it does not"
+    end
+  end
+
+  def inverted_match(subject)
+    if subject.methods.include?(@method)
+      raise SpecFailedException,
+        "Expected #{subject} NOT to have method '#{@method.to_s}' but it does"
+    end
+  end
+end
+
 class HaveInstanceMethodExpectation
   def initialize(method, include_super)
     @method = method.to_sym
@@ -934,6 +972,10 @@ class Object
     BeKindOfExpectation.new(klass)
   end
 
+  def be_ancestor_of(klass)
+    BeAncestorOfExpectation.new(klass)
+  end
+
   def eql(other)
     EqlExpectation.new(other)
   end
@@ -974,6 +1016,10 @@ class Object
   # This alias is here so that MRI can see it. We should figure out why Natalie can see 'include'
   # but MRI cannot. (That's a bug.)
   alias include_all include
+
+  def have_method(method)
+    HaveMethodExpectation.new(method)
+  end
 
   def have_instance_method(method, include_super = true)
     HaveInstanceMethodExpectation.new(method, include_super)
