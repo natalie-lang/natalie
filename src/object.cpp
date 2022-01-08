@@ -605,6 +605,8 @@ Value Object::dup(Env *env) {
         return new HashObject { env, *as_hash() };
     case Object::Type::String:
         return new StringObject { *as_string() };
+    case Object::Type::Range:
+        return new RangeObject { *as_range() };
     case Object::Type::False:
     case Object::Type::Float:
     case Object::Type::Integer:
