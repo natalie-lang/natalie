@@ -55,4 +55,13 @@ module Numeric
   def truncate
     Float(self).truncate
   end
+
+  def clone(freeze: nil)
+    raise ArgumentError, "can't unfreeze #{self.class}" if freeze == false
+    self
+  end
+
+  def dup
+    self
+  end
 end
