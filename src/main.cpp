@@ -4,11 +4,14 @@ using namespace Natalie;
 
 /*NAT_DECLARATIONS*/
 
+bool Natalie::allow_overwrites = true;
+
 extern "C" Env *build_top_env() {
     auto env = Natalie::build_top_env();
     Value self = GlobalEnv::the()->main_obj();
     (void)self; // don't warn about unused var
     /*NAT_OBJ_INIT*/
+    /*NAT_ALLOW_OVERWRITES*/
     return env;
 }
 
