@@ -23,4 +23,14 @@ module Numeric
   def zero?
     self == 0
   end
+
+  def abs
+    self.negative? ? -self : self
+  end
+
+  alias magnitude abs
+
+  def abs2
+    self * self
+  end
 end
