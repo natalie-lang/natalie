@@ -241,6 +241,10 @@ def guard(proc)
   yield if proc.call
 end
 
+def quarantine!
+  # do nothing
+end
+
 def flunk
   raise SpecFailedException
 end
