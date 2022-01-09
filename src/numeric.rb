@@ -40,6 +40,12 @@ module Numeric
 
   alias angle arg
 
+  def conj
+    self
+  end
+
+  alias conjugate conj
+
   def ceil
     Float(self).ceil
   end
