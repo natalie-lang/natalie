@@ -52,6 +52,10 @@ class SystemExit < Exception
   end
 
   attr_reader :status
+
+  def success?
+    @status.zero?
+  end
 end
 
 class LocalJumpError < StandardError
