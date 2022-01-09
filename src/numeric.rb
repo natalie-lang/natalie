@@ -11,4 +11,16 @@ module Numeric
   def +@
     self
   end
+
+  def negative?
+    self < 0
+  end
+
+  def positive?
+    self > 0
+  end
+
+  def zero?
+    self == 0
+  end
 end

@@ -353,11 +353,17 @@ class Matcher
   def nan?
     method_missing(:nan?)
   end
+  def negative?
+    method_missing(:negative?)
+  end
   def none?
     method_missing(:none?)
   end
   def one?
     method_missing(:one?)
+  end
+  def positive?
+    method_missing(:positive?)
   end
   def start_with?(other)
     method_missing(:start_with?, other)
