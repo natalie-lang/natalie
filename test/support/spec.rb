@@ -241,6 +241,10 @@ def guard(proc)
   yield if proc.call
 end
 
+def quarantine!
+  # do nothing
+end
+
 def flunk
   raise SpecFailedException
 end
@@ -349,11 +353,17 @@ class Matcher
   def nan?
     method_missing(:nan?)
   end
+  def negative?
+    method_missing(:negative?)
+  end
   def none?
     method_missing(:none?)
   end
   def one?
     method_missing(:one?)
+  end
+  def positive?
+    method_missing(:positive?)
   end
   def start_with?(other)
     method_missing(:start_with?, other)
@@ -1007,11 +1017,26 @@ class Object
   end
 end
 
+module Mock
+  def initialize(name)
+    @name = name
+  end
+
+  def inspect
+    "<mock: #{@name}>"
+  end
+end
+
 class MockObject
+  include Mock
+end
+
+class MockNumeric < Numeric
+  include Mock
 end
 
 def mock(name)
-  MockObject.new.tap { |obj| obj.define_singleton_method(:inspect) { "<mock: #{name}>" } }
+  MockObject.new(name)
 end
 
 def mock_int(value)
@@ -1019,7 +1044,7 @@ def mock_int(value)
 end
 
 def mock_numeric(name)
-  mock(name)
+  MockNumeric.new(name)
 end
 
 def run_specs
