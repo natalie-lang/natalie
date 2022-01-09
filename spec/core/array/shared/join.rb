@@ -46,12 +46,11 @@ describe :array_join_with_default_separator, shared: true do
     [obj].send(@method).should == "foo"
   end
 
-  # Undef is currently causing this not to build, will have to be fixed separately
-  # it "raises a NoMethodError if an element does not respond to #to_str, #to_ary, or #to_s" do
-  #   obj = mock('o')
-  #   class << obj; undef :to_s; end
-  #   -> { [1, obj].send(@method) }.should raise_error(NoMethodError)
-  # end
+  it "raises a NoMethodError if an element does not respond to #to_str, #to_ary, or #to_s" do
+    obj = mock('o')
+    class << obj; undef :to_s; end
+    -> { [1, obj].send(@method) }.should raise_error(NoMethodError)
+  end
 
   it "raises an ArgumentError when the Array is recursive" do
     -> { ArraySpecs.recursive_array.send(@method) }.should raise_error(ArgumentError)

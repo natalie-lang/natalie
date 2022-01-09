@@ -28,6 +28,11 @@ module Natalie
         exp.new(:block, s(:alias, :self, :env, s(:intern, new_name), s(:intern, old_name)), s(:nil))
       end
 
+      def process_undef(exp)
+        _, (_, name) = exp
+        exp.new(:block, s(:undefine_method, :self, :env, s(:intern, name)), s(:nil))
+      end
+
       def process_and(exp)
         _, lhs, rhs = exp
         rhs = process(rhs)
