@@ -241,6 +241,10 @@ def guard(proc)
   yield if proc.call
 end
 
+def flunk
+  raise SpecFailedException
+end
+
 class Matcher
   def initialize(subject, inverted, args)
     @subject = subject

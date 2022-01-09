@@ -325,7 +325,12 @@ module Natalie
       node = args.first
       $stderr.puts 'FIXME: binding passed to eval() will be ignored.' if args.size > 1
       if node.sexp_type == :str
-        Natalie::Parser.new(node[1], current_path).ast
+        begin
+          Natalie::Parser.new(node[1], current_path).ast
+        rescue Racc::ParseError => e
+          # TODO: add a flag to raise syntax errors at compile time?
+          s(:call, nil, :raise, s(:const, :SyntaxError), s(:str, e.message))
+        end
       else
         s(:call, nil, :raise, s(:const, :SyntaxError), s(:str, 'eval() only works on static strings'))
       end

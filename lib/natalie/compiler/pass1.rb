@@ -147,9 +147,13 @@ module Natalie
                 # FIXME: Get rid of the :nil here
                 # FIXME: This is still a bit hacky
                 matchers.reduce(s(:nil)) do |new_cond, matcher|
-                  process_or(
-                    s(:or, new_cond, s(:send, process(matcher), s(:intern, '==='), s(:args, value_name), 'nullptr')),
-                  )
+                  if matcher.sexp_type == :splat
+                    _, matcher = matcher
+                    is_splat = 'true'
+                  else
+                    is_splat = 'false'
+                  end
+                  process_or(s(:or, new_cond, s(:is_case_equal, :env, value_name, process(matcher), is_splat)))
                 end,
               )
             cond << full_condition
