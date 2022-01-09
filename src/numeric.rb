@@ -70,4 +70,19 @@ module Numeric
   def dup
     self
   end
+
+  def div(other)
+    raise ZeroDivisionError, 'divided by 0' if other.zero?
+    (self / other).floor
+  end
+
+  def %(other)
+    self - other * self.div(other)
+  end
+
+  alias modulo %
+
+  def divmod(other)
+    [self.div(other), self % other]
+  end
 end
