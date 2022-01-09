@@ -1011,11 +1011,26 @@ class Object
   end
 end
 
+module Mock
+  def initialize(name)
+    @name = name
+  end
+
+  def inspect
+    "<mock: #{@name}>"
+  end
+end
+
 class MockObject
+  include Mock
+end
+
+class MockNumeric < Numeric
+  include Mock
 end
 
 def mock(name)
-  MockObject.new.tap { |obj| obj.define_singleton_method(:inspect) { "<mock: #{name}>" } }
+  MockObject.new(name)
 end
 
 def mock_int(value)
@@ -1023,7 +1038,7 @@ def mock_int(value)
 end
 
 def mock_numeric(name)
-  mock(name)
+  MockNumeric.new(name)
 end
 
 def run_specs
