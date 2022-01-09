@@ -33,4 +33,10 @@ module Numeric
   def abs2
     self * self
   end
+
+  def arg
+    self.negative? ? Math::PI : 0
+  end
+
+  alias angle arg
 end
