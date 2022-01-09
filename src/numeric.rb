@@ -3,6 +3,10 @@ module Numeric
     self.class == other.class ? [other, self] : [Float(other), Float(self)]
   end
 
+  def eql?(other)
+    self.class == other.class && self == other
+  end
+
   def -@
     minuend, subtrahend = self.coerce(0)
     minuend - subtrahend
