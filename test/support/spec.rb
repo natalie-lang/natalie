@@ -173,6 +173,16 @@ def min_long
   -((2**(8 * 8 - 2)) * 2)
 end
 
+def ruby_exe(code, args: nil)
+  file = Tempfile.new('ruby_exe.rb') { |f| f.write(code) }
+
+  output = `bin/natalie #{file.path} #{args}`
+
+  raise SpecFailedException, "Expected exit status 0 but actual is #{$?.exitstatus}" unless $?.success?
+
+  output
+end
+
 def ruby_version_is(version)
   ruby_version = SpecVersion.new RUBY_VERSION
   case version
