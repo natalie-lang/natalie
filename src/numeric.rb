@@ -39,4 +39,20 @@ module Numeric
   end
 
   alias angle arg
+
+  def ceil
+    Float(self).ceil
+  end
+
+  def floor
+    Float(self).floor
+  end
+
+  def round
+    Float(self).round
+  end
+
+  def truncate
+    Float(self).truncate
+  end
 end
