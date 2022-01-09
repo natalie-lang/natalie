@@ -1,8 +1,7 @@
 #pragma once
 
-#include "natalie/string.hpp"
+#include "natalie/forward.hpp"
 #include "natalie/types.hpp"
-#include "tm/hashmap.hpp"
 #include "tm/vector.hpp"
 #include <chrono>
 #include <ctime>
@@ -22,42 +21,19 @@ public:
         RUNTIME,
     };
 
-    static NativeProfilerEvent *named(const Type type, const String *name) {
-        return named(type, name->c_str());
-    }
-
-    static NativeProfilerEvent *named(const Type type, const char *name) {
-        return new NativeProfilerEvent(type, strdup(name));
-    }
-
-    NativeProfilerEvent *tid(int tid) {
-        m_tid = tid;
-        return this;
-    }
-
-    NativeProfilerEvent *start_now() {
-        return start(std::chrono::system_clock::now());
-    }
-
-    NativeProfilerEvent *start(std::chrono::time_point<std::chrono::system_clock> start) {
-        m_start = std::chrono::duration_cast<std::chrono::microseconds>(start.time_since_epoch()).count();
-        return this;
-    }
-
-    NativeProfilerEvent *end_now() {
-        return end(std::chrono::system_clock::now());
-    }
-
-    NativeProfilerEvent *end(std::chrono::time_point<std::chrono::system_clock> end) {
-        m_end = std::chrono::duration_cast<std::chrono::microseconds>(end.time_since_epoch()).count();
-        return this;
-    }
+    static NativeProfilerEvent *named(const Type, const String *);
+    static NativeProfilerEvent *named(const Type, const char *);
+    NativeProfilerEvent *start_now();
+    NativeProfilerEvent *start(std::chrono::time_point<std::chrono::system_clock>);
+    NativeProfilerEvent *end_now();
+    NativeProfilerEvent *end(std::chrono::time_point<std::chrono::system_clock>);
 
 private:
     NativeProfilerEvent() = delete;
-    NativeProfilerEvent(const NativeProfilerEvent::Type type, const char *name)
+    NativeProfilerEvent(const NativeProfilerEvent::Type type, const char *name, const int tid)
         : m_type(type)
-        , m_name(name) { }
+        , m_name(name)
+        , m_tid(tid) { }
 
     const char *google_trace_type() const {
         switch (m_type) {
@@ -84,72 +60,35 @@ private:
 
 class NativeProfiler {
 public:
-    static NativeProfiler *the() {
+    static inline NativeProfiler *the() {
         if (s_instance) {
             return s_instance;
         }
 
-        s_instance = new NativeProfiler();
+        s_instance = new NativeProfiler(false, -1);
         return s_instance;
     }
 
-    void push(NativeProfilerEvent *e) {
-        if (!m_is_enabled)
-            return;
-        m_events.push(std::move(e));
-    }
-
-    bool enabled() {
-        return m_is_enabled;
-    }
-
-    void enable(const char *name) {
-        m_is_enabled = true;
-        m_name = name;
-        m_pid = getpid();
-    }
-
-    void dump() {
-        if (!m_is_enabled)
-            return;
-        String path("profile-");
-        path.append_sprintf("%lld", std::chrono::system_clock::now().time_since_epoch());
-        path.append(".json");
-
-        FILE *fp = fopen(path.c_str(), "w+");
-
-        fprintf(fp, "[");
-        for (size_t i = 0; i < m_events.size(); ++i) {
-            auto *e = m_events[i];
-            String event;
-            if (i > 0)
-                event.append_char(',');
-            event.append_char('{');
-
-            event.append_sprintf("\"name\":\"%s\"", e->m_name);
-            event.append_sprintf(",\"cat\": \"%s\"", e->google_trace_type());
-            event.append(",\"ph\": \"X\"");
-            event.append_sprintf(",\"ts\": \"%lld\"", e->m_start);
-            event.append_sprintf(",\"dur\": \"%lld\"", e->m_end - e->m_start);
-            event.append_sprintf(",\"pid\": \"%d\"", m_pid);
-            event.append_sprintf(",\"tid\": \"%d\"", e->m_tid);
-
-            event.append_char('}');
-            fprintf(fp, "%s", event.c_str());
+    static inline void enable() {
+        if (s_instance) {
+            NAT_UNREACHABLE();
         }
-        fprintf(fp, "]");
-
-        fclose(fp);
-        printf("Profile path: %s\n", path.c_str());
+        s_instance = new NativeProfiler(true, getpid());
     }
+
+    void push(NativeProfilerEvent *);
+    bool enabled() const;
+    void dump();
 
 private:
-    NativeProfiler() = default;
+    NativeProfiler() = delete;
+    NativeProfiler(const bool enable, const int pid)
+        : m_is_enabled(enable)
+        , m_pid(pid) { }
 
     inline static NativeProfiler *s_instance = nullptr;
-    int m_pid;
-    const char *m_name;
-    bool m_is_enabled = false;
+    const bool m_is_enabled;
+    const int m_pid;
 
     TM::Vector<NativeProfilerEvent *> m_events {};
 };

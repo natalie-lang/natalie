@@ -58,14 +58,19 @@ TM::Hashmap<Cell *> Heap::gather_conservative_roots() {
 void Heap::collect() {
     if (!m_gc_enabled) return;
 
-    auto collect_profiler_event = NativeProfilerEvent::named(NativeProfilerEvent::Type::GC, "GC_Collect")
-                                      ->start_now()
-                                      ->tid(gettid());
+    static auto is_profiled = NativeProfiler::the()->enabled();
 
-    auto mark_profiler_event = NativeProfilerEvent::named(NativeProfilerEvent::Type::GC, "GC_Mark")
-                                   ->tid(gettid());
+    NativeProfilerEvent *collect_profiler_event;
+    NativeProfilerEvent *mark_profiler_event;
+
+    if (is_profiled) {
+        collect_profiler_event = NativeProfilerEvent::named(NativeProfilerEvent::Type::GC, "GC_Collect")->start_now();
+        mark_profiler_event = NativeProfilerEvent::named(NativeProfilerEvent::Type::GC, "GC_Mark");
+    }
 
     Defer log_event([&]() {
+        if (!is_profiled)
+            return;
         NativeProfiler::the()->push(collect_profiler_event->end_now());
         NativeProfiler::the()->push(mark_profiler_event);
     });
@@ -74,7 +79,10 @@ void Heap::collect() {
         allocator->unmark_all_cells_in_all_blocks();
     }
 
-    mark_profiler_event->start_now();
+    if (is_profiled) {
+        mark_profiler_event->start_now();
+    }
+
     MarkingVisitor visitor;
 
     auto roots = gather_conservative_roots();
@@ -90,17 +98,20 @@ void Heap::collect() {
     visitor.visit(FiberObject::main());
     visitor.visit(FiberObject::current());
 
-    mark_profiler_event->end_now();
+    if (is_profiled)
+        mark_profiler_event->end_now();
 
     sweep();
 }
 
 void Heap::sweep() {
-    auto profiler_event = NativeProfilerEvent::named(NativeProfilerEvent::Type::GC, "GC_Sweep")
-                              ->start_now()
-                              ->tid(gettid());
+    static auto is_profiled = NativeProfiler::the()->enabled();
+    NativeProfilerEvent *profiler_event;
+    if (is_profiled)
+        profiler_event = NativeProfilerEvent::named(NativeProfilerEvent::Type::GC, "GC_Sweep")->start_now();
     Defer log_event([&]() {
-        NativeProfiler::the()->push(profiler_event->end_now());
+        if (is_profiled)
+            NativeProfiler::the()->push(profiler_event->end_now());
     });
     for (auto allocator : m_allocators) {
         for (auto block_pair : *allocator) {
@@ -119,11 +130,13 @@ void Heap::sweep() {
 }
 
 void *Heap::allocate(size_t size) {
-    auto profiler_event = NativeProfilerEvent::named(NativeProfilerEvent::Type::ALLOCATE, "Allocate")
-                              ->start_now()
-                              ->tid(gettid());
+    static auto is_profiled = NativeProfiler::the()->enabled();
+    NativeProfilerEvent *profiler_event;
+    if (is_profiled)
+        profiler_event = NativeProfilerEvent::named(NativeProfilerEvent::Type::ALLOCATE, "Allocate")->start_now();
     Defer log_event([&]() {
-        NativeProfiler::the()->push(profiler_event->end_now());
+        if (is_profiled)
+            NativeProfiler::the()->push(profiler_event->end_now());
     });
     auto &allocator = find_allocator_of_size(size);
 

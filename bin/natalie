@@ -155,6 +155,9 @@ class Runner
     out = Tempfile.create("natalie#{extension}")
     out.close
     compiler.out_path = out.path
+    if options[:profile]
+      compiler.cxx_flags << '-DNAT_NATIVE_PROFILER'
+    end
     case options[:debug]
     when 'gdb', 'lldb'
       compiler.compile
