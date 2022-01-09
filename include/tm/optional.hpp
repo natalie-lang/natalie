@@ -61,6 +61,10 @@ public:
         return m_present;
     }
 
+    bool present() const {
+        return m_present;
+    }
+
 private:
     bool m_present;
 
