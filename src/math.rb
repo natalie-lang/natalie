@@ -1,6 +1,9 @@
 require 'natalie/inline'
 
 module Math
+  class DomainError < StandardError
+  end
+
   class << self
     def hypot(x, y)
       begin
