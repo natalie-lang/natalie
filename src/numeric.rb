@@ -144,4 +144,8 @@ class Numeric
   def integer?
     false
   end
+
+  def to_int
+    self.to_i
+  end
 end
