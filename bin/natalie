@@ -70,8 +70,13 @@ OptionParser.new do |opts|
     options[:load_path].unshift(p)
   end
 
-  opts.on('-i', '--interpret', 'Interpret Ruby code instead of compiling it') do
-    options[:interpret] = true
+  # FIXME: Put back when Compiler2 is ready and we can start work on the InterpreterBackend
+  #opts.on('-i', '--interpret', 'Interpret Ruby code instead of compiling it') do
+    #options[:interpret] = true
+  #end
+
+  opts.on('-c2', '--new-compiler', 'Enable IR-based compiler') do
+    options[:new_compiler] = true
   end
 
   opts.on('--keep-cpp', 'Do not delete intermediate cpp file used for compilation') do
@@ -192,6 +197,8 @@ class Runner
         compiler.compile_c_to_binary
       rescue Natalie::Compiler::CompileError => e
         puts e
+      rescue Natalie::Compiler2::CompileError => e
+        puts e
       else
         pid = spawn(out.path, *ARGV)
         Process.wait(pid)
@@ -237,7 +244,8 @@ class Runner
   end
 
   def compiler
-    @compiler ||= Natalie::Compiler.new(ast, source_path, options).tap do |c|
+    compiler_class = options[:new_compiler] ? Natalie::Compiler2 : Natalie::Compiler
+    @compiler ||= compiler_class.new(ast, source_path, options).tap do |c|
       c.load_path = options[:load_path]
       c.write_obj_path = options[:write_obj_path]
     end

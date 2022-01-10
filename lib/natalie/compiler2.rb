@@ -1,15 +1,11 @@
 require 'tempfile'
-require_relative '../sexp_processor'
-require_relative './compiler/pass0c'
-require_relative './compiler/pass1'
-require_relative './compiler/pass1b'
-require_relative './compiler/pass1r'
-require_relative './compiler/pass2'
-require_relative './compiler/pass3'
-require_relative './compiler/pass4'
+require_relative './compiler2/pass1'
+require_relative './compiler2/pass2'
+require_relative './compiler2/instruction_manager'
+require_relative './compiler2/backends/cpp_backend'
 
 module Natalie
-  class Compiler
+  class Compiler2
     ROOT_DIR = File.expand_path('../../', __dir__)
     BUILD_DIR = File.join(ROOT_DIR, 'build')
     SRC_PATH = File.join(ROOT_DIR, 'src')
@@ -101,43 +97,19 @@ module Natalie
     def transform(ast)
       @context = build_context
 
-      ast = Pass0c.new(@context).go(ast)
-      if debug == 'p0c'
-        pp ast
-        exit
-      end
-
-      ast = Pass1.new(@context).go(ast)
+      instructions = Pass1.new(ast).transform
       if debug == 'p1'
-        pp ast
+        instructions.each_with_index { |i, index| puts "#{index} #{i}" }
         exit
       end
 
-      ast = Pass1b.new(@context).go(ast)
-      if debug == 'p1b'
-        pp ast
-        exit
-      end
-
-      ast = Pass1r.new(@context).go(ast)
-      if debug == 'p1r'
-        pp ast
-        exit
-      end
-
-      ast = Pass2.new(@context).go(ast)
+      instructions = Pass2.new(instructions).transform
       if debug == 'p2'
-        pp ast
+        puts instructions
         exit
       end
 
-      ast = Pass3.new(@context).go(ast)
-      if debug == 'p3'
-        pp ast
-        exit
-      end
-
-      Pass4.new(@context).go(ast)
+      CppBackend.new(instructions, compiler_context: @context).generate
     end
 
     def instructions
@@ -209,7 +181,7 @@ module Natalie
 
     RELEASE_FLAGS = '-pthread -O1'
     DEBUG_FLAGS =
-      '-pthread -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unknown-warning-option'
+      '-pthread -g -Wall -Wextra -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-value -Wno-unknown-warning-option'
     COVERAGE_FLAGS = '-fprofile-arcs -ftest-coverage'
 
     def build_flags
