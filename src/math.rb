@@ -56,6 +56,22 @@ module Math
       __call__('::asinh', x)
     end
 
+    __function__('::atan2', %w[double double], 'double')
+
+    def atan2(x, y)
+      begin
+        x = Float(x)
+      rescue ArgumentError
+        raise TypeError, "can't convert #{x.class.name} into Float"
+      end
+      begin
+        y = Float(y)
+      rescue ArgumentError
+        raise TypeError, "can't convert #{x.class.name} into Float"
+      end
+      __call__('::atan2', x, y)
+    end
+
     def hypot(x, y)
       begin
         x = Float(x)
@@ -98,6 +114,10 @@ module Math
 
   def asinh(x)
     Math.asinh(x)
+  end
+
+  def atan2(x, y)
+    Math.atan2(x, y)
   end
 
   def hypot(x, y)
