@@ -175,6 +175,12 @@ Value BignumObject::times(Env *env, Block *block) {
     return this;
 }
 
+Value BignumObject::gcd(Env *env, Value divisor) {
+    divisor->assert_type(env, Object::Type::Integer, "Integer");
+    auto other = divisor->as_integer();
+    return new BignumObject { ::gcd(to_bigint(), other->to_bigint()) };
+}
+
 bool BignumObject::eq(Env *env, Value other) {
     if (other->is_float()) {
         return to_bigint() == other->as_float()->to_double();

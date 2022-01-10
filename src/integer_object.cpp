@@ -562,6 +562,35 @@ Value IntegerObject::floor(Env *env, Value arg) {
     return Value::integer(result);
 }
 
+Value gcd_fast(nat_int_t a, nat_int_t b) {
+    auto this_abs = ::abs(a);
+    auto divisor_abs = ::abs(b);
+    auto remainder = divisor_abs;
+
+    while (remainder != 0) {
+        remainder = this_abs % divisor_abs;
+        this_abs = divisor_abs;
+        divisor_abs = remainder;
+    }
+
+    return Value::integer(this_abs);
+}
+
+Value IntegerObject::gcd(Env *env, Value divisor) {
+    if (divisor.is_fast_integer())
+        return gcd_fast(m_integer, divisor.get_fast_integer());
+
+    divisor->assert_type(env, Object::Type::Integer, "Integer");
+
+    auto other = divisor->as_integer();
+    if (other->is_bignum()) {
+        auto result = ::gcd(to_bigint(), other->to_bigint());
+        return new BignumObject { result };
+    }
+
+    return gcd_fast(m_integer, other->to_nat_int_t());
+}
+
 bool IntegerObject::eql(Env *env, Value other) {
     if (other.is_fast_integer())
         return m_integer == other.get_fast_integer();

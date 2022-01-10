@@ -159,3 +159,4 @@ public:
 };
 
 BigInt pow(const BigInt &base, long long exp);
+BigInt gcd(const BigInt &num1, const BigInt &num2);
