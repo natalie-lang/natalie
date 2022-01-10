@@ -31,6 +31,19 @@ module Math
       __call__('::acosh', x)
     end
 
+    __function__('::asin', ['double'], 'double')
+
+    def asin(x)
+      begin
+        x = Float(x)
+      rescue ArgumentError
+        raise TypeError, "can't convert #{x.class.name} into Float"
+      end
+      return Float::NAN if x.nan?
+      raise DomainError, 'Numerical argument is out of domain' unless x.between?(-1.0, 1.0)
+      __call__('::asin', x)
+    end
+
     def hypot(x, y)
       begin
         x = Float(x)
@@ -65,6 +78,10 @@ module Math
 
   def acosh(x)
     Math.acosh(x)
+  end
+
+  def asin(x)
+    Math.asin(x)
   end
 
   def hypot(x, y)
