@@ -8,9 +8,9 @@ describe "Float#divmod" do
     values = 2.8284.divmod(3.1415)
     values[0].should eql(0)
     values[1].should be_close(2.8284, TOLERANCE)
-    #values = -1.0.divmod(bignum_value)
-    #values[0].should eql(-1)
-    #values[1].should be_close(9223372036854775808.000, TOLERANCE)
+    values = -1.0.divmod(bignum_value)
+    values[0].should eql(-1)
+    values[1].should be_close(9223372036854775808.000, TOLERANCE)
     values = -1.0.divmod(1)
     values[0].should eql(-1)
     values[1].should eql(0.0)
@@ -23,6 +23,7 @@ describe "Float#divmod" do
 
   # Behaviour established as correct in r23953
   it "raises a FloatDomainError if other is NaN" do
+    # NATFIXME: bug in spec; '1.divmod' should be '1.0.divmod'
     -> { 1.0.divmod(nan_value) }.should raise_error(FloatDomainError)
   end
 

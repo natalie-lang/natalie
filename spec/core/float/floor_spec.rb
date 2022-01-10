@@ -7,8 +7,8 @@ describe "Float#floor" do
     0.0.floor.should  eql( 0 )
     1.0.floor.should  eql( 1 )
     5.9.floor.should  eql( 5 )
-    #-9223372036854775808.1.floor.should eql(-9223372036854775808)
-    #+9223372036854775808.1.floor.should eql(+9223372036854775808)
+    -9223372036854775808.1.floor.should eql(-9223372036854775808)
+    +9223372036854775808.1.floor.should eql(+9223372036854775808)
   end
 
   it "returns the largest number less than or equal to self with an optionally given precision" do
