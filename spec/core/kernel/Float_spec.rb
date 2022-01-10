@@ -341,8 +341,7 @@ describe "Kernel#Float" do
 end
 
 describe "Kernel#Float" do
-  # NATFIXME: Implement #have_private_instance_method matcher
-  xit "is a private method" do
+  it "is a private method" do
     Kernel.should have_private_instance_method(:Float)
   end
 end

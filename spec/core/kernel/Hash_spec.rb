@@ -12,8 +12,7 @@ describe "Kernel#hash" do
 end
 
 describe "Kernel" do
-  # NATFIXME: Implement #have_private_instance_method matcher
-  xit "has private instance method Hash()" do
+  it "has private instance method Hash()" do
     Kernel.should have_private_instance_method(:Hash)
   end
 end

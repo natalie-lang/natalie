@@ -2,8 +2,7 @@ require_relative '../../spec_helper'
 require_relative 'fixtures/classes'
 
 describe "Kernel" do
-  # NATFIXME: Implement #have_private_instance_method matcher
-  xit "has private instance method Array()" do
+  it "has private instance method Array()" do
     Kernel.should have_private_instance_method(:Array)
   end
 end
