@@ -44,6 +44,18 @@ module Math
       __call__('::asin', x)
     end
 
+    __function__('::asinh', ['double'], 'double')
+
+    def asinh(x)
+      begin
+        x = Float(x)
+      rescue ArgumentError
+        raise TypeError, "can't convert #{x.class.name} into Float"
+      end
+      return Float::NAN if x.nan?
+      __call__('::asinh', x)
+    end
+
     def hypot(x, y)
       begin
         x = Float(x)
@@ -82,6 +94,10 @@ module Math
 
   def asin(x)
     Math.asin(x)
+  end
+
+  def asinh(x)
+    Math.asinh(x)
   end
 
   def hypot(x, y)
