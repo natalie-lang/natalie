@@ -123,6 +123,12 @@ Value RangeObject::inspect(Env *env) {
     }
 }
 
+Value RangeObject::to_s(Env *env) {
+    auto begin = m_begin->send(env, "to_s"_s)->as_string();
+    auto end = m_end->send(env, "to_s"_s)->as_string();
+    return StringObject::format(env, m_exclude_end ? "{}...{}" : "{}..{}", begin, end);
+}
+
 bool RangeObject::eq(Env *env, Value other_value) {
     if (other_value->is_range()) {
         RangeObject *other = other_value->as_range();
