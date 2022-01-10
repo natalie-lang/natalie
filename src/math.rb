@@ -18,6 +18,19 @@ module Math
       __call__('::acos', x)
     end
 
+    __function__('::acosh', ['double'], 'double')
+
+    def acosh(x)
+      begin
+        x = Float(x)
+      rescue ArgumentError
+        raise TypeError, "can't convert #{x.class.name} into Float"
+      end
+      return Float::NAN if x.nan?
+      raise DomainError, 'Numerical argument is out of domain' if x < 1.0
+      __call__('::acosh', x)
+    end
+
     def hypot(x, y)
       begin
         x = Float(x)
@@ -48,6 +61,10 @@ module Math
 
   def acos(x)
     Math.acos(x)
+  end
+
+  def acosh(x)
+    Math.acosh(x)
   end
 
   def hypot(x, y)
