@@ -222,6 +222,19 @@ module Math
       sqrt(x**2 + y**2)
     end
 
+    __function__('::log10', ['double'], 'double')
+
+    def log10(x)
+      begin
+        x = Float(x)
+      rescue ArgumentError
+        raise TypeError, "can't convert #{x.class.name} into Float"
+      end
+      return Float::NAN if x.nan?
+      raise DomainError, 'Numerical argument is out of domain' if x < 0
+      __call__('::log10', x)
+    end
+
     __function__('::sqrt', ['double'], 'double')
 
     def sqrt(x)
@@ -298,6 +311,10 @@ module Math
 
   def hypot(x, y)
     Math.hypot(x, y)
+  end
+
+  def log10(x)
+    Math.log10(x)
   end
 
   def sqrt(x)
