@@ -52,6 +52,26 @@ class Numeric
 
   alias conjugate conj
 
+  def imag
+    0
+  end
+
+  alias imaginary imag
+
+  def real
+    self
+  end
+
+  def real?
+    true
+  end
+
+  def rect
+    [self.real, self.imag]
+  end
+
+  alias rectangular rect
+
   def ceil
     Float(self).ceil
   end
