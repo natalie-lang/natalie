@@ -28,6 +28,11 @@ class BindingGen
     binding(*args, **kwargs.update(static: true))
   end
 
+  # define a private method on the Ruby class and a public method on the Ruby *SINGLETON* class
+  def module_function_binding(*args, **kwargs)
+    binding(*args, **{ module_function: true, visibility: :private }.update(kwargs))
+  end
+
   # mark a method as undefined on the Ruby singleton class
   def undefine_singleton_method(rb_class, method)
     @undefine_singleton_methods << [rb_class, method]
@@ -42,6 +47,9 @@ class BindingGen
         @consts[binding.rb_class] = true
       end
       puts "    #{binding.rb_class_as_c_variable}->#{binding.define_method_name}(env, #{binding.rb_method.inspect}_s, #{binding.name}, #{binding.arity});"
+      if binding.module_function?
+        puts "    #{binding.rb_class_as_c_variable}->module_function(env, #{binding.rb_method.inspect}_s);"
+      end
       if binding.needs_to_set_visibility?
         puts "    #{binding.rb_class_as_c_variable}->#{binding.set_visibility_method_name}(env, #{binding.rb_method.inspect}_s);"
       end
@@ -63,6 +71,7 @@ class BindingGen
       pass_env:,
       pass_block:,
       return_type:,
+      module_function: false,
       singleton: false,
       static: false,
       pass_klass: false,
@@ -73,6 +82,7 @@ class BindingGen
       @cpp_class = cpp_class
       @cpp_method = cpp_method
       @argc = argc
+      @module_function = module_function
       @pass_env = pass_env
       @pass_block = pass_block
       @pass_klass = pass_klass
@@ -94,6 +104,10 @@ class BindingGen
                 :return_type,
                 :name,
                 :visibility
+
+    def module_function?
+      @module_function
+    end
 
     def arity
       case argc
@@ -172,7 +186,7 @@ Value #{name}(Env *env, Value klass, size_t argc, Value *args, Block *block) {
     end
 
     def needs_to_set_visibility?
-      visibility != :public
+      module_function? ? visibility != :private : visibility != :public
     end
 
     def set_visibility_method_name
@@ -587,7 +601,9 @@ begin
   gen.binding('IO', 'seek', 'IoObject', 'seek', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
   gen.binding('IO', 'write', 'IoObject', 'write', argc: 1.., pass_env: true, pass_block: false, return_type: :Object)
 
-  gen.binding('Kernel', 'Array', 'KernelModule', 'Array', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+  gen.module_function_binding('Kernel', 'Array', 'KernelModule', 'Array', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+  gen.module_function_binding('Kernel', 'Float', 'KernelModule', 'Float', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
+  gen.module_function_binding('Kernel', 'Hash', 'KernelModule', 'Hash', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
   gen.binding('Kernel', 'abort', 'KernelModule', 'abort_method', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
   gen.binding('Kernel', 'at_exit', 'KernelModule', 'at_exit', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
   gen.binding('Kernel', 'binding', 'KernelModule', 'binding', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
@@ -601,12 +617,10 @@ begin
   gen.binding('Kernel', 'eql?', 'KernelModule', 'equal', argc: 1, pass_env: false, pass_block: false, return_type: :bool)
   gen.binding('Kernel', 'exit', 'KernelModule', 'exit', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
   gen.binding('Kernel', 'extend', 'Object', 'extend', argc: 1.., pass_env: true, pass_block: false, return_type: :Object)
-  gen.binding('Kernel', 'Float', 'KernelModule', 'Float', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
   gen.binding('Kernel', 'freeze', 'KernelModule', 'freeze_obj', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
   gen.binding('Kernel', 'frozen?', 'KernelModule', 'is_frozen', argc: 0, pass_env: false, pass_block: false, return_type: :bool)
   gen.binding('Kernel', 'gets', 'KernelModule', 'gets', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
   gen.binding('Kernel', 'get_usage', 'KernelModule', 'get_usage', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
-  gen.binding('Kernel', 'Hash', 'KernelModule', 'Hash', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
   gen.binding('Kernel', 'hash', 'KernelModule', 'hash', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
   gen.binding('Kernel', 'inspect', 'KernelModule', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
   gen.binding('Kernel', 'instance_variable_defined?', 'KernelModule', 'instance_variable_defined', argc: 1, pass_env: true, pass_block: false, return_type: :bool)

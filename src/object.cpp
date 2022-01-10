@@ -533,6 +533,11 @@ void Object::protected_method(Env *env, SymbolObject *name) {
     protected_method(env, 1, args);
 }
 
+void Object::module_function(Env *env, SymbolObject *name) {
+    Value args[] = { name };
+    module_function(env, 1, args);
+}
+
 Value Object::private_method(Env *env, size_t argc, Value *args) {
     if (!is_main_object()) {
         printf("tried to call private_method on something that has no methods\n");
@@ -547,6 +552,11 @@ Value Object::protected_method(Env *env, size_t argc, Value *args) {
         abort();
     }
     return m_klass->protected_method(env, argc, args);
+}
+
+Value Object::module_function(Env *env, size_t argc, Value *args) {
+    printf("tried to call module_function on something that isn't a module\n");
+    abort();
 }
 
 Value Object::public_send(Env *env, SymbolObject *name, size_t argc, Value *args, Block *block) {

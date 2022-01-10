@@ -120,13 +120,13 @@ public:
 
     Value module_eval(Env *, Block *);
 
-    virtual Value private_method(Env *, size_t, Value *) override;
-    virtual Value protected_method(Env *, size_t, Value *) override;
+    Value private_method(Env *, size_t, Value *) override;
+    Value protected_method(Env *, size_t, Value *) override;
     Value public_method(Env *, size_t, Value *);
     Value private_class_method(Env *, size_t, Value *);
     Value public_class_method(Env *, size_t, Value *);
     void set_method_visibility(Env *, size_t, Value *, MethodVisibility);
-    Value module_function(Env *, size_t, Value *);
+    Value module_function(Env *, size_t, Value *) override;
 
     Value deprecate_constant(Env *, size_t, Value *);
     Value private_constant(Env *, size_t, Value *);

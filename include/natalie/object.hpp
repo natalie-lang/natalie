@@ -189,9 +189,11 @@ public:
 
     virtual Value private_method(Env *, size_t, Value *);
     virtual Value protected_method(Env *, size_t, Value *);
+    virtual Value module_function(Env *, size_t, Value *);
 
     void private_method(Env *, SymbolObject *);
     void protected_method(Env *, SymbolObject *);
+    void module_function(Env *, SymbolObject *);
 
     virtual void alias(Env *, SymbolObject *, SymbolObject *);
 
