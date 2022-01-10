@@ -82,9 +82,7 @@ class SpecVersion
       # NATFIXME: Implement Kernel#Integer
       # other = Integer(other.to_int)
     else
-      other = SpecVersion.new(other.to_s).to_i
-      # NATFIXME: Implement Kernel#String
-      # other = SpecVersion.new(other.to_s).to_i
+      other = SpecVersion.new(String(other)).to_i
     end
 
     self.to_i <=> other

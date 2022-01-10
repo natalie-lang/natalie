@@ -424,6 +424,22 @@ Value KernelModule::spawn(Env *env, size_t argc, Value *args) {
     return Value::integer(pid);
 }
 
+Value KernelModule::String(Env *env, Value value) {
+    if (value->is_string()) {
+        return value;
+    }
+
+    auto to_s = "to_s"_s;
+
+    if (!value->respond_to_method(env, to_s, true) || !value->respond_to(env, to_s)) {
+        env->raise("TypeError", "can't convert {} into String", value->klass()->inspect_str());
+    }
+
+    value = value.send(env, to_s);
+    value->assert_type(env, Object::Type::String, "String");
+    return value;
+}
+
 Value KernelModule::tap(Env *env, Block *block) {
     Value self = this;
     NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &self, nullptr);
