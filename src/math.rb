@@ -5,6 +5,19 @@ module Math
   end
 
   class << self
+    __function__('::acos', ['double'], 'double')
+
+    def acos(x)
+      begin
+        x = Float(x)
+      rescue ArgumentError
+        raise TypeError, "can't convert #{x.class.name} into Float"
+      end
+      return Float::NAN if x.nan?
+      raise DomainError, 'Numerical argument is out of domain' unless x.between?(-1.0, 1.0)
+      __call__('::acos', x)
+    end
+
     def hypot(x, y)
       begin
         x = Float(x)
@@ -32,6 +45,10 @@ module Math
   end
 
   private
+
+  def acos(x)
+    Math.acos(x)
+  end
 
   def hypot(x, y)
     Math.hypot(x, y)
