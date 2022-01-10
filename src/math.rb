@@ -300,6 +300,18 @@ module Math
       __call__('::sinh', x)
     end
 
+    __function__('::tan', ['double'], 'double')
+
+    def tan(x)
+      begin
+        x = Float(x)
+      rescue ArgumentError
+        raise TypeError, "can't convert #{x.class.name} into Float"
+      end
+      return Float::NAN if x.nan?
+      __call__('::tan', x)
+    end
+
     __function__('::sqrt', ['double'], 'double')
 
     def sqrt(x)
@@ -396,6 +408,10 @@ module Math
 
   def sinh(x)
     Math.sinh(x)
+  end
+
+  def tan(x)
+    Math.tan(x)
   end
 
   def sqrt(x)
