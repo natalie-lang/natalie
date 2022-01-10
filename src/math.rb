@@ -157,6 +157,18 @@ module Math
       __call__('::erfc', x)
     end
 
+    __function__('::exp', ['double'], 'double')
+
+    def exp(x)
+      begin
+        x = Float(x)
+      rescue ArgumentError
+        raise TypeError, "can't convert #{x.class.name} into Float"
+      end
+      return Float::NAN if x.nan?
+      __call__('::exp', x)
+    end
+
     def hypot(x, y)
       begin
         x = Float(x)
@@ -231,6 +243,10 @@ module Math
 
   def erfc(x)
     Math.erfc(x)
+  end
+
+  def exp(x)
+    Math.exp(x)
   end
 
   def hypot(x, y)
