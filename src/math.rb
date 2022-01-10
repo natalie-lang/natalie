@@ -169,6 +169,27 @@ module Math
       __call__('::exp', x)
     end
 
+    __define_method__ :frexp, [:x], <<-END
+      KernelModule *kernel = GlobalEnv::the()->Object()->as_kernel_module_for_method_binding();
+      FloatObject *value;
+      try {
+          value = kernel->Float(env, x, nullptr)->as_float();
+      } catch (ExceptionObject *exception) {
+          ClassObject *klass = exception->klass();
+          if (strcmp(klass->inspect_str()->c_str(), "ArgumentError") == 0) {
+              env->raise("TypeError", "can't convert {} into Float", x->klass()->inspect_str());
+          } else {
+              env->raise_exception(exception);
+          }
+      }
+      if (value->is_nan()) {
+          return GlobalEnv::the()->Float()->const_get("NAN"_s);
+      }
+      int exponent;
+      auto significand = std::frexp(value->to_double(), &exponent);
+      return new ArrayObject { { Value::integer(significand), Value::integer(exponent) } };
+    END
+
     def hypot(x, y)
       begin
         x = Float(x)
@@ -247,6 +268,10 @@ module Math
 
   def exp(x)
     Math.exp(x)
+  end
+
+  def frexp(x)
+    Math.frexp(x)
   end
 
   def hypot(x, y)
