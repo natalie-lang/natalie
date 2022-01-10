@@ -30,6 +30,10 @@ class Numeric
     self == 0
   end
 
+  def nonzero?
+    self.zero? ? nil : self
+  end
+
   def abs
     self.negative? ? -self : self
   end
