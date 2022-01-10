@@ -276,6 +276,18 @@ module Math
       __call__('::log', x)
     end
 
+    __function__('::sin', ['double'], 'double')
+
+    def sin(x)
+      begin
+        x = Float(x)
+      rescue ArgumentError
+        raise TypeError, "can't convert #{x.class.name} into Float"
+      end
+      return Float::NAN if x.nan?
+      __call__('::sin', x)
+    end
+
     __function__('::sqrt', ['double'], 'double')
 
     def sqrt(x)
@@ -364,6 +376,10 @@ module Math
 
   def log(x)
     Math.log(x)
+  end
+
+  def sin(x)
+    Math.sin(x)
   end
 
   def sqrt(x)
