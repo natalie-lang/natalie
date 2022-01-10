@@ -109,6 +109,18 @@ module Math
       __call__('::cbrt', x)
     end
 
+    __function__('::cos', ['double'], 'double')
+
+    def cos(x)
+      begin
+        x = Float(x)
+      rescue ArgumentError
+        raise TypeError, "can't convert #{x.class.name} into Float"
+      end
+      return Float::NAN if x.nan?
+      __call__('::cos', x)
+    end
+
     def hypot(x, y)
       begin
         x = Float(x)
@@ -167,6 +179,10 @@ module Math
 
   def cbrt(x)
     Math.cbrt(x)
+  end
+
+  def cos(x)
+    Math.cos(x)
   end
 
   def hypot(x, y)
