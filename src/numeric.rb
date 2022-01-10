@@ -102,4 +102,16 @@ class Numeric
   def fdiv(other)
     Float(self) / Float(other)
   end
+
+  def finite?
+    true
+  end
+
+  def infinite?
+    nil
+  end
+
+  def integer?
+    false
+  end
 end
