@@ -121,6 +121,18 @@ module Math
       __call__('::cos', x)
     end
 
+    __function__('::cosh', ['double'], 'double')
+
+    def cosh(x)
+      begin
+        x = Float(x)
+      rescue ArgumentError
+        raise TypeError, "can't convert #{x.class.name} into Float"
+      end
+      return Float::NAN if x.nan?
+      __call__('::cosh', x)
+    end
+
     def hypot(x, y)
       begin
         x = Float(x)
@@ -183,6 +195,10 @@ module Math
 
   def cos(x)
     Math.cos(x)
+  end
+
+  def cosh(x)
+    Math.cosh(x)
   end
 
   def hypot(x, y)
