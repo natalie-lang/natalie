@@ -215,11 +215,17 @@ file 'build/generated/numbers.rb' do |t|
   end
 end
 
-file 'build/generated/platform.cpp.o' do |t|
-  File.write(t.name.pathmap('%d/%n'), <<~END)
+file 'build/generated/platform.cpp' => OBJECT_FILES - ['build/generated/platform.cpp.o'] do |t|
+  git_revision = `git show --pretty=%H --quiet`.chomp
+  File.write(t.name, <<~END)
     #include "natalie.hpp"
     const char *Natalie::ruby_platform = #{RUBY_PLATFORM.inspect};
+    const char *Natalie::ruby_release_date = "#{Time.now.strftime('%Y-%m-%d')}";
+    const char *Natalie::ruby_revision = "#{git_revision}";
   END
+end
+
+file 'build/generated/platform.cpp.o' => 'build/generated/platform.cpp' do |t|
   sh "#{cxx} #{cxx_flags.join(' ')} -std=#{STANDARD} -c -o #{t.name} #{t.name.pathmap('%d/%n')}"
 end
 

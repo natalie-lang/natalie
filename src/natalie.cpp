@@ -200,11 +200,27 @@ Env *build_top_env() {
     Value RUBY_VERSION = new StringObject { "3.0.0" };
     Object->const_set("RUBY_VERSION"_s, RUBY_VERSION);
 
+    Value RUBY_COPYRIGHT = new StringObject { "natalie - Copyright (c) 2021 Tim Morgan and contributors" };
+    Object->const_set("RUBY_COPYRIGHT"_s, RUBY_COPYRIGHT);
+
+    Natalie::String *ruby_revision_short = new Natalie::String { ruby_revision, 10 };
+    StringObject *RUBY_DESCRIPTION = StringObject::format(env, "natalie ({} revision {}) [{}]", ruby_release_date, ruby_revision_short, ruby_platform);
+    Object->const_set("RUBY_DESCRIPTION"_s, RUBY_DESCRIPTION);
+
     Value RUBY_ENGINE = new StringObject { "natalie" };
     Object->const_set("RUBY_ENGINE"_s, RUBY_ENGINE);
 
+    Value RUBY_PATCHLEVEL = new IntegerObject { -1 };
+    Object->const_set("RUBY_PATCHLEVEL"_s, RUBY_PATCHLEVEL);
+
     StringObject *RUBY_PLATFORM = new StringObject { ruby_platform };
     Object->const_set("RUBY_PLATFORM"_s, RUBY_PLATFORM);
+
+    Value RUBY_RELEASE_DATE = new StringObject { ruby_release_date };
+    Object->const_set("RUBY_RELEASE_DATE"_s, RUBY_RELEASE_DATE);
+
+    Value RUBY_REVISION = new StringObject { ruby_revision };
+    Object->const_set("RUBY_REVISION"_s, RUBY_REVISION);
 
     ModuleObject *GC = new ModuleObject { "GC" };
     Object->const_set("GC"_s, GC);
