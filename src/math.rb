@@ -84,6 +84,19 @@ module Math
       __call__('::atan', x)
     end
 
+    __function__('::atanh', ['double'], 'double')
+
+    def atanh(x)
+      begin
+        x = Float(x)
+      rescue ArgumentError
+        raise TypeError, "can't convert #{x.class.name} into Float"
+      end
+      return Float::NAN if x.nan?
+      raise DomainError, 'Numerical argument is out of domain' unless x.between?(-1.0, 1.0)
+      __call__('::atanh', x)
+    end
+
     def hypot(x, y)
       begin
         x = Float(x)
@@ -134,6 +147,10 @@ module Math
 
   def atan(x)
     Math.atan(x)
+  end
+
+  def atanh(x)
+    Math.atanh(x)
   end
 
   def hypot(x, y)
