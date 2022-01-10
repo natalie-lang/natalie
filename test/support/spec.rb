@@ -365,6 +365,9 @@ class Matcher
   def positive?
     method_missing(:positive?)
   end
+  def real?
+    method_missing(:real?)
+  end
   def start_with?(other)
     method_missing(:start_with?, other)
   end
