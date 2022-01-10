@@ -133,6 +133,18 @@ module Math
       __call__('::cosh', x)
     end
 
+    __function__('::erf', ['double'], 'double')
+
+    def erf(x)
+      begin
+        x = Float(x)
+      rescue ArgumentError
+        raise TypeError, "can't convert #{x.class.name} into Float"
+      end
+      return Float::NAN if x.nan?
+      __call__('::erf', x)
+    end
+
     def hypot(x, y)
       begin
         x = Float(x)
@@ -199,6 +211,10 @@ module Math
 
   def cosh(x)
     Math.cosh(x)
+  end
+
+  def erf(x)
+    Math.erf(x)
   end
 
   def hypot(x, y)
