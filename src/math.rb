@@ -190,6 +190,24 @@ module Math
       return new ArrayObject { { Value::integer(significand), Value::integer(exponent) } };
     END
 
+    __function__('::tgamma', ['double'], 'double')
+
+    def gamma(x)
+      begin
+        x = Float(x)
+      rescue ArgumentError
+        raise TypeError, "can't convert #{x.class.name} into Float"
+      end
+      return Float::NAN if x.nan?
+      return x if x == Float::INFINITY
+      raise DomainError, 'Numerical argument is out of domain' if x == -Float::INFINITY
+      if x == x.floor
+        raise DomainError, 'Numerical argument is out of domain' if x < 0
+        return FACT_TABLE[x.to_i - 1] if x.between?(1.0, 23.0)
+      end
+      __call__('::tgamma', x)
+    end
+
     def hypot(x, y)
       begin
         x = Float(x)
@@ -274,6 +292,10 @@ module Math
     Math.frexp(x)
   end
 
+  def gamma(x)
+    Math.gamma(x)
+  end
+
   def hypot(x, y)
     Math.hypot(x, y)
   end
@@ -281,4 +303,30 @@ module Math
   def sqrt(x)
     Math.sqrt(x)
   end
+
+  FACT_TABLE = [
+    1.0,
+    1.0,
+    2.0,
+    6.0,
+    24.0,
+    120.0,
+    720.0,
+    5040.0,
+    40320.0,
+    362880.0,
+    3628800.0,
+    39916800.0,
+    479001600.0,
+    6227020800.0,
+    87178291200.0,
+    1307674368000.0,
+    20922789888000.0,
+    355687428096000.0,
+    6402373705728000.0,
+    121645100408832000.0,
+    2432902008176640000.0,
+    51090942171709440000.0,
+    1124000727777607680000.0,
+  ]
 end
