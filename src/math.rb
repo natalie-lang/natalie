@@ -249,6 +249,33 @@ module Math
       __call__('::log2', x)
     end
 
+    __function__('::log', ['double'], 'double')
+
+    def log(*args)
+      unless args.length.between?(1, 2)
+        raise ArgumentError, "wrong number of arguments (given #{args.length}, expected 1..2)"
+      end
+      x, base = args
+      raise TypeError, "can't convert String into Float" if x.is_a?(String)
+      begin
+        x = Float(x)
+      rescue ArgumentError
+        raise TypeError, "can't convert #{x.class.name} into Float"
+      end
+      return Float::NAN if x.nan?
+      raise DomainError, 'Numerical argument is out of domain' if x < 0
+      if args.length == 2
+        raise TypeError, "can't convert String into Float" if base.is_a?(String)
+        begin
+          base = Float(base)
+        rescue ArgumentError
+          raise TypeError, "can't convert #{base.class.name} into Float"
+        end
+        return __call__('::log', x) / __call__('::log', base)
+      end
+      __call__('::log', x)
+    end
+
     __function__('::sqrt', ['double'], 'double')
 
     def sqrt(x)
@@ -333,6 +360,10 @@ module Math
 
   def log2(x)
     Math.log2(x)
+  end
+
+  def log(x)
+    Math.log(x)
   end
 
   def sqrt(x)
