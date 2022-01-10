@@ -50,6 +50,12 @@ class Numeric
 
   alias angle arg
 
+  alias phase arg
+
+  def polar
+    [self.abs, self.arg]
+  end
+
   def conj
     self
   end
