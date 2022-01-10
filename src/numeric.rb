@@ -91,4 +91,15 @@ class Numeric
   def divmod(other)
     [self.div(other), self % other]
   end
+
+  def remainder(other)
+    remainder = self % other
+    return remainder if remainder == 0
+    return remainder - other if (self < 0 && other > 0) || (self > 0 && other < 0)
+    remainder
+  end
+
+  def fdiv(other)
+    Float(self) / Float(other)
+  end
 end
