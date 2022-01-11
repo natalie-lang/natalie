@@ -146,6 +146,12 @@ public:
     bool operator==(const double &) const;
     bool operator!=(const double &) const;
 
+    //Bitwise operators:
+    BigInt operator&(const BigInt &num) const;
+    BigInt operator|(const BigInt &num) const;
+    BigInt operator^(const BigInt &num) const;
+    BigInt operator~() const;
+
     bool is_negative() const { return sign == '-'; }
 
     // Conversion functions:

@@ -1757,3 +1757,210 @@ BigInt BigInt::operator--(int) {
 
     return temp;
 }
+
+/*
+    ===========================================================================
+    Bitwise operators
+    ===========================================================================
+*/
+
+/*
+    to_binary
+    ---------
+    Converts a BigInt to a binary string.
+*/
+
+Natalie::String to_binary(const BigInt &num) {
+    BigInt copy_num(num);
+    Natalie::String binary_num;
+
+    if (copy_num < 0) {
+        copy_num *= -1;
+    }
+
+    while (copy_num > 0) {
+        if (copy_num % 2 == 1) {
+            binary_num.prepend_char('1');
+        } else {
+            binary_num.prepend_char('0');
+        }
+        copy_num /= 2;
+    }
+
+    if (num < 0) {
+        for (int i = binary_num.size() - 1; i >= 0; i--) {
+            if (binary_num[i] == '0') {
+                binary_num[i] = '1';
+            } else {
+                binary_num[i] = '0';
+            }
+        }
+
+        bool carry_bit = true;
+        for (int i = binary_num.size() - 1; i >= 0; i--) {
+            if (binary_num[i] == '1' && carry_bit) {
+                binary_num[i] = '0';
+                carry_bit = true;
+            } else if (binary_num[i] == '0' && carry_bit) {
+                binary_num[i] = '1';
+                carry_bit = false;
+            }
+        }
+
+        binary_num.prepend_char('1');
+    } else if (num > 0) {
+        binary_num.prepend_char('0');
+    } else {
+        binary_num = "0";
+    }
+
+    return binary_num;
+}
+
+/*
+    binary_to_BigInt
+    ---------
+    Converts a binary string to a BigInt.
+*/
+
+BigInt binary_to_BigInt(const Natalie::String &num) {
+    BigInt decimal_string;
+
+    for (int i = num.size() - 1; i > 0; i--) {
+        if (num[i] == '1') {
+            decimal_string += pow(2, (num.size() - 1) - i);
+        }
+    }
+
+    if (num[0] == '1') {
+        decimal_string += (pow(2, (num.size() - 1)) * -1);
+    }
+
+    return decimal_string;
+}
+
+/*
+    sign_extend_binary
+    ---------
+    Extends a binary string to match the length of the longest binary string passed in while maintaining 2's Complement.
+*/
+
+std::tuple<Natalie::String, Natalie::String> sign_extend_binary(const Natalie::String &num1, const Natalie::String &num2) {
+    Natalie::String larger, smaller;
+
+    if (num1.size() > num2.size() || (num1.size() == num2.size() && num1 > num2)) {
+        larger = num1;
+        smaller = num2;
+    } else {
+        larger = num2;
+        smaller = num1;
+    }
+
+    if (smaller[0] == '1') {
+        smaller.prepend(Natalie::String(larger.size() - smaller.size(), '1').c_str());
+    } else {
+        smaller.prepend(Natalie::String(larger.size() - smaller.size(), '0').c_str());
+    }
+
+    return std::make_tuple(larger, smaller);
+}
+
+/*
+    BigInt & BigInt
+    ---------------
+    The operand on the RHS of the addition is `num`.
+*/
+
+BigInt BigInt::operator&(const BigInt &num) const {
+    Natalie::String lhs_binary, rhs_binary;
+    lhs_binary = to_binary(*this);
+    rhs_binary = to_binary(num);
+
+    Natalie::String larger, smaller;
+    std::tie(larger, smaller) = sign_extend_binary(lhs_binary, rhs_binary);
+
+    Natalie::String complete_string;
+    for (size_t i = 0; i < larger.size(); i++) {
+        if (larger[i] == '1' && smaller[i] == '1') {
+            complete_string.append_char('1');
+        } else {
+            complete_string.append_char('0');
+        }
+    }
+
+    return binary_to_BigInt(complete_string);
+}
+
+/*
+    BigInt | BigInt
+    ---------------
+    The operand on the RHS of the addition is `num`.
+*/
+
+BigInt BigInt::operator|(const BigInt &num) const {
+    Natalie::String lhs_binary, rhs_binary;
+    lhs_binary = to_binary(*this);
+    rhs_binary = to_binary(num);
+
+    Natalie::String larger, smaller;
+    std::tie(larger, smaller) = sign_extend_binary(lhs_binary, rhs_binary);
+
+    Natalie::String complete_string;
+    for (size_t i = 0; i < larger.size(); i++) {
+        if (larger[i] == '1' || smaller[i] == '1') {
+            complete_string.append_char('1');
+        } else {
+            complete_string.append_char('0');
+        }
+    }
+
+    return binary_to_BigInt(complete_string);
+}
+
+/*
+    BigInt ^ BigInt
+    ---------------
+    The operand on the RHS of the addition is `num`.
+*/
+
+BigInt BigInt::operator^(const BigInt &num) const {
+    Natalie::String lhs_binary, rhs_binary;
+    lhs_binary = to_binary(*this);
+    rhs_binary = to_binary(num);
+
+    Natalie::String larger, smaller;
+    std::tie(larger, smaller) = sign_extend_binary(lhs_binary, rhs_binary);
+
+    Natalie::String complete_string;
+    for (size_t i = 0; i < larger.size(); i++) {
+        if ((larger[i] == '1' && smaller[i] == '0') || (larger[i] == '0' && smaller[i] == '1')) {
+            complete_string.append_char('1');
+        } else {
+            complete_string.append_char('0');
+        }
+    }
+
+    return binary_to_BigInt(complete_string);
+}
+
+/*
+    ~ BigInt
+    ---------------
+    The operand on the RHS of the addition is `num`.
+*/
+
+BigInt BigInt::operator~() const {
+    Natalie::String lhs_binary;
+    lhs_binary = to_binary(*this);
+
+    Natalie::String complete_string;
+    for (size_t i = 0; i < lhs_binary.size(); i++) {
+        if (lhs_binary[i] == '1') {
+            complete_string.append_char('1');
+        } else {
+            complete_string.append_char('0');
+        }
+    }
+
+    return binary_to_BigInt(complete_string);
+}
