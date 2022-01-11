@@ -174,13 +174,16 @@ def min_long
 end
 
 def ruby_exe(code, args: nil)
-  file = Tempfile.new('ruby_exe.rb') { |f| f.write(code) }
+  Tempfile.create('ruby_exe.rb') do |file|
+    file.write(code)
+    file.rewind
 
-  output = `bin/natalie #{file.path} #{args}`
+    output = `bin/natalie #{file.path} #{args}`
 
-  raise SpecFailedException, "Expected exit status 0 but actual is #{$?.exitstatus}" unless $?.success?
+    raise SpecFailedException, "Expected exit status 0 but actual is #{$?.exitstatus}" unless $?.success?
 
-  output
+    output
+  end
 end
 
 def ruby_version_is(version)
