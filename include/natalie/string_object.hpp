@@ -104,6 +104,12 @@ public:
 
     StringObject *inspect(Env *);
 
+    StringObject &operator=(StringObject other) {
+        this->m_string = other.m_string;
+        this->m_encoding = other.m_encoding;
+        return *this;
+    }
+
     bool operator==(const Object &value) const {
         if (!value.is_string())
             return false;
@@ -163,6 +169,7 @@ public:
     Value ord(Env *);
     Value ref(Env *, Value);
     Value reverse(Env *);
+    Value reverse_in_place(Env *);
     Value rstrip(Env *) const;
     Value rstrip_in_place(Env *);
     Value size(Env *);
