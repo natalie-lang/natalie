@@ -814,6 +814,7 @@ begin
   gen.binding('String', 'match', 'StringObject', 'match', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
   gen.binding('String', 'ord', 'StringObject', 'ord', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
   gen.binding('String', 'reverse', 'StringObject', 'reverse', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+  gen.binding('String', 'reverse!', 'StringObject', 'reverse_in_place', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
   gen.binding('String', 'rstrip', 'StringObject', 'rstrip', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
   gen.binding('String', 'rstrip!', 'StringObject', 'rstrip_in_place', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
   gen.binding('String', 'size', 'StringObject', 'size', argc: 0, pass_env: true, pass_block: false, return_type: :Object)

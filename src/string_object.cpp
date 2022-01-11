@@ -869,6 +869,12 @@ Value StringObject::reverse(Env *env) {
     return ary->join(env, nullptr);
 }
 
+Value StringObject::reverse_in_place(Env *env) {
+    this->assert_not_frozen(env);
+    *this = *reverse(env)->as_string();
+    return this;
+}
+
 void StringObject::prepend_char(Env *env, char c) {
     m_string.prepend_char(c);
 }
