@@ -21,8 +21,7 @@ describe "Hash#assoc" do
     @h.assoc(:banana).last.should == :yellow
   end
 
-  # NATFIXME: Implement Hash#compare_by_identity
-  xit "only returns the first matching key-value pair for identity hashes" do
+  it "only returns the first matching key-value pair for identity hashes" do
     # Avoid literal String keys in Hash#[]= due to https://bugs.ruby-lang.org/issues/12855
     h = {}.compare_by_identity
     k1 = 'pear'

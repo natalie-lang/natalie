@@ -72,4 +72,3 @@ describe "Array#combination" do
     end
   end
 end
-

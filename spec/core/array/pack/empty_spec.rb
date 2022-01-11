@@ -6,7 +6,7 @@ describe "Array#pack with empty format" do
   end
 
   # NATFIXME: we don't have US-ASCII encoding yet
-  #it "returns a String with US-ASCII encoding" do
-  #  [1, 2, 3].pack("").encoding.should == Encoding::US_ASCII
-  #end
+  xit "returns a String with US-ASCII encoding" do
+    [1, 2, 3].pack("").encoding.should == Encoding::US_ASCII
+  end
 end
