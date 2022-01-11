@@ -16,7 +16,7 @@ describe '#define_method' do
           #{numeric_class}.define_method(:#{method}, ->(*) {})
         RUBY
 
-        ruby_exe(cmd, args: '2>&1').should include(
+        ruby_exe(cmd, args: '2>&1').should include_all(
                                              "Natalie will not allow overwriting #{numeric_class}##{method}. If you depend on it, please compile with the `--allow-overwrites` flag.\n",
                                            )
       end
@@ -25,7 +25,7 @@ describe '#define_method' do
     cmd = <<~RUBY
     Array.define_method(:min, ->(*) {  })
   RUBY
-    ruby_exe(cmd, args: '2>&1').should include(
+    ruby_exe(cmd, args: '2>&1').should include_all(
                                          "Natalie will not allow overwriting Array#min. If you depend on it, please compile with the `--allow-overwrites` flag.\n",
                                        )
   end
