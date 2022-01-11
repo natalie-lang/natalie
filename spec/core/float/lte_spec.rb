@@ -8,7 +8,7 @@ describe "Float#<=" do
     (2.0 <= 3.14159).should == true
     (-2.7183 <= -24).should == false
     (0.0 <= 0.0).should == true
-    #(9_235.9 <= bignum_value).should == true
+    (9_235.9 <= bignum_value).should == true
   end
 
   it "raises an ArgumentError when given a non-Numeric" do

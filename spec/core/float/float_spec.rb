@@ -5,8 +5,7 @@ describe "Float" do
     Float.include?(Comparable).should == true
   end
 
-  # TODO: implement allocate
-  xit ".allocate raises a TypeError" do
+  it ".allocate raises a TypeError" do
     -> do
       Float.allocate
     end.should raise_error(TypeError)
