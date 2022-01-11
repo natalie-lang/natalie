@@ -90,6 +90,7 @@ Env *build_top_env() {
 
     Value Math = new ModuleObject { "Math" };
     Object->const_set("Math"_s, Math);
+    Math->const_set("E"_s, new FloatObject { M_E });
     Math->const_set("PI"_s, new FloatObject { M_PI });
 
     ClassObject *String = Object->subclass(env, "String", Object::Type::String);
