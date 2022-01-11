@@ -168,6 +168,16 @@ public:
         append(buf);
     }
 
+    void prepend(const String *str) {
+        if (!str) return;
+        size_t new_length = str->length();
+        if (new_length == 0) return;
+        char buf[new_length + m_length + 1];
+        memcpy(buf, str->m_str, sizeof(char) * new_length);
+        memcpy(buf + new_length, m_str, sizeof(char) * (m_length + 1));
+        set_str(buf);
+    }
+
     void insert(size_t position, char c) {
         assert(position < m_length);
         grow_at_least(m_length + 1);

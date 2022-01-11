@@ -371,9 +371,9 @@ Value StringObject::prepend(Env *env, size_t argc, Value *args) {
         }
 
         str_obj->assert_type(env, Object::Type::String, "String");
-        appendable.append(str_obj->c_str());
+        appendable.append(&str_obj->m_string);
     }
-    m_string.prepend(appendable.c_str());
+    m_string.prepend(&appendable);
 
     return this;
 }
