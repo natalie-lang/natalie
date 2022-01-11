@@ -170,10 +170,9 @@ module Math
     end
 
     __define_method__ :frexp, [:x], <<-END
-      KernelModule *kernel = GlobalEnv::the()->Object()->as_kernel_module_for_method_binding();
       FloatObject *value;
       try {
-          value = kernel->Float(env, x)->as_float();
+          value = KernelModule::Float(env, x)->as_float();
       } catch (ExceptionObject *exception) {
           ClassObject *klass = exception->klass();
           if (strcmp(klass->inspect_str()->c_str(), "ArgumentError") == 0) {

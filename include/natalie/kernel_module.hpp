@@ -34,19 +34,35 @@ public:
         return this;
     }
 
-    Value Array(Env *env, Value value);
-    Value abort_method(Env *env, Value message);
-    Value at_exit(Env *env, Block *block);
-    Value binding(Env *env);
+    static Value Array(Env *env, Value value);
+    static Value abort_method(Env *env, Value message);
+    static Value at_exit(Env *env, Block *block);
+    static Value binding(Env *env);
+    static Value cur_dir(Env *env);
+    static Value exit(Env *env, Value status);
+    static Value Float(Env *env, Value value, Value kwargs);
+    static Value Float(Env *env, Value value, bool exception = true);
+    static Value gets(Env *env);
+    static Value get_usage(Env *env);
+    static Value Hash(Env *env, Value value);
+    static Value lambda(Env *env, Block *block);
+    static Value p(Env *env, size_t argc, Value *args);
+    static Value print(Env *env, size_t argc, Value *args);
+    static Value proc(Env *env, Block *block);
+    static Value puts(Env *env, size_t argc, Value *args);
+    static Value raise(Env *env, Value klass, Value message);
+    static Value Rational(Env *env, Value x, Value y, Value kwargs);
+    static Value Rational(Env *env, Value x, Value y = nullptr, bool exception = true);
+    static RationalObject *Rational(Env *env, IntegerObject *x, IntegerObject *y);
+    static RationalObject *Rational(Env *env, double arg);
+    static Value sleep(Env *env, Value length);
+    static Value spawn(Env *, size_t, Value *);
+    static Value String(Env *env, Value value);
+    static Value this_method(Env *env);
+    static bool block_given(Env *env, Block *block) { return !!block; }
+
     Value clone(Env *env);
-    Value cur_dir(Env *env);
     Value define_singleton_method(Env *env, Value name, Block *block);
-    Value exit(Env *env, Value status);
-    Value Float(Env *env, Value value, Value kwargs);
-    Value Float(Env *env, Value value, bool exception = true);
-    Value gets(Env *env);
-    Value get_usage(Env *env);
-    Value Hash(Env *env, Value value);
     Value hash(Env *env);
     Value inspect(Env *env);
     static Value inspect(Env *env, Value value);
@@ -54,27 +70,12 @@ public:
     bool instance_variable_defined(Env *env, Value name_val);
     Value instance_variable_get(Env *env, Value name_val);
     Value instance_variable_set(Env *env, Value name_val, Value value);
-    Value lambda(Env *env, Block *block);
     Value loop(Env *env, Block *block);
     Value method(Env *env, Value name);
     Value methods(Env *env);
-    Value p(Env *env, size_t argc, Value *args);
-    Value print(Env *env, size_t argc, Value *args);
-    Value proc(Env *env, Block *block);
-    Value puts(Env *env, size_t argc, Value *args);
-    Value raise(Env *env, Value klass, Value message);
-    Value Rational(Env *env, Value x, Value y, Value kwargs);
-    Value Rational(Env *env, Value x, Value y = nullptr, bool exception = true);
-    RationalObject *Rational(Env *env, IntegerObject *x, IntegerObject *y);
-    RationalObject *Rational(Env *env, double arg);
     Value remove_instance_variable(Env *env, Value name_val);
-    Value sleep(Env *env, Value length);
-    Value spawn(Env *, size_t, Value *);
-    Value String(Env *env, Value value);
     Value tap(Env *env, Block *block);
-    Value this_method(Env *env);
     bool is_a(Env *env, Value module);
-    bool block_given(Env *env, Block *block) { return !!block; }
 };
 
 }
