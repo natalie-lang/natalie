@@ -1826,14 +1826,14 @@ Natalie::String to_binary(const BigInt &num) {
 BigInt binary_to_BigInt(const Natalie::String &num) {
     BigInt decimal_string;
 
-    for (int i = num.size() - 1; i > 0; i--) {
+    for (size_t i = num.size() - 1; i > 0; i--) {
         if (num[i] == '1') {
-            decimal_string += pow(2, (num.size() - 1) - i);
+            decimal_string += pow(BigInt(2), (num.size() - 1) - i);
         }
     }
 
     if (num[0] == '1') {
-        decimal_string += (pow(2, (num.size() - 1)) * -1);
+        decimal_string += (pow(BigInt(2), (num.size() - 1)) * -1);
     }
 
     return decimal_string;
