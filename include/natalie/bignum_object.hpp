@@ -27,6 +27,8 @@ public:
         if (m_bigint) delete m_bigint;
     }
 
+    static Value create_if_needed(const BigInt &other);
+
     nat_int_t to_nat_int_t() const override {
         return m_bigint->to_long_long();
     }
