@@ -480,9 +480,30 @@ Value IntegerObject::times(Env *env, Block *block) {
     return this;
 }
 
-Value IntegerObject::bitwise_and(Env *env, Value arg) const {
+Value bitwise_and_fast(IntegerObject *self, nat_int_t arg) {
+    if (self->is_bignum()) {
+        return BignumObject::create_if_needed(self->to_bigint() & arg);
+    }
+    return Value::integer(self->to_nat_int_t() & arg);
+}
+
+Value IntegerObject::bitwise_and(Env *env, Value arg) {
+    if (arg.is_fast_integer()) {
+        return bitwise_and_fast(this, arg.get_fast_integer());
+    } else if (!arg->is_integer()) {
+        auto result = Natalie::coerce(env, arg, this);
+        result.second->assert_type(env, Object::Type::Integer, "Integer");
+        return result.first.send(env, "&"_s, { result.second });
+    }
+    arg.unguard();
     arg->assert_type(env, Object::Type::Integer, "Integer");
-    return Value::integer(to_nat_int_t() & arg->as_integer()->to_nat_int_t());
+
+    auto integer = arg->as_integer();
+    if (integer->is_bignum()) {
+        return BignumObject::create_if_needed(to_bigint() & integer->to_bigint());
+    }
+
+    return bitwise_and_fast(this, integer->to_nat_int_t());
 }
 
 Value IntegerObject::bitwise_or(Env *env, Value arg) const {
