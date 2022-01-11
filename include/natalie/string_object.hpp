@@ -161,6 +161,7 @@ public:
     Value match(Env *, Value);
     Value mul(Env *, Value) const;
     Value ord(Env *);
+    Value prepend(Env *, size_t, Value *);
     Value ref(Env *, Value);
     Value reverse(Env *);
     Value rstrip(Env *) const;
