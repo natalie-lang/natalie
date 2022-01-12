@@ -96,16 +96,19 @@ module Natalie
         compile_cxx_flags: cxx_flags,
         compile_ld_flags: [],
         source_path: @path,
+        allow_overwrites: allow_overwrites?,
       }
     end
 
     def transform(ast)
       @context = build_context
 
-      ast = Pass0c.new(@context).go(ast)
-      if debug == 'p0c'
-        pp ast
-        exit
+      unless allow_overwrites?
+        ast = Pass0c.new(@context).go(ast)
+        if debug == 'p0c'
+          pp ast
+          exit
+        end
       end
 
       ast = Pass1.new(@context).go(ast)
@@ -152,6 +155,10 @@ module Natalie
 
     def debug
       options[:debug]
+    end
+
+    def allow_overwrites?
+      !!options[:allow_overwrites]
     end
 
     def build
