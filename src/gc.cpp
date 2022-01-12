@@ -25,8 +25,6 @@ void MarkingVisitor::visit(Value val) {
 }
 
 TM::Hashmap<Cell *> Heap::gather_conservative_roots() {
-    Hashmap<Cell *> roots;
-
     void *dummy;
     void *end_of_stack = &dummy;
 
@@ -35,8 +33,12 @@ TM::Hashmap<Cell *> Heap::gather_conservative_roots() {
     assert(end_of_stack);
     assert(m_start_of_stack > end_of_stack);
 
+    Hashmap<Cell *> roots;
+
     for (char *ptr = reinterpret_cast<char *>(end_of_stack); ptr < m_start_of_stack; ptr += sizeof(intptr_t)) {
         Cell *potential_cell = *reinterpret_cast<Cell **>(ptr); // NOLINT
+        if (roots.get(potential_cell))
+            continue;
         if (is_a_heap_cell_in_use(potential_cell)) {
             roots.set(potential_cell);
         }
@@ -47,6 +49,8 @@ TM::Hashmap<Cell *> Heap::gather_conservative_roots() {
     setjmp(jump_buf);
     for (char *i = (char *)jump_buf; i < (char *)jump_buf + sizeof(jump_buf); ++i) {
         Cell *potential_cell = *reinterpret_cast<Cell **>(i);
+        if (roots.get(potential_cell))
+            continue;
         if (is_a_heap_cell_in_use(potential_cell)) {
             roots.set(potential_cell);
         }
