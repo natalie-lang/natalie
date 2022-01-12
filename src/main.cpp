@@ -60,11 +60,18 @@ Value _main(int argc, char *argv[]) {
 }
 
 int main(int argc, char *argv[]) {
+#ifdef NAT_NATIVE_PROFILER
+    NativeProfiler::enable();
+#endif
     Heap::the().set_start_of_stack(&argv);
 #ifdef NAT_GC_COLLECT_ALL_AT_EXIT
     Heap::the().set_collect_all_at_exit(true);
 #endif
     setvbuf(stdout, nullptr, _IOLBF, 1024);
     auto return_code = _main(argc, argv) ? 0 : 1;
+
+#ifdef NAT_NATIVE_PROFILER
+    NativeProfiler::the()->dump();
+#endif
     clean_up_and_exit(return_code);
 }

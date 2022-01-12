@@ -12,3 +12,6 @@ compile_commands.json
 tags
 .gdb_history
 .vscode
+
+# Natalie tools
+profile-*.json

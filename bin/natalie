@@ -13,7 +13,7 @@ require_relative '../lib/natalie'
 
 orig_args = ARGV.dup
 
-options = { load_path: [], require: [] }
+options = { load_path: [], require: [], profile: false }
 OptionParser.new do |opts|
   opts.banner = 'Usage: natalie [options] file.rb'
 
@@ -48,6 +48,10 @@ OptionParser.new do |opts|
 
   opts.on('-e one-line-script', 'Execute one-line script') do |e|
     options[:execute] = e
+  end
+
+  opts.on('-p', '--profile', 'Profile a Natalie application with the embedded profiler') do |e|
+    options[:profile] = true
   end
 
   opts.on('--ast', 'Show AST rather than compiling') do |ast|
@@ -155,6 +159,9 @@ class Runner
     out = Tempfile.create("natalie#{extension}")
     out.close
     compiler.out_path = out.path
+    if options[:profile]
+      compiler.cxx_flags << '-DNAT_NATIVE_PROFILER'
+    end
     case options[:debug]
     when 'gdb', 'lldb'
       compiler.compile

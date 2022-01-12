@@ -27,6 +27,8 @@ class MatchDataObject;
 class Method;
 class MethodObject;
 class ModuleObject;
+class NatalieProfiler;
+class NatalieProfilerEvent;
 class NilObject;
 class Node;
 class Parser;

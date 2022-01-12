@@ -2,7 +2,38 @@
 
 namespace Natalie {
 
+#define PROFILED_SEND(type)                                                                      \
+    static auto is_profiled = NativeProfiler::the()->enabled();                                  \
+    NativeProfilerEvent *event;                                                                  \
+    if (is_profiled) {                                                                           \
+        auto classnameOf = [](Value val) {                                                       \
+            if (val.m_type == Type::Integer)                                                     \
+                return "FastInteger";                                                            \
+            if (val.m_type == Type::Double)                                                      \
+                return "FastDouble";                                                             \
+            auto maybe_classname = val->klass()->class_name();                                   \
+            return (maybe_classname.present()) ? maybe_classname.value()->c_str() : "Anonymous"; \
+        };                                                                                       \
+        auto event_name = new String();                                                          \
+        event_name->append_sprintf("%s.%s(", classnameOf(*this), name->c_str());                 \
+        for (size_t i = 0; i < argc; ++i) {                                                      \
+            if (i > 0)                                                                           \
+                event_name->append_char(',');                                                    \
+            event_name->append(classnameOf(args[i]));                                            \
+        }                                                                                        \
+        event_name->append_char(')');                                                            \
+        event = NativeProfilerEvent::named(type, event_name)                                     \
+                    ->start_now();                                                               \
+    }                                                                                            \
+    Defer log_event([&]() {                                                                      \
+        auto source_filename = env->file();                                                      \
+        auto source_line = env->line();                                                          \
+        if (is_profiled)                                                                         \
+            NativeProfiler::the()->push(event->end_now());                                       \
+    });
+
 Value Value::public_send(Env *env, SymbolObject *name, size_t argc, Value *args, Block *block) {
+    PROFILED_SEND(NativeProfilerEvent::Type::PUBLIC_SEND)
     if (m_type == Type::Integer && IntegerObject::optimized_method(name)) {
         if (argc > 0 && args[0].is_fast_integer())
             args[0].guard();
@@ -14,6 +45,7 @@ Value Value::public_send(Env *env, SymbolObject *name, size_t argc, Value *args,
 }
 
 Value Value::send(Env *env, SymbolObject *name, size_t argc, Value *args, Block *block) {
+    PROFILED_SEND(NativeProfilerEvent::Type::SEND)
     if (m_type == Type::Integer && IntegerObject::optimized_method(name)) {
         if (argc > 0 && args[0].is_fast_integer())
             args[0].guard();
@@ -51,5 +83,7 @@ void Value::hydrate() {
         break;
     }
 }
+
+#undef PROFILED_SEND
 
 }
