@@ -50,6 +50,9 @@ public:
     ClassObject *Random() { return m_Random; }
     void set_Random(ClassObject *Random) { m_Random = Random; }
 
+    ClassObject *Rational() { return m_Rational; }
+    void set_Rational(ClassObject *Rational) { m_Rational = Rational; }
+
     ClassObject *Regexp() { return m_Regexp; }
     void set_Regexp(ClassObject *Regexp) { m_Regexp = Regexp; }
 
@@ -92,6 +95,7 @@ private:
     ClassObject *m_Module { nullptr };
     ClassObject *m_Object { nullptr };
     ClassObject *m_Random { nullptr };
+    ClassObject *m_Rational { nullptr };
     ClassObject *m_Regexp { nullptr };
     ClassObject *m_String { nullptr };
     ClassObject *m_Symbol { nullptr };

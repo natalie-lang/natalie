@@ -46,6 +46,7 @@
 #include "natalie/process_module.hpp"
 #include "natalie/random_object.hpp"
 #include "natalie/range_object.hpp"
+#include "natalie/rational_object.hpp"
 #include "natalie/regexp_object.hpp"
 #include "natalie/sexp_object.hpp"
 #include "natalie/string_object.hpp"

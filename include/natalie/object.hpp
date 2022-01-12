@@ -108,6 +108,7 @@ public:
     bool is_proc() const { return m_type == Type::Proc; }
     bool is_random() const { return m_type == Type::Random; }
     bool is_range() const { return m_type == Type::Range; }
+    bool is_rational() const { return m_type == Type::Rational; }
     bool is_regexp() const { return m_type == Type::Regexp; }
     bool is_symbol() const { return m_type == Type::Symbol; }
     bool is_string() const { return m_type == Type::String; }
@@ -137,6 +138,7 @@ public:
     ProcObject *as_proc();
     RandomObject *as_random();
     RangeObject *as_range();
+    RationalObject *as_rational();
     RegexpObject *as_regexp();
     StringObject *as_string();
     const StringObject *as_string() const;

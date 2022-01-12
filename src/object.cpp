@@ -89,6 +89,7 @@ Value Object::create(Env *env, ClassObject *klass) {
     case Object::Type::True:
     case Object::Type::Integer:
     case Object::Type::Float:
+    case Object::Type::Rational:
     case Object::Type::Symbol:
     case Object::Type::UnboundMethod:
         obj = nullptr;
@@ -223,6 +224,11 @@ RandomObject *Object::as_random() {
 RangeObject *Object::as_range() {
     assert(is_range());
     return static_cast<RangeObject *>(this);
+}
+
+RationalObject *Object::as_rational() {
+    assert(is_rational());
+    return static_cast<RationalObject *>(this);
 }
 
 RegexpObject *Object::as_regexp() {
@@ -624,6 +630,7 @@ Value Object::dup(Env *env) {
     case Object::Type::Float:
     case Object::Type::Integer:
     case Object::Type::Nil:
+    case Object::Type::Rational:
     case Object::Type::Symbol:
     case Object::Type::True:
         return this;

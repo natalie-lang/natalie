@@ -607,6 +607,7 @@ begin
   gen.module_function_binding('Kernel', 'Array', 'KernelModule', 'Array', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
   gen.module_function_binding('Kernel', 'Float', 'KernelModule', 'Float', argc: 1..2, pass_env: true, pass_block: false, return_type: :Object)
   gen.module_function_binding('Kernel', 'Hash', 'KernelModule', 'Hash', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+  gen.module_function_binding('Kernel', 'Rational', 'KernelModule', 'Rational', argc: 1..3, pass_env: true, pass_block: false, return_type: :Object)
   gen.module_function_binding('Kernel', 'String', 'KernelModule', 'String', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
   gen.binding('Kernel', 'abort', 'KernelModule', 'abort_method', argc: 0..1, pass_env: true, pass_block: false, return_type: :Object)
   gen.binding('Kernel', 'at_exit', 'KernelModule', 'at_exit', argc: 0, pass_env: true, pass_block: true, return_type: :Object)
@@ -755,6 +756,13 @@ begin
   gen.binding('Range', '==', 'RangeObject', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
   gen.binding('Range', '===', 'RangeObject', 'eqeqeq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
   gen.binding('Range', 'include?', 'RangeObject', 'include', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+
+  gen.undefine_singleton_method('Rational', 'new')
+  gen.binding('Rational', '==', 'RationalObject', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+  gen.binding('Rational', '===', 'RationalObject', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+  gen.binding('Rational', 'denominator', 'RationalObject', 'denominator', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+  gen.binding('Rational', 'inspect', 'RationalObject', 'inspect', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
+  gen.binding('Rational', 'numerator', 'RationalObject', 'numerator', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 
   gen.static_binding('Regexp', 'compile', 'RegexpObject', 'compile', argc: 1..2, pass_env: true, pass_block: false, pass_klass: true, return_type: :Object)
   gen.static_binding('Regexp', 'last_match', 'RegexpObject', 'last_match', argc: 0..1, pass_env: true, pass_block: false, pass_klass: false, return_type: :Object)

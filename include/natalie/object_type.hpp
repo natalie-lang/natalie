@@ -22,6 +22,7 @@ enum class ObjectType {
     Proc,
     Range,
     Random,
+    Rational,
     Regexp,
     String,
     Symbol,
