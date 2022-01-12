@@ -75,10 +75,6 @@ void Heap::collect() {
         NativeProfiler::the()->push(mark_profiler_event);
     });
 
-    for (auto allocator : m_allocators) {
-        allocator->unmark_all_cells_in_all_blocks();
-    }
-
     if (is_profiled) {
         mark_profiler_event->start_now();
     }
@@ -123,6 +119,8 @@ void Heap::sweep() {
                     if (!had_free) {
                         allocator->add_free_block(block);
                     }
+                } else {
+                    cell->unmark();
                 }
             }
         }
