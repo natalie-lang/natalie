@@ -194,6 +194,29 @@ describe 'integer' do
     end
   end
 
+  describe '#|' do
+    it "returns self bitwise OR other when one operand is negative" do
+      ((1 << 33) | -1).should == -1
+      (-1 | (1 << 33)).should == -1
+
+      ((-(1<<33)-1) | 5).should == -8589934593
+      (5 | (-(1<<33)-1)).should == -8589934593
+    end
+
+    it "returns self bitwise OR other when both operands are negative" do
+      (-5 | -1).should == -1
+      (-3 | -4).should == -3
+      (-12 | -13).should == -9
+      (-13 | -12).should == -9
+    end
+
+    it 'coerce argument if needed' do
+      obj = mock("fixnum bit and")
+      obj.should_receive(:coerce).with(6).and_return([3, 6])
+      (6 | obj).should == 7
+    end
+  end
+
   describe '#times' do
     it 'handles bignums correctly' do
       bignum_value.times.size.should == bignum_value

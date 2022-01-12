@@ -59,7 +59,7 @@ public:
     Value cmp(Env *, Value);
     virtual Value times(Env *, Block *);
     Value bitwise_and(Env *, Value);
-    Value bitwise_or(Env *, Value) const;
+    Value bitwise_or(Env *, Value);
     Value pred(Env *);
     Value size(Env *);
     Value succ(Env *);
