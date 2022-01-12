@@ -27,6 +27,8 @@ public:
         if (m_bigint) delete m_bigint;
     }
 
+    static Value create_if_needed(const BigInt &other);
+
     nat_int_t to_nat_int_t() const override {
         return m_bigint->to_long_long();
     }
@@ -76,8 +78,8 @@ public:
     }
 
 private:
-    static inline const BigInt MAX_INT = NAT_INT_MAX;
-    static inline const BigInt MIN_INT = NAT_INT_MIN;
+    static inline const BigInt MAX_INT = NAT_MAX_FIXNUM;
+    static inline const BigInt MIN_INT = NAT_MIN_FIXNUM;
     BigInt *m_bigint { nullptr };
 };
 }
