@@ -38,18 +38,38 @@ module Natalie
 
       def process_if(exp, block_with_args = nil)
         exp = exp.new(*exp.map { |e| process_atom(e) })
-        if exp.flatten.include?(:lasgn)
-          # This is required for now because
-          # ```rb
-          # x = 1 unless true # s(:if, s(:true), nil, s(:lasgn, :x, s(:lit, 1)))
-          # ```
-          # gets converted to an if-statement, that does not allocate x in the
-          # taken branch, which makes x undefined
-          return exp
-        end
         _, (boolean, *), true_case, false_case = exp
-        return true_case if type_is_always_truthy(boolean)
-        return false_case if type_is_always_falsey(boolean)
+
+        # This transforms variations of
+        # ```rb
+        # x = 1 if bool # s(:if, bool, s(:lasgn, :x, s(:lit, 1), nil))
+        # ```
+        # To use `x = x` in the non assigning path, which will be optimized in
+        # pass1, to just ensure the existence of the variable `x`.
+        # This allows us to fold that block even though we might declare a 
+        # variable in it.
+        was_simple_conditional_assign = false
+        if true_case.nil? && false_case.sexp_type == :lasgn
+          true_case = s(:lasgn, false_case[1], s(:lvar, false_case[1]))
+          was_simple_conditional_assign = true
+        elsif false_case.nil? && true_case.sexp_type == :lasgn
+          false_case = s(:lasgn, true_case[1], s(:lvar, true_case[1]))
+          was_simple_conditional_assign = true
+        end
+
+        # FIXME: We can't always fold away unused code paths, due to variables
+        #        being declared in if-statements might be hoisted into the upper
+        #        environment.
+        #        To fix that we would need to move variable pre-declaration from
+        #        pass2 to pass0.
+        # FIXME: There seems to be something getting here where the flatten function
+        #        is not defined/nil, seen in test/natalie/class_test.rb
+        if type_is_always_truthy(boolean) && (!(false_case&.flatten&.include?(:lasgn)) || was_simple_conditional_assign)
+          return true_case
+        end
+        if type_is_always_falsey(boolean) && (!(true_case&.flatten&.include?(:lasgn)) || was_simple_conditional_assign)
+          return false_case
+        end
 
         return exp
       end

@@ -480,6 +480,7 @@ module Natalie
 
       def process_lasgn(exp)
         _, name, val = exp
+        return exp.new(:var_declare, :env, s(:s, name)) if val == s(:lvar, name)
         exp.new(:var_set, :env, s(:s, name), process(val))
       end
 
