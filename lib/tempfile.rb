@@ -2,13 +2,12 @@ require 'natalie/inline'
 
 class Tempfile
   class << self
-    def new(basename)
-      f = Tempfile.create(basename)
-      yield f
-      f
+    # NATFIXME: This should not take a block
+    def new(basename, &block)
+      Tempfile.create(basename, block)
     end
 
-    __define_method__ :create, [:basename], <<-END
+    __define_method__ :create, [:basename], <<-CPP
       basename->assert_type(env, Object::Type::String, "String");
       auto tmpdir = GlobalEnv::the()->Object()->const_fetch("Dir"_s).send(env, "tmpdir"_s)->as_string();
       auto path_template = String::format("{}/{}XXXXXX", tmpdir, basename->as_string());
@@ -21,8 +20,17 @@ class Tempfile
           auto file = new FileObject {};
           file->set_fileno(fileno);
           file->set_path(path_template);
-          return file;
+          if(block) {
+            Defer close_file([&]() {
+              file->close(env);
+              FileObject::unlink(env, new StringObject { path_template });
+            });
+            Value block_args[] = { file };
+            return NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, block_args, nullptr);
+          } else {
+            return file;
+          }
       }
-    END
+    CPP
   end
 end

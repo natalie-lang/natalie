@@ -61,6 +61,7 @@ namespace Natalie {
 extern const char *ruby_platform;
 extern const char *ruby_release_date;
 extern const char *ruby_revision;
+extern bool allow_overwrites;
 
 extern "C" {
 #include "onigmo.h"
