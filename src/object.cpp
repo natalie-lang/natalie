@@ -103,7 +103,8 @@ Value Object::_new(Env *env, Value klass_value, size_t argc, Value *args, Block 
     if (!obj)
         NAT_UNREACHABLE();
 
-    return obj->initialize(env, argc, args, block);
+    obj->send(env, "initialize"_s, argc, args, block);
+    return obj;
 }
 
 Value Object::allocate(Env *env, Value klass_value, size_t argc, Value *args, Block *block) {
@@ -130,14 +131,8 @@ Value Object::allocate(Env *env, Value klass_value, size_t argc, Value *args, Bl
     return obj;
 }
 
-Value Object::initialize(Env *env, size_t argc, Value *args, Block *block) {
-    Method *method = m_klass->find_method(env, "initialize"_s);
-    if (method && !method->is_undefined()) {
-        method->call(env, this, argc, args, block);
-    } else {
-        env->ensure_argc_is(argc, 0);
-    }
-    return this;
+Value Object::initialize(Env *env) {
+    return NilObject::the();
 }
 
 NilObject *Object::as_nil() {
