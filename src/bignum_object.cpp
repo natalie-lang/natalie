@@ -183,6 +183,10 @@ Value BignumObject::times(Env *env, Block *block) {
     return this;
 }
 
+Value BignumObject::complement(Env *env) const {
+    return create_if_needed(~to_bigint());
+}
+
 Value BignumObject::gcd(Env *env, Value divisor) {
     divisor->assert_type(env, Object::Type::Integer, "Integer");
     auto other = divisor->as_integer();

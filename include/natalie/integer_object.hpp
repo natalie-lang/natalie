@@ -71,7 +71,7 @@ public:
     Value chr(Env *) const;
     virtual Value negate(Env *);
     Value numerator();
-    Value complement(Env *) const;
+    virtual Value complement(Env *) const;
     Value ord() { return this; }
     Value denominator() { return Value::integer(1); }
 
