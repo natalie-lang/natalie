@@ -13,6 +13,10 @@ module Natalie
       def to_cpp(transform)
         nil
       end
+
+      def execute(vm)
+        vm.pop
+      end
     end
   end
 end

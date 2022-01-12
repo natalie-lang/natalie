@@ -16,6 +16,10 @@ module Natalie
       def to_cpp(_)
         nil
       end
+
+      def execute(_)
+        :halt
+      end
     end
   end
 end

@@ -6,9 +6,9 @@ module Natalie
         @ip = 0
       end
 
-      attr_reader :ip
+      attr_accessor :ip
 
-      def each
+      def walk
         while @ip < @instructions.size
           instruction = @instructions[@ip]
           @ip += 1

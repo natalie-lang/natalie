@@ -10,6 +10,10 @@ module Natalie
       def to_cpp(transform)
         'self'
       end
+
+      def execute(vm)
+        vm.push(vm.self)
+      end
     end
   end
 end

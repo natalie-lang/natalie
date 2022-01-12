@@ -109,6 +109,8 @@ module Natalie
         exit
       end
 
+      return instructions if options[:interpret]
+
       CppBackend.new(instructions, compiler_context: @context).generate
     end
 

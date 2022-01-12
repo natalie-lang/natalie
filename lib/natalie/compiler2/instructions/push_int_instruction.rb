@@ -16,6 +16,10 @@ module Natalie
       def to_cpp(transform)
         "Value::integer(#{@int})"
       end
+
+      def execute(vm)
+        vm.push(@int)
+      end
     end
   end
 end

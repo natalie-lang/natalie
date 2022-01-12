@@ -22,6 +22,15 @@ module Natalie
           "#{receiver}->send(env, #{@message.to_s.inspect}_s)"
         end
       end
+
+      def execute(vm)
+        receiver = vm.pop
+        arg_count = vm.pop
+        args = []
+        arg_count.times { args << vm.pop }
+        result = receiver.send(@message, *args)
+        vm.push result
+      end
     end
   end
 end

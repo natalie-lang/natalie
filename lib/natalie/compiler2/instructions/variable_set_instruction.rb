@@ -24,6 +24,10 @@ module Natalie
         transform.push "env->var_set(#{name.to_s.inspect}, #{index}, true, #{value})"
         value
       end
+
+      def execute(vm)
+        vm.vars[@name] = vm.pop
+      end
     end
   end
 end

@@ -16,6 +16,10 @@ module Natalie
       def to_cpp(transform)
         @count
       end
+
+      def execute(vm)
+        vm.push(@count)
+      end
     end
   end
 end

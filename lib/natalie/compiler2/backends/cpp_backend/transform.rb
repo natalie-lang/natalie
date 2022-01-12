@@ -17,7 +17,7 @@ module Natalie
         end
 
         def transform(result_prefix = nil)
-          @instructions.each do |instruction|
+          @instructions.walk do |instruction|
             result = instruction.to_cpp(self)
             @stack << result unless result.nil?
           end

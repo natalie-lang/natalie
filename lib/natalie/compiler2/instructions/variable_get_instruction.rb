@@ -20,6 +20,10 @@ module Natalie
         index = var[:index]
         "env->var_get(#{name.to_s.inspect}, #{index})"
       end
+
+      def execute(vm)
+        vm.push(vm.vars[@name])
+      end
     end
   end
 end

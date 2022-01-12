@@ -16,6 +16,10 @@ module Natalie
       def to_cpp(transform)
         "args[#{@index}]"
       end
+
+      def execute(vm)
+        vm.push(vm.current_args[@index])
+      end
     end
   end
 end
