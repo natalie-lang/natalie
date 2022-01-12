@@ -375,7 +375,10 @@ Value StringObject::b(Env *env) const {
     return new StringObject { m_string.clone(), Encoding::ASCII_8BIT };
 }
 
-Value StringObject::bytes(Env *env) const {
+Value StringObject::bytes(Env *env, Block *block) {
+    if (block) {
+        return each_byte(env, block);
+    }
     ArrayObject *ary = new ArrayObject { length() };
     for (size_t i = 0; i < length(); i++) {
         unsigned char c = c_str()[i];
