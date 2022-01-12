@@ -149,6 +149,7 @@ public:
     Value sub(Env *, Value, Value = nullptr, Block *block = nullptr);
 
     Value add(Env *, Value) const;
+    Value b(Env *) const;
     Value bytes(Env *) const;
     Value chr(Env *);
     Value cmp(Env *, Value) const;

@@ -791,6 +791,7 @@ begin
   gen.binding('String', '===', 'StringObject', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
   gen.binding('String', '=~', 'StringObject', 'eqtilde', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
   gen.binding('String', '[]', 'StringObject', 'ref', argc: 1, pass_env: true, pass_block: false, return_type: :Object)
+  gen.binding('String', 'b', 'StringObject', 'b', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
   gen.binding('String', 'bytes', 'StringObject', 'bytes', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
   gen.binding('String', 'bytesize', 'StringObject', 'bytesize', argc: 0, pass_env: false, pass_block: false, return_type: :size_t)
   gen.binding('String', 'chars', 'StringObject', 'chars', argc: 0, pass_env: true, pass_block: false, return_type: :Object)

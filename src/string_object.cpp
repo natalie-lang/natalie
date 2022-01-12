@@ -371,6 +371,10 @@ Value StringObject::prepend(Env *env, size_t argc, Value *args) {
     return this;
 }
 
+Value StringObject::b(Env *env) const {
+    return new StringObject { m_string.clone(), Encoding::ASCII_8BIT };
+}
+
 Value StringObject::bytes(Env *env) const {
     ArrayObject *ary = new ArrayObject { length() };
     for (size_t i = 0; i < length(); i++) {
