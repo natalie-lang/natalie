@@ -178,7 +178,9 @@ def ruby_exe(code, args: nil)
     file.write(code)
     file.rewind
 
-    output = `bin/natalie #{file.path} #{args}`
+    binary = ENV['NAT_BINARY'] || 'bin/natalie'
+
+    output = `#{binary} #{file.path} #{args}`
 
     raise SpecFailedException, "Expected exit status 0 but actual is #{$?.exitstatus}" unless $?.success?
 
