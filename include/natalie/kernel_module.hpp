@@ -13,10 +13,6 @@ namespace Natalie {
 
 class KernelModule : public Object {
 public:
-    Value object_id(Env *env) {
-        return Value::integer(Object::object_id());
-    }
-
     bool equal(Value other) {
         return other == this;
     }
