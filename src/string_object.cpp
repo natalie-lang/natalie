@@ -195,14 +195,7 @@ Value StringObject::initialize(Env *env, Value arg) {
 }
 
 Value StringObject::ltlt(Env *env, Value arg) {
-    this->assert_not_frozen(env);
-    if (arg->is_string()) {
-        append(env, arg->as_string());
-    } else {
-        Value str_obj = arg.send(env, "to_s"_s);
-        str_obj->assert_type(env, Object::Type::String, "String");
-        append(env, str_obj->as_string());
-    }
+    concat(env, 1, &arg);
     return this;
 }
 
