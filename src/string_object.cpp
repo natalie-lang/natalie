@@ -384,6 +384,18 @@ Value StringObject::bytes(Env *env) const {
     return ary;
 }
 
+Value StringObject::each_byte(Env *env, Block *block) {
+    if (!block)
+        return send(env, "enum_for"_s, { "each_byte"_s });
+
+    for (size_t i = 0; i < length(); i++) {
+        unsigned char c = c_str()[i];
+        Value args[] = { Value::integer(c) };
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, args, nullptr);
+    }
+    return this;
+}
+
 Value StringObject::size(Env *env) {
     size_t index = 0;
     size_t char_count = 0;

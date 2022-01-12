@@ -155,6 +155,7 @@ public:
     Value cmp(Env *, Value) const;
     Value concat(Env *env, size_t argc, Value *args);
     Value downcase(Env *);
+    Value each_byte(Env *, Block *);
     Value encode(Env *, Value);
     Value encoding(Env *);
     bool eq(Env *, Value arg);
