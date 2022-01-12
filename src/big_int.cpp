@@ -1956,9 +1956,9 @@ BigInt BigInt::operator~() const {
     Natalie::String complete_string;
     for (size_t i = 0; i < lhs_binary.size(); i++) {
         if (lhs_binary[i] == '1') {
-            complete_string.append_char('1');
-        } else {
             complete_string.append_char('0');
+        } else {
+            complete_string.append_char('1');
         }
     }
 
