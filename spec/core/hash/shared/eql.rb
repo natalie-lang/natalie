@@ -86,7 +86,6 @@ describe :hash_eql, shared: true do
     y.send(@method, z).should be_true
 
     a[:foo], a[:bar] = a[:bar], a[:foo]
-
     a.send(@method, b).should be_false
     b[:bar] = b[:foo]
     b.send(@method, c).should be_false
