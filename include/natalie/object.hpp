@@ -88,7 +88,7 @@ public:
 
     int flags() const { return m_flags; }
 
-    Value initialize(Env *, size_t, Value *, Block *);
+    Value initialize(Env *);
 
     bool is_nil() const { return m_type == Type::Nil; }
     bool is_true() const { return m_type == Type::True; }
