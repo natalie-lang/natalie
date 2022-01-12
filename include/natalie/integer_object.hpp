@@ -60,6 +60,7 @@ public:
     virtual Value times(Env *, Block *);
     Value bitwise_and(Env *, Value);
     Value bitwise_or(Env *, Value);
+    Value bitwise_xor(Env *, Value);
     Value pred(Env *);
     Value size(Env *);
     Value succ(Env *);

@@ -532,6 +532,32 @@ Value IntegerObject::bitwise_or(Env *env, Value arg) {
     return Value::integer(to_nat_int_t() | nat_int);
 }
 
+Value IntegerObject::bitwise_xor(Env *env, Value arg) {
+    nat_int_t nat_int;
+    if (arg.is_fast_integer()) {
+        nat_int = arg.get_fast_integer();
+    } else if (!arg->is_integer()) {
+        auto result = Natalie::coerce(env, arg, this);
+        result.second->assert_type(env, Object::Type::Integer, "Integer");
+        return result.first.send(env, "^"_s, { result.second });
+    } else {
+        arg.unguard();
+        arg->assert_type(env, Object::Type::Integer, "Integer");
+        auto integer = arg->as_integer();
+        if (integer->is_bignum()) {
+            return BignumObject::create_if_needed(to_bigint() ^ integer->to_bigint());
+        }
+
+        nat_int = integer->to_nat_int_t();
+    }
+
+    if (is_bignum()) {
+        return BignumObject::create_if_needed(to_bigint() ^ nat_int);
+    }
+
+    return Value::integer(to_nat_int_t() ^ nat_int);
+}
+
 Value IntegerObject::pred(Env *env) {
     return sub(env, Value::integer(1));
 }
