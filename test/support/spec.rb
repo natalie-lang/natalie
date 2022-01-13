@@ -279,8 +279,12 @@ class Matcher
   def eq(other)
     if @subject != other
       if @subject.is_a?(String) && other.is_a?(String) && (@subject.size > 50 || other.size > 50)
-        subject_file = Tempfile.new('subject') { |f| f.write(@subject) }
-        other_file = Tempfile.new('other') { |f| f.write(other) }
+        subject_file = Tempfile.create('subject')
+        subject_file.write(@subject)
+        subject_file.close
+        other_file = Tempfile.create('other')
+        other_file.write(other)
+        other_file.close
         puts `diff #{other_file.path} #{subject_file.path}`
         File.unlink(subject_file.path)
         File.unlink(other_file.path)
