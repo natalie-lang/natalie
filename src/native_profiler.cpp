@@ -7,7 +7,12 @@ NativeProfilerEvent *NativeProfilerEvent::named(const Type type, const String *n
 }
 
 NativeProfilerEvent *NativeProfilerEvent::named(const Type type, const char *name) {
-    return new NativeProfilerEvent(type, strdup(name), gettid());
+#ifdef __APPLE__
+    auto tid = 0; // FIXME: get thread id on macOS
+#else
+    auto tid = gettid();
+#endif
+    return new NativeProfilerEvent(type, strdup(name), tid);
 }
 
 NativeProfilerEvent *NativeProfilerEvent::start_now() {
