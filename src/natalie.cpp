@@ -113,6 +113,10 @@ Env *build_top_env() {
     Float->add_non_overwritable_methods(numeric_non_overwritable_methods);
     FloatObject::build_constants(env, Float);
 
+    ClassObject *Rational = Numeric->subclass(env, "Rational", Object::Type::Rational);
+    global_env->set_Rational(Rational);
+    Object->const_set("Rational"_s, Rational);
+
     Value Math = new ModuleObject { "Math" };
     Object->const_set("Math"_s, Math);
     Math->const_set("E"_s, new FloatObject { M_E });

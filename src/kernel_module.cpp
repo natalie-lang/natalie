@@ -141,7 +141,10 @@ Value KernelModule::Float(Env *env, Value value, Value kwargs) {
             if (value) exception = value->is_true();
         }
     }
+    return Float(env, value, exception);
+}
 
+Value KernelModule::Float(Env *env, Value value, bool exception) {
     if (value->is_float()) {
         return value;
     } else if (value->is_string()) {
@@ -371,6 +374,84 @@ Value KernelModule::raise(Env *env, Value klass, Value message) {
         }
     }
     env->raise(klass->as_class(), message->as_string());
+}
+
+Value KernelModule::Rational(Env *env, Value x, Value y, Value kwargs) {
+    bool exception = true;
+    // NATFIXME: Improve keyword argument handling.
+    if (!kwargs) {
+        if (y && y->is_hash()) {
+            kwargs = y;
+            y = nullptr;
+        }
+    }
+    if (kwargs) {
+        if (kwargs->is_hash()) {
+            auto value = kwargs->as_hash()->get(env, "exception"_s);
+            if (value) exception = value->is_true();
+        }
+    }
+    return Rational(env, x, y, exception);
+}
+
+Value KernelModule::Rational(Env *env, Value x, Value y, bool exception) {
+    if (y) {
+        if (x->is_integer() && y->is_integer()) {
+            return Rational(env, x->as_integer(), y->as_integer());
+        }
+
+        x = Float(env, x, exception);
+        if (!x) {
+            return nullptr;
+        }
+
+        y = Float(env, y, exception);
+        if (!y) {
+            return nullptr;
+        }
+
+        return Rational(env, x->as_float()->to_double() / y->as_float()->to_double());
+    } else {
+        if (x->is_integer()) {
+            return new RationalObject { x->as_integer(), new IntegerObject { 1 } };
+        }
+
+        x = Float(env, x, exception);
+        if (!x) {
+            return nullptr;
+        }
+
+        return Rational(env, x->as_float()->to_double());
+    }
+}
+
+RationalObject *KernelModule::Rational(Env *env, IntegerObject *x, IntegerObject *y) {
+    Value gcd = x->gcd(env, y);
+    Value numerator = x->div(env, gcd);
+    Value denominator = y->div(env, gcd);
+    if (denominator->as_integer()->is_negative()) {
+        numerator = numerator->as_integer()->negate(env);
+        denominator = denominator->as_integer()->negate(env);
+    }
+    return new RationalObject { numerator->as_integer(), denominator->as_integer() };
+}
+
+RationalObject *KernelModule::Rational(Env *env, double arg) {
+    IntegerObject radix { FLT_RADIX };
+    Value y = radix.pow(env, Value::integer(DBL_MANT_DIG));
+
+    int exponent;
+    FloatObject significand { std::frexp(arg, &exponent) };
+    Value x = significand.mul(env, y)->as_float()->to_i(env);
+
+    IntegerObject two { 2 };
+    if (exponent < 0) {
+        y = y->as_integer()->mul(env, two.pow(env, Value::integer(-exponent)));
+    } else {
+        x = x->as_integer()->mul(env, two.pow(env, Value::integer(exponent)));
+    }
+
+    return Rational(env, x->as_integer(), y->as_integer());
 }
 
 Value KernelModule::remove_instance_variable(Env *env, Value name_val) {

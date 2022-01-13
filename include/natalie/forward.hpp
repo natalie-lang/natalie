@@ -36,6 +36,7 @@ class ParserObject;
 class ProcObject;
 class RandomObject;
 class RangeObject;
+class RationalObject;
 class RegexpObject;
 class SexpObject;
 class String;

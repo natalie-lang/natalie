@@ -173,7 +173,7 @@ module Math
       KernelModule *kernel = GlobalEnv::the()->Object()->as_kernel_module_for_method_binding();
       FloatObject *value;
       try {
-          value = kernel->Float(env, x, nullptr)->as_float();
+          value = kernel->Float(env, x)->as_float();
       } catch (ExceptionObject *exception) {
           ClassObject *klass = exception->klass();
           if (strcmp(klass->inspect_str()->c_str(), "ArgumentError") == 0) {
