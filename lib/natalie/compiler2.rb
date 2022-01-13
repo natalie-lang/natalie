@@ -99,19 +99,23 @@ module Natalie
 
       instructions = Pass1.new(ast).transform
       if debug == 'p1'
-        instructions.each_with_index { |i, index| puts "#{index} #{i}" }
+        print_instructions(instructions)
         exit
       end
 
       instructions = Pass2.new(instructions).transform
       if debug == 'p2'
-        puts instructions
+        print_instructions(instructions)
         exit
       end
 
       return instructions if options[:interpret]
 
       CppBackend.new(instructions, compiler_context: @context).generate
+    end
+
+    def print_instructions(instructions)
+      instructions.each_with_index { |i, index| puts "#{index} #{i}" }
     end
 
     def instructions
