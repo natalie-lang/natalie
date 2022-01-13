@@ -195,7 +195,8 @@ describe 'integer' do
   end
 
   describe '#|' do
-    it "returns self bitwise OR other when one operand is negative" do
+    # NATFIXME: implement Integer#<<
+    xit "returns self bitwise OR other when one operand is negative" do
       ((1 << 33) | -1).should == -1
       (-1 | (1 << 33)).should == -1
 
@@ -218,7 +219,8 @@ describe 'integer' do
   end
 
   describe '#^' do
-    it "returns self bitwise XOR other when one operand is negative" do
+    # NATFIXME: implement Integer#<<
+    xit "returns self bitwise XOR other when one operand is negative" do
       ((1 << 33) ^ -1).should == -8589934593
       (-1 ^ (1 << 33)).should == -8589934593
 

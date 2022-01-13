@@ -9,7 +9,8 @@ describe "Integer#&" do
       (0xffff & bignum_value + 0xffff_ffff).should == 65535
     end
 
-    it "returns self bitwise AND other when one operand is negative" do
+    # NATFIXME: implement Integer#<<
+    xit "returns self bitwise AND other when one operand is negative" do
       ((1 << 33) & -1).should == (1 << 33)
       (-1 & (1 << 33)).should == (1 << 33)
 
@@ -75,7 +76,8 @@ describe "Integer#&" do
       (-@bignum & -0x4000000000000000).should == -13835058055282163712
     end
 
-    it "returns self bitwise AND other when both are negative and a multiple in bitsize of Fixnum::MIN" do
+    # NATFIXME: implement Integer#<<
+    xit "returns self bitwise AND other when both are negative and a multiple in bitsize of Fixnum::MIN" do
       val = - ((1 << 93) - 1)
       (val & val).should == val
 
