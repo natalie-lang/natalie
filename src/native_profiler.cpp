@@ -7,8 +7,8 @@ NativeProfilerEvent *NativeProfilerEvent::named(const Type type, const String *n
 }
 
 NativeProfilerEvent *NativeProfilerEvent::named(const Type type, const char *name) {
-#ifdef __APPLE__
-    auto tid = 0; // FIXME: get thread id on macOS
+#if defined(__OpenBSD__) or defined(__APPLE__)
+    auto tid = 0; // FIXME: get thread id on OpenBSD/macOS
 #else
     auto tid = gettid();
 #endif
