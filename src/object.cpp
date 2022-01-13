@@ -589,8 +589,6 @@ Method *Object::find_method(Env *env, SymbolObject *method_name, MethodVisibilit
         } else {
             env->raise("NoMethodError", "private method `{}' called for {}", method_name->c_str(), inspect_str(env));
         }
-    } else if (method_name == "inspect"_s) {
-        env->raise("NoMethodError", "undefined method `inspect' for #<{}:{}>", m_klass->inspect_str(), int_to_hex_string(object_id(), false));
     } else if (is_module()) {
         env->raise("NoMethodError", "undefined method `{}' for {}:{}", method_name->c_str(), as_module()->inspect_str(), m_klass->inspect_str());
     } else {
@@ -772,6 +770,8 @@ bool Object::neq(Env *env, Value other) {
 }
 
 const String *Object::inspect_str(Env *env) {
+    if (!respond_to(env, "inspect"_s))
+        return String::format("#<{}:{}>", m_klass->inspect_str(), int_to_hex_string(object_id(), false));
     auto inspected = send(env, "inspect"_s);
     if (!inspected->is_string())
         return new String(""); // TODO: what to do here?
