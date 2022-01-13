@@ -53,7 +53,6 @@ describe "Integer#+" do
       Integer.alias_method :+, :old_plus
       print result
     RUBY
-    # NATALIE-SPECIFIC: Natalie does not allow overrides of Integer#+ without using --allow-overwrites
-    ruby_exe(code, args: '--allow-overwrites').should == "-1"
+    ruby_exe(code).should == "-1"
   end
 end

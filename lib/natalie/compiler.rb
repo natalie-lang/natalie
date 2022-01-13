@@ -153,10 +153,12 @@ module Natalie
 
       @context = build_context
 
-      ast = Pass0c.new(@context).go(ast)
-      if debug == 'p0c'
-        pp ast
-        exit
+      if options[:optimizations]
+        ast = Pass0c.new(@context).go(ast)
+        if debug == 'p0c'
+          pp ast
+          exit
+        end
       end
 
       ast = Pass1.new(@context).go(ast)

@@ -90,6 +90,10 @@ OptionParser.new do |opts|
   opts.on('--nat-parser', "Enable use of Natalie's own Ruby parser (rather than the ruby_parser gem)") do
     options[:nat_parser] = true
   end
+
+  opts.on('--extra-optimizations', 'Enables additional compiler optimizations that may decrease compatibility with Ruby') do
+    options[:optimizations] = true
+  end
   
   opts.on('--log-load-error', 'Log a message when natalie cannot load a required file') do
     options[:log_load_error] = true
