@@ -25,6 +25,24 @@ module Natalie
         transform.push_decl
         result
       end
+
+      def execute(vm)
+        start_ip = vm.ip
+        vm.skip_block_of_instructions(until_instruction: ElseInstruction)
+        else_ip = vm.ip
+        vm.skip_block_of_instructions(expected_label: :if)
+        end_ip = vm.ip
+        condition = vm.pop
+        if condition
+          vm.ip = start_ip
+          vm.run
+          vm.ip = end_ip
+        else
+          vm.ip = else_ip
+          vm.run
+          vm.ip = end_ip
+        end
+      end
     end
   end
 end

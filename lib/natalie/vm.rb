@@ -5,7 +5,7 @@ module Natalie
     def initialize(instructions)
       @instructions = Compiler2::InstructionManager.new(instructions)
       @stack = []
-      @call_stack = []
+      @call_stack = [{ vars: {} }]
       @self = MainObject.new
     end
 

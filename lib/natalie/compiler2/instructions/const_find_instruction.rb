@@ -16,6 +16,10 @@ module Natalie
       def to_cpp(transform)
         "self->const_find(env, #{name.to_s.inspect}_s, Object::ConstLookupSearchMode::NotStrict)"
       end
+
+      def execute(vm)
+        vm.push Object.const_get(@name)
+      end
     end
   end
 end

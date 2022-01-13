@@ -32,13 +32,15 @@ module Natalie
       def execute(vm)
         start_ip = vm.ip
         vm.skip_block_of_instructions(expected_label: :define_method)
-        vm.self.define_method(@name) do |*args|
-          vm.push_call(return_ip: vm.ip, args: args)
-          vm.ip = start_ip
-          vm.run
-          vm.ip = vm.pop_call[:return_ip]
-          vm.pop # result must be returned to SendInstruction
-        end
+        vm
+          .self
+          .define_method(@name) do |*args|
+            vm.push_call(return_ip: vm.ip, args: args)
+            vm.ip = start_ip
+            vm.run
+            vm.ip = vm.pop_call[:return_ip]
+            vm.pop # result must be returned to SendInstruction
+          end
         vm.push(@name)
       end
     end
