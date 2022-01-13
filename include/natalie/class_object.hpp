@@ -20,6 +20,12 @@ public:
     ClassObject(ClassObject *klass)
         : ModuleObject { Object::Type::Class, klass } { }
 
+    ClassObject(ClassObject &other)
+        : ModuleObject { other }
+        , m_object_type { other.m_object_type }
+        , m_is_singleton { other.m_is_singleton }
+        , m_is_initialized { other.m_is_initialized } { }
+
     ClassObject *superclass(Env *env) override {
         if (!m_is_initialized)
             env->raise("TypeError", "uninitialized class");

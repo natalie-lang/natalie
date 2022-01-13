@@ -221,6 +221,7 @@ public:
     Method *find_method(Env *, SymbolObject *, MethodVisibility);
 
     Value dup(Env *);
+    Value clone(Env *env);
 
     bool is_a(Env *, Value) const;
     bool respond_to(Env *, Value, bool = true);

@@ -73,25 +73,6 @@ Value KernelModule::binding(Env *env) {
     return new BindingObject { env };
 }
 
-Value KernelModule::clone(Env *env) {
-    auto duplicate = this->dup(env);
-    auto s_class = singleton_class();
-    if (s_class) {
-        auto singleton_methods = new ArrayObject {};
-        s_class->methods(env, singleton_methods);
-
-        for (auto &method_name : *singleton_methods) {
-            auto m = s_class->find_method(env, method_name->as_symbol());
-            duplicate->singleton_class()->define_method(
-                m->env(),
-                SymbolObject::intern(m->name()),
-                m->fn(),
-                m->arity());
-        }
-    }
-    return duplicate;
-}
-
 Value KernelModule::cur_dir(Env *env) {
     if (env->file() == nullptr) {
         env->raise("RuntimeError", "could not get current directory");

@@ -600,10 +600,14 @@ Value Object::dup(Env *env) {
     switch (m_type) {
     case Object::Type::Array:
         return new ArrayObject { *as_array() };
+    case Object::Type::Class:
+        return new ClassObject { *as_class() };
     case Object::Type::Exception:
         return new ExceptionObject { *as_exception() };
     case Object::Type::Hash:
         return new HashObject { env, *as_hash() };
+    case Object::Type::Module:
+        return new ModuleObject { *as_module() };
     case Object::Type::String:
         return new StringObject { *as_string() };
     case Object::Type::Range:
@@ -622,6 +626,15 @@ Value Object::dup(Env *env) {
         fprintf(stderr, "I don't know how to dup this kind of object yet %s (type = %d).\n", m_klass->inspect_str()->c_str(), static_cast<int>(m_type));
         abort();
     }
+}
+
+Value Object::clone(Env *env) {
+    auto duplicate = this->dup(env);
+    auto s_class = singleton_class();
+    if (s_class) {
+        duplicate->set_singleton_class(s_class->clone(env)->as_class());
+    }
+    return duplicate;
 }
 
 bool Object::is_a(Env *env, Value val) const {
