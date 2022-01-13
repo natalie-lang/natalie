@@ -212,7 +212,7 @@ class Runner
   def show_assembly
     compiler.write_file
     compiler.out_path = '-'
-    cmd = compiler.compiler_command.gsub(/-L [^ ]+|[^ ]+\.[ao]/, '')
+    cmd = compiler.compiler_command.gsub(/-L [^ ]+|[^ ]+\.[ao]|-lnatalie/, '')
     puts `#{cmd} -S -fverbose-asm 2>&1`
   end
 
