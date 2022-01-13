@@ -10,6 +10,14 @@ module Natalie
       def to_s
         "push_string #{@string.inspect}"
       end
+
+      def to_cpp(transform)
+        "new StringObject(#{@string.inspect})"
+      end
+
+      def execute(vm)
+        vm.push(@string)
+      end
     end
   end
 end

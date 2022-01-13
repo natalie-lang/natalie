@@ -105,6 +105,12 @@ module Natalie
         _, name = exp
         VariableGetInstruction.new(name)
       end
+
+      def transform_str(exp, used:)
+        return [] unless used
+        _, str = exp
+        PushStringInstruction.new(str)
+      end
     end
   end
 end
