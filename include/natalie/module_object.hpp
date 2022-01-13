@@ -144,15 +144,6 @@ public:
     bool has_env() { return !!m_env; }
     Env *env() { return m_env; }
 
-    void add_non_overwritable_method(SymbolObject *method) {
-        m_non_overwritable_methods.set(method);
-    }
-
-    void add_non_overwritable_methods(const TM::Vector<SymbolObject *> &methods) {
-        for (auto method : methods)
-            add_non_overwritable_method(method);
-    }
-
     virtual void visit_children(Visitor &) override final;
 
     virtual void gc_inspect(char *buf, size_t len) const override {
@@ -173,8 +164,6 @@ protected:
     Vector<ModuleObject *> m_included_modules {};
     MethodVisibility m_method_visibility { MethodVisibility::Public };
     bool m_module_function { false };
-
-    TM::Hashmap<SymbolObject *> m_non_overwritable_methods {};
 };
 
 }

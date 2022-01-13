@@ -87,18 +87,14 @@ OptionParser.new do |opts|
     options[:keep_cpp] = true
   end
 
-  opts.on('--allow-overwrites', 'Allows overwriting of all stdlib object methods. This may have a significant performance impact.') do
-    options[:allow_overwrites] = true
-  end
-
   opts.on('--nat-parser', "Enable use of Natalie's own Ruby parser (rather than the ruby_parser gem)") do
     options[:nat_parser] = true
   end
-
+  
   opts.on('--log-load-error', 'Log a message when natalie cannot load a required file') do
     options[:log_load_error] = true
   end
-
+  
   opts.on('--experimental-repl-v2', 'Enable the new REPL (not available with self-hosted Natalie)') do
     options[:experimental_repl_v2] = true
   end

@@ -111,10 +111,6 @@ module Natalie
             .sub('/*' + 'NAT_OBJ_INIT' + '*/') { obj_init_lines.join("\n") }
             .sub('/*' + 'NAT_EVAL_INIT' + '*/') { init_matter }
             .sub('/*' + 'NAT_EVAL_BODY' + '*/') { @decl.join("\n") + "\n" + result }
-            .sub(
-              '/*' + 'NAT_ALLOW_OVERWRITES' + '*/',
-              "Natalie::allow_overwrites = #{@compiler_context[:allow_overwrites]};",
-            )
         reindent(out)
       end
 
