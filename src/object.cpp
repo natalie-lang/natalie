@@ -7,7 +7,7 @@ namespace Natalie {
 Object::Object(const Object &other)
     : m_klass { other.m_klass }
     , m_type { other.m_type }
-    , m_singleton_class { other.m_singleton_class ? new ClassObject { other.m_singleton_class } : nullptr }
+    , m_singleton_class { nullptr }
     , m_owner { other.m_owner }
     , m_ivars { other.m_ivars } { }
 
