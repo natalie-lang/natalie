@@ -195,14 +195,7 @@ Value StringObject::initialize(Env *env, Value arg) {
 }
 
 Value StringObject::ltlt(Env *env, Value arg) {
-    this->assert_not_frozen(env);
-    if (arg->is_string()) {
-        append(env, arg->as_string());
-    } else {
-        Value str_obj = arg.send(env, "to_s"_s);
-        str_obj->assert_type(env, Object::Type::String, "String");
-        append(env, str_obj->as_string());
-    }
+    concat(env, 1, &arg);
     return this;
 }
 
@@ -344,13 +337,66 @@ Value StringObject::ord(Env *env) {
     return Value::integer(code);
 }
 
-Value StringObject::bytes(Env *env) const {
+Value StringObject::prepend(Env *env, size_t argc, Value *args) {
+    assert_not_frozen(env);
+
+    StringObject *original = new StringObject(*this);
+
+    auto to_str = "to_str"_s;
+    String appendable;
+    for (size_t i = 0; i < argc; i++) {
+        auto arg = args[i];
+
+        if (arg == this)
+            arg = original;
+
+        StringObject *str_obj;
+        if (arg->is_string()) {
+            str_obj = arg->as_string();
+        } else if (arg->is_integer() && arg->as_integer()->to_nat_int_t() < 0) {
+            env->raise("RangeError", "less than 0");
+        } else if (arg->is_integer()) {
+            str_obj = arg.send(env, "chr"_s)->as_string();
+        } else if (arg->respond_to(env, to_str)) {
+            str_obj = arg.send(env, to_str)->as_string();
+        } else {
+            env->raise("TypeError", "cannot call to_str", arg->inspect_str(env));
+        }
+
+        str_obj->assert_type(env, Object::Type::String, "String");
+        appendable.append(&str_obj->m_string);
+    }
+    m_string.prepend(&appendable);
+
+    return this;
+}
+
+Value StringObject::b(Env *env) const {
+    return new StringObject { m_string.clone(), Encoding::ASCII_8BIT };
+}
+
+Value StringObject::bytes(Env *env, Block *block) {
+    if (block) {
+        return each_byte(env, block);
+    }
     ArrayObject *ary = new ArrayObject { length() };
     for (size_t i = 0; i < length(); i++) {
         unsigned char c = c_str()[i];
         ary->push(Value::integer(c));
     }
     return ary;
+}
+
+Value StringObject::each_byte(Env *env, Block *block) {
+    if (!block)
+        return send(env, "enum_for"_s, { "each_byte"_s });
+
+    for (size_t i = 0; i < length(); i++) {
+        unsigned char c = c_str()[i];
+        Value args[] = { Value::integer(c) };
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, args, nullptr);
+    }
+    return this;
 }
 
 Value StringObject::size(Env *env) {
@@ -867,6 +913,12 @@ Value StringObject::reverse(Env *env) {
         if (i == 0) break;
     }
     return ary->join(env, nullptr);
+}
+
+Value StringObject::reverse_in_place(Env *env) {
+    this->assert_not_frozen(env);
+    *this = *reverse(env)->as_string();
+    return this;
 }
 
 void StringObject::prepend_char(Env *env, char c) {

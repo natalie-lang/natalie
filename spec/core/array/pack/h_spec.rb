@@ -18,6 +18,11 @@ describe "Array#pack with format 'H'" do
     [obj].pack("H").should == "\xa0"
   end
 
+  it "will not implicitly convert a number to a string" do
+    -> { [0].pack('H') }.should raise_error(TypeError)
+    -> { [0].pack('h') }.should raise_error(TypeError)
+  end
+
   it "encodes the first character as the most significant nibble when passed no count modifier" do
     ["ab"].pack("H").should == "\xa0"
   end
@@ -97,8 +102,7 @@ describe "Array#pack with format 'H'" do
     ].should be_computed_by(:pack, "H")
   end
 
-  #FIXME: add back once we support the binary encoding
-  xit "returns a binary string" do
+  it "returns a binary string" do
     ["41"].pack("H").encoding.should == Encoding::BINARY
   end
 end
@@ -195,8 +199,7 @@ describe "Array#pack with format 'h'" do
     ].should be_computed_by(:pack, "h")
   end
 
-  #FIXME: add back once we support the binary encoding
-  xit "returns a binary string" do
+  it "returns a binary string" do
     ["41"].pack("h").encoding.should == Encoding::BINARY
   end
 end

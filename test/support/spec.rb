@@ -173,6 +173,21 @@ def min_long
   -((2**(8 * 8 - 2)) * 2)
 end
 
+def ruby_exe(code, args: nil)
+  Tempfile.create('ruby_exe.rb') do |file|
+    file.write(code)
+    file.rewind
+
+    binary = ENV['NAT_BINARY'] || 'bin/natalie'
+
+    output = `#{binary} #{file.path} #{args}`
+
+    raise SpecFailedException, "Expected exit status 0 but actual is #{$?.exitstatus}" unless $?.success?
+
+    output
+  end
+end
+
 def ruby_version_is(version)
   ruby_version = SpecVersion.new RUBY_VERSION
   case version
@@ -364,6 +379,9 @@ class Matcher
   end
   def positive?
     method_missing(:positive?)
+  end
+  def real?
+    method_missing(:real?)
   end
   def start_with?(other)
     method_missing(:start_with?, other)
@@ -921,6 +939,10 @@ class Object
 
   def be_nan
     BeNanExpectation.new
+  end
+
+  def be_negative_zero
+    EqlExpectation.new(-0.0)
   end
 
   def be_positive_zero

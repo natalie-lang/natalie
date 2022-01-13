@@ -89,6 +89,7 @@ Value Object::create(Env *env, ClassObject *klass) {
     case Object::Type::True:
     case Object::Type::Integer:
     case Object::Type::Float:
+    case Object::Type::Rational:
     case Object::Type::Symbol:
     case Object::Type::UnboundMethod:
         obj = nullptr;
@@ -103,7 +104,8 @@ Value Object::_new(Env *env, Value klass_value, size_t argc, Value *args, Block 
     if (!obj)
         NAT_UNREACHABLE();
 
-    return obj->initialize(env, argc, args, block);
+    obj->send(env, "initialize"_s, argc, args, block);
+    return obj;
 }
 
 Value Object::allocate(Env *env, Value klass_value, size_t argc, Value *args, Block *block) {
@@ -130,14 +132,8 @@ Value Object::allocate(Env *env, Value klass_value, size_t argc, Value *args, Bl
     return obj;
 }
 
-Value Object::initialize(Env *env, size_t argc, Value *args, Block *block) {
-    Method *method = m_klass->find_method(env, "initialize"_s);
-    if (method && !method->is_undefined()) {
-        method->call(env, this, argc, args, block);
-    } else {
-        env->ensure_argc_is(argc, 0);
-    }
-    return this;
+Value Object::initialize(Env *env) {
+    return NilObject::the();
 }
 
 NilObject *Object::as_nil() {
@@ -228,6 +224,11 @@ RandomObject *Object::as_random() {
 RangeObject *Object::as_range() {
     assert(is_range());
     return static_cast<RangeObject *>(this);
+}
+
+RationalObject *Object::as_rational() {
+    assert(is_rational());
+    return static_cast<RationalObject *>(this);
 }
 
 RegexpObject *Object::as_regexp() {
@@ -629,6 +630,7 @@ Value Object::dup(Env *env) {
     case Object::Type::Float:
     case Object::Type::Integer:
     case Object::Type::Nil:
+    case Object::Type::Rational:
     case Object::Type::Symbol:
     case Object::Type::True:
         return this;

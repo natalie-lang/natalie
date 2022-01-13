@@ -104,7 +104,12 @@ void Env::raise_name_error(SymbolObject *name, const String *message) {
 
 void Env::warn(const String *message) {
     Value _stderr = global_get("$stderr"_s);
-    message = String::format("{}:{}: warning: {}", m_file, m_line, message);
+    message = String::format("warning: {}", message);
+
+    if (m_file && m_line) {
+        message = String::format("{}:{}: {}", m_file, m_line, message);
+    }
+
     _stderr.send(this, "puts"_s, { new StringObject { message } });
 }
 

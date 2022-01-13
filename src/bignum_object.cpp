@@ -3,6 +3,14 @@
 
 namespace Natalie {
 
+Value BignumObject::create_if_needed(const BigInt &other) {
+    if (other > MAX_INT || other < MIN_INT) {
+        return new BignumObject { other };
+    } else {
+        return Value::integer(other.to_long_long());
+    }
+}
+
 Value BignumObject::to_f() const {
     return new FloatObject { m_bigint->to_double() };
 }
@@ -173,6 +181,10 @@ Value BignumObject::times(Env *env, Block *block) {
     }
 
     return this;
+}
+
+Value BignumObject::complement(Env *env) const {
+    return create_if_needed(~to_bigint());
 }
 
 Value BignumObject::gcd(Env *env, Value divisor) {

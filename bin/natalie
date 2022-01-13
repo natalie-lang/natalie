@@ -13,7 +13,7 @@ require_relative '../lib/natalie'
 
 orig_args = ARGV.dup
 
-options = { load_path: [], require: [] }
+options = { load_path: [], require: [], profile: false }
 OptionParser.new do |opts|
   opts.banner = 'Usage: natalie [options] file.rb'
 
@@ -50,6 +50,10 @@ OptionParser.new do |opts|
     options[:execute] = e
   end
 
+  opts.on('-p', '--profile', 'Profile a Natalie application with the embedded profiler') do |e|
+    options[:profile] = true
+  end
+
   opts.on('--ast', 'Show AST rather than compiling') do |ast|
     options[:ast] = ast
   end
@@ -83,14 +87,18 @@ OptionParser.new do |opts|
     options[:keep_cpp] = true
   end
 
+  opts.on('--allow-overwrites', 'Allows overwriting of all stdlib object methods. This may have a significant performance impact.') do
+    options[:allow_overwrites] = true
+  end
+
   opts.on('--nat-parser', "Enable use of Natalie's own Ruby parser (rather than the ruby_parser gem)") do
     options[:nat_parser] = true
   end
-  
+
   opts.on('--log-load-error', 'Log a message when natalie cannot load a required file') do
     options[:log_load_error] = true
   end
-  
+
   opts.on('--experimental-repl-v2', 'Enable the new REPL (not available with self-hosted Natalie)') do
     options[:experimental_repl_v2] = true
   end
@@ -156,6 +164,9 @@ class Runner
     out = Tempfile.create("natalie#{extension}")
     out.close
     compiler.out_path = out.path
+    if options[:profile]
+      compiler.cxx_flags << '-DNAT_NATIVE_PROFILER'
+    end
     case options[:debug]
     when 'gdb', 'lldb'
       compiler.compile

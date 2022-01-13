@@ -29,14 +29,12 @@ describe "Float#prev_float" do
     (-1.0).prev_float.should == -1.0 - Float::EPSILON
   end
 
-  # TODO: rand
-  xit "reverses the effect of next_float for all Floats except -INFINITY and -0.0" do
+  it "reverses the effect of next_float for all Floats except -INFINITY and -0.0" do
     num = rand
     num.next_float.prev_float.should == num
   end
 
-  # TODO: wat
-  xit "returns positive zero when stepping downward from just above zero" do
+  it "returns positive zero when stepping downward from just above zero" do
     x = 0.0.next_float.prev_float
     (1/x).should == Float::INFINITY
   end

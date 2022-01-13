@@ -58,8 +58,9 @@ public:
     virtual Value pow(Env *, Value);
     Value cmp(Env *, Value);
     virtual Value times(Env *, Block *);
-    Value bitwise_and(Env *, Value) const;
-    Value bitwise_or(Env *, Value) const;
+    Value bitwise_and(Env *, Value);
+    Value bitwise_or(Env *, Value);
+    Value bitwise_xor(Env *, Value);
     Value pred(Env *);
     Value size(Env *);
     Value succ(Env *);
@@ -71,7 +72,7 @@ public:
     Value chr(Env *) const;
     virtual Value negate(Env *);
     Value numerator();
-    Value complement(Env *) const;
+    virtual Value complement(Env *) const;
     Value ord() { return this; }
     Value denominator() { return Value::integer(1); }
 

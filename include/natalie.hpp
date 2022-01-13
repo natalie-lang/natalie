@@ -38,6 +38,7 @@
 #include "natalie/method.hpp"
 #include "natalie/method_object.hpp"
 #include "natalie/module_object.hpp"
+#include "natalie/native_profiler.hpp"
 #include "natalie/nil_object.hpp"
 #include "natalie/object.hpp"
 #include "natalie/parser_object.hpp"
@@ -45,6 +46,7 @@
 #include "natalie/process_module.hpp"
 #include "natalie/random_object.hpp"
 #include "natalie/range_object.hpp"
+#include "natalie/rational_object.hpp"
 #include "natalie/regexp_object.hpp"
 #include "natalie/sexp_object.hpp"
 #include "natalie/string_object.hpp"
@@ -60,6 +62,7 @@ namespace Natalie {
 extern const char *ruby_platform;
 extern const char *ruby_release_date;
 extern const char *ruby_revision;
+extern bool allow_overwrites;
 
 extern "C" {
 #include "onigmo.h"

@@ -69,11 +69,35 @@ Env *build_top_env() {
     ClassObject *Fiber = Object->subclass(env, "Fiber", Object::Type::Fiber);
     Object->const_set("Fiber"_s, Fiber);
 
+    TM::Vector<SymbolObject *> numeric_non_overwritable_methods = {
+        "+"_s,
+        "-"_s,
+        "*"_s,
+        "<=>"_s,
+        "/"_s,
+        "%"_s,
+        "&"_s,
+        "|"_s,
+        "^"_s,
+        "<<"_s,
+        ">>"_s,
+        "=="_s,
+        "!="_s,
+        ">"_s,
+        "<"_s,
+        ">="_s,
+        "<="_s,
+        "==="_s,
+        "!"_s,
+    };
+
     ClassObject *Numeric = Object->subclass(env, "Numeric");
     Object->const_set("Numeric"_s, Numeric);
     Numeric->include_once(env, Comparable);
+    Numeric->add_non_overwritable_methods(numeric_non_overwritable_methods);
 
     ClassObject *Integer = Numeric->subclass(env, "Integer", Object::Type::Integer);
+    Integer->add_non_overwritable_methods(numeric_non_overwritable_methods);
     global_env->set_Integer(Integer);
     Object->const_set("Integer"_s, Integer);
     Value old_integer_constants[2] = { "Fixnum"_s, "Bignum"_s };
@@ -86,10 +110,16 @@ Env *build_top_env() {
     global_env->set_Float(Float);
     Object->const_set("Float"_s, Float);
     Float->include_once(env, Comparable);
+    Float->add_non_overwritable_methods(numeric_non_overwritable_methods);
     FloatObject::build_constants(env, Float);
+
+    ClassObject *Rational = Numeric->subclass(env, "Rational", Object::Type::Rational);
+    global_env->set_Rational(Rational);
+    Object->const_set("Rational"_s, Rational);
 
     Value Math = new ModuleObject { "Math" };
     Object->const_set("Math"_s, Math);
+    Math->const_set("E"_s, new FloatObject { M_E });
     Math->const_set("PI"_s, new FloatObject { M_PI });
 
     ClassObject *String = Object->subclass(env, "String", Object::Type::String);
@@ -101,6 +131,7 @@ Env *build_top_env() {
     global_env->set_Array(Array);
     Object->const_set("Array"_s, Array);
     Array->include_once(env, Enumerable);
+    Array->add_non_overwritable_methods({ "max"_s, "min"_s });
 
     ClassObject *Binding = Object->subclass(env, "Binding", Object::Type::Binding);
     global_env->set_Binding(Binding);

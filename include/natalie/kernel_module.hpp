@@ -13,10 +13,6 @@ namespace Natalie {
 
 class KernelModule : public Object {
 public:
-    Value object_id(Env *env) {
-        return Value::integer(Object::object_id());
-    }
-
     bool equal(Value other) {
         return other == this;
     }
@@ -46,7 +42,8 @@ public:
     Value cur_dir(Env *env);
     Value define_singleton_method(Env *env, Value name, Block *block);
     Value exit(Env *env, Value status);
-    Value Float(Env *env, Value value, Value kwargs = nullptr);
+    Value Float(Env *env, Value value, Value kwargs);
+    Value Float(Env *env, Value value, bool exception = true);
     Value gets(Env *env);
     Value get_usage(Env *env);
     Value Hash(Env *env, Value value);
@@ -66,6 +63,10 @@ public:
     Value proc(Env *env, Block *block);
     Value puts(Env *env, size_t argc, Value *args);
     Value raise(Env *env, Value klass, Value message);
+    Value Rational(Env *env, Value x, Value y, Value kwargs);
+    Value Rational(Env *env, Value x, Value y = nullptr, bool exception = true);
+    RationalObject *Rational(Env *env, IntegerObject *x, IntegerObject *y);
+    RationalObject *Rational(Env *env, double arg);
     Value remove_instance_variable(Env *env, Value name_val);
     Value sleep(Env *env, Value length);
     Value spawn(Env *, size_t, Value *);

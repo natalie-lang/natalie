@@ -104,6 +104,12 @@ public:
 
     StringObject *inspect(Env *);
 
+    StringObject &operator=(StringObject other) {
+        this->m_string = other.m_string;
+        this->m_encoding = other.m_encoding;
+        return *this;
+    }
+
     bool operator==(const Object &value) const {
         if (!value.is_string())
             return false;
@@ -143,11 +149,13 @@ public:
     Value sub(Env *, Value, Value = nullptr, Block *block = nullptr);
 
     Value add(Env *, Value) const;
-    Value bytes(Env *) const;
+    Value b(Env *) const;
+    Value bytes(Env *, Block *);
     Value chr(Env *);
     Value cmp(Env *, Value) const;
     Value concat(Env *env, size_t argc, Value *args);
     Value downcase(Env *);
+    Value each_byte(Env *, Block *);
     Value encode(Env *, Value);
     Value encoding(Env *);
     bool eq(Env *, Value arg);
@@ -161,8 +169,10 @@ public:
     Value match(Env *, Value);
     Value mul(Env *, Value) const;
     Value ord(Env *);
+    Value prepend(Env *, size_t, Value *);
     Value ref(Env *, Value);
     Value reverse(Env *);
+    Value reverse_in_place(Env *);
     Value rstrip(Env *) const;
     Value rstrip_in_place(Env *);
     Value size(Env *);

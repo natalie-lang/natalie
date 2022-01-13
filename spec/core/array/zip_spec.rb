@@ -39,8 +39,7 @@ describe "Array#zip" do
   end
 
   it "stops at own size when given an infinite enumerator" do
-    # [1, 2].zip(10.upto(Float::INFINITY)).should == [[1, 10], [2, 11]]
-    [1, 2].zip((10..Float::INFINITY).to_enum).should == [[1, 10], [2, 11]]
+    [1, 2].zip(10.upto(Float::INFINITY)).should == [[1, 10], [2, 11]]
   end
 
   it "fills nil when the given enumerator is shorter than self" do

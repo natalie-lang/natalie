@@ -43,7 +43,6 @@
 # 5   - 1   * 3^2 = 36
 #
 # missing answers: 19, 30
-
 class BoardSlam
   BOARD = 1..36
   OPERATIONS = %w[+ - * /]

@@ -111,6 +111,10 @@ module Natalie
             .sub('/*' + 'NAT_OBJ_INIT' + '*/') { obj_init_lines.join("\n") }
             .sub('/*' + 'NAT_EVAL_INIT' + '*/') { init_matter }
             .sub('/*' + 'NAT_EVAL_BODY' + '*/') { @decl.join("\n") + "\n" + result }
+            .sub(
+              '/*' + 'NAT_ALLOW_OVERWRITES' + '*/',
+              "Natalie::allow_overwrites = #{@compiler_context[:allow_overwrites]};",
+            )
         reindent(out)
       end
 
@@ -190,9 +194,10 @@ module Natalie
         fn_name = comptime_string(fn_name)
         fn = @inline_functions.fetch(fn_name)
         cast_value_to_cpp = ->(v, t) do
+          p_value = process(v)
           case t
           when 'double'
-            "#{process(v)}->as_float()->to_double()"
+            "#{p_value}.is_fast_float() ? #{p_value}.get_fast_float() : #{p_value}->as_float()->to_double()"
           else
             raise "I don't yet know how to cast arg type #{t}"
           end

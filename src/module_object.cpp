@@ -228,6 +228,9 @@ void ModuleObject::methods(Env *env, ArrayObject *array, bool include_super) {
 }
 
 void ModuleObject::define_method(Env *env, SymbolObject *name, Method *method, MethodVisibility visibility) {
+    if (!Natalie::allow_overwrites && m_non_overwritable_methods.get(name)) {
+        env->warn("Natalie will not allow overwriting {}#{}. If you depend on it, please compile with the `--allow-overwrites` flag.", inspect_str(), name->c_str());
+    }
     m_methods.put(name, method, env);
     set_method_visibility(env, name, visibility);
 }

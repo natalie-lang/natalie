@@ -25,6 +25,7 @@ jobs:
           message: "Format code with clang-format (automated)"
 
   prettier:
+    if: ${{ false }} # disable for now, because it keeps timing out :-(
     runs-on: ubuntu-latest
 
     steps:
