@@ -195,14 +195,7 @@ Value StringObject::initialize(Env *env, Value arg) {
 }
 
 Value StringObject::ltlt(Env *env, Value arg) {
-    this->assert_not_frozen(env);
-    if (arg->is_string()) {
-        append(env, arg->as_string());
-    } else {
-        Value str_obj = arg.send(env, "to_s"_s);
-        str_obj->assert_type(env, Object::Type::String, "String");
-        append(env, str_obj->as_string());
-    }
+    concat(env, 1, &arg);
     return this;
 }
 
@@ -378,13 +371,32 @@ Value StringObject::prepend(Env *env, size_t argc, Value *args) {
     return this;
 }
 
-Value StringObject::bytes(Env *env) const {
+Value StringObject::b(Env *env) const {
+    return new StringObject { m_string.clone(), Encoding::ASCII_8BIT };
+}
+
+Value StringObject::bytes(Env *env, Block *block) {
+    if (block) {
+        return each_byte(env, block);
+    }
     ArrayObject *ary = new ArrayObject { length() };
     for (size_t i = 0; i < length(); i++) {
         unsigned char c = c_str()[i];
         ary->push(Value::integer(c));
     }
     return ary;
+}
+
+Value StringObject::each_byte(Env *env, Block *block) {
+    if (!block)
+        return send(env, "enum_for"_s, { "each_byte"_s });
+
+    for (size_t i = 0; i < length(); i++) {
+        unsigned char c = c_str()[i];
+        Value args[] = { Value::integer(c) };
+        NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, args, nullptr);
+    }
+    return this;
 }
 
 Value StringObject::size(Env *env) {
