@@ -94,33 +94,12 @@ module Natalie
       }
     end
 
-    def transform(ast)
-      @context = build_context
-
-      instructions = Pass1.new(ast).transform
-      if debug == 'p1'
-        print_instructions(instructions)
-        exit
-      end
-
-      instructions = Pass2.new(instructions).transform
-      if debug == 'p2'
-        print_instructions(instructions)
-        exit
-      end
-
-      return instructions if options[:interpret]
-
-      CppBackend.new(instructions, compiler_context: @context).generate
-    end
-
     def print_instructions(instructions)
       instructions.each_with_index { |i, index| puts "#{index} #{i}" }
     end
 
     def instructions
-      @ast = expand_macros(@ast, @path)
-      transform(@ast)
+      @instructions ||= transform
     end
 
     def load_path
@@ -167,6 +146,28 @@ module Natalie
     end
 
     private
+
+    def transform
+      ast = expand_macros(@ast, @path)
+
+      @context = build_context
+
+      instructions = Pass1.new(ast).transform
+      if debug == 'p1'
+        print_instructions(instructions)
+        exit
+      end
+
+      instructions = Pass2.new(instructions).transform
+      if debug == 'p2'
+        print_instructions(instructions)
+        exit
+      end
+
+      return instructions if options[:interpret]
+
+      CppBackend.new(instructions, compiler_context: @context).generate
+    end
 
     def clang?
       return @clang if defined?(@clang)

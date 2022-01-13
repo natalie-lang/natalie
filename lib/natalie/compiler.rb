@@ -98,51 +98,8 @@ module Natalie
       }
     end
 
-    def transform(ast)
-      @context = build_context
-
-      ast = Pass0c.new(@context).go(ast)
-      if debug == 'p0c'
-        pp ast
-        exit
-      end
-
-      ast = Pass1.new(@context).go(ast)
-      if debug == 'p1'
-        pp ast
-        exit
-      end
-
-      ast = Pass1b.new(@context).go(ast)
-      if debug == 'p1b'
-        pp ast
-        exit
-      end
-
-      ast = Pass1r.new(@context).go(ast)
-      if debug == 'p1r'
-        pp ast
-        exit
-      end
-
-      ast = Pass2.new(@context).go(ast)
-      if debug == 'p2'
-        pp ast
-        exit
-      end
-
-      ast = Pass3.new(@context).go(ast)
-      if debug == 'p3'
-        pp ast
-        exit
-      end
-
-      Pass4.new(@context).go(ast)
-    end
-
     def instructions
-      @ast = expand_macros(@ast, @path)
-      transform(@ast)
+      @instructions ||= transform
     end
 
     def load_path
@@ -189,6 +146,50 @@ module Natalie
     end
 
     private
+
+    def transform
+      ast = expand_macros(@ast, @path)
+
+      @context = build_context
+
+      ast = Pass0c.new(@context).go(ast)
+      if debug == 'p0c'
+        pp ast
+        exit
+      end
+
+      ast = Pass1.new(@context).go(ast)
+      if debug == 'p1'
+        pp ast
+        exit
+      end
+
+      ast = Pass1b.new(@context).go(ast)
+      if debug == 'p1b'
+        pp ast
+        exit
+      end
+
+      ast = Pass1r.new(@context).go(ast)
+      if debug == 'p1r'
+        pp ast
+        exit
+      end
+
+      ast = Pass2.new(@context).go(ast)
+      if debug == 'p2'
+        pp ast
+        exit
+      end
+
+      ast = Pass3.new(@context).go(ast)
+      if debug == 'p3'
+        pp ast
+        exit
+      end
+
+      Pass4.new(@context).go(ast)
+    end
 
     def clang?
       return @clang if defined?(@clang)
