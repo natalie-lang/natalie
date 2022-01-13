@@ -57,6 +57,7 @@ public:
     Value negate(Env *) override;
     Value times(Env *, Block *) override;
     Value gcd(Env *, Value) override;
+    Value complement(Env *) const override;
     Value to_f() const override;
     Value to_s(Env *, Value = nullptr) override;
 
