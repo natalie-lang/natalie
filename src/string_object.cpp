@@ -529,11 +529,14 @@ Value StringObject::ref(Env *env, Value index_obj) {
     abort();
 }
 
-Value StringObject::sub(Env *env, Value find, Value replacement, Block *block) {
-    if (!block && !replacement)
+Value StringObject::sub(Env *env, Value find, Value replacement_value, Block *block) {
+    if (!block && !replacement_value)
         env->raise("ArgumentError", "wrong number of arguments (given 1, expected 2)");
-    if (!block)
-        replacement->assert_type(env, Object::Type::String, "String");
+    StringObject *replacement = nullptr;
+    if (!block) {
+        replacement_value->assert_type(env, Object::Type::String, "String");
+        replacement = replacement_value->as_string();
+    }
     if (find->is_string()) {
         nat_int_t index = this->index_int(env, find->as_string(), 0);
         if (index == -1) {
@@ -550,23 +553,20 @@ Value StringObject::sub(Env *env, Value find, Value replacement, Block *block) {
         out->append(env, &c_str()[index + find->as_string()->length()]);
         return out;
     } else if (find->is_regexp()) {
-        if (block) {
-            NAT_NOT_YET_IMPLEMENTED("String#sub(/regex/) { block }")
-        }
         MatchDataObject *match;
         StringObject *expanded_replacement;
-        return regexp_sub(env, find->as_regexp(), replacement->as_string(), &match, &expanded_replacement);
+        return regexp_sub(env, find->as_regexp(), replacement, &match, &expanded_replacement, 0, block);
     } else {
         env->raise("TypeError", "wrong argument type {} (expected Regexp)", find->klass()->inspect_str());
     }
 }
 
 Value StringObject::gsub(Env *env, Value find, Value replacement_value, Block *block) {
-    if (!replacement_value || block) {
-        NAT_NOT_YET_IMPLEMENTED("String#gsub(/regex/) { block }")
+    StringObject *replacement = nullptr;
+    if (replacement_value) {
+        replacement_value->assert_type(env, Object::Type::String, "String");
+        replacement = replacement_value->as_string();
     }
-    replacement_value->assert_type(env, Object::Type::String, "String");
-    StringObject *replacement = replacement_value->as_string();
     if (find->is_string()) {
         NAT_NOT_YET_IMPLEMENTED();
     } else if (find->is_regexp()) {
@@ -576,7 +576,7 @@ Value StringObject::gsub(Env *env, Value find, Value replacement_value, Block *b
         size_t start_index = 0;
         do {
             match = nullptr;
-            result = result->regexp_sub(env, find->as_regexp(), replacement, &match, &expanded_replacement, start_index);
+            result = result->regexp_sub(env, find->as_regexp(), replacement, &match, &expanded_replacement, start_index, block);
             if (match)
                 start_index = match->index(0) + expanded_replacement->length();
         } while (match);
@@ -586,7 +586,7 @@ Value StringObject::gsub(Env *env, Value find, Value replacement_value, Block *b
     }
 }
 
-StringObject *StringObject::regexp_sub(Env *env, RegexpObject *find, StringObject *replacement, MatchDataObject **match, StringObject **expanded_replacement, size_t start_index) {
+StringObject *StringObject::regexp_sub(Env *env, RegexpObject *find, StringObject *replacement, MatchDataObject **match, StringObject **expanded_replacement, size_t start_index, Block *block) {
     Value match_result = find->send(env, "match"_s, { this, Value::integer(start_index) });
     if (match_result == NilObject::the())
         return dup(env)->as_string();
@@ -594,9 +594,19 @@ StringObject *StringObject::regexp_sub(Env *env, RegexpObject *find, StringObjec
     size_t length = (*match)->as_match_data()->group(env, 0)->as_string()->length();
     nat_int_t index = (*match)->as_match_data()->index(0);
     StringObject *out = new StringObject { c_str(), static_cast<size_t>(index) };
-    *expanded_replacement = expand_backrefs(env, replacement->as_string(), *match);
-    out->append(env, *expanded_replacement);
-    out->append(env, &c_str()[index + length]);
+    if (block) {
+        auto string = (*match)->to_s(env);
+        Value args[1] = { string };
+        Value replacement_from_block = NAT_RUN_BLOCK_WITHOUT_BREAK(env, block, 1, args, nullptr);
+        replacement_from_block->assert_type(env, Object::Type::String, "String");
+        *expanded_replacement = replacement_from_block->as_string();
+        out->append(env, *expanded_replacement);
+        out->append(env, &c_str()[index + length]);
+    } else {
+        *expanded_replacement = expand_backrefs(env, replacement->as_string(), *match);
+        out->append(env, *expanded_replacement);
+        out->append(env, &c_str()[index + length]);
+    }
     return out;
 }
 

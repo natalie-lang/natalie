@@ -318,7 +318,9 @@ describe 'string' do
     end
 
     it 'replaces with the result of calling the block if a block is given' do
-      'ruby is fun'.sub('ruby') { 'RUBY' }.should == 'RUBY is fun' # TODO: accept block for regex sub #'ruby is fun'.sub(/ruby/) { 'RUBY' }.should == 'RUBY is fun' # TODO: pass match object into block #'ruby is fun'.sub(/ruby/) { |m| m.to_s.upcase }.should == 'RUBY is fun'
+      'ruby is fun'.sub('ruby') { 'RUBY' }.should == 'RUBY is fun'
+      'ruby is fun'.sub(/ruby/) { 'RUBY' }.should == 'RUBY is fun'
+      'ruby is fun'.sub(/ruby/) { |m| m.to_s.upcase }.should == 'RUBY is fun'
     end
   end
 
@@ -328,6 +330,7 @@ describe 'string' do
       s.gsub(/foo/, 'bar').should == 'bar bar bar bar'
       s.gsub(/foo/, 'foo foo').should == 'foo foo bar foo foo bar'
       s.gsub(/bar/, 'foo').should == 'foo foo foo foo'
+      s.gsub(/bar/) { |m| m.upcase }.should == 'foo BAR foo BAR'
       'abc'.gsub(/([a-z])/, '\0-').should == 'a-b-c-'
     end
   end
