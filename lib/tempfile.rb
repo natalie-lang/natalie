@@ -2,9 +2,8 @@ require 'natalie/inline'
 
 class Tempfile
   class << self
-    # NATFIXME: This should not take a block
-    def new(basename, &block)
-      Tempfile.create(basename, block)
+    def new(basename)
+      Tempfile.create(basename)
     end
 
     __define_method__ :create, [:basename], <<-CPP
