@@ -7,7 +7,7 @@ namespace Natalie {
 Object::Object(const Object &other)
     : m_klass { other.m_klass }
     , m_type { other.m_type }
-    , m_singleton_class { other.m_singleton_class ? new ClassObject { other.m_singleton_class } : nullptr }
+    , m_singleton_class { nullptr }
     , m_owner { other.m_owner }
     , m_ivars { other.m_ivars } { }
 
@@ -576,25 +576,9 @@ Value Object::send(Env *env, size_t argc, Value *args, Block *block) {
 }
 
 Method *Object::find_method(Env *env, SymbolObject *method_name, MethodVisibility visibility_at_least) {
-    auto singleton = singleton_class();
-    if (singleton) {
-        Method *method = singleton_class()->find_method(env, method_name);
-        if (method) {
-            if (!method->is_undefined()) {
-                MethodVisibility visibility = singleton_class()->get_method_visibility(env, method_name);
-                if (visibility >= visibility_at_least) {
-                    return method;
-                } else if (visibility == MethodVisibility::Protected) {
-                    env->raise("NoMethodError", "protected method `{}' called for {}:Class", method_name->c_str(), m_klass->inspect_str());
-                } else {
-                    env->raise("NoMethodError", "private method `{}' called for {}:Class", method_name->c_str(), m_klass->inspect_str());
-                }
-            } else {
-                env->raise("NoMethodError", "undefined method `{}' for {}:Class", method_name->c_str(), m_klass->inspect_str());
-            }
-        }
-    }
-    ModuleObject *klass = this->klass();
+    ModuleObject *klass = singleton_class();
+    if (!klass)
+        klass = m_klass;
     Method *method = klass->find_method(env, method_name);
     if (method && !method->is_undefined()) {
         MethodVisibility visibility = klass->get_method_visibility(env, method_name);
@@ -605,10 +589,8 @@ Method *Object::find_method(Env *env, SymbolObject *method_name, MethodVisibilit
         } else {
             env->raise("NoMethodError", "private method `{}' called for {}", method_name->c_str(), inspect_str(env));
         }
-    } else if (method_name == "inspect"_s) {
-        env->raise("NoMethodError", "undefined method `inspect' for #<{}:{}>", klass->inspect_str(), int_to_hex_string(object_id(), false));
     } else if (is_module()) {
-        env->raise("NoMethodError", "undefined method `{}' for {}:{}", method_name->c_str(), as_module()->inspect_str(), klass->inspect_str());
+        env->raise("NoMethodError", "undefined method `{}' for {}:{}", method_name->c_str(), as_module()->inspect_str(), m_klass->inspect_str());
     } else {
         env->raise("NoMethodError", "undefined method `{}' for {}", method_name->c_str(), inspect_str(env));
     }
@@ -618,10 +600,14 @@ Value Object::dup(Env *env) {
     switch (m_type) {
     case Object::Type::Array:
         return new ArrayObject { *as_array() };
+    case Object::Type::Class:
+        return new ClassObject { *as_class() };
     case Object::Type::Exception:
         return new ExceptionObject { *as_exception() };
     case Object::Type::Hash:
         return new HashObject { env, *as_hash() };
+    case Object::Type::Module:
+        return new ModuleObject { *as_module() };
     case Object::Type::String:
         return new StringObject { *as_string() };
     case Object::Type::Range:
@@ -640,6 +626,15 @@ Value Object::dup(Env *env) {
         fprintf(stderr, "I don't know how to dup this kind of object yet %s (type = %d).\n", m_klass->inspect_str()->c_str(), static_cast<int>(m_type));
         abort();
     }
+}
+
+Value Object::clone(Env *env) {
+    auto duplicate = this->dup(env);
+    auto s_class = singleton_class();
+    if (s_class) {
+        duplicate->set_singleton_class(s_class->clone(env)->as_class());
+    }
+    return duplicate;
 }
 
 bool Object::is_a(Env *env, Value val) const {
@@ -788,6 +783,8 @@ bool Object::neq(Env *env, Value other) {
 }
 
 const String *Object::inspect_str(Env *env) {
+    if (!respond_to(env, "inspect"_s))
+        return String::format("#<{}:{}>", m_klass->inspect_str(), int_to_hex_string(object_id(), false));
     auto inspected = send(env, "inspect"_s);
     if (!inspected->is_string())
         return new String(""); // TODO: what to do here?

@@ -61,7 +61,6 @@ public:
     static Value this_method(Env *env);
     static bool block_given(Env *env, Block *block) { return !!block; }
 
-    Value clone(Env *env);
     Value define_singleton_method(Env *env, Value name, Block *block);
     Value hash(Env *env);
     Value inspect(Env *env);

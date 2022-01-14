@@ -29,9 +29,10 @@ public:
     ModuleObject(ModuleObject &other)
         : Object { other.type(), other.klass() }
         , m_constants { other.m_constants }
-        , m_class_name { other.m_class_name }
         , m_superclass { other.m_superclass }
-        , m_methods { other.m_methods } {
+        , m_methods { other.m_methods }
+        , m_method_info { other.m_method_info }
+        , m_class_vars { other.m_class_vars } {
         for (ModuleObject *module : const_cast<ModuleObject &>(other).m_included_modules) {
             m_included_modules.push(module);
         }
