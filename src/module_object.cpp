@@ -67,6 +67,10 @@ Value ModuleObject::const_get(SymbolObject *name) {
         return nullptr;
 }
 
+Value ModuleObject::const_get(Env *env, Value name) {
+    return const_get(name->to_symbol(env, Object::Conversion::Strict));
+}
+
 Value ModuleObject::const_fetch(SymbolObject *name) {
     auto constant = const_get(name);
     if (!constant) {

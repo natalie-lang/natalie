@@ -47,4 +47,11 @@ describe 'Module' do
       M3::A.m3a.should == 'm3a'
     end
   end
+
+  describe '#const_get' do
+    it 'returns a constant by name' do
+      Object.const_get(:M3).should == M3
+      M3.const_get('A').should == M3::A
+    end
+  end
 end
