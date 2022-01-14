@@ -31,6 +31,6 @@ describe 'Natalie::Compiler2' do
 
   it 'executes test/natalie/compiler2/bootstrap_test.rb' do
     path = File.expand_path('compiler2/bootstrap_test.rb', __dir__)
-    compile_and_run(path).should == '[2, 4, 6]'
+    compile_and_run(path).should == '' # no result means tests passed
   end
 end

@@ -35,6 +35,12 @@ module Natalie
       # INDIVIDUAL EXPRESSIONS = = = = =
       # (in alphabetical order)
 
+      def transform_array(exp, used:)
+        _, *items = exp
+        instructions = items.map { |item| transform_expression(item, used: true) }
+        instructions << CreateArrayInstruction.new(count: items.size)
+      end
+
       def transform_block(exp, used:)
         _, *body = exp
         transform_array_of_expressions(body, used: used)
@@ -101,7 +107,7 @@ module Natalie
       def transform_if(exp, used:)
         _, condition, true_expression, false_expression = exp
         true_instructions = Array(transform_expression(true_expression, used: true))
-        false_instructions = Array(transform_expression(false_expression, used: true))
+        false_instructions = Array(transform_expression(false_expression || s(:nil), used: true))
         instructions = [
           transform_expression(condition, used: true),
           IfInstruction.new,

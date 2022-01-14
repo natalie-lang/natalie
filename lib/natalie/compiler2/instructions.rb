@@ -1,4 +1,5 @@
 require_relative './instructions/const_find_instruction'
+require_relative './instructions/create_array_instruction'
 require_relative './instructions/define_block_instruction'
 require_relative './instructions/define_class_instruction'
 require_relative './instructions/define_method_instruction'

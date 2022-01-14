@@ -11,9 +11,7 @@ describe 'Natalie::VM' do
     ast = Parser.parse(File.read(path), path)
     compiler = Natalie::Compiler2.new(ast, path, interpret: true)
     vm = Natalie::VM.new(compiler.instructions)
-    capture do
-      vm.run
-    end
+    capture { vm.run }
   end
 
   def capture
@@ -35,6 +33,7 @@ describe 'Natalie::VM' do
 
   it 'executes examples/fib.rb' do
     path = File.expand_path('../../examples/fib.rb', __dir__)
+
     # TODO: maybe a way to pass args to the VM without messing with the host process' ARGV?
     ARGV.clear
     ARGV << '6'
@@ -43,6 +42,6 @@ describe 'Natalie::VM' do
 
   it 'executes test/natalie/compiler2/bootstrap_test.rb' do
     path = File.expand_path('compiler2/bootstrap_test.rb', __dir__)
-    compile_and_run(path).should == '[2, 4, 6]'
+    compile_and_run(path).should == '' # no result means tests passed
   end
 end

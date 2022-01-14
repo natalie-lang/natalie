@@ -1,17 +1,25 @@
 # some basic tests as we are starting out
 
-class TestCompiler2
+class TestCase
+  def assert_eq(expected, actual)
+    if expected != actual
+      print 'expected: '
+      p expected
+      print 'actual: '
+      p actual
+      raise 'test failed'
+    end
+  end
+end
+
+class TestCompiler2 < TestCase
   def ary
-    # we don't have array literal compilation yet, lol
-    a = Array.new
-    a << 1
-    a << 2
-    a << 3
-    a
+    [1, 2, 3]
   end
 
   def run
-    p ary.map { |i| i * 2 } # => [2, 4, 6]
+    result = ary.map { |i| i * 2 }
+    assert_eq([2, 4, 6], result)
   end
 end
 
