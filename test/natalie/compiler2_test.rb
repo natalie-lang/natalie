@@ -4,9 +4,8 @@ require 'sexp_processor'
 
 require_relative '../spec_helper'
 require_relative '../../lib/natalie/compiler2'
-require_relative '../../lib/natalie/vm'
 
-describe 'Natalie::Compiler' do
+describe 'Natalie::Compiler2' do
   def compile_and_run(path, *args)
     ast = Parser.parse(File.read(path), path)
     compiler = Natalie::Compiler2.new(ast, path)

@@ -637,7 +637,7 @@ class IOStub
   alias write <<
 
   def puts(str)
-    self.<<(str + "\n")
+    self.<<(str.to_s + "\n")
   end
 
   def to_s
