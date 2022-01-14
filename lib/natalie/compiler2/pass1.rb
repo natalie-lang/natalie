@@ -9,13 +9,17 @@ module Natalie
 
       def transform
         raise 'unexpected AST input' unless @ast.sexp_type == :block
-
-        result = @ast[1..-1].map { |exp| transform_expression(exp, used: false) }
-
-        result.flatten
+        transform_block(@ast, used: false).flatten
       end
 
       private
+
+      def transform_array_of_expressions(array_of_expressions, used:)
+        instructions = []
+        array_of_expressions[0...-1].each { |exp| instructions << transform_expression(exp, used: false) }
+        instructions << transform_expression(array_of_expressions.last, used: used) if array_of_expressions.last
+        instructions.flatten
+      end
 
       def transform_expression(exp, used:)
         case exp
@@ -25,6 +29,14 @@ module Natalie
         else
           raise "Unknown expression type: #{exp.inspect}"
         end
+      end
+
+      # INDIVIDUAL EXPRESSIONS = = = = =
+      # (in alphabetical order)
+
+      def transform_block(exp, used:)
+        _, *body = exp
+        transform_array_of_expressions(body, used: used)
       end
 
       def transform_call(exp, used:)
@@ -41,6 +53,15 @@ module Natalie
         instructions
       end
 
+      def transform_class(exp, used:)
+        _, name, superclass, *body = exp
+        instructions = [DefineClassInstruction.new(name: name, superclass: superclass)]
+        instructions += transform_array_of_expressions(body, used: false)
+        instructions << EndInstruction.new(:define_class)
+        instructions << PushNilInstruction.new if used
+        instructions
+      end
+
       def transform_const(exp, used:)
         return [] unless used
         _, name = exp
@@ -51,8 +72,7 @@ module Natalie
         _, name, args, *body = exp
         arity = args.size - 1 # FIXME: way more complicated than this :-)
         instructions = [DefineMethodInstruction.new(name: name, arity: arity)] + transform_defn_args(args, used: true)
-        body[0...-1].each { |exp| instructions << transform_expression(exp, used: false) }
-        instructions << transform_expression(body.last, used: true) if body.last
+        instructions += transform_array_of_expressions(body, used: true)
         instructions << EndInstruction.new(:define_method)
         instructions << PopInstruction.new unless used
         instructions
@@ -109,7 +129,7 @@ module Natalie
       def transform_str(exp, used:)
         return [] unless used
         _, str = exp
-        PushStringInstruction.new(str)
+        PushStringInstruction.new(str, str.size)
       end
     end
   end

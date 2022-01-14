@@ -89,7 +89,7 @@ module Natalie
         end
 
         def top(code)
-          Array(code).each { |line| @top << line }
+          @top << Array(code).join("\n")
         end
       end
     end

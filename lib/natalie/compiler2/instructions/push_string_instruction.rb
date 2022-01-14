@@ -3,16 +3,17 @@ require_relative './base_instruction'
 module Natalie
   class Compiler2
     class PushStringInstruction < BaseInstruction
-      def initialize(string)
+      def initialize(string, length)
         @string = string
+        @length = length
       end
 
       def to_s
-        "push_string #{@string.inspect}"
+        "push_string #{@string.inspect}, #{@length}"
       end
 
       def to_cpp(transform)
-        "new StringObject(#{@string.inspect})"
+        "new StringObject(#{@string.inspect}, #{@length})"
       end
 
       def execute(vm)

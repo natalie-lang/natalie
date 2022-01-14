@@ -63,5 +63,12 @@ module Natalie
 
       @call_stack.last[:vars]
     end
+
+    def with_self(obj)
+      self_was = @self
+      @self = obj
+      yield
+      @self = self_was
+    end
   end
 end
