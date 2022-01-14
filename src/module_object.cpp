@@ -533,11 +533,21 @@ Value ModuleObject::attr_accessor(Env *env, size_t argc, Value *args) {
     return NilObject::the();
 }
 
-Value ModuleObject::included_modules(Env *env) {
-    ArrayObject *modules = new ArrayObject { included_modules().size() };
+void ModuleObject::included_modules(Env *env, ArrayObject *modules) {
     for (ModuleObject *m : included_modules()) {
+        if (m == this || modules->include(env, m))
+            continue;
         modules->push(m);
+        m->included_modules(env, modules);
     }
+    if (m_superclass) {
+        m_superclass->included_modules(env, modules);
+    }
+}
+
+Value ModuleObject::included_modules(Env *env) {
+    ArrayObject *modules = new ArrayObject {};
+    included_modules(env, modules);
     return modules;
 }
 
