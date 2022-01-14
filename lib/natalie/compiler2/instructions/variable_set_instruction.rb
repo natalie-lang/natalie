@@ -4,7 +4,7 @@ module Natalie
   class Compiler2
     class VariableSetInstruction < BaseInstruction
       def initialize(name)
-        @name = name
+        @name = name.to_s
       end
 
       attr_reader :name

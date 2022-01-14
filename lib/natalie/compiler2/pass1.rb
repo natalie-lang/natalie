@@ -7,9 +7,10 @@ module Natalie
         @ast = ast
       end
 
-      def transform
+      # pass used: true to leave the final result on the stack
+      def transform(used: true)
         raise 'unexpected AST input' unless @ast.sexp_type == :block
-        transform_block(@ast, used: false).flatten
+        transform_block(@ast, used: used).flatten
       end
 
       private
@@ -39,7 +40,7 @@ module Natalie
         transform_array_of_expressions(body, used: used)
       end
 
-      def transform_call(exp, used:)
+      def transform_call(exp, used:, with_block: false)
         _, receiver, message, *args = exp
         instructions = args.map { |arg| transform_expression(arg, used: true) }
         instructions << PushArgcInstruction.new(args.size)
@@ -48,7 +49,7 @@ module Natalie
         else
           instructions << transform_expression(receiver, used: true)
         end
-        instructions << SendInstruction.new(message)
+        instructions << SendInstruction.new(message, with_block: with_block)
         instructions << PopInstruction.new unless used
         instructions
       end
@@ -71,7 +72,9 @@ module Natalie
       def transform_defn(exp, used:)
         _, name, args, *body = exp
         arity = args.size - 1 # FIXME: way more complicated than this :-)
-        instructions = [DefineMethodInstruction.new(name: name, arity: arity)] + transform_defn_args(args, used: true)
+        instructions = []
+        instructions << DefineMethodInstruction.new(name: name, arity: arity)
+        instructions << transform_defn_args(args, used: true)
         instructions += transform_array_of_expressions(body, used: true)
         instructions << EndInstruction.new(:define_method)
         instructions << PopInstruction.new unless used
@@ -85,6 +88,9 @@ module Natalie
           [PushArgInstruction.new(index), VariableSetInstruction.new(name)]
         end
       end
+
+      # TODO: might need separate logic?
+      alias transform_block_args transform_defn_args
 
       def transform_if(exp, used:)
         _, condition, true_expression, false_expression = exp
@@ -102,6 +108,19 @@ module Natalie
         instructions
       end
 
+      def transform_iter(exp, used:)
+        _, call, args, body = exp
+        arity = args.size - 1 # FIXME: way more complicated than this :-)
+        instructions = []
+        instructions << DefineBlockInstruction.new(arity: arity)
+        instructions << transform_defn_args(args, used: true)
+        instructions << transform_expression(body, used: true)
+        instructions << EndInstruction.new(:define_block)
+        raise 'unexpected call' unless call.sexp_type == :call
+        instructions << transform_call(call, used: used, with_block: true)
+        instructions
+      end
+
       def transform_lasgn(exp, used:)
         _, name, value = exp
         instructions = [transform_expression(value, used: true), VariableSetInstruction.new(name)]
@@ -115,6 +134,8 @@ module Natalie
         case lit
         when Integer
           PushIntInstruction.new(lit)
+        when Symbol
+          PushSymbolInstruction.new(lit)
         else
           raise "I don't yet know how to handle lit: #{lit.inspect}"
         end
@@ -124,6 +145,11 @@ module Natalie
         return [] unless used
         _, name = exp
         VariableGetInstruction.new(name)
+      end
+
+      def transform_nil(_, used:)
+        return [] unless used
+        PushNilInstruction.new
       end
 
       def transform_str(exp, used:)

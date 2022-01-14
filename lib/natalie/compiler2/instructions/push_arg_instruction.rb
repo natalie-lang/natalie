@@ -18,7 +18,7 @@ module Natalie
       end
 
       def execute(vm)
-        vm.push(vm.current_args[@index])
+        vm.push(vm.args[@index])
       end
     end
   end

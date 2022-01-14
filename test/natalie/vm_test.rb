@@ -40,4 +40,9 @@ describe 'Natalie::VM' do
     ARGV << '6'
     compile_and_run(path, 6).should == '8'
   end
+
+  it 'executes test/natalie/compiler2/bootstrap_test.rb' do
+    path = File.expand_path('compiler2/bootstrap_test.rb', __dir__)
+    compile_and_run(path).should == '[2, 4, 6]'
+  end
 end

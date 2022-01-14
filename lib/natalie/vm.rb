@@ -36,6 +36,14 @@ module Natalie
       @stack.push(value)
     end
 
+    def peek
+      raise 'out of stack' if @stack.empty?
+
+      @stack.last
+    end
+
+    alias result peek
+
     def pop
       raise 'out of stack' if @stack.empty?
 
@@ -52,7 +60,7 @@ module Natalie
       @call_stack.pop
     end
 
-    def current_args
+    def args
       raise 'out of call stack' if @call_stack.empty?
 
       @call_stack.last[:args]
