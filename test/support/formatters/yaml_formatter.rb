@@ -15,7 +15,7 @@ class YamlFormatter
         context, test, error = failure
         outcome = error.is_a?(SpecFailedException) ? 'FAILED' : 'ERROR'
         str = "#{test} #{outcome}\n"
-        str << error.message << "\n" << error.backtrace
+        str << error.message << "\n" << error.backtrace.to_s
         print '- ', str.inspect, "\n"
       end
     end
