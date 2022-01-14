@@ -14,25 +14,26 @@ const int VECTOR_MIN_CAPACITY = 10;
 template <typename T>
 class Vector {
 public:
+    #define ARRAY_OF_SIZE(size) static_cast<T *>(::operator new(size * sizeof(T)))
     Vector()
         : m_capacity { VECTOR_MIN_CAPACITY }
-        , m_data { new T[VECTOR_MIN_CAPACITY] {} } { }
+        , m_data { ARRAY_OF_SIZE(VECTOR_MIN_CAPACITY) } { }
 
     Vector(size_t initial_capacity)
         : m_size { initial_capacity }
         , m_capacity { initial_capacity }
-        , m_data { new T[initial_capacity] {} } { }
+        , m_data { ARRAY_OF_SIZE(initial_capacity) } { }
 
     Vector(size_t initial_capacity, T filler)
         : m_size { initial_capacity }
         , m_capacity { initial_capacity }
-        , m_data { new T[initial_capacity] {} } {
+        , m_data { ARRAY_OF_SIZE(initial_capacity) } {
         fill(0, initial_capacity, filler);
     }
 
     Vector(std::initializer_list<T> list)
         : m_capacity { list.size() }
-        , m_data { new T[list.size()] } {
+        , m_data { ARRAY_OF_SIZE(list.size()) } {
         for (auto v : list) {
             push(v);
         }
@@ -41,7 +42,7 @@ public:
     Vector(const Vector &other)
         : m_size { other.m_size }
         , m_capacity { other.m_size }
-        , m_data { new T[m_size] {} } {
+        , m_data { ARRAY_OF_SIZE(other.m_size) } {
         memcpy(m_data, other.m_data, sizeof(T) * m_size);
     }
 
