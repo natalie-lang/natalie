@@ -335,8 +335,8 @@ Value KernelModule::proc(Env *env, Block *block) {
 }
 
 Value KernelModule::puts(Env *env, size_t argc, Value *args) {
-    IoObject *_stdout = env->global_get("$stdout"_s)->as_io();
-    return _stdout->puts(env, argc, args);
+    auto _stdout = env->global_get("$stdout"_s);
+    return _stdout->send(env, "puts"_s, argc, args);
 }
 
 Value KernelModule::raise(Env *env, Value klass, Value message) {
