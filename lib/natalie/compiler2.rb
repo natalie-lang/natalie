@@ -95,19 +95,16 @@ module Natalie
     end
 
     def out_path
-      @out_path ||= begin
-                      out = Tempfile.create("natalie#{extension}")
-                      out.close
-                      out.path
-                    end
+      @out_path ||=
+        begin
+          out = Tempfile.create("natalie#{extension}")
+          out.close
+          out.path
+        end
     end
 
     def extension
-      if RUBY_PLATFORM =~ /msys/
-        '.exe'
-      else
-        ''
-      end
+      RUBY_PLATFORM =~ /msys/ ? '.exe' : ''
     end
 
     def print_instructions(instructions)

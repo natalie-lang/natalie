@@ -30,12 +30,13 @@ module Natalie
         arg_count.times { args.unshift vm.pop }
         self_was = vm.self
         vm.self = receiver
-        result = if @with_block
-          block = vm.pop
-          receiver.send(@message, *args, &block)
-        else
-          receiver.send(@message, *args)
-        end
+        result =
+          if @with_block
+            block = vm.pop
+            receiver.send(@message, *args, &block)
+          else
+            receiver.send(@message, *args)
+          end
         vm.push result
         vm.self = self_was
       end

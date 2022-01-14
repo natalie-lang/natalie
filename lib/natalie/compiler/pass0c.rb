@@ -46,7 +46,7 @@ module Natalie
         # ```
         # To use `x = x` in the non assigning path, which will be optimized in
         # pass1, to just ensure the existence of the variable `x`.
-        # This allows us to fold that block even though we might declare a 
+        # This allows us to fold that block even though we might declare a
         # variable in it.
         was_simple_conditional_assign = false
         if true_case.nil? && false_case.sexp_type == :lasgn

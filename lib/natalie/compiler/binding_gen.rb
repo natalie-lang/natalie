@@ -165,11 +165,11 @@ Value #{name}(Env *env, Value klass, size_t argc, Value *args, Block *block) {
 
     def define_method_name
       if @module_function
-        "define_method"
+        'define_method'
       elsif @singleton || @static
-        "define_singleton_method"
+        'define_singleton_method'
       else
-        "define_method"
+        'define_method'
       end
     end
 

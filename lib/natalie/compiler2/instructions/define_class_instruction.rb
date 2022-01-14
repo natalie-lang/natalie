@@ -41,9 +41,7 @@ module Natalie
         superclass = vm.pop
         klass = Class.new(superclass)
         Object.const_set(@name, klass)
-        vm.with_self(klass) do
-          vm.run
-        end
+        vm.with_self(klass) { vm.run }
       end
     end
   end

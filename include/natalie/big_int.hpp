@@ -146,7 +146,7 @@ public:
     bool operator==(const double &) const;
     bool operator!=(const double &) const;
 
-    //Bitwise operators:
+    // Bitwise operators:
     BigInt operator&(const BigInt &num) const;
     BigInt operator|(const BigInt &num) const;
     BigInt operator^(const BigInt &num) const;
