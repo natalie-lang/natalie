@@ -14,7 +14,7 @@ module Natalie
       end
 
       def to_cpp(transform)
-        "new FloatValue { #{@float} }"
+        "new FloatObject(#{@float})"
       end
 
       def execute(vm)

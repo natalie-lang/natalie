@@ -17,9 +17,19 @@ class TestCompiler2 < TestCase
     [1, 2, 3]
   end
 
-  def run
+  def test_array
     result = ary.map { |i| i * 2 }
     assert_eq([2, 4, 6], result)
+  end
+
+  def test_float
+    f = 1.56
+    assert_eq(1.56, f)
+  end
+
+  def run
+    test_array
+    test_float
   end
 end
 
