@@ -55,7 +55,7 @@ module Natalie
       cmd = compiler_command
       out = `#{cmd} 2>&1`
       File.unlink(@c_path) unless keep_cpp? || $? != 0
-      p "cpp file path is: #{c_path}" if keep_cpp?
+      puts "cpp file path is: #{c_path}" if keep_cpp?
       $stderr.puts out if out.strip != ''
       raise CompileError.new('There was an error compiling.') if $? != 0
     end
@@ -92,6 +92,22 @@ module Natalie
         compile_ld_flags: [],
         source_path: @path,
       }
+    end
+
+    def out_path
+      @out_path ||= begin
+                      out = Tempfile.create("natalie#{extension}")
+                      out.close
+                      out.path
+                    end
+    end
+
+    def extension
+      if RUBY_PLATFORM =~ /msys/
+        '.exe'
+      else
+        ''
+      end
     end
 
     def print_instructions(instructions)
