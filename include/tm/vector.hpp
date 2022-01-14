@@ -225,10 +225,8 @@ private:
         , m_data(data) { }
 
     void grow(size_t capacity) {
-        auto old_data = m_data;
-        m_data = new T[capacity] {};
-        memcpy(m_data, old_data, sizeof(T) * TM_MIN(capacity, m_capacity));
-        delete[] old_data;
+        if (capacity > m_capacity)
+            m_data = static_cast<T *>(reallocarray(m_data, capacity, sizeof(T)));
         m_capacity = capacity;
     }
 
