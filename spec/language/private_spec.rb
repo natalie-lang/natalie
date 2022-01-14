@@ -2,8 +2,7 @@ require_relative '../spec_helper'
 require_relative 'fixtures/private'
 
 describe "The private keyword" do
-  # NATFIXME: Make Kernel#methods spec-compliant
-  xit "marks following methods as being private" do
+  it "marks following methods as being private" do
     a = Private::A.new
     a.methods.should_not include(:bar)
     -> { a.bar }.should raise_error(NoMethodError)
