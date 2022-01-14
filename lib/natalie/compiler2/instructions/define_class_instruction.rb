@@ -3,21 +3,18 @@ require_relative './base_instruction'
 module Natalie
   class Compiler2
     class DefineClassInstruction < BaseInstruction
-      def initialize(name:, superclass:)
+      def initialize(name:)
         @name = name
-        @superclass = superclass
       end
 
       def has_body?
         true
       end
 
-      attr_reader :name, :superclass
+      attr_reader :name
 
       def to_s
-        s = "define_class #{@name}"
-        s << " from #{@superclass}" if @superclass
-        s
+        "define_class #{@name}"
       end
 
       def to_cpp(transform)
@@ -31,10 +28,9 @@ module Natalie
           transform.top(body)
         end
         klass = transform.temp('class')
-        raise 'FIXME: implement superclass' if @superclass
-        superclass = 'GlobalEnv::the()->Object()'
+        superclass = transform.pop
         code = []
-        code << "auto #{klass} = #{superclass}->subclass(env, #{@name.to_s.inspect})"
+        code << "auto #{klass} = #{superclass}->as_class()->subclass(env, #{@name.to_s.inspect})"
         code << "self->const_set(#{@name.to_s.inspect}_s, #{klass})"
         code << "#{klass}->eval_body(env, #{fn})"
         transform.push(code)
@@ -42,8 +38,8 @@ module Natalie
       end
 
       def execute(vm)
-        raise 'FIXME: implement superclass' if @superclass
-        klass = Class.new
+        superclass = vm.pop
+        klass = Class.new(superclass)
         Object.const_set(@name, klass)
         vm.with_self(klass) do
           vm.run

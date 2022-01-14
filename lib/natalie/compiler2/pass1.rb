@@ -56,7 +56,13 @@ module Natalie
 
       def transform_class(exp, used:)
         _, name, superclass, *body = exp
-        instructions = [DefineClassInstruction.new(name: name, superclass: superclass)]
+        instructions = []
+        if superclass
+          instructions << transform_expression(superclass, used: true)
+        else
+          instructions << ConstFindInstruction.new('Object')
+        end
+        instructions << DefineClassInstruction.new(name: name)
         instructions += transform_array_of_expressions(body, used: false)
         instructions << EndInstruction.new(:define_class)
         instructions << PushNilInstruction.new if used

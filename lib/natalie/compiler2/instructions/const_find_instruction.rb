@@ -4,7 +4,7 @@ module Natalie
   class Compiler2
     class ConstFindInstruction < BaseInstruction
       def initialize(name)
-        @name = name
+        @name = name.to_s
       end
 
       attr_reader :name
@@ -14,7 +14,7 @@ module Natalie
       end
 
       def to_cpp(transform)
-        "self->const_find(env, #{name.to_s.inspect}_s, Object::ConstLookupSearchMode::NotStrict)"
+        "self->const_find(env, #{name.inspect}_s, Object::ConstLookupSearchMode::NotStrict)"
       end
 
       def execute(vm)
