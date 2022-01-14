@@ -2,10 +2,9 @@ module Natalie
   class Compiler2
     class CppBackend
       class Transform
-        def initialize(instructions, decl:, top:, compiler_context:, env: nil, parent_env: nil)
+        def initialize(instructions, top:, compiler_context:, env: nil, parent_env: nil)
           @instructions = InstructionManager.new(instructions)
           @result_stack = []
-          @decl = decl
           @top = top
           @compiler_context = compiler_context
           if env
@@ -28,8 +27,8 @@ module Natalie
           line =~ /[\{\};]$/ ? line : "#{line};"
         end
 
-        def push(value)
-          @stack << value
+        def push(code)
+          @stack << consume(code)
         end
 
         def pop
@@ -61,24 +60,17 @@ module Natalie
         end
 
         def with_new_scope(instructions)
-          t = Transform.new(instructions, decl: [], top: @top, compiler_context: @compiler_context, parent_env: @env)
+          t = Transform.new(instructions, top: @top, compiler_context: @compiler_context, parent_env: @env)
           yield(t)
         end
 
         def with_same_scope(instructions)
-          t = Transform.new(instructions, decl: [], top: @top, compiler_context: @compiler_context, env: @env)
+          t = Transform.new(instructions, top: @top, compiler_context: @compiler_context, env: @env)
           yield(t)
         end
 
-        def decl(code)
-          Array(code).each { |line| @decl << line }
-        end
-
-        def push_decl
-          @stack << consume(@decl)
-        end
-
         def consume(lines, result_prefix = nil)
+          lines = Array(lines)
           out = []
           while lines.any?
             line = lines.shift

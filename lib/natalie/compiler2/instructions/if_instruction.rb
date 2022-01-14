@@ -16,13 +16,14 @@ module Natalie
         false_body = transform.fetch_block_of_instructions(expected_label: :if)
         condition = transform.pop
         result = transform.temp('if_result')
-        transform.decl "Value #{result} = NilObject::the()"
-        transform.decl "if (#{condition}->is_truthy()) {"
-        transform.with_same_scope(true_body) { |t| transform.decl t.transform("#{result} =") }
-        transform.decl '} else {'
-        transform.with_same_scope(false_body) { |t| transform.decl t.transform("#{result} =") }
-        transform.decl '}'
-        transform.push_decl
+        code = []
+        code << "Value #{result} = NilObject::the()"
+        code << "if (#{condition}->is_truthy()) {"
+        code << transform.with_same_scope(true_body) { |t| t.transform("#{result} =") }
+        code << '} else {'
+        code << transform.with_same_scope(false_body) { |t| t.transform("#{result} =") }
+        code << '}'
+        transform.push(code)
         result
       end
 

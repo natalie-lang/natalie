@@ -20,7 +20,7 @@ module Natalie
       private
 
       def transform_instructions
-        transform = Transform.new(@instructions, decl: [], top: @top, compiler_context: @compiler_context)
+        transform = Transform.new(@instructions, top: @top, compiler_context: @compiler_context)
         transform.transform
       end
 

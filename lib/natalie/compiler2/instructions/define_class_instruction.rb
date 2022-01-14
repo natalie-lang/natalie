@@ -33,10 +33,11 @@ module Natalie
         klass = transform.temp('class')
         raise 'FIXME: implement superclass' if @superclass
         superclass = 'GlobalEnv::the()->Object()'
-        transform.decl "auto #{klass} = #{superclass}->subclass(env, #{@name.to_s.inspect})"
-        transform.decl "self->const_set(#{@name.to_s.inspect}_s, #{klass})"
-        transform.decl "#{klass}->eval_body(env, #{fn})"
-        transform.push_decl
+        code = []
+        code << "auto #{klass} = #{superclass}->subclass(env, #{@name.to_s.inspect})"
+        code << "self->const_set(#{@name.to_s.inspect}_s, #{klass})"
+        code << "#{klass}->eval_body(env, #{fn})"
+        transform.push(code)
         nil
       end
 
