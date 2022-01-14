@@ -146,6 +146,8 @@ module Natalie
         case lit
         when Integer
           PushIntInstruction.new(lit)
+        when Float
+          PushFloatInstruction.new(lit)
         when Symbol
           PushSymbolInstruction.new(lit)
         else
