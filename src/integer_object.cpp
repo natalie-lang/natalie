@@ -240,7 +240,7 @@ Value IntegerObject::mod(Env *env, Value arg) {
     return Value::integer(result);
 }
 
-Value fast_pow(Env *env, nat_int_t a, nat_int_t b) {
+Value pow_fast(Env *env, nat_int_t a, nat_int_t b) {
     if (b == 0)
         return Value::integer(1);
     if (b == 1)
@@ -317,7 +317,7 @@ Value IntegerObject::pow(Env *env, Value arg) {
     if (nat_int < 0)
         NAT_NOT_YET_IMPLEMENTED();
 
-    return fast_pow(env, m_integer, nat_int);
+    return pow_fast(env, m_integer, nat_int);
 }
 
 Value IntegerObject::cmp(Env *env, Value arg) {
@@ -556,6 +556,85 @@ Value IntegerObject::bitwise_xor(Env *env, Value arg) {
     }
 
     return Value::integer(to_nat_int_t() ^ nat_int);
+}
+
+Value IntegerObject::left_shift(Env *env, Value arg) {
+    nat_int_t nat_int;
+    if (arg.is_fast_integer()) {
+        nat_int = arg.get_fast_integer();
+    } else {
+        auto to_int = "to_int"_s;
+        if (!arg->is_integer() && arg->respond_to(env, to_int)) {
+            arg = arg->send(env, to_int);
+        }
+        arg->assert_type(env, Object::Type::Integer, "Integer");
+        auto integer = arg->as_integer();
+
+        if (integer->is_bignum())
+            return Value::integer(0);
+
+        nat_int = integer->to_nat_int_t();
+    }
+
+    if (nat_int < 0) {
+        return right_shift(env, Value::integer(-nat_int));
+    }
+
+    bool overflow = is_bignum();
+    if (!overflow) {
+        auto pow = pow_fast(env, 2, nat_int);
+        if (!pow.is_fast_integer()) {
+            overflow = true;
+        } else {
+            overflow = will_multiplication_overflow(m_integer, pow.get_fast_integer());
+        }
+    }
+
+    if (overflow)
+        return BignumObject::create_if_needed(to_bigint() << nat_int);
+
+    return Value::integer(m_integer << nat_int);
+}
+
+Value IntegerObject::right_shift(Env *env, Value arg) {
+    nat_int_t nat_int;
+    if (arg.is_fast_integer()) {
+        nat_int = arg.get_fast_integer();
+    } else {
+        auto to_int = "to_int"_s;
+        if (!arg->is_integer() && arg->respond_to(env, to_int)) {
+            arg = arg->send(env, to_int);
+        }
+        arg->assert_type(env, Object::Type::Integer, "Integer");
+        auto integer = arg->as_integer();
+
+        if (integer->is_bignum())
+            return Value::integer(0);
+
+        nat_int = integer->to_nat_int_t();
+    }
+
+    if (nat_int < 0) {
+        return left_shift(env, Value::integer(-nat_int));
+    }
+
+    BigInt max = ::pow(BigInt(2), nat_int);
+    if (is_bignum()) {
+        auto bigint = to_bigint();
+        if (bigint > 0 && bigint < max)
+            return Value::integer(0);
+        else if (bigint < 0 && bigint > max)
+            return Value::integer(-1);
+    } else if (m_integer > 0 && max > m_integer) {
+        return Value::integer(0);
+    } else if (m_integer < 0 && max > -m_integer) {
+        return Value::integer(-1);
+    }
+
+    if (is_bignum())
+        return BignumObject::create_if_needed(to_bigint() >> nat_int);
+
+    return Value::integer(to_nat_int_t() >> nat_int);
 }
 
 Value IntegerObject::pred(Env *env) {

@@ -1964,3 +1964,24 @@ BigInt BigInt::operator~() const {
 
     return binary_to_BigInt(complete_string);
 }
+
+BigInt BigInt::operator<<(const size_t &num) const {
+    Natalie::String binary = to_binary(*this);
+
+    for (size_t i = 0; i < num; ++i) {
+        binary.append_char('0');
+    }
+
+    return binary_to_BigInt(binary);
+}
+
+BigInt BigInt::operator>>(const size_t &num) const {
+    Natalie::String binary = to_binary(*this);
+    Natalie::String complete_string;
+
+    for (size_t i = 0; i < binary.size() - num; ++i) {
+        complete_string.append_char(binary[i]);
+    }
+
+    return binary_to_BigInt(complete_string);
+}
