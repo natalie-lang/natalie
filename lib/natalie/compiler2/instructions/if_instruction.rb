@@ -17,7 +17,7 @@ module Natalie
         condition = transform.pop
         result = transform.temp('if_result')
         code = []
-        code << "Value #{result} = NilObject::the()"
+        code << "Value #{result}"
         code << "if (#{condition}->is_truthy()) {"
         code << transform.with_same_scope(true_body) { |t| t.transform("#{result} =") }
         code << '} else {'
