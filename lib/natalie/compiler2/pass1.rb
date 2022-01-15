@@ -166,6 +166,11 @@ module Natalie
         PushNilInstruction.new
       end
 
+      def transform_self(_, used:)
+        return [] unless used
+        PushSelfInstruction.new
+      end
+
       def transform_str(exp, used:)
         return [] unless used
         _, str = exp
