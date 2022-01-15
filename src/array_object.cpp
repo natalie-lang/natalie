@@ -862,6 +862,10 @@ Value ArrayObject::index(Env *env, Value object, Block *block) {
 Value ArrayObject::shift(Env *env, Value count) {
     assert_not_frozen(env);
     auto has_count = count != nullptr;
+
+    if (!has_count && is_empty())
+        return NilObject::the();
+
     size_t shift_count = 1;
     Value result = nullptr;
     if (has_count) {

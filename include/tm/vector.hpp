@@ -4,17 +4,16 @@
 #include <initializer_list>
 #include <stddef.h>
 
-#define TM_MIN(a, b) (a < b ? a : b)
-
 namespace TM {
 
 const int VECTOR_GROW_FACTOR = 2;
 const int VECTOR_MIN_CAPACITY = 10;
 
+#define ARRAY_OF_SIZE(size) reinterpret_cast<T *>(new unsigned char[size * sizeof(T)] {})
+
 template <typename T>
 class Vector {
 public:
-    #define ARRAY_OF_SIZE(size) static_cast<T *>(::operator new(size * sizeof(T)))
     Vector()
         : m_capacity { VECTOR_MIN_CAPACITY }
         , m_data { ARRAY_OF_SIZE(VECTOR_MIN_CAPACITY) } { }
@@ -59,7 +58,7 @@ public:
         if (offset >= m_size || count == 0) {
             return {};
         }
-        T *data = new T[count] {};
+        T *data = ARRAY_OF_SIZE(count);
         memcpy(data, m_data + offset, sizeof(T) * count);
         return { count, count, data };
     }
@@ -108,14 +107,18 @@ public:
     }
 
     void insert(size_t index, T val) {
-        if (m_size >= m_capacity) {
+        if (m_size >= m_capacity)
             grow_at_least(m_size + 1);
+
+        if (index == m_size) {
+            m_size++;
+            m_data[index] = val;
+            return;
         }
-        m_size++;
-        for (size_t i = m_size - 1; i > index; i--) {
-            m_data[i] = m_data[i - 1];
-        }
+
+        memmove(m_data + index + 1, m_data + index, (m_size - index) * sizeof(T));
         m_data[index] = val;
+        m_size++;
     }
 
     T pop_front() {
@@ -126,12 +129,13 @@ public:
 
     void remove(size_t index) {
         assert(m_size > index);
-        T val = m_data[index];
 
-        for (size_t i = index + 1; i < m_size; i++) {
-            m_data[i - 1] = m_data[i];
-        }
         --m_size;
+
+        if (index == m_size)
+            return;
+
+        memmove(m_data + index, m_data + index + 1, (m_size - index) * sizeof(T));
     }
 
     bool is_empty() const { return m_size == 0; }
@@ -225,8 +229,9 @@ private:
         , m_data(data) { }
 
     void grow(size_t capacity) {
-        if (capacity > m_capacity)
-            m_data = static_cast<T *>(reallocarray(m_data, capacity, sizeof(T)));
+        if (m_capacity >= capacity)
+            return;
+        m_data = static_cast<T *>(reallocarray(m_data, capacity, sizeof(T)));
         m_capacity = capacity;
     }
 
@@ -273,5 +278,7 @@ private:
     size_t m_capacity { 0 };
     T *m_data { nullptr };
 };
+
+#undef ARRAY_OF_SIZE
 
 }
