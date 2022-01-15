@@ -17,7 +17,7 @@ module Natalie
         'define_block'
       end
 
-      def to_cpp(transform)
+      def generate(transform)
         body = transform.fetch_block_of_instructions(expected_label: :define_block)
         fn = transform.temp('block')
         transform.with_new_scope(body) do |t|
@@ -27,7 +27,7 @@ module Natalie
           body << '}'
           transform.top(body)
         end
-        "new Block(env, self, #{fn}, #{@arity})"
+        transform.push("(new Block(env, self, #{fn}, #{@arity}))")
       end
 
       def execute(vm)

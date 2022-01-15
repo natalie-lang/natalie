@@ -7,8 +7,8 @@ module Natalie
         'push_self'
       end
 
-      def to_cpp(transform)
-        'self'
+      def generate(transform)
+        transform.push('self')
       end
 
       def execute(vm)

@@ -13,8 +13,8 @@ module Natalie
         "push_int #{@int}"
       end
 
-      def to_cpp(transform)
-        "Value::integer(#{@int})"
+      def generate(transform)
+        transform.push("Value::integer(#{@int})")
       end
 
       def execute(vm)

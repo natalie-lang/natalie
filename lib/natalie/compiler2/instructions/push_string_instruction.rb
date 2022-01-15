@@ -12,8 +12,8 @@ module Natalie
         "push_string #{@string.inspect}, #{@length}"
       end
 
-      def to_cpp(transform)
-        "new StringObject(#{@string.inspect}, #{@length})"
+      def generate(transform)
+        transform.push("(new StringObject(#{@string.inspect}, #{@length}))")
       end
 
       def execute(vm)

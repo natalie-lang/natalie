@@ -13,8 +13,8 @@ module Natalie
         "end #{@label}"
       end
 
-      def to_cpp(_)
-        nil
+      def generate(_)
+        :noop
       end
 
       def execute(_)

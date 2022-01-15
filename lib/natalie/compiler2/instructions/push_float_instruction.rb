@@ -13,8 +13,8 @@ module Natalie
         "push_float #{@float}"
       end
 
-      def to_cpp(transform)
-        "new FloatObject(#{@float})"
+      def generate(transform)
+        transform.push("(new FloatObject(#{@float}))")
       end
 
       def execute(vm)

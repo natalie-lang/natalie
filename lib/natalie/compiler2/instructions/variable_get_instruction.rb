@@ -13,12 +13,12 @@ module Natalie
         "variable_get #{@name}"
       end
 
-      def to_cpp(transform)
+      def generate(transform)
         var = transform.vars[@name]
         raise "unknown variable #{@name}" if var.nil?
 
         index = var[:index]
-        "env->var_get(#{@name.to_s.inspect}, #{index})"
+        transform.push("env->var_get(#{@name.to_s.inspect}, #{index})")
       end
 
       def execute(vm)

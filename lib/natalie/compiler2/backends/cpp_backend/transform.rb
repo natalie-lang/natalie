@@ -6,6 +6,7 @@ module Natalie
           @instructions = InstructionManager.new(instructions)
           @result_stack = []
           @top = top
+          @code = []
           @compiler_context = compiler_context
           if env
             @env = env
@@ -15,20 +16,29 @@ module Natalie
           @stack = []
         end
 
+        def ip
+          @instructions.ip
+        end
+
+        attr_reader :stack
+
         def transform(result_prefix = nil)
           @instructions.walk do |instruction|
-            result = instruction.to_cpp(self)
-            @stack << result unless result.nil?
+            instruction.generate(self)
           end
-          consume(@stack, result_prefix)
+          consume(@code + @stack, result_prefix)
         end
 
         def semicolon(line)
           line =~ /[\{\};]$/ ? line : "#{line};"
         end
 
-        def push(code)
-          @stack << consume(code)
+        def exec(code)
+          @code << consume(code)
+        end
+
+        def push(result)
+          @stack << result
         end
 
         def pop

@@ -7,8 +7,8 @@ module Natalie
         'push_nil'
       end
 
-      def to_cpp(_)
-        'NilObject::the()'
+      def generate(transform)
+        transform.push('NilObject::the()')
       end
 
       def execute(vm)

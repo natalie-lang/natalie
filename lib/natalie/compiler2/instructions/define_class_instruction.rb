@@ -17,15 +17,15 @@ module Natalie
         "define_class #{@name}"
       end
 
-      def to_cpp(transform)
+      def generate(transform)
         body = transform.fetch_block_of_instructions(expected_label: :define_class)
         fn = transform.temp("class_#{@name}")
         transform.with_new_scope(body) do |t|
-          body = []
-          body << "Value #{fn}(Env *env, Value self) {"
-          body << t.transform('return')
-          body << '}'
-          transform.top(body)
+          fn_code = []
+          fn_code << "Value #{fn}(Env *env, Value self) {"
+          fn_code << t.transform('return')
+          fn_code << '}'
+          transform.top(fn_code)
         end
         klass = transform.temp('class')
         superclass = transform.pop
@@ -33,8 +33,8 @@ module Natalie
         code << "auto #{klass} = #{superclass}->as_class()->subclass(env, #{@name.to_s.inspect})"
         code << "self->const_set(#{@name.to_s.inspect}_s, #{klass})"
         code << "#{klass}->eval_body(env, #{fn})"
-        transform.push(code)
-        nil
+        transform.exec(code)
+        transform.push('NilObject::the()')
       end
 
       def execute(vm)

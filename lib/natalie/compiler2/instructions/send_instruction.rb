@@ -14,13 +14,15 @@ module Natalie
         s
       end
 
-      def to_cpp(transform)
+      def generate(transform)
         receiver = transform.pop
         arg_count = transform.pop
         args = []
-        arg_count.times { args << transform.pop }
+        arg_count.times { args.unshift transform.pop }
         block = @with_block ? transform.pop : 'nullptr'
-        "#{receiver}->send(env, #{@message.to_s.inspect}_s, { #{args.join(', ')} }, #{block})"
+        result = transform.temp("send_#{@message}")
+        transform.exec("auto #{result} = #{receiver}->send(env, #{@message.to_s.inspect}_s, { #{args.join(', ')} }, #{block})")
+        transform.push(result)
       end
 
       def execute(vm)

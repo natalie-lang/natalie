@@ -13,8 +13,8 @@ module Natalie
         "push_symbol #{@name.inspect}"
       end
 
-      def to_cpp(transform)
-        "SymbolObject::intern(#{@name.inspect})"
+      def generate(transform)
+        transform.push("SymbolObject::intern(#{@name.inspect})")
       end
 
       def execute(vm)

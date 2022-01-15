@@ -13,8 +13,8 @@ module Natalie
         "push_arg #{@index}"
       end
 
-      def to_cpp(transform)
-        "args[#{@index}]"
+      def generate(transform)
+        transform.push("args[#{@index}]")
       end
 
       def execute(vm)

@@ -26,6 +26,7 @@ class TestCompiler2 < TestCase
   def run
     test_array
     test_float
+    puts 'all tests successful'
   end
 
   private

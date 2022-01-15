@@ -13,8 +13,8 @@ module Natalie
         "const_find #{@name}"
       end
 
-      def to_cpp(transform)
-        "self->const_find(env, #{name.inspect}_s, Object::ConstLookupSearchMode::NotStrict)"
+      def generate(transform)
+        transform.push("self->const_find(env, #{name.inspect}_s, Object::ConstLookupSearchMode::NotStrict)")
       end
 
       def execute(vm)

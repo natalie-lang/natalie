@@ -11,7 +11,7 @@ module Natalie
         true
       end
 
-      def to_cpp(transform)
+      def generate(transform)
         true_body = transform.fetch_block_of_instructions(until_instruction: ElseInstruction)
         false_body = transform.fetch_block_of_instructions(expected_label: :if)
         condition = transform.pop
@@ -23,8 +23,8 @@ module Natalie
         code << '} else {'
         code << transform.with_same_scope(false_body) { |t| t.transform("#{result} =") }
         code << '}'
-        transform.push(code)
-        result
+        transform.exec(code)
+        transform.push(result)
       end
 
       def execute(vm)

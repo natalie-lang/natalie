@@ -42,6 +42,6 @@ describe 'Natalie::VM' do
 
   it 'executes test/natalie/compiler2/bootstrap_test.rb' do
     path = File.expand_path('compiler2/bootstrap_test.rb', __dir__)
-    compile_and_run(path).should == '' # no result means tests passed
+    compile_and_run(path).should == 'all tests successful'
   end
 end

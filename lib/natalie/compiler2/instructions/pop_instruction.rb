@@ -7,11 +7,8 @@ module Natalie
         'pop'
       end
 
-      # Not sure if we need this to do anything in C++
-      # since the "result" on the "stack" is C++ code
-      # --not a value we should ignore.
-      def to_cpp(transform)
-        nil
+      def generate(transform)
+        transform.pop
       end
 
       def execute(vm)

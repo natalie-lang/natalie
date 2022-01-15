@@ -18,7 +18,7 @@ module Natalie
         "define_method #{@name}"
       end
 
-      def to_cpp(transform)
+      def generate(transform)
         body = transform.fetch_block_of_instructions(expected_label: :define_method)
         fn = transform.temp("defn_#{@name}")
         transform.with_new_scope(body) do |t|
@@ -28,7 +28,8 @@ module Natalie
           body << '}'
           transform.top(body)
         end
-        "self->define_method(env, #{@name.to_s.inspect}_s, #{fn}, #{@arity})"
+        transform.exec("self->define_method(env, #{@name.to_s.inspect}_s, #{fn}, #{@arity})")
+        transform.push("#{@name.to_s.inspect}_s")
       end
 
       def execute(vm)

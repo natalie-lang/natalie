@@ -11,10 +11,10 @@ module Natalie
         "create_array #{@count}"
       end
 
-      def to_cpp(transform)
+      def generate(transform)
         items = []
         @count.times { items.unshift(transform.pop) }
-        "new ArrayObject({ #{items.join(', ')} })"
+        transform.push("(new ArrayObject({ #{items.join(', ')} }))")
       end
 
       def execute(vm)

@@ -13,8 +13,8 @@ module Natalie
         "push_argc #{@count}"
       end
 
-      def to_cpp(transform)
-        @count
+      def generate(transform)
+        transform.push(@count)
       end
 
       def execute(vm)

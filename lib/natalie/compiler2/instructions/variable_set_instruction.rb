@@ -13,7 +13,7 @@ module Natalie
         "variable_set #{@name}"
       end
 
-      def to_cpp(transform)
+      def generate(transform)
         # FIXME: this is overkill -- there are variables not captured in this count, i.e. "holes" in the array :-(
         index = transform.vars.size
 
@@ -21,8 +21,8 @@ module Natalie
         transform.vars[name] = { name: name, index: index, captured: true }
 
         value = transform.pop
-        transform.push "env->var_set(#{name.to_s.inspect}, #{index}, true, #{value})"
-        value
+        transform.exec("env->var_set(#{name.to_s.inspect}, #{index}, true, #{value})")
+        transform.push("env->var_get(#{name.to_s.inspect}, #{index})") # will probably be popped
       end
 
       def execute(vm)
