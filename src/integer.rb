@@ -1,4 +1,13 @@
 class Integer
+  def div(n)
+    if !n.is_a?(Numeric) && n.respond_to?(:coerce)
+      a, b = n.coerce(self)
+      a.div(b)
+    else
+      super
+    end
+  end
+
   def downto(n)
     return enum_for(:downto, n) { self >= n ? (self - n + 1) : 0 } unless block_given?
 
