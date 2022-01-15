@@ -75,6 +75,7 @@ public:
     virtual ClassObject *superclass(Env *) { return m_superclass; }
     void set_superclass_DANGEROUSLY(ClassObject *superclass) { m_superclass = superclass; }
 
+    void included_modules(Env *, ArrayObject *);
     Value included_modules(Env *);
     Vector<ModuleObject *> included_modules() { return m_included_modules; }
     bool does_include_module(Env *, Value);
