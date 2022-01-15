@@ -46,6 +46,12 @@ module Natalie
           @stack.pop
         end
 
+        def peek
+          raise 'ran out of stack' unless @stack.any?
+
+          @stack.last
+        end
+
         def push_scope
           @env = { parent: @env, vars: {} }
         end

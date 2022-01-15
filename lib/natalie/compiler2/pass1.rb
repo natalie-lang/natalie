@@ -96,9 +96,31 @@ module Natalie
       def transform_defn_args(exp, used:)
         return [] unless used
         _, *args = exp
-        args.each_with_index.flat_map do |name, index|
-          [PushArgInstruction.new(index), VariableSetInstruction.new(name)]
+        if args.any? { |a| a.start_with?('*') }
+          transform_defn_args_with_splat(exp, used: used)
+        else
+          args.each_with_index.flat_map do |name, index|
+            [PushArgInstruction.new(index), VariableSetInstruction.new(name)]
+          end
         end
+      end
+
+      def transform_defn_args_with_splat(exp, used:)
+        return [] unless used
+        _, *args = exp
+        instructions = [PushArgsInstruction.new]
+        splat_on_stack = false
+        args.each do |name|
+          if name.start_with?('*')
+            instructions << VariableSetInstruction.new(name[1..-1])
+            instructions << VariableGetInstruction.new(name[1..-1]) # TODO: could eliminate this if the *splat is the last arg
+            splat_on_stack = true
+          else
+            instructions << (splat_on_stack ? ArrayPopInstruction.new : ArrayShiftInstruction.new)
+            instructions << VariableSetInstruction.new(name)
+          end
+        end
+        instructions << PopInstruction.new
       end
 
       # TODO: might need separate logic?

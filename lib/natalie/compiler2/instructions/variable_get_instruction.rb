@@ -4,7 +4,7 @@ module Natalie
   class Compiler2
     class VariableGetInstruction < BaseInstruction
       def initialize(name)
-        @name = name.to_s
+        @name = name.to_sym
       end
 
       attr_reader :name

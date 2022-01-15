@@ -74,7 +74,8 @@ public:
     Value first();
     Value last();
 
-    Value pop(Env *, Value);
+    Value pop() { return m_vector.pop(); }
+    Value shift() { return m_vector.pop_front(); }
 
     Value &at(size_t index) const {
         assert(index < m_vector.size());
@@ -166,6 +167,7 @@ public:
     Value none(Env *, size_t, Value *, Block *);
     Value one(Env *, size_t, Value *, Block *);
     Value pack(Env *, Value);
+    Value pop(Env *, Value);
     Value product(Env *, size_t, Value *, Block *);
     Value push(Env *, size_t, Value *);
     Value rassoc(Env *, Value);

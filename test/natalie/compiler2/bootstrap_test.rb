@@ -39,10 +39,17 @@ class TestCompiler2 < TestCase
     assert_eq(%w[t f], [t, f])
   end
 
+  def test_splat_args
+    assert_eq([[1, 2], 3], splat_left(1, 2, 3))
+    assert_eq([1, [2, 3], 4], splat_middle(1, 2, 3, 4))
+    assert_eq([1, [2, 3]], splat_right(1, 2, 3))
+  end
+
   def run
     test_array
     test_float
     test_if
+    test_splat_args
     puts 'all tests successful'
   end
 
@@ -50,6 +57,18 @@ class TestCompiler2 < TestCase
 
   def ary
     [1, 2, 3]
+  end
+
+  def splat_left(*a, b)
+    [a, b]
+  end
+
+  def splat_middle(a, *b, c)
+    [a, b, c]
+  end
+
+  def splat_right(a, *b)
+    [a, b]
   end
 end
 
