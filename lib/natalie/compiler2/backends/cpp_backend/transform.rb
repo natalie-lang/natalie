@@ -23,10 +23,9 @@ module Natalie
         attr_reader :stack
 
         def transform(result_prefix = nil)
-          @instructions.walk do |instruction|
-            instruction.generate(self)
-          end
-          consume(@code + @stack, result_prefix)
+          @instructions.walk { |instruction| instruction.generate(self) }
+          @code << @stack.flatten.last
+          consume(@code, result_prefix)
         end
 
         def semicolon(line)
@@ -80,7 +79,7 @@ module Natalie
         end
 
         def consume(lines, result_prefix = nil)
-          lines = Array(lines)
+          lines = Array(lines).compact
           out = []
           while lines.any?
             line = lines.shift

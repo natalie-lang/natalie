@@ -14,15 +14,18 @@ module Natalie
       end
 
       def generate(transform)
-        # FIXME: this is overkill -- there are variables not captured in this count, i.e. "holes" in the array :-(
-        index = transform.vars.size
+        if (var = transform.vars[name])
+          index = var[:index]
+        else
+          # FIXME: this is overkill -- there are variables not captured in this count, i.e. "holes" in the array :-(
+          index = transform.vars.size
 
-        # FIXME: not all variables need to be captured
-        transform.vars[name] = { name: name, index: index, captured: true }
+          # TODO: not all variables need to be captured
+          transform.vars[name] = { name: name, index: index, captured: true }
+        end
 
         value = transform.pop
         transform.exec("env->var_set(#{name.to_s.inspect}, #{index}, true, #{value})")
-        transform.push("env->var_get(#{name.to_s.inspect}, #{index})") # will probably be popped
       end
 
       def execute(vm)

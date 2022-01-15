@@ -23,9 +23,26 @@ class TestCompiler2 < TestCase
     assert_eq(1.56, f)
   end
 
+  def test_if
+    t = nil
+    if 1
+      t = 't'
+    else
+      t = 'f'
+    end
+    f = nil
+    if nil
+      f = 't'
+    else
+      f = 'f'
+    end
+    assert_eq(%w[t f], [t, f])
+  end
+
   def run
     test_array
     test_float
+    test_if
     puts 'all tests successful'
   end
 
