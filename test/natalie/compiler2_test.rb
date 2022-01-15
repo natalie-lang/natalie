@@ -12,6 +12,7 @@ describe 'Natalie::Compiler2' do
     compiler.compile
     begin
       out = `#{compiler.out_path} #{args.map(&:inspect).join(' ')}`
+      puts out unless $?.exitstatus.zero?
       $?.exitstatus.should == 0
     ensure
       File.unlink(compiler.out_path)
