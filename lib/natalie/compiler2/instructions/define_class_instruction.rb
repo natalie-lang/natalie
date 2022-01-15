@@ -41,6 +41,7 @@ module Natalie
         superclass = vm.pop
         klass = Class.new(superclass)
         Object.const_set(@name, klass)
+        vm.method_visibility = :public
         vm.with_self(klass) { vm.run }
       end
     end

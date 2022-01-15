@@ -7,9 +7,10 @@ module Natalie
       @stack = []
       @call_stack = [{ vars: {} }]
       @self = MainObject.new
+      @method_visibility = :public
     end
 
-    attr_accessor :self
+    attr_accessor :self, :method_visibility
 
     attr_reader :stack
 

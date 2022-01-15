@@ -4,7 +4,7 @@ module Natalie
   class Compiler2
     class SendInstruction < BaseInstruction
       def initialize(message, with_block:)
-        @message = message
+        @message = message.to_sym
         @with_block = with_block
       end
 
@@ -26,6 +26,12 @@ module Natalie
       def execute(vm)
         receiver = vm.pop
         arg_count = vm.pop
+        if arg_count.zero? && %i[public private protected].include?(@message)
+          vm.method_visibility = @message
+          vm.push(receiver)
+          return
+        end
+
         args = []
         arg_count.times { args.unshift vm.pop }
         self_was = vm.self

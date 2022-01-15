@@ -13,10 +13,6 @@ class TestCase
 end
 
 class TestCompiler2 < TestCase
-  def ary
-    [1, 2, 3]
-  end
-
   def test_array
     result = ary.map { |i| i * 2 }
     assert_eq([2, 4, 6], result)
@@ -30,6 +26,12 @@ class TestCompiler2 < TestCase
   def run
     test_array
     test_float
+  end
+
+  private
+
+  def ary
+    [1, 2, 3]
   end
 end
 

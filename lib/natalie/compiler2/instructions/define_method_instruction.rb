@@ -43,6 +43,12 @@ module Natalie
             vm.ip = vm.pop_call[:return_ip]
             vm.pop # result must be returned to SendInstruction
           end
+        case vm.method_visibility
+        when :private
+          vm.self.send(:private, @name)
+        when :protected
+          vm.self.send(:protected, @name)
+        end
         vm.push(@name)
       end
     end
