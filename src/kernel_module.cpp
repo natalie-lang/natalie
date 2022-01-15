@@ -328,8 +328,8 @@ Value KernelModule::p(Env *env, size_t argc, Value *args) {
 }
 
 Value KernelModule::print(Env *env, size_t argc, Value *args) {
-    IoObject *_stdout = env->global_get("$stdout"_s)->as_io();
-    return _stdout->print(env, argc, args);
+    auto _stdout = env->global_get("$stdout"_s);
+    return _stdout->send(env, "print"_s, argc, args);
 }
 
 Value KernelModule::proc(Env *env, Block *block) {
