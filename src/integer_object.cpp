@@ -240,7 +240,7 @@ Value IntegerObject::mod(Env *env, Value arg) {
     return Value::integer(result);
 }
 
-Value fast_pow(Env *env, nat_int_t a, nat_int_t b) {
+Value pow_fast(Env *env, nat_int_t a, nat_int_t b) {
     if (b == 0)
         return Value::integer(1);
     if (b == 1)
@@ -317,7 +317,7 @@ Value IntegerObject::pow(Env *env, Value arg) {
     if (nat_int < 0)
         NAT_NOT_YET_IMPLEMENTED();
 
-    return fast_pow(env, m_integer, nat_int);
+    return pow_fast(env, m_integer, nat_int);
 }
 
 Value IntegerObject::cmp(Env *env, Value arg) {
