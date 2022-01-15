@@ -124,16 +124,19 @@ module Natalie
         _, receiver, method, *args = exp
         if receiver && !receiver.empty?
           t, *values = receiver
-          if t == :array && args.empty? && block_with_args.nil?
+          if t == :array && block_with_args.nil?
+            # FIXME: Maybe throw argument errors when we detect anything wrong with the argument count
             case method
+            when :include?
+              return process(canary_array_include(exp, values, *args)) if args.length == 1
             when :min
-              return process(canary_array_min(exp, values))
+              return process(canary_array_min(exp, values)) if args.length == 0
             when :max
-              return process(canary_array_max(exp, values))
+              return process(canary_array_max(exp, values)) if args.length == 0
             when :any?
-              return process(canary_array_any(exp, values))
+              return process(canary_array_any(exp, values)) if args.length == 0
             when :all?
-              return process(canary_array_all(exp, values))
+              return process(canary_array_all(exp, values)) if args.length == 0
             end
           elsif t == :lit && args.length == 1 && args[0][0] == :lit && !@in_defined_statement
             # we cannot collapse these in defined? statements, because it changes the type
@@ -259,6 +262,14 @@ module Natalie
 
         return exp.new(:call, new_function, :is_truthy) if values.length == 1
         return exp.new(:and, exp.new(:call, new_function, :is_truthy), canary_array_all(exp, rest, args, function))
+      end
+
+      def canary_array_include(exp, values, arg)
+        return exp.new(:false) unless values&.length > 0
+
+        first, *rest = values
+        return exp.new(:call, first, :==, arg) if values.length == 1
+        return exp.new(:or, exp.new(:call, first, :==, arg), canary_array_include(exp, rest, arg))
       end
 
       def canary_const_op(exp, values)
