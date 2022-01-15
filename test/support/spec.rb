@@ -635,6 +635,7 @@ class IOStub
     @out << str.to_s
   end
   alias write <<
+  alias print <<
 
   def puts(str)
     self.<<(str.to_s + "\n")

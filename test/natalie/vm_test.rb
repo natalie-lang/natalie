@@ -11,7 +11,12 @@ describe 'Natalie::VM' do
     ast = Parser.parse(File.read(path), path)
     compiler = Natalie::Compiler2.new(ast, path, interpret: true)
     vm = Natalie::VM.new(compiler.instructions)
-    capture { vm.run }
+    capture do
+      begin
+        vm.run
+      rescue
+      end
+    end
   end
 
   def capture
