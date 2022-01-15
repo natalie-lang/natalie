@@ -216,6 +216,8 @@ SymbolObject *ModuleObject::undefine_method(Env *env, SymbolObject *name) {
 // supply an empty array and it will be populated with the method names as symbols
 void ModuleObject::methods(Env *env, ArrayObject *array, bool include_super) {
     for (auto pair : m_methods) {
+        if (array->include(env, pair.first))
+            continue;
         array->push(pair.first);
     }
     if (!include_super) {
@@ -223,6 +225,8 @@ void ModuleObject::methods(Env *env, ArrayObject *array, bool include_super) {
     }
     for (ModuleObject *module : m_included_modules) {
         for (auto pair : module->m_methods) {
+            if (array->include(env, pair.first))
+                continue;
             array->push(pair.first);
         }
     }
@@ -370,7 +374,6 @@ Value ModuleObject::instance_methods(Env *env, Value include_super_value, std::f
     bool include_super = !include_super_value || include_super_value->is_truthy();
     ArrayObject *array = new ArrayObject {};
     methods(env, array, include_super);
-    array->uniq_in_place(env, nullptr);
     array->select_in_place([this, env, predicate](Value &name_value) -> bool {
         auto name = name_value->as_symbol();
         auto method = find_method(env, name);

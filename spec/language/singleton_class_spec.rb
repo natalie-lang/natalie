@@ -228,8 +228,7 @@ describe "Instance methods of a singleton class" do
   end
 end
 
-# NATFIXME: Make Kernel#methods spec-compliant
-xdescribe "Class methods of a singleton class" do
+describe "Class methods of a singleton class" do
   before :each do
     k = ClassSpecs::K.new
     @k_sc = k.singleton_class
@@ -271,7 +270,8 @@ xdescribe "Class methods of a singleton class" do
     end
   end
 
-  describe "for a singleton class" do
+  # NATFIXME: A singleton class should be a subclass of Class's singleton class
+  xdescribe "for a singleton class" do
     it "include instance methods of the singleton class of Class" do
       @a_c_sc.singleton_class.should have_method(:example_instance_method_of_singleton_class)
     end

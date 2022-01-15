@@ -293,14 +293,20 @@ Value KernelModule::method(Env *env, Value name) {
     env->raise("NoMethodError", "undefined method `{}' for {}:Class", name_symbol->inspect_str(env), m_klass->inspect_str());
 }
 
-Value KernelModule::methods(Env *env) {
-    ArrayObject *array = new ArrayObject {};
-    if (singleton_class()) {
-        singleton_class()->methods(env, array);
-    } else {
-        klass()->methods(env, array);
+Value KernelModule::methods(Env *env, Value regular_val) {
+    bool regular = regular_val ? regular_val->is_truthy() : true;
+    if (regular) {
+        if (singleton_class()) {
+            return singleton_class()->instance_methods(env, TrueObject::the());
+        } else {
+            return klass()->instance_methods(env, TrueObject::the());
+        }
     }
-    return array;
+    if (singleton_class()) {
+        return singleton_class()->instance_methods(env, FalseObject::the());
+    } else {
+        return new ArrayObject {};
+    }
 }
 
 Value KernelModule::p(Env *env, size_t argc, Value *args) {
