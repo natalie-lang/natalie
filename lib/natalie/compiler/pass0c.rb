@@ -16,7 +16,33 @@ module Natalie
       end
 
       def process_iter(exp)
-        call_type, call, args, *body = exp
+        _, call, args, *body = exp
+        if call[1]&.sexp_type == :array && body.length == 1
+          # FIXME: This might unwrap/duplicate big blocks of code, if they are
+          #        passed as the function body
+          # FIXME: The implementation of these do not honour name shadowing of
+          #        nested lambdas/iters, yet
+          # FIXME: We do not support re-assignment of any argument passed in yet,
+          #        for that we would need a more sophisticated inlining algorithm
+
+          if !(
+               args.any? do |arg|
+                 body.flatten.any? { |sexp| sexp.is_a?(Sexp) && sexp.sexp_type == :lasgn && sexp[1] == arg }
+               end
+             )
+            _, *values = call[1]
+            case call[2]
+            when :min
+              return process(canary_array_min(exp, values, args, *body))
+            when :max
+              return process(canary_array_max(exp, values, args, *body))
+            when :any?
+              return process(canary_array_any(exp, values, args, *body))
+            when :all?
+              return process(canary_array_all(exp, values, args, *body))
+            end
+          end
+        end
         return exp.new(:iter, process_call(call, block_fn = [args, body]), args, *body.map { |e| process_atom(e) })
       end
 
@@ -98,11 +124,16 @@ module Natalie
         _, receiver, method, *args = exp
         if receiver && !receiver.empty?
           t, *values = receiver
-          if t == :array
-            if method == :min && args.empty? && !block_with_args
+          if t == :array && args.empty? && block_with_args.nil?
+            case method
+            when :min
               return process(canary_array_min(exp, values))
-            elsif method == :max && args.empty? && !block_with_args
+            when :max
               return process(canary_array_max(exp, values))
+            when :any?
+              return process(canary_array_any(exp, values))
+            when :all?
+              return process(canary_array_all(exp, values))
             end
           elsif t == :lit && args.length == 1 && args[0][0] == :lit && !@in_defined_statement
             # we cannot collapse these in defined? statements, because it changes the type
@@ -138,32 +169,96 @@ module Natalie
         return exp
       end
 
-      def canary_array_min(exp, values)
+      def canary_array_min(exp, values, args = nil, function = nil)
         return exp.new(:nil) if values.empty?
         return values[0] if values.length == 1
         first, second, *rest = values
+        if args.nil? && function.nil?
+          return(
+            exp.new(
+              :if,
+              exp.new(:call, first, :<, second),
+              canary_array_min(exp, [first, *rest]),
+              canary_array_min(exp, [second, *rest]),
+            )
+          )
+        end
+        return exp if args.length != 3 # Wat
+
+        new_function1 = function.map { |expr| ((expr == s(:lvar, args[1])) ? first : expr) }
+        new_function2 = function.map { |expr| ((expr == s(:lvar, args[2])) ? second : expr) }
+
         return(
           exp.new(
             :if,
-            exp.new(:call, first, :<, second),
+            exp.new(:call, new_function1, :<, new_function2),
             canary_array_min(exp, [first, *rest]),
             canary_array_min(exp, [second, *rest]),
           )
         )
       end
 
-      def canary_array_max(exp, values)
+      def canary_array_max(exp, values, args = nil, function = nil)
         return exp.new(:nil) if values.empty?
         return values[0] if values.length == 1
+
         first, second, *rest = values
+        if args.nil? && function.nil?
+          return(
+            exp.new(
+              :if,
+              exp.new(:call, first, :>, second),
+              canary_array_max(exp, [first, *rest]),
+              canary_array_max(exp, [second, *rest]),
+            )
+          )
+        end
+        return exp if args.length != 3 # Wat
+
+        new_function1 = function.map { |expr| ((expr == s(:lvar, args[1])) ? first : expr) }
+        new_function2 = function.map { |expr| ((expr == s(:lvar, args[2])) ? second : expr) }
+
         return(
           exp.new(
             :if,
-            exp.new(:call, first, :>, second),
+            exp.new(:call, new_function1, :>, new_function2),
             canary_array_max(exp, [first, *rest]),
             canary_array_max(exp, [second, *rest]),
           )
         )
+      end
+
+      def canary_array_any(exp, values, args = nil, function = nil)
+        return exp.new(:false) unless values&.length > 0
+
+        first, *rest = values
+        if args.nil? && function.nil?
+          return exp.new(:call, first, :is_truthy) if values.length == 1
+          return exp.new(:or, exp.new(:call, first, :is_truthy), canary_array_any(exp, rest))
+        end
+
+        return exp if args.length != 2 # Wat
+        new_function = function.map { |expr| ((expr == s(:lvar, args[1])) ? first : expr) }
+
+        return exp.new(:call, new_function, :is_truthy) if values.length == 1
+        return exp.new(:or, exp.new(:call, new_function, :is_truthy), canary_array_any(exp, rest, args, function))
+      end
+
+      def canary_array_all(exp, values, args = nil, function = nil)
+        return exp.new(:false) unless values&.length > 0
+
+        first, *rest = values
+        if args.nil? && function.nil?
+          return exp.new(:call, first, :is_truthy) if values.length == 1
+          return exp.new(:and, exp.new(:call, first, :is_truthy), canary_array_all(exp, rest))
+        end
+
+        return exp if args.length != 2 # Wat
+
+        new_function = function.map { |expr| ((expr == s(:lvar, args[1])) ? first : expr) }
+
+        return exp.new(:call, new_function, :is_truthy) if values.length == 1
+        return exp.new(:and, exp.new(:call, new_function, :is_truthy), canary_array_all(exp, rest, args, function))
       end
 
       def canary_const_op(exp, values)
