@@ -27,6 +27,10 @@ class Integer
     end
   end
 
+  def gcdlcm(n)
+    [gcd(n), lcm(n)]
+  end
+
   def lcm(n)
     (self * n).abs / gcd(n)
   end
