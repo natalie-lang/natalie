@@ -1,6 +1,9 @@
 # makes it harder to see the hierarchy of exceptions when prettier-formatted
 src/exception.rb
 
+# our new compiler isn't ready for some of the idioms
+test/natalie/compiler2/bootstrap_test.rb
+
 # not our stuff...
 spec/*
 ext/*
