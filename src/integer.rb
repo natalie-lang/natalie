@@ -27,6 +27,10 @@ class Integer
     end
   end
 
+  def lcm(n)
+    (self * n).abs / gcd(n)
+  end
+
   def upto(n)
     return enum_for(:upto, n) { self <= n ? (n - self + 1) : 0 } unless block_given?
 
