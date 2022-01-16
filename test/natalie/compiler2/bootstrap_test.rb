@@ -54,8 +54,9 @@ class TestCompiler2 < TestCase
   end
 
   def test_destructure_args
-    assert_eq([1, 2, 3, 4], destructure_left([[1, 2], 3], 4))
-    assert_eq([1, 2, 3, 4], destructure_left([[1, 2, 3], 3, 4], 4))
+    assert_eq([1, 2, 3, 4], destructure_left([[1, 2, :ignored], 3, :ignored], 4))
+    assert_eq([1, 2, 3, 4, 5, 6], destructure_middle(1, [2, [3, 4, :ignored], 5], 6))
+    assert_eq([1, 2, 3, 4], destructure_right(1, [2, [3, 4, :ignored], :ignored]))
   end
 
   private
@@ -78,6 +79,10 @@ class TestCompiler2 < TestCase
 
   def destructure_left(((a, b), c), d)
     [a, b, c, d]
+  end
+
+  def destructure_middle(a, (b, (c, d), e), f)
+    [a, b, c, d, e, f]
   end
 
   def destructure_right(a, (b, (c, d)))
