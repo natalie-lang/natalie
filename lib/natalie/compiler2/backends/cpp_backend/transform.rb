@@ -40,6 +40,12 @@ module Natalie
           @stack << result
         end
 
+        def exec_and_push(name, code)
+          result = temp(name)
+          @code << consume(code, "auto #{result} = ")
+          push(result)
+        end
+
         def pop
           raise 'ran out of stack' unless @stack.any?
 

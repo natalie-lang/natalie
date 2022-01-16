@@ -14,7 +14,7 @@ describe 'Natalie::VM' do
     capture do
       begin
         vm.run
-      rescue
+      rescue StandardError
       end
     end
   end
@@ -47,6 +47,8 @@ describe 'Natalie::VM' do
 
   it 'executes test/natalie/compiler2/bootstrap_test.rb' do
     path = File.expand_path('compiler2/bootstrap_test.rb', __dir__)
-    compile_and_run(path).should == 'all tests successful'
+    result = compile_and_run(path)
+    result.should =~ /tests successful/
+    result.should == `ruby #{path}`.strip
   end
 end

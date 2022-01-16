@@ -10,6 +10,14 @@ class TestCase
       raise 'test failed'
     end
   end
+
+  def run
+    tests = methods.select { |m| m.start_with?('test_') }
+    tests.each do |method|
+      send(method)
+    end
+    puts tests.size.to_s + ' tests successful'
+  end
 end
 
 class TestCompiler2 < TestCase
@@ -45,12 +53,9 @@ class TestCompiler2 < TestCase
     assert_eq([1, [2, 3]], splat_right(1, 2, 3))
   end
 
-  def run
-    test_array
-    test_float
-    test_if
-    test_splat_args
-    puts 'all tests successful'
+  def test_destructure_args
+    assert_eq([1, 2, 3, 4], destructure_left([[1, 2], 3], 4))
+    assert_eq([1, 2, 3, 4], destructure_left([[1, 2, 3], 3, 4], 4))
   end
 
   private
@@ -69,6 +74,14 @@ class TestCompiler2 < TestCase
 
   def splat_right(a, *b)
     [a, b]
+  end
+
+  def destructure_left(((a, b), c), d)
+    [a, b, c, d]
+  end
+
+  def destructure_right(a, (b, (c, d)))
+    [a, b, c, d]
   end
 end
 
