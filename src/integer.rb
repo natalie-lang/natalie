@@ -18,6 +18,15 @@ class Integer
     end
   end
 
+  def fdiv(n)
+    if !n.is_a?(Numeric) && n.respond_to?(:coerce)
+      a, b = n.coerce(self)
+      a.fdiv(b)
+    else
+      super
+    end
+  end
+
   def upto(n)
     return enum_for(:upto, n) { self <= n ? (n - self + 1) : 0 } unless block_given?
 
