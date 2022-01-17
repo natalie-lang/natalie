@@ -204,6 +204,20 @@ module Natalie
         PushNilInstruction.new
       end
 
+      def transform_or(exp, used:)
+        _, arg1, arg2 = exp
+        arg1_instructions = Array(transform_expression(arg1, used: true))
+        arg2_instructions = Array(transform_expression(arg2, used: true))
+        instructions = [
+          arg1_instructions,
+          OrInstruction.new,
+          arg2_instructions,
+          EndInstruction.new(:or)
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_self(_, used:)
         return [] unless used
         PushSelfInstruction.new
