@@ -118,7 +118,12 @@ module Natalie
             end
           end
         elsif args.length == 0
-          return canary_const_not(exp, values) if method == :!
+          case method
+          when :!
+            return canary_const_not(exp)
+          when :is_truthy
+            return canary_const_truthy(exp)
+          end
         end
         return exp
       end
@@ -161,10 +166,17 @@ module Natalie
         return exp.new(:false)
       end
 
-      def canary_const_not(exp, values)
+      def canary_const_not(exp)
         _, (type, *), _not = exp
         return exp.new(:false) if type_is_always_truthy(type)
         return exp.new(:true) if type_is_always_falsey(type)
+        return exp
+      end
+
+      def canary_const_truthy(exp)
+        _, (type, *), is_truthy = exp
+        return exp.new(:true) if type_is_always_truthy(type)
+        return exp.new(:false) if type_is_always_falsey(type)
         return exp
       end
     end
