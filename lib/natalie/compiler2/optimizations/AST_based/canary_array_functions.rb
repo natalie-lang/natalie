@@ -15,7 +15,30 @@ module Natalie
       end
 
       def process_iter(exp)
-        call_type, call, args, *body = exp
+        _, call, args, *body = exp
+
+        if call[1]&.sexp_type == :array && body.length == 1
+          # FIXME: This might unwrap/duplicate big blocks of code, if they are
+          #        passed as the function body
+          # FIXME: The implementation of these might not honour name shadowing of
+          #        nested lambdas/iters, yet
+          # FIXME: We do not support re-assignment of any argument passed in yet,
+          #        for that we would need a more sophisticated inlining algorithm
+          #        => bail for now
+          if !(
+               args.any? do |arg|
+                 body.flatten.any? { |sexp| sexp.is_a?(Sexp) && sexp.sexp_type == :lasgn && sexp[1] == arg }
+               end
+             )
+            _, *values = call[1]
+            case call[2]
+            when :min
+              return canary_array_min(exp, values, args, *body)
+            when :max
+              return canary_array_max(exp, values, args, *body)
+            end
+          end
+        end
         return exp.new(:iter, process_call(call), args, *body.map { |e| process_atom(e) })
       end
 
@@ -36,6 +59,16 @@ module Natalie
         return exp
       end
 
+      def inline_arguments_into_block(block, args, values)
+        # Replaces all mentions of a variable with an value passes into the block
+        raise CompilerError.new("ICE: Passed invalid arguments block to inlining") unless args.sexp_type == :args
+        args[1..].zip(values) do
+          | name, value |
+          block = block.map { |expr| ((expr == s(:lvar, name)) ? value : expr) }
+        end
+        return block
+      end
+
       def canary_array_min(exp, values, args = nil, block = nil)
         if (block.nil? && !args.nil? && args.length != 0)
           raise ArgumentError.new(
@@ -48,15 +81,28 @@ module Natalie
                 )
         end
 
+        # Fast paths
         return exp.new(:nil) if values.empty?
         return values[0] if values.length == 1
+
         first, second, *rest = values
+        if block.nil?
+          return(
+            exp.new(
+              :if,
+              exp.new(:call, first, :<, second),
+              canary_array_min(exp, [first, *rest]),
+              canary_array_min(exp, [second, *rest]),
+            )
+          )
+        end
+        evaluated_block = inline_arguments_into_block(block, args, [first, second])
         return(
           exp.new(
             :if,
-            exp.new(:call, first, :<, second),
-            canary_array_min(exp, [first, *rest]),
-            canary_array_min(exp, [second, *rest]),
+            exp.new(:call, evaluated_block, :<, s(:lit, 0)),
+            canary_array_min(exp, [first, *rest], args, block),
+            canary_array_min(exp, [second, *rest], args, block),
           )
         )
       end
@@ -73,15 +119,30 @@ module Natalie
                 )
         end
 
+        # Fast paths
         return exp.new(:nil) if values.empty?
         return values[0] if values.length == 1
+
         first, second, *rest = values
+        if block.nil?
+          return(
+            exp.new(
+              :if,
+              exp.new(:call, first, :>, second),
+              canary_array_max(exp, [first, *rest]),
+              canary_array_max(exp, [second, *rest]),
+            )
+          )
+        end
+
+        evaluated_block = inline_arguments_into_block(block, args, [first, second])
+
         return(
           exp.new(
             :if,
-            exp.new(:call, first, :>, second),
-            canary_array_max(exp, [first, *rest]),
-            canary_array_max(exp, [second, *rest]),
+            exp.new(:call, evaluated_block, :>, 0),
+            canary_array_max(exp, [first, *rest], args, block),
+            canary_array_max(exp, [second, *rest], args, block),
           )
         )
       end
