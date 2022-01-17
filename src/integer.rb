@@ -1,4 +1,21 @@
 class Integer
+  class << self
+    def try_convert(n)
+      if n.is_a?(Integer)
+        n
+      elsif n.respond_to?(:to_int)
+        n.to_int.tap do |result|
+          if result && !result.is_a?(Integer)
+            raise TypeError, "can't convert #{n.class} to Integer (#{n.class}#to_int gives #{result.class})"
+          end
+        end
+      else
+        nil
+      end
+    end
+
+  end
+
   def div(n)
     if !n.is_a?(Numeric) && n.respond_to?(:coerce)
       a, b = n.coerce(self)
