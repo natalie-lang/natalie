@@ -1,4 +1,5 @@
 require 'tempfile'
+require_relative './compiler2/pass0'
 require_relative './compiler2/pass1'
 require_relative './compiler2/pass2'
 require_relative './compiler2/instruction_manager'
@@ -91,6 +92,7 @@ module Natalie
         compile_cxx_flags: cxx_flags,
         compile_ld_flags: [],
         source_path: @path,
+        options: @options,
       }
     end
 
@@ -164,6 +166,12 @@ module Natalie
       ast = expand_macros(@ast, @path)
 
       @context = build_context
+
+      ast = Pass0.new(context, ast).transform
+      if debug == 'p0'
+        pp ast
+        exit
+      end
 
       instructions = Pass1.new(ast).transform
       if debug == 'p1'

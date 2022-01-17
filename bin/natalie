@@ -13,7 +13,7 @@ require_relative '../lib/natalie'
 
 orig_args = ARGV.dup
 
-options = { load_path: [], require: [], profile: false }
+options = { load_path: [], require: [], profile: false , optimization_level: 0}
 OptionParser.new do |opts|
   opts.banner = 'Usage: natalie [options] file.rb'
 
@@ -102,6 +102,19 @@ OptionParser.new do |opts|
   opts.on('--experimental-repl-v2', 'Enable the new REPL (not available with self-hosted Natalie)') do
     options[:experimental_repl_v2] = true
   end
+
+  opts.on('-f [optimization]', 'Enable/Disable a specific optimization (only with -c2)',
+    options: {
+      'nocanary_array_functions' => 'Disable unfolding of functions on literal arrays [AST], default=on',
+      'cf, nocf' => 'Enable/Disable constant folding [AST], default=off, enabled with O1'
+  }) do |option|
+      options[:optimizations] ||= []
+      options[:optimizations].append(option)
+  end
+  opts.on('-O1', 'Enable basic optimizations (only with -c2)') do
+    options[:optimization_level] = 1
+  end
+
 end.parse!
 
 build_type_path = File.expand_path('../.build', __dir__)
