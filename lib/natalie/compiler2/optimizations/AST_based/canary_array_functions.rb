@@ -36,6 +36,10 @@ module Natalie
               return canary_array_min(exp, values, args, *body)
             when :max
               return canary_array_max(exp, values, args, *body)
+            when :any?
+              return canary_array_any(exp, values, args, *body)
+            when :all?
+              return canary_array_all(exp, values, args, *body)
             end
           end
         end
@@ -55,6 +59,10 @@ module Natalie
           return canary_array_min(exp, values, args)
         when :max
           return canary_array_max(exp, values, args)
+        when :any?
+          return canary_array_any(exp, values, args)
+        when :all?
+          return canary_array_all(exp, values, args)
         end
         return exp
       end
@@ -145,6 +153,56 @@ module Natalie
             canary_array_max(exp, [second, *rest], args, block),
           )
         )
+      end
+
+      def canary_array_any(exp, values, args = nil, block = nil)
+        if (block.nil? && !args.nil? && args.length != 0)
+          raise ArgumentError.new(
+                  "(#{exp.file}:#{exp.line}) Wrong number of arguments for Array#any? (expected 0 given #{args&.length.to_s})",
+                )
+        end
+        if (block && (args.nil? || args.length != 2))
+          raise ArgumentError.new(
+                  "(#{exp.file}:#{exp.line}) Wrong number of arguments for Array#any? (expected 1 given #{args.nil? ? 0 : (args.length - 1).to_s})",
+                )
+        end
+
+        return exp.new(:false) if values.empty?
+
+        first, *rest = values
+        if block.nil?
+          return exp.new(:call, first, :is_truthy) if values.length == 1
+          return exp.new(:or, exp.new(:call, first, :is_truthy), canary_array_any(exp, rest))
+        end
+
+        inlined_block = inline_arguments_into_block(block, args, [first])
+        return exp.new(:call, inlined_block, :is_truthy) if values.length == 1
+        return exp.new(:or, exp.new(:call, inlined_block, :is_truthy), canary_array_any(exp, rest, args, block))
+      end
+
+      def canary_array_all(exp, values, args = nil, block = nil)
+        if (block.nil? && !args.nil? && args.length != 0)
+          raise ArgumentError.new(
+                  "(#{exp.file}:#{exp.line}) Wrong number of arguments for Array#all? (expected 0 given #{args&.length.to_s})",
+                )
+        end
+        if (block && (args.nil? || args.length != 2))
+          raise ArgumentError.new(
+                  "(#{exp.file}:#{exp.line}) Wrong number of arguments for Array#all? (expected 1 given #{args.nil? ? 0 : (args.length - 1).to_s})",
+                )
+        end
+
+        return exp.new(:false) unless values.empty?
+
+        first, *rest = values
+        if block.nil?
+          return exp.new(:call, first, :is_truthy) if values.length == 1
+          return exp.new(:and, exp.new(:call, first, :is_truthy), canary_array_all(exp, rest))
+        end
+
+        inlined_block = inline_arguments_into_block(block, args, [first])
+        return exp.new(:call, inlined_block, :is_truthy) if values.length == 1
+        return exp.new(:and, exp.new(:call, inlined_block, :is_truthy), canary_array_all(exp, rest, args, block))
       end
     end
   end
