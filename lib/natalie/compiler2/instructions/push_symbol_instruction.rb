@@ -14,7 +14,7 @@ module Natalie
       end
 
       def generate(transform)
-        transform.push("SymbolObject::intern(#{@name.to_s.inspect})")
+        transform.push("\"#{@name.to_s}\"_s")
       end
 
       def execute(vm)
