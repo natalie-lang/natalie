@@ -1,3 +1,4 @@
+require_relative './instructions/and_instruction'
 require_relative './instructions/array_pop_instruction'
 require_relative './instructions/array_shift_instruction'
 require_relative './instructions/const_find_instruction'

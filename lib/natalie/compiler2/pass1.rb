@@ -35,6 +35,20 @@ module Natalie
       # INDIVIDUAL EXPRESSIONS = = = = =
       # (in alphabetical order)
 
+      def transform_and(exp, used:)
+        _, arg1, arg2 = exp
+        arg1_instructions = Array(transform_expression(arg1, used: true))
+        arg2_instructions = Array(transform_expression(arg2, used: true))
+        instructions = [
+          arg1_instructions,
+          AndInstruction.new,
+          arg2_instructions,
+          EndInstruction.new(:and)
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_array(exp, used:)
         _, *items = exp
         instructions = items.map { |item| transform_expression(item, used: true) }
