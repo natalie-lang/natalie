@@ -55,6 +55,8 @@ module Natalie
         return exp unless t == :array
 
         case method
+        when :include?
+          return canary_array_include(exp, values, args)
         when :min
           return canary_array_min(exp, values, args)
         when :max
@@ -75,6 +77,19 @@ module Natalie
           block = block.map { |expr| ((expr == s(:lvar, name)) ? value : expr) }
         end
         return block
+      end
+
+      def canary_array_include(exp, values, args)
+        unless (args.length == 1)
+          raise ArgumentError.new(
+                  "(#{exp.file}:#{exp.line}) Wrong number of arguments for Array#include? (expected 1 given #{args.length.to_s})",
+                )
+        end
+        return exp.new(:false) if values.empty?
+
+        first, *rest = values
+        return exp.new(:call, first, :==, args[0]) if values.length == 1
+        return exp.new(:or, exp.new(:call, first, :==, args[0]), canary_array_include(exp, rest, args))
       end
 
       def canary_array_min(exp, values, args = nil, block = nil)
