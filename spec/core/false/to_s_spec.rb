@@ -10,8 +10,7 @@ describe "FalseClass#to_s" do
       false.to_s.should.frozen?
     end
 
-    # NATFIXME: FalseClass#to_s should always return the same string
-    xit "always returns the same string" do
+    it "always returns the same string" do
       false.to_s.should equal(false.to_s)
     end
   end

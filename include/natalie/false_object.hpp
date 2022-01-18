@@ -36,6 +36,7 @@ public:
 
 private:
     inline static FalseObject *s_instance = nullptr;
+    inline static StringObject *s_string = nullptr;
 
     FalseObject()
         : Object { Object::Type::False, GlobalEnv::the()->Object()->const_fetch("FalseClass"_s)->as_class() } { }

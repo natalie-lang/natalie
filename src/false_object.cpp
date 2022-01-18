@@ -11,7 +11,11 @@ bool FalseObject::or_method(Env *env, Value other) {
 }
 
 Value FalseObject::to_s(Env *env) {
-    return new StringObject { "false" };
+    if (s_string) {
+        return s_string;
+    }
+    s_string = new StringObject { "false" };
+    return s_string;
 }
 
 }
