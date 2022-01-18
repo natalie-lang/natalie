@@ -1,4 +1,5 @@
 require_relative './base_pass'
+require_relative './args'
 
 module Natalie
   class Compiler2
@@ -13,15 +14,6 @@ module Natalie
         transform_block(@ast, used: used).flatten
       end
 
-      private
-
-      def transform_array_of_expressions(array_of_expressions, used:)
-        instructions = []
-        array_of_expressions[0...-1].each { |exp| instructions << transform_expression(exp, used: false) }
-        instructions << transform_expression(array_of_expressions.last, used: used) if array_of_expressions.last
-        instructions.flatten
-      end
-
       def transform_expression(exp, used:)
         case exp
         when Sexp
@@ -30,6 +22,15 @@ module Natalie
         else
           raise "Unknown expression type: #{exp.inspect}"
         end
+      end
+
+      private
+
+      def transform_array_of_expressions(array_of_expressions, used:)
+        instructions = []
+        array_of_expressions[0...-1].each { |exp| instructions << transform_expression(exp, used: false) }
+        instructions << transform_expression(array_of_expressions.last, used: used) if array_of_expressions.last
+        instructions.flatten
       end
 
       # INDIVIDUAL EXPRESSIONS = = = = =
@@ -96,46 +97,24 @@ module Natalie
       def transform_defn_args(exp, used:)
         return [] unless used
         _, *args = exp
-        if complicated_args?(args)
-          [PushArgsInstruction.new, transform_complicated_defn_args(exp, used: used)]
-        else
-          args.each_with_index.flat_map do |name, index|
-            [PushArgInstruction.new(index), VariableSetInstruction.new(name)]
-          end
+
+        if args.any? { |arg| arg.is_a?(Sexp) || arg.start_with?('*') }
+          return [
+            PushArgsInstruction.new,
+            Args.new(self).transform(exp),
+          ].flatten
+        end
+
+        args.each_with_index.flat_map do |name, index|
+          [
+            PushArgInstruction.new(index),
+            VariableSetInstruction.new(name)
+          ]
         end
       end
 
       # TODO: might need separate logic?
       alias transform_block_args transform_defn_args
-
-      def complicated_args?(args)
-        args.any? { |a| a.is_a?(Sexp) || a.start_with?('*') }
-      end
-
-      def transform_complicated_defn_args(exp, used:)
-        return [] unless used
-        _, *args = exp
-        instructions = []
-        splat_on_stack = false
-        args.each do |name|
-          if name.is_a?(Sexp)
-            if name.sexp_type == :masgn
-              instructions << ArrayShiftInstruction.new
-              instructions << transform_complicated_defn_args(name, used: true)
-            else
-              raise "I don't yet know how to compile #{name.inspect}"
-            end
-          elsif name.start_with?('*')
-            instructions << VariableSetInstruction.new(name[1..-1])
-            instructions << VariableGetInstruction.new(name[1..-1]) # TODO: could eliminate this if the *splat is the last arg
-            splat_on_stack = true
-          else
-            instructions << (splat_on_stack ? ArrayPopInstruction.new : ArrayShiftInstruction.new)
-            instructions << VariableSetInstruction.new(name)
-          end
-        end
-        instructions << PopInstruction.new
-      end
 
       def transform_if(exp, used:)
         _, condition, true_expression, false_expression = exp

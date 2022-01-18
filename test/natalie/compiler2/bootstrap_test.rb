@@ -49,7 +49,7 @@ class TestCompiler2 < TestCase
 
   def test_splat_args
     assert_eq([[1, 2], 3], splat_left(1, 2, 3))
-    assert_eq([1, [2, 3], 4], splat_middle(1, 2, 3, 4))
+    assert_eq([1, [2, 3], 4, 5], splat_middle(1, 2, 3, 4, 5))
     assert_eq([1, [2, 3]], splat_right(1, 2, 3))
   end
 
@@ -69,8 +69,8 @@ class TestCompiler2 < TestCase
     [a, b]
   end
 
-  def splat_middle(a, *b, c)
-    [a, b, c]
+  def splat_middle(a, *b, c, d)
+    [a, b, c, d]
   end
 
   def splat_right(a, *b)
