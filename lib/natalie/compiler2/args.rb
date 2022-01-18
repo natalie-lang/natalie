@@ -76,11 +76,7 @@ module Natalie
       end
 
       def shift_or_pop_next_arg
-        if @from_side == :left
-          @instructions << ArrayShiftInstruction.new
-        else
-          @instructions << ArrayPopInstruction.new
-        end
+        @instructions << (@from_side == :left ? ArrayShiftInstruction.new : ArrayPopInstruction.new)
       end
 
       def shift_or_pop_next_arg_with_default

@@ -99,17 +99,11 @@ module Natalie
         _, *args = exp
 
         if args.any? { |arg| arg.is_a?(Sexp) || arg.start_with?('*') }
-          return [
-            PushArgsInstruction.new,
-            Args.new(self).transform(exp),
-          ].flatten
+          return [PushArgsInstruction.new, Args.new(self).transform(exp)].flatten
         end
 
         args.each_with_index.flat_map do |name, index|
-          [
-            PushArgInstruction.new(index),
-            VariableSetInstruction.new(name)
-          ]
+          [PushArgInstruction.new(index), VariableSetInstruction.new(name)]
         end
       end
 
