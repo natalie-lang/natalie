@@ -36,6 +36,7 @@ public:
     Value inspect(Env *);
     bool eq(Env *, Value);
     bool eqeqeq(Env *, Value);
+    bool eql(Env *, Value);
     bool include(Env *, Value);
 
     virtual void visit_children(Visitor &visitor) override {
