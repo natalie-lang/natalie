@@ -31,6 +31,18 @@ module Natalie
             @instructions << ArrayShiftInstruction.new
             sub_processor = Args.new(@pass)
             @instructions << sub_processor.transform(arg)
+          when :lasgn
+            if remaining_required_args.any?
+              # we cannot steal a value that might be needed to fulfill a required arg
+              # so put it back and work from the right side
+              @args.unshift(arg)
+              return :reverse
+            end
+            _, name, default_value = arg
+            @instructions << (@from_side == :left ? ArrayShiftInstruction.new : ArrayPopInstruction.new)
+            @instructions << @pass.transform_expression(default_value, used: true)
+            @instructions << OrInstruction.new
+            @instructions << VariableSetInstruction.new(name)
           else
             raise "I don't yet know how to compile #{arg.inspect}"
           end
@@ -44,6 +56,10 @@ module Natalie
           @instructions << (@from_side == :left ? ArrayShiftInstruction.new : ArrayPopInstruction.new)
           @instructions << VariableSetInstruction.new(arg)
         end
+      end
+
+      def remaining_required_args
+        @args.reject { |arg| arg.is_a?(Sexp) && arg.sexp_type == :lasgn }
       end
     end
   end

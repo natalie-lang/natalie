@@ -59,6 +59,15 @@ class TestCompiler2 < TestCase
     assert_eq([1, 2, 3, 4], destructure_right(1, [2, [3, 4, :ignored], :ignored]))
   end
 
+  def test_optional_args
+    assert_eq([1, 2], optional_left(1, 2))
+    assert_eq([:default, 1], optional_left(1))
+    assert_eq([1, 2, 3], optional_middle(1, 2, 3))
+    assert_eq([1, :default, 2], optional_middle(1, 2))
+    assert_eq([1, 2], optional_right(1, 2))
+    assert_eq([1, :default], optional_right(1))
+  end
+
   private
 
   def ary
@@ -87,6 +96,18 @@ class TestCompiler2 < TestCase
 
   def destructure_right(a, (b, (c, d)))
     [a, b, c, d]
+  end
+
+  def optional_left(x = :default, y)
+    [x, y]
+  end
+
+  def optional_middle(x, y = :default, z)
+    [x, y, z]
+  end
+
+  def optional_right(x, y = :default)
+    [x, y]
   end
 end
 
