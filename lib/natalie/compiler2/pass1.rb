@@ -137,6 +137,11 @@ module Natalie
         instructions << PopInstruction.new
       end
 
+      def transform_false(_, used:)
+        return [] unless used
+        PushBoolInstruction.new(false)
+      end
+
       def transform_if(exp, used:)
         _, condition, true_expression, false_expression = exp
         true_instructions = Array(transform_expression(true_expression, used: true))
@@ -209,6 +214,12 @@ module Natalie
         _, str = exp
         PushStringInstruction.new(str, str.size)
       end
+
+      def transform_true(_, used:)
+        return [] unless used
+        PushBoolInstruction.new(true)
+      end
+
     end
   end
 end
