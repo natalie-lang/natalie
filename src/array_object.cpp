@@ -91,6 +91,18 @@ Value ArrayObject::last() {
     return m_vector[m_vector.size() - 1];
 }
 
+Value ArrayObject::pop() {
+    if (m_vector.is_empty())
+        return NilObject::the();
+    return m_vector.pop();
+}
+
+Value ArrayObject::shift() {
+    if (m_vector.is_empty())
+        return NilObject::the();
+    return m_vector.pop_front();
+}
+
 Value ArrayObject::inspect(Env *env) {
     RecursionGuard guard { this };
 
