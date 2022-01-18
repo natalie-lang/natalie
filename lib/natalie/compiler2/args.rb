@@ -27,39 +27,61 @@ module Natalie
         if arg.is_a?(Sexp)
           case arg.sexp_type
           when :masgn
-            # destructuring an array
-            @instructions << ArrayShiftInstruction.new
-            sub_processor = Args.new(@pass)
-            @instructions << sub_processor.transform(arg)
+            transform_destructured_arg(arg)
           when :lasgn
-            if remaining_required_args.any?
-              # we cannot steal a value that might be needed to fulfill a required arg
-              # so put it back and work from the right side
-              @args.unshift(arg)
-              return :reverse
-            end
-            _, name, default_value = arg
-            @instructions << (@from_side == :left ? ArrayShiftInstruction.new : ArrayPopInstruction.new)
-            @instructions << @pass.transform_expression(default_value, used: true)
-            @instructions << OrInstruction.new
-            @instructions << VariableSetInstruction.new(name)
+            transform_optional_arg(arg)
           else
             raise "I don't yet know how to compile #{arg.inspect}"
           end
         elsif arg.start_with?('*')
-          # splat arg
-          name = arg[1..-1]
-          @instructions << VariableSetInstruction.new(name)
-          @instructions << VariableGetInstruction.new(name) # TODO: could eliminate this if the *splat is the last arg
-          :reverse
+          transform_splat_arg(arg)
         else
-          @instructions << (@from_side == :left ? ArrayShiftInstruction.new : ArrayPopInstruction.new)
-          @instructions << VariableSetInstruction.new(arg)
+          transform_required_arg(arg)
         end
       end
 
       def remaining_required_args
         @args.reject { |arg| arg.is_a?(Sexp) && arg.sexp_type == :lasgn }
+      end
+
+      def transform_destructured_arg(arg)
+        @instructions << ArrayShiftInstruction.new
+        sub_processor = Args.new(@pass)
+        @instructions << sub_processor.transform(arg)
+      end
+
+      def transform_optional_arg(arg)
+        if remaining_required_args.any?
+          # we cannot steal a value that might be needed to fulfill a required arg that follows
+          # so put it back and work from the right side
+          @args.unshift(arg)
+          return :reverse
+        end
+        _, name, default_value = arg
+        shift_or_pop_next_arg
+        @instructions << @pass.transform_expression(default_value, used: true)
+        @instructions << OrInstruction.new
+        @instructions << VariableSetInstruction.new(name)
+      end
+
+      def transform_splat_arg(arg)
+        name = arg[1..-1]
+        @instructions << VariableSetInstruction.new(name)
+        @instructions << VariableGetInstruction.new(name) # TODO: could eliminate this if the *splat is the last arg
+        :reverse
+      end
+
+      def transform_required_arg(arg)
+        shift_or_pop_next_arg
+        @instructions << VariableSetInstruction.new(arg)
+      end
+
+      def shift_or_pop_next_arg
+        if @from_side == :left
+          @instructions << ArrayShiftInstruction.new
+        else
+          @instructions << ArrayPopInstruction.new
+        end
       end
     end
   end
