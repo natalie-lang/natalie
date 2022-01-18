@@ -58,9 +58,8 @@ module Natalie
           return :reverse
         end
         _, name, default_value = arg
-        shift_or_pop_next_arg
         @instructions << @pass.transform_expression(default_value, used: true)
-        @instructions << OrInstruction.new
+        shift_or_pop_next_arg(with_default: true)
         @instructions << VariableSetInstruction.new(name)
       end
 
@@ -76,11 +75,11 @@ module Natalie
         @instructions << VariableSetInstruction.new(arg)
       end
 
-      def shift_or_pop_next_arg
+      def shift_or_pop_next_arg(with_default: false)
         if @from_side == :left
-          @instructions << ArrayShiftInstruction.new
+          @instructions << ArrayShiftInstruction.new(with_default: with_default)
         else
-          @instructions << ArrayPopInstruction.new
+          @instructions << ArrayPopInstruction.new(with_default: with_default)
         end
       end
     end

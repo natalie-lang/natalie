@@ -61,10 +61,13 @@ class TestCompiler2 < TestCase
 
   def test_optional_args
     assert_eq([1, 2], optional_left(1, 2))
+    assert_eq([nil, 2], optional_left(nil, 2))
     assert_eq([:default, 1], optional_left(1))
     assert_eq([1, 2, 3], optional_middle(1, 2, 3))
+    assert_eq([1, nil, 3], optional_middle(1, nil, 3))
     assert_eq([1, :default, 2], optional_middle(1, 2))
     assert_eq([1, 2], optional_right(1, 2))
+    assert_eq([1, nil], optional_right(1, nil))
     assert_eq([1, :default], optional_right(1))
   end
 

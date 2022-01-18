@@ -36,14 +36,20 @@ module Natalie
           @code << consume(code)
         end
 
+        def memoize(name, code)
+          result = temp(name)
+          @code << consume(code, "auto #{result} = ")
+          result
+        end
+
         def push(result)
           @stack << result
         end
 
         def exec_and_push(name, code)
-          result = temp(name)
-          @code << consume(code, "auto #{result} = ")
+          result = memoize(name, code)
           push(result)
+          result
         end
 
         def pop
