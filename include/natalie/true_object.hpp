@@ -37,6 +37,7 @@ public:
 
 private:
     inline static TrueObject *s_instance = nullptr;
+    inline static StringObject *s_string = nullptr;
 
     TrueObject()
         : Object { Object::Type::True, GlobalEnv::the()->Object()->const_fetch("TrueClass"_s)->as_class() } { }
