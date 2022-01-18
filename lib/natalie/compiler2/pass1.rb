@@ -132,6 +132,25 @@ module Natalie
         PushFalseInstruction.new
       end
 
+      def transform_dot2(exp, used:)
+        range_instructions(exp, used, exclude_end: false)
+      end
+
+      def transform_dot3(exp, used:)
+        range_instructions(exp, used, exclude_end: true)
+      end
+
+      def range_instructions(exp, used, exclude_end:)
+        _, beginning, ending = exp
+        instructions = [
+          transform_expression(ending || s(:nil), used: true),
+          transform_expression(beginning || s(:nil), used: true),
+          PushRangeInstruction.new(exclude_end),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_if(exp, used:)
         _, condition, true_expression, false_expression = exp
         true_instructions = transform_expression(true_expression || s(:nil), used: true)
@@ -171,6 +190,10 @@ module Natalie
       def transform_lit(exp, used:)
         return [] unless used
         _, lit = exp
+        lit_instructions(lit)
+      end
+
+      def lit_instructions(lit)
         case lit
         when Integer
           PushIntInstruction.new(lit)
@@ -178,6 +201,12 @@ module Natalie
           PushFloatInstruction.new(lit)
         when Symbol
           PushSymbolInstruction.new(lit)
+        when Range
+          [
+            lit_instructions(lit.end),
+            lit_instructions(lit.begin),
+            PushRangeInstruction.new(lit.exclude_end?),
+          ]
         else
           raise "I don't yet know how to handle lit: #{lit.inspect}"
         end
