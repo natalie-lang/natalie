@@ -1,5 +1,7 @@
 require_relative './instructions/array_pop_instruction'
+require_relative './instructions/array_pop_with_default_instruction'
 require_relative './instructions/array_shift_instruction'
+require_relative './instructions/array_shift_with_default_instruction'
 require_relative './instructions/const_find_instruction'
 require_relative './instructions/create_array_instruction'
 require_relative './instructions/define_block_instruction'

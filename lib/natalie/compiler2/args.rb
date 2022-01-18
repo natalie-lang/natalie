@@ -59,7 +59,7 @@ module Natalie
         end
         _, name, default_value = arg
         @instructions << @pass.transform_expression(default_value, used: true)
-        shift_or_pop_next_arg(with_default: true)
+        shift_or_pop_next_arg_with_default
         @instructions << VariableSetInstruction.new(name)
       end
 
@@ -75,11 +75,19 @@ module Natalie
         @instructions << VariableSetInstruction.new(arg)
       end
 
-      def shift_or_pop_next_arg(with_default: false)
+      def shift_or_pop_next_arg
         if @from_side == :left
-          @instructions << ArrayShiftInstruction.new(with_default: with_default)
+          @instructions << ArrayShiftInstruction.new
         else
-          @instructions << ArrayPopInstruction.new(with_default: with_default)
+          @instructions << ArrayPopInstruction.new
+        end
+      end
+
+      def shift_or_pop_next_arg_with_default
+        if @from_side == :left
+          @instructions << ArrayShiftWithDefaultInstruction.new
+        else
+          @instructions << ArrayPopWithDefaultInstruction.new
         end
       end
     end
