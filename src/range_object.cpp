@@ -64,6 +64,9 @@ Value RangeObject::each(Env *env, Block *block) {
 }
 
 Value RangeObject::first(Env *env, Value n) {
+    if (m_begin->is_nil()) {
+        env->raise("RangeError", "cannot get the first element of beginless range");
+    }
     if (n) {
         if (n->respond_to(env, "to_int"_s)) {
             n = n->send(env, "to_int"_s);
@@ -121,6 +124,12 @@ Value RangeObject::inspect(Env *env) {
             }
         }
     }
+}
+
+Value RangeObject::to_s(Env *env) {
+    auto begin = m_begin->send(env, "to_s"_s)->as_string();
+    auto end = m_end->send(env, "to_s"_s)->as_string();
+    return StringObject::format(env, m_exclude_end ? "{}...{}" : "{}..{}", begin, end);
 }
 
 bool RangeObject::eq(Env *env, Value other_value) {

@@ -48,7 +48,8 @@ describe "Module#module_function with specific method names" do
   end
 
   ruby_version_is "3.1" do
-    it "returns argument or arguments if given" do
+    # NATFIXME: Support Ruby 3.1.0
+    xit "returns argument or arguments if given" do
       Module.new do
         def foo; end
         module_function(:foo).should equal(:foo)
@@ -179,7 +180,8 @@ describe "Module#module_function as a toggle (no arguments) in a Module body" do
   end
 
   ruby_version_is "3.1" do
-    it "returns nil" do
+    # NATFIXME: Support Ruby 3.1.0
+    xit "returns nil" do
       Module.new do
         module_function.should equal(nil)
       end

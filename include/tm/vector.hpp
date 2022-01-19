@@ -231,7 +231,7 @@ private:
     void grow(size_t capacity) {
         if (m_capacity >= capacity)
             return;
-        m_data = static_cast<T *>(reallocarray(m_data, capacity, sizeof(T)));
+        m_data = static_cast<T *>(realloc(m_data, capacity * sizeof(T)));
         m_capacity = capacity;
     }
 
