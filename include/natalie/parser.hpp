@@ -208,6 +208,7 @@ private:
     Node *parse_array(LocalsHashmap &);
     Node *parse_begin(LocalsHashmap &);
     void parse_rest_of_begin(BeginNode *, LocalsHashmap &);
+    Node *parse_beginless_range(LocalsHashmap &);
     Node *parse_block_pass(LocalsHashmap &);
     Node *parse_bool(LocalsHashmap &);
     Node *parse_break(LocalsHashmap &);
