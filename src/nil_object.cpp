@@ -15,7 +15,9 @@ Value NilObject::eqtilde(Env *env, Value) {
 }
 
 Value NilObject::to_s(Env *env) {
-    return new StringObject { "" };
+    if (!s_string)
+        s_string = new StringObject { "" };
+    return s_string;
 }
 
 Value NilObject::to_a(Env *env) {
@@ -36,6 +38,12 @@ Value NilObject::to_i(Env *env) {
 
 Value NilObject::inspect(Env *env) {
     return new StringObject { "nil" };
+}
+
+void NilObject::visit_children(Visitor &visitor) {
+    Object::visit_children(visitor);
+    if (s_string)
+        visitor.visit(s_string);
 }
 
 }
