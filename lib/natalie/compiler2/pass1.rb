@@ -139,24 +139,14 @@ module Natalie
 
       def transform_if(exp, used:)
         _, condition, true_expression, false_expression = exp
-        true_instructions =
-          if true_expression
-            transform_expression(true_expression, used: true)
-          else
-            PushNilInstruction.new
-          end
-        false_instructions =
-          if false_expression
-            transform_expression(false_expression, used: true)
-          else
-            PushNilInstruction.new
-          end
+        true_instructions = transform_expression(true_expression || s(:nil), used: true)
+        false_instructions = transform_expression(false_expression || s(:nil), used: true)
         instructions = [
           transform_expression(condition, used: true),
           IfInstruction.new,
-          Array(true_instructions),
+          true_instructions,
           ElseInstruction.new,
-          Array(false_instructions),
+          false_instructions,
           EndInstruction.new(:if),
         ]
         instructions << PopInstruction.new unless used
