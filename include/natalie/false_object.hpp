@@ -26,6 +26,8 @@ public:
     bool or_method(Env *, Value);
     Value to_s(Env *);
 
+    virtual void visit_children(Visitor &visitor) override final;
+
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<FalseObject %p>", this);
     }
@@ -36,6 +38,7 @@ public:
 
 private:
     inline static FalseObject *s_instance = nullptr;
+    inline static StringObject *s_string = nullptr;
 
     FalseObject()
         : Object { Object::Type::False, GlobalEnv::the()->Object()->const_fetch("FalseClass"_s)->as_class() } { }
