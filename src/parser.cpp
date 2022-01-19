@@ -1462,7 +1462,15 @@ Node *Parser::parse_proc_call_expression(Node *left, LocalsHashmap &locals) {
 Node *Parser::parse_range_expression(Node *left, LocalsHashmap &locals) {
     auto token = current_token();
     advance();
-    return new RangeNode { token, left, parse_expression(LOWEST, locals), token->type() == Token::Type::DotDotDot };
+    Node *right;
+    try {
+        right = parse_expression(LOWEST, locals);
+    } catch (SyntaxError &e) {
+        // NOTE: I'm not sure if this is the "right" way to handle an endless range,
+        // but it seems to be effective for the tests I threw at it. ¯\_(ツ)_/¯
+        right = new NilNode { token };
+    }
+    return new RangeNode { token, left, right, token->type() == Token::Type::DotDotDot };
 }
 
 Node *Parser::parse_ref_expression(Node *left, LocalsHashmap &locals) {

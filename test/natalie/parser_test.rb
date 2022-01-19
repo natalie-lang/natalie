@@ -769,6 +769,12 @@ describe 'Parser' do
       Parser.parse('..3').should == s(:block, s(:dot2, nil, s(:lit, 3)))
       Parser.parse('(..3)').should == s(:block, s(:dot2, nil, s(:lit, 3)))
       Parser.parse('x = ...3').should == s(:block, s(:lasgn, :x, s(:dot3, nil, s(:lit, 3))))
+      Parser.parse('4..').should == s(:block, s(:dot2, s(:lit, 4), nil))
+      Parser.parse('(4..)').should == s(:block, s(:dot2, s(:lit, 4), nil))
+      Parser.parse("4..\n5").should == s(:block, s(:lit, 4..5))
+      Parser.parse("4..\nfoo").should == s(:block, s(:dot2, s(:lit, 4), s(:call, nil, :foo)))
+      Parser.parse("(4..) * 5").should == s(:block, s(:call, s(:dot2, s(:lit, 4), nil), :*, s(:lit, 5)))
+      Parser.parse('x = (4..)').should == s(:block, s(:lasgn, :x, s(:dot2, s(:lit, 4), nil)))
     end
 
     it 'parses return' do
