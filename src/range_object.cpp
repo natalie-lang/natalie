@@ -64,6 +64,9 @@ Value RangeObject::each(Env *env, Block *block) {
 }
 
 Value RangeObject::first(Env *env, Value n) {
+    if (m_begin->is_nil()) {
+        env->raise("RangeError", "cannot get the first element of beginless range");
+    }
     if (n) {
         if (n->respond_to(env, "to_int"_s)) {
             n = n->send(env, "to_int"_s);
