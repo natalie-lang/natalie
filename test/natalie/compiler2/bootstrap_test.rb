@@ -11,6 +11,10 @@ class TestCase
     end
   end
 
+  def fail
+    raise 'test failed'
+  end
+
   def run
     tests = methods.select { |m| m.start_with?('test_') }
     tests.each do |method|
@@ -69,6 +73,25 @@ class TestCompiler2 < TestCase
     assert_eq([1, 2], optional_right(1, 2))
     assert_eq([1, nil], optional_right(1, nil))
     assert_eq([1, :default], optional_right(1))
+  end
+
+  def test_and
+    assert_eq(true && true, true)
+    assert_eq(true && false, false)
+    assert_eq(true && nil, nil)
+    assert_eq(false && nil, false)
+    assert_eq(nil && false, nil)
+    false && fail
+  end
+
+  def test_or
+    assert_eq(false || true, true)
+    assert_eq(false || false, false)
+    assert_eq(false || nil, nil)
+    assert_eq(true || nil, true)
+    assert_eq(false || 1337, 1337)
+    assert_eq(nil || :foo, :foo)
+    true || fail
   end
 
   private

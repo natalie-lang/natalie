@@ -2,7 +2,7 @@ module Natalie
   class Compiler2
     class CppBackend
       class Transform
-        def initialize(instructions, top:, compiler_context:, env: nil, parent_env: nil)
+        def initialize(instructions, stack: [], top:, compiler_context:, env: nil, parent_env: nil)
           @instructions = InstructionManager.new(instructions)
           @result_stack = []
           @top = top
@@ -13,7 +13,7 @@ module Natalie
           else
             @env = { vars: {}, parent: parent_env }
           end
-          @stack = []
+          @stack = stack
         end
 
         def ip
@@ -92,7 +92,7 @@ module Natalie
         end
 
         def with_same_scope(instructions)
-          t = Transform.new(instructions, top: @top, compiler_context: @compiler_context, env: @env)
+          t = Transform.new(instructions, stack: @stack.dup, top: @top, compiler_context: @compiler_context, env: @env)
           yield(t)
         end
 

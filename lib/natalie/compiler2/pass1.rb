@@ -36,6 +36,23 @@ module Natalie
       # INDIVIDUAL EXPRESSIONS = = = = =
       # (in alphabetical order)
 
+      def transform_and(exp, used:)
+        _, lhs, rhs = exp
+        lhs_instructions = transform_expression(lhs, used: true)
+        rhs_instructions = transform_expression(rhs, used: true)
+        instructions = [
+          lhs_instructions,
+          DupInstruction.new,
+          IfInstruction.new,
+          PopInstruction.new,
+          rhs_instructions,
+          ElseInstruction.new,
+          EndInstruction.new(:if),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_array(exp, used:)
         _, *items = exp
         instructions = items.map { |item| transform_expression(item, used: true) }
@@ -110,10 +127,15 @@ module Natalie
       # TODO: might need separate logic?
       alias transform_block_args transform_defn_args
 
+      def transform_false(_, used:)
+        return [] unless used
+        PushFalseInstruction.new
+      end
+
       def transform_if(exp, used:)
         _, condition, true_expression, false_expression = exp
-        true_instructions = Array(transform_expression(true_expression, used: true))
-        false_instructions = Array(transform_expression(false_expression || s(:nil), used: true))
+        true_instructions = transform_expression(true_expression, used: true)
+        false_instructions = transform_expression(false_expression || s(:nil), used: true)
         instructions = [
           transform_expression(condition, used: true),
           IfInstruction.new,
@@ -172,6 +194,23 @@ module Natalie
         PushNilInstruction.new
       end
 
+      def transform_or(exp, used:)
+        _, lhs, rhs = exp
+        lhs_instructions = transform_expression(lhs, used: true)
+        rhs_instructions = transform_expression(rhs, used: true)
+        instructions = [
+          lhs_instructions,
+          DupInstruction.new,
+          IfInstruction.new,
+          ElseInstruction.new,
+          PopInstruction.new,
+          rhs_instructions,
+          EndInstruction.new(:if),
+        ]
+        instructions << PopInstruction.new unless used
+        instructions
+      end
+
       def transform_self(_, used:)
         return [] unless used
         PushSelfInstruction.new
@@ -182,6 +221,12 @@ module Natalie
         _, str = exp
         PushStringInstruction.new(str, str.size)
       end
+
+      def transform_true(_, used:)
+        return [] unless used
+        PushTrueInstruction.new
+      end
+
     end
   end
 end
