@@ -37,14 +37,17 @@ module Natalie
       # (in alphabetical order)
 
       def transform_and(exp, used:)
-        _, arg1, arg2 = exp
-        arg1_instructions = Array(transform_expression(arg1, used: true))
-        arg2_instructions = Array(transform_expression(arg2, used: true))
+        _, lhs, rhs = exp
+        lhs_instructions = transform_expression(lhs, used: true)
+        rhs_instructions = transform_expression(rhs, used: true)
         instructions = [
-          arg1_instructions,
-          AndInstruction.new,
-          arg2_instructions,
-          EndInstruction.new(:and)
+          lhs_instructions,
+          DupInstruction.new,
+          IfInstruction.new,
+          PopInstruction.new,
+          rhs_instructions,
+          ElseInstruction.new,
+          EndInstruction.new(:if),
         ]
         instructions << PopInstruction.new unless used
         instructions
@@ -131,8 +134,8 @@ module Natalie
 
       def transform_if(exp, used:)
         _, condition, true_expression, false_expression = exp
-        true_instructions = Array(transform_expression(true_expression, used: true))
-        false_instructions = Array(transform_expression(false_expression || s(:nil), used: true))
+        true_instructions = transform_expression(true_expression, used: true)
+        false_instructions = transform_expression(false_expression || s(:nil), used: true)
         instructions = [
           transform_expression(condition, used: true),
           IfInstruction.new,
@@ -192,14 +195,17 @@ module Natalie
       end
 
       def transform_or(exp, used:)
-        _, arg1, arg2 = exp
-        arg1_instructions = Array(transform_expression(arg1, used: true))
-        arg2_instructions = Array(transform_expression(arg2, used: true))
+        _, lhs, rhs = exp
+        lhs_instructions = transform_expression(lhs, used: true)
+        rhs_instructions = transform_expression(rhs, used: true)
         instructions = [
-          arg1_instructions,
-          OrInstruction.new,
-          arg2_instructions,
-          EndInstruction.new(:or)
+          lhs_instructions,
+          DupInstruction.new,
+          IfInstruction.new,
+          ElseInstruction.new,
+          PopInstruction.new,
+          rhs_instructions,
+          EndInstruction.new(:if),
         ]
         instructions << PopInstruction.new unless used
         instructions
