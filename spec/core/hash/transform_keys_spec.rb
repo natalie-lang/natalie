@@ -76,7 +76,8 @@ describe "Hash#transform_keys!" do
   end
 
   ruby_version_is "3.0.2" do
-    it "returns the processed keys and non evaluated keys if we break from the block" do
+    # NATFIXME: Support Ruby 3.1.0
+    xit "returns the processed keys and non evaluated keys if we break from the block" do
       @hash.transform_keys! do |v|
         break if v == :c
         v.succ
