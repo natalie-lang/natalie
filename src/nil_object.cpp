@@ -34,6 +34,10 @@ Value NilObject::to_i(Env *env) {
     return Value::integer(0);
 }
 
+Value NilObject::to_r(Env *env) {
+    return new RationalObject { new IntegerObject { 0 }, new IntegerObject { 1 } };
+}
+
 Value NilObject::inspect(Env *env) {
     return new StringObject { "nil" };
 }
