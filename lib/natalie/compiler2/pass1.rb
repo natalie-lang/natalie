@@ -129,7 +129,7 @@ module Natalie
 
       def transform_false(_, used:)
         return [] unless used
-        PushBoolInstruction.new(false)
+        PushFalseInstruction.new
       end
 
       def transform_if(exp, used:)
@@ -224,7 +224,7 @@ module Natalie
 
       def transform_true(_, used:)
         return [] unless used
-        PushBoolInstruction.new(true)
+        PushTrueInstruction.new
       end
 
     end
