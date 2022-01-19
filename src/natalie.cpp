@@ -202,7 +202,7 @@ Env *build_top_env() {
     ClassObject *Sexp = Array->subclass(env, "Sexp", Object::Type::Array);
     Object->const_set("Sexp"_s, Sexp);
 
-    Value RUBY_VERSION = new StringObject { "3.0.0" };
+    Value RUBY_VERSION = new StringObject { "3.1.0" };
     Object->const_set("RUBY_VERSION"_s, RUBY_VERSION);
 
     Value RUBY_COPYRIGHT = new StringObject { "natalie - Copyright (c) 2021 Tim Morgan and contributors" };

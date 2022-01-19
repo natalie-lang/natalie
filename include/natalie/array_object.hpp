@@ -74,8 +74,8 @@ public:
     Value first();
     Value last();
 
-    Value pop() { return m_vector.pop(); }
-    Value shift() { return m_vector.pop_front(); }
+    Value pop();
+    Value shift();
 
     Value &at(size_t index) const {
         assert(index < m_vector.size());

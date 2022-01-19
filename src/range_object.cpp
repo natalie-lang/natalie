@@ -64,6 +64,9 @@ Value RangeObject::each(Env *env, Block *block) {
 }
 
 Value RangeObject::first(Env *env, Value n) {
+    if (m_begin->is_nil()) {
+        env->raise("RangeError", "cannot get the first element of beginless range");
+    }
     if (n) {
         if (n->respond_to(env, "to_int"_s)) {
             n = n->send(env, "to_int"_s);
@@ -123,6 +126,12 @@ Value RangeObject::inspect(Env *env) {
     }
 }
 
+Value RangeObject::to_s(Env *env) {
+    auto begin = m_begin->send(env, "to_s"_s)->as_string();
+    auto end = m_end->send(env, "to_s"_s)->as_string();
+    return StringObject::format(env, m_exclude_end ? "{}...{}" : "{}..{}", begin, end);
+}
+
 bool RangeObject::eq(Env *env, Value other_value) {
     if (other_value->is_range()) {
         RangeObject *other = other_value->as_range();
@@ -130,6 +139,20 @@ bool RangeObject::eq(Env *env, Value other_value) {
         Value end = other->end();
         bool begin_equal = m_begin.send(env, "=="_s, { begin })->is_truthy();
         bool end_equal = m_end.send(env, "=="_s, { end })->is_truthy();
+        if (begin_equal && end_equal && m_exclude_end == other->m_exclude_end) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool RangeObject::eql(Env *env, Value other_value) {
+    if (other_value->is_range()) {
+        RangeObject *other = other_value->as_range();
+        Value begin = other->begin();
+        Value end = other->end();
+        bool begin_equal = m_begin.send(env, "eql?"_s, { begin })->is_truthy();
+        bool end_equal = m_end.send(env, "eql?"_s, { end })->is_truthy();
         if (begin_equal && end_equal && m_exclude_end == other->m_exclude_end) {
             return true;
         }
