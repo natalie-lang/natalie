@@ -146,6 +146,20 @@ bool RangeObject::eq(Env *env, Value other_value) {
     return false;
 }
 
+bool RangeObject::eql(Env *env, Value other_value) {
+    if (other_value->is_range()) {
+        RangeObject *other = other_value->as_range();
+        Value begin = other->begin();
+        Value end = other->end();
+        bool begin_equal = m_begin.send(env, "eql?"_s, { begin })->is_truthy();
+        bool end_equal = m_end.send(env, "eql?"_s, { end })->is_truthy();
+        if (begin_equal && end_equal && m_exclude_end == other->m_exclude_end) {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool RangeObject::eqeqeq(Env *env, Value arg) {
     if (m_begin->type() == Object::Type::Integer && arg->is_integer()) {
         // optimized path for integer ranges

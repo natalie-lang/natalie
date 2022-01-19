@@ -773,6 +773,7 @@ begin
   gen.binding('Range', '==', 'RangeObject', 'eq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
   gen.binding('Range', '===', 'RangeObject', 'eqeqeq', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
   gen.binding('Range', 'include?', 'RangeObject', 'include', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
+  gen.binding('Range', 'eql?', 'RangeObject', 'eql', argc: 1, pass_env: true, pass_block: false, return_type: :bool)
   gen.binding('Range', 'to_s', 'RangeObject', 'to_s', argc: 0, pass_env: true, pass_block: false, return_type: :Object)
 
   gen.undefine_singleton_method('Rational', 'new')
