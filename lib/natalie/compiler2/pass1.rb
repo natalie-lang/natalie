@@ -26,11 +26,11 @@ module Natalie
 
       private
 
-      def transform_array_of_expressions(array_of_expressions, used:)
-        instructions = []
-        array_of_expressions[0...-1].each { |exp| instructions << transform_expression(exp, used: false) }
-        instructions << transform_expression(array_of_expressions.last, used: used) if array_of_expressions.last
-        instructions.flatten
+      def transform_body(body, used:)
+        *body, last = body
+        instructions = body.map { |exp| transform_expression(exp, used: false) }
+        instructions << transform_expression(last || s(:nil), used: used)
+        instructions
       end
 
       # INDIVIDUAL EXPRESSIONS = = = = =
@@ -61,7 +61,7 @@ module Natalie
 
       def transform_block(exp, used:)
         _, *body = exp
-        transform_array_of_expressions(body, used: used)
+        transform_body(body, used: used)
       end
 
       def transform_call(exp, used:, with_block: false)
@@ -87,9 +87,9 @@ module Natalie
           instructions << ConstFindInstruction.new('Object')
         end
         instructions << DefineClassInstruction.new(name: name)
-        instructions += transform_array_of_expressions(body, used: false)
+        instructions += transform_body(body, used: true)
         instructions << EndInstruction.new(:define_class)
-        instructions << PushNilInstruction.new if used
+        instructions << PopInstruction.new unless used
         instructions
       end
 
@@ -105,7 +105,7 @@ module Natalie
         instructions = []
         instructions << DefineMethodInstruction.new(name: name, arity: arity)
         instructions << transform_defn_args(args, used: true)
-        instructions += transform_array_of_expressions(body, used: true)
+        instructions += transform_body(body, used: true)
         instructions << EndInstruction.new(:define_method)
         instructions << PopInstruction.new unless used
         instructions
