@@ -10,8 +10,7 @@ describe "TrueClass#to_s" do
       true.to_s.should.frozen?
     end
 
-    # NATFIXME: TrueClass#to_s should always return the same string
-    xit "always returns the same string" do
+    it "always returns the same string" do
       true.to_s.should equal(true.to_s)
     end
   end

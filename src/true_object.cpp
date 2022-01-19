@@ -15,7 +15,15 @@ bool TrueObject::xor_method(Env *env, Value other) {
 }
 
 Value TrueObject::to_s(Env *env) {
-    return new StringObject { "true" };
+    if (!s_string)
+        s_string = new StringObject { "true" };
+    return s_string;
+}
+
+void TrueObject::visit_children(Visitor &visitor) {
+    Object::visit_children(visitor);
+    if (s_string)
+        visitor.visit(s_string);
 }
 
 }
