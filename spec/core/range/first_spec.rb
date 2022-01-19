@@ -48,8 +48,7 @@ describe "Range#first" do
   end
 
   ruby_version_is "2.7" do
-    # TODO: implement beginless ranges
-    xit "raises a RangeError when called on an beginless range" do
+    it "raises a RangeError when called on an beginless range" do
       -> { eval("(..1)").first }.should raise_error(RangeError)
     end
   end
