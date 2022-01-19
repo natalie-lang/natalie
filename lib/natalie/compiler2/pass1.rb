@@ -134,7 +134,7 @@ module Natalie
 
       def transform_if(exp, used:)
         _, condition, true_expression, false_expression = exp
-        true_instructions = transform_expression(true_expression, used: true)
+        true_instructions = transform_expression(true_expression || s(:nil), used: true)
         false_instructions = transform_expression(false_expression || s(:nil), used: true)
         instructions = [
           transform_expression(condition, used: true),

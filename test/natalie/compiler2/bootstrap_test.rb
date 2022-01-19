@@ -5,7 +5,7 @@ class TestCase
     if expected != actual
       print 'expected: '
       p expected
-      print 'actual: '
+      print '  actual: '
       p actual
       raise 'test failed'
     end
@@ -49,6 +49,14 @@ class TestCompiler2 < TestCase
       f = 'f'
     end
     assert_eq(%w[t f], [t, f])
+
+    x = nil
+    if nil
+      # do nothing
+    else
+      x = 'x'
+    end
+    assert_eq('x', x)
   end
 
   def test_splat_args
