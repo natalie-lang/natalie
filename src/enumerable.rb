@@ -879,8 +879,7 @@ module Enumerable
   end
 
   def take_while
-    has_block = block_given?
-    raise ArgumentError, 'called without a block' unless has_block
+    return enum_for(:take_while) { nil } unless block_given?
 
     result = []
     broken_value =
