@@ -33,8 +33,7 @@ module Natalie
         code << "auto #{klass} = #{superclass}->as_class()->subclass(env, #{@name.to_s.inspect})"
         code << "self->const_set(#{@name.to_s.inspect}_s, #{klass})"
         code << "#{klass}->eval_body(env, #{fn})"
-        transform.exec(code)
-        transform.push('NilObject::the()')
+        transform.exec_and_push(:result_of_define_class, code)
       end
 
       def execute(vm)

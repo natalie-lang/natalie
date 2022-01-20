@@ -333,11 +333,16 @@ ArrayObject *to_ary(Env *env, Value obj, bool raise_for_non_array) {
 
 static Value splat_value(Env *env, Value value, size_t index, size_t offset_from_end, bool has_kwargs) {
     ArrayObject *splat = new ArrayObject {};
-    if (has_kwargs && value->is_array() && value->as_array()->last()->is_hash())
+    if (!value->is_array())
+        return splat;
+    auto array = value->as_array();
+    if (has_kwargs && array->last()->is_hash())
         offset_from_end += 1; // compensate for kwargs hash that was passed as the last argument
-    if (value->is_array() && index < value->as_array()->size() - offset_from_end) {
-        for (size_t s = index; s < value->as_array()->size() - offset_from_end; s++) {
-            splat->push((*value->as_array())[s]);
+    if (array->size() < offset_from_end)
+        return splat;
+    if (index < array->size() - offset_from_end) {
+        for (size_t s = index; s < array->size() - offset_from_end; s++) {
+            splat->push((*array)[s]);
         }
     }
     return splat;
