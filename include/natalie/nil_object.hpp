@@ -32,6 +32,8 @@ public:
     Value to_i(Env *);
     Value inspect(Env *);
 
+    virtual void visit_children(Visitor &visitor) override final;
+
     virtual void gc_inspect(char *buf, size_t len) const override {
         snprintf(buf, len, "<NilObject %p>", this);
     }
@@ -42,6 +44,7 @@ public:
 
 private:
     inline static NilObject *s_instance = nullptr;
+    inline static StringObject *s_string = nullptr;
 
     NilObject()
         : Object { Object::Type::Nil, GlobalEnv::the()->Object()->const_fetch("NilClass"_s)->as_class() } { }
