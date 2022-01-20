@@ -14,6 +14,10 @@ Value NilObject::eqtilde(Env *env, Value) {
     return NilObject::the();
 }
 
+Value NilObject::rationalize(Env *env, Value) {
+    return this->to_r(env);
+}
+
 Value NilObject::to_s(Env *env) {
     if (!s_string)
         s_string = new StringObject { "" };
