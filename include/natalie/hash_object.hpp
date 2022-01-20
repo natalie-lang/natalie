@@ -60,6 +60,10 @@ public:
 
     static Value square_new(Env *, size_t argc, Value *args, ClassObject *klass);
 
+    static Value size_fn(Env *env, Value self, size_t, Value *, Block *) {
+        return self->as_hash()->size(env);
+    }
+
     static size_t hash(const void *);
     static bool compare(const void *, const void *, void *);
 

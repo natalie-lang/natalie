@@ -332,8 +332,10 @@ Value HashObject::replace(Env *env, Value other) {
 }
 
 Value HashObject::delete_if(Env *env, Block *block) {
-    if (!block)
-        return send(env, "enum_for"_s, { "delete_if"_s });
+    if (!block) {
+        Block *size_block = new Block { env, this, HashObject::size_fn, 0 };
+        return send(env, "enum_for"_s, { "delete_if"_s }, size_block);
+    }
 
     assert_not_frozen(env);
     for (auto &node : *this) {
@@ -467,8 +469,10 @@ bool HashObject::lt(Env *env, Value other) {
 }
 
 Value HashObject::each(Env *env, Block *block) {
-    if (!block)
-        return send(env, "enum_for"_s, { "each"_s });
+    if (!block) {
+        Block *size_block = new Block { env, this, HashObject::size_fn, 0 };
+        return send(env, "enum_for"_s, { "each"_s }, size_block);
+    }
 
     Value block_args[2];
     set_is_iterating(true);
@@ -529,8 +533,10 @@ Value HashObject::keys(Env *env) {
 }
 
 Value HashObject::keep_if(Env *env, Block *block) {
-    if (!block)
-        return send(env, "enum_for"_s, { "keep_if"_s });
+    if (!block) {
+        Block *size_block = new Block { env, this, HashObject::size_fn, 0 };
+        return send(env, "enum_for"_s, { "keep_if"_s }, size_block);
+    }
 
     assert_not_frozen(env);
     for (auto &node : *this) {

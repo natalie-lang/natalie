@@ -187,13 +187,7 @@ module Enumerable
 
     raise ArgumentError, 'invalid size' if n <= 0
 
-    unless block_given?
-      return(
-        enum_for(:each_cons, n) do
-          n.is_a?(Integer) && respond_to?(:size) && size ? [size - n + 1, 0].max : Float::INFINITY
-        end
-      )
-    end
+    return enum_for(:each_cons, n) { respond_to?(:size) ? [size - n + 1, 0].max : nil } unless block_given?
 
     cons = []
     e = enum_for(:each)
@@ -217,7 +211,7 @@ module Enumerable
   end
 
   def each_entry(*args)
-    return enum_for(:each_entry, *args) unless block_given?
+    return enum_for(:each_entry, *args) { respond_to?(:size) ? size : nil } unless block_given?
 
     gather = ->(item) { item.size <= 1 ? item.first : item }
 
@@ -230,13 +224,7 @@ module Enumerable
     count = count.to_int
     raise ArgumentError, 'invalid slice size' if count < 1
 
-    unless block_given?
-      return(
-        enum_for(:each_slice, count) do
-          count.is_a?(Integer) && respond_to?(:size) && size ? (size / count.to_f).ceil : Float::INFINITY
-        end
-      )
-    end
+    return enum_for(:each_slice, count) { respond_to?(:size) ? (size / count.to_f).ceil : nil } unless block_given?
 
     slice = []
     each do |*items|
@@ -251,7 +239,7 @@ module Enumerable
   end
 
   def each_with_index(*args)
-    return enum_for(:each_with_index, *args) unless block_given?
+    return enum_for(:each_with_index, *args) { respond_to?(:size) ? size : nil } unless block_given?
 
     index = 0
     gather = ->(item) { item.size <= 1 ? item.first : item }
@@ -263,7 +251,7 @@ module Enumerable
   end
 
   def each_with_object(obj)
-    return enum_for(:each_with_object, obj) unless block_given?
+    return enum_for(:each_with_object, obj) { respond_to?(:size) ? size : nil } unless block_given?
 
     each do |*items|
       if items.size > 1
@@ -332,7 +320,7 @@ module Enumerable
   end
 
   def group_by
-    return enum_for(:group_by) unless block_given?
+    return enum_for(:group_by) { respond_to?(:size) ? size : nil } unless block_given?
 
     result = Hash.new
     each do |*items|
@@ -447,7 +435,7 @@ module Enumerable
   end
 
   def max_by(n = nil)
-    return enum_for(:max_by) unless block_given?
+    return enum_for(:max_by) { respond_to?(:size) ? size : nil } unless block_given?
     if n
       to_a.sort_by { |a| yield a }.last(n).reverse
     else
@@ -508,7 +496,7 @@ module Enumerable
   end
 
   def min_by(n = nil)
-    return enum_for(:min_by) unless block_given?
+    return enum_for(:min_by) { respond_to?(:size) ? size : nil } unless block_given?
     if n
       to_a.sort_by { |a| yield a }.take(n)
     else
@@ -556,13 +544,13 @@ module Enumerable
   end
 
   def minmax_by(&block)
-    return enum_for(:minmax_by) unless block_given?
+    return enum_for(:minmax_by) { respond_to?(:size) ? size : nil } unless block_given?
 
     minmax { |a, b| yield(a) <=> yield(b) }
   end
 
   def reject
-    return enum_for(:reject) unless block_given?
+    return enum_for(:reject) { respond_to?(:size) ? size : nil } unless block_given?
 
     ary = []
 
@@ -574,7 +562,7 @@ module Enumerable
   end
 
   def reverse_each(*args)
-    return enum_for(:reverse_each, *args) unless block_given?
+    return enum_for(:reverse_each, *args) { respond_to?(:size) ? size : nil } unless block_given?
 
     ary = []
     each(*args) { |*item| ary << item }
@@ -585,7 +573,7 @@ module Enumerable
   end
 
   def partition
-    return enum_for(:partition) unless block_given?
+    return enum_for(:partition) { respond_to?(:size) ? size : nil } unless block_given?
 
     gather = ->(obj) { obj.size <= 1 ? obj.first : obj }
 
@@ -596,7 +584,7 @@ module Enumerable
   end
 
   def select
-    return enum_for(:select) unless block_given?
+    return enum_for(:select) { respond_to?(:size) ? size : nil } unless block_given?
 
     ary = []
 
@@ -610,7 +598,7 @@ module Enumerable
   alias filter select
 
   def collect
-    return enum_for(:map) unless block_given?
+    return enum_for(:map) { respond_to?(:size) ? size : nil } unless block_given?
 
     ary = []
     each { |*items| items.size > 1 ? ary << yield(*items) : ary << yield(items.first) }
@@ -620,7 +608,7 @@ module Enumerable
   alias map collect
 
   def collect_concat
-    return enum_for(:collect_concat) unless block_given?
+    return enum_for(:collect_concat) { respond_to?(:size) ? size : nil } unless block_given?
 
     ary = []
     each do |*items|
@@ -665,9 +653,7 @@ module Enumerable
 
   def cycle(n = nil)
     unless block_given?
-      return(
-        enum_for(:cycle, n) { n.is_a?(Integer) && respond_to?(:size) && size ? [n * size, 0].max : Float::INFINITY }
-      )
+      return enum_for(:cycle, n) { (n.is_a?(Integer) ? [n * size, 0].max : Float::INFINITY) if respond_to?(:size) }
     end
 
     return if n.is_a?(Integer) && n <= 0
@@ -858,6 +844,7 @@ module Enumerable
   end
 
   def sort_by(&block)
+    return to_enum(:sort_by) { respond_to?(:size) ? size : nil } unless block_given?
     to_a.sort_by!(&block)
   end
 
