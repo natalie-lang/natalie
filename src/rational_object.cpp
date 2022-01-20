@@ -27,4 +27,8 @@ Value RationalObject::numerator(Env *env) {
     return m_numerator;
 }
 
+Value RationalObject::to_s(Env *env) {
+    return StringObject::format(env, "{}/{}", m_numerator->inspect_str(env), m_denominator->inspect_str(env));
+}
+
 }
