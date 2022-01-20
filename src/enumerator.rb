@@ -112,6 +112,7 @@ class Enumerator
   end
 
   def size
+    return @size.call if @size.respond_to?(:call)
     @size
   end
 
