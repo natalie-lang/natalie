@@ -30,6 +30,7 @@ public:
     Value to_h(Env *);
     Value to_f(Env *);
     Value to_i(Env *);
+    Value to_r(Env *);
     Value inspect(Env *);
 
     virtual void visit_children(Visitor &visitor) override final;
