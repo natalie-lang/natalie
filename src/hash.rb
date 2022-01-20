@@ -32,13 +32,13 @@ class Hash
   alias index key
 
   def each_key
-    return enum_for(:each_key) unless block_given?
+    return enum_for(:each_key) { size } unless block_given?
 
     each { |key, _| yield key }
   end
 
   def each_value
-    return enum_for(:each_value) unless block_given?
+    return enum_for(:each_value) { size } unless block_given?
 
     each { |_, value| yield value }
   end
@@ -59,13 +59,13 @@ class Hash
   end
 
   def reject(&block)
-    return enum_for(:reject) unless block_given?
+    return enum_for(:reject) { size } unless block_given?
 
     dup.tap { |new_hash| new_hash.reject!(&block) }
   end
 
   def reject!(&block)
-    return enum_for(:reject!) unless block_given?
+    return enum_for(:reject!) { size } unless block_given?
 
     raise FrozenError, "can't modify frozen #{self.class.name}: #{inspect}" if frozen?
 
@@ -81,14 +81,14 @@ class Hash
   end
 
   def select(&block)
-    return enum_for(:select) unless block_given?
+    return enum_for(:select) { size } unless block_given?
 
     dup.tap { |new_hash| new_hash.select!(&block) }
   end
   alias filter select
 
   def select!(&block)
-    return enum_for(:select!) unless block_given?
+    return enum_for(:select!) { size } unless block_given?
 
     raise FrozenError, "can't modify frozen #{self.class.name}: #{inspect}" if frozen?
 

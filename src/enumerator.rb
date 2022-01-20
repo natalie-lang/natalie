@@ -129,24 +129,13 @@ class Enumerator
       end
     end
 
-    if block_given?
-      convert_offset.()
-      each do |item|
-        yield item, offset
-        offset += 1
-      end
-      self
-    else
-      Enumerator.new do |yielder|
-        convert_offset.()
-        the_proc = yielder.to_proc || ->(*i) { yielder.yield(*i) }
-
-        each do |item|
-          the_proc.(item, offset)
-          offset += 1
-        end
-      end
+    return to_enum(:with_index, offset) { respond_to?(:size) ? size : @size } unless block_given?
+    convert_offset.()
+    each do |item|
+      yield item, offset
+      offset += 1
     end
+    self
   end
 
   class Lazy < Enumerator

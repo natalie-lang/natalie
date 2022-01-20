@@ -59,6 +59,10 @@ public:
         return new ArrayObject { argc, args, klass };
     }
 
+    static Value size_fn(Env *, Value self, size_t, Value *, Block *) {
+        return Value::integer(self->as_array()->size());
+    }
+
     Value to_ary_method() { return this; }
 
     size_t size() const { return m_vector.size(); }

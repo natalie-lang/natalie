@@ -413,8 +413,10 @@ bool ArrayObject::eql(Env *env, Value other) {
 }
 
 Value ArrayObject::each(Env *env, Block *block) {
-    if (!block)
-        return send(env, "enum_for"_s, { "each"_s });
+    if (!block) {
+        Block *size_block = new Block { env, this, ArrayObject::size_fn, 0 };
+        return send(env, "enum_for"_s, { "each"_s }, size_block);
+    }
 
     for (size_t i = 0; i < size(); ++i) {
         NAT_RUN_BLOCK_AND_POSSIBLY_BREAK(env, block, 1, &(*this)[i], nullptr);
@@ -423,8 +425,10 @@ Value ArrayObject::each(Env *env, Block *block) {
 }
 
 Value ArrayObject::each_index(Env *env, Block *block) {
-    if (!block)
-        return send(env, "enum_for"_s, { "each_index"_s });
+    if (!block) {
+        Block *size_block = new Block { env, this, ArrayObject::size_fn, 0 };
+        return send(env, "enum_for"_s, { "each_index"_s }, size_block);
+    }
 
     nat_int_t size_nat_int_t = static_cast<nat_int_t>(size());
     for (nat_int_t i = 0; i < size_nat_int_t; i++) {
@@ -435,8 +439,10 @@ Value ArrayObject::each_index(Env *env, Block *block) {
 }
 
 Value ArrayObject::map(Env *env, Block *block) {
-    if (!block)
-        return send(env, "enum_for"_s, { "map"_s });
+    if (!block) {
+        Block *size_block = new Block { env, this, ArrayObject::size_fn, 0 };
+        return send(env, "enum_for"_s, { "map"_s }, size_block);
+    }
 
     ArrayObject *copy = new ArrayObject { *this };
     copy->map_in_place(env, block);
@@ -444,8 +450,10 @@ Value ArrayObject::map(Env *env, Block *block) {
 }
 
 Value ArrayObject::map_in_place(Env *env, Block *block) {
-    if (!block)
-        return send(env, "enum_for"_s, { "map!"_s });
+    if (!block) {
+        Block *size_block = new Block { env, this, ArrayObject::size_fn, 0 };
+        return send(env, "enum_for"_s, { "map!"_s }, size_block);
+    }
 
     assert_not_frozen(env);
 
@@ -698,8 +706,10 @@ Value ArrayObject::delete_at(Env *env, Value n) {
 }
 
 Value ArrayObject::delete_if(Env *env, Block *block) {
-    if (!block)
-        return send(env, "enum_for"_s, { "delete_if"_s });
+    if (!block) {
+        Block *size_block = new Block { env, this, ArrayObject::size_fn, 0 };
+        return send(env, "enum_for"_s, { "delete_if"_s }, size_block);
+    }
 
     this->assert_not_frozen(env);
 
@@ -915,8 +925,10 @@ Value ArrayObject::sort(Env *env, Block *block) {
 }
 
 Value ArrayObject::keep_if(Env *env, Block *block) {
-    if (!block)
-        return send(env, "enum_for"_s, { "keep_if"_s });
+    if (!block) {
+        Block *size_block = new Block { env, this, ArrayObject::size_fn, 0 };
+        return send(env, "enum_for"_s, { "keep_if"_s }, size_block);
+    }
 
     select_in_place(env, block);
     return this;
@@ -1112,8 +1124,10 @@ bool array_sort_by_compare(Env *env, Value a, Value b, Block *block) {
 }
 
 Value ArrayObject::sort_by_in_place(Env *env, Block *block) {
-    if (!block)
-        return send(env, "enum_for"_s, { "sort_by!"_s });
+    if (!block) {
+        Block *size_block = new Block { env, this, ArrayObject::size_fn, 0 };
+        return send(env, "enum_for"_s, { "sort_by!"_s }, size_block);
+    }
 
     this->assert_not_frozen(env);
 
@@ -1125,8 +1139,10 @@ Value ArrayObject::sort_by_in_place(Env *env, Block *block) {
 }
 
 Value ArrayObject::select(Env *env, Block *block) {
-    if (!block)
-        return send(env, "enum_for"_s, { "select"_s });
+    if (!block) {
+        Block *size_block = new Block { env, this, ArrayObject::size_fn, 0 };
+        return send(env, "enum_for"_s, { "select"_s }, size_block);
+    }
 
     ArrayObject *copy = new ArrayObject(*this);
     copy->select_in_place(env, block);
@@ -1134,8 +1150,10 @@ Value ArrayObject::select(Env *env, Block *block) {
 }
 
 Value ArrayObject::select_in_place(Env *env, Block *block) {
-    if (!block)
-        return send(env, "enum_for"_s, { "select!"_s });
+    if (!block) {
+        Block *size_block = new Block { env, this, ArrayObject::size_fn, 0 };
+        return send(env, "enum_for"_s, { "select!"_s }, size_block);
+    }
 
     assert_not_frozen(env);
 
@@ -1167,8 +1185,10 @@ bool ArrayObject::select_in_place(std::function<bool(Value &)> predicate) {
 }
 
 Value ArrayObject::reject(Env *env, Block *block) {
-    if (!block)
-        return send(env, "enum_for"_s, { "reject"_s });
+    if (!block) {
+        Block *size_block = new Block { env, this, ArrayObject::size_fn, 0 };
+        return send(env, "enum_for"_s, { "reject"_s }, size_block);
+    }
 
     ArrayObject *copy = new ArrayObject(*this);
     copy->reject_in_place(env, block);
@@ -1176,8 +1196,10 @@ Value ArrayObject::reject(Env *env, Block *block) {
 }
 
 Value ArrayObject::reject_in_place(Env *env, Block *block) {
-    if (!block)
-        return send(env, "enum_for"_s, { "reject!"_s });
+    if (!block) {
+        Block *size_block = new Block { env, this, ArrayObject::size_fn, 0 };
+        return send(env, "enum_for"_s, { "reject!"_s }, size_block);
+    }
 
     assert_not_frozen(env);
 
