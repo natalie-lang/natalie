@@ -59,6 +59,28 @@ class TestCompiler2 < TestCase
     assert_eq('x', x)
   end
 
+  def test_range
+    r = 1..3
+    assert_eq(1, r.begin)
+    assert_eq(3, r.end)
+    assert_eq(false, r.exclude_end?)
+
+    r = 1...3
+    assert_eq(1, r.begin)
+    assert_eq(3, r.end)
+    assert_eq(true, r.exclude_end?)
+
+    r = (..3)
+    assert_eq(nil, r.begin)
+    assert_eq(3, r.end)
+    assert_eq(false, r.exclude_end?)
+
+    r = (1...)
+    assert_eq(1, r.begin)
+    assert_eq(nil, r.end)
+    assert_eq(true, r.exclude_end?)
+  end
+
   def test_splat_args
     assert_eq([[1, 2], 3], splat_left(1, 2, 3))
     assert_eq([1, [2, 3], 4, 5], splat_middle(1, 2, 3, 4, 5))

@@ -255,6 +255,12 @@ void Parser::parse_rest_of_begin(BeginNode *begin_node, LocalsHashmap &locals) {
     advance();
 }
 
+Node *Parser::parse_beginless_range(LocalsHashmap &locals) {
+    auto token = current_token();
+    advance();
+    return new RangeNode { token, new NilNode { token }, parse_expression(LOWEST, locals), token->type() == Token::Type::DotDotDot };
+}
+
 Node *Parser::parse_block_pass(LocalsHashmap &locals) {
     auto token = current_token();
     advance();
@@ -1456,7 +1462,15 @@ Node *Parser::parse_proc_call_expression(Node *left, LocalsHashmap &locals) {
 Node *Parser::parse_range_expression(Node *left, LocalsHashmap &locals) {
     auto token = current_token();
     advance();
-    return new RangeNode { token, left, parse_expression(LOWEST, locals), token->type() == Token::Type::DotDotDot };
+    Node *right;
+    try {
+        right = parse_expression(LOWEST, locals);
+    } catch (SyntaxError &e) {
+        // NOTE: I'm not sure if this is the "right" way to handle an endless range,
+        // but it seems to be effective for the tests I threw at it. ¯\_(ツ)_/¯
+        right = new NilNode { token };
+    }
+    return new RangeNode { token, left, right, token->type() == Token::Type::DotDotDot };
 }
 
 Node *Parser::parse_ref_expression(Node *left, LocalsHashmap &locals) {
@@ -1591,6 +1605,9 @@ Parser::parse_null_fn Parser::null_denotation(Token::Type type, Precedence prece
         return &Parser::parse_def;
     case Type::DefinedKeyword:
         return &Parser::parse_defined;
+    case Type::DotDot:
+    case Type::DotDotDot:
+        return &Parser::parse_beginless_range;
     case Type::FILEKeyword:
         return &Parser::parse_file_constant;
     case Type::LParen:
