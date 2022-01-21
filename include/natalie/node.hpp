@@ -86,7 +86,7 @@ public:
 
     virtual bool is_callable() { return false; }
 
-    const String *file() { return m_token->file(); }
+    const ManagedString *file() { return m_token->file(); }
     size_t line() { return m_token->line(); }
     size_t column() { return m_token->column(); }
 
@@ -159,7 +159,7 @@ public:
 
     ArgNode(Token *token, const char *name)
         : Node { token }
-        , m_name { new String(name) } {
+        , m_name { new ManagedString(name) } {
         assert(m_name);
     }
 
@@ -192,7 +192,7 @@ public:
     }
 
 protected:
-    const String *m_name { nullptr };
+    const ManagedString *m_name { nullptr };
     bool m_block_arg { false };
     bool m_splat { false };
     bool m_kwsplat { false };
@@ -401,7 +401,7 @@ public:
     CallNode(Token *token, Node *receiver, const char *message)
         : NodeWithArgs { token }
         , m_receiver { receiver }
-        , m_message { new String(message) } {
+        , m_message { new ManagedString(message) } {
         assert(m_receiver);
         assert(m_message);
     }
@@ -425,14 +425,14 @@ public:
 
     const char *message() { return m_message->c_str(); }
 
-    void set_message(const String *message) {
+    void set_message(const ManagedString *message) {
         assert(message);
         m_message = message;
     }
 
     void set_message(const char *message) {
         assert(message);
-        m_message = new String(message);
+        m_message = new ManagedString(message);
     }
 
     virtual void visit_children(Visitor &visitor) override {
@@ -443,7 +443,7 @@ public:
 
 protected:
     Node *m_receiver { nullptr };
-    const String *m_message { nullptr };
+    const ManagedString *m_message { nullptr };
 };
 
 class CaseNode : public Node {
@@ -559,7 +559,7 @@ public:
     Colon2Node(Token *token, Node *left, const char *name)
         : Node { token }
         , m_left { left }
-        , m_name { new String(name) } {
+        , m_name { new ManagedString(name) } {
         assert(m_left);
         assert(m_name);
     }
@@ -576,14 +576,14 @@ public:
 
 protected:
     Node *m_left { nullptr };
-    const String *m_name { nullptr };
+    const ManagedString *m_name { nullptr };
 };
 
 class Colon3Node : public Node {
 public:
     Colon3Node(Token *token, const char *name)
         : Node { token }
-        , m_name { new String(name) } {
+        , m_name { new ManagedString(name) } {
         assert(m_name);
     }
 
@@ -597,7 +597,7 @@ public:
     }
 
 protected:
-    const String *m_name { nullptr };
+    const ManagedString *m_name { nullptr };
 };
 
 class ConstantNode : public Node {
@@ -667,13 +667,13 @@ protected:
 
 class DefNode : public NodeWithArgs {
 public:
-    DefNode(Token *token, Node *self_node, String *name, ManagedVector<Node *> &args, BlockNode *body)
+    DefNode(Token *token, Node *self_node, ManagedString *name, ManagedVector<Node *> &args, BlockNode *body)
         : NodeWithArgs { token, args }
         , m_self_node { self_node }
         , m_name { name }
         , m_body { body } { }
 
-    DefNode(Token *token, String *name, ManagedVector<Node *> &args, BlockNode *body)
+    DefNode(Token *token, ManagedString *name, ManagedVector<Node *> &args, BlockNode *body)
         : NodeWithArgs { token, args }
         , m_name { name }
         , m_body { body } { }
@@ -688,7 +688,7 @@ protected:
     SexpObject *build_args_sexp(Env *);
 
     Node *m_self_node { nullptr };
-    String *m_name { nullptr };
+    ManagedString *m_name { nullptr };
     BlockNode *m_body { nullptr };
 };
 
@@ -760,7 +760,7 @@ public:
     const char *name() { return m_token->literal(); }
 
     void append_to_name(char c) {
-        auto literal = new String(m_token->literal());
+        auto literal = new ManagedString(m_token->literal());
         literal->append_char(c);
         m_token->set_literal(literal);
     }
@@ -1160,7 +1160,7 @@ public:
         assert(m_value);
     }
 
-    OpAssignNode(Token *token, const String *op, IdentifierNode *name, Node *value)
+    OpAssignNode(Token *token, const ManagedString *op, IdentifierNode *name, Node *value)
         : Node { token }
         , m_op { op }
         , m_name { name }
@@ -1182,14 +1182,14 @@ public:
     }
 
 protected:
-    const String *m_op { nullptr };
+    const ManagedString *m_op { nullptr };
     IdentifierNode *m_name { nullptr };
     Node *m_value { nullptr };
 };
 
 class OpAssignAccessorNode : public NodeWithArgs {
 public:
-    OpAssignAccessorNode(Token *token, const String *op, Node *receiver, const String *message, Node *value, ManagedVector<Node *> &args)
+    OpAssignAccessorNode(Token *token, const ManagedString *op, Node *receiver, const ManagedString *message, Node *value, ManagedVector<Node *> &args)
         : NodeWithArgs { token, args }
         , m_op { op }
         , m_receiver { receiver }
@@ -1214,9 +1214,9 @@ public:
     }
 
 protected:
-    const String *m_op { nullptr };
+    const ManagedString *m_op { nullptr };
     Node *m_receiver { nullptr };
-    const String *m_message { nullptr };
+    const ManagedString *m_message { nullptr };
     Node *m_value { nullptr };
 };
 
@@ -1269,7 +1269,7 @@ protected:
 
 class RegexpNode : public Node {
 public:
-    RegexpNode(Token *token, const String *pattern)
+    RegexpNode(Token *token, const ManagedString *pattern)
         : Node { token }
         , m_pattern { pattern } {
         assert(m_pattern);
@@ -1279,9 +1279,9 @@ public:
 
     virtual Value to_ruby(Env *) override;
 
-    const String *pattern() { return m_pattern; }
+    const ManagedString *pattern() { return m_pattern; }
 
-    void set_options(const String *options) { m_options = options; }
+    void set_options(const ManagedString *options) { m_options = options; }
 
     virtual void visit_children(Visitor &visitor) override {
         Node::visit_children(visitor);
@@ -1290,8 +1290,8 @@ public:
     }
 
 protected:
-    const String *m_pattern { nullptr };
-    const String *m_options { nullptr };
+    const ManagedString *m_pattern { nullptr };
+    const ManagedString *m_options { nullptr };
 };
 
 class ReturnNode : public Node {
@@ -1347,7 +1347,7 @@ public:
 
 class ShellNode : public Node {
 public:
-    ShellNode(Token *token, String *string)
+    ShellNode(Token *token, ManagedString *string)
         : Node { token }
         , m_string { string } {
         assert(m_string);
@@ -1357,7 +1357,7 @@ public:
 
     virtual Value to_ruby(Env *) override;
 
-    String *string() { return m_string; }
+    ManagedString *string() { return m_string; }
 
     virtual void visit_children(Visitor &visitor) override {
         Node::visit_children(visitor);
@@ -1365,7 +1365,7 @@ public:
     }
 
 protected:
-    String *m_string { nullptr };
+    ManagedString *m_string { nullptr };
 };
 
 class SplatAssignmentNode : public Node {
@@ -1431,7 +1431,7 @@ public:
 
 class StringNode : public Node {
 public:
-    StringNode(Token *token, String *string)
+    StringNode(Token *token, ManagedString *string)
         : Node { token }
         , m_string { string } {
         assert(m_string);
@@ -1441,7 +1441,7 @@ public:
 
     virtual Value to_ruby(Env *) override;
 
-    String *string() { return m_string; }
+    ManagedString *string() { return m_string; }
     StringObject *to_string_value() { return new StringObject(m_string); }
 
     virtual void visit_children(Visitor &visitor) override {
@@ -1450,12 +1450,12 @@ public:
     }
 
 protected:
-    String *m_string { nullptr };
+    ManagedString *m_string { nullptr };
 };
 
 class SymbolNode : public Node {
 public:
-    SymbolNode(Token *token, String *name)
+    SymbolNode(Token *token, ManagedString *name)
         : Node { token }
         , m_name { name } { }
 
@@ -1469,7 +1469,7 @@ public:
     }
 
 protected:
-    String *m_name { nullptr };
+    ManagedString *m_name { nullptr };
 };
 
 class TrueNode : public Node {

@@ -7,7 +7,7 @@ namespace Natalie {
 
 class BignumObject : public IntegerObject {
 public:
-    BignumObject(const String &num)
+    BignumObject(const ManagedString &num)
         : IntegerObject { -1 }
         , m_bigint(new BigInt(num)) { }
 

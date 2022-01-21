@@ -34,6 +34,7 @@
 #include "natalie/io_object.hpp"
 #include "natalie/kernel_module.hpp"
 #include "natalie/local_jump_error_type.hpp"
+#include "natalie/managed_string.hpp"
 #include "natalie/match_data_object.hpp"
 #include "natalie/method.hpp"
 #include "natalie/method_object.hpp"
@@ -130,7 +131,7 @@ int pclose2(FILE *, pid_t);
 
 void set_status_object(Env *, int, int);
 
-const String *int_to_hex_string(nat_int_t, bool);
+const ManagedString *int_to_hex_string(nat_int_t, bool);
 
 Value super(Env *, Value, size_t, Value *, Block *);
 

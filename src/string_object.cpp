@@ -420,15 +420,15 @@ Value StringObject::encoding(Env *env) {
     NAT_UNREACHABLE();
 }
 
-static EncodingObject *find_encoding_by_name(Env *env, const String *name) {
-    String *lcase_name = name->lowercase();
+static EncodingObject *find_encoding_by_name(Env *env, const ManagedString *name) {
+    ManagedString *lcase_name = name->lowercase();
     ArrayObject *list = EncodingObject::list(env);
     for (size_t i = 0; i < list->size(); i++) {
         EncodingObject *encoding = (*list)[i]->as_encoding();
         ArrayObject *names = encoding->names(env);
         for (size_t n = 0; n < names->size(); n++) {
             StringObject *name_obj = (*names)[n]->as_string();
-            String *name = name_obj->to_low_level_string()->lowercase();
+            ManagedString *name = name_obj->to_low_level_string()->lowercase();
             if (*name == *lcase_name) {
                 return encoding;
             }
@@ -955,7 +955,7 @@ void StringObject::append(Env *, const StringObject *str) {
     m_string.append(str->c_str());
 }
 
-void StringObject::append(Env *, const String *str) {
+void StringObject::append(Env *, const ManagedString *str) {
     m_string.append(str->c_str());
 }
 

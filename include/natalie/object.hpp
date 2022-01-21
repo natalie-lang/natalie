@@ -155,7 +155,7 @@ public:
     SymbolObject *to_symbol(Env *, Conversion);
     SymbolObject *to_instance_variable_name(Env *);
 
-    const String *identifier_str(Env *, Conversion);
+    const ManagedString *identifier_str(Env *, Conversion);
 
     ClassObject *singleton_class() const { return m_singleton_class; }
     ClassObject *singleton_class(Env *);
@@ -203,10 +203,10 @@ public:
 
     Value itself() { return this; }
 
-    const String *pointer_id() {
+    const ManagedString *pointer_id() {
         char buf[100]; // ought to be enough for anybody ;-)
         snprintf(buf, 100, "%p", this);
-        return new String(buf);
+        return new ManagedString(buf);
     }
 
     Value public_send(Env *, SymbolObject *, size_t = 0, Value * = nullptr, Block * = nullptr);
@@ -263,7 +263,7 @@ public:
     void assert_type(Env *, Object::Type, const char *);
     void assert_not_frozen(Env *);
 
-    const String *inspect_str(Env *);
+    const ManagedString *inspect_str(Env *);
 
     Value enum_for(Env *env, const char *method, size_t argc = 0, Value *args = nullptr);
 

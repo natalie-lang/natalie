@@ -39,7 +39,7 @@
     Checks whether the given string is a valid integer.
 */
 
-bool is_valid_number(const Natalie::String &num) {
+bool is_valid_number(const TM::String &num) {
     for (size_t i = 0; i < num.size(); ++i) {
         char digit = num[i];
         if (digit < '0' or digit > '9')
@@ -54,7 +54,7 @@ bool is_valid_number(const Natalie::String &num) {
     Strip the leading zeroes from a number represented as a string.
 */
 
-void strip_leading_zeroes(Natalie::String &num) {
+void strip_leading_zeroes(TM::String &num) {
     size_t i;
     for (i = 0; i < num.size(); i++)
         if (num[i] != '0')
@@ -72,8 +72,8 @@ void strip_leading_zeroes(Natalie::String &num) {
     Adds a given number of leading zeroes to a string-represented integer `num`.
 */
 
-void add_leading_zeroes(Natalie::String &num, size_t num_zeroes) {
-    num.prepend(Natalie::String(num_zeroes, '0').c_str());
+void add_leading_zeroes(TM::String &num, size_t num_zeroes) {
+    num.prepend(TM::String(num_zeroes, '0').c_str());
 }
 
 /*
@@ -82,8 +82,8 @@ void add_leading_zeroes(Natalie::String &num, size_t num_zeroes) {
     Adds a given number of trailing zeroes to a string-represented integer `num`.
 */
 
-void add_trailing_zeroes(Natalie::String &num, size_t num_zeroes) {
-    num.append(Natalie::String(num_zeroes, '0').c_str());
+void add_trailing_zeroes(TM::String &num, size_t num_zeroes) {
+    num.append(TM::String(num_zeroes, '0').c_str());
 }
 
 /*
@@ -94,9 +94,9 @@ void add_trailing_zeroes(Natalie::String &num, size_t num_zeroes) {
     the larger number.
 */
 
-std::tuple<Natalie::String, Natalie::String> get_larger_and_smaller(const Natalie::String &num1,
-    const Natalie::String &num2) {
-    Natalie::String larger, smaller;
+std::tuple<TM::String, TM::String> get_larger_and_smaller(const TM::String &num1,
+    const TM::String &num2) {
+    TM::String larger, smaller;
     if (num1.size() > num2.size() or (num1.size() == num2.size() and num1 > num2)) {
         larger = num1;
         smaller = num2;
@@ -117,7 +117,7 @@ std::tuple<Natalie::String, Natalie::String> get_larger_and_smaller(const Natali
     Checks whether a string-represented integer is a power of 10.
 */
 
-bool is_power_of_10(const Natalie::String &num) {
+bool is_power_of_10(const TM::String &num) {
     if (num[0] != '1')
         return false;
     for (size_t i = 1; i < num.size(); i++)
@@ -199,7 +199,7 @@ BigInt::BigInt(const BigInt &num) {
 */
 
 BigInt::BigInt(const long long &num) {
-    value = Natalie::String(std::abs(num));
+    value = TM::String(std::abs(num));
     if (num < 0)
         sign = '-';
     else
@@ -212,7 +212,7 @@ BigInt::BigInt(const long long &num) {
 */
 
 BigInt::BigInt(const int &num) {
-    value = Natalie::String(std::abs(num));
+    value = TM::String(std::abs(num));
     if (num < 0)
         sign = '-';
     else
@@ -227,7 +227,7 @@ BigInt::BigInt(const int &num) {
 BigInt::BigInt(const double &num) {
     assert(floor(num) == num);
 
-    value = Natalie::String(std::abs(num), 1);
+    value = TM::String(std::abs(num), 1);
     value.truncate(value.size() - 2);
     if (num < 0)
         sign = '-';
@@ -240,9 +240,9 @@ BigInt::BigInt(const double &num) {
     ----------------
 */
 
-BigInt::BigInt(const Natalie::String &num) {
+BigInt::BigInt(const TM::String &num) {
     if (num[0] == '+' or num[0] == '-') { // check for sign
-        Natalie::String magnitude = num.substring(1);
+        TM::String magnitude = num.substring(1);
         // Expected an integer, got num
         assert(is_valid_number(magnitude));
         value = magnitude;
@@ -268,7 +268,7 @@ BigInt::BigInt(const Natalie::String &num) {
     Converts a BigInt to a string.
 */
 
-Natalie::String BigInt::to_string() const {
+TM::String BigInt::to_string() const {
     // prefix with sign if negative
     if (this->sign == '-') {
         auto copy = this->value;
@@ -355,7 +355,7 @@ BigInt &BigInt::operator=(const long long &num) {
     ---------------
 */
 
-BigInt &BigInt::operator=(const Natalie::String &num) {
+BigInt &BigInt::operator=(const TM::String &num) {
     BigInt temp(num);
     value = temp.value;
     sign = temp.sign;
@@ -696,7 +696,7 @@ bool BigInt::operator>=(const double &num) const {
     ----------------
 */
 
-bool BigInt::operator==(const Natalie::String &num) const {
+bool BigInt::operator==(const TM::String &num) const {
     return *this == BigInt(num);
 }
 
@@ -705,7 +705,7 @@ bool BigInt::operator==(const Natalie::String &num) const {
     ----------------
 */
 
-bool operator==(const Natalie::String &lhs, const BigInt &rhs) {
+bool operator==(const TM::String &lhs, const BigInt &rhs) {
     return BigInt(lhs) == rhs;
 }
 
@@ -714,7 +714,7 @@ bool operator==(const Natalie::String &lhs, const BigInt &rhs) {
     ----------------
 */
 
-bool BigInt::operator!=(const Natalie::String &num) const {
+bool BigInt::operator!=(const TM::String &num) const {
     return !(*this == BigInt(num));
 }
 
@@ -723,7 +723,7 @@ bool BigInt::operator!=(const Natalie::String &num) const {
     ----------------
 */
 
-bool operator!=(const Natalie::String &lhs, const BigInt &rhs) {
+bool operator!=(const TM::String &lhs, const BigInt &rhs) {
     return BigInt(lhs) != rhs;
 }
 
@@ -732,7 +732,7 @@ bool operator!=(const Natalie::String &lhs, const BigInt &rhs) {
     ---------------
 */
 
-bool BigInt::operator<(const Natalie::String &num) const {
+bool BigInt::operator<(const TM::String &num) const {
     return *this < BigInt(num);
 }
 
@@ -741,7 +741,7 @@ bool BigInt::operator<(const Natalie::String &num) const {
     ---------------
 */
 
-bool operator<(const Natalie::String &lhs, const BigInt &rhs) {
+bool operator<(const TM::String &lhs, const BigInt &rhs) {
     return BigInt(lhs) < rhs;
 }
 
@@ -750,7 +750,7 @@ bool operator<(const Natalie::String &lhs, const BigInt &rhs) {
     ---------------
 */
 
-bool BigInt::operator>(const Natalie::String &num) const {
+bool BigInt::operator>(const TM::String &num) const {
     return *this > BigInt(num);
 }
 
@@ -759,7 +759,7 @@ bool BigInt::operator>(const Natalie::String &num) const {
     ---------------
 */
 
-bool operator>(const Natalie::String &lhs, const BigInt &rhs) {
+bool operator>(const TM::String &lhs, const BigInt &rhs) {
     return BigInt(lhs) > rhs;
 }
 
@@ -768,7 +768,7 @@ bool operator>(const Natalie::String &lhs, const BigInt &rhs) {
     ----------------
 */
 
-bool BigInt::operator<=(const Natalie::String &num) const {
+bool BigInt::operator<=(const TM::String &num) const {
     return !(*this > BigInt(num));
 }
 
@@ -777,7 +777,7 @@ bool BigInt::operator<=(const Natalie::String &num) const {
     ----------------
 */
 
-bool operator<=(const Natalie::String &lhs, const BigInt &rhs) {
+bool operator<=(const TM::String &lhs, const BigInt &rhs) {
     return BigInt(lhs) <= rhs;
 }
 
@@ -786,7 +786,7 @@ bool operator<=(const Natalie::String &lhs, const BigInt &rhs) {
     ----------------
 */
 
-bool BigInt::operator>=(const Natalie::String &num) const {
+bool BigInt::operator>=(const TM::String &num) const {
     return !(*this < BigInt(num));
 }
 
@@ -795,7 +795,7 @@ bool BigInt::operator>=(const Natalie::String &num) const {
     ----------------
 */
 
-bool operator>=(const Natalie::String &lhs, const BigInt &rhs) {
+bool operator>=(const TM::String &lhs, const BigInt &rhs) {
     return BigInt(lhs) >= rhs;
 }
 
@@ -823,7 +823,7 @@ BigInt abs(const BigInt &num) {
 */
 
 BigInt big_pow10(size_t exp) {
-    auto string = Natalie::String(exp, '0');
+    auto string = TM::String(exp, '0');
     string.prepend_char('1');
     return BigInt(string);
 }
@@ -873,7 +873,7 @@ BigInt pow(const long long &base, int exp) {
     Returns a BigInt equal to base^exp.
 */
 
-BigInt pow(const Natalie::String &base, int exp) {
+BigInt pow(const TM::String &base, int exp) {
     return pow(BigInt(base), exp);
 }
 
@@ -955,7 +955,7 @@ BigInt gcd(const BigInt &num1, const long long &num2) {
     -------------------
 */
 
-BigInt gcd(const BigInt &num1, const Natalie::String &num2) {
+BigInt gcd(const BigInt &num1, const TM::String &num2) {
     return gcd(num1, BigInt(num2));
 }
 
@@ -973,7 +973,7 @@ BigInt gcd(const long long &num1, const BigInt &num2) {
     -------------------
 */
 
-BigInt gcd(const Natalie::String &num1, const BigInt &num2) {
+BigInt gcd(const TM::String &num1, const BigInt &num2) {
     return gcd(BigInt(num1), num2);
 }
 
@@ -1004,7 +1004,7 @@ BigInt lcm(const BigInt &num1, const long long &num2) {
     -------------------
 */
 
-BigInt lcm(const BigInt &num1, const Natalie::String &num2) {
+BigInt lcm(const BigInt &num1, const TM::String &num2) {
     return lcm(num1, BigInt(num2));
 }
 
@@ -1022,7 +1022,7 @@ BigInt lcm(const long long &num1, const BigInt &num2) {
     -------------------
 */
 
-BigInt lcm(const Natalie::String &num1, const BigInt &num2) {
+BigInt lcm(const TM::String &num1, const BigInt &num2) {
     return lcm(BigInt(num1), num2);
 }
 
@@ -1057,7 +1057,7 @@ BigInt BigInt::operator+(const BigInt &num) const {
     }
 
     // identify the numbers as `larger` and `smaller`
-    Natalie::String larger, smaller;
+    TM::String larger, smaller;
     std::tie(larger, smaller) = get_larger_and_smaller(this->value, num.value);
 
     BigInt result; // the resultant sum
@@ -1099,7 +1099,7 @@ BigInt BigInt::operator-(const BigInt &num) const {
 
     BigInt result; // the resultant difference
     // identify the numbers as `larger` and `smaller`
-    Natalie::String larger, smaller;
+    TM::String larger, smaller;
     if (abs(*this) > abs(num)) {
         larger = this->value;
         smaller = num.value;
@@ -1175,7 +1175,7 @@ BigInt BigInt::operator*(const BigInt &num) const {
             product.value.append(num.value.substring(1));
     } else {
         // identify the numbers as `larger` and `smaller`
-        Natalie::String larger, smaller;
+        TM::String larger, smaller;
         std::tie(larger, smaller) = get_larger_and_smaller(this->value, num.value);
 
         size_t half_length = larger.size() / 2;
@@ -1446,7 +1446,7 @@ BigInt operator%(const long long &lhs, const BigInt &rhs) {
     ---------------
 */
 
-BigInt BigInt::operator+(const Natalie::String &num) const {
+BigInt BigInt::operator+(const TM::String &num) const {
     return *this + BigInt(num);
 }
 
@@ -1455,7 +1455,7 @@ BigInt BigInt::operator+(const Natalie::String &num) const {
     ---------------
 */
 
-BigInt operator+(const Natalie::String &lhs, const BigInt &rhs) {
+BigInt operator+(const TM::String &lhs, const BigInt &rhs) {
     return BigInt(lhs) + rhs;
 }
 
@@ -1464,7 +1464,7 @@ BigInt operator+(const Natalie::String &lhs, const BigInt &rhs) {
     ---------------
 */
 
-BigInt BigInt::operator-(const Natalie::String &num) const {
+BigInt BigInt::operator-(const TM::String &num) const {
     return *this - BigInt(num);
 }
 
@@ -1473,7 +1473,7 @@ BigInt BigInt::operator-(const Natalie::String &num) const {
     ---------------
 */
 
-BigInt operator-(const Natalie::String &lhs, const BigInt &rhs) {
+BigInt operator-(const TM::String &lhs, const BigInt &rhs) {
     return BigInt(lhs) - rhs;
 }
 
@@ -1482,7 +1482,7 @@ BigInt operator-(const Natalie::String &lhs, const BigInt &rhs) {
     ---------------
 */
 
-BigInt BigInt::operator*(const Natalie::String &num) const {
+BigInt BigInt::operator*(const TM::String &num) const {
     return *this * BigInt(num);
 }
 
@@ -1491,7 +1491,7 @@ BigInt BigInt::operator*(const Natalie::String &num) const {
     ---------------
 */
 
-BigInt operator*(const Natalie::String &lhs, const BigInt &rhs) {
+BigInt operator*(const TM::String &lhs, const BigInt &rhs) {
     return BigInt(lhs) * rhs;
 }
 
@@ -1500,7 +1500,7 @@ BigInt operator*(const Natalie::String &lhs, const BigInt &rhs) {
     ---------------
 */
 
-BigInt BigInt::operator/(const Natalie::String &num) const {
+BigInt BigInt::operator/(const TM::String &num) const {
     return *this / BigInt(num);
 }
 
@@ -1509,7 +1509,7 @@ BigInt BigInt::operator/(const Natalie::String &num) const {
     ---------------
 */
 
-BigInt operator/(const Natalie::String &lhs, const BigInt &rhs) {
+BigInt operator/(const TM::String &lhs, const BigInt &rhs) {
     return BigInt(lhs) / rhs;
 }
 
@@ -1518,7 +1518,7 @@ BigInt operator/(const Natalie::String &lhs, const BigInt &rhs) {
     ---------------
 */
 
-BigInt BigInt::operator%(const Natalie::String &num) const {
+BigInt BigInt::operator%(const TM::String &num) const {
     return *this % BigInt(num);
 }
 
@@ -1527,7 +1527,7 @@ BigInt BigInt::operator%(const Natalie::String &num) const {
     ---------------
 */
 
-BigInt operator%(const Natalie::String &lhs, const BigInt &rhs) {
+BigInt operator%(const TM::String &lhs, const BigInt &rhs) {
     return BigInt(lhs) % rhs;
 }
 
@@ -1652,7 +1652,7 @@ BigInt &BigInt::operator%=(const long long &num) {
     ----------------
 */
 
-BigInt &BigInt::operator+=(const Natalie::String &num) {
+BigInt &BigInt::operator+=(const TM::String &num) {
     *this = *this + BigInt(num);
 
     return *this;
@@ -1663,7 +1663,7 @@ BigInt &BigInt::operator+=(const Natalie::String &num) {
     ----------------
 */
 
-BigInt &BigInt::operator-=(const Natalie::String &num) {
+BigInt &BigInt::operator-=(const TM::String &num) {
     *this = *this - BigInt(num);
 
     return *this;
@@ -1674,7 +1674,7 @@ BigInt &BigInt::operator-=(const Natalie::String &num) {
     ----------------
 */
 
-BigInt &BigInt::operator*=(const Natalie::String &num) {
+BigInt &BigInt::operator*=(const TM::String &num) {
     *this = *this * BigInt(num);
 
     return *this;
@@ -1685,7 +1685,7 @@ BigInt &BigInt::operator*=(const Natalie::String &num) {
     ----------------
 */
 
-BigInt &BigInt::operator/=(const Natalie::String &num) {
+BigInt &BigInt::operator/=(const TM::String &num) {
     *this = *this / BigInt(num);
 
     return *this;
@@ -1696,7 +1696,7 @@ BigInt &BigInt::operator/=(const Natalie::String &num) {
     ----------------
 */
 
-BigInt &BigInt::operator%=(const Natalie::String &num) {
+BigInt &BigInt::operator%=(const TM::String &num) {
     *this = *this % BigInt(num);
 
     return *this;
@@ -1770,9 +1770,9 @@ BigInt BigInt::operator--(int) {
     Converts a BigInt to a binary string.
 */
 
-Natalie::String to_binary(const BigInt &num) {
+TM::String to_binary(const BigInt &num) {
     BigInt copy_num(num);
-    Natalie::String binary_num;
+    TM::String binary_num;
 
     if (copy_num < 0) {
         copy_num *= -1;
@@ -1823,7 +1823,7 @@ Natalie::String to_binary(const BigInt &num) {
     Converts a binary string to a BigInt.
 */
 
-BigInt binary_to_BigInt(const Natalie::String &num) {
+BigInt binary_to_BigInt(const TM::String &num) {
     BigInt decimal_string;
 
     for (size_t i = num.size() - 1; i > 0; i--) {
@@ -1845,8 +1845,8 @@ BigInt binary_to_BigInt(const Natalie::String &num) {
     Extends a binary string to match the length of the longest binary string passed in while maintaining 2's Complement.
 */
 
-std::tuple<Natalie::String, Natalie::String> sign_extend_binary(const Natalie::String &num1, const Natalie::String &num2) {
-    Natalie::String larger, smaller;
+std::tuple<TM::String, TM::String> sign_extend_binary(const TM::String &num1, const TM::String &num2) {
+    TM::String larger, smaller;
 
     if (num1.size() > num2.size() || (num1.size() == num2.size() && num1 > num2)) {
         larger = num1;
@@ -1857,9 +1857,9 @@ std::tuple<Natalie::String, Natalie::String> sign_extend_binary(const Natalie::S
     }
 
     if (smaller[0] == '1') {
-        smaller.prepend(Natalie::String(larger.size() - smaller.size(), '1').c_str());
+        smaller.prepend(TM::String(larger.size() - smaller.size(), '1').c_str());
     } else {
-        smaller.prepend(Natalie::String(larger.size() - smaller.size(), '0').c_str());
+        smaller.prepend(TM::String(larger.size() - smaller.size(), '0').c_str());
     }
 
     return std::make_tuple(larger, smaller);
@@ -1872,14 +1872,14 @@ std::tuple<Natalie::String, Natalie::String> sign_extend_binary(const Natalie::S
 */
 
 BigInt BigInt::operator&(const BigInt &num) const {
-    Natalie::String lhs_binary, rhs_binary;
+    TM::String lhs_binary, rhs_binary;
     lhs_binary = to_binary(*this);
     rhs_binary = to_binary(num);
 
-    Natalie::String larger, smaller;
+    TM::String larger, smaller;
     std::tie(larger, smaller) = sign_extend_binary(lhs_binary, rhs_binary);
 
-    Natalie::String complete_string;
+    TM::String complete_string;
     for (size_t i = 0; i < larger.size(); i++) {
         if (larger[i] == '1' && smaller[i] == '1') {
             complete_string.append_char('1');
@@ -1898,14 +1898,14 @@ BigInt BigInt::operator&(const BigInt &num) const {
 */
 
 BigInt BigInt::operator|(const BigInt &num) const {
-    Natalie::String lhs_binary, rhs_binary;
+    TM::String lhs_binary, rhs_binary;
     lhs_binary = to_binary(*this);
     rhs_binary = to_binary(num);
 
-    Natalie::String larger, smaller;
+    TM::String larger, smaller;
     std::tie(larger, smaller) = sign_extend_binary(lhs_binary, rhs_binary);
 
-    Natalie::String complete_string;
+    TM::String complete_string;
     for (size_t i = 0; i < larger.size(); i++) {
         if (larger[i] == '1' || smaller[i] == '1') {
             complete_string.append_char('1');
@@ -1924,14 +1924,14 @@ BigInt BigInt::operator|(const BigInt &num) const {
 */
 
 BigInt BigInt::operator^(const BigInt &num) const {
-    Natalie::String lhs_binary, rhs_binary;
+    TM::String lhs_binary, rhs_binary;
     lhs_binary = to_binary(*this);
     rhs_binary = to_binary(num);
 
-    Natalie::String larger, smaller;
+    TM::String larger, smaller;
     std::tie(larger, smaller) = sign_extend_binary(lhs_binary, rhs_binary);
 
-    Natalie::String complete_string;
+    TM::String complete_string;
     for (size_t i = 0; i < larger.size(); i++) {
         if ((larger[i] == '1' && smaller[i] == '0') || (larger[i] == '0' && smaller[i] == '1')) {
             complete_string.append_char('1');
@@ -1950,10 +1950,10 @@ BigInt BigInt::operator^(const BigInt &num) const {
 */
 
 BigInt BigInt::operator~() const {
-    Natalie::String lhs_binary;
+    TM::String lhs_binary;
     lhs_binary = to_binary(*this);
 
-    Natalie::String complete_string;
+    TM::String complete_string;
     for (size_t i = 0; i < lhs_binary.size(); i++) {
         if (lhs_binary[i] == '1') {
             complete_string.append_char('0');
@@ -1966,7 +1966,7 @@ BigInt BigInt::operator~() const {
 }
 
 BigInt BigInt::operator<<(const size_t &num) const {
-    Natalie::String binary = to_binary(*this);
+    TM::String binary = to_binary(*this);
 
     for (size_t i = 0; i < num; ++i) {
         binary.append_char('0');
@@ -1976,8 +1976,8 @@ BigInt BigInt::operator<<(const size_t &num) const {
 }
 
 BigInt BigInt::operator>>(const size_t &num) const {
-    Natalie::String binary = to_binary(*this);
-    Natalie::String complete_string;
+    TM::String binary = to_binary(*this);
+    TM::String complete_string;
 
     for (size_t i = 0; i < binary.size() - num; ++i) {
         complete_string.append_char(binary[i]);

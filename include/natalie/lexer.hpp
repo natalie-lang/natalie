@@ -8,7 +8,7 @@ namespace Natalie {
 
 class Lexer : public Cell {
 public:
-    Lexer(const String *input, const String *file)
+    Lexer(const ManagedString *input, const ManagedString *file)
         : m_input { input }
         , m_file { file }
         , m_size { input->length() } {
@@ -544,7 +544,7 @@ private:
                 // kinda janky, but we gotta trick consume_word and then prepend the '@' back on the front
                 advance();
                 auto token = consume_word(Token::Type::ClassVariable);
-                token->set_literal(String::format("@{}", token->literal()));
+                token->set_literal(ManagedString::format("@{}", token->literal()));
                 return token;
             }
             default:
@@ -751,7 +751,7 @@ private:
 
     Token *consume_symbol() {
         char c = current_char();
-        auto buf = new String();
+        auto buf = new ManagedString();
         auto gobble = [&buf, this](char c) -> char { buf->append_char(c); advance(); return current_char(); };
         switch (c) {
         case '@':
@@ -807,7 +807,7 @@ private:
 
     Token *consume_word(Token::Type type) {
         char c = current_char();
-        auto buf = new String();
+        auto buf = new ManagedString();
         do {
             buf->append_char(c);
             advance();
@@ -851,7 +851,7 @@ private:
         case '!':
         case '=': {
             advance();
-            auto buf = new String("$");
+            auto buf = new ManagedString("$");
             buf->append_char(current_char());
             advance();
             return new Token { Token::Type::GlobalVariable, buf, m_file, m_token_line, m_token_column };
@@ -869,7 +869,7 @@ private:
             with_dash = true;
         }
         auto heredoc_name = consume_word(Token::Type::BareName);
-        auto doc = new String();
+        auto doc = new ManagedString();
         size_t heredoc_index = m_index;
         auto get_char = [&heredoc_index, this]() { return (heredoc_index >= m_size) ? 0 : m_input->at(heredoc_index); };
 
@@ -882,7 +882,7 @@ private:
         heredoc_index++;
 
         // consume the heredoc until we find the delimiter, either "\nDELIM\n" (if << was used) or "DELIM\n" (if <<- was used)
-        auto delimiter = new String(heredoc_name->literal());
+        auto delimiter = new ManagedString(heredoc_name->literal());
         delimiter->append_char('\n');
         if (!with_dash)
             delimiter->prepend_char('\n');
@@ -1034,7 +1034,7 @@ private:
     }
 
     Token *consume_double_quoted_string(char delimiter) {
-        auto buf = new String();
+        auto buf = new ManagedString();
         char c = current_char();
         while (c) {
             if (c == '\\') {
@@ -1065,7 +1065,7 @@ private:
     }
 
     Token *consume_single_quoted_string(char delimiter) {
-        auto buf = new String();
+        auto buf = new ManagedString();
         char c = current_char();
         while (c) {
             if (c == '\\') {
@@ -1094,7 +1094,7 @@ private:
     }
 
     Token *consume_quoted_array_without_interpolation(char delimiter, Token::Type type) {
-        auto buf = new String();
+        auto buf = new ManagedString();
         char c = current_char();
         bool seen_space = false;
         bool seen_start = false;
@@ -1124,7 +1124,7 @@ private:
     }
 
     Token *consume_quoted_array_with_interpolation(char delimiter, Token::Type type) {
-        auto buf = new String();
+        auto buf = new ManagedString();
         char c = current_char();
         bool seen_space = false;
         bool seen_start = false;
@@ -1154,7 +1154,7 @@ private:
     }
 
     Token *consume_regexp(char delimiter) {
-        auto buf = new String();
+        auto buf = new ManagedString();
         char c = current_char();
         while (c) {
             if (c == '\\') {
@@ -1163,7 +1163,7 @@ private:
                 buf->append_char(current_char());
             } else if (c == delimiter) {
                 advance();
-                auto options = new String();
+                auto options = new ManagedString();
                 while ((c = current_char())) {
                     if (c == 'i' || c == 'm' || c == 'x' || c == 'o') {
                         options->append_char(c);
@@ -1185,9 +1185,9 @@ private:
         return new Token { Token::Type::UnterminatedRegexp, buf, m_file, m_token_line, m_token_column };
     }
 
-    const String *consume_non_whitespace() {
+    const ManagedString *consume_non_whitespace() {
         char c = current_char();
-        auto buf = new String();
+        auto buf = new ManagedString();
         do {
             buf->append_char(c);
             advance();
@@ -1196,8 +1196,8 @@ private:
         return buf;
     }
 
-    const String *m_input { nullptr };
-    const String *m_file { nullptr };
+    const ManagedString *m_input { nullptr };
+    const ManagedString *m_file { nullptr };
     size_t m_size { 0 };
     size_t m_index { 0 };
 
@@ -1228,7 +1228,7 @@ private:
 class InterpolatedStringLexer {
 public:
     InterpolatedStringLexer(Token *token)
-        : m_input { new String(token->literal()) }
+        : m_input { new ManagedString(token->literal()) }
         , m_file { token->file() }
         , m_line { token->line() }
         , m_column { token->column() }
@@ -1236,7 +1236,7 @@ public:
 
     ManagedVector<Token *> *tokens() {
         auto tokens = new ManagedVector<Token *> {};
-        auto raw = new String();
+        auto raw = new ManagedString();
         while (m_index < m_size) {
             char c = current_char();
             if (c == '#' && peek() == '{') {
@@ -1271,8 +1271,8 @@ private:
         return m_input->at(m_index + 1);
     }
 
-    const String *m_input { nullptr };
-    const String *m_file { nullptr };
+    const ManagedString *m_input { nullptr };
+    const ManagedString *m_file { nullptr };
     size_t m_line { 0 };
     size_t m_column { 0 };
     size_t m_size { 0 };

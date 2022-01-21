@@ -33,7 +33,7 @@ public:
         char *m_message { nullptr };
     };
 
-    Parser(const String *code, const String *file)
+    Parser(const ManagedString *code, const ManagedString *file)
         : m_code { code }
         , m_file { file } {
         assert(m_code);
@@ -233,7 +233,7 @@ private:
     Node *parse_lit(LocalsHashmap &);
     Node *parse_keyword_args(LocalsHashmap &);
     Node *parse_keyword_splat(LocalsHashmap &);
-    String *parse_method_name(LocalsHashmap &);
+    ManagedString *parse_method_name(LocalsHashmap &);
     Node *parse_module(LocalsHashmap &);
     Node *parse_next(LocalsHashmap &);
     Node *parse_nil(LocalsHashmap &);
@@ -307,8 +307,8 @@ private:
     void advance() { m_index++; }
     void rewind() { m_index--; }
 
-    const String *m_code { nullptr };
-    const String *m_file { nullptr };
+    const ManagedString *m_code { nullptr };
+    const ManagedString *m_file { nullptr };
     size_t m_index { 0 };
     ManagedVector<Token *> *m_tokens { nullptr };
 };

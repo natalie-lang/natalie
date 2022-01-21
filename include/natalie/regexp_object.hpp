@@ -101,11 +101,11 @@ public:
         return m_options;
     }
 
-    void set_options(const String *options) {
+    void set_options(const ManagedString *options) {
         parse_options(options, &m_options);
     }
 
-    static void parse_options(const String *options_string, int *options) {
+    static void parse_options(const ManagedString *options_string, int *options) {
         for (char *c = const_cast<char *>(options_string->c_str()); *c != '\0'; ++c) {
             switch (*c) {
             case 'i':

@@ -26,7 +26,7 @@ Value ParserObject::parse(Env *env, Value code, Value source_path) {
 
 Value ParserObject::tokens(Env *env, Value code, Value with_line_and_column_numbers) {
     code->assert_type(env, Object::Type::String, "String");
-    auto lexer = Lexer { code->as_string()->to_low_level_string(), new String("(string)") };
+    auto lexer = Lexer { code->as_string()->to_low_level_string(), new ManagedString("(string)") };
     auto array = new ArrayObject {};
     auto the_tokens = lexer.tokens();
     auto include_line_and_column_numbers = with_line_and_column_numbers && with_line_and_column_numbers->is_truthy();

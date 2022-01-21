@@ -208,7 +208,7 @@ Env *build_top_env() {
     Value RUBY_COPYRIGHT = new StringObject { "natalie - Copyright (c) 2021 Tim Morgan and contributors" };
     Object->const_set("RUBY_COPYRIGHT"_s, RUBY_COPYRIGHT);
 
-    Natalie::String *ruby_revision_short = new Natalie::String { ruby_revision, 10 };
+    Natalie::ManagedString *ruby_revision_short = new Natalie::ManagedString { ruby_revision, 10 };
     StringObject *RUBY_DESCRIPTION = StringObject::format(env, "natalie ({} revision {}) [{}]", ruby_release_date, ruby_revision_short, ruby_platform);
     Object->const_set("RUBY_DESCRIPTION"_s, RUBY_DESCRIPTION);
 
@@ -724,9 +724,9 @@ void set_status_object(Env *env, int pid, int status) {
     env->global_set("$?"_s, status_obj);
 }
 
-const String *int_to_hex_string(nat_int_t num, bool capitalize) {
+const ManagedString *int_to_hex_string(nat_int_t num, bool capitalize) {
     if (num == 0) {
-        return new String("0");
+        return new ManagedString("0");
     } else {
         char buf[100]; // ought to be enough for anybody ;-)
         if (capitalize) {
@@ -734,7 +734,7 @@ const String *int_to_hex_string(nat_int_t num, bool capitalize) {
         } else {
             snprintf(buf, 100, "0x%llx", num);
         }
-        return new String(buf);
+        return new ManagedString(buf);
     }
 }
 

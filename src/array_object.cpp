@@ -966,7 +966,7 @@ Value ArrayObject::join(Env *env, Value joiner) {
                 else if (item->respond_to(env, to_s))
                     out->append(env, item.send(env, to_s)->as_string());
                 else
-                    out->append(env, String::format("#<{}:{}>", item->klass()->inspect_str()->c_str(), static_cast<size_t>(item)));
+                    out->append(env, ManagedString::format("#<{}:{}>", item->klass()->inspect_str()->c_str(), static_cast<size_t>(item)));
 
                 if (i < (size() - 1))
                     out->append(env, joiner->as_string());

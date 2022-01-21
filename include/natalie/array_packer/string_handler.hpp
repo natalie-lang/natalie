@@ -2,7 +2,7 @@
 
 #include "natalie/array_packer/tokenizer.hpp"
 #include "natalie/env.hpp"
-#include "natalie/string.hpp"
+#include "natalie/managed_string.hpp"
 
 namespace Natalie {
 
@@ -10,12 +10,12 @@ namespace ArrayPacker {
 
     class StringHandler {
     public:
-        StringHandler(String *source, Token token)
+        StringHandler(ManagedString *source, Token token)
             : m_source { source }
             , m_token { token }
-            , m_packed { new String } { }
+            , m_packed { new ManagedString } { }
 
-        String *pack(Env *env) {
+        ManagedString *pack(Env *env) {
             signed char d = m_token.directive;
             switch (d) {
             case 'a':
@@ -194,9 +194,9 @@ namespace ArrayPacker {
             return m_source->at(i);
         }
 
-        String *m_source;
+        ManagedString *m_source;
         Token m_token;
-        String *m_packed;
+        ManagedString *m_packed;
         size_t m_index { 0 };
     };
 

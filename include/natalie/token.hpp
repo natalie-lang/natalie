@@ -150,7 +150,7 @@ public:
         YieldKeyword,
     };
 
-    Token(Type type, const String *file, size_t line, size_t column)
+    Token(Type type, const ManagedString *file, size_t line, size_t column)
         : m_type { type }
         , m_file { file }
         , m_line { line }
@@ -158,9 +158,9 @@ public:
         assert(file);
     }
 
-    Token(Type type, const char *literal, const String *file, size_t line, size_t column)
+    Token(Type type, const char *literal, const ManagedString *file, size_t line, size_t column)
         : m_type { type }
-        , m_literal { new String(literal) }
+        , m_literal { new ManagedString(literal) }
         , m_file { file }
         , m_line { line }
         , m_column { column } {
@@ -168,7 +168,7 @@ public:
         assert(file);
     }
 
-    Token(Type type, const String *literal, const String *file, size_t line, size_t column)
+    Token(Type type, const ManagedString *literal, const ManagedString *file, size_t line, size_t column)
         : m_type { type }
         , m_literal { literal }
         , m_file { file }
@@ -178,16 +178,16 @@ public:
         assert(file);
     }
 
-    Token(Type type, char literal, const String *file, size_t line, size_t column)
+    Token(Type type, char literal, const ManagedString *file, size_t line, size_t column)
         : m_type { type }
-        , m_literal { new String(literal) }
+        , m_literal { new ManagedString(literal) }
         , m_file { file }
         , m_line { line }
         , m_column { column } {
         assert(file);
     }
 
-    Token(Type type, nat_int_t integer, const String *file, size_t line, size_t column)
+    Token(Type type, nat_int_t integer, const ManagedString *file, size_t line, size_t column)
         : m_type { type }
         , m_integer { integer }
         , m_file { file }
@@ -196,7 +196,7 @@ public:
         assert(file);
     }
 
-    Token(Type type, double dbl, const String *file, size_t line, size_t column)
+    Token(Type type, double dbl, const ManagedString *file, size_t line, size_t column)
         : m_type { type }
         , m_double { dbl }
         , m_file { file }
@@ -222,16 +222,16 @@ public:
         return m_literal.value()->c_str();
     }
 
-    const String *literal_string() {
+    const ManagedString *literal_string() {
         assert(m_literal);
         return m_literal.value();
     }
 
-    void set_literal(const char *literal) { m_literal = new String(literal); }
-    void set_literal(const String *literal) { m_literal = literal; }
+    void set_literal(const char *literal) { m_literal = new ManagedString(literal); }
+    void set_literal(const ManagedString *literal) { m_literal = literal; }
 
-    const String *options() { return m_options ? m_options.value() : nullptr; }
-    void set_options(const String *options) { m_options = options; }
+    const ManagedString *options() { return m_options ? m_options.value() : nullptr; }
+    void set_options(const ManagedString *options) { m_options = options; }
 
     nat_int_t get_integer() const { return m_integer; }
     double get_double() const { return m_double; }
@@ -675,7 +675,7 @@ public:
     bool has_sign() const { return m_has_sign; }
     void set_has_sign(bool has_sign) { m_has_sign = has_sign; }
 
-    const String *file() { return m_file; }
+    const ManagedString *file() { return m_file; }
     size_t line() const { return m_line; }
     size_t column() const { return m_column; }
 
@@ -759,12 +759,12 @@ public:
 
 private:
     Type m_type { Type::Invalid };
-    Optional<const String *> m_literal {};
-    Optional<const String *> m_options {};
+    Optional<const ManagedString *> m_literal {};
+    Optional<const ManagedString *> m_options {};
     nat_int_t m_integer { 0 };
     double m_double { 0 };
     bool m_has_sign { false };
-    const String *m_file { nullptr };
+    const ManagedString *m_file { nullptr };
     size_t m_line { 0 };
     size_t m_column { 0 };
     bool m_whitespace_precedes { false };

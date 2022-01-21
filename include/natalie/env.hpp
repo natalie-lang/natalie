@@ -7,8 +7,8 @@
 #include "natalie/gc.hpp"
 #include "natalie/global_env.hpp"
 #include "natalie/local_jump_error_type.hpp"
+#include "natalie/managed_string.hpp"
 #include "natalie/managed_vector.hpp"
-#include "natalie/string.hpp"
 #include "natalie/value.hpp"
 #include "tm/shared_ptr.hpp"
 
@@ -40,43 +40,43 @@ public:
     Value global_set(SymbolObject *, Value);
 
     Method *current_method();
-    const String *build_code_location_name(Env *);
+    const ManagedString *build_code_location_name(Env *);
 
     Value var_get(const char *, size_t);
     Value var_set(const char *, size_t, bool, Value);
 
     [[noreturn]] void raise(ClassObject *, StringObject *);
-    [[noreturn]] void raise(ClassObject *, const String *);
-    [[noreturn]] void raise(const char *, const String *);
+    [[noreturn]] void raise(ClassObject *, const ManagedString *);
+    [[noreturn]] void raise(const char *, const ManagedString *);
     [[noreturn]] void raise_exception(ExceptionObject *);
     [[noreturn]] void raise_key_error(Value, Value);
     [[noreturn]] void raise_local_jump_error(Value, LocalJumpErrorType);
     [[noreturn]] void raise_errno();
-    [[noreturn]] void raise_name_error(SymbolObject *name, const String *);
+    [[noreturn]] void raise_name_error(SymbolObject *name, const ManagedString *);
 
     template <typename... Args>
     [[noreturn]] void raise_name_error(SymbolObject *name, const char *format, Args... args) {
-        auto message = String::format(format, args...);
+        auto message = ManagedString::format(format, args...);
         raise_name_error(name, message);
     }
 
     template <typename... Args>
     [[noreturn]] void raise(ClassObject *klass, const char *format, Args... args) {
-        auto message = String::format(format, args...);
+        auto message = ManagedString::format(format, args...);
         raise(klass, message);
     }
 
     template <typename... Args>
     [[noreturn]] void raise(const char *class_name, const char *format, Args... args) {
-        auto message = String::format(format, args...);
+        auto message = ManagedString::format(format, args...);
         raise(class_name, message);
     }
 
-    void warn(const String *);
+    void warn(const ManagedString *);
 
     template <typename... Args>
     void warn(const char *format, Args... args) {
-        auto message = String::format(format, args...);
+        auto message = ManagedString::format(format, args...);
         warn(message);
     }
 

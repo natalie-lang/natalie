@@ -2,7 +2,7 @@
 
 namespace Natalie {
 
-NativeProfilerEvent *NativeProfilerEvent::named(const Type type, const String *name) {
+NativeProfilerEvent *NativeProfilerEvent::named(const Type type, const ManagedString *name) {
     return named(type, name->c_str());
 }
 

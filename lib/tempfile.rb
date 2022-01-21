@@ -9,7 +9,7 @@ class Tempfile
     __define_method__ :create, [:basename], <<-CPP
       basename->assert_type(env, Object::Type::String, "String");
       auto tmpdir = GlobalEnv::the()->Object()->const_fetch("Dir"_s).send(env, "tmpdir"_s)->as_string();
-      auto path_template = String::format("{}/{}XXXXXX", tmpdir, basename->as_string());
+      auto path_template = ManagedString::format("{}/{}XXXXXX", tmpdir, basename->as_string());
       int fileno = mkstemp(const_cast<char*>(path_template->c_str()));
       if (fileno == -1) {
           Value args[] = { Value::integer(errno) };
