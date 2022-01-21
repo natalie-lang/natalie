@@ -60,7 +60,7 @@ describe :kernel_String, shared: true do
     -> { @object.send(@method, obj) }.should raise_error(TypeError)
   end
 
-  # NATFIXME: Implement BasicObject#method_missing
+  # NATFIXME: Kernel.String should call #to_s if #respond_to?(:to_s) returns true
   xit "calls #to_s if #respond_to?(:to_s) returns true" do
     obj = mock('to_s')
     class << obj

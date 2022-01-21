@@ -52,6 +52,7 @@ public:
     [[noreturn]] void raise_key_error(Value, Value);
     [[noreturn]] void raise_local_jump_error(Value, LocalJumpErrorType);
     [[noreturn]] void raise_errno();
+    [[noreturn]] void raise_no_method_error(Object *, SymbolObject *, MethodMissingReason);
     [[noreturn]] void raise_name_error(SymbolObject *name, const ManagedString *);
 
     template <typename... Args>

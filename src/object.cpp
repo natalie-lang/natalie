@@ -561,18 +561,42 @@ Value Object::module_function(Env *env, size_t argc, Value *args) {
 }
 
 Value Object::public_send(Env *env, SymbolObject *name, size_t argc, Value *args, Block *block) {
-    Method *method = find_method(env, name, MethodVisibility::Public);
-    return method->call(env, this, argc, args, block);
+    return send(env, name, argc, args, block, MethodVisibility::Public);
 }
 
 Value Object::send(Env *env, SymbolObject *name, size_t argc, Value *args, Block *block) {
-    Method *method = find_method(env, name, MethodVisibility::Private);
-    return method->call(env, this, argc, args, block);
+    return send(env, name, argc, args, block, MethodVisibility::Private);
 }
 
 Value Object::send(Env *env, size_t argc, Value *args, Block *block) {
     auto name = args[0]->to_symbol(env, Object::Conversion::Strict);
     return send(env->caller(), name, argc - 1, args + 1, block);
+}
+
+Value Object::send(Env *env, SymbolObject *name, size_t argc, Value *args, Block *block, MethodVisibility visibility_at_least) {
+    Method *method = find_method(env, name, visibility_at_least);
+    if (method) {
+        return method->call(env, this, argc, args, block);
+    } else if (respond_to(env, "method_missing"_s)) {
+        ArrayObject new_args { argc + 1 };
+        new_args.push(name);
+        new_args.push(env, argc, args);
+        return send(env, "method_missing"_s, new_args.size(), new_args.data(), block);
+    } else {
+        env->raise_no_method_error(this, name, GlobalEnv::the()->method_missing_reason());
+    }
+}
+
+Value Object::method_missing(Env *env, size_t argc, Value *args, Block *block) {
+    if (argc == 0) {
+        env->raise("ArgError", "no method name given");
+    } else if (!args[0]->is_symbol()) {
+        env->raise("ArgError", "method name must be a Symbol but {} is given", args[0]->klass()->inspect_str());
+    } else {
+        auto name = args[0]->as_symbol();
+        env = env->caller();
+        env->raise_no_method_error(this, name, GlobalEnv::the()->method_missing_reason());
+    }
 }
 
 Method *Object::find_method(Env *env, SymbolObject *method_name, MethodVisibility visibility_at_least) {
@@ -585,15 +609,14 @@ Method *Object::find_method(Env *env, SymbolObject *method_name, MethodVisibilit
         if (visibility >= visibility_at_least) {
             return method;
         } else if (visibility == MethodVisibility::Protected) {
-            env->raise("NoMethodError", "protected method `{}' called for {}", method_name->c_str(), inspect_str(env));
+            GlobalEnv::the()->set_method_missing_reason(MethodMissingReason::Protected);
         } else {
-            env->raise("NoMethodError", "private method `{}' called for {}", method_name->c_str(), inspect_str(env));
+            GlobalEnv::the()->set_method_missing_reason(MethodMissingReason::Private);
         }
-    } else if (is_module()) {
-        env->raise("NoMethodError", "undefined method `{}' for {}:{}", method_name->c_str(), as_module()->inspect_str(), m_klass->inspect_str());
     } else {
-        env->raise("NoMethodError", "undefined method `{}' for {}", method_name->c_str(), inspect_str(env));
+        GlobalEnv::the()->set_method_missing_reason(MethodMissingReason::Undefined);
     }
+    return nullptr;
 }
 
 Value Object::dup(Env *env) {
