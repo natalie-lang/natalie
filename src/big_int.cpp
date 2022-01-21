@@ -31,6 +31,7 @@
 
 #include "natalie/big_int.hpp"
 #include <float.h>
+#include <math.h>
 #include <tuple>
 
 /*
