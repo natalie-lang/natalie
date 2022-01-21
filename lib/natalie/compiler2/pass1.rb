@@ -42,6 +42,7 @@ module Natalie
         rhs_instructions = transform_expression(rhs, used: true)
         instructions = [
           lhs_instructions,
+          MemoizeInstruction.new(:and_lhs),
           DupInstruction.new,
           IfInstruction.new,
           PopInstruction.new,
@@ -229,6 +230,7 @@ module Natalie
         rhs_instructions = transform_expression(rhs, used: true)
         instructions = [
           lhs_instructions,
+          MemoizeInstruction.new(:or_lhs),
           DupInstruction.new,
           IfInstruction.new,
           ElseInstruction.new,
