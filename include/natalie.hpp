@@ -131,8 +131,6 @@ int pclose2(FILE *, pid_t);
 
 void set_status_object(Env *, int, int);
 
-const ManagedString *int_to_hex_string(nat_int_t, bool);
-
 Value super(Env *, Value, size_t, Value *, Block *);
 
 void clean_up_and_exit(int status);

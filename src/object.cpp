@@ -807,7 +807,7 @@ bool Object::neq(Env *env, Value other) {
 
 const ManagedString *Object::inspect_str(Env *env) {
     if (!respond_to(env, "inspect"_s))
-        return ManagedString::format("#<{}:{}>", m_klass->inspect_str(), int_to_hex_string(object_id(), false));
+        return ManagedString::format("#<{}:{}>", m_klass->inspect_str(), String::hex(object_id(), String::HexFormat::LowercaseAndPrefixed));
     auto inspected = send(env, "inspect"_s);
     if (!inspected->is_string())
         return new ManagedString(""); // TODO: what to do here?
