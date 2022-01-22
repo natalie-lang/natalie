@@ -71,6 +71,8 @@ public:
     void append(const char *str) { String::append(str); }
     void append(const String &str) { String::append(str); }
     void append(size_t n, char c) { String::append(n, c); }
+
+    String to_low_level_string() const { return String(*this); }
 };
 
 }
